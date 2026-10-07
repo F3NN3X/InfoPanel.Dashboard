@@ -52,6 +52,8 @@ export interface Widget {
   unit?: string;
   /** Decimals to render a numeric value with (0 = integer). */
   decimals?: number;
+  /** Display-only multiplier for the number (e.g. B/s → GB/s). */
+  scale?: number;
   /** Hex color override for this widget's accents. */
   color?: string;
   /** Bar/gauge denominator (percent = value / max). */
@@ -110,6 +112,12 @@ export interface PanelDef {
   layout?: "wrap" | "grid" | "overlay";
   /** Column count for "grid" layout. */
   columns?: number;
+  /**
+   * "grid" layout: explicit CSS grid-template-columns, overriding the
+   * equal `columns` split (arcv2's clock row sandwiches the time between
+   * two thin accent bars).
+   */
+  gridCols?: string;
   /**
    * "overlay" layout: the default dark scrim over the background keeps light
    * text readable over any banner. Set to false for background art that is
@@ -696,7 +704,7 @@ export function sampleProfile(): MonitorProfile {
  * ---------------------------------------------------------------- */
 
 export const ARCV2_PROFILE_ID = "arcv2";
-export const ARCV2_PROFILE_VERSION = 4;
+export const ARCV2_PROFILE_VERSION = 5;
 
 /** The export's yellow accent (#FFFFBC13 in Profile/DisplayItems.xml). */
 const ARCV2_ACCENT = "#ffbc13";
@@ -826,8 +834,8 @@ export function arcv2Profile(): MonitorProfile {
   });
 
   // — Center column, rows 5–6: the CPU strip (the export's CPU group):
-  //   big yellow load number, RAM bar and the stat columns pre-printed
-  //   on the CPU-bg art.
+  //   rolling load sparkline, RAM used/free bars and the stat columns
+  //   pre-printed on the CPU-bg art.
   const cpuStrip = ap({
     title: "CPU",
     accent: ARCV2_ACCENT,
@@ -836,10 +844,11 @@ export function arcv2Profile(): MonitorProfile {
     bottomGridCols: 4,
     widgets: [
       sw({ kind: "image", text: ASSET("CPU-bg.png"), asBackground: true }),
-      // Top: the big yellow load headline.
-      sw({ kind: "value", sensor: AMD("cpu_total"), unit: "%", fontSize: 34, color: ARCV2_ACCENT, overlayZone: "top" }),
-      // Middle: the RAM usage bar.
-      sw({ kind: "bar", label: "RAM", sensor: "system.ram.load", max: 100, color: ARCV2_ACCENT, overlayZone: "middle" }),
+      // Top: the rolling CPU-load sparkline across the panel.
+      sw({ kind: "sparkline", sensor: AMD("cpu_total"), label: "", history: 60, color: ARCV2_ACCENT, overlayZone: "top" }),
+      // Middle: the RAM used / free bars.
+      sw({ kind: "bar", label: "RAM USED", sensor: "system.ram.load", max: 100, color: ARCV2_ACCENT, overlayZone: "middle" }),
+      sw({ kind: "bar", label: "RAM FREE", sensor: "system.ram.free", max: 100, color: ARCV2_TEAL, overlayZone: "middle" }),
       // Bottom: four value cells under the art's pre-printed columns
       // (LOAD · POWER W · MEM ° · CORE °) — value-only, labels are baked
       // into CPU-bg.png.
@@ -852,14 +861,34 @@ export function arcv2Profile(): MonitorProfile {
 
   // — Center column, rows 3–4: the big yellow clock with the date below
   //   (the export's Clock 63px + Calendar 23px), centered across the
-  //   column.
+  //   column between two thin accent bars.
   const clockPanel = ap({
     title: "Clock",
     accent: ARCV2_ACCENT,
     layout: "grid",
-    columns: 1,
+    columns: 3,
+    gridCols: "14px 1fr 14px",
     widgets: [
+      sw({ kind: "shape", shape: "vbar", thickness: 5, color: ARCV2_ACCENT }),
       sw({ kind: "clock", clock: "both", fontSize: 52, color: ARCV2_ACCENT, align: "center" }),
+      sw({ kind: "shape", shape: "vbar", thickness: 5, color: ARCV2_ACCENT }),
+    ],
+  });
+
+  // — Left column, row 3: the FPS ring row (the export's six gauges:
+  //   frame-rate readouts plus GPU core clock and memory temperature).
+  const fpsRings = ap({
+    title: "FPS rings",
+    accent: ARCV2_ACCENT,
+    layout: "grid",
+    columns: 6,
+    widgets: [
+      sw({ kind: "gauge", sensor: RTSS("fps"), max: 240, fontSize: 56 }),
+      sw({ kind: "gauge", sensor: RTSS("avg-fps"), max: 240, fontSize: 56 }),
+      sw({ kind: "gauge", sensor: RTSS("1% low fps"), max: 240, fontSize: 56 }),
+      sw({ kind: "gauge", sensor: RTSS("refreshrate"), max: 240, fontSize: 56 }),
+      sw({ kind: "gauge", sensor: NVIDIA("gpu_core"), max: 3500, fontSize: 56 }),
+      sw({ kind: "gauge", sensor: NVIDIA("gpu_memory_junction"), max: 100, fontSize: 56 }),
     ],
   });
 
@@ -881,8 +910,8 @@ export function arcv2Profile(): MonitorProfile {
     ],
   });
 
-  // — Left column, rows 3–4: network (the export's NETWORK panel: dark
-  //   art with pre-printed labels, teal speed bars, yellow values).
+  // — Left column, row 4: network (the export's NETWORK panel: dark
+  //   art with pre-printed labels, teal speed bars, GB/s values).
   const network = ap({
     title: "Network",
     accent: ARCV2_ACCENT,
@@ -890,10 +919,10 @@ export function arcv2Profile(): MonitorProfile {
     scrim: false,
     widgets: [
       sw({ kind: "image", text: ASSET("NETWORK-bg.png"), asBackground: true }),
-      sw({ kind: "bar", sensor: "libre.ethernet_upload_speed", max: 10_000_000, color: ARCV2_TEAL, overlayZone: "top" }),
-      sw({ kind: "bar", sensor: "libre.ethernet_download_speed", max: 10_000_000, color: ARCV2_TEAL, overlayZone: "top" }),
-      sw({ kind: "value", sensor: "libre.ethernet_upload_speed", fontSize: 12, color: ARCV2_ACCENT, overlayZone: "bottom" }),
-      sw({ kind: "value", sensor: "libre.ethernet_download_speed", fontSize: 12, color: ARCV2_ACCENT, overlayZone: "bottom" }),
+      sw({ kind: "bar", sensor: "libre.ethernet_upload_speed", max: 10_000_000, color: ARCV2_TEAL, scale: 1e-9, decimals: 3, unit: "GB/s", overlayZone: "top" }),
+      sw({ kind: "bar", sensor: "libre.ethernet_download_speed", max: 10_000_000, color: ARCV2_TEAL, scale: 1e-9, decimals: 3, unit: "GB/s", overlayZone: "top" }),
+      sw({ kind: "value", sensor: "libre.ethernet_upload_speed", fontSize: 12, color: ARCV2_ACCENT, scale: 1e-9, decimals: 3, unit: "GB/s", overlayZone: "bottom" }),
+      sw({ kind: "value", sensor: "libre.ethernet_download_speed", fontSize: 12, color: ARCV2_ACCENT, scale: 1e-9, decimals: 3, unit: "GB/s", overlayZone: "bottom" }),
     ],
   });
 
@@ -905,12 +934,11 @@ export function arcv2Profile(): MonitorProfile {
     layout: "grid",
     columns: 4,
     widgets: [
-      sw({ kind: "image", sensor: WEATHER("weather_icon_url"), height: 56, rowSpan: 2 }),
-      sw({ kind: "text", sensor: WEATHER("weather_desc"), fontSize: 16, color: ARCV2_CREAM, span: 3 }),
-      sw({ kind: "stat", sensor: WEATHER("temp"), unit: "°C", fontSize: 16, color: ARCV2_CREAM }),
-      sw({ kind: "value", sensor: WEATHER("wind_speed"), label: "Wind", unit: "m/s", fontSize: 16, color: ARCV2_CREAM, span: 2 }),
-      sw({ kind: "text", label: "Updated", sensor: WEATHER("last_refreshed"), fontSize: 10, color: ARCV2_FAINT, span: 2 }),
-      sw({ kind: "table", sensor: "plugins.InfoPanel.DataBridge.weather.forecast", rows: 5, columns: 5, header: "Date, Weather, Temp, Precip, Wind", span: 4 }),
+      sw({ kind: "image", sensor: WEATHER("weather_icon_url"), height: 36 }),
+      sw({ kind: "text", sensor: WEATHER("weather_desc"), fontSize: 14, color: ARCV2_CREAM }),
+      sw({ kind: "stat", sensor: WEATHER("temp"), unit: "°C", fontSize: 14, color: ARCV2_CREAM }),
+      sw({ kind: "value", sensor: WEATHER("wind_speed"), label: "Wind", unit: "m/s", fontSize: 11, color: ARCV2_CREAM }),
+      sw({ kind: "table", sensor: "plugins.InfoPanel.DataBridge.weather.forecast", rows: 7, columns: 5, fontSize: 14, header: "Date, Weather, Temp, Precip, Wind", span: 4 }),
     ],
   });
 
@@ -923,9 +951,10 @@ export function arcv2Profile(): MonitorProfile {
     cols: 12,
     fit: "fill",
     placements: [
-      // Left column (C1–4): spotify, network, weather.
+      // Left column (C1–4): spotify, fps rings, network, weather.
       apPlacement(spotify, 4, { colStart: 1, rowStart: 1, rowSpan: 2 }),
-      apPlacement(network, 4, { colStart: 1, rowStart: 3, rowSpan: 2 }),
+      apPlacement(fpsRings, 4, { colStart: 1, rowStart: 3, rowSpan: 1 }),
+      apPlacement(network, 4, { colStart: 1, rowStart: 4, rowSpan: 1 }),
       apPlacement(weather, 4, { colStart: 1, rowStart: 5, rowSpan: 2 }),
       // Center column (C5–8): gpu readout, big clock, cpu strip.
       apPlacement(gpu, 4, { colStart: 5, rowStart: 1, rowSpan: 2 }),

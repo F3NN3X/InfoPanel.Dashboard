@@ -9,11 +9,11 @@ export function formatNum(v: number, decimals?: number): string {
 /** Display text + unit for a widget's bound sensor. */
 export function widgetValue(
   s: SensorValue | undefined,
-  w: Pick<Widget, "decimals" | "unit">
+  w: Pick<Widget, "decimals" | "unit" | "scale">
 ): { text: string; unit?: string } {
   if (s?.value !== undefined) {
     return {
-      text: formatNum(s.value, w.decimals),
+      text: formatNum(s.value * (w.scale ?? 1), w.decimals),
       unit: w.unit || s.unit || undefined,
     };
   }

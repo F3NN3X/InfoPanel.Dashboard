@@ -37,7 +37,10 @@ export function PanelView({ panel, sensors, studio }: PanelViewProps) {
     visible.length === 0 ? null : isGrid ? (
       <div
         className="grid gap-x-4 gap-y-3"
-        style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
+        style={{
+          gridTemplateColumns:
+            panel.gridCols ?? `repeat(${cols}, minmax(0, 1fr))`,
+        }}
       >
         {visible.map((w) => (
           <div
@@ -119,7 +122,13 @@ export function PanelView({ panel, sensors, studio }: PanelViewProps) {
               key={w.id}
               className={cn(
                 "min-w-0",
-                (w.kind === "table" || w.kind === "text") && "flex-1"
+                // Full-width widgets claim their share of the zone so a
+                // pair of bars (network, CPU RAM) splits it 50/50.
+                (w.kind === "table" ||
+                  w.kind === "text" ||
+                  w.kind === "bar" ||
+                  w.kind === "sparkline") &&
+                  "flex-1"
               )}
               style={
                 // In-zone images (e.g. the game icon) are square — cap them
