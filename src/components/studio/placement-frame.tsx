@@ -23,6 +23,8 @@ interface PlacementFrameProps {
   title: string;
   /** Grid element width in px — used to convert pointer deltas to columns. */
   gridWidth?: number;
+  /** Canvas zoom (screen px per design px) — pointer deltas are divided by it. */
+  zoom?: number;
   onDragStart?: (id: string) => void;
   onDragEnd?: () => void;
   /** Called on a sibling's dragover to reorder live. */
@@ -51,6 +53,7 @@ export function PlacementFrame({
   hasData,
   title,
   gridWidth = 0,
+  zoom = 1,
   onDragStart,
   onDragEnd,
   onDragOver,
@@ -78,7 +81,7 @@ export function PlacementFrame({
     if (colWidth <= 0) return;
 
     const move = (ev: PointerEvent) => {
-      const deltaCols = Math.round((ev.clientX - startX) / colWidth);
+      const deltaCols = Math.round((ev.clientX - startX) / (colWidth * zoom));
       const next =
         side === "right"
           ? clampSpan(startSpan + deltaCols, profile.cols)

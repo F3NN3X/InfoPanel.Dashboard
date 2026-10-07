@@ -8,12 +8,14 @@ import {
   type SetStateAction,
 } from "react";
 import {
+  Check,
   Copy,
   Download,
   Eye,
   EyeOff,
   Layers,
   LayoutGrid,
+  Maximize2,
   Minus,
   Monitor,
   Plus,
@@ -22,11 +24,15 @@ import {
   Upload,
   Wrench,
   X,
+  ZoomIn,
+  ZoomOut,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Segmented } from "@/components/ui/segmented";
 import { PlacementFrame } from "./placement-frame";
 import { placementContent } from "./placement-content";
+import { RulerH, RulerV } from "./rulers";
 import { ThemePanel } from "./theme-panel";
 import { modules, claimedKeys, type SensorMap } from "@/modules";
 import {
@@ -48,6 +54,7 @@ const ALL_MODULES = [
 
 const DND_MIME = "text/infopanel-module";
 const GRID_GAP = 12; // must match the canvas grid's gap-3
+const ZOOM_STEPS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2];
 
 interface StudioViewProps {
   sensors: SensorMap;
@@ -79,7 +86,13 @@ export function StudioView({
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [gridEl, setGridEl] = useState<HTMLDivElement | null>(null);
   const [gridWidth, setGridWidth] = useState(0);
+  const [zoom, setZoom] = useState(1);
+  const [showGrid, setShowGrid] = useState(true);
+  const [scroll, setScroll] = useState({ left: 0, top: 0 });
+  const [canvas, setCanvas] = useState({ w: 0, h: 0, viewW: 0, viewH: 0 });
+  const [copied, setCopied] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   // Deselect when switching profiles.
   useEffect(() => setSelectedId(null), [profile.id]);
@@ -95,6 +108,63 @@ export function StudioView({
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, [gridEl]);
+
+  // Canvas measurements (design px) for the rulers.
+  useLayoutEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanvas({
+      w: el.clientWidth,
+      h: el.scrollHeight / zoom,
+      viewW: el.clientWidth,
+      viewH: el.clientHeight,
+    });
+  }, [zoom, profile.id, profile.cols, scroll]);
+
+  // Ctrl/cmd + wheel zooms the canvas.
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      if (!(e.ctrlKey || e.metaKey)) return;
+      e.preventDefault();
+      setZoom((z) => {
+        const i = ZOOM_STEPS.indexOf(z);
+        const dir = e.deltaY < 0 ? 1 : -1;
+        return ZOOM_STEPS[
+          Math.max(0, Math.min(ZOOM_STEPS.length - 1, (i === -1 ? 3 : i) + dir))
+        ];
+      });
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, []);
+
+  const zoomStep = (dir: 1 | -1) =>
+    setZoom((z) => {
+      const i = ZOOM_STEPS.indexOf(z);
+      return ZOOM_STEPS[
+        Math.max(0, Math.min(ZOOM_STEPS.length - 1, (i === -1 ? 3 : i) + dir))
+      ];
+    });
+
+  /** Zoom so the profile's design width fits the canvas viewport. */
+  const fitZoom = () => {
+    const el = scrollRef.current;
+    if (!el || profile.width <= 0) return;
+    const z = (el.clientWidth - 32) / profile.width;
+    setZoom(Math.max(0.25, Math.min(2, Math.round(z * 100) / 100)));
+  };
+
+  const copyProfile = () => {
+    navigator.clipboard
+      .writeText(JSON.stringify(profile, null, 2))
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1200);
+      })
+      .catch(() => {});
+  };
 
   const unclaimed = (() => {
     const claimed = claimedKeys(sensors);
@@ -270,7 +340,7 @@ export function StudioView({
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-background text-foreground">
-      <div className="flex min-h-0 flex-1">
+      <div className="flex min-h-0 flex-1 overflow-x-auto">
         {/* ================= LEFT: profiles + module palette ================= */}
         <aside className="flex w-60 shrink-0 flex-col overflow-y-auto border-r bg-popover/40">
           <div className="flex items-center gap-2 border-b p-3">
@@ -370,7 +440,7 @@ export function StudioView({
         </aside>
 
         {/* ================= CENTER: toolbar + grid canvas ================= */}
-        <main className="flex min-w-0 flex-1 flex-col">
+        <main className="flex min-w-[420px] flex-1 flex-col">
           <div className="flex flex-wrap items-center gap-3 border-b bg-popover/40 px-4 py-2">
             <Monitor className="h-4 w-4 text-muted-foreground" />
             <input
@@ -438,84 +508,187 @@ export function StudioView({
                 <Plus className="h-3 w-3" />
               </button>
             </div>
-            <select
+            <Segmented
+              options={[
+                { value: "scroll", label: "Scroll" },
+                { value: "fill", label: "Fill viewport" },
+              ]}
               value={profile.fit}
-              onChange={(e) =>
-                updateProfile((p) => ({
-                  ...p,
-                  fit: e.target.value === "fill" ? "fill" : "scroll",
-                }))
-              }
-              className="rounded-md border bg-background px-2 py-1 text-xs text-foreground"
-            >
-              <option value="scroll">Scroll</option>
-              <option value="fill">Fill viewport</option>
-            </select>
+              onChange={(fit) => updateProfile((p) => ({ ...p, fit }))}
+            />
             <div className="ml-auto text-xs text-muted-foreground">
               {profile.placements.length} placements
             </div>
           </div>
 
-          <div
-            className="relative flex-1 overflow-auto p-4"
-            onDragOver={(e) => {
-              if (e.dataTransfer.types.includes(DND_MIME)) e.preventDefault();
-            }}
-            onDrop={onCanvasDrop}
-          >
-            <div
-              ref={setGridEl}
-              className="relative grid gap-3"
-              style={{
-                gridTemplateColumns: `repeat(${profile.cols}, minmax(0, 1fr))`,
-              }}
-              onClick={(e) => {
-                if (e.target === e.currentTarget) setSelectedId(null);
-              }}
-            >
-              {/* Column alignment guides */}
-              {guides.map((x, i) => (
-                <div
-                  key={i}
-                  className="pointer-events-none absolute bottom-0 top-0 w-px bg-ring/15"
-                  style={{ left: x }}
+          <div className="relative flex min-h-0 flex-1 flex-col">
+            {/* Ruler row */}
+            <div className="flex shrink-0">
+              <div className="h-6 w-7 shrink-0 border-b border-r border-border bg-popover/60" />
+              <div className="min-w-0 flex-1">
+                <RulerH
+                  length={canvas.w}
+                  zoom={zoom}
+                  offset={scroll.left}
+                  view={canvas.viewW}
                 />
-              ))}
+              </div>
+            </div>
 
-              {profile.placements.map((p) => {
-                const { content, hasData, title } = placementContent(
-                  p,
-                  sensors,
-                  unclaimed
-                );
-                return (
-                  <PlacementFrame
-                    key={p.id}
-                    placement={p}
-                    profile={profile}
-                    studio
-                    hasData={hasData}
-                    title={title}
-                    gridWidth={gridWidth}
-                    selected={selectedId === p.id}
-                    onSelect={() => setSelectedId(p.id)}
-                    onDragStart={setDraggingId}
-                    onDragEnd={() => setDraggingId(null)}
-                    onDragOver={movePlacement}
-                    onSpan={setSpan}
-                    onToggle={toggleVisible}
-                    onRemove={removePlacement}
+            <div className="flex min-h-0 flex-1">
+              <RulerV
+                length={canvas.h}
+                zoom={zoom}
+                offset={scroll.top}
+                view={canvas.viewH}
+              />
+
+              <div className="relative min-w-0 flex-1">
+                <div
+                  ref={scrollRef}
+                  className="h-full w-full overflow-auto"
+                  onScroll={(e) =>
+                    setScroll({
+                      left: e.currentTarget.scrollLeft,
+                      top: e.currentTarget.scrollTop,
+                    })
+                  }
+                  onDragOver={(e) => {
+                    if (e.dataTransfer.types.includes(DND_MIME))
+                      e.preventDefault();
+                  }}
+                  onDrop={onCanvasDrop}
+                >
+                  <div
+                    className="p-4"
+                    style={{
+                      zoom,
+                      backgroundImage: showGrid
+                        ? "radial-gradient(circle, hsl(var(--ring) / 0.22) 1px, transparent 1.25px)"
+                        : undefined,
+                      backgroundSize: "24px 24px",
+                    }}
                   >
-                    {content}
-                  </PlacementFrame>
-                );
-              })}
+                    <div
+                      ref={setGridEl}
+                      className="relative grid gap-3"
+                      style={{
+                        gridTemplateColumns: `repeat(${profile.cols}, minmax(0, 1fr))`,
+                      }}
+                      onClick={(e) => {
+                        if (e.target === e.currentTarget)
+                          setSelectedId(null);
+                      }}
+                    >
+                      {/* Column alignment guides */}
+                      {showGrid &&
+                        guides.map((x, i) => (
+                          <div
+                            key={i}
+                            className="pointer-events-none absolute bottom-0 top-0 w-px bg-ring/15"
+                            style={{ left: x }}
+                          />
+                        ))}
 
-              {profile.placements.length === 0 && (
-                <div className="col-span-full flex h-32 items-center justify-center rounded-lg border border-dashed border-border text-sm text-muted-foreground/60">
-                  Drag a module here from the left panel
+                      {profile.placements.map((p) => {
+                        const { content, hasData, title } =
+                          placementContent(p, sensors, unclaimed);
+                        return (
+                          <PlacementFrame
+                            key={p.id}
+                            placement={p}
+                            profile={profile}
+                            studio
+                            hasData={hasData}
+                            title={title}
+                            gridWidth={gridWidth}
+                            zoom={zoom}
+                            selected={selectedId === p.id}
+                            onSelect={() => setSelectedId(p.id)}
+                            onDragStart={setDraggingId}
+                            onDragEnd={() => setDraggingId(null)}
+                            onDragOver={movePlacement}
+                            onSpan={setSpan}
+                            onToggle={toggleVisible}
+                            onRemove={removePlacement}
+                          >
+                            {content}
+                          </PlacementFrame>
+                        );
+                      })}
+
+                      {profile.placements.length === 0 && (
+                        <div className="col-span-full flex h-32 items-center justify-center rounded-lg border border-dashed border-border text-sm text-muted-foreground/60">
+                          Drag a module here from the left panel
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              )}
+
+                {/* Floating zoom / fit toolbar */}
+                <div className="pointer-events-none absolute inset-x-0 bottom-3 z-30 flex justify-center">
+                  <div className="pointer-events-auto flex items-center gap-1 rounded-full border border-border bg-popover/90 px-2 py-1.5 shadow-lg backdrop-blur">
+                    <button
+                      onClick={() => setShowGrid((s) => !s)}
+                      title="Toggle grid"
+                      className={cn(
+                        "rounded-full p-1.5 transition-colors hover:bg-accent",
+                        showGrid
+                          ? "text-foreground"
+                          : "text-muted-foreground"
+                      )}
+                    >
+                      <LayoutGrid className="h-3.5 w-3.5" />
+                    </button>
+                    <div className="h-4 w-px bg-border" />
+                    <button
+                      onClick={() => zoomStep(-1)}
+                      title="Zoom out"
+                      className="rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                    >
+                      <ZoomOut className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      onClick={() => setZoom(1)}
+                      title="Reset to 100%"
+                      className="min-w-12 rounded-full px-1.5 text-center text-xs tabular-nums text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                    >
+                      {Math.round(zoom * 100)}%
+                    </button>
+                    <button
+                      onClick={() => zoomStep(1)}
+                      title="Zoom in"
+                      className="rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                    >
+                      <ZoomIn className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      onClick={fitZoom}
+                      title="Fit design width to viewport"
+                      className="rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                    >
+                      <Maximize2 className="h-3.5 w-3.5" />
+                    </button>
+                    <div className="h-4 w-px bg-border" />
+                    <button
+                      onClick={copyProfile}
+                      title="Copy profile JSON"
+                      className="rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                    >
+                      {copied ? (
+                        <Check className="h-3.5 w-3.5 text-emerald-400" />
+                      ) : (
+                        <Copy className="h-3.5 w-3.5" />
+                      )}
+                    </button>
+                    <div className="h-4 w-px bg-border" />
+                    <span className="px-1 text-xs tabular-nums text-muted-foreground">
+                      {profile.width} × {profile.height}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </main>
