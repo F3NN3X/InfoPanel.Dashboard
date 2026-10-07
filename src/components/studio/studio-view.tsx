@@ -741,10 +741,14 @@ export function StudioView({
                       className="relative grid gap-3"
                       style={{
                         gridTemplateColumns: `repeat(${profile.cols}, minmax(0, 1fr))`,
-                        ...(profile.fit === "fill"
+                        ...(profile.fit === "fill" && profile.height > 0
                           ? {
+                              // Definite height (like the kiosk's flex-1 grid) so the
+                              // 1fr auto rows distribute uniformly. With minHeight
+                              // the rows are content-sized and the drop math below
+                              // (uniform rowH) drifts from the rendered layout.
                               gridAutoRows: "minmax(0, 1fr)",
-                              minHeight: profile.height,
+                              height: profile.height,
                             }
                           : {}),
                       }}
