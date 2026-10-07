@@ -4,7 +4,7 @@ import { DualProgressCard } from "@/components/DualProgressCard";
 import { NowPlayingCard } from "@/components/NowPlayingCard";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Activity, Cpu, HardDrive, Thermometer, Wifi } from "lucide-react";
+import { Activity, Cpu, HardDrive, Wifi } from "lucide-react";
 
 function App() {
   const { data, connected } = useSensors();
