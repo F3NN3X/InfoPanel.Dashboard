@@ -442,7 +442,7 @@ function Clock({ widget }: { widget: Widget }) {
     >
       {mode !== "date" && (
         <div
-          className="font-bold tracking-tight tabular-nums text-foreground"
+          className="font-bold tracking-tight tabular-nums"
           style={{ fontSize: widget.fontSize ?? "2.25rem" }}
         >
           {time}

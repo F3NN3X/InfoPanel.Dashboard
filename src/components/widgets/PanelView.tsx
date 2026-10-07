@@ -151,8 +151,12 @@ export function PanelView({ panel, sensors, studio }: PanelViewProps) {
         ) : (
           <div className="absolute inset-0 bg-card/60" />
         )}
-        {/* Scrim — bottom-weighted so the banner shows through up top. */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/20" />
+        {/* Scrim — bottom-weighted so the banner shows through up top.
+            Skipped for panels whose background art carries its own
+            contrast (panel.scrim === false). */}
+        {panel.scrim !== false && (
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/20" />
+        )}
         {panel.titleVisible && (
           <div className="absolute right-3 top-3 z-20 flex items-center gap-1.5 rounded-full bg-black/50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-widest text-foreground/90 backdrop-blur-sm">
             <span
