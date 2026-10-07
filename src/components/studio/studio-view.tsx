@@ -649,6 +649,12 @@ export function StudioView({
                       className="relative grid gap-3"
                       style={{
                         gridTemplateColumns: `repeat(${profile.cols}, minmax(0, 1fr))`,
+                        ...(profile.fit === "fill"
+                          ? {
+                              gridAutoRows: "minmax(0, 1fr)",
+                              minHeight: profile.height,
+                            }
+                          : {}),
                       }}
                       onClick={(e) => {
                         if (e.target === e.currentTarget)

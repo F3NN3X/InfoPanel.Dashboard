@@ -7,6 +7,8 @@ interface GaugeProps {
   /** 0–100, drives the ring. */
   percent?: number;
   size?: number;
+  /** Font size (px) of the number inside the ring. */
+  fontSize?: number;
   className?: string;
 }
 
@@ -20,6 +22,7 @@ export function Gauge({
   unit,
   percent,
   size = 72,
+  fontSize,
   className,
 }: GaugeProps) {
   const p = Math.max(0, Math.min(100, percent ?? 0));
@@ -54,7 +57,10 @@ export function Gauge({
           />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-sm font-semibold tabular-nums text-foreground">
+          <div
+            className="font-semibold tabular-nums text-foreground"
+            style={fontSize ? { fontSize } : { fontSize: "0.875rem" }}
+          >
             {value !== undefined ? value : "—"}
             {unit && value !== undefined && (
               <span className="ml-0.5 text-[10px] text-muted-foreground">

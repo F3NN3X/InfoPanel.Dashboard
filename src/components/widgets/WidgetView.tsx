@@ -21,23 +21,40 @@ function colorStyle(color?: string): CSSProperties | undefined {
   return color ? { color } : undefined;
 }
 
+/** Label font size derived from a widget's value font size. */
+function labelSize(widget: Widget): number | undefined {
+  return widget.fontSize
+    ? Math.max(9, Math.min(14, Math.round(widget.fontSize * 0.35)))
+    : undefined;
+}
+
 /* ---------------- individual renderers ---------------- */
 
 function Stat({ widget, text, unit }: Ctx) {
+  const ls = labelSize(widget);
   return (
-    <div className="flex flex-col gap-0.5">
+    <div className="flex flex-col gap-0.5" style={{ textAlign: widget.align }}>
       {widget.label && (
-        <div className="text-xs uppercase tracking-wide text-muted-foreground">
+        <div
+          className="uppercase tracking-wide text-muted-foreground"
+          style={ls ? { fontSize: ls } : { fontSize: "0.75rem" }}
+        >
           {widget.label}
         </div>
       )}
       <div
-        className="text-2xl font-bold tracking-tight tabular-nums text-foreground"
-        style={colorStyle(widget.color)}
+        className="font-bold tracking-tight tabular-nums text-foreground"
+        style={{
+          fontSize: widget.fontSize ?? "1.5rem",
+          ...colorStyle(widget.color),
+        }}
       >
         {text}
         {unit && (
-          <span className="ml-1 text-xs font-normal text-muted-foreground">
+          <span
+            className="ml-1 font-normal text-muted-foreground"
+            style={{ fontSize: ls ?? "0.75rem" }}
+          >
             {unit}
           </span>
         )}
@@ -47,21 +64,36 @@ function Stat({ widget, text, unit }: Ctx) {
 }
 
 function Value({ widget, text, unit }: Ctx) {
+  const ls = labelSize(widget);
   return (
-    <div className="flex items-baseline gap-1">
+    <div
+      className="flex items-baseline gap-1"
+      style={{ textAlign: widget.align }}
+    >
       <span
-        className="text-lg font-semibold tabular-nums text-foreground"
-        style={colorStyle(widget.color)}
+        className="font-semibold tabular-nums text-foreground"
+        style={{
+          fontSize: widget.fontSize ?? "1.125rem",
+          ...colorStyle(widget.color),
+        }}
       >
         {text}
         {unit && (
-          <span className="ml-0.5 text-xs font-normal text-muted-foreground">
+          <span
+            className="ml-0.5 font-normal text-muted-foreground"
+            style={{ fontSize: ls ?? "0.75rem" }}
+          >
             {unit}
           </span>
         )}
       </span>
       {widget.label && (
-        <span className="text-xs text-muted-foreground">{widget.label}</span>
+        <span
+          className="text-muted-foreground"
+          style={{ fontSize: ls ?? "0.75rem" }}
+        >
+          {widget.label}
+        </span>
       )}
     </div>
   );
@@ -107,7 +139,8 @@ function GaugeWidget({ widget, sensor, text, unit }: Ctx) {
         value={text}
         unit={unit}
         percent={pct}
-        size={80}
+        size={widget.fontSize ?? 80}
+        fontSize={widget.fontSize ? Math.round(widget.fontSize * 0.28) : undefined}
       />
     </div>
   );
@@ -186,6 +219,9 @@ function Sparkline({ widget, sensor }: { widget: Widget; sensor?: SensorValue })
 
 function Table({ widget, lines }: { widget: Widget; lines: string[] }) {
   const rows = widget.rows ?? 7;
+  const size = widget.fontSize
+    ? Math.max(10, Math.round(widget.fontSize * 0.55))
+    : undefined;
   return (
     <div className="space-y-1">
       {lines.slice(0, rows).map((line, i) => {
@@ -195,7 +231,11 @@ function Table({ widget, lines }: { widget: Widget; lines: string[] }) {
         return (
           <div
             key={i}
-            className="flex items-baseline justify-between gap-3 text-xs"
+            className="flex items-baseline justify-between gap-3"
+            style={{
+              fontSize: size ?? "0.75rem",
+              textAlign: widget.align,
+            }}
           >
             <span className="shrink-0 font-medium text-foreground/85">
               {head}
@@ -212,26 +252,42 @@ function Table({ widget, lines }: { widget: Widget; lines: string[] }) {
         );
       })}
       {lines.length === 0 && (
-        <div className="text-xs text-muted-foreground/60">no data</div>
+        <div
+          className="text-muted-foreground/60"
+          style={{ fontSize: size ?? "0.75rem" }}
+        >
+          no data
+        </div>
       )}
     </div>
   );
 }
 
 function Text({ widget, text }: { widget: Widget; text: string }) {
+  const ls = labelSize(widget);
   return (
-    <div className="flex min-w-0 flex-col gap-0.5">
+    <div
+      className="flex min-w-0 flex-col gap-0.5"
+      style={{ textAlign: widget.align }}
+    >
       {widget.label && (
-        <div className="text-xs uppercase tracking-wide text-muted-foreground">
+        <div
+          className="uppercase tracking-wide text-muted-foreground"
+          style={{ fontSize: ls ?? "0.75rem" }}
+        >
           {widget.label}
         </div>
       )}
       <div
         className={cn(
-          "break-words text-sm text-foreground/90",
+          "break-words text-foreground/90",
           !text && "text-muted-foreground/60"
         )}
-        style={colorStyle(widget.color)}
+        style={{
+          fontSize: widget.fontSize ?? "0.875rem",
+          whiteSpace: "pre-line",
+          ...colorStyle(widget.color),
+        }}
       >
         {text || "—"}
       </div>
@@ -278,17 +334,90 @@ function Clock({ widget }: { widget: Widget }) {
   });
   const mode = widget.clock ?? "both";
   return (
-    <div className="flex flex-col" style={colorStyle(widget.color)}>
+    <div
+      className="flex flex-col"
+      style={{ ...colorStyle(widget.color), textAlign: widget.align }}
+    >
       {mode !== "date" && (
-        <div className="text-4xl font-bold tracking-tight tabular-nums text-foreground">
+        <div
+          className="font-bold tracking-tight tabular-nums text-foreground"
+          style={{ fontSize: widget.fontSize ?? "2.25rem" }}
+        >
           {time}
         </div>
       )}
       {mode !== "time" && (
-        <div className="text-sm text-muted-foreground">{date}</div>
+        <div
+          className="text-muted-foreground"
+          style={
+            widget.fontSize
+              ? {
+                  fontSize: Math.max(10, Math.round(widget.fontSize * 0.22)),
+                }
+              : undefined
+          }
+        >
+          {date}
+        </div>
       )}
     </div>
   );
+}
+
+/**
+ * Decorative shape — a vertical/horizontal bar, a rounded rectangle, or a
+ * circle. Sizes are driven by `thickness` (px) and the cell it occupies.
+ */
+function Shape({ widget }: { widget: Widget }) {
+  const t = widget.thickness ?? 4;
+  const color = widget.color ?? "hsl(var(--accent))";
+  const radius = Math.min(t, widget.shape === "rect" ? 8 : t);
+  switch (widget.shape ?? "vbar") {
+    case "hbar":
+      return (
+        <div
+          style={{
+            height: t,
+            width: "100%",
+            minWidth: 24,
+            borderRadius: radius,
+            backgroundColor: color,
+          }}
+        />
+      );
+    case "rect":
+      return (
+        <div
+          className="h-full min-h-6 w-full"
+          style={{ borderRadius: radius, backgroundColor: color }}
+        />
+      );
+    case "circle":
+      return (
+        <div
+          className="self-center"
+          style={{
+            width: t,
+            height: t,
+            borderRadius: "50%",
+            backgroundColor: color,
+          }}
+        />
+      );
+    case "vbar":
+    default:
+      return (
+        <div
+          className="h-full min-h-6"
+          style={{
+            width: t,
+            minWidth: t,
+            borderRadius: radius,
+            backgroundColor: color,
+          }}
+        />
+      );
+  }
 }
 
 /* ---------------- dispatcher ---------------- */
@@ -353,6 +482,8 @@ export function WidgetView({ widget, sensors }: WidgetViewProps) {
     }
     case "clock":
       return <Clock widget={widget} />;
+    case "shape":
+      return <Shape widget={widget} />;
     default:
       return null;
   }

@@ -33,6 +33,7 @@ const KIND_LABELS: Record<WidgetKind, string> = {
   text: "Text",
   image: "Image",
   clock: "Clock",
+  shape: "Shape",
 };
 
 const ALL_KINDS = Object.keys(KIND_LABELS) as WidgetKind[];
@@ -304,6 +305,41 @@ export function PanelInspector({
               </span>
             </div>
           </div>
+
+          <div>
+            <div className="mb-1 text-xs text-muted-foreground">Layout</div>
+            <Segmented
+              options={[
+                { value: "wrap", label: "Flow" },
+                { value: "grid", label: "Grid" },
+              ]}
+              value={panel.layout ?? "wrap"}
+              onChange={(v) =>
+                setPanelField("layout", v as PanelDef["layout"])
+              }
+            />
+          </div>
+
+          {(panel.layout ?? "wrap") === "grid" && (
+            <div>
+              <div className="mb-1 text-xs text-muted-foreground">
+                Grid columns
+              </div>
+              <input
+                type="number"
+                min={1}
+                max={12}
+                value={panel.columns ?? 3}
+                onChange={(e) =>
+                  setPanelField(
+                    "columns",
+                    Math.max(1, Math.min(12, parseInt(e.target.value, 10) || 3))
+                  )
+                }
+                className="w-24 rounded-md border border-border bg-background px-2 py-1.5 text-xs tabular-nums text-foreground outline-none focus:border-ring"
+              />
+            </div>
+          )}
         </div>
       </div>
 
@@ -446,20 +482,23 @@ function WidgetEditor({
   const set = <K extends keyof Widget>(key: K, value: Widget[K]) =>
     onChange((w) => ({ ...w, [key]: value }));
 
-  const numeric = widget.kind !== "clock";
+  const numeric = widget.kind !== "clock" && widget.kind !== "shape";
   const fillable = widget.kind === "bar" || widget.kind === "gauge";
+  const isShape = widget.kind === "shape";
 
   return (
     <div className="space-y-3">
-      <div>
-        <div className="mb-1 text-xs text-muted-foreground">Label</div>
-        <input
-          value={widget.label ?? ""}
-          placeholder="…"
-          onChange={(e) => set("label", e.target.value || undefined)}
-          className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground outline-none focus:border-ring"
-        />
-      </div>
+      {!isShape && (
+        <div>
+          <div className="mb-1 text-xs text-muted-foreground">Label</div>
+          <input
+            value={widget.label ?? ""}
+            placeholder="…"
+            onChange={(e) => set("label", e.target.value || undefined)}
+            className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground outline-none focus:border-ring"
+          />
+        </div>
+      )}
 
       {numeric && (
         <div>
@@ -495,30 +534,158 @@ function WidgetEditor({
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-2">
-        <div>
-          <div className="mb-1 text-xs text-muted-foreground">Unit</div>
-          <input
-            value={widget.unit ?? ""}
-            placeholder="%"
-            onChange={(e) => set("unit", e.target.value || undefined)}
-            className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground outline-none focus:border-ring"
-          />
+      {!isShape && (
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <div className="mb-1 text-xs text-muted-foreground">Unit</div>
+            <input
+              value={widget.unit ?? ""}
+              placeholder="%"
+              onChange={(e) => set("unit", e.target.value || undefined)}
+              className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground outline-none focus:border-ring"
+            />
+          </div>
+          <div>
+            <div className="mb-1 text-xs text-muted-foreground">Decimals</div>
+            <input
+              type="number"
+              min={0}
+              max={6}
+              value={widget.decimals ?? 0}
+              onChange={(e) =>
+                set("decimals", Math.max(0, parseInt(e.target.value, 10) || 0))
+              }
+              className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs tabular-nums text-foreground outline-none focus:border-ring"
+            />
+          </div>
         </div>
-        <div>
-          <div className="mb-1 text-xs text-muted-foreground">Decimals</div>
-          <input
-            type="number"
-            min={0}
-            max={6}
-            value={widget.decimals ?? 0}
-            onChange={(e) =>
-              set("decimals", Math.max(0, parseInt(e.target.value, 10) || 0))
-            }
-            className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs tabular-nums text-foreground outline-none focus:border-ring"
-          />
+      )}
+
+      <div>
+        <div className="mb-1 text-xs text-muted-foreground">Layout & size</div>
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <div className="mb-1 text-[10px] text-muted-foreground">
+              Font size (px)
+            </div>
+            <input
+              type="number"
+              min={8}
+              max={200}
+              value={widget.fontSize ?? ""}
+              placeholder="auto"
+              onChange={(e) =>
+                set(
+                  "fontSize",
+                  e.target.value === ""
+                    ? undefined
+                    : Math.max(
+                        8,
+                        Math.min(200, parseInt(e.target.value, 10) || 0)
+                      )
+                )
+              }
+              className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs tabular-nums text-foreground outline-none focus:border-ring"
+            />
+          </div>
+          <div>
+            <div className="mb-1 text-[10px] text-muted-foreground">
+              Alignment
+            </div>
+            <Segmented
+              options={[
+                { value: "left", label: "L" },
+                { value: "center", label: "C" },
+                { value: "right", label: "R" },
+              ]}
+              value={widget.align ?? "left"}
+              onChange={(v) => set("align", v as Widget["align"])}
+            />
+          </div>
+          <div>
+            <div className="mb-1 text-[10px] text-muted-foreground">
+              Col span (grid)
+            </div>
+            <input
+              type="number"
+              min={0}
+              max={12}
+              value={widget.span ?? ""}
+              placeholder="auto"
+              onChange={(e) =>
+                set(
+                  "span",
+                  e.target.value === ""
+                    ? undefined
+                    : Math.max(
+                        1,
+                        Math.min(12, parseInt(e.target.value, 10) || 1)
+                      )
+                )
+              }
+              className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs tabular-nums text-foreground outline-none focus:border-ring"
+            />
+          </div>
+          <div>
+            <div className="mb-1 text-[10px] text-muted-foreground">
+              Row span (grid)
+            </div>
+            <input
+              type="number"
+              min={0}
+              max={12}
+              value={widget.rowSpan ?? ""}
+              placeholder="auto"
+              onChange={(e) =>
+                set(
+                  "rowSpan",
+                  e.target.value === ""
+                    ? undefined
+                    : Math.max(
+                        1,
+                        Math.min(12, parseInt(e.target.value, 10) || 1)
+                      )
+                )
+              }
+              className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs tabular-nums text-foreground outline-none focus:border-ring"
+            />
+          </div>
         </div>
       </div>
+
+      {isShape && (
+        <div>
+          <div className="mb-1 text-xs text-muted-foreground">Shape</div>
+          <Segmented
+            options={[
+              { value: "vbar", label: "V-bar" },
+              { value: "hbar", label: "H-bar" },
+              { value: "rect", label: "Rect" },
+              { value: "circle", label: "Circle" },
+            ]}
+            value={widget.shape ?? "vbar"}
+            onChange={(v) => set("shape", v as Widget["shape"])}
+          />
+          <div className="mt-2">
+            <div className="mb-1 text-xs text-muted-foreground">
+              Thickness / diameter (px)
+            </div>
+            <input
+              type="number"
+              min={1}
+              max={120}
+              value={widget.thickness ?? 4}
+              onChange={(e) =>
+                set(
+                  "thickness",
+                  Math.max(1, Math.min(120, parseInt(e.target.value, 10) || 4))
+                )
+              }
+              className="w-24 rounded-md border border-border bg-background px-2 py-1.5 text-xs tabular-nums text-foreground outline-none focus:border-ring"
+            />
+          </div>
+        </div>
+      )}
 
       {fillable && (
         <div className="grid grid-cols-2 items-end gap-2">

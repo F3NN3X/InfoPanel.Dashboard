@@ -34,7 +34,11 @@ export type WidgetKind =
   | "table" // rows from a multi-line text sensor
   | "text" // static or bound text
   | "image" // image (game cover, logo, album art, …)
-  | "clock"; // live time / date
+  | "clock" // live time / date
+  | "shape"; // decorative vbar / hbar / rect / circle
+
+/** Decorative shape kinds (the "simple shapes" you can drop into a panel). */
+export type ShapeType = "vbar" | "hbar" | "rect" | "circle";
 
 export interface Widget {
   id: string;
@@ -60,6 +64,21 @@ export interface Widget {
   clock?: "time" | "date" | "both";
   /** Sparkline sample count. */
   history?: number;
+  /**
+   * Font size in px for the value/text (ring diameter for "gauge").
+   * The label scales with it.
+   */
+  fontSize?: number;
+  /** Text alignment for "text", "table" and "clock". */
+  align?: "left" | "center" | "right";
+  /** Grid layout: number of panel columns this widget spans. */
+  span?: number;
+  /** Grid layout: number of panel rows this widget spans. */
+  rowSpan?: number;
+  /** Shape kind for "shape". */
+  shape?: ShapeType;
+  /** Thickness (bars) / diameter (circle), in px. */
+  thickness?: number;
   visible: boolean;
 }
 
@@ -71,6 +90,10 @@ export interface PanelDef {
   visible: boolean;
   accent?: string;
   background: "none" | "panel" | "bordered";
+  /** "wrap" flows widgets inline (default); "grid" arranges them in columns. */
+  layout?: "wrap" | "grid";
+  /** Column count for "grid" layout. */
+  columns?: number;
   widgets: Widget[];
 }
 
@@ -145,6 +168,7 @@ function placement(
 
 function defaultProfiles(): MonitorProfile[] {
   return [
+    sampleProfile(),
     {
       id: "main",
       name: "Main display",
@@ -222,13 +246,17 @@ export function loadConfig(): DashboardConfig {
     if (!raw) return defaultConfig();
     const parsed = JSON.parse(raw) as Partial<DashboardConfig>;
     const defaults = defaultConfig();
+    const profiles =
+      parsed.profiles && parsed.profiles.length > 0
+        ? parsed.profiles
+        : defaults.profiles;
+    // Re-inject the sample profile if a saved config is missing it.
+    if (!profiles.some((p) => p.id === SAMPLE_PROFILE_ID))
+      profiles.push(sampleProfile());
     return {
       version: 1,
       activeProfile: parsed.activeProfile ?? defaults.activeProfile,
-      profiles:
-        parsed.profiles && parsed.profiles.length > 0
-          ? parsed.profiles
-          : defaults.profiles,
+      profiles,
       theme: { ...DEFAULT_THEME, ...parsed.theme },
       radius: parsed.radius ?? defaults.radius,
     };
@@ -307,6 +335,8 @@ export function clonePlacement(p: Placement): Placement {
 
 /** A fresh, empty widget of a kind (ids are unique). */
 export function newWidget(kind: WidgetKind): Widget {
+  if (kind === "shape")
+    return { id: uid("w"), kind, shape: "vbar", thickness: 4, visible: true };
   return { id: uid("w"), kind, visible: true };
 }
 
@@ -328,5 +358,194 @@ export function newPanel(title: string): PanelDef {
     visible: true,
     background: "panel",
     widgets: [],
+  };
+}
+
+/* ---------------------------------------------------------------- *
+ * Sample profile — a from-scratch recreation of the reference
+ * kiosk layout (FPS rings, big clock block, last-played-game panel,
+ * weather, GPU/RAM readouts, network + steam news cards).
+ *
+ * It is a *profile*, not a preset: it ships as one of the default
+ * profiles, and `loadConfig` re-injects it if a saved config is
+ * missing it, so existing installs pick it up on the next load.
+ * Every widget is bound to a real live sensor and stays editable.
+ * ---------------------------------------------------------------- */
+
+export const SAMPLE_PROFILE_ID = "sample-1920x1080";
+
+/** The orange accent the sample layout is built around. */
+const SAMPLE_ACCENT = "#f97316";
+
+const RTSS = (n: string) => `plugins.InfoPanel.RTSS.rtss.${n}`;
+const STEAM = (n: string) => `plugins.InfoPanel.SteamAPI.${n}`;
+const NVIDIA = (n: string) => `libre.nvidia_geforce_rtx_5090_${n}`;
+const WEATHER = (n: string) => `plugins.yr-weather-plugin.brevik-norway.${n}`;
+
+/** Shorthand for building sample widgets with fresh ids. */
+function sw(fields: Partial<Widget> & { kind: WidgetKind }): Widget {
+  return { id: uid("w"), visible: true, ...fields };
+}
+
+/** An accent-orange vertical bar (the sample's decorative dividers). */
+function vbar(extra?: Partial<Widget>): Widget {
+  return sw({
+    kind: "shape",
+    shape: "vbar",
+    thickness: 5,
+    color: SAMPLE_ACCENT,
+    ...extra,
+  });
+}
+
+/** Shorthand for building sample panels with fresh ids. */
+function sp(
+  fields: Partial<Omit<PanelDef, "widgets" | "title">> & {
+    title: string;
+    widgets: Widget[];
+  }
+): PanelDef {
+  return {
+    id: uid("panel"),
+    titleVisible: false,
+    visible: true,
+    background: "none",
+    ...fields,
+  };
+}
+
+function samplePanelPlacement(panel: PanelDef, colSpan: number): Placement {
+  return { id: uid(PANEL_ID), module: PANEL_ID, colSpan, visible: true, panel };
+}
+
+export function sampleProfile(): MonitorProfile {
+  // — Row 1: FPS rings — six small gauges in a single row.
+  const fpsRings = sp({
+    title: "FPS rings",
+    layout: "grid",
+    columns: 6,
+    widgets: [
+      sw({ kind: "gauge", label: "FPS", sensor: RTSS("fps"), max: 240, fontSize: 64 }),
+      sw({ kind: "gauge", label: "AVG", sensor: RTSS("avg-fps"), max: 240, fontSize: 64 }),
+      sw({ kind: "gauge", label: "1% LOW", sensor: RTSS("1% low fps"), max: 240, fontSize: 64 }),
+      sw({ kind: "gauge", label: "REFRESH", sensor: RTSS("refreshrate"), max: 240, fontSize: 64 }),
+      sw({ kind: "gauge", label: "CORE °", sensor: NVIDIA("gpu_core"), max: 100, fontSize: 64 }),
+      sw({ kind: "gauge", label: "MEM °", sensor: NVIDIA("gpu_memory_junction"), max: 100, fontSize: 64 }),
+    ],
+  });
+
+  // — Row 1: the center block — dividers, "capturing" line, the big FPS
+  //   readout with its % / MS unit, four GPU stat tiles, and the clock.
+  const clockBlock = sp({
+    title: "Clock block",
+    accent: SAMPLE_ACCENT,
+    layout: "grid",
+    columns: 6,
+    widgets: [
+      vbar({ rowSpan: 2 }),
+      sw({ kind: "text", label: "Capturing", text: "No games to capture", span: 4, fontSize: 18 }),
+      vbar(),
+      sw({ kind: "value", sensor: RTSS("fps"), unit: "% / MS", fontSize: 44 }),
+      sw({ kind: "stat", label: "Power W", sensor: NVIDIA("gpu_board_power"), fontSize: 24 }),
+      sw({ kind: "stat", label: "Mem °", sensor: NVIDIA("gpu_memory_junction"), fontSize: 24 }),
+      sw({ kind: "stat", label: "Core °", sensor: NVIDIA("gpu_core"), fontSize: 24 }),
+      sw({ kind: "stat", label: "Load", sensor: NVIDIA("d3d_3d"), unit: "%", fontSize: 24 }),
+      sw({ kind: "clock", span: 5, fontSize: 84, color: SAMPLE_ACCENT }),
+    ],
+  });
+
+  // — Row 1: last played game — banner, session time, friends, news, cover.
+  const lastPlayed = sp({
+    title: "Last played game",
+    background: "panel",
+    layout: "grid",
+    columns: 2,
+    widgets: [
+      sw({ kind: "image", sensor: STEAM("SteamAPI-Profile.current_game_banner_url"), span: 2 }),
+      sw({ kind: "stat", label: "In game", sensor: STEAM("SteamAPI-Session.current-session-time"), fontSize: 18 }),
+      sw({ kind: "text", label: "Started playing", sensor: STEAM("SteamAPI-Session.session-start-time") }),
+      sw({ kind: "table", label: "Friends", sensor: STEAM("SteamAPI-Social.friends-activity"), rows: 5, span: 2 }),
+      sw({ kind: "table", label: "News", sensor: STEAM("SteamAPI-News.library-news"), rows: 3 }),
+      sw({ kind: "image", sensor: STEAM("SteamAPI-Profile.game_grid_url"), label: "Total playtime" }),
+    ],
+  });
+
+  // — Row 2: network upload/download cards.
+  const network = sp({
+    title: "Network",
+    background: "panel",
+    layout: "grid",
+    columns: 2,
+    widgets: [
+      sw({ kind: "stat", label: "Data Upload", sensor: "libre.ethernet_data_uploaded" }),
+      sw({ kind: "stat", label: "Data Download", sensor: "libre.ethernet_data_downloaded" }),
+    ],
+  });
+
+  // — Row 2: current conditions + 7-day forecast table.
+  const weather = sp({
+    title: "Weather",
+    background: "panel",
+    layout: "grid",
+    columns: 4,
+    widgets: [
+      sw({ kind: "text", text: "Current surface data", span: 4, fontSize: 12, color: "#94a3b8" }),
+      sw({ kind: "value", sensor: WEATHER("weather_desc"), fontSize: 18 }),
+      sw({ kind: "stat", sensor: WEATHER("temp"), fontSize: 22 }),
+      sw({ kind: "value", sensor: WEATHER("wind_speed"), label: "m/s", decimals: 1 }),
+      sw({ kind: "table", label: "7-day forecast", sensor: WEATHER("forecast"), rows: 7, span: 4 }),
+    ],
+  });
+
+  // — Row 2: GPU sparkline + RAM bars + big stat row, bracketed by bars.
+  const gpuBlock = sp({
+    title: "GPU / RAM",
+    accent: SAMPLE_ACCENT,
+    layout: "grid",
+    columns: 7,
+    widgets: [
+      vbar({ rowSpan: 2 }),
+      sw({ kind: "sparkline", label: "GPU power (W)", sensor: NVIDIA("gpu_board_power"), history: 80, span: 5, color: SAMPLE_ACCENT }),
+      vbar(),
+      sw({ kind: "bar", label: "RAM USED", sensor: "libre.total_memory_memory_used", max: 64 }),
+      sw({ kind: "bar", label: "RAM FREE", sensor: "libre.total_memory_memory_available", max: 64 }),
+      sw({ kind: "stat", label: "Load", sensor: NVIDIA("d3d_3d"), unit: "%", fontSize: 28 }),
+      sw({ kind: "stat", label: "Power W", sensor: NVIDIA("gpu_board_power"), fontSize: 28 }),
+      sw({ kind: "stat", label: "Mem °", sensor: NVIDIA("gpu_memory_junction"), fontSize: 28 }),
+      sw({ kind: "stat", label: "Core °", sensor: NVIDIA("gpu_core"), fontSize: 28 }),
+    ],
+  });
+
+  // — Row 2: session summary — game, most played, news, dates.
+  const sessionBlock = sp({
+    title: "Session",
+    background: "panel",
+    layout: "grid",
+    columns: 2,
+    widgets: [
+      sw({ kind: "text", label: "Game", sensor: STEAM("SteamAPI-Session.current-game") }),
+      sw({ kind: "text", sensor: STEAM("SteamAPI-Library.most-played-recent") }),
+      sw({ kind: "text", label: "News", sensor: STEAM("SteamAPI-News.library-news"), span: 2 }),
+      sw({ kind: "text", label: "Date", text: "Oct 07\nOct 06", align: "right", span: 2 }),
+    ],
+  });
+
+  return {
+    id: SAMPLE_PROFILE_ID,
+    name: "Sample 1920×1080",
+    width: 1920,
+    height: 1080,
+    cols: 12,
+    fit: "fill",
+    placements: [
+      placement("spotify", 2),
+      samplePanelPlacement(fpsRings, 3),
+      samplePanelPlacement(clockBlock, 4),
+      samplePanelPlacement(lastPlayed, 3),
+      samplePanelPlacement(network, 2),
+      samplePanelPlacement(weather, 4),
+      samplePanelPlacement(gpuBlock, 4),
+      samplePanelPlacement(sessionBlock, 2),
+    ],
   };
 }
