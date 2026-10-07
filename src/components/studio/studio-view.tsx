@@ -33,6 +33,7 @@ import { Segmented } from "@/components/ui/segmented";
 import { PlacementFrame } from "./placement-frame";
 import { placementContent } from "./placement-content";
 import { RulerH, RulerV } from "./rulers";
+import { SettingsPanel } from "./settings-panel";
 import { ThemePanel } from "./theme-panel";
 import { modules, claimedKeys, type SensorMap } from "@/modules";
 import {
@@ -43,6 +44,8 @@ import {
   uid,
   type DashboardConfig,
   type MonitorProfile,
+  type Placement,
+  type PlacementDesign,
 } from "@/lib/layout";
 import { hslToHex, THEME_PRESETS, type ThemeTokens } from "@/lib/theme";
 import { cn } from "@/lib/utils";
@@ -203,6 +206,13 @@ export function StudioView({
       placements: p.placements.map((x) =>
         x.id === id ? { ...x, colSpan: span } : x
       ),
+    }));
+
+  /** Generic placement mutation (settings, design, ...). */
+  const updatePlacement = (id: string, fn: (p: Placement) => Placement) =>
+    updateProfile((p) => ({
+      ...p,
+      placements: p.placements.map((x) => (x.id === id ? fn(x) : x)),
     }));
 
   const toggleVisible = (id: string) =>
@@ -739,6 +749,129 @@ export function StudioView({
                   className="w-full accent-ring"
                 />
               </div>
+
+              {/* Design */}
+              <div>
+                <div className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  Design
+                </div>
+                <div className="space-y-3">
+                  <div>
+                    <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
+                      <span>Accent</span>
+                      {selected.design?.accent && (
+                        <button
+                          onClick={() =>
+                            updatePlacement(selected.id, (p) => ({
+                              ...p,
+                              design: { ...p.design, accent: undefined },
+                            }))
+                          }
+                          className="hover:text-foreground"
+                        >
+                          Use theme
+                        </button>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={selected.design?.accent ?? hslToHex(config.theme.accent)}
+                        onChange={(e) =>
+                          updatePlacement(selected.id, (p) => ({
+                            ...p,
+                            design: {
+                              ...p.design,
+                              accent: e.target.value,
+                            },
+                          }))
+                        }
+                        className="h-7 w-10 cursor-pointer rounded border border-border bg-transparent p-0.5"
+                      />
+                      <span className="text-xs tabular-nums text-muted-foreground">
+                        {selected.design?.accent ?? "theme"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="mb-1 text-xs text-muted-foreground">
+                      Background
+                    </div>
+                    <Segmented
+                      options={[
+                        { value: "none", label: "None" },
+                        { value: "panel", label: "Panel" },
+                        { value: "bordered", label: "Bordered" },
+                      ]}
+                      value={selected.design?.background ?? "none"}
+                      onChange={(v) =>
+                        updatePlacement(selected.id, (p) => ({
+                          ...p,
+                          design: {
+                            ...p.design,
+                            background: v as PlacementDesign["background"],
+                          },
+                        }))
+                      }
+                    />
+                  </div>
+
+                  <button
+                    onClick={() =>
+                      updatePlacement(selected.id, (p) => ({
+                        ...p,
+                        design: {
+                          ...p.design,
+                          header: !p.design?.header,
+                        },
+                      }))
+                    }
+                    className="flex w-full items-center justify-between rounded-md border border-border px-3 py-2 text-left transition-colors hover:bg-accent/40"
+                  >
+                    <span className="text-xs text-muted-foreground">
+                      Title header
+                    </span>
+                    <span
+                      className={cn(
+                        "relative h-4 w-7 rounded-full transition-colors",
+                        selected.design?.header
+                          ? "bg-ring"
+                          : "bg-muted-foreground/30"
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "absolute top-0.5 h-3 w-3 rounded-full bg-background transition-all",
+                          selected.design?.header
+                            ? "left-3.5"
+                            : "left-0.5"
+                        )}
+                      />
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Module settings */}
+              {selectedMod && selectedMod.settings && (
+                <SettingsPanel
+                  module={selectedMod}
+                  value={selected.settings}
+                  onChange={(key, v) =>
+                    updatePlacement(selected.id, (p) => ({
+                      ...p,
+                      settings: { ...p.settings, [key]: v },
+                    }))
+                  }
+                  onReset={() =>
+                    updatePlacement(selected.id, (p) => ({
+                      ...p,
+                      settings: undefined,
+                    }))
+                  }
+                />
+              )}
 
               <div className="flex gap-2">
                 <Button

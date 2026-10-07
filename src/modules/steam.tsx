@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trophy, User, Users } from "lucide-react";
 import { isImageUrl } from "@/lib/image";
 import { entry, liveText, liveValue } from "@/lib/sensors";
-import type { DashboardModule } from "./types";
+import { effectiveSettings, type DashboardModule } from "./types";
 
 const P = "plugins.InfoPanel.SteamAPI.";
 const PROFILE = "SteamAPI-Profile";
@@ -37,7 +37,14 @@ export const steamModule: DashboardModule = {
   id: "steam",
   title: "Steam",
   matches: (key) => key.startsWith(P),
-  render: (sensors) => {
+  settings: [
+    { key: "showProfile", label: "Profile", type: "boolean", default: true },
+    { key: "showGame", label: "Current game", type: "boolean", default: true },
+    { key: "showStats", label: "Library & social", type: "boolean", default: true },
+    { key: "showNews", label: "News", type: "boolean", default: true },
+  ],
+  render: (sensors, s) => {
+    const cfg = effectiveSettings(steamModule, s);
     const name = liveText(entry(sensors, P, PROFILE, "player-name"));
     const status = liveText(entry(sensors, P, PROFILE, "online-status"));
     const level = liveValue(entry(sensors, P, PROFILE, "steam-level"));
@@ -64,6 +71,9 @@ export const steamModule: DashboardModule = {
     const news = liveText(entry(sensors, P, NEWS, "current_game_news_title"));
 
     if (!name && !game && totalGames === undefined) return null;
+    if (!(cfg.showProfile || cfg.showGame || cfg.showStats || cfg.showNews)) {
+      return null;
+    }
 
     const avatarUrl = avatar && isImageUrl(avatar, "profile_image_url") ? avatar : undefined;
     const gameArt = banner && isImageUrl(banner, "current_game_banner_url")
@@ -75,6 +85,7 @@ export const steamModule: DashboardModule = {
     return (
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Profile */}
+        {cfg.showProfile && (
         <Card className="border-border bg-card">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
@@ -107,8 +118,10 @@ export const steamModule: DashboardModule = {
             </div>
           </CardContent>
         </Card>
+        )}
 
         {/* Current game */}
+        {cfg.showGame && (
         <Card className="border-border bg-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -133,8 +146,10 @@ export const steamModule: DashboardModule = {
             </div>
           </CardContent>
         </Card>
+        )}
 
         {/* Library & social stats */}
+        {cfg.showStats && (
         <Card className="border-border bg-card">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
@@ -190,8 +205,9 @@ export const steamModule: DashboardModule = {
             )}
           </CardContent>
         </Card>
+        )}
 
-        {news && (
+        {cfg.showNews && news && (
           <Card className="border-border bg-card lg:col-span-3">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">

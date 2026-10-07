@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Cloud, Droplets, Gauge, Snowflake, Thermometer, Wind } from "lucide-react";
 import { isImageUrl } from "@/lib/image";
 import { findEntry, liveText } from "@/lib/sensors";
-import type { DashboardModule } from "./types";
+import { effectiveSettings, type DashboardModule } from "./types";
 
 const P = "plugins.yr-weather-plugin.";
 
@@ -19,7 +19,21 @@ export const weatherModule: DashboardModule = {
   id: "weather",
   title: "Weather",
   matches: (key) => key.startsWith(P),
-  render: (sensors) => {
+  settings: [
+    { key: "showConditions", label: "Conditions card", type: "boolean", default: true },
+    { key: "showForecast", label: "Forecast card", type: "boolean", default: true },
+    {
+      key: "forecastDays",
+      label: "Forecast days",
+      type: "number",
+      default: 7,
+      min: 1,
+      max: 7,
+      step: 1,
+    },
+  ],
+  render: (sensors, s) => {
+    const cfg = effectiveSettings(weatherModule, s);
     const find = (id: string) => findEntry(sensors, P, id)?.sensor;
     const text = (id: string) => liveText(find(id));
     const num = (id: string) => find(id)?.value;
@@ -51,7 +65,11 @@ export const weatherModule: DashboardModule = {
           ]
         : undefined;
 
-    const forecastLines = forecast?.split("\n").filter((l) => l.trim() !== "");
+    const days = Math.max(1, Math.min(7, Math.round(Number(cfg.forecastDays) || 7)));
+    const forecastLines = forecast
+      ?.split("\n")
+      .filter((l) => l.trim() !== "")
+      .slice(0, days);
 
     return (
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
@@ -93,6 +111,7 @@ export const weatherModule: DashboardModule = {
         </Card>
 
         {/* Conditions stats */}
+        {cfg.showConditions && (
         <Card className="border-border bg-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Conditions</CardTitle>
@@ -143,8 +162,10 @@ export const weatherModule: DashboardModule = {
             </div>
           </CardContent>
         </Card>
+        )}
 
         {/* Forecast */}
+        {cfg.showForecast && (
         <Card className="border-border bg-card">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
@@ -176,6 +197,7 @@ export const weatherModule: DashboardModule = {
             )}
           </CardContent>
         </Card>
+        )}
       </div>
     );
   },

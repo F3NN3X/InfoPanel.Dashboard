@@ -2,7 +2,7 @@ import { NowPlayingCard } from "@/components/NowPlayingCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { isImageUrl } from "@/lib/image";
 import { entry, liveText } from "@/lib/sensors";
-import type { DashboardModule } from "./types";
+import { effectiveSettings, type DashboardModule } from "./types";
 
 const P = "plugins.media-plugin.";
 const C = "media";
@@ -18,7 +18,13 @@ export const mediaModule: DashboardModule = {
   id: "media",
   title: "Media",
   matches: (key) => key.startsWith(P),
-  render: (sensors) => {
+  settings: [
+    { key: "showArt", label: "Cover art", type: "boolean", default: true },
+    { key: "showDetails", label: "Playback details", type: "boolean", default: true },
+    { key: "showSource", label: "Source app", type: "boolean", default: true },
+  ],
+  render: (sensors, s) => {
+    const cfg = effectiveSettings(mediaModule, s);
     const track = liveText(entry(sensors, P, C, "current-track"));
     const artist = liveText(entry(sensors, P, C, "artist"));
     const album = liveText(entry(sensors, P, C, "album"));
@@ -32,9 +38,14 @@ export const mediaModule: DashboardModule = {
 
     if (!track && !cover) return null;
 
-    const coverUrl = cover && isImageUrl(cover, "cover-art") ? cover : undefined;
+    const coverUrl =
+      cfg.showArt && cover && isImageUrl(cover, "cover-art")
+        ? cover
+        : undefined;
     const statusUrl =
-      statusIcon && isImageUrl(statusIcon, "status-image") ? statusIcon : undefined;
+      statusIcon && isImageUrl(statusIcon, "status-image")
+        ? statusIcon
+        : undefined;
     const isPlaying = playback === 2;
 
     return (
@@ -49,7 +60,7 @@ export const mediaModule: DashboardModule = {
           className="md:col-span-2"
         />
 
-        {(sourceApp || elapsed || statusUrl) && (
+        {cfg.showDetails && (sourceApp || elapsed || statusUrl) && (
           <Card className="border-border bg-card">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -58,8 +69,10 @@ export const mediaModule: DashboardModule = {
             </CardHeader>
             <CardContent className="flex items-center justify-between gap-4">
               <div className="min-w-0">
-                {sourceApp && (
-                  <div className="text-sm font-medium text-foreground/85">{sourceApp}</div>
+                {cfg.showSource && sourceApp && (
+                  <div className="text-sm font-medium text-foreground/85">
+                    {sourceApp}
+                  </div>
                 )}
                 {(elapsed || remaining) && (
                   <div className="text-xs text-muted-foreground">

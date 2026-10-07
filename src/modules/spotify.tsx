@@ -1,5 +1,8 @@
 import { NowPlayingCard } from "@/components/NowPlayingCard";
-import type { DashboardModule } from "./types";
+import {
+  effectiveSettings,
+  type DashboardModule,
+} from "./types";
 
 /**
  * Spotify module — the now-playing state.
@@ -12,7 +15,12 @@ export const spotifyModule: DashboardModule = {
   title: "Now Playing",
   matches: (key) =>
     key.startsWith("spotify.") || key.startsWith("plugins.spotify-plugin."),
-  render: (sensors) => {
+  settings: [
+    { key: "showArt", label: "Cover art", type: "boolean", default: true },
+    { key: "showAlbum", label: "Album line", type: "boolean", default: true },
+  ],
+  render: (sensors, s) => {
+    const cfg = effectiveSettings(spotifyModule, s);
     const track = resolve(sensors, "spotify.track", "plugins.spotify-plugin.spotify.current-track")?.text;
     const artist = resolve(sensors, "spotify.artist", "plugins.spotify-plugin.spotify.artist")?.text;
     const album = resolve(sensors, "spotify.album", "plugins.spotify-plugin.spotify.album")?.text;
@@ -29,8 +37,8 @@ export const spotifyModule: DashboardModule = {
         <NowPlayingCard
           track={track}
           artist={artist}
-          album={album}
-          albumArtUrl={art || undefined}
+          album={cfg.showAlbum ? album : undefined}
+          albumArtUrl={cfg.showArt ? art || undefined : undefined}
           progress={progress ?? 0}
           isPlaying={playback === 2}
         />

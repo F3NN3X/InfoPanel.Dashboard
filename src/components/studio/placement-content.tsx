@@ -43,7 +43,7 @@ export function placementContent(
   }
   const mod = moduleById.get(p.module);
   if (!mod) return { content: null, hasData: false, title: p.module };
-  const content = mod.render(sensors);
+  const content = mod.render(sensors, p.settings);
   return {
     content: content ?? null,
     hasData: content != null,

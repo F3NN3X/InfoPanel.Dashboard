@@ -1,4 +1,5 @@
 import { DEFAULT_THEME, type ThemeTokens } from "./theme";
+import type { ModuleSettings } from "@/modules/types";
 
 /**
  * Layout engine — the dashboard is a grid of *placements*. Each placement
@@ -11,6 +12,16 @@ import { DEFAULT_THEME, type ThemeTokens } from "./theme";
 
 export const CARDS_ID = "cards";
 
+/** Per-instance visual overrides for a placement. */
+export interface PlacementDesign {
+  /** Hex color overriding the theme accent for this placement only. */
+  accent?: string;
+  /** Background treatment around the module content. */
+  background?: "none" | "panel" | "bordered";
+  /** Render a small uppercase title header above the content. */
+  header?: boolean;
+}
+
 export interface Placement {
   /** Unique instance id (React key). */
   id: string;
@@ -19,6 +30,10 @@ export interface Placement {
   /** Number of grid columns this placement spans. */
   colSpan: number;
   visible: boolean;
+  /** Per-instance module settings, merged over the module's defaults. */
+  settings?: ModuleSettings;
+  /** Per-instance design overrides (accent, background, header). */
+  design?: PlacementDesign;
 }
 
 export interface MonitorProfile {
@@ -217,5 +232,10 @@ export function newProfile(
 }
 
 export function clonePlacement(p: Placement): Placement {
-  return { ...p, id: uid(p.module) };
+  return {
+    ...p,
+    id: uid(p.module),
+    settings: p.settings ? { ...p.settings } : undefined,
+    design: p.design ? { ...p.design } : undefined,
+  };
 }

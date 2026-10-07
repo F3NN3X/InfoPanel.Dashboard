@@ -1,4 +1,5 @@
 import {
+  type CSSProperties,
   type DragEvent,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
@@ -12,6 +13,7 @@ import {
   X,
 } from "lucide-react";
 import type { MonitorProfile, Placement } from "@/lib/layout";
+import { hexToHsl } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
 interface PlacementFrameProps {
@@ -67,6 +69,7 @@ export function PlacementFrame({
   const fill = profile.fit === "fill";
   const span = clampSpan(placement.colSpan, profile.cols);
   const colWidth = gridWidth > 0 ? gridWidth / profile.cols : 0;
+  const design = placement.design;
 
   // Hide empty modules in kiosk mode (they claim no space).
   if (!studio && !hasData) return null;
@@ -111,7 +114,14 @@ export function PlacementFrame({
             ? "ring-2 ring-ring"
             : "outline-dashed outline-1 outline-ring/40")
       )}
-      style={{ gridColumn: `span ${span}` }}
+      style={{
+        gridColumn: `span ${span}`,
+        // Per-placement accent override: scopes the theme's --accent token to
+        // this frame's subtree (rings, gauges, highlights recolor with it).
+        ...(design?.accent
+          ? ({ "--accent": hexToHsl(design.accent) } as CSSProperties)
+          : {}),
+      }}
       draggable={studio}
       onClick={onSelect}
       onDragStart={studio ? handleDragStart : undefined}
@@ -213,7 +223,22 @@ export function PlacementFrame({
             </div>
           </div>
         ) : (
-          children
+          <>
+            {design?.header && (
+              <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                {title}
+              </div>
+            )}
+            {design?.background === "panel" ? (
+              <div className="rounded-lg bg-card/50 p-2">{children}</div>
+            ) : design?.background === "bordered" ? (
+              <div className="rounded-lg border border-border bg-card/30 p-2">
+                {children}
+              </div>
+            ) : (
+              children
+            )}
+          </>
         )}
       </div>
     </div>
