@@ -1,6 +1,16 @@
 import { systemModule } from "./system";
 import { hardwareModule } from "./hardware";
 import { spotifyModule } from "./spotify";
+import { mediaModule } from "./media";
+import { steamModule } from "./steam";
+import { weatherModule } from "./weather";
+import { fpsModule } from "./fps";
+import { audioModule } from "./audio";
+import { vbzModule } from "./vbz";
+import { bluetoothModule } from "./bluetooth";
+import { notificationsModule } from "./notifications";
+import { textfileModule } from "./textfile";
+import { streamdeckModule } from "./streamdeck";
 import type { DashboardModule, SensorMap } from "./types";
 
 /**
@@ -12,7 +22,17 @@ import type { DashboardModule, SensorMap } from "./types";
 export const modules: DashboardModule[] = [
   systemModule,
   spotifyModule,
+  mediaModule,
+  steamModule,
   hardwareModule,
+  weatherModule,
+  fpsModule,
+  audioModule,
+  vbzModule,
+  bluetoothModule,
+  notificationsModule,
+  textfileModule,
+  streamdeckModule,
 ];
 
 /** Keys claimed by at least one registered module. */
