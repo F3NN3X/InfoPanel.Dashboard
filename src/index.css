@@ -34,3 +34,17 @@
     @apply bg-background text-foreground antialiased;
   }
 }
+
+/* Kiosk mode: a borderless kiosk strip must not show scrollbars when
+   content is squeezed into the window — clip quietly instead. Content
+   stays wheel-scrollable, the bars just disappear. */
+.kiosk,
+.kiosk * {
+  scrollbar-width: none; /* Firefox */
+}
+
+.kiosk *::-webkit-scrollbar {
+  display: none; /* Chromium/WebView2 */
+  width: 0;
+  height: 0;
+}

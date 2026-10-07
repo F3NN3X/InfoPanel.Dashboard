@@ -92,6 +92,24 @@ export default function App() {
     return () => window.clearTimeout(t);
   }, [config.profiles, kiosk]);
 
+  // Sync the studio's "kiosk profile" choice to the bridge, so the borderless
+  // window (Show Dashboard) opens that profile. The bridge pins it in
+  // kiosk.json (preserving the dragged x/y position).
+  useEffect(() => {
+    if (kiosk) return; // the kiosk window only reads; don't push from it
+    if (!config.kioskProfileId) return;
+    const t = window.setTimeout(() => {
+      fetch(`${API_BASE}/api/kiosk`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profileId: config.kioskProfileId }),
+      }).catch(() => {
+        // Bridge offline — the pin simply stays stale.
+      });
+    }, 400);
+    return () => window.clearTimeout(t);
+  }, [config.kioskProfileId, kiosk]);
+
   // Apply the theme as CSS variables on :root.
   useEffect(
     () => applyTheme(config.theme, config.radius),
@@ -140,6 +158,7 @@ export default function App() {
     <div
       className={cn(
         "flex flex-col bg-background text-foreground",
+        kiosk && "kiosk",
         fill ? "h-screen overflow-hidden p-3 gap-3" : "min-h-screen p-6 gap-4"
       )}
     >
@@ -250,9 +269,11 @@ function KioskDragStrip() {
 
   const post = (phase: string) => {
     try {
-      (window as any).chrome?.webview?.postMessage(
-        JSON.stringify({ type: "drag", phase })
-      );
+      // Post the object itself (not a pre-stringified string): WebView2's
+      // WebMessageAsJson then carries a single JSON object, which the C#
+      // side parses directly. A pre-stringified value arrives double-encoded
+      // and silently fails to parse.
+      (window as any).chrome?.webview?.postMessage({ type: "drag", phase });
     } catch {
       // Not running inside the WebView2 kiosk window.
     }
@@ -280,17 +301,20 @@ function KioskDragStrip() {
       }}
       title="Drag to move the window"
       className={cn(
-        "fixed inset-x-0 top-0 z-50 flex h-4 cursor-grab touch-none select-none items-center justify-center transition-opacity",
+        "group fixed inset-x-0 top-0 z-50 flex h-6 cursor-grab touch-none select-none items-center gap-2 border-b border-foreground/10 px-3",
         dragging
-          ? "cursor-grabbing bg-foreground/10 opacity-100"
-          : "opacity-40 hover:opacity-100"
+          ? "cursor-grabbing bg-foreground/15"
+          : "bg-background/95 hover:bg-background"
       )}
     >
       <div className="flex items-center gap-1">
-        {Array.from({ length: 12 }).map((_, i) => (
-          <span key={i} className="h-1 w-1 rounded-full bg-foreground/60" />
+        {Array.from({ length: 10 }).map((_, i) => (
+          <span key={i} className="h-1 w-1 rounded-full bg-foreground/80" />
         ))}
       </div>
+      <span className="pointer-events-none text-[10px] uppercase tracking-widest text-muted-foreground">
+        drag to move
+      </span>
     </div>
   );
 }

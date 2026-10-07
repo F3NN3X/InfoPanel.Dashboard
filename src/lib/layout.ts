@@ -169,6 +169,11 @@ export interface DashboardConfig {
   version: 1;
   /** Profile id to show, or "auto" to match the window size. */
   activeProfile: string;
+  /**
+   * Profile id the borderless kiosk window (the bridge's "Show Dashboard")
+   * opens. Set from the studio; synced to the bridge via POST /api/kiosk.
+   */
+  kioskProfileId?: string;
   profiles: MonitorProfile[];
   theme: ThemeTokens;
   /** Corner radius in rem (shadcn --radius). */
@@ -286,6 +291,7 @@ export function loadConfig(): DashboardConfig {
     return {
       version: 1,
       activeProfile: parsed.activeProfile ?? defaults.activeProfile,
+      kioskProfileId: parsed.kioskProfileId,
       profiles,
       theme: { ...DEFAULT_THEME, ...parsed.theme },
       radius: parsed.radius ?? defaults.radius,
