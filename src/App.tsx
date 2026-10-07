@@ -213,6 +213,10 @@ export default function App() {
           })}
       </div>
 
+      {/* Kiosk: a thin drag strip along the top edge moves the borderless
+          window (the C# side follows the cursor and persists the position) */}
+      {kiosk && <KioskDragStrip />}
+
       {/* Floating entry to the studio — a close button in kiosk mode */}
       {kiosk ? (
         <button
@@ -231,6 +235,62 @@ export default function App() {
           <Wrench className="h-4 w-4" />
         </button>
       )}
+    </div>
+  );
+}
+
+/**
+ * Kiosk mode only: a thin, quiet grip across the very top edge of the
+ * window. Press and drag it to move the borderless kiosk window — the C#
+ * side follows the cursor via Win32 (see KioskWindow), so the window can
+ * be pulled onto an external monitor. In a plain browser it does nothing.
+ */
+function KioskDragStrip() {
+  const [dragging, setDragging] = useState(false);
+
+  const post = (phase: string) => {
+    try {
+      (window as any).chrome?.webview?.postMessage(
+        JSON.stringify({ type: "drag", phase })
+      );
+    } catch {
+      // Not running inside the WebView2 kiosk window.
+    }
+  };
+
+  return (
+    <div
+      onPointerDown={(e) => {
+        e.currentTarget.setPointerCapture(e.pointerId);
+        post("start");
+        setDragging(true);
+      }}
+      onPointerMove={() => {
+        // The C# side reads the cursor position itself, so a plain "move"
+        // on every pointer event is enough.
+        if (dragging) post("move");
+      }}
+      onPointerUp={() => {
+        post("end");
+        setDragging(false);
+      }}
+      onPointerCancel={() => {
+        post("end");
+        setDragging(false);
+      }}
+      title="Drag to move the window"
+      className={cn(
+        "fixed inset-x-0 top-0 z-50 flex h-4 cursor-grab touch-none select-none items-center justify-center transition-opacity",
+        dragging
+          ? "cursor-grabbing bg-foreground/10 opacity-100"
+          : "opacity-40 hover:opacity-100"
+      )}
+    >
+      <div className="flex items-center gap-1">
+        {Array.from({ length: 12 }).map((_, i) => (
+          <span key={i} className="h-1 w-1 rounded-full bg-foreground/60" />
+        ))}
+      </div>
     </div>
   );
 }

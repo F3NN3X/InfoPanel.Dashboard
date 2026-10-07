@@ -568,7 +568,7 @@ export function sampleProfile(): MonitorProfile {
   });
 
   // — Bottom row, left: current conditions + 7-day forecast table.
-  // The forecast lines come from the DataBridge's own MET Norway fetch
+  // The forecast lines come from the DataBridge's own open-meteo fetch
   // (the yr plugin only pushes a single day).
   const weather = sp({
     title: "Weather",

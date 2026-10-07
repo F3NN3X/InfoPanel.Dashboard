@@ -6,7 +6,7 @@ import { findEntry, liveText } from "@/lib/sensors";
 import { effectiveSettings, type DashboardModule } from "./types";
 
 const P = "plugins.yr-weather-plugin.";
-/** The DataBridge's own MET Norway collector (multi-day forecast lines). */
+/** The DataBridge's own open-meteo collector (multi-day forecast lines). */
 const BRIDGE = "plugins.InfoPanel.DataBridge.weather.";
 
 /**
@@ -56,7 +56,7 @@ export const weatherModule: DashboardModule = {
     const iconUrl = text("weather_icon_url");
     const icon = text("weather_icon");
     // The yr plugin only pushes a single forecast day; the DataBridge's own
-    // MET Norway collector pushes the full multi-day table, so prefer it.
+    // open-meteo collector pushes the full multi-day table, so prefer it.
     const forecast =
       sensors[BRIDGE + "forecast"]?.text?.trim() || text("forecast");
 
