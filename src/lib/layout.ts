@@ -413,7 +413,7 @@ export const SAMPLE_PROFILE_ID = "sample-1920x1080";
  * Bump whenever the shipped sample layout changes so saved copies in
  * localStorage (kiosk machines) are upgraded on the next load.
  */
-export const SAMPLE_PROFILE_VERSION = 6;
+export const SAMPLE_PROFILE_VERSION = 7;
 
 /** The yellow accent the sample layout is built around. */
 const SAMPLE_ACCENT = "#f5c518";
@@ -512,12 +512,12 @@ export function sampleProfile(): MonitorProfile {
     layout: "grid",
     columns: 6,
     widgets: [
-      sw({ kind: "gauge", sensor: RTSS("fps"), max: 240, fontSize: 36 }),
-      sw({ kind: "gauge", sensor: RTSS("avg-fps"), max: 240, fontSize: 36 }),
-      sw({ kind: "gauge", sensor: RTSS("1% low fps"), max: 240, fontSize: 36 }),
-      sw({ kind: "gauge", sensor: RTSS("refreshrate"), max: 240, fontSize: 36 }),
-      sw({ kind: "gauge", sensor: NVIDIA("gpu_core"), max: 100, fontSize: 36 }),
-      sw({ kind: "gauge", sensor: NVIDIA("gpu_memory_junction"), max: 100, fontSize: 36 }),
+      sw({ kind: "gauge", sensor: RTSS("fps"), max: 240, fontSize: 20 }),
+      sw({ kind: "gauge", sensor: RTSS("avg-fps"), max: 240, fontSize: 20 }),
+      sw({ kind: "gauge", sensor: RTSS("1% low fps"), max: 240, fontSize: 20 }),
+      sw({ kind: "gauge", sensor: RTSS("refreshrate"), max: 240, fontSize: 20 }),
+      sw({ kind: "gauge", sensor: NVIDIA("gpu_core"), max: 100, fontSize: 20 }),
+      sw({ kind: "gauge", sensor: NVIDIA("gpu_memory_junction"), max: 100, fontSize: 20 }),
     ],
   });
 
@@ -530,14 +530,14 @@ export function sampleProfile(): MonitorProfile {
     columns: 6,
     widgets: [
       vbar({ rowSpan: 4 }),
-      sw({ kind: "text", label: "Capturing", text: "No games to capture", span: 4, fontSize: 16 }),
+      sw({ kind: "text", label: "Capturing", text: "No games to capture", span: 4, fontSize: 12 }),
       vbar(),
-      sw({ kind: "value", sensor: RTSS("fps"), subSensor: RTSS("current frame time"), fontSize: 40 }),
-      sw({ kind: "stat", label: "Power W", sensor: NVIDIA("gpu_board_power"), fontSize: 20 }),
-      sw({ kind: "stat", label: "Mem °", sensor: NVIDIA("gpu_memory_junction"), fontSize: 20 }),
-      sw({ kind: "stat", label: "Core °", sensor: NVIDIA("gpu_core"), fontSize: 20 }),
-      sw({ kind: "stat", label: "Load", sensor: NVIDIA("d3d_3d"), unit: "%", fontSize: 20 }),
-      sw({ kind: "clock", span: 5, rowSpan: 2, fontSize: 84, color: SAMPLE_ACCENT }),
+      sw({ kind: "value", sensor: RTSS("fps"), subSensor: RTSS("current frame time"), fontSize: 26 }),
+      sw({ kind: "stat", label: "Power W", sensor: NVIDIA("gpu_board_power"), fontSize: 14 }),
+      sw({ kind: "stat", label: "Mem °", sensor: NVIDIA("gpu_memory_junction"), fontSize: 14 }),
+      sw({ kind: "stat", label: "Core °", sensor: NVIDIA("gpu_core"), fontSize: 14 }),
+      sw({ kind: "stat", label: "Load", sensor: NVIDIA("d3d_3d"), unit: "%", fontSize: 14 }),
+      sw({ kind: "clock", span: 5, rowSpan: 2, fontSize: 46, color: SAMPLE_ACCENT }),
     ],
   });
 
@@ -552,9 +552,9 @@ export function sampleProfile(): MonitorProfile {
     layout: "overlay",
     widgets: [
       sw({ kind: "image", sensor: STEAM("SteamAPI-Profile.current_game_banner_url"), asBackground: true }),
-      sw({ kind: "image", sensor: STEAM("SteamAPI-Profile.game_icon_url"), height: 44, overlayZone: "top" }),
-      sw({ kind: "text", sensor: STEAM("SteamAPI-Session.current-game"), fontSize: 22, overlayZone: "top" }),
-      sw({ kind: "value", sensor: STEAM("SteamAPI-Session.current-session-time"), color: SAMPLE_ACCENT, fontSize: 40, overlayZone: "middle" }),
+      sw({ kind: "image", sensor: STEAM("SteamAPI-Profile.game_icon_url"), height: 30, overlayZone: "top" }),
+      sw({ kind: "text", sensor: STEAM("SteamAPI-Session.current-game"), fontSize: 15, overlayZone: "top" }),
+      sw({ kind: "value", sensor: STEAM("SteamAPI-Session.current-session-time"), color: SAMPLE_ACCENT, fontSize: 26, overlayZone: "middle" }),
       sw({ kind: "text", label: "Started", sensor: STEAM("SteamAPI-Session.session-start-time"), overlayZone: "bottom" }),
       sw({ kind: "value", label: "Total hours", sensor: STEAM("SteamAPI-Library.recent-playtime"), overlayZone: "bottom" }),
       sw({ kind: "table", label: "Friends", sensor: STEAM("SteamAPI-Social.friends-activity"), rows: 3, columns: 4, header: "Friend, Status, Playing, Last Online", overlayZone: "bottom" }),
@@ -582,9 +582,9 @@ export function sampleProfile(): MonitorProfile {
     layout: "grid",
     columns: 4,
     widgets: [
-      sw({ kind: "text", text: "Current surface data", span: 4, fontSize: 11, color: "#94a3b8" }),
-      sw({ kind: "value", sensor: WEATHER("weather_desc"), fontSize: 16 }),
-      sw({ kind: "stat", sensor: WEATHER("temp"), span: 2, color: SAMPLE_ACCENT, fontSize: 24 }),
+      sw({ kind: "text", text: "Current surface data", span: 4, fontSize: 10, color: "#94a3b8" }),
+      sw({ kind: "value", sensor: WEATHER("weather_desc"), fontSize: 13 }),
+      sw({ kind: "stat", sensor: WEATHER("temp"), span: 2, color: SAMPLE_ACCENT, fontSize: 18 }),
       sw({ kind: "value", sensor: WEATHER("wind_speed"), label: "m/s", decimals: 1 }),
       sw({ kind: "table", sensor: "plugins.InfoPanel.DataBridge.weather.forecast", rows: 7, span: 4, columns: 5, header: "Date, Weather, Temp, Precip, Wind" }),
     ],
@@ -602,11 +602,11 @@ export function sampleProfile(): MonitorProfile {
       sw({ kind: "sparkline", label: "GPU power (W)", sensor: NVIDIA("gpu_board_power"), history: 80, span: 5, color: SAMPLE_ACCENT }),
       vbar({ rowSpan: 3 }),
       sw({ kind: "bar", label: "RAM USED", sensor: "libre.total_memory_memory_used", max: 64, span: 3 }),
-      sw({ kind: "stat", label: "Load", sensor: NVIDIA("d3d_3d"), unit: "%", fontSize: 18 }),
-      sw({ kind: "stat", label: "Power W", sensor: NVIDIA("gpu_board_power"), fontSize: 18 }),
+      sw({ kind: "stat", label: "Load", sensor: NVIDIA("d3d_3d"), unit: "%", fontSize: 13 }),
+      sw({ kind: "stat", label: "Power W", sensor: NVIDIA("gpu_board_power"), fontSize: 13 }),
       sw({ kind: "bar", label: "RAM FREE", sensor: "libre.total_memory_memory_available", max: 64, span: 3 }),
-      sw({ kind: "stat", label: "Mem °", sensor: NVIDIA("gpu_memory_junction"), fontSize: 18 }),
-      sw({ kind: "stat", label: "Core °", sensor: NVIDIA("gpu_core"), fontSize: 18 }),
+      sw({ kind: "stat", label: "Mem °", sensor: NVIDIA("gpu_memory_junction"), fontSize: 13 }),
+      sw({ kind: "stat", label: "Core °", sensor: NVIDIA("gpu_core"), fontSize: 13 }),
     ],
   });
 
@@ -626,10 +626,10 @@ export function sampleProfile(): MonitorProfile {
 
   return {
     id: SAMPLE_PROFILE_ID,
-    name: "Sample 1920×1080",
+    name: "Sample 1920×550",
     sampleVersion: SAMPLE_PROFILE_VERSION,
     width: 1920,
-    height: 1080,
+    height: 550,
     cols: 12,
     fit: "fill",
     placements: [

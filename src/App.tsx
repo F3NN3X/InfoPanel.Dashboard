@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Wrench, X } from "lucide-react";
 import { API_BASE, useSensors } from "@/hooks/useSensors";
 import { Badge } from "@/components/ui/badge";
@@ -259,15 +259,23 @@ export default function App() {
 }
 
 /**
- * Kiosk mode only: a thin, quiet grip across the very top edge of the
- * window. Press and drag it to move the borderless kiosk window — the C#
- * side follows the cursor via Win32 (see KioskWindow), so the window can
- * be pulled onto an external monitor. In a plain browser it does nothing.
+ * Kiosk mode only: a thin grip across the very top edge of the window.
+ *
+ * It is *auto-hidden*: at rest the strip is a transparent hit-target (the
+ * dashboard shows through, so the bar never cuts off the top row) and the
+ * grip fades in only when the pointer is near the top edge, staying solid
+ * while dragging. Press and drag it to move the borderless kiosk window —
+ * the C# side follows the cursor via Win32 (see KioskWindow), so the window
+ * can be pulled onto an external monitor. In a plain browser it does nothing.
  */
 function KioskDragStrip() {
+  const [hovered, setHovered] = useState(false);
   const [dragging, setDragging] = useState(false);
+  // Last posted cursor position — "move" is only re-posted when it changes,
+  // which keeps the WebView2 message rate sane while the window tracks.
+  const lastMove = useRef<{ x: number; y: number } | null>(null);
 
-  const post = (phase: string) => {
+  const post = useCallback((phase: string) => {
     try {
       // Post the object itself (not a pre-stringified string): WebView2's
       // WebMessageAsJson then carries a single JSON object, which the C#
@@ -277,44 +285,91 @@ function KioskDragStrip() {
     } catch {
       // Not running inside the WebView2 kiosk window.
     }
-  };
+  }, []);
+
+  // Robust drag: while dragging, listen on the window so the move keeps
+  // flowing even if the pointer leaves the strip (pointer capture is lost
+  // the instant the window itself moves under the cursor, which is exactly
+  // what dragging does).
+  useEffect(() => {
+    if (!dragging) return;
+    const onMove = (e: PointerEvent) => {
+      if (
+        lastMove.current &&
+        lastMove.current.x === e.clientX &&
+        lastMove.current.y === e.clientY
+      )
+        return;
+      lastMove.current = { x: e.clientX, y: e.clientY };
+      post("move");
+    };
+    const onEnd = () => {
+      post("end");
+      lastMove.current = null;
+      setDragging(false);
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onEnd);
+    window.addEventListener("pointercancel", onEnd);
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onEnd);
+      window.removeEventListener("pointercancel", onEnd);
+    };
+  }, [dragging, post]);
+
+  const showGrip = hovered || dragging;
 
   return (
     <div
       onPointerDown={(e) => {
-        e.currentTarget.setPointerCapture(e.pointerId);
+        e.preventDefault();
+        try {
+          e.currentTarget.setPointerCapture(e.pointerId);
+        } catch {
+          // Capture unsupported — the window listeners above cover the drag.
+        }
+        lastMove.current = { x: e.clientX, y: e.clientY };
         post("start");
         setDragging(true);
       }}
-      onPointerMove={() => {
-        // The C# side reads the cursor position itself, so a plain "move"
-        // on every pointer event is enough.
-        if (dragging) post("move");
-      }}
-      onPointerUp={() => {
-        post("end");
-        setDragging(false);
-      }}
-      onPointerCancel={() => {
-        post("end");
-        setDragging(false);
-      }}
+      onPointerEnter={() => setHovered(true)}
+      onPointerLeave={() => setHovered(false)}
       title="Drag to move the window"
       className={cn(
-        "group fixed inset-x-0 top-0 z-50 flex h-6 cursor-grab touch-none select-none items-center gap-2 border-b border-foreground/10 px-3",
-        dragging
-          ? "cursor-grabbing bg-foreground/15"
-          : "bg-background/95 hover:bg-background"
+        "fixed inset-x-0 top-0 z-50 flex h-7 touch-none select-none items-center gap-2 px-3",
+        dragging ? "cursor-grabbing" : "cursor-grab"
       )}
     >
-      <div className="flex items-center gap-1">
-        {Array.from({ length: 10 }).map((_, i) => (
-          <span key={i} className="h-1 w-1 rounded-full bg-foreground/80" />
-        ))}
+      {/* Background: hidden at rest so the dashboard shows through, a soft
+          fade on hover, solid while dragging. */}
+      <div
+        aria-hidden
+        className={cn(
+          "pointer-events-none absolute inset-0 -z-10 transition-opacity duration-200",
+          dragging
+            ? "bg-foreground/15 opacity-100"
+            : hovered
+              ? "bg-gradient-to-b from-background/85 to-transparent opacity-100"
+              : "opacity-0"
+        )}
+      />
+      <div
+        aria-hidden
+        className={cn(
+          "pointer-events-none flex items-center gap-2 transition-opacity duration-200",
+          showGrip ? "opacity-100" : "opacity-0"
+        )}
+      >
+        <div className="flex items-center gap-1">
+          {Array.from({ length: 10 }).map((_, i) => (
+            <span key={i} className="h-1 w-1 rounded-full bg-foreground/80" />
+          ))}
+        </div>
+        <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+          drag to move
+        </span>
       </div>
-      <span className="pointer-events-none text-[10px] uppercase tracking-widest text-muted-foreground">
-        drag to move
-      </span>
     </div>
   );
 }
