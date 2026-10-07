@@ -35,9 +35,11 @@ import { placementContent } from "./placement-content";
 import { RulerH, RulerV } from "./rulers";
 import { SettingsPanel } from "./settings-panel";
 import { ThemePanel } from "./theme-panel";
+import { PanelInspector } from "./panel-inspector";
 import { modules, claimedKeys, type SensorMap } from "@/modules";
 import {
   CARDS_ID,
+  PANEL_ID,
   clonePlacement,
   defaultConfig,
   newProfile,
@@ -47,6 +49,7 @@ import {
   type Placement,
   type PlacementDesign,
 } from "@/lib/layout";
+import { panelPresets, type PanelPreset } from "@/lib/panelPresets";
 import { hslToHex, THEME_PRESETS, type ThemeTokens } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
@@ -56,6 +59,7 @@ const ALL_MODULES = [
 ];
 
 const DND_MIME = "text/infopanel-module";
+const DND_MIME_PANEL = "text/infopanel-panel";
 const GRID_GAP = 12; // must match the canvas grid's gap-3
 const ZOOM_STEPS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2];
 
@@ -200,6 +204,23 @@ export function StudioView({
     }));
   };
 
+  /** Add a custom panel (group of widgets) from a preset. */
+  const addPanelPreset = (preset: PanelPreset) => {
+    updateProfile((p) => ({
+      ...p,
+      placements: [
+        ...p.placements,
+        {
+          id: uid(PANEL_ID),
+          module: PANEL_ID,
+          colSpan: Math.min(preset.colSpan, p.cols),
+          visible: true,
+          panel: preset.make(),
+        },
+      ],
+    }));
+  };
+
   const setSpan = (id: string, span: number) =>
     updateProfile((p) => ({
       ...p,
@@ -321,7 +342,11 @@ export function StudioView({
     const module = e.dataTransfer.getData(DND_MIME);
     if (module && ALL_MODULES.some((m) => m.id === module)) {
       addPlacement(module);
+      return;
     }
+    const presetId = e.dataTransfer.getData(DND_MIME_PANEL);
+    const preset = panelPresets.find((p) => p.id === presetId);
+    if (preset) addPanelPreset(preset);
   };
 
   // Alignment guides: vertical lines at the column boundaries (gap-aware).
@@ -337,10 +362,13 @@ export function StudioView({
       : [];
 
   const selectedTitle = selected
-    ? ALL_MODULES.find((m) => m.id === selected.module)?.title ??
+    ? selected.panel?.title ??
+      ALL_MODULES.find((m) => m.id === selected.module)?.title ??
       selected.module
     : "";
-  const selectedMod = selected ? modules.find((m) => m.id === selected.module) : undefined;
+  const selectedMod = selected
+    ? modules.find((m) => m.id === selected.module)
+    : undefined;
   const selectedSensors = selectedMod
     ? Object.keys(sensors).filter((k) => selectedMod.matches(k)).length
     : 0;
@@ -445,6 +473,43 @@ export function StudioView({
             })}
             <p className="text-xs text-muted-foreground/60">
               Drag a module onto the canvas, or click + to append it.
+            </p>
+          </section>
+
+          <section className="space-y-2 border-t p-3">
+            <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              Panels
+            </div>
+            {panelPresets.map((preset) => (
+              <div
+                key={preset.id}
+                draggable
+                onDragStart={(e) => {
+                  e.dataTransfer.setData(DND_MIME_PANEL, preset.id);
+                  e.dataTransfer.effectAllowed = "copy";
+                }}
+                className="flex cursor-grab items-center justify-between rounded-md border border-border px-2 py-1.5 text-xs active:cursor-grabbing hover:border-ring/50"
+                title={
+                  preset.description
+                    ? `${preset.description} — drag onto the canvas, or click +`
+                    : "Drag onto the canvas, or click + to add"
+                }
+              >
+                <span className="truncate text-foreground/85">
+                  {preset.title}
+                </span>
+                <button
+                  onClick={() => addPanelPreset(preset)}
+                  className="rounded p-0.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+                  title="Add panel to canvas"
+                >
+                  <Plus className="h-3 w-3" />
+                </button>
+              </div>
+            ))}
+            <p className="text-xs text-muted-foreground/60">
+              Panels are groups of widgets. Drop one, then bind, reorder and
+              style each widget in the inspector.
             </p>
           </section>
         </aside>
@@ -724,11 +789,13 @@ export function StudioView({
                 <div className="text-sm font-medium text-foreground">
                   {selectedTitle}
                 </div>
-                {selected.module !== CARDS_ID && (
-                  <div className="mt-1 text-xs text-muted-foreground">
-                    {selectedSensors} live sensor{selectedSensors === 1 ? "" : "s"}
-                  </div>
-                )}
+                {selected.module !== CARDS_ID &&
+                  selected.module !== PANEL_ID && (
+                    <div className="mt-1 text-xs text-muted-foreground">
+                      {selectedSensors} live sensor
+                      {selectedSensors === 1 ? "" : "s"}
+                    </div>
+                  )}
               </div>
 
               <div>
@@ -750,6 +817,14 @@ export function StudioView({
                 />
               </div>
 
+              {selected.panel ? (
+                <PanelInspector
+                  placement={selected}
+                  sensors={sensors}
+                  update={(fn) => updatePlacement(selected.id, fn)}
+                />
+              ) : (
+                <>
               {/* Design */}
               <div>
                 <div className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
@@ -871,6 +946,8 @@ export function StudioView({
                     }))
                   }
                 />
+              )}
+                </>
               )}
 
               <div className="flex gap-2">

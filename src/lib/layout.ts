@@ -11,6 +11,68 @@ import type { ModuleSettings } from "@/modules/types";
  */
 
 export const CARDS_ID = "cards";
+/** Sentinel module id for placement instances that render a custom panel. */
+export const PANEL_ID = "panel";
+
+/* ---------------------------------------------------------------- *
+ * Panels + widgets — the "layers and groups" model.
+ *
+ * Mirrors the host InfoPanel display-item tree: a *panel* (group) is a
+ * placed block holding an ordered list of *widgets* (atomic items: a
+ * stat readout, a bar, a gauge, a sparkline, a table, an image, a
+ * clock, …). Every widget is independently bindable to a live sensor,
+ * toggleable, reorderable, and restylable — which is what lets a
+ * dashboard be assembled from arbitrary pieces.
+ * ---------------------------------------------------------------- */
+
+export type WidgetKind =
+  | "stat" // label + big number tile
+  | "value" // compact inline readout
+  | "bar" // label + value + horizontal fill
+  | "gauge" // circular ring
+  | "sparkline" // rolling mini line graph
+  | "table" // rows from a multi-line text sensor
+  | "text" // static or bound text
+  | "image" // image (game cover, logo, album art, …)
+  | "clock"; // live time / date
+
+export interface Widget {
+  id: string;
+  kind: WidgetKind;
+  /** Shown above/beside the value. */
+  label?: string;
+  /** Full sensor key this widget reads (set via the sensor picker). */
+  sensor?: string;
+  /** Static text for "text"; static image URL for "image". */
+  text?: string;
+  unit?: string;
+  /** Decimals to render a numeric value with (0 = integer). */
+  decimals?: number;
+  /** Hex color override for this widget's accents. */
+  color?: string;
+  /** Bar/gauge denominator (percent = value / max). */
+  max?: number;
+  /** Invert the fill (e.g. frame time: higher = worse = less fill). */
+  inverted?: boolean;
+  /** Max rows for "table". */
+  rows?: number;
+  /** "clock" layout. */
+  clock?: "time" | "date" | "both";
+  /** Sparkline sample count. */
+  history?: number;
+  visible: boolean;
+}
+
+/** A custom panel (group) — a placed block of widgets. */
+export interface PanelDef {
+  id: string;
+  title: string;
+  titleVisible: boolean;
+  visible: boolean;
+  accent?: string;
+  background: "none" | "panel" | "bordered";
+  widgets: Widget[];
+}
 
 /** Per-instance visual overrides for a placement. */
 export interface PlacementDesign {
@@ -25,7 +87,7 @@ export interface PlacementDesign {
 export interface Placement {
   /** Unique instance id (React key). */
   id: string;
-  /** Registry module id, or CARDS_ID for the unclaimed-sensors grid. */
+  /** Registry module id, CARDS_ID, or PANEL_ID (custom panel). */
   module: string;
   /** Number of grid columns this placement spans. */
   colSpan: number;
@@ -34,6 +96,8 @@ export interface Placement {
   settings?: ModuleSettings;
   /** Per-instance design overrides (accent, background, header). */
   design?: PlacementDesign;
+  /** Present when this placement renders a custom panel (group). */
+  panel?: PanelDef;
 }
 
 export interface MonitorProfile {
@@ -237,5 +301,32 @@ export function clonePlacement(p: Placement): Placement {
     id: uid(p.module),
     settings: p.settings ? { ...p.settings } : undefined,
     design: p.design ? { ...p.design } : undefined,
+    panel: p.panel ? clonePanel(p.panel) : undefined,
+  };
+}
+
+/** A fresh, empty widget of a kind (ids are unique). */
+export function newWidget(kind: WidgetKind): Widget {
+  return { id: uid("w"), kind, visible: true };
+}
+
+/** Deep-clone a panel with fresh ids (widgets keep their fields). */
+export function clonePanel(p: PanelDef): PanelDef {
+  return {
+    ...p,
+    id: uid("panel"),
+    widgets: p.widgets.map((w) => ({ ...w, id: uid("w") })),
+  };
+}
+
+/** A fresh, empty panel. */
+export function newPanel(title: string): PanelDef {
+  return {
+    id: uid("panel"),
+    title,
+    titleVisible: true,
+    visible: true,
+    background: "panel",
+    widgets: [],
   };
 }

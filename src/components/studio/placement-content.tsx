@@ -3,6 +3,7 @@ import { GenericCard } from "@/modules/fallback";
 import { modules } from "@/modules";
 import type { SensorMap } from "@/modules/types";
 import type { SensorValue } from "@/hooks/useSensors";
+import { PanelView } from "@/components/widgets/PanelView";
 import { CARDS_ID, type Placement } from "@/lib/layout";
 
 const moduleById = new Map(modules.map((m) => [m.id, m]));
@@ -22,6 +23,16 @@ export function placementContent(
   sensors: SensorMap,
   unclaimed: Array<[string, SensorValue]>
 ): PlacementRender {
+  if (p.panel) {
+    // A custom panel renders its own widgets; it "has data" when at least
+    // one widget is visible (an empty panel is hidden in kiosk mode).
+    const hasData = p.panel.widgets.some((w) => w.visible);
+    return {
+      content: <PanelView panel={p.panel} sensors={sensors} studio />,
+      hasData,
+      title: p.panel.title,
+    };
+  }
   if (p.module === CARDS_ID) {
     if (unclaimed.length === 0)
       return { content: null, hasData: false, title: "Other sensors" };
