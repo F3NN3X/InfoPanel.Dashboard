@@ -173,7 +173,22 @@ export function PanelView({ panel, sensors, studio }: PanelViewProps) {
         <div className="relative z-10 flex h-full flex-col justify-between gap-2 p-3 pr-3">
           {zoneRow(top, "flex items-center gap-3")}
           {zoneRow(middle, "flex items-center gap-4")}
-          {zoneRow(bottom, "flex items-end gap-4")}
+          {panel.bottomGridCols && bottom.length > 0 ? (
+            <div
+              className="grid items-end gap-x-2"
+              style={{
+                gridTemplateColumns: `repeat(${panel.bottomGridCols}, minmax(0, 1fr))`,
+              }}
+            >
+              {bottom.map((w) => (
+                <div key={w.id} className="min-w-0 text-center">
+                  <WidgetView widget={w} sensors={sensors} />
+                </div>
+              ))}
+            </div>
+          ) : (
+            zoneRow(bottom, "flex items-end gap-4")
+          )}
         </div>
       </div>
     );

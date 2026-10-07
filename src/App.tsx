@@ -209,7 +209,11 @@ export default function App() {
       className={cn(
         "flex flex-col bg-background text-foreground",
         kiosk && "kiosk",
-        fill ? "h-screen overflow-hidden p-3 gap-3" : "min-h-screen p-6 gap-4"
+        fill
+          ? kiosk
+            ? "h-screen overflow-hidden"
+            : "h-screen overflow-hidden p-3 gap-3"
+          : "min-h-screen p-6 gap-4"
       )}
     >
       {/* Header (hidden in kiosk mode) */}

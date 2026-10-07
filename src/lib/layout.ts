@@ -117,6 +117,12 @@ export interface PanelDef {
    * the yellow SPOTIFY card).
    */
   scrim?: boolean;
+  /**
+   * "overlay" layout: render the bottom zone as an N-column grid instead of a
+   * flex row, so value widgets line up under the pre-printed columns on the
+   * background art (arcv2's cream GPU/CPU panels). Cells are centered.
+   */
+  bottomGridCols?: number;
   widgets: Widget[];
 }
 
@@ -690,7 +696,7 @@ export function sampleProfile(): MonitorProfile {
  * ---------------------------------------------------------------- */
 
 export const ARCV2_PROFILE_ID = "arcv2";
-export const ARCV2_PROFILE_VERSION = 3;
+export const ARCV2_PROFILE_VERSION = 4;
 
 /** The export's yellow accent (#FFFFBC13 in Profile/DisplayItems.xml). */
 const ARCV2_ACCENT = "#ffbc13";
@@ -775,16 +781,21 @@ export function arcv2Profile(): MonitorProfile {
     accent: ARCV2_ACCENT,
     layout: "overlay",
     scrim: false,
+    bottomGridCols: 5,
     widgets: [
       sw({ kind: "image", text: ASSET("GPU-bg.png"), asBackground: true }),
       sw({ kind: "text", label: "Capturing:", sensor: RTSS("windowtitle"), fontSize: 16, color: ARCV2_DARK, overlayZone: "top" }),
-      sw({ kind: "value", sensor: RTSS("fps"), fontSize: 49, color: ARCV2_ACCENT, align: "right", overlayZone: "middle" }),
-      sw({ kind: "value", sensor: RTSS("1% low fps"), unit: "FPS", fontSize: 14, color: ARCV2_DARK, overlayZone: "middle" }),
+      // Middle: the big yellow FPS headline + frame time (the "1%/MS" pair).
+      sw({ kind: "value", sensor: RTSS("fps"), fontSize: 49, color: ARCV2_ACCENT, overlayZone: "middle" }),
       sw({ kind: "value", sensor: RTSS("current frame time"), unit: "ms", fontSize: 14, color: ARCV2_DARK, overlayZone: "middle" }),
-      sw({ kind: "stat", label: "Power W", sensor: NVIDIA("gpu_board_power"), fontSize: 20, color: ARCV2_DARK, overlayZone: "bottom" }),
-      sw({ kind: "stat", label: "Mem °", sensor: NVIDIA("gpu_memory_junction"), fontSize: 20, color: ARCV2_DARK, overlayZone: "bottom" }),
-      sw({ kind: "stat", label: "Core °", sensor: NVIDIA("gpu_core"), fontSize: 20, color: ARCV2_DARK, overlayZone: "bottom" }),
-      sw({ kind: "stat", label: "Load", sensor: NVIDIA("d3d_3d"), unit: "%", fontSize: 20, color: ARCV2_DARK, overlayZone: "bottom" }),
+      // Bottom: five value cells sitting under the art's pre-printed columns
+      // (1%/MS · POWER W · MEM ° · CORE ° · LOAD) — value-only, the labels
+      // are already baked into GPU-bg.png.
+      sw({ kind: "value", sensor: RTSS("1% low fps"), fontSize: 18, color: ARCV2_DARK, overlayZone: "bottom" }),
+      sw({ kind: "value", sensor: NVIDIA("gpu_package"), unit: "W", fontSize: 18, color: ARCV2_DARK, overlayZone: "bottom" }),
+      sw({ kind: "value", sensor: NVIDIA("gpu_memory_junction"), unit: "°C", fontSize: 18, color: ARCV2_DARK, overlayZone: "bottom" }),
+      sw({ kind: "value", sensor: NVIDIA("gpu_core"), unit: "MHz", fontSize: 18, color: ARCV2_DARK, overlayZone: "bottom" }),
+      sw({ kind: "value", sensor: NVIDIA("d3d_3d"), unit: "%", fontSize: 18, color: ARCV2_DARK, overlayZone: "bottom" }),
     ],
   });
 
@@ -822,13 +833,20 @@ export function arcv2Profile(): MonitorProfile {
     accent: ARCV2_ACCENT,
     layout: "overlay",
     scrim: false,
+    bottomGridCols: 4,
     widgets: [
       sw({ kind: "image", text: ASSET("CPU-bg.png"), asBackground: true }),
-      sw({ kind: "value", sensor: AMD("cpu_total"), unit: "%", fontSize: 30, color: ARCV2_ACCENT, overlayZone: "top" }),
-      sw({ kind: "bar", label: "RAM", sensor: "system.ram.load", max: 100, color: ARCV2_ACCENT, overlayZone: "bottom" }),
-      sw({ kind: "stat", label: "Power W", sensor: AMD("package"), fontSize: 18, color: ARCV2_DARK, overlayZone: "bottom" }),
-      sw({ kind: "stat", label: "Mem °", sensor: "libre.kingston___kf560c36_32___1__dimm__1", fontSize: 18, color: ARCV2_DARK, overlayZone: "bottom" }),
-      sw({ kind: "stat", label: "Core °", sensor: AMD("core__tctl_tdie"), fontSize: 18, color: ARCV2_DARK, overlayZone: "bottom" }),
+      // Top: the big yellow load headline.
+      sw({ kind: "value", sensor: AMD("cpu_total"), unit: "%", fontSize: 34, color: ARCV2_ACCENT, overlayZone: "top" }),
+      // Middle: the RAM usage bar.
+      sw({ kind: "bar", label: "RAM", sensor: "system.ram.load", max: 100, color: ARCV2_ACCENT, overlayZone: "middle" }),
+      // Bottom: four value cells under the art's pre-printed columns
+      // (LOAD · POWER W · MEM ° · CORE °) — value-only, labels are baked
+      // into CPU-bg.png.
+      sw({ kind: "value", sensor: AMD("cpu_total"), unit: "%", fontSize: 18, color: ARCV2_DARK, overlayZone: "bottom" }),
+      sw({ kind: "value", sensor: AMD("package"), unit: "W", fontSize: 18, color: ARCV2_DARK, overlayZone: "bottom" }),
+      sw({ kind: "value", sensor: "libre.kingston___kf560c36_32___1__dimm__1", unit: "°C", fontSize: 18, color: ARCV2_DARK, overlayZone: "bottom" }),
+      sw({ kind: "value", sensor: AMD("core__tctl_tdie"), unit: "°C", fontSize: 18, color: ARCV2_DARK, overlayZone: "bottom" }),
     ],
   });
 
