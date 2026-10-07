@@ -50,19 +50,19 @@ export const mediaModule: DashboardModule = {
         />
 
         {(sourceApp || elapsed || statusUrl) && (
-          <Card className="border-zinc-800 bg-zinc-950/80">
+          <Card className="border-border bg-card">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-zinc-400">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
                 Playback Details
               </CardTitle>
             </CardHeader>
             <CardContent className="flex items-center justify-between gap-4">
               <div className="min-w-0">
                 {sourceApp && (
-                  <div className="text-sm font-medium text-zinc-300">{sourceApp}</div>
+                  <div className="text-sm font-medium text-foreground/85">{sourceApp}</div>
                 )}
                 {(elapsed || remaining) && (
-                  <div className="text-xs text-zinc-500">
+                  <div className="text-xs text-muted-foreground">
                     {elapsed ?? "00:00"} / {remaining ?? "--:--"}
                   </div>
                 )}

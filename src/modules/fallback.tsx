@@ -24,10 +24,10 @@ export function GenericCard({
         : undefined;
 
   return (
-    <Card className="border-zinc-800 bg-zinc-950/80">
+    <Card className="border-border bg-card">
       <CardHeader className="pb-2">
         <CardTitle
-          className="truncate text-sm font-medium text-zinc-400"
+          className="truncate text-sm font-medium text-muted-foreground"
           title={title}
         >
           {title}
@@ -39,15 +39,15 @@ export function GenericCard({
             <SmartValue
               value={display}
               keyHint={sensorKey}
-              className="text-lg font-semibold tracking-tight text-zinc-50"
+              className="text-lg font-semibold tracking-tight text-foreground"
               imgClassName="max-h-48 w-full rounded-md object-contain"
             />
           </div>
         ) : (
-          <div className="text-2xl font-bold tracking-tight text-zinc-50">—</div>
+          <div className="text-2xl font-bold tracking-tight text-foreground">—</div>
         )}
         {sensor.source && (
-          <div className="mt-2 text-xs text-zinc-600">{sensor.source}</div>
+          <div className="mt-2 text-xs text-muted-foreground/60">{sensor.source}</div>
         )}
       </CardContent>
     </Card>

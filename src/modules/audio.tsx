@@ -33,9 +33,9 @@ export const audioModule: DashboardModule = {
     return (
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {devices.map((d) => (
-          <Card key={d.container} className="border-zinc-800 bg-zinc-950/80">
+          <Card key={d.container} className="border-border bg-card">
             <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-zinc-400">
+              <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
                 <Volume2 className="h-3.5 w-3.5" />
                 <span className="truncate" title={d.name}>
                   {d.name}
@@ -44,10 +44,10 @@ export const audioModule: DashboardModule = {
             </CardHeader>
             <CardContent>
               <div className="flex items-end justify-between">
-                <div className="text-2xl font-bold tracking-tight text-zinc-50">
+                <div className="text-2xl font-bold tracking-tight text-foreground">
                   {d.level !== undefined ? `${Math.round(d.level)}%` : "—"}
                 </div>
-                <div className="text-xs text-zinc-500">
+                <div className="text-xs text-muted-foreground">
                   {d.peak !== undefined && d.peak !== 0
                     ? `peak ${d.peak.toFixed(1)}dB`
                     : d.rms !== undefined && d.rms !== 0
@@ -55,7 +55,7 @@ export const audioModule: DashboardModule = {
                       : "silent"}
                 </div>
               </div>
-              <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-zinc-800">
+              <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-secondary">
                 <div
                   className={`h-full rounded-full transition-all duration-300 ${
                     (d.level ?? 0) > 85 ? "bg-red-500" : "bg-emerald-500"
@@ -66,7 +66,7 @@ export const audioModule: DashboardModule = {
                 />
               </div>
               {(d.left !== undefined || d.right !== undefined || d.volume !== undefined) && (
-                <div className="mt-2 flex gap-4 text-xs text-zinc-600">
+                <div className="mt-2 flex gap-4 text-xs text-muted-foreground/60">
                   {d.left !== undefined && (
                     <span>L {Math.round(d.left)}</span>
                   )}

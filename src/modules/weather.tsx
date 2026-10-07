@@ -56,9 +56,9 @@ export const weatherModule: DashboardModule = {
     return (
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Current conditions */}
-        <Card className="border-zinc-800 bg-zinc-950/80">
+        <Card className="border-border bg-card">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-400">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
               {location ?? "Weather"}
             </CardTitle>
           </CardHeader>
@@ -75,27 +75,27 @@ export const weatherModule: DashboardModule = {
                 <div className="text-5xl">{icon ?? "☀️"}</div>
               )}
               <div>
-                <div className="text-5xl font-bold tracking-tight text-zinc-50">
+                <div className="text-5xl font-bold tracking-tight text-foreground">
                   {temp !== undefined ? `${Math.round(temp)}°` : "—"}
                 </div>
-                <div className="text-sm text-zinc-400">{desc}</div>
+                <div className="text-sm text-muted-foreground">{desc}</div>
                 {feels !== undefined && (
-                  <div className="text-xs text-zinc-500">
+                  <div className="text-xs text-muted-foreground">
                     Feels like {Math.round(feels)}°
                   </div>
                 )}
               </div>
             </div>
             {refreshed && (
-              <div className="mt-3 text-xs text-zinc-600">Updated {refreshed}</div>
+              <div className="mt-3 text-xs text-muted-foreground/60">Updated {refreshed}</div>
             )}
           </CardContent>
         </Card>
 
         {/* Conditions stats */}
-        <Card className="border-zinc-800 bg-zinc-950/80">
+        <Card className="border-border bg-card">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-400">Conditions</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Conditions</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-4">
@@ -145,9 +145,9 @@ export const weatherModule: DashboardModule = {
         </Card>
 
         {/* Forecast */}
-        <Card className="border-zinc-800 bg-zinc-950/80">
+        <Card className="border-border bg-card">
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-zinc-400">
+            <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
               <Thermometer className="h-3.5 w-3.5" /> Forecast
             </CardTitle>
           </CardHeader>
@@ -163,8 +163,8 @@ export const weatherModule: DashboardModule = {
                       key={i}
                       className="flex items-baseline justify-between gap-3 text-sm"
                     >
-                      <span className="shrink-0 font-medium text-zinc-300">{date}</span>
-                      <span className="min-w-0 truncate text-right text-zinc-500" title={rest}>
+                      <span className="shrink-0 font-medium text-foreground/85">{date}</span>
+                      <span className="min-w-0 truncate text-right text-muted-foreground" title={rest}>
                         {rest}
                       </span>
                     </div>
@@ -172,7 +172,7 @@ export const weatherModule: DashboardModule = {
                 })}
               </div>
             ) : (
-              <SmartValue value={forecast} className="text-sm text-zinc-400" />
+              <SmartValue value={forecast} className="text-sm text-muted-foreground" />
             )}
           </CardContent>
         </Card>
@@ -194,13 +194,13 @@ function Condition({
 }) {
   return (
     <div>
-      <div className="flex items-center gap-1.5 text-xs text-zinc-500">
+      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
         {icon} {label}
       </div>
-      <div className="mt-1 text-lg font-semibold text-zinc-100">
+      <div className="mt-1 text-lg font-semibold text-foreground">
         {value ?? "—"}
       </div>
-      {hint && <div className="text-xs text-zinc-600">{hint}</div>}
+      {hint && <div className="text-xs text-muted-foreground/60">{hint}</div>}
     </div>
   );
 }

@@ -1,0 +1,221 @@
+import { DEFAULT_THEME, type ThemeTokens } from "./theme";
+
+/**
+ * Layout engine — the dashboard is a grid of *placements*. Each placement
+ * hosts one registered module (or the "cards" catch-all grid) and spans a
+ * number of grid columns. Layouts are organised per *monitor profile*, so
+ * one dashboard can be shaped for a 1920×550 kiosk strip, a 1024×600 panel,
+ * a 1080p display, ... and the right profile is picked automatically by
+ * window size (or pinned to one).
+ */
+
+export const CARDS_ID = "cards";
+
+export interface Placement {
+  /** Unique instance id (React key). */
+  id: string;
+  /** Registry module id, or CARDS_ID for the unclaimed-sensors grid. */
+  module: string;
+  /** Number of grid columns this placement spans. */
+  colSpan: number;
+  visible: boolean;
+}
+
+export interface MonitorProfile {
+  id: string;
+  name: string;
+  /** Design window width in px (used for auto-selection). */
+  width: number;
+  /** Design window height in px. */
+  height: number;
+  /** Number of grid columns. */
+  cols: number;
+  /**
+   * "scroll": content flows and the page scrolls (normal displays).
+   * "fill": content is squeezed into the viewport height (kiosk strips).
+   */
+  fit: "scroll" | "fill";
+  placements: Placement[];
+}
+
+export interface DashboardConfig {
+  version: 1;
+  /** Profile id to show, or "auto" to match the window size. */
+  activeProfile: string;
+  profiles: MonitorProfile[];
+  theme: ThemeTokens;
+  /** Corner radius in rem (shadcn --radius). */
+  radius: number;
+}
+
+const STORAGE_KEY = "infopanel-dashboard:config:v1";
+
+let counter = 0;
+export function uid(prefix = "p"): string {
+  counter += 1;
+  return `${prefix}-${Date.now().toString(36)}-${counter}`;
+}
+
+function placement(
+  module: string,
+  colSpan: number,
+  visible = true
+): Placement {
+  return { id: uid(module), module, colSpan, visible };
+}
+
+function defaultProfiles(): MonitorProfile[] {
+  return [
+    {
+      id: "main",
+      name: "Main display",
+      width: 1920,
+      height: 1080,
+      cols: 12,
+      fit: "scroll",
+      placements: [
+        placement("system", 12),
+        placement("spotify", 6),
+        placement("media", 6),
+        placement("steam", 12),
+        placement("weather", 12),
+        placement("fps", 12),
+        placement("audio", 6),
+        placement("vbz", 6),
+        placement("bluetooth", 6),
+        placement("notifications", 6),
+        placement("textfile", 6),
+        placement("streamdeck", 12),
+        placement(CARDS_ID, 12),
+      ],
+    },
+    {
+      id: "strip-1920x550",
+      name: "Kiosk strip 1920×550",
+      width: 1920,
+      height: 550,
+      cols: 12,
+      fit: "fill",
+      placements: [
+        placement("system", 2),
+        placement("spotify", 2),
+        placement("media", 2),
+        placement("steam", 2),
+        placement("weather", 2),
+        placement("fps", 2),
+      ],
+    },
+    {
+      id: "small-1024x600",
+      name: "Small 1024×600",
+      width: 1024,
+      height: 600,
+      cols: 6,
+      fit: "scroll",
+      placements: [
+        placement("system", 2),
+        placement("spotify", 2),
+        placement("weather", 2),
+        placement("media", 3),
+        placement("steam", 3),
+        placement("fps", 3),
+        placement("audio", 3),
+        placement(CARDS_ID, 6),
+      ],
+    },
+  ];
+}
+
+export function defaultConfig(): DashboardConfig {
+  return {
+    version: 1,
+    activeProfile: "auto",
+    profiles: defaultProfiles(),
+    theme: { ...DEFAULT_THEME },
+    radius: 0.5,
+  };
+}
+
+/** Load the saved config, merged over defaults (tolerates missing fields). */
+export function loadConfig(): DashboardConfig {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return defaultConfig();
+    const parsed = JSON.parse(raw) as Partial<DashboardConfig>;
+    const defaults = defaultConfig();
+    return {
+      version: 1,
+      activeProfile: parsed.activeProfile ?? defaults.activeProfile,
+      profiles:
+        parsed.profiles && parsed.profiles.length > 0
+          ? parsed.profiles
+          : defaults.profiles,
+      theme: { ...DEFAULT_THEME, ...parsed.theme },
+      radius: parsed.radius ?? defaults.radius,
+    };
+  } catch {
+    return defaultConfig();
+  }
+}
+
+export function saveConfig(config: DashboardConfig): void {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+  } catch {
+    // Storage unavailable (private mode) — the session just won't persist.
+  }
+}
+
+/**
+ * Which profile to show: the pinned one, or the one whose design size is
+ * closest to the current window (width dominates, height breaks ties).
+ */
+export function resolveProfile(
+  config: DashboardConfig,
+  windowWidth: number,
+  windowHeight: number
+): MonitorProfile {
+  if (config.activeProfile !== "auto") {
+    const pinned = config.profiles.find((p) => p.id === config.activeProfile);
+    if (pinned) return pinned;
+  }
+  let best: MonitorProfile | undefined;
+  let bestScore = Number.POSITIVE_INFINITY;
+  for (const profile of config.profiles) {
+    const score =
+      Math.abs(profile.width - windowWidth) +
+      Math.abs(profile.height - windowHeight) / 4;
+    if (score < bestScore) {
+      bestScore = score;
+      best = profile;
+    }
+  }
+  return best ?? config.profiles[0] ?? defaultConfig().profiles[0];
+}
+
+/** A new, empty profile for the given window size. */
+export function newProfile(
+  name: string,
+  width: number,
+  height: number
+): MonitorProfile {
+  return {
+    id: uid("profile"),
+    name,
+    width,
+    height,
+    cols: width <= 1280 ? 6 : 12,
+    fit: height <= 700 && width >= 1600 ? "fill" : "scroll",
+    placements: [
+      placement("system", width <= 1280 ? 6 : 12),
+      placement("spotify", width <= 1280 ? 3 : 6),
+      placement("media", width <= 1280 ? 3 : 6),
+      placement("weather", width <= 1280 ? 6 : 12),
+      placement(CARDS_ID, width <= 1280 ? 6 : 12),
+    ],
+  };
+}
+
+export function clonePlacement(p: Placement): Placement {
+  return { ...p, id: uid(p.module) };
+}

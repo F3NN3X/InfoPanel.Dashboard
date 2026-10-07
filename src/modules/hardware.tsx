@@ -40,11 +40,11 @@ function ValueRow({ sensorKey, sensor }: { sensorKey: string; sensor: SensorMap[
         : "—";
 
   return (
-    <div className="flex items-center justify-between gap-3 rounded-md border border-zinc-800/60 bg-zinc-950/60 px-3 py-1.5">
-      <span className="truncate text-xs text-zinc-400" title={title}>
+    <div className="flex items-center justify-between gap-3 rounded-md border border-border/60 bg-background/60 px-3 py-1.5">
+      <span className="truncate text-xs text-muted-foreground" title={title}>
         {title}
       </span>
-      <span className="shrink-0 text-sm font-medium tabular-nums text-zinc-100">
+      <span className="shrink-0 text-sm font-medium tabular-nums text-foreground">
         {display}
       </span>
     </div>

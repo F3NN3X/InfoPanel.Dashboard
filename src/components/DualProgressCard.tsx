@@ -31,16 +31,16 @@ export function DualProgressCard({
     rightValue !== undefined ? Math.min(100, (rightValue / max) * 100) : 0;
 
   return (
-    <Card className={cn("bg-zinc-950/80 border-zinc-800", className)}>
+    <Card className={cn("bg-card border-border", className)}>
       <CardHeader className="pb-3">
-        <CardTitle className="text-sm font-medium text-zinc-400">
+        <CardTitle className="text-sm font-medium text-muted-foreground">
           {title}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-5">
         <div>
           <div className="flex items-end justify-between mb-1.5">
-            <span className="text-xs text-zinc-500">{leftLabel}</span>
+            <span className="text-xs text-muted-foreground">{leftLabel}</span>
             <span className="text-lg font-semibold tabular-nums">
               {leftValue !== undefined
                 ? `${leftValue.toFixed(1)}${leftUnit}`
@@ -51,7 +51,7 @@ export function DualProgressCard({
         </div>
         <div>
           <div className="flex items-end justify-between mb-1.5">
-            <span className="text-xs text-zinc-500">{rightLabel}</span>
+            <span className="text-xs text-muted-foreground">{rightLabel}</span>
             <span className="text-lg font-semibold tabular-nums">
               {rightValue !== undefined
                 ? `${rightValue.toFixed(1)}${rightUnit}`

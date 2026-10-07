@@ -21,7 +21,7 @@ export function SmartValue({
 }: SmartValueProps) {
   const text = value?.trim();
   if (!text || text === "-") {
-    return <span className="text-zinc-600">—</span>;
+    return <span className="text-muted-foreground/60">—</span>;
   }
 
   if (isImageUrl(text, keyHint)) {

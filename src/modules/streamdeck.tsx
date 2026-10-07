@@ -65,14 +65,14 @@ export const streamdeckModule: DashboardModule = {
             // No icon entries (icons only exist once the deck is polled) —
             // show profile info only.
             return (
-              <Card key={serial} className="border-zinc-800 bg-zinc-950/80">
+              <Card key={serial} className="border-border bg-card">
                 <CardHeader className="pb-2">
-                  <CardTitle className="truncate text-sm font-medium text-zinc-400" title={deviceName}>
+                  <CardTitle className="truncate text-sm font-medium text-muted-foreground" title={deviceName}>
                     {deviceName}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {profile && <div className="text-sm text-zinc-300">{profile}</div>}
+                  {profile && <div className="text-sm text-foreground/85">{profile}</div>}
                 </CardContent>
               </Card>
             );
@@ -81,15 +81,15 @@ export const streamdeckModule: DashboardModule = {
           const cols = buttons.length <= 15 ? 5 : 6;
 
           return (
-            <Card key={serial} className="border-zinc-800 bg-zinc-950/80">
+            <Card key={serial} className="border-border bg-card">
               <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-zinc-400">
+                <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
                   <LayoutGrid className="h-3.5 w-3.5" />
                   <span className="truncate" title={deviceName}>
                     {deviceName}
                   </span>
                   {profile && (
-                    <span className="ml-auto max-w-40 truncate text-xs font-normal text-zinc-500" title={profile}>
+                    <span className="ml-auto max-w-40 truncate text-xs font-normal text-muted-foreground" title={profile}>
                       {profile}
                     </span>
                   )}
@@ -103,7 +103,7 @@ export const streamdeckModule: DashboardModule = {
                   {buttons.map((b) => (
                     <div
                       key={b.key}
-                      className="flex flex-col items-center gap-1 rounded-lg bg-zinc-900 p-2"
+                      className="flex flex-col items-center gap-1 rounded-lg bg-muted p-2"
                       title={b.label ?? `Button R${b.row + 1}:C${b.col + 1}`}
                     >
                       <div className="flex aspect-square w-full items-center justify-center">
@@ -118,10 +118,10 @@ export const streamdeckModule: DashboardModule = {
                             }}
                           />
                         ) : (
-                          <div className="h-2 w-2 rounded-full bg-zinc-700" />
+                          <div className="h-2 w-2 rounded-full bg-muted-foreground/40" />
                         )}
                       </div>
-                      <div className="w-full truncate text-center text-[10px] text-zinc-500">
+                      <div className="w-full truncate text-center text-[10px] text-muted-foreground">
                         {b.label ?? `R${b.row + 1}:C${b.col + 1}`}
                       </div>
                     </div>

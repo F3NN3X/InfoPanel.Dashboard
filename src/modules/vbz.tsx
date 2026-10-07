@@ -36,9 +36,9 @@ export const vbzModule: DashboardModule = {
     if (!station && rows.length === 0) return null;
 
     return (
-      <Card className="border-zinc-800 bg-zinc-950/80">
+      <Card className="border-border bg-card">
         <CardHeader className="pb-2">
-          <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-zinc-400">
+          <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
             <Train className="h-3.5 w-3.5" />
             <span className="truncate" title={station}>
               {station ?? "Departures"}
@@ -47,25 +47,25 @@ export const vbzModule: DashboardModule = {
         </CardHeader>
         <CardContent>
           {rows.length > 0 ? (
-            <div className="divide-y divide-zinc-800/60">
+            <div className="divide-y divide-border">
               {rows.map((r) => (
                 <div key={r.i} className="flex items-center gap-4 py-2">
-                  <div className="w-14 shrink-0 font-mono text-lg font-semibold text-zinc-50">
+                  <div className="w-14 shrink-0 font-mono text-lg font-semibold text-foreground">
                     {r.time ?? "--:--"}
                   </div>
-                  <div className="w-10 shrink-0 rounded bg-zinc-800 px-1.5 py-0.5 text-center text-xs font-medium text-zinc-300">
+                  <div className="w-10 shrink-0 rounded bg-secondary px-1.5 py-0.5 text-center text-xs font-medium text-foreground/85">
                     {r.line ?? "·"}
                   </div>
-                  <div className="min-w-0 flex-1 truncate text-sm text-zinc-300" title={r.dest}>
+                  <div className="min-w-0 flex-1 truncate text-sm text-foreground/85" title={r.dest}>
                     {r.dest ?? "—"}
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="text-sm text-zinc-500">No upcoming departures</div>
+            <div className="text-sm text-muted-foreground">No upcoming departures</div>
           )}
-          {status && <div className="mt-3 text-xs text-zinc-600">{status}</div>}
+          {status && <div className="mt-3 text-xs text-muted-foreground/60">{status}</div>}
         </CardContent>
       </Card>
     );

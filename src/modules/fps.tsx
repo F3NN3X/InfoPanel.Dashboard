@@ -61,69 +61,69 @@ export const fpsModule: DashboardModule = {
     return (
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          <Card className="border-zinc-800 bg-zinc-950/80 md:col-span-2">
+          <Card className="border-border bg-card md:col-span-2">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-zinc-400">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
                 Frames Per Second
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-end justify-between">
-                <div className="text-4xl font-bold tracking-tight text-zinc-50">
+                <div className="text-4xl font-bold tracking-tight text-foreground">
                   {fps !== undefined ? Math.round(fps) : "—"}
                 </div>
-                <div className="text-xs text-zinc-600">{source}</div>
+                <div className="text-xs text-muted-foreground/60">{source}</div>
               </div>
               {title && (
-                <div className="mt-2 truncate text-xs text-zinc-500" title={title}>
+                <div className="mt-2 truncate text-xs text-muted-foreground" title={title}>
                   {title}
                 </div>
               )}
             </CardContent>
           </Card>
 
-          <Card className="border-zinc-800 bg-zinc-950/80">
+          <Card className="border-border bg-card">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-zinc-400">1% Low</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">1% Low</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold tracking-tight text-zinc-50">
+              <div className="text-3xl font-bold tracking-tight text-foreground">
                 {low1 !== undefined ? Math.round(low1) : "—"}
               </div>
               {low01 !== undefined && (
-                <div className="mt-1 text-xs text-zinc-500">
+                <div className="mt-1 text-xs text-muted-foreground">
                   0.1% low: {Math.round(low01)}
                 </div>
               )}
             </CardContent>
           </Card>
 
-          <Card className="border-zinc-800 bg-zinc-950/80">
+          <Card className="border-border bg-card">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-zinc-400">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
                 Frame Time
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold tracking-tight text-zinc-50">
+              <div className="text-3xl font-bold tracking-tight text-foreground">
                 {frameTime !== undefined ? frameTime.toFixed(1) : "—"}
               </div>
-              <div className="text-xs text-zinc-500">ms</div>
+              <div className="text-xs text-muted-foreground">ms</div>
             </CardContent>
           </Card>
         </div>
 
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          <Card className="border-zinc-800 bg-zinc-950/80">
+          <Card className="border-border bg-card">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-zinc-400">GPU</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">GPU</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="truncate text-sm font-medium text-zinc-200" title={gpu}>
+              <div className="truncate text-sm font-medium text-foreground/90" title={gpu}>
                 {gpu ?? "—"}
               </div>
               {(resolution || refresh !== undefined) && (
-                <div className="mt-1 text-xs text-zinc-500">
+                <div className="mt-1 text-xs text-muted-foreground">
                   {[resolution, refresh !== undefined ? `${refresh}Hz` : undefined]
                     .filter(Boolean)
                     .join(" · ")}
@@ -133,9 +133,9 @@ export const fpsModule: DashboardModule = {
           </Card>
 
           {extras.length > 0 && (
-            <Card className="border-zinc-800 bg-zinc-950/80 col-span-1 md:col-span-3">
+            <Card className="border-border bg-card col-span-1 md:col-span-3">
               <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-zinc-400">
+                <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
                   <Gauge className="h-3.5 w-3.5" /> Metrics
                 </CardTitle>
               </CardHeader>
@@ -143,8 +143,8 @@ export const fpsModule: DashboardModule = {
                 <div className="flex flex-wrap gap-x-6 gap-y-2">
                   {extras.map(([label, value]) => (
                     <div key={label}>
-                      <div className="text-sm font-semibold text-zinc-200">{value}</div>
-                      <div className="text-xs text-zinc-500">{label}</div>
+                      <div className="text-sm font-semibold text-foreground/90">{value}</div>
+                      <div className="text-xs text-muted-foreground">{label}</div>
                     </div>
                   ))}
                 </div>

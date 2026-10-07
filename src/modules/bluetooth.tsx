@@ -36,14 +36,14 @@ export const bluetoothModule: DashboardModule = {
     return (
       <div className="space-y-4">
         {status && (
-          <Card className="border-zinc-800 bg-zinc-950/80">
+          <Card className="border-border bg-card">
             <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-zinc-400">
+              <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
                 <Bluetooth className="h-3.5 w-3.5" /> Status
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-sm text-zinc-300">{status}</div>
+              <div className="text-sm text-foreground/85">{status}</div>
             </CardContent>
           </Card>
         )}
@@ -59,10 +59,10 @@ export const bluetoothModule: DashboardModule = {
               const color = pct > 50 ? "bg-emerald-500" : pct > 20 ? "bg-amber-500" : "bg-red-500";
 
               return (
-                <Card key={items[0].key} className="border-zinc-800 bg-zinc-950/80">
+                <Card key={items[0].key} className="border-border bg-card">
                   <CardHeader className="pb-2">
                     <CardTitle
-                      className="truncate text-sm font-medium text-zinc-400"
+                      className="truncate text-sm font-medium text-muted-foreground"
                       title={name}
                     >
                       {name}
@@ -70,14 +70,14 @@ export const bluetoothModule: DashboardModule = {
                   </CardHeader>
                   <CardContent>
                     <div className="flex items-center justify-between">
-                      <div className="text-2xl font-bold tracking-tight text-zinc-50">
+                      <div className="text-2xl font-bold tracking-tight text-foreground">
                         {hasBattery ? `${Math.round(battery)}%` : "—"}
                       </div>
                       {deviceStatus && (
-                        <div className="text-xs text-zinc-500">{deviceStatus}</div>
+                        <div className="text-xs text-muted-foreground">{deviceStatus}</div>
                       )}
                     </div>
-                    <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-zinc-800">
+                    <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-secondary">
                       <div
                         className={`h-full rounded-full ${color}`}
                         style={{ width: `${pct}%` }}

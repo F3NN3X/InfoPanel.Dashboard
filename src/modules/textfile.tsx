@@ -37,11 +37,11 @@ export const textfileModule: DashboardModule = {
     }
 
     return (
-      <Card className="border-zinc-800 bg-zinc-950/80">
+      <Card className="border-border bg-card">
         <CardHeader className="pb-2">
-          <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-zinc-400">
+          <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
             <FileText className="h-3.5 w-3.5" /> Text File
-            <span className="ml-auto flex gap-2 text-xs font-normal text-zinc-500">
+            <span className="ml-auto flex gap-2 text-xs font-normal text-muted-foreground">
               {humanBytes(size) && <span>{humanBytes(size)}</span>}
               {lines !== undefined && lines > 0 && <span>{lines} lines</span>}
               {status && <span className="max-w-48 truncate" title={status}>{status}</span>}
@@ -49,7 +49,7 @@ export const textfileModule: DashboardModule = {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <pre className="max-h-64 overflow-y-auto whitespace-pre-wrap break-words font-mono text-xs leading-relaxed text-zinc-300">
+          <pre className="max-h-64 overflow-y-auto whitespace-pre-wrap break-words font-mono text-xs leading-relaxed text-foreground/85">
             {content ?? "No content"}
           </pre>
         </CardContent>

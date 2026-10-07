@@ -25,13 +25,13 @@ export function NowPlayingCard({
   return (
     <Card
       className={cn(
-        "bg-zinc-950/80 border-zinc-800 overflow-hidden",
+        "bg-card border-border overflow-hidden",
         className
       )}
     >
       <CardContent className="p-0">
         <div className="flex gap-4 p-4">
-          <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md bg-zinc-900">
+          <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md bg-muted">
             {albumArtUrl ? (
               <img
                 src={albumArtUrl}
@@ -39,7 +39,7 @@ export function NowPlayingCard({
                 className="h-full w-full object-cover"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center text-zinc-600">
+              <div className="flex h-full w-full items-center justify-center text-muted-foreground/60">
                 <Music2 className="h-8 w-8" />
               </div>
             )}
@@ -65,18 +65,18 @@ export function NowPlayingCard({
               </Badge>
             </div>
 
-            <h3 className="truncate text-base font-semibold leading-tight text-zinc-50">
+            <h3 className="truncate text-base font-semibold leading-tight text-foreground">
               {track}
             </h3>
-            <p className="truncate text-sm text-zinc-400">{artist}</p>
+            <p className="truncate text-sm text-muted-foreground">{artist}</p>
             {album && (
-              <p className="truncate text-xs text-zinc-500">{album}</p>
+              <p className="truncate text-xs text-muted-foreground">{album}</p>
             )}
           </div>
         </div>
 
         <div className="px-4 pb-4">
-          <div className="h-1 w-full overflow-hidden rounded-full bg-zinc-800">
+          <div className="h-1 w-full overflow-hidden rounded-full bg-secondary">
             <div
               className="h-full rounded-full bg-emerald-500 transition-all duration-500"
               style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}

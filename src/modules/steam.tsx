@@ -24,11 +24,11 @@ function Stat({
 }) {
   return (
     <div>
-      <div className="text-2xl font-bold tracking-tight text-zinc-50">
+      <div className="text-2xl font-bold tracking-tight text-foreground">
         {value !== undefined && value !== "" ? value : "—"}
       </div>
-      <div className="text-xs text-zinc-500">{label}</div>
-      {hint && <div className="mt-0.5 truncate text-xs text-zinc-600" title={hint}>{hint}</div>}
+      <div className="text-xs text-muted-foreground">{label}</div>
+      {hint && <div className="mt-0.5 truncate text-xs text-muted-foreground/60" title={hint}>{hint}</div>}
     </div>
   );
 }
@@ -75,9 +75,9 @@ export const steamModule: DashboardModule = {
     return (
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Profile */}
-        <Card className="border-zinc-800 bg-zinc-950/80">
+        <Card className="border-border bg-card">
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-zinc-400">
+            <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
               <User className="h-3.5 w-3.5" /> Profile
             </CardTitle>
           </CardHeader>
@@ -91,15 +91,15 @@ export const steamModule: DashboardModule = {
                   loading="lazy"
                 />
               ) : (
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-zinc-900 text-zinc-600">
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted text-muted-foreground/60">
                   <User className="h-6 w-6" />
                 </div>
               )}
               <div className="min-w-0">
-                <div className="truncate text-lg font-semibold text-zinc-50">
+                <div className="truncate text-lg font-semibold text-foreground">
                   {name ?? "Unknown"}
                 </div>
-                <div className="text-sm text-zinc-500">
+                <div className="text-sm text-muted-foreground">
                   {status ?? "Offline"}
                   {level !== undefined ? ` · Level ${Math.round(level)}` : ""}
                 </div>
@@ -109,9 +109,9 @@ export const steamModule: DashboardModule = {
         </Card>
 
         {/* Current game */}
-        <Card className="border-zinc-800 bg-zinc-950/80">
+        <Card className="border-border bg-card">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-400">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
               Current Game
             </CardTitle>
           </CardHeader>
@@ -124,10 +124,10 @@ export const steamModule: DashboardModule = {
                 loading="lazy"
               />
             ) : null}
-            <div className="truncate text-lg font-semibold text-zinc-50">
+            <div className="truncate text-lg font-semibold text-foreground">
               {game ?? "Not playing"}
             </div>
-            <div className="text-sm text-zinc-500">
+            <div className="text-sm text-muted-foreground">
               {sessionTime ? `Session ${sessionTime}` : "No active session"}
               {playtime !== undefined ? ` · ${Math.round(playtime)}h owned` : ""}
             </div>
@@ -135,9 +135,9 @@ export const steamModule: DashboardModule = {
         </Card>
 
         {/* Library & social stats */}
-        <Card className="border-zinc-800 bg-zinc-950/80">
+        <Card className="border-border bg-card">
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-zinc-400">
+            <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
               <Trophy className="h-3.5 w-3.5" /> Library & Social
             </CardTitle>
           </CardHeader>
@@ -165,7 +165,7 @@ export const steamModule: DashboardModule = {
               />
             </div>
             {(achPct !== undefined || latestAch) && (
-              <div className="mt-4 flex items-center gap-3 border-t border-zinc-800 pt-3">
+              <div className="mt-4 flex items-center gap-3 border-t border-border pt-3">
                 {achIcon && isImageUrl(achIcon, "latest-achievement-icon") && (
                   <img
                     src={achIcon}
@@ -176,12 +176,12 @@ export const steamModule: DashboardModule = {
                 )}
                 <div className="min-w-0">
                   {achPct !== undefined && (
-                    <div className="text-sm font-medium text-zinc-300">
+                    <div className="text-sm font-medium text-foreground/85">
                       {Math.round(achPct)}% achievements
                     </div>
                   )}
                   {latestAch && (
-                    <div className="truncate text-xs text-zinc-500" title={latestAch}>
+                    <div className="truncate text-xs text-muted-foreground" title={latestAch}>
                       Latest: {latestAch}
                     </div>
                   )}
@@ -192,14 +192,14 @@ export const steamModule: DashboardModule = {
         </Card>
 
         {news && (
-          <Card className="border-zinc-800 bg-zinc-950/80 lg:col-span-3">
+          <Card className="border-border bg-card lg:col-span-3">
             <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-zinc-400">
+              <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
                 <Users className="h-3.5 w-3.5" /> News
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <SmartValue value={news} className="text-sm text-zinc-300" />
+              <SmartValue value={news} className="text-sm text-foreground/85" />
             </CardContent>
           </Card>
         )}
