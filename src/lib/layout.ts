@@ -269,33 +269,41 @@ export function defaultConfig(): DashboardConfig {
   };
 }
 
+/**
+ * Merge a stored/partial config over the defaults (tolerates missing
+ * fields). Used by the local load and by the bridge-synced copy (the
+ * kiosk window pulls the studio's latest state this way).
+ */
+export function mergeConfig(parsed: Partial<DashboardConfig>): DashboardConfig {
+  const defaults = defaultConfig();
+  const profiles =
+    parsed.profiles && parsed.profiles.length > 0
+      ? parsed.profiles
+      : defaults.profiles;
+  // Re-inject the sample profile if a stored config is missing it, and
+  // replace it when the app ships a newer version of the shipped layout.
+  const existingSample = profiles.find((p) => p.id === SAMPLE_PROFILE_ID);
+  if (!existingSample) {
+    profiles.push(sampleProfile());
+  } else if (existingSample.sampleVersion !== SAMPLE_PROFILE_VERSION) {
+    profiles[profiles.indexOf(existingSample)] = sampleProfile();
+  }
+  return {
+    version: 1,
+    activeProfile: parsed.activeProfile ?? defaults.activeProfile,
+    kioskProfileId: parsed.kioskProfileId,
+    profiles,
+    theme: { ...DEFAULT_THEME, ...parsed.theme },
+    radius: parsed.radius ?? defaults.radius,
+  };
+}
+
 /** Load the saved config, merged over defaults (tolerates missing fields). */
 export function loadConfig(): DashboardConfig {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return defaultConfig();
-    const parsed = JSON.parse(raw) as Partial<DashboardConfig>;
-    const defaults = defaultConfig();
-    const profiles =
-      parsed.profiles && parsed.profiles.length > 0
-        ? parsed.profiles
-        : defaults.profiles;
-    // Re-inject the sample profile if a saved config is missing it, and
-    // replace it when the app ships a newer version of the shipped layout.
-    const existingSample = profiles.find((p) => p.id === SAMPLE_PROFILE_ID);
-    if (!existingSample) {
-      profiles.push(sampleProfile());
-    } else if (existingSample.sampleVersion !== SAMPLE_PROFILE_VERSION) {
-      profiles[profiles.indexOf(existingSample)] = sampleProfile();
-    }
-    return {
-      version: 1,
-      activeProfile: parsed.activeProfile ?? defaults.activeProfile,
-      kioskProfileId: parsed.kioskProfileId,
-      profiles,
-      theme: { ...DEFAULT_THEME, ...parsed.theme },
-      radius: parsed.radius ?? defaults.radius,
-    };
+    return mergeConfig(JSON.parse(raw) as Partial<DashboardConfig>);
   } catch {
     return defaultConfig();
   }

@@ -9,6 +9,7 @@ import { claimedKeys } from "@/modules";
 import { applyTheme } from "@/lib/theme";
 import {
   loadConfig,
+  mergeConfig,
   resolveProfile,
   saveConfig,
   type DashboardConfig,
@@ -109,6 +110,55 @@ export default function App() {
     }, 400);
     return () => window.clearTimeout(t);
   }, [config.kioskProfileId, kiosk]);
+
+  // Push the full config (profiles with placements, theme, kiosk pin) to the
+  // bridge. The kiosk window's localStorage is isolated and its pages are
+  // read-only, so this synced copy is the only way the borderless display
+  // reflects the studio's latest state.
+  useEffect(() => {
+    if (kiosk) return; // the kiosk window only reads; don't push from it
+    const t = window.setTimeout(() => {
+      fetch(`${API_BASE}/api/config`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(config),
+      }).catch(() => {
+        // Bridge offline — the kiosk keeps its last synced copy.
+      });
+    }, 400);
+    return () => window.clearTimeout(t);
+  }, [config, kiosk]);
+
+  // Kiosk: pull the bridge-synced config — the studio's browser tab is the
+  // source of truth, not this isolated window's localStorage. The
+  // ?profile= pin (from kiosk.json) still decides which profile shows.
+  useEffect(() => {
+    if (!kiosk) return;
+    let alive = true;
+    (async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/config`, {
+          cache: "no-store",
+        });
+        if (!res.ok) return; // nothing synced yet — the local copy stands
+        const parsed = (await res.json()) as Partial<DashboardConfig>;
+        if (!alive || !parsed || !Array.isArray(parsed.profiles)) return;
+        const merged = mergeConfig(parsed);
+        const pinned = new URLSearchParams(window.location.search).get(
+          "profile"
+        );
+        if (pinned && merged.profiles.some((p) => p.id === pinned))
+          merged.activeProfile = pinned;
+        saveConfig(merged); // also seed the local copy (offline fallback)
+        setConfig(merged);
+      } catch {
+        // Bridge offline — the local fallback (loadConfig) stands.
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [kiosk]);
 
   // Apply the theme as CSS variables on :root.
   useEffect(
@@ -278,6 +328,43 @@ function KioskDragStrip() {
   // pointer capture is lost), pointerup never fires and the C# side would
   // stay armed. End the drag ourselves after a short silence.
   const endTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Set by the C# side ({ type: "drag", captured }). While the OS capture
+  // is active the browser window receives no pointer events at all (input
+  // is diverted to the window's WndProc), so this page's own fallback
+  // timer must stay off — the C# side ends the drag (guaranteed button-up,
+  // 5 s stuck guard) and announces it here as captured:false.
+  const capturedRef = useRef(false);
+
+  useEffect(() => {
+    const wv = (window as any).chrome?.webview;
+    if (!wv?.addEventListener) return;
+    const onMessage = (e: any) => {
+      // The C# side posts a JSON string (PostWebMessageAsString); a
+      // hand-rolled host may post the object directly — accept both.
+      let d = e.data;
+      if (typeof d === "string") {
+        try {
+          d = JSON.parse(d);
+        } catch {
+          return;
+        }
+      }
+      if (!d || d.type !== "drag" || typeof d.captured !== "boolean") return;
+      capturedRef.current = d.captured;
+      if (endTimer.current) {
+        clearTimeout(endTimer.current);
+        endTimer.current = null;
+      }
+      if (!d.captured) {
+        // The C# side ended the drag (release off-window, stuck guard):
+        // the pointerup never reached us, so reset our own state.
+        lastMove.current = null;
+        setDragging(false);
+      }
+    };
+    wv.addEventListener("message", onMessage);
+    return () => wv.removeEventListener("message", onMessage);
+  }, []);
 
   const post = useCallback((phase: string) => {
     try {
@@ -293,6 +380,7 @@ function KioskDragStrip() {
 
   const armEndFallback = useCallback(() => {
     if (endTimer.current) clearTimeout(endTimer.current);
+    if (capturedRef.current) return; // the OS owns the drag — C# ends it
     endTimer.current = setTimeout(() => {
       post("end");
       lastMove.current = null;
