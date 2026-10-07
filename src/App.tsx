@@ -1,30 +1,18 @@
 import { useSensors } from "@/hooks/useSensors";
-import { SensorCard } from "@/components/SensorCard";
-import { DualProgressCard } from "@/components/DualProgressCard";
-import { NowPlayingCard } from "@/components/NowPlayingCard";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Activity, Cpu, HardDrive, Wifi } from "lucide-react";
+import { modules, claimedKeys } from "@/modules";
+import { GenericCard } from "@/modules/fallback";
 
 function App() {
   const { data, connected } = useSensors();
   const sensors = data?.sensors ?? {};
 
-  const cpu = sensors["system.cpu.load"];
-  const ram = sensors["system.ram.load"];
-  const status = sensors["system.bridge.status"];
-
-  // Spotify keys (once a plugin pushes them)
-  const track = sensors["spotify.track"]?.text;
-  const artist = sensors["spotify.artist"]?.text;
-  const album = sensors["spotify.album"]?.text;
-  const art = sensors["spotify.art"]?.text;
-  const progress = sensors["spotify.progress"]?.value ?? 0;
-  const isPlaying = sensors["spotify.playing"]?.value === 2;
-
-  // Any other pushed sensors (test data, Steam, weather, ...) render here
-  const pushed = Object.entries(sensors).filter(
-    ([key]) => !key.startsWith("system.") && !key.startsWith("spotify."),
+  // Keys claimed by a registered module; everything else falls back to the
+  // generic "other sensors" grid.
+  const claimed = claimedKeys(sensors);
+  const unclaimed = Object.entries(sensors).filter(
+    ([key]) => !claimed.has(key)
   );
 
   return (
@@ -63,72 +51,47 @@ function App() {
 
       <Separator className="mb-8 bg-zinc-800" />
 
-      {/* Main grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        <DualProgressCard
-          title="System Load"
-          leftLabel="CPU"
-          leftValue={cpu?.value}
-          rightLabel="RAM"
-          rightValue={ram?.value}
-        />
+      {/* Registered modules — each plugin/source renders its own section */}
+      {modules.map((module) => {
+        const content = module.render(sensors);
+        if (!content) return null;
+        const count = Object.keys(sensors).filter((key) =>
+          module.matches(key)
+        ).length;
 
-        <SensorCard
-          title="Bridge Status"
-          text={status?.text ?? "—"}
-          icon={<Activity className="h-4 w-4" />}
-        />
+        return (
+          <section key={module.id} id={module.id} className="mb-10">
+            <div className="mb-4 flex items-center gap-2">
+              <h2 className="text-lg font-medium text-zinc-300">
+                {module.title}
+              </h2>
+              <Badge variant="secondary" className="text-xs">
+                {count}
+              </Badge>
+            </div>
+            {content}
+          </section>
+        );
+      })}
 
-        <NowPlayingCard
-          track={track}
-          artist={artist}
-          album={album}
-          isPlaying={isPlaying}
-          progress={progress}
-          albumArtUrl={art}
-          className="md:col-span-2 xl:col-span-1"
-        />
-      </div>
-
-      {/* Pushed sensors (any plugin, test data, etc.) */}
-      <div className="mt-10">
-        <h2 className="text-lg font-medium mb-4 text-zinc-300">
-          Pushed sensors
-        </h2>
-        {pushed.length === 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 opacity-60">
-            <SensorCard
-              title="GPU Load"
-              text="Push from plugin"
-              icon={<Cpu className="h-4 w-4" />}
-            />
-            <SensorCard
-              title="Network"
-              text="Push from plugin"
-              icon={<Wifi className="h-4 w-4" />}
-            />
-            <SensorCard
-              title="Storage"
-              text="Push from plugin"
-              icon={<HardDrive className="h-4 w-4" />}
-            />
+      {/* Unclaimed sensors — new plugins appear here automatically */}
+      {unclaimed.length > 0 && (
+        <section id="other-sensors">
+          <div className="mb-4 flex items-center gap-2">
+            <h2 className="text-lg font-medium text-zinc-300">
+              Other sensors
+            </h2>
+            <Badge variant="secondary" className="text-xs">
+              {unclaimed.length}
+            </Badge>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {pushed.map(([key, sensor]) => (
-              <SensorCard
-                key={key}
-                title={key.split(".").pop() ?? key}
-                text={sensor.text}
-                value={sensor.value}
-                unit={sensor.unit}
-                max={sensor.max}
-                icon={<Activity className="h-4 w-4" />}
-              />
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            {unclaimed.map(([key, sensor]) => (
+              <GenericCard key={key} sensorKey={key} sensor={sensor} />
             ))}
           </div>
-        )}
-      </div>
+        </section>
+      )}
     </div>
   );
 }

@@ -7,6 +7,8 @@ export interface SensorValue {
   min?: number;
   max?: number;
   avg?: number;
+  /** Human-readable display name (e.g. "CPU Package Temp") */
+  name?: string;
   source?: string;
 }
 
