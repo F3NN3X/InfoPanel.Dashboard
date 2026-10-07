@@ -22,6 +22,11 @@ function App() {
   const progress = sensors["spotify.progress"]?.value ?? 0;
   const isPlaying = sensors["spotify.playing"]?.value === 2;
 
+  // Any other pushed sensors (test data, Steam, weather, ...) render here
+  const pushed = Object.entries(sensors).filter(
+    ([key]) => !key.startsWith("system.") && !key.startsWith("spotify."),
+  );
+
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-50 p-6">
       {/* Header */}
@@ -85,28 +90,44 @@ function App() {
         />
       </div>
 
-      {/* Placeholder section */}
+      {/* Pushed sensors (any plugin, test data, etc.) */}
       <div className="mt-10">
         <h2 className="text-lg font-medium mb-4 text-zinc-300">
-          More sensors
+          Pushed sensors
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 opacity-60">
-          <SensorCard
-            title="GPU Load"
-            text="Push from plugin"
-            icon={<Cpu className="h-4 w-4" />}
-          />
-          <SensorCard
-            title="Network"
-            text="Push from plugin"
-            icon={<Wifi className="h-4 w-4" />}
-          />
-          <SensorCard
-            title="Storage"
-            text="Push from plugin"
-            icon={<HardDrive className="h-4 w-4" />}
-          />
-        </div>
+        {pushed.length === 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 opacity-60">
+            <SensorCard
+              title="GPU Load"
+              text="Push from plugin"
+              icon={<Cpu className="h-4 w-4" />}
+            />
+            <SensorCard
+              title="Network"
+              text="Push from plugin"
+              icon={<Wifi className="h-4 w-4" />}
+            />
+            <SensorCard
+              title="Storage"
+              text="Push from plugin"
+              icon={<HardDrive className="h-4 w-4" />}
+            />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {pushed.map(([key, sensor]) => (
+              <SensorCard
+                key={key}
+                title={key.split(".").pop() ?? key}
+                text={sensor.text}
+                value={sensor.value}
+                unit={sensor.unit}
+                max={sensor.max}
+                icon={<Activity className="h-4 w-4" />}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
