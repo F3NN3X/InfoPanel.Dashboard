@@ -61,6 +61,33 @@ const ALL_MODULES = [
 const DND_MIME = "text/infopanel-module";
 const DND_MIME_PANEL = "text/infopanel-panel";
 const GRID_GAP = 12; // must match the canvas grid's gap-3
+
+/**
+ * Approximate how many grid rows CSS auto-placement renders: explicit
+ * rowStarts pin their row; auto items advance a left-to-right flow pointer
+ * that wraps to the next row when the span no longer fits. Used to size
+ * free-drag drop targets so scroll profiles can reach flow rows below the
+ * last explicit row.
+ */
+function estimateFlowRows(placements: Placement[], cols: number): number {
+  let flowRow = 1;
+  let flowCol = 1;
+  let maxRow = 1;
+  for (const p of placements) {
+    const span = Math.max(1, Math.min(cols, p.colSpan));
+    if (p.rowStart !== undefined) {
+      maxRow = Math.max(maxRow, p.rowStart + (p.rowSpan ?? 1) - 1);
+      continue;
+    }
+    if (flowCol + span - 1 > cols) {
+      flowRow += 1;
+      flowCol = 1;
+    }
+    flowCol += span;
+    maxRow = Math.max(maxRow, flowRow + (p.rowSpan ?? 1) - 1);
+  }
+  return maxRow;
+}
 const ZOOM_STEPS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2];
 
 interface StudioViewProps {
@@ -365,11 +392,13 @@ export function StudioView({
   // Row geometry for the free-drag drop indicator. Fill mode: exact 1fr rows
   // over the profile height. Scroll mode: approximate with the rendered
   // height (auto rows are content-sized, so the indicator is a guide only).
+  //
+  // Includes the row being dragged to so the preview matches the layout
+  // after the drop (in fill mode a new row adds an implicit 1fr track and
+  // shrinks all of them).
   const totalRows = Math.max(
-    1,
-    ...profile.placements.map(
-      (p) => (p.rowStart ?? 1) + (p.rowSpan ?? 1)
-    )
+    estimateFlowRows(profile.placements, profile.cols),
+    freeDrag?.row ?? 0
   );
   const rowH =
     profile.fit === "fill" && profile.height > 0

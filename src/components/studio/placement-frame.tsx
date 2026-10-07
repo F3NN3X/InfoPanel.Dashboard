@@ -79,6 +79,10 @@ export function PlacementFrame({
   const fill = profile.fit === "fill";
   const span = clampSpan(placement.colSpan, profile.cols);
   const colWidth = gridWidth > 0 ? gridWidth / profile.cols : 0;
+  // Gap-aware track width — the grid's real column size, matching the
+  // studio's indicator math (simple colWidth keeps the resize feel).
+  const trackW =
+    gridWidth > 0 ? (gridWidth - (profile.cols - 1) * gap) / profile.cols : 0;
   const design = placement.design;
 
   // Hide empty modules in kiosk mode (they claim no space).
@@ -100,8 +104,8 @@ export function PlacementFrame({
 
     const compute = (x: number, y: number) => {
       const rect = getGridRect?.();
-      if (!rect || colWidth <= 0 || rowHeight === undefined) return null;
-      const cellW = (colWidth + gap) * zoom;
+      if (!rect || trackW <= 0 || rowHeight === undefined) return null;
+      const cellW = (trackW + gap) * zoom;
       const cellH = (rowHeight + gap) * zoom;
       const col = Math.max(
         1,
