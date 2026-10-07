@@ -70,7 +70,9 @@ export function Gauge({
           </div>
         </div>
       </div>
-      <div className="text-xs text-muted-foreground">{label}</div>
+      {label ? (
+        <div className="text-xs text-muted-foreground">{label}</div>
+      ) : null}
     </div>
   );
 }

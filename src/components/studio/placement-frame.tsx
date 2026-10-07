@@ -116,6 +116,11 @@ export function PlacementFrame({
       )}
       style={{
         gridColumn: `span ${span}`,
+        gridRow: placement.rowStart
+          ? `${placement.rowStart} / span ${placement.rowSpan ?? 1}`
+          : placement.rowSpan
+            ? `span ${placement.rowSpan}`
+            : undefined,
         // Per-placement accent override: scopes the theme's --accent token to
         // this frame's subtree (rings, gauges, highlights recolor with it).
         ...(design?.accent
@@ -141,6 +146,7 @@ export function PlacementFrame({
           <div className="absolute right-1.5 top-1.5 z-20 flex items-center gap-1 opacity-60 transition-opacity group-hover:opacity-100">
             <span className="rounded-md bg-popover/90 px-1.5 py-0.5 text-xs tabular-nums text-muted-foreground">
               {span}/{profile.cols}
+              {placement.rowSpan ? ` ×${placement.rowSpan}` : ""}
             </span>
             <button
               className="rounded-md bg-popover/90 p-1 text-muted-foreground hover:text-foreground"

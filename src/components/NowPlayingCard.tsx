@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Music2, Pause, Play } from "lucide-react";
+import { Music2, Pause, Play, Square } from "lucide-react";
 
 interface NowPlayingCardProps {
   track?: string;
@@ -11,6 +11,8 @@ interface NowPlayingCardProps {
   progress?: number;
   albumArtUrl?: string;
   className?: string;
+  /** "card" (default) or the compact single-line "bar". */
+  variant?: "card" | "bar";
 }
 
 export function NowPlayingCard({
@@ -21,7 +23,26 @@ export function NowPlayingCard({
   progress = 0,
   albumArtUrl,
   className,
+  variant = "card",
 }: NowPlayingCardProps) {
+  if (variant === "bar") {
+    return (
+      <div className="flex items-center gap-3 rounded-md bg-accent px-3 py-2 text-accent-foreground">
+        {isPlaying ? (
+          <Play className="h-5 w-5 shrink-0 fill-current" />
+        ) : (
+          <Pause className="h-5 w-5 shrink-0 fill-current" />
+        )}
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-sm font-semibold leading-tight">
+            {track}
+          </div>
+        </div>
+        <span className="text-xs tabular-nums opacity-70">00:00</span>
+        <Square className="h-3.5 w-3.5 shrink-0" />
+      </div>
+    );
+  }
   return (
     <Card
       className={cn(

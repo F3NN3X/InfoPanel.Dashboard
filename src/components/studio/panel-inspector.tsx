@@ -516,6 +516,19 @@ function WidgetEditor({
         </div>
       )}
 
+      {(widget.kind === "value" || widget.kind === "stat") && (
+        <div>
+          <div className="mb-1 text-xs text-muted-foreground">
+            Sub sensor <span className="text-muted-foreground/60">(below the value)</span>
+          </div>
+          <SensorPicker
+            sensors={sensors}
+            value={widget.subSensor}
+            onChange={(key) => set("subSensor", key)}
+          />
+        </div>
+      )}
+
       {(widget.kind === "text" || widget.kind === "image") && (
         <div>
           <div className="mb-1 text-xs text-muted-foreground">
@@ -530,6 +543,33 @@ function WidgetEditor({
             }
             onChange={(e) => set("text", e.target.value || undefined)}
             className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground outline-none focus:border-ring"
+          />
+        </div>
+      )}
+
+      {widget.kind === "image" && (
+        <div>
+          <div className="mb-1 text-xs text-muted-foreground">
+            Max height (px)
+          </div>
+          <input
+            type="number"
+            min={24}
+            max={600}
+            value={widget.height ?? ""}
+            placeholder="auto"
+            onChange={(e) =>
+              set(
+                "height",
+                e.target.value === ""
+                  ? undefined
+                  : Math.max(
+                      24,
+                      Math.min(600, parseInt(e.target.value, 10) || 24)
+                    )
+              )
+            }
+            className="w-24 rounded-md border border-border bg-background px-2 py-1.5 text-xs tabular-nums text-foreground outline-none focus:border-ring"
           />
         </div>
       )}
@@ -728,21 +768,58 @@ function WidgetEditor({
       )}
 
       {widget.kind === "table" && (
-        <div>
-          <div className="mb-1 text-xs text-muted-foreground">Rows</div>
-          <input
-            type="number"
-            min={1}
-            max={20}
-            value={widget.rows ?? 7}
-            onChange={(e) =>
-              set(
-                "rows",
-                Math.max(1, Math.min(20, parseInt(e.target.value, 10) || 7))
-              )
-            }
-            className="w-24 rounded-md border border-border bg-background px-2 py-1.5 text-xs tabular-nums text-foreground outline-none focus:border-ring"
-          />
+        <div className="space-y-3">
+          <div>
+            <div className="mb-1 text-xs text-muted-foreground">Rows</div>
+            <input
+              type="number"
+              min={1}
+              max={20}
+              value={widget.rows ?? 7}
+              onChange={(e) =>
+                set(
+                  "rows",
+                  Math.max(1, Math.min(20, parseInt(e.target.value, 10) || 7))
+                )
+              }
+              className="w-24 rounded-md border border-border bg-background px-2 py-1.5 text-xs tabular-nums text-foreground outline-none focus:border-ring"
+            />
+          </div>
+          <div>
+            <div className="mb-1 text-xs text-muted-foreground">
+              Columns <span className="text-muted-foreground/60">(split lines on “, ”)</span>
+            </div>
+            <input
+              type="number"
+              min={0}
+              max={12}
+              value={widget.columns ?? ""}
+              placeholder="auto"
+              onChange={(e) =>
+                set(
+                  "columns",
+                  e.target.value === ""
+                    ? undefined
+                    : Math.max(
+                        0,
+                        Math.min(12, parseInt(e.target.value, 10) || 0)
+                      )
+                )
+              }
+              className="w-24 rounded-md border border-border bg-background px-2 py-1.5 text-xs tabular-nums text-foreground outline-none focus:border-ring"
+            />
+          </div>
+          <div>
+            <div className="mb-1 text-xs text-muted-foreground">
+              Header <span className="text-muted-foreground/60">(comma-separated)</span>
+            </div>
+            <input
+              value={widget.header ?? ""}
+              placeholder="Date, Weather, Temp, Precip, Wind"
+              onChange={(e) => set("header", e.target.value || undefined)}
+              className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground outline-none focus:border-ring"
+            />
+          </div>
         </div>
       )}
 

@@ -823,6 +823,56 @@ export function StudioView({
                 />
               </div>
 
+              <div>
+                <div className="mb-1 flex justify-between text-xs text-muted-foreground">
+                  <span>Height</span>
+                  <span className="tabular-nums">
+                    {selected.rowSpan ?? 1} row
+                    {(selected.rowSpan ?? 1) === 2 ? "s" : ""}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={1}
+                  max={8}
+                  value={selected.rowSpan ?? 1}
+                  onChange={(e) => {
+                    const n = parseInt(e.target.value, 10);
+                    updatePlacement(selected.id, (p) => ({
+                      ...p,
+                      rowSpan: n > 1 ? n : undefined,
+                    }));
+                  }}
+                  className="w-full accent-ring"
+                />
+              </div>
+
+              <div>
+                <div className="mb-1 text-xs text-muted-foreground">
+                  Row start
+                </div>
+                <input
+                  type="number"
+                  min={1}
+                  max={24}
+                  value={selected.rowStart ?? ""}
+                  placeholder="auto"
+                  onChange={(e) =>
+                    updatePlacement(selected.id, (p) => ({
+                      ...p,
+                      rowStart:
+                        e.target.value === ""
+                          ? undefined
+                          : Math.max(
+                              1,
+                              Math.min(24, parseInt(e.target.value, 10) || 1)
+                            ),
+                    }))
+                  }
+                  className="w-24 rounded-md border border-border bg-background px-2 py-1.5 text-xs tabular-nums text-foreground outline-none focus:border-ring"
+                />
+              </div>
+
               {selected.panel ? (
                 <PanelInspector
                   placement={selected}

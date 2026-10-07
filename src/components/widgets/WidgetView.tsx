@@ -15,6 +15,8 @@ interface Ctx {
   sensor?: SensorValue;
   text: string;
   unit?: string;
+  /** Formatted text of the widget's secondary sensor (subSensor). */
+  sub?: string;
 }
 
 function colorStyle(color?: string): CSSProperties | undefined {
@@ -28,9 +30,14 @@ function labelSize(widget: Widget): number | undefined {
     : undefined;
 }
 
+/** Font size for a widget's secondary (sub) readout. */
+function subSize(widget: Widget): number {
+  return Math.max(9, Math.round((labelSize(widget) ?? 12) * 0.8));
+}
+
 /* ---------------- individual renderers ---------------- */
 
-function Stat({ widget, text, unit }: Ctx) {
+function Stat({ widget, text, unit, sub }: Ctx) {
   const ls = labelSize(widget);
   return (
     <div className="flex flex-col gap-0.5" style={{ textAlign: widget.align }}>
@@ -59,40 +66,55 @@ function Stat({ widget, text, unit }: Ctx) {
           </span>
         )}
       </div>
+      {sub && (
+        <div
+          className="tabular-nums text-muted-foreground"
+          style={{ fontSize: subSize(widget) }}
+        >
+          {sub}
+        </div>
+      )}
     </div>
   );
 }
 
-function Value({ widget, text, unit }: Ctx) {
+function Value({ widget, text, unit, sub }: Ctx) {
   const ls = labelSize(widget);
   return (
-    <div
-      className="flex items-baseline gap-1"
-      style={{ textAlign: widget.align }}
-    >
-      <span
-        className="font-semibold tabular-nums text-foreground"
-        style={{
-          fontSize: widget.fontSize ?? "1.125rem",
-          ...colorStyle(widget.color),
-        }}
-      >
-        {text}
-        {unit && (
+    <div className="flex flex-col" style={{ textAlign: widget.align }}>
+      <div className="flex items-baseline gap-1">
+        <span
+          className="font-semibold tabular-nums text-foreground"
+          style={{
+            fontSize: widget.fontSize ?? "1.125rem",
+            ...colorStyle(widget.color),
+          }}
+        >
+          {text}
+          {unit && (
+            <span
+              className="ml-0.5 font-normal text-muted-foreground"
+              style={{ fontSize: ls ?? "0.75rem" }}
+            >
+              {unit}
+            </span>
+          )}
+        </span>
+        {widget.label && (
           <span
-            className="ml-0.5 font-normal text-muted-foreground"
+            className="text-muted-foreground"
             style={{ fontSize: ls ?? "0.75rem" }}
           >
-            {unit}
+            {widget.label}
           </span>
         )}
-      </span>
-      {widget.label && (
+      </div>
+      {sub && (
         <span
-          className="text-muted-foreground"
-          style={{ fontSize: ls ?? "0.75rem" }}
+          className="tabular-nums text-muted-foreground"
+          style={{ fontSize: subSize(widget) }}
         >
-          {widget.label}
+          {sub}
         </span>
       )}
     </div>
@@ -222,6 +244,61 @@ function Table({ widget, lines }: { widget: Widget; lines: string[] }) {
   const size = widget.fontSize
     ? Math.max(10, Math.round(widget.fontSize * 0.55))
     : undefined;
+  const cols = widget.columns && widget.columns > 1 ? widget.columns : 0;
+
+  // N-column mode: split each line on ", " into a CSS-grid of cells, with an
+  // optional static header row on top (friends table, weather forecast, …).
+  if (cols > 0) {
+    const header = (widget.header ?? "")
+      .split(", ")
+      .map((h) => h.trim())
+      .filter(Boolean);
+    return (
+      <div
+        className="grid gap-x-2 gap-y-1"
+        style={{
+          gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+          fontSize: size ?? "0.75rem",
+          textAlign: widget.align,
+        }}
+      >
+        {header.map((h, j) => (
+          <div
+            key={`h-${j}`}
+            className="truncate uppercase tracking-wide text-muted-foreground/70"
+            style={{ fontSize: size ? Math.max(9, size - 3) : "0.625rem" }}
+            title={h}
+          >
+            {h}
+          </div>
+        ))}
+        {lines.slice(0, rows).map((line, i) =>
+          line
+            .split(", ")
+            .map((cell, j) => (
+              <div
+                key={`r-${i}-${j}`}
+                className={
+                  j === 0
+                    ? "truncate font-medium text-foreground/90"
+                    : "truncate tabular-nums text-muted-foreground"
+                }
+                title={cell}
+              >
+                {cell || "—"}
+              </div>
+            ))
+        )}
+        {lines.length === 0 && (
+          <div className="col-span-full text-muted-foreground/60">
+            no data
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Default two-part mode: a leading head and the rest, right aligned.
   return (
     <div className="space-y-1">
       {lines.slice(0, rows).map((line, i) => {
@@ -296,17 +373,25 @@ function Text({ widget, text }: { widget: Widget; text: string }) {
 }
 
 function ImageWidget({ widget, src }: { widget: Widget; src?: string }) {
+  const h = widget.height;
   return (
     <div className="relative">
       {src ? (
         <img
           src={src}
           alt={widget.label ?? "image"}
-          className="max-h-40 w-full rounded-md object-cover"
+          className={cn(
+            "w-full rounded-md object-cover",
+            h ? "min-h-0" : "max-h-40"
+          )}
+          style={h ? { maxHeight: h } : undefined}
           loading="lazy"
         />
       ) : (
-        <div className="flex h-24 w-full items-center justify-center rounded-md bg-muted text-muted-foreground/50">
+        <div
+          className="flex w-full items-center justify-center rounded-md bg-muted text-muted-foreground/50"
+          style={h ? { height: h } : { height: "6rem" }}
+        >
           <ImageIcon className="h-6 w-6" />
         </div>
       )}
@@ -372,6 +457,8 @@ function Shape({ widget }: { widget: Widget }) {
   const t = widget.thickness ?? 4;
   const color = widget.color ?? "hsl(var(--accent))";
   const radius = Math.min(t, widget.shape === "rect" ? 8 : t);
+  // Soft glow for bars (hex colors; non-hex values are ignored by CSS).
+  const glow = `0 0 ${Math.max(6, t * 1.5)}px ${color}66`;
   switch (widget.shape ?? "vbar") {
     case "hbar":
       return (
@@ -382,6 +469,7 @@ function Shape({ widget }: { widget: Widget }) {
             minWidth: 24,
             borderRadius: radius,
             backgroundColor: color,
+            boxShadow: glow,
           }}
         />
       );
@@ -414,6 +502,7 @@ function Shape({ widget }: { widget: Widget }) {
             minWidth: t,
             borderRadius: radius,
             backgroundColor: color,
+            boxShadow: glow,
           }}
         />
       );
@@ -435,7 +524,9 @@ export function WidgetView({ widget, sensors }: WidgetViewProps) {
   if (!widget.visible) return null;
   const s = widget.sensor ? sensors[widget.sensor] : undefined;
   const { text, unit } = widgetValue(s, widget);
-  const ctx: Ctx = { widget, sensor: s, text, unit };
+  const subS = widget.subSensor ? sensors[widget.subSensor] : undefined;
+  const sub = subS ? widgetValue(subS, widget).text : undefined;
+  const ctx: Ctx = { widget, sensor: s, text, unit, sub };
 
   switch (widget.kind) {
     case "stat":

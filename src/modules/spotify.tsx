@@ -16,6 +16,7 @@ export const spotifyModule: DashboardModule = {
   matches: (key) =>
     key.startsWith("spotify.") || key.startsWith("plugins.spotify-plugin."),
   settings: [
+    { key: "bar", label: "Compact bar", type: "boolean", default: false },
     { key: "showArt", label: "Cover art", type: "boolean", default: true },
     { key: "showAlbum", label: "Album line", type: "boolean", default: true },
   ],
@@ -27,6 +28,20 @@ export const spotifyModule: DashboardModule = {
     const art = resolve(sensors, "spotify.art", "plugins.spotify-plugin.spotify.cover-art")?.text;
     const progress = resolve(sensors, "spotify.progress", "plugins.spotify-plugin.spotify.track-progress")?.value;
     const playback = resolve(sensors, "spotify.playing", "plugins.spotify-plugin.spotify.playback-state")?.value;
+
+    // The compact bar stays visible even without live data (shows an idle
+    // placeholder), matching the reference kiosk's yellow player strip.
+    if (cfg.bar) {
+      return (
+        <NowPlayingCard
+          variant="bar"
+          track={track ?? "Spotify idle"}
+          artist={artist}
+          progress={progress ?? 0}
+          isPlaying={playback === 2}
+        />
+      );
+    }
 
     if (track === undefined && artist === undefined && progress === undefined) {
       return null;

@@ -79,6 +79,14 @@ export interface Widget {
   shape?: ShapeType;
   /** Thickness (bars) / diameter (circle), in px. */
   thickness?: number;
+  /** Second bound sensor, rendered small below the value (value/stat). */
+  subSensor?: string;
+  /** "table": split each line into N comma-separated columns. */
+  columns?: number;
+  /** "table": static comma-separated header row. */
+  header?: string;
+  /** "image": max height in px (capped by the widget's cell). */
+  height?: number;
   visible: boolean;
 }
 
@@ -114,6 +122,10 @@ export interface Placement {
   module: string;
   /** Number of grid columns this placement spans. */
   colSpan: number;
+  /** 1-based grid row this placement starts in (auto when omitted). */
+  rowStart?: number;
+  /** Number of grid rows this placement spans (height). */
+  rowSpan?: number;
   visible: boolean;
   /** Per-instance module settings, merged over the module's defaults. */
   settings?: ModuleSettings;
@@ -138,6 +150,11 @@ export interface MonitorProfile {
    */
   fit: "scroll" | "fill";
   placements: Placement[];
+  /**
+   * Set on shipped (non-user) profiles; when the app ships an updated copy
+   * of a profile with a higher version, the saved copy is replaced.
+   */
+  sampleVersion?: number;
 }
 
 export interface DashboardConfig {
@@ -250,9 +267,14 @@ export function loadConfig(): DashboardConfig {
       parsed.profiles && parsed.profiles.length > 0
         ? parsed.profiles
         : defaults.profiles;
-    // Re-inject the sample profile if a saved config is missing it.
-    if (!profiles.some((p) => p.id === SAMPLE_PROFILE_ID))
+    // Re-inject the sample profile if a saved config is missing it, and
+    // replace it when the app ships a newer version of the shipped layout.
+    const existingSample = profiles.find((p) => p.id === SAMPLE_PROFILE_ID);
+    if (!existingSample) {
       profiles.push(sampleProfile());
+    } else if (existingSample.sampleVersion !== SAMPLE_PROFILE_VERSION) {
+      profiles[profiles.indexOf(existingSample)] = sampleProfile();
+    }
     return {
       version: 1,
       activeProfile: parsed.activeProfile ?? defaults.activeProfile,
@@ -373,9 +395,14 @@ export function newPanel(title: string): PanelDef {
  * ---------------------------------------------------------------- */
 
 export const SAMPLE_PROFILE_ID = "sample-1920x1080";
+/**
+ * Bump whenever the shipped sample layout changes so saved copies in
+ * localStorage (kiosk machines) are upgraded on the next load.
+ */
+export const SAMPLE_PROFILE_VERSION = 5;
 
-/** The orange accent the sample layout is built around. */
-const SAMPLE_ACCENT = "#f97316";
+/** The yellow accent the sample layout is built around. */
+const SAMPLE_ACCENT = "#f5c518";
 
 const RTSS = (n: string) => `plugins.InfoPanel.RTSS.rtss.${n}`;
 const STEAM = (n: string) => `plugins.InfoPanel.SteamAPI.${n}`;
@@ -387,12 +414,12 @@ function sw(fields: Partial<Widget> & { kind: WidgetKind }): Widget {
   return { id: uid("w"), visible: true, ...fields };
 }
 
-/** An accent-orange vertical bar (the sample's decorative dividers). */
+/** An accent-yellow vertical bar (the sample's decorative dividers). */
 function vbar(extra?: Partial<Widget>): Widget {
   return sw({
     kind: "shape",
     shape: "vbar",
-    thickness: 5,
+    thickness: 8,
     color: SAMPLE_ACCENT,
     ...extra,
   });
@@ -414,138 +441,192 @@ function sp(
   };
 }
 
-function samplePanelPlacement(panel: PanelDef, colSpan: number): Placement {
-  return { id: uid(PANEL_ID), module: PANEL_ID, colSpan, visible: true, panel };
+interface SamplePlacementOpts {
+  rowStart?: number;
+  rowSpan?: number;
 }
 
+function sampleModulePlacement(
+  module: string,
+  colSpan: number,
+  opts: SamplePlacementOpts & {
+    settings?: Placement["settings"];
+    design?: Placement["design"];
+  } = {}
+): Placement {
+  return {
+    id: uid(module),
+    module,
+    colSpan,
+    visible: true,
+    rowStart: opts.rowStart,
+    rowSpan: opts.rowSpan,
+    settings: opts.settings,
+    design: opts.design,
+  };
+}
+
+function samplePanelPlacement(
+  panel: PanelDef,
+  colSpan: number,
+  opts: SamplePlacementOpts = {}
+): Placement {
+  return {
+    id: uid(PANEL_ID),
+    module: PANEL_ID,
+    colSpan,
+    visible: true,
+    rowStart: opts.rowStart,
+    rowSpan: opts.rowSpan,
+    panel,
+  };
+}
+
+/**
+ * Macro layout of the sample (12 cols × 6 equal rows, "fill"):
+ *
+ *   row 1  spotify (3)   │ clock block (5, rows 1–3) │ last played (4, rows 1–3)
+ *   row 2  fps rings (3) │                            │
+ *   row 3  network (3)   │                            │
+ *   rows 4–6 weather (4) │ gpu (4)                    │ session (4)
+ */
 export function sampleProfile(): MonitorProfile {
-  // — Row 1: FPS rings — six small gauges in a single row.
+  // — Left column, row 2: FPS rings — six small gauges in a single row.
   const fpsRings = sp({
     title: "FPS rings",
+    accent: SAMPLE_ACCENT,
     layout: "grid",
     columns: 6,
     widgets: [
-      sw({ kind: "gauge", label: "FPS", sensor: RTSS("fps"), max: 240, fontSize: 64 }),
-      sw({ kind: "gauge", label: "AVG", sensor: RTSS("avg-fps"), max: 240, fontSize: 64 }),
-      sw({ kind: "gauge", label: "1% LOW", sensor: RTSS("1% low fps"), max: 240, fontSize: 64 }),
-      sw({ kind: "gauge", label: "REFRESH", sensor: RTSS("refreshrate"), max: 240, fontSize: 64 }),
-      sw({ kind: "gauge", label: "CORE °", sensor: NVIDIA("gpu_core"), max: 100, fontSize: 64 }),
-      sw({ kind: "gauge", label: "MEM °", sensor: NVIDIA("gpu_memory_junction"), max: 100, fontSize: 64 }),
+      sw({ kind: "gauge", sensor: RTSS("fps"), max: 240, fontSize: 36 }),
+      sw({ kind: "gauge", sensor: RTSS("avg-fps"), max: 240, fontSize: 36 }),
+      sw({ kind: "gauge", sensor: RTSS("1% low fps"), max: 240, fontSize: 36 }),
+      sw({ kind: "gauge", sensor: RTSS("refreshrate"), max: 240, fontSize: 36 }),
+      sw({ kind: "gauge", sensor: NVIDIA("gpu_core"), max: 100, fontSize: 36 }),
+      sw({ kind: "gauge", sensor: NVIDIA("gpu_memory_junction"), max: 100, fontSize: 36 }),
     ],
   });
 
-  // — Row 1: the center block — dividers, "capturing" line, the big FPS
-  //   readout with its % / MS unit, four GPU stat tiles, and the clock.
+  // — Center block (rows 1–3): dividers, "capturing" line, the big FPS
+  //   readout (frame time stacked below) with GPU stat tiles, and the clock.
   const clockBlock = sp({
     title: "Clock block",
     accent: SAMPLE_ACCENT,
     layout: "grid",
     columns: 6,
     widgets: [
-      vbar({ rowSpan: 2 }),
-      sw({ kind: "text", label: "Capturing", text: "No games to capture", span: 4, fontSize: 18 }),
+      vbar({ rowSpan: 4 }),
+      sw({ kind: "text", label: "Capturing", text: "No games to capture", span: 4, fontSize: 16 }),
       vbar(),
-      sw({ kind: "value", sensor: RTSS("fps"), unit: "% / MS", fontSize: 44 }),
-      sw({ kind: "stat", label: "Power W", sensor: NVIDIA("gpu_board_power"), fontSize: 24 }),
-      sw({ kind: "stat", label: "Mem °", sensor: NVIDIA("gpu_memory_junction"), fontSize: 24 }),
-      sw({ kind: "stat", label: "Core °", sensor: NVIDIA("gpu_core"), fontSize: 24 }),
-      sw({ kind: "stat", label: "Load", sensor: NVIDIA("d3d_3d"), unit: "%", fontSize: 24 }),
-      sw({ kind: "clock", span: 5, fontSize: 84, color: SAMPLE_ACCENT }),
+      sw({ kind: "value", sensor: RTSS("fps"), subSensor: RTSS("current frame time"), fontSize: 40 }),
+      sw({ kind: "stat", label: "Power W", sensor: NVIDIA("gpu_board_power"), fontSize: 20 }),
+      sw({ kind: "stat", label: "Mem °", sensor: NVIDIA("gpu_memory_junction"), fontSize: 20 }),
+      sw({ kind: "stat", label: "Core °", sensor: NVIDIA("gpu_core"), fontSize: 20 }),
+      sw({ kind: "stat", label: "Load", sensor: NVIDIA("d3d_3d"), unit: "%", fontSize: 20 }),
+      sw({ kind: "clock", span: 5, rowSpan: 2, fontSize: 84, color: SAMPLE_ACCENT }),
     ],
   });
 
-  // — Row 1: last played game — banner, session time, friends, news, cover.
+  // — Right block (rows 1–3): last played game — banner, cover, session,
+  //   news, and the four-column friends table.
   const lastPlayed = sp({
     title: "Last played game",
+    accent: SAMPLE_ACCENT,
     background: "panel",
+    titleVisible: true,
     layout: "grid",
     columns: 2,
     widgets: [
-      sw({ kind: "image", sensor: STEAM("SteamAPI-Profile.current_game_banner_url"), span: 2 }),
+      sw({ kind: "image", sensor: STEAM("SteamAPI-Profile.current_game_banner_url"), span: 2, height: 100 }),
       sw({ kind: "stat", label: "In game", sensor: STEAM("SteamAPI-Session.current-session-time"), fontSize: 18 }),
-      sw({ kind: "text", label: "Started playing", sensor: STEAM("SteamAPI-Session.session-start-time") }),
-      sw({ kind: "table", label: "Friends", sensor: STEAM("SteamAPI-Social.friends-activity"), rows: 5, span: 2 }),
-      sw({ kind: "table", label: "News", sensor: STEAM("SteamAPI-News.library-news"), rows: 3 }),
-      sw({ kind: "image", sensor: STEAM("SteamAPI-Profile.game_grid_url"), label: "Total playtime" }),
+      sw({ kind: "image", sensor: STEAM("SteamAPI-Profile.game_grid_url"), label: "Total playtime", height: 100 }),
+      sw({ kind: "text", label: "Started playing", sensor: STEAM("SteamAPI-Session.session-start-time"), span: 2 }),
+      sw({ kind: "table", label: "Friends", sensor: STEAM("SteamAPI-Social.friends-activity"), rows: 3, span: 2, columns: 4, header: "Friend, Status, Playing, Last Online" }),
     ],
   });
 
-  // — Row 2: network upload/download cards.
+  // — Left column, row 3: network upload/download cards.
   const network = sp({
     title: "Network",
     background: "panel",
     layout: "grid",
     columns: 2,
     widgets: [
-      sw({ kind: "stat", label: "Data Upload", sensor: "libre.ethernet_data_uploaded" }),
-      sw({ kind: "stat", label: "Data Download", sensor: "libre.ethernet_data_downloaded" }),
+      sw({ kind: "stat", label: "Data Upload", sensor: "libre.ethernet_data_uploaded", color: SAMPLE_ACCENT }),
+      sw({ kind: "stat", label: "Data Download", sensor: "libre.ethernet_data_downloaded", color: SAMPLE_ACCENT }),
     ],
   });
 
-  // — Row 2: current conditions + 7-day forecast table.
+  // — Bottom row, left: current conditions + 7-day forecast table.
   const weather = sp({
     title: "Weather",
     background: "panel",
     layout: "grid",
     columns: 4,
     widgets: [
-      sw({ kind: "text", text: "Current surface data", span: 4, fontSize: 12, color: "#94a3b8" }),
-      sw({ kind: "value", sensor: WEATHER("weather_desc"), fontSize: 18 }),
-      sw({ kind: "stat", sensor: WEATHER("temp"), fontSize: 22 }),
+      sw({ kind: "text", text: "Current surface data", span: 4, fontSize: 11, color: "#94a3b8" }),
+      sw({ kind: "value", sensor: WEATHER("weather_desc"), fontSize: 16 }),
+      sw({ kind: "stat", sensor: WEATHER("temp"), span: 2, color: SAMPLE_ACCENT, fontSize: 24 }),
       sw({ kind: "value", sensor: WEATHER("wind_speed"), label: "m/s", decimals: 1 }),
-      sw({ kind: "table", label: "7-day forecast", sensor: WEATHER("forecast"), rows: 7, span: 4 }),
+      sw({ kind: "table", sensor: WEATHER("forecast"), rows: 7, span: 4, columns: 5, header: "Date, Weather, Temp, Precip, Wind" }),
     ],
   });
 
-  // — Row 2: GPU sparkline + RAM bars + big stat row, bracketed by bars.
+  // — Bottom row, center: GPU sparkline + RAM bars + 2×2 stats,
+  //   bracketed by full-height bars.
   const gpuBlock = sp({
     title: "GPU / RAM",
     accent: SAMPLE_ACCENT,
     layout: "grid",
     columns: 7,
     widgets: [
-      vbar({ rowSpan: 2 }),
+      vbar({ rowSpan: 3 }),
       sw({ kind: "sparkline", label: "GPU power (W)", sensor: NVIDIA("gpu_board_power"), history: 80, span: 5, color: SAMPLE_ACCENT }),
-      vbar(),
-      sw({ kind: "bar", label: "RAM USED", sensor: "libre.total_memory_memory_used", max: 64 }),
-      sw({ kind: "bar", label: "RAM FREE", sensor: "libre.total_memory_memory_available", max: 64 }),
-      sw({ kind: "stat", label: "Load", sensor: NVIDIA("d3d_3d"), unit: "%", fontSize: 28 }),
-      sw({ kind: "stat", label: "Power W", sensor: NVIDIA("gpu_board_power"), fontSize: 28 }),
-      sw({ kind: "stat", label: "Mem °", sensor: NVIDIA("gpu_memory_junction"), fontSize: 28 }),
-      sw({ kind: "stat", label: "Core °", sensor: NVIDIA("gpu_core"), fontSize: 28 }),
+      vbar({ rowSpan: 3 }),
+      sw({ kind: "bar", label: "RAM USED", sensor: "libre.total_memory_memory_used", max: 64, span: 3 }),
+      sw({ kind: "stat", label: "Load", sensor: NVIDIA("d3d_3d"), unit: "%", fontSize: 18 }),
+      sw({ kind: "stat", label: "Power W", sensor: NVIDIA("gpu_board_power"), fontSize: 18 }),
+      sw({ kind: "bar", label: "RAM FREE", sensor: "libre.total_memory_memory_available", max: 64, span: 3 }),
+      sw({ kind: "stat", label: "Mem °", sensor: NVIDIA("gpu_memory_junction"), fontSize: 18 }),
+      sw({ kind: "stat", label: "Core °", sensor: NVIDIA("gpu_core"), fontSize: 18 }),
     ],
   });
 
-  // — Row 2: session summary — game, most played, news, dates.
+  // — Bottom row, right: session summary — game, most played, news, dates.
   const sessionBlock = sp({
     title: "Session",
     background: "panel",
     layout: "grid",
-    columns: 2,
+    columns: 3,
     widgets: [
       sw({ kind: "text", label: "Game", sensor: STEAM("SteamAPI-Session.current-game") }),
+      sw({ kind: "text", label: "News", sensor: STEAM("SteamAPI-News.library-news"), rowSpan: 2 }),
+      sw({ kind: "text", label: "Date", text: "Oct 07\nOct 06", align: "right", rowSpan: 2 }),
       sw({ kind: "text", sensor: STEAM("SteamAPI-Library.most-played-recent") }),
-      sw({ kind: "text", label: "News", sensor: STEAM("SteamAPI-News.library-news"), span: 2 }),
-      sw({ kind: "text", label: "Date", text: "Oct 07\nOct 06", align: "right", span: 2 }),
     ],
   });
 
   return {
     id: SAMPLE_PROFILE_ID,
     name: "Sample 1920×1080",
+    sampleVersion: SAMPLE_PROFILE_VERSION,
     width: 1920,
     height: 1080,
     cols: 12,
     fit: "fill",
     placements: [
-      placement("spotify", 2),
-      samplePanelPlacement(fpsRings, 3),
-      samplePanelPlacement(clockBlock, 4),
-      samplePanelPlacement(lastPlayed, 3),
-      samplePanelPlacement(network, 2),
-      samplePanelPlacement(weather, 4),
-      samplePanelPlacement(gpuBlock, 4),
-      samplePanelPlacement(sessionBlock, 2),
+      sampleModulePlacement("spotify", 3, {
+        rowStart: 1,
+        settings: { bar: true },
+        design: { accent: SAMPLE_ACCENT },
+      }),
+      samplePanelPlacement(fpsRings, 3, { rowStart: 2 }),
+      samplePanelPlacement(network, 3, { rowStart: 3 }),
+      samplePanelPlacement(clockBlock, 5, { rowStart: 1, rowSpan: 3 }),
+      samplePanelPlacement(lastPlayed, 4, { rowStart: 1, rowSpan: 3 }),
+      samplePanelPlacement(weather, 4, { rowStart: 4, rowSpan: 3 }),
+      samplePanelPlacement(gpuBlock, 4, { rowStart: 4, rowSpan: 3 }),
+      samplePanelPlacement(sessionBlock, 4, { rowStart: 4, rowSpan: 3 }),
     ],
   };
 }
