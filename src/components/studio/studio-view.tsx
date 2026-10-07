@@ -51,6 +51,7 @@ import {
 } from "@/lib/layout";
 import { panelPresets, type PanelPreset } from "@/lib/panelPresets";
 import { hslToHex, THEME_PRESETS, type ThemeTokens } from "@/lib/theme";
+import { BUILD_ID } from "@/lib/buildInfo";
 import { cn } from "@/lib/utils";
 
 const ALL_MODULES = [
@@ -121,6 +122,8 @@ export function StudioView({
     id: string;
     col: number;
     row: number;
+    x: number;
+    y: number;
   } | null>(null);
   const [gridEl, setGridEl] = useState<HTMLDivElement | null>(null);
   const [gridWidth, setGridWidth] = useState(0);
@@ -781,7 +784,11 @@ export function StudioView({
                                 width: span * colW + (span - 1) * GRID_GAP,
                                 height: rowSpan * rowH + (rowSpan - 1) * GRID_GAP,
                               }}
-                            />
+                            >
+                              <span className="absolute left-1.5 top-0.5 text-[10px] font-semibold tabular-nums text-ring">
+                                C{freeDrag.col} · R{freeDrag.row}
+                              </span>
+                            </div>
                           );
                         })()}
 
@@ -802,8 +809,8 @@ export function StudioView({
                             rowHeight={rowH}
                             getGridRect={getGridRect}
                             ghost={freeDrag?.id === p.id}
-                            onFreeDrag={(id, pos) =>
-                              setFreeDrag({ id, ...pos })
+                            onFreeDrag={(id, pos, pointer) =>
+                              setFreeDrag({ id, ...pos, ...pointer })
                             }
                             onFreeDragEnd={commitFreeDrag}
                             selected={selectedId === p.id}
@@ -1264,6 +1271,9 @@ export function StudioView({
               {preset.label}
             </button>
           ))}
+          <span className="shrink-0 pl-2 text-[10px] tabular-nums text-muted-foreground/50">
+            build {BUILD_ID}
+          </span>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -1306,6 +1316,29 @@ export function StudioView({
           />
         </div>
       </footer>
+
+      {/* Free-drag ghost: follows the pointer (outside the zoomed canvas)
+          so the widget being dragged is always visibly tracked. */}
+      {freeDrag &&
+        (() => {
+          const p = profile.placements.find((x) => x.id === freeDrag.id);
+          if (!p) return null;
+          const title =
+            p.panel?.title ??
+            ALL_MODULES.find((m) => m.id === p.module)?.title ??
+            p.module;
+          return (
+            <div
+              className="pointer-events-none fixed z-50 rounded-md border border-ring bg-popover px-2 py-1 text-[11px] font-medium shadow-lg"
+              style={{ left: freeDrag.x + 14, top: freeDrag.y + 14 }}
+            >
+              {title}{" "}
+              <span className="tabular-nums text-muted-foreground">
+                → C{freeDrag.col} · R{freeDrag.row}
+              </span>
+            </div>
+          );
+        })()}
     </div>
   );
 }

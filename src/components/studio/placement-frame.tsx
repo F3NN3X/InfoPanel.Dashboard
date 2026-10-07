@@ -33,7 +33,11 @@ interface PlacementFrameProps {
   /** The grid element's bounding rect in screen px (drop-cell math). */
   getGridRect?: () => DOMRect | null;
   /** Live free-drag target cell — the studio shows a drop indicator. */
-  onFreeDrag?: (id: string, pos: { col: number; row: number }) => void;
+  onFreeDrag?: (
+    id: string,
+    pos: { col: number; row: number },
+    pointer: { x: number; y: number }
+  ) => void;
   /** Free-drag released; commit the last cell (null = plain click). */
   onFreeDragEnd?: (id: string, pos: { col: number; row: number } | null) => void;
   /** Dimmed while a free-drag is in flight (the drop indicator shows the target). */
@@ -126,7 +130,7 @@ export function PlacementFrame({
       const cell = compute(ev.clientX, ev.clientY);
       if (cell) {
         last = cell;
-        onFreeDrag?.(placement.id, cell);
+        onFreeDrag?.(placement.id, cell, { x: ev.clientX, y: ev.clientY });
       }
     };
     const up = () => {
