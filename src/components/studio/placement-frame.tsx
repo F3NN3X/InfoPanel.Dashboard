@@ -22,14 +22,17 @@ interface PlacementFrameProps {
   hasData: boolean;
   title: string;
   /** Grid element width in px — used to convert pointer deltas to columns. */
-  gridWidth: number;
-  onDragStart: (id: string) => void;
-  onDragEnd: () => void;
+  gridWidth?: number;
+  onDragStart?: (id: string) => void;
+  onDragEnd?: () => void;
   /** Called on a sibling's dragover to reorder live. */
-  onDragOver: (targetId: string) => void;
-  onSpan: (id: string, span: number) => void;
-  onToggle: (id: string) => void;
-  onRemove: (id: string) => void;
+  onDragOver?: (targetId: string) => void;
+  onSpan?: (id: string, span: number) => void;
+  onToggle?: (id: string) => void;
+  onRemove?: (id: string) => void;
+  /** Highlight + select (studio view). */
+  selected?: boolean;
+  onSelect?: () => void;
   children: ReactNode;
 }
 
@@ -47,13 +50,15 @@ export function PlacementFrame({
   studio,
   hasData,
   title,
-  gridWidth,
+  gridWidth = 0,
   onDragStart,
   onDragEnd,
   onDragOver,
   onSpan,
   onToggle,
   onRemove,
+  selected,
+  onSelect,
   children,
 }: PlacementFrameProps) {
   const fill = profile.fit === "fill";
@@ -78,7 +83,7 @@ export function PlacementFrame({
         side === "right"
           ? clampSpan(startSpan + deltaCols, profile.cols)
           : clampSpan(startSpan - deltaCols, profile.cols);
-      if (next !== placement.colSpan) onSpan(placement.id, next);
+      if (next !== placement.colSpan) onSpan?.(placement.id, next);
     };
     const up = () => {
       window.removeEventListener("pointermove", move);
@@ -91,24 +96,28 @@ export function PlacementFrame({
   function handleDragStart(e: DragEvent) {
     e.dataTransfer.setData("text/plain", placement.id);
     e.dataTransfer.effectAllowed = "move";
-    onDragStart(placement.id);
+    onDragStart?.(placement.id);
   }
 
   return (
     <div
       className={cn(
         "group relative min-w-0",
-        studio && "outline-dashed outline-1 outline-ring/40"
+        studio &&
+          (selected
+            ? "ring-2 ring-ring"
+            : "outline-dashed outline-1 outline-ring/40")
       )}
       style={{ gridColumn: `span ${span}` }}
       draggable={studio}
+      onClick={onSelect}
       onDragStart={studio ? handleDragStart : undefined}
       onDragEnd={onDragEnd}
       onDragOver={
         studio
           ? (e) => {
               e.preventDefault();
-              onDragOver(placement.id);
+              onDragOver?.(placement.id);
             }
           : undefined
       }
@@ -123,7 +132,10 @@ export function PlacementFrame({
             <button
               className="rounded-md bg-popover/90 p-1 text-muted-foreground hover:text-foreground"
               onClick={() =>
-                onSpan(placement.id, clampSpan(placement.colSpan - 1, profile.cols))
+                onSpan?.(
+                  placement.id,
+                  clampSpan(placement.colSpan - 1, profile.cols)
+                )
               }
               title="Narrower"
             >
@@ -132,7 +144,10 @@ export function PlacementFrame({
             <button
               className="rounded-md bg-popover/90 p-1 text-muted-foreground hover:text-foreground"
               onClick={() =>
-                onSpan(placement.id, clampSpan(placement.colSpan + 1, profile.cols))
+                onSpan?.(
+                  placement.id,
+                  clampSpan(placement.colSpan + 1, profile.cols)
+                )
               }
               title="Wider"
             >
@@ -140,7 +155,7 @@ export function PlacementFrame({
             </button>
             <button
               className="rounded-md bg-popover/90 p-1 text-muted-foreground hover:text-foreground"
-              onClick={() => onToggle(placement.id)}
+              onClick={() => onToggle?.(placement.id)}
               title={placement.visible ? "Hide" : "Show"}
             >
               {placement.visible ? (
@@ -151,7 +166,7 @@ export function PlacementFrame({
             </button>
             <button
               className="rounded-md bg-popover/90 p-1 text-muted-foreground hover:text-destructive"
-              onClick={() => onRemove(placement.id)}
+              onClick={() => onRemove?.(placement.id)}
               title="Remove"
             >
               <X className="h-3 w-3" />

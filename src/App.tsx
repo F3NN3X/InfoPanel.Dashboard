@@ -1,28 +1,19 @@
-import {
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Wrench } from "lucide-react";
 import { useSensors } from "@/hooks/useSensors";
 import { Badge } from "@/components/ui/badge";
-import { GenericCard } from "@/modules/fallback";
-import { StudioToolbar } from "@/components/studio/studio-toolbar";
+import { StudioView } from "@/components/studio/studio-view";
 import { PlacementFrame } from "@/components/studio/placement-frame";
-import { modules, claimedKeys } from "@/modules";
+import { placementContent } from "@/components/studio/placement-content";
+import { claimedKeys } from "@/modules";
 import { applyTheme } from "@/lib/theme";
 import {
-  CARDS_ID,
   loadConfig,
   resolveProfile,
   saveConfig,
   type DashboardConfig,
-  type Placement,
 } from "@/lib/layout";
 import { cn } from "@/lib/utils";
-
-const moduleById = new Map(modules.map((m) => [m.id, m]));
 
 export default function App() {
   const { data, connected } = useSensors();
@@ -44,9 +35,6 @@ export default function App() {
     w: window.innerWidth,
     h: window.innerHeight,
   }));
-  const [gridRef, setGridRef] = useState<HTMLDivElement | null>(null);
-  const [gridWidth, setGridWidth] = useState(0);
-  const [draggingId, setDraggingId] = useState<string | null>(null);
 
   const profile = resolveProfile(config, windowSize.w, windowSize.h);
   const fill = profile.fit === "fill";
@@ -55,7 +43,10 @@ export default function App() {
   useEffect(() => saveConfig(config), [config]);
 
   // Apply the theme as CSS variables on :root.
-  useEffect(() => applyTheme(config.theme, config.radius), [config.theme, config.radius]);
+  useEffect(
+    () => applyTheme(config.theme, config.radius),
+    [config.theme, config.radius]
+  );
 
   // Track window size for automatic profile selection.
   useEffect(() => {
@@ -65,72 +56,11 @@ export default function App() {
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  // Measure the grid for pointer-based column resize.
-  useLayoutEffect(() => {
-    if (gridRef) setGridWidth(gridRef.clientWidth);
-  }, [gridRef, profile.id, profile.cols]);
-  useEffect(() => {
-    const onResize = () => {
-      if (gridRef) setGridWidth(gridRef.clientWidth);
-    };
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, [gridRef]);
-
   // Keys claimed by registered modules; "cards" placements show the rest.
   const unclaimed = useMemo(() => {
     const claimed = claimedKeys(sensors);
     return Object.entries(sensors).filter(([key]) => !claimed.has(key));
   }, [sensors]);
-
-  const updatePlacement = (
-    id: string,
-    fn: (p: Placement) => Placement
-  ) => {
-    setConfig((c) => ({
-      ...c,
-      profiles: c.profiles.map((prof) =>
-        prof.id === profile.id
-          ? {
-              ...prof,
-              placements: prof.placements.map((p) =>
-                p.id === id ? fn(p) : p
-              ),
-            }
-          : prof
-      ),
-    }));
-  };
-
-  const removePlacement = (id: string) => {
-    setConfig((c) => ({
-      ...c,
-      profiles: c.profiles.map((prof) =>
-        prof.id === profile.id
-          ? { ...prof, placements: prof.placements.filter((p) => p.id !== id) }
-          : prof
-      ),
-    }));
-  };
-
-  /** Live reorder: move the dragged placement to the target's position. */
-  const movePlacement = (targetId: string) => {
-    if (!draggingId || draggingId === targetId) return;
-    setConfig((c) => ({
-      ...c,
-      profiles: c.profiles.map((prof) => {
-        if (prof.id !== profile.id) return prof;
-        const from = prof.placements.findIndex((p) => p.id === draggingId);
-        const to = prof.placements.findIndex((p) => p.id === targetId);
-        if (from === -1 || to === -1 || to === from || to === from + 1)
-          return prof;
-        const next = [...prof.placements];
-        const [item] = next.splice(from, 1);
-        next.splice(to > from ? to - 1 : to, 0, item);
-        return { ...prof, placements: next };
-      }),
-    }));
-  };
 
   const enterStudio = () => {
     setStudio(true);
@@ -141,35 +71,20 @@ export default function App() {
     window.history.replaceState(null, "", window.location.pathname);
   };
 
-  const renderPlacement = (p: Placement): { content: ReactNode; hasData: boolean; title: string } => {
-    if (p.module === CARDS_ID) {
-      if (unclaimed.length === 0)
-        return { content: null, hasData: false, title: "Other sensors" };
-      const subCols = p.colSpan >= 8 ? 4 : p.colSpan >= 4 ? 3 : 2;
-      return {
-        hasData: true,
-        title: "Other sensors",
-        content: (
-          <div
-            className="grid gap-3"
-            style={{ gridTemplateColumns: `repeat(${subCols}, minmax(0, 1fr))` }}
-          >
-            {unclaimed.map(([key, sensor]) => (
-              <GenericCard key={key} sensorKey={key} sensor={sensor} />
-            ))}
-          </div>
-        ),
-      };
-    }
-    const mod = moduleById.get(p.module);
-    if (!mod) return { content: null, hasData: false, title: p.module };
-    const content = mod.render(sensors);
-    return {
-      content: content ?? null,
-      hasData: content != null,
-      title: mod.title,
-    };
-  };
+  // The dedicated studio replaces the whole view.
+  if (studio) {
+    return (
+      <StudioView
+        sensors={sensors}
+        config={config}
+        profile={profile}
+        setConfig={setConfig}
+        windowWidth={windowSize.w}
+        windowHeight={windowSize.h}
+        onExitStudio={exitStudio}
+      />
+    );
+  }
 
   return (
     <div
@@ -179,12 +94,7 @@ export default function App() {
       )}
     >
       {/* Header */}
-      <div
-        className={cn(
-          "flex items-center justify-between",
-          fill && "shrink-0"
-        )}
-      >
+      <div className={cn("flex items-center justify-between", fill && "shrink-0")}>
         <div className="flex items-baseline gap-3">
           <h1
             className={cn(
@@ -220,9 +130,8 @@ export default function App() {
         </div>
       </div>
 
-      {/* Grid of placements */}
+      {/* Kiosk grid of placements (read-only) */}
       <div
-        ref={setGridRef}
         className={cn("grid gap-3", fill && "min-h-0 flex-1")}
         style={{
           gridTemplateColumns: `repeat(${profile.cols}, minmax(0, 1fr))`,
@@ -232,26 +141,19 @@ export default function App() {
         {profile.placements
           .filter((p) => p.visible)
           .map((p) => {
-            const { content, hasData, title } = renderPlacement(p);
+            const { content, hasData, title } = placementContent(
+              p,
+              sensors,
+              unclaimed
+            );
             return (
               <PlacementFrame
                 key={p.id}
                 placement={p}
                 profile={profile}
-                studio={studio}
+                studio={false}
                 hasData={hasData}
                 title={title}
-                gridWidth={gridWidth}
-                onDragStart={setDraggingId}
-                onDragEnd={() => setDraggingId(null)}
-                onDragOver={movePlacement}
-                onSpan={(id, span) =>
-                  updatePlacement(id, (pl) => ({ ...pl, colSpan: span }))
-                }
-                onToggle={(id) =>
-                  updatePlacement(id, (pl) => ({ ...pl, visible: !pl.visible }))
-                }
-                onRemove={removePlacement}
               >
                 {content}
               </PlacementFrame>
@@ -259,16 +161,14 @@ export default function App() {
           })}
       </div>
 
-      <StudioToolbar
-        config={config}
-        profile={profile}
-        studio={studio}
-        windowWidth={windowSize.w}
-        windowHeight={windowSize.h}
-        setConfig={setConfig}
-        onEnterStudio={enterStudio}
-        onExitStudio={exitStudio}
-      />
+      {/* Floating entry to the studio */}
+      <button
+        onClick={enterStudio}
+        className="fixed bottom-4 right-4 z-50 rounded-full border bg-popover p-2.5 text-muted-foreground shadow-lg opacity-50 transition-opacity hover:opacity-100"
+        title="Open dashboard studio"
+      >
+        <Wrench className="h-4 w-4" />
+      </button>
     </div>
   );
 }
