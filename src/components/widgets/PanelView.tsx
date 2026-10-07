@@ -1,9 +1,9 @@
 import { type CSSProperties } from "react";
 import { hexToHsl } from "@/lib/theme";
-import type { PanelDef, WidgetKind } from "@/lib/layout";
+import type { PanelDef, Widget, WidgetKind } from "@/lib/layout";
 import type { SensorMap } from "@/modules/types";
 import { cn } from "@/lib/utils";
-import { WidgetView } from "./WidgetView";
+import { WidgetView, imageSrc } from "./WidgetView";
 
 /** Kinds that want a full row of the panel (everything else flows inline). */
 const FULL_ROW: ReadonlySet<WidgetKind> = new Set([
@@ -96,6 +96,84 @@ export function PanelView({ panel, sensors, studio }: PanelViewProps) {
       )}
     </div>
   );
+
+  // — Overlay layout: one image widget paints the whole panel as a
+  //   background; the other widgets layer on top in top / middle / bottom
+  //   zones (a dark scrim keeps them readable over any banner).
+  if (panel.layout === "overlay") {
+    const bg =
+      visible.find((w) => w.kind === "image" && w.asBackground) ??
+      visible.find((w) => w.kind === "image");
+    const rest = visible.filter((w) => w !== bg);
+    const zone = (w: Widget) => w.overlayZone ?? "top";
+    const top = rest.filter((w) => zone(w) === "top");
+    const middle = rest.filter((w) => zone(w) === "middle");
+    const bottom = rest.filter((w) => zone(w) === "bottom");
+    const bgSrc = bg ? imageSrc(bg, sensors) : undefined;
+
+    const zoneRow = (items: Widget[], className: string) =>
+      items.length === 0 ? null : (
+        <div className={className}>
+          {items.map((w) => (
+            <div
+              key={w.id}
+              className={cn(
+                "min-w-0",
+                (w.kind === "table" || w.kind === "text") && "flex-1"
+              )}
+              style={
+                // In-zone images (e.g. the game icon) are square — cap them
+                // at their height so they sit beside text instead of
+                // stretching across the whole zone.
+                w.kind === "image"
+                  ? {
+                      width: w.height ?? 48,
+                      maxWidth: w.height ?? 48,
+                      flexShrink: 0,
+                    }
+                  : undefined
+              }
+            >
+              <WidgetView widget={w} sensors={sensors} />
+            </div>
+          ))}
+        </div>
+      );
+
+    return (
+      <div className="relative h-full overflow-hidden rounded-lg" style={scope}>
+        {bgSrc ? (
+          <img
+            src={bgSrc}
+            alt={panel.title}
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-card/60" />
+        )}
+        {/* Scrim — bottom-weighted so the banner shows through up top. */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/20" />
+        {panel.titleVisible && (
+          <div className="absolute right-3 top-3 z-20 flex items-center gap-1.5 rounded-full bg-black/50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-widest text-foreground/90 backdrop-blur-sm">
+            <span
+              className="h-1.5 w-1.5 rounded-full"
+              style={
+                panel.accent
+                  ? { backgroundColor: panel.accent }
+                  : { backgroundColor: "hsl(var(--accent))" }
+              }
+            />
+            {panel.title}
+          </div>
+        )}
+        <div className="relative z-10 flex h-full flex-col justify-between gap-2 p-3 pr-3">
+          {zoneRow(top, "flex items-center gap-3")}
+          {zoneRow(middle, "flex items-center gap-4")}
+          {zoneRow(bottom, "flex items-end gap-4")}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={scope}>

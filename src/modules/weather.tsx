@@ -6,6 +6,8 @@ import { findEntry, liveText } from "@/lib/sensors";
 import { effectiveSettings, type DashboardModule } from "./types";
 
 const P = "plugins.yr-weather-plugin.";
+/** The DataBridge's own MET Norway collector (multi-day forecast lines). */
+const BRIDGE = "plugins.InfoPanel.DataBridge.weather.";
 
 /**
  * Weather module — MET Norway (yr) via the MetYr plugin.
@@ -53,7 +55,10 @@ export const weatherModule: DashboardModule = {
     const refreshed = text("last_refreshed");
     const iconUrl = text("weather_icon_url");
     const icon = text("weather_icon");
-    const forecast = text("forecast");
+    // The yr plugin only pushes a single forecast day; the DataBridge's own
+    // MET Norway collector pushes the full multi-day table, so prefer it.
+    const forecast =
+      sensors[BRIDGE + "forecast"]?.text?.trim() || text("forecast");
 
     if (temp === undefined && !desc) return null;
 

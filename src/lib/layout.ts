@@ -87,6 +87,10 @@ export interface Widget {
   header?: string;
   /** "image": max height in px (capped by the widget's cell). */
   height?: number;
+  /** "overlay" panel layout: render this image widget as the panel's background. */
+  asBackground?: boolean;
+  /** "overlay" panel layout: which zone of the background this widget sits in. */
+  overlayZone?: "top" | "middle" | "bottom";
   visible: boolean;
 }
 
@@ -98,8 +102,12 @@ export interface PanelDef {
   visible: boolean;
   accent?: string;
   background: "none" | "panel" | "bordered";
-  /** "wrap" flows widgets inline (default); "grid" arranges them in columns. */
-  layout?: "wrap" | "grid";
+  /**
+   * "wrap" flows widgets inline (default); "grid" arranges them in columns;
+   * "overlay" paints an image widget across the panel and layers the rest
+   * in top / middle / bottom zones on top of it.
+   */
+  layout?: "wrap" | "grid" | "overlay";
   /** Column count for "grid" layout. */
   columns?: number;
   widgets: Widget[];
@@ -399,7 +407,7 @@ export const SAMPLE_PROFILE_ID = "sample-1920x1080";
  * Bump whenever the shipped sample layout changes so saved copies in
  * localStorage (kiosk machines) are upgraded on the next load.
  */
-export const SAMPLE_PROFILE_VERSION = 5;
+export const SAMPLE_PROFILE_VERSION = 6;
 
 /** The yellow accent the sample layout is built around. */
 const SAMPLE_ACCENT = "#f5c518";
@@ -527,21 +535,23 @@ export function sampleProfile(): MonitorProfile {
     ],
   });
 
-  // — Right block (rows 1–3): last played game — banner, cover, session,
-  //   news, and the four-column friends table.
+  // — Right block (rows 1–3): last played game — the banner is the panel's
+  //   background with the game icon, name, session timer, start time,
+  //   total hours and the friends table layered on top.
   const lastPlayed = sp({
     title: "Last played game",
     accent: SAMPLE_ACCENT,
     background: "panel",
     titleVisible: true,
-    layout: "grid",
-    columns: 2,
+    layout: "overlay",
     widgets: [
-      sw({ kind: "image", sensor: STEAM("SteamAPI-Profile.current_game_banner_url"), span: 2, height: 100 }),
-      sw({ kind: "stat", label: "In game", sensor: STEAM("SteamAPI-Session.current-session-time"), fontSize: 18 }),
-      sw({ kind: "image", sensor: STEAM("SteamAPI-Profile.game_grid_url"), label: "Total playtime", height: 100 }),
-      sw({ kind: "text", label: "Started playing", sensor: STEAM("SteamAPI-Session.session-start-time"), span: 2 }),
-      sw({ kind: "table", label: "Friends", sensor: STEAM("SteamAPI-Social.friends-activity"), rows: 3, span: 2, columns: 4, header: "Friend, Status, Playing, Last Online" }),
+      sw({ kind: "image", sensor: STEAM("SteamAPI-Profile.current_game_banner_url"), asBackground: true }),
+      sw({ kind: "image", sensor: STEAM("SteamAPI-Profile.game_icon_url"), height: 44, overlayZone: "top" }),
+      sw({ kind: "text", sensor: STEAM("SteamAPI-Session.current-game"), fontSize: 22, overlayZone: "top" }),
+      sw({ kind: "value", sensor: STEAM("SteamAPI-Session.current-session-time"), color: SAMPLE_ACCENT, fontSize: 40, overlayZone: "middle" }),
+      sw({ kind: "text", label: "Started", sensor: STEAM("SteamAPI-Session.session-start-time"), overlayZone: "bottom" }),
+      sw({ kind: "value", label: "Total hours", sensor: STEAM("SteamAPI-Library.recent-playtime"), overlayZone: "bottom" }),
+      sw({ kind: "table", label: "Friends", sensor: STEAM("SteamAPI-Social.friends-activity"), rows: 3, columns: 4, header: "Friend, Status, Playing, Last Online", overlayZone: "bottom" }),
     ],
   });
 
@@ -558,6 +568,8 @@ export function sampleProfile(): MonitorProfile {
   });
 
   // — Bottom row, left: current conditions + 7-day forecast table.
+  // The forecast lines come from the DataBridge's own MET Norway fetch
+  // (the yr plugin only pushes a single day).
   const weather = sp({
     title: "Weather",
     background: "panel",
@@ -568,7 +580,7 @@ export function sampleProfile(): MonitorProfile {
       sw({ kind: "value", sensor: WEATHER("weather_desc"), fontSize: 16 }),
       sw({ kind: "stat", sensor: WEATHER("temp"), span: 2, color: SAMPLE_ACCENT, fontSize: 24 }),
       sw({ kind: "value", sensor: WEATHER("wind_speed"), label: "m/s", decimals: 1 }),
-      sw({ kind: "table", sensor: WEATHER("forecast"), rows: 7, span: 4, columns: 5, header: "Date, Weather, Temp, Precip, Wind" }),
+      sw({ kind: "table", sensor: "plugins.InfoPanel.DataBridge.weather.forecast", rows: 7, span: 4, columns: 5, header: "Date, Weather, Temp, Precip, Wind" }),
     ],
   });
 

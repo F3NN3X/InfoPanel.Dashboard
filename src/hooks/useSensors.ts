@@ -17,7 +17,7 @@ export interface SensorSnapshot {
   sensors: Record<string, SensorValue>;
 }
 
-const API_BASE = "http://127.0.0.1:3921";
+export const API_BASE = "http://127.0.0.1:3921";
 
 export function useSensors() {
   const [data, setData] = useState<SensorSnapshot | null>(null);

@@ -312,12 +312,19 @@ export function PanelInspector({
               options={[
                 { value: "wrap", label: "Flow" },
                 { value: "grid", label: "Grid" },
+                { value: "overlay", label: "Overlay" },
               ]}
               value={panel.layout ?? "wrap"}
               onChange={(v) =>
                 setPanelField("layout", v as PanelDef["layout"])
               }
             />
+            {(panel.layout ?? "wrap") === "overlay" && (
+              <p className="mt-1 text-[11px] leading-snug text-muted-foreground/70">
+                The first "As background" image fills the panel; the other
+                widgets layer on top in the Top / Middle / Bottom zones.
+              </p>
+            )}
           </div>
 
           {(panel.layout ?? "wrap") === "grid" && (
@@ -456,6 +463,7 @@ export function PanelInspector({
           <WidgetEditor
             widget={selectedWidget}
             sensors={sensors}
+            panelLayout={panel.layout}
             onChange={(fn) =>
               updateWidget(selectedWidget.id, fn)
             }
@@ -473,10 +481,12 @@ export function PanelInspector({
 function WidgetEditor({
   widget,
   sensors,
+  panelLayout,
   onChange,
 }: {
   widget: Widget;
   sensors: SensorMap;
+  panelLayout?: PanelDef["layout"];
   onChange: (fn: (w: Widget) => Widget) => void;
 }) {
   const set = <K extends keyof Widget>(key: K, value: Widget[K]) =>
@@ -485,9 +495,46 @@ function WidgetEditor({
   const numeric = widget.kind !== "clock" && widget.kind !== "shape";
   const fillable = widget.kind === "bar" || widget.kind === "gauge";
   const isShape = widget.kind === "shape";
+  const isOverlay = panelLayout === "overlay";
 
   return (
     <div className="space-y-3">
+      {isOverlay && (
+        <div className="rounded-md border border-border bg-background/60 p-2 space-y-2">
+          <div className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+            Overlay placement
+          </div>
+          {widget.kind === "image" && (
+            <label className="flex items-center gap-2 text-xs text-foreground">
+              <input
+                type="checkbox"
+                checked={!!widget.asBackground}
+                onChange={(e) =>
+                  set("asBackground", e.target.checked || undefined)
+                }
+                className="h-3.5 w-3.5 accent-ring"
+              />
+              Use as panel background
+            </label>
+          )}
+          <div className="flex items-center gap-2">
+            <span className="w-14 shrink-0 text-xs text-muted-foreground">
+              Zone
+            </span>
+            <Segmented
+              options={[
+                { value: "top", label: "Top" },
+                { value: "middle", label: "Middle" },
+                { value: "bottom", label: "Bottom" },
+              ]}
+              value={widget.overlayZone ?? "top"}
+              onChange={(v) =>
+                set("overlayZone", v as Widget["overlayZone"])
+              }
+            />
+          </div>
+        </div>
+      )}
       {!isShape && (
         <div>
           <div className="mb-1 text-xs text-muted-foreground">Label</div>

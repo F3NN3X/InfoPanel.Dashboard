@@ -10,6 +10,23 @@ import { cn } from "@/lib/utils";
 import { widgetPercent, widgetValue } from "./format";
 import { useHistory, useNow } from "./hooks";
 
+/**
+ * Resolve an image widget's source URL: a static URL wins when it looks
+ * like one, otherwise the bound sensor's text is used.
+ */
+export function imageSrc(widget: Widget, sensors: SensorMap): string | undefined {
+  const s = widget.sensor ? sensors[widget.sensor] : undefined;
+  return (
+    (widget.text && isImageUrl(widget.text, widget.sensor ?? "image")
+      ? widget.text
+      : undefined) ??
+    (s?.text && isImageUrl(s.text, widget.sensor ?? "image")
+      ? s.text
+      : undefined) ??
+    (widget.text && isImageUrl(widget.text, "image") ? widget.text : undefined)
+  );
+}
+
 interface Ctx {
   widget: Widget;
   sensor?: SensorValue;
@@ -561,14 +578,7 @@ export function WidgetView({ widget, sensors }: WidgetViewProps) {
         />
       );
     case "image": {
-      const src =
-        widget.text && isImageUrl(widget.text, widget.sensor ?? "image")
-          ? widget.text
-          : s?.text && isImageUrl(s.text, widget.sensor ?? "image")
-            ? s.text
-            : widget.text && isImageUrl(widget.text, "image")
-              ? widget.text
-              : undefined;
+      const src = imageSrc(widget, sensors);
       return <ImageWidget widget={widget} src={src} />;
     }
     case "clock":
