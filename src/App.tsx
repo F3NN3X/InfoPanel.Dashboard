@@ -274,6 +274,10 @@ function KioskDragStrip() {
   // Last posted cursor position — "move" is only re-posted when it changes,
   // which keeps the WebView2 message rate sane while the window tracks.
   const lastMove = useRef<{ x: number; y: number } | null>(null);
+  // Safety-net timer: if the release happens outside the window (or the
+  // pointer capture is lost), pointerup never fires and the C# side would
+  // stay armed. End the drag ourselves after a short silence.
+  const endTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const post = useCallback((phase: string) => {
     try {
@@ -286,6 +290,15 @@ function KioskDragStrip() {
       // Not running inside the WebView2 kiosk window.
     }
   }, []);
+
+  const armEndFallback = useCallback(() => {
+    if (endTimer.current) clearTimeout(endTimer.current);
+    endTimer.current = setTimeout(() => {
+      post("end");
+      lastMove.current = null;
+      setDragging(false);
+    }, 1500);
+  }, [post]);
 
   // Robust drag: while dragging, listen on the window so the move keeps
   // flowing even if the pointer leaves the strip (pointer capture is lost
@@ -302,12 +315,18 @@ function KioskDragStrip() {
         return;
       lastMove.current = { x: e.clientX, y: e.clientY };
       post("move");
+      armEndFallback();
     };
     const onEnd = () => {
+      if (endTimer.current) {
+        clearTimeout(endTimer.current);
+        endTimer.current = null;
+      }
       post("end");
       lastMove.current = null;
       setDragging(false);
     };
+    armEndFallback();
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onEnd);
     window.addEventListener("pointercancel", onEnd);
@@ -315,8 +334,12 @@ function KioskDragStrip() {
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onEnd);
       window.removeEventListener("pointercancel", onEnd);
+      if (endTimer.current) {
+        clearTimeout(endTimer.current);
+        endTimer.current = null;
+      }
     };
-  }, [dragging, post]);
+  }, [dragging, post, armEndFallback]);
 
   const showGrip = hovered || dragging;
 
