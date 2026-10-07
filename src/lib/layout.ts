@@ -676,19 +676,21 @@ export function sampleProfile(): MonitorProfile {
 
 /* ---------------------------------------------------------------- *
  * arcv2 — a faithful recreation of the "ARCv2 WIDE" InfoPanel export
- * (1920×550): the steam hero + GPU/CPU stat panels on the right, the
- * big clock block in the middle, and the spotify / fans / network /
- * weather groups (stashed off-canvas in the export) rebuilt into the
- * left column. Positions map 1:1 from the export's DisplayItems.xml
- * (group X/Y + item X/Y → grid cells); colors, fonts and sensor
- * bindings come from the same files.
+ * (1920×550) as a 3×3 grid of 4-wide panels:
+ *
+ *   Left   (C1–4)  : spotify (rows 1–2) · network (3–4) · weather (5–6)
+ *   Center (C5–8)  : gpu readout (1–2) · big clock (3–4) · cpu strip (5–6)
+ *   Right  (C9–12) : steam hero (1–2) · friends (3–4) · news (5–6)
+ *
+ * Colors, fonts, background art and sensor bindings come from the
+ * export's Profile/DisplayItems.xml.
  *
  * Shipped like the sample profile: `loadConfig` re-injects it when a
  * saved config is missing it, and upgrades it when the version bumps.
  * ---------------------------------------------------------------- */
 
 export const ARCV2_PROFILE_ID = "arcv2";
-export const ARCV2_PROFILE_VERSION = 2;
+export const ARCV2_PROFILE_VERSION = 3;
 
 /** The export's yellow accent (#FFFFBC13 in Profile/DisplayItems.xml). */
 const ARCV2_ACCENT = "#ffbc13";
@@ -700,7 +702,6 @@ const ARCV2_NAVY = "#090d19";
 const ARCV2_TEAL = "#3d94a8";
 /** Warm off-white used for the export's secondary text. */
 const ARCV2_CREAM = "#ebe6d7";
-const ARCV2_CREAM2 = "#f9eedf";
 const ARCV2_FAINT = "#ffffffe0";
 
 /**
@@ -766,7 +767,7 @@ export function arcv2Profile(): MonitorProfile {
     ],
   });
 
-  // — Right column, rows 3–4: the GPU block. The export's cream GPU-bg
+  // — Center column, rows 1–2: the GPU block. The export's cream GPU-bg
   //   panel (no scrim) with the big yellow FPS readout, 1% low + frame
   //   time, and the four stat columns the background art pre-prints.
   const gpu = ap({
@@ -787,23 +788,35 @@ export function arcv2Profile(): MonitorProfile {
     ],
   });
 
-  // — Right column, row 5: steam news + friends (the export's bottom of
-  //   the hero, below the GPU block).
-  const steamBottom = ap({
-    title: "Steam news",
+  // — Right column, rows 3–4: the friends table (the export's "Friends"
+  //   group: name, status, current game, last-seen).
+  const friends = ap({
+    title: "Friends",
+    accent: ARCV2_ACCENT,
+    layout: "grid",
+    columns: 1,
+    widgets: [
+      sw({ kind: "text", label: "Friends", fontSize: 13, color: ARCV2_FAINT }),
+      sw({ kind: "table", sensor: STEAM("SteamAPI-Social.friends-activity"), rows: 4, columns: 4, header: "Friend, Status, Playing, Last Online" }),
+    ],
+  });
+
+  // — Right column, rows 5–6: game news (the export's bottom-right news
+  //   group: the current game's headline + the library feed).
+  const news = ap({
+    title: "News",
     accent: ARCV2_ACCENT,
     layout: "grid",
     columns: 2,
     widgets: [
       sw({ kind: "text", label: "News", sensor: STEAM("SteamAPI-News.current_game_news_title"), fontSize: 16, color: "#ffffff", span: 2 }),
       sw({ kind: "text", label: "Library", sensor: STEAM("SteamAPI-News.library-news"), fontSize: 12, color: ARCV2_FAINT, span: 2 }),
-      sw({ kind: "table", label: "Friends", sensor: STEAM("SteamAPI-Social.friends-activity"), rows: 2, columns: 4, header: "Friend, Status, Playing, Last Online", span: 2 }),
     ],
   });
 
-  // — Right column, row 6: the CPU strip (the export's CPU group, whose
-  //   visible sliver is this row): big yellow load number, RAM bar and
-  //   the stat columns pre-printed on the CPU-bg art.
+  // — Center column, rows 5–6: the CPU strip (the export's CPU group):
+  //   big yellow load number, RAM bar and the stat columns pre-printed
+  //   on the CPU-bg art.
   const cpuStrip = ap({
     title: "CPU",
     accent: ARCV2_ACCENT,
@@ -819,15 +832,16 @@ export function arcv2Profile(): MonitorProfile {
     ],
   });
 
-  // — Middle, rows 2–4: the big yellow clock with the date below
-  //   (the export's Clock 63px + Calendar 23px).
+  // — Center column, rows 3–4: the big yellow clock with the date below
+  //   (the export's Clock 63px + Calendar 23px), centered across the
+  //   column.
   const clockPanel = ap({
     title: "Clock",
     accent: ARCV2_ACCENT,
     layout: "grid",
     columns: 1,
     widgets: [
-      sw({ kind: "clock", clock: "both", fontSize: 52, color: ARCV2_ACCENT }),
+      sw({ kind: "clock", clock: "both", fontSize: 52, color: ARCV2_ACCENT, align: "center" }),
     ],
   });
 
@@ -849,27 +863,8 @@ export function arcv2Profile(): MonitorProfile {
     ],
   });
 
-  // — Left column, row 3: fan gauges (the export's FANS donut row;
-  //   three GPU fans + the nct6701d chassis fans).
-  const fans = ap({
-    title: "Fans",
-    accent: ARCV2_ACCENT,
-    layout: "grid",
-    columns: 6,
-    widgets: [
-      // HWiNFO reports fan 1 as a percentage but fans 2/3 as RPM on this
-      // machine — the export's donuts used a 3000 max for the GPU fans.
-      sw({ kind: "gauge", label: "GPU 1", sensor: NVIDIA("gpu_fan_1"), max: 100, fontSize: 44, color: ARCV2_CREAM2 }),
-      sw({ kind: "gauge", label: "GPU 2", sensor: NVIDIA("gpu_fan_2"), max: 3000, fontSize: 44, color: ARCV2_CREAM2 }),
-      sw({ kind: "gauge", label: "GPU 3", sensor: NVIDIA("gpu_fan_3"), max: 3000, fontSize: 44, color: ARCV2_CREAM2 }),
-      sw({ kind: "gauge", label: "Fan 2", sensor: "libre.nuvoton_nct6701d_fan__2", max: 100, fontSize: 44, color: ARCV2_CREAM2 }),
-      sw({ kind: "gauge", label: "Fan 4", sensor: "libre.nuvoton_nct6701d_fan__4", max: 100, fontSize: 44, color: ARCV2_CREAM2 }),
-      sw({ kind: "gauge", label: "Fan 7", sensor: "libre.nuvoton_nct6701d_fan__7", max: 100, fontSize: 44, color: ARCV2_CREAM2 }),
-    ],
-  });
-
-  // — Left column, row 4: network (the export's NETWORK panel: dark art
-  //   with pre-printed labels, teal speed bars, yellow values).
+  // — Left column, rows 3–4: network (the export's NETWORK panel: dark
+  //   art with pre-printed labels, teal speed bars, yellow values).
   const network = ap({
     title: "Network",
     accent: ARCV2_ACCENT,
@@ -910,15 +905,18 @@ export function arcv2Profile(): MonitorProfile {
     cols: 12,
     fit: "fill",
     placements: [
+      // Left column (C1–4): spotify, network, weather.
       apPlacement(spotify, 4, { colStart: 1, rowStart: 1, rowSpan: 2 }),
-      apPlacement(fans, 4, { colStart: 1, rowStart: 3 }),
-      apPlacement(network, 4, { colStart: 1, rowStart: 4 }),
+      apPlacement(network, 4, { colStart: 1, rowStart: 3, rowSpan: 2 }),
       apPlacement(weather, 4, { colStart: 1, rowStart: 5, rowSpan: 2 }),
-      apPlacement(clockPanel, 2, { colStart: 5, rowStart: 2, rowSpan: 3 }),
+      // Center column (C5–8): gpu readout, big clock, cpu strip.
+      apPlacement(gpu, 4, { colStart: 5, rowStart: 1, rowSpan: 2 }),
+      apPlacement(clockPanel, 4, { colStart: 5, rowStart: 3, rowSpan: 2 }),
+      apPlacement(cpuStrip, 4, { colStart: 5, rowStart: 5, rowSpan: 2 }),
+      // Right column (C9–12): steam hero, friends, news.
       apPlacement(steamTop, 4, { colStart: 9, rowStart: 1, rowSpan: 2 }),
-      apPlacement(gpu, 4, { colStart: 9, rowStart: 3, rowSpan: 2 }),
-      apPlacement(steamBottom, 4, { colStart: 9, rowStart: 5 }),
-      apPlacement(cpuStrip, 4, { colStart: 9, rowStart: 6 }),
+      apPlacement(friends, 4, { colStart: 9, rowStart: 3, rowSpan: 2 }),
+      apPlacement(news, 4, { colStart: 9, rowStart: 5, rowSpan: 2 }),
     ],
   };
 }
