@@ -2,6 +2,9 @@ import {
   type CSSProperties,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
+  useLayoutEffect,
+  useRef,
+  useState,
 } from "react";
 import {
   Eye,
@@ -88,6 +91,34 @@ export function PlacementFrame({
   const trackW =
     gridWidth > 0 ? (gridWidth - (profile.cols - 1) * gap) / profile.cols : 0;
   const design = placement.design;
+
+  // Fit-to-box (fill mode): the content renders at its natural size inside the
+  // cell box and is scaled down (transform, so layout is untouched) until it
+  // fits — widgets fill their box without overflowing or scrolling.
+  const boxRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [fitScale, setFitScale] = useState(1);
+  useLayoutEffect(() => {
+    if (!fill) return;
+    const box = boxRef.current;
+    const content = contentRef.current;
+    if (!box || !content) return;
+    const update = () => {
+      const bw = box.clientWidth;
+      const bh = box.clientHeight;
+      // The content node's layout size is its natural size — the transform
+      // below does not affect layout, so this cannot oscillate.
+      const nw = content.scrollWidth;
+      const nh = content.scrollHeight;
+      if (bw <= 0 || bh <= 0 || nw <= 0 || nh <= 0) return;
+      setFitScale(Math.min(1, bw / nw, bh / nh));
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(box);
+    ro.observe(content);
+    return () => ro.disconnect();
+  }, [fill]);
 
   // Hide empty modules in kiosk mode (they claim no space).
   if (!studio && !hasData) return null;
@@ -275,34 +306,47 @@ export function PlacementFrame({
         </>
       )}
 
-      <div className={cn(fill && "h-full overflow-auto")}>
-        {studio && !hasData ? (
-          <div className="flex h-full min-h-24 flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-border bg-card/40 p-4">
-            <div className="text-sm font-medium text-muted-foreground">
-              {title}
-            </div>
-            <div className="text-xs text-muted-foreground/60">
-              no live data yet — appears when the plugin sends data
-            </div>
-          </div>
-        ) : (
-          <>
-            {design?.header && (
-              <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+      <div
+        ref={boxRef}
+        className={cn("min-w-0", fill && "h-full overflow-hidden")}
+      >
+        <div
+          ref={contentRef}
+          className={cn(fill && "h-full w-full")}
+          style={
+            fill
+              ? { transform: `scale(${fitScale})`, transformOrigin: "top left" }
+              : undefined
+          }
+        >
+          {studio && !hasData ? (
+            <div className="flex h-full min-h-24 flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-border bg-card/40 p-4">
+              <div className="text-sm font-medium text-muted-foreground">
                 {title}
               </div>
-            )}
-            {design?.background === "panel" ? (
-              <div className="rounded-lg bg-card/50 p-2">{children}</div>
-            ) : design?.background === "bordered" ? (
-              <div className="rounded-lg border border-border bg-card/30 p-2">
-                {children}
+              <div className="text-xs text-muted-foreground/60">
+                no live data yet — appears when the plugin sends data
               </div>
-            ) : (
-              children
-            )}
-          </>
-        )}
+            </div>
+          ) : (
+            <>
+              {design?.header && (
+                <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                  {title}
+                </div>
+              )}
+              {design?.background === "panel" ? (
+                <div className="rounded-lg bg-card/50 p-2">{children}</div>
+              ) : design?.background === "bordered" ? (
+                <div className="rounded-lg border border-border bg-card/30 p-2">
+                  {children}
+                </div>
+              ) : (
+                children
+              )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

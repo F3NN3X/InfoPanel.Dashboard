@@ -727,7 +727,7 @@ export function StudioView({
                   onDrop={onCanvasDrop}
                 >
                   <div
-                    className="p-4"
+                    className="w-fit min-w-full p-4"
                     style={{
                       zoom,
                       backgroundImage: showGrid
@@ -741,6 +741,9 @@ export function StudioView({
                       className="relative grid gap-3"
                       style={{
                         gridTemplateColumns: `repeat(${profile.cols}, minmax(0, 1fr))`,
+                        // The canvas is exactly the profile's design size
+                        // (the kiosk window renders the same profile 1:1).
+                        ...(profile.width > 0 ? { width: profile.width } : {}),
                         ...(profile.fit === "fill" && profile.height > 0
                           ? {
                               // Definite height (like the kiosk's flex-1 grid) so the
