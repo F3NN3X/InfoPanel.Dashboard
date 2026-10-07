@@ -130,6 +130,8 @@ export interface Placement {
   module: string;
   /** Number of grid columns this placement spans. */
   colSpan: number;
+  /** 1-based grid column this placement starts in (auto when omitted). */
+  colStart?: number;
   /** 1-based grid row this placement starts in (auto when omitted). */
   rowStart?: number;
   /** Number of grid rows this placement spans (height). */

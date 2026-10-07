@@ -90,7 +90,11 @@ export function StudioView({
   onExitStudio,
 }: StudioViewProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [freeDrag, setFreeDrag] = useState<{
+    id: string;
+    col: number;
+    row: number;
+  } | null>(null);
   const [gridEl, setGridEl] = useState<HTMLDivElement | null>(null);
   const [gridWidth, setGridWidth] = useState(0);
   const [zoom, setZoom] = useState(1);
@@ -261,23 +265,20 @@ export function StudioView({
       return { ...p, placements: next };
     });
 
-  /** Live reorder while dragging over a sibling frame. */
-  const movePlacement = (targetId: string) => {
-    if (!draggingId || draggingId === targetId) return;
-    setConfig((c) => ({
-      ...c,
-      profiles: c.profiles.map((prof) => {
-        if (prof.id !== profile.id) return prof;
-        const from = prof.placements.findIndex((p) => p.id === draggingId);
-        const to = prof.placements.findIndex((p) => p.id === targetId);
-        if (from === -1 || to === -1 || to === from || to === from + 1)
-          return prof;
-        const next = [...prof.placements];
-        const [item] = next.splice(from, 1);
-        next.splice(to > from ? to - 1 : to, 0, item);
-        return { ...prof, placements: next };
-      }),
-    }));
+  /** Commit a free drag: pin the placement to the target cell. */
+  const commitFreeDrag = (
+    id: string,
+    pos: { col: number; row: number } | null
+  ) => {
+    if (pos) {
+      updateProfile((p) => ({
+        ...p,
+        placements: p.placements.map((x) =>
+          x.id === id ? { ...x, colStart: pos.col, rowStart: pos.row } : x
+        ),
+      }));
+    }
+    setFreeDrag(null);
   };
 
   const addProfile = () => {
@@ -360,6 +361,26 @@ export function StudioView({
           (i + 1) * (colW + GRID_GAP) - GRID_GAP / 2
         )
       : [];
+
+  // Row geometry for the free-drag drop indicator. Fill mode: exact 1fr rows
+  // over the profile height. Scroll mode: approximate with the rendered
+  // height (auto rows are content-sized, so the indicator is a guide only).
+  const totalRows = Math.max(
+    1,
+    ...profile.placements.map(
+      (p) => (p.rowStart ?? 1) + (p.rowSpan ?? 1)
+    )
+  );
+  const rowH =
+    profile.fit === "fill" && profile.height > 0
+      ? Math.max(
+          24,
+          (profile.height - (totalRows - 1) * GRID_GAP) / totalRows
+        )
+      : gridEl
+        ? Math.max(24, (gridEl.scrollHeight - (totalRows - 1) * GRID_GAP) / totalRows)
+        : 24;
+  const getGridRect = () => gridEl?.getBoundingClientRect() ?? null;
 
   const selectedTitle = selected
     ? selected.panel?.title ??
@@ -710,6 +731,31 @@ export function StudioView({
                           />
                         ))}
 
+                      {/* Free-drag drop indicator */}
+                      {freeDrag &&
+                        (() => {
+                          const p = profile.placements.find(
+                            (x) => x.id === freeDrag.id
+                          );
+                          if (!p || colW <= 0) return null;
+                          const span = Math.max(
+                            1,
+                            Math.min(profile.cols, p.colSpan)
+                          );
+                          const rowSpan = p.rowSpan ?? 1;
+                          return (
+                            <div
+                              className="pointer-events-none absolute z-30 rounded-lg border-2 border-ring bg-ring/10"
+                              style={{
+                                left: (freeDrag.col - 1) * (colW + GRID_GAP),
+                                top: (freeDrag.row - 1) * (rowH + GRID_GAP),
+                                width: span * colW + (span - 1) * GRID_GAP,
+                                height: rowSpan * rowH + (rowSpan - 1) * GRID_GAP,
+                              }}
+                            />
+                          );
+                        })()}
+
                       {profile.placements.map((p) => {
                         const { content, hasData, title } =
                           placementContent(p, sensors, unclaimed);
@@ -723,11 +769,16 @@ export function StudioView({
                             title={title}
                             gridWidth={gridWidth}
                             zoom={zoom}
+                            gap={GRID_GAP}
+                            rowHeight={rowH}
+                            getGridRect={getGridRect}
+                            ghost={freeDrag?.id === p.id}
+                            onFreeDrag={(id, pos) =>
+                              setFreeDrag({ id, ...pos })
+                            }
+                            onFreeDragEnd={commitFreeDrag}
                             selected={selectedId === p.id}
                             onSelect={() => setSelectedId(p.id)}
-                            onDragStart={setDraggingId}
-                            onDragEnd={() => setDraggingId(null)}
-                            onDragOver={movePlacement}
                             onSpan={setSpan}
                             onToggle={toggleVisible}
                             onRemove={removePlacement}
@@ -910,6 +961,50 @@ export function StudioView({
                   }
                   className="w-24 rounded-md border border-border bg-background px-2 py-1.5 text-xs tabular-nums text-foreground outline-none focus:border-ring"
                 />
+              </div>
+
+              <div>
+                <div className="mb-1 text-xs text-muted-foreground">
+                  Column start
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min={1}
+                    max={profile.cols}
+                    value={selected.colStart ?? ""}
+                    placeholder="auto"
+                    onChange={(e) =>
+                      updatePlacement(selected.id, (p) => ({
+                        ...p,
+                        colStart:
+                          e.target.value === ""
+                            ? undefined
+                            : Math.max(
+                                1,
+                                Math.min(
+                                  profile.cols,
+                                  parseInt(e.target.value, 10) || 1
+                                )
+                              ),
+                      }))
+                    }
+                    className="w-24 rounded-md border border-border bg-background px-2 py-1.5 text-xs tabular-nums text-foreground outline-none focus:border-ring"
+                  />
+                  <button
+                    className="rounded-md border border-border px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground"
+                    title="Back to auto flow (clears column and row start)"
+                    onClick={() =>
+                      updatePlacement(selected.id, (p) => ({
+                        ...p,
+                        colStart: undefined,
+                        rowStart: undefined,
+                      }))
+                    }
+                  >
+                    Auto position
+                  </button>
+                </div>
               </div>
 
               {selected.panel ? (

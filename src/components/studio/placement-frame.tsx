@@ -1,6 +1,5 @@
 import {
   type CSSProperties,
-  type DragEvent,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from "react";
@@ -27,10 +26,18 @@ interface PlacementFrameProps {
   gridWidth?: number;
   /** Canvas zoom (screen px per design px) — pointer deltas are divided by it. */
   zoom?: number;
-  onDragStart?: (id: string) => void;
-  onDragEnd?: () => void;
-  /** Called on a sibling's dragover to reorder live. */
-  onDragOver?: (targetId: string) => void;
+  /** CSS grid gap in design px (free-drag drop-cell math). */
+  gap?: number;
+  /** Grid row height in design px (free-drag drop-cell math). */
+  rowHeight?: number;
+  /** The grid element's bounding rect in screen px (drop-cell math). */
+  getGridRect?: () => DOMRect | null;
+  /** Live free-drag target cell — the studio shows a drop indicator. */
+  onFreeDrag?: (id: string, pos: { col: number; row: number }) => void;
+  /** Free-drag released; commit the last cell (null = plain click). */
+  onFreeDragEnd?: (id: string, pos: { col: number; row: number } | null) => void;
+  /** Dimmed while a free-drag is in flight (the drop indicator shows the target). */
+  ghost?: boolean;
   onSpan?: (id: string, span: number) => void;
   onToggle?: (id: string) => void;
   onRemove?: (id: string) => void;
@@ -56,9 +63,12 @@ export function PlacementFrame({
   title,
   gridWidth = 0,
   zoom = 1,
-  onDragStart,
-  onDragEnd,
-  onDragOver,
+  gap = 12,
+  rowHeight,
+  getGridRect,
+  onFreeDrag,
+  onFreeDragEnd,
+  ghost,
   onSpan,
   onToggle,
   onRemove,
@@ -73,6 +83,56 @@ export function PlacementFrame({
 
   // Hide empty modules in kiosk mode (they claim no space).
   if (!studio && !hasData) return null;
+
+  /**
+   * Free placement: press anywhere on the frame (except controls) and drag to
+   * a grid cell. Live target is reported via onFreeDrag; release commits.
+   */
+  function startFreeDrag(e: ReactPointerEvent) {
+    if (e.button !== 0) return;
+    const target = e.target as HTMLElement;
+    if (target.closest("button, input, select, a, [data-no-drag]")) return;
+    e.preventDefault();
+    const startX = e.clientX;
+    const startY = e.clientY;
+    let active = false;
+    let last: { col: number; row: number } | null = null;
+
+    const compute = (x: number, y: number) => {
+      const rect = getGridRect?.();
+      if (!rect || colWidth <= 0 || rowHeight === undefined) return null;
+      const cellW = (colWidth + gap) * zoom;
+      const cellH = (rowHeight + gap) * zoom;
+      const col = Math.max(
+        1,
+        Math.min(
+          profile.cols - span + 1,
+          Math.floor((x - rect.left) / cellW) + 1
+        )
+      );
+      const row = Math.max(1, Math.min(24, Math.floor((y - rect.top) / cellH) + 1));
+      return { col, row };
+    };
+
+    const move = (ev: PointerEvent) => {
+      if (!active && Math.hypot(ev.clientX - startX, ev.clientY - startY) > 4) {
+        active = true;
+      }
+      if (!active) return;
+      const cell = compute(ev.clientX, ev.clientY);
+      if (cell) {
+        last = cell;
+        onFreeDrag?.(placement.id, cell);
+      }
+    };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      onFreeDragEnd?.(placement.id, active ? last : null);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  }
 
   function startResize(
     e: ReactPointerEvent,
@@ -99,12 +159,6 @@ export function PlacementFrame({
     window.addEventListener("pointerup", up);
   }
 
-  function handleDragStart(e: DragEvent) {
-    e.dataTransfer.setData("text/plain", placement.id);
-    e.dataTransfer.effectAllowed = "move";
-    onDragStart?.(placement.id);
-  }
-
   return (
     <div
       className={cn(
@@ -112,10 +166,13 @@ export function PlacementFrame({
         studio &&
           (selected
             ? "ring-2 ring-ring"
-            : "outline-dashed outline-1 outline-ring/40")
+            : "outline-dashed outline-1 outline-ring/40"),
+        studio && ghost && "opacity-40"
       )}
       style={{
-        gridColumn: `span ${span}`,
+        gridColumn: placement.colStart
+          ? `${placement.colStart} / span ${span}`
+          : `span ${span}`,
         gridRow: placement.rowStart
           ? `${placement.rowStart} / span ${placement.rowSpan ?? 1}`
           : placement.rowSpan
@@ -127,18 +184,8 @@ export function PlacementFrame({
           ? ({ "--accent": hexToHsl(design.accent) } as CSSProperties)
           : {}),
       }}
-      draggable={studio}
       onClick={onSelect}
-      onDragStart={studio ? handleDragStart : undefined}
-      onDragEnd={onDragEnd}
-      onDragOver={
-        studio
-          ? (e) => {
-              e.preventDefault();
-              onDragOver?.(placement.id);
-            }
-          : undefined
-      }
+      onPointerDown={studio ? startFreeDrag : undefined}
     >
       {studio && (
         <>
@@ -192,10 +239,10 @@ export function PlacementFrame({
             </button>
           </div>
 
-          {/* Grip — drag the frame to reorder */}
+          {/* Grip — drag anywhere on the frame to place it in a cell */}
           <div
             className="absolute left-1.5 top-1.5 z-20 cursor-grab rounded-md bg-popover/90 p-1 text-muted-foreground active:cursor-grabbing"
-            title="Drag to reorder"
+            title="Drag to move"
           >
             <GripVertical className="h-3.5 w-3.5" />
           </div>
@@ -203,6 +250,7 @@ export function PlacementFrame({
           {/* Resize handles */}
           <div
             className="absolute -left-1 top-0 z-10 h-full w-2 cursor-col-resize"
+            data-no-drag
             onPointerDown={(e) => startResize(e, "left")}
             title="Drag to resize"
           >
@@ -210,6 +258,7 @@ export function PlacementFrame({
           </div>
           <div
             className="absolute -right-1 top-0 z-10 h-full w-2 cursor-col-resize"
+            data-no-drag
             onPointerDown={(e) => startResize(e, "right")}
             title="Drag to resize"
           >
