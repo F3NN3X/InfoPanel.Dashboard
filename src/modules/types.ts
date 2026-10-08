@@ -33,8 +33,11 @@ export interface ModuleSetting {
    * - `"media"` — the browser's audio *capture* devices (live
    *   `enumerateDevices()`, no bridge involved). Used for the Web-Audio
    *   live-capture source binding.
+   * - `"wavelink"` — the Wave Link app's meter inventory (channels + output
+   *   devices) as streamed by the bridge; options are the meter keys the
+   *   widget filters on, "" = all meters.
    */
-  optionsFrom?: "sources" | "media";
+  optionsFrom?: "sources" | "media" | "wavelink";
   /** Key prefix whose containers become the dynamic select's options. */
   sourcePlugin?: string;
   /**

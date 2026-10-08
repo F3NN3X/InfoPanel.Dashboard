@@ -2,6 +2,7 @@ import { WIDGET_ICONS } from "@/lib/widget-icons";
 import { Segmented } from "@/components/ui/segmented";
 import { sourceOptions } from "@/lib/sources";
 import { useAudioDevices } from "@/hooks/use-audio-devices";
+import { meterKey, useWavelinkState } from "@/lib/wavelink";
 import type { ReactNode } from "react";
 import {
   type DashboardModule,
@@ -187,6 +188,13 @@ function SettingRow({
       if (def.optionsFrom === "media") {
         return (
           <MediaDevicePicker def={def} value={String(value)} onChange={onChange} />
+        );
+      }
+      // Wave Link meters: options come from the bridge's live inventory
+      // (channels + output devices), so a dedicated component owns it.
+      if (def.optionsFrom === "wavelink") {
+        return (
+          <WavelinkMeterPicker def={def} value={String(value)} onChange={onChange} />
         );
       }
       // Multi-select (stored comma-separated) over static or source options.
@@ -435,6 +443,59 @@ function MediaDevicePicker({
             ? "Microphone blocked — allow access"
             : "Enable microphone access"}
         </button>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Picker for the Wave Link meter inventory (the bridge's live
+ * channels + output devices). Handles both single-select and multi-select
+ * (`def.multiple`); "" means all meters.
+ */
+function WavelinkMeterPicker({
+  def,
+  value,
+  onChange,
+}: {
+  def: ModuleSetting;
+  value: string;
+  onChange: (value: ModuleSettingValue) => void;
+}) {
+  const state = useWavelinkState();
+  const options = [
+    ...state.channels.map((c) => ({
+      value: meterKey.channel(c.id),
+      label: `Channel · ${c.name}`,
+    })),
+    ...state.devices.map((d) => ({
+      value: meterKey.device(d.id),
+      label: `Device · ${d.name}`,
+    })),
+  ];
+  return (
+    <div>
+      <div className="mb-1 text-xs text-muted-foreground">{def.label}</div>
+      {def.multiple ? (
+        <MultiSelect value={value} onChange={onChange} options={options} />
+      ) : (
+        <select
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground"
+        >
+          <option value="">All meters</option>
+          {options.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+      )}
+      {state.status === "absent" && options.length === 0 && (
+        <span className="text-[11px] text-muted-foreground/60">
+          Wave Link is not running — start the app and its meters appear here.
+        </span>
       )}
     </div>
   );

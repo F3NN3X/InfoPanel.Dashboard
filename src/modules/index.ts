@@ -12,6 +12,7 @@ import { systemModernModule } from "./system-modern";
 import { fpsModernModule } from "./fps-modern";
 import { hardwareModernModule } from "./hardware-modern";
 import { audioModernModule } from "./audio-modern";
+import { wavelinkModernModule } from "./wavelink-modern";
 import { bluetoothModernModule } from "./bluetooth-modern";
 import { networkModernModule } from "./network-modern";
 import { steamModule } from "./steam";
@@ -48,6 +49,7 @@ export const modules: DashboardModule[] = [
   fpsModernModule,
   audioModule,
   audioModernModule,
+  wavelinkModernModule,
   vbzModule,
   bluetoothModule,
   bluetoothModernModule,

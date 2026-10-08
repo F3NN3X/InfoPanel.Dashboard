@@ -1,0 +1,115 @@
+import { ModernWaveLink } from "@/components/ModernWaveLink";
+import type { LevelMeterVariant } from "@/components/ui/level-meter";
+import type { BallisticsPreset } from "@/lib/audio/ballistics";
+import type { Orientation } from "@/lib/audio/types";
+import { chromeOf, STANDARD_SETTINGS } from "./standard-settings";
+import {
+  effectiveSettings,
+  type DashboardModule,
+  type ModuleSetting,
+} from "./types";
+
+/**
+ * Wave Link widget — the Elgato app's mixer, live at device pace.
+ *
+ * Unlike every other module, this one claims no sensor keys: its data is
+ * not InfoPanel sensor output but the bridge's Wave Link collector (its own
+ * WebSocket to the app), surfaced as a REST inventory + a live meter SSE
+ * stream. `matches` therefore returns false for everything, and the render
+ * reads only settings — the component pulls the inventory and the meters
+ * from the shared `wavelink` client itself.
+ */
+
+const WAVELINK_SETTINGS: ModuleSetting[] = [
+  ...STANDARD_SETTINGS,
+  {
+    key: "source",
+    label: "Meters to show",
+    type: "select",
+    default: "",
+    multiple: true,
+    optionsFrom: "wavelink",
+  },
+  {
+    key: "meterVariant",
+    label: "Meter style",
+    type: "select",
+    default: "solid",
+    options: [
+      { value: "solid", label: "Solid" },
+      { value: "segmented", label: "Segmented" },
+      { value: "gradient", label: "Gradient" },
+    ],
+  },
+  {
+    key: "meterOrientation",
+    label: "Meter orientation",
+    type: "select",
+    default: "vertical",
+    options: [
+      { value: "vertical", label: "Vertical" },
+      { value: "horizontal", label: "Horizontal" },
+    ],
+  },
+  {
+    key: "meterBallistics",
+    label: "Meter response",
+    type: "select",
+    default: "peak",
+    options: [
+      { value: "peak", label: "Peak (fast attack, peak-hold)" },
+      { value: "vu", label: "VU (slow)" },
+      { value: "instant", label: "Instant" },
+    ],
+  },
+  {
+    key: "showReadout",
+    label: "dB readouts & scale",
+    type: "boolean",
+    default: true,
+  },
+  {
+    key: "showFader",
+    label: "Fader level",
+    type: "boolean",
+    default: true,
+  },
+  {
+    key: "showMixes",
+    label: "Mixes (routes & output mixers)",
+    type: "boolean",
+    default: true,
+  },
+];
+
+export const wavelinkModernModule: DashboardModule = {
+  id: "wavelinkmodern",
+  title: "Wave Link (modern)",
+  minCols: 2,
+  minRows: 1,
+  // No sensor keys — the data comes from the bridge's Wave Link collector.
+  matches: () => false,
+  settings: WAVELINK_SETTINGS,
+  render: (_sensors, s) => {
+    const cfg = effectiveSettings(wavelinkModernModule, s);
+    return (
+      <ModernWaveLink
+        source={String(cfg.source ?? "")}
+        showReadout={Boolean(cfg.showReadout)}
+        showFader={Boolean(cfg.showFader)}
+        showMixes={Boolean(cfg.showMixes)}
+        layout={String(cfg.layout) as
+          | "auto"
+          | "card"
+          | "standard"
+          | "compact"
+          | "simple"}
+        surfaceStyle={String(cfg.surface) as "glass" | "matte-light" | "matte-dark"}
+        chrome={chromeOf(cfg)}
+        meterVariant={String(cfg.meterVariant) as LevelMeterVariant}
+        meterOrientation={String(cfg.meterOrientation) as Orientation}
+        meterBallistics={String(cfg.meterBallistics) as BallisticsPreset}
+      />
+    );
+  },
+};
