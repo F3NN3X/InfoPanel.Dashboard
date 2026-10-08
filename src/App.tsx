@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Wrench, X } from "lucide-react";
 import { API_BASE, useSensors } from "@/hooks/useSensors";
 import { Badge } from "@/components/ui/badge";
-import { IPCanvas } from "@/components/ip/ip-canvas";
 import { StudioView } from "@/components/studio/studio-view";
 import { PlacementFrame } from "@/components/studio/placement-frame";
 import { placementContent } from "@/components/studio/placement-content";
@@ -13,6 +12,7 @@ import {
   mergeConfig,
   resolveProfile,
   saveConfig,
+  SCROLL_ROW_H,
   type DashboardConfig,
 } from "@/lib/layout";
 import { cn } from "@/lib/utils";
@@ -50,14 +50,9 @@ export default function App() {
 
   const [config, setConfig] = useState<DashboardConfig>(() => {
     const loaded = loadConfig();
-    // ?profile=<id> pins a profile (kiosk shortcuts, testing) — grid or
-    // free-canvas profiles both pin by id.
+    // ?profile=<id> pins a profile (kiosk shortcuts, testing).
     const pinned = new URLSearchParams(window.location.search).get("profile");
-    if (
-      pinned &&
-      (loaded.profiles.some((p) => p.id === pinned) ||
-        (loaded.freeProfiles ?? []).some((p) => p.id === pinned))
-    ) {
+    if (pinned && loaded.profiles.some((p) => p.id === pinned)) {
       return { ...loaded, activeProfile: pinned };
     }
     return loaded;
@@ -73,12 +68,6 @@ export default function App() {
   const profile = resolveProfile(config, windowSize.w, windowSize.h);
   const fill = profile.fit === "fill";
 
-  // A free-canvas (InfoPanel 1:1) profile pinned by id renders edge-to-
-  // edge via the IP canvas — no grid, no scroll.
-  const freeProfile = (config.freeProfiles ?? []).find(
-    (p) => p.id === config.activeProfile
-  );
-
   // Persist the config (layout, profiles, theme) on every change.
   useEffect(() => saveConfig(config), [config]);
 
@@ -90,22 +79,14 @@ export default function App() {
       fetch(`${API_BASE}/api/profiles`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify([
-          ...config.profiles.map((p) => ({
+        body: JSON.stringify(
+          config.profiles.map((p) => ({
             id: p.id,
             name: p.name,
             width: p.width,
             height: p.height,
-          })),
-          // Free-canvas profiles too — the kiosk window sizes itself to
-          // the pinned profile's design dimensions.
-          ...(config.freeProfiles ?? []).map((p) => ({
-            id: p.id,
-            name: p.name,
-            width: p.width,
-            height: p.height,
-          })),
-        ]),
+          }))
+        ),
       }).catch(() => {
         // Bridge offline — the profile list simply stays stale.
       });
@@ -167,11 +148,7 @@ export default function App() {
         const pinned = new URLSearchParams(window.location.search).get(
           "profile"
         );
-        if (
-          pinned &&
-          (merged.profiles.some((p) => p.id === pinned) ||
-            (merged.freeProfiles ?? []).some((p) => p.id === pinned))
-        )
+        if (pinned && merged.profiles.some((p) => p.id === pinned))
           merged.activeProfile = pinned;
         saveConfig(merged); // also seed the local copy (offline fallback)
         setConfig(merged);
@@ -213,94 +190,18 @@ export default function App() {
     window.history.replaceState(null, "", window.location.pathname);
   };
 
-  // The dedicated studio replaces the whole view. ONE studio handles both
-  // profile kinds: free-canvas (InfoPanel 1:1) profiles get the absolute
-  // editor, grid profiles get the grid editor.
+  // The dedicated studio replaces the whole view.
   if (studio) {
     return (
       <StudioView
         sensors={sensors}
         config={config}
-        profile={freeProfile ?? profile}
+        profile={profile}
         setConfig={setConfig}
         windowWidth={windowSize.w}
         windowHeight={windowSize.h}
         onExitStudio={exitStudio}
       />
-    );
-  }
-
-  // Free-canvas profile: render the 1:1 InfoPanel item tree edge-to-edge.
-  // Kiosk: 1:1 (the borderless window is sized to the profile). Preview:
-  // scaled to fit the window.
-  if (freeProfile) {
-    const scale = kiosk
-      ? 1
-      : Math.min(
-          1,
-          windowSize.w / freeProfile.width,
-          windowSize.h / freeProfile.height
-        );
-    return (
-      <div
-        className={cn(
-          "flex flex-col bg-background text-foreground",
-          kiosk ? "h-screen overflow-hidden p-0" : "min-h-screen p-6 gap-4"
-        )}
-      >
-        {!kiosk && (
-          <div className="flex items-center justify-between">
-            <div className="flex items-baseline gap-3">
-              <h1 className="text-2xl font-semibold tracking-tight">
-                {freeProfile.name}
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                free-canvas profile · {freeProfile.width}×{freeProfile.height}
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <Badge
-                variant={connected ? "default" : "destructive"}
-                className="gap-1.5"
-              >
-                <span
-                  className={`h-2 w-2 rounded-full ${
-                    connected ? "bg-emerald-400" : "bg-red-400"
-                  }`}
-                />
-                {connected ? "Connected" : "Disconnected"}
-              </Badge>
-            </div>
-          </div>
-        )}
-        <div className={kiosk ? "relative" : "flex justify-center"}>
-          <IPCanvas
-            profile={freeProfile}
-            sensors={sensors}
-            assetBase={`/assets/ip/${freeProfile.assets ?? freeProfile.id}`}
-            scale={scale}
-          />
-        </div>
-
-        {kiosk && <KioskDragStrip />}
-        {kiosk ? (
-          <button
-            onClick={closeKiosk}
-            className="fixed bottom-4 right-4 z-50 rounded-full border bg-popover p-2.5 text-muted-foreground shadow-lg opacity-50 transition-opacity hover:opacity-100"
-            title="Close dashboard (Esc)"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        ) : (
-          <button
-            onClick={enterStudio}
-            className="fixed bottom-4 right-4 z-50 rounded-full border bg-popover p-2.5 text-muted-foreground shadow-lg opacity-50 transition-opacity hover:opacity-100"
-            title="Open dashboard studio"
-          >
-            <Wrench className="h-4 w-4" />
-          </button>
-        )}
-      </div>
     );
   }
 
@@ -355,12 +256,15 @@ export default function App() {
         </div>
       )}
 
-      {/* Kiosk grid of placements (read-only) */}
+      {/* Kiosk grid of zones (read-only) */}
       <div
         className={cn("grid gap-3", fill && "min-h-0 flex-1")}
         style={{
           gridTemplateColumns: `repeat(${profile.cols}, minmax(0, 1fr))`,
-          gridAutoRows: fill ? "minmax(0, 1fr)" : undefined,
+          // Explicit uniform rows, mirroring the studio canvas.
+          gridTemplateRows: fill
+            ? `repeat(${profile.rows}, minmax(0, 1fr))`
+            : `repeat(${profile.rows}, ${SCROLL_ROW_H}px)`,
         }}
       >
         {profile.placements

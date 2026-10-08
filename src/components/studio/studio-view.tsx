@@ -1,34 +1,27 @@
 import {
   useEffect,
   useLayoutEffect,
-  useMemo,
   useRef,
   useState,
   type DragEvent,
   type Dispatch,
+  type PointerEvent as ReactPointerEvent,
   type SetStateAction,
 } from "react";
 import {
   Check,
-  ChevronDown,
-  ChevronUp,
   Copy,
   Download,
   Eye,
   EyeOff,
-  Group,
   Layers,
   LayoutGrid,
-  LockOpen,
   Maximize2,
   Minus,
   Monitor,
-  MousePointerClick,
   Plus,
-  Redo2,
   RotateCcw,
   Trash2,
-  Undo2,
   Upload,
   Wrench,
   X,
@@ -44,15 +37,16 @@ import { RulerH, RulerV } from "./rulers";
 import { SettingsPanel } from "./settings-panel";
 import { ThemePanel } from "./theme-panel";
 import { PanelInspector } from "./panel-inspector";
-import { newIPProfile } from "@/lib/ip/ops";
 import { modules, claimedKeys, type SensorMap } from "@/modules";
 import {
+  BLANK_MODULE,
   CARDS_ID,
   PANEL_ID,
+  SCROLL_ROW_H,
   clonePlacement,
   defaultConfig,
+  mergeConfig,
   newProfile,
-  resolveProfile,
   uid,
   type DashboardConfig,
   type MonitorProfile,
@@ -63,113 +57,120 @@ import { panelPresets, type PanelPreset } from "@/lib/panelPresets";
 import { hslToHex, THEME_PRESETS, type ThemeTokens } from "@/lib/theme";
 import { BUILD_ID } from "@/lib/buildInfo";
 import { cn } from "@/lib/utils";
-import type { IPGroupItem, IPItem, IPItemKind, IPProfile } from "@/lib/ip/types";
-import { IP_KIND_LABEL } from "@/lib/ip/types";
-import {
-  itemsToXml,
-  parseItemsXml,
-  parseProfileXml,
-  profileToXml,
-  zipFind,
-} from "@/lib/ip/xml";
-import { bytesToBlob, slugify, unzip, zipStore, type ZipFile } from "@/lib/ip/zip";
-import {
-  addItem,
-  duplicateItem,
-  findItem,
-  groupItems,
-  newIPId,
-  removeItem,
-  ungroupItem,
-  updateItem,
-  zOrderItem,
-} from "@/lib/ip/ops";
-import { flattenItems } from "@/components/ip/ip-canvas";
-import { renderItem, cssColor } from "@/components/ip/items";
-import { FreeInspector, type FreeStudioOps } from "./free-inspector";
 
 const ALL_MODULES = [
-  ...modules.map((m) => ({ id: m.id, title: m.title })),
-  { id: CARDS_ID, title: "Other sensors" },
+  ...modules.map((m) => ({
+    id: m.id,
+    title: m.title,
+    minCols: m.minCols ?? 2,
+    minRows: m.minRows ?? 1,
+  })),
+  { id: CARDS_ID, title: "Other sensors", minCols: 4, minRows: 2 },
 ];
 
 const DND_MIME = "text/infopanel-module";
 const DND_MIME_PANEL = "text/infopanel-panel";
 const GRID_GAP = 12; // must match the canvas grid's gap-3
 
-/**
- * Approximate how many grid rows CSS auto-placement renders: explicit
- * rowStarts pin their row; auto items advance a left-to-right flow pointer
- * that wraps to the next row when the span no longer fits. Used to size
- * free-drag drop targets so scroll profiles can reach flow rows below the
- * last explicit row.
- */
-function estimateFlowRows(placements: Placement[], cols: number): number {
-  let flowRow = 1;
-  let flowCol = 1;
-  let maxRow = 1;
-  for (const p of placements) {
-    const span = Math.max(1, Math.min(cols, p.colSpan));
-    if (p.rowStart !== undefined) {
-      maxRow = Math.max(maxRow, p.rowStart + (p.rowSpan ?? 1) - 1);
-      continue;
-    }
-    if (flowCol + span - 1 > cols) {
-      flowRow += 1;
-      flowCol = 1;
-    }
-    flowCol += span;
-    maxRow = Math.max(maxRow, flowRow + (p.rowSpan ?? 1) - 1);
-  }
-  return maxRow;
-}
 const ZOOM_STEPS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2];
+
+/** A zone box in 1-based grid cells. */
+interface ZoneRect {
+  col: number;
+  row: number;
+  cols: number;
+  rows: number;
+}
+
+/** Anything that occupies grid cells (a placement's box). */
+interface ZoneLike {
+  colStart: number;
+  rowStart: number;
+  colSpan: number;
+  rowSpan: number;
+}
+
+function rectsOverlap(r: ZoneRect, o: ZoneLike): boolean {
+  return (
+    r.col < o.colStart + o.colSpan &&
+    o.colStart < r.col + r.cols &&
+    r.row < o.rowStart + o.rowSpan &&
+    o.rowStart < r.row + r.rows
+  );
+}
+
+/**
+ * Clamp a proposed zone box to the grid, then push it out of any other
+ * zones along the axis of least penetration (biome-style: zones never
+ * overlap). `ignore` is the id of the zone being moved/resized.
+ */
+function clampZoneRect(
+  rect: ZoneRect,
+  others: Placement[],
+  cols: number,
+  rows: number,
+  ignore?: string
+): ZoneRect {
+  let r: ZoneRect = {
+    col: Math.max(1, Math.min(cols, rect.col)),
+    row: Math.max(1, Math.min(rows, rect.row)),
+    cols: Math.max(1, Math.min(cols, rect.cols)),
+    rows: Math.max(1, Math.min(rows, rect.rows)),
+  };
+  r.col = Math.min(r.col, cols - r.cols + 1);
+  r.row = Math.min(r.row, rows - r.rows + 1);
+  for (let i = 0; i < 8; i++) {
+    const hit = others.find(
+      (o) =>
+        o.id !== ignore &&
+        o.visible !== false &&
+        rectsOverlap(r, o)
+    );
+    if (!hit) break;
+    const hcol = hit.colStart;
+    const hrow = hit.rowStart;
+    const hcols = hit.colSpan;
+    const hrows = hit.rowSpan;
+    const penRight = r.col + r.cols - hcol; // r fully right of hit
+    const penLeft = hcol + hcols - r.col; // r fully left of hit
+    const penDown = r.row + r.rows - hrow; // r fully below hit
+    const penUp = hrow + hrows - r.row; // r fully above hit
+    const m = Math.min(penRight, penLeft, penDown, penUp);
+    if (m === penRight) r.col += penRight;
+    else if (m === penLeft) r.col -= penLeft;
+    else if (m === penDown) r.row += penDown;
+    else r.row -= penUp;
+    r.col = Math.max(1, Math.min(cols - r.cols + 1, r.col));
+    r.row = Math.max(1, Math.min(rows - r.rows + 1, r.row));
+  }
+  return r;
+}
+
+/**
+ * First empty grid cell where a cols×rows box fits (row-major scan),
+ * used to place palette widgets. Returns null when the grid is full.
+ */
+function firstFreeRect(
+  cols: number,
+  rows: number,
+  size: { cols: number; rows: number },
+  placements: Placement[]
+): ZoneRect | null {
+  for (let row = 1; row + size.rows - 1 <= rows; row++) {
+    for (let col = 1; col + size.cols - 1 <= cols; col++) {
+      const probe: ZoneRect = { col, row, cols: size.cols, rows: size.rows };
+      if (placements.some((p) => p.visible !== false && rectsOverlap(probe, p)))
+        continue;
+      return probe;
+    }
+  }
+  return null;
+}
 
 interface StudioViewProps {
   sensors: SensorMap;
   config: DashboardConfig;
-  /**
-   * The resolved (active) profile being edited — a grid profile
-   * (`MonitorProfile`) or a free-canvas InfoPanel profile (`IPProfile`).
-   * One studio handles both; the editor is chosen by profile kind.
-   */
-  profile: MonitorProfile | IPProfile;
-  setConfig: Dispatch<SetStateAction<DashboardConfig>>;
-  windowWidth: number;
-  windowHeight: number;
-  onExitStudio: () => void;
-}
-
-/** Free-canvas (InfoPanel) profiles carry an `items` tree. */
-function isIPProfile(
-  p: MonitorProfile | IPProfile
-): p is IPProfile {
-  return Array.isArray((p as IPProfile).items);
-}
-
-/**
- * The single studio. Grid profiles edit the monitor grid; free-canvas
- * (InfoPanel) profiles get the 1:1 absolute-pixel editor.
- */
-export function StudioView(props: StudioViewProps) {
-  const shared = {
-    sensors: props.sensors,
-    config: props.config,
-    setConfig: props.setConfig,
-    windowWidth: props.windowWidth,
-    windowHeight: props.windowHeight,
-    onExitStudio: props.onExitStudio,
-  };
-  return isIPProfile(props.profile) ? (
-    <FreeCanvasStudio profile={props.profile} {...shared} />
-  ) : (
-    <GridStudio profile={props.profile} {...shared} />
-  );
-}
-
-interface GridStudioProps {
-  sensors: SensorMap;
-  config: DashboardConfig;
+  /** The resolved (active) grid profile being edited. */
   profile: MonitorProfile;
   setConfig: Dispatch<SetStateAction<DashboardConfig>>;
   windowWidth: number;
@@ -178,12 +179,12 @@ interface GridStudioProps {
 }
 
 /**
- * The grid studio: left panel (profiles + module palette), a center
- * grid canvas with alignment guides and live module previews, and a right
- * panel (placement inspector, or the theme editor). A bottom bar holds
+ * The studio: left panel (profiles + widget palette), a center grid canvas
+ * where zones are drawn, moved and resized (biome-style, no overlap), and
+ * a right panel (zone inspector, or the theme editor). A bottom bar holds
  * theme presets and config export/import.
  */
-function GridStudio({
+export function StudioView({
   sensors,
   config,
   profile,
@@ -191,15 +192,16 @@ function GridStudio({
   windowWidth,
   windowHeight,
   onExitStudio,
-}: GridStudioProps) {
+}: StudioViewProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [freeDrag, setFreeDrag] = useState<{
+  const [zoneDrag, setZoneDrag] = useState<{
     id: string;
-    col: number;
-    row: number;
+    rect: ZoneRect;
     x: number;
     y: number;
   } | null>(null);
+  const [drawing, setDrawing] = useState<ZoneRect | null>(null);
+  const [mode, setMode] = useState<"simple" | "advanced">("simple");
   const [gridEl, setGridEl] = useState<HTMLDivElement | null>(null);
   const [gridWidth, setGridWidth] = useState(0);
   const [zoom, setZoom] = useState(1);
@@ -299,35 +301,72 @@ function GridStudio({
   };
 
   const addPlacement = (module: string) => {
-    updateProfile((p) => ({
-      ...p,
-      placements: [
-        ...p.placements,
-        {
-          id: uid(module),
-          module,
-          colSpan: module === CARDS_ID ? p.cols : Math.min(6, p.cols),
-          visible: true,
-        },
-      ],
-    }));
+    const id = uid(module);
+    updateProfile((p) => {
+      const meta = ALL_MODULES.find((m) => m.id === module);
+      const size = {
+        cols: Math.max(1, Math.min(meta?.minCols ?? 2, p.cols)),
+        rows: Math.max(1, Math.min(meta?.minRows ?? 1, p.rows)),
+      };
+      const pos =
+        firstFreeRect(p.cols, p.rows, size, p.placements) ?? {
+          col: 1,
+          row: 1,
+          cols: size.cols,
+          rows: size.rows,
+        };
+      return {
+        ...p,
+        placements: [
+          ...p.placements,
+          {
+            id,
+            module,
+            colStart: pos.col,
+            rowStart: pos.row,
+            colSpan: pos.cols,
+            rowSpan: pos.rows,
+            visible: true,
+          },
+        ],
+      };
+    });
+    setSelectedId(id);
   };
 
-  /** Add a custom panel (group of widgets) from a preset. */
+  /** Add a pre-designed panel (a group of widgets) from a preset. */
   const addPanelPreset = (preset: PanelPreset) => {
-    updateProfile((p) => ({
-      ...p,
-      placements: [
-        ...p.placements,
-        {
-          id: uid(PANEL_ID),
-          module: PANEL_ID,
-          colSpan: Math.min(preset.colSpan, p.cols),
-          visible: true,
-          panel: preset.make(),
-        },
-      ],
-    }));
+    const id = uid(PANEL_ID);
+    updateProfile((p) => {
+      const size = {
+        cols: Math.max(1, Math.min(preset.colSpan, p.cols)),
+        rows: Math.max(1, Math.min(preset.rowSpan, p.rows)),
+      };
+      const pos =
+        firstFreeRect(p.cols, p.rows, size, p.placements) ?? {
+          col: 1,
+          row: 1,
+          cols: size.cols,
+          rows: size.rows,
+        };
+      return {
+        ...p,
+        placements: [
+          ...p.placements,
+          {
+            id,
+            module: PANEL_ID,
+            colStart: pos.col,
+            rowStart: pos.row,
+            colSpan: pos.cols,
+            rowSpan: pos.rows,
+            visible: true,
+            panel: preset.make(),
+          },
+        ],
+      };
+    });
+    setSelectedId(id);
   };
 
   const setSpan = (id: string, span: number) =>
@@ -370,21 +409,208 @@ function GridStudio({
       return { ...p, placements: next };
     });
 
-  /** Commit a free drag: pin the placement to the target cell. */
-  const commitFreeDrag = (
+  /** Commit a zone move/resize: apply the clamped box. */
+  const onZoneDrag = (
     id: string,
-    pos: { col: number; row: number } | null
+    rect: ZoneRect,
+    pointer: { x: number; y: number }
   ) => {
-    if (pos) {
+    const clamped = clampZoneRect(
+      rect,
+      profile.placements,
+      profile.cols,
+      profile.rows,
+      id
+    );
+    updatePlacement(id, (p) => ({
+      ...p,
+      colStart: clamped.col,
+      rowStart: clamped.row,
+      colSpan: clamped.cols,
+      rowSpan: clamped.rows,
+    }));
+    setZoneDrag({ id, rect: clamped, x: pointer.x, y: pointer.y });
+  };
+
+  const onZoneDragEnd = () => setZoneDrag(null);
+
+  /**
+   * Draw a new zone: press on an empty grid cell and drag out a box; on
+   * release a blank zone is created (the user then assigns a widget).
+   */
+  const startDraw = (e: ReactPointerEvent) => {
+    if (e.button !== 0) return;
+    if (e.target !== e.currentTarget) return; // only empty grid space starts a draw
+    const start = cellAt(e.clientX, e.clientY);
+    if (!start) return;
+    e.preventDefault();
+    let rect: ZoneRect = { col: start.col, row: start.row, cols: 1, rows: 1 };
+    setDrawing(rect);
+    const move = (ev: PointerEvent) => {
+      const c = cellAt(ev.clientX, ev.clientY);
+      if (!c) return;
+      rect = {
+        col: Math.min(start.col, c.col),
+        row: Math.min(start.row, c.row),
+        cols: Math.abs(c.col - start.col) + 1,
+        rows: Math.abs(c.row - start.row) + 1,
+      };
+      setDrawing(rect);
+    };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      setDrawing(null);
+      const clamped = clampZoneRect(
+        rect,
+        profile.placements,
+        profile.cols,
+        profile.rows
+      );
+      const id = uid(BLANK_MODULE);
       updateProfile((p) => ({
         ...p,
-        placements: p.placements.map((x) =>
-          x.id === id ? { ...x, colStart: pos.col, rowStart: pos.row } : x
-        ),
+        placements: [
+          ...p.placements,
+          {
+            id,
+            module: BLANK_MODULE,
+            colStart: clamped.col,
+            rowStart: clamped.row,
+            colSpan: clamped.cols,
+            rowSpan: clamped.rows,
+            visible: true,
+          },
+        ],
       }));
-    }
-    setFreeDrag(null);
+      setSelectedId(id);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
   };
+
+  /** Set the selected zone's box (inspector inputs), clamped + no overlap. */
+  const setZoneBox = (patch: Partial<ZoneRect>) => {
+    if (!selected) return;
+    const next: ZoneRect = {
+      col: selected.colStart,
+      row: selected.rowStart,
+      cols: selected.colSpan,
+      rows: selected.rowSpan,
+      ...patch,
+    };
+    const clamped = clampZoneRect(
+      next,
+      profile.placements,
+      profile.cols,
+      profile.rows,
+      selected.id
+    );
+    updatePlacement(selected.id, (p) => ({
+      ...p,
+      colStart: clamped.col,
+      rowStart: clamped.row,
+      colSpan: clamped.cols,
+      rowSpan: clamped.rows,
+    }));
+  };
+
+  /** Assign a widget to the selected zone (blank, module, or preset panel). */
+  const assignWidget = (value: string) => {
+    if (!selected) return;
+    updatePlacement(selected.id, (p) => {
+      if (value === "blank") {
+        return { ...p, module: BLANK_MODULE, panel: undefined, settings: undefined };
+      }
+      if (value.startsWith("module:")) {
+        const id = value.slice("module:".length);
+        const meta = ALL_MODULES.find((m) => m.id === id);
+        // Grow the zone to the widget's minimum footprint (grid-clamped).
+        const cols = Math.min(
+          Math.max(p.colSpan, meta?.minCols ?? 2),
+          profile.cols
+        );
+        const rows = Math.min(
+          Math.max(p.rowSpan, meta?.minRows ?? 1),
+          profile.rows
+        );
+        return {
+          ...p,
+          module: id,
+          panel: undefined,
+          settings: undefined,
+          colSpan: cols,
+          rowSpan: rows,
+          colStart: Math.min(p.colStart, profile.cols - cols + 1),
+          rowStart: Math.min(p.rowStart, profile.rows - rows + 1),
+        };
+      }
+      if (value.startsWith("preset:")) {
+        const preset = panelPresets.find(
+          (x) => x.id === value.slice("preset:".length)
+        );
+        if (!preset) return p;
+        const cols = Math.min(
+          Math.max(p.colSpan, preset.colSpan),
+          profile.cols
+        );
+        const rows = Math.min(
+          Math.max(p.rowSpan, preset.rowSpan),
+          profile.rows
+        );
+        return {
+          ...p,
+          module: PANEL_ID,
+          panel: preset.make(),
+          settings: undefined,
+          colSpan: cols,
+          rowSpan: rows,
+          colStart: Math.min(p.colStart, profile.cols - cols + 1),
+          rowStart: Math.min(p.rowStart, profile.rows - rows + 1),
+        };
+      }
+      return p;
+    });
+  };
+
+  /** The widget select's value for the selected zone. */
+  const widgetValue = selected
+    ? selected.module === BLANK_MODULE
+      ? "blank"
+      : selected.panel
+        ? "custom-panel"
+        : `module:${selected.module}`
+    : "";
+
+  /** Change the column count, keeping every zone inside the grid. */
+  const changeCols = (delta: number) =>
+    updateProfile((p) => {
+      const cols = Math.max(2, Math.min(24, p.cols + delta));
+      return {
+        ...p,
+        cols,
+        placements: p.placements.map((pl) => {
+          const colStart = Math.min(pl.colStart, cols);
+          const colSpan = Math.max(1, Math.min(pl.colSpan, cols - colStart + 1));
+          return { ...pl, colStart, colSpan };
+        }),
+      };
+    });
+
+  /** Change the row count, keeping every zone inside the grid. */
+  const changeRows = (delta: number) =>
+    updateProfile((p) => {
+      const rows = Math.max(1, Math.min(24, p.rows + delta));
+      return {
+        ...p,
+        rows,
+        placements: p.placements.map((pl) => {
+          const rowStart = Math.min(pl.rowStart, rows);
+          const rowSpan = Math.max(1, Math.min(pl.rowSpan, rows - rowStart + 1));
+          return { ...pl, rowStart, rowSpan };
+        }),
+      };
+    });
 
   const addProfile = () => {
     const np = newProfile(
@@ -434,7 +660,8 @@ function GridStudio({
         if (!Array.isArray(parsed.profiles) || parsed.profiles.length === 0) {
           throw new Error("Missing profiles");
         }
-        setConfig({ ...defaultConfig(), ...parsed } as DashboardConfig);
+        // mergeConfig runs the v1→v2 migration (explicit zone boxes, rows).
+        setConfig(mergeConfig(parsed));
       } catch (err) {
         console.error("Failed to import dashboard config", err);
       }
@@ -458,36 +685,59 @@ function GridStudio({
   // Alignment guides: vertical lines at the column boundaries (gap-aware).
   const colW =
     gridWidth > 0
-      ? (gridWidth - (profile.cols - 1) * GRID_GAP) / profile.cols
+      ? (gridWidth - (profile.cols - 1) * GRID_GAP * zoom) / profile.cols
       : 0;
   const guides =
     colW > 0
       ? Array.from({ length: profile.cols - 1 }, (_, i) =>
-          (i + 1) * (colW + GRID_GAP) - GRID_GAP / 2
+          (i + 1) * (colW + GRID_GAP * zoom) - GRID_GAP * zoom * 0.5
         )
       : [];
 
-  // Row geometry for the free-drag drop indicator. Fill mode: exact 1fr rows
-  // over the profile height. Scroll mode: approximate with the rendered
-  // height (auto rows are content-sized, so the indicator is a guide only).
-  //
-  // Includes the row being dragged to so the preview matches the layout
-  // after the drop (in fill mode a new row adds an implicit 1fr track and
-  // shrinks all of them).
-  const totalRows = Math.max(
-    estimateFlowRows(profile.placements, profile.cols),
-    freeDrag?.row ?? 0
-  );
+  // Row geometry: fill mode → uniform rows over the profile height;
+  // scroll mode → fixed SCROLL_ROW_H rows (the canvas scrolls).
   const rowH =
     profile.fit === "fill" && profile.height > 0
       ? Math.max(
           24,
-          (profile.height - (totalRows - 1) * GRID_GAP) / totalRows
+          (profile.height - (profile.rows - 1) * GRID_GAP) / profile.rows
         )
-      : gridEl
-        ? Math.max(24, (gridEl.scrollHeight - (totalRows - 1) * GRID_GAP) / totalRows)
-        : 24;
+      : SCROLL_ROW_H;
   const getGridRect = () => gridEl?.getBoundingClientRect() ?? null;
+
+  /** The 1-based grid cell under a screen point (null outside the grid). */
+  const cellAt = (x: number, y: number): { col: number; row: number } | null => {
+    const rect = getGridRect();
+    if (!rect || rect.width <= 0 || rect.height <= 0) return null;
+    const pitchX = (rect.width + GRID_GAP * zoom) / profile.cols;
+    const pitchY = (rect.height + GRID_GAP * zoom) / profile.rows;
+    const col = Math.floor((x - rect.left) / pitchX) + 1;
+    const row = Math.floor((y - rect.top) / pitchY) + 1;
+    if (col < 1 || col > profile.cols || row < 1 || row > profile.rows)
+      return null;
+    return { col, row };
+  };
+
+  /** Grid-local display-px box for a ZoneRect (drawing / drag ghost). */
+  const zoneBoxStyle = (r: ZoneRect) => {
+    if (colW <= 0) return null;
+    const g = GRID_GAP * zoom;
+    const gridH =
+      profile.fit === "fill" && profile.height > 0
+        ? profile.height * zoom
+        : profile.rows * SCROLL_ROW_H * zoom + (profile.rows - 1) * g;
+    const rowHd =
+      profile.fit === "fill" && profile.height > 0
+        ? (gridH - (profile.rows - 1) * g) / profile.rows
+        : SCROLL_ROW_H * zoom;
+    const pitchY = (gridH + g) / profile.rows;
+    return {
+      left: (r.col - 1) * (colW + g),
+      top: (r.row - 1) * pitchY,
+      width: r.cols * colW + (r.cols - 1) * g,
+      height: r.rows * rowHd + (r.rows - 1) * g,
+    };
+  };
 
   const selectedTitle = selected
     ? selected.panel?.title ??
@@ -499,9 +749,6 @@ function GridStudio({
     : undefined;
   const selectedSensors = selectedMod
     ? Object.keys(sensors).filter((k) => selectedMod.matches(k)).length
-    : 0;
-  const selectedSpan = selected
-    ? Math.max(1, Math.min(profile.cols, selected.colSpan))
     : 0;
 
   return (
@@ -546,7 +793,7 @@ function GridStudio({
                     )}
                   </div>
                   <div className="text-muted-foreground">
-                    {p.width}×{p.height} · {p.cols} cols
+                    {p.width}×{p.height} · {p.cols}×{p.rows}
                     {p.fit === "fill" ? " · fill" : ""}
                   </div>
                 </button>
@@ -568,92 +815,6 @@ function GridStudio({
                 onClick={removeProfile}
                 disabled={config.profiles.length <= 1}
                 title="Delete active profile"
-              >
-                <Trash2 className="h-3 w-3" />
-              </Button>
-            </div>
-          </section>
-
-          {/* Free-canvas (InfoPanel 1:1) profiles — open in the free studio. */}
-          <section className="space-y-2 p-3">
-            <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Free canvas (InfoPanel)
-            </div>
-            <div className="space-y-1">
-              {(config.freeProfiles ?? []).map((p) => (
-                <button
-                  key={p.id}
-                  onClick={() =>
-                    setConfig((c) => ({ ...c, activeProfile: p.id }))
-                  }
-                  className={cn(
-                    "w-full rounded-md border px-2 py-1.5 text-left text-xs",
-                    p.id === config.activeProfile
-                      ? "border-ring bg-accent"
-                      : "border-border hover:border-ring/50"
-                  )}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="truncate font-medium text-foreground">
-                      {p.name}
-                    </span>
-                    {config.kioskProfileId === p.id && (
-                      <span
-                        className="shrink-0 rounded bg-ring/25 px-1 text-[9px] font-semibold uppercase tracking-wide"
-                        title="Opens in the borderless kiosk window"
-                      >
-                        kiosk
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-muted-foreground">
-                    {p.width}×{p.height} · {p.items.length} items
-                  </div>
-                </button>
-              ))}
-            </div>
-            <div className="flex gap-1.5">
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-7 flex-1 text-xs"
-                onClick={() => {
-                  const p = newIPProfile(
-                    `Free ${new Date().toLocaleString(undefined, {
-                      month: "short",
-                      day: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}`
-                  );
-                  setConfig((c) => ({
-                    ...c,
-                    freeProfiles: [...(c.freeProfiles ?? []), p],
-                    activeProfile: p.id,
-                  }));
-                }}
-              >
-                <Plus className="h-3 w-3" /> New free
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-7 w-8 text-xs"
-                onClick={() => {
-                  const active = (config.freeProfiles ?? []).find(
-                    (p) => p.id === config.activeProfile
-                  );
-                  if (!active) return;
-                  setConfig((c) => ({
-                    ...c,
-                    freeProfiles: (c.freeProfiles ?? []).filter(
-                      (p) => p.id !== active.id
-                    ),
-                    activeProfile: "auto",
-                  }));
-                }}
-                disabled={(config.freeProfiles ?? []).length === 0}
-                title="Delete active free profile"
               >
                 <Trash2 className="h-3 w-3" />
               </Button>
@@ -689,7 +850,7 @@ function GridStudio({
 
           <section className="space-y-2 border-t p-3">
             <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Modules
+              Widgets
             </div>
             {ALL_MODULES.map((m) => {
               const count = profile.placements.filter(
@@ -706,8 +867,13 @@ function GridStudio({
                   className="flex cursor-grab items-center justify-between rounded-md border border-border px-2 py-1.5 text-xs active:cursor-grabbing hover:border-ring/50"
                   title="Drag onto the canvas, or click + to add"
                 >
-                  <span className="truncate text-foreground/85">{m.title}</span>
+                  <span className="truncate text-foreground/85">
+                    {m.title}
+                  </span>
                   <span className="ml-2 flex shrink-0 items-center gap-1 text-muted-foreground">
+                    <span className="tabular-nums text-[10px] text-muted-foreground/60">
+                      {m.minCols}×{m.minRows}
+                    </span>
                     {count > 0 && (
                       <Badge variant="secondary" className="px-1.5 text-[10px]">
                         {count}
@@ -725,7 +891,8 @@ function GridStudio({
               );
             })}
             <p className="text-xs text-muted-foreground/60">
-              Drag a module onto the canvas, or click + to append it.
+              Numbers are the minimum zone size (grid cells). Drop a widget,
+              or draw a zone first and assign it from the inspector.
             </p>
           </section>
 
@@ -751,13 +918,18 @@ function GridStudio({
                 <span className="truncate text-foreground/85">
                   {preset.title}
                 </span>
-                <button
-                  onClick={() => addPanelPreset(preset)}
-                  className="rounded p-0.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-                  title="Add panel to canvas"
-                >
-                  <Plus className="h-3 w-3" />
-                </button>
+                <span className="ml-2 flex shrink-0 items-center gap-1 text-muted-foreground">
+                  <span className="tabular-nums text-[10px] text-muted-foreground/60">
+                    {preset.colSpan}×{preset.rowSpan}
+                  </span>
+                  <button
+                    onClick={() => addPanelPreset(preset)}
+                    className="rounded p-0.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+                    title="Add panel to canvas"
+                  >
+                    <Plus className="h-3 w-3" />
+                  </button>
+                </span>
               </div>
             ))}
             <p className="text-xs text-muted-foreground/60">
@@ -809,12 +981,7 @@ function GridStudio({
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               Cols
               <button
-                onClick={() =>
-                  updateProfile((p) => ({
-                    ...p,
-                    cols: Math.max(2, p.cols - 1),
-                  }))
-                }
+                onClick={() => changeCols(-1)}
                 className="rounded-md border p-1 hover:bg-accent"
                 title="Fewer columns"
               >
@@ -824,14 +991,29 @@ function GridStudio({
                 {profile.cols}
               </span>
               <button
-                onClick={() =>
-                  updateProfile((p) => ({
-                    ...p,
-                    cols: Math.min(24, p.cols + 1),
-                  }))
-                }
+                onClick={() => changeCols(1)}
                 className="rounded-md border p-1 hover:bg-accent"
                 title="More columns"
+              >
+                <Plus className="h-3 w-3" />
+              </button>
+            </div>
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              Rows
+              <button
+                onClick={() => changeRows(-1)}
+                className="rounded-md border p-1 hover:bg-accent"
+                title="Fewer rows"
+              >
+                <Minus className="h-3 w-3" />
+              </button>
+              <span className="w-6 text-center tabular-nums">
+                {profile.rows}
+              </span>
+              <button
+                onClick={() => changeRows(1)}
+                className="rounded-md border p-1 hover:bg-accent"
+                title="More rows"
               >
                 <Plus className="h-3 w-3" />
               </button>
@@ -843,6 +1025,14 @@ function GridStudio({
               ]}
               value={profile.fit}
               onChange={(fit) => updateProfile((p) => ({ ...p, fit }))}
+            />
+            <Segmented
+              options={[
+                { value: "simple", label: "Simple" },
+                { value: "advanced", label: "Advanced" },
+              ]}
+              value={mode}
+              onChange={(m) => setMode(m as "simple" | "advanced")}
             />
             <div className="ml-auto text-xs text-muted-foreground">
               {profile.placements.length} placements
@@ -902,20 +1092,20 @@ function GridStudio({
                       className="relative grid gap-3"
                       style={{
                         gridTemplateColumns: `repeat(${profile.cols}, minmax(0, 1fr))`,
+                        // Explicit uniform rows: fill mode stretches over the
+                        // profile height, scroll mode uses fixed cell heights.
+                        gridTemplateRows:
+                          profile.fit === "fill" && profile.height > 0
+                            ? `repeat(${profile.rows}, minmax(0, 1fr))`
+                            : `repeat(${profile.rows}, ${SCROLL_ROW_H}px)`,
                         // The canvas is exactly the profile's design size
                         // (the kiosk window renders the same profile 1:1).
                         ...(profile.width > 0 ? { width: profile.width } : {}),
                         ...(profile.fit === "fill" && profile.height > 0
-                          ? {
-                              // Definite height (like the kiosk's flex-1 grid) so the
-                              // 1fr auto rows distribute uniformly. With minHeight
-                              // the rows are content-sized and the drop math below
-                              // (uniform rowH) drifts from the rendered layout.
-                              gridAutoRows: "minmax(0, 1fr)",
-                              height: profile.height,
-                            }
+                          ? { height: profile.height }
                           : {}),
                       }}
+                      onPointerDown={startDraw}
                       onClick={(e) => {
                         if (e.target === e.currentTarget)
                           setSelectedId(null);
@@ -931,30 +1121,19 @@ function GridStudio({
                           />
                         ))}
 
-                      {/* Free-drag drop indicator */}
-                      {freeDrag &&
+                      {/* Drawing / move-resize ghost */}
+                      {(drawing || zoneDrag) &&
                         (() => {
-                          const p = profile.placements.find(
-                            (x) => x.id === freeDrag.id
-                          );
-                          if (!p || colW <= 0) return null;
-                          const span = Math.max(
-                            1,
-                            Math.min(profile.cols, p.colSpan)
-                          );
-                          const rowSpan = p.rowSpan ?? 1;
+                          const r = drawing ?? zoneDrag!.rect;
+                          const style = zoneBoxStyle(r);
+                          if (!style) return null;
                           return (
                             <div
-                              className="pointer-events-none absolute z-30 rounded-lg border-2 border-ring bg-ring/10"
-                              style={{
-                                left: (freeDrag.col - 1) * (colW + GRID_GAP),
-                                top: (freeDrag.row - 1) * (rowH + GRID_GAP),
-                                width: span * colW + (span - 1) * GRID_GAP,
-                                height: rowSpan * rowH + (rowSpan - 1) * GRID_GAP,
-                              }}
+                              className="pointer-events-none absolute z-30 rounded-lg border-2 border-dashed border-ring bg-ring/10"
+                              style={style}
                             >
                               <span className="absolute left-1.5 top-0.5 text-[10px] font-semibold tabular-nums text-ring">
-                                C{freeDrag.col} · R{freeDrag.row}
+                                C{r.col} · R{r.row} · {r.cols}×{r.rows}
                               </span>
                             </div>
                           );
@@ -975,12 +1154,9 @@ function GridStudio({
                             zoom={zoom}
                             gap={GRID_GAP}
                             rowHeight={rowH}
-                            getGridRect={getGridRect}
-                            ghost={freeDrag?.id === p.id}
-                            onFreeDrag={(id, pos, pointer) =>
-                              setFreeDrag({ id, ...pos, ...pointer })
-                            }
-                            onFreeDragEnd={commitFreeDrag}
+                            ghost={zoneDrag?.id === p.id}
+                            onZoneDrag={onZoneDrag}
+                            onZoneDragEnd={onZoneDragEnd}
                             selected={selectedId === p.id}
                             onSelect={() => setSelectedId(p.id)}
                             onSpan={setSpan}
@@ -994,7 +1170,8 @@ function GridStudio({
 
                       {profile.placements.length === 0 && (
                         <div className="col-span-full flex h-32 items-center justify-center rounded-lg border border-dashed border-border text-sm text-muted-foreground/60">
-                          Drag a module here from the left panel
+                          Draw a zone — drag across the empty grid — then pick
+                          a widget for it
                         </div>
                       )}
                     </div>
@@ -1099,126 +1276,86 @@ function GridStudio({
               </div>
 
               <div>
-                <div className="mb-1 flex justify-between text-xs text-muted-foreground">
-                  <span>Width</span>
-                  <span className="tabular-nums">
-                    {selectedSpan}/{profile.cols}
+                <div className="mb-1 text-xs text-muted-foreground">
+                  Zone box{" "}
+                  <span className="text-muted-foreground/60">
+                    (grid cells)
                   </span>
                 </div>
-                <input
-                  type="range"
-                  min={1}
-                  max={profile.cols}
-                  value={selectedSpan}
-                  onChange={(e) =>
-                    setSpan(selected.id, parseInt(e.target.value, 10))
-                  }
-                  className="w-full accent-ring"
-                />
-              </div>
-
-              <div>
-                <div className="mb-1 flex justify-between text-xs text-muted-foreground">
-                  <span>Height</span>
-                  <span className="tabular-nums">
-                    {selected.rowSpan ?? 1} row
-                    {(selected.rowSpan ?? 1) === 2 ? "s" : ""}
-                  </span>
+                <div className="grid grid-cols-4 gap-1.5">
+                  {(["col", "row", "cols", "rows"] as const).map((k) => (
+                    <label key={k} className="flex flex-col gap-0.5">
+                      <span className="text-[10px] uppercase tracking-wide text-muted-foreground/70">
+                        {k === "col" ? "Col" : k === "row" ? "Row" : k === "cols" ? "W" : "H"}
+                      </span>
+                      <input
+                        type="number"
+                        min={1}
+                        max={
+                          k === "col" || k === "cols" ? profile.cols : profile.rows
+                        }
+                        value={
+                          k === "col"
+                            ? selected.colStart
+                            : k === "row"
+                              ? selected.rowStart
+                              : k === "cols"
+                                ? selected.colSpan
+                                : selected.rowSpan
+                        }
+                        onChange={(e) =>
+                          setZoneBox({
+                            [k]: Math.max(1, parseInt(e.target.value, 10) || 1),
+                          } as Partial<ZoneRect>)
+                        }
+                        className="w-full rounded-md border border-border bg-background px-1.5 py-1 text-xs tabular-nums text-foreground outline-none focus:border-ring"
+                      />
+                    </label>
+                  ))}
                 </div>
-                <input
-                  type="range"
-                  min={1}
-                  max={8}
-                  value={selected.rowSpan ?? 1}
-                  onChange={(e) => {
-                    const n = parseInt(e.target.value, 10);
-                    updatePlacement(selected.id, (p) => ({
-                      ...p,
-                      rowSpan: n > 1 ? n : undefined,
-                    }));
-                  }}
-                  className="w-full accent-ring"
-                />
               </div>
 
               <div>
                 <div className="mb-1 text-xs text-muted-foreground">
-                  Row start
+                  Widget
                 </div>
-                <input
-                  type="number"
-                  min={1}
-                  max={24}
-                  value={selected.rowStart ?? ""}
-                  placeholder="auto"
-                  onChange={(e) =>
-                    updatePlacement(selected.id, (p) => ({
-                      ...p,
-                      rowStart:
-                        e.target.value === ""
-                          ? undefined
-                          : Math.max(
-                              1,
-                              Math.min(24, parseInt(e.target.value, 10) || 1)
-                            ),
-                    }))
-                  }
-                  className="w-24 rounded-md border border-border bg-background px-2 py-1.5 text-xs tabular-nums text-foreground outline-none focus:border-ring"
-                />
+                <select
+                  value={widgetValue}
+                  onChange={(e) => assignWidget(e.target.value)}
+                  className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground outline-none focus:border-ring"
+                >
+                  <option value="blank">Blank — no widget</option>
+                  {selected.panel && (
+                    <option value="custom-panel">
+                      Custom panel (edit widgets below)
+                    </option>
+                  )}
+                  <optgroup label="Modules">
+                    {ALL_MODULES.map((m) => (
+                      <option key={m.id} value={`module:${m.id}`}>
+                        {m.title} ({m.minCols}×{m.minRows})
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="Panels">
+                    {panelPresets.map((preset) => (
+                      <option key={preset.id} value={`preset:${preset.id}`}>
+                        {preset.title} ({preset.colSpan}×{preset.rowSpan})
+                      </option>
+                    ))}
+                  </optgroup>
+                </select>
               </div>
 
-              <div>
-                <div className="mb-1 text-xs text-muted-foreground">
-                  Column start
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    min={1}
-                    max={profile.cols}
-                    value={selected.colStart ?? ""}
-                    placeholder="auto"
-                    onChange={(e) =>
-                      updatePlacement(selected.id, (p) => ({
-                        ...p,
-                        colStart:
-                          e.target.value === ""
-                            ? undefined
-                            : Math.max(
-                                1,
-                                Math.min(
-                                  profile.cols,
-                                  parseInt(e.target.value, 10) || 1
-                                )
-                              ),
-                      }))
-                    }
-                    className="w-24 rounded-md border border-border bg-background px-2 py-1.5 text-xs tabular-nums text-foreground outline-none focus:border-ring"
+              {mode === "advanced" &&
+                (selected.panel ? (
+                  <PanelInspector
+                    placement={selected}
+                    sensors={sensors}
+                    update={(fn) => updatePlacement(selected.id, fn)}
                   />
-                  <button
-                    className="rounded-md border border-border px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground"
-                    title="Back to auto flow (clears column and row start)"
-                    onClick={() =>
-                      updatePlacement(selected.id, (p) => ({
-                        ...p,
-                        colStart: undefined,
-                        rowStart: undefined,
-                      }))
-                    }
-                  >
-                    Auto position
-                  </button>
-                </div>
-              </div>
-
-              {selected.panel ? (
-                <PanelInspector
-                  placement={selected}
-                  sensors={sensors}
-                  update={(fn) => updatePlacement(selected.id, fn)}
-                />
-              ) : (
-                <>
+                ) : (
+                  <>
               {/* Design */}
               <div>
                 <div className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
@@ -1342,7 +1479,7 @@ function GridStudio({
                 />
               )}
                 </>
-              )}
+                ))}
 
               <div className="flex gap-2">
                 <Button
@@ -1485,11 +1622,11 @@ function GridStudio({
         </div>
       </footer>
 
-      {/* Free-drag ghost: follows the pointer (outside the zoomed canvas)
-          so the widget being dragged is always visibly tracked. */}
-      {freeDrag &&
+      {/* Zone-drag ghost: follows the pointer (outside the zoomed canvas)
+          so the zone being moved/resized is always visibly tracked. */}
+      {zoneDrag &&
         (() => {
-          const p = profile.placements.find((x) => x.id === freeDrag.id);
+          const p = profile.placements.find((x) => x.id === zoneDrag.id);
           if (!p) return null;
           const title =
             p.panel?.title ??
@@ -1498,768 +1635,15 @@ function GridStudio({
           return (
             <div
               className="pointer-events-none fixed z-50 rounded-md border border-ring bg-popover px-2 py-1 text-[11px] font-medium shadow-lg"
-              style={{ left: freeDrag.x + 14, top: freeDrag.y + 14 }}
+              style={{ left: zoneDrag.x + 14, top: zoneDrag.y + 14 }}
             >
               {title}{" "}
               <span className="tabular-nums text-muted-foreground">
-                → C{freeDrag.col} · R{freeDrag.row}
+                → C{zoneDrag.rect.col} · R{zoneDrag.rect.row} · {zoneDrag.rect.cols}×{zoneDrag.rect.rows}
               </span>
             </div>
           );
         })()}
-    </div>
-  );
-}
-
-/* ================================================================== */
-/* Free-canvas (InfoPanel 1:1) editor — absolute placement, groups,   */
-/* per-item typography, live sensor bindings, .infopanel round-trip.  */
-/* ================================================================== */
-
-const IP_KINDS: IPItemKind[] = [
-  "text",
-  "clock",
-  "calendar",
-  "sensor",
-  "table",
-  "image",
-  "httpImage",
-  "sensorImage",
-  "graph",
-  "bar",
-  "donut",
-  "gauge",
-  "shape",
-  "group",
-];
-
-/** Rough render box (design px) for selection chrome. */
-function itemBox(item: IPItem, profile: IPProfile): { w: number; h: number } {
-  switch (item.kind) {
-    case "text":
-    case "clock":
-    case "calendar":
-    case "sensor":
-    case "table": {
-      const fs = item.fontSize * profile.fontScale;
-      return {
-        w: item.width > 0 ? item.width : 240,
-        h: item.height > 0 ? item.height : Math.ceil(fs * 1.4),
-      };
-    }
-    case "image":
-    case "httpImage": {
-      const f = (item.scale > 0 ? item.scale : 100) / 100;
-      return {
-        w: item.width > 0 ? item.width * f : 150,
-        h: item.height > 0 ? item.height * f : 100,
-      };
-    }
-    case "graph":
-    case "bar":
-    case "donut":
-      return { w: item.width, h: item.height };
-    case "gauge":
-      return { w: item.scale > 0 ? item.scale : 100, h: item.scale > 0 ? item.scale : 100 };
-    case "sensorImage":
-      return { w: item.scale > 0 ? item.scale : 100, h: item.scale > 0 ? item.scale : 100 };
-    case "shape":
-      return { w: item.width, h: item.height };
-    case "group": {
-      return itemBoxOfGroup(item, profile);
-    }
-  }
-}
-
-function itemBoxOfGroup(g: IPGroupItem, profile: IPProfile): { w: number; h: number } {
-  let x1 = Infinity, y1 = Infinity, x2 = -Infinity, y2 = -Infinity;
-  for (const c of g.children) {
-    const b = c.kind === "group" ? itemBoxOfGroup(c, profile) : itemBox(c, profile);
-    x1 = Math.min(x1, c.x);
-    y1 = Math.min(y1, c.y);
-    x2 = Math.max(x2, c.x + b.w);
-    y2 = Math.max(y2, c.y + b.h);
-  }
-  if (!isFinite(x1)) return { w: 0, h: 0 };
-  return { w: x2 - x1, h: y2 - y1 };
-}
-
-const ZOOM_MIN = 0.1, ZOOM_MAX = 3;
-
-interface FreeCanvasStudioProps {
-  sensors: SensorMap;
-  config: DashboardConfig;
-  /** The free profile being edited (config.freeProfiles entry). */
-  profile: IPProfile;
-  setConfig: Dispatch<SetStateAction<DashboardConfig>>;
-  windowWidth: number;
-  windowHeight: number;
-  onExitStudio: () => void;
-}
-
-/**
- * The free-canvas studio — a 1:1 editor for InfoPanel profiles:
- * absolute placement, groups, per-item typography, live sensor
- * bindings. Left: palette + profile settings. Center: zoomable canvas
- * with select/drag/resize. Right: per-kind inspector.
- */
-function FreeCanvasStudio({
-  sensors,
-  profile,
-  setConfig,
-  windowWidth,
-  windowHeight,
-  onExitStudio,
-}: FreeCanvasStudioProps) {
-  // Working copy — written back to the config on every change.
-  const [p, setP] = useState<IPProfile>(profile);
-  const pRef = useRef(p);
-  pRef.current = p;
-
-  const [selId, setSelId] = useState<string | null>(null);
-  const [multi, setMulti] = useState<ReadonlySet<string>>(new Set());
-  const [zoom, setZoom] = useState(0.5);
-  const [fitting, setFitting] = useState(true);
-
-  // 50-deep undo/redo (snapshot stack, InfoPanel parity).
-  const pastRef = useRef<IPProfile[]>([]);
-  const futureRef = useRef<IPProfile[]>([]);
-  const [, setHistVersion] = useState(0);
-
-  const commit = (fn: (cur: IPProfile) => IPProfile) => {
-    const next = fn(pRef.current);
-    pastRef.current = [...pastRef.current.slice(-49), pRef.current];
-    futureRef.current = [];
-    setP(next);
-    setHistVersion((v) => v + 1);
-  };
-  const beginLive = () => {
-    pastRef.current = [...pastRef.current.slice(-49), pRef.current];
-    futureRef.current = [];
-    setHistVersion((v) => v + 1);
-  };
-  const undo = () => {
-    const prev = pastRef.current.pop();
-    if (!prev) return;
-    futureRef.current = [pRef.current, ...futureRef.current];
-    setP(prev);
-    setHistVersion((v) => v + 1);
-  };
-  const redo = () => {
-    const next = futureRef.current.shift();
-    if (!next) return;
-    pastRef.current = [...pastRef.current, pRef.current];
-    setP(next);
-    setHistVersion((v) => v + 1);
-  };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const canUndo = pastRef.current.length > 0, canRedo = futureRef.current.length > 0;
-
-  // Write-through: replace the entry in config.freeProfiles.
-  useEffect(() => {
-    setConfig((c) => ({
-      ...c,
-      freeProfiles: (c.freeProfiles ?? []).map((f) => (f.id === p.id ? p : f)),
-    }));
-  }, [p, setConfig]);
-
-  // Fit the canvas to the viewport on mount / profile switch.
-  useEffect(() => {
-    if (!fitting) return;
-    const z = Math.min(
-      1,
-      (windowWidth - 480) / p.width,
-      (windowHeight - 160) / p.height
-    );
-    setZoom(Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, Math.round(z * 100) / 100)));
-  }, [p.id, p.width, p.height, windowWidth, windowHeight, fitting]);
-
-  // Nudge cycle (InfoPanel: 1 → 5 → 10 → 20 → 1 …).
-  const nudgeRef = useRef({ step: 1, timer: 0 });
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const t = e.target as HTMLElement;
-      if (t && ["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName)) return;
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
-        e.preventDefault();
-        if (e.shiftKey) redo();
-        else undo();
-        return;
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") {
-        e.preventDefault();
-        redo();
-        return;
-      }
-      if (!selId) return;
-      const dirs: Record<string, [number, number]> = {
-        ArrowLeft: [-1, 0],
-        ArrowRight: [1, 0],
-        ArrowUp: [0, -1],
-        ArrowDown: [0, 1],
-      };
-      const d = dirs[e.key];
-      if (!d) return;
-      e.preventDefault();
-      const n = nudgeRef.current;
-      const step = e.shiftKey ? 20 : n.step;
-      commit((cur) => {
-        const ids = multi.size > 0 ? [...multi] : [selId];
-        let next = cur;
-        for (const id of ids) {
-          const it = findItem(pRef.current.items, id);
-          if (!it) continue;
-          next = updateItem(next, id, {
-            x: it.x + d[0] * step,
-            y: it.y + d[1] * step,
-          });
-        }
-        return next;
-      });
-      n.step = n.step === 1 ? 5 : n.step === 5 ? 10 : n.step === 10 ? 20 : 1;
-      window.clearTimeout(n.timer);
-      n.timer = window.setTimeout(() => (n.step = 1), 800);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selId, multi]);
-
-  const flat = useMemo(() => flattenItems(p.items), [p.items]);
-  // Selection chrome covers every visible item INCLUDING groups — a
-  // group's box is the extent of its children (it draws nothing itself).
-  const chromeItems = useMemo(() => {
-    const out: IPItem[] = [];
-    const walk = (list: IPItem[]) => {
-      for (const it of list) {
-        if (it.hidden) continue;
-        out.push(it);
-        if (it.kind === "group") walk(it.children);
-      }
-    };
-    walk(p.items);
-    return out;
-  }, [p.items]);
-  const selected = selId ? (findItem(p.items, selId) ?? null) : null;
-  const selSet = selId ? (multi.size > 0 ? multi : new Set([selId])) : new Set<string>();
-
-  const patchProfile = (patch: Partial<IPProfile>) =>
-    commit((cur) => ({ ...cur, ...patch }));
-  const patchItem = (id: string, patch: Record<string, unknown>) =>
-    commit((cur) => updateItem(cur, id, patch));
-
-  /* ---------------- canvas drag / resize ---------------- */
-
-  const dragRef = useRef<{
-    mode: "move" | "resize";
-    id: string;
-    startX: number;
-    startY: number;
-    orig: { x: number; y: number; w: number; h: number };
-    liveIds: string[];
-  } | null>(null);
-
-  const snap = (v: number) => Math.round(v / 5) * 5;
-
-  const onItemDown = (
-    e: React.PointerEvent,
-    item: IPItem,
-    mode: "move" | "resize"
-  ) => {
-    if (e.button !== 0) return;
-    e.stopPropagation();
-    e.preventDefault();
-    if (e.shiftKey && mode === "move") {
-      // Shift+click toggles multi-selection.
-      setSelId(item.id);
-      setMulti((m) => {
-        const n = new Set(m);
-        if (n.has(item.id)) n.delete(item.id);
-        else n.add(item.id);
-        return n;
-      });
-      return;
-    }
-    setSelId(item.id);
-    if (mode === "move" && item.locked) return;
-    if (item.kind === "group" && mode === "move") return; // group: no free move
-    const ids =
-      mode === "move" && multi.size > 0 ? [...multi] : [item.id];
-    beginLive();
-    dragRef.current = {
-      mode,
-      id: item.id,
-      startX: e.clientX,
-      startY: e.clientY,
-      orig: {
-        x: item.x,
-        y: item.y,
-        w: itemBox(item, p).w,
-        h: itemBox(item, p).h,
-      },
-      liveIds: ids,
-    };
-    const move = (ev: PointerEvent) => {
-      const d = dragRef.current;
-      if (!d) return;
-      const dx = (ev.clientX - d.startX) / zoom;
-      const dy = (ev.clientY - d.startY) / zoom;
-      if (d.mode === "move") {
-        const moved = [...d.liveIds];
-        for (const id of moved) {
-          const it = findItem(pRef.current.items, id);
-          if (!it) continue;
-          const nx = Math.max(0, snap(d.orig.x + dx));
-          const ny = Math.max(0, snap(d.orig.y + dy));
-          setP((cur) => updateItem(cur, id, { x: nx, y: ny }));
-        }
-      } else {
-        const nw = Math.max(5, snap(d.orig.w + dx));
-        const nh = Math.max(5, snap(d.orig.h + dy));
-        setP((cur) => updateItem(cur, d.id, { width: nw, height: nh }));
-      }
-    };
-    const up = () => {
-      dragRef.current = null;
-      window.removeEventListener("pointermove", move);
-      window.removeEventListener("pointerup", up);
-    };
-    window.addEventListener("pointermove", move);
-    window.addEventListener("pointerup", up);
-  };
-
-  /* ---------------- ops ---------------- */
-
-  const ops: FreeStudioOps = {
-    sensors,
-    patchItem,
-    patchProfile,
-    transformProfile: commit,
-    onSelect: setSelId,
-    selected,
-    profile: p,
-  };
-
-  const toolbarBtn = (
-    icon: React.ReactNode,
-    label: string,
-    onClick: () => void,
-    disabled?: boolean
-  ) => (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      title={label}
-      className="flex h-7 w-7 items-center justify-center rounded-md border bg-popover text-popover-foreground shadow-sm transition-colors hover:bg-accent disabled:opacity-40"
-    >
-      {icon}
-    </button>
-  );
-
-  /* ---------------- .infopanel round-trip ---------------- */
-
-  const [busy, setBusy] = useState<string | null>(null);
-  const fileRef = useRef<HTMLInputElement | null>(null);
-
-  /** Asset file names referenced anywhere in the tree. */
-  const collectAssetNames = (items: IPItem[]): Set<string> => {
-    const out = new Set<string>();
-    const walk = (list: IPItem[]) => {
-      for (const it of list) {
-        if (it.kind === "image" || it.kind === "sensorImage") {
-          if (it.filePath) out.add(it.filePath);
-        } else if (it.kind === "gauge") {
-          for (const f of it.images) if (f.filePath) out.add(f.filePath);
-        } else if (it.kind === "group") walk(it.children);
-      }
-    };
-    walk(items);
-    return out;
-  };
-
-  const toB64 = (bytes: Uint8Array): string => {
-    let bin = "";
-    const chunk = 0x8000;
-    for (let i = 0; i < bytes.length; i += chunk) {
-      bin += String.fromCharCode(...bytes.subarray(i, i + chunk));
-    }
-    return btoa(bin);
-  };
-
-  /** Export `{name}-{unixtime}.infopanel` — opens unchanged in InfoPanel. */
-  const exportInfopanel = async () => {
-    setBusy("Export");
-    try {
-      const enc = new TextEncoder();
-      const files: ZipFile[] = [
-        { name: "Profile.xml", data: new Uint8Array(enc.encode(profileToXml(p))) },
-        { name: "DisplayItems.xml", data: new Uint8Array(enc.encode(itemsToXml(p.items))) },
-      ];
-      const base = `/assets/ip/${p.assets ?? p.id}`;
-      for (const name of collectAssetNames(p.items)) {
-        try {
-          const r = await fetch(`${base}/${encodeURIComponent(name)}`);
-          if (r.ok)
-            files.push({ name: `assets/${name}`, data: new Uint8Array(await r.arrayBuffer()) });
-        } catch {
-          /* asset not served at runtime — the XML references it by name */
-        }
-      }
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(bytesToBlob(zipStore(files), "application/zip"));
-      a.download = `${slugify(p.name)}-${Math.floor(Date.now() / 1000)}.infopanel`;
-      a.click();
-      setTimeout(() => URL.revokeObjectURL(a.href), 5000);
-    } finally {
-      setBusy(null);
-    }
-  };
-
-  /** Import a `.infopanel` bundle (InfoPanel export, or one we exported). */
-  const importInfopanel = async (file: File) => {
-    setBusy("Import");
-    try {
-      const files = await unzip(new Uint8Array(await file.arrayBuffer()));
-      const dec = new TextDecoder();
-      const pXml = zipFind(files, "Profile.xml");
-      const iXml = zipFind(files, "DisplayItems.xml");
-      if (!pXml || !iXml)
-        throw new Error("not a .infopanel bundle (missing Profile.xml / DisplayItems.xml)");
-      const prof = parseProfileXml(dec.decode(pXml));
-      const items = parseItemsXml(dec.decode(iXml), (i) => `${newIPId()}-${i}`);
-      // Bundled assets → in-memory data URLs (served to the renderer via
-      // `profile.assetData` — no disk access needed in the kiosk).
-      const assetData: Record<string, string> = {};
-      for (const [key, v] of files) {
-        const lower = key.toLowerCase();
-        if (!lower.startsWith("assets/")) continue;
-        const name = key.slice(key.indexOf("/") + 1);
-        const mime = lower.endsWith(".jpg") || lower.endsWith(".jpeg")
-          ? "image/jpeg"
-          : lower.endsWith(".gif")
-            ? "image/gif"
-            : lower.endsWith(".webp")
-              ? "image/webp"
-              : "image/png";
-        assetData[name] = `data:${mime};base64,${toB64(v)}`;
-      }
-      const id = newIPId();
-      const np: IPProfile = {
-        id,
-        name: `[Import] ${prof.name ?? file.name.replace(/\.infopanel$/i, "")}`,
-        width: prof.width ?? 800,
-        height: prof.height ?? 600,
-        backgroundColor: prof.backgroundColor ?? "#00FFFFFF",
-        font: prof.font ?? "",
-        fontSize: prof.fontSize ?? 26,
-        fontScale: prof.fontScale ?? 1.33,
-        color: prof.color ?? "#FFFFFFFF",
-        showFps: prof.showFps ?? false,
-        drag: true,
-        resize: false,
-        active: true,
-        topmost: true,
-        windowX: 0,
-        windowY: 0,
-        strictWindowMatching: false,
-        assets: id,
-        assetData: Object.keys(assetData).length > 0 ? assetData : undefined,
-        items,
-      };
-      setConfig((c) => ({
-        ...c,
-        freeProfiles: [...(c.freeProfiles ?? []), np],
-        activeProfile: id,
-      }));
-    } catch (e) {
-      console.error("[studio] import failed:", e);
-    } finally {
-      setBusy(null);
-    }
-  };
-
-  const ids = selSet.size > 0 ? [...selSet] : [];
-
-  return (
-    <div className="flex h-screen flex-col overflow-hidden bg-background text-foreground">
-      {/* Toolbar */}
-      <div className="flex h-12 shrink-0 items-center gap-2 border-b px-3">
-        <Button variant="ghost" size="sm" onClick={onExitStudio}>
-          <X className="h-4 w-4" />
-        </Button>
-        <span className="text-sm font-semibold tracking-tight">
-          {p.name}
-        </span>
-        <span className="text-xs text-muted-foreground">
-          {p.width}×{p.height} · free canvas (InfoPanel 1:1)
-        </span>
-        <div className="mx-2 h-5 w-px bg-border" />
-        <div className="flex items-center gap-1">
-          {toolbarBtn(<Undo2 className="h-4 w-4" />, "Undo (Ctrl+Z)", undo, !canUndo)}
-          {toolbarBtn(<Redo2 className="h-4 w-4" />, "Redo (Ctrl+Y)", redo, !canRedo)}
-        </div>
-        <div className="mx-2 h-5 w-px bg-border" />
-        <div className="flex items-center gap-1">
-          {selId &&
-            toolbarBtn(
-              <LockOpen className="h-4 w-4" />,
-              selected?.locked ? "Unlock" : "Lock",
-              () =>
-                patchItem(selId, {
-                  locked: !(findItem(p.items, selId)?.locked ?? false),
-                })
-            )}
-          {selId &&
-            toolbarBtn(
-              selected?.hidden ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />,
-              selected?.hidden ? "Show" : "Hide",
-              () =>
-                patchItem(selId, { hidden: !(findItem(p.items, selId)?.hidden ?? false) })
-            )}
-          {selId &&
-            toolbarBtn(
-              <ChevronUp className="h-4 w-4" />,
-              "Forward (up in Z)",
-              () => ids.forEach((id) => commit((cur) => zOrderItem(cur, id, "forward")))
-            )}
-          {selId &&
-            toolbarBtn(
-              <ChevronDown className="h-4 w-4" />,
-              "Backward (down in Z)",
-              () => ids.forEach((id) => commit((cur) => zOrderItem(cur, id, "backward")))
-            )}
-          {selId &&
-            toolbarBtn(
-              <Layers className="h-4 w-4" />,
-              "Bring to front",
-              () => ids.forEach((id) => commit((cur) => zOrderItem(cur, id, "front")))
-            )}
-          {selId &&
-            toolbarBtn(
-              <Group className="h-4 w-4" />,
-              "Group selection",
-              () => {
-                const next = groupItems(p, ids);
-                if (next.items.length !== p.items.length || next.items !== p.items)
-                  commit(() => next);
-              }
-            )}
-          {selId && selected?.kind === "group" &&
-            toolbarBtn(
-              <Group className="h-4 w-4 rotate-180" />,
-              "Ungroup",
-              () => commit((cur) => ungroupItem(cur, selId!))
-            )}
-          {selId &&
-            toolbarBtn(
-              <Copy className="h-4 w-4" />,
-              "Duplicate (Ctrl+D)",
-              () => ids.forEach((id) => commit((cur) => duplicateItem(cur, id)))
-            )}
-          {selId &&
-            toolbarBtn(
-              <Trash2 className="h-4 w-4" />,
-              "Delete",
-              () => {
-                const next = ids.reduce(
-                  (acc, id) => removeItem(acc, id),
-                  p
-                );
-                commit(() => next);
-                setSelId(null);
-                setMulti(new Set());
-              }
-            )}
-        </div>
-        <div className="ml-auto flex items-center gap-1">
-          <button
-            onClick={() =>
-              setConfig((c) => ({
-                ...c,
-                // Land on the best-fit grid profile — the grid studio
-                // (the left panel here has no profile list, so this is
-                // the way back from the free-canvas editor).
-                activeProfile: resolveProfile(c, windowWidth, windowHeight).id,
-              }))
-            }
-            title="Switch to the grid studio (monitor profile)"
-            className="flex items-center gap-1 rounded-md border bg-popover px-2 py-1 text-xs text-popover-foreground shadow-sm hover:bg-accent"
-          >
-            <LayoutGrid className="h-3.5 w-3.5" />
-            Grid
-          </button>
-          <button
-            onClick={() => fileRef.current?.click()}
-            disabled={busy !== null}
-            title="Import a .infopanel bundle"
-            className="flex items-center gap-1 rounded-md border bg-popover px-2 py-1 text-xs text-popover-foreground shadow-sm hover:bg-accent disabled:opacity-40"
-          >
-            <Upload className="h-3.5 w-3.5" />
-            {busy === "Import" ? "…" : "Import"}
-          </button>
-          <button
-            onClick={exportInfopanel}
-            disabled={busy !== null}
-            title="Export this profile as .infopanel"
-            className="flex items-center gap-1 rounded-md border bg-popover px-2 py-1 text-xs text-popover-foreground shadow-sm hover:bg-accent disabled:opacity-40"
-          >
-            <Download className="h-3.5 w-3.5" />
-            {busy === "Export" ? "…" : "Export"}
-          </button>
-          <input
-            ref={fileRef}
-            type="file"
-            accept=".infopanel,.zip"
-            className="hidden"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) void importInfopanel(f);
-              e.target.value = "";
-            }}
-          />
-          <div className="mx-1 h-5 w-px bg-border" />
-          <button
-            onClick={() => setFitting(true)}
-            title="Fit to viewport"
-            className="rounded-md border bg-popover px-2 py-1 text-xs text-popover-foreground shadow-sm hover:bg-accent"
-          >
-            Fit
-          </button>
-          <button
-            onClick={() => setZoom((z) => Math.max(ZOOM_MIN, Math.round((z - 0.25) * 100) / 100))}
-            title="Zoom out"
-            className="flex h-7 w-7 items-center justify-center rounded-md border bg-popover shadow-sm hover:bg-accent"
-          >
-            <ZoomOut className="h-4 w-4" />
-          </button>
-          <span className="w-12 text-center text-xs tabular-nums text-muted-foreground">
-            {Math.round(zoom * 100)}%
-          </span>
-          <button
-            onClick={() => setZoom((z) => Math.min(ZOOM_MAX, Math.round((z + 0.25) * 100) / 100))}
-            title="Zoom in"
-            className="flex h-7 w-7 items-center justify-center rounded-md border bg-popover shadow-sm hover:bg-accent"
-          >
-            <ZoomIn className="h-4 w-4" />
-          </button>
-          <span className="ml-3 text-[10px] uppercase tracking-wider text-muted-foreground">
-            build {BUILD_ID}
-          </span>
-        </div>
-      </div>
-
-      <div className="flex min-h-0 flex-1">
-        {/* Left: palette + profile settings */}
-        <aside className="flex w-56 shrink-0 flex-col gap-4 overflow-y-auto border-r p-3">
-          <section>
-            <h2 className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Add item
-            </h2>
-            <div className="grid grid-cols-2 gap-1.5">
-              {IP_KINDS.map((k) => (
-                <button
-                  key={k}
-                  onClick={() =>
-                    commit((cur) =>
-                      addItem(
-                        cur,
-                        k,
-                        Math.round(p.width / 2 - 100),
-                        Math.round(p.height / 2 - 40)
-                      )
-                    )
-                  }
-                  className="flex items-center gap-1.5 rounded-md border bg-popover px-2 py-1.5 text-xs shadow-sm hover:bg-accent"
-                >
-                  <MousePointerClick className="h-3 w-3 text-muted-foreground" />
-                  {IP_KIND_LABEL[k]}
-                </button>
-              ))}
-            </div>
-          </section>
-          <FreeInspector
-            mode="profile"
-            ops={ops}
-            onProfile={(patch) => patchProfile(patch)}
-          />
-        </aside>
-
-        {/* Center: canvas */}
-        <main className="relative flex-1 overflow-auto bg-muted/40 p-8">
-          <div
-            className="relative mx-auto shadow-2xl"
-            style={{
-              width: p.width * zoom,
-              height: p.height * zoom,
-              background: cssColor(p.backgroundColor) ?? "transparent",
-              overflow: "hidden",
-            }}
-          >
-            {/* 1:1 content, scaled */}
-            <div
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: p.width,
-                height: p.height,
-                transform: `scale(${zoom})`,
-                transformOrigin: "top left",
-              }}
-            >
-              {flat.map((item) => renderItem(item, { profile: p, sensors, assetBase: `/assets/ip/${p.assets ?? p.id}`, now: new Date() }))}
-            </div>
-
-            {/* Selection chrome (screen space) */}
-            {chromeItems.map((item) => {
-                const box = itemBox(item, p);
-                const isSel = selSet.has(item.id);
-                return (
-                  <div
-                    key={item.id}
-                    onPointerDown={(e) => onItemDown(e, item, "move")}
-                    onClick={() => setSelId(item.id)}
-                    className={cn(
-                      "absolute",
-                      isSel
-                        ? "z-50 cursor-move ring-2 ring-sky-400"
-                        : "cursor-move",
-                      item.locked && "opacity-80"
-                    )}
-                    style={{
-                      left: item.x * zoom,
-                      top: item.y * zoom,
-                      width: Math.max(8, box.w * zoom),
-                      height: Math.max(8, box.h * zoom),
-                    }}
-                  >
-                    {isSel && (
-                      <>
-                        <div
-                          className="pointer-events-none absolute -inset-0.5 border border-dashed border-sky-400/60"
-                        />
-                        <span className="pointer-events-none absolute -top-4 left-0 text-[9px] font-medium text-sky-300">
-                          {item.name || item.kind}
-                        </span>
-                        {(item.kind === "graph" || item.kind === "bar" || item.kind === "donut" || item.kind === "shape" || item.kind === "image" || item.kind === "httpImage" || item.kind === "gauge") && (
-                          <div
-                            onPointerDown={(e) => onItemDown(e, item, "resize")}
-                            className="absolute -bottom-1.5 -right-1.5 h-3 w-3 cursor-nwse-resize rounded-sm border border-sky-400 bg-white"
-                          />
-                        )}
-                      </>
-                    )}
-                  </div>
-                );
-              })}
-          </div>
-        </main>
-
-        {/* Right: inspector */}
-        <aside className="w-72 shrink-0 overflow-y-auto border-l p-3">
-          <FreeInspector mode="item" ops={ops} />
-        </aside>
-      </div>
     </div>
   );
 }

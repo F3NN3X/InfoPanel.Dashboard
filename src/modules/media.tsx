@@ -17,6 +17,8 @@ const C = "media";
 export const mediaModule: DashboardModule = {
   id: "media",
   title: "Media",
+  minCols: 2,
+  minRows: 1,
   matches: (key) => key.startsWith(P),
   settings: [
     { key: "showArt", label: "Cover art", type: "boolean", default: true },

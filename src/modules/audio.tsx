@@ -13,6 +13,8 @@ const P = "plugins.audio-level-meter.";
 export const audioModule: DashboardModule = {
   id: "audio",
   title: "Audio",
+  minCols: 2,
+  minRows: 1,
   matches: (key) => key.startsWith(P),
   render: (sensors) => {
     const groups = groupByContainer(sensors, P);

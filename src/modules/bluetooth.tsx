@@ -14,6 +14,8 @@ const P = "plugins.bluetooth-battery-plugin.";
 export const bluetoothModule: DashboardModule = {
   id: "bluetooth",
   title: "Bluetooth",
+  minCols: 2,
+  minRows: 1,
   matches: (key) => key.startsWith(P),
   render: (sensors) => {
     const groups = groupByContainer(sensors, P);

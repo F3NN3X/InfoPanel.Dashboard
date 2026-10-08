@@ -10,6 +10,8 @@ import type { DashboardModule, SensorMap } from "./types";
 export const hardwareModule: DashboardModule = {
   id: "hardware",
   title: "Hardware",
+  minCols: 2,
+  minRows: 2,
   matches: (key) => key.startsWith("libre.") || key.startsWith("hwinfo."),
   render: (sensors) => {
     const entries = Object.entries(sensors).filter(

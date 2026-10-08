@@ -9,14 +9,33 @@ import {
 import {
   Eye,
   EyeOff,
-  GripVertical,
   Minus,
   Plus,
   X,
 } from "lucide-react";
-import type { MonitorProfile, Placement } from "@/lib/layout";
+import { BLANK_MODULE, type MonitorProfile, type Placement } from "@/lib/layout";
 import { hexToHsl } from "@/lib/theme";
 import { cn } from "@/lib/utils";
+
+/** Zone resize handles. */
+type Handle = "nw" | "n" | "ne" | "e" | "se" | "s" | "sw" | "w";
+const HANDLES: { id: Handle; cursor: string; pos: string }[] = [
+  { id: "nw", cursor: "nwse-resize", pos: "-left-1 -top-1 h-3 w-3" },
+  { id: "n", cursor: "ns-resize", pos: "left-1/2 -top-1 h-3 w-4 -translate-x-1/2" },
+  { id: "ne", cursor: "nwse-resize", pos: "-right-1 -top-1 h-3 w-3" },
+  { id: "e", cursor: "ew-resize", pos: "-right-1 top-1/2 h-4 w-3 -translate-y-1/2" },
+  { id: "se", cursor: "nwse-resize", pos: "-right-1 -bottom-1 h-3 w-3" },
+  { id: "s", cursor: "ns-resize", pos: "left-1/2 -bottom-1 h-3 w-4 -translate-x-1/2" },
+  { id: "sw", cursor: "nwse-resize", pos: "-left-1 -bottom-1 h-3 w-3" },
+  { id: "w", cursor: "ew-resize", pos: "-left-1 top-1/2 h-4 w-3 -translate-y-1/2" },
+];
+
+export interface ZoneRect {
+  col: number;
+  row: number;
+  cols: number;
+  rows: number;
+}
 
 interface PlacementFrameProps {
   placement: Placement;
@@ -25,25 +44,25 @@ interface PlacementFrameProps {
   /** Whether the module currently has live data (kiosk hides empties). */
   hasData: boolean;
   title: string;
-  /** Grid element width in px — used to convert pointer deltas to columns. */
+  /** Grid element width in display px (zoom applied) — cell pitch math. */
   gridWidth?: number;
-  /** Canvas zoom (screen px per design px) — pointer deltas are divided by it. */
+  /** Canvas zoom (screen px per design px). */
   zoom?: number;
-  /** CSS grid gap in design px (free-drag drop-cell math). */
+  /** CSS grid gap in design px. */
   gap?: number;
-  /** Grid row height in design px (free-drag drop-cell math). */
+  /** Grid row height in design px (fill: 1fr over the height, scroll: fixed). */
   rowHeight?: number;
-  /** The grid element's bounding rect in screen px (drop-cell math). */
-  getGridRect?: () => DOMRect | null;
-  /** Live free-drag target cell — the studio shows a drop indicator. */
-  onFreeDrag?: (
+  /**
+   * Live zone box while a move/resize is in flight — the studio clamps it
+   * (bounds + no overlap) and applies it; release commits (null = plain click).
+   */
+  onZoneDrag?: (
     id: string,
-    pos: { col: number; row: number },
+    rect: ZoneRect,
     pointer: { x: number; y: number }
   ) => void;
-  /** Free-drag released; commit the last cell (null = plain click). */
-  onFreeDragEnd?: (id: string, pos: { col: number; row: number } | null) => void;
-  /** Dimmed while a free-drag is in flight (the drop indicator shows the target). */
+  onZoneDragEnd?: (id: string, rect: ZoneRect | null) => void;
+  /** Dimmed while a zone drag is in flight (the indicator shows the target). */
   ghost?: boolean;
   onSpan?: (id: string, span: number) => void;
   onToggle?: (id: string) => void;
@@ -58,9 +77,9 @@ const clampSpan = (span: number, cols: number) =>
   Math.max(1, Math.min(cols, span));
 
 /**
- * The studio chrome around a placement: drag-to-reorder (grip),
- * edge-drag resize (col span), hide and remove controls.
- * Renders plain content in kiosk mode.
+ * The studio chrome around a zone: drag the body to move it, drag the
+ * handles to resize it (the studio clamps to the grid + no overlap),
+ * hide and remove controls. Renders plain content in kiosk mode.
  */
 export function PlacementFrame({
   placement,
@@ -72,9 +91,8 @@ export function PlacementFrame({
   zoom = 1,
   gap = 12,
   rowHeight,
-  getGridRect,
-  onFreeDrag,
-  onFreeDragEnd,
+  onZoneDrag,
+  onZoneDragEnd,
   ghost,
   onSpan,
   onToggle,
@@ -85,12 +103,16 @@ export function PlacementFrame({
 }: PlacementFrameProps) {
   const fill = profile.fit === "fill";
   const span = clampSpan(placement.colSpan, profile.cols);
-  const colWidth = gridWidth > 0 ? gridWidth / profile.cols : 0;
-  // Gap-aware track width — the grid's real column size, matching the
-  // studio's indicator math (simple colWidth keeps the resize feel).
-  const trackW =
-    gridWidth > 0 ? (gridWidth - (profile.cols - 1) * gap) / profile.cols : 0;
+  const rowSpan = Math.max(1, placement.rowSpan);
   const design = placement.design;
+  const blank = placement.module === BLANK_MODULE;
+
+  // Cell pitch in display px (the grid renders at profile size × zoom,
+  // gaps included, so the track pitch is the full width divided over the
+  // column/row count).
+  const pitchX =
+    gridWidth > 0 ? (gridWidth + gap * zoom) / profile.cols : 0;
+  const pitchY = rowHeight !== undefined ? (rowHeight + gap) * zoom : 0;
 
   // Fit-to-box (fill mode): the content renders at its natural size inside the
   // cell box and is scaled down (transform, so layout is untouched) until it
@@ -120,79 +142,85 @@ export function PlacementFrame({
     return () => ro.disconnect();
   }, [fill]);
 
-  // Hide empty modules in kiosk mode (they claim no space).
-  if (!studio && !hasData) return null;
+  // Hide empty modules (and blank zones) in kiosk mode (they claim no space).
+  if (!studio && (!hasData || blank)) return null;
 
   /**
-   * Free placement: press anywhere on the frame (except controls) and drag to
-   * a grid cell. Live target is reported via onFreeDrag; release commits.
+   * Move: press anywhere on the frame (except controls/handles) and drag.
+   * The top-left cell follows the pointer delta; the studio clamps.
    */
-  function startFreeDrag(e: ReactPointerEvent) {
+  function startMove(e: ReactPointerEvent) {
     if (e.button !== 0) return;
     const target = e.target as HTMLElement;
     if (target.closest("button, input, select, a, [data-no-drag]")) return;
     e.preventDefault();
     const startX = e.clientX;
     const startY = e.clientY;
+    const startCol = placement.colStart;
+    const startRow = placement.rowStart;
     let active = false;
-    let last: { col: number; row: number } | null = null;
-
-    const compute = (x: number, y: number) => {
-      const rect = getGridRect?.();
-      if (!rect || trackW <= 0 || rowHeight === undefined) return null;
-      const cellW = (trackW + gap) * zoom;
-      const cellH = (rowHeight + gap) * zoom;
-      const col = Math.max(
-        1,
-        Math.min(
-          profile.cols - span + 1,
-          Math.floor((x - rect.left) / cellW) + 1
-        )
-      );
-      const row = Math.max(1, Math.min(24, Math.floor((y - rect.top) / cellH) + 1));
-      return { col, row };
-    };
+    let last: ZoneRect | null = null;
 
     const move = (ev: PointerEvent) => {
       if (!active && Math.hypot(ev.clientX - startX, ev.clientY - startY) > 4) {
         active = true;
       }
-      if (!active) return;
-      const cell = compute(ev.clientX, ev.clientY);
-      if (cell) {
-        last = cell;
-        onFreeDrag?.(placement.id, cell, { x: ev.clientX, y: ev.clientY });
-      }
+      if (!active || pitchX <= 0) return;
+      const dc = Math.round((ev.clientX - startX) / pitchX);
+      const dr = pitchY > 0 ? Math.round((ev.clientY - startY) / pitchY) : 0;
+      last = { col: startCol + dc, row: startRow + dr, cols: span, rows: rowSpan };
+      onZoneDrag?.(placement.id, last, { x: ev.clientX, y: ev.clientY });
     };
     const up = () => {
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
-      onFreeDragEnd?.(placement.id, active ? last : null);
+      onZoneDragEnd?.(placement.id, last);
     };
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);
   }
 
-  function startResize(
-    e: ReactPointerEvent,
-    side: "left" | "right"
-  ) {
+  /** Resize: drag a handle; the opposite edge stays put. */
+  function startResize(e: ReactPointerEvent, h: Handle) {
     e.preventDefault();
+    e.stopPropagation();
     const startX = e.clientX;
-    const startSpan = clampSpan(placement.colSpan, profile.cols);
-    if (colWidth <= 0) return;
+    const startY = e.clientY;
+    let last: ZoneRect | null = null;
 
     const move = (ev: PointerEvent) => {
-      const deltaCols = Math.round((ev.clientX - startX) / (colWidth * zoom));
-      const next =
-        side === "right"
-          ? clampSpan(startSpan + deltaCols, profile.cols)
-          : clampSpan(startSpan - deltaCols, profile.cols);
-      if (next !== placement.colSpan) onSpan?.(placement.id, next);
+      const dc = pitchX > 0 ? Math.round((ev.clientX - startX) / pitchX) : 0;
+      const dr = pitchY > 0 ? Math.round((ev.clientY - startY) / pitchY) : 0;
+      let col = placement.colStart;
+      let row = placement.rowStart;
+      let cols = span;
+      let rows = rowSpan;
+      if (h === "w" || h === "nw" || h === "sw") {
+        col = placement.colStart + dc;
+        cols = span - dc;
+      }
+      if (h === "e" || h === "ne" || h === "se") cols = span + dc;
+      if (h === "n" || h === "nw" || h === "ne") {
+        row = placement.rowStart + dr;
+        rows = rowSpan - dr;
+      }
+      if (h === "s" || h === "se" || h === "sw") rows = rowSpan + dr;
+      // Keep the box at least one cell: shrink-past-zero pushes the start.
+      if (cols < 1) {
+        col += 1 - cols;
+        cols = 1;
+      }
+      if (rows < 1) {
+        row += 1 - rows;
+        rows = 1;
+      }
+      last = { col, row, cols, rows };
+      onZoneDrag?.(placement.id, last, { x: ev.clientX, y: ev.clientY });
     };
     const up = () => {
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
+      onZoneDragEnd?.(placement.id, last);
     };
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);
@@ -209,14 +237,8 @@ export function PlacementFrame({
         studio && ghost && "opacity-40"
       )}
       style={{
-        gridColumn: placement.colStart
-          ? `${placement.colStart} / span ${span}`
-          : `span ${span}`,
-        gridRow: placement.rowStart
-          ? `${placement.rowStart} / span ${placement.rowSpan ?? 1}`
-          : placement.rowSpan
-            ? `span ${placement.rowSpan}`
-            : undefined,
+        gridColumn: `${placement.colStart} / span ${span}`,
+        gridRow: `${placement.rowStart} / span ${rowSpan}`,
         // Per-placement accent override: scopes the theme's --accent token to
         // this frame's subtree (rings, gauges, highlights recolor with it).
         ...(design?.accent
@@ -224,23 +246,19 @@ export function PlacementFrame({
           : {}),
       }}
       onClick={onSelect}
-      onPointerDown={studio ? startFreeDrag : undefined}
+      onPointerDown={studio ? startMove : undefined}
     >
       {studio && (
         <>
           {/* Controls */}
           <div className="absolute right-1.5 top-1.5 z-20 flex items-center gap-1 opacity-60 transition-opacity group-hover:opacity-100">
             <span className="rounded-md bg-popover/90 px-1.5 py-0.5 text-xs tabular-nums text-muted-foreground">
-              {span}/{profile.cols}
-              {placement.rowSpan ? ` ×${placement.rowSpan}` : ""}
+              {span}×{rowSpan}
             </span>
             <button
               className="rounded-md bg-popover/90 p-1 text-muted-foreground hover:text-foreground"
               onClick={() =>
-                onSpan?.(
-                  placement.id,
-                  clampSpan(placement.colSpan - 1, profile.cols)
-                )
+                onSpan?.(placement.id, clampSpan(placement.colSpan - 1, profile.cols))
               }
               title="Narrower"
             >
@@ -249,10 +267,7 @@ export function PlacementFrame({
             <button
               className="rounded-md bg-popover/90 p-1 text-muted-foreground hover:text-foreground"
               onClick={() =>
-                onSpan?.(
-                  placement.id,
-                  clampSpan(placement.colSpan + 1, profile.cols)
-                )
+                onSpan?.(placement.id, clampSpan(placement.colSpan + 1, profile.cols))
               }
               title="Wider"
             >
@@ -278,31 +293,20 @@ export function PlacementFrame({
             </button>
           </div>
 
-          {/* Grip — drag anywhere on the frame to place it in a cell */}
-          <div
-            className="absolute left-1.5 top-1.5 z-20 cursor-grab rounded-md bg-popover/90 p-1 text-muted-foreground active:cursor-grabbing"
-            title="Drag to move"
-          >
-            <GripVertical className="h-3.5 w-3.5" />
-          </div>
-
-          {/* Resize handles */}
-          <div
-            className="absolute -left-1 top-0 z-10 h-full w-2 cursor-col-resize"
-            data-no-drag
-            onPointerDown={(e) => startResize(e, "left")}
-            title="Drag to resize"
-          >
-            <div className="mx-auto h-full w-0.5 bg-ring/0 transition-colors hover:bg-ring/60" />
-          </div>
-          <div
-            className="absolute -right-1 top-0 z-10 h-full w-2 cursor-col-resize"
-            data-no-drag
-            onPointerDown={(e) => startResize(e, "right")}
-            title="Drag to resize"
-          >
-            <div className="mx-auto h-full w-0.5 bg-ring/0 transition-colors hover:bg-ring/60" />
-          </div>
+          {/* Resize handles (the studio clamps to the grid + no overlap) */}
+          {HANDLES.map((h) => (
+            <div
+              key={h.id}
+              data-no-drag
+              onPointerDown={(e) => startResize(e, h.id)}
+              className={cn(
+                "absolute z-10 rounded-sm bg-ring/0 transition-colors hover:bg-ring/60",
+                h.pos
+              )}
+              style={{ cursor: h.cursor }}
+              title="Drag to resize"
+            />
+          ))}
         </>
       )}
 
@@ -319,7 +323,16 @@ export function PlacementFrame({
               : undefined
           }
         >
-          {studio && !hasData ? (
+          {studio && blank ? (
+            <div className="flex h-full min-h-16 flex-col items-center justify-center gap-0.5 rounded-lg border border-dashed border-border/70 bg-card/20 p-3">
+              <div className="text-sm font-medium text-muted-foreground">
+                Blank zone
+              </div>
+              <div className="text-xs tabular-nums text-muted-foreground/60">
+                {span}×{rowSpan} — pick a widget
+              </div>
+            </div>
+          ) : studio && !hasData ? (
             <div className="flex h-full min-h-24 flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-border bg-card/40 p-4">
               <div className="text-sm font-medium text-muted-foreground">
                 {title}

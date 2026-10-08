@@ -4,7 +4,7 @@ import { modules } from "@/modules";
 import type { SensorMap } from "@/modules/types";
 import type { SensorValue } from "@/hooks/useSensors";
 import { PanelView } from "@/components/widgets/PanelView";
-import { CARDS_ID, type Placement } from "@/lib/layout";
+import { CARDS_ID, BLANK_MODULE, type Placement } from "@/lib/layout";
 
 const moduleById = new Map(modules.map((m) => [m.id, m]));
 
@@ -23,6 +23,11 @@ export function placementContent(
   sensors: SensorMap,
   unclaimed: Array<[string, SensorValue]>
 ): PlacementRender {
+  if (p.module === BLANK_MODULE) {
+    // A drawn, unfilled zone: nothing to render (the kiosk shows open
+    // space, the studio shows the dashed zone chrome).
+    return { content: null, hasData: false, title: "Blank zone" };
+  }
   if (p.panel) {
     // A custom panel renders its own widgets; it "has data" when at least
     // one widget is visible (an empty panel is hidden in kiosk mode).

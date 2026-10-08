@@ -36,6 +36,8 @@ function Stat({
 export const steamModule: DashboardModule = {
   id: "steam",
   title: "Steam",
+  minCols: 3,
+  minRows: 2,
   matches: (key) => key.startsWith(P),
   settings: [
     { key: "showProfile", label: "Profile", type: "boolean", default: true },

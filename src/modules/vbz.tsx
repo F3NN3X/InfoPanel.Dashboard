@@ -13,6 +13,8 @@ const P = "plugins.InfoPanel.VBZ.";
 export const vbzModule: DashboardModule = {
   id: "vbz",
   title: "Departures",
+  minCols: 2,
+  minRows: 1,
   matches: (key) => key.startsWith(P),
   render: (sensors) => {
     const station = liveText(findEntry(sensors, P, "station_name")?.sensor);

@@ -20,6 +20,8 @@ const BRIDGE = "plugins.InfoPanel.DataBridge.weather.";
 export const weatherModule: DashboardModule = {
   id: "weather",
   title: "Weather",
+  minCols: 4,
+  minRows: 2,
   matches: (key) => key.startsWith(P),
   settings: [
     { key: "showConditions", label: "Conditions card", type: "boolean", default: true },

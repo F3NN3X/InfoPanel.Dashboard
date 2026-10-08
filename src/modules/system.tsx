@@ -13,6 +13,8 @@ import {
 export const systemModule: DashboardModule = {
   id: "system",
   title: "System",
+  minCols: 4,
+  minRows: 2,
   matches: (key) => key.startsWith("system."),
   settings: [
     { key: "showLoad", label: "System load card", type: "boolean", default: true },

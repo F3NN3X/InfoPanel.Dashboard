@@ -1,7 +1,5 @@
 import { DEFAULT_THEME, type ThemeTokens } from "./theme";
 import type { ModuleSettings } from "@/modules/types";
-import type { IPProfile } from "./ip/types";
-import { arcv2 as arcv2IP } from "./ip/imported/arcv2";
 
 /**
  * Layout engine — the dashboard is a grid of *placements*. Each placement
@@ -15,6 +13,10 @@ import { arcv2 as arcv2IP } from "./ip/imported/arcv2";
 export const CARDS_ID = "cards";
 /** Sentinel module id for placement instances that render a custom panel. */
 export const PANEL_ID = "panel";
+/** Sentinel module id for a zone with no widget (a drawn, unfilled region). */
+export const BLANK_MODULE = "blank";
+/** Fixed row height (design px) for "scroll" profiles — the page scrolls. */
+export const SCROLL_ROW_H = 120;
 
 /* ---------------------------------------------------------------- *
  * Panels + widgets — the "layers and groups" model.
@@ -149,16 +151,19 @@ export interface PlacementDesign {
 export interface Placement {
   /** Unique instance id (React key). */
   id: string;
-  /** Registry module id, CARDS_ID, or PANEL_ID (custom panel). */
+  /**
+   * Registry module id, CARDS_ID, BLANK_MODULE, or PANEL_ID (custom panel)
+   * — the widget the zone hosts.
+   */
   module: string;
-  /** Number of grid columns this placement spans. */
+  /** 1-based grid column this zone starts in. */
+  colStart: number;
+  /** 1-based grid row this zone starts in. */
+  rowStart: number;
+  /** Number of grid columns this zone spans (width). */
   colSpan: number;
-  /** 1-based grid column this placement starts in (auto when omitted). */
-  colStart?: number;
-  /** 1-based grid row this placement starts in (auto when omitted). */
-  rowStart?: number;
-  /** Number of grid rows this placement spans (height). */
-  rowSpan?: number;
+  /** Number of grid rows this zone spans (height). */
+  rowSpan: number;
   visible: boolean;
   /** Per-instance module settings, merged over the module's defaults. */
   settings?: ModuleSettings;
@@ -178,8 +183,14 @@ export interface MonitorProfile {
   /** Number of grid columns. */
   cols: number;
   /**
-   * "scroll": content flows and the page scrolls (normal displays).
-   * "fill": content is squeezed into the viewport height (kiosk strips).
+   * Number of grid rows — uniform cells of width/cols × height/rows.
+   * Zones are drawn, moved and resized on this grid (no auto-flow).
+   */
+  rows: number;
+  /**
+   * "scroll": fixed row height (SCROLL_ROW_H) and the page scrolls
+   * (normal displays). "fill": the grid fills the profile height exactly
+   * (kiosk strips).
    */
   fit: "scroll" | "fill";
   placements: Placement[];
@@ -191,7 +202,7 @@ export interface MonitorProfile {
 }
 
 export interface DashboardConfig {
-  version: 1;
+  version: 2;
   /** Profile id to show, or "auto" to match the window size. */
   activeProfile: string;
   /**
@@ -200,12 +211,6 @@ export interface DashboardConfig {
    */
   kioskProfileId?: string;
   profiles: MonitorProfile[];
-  /**
-   * Free-canvas profiles (the 1:1 InfoPanel model — absolute item
-   * placement, groups, per-item typography). Rendered edge-to-edge by
-   * the IP canvas; the id may be pinned like any grid profile.
-   */
-  freeProfiles?: IPProfile[];
   theme: ThemeTokens;
   /** Corner radius in rem (shadcn --radius). */
   radius: number;
@@ -221,10 +226,20 @@ export function uid(prefix = "p"): string {
 
 function placement(
   module: string,
+  colStart: number,
+  rowStart: number,
   colSpan: number,
-  visible = true
+  rowSpan = 1
 ): Placement {
-  return { id: uid(module), module, colSpan, visible };
+  return {
+    id: uid(module),
+    module,
+    colStart,
+    rowStart,
+    colSpan,
+    rowSpan,
+    visible: true,
+  };
 }
 
 function defaultProfiles(): MonitorProfile[] {
@@ -237,21 +252,22 @@ function defaultProfiles(): MonitorProfile[] {
       width: 1920,
       height: 1080,
       cols: 12,
+      rows: 10,
       fit: "scroll",
       placements: [
-        placement("system", 12),
-        placement("spotify", 6),
-        placement("media", 6),
-        placement("steam", 12),
-        placement("weather", 12),
-        placement("fps", 12),
-        placement("audio", 6),
-        placement("vbz", 6),
-        placement("bluetooth", 6),
-        placement("notifications", 6),
-        placement("textfile", 6),
-        placement("streamdeck", 12),
-        placement(CARDS_ID, 12),
+        placement("system", 1, 1, 12),
+        placement("spotify", 1, 2, 6),
+        placement("media", 7, 2, 6),
+        placement("steam", 1, 3, 12),
+        placement("weather", 1, 4, 12),
+        placement("fps", 1, 5, 12),
+        placement("audio", 1, 6, 6),
+        placement("vbz", 7, 6, 6),
+        placement("bluetooth", 1, 7, 6),
+        placement("notifications", 7, 7, 6),
+        placement("textfile", 1, 8, 6),
+        placement("streamdeck", 1, 9, 12),
+        placement(CARDS_ID, 1, 10, 12),
       ],
     },
     {
@@ -260,14 +276,15 @@ function defaultProfiles(): MonitorProfile[] {
       width: 1920,
       height: 550,
       cols: 12,
+      rows: 2,
       fit: "fill",
       placements: [
-        placement("system", 2),
-        placement("spotify", 2),
-        placement("media", 2),
-        placement("steam", 2),
-        placement("weather", 2),
-        placement("fps", 2),
+        placement("system", 1, 1, 2, 2),
+        placement("spotify", 3, 1, 2, 2),
+        placement("media", 5, 1, 2, 2),
+        placement("steam", 7, 1, 2, 2),
+        placement("weather", 9, 1, 2, 2),
+        placement("fps", 11, 1, 2, 2),
       ],
     },
     {
@@ -276,86 +293,132 @@ function defaultProfiles(): MonitorProfile[] {
       width: 1024,
       height: 600,
       cols: 6,
+      rows: 4,
       fit: "scroll",
       placements: [
-        placement("system", 2),
-        placement("spotify", 2),
-        placement("weather", 2),
-        placement("media", 3),
-        placement("steam", 3),
-        placement("fps", 3),
-        placement("audio", 3),
-        placement(CARDS_ID, 6),
+        placement("system", 1, 1, 2),
+        placement("spotify", 3, 1, 2),
+        placement("weather", 5, 1, 2),
+        placement("media", 1, 2, 3),
+        placement("steam", 4, 2, 3),
+        placement("fps", 1, 3, 3),
+        placement("audio", 4, 3, 3),
+        placement(CARDS_ID, 1, 4, 6),
       ],
     },
   ];
 }
 
-/** Shipped free-canvas profiles (the imported InfoPanel designs). */
-export function defaultFreeProfiles(): IPProfile[] {
-  return [{ ...arcv2IP, sampleVersion: ARCV2_FREE_PROFILE_VERSION }];
-}
-
 export function defaultConfig(): DashboardConfig {
   return {
-    version: 1,
+    version: 2,
     activeProfile: "auto",
     profiles: defaultProfiles(),
-    freeProfiles: defaultFreeProfiles(),
     theme: { ...DEFAULT_THEME },
     radius: 0.5,
   };
 }
 
 /**
+ * v1→v2 profile normalization: legacy profiles auto-flowed their
+ * placements (no colStart/rowStart) and had no rows. Simulate the old
+ * left-to-right flow to fill explicit zone boxes in place, add a row
+ * count, and clamp everything into the grid. Shipped profiles (already
+ * explicit) pass through untouched.
+ */
+function normalizeProfile(p: MonitorProfile): MonitorProfile {
+  const cols = Math.max(2, p.cols ?? 12);
+  const rows = Math.max(1, p.rows ?? (p.height <= 700 ? 4 : 6));
+  const placements = p.placements.map((pl) => ({
+    ...pl,
+    colSpan: Math.max(1, Math.min(cols, pl.colSpan ?? 1)),
+  }));
+  if (placements.every((pl) => pl.colStart !== undefined && pl.rowStart !== undefined)) {
+    // Explicit — just make sure rowSpan is set and boxes fit the grid.
+    for (const pl of placements) {
+      pl.rowSpan = Math.max(1, pl.rowSpan ?? 1);
+      pl.rowStart = Math.max(1, Math.min(rows, pl.rowStart));
+      pl.colStart = Math.max(1, Math.min(cols, pl.colStart));
+      pl.rowSpan = Math.min(pl.rowSpan, rows - pl.rowStart + 1);
+      pl.colSpan = Math.min(pl.colSpan, cols - pl.colStart + 1);
+    }
+    return { ...p, cols, rows, placements };
+  }
+  // Auto-flow: explicit rowStarts pin their row; auto items advance a
+  // left-to-right flow pointer that wraps at the grid edge.
+  let flowRow = 1;
+  let flowCol = 1;
+  for (const pl of placements) {
+    if (pl.colStart === undefined || pl.rowStart === undefined) {
+      if (pl.rowStart !== undefined && pl.colStart === undefined) {
+        flowRow = pl.rowStart;
+        flowCol = 1;
+      }
+      if (flowCol + pl.colSpan - 1 > cols) {
+        flowRow += 1;
+        flowCol = 1;
+      }
+      pl.colStart = flowCol;
+      pl.rowStart = pl.rowStart ?? flowRow;
+      flowCol += pl.colSpan;
+    }
+    pl.rowSpan = Math.max(1, pl.rowSpan ?? 1);
+  }
+  for (const pl of placements) {
+    pl.rowStart = Math.max(1, Math.min(rows, pl.rowStart));
+    pl.colStart = Math.max(1, Math.min(cols, pl.colStart));
+    pl.rowSpan = Math.min(pl.rowSpan, rows - pl.rowStart + 1);
+    pl.colSpan = Math.min(pl.colSpan, cols - pl.colStart + 1);
+  }
+  return { ...p, cols, rows, placements };
+}
+
+/**
  * Merge a stored/partial config over the defaults (tolerates missing
  * fields). Used by the local load and by the bridge-synced copy (the
- * kiosk window pulls the studio's latest state this way).
+ * kiosk window pulls the studio's latest state this way). Also runs the
+ * v1→v2 migration: fills explicit zone boxes + rows on legacy profiles,
+ * drops the retired free-canvas profiles, and repoints pins that
+ * referenced them.
  */
 export function mergeConfig(parsed: Partial<DashboardConfig>): DashboardConfig {
   const defaults = defaultConfig();
-  const profiles =
+  const profiles = (
     parsed.profiles && parsed.profiles.length > 0
       ? parsed.profiles
-      : defaults.profiles;
-  // Shipped free-canvas profiles stand in when the stored copy is missing
-  // (the imported design files are regenerated by tools/ip-import.cjs).
-  const freeProfiles: IPProfile[] =
-    parsed.freeProfiles && parsed.freeProfiles.length > 0
-      ? parsed.freeProfiles
-      : defaults.freeProfiles ?? [];
+      : defaults.profiles
+  ).map(normalizeProfile);
   // Re-inject the sample profile if a stored config is missing it, and
   // replace it when the app ships a newer version of the shipped layout.
   const existingSample = profiles.find((p) => p.id === SAMPLE_PROFILE_ID);
   if (!existingSample) {
-    profiles.push(sampleProfile());
+    profiles.push(normalizeProfile(sampleProfile()));
   } else if (existingSample.sampleVersion !== SAMPLE_PROFILE_VERSION) {
-    profiles[profiles.indexOf(existingSample)] = sampleProfile();
+    profiles[profiles.indexOf(existingSample)] = normalizeProfile(
+      sampleProfile()
+    );
   }
   // Same treatment for the shipped arcv2 recreation.
   const existingArc = profiles.find((p) => p.id === ARCV2_PROFILE_ID);
   if (!existingArc) {
-    profiles.push(arcv2Profile());
+    profiles.push(normalizeProfile(arcv2Profile()));
   } else if (existingArc.sampleVersion !== ARCV2_PROFILE_VERSION) {
-    profiles[profiles.indexOf(existingArc)] = arcv2Profile();
+    profiles[profiles.indexOf(existingArc)] = normalizeProfile(arcv2Profile());
   }
-  // And the shipped free-canvas arcv2 (its id is stable; the item ids
-  // inside were fixed by the importer, so older stored copies are stale).
-  const existingArcFree = freeProfiles.find(
-    (p) => p.id === ARCV2_FREE_PROFILE_ID
-  );
-  if (!existingArcFree) {
-    freeProfiles.push(defaultFreeProfiles()[0]);
-  } else if (existingArcFree.sampleVersion !== ARCV2_FREE_PROFILE_VERSION) {
-    freeProfiles[freeProfiles.indexOf(existingArcFree)] =
-      defaultFreeProfiles()[0];
-  }
+  // Pins pointing at dropped free-canvas profiles land on the grid
+  // arcv2 (the 1:1 look is already covered by it).
+  const byId = new Set(profiles.map((p) => p.id));
+  let activeProfile = parsed.activeProfile ?? defaults.activeProfile;
+  if (activeProfile !== "auto" && !byId.has(activeProfile))
+    activeProfile = "auto";
+  let kioskProfileId = parsed.kioskProfileId;
+  if (kioskProfileId && !byId.has(kioskProfileId))
+    kioskProfileId = ARCV2_PROFILE_ID;
   return {
-    version: 1,
-    activeProfile: parsed.activeProfile ?? defaults.activeProfile,
-    kioskProfileId: parsed.kioskProfileId,
+    version: 2,
+    activeProfile,
+    kioskProfileId,
     profiles,
-    freeProfiles,
     theme: { ...DEFAULT_THEME, ...parsed.theme },
     radius: parsed.radius ?? defaults.radius,
   };
@@ -419,14 +482,10 @@ export function newProfile(
     width,
     height,
     cols: width <= 1280 ? 6 : 12,
+    rows: height <= 700 ? 4 : 6,
     fit: height <= 700 && width >= 1600 ? "fill" : "scroll",
-    placements: [
-      placement("system", width <= 1280 ? 6 : 12),
-      placement("spotify", width <= 1280 ? 3 : 6),
-      placement("media", width <= 1280 ? 3 : 6),
-      placement("weather", width <= 1280 ? 6 : 12),
-      placement(CARDS_ID, width <= 1280 ? 6 : 12),
-    ],
+    // A blank canvas — the user draws zones, then fills them with widgets.
+    placements: [],
   };
 }
 
@@ -527,6 +586,7 @@ function sp(
 }
 
 interface SamplePlacementOpts {
+  colStart?: number;
   rowStart?: number;
   rowSpan?: number;
 }
@@ -542,10 +602,11 @@ function sampleModulePlacement(
   return {
     id: uid(module),
     module,
+    colStart: opts.colStart ?? 1,
     colSpan,
     visible: true,
-    rowStart: opts.rowStart,
-    rowSpan: opts.rowSpan,
+    rowStart: opts.rowStart ?? 1,
+    rowSpan: opts.rowSpan ?? 1,
     settings: opts.settings,
     design: opts.design,
   };
@@ -559,10 +620,11 @@ function samplePanelPlacement(
   return {
     id: uid(PANEL_ID),
     module: PANEL_ID,
+    colStart: opts.colStart ?? 1,
     colSpan,
     visible: true,
-    rowStart: opts.rowStart,
-    rowSpan: opts.rowSpan,
+    rowStart: opts.rowStart ?? 1,
+    rowSpan: opts.rowSpan ?? 1,
     panel,
   };
 }
@@ -702,20 +764,42 @@ export function sampleProfile(): MonitorProfile {
     width: 1920,
     height: 550,
     cols: 12,
+    rows: 6,
     fit: "fill",
     placements: [
       sampleModulePlacement("spotify", 3, {
+        colStart: 1,
         rowStart: 1,
         settings: { bar: true },
         design: { accent: SAMPLE_ACCENT },
       }),
-      samplePanelPlacement(fpsRings, 3, { rowStart: 2 }),
-      samplePanelPlacement(network, 3, { rowStart: 3 }),
-      samplePanelPlacement(clockBlock, 5, { rowStart: 1, rowSpan: 3 }),
-      samplePanelPlacement(lastPlayed, 4, { rowStart: 1, rowSpan: 3 }),
-      samplePanelPlacement(weather, 4, { rowStart: 4, rowSpan: 3 }),
-      samplePanelPlacement(gpuBlock, 4, { rowStart: 4, rowSpan: 3 }),
-      samplePanelPlacement(sessionBlock, 4, { rowStart: 4, rowSpan: 3 }),
+      samplePanelPlacement(fpsRings, 3, { colStart: 1, rowStart: 2 }),
+      samplePanelPlacement(network, 3, { colStart: 1, rowStart: 3 }),
+      samplePanelPlacement(clockBlock, 5, {
+        colStart: 4,
+        rowStart: 1,
+        rowSpan: 3,
+      }),
+      samplePanelPlacement(lastPlayed, 4, {
+        colStart: 9,
+        rowStart: 1,
+        rowSpan: 3,
+      }),
+      samplePanelPlacement(weather, 4, {
+        colStart: 1,
+        rowStart: 4,
+        rowSpan: 3,
+      }),
+      samplePanelPlacement(gpuBlock, 4, {
+        colStart: 5,
+        rowStart: 4,
+        rowSpan: 3,
+      }),
+      samplePanelPlacement(sessionBlock, 4, {
+        colStart: 9,
+        rowStart: 4,
+        rowSpan: 3,
+      }),
     ],
   };
 }
@@ -735,11 +819,9 @@ export function sampleProfile(): MonitorProfile {
  * saved config is missing it, and upgrades it when the version bumps.
  * ---------------------------------------------------------------- */
 
+/** Shipped grid arcv2 recreation (the 1:1 InfoPanel look, grid model). */
 export const ARCV2_PROFILE_ID = "arcv2";
 export const ARCV2_PROFILE_VERSION = 5;
-/** Shipped free-canvas (InfoPanel 1:1) arcv2 recreation. */
-export const ARCV2_FREE_PROFILE_ID = "arcv2-ip";
-export const ARCV2_FREE_PROFILE_VERSION = 1;
 
 /** The export's yellow accent (#FFFFBC13 in Profile/DisplayItems.xml). */
 const ARCV2_ACCENT = "#ffbc13";
@@ -791,7 +873,7 @@ function apPlacement(panel: PanelDef, colSpan: number, opts: ArcPlacementOpts): 
     colSpan,
     colStart: opts.colStart,
     rowStart: opts.rowStart,
-    rowSpan: opts.rowSpan,
+    rowSpan: opts.rowSpan ?? 1,
     visible: true,
     panel,
   };
@@ -984,6 +1066,7 @@ export function arcv2Profile(): MonitorProfile {
     width: 1920,
     height: 550,
     cols: 12,
+    rows: 6,
     fit: "fill",
     placements: [
       // Left column (C1–4): spotify, fps rings, network, weather.

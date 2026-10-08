@@ -32,6 +32,8 @@ function parseCoords(suffix: string): { col: number; row: number } {
 export const streamdeckModule: DashboardModule = {
   id: "streamdeck",
   title: "Stream Deck",
+  minCols: 3,
+  minRows: 2,
   matches: (key) => key.startsWith(P),
   render: (sensors) => {
     const groups = [...groupByContainer(sensors, P).entries()];

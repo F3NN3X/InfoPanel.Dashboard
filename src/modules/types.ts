@@ -33,6 +33,9 @@ export interface DashboardModule {
   id: string;
   /** Section title */
   title: string;
+  /** Minimum zone footprint this widget renders well in (grid cells). */
+  minCols?: number;
+  minRows?: number;
   /** Sensor keys this module consumes — the generic fallback skips these. */
   matches: (key: string) => boolean;
   /** Render the module's cards. Return null to hide the section. */

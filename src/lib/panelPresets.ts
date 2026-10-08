@@ -21,8 +21,9 @@ export interface PanelPreset {
   id: string;
   title: string;
   description?: string;
-  /** Default column span when dropped on a canvas. */
+  /** Minimum zone footprint this preset renders well in (grid cells). */
   colSpan: number;
+  rowSpan: number;
   make: () => PanelDef;
 }
 
@@ -37,14 +38,16 @@ export const panelPresets: PanelPreset[] = [
     id: "blank",
     title: "Blank panel",
     description: "Empty — build it from widgets",
-    colSpan: 6,
+    colSpan: 2,
+    rowSpan: 1,
     make: () => newPanel("Panel"),
   },
   {
     id: "system",
     title: "System",
     description: "CPU + RAM load bars",
-    colSpan: 6,
+    colSpan: 4,
+    rowSpan: 2,
     make: () =>
       makePanel(
         "System",
@@ -60,7 +63,8 @@ export const panelPresets: PanelPreset[] = [
     id: "ram",
     title: "RAM",
     description: "Used / free GB + graph",
-    colSpan: 6,
+    colSpan: 2,
+    rowSpan: 2,
     make: () =>
       makePanel(
         "RAM",
@@ -90,7 +94,8 @@ export const panelPresets: PanelPreset[] = [
     id: "cpu",
     title: "CPU",
     description: "Power, temperature, graph",
-    colSpan: 6,
+    colSpan: 2,
+    rowSpan: 2,
     make: () =>
       makePanel(
         "CPU",
@@ -126,7 +131,8 @@ export const panelPresets: PanelPreset[] = [
     id: "gpu",
     title: "GPU",
     description: "Usage, power, fans, graph",
-    colSpan: 6,
+    colSpan: 3,
+    rowSpan: 2,
     make: () =>
       makePanel(
         "GPU",
@@ -174,7 +180,8 @@ export const panelPresets: PanelPreset[] = [
     id: "fps",
     title: "FPS gauges",
     description: "Ring gauges for RTSS metrics",
-    colSpan: 12,
+    colSpan: 3,
+    rowSpan: 2,
     make: () =>
       makePanel(
         "Performance",
@@ -216,7 +223,8 @@ export const panelPresets: PanelPreset[] = [
     id: "steam",
     title: "Steam",
     description: "Profile, game, stats, news",
-    colSpan: 6,
+    colSpan: 3,
+    rowSpan: 2,
     make: () =>
       makePanel(
         "Steam",
@@ -271,7 +279,8 @@ export const panelPresets: PanelPreset[] = [
     id: "weather",
     title: "Weather",
     description: "Conditions + wind + pressure",
-    colSpan: 6,
+    colSpan: 4,
+    rowSpan: 2,
     make: () =>
       makePanel(
         "Weather",
@@ -308,7 +317,8 @@ export const panelPresets: PanelPreset[] = [
     id: "network",
     title: "Network",
     description: "Throughput + data totals",
-    colSpan: 6,
+    colSpan: 2,
+    rowSpan: 2,
     make: () =>
       makePanel(
         "Network",
@@ -340,7 +350,8 @@ export const panelPresets: PanelPreset[] = [
     id: "clock",
     title: "Clock",
     description: "Time + date",
-    colSpan: 3,
+    colSpan: 1,
+    rowSpan: 1,
     make: () =>
       makePanel("Clock", [w({ kind: "clock", clock: "both" })], {
         background: "none",

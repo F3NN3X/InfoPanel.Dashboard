@@ -25,6 +25,8 @@ function humanBytes(bytes?: number): string | undefined {
 export const textfileModule: DashboardModule = {
   id: "textfile",
   title: "Text File",
+  minCols: 2,
+  minRows: 1,
   matches: (key) => key.startsWith(P),
   render: (sensors) => {
     const content = liveText(findEntry(sensors, P, "content")?.sensor);

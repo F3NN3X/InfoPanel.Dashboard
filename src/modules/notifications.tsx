@@ -12,6 +12,8 @@ const P = "plugins.InfoPanel.Notifications.";
 export const notificationsModule: DashboardModule = {
   id: "notifications",
   title: "Notifications",
+  minCols: 2,
+  minRows: 1,
   matches: (key) => key.startsWith(P),
   render: (sensors) => {
     const count = findEntry(sensors, P, "notification-count")?.sensor.value;

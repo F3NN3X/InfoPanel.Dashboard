@@ -15,6 +15,8 @@ const FPS = "plugins.fps-plugin.";
 export const fpsModule: DashboardModule = {
   id: "fps",
   title: "Performance",
+  minCols: 3,
+  minRows: 2,
   matches: (key) => key.startsWith(RTSS) || key.startsWith(FPS),
   settings: [
     {

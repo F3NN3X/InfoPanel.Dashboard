@@ -13,6 +13,8 @@ import {
 export const spotifyModule: DashboardModule = {
   id: "spotify",
   title: "Now Playing",
+  minCols: 2,
+  minRows: 1,
   matches: (key) =>
     key.startsWith("spotify.") || key.startsWith("plugins.spotify-plugin."),
   settings: [
