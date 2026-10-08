@@ -4,7 +4,13 @@ import {
   type ModernVariant,
 } from "@/components/ModernNowPlaying";
 import { isImageUrl } from "@/lib/image";
-import { bySuffixOrName, entry, groupByContainer, liveText } from "@/lib/sensors";
+import {
+  bySuffixOrName,
+  entry,
+  groupByContainer,
+  liveText,
+  type KeyedSensor,
+} from "@/lib/sensors";
 import type { BarIdle } from "@/lib/audio/bar-levels";
 import type { Orientation } from "@/lib/audio/types";
 import { chromeOf, STANDARD_SETTINGS } from "./standard-settings";
@@ -50,7 +56,7 @@ const MODERN_SETTINGS: ModuleSetting[] = [
     key: "liveSource",
     label: "Live level source (audio device)",
     type: "select",
-    default: "default-audio",
+    default: "",
     optionsFrom: "sources",
     sourcePlugin: "plugins.audio-level-meter.",
   },
@@ -251,9 +257,11 @@ function modernProps(mod: DashboardModule, s?: ModuleSettings) {
 
 /**
  * The live system audio level (0..1) that drives the audiocn visualizers:
- * the AudioLevelMeter plugin's `audio-level` (VU %, 0–100) for the selected
- * device. `""` (all sources) and missing containers fall back to
- * `default-audio`, then to any live container; no plugin → undefined (the
+ * the AudioLevelMeter plugin's `audio-level` (VU %, 0–100). A pinned
+ * `liveSource` device is used as-is; `"all sources"` (the default) — and a
+ * pinned device that is no longer live — fall back to the *loudest* live
+ * device, so music routed to a virtual / secondary device (Elgato Virtual
+ * Audio setups) still drives the visualizer. No plugin → undefined (the
  * visualizers show their idle state).
  */
 function liveLevelOf(
@@ -262,14 +270,27 @@ function liveLevelOf(
 ): number | undefined {
   const groups = groupByContainer(sensors, "plugins.audio-level-meter.");
   if (groups.size === 0) return undefined;
-  const wanted = String(cfg.liveSource ?? "") || "default-audio";
-  const items =
-    groups.get(wanted) ??
-    (wanted === "default-audio" ? undefined : groups.get("default-audio")) ??
-    [...groups.values()][0];
-  const value = bySuffixOrName(items ?? [], "audio-level", "Level")?.value;
-  if (value === undefined) return undefined;
-  return Math.min(1, Math.max(0, value / 100));
+
+  const levelOf = (items: KeyedSensor[]): number | undefined =>
+    bySuffixOrName(items, "audio-level", "Level")?.value;
+
+  const wanted = String(cfg.liveSource ?? "");
+  if (wanted) {
+    const value = groups.get(wanted) ? levelOf(groups.get(wanted)!) : undefined;
+    if (value !== undefined) {
+      return Math.min(1, Math.max(0, value / 100));
+    }
+  }
+
+  let best: number | undefined;
+  for (const items of groups.values()) {
+    const value = levelOf(items);
+    if (value !== undefined && (best === undefined || value > best)) {
+      best = value;
+    }
+  }
+  if (best === undefined) return undefined;
+  return Math.min(1, Math.max(0, best / 100));
 }
 
 function resolve(sensors: SensorMap, primary: string, fallback: string) {
