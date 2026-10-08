@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import type { SensorMap } from "@/modules";
+import { detachFromGroup, ungroupItem, zOrderItem } from "@/lib/ip/ops";
 import {
   type IPSensorBinding,
   type IPSensorImageItem,
@@ -25,6 +26,10 @@ export interface FreeStudioOps {
   sensors: SensorMap;
   patchItem: (id: string, patch: Record<string, unknown>) => void;
   patchProfile: (patch: Partial<IPProfile>) => void;
+  /** Apply a full-tree transform (group ops) with one undo step. */
+  transformProfile: (fn: (p: IPProfile) => IPProfile) => void;
+  /** Select an item on the canvas (null clears the selection). */
+  onSelect: (id: string | null) => void;
   selected: IPItem | null;
   profile: IPProfile;
 }
@@ -544,14 +549,88 @@ export function FreeInspector({
       )}
 
       {it.kind === "group" && (
-        <Section title="Group">
-          <p className="text-[11px] text-muted-foreground">
-            {(it as IPGroupItem).children.length} children (absolute coords
-            preserved). Ungroup from the toolbar to splice them back out.
-          </p>
-        </Section>
+        <GroupSection it={it as IPGroupItem} ops={ops} />
       )}
     </div>
+  );
+}
+
+/**
+ * Group manager — lists every child in Z-order (last = front) with
+ * reorder, detach-from-group and ungroup. Clicking a row selects the
+ * child on the canvas.
+ */
+function GroupSection({ it, ops }: { it: IPGroupItem; ops: FreeStudioOps }) {
+  const kids = it.children;
+  return (
+    <Section title="Group">
+      <p className="text-[11px] text-muted-foreground">
+        {kids.length} children — last = front. Absolute coords are
+        preserved.
+      </p>
+      <div className="mt-2 space-y-1">
+        {kids.map((c, i) => (
+          <div
+            key={c.id}
+            className="flex items-center gap-0.5 rounded-md border px-1.5 py-1"
+          >
+            <button
+              onClick={() => ops.onSelect(c.id)}
+              title="Select on canvas"
+              className="flex min-w-0 flex-1 items-center justify-between gap-2 rounded px-1 py-0.5 text-left text-[11px] hover:bg-accent"
+            >
+              <span className="truncate">
+                {i + 1}. {c.name}
+              </span>
+              <span className="shrink-0 font-mono text-[10px] text-muted-foreground">
+                {c.kind}
+              </span>
+            </button>
+            <button
+              title="Backward (toward back)"
+              disabled={i === 0}
+              onClick={() =>
+                ops.transformProfile((p) => zOrderItem(p, c.id, "backward"))
+              }
+              className="rounded px-1 text-[10px] hover:bg-accent disabled:opacity-30"
+            >
+              ↓
+            </button>
+            <button
+              title="Forward (toward front)"
+              disabled={i === kids.length - 1}
+              onClick={() =>
+                ops.transformProfile((p) => zOrderItem(p, c.id, "forward"))
+              }
+              className="rounded px-1 text-[10px] hover:bg-accent disabled:opacity-30"
+            >
+              ↑
+            </button>
+            <button
+              title="Detach from group (splices into the parent, above the group)"
+              onClick={() =>
+                ops.transformProfile((p) => detachFromGroup(p, c.id))
+              }
+              className="rounded px-1 text-[10px] hover:bg-accent"
+            >
+              ✕
+            </button>
+          </div>
+        ))}
+        {kids.length === 0 && (
+          <p className="text-[11px] text-muted-foreground">Empty group.</p>
+        )}
+      </div>
+      <button
+        onClick={() => {
+          ops.transformProfile((p) => ungroupItem(p, it.id));
+          ops.onSelect(null);
+        }}
+        className="mt-2 w-full rounded-md border px-2 py-1 text-[11px] hover:bg-accent"
+      >
+        Ungroup
+      </button>
+    </Section>
   );
 }
 

@@ -22,33 +22,23 @@ export function findItem(items: IPItem[], id: string): IPItem | null {
 
 /**
  * Apply `fn` to the list that directly contains `id` (top-level or a
- * group's children; nested groups are searched recursively).
+ * group's children; nested groups are searched recursively). Item ids
+ * are unique, so the first list with a direct match is the innermost.
  */
 export function mapInList(
   items: IPItem[],
   id: string,
   fn: (list: IPItem[]) => IPItem[]
 ): IPItem[] {
-  const contains = (l: IPItem[]): boolean =>
-    l.some(
-      (c) =>
-        c.id === id ||
-        (c.kind === "group" && contains((c as IPGroupItem).children))
-    );
-  let changed = false;
   const visit = (list: IPItem[]): IPItem[] => {
-    if (contains(list)) {
-      changed = true;
-      return fn(list);
-    }
+    if (list.some((c) => c.id === id)) return fn(list);
     return list.map((it) =>
       it.kind === "group"
         ? ({ ...it, children: visit((it as IPGroupItem).children) } as IPGroupItem)
         : it
     );
   };
-  const out = visit(items);
-  return changed ? out : items;
+  return visit(items);
 }
 
 /** Patch an item's fields anywhere in the tree. */
@@ -179,6 +169,37 @@ export function ungroupItem(p: IPProfile, id: string): IPProfile {
       const l = [...list];
       const i = l.findIndex((x) => x.id === id);
       l.splice(i, 1, ...group.children);
+      return l;
+    }),
+  };
+}
+
+/**
+ * Move ONE child out of its group into the parent list, directly above the
+ * group in Z-order (the item's absolute coordinates are untouched).
+ */
+export function detachFromGroup(p: IPProfile, childId: string): IPProfile {
+  const findGroup = (list: IPItem[]): IPGroupItem | null => {
+    for (const it of list) {
+      if (it.kind !== "group") continue;
+      if (it.children.some((c) => c.id === childId)) return it;
+      const nested = findGroup(it.children);
+      if (nested) return nested;
+    }
+    return null;
+  };
+  const group = findGroup(p.items);
+  if (!group) return p;
+  return {
+    ...p,
+    items: mapInList(p.items, group.id, (list) => {
+      const l = [...list];
+      const gi = l.findIndex((x) => x.id === group.id);
+      const g = l[gi] as IPGroupItem;
+      const child = g.children.find((c) => c.id === childId);
+      if (!child) return list;
+      l[gi] = { ...g, children: g.children.filter((c) => c.id !== childId) };
+      l.splice(gi + 1, 0, child);
       return l;
     }),
   };

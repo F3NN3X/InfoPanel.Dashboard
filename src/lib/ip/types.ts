@@ -364,4 +364,9 @@ export interface IPProfile {
   assetData?: Record<string, string>;
   /** Z-order = index (0 = bottom). */
   items: IPItem[];
+  /**
+   * Version of a shipped layout, so `mergeConfig` can replace a stored
+   * copy when the app ships a newer one (user-imported profiles have none).
+   */
+  sampleVersion?: number;
 }
