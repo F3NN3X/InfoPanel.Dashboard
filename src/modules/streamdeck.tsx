@@ -40,7 +40,7 @@ export const streamdeckModule: DashboardModule = {
     if (groups.length === 0) return null;
 
     return (
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="grid h-full w-full auto-rows-fr grid-cols-1 gap-4 lg:grid-cols-2">
         {groups.map(([serial, items]) => {
           const deviceName = liveText(byName(items, "Device Name")) ?? serial;
           const profile = liveText(byName(items, "Active Profile"));
@@ -67,7 +67,10 @@ export const streamdeckModule: DashboardModule = {
             // No icon entries (icons only exist once the deck is polled) —
             // show profile info only.
             return (
-              <Card key={serial} className="border-border bg-card">
+              <Card
+                key={serial}
+                className="min-h-0 min-w-0 overflow-hidden border-border bg-card"
+              >
                 <CardHeader className="pb-2">
                   <CardTitle className="truncate text-sm font-medium text-muted-foreground" title={deviceName}>
                     {deviceName}
@@ -83,7 +86,10 @@ export const streamdeckModule: DashboardModule = {
           const cols = buttons.length <= 15 ? 5 : 6;
 
           return (
-            <Card key={serial} className="border-border bg-card">
+            <Card
+              key={serial}
+              className="min-h-0 min-w-0 overflow-hidden border-border bg-card"
+            >
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
                   <LayoutGrid className="h-3.5 w-3.5" />

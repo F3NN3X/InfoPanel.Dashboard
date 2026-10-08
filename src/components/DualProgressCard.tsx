@@ -31,7 +31,12 @@ export function DualProgressCard({
     rightValue !== undefined ? Math.min(100, (rightValue / max) * 100) : 0;
 
   return (
-    <Card className={cn("bg-card border-border", className)}>
+    <Card
+      className={cn(
+        "min-h-0 min-w-0 overflow-hidden bg-card border-border",
+        className
+      )}
+    >
       <CardHeader className="pb-3">
         <CardTitle className="text-sm font-medium text-muted-foreground">
           {title}

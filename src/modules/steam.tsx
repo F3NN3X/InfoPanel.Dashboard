@@ -85,10 +85,10 @@ export const steamModule: DashboardModule = {
         : undefined;
 
     return (
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <div className="grid h-full w-full auto-rows-fr grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Profile */}
         {cfg.showProfile && (
-        <Card className="border-border bg-card">
+        <Card className="min-h-0 min-w-0 overflow-hidden border-border bg-card">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
               <User className="h-3.5 w-3.5" /> Profile
@@ -124,7 +124,7 @@ export const steamModule: DashboardModule = {
 
         {/* Current game */}
         {cfg.showGame && (
-        <Card className="border-border bg-card">
+        <Card className="min-h-0 min-w-0 overflow-hidden border-border bg-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Current Game
@@ -152,7 +152,7 @@ export const steamModule: DashboardModule = {
 
         {/* Library & social stats */}
         {cfg.showStats && (
-        <Card className="border-border bg-card">
+        <Card className="min-h-0 min-w-0 overflow-hidden border-border bg-card">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
               <Trophy className="h-3.5 w-3.5" /> Library & Social

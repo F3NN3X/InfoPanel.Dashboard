@@ -26,7 +26,7 @@ export const notificationsModule: DashboardModule = {
     const lines = history?.split("\n").filter((l) => l.trim() !== "") ?? [];
 
     return (
-      <Card className="border-border bg-card">
+      <Card className="flex h-full w-full min-h-0 min-w-0 flex-col overflow-hidden border-border bg-card">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
             <Bell className="h-3.5 w-3.5" /> Notifications
@@ -37,14 +37,14 @@ export const notificationsModule: DashboardModule = {
             )}
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex min-h-0 flex-1 flex-col">
           {last && (
             <div className="text-sm font-medium text-foreground/90">{last}</div>
           )}
           {status && <div className="mt-1 text-xs text-muted-foreground/60">{status}</div>}
 
           {lines.length > 0 && (
-            <div className="mt-3 max-h-48 space-y-1 overflow-y-auto border-t border-border pt-3">
+            <div className="mt-3 min-h-0 flex-1 space-y-1 overflow-y-auto border-t border-border pt-3">
               {lines.map((line, i) => {
                 const [time, type, ...rest] = line.split(", ");
                 const message = rest.join(", ");

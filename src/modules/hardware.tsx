@@ -21,7 +21,7 @@ export const hardwareModule: DashboardModule = {
     if (entries.length === 0) return null;
 
     return (
-      <div className="max-h-[65vh] overflow-y-auto pr-2">
+      <div className="h-full w-full overflow-y-auto pr-2">
         <div className="grid grid-cols-1 gap-x-4 gap-y-1 md:grid-cols-2 xl:grid-cols-3">
           {entries.map(([key, sensor]) => (
             <ValueRow key={key} sensorKey={key} sensor={sensor} />

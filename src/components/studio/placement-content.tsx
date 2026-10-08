@@ -47,7 +47,7 @@ export function placementContent(
       title: "Other sensors",
       content: (
         <div
-          className="grid gap-3"
+          className="grid h-full w-full auto-rows-fr gap-3"
           style={{ gridTemplateColumns: `repeat(${subCols}, minmax(0, 1fr))` }}
         >
           {unclaimed.map(([key, sensor]) => (

@@ -38,7 +38,7 @@ export const vbzModule: DashboardModule = {
     if (!station && rows.length === 0) return null;
 
     return (
-      <Card className="border-border bg-card">
+      <Card className="flex h-full w-full min-h-0 min-w-0 flex-col overflow-hidden border-border bg-card">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
             <Train className="h-3.5 w-3.5" />
@@ -47,9 +47,9 @@ export const vbzModule: DashboardModule = {
             </span>
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex min-h-0 flex-1 flex-col">
           {rows.length > 0 ? (
-            <div className="divide-y divide-border">
+            <div className="min-h-0 flex-1 divide-y divide-border overflow-y-auto">
               {rows.map((r) => (
                 <div key={r.i} className="flex items-center gap-4 py-2">
                   <div className="w-14 shrink-0 font-mono text-lg font-semibold text-foreground">

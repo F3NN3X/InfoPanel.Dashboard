@@ -32,7 +32,12 @@ export function SensorCard({
     value !== undefined && max > 0 ? Math.min(100, (value / max) * 100) : 0;
 
   return (
-    <Card className={cn("bg-card border-border", className)}>
+    <Card
+      className={cn(
+        "min-h-0 min-w-0 overflow-hidden bg-card border-border",
+        className
+      )}
+    >
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">
           {title}

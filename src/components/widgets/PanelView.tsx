@@ -36,7 +36,7 @@ export function PanelView({ panel, sensors, studio }: PanelViewProps) {
   const widgets =
     visible.length === 0 ? null : isGrid ? (
       <div
-        className="grid gap-x-4 gap-y-3"
+        className="grid min-h-0 flex-1 auto-rows-fr gap-x-4 gap-y-3"
         style={{
           gridTemplateColumns:
             panel.gridCols ?? `repeat(${cols}, minmax(0, 1fr))`,
@@ -56,7 +56,7 @@ export function PanelView({ panel, sensors, studio }: PanelViewProps) {
         ))}
       </div>
     ) : (
-      <div className="flex flex-wrap items-start gap-x-5 gap-y-3">
+      <div className="flex min-h-0 flex-1 flex-wrap items-start gap-x-5 gap-y-3">
         {visible.map((w) => (
           <div
             key={w.id}
@@ -72,7 +72,7 @@ export function PanelView({ panel, sensors, studio }: PanelViewProps) {
     );
 
   const body = (
-    <div className="space-y-3">
+    <div className="flex h-full flex-col gap-3">
       {panel.titleVisible && (
         <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
           <span
@@ -206,13 +206,15 @@ export function PanelView({ panel, sensors, studio }: PanelViewProps) {
   return (
     <div style={scope}>
       {panel.background === "panel" ? (
-        <div className="rounded-lg bg-card/50 p-3">{body}</div>
+        <div className="h-full overflow-hidden rounded-lg bg-card/50 p-3">
+          {body}
+        </div>
       ) : panel.background === "bordered" ? (
-        <div className="rounded-lg border border-border bg-card/30 p-3">
+        <div className="h-full overflow-hidden rounded-lg border border-border bg-card/30 p-3">
           {body}
         </div>
       ) : (
-        <div className="p-1">{body}</div>
+        <div className="h-full overflow-hidden p-1">{body}</div>
       )}
     </div>
   );

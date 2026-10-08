@@ -66,7 +66,7 @@ export const systemModule: DashboardModule = {
     if (cards.length === 0) return null;
 
     return (
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <div className="grid h-full w-full auto-rows-fr grid-cols-1 gap-4 md:grid-cols-3">
         {cards}
       </div>
     );

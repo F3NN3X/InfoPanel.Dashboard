@@ -51,7 +51,7 @@ export const mediaModule: DashboardModule = {
     const isPlaying = playback === 2;
 
     return (
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="grid h-full w-full auto-rows-fr grid-cols-1 gap-4 md:grid-cols-2">
         <NowPlayingCard
           track={track}
           artist={artist}
@@ -63,7 +63,7 @@ export const mediaModule: DashboardModule = {
         />
 
         {cfg.showDetails && (sourceApp || elapsed || statusUrl) && (
-          <Card className="border-border bg-card">
+          <Card className="min-h-0 min-w-0 overflow-hidden border-border bg-card">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Playback Details

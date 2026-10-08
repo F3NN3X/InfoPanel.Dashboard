@@ -50,7 +50,7 @@ export const spotifyModule: DashboardModule = {
     }
 
     return (
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <div className="grid h-full w-full auto-rows-fr grid-cols-1 gap-4 md:grid-cols-3">
         <NowPlayingCard
           track={track}
           artist={artist}

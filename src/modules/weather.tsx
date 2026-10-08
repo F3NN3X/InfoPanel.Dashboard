@@ -79,9 +79,9 @@ export const weatherModule: DashboardModule = {
       .slice(0, days);
 
     return (
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <div className="grid h-full w-full auto-rows-fr grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Current conditions */}
-        <Card className="border-border bg-card">
+        <Card className="min-h-0 min-w-0 overflow-hidden border-border bg-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               {location ?? "Weather"}
@@ -119,7 +119,7 @@ export const weatherModule: DashboardModule = {
 
         {/* Conditions stats */}
         {cfg.showConditions && (
-        <Card className="border-border bg-card">
+        <Card className="min-h-0 min-w-0 overflow-hidden border-border bg-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Conditions</CardTitle>
           </CardHeader>
@@ -173,7 +173,7 @@ export const weatherModule: DashboardModule = {
 
         {/* Forecast */}
         {cfg.showForecast && (
-        <Card className="border-border bg-card">
+        <Card className="min-h-0 min-w-0 overflow-hidden border-border bg-card">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
               <Thermometer className="h-3.5 w-3.5" /> Forecast

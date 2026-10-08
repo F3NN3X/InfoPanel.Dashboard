@@ -46,12 +46,12 @@ export function NowPlayingCard({
   return (
     <Card
       className={cn(
-        "bg-card border-border overflow-hidden",
+        "min-h-0 min-w-0 bg-card border-border overflow-hidden",
         className
       )}
     >
-      <CardContent className="p-0">
-        <div className="flex gap-4 p-4">
+      <CardContent className="flex h-full flex-col p-0">
+        <div className="flex flex-1 items-center gap-4 p-4">
           <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md bg-muted">
             {albumArtUrl ? (
               <img

@@ -36,9 +36,9 @@ export const bluetoothModule: DashboardModule = {
       liveText(statusGroups[0]?.[0]?.sensor);
 
     return (
-      <div className="space-y-4">
+      <div className="flex h-full w-full flex-col gap-4">
         {status && (
-          <Card className="border-border bg-card">
+          <Card className="min-h-0 min-w-0 overflow-hidden border-border bg-card">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
                 <Bluetooth className="h-3.5 w-3.5" /> Status
@@ -51,7 +51,7 @@ export const bluetoothModule: DashboardModule = {
         )}
 
         {deviceGroups.length > 0 && (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid flex-1 auto-rows-fr grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {deviceGroups.map((items, i) => {
               const name = liveText(byName(items, "Name")) ?? `Device ${i + 1}`;
               const deviceStatus = liveText(byName(items, "Status"));
@@ -61,7 +61,7 @@ export const bluetoothModule: DashboardModule = {
               const color = pct > 50 ? "bg-emerald-500" : pct > 20 ? "bg-amber-500" : "bg-red-500";
 
               return (
-                <Card key={items[0].key} className="border-border bg-card">
+                <Card key={items[0].key} className="min-h-0 min-w-0 overflow-hidden border-border bg-card">
                   <CardHeader className="pb-2">
                     <CardTitle
                       className="truncate text-sm font-medium text-muted-foreground"

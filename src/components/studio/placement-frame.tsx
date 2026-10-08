@@ -2,9 +2,6 @@ import {
   type CSSProperties,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
-  useLayoutEffect,
-  useRef,
-  useState,
 } from "react";
 import {
   Eye,
@@ -101,7 +98,6 @@ export function PlacementFrame({
   onSelect,
   children,
 }: PlacementFrameProps) {
-  const fill = profile.fit === "fill";
   const span = clampSpan(placement.colSpan, profile.cols);
   const rowSpan = Math.max(1, placement.rowSpan);
   const design = placement.design;
@@ -113,34 +109,6 @@ export function PlacementFrame({
   const pitchX =
     gridWidth > 0 ? (gridWidth + gap * zoom) / profile.cols : 0;
   const pitchY = rowHeight !== undefined ? (rowHeight + gap) * zoom : 0;
-
-  // Fit-to-box (fill mode): the content renders at its natural size inside the
-  // cell box and is scaled down (transform, so layout is untouched) until it
-  // fits — widgets fill their box without overflowing or scrolling.
-  const boxRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
-  const [fitScale, setFitScale] = useState(1);
-  useLayoutEffect(() => {
-    if (!fill) return;
-    const box = boxRef.current;
-    const content = contentRef.current;
-    if (!box || !content) return;
-    const update = () => {
-      const bw = box.clientWidth;
-      const bh = box.clientHeight;
-      // The content node's layout size is its natural size — the transform
-      // below does not affect layout, so this cannot oscillate.
-      const nw = content.scrollWidth;
-      const nh = content.scrollHeight;
-      if (bw <= 0 || bh <= 0 || nw <= 0 || nh <= 0) return;
-      setFitScale(Math.min(1, bw / nw, bh / nh));
-    };
-    update();
-    const ro = new ResizeObserver(update);
-    ro.observe(box);
-    ro.observe(content);
-    return () => ro.disconnect();
-  }, [fill]);
 
   // Hide empty modules (and blank zones) in kiosk mode (they claim no space).
   if (!studio && (!hasData || blank)) return null;
@@ -310,19 +278,10 @@ export function PlacementFrame({
         </>
       )}
 
-      <div
-        ref={boxRef}
-        className={cn("min-w-0", fill && "h-full overflow-hidden")}
-      >
-        <div
-          ref={contentRef}
-          className={cn(fill && "h-full w-full")}
-          style={
-            fill
-              ? { transform: `scale(${fitScale})`, transformOrigin: "top left" }
-              : undefined
-          }
-        >
+      {/* The zone box is the truth: the widget content fills it (fluid),
+          never its natural size, so the widget area always matches the zone. */}
+      <div className="h-full min-w-0 w-full overflow-hidden">
+        <div className="flex h-full w-full flex-col">
           {studio && blank ? (
             <div className="flex h-full min-h-16 flex-col items-center justify-center gap-0.5 rounded-lg border border-dashed border-border/70 bg-card/20 p-3">
               <div className="text-sm font-medium text-muted-foreground">
@@ -344,18 +303,20 @@ export function PlacementFrame({
           ) : (
             <>
               {design?.header && (
-                <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                <div className="mb-1.5 shrink-0 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                   {title}
                 </div>
               )}
               {design?.background === "panel" ? (
-                <div className="rounded-lg bg-card/50 p-2">{children}</div>
+                <div className="min-h-0 flex-1 overflow-hidden rounded-lg bg-card/50 p-2">
+                  {children}
+                </div>
               ) : design?.background === "bordered" ? (
-                <div className="rounded-lg border border-border bg-card/30 p-2">
+                <div className="min-h-0 flex-1 overflow-hidden rounded-lg border border-border bg-card/30 p-2">
                   {children}
                 </div>
               ) : (
-                children
+                <div className="min-h-0 flex-1">{children}</div>
               )}
             </>
           )}

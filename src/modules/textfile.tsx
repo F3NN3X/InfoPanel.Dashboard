@@ -39,7 +39,7 @@ export const textfileModule: DashboardModule = {
     }
 
     return (
-      <Card className="border-border bg-card">
+      <Card className="flex h-full w-full min-h-0 min-w-0 flex-col overflow-hidden border-border bg-card">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
             <FileText className="h-3.5 w-3.5" /> Text File
@@ -50,8 +50,8 @@ export const textfileModule: DashboardModule = {
             </span>
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <pre className="max-h-64 overflow-y-auto whitespace-pre-wrap break-words font-mono text-xs leading-relaxed text-foreground/85">
+        <CardContent className="min-h-0 flex-1">
+          <pre className="h-full overflow-y-auto whitespace-pre-wrap break-words font-mono text-xs leading-relaxed text-foreground/85">
             {content ?? "No content"}
           </pre>
         </CardContent>

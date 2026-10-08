@@ -89,9 +89,9 @@ export const fpsModule: DashboardModule = {
     }
 
     return (
-      <div className="space-y-4">
+      <div className="flex h-full w-full flex-col gap-4">
         {cfg.layout === "gauges" ? (
-          <Card className="border-border bg-card">
+          <Card className="min-h-0 min-w-0 flex-1 overflow-hidden border-border bg-card">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Performance
@@ -129,8 +129,8 @@ export const fpsModule: DashboardModule = {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-            <Card className="border-border bg-card md:col-span-2">
+          <div className="grid flex-1 auto-rows-fr grid-cols-2 gap-4 md:grid-cols-4">
+            <Card className="min-h-0 min-w-0 overflow-hidden border-border bg-card md:col-span-2">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   Frames Per Second
@@ -154,7 +154,7 @@ export const fpsModule: DashboardModule = {
               </CardContent>
             </Card>
 
-            <Card className="border-border bg-card">
+            <Card className="min-h-0 min-w-0 overflow-hidden border-border bg-card">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   1% Low
@@ -172,7 +172,7 @@ export const fpsModule: DashboardModule = {
               </CardContent>
             </Card>
 
-            <Card className="border-border bg-card">
+            <Card className="min-h-0 min-w-0 overflow-hidden border-border bg-card">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   Frame Time
@@ -188,8 +188,8 @@ export const fpsModule: DashboardModule = {
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          <Card className="border-border bg-card">
+        <div className="grid flex-1 auto-rows-fr grid-cols-2 gap-4 md:grid-cols-4">
+          <Card className="min-h-0 min-w-0 overflow-hidden border-border bg-card">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 GPU
@@ -213,7 +213,7 @@ export const fpsModule: DashboardModule = {
           </Card>
 
           {extras.length > 0 && (
-            <Card className="border-border bg-card col-span-1 md:col-span-3">
+            <Card className="min-h-0 min-w-0 overflow-hidden border-border bg-card col-span-1 md:col-span-3">
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
                   <GaugeIcon className="h-3.5 w-3.5" /> Metrics

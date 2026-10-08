@@ -24,7 +24,7 @@ export function GenericCard({
         : undefined;
 
   return (
-    <Card className="border-border bg-card">
+    <Card className="min-h-0 min-w-0 overflow-hidden border-border bg-card">
       <CardHeader className="pb-2">
         <CardTitle
           className="truncate text-sm font-medium text-muted-foreground"

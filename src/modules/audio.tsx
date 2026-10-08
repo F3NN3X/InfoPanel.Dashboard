@@ -33,9 +33,12 @@ export const audioModule: DashboardModule = {
     });
 
     return (
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="grid h-full w-full auto-rows-fr grid-cols-1 gap-4 md:grid-cols-2">
         {devices.map((d) => (
-          <Card key={d.container} className="border-border bg-card">
+          <Card
+            key={d.container}
+            className="min-h-0 min-w-0 overflow-hidden border-border bg-card"
+          >
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
                 <Volume2 className="h-3.5 w-3.5" />
