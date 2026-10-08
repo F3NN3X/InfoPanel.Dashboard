@@ -33,7 +33,7 @@ export function DualProgressCard({
   return (
     <Card
       className={cn(
-        "min-h-0 min-w-0 overflow-hidden bg-card border-border",
+        "flex min-h-0 min-w-0 flex-col overflow-hidden bg-card border-border",
         className
       )}
     >
@@ -42,7 +42,7 @@ export function DualProgressCard({
           {title}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-5">
+      <CardContent className="flex min-h-0 flex-1 flex-col justify-center space-y-5">
         <div>
           <div className="flex items-end justify-between mb-1.5">
             <span className="text-xs text-muted-foreground">{leftLabel}</span>

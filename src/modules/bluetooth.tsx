@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bluetooth } from "lucide-react";
 import { byName, groupByContainer, liveText } from "@/lib/sensors";
-import type { DashboardModule } from "./types";
+import { effectiveSettings, type DashboardModule } from "./types";
 
 const P = "plugins.bluetooth-battery-plugin.";
 
@@ -17,7 +17,11 @@ export const bluetoothModule: DashboardModule = {
   minCols: 2,
   minRows: 1,
   matches: (key) => key.startsWith(P),
-  render: (sensors) => {
+  settings: [
+    { key: "showStatus", label: "Bluetooth status", type: "boolean", default: true },
+  ],
+  render: (sensors, s) => {
+    const cfg = effectiveSettings(bluetoothModule, s);
     const groups = groupByContainer(sensors, P);
 
     const statusGroups = [...groups.values()].filter(
@@ -37,14 +41,14 @@ export const bluetoothModule: DashboardModule = {
 
     return (
       <div className="flex h-full w-full flex-col gap-4">
-        {status && (
-          <Card className="min-h-0 min-w-0 overflow-hidden border-border bg-card">
-            <CardHeader className="pb-2">
+        {status && cfg.showStatus && (
+          <Card className="flex min-h-0 min-w-0 flex-col overflow-hidden border-border bg-card">
+            <CardHeader className="shrink-0 pb-2">
               <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
                 <Bluetooth className="h-3.5 w-3.5" /> Status
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex min-h-0 flex-1 flex-col justify-center">
               <div className="text-sm text-foreground/85">{status}</div>
             </CardContent>
           </Card>
@@ -61,8 +65,8 @@ export const bluetoothModule: DashboardModule = {
               const color = pct > 50 ? "bg-emerald-500" : pct > 20 ? "bg-amber-500" : "bg-red-500";
 
               return (
-                <Card key={items[0].key} className="min-h-0 min-w-0 overflow-hidden border-border bg-card">
-                  <CardHeader className="pb-2">
+                <Card key={items[0].key} className="flex min-h-0 min-w-0 flex-col overflow-hidden border-border bg-card">
+                  <CardHeader className="shrink-0 pb-2">
                     <CardTitle
                       className="truncate text-sm font-medium text-muted-foreground"
                       title={name}
@@ -70,7 +74,7 @@ export const bluetoothModule: DashboardModule = {
                       {name}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="flex min-h-0 flex-1 flex-col justify-center">
                     <div className="flex items-center justify-between">
                       <div className="text-2xl font-bold tracking-tight text-foreground">
                         {hasBattery ? `${Math.round(battery)}%` : "—"}

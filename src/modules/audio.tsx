@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Volume2 } from "lucide-react";
 import { byName, groupByContainer } from "@/lib/sensors";
-import type { DashboardModule } from "./types";
+import { effectiveSettings, type DashboardModule } from "./types";
 
 const P = "plugins.audio-level-meter.";
 
@@ -16,7 +16,16 @@ export const audioModule: DashboardModule = {
   minCols: 2,
   minRows: 1,
   matches: (key) => key.startsWith(P),
-  render: (sensors) => {
+  settings: [
+    {
+      key: "showDetails",
+      label: "Peak / RMS & L/R/volume details",
+      type: "boolean",
+      default: true,
+    },
+  ],
+  render: (sensors, s) => {
+    const cfg = effectiveSettings(audioModule, s);
     const groups = groupByContainer(sensors, P);
     if (groups.size === 0) return null;
 
@@ -37,9 +46,9 @@ export const audioModule: DashboardModule = {
         {devices.map((d) => (
           <Card
             key={d.container}
-            className="min-h-0 min-w-0 overflow-hidden border-border bg-card"
+            className="flex min-h-0 min-w-0 flex-col overflow-hidden border-border bg-card"
           >
-            <CardHeader className="pb-2">
+            <CardHeader className="shrink-0 pb-2">
               <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
                 <Volume2 className="h-3.5 w-3.5" />
                 <span className="truncate" title={d.name}>
@@ -47,18 +56,20 @@ export const audioModule: DashboardModule = {
                 </span>
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex min-h-0 flex-1 flex-col justify-center">
               <div className="flex items-end justify-between">
                 <div className="text-2xl font-bold tracking-tight text-foreground">
                   {d.level !== undefined ? `${Math.round(d.level)}%` : "—"}
                 </div>
-                <div className="text-xs text-muted-foreground">
-                  {d.peak !== undefined && d.peak !== 0
-                    ? `peak ${d.peak.toFixed(1)}dB`
-                    : d.rms !== undefined && d.rms !== 0
-                      ? `rms ${d.rms.toFixed(1)}dB`
-                      : "silent"}
-                </div>
+                {cfg.showDetails && (
+                  <div className="text-xs text-muted-foreground">
+                    {d.peak !== undefined && d.peak !== 0
+                      ? `peak ${d.peak.toFixed(1)}dB`
+                      : d.rms !== undefined && d.rms !== 0
+                        ? `rms ${d.rms.toFixed(1)}dB`
+                        : "silent"}
+                  </div>
+                )}
               </div>
               <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-secondary">
                 <div
@@ -70,7 +81,10 @@ export const audioModule: DashboardModule = {
                   }}
                 />
               </div>
-              {(d.left !== undefined || d.right !== undefined || d.volume !== undefined) && (
+              {cfg.showDetails &&
+                (d.left !== undefined ||
+                  d.right !== undefined ||
+                  d.volume !== undefined) && (
                 <div className="mt-2 flex gap-4 text-xs text-muted-foreground/60">
                   {d.left !== undefined && (
                     <span>L {Math.round(d.left)}</span>

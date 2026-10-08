@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Train } from "lucide-react";
 import { findEntry, liveText } from "@/lib/sensors";
-import type { DashboardModule } from "./types";
+import { effectiveSettings, type DashboardModule } from "./types";
 
 const P = "plugins.InfoPanel.VBZ.";
 
@@ -16,7 +16,11 @@ export const vbzModule: DashboardModule = {
   minCols: 2,
   minRows: 1,
   matches: (key) => key.startsWith(P),
-  render: (sensors) => {
+  settings: [
+    { key: "showStatus", label: "Status line", type: "boolean", default: true },
+  ],
+  render: (sensors, s) => {
+    const cfg = effectiveSettings(vbzModule, s);
     const station = liveText(findEntry(sensors, P, "station_name")?.sensor);
     const status = liveText(findEntry(sensors, P, "status")?.sensor);
 
@@ -67,7 +71,9 @@ export const vbzModule: DashboardModule = {
           ) : (
             <div className="text-sm text-muted-foreground">No upcoming departures</div>
           )}
-          {status && <div className="mt-3 text-xs text-muted-foreground/60">{status}</div>}
+          {cfg.showStatus && status && (
+            <div className="mt-3 text-xs text-muted-foreground/60">{status}</div>
+          )}
         </CardContent>
       </Card>
     );

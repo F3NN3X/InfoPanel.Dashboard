@@ -88,13 +88,13 @@ export const steamModule: DashboardModule = {
       <div className="grid h-full w-full auto-rows-fr grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Profile */}
         {cfg.showProfile && (
-        <Card className="min-h-0 min-w-0 overflow-hidden border-border bg-card">
-          <CardHeader className="pb-2">
+        <Card className="flex min-h-0 min-w-0 flex-col overflow-hidden border-border bg-card">
+          <CardHeader className="shrink-0 pb-2">
             <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
               <User className="h-3.5 w-3.5" /> Profile
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex min-h-0 flex-1 flex-col justify-center">
             <div className="flex items-center gap-4">
               {avatarUrl ? (
                 <img
@@ -124,18 +124,18 @@ export const steamModule: DashboardModule = {
 
         {/* Current game */}
         {cfg.showGame && (
-        <Card className="min-h-0 min-w-0 overflow-hidden border-border bg-card">
-          <CardHeader className="pb-2">
+        <Card className="flex min-h-0 min-w-0 flex-col overflow-hidden border-border bg-card">
+          <CardHeader className="shrink-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Current Game
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex min-h-0 flex-1 flex-col justify-center">
             {gameArt ? (
               <img
                 src={gameArt}
                 alt={game ?? "Game"}
-                className="mb-3 h-24 w-full rounded-md object-cover"
+                className="mb-3 aspect-[462/200] w-full rounded-md object-cover"
                 loading="lazy"
               />
             ) : null}
@@ -152,13 +152,13 @@ export const steamModule: DashboardModule = {
 
         {/* Library & social stats */}
         {cfg.showStats && (
-        <Card className="min-h-0 min-w-0 overflow-hidden border-border bg-card">
-          <CardHeader className="pb-2">
+        <Card className="flex min-h-0 min-w-0 flex-col overflow-hidden border-border bg-card">
+          <CardHeader className="shrink-0 pb-2">
             <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
               <Trophy className="h-3.5 w-3.5" /> Library & Social
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex min-h-0 flex-1 flex-col justify-center">
             <div className="grid grid-cols-2 gap-4">
               <Stat label="Games owned" value={totalGames} />
               <Stat
@@ -210,13 +210,13 @@ export const steamModule: DashboardModule = {
         )}
 
         {cfg.showNews && news && (
-          <Card className="border-border bg-card lg:col-span-3">
-            <CardHeader className="pb-2">
+          <Card className="flex min-h-0 min-w-0 flex-col overflow-hidden border-border bg-card lg:col-span-3">
+            <CardHeader className="shrink-0 pb-2">
               <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
                 <Users className="h-3.5 w-3.5" /> News
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex min-h-0 flex-1 items-center">
               <SmartValue value={news} className="text-sm text-foreground/85" />
             </CardContent>
           </Card>

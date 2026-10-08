@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LayoutGrid } from "lucide-react";
 import { isImageUrl } from "@/lib/image";
 import { byName, groupByContainer, liveText } from "@/lib/sensors";
-import type { DashboardModule } from "./types";
+import { effectiveSettings, type DashboardModule } from "./types";
 
 const P = "plugins.InfoPanel.StreamDeck.";
 
@@ -35,7 +35,12 @@ export const streamdeckModule: DashboardModule = {
   minCols: 3,
   minRows: 2,
   matches: (key) => key.startsWith(P),
-  render: (sensors) => {
+  settings: [
+    { key: "showProfile", label: "Active profile", type: "boolean", default: true },
+    { key: "showLabels", label: "Button labels", type: "boolean", default: true },
+  ],
+  render: (sensors, s) => {
+    const cfg = effectiveSettings(streamdeckModule, s);
     const groups = [...groupByContainer(sensors, P).entries()];
     if (groups.length === 0) return null;
 
@@ -66,17 +71,18 @@ export const streamdeckModule: DashboardModule = {
           if (buttons.length === 0) {
             // No icon entries (icons only exist once the deck is polled) —
             // show profile info only.
+            if (!cfg.showProfile || !profile) return null;
             return (
               <Card
                 key={serial}
-                className="min-h-0 min-w-0 overflow-hidden border-border bg-card"
+                className="flex min-h-0 min-w-0 flex-col overflow-hidden border-border bg-card"
               >
-                <CardHeader className="pb-2">
+                <CardHeader className="shrink-0 pb-2">
                   <CardTitle className="truncate text-sm font-medium text-muted-foreground" title={deviceName}>
                     {deviceName}
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="flex min-h-0 flex-1 items-center">
                   {profile && <div className="text-sm text-foreground/85">{profile}</div>}
                 </CardContent>
               </Card>
@@ -88,30 +94,30 @@ export const streamdeckModule: DashboardModule = {
           return (
             <Card
               key={serial}
-              className="min-h-0 min-w-0 overflow-hidden border-border bg-card"
+              className="flex min-h-0 min-w-0 flex-col overflow-hidden border-border bg-card"
             >
-              <CardHeader className="pb-2">
+              <CardHeader className="shrink-0 pb-2">
                 <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
                   <LayoutGrid className="h-3.5 w-3.5" />
                   <span className="truncate" title={deviceName}>
                     {deviceName}
                   </span>
-                  {profile && (
+                  {cfg.showProfile && profile && (
                     <span className="ml-auto max-w-40 truncate text-xs font-normal text-muted-foreground" title={profile}>
                       {profile}
                     </span>
                   )}
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="flex min-h-0 flex-1 flex-col">
                 <div
-                  className="grid gap-2"
+                  className="grid flex-1 auto-rows-fr gap-2"
                   style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
                 >
                   {buttons.map((b) => (
                     <div
                       key={b.key}
-                      className="flex flex-col items-center gap-1 rounded-lg bg-muted p-2"
+                      className="flex flex-col items-center justify-center gap-1 rounded-lg bg-muted p-2"
                       title={b.label ?? `Button R${b.row + 1}:C${b.col + 1}`}
                     >
                       <div className="flex aspect-square w-full items-center justify-center">
@@ -129,9 +135,11 @@ export const streamdeckModule: DashboardModule = {
                           <div className="h-2 w-2 rounded-full bg-muted-foreground/40" />
                         )}
                       </div>
-                      <div className="w-full truncate text-center text-[10px] text-muted-foreground">
-                        {b.label ?? `R${b.row + 1}:C${b.col + 1}`}
-                      </div>
+                      {cfg.showLabels && (
+                        <div className="w-full truncate text-center text-[10px] text-muted-foreground">
+                          {b.label ?? `R${b.row + 1}:C${b.col + 1}`}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

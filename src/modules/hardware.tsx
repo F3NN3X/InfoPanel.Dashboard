@@ -1,4 +1,4 @@
-import type { DashboardModule, SensorMap } from "./types";
+import { effectiveSettings, type DashboardModule, type SensorMap } from "./types";
 
 /**
  * Hardware module — InfoPanel's native hardware values as exported by the
@@ -13,17 +13,32 @@ export const hardwareModule: DashboardModule = {
   minCols: 2,
   minRows: 2,
   matches: (key) => key.startsWith("libre.") || key.startsWith("hwinfo."),
-  render: (sensors) => {
+  settings: [
+    {
+      key: "maxEntries",
+      label: "Max rows (0 = all)",
+      type: "number",
+      default: 0,
+      min: 0,
+      max: 100,
+      step: 5,
+    },
+  ],
+  render: (sensors, s) => {
+    const cfg = effectiveSettings(hardwareModule, s);
     const entries = Object.entries(sensors).filter(
       ([key]) => hardwareModule.matches(key)
     );
 
     if (entries.length === 0) return null;
 
+    const max = Math.max(0, Math.round(Number(cfg.maxEntries) || 0));
+    const shown = max > 0 ? entries.slice(0, max) : entries;
+
     return (
       <div className="h-full w-full overflow-y-auto pr-2">
         <div className="grid grid-cols-1 gap-x-4 gap-y-1 md:grid-cols-2 xl:grid-cols-3">
-          {entries.map(([key, sensor]) => (
+          {shown.map(([key, sensor]) => (
             <ValueRow key={key} sensorKey={key} sensor={sensor} />
           ))}
         </div>

@@ -24,8 +24,8 @@ export function GenericCard({
         : undefined;
 
   return (
-    <Card className="min-h-0 min-w-0 overflow-hidden border-border bg-card">
-      <CardHeader className="pb-2">
+    <Card className="flex min-h-0 min-w-0 flex-col overflow-hidden border-border bg-card">
+      <CardHeader className="shrink-0 pb-2">
         <CardTitle
           className="truncate text-sm font-medium text-muted-foreground"
           title={title}
@@ -33,18 +33,20 @@ export function GenericCard({
           {title}
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex min-h-0 flex-1 flex-col">
         {display !== undefined ? (
-          <div className="max-h-48 overflow-y-auto">
+          <div className="flex min-h-0 flex-1 items-center justify-center overflow-y-auto">
             <SmartValue
               value={display}
               keyHint={sensorKey}
               className="text-lg font-semibold tracking-tight text-foreground"
-              imgClassName="max-h-48 w-full rounded-md object-contain"
+              imgClassName="max-h-40 w-auto rounded-md object-contain"
             />
           </div>
         ) : (
-          <div className="text-2xl font-bold tracking-tight text-foreground">—</div>
+          <div className="flex flex-1 items-center justify-center text-2xl font-bold tracking-tight text-foreground">
+            —
+          </div>
         )}
         {sensor.source && (
           <div className="mt-2 text-xs text-muted-foreground/60">{sensor.source}</div>

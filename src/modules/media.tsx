@@ -63,13 +63,13 @@ export const mediaModule: DashboardModule = {
         />
 
         {cfg.showDetails && (sourceApp || elapsed || statusUrl) && (
-          <Card className="min-h-0 min-w-0 overflow-hidden border-border bg-card">
-            <CardHeader className="pb-2">
+          <Card className="flex min-h-0 min-w-0 flex-col overflow-hidden border-border bg-card">
+            <CardHeader className="shrink-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Playback Details
               </CardTitle>
             </CardHeader>
-            <CardContent className="flex items-center justify-between gap-4">
+            <CardContent className="flex min-h-0 flex-1 items-center justify-between gap-4">
               <div className="min-w-0">
                 {cfg.showSource && sourceApp && (
                   <div className="text-sm font-medium text-foreground/85">

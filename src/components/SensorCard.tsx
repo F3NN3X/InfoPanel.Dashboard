@@ -34,7 +34,7 @@ export function SensorCard({
   return (
     <Card
       className={cn(
-        "min-h-0 min-w-0 overflow-hidden bg-card border-border",
+        "flex min-h-0 min-w-0 flex-col overflow-hidden bg-card border-border",
         className
       )}
     >
@@ -44,7 +44,7 @@ export function SensorCard({
         </CardTitle>
         {icon && <div className="text-muted-foreground">{icon}</div>}
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex min-h-0 flex-1 flex-col justify-center">
         <div className="text-2xl font-bold tracking-tight text-foreground">
           {displayValue}
         </div>

@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bell } from "lucide-react";
 import { findEntry, liveText } from "@/lib/sensors";
-import type { DashboardModule } from "./types";
+import { effectiveSettings, type DashboardModule } from "./types";
 
 const P = "plugins.InfoPanel.Notifications.";
 
@@ -15,7 +15,20 @@ export const notificationsModule: DashboardModule = {
   minCols: 2,
   minRows: 1,
   matches: (key) => key.startsWith(P),
-  render: (sensors) => {
+  settings: [
+    { key: "showHistory", label: "History list", type: "boolean", default: true },
+    {
+      key: "maxLines",
+      label: "Max history lines",
+      type: "number",
+      default: 50,
+      min: 1,
+      max: 200,
+      step: 5,
+    },
+  ],
+  render: (sensors, s) => {
+    const cfg = effectiveSettings(notificationsModule, s);
     const count = findEntry(sensors, P, "notification-count")?.sensor.value;
     const last = liveText(findEntry(sensors, P, "last-notification")?.sensor);
     const status = liveText(findEntry(sensors, P, "status")?.sensor);
@@ -23,7 +36,11 @@ export const notificationsModule: DashboardModule = {
 
     if (last === undefined && count === undefined && !status) return null;
 
-    const lines = history?.split("\n").filter((l) => l.trim() !== "") ?? [];
+    const lines =
+      history
+        ?.split("\n")
+        .filter((l) => l.trim() !== "")
+        .slice(0, Math.max(1, Math.round(Number(cfg.maxLines) || 50))) ?? [];
 
     return (
       <Card className="flex h-full w-full min-h-0 min-w-0 flex-col overflow-hidden border-border bg-card">
@@ -43,7 +60,7 @@ export const notificationsModule: DashboardModule = {
           )}
           {status && <div className="mt-1 text-xs text-muted-foreground/60">{status}</div>}
 
-          {lines.length > 0 && (
+          {cfg.showHistory && lines.length > 0 && (
             <div className="mt-3 min-h-0 flex-1 space-y-1 overflow-y-auto border-t border-border pt-3">
               {lines.map((line, i) => {
                 const [time, type, ...rest] = line.split(", ");

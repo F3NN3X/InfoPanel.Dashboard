@@ -81,13 +81,13 @@ export const weatherModule: DashboardModule = {
     return (
       <div className="grid h-full w-full auto-rows-fr grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Current conditions */}
-        <Card className="min-h-0 min-w-0 overflow-hidden border-border bg-card">
-          <CardHeader className="pb-2">
+        <Card className="flex min-h-0 min-w-0 flex-col overflow-hidden border-border bg-card">
+          <CardHeader className="shrink-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               {location ?? "Weather"}
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex min-h-0 flex-1 flex-col justify-center">
             <div className="flex items-center gap-5">
               {iconImg ? (
                 <img
@@ -119,11 +119,11 @@ export const weatherModule: DashboardModule = {
 
         {/* Conditions stats */}
         {cfg.showConditions && (
-        <Card className="min-h-0 min-w-0 overflow-hidden border-border bg-card">
-          <CardHeader className="pb-2">
+        <Card className="flex min-h-0 min-w-0 flex-col overflow-hidden border-border bg-card">
+          <CardHeader className="shrink-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Conditions</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex min-h-0 flex-1 flex-col justify-center">
             <div className="grid grid-cols-2 gap-4">
               <Condition
                 icon={<Wind className="h-3.5 w-3.5" />}
@@ -173,15 +173,15 @@ export const weatherModule: DashboardModule = {
 
         {/* Forecast */}
         {cfg.showForecast && (
-        <Card className="min-h-0 min-w-0 overflow-hidden border-border bg-card">
-          <CardHeader className="pb-2">
+        <Card className="flex min-h-0 min-w-0 flex-col overflow-hidden border-border bg-card">
+          <CardHeader className="shrink-0 pb-2">
             <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
               <Thermometer className="h-3.5 w-3.5" /> Forecast
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="min-h-0 flex-1">
             {forecastLines && forecastLines.length > 0 ? (
-              <div className="max-h-56 space-y-1.5 overflow-y-auto">
+              <div className="h-full space-y-1.5 overflow-y-auto">
                 {forecastLines.map((line, i) => {
                   const parts = line.split(", ");
                   const date = parts[0];

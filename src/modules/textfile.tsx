@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText } from "lucide-react";
 import { findEntry, liveText } from "@/lib/sensors";
-import type { DashboardModule } from "./types";
+import { effectiveSettings, type DashboardModule } from "./types";
 
 const P = "plugins.InfoPanel.TextFile.";
 
@@ -28,7 +28,16 @@ export const textfileModule: DashboardModule = {
   minCols: 2,
   minRows: 1,
   matches: (key) => key.startsWith(P),
-  render: (sensors) => {
+  settings: [
+    {
+      key: "showMeta",
+      label: "Size / lines / status header",
+      type: "boolean",
+      default: true,
+    },
+  ],
+  render: (sensors, s) => {
+    const cfg = effectiveSettings(textfileModule, s);
     const content = liveText(findEntry(sensors, P, "content")?.sensor);
     const status = liveText(findEntry(sensors, P, "status")?.sensor);
     const size = findEntry(sensors, P, "file-size")?.sensor.value;
@@ -43,11 +52,19 @@ export const textfileModule: DashboardModule = {
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
             <FileText className="h-3.5 w-3.5" /> Text File
-            <span className="ml-auto flex gap-2 text-xs font-normal text-muted-foreground">
-              {humanBytes(size) && <span>{humanBytes(size)}</span>}
-              {lines !== undefined && lines > 0 && <span>{lines} lines</span>}
-              {status && <span className="max-w-48 truncate" title={status}>{status}</span>}
-            </span>
+            {cfg.showMeta && (
+              <span className="ml-auto flex gap-2 text-xs font-normal text-muted-foreground">
+                {humanBytes(size) && <span>{humanBytes(size)}</span>}
+                {lines !== undefined && lines > 0 && (
+                  <span>{lines} lines</span>
+                )}
+                {status && (
+                  <span className="max-w-48 truncate" title={status}>
+                    {status}
+                  </span>
+                )}
+              </span>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent className="min-h-0 flex-1">

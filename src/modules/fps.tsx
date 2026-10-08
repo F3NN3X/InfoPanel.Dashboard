@@ -91,13 +91,13 @@ export const fpsModule: DashboardModule = {
     return (
       <div className="flex h-full w-full flex-col gap-4">
         {cfg.layout === "gauges" ? (
-          <Card className="min-h-0 min-w-0 flex-1 overflow-hidden border-border bg-card">
-            <CardHeader className="pb-2">
+          <Card className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden border-border bg-card">
+            <CardHeader className="shrink-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Performance
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex min-h-0 flex-1 flex-col items-center justify-center">
               <div className="flex flex-wrap items-center gap-6">
                 <Gauge
                   label="FPS"
@@ -130,13 +130,13 @@ export const fpsModule: DashboardModule = {
           </Card>
         ) : (
           <div className="grid flex-1 auto-rows-fr grid-cols-2 gap-4 md:grid-cols-4">
-            <Card className="min-h-0 min-w-0 overflow-hidden border-border bg-card md:col-span-2">
-              <CardHeader className="pb-2">
+            <Card className="flex min-h-0 min-w-0 flex-col overflow-hidden border-border bg-card md:col-span-2">
+              <CardHeader className="shrink-0 pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   Frames Per Second
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="flex min-h-0 flex-1 flex-col justify-center">
                 <div className="flex items-end justify-between">
                   <div className="text-4xl font-bold tracking-tight text-foreground">
                     {fps !== undefined ? Math.round(fps) : "—"}
@@ -154,13 +154,13 @@ export const fpsModule: DashboardModule = {
               </CardContent>
             </Card>
 
-            <Card className="min-h-0 min-w-0 overflow-hidden border-border bg-card">
-              <CardHeader className="pb-2">
+            <Card className="flex min-h-0 min-w-0 flex-col overflow-hidden border-border bg-card">
+              <CardHeader className="shrink-0 pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   1% Low
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="flex min-h-0 flex-1 flex-col justify-center">
                 <div className="text-3xl font-bold tracking-tight text-foreground">
                   {low1 !== undefined ? Math.round(low1) : "—"}
                 </div>
@@ -172,13 +172,13 @@ export const fpsModule: DashboardModule = {
               </CardContent>
             </Card>
 
-            <Card className="min-h-0 min-w-0 overflow-hidden border-border bg-card">
-              <CardHeader className="pb-2">
+            <Card className="flex min-h-0 min-w-0 flex-col overflow-hidden border-border bg-card">
+              <CardHeader className="shrink-0 pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   Frame Time
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="flex min-h-0 flex-1 flex-col justify-center">
                 <div className="text-3xl font-bold tracking-tight text-foreground">
                   {frameTime !== undefined ? frameTime.toFixed(1) : "—"}
                 </div>
@@ -189,13 +189,13 @@ export const fpsModule: DashboardModule = {
         )}
 
         <div className="grid flex-1 auto-rows-fr grid-cols-2 gap-4 md:grid-cols-4">
-          <Card className="min-h-0 min-w-0 overflow-hidden border-border bg-card">
-            <CardHeader className="pb-2">
+          <Card className="flex min-h-0 min-w-0 flex-col overflow-hidden border-border bg-card">
+            <CardHeader className="shrink-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 GPU
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex min-h-0 flex-1 flex-col justify-center">
               <div
                 className="truncate text-sm font-medium text-foreground/90"
                 title={gpu}
@@ -213,13 +213,13 @@ export const fpsModule: DashboardModule = {
           </Card>
 
           {extras.length > 0 && (
-            <Card className="min-h-0 min-w-0 overflow-hidden border-border bg-card col-span-1 md:col-span-3">
-              <CardHeader className="pb-2">
+            <Card className="flex min-h-0 min-w-0 flex-col overflow-hidden border-border bg-card col-span-1 md:col-span-3">
+              <CardHeader className="shrink-0 pb-2">
                 <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
                   <GaugeIcon className="h-3.5 w-3.5" /> Metrics
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="flex min-h-0 flex-1 flex-col justify-center">
                 <div className="flex flex-wrap gap-x-6 gap-y-2">
                   {extras.map(([label, value]) => (
                     <div key={label}>
