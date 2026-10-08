@@ -6,6 +6,7 @@ import {
   spotifyModernModule,
   mediaModernModule,
 } from "./modern-media";
+import { weatherModernModule } from "./weather-modern";
 import { steamModule } from "./steam";
 import { weatherModule } from "./weather";
 import { fpsModule } from "./fps";
@@ -32,6 +33,7 @@ export const modules: DashboardModule[] = [
   steamModule,
   hardwareModule,
   weatherModule,
+  weatherModernModule,
   fpsModule,
   audioModule,
   vbzModule,

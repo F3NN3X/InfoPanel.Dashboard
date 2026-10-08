@@ -42,7 +42,7 @@ export interface ModernNowPlayingProps {
   className?: string;
 }
 
-type RGB = [number, number, number];
+export type RGB = [number, number, number];
 
 const mix = (a: RGB, b: RGB, t: number): RGB => [
   Math.round(a[0] + (b[0] - a[0]) * t),
@@ -54,7 +54,7 @@ const darken = (c: RGB, t: number) => mix(c, [0, 0, 0], t);
 const rgba = (c: RGB, a = 1) =>
   a >= 1 ? `rgb(${c[0]}, ${c[1]}, ${c[2]})` : `rgba(${c[0]}, ${c[1]}, ${c[2]}, ${a})`;
 
-interface Surface {
+export interface Surface {
   background: string;
   fg: string;
   muted: string;
@@ -63,7 +63,8 @@ interface Surface {
   ring: string;
 }
 
-function surface(style: ModernStyle, tint: RGB | null): Surface {
+/** Shared surface builder (glass / matte light / matte dark) for the modern widgets. */
+export function makeSurface(style: ModernStyle, tint: RGB | null): Surface {
   if (style === "matte-light") {
     const base = tint ? lighten(tint, 0.74) : ([244, 244, 245] as RGB);
     return {
@@ -112,7 +113,7 @@ function surface(style: ModernStyle, tint: RGB | null): Surface {
 }
 
 /** Measure the rendered size of an element (for the auto layout pick). */
-function useElementSize() {
+export function useElementSize() {
   const ref = useRef<HTMLDivElement | null>(null);
   const [size, setSize] = useState({ w: 0, h: 0 });
   useLayoutEffect(() => {
@@ -292,7 +293,7 @@ export function ModernNowPlaying({
   const { ref, w, h } = useElementSize();
   const artTint = useArtTint(artUrl, tint);
   const v = pickVariant(w, h, variant);
-  const sv = surface(style, artTint);
+  const sv = makeSurface(style, artTint);
   const pct = Math.min(100, Math.max(0, progress));
   const idle = !track && !artUrl;
   const trackLabel = track ?? "Nothing playing";
