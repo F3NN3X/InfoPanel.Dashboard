@@ -161,9 +161,12 @@ function binding(fl) {
     overrideUnit: b(fl.OverrideUnit),
     showUnit: b(fl.ShowUnit),
     precision: fl.Precision === undefined ? 0 : n(fl.Precision),
+    overridePrecision: b(fl.OverridePrecision),
+    showThousandsSeparator: b(fl.ShowThousandsSeparator),
     multiplicationModifier: fl.MultiplicationModifier === undefined ? 1 : f(fl.MultiplicationModifier, 1),
     divisionToggle: b(fl.DivisionToggle),
     additionModifier: fl.AdditionModifier === undefined ? 0 : f(fl.AdditionModifier, 0),
+    absoluteAddition: b(fl.AbsoluteAddition),
     threshold1: n(fl.Threshold1),
     threshold1Color: s(fl.Threshold1Color) || undefined,
     threshold2: n(fl.Threshold2),
@@ -200,6 +203,7 @@ function chartBase(fl) {
 function imageFields(fl) {
   return {
     filePath: s(fl.FilePath),
+    httpUrl: s(fl.HttpUrl) || undefined,
     type: fl.Type || "FILE",
     scale: n(fl.Scale),
     layer: b(fl.Layer),
@@ -210,6 +214,7 @@ function imageFields(fl) {
     height: n(fl.Height),
     cache: fl.Cache === undefined ? true : b(fl.Cache),
     readOnly: b(fl.ReadOnly),
+    relativePath: fl.RelativePath === undefined ? true : b(fl.RelativePath),
   };
 }
 
@@ -227,7 +232,8 @@ function convert(node, idx) {
   };
   switch (node.type) {
     case "TextDisplayItem":
-      return { ...base, kind: "text", ...textBlock(fl), text: s(fl.Text) };
+      // C# TextDisplayItem has no Text property — the content is the Name.
+      return { ...base, kind: "text", ...textBlock(fl), text: base.name };
     case "ClockDisplayItem":
       return { ...base, kind: "clock", ...textBlock(fl), format: s(fl.Format) || "hh:mm:ss tt" };
     case "CalendarDisplayItem":
@@ -251,21 +257,17 @@ function convert(node, idx) {
         ...base,
         kind: "httpImage",
         ...imageFields(fl),
-        url: s(fl.HttpUrl),
-        refreshInterval: fl.RefreshInterval === undefined ? 60 : n(fl.RefreshInterval),
+        httpUrl: s(fl.HttpUrl),
         sensor: binding(fl),
       };
     case "SensorImageDisplayItem":
       return {
         ...base,
         kind: "sensorImage",
+        ...imageFields(fl),
         sensor: binding(fl),
         threshold1: n(fl.Threshold1),
         threshold2: n(fl.Threshold2),
-        image1: s(fl.Image1),
-        image2: s(fl.Image2),
-        image3: s(fl.Image3),
-        scale: n(fl.Scale),
       };
     case "GraphDisplayItem":
       return {
@@ -273,6 +275,7 @@ function convert(node, idx) {
         kind: "graph",
         ...chartBase(fl),
         sensor: binding(fl),
+        graphType: fl.Type === "HISTOGRAM" ? "HISTOGRAM" : "LINE",
         step: fl.Step === undefined ? 4 : n(fl.Step),
         thickness: fl.Thickness === undefined ? 2 : f(fl.Thickness, 2),
         fill: fl.Fill === undefined ? true : b(fl.Fill),
@@ -309,7 +312,18 @@ function convert(node, idx) {
         scale: n(fl.Scale),
         flipX: b(fl.FlipX),
         animationSpeed: fl.AnimationSpeed === undefined ? 0 : f(fl.AnimationSpeed, 0),
-        images: node.imgChildren.map((c) => c.fields.FilePath || c.fields.Name || ""),
+        // Full ImageDisplayItem frames (C# `Images`).
+        images: node.imgChildren.map((c, i) => ({
+          id: `g${idx.id}-f${i}`,
+          kind: "image",
+          name: c.fields.Name || c.fields.FilePath || `frame-${i}`,
+          x: n(c.fields.X),
+          y: n(c.fields.Y),
+          rotation: n(c.fields.Rotation),
+          hidden: b(c.fields.Hidden),
+          locked: b(c.fields.IsLocked),
+          ...imageFields(c.fields),
+        })),
       };
     case "ShapeDisplayItem":
       return {

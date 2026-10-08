@@ -477,7 +477,7 @@ export function FreeInspector({
             />
           )}
           {it.kind === "httpImage" && (
-            <Txt label="URL" mono value={(it as IPHttpImageItem).url} onChange={(v) => set({ url: v })} />
+            <Txt label="URL" mono value={(it as IPHttpImageItem).httpUrl} onChange={(v) => set({ httpUrl: v })} />
           )}
           <Num label="Scale %" value={(it as IPImageItem).scale} onChange={(v) => set({ scale: v })} />
           <div className="flex gap-2">
@@ -501,17 +501,10 @@ export function FreeInspector({
 
       {it.kind === "sensorImage" && (
         <Section title="Sensor Image">
-          {(["image1", "image2", "image3"] as const).map((f, i) => (
-            <Txt
-              key={f}
-              label={`Image ${i + 1}${i === 0 ? " (≤T1)" : i === 1 ? " (T1–T2)" : " (>T2)"}`}
-              mono
-              value={(it as IPSensorImageItem)[f]}
-              onChange={(v) => set({ [f]: v })}
-            />
-          ))}
+          <Txt label="Asset file" mono value={(it as IPSensorImageItem).filePath} onChange={(v) => set({ filePath: v })} />
           <Num label="T1" value={(it as IPSensorImageItem).threshold1} onChange={(v) => set({ threshold1: v })} />
           <Num label="T2" value={(it as IPSensorImageItem).threshold2} onChange={(v) => set({ threshold2: v })} />
+          <p className="text-[11px] text-muted-foreground">Shown while value ∈ [T1, T2].</p>
           <Num label="Scale %" value={(it as IPSensorImageItem).scale} onChange={(v) => set({ scale: v })} />
         </Section>
       )}
@@ -530,8 +523,18 @@ export function FreeInspector({
           <Txt
             label="Frames (1/line)"
             mono
-            value={(it as IPGaugeItem).images.join("\n")}
-            onChange={(v) => set({ images: v.split("\n").filter(Boolean) })}
+            value={(it as IPGaugeItem).images.map((f) => f.filePath).join("\n")}
+            onChange={(v) => {
+              const prev = (it as IPGaugeItem).images;
+              set({
+                images: v
+                  .split("\n")
+                  .filter(Boolean)
+                  .map((name, i) =>
+                    prev[i] ? { ...prev[i], filePath: name } : { ...prev[0], filePath: name, id: `${(it as IPGaugeItem).id}-f${i}` }
+                  ),
+              });
+            }}
           />
         </Section>
       )}

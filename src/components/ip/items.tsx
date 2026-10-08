@@ -27,7 +27,15 @@ interface Ctx {
   profile: IPProfile;
   sensors: SensorMap;
   assetBase: string;
+  /** In-memory assets (data URLs) for profiles imported via .infopanel. */
+  assetData?: Record<string, string>;
   now: Date;
+}
+
+/** Resolve an asset file name: in-memory import data first, else the
+ *  served `/assets/ip/<slug>/` folder. */
+export function assetUrl(c: Ctx, file: string): string {
+  return c.assetData?.[file] ?? `${c.assetBase}/${file}`;
 }
 
 /* ------------------------------------------------------------------ *
@@ -384,9 +392,9 @@ export function IPGaugeItemView({ item, c }: { item: IPGaugeItem; c: Ctx }) {
     if (frames.length === 0) return;
     const img = new Image();
     img.onload = () => setNatural(img.naturalWidth || 100);
-    img.src = `${c.assetBase}/${frames[0]}`;
+    img.src = assetUrl(c, frames[0].filePath);
     probeRef.current = img;
-  }, [c.assetBase, frames.length > 0 ? frames[0] : ""]);
+  }, [c.assetBase, frames.length > 0 ? frames[0].filePath : ""]);
 
   const n = frames.length;
   const span = Math.max(1e-6, item.maxValue - item.minValue);
@@ -424,8 +432,8 @@ export function IPGaugeItemView({ item, c }: { item: IPGaugeItem; c: Ctx }) {
   return place(
     item,
     <div style={{ position: "relative", width: w, height: w }}>
-      {next !== cur && <img src={`${c.assetBase}/${frames[next]}`} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: frac, transform: item.flipX ? "scaleX(-1)" : undefined, imageRendering: "auto" }} alt="" />}
-      <img src={`${c.assetBase}/${frames[cur]}`} style={{ width: "100%", height: "100%", opacity: next !== cur ? 1 - frac : 1, transform: item.flipX ? "scaleX(-1)" : undefined }} alt="" />
+      {next !== cur && <img src={assetUrl(c, frames[next].filePath)} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: frac, transform: item.flipX ? "scaleX(-1)" : undefined, imageRendering: "auto" }} alt="" />}
+      <img src={assetUrl(c, frames[cur].filePath)} style={{ width: "100%", height: "100%", opacity: next !== cur ? 1 - frac : 1, transform: item.flipX ? "scaleX(-1)" : undefined }} alt="" />
     </div>
   );
 }
@@ -448,7 +456,7 @@ function imageSize(item: IPImageItem | IPHttpImageItem, natural?: number) {
 
 export function IPImageItemView({ item, c }: { item: IPImageItem; c: Ctx }) {
   const [nat, setNat] = useState(0);
-  const src = item.type === "URL" ? item.filePath : `${c.assetBase}/${item.filePath}`;
+  const src = item.type === "URL" ? item.httpUrl || item.filePath : assetUrl(c, item.filePath);
   const size = imageSize(item, nat || undefined);
   return place(
     item,
@@ -470,7 +478,7 @@ export function IPImageItemView({ item, c }: { item: IPImageItem; c: Ctx }) {
 
 export function IPHttpImageItemView({ item, c }: { item: IPHttpImageItem; c: Ctx }) {
   const live = bindingText(c.sensors, item.sensor);
-  const src = live || item.url;
+  const src = live || item.httpUrl;
   const [nat, setNat] = useState(0);
   const size = imageSize(item, nat || undefined);
   if (!src) {
@@ -487,11 +495,12 @@ export function IPHttpImageItemView({ item, c }: { item: IPHttpImageItem; c: Ctx
 
 export function IPSensorImageItemView({ item, c }: { item: IPSensorImageItem; c: Ctx }) {
   const v = bindingValue(c.sensors, item.sensor);
-  const pick = v === undefined ? item.image1 : v > item.threshold2 ? item.image3 : v > item.threshold1 ? item.image2 : item.image1;
-  if (!pick) return null;
+  // C# ShouldShow(): visible while the value sits inside [t1, t2].
+  const show = v === undefined || (v >= item.threshold1 && v <= item.threshold2);
+  if (!show || !item.filePath) return null;
   return place(
     item,
-    <img src={`${c.assetBase}/${pick}`} style={{ width: item.scale > 0 ? item.scale : undefined }} alt={item.name} />
+    <img src={assetUrl(c, item.filePath)} style={{ width: item.scale > 0 ? item.scale : undefined, display: "block" }} alt={item.name} />
   );
 }
 

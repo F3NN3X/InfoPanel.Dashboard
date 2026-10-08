@@ -67,9 +67,12 @@ const binding = (sensorType: "libre" | "plugin" | "hwinfo") => ({
   overrideUnit: false,
   showUnit: false,
   precision: 0,
+  overridePrecision: false,
+  showThousandsSeparator: false,
   multiplicationModifier: 1,
   divisionToggle: false,
   additionModifier: 0,
+  absoluteAddition: false,
   threshold1: 0,
   threshold1Color: "#000000",
   threshold2: 100,
@@ -113,12 +116,14 @@ export function createIPItem(kind: IPItemKind, name?: string): IPItem {
         height: 0,
         cache: true,
         readOnly: false,
+        relativePath: true,
       } as IPImageItem;
     case "httpImage":
       return {
         ...base(kind, name ?? "Http Image"),
         filePath: "",
         type: "URL",
+        httpUrl: "",
         scale: 100,
         layer: false,
         layerColor: "#77FFFFFF",
@@ -128,8 +133,7 @@ export function createIPItem(kind: IPItemKind, name?: string): IPItem {
         height: 0,
         cache: true,
         readOnly: false,
-        url: "",
-        refreshInterval: 60,
+        relativePath: false,
         sensor: binding("plugin"),
       } as IPHttpImageItem;
     case "sensorImage":
@@ -138,10 +142,18 @@ export function createIPItem(kind: IPItemKind, name?: string): IPItem {
         sensor: binding("libre"),
         threshold1: 0,
         threshold2: 100,
-        image1: "",
-        image2: "",
-        image3: "",
+        filePath: "",
+        type: "FILE",
         scale: 100,
+        layer: false,
+        layerColor: "#77FFFFFF",
+        showPanel: false,
+        volume: 0,
+        width: 0,
+        height: 0,
+        cache: true,
+        readOnly: false,
+        relativePath: true,
       } as IPSensorImageItem;
     case "graph":
       return {
@@ -157,6 +169,7 @@ export function createIPItem(kind: IPItemKind, name?: string): IPItem {
         backgroundColor: "#FFFFFF",
         color: "#808080",
         sensor: binding("libre"),
+        graphType: "LINE",
         step: 4,
         thickness: 2,
         fill: true,

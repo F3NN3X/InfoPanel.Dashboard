@@ -51,7 +51,7 @@ export function IPCanvas({ profile, sensors, assetBase, scale = 1, tick = true, 
 
   const flat = useMemo(() => flattenItems(profile.items), [profile.items]);
   const ctx = useMemo(
-    () => ({ profile, sensors, assetBase, now: now ?? t }),
+    () => ({ profile, sensors, assetBase, assetData: profile.assetData, now: now ?? t }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [profile, sensors, assetBase, now, t]
   );

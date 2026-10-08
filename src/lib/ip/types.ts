@@ -94,10 +94,13 @@ export interface IPSensorBinding {
   showUnit?: boolean;
   /** Decimal places (override when > 0 is requested). */
   precision?: number;
+  overridePrecision?: boolean;
+  showThousandsSeparator?: boolean;
   /** Value = value × MultiplicationModifier (+ AdditionModifier), ÷10 when DivisionToggle. */
   multiplicationModifier?: number;
   divisionToggle?: boolean;
   additionModifier?: number;
+  absoluteAddition?: boolean;
   threshold1?: number;
   threshold1Color?: string;
   threshold2?: number;
@@ -151,6 +154,8 @@ export interface IPImageItem extends IPBase {
   kind: "image";
   /** Asset file name (profile asset folder) for type FILE. */
   filePath: string;
+  /** URL for type URL (C# `HttpUrl`). */
+  httpUrl?: string;
   type: "FILE" | "URL";
   /** URL for type URL; percent scale for FILE (0 = native size). */
   scale: number;
@@ -163,10 +168,37 @@ export interface IPImageItem extends IPBase {
   height: number;
   cache: boolean;
   readOnly: boolean;
+  relativePath: boolean;
 }
 
 export interface IPHttpImageItem extends IPBase {
   kind: "httpImage";
+  /** Asset file name for type FILE (rare). */
+  filePath: string;
+  type: "FILE" | "URL";
+  /** Remote image URL (C# `HttpUrl`). */
+  httpUrl: string;
+  scale: number;
+  layer: boolean;
+  layerColor: string;
+  showPanel: boolean;
+  volume: number;
+  width: number;
+  height: number;
+  cache: boolean;
+  readOnly: boolean;
+  relativePath: boolean;
+  /** When set, the image URL is the sensor's live text value. */
+  sensor: IPSensorBinding;
+}
+
+/** C# `SensorImageDisplayItem` = `ImageDisplayItem` + sensor + 2 thresholds:
+ *  the single image is shown while the value sits between the thresholds. */
+export interface IPSensorImageItem extends IPBase {
+  kind: "sensorImage";
+  sensor: IPSensorBinding;
+  threshold1: number;
+  threshold2: number;
   filePath: string;
   type: "FILE" | "URL";
   scale: number;
@@ -178,21 +210,7 @@ export interface IPHttpImageItem extends IPBase {
   height: number;
   cache: boolean;
   readOnly: boolean;
-  url: string;
-  refreshInterval: number;
-  /** When set, the image URL is the sensor's live text value. */
-  sensor: IPSensorBinding;
-}
-
-export interface IPSensorImageItem extends IPBase {
-  kind: "sensorImage";
-  sensor: IPSensorBinding;
-  threshold1: number;
-  threshold2: number;
-  image1: string;
-  image2: string;
-  image3: string;
-  scale: number;
+  relativePath: boolean;
 }
 
 interface IPChartBase {
@@ -211,6 +229,8 @@ interface IPChartBase {
 export interface IPGraphItem extends IPBase, IPChartBase {
   kind: "graph";
   sensor: IPSensorBinding;
+  /** C# GraphType. */
+  graphType: "LINE" | "HISTOGRAM";
   step: number;
   thickness: number;
   fill: boolean;
@@ -244,8 +264,11 @@ export interface IPGaugeItem extends IPBase {
   flipX: boolean;
   /** Frame-units/sec smoothing; 0 = instant. */
   animationSpeed: number;
-  /** Sprite frames (asset file names, in order). */
-  images: string[];
+  /**
+   * Sprite frames — full image items (C# `Images`, each a
+   * `ImageDisplayItem`), rendered in order as the value sweeps min→max.
+   */
+  images: IPImageItem[];
 }
 
 export type IPShapeType =
@@ -334,6 +357,8 @@ export interface IPProfile {
    * (the InfoPanel `assets\<guid>\` folder, copied at import time).
    */
   assets?: string;
+  /** In-memory assets (data URLs) for profiles imported via `.infopanel`. */
+  assetData?: Record<string, string>;
   /** Z-order = index (0 = bottom). */
   items: IPItem[];
 }

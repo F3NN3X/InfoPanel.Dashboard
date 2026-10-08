@@ -10,6 +10,7 @@ import {
   ChevronDown,
   ChevronUp,
   Copy,
+  Download,
   Eye,
   EyeOff,
   Group,
@@ -19,6 +20,7 @@ import {
   Redo2,
   Trash2,
   Undo2,
+  Upload,
   X,
   ZoomIn,
   ZoomOut,
@@ -30,10 +32,19 @@ import type { SensorMap } from "@/modules";
 import type { IPGroupItem, IPItem, IPItemKind, IPProfile } from "@/lib/ip/types";
 import { IP_KIND_LABEL } from "@/lib/ip/types";
 import {
+  itemsToXml,
+  parseItemsXml,
+  parseProfileXml,
+  profileToXml,
+  zipFind,
+} from "@/lib/ip/xml";
+import { bytesToBlob, slugify, unzip, zipStore, type ZipFile } from "@/lib/ip/zip";
+import {
   addItem,
   duplicateItem,
   findItem,
   groupItems,
+  newIPId,
   removeItem,
   ungroupItem,
   updateItem,
@@ -369,6 +380,128 @@ export function FreeStudio({
     </button>
   );
 
+  /* ---------------- .infopanel round-trip ---------------- */
+
+  const [busy, setBusy] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement | null>(null);
+
+  /** Asset file names referenced anywhere in the tree. */
+  const collectAssetNames = (items: IPItem[]): Set<string> => {
+    const out = new Set<string>();
+    const walk = (list: IPItem[]) => {
+      for (const it of list) {
+        if (it.kind === "image" || it.kind === "sensorImage") {
+          if (it.filePath) out.add(it.filePath);
+        } else if (it.kind === "gauge") {
+          for (const f of it.images) if (f.filePath) out.add(f.filePath);
+        } else if (it.kind === "group") walk(it.children);
+      }
+    };
+    walk(items);
+    return out;
+  };
+
+  const toB64 = (bytes: Uint8Array): string => {
+    let bin = "";
+    const chunk = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunk) {
+      bin += String.fromCharCode(...bytes.subarray(i, i + chunk));
+    }
+    return btoa(bin);
+  };
+
+  /** Export `{name}-{unixtime}.infopanel` — opens unchanged in InfoPanel. */
+  const exportInfopanel = async () => {
+    setBusy("Export");
+    try {
+      const enc = new TextEncoder();
+      const files: ZipFile[] = [
+        { name: "Profile.xml", data: new Uint8Array(enc.encode(profileToXml(p))) },
+        { name: "DisplayItems.xml", data: new Uint8Array(enc.encode(itemsToXml(p.items))) },
+      ];
+      const base = `/assets/ip/${p.assets ?? p.id}`;
+      for (const name of collectAssetNames(p.items)) {
+        try {
+          const r = await fetch(`${base}/${encodeURIComponent(name)}`);
+          if (r.ok)
+            files.push({ name: `assets/${name}`, data: new Uint8Array(await r.arrayBuffer()) });
+        } catch {
+          /* asset not served at runtime — the XML references it by name */
+        }
+      }
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(bytesToBlob(zipStore(files), "application/zip"));
+      a.download = `${slugify(p.name)}-${Math.floor(Date.now() / 1000)}.infopanel`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  /** Import a `.infopanel` bundle (InfoPanel export, or one we exported). */
+  const importInfopanel = async (file: File) => {
+    setBusy("Import");
+    try {
+      const files = await unzip(new Uint8Array(await file.arrayBuffer()));
+      const dec = new TextDecoder();
+      const pXml = zipFind(files, "Profile.xml");
+      const iXml = zipFind(files, "DisplayItems.xml");
+      if (!pXml || !iXml)
+        throw new Error("not a .infopanel bundle (missing Profile.xml / DisplayItems.xml)");
+      const prof = parseProfileXml(dec.decode(pXml));
+      const items = parseItemsXml(dec.decode(iXml), (i) => `${newIPId()}-${i}`);
+      // Bundled assets → in-memory data URLs (served to the renderer via
+      // `profile.assetData` — no disk access needed in the kiosk).
+      const assetData: Record<string, string> = {};
+      for (const [key, v] of files) {
+        const lower = key.toLowerCase();
+        if (!lower.startsWith("assets/")) continue;
+        const name = key.slice(key.indexOf("/") + 1);
+        const mime = lower.endsWith(".jpg") || lower.endsWith(".jpeg")
+          ? "image/jpeg"
+          : lower.endsWith(".gif")
+            ? "image/gif"
+            : lower.endsWith(".webp")
+              ? "image/webp"
+              : "image/png";
+        assetData[name] = `data:${mime};base64,${toB64(v)}`;
+      }
+      const id = newIPId();
+      const np: IPProfile = {
+        id,
+        name: `[Import] ${prof.name ?? file.name.replace(/\.infopanel$/i, "")}`,
+        width: prof.width ?? 800,
+        height: prof.height ?? 600,
+        backgroundColor: prof.backgroundColor ?? "#00FFFFFF",
+        font: prof.font ?? "",
+        fontSize: prof.fontSize ?? 26,
+        fontScale: prof.fontScale ?? 1.33,
+        color: prof.color ?? "#FFFFFFFF",
+        showFps: prof.showFps ?? false,
+        drag: true,
+        resize: false,
+        active: true,
+        topmost: true,
+        windowX: 0,
+        windowY: 0,
+        strictWindowMatching: false,
+        assets: id,
+        assetData: Object.keys(assetData).length > 0 ? assetData : undefined,
+        items,
+      };
+      setConfig((c) => ({
+        ...c,
+        freeProfiles: [...(c.freeProfiles ?? []), np],
+        activeProfile: id,
+      }));
+    } catch (e) {
+      console.error("[free-studio] import failed:", e);
+    } finally {
+      setBusy(null);
+    }
+  };
+
   const ids = selSet.size > 0 ? [...selSet] : [];
 
   return (
@@ -463,6 +596,36 @@ export function FreeStudio({
             )}
         </div>
         <div className="ml-auto flex items-center gap-1">
+          <button
+            onClick={() => fileRef.current?.click()}
+            disabled={busy !== null}
+            title="Import a .infopanel bundle"
+            className="flex items-center gap-1 rounded-md border bg-popover px-2 py-1 text-xs text-popover-foreground shadow-sm hover:bg-accent disabled:opacity-40"
+          >
+            <Upload className="h-3.5 w-3.5" />
+            {busy === "Import" ? "…" : "Import"}
+          </button>
+          <button
+            onClick={exportInfopanel}
+            disabled={busy !== null}
+            title="Export this profile as .infopanel"
+            className="flex items-center gap-1 rounded-md border bg-popover px-2 py-1 text-xs text-popover-foreground shadow-sm hover:bg-accent disabled:opacity-40"
+          >
+            <Download className="h-3.5 w-3.5" />
+            {busy === "Export" ? "…" : "Export"}
+          </button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept=".infopanel,.zip"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) void importInfopanel(f);
+              e.target.value = "";
+            }}
+          />
+          <div className="mx-1 h-5 w-px bg-border" />
           <button
             onClick={() => setFitting(true)}
             title="Fit to viewport"
