@@ -11,9 +11,10 @@ import {
 /**
  * Modern Steam widget — the adaptive redesign of the classic Steam module
  * (the InfoPanel SteamAPI plugin's profile / session / library / social
- * containers). One component (`ModernSteam`) picks card / standard /
- * compact / simple from the zone's measured size and tints the surface from
- * the game banner. The classic `steam` module stays untouched.
+ * containers). The game banner is the widget background with the
+ * transparent game logo overlaid on top. One component (`ModernSteam`)
+ * picks card / standard / compact / simple from the zone's measured size.
+ * The classic `steam` module stays untouched.
  */
 
 const P = "plugins.InfoPanel.SteamAPI.";
@@ -49,7 +50,12 @@ const STEAM_MODERN_SETTINGS: ModuleSetting[] = [
       { value: "matte-dark", label: "Matte (dark)" },
     ],
   },
-  { key: "tint", label: "Tint from game art", type: "boolean", default: true },
+  {
+    key: "dimBanner",
+    label: "Dim banner for text",
+    type: "boolean",
+    default: true,
+  },
   { key: "showStats", label: "Stats", type: "boolean", default: true },
   { key: "showNews", label: "News line", type: "boolean", default: true },
 ];
@@ -59,7 +65,7 @@ function modernProps(mod: DashboardModule, s?: ModuleSettings) {
   return {
     layout: String(cfg.layout) as "auto" | "card" | "standard" | "compact" | "simple",
     surfaceStyle: String(cfg.surface) as "glass" | "matte-light" | "matte-dark",
-    tint: Boolean(cfg.tint),
+    dimBanner: Boolean(cfg.dimBanner),
     showStats: Boolean(cfg.showStats),
     showNews: Boolean(cfg.showNews),
   };
@@ -82,15 +88,17 @@ export const steamModernModule: DashboardModule = {
     const game = liveText(entry(sensors, P, SESSION, "current-game"));
     const playtime = liveValue(entry(sensors, P, SESSION, "current-game-playtime"));
     const sessionTime = liveText(entry(sensors, P, SESSION, "current-session-time"));
+    const sessionStart = liveText(entry(sensors, P, SESSION, "session-start-time"));
+
     const banner = liveText(entry(sensors, P, PROFILE, "current_game_banner_url"));
     const logo = liveText(entry(sensors, P, PROFILE, "game_logo_url"));
+    const icon = liveText(entry(sensors, P, PROFILE, "game_icon_url"));
 
     const totalGames = liveValue(entry(sensors, P, LIBRARY, "total-games"));
-    const totalHours = liveValue(entry(sensors, P, LIBRARY, "total-playtime"));
-    const mostPlayed = liveText(entry(sensors, P, LIBRARY, "most-played-recent"));
 
     const achPct = liveValue(entry(sensors, P, ACHIEVEMENTS, "current-achievements"));
     const latestAch = liveText(entry(sensors, P, ACHIEVEMENTS, "latest-achievement"));
+    const achIcon = liveText(entry(sensors, P, ACHIEVEMENTS, "latest-achievement-icon"));
 
     const friendsOnline = liveValue(entry(sensors, P, SOCIAL, "friends-online"));
     const totalFriends = liveValue(entry(sensors, P, SOCIAL, "total-friends"));
@@ -101,12 +109,14 @@ export const steamModernModule: DashboardModule = {
 
     const avatarUrl =
       avatar && isImageUrl(avatar, "profile_image_url") ? avatar : undefined;
-    const artUrl =
-      banner && isImageUrl(banner, "current_game_banner_url")
-        ? banner
-        : logo && isImageUrl(logo, "game_logo_url")
-          ? logo
-          : undefined;
+    const bannerUrl =
+      banner && isImageUrl(banner, "current_game_banner_url") ? banner : undefined;
+    const logoUrl = logo && isImageUrl(logo, "game_logo_url") ? logo : undefined;
+    const iconUrl = icon && isImageUrl(icon, "game_icon_url") ? icon : undefined;
+    const achIconUrl =
+      achIcon && isImageUrl(achIcon, "latest-achievement-icon")
+        ? achIcon
+        : undefined;
 
     return (
       <ModernSteam
@@ -117,12 +127,14 @@ export const steamModernModule: DashboardModule = {
         game={game}
         playtimeHours={playtime}
         sessionTime={sessionTime}
-        artUrl={artUrl}
+        sessionStart={sessionStart}
+        bannerUrl={bannerUrl}
+        logoUrl={logoUrl}
+        iconUrl={iconUrl}
         totalGames={totalGames}
-        totalHours={totalHours}
-        mostPlayed={mostPlayed}
         achPct={achPct}
         latestAch={latestAch}
+        achIconUrl={achIconUrl}
         friendsOnline={friendsOnline}
         totalFriends={totalFriends}
         news={news}
