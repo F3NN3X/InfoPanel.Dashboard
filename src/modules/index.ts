@@ -2,6 +2,10 @@ import { systemModule } from "./system";
 import { hardwareModule } from "./hardware";
 import { spotifyModule } from "./spotify";
 import { mediaModule } from "./media";
+import {
+  spotifyModernModule,
+  mediaModernModule,
+} from "./modern-media";
 import { steamModule } from "./steam";
 import { weatherModule } from "./weather";
 import { fpsModule } from "./fps";
@@ -22,7 +26,9 @@ import type { DashboardModule, SensorMap } from "./types";
 export const modules: DashboardModule[] = [
   systemModule,
   spotifyModule,
+  spotifyModernModule,
   mediaModule,
+  mediaModernModule,
   steamModule,
   hardwareModule,
   weatherModule,
