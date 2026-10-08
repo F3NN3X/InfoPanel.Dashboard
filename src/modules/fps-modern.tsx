@@ -1,5 +1,6 @@
 import { ModernFps } from "@/components/ModernFps";
 import { entry, liveText, liveValue } from "@/lib/sensors";
+import { chromeOf, STANDARD_SETTINGS } from "./standard-settings";
 import {
   effectiveSettings,
   type DashboardModule,
@@ -18,30 +19,7 @@ const FPS = "plugins.fps-plugin.";
  */
 
 const FPS_MODERN_SETTINGS: ModuleSetting[] = [
-  {
-    key: "layout",
-    label: "Layout",
-    type: "select",
-    default: "auto",
-    options: [
-      { value: "auto", label: "Auto (fit to zone)" },
-      { value: "card", label: "Card" },
-      { value: "standard", label: "Standard" },
-      { value: "compact", label: "Compact bar" },
-      { value: "simple", label: "Simple" },
-    ],
-  },
-  {
-    key: "surface",
-    label: "Surface",
-    type: "select",
-    default: "glass",
-    options: [
-      { value: "glass", label: "Glass" },
-      { value: "matte-light", label: "Matte (light)" },
-      { value: "matte-dark", label: "Matte (dark)" },
-    ],
-  },
+  ...STANDARD_SETTINGS,
   { key: "showMetrics", label: "Extra metrics", type: "boolean", default: true },
 ];
 
@@ -119,6 +97,7 @@ export const fpsModernModule: DashboardModule = {
           | "compact"
           | "simple"}
         surfaceStyle={String(cfg.surface) as "glass" | "matte-light" | "matte-dark"}
+        chrome={chromeOf(cfg)}
       />
     );
   },

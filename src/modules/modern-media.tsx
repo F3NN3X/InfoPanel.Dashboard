@@ -5,6 +5,7 @@ import {
 } from "@/components/ModernNowPlaying";
 import { isImageUrl } from "@/lib/image";
 import { entry, liveText } from "@/lib/sensors";
+import { chromeOf, STANDARD_SETTINGS } from "./standard-settings";
 import {
   effectiveSettings,
   type DashboardModule,
@@ -27,30 +28,7 @@ import {
  */
 
 const MODERN_SETTINGS: ModuleSetting[] = [
-  {
-    key: "variant",
-    label: "Layout",
-    type: "select",
-    default: "auto",
-    options: [
-      { value: "auto", label: "Auto (fit to zone)" },
-      { value: "card", label: "Card" },
-      { value: "standard", label: "Standard" },
-      { value: "compact", label: "Compact bar" },
-      { value: "simple", label: "Simple" },
-    ],
-  },
-  {
-    key: "style",
-    label: "Surface",
-    type: "select",
-    default: "glass",
-    options: [
-      { value: "glass", label: "Glass" },
-      { value: "matte-light", label: "Matte (light)" },
-      { value: "matte-dark", label: "Matte (dark)" },
-    ],
-  },
+  ...STANDARD_SETTINGS,
   { key: "tint", label: "Tint from cover art", type: "boolean", default: true },
   { key: "showTimes", label: "Times", type: "boolean", default: true },
   { key: "showProgress", label: "Progress", type: "boolean", default: true },
@@ -59,11 +37,12 @@ const MODERN_SETTINGS: ModuleSetting[] = [
 function modernProps(mod: DashboardModule, s?: ModuleSettings) {
   const cfg = effectiveSettings(mod, s);
   return {
-    variant: String(cfg.variant) as ModernVariant | "auto",
-    style: String(cfg.style) as ModernStyle,
+    variant: String(cfg.layout) as ModernVariant | "auto",
+    style: String(cfg.surface) as ModernStyle,
     tint: Boolean(cfg.tint),
     showTimes: Boolean(cfg.showTimes),
     showProgress: Boolean(cfg.showProgress),
+    chrome: chromeOf(cfg),
   };
 }
 

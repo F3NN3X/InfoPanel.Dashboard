@@ -1,4 +1,6 @@
+import { WIDGET_ICONS } from "@/lib/widget-icons";
 import { Segmented } from "@/components/ui/segmented";
+import type { ReactNode } from "react";
 import {
   type DashboardModule,
   type ModuleSetting,
@@ -50,6 +52,10 @@ export function SettingsPanel({
             def={def}
             value={value?.[def.key] ?? def.default}
             onChange={(v) => onChange(def.key, v)}
+            onApply={(bundle) => {
+              // Preset bundle: persist each value alongside.
+              for (const [k, v] of Object.entries(bundle)) onChange(k, v);
+            }}
           />
         ))}
       </div>
@@ -61,10 +67,13 @@ function SettingRow({
   def,
   value,
   onChange,
+  onApply,
 }: {
   def: ModuleSetting;
   value: ModuleSettingValue;
   onChange: (value: ModuleSettingValue) => void;
+  /** Preset bundles: apply extra key/values alongside the selected one. */
+  onApply?: (bundle: ModuleSettings) => void;
 }) {
   switch (def.type) {
     case "boolean":
@@ -92,10 +101,11 @@ function SettingRow({
       );
 
     case "color": {
-      const hex =
-        typeof value === "string" && value.length > 0
-          ? value
-          : String(def.default);
+      // "" means "auto" (the widget's own theme color). The native input
+      // can't hold an empty value, so it always gets a valid hex.
+      const raw = typeof value === "string" ? value : String(def.default ?? "");
+      const hasValue = raw.length > 0;
+      const hex = hasValue ? raw : "#000000";
       return (
         <div>
           <div className="mb-1 text-xs text-muted-foreground">{def.label}</div>
@@ -107,8 +117,17 @@ function SettingRow({
               className="h-7 w-10 cursor-pointer rounded border border-border bg-transparent p-0.5"
             />
             <span className="text-xs tabular-nums text-muted-foreground">
-              {hex}
+              {hasValue ? raw : "auto"}
             </span>
+            {hasValue && (
+              <button
+                onClick={() => onChange("")}
+                title="Reset to auto (the widget's theme color)"
+                className="text-[11px] text-muted-foreground hover:text-foreground"
+              >
+                auto
+              </button>
+            )}
           </div>
         </div>
       );
@@ -152,14 +171,20 @@ function SettingRow({
 
     case "select": {
       const str = String(value);
-      if (def.options && def.options.length <= 3) {
+      const apply = (v: string) => {
+        onChange(v);
+        // Preset bundle: persist the option's extra values alongside.
+        const applies = def.options?.find((o) => o.value === v)?.applies;
+        if (applies) onApply?.(applies);
+      };
+      if (def.options && def.options.length <= 4) {
         return (
           <div>
             <div className="mb-1 text-xs text-muted-foreground">{def.label}</div>
             <Segmented
               options={def.options.map((o) => ({ value: o.value, label: o.label }))}
               value={str}
-              onChange={(v) => onChange(v)}
+              onChange={apply}
             />
           </div>
         );
@@ -169,7 +194,7 @@ function SettingRow({
           <div className="mb-1 text-xs text-muted-foreground">{def.label}</div>
           <select
             value={str}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={(e) => apply(e.target.value)}
             className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground"
           >
             {def.options?.map((o) => (
@@ -178,6 +203,56 @@ function SettingRow({
               </option>
             ))}
           </select>
+        </div>
+      );
+    }
+
+    case "icon": {
+      const str = String(value);
+      return (
+        <div>
+          <div className="mb-1 text-xs text-muted-foreground">{def.label}</div>
+          <div className="flex flex-wrap gap-1">
+            <IconButton active={str === ""} onClick={() => onChange("")} title="None">
+              <span className="text-xs">—</span>
+            </IconButton>
+            {Object.entries(WIDGET_ICONS).map(([name, Icon]) => (
+              <IconButton
+                key={name}
+                active={str === name}
+                onClick={() => onChange(name)}
+                title={name}
+              >
+                <Icon className="h-3.5 w-3.5" />
+              </IconButton>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    case "image": {
+      const url = String(value);
+      return (
+        <div>
+          <div className="mb-1 text-xs text-muted-foreground">{def.label}</div>
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={url}
+              placeholder="https://…"
+              onChange={(e) => onChange(e.target.value)}
+              className="w-full min-w-0 rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground placeholder:text-muted-foreground/50"
+            />
+            {url !== "" && (
+              <img
+                src={url}
+                alt=""
+                className="h-7 w-7 shrink-0 rounded border border-border object-cover"
+                onError={(e) => ((e.target as HTMLImageElement).style.visibility = "hidden")}
+              />
+            )}
+          </div>
         </div>
       );
     }
@@ -195,4 +270,30 @@ function SettingRow({
         </div>
       );
   }
+}
+
+function IconButton({
+  active,
+  onClick,
+  title,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={title}
+      className={cn(
+        "flex h-7 w-7 items-center justify-center rounded-md border text-muted-foreground transition-colors hover:text-foreground",
+        active ? "border-ring bg-accent text-foreground" : "border-border"
+      )}
+    >
+      {children}
+    </button>
+  );
 }

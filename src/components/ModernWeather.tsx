@@ -1,5 +1,6 @@
 import { Droplets, Gauge, Wind as WindIcon, CloudRain } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ModernChrome, type ModernChrome as ModernChromeSpec } from "./modern-chrome";
 import {
   makeSurface,
   useElementSize,
@@ -61,6 +62,8 @@ export interface ModernWeatherProps {
   tint?: boolean;
   showStats?: boolean;
   showForecast?: boolean;
+  /** Standard chrome: custom title / icon / accent / background image. */
+  chrome?: ModernChromeSpec;
   className?: string;
 }
 
@@ -171,12 +174,15 @@ export function ModernWeather({
   tint = true,
   showStats = true,
   showForecast = true,
+  chrome,
   className,
 }: ModernWeatherProps) {
   const { ref, w, h } = useElementSize();
   const meta = conditionMeta(desc);
   const glyph = icon || meta.emoji;
   const sv = makeSurface(surfaceStyle, tint ? meta.tint : null);
+  /** Accent color (standard option) tints the big temperature. */
+  const accent = chrome?.accent || undefined;
   const v = pickVariant(w, h, layout);
   const tempLabel = temp !== undefined ? `${Math.round(temp)}°` : "—";
   const windLabel =
@@ -231,7 +237,10 @@ export function ModernWeather({
         <div className="flex min-h-0 flex-1 items-center justify-center gap-5">
           <div style={{ fontSize: Math.round(tempSize * 0.75), lineHeight: 1 }}>{glyph}</div>
           <div>
-            <div className="font-bold leading-none tracking-tighter" style={{ fontSize: tempSize }}>
+            <div
+              className="font-bold leading-none tracking-tighter"
+              style={{ fontSize: tempSize, ...(accent ? { color: accent } : {}) }}
+            >
               {temp !== undefined ? Math.round(temp) : "—"}
               <span style={{ fontSize: tempSize * 0.4 }}>°</span>
             </div>
@@ -314,7 +323,10 @@ export function ModernWeather({
         <div className="flex shrink-0 items-center gap-4">
           <span style={{ fontSize: Math.round(tempSize * 0.8), lineHeight: 1 }}>{glyph}</span>
           <div className="min-w-0">
-            <div className="font-bold leading-none tracking-tighter" style={{ fontSize: tempSize }}>
+            <div
+              className="font-bold leading-none tracking-tighter"
+              style={{ fontSize: tempSize, ...(accent ? { color: accent } : {}) }}
+            >
               {tempLabel}
             </div>
             <div className="mt-1 text-sm" style={{ color: sv.muted }}>
@@ -347,7 +359,7 @@ export function ModernWeather({
 
   return (
     <div ref={ref} className={cn("h-full w-full", className)}>
-      {body}
+      <ModernChrome chrome={chrome}>{body}</ModernChrome>
     </div>
   );
 }

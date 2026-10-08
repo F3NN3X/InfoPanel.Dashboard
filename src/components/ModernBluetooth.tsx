@@ -1,5 +1,6 @@
 import { Bluetooth as BluetoothIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ModernChrome, type ModernChrome as ModernChromeSpec } from "./modern-chrome";
 import {
   makeSurface,
   useElementSize,
@@ -34,6 +35,8 @@ export interface ModernBluetoothProps {
   showStatus?: boolean;
   layout?: BluetoothVariant | "auto";
   surfaceStyle?: ModernStyle;
+  /** Standard chrome: custom title / icon / accent / background image. */
+  chrome?: ModernChromeSpec;
   className?: string;
 }
 
@@ -53,7 +56,7 @@ function pickVariant(
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 
 function batteryColor(pct: number): string {
-  if (pct > 50) return "#34d399";
+  if (pct > 50) return "var(--wp-accent, #34d399)";
   if (pct > 20) return "#fbbf24";
   return "#f87171";
 }
@@ -127,6 +130,7 @@ export function ModernBluetooth({
   showStatus = true,
   layout = "auto",
   surfaceStyle = "glass",
+  chrome,
   className,
 }: ModernBluetoothProps) {
   const { ref, w, h } = useElementSize();
@@ -234,7 +238,7 @@ export function ModernBluetooth({
 
   return (
     <div ref={ref} className={cn("h-full w-full", className)}>
-      {body}
+      <ModernChrome chrome={chrome}>{body}</ModernChrome>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Music2, Pause, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ModernChrome, type ModernChrome as ModernChromeSpec } from "./modern-chrome";
 
 /**
  * Modern now-playing widget.
@@ -39,6 +40,8 @@ export interface ModernNowPlayingProps {
   tint?: boolean;
   showTimes?: boolean;
   showProgress?: boolean;
+  /** Standard chrome: custom title / icon / accent / background image. */
+  chrome?: ModernChromeSpec;
   className?: string;
 }
 
@@ -288,12 +291,15 @@ export function ModernNowPlaying({
   tint = true,
   showTimes = true,
   showProgress = true,
+  chrome,
   className,
 }: ModernNowPlayingProps) {
   const { ref, w, h } = useElementSize();
   const artTint = useArtTint(artUrl, tint);
   const v = pickVariant(w, h, variant);
   const sv = makeSurface(style, artTint);
+  /** Accent color (standard option) overrides the surface's fill. */
+  const fill = chrome?.accent || sv.fill;
   const pct = Math.min(100, Math.max(0, progress));
   const idle = !track && !artUrl;
   const trackLabel = track ?? "Nothing playing";
@@ -324,7 +330,7 @@ export function ModernNowPlaying({
         </div>
         {showProgress && (
           <div className="mt-3">
-            <ProgressRow pct={pct} sv={sv} elapsed={elapsed} remaining={remaining} showTimes={showTimes} />
+            <ProgressRow pct={pct} sv={{ ...sv, fill }} elapsed={elapsed} remaining={remaining} showTimes={showTimes} />
           </div>
         )}
       </div>
@@ -339,7 +345,7 @@ export function ModernNowPlaying({
           className="absolute inset-y-0 left-0 rounded-full"
           style={{
             width: `${pct}%`,
-            background: sv.fill,
+            background: fill,
             opacity: style === "matte-light" ? 0.5 : 0.35,
           }}
         />
@@ -400,7 +406,7 @@ export function ModernNowPlaying({
           </div>
         </div>
         {showProgress && (
-          <ProgressRow pct={pct} sv={sv} elapsed={elapsed} remaining={remaining} showTimes={showTimes} />
+          <ProgressRow pct={pct} sv={{ ...sv, fill }} elapsed={elapsed} remaining={remaining} showTimes={showTimes} />
         )}
       </div>
     );
@@ -408,7 +414,7 @@ export function ModernNowPlaying({
 
   return (
     <div ref={ref} className={cn("h-full w-full", className)}>
-      {body}
+      <ModernChrome chrome={chrome}>{body}</ModernChrome>
     </div>
   );
 }

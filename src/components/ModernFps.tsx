@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { ModernChrome, type ModernChrome as ModernChromeSpec } from "./modern-chrome";
 import {
   makeSurface,
   useElementSize,
@@ -39,6 +40,8 @@ export interface ModernFpsProps {
   showMetrics?: boolean;
   layout?: FpsVariant | "auto";
   surfaceStyle?: ModernStyle;
+  /** Standard chrome: custom title / icon / accent / background image. */
+  chrome?: ModernChromeSpec;
   className?: string;
 }
 
@@ -90,7 +93,7 @@ function FpsRing({
           cy={size / 2}
           r={r}
           fill="none"
-          stroke="rgba(128,128,140,0.28)"
+          stroke="var(--wp-accent, rgba(128,128,140,0.28))"
           strokeWidth={stroke}
         />
         <circle
@@ -159,6 +162,7 @@ export function ModernFps({
   showMetrics = true,
   layout = "auto",
   surfaceStyle = "glass",
+  chrome,
   className,
 }: ModernFpsProps) {
   const { ref, w, h } = useElementSize();
@@ -319,7 +323,7 @@ export function ModernFps({
 
   return (
     <div ref={ref} className={cn("h-full w-full", className)}>
-      {body}
+      <ModernChrome chrome={chrome}>{body}</ModernChrome>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { ModernChrome, type ModernChrome as ModernChromeSpec } from "./modern-chrome";
 import {
   makeSurface,
   useElementSize,
@@ -31,6 +32,8 @@ export interface ModernHardwareProps {
   rows: ModernHardwareRow[];
   layout?: HardwareVariant | "auto";
   surfaceStyle?: ModernStyle;
+  /** Standard chrome: custom title / icon / accent / background image. */
+  chrome?: ModernChromeSpec;
   className?: string;
 }
 
@@ -51,7 +54,7 @@ const KIND_COLOR: Record<ModernHardwareRow["kind"], string> = {
   temp: "#f87171",
   fan: "#38bdf8",
   power: "#fbbf24",
-  other: "#a1a1aa",
+  other: "var(--wp-accent, #a1a1aa)",
 };
 
 function Row({
@@ -95,6 +98,7 @@ export function ModernHardware({
   rows,
   layout = "auto",
   surfaceStyle = "glass",
+  chrome,
   className,
 }: ModernHardwareProps) {
   const { ref, w, h } = useElementSize();
@@ -156,7 +160,7 @@ export function ModernHardware({
 
   return (
     <div ref={ref} className={cn("h-full w-full", className)}>
-      {body}
+      <ModernChrome chrome={chrome}>{body}</ModernChrome>
     </div>
   );
 }

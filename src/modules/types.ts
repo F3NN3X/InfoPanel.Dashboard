@@ -13,10 +13,18 @@ export type ModuleSettings = Record<string, ModuleSettingValue>;
 export interface ModuleSetting {
   key: string;
   label: string;
-  type: "text" | "number" | "select" | "boolean" | "color";
+  type: "text" | "number" | "select" | "boolean" | "color" | "icon" | "image";
   default: ModuleSettingValue;
   /** Options for type "select". */
-  options?: { value: string; label: string }[];
+  options?: {
+    value: string;
+    label: string;
+    /**
+     * Preset bundle: extra values this option applies when selected (the
+     * studio persists each one alongside the option's own value).
+     */
+    applies?: ModuleSettings;
+  }[];
   /** Bounds/step for type "number" (rendered as a slider when set). */
   min?: number;
   max?: number;

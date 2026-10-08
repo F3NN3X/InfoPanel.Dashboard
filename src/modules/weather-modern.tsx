@@ -1,5 +1,6 @@
 import { ModernWeather, type WeatherForecastDay } from "@/components/ModernWeather";
 import { findEntry, liveText } from "@/lib/sensors";
+import { chromeOf, STANDARD_SETTINGS } from "./standard-settings";
 import {
   effectiveSettings,
   type DashboardModule,
@@ -21,30 +22,7 @@ const P = "plugins.yr-weather-plugin.";
 const BRIDGE = "plugins.InfoPanel.DataBridge.weather.";
 
 const WEATHER_MODERN_SETTINGS: ModuleSetting[] = [
-  {
-    key: "layout",
-    label: "Layout",
-    type: "select",
-    default: "auto",
-    options: [
-      { value: "auto", label: "Auto (fit to zone)" },
-      { value: "card", label: "Card" },
-      { value: "standard", label: "Standard" },
-      { value: "compact", label: "Compact bar" },
-      { value: "simple", label: "Simple" },
-    ],
-  },
-  {
-    key: "surface",
-    label: "Surface",
-    type: "select",
-    default: "glass",
-    options: [
-      { value: "glass", label: "Glass" },
-      { value: "matte-light", label: "Matte (light)" },
-      { value: "matte-dark", label: "Matte (dark)" },
-    ],
-  },
+  ...STANDARD_SETTINGS,
   { key: "tint", label: "Tint from conditions", type: "boolean", default: true },
   { key: "showStats", label: "Stats row", type: "boolean", default: true },
   { key: "showForecast", label: "Forecast strip", type: "boolean", default: true },
@@ -68,6 +46,7 @@ function modernProps(mod: DashboardModule, s?: ModuleSettings) {
     showStats: Boolean(cfg.showStats),
     showForecast: Boolean(cfg.showForecast),
     forecastDays: Math.max(1, Math.min(7, Math.round(Number(cfg.forecastDays) || 5))),
+    chrome: chromeOf(cfg),
   };
 }
 

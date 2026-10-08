@@ -1,5 +1,6 @@
 import { Volume2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ModernChrome, type ModernChrome as ModernChromeSpec } from "./modern-chrome";
 import {
   makeSurface,
   useElementSize,
@@ -38,6 +39,8 @@ export interface ModernAudioProps {
   showDetails?: boolean;
   layout?: AudioVariant | "auto";
   surfaceStyle?: ModernStyle;
+  /** Standard chrome: custom title / icon / accent / background image. */
+  chrome?: ModernChromeSpec;
   className?: string;
 }
 
@@ -57,7 +60,7 @@ function pickVariant(
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 
 function barColor(level: number): string {
-  return level > 85 ? "#f87171" : "#34d399";
+  return level > 85 ? "#f87171" : "var(--wp-accent, #34d399)";
 }
 
 function detail(d: ModernAudioDevice): string {
@@ -94,6 +97,7 @@ export function ModernAudio({
   showDetails = true,
   layout = "auto",
   surfaceStyle = "glass",
+  chrome,
   className,
 }: ModernAudioProps) {
   const { ref, w, h } = useElementSize();
@@ -219,7 +223,7 @@ export function ModernAudio({
 
   return (
     <div ref={ref} className={cn("h-full w-full", className)}>
-      {body}
+      <ModernChrome chrome={chrome}>{body}</ModernChrome>
     </div>
   );
 }

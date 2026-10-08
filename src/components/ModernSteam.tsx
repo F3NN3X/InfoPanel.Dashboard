@@ -1,5 +1,6 @@
 import { Gamepad2, User } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ModernChrome, type ModernChrome as ModernChromeSpec } from "./modern-chrome";
 import {
   makeSurface,
   useElementSize,
@@ -63,6 +64,8 @@ export interface ModernSteamProps {
   dimBanner?: boolean;
   showStats?: boolean;
   showNews?: boolean;
+  /** Standard chrome: custom title / icon / accent / background image. */
+  chrome?: ModernChromeSpec;
   className?: string;
 }
 
@@ -128,11 +131,14 @@ export function ModernSteam({
   dimBanner = true,
   showStats = true,
   showNews = true,
+  chrome,
   className,
 }: ModernSteamProps) {
   const { ref, w, h } = useElementSize();
   const sv = makeSurface(surfaceStyle, null);
   const v = pickVariant(w, h, layout);
+  /** Accent color (standard option) tints the big playtime. */
+  const accent = chrome?.accent || undefined;
 
   // Over the banner text is white-based; on the bare surface finish it is
   // theme-driven.
@@ -216,7 +222,7 @@ export function ModernSteam({
             <div className="min-w-0">
               <div
                 className="text-[30px] font-bold leading-none tabular-nums"
-                style={{ color: fg }}
+                style={{ color: accent ?? fg }}
               >
                 {total ?? "—"}
               </div>
@@ -266,7 +272,7 @@ export function ModernSteam({
           </span>
         </div>
         <div className="ml-auto shrink-0 text-right">
-          <div className="text-sm font-semibold tabular-nums leading-tight" style={{ color: fg }}>
+          <div className="text-sm font-semibold tabular-nums leading-tight" style={{ color: accent ?? fg }}>
             {total ?? "—"}
           </div>
           <div className="truncate text-[10px] tabular-nums" style={{ color: muted }}>
@@ -327,7 +333,7 @@ export function ModernSteam({
         </div>
 
         <div className="min-w-0 flex-1 text-center">
-          <div className="text-5xl font-bold leading-none tabular-nums" style={{ color: fg }}>
+          <div className="text-5xl font-bold leading-none tabular-nums" style={{ color: accent ?? fg }}>
             {total ?? "—"}
           </div>
           <div className="mt-1.5 truncate text-sm" style={{ color: muted }}>
@@ -362,32 +368,34 @@ export function ModernSteam({
 
   return (
     <div ref={ref} className={cn("h-full w-full", className)}>
-      <div
-        className={cn("relative h-full w-full overflow-hidden", radius[v])}
-        style={{
-          background: bannerUrl ? undefined : sv.background,
-          boxShadow: `inset 0 0 0 1px ${sv.ring}`,
-        }}
-      >
-        {bannerUrl ? (
-          <>
-            <img
-              src={bannerUrl}
-              alt=""
-              className="absolute inset-0 h-full w-full object-cover"
-              loading="lazy"
-            />
-            {dimBanner && (
-              <div className="absolute inset-0" style={{ background: OVERLAYS[v] }} />
-            )}
-          </>
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <Gamepad2 className="h-10 w-10 opacity-30" style={{ color: sv.muted }} />
-          </div>
-        )}
-        <div className="relative z-10 h-full w-full">{body}</div>
-      </div>
+      <ModernChrome chrome={chrome}>
+        <div
+          className={cn("relative h-full w-full overflow-hidden", radius[v])}
+          style={{
+            background: bannerUrl ? undefined : sv.background,
+            boxShadow: `inset 0 0 0 1px ${sv.ring}`,
+          }}
+        >
+          {bannerUrl ? (
+            <>
+              <img
+                src={bannerUrl}
+                alt=""
+                className="absolute inset-0 h-full w-full object-cover"
+                loading="lazy"
+              />
+              {dimBanner && (
+                <div className="absolute inset-0" style={{ background: OVERLAYS[v] }} />
+              )}
+            </>
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Gamepad2 className="h-10 w-10 opacity-30" style={{ color: sv.muted }} />
+            </div>
+          )}
+          <div className="relative z-10 h-full w-full">{body}</div>
+        </div>
+      </ModernChrome>
     </div>
   );
 }

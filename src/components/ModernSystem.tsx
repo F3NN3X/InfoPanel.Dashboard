@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { ModernChrome, type ModernChrome as ModernChromeSpec } from "./modern-chrome";
 import {
   makeSurface,
   useElementSize,
@@ -30,6 +31,8 @@ export interface ModernSystemProps {
   status?: string;
   layout?: SystemVariant | "auto";
   surfaceStyle?: ModernStyle;
+  /** Standard chrome: custom title / icon / accent / background image. */
+  chrome?: ModernChromeSpec;
   className?: string;
 }
 
@@ -46,7 +49,6 @@ const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 
 const CPU_COLOR = "#38bdf8";
 const RAM_COLOR = "#4ade80";
-const STATUS_COLOR = "#fb923c";
 
 function Ring({
   value,
@@ -117,7 +119,7 @@ function StatusChip({
     >
       <span
         className="inline-block h-2 w-2 rounded-full"
-        style={{ background: running ? STATUS_COLOR : "#71717a" }}
+        style={{ background: running ? "var(--wp-accent, #fb923c)" : "#71717a" }}
       />
       <span className="text-sm font-semibold">
         {status ?? "—"}
@@ -132,6 +134,7 @@ export function ModernSystem({
   status,
   layout = "auto",
   surfaceStyle = "glass",
+  chrome,
   className,
 }: ModernSystemProps) {
   const { ref, w, h } = useElementSize();
@@ -165,7 +168,7 @@ export function ModernSystem({
         </div>
         {status !== undefined && (
           <div className="flex items-center gap-2 text-sm" style={{ color: sv.muted }}>
-            <span className="inline-block h-2 w-2 rounded-full" style={{ background: STATUS_COLOR }} />
+            <span className="inline-block h-2 w-2 rounded-full" style={{ background: "var(--wp-accent, #fb923c)" }} />
             Bridge {status}
           </div>
         )}
@@ -191,7 +194,7 @@ export function ModernSystem({
         </div>
         {status !== undefined && (
           <div className="ml-auto flex items-center gap-1.5">
-            <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ background: STATUS_COLOR }} />
+            <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ background: "var(--wp-accent, #fb923c)" }} />
             <span className="text-xs" style={{ color: sv.muted }}>
               {status}
             </span>
@@ -243,7 +246,7 @@ export function ModernSystem({
 
   return (
     <div ref={ref} className={cn("h-full w-full", className)}>
-      {body}
+      <ModernChrome chrome={chrome}>{body}</ModernChrome>
     </div>
   );
 }

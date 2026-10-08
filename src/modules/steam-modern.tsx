@@ -1,6 +1,7 @@
 import { ModernSteam } from "@/components/ModernSteam";
 import { isImageUrl } from "@/lib/image";
 import { entry, liveText, liveValue } from "@/lib/sensors";
+import { chromeOf, STANDARD_SETTINGS } from "./standard-settings";
 import {
   effectiveSettings,
   type DashboardModule,
@@ -26,30 +27,7 @@ const SOCIAL = "SteamAPI-Social";
 const NEWS = "SteamAPI-News";
 
 const STEAM_MODERN_SETTINGS: ModuleSetting[] = [
-  {
-    key: "layout",
-    label: "Layout",
-    type: "select",
-    default: "auto",
-    options: [
-      { value: "auto", label: "Auto (fit to zone)" },
-      { value: "card", label: "Card" },
-      { value: "standard", label: "Standard" },
-      { value: "compact", label: "Compact bar" },
-      { value: "simple", label: "Simple" },
-    ],
-  },
-  {
-    key: "surface",
-    label: "Surface",
-    type: "select",
-    default: "glass",
-    options: [
-      { value: "glass", label: "Glass" },
-      { value: "matte-light", label: "Matte (light)" },
-      { value: "matte-dark", label: "Matte (dark)" },
-    ],
-  },
+  ...STANDARD_SETTINGS,
   {
     key: "dimBanner",
     label: "Dim banner for text",
@@ -68,6 +46,7 @@ function modernProps(mod: DashboardModule, s?: ModuleSettings) {
     dimBanner: Boolean(cfg.dimBanner),
     showStats: Boolean(cfg.showStats),
     showNews: Boolean(cfg.showNews),
+    chrome: chromeOf(cfg),
   };
 }
 
