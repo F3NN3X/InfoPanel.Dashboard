@@ -52,6 +52,7 @@ import {
   clonePlacement,
   defaultConfig,
   newProfile,
+  resolveProfile,
   uid,
   type DashboardConfig,
   type MonitorProfile,
@@ -2071,6 +2072,22 @@ function FreeCanvasStudio({
             )}
         </div>
         <div className="ml-auto flex items-center gap-1">
+          <button
+            onClick={() =>
+              setConfig((c) => ({
+                ...c,
+                // Land on the best-fit grid profile — the grid studio
+                // (the left panel here has no profile list, so this is
+                // the way back from the free-canvas editor).
+                activeProfile: resolveProfile(c, windowWidth, windowHeight).id,
+              }))
+            }
+            title="Switch to the grid studio (monitor profile)"
+            className="flex items-center gap-1 rounded-md border bg-popover px-2 py-1 text-xs text-popover-foreground shadow-sm hover:bg-accent"
+          >
+            <LayoutGrid className="h-3.5 w-3.5" />
+            Grid
+          </button>
           <button
             onClick={() => fileRef.current?.click()}
             disabled={busy !== null}
