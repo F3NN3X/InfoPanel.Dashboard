@@ -6,6 +6,10 @@ import {
   useElementSize,
   type ModernStyle,
 } from "./ModernNowPlaying";
+import { LevelMeter, type LevelMeterVariant } from "@/components/ui/level-meter";
+import { DbReadout } from "@/components/ui/db-readout";
+import type { BallisticsPreset } from "@/lib/audio/ballistics";
+import type { Orientation } from "@/lib/audio/types";
 
 /**
  * Modern audio widget.
@@ -47,6 +51,14 @@ export interface ModernAudioProps {
   surfaceStyle?: ModernStyle;
   /** Standard chrome: custom title / icon / accent / background image. */
   chrome?: ModernChromeSpec;
+  /**
+   * Which level-meter rendering: the built-in bar, or the audiocn
+   * LevelMeter (real dBFS metering with ballistics + a dB readout).
+   */
+  meterView?: "classic" | "audiocn";
+  meterVariant?: LevelMeterVariant;
+  meterOrientation?: Orientation;
+  meterBallistics?: BallisticsPreset;
   className?: string;
 }
 
@@ -133,6 +145,76 @@ function MuteChip() {
   );
 }
 
+/**
+ * audiocn LevelMeter + dB readout for one device, fed by the plugin's real
+ * dBFS values (peak / RMS). Horizontal: meter fills the width, readout sits
+ * at the right edge. Vertical: the meter is a column with the readout below.
+ */
+function AudiocnMeter({
+  device,
+  variant = "solid",
+  orientation = "horizontal",
+  ballistics = "peak",
+  size = "default",
+  readout = true,
+  inline = false,
+}: {
+  device: ModernAudioDevice;
+  variant?: LevelMeterVariant;
+  orientation?: Orientation;
+  ballistics?: BallisticsPreset;
+  size?: "sm" | "default" | "lg";
+  /** Show the dB readout next to (or below) the meter. */
+  readout?: boolean;
+  /**
+   * Keep a vertical meter on one line (short h-10 meter + readout beside it)
+   * for stacked-row (card) layouts, where a full column per device would
+   * overflow with many devices.
+   */
+  inline?: boolean;
+}) {
+  const horizontal = orientation === "horizontal";
+  return (
+    <div
+      className={cn(
+        "flex min-w-0 gap-2",
+        horizontal || inline
+          ? "flex-1 items-center"
+          : "flex-col items-center"
+      )}
+    >
+      <LevelMeter
+        peakDb={device.peak}
+        rmsDb={device.rms}
+        variant={variant}
+        orientation={orientation}
+        ballistics={ballistics}
+        size={size}
+        minDb={-60}
+        maxDb={0}
+        className={
+          horizontal
+            ? "min-w-0 flex-1"
+            : inline
+              ? "h-10 shrink-0 [--meter-thickness:0.375rem]"
+              : "h-14 shrink-0 [--meter-thickness:0.5rem]"
+        }
+      />
+      {readout && (
+        <DbReadout
+          value={device.peak ?? -96}
+          measure="peak"
+          decimals={1}
+          className={cn(
+            "shrink-0 text-[10px] tabular-nums",
+            horizontal || inline ? "w-14 text-right" : "w-full text-center"
+          )}
+        />
+      )}
+    </div>
+  );
+}
+
 export function ModernAudio({
   devices,
   showDetails = true,
@@ -142,11 +224,33 @@ export function ModernAudio({
   layout = "auto",
   surfaceStyle = "glass",
   chrome,
+  meterView = "classic",
+  meterVariant = "solid",
+  meterOrientation = "horizontal",
+  meterBallistics = "peak",
   className,
 }: ModernAudioProps) {
   const { ref, w, h } = useElementSize();
   const sv = makeSurface(surfaceStyle, null);
   const v = pickVariant(w, h, layout);
+
+  const meter = (
+    d: ModernAudioDevice,
+    size?: "sm" | "default" | "lg",
+    readout = true,
+    inline = false
+  ) =>
+    meterView === "audiocn" ? (
+      <AudiocnMeter
+        device={d}
+        variant={meterVariant}
+        orientation={meterOrientation}
+        ballistics={meterBallistics}
+        size={size ?? "default"}
+        readout={readout}
+        inline={inline}
+      />
+    ) : null;
 
   const box = {
     background: sv.background,
@@ -181,8 +285,8 @@ export function ModernAudio({
                 {d.level !== undefined ? `${Math.round(d.level)}%` : "—"}
               </span>
             </div>
-            <div className="mt-1.5">
-              <LevelBar level={d.level ?? 0} />
+            <div className="mt-1.5 flex items-center">
+              {meter(d, "default", true, true) ?? <LevelBar level={d.level ?? 0} />}
             </div>
             {(showVolume && d.volume !== undefined) || (showMute && d.muted === "True") ? (
               <div className="mt-1.5 flex items-center gap-2">
@@ -222,7 +326,7 @@ export function ModernAudio({
                 {d.level !== undefined ? `${Math.round(d.level)}%` : "—"}
               </span>
             </div>
-            <LevelBar level={d.level ?? 0} height={5} />
+            {meter(d) ?? <LevelBar level={d.level ?? 0} height={5} />}
             {(showVolume && d.volume !== undefined) || (showMute && d.muted === "True") ? (
               <div className="flex items-center gap-2">
                 {showVolume && d.volume !== undefined && (
@@ -258,7 +362,7 @@ export function ModernAudio({
               {d.level !== undefined ? `${Math.round(d.level)}%` : "—"}
             </span>
             <div className="w-16 shrink-0">
-              <LevelBar level={d.level ?? 0} height={4} />
+              {meter(d, "sm", false) ?? <LevelBar level={d.level ?? 0} height={4} />}
             </div>
           </div>
         ))}

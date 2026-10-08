@@ -1,14 +1,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Volume2 } from "lucide-react";
-import { byName, groupByContainer } from "@/lib/sensors";
+import { bySuffixOrName, groupByContainer } from "@/lib/sensors";
 import { effectiveSettings, type DashboardModule } from "./types";
 
 const P = "plugins.audio-level-meter.";
 
 /**
  * Audio module — per-device level metering (AudioLevelMeter plugin).
- * Containers are dynamic (one per audio device); entries are looked up
- * by display name. Level is 0-100%; peak/RMS are in dB (0 = silent).
+ * Containers are dynamic (one per audio device). Entries are resolved by
+ * key suffix (the plugin names its display strings "🎵 {Device} · Level",
+ * so the stable key suffix — `audio-level`, `device-name`, … — is the
+ * robust lookup) with a fallback to the legacy plain names. Level is
+ * 0-100%; peak/RMS are in dB (0 = silent).
  */
 export const audioModule: DashboardModule = {
   id: "audio",
@@ -17,6 +20,14 @@ export const audioModule: DashboardModule = {
   minRows: 1,
   matches: (key) => key.startsWith(P),
   settings: [
+    {
+      key: "source",
+      label: "Source (device)",
+      type: "select",
+      default: "",
+      optionsFrom: "sources",
+      sourcePlugin: P,
+    },
     {
       key: "showDetails",
       label: "Peak / RMS & L/R/volume details",
@@ -29,15 +40,27 @@ export const audioModule: DashboardModule = {
     const groups = groupByContainer(sensors, P);
     if (groups.size === 0) return null;
 
-    const devices = [...groups.entries()].map(([container, items]) => {
-      const name = byName(items, "Device")?.text ?? container;
-      const level = byName(items, "Level")?.value;
-      const peak = byName(items, "Peak")?.value;
-      const rms = byName(items, "RMS")?.value;
-      const left = byName(items, "Left")?.value;
-      const right = byName(items, "Right")?.value;
-      const volume = byName(items, "Volume")?.value;
-      const muted = byName(items, "Mute")?.text;
+    // Bind to one device (container), or show them all.
+    const source = String(cfg.source ?? "");
+    const entries = source
+      ? groups.has(source)
+        ? [[source, groups.get(source)!] as const]
+        : []
+      : [...groups.entries()];
+
+    const devices = entries.map(([container, items]) => {
+      const name =
+        container === "default-audio"
+          ? "Default device"
+          : (bySuffixOrName(items, "device-name", "Device")?.text ??
+            container);
+      const level = bySuffixOrName(items, "audio-level", "Level")?.value;
+      const peak = bySuffixOrName(items, "peak-level", "Peak")?.value;
+      const rms = bySuffixOrName(items, "rms-level", "RMS")?.value;
+      const left = bySuffixOrName(items, "left-channel", "Left")?.value;
+      const right = bySuffixOrName(items, "right-channel", "Right")?.value;
+      const volume = bySuffixOrName(items, "volume", "Volume")?.value;
+      const muted = bySuffixOrName(items, "mute", "Mute")?.text;
       return { container, name, level, peak, rms, left, right, volume, muted };
     });
 

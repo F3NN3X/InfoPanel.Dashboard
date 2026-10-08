@@ -11,6 +11,7 @@ import {
 import {
   Check,
   Copy,
+  Database,
   Download,
   Eye,
   EyeOff,
@@ -37,6 +38,7 @@ import { RulerH, RulerV } from "./rulers";
 import { SettingsPanel } from "./settings-panel";
 import { ThemePanel } from "./theme-panel";
 import { PanelInspector } from "./panel-inspector";
+import { SourcesPanel } from "./sources-panel";
 import { modules, claimedKeys, type SensorMap } from "@/modules";
 import {
   BLANK_MODULE,
@@ -206,6 +208,7 @@ export function StudioView({
   const [gridWidth, setGridWidth] = useState(0);
   const [zoom, setZoom] = useState(1);
   const [showGrid, setShowGrid] = useState(true);
+  const [showSources, setShowSources] = useState(false);
   const [scroll, setScroll] = useState({ left: 0, top: 0 });
   const [canvas, setCanvas] = useState({ w: 0, h: 0, viewW: 0, viewH: 0 });
   const [copied, setCopied] = useState(false);
@@ -1034,11 +1037,55 @@ export function StudioView({
               value={mode}
               onChange={(m) => setMode(m as "simple" | "advanced")}
             />
+            <button
+              onClick={() => setShowSources((v) => !v)}
+              className={cn(
+                "flex items-center gap-1 rounded-md border px-2 py-1 text-xs transition-colors",
+                showSources
+                  ? "border-accent bg-accent/40 text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+              title="Manage data sources"
+            >
+              <Database className="h-3.5 w-3.5" />
+              Sources
+            </button>
             <div className="ml-auto text-xs text-muted-foreground">
               {profile.placements.length} placements
             </div>
           </div>
 
+          {showSources ? (
+            <div className="min-h-0 flex-1 overflow-hidden bg-background/40">
+              <SourcesPanel
+                sensors={sensors}
+                sourcePrefs={config.sourcePrefs}
+                onPrefsChange={(key, pref) =>
+                  setConfig((c) => ({
+                    ...c,
+                    sourcePrefs: {
+                      ...c.sourcePrefs,
+                      [key]: { ...c.sourcePrefs?.[key], ...pref },
+                    },
+                  }))
+                }
+                placements={profile.placements}
+                onBind={(placementId, container) =>
+                  updatePlacement(placementId, (p) => ({
+                    ...p,
+                    settings: { ...p.settings, source: container },
+                  }))
+                }
+                onUnbind={(placementId) =>
+                  updatePlacement(placementId, (p) => {
+                    const settings = { ...p.settings };
+                    delete settings.source;
+                    return { ...p, settings };
+                  })
+                }
+              />
+            </div>
+          ) : (
           <div className="relative flex min-h-0 flex-1 flex-col">
             {/* Ruler row */}
             <div className="flex shrink-0">
@@ -1243,6 +1290,7 @@ export function StudioView({
               </div>
             </div>
           </div>
+          )}
         </main>
 
         {/* ================= RIGHT: inspector / theme ================= */}
@@ -1476,6 +1524,7 @@ export function StudioView({
                       settings: undefined,
                     }))
                   }
+                  sensors={sensors}
                 />
               )}
                 </>

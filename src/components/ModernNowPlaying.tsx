@@ -2,6 +2,11 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Music2, Pause, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ModernChrome, type ModernChrome as ModernChromeSpec } from "./modern-chrome";
+import { Waveform } from "@/components/ui/waveform";
+import type { WaveformProps } from "@/components/ui/waveform";
+import { trackPeaks } from "@/lib/waveform-peaks";
+
+type WaveformVariant = NonNullable<WaveformProps["variant"]>;
 
 /**
  * Modern now-playing widget.
@@ -40,6 +45,13 @@ export interface ModernNowPlayingProps {
   tint?: boolean;
   showTimes?: boolean;
   showProgress?: boolean;
+  /**
+   * Render the audiocn Waveform visualizer in place of the progress bar
+   * (card + standard layouts). The bar shape is a stable per-track shape;
+   * the playhead position is the real track progress / elapsed time.
+   */
+  waveform?: boolean;
+  waveformVariant?: WaveformVariant;
   /** Standard chrome: custom title / icon / accent / background image. */
   chrome?: ModernChromeSpec;
   className?: string;
@@ -278,6 +290,15 @@ function ProgressRow({
   );
 }
 
+/** "mm:ss" or "h:mm:ss" → seconds, or null when unparseable. */
+function parseTimeSec(text?: string): number | null {
+  if (!text) return null;
+  const m = text.trim().match(/^(\d{1,2}:)?(\d{1,2}):(\d{2})$/);
+  if (!m) return null;
+  const h = m[1] ? parseInt(m[1].slice(0, -1), 10) : 0;
+  return h * 3600 + parseInt(m[2], 10) * 60 + parseInt(m[3], 10);
+}
+
 export function ModernNowPlaying({
   track,
   artist,
@@ -291,6 +312,8 @@ export function ModernNowPlaying({
   tint = true,
   showTimes = true,
   showProgress = true,
+  waveform = false,
+  waveformVariant = "bars",
   chrome,
   className,
 }: ModernNowPlayingProps) {
@@ -305,6 +328,48 @@ export function ModernNowPlaying({
   const trackLabel = track ?? "Nothing playing";
   const artistLabel = artist ?? "—";
   const hasTimes = Boolean(elapsed || remaining);
+
+  /**
+   * Waveform inputs. With elapsed/remaining (the media plugin) the duration
+   * is real (elapsed + remaining) and the playhead is the elapsed seconds;
+   * without (spotify, progress-only) the progress fraction drives the
+   * playhead across a unit duration.
+   */
+  const wf = waveform
+    ? (() => {
+        const elapsedSec = parseTimeSec(elapsed);
+        const remainingSec = parseTimeSec(remaining);
+        const duration =
+          elapsedSec !== null && remainingSec !== null
+            ? elapsedSec + remainingSec
+            : 1;
+        const time = elapsedSec ?? (pct / 100) * duration;
+        return { peaks: trackPeaks(track, artist), duration, time };
+      })()
+    : null;
+
+  const WaveformRow = wf ? (
+    <div className="flex w-full items-center gap-2">
+      {showTimes && elapsed ? (
+        <span className="shrink-0 text-[10px] tabular-nums" style={{ color: sv.muted }}>
+          {elapsed}
+        </span>
+      ) : null}
+      <Waveform
+        peaks={wf.peaks}
+        duration={wf.duration}
+        currentTime={wf.time}
+        variant={waveformVariant}
+        interactive={false}
+        className="h-9 min-w-0 flex-1"
+      />
+      {showTimes && remaining ? (
+        <span className="shrink-0 text-[10px] tabular-nums" style={{ color: sv.muted }}>
+          {remaining}
+        </span>
+      ) : null}
+    </div>
+  ) : null;
 
   const boxStyle = {
     background: sv.background,
@@ -330,7 +395,9 @@ export function ModernNowPlaying({
         </div>
         {showProgress && (
           <div className="mt-3">
-            <ProgressRow pct={pct} sv={{ ...sv, fill }} elapsed={elapsed} remaining={remaining} showTimes={showTimes} />
+            {WaveformRow ?? (
+              <ProgressRow pct={pct} sv={{ ...sv, fill }} elapsed={elapsed} remaining={remaining} showTimes={showTimes} />
+            )}
           </div>
         )}
       </div>
@@ -405,9 +472,10 @@ export function ModernNowPlaying({
             </div>
           </div>
         </div>
-        {showProgress && (
-          <ProgressRow pct={pct} sv={{ ...sv, fill }} elapsed={elapsed} remaining={remaining} showTimes={showTimes} />
-        )}
+        {showProgress &&
+          (WaveformRow ?? (
+            <ProgressRow pct={pct} sv={{ ...sv, fill }} elapsed={elapsed} remaining={remaining} showTimes={showTimes} />
+          ))}
       </div>
     );
   }

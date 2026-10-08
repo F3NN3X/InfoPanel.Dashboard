@@ -25,6 +25,15 @@ export interface ModuleSetting {
      */
     applies?: ModuleSettings;
   }[];
+  /**
+   * For type "select": set to "sources" to resolve the options from the live
+   * sensor map at render time (the containers `sourcePlugin` currently
+   * exposes), instead of the static `options` list. Wired to real sensor
+   * data — no hardcoded device lists.
+   */
+  optionsFrom?: "sources";
+  /** Key prefix whose containers become the dynamic select's options. */
+  sourcePlugin?: string;
   /** Bounds/step for type "number" (rendered as a slider when set). */
   min?: number;
   max?: number;

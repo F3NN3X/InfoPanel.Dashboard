@@ -210,10 +210,30 @@ export interface DashboardConfig {
    * opens. Set from the studio; synced to the bridge via POST /api/kiosk.
    */
   kioskProfileId?: string;
+  /**
+   * Dashboard-side source preferences (which sources show and how they're
+   * labelled). Keys are `{plugin}::{container}` (container "" for flat
+   * sources). Pure display config — the host's own plugin settings are
+   * untouched.
+   */
+  sourcePrefs?: Record<string, SourcePref>;
   profiles: MonitorProfile[];
   theme: ThemeTokens;
   /** Corner radius in rem (shadcn --radius). */
   radius: number;
+}
+
+/** Dashboard-side configuration for one source (container). */
+export interface SourcePref {
+  /** Show this source in the dashboard (default: true). */
+  enabled?: boolean;
+  /** Display-name override for this source. */
+  displayName?: string;
+}
+
+/** Composite key for a source preference: `{plugin}::{container}`. */
+export function sourcePrefKey(plugin: string, container: string): string {
+  return `${plugin}::${container}`;
 }
 
 const STORAGE_KEY = "infopanel-dashboard:config:v1";
@@ -418,6 +438,7 @@ export function mergeConfig(parsed: Partial<DashboardConfig>): DashboardConfig {
     version: 2,
     activeProfile,
     kioskProfileId,
+    sourcePrefs: parsed.sourcePrefs,
     profiles,
     theme: { ...DEFAULT_THEME, ...parsed.theme },
     radius: parsed.radius ?? defaults.radius,

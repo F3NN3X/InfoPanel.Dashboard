@@ -32,6 +32,23 @@ const MODERN_SETTINGS: ModuleSetting[] = [
   { key: "tint", label: "Tint from cover art", type: "boolean", default: true },
   { key: "showTimes", label: "Times", type: "boolean", default: true },
   { key: "showProgress", label: "Progress", type: "boolean", default: true },
+  {
+    key: "waveform",
+    label: "Waveform visualizer (audiocn)",
+    type: "boolean",
+    default: false,
+  },
+  {
+    key: "waveformVariant",
+    label: "Waveform style",
+    type: "select",
+    default: "bars",
+    options: [
+      { value: "bars", label: "Bars" },
+      { value: "line", label: "Line" },
+      { value: "mirror", label: "Mirror" },
+    ],
+  },
 ];
 
 function modernProps(mod: DashboardModule, s?: ModuleSettings) {
@@ -42,6 +59,11 @@ function modernProps(mod: DashboardModule, s?: ModuleSettings) {
     tint: Boolean(cfg.tint),
     showTimes: Boolean(cfg.showTimes),
     showProgress: Boolean(cfg.showProgress),
+    waveform: Boolean(cfg.waveform),
+    waveformVariant: String(cfg.waveformVariant) as
+      | "bars"
+      | "line"
+      | "mirror",
     chrome: chromeOf(cfg),
   };
 }

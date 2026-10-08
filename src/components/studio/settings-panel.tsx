@@ -1,11 +1,13 @@
 import { WIDGET_ICONS } from "@/lib/widget-icons";
 import { Segmented } from "@/components/ui/segmented";
+import { sourceOptions } from "@/lib/sources";
 import type { ReactNode } from "react";
 import {
   type DashboardModule,
   type ModuleSetting,
   type ModuleSettingValue,
   type ModuleSettings,
+  type SensorMap,
 } from "@/modules/types";
 import { cn } from "@/lib/utils";
 
@@ -15,6 +17,11 @@ interface SettingsPanelProps {
   value?: ModuleSettings;
   onChange: (key: string, value: ModuleSettingValue) => void;
   onReset: () => void;
+  /**
+   * Live sensor map — needed for settings whose options resolve from real
+   * sensor data (e.g. `optionsFrom: "sources"`).
+   */
+  sensors?: SensorMap;
 }
 
 /**
@@ -27,6 +34,7 @@ export function SettingsPanel({
   value,
   onChange,
   onReset,
+  sensors,
 }: SettingsPanelProps) {
   const defs = module.settings;
   if (!defs || defs.length === 0) return null;
@@ -56,6 +64,7 @@ export function SettingsPanel({
               // Preset bundle: persist each value alongside.
               for (const [k, v] of Object.entries(bundle)) onChange(k, v);
             }}
+            sensors={sensors}
           />
         ))}
       </div>
@@ -68,12 +77,14 @@ function SettingRow({
   value,
   onChange,
   onApply,
+  sensors,
 }: {
   def: ModuleSetting;
   value: ModuleSettingValue;
   onChange: (value: ModuleSettingValue) => void;
   /** Preset bundles: apply extra key/values alongside the selected one. */
   onApply?: (bundle: ModuleSettings) => void;
+  sensors?: SensorMap;
 }) {
   switch (def.type) {
     case "boolean":
@@ -177,12 +188,18 @@ function SettingRow({
         const applies = def.options?.find((o) => o.value === v)?.applies;
         if (applies) onApply?.(applies);
       };
-      if (def.options && def.options.length <= 4) {
+      // Dynamic options resolved from live sensor data (a plugin's
+      // currently-exposed containers), falling back to the static list.
+      const options =
+        def.optionsFrom === "sources" && def.sourcePlugin
+          ? sourceOptions(sensors ?? {}, def.sourcePlugin)
+          : def.options;
+      if (options && options.length <= 4) {
         return (
           <div>
             <div className="mb-1 text-xs text-muted-foreground">{def.label}</div>
             <Segmented
-              options={def.options.map((o) => ({ value: o.value, label: o.label }))}
+              options={options.map((o) => ({ value: o.value, label: o.label }))}
               value={str}
               onChange={apply}
             />
@@ -197,7 +214,7 @@ function SettingRow({
             onChange={(e) => apply(e.target.value)}
             className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground"
           >
-            {def.options?.map((o) => (
+            {options?.map((o) => (
               <option key={o.value} value={o.value}>
                 {o.label}
               </option>

@@ -55,6 +55,32 @@ export function byName(
   return items.find((i) => i.sensor.name === name)?.sensor;
 }
 
+/**
+ * Sensor within a container group by its entry id (the last key segment,
+ * e.g. `audio-level` / `device-name`). Some plugins (the AudioLevelMeter)
+ * embed the device name in the display name and use stable key suffixes,
+ * so matching the suffix is the robust lookup.
+ */
+export function bySuffix(
+  items: KeyedSensor[],
+  id: string
+): SensorValue | undefined {
+  const suffix = `.${id}`;
+  return items.find((i) => i.key.endsWith(suffix))?.sensor;
+}
+
+/**
+ * Resolve a container entry by key suffix, falling back to a legacy plain
+ * display name (older plugin builds that named entries "Level", "Peak", …).
+ */
+export function bySuffixOrName(
+  items: KeyedSensor[],
+  id: string,
+  legacyName?: string
+): SensorValue | undefined {
+  return bySuffix(items, id) ?? (legacyName ? byName(items, legacyName) : undefined);
+}
+
 /** Text value, with plugin placeholders ("-", "") treated as no value. */
 export function liveText(s: SensorValue | undefined): string | undefined {
   if (!s?.text) return undefined;
