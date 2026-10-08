@@ -357,7 +357,19 @@ function KioskDragStrip() {
           return;
         }
       }
-      if (!d || d.type !== "drag" || typeof d.captured !== "boolean") return;
+      if (!d || typeof d !== "object") return;
+      if (d.type === "probe") {
+        // C# posts this after every navigation: ack it so the host log
+        // proves the C#->page AND page->C# directions are live on this
+        // controller.
+        try {
+          wv.postMessage("probe-ack");
+        } catch {
+          // bridge gone — nothing to ack through.
+        }
+        return;
+      }
+      if (d.type !== "drag" || typeof d.captured !== "boolean") return;
       capturedRef.current = d.captured;
       if (endTimer.current) {
         clearTimeout(endTimer.current);
@@ -371,6 +383,15 @@ function KioskDragStrip() {
       }
     };
     wv.addEventListener("message", onMessage);
+    // Load canary: the host logs every non-move web message it receives,
+    // so a missing "kiosk-live" line after a load means the page's
+    // chrome.webview bridge (or the controller the visible page runs in)
+    // is dead — pinpoints the broken link without devtools.
+    try {
+      wv.postMessage("kiosk-live");
+    } catch {
+      // bridge unavailable — C# will simply see the canary missing.
+    }
     return () => wv.removeEventListener("message", onMessage);
   }, []);
 
