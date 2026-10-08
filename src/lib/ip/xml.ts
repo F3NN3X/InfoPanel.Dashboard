@@ -616,6 +616,8 @@ export function parseItemsXml(text: string, makeId: (i: number) => string): IPIt
           scale: num(fl.Scale),
           flipX: bool(fl.FlipX),
           animationSpeed: fl.AnimationSpeed === undefined ? 0 : num(fl.AnimationSpeed),
+          width: fl.Width === undefined ? 0 : num(fl.Width),
+          height: fl.Height === undefined ? 0 : num(fl.Height),
           images: node.imgChildren.map((c, i) => ({
             ...base,
             id: `${base.id}-f${i}`,

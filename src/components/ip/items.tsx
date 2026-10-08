@@ -18,9 +18,9 @@ import type {
   IPTableItem,
   IPTextItem,
 } from "@/lib/ip/types";
-import { bindingText, bindingValue } from "@/lib/ip/libre";
+import { bindingText, bindingValue, liveSensor } from "@/lib/ip/libre";
 import { useIPQueue } from "@/lib/ip/history";
-import { formatDotNetDate, sensorText } from "@/lib/ip/format";
+import { formatDotNetDate, sensorNumber, sensorText } from "@/lib/ip/format";
 import type { IPTextBlock } from "@/lib/ip/types";
 
 interface Ctx {
@@ -90,8 +90,11 @@ function hexToRgba(hex: string, alpha: number): string {
 
 /** InfoPanel text rendering size = fontSize × profile fontScale. */
 function textFont(tb: IPTextBlock, c: Ctx) {
+  // C# resolves the family from system fonts (Skia fallback = default face);
+  // mirror with an explicit fallback chain.
+  const family = tb.font || c.profile.font || "sans-serif";
   return {
-    fontFamily: tb.font || c.profile.font || "sans-serif",
+    fontFamily: family === "sans-serif" ? family : `${family}, Arial, sans-serif`,
     fontSize: Math.max(1, tb.fontSize * c.profile.fontScale),
     fontWeight: tb.bold ? 700 : 400,
     fontStyle: tb.italic ? "italic" : undefined,
@@ -126,21 +129,14 @@ function place(item: { x: number; y: number; rotation: number }, content: React.
   );
 }
 
-/** True for a real (non-black) color — the InfoPanel default is black. */
-function hasColor(c: string | undefined): boolean {
-  if (!c) return false;
-  const hex = c.replace("#", "");
-  const rgb = hex.length === 8 ? hex.slice(2) : hex;
-  return rgb !== "000000";
-}
-
 function thresholdColor(
   v: number | undefined,
   b: { threshold1?: number; threshold1Color?: string; threshold2?: number; threshold2Color?: string }
 ): string | undefined {
   if (v === undefined) return undefined;
-  if (v > (b.threshold2 ?? 100) && hasColor(b.threshold2Color)) return b.threshold2Color;
-  if (v > (b.threshold1 ?? 0) && hasColor(b.threshold1Color)) return b.threshold1Color;
+  // C# `EvaluateColor`: thresholds are active only when > 0, compare >=, t2 wins.
+  if ((b.threshold2 ?? 0) > 0 && v >= (b.threshold2 as number)) return b.threshold2Color;
+  if ((b.threshold1 ?? 0) > 0 && v >= (b.threshold1 as number)) return b.threshold1Color;
   return undefined;
 }
 
@@ -152,16 +148,19 @@ function textContent(
   boxWidth?: number
 ) {
   const align = item.centerAlign ? "center" : item.rightAlign ? "right" : "left";
+  // C# RichTextKit: Wrap=true (default) → single line (MaxLines=1);
+  // Wrap=false → multi-line. Ellipsis clips at a set width.
+  const singleLine = item.wrap !== false;
   return (
     <div
       style={{
         ...textFont(item, c),
         width: boxWidth,
         textAlign: boxWidth ? align : undefined,
-        whiteSpace: item.wrap === false ? "nowrap" : undefined,
-        overflow: item.ellipsis ? "hidden" : undefined,
-        textOverflow: item.ellipsis ? "ellipsis" : undefined,
-        lineHeight: 1.1,
+        whiteSpace: singleLine ? "nowrap" : undefined,
+        overflow: singleLine && item.ellipsis && boxWidth ? "hidden" : undefined,
+        textOverflow: singleLine && item.ellipsis && boxWidth ? "ellipsis" : undefined,
+        lineHeight: 1.2,
       }}
     >
       {value}
@@ -211,28 +210,30 @@ export function IPCalendarItemView({ item, c }: { item: IPCalendarItem; c: Ctx }
 }
 
 export function IPSensorItemView({ item, c }: { item: IPSensorItem; c: Ctx }) {
-  const v = bindingValue(c.sensors, item.sensor);
-  const text = v === undefined ? "—" : sensorText(v, item.sensor);
-  const override = thresholdColor(v, item.sensor);
+  const b = item.sensor;
+  const live = liveSensor(c.sensors, b);
+  const v = bindingValue(c.sensors, b);
+  let text: string;
+  const liveText = live?.text?.trim();
+  if (liveText && liveText !== "-") {
+    // C# ValueText path — text used as-is, unit + name still applied.
+    text = liveText;
+    if (b.showUnit) text += b.overrideUnit ? (b.unit ?? "") : (live?.unit ?? "");
+  } else if (v !== undefined) {
+    text = sensorText(v, b, live?.unit);
+  } else {
+    // C# returns "-" when the reading is absent.
+    text = "-";
+  }
+  // C# ShowName prepends the name in the same text run (only for live readings).
+  if (text !== "-" && b.showName && b.sensorName) text = b.sensorName + " " + text;
+  const override = v === undefined ? undefined : thresholdColor(sensorNumber(v, b), b);
   const boxWidth = item.width > 0 ? item.width : undefined;
   const shift = item.centerAlign ? "-50%" : item.rightAlign ? "-100%" : undefined;
   return place(
     item,
-    <div style={{ display: "flex", flexDirection: "column" }}>
-      {item.sensor.showName && item.sensor.sensorName && (
-        <div
-          style={{
-            ...textFont(item, c),
-            fontSize: (textFont(item, c).fontSize as number) * 0.5,
-            opacity: 0.6,
-          }}
-        >
-          {item.sensor.sensorName}
-        </div>
-      )}
-      <div style={{ color: cssColor(override), width: boxWidth, textAlign: boxWidth ? (item.centerAlign ? "center" : item.rightAlign ? "right" : "left") : undefined }}>
-        {textContent(item, c, text, boxWidth)}
-      </div>
+    <div style={{ width: boxWidth, textAlign: boxWidth ? (item.centerAlign ? "center" : item.rightAlign ? "right" : "left") : undefined, color: cssColor(override) }}>
+      {textContent(item, c, text, boxWidth)}
     </div>,
     { transform: shift ? `translateX(${shift})` : undefined, width: boxWidth }
   );
@@ -308,35 +309,65 @@ function chartRange(item: { min: number; max: number; autoValue: boolean }, q: n
 export function IPGraphItemView({ item }: { item: IPGraphItem; c: Ctx }) {
   const q = useIPQueue(item.sensor);
   const [min, max] = chartRange(item, q);
-  const span = Math.max(1e-6, max - min);
-  const visible = q.slice(-Math.max(2, Math.floor(item.width / Math.max(1, item.step))));
-  const n = visible.length;
   const W = item.width;
   const H = item.height;
-  const pts = visible.map((v, i) => {
-    const x = item.flipX ? W - (i / Math.max(1, n - 1)) * W : (i / Math.max(1, n - 1)) * W;
-    const y = H - 1 - ((Math.max(min, Math.min(max, v)) - min) / span) * (H - 2);
+  const t = item.thickness;
+
+  // C# LINE: visible window = W/step samples (oldest first); sample i sits at
+  // x = W − i·step, so data scrolls right→left (newest at the left edge).
+  const step = Math.max(1, item.step);
+  let size = Math.floor(W / step);
+  if (size * step !== W) size += 2;
+  else size += 1;
+  size = Math.min(size, q.length);
+  const values = q.slice(q.length - size);
+  const scale = max - min;
+
+  const pts = values.map((rv, i) => {
+    let value = Math.max(rv - min, 0);
+    value = Math.min(value, max);
+    value = scale <= 0 ? 0 : (value / scale) * (H - t);
+    const x = W - i * step;
+    const y = H - (value + t / 2);
     return [x, y] as const;
   });
-  const line = pts.map(([x, y], i) => (i === 0 ? `M${x.toFixed(1)},${y.toFixed(1)}` : `L${x.toFixed(1)},${y.toFixed(1)}`)).join(" ");
-  const area = n > 1 ? `${line} L${(item.flipX ? W : 0).toFixed(1)},${H} L${(item.flipX ? 0 : W).toFixed(1)},${H} Z` : "";
+
+  const line =
+    pts.length > 0
+      ? pts.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`).join(" ")
+      : "";
+  const lastX = pts.length > 0 ? pts[pts.length - 1][0] : 0;
+  // C# fill: (W+t, H+t) → points → (lastX−t, H+t).
+  const area =
+    pts.length > 1
+      ? `M${W + t},${H + t} ${pts
+          .map(([x, y]) => `L${x.toFixed(1)},${y.toFixed(1)}`)
+          .join(" ")} L${lastX - t},${H + t} Z`
+      : "";
+
   return place(
     item,
-    <svg width={W} height={H} style={chartSurface(item)}>
-      {item.fill && n > 1 && <path d={area} fill={cssColor(item.fillColor)} />}
-      {n > 1 && <path d={line} fill="none" stroke={cssColor(item.color)} strokeWidth={item.thickness} />}
+    <svg
+      width={W}
+      height={H}
+      style={{ ...chartSurface(item), transform: item.flipX ? "scaleX(-1)" : undefined }}
+    >
+      {item.fill && area && <path d={area} fill={cssColor(item.fillColor)} />}
+      {line && <path d={line} fill="none" stroke={cssColor(item.color)} strokeWidth={t} />}
     </svg>
   );
 }
 
 export function IPBarItemView({ item, c }: { item: IPBarItem; c: Ctx }) {
+  const q = useIPQueue(item.sensor);
+  // C# bar: fill from the LIVE value; auto min/max come from the sample queue.
   const v = bindingValue(c.sensors, item.sensor);
-  const [min, max] = chartRange(item, v === undefined ? [] : [v]);
+  const [min, max] = chartRange(item, q);
   const span = Math.max(1e-6, max - min);
-  let ratio = v === undefined ? 0 : (v - min) / span;
-  ratio = Math.max(0, Math.min(1, ratio));
-  if (item.flipX) ratio = 1 - ratio;
-  const vertical = item.height >= item.width;
+  let ratio = v === undefined ? 0 : Math.max(0, Math.min(1, (v - min) / span));
+  // C# flips the whole bitmap: only meaningful for horizontal bars.
+  const vertical = item.height > item.width;
+  if (item.flipX && !vertical) ratio = 1 - ratio;
   const fillStyle: React.CSSProperties = item.gradient
     ? { background: `linear-gradient(${vertical ? "0deg" : "90deg"}, ${cssColor(item.color)}, ${cssColor(item.gradientColor)})` }
     : { background: cssColor(item.color) };
@@ -351,7 +382,9 @@ export function IPBarItemView({ item, c }: { item: IPBarItem; c: Ctx }) {
           bottom: 0,
           height: vertical ? `${ratio * 100}%` : undefined,
           width: vertical ? undefined : `${ratio * 100}%`,
-          borderRadius: item.cornerRadius,
+          borderRadius: item.frame ? Math.max(0, item.cornerRadius - 1) : item.cornerRadius,
+          // Approximates C# InterpolateWithCycles smoothing between samples.
+          transition: "height 1.5s linear, width 1.5s linear",
           ...fillStyle,
         }}
       />
@@ -359,21 +392,53 @@ export function IPBarItemView({ item, c }: { item: IPBarItem; c: Ctx }) {
   );
 }
 
-export function IPDonutItemView({ item, c }: { item: IPDonutItem; c: Ctx }) {
-  const v = bindingValue(c.sensors, item.sensor);
-  const [min, max] = chartRange(item, v === undefined ? [] : [v]);
+export function IPDonutItemView({ item }: { item: IPDonutItem; c?: Ctx }) {
+  const q = useIPQueue(item.sensor);
+  const [min, max] = chartRange(item, q);
   const span = Math.max(1e-6, max - min);
-  const ratio = v === undefined ? 0 : Math.max(0, Math.min(1, (v - min) / span));
-  const size = Math.min(item.width, item.height);
-  const r = size / 2 - item.thickness / 2;
+  // C# donut: value = LAST queue sample (0 when empty), not the live value.
+  const last = q.length > 0 ? q[q.length - 1] : 0;
+  const ratio = Math.max(0, Math.min(1, (last - min) / span));
+  // C# FillDonut: radius from the WIDTH (W/2 − 1), arc starts at 3 o'clock.
+  const rOuter = Math.max(1, item.width / 2 - 1);
+  const thickness = Math.max(0, Math.min(item.thickness, rOuter));
+  const r = rOuter - thickness / 2;
   const C = 2 * Math.PI * r;
-  const arc = C * (item.span / 360);
-  const dash = arc * ratio;
+  const spanFrac = (item.span ?? 360) / 360;
+  const arcLen = C * spanFrac;
+  const dashFg = arcLen * ratio;
+  const cx = item.width / 2;
+  const cy = item.height / 2;
   return place(
     item,
     <svg width={item.width} height={item.height} style={chartSurface(item)}>
-      <circle cx={item.width / 2} cy={item.height / 2} r={r} fill="none" stroke={item.background ? cssColor(item.backgroundColor) : "transparent"} strokeWidth={item.thickness} strokeDasharray={`${arc} ${C}`} transform={`rotate(-90 ${item.width / 2} ${item.height / 2})`} />
-      <circle cx={item.width / 2} cy={item.height / 2} r={r} fill="none" stroke={cssColor(item.color)} strokeWidth={item.thickness} strokeDasharray={`${dash} ${C}`} strokeLinecap="round" transform={`rotate(-90 ${item.width / 2} ${item.height / 2})`} />
+      {item.background && (
+        <circle
+          cx={cx}
+          cy={cy}
+          r={r}
+          fill="none"
+          stroke={cssColor(item.backgroundColor)}
+          strokeWidth={thickness}
+          strokeDasharray={item.span === 360 ? undefined : `${arcLen} ${C}`}
+        />
+      )}
+      <circle
+        cx={cx}
+        cy={cy}
+        r={r}
+        fill="none"
+        stroke={cssColor(item.color)}
+        strokeWidth={thickness}
+        strokeDasharray={`${dashFg} ${C}`}
+        style={{ transition: "stroke-dasharray 1.5s linear" }}
+      />
+      {item.frame && (
+        <>
+          <circle cx={cx} cy={cy} r={rOuter - 0.5} fill="none" stroke={cssColor(item.frameColor)} strokeWidth={1} />
+          <circle cx={cx} cy={cy} r={Math.max(0.5, rOuter - thickness + 0.5)} fill="none" stroke={cssColor(item.frameColor)} strokeWidth={1} />
+        </>
+      )}
     </svg>
   );
 }
@@ -385,13 +450,13 @@ export function IPDonutItemView({ item, c }: { item: IPDonutItem; c: Ctx }) {
 export function IPGaugeItemView({ item, c }: { item: IPGaugeItem; c: Ctx }) {
   const frames = item.images;
   const v = bindingValue(c.sensors, item.sensor);
-  const [natural, setNatural] = useState(0);
+  const [nat, setNat] = useState<{ w: number; h: number } | null>(null);
   const probeRef = useRef<HTMLImageElement | null>(null);
 
   useEffect(() => {
     if (frames.length === 0) return;
     const img = new Image();
-    img.onload = () => setNatural(img.naturalWidth || 100);
+    img.onload = () => setNat({ w: img.naturalWidth || 100, h: img.naturalHeight || 100 });
     img.src = assetUrl(c, frames[0].filePath);
     probeRef.current = img;
   }, [c.assetBase, frames.length > 0 ? frames[0].filePath : ""]);
@@ -428,10 +493,14 @@ export function IPGaugeItemView({ item, c }: { item: IPGaugeItem; c: Ctx }) {
   const cur = Math.max(0, Math.min(n - 1, Math.floor(idx)));
   const next = Math.min(n - 1, cur + 1);
   const frac = idx - cur;
-  const w = item.scale > 0 ? (natural || 100) * (item.scale / 100) : natural || 100;
+  // C#: per dimension — Width/Height when set, else the frame's natural size;
+  // each × Scale/100.
+  const f = (item.scale > 0 ? item.scale : 100) / 100;
+  const w = Math.floor((item.width > 0 ? item.width : nat?.w ?? 100) * f);
+  const h = Math.floor((item.height > 0 ? item.height : nat?.h ?? 100) * f);
   return place(
     item,
-    <div style={{ position: "relative", width: w, height: w }}>
+    <div style={{ position: "relative", width: w, height: h }}>
       {next !== cur && <img src={assetUrl(c, frames[next].filePath)} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: frac, transform: item.flipX ? "scaleX(-1)" : undefined, imageRendering: "auto" }} alt="" />}
       <img src={assetUrl(c, frames[cur].filePath)} style={{ width: "100%", height: "100%", opacity: next !== cur ? 1 - frac : 1, transform: item.flipX ? "scaleX(-1)" : undefined }} alt="" />
     </div>
@@ -442,26 +511,39 @@ export function IPGaugeItemView({ item, c }: { item: IPGaugeItem; c: Ctx }) {
  * Image / HttpImage / SensorImage
  * ------------------------------------------------------------------ */
 
-function imageSize(item: IPImageItem | IPHttpImageItem, natural?: number) {
+/** C# `EvaluateSize`: each dimension falls back to the natural size, each
+ *  non-zero dimension × Scale/100 independently. */
+function imageSize(
+  item: IPImageItem | IPHttpImageItem,
+  natural?: { w: number; h: number }
+): { w?: number; h?: number } {
+  const f = (item.scale > 0 ? item.scale : 100) / 100;
   if (item.width > 0) {
-    const f = (item.scale > 0 ? item.scale : 100) / 100;
-    return { w: item.width * f, h: item.height > 0 ? item.height * f : undefined };
+    return {
+      w: item.width * f,
+      h: item.height > 0 ? item.height * f : natural ? natural.h * f : undefined,
+    };
   }
-  if (item.scale > 0 && natural) {
-    const f = item.scale / 100;
-    return { w: natural * f, h: natural * f };
-  }
+  if (natural) return { w: natural.w * f, h: natural.h * f };
   return { w: undefined, h: undefined };
 }
 
 export function IPImageItemView({ item, c }: { item: IPImageItem; c: Ctx }) {
-  const [nat, setNat] = useState(0);
+  const [nat, setNat] = useState<{ w: number; h: number } | null>(null);
   const src = item.type === "URL" ? item.httpUrl || item.filePath : assetUrl(c, item.filePath);
-  const size = imageSize(item, nat || undefined);
+  const size = imageSize(item, nat ?? undefined);
   return place(
     item,
     <div style={{ position: "relative" }}>
-      <img src={src} style={{ width: size.w, height: size.h, display: "block" }} alt={item.name} onLoad={(e) => setNat((e.target as HTMLImageElement).naturalWidth)} />
+      <img
+        src={src}
+        style={{ width: size.w, height: size.h, display: "block" }}
+        alt={item.name}
+        onLoad={(e) => {
+          const img = e.target as HTMLImageElement;
+          setNat({ w: img.naturalWidth, h: img.naturalHeight });
+        }}
+      />
       {item.layer && (
         <div style={{ position: "absolute", inset: 0, background: cssColor(item.layerColor) }} />
       )}
@@ -479,15 +561,23 @@ export function IPImageItemView({ item, c }: { item: IPImageItem; c: Ctx }) {
 export function IPHttpImageItemView({ item, c }: { item: IPHttpImageItem; c: Ctx }) {
   const live = bindingText(c.sensors, item.sensor);
   const src = live || item.httpUrl;
-  const [nat, setNat] = useState(0);
-  const size = imageSize(item, nat || undefined);
+  const [nat, setNat] = useState<{ w: number; h: number } | null>(null);
+  const size = imageSize(item, nat ?? undefined);
   if (!src) {
     return place(item, <div style={{ width: item.width || 100, height: item.height || 100, border: "1px dashed #555" }} />);
   }
   return place(
     item,
     <div style={{ position: "relative" }}>
-      <img src={src} style={{ width: size.w, height: size.h, display: "block", objectFit: "cover" }} alt={item.name} onLoad={(e) => setNat((e.target as HTMLImageElement).naturalWidth)} />
+      <img
+        src={src}
+        style={{ width: size.w, height: size.h, display: "block", objectFit: "cover" }}
+        alt={item.name}
+        onLoad={(e) => {
+          const img = e.target as HTMLImageElement;
+          setNat({ w: img.naturalWidth, h: img.naturalHeight });
+        }}
+      />
       {item.layer && <div style={{ position: "absolute", inset: 0, background: cssColor(item.layerColor) }} />}
     </div>
   );

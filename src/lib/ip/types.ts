@@ -261,6 +261,9 @@ export interface IPGaugeItem extends IPBase {
   maxValue: number;
   /** 0 = native image size, else percent. */
   scale: number;
+  /** 0 = native frame size (per dimension, C# `Width`/`Height`). */
+  width: number;
+  height: number;
   flipX: boolean;
   /** Frame-units/sec smoothing; 0 = instant. */
   animationSpeed: number;

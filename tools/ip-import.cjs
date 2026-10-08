@@ -310,6 +310,8 @@ function convert(node, idx) {
         minValue: f(fl.MinValue, 0),
         maxValue: f(fl.MaxValue, 100),
         scale: n(fl.Scale),
+        width: n(fl.Width),
+        height: n(fl.Height),
         flipX: b(fl.FlipX),
         animationSpeed: fl.AnimationSpeed === undefined ? 0 : f(fl.AnimationSpeed, 0),
         // Full ImageDisplayItem frames (C# `Images`).
@@ -346,7 +348,9 @@ function convert(node, idx) {
         gradientAnimationSpeed: fl.GradientAnimationSpeed === undefined ? 300 : n(fl.GradientAnimationSpeed),
       };
     case "GroupDisplayItem": {
-      const children = node.children.map((c) => convert(c, idx));
+      const children = node.children.map((c, ci) =>
+        convert(c, { id: `${idx.id}c${ci}` })
+      );
       return { ...base, kind: "group", children };
     }
     default:

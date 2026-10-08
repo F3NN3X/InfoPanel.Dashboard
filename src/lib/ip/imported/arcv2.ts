@@ -120,7 +120,7 @@ export const arcv2: IPProfile = {
       "locked": false,
       "children": [
         {
-          "id": "i3",
+          "id": "i3c0",
           "kind": "image",
           "name": "GPU-bg.png",
           "x": 690,
@@ -142,7 +142,7 @@ export const arcv2: IPProfile = {
           "relativePath": true
         },
         {
-          "id": "i3",
+          "id": "i3c1",
           "kind": "bar",
           "name": "GPU Memory",
           "x": 649,
@@ -184,7 +184,7 @@ export const arcv2: IPProfile = {
           "flipX": false
         },
         {
-          "id": "i3",
+          "id": "i3c2",
           "kind": "sensor",
           "name": "Frames Per Second",
           "x": 842,
@@ -237,7 +237,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i3",
+          "id": "i3c3",
           "kind": "sensor",
           "name": "1% Low FPS",
           "x": 915,
@@ -290,7 +290,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i3",
+          "id": "i3c4",
           "kind": "sensor",
           "name": "Current Frame Time",
           "x": 918,
@@ -343,7 +343,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i3",
+          "id": "i3c5",
           "kind": "sensor",
           "name": "Currently Capturing",
           "x": 689,
@@ -395,7 +395,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i3",
+          "id": "i3c6",
           "kind": "sensor",
           "name": "GPU Core",
           "x": 1165,
@@ -448,7 +448,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i3",
+          "id": "i3c7",
           "kind": "sensor",
           "name": "GPU Core",
           "x": 1084,
@@ -501,7 +501,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i3",
+          "id": "i3c8",
           "kind": "sensor",
           "name": "GPU Memory Junction",
           "x": 1001,
@@ -554,7 +554,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i3",
+          "id": "i3c9",
           "kind": "sensor",
           "name": "GPU Package",
           "x": 925,
@@ -619,7 +619,7 @@ export const arcv2: IPProfile = {
       "locked": false,
       "children": [
         {
-          "id": "i4",
+          "id": "i4c0",
           "kind": "shape",
           "name": "Shape",
           "x": 649,
@@ -644,7 +644,7 @@ export const arcv2: IPProfile = {
           "gradientAnimationSpeed": 300
         },
         {
-          "id": "i4",
+          "id": "i4c1",
           "kind": "bar",
           "name": "GPU Fan 1",
           "x": 796,
@@ -686,7 +686,7 @@ export const arcv2: IPProfile = {
           "flipX": false
         },
         {
-          "id": "i4",
+          "id": "i4c2",
           "kind": "bar",
           "name": "GPU Fan 2",
           "x": 796,
@@ -728,7 +728,7 @@ export const arcv2: IPProfile = {
           "flipX": false
         },
         {
-          "id": "i4",
+          "id": "i4c3",
           "kind": "bar",
           "name": "GPU Fan 3",
           "x": 796,
@@ -770,7 +770,7 @@ export const arcv2: IPProfile = {
           "flipX": false
         },
         {
-          "id": "i4",
+          "id": "i4c4",
           "kind": "sensor",
           "name": "GPU Fan 1",
           "x": 925,
@@ -822,7 +822,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i4",
+          "id": "i4c5",
           "kind": "sensor",
           "name": "GPU Fan 2",
           "x": 925,
@@ -874,7 +874,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i4",
+          "id": "i4c6",
           "kind": "sensor",
           "name": "GPU Fan 3",
           "x": 925,
@@ -926,7 +926,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i4",
+          "id": "i4c7",
           "kind": "text",
           "name": "GPU FAN #1",
           "x": 797,
@@ -959,7 +959,7 @@ export const arcv2: IPProfile = {
           "text": "GPU FAN #1"
         },
         {
-          "id": "i4",
+          "id": "i4c8",
           "kind": "text",
           "name": "GPU FAN #2",
           "x": 797,
@@ -992,7 +992,7 @@ export const arcv2: IPProfile = {
           "text": "GPU FAN #2"
         },
         {
-          "id": "i4",
+          "id": "i4c9",
           "kind": "text",
           "name": "GPU FAN #3",
           "x": 797,
@@ -1025,7 +1025,7 @@ export const arcv2: IPProfile = {
           "text": "GPU FAN #3"
         },
         {
-          "id": "i4",
+          "id": "i4c10",
           "kind": "text",
           "name": "CPU FAN #1",
           "x": 664,
@@ -1058,7 +1058,7 @@ export const arcv2: IPProfile = {
           "text": "CPU FAN #1"
         },
         {
-          "id": "i4",
+          "id": "i4c11",
           "kind": "text",
           "name": "CPU FAN #2",
           "x": 664,
@@ -1091,7 +1091,7 @@ export const arcv2: IPProfile = {
           "text": "CPU FAN #2"
         },
         {
-          "id": "i4",
+          "id": "i4c12",
           "kind": "text",
           "name": "PUMP",
           "x": 664,
@@ -1124,7 +1124,7 @@ export const arcv2: IPProfile = {
           "text": "PUMP"
         },
         {
-          "id": "i4",
+          "id": "i4c13",
           "kind": "bar",
           "name": "Fan #2",
           "x": 663,
@@ -1166,7 +1166,7 @@ export const arcv2: IPProfile = {
           "flipX": false
         },
         {
-          "id": "i4",
+          "id": "i4c14",
           "kind": "bar",
           "name": "Fan #4",
           "x": 663,
@@ -1208,7 +1208,7 @@ export const arcv2: IPProfile = {
           "flipX": false
         },
         {
-          "id": "i4",
+          "id": "i4c15",
           "kind": "bar",
           "name": "Fan #7",
           "x": 663,
@@ -1250,7 +1250,7 @@ export const arcv2: IPProfile = {
           "flipX": false
         },
         {
-          "id": "i4",
+          "id": "i4c16",
           "kind": "sensor",
           "name": "GPU Fan 1",
           "x": 785,
@@ -1302,7 +1302,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i4",
+          "id": "i4c17",
           "kind": "sensor",
           "name": "Fan #4",
           "x": 785,
@@ -1354,7 +1354,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i4",
+          "id": "i4c18",
           "kind": "sensor",
           "name": "Fan #7",
           "x": 785,
@@ -1406,7 +1406,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i4",
+          "id": "i4c19",
           "kind": "sensor",
           "name": "Formatted",
           "x": 857,
@@ -1470,7 +1470,7 @@ export const arcv2: IPProfile = {
       "locked": false,
       "children": [
         {
-          "id": "i5",
+          "id": "i5c0",
           "kind": "image",
           "name": "CPU-bg.png",
           "x": 924,
@@ -1492,7 +1492,7 @@ export const arcv2: IPProfile = {
           "relativePath": true
         },
         {
-          "id": "i5",
+          "id": "i5c1",
           "kind": "text",
           "name": "RAM USED",
           "x": 684,
@@ -1525,7 +1525,7 @@ export const arcv2: IPProfile = {
           "text": "RAM USED"
         },
         {
-          "id": "i5",
+          "id": "i5c2",
           "kind": "text",
           "name": "RAM FREE",
           "x": 684,
@@ -1558,7 +1558,7 @@ export const arcv2: IPProfile = {
           "text": "RAM FREE"
         },
         {
-          "id": "i5",
+          "id": "i5c3",
           "kind": "bar",
           "name": "Memory Used",
           "x": 684,
@@ -1600,7 +1600,7 @@ export const arcv2: IPProfile = {
           "flipX": false
         },
         {
-          "id": "i5",
+          "id": "i5c4",
           "kind": "bar",
           "name": "Memory Available",
           "x": 684,
@@ -1642,7 +1642,7 @@ export const arcv2: IPProfile = {
           "flipX": false
         },
         {
-          "id": "i5",
+          "id": "i5c5",
           "kind": "sensor",
           "name": "CPU Total",
           "x": 924,
@@ -1695,7 +1695,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i5",
+          "id": "i5c6",
           "kind": "sensor",
           "name": "Package",
           "x": 1004,
@@ -1748,7 +1748,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i5",
+          "id": "i5c7",
           "kind": "sensor",
           "name": "DIMM #1",
           "x": 1083,
@@ -1801,7 +1801,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i5",
+          "id": "i5c8",
           "kind": "sensor",
           "name": "Core (Tctl/Tdie)",
           "x": 1162,
@@ -1854,7 +1854,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i5",
+          "id": "i5c9",
           "kind": "graph",
           "name": "CPU Total",
           "x": 685,
@@ -1898,7 +1898,7 @@ export const arcv2: IPProfile = {
           "flipX": true
         },
         {
-          "id": "i5",
+          "id": "i5c10",
           "kind": "bar",
           "name": "Memory",
           "x": 649,
@@ -1952,7 +1952,7 @@ export const arcv2: IPProfile = {
       "locked": false,
       "children": [
         {
-          "id": "i6",
+          "id": "i6c0",
           "kind": "shape",
           "name": "Shape",
           "x": 955,
@@ -1977,7 +1977,7 @@ export const arcv2: IPProfile = {
           "gradientAnimationSpeed": 300
         },
         {
-          "id": "i6",
+          "id": "i6c1",
           "kind": "sensor",
           "name": "Name",
           "x": 963,
@@ -2029,7 +2029,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i6",
+          "id": "i6c2",
           "kind": "sensor",
           "name": "Name",
           "x": 963,
@@ -2081,7 +2081,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i6",
+          "id": "i6c3",
           "kind": "sensor",
           "name": "Name",
           "x": 963,
@@ -2133,7 +2133,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i6",
+          "id": "i6c4",
           "kind": "sensor",
           "name": "Name",
           "x": 963,
@@ -2185,7 +2185,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i6",
+          "id": "i6c5",
           "kind": "sensor",
           "name": "Name",
           "x": 963,
@@ -2237,7 +2237,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i6",
+          "id": "i6c6",
           "kind": "sensor",
           "name": "Free Space",
           "x": 1220,
@@ -2290,7 +2290,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i6",
+          "id": "i6c7",
           "kind": "sensor",
           "name": "Free Space",
           "x": 1220,
@@ -2343,7 +2343,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i6",
+          "id": "i6c8",
           "kind": "sensor",
           "name": "Free Space",
           "x": 1220,
@@ -2396,7 +2396,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i6",
+          "id": "i6c9",
           "kind": "sensor",
           "name": "Free Space",
           "x": 1220,
@@ -2449,7 +2449,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i6",
+          "id": "i6c10",
           "kind": "sensor",
           "name": "Free Space",
           "x": 1220,
@@ -2502,7 +2502,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i6",
+          "id": "i6c11",
           "kind": "bar",
           "name": "Used Space",
           "x": 984,
@@ -2544,7 +2544,7 @@ export const arcv2: IPProfile = {
           "flipX": false
         },
         {
-          "id": "i6",
+          "id": "i6c12",
           "kind": "bar",
           "name": "Used Space",
           "x": 984,
@@ -2586,7 +2586,7 @@ export const arcv2: IPProfile = {
           "flipX": false
         },
         {
-          "id": "i6",
+          "id": "i6c13",
           "kind": "bar",
           "name": "Used Space",
           "x": 984,
@@ -2628,7 +2628,7 @@ export const arcv2: IPProfile = {
           "flipX": false
         },
         {
-          "id": "i6",
+          "id": "i6c14",
           "kind": "bar",
           "name": "Used Space",
           "x": 984,
@@ -2670,7 +2670,7 @@ export const arcv2: IPProfile = {
           "flipX": false
         },
         {
-          "id": "i6",
+          "id": "i6c15",
           "kind": "bar",
           "name": "Used Space",
           "x": 984,
@@ -2724,7 +2724,7 @@ export const arcv2: IPProfile = {
       "locked": false,
       "children": [
         {
-          "id": "i7",
+          "id": "i7c0",
           "kind": "gauge",
           "name": "GPU Fan 1",
           "x": 6,
@@ -2753,11 +2753,13 @@ export const arcv2: IPProfile = {
           "minValue": 0,
           "maxValue": 3000,
           "scale": 120,
+          "width": 0,
+          "height": 0,
           "flipX": false,
           "animationSpeed": 0,
           "images": [
             {
-              "id": "g7-f0",
+              "id": "g7c0-f0",
               "kind": "image",
               "name": "Donut_00003.png",
               "x": 100,
@@ -2779,7 +2781,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f1",
+              "id": "g7c0-f1",
               "kind": "image",
               "name": "Donut_00004.png",
               "x": 100,
@@ -2801,7 +2803,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f2",
+              "id": "g7c0-f2",
               "kind": "image",
               "name": "Donut_00005.png",
               "x": 100,
@@ -2823,7 +2825,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f3",
+              "id": "g7c0-f3",
               "kind": "image",
               "name": "Donut_00006.png",
               "x": 100,
@@ -2845,7 +2847,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f4",
+              "id": "g7c0-f4",
               "kind": "image",
               "name": "Donut_00007.png",
               "x": 100,
@@ -2867,7 +2869,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f5",
+              "id": "g7c0-f5",
               "kind": "image",
               "name": "Donut_00008.png",
               "x": 100,
@@ -2889,7 +2891,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f6",
+              "id": "g7c0-f6",
               "kind": "image",
               "name": "Donut_00009.png",
               "x": 100,
@@ -2911,7 +2913,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f7",
+              "id": "g7c0-f7",
               "kind": "image",
               "name": "Donut_00010.png",
               "x": 100,
@@ -2933,7 +2935,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f8",
+              "id": "g7c0-f8",
               "kind": "image",
               "name": "Donut_00011.png",
               "x": 100,
@@ -2955,7 +2957,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f9",
+              "id": "g7c0-f9",
               "kind": "image",
               "name": "Donut_00012.png",
               "x": 100,
@@ -2977,7 +2979,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f10",
+              "id": "g7c0-f10",
               "kind": "image",
               "name": "Donut_00013.png",
               "x": 100,
@@ -2999,7 +3001,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f11",
+              "id": "g7c0-f11",
               "kind": "image",
               "name": "Donut_00014.png",
               "x": 100,
@@ -3021,7 +3023,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f12",
+              "id": "g7c0-f12",
               "kind": "image",
               "name": "Donut_00015.png",
               "x": 100,
@@ -3043,7 +3045,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f13",
+              "id": "g7c0-f13",
               "kind": "image",
               "name": "Donut_00016.png",
               "x": 100,
@@ -3065,7 +3067,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f14",
+              "id": "g7c0-f14",
               "kind": "image",
               "name": "Donut_00017.png",
               "x": 100,
@@ -3087,7 +3089,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f15",
+              "id": "g7c0-f15",
               "kind": "image",
               "name": "Donut_00018.png",
               "x": 100,
@@ -3109,7 +3111,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f16",
+              "id": "g7c0-f16",
               "kind": "image",
               "name": "Donut_00019.png",
               "x": 100,
@@ -3131,7 +3133,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f17",
+              "id": "g7c0-f17",
               "kind": "image",
               "name": "Donut_00020.png",
               "x": 100,
@@ -3153,7 +3155,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f18",
+              "id": "g7c0-f18",
               "kind": "image",
               "name": "Donut_00021.png",
               "x": 100,
@@ -3175,7 +3177,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f19",
+              "id": "g7c0-f19",
               "kind": "image",
               "name": "Donut_00022.png",
               "x": 100,
@@ -3197,7 +3199,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f20",
+              "id": "g7c0-f20",
               "kind": "image",
               "name": "Donut_00023.png",
               "x": 100,
@@ -3219,7 +3221,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f21",
+              "id": "g7c0-f21",
               "kind": "image",
               "name": "Donut_00024.png",
               "x": 100,
@@ -3241,7 +3243,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f22",
+              "id": "g7c0-f22",
               "kind": "image",
               "name": "Donut_00025.png",
               "x": 100,
@@ -3263,7 +3265,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f23",
+              "id": "g7c0-f23",
               "kind": "image",
               "name": "Donut_00026.png",
               "x": 100,
@@ -3285,7 +3287,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f24",
+              "id": "g7c0-f24",
               "kind": "image",
               "name": "Donut_00027.png",
               "x": 100,
@@ -3307,7 +3309,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f25",
+              "id": "g7c0-f25",
               "kind": "image",
               "name": "Donut_00028.png",
               "x": 100,
@@ -3329,7 +3331,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f26",
+              "id": "g7c0-f26",
               "kind": "image",
               "name": "Donut_00029.png",
               "x": 100,
@@ -3351,7 +3353,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f27",
+              "id": "g7c0-f27",
               "kind": "image",
               "name": "Donut_00030.png",
               "x": 100,
@@ -3373,7 +3375,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f28",
+              "id": "g7c0-f28",
               "kind": "image",
               "name": "Donut_00031.png",
               "x": 100,
@@ -3395,7 +3397,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f29",
+              "id": "g7c0-f29",
               "kind": "image",
               "name": "Donut_00032.png",
               "x": 100,
@@ -3417,7 +3419,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f30",
+              "id": "g7c0-f30",
               "kind": "image",
               "name": "Donut_00033.png",
               "x": 100,
@@ -3439,7 +3441,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f31",
+              "id": "g7c0-f31",
               "kind": "image",
               "name": "Donut_00034.png",
               "x": 100,
@@ -3461,7 +3463,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f32",
+              "id": "g7c0-f32",
               "kind": "image",
               "name": "Donut_00035.png",
               "x": 100,
@@ -3483,7 +3485,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f33",
+              "id": "g7c0-f33",
               "kind": "image",
               "name": "Donut_00036.png",
               "x": 100,
@@ -3505,7 +3507,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f34",
+              "id": "g7c0-f34",
               "kind": "image",
               "name": "Donut_00037.png",
               "x": 100,
@@ -3527,7 +3529,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f35",
+              "id": "g7c0-f35",
               "kind": "image",
               "name": "Donut_00038.png",
               "x": 100,
@@ -3549,7 +3551,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f36",
+              "id": "g7c0-f36",
               "kind": "image",
               "name": "Donut_00039.png",
               "x": 100,
@@ -3571,7 +3573,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f37",
+              "id": "g7c0-f37",
               "kind": "image",
               "name": "Donut_00040.png",
               "x": 100,
@@ -3593,7 +3595,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f38",
+              "id": "g7c0-f38",
               "kind": "image",
               "name": "Donut_00041.png",
               "x": 100,
@@ -3615,7 +3617,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f39",
+              "id": "g7c0-f39",
               "kind": "image",
               "name": "Donut_00042.png",
               "x": 100,
@@ -3637,7 +3639,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f40",
+              "id": "g7c0-f40",
               "kind": "image",
               "name": "Donut_00043.png",
               "x": 100,
@@ -3659,7 +3661,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f41",
+              "id": "g7c0-f41",
               "kind": "image",
               "name": "Donut_00044.png",
               "x": 100,
@@ -3681,7 +3683,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f42",
+              "id": "g7c0-f42",
               "kind": "image",
               "name": "Donut_00045.png",
               "x": 100,
@@ -3703,7 +3705,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f43",
+              "id": "g7c0-f43",
               "kind": "image",
               "name": "Donut_00046.png",
               "x": 100,
@@ -3725,7 +3727,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f44",
+              "id": "g7c0-f44",
               "kind": "image",
               "name": "Donut_00047.png",
               "x": 100,
@@ -3747,7 +3749,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f45",
+              "id": "g7c0-f45",
               "kind": "image",
               "name": "Donut_00048.png",
               "x": 100,
@@ -3769,7 +3771,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f46",
+              "id": "g7c0-f46",
               "kind": "image",
               "name": "Donut_00049.png",
               "x": 100,
@@ -3791,7 +3793,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f47",
+              "id": "g7c0-f47",
               "kind": "image",
               "name": "Donut_00050.png",
               "x": 100,
@@ -3813,7 +3815,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f48",
+              "id": "g7c0-f48",
               "kind": "image",
               "name": "Donut_00051.png",
               "x": 100,
@@ -3835,7 +3837,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f49",
+              "id": "g7c0-f49",
               "kind": "image",
               "name": "Donut_00052.png",
               "x": 100,
@@ -3857,7 +3859,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f50",
+              "id": "g7c0-f50",
               "kind": "image",
               "name": "Donut_00053.png",
               "x": 100,
@@ -3879,7 +3881,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f51",
+              "id": "g7c0-f51",
               "kind": "image",
               "name": "Donut_00054.png",
               "x": 100,
@@ -3901,7 +3903,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f52",
+              "id": "g7c0-f52",
               "kind": "image",
               "name": "Donut_00055.png",
               "x": 100,
@@ -3923,7 +3925,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f53",
+              "id": "g7c0-f53",
               "kind": "image",
               "name": "Donut_00056.png",
               "x": 100,
@@ -3945,7 +3947,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f54",
+              "id": "g7c0-f54",
               "kind": "image",
               "name": "Donut_00057.png",
               "x": 100,
@@ -3967,7 +3969,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f55",
+              "id": "g7c0-f55",
               "kind": "image",
               "name": "Donut_00058.png",
               "x": 100,
@@ -3989,7 +3991,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f56",
+              "id": "g7c0-f56",
               "kind": "image",
               "name": "Donut_00059.png",
               "x": 100,
@@ -4011,7 +4013,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f57",
+              "id": "g7c0-f57",
               "kind": "image",
               "name": "Donut_00060.png",
               "x": 100,
@@ -4033,7 +4035,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f58",
+              "id": "g7c0-f58",
               "kind": "image",
               "name": "Donut_00061.png",
               "x": 100,
@@ -4055,7 +4057,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f59",
+              "id": "g7c0-f59",
               "kind": "image",
               "name": "Donut_00062.png",
               "x": 100,
@@ -4077,7 +4079,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f60",
+              "id": "g7c0-f60",
               "kind": "image",
               "name": "Donut_00063.png",
               "x": 100,
@@ -4099,7 +4101,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f61",
+              "id": "g7c0-f61",
               "kind": "image",
               "name": "Donut_00064.png",
               "x": 100,
@@ -4121,7 +4123,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f62",
+              "id": "g7c0-f62",
               "kind": "image",
               "name": "Donut_00065.png",
               "x": 100,
@@ -4143,7 +4145,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f63",
+              "id": "g7c0-f63",
               "kind": "image",
               "name": "Donut_00066.png",
               "x": 100,
@@ -4165,7 +4167,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f64",
+              "id": "g7c0-f64",
               "kind": "image",
               "name": "Donut_00067.png",
               "x": 100,
@@ -4187,7 +4189,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f65",
+              "id": "g7c0-f65",
               "kind": "image",
               "name": "Donut_00068.png",
               "x": 100,
@@ -4209,7 +4211,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f66",
+              "id": "g7c0-f66",
               "kind": "image",
               "name": "Donut_00069.png",
               "x": 100,
@@ -4231,7 +4233,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f67",
+              "id": "g7c0-f67",
               "kind": "image",
               "name": "Donut_00070.png",
               "x": 100,
@@ -4253,7 +4255,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f68",
+              "id": "g7c0-f68",
               "kind": "image",
               "name": "Donut_00071.png",
               "x": 100,
@@ -4275,7 +4277,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f69",
+              "id": "g7c0-f69",
               "kind": "image",
               "name": "Donut_00072.png",
               "x": 100,
@@ -4297,7 +4299,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f70",
+              "id": "g7c0-f70",
               "kind": "image",
               "name": "Donut_00073.png",
               "x": 100,
@@ -4319,7 +4321,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f71",
+              "id": "g7c0-f71",
               "kind": "image",
               "name": "Donut_00074.png",
               "x": 100,
@@ -4341,7 +4343,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f72",
+              "id": "g7c0-f72",
               "kind": "image",
               "name": "Donut_00075.png",
               "x": 100,
@@ -4363,7 +4365,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f73",
+              "id": "g7c0-f73",
               "kind": "image",
               "name": "Donut_00076.png",
               "x": 100,
@@ -4385,7 +4387,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f74",
+              "id": "g7c0-f74",
               "kind": "image",
               "name": "Donut_00077.png",
               "x": 100,
@@ -4407,7 +4409,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f75",
+              "id": "g7c0-f75",
               "kind": "image",
               "name": "Donut_00078.png",
               "x": 100,
@@ -4429,7 +4431,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f76",
+              "id": "g7c0-f76",
               "kind": "image",
               "name": "Donut_00079.png",
               "x": 100,
@@ -4451,7 +4453,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f77",
+              "id": "g7c0-f77",
               "kind": "image",
               "name": "Donut_00080.png",
               "x": 100,
@@ -4473,7 +4475,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f78",
+              "id": "g7c0-f78",
               "kind": "image",
               "name": "Donut_00081.png",
               "x": 100,
@@ -4495,7 +4497,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f79",
+              "id": "g7c0-f79",
               "kind": "image",
               "name": "Donut_00082.png",
               "x": 100,
@@ -4517,7 +4519,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f80",
+              "id": "g7c0-f80",
               "kind": "image",
               "name": "Donut_00083.png",
               "x": 100,
@@ -4539,7 +4541,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f81",
+              "id": "g7c0-f81",
               "kind": "image",
               "name": "Donut_00084.png",
               "x": 100,
@@ -4561,7 +4563,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f82",
+              "id": "g7c0-f82",
               "kind": "image",
               "name": "Donut_00085.png",
               "x": 100,
@@ -4583,7 +4585,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f83",
+              "id": "g7c0-f83",
               "kind": "image",
               "name": "Donut_00086.png",
               "x": 100,
@@ -4605,7 +4607,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f84",
+              "id": "g7c0-f84",
               "kind": "image",
               "name": "Donut_00087.png",
               "x": 100,
@@ -4627,7 +4629,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f85",
+              "id": "g7c0-f85",
               "kind": "image",
               "name": "Donut_00088.png",
               "x": 100,
@@ -4649,7 +4651,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f86",
+              "id": "g7c0-f86",
               "kind": "image",
               "name": "Donut_00089.png",
               "x": 100,
@@ -4673,7 +4675,7 @@ export const arcv2: IPProfile = {
           ]
         },
         {
-          "id": "i7",
+          "id": "i7c1",
           "kind": "gauge",
           "name": "GPU Fan 2",
           "x": 109,
@@ -4702,11 +4704,13 @@ export const arcv2: IPProfile = {
           "minValue": 0,
           "maxValue": 3000,
           "scale": 120,
+          "width": 0,
+          "height": 0,
           "flipX": false,
           "animationSpeed": 0,
           "images": [
             {
-              "id": "g7-f0",
+              "id": "g7c1-f0",
               "kind": "image",
               "name": "Donut_00003.png",
               "x": 100,
@@ -4728,7 +4732,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f1",
+              "id": "g7c1-f1",
               "kind": "image",
               "name": "Donut_00004.png",
               "x": 100,
@@ -4750,7 +4754,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f2",
+              "id": "g7c1-f2",
               "kind": "image",
               "name": "Donut_00005.png",
               "x": 100,
@@ -4772,7 +4776,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f3",
+              "id": "g7c1-f3",
               "kind": "image",
               "name": "Donut_00006.png",
               "x": 100,
@@ -4794,7 +4798,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f4",
+              "id": "g7c1-f4",
               "kind": "image",
               "name": "Donut_00007.png",
               "x": 100,
@@ -4816,7 +4820,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f5",
+              "id": "g7c1-f5",
               "kind": "image",
               "name": "Donut_00008.png",
               "x": 100,
@@ -4838,7 +4842,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f6",
+              "id": "g7c1-f6",
               "kind": "image",
               "name": "Donut_00009.png",
               "x": 100,
@@ -4860,7 +4864,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f7",
+              "id": "g7c1-f7",
               "kind": "image",
               "name": "Donut_00010.png",
               "x": 100,
@@ -4882,7 +4886,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f8",
+              "id": "g7c1-f8",
               "kind": "image",
               "name": "Donut_00011.png",
               "x": 100,
@@ -4904,7 +4908,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f9",
+              "id": "g7c1-f9",
               "kind": "image",
               "name": "Donut_00012.png",
               "x": 100,
@@ -4926,7 +4930,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f10",
+              "id": "g7c1-f10",
               "kind": "image",
               "name": "Donut_00013.png",
               "x": 100,
@@ -4948,7 +4952,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f11",
+              "id": "g7c1-f11",
               "kind": "image",
               "name": "Donut_00014.png",
               "x": 100,
@@ -4970,7 +4974,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f12",
+              "id": "g7c1-f12",
               "kind": "image",
               "name": "Donut_00015.png",
               "x": 100,
@@ -4992,7 +4996,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f13",
+              "id": "g7c1-f13",
               "kind": "image",
               "name": "Donut_00016.png",
               "x": 100,
@@ -5014,7 +5018,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f14",
+              "id": "g7c1-f14",
               "kind": "image",
               "name": "Donut_00017.png",
               "x": 100,
@@ -5036,7 +5040,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f15",
+              "id": "g7c1-f15",
               "kind": "image",
               "name": "Donut_00018.png",
               "x": 100,
@@ -5058,7 +5062,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f16",
+              "id": "g7c1-f16",
               "kind": "image",
               "name": "Donut_00019.png",
               "x": 100,
@@ -5080,7 +5084,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f17",
+              "id": "g7c1-f17",
               "kind": "image",
               "name": "Donut_00020.png",
               "x": 100,
@@ -5102,7 +5106,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f18",
+              "id": "g7c1-f18",
               "kind": "image",
               "name": "Donut_00021.png",
               "x": 100,
@@ -5124,7 +5128,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f19",
+              "id": "g7c1-f19",
               "kind": "image",
               "name": "Donut_00022.png",
               "x": 100,
@@ -5146,7 +5150,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f20",
+              "id": "g7c1-f20",
               "kind": "image",
               "name": "Donut_00023.png",
               "x": 100,
@@ -5168,7 +5172,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f21",
+              "id": "g7c1-f21",
               "kind": "image",
               "name": "Donut_00024.png",
               "x": 100,
@@ -5190,7 +5194,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f22",
+              "id": "g7c1-f22",
               "kind": "image",
               "name": "Donut_00025.png",
               "x": 100,
@@ -5212,7 +5216,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f23",
+              "id": "g7c1-f23",
               "kind": "image",
               "name": "Donut_00026.png",
               "x": 100,
@@ -5234,7 +5238,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f24",
+              "id": "g7c1-f24",
               "kind": "image",
               "name": "Donut_00027.png",
               "x": 100,
@@ -5256,7 +5260,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f25",
+              "id": "g7c1-f25",
               "kind": "image",
               "name": "Donut_00028.png",
               "x": 100,
@@ -5278,7 +5282,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f26",
+              "id": "g7c1-f26",
               "kind": "image",
               "name": "Donut_00029.png",
               "x": 100,
@@ -5300,7 +5304,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f27",
+              "id": "g7c1-f27",
               "kind": "image",
               "name": "Donut_00030.png",
               "x": 100,
@@ -5322,7 +5326,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f28",
+              "id": "g7c1-f28",
               "kind": "image",
               "name": "Donut_00031.png",
               "x": 100,
@@ -5344,7 +5348,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f29",
+              "id": "g7c1-f29",
               "kind": "image",
               "name": "Donut_00032.png",
               "x": 100,
@@ -5366,7 +5370,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f30",
+              "id": "g7c1-f30",
               "kind": "image",
               "name": "Donut_00033.png",
               "x": 100,
@@ -5388,7 +5392,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f31",
+              "id": "g7c1-f31",
               "kind": "image",
               "name": "Donut_00034.png",
               "x": 100,
@@ -5410,7 +5414,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f32",
+              "id": "g7c1-f32",
               "kind": "image",
               "name": "Donut_00035.png",
               "x": 100,
@@ -5432,7 +5436,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f33",
+              "id": "g7c1-f33",
               "kind": "image",
               "name": "Donut_00036.png",
               "x": 100,
@@ -5454,7 +5458,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f34",
+              "id": "g7c1-f34",
               "kind": "image",
               "name": "Donut_00037.png",
               "x": 100,
@@ -5476,7 +5480,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f35",
+              "id": "g7c1-f35",
               "kind": "image",
               "name": "Donut_00038.png",
               "x": 100,
@@ -5498,7 +5502,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f36",
+              "id": "g7c1-f36",
               "kind": "image",
               "name": "Donut_00039.png",
               "x": 100,
@@ -5520,7 +5524,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f37",
+              "id": "g7c1-f37",
               "kind": "image",
               "name": "Donut_00040.png",
               "x": 100,
@@ -5542,7 +5546,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f38",
+              "id": "g7c1-f38",
               "kind": "image",
               "name": "Donut_00041.png",
               "x": 100,
@@ -5564,7 +5568,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f39",
+              "id": "g7c1-f39",
               "kind": "image",
               "name": "Donut_00042.png",
               "x": 100,
@@ -5586,7 +5590,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f40",
+              "id": "g7c1-f40",
               "kind": "image",
               "name": "Donut_00043.png",
               "x": 100,
@@ -5608,7 +5612,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f41",
+              "id": "g7c1-f41",
               "kind": "image",
               "name": "Donut_00044.png",
               "x": 100,
@@ -5630,7 +5634,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f42",
+              "id": "g7c1-f42",
               "kind": "image",
               "name": "Donut_00045.png",
               "x": 100,
@@ -5652,7 +5656,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f43",
+              "id": "g7c1-f43",
               "kind": "image",
               "name": "Donut_00046.png",
               "x": 100,
@@ -5674,7 +5678,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f44",
+              "id": "g7c1-f44",
               "kind": "image",
               "name": "Donut_00047.png",
               "x": 100,
@@ -5696,7 +5700,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f45",
+              "id": "g7c1-f45",
               "kind": "image",
               "name": "Donut_00048.png",
               "x": 100,
@@ -5718,7 +5722,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f46",
+              "id": "g7c1-f46",
               "kind": "image",
               "name": "Donut_00049.png",
               "x": 100,
@@ -5740,7 +5744,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f47",
+              "id": "g7c1-f47",
               "kind": "image",
               "name": "Donut_00050.png",
               "x": 100,
@@ -5762,7 +5766,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f48",
+              "id": "g7c1-f48",
               "kind": "image",
               "name": "Donut_00051.png",
               "x": 100,
@@ -5784,7 +5788,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f49",
+              "id": "g7c1-f49",
               "kind": "image",
               "name": "Donut_00052.png",
               "x": 100,
@@ -5806,7 +5810,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f50",
+              "id": "g7c1-f50",
               "kind": "image",
               "name": "Donut_00053.png",
               "x": 100,
@@ -5828,7 +5832,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f51",
+              "id": "g7c1-f51",
               "kind": "image",
               "name": "Donut_00054.png",
               "x": 100,
@@ -5850,7 +5854,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f52",
+              "id": "g7c1-f52",
               "kind": "image",
               "name": "Donut_00055.png",
               "x": 100,
@@ -5872,7 +5876,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f53",
+              "id": "g7c1-f53",
               "kind": "image",
               "name": "Donut_00056.png",
               "x": 100,
@@ -5894,7 +5898,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f54",
+              "id": "g7c1-f54",
               "kind": "image",
               "name": "Donut_00057.png",
               "x": 100,
@@ -5916,7 +5920,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f55",
+              "id": "g7c1-f55",
               "kind": "image",
               "name": "Donut_00058.png",
               "x": 100,
@@ -5938,7 +5942,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f56",
+              "id": "g7c1-f56",
               "kind": "image",
               "name": "Donut_00059.png",
               "x": 100,
@@ -5960,7 +5964,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f57",
+              "id": "g7c1-f57",
               "kind": "image",
               "name": "Donut_00060.png",
               "x": 100,
@@ -5982,7 +5986,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f58",
+              "id": "g7c1-f58",
               "kind": "image",
               "name": "Donut_00061.png",
               "x": 100,
@@ -6004,7 +6008,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f59",
+              "id": "g7c1-f59",
               "kind": "image",
               "name": "Donut_00062.png",
               "x": 100,
@@ -6026,7 +6030,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f60",
+              "id": "g7c1-f60",
               "kind": "image",
               "name": "Donut_00063.png",
               "x": 100,
@@ -6048,7 +6052,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f61",
+              "id": "g7c1-f61",
               "kind": "image",
               "name": "Donut_00064.png",
               "x": 100,
@@ -6070,7 +6074,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f62",
+              "id": "g7c1-f62",
               "kind": "image",
               "name": "Donut_00065.png",
               "x": 100,
@@ -6092,7 +6096,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f63",
+              "id": "g7c1-f63",
               "kind": "image",
               "name": "Donut_00066.png",
               "x": 100,
@@ -6114,7 +6118,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f64",
+              "id": "g7c1-f64",
               "kind": "image",
               "name": "Donut_00067.png",
               "x": 100,
@@ -6136,7 +6140,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f65",
+              "id": "g7c1-f65",
               "kind": "image",
               "name": "Donut_00068.png",
               "x": 100,
@@ -6158,7 +6162,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f66",
+              "id": "g7c1-f66",
               "kind": "image",
               "name": "Donut_00069.png",
               "x": 100,
@@ -6180,7 +6184,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f67",
+              "id": "g7c1-f67",
               "kind": "image",
               "name": "Donut_00070.png",
               "x": 100,
@@ -6202,7 +6206,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f68",
+              "id": "g7c1-f68",
               "kind": "image",
               "name": "Donut_00071.png",
               "x": 100,
@@ -6224,7 +6228,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f69",
+              "id": "g7c1-f69",
               "kind": "image",
               "name": "Donut_00072.png",
               "x": 100,
@@ -6246,7 +6250,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f70",
+              "id": "g7c1-f70",
               "kind": "image",
               "name": "Donut_00073.png",
               "x": 100,
@@ -6268,7 +6272,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f71",
+              "id": "g7c1-f71",
               "kind": "image",
               "name": "Donut_00074.png",
               "x": 100,
@@ -6290,7 +6294,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f72",
+              "id": "g7c1-f72",
               "kind": "image",
               "name": "Donut_00075.png",
               "x": 100,
@@ -6312,7 +6316,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f73",
+              "id": "g7c1-f73",
               "kind": "image",
               "name": "Donut_00076.png",
               "x": 100,
@@ -6334,7 +6338,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f74",
+              "id": "g7c1-f74",
               "kind": "image",
               "name": "Donut_00077.png",
               "x": 100,
@@ -6356,7 +6360,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f75",
+              "id": "g7c1-f75",
               "kind": "image",
               "name": "Donut_00078.png",
               "x": 100,
@@ -6378,7 +6382,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f76",
+              "id": "g7c1-f76",
               "kind": "image",
               "name": "Donut_00079.png",
               "x": 100,
@@ -6400,7 +6404,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f77",
+              "id": "g7c1-f77",
               "kind": "image",
               "name": "Donut_00080.png",
               "x": 100,
@@ -6422,7 +6426,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f78",
+              "id": "g7c1-f78",
               "kind": "image",
               "name": "Donut_00081.png",
               "x": 100,
@@ -6444,7 +6448,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f79",
+              "id": "g7c1-f79",
               "kind": "image",
               "name": "Donut_00082.png",
               "x": 100,
@@ -6466,7 +6470,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f80",
+              "id": "g7c1-f80",
               "kind": "image",
               "name": "Donut_00083.png",
               "x": 100,
@@ -6488,7 +6492,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f81",
+              "id": "g7c1-f81",
               "kind": "image",
               "name": "Donut_00084.png",
               "x": 100,
@@ -6510,7 +6514,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f82",
+              "id": "g7c1-f82",
               "kind": "image",
               "name": "Donut_00085.png",
               "x": 100,
@@ -6532,7 +6536,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f83",
+              "id": "g7c1-f83",
               "kind": "image",
               "name": "Donut_00086.png",
               "x": 100,
@@ -6554,7 +6558,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f84",
+              "id": "g7c1-f84",
               "kind": "image",
               "name": "Donut_00087.png",
               "x": 100,
@@ -6576,7 +6580,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f85",
+              "id": "g7c1-f85",
               "kind": "image",
               "name": "Donut_00088.png",
               "x": 100,
@@ -6598,7 +6602,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f86",
+              "id": "g7c1-f86",
               "kind": "image",
               "name": "Donut_00089.png",
               "x": 100,
@@ -6622,7 +6626,7 @@ export const arcv2: IPProfile = {
           ]
         },
         {
-          "id": "i7",
+          "id": "i7c2",
           "kind": "gauge",
           "name": "GPU Fan 3",
           "x": 213,
@@ -6651,11 +6655,13 @@ export const arcv2: IPProfile = {
           "minValue": 0,
           "maxValue": 3000,
           "scale": 120,
+          "width": 0,
+          "height": 0,
           "flipX": false,
           "animationSpeed": 0,
           "images": [
             {
-              "id": "g7-f0",
+              "id": "g7c2-f0",
               "kind": "image",
               "name": "Donut_00003.png",
               "x": 100,
@@ -6677,7 +6683,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f1",
+              "id": "g7c2-f1",
               "kind": "image",
               "name": "Donut_00004.png",
               "x": 100,
@@ -6699,7 +6705,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f2",
+              "id": "g7c2-f2",
               "kind": "image",
               "name": "Donut_00005.png",
               "x": 100,
@@ -6721,7 +6727,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f3",
+              "id": "g7c2-f3",
               "kind": "image",
               "name": "Donut_00006.png",
               "x": 100,
@@ -6743,7 +6749,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f4",
+              "id": "g7c2-f4",
               "kind": "image",
               "name": "Donut_00007.png",
               "x": 100,
@@ -6765,7 +6771,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f5",
+              "id": "g7c2-f5",
               "kind": "image",
               "name": "Donut_00008.png",
               "x": 100,
@@ -6787,7 +6793,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f6",
+              "id": "g7c2-f6",
               "kind": "image",
               "name": "Donut_00009.png",
               "x": 100,
@@ -6809,7 +6815,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f7",
+              "id": "g7c2-f7",
               "kind": "image",
               "name": "Donut_00010.png",
               "x": 100,
@@ -6831,7 +6837,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f8",
+              "id": "g7c2-f8",
               "kind": "image",
               "name": "Donut_00011.png",
               "x": 100,
@@ -6853,7 +6859,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f9",
+              "id": "g7c2-f9",
               "kind": "image",
               "name": "Donut_00012.png",
               "x": 100,
@@ -6875,7 +6881,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f10",
+              "id": "g7c2-f10",
               "kind": "image",
               "name": "Donut_00013.png",
               "x": 100,
@@ -6897,7 +6903,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f11",
+              "id": "g7c2-f11",
               "kind": "image",
               "name": "Donut_00014.png",
               "x": 100,
@@ -6919,7 +6925,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f12",
+              "id": "g7c2-f12",
               "kind": "image",
               "name": "Donut_00015.png",
               "x": 100,
@@ -6941,7 +6947,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f13",
+              "id": "g7c2-f13",
               "kind": "image",
               "name": "Donut_00016.png",
               "x": 100,
@@ -6963,7 +6969,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f14",
+              "id": "g7c2-f14",
               "kind": "image",
               "name": "Donut_00017.png",
               "x": 100,
@@ -6985,7 +6991,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f15",
+              "id": "g7c2-f15",
               "kind": "image",
               "name": "Donut_00018.png",
               "x": 100,
@@ -7007,7 +7013,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f16",
+              "id": "g7c2-f16",
               "kind": "image",
               "name": "Donut_00019.png",
               "x": 100,
@@ -7029,7 +7035,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f17",
+              "id": "g7c2-f17",
               "kind": "image",
               "name": "Donut_00020.png",
               "x": 100,
@@ -7051,7 +7057,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f18",
+              "id": "g7c2-f18",
               "kind": "image",
               "name": "Donut_00021.png",
               "x": 100,
@@ -7073,7 +7079,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f19",
+              "id": "g7c2-f19",
               "kind": "image",
               "name": "Donut_00022.png",
               "x": 100,
@@ -7095,7 +7101,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f20",
+              "id": "g7c2-f20",
               "kind": "image",
               "name": "Donut_00023.png",
               "x": 100,
@@ -7117,7 +7123,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f21",
+              "id": "g7c2-f21",
               "kind": "image",
               "name": "Donut_00024.png",
               "x": 100,
@@ -7139,7 +7145,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f22",
+              "id": "g7c2-f22",
               "kind": "image",
               "name": "Donut_00025.png",
               "x": 100,
@@ -7161,7 +7167,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f23",
+              "id": "g7c2-f23",
               "kind": "image",
               "name": "Donut_00026.png",
               "x": 100,
@@ -7183,7 +7189,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f24",
+              "id": "g7c2-f24",
               "kind": "image",
               "name": "Donut_00027.png",
               "x": 100,
@@ -7205,7 +7211,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f25",
+              "id": "g7c2-f25",
               "kind": "image",
               "name": "Donut_00028.png",
               "x": 100,
@@ -7227,7 +7233,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f26",
+              "id": "g7c2-f26",
               "kind": "image",
               "name": "Donut_00029.png",
               "x": 100,
@@ -7249,7 +7255,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f27",
+              "id": "g7c2-f27",
               "kind": "image",
               "name": "Donut_00030.png",
               "x": 100,
@@ -7271,7 +7277,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f28",
+              "id": "g7c2-f28",
               "kind": "image",
               "name": "Donut_00031.png",
               "x": 100,
@@ -7293,7 +7299,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f29",
+              "id": "g7c2-f29",
               "kind": "image",
               "name": "Donut_00032.png",
               "x": 100,
@@ -7315,7 +7321,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f30",
+              "id": "g7c2-f30",
               "kind": "image",
               "name": "Donut_00033.png",
               "x": 100,
@@ -7337,7 +7343,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f31",
+              "id": "g7c2-f31",
               "kind": "image",
               "name": "Donut_00034.png",
               "x": 100,
@@ -7359,7 +7365,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f32",
+              "id": "g7c2-f32",
               "kind": "image",
               "name": "Donut_00035.png",
               "x": 100,
@@ -7381,7 +7387,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f33",
+              "id": "g7c2-f33",
               "kind": "image",
               "name": "Donut_00036.png",
               "x": 100,
@@ -7403,7 +7409,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f34",
+              "id": "g7c2-f34",
               "kind": "image",
               "name": "Donut_00037.png",
               "x": 100,
@@ -7425,7 +7431,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f35",
+              "id": "g7c2-f35",
               "kind": "image",
               "name": "Donut_00038.png",
               "x": 100,
@@ -7447,7 +7453,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f36",
+              "id": "g7c2-f36",
               "kind": "image",
               "name": "Donut_00039.png",
               "x": 100,
@@ -7469,7 +7475,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f37",
+              "id": "g7c2-f37",
               "kind": "image",
               "name": "Donut_00040.png",
               "x": 100,
@@ -7491,7 +7497,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f38",
+              "id": "g7c2-f38",
               "kind": "image",
               "name": "Donut_00041.png",
               "x": 100,
@@ -7513,7 +7519,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f39",
+              "id": "g7c2-f39",
               "kind": "image",
               "name": "Donut_00042.png",
               "x": 100,
@@ -7535,7 +7541,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f40",
+              "id": "g7c2-f40",
               "kind": "image",
               "name": "Donut_00043.png",
               "x": 100,
@@ -7557,7 +7563,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f41",
+              "id": "g7c2-f41",
               "kind": "image",
               "name": "Donut_00044.png",
               "x": 100,
@@ -7579,7 +7585,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f42",
+              "id": "g7c2-f42",
               "kind": "image",
               "name": "Donut_00045.png",
               "x": 100,
@@ -7601,7 +7607,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f43",
+              "id": "g7c2-f43",
               "kind": "image",
               "name": "Donut_00046.png",
               "x": 100,
@@ -7623,7 +7629,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f44",
+              "id": "g7c2-f44",
               "kind": "image",
               "name": "Donut_00047.png",
               "x": 100,
@@ -7645,7 +7651,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f45",
+              "id": "g7c2-f45",
               "kind": "image",
               "name": "Donut_00048.png",
               "x": 100,
@@ -7667,7 +7673,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f46",
+              "id": "g7c2-f46",
               "kind": "image",
               "name": "Donut_00049.png",
               "x": 100,
@@ -7689,7 +7695,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f47",
+              "id": "g7c2-f47",
               "kind": "image",
               "name": "Donut_00050.png",
               "x": 100,
@@ -7711,7 +7717,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f48",
+              "id": "g7c2-f48",
               "kind": "image",
               "name": "Donut_00051.png",
               "x": 100,
@@ -7733,7 +7739,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f49",
+              "id": "g7c2-f49",
               "kind": "image",
               "name": "Donut_00052.png",
               "x": 100,
@@ -7755,7 +7761,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f50",
+              "id": "g7c2-f50",
               "kind": "image",
               "name": "Donut_00053.png",
               "x": 100,
@@ -7777,7 +7783,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f51",
+              "id": "g7c2-f51",
               "kind": "image",
               "name": "Donut_00054.png",
               "x": 100,
@@ -7799,7 +7805,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f52",
+              "id": "g7c2-f52",
               "kind": "image",
               "name": "Donut_00055.png",
               "x": 100,
@@ -7821,7 +7827,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f53",
+              "id": "g7c2-f53",
               "kind": "image",
               "name": "Donut_00056.png",
               "x": 100,
@@ -7843,7 +7849,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f54",
+              "id": "g7c2-f54",
               "kind": "image",
               "name": "Donut_00057.png",
               "x": 100,
@@ -7865,7 +7871,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f55",
+              "id": "g7c2-f55",
               "kind": "image",
               "name": "Donut_00058.png",
               "x": 100,
@@ -7887,7 +7893,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f56",
+              "id": "g7c2-f56",
               "kind": "image",
               "name": "Donut_00059.png",
               "x": 100,
@@ -7909,7 +7915,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f57",
+              "id": "g7c2-f57",
               "kind": "image",
               "name": "Donut_00060.png",
               "x": 100,
@@ -7931,7 +7937,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f58",
+              "id": "g7c2-f58",
               "kind": "image",
               "name": "Donut_00061.png",
               "x": 100,
@@ -7953,7 +7959,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f59",
+              "id": "g7c2-f59",
               "kind": "image",
               "name": "Donut_00062.png",
               "x": 100,
@@ -7975,7 +7981,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f60",
+              "id": "g7c2-f60",
               "kind": "image",
               "name": "Donut_00063.png",
               "x": 100,
@@ -7997,7 +8003,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f61",
+              "id": "g7c2-f61",
               "kind": "image",
               "name": "Donut_00064.png",
               "x": 100,
@@ -8019,7 +8025,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f62",
+              "id": "g7c2-f62",
               "kind": "image",
               "name": "Donut_00065.png",
               "x": 100,
@@ -8041,7 +8047,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f63",
+              "id": "g7c2-f63",
               "kind": "image",
               "name": "Donut_00066.png",
               "x": 100,
@@ -8063,7 +8069,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f64",
+              "id": "g7c2-f64",
               "kind": "image",
               "name": "Donut_00067.png",
               "x": 100,
@@ -8085,7 +8091,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f65",
+              "id": "g7c2-f65",
               "kind": "image",
               "name": "Donut_00068.png",
               "x": 100,
@@ -8107,7 +8113,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f66",
+              "id": "g7c2-f66",
               "kind": "image",
               "name": "Donut_00069.png",
               "x": 100,
@@ -8129,7 +8135,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f67",
+              "id": "g7c2-f67",
               "kind": "image",
               "name": "Donut_00070.png",
               "x": 100,
@@ -8151,7 +8157,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f68",
+              "id": "g7c2-f68",
               "kind": "image",
               "name": "Donut_00071.png",
               "x": 100,
@@ -8173,7 +8179,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f69",
+              "id": "g7c2-f69",
               "kind": "image",
               "name": "Donut_00072.png",
               "x": 100,
@@ -8195,7 +8201,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f70",
+              "id": "g7c2-f70",
               "kind": "image",
               "name": "Donut_00073.png",
               "x": 100,
@@ -8217,7 +8223,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f71",
+              "id": "g7c2-f71",
               "kind": "image",
               "name": "Donut_00074.png",
               "x": 100,
@@ -8239,7 +8245,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f72",
+              "id": "g7c2-f72",
               "kind": "image",
               "name": "Donut_00075.png",
               "x": 100,
@@ -8261,7 +8267,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f73",
+              "id": "g7c2-f73",
               "kind": "image",
               "name": "Donut_00076.png",
               "x": 100,
@@ -8283,7 +8289,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f74",
+              "id": "g7c2-f74",
               "kind": "image",
               "name": "Donut_00077.png",
               "x": 100,
@@ -8305,7 +8311,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f75",
+              "id": "g7c2-f75",
               "kind": "image",
               "name": "Donut_00078.png",
               "x": 100,
@@ -8327,7 +8333,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f76",
+              "id": "g7c2-f76",
               "kind": "image",
               "name": "Donut_00079.png",
               "x": 100,
@@ -8349,7 +8355,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f77",
+              "id": "g7c2-f77",
               "kind": "image",
               "name": "Donut_00080.png",
               "x": 100,
@@ -8371,7 +8377,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f78",
+              "id": "g7c2-f78",
               "kind": "image",
               "name": "Donut_00081.png",
               "x": 100,
@@ -8393,7 +8399,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f79",
+              "id": "g7c2-f79",
               "kind": "image",
               "name": "Donut_00082.png",
               "x": 100,
@@ -8415,7 +8421,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f80",
+              "id": "g7c2-f80",
               "kind": "image",
               "name": "Donut_00083.png",
               "x": 100,
@@ -8437,7 +8443,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f81",
+              "id": "g7c2-f81",
               "kind": "image",
               "name": "Donut_00084.png",
               "x": 100,
@@ -8459,7 +8465,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f82",
+              "id": "g7c2-f82",
               "kind": "image",
               "name": "Donut_00085.png",
               "x": 100,
@@ -8481,7 +8487,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f83",
+              "id": "g7c2-f83",
               "kind": "image",
               "name": "Donut_00086.png",
               "x": 100,
@@ -8503,7 +8509,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f84",
+              "id": "g7c2-f84",
               "kind": "image",
               "name": "Donut_00087.png",
               "x": 100,
@@ -8525,7 +8531,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f85",
+              "id": "g7c2-f85",
               "kind": "image",
               "name": "Donut_00088.png",
               "x": 100,
@@ -8547,7 +8553,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f86",
+              "id": "g7c2-f86",
               "kind": "image",
               "name": "Donut_00089.png",
               "x": 100,
@@ -8571,7 +8577,7 @@ export const arcv2: IPProfile = {
           ]
         },
         {
-          "id": "i7",
+          "id": "i7c3",
           "kind": "gauge",
           "name": "Fan #2",
           "x": 316,
@@ -8600,11 +8606,13 @@ export const arcv2: IPProfile = {
           "minValue": 0,
           "maxValue": 2000,
           "scale": 120,
+          "width": 0,
+          "height": 0,
           "flipX": false,
           "animationSpeed": 0,
           "images": [
             {
-              "id": "g7-f0",
+              "id": "g7c3-f0",
               "kind": "image",
               "name": "Donut_00003.png",
               "x": 100,
@@ -8626,7 +8634,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f1",
+              "id": "g7c3-f1",
               "kind": "image",
               "name": "Donut_00004.png",
               "x": 100,
@@ -8648,7 +8656,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f2",
+              "id": "g7c3-f2",
               "kind": "image",
               "name": "Donut_00005.png",
               "x": 100,
@@ -8670,7 +8678,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f3",
+              "id": "g7c3-f3",
               "kind": "image",
               "name": "Donut_00006.png",
               "x": 100,
@@ -8692,7 +8700,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f4",
+              "id": "g7c3-f4",
               "kind": "image",
               "name": "Donut_00007.png",
               "x": 100,
@@ -8714,7 +8722,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f5",
+              "id": "g7c3-f5",
               "kind": "image",
               "name": "Donut_00008.png",
               "x": 100,
@@ -8736,7 +8744,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f6",
+              "id": "g7c3-f6",
               "kind": "image",
               "name": "Donut_00009.png",
               "x": 100,
@@ -8758,7 +8766,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f7",
+              "id": "g7c3-f7",
               "kind": "image",
               "name": "Donut_00010.png",
               "x": 100,
@@ -8780,7 +8788,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f8",
+              "id": "g7c3-f8",
               "kind": "image",
               "name": "Donut_00011.png",
               "x": 100,
@@ -8802,7 +8810,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f9",
+              "id": "g7c3-f9",
               "kind": "image",
               "name": "Donut_00012.png",
               "x": 100,
@@ -8824,7 +8832,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f10",
+              "id": "g7c3-f10",
               "kind": "image",
               "name": "Donut_00013.png",
               "x": 100,
@@ -8846,7 +8854,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f11",
+              "id": "g7c3-f11",
               "kind": "image",
               "name": "Donut_00014.png",
               "x": 100,
@@ -8868,7 +8876,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f12",
+              "id": "g7c3-f12",
               "kind": "image",
               "name": "Donut_00015.png",
               "x": 100,
@@ -8890,7 +8898,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f13",
+              "id": "g7c3-f13",
               "kind": "image",
               "name": "Donut_00016.png",
               "x": 100,
@@ -8912,7 +8920,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f14",
+              "id": "g7c3-f14",
               "kind": "image",
               "name": "Donut_00017.png",
               "x": 100,
@@ -8934,7 +8942,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f15",
+              "id": "g7c3-f15",
               "kind": "image",
               "name": "Donut_00018.png",
               "x": 100,
@@ -8956,7 +8964,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f16",
+              "id": "g7c3-f16",
               "kind": "image",
               "name": "Donut_00019.png",
               "x": 100,
@@ -8978,7 +8986,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f17",
+              "id": "g7c3-f17",
               "kind": "image",
               "name": "Donut_00020.png",
               "x": 100,
@@ -9000,7 +9008,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f18",
+              "id": "g7c3-f18",
               "kind": "image",
               "name": "Donut_00021.png",
               "x": 100,
@@ -9022,7 +9030,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f19",
+              "id": "g7c3-f19",
               "kind": "image",
               "name": "Donut_00022.png",
               "x": 100,
@@ -9044,7 +9052,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f20",
+              "id": "g7c3-f20",
               "kind": "image",
               "name": "Donut_00023.png",
               "x": 100,
@@ -9066,7 +9074,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f21",
+              "id": "g7c3-f21",
               "kind": "image",
               "name": "Donut_00024.png",
               "x": 100,
@@ -9088,7 +9096,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f22",
+              "id": "g7c3-f22",
               "kind": "image",
               "name": "Donut_00025.png",
               "x": 100,
@@ -9110,7 +9118,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f23",
+              "id": "g7c3-f23",
               "kind": "image",
               "name": "Donut_00026.png",
               "x": 100,
@@ -9132,7 +9140,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f24",
+              "id": "g7c3-f24",
               "kind": "image",
               "name": "Donut_00027.png",
               "x": 100,
@@ -9154,7 +9162,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f25",
+              "id": "g7c3-f25",
               "kind": "image",
               "name": "Donut_00028.png",
               "x": 100,
@@ -9176,7 +9184,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f26",
+              "id": "g7c3-f26",
               "kind": "image",
               "name": "Donut_00029.png",
               "x": 100,
@@ -9198,7 +9206,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f27",
+              "id": "g7c3-f27",
               "kind": "image",
               "name": "Donut_00030.png",
               "x": 100,
@@ -9220,7 +9228,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f28",
+              "id": "g7c3-f28",
               "kind": "image",
               "name": "Donut_00031.png",
               "x": 100,
@@ -9242,7 +9250,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f29",
+              "id": "g7c3-f29",
               "kind": "image",
               "name": "Donut_00032.png",
               "x": 100,
@@ -9264,7 +9272,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f30",
+              "id": "g7c3-f30",
               "kind": "image",
               "name": "Donut_00033.png",
               "x": 100,
@@ -9286,7 +9294,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f31",
+              "id": "g7c3-f31",
               "kind": "image",
               "name": "Donut_00034.png",
               "x": 100,
@@ -9308,7 +9316,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f32",
+              "id": "g7c3-f32",
               "kind": "image",
               "name": "Donut_00035.png",
               "x": 100,
@@ -9330,7 +9338,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f33",
+              "id": "g7c3-f33",
               "kind": "image",
               "name": "Donut_00036.png",
               "x": 100,
@@ -9352,7 +9360,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f34",
+              "id": "g7c3-f34",
               "kind": "image",
               "name": "Donut_00037.png",
               "x": 100,
@@ -9374,7 +9382,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f35",
+              "id": "g7c3-f35",
               "kind": "image",
               "name": "Donut_00038.png",
               "x": 100,
@@ -9396,7 +9404,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f36",
+              "id": "g7c3-f36",
               "kind": "image",
               "name": "Donut_00039.png",
               "x": 100,
@@ -9418,7 +9426,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f37",
+              "id": "g7c3-f37",
               "kind": "image",
               "name": "Donut_00040.png",
               "x": 100,
@@ -9440,7 +9448,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f38",
+              "id": "g7c3-f38",
               "kind": "image",
               "name": "Donut_00041.png",
               "x": 100,
@@ -9462,7 +9470,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f39",
+              "id": "g7c3-f39",
               "kind": "image",
               "name": "Donut_00042.png",
               "x": 100,
@@ -9484,7 +9492,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f40",
+              "id": "g7c3-f40",
               "kind": "image",
               "name": "Donut_00043.png",
               "x": 100,
@@ -9506,7 +9514,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f41",
+              "id": "g7c3-f41",
               "kind": "image",
               "name": "Donut_00044.png",
               "x": 100,
@@ -9528,7 +9536,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f42",
+              "id": "g7c3-f42",
               "kind": "image",
               "name": "Donut_00045.png",
               "x": 100,
@@ -9550,7 +9558,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f43",
+              "id": "g7c3-f43",
               "kind": "image",
               "name": "Donut_00046.png",
               "x": 100,
@@ -9572,7 +9580,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f44",
+              "id": "g7c3-f44",
               "kind": "image",
               "name": "Donut_00047.png",
               "x": 100,
@@ -9594,7 +9602,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f45",
+              "id": "g7c3-f45",
               "kind": "image",
               "name": "Donut_00048.png",
               "x": 100,
@@ -9616,7 +9624,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f46",
+              "id": "g7c3-f46",
               "kind": "image",
               "name": "Donut_00049.png",
               "x": 100,
@@ -9638,7 +9646,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f47",
+              "id": "g7c3-f47",
               "kind": "image",
               "name": "Donut_00050.png",
               "x": 100,
@@ -9660,7 +9668,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f48",
+              "id": "g7c3-f48",
               "kind": "image",
               "name": "Donut_00051.png",
               "x": 100,
@@ -9682,7 +9690,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f49",
+              "id": "g7c3-f49",
               "kind": "image",
               "name": "Donut_00052.png",
               "x": 100,
@@ -9704,7 +9712,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f50",
+              "id": "g7c3-f50",
               "kind": "image",
               "name": "Donut_00053.png",
               "x": 100,
@@ -9726,7 +9734,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f51",
+              "id": "g7c3-f51",
               "kind": "image",
               "name": "Donut_00054.png",
               "x": 100,
@@ -9748,7 +9756,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f52",
+              "id": "g7c3-f52",
               "kind": "image",
               "name": "Donut_00055.png",
               "x": 100,
@@ -9770,7 +9778,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f53",
+              "id": "g7c3-f53",
               "kind": "image",
               "name": "Donut_00056.png",
               "x": 100,
@@ -9792,7 +9800,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f54",
+              "id": "g7c3-f54",
               "kind": "image",
               "name": "Donut_00057.png",
               "x": 100,
@@ -9814,7 +9822,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f55",
+              "id": "g7c3-f55",
               "kind": "image",
               "name": "Donut_00058.png",
               "x": 100,
@@ -9836,7 +9844,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f56",
+              "id": "g7c3-f56",
               "kind": "image",
               "name": "Donut_00059.png",
               "x": 100,
@@ -9858,7 +9866,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f57",
+              "id": "g7c3-f57",
               "kind": "image",
               "name": "Donut_00060.png",
               "x": 100,
@@ -9880,7 +9888,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f58",
+              "id": "g7c3-f58",
               "kind": "image",
               "name": "Donut_00061.png",
               "x": 100,
@@ -9902,7 +9910,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f59",
+              "id": "g7c3-f59",
               "kind": "image",
               "name": "Donut_00062.png",
               "x": 100,
@@ -9924,7 +9932,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f60",
+              "id": "g7c3-f60",
               "kind": "image",
               "name": "Donut_00063.png",
               "x": 100,
@@ -9946,7 +9954,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f61",
+              "id": "g7c3-f61",
               "kind": "image",
               "name": "Donut_00064.png",
               "x": 100,
@@ -9968,7 +9976,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f62",
+              "id": "g7c3-f62",
               "kind": "image",
               "name": "Donut_00065.png",
               "x": 100,
@@ -9990,7 +9998,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f63",
+              "id": "g7c3-f63",
               "kind": "image",
               "name": "Donut_00066.png",
               "x": 100,
@@ -10012,7 +10020,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f64",
+              "id": "g7c3-f64",
               "kind": "image",
               "name": "Donut_00067.png",
               "x": 100,
@@ -10034,7 +10042,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f65",
+              "id": "g7c3-f65",
               "kind": "image",
               "name": "Donut_00068.png",
               "x": 100,
@@ -10056,7 +10064,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f66",
+              "id": "g7c3-f66",
               "kind": "image",
               "name": "Donut_00069.png",
               "x": 100,
@@ -10078,7 +10086,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f67",
+              "id": "g7c3-f67",
               "kind": "image",
               "name": "Donut_00070.png",
               "x": 100,
@@ -10100,7 +10108,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f68",
+              "id": "g7c3-f68",
               "kind": "image",
               "name": "Donut_00071.png",
               "x": 100,
@@ -10122,7 +10130,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f69",
+              "id": "g7c3-f69",
               "kind": "image",
               "name": "Donut_00072.png",
               "x": 100,
@@ -10144,7 +10152,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f70",
+              "id": "g7c3-f70",
               "kind": "image",
               "name": "Donut_00073.png",
               "x": 100,
@@ -10166,7 +10174,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f71",
+              "id": "g7c3-f71",
               "kind": "image",
               "name": "Donut_00074.png",
               "x": 100,
@@ -10188,7 +10196,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f72",
+              "id": "g7c3-f72",
               "kind": "image",
               "name": "Donut_00075.png",
               "x": 100,
@@ -10210,7 +10218,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f73",
+              "id": "g7c3-f73",
               "kind": "image",
               "name": "Donut_00076.png",
               "x": 100,
@@ -10232,7 +10240,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f74",
+              "id": "g7c3-f74",
               "kind": "image",
               "name": "Donut_00077.png",
               "x": 100,
@@ -10254,7 +10262,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f75",
+              "id": "g7c3-f75",
               "kind": "image",
               "name": "Donut_00078.png",
               "x": 100,
@@ -10276,7 +10284,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f76",
+              "id": "g7c3-f76",
               "kind": "image",
               "name": "Donut_00079.png",
               "x": 100,
@@ -10298,7 +10306,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f77",
+              "id": "g7c3-f77",
               "kind": "image",
               "name": "Donut_00080.png",
               "x": 100,
@@ -10320,7 +10328,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f78",
+              "id": "g7c3-f78",
               "kind": "image",
               "name": "Donut_00081.png",
               "x": 100,
@@ -10342,7 +10350,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f79",
+              "id": "g7c3-f79",
               "kind": "image",
               "name": "Donut_00082.png",
               "x": 100,
@@ -10364,7 +10372,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f80",
+              "id": "g7c3-f80",
               "kind": "image",
               "name": "Donut_00083.png",
               "x": 100,
@@ -10386,7 +10394,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f81",
+              "id": "g7c3-f81",
               "kind": "image",
               "name": "Donut_00084.png",
               "x": 100,
@@ -10408,7 +10416,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f82",
+              "id": "g7c3-f82",
               "kind": "image",
               "name": "Donut_00085.png",
               "x": 100,
@@ -10430,7 +10438,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f83",
+              "id": "g7c3-f83",
               "kind": "image",
               "name": "Donut_00086.png",
               "x": 100,
@@ -10452,7 +10460,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f84",
+              "id": "g7c3-f84",
               "kind": "image",
               "name": "Donut_00087.png",
               "x": 100,
@@ -10474,7 +10482,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f85",
+              "id": "g7c3-f85",
               "kind": "image",
               "name": "Donut_00088.png",
               "x": 100,
@@ -10496,7 +10504,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f86",
+              "id": "g7c3-f86",
               "kind": "image",
               "name": "Donut_00089.png",
               "x": 100,
@@ -10520,7 +10528,7 @@ export const arcv2: IPProfile = {
           ]
         },
         {
-          "id": "i7",
+          "id": "i7c4",
           "kind": "gauge",
           "name": "Fan #4",
           "x": 420,
@@ -10549,11 +10557,13 @@ export const arcv2: IPProfile = {
           "minValue": 0,
           "maxValue": 1500,
           "scale": 120,
+          "width": 0,
+          "height": 0,
           "flipX": false,
           "animationSpeed": 0,
           "images": [
             {
-              "id": "g7-f0",
+              "id": "g7c4-f0",
               "kind": "image",
               "name": "Donut_00003.png",
               "x": 100,
@@ -10575,7 +10585,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f1",
+              "id": "g7c4-f1",
               "kind": "image",
               "name": "Donut_00004.png",
               "x": 100,
@@ -10597,7 +10607,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f2",
+              "id": "g7c4-f2",
               "kind": "image",
               "name": "Donut_00005.png",
               "x": 100,
@@ -10619,7 +10629,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f3",
+              "id": "g7c4-f3",
               "kind": "image",
               "name": "Donut_00006.png",
               "x": 100,
@@ -10641,7 +10651,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f4",
+              "id": "g7c4-f4",
               "kind": "image",
               "name": "Donut_00007.png",
               "x": 100,
@@ -10663,7 +10673,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f5",
+              "id": "g7c4-f5",
               "kind": "image",
               "name": "Donut_00008.png",
               "x": 100,
@@ -10685,7 +10695,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f6",
+              "id": "g7c4-f6",
               "kind": "image",
               "name": "Donut_00009.png",
               "x": 100,
@@ -10707,7 +10717,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f7",
+              "id": "g7c4-f7",
               "kind": "image",
               "name": "Donut_00010.png",
               "x": 100,
@@ -10729,7 +10739,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f8",
+              "id": "g7c4-f8",
               "kind": "image",
               "name": "Donut_00011.png",
               "x": 100,
@@ -10751,7 +10761,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f9",
+              "id": "g7c4-f9",
               "kind": "image",
               "name": "Donut_00012.png",
               "x": 100,
@@ -10773,7 +10783,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f10",
+              "id": "g7c4-f10",
               "kind": "image",
               "name": "Donut_00013.png",
               "x": 100,
@@ -10795,7 +10805,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f11",
+              "id": "g7c4-f11",
               "kind": "image",
               "name": "Donut_00014.png",
               "x": 100,
@@ -10817,7 +10827,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f12",
+              "id": "g7c4-f12",
               "kind": "image",
               "name": "Donut_00015.png",
               "x": 100,
@@ -10839,7 +10849,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f13",
+              "id": "g7c4-f13",
               "kind": "image",
               "name": "Donut_00016.png",
               "x": 100,
@@ -10861,7 +10871,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f14",
+              "id": "g7c4-f14",
               "kind": "image",
               "name": "Donut_00017.png",
               "x": 100,
@@ -10883,7 +10893,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f15",
+              "id": "g7c4-f15",
               "kind": "image",
               "name": "Donut_00018.png",
               "x": 100,
@@ -10905,7 +10915,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f16",
+              "id": "g7c4-f16",
               "kind": "image",
               "name": "Donut_00019.png",
               "x": 100,
@@ -10927,7 +10937,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f17",
+              "id": "g7c4-f17",
               "kind": "image",
               "name": "Donut_00020.png",
               "x": 100,
@@ -10949,7 +10959,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f18",
+              "id": "g7c4-f18",
               "kind": "image",
               "name": "Donut_00021.png",
               "x": 100,
@@ -10971,7 +10981,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f19",
+              "id": "g7c4-f19",
               "kind": "image",
               "name": "Donut_00022.png",
               "x": 100,
@@ -10993,7 +11003,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f20",
+              "id": "g7c4-f20",
               "kind": "image",
               "name": "Donut_00023.png",
               "x": 100,
@@ -11015,7 +11025,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f21",
+              "id": "g7c4-f21",
               "kind": "image",
               "name": "Donut_00024.png",
               "x": 100,
@@ -11037,7 +11047,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f22",
+              "id": "g7c4-f22",
               "kind": "image",
               "name": "Donut_00025.png",
               "x": 100,
@@ -11059,7 +11069,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f23",
+              "id": "g7c4-f23",
               "kind": "image",
               "name": "Donut_00026.png",
               "x": 100,
@@ -11081,7 +11091,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f24",
+              "id": "g7c4-f24",
               "kind": "image",
               "name": "Donut_00027.png",
               "x": 100,
@@ -11103,7 +11113,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f25",
+              "id": "g7c4-f25",
               "kind": "image",
               "name": "Donut_00028.png",
               "x": 100,
@@ -11125,7 +11135,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f26",
+              "id": "g7c4-f26",
               "kind": "image",
               "name": "Donut_00029.png",
               "x": 100,
@@ -11147,7 +11157,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f27",
+              "id": "g7c4-f27",
               "kind": "image",
               "name": "Donut_00030.png",
               "x": 100,
@@ -11169,7 +11179,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f28",
+              "id": "g7c4-f28",
               "kind": "image",
               "name": "Donut_00031.png",
               "x": 100,
@@ -11191,7 +11201,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f29",
+              "id": "g7c4-f29",
               "kind": "image",
               "name": "Donut_00032.png",
               "x": 100,
@@ -11213,7 +11223,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f30",
+              "id": "g7c4-f30",
               "kind": "image",
               "name": "Donut_00033.png",
               "x": 100,
@@ -11235,7 +11245,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f31",
+              "id": "g7c4-f31",
               "kind": "image",
               "name": "Donut_00034.png",
               "x": 100,
@@ -11257,7 +11267,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f32",
+              "id": "g7c4-f32",
               "kind": "image",
               "name": "Donut_00035.png",
               "x": 100,
@@ -11279,7 +11289,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f33",
+              "id": "g7c4-f33",
               "kind": "image",
               "name": "Donut_00036.png",
               "x": 100,
@@ -11301,7 +11311,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f34",
+              "id": "g7c4-f34",
               "kind": "image",
               "name": "Donut_00037.png",
               "x": 100,
@@ -11323,7 +11333,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f35",
+              "id": "g7c4-f35",
               "kind": "image",
               "name": "Donut_00038.png",
               "x": 100,
@@ -11345,7 +11355,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f36",
+              "id": "g7c4-f36",
               "kind": "image",
               "name": "Donut_00039.png",
               "x": 100,
@@ -11367,7 +11377,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f37",
+              "id": "g7c4-f37",
               "kind": "image",
               "name": "Donut_00040.png",
               "x": 100,
@@ -11389,7 +11399,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f38",
+              "id": "g7c4-f38",
               "kind": "image",
               "name": "Donut_00041.png",
               "x": 100,
@@ -11411,7 +11421,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f39",
+              "id": "g7c4-f39",
               "kind": "image",
               "name": "Donut_00042.png",
               "x": 100,
@@ -11433,7 +11443,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f40",
+              "id": "g7c4-f40",
               "kind": "image",
               "name": "Donut_00043.png",
               "x": 100,
@@ -11455,7 +11465,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f41",
+              "id": "g7c4-f41",
               "kind": "image",
               "name": "Donut_00044.png",
               "x": 100,
@@ -11477,7 +11487,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f42",
+              "id": "g7c4-f42",
               "kind": "image",
               "name": "Donut_00045.png",
               "x": 100,
@@ -11499,7 +11509,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f43",
+              "id": "g7c4-f43",
               "kind": "image",
               "name": "Donut_00046.png",
               "x": 100,
@@ -11521,7 +11531,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f44",
+              "id": "g7c4-f44",
               "kind": "image",
               "name": "Donut_00047.png",
               "x": 100,
@@ -11543,7 +11553,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f45",
+              "id": "g7c4-f45",
               "kind": "image",
               "name": "Donut_00048.png",
               "x": 100,
@@ -11565,7 +11575,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f46",
+              "id": "g7c4-f46",
               "kind": "image",
               "name": "Donut_00049.png",
               "x": 100,
@@ -11587,7 +11597,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f47",
+              "id": "g7c4-f47",
               "kind": "image",
               "name": "Donut_00050.png",
               "x": 100,
@@ -11609,7 +11619,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f48",
+              "id": "g7c4-f48",
               "kind": "image",
               "name": "Donut_00051.png",
               "x": 100,
@@ -11631,7 +11641,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f49",
+              "id": "g7c4-f49",
               "kind": "image",
               "name": "Donut_00052.png",
               "x": 100,
@@ -11653,7 +11663,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f50",
+              "id": "g7c4-f50",
               "kind": "image",
               "name": "Donut_00053.png",
               "x": 100,
@@ -11675,7 +11685,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f51",
+              "id": "g7c4-f51",
               "kind": "image",
               "name": "Donut_00054.png",
               "x": 100,
@@ -11697,7 +11707,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f52",
+              "id": "g7c4-f52",
               "kind": "image",
               "name": "Donut_00055.png",
               "x": 100,
@@ -11719,7 +11729,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f53",
+              "id": "g7c4-f53",
               "kind": "image",
               "name": "Donut_00056.png",
               "x": 100,
@@ -11741,7 +11751,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f54",
+              "id": "g7c4-f54",
               "kind": "image",
               "name": "Donut_00057.png",
               "x": 100,
@@ -11763,7 +11773,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f55",
+              "id": "g7c4-f55",
               "kind": "image",
               "name": "Donut_00058.png",
               "x": 100,
@@ -11785,7 +11795,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f56",
+              "id": "g7c4-f56",
               "kind": "image",
               "name": "Donut_00059.png",
               "x": 100,
@@ -11807,7 +11817,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f57",
+              "id": "g7c4-f57",
               "kind": "image",
               "name": "Donut_00060.png",
               "x": 100,
@@ -11829,7 +11839,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f58",
+              "id": "g7c4-f58",
               "kind": "image",
               "name": "Donut_00061.png",
               "x": 100,
@@ -11851,7 +11861,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f59",
+              "id": "g7c4-f59",
               "kind": "image",
               "name": "Donut_00062.png",
               "x": 100,
@@ -11873,7 +11883,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f60",
+              "id": "g7c4-f60",
               "kind": "image",
               "name": "Donut_00063.png",
               "x": 100,
@@ -11895,7 +11905,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f61",
+              "id": "g7c4-f61",
               "kind": "image",
               "name": "Donut_00064.png",
               "x": 100,
@@ -11917,7 +11927,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f62",
+              "id": "g7c4-f62",
               "kind": "image",
               "name": "Donut_00065.png",
               "x": 100,
@@ -11939,7 +11949,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f63",
+              "id": "g7c4-f63",
               "kind": "image",
               "name": "Donut_00066.png",
               "x": 100,
@@ -11961,7 +11971,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f64",
+              "id": "g7c4-f64",
               "kind": "image",
               "name": "Donut_00067.png",
               "x": 100,
@@ -11983,7 +11993,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f65",
+              "id": "g7c4-f65",
               "kind": "image",
               "name": "Donut_00068.png",
               "x": 100,
@@ -12005,7 +12015,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f66",
+              "id": "g7c4-f66",
               "kind": "image",
               "name": "Donut_00069.png",
               "x": 100,
@@ -12027,7 +12037,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f67",
+              "id": "g7c4-f67",
               "kind": "image",
               "name": "Donut_00070.png",
               "x": 100,
@@ -12049,7 +12059,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f68",
+              "id": "g7c4-f68",
               "kind": "image",
               "name": "Donut_00071.png",
               "x": 100,
@@ -12071,7 +12081,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f69",
+              "id": "g7c4-f69",
               "kind": "image",
               "name": "Donut_00072.png",
               "x": 100,
@@ -12093,7 +12103,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f70",
+              "id": "g7c4-f70",
               "kind": "image",
               "name": "Donut_00073.png",
               "x": 100,
@@ -12115,7 +12125,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f71",
+              "id": "g7c4-f71",
               "kind": "image",
               "name": "Donut_00074.png",
               "x": 100,
@@ -12137,7 +12147,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f72",
+              "id": "g7c4-f72",
               "kind": "image",
               "name": "Donut_00075.png",
               "x": 100,
@@ -12159,7 +12169,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f73",
+              "id": "g7c4-f73",
               "kind": "image",
               "name": "Donut_00076.png",
               "x": 100,
@@ -12181,7 +12191,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f74",
+              "id": "g7c4-f74",
               "kind": "image",
               "name": "Donut_00077.png",
               "x": 100,
@@ -12203,7 +12213,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f75",
+              "id": "g7c4-f75",
               "kind": "image",
               "name": "Donut_00078.png",
               "x": 100,
@@ -12225,7 +12235,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f76",
+              "id": "g7c4-f76",
               "kind": "image",
               "name": "Donut_00079.png",
               "x": 100,
@@ -12247,7 +12257,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f77",
+              "id": "g7c4-f77",
               "kind": "image",
               "name": "Donut_00080.png",
               "x": 100,
@@ -12269,7 +12279,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f78",
+              "id": "g7c4-f78",
               "kind": "image",
               "name": "Donut_00081.png",
               "x": 100,
@@ -12291,7 +12301,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f79",
+              "id": "g7c4-f79",
               "kind": "image",
               "name": "Donut_00082.png",
               "x": 100,
@@ -12313,7 +12323,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f80",
+              "id": "g7c4-f80",
               "kind": "image",
               "name": "Donut_00083.png",
               "x": 100,
@@ -12335,7 +12345,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f81",
+              "id": "g7c4-f81",
               "kind": "image",
               "name": "Donut_00084.png",
               "x": 100,
@@ -12357,7 +12367,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f82",
+              "id": "g7c4-f82",
               "kind": "image",
               "name": "Donut_00085.png",
               "x": 100,
@@ -12379,7 +12389,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f83",
+              "id": "g7c4-f83",
               "kind": "image",
               "name": "Donut_00086.png",
               "x": 100,
@@ -12401,7 +12411,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f84",
+              "id": "g7c4-f84",
               "kind": "image",
               "name": "Donut_00087.png",
               "x": 100,
@@ -12423,7 +12433,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f85",
+              "id": "g7c4-f85",
               "kind": "image",
               "name": "Donut_00088.png",
               "x": 100,
@@ -12445,7 +12455,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f86",
+              "id": "g7c4-f86",
               "kind": "image",
               "name": "Donut_00089.png",
               "x": 100,
@@ -12469,7 +12479,7 @@ export const arcv2: IPProfile = {
           ]
         },
         {
-          "id": "i7",
+          "id": "i7c5",
           "kind": "gauge",
           "name": "Fan #7",
           "x": 523,
@@ -12498,11 +12508,13 @@ export const arcv2: IPProfile = {
           "minValue": 0,
           "maxValue": 3000,
           "scale": 120,
+          "width": 0,
+          "height": 0,
           "flipX": false,
           "animationSpeed": 0,
           "images": [
             {
-              "id": "g7-f0",
+              "id": "g7c5-f0",
               "kind": "image",
               "name": "Donut_00003.png",
               "x": 100,
@@ -12524,7 +12536,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f1",
+              "id": "g7c5-f1",
               "kind": "image",
               "name": "Donut_00004.png",
               "x": 100,
@@ -12546,7 +12558,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f2",
+              "id": "g7c5-f2",
               "kind": "image",
               "name": "Donut_00005.png",
               "x": 100,
@@ -12568,7 +12580,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f3",
+              "id": "g7c5-f3",
               "kind": "image",
               "name": "Donut_00006.png",
               "x": 100,
@@ -12590,7 +12602,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f4",
+              "id": "g7c5-f4",
               "kind": "image",
               "name": "Donut_00007.png",
               "x": 100,
@@ -12612,7 +12624,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f5",
+              "id": "g7c5-f5",
               "kind": "image",
               "name": "Donut_00008.png",
               "x": 100,
@@ -12634,7 +12646,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f6",
+              "id": "g7c5-f6",
               "kind": "image",
               "name": "Donut_00009.png",
               "x": 100,
@@ -12656,7 +12668,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f7",
+              "id": "g7c5-f7",
               "kind": "image",
               "name": "Donut_00010.png",
               "x": 100,
@@ -12678,7 +12690,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f8",
+              "id": "g7c5-f8",
               "kind": "image",
               "name": "Donut_00011.png",
               "x": 100,
@@ -12700,7 +12712,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f9",
+              "id": "g7c5-f9",
               "kind": "image",
               "name": "Donut_00012.png",
               "x": 100,
@@ -12722,7 +12734,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f10",
+              "id": "g7c5-f10",
               "kind": "image",
               "name": "Donut_00013.png",
               "x": 100,
@@ -12744,7 +12756,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f11",
+              "id": "g7c5-f11",
               "kind": "image",
               "name": "Donut_00014.png",
               "x": 100,
@@ -12766,7 +12778,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f12",
+              "id": "g7c5-f12",
               "kind": "image",
               "name": "Donut_00015.png",
               "x": 100,
@@ -12788,7 +12800,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f13",
+              "id": "g7c5-f13",
               "kind": "image",
               "name": "Donut_00016.png",
               "x": 100,
@@ -12810,7 +12822,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f14",
+              "id": "g7c5-f14",
               "kind": "image",
               "name": "Donut_00017.png",
               "x": 100,
@@ -12832,7 +12844,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f15",
+              "id": "g7c5-f15",
               "kind": "image",
               "name": "Donut_00018.png",
               "x": 100,
@@ -12854,7 +12866,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f16",
+              "id": "g7c5-f16",
               "kind": "image",
               "name": "Donut_00019.png",
               "x": 100,
@@ -12876,7 +12888,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f17",
+              "id": "g7c5-f17",
               "kind": "image",
               "name": "Donut_00020.png",
               "x": 100,
@@ -12898,7 +12910,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f18",
+              "id": "g7c5-f18",
               "kind": "image",
               "name": "Donut_00021.png",
               "x": 100,
@@ -12920,7 +12932,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f19",
+              "id": "g7c5-f19",
               "kind": "image",
               "name": "Donut_00022.png",
               "x": 100,
@@ -12942,7 +12954,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f20",
+              "id": "g7c5-f20",
               "kind": "image",
               "name": "Donut_00023.png",
               "x": 100,
@@ -12964,7 +12976,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f21",
+              "id": "g7c5-f21",
               "kind": "image",
               "name": "Donut_00024.png",
               "x": 100,
@@ -12986,7 +12998,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f22",
+              "id": "g7c5-f22",
               "kind": "image",
               "name": "Donut_00025.png",
               "x": 100,
@@ -13008,7 +13020,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f23",
+              "id": "g7c5-f23",
               "kind": "image",
               "name": "Donut_00026.png",
               "x": 100,
@@ -13030,7 +13042,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f24",
+              "id": "g7c5-f24",
               "kind": "image",
               "name": "Donut_00027.png",
               "x": 100,
@@ -13052,7 +13064,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f25",
+              "id": "g7c5-f25",
               "kind": "image",
               "name": "Donut_00028.png",
               "x": 100,
@@ -13074,7 +13086,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f26",
+              "id": "g7c5-f26",
               "kind": "image",
               "name": "Donut_00029.png",
               "x": 100,
@@ -13096,7 +13108,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f27",
+              "id": "g7c5-f27",
               "kind": "image",
               "name": "Donut_00030.png",
               "x": 100,
@@ -13118,7 +13130,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f28",
+              "id": "g7c5-f28",
               "kind": "image",
               "name": "Donut_00031.png",
               "x": 100,
@@ -13140,7 +13152,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f29",
+              "id": "g7c5-f29",
               "kind": "image",
               "name": "Donut_00032.png",
               "x": 100,
@@ -13162,7 +13174,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f30",
+              "id": "g7c5-f30",
               "kind": "image",
               "name": "Donut_00033.png",
               "x": 100,
@@ -13184,7 +13196,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f31",
+              "id": "g7c5-f31",
               "kind": "image",
               "name": "Donut_00034.png",
               "x": 100,
@@ -13206,7 +13218,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f32",
+              "id": "g7c5-f32",
               "kind": "image",
               "name": "Donut_00035.png",
               "x": 100,
@@ -13228,7 +13240,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f33",
+              "id": "g7c5-f33",
               "kind": "image",
               "name": "Donut_00036.png",
               "x": 100,
@@ -13250,7 +13262,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f34",
+              "id": "g7c5-f34",
               "kind": "image",
               "name": "Donut_00037.png",
               "x": 100,
@@ -13272,7 +13284,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f35",
+              "id": "g7c5-f35",
               "kind": "image",
               "name": "Donut_00038.png",
               "x": 100,
@@ -13294,7 +13306,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f36",
+              "id": "g7c5-f36",
               "kind": "image",
               "name": "Donut_00039.png",
               "x": 100,
@@ -13316,7 +13328,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f37",
+              "id": "g7c5-f37",
               "kind": "image",
               "name": "Donut_00040.png",
               "x": 100,
@@ -13338,7 +13350,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f38",
+              "id": "g7c5-f38",
               "kind": "image",
               "name": "Donut_00041.png",
               "x": 100,
@@ -13360,7 +13372,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f39",
+              "id": "g7c5-f39",
               "kind": "image",
               "name": "Donut_00042.png",
               "x": 100,
@@ -13382,7 +13394,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f40",
+              "id": "g7c5-f40",
               "kind": "image",
               "name": "Donut_00043.png",
               "x": 100,
@@ -13404,7 +13416,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f41",
+              "id": "g7c5-f41",
               "kind": "image",
               "name": "Donut_00044.png",
               "x": 100,
@@ -13426,7 +13438,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f42",
+              "id": "g7c5-f42",
               "kind": "image",
               "name": "Donut_00045.png",
               "x": 100,
@@ -13448,7 +13460,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f43",
+              "id": "g7c5-f43",
               "kind": "image",
               "name": "Donut_00046.png",
               "x": 100,
@@ -13470,7 +13482,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f44",
+              "id": "g7c5-f44",
               "kind": "image",
               "name": "Donut_00047.png",
               "x": 100,
@@ -13492,7 +13504,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f45",
+              "id": "g7c5-f45",
               "kind": "image",
               "name": "Donut_00048.png",
               "x": 100,
@@ -13514,7 +13526,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f46",
+              "id": "g7c5-f46",
               "kind": "image",
               "name": "Donut_00049.png",
               "x": 100,
@@ -13536,7 +13548,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f47",
+              "id": "g7c5-f47",
               "kind": "image",
               "name": "Donut_00050.png",
               "x": 100,
@@ -13558,7 +13570,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f48",
+              "id": "g7c5-f48",
               "kind": "image",
               "name": "Donut_00051.png",
               "x": 100,
@@ -13580,7 +13592,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f49",
+              "id": "g7c5-f49",
               "kind": "image",
               "name": "Donut_00052.png",
               "x": 100,
@@ -13602,7 +13614,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f50",
+              "id": "g7c5-f50",
               "kind": "image",
               "name": "Donut_00053.png",
               "x": 100,
@@ -13624,7 +13636,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f51",
+              "id": "g7c5-f51",
               "kind": "image",
               "name": "Donut_00054.png",
               "x": 100,
@@ -13646,7 +13658,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f52",
+              "id": "g7c5-f52",
               "kind": "image",
               "name": "Donut_00055.png",
               "x": 100,
@@ -13668,7 +13680,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f53",
+              "id": "g7c5-f53",
               "kind": "image",
               "name": "Donut_00056.png",
               "x": 100,
@@ -13690,7 +13702,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f54",
+              "id": "g7c5-f54",
               "kind": "image",
               "name": "Donut_00057.png",
               "x": 100,
@@ -13712,7 +13724,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f55",
+              "id": "g7c5-f55",
               "kind": "image",
               "name": "Donut_00058.png",
               "x": 100,
@@ -13734,7 +13746,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f56",
+              "id": "g7c5-f56",
               "kind": "image",
               "name": "Donut_00059.png",
               "x": 100,
@@ -13756,7 +13768,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f57",
+              "id": "g7c5-f57",
               "kind": "image",
               "name": "Donut_00060.png",
               "x": 100,
@@ -13778,7 +13790,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f58",
+              "id": "g7c5-f58",
               "kind": "image",
               "name": "Donut_00061.png",
               "x": 100,
@@ -13800,7 +13812,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f59",
+              "id": "g7c5-f59",
               "kind": "image",
               "name": "Donut_00062.png",
               "x": 100,
@@ -13822,7 +13834,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f60",
+              "id": "g7c5-f60",
               "kind": "image",
               "name": "Donut_00063.png",
               "x": 100,
@@ -13844,7 +13856,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f61",
+              "id": "g7c5-f61",
               "kind": "image",
               "name": "Donut_00064.png",
               "x": 100,
@@ -13866,7 +13878,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f62",
+              "id": "g7c5-f62",
               "kind": "image",
               "name": "Donut_00065.png",
               "x": 100,
@@ -13888,7 +13900,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f63",
+              "id": "g7c5-f63",
               "kind": "image",
               "name": "Donut_00066.png",
               "x": 100,
@@ -13910,7 +13922,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f64",
+              "id": "g7c5-f64",
               "kind": "image",
               "name": "Donut_00067.png",
               "x": 100,
@@ -13932,7 +13944,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f65",
+              "id": "g7c5-f65",
               "kind": "image",
               "name": "Donut_00068.png",
               "x": 100,
@@ -13954,7 +13966,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f66",
+              "id": "g7c5-f66",
               "kind": "image",
               "name": "Donut_00069.png",
               "x": 100,
@@ -13976,7 +13988,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f67",
+              "id": "g7c5-f67",
               "kind": "image",
               "name": "Donut_00070.png",
               "x": 100,
@@ -13998,7 +14010,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f68",
+              "id": "g7c5-f68",
               "kind": "image",
               "name": "Donut_00071.png",
               "x": 100,
@@ -14020,7 +14032,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f69",
+              "id": "g7c5-f69",
               "kind": "image",
               "name": "Donut_00072.png",
               "x": 100,
@@ -14042,7 +14054,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f70",
+              "id": "g7c5-f70",
               "kind": "image",
               "name": "Donut_00073.png",
               "x": 100,
@@ -14064,7 +14076,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f71",
+              "id": "g7c5-f71",
               "kind": "image",
               "name": "Donut_00074.png",
               "x": 100,
@@ -14086,7 +14098,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f72",
+              "id": "g7c5-f72",
               "kind": "image",
               "name": "Donut_00075.png",
               "x": 100,
@@ -14108,7 +14120,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f73",
+              "id": "g7c5-f73",
               "kind": "image",
               "name": "Donut_00076.png",
               "x": 100,
@@ -14130,7 +14142,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f74",
+              "id": "g7c5-f74",
               "kind": "image",
               "name": "Donut_00077.png",
               "x": 100,
@@ -14152,7 +14164,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f75",
+              "id": "g7c5-f75",
               "kind": "image",
               "name": "Donut_00078.png",
               "x": 100,
@@ -14174,7 +14186,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f76",
+              "id": "g7c5-f76",
               "kind": "image",
               "name": "Donut_00079.png",
               "x": 100,
@@ -14196,7 +14208,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f77",
+              "id": "g7c5-f77",
               "kind": "image",
               "name": "Donut_00080.png",
               "x": 100,
@@ -14218,7 +14230,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f78",
+              "id": "g7c5-f78",
               "kind": "image",
               "name": "Donut_00081.png",
               "x": 100,
@@ -14240,7 +14252,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f79",
+              "id": "g7c5-f79",
               "kind": "image",
               "name": "Donut_00082.png",
               "x": 100,
@@ -14262,7 +14274,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f80",
+              "id": "g7c5-f80",
               "kind": "image",
               "name": "Donut_00083.png",
               "x": 100,
@@ -14284,7 +14296,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f81",
+              "id": "g7c5-f81",
               "kind": "image",
               "name": "Donut_00084.png",
               "x": 100,
@@ -14306,7 +14318,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f82",
+              "id": "g7c5-f82",
               "kind": "image",
               "name": "Donut_00085.png",
               "x": 100,
@@ -14328,7 +14340,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f83",
+              "id": "g7c5-f83",
               "kind": "image",
               "name": "Donut_00086.png",
               "x": 100,
@@ -14350,7 +14362,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f84",
+              "id": "g7c5-f84",
               "kind": "image",
               "name": "Donut_00087.png",
               "x": 100,
@@ -14372,7 +14384,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f85",
+              "id": "g7c5-f85",
               "kind": "image",
               "name": "Donut_00088.png",
               "x": 100,
@@ -14394,7 +14406,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g7-f86",
+              "id": "g7c5-f86",
               "kind": "image",
               "name": "Donut_00089.png",
               "x": 100,
@@ -14418,7 +14430,7 @@ export const arcv2: IPProfile = {
           ]
         },
         {
-          "id": "i7",
+          "id": "i7c6",
           "kind": "sensor",
           "name": "GPU Fan 1",
           "x": 17,
@@ -14471,7 +14483,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i7",
+          "id": "i7c7",
           "kind": "sensor",
           "name": "GPU Fan 2",
           "x": 121,
@@ -14523,7 +14535,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i7",
+          "id": "i7c8",
           "kind": "sensor",
           "name": "GPU Fan 3",
           "x": 224,
@@ -14575,7 +14587,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i7",
+          "id": "i7c9",
           "kind": "sensor",
           "name": "Fan #2",
           "x": 327,
@@ -14627,7 +14639,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i7",
+          "id": "i7c10",
           "kind": "sensor",
           "name": "Fan #4",
           "x": 431,
@@ -14679,7 +14691,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i7",
+          "id": "i7c11",
           "kind": "sensor",
           "name": "Fan #7",
           "x": 533,
@@ -14743,7 +14755,7 @@ export const arcv2: IPProfile = {
       "locked": false,
       "children": [
         {
-          "id": "i8",
+          "id": "i8c0",
           "kind": "image",
           "name": "NETWORK-bg.png",
           "x": 9,
@@ -14765,7 +14777,7 @@ export const arcv2: IPProfile = {
           "relativePath": true
         },
         {
-          "id": "i8",
+          "id": "i8c1",
           "kind": "sensor",
           "name": "Upload Speed",
           "x": 51,
@@ -14817,7 +14829,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i8",
+          "id": "i8c2",
           "kind": "sensor",
           "name": "Download Speed",
           "x": 342,
@@ -14869,7 +14881,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i8",
+          "id": "i8c3",
           "kind": "bar",
           "name": "Upload Speed",
           "x": 23,
@@ -14911,7 +14923,7 @@ export const arcv2: IPProfile = {
           "flipX": false
         },
         {
-          "id": "i8",
+          "id": "i8c4",
           "kind": "bar",
           "name": "Download Speed",
           "x": 315,
@@ -14965,7 +14977,7 @@ export const arcv2: IPProfile = {
       "locked": true,
       "children": [
         {
-          "id": "i9",
+          "id": "i9c0",
           "kind": "httpImage",
           "name": "Cover URL",
           "x": 520,
@@ -15006,7 +15018,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i9",
+          "id": "i9c1",
           "kind": "image",
           "name": "SPOTIFY.png",
           "x": 0,
@@ -15028,7 +15040,7 @@ export const arcv2: IPProfile = {
           "relativePath": true
         },
         {
-          "id": "i9",
+          "id": "i9c2",
           "kind": "gauge",
           "name": "Track Progress (%)",
           "x": 1,
@@ -15057,11 +15069,13 @@ export const arcv2: IPProfile = {
           "minValue": 0,
           "maxValue": 100,
           "scale": 100,
+          "width": 0,
+          "height": 0,
           "flipX": false,
           "animationSpeed": 0,
           "images": [
             {
-              "id": "g9-f0",
+              "id": "g9c2-f0",
               "kind": "image",
               "name": "spg_00001.png",
               "x": 100,
@@ -15083,7 +15097,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f1",
+              "id": "g9c2-f1",
               "kind": "image",
               "name": "spg_00002.png",
               "x": 100,
@@ -15105,7 +15119,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f2",
+              "id": "g9c2-f2",
               "kind": "image",
               "name": "spg_00003.png",
               "x": 100,
@@ -15127,7 +15141,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f3",
+              "id": "g9c2-f3",
               "kind": "image",
               "name": "spg_00004.png",
               "x": 100,
@@ -15149,7 +15163,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f4",
+              "id": "g9c2-f4",
               "kind": "image",
               "name": "spg_00005.png",
               "x": 100,
@@ -15171,7 +15185,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f5",
+              "id": "g9c2-f5",
               "kind": "image",
               "name": "spg_00006.png",
               "x": 100,
@@ -15193,7 +15207,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f6",
+              "id": "g9c2-f6",
               "kind": "image",
               "name": "spg_00007.png",
               "x": 100,
@@ -15215,7 +15229,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f7",
+              "id": "g9c2-f7",
               "kind": "image",
               "name": "spg_00008.png",
               "x": 100,
@@ -15237,7 +15251,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f8",
+              "id": "g9c2-f8",
               "kind": "image",
               "name": "spg_00009.png",
               "x": 100,
@@ -15259,7 +15273,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f9",
+              "id": "g9c2-f9",
               "kind": "image",
               "name": "spg_00010.png",
               "x": 100,
@@ -15281,7 +15295,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f10",
+              "id": "g9c2-f10",
               "kind": "image",
               "name": "spg_00011.png",
               "x": 100,
@@ -15303,7 +15317,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f11",
+              "id": "g9c2-f11",
               "kind": "image",
               "name": "spg_00012.png",
               "x": 100,
@@ -15325,7 +15339,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f12",
+              "id": "g9c2-f12",
               "kind": "image",
               "name": "spg_00013.png",
               "x": 100,
@@ -15347,7 +15361,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f13",
+              "id": "g9c2-f13",
               "kind": "image",
               "name": "spg_00014.png",
               "x": 100,
@@ -15369,7 +15383,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f14",
+              "id": "g9c2-f14",
               "kind": "image",
               "name": "spg_00015.png",
               "x": 100,
@@ -15391,7 +15405,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f15",
+              "id": "g9c2-f15",
               "kind": "image",
               "name": "spg_00016.png",
               "x": 100,
@@ -15413,7 +15427,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f16",
+              "id": "g9c2-f16",
               "kind": "image",
               "name": "spg_00017.png",
               "x": 100,
@@ -15435,7 +15449,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f17",
+              "id": "g9c2-f17",
               "kind": "image",
               "name": "spg_00018.png",
               "x": 100,
@@ -15457,7 +15471,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f18",
+              "id": "g9c2-f18",
               "kind": "image",
               "name": "spg_00019.png",
               "x": 100,
@@ -15479,7 +15493,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f19",
+              "id": "g9c2-f19",
               "kind": "image",
               "name": "spg_00020.png",
               "x": 100,
@@ -15501,7 +15515,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f20",
+              "id": "g9c2-f20",
               "kind": "image",
               "name": "spg_00021.png",
               "x": 100,
@@ -15523,7 +15537,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f21",
+              "id": "g9c2-f21",
               "kind": "image",
               "name": "spg_00022.png",
               "x": 100,
@@ -15545,7 +15559,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f22",
+              "id": "g9c2-f22",
               "kind": "image",
               "name": "spg_00023.png",
               "x": 100,
@@ -15567,7 +15581,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f23",
+              "id": "g9c2-f23",
               "kind": "image",
               "name": "spg_00024.png",
               "x": 100,
@@ -15589,7 +15603,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f24",
+              "id": "g9c2-f24",
               "kind": "image",
               "name": "spg_00025.png",
               "x": 100,
@@ -15611,7 +15625,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f25",
+              "id": "g9c2-f25",
               "kind": "image",
               "name": "spg_00026.png",
               "x": 100,
@@ -15633,7 +15647,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f26",
+              "id": "g9c2-f26",
               "kind": "image",
               "name": "spg_00027.png",
               "x": 100,
@@ -15655,7 +15669,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f27",
+              "id": "g9c2-f27",
               "kind": "image",
               "name": "spg_00028.png",
               "x": 100,
@@ -15677,7 +15691,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f28",
+              "id": "g9c2-f28",
               "kind": "image",
               "name": "spg_00029.png",
               "x": 100,
@@ -15699,7 +15713,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f29",
+              "id": "g9c2-f29",
               "kind": "image",
               "name": "spg_00030.png",
               "x": 100,
@@ -15721,7 +15735,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f30",
+              "id": "g9c2-f30",
               "kind": "image",
               "name": "spg_00031.png",
               "x": 100,
@@ -15743,7 +15757,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f31",
+              "id": "g9c2-f31",
               "kind": "image",
               "name": "spg_00032.png",
               "x": 100,
@@ -15765,7 +15779,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f32",
+              "id": "g9c2-f32",
               "kind": "image",
               "name": "spg_00033.png",
               "x": 100,
@@ -15787,7 +15801,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f33",
+              "id": "g9c2-f33",
               "kind": "image",
               "name": "spg_00034.png",
               "x": 100,
@@ -15809,7 +15823,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f34",
+              "id": "g9c2-f34",
               "kind": "image",
               "name": "spg_00035.png",
               "x": 100,
@@ -15831,7 +15845,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f35",
+              "id": "g9c2-f35",
               "kind": "image",
               "name": "spg_00036.png",
               "x": 100,
@@ -15853,7 +15867,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f36",
+              "id": "g9c2-f36",
               "kind": "image",
               "name": "spg_00037.png",
               "x": 100,
@@ -15875,7 +15889,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f37",
+              "id": "g9c2-f37",
               "kind": "image",
               "name": "spg_00038.png",
               "x": 100,
@@ -15897,7 +15911,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f38",
+              "id": "g9c2-f38",
               "kind": "image",
               "name": "spg_00039.png",
               "x": 100,
@@ -15919,7 +15933,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f39",
+              "id": "g9c2-f39",
               "kind": "image",
               "name": "spg_00040.png",
               "x": 100,
@@ -15941,7 +15955,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f40",
+              "id": "g9c2-f40",
               "kind": "image",
               "name": "spg_00041.png",
               "x": 100,
@@ -15963,7 +15977,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f41",
+              "id": "g9c2-f41",
               "kind": "image",
               "name": "spg_00042.png",
               "x": 100,
@@ -15985,7 +15999,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f42",
+              "id": "g9c2-f42",
               "kind": "image",
               "name": "spg_00043.png",
               "x": 100,
@@ -16007,7 +16021,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f43",
+              "id": "g9c2-f43",
               "kind": "image",
               "name": "spg_00044.png",
               "x": 100,
@@ -16029,7 +16043,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f44",
+              "id": "g9c2-f44",
               "kind": "image",
               "name": "spg_00045.png",
               "x": 100,
@@ -16051,7 +16065,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f45",
+              "id": "g9c2-f45",
               "kind": "image",
               "name": "spg_00046.png",
               "x": 100,
@@ -16073,7 +16087,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f46",
+              "id": "g9c2-f46",
               "kind": "image",
               "name": "spg_00047.png",
               "x": 100,
@@ -16095,7 +16109,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f47",
+              "id": "g9c2-f47",
               "kind": "image",
               "name": "spg_00048.png",
               "x": 100,
@@ -16117,7 +16131,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f48",
+              "id": "g9c2-f48",
               "kind": "image",
               "name": "spg_00049.png",
               "x": 100,
@@ -16139,7 +16153,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f49",
+              "id": "g9c2-f49",
               "kind": "image",
               "name": "spg_00050.png",
               "x": 100,
@@ -16161,7 +16175,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f50",
+              "id": "g9c2-f50",
               "kind": "image",
               "name": "spg_00051.png",
               "x": 100,
@@ -16183,7 +16197,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f51",
+              "id": "g9c2-f51",
               "kind": "image",
               "name": "spg_00052.png",
               "x": 100,
@@ -16205,7 +16219,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f52",
+              "id": "g9c2-f52",
               "kind": "image",
               "name": "spg_00053.png",
               "x": 100,
@@ -16227,7 +16241,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f53",
+              "id": "g9c2-f53",
               "kind": "image",
               "name": "spg_00054.png",
               "x": 100,
@@ -16249,7 +16263,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f54",
+              "id": "g9c2-f54",
               "kind": "image",
               "name": "spg_00055.png",
               "x": 100,
@@ -16271,7 +16285,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f55",
+              "id": "g9c2-f55",
               "kind": "image",
               "name": "spg_00056.png",
               "x": 100,
@@ -16293,7 +16307,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f56",
+              "id": "g9c2-f56",
               "kind": "image",
               "name": "spg_00057.png",
               "x": 100,
@@ -16315,7 +16329,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f57",
+              "id": "g9c2-f57",
               "kind": "image",
               "name": "spg_00058.png",
               "x": 100,
@@ -16337,7 +16351,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f58",
+              "id": "g9c2-f58",
               "kind": "image",
               "name": "spg_00059.png",
               "x": 100,
@@ -16359,7 +16373,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f59",
+              "id": "g9c2-f59",
               "kind": "image",
               "name": "spg_00060.png",
               "x": 100,
@@ -16381,7 +16395,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f60",
+              "id": "g9c2-f60",
               "kind": "image",
               "name": "spg_00061.png",
               "x": 100,
@@ -16403,7 +16417,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f61",
+              "id": "g9c2-f61",
               "kind": "image",
               "name": "spg_00062.png",
               "x": 100,
@@ -16425,7 +16439,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f62",
+              "id": "g9c2-f62",
               "kind": "image",
               "name": "spg_00063.png",
               "x": 100,
@@ -16447,7 +16461,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f63",
+              "id": "g9c2-f63",
               "kind": "image",
               "name": "spg_00064.png",
               "x": 100,
@@ -16469,7 +16483,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f64",
+              "id": "g9c2-f64",
               "kind": "image",
               "name": "spg_00065.png",
               "x": 100,
@@ -16491,7 +16505,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f65",
+              "id": "g9c2-f65",
               "kind": "image",
               "name": "spg_00066.png",
               "x": 100,
@@ -16513,7 +16527,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f66",
+              "id": "g9c2-f66",
               "kind": "image",
               "name": "spg_00067.png",
               "x": 100,
@@ -16535,7 +16549,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f67",
+              "id": "g9c2-f67",
               "kind": "image",
               "name": "spg_00068.png",
               "x": 100,
@@ -16557,7 +16571,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f68",
+              "id": "g9c2-f68",
               "kind": "image",
               "name": "spg_00069.png",
               "x": 100,
@@ -16579,7 +16593,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f69",
+              "id": "g9c2-f69",
               "kind": "image",
               "name": "spg_00070.png",
               "x": 100,
@@ -16601,7 +16615,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f70",
+              "id": "g9c2-f70",
               "kind": "image",
               "name": "spg_00071.png",
               "x": 100,
@@ -16623,7 +16637,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f71",
+              "id": "g9c2-f71",
               "kind": "image",
               "name": "spg_00072.png",
               "x": 100,
@@ -16645,7 +16659,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f72",
+              "id": "g9c2-f72",
               "kind": "image",
               "name": "spg_00073.png",
               "x": 100,
@@ -16667,7 +16681,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f73",
+              "id": "g9c2-f73",
               "kind": "image",
               "name": "spg_00074.png",
               "x": 100,
@@ -16689,7 +16703,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f74",
+              "id": "g9c2-f74",
               "kind": "image",
               "name": "spg_00075.png",
               "x": 100,
@@ -16711,7 +16725,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f75",
+              "id": "g9c2-f75",
               "kind": "image",
               "name": "spg_00076.png",
               "x": 100,
@@ -16733,7 +16747,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f76",
+              "id": "g9c2-f76",
               "kind": "image",
               "name": "spg_00077.png",
               "x": 100,
@@ -16755,7 +16769,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f77",
+              "id": "g9c2-f77",
               "kind": "image",
               "name": "spg_00078.png",
               "x": 100,
@@ -16777,7 +16791,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f78",
+              "id": "g9c2-f78",
               "kind": "image",
               "name": "spg_00079.png",
               "x": 100,
@@ -16799,7 +16813,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f79",
+              "id": "g9c2-f79",
               "kind": "image",
               "name": "spg_00080.png",
               "x": 100,
@@ -16821,7 +16835,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f80",
+              "id": "g9c2-f80",
               "kind": "image",
               "name": "spg_00081.png",
               "x": 100,
@@ -16843,7 +16857,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f81",
+              "id": "g9c2-f81",
               "kind": "image",
               "name": "spg_00082.png",
               "x": 100,
@@ -16865,7 +16879,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f82",
+              "id": "g9c2-f82",
               "kind": "image",
               "name": "spg_00083.png",
               "x": 100,
@@ -16887,7 +16901,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f83",
+              "id": "g9c2-f83",
               "kind": "image",
               "name": "spg_00084.png",
               "x": 100,
@@ -16909,7 +16923,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f84",
+              "id": "g9c2-f84",
               "kind": "image",
               "name": "spg_00085.png",
               "x": 100,
@@ -16931,7 +16945,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f85",
+              "id": "g9c2-f85",
               "kind": "image",
               "name": "spg_00086.png",
               "x": 100,
@@ -16953,7 +16967,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f86",
+              "id": "g9c2-f86",
               "kind": "image",
               "name": "spg_00087.png",
               "x": 100,
@@ -16975,7 +16989,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f87",
+              "id": "g9c2-f87",
               "kind": "image",
               "name": "spg_00088.png",
               "x": 100,
@@ -16997,7 +17011,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f88",
+              "id": "g9c2-f88",
               "kind": "image",
               "name": "spg_00089.png",
               "x": 100,
@@ -17019,7 +17033,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f89",
+              "id": "g9c2-f89",
               "kind": "image",
               "name": "spg_00090.png",
               "x": 100,
@@ -17041,7 +17055,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f90",
+              "id": "g9c2-f90",
               "kind": "image",
               "name": "spg_00091.png",
               "x": 100,
@@ -17063,7 +17077,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f91",
+              "id": "g9c2-f91",
               "kind": "image",
               "name": "spg_00092.png",
               "x": 100,
@@ -17085,7 +17099,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f92",
+              "id": "g9c2-f92",
               "kind": "image",
               "name": "spg_00093.png",
               "x": 100,
@@ -17107,7 +17121,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f93",
+              "id": "g9c2-f93",
               "kind": "image",
               "name": "spg_00094.png",
               "x": 100,
@@ -17129,7 +17143,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f94",
+              "id": "g9c2-f94",
               "kind": "image",
               "name": "spg_00095.png",
               "x": 100,
@@ -17151,7 +17165,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f95",
+              "id": "g9c2-f95",
               "kind": "image",
               "name": "spg_00096.png",
               "x": 100,
@@ -17173,7 +17187,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f96",
+              "id": "g9c2-f96",
               "kind": "image",
               "name": "spg_00097.png",
               "x": 100,
@@ -17195,7 +17209,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f97",
+              "id": "g9c2-f97",
               "kind": "image",
               "name": "spg_00098.png",
               "x": 100,
@@ -17217,7 +17231,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f98",
+              "id": "g9c2-f98",
               "kind": "image",
               "name": "spg_00099.png",
               "x": 100,
@@ -17239,7 +17253,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f99",
+              "id": "g9c2-f99",
               "kind": "image",
               "name": "spg_00100.png",
               "x": 100,
@@ -17261,7 +17275,7 @@ export const arcv2: IPProfile = {
               "relativePath": true
             },
             {
-              "id": "g9-f100",
+              "id": "g9c2-f100",
               "kind": "image",
               "name": "spg_00101.png",
               "x": 100,
@@ -17285,7 +17299,7 @@ export const arcv2: IPProfile = {
           ]
         },
         {
-          "id": "i9",
+          "id": "i9c3",
           "kind": "sensor",
           "name": "Remaining Time",
           "x": 448,
@@ -17337,7 +17351,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i9",
+          "id": "i9c4",
           "kind": "sensor",
           "name": "Elapsed Time",
           "x": 424,
@@ -17389,7 +17403,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i9",
+          "id": "i9c5",
           "kind": "sensor",
           "name": "Artist",
           "x": 90,
@@ -17441,7 +17455,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i9",
+          "id": "i9c6",
           "kind": "sensor",
           "name": "Current Track",
           "x": 90,
@@ -17505,7 +17519,7 @@ export const arcv2: IPProfile = {
       "locked": false,
       "children": [
         {
-          "id": "i10",
+          "id": "i10c0",
           "kind": "httpImage",
           "name": "Current Game Banner URL",
           "x": 1280,
@@ -17546,7 +17560,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i10",
+          "id": "i10c1",
           "kind": "image",
           "name": "steam-hero-overlay.png",
           "x": 1280,
@@ -17568,7 +17582,7 @@ export const arcv2: IPProfile = {
           "relativePath": true
         },
         {
-          "id": "i10",
+          "id": "i10c2",
           "kind": "sensor",
           "name": "Game Status",
           "x": 1288,
@@ -17620,7 +17634,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i10",
+          "id": "i10c3",
           "kind": "sensor",
           "name": "Current Game",
           "x": 1288,
@@ -17672,7 +17686,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i10",
+          "id": "i10c4",
           "kind": "sensor",
           "name": "Current Game Total Hours",
           "x": 1793,
@@ -17725,7 +17739,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i10",
+          "id": "i10c5",
           "kind": "sensor",
           "name": "Current Session Duration",
           "x": 1288,
@@ -17778,7 +17792,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i10",
+          "id": "i10c6",
           "kind": "sensor",
           "name": "Started playing",
           "x": 1288,
@@ -17830,7 +17844,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i10",
+          "id": "i10c7",
           "kind": "table",
           "name": "Friends Activity",
           "x": 1288,
@@ -17883,7 +17897,7 @@ export const arcv2: IPProfile = {
           "showHeader": true
         },
         {
-          "id": "i10",
+          "id": "i10c8",
           "kind": "httpImage",
           "name": "Game Logo URL",
           "x": 1288,
@@ -17924,7 +17938,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i10",
+          "id": "i10c9",
           "kind": "httpImage",
           "name": "Game Icon URL",
           "x": 1797,
@@ -17965,7 +17979,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i10",
+          "id": "i10c10",
           "kind": "table",
           "name": "Library News",
           "x": 1288,
@@ -18018,7 +18032,7 @@ export const arcv2: IPProfile = {
           "showHeader": true
         },
         {
-          "id": "i10",
+          "id": "i10c11",
           "kind": "sensor",
           "name": "Current Game News",
           "x": 1288,
@@ -18083,7 +18097,7 @@ export const arcv2: IPProfile = {
       "locked": false,
       "children": [
         {
-          "id": "i11",
+          "id": "i11c0",
           "kind": "sensor",
           "name": "current surface data ",
           "x": 453,
@@ -18135,7 +18149,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i11",
+          "id": "i11c1",
           "kind": "sensor",
           "name": "Weather Description",
           "x": 277,
@@ -18187,7 +18201,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i11",
+          "id": "i11c2",
           "kind": "sensor",
           "name": "Temperature",
           "x": 495,
@@ -18239,7 +18253,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i11",
+          "id": "i11c3",
           "kind": "sensor",
           "name": "Wind Speed",
           "x": 610,
@@ -18292,7 +18306,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i11",
+          "id": "i11c4",
           "kind": "httpImage",
           "name": "Weather Icon URL",
           "x": 217,
@@ -18333,7 +18347,7 @@ export const arcv2: IPProfile = {
           }
         },
         {
-          "id": "i11",
+          "id": "i11c5",
           "kind": "text",
           "name": "current surface data",
           "x": 5,
@@ -18366,7 +18380,7 @@ export const arcv2: IPProfile = {
           "text": "current surface data"
         },
         {
-          "id": "i11",
+          "id": "i11c6",
           "kind": "table",
           "name": "Forecast",
           "x": 5,

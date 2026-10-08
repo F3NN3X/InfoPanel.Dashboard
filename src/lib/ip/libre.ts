@@ -119,6 +119,16 @@ export function resolveBindingKey(
   return undefined;
 }
 
+/** The live bridge sensor value for a binding (undefined when absent). */
+export function liveSensor(
+  sensors: SensorMap,
+  b: IPSensorBinding
+): SensorValue | undefined {
+  const key = resolveBindingKey(sensors, b);
+  if (!key) return undefined;
+  return sensors[key];
+}
+
 /**
  * Live value for a binding (applies derived ratios), with an optional
  * MIN/MAX/AVERAGE selection from the sensor's rolling stats.

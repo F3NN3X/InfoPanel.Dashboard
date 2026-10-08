@@ -68,25 +68,83 @@ export function formatDotNetDate(fmt: string, d: Date): string {
   return out;
 }
 
-/** Numeric value for a sensor item (modifier/division/precision applied). */
+/**
+ * Modifier-applied numeric value (C# `EvaluateColor` path): DivisionToggle
+ * divides by MultiplicationModifier (not a fixed 10); AbsoluteAddition takes
+ * the absolute value. Used for threshold checks.
+ */
 export function sensorNumber(
   raw: number,
-  b: Pick<IPSensorBinding, "multiplicationModifier" | "divisionToggle" | "additionModifier" | "precision">
+  b: Pick<
+    IPSensorBinding,
+    "multiplicationModifier" | "divisionToggle" | "additionModifier" | "absoluteAddition"
+  >
 ): number {
-  let v = raw * (b.multiplicationModifier ?? 1);
-  if (b.divisionToggle) v /= 10;
-  v += b.additionModifier ?? 0;
-  const p = b.precision ?? 0;
-  return Number(v.toFixed(p));
+  const mult = b.multiplicationModifier ?? 1;
+  const add = b.additionModifier ?? 0;
+  let v = b.divisionToggle ? (mult !== 0 ? raw / mult : raw) + add : raw * mult + add;
+  if (b.absoluteAddition) v = Math.abs(v);
+  return v;
 }
 
-/** Display text for a sensor item (value + optional unit). */
+/**
+ * Display text for a sensor item — 1:1 port of C#
+ * `SensorDisplayItem.EvaluateText(SensorReading)`: unit-driven precision
+ * (gb→1, kb/s|mb/s|mbar→2, v→3, default→integer), optional thousands
+ * separator, unit suffix. The sensor name is prepended by the caller.
+ */
 export function sensorText(
   raw: number,
-  b: IPSensorBinding
+  b: IPSensorBinding,
+  liveUnit?: string
 ): string {
   const v = sensorNumber(raw, b);
-  let s = String(v);
-  if (b.showUnit && b.unit) s += b.unit;
+  let s: string;
+  if (b.overridePrecision) {
+    switch (b.precision) {
+      case 1:
+        s = v.toFixed(1);
+        break;
+      case 2:
+        s = v.toFixed(2);
+        break;
+      case 3:
+        s = v.toFixed(3);
+        break;
+      default:
+        s = String(Math.floor(v));
+    }
+  } else {
+    switch ((liveUnit ?? "").toLowerCase()) {
+      case "gb":
+        s = v.toFixed(1);
+        break;
+      case "kb/s":
+      case "mb/s":
+      case "mbar/min":
+      case "mbar":
+        s = v.toFixed(2);
+        break;
+      case "v":
+        s = v.toFixed(3);
+        break;
+      default:
+        s = String(Math.round(v));
+    }
+  }
+
+  if (b.showThousandsSeparator) {
+    const dot = s.indexOf(".");
+    const digits = dot >= 0 ? s.length - dot - 1 : 0;
+    s = Number(s).toLocaleString("en-US", {
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits,
+    });
+  }
+
+  if (b.showUnit) {
+    const u = b.overrideUnit ? b.unit : liveUnit;
+    if (u) s += u;
+  }
   return s;
 }
