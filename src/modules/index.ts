@@ -13,6 +13,7 @@ import { fpsModernModule } from "./fps-modern";
 import { hardwareModernModule } from "./hardware-modern";
 import { audioModernModule } from "./audio-modern";
 import { bluetoothModernModule } from "./bluetooth-modern";
+import { networkModernModule } from "./network-modern";
 import { steamModule } from "./steam";
 import { weatherModule } from "./weather";
 import { fpsModule } from "./fps";
@@ -50,6 +51,7 @@ export const modules: DashboardModule[] = [
   vbzModule,
   bluetoothModule,
   bluetoothModernModule,
+  networkModernModule,
   notificationsModule,
   textfileModule,
   streamdeckModule,

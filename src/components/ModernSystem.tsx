@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { Sparkline, useHistory } from "@/lib/sparkline";
 import { ModernChrome, type ModernChrome as ModernChromeSpec } from "./modern-chrome";
 import {
   makeSurface,
@@ -29,6 +30,8 @@ export interface ModernSystemProps {
   ram?: number;
   /** Bridge status text ("running"). */
   status?: string;
+  /** Show a rolling trend sparkline under each ring. */
+  sparkline?: boolean;
   layout?: SystemVariant | "auto";
   surfaceStyle?: ModernStyle;
   /** Standard chrome: custom title / icon / accent / background image. */
@@ -132,6 +135,7 @@ export function ModernSystem({
   cpu,
   ram,
   status,
+  sparkline = false,
   layout = "auto",
   surfaceStyle = "glass",
   chrome,
@@ -140,6 +144,8 @@ export function ModernSystem({
   const { ref, w, h } = useElementSize();
   const sv = makeSurface(surfaceStyle, null);
   const v = pickVariant(w, h, layout);
+  const cpuHist = useHistory(cpu);
+  const ramHist = useHistory(ram);
 
   const box = {
     background: sv.background,
@@ -150,6 +156,7 @@ export function ModernSystem({
   let body: React.ReactNode;
   if (v === "card") {
     const ring = Math.max(64, Math.min(104, h * 0.24));
+    const sparkW = ring * 1.5;
     body = (
       <div className="flex h-full w-full flex-col items-center justify-center gap-5 rounded-[20px] p-5" style={box}>
         <div className="flex items-center gap-8">
@@ -158,12 +165,22 @@ export function ModernSystem({
             <div className="text-xs font-medium uppercase tracking-wider" style={{ color: sv.muted }}>
               CPU
             </div>
+            {sparkline && (
+              <div style={{ width: sparkW }} className="text-sky-400">
+                <Sparkline data={cpuHist} color={CPU_COLOR} height={22} />
+              </div>
+            )}
           </div>
           <div className="flex flex-col items-center gap-1.5">
             <Ring value={ram} color={RAM_COLOR} size={ring} stroke={ring * 0.12} />
             <div className="text-xs font-medium uppercase tracking-wider" style={{ color: sv.muted }}>
               RAM
             </div>
+            {sparkline && (
+              <div style={{ width: sparkW }} className="text-green-400">
+                <Sparkline data={ramHist} color={RAM_COLOR} height={22} />
+              </div>
+            )}
           </div>
         </div>
         {status !== undefined && (
@@ -213,6 +230,7 @@ export function ModernSystem({
   } else {
     // standard
     const ring = Math.max(56, Math.min(88, h * 0.42));
+    const sparkW = 110;
     body = (
       <div className="flex h-full w-full items-center gap-6 overflow-hidden rounded-xl p-5" style={box}>
         <div className="flex min-w-0 flex-1 items-center gap-8">
@@ -225,6 +243,11 @@ export function ModernSystem({
               <div className="text-lg font-bold tabular-nums">
                 {cpu !== undefined ? `${Math.round(cpu)}%` : "—"}
               </div>
+              {sparkline && (
+                <div style={{ width: sparkW }}>
+                  <Sparkline data={cpuHist} color={CPU_COLOR} height={18} />
+                </div>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -236,6 +259,11 @@ export function ModernSystem({
               <div className="text-lg font-bold tabular-nums">
                 {ram !== undefined ? `${Math.round(ram)}%` : "—"}
               </div>
+              {sparkline && (
+                <div style={{ width: sparkW }}>
+                  <Sparkline data={ramHist} color={RAM_COLOR} height={18} />
+                </div>
+              )}
             </div>
           </div>
         </div>

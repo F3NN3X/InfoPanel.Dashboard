@@ -25,6 +25,28 @@ const AUDIO_MODERN_SETTINGS: ModuleSetting[] = [
     type: "boolean",
     default: true,
   },
+  { key: "showDevice", label: "Device name", type: "boolean", default: true },
+  { key: "showVolume", label: "Volume bar", type: "boolean", default: false },
+  { key: "showMute", label: "Mute indicator", type: "boolean", default: true },
+  {
+    key: "view",
+    label: "View",
+    type: "select",
+    default: "meter",
+    options: [
+      { value: "meter", label: "Level meter" },
+      {
+        value: "volume",
+        label: "Volume control",
+        applies: {
+          showVolume: true,
+          showMute: true,
+          showDevice: true,
+          showDetails: false,
+        },
+      },
+    ],
+  },
 ];
 
 export const audioModernModule: DashboardModule = {
@@ -54,6 +76,9 @@ export const audioModernModule: DashboardModule = {
       <ModernAudio
         devices={devices}
         showDetails={Boolean(cfg.showDetails)}
+        showDevice={Boolean(cfg.showDevice)}
+        showVolume={Boolean(cfg.showVolume)}
+        showMute={Boolean(cfg.showMute)}
         layout={String(cfg.layout) as
           | "auto"
           | "card"

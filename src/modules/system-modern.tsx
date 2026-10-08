@@ -17,6 +17,17 @@ import {
 const SYSTEM_MODERN_SETTINGS: ModuleSetting[] = [
   ...STANDARD_SETTINGS,
   { key: "showStatus", label: "Bridge status", type: "boolean", default: true },
+  { key: "sparkline", label: "Trend sparkline", type: "boolean", default: false },
+  {
+    key: "view",
+    label: "View",
+    type: "select",
+    default: "rings",
+    options: [
+      { value: "rings", label: "Rings" },
+      { value: "trends", label: "Trends", applies: { sparkline: true } },
+    ],
+  },
 ];
 
 export const systemModernModule: DashboardModule = {
@@ -39,6 +50,7 @@ export const systemModernModule: DashboardModule = {
         cpu={cpu}
         ram={ram}
         status={Boolean(cfg.showStatus) ? status : undefined}
+        sparkline={Boolean(cfg.sparkline)}
         layout={String(cfg.layout) as
           | "auto"
           | "card"

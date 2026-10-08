@@ -27,6 +27,17 @@ const HARDWARE_MODERN_SETTINGS: ModuleSetting[] = [
     max: 100,
     step: 2,
   },
+  {
+    key: "view",
+    label: "View",
+    type: "select",
+    default: "list",
+    options: [
+      { value: "list", label: "Reading list" },
+      { value: "temps", label: "Temp gauges", applies: { showFans: true } },
+    ],
+  },
+  { key: "showFans", label: "Fan readings", type: "boolean", default: true },
 ];
 
 /** Classify a reading by its name / unit for the dot color. */
@@ -57,10 +68,13 @@ function pickRows(
     if (value === undefined && !text) continue;
     const label = sensor.name ?? key;
     const unit = sensor.unit ?? "";
+    const kind = kindOf(label, unit);
     rows.push({
       label,
       value: text ?? (value !== undefined ? `${value.toFixed(1)}` : "—"),
-      kind: kindOf(label, unit),
+      kind,
+      temp: kind === "temp" ? value : undefined,
+      fan: kind === "fan" ? value : undefined,
     });
   }
 
@@ -90,6 +104,8 @@ export const hardwareModernModule: DashboardModule = {
     return (
       <ModernHardware
         rows={rows}
+        gauges={String(cfg.view) === "temps"}
+        showFans={Boolean(cfg.showFans)}
         layout={String(cfg.layout) as
           | "auto"
           | "card"

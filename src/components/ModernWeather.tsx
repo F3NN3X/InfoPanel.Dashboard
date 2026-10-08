@@ -62,6 +62,8 @@ export interface ModernWeatherProps {
   tint?: boolean;
   showStats?: boolean;
   showForecast?: boolean;
+  /** Show the "feels like" line. */
+  showFeels?: boolean;
   /** Standard chrome: custom title / icon / accent / background image. */
   chrome?: ModernChromeSpec;
   className?: string;
@@ -174,6 +176,7 @@ export function ModernWeather({
   tint = true,
   showStats = true,
   showForecast = true,
+  showFeels = true,
   chrome,
   className,
 }: ModernWeatherProps) {
@@ -244,7 +247,7 @@ export function ModernWeather({
               {temp !== undefined ? Math.round(temp) : "—"}
               <span style={{ fontSize: tempSize * 0.4 }}>°</span>
             </div>
-            {feelsLike !== undefined && (
+            {showFeels && feelsLike !== undefined && (
               <div className="mt-1 text-xs" style={{ color: sv.muted }}>
                 Feels like {Math.round(feelsLike)}°
               </div>
@@ -332,7 +335,7 @@ export function ModernWeather({
             <div className="mt-1 text-sm" style={{ color: sv.muted }}>
               {desc}
             </div>
-            {feelsLike !== undefined && (
+            {showFeels && feelsLike !== undefined && (
               <div className="mt-0.5 text-xs" style={{ color: sv.muted }}>
                 Feels like {Math.round(feelsLike)}°
               </div>

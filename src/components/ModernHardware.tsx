@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { ArcGauge, tempColor, tempWord } from "@/lib/gauge";
 import { ModernChrome, type ModernChrome as ModernChromeSpec } from "./modern-chrome";
 import {
   makeSurface,
@@ -26,10 +27,18 @@ export interface ModernHardwareRow {
   label: string;
   value: string;
   kind: "temp" | "fan" | "power" | "other";
+  /** Numeric temp (°C) when the reading is a temperature. */
+  temp?: number;
+  /** Numeric fan speed (RPM) when the reading is a fan. */
+  fan?: number;
 }
 
 export interface ModernHardwareProps {
   rows: ModernHardwareRow[];
+  /** Render the top temperatures as arc gauges (the "temps" view). */
+  gauges?: boolean;
+  /** Show a row of fan readings under the temp gauges. */
+  showFans?: boolean;
   layout?: HardwareVariant | "auto";
   surfaceStyle?: ModernStyle;
   /** Standard chrome: custom title / icon / accent / background image. */
@@ -94,8 +103,81 @@ function Row({
   );
 }
 
+/**
+ * The "temps" view — the top temperature readings as 270° arc gauges
+ * (colored by threshold) with a fan-reading chip row underneath.
+ */
+function TempsGrid({
+  temps,
+  fans,
+  size,
+  showFans,
+  box,
+  muted,
+}: {
+  temps: ModernHardwareRow[];
+  fans: ModernHardwareRow[];
+  size: number;
+  showFans: boolean;
+  box: React.CSSProperties;
+  muted: string;
+}) {
+  return (
+    <div
+      className="flex h-full w-full flex-col justify-center gap-3 overflow-hidden rounded-[20px] p-4"
+      style={box}
+    >
+      <div className="grid grid-cols-2 justify-items-center gap-x-4 gap-y-3">
+        {temps.map((r) => (
+          <div key={r.label} className="flex flex-col items-center gap-1">
+            <ArcGauge
+              value={r.temp ?? 0}
+              max={100}
+              size={size}
+              stroke={size * 0.11}
+              color={tempColor(r.temp ?? 0)}
+              display={`${Math.round(r.temp ?? 0)}°`}
+              sublabel={tempWord(r.temp ?? 0)}
+            />
+            <div
+              className="max-w-[96px] truncate text-[11px]"
+              title={r.label}
+              style={{ color: muted }}
+            >
+              {r.label}
+            </div>
+          </div>
+        ))}
+      </div>
+      {showFans && fans.length > 0 && (
+        <div className="flex flex-wrap justify-center gap-2">
+          {fans.map((r) => (
+            <div
+              key={r.label}
+              className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px]"
+              style={{ background: "rgba(128,128,140,0.14)" }}
+              title={r.label}
+            >
+              <span
+                className="h-1.5 w-1.5 shrink-0 rounded-full"
+                style={{ background: KIND_COLOR.fan }}
+              />
+              <span className="max-w-[120px] truncate" style={{ color: muted }}>
+                {r.label}
+              </span>
+              <span className="font-semibold tabular-nums">{r.value}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function ModernHardware({
   rows,
+  gauges = false,
+  showFans = true,
   layout = "auto",
   surfaceStyle = "glass",
   chrome,
@@ -156,6 +238,22 @@ export function ModernHardware({
         ))}
       </div>
     );
+  }
+
+  // The "temps" view overrides the list with arc gauges (when any temp
+  // reading exists; otherwise fall back to the list above).
+  if (gauges) {
+    const temps = rows
+      .filter((r) => r.temp !== undefined)
+      .sort((a, b) => (b.temp ?? 0) - (a.temp ?? 0))
+      .slice(0, 4);
+    const fans = rows.filter((r) => r.fan !== undefined).slice(0, 4);
+    if (temps.length > 0) {
+      const size = Math.min(96, Math.max(44, h * 0.24));
+      body = (
+        <TempsGrid temps={temps} fans={fans} size={size} showFans={showFans} box={box} muted={sv.muted} />
+      );
+    }
   }
 
   return (

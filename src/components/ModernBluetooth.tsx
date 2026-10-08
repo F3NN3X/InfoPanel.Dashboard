@@ -33,6 +33,10 @@ export interface ModernBluetoothProps {
   status?: string;
   devices: ModernBtDevice[];
   showStatus?: boolean;
+  /** Show the paired-device rows. */
+  showDevices?: boolean;
+  /** Show each device's battery bar / %. */
+  showBattery?: boolean;
   layout?: BluetoothVariant | "auto";
   surfaceStyle?: ModernStyle;
   /** Standard chrome: custom title / icon / accent / background image. */
@@ -91,11 +95,13 @@ function BatteryBar({
 function DeviceRow({
   device,
   small,
+  showBattery = true,
 }: {
   device: ModernBtDevice;
   small?: boolean;
+  showBattery?: boolean;
 }) {
-  const hasBattery = device.battery !== undefined && device.battery > 0;
+  const hasBattery = showBattery && device.battery !== undefined && device.battery > 0;
   return (
     <div className="min-w-0">
       <div className="flex min-w-0 items-baseline gap-2">
@@ -108,18 +114,22 @@ function DeviceRow({
         {device.status && (
           <span className="truncate text-[10px] text-current/60">{device.status}</span>
         )}
-        <span
-          className={cn(
-            "ml-auto shrink-0 font-bold tabular-nums",
-            small ? "text-sm" : "text-base"
-          )}
-        >
-          {hasBattery ? `${Math.round(device.battery!)}%` : "—"}
-        </span>
+        {showBattery && (
+          <span
+            className={cn(
+              "ml-auto shrink-0 font-bold tabular-nums",
+              small ? "text-sm" : "text-base"
+            )}
+          >
+            {hasBattery ? `${Math.round(device.battery!)}%` : "—"}
+          </span>
+        )}
       </div>
-      <div className="mt-1">
-        <BatteryBar battery={device.battery} width={small ? "80px" : "100%"} />
-      </div>
+      {showBattery && (
+        <div className="mt-1">
+          <BatteryBar battery={device.battery} width={small ? "80px" : "100%"} />
+        </div>
+      )}
     </div>
   );
 }
@@ -128,6 +138,8 @@ export function ModernBluetooth({
   status,
   devices,
   showStatus = true,
+  showDevices = true,
+  showBattery = true,
   layout = "auto",
   surfaceStyle = "glass",
   chrome,
@@ -144,7 +156,9 @@ export function ModernBluetooth({
   } as const;
   const muted = sv.muted;
   const count = devices.length;
-  const shown = devices.slice(0, v === "compact" ? 1 : v === "simple" ? 0 : 6);
+  const shown = showDevices
+    ? devices.slice(0, v === "compact" ? 1 : v === "simple" ? 0 : 6)
+    : [];
 
   let body: React.ReactNode;
   if (v === "card") {
@@ -164,7 +178,7 @@ export function ModernBluetooth({
         </div>
         <div className="flex min-h-0 flex-1 flex-col justify-center gap-2.5 overflow-y-auto">
           {shown.map((d) => (
-            <DeviceRow key={d.name} device={d} />
+            <DeviceRow key={d.name} device={d} showBattery={showBattery} />
           ))}
         </div>
       </div>
@@ -188,7 +202,7 @@ export function ModernBluetooth({
         </div>
         <div className="grid min-w-0 flex-1 auto-rows-min grid-cols-2 gap-x-4 gap-y-2 overflow-y-auto">
           {shown.map((d) => (
-            <DeviceRow key={d.name} device={d} small />
+            <DeviceRow key={d.name} device={d} small showBattery={showBattery} />
           ))}
         </div>
       </div>

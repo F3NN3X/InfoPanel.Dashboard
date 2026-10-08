@@ -21,6 +21,17 @@ const FPS = "plugins.fps-plugin.";
 const FPS_MODERN_SETTINGS: ModuleSetting[] = [
   ...STANDARD_SETTINGS,
   { key: "showMetrics", label: "Extra metrics", type: "boolean", default: true },
+  { key: "sparkline", label: "Trend sparkline", type: "boolean", default: false },
+  {
+    key: "view",
+    label: "View",
+    type: "select",
+    default: "gauge",
+    options: [
+      { value: "gauge", label: "Gauge" },
+      { value: "trend", label: "Trend", applies: { sparkline: true } },
+    ],
+  },
 ];
 
 export const fpsModernModule: DashboardModule = {
@@ -90,6 +101,7 @@ export const fpsModernModule: DashboardModule = {
         title={title}
         source={source}
         extras={extras}
+        sparkline={Boolean(cfg.sparkline)}
         layout={String(cfg.layout) as
           | "auto"
           | "card"

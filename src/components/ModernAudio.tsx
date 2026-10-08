@@ -37,6 +37,12 @@ export interface ModernAudioDevice {
 export interface ModernAudioProps {
   devices: ModernAudioDevice[];
   showDetails?: boolean;
+  /** Show the device name header line. */
+  showDevice?: boolean;
+  /** Show the device volume as a bar (the "volume" view). */
+  showVolume?: boolean;
+  /** Show a "muted" chip when the device is muted. */
+  showMute?: boolean;
   layout?: AudioVariant | "auto";
   surfaceStyle?: ModernStyle;
   /** Standard chrome: custom title / icon / accent / background image. */
@@ -92,9 +98,47 @@ function LevelBar({ level, height = 6 }: { level: number; height?: number }) {
   );
 }
 
+/** The device volume as a bar + % (the "volume control" look). */
+function VolumeBar({ volume, height = 6 }: { volume: number; height?: number }) {
+  return (
+    <div className="flex w-full items-center gap-2">
+      <div
+        className="flex-1 overflow-hidden rounded-full"
+        style={{ height, background: "rgba(128,128,140,0.22)" }}
+      >
+        <div
+          className="h-full rounded-full"
+          style={{
+            width: `${Math.round(clamp01(volume / 100) * 100)}%`,
+            background: "linear-gradient(90deg, #6366f1, #a855f7)",
+            transition: "width 0.3s ease",
+          }}
+        />
+      </div>
+      <span className="shrink-0 text-[11px] font-semibold tabular-nums">
+        {Math.round(volume)}%
+      </span>
+    </div>
+  );
+}
+
+function MuteChip() {
+  return (
+    <span
+      className="shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider"
+      style={{ background: "rgba(248,113,113,0.2)", color: "#f87171" }}
+    >
+      muted
+    </span>
+  );
+}
+
 export function ModernAudio({
   devices,
   showDetails = true,
+  showDevice = true,
+  showVolume = false,
+  showMute = true,
   layout = "auto",
   surfaceStyle = "glass",
   chrome,
@@ -127,9 +171,11 @@ export function ModernAudio({
                   className="h-3.5 w-3.5 shrink-0"
                   style={{ color: muted }}
                 />
-                <span className="truncate text-sm font-semibold" title={d.name}>
-                  {d.name}
-                </span>
+                {showDevice && (
+                  <span className="truncate text-sm font-semibold" title={d.name}>
+                    {d.name}
+                  </span>
+                )}
               </div>
               <span className="shrink-0 text-lg font-bold tabular-nums">
                 {d.level !== undefined ? `${Math.round(d.level)}%` : "—"}
@@ -138,6 +184,16 @@ export function ModernAudio({
             <div className="mt-1.5">
               <LevelBar level={d.level ?? 0} />
             </div>
+            {(showVolume && d.volume !== undefined) || (showMute && d.muted === "True") ? (
+              <div className="mt-1.5 flex items-center gap-2">
+                {showVolume && d.volume !== undefined && (
+                  <div className="flex-1">
+                    <VolumeBar volume={d.volume} />
+                  </div>
+                )}
+                {showMute && d.muted === "True" && <MuteChip />}
+              </div>
+            ) : null}
             {showDetails && (
               <div className="mt-1 truncate text-[11px]" style={{ color: muted }} title={detail(d)}>
                 {detail(d)}
@@ -157,14 +213,26 @@ export function ModernAudio({
           <div key={d.name} className="flex min-w-0 flex-1 flex-col justify-center gap-1.5">
             <div className="flex min-w-0 items-center gap-1.5">
               <Volume2 className="h-3.5 w-3.5 shrink-0" style={{ color: muted }} />
-              <span className="truncate text-sm font-semibold" title={d.name}>
-                {d.name}
-              </span>
+              {showDevice && (
+                <span className="truncate text-sm font-semibold" title={d.name}>
+                  {d.name}
+                </span>
+              )}
               <span className="ml-auto shrink-0 text-base font-bold tabular-nums">
                 {d.level !== undefined ? `${Math.round(d.level)}%` : "—"}
               </span>
             </div>
             <LevelBar level={d.level ?? 0} height={5} />
+            {(showVolume && d.volume !== undefined) || (showMute && d.muted === "True") ? (
+              <div className="flex items-center gap-2">
+                {showVolume && d.volume !== undefined && (
+                  <div className="flex-1">
+                    <VolumeBar volume={d.volume} height={5} />
+                  </div>
+                )}
+                {showMute && d.muted === "True" && <MuteChip />}
+              </div>
+            ) : null}
             {showDetails && (
               <div className="truncate text-[11px]" style={{ color: muted }} title={detail(d)}>
                 {detail(d)}

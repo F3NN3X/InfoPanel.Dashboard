@@ -21,6 +21,27 @@ const P = "plugins.bluetooth-battery-plugin.";
 const BLUETOOTH_MODERN_SETTINGS: ModuleSetting[] = [
   ...STANDARD_SETTINGS,
   { key: "showStatus", label: "Bluetooth status", type: "boolean", default: true },
+  { key: "showDevices", label: "Paired devices", type: "boolean", default: true },
+  { key: "showBattery", label: "Battery levels", type: "boolean", default: true },
+  {
+    key: "view",
+    label: "View",
+    type: "select",
+    default: "full",
+    options: [
+      { value: "full", label: "Status + devices" },
+      {
+        value: "devices",
+        label: "Devices + battery",
+        applies: { showDevices: true, showBattery: true },
+      },
+      {
+        value: "status",
+        label: "Status only",
+        applies: { showDevices: false, showBattery: false },
+      },
+    ],
+  },
 ];
 
 export const bluetoothModernModule: DashboardModule = {
@@ -60,6 +81,8 @@ export const bluetoothModernModule: DashboardModule = {
         status={status}
         devices={devices}
         showStatus={Boolean(cfg.showStatus)}
+        showDevices={Boolean(cfg.showDevices)}
+        showBattery={Boolean(cfg.showBattery)}
         layout={String(cfg.layout) as
           | "auto"
           | "card"

@@ -26,6 +26,7 @@ const WEATHER_MODERN_SETTINGS: ModuleSetting[] = [
   { key: "tint", label: "Tint from conditions", type: "boolean", default: true },
   { key: "showStats", label: "Stats row", type: "boolean", default: true },
   { key: "showForecast", label: "Forecast strip", type: "boolean", default: true },
+  { key: "showFeels", label: "Feels-like", type: "boolean", default: true },
   {
     key: "forecastDays",
     label: "Forecast days",
@@ -34,6 +35,30 @@ const WEATHER_MODERN_SETTINGS: ModuleSetting[] = [
     min: 1,
     max: 7,
     step: 1,
+  },
+  {
+    key: "view",
+    label: "View",
+    type: "select",
+    default: "full",
+    options: [
+      { value: "full", label: "Full" },
+      {
+        value: "now",
+        label: "Now",
+        applies: { showForecast: false, showStats: true, showFeels: true },
+      },
+      {
+        value: "forecast",
+        label: "Forecast",
+        applies: { showForecast: true, showStats: false, forecastDays: 7 },
+      },
+      {
+        value: "minimal",
+        label: "Minimal",
+        applies: { showStats: false, showForecast: false, showFeels: false },
+      },
+    ],
   },
 ];
 
@@ -45,6 +70,7 @@ function modernProps(mod: DashboardModule, s?: ModuleSettings) {
     tint: Boolean(cfg.tint),
     showStats: Boolean(cfg.showStats),
     showForecast: Boolean(cfg.showForecast),
+    showFeels: Boolean(cfg.showFeels),
     forecastDays: Math.max(1, Math.min(7, Math.round(Number(cfg.forecastDays) || 5))),
     chrome: chromeOf(cfg),
   };

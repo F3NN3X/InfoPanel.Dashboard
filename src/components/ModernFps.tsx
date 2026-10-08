@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { Sparkline, useHistory } from "@/lib/sparkline";
 import { ModernChrome, type ModernChrome as ModernChromeSpec } from "./modern-chrome";
 import {
   makeSurface,
@@ -38,6 +39,8 @@ export interface ModernFpsProps {
   source?: string;
   extras?: [string, string][];
   showMetrics?: boolean;
+  /** Show a rolling FPS trend sparkline (the "trend" view). */
+  sparkline?: boolean;
   layout?: FpsVariant | "auto";
   surfaceStyle?: ModernStyle;
   /** Standard chrome: custom title / icon / accent / background image. */
@@ -59,6 +62,9 @@ function pickVariant(
 }
 
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+
+/** Trend sparkline color (the purple FPS line from the reference dashboards). */
+const FPS_SPARK = "#c084fc";
 
 function fpsColor(fps: number | undefined, maxFps: number): string {
   if (fps === undefined) return "rgba(128,128,140,0.5)";
@@ -160,6 +166,7 @@ export function ModernFps({
   source,
   extras = [],
   showMetrics = true,
+  sparkline = false,
   layout = "auto",
   surfaceStyle = "glass",
   chrome,
@@ -168,6 +175,7 @@ export function ModernFps({
   const { ref, w, h } = useElementSize();
   const sv = makeSurface(surfaceStyle, null);
   const v = pickVariant(w, h, layout);
+  const fpsHist = useHistory(fps);
 
   const maxFps = refresh !== undefined && refresh > 0 ? refresh : 144;
   const box = {
@@ -205,6 +213,11 @@ export function ModernFps({
             />
           )}
         </div>
+        {sparkline && (
+          <div style={{ width: ring * 1.3 }} className="text-purple-400">
+            <Sparkline data={fpsHist} color={FPS_SPARK} height={24} />
+          </div>
+        )}
         {(title || source || resolution) && (
           <div className="max-w-full truncate text-xs" style={{ color: muted }}>
             {[title, source, resolution].filter(Boolean).join(" · ")}
@@ -281,6 +294,11 @@ export function ModernFps({
           <div className="text-xs font-medium uppercase tracking-wider" style={{ color: muted }}>
             {source ?? "fps"} · {maxFps}Hz
           </div>
+          {sparkline && (
+            <div style={{ width: ring }} className="text-purple-400">
+              <Sparkline data={fpsHist} color={FPS_SPARK} height={20} />
+            </div>
+          )}
         </div>
         <div className="flex min-w-0 flex-1 items-center justify-center gap-8">
           {low1 !== undefined && (
