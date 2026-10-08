@@ -531,11 +531,22 @@ export const LiveWaveform = ({
       framesSinceColor = COLOR_REFRESH_FRAMES;
       task.wake();
     });
+    // The shared rAF loop pauses while the tab is hidden, so a sleeping
+    // painter can keep a stale (or first-ever) frame on the canvas. When the
+    // document comes back, force one repaint of the current frame.
+    const onTabVisible = () => {
+      if (!document.hidden) {
+        dirtyRef.current = true;
+        task.wake();
+      }
+    };
+    document.addEventListener("visibilitychange", onTabVisible);
     return () => {
       wakeRef.current = noop;
       task.stop();
       observer.disconnect();
       stopObservingTheme();
+      document.removeEventListener("visibilitychange", onTabVisible);
     };
   }, [
     active,

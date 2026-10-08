@@ -171,9 +171,19 @@ export const BarVisualizer = ({
     );
     wakeRef.current = task.wake;
     const root = rootRef.current;
+    // The shared rAF loop pauses while the tab is hidden, so settled bars can
+    // sit at a stale level when the tab comes back. Wake them so the current
+    // levels are repainted.
+    const onTabVisible = () => {
+      if (!document.hidden) {
+        task.wake();
+      }
+    };
+    document.addEventListener("visibilitychange", onTabVisible);
     return () => {
       wakeRef.current = noop;
       task.stop();
+      document.removeEventListener("visibilitychange", onTabVisible);
       if (root) {
         delete root.dataset.active;
       }
