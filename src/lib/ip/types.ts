@@ -75,6 +75,11 @@ export interface IPSensorBinding {
   sensorType: "hwinfo" | "libre" | "plugin";
   /** Display name of the sensor in InfoPanel (label + fallback). */
   sensorName?: string;
+  /**
+   * Direct bridge key from the editor's live sensor picker —
+   * highest-priority resolution path (bypasses Libre/plugin mapping).
+   */
+  bridgeKey?: string;
   /** Libre path, e.g. `/amdcpu/0/load/0` (resolved to a bridge key at runtime). */
   libreId?: string;
   /** Plugin slug, e.g. `/InfoPanel.RTSS/rtss/fps` (→ `plugins.InfoPanel.RTSS.rtss.fps`). */

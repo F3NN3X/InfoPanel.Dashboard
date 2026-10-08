@@ -4,6 +4,7 @@ import { API_BASE, useSensors } from "@/hooks/useSensors";
 import { Badge } from "@/components/ui/badge";
 import { IPCanvas } from "@/components/ip/ip-canvas";
 import { StudioView } from "@/components/studio/studio-view";
+import { FreeStudio } from "@/components/studio/free-studio";
 import { PlacementFrame } from "@/components/studio/placement-frame";
 import { placementContent } from "@/components/studio/placement-content";
 import { claimedKeys } from "@/modules";
@@ -213,8 +214,22 @@ export default function App() {
     window.history.replaceState(null, "", window.location.pathname);
   };
 
-  // The dedicated studio replaces the whole view.
+  // The dedicated studio replaces the whole view. Free-canvas (InfoPanel
+  // 1:1) profiles open in the free studio; grid profiles in the grid one.
   if (studio) {
+    if (freeProfile) {
+      return (
+        <FreeStudio
+          sensors={sensors}
+          config={config}
+          profile={freeProfile}
+          setConfig={setConfig}
+          windowWidth={windowSize.w}
+          windowHeight={windowSize.h}
+          onExitStudio={exitStudio}
+        />
+      );
+    }
     return (
       <StudioView
         sensors={sensors}

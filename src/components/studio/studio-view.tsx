@@ -36,6 +36,7 @@ import { RulerH, RulerV } from "./rulers";
 import { SettingsPanel } from "./settings-panel";
 import { ThemePanel } from "./theme-panel";
 import { PanelInspector } from "./panel-inspector";
+import { newIPProfile } from "@/lib/ip/ops";
 import { modules, claimedKeys, type SensorMap } from "@/modules";
 import {
   CARDS_ID,
@@ -493,6 +494,92 @@ export function StudioView({
                 onClick={removeProfile}
                 disabled={config.profiles.length <= 1}
                 title="Delete active profile"
+              >
+                <Trash2 className="h-3 w-3" />
+              </Button>
+            </div>
+          </section>
+
+          {/* Free-canvas (InfoPanel 1:1) profiles — open in the free studio. */}
+          <section className="space-y-2 p-3">
+            <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              Free canvas (InfoPanel)
+            </div>
+            <div className="space-y-1">
+              {(config.freeProfiles ?? []).map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() =>
+                    setConfig((c) => ({ ...c, activeProfile: p.id }))
+                  }
+                  className={cn(
+                    "w-full rounded-md border px-2 py-1.5 text-left text-xs",
+                    p.id === config.activeProfile
+                      ? "border-ring bg-accent"
+                      : "border-border hover:border-ring/50"
+                  )}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="truncate font-medium text-foreground">
+                      {p.name}
+                    </span>
+                    {config.kioskProfileId === p.id && (
+                      <span
+                        className="shrink-0 rounded bg-ring/25 px-1 text-[9px] font-semibold uppercase tracking-wide"
+                        title="Opens in the borderless kiosk window"
+                      >
+                        kiosk
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-muted-foreground">
+                    {p.width}×{p.height} · {p.items.length} items
+                  </div>
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-1.5">
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 flex-1 text-xs"
+                onClick={() => {
+                  const p = newIPProfile(
+                    `Free ${new Date().toLocaleString(undefined, {
+                      month: "short",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}`
+                  );
+                  setConfig((c) => ({
+                    ...c,
+                    freeProfiles: [...(c.freeProfiles ?? []), p],
+                    activeProfile: p.id,
+                  }));
+                }}
+              >
+                <Plus className="h-3 w-3" /> New free
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 w-8 text-xs"
+                onClick={() => {
+                  const active = (config.freeProfiles ?? []).find(
+                    (p) => p.id === config.activeProfile
+                  );
+                  if (!active) return;
+                  setConfig((c) => ({
+                    ...c,
+                    freeProfiles: (c.freeProfiles ?? []).filter(
+                      (p) => p.id !== active.id
+                    ),
+                    activeProfile: "auto",
+                  }));
+                }}
+                disabled={(config.freeProfiles ?? []).length === 0}
+                title="Delete active free profile"
               >
                 <Trash2 className="h-3 w-3" />
               </Button>

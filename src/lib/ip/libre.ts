@@ -98,6 +98,8 @@ export function resolveBindingKey(
   sensors: SensorMap,
   b: IPSensorBinding
 ): string | undefined {
+  // Editor-picked live key — always wins.
+  if (b.bridgeKey && b.bridgeKey in sensors) return b.bridgeKey;
   if (b.sensorType === "plugin" && b.pluginId) {
     const key = pluginKey(b.pluginId);
     if (key in sensors) return key;
