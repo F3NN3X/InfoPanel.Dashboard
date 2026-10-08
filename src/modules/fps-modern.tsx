@@ -47,7 +47,7 @@ const FPS_MODERN_SETTINGS: ModuleSetting[] = [
 
 export const fpsModernModule: DashboardModule = {
   id: "fpsmodern",
-  title: "Performance (modern)",
+  title: "FPS (modern)",
   minCols: 2,
   minRows: 1,
   matches: (key) => key.startsWith(RTSS) || key.startsWith(FPS),
