@@ -90,6 +90,36 @@ function parseForecastLine(line: string): WeatherForecastDay {
   return day;
 }
 
+/**
+ * The yr plugin's `weather_icon` is an icon *name* (Makin-Things/weather-icons
+ * asset id, e.g. "rainy-2"), not a glyph — map it to an emoji. Non-ASCII
+ * values (already a glyph) pass through; unknown names fall back to the
+ * condition-derived glyph in the component.
+ */
+const ICON_GLYPH: Record<string, string> = {
+  clear: "☀️",
+  "clear-night": "🌙",
+  "partly-cloudy": "⛅",
+  "partly-cloudy-night": "🌥️",
+  cloudy: "☁️",
+  fog: "🌫️",
+  drizzle: "🌦️",
+  "rainy-1": "🌦️",
+  "rainy-2": "🌧️",
+  "rainy-3": "🌧️",
+  wintry: "🌨️",
+  "wintry-1": "❄️",
+  "wintry-2": "❄️",
+  thunderstorms: "⛈️",
+};
+
+function iconGlyph(raw?: string): string | undefined {
+  if (!raw) return undefined;
+  // Already a glyph/emoji? Use it as-is.
+  if (/[^\u0000-\u007F]/.test(raw)) return raw;
+  return ICON_GLYPH[raw];
+}
+
 export const weatherModernModule: DashboardModule = {
   id: "weathermodern",
   title: "Weather (modern)",
@@ -101,7 +131,14 @@ export const weatherModernModule: DashboardModule = {
     const cfg = modernProps(weatherModernModule, s);
     const find = (id: string) => findEntry(sensors, P, id)?.sensor;
     const text = (id: string) => liveText(find(id));
-    const num = (id: string) => find(id)?.value;
+    // The yr plugin pushes temps as *text* sensors ("6.0 °C") with no numeric
+    // value, so fall back to parsing the number out of the text.
+    const num = (id: string) => {
+      const v = find(id)?.value;
+      if (v !== undefined) return v;
+      const m = text(id)?.match(/-?\d+(\.\d+)?/);
+      return m ? Number(m[0]) : undefined;
+    };
 
     const location = text("name");
     const temp = num("temp");
@@ -115,7 +152,7 @@ export const weatherModernModule: DashboardModule = {
     const rain = num("rain");
     const snow = num("snow");
     const refreshed = text("last_refreshed");
-    const icon = text("weather_icon");
+    const icon = iconGlyph(text("weather_icon"));
 
     // Prefer the DataBridge's open-meteo multi-day table.
     const forecastRaw =
