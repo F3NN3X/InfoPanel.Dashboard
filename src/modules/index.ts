@@ -7,6 +7,7 @@ import {
   mediaModernModule,
 } from "./modern-media";
 import { weatherModernModule } from "./weather-modern";
+import { steamModernModule } from "./steam-modern";
 import { steamModule } from "./steam";
 import { weatherModule } from "./weather";
 import { fpsModule } from "./fps";
@@ -31,6 +32,7 @@ export const modules: DashboardModule[] = [
   mediaModule,
   mediaModernModule,
   steamModule,
+  steamModernModule,
   hardwareModule,
   weatherModule,
   weatherModernModule,

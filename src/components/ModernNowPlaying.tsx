@@ -136,7 +136,7 @@ export function useElementSize() {
  * Average color of the cover art. Drawing a cross-origin image taints the
  * canvas and `getImageData` throws — in that case there is no tint.
  */
-function useArtTint(url: string | undefined, enabled: boolean) {
+export function useArtTint(url: string | undefined, enabled: boolean) {
   const [tint, setTint] = useState<RGB | null>(null);
   useEffect(() => {
     setTint(null);
