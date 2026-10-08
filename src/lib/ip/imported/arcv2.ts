@@ -2,7 +2,8 @@
 import type { IPProfile } from "../types";
 
 export const arcv2: IPProfile = {
-  "id": "arcv2",
+  "id": "arcv2-ip",
+  "assets": "arcv2",
   "name": "ARCv2 WIDE",
   "width": 1920,
   "height": 550,

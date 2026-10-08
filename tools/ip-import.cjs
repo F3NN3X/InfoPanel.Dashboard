@@ -401,7 +401,10 @@ const items = rawItems.map((n) => convert(n, { id: seq++ }));
 const slug = (slugArg || (reg.Name || "profile").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")).replace(/[^a-z0-9-]/g, "");
 
 const profile = {
-  id: slug,
+  // "-ip" suffix: keeps the free-canvas profile id out of the grid
+  // profile namespace (a shipped grid profile may use the same slug).
+  id: slug + "-ip",
+  assets: slug,
   name: reg.Name || slug,
   width: n(reg.Width),
   height: n(reg.Height),

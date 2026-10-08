@@ -324,6 +324,11 @@ export interface IPProfile {
     deviceName: string;
   };
   strictWindowMatching: boolean;
+  /**
+   * Asset folder name — images live at `/assets/ip/<assets>/<file>`
+   * (the InfoPanel `assets\<guid>\` folder, copied at import time).
+   */
+  assets?: string;
   /** Z-order = index (0 = bottom). */
   items: IPItem[];
 }
