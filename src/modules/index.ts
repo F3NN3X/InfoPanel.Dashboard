@@ -8,6 +8,11 @@ import {
 } from "./modern-media";
 import { weatherModernModule } from "./weather-modern";
 import { steamModernModule } from "./steam-modern";
+import { systemModernModule } from "./system-modern";
+import { fpsModernModule } from "./fps-modern";
+import { hardwareModernModule } from "./hardware-modern";
+import { audioModernModule } from "./audio-modern";
+import { bluetoothModernModule } from "./bluetooth-modern";
 import { steamModule } from "./steam";
 import { weatherModule } from "./weather";
 import { fpsModule } from "./fps";
@@ -27,6 +32,7 @@ import type { DashboardModule, SensorMap } from "./types";
  */
 export const modules: DashboardModule[] = [
   systemModule,
+  systemModernModule,
   spotifyModule,
   spotifyModernModule,
   mediaModule,
@@ -34,12 +40,16 @@ export const modules: DashboardModule[] = [
   steamModule,
   steamModernModule,
   hardwareModule,
+  hardwareModernModule,
   weatherModule,
   weatherModernModule,
   fpsModule,
+  fpsModernModule,
   audioModule,
+  audioModernModule,
   vbzModule,
   bluetoothModule,
+  bluetoothModernModule,
   notificationsModule,
   textfileModule,
   streamdeckModule,
