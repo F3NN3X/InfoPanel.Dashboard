@@ -4,7 +4,9 @@ import {
   type ModernVariant,
 } from "@/components/ModernNowPlaying";
 import { isImageUrl } from "@/lib/image";
-import { entry, liveText } from "@/lib/sensors";
+import { bySuffixOrName, entry, groupByContainer, liveText } from "@/lib/sensors";
+import type { BarIdle } from "@/lib/audio/bar-levels";
+import type { Orientation } from "@/lib/audio/types";
 import { chromeOf, STANDARD_SETTINGS } from "./standard-settings";
 import {
   effectiveSettings,
@@ -34,9 +36,23 @@ const MODERN_SETTINGS: ModuleSetting[] = [
   { key: "showProgress", label: "Progress", type: "boolean", default: true },
   {
     key: "waveform",
-    label: "Waveform visualizer (audiocn)",
+    label: "Live waveform (audiocn)",
     type: "boolean",
     default: false,
+  },
+  {
+    key: "visualizer",
+    label: "Bar visualizer (audiocn)",
+    type: "boolean",
+    default: false,
+  },
+  {
+    key: "liveSource",
+    label: "Live level source (audio device)",
+    type: "select",
+    default: "default-audio",
+    optionsFrom: "sources",
+    sourcePlugin: "plugins.audio-level-meter.",
   },
   {
     key: "waveformVariant",
@@ -47,6 +63,153 @@ const MODERN_SETTINGS: ModuleSetting[] = [
       { value: "bars", label: "Bars" },
       { value: "line", label: "Line" },
       { value: "mirror", label: "Mirror" },
+    ],
+  },
+  {
+    key: "waveformMode",
+    label: "Waveform mode",
+    type: "select",
+    default: "scrolling",
+    options: [
+      { value: "scrolling", label: "Scrolling (level history)" },
+      { value: "static", label: "Static (current bands)" },
+    ],
+  },
+  {
+    key: "waveformBarWidth",
+    label: "Waveform bar width (px)",
+    type: "number",
+    default: 3,
+    min: 1,
+    max: 12,
+    step: 1,
+  },
+  {
+    key: "waveformBarGap",
+    label: "Waveform bar gap (px)",
+    type: "number",
+    default: 1,
+    min: 0,
+    max: 8,
+    step: 1,
+  },
+  {
+    key: "waveformBarRadius",
+    label: "Waveform bar radius (px)",
+    type: "number",
+    default: 1.5,
+    min: 0,
+    max: 8,
+    step: 0.5,
+  },
+  {
+    key: "waveformMinBarHeight",
+    label: "Waveform min bar height (px)",
+    type: "number",
+    default: 4,
+    min: 0,
+    max: 40,
+    step: 1,
+  },
+  {
+    key: "waveformLineWidth",
+    label: "Waveform line width (px)",
+    type: "number",
+    default: 1.5,
+    min: 0.5,
+    max: 6,
+    step: 0.5,
+  },
+  {
+    key: "waveformFadeEdges",
+    label: "Waveform edge fade",
+    type: "boolean",
+    default: true,
+  },
+  {
+    key: "waveformFadeWidth",
+    label: "Waveform fade width (px)",
+    type: "number",
+    default: 24,
+    min: 0,
+    max: 200,
+    step: 4,
+  },
+  {
+    key: "waveformSensitivity",
+    label: "Waveform sensitivity (gain)",
+    type: "number",
+    default: 1,
+    min: 0.1,
+    max: 4,
+    step: 0.1,
+  },
+  {
+    key: "waveformActive",
+    label: "Waveform active (off = idle dotted line)",
+    type: "boolean",
+    default: true,
+  },
+  {
+    key: "visualizerBarCount",
+    label: "Visualizer bar count",
+    type: "number",
+    default: 24,
+    min: 4,
+    max: 64,
+    step: 2,
+  },
+  {
+    key: "visualizerAlign",
+    label: "Visualizer alignment",
+    type: "select",
+    default: "center",
+    options: [
+      { value: "center", label: "Center" },
+      { value: "start", label: "Start" },
+      { value: "end", label: "End" },
+    ],
+  },
+  {
+    key: "visualizerMirrored",
+    label: "Visualizer mirrored",
+    type: "boolean",
+    default: false,
+  },
+  {
+    key: "visualizerMinLevel",
+    label: "Visualizer resting bar size",
+    type: "number",
+    default: 0.08,
+    min: 0,
+    max: 0.5,
+    step: 0.02,
+  },
+  {
+    key: "visualizerIdle",
+    label: "Visualizer idle behavior",
+    type: "select",
+    default: "static",
+    options: [
+      { value: "static", label: "Static" },
+      { value: "pulse", label: "Pulse" },
+      { value: "wave", label: "Wave" },
+    ],
+  },
+  {
+    key: "visualizerLoading",
+    label: "Visualizer loading sweep",
+    type: "boolean",
+    default: false,
+  },
+  {
+    key: "visualizerOrientation",
+    label: "Visualizer orientation",
+    type: "select",
+    default: "horizontal",
+    options: [
+      { value: "horizontal", label: "Horizontal" },
+      { value: "vertical", label: "Vertical" },
     ],
   },
 ];
@@ -64,8 +227,49 @@ function modernProps(mod: DashboardModule, s?: ModuleSettings) {
       | "bars"
       | "line"
       | "mirror",
+    waveformMode: String(cfg.waveformMode) as "scrolling" | "static",
+    waveformBarWidth: Number(cfg.waveformBarWidth),
+    waveformBarGap: Number(cfg.waveformBarGap),
+    waveformBarRadius: Number(cfg.waveformBarRadius),
+    waveformMinBarHeight: Number(cfg.waveformMinBarHeight),
+    waveformLineWidth: Number(cfg.waveformLineWidth),
+    waveformFadeEdges: Boolean(cfg.waveformFadeEdges),
+    waveformFadeWidth: Number(cfg.waveformFadeWidth),
+    waveformActive: Boolean(cfg.waveformActive),
+    waveformSensitivity: Number(cfg.waveformSensitivity),
+    visualizer: Boolean(cfg.visualizer),
+    visualizerBarCount: Number(cfg.visualizerBarCount),
+    visualizerAlign: String(cfg.visualizerAlign) as "center" | "start" | "end",
+    visualizerMirrored: Boolean(cfg.visualizerMirrored),
+    visualizerMinLevel: Number(cfg.visualizerMinLevel),
+    visualizerIdle: String(cfg.visualizerIdle) as BarIdle,
+    visualizerLoading: Boolean(cfg.visualizerLoading),
+    visualizerOrientation: String(cfg.visualizerOrientation) as Orientation,
     chrome: chromeOf(cfg),
   };
+}
+
+/**
+ * The live system audio level (0..1) that drives the audiocn visualizers:
+ * the AudioLevelMeter plugin's `audio-level` (VU %, 0–100) for the selected
+ * device. `""` (all sources) and missing containers fall back to
+ * `default-audio`, then to any live container; no plugin → undefined (the
+ * visualizers show their idle state).
+ */
+function liveLevelOf(
+  sensors: SensorMap,
+  cfg: ModuleSettings
+): number | undefined {
+  const groups = groupByContainer(sensors, "plugins.audio-level-meter.");
+  if (groups.size === 0) return undefined;
+  const wanted = String(cfg.liveSource ?? "") || "default-audio";
+  const items =
+    groups.get(wanted) ??
+    (wanted === "default-audio" ? undefined : groups.get("default-audio")) ??
+    [...groups.values()][0];
+  const value = bySuffixOrName(items ?? [], "audio-level", "Level")?.value;
+  if (value === undefined) return undefined;
+  return Math.min(1, Math.max(0, value / 100));
 }
 
 function resolve(sensors: SensorMap, primary: string, fallback: string) {
@@ -117,6 +321,7 @@ export const spotifyModernModule: DashboardModule = {
         artUrl={art && isImageUrl(art, "art") ? art : undefined}
         progress={progress}
         isPlaying={playback === 2}
+        liveLevel={liveLevelOf(sensors, effectiveSettings(spotifyModernModule, s))}
         {...cfg}
       />
     );
@@ -152,6 +357,7 @@ export const mediaModernModule: DashboardModule = {
         elapsed={elapsed}
         remaining={remaining}
         isPlaying={playback === 2}
+        liveLevel={liveLevelOf(sensors, effectiveSettings(mediaModernModule, s))}
         {...cfg}
       />
     );

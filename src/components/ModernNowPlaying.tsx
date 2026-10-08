@@ -2,11 +2,12 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Music2, Pause, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ModernChrome, type ModernChrome as ModernChromeSpec } from "./modern-chrome";
-import { Waveform } from "@/components/ui/waveform";
-import type { WaveformProps } from "@/components/ui/waveform";
+import { LiveWaveform } from "@/components/ui/live-waveform";
+import { BarVisualizer } from "@/components/ui/bar-visualizer";
+import type { BarIdle } from "@/lib/audio/bar-levels";
+import type { Orientation } from "@/lib/audio/types";
+import { useSensorVisualSource } from "@/hooks/use-sensor-visual-source";
 import { trackPeaks } from "@/lib/waveform-peaks";
-
-type WaveformVariant = NonNullable<WaveformProps["variant"]>;
 
 /**
  * Modern now-playing widget.
@@ -46,12 +47,45 @@ export interface ModernNowPlayingProps {
   showTimes?: boolean;
   showProgress?: boolean;
   /**
-   * Render the audiocn Waveform visualizer in place of the progress bar
-   * (card + standard layouts). The bar shape is a stable per-track shape;
-   * the playhead position is the real track progress / elapsed time.
+   * Render the audiocn LiveWaveform in place of the progress bar (card +
+   * standard layouts). It animates live: the level comes from
+   * `liveLevel` (a system audio level), the bar *shape* is a stable
+   * decorative per-track shape (`trackPeaks`). `visualizer` takes
+   * precedence when both are on.
    */
   waveform?: boolean;
-  waveformVariant?: WaveformVariant;
+  waveformVariant?: "bars" | "line" | "mirror";
+  /** `scrolling` shows the level history; `static` the current bands. */
+  waveformMode?: "scrolling" | "static";
+  waveformBarWidth?: number;
+  waveformBarGap?: number;
+  waveformBarRadius?: number;
+  waveformMinBarHeight?: number;
+  waveformLineWidth?: number;
+  waveformFadeEdges?: boolean;
+  waveformFadeWidth?: number;
+  /** When false, shows the idle dotted line. */
+  waveformActive?: boolean;
+  /** Visual gain. */
+  waveformSensitivity?: number;
+  /** Render the audiocn BarVisualizer in place of the progress bar. */
+  visualizer?: boolean;
+  visualizerBarCount?: number;
+  visualizerAlign?: "center" | "start" | "end";
+  visualizerMirrored?: boolean;
+  /** Resting bar size, 0..1. */
+  visualizerMinLevel?: number;
+  /** What the bars do with no signal. */
+  visualizerIdle?: BarIdle;
+  /** Runs a sweep animation (connecting / thinking state). */
+  visualizerLoading?: boolean;
+  visualizerOrientation?: Orientation;
+  /**
+   * Live system audio level, 0..1 (the audio-level-meter's `audio-level`
+   * value / 100). Feeds both visualizers; undefined = no live data (the
+   * idle states show instead).
+   */
+  liveLevel?: number;
   /** Standard chrome: custom title / icon / accent / background image. */
   chrome?: ModernChromeSpec;
   className?: string;
@@ -290,15 +324,6 @@ function ProgressRow({
   );
 }
 
-/** "mm:ss" or "h:mm:ss" → seconds, or null when unparseable. */
-function parseTimeSec(text?: string): number | null {
-  if (!text) return null;
-  const m = text.trim().match(/^(\d{1,2}:)?(\d{1,2}):(\d{2})$/);
-  if (!m) return null;
-  const h = m[1] ? parseInt(m[1].slice(0, -1), 10) : 0;
-  return h * 3600 + parseInt(m[2], 10) * 60 + parseInt(m[3], 10);
-}
-
 export function ModernNowPlaying({
   track,
   artist,
@@ -314,6 +339,25 @@ export function ModernNowPlaying({
   showProgress = true,
   waveform = false,
   waveformVariant = "bars",
+  waveformMode = "scrolling",
+  waveformBarWidth = 3,
+  waveformBarGap = 1,
+  waveformBarRadius = 1.5,
+  waveformMinBarHeight = 4,
+  waveformLineWidth = 1.5,
+  waveformFadeEdges = true,
+  waveformFadeWidth = 24,
+  waveformActive = true,
+  waveformSensitivity = 1,
+  visualizer = false,
+  visualizerBarCount = 24,
+  visualizerAlign = "center",
+  visualizerMirrored = false,
+  visualizerMinLevel = 0.08,
+  visualizerIdle = "static",
+  visualizerLoading = false,
+  visualizerOrientation = "horizontal",
+  liveLevel,
   chrome,
   className,
 }: ModernNowPlayingProps) {
@@ -330,46 +374,72 @@ export function ModernNowPlaying({
   const hasTimes = Boolean(elapsed || remaining);
 
   /**
-   * Waveform inputs. With elapsed/remaining (the media plugin) the duration
-   * is real (elapsed + remaining) and the playhead is the elapsed seconds;
-   * without (spotify, progress-only) the progress fraction drives the
-   * playhead across a unit duration.
+   * Live visualizers. Both the LiveWaveform (`waveform` view) and the
+   * BarVisualizer (`visualizer` view) are fed by the same sensor level
+   * source: the system audio level smoothed at 20 fps (fast attack, slow
+   * release), so they animate between the ~1 Hz sensor pushes. The band
+   * *shape* is a stable decorative per-track shape (`trackPeaks`); the
+   * scrolling waveform scrolls the smoothed level history.
    */
-  const wf = waveform
-    ? (() => {
-        const elapsedSec = parseTimeSec(elapsed);
-        const remainingSec = parseTimeSec(remaining);
-        const duration =
-          elapsedSec !== null && remainingSec !== null
-            ? elapsedSec + remainingSec
-            : 1;
-        const time = elapsedSec ?? (pct / 100) * duration;
-        return { peaks: trackPeaks(track, artist), duration, time };
-      })()
-    : null;
+  const visual = Boolean(waveform || visualizer);
+  const liveSource = useSensorVisualSource({
+    level: liveLevel ?? 0,
+    shape: trackPeaks(track, artist),
+    enabled: visual,
+  });
 
-  const WaveformRow = wf ? (
+  const timesSpan = (text?: string) =>
+    text ? (
+      <span className="shrink-0 text-[10px] tabular-nums" style={{ color: sv.muted }}>
+        {text}
+      </span>
+    ) : null;
+
+  const WaveformRow =
+    waveform && !visualizer ? (
+      <div className="flex w-full items-center gap-2">
+        {showTimes ? timesSpan(elapsed) : null}
+        <LiveWaveform
+          source={liveSource}
+          mode={waveformMode}
+          variant={waveformVariant}
+          barWidth={waveformBarWidth}
+          barGap={waveformBarGap}
+          barRadius={waveformBarRadius}
+          minBarHeight={waveformMinBarHeight}
+          lineWidth={waveformLineWidth}
+          fadeEdges={waveformFadeEdges}
+          fadeWidth={waveformFadeWidth}
+          active={waveformActive}
+          sensitivity={waveformSensitivity}
+          aria-label="Live audio level"
+          className="h-9 min-w-0 flex-1"
+        />
+        {showTimes ? timesSpan(remaining) : null}
+      </div>
+    ) : null;
+
+  const VisualizerRow = visualizer ? (
     <div className="flex w-full items-center gap-2">
-      {showTimes && elapsed ? (
-        <span className="shrink-0 text-[10px] tabular-nums" style={{ color: sv.muted }}>
-          {elapsed}
-        </span>
-      ) : null}
-      <Waveform
-        peaks={wf.peaks}
-        duration={wf.duration}
-        currentTime={wf.time}
-        variant={waveformVariant}
-        interactive={false}
+      {showTimes ? timesSpan(elapsed) : null}
+      <BarVisualizer
+        source={liveSource}
+        barCount={visualizerBarCount}
+        align={visualizerAlign}
+        mirrored={visualizerMirrored}
+        minLevel={visualizerMinLevel}
+        idle={visualizerIdle}
+        loading={visualizerLoading}
+        orientation={visualizerOrientation}
+        aria-label="Live audio level"
         className="h-9 min-w-0 flex-1"
       />
-      {showTimes && remaining ? (
-        <span className="shrink-0 text-[10px] tabular-nums" style={{ color: sv.muted }}>
-          {remaining}
-        </span>
-      ) : null}
+      {showTimes ? timesSpan(remaining) : null}
     </div>
   ) : null;
+
+  /** Visualizer views replace the progress bar; `visualizer` wins. */
+  const mediaRow = VisualizerRow ?? WaveformRow;
 
   const boxStyle = {
     background: sv.background,
@@ -395,7 +465,7 @@ export function ModernNowPlaying({
         </div>
         {showProgress && (
           <div className="mt-3">
-            {WaveformRow ?? (
+            {mediaRow ?? (
               <ProgressRow pct={pct} sv={{ ...sv, fill }} elapsed={elapsed} remaining={remaining} showTimes={showTimes} />
             )}
           </div>
@@ -473,7 +543,7 @@ export function ModernNowPlaying({
           </div>
         </div>
         {showProgress &&
-          (WaveformRow ?? (
+          (mediaRow ?? (
             <ProgressRow pct={pct} sv={{ ...sv, fill }} elapsed={elapsed} remaining={remaining} showTimes={showTimes} />
           ))}
       </div>
