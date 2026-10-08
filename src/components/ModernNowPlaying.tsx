@@ -8,6 +8,7 @@ import type { BarIdle } from "@/lib/audio/bar-levels";
 import type { Orientation } from "@/lib/audio/types";
 import { useSensorVisualSource } from "@/hooks/use-sensor-visual-source";
 import { trackPeaks } from "@/lib/waveform-peaks";
+import { CaptureVisualizerRow } from "@/components/CaptureVisualizerRow";
 
 /**
  * Modern now-playing widget.
@@ -86,6 +87,14 @@ export interface ModernNowPlayingProps {
    * idle states show instead).
    */
   liveLevel?: number;
+  /**
+   * Pinned Web Audio capture devices (stable `enumerateDevices()` ids). When
+   * non-empty and a visualizer view is on, each device renders its own
+   * labeled live row (stacked), fed by real-time Web Audio capture —
+   * independent of the bridge's ~1 Hz sensor ceiling. Empty/undefined falls
+   * back to the single `liveLevel` sensor row.
+   */
+  captureDeviceIds?: string[];
   /** Standard chrome: custom title / icon / accent / background image. */
   chrome?: ModernChromeSpec;
   className?: string;
@@ -358,6 +367,7 @@ export function ModernNowPlaying({
   visualizerLoading = false,
   visualizerOrientation = "horizontal",
   liveLevel,
+  captureDeviceIds,
   chrome,
   className,
 }: ModernNowPlayingProps) {
@@ -438,8 +448,47 @@ export function ModernNowPlaying({
     </div>
   ) : null;
 
-  /** Visualizer views replace the progress bar; `visualizer` wins. */
-  const mediaRow = VisualizerRow ?? WaveformRow;
+  /**
+   * Pinned capture devices: one labeled live row each, stacked. Each row owns
+   * its own Web Audio capture (real-time), so several sources show at once.
+   * Shown only while a visualizer view is on.
+   */
+  const captureRows =
+    captureDeviceIds && captureDeviceIds.length > 0 && visual ? (
+      <div className="flex w-full flex-col gap-1.5">
+        {captureDeviceIds.map((id) => (
+          <CaptureVisualizerRow
+            key={id}
+            deviceId={id}
+            waveform={waveform}
+            visualizer={visualizer}
+            waveformVariant={waveformVariant}
+            waveformMode={waveformMode}
+            waveformBarWidth={waveformBarWidth}
+            waveformBarGap={waveformBarGap}
+            waveformBarRadius={waveformBarRadius}
+            waveformMinBarHeight={waveformMinBarHeight}
+            waveformLineWidth={waveformLineWidth}
+            waveformFadeEdges={waveformFadeEdges}
+            waveformFadeWidth={waveformFadeWidth}
+            waveformSensitivity={waveformSensitivity}
+            visualizerBarCount={visualizerBarCount}
+            visualizerAlign={visualizerAlign}
+            visualizerMirrored={visualizerMirrored}
+            visualizerMinLevel={visualizerMinLevel}
+            visualizerIdle={visualizerIdle}
+            visualizerLoading={visualizerLoading}
+            visualizerOrientation={visualizerOrientation}
+          />
+        ))}
+      </div>
+    ) : null;
+
+  /**
+   * Visualizer views replace the progress bar; capture rows (pinned devices)
+   * win over the single sensor row; `visualizer` wins over `waveform`.
+   */
+  const mediaRow = captureRows ?? VisualizerRow ?? WaveformRow;
 
   const boxStyle = {
     background: sv.background,

@@ -61,6 +61,20 @@ const MODERN_SETTINGS: ModuleSetting[] = [
     sourcePlugin: "plugins.audio-level-meter.",
   },
   {
+    key: "liveCapture",
+    label: "Live capture (Web Audio, real-time)",
+    type: "boolean",
+    default: false,
+  },
+  {
+    key: "liveSources",
+    label: "Capture devices (one visualizer row each)",
+    type: "select",
+    default: "",
+    optionsFrom: "media",
+    multiple: true,
+  },
+  {
     key: "waveformVariant",
     label: "Waveform style",
     type: "select",
@@ -220,6 +234,21 @@ const MODERN_SETTINGS: ModuleSetting[] = [
   },
 ];
 
+/**
+ * The pinned Web Audio capture devices (one visualizer row each). Only active
+ * while `liveCapture` is on; the comma-separated `liveSources` value is split
+ * into stable device ids. Empty/undefined → fall back to the single sensor
+ * row.
+ */
+function captureDeviceIdsOf(cfg: ModuleSettings): string[] | undefined {
+  if (!Boolean(cfg.liveCapture)) return undefined;
+  const ids = String(cfg.liveSources ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  return ids.length > 0 ? ids : undefined;
+}
+
 function modernProps(mod: DashboardModule, s?: ModuleSettings) {
   const cfg = effectiveSettings(mod, s);
   return {
@@ -251,6 +280,7 @@ function modernProps(mod: DashboardModule, s?: ModuleSettings) {
     visualizerIdle: String(cfg.visualizerIdle) as BarIdle,
     visualizerLoading: Boolean(cfg.visualizerLoading),
     visualizerOrientation: String(cfg.visualizerOrientation) as Orientation,
+    captureDeviceIds: captureDeviceIdsOf(cfg),
     chrome: chromeOf(cfg),
   };
 }

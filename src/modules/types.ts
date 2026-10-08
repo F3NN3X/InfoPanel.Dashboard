@@ -26,14 +26,23 @@ export interface ModuleSetting {
     applies?: ModuleSettings;
   }[];
   /**
-   * For type "select": set to "sources" to resolve the options from the live
-   * sensor map at render time (the containers `sourcePlugin` currently
-   * exposes), instead of the static `options` list. Wired to real sensor
-   * data — no hardcoded device lists.
+   * For type "select": where the option list comes from instead of the static
+   * `options`.
+   * - `"sources"` — the containers `sourcePlugin` currently exposes (live
+   *   sensor data, no hardcoded device lists).
+   * - `"media"` — the browser's audio *capture* devices (live
+   *   `enumerateDevices()`, no bridge involved). Used for the Web-Audio
+   *   live-capture source binding.
    */
-  optionsFrom?: "sources";
+  optionsFrom?: "sources" | "media";
   /** Key prefix whose containers become the dynamic select's options. */
   sourcePlugin?: string;
+  /**
+   * For type "select": allow picking several options. The value is stored as
+   * a comma-separated string ("" = none). Rendered as a checkbox list in the
+   * studio.
+   */
+  multiple?: boolean;
   /** Bounds/step for type "number" (rendered as a slider when set). */
   min?: number;
   max?: number;
