@@ -122,6 +122,9 @@ export function PlacementFrame({
     const target = e.target as HTMLElement;
     if (target.closest("button, input, select, a, [data-no-drag]")) return;
     e.preventDefault();
+    // preventDefault() suppresses the click event in Chromium, so the
+    // frame's onClick={onSelect} never fires — select on the press itself.
+    onSelect?.();
     const startX = e.clientX;
     const startY = e.clientY;
     const startCol = placement.colStart;
