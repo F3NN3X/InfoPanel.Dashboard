@@ -7,6 +7,7 @@ import { BarVisualizer } from "@/components/ui/bar-visualizer";
 import type { BarIdle } from "@/lib/audio/bar-levels";
 import type { Orientation } from "@/lib/audio/types";
 import { useSensorVisualSource } from "@/hooks/use-sensor-visual-source";
+import { API_BASE } from "@/hooks/useSensors";
 import { trackPeaks } from "@/lib/waveform-peaks";
 import { CaptureVisualizerRow } from "@/components/CaptureVisualizerRow";
 
@@ -24,8 +25,10 @@ import { CaptureVisualizerRow } from "@/components/CaptureVisualizerRow";
  *                progress (the "COMPACT" reference)
  * - `simple`   — small zones: small art + stacked text (the "SIMPLE" reference)
  *
- * The surface can be tinted with the cover art's dominant color (sampled
- * onto a small canvas; cross-origin art degrades to an untinted surface).
+ * The surface can be tinted with the cover art's dominant color (a
+ * Vibrant-style palette sampled on a small canvas through the bridge's
+ * image proxy; cross-origin art the proxy cannot reach degrades to an
+ * untinted surface).
  */
 
 export type ModernVariant = "card" | "standard" | "compact" | "simple";
@@ -45,6 +48,12 @@ export interface ModernNowPlayingProps {
   style?: ModernStyle;
   /** Tint the surface with the cover art's dominant color. */
   tint?: boolean;
+  /**
+   * Use the cover art as a blurred, darkened full-bleed background behind the
+   * content (the nutty.gg now-playing look). The semi-transparent glass
+   * surface lets it show through; opaque matte surfaces cover it.
+   */
+  artBackground?: boolean;
   showTimes?: boolean;
   showProgress?: boolean;
   /**
@@ -170,6 +179,142 @@ export function makeSurface(style: ModernStyle, tint: RGB | null): Surface {
   };
 }
 
+/**
+ * A Vibrant-style palette of roles sampled from the cover art: the dominant
+ * saturated color (`vibrant`, the accent) plus its light/dark variants for
+ * the surface base. Built saturation-weighted (see `computeArtTint`), not a
+ * flat pixel average, so a cover with one strong color tints with that
+ * color instead of a muddy gray average.
+ */
+export interface ArtTint {
+  vibrant: RGB;
+  light: RGB;
+  dark: RGB;
+}
+
+/**
+ * The surface built from the cover-art palette roles — the same mixes as
+ * `makeSurface`, driven by the palette instead of a single average color.
+ */
+export function makeSurfacePalette(style: ModernStyle, tint: ArtTint): Surface {
+  if (style === "matte-light") {
+    return {
+      background: rgba(tint.light),
+      fg: "rgb(24, 24, 27)",
+      muted: "rgba(24, 24, 27, 0.6)",
+      track: "rgba(24, 24, 27, 0.16)",
+      fill: rgba(darken(tint.vibrant, 0.12)),
+      ring: "rgba(255, 255, 255, 0.4)",
+    };
+  }
+  if (style === "matte-dark") {
+    return {
+      background: rgba(tint.dark),
+      fg: "rgb(250, 250, 250)",
+      muted: "rgba(250, 250, 250, 0.6)",
+      track: "rgba(255, 255, 255, 0.14)",
+      fill: rgba(lighten(tint.vibrant, 0.4)),
+      ring: "rgba(255, 255, 255, 0.1)",
+    };
+  }
+  // glass
+  return {
+    background: `linear-gradient(155deg, ${rgba(lighten(tint.vibrant, 0.15), 0.45)} 0%, ${rgba(
+      tint.dark,
+      0.8
+    )} 100%)`,
+    fg: "rgb(250, 250, 250)",
+    muted: "rgba(250, 250, 250, 0.65)",
+    track: "rgba(255, 255, 255, 0.16)",
+    fill: rgba(lighten(tint.vibrant, 0.3)),
+    ring: "rgba(255, 255, 255, 0.12)",
+  };
+}
+
+const rgbToHsl = (
+  r: number,
+  g: number,
+  b: number
+): { h: number; s: number; l: number } => {
+  const rn = r / 255;
+  const gn = g / 255;
+  const bn = b / 255;
+  const max = Math.max(rn, gn, bn);
+  const min = Math.min(rn, gn, bn);
+  const l = (max + min) / 2;
+  if (max === min) return { h: 0, s: 0, l };
+  const d = max - min;
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+  let h: number;
+  if (max === rn) h = (gn - bn) / d + (gn < bn ? 6 : 0);
+  else if (max === gn) h = (bn - rn) / d + 2;
+  else h = (rn - gn) / d + 4;
+  return { h: h * 60, s, l };
+};
+
+const hslToRgb = (h: number, s: number, l: number): RGB => {
+  const c = (1 - Math.abs(2 * l - 1)) * s;
+  const hp = (((h % 360) + 360) % 360) / 60;
+  const x = c * (1 - Math.abs((hp % 2) - 1));
+  let r = 0;
+  let g = 0;
+  let b = 0;
+  if (hp < 1) [r, g, b] = [c, x, 0];
+  else if (hp < 2) [r, g, b] = [x, c, 0];
+  else if (hp < 3) [r, g, b] = [0, c, x];
+  else if (hp < 4) [r, g, b] = [0, x, c];
+  else if (hp < 5) [r, g, b] = [x, 0, c];
+  else [r, g, b] = [c, 0, x];
+  const m = l - c / 2;
+  return [
+    Math.round((r + m) * 255),
+    Math.round((g + m) * 255),
+    Math.round((b + m) * 255),
+  ];
+};
+
+/**
+ * Vibrant-style palette from the art's pixels: the hue bin whose pixels
+ * carry the most saturation-weighted mass becomes the accent. Near-gray art
+ * (no saturated mass) returns null, so the surface stays untinted rather
+ * than muddy.
+ */
+export function computeArtTint(data: Uint8ClampedArray): ArtTint | null {
+  const bins = 36;
+  const weight = new Float64Array(bins);
+  const hSum = new Float64Array(bins);
+  const sSum = new Float64Array(bins);
+  const lSum = new Float64Array(bins);
+  let saturatedMass = 0;
+  let pixels = 0;
+  for (let i = 0; i < data.length; i += 4) {
+    if (data[i + 3] < 128) continue;
+    pixels += 1;
+    const { h, s, l } = rgbToHsl(data[i], data[i + 1], data[i + 2]);
+    if (s < 0.12) continue;
+    const bin = Math.min(bins - 1, Math.floor(h / (360 / bins)));
+    const w = s * s * (1 - Math.abs(l - 0.5));
+    weight[bin] += w;
+    hSum[bin] += w * h;
+    sSum[bin] += w * s;
+    lSum[bin] += w * l;
+    saturatedMass += w;
+  }
+  if (pixels === 0 || saturatedMass < 0.02 * pixels) return null;
+  let best = 0;
+  for (let b = 1; b < bins; b += 1) if (weight[b] > weight[best]) best = b;
+  if (weight[best] <= 0) return null;
+  const h = hSum[best] / weight[best];
+  const s = Math.max(0.45, sSum[best] / weight[best]);
+  const l = Math.min(0.62, Math.max(0.38, lSum[best] / weight[best]));
+  const vibrant = hslToRgb(h, s, l);
+  return {
+    vibrant,
+    light: lighten(vibrant, 0.74),
+    dark: darken(vibrant, 0.72),
+  };
+}
+
 /** Measure the rendered size of an element (for the auto layout pick). */
 export function useElementSize() {
   const ref = useRef<HTMLDivElement | null>(null);
@@ -190,46 +335,85 @@ export function useElementSize() {
   return { ref, w: size.w, h: size.h };
 }
 
+const loadImageFrom = (src: string) =>
+  new Promise<HTMLImageElement>((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("image load failed"));
+    img.src = src;
+  });
+
 /**
- * Average color of the cover art. Drawing a cross-origin image taints the
- * canvas and `getImageData` throws — in that case there is no tint.
+ * Load the cover art for pixel sampling. The local cover-art server sends no
+ * CORS headers, so a direct cross-origin load taints the canvas and
+ * `getImageData` throws. First fetch the bytes through the bridge's
+ * same-origin image proxy (blob URLs stay untainted); when the bridge is
+ * offline, fall back to a direct load (it works for same-origin or
+ * CORS-enabled art, and degrades to no tint otherwise).
  */
-export function useArtTint(url: string | undefined, enabled: boolean) {
-  const [tint, setTint] = useState<RGB | null>(null);
+async function loadTintableImage(url: string): Promise<HTMLImageElement | null> {
+  try {
+    const res = await fetch(
+      `${API_BASE}/api/image-proxy?url=${encodeURIComponent(url)}`
+    );
+    if (res.ok) {
+      const blob = await res.blob();
+      if (blob.size > 0) {
+        const objectUrl = URL.createObjectURL(blob);
+        try {
+          return await loadImageFrom(objectUrl);
+        } finally {
+          URL.revokeObjectURL(objectUrl);
+        }
+      }
+    }
+  } catch {
+    /* bridge offline — fall through to the direct load */
+  }
+  try {
+    return await loadImageFrom(url);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Vibrant-style cover-art palette (the `vibrant` accent + light/dark base
+ * roles), sampled through the bridge image proxy. Art the proxy cannot
+ * fetch (and that is not same-origin/CORS itself), or near-gray art with no
+ * saturated accent, yields null — the surface then stays untinted.
+ */
+export function useArtTint(url: string | undefined, enabled: boolean): ArtTint | null {
+  const [tint, setTint] = useState<ArtTint | null>(null);
   useEffect(() => {
     setTint(null);
     if (!url || !enabled) return;
     let cancelled = false;
-    const img = new Image();
-    img.onload = () => {
+    void (async () => {
+      const img = await loadTintableImage(url);
+      if (!img || cancelled) return;
       try {
-        const n = 8;
-        const c = document.createElement("canvas");
-        c.width = n;
-        c.height = n;
-        const ctx = c.getContext("2d");
+        const n = 16;
+        const canvas = document.createElement("canvas");
+        canvas.width = n;
+        canvas.height = n;
+        const ctx = canvas.getContext("2d", { willReadFrequently: true });
         if (!ctx) return;
         ctx.drawImage(img, 0, 0, n, n);
-        const d = ctx.getImageData(0, 0, n, n).data;
-        let r = 0;
-        let g = 0;
-        let b = 0;
-        for (let i = 0; i < d.length; i += 4) {
-          r += d[i];
-          g += d[i + 1];
-          b += d[i + 2];
+        let data: Uint8ClampedArray;
+        try {
+          data = ctx.getImageData(0, 0, n, n).data;
+        } catch {
+          return; // tainted canvas (direct cross-origin load): no tint
         }
-        const count = d.length / 4;
-        if (!cancelled)
-          setTint([Math.round(r / count), Math.round(g / count), Math.round(b / count)]);
+        const palette = computeArtTint(data);
+        if (!cancelled) setTint(palette);
       } catch {
-        /* cross-origin art: no tint */
+        /* sampling failed: no tint */
       }
-    };
-    img.src = url;
+    })();
     return () => {
       cancelled = true;
-      img.src = "";
     };
   }, [url, enabled]);
   return tint;
@@ -344,6 +528,7 @@ export function ModernNowPlaying({
   variant = "auto",
   style = "glass",
   tint = true,
+  artBackground = false,
   showTimes = true,
   showProgress = true,
   waveform = false,
@@ -374,7 +559,7 @@ export function ModernNowPlaying({
   const { ref, w, h } = useElementSize();
   const artTint = useArtTint(artUrl, tint);
   const v = pickVariant(w, h, variant);
-  const sv = makeSurface(style, artTint);
+  const sv = artTint ? makeSurfacePalette(style, artTint) : makeSurface(style, null);
   /** Accent color (standard option) overrides the surface's fill. */
   const fill = chrome?.accent || sv.fill;
   const pct = Math.min(100, Math.max(0, progress));
@@ -424,6 +609,7 @@ export function ModernNowPlaying({
           sensitivity={waveformSensitivity}
           aria-label="Live audio level"
           className="h-9 min-w-0 flex-1"
+          style={{ color: fill }}
         />
         {showTimes ? timesSpan(remaining) : null}
       </div>
@@ -443,6 +629,7 @@ export function ModernNowPlaying({
         orientation={visualizerOrientation}
         aria-label="Live audio level"
         className="h-9 min-w-0 flex-1"
+        style={{ color: fill }}
       />
       {showTimes ? timesSpan(remaining) : null}
     </div>
@@ -496,29 +683,52 @@ export function ModernNowPlaying({
     boxShadow: `inset 0 0 0 1px ${sv.ring}`,
   } as const;
 
+  /**
+   * Blurred, darkened cover-art background (nutty.gg look). Full-bleed and
+   * scaled up to hide the blur edge; the semi-transparent glass surface
+   * (drawn by `boxStyle`) lets it show through, matte surfaces cover it.
+   */
+  const artBg =
+    artBackground && artUrl ? (
+      <div
+        aria-hidden
+        className="absolute inset-0"
+        style={{
+          backgroundImage: `url(${artUrl})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          filter: "blur(28px) brightness(0.4) saturate(1.25)",
+          transform: "scale(1.15)",
+        }}
+      />
+    ) : null;
+
   let body: React.ReactNode;
   if (v === "card") {
     const art = Math.min(Math.max(96, Math.round(w * 0.45)), 220);
     body = (
-      <div className="flex h-full w-full flex-col overflow-hidden rounded-[20px] p-4" style={boxStyle}>
-        <div className="flex min-h-0 flex-1 items-center justify-center">
-          <Art url={artUrl} size={art} radius={16} fg={sv.fg} idle={idle} />
+      <div className="relative h-full w-full overflow-hidden rounded-[20px] p-4" style={boxStyle}>
+        {artBg}
+        <div className="relative flex h-full w-full flex-col">
+          <div className="flex min-h-0 flex-1 items-center justify-center">
+            <Art url={artUrl} size={art} radius={16} fg={sv.fg} idle={idle} />
+          </div>
+          <div className="mt-3 flex flex-col items-center gap-0.5">
+            <div className="max-w-full truncate text-lg font-semibold tracking-tight">
+              {trackLabel}
+            </div>
+            <div className="max-w-full truncate text-sm" style={{ color: sv.muted }}>
+              {artistLabel}
+            </div>
+          </div>
+          {showProgress && (
+            <div className="mt-3">
+              {mediaRow ?? (
+                <ProgressRow pct={pct} sv={{ ...sv, fill }} elapsed={elapsed} remaining={remaining} showTimes={showTimes} />
+              )}
+            </div>
+          )}
         </div>
-        <div className="mt-3 flex flex-col items-center gap-0.5">
-          <div className="max-w-full truncate text-lg font-semibold tracking-tight">
-            {trackLabel}
-          </div>
-          <div className="max-w-full truncate text-sm" style={{ color: sv.muted }}>
-            {artistLabel}
-          </div>
-        </div>
-        {showProgress && (
-          <div className="mt-3">
-            {mediaRow ?? (
-              <ProgressRow pct={pct} sv={{ ...sv, fill }} elapsed={elapsed} remaining={remaining} showTimes={showTimes} />
-            )}
-          </div>
-        )}
       </div>
     );
   } else if (v === "compact") {
@@ -527,6 +737,7 @@ export function ModernNowPlaying({
         className="relative h-full w-full overflow-hidden rounded-full px-4"
         style={boxStyle}
       >
+        {artBg}
         <div
           className="absolute inset-y-0 left-0 rounded-full"
           style={{
@@ -559,18 +770,24 @@ export function ModernNowPlaying({
   } else if (v === "simple") {
     const art = Math.min(56, Math.max(40, Math.round(h * 0.5)));
     body = (
-      <div className="flex h-full w-full items-center gap-3 overflow-hidden rounded-xl p-3" style={boxStyle}>
-        <Art url={artUrl} size={art} radius={10} fg={sv.fg} idle={idle} />
-        <div className="min-w-0 flex-1">
-          <div className="truncate text-sm font-semibold">{trackLabel}</div>
-          <div className="truncate text-xs" style={{ color: sv.muted }}>
-            {artistLabel}
-          </div>
-          {showTimes && hasTimes && (
-            <div className="text-[10px] tabular-nums" style={{ color: sv.muted }}>
-              {elapsed ?? "0:00"} / {remaining ?? "--:--"}
+      <div
+        className="relative h-full w-full overflow-hidden rounded-xl p-3"
+        style={boxStyle}
+      >
+        {artBg}
+        <div className="relative flex h-full w-full items-center gap-3">
+          <Art url={artUrl} size={art} radius={10} fg={sv.fg} idle={idle} />
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-sm font-semibold">{trackLabel}</div>
+            <div className="truncate text-xs" style={{ color: sv.muted }}>
+              {artistLabel}
             </div>
-          )}
+            {showTimes && hasTimes && (
+              <div className="text-[10px] tabular-nums" style={{ color: sv.muted }}>
+                {elapsed ?? "0:00"} / {remaining ?? "--:--"}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -579,22 +796,25 @@ export function ModernNowPlaying({
     const art = Math.min(Math.max(56, Math.round(h * 0.6)), 96);
     body = (
       <div
-        className="flex h-full w-full flex-col justify-center gap-3 overflow-hidden rounded-xl p-4"
+        className="relative h-full w-full overflow-hidden rounded-xl p-4"
         style={boxStyle}
       >
-        <div className="flex min-w-0 items-center gap-4">
-          <Art url={artUrl} size={art} radius={12} fg={sv.fg} idle={idle} />
-          <div className="min-w-0 flex-1">
-            <div className="truncate text-lg font-semibold tracking-tight">{trackLabel}</div>
-            <div className="truncate text-sm" style={{ color: sv.muted }}>
-              {artistLabel}
+        {artBg}
+        <div className="relative flex h-full w-full flex-col justify-center gap-3">
+          <div className="flex min-w-0 items-center gap-4">
+            <Art url={artUrl} size={art} radius={12} fg={sv.fg} idle={idle} />
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-lg font-semibold tracking-tight">{trackLabel}</div>
+              <div className="truncate text-sm" style={{ color: sv.muted }}>
+                {artistLabel}
+              </div>
             </div>
           </div>
+          {showProgress &&
+            (mediaRow ?? (
+              <ProgressRow pct={pct} sv={{ ...sv, fill }} elapsed={elapsed} remaining={remaining} showTimes={showTimes} />
+            ))}
         </div>
-        {showProgress &&
-          (mediaRow ?? (
-            <ProgressRow pct={pct} sv={{ ...sv, fill }} elapsed={elapsed} remaining={remaining} showTimes={showTimes} />
-          ))}
       </div>
     );
   }

@@ -36,6 +36,12 @@ import {
 const MODERN_SETTINGS: ModuleSetting[] = [
   ...STANDARD_SETTINGS,
   { key: "tint", label: "Tint from cover art", type: "boolean", default: true },
+  {
+    key: "artBackground",
+    label: "Cover art background (blurred)",
+    type: "boolean",
+    default: false,
+  },
   { key: "showTimes", label: "Times", type: "boolean", default: true },
   { key: "showProgress", label: "Progress", type: "boolean", default: true },
   {
@@ -253,6 +259,7 @@ function modernProps(mod: DashboardModule, s?: ModuleSettings) {
     variant: String(cfg.layout) as ModernVariant | "auto",
     style: String(cfg.surface) as ModernStyle,
     tint: Boolean(cfg.tint),
+    artBackground: Boolean(cfg.artBackground),
     showTimes: Boolean(cfg.showTimes),
     showProgress: Boolean(cfg.showProgress),
     waveform: Boolean(cfg.waveform),

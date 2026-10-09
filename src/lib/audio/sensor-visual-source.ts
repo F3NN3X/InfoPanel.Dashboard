@@ -52,8 +52,11 @@ const defaultShape = (bandCount: number): Float32Array => {
  *   variant scrolls smoothly (each entry is one 50 ms sample, with
  *   `historyIntervalMs` + `historyUpdatedAt` for the playback delay).
  *
- * Once the level has settled and the ring is full the timer sleeps; a new
- * `setLevel` wakes it. A settled, silent level therefore costs no frames.
+ * While audio plays (a non-zero level) the timer runs continuously, pushing a
+ * history sample every `intervalMs` so the scrolling variant animates at a
+ * steady cadence even between the sensor's ~1 Hz pushes. Once the level
+ * settles to silence and the ring is full the timer sleeps; a new `setLevel`
+ * wakes it. A settled, silent level therefore costs no frames.
  */
 export function createSensorVisualSource(
   options: SensorVisualSourceOptions = {}
@@ -134,14 +137,24 @@ export function createSensorVisualSource(
       historyFilled += 1;
     }
 
+    // While there is audio (smooth > threshold) emit every tick so the history
+    // ring advances at `intervalMs` and the scrolling waveform animates
+    // smoothly, even when the level is steady. A steady level would otherwise
+    // settle after one push and the ring would only advance at the sensor's
+    // ~1 Hz rate, making the scroll look frozen.
+    const playing = smooth > 0.001;
     const changed =
-      Math.abs(smooth - lastEmit) > 0.0005 || historyFilled < historyLength;
+      Math.abs(smooth - lastEmit) > 0.0005 ||
+      historyFilled < historyLength ||
+      playing;
     if (changed || dirty) {
       lastEmit = smooth;
       dirty = false;
       emit();
-      // Settled and the ring is full: sleep until the next level change.
-      if (smooth === target && historyFilled >= historyLength) {
+      // Settled and silent and the ring is full: sleep until the next level
+      // change. While audio plays the timer keeps running so the scroll stays
+      // smooth.
+      if (smooth === target && historyFilled >= historyLength && !playing) {
         stopTimer();
       }
     }
