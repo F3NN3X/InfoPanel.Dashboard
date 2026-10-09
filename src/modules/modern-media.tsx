@@ -334,7 +334,7 @@ function resolve(sensors: SensorMap, primary: string, fallback: string) {
 
 export const spotifyModernModule: DashboardModule = {
   id: "spotifymodern",
-  title: "Now Playing (modern)",
+  title: "Spotify (modern)",
   minCols: 2,
   minRows: 1,
   matches: (key) =>
