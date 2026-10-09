@@ -13,7 +13,7 @@ import {
  * HWiNFO exports (the `libre.*` and `hwinfo.*` sensor keys) as a modern
  * list with kind-colored dots (temp / fan / power). One component
  * (`ModernHardware`) picks card / standard / compact / simple from the
- * measured zone size. The classic `hardware` module stays untouched.
+ * measured zone size.
  */
 
 const HARDWARE_MODERN_SETTINGS: ModuleSetting[] = [

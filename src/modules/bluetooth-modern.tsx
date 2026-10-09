@@ -14,8 +14,7 @@ const P = "plugins.bluetooth-battery-plugin.";
  * battery levels (the main container holds bt_status; each device gets
  * its own container whose entries are looked up by display name). One
  * component (`ModernBluetooth`) picks card / standard / compact / simple
- * from the measured zone size. The classic `bluetooth` module stays
- * untouched.
+ * from the measured zone size.
  */
 
 const BLUETOOTH_MODERN_SETTINGS: ModuleSetting[] = [

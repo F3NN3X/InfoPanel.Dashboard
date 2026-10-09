@@ -14,8 +14,7 @@ const FPS = "plugins.fps-plugin.";
  * Modern FPS / performance widget — a single FPS ring gauge (value vs.
  * refresh rate) with 1% low / frame time / GPU around it. One component
  * (`ModernFps`) picks card / standard / compact / simple from the
- * measured zone size. Reads the same RTSS / PresentMon sources as the
- * classic `fps` module, which stays untouched.
+ * measured zone size. Reads the same RTSS / PresentMon sources.
  */
 
 const FPS_MODERN_SETTINGS: ModuleSetting[] = [

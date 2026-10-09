@@ -15,7 +15,6 @@ import {
  * containers). The game banner is the widget background with the
  * transparent game logo overlaid on top. One component (`ModernSteam`)
  * picks card / standard / compact / simple from the zone's measured size.
- * The classic `steam` module stays untouched.
  */
 
 const P = "plugins.InfoPanel.SteamAPI.";

@@ -58,7 +58,7 @@ export interface ModuleSetting {
  * unclaimed sensor keys to the generic fallback grid.
  */
 export interface DashboardModule {
-  /** Stable id, e.g. "system" | "spotify" | "hardware" */
+  /** Stable id, e.g. "systemmodern" | "spotifymodern" | "hardwaremodern" */
   id: string;
   /** Section title */
   title: string;

@@ -31,8 +31,6 @@ import {
  *
  * - `spotifymodern` — the spotify-plugin / direct-push keys
  * - `mediamodern`   — the media-plugin keys (adds elapsed/remaining times)
- *
- * The classic `spotify` / `media` modules are left untouched.
  */
 
 const MODERN_SETTINGS: ModuleSetting[] = [

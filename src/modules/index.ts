@@ -1,7 +1,3 @@
-import { systemModule } from "./system";
-import { hardwareModule } from "./hardware";
-import { spotifyModule } from "./spotify";
-import { mediaModule } from "./media";
 import {
   spotifyModernModule,
   mediaModernModule,
@@ -15,12 +11,7 @@ import { audioModernModule } from "./audio-modern";
 import { wavelinkModernModule } from "./wavelink-modern";
 import { bluetoothModernModule } from "./bluetooth-modern";
 import { networkModernModule } from "./network-modern";
-import { steamModule } from "./steam";
-import { weatherModule } from "./weather";
-import { fpsModule } from "./fps";
-import { audioModule } from "./audio";
 import { vbzModule } from "./vbz";
-import { bluetoothModule } from "./bluetooth";
 import { notificationsModule } from "./notifications";
 import { textfileModule } from "./textfile";
 import { streamdeckModule } from "./streamdeck";
@@ -33,25 +24,16 @@ import type { DashboardModule, SensorMap } from "./types";
  * everything registered and feeds unclaimed keys to the generic fallback.
  */
 export const modules: DashboardModule[] = [
-  systemModule,
   systemModernModule,
-  spotifyModule,
   spotifyModernModule,
-  mediaModule,
   mediaModernModule,
-  steamModule,
   steamModernModule,
-  hardwareModule,
   hardwareModernModule,
-  weatherModule,
   weatherModernModule,
-  fpsModule,
   fpsModernModule,
-  audioModule,
   audioModernModule,
   wavelinkModernModule,
   vbzModule,
-  bluetoothModule,
   bluetoothModernModule,
   networkModernModule,
   notificationsModule,

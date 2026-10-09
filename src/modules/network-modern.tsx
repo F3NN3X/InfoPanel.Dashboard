@@ -15,9 +15,6 @@ const NET = "libre.ethernet_";
  * and link utilization, plus optional rolling speed sparklines. One
  * component (`ModernNetwork`) picks card / standard / compact / simple
  * from the measured zone size.
- *
- * The classic `hardware` module also surfaces the same ethernet keys as
- * plain rows; this widget gives them a dedicated, formatted view.
  */
 
 const NETWORK_MODERN_SETTINGS: ModuleSetting[] = [

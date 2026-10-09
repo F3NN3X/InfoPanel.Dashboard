@@ -10,8 +10,7 @@ import {
 /**
  * Modern system widget — ring-gauge redesign of the classic system module
  * (CPU / RAM rings + bridge status). One component (`ModernSystem`) picks
- * card / standard / compact / simple from the measured zone size. The
- * classic `system` module stays untouched.
+ * card / standard / compact / simple from the measured zone size.
  */
 
 const SYSTEM_MODERN_SETTINGS: ModuleSetting[] = [

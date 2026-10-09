@@ -16,8 +16,7 @@ const P = "plugins.audio-level-meter.";
  * Modern audio widget — per-device level metering (the AudioLevelMeter
  * plugin's dynamic containers) as name + big level % + level bar + peak
  * / L/R / volume details. One component (`ModernAudio`) picks card /
- * standard / compact / simple from the measured zone size. The classic
- * `audio` module stays untouched.
+ * standard / compact / simple from the measured zone size.
  *
  * Entries are resolved by key suffix (the AudioMeter plugin names its
  * display strings "🎵 {Device} · Level", so matching the stable key

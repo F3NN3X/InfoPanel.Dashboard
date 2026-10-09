@@ -14,7 +14,7 @@ import {
  *
  * One component (`ModernWeather`) picks card / standard / compact / simple
  * from the zone's measured size and tints the surface from the current
- * condition. The classic `weather` module stays untouched.
+ * condition.
  */
 
 const P = "plugins.yr-weather-plugin.";
