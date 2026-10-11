@@ -10,6 +10,18 @@ export const CONFIG_URL = "/api/config";
 export const CONFIG_EVENTS_URL = "/events/config";
 export const IMAGE_PROXY_URL = "/api/image-proxy";
 
+/**
+ * The config saved on the server, or null when nothing is saved yet.
+ * Throws when the server can't be reached or answers with an error.
+ */
+export async function fetchConfig(): Promise<Partial<DashboardConfig> | null> {
+  const res = await fetch(CONFIG_URL, { cache: "no-store" });
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`config load failed: ${res.status}`);
+  const parsed = (await res.json()) as Partial<DashboardConfig> | null;
+  return parsed && Array.isArray(parsed.profiles) ? parsed : null;
+}
+
 /** Save the config on the server, where every kiosk page reads it. */
 export async function pushConfig(config: DashboardConfig): Promise<void> {
   const res = await fetch(CONFIG_URL, {

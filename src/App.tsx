@@ -8,7 +8,7 @@ import { applyTheme } from "@/lib/theme";
 import { setApiBase } from "@/lib/data-api";
 import {
   CONFIG_EVENTS_URL,
-  CONFIG_URL,
+  fetchConfig,
   pushConfig,
 } from "@/lib/dashboard-server";
 import {
@@ -20,6 +20,14 @@ import {
   type DashboardConfig,
 } from "@/lib/layout";
 import { cn } from "@/lib/utils";
+
+/** ?profile=<id> pins a profile (kiosk shortcuts, testing). */
+function withPinnedProfile(config: DashboardConfig): DashboardConfig {
+  const pinned = new URLSearchParams(window.location.search).get("profile");
+  return pinned && config.profiles.some((p) => p.id === pinned)
+    ? { ...config, activeProfile: pinned }
+    : config;
+}
 
 // The studio is an editing tool; kiosk pages never download it.
 const StudioView = lazy(() =>
@@ -39,12 +47,7 @@ export default function App() {
   const [config, setConfig] = useState<DashboardConfig>(() => {
     const loaded = loadConfig();
     setApiBase(loaded.dataApiUrl); // before the first sensor connection
-    // ?profile=<id> pins a profile (kiosk shortcuts, testing).
-    const pinned = new URLSearchParams(window.location.search).get("profile");
-    if (pinned && loaded.profiles.some((p) => p.id === pinned)) {
-      return { ...loaded, activeProfile: pinned };
-    }
-    return loaded;
+    return withPinnedProfile(loaded);
   });
   const [studio, setStudio] = useState(
     () => new URLSearchParams(window.location.search).has("studio")
@@ -60,18 +63,43 @@ export default function App() {
   // Persist the config (layout, profiles, theme) on every change.
   useEffect(() => saveConfig(config), [config]);
 
+  // Editing pages start from the server's copy: until it has been read, this
+  // page's own storage (or the defaults, in a fresh browser) must not be
+  // pushed over it. If the server can't be read, only Save pushes.
+  const [synced, setSynced] = useState(false);
+  useEffect(() => {
+    if (kiosk) return;
+    let alive = true;
+    fetchConfig()
+      .then((server) => {
+        if (!alive) return;
+        if (server) {
+          const merged = withPinnedProfile(mergeConfig(server));
+          saveConfig(merged);
+          setConfig(merged);
+        }
+        setSynced(true);
+      })
+      .catch(() => {
+        // Server offline — keep the local copy and don't auto-push.
+      });
+    return () => {
+      alive = false;
+    };
+  }, [kiosk]);
+
   // Push the full config (profiles with placements, theme) to the server.
   // Kiosk pages (InfoPanel's WebView2) keep their own isolated storage, so
   // this shared copy is how they reflect the studio's latest state.
   useEffect(() => {
-    if (kiosk) return; // kiosk pages only read; don't push from them
+    if (kiosk || !synced) return; // kiosk pages only read; don't push from them
     const t = window.setTimeout(() => {
       pushConfig(config).catch(() => {
         // Server offline — kiosk pages keep their last copy.
       });
     }, 400);
     return () => window.clearTimeout(t);
-  }, [config, kiosk]);
+  }, [config, kiosk, synced]);
 
   // Kiosk: pull the shared config on load and again whenever the server
   // reports a newer version (a studio edit or Save), so the display updates
@@ -81,16 +109,9 @@ export default function App() {
     let alive = true;
     const pull = async () => {
       try {
-        const res = await fetch(CONFIG_URL, { cache: "no-store" });
-        if (!res.ok) return; // nothing saved yet — the local copy stands
-        const parsed = (await res.json()) as Partial<DashboardConfig>;
-        if (!alive || !parsed || !Array.isArray(parsed.profiles)) return;
-        const merged = mergeConfig(parsed);
-        const pinned = new URLSearchParams(window.location.search).get(
-          "profile"
-        );
-        if (pinned && merged.profiles.some((p) => p.id === pinned))
-          merged.activeProfile = pinned;
+        const parsed = await fetchConfig();
+        if (!alive || !parsed) return; // nothing saved yet — the local copy stands
+        const merged = withPinnedProfile(mergeConfig(parsed));
         saveConfig(merged); // also seed the local copy (offline fallback)
         setConfig(merged);
       } catch {
@@ -209,13 +230,13 @@ export default function App() {
         {profile.placements
           .filter((p) => p.visible)
           .map((p) => (
-            <LivePlacement key={p.id} placement={p}>
-              {({ content, hasData, title }) => (
+            <LivePlacement key={p.id} placement={p} profileStyle={profile.style}>
+              {({ content, hasData, title, idle }) => (
                 <PlacementFrame
                   placement={p}
                   profile={profile}
                   studio={false}
-                  hasData={hasData}
+                  hasData={hasData && !idle}
                   title={title}
                 >
                   {content}
