@@ -26,6 +26,10 @@ in the standard style groups, on the Content tab otherwise
 | `color` | native color picker | `#rrggbb` (empty = auto) | — |
 | `icon` | icon grid (18 lucide icons + "none") | icon key from `lib/widget-icons.ts` | — |
 | `image` | URL field + live thumbnail | image URL (empty = none) | — |
+| `align` | 3×3 alignment picker + Spread toggle | `key` holds the horizontal value, `keyY` the vertical one (both written as one change) | `keyY` |
+
+Any setting can also list `keywords`: extra terms the settings search
+matches besides the label, key and option names.
 
 ### Presets (select options with `applies`)
 
@@ -86,8 +90,7 @@ Every adaptive (modern) widget spreads
 | `backgroundOn` | boolean | `false` | use that image behind the surface |
 | `autoScale` | boolean | `true` | scale the content with the zone (see Scaling) |
 | `scale` | number | `100` | size %, 50–200, on top of auto-scale |
-| `alignX` | select | `auto` | left / center / right / spread |
-| `alignY` | select | `auto` | top / middle / bottom |
+| `alignX` + `alignY` | align | `auto` | one picker: left / center / right / spread × top / middle / bottom |
 | `padding` | select | `auto` | inner padding, px |
 | `gap` | select | `auto` | gap between items, px |
 | `radius` | select | `auto` | corner radius, px or pill |
@@ -139,6 +142,37 @@ Module-specific options follow the standard block and keep their own keys
 (`tint`, `showTimes`, `forecastDays`, `dimBanner`, `maxRows`, …); per-element
 colors (e.g. the System widget's CPU / GPU / RAM / VRAM colors) join the
 Colors & type group.
+
+### Panels (`PANEL_SETTINGS`)
+
+A custom panel zone's look is its placement's `settings` too, rendered on
+the Style tab from `PANEL_SETTINGS` (`src/modules/standard-settings.ts`):
+the standard block without `preset`, `layout`, `autoScale` and `stroke`
+(a panel has no layout variants, design size or rings of its own), with
+two changes:
+
+| key | change |
+|---|---|
+| `label` | "Title (empty = hidden)": the panel's title line (`.wp-panel-title`) |
+| `surface` | default `panel`; options `none` / `panel` (card) / `bordered` (bordered card) before glass / matte-light / matte-dark |
+
+`alignX` + `alignY` place a panel whose **Fit in zone** is Hug; `padding`
+and `gap` are the fallbacks for the panel's own Gap / Padding fields;
+`customCss` is scoped to the zone like any widget's, and the PanelDef's
+`css` (the Code view, saved panels) joins it. The panel's arrangement and
+widgets are not settings: they live in `Placement.panel` (see
+[architecture.md](architecture.md#the-render-pipeline-of-a-panel-zone)).
+
+Panels saved before the look moved here keep `title` / `titleVisible` /
+`accent` / `background` on the PanelDef; loading copies them into `label`
+/ `accent` / `surface` (`normalizePanelPlacement`), and `panelSettings`
+reads them as fallbacks until then. A saved panel preset
+(`DashboardConfig.panelPresets`) stores these settings with the panel.
+
+The panel editor's alignment pickers (stack alignment, grid cell
+alignment, a widget's align self) reuse the `align` control
+(`AlignGrid`) with a **Stretch** toggle on the cross axis besides Spread;
+they write PanelDef / widget fields, not settings.
 
 ### Presets
 

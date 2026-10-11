@@ -150,12 +150,57 @@ Placement.settings
 - `Placement.design` (accent, background, title header) is applied by
   `PlacementFrame` around the content, separately from the widget settings.
 
+### The render pipeline of a panel zone
+
+A custom panel (`module: "panel"`) carries its own widget tree in
+`Placement.panel`; there is no module `render`. The model is
+`src/lib/panel-model.ts`: `PanelDef` (the arrangement - `layout` stack /
+grid / overlay, `direction`, `wrap`, `justify`, `align`, `gap`, `padding`,
+`columns` / `gridCols` / `gridRows`, `overlayAlign`, `scrim`,
+`bottomGridCols`, `fit` fill / hug, `css` - and the ordered `widgets`),
+`Widget` (one bindable item of a `WidgetKind`, with a `box` for its size
+and placement), the pure list edits the studio uses (`moveWidget`,
+`insertAfter`, `duplicateWidget`, `convertKind`, `withLayout`) and the Code
+view's guard (`parsePanelJson`).
+
+```
+Placement.panel + Placement.settings
+  → panelSettings(placement)                     own settings; legacy title / accent / background as fallback
+  → withProfileStyle(…, profile.style)
+  → <PanelView>                                  src/components/widgets/PanelView.tsx
+       → chromeOf(cfg) → <ModernChrome>          no design size: Size %, --wp-* variables,
+                                                  custom CSS + panel.css, background image
+            → div                                 places a hugging panel (fit: "hug") by alignX / alignY
+                 → .wp-panel                      panelCardStyle (surface box, padding, radius),
+                                                  panelScope (accent / text colors), panelVars (--panel-*)
+                      → <PanelStack>              stack or grid: panelLayoutStyle, widgetBoxStyle per cell
+                      → <PanelOverlay>            overlay: background image, scrim, three bands
+                           → <WidgetCell>         .wp-widget.wp-widget--{kind}, data-widget-*, scoped
+                                                  widget CSS, studio selection outline
+                                → <WidgetView>    the kind's renderer (studio: "pick a sensor" when unbound)
+```
+
+`src/components/widgets/panel-layout.ts` turns a `PanelDef` into CSS. The
+panel's own fields become `--panel-*` variables on `.wp-panel`
+(`panelVars`); the stack / grid container and the cells read them as
+`var(--panel-gap, <Style tab --wp-gap>, <built-in px>)`, so a panel that sets
+nothing keeps the old literal spacing, and panel CSS can set the variables
+too. `widgetBoxStyle` maps a widget's `box` (hug / fill / px per axis,
+`self`, grid `col` / `row`) and its `span` / `rowSpan` to flex or grid item
+styles. The CSS hook tree is in the [customization
+guide](customization-guide.md#styling-panels-with-css).
+
+`placementPrefixes` subscribes a panel zone to the sensor keys of its
+visible widgets, and a panel "has data" (renders in the kiosk) when at
+least one widget is visible.
+
 ## 3. Config
 
 ### Types (`src/lib/layout.ts`)
 
 - `DashboardConfig` - `version: 2`, `activeProfile` (a profile id or `"auto"`),
-  `profiles`, `theme`, `radius`, `dataApiUrl?`, `stylePresets?`, `sourcePrefs?`.
+  `profiles`, `theme`, `radius`, `dataApiUrl?`, `stylePresets?`,
+  `panelPresets?`, `sourcePrefs?`.
 - `MonitorProfile` - `id`, `name`, design `width`/`height`, `cols`, `rows`,
   `fit` (`"scroll"` with fixed `SCROLL_ROW_H` = 120 px rows, or `"fill"` to
   fill the viewport), `placements`, optional `style` (profile style) and
@@ -164,6 +209,15 @@ Placement.settings
   box (`colStart`, `rowStart`, `colSpan`, `rowSpan`), `visible`, `settings`,
   `design`, `panel`.
 - `StylePreset` - `{ id, name, settings }`, a named set of look-only keys.
+- `UserPanelPreset` (`src/lib/panel-model.ts`) - a panel the user saved
+  (Add > My panels): `{ id, name, panel, settings?, colSpan?, rowSpan? }`,
+  where `settings` is the panel's look (its `PANEL_SETTINGS` keys). The
+  built-in presets and the sensor-free layout starters are code
+  (`src/lib/panelPresets.ts`, `src/lib/panel-starters.ts`);
+  `allPanelPresets(config.panelPresets)` / `findPanelPreset` list and find
+  all three, and `userPanelPreset` adapts a saved one (every use clones its
+  panel with fresh ids). Saving, renaming and deleting are the pure config
+  edits in `src/components/studio/panel-preset-actions.ts`.
 
 ### Loading and migration
 
@@ -179,7 +233,20 @@ for both the local copy and the server copy:
   `SAMPLE_PROFILE_VERSION` / `ARCV2_PROFILE_VERSION`;
 - falls back to `activeProfile: "auto"` when the pinned id no longer exists;
 - merges `theme` over the default theme, and keeps `dataApiUrl` only when it
-  is a valid http(s) URL.
+  is a valid http(s) URL;
+- migrates every panel placement (`normalizePanelPlacement`): the panel is
+  normalized (`normalizePanel`: the legacy `"wrap"` or a missing layout
+  becomes a wrapping row stack, full-row kinds get `box.w: "fill"`;
+  idempotent) and the legacy `title` / `titleVisible` / `accent` /
+  `background` are copied into the placement's settings as `label` /
+  `accent` / `surface` (the PanelDef fields stay for older builds);
+- keeps only usable saved panels (`normalizePanelPresets`, a hand-written
+  guard: id, name, a panel with a widget list, object settings, whole-number
+  spans) and normalizes their panels.
+
+A panel added in the studio (`addPresetPlacement` / `assignPreset` in
+`studio-actions.ts`) goes through the same `normalizePanelPlacement`, so it
+has the current shape straight away; a saved panel brings its own settings.
 
 ### Where it is stored
 
@@ -295,6 +362,10 @@ back through the same setter, which means persistence, the debounced server
 push and the kiosk event stream treat them like any other edit. A change
 can carry a key (`<zone>:setting:<key>`, `zone-drag:<id>`, `theme:<token>`
 and so on): same-key changes less than 500 ms apart coalesce into one step.
+Panel field edits are keyed per field (`<zone>:panel:<field>`,
+`<zone>:panel-widget:<widget>:<field>`); structural edits (add, remove,
+reorder, duplicate, paste, change kind, Code view Apply) and the saved-panel
+edits carry no key, so each is its own step.
 The stacks hold 100 steps and live only while the studio is open; a config
 replaced from outside (the server copy loaded on open) clears them. When an
 undo removes the selected zone, the selection is cleared.
@@ -307,3 +378,19 @@ command palette (`command-palette.tsx`, Ctrl+K) lists `buildCommands` from
 action descriptor that `studio-view.tsx` carries out (the shortcuts share
 that dispatcher); `rankCommands` orders matches prefix > word start >
 substring. `shortcuts-dialog.tsx` is the cheat sheet.
+
+**Selection model.** `studio-view.tsx` keeps the selected zone and, for a
+panel zone, the selected widget (`{ zoneId, widgetId }`): the widget only
+counts while its zone is selected and still holds it, so selecting another
+zone, an undo or a delete drops it. The canvas selects it (a click inside
+the selected panel zone, or a double-click on a widget of another panel;
+`placement-frame.tsx` hit-tests `[data-widget-id]`), as do the layer list,
+the palette's *Select widget* and the breadcrumbs. With a widget selected
+the shortcuts run in widget mode (`ShortcutContext.widget`): Del, Ctrl+D,
+Ctrl+C / Ctrl+V and Alt+Up / Down map to `widget-*` actions that
+`panel-widget-actions.ts` carries out on the selected panel, while the
+arrow keys keep moving the zone; Esc steps out widget > zone > nothing. The
+palette and the zone's Duplicate / Remove tooltips drop their Ctrl+D / Del
+hints in widget mode. Widget names in the layers, crumbs and palette come
+from `widgetName` (`widget-kinds.ts`): the label, else the sensor's name
+from the Data API catalog, else the key's last segment.
