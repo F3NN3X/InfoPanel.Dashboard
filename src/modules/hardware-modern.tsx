@@ -1,6 +1,6 @@
 import { ModernHardware, type ModernHardwareRow } from "@/components/ModernHardware";
 import { liveText, liveValue } from "@/lib/sensors";
-import { chromeOf, STANDARD_SETTINGS } from "./standard-settings";
+import { chromeOf, GROUP_COLORS, STANDARD_SETTINGS } from "./standard-settings";
 import {
   effectiveSettings,
   type DashboardModule,
@@ -38,6 +38,9 @@ const HARDWARE_MODERN_SETTINGS: ModuleSetting[] = [
     ],
   },
   { key: "showFans", label: "Fan readings", type: "boolean", default: true },
+  { key: "tempColor", label: "Temperature dot color", type: "color", default: "", group: GROUP_COLORS },
+  { key: "fanColor", label: "Fan dot color", type: "color", default: "", group: GROUP_COLORS },
+  { key: "powerColor", label: "Power dot color", type: "color", default: "", group: GROUP_COLORS },
 ];
 
 /** Classify a reading by its name / unit for the dot color. */
@@ -106,6 +109,11 @@ export const hardwareModernModule: DashboardModule = {
         rows={rows}
         gauges={String(cfg.view) === "temps"}
         showFans={Boolean(cfg.showFans)}
+        kindColors={{
+          temp: String(cfg.tempColor ?? ""),
+          fan: String(cfg.fanColor ?? ""),
+          power: String(cfg.powerColor ?? ""),
+        }}
         layout={String(cfg.layout) as
           | "auto"
           | "card"

@@ -1,14 +1,26 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Train } from "lucide-react";
 import { findEntry, liveText } from "@/lib/sensors";
+import { ModernChrome } from "@/components/modern-chrome";
+import { byShape, flow, ws } from "@/components/widget-style";
+import { chromeOf, STYLE_SETTINGS } from "./standard-settings";
 import { effectiveSettings, type DashboardModule } from "./types";
 
 const P = "plugins.InfoPanel.VBZ.";
+
+/** The zone size the card is designed for (title + a few departure rows). */
+const DESIGN = byShape({
+  wide: { w: 420, h: 240 },
+  tall: { w: 300, h: 380 },
+  square: { w: 360, h: 280 },
+});
 
 /**
  * VBZ module — public transport departures.
  * Departure rows come from the flat dep_N_line / dep_N_dest / dep_N_time
  * entries (N is dynamic, set by the plugin's NumberOfResults config).
+ * Follows the style system: it scales with the zone and takes the standard
+ * spacing, alignment, color and type options.
  */
 export const vbzModule: DashboardModule = {
   id: "vbz",
@@ -18,6 +30,7 @@ export const vbzModule: DashboardModule = {
   prefixes: [P],
   settings: [
     { key: "showStatus", label: "Status line", type: "boolean", default: true },
+    ...STYLE_SETTINGS,
   ],
   render: (sensors, s) => {
     const cfg = effectiveSettings(vbzModule, s);
@@ -42,8 +55,12 @@ export const vbzModule: DashboardModule = {
     if (!station && rows.length === 0) return null;
 
     return (
-      <Card className="flex h-full w-full min-h-0 min-w-0 flex-col overflow-hidden border-border bg-card">
-        <CardHeader className="pb-2">
+      <ModernChrome chrome={chromeOf(cfg)} designSize={DESIGN}>
+      <Card
+        className="flex h-full w-full min-h-0 min-w-0 flex-col overflow-hidden border-border bg-card"
+          style={{ borderRadius: ws.radius("var(--radius-lg, 0.5rem)") }}
+        >
+        <CardHeader className="pb-2" style={{ paddingInline: ws.pad(24), paddingTop: ws.pad(24) }}>
           <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
             <Train className="h-3.5 w-3.5" />
             <span className="truncate" title={station}>
@@ -51,12 +68,19 @@ export const vbzModule: DashboardModule = {
             </span>
           </CardTitle>
         </CardHeader>
-        <CardContent className="flex min-h-0 flex-1 flex-col">
+        <CardContent className="flex min-h-0 flex-1 flex-col" style={{ paddingInline: ws.pad(24), paddingBottom: ws.pad(24) }}>
           {rows.length > 0 ? (
             <div className="min-h-0 flex-1 divide-y divide-border overflow-y-auto">
               {rows.map((r) => (
-                <div key={r.i} className="flex items-center gap-4 py-2">
-                  <div className="w-14 shrink-0 font-mono text-lg font-semibold text-foreground">
+                <div
+                  key={r.i}
+                  className="flex py-2"
+                  style={{ ...flow("row", { x: "start", y: "center" }), gap: ws.gap(16) }}
+                >
+                  <div
+                    className="w-14 shrink-0 font-mono text-lg text-foreground"
+                    style={{ fontWeight: ws.weight(600) }}
+                  >
                     {r.time ?? "--:--"}
                   </div>
                   <div className="w-10 shrink-0 rounded bg-secondary px-1.5 py-0.5 text-center text-xs font-medium text-foreground/85">
@@ -76,6 +100,7 @@ export const vbzModule: DashboardModule = {
           )}
         </CardContent>
       </Card>
+      </ModernChrome>
     );
   },
 };

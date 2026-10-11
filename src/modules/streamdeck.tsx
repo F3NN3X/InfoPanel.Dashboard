@@ -2,9 +2,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LayoutGrid } from "lucide-react";
 import { imageUrl } from "@/lib/image";
 import { byName, groupByContainer, liveText } from "@/lib/sensors";
+import { ModernChrome } from "@/components/modern-chrome";
+import { byShape, ws } from "@/components/widget-style";
+import { chromeOf, STYLE_SETTINGS } from "./standard-settings";
 import { effectiveSettings, type DashboardModule } from "./types";
 
 const P = "plugins.InfoPanel.StreamDeck.";
+
+/** The zone size the grid is designed for (one deck card, 5-column key grid). */
+const DESIGN = byShape({
+  wide: { w: 560, h: 300 },
+  tall: { w: 340, h: 420 },
+  square: { w: 400, h: 340 },
+});
 
 /**
  * StreamDeck module — Elgato Stream Deck profiles (StreamDeck plugin).
@@ -12,6 +22,8 @@ const P = "plugins.InfoPanel.StreamDeck.";
  * entry (`btn-<serial>-<col,row>`) and an icon entry
  * (`btn-icon-<serial>-<col,row>` whose value is the plugin's local
  * image server URL, or "-" when the button has no icon.
+ * Follows the style system: it scales with the zone and takes the standard
+ * spacing, color and type options.
  */
 interface DeckButton {
   col: number;
@@ -38,6 +50,7 @@ export const streamdeckModule: DashboardModule = {
   settings: [
     { key: "showProfile", label: "Active profile", type: "boolean", default: true },
     { key: "showLabels", label: "Button labels", type: "boolean", default: true },
+    ...STYLE_SETTINGS,
   ],
   render: (sensors, s) => {
     const cfg = effectiveSettings(streamdeckModule, s);
@@ -45,7 +58,11 @@ export const streamdeckModule: DashboardModule = {
     if (groups.length === 0) return null;
 
     return (
-      <div className="grid h-full w-full auto-rows-fr grid-cols-1 gap-4 lg:grid-cols-2">
+      <ModernChrome chrome={chromeOf(cfg)} designSize={DESIGN}>
+      <div
+        className="grid h-full w-full auto-rows-fr grid-cols-1 lg:grid-cols-2"
+        style={{ gap: ws.gap(16) }}
+      >
         {groups.map(([serial, items]) => {
           const deviceName = liveText(byName(items, "Device Name")) ?? serial;
           const profile = liveText(byName(items, "Active Profile"));
@@ -76,13 +93,17 @@ export const streamdeckModule: DashboardModule = {
               <Card
                 key={serial}
                 className="flex min-h-0 min-w-0 flex-col overflow-hidden border-border bg-card"
+                style={{ borderRadius: ws.radius("var(--radius-lg, 0.5rem)") }}
               >
-                <CardHeader className="shrink-0 pb-2">
+                <CardHeader
+                  className="shrink-0 pb-2"
+                  style={{ paddingInline: ws.pad(24), paddingTop: ws.pad(24) }}
+                >
                   <CardTitle className="truncate text-sm font-medium text-muted-foreground" title={deviceName}>
                     {deviceName}
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="flex min-h-0 flex-1 items-center">
+                <CardContent className="flex min-h-0 flex-1 items-center" style={{ paddingInline: ws.pad(24), paddingBottom: ws.pad(24) }}>
                   {profile && <div className="text-sm text-foreground/85">{profile}</div>}
                 </CardContent>
               </Card>
@@ -95,8 +116,12 @@ export const streamdeckModule: DashboardModule = {
             <Card
               key={serial}
               className="flex min-h-0 min-w-0 flex-col overflow-hidden border-border bg-card"
+              style={{ borderRadius: ws.radius("var(--radius-lg, 0.5rem)") }}
             >
-              <CardHeader className="shrink-0 pb-2">
+              <CardHeader
+                className="shrink-0 pb-2"
+                style={{ paddingInline: ws.pad(24), paddingTop: ws.pad(24) }}
+              >
                 <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
                   <LayoutGrid className="h-3.5 w-3.5" />
                   <span className="truncate" title={deviceName}>
@@ -109,10 +134,10 @@ export const streamdeckModule: DashboardModule = {
                   )}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="flex min-h-0 flex-1 flex-col">
+              <CardContent className="flex min-h-0 flex-1 flex-col" style={{ paddingInline: ws.pad(24), paddingBottom: ws.pad(24) }}>
                 <div
-                  className="grid flex-1 auto-rows-fr gap-2"
-                  style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
+                  className="grid flex-1 auto-rows-fr"
+                  style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`, gap: ws.gap(8) }}
                 >
                   {buttons.map((b) => (
                     <div
@@ -148,6 +173,7 @@ export const streamdeckModule: DashboardModule = {
           );
         })}
       </div>
+      </ModernChrome>
     );
   },
 };

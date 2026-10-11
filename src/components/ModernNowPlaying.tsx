@@ -1,7 +1,8 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Music2, Pause, Play } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { ModernChrome, type ModernChrome as ModernChromeSpec } from "./modern-chrome";
+import { useElementSize } from "@/hooks/use-element-size";
+import { byShape, flow, strokeOf, surfaceBox, textAlign, ws } from "./widget-style";
 import { LiveWaveform } from "@/components/ui/live-waveform";
 import { BarVisualizer } from "@/components/ui/bar-visualizer";
 import type { BarIdle } from "@/lib/audio/bar-levels";
@@ -29,7 +30,19 @@ import { CaptureVisualizerRow } from "@/components/CaptureVisualizerRow";
  * Vibrant-style palette sampled on a small canvas through the dashboard
  * image proxy; cross-origin art the proxy cannot reach degrades to an
  * untinted surface).
+ *
+ * The standard style options apply through `ModernChrome` and the
+ * `widget-style` helpers: it scales with the zone (designed for about
+ * 420×130 wide, 260×360 tall), and alignment, spacing, value weight and
+ * progress thickness follow the user's choices.
  */
+
+/** The zone size each shape of the layout is designed for. */
+const DESIGN = byShape({
+  wide: { w: 420, h: 130 },
+  tall: { w: 260, h: 360 },
+  square: { w: 300, h: 200 },
+});
 
 export type ModernVariant = "card" | "standard" | "compact" | "simple";
 export type ModernStyle = "glass" | "matte-light" | "matte-dark";
@@ -132,6 +145,18 @@ export interface Surface {
 
 /** Shared surface builder (glass / matte light / matte dark) for the modern widgets. */
 export function makeSurface(style: ModernStyle, tint: RGB | null): Surface {
+  return withTextOverrides(buildSurface(style, tint));
+}
+
+/**
+ * Text colors as `var(--wp-fg, …)` / `var(--wp-muted, …)`, so the widget's
+ * "Text color" options (set by ModernChrome) override every surface.
+ */
+function withTextOverrides(s: Surface): Surface {
+  return { ...s, fg: `var(--wp-fg, ${s.fg})`, muted: `var(--wp-muted, ${s.muted})` };
+}
+
+function buildSurface(style: ModernStyle, tint: RGB | null): Surface {
   if (style === "matte-light") {
     const base = tint ? lighten(tint, 0.74) : ([244, 244, 245] as RGB);
     return {
@@ -197,6 +222,10 @@ export interface ArtTint {
  * `makeSurface`, driven by the palette instead of a single average color.
  */
 export function makeSurfacePalette(style: ModernStyle, tint: ArtTint): Surface {
+  return withTextOverrides(buildSurfacePalette(style, tint));
+}
+
+function buildSurfacePalette(style: ModernStyle, tint: ArtTint): Surface {
   if (style === "matte-light") {
     return {
       background: rgba(tint.light),
@@ -316,24 +345,7 @@ export function computeArtTint(data: Uint8ClampedArray): ArtTint | null {
 }
 
 /** Measure the rendered size of an element (for the auto layout pick). */
-export function useElementSize() {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const [size, setSize] = useState({ w: 0, h: 0 });
-  useLayoutEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const ro = new ResizeObserver((entries) => {
-      const r = entries[0]?.contentRect;
-      if (r)
-        setSize((s) =>
-          s.w === r.width && s.h === r.height ? s : { w: r.width, h: r.height }
-        );
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-  return { ref, w: size.w, h: size.h };
-}
+export { useElementSize };
 
 const loadImageFrom = (src: string) =>
   new Promise<HTMLImageElement>((resolve, reject) => {
@@ -477,13 +489,17 @@ function ProgressRow({
   elapsed,
   remaining,
   showTimes,
+  chrome,
 }: {
   pct: number;
   sv: Surface;
   elapsed?: string;
   remaining?: string;
   showTimes: boolean;
+  chrome?: ModernChromeSpec;
 }) {
+  const bar = strokeOf(chrome, 6);
+  const knob = strokeOf(chrome, 12);
   return (
     <div className="flex w-full items-center gap-2">
       {showTimes && elapsed ? (
@@ -492,17 +508,19 @@ function ProgressRow({
         </span>
       ) : null}
       <div
-        className="relative h-1.5 min-w-0 flex-1 overflow-hidden rounded-full"
-        style={{ background: sv.track }}
+        className="relative min-w-0 flex-1 overflow-hidden rounded-full"
+        style={{ height: bar, background: sv.track }}
       >
         <div
           className="absolute inset-y-0 left-0 rounded-full"
           style={{ width: `${pct}%`, background: sv.fill }}
         />
         <div
-          className="absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full"
+          className="absolute top-1/2 -translate-y-1/2 rounded-full"
           style={{
-            left: `calc(${pct}% - 6px)`,
+            width: knob,
+            height: knob,
+            left: `calc(${pct}% - ${knob / 2}px)`,
             background: sv.fill,
             boxShadow: "0 1px 4px rgba(0, 0, 0, 0.4)",
           }}
@@ -678,9 +696,7 @@ export function ModernNowPlaying({
   const mediaRow = captureRows ?? VisualizerRow ?? WaveformRow;
 
   const boxStyle = {
-    background: sv.background,
-    color: sv.fg,
-    boxShadow: `inset 0 0 0 1px ${sv.ring}`,
+    ...surfaceBox(sv, chrome),
   } as const;
 
   /**
@@ -707,24 +723,39 @@ export function ModernNowPlaying({
   if (v === "card") {
     const art = Math.min(Math.max(96, Math.round(w * 0.45)), 220);
     body = (
-      <div className="relative h-full w-full overflow-hidden rounded-[20px] p-4" style={boxStyle}>
+      <div
+        className="relative h-full w-full overflow-hidden"
+        style={{ ...boxStyle, padding: ws.pad(16), borderRadius: ws.radius(20) }}
+      >
         {artBg}
-        <div className="relative flex h-full w-full flex-col">
+        <div
+          className="relative flex h-full w-full"
+          style={flow("column", { x: "between", y: "start" })}
+        >
           <div className="flex min-h-0 flex-1 items-center justify-center">
             <Art url={artUrl} size={art} radius={16} fg={sv.fg} idle={idle} />
           </div>
-          <div className="mt-3 flex flex-col items-center gap-0.5">
-            <div className="max-w-full truncate text-lg font-semibold tracking-tight">
+          <div
+            className="mt-3 flex"
+            style={{ ...flow("column", { x: "center", y: "start" }), gap: ws.gap(2) }}
+          >
+            <div
+              className="max-w-full truncate text-lg tracking-tight"
+              style={{ fontWeight: ws.weight(600), ...textAlign("center") }}
+            >
               {trackLabel}
             </div>
-            <div className="max-w-full truncate text-sm" style={{ color: sv.muted }}>
+            <div
+              className="max-w-full truncate text-sm"
+              style={{ color: sv.muted, ...textAlign("center") }}
+            >
               {artistLabel}
             </div>
           </div>
           {showProgress && (
             <div className="mt-3">
               {mediaRow ?? (
-                <ProgressRow pct={pct} sv={{ ...sv, fill }} elapsed={elapsed} remaining={remaining} showTimes={showTimes} />
+                <ProgressRow pct={pct} sv={{ ...sv, fill }} elapsed={elapsed} remaining={remaining} showTimes={showTimes} chrome={chrome} />
               )}
             </div>
           )}
@@ -734,8 +765,8 @@ export function ModernNowPlaying({
   } else if (v === "compact") {
     body = (
       <div
-        className="relative h-full w-full overflow-hidden rounded-full px-4"
-        style={boxStyle}
+        className="relative h-full w-full overflow-hidden"
+        style={{ ...boxStyle, paddingInline: ws.pad(16), borderRadius: ws.radius(999) }}
       >
         {artBg}
         <div
@@ -746,14 +777,17 @@ export function ModernNowPlaying({
             opacity: style === "matte-light" ? 0.5 : 0.35,
           }}
         />
-        <div className="relative flex h-full items-center gap-3">
+        <div
+          className="relative flex h-full"
+          style={{ ...flow("row", { x: "start", y: "center" }), gap: ws.gap(12) }}
+        >
           {isPlaying ? (
             <Play className="h-3.5 w-3.5 shrink-0 fill-current" style={{ color: sv.fg }} />
           ) : (
             <Pause className="h-3.5 w-3.5 shrink-0 fill-current" style={{ color: sv.fg }} />
           )}
           <Art url={artUrl} size={Math.min(32, Math.max(24, h * 0.55))} radius={8} fg={sv.fg} idle={idle} />
-          <div className="min-w-0 truncate text-sm font-semibold">
+          <div className="min-w-0 truncate text-sm" style={{ fontWeight: ws.weight(600) }}>
             {trackLabel}
             <span className="ml-2 font-normal" style={{ color: sv.muted }}>
               {artistLabel}
@@ -771,14 +805,19 @@ export function ModernNowPlaying({
     const art = Math.min(56, Math.max(40, Math.round(h * 0.5)));
     body = (
       <div
-        className="relative h-full w-full overflow-hidden rounded-xl p-3"
-        style={boxStyle}
+        className="relative h-full w-full overflow-hidden"
+        style={{ ...boxStyle, padding: ws.pad(12), borderRadius: ws.radius(12) }}
       >
         {artBg}
-        <div className="relative flex h-full w-full items-center gap-3">
+        <div
+          className="relative flex h-full w-full"
+          style={{ ...flow("row", { x: "start", y: "center" }), gap: ws.gap(12) }}
+        >
           <Art url={artUrl} size={art} radius={10} fg={sv.fg} idle={idle} />
-          <div className="min-w-0 flex-1">
-            <div className="truncate text-sm font-semibold">{trackLabel}</div>
+          <div className="min-w-0" style={{ flex: ws.flex() }}>
+            <div className="truncate text-sm" style={{ fontWeight: ws.weight(600) }}>
+              {trackLabel}
+            </div>
             <div className="truncate text-xs" style={{ color: sv.muted }}>
               {artistLabel}
             </div>
@@ -796,15 +835,26 @@ export function ModernNowPlaying({
     const art = Math.min(Math.max(56, Math.round(h * 0.6)), 96);
     body = (
       <div
-        className="relative h-full w-full overflow-hidden rounded-xl p-4"
-        style={boxStyle}
+        className="relative h-full w-full overflow-hidden"
+        style={{ ...boxStyle, padding: ws.pad(16), borderRadius: ws.radius(12) }}
       >
         {artBg}
-        <div className="relative flex h-full w-full flex-col justify-center gap-3">
-          <div className="flex min-w-0 items-center gap-4">
+        <div
+          className="relative flex h-full w-full"
+          style={{ ...flow("column", { x: "between", y: "center" }), gap: ws.gap(12) }}
+        >
+          <div
+            className="flex min-w-0"
+            style={{ ...flow("row", { x: "start", y: "center" }), gap: ws.gap(16) }}
+          >
             <Art url={artUrl} size={art} radius={12} fg={sv.fg} idle={idle} />
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-lg font-semibold tracking-tight">{trackLabel}</div>
+            <div className="min-w-0" style={{ flex: ws.flex() }}>
+              <div
+                className="truncate text-lg tracking-tight"
+                style={{ fontWeight: ws.weight(600) }}
+              >
+                {trackLabel}
+              </div>
               <div className="truncate text-sm" style={{ color: sv.muted }}>
                 {artistLabel}
               </div>
@@ -812,7 +862,7 @@ export function ModernNowPlaying({
           </div>
           {showProgress &&
             (mediaRow ?? (
-              <ProgressRow pct={pct} sv={{ ...sv, fill }} elapsed={elapsed} remaining={remaining} showTimes={showTimes} />
+              <ProgressRow pct={pct} sv={{ ...sv, fill }} elapsed={elapsed} remaining={remaining} showTimes={showTimes} chrome={chrome} />
             ))}
         </div>
       </div>
@@ -820,8 +870,10 @@ export function ModernNowPlaying({
   }
 
   return (
-    <div ref={ref} className={cn("h-full w-full", className)}>
-      <ModernChrome chrome={chrome}>{body}</ModernChrome>
-    </div>
+    <ModernChrome chrome={chrome} designSize={DESIGN} className={className}>
+      <div ref={ref} className="h-full w-full">
+        {body}
+      </div>
+    </ModernChrome>
   );
 }

@@ -3,7 +3,7 @@ import { bySuffixOrName, groupByContainer } from "@/lib/sensors";
 import type { LevelMeterVariant } from "@/components/ui/level-meter";
 import type { BallisticsPreset } from "@/lib/audio/ballistics";
 import type { Orientation } from "@/lib/audio/types";
-import { chromeOf, STANDARD_SETTINGS } from "./standard-settings";
+import { chromeOf, GROUP_COLORS, STANDARD_SETTINGS } from "./standard-settings";
 import {
   effectiveSettings,
   type DashboardModule,
@@ -67,6 +67,8 @@ const AUDIO_MODERN_SETTINGS: ModuleSetting[] = [
       },
     ],
   },
+  { key: "levelColor", label: "Level bar color", type: "color", default: "", group: GROUP_COLORS },
+  { key: "hotColor", label: "Hot level color", type: "color", default: "", group: GROUP_COLORS },
   {
     key: "meterVariant",
     label: "Meter style",
@@ -147,6 +149,8 @@ export const audioModernModule: DashboardModule = {
         showDevice={Boolean(cfg.showDevice)}
         showVolume={Boolean(cfg.showVolume)}
         showMute={Boolean(cfg.showMute)}
+        levelColor={String(cfg.levelColor ?? "")}
+        hotColor={String(cfg.hotColor ?? "")}
         layout={String(cfg.layout) as
           | "auto"
           | "card"

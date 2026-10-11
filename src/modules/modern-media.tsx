@@ -13,7 +13,7 @@ import {
 } from "@/lib/sensors";
 import type { BarIdle } from "@/lib/audio/bar-levels";
 import type { Orientation } from "@/lib/audio/types";
-import { chromeOf, STANDARD_SETTINGS } from "./standard-settings";
+import { chromeOf, IDLE_SETTING, STANDARD_SETTINGS } from "./standard-settings";
 import {
   effectiveSettings,
   type DashboardModule,
@@ -38,6 +38,7 @@ const AUDIO_LEVEL = "plugins.audio-level-meter.";
 
 const MODERN_SETTINGS: ModuleSetting[] = [
   ...STANDARD_SETTINGS,
+  IDLE_SETTING,
   { key: "tint", label: "Tint from cover art", type: "boolean", default: true },
   {
     key: "artBackground",
@@ -343,6 +344,10 @@ export const spotifyModernModule: DashboardModule = {
   prefixes: ["spotify.", "plugins.spotify-plugin."],
   reads: [AUDIO_LEVEL],
   settings: MODERN_SETTINGS,
+  // Idle = not playing (paused or stopped).
+  isIdle: (sensors) =>
+    resolve(sensors, "spotify.playing", "plugins.spotify-plugin.spotify.playback-state")
+      ?.value !== 2,
   render: (sensors, s) => {
     const cfg = modernProps(spotifyModernModule, s);
     const track = resolve(
@@ -398,6 +403,8 @@ export const mediaModernModule: DashboardModule = {
   prefixes: [P],
   reads: [AUDIO_LEVEL],
   settings: MODERN_SETTINGS,
+  // Idle = not playing (paused or stopped).
+  isIdle: (sensors) => entry(sensors, P, C, "playback-state")?.value !== 2,
   render: (sensors, s) => {
     const cfg = modernProps(mediaModernModule, s);
     const track = liveText(entry(sensors, P, C, "current-track"));

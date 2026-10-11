@@ -1,5 +1,4 @@
 import { Droplets, Gauge, Wind as WindIcon, CloudRain } from "lucide-react";
-import { cn } from "@/lib/utils";
 import type { WeatherForecastDay } from "@/lib/forecast";
 import { ModernChrome, type ModernChrome as ModernChromeSpec } from "./modern-chrome";
 import {
@@ -9,6 +8,7 @@ import {
   type RGB,
   type Surface,
 } from "./ModernNowPlaying";
+import { byShape, flow, labelStyle, surfaceBox, textAlign, ws } from "./widget-style";
 
 /**
  * Modern weather widget.
@@ -26,7 +26,20 @@ import {
  * The surface tints from the *current condition* (sun → amber, rain → blue,
  * snow → icy…) in the same glass / matte light / matte dark finishes as the
  * modern now-playing widget.
+ *
+ * The standard style options apply through `ModernChrome` and the
+ * `widget-style` helpers: it scales with the zone (designed for about
+ * 720×160 wide, 470×360 square, 300×420 tall), and alignment, spacing,
+ * label case and value weight follow the user's choices.
  */
+
+/** The zone size each shape of the layout is designed for. */
+const DESIGN = byShape({
+  // Sized for the full 7-day forecast strip, which does not reflow.
+  wide: { w: 720, h: 160 },
+  tall: { w: 300, h: 420 },
+  square: { w: 470, h: 360 },
+});
 
 export type WeatherVariant = "card" | "standard" | "compact" | "simple";
 
@@ -105,7 +118,7 @@ function ForecastStrip({ days, sv }: { days: WeatherForecastDay[]; sv: Surface }
             {shortDay(d.date)}
           </span>
           <span className="text-base leading-none">{conditionMeta(d.desc).emoji}</span>
-          <span className="text-[11px] font-bold leading-none">
+          <span className="text-[11px] leading-none" style={{ fontWeight: ws.weight(700) }}>
             {d.high !== undefined ? `${Math.round(d.high)}°` : "—"}
           </span>
           <span className="text-[9px] leading-none tabular-nums" style={{ color: sv.muted }}>
@@ -139,7 +152,9 @@ function StatCell({
       <div className="flex items-center gap-1 text-[10px]" style={{ color: sv.muted }}>
         {icon} {label}
       </div>
-      <div className="truncate text-sm font-semibold">{value ?? "—"}</div>
+      <div className="truncate text-sm" style={{ fontWeight: ws.weight(600) }}>
+        {value ?? "—"}
+      </div>
       {hint && (
         <div className="truncate text-[9px]" style={{ color: sv.muted }}>
           {hint}
@@ -209,20 +224,29 @@ export function ModernWeather({
     stats.push({ icon: <CloudRain className="h-3 w-3" />, label: "Precip", value: precipLabel });
 
   const boxStyle = {
-    background: sv.background,
-    color: sv.fg,
-    boxShadow: `inset 0 0 0 1px ${sv.ring}`,
+    ...surfaceBox(sv, chrome),
   } as const;
 
   let body: React.ReactNode;
   if (v === "card") {
     const tempSize = clamp(32, h * 0.16, 72);
     body = (
-      <div className="flex h-full w-full flex-col overflow-hidden rounded-[20px] p-4" style={boxStyle}>
-        <div className="flex shrink-0 items-center justify-between gap-3">
+      <div
+        className="flex h-full w-full overflow-hidden"
+        style={{
+          ...boxStyle,
+          ...flow("column", { x: "between", y: "start" }),
+          padding: ws.pad(16),
+          borderRadius: ws.radius(20),
+        }}
+      >
+        <div
+          className="flex shrink-0"
+          style={{ ...flow("row", { x: "between", y: "center" }), gap: ws.gap(12) }}
+        >
           <div
-            className="min-w-0 truncate text-xs font-semibold uppercase tracking-[0.14em]"
-            style={{ color: sv.muted }}
+            className="min-w-0 truncate text-xs font-semibold tracking-[0.14em]"
+            style={{ color: sv.muted, ...labelStyle() }}
           >
             {location ?? "Weather"}
           </div>
@@ -230,12 +254,19 @@ export function ModernWeather({
             {desc}
           </div>
         </div>
-        <div className="flex min-h-0 flex-1 items-center justify-center gap-5">
+        <div
+          className="flex min-h-0 flex-1"
+          style={{ ...flow("row", { x: "center", y: "center" }), gap: ws.gap(20) }}
+        >
           <div style={{ fontSize: Math.round(tempSize * 0.75), lineHeight: 1 }}>{glyph}</div>
-          <div>
+          <div style={textAlign("left")}>
             <div
-              className="font-bold leading-none tracking-tighter"
-              style={{ fontSize: tempSize, ...(accent ? { color: accent } : {}) }}
+              className="leading-none tracking-tighter"
+              style={{
+                fontSize: tempSize,
+                fontWeight: ws.weight(700),
+                ...(accent ? { color: accent } : {}),
+              }}
             >
               {temp !== undefined ? Math.round(temp) : "—"}
               <span style={{ fontSize: tempSize * 0.4 }}>°</span>
@@ -278,11 +309,19 @@ export function ModernWeather({
       .join(" · ");
     body = (
       <div
-        className="relative flex h-full w-full items-center gap-3 overflow-hidden rounded-full px-4"
-        style={boxStyle}
+        className="relative flex h-full w-full overflow-hidden"
+        style={{
+          ...boxStyle,
+          ...flow("row", { x: "start", y: "center" }),
+          gap: ws.gap(12),
+          paddingInline: ws.pad(16),
+          borderRadius: ws.radius(999),
+        }}
       >
         <span style={{ fontSize: clamp(16, h * 0.5, 32), lineHeight: 1 }}>{glyph}</span>
-        <span className="text-sm font-bold">{tempLabel}</span>
+        <span className="text-sm" style={{ fontWeight: ws.weight(700) }}>
+          {tempLabel}
+        </span>
         <span className="min-w-0 truncate text-sm" style={{ color: sv.muted }}>
           {desc}
         </span>
@@ -296,12 +335,20 @@ export function ModernWeather({
   } else if (v === "simple") {
     body = (
       <div
-        className="flex h-full w-full items-center gap-3 overflow-hidden rounded-xl p-3"
-        style={boxStyle}
+        className="flex h-full w-full overflow-hidden"
+        style={{
+          ...boxStyle,
+          ...flow("row", { x: "start", y: "center" }),
+          gap: ws.gap(12),
+          padding: ws.pad(12),
+          borderRadius: ws.radius(12),
+        }}
       >
         <span style={{ fontSize: clamp(28, h * 0.45, 48), lineHeight: 1 }}>{glyph}</span>
         <div className="min-w-0">
-          <div className="text-lg font-bold leading-none">{tempLabel}</div>
+          <div className="text-lg leading-none" style={{ fontWeight: ws.weight(700) }}>
+            {tempLabel}
+          </div>
           <div className="truncate text-xs" style={{ color: sv.muted }}>
             {desc}
           </div>
@@ -313,15 +360,28 @@ export function ModernWeather({
     const tempSize = clamp(28, h * 0.42, 52);
     body = (
       <div
-        className="flex h-full w-full items-center gap-6 overflow-hidden rounded-xl p-5"
-        style={boxStyle}
+        className="flex h-full w-full overflow-hidden"
+        style={{
+          ...boxStyle,
+          ...flow("row", { x: "start", y: "center" }),
+          gap: ws.gap(24),
+          padding: ws.pad(20),
+          borderRadius: ws.radius(12),
+        }}
       >
-        <div className="flex shrink-0 items-center gap-4">
+        <div
+          className="flex shrink-0"
+          style={{ ...flow("row", { x: "start", y: "center" }), gap: ws.gap(16) }}
+        >
           <span style={{ fontSize: Math.round(tempSize * 0.8), lineHeight: 1 }}>{glyph}</span>
           <div className="min-w-0">
             <div
-              className="font-bold leading-none tracking-tighter"
-              style={{ fontSize: tempSize, ...(accent ? { color: accent } : {}) }}
+              className="leading-none tracking-tighter"
+              style={{
+                fontSize: tempSize,
+                fontWeight: ws.weight(700),
+                ...(accent ? { color: accent } : {}),
+              }}
             >
               {tempLabel}
             </div>
@@ -336,13 +396,16 @@ export function ModernWeather({
           </div>
         </div>
         {showForecast && forecast.length > 0 ? (
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0" style={{ flex: ws.flex() }}>
             <ForecastStrip days={forecast} sv={sv} />
           </div>
         ) : showStats && stats.length > 0 ? (
           <div
-            className="min-w-0 flex-1 grid gap-2"
-            style={{ gridTemplateColumns: `repeat(${stats.length}, minmax(0, 1fr))` }}
+            className="min-w-0 grid gap-2"
+            style={{
+              flex: ws.flex(),
+              gridTemplateColumns: `repeat(${stats.length}, minmax(0, 1fr))`,
+            }}
           >
             {stats.map((s) => (
               <StatCell key={s.label} icon={s.icon} label={s.label} value={s.value} hint={s.hint} sv={sv} />
@@ -354,8 +417,10 @@ export function ModernWeather({
   }
 
   return (
-    <div ref={ref} className={cn("h-full w-full", className)}>
-      <ModernChrome chrome={chrome}>{body}</ModernChrome>
-    </div>
+    <ModernChrome chrome={chrome} designSize={DESIGN} className={className}>
+      <div ref={ref} className="h-full w-full">
+        {body}
+      </div>
+    </ModernChrome>
   );
 }

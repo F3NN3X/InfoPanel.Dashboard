@@ -2,7 +2,7 @@ import { ModernWaveLink } from "@/components/ModernWaveLink";
 import type { LevelMeterVariant } from "@/components/ui/level-meter";
 import type { BallisticsPreset } from "@/lib/audio/ballistics";
 import type { Orientation } from "@/lib/audio/types";
-import { chromeOf, STANDARD_SETTINGS } from "./standard-settings";
+import { chromeOf, GROUP_COLORS, STANDARD_SETTINGS } from "./standard-settings";
 import {
   effectiveSettings,
   type DashboardModule,
@@ -79,6 +79,8 @@ const WAVELINK_SETTINGS: ModuleSetting[] = [
     type: "boolean",
     default: true,
   },
+  { key: "liveColor", label: "Live indicator color", type: "color", default: "", group: GROUP_COLORS },
+  { key: "muteColor", label: "Muted / offline color", type: "color", default: "", group: GROUP_COLORS },
 ];
 
 export const wavelinkModernModule: DashboardModule = {
@@ -97,6 +99,8 @@ export const wavelinkModernModule: DashboardModule = {
         showReadout={Boolean(cfg.showReadout)}
         showFader={Boolean(cfg.showFader)}
         showMixes={Boolean(cfg.showMixes)}
+        liveColor={String(cfg.liveColor ?? "")}
+        muteColor={String(cfg.muteColor ?? "")}
         layout={String(cfg.layout) as
           | "auto"
           | "card"

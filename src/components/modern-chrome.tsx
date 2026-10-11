@@ -1,16 +1,35 @@
-import type { CSSProperties, ReactNode } from "react";
+import { useId, type CSSProperties, type ReactNode } from "react";
 import { widgetIcon } from "@/lib/widget-icons";
+import { useElementSize } from "@/hooks/use-element-size";
+import { cn } from "@/lib/utils";
+import { chromeVars, scopedCss, zoomFor, type DesignSizeSpec } from "./widget-style";
 
 /**
  * The standard per-widget chrome (see `modules/standard-settings.ts` and
  * `docs/widget-settings.md`): a user-supplied background image behind the
- * surface, an optional header (icon + custom title), and an accent color
- * exposed to the widget via the `--wp-accent` CSS variable.
+ * surface, an optional header (icon + custom title), the accent color as
+ * `--wp-accent`, and the style options — size, alignment, spacing, colors
+ * and type — as `--wp-*` CSS variables the widget's layout reads through
+ * the helpers in `widget-style.ts`.
  *
- * Every modern widget wraps its body in this, so the standard options
- * work identically everywhere. Glass surfaces let the background show
- * through; matte surfaces cover it (that is intended).
+ * Scaling: the content sits in a `zoom`ed box, so text, rings and spacing
+ * grow and shrink together. With "Scale with the zone" on, the zoom fits
+ * the zone to the widget's `designSize` (the size its layout looks right
+ * at), times the user's Size %. Inside the zoom, ResizeObserver reports the
+ * unzoomed size, so the widget measures and lays out in its own space.
+ *
+ * Every modern widget wraps its body in this. Glass surfaces let the
+ * background show through; matte surfaces cover it (that is intended).
+ * The surface's border / glow / opacity / blur are the widget's to apply
+ * (`surfaceBox`); custom CSS is scoped here to this widget's root.
  */
+export type AlignX = "auto" | "start" | "center" | "end" | "between";
+export type AlignY = "auto" | "start" | "center" | "end";
+export type FontChoice = "auto" | "sans" | "rounded" | "serif" | "mono";
+export type FontWeightChoice = "auto" | "400" | "500" | "600" | "700" | "800";
+export type LabelCase = "auto" | "uppercase" | "none" | "capitalize";
+export type GlowChoice = "none" | "soft" | "strong";
+
 export interface ModernChrome {
   /** Custom title line ("" = no header text). */
   label?: string;
@@ -22,28 +41,72 @@ export interface ModernChrome {
   background?: string;
   /** Use `background` behind the surface. */
   backgroundOn?: boolean;
+  /** Fit the content to the zone (needs the widget's `designSize`). */
+  autoScale?: boolean;
+  /** User size multiplier (1 = 100 %). */
+  scale?: number;
+  alignX?: AlignX;
+  alignY?: AlignY;
+  /** Px overrides; undefined = the widget's own value. */
+  padding?: number;
+  gap?: number;
+  radius?: number;
+  /** "" = the surface's own colors. */
+  textColor?: string;
+  mutedColor?: string;
+  font?: FontChoice;
+  /** Weight of the big values. */
+  fontWeight?: FontWeightChoice;
+  labelCase?: LabelCase;
+  /** Ring / bar thickness multiplier (1 = 100 %). */
+  stroke?: number;
+  /** Surface edge width in px; undefined = the widget's 1px edge. */
+  borderWidth?: number;
+  /** "" = the surface's own edge color. */
+  borderColor?: string;
+  glow?: GlowChoice;
+  /** "" = the accent color. */
+  glowColor?: string;
+  /** Surface background opacity, 0–1 (1 = as designed). */
+  surfaceOpacity?: number;
+  /** Backdrop blur in px; undefined = the surface's own. */
+  blur?: number;
+  /** User CSS, scoped to this widget (`:scope` = the root). */
+  customCss?: string;
 }
 
 export function ModernChrome({
   chrome,
+  designSize,
+  className,
   children,
 }: {
   chrome?: ModernChrome;
+  /**
+   * The size the widget's layout is designed for. Auto-scale zooms the
+   * content so the zone holds at least this much; without it only the
+   * user's Size % applies.
+   */
+  designSize?: DesignSizeSpec;
+  className?: string;
   children: ReactNode;
 }) {
+  const { ref, w, h } = useElementSize();
+  const scope = useId();
+  const css = chrome?.customCss ? scopedCss(scope, chrome.customCss) : "";
+  const zoom = zoomFor({ w, h }, designSize, chrome);
   const Icon = chrome?.icon ? widgetIcon(chrome.icon) : undefined;
   const showHeader = Boolean(Icon || chrome?.label);
   const showBackground = Boolean(chrome?.backgroundOn && chrome?.background);
 
   return (
     <div
-      className="relative h-full w-full"
-      style={
-        chrome?.accent
-          ? ({ "--wp-accent": chrome.accent } as CSSProperties)
-          : undefined
-      }
+      ref={ref}
+      className={cn("relative h-full w-full", className)}
+      style={chromeVars(chrome)}
+      data-wp-scope={css ? scope : undefined}
     >
+      {css && <style>{css}</style>}
       {showBackground && (
         <>
           <img
@@ -55,7 +118,12 @@ export function ModernChrome({
           <div className="absolute inset-0 bg-black/45" />
         </>
       )}
-      <div className="relative z-10 h-full w-full">{children}</div>
+      <div
+        className="relative z-10 h-full w-full"
+        style={zoom !== 1 ? ({ zoom } as CSSProperties) : undefined}
+      >
+        {children}
+      </div>
       {showHeader && (
         <div className="absolute left-3 top-2 z-20 flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wider text-foreground/75">
           {Icon && (

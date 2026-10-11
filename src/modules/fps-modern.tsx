@@ -1,6 +1,6 @@
 import { ModernFps } from "@/components/ModernFps";
 import { entry, liveText, liveValue } from "@/lib/sensors";
-import { chromeOf, STANDARD_SETTINGS } from "./standard-settings";
+import { chromeOf, GROUP_COLORS, IDLE_SETTING, STANDARD_SETTINGS } from "./standard-settings";
 import {
   effectiveSettings,
   type DashboardModule,
@@ -19,8 +19,11 @@ const FPS = "plugins.fps-plugin.";
 
 const FPS_MODERN_SETTINGS: ModuleSetting[] = [
   ...STANDARD_SETTINGS,
+  IDLE_SETTING,
   { key: "showMetrics", label: "Extra metrics", type: "boolean", default: true },
   { key: "sparkline", label: "Trend sparkline", type: "boolean", default: false },
+  { key: "ringColor", label: "Ring color", type: "color", default: "", group: GROUP_COLORS },
+  { key: "sparkColor", label: "Trend sparkline color", type: "color", default: "", group: GROUP_COLORS },
   {
     key: "view",
     label: "View",
@@ -40,6 +43,12 @@ export const fpsModernModule: DashboardModule = {
   minRows: 1,
   prefixes: [RTSS, FPS],
   settings: FPS_MODERN_SETTINGS,
+  // Idle = no frames counted (no game running).
+  isIdle: (sensors) => {
+    const fps =
+      liveValue(entry(sensors, RTSS, "rtss", "fps")) ?? liveValue(entry(sensors, FPS, "fps", "fps"));
+    return fps === undefined || fps <= 0;
+  },
   render: (sensors, s) => {
     const cfg = effectiveSettings(fpsModernModule, s);
     const rt = (id: string) => entry(sensors, RTSS, "rtss", id);
@@ -101,6 +110,8 @@ export const fpsModernModule: DashboardModule = {
         source={source}
         extras={extras}
         sparkline={Boolean(cfg.sparkline)}
+        ringColor={String(cfg.ringColor ?? "")}
+        sparkColor={String(cfg.sparkColor ?? "")}
         layout={String(cfg.layout) as
           | "auto"
           | "card"

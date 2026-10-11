@@ -1,7 +1,7 @@
 import { ModernSteam } from "@/components/ModernSteam";
 import { imageUrl } from "@/lib/image";
 import { entry, liveText, liveValue } from "@/lib/sensors";
-import { chromeOf, STANDARD_SETTINGS } from "./standard-settings";
+import { chromeOf, IDLE_SETTING, STANDARD_SETTINGS } from "./standard-settings";
 import {
   effectiveSettings,
   type DashboardModule,
@@ -27,6 +27,7 @@ const NEWS = "SteamAPI-News";
 
 const STEAM_MODERN_SETTINGS: ModuleSetting[] = [
   ...STANDARD_SETTINGS,
+  IDLE_SETTING,
   {
     key: "dimBanner",
     label: "Dim banner for text",
@@ -56,6 +57,8 @@ export const steamModernModule: DashboardModule = {
   minRows: 1,
   prefixes: [P],
   settings: STEAM_MODERN_SETTINGS,
+  // Idle = not in a game.
+  isIdle: (sensors) => !liveText(entry(sensors, P, SESSION, "current-game")),
   render: (sensors, s) => {
     const cfg = modernProps(steamModernModule, s);
     const name = liveText(entry(sensors, P, PROFILE, "player-name"));

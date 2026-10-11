@@ -1,11 +1,11 @@
 import { Gamepad2, User } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { ModernChrome, type ModernChrome as ModernChromeSpec } from "./modern-chrome";
 import {
   makeSurface,
   useElementSize,
   type ModernStyle,
 } from "./ModernNowPlaying";
+import { byShape, flow, surfaceBox, textAlign, ws } from "./widget-style";
 
 /**
  * Modern Steam widget.
@@ -26,7 +26,19 @@ import {
  *
  * When a game has no banner the surface finish (glass / matte light /
  * matte dark) is used as the fallback background instead.
+ *
+ * The standard style options apply through `ModernChrome` and the
+ * `widget-style` helpers: it scales with the zone (designed for about
+ * 640×150 wide, 300×420 tall), and alignment, spacing and value weight
+ * follow the user's choices.
  */
+
+/** The zone size each shape of the layout is designed for. */
+const DESIGN = byShape({
+  wide: { w: 640, h: 150 },
+  tall: { w: 300, h: 420 },
+  square: { w: 360, h: 260 },
+});
 
 export type SteamVariant = "card" | "standard" | "compact" | "simple";
 
@@ -163,21 +175,30 @@ export function ModernSteam({
         : `${friendsOnline} online`
       : undefined;
 
-  const radius: Record<SteamVariant, string> = {
-    card: "rounded-[20px]",
-    standard: "rounded-xl",
-    compact: "rounded-full",
-    simple: "rounded-xl",
+  const radius: Record<SteamVariant, number> = {
+    card: 20,
+    standard: 12,
+    compact: 999,
+    simple: 12,
   };
 
   let body: React.ReactNode;
   if (v === "card") {
     body = (
-      <div className="relative flex h-full w-full flex-col p-4">
-        <div className="flex shrink-0 items-center gap-3">
+      <div
+        className="relative flex h-full w-full"
+        style={{ ...flow("column", { x: "between", y: "start" }), padding: ws.pad(16) }}
+      >
+        <div
+          className="flex shrink-0"
+          style={{ ...flow("row", { x: "start", y: "center" }), gap: ws.gap(12) }}
+        >
           <Avatar url={avatarUrl} size={clamp(34, h * 0.08, 52)} />
           <div className="min-w-0">
-            <div className="truncate text-sm font-semibold" style={{ color: fg }}>
+            <div
+              className="truncate text-sm"
+              style={{ color: fg, fontWeight: ws.weight(600) }}
+            >
               {name ?? "Steam"}
             </div>
             <div className="truncate text-xs" style={{ color: muted }}>
@@ -204,8 +225,11 @@ export function ModernSteam({
               loading="lazy"
             />
           ) : (
-            <div className="max-w-full text-center">
-              <div className="truncate text-2xl font-bold" style={{ color: fg }}>
+            <div className="max-w-full" style={textAlign("center")}>
+              <div
+                className="truncate text-2xl"
+                style={{ color: fg, fontWeight: ws.weight(700) }}
+              >
                 {game ?? "Not playing"}
               </div>
               {sessionTime && (
@@ -218,11 +242,14 @@ export function ModernSteam({
         </div>
 
         <div className="shrink-0">
-          <div className="flex items-end justify-between gap-3">
+          <div
+            className="flex"
+            style={{ ...flow("row", { x: "between", y: "end" }), gap: ws.gap(12) }}
+          >
             <div className="min-w-0">
               <div
-                className="text-[30px] font-bold leading-none tabular-nums"
-                style={{ color: accent ?? fg }}
+                className="text-[30px] leading-none tabular-nums"
+                style={{ color: accent ?? fg, fontWeight: ws.weight(700) }}
               >
                 {total ?? "—"}
               </div>
@@ -232,8 +259,15 @@ export function ModernSteam({
               </div>
             </div>
             {showStats && (
-              <div className="max-w-[45%] shrink-0 text-right">
-                <div className="flex items-center justify-end gap-1.5 text-sm font-semibold tabular-nums" style={{ color: fg }}>
+              <div className="max-w-[45%] shrink-0" style={textAlign("right")}>
+                <div
+                  className="flex gap-1.5 text-sm tabular-nums"
+                  style={{
+                    ...flow("row", { x: "end", y: "center" }),
+                    color: fg,
+                    fontWeight: ws.weight(600),
+                  }}
+                >
                   {achIconUrl && (
                     <img src={achIconUrl} alt="" className="h-5 w-5 rounded object-cover" loading="lazy" />
                   )}
@@ -263,16 +297,26 @@ export function ModernSteam({
     );
   } else if (v === "compact") {
     body = (
-      <div className="relative flex h-full w-full items-center gap-3 px-4">
+      <div
+        className="relative flex h-full w-full"
+        style={{
+          ...flow("row", { x: "start", y: "center" }),
+          gap: ws.gap(12),
+          paddingInline: ws.pad(16),
+        }}
+      >
         <Avatar url={avatarUrl} size={clamp(16, h * 0.45, 28)} />
         <div className="min-w-0 truncate text-sm" style={{ color: fg }}>
-          <span className="font-semibold">{name ?? "Steam"}</span>
+          <span style={{ fontWeight: ws.weight(600) }}>{name ?? "Steam"}</span>
           <span className="ml-2" style={{ color: muted }}>
             {sessionLine}
           </span>
         </div>
         <div className="ml-auto shrink-0 text-right">
-          <div className="text-sm font-semibold tabular-nums leading-tight" style={{ color: accent ?? fg }}>
+          <div
+            className="text-sm tabular-nums leading-tight"
+            style={{ color: accent ?? fg, fontWeight: ws.weight(600) }}
+          >
             {total ?? "—"}
           </div>
           <div className="truncate text-[10px] tabular-nums" style={{ color: muted }}>
@@ -283,10 +327,20 @@ export function ModernSteam({
     );
   } else if (v === "simple") {
     body = (
-      <div className="relative flex h-full w-full items-center gap-3 p-3">
+      <div
+        className="relative flex h-full w-full"
+        style={{
+          ...flow("row", { x: "start", y: "center" }),
+          gap: ws.gap(12),
+          padding: ws.pad(12),
+        }}
+      >
         <Avatar url={avatarUrl} size={clamp(28, h * 0.45, 44)} />
         <div className="min-w-0">
-          <div className="truncate text-sm font-semibold" style={{ color: fg }}>
+          <div
+            className="truncate text-sm"
+            style={{ color: fg, fontWeight: ws.weight(600) }}
+          >
             {name ?? "Steam"}
           </div>
           <div className="truncate text-xs" style={{ color: muted }}>
@@ -295,7 +349,10 @@ export function ModernSteam({
         </div>
         {achPct !== undefined && (
           <div className="ml-auto shrink-0 text-right">
-            <div className="text-sm font-semibold tabular-nums leading-tight" style={{ color: fg }}>
+            <div
+              className="text-sm tabular-nums leading-tight"
+              style={{ color: fg, fontWeight: ws.weight(600) }}
+            >
               {Math.round(achPct)}%
             </div>
             <div className="text-[9px]" style={{ color: muted }}>
@@ -308,12 +365,25 @@ export function ModernSteam({
   } else {
     // standard
     body = (
-      <div className="relative flex h-full w-full items-center gap-4 p-4">
+      <div
+        className="relative flex h-full w-full"
+        style={{
+          ...flow("row", { x: "start", y: "center" }),
+          gap: ws.gap(16),
+          padding: ws.pad(16),
+        }}
+      >
         <div className="w-[28%] min-w-[150px] max-w-[280px] shrink">
-          <div className="flex items-center gap-3">
+          <div
+            className="flex"
+            style={{ ...flow("row", { x: "start", y: "center" }), gap: ws.gap(12) }}
+          >
             <Avatar url={avatarUrl} size={clamp(36, h * 0.3, 56)} />
             <div className="min-w-0">
-              <div className="truncate text-sm font-semibold" style={{ color: fg }}>
+              <div
+                className="truncate text-sm"
+                style={{ color: fg, fontWeight: ws.weight(600) }}
+              >
                 {name ?? "Steam"}
               </div>
               <div className="truncate text-xs" style={{ color: muted }}>
@@ -332,8 +402,11 @@ export function ModernSteam({
           )}
         </div>
 
-        <div className="min-w-0 flex-1 text-center">
-          <div className="text-5xl font-bold leading-none tabular-nums" style={{ color: accent ?? fg }}>
+        <div className="min-w-0" style={{ flex: ws.flex(), ...textAlign("center") }}>
+          <div
+            className="text-5xl leading-none tabular-nums"
+            style={{ color: accent ?? fg, fontWeight: ws.weight(700) }}
+          >
             {total ?? "—"}
           </div>
           <div className="mt-1.5 truncate text-sm" style={{ color: muted }}>
@@ -347,11 +420,21 @@ export function ModernSteam({
         </div>
 
         {showStats && (
-          <div className="w-[26%] min-w-[140px] max-w-[240px] shrink text-right">
+          <div
+            className="w-[26%] min-w-[140px] max-w-[240px] shrink"
+            style={textAlign("right")}
+          >
             <div className="text-xs tabular-nums" style={{ color: muted }}>
               {[totalGames !== undefined ? `${totalGames} games` : undefined, friendsLine].filter(Boolean).join(" · ") || "—"}
             </div>
-            <div className="mt-1 flex items-center justify-end gap-1.5 text-base font-semibold tabular-nums" style={{ color: fg }}>
+            <div
+              className="mt-1 flex gap-1.5 text-base tabular-nums"
+              style={{
+                ...flow("row", { x: "end", y: "center" }),
+                color: fg,
+                fontWeight: ws.weight(600),
+              }}
+            >
               {achIconUrl && (
                 <img src={achIconUrl} alt="" className="h-5 w-5 rounded object-cover" loading="lazy" />
               )}
@@ -367,13 +450,15 @@ export function ModernSteam({
   }
 
   return (
-    <div ref={ref} className={cn("h-full w-full", className)}>
-      <ModernChrome chrome={chrome}>
+    <ModernChrome chrome={chrome} designSize={DESIGN} className={className}>
+      <div ref={ref} className="h-full w-full">
         <div
-          className={cn("relative h-full w-full overflow-hidden", radius[v])}
+          className="relative h-full w-full overflow-hidden"
           style={{
-            background: bannerUrl ? undefined : sv.background,
-            boxShadow: `inset 0 0 0 1px ${sv.ring}`,
+            ...surfaceBox(sv, chrome),
+            // The banner image is the background when there is one.
+            ...(bannerUrl ? { background: undefined } : null),
+            borderRadius: ws.radius(radius[v]),
           }}
         >
           {bannerUrl ? (
@@ -395,7 +480,7 @@ export function ModernSteam({
           )}
           <div className="relative z-10 h-full w-full">{body}</div>
         </div>
-      </ModernChrome>
-    </div>
+      </div>
+    </ModernChrome>
   );
 }

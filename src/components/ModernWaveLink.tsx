@@ -1,13 +1,11 @@
 import { Mic, Radio } from "lucide-react";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 import { ModernChrome, type ModernChrome as ModernChromeSpec } from "./modern-chrome";
-import {
-  makeSurface,
-  useElementSize,
-  type ModernStyle,
-} from "./ModernNowPlaying";
+import { makeSurface, type ModernStyle } from "./ModernNowPlaying";
+import { useElementSize } from "@/hooks/use-element-size";
+import { byShape, flow, labelStyle, strokeOf, surfaceBox, ws } from "./widget-style";
 import { LevelMeter, type LevelMeterVariant } from "@/components/ui/level-meter";
 import { DbReadout } from "@/components/ui/db-readout";
 import { DbScale } from "@/components/ui/db-scale";
@@ -41,7 +39,24 @@ import type { Orientation } from "@/lib/audio/types";
  * - `standard` — wide zones: mixer columns side by side
  * - `compact`  — very short zones: name · fader % · bar
  * - `simple`   — small zones: the first channel only
+ *
+ * The standard style options apply through `ModernChrome` and the
+ * `widget-style` helpers: it scales with the zone (designed for about
+ * 900×420 wide, 320×480 tall), and alignment, spacing, label case, value
+ * weight and meter thickness follow the user's choices.
  */
+
+/**
+ * The zone size each shape of the layout is designed for: the mixer columns
+ * (meter, scale, mix chips) plus the 208 px device column need about
+ * 900×420 before the chips start to overlap; stacked channel rows
+ * with the device list and mixes need a 320×480 column.
+ */
+const DESIGN = byShape({
+  wide: { w: 900, h: 420 },
+  tall: { w: 320, h: 480 },
+  square: { w: 720, h: 520 },
+});
 
 export type WaveLinkVariant = "card" | "standard" | "compact" | "simple";
 
@@ -51,6 +66,10 @@ export interface ModernWaveLinkProps {
   showReadout?: boolean;
   showFader?: boolean;
   showMixes?: boolean;
+  /** Color of the "live" dots ("" = green). */
+  liveColor?: string;
+  /** Color of the muted markers and the "not running" dot ("" = red). */
+  muteColor?: string;
   layout?: WaveLinkVariant | "auto";
   surfaceStyle?: ModernStyle;
   chrome?: ModernChromeSpec;
@@ -80,6 +99,8 @@ export function ModernWaveLink({
   showReadout = true,
   showFader = true,
   showMixes = true,
+  liveColor,
+  muteColor,
   layout = "auto",
   surfaceStyle = "glass",
   chrome,
@@ -94,11 +115,14 @@ export function ModernWaveLink({
   const v = pickVariant(w, h, layout);
   const up = state.status === "up";
 
-  const box = {
-    background: sv.background,
-    color: sv.fg,
-    boxShadow: `inset 0 0 0 1px ${sv.ring}`,
-  } as const;
+  // The meter thickness and the live / mute colors reach the pieces below
+  // as CSS variables (each with today's value as the fallback).
+  const box: CSSProperties = {
+    ...surfaceBox(sv, chrome),
+    ["--wl-stroke" as string]: strokeOf(chrome, 1),
+    ...(liveColor ? { ["--wl-live" as string]: liveColor } : null),
+    ...(muteColor ? { ["--wl-mute" as string]: muteColor } : null),
+  };
   const muted = sv.muted;
 
   // The setting's meter keys ("" = everything the app exposes).
@@ -123,10 +147,17 @@ export function ModernWaveLink({
     body = (
       <div
         className={cn(
-          "flex h-full w-full flex-col gap-2 overflow-y-auto rounded-[20px] p-4 pt-6",
+          "flex h-full w-full overflow-y-auto",
           !up && "opacity-60"
         )}
-        style={box}
+        style={{
+          ...box,
+          ...flow("column", { x: "between", y: "start" }),
+          gap: ws.gap(8),
+          padding: ws.pad(16),
+          paddingTop: `calc(${ws.pad(16)} + 8px)`,
+          borderRadius: ws.radius(20),
+        }}
       >
         <StatusLine up={up} version={state.appVersion} muted={muted} />
         {channels.length === 0 && devices.length === 0 ? (
@@ -166,10 +197,17 @@ export function ModernWaveLink({
     body = (
       <div
         className={cn(
-          "flex h-full w-full flex-col gap-2 overflow-hidden rounded-xl p-4 pt-6",
+          "flex h-full w-full overflow-hidden",
           !up && "opacity-60"
         )}
-        style={box}
+        style={{
+          ...box,
+          ...flow("column", { x: "between", y: "start" }),
+          gap: ws.gap(8),
+          padding: ws.pad(16),
+          paddingTop: `calc(${ws.pad(16)} + 8px)`,
+          borderRadius: ws.radius(12),
+        }}
       >
         <StatusLine up={up} version={state.appVersion} muted={muted} />
         {channels.length === 0 && devices.length === 0 ? (
@@ -191,8 +229,8 @@ export function ModernWaveLink({
               {devices.length > 0 && (
                 <div className="flex w-52 shrink-0 flex-col justify-center gap-1.5 overflow-hidden">
                   <div
-                    className="text-[10px] uppercase tracking-wider"
-                    style={{ color: muted }}
+                    className="text-[10px] tracking-wider"
+                    style={{ color: muted, ...labelStyle() }}
                   >
                     Devices
                   </div>
@@ -218,10 +256,16 @@ export function ModernWaveLink({
     body = (
       <div
         className={cn(
-          "flex h-full w-full items-center gap-5 overflow-hidden rounded-full px-4",
+          "flex h-full w-full overflow-hidden",
           !up && "opacity-60"
         )}
-        style={box}
+        style={{
+          ...box,
+          ...flow("row", { x: "start", y: "center" }),
+          gap: ws.gap(20),
+          paddingInline: ws.pad(16),
+          borderRadius: ws.radius(999),
+        }}
       >
         {channels.slice(0, 3).map((c) => (
           <div key={c.id} className="flex min-w-0 items-center gap-2">
@@ -230,7 +274,10 @@ export function ModernWaveLink({
             </span>
             {c.isMuted && <MuteDot />}
             {showFader && (
-              <span className="shrink-0 text-xs font-bold tabular-nums">
+              <span
+                className="shrink-0 text-xs tabular-nums"
+                style={{ fontWeight: ws.weight(700) }}
+              >
                 {fmtFader(c.level)}
               </span>
             )}
@@ -250,10 +297,17 @@ export function ModernWaveLink({
     body = (
       <div
         className={cn(
-          "flex h-full w-full items-center gap-3 overflow-hidden rounded-xl p-3 pt-5",
+          "flex h-full w-full overflow-hidden",
           !up && "opacity-60"
         )}
-        style={box}
+        style={{
+          ...box,
+          ...flow("row", { x: "start", y: "center" }),
+          gap: ws.gap(12),
+          padding: ws.pad(12),
+          paddingTop: `calc(${ws.pad(12)} + 8px)`,
+          borderRadius: ws.radius(12),
+        }}
       >
         {c ? (
           <>
@@ -283,9 +337,11 @@ export function ModernWaveLink({
   }
 
   return (
-    <div ref={ref} className={cn("h-full w-full", className)}>
-      <ModernChrome chrome={chrome}>{body}</ModernChrome>
-    </div>
+    <ModernChrome chrome={chrome} designSize={DESIGN} className={className}>
+      <div ref={ref} className="h-full w-full">
+        {body}
+      </div>
+    </ModernChrome>
   );
 }
 
@@ -306,7 +362,7 @@ function StatusLine({
         <span
           className={cn(
             "h-2 w-2 rounded-full",
-            up ? "bg-emerald-400" : "bg-red-400"
+            up ? "bg-[var(--wl-live,#34d399)]" : "bg-[var(--wl-mute,#f87171)]"
           )}
         />
         {up ? "Live" : "Not running"}
@@ -334,7 +390,7 @@ function AbsentNote() {
 function MuteDot() {
   return (
     <span
-      className="shrink-0 text-[10px] font-semibold uppercase text-red-400"
+      className="shrink-0 text-[10px] font-semibold uppercase text-[var(--wl-mute,#f87171)]"
       title="Muted"
     >
       M
@@ -366,7 +422,7 @@ function MixChips({
           <span
             className={cn(
               "h-1 w-1 rounded-full",
-              m.isMuted ? "bg-red-400" : "bg-emerald-400"
+              m.isMuted ? "bg-[var(--wl-mute,#f87171)]" : "bg-[var(--wl-live,#34d399)]"
             )}
           />
           {name(m.id)}
@@ -380,8 +436,8 @@ function MixFooter({ mixes, muted }: { mixes: WlMix[]; muted: string }) {
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-border/40 pt-2">
       <span
-        className="text-[10px] uppercase tracking-wider"
-        style={{ color: muted }}
+        className="text-[10px] tracking-wider"
+        style={{ color: muted, ...labelStyle() }}
       >
         Mixes
       </span>
@@ -390,7 +446,7 @@ function MixFooter({ mixes, muted }: { mixes: WlMix[]; muted: string }) {
           <span
             className={cn(
               "h-1.5 w-1.5 rounded-full",
-              mix.isMuted ? "bg-red-400" : "bg-emerald-400"
+              mix.isMuted ? "bg-[var(--wl-mute,#f87171)]" : "bg-[var(--wl-live,#34d399)]"
             )}
           />
           <span style={{ color: muted }}>{mix.name}</span>
@@ -423,14 +479,17 @@ function MixColumn({
 }) {
   const source = useWavelinkMeter(meterKey.channel(channel.id));
   return (
-    <div className="flex min-w-0 flex-1 flex-col gap-1">
+    <div className="flex min-w-0 flex-col gap-1" style={{ flex: ws.flex() }}>
       <div className="flex min-w-0 items-center gap-1.5">
         <span className="truncate text-xs font-semibold" title={channel.name}>
           {channel.name}
         </span>
         {channel.isMuted && <MuteDot />}
         {showFader && (
-          <span className="ml-auto shrink-0 text-xs font-bold tabular-nums">
+          <span
+            className="ml-auto shrink-0 text-xs tabular-nums"
+            style={{ fontWeight: ws.weight(700) }}
+          >
             {fmtFader(channel.level)}
           </span>
         )}
@@ -522,7 +581,7 @@ function CardRow({
           variant={meterVariant}
           ballistics={meterBallistics}
           size="sm"
-          className="h-2.5"
+          className="h-[calc(0.625rem*var(--wl-stroke,1))]"
         />
       </div>
       {showMixes && (
@@ -551,8 +610,8 @@ function DeviceList({
   return (
     <div>
       <div
-        className="mb-1.5 text-[10px] uppercase tracking-wider"
-        style={{ color: muted }}
+        className="mb-1.5 text-[10px] tracking-wider"
+        style={{ color: muted, ...labelStyle() }}
       >
         Output devices
       </div>
@@ -603,7 +662,7 @@ function DeviceRow({
           variant={meterVariant}
           ballistics={meterBallistics}
           size="sm"
-          className="h-2"
+          className="h-[calc(0.5rem*var(--wl-stroke,1))]"
         />
       </div>
       {showFader && gain !== undefined && (
@@ -634,7 +693,7 @@ function CompactMeter({
       variant={meterVariant}
       ballistics={meterBallistics}
       size="sm"
-      className="h-1.5"
+      className="h-[calc(0.375rem*var(--wl-stroke,1))]"
     />
   );
 }

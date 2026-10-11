@@ -197,6 +197,12 @@ export interface MonitorProfile {
   fit: "scroll" | "fill";
   placements: Placement[];
   /**
+   * Style defaults for every widget in the profile (the look-only keys of
+   * the standard settings, see `PROFILE_STYLE_KEYS`). A widget's own
+   * value overrides them.
+   */
+  style?: ModuleSettings;
+  /**
    * Set on shipped (non-user) profiles; when the app ships an updated copy
    * of a profile with a higher version, the saved copy is replaced.
    */
@@ -220,6 +226,15 @@ export interface DashboardConfig {
   radius: number;
   /** Base URL of InfoPanel's Data API (default http://127.0.0.1:3921). */
   dataApiUrl?: string;
+  /** Saved widget styles, applied from the studio inspector. */
+  stylePresets?: StylePreset[];
+}
+
+/** A named set of style values (the keys in `PROFILE_STYLE_KEYS`). */
+export interface StylePreset {
+  id: string;
+  name: string;
+  settings: ModuleSettings;
 }
 
 /** Dashboard-side configuration for one source (container). */
@@ -470,6 +485,7 @@ export function mergeConfig(input: Partial<DashboardConfig>): DashboardConfig {
     theme: { ...DEFAULT_THEME, ...parsed.theme },
     radius: parsed.radius ?? defaults.radius,
     dataApiUrl: normalizeApiBase(parsed.dataApiUrl) ?? undefined,
+    stylePresets: Array.isArray(parsed.stylePresets) ? parsed.stylePresets : undefined,
   };
 }
 

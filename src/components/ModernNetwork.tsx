@@ -1,12 +1,9 @@
 import { ArrowDown, ArrowUp } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Sparkline, useHistory } from "@/lib/sparkline";
 import { ModernChrome, type ModernChrome as ModernChromeSpec } from "./modern-chrome";
-import {
-  makeSurface,
-  useElementSize,
-  type ModernStyle,
-} from "./ModernNowPlaying";
+import { makeSurface, type ModernStyle } from "./ModernNowPlaying";
+import { useElementSize } from "@/hooks/use-element-size";
+import { byShape, flow, labelStyle, strokeOf, surfaceBox, ws } from "./widget-style";
 
 /**
  * Modern network widget.
@@ -20,7 +17,19 @@ import {
  * - `standard` — wide zones: DL / UL blocks side by side, totals below
  * - `compact`  — very short zones: one pill (↓ · ↑)
  * - `simple`   — small zones: two values (↓ / ↑)
+ *
+ * The standard style options apply through `ModernChrome` and the
+ * `widget-style` helpers: it scales with the zone (designed for about
+ * 440×170 wide, 300×300 tall), and alignment, spacing, label case, value
+ * weight and bar thickness follow the user's choices.
  */
+
+/** The zone size each shape of the layout is designed for. */
+const DESIGN = byShape({
+  wide: { w: 440, h: 170 },
+  tall: { w: 300, h: 300 },
+  square: { w: 360, h: 220 },
+});
 
 export type NetworkVariant = "card" | "standard" | "compact" | "simple";
 
@@ -39,6 +48,9 @@ export interface ModernNetworkProps {
   sparkline?: boolean;
   /** Show the session DL / UL totals row. */
   showTotals?: boolean;
+  /** Download / upload colors ("" = the default). */
+  downloadColor?: string;
+  uploadColor?: string;
   layout?: NetworkVariant | "auto";
   surfaceStyle?: ModernStyle;
   /** Standard chrome: custom title / icon / accent / background image. */
@@ -72,8 +84,8 @@ export function formatSize(bytes?: number): string {
   return `${v >= 100 ? v.toFixed(0) : v.toFixed(1)} ${units[i]}`;
 }
 
-const DL_COLOR = "#34d399";
-const UL_COLOR = "#60a5fa";
+const DEFAULT_DL_COLOR = "#34d399";
+const DEFAULT_UL_COLOR = "#60a5fa";
 
 function pickVariant(
   w: number,
@@ -106,14 +118,14 @@ function SpeedBlock({
   muted: string;
 }) {
   return (
-    <div className="min-w-0 flex-1">
+    <div className="min-w-0" style={{ flex: ws.flex() }}>
       <div className="flex items-center gap-1.5">
         <span style={{ color }}>{icon}</span>
-        <span className="text-xs font-medium uppercase tracking-wider" style={{ color: muted }}>
+        <span className="text-xs font-medium tracking-wider" style={{ color: muted, ...labelStyle() }}>
           {label}
         </span>
       </div>
-      <div className="mt-0.5 text-2xl font-bold tabular-nums" style={{ color }}>
+      <div className="mt-0.5 text-2xl tabular-nums" style={{ color, fontWeight: ws.weight(700) }}>
         {value}
       </div>
       {sparkline && (
@@ -133,6 +145,8 @@ export function ModernNetwork({
   utilization,
   sparkline = false,
   showTotals = true,
+  downloadColor,
+  uploadColor,
   layout = "auto",
   surfaceStyle = "glass",
   chrome,
@@ -145,29 +159,35 @@ export function ModernNetwork({
   const ulHist = useHistory(upload);
 
   const box = {
-    background: sv.background,
-    color: sv.fg,
-    boxShadow: `inset 0 0 0 1px ${sv.ring}`,
+    ...surfaceBox(sv, chrome),
   } as const;
   const muted = sv.muted;
+  const DL_COLOR = downloadColor || DEFAULT_DL_COLOR;
+  const UL_COLOR = uploadColor || DEFAULT_UL_COLOR;
 
   const totals = (
-    <div className="flex shrink-0 items-center gap-4 text-xs" style={{ color: muted }}>
+    <div
+      className="flex shrink-0 text-xs"
+      style={{ color: muted, ...flow("row", { x: "start", y: "center" }), gap: ws.gap(16) }}
+    >
       <span>
         Total DL{" "}
-        <span className="font-semibold tabular-nums" style={{ color: DL_COLOR }}>
+        <span className="tabular-nums" style={{ color: DL_COLOR, fontWeight: ws.weight(600) }}>
           {formatSize(downloadTotal)}
         </span>
       </span>
       <span>
         Total UL{" "}
-        <span className="font-semibold tabular-nums" style={{ color: UL_COLOR }}>
+        <span className="tabular-nums" style={{ color: UL_COLOR, fontWeight: ws.weight(600) }}>
           {formatSize(uploadTotal)}
         </span>
       </span>
       {utilization !== undefined && (
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-1.5 w-16 overflow-hidden rounded-full" style={{ background: "rgba(128,128,140,0.22)" }}>
+          <span
+            className="inline-block w-16 overflow-hidden rounded-full"
+            style={{ height: strokeOf(chrome, 6), background: "rgba(128,128,140,0.22)" }}
+          >
             <span
               className="block h-full rounded-full"
               style={{
@@ -186,10 +206,16 @@ export function ModernNetwork({
   if (v === "card") {
     body = (
       <div
-        className="flex h-full w-full flex-col justify-center gap-4 overflow-hidden rounded-[20px] p-5"
-        style={box}
+        className="flex h-full w-full overflow-hidden"
+        style={{
+          ...box,
+          ...flow("column", { x: "between", y: "center" }),
+          gap: ws.gap(16),
+          padding: ws.pad(20),
+          borderRadius: ws.radius(20),
+        }}
       >
-        <div className="flex items-center gap-6">
+        <div className="flex" style={{ ...flow("row", { x: "start", y: "center" }), gap: ws.gap(24) }}>
           <SpeedBlock
             icon={<ArrowDown className="h-4 w-4" />}
             label="Download"
@@ -215,18 +241,24 @@ export function ModernNetwork({
   } else if (v === "compact") {
     body = (
       <div
-        className="flex h-full w-full items-center gap-5 overflow-hidden rounded-full px-4"
-        style={box}
+        className="flex h-full w-full overflow-hidden"
+        style={{
+          ...box,
+          ...flow("row", { x: "start", y: "center" }),
+          gap: ws.gap(20),
+          paddingInline: ws.pad(16),
+          borderRadius: ws.radius(999),
+        }}
       >
         <div className="flex items-center gap-1.5">
           <ArrowDown className="h-3.5 w-3.5" style={{ color: DL_COLOR }} />
-          <span className="text-sm font-bold tabular-nums" style={{ color: DL_COLOR }}>
+          <span className="text-sm tabular-nums" style={{ color: DL_COLOR, fontWeight: ws.weight(700) }}>
             {formatRate(download)}
           </span>
         </div>
         <div className="flex items-center gap-1.5">
           <ArrowUp className="h-3.5 w-3.5" style={{ color: UL_COLOR }} />
-          <span className="text-sm font-bold tabular-nums" style={{ color: UL_COLOR }}>
+          <span className="text-sm tabular-nums" style={{ color: UL_COLOR, fontWeight: ws.weight(700) }}>
             {formatRate(upload)}
           </span>
         </div>
@@ -240,18 +272,24 @@ export function ModernNetwork({
   } else if (v === "simple") {
     body = (
       <div
-        className="flex h-full w-full items-center justify-center gap-6 overflow-hidden rounded-xl p-3"
-        style={box}
+        className="flex h-full w-full overflow-hidden"
+        style={{
+          ...box,
+          ...flow("row", { x: "center", y: "center" }),
+          gap: ws.gap(24),
+          padding: ws.pad(12),
+          borderRadius: ws.radius(12),
+        }}
       >
         <div className="flex items-center gap-1.5">
           <ArrowDown className="h-4 w-4" style={{ color: DL_COLOR }} />
-          <span className="text-lg font-bold tabular-nums" style={{ color: DL_COLOR }}>
+          <span className="text-lg tabular-nums" style={{ color: DL_COLOR, fontWeight: ws.weight(700) }}>
             {formatRate(download)}
           </span>
         </div>
         <div className="flex items-center gap-1.5">
           <ArrowUp className="h-4 w-4" style={{ color: UL_COLOR }} />
-          <span className="text-lg font-bold tabular-nums" style={{ color: UL_COLOR }}>
+          <span className="text-lg tabular-nums" style={{ color: UL_COLOR, fontWeight: ws.weight(700) }}>
             {formatRate(upload)}
           </span>
         </div>
@@ -261,10 +299,16 @@ export function ModernNetwork({
     // standard
     body = (
       <div
-        className="flex h-full w-full flex-col justify-center gap-4 overflow-hidden rounded-xl p-5"
-        style={box}
+        className="flex h-full w-full overflow-hidden"
+        style={{
+          ...box,
+          ...flow("column", { x: "between", y: "center" }),
+          gap: ws.gap(16),
+          padding: ws.pad(20),
+          borderRadius: ws.radius(12),
+        }}
       >
-        <div className="flex items-center gap-8">
+        <div className="flex" style={{ ...flow("row", { x: "start", y: "center" }), gap: ws.gap(32) }}>
           <SpeedBlock
             icon={<ArrowDown className="h-4 w-4" />}
             label="Download"
@@ -290,8 +334,10 @@ export function ModernNetwork({
   }
 
   return (
-    <div ref={ref} className={cn("h-full w-full", className)}>
-      <ModernChrome chrome={chrome}>{body}</ModernChrome>
-    </div>
+    <ModernChrome chrome={chrome} designSize={DESIGN} className={className}>
+      <div ref={ref} className="h-full w-full">
+        {body}
+      </div>
+    </ModernChrome>
   );
 }

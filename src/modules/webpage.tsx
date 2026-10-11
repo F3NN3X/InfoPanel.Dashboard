@@ -1,5 +1,9 @@
 import { Globe } from "lucide-react";
+import { ModernChrome } from "@/components/modern-chrome";
+import { ws } from "@/components/widget-style";
+import { chromeOf, STYLE_SETTINGS } from "./standard-settings";
 import { effectiveSettings, type DashboardModule } from "./types";
+
 
 /**
  * Normalize a URL for in-iframe display. YouTube watch / share / shorts /
@@ -39,6 +43,9 @@ function toEmbeddable(raw: string): string {
  * iframe that fills the zone. The URL is a plain inspector text field; no
  * sensor data is consumed, so the widget is always "present" (a placeholder
  * shows until a URL is set).
+ * Follows the style system as far as an iframe allows: zoom scales the
+ * embedded page, and only the corner radius applies (an iframe has no
+ * padding, gap, alignment, labels or values to style).
  */
 export const webpageModule: DashboardModule = {
   id: "webpage",
@@ -53,24 +60,39 @@ export const webpageModule: DashboardModule = {
       type: "text",
       default: "",
     },
+    // An iframe has no layout of its own: only its size and corners apply
+    // (no auto-scale, which would zoom the embedded page itself).
+    ...STYLE_SETTINGS.filter((d) => d.key === "scale" || d.key === "radius"),
   ],
   render: (_sensors, s) => {
     const cfg = effectiveSettings(webpageModule, s);
     const url = String(cfg.url ?? "").trim();
     const src = toEmbeddable(url);
 
+    const chrome = chromeOf(cfg);
+    const radius = ws.radius("var(--radius-lg, 0.5rem)");
+
     if (!src) {
       return (
-        <div className="flex h-full w-full flex-col items-center justify-center gap-2 rounded-lg bg-black/40 text-muted-foreground">
-          <Globe className="h-6 w-6 opacity-50" />
-          <span className="text-xs">Enter a URL in the inspector</span>
-        </div>
+        <ModernChrome chrome={chrome}>
+          <div
+            className="flex h-full w-full flex-col items-center justify-center gap-2 bg-black/40 text-muted-foreground"
+            style={{ borderRadius: radius }}
+          >
+            <Globe className="h-6 w-6 opacity-50" />
+            <span className="text-xs">Enter a URL in the inspector</span>
+          </div>
+        </ModernChrome>
       );
     }
 
     // key={src}: remount (and reload) the frame whenever the URL changes.
     return (
-      <div className="h-full w-full overflow-hidden rounded-lg border border-white/10">
+      <ModernChrome chrome={chrome}>
+      <div
+        className="h-full w-full overflow-hidden border border-white/10"
+        style={{ borderRadius: radius }}
+      >
         <iframe
           key={src}
           src={src}
@@ -80,6 +102,7 @@ export const webpageModule: DashboardModule = {
           allowFullScreen
         />
       </div>
+      </ModernChrome>
     );
   },
 };

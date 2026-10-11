@@ -46,10 +46,18 @@ export interface ModuleSetting {
    * studio.
    */
   multiple?: boolean;
+  /** For type "text": a multi-line editor (e.g. custom CSS). */
+  multiline?: boolean;
   /** Bounds/step for type "number" (rendered as a slider when set). */
   min?: number;
   max?: number;
   step?: number;
+  /**
+   * Inspector section this setting belongs to ("" / unset = the top list).
+   * Settings sharing a group render together in a collapsible section,
+   * placed where the group first appears.
+   */
+  group?: string;
 }
 
 /**
@@ -76,6 +84,12 @@ export interface DashboardModule {
   render: (sensors: SensorMap, settings?: ModuleSettings) => ReactNode;
   /** Inspector-editable options; omit for modules with no settings. */
   settings?: ModuleSetting[];
+  /**
+   * Whether the module has data but nothing worth showing right now
+   * (nothing playing, no game running, …). With its `hideWhenIdle`
+   * setting on, the kiosk hides the zone while this holds.
+   */
+  isIdle?: (sensors: SensorMap, settings: ModuleSettings) => boolean;
 }
 
 /** The module's defaults, merged with a placement's saved settings. */
@@ -88,4 +102,17 @@ export function effectiveSettings(
     out[def.key] = saved?.[def.key] ?? def.default;
   }
   return out;
+}
+
+/**
+ * A placement's saved settings over the profile's style defaults: the
+ * widget's own value wins, then the profile's, then (in
+ * `effectiveSettings`) the module default.
+ */
+export function withProfileStyle(
+  saved: ModuleSettings | undefined,
+  profileStyle: ModuleSettings | undefined
+): ModuleSettings | undefined {
+  if (!profileStyle || Object.keys(profileStyle).length === 0) return saved;
+  return { ...profileStyle, ...saved };
 }

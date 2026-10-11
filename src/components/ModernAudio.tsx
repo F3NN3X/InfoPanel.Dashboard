@@ -1,11 +1,9 @@
 import { Volume2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ModernChrome, type ModernChrome as ModernChromeSpec } from "./modern-chrome";
-import {
-  makeSurface,
-  useElementSize,
-  type ModernStyle,
-} from "./ModernNowPlaying";
+import { makeSurface, type ModernStyle } from "./ModernNowPlaying";
+import { useElementSize } from "@/hooks/use-element-size";
+import { byShape, flow, labelStyle, strokeOf, surfaceBox, ws } from "./widget-style";
 import { LevelMeter, type LevelMeterVariant } from "@/components/ui/level-meter";
 import { DbReadout } from "@/components/ui/db-readout";
 import type { BallisticsPreset } from "@/lib/audio/ballistics";
@@ -23,7 +21,23 @@ import type { Orientation } from "@/lib/audio/types";
  * - `standard` — wide zones: device blocks side by side
  * - `compact`  — very short zones: one pill (device · % · bar)
  * - `simple`   — small zones: device + %
+ *
+ * The standard style options apply through `ModernChrome` and the
+ * `widget-style` helpers: it scales with the zone (designed for about
+ * 560×180 wide, 300×400 tall), and alignment, spacing, label case, value
+ * weight and bar thickness follow the user's choices.
  */
+
+/**
+ * The zone size each shape of the layout is designed for: device blocks
+ * side by side fit a wide strip of about 560×180; stacked device rows a
+ * 300×400 column.
+ */
+const DESIGN = byShape({
+  wide: { w: 560, h: 180 },
+  tall: { w: 300, h: 400 },
+  square: { w: 380, h: 260 },
+});
 
 export type AudioVariant = "card" | "standard" | "compact" | "simple";
 
@@ -47,6 +61,10 @@ export interface ModernAudioProps {
   showVolume?: boolean;
   /** Show a "muted" chip when the device is muted. */
   showMute?: boolean;
+  /** Level bar color ("" = the accent, or green). */
+  levelColor?: string;
+  /** Level bar color when hot ("" = red). */
+  hotColor?: string;
   layout?: AudioVariant | "auto";
   surfaceStyle?: ModernStyle;
   /** Standard chrome: custom title / icon / accent / background image. */
@@ -77,8 +95,13 @@ function pickVariant(
 
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 
-function barColor(level: number): string {
-  return level > 85 ? "#f87171" : "var(--wp-accent, #34d399)";
+interface BarColors {
+  level?: string;
+  hot?: string;
+}
+
+function barColor(level: number, colors: BarColors): string {
+  return level > 85 ? colors.hot || "#f87171" : colors.level || "var(--wp-accent, #34d399)";
 }
 
 function detail(d: ModernAudioDevice): string {
@@ -92,7 +115,15 @@ function detail(d: ModernAudioDevice): string {
   return bits.length > 0 ? bits.join(" · ") : "silent";
 }
 
-function LevelBar({ level, height = 6 }: { level: number; height?: number }) {
+function LevelBar({
+  level,
+  height = 6,
+  colors,
+}: {
+  level: number;
+  height?: number;
+  colors: BarColors;
+}) {
   return (
     <div
       className="w-full overflow-hidden rounded-full"
@@ -102,7 +133,7 @@ function LevelBar({ level, height = 6 }: { level: number; height?: number }) {
         className="h-full rounded-full"
         style={{
           width: `${Math.round(clamp01(level) * 100)}%`,
-          background: barColor(level),
+          background: barColor(level, colors),
           transition: "width 0.3s ease",
         }}
       />
@@ -127,7 +158,7 @@ function VolumeBar({ volume, height = 6 }: { volume: number; height?: number }) 
           }}
         />
       </div>
-      <span className="shrink-0 text-[11px] font-semibold tabular-nums">
+      <span className="shrink-0 text-[11px] tabular-nums" style={{ fontWeight: ws.weight(600) }}>
         {Math.round(volume)}%
       </span>
     </div>
@@ -137,8 +168,8 @@ function VolumeBar({ volume, height = 6 }: { volume: number; height?: number }) 
 function MuteChip() {
   return (
     <span
-      className="shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider"
-      style={{ background: "rgba(248,113,113,0.2)", color: "#f87171" }}
+      className="shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-medium tracking-wider"
+      style={{ background: "rgba(248,113,113,0.2)", color: "#f87171", ...labelStyle() }}
     >
       muted
     </span>
@@ -221,6 +252,8 @@ export function ModernAudio({
   showDevice = true,
   showVolume = false,
   showMute = true,
+  levelColor,
+  hotColor,
   layout = "auto",
   surfaceStyle = "glass",
   chrome,
@@ -233,6 +266,7 @@ export function ModernAudio({
   const { ref, w, h } = useElementSize();
   const sv = makeSurface(surfaceStyle, null);
   const v = pickVariant(w, h, layout);
+  const bar: BarColors = { level: levelColor, hot: hotColor };
 
   const meter = (
     d: ModernAudioDevice,
@@ -253,9 +287,7 @@ export function ModernAudio({
     ) : null;
 
   const box = {
-    background: sv.background,
-    color: sv.fg,
-    boxShadow: `inset 0 0 0 1px ${sv.ring}`,
+    ...surfaceBox(sv, chrome),
   } as const;
   const muted = sv.muted;
   const shown = devices.slice(0, v === "compact" ? 2 : v === "simple" ? 1 : 6);
@@ -264,8 +296,14 @@ export function ModernAudio({
   if (v === "card") {
     body = (
       <div
-        className="flex h-full w-full flex-col justify-center gap-3 overflow-y-auto rounded-[20px] p-4"
-        style={box}
+        className="flex h-full w-full overflow-y-auto"
+        style={{
+          ...box,
+          ...flow("column", { x: "between", y: "center" }),
+          gap: ws.gap(12),
+          padding: ws.pad(16),
+          borderRadius: ws.radius(20),
+        }}
       >
         {shown.map((d) => (
           <div key={d.name} className="min-w-0">
@@ -281,18 +319,18 @@ export function ModernAudio({
                   </span>
                 )}
               </div>
-              <span className="shrink-0 text-lg font-bold tabular-nums">
+              <span className="shrink-0 text-lg tabular-nums" style={{ fontWeight: ws.weight(700) }}>
                 {d.level !== undefined ? `${Math.round(d.level)}%` : "—"}
               </span>
             </div>
             <div className="mt-1.5 flex items-center">
-              {meter(d, "default", true, true) ?? <LevelBar level={d.level ?? 0} />}
+              {meter(d, "default", true, true) ?? <LevelBar level={d.level ?? 0} height={strokeOf(chrome, 6)} colors={bar} />}
             </div>
             {(showVolume && d.volume !== undefined) || (showMute && d.muted === "True") ? (
               <div className="mt-1.5 flex items-center gap-2">
                 {showVolume && d.volume !== undefined && (
                   <div className="flex-1">
-                    <VolumeBar volume={d.volume} />
+                    <VolumeBar volume={d.volume} height={strokeOf(chrome, 6)} />
                   </div>
                 )}
                 {showMute && d.muted === "True" && <MuteChip />}
@@ -310,11 +348,21 @@ export function ModernAudio({
   } else if (v === "standard") {
     body = (
       <div
-        className="flex h-full w-full items-stretch gap-4 overflow-hidden rounded-xl p-4"
-        style={box}
+        className="flex h-full w-full overflow-hidden"
+        style={{
+          ...box,
+          ...flow("row", { x: "start", y: "between" }),
+          gap: ws.gap(16),
+          padding: ws.pad(16),
+          borderRadius: ws.radius(12),
+        }}
       >
         {shown.map((d) => (
-          <div key={d.name} className="flex min-w-0 flex-1 flex-col justify-center gap-1.5">
+          <div
+            key={d.name}
+            className="flex min-w-0 flex-col justify-center gap-1.5"
+            style={{ flex: ws.flex() }}
+          >
             <div className="flex min-w-0 items-center gap-1.5">
               <Volume2 className="h-3.5 w-3.5 shrink-0" style={{ color: muted }} />
               {showDevice && (
@@ -322,16 +370,16 @@ export function ModernAudio({
                   {d.name}
                 </span>
               )}
-              <span className="ml-auto shrink-0 text-base font-bold tabular-nums">
+              <span className="ml-auto shrink-0 text-base tabular-nums" style={{ fontWeight: ws.weight(700) }}>
                 {d.level !== undefined ? `${Math.round(d.level)}%` : "—"}
               </span>
             </div>
-            {meter(d) ?? <LevelBar level={d.level ?? 0} height={5} />}
+            {meter(d) ?? <LevelBar level={d.level ?? 0} height={strokeOf(chrome, 5)} colors={bar} />}
             {(showVolume && d.volume !== undefined) || (showMute && d.muted === "True") ? (
               <div className="flex items-center gap-2">
                 {showVolume && d.volume !== undefined && (
                   <div className="flex-1">
-                    <VolumeBar volume={d.volume} height={5} />
+                    <VolumeBar volume={d.volume} height={strokeOf(chrome, 5)} />
                   </div>
                 )}
                 {showMute && d.muted === "True" && <MuteChip />}
@@ -349,8 +397,14 @@ export function ModernAudio({
   } else if (v === "compact") {
     body = (
       <div
-        className="flex h-full w-full items-center gap-5 overflow-hidden rounded-full px-4"
-        style={box}
+        className="flex h-full w-full overflow-hidden"
+        style={{
+          ...box,
+          ...flow("row", { x: "start", y: "center" }),
+          gap: ws.gap(20),
+          paddingInline: ws.pad(16),
+          borderRadius: ws.radius(999),
+        }}
       >
         {shown.map((d) => (
           <div key={d.name} className="flex min-w-0 items-center gap-2">
@@ -358,11 +412,11 @@ export function ModernAudio({
             <span className="truncate text-xs font-semibold" title={d.name}>
               {d.name}
             </span>
-            <span className="shrink-0 text-xs font-bold tabular-nums">
+            <span className="shrink-0 text-xs tabular-nums" style={{ fontWeight: ws.weight(700) }}>
               {d.level !== undefined ? `${Math.round(d.level)}%` : "—"}
             </span>
             <div className="w-16 shrink-0">
-              {meter(d, "sm", false) ?? <LevelBar level={d.level ?? 0} height={4} />}
+              {meter(d, "sm", false) ?? <LevelBar level={d.level ?? 0} height={strokeOf(chrome, 4)} colors={bar} />}
             </div>
           </div>
         ))}
@@ -372,8 +426,14 @@ export function ModernAudio({
     const d = shown[0];
     body = (
       <div
-        className="flex h-full w-full items-center gap-3 overflow-hidden rounded-xl p-3"
-        style={box}
+        className="flex h-full w-full overflow-hidden"
+        style={{
+          ...box,
+          ...flow("row", { x: "start", y: "center" }),
+          gap: ws.gap(12),
+          padding: ws.pad(12),
+          borderRadius: ws.radius(12),
+        }}
       >
         <Volume2 className="h-4 w-4 shrink-0" style={{ color: muted }} />
         <div className="min-w-0">
@@ -386,7 +446,7 @@ export function ModernAudio({
         </div>
         {d && (
           <div className="ml-auto w-24 shrink-0">
-            <LevelBar level={d.level ?? 0} height={5} />
+            <LevelBar level={d.level ?? 0} height={strokeOf(chrome, 5)} colors={bar} />
           </div>
         )}
       </div>
@@ -394,8 +454,10 @@ export function ModernAudio({
   }
 
   return (
-    <div ref={ref} className={cn("h-full w-full", className)}>
-      <ModernChrome chrome={chrome}>{body}</ModernChrome>
-    </div>
+    <ModernChrome chrome={chrome} designSize={DESIGN} className={className}>
+      <div ref={ref} className="h-full w-full">
+        {body}
+      </div>
+    </ModernChrome>
   );
 }

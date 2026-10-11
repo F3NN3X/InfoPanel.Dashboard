@@ -1,6 +1,6 @@
 import { ModernBluetooth } from "@/components/ModernBluetooth";
 import { byName, groupByContainer, liveText } from "@/lib/sensors";
-import { chromeOf, STANDARD_SETTINGS } from "./standard-settings";
+import { chromeOf, GROUP_COLORS, STANDARD_SETTINGS } from "./standard-settings";
 import {
   effectiveSettings,
   type DashboardModule,
@@ -22,6 +22,8 @@ const BLUETOOTH_MODERN_SETTINGS: ModuleSetting[] = [
   { key: "showStatus", label: "Bluetooth status", type: "boolean", default: true },
   { key: "showDevices", label: "Paired devices", type: "boolean", default: true },
   { key: "showBattery", label: "Battery levels", type: "boolean", default: true },
+  { key: "batteryMidColor", label: "Battery medium color", type: "color", default: "", group: GROUP_COLORS },
+  { key: "batteryLowColor", label: "Battery low color", type: "color", default: "", group: GROUP_COLORS },
   {
     key: "view",
     label: "View",
@@ -82,6 +84,10 @@ export const bluetoothModernModule: DashboardModule = {
         showStatus={Boolean(cfg.showStatus)}
         showDevices={Boolean(cfg.showDevices)}
         showBattery={Boolean(cfg.showBattery)}
+        batteryColors={{
+          mid: String(cfg.batteryMidColor ?? ""),
+          low: String(cfg.batteryLowColor ?? ""),
+        }}
         layout={String(cfg.layout) as
           | "auto"
           | "card"

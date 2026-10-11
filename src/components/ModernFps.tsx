@@ -1,11 +1,8 @@
-import { cn } from "@/lib/utils";
 import { Sparkline, useHistory } from "@/lib/sparkline";
 import { ModernChrome, type ModernChrome as ModernChromeSpec } from "./modern-chrome";
-import {
-  makeSurface,
-  useElementSize,
-  type ModernStyle,
-} from "./ModernNowPlaying";
+import { makeSurface, type ModernStyle } from "./ModernNowPlaying";
+import { useElementSize } from "@/hooks/use-element-size";
+import { byShape, flow, labelStyle, strokeOf, surfaceBox, ws } from "./widget-style";
 
 /**
  * Modern FPS / performance widget.
@@ -19,7 +16,23 @@ import {
  * - `standard` — wide zones: ring left, stats middle, GPU/resolution right
  * - `compact`  — very short zones: one pill (ring · fps · 1% low · frame)
  * - `simple`   — small zones: ring + fps number
+ *
+ * The standard style options apply through `ModernChrome` and the
+ * `widget-style` helpers: it scales with the zone (designed for about
+ * 560×200 wide, 300×420 tall), and alignment, spacing, label case, value
+ * weight and ring thickness follow the user's choices.
  */
+
+/**
+ * The zone size each shape of the layout is designed for: the standard
+ * layout (ring up to 110 px, stat columns, GPU column) fits a wide strip of
+ * about 560×200; the card stacks ring and stats in a 300×420 column.
+ */
+const DESIGN = byShape({
+  wide: { w: 560, h: 200 },
+  tall: { w: 300, h: 420 },
+  square: { w: 380, h: 300 },
+});
 
 export type FpsVariant = "card" | "standard" | "compact" | "simple";
 
@@ -39,6 +52,10 @@ export interface ModernFpsProps {
   source?: string;
   extras?: [string, string][];
   showMetrics?: boolean;
+  /** Ring color ("" = by how close the FPS is to the refresh rate). */
+  ringColor?: string;
+  /** Trend sparkline color ("" = the default purple). */
+  sparkColor?: string;
   /** Show a rolling FPS trend sparkline (the "trend" view). */
   sparkline?: boolean;
   layout?: FpsVariant | "auto";
@@ -79,18 +96,20 @@ function FpsRing({
   maxFps,
   size,
   stroke,
+  color: colorOverride,
   showValue = true,
 }: {
   fps?: number;
   maxFps: number;
   size: number;
   stroke: number;
+  color?: string;
   showValue?: boolean;
 }) {
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const pct = fps !== undefined ? clamp01(fps / Math.max(1, maxFps)) : 0;
-  const color = fpsColor(fps, maxFps);
+  const color = colorOverride || fpsColor(fps, maxFps);
   return (
     <div className="relative shrink-0" style={{ width: size, height: size }}>
       <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
@@ -116,8 +135,8 @@ function FpsRing({
       </svg>
       {showValue && (
         <div
-          className="absolute inset-0 flex items-center justify-center font-bold tabular-nums"
-          style={{ fontSize: Math.max(12, size * 0.24), color }}
+          className="absolute inset-0 flex items-center justify-center tabular-nums"
+          style={{ fontSize: Math.max(12, size * 0.24), color, fontWeight: ws.weight(700) }}
         >
           {fps !== undefined ? Math.round(fps) : "—"}
         </div>
@@ -140,7 +159,9 @@ function StatCell({
   return (
     <div className="min-w-0">
       <div className="flex items-baseline gap-1">
-        <span className="text-xl font-bold tabular-nums">{value}</span>
+        <span className="text-xl tabular-nums" style={{ fontWeight: ws.weight(700) }}>
+          {value}
+        </span>
         {unit && (
           <span className="text-xs" style={{ color: muted }}>
             {unit}
@@ -167,6 +188,8 @@ export function ModernFps({
   extras = [],
   showMetrics = true,
   sparkline = false,
+  ringColor,
+  sparkColor,
   layout = "auto",
   surfaceStyle = "glass",
   chrome,
@@ -176,12 +199,11 @@ export function ModernFps({
   const sv = makeSurface(surfaceStyle, null);
   const v = pickVariant(w, h, layout);
   const fpsHist = useHistory(fps);
+  const spark = sparkColor || FPS_SPARK;
 
   const maxFps = refresh !== undefined && refresh > 0 ? refresh : 144;
   const box = {
-    background: sv.background,
-    color: sv.fg,
-    boxShadow: `inset 0 0 0 1px ${sv.ring}`,
+    ...surfaceBox(sv, chrome),
   } as const;
   const muted = sv.muted;
   const shownExtras = showMetrics ? extras.slice(0, 4) : [];
@@ -191,10 +213,16 @@ export function ModernFps({
     const ring = Math.max(96, Math.min(150, h * 0.36));
     body = (
       <div
-        className="flex h-full w-full flex-col items-center justify-center gap-4 overflow-hidden rounded-[20px] p-5"
-        style={box}
+        className="flex h-full w-full overflow-hidden"
+        style={{
+          ...box,
+          ...flow("column", { x: "center", y: "center" }),
+          gap: ws.gap(16),
+          padding: ws.pad(20),
+          borderRadius: ws.radius(20),
+        }}
       >
-        <FpsRing fps={fps} maxFps={maxFps} size={ring} stroke={ring * 0.09} />
+        <FpsRing fps={fps} maxFps={maxFps} size={ring} stroke={strokeOf(chrome, ring * 0.09)} color={ringColor} />
         <div className="flex items-center gap-6">
           {low1 !== undefined && (
             <StatCell
@@ -215,7 +243,7 @@ export function ModernFps({
         </div>
         {sparkline && (
           <div style={{ width: ring * 1.3 }} className="text-purple-400">
-            <Sparkline data={fpsHist} color={FPS_SPARK} height={24} />
+            <Sparkline data={fpsHist} color={spark} height={24} />
           </div>
         )}
         {(title || source || resolution) && (
@@ -241,12 +269,18 @@ export function ModernFps({
     const ring = Math.max(26, h * 0.5);
     body = (
       <div
-        className="flex h-full w-full items-center gap-4 overflow-hidden rounded-full px-4"
-        style={box}
+        className="flex h-full w-full overflow-hidden"
+        style={{
+          ...box,
+          ...flow("row", { x: "start", y: "center" }),
+          gap: ws.gap(16),
+          paddingInline: ws.pad(16),
+          borderRadius: ws.radius(999),
+        }}
       >
-        <FpsRing fps={fps} maxFps={maxFps} size={ring} stroke={Math.max(3, ring * 0.16)} />
+        <FpsRing fps={fps} maxFps={maxFps} size={ring} stroke={strokeOf(chrome, Math.max(3, ring * 0.16))} color={ringColor} />
         <div className="min-w-0">
-          <span className="text-sm font-semibold tabular-nums">
+          <span className="text-sm tabular-nums" style={{ fontWeight: ws.weight(600) }}>
             {fps !== undefined ? Math.round(fps) : "—"}
             <span className="ml-1 text-xs font-normal" style={{ color: muted }}>
               fps
@@ -272,10 +306,16 @@ export function ModernFps({
     const ring = Math.max(36, Math.min(56, h * 0.6));
     body = (
       <div
-        className="flex h-full w-full items-center justify-center gap-3 overflow-hidden rounded-xl p-3"
-        style={box}
+        className="flex h-full w-full overflow-hidden"
+        style={{
+          ...box,
+          ...flow("row", { x: "center", y: "center" }),
+          gap: ws.gap(12),
+          padding: ws.pad(12),
+          borderRadius: ws.radius(12),
+        }}
       >
-        <FpsRing fps={fps} maxFps={maxFps} size={ring} stroke={Math.max(3, ring * 0.14)} />
+        <FpsRing fps={fps} maxFps={maxFps} size={ring} stroke={strokeOf(chrome, Math.max(3, ring * 0.14))} color={ringColor} />
         <div className="text-sm font-semibold" style={{ color: muted }}>
           {source}
         </div>
@@ -286,21 +326,27 @@ export function ModernFps({
     const ring = Math.max(64, Math.min(110, h * 0.55));
     body = (
       <div
-        className="flex h-full w-full items-center gap-6 overflow-hidden rounded-xl p-5"
-        style={box}
+        className="flex h-full w-full overflow-hidden"
+        style={{
+          ...box,
+          ...flow("row", { x: "start", y: "center" }),
+          gap: ws.gap(24),
+          padding: ws.pad(20),
+          borderRadius: ws.radius(12),
+        }}
       >
         <div className="flex shrink-0 flex-col items-center gap-1">
-          <FpsRing fps={fps} maxFps={maxFps} size={ring} stroke={ring * 0.09} />
-          <div className="text-xs font-medium uppercase tracking-wider" style={{ color: muted }}>
+          <FpsRing fps={fps} maxFps={maxFps} size={ring} stroke={strokeOf(chrome, ring * 0.09)} color={ringColor} />
+          <div className="text-xs font-medium tracking-wider" style={{ color: muted, ...labelStyle() }}>
             {source ?? "fps"} · {maxFps}Hz
           </div>
           {sparkline && (
             <div style={{ width: ring }} className="text-purple-400">
-              <Sparkline data={fpsHist} color={FPS_SPARK} height={20} />
+              <Sparkline data={fpsHist} color={spark} height={20} />
             </div>
           )}
         </div>
-        <div className="flex min-w-0 flex-1 items-center justify-center gap-8">
+        <div className="flex min-w-0 items-center justify-center gap-8" style={{ flex: ws.flex() }}>
           {low1 !== undefined && (
             <StatCell value={`${Math.round(low1)}`} unit="fps" label="1% low" muted={muted} />
           )}
@@ -340,8 +386,10 @@ export function ModernFps({
   }
 
   return (
-    <div ref={ref} className={cn("h-full w-full", className)}>
-      <ModernChrome chrome={chrome}>{body}</ModernChrome>
-    </div>
+    <ModernChrome chrome={chrome} designSize={DESIGN} className={className}>
+      <div ref={ref} className="h-full w-full">
+        {body}
+      </div>
+    </ModernChrome>
   );
 }
