@@ -7,6 +7,7 @@ import { PlacementFrame } from "@/components/studio/placement-frame";
 import { placementContent } from "@/components/studio/placement-content";
 import { claimedKeys } from "@/modules";
 import { applyTheme } from "@/lib/theme";
+import { setApiBase } from "@/lib/data-api";
 import {
   CONFIG_EVENTS_URL,
   CONFIG_URL,
@@ -36,6 +37,7 @@ export default function App() {
 
   const [config, setConfig] = useState<DashboardConfig>(() => {
     const loaded = loadConfig();
+    setApiBase(loaded.dataApiUrl); // before the first sensor connection
     // ?profile=<id> pins a profile (kiosk shortcuts, testing).
     const pinned = new URLSearchParams(window.location.search).get("profile");
     if (pinned && loaded.profiles.some((p) => p.id === pinned)) {
@@ -103,6 +105,10 @@ export default function App() {
       events.close();
     };
   }, [kiosk]);
+
+  // Follow the Data API URL setting: the sensor stream and the Wave Link
+  // client reconnect to the new base.
+  useEffect(() => setApiBase(config.dataApiUrl), [config.dataApiUrl]);
 
   // Apply the theme as CSS variables on :root.
   useEffect(
@@ -185,7 +191,7 @@ export default function App() {
             </h1>
             {!fill && (
               <p className="text-sm text-muted-foreground">
-                Live data from InfoPanel DataBridge
+                Live data from the InfoPanel Data API
               </p>
             )}
           </div>

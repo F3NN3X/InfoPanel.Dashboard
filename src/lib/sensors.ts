@@ -6,6 +6,23 @@ export interface KeyedSensor {
   sensor: SensorValue;
 }
 
+/**
+ * Binding key for the yr plugin's forecast, whose location slug differs per
+ * user: resolved to the first `plugins.yr-weather-plugin.<slug>.forecast`.
+ */
+export const YR_FORECAST_KEY = "plugins.yr-weather-plugin.*.forecast";
+const YR_FORECAST_RE = /^plugins\.yr-weather-plugin\.[^.]+\.forecast$/;
+
+/** `sensors[key]`, resolving the YR_FORECAST_KEY placeholder. */
+export function sensorAt(
+  sensors: SensorMap,
+  key: string
+): SensorValue | undefined {
+  if (key !== YR_FORECAST_KEY) return sensors[key];
+  const found = Object.keys(sensors).find((k) => YR_FORECAST_RE.test(k));
+  return found ? sensors[found] : undefined;
+}
+
 /** Sensor for `prefix + container + "." + entry`, or undefined. */
 export function entry(
   sensors: SensorMap,

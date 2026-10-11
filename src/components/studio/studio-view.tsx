@@ -38,6 +38,7 @@ import { placementContent } from "./placement-content";
 import { RulerH, RulerV } from "./rulers";
 import { SettingsPanel } from "./settings-panel";
 import { ThemePanel } from "./theme-panel";
+import { DataApiPanel } from "./data-api-panel";
 import { PanelInspector } from "./panel-inspector";
 import { SourcesPanel } from "./sources-panel";
 import { modules, claimedKeys, type SensorMap } from "@/modules";
@@ -1579,6 +1580,17 @@ export function StudioView({
                   }
                   onRadius={(radius) => setConfig((c) => ({ ...c, radius }))}
                   onPreset={applyPreset}
+                />
+              </section>
+              <section className="border-t p-4">
+                <div className="mb-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  Data API URL
+                </div>
+                <DataApiPanel
+                  value={config.dataApiUrl}
+                  onChange={(dataApiUrl) =>
+                    setConfig((c) => ({ ...c, dataApiUrl }))
+                  }
                 />
               </section>
               <div className="border-t p-4 text-xs text-muted-foreground/60">

@@ -3,8 +3,8 @@ import type { DashboardConfig } from "@/lib/layout";
 /**
  * Endpoints of the dashboard's own server (server.mjs), which serves this
  * page — so they are same-origin paths. `npm run dev` proxies them to the
- * running server (vite.config.ts). Sensor data comes from the DataBridge
- * plugin instead (API_BASE in hooks/useSensors).
+ * running server (vite.config.ts). Sensor data comes from InfoPanel's
+ * Data API instead (see lib/data-api).
  */
 export const CONFIG_URL = "/api/config";
 export const CONFIG_EVENTS_URL = "/events/config";

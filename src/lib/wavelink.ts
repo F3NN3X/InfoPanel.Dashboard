@@ -1,20 +1,33 @@
 import { useSyncExternalStore, useMemo } from "react";
 
-import { API_BASE } from "@/hooks/useSensors";
+import type { SensorValue } from "@/hooks/useSensors";
+import { getApiBase, subscribeApiBase } from "@/lib/data-api";
 import { SILENCE_DB } from "@/lib/audio/decibels";
 import { createFrameEmitter, type FrameEmitter } from "@/lib/audio/frame-source";
 import type { MeterFrame } from "@/lib/audio/types";
 
 /**
- * The bridge's Wave Link surface. Inventory (devices, channels, mixes)
- * arrives as a `state` SSE event on connect and on every change (1 s
- * poll); meters arrive as `meter` events at the app's own device pace —
- * the 1 Hz `/events` snapshot ceiling does not apply here.
+ * The Wave Link surface, read from the `wavelink-plugin` entries of the
+ * native Data API through one filtered `/events?prefix=` stream (100 ms).
+ * Inventory (devices, channels, mixes) is the JSON in the `state` entry,
+ * meters the JSON in the `meters` entry; both arrive only when they change.
  *
  * The client is a module-level singleton: every widget placement shares
  * one EventSource, and meter frames feed per-key FrameEmitters so the
  * AudioCN meters paint themselves without re-rendering React.
  */
+
+const WL_PREFIX = "plugins.wavelink-plugin.wavelink.";
+const WL_STATUS = `${WL_PREFIX}status`;
+const WL_STATE = `${WL_PREFIX}state`;
+const WL_METERS = `${WL_PREFIX}meters`;
+
+/** One event of the filtered stream: the first is the full set, later ones deltas. */
+interface WlStreamEvent {
+  timestamp: number;
+  sensors?: Record<string, SensorValue>;
+  removed?: string[];
+}
 
 /* ---------------- wire types (mirror the bridge's camelCase JSON) ---------------- */
 
@@ -130,6 +143,9 @@ class WavelinkClient {
   private readonly stateListeners = new Set<StateListener>();
   private readonly emitters = new Map<string, FrameEmitter<MeterFrame>>();
   private started = false;
+  private source: EventSource | null = null;
+  /** Current text of every wavelink entry — each event merges into it. */
+  private values = new Map<string, string>();
 
   /** The current inventory snapshot (stable reference until it changes). */
   getState = (): WlState => this.state;
@@ -163,31 +179,82 @@ class WavelinkClient {
   private ensure(): void {
     if (this.started) return;
     this.started = true;
+    this.connect(getApiBase());
+    // A changed Data API URL setting reconnects to the new base.
+    subscribeApiBase((base) => this.connect(base));
+  }
 
-    const es = new EventSource(`${API_BASE}/events/wavelink`);
+  private connect(base: string): void {
+    this.source?.close();
+    this.values = new Map();
+    const es = new EventSource(
+      `${base}/events?prefix=${encodeURIComponent(WL_PREFIX)}&interval=100`
+    );
+    this.source = es;
 
-    es.addEventListener("state", (event) => {
-      const state = parseState(event);
-      if (!state) return;
+    es.onmessage = (event: MessageEvent<string>) => {
+      try {
+        this.handle(JSON.parse(event.data) as WlStreamEvent);
+      } catch {
+        this.setAbsent();
+      }
+    };
+
+    // EventSource reconnects on its own and the first event after a
+    // reconnect is the full set, so every event merges into `values`.
+  }
+
+  private handle(event: WlStreamEvent): void {
+    const changed = new Set<string>();
+    for (const [key, sensor] of Object.entries(event.sensors ?? {})) {
+      this.values.set(key, sensor.text ?? "");
+      changed.add(key);
+    }
+    for (const key of event.removed ?? []) {
+      this.values.delete(key);
+      changed.add(key);
+    }
+
+    const status = this.values.get(WL_STATUS);
+    const stateJson = this.values.get(WL_STATE);
+    if (status !== "up" || stateJson === undefined) {
+      this.setAbsent();
+      return;
+    }
+
+    if (changed.has(WL_STATE) || changed.has(WL_STATUS)) {
+      const state = parseState(stateJson);
+      if (!state) {
+        this.setAbsent();
+        return;
+      }
       this.state = state;
       for (const listener of this.stateListeners) listener(state);
+      if (state.status === "absent") this.silenceAll();
+    }
 
-      if (state.status === "absent") {
-        // The honest absence state: meters decay to the floor instead of
-        // holding the last level.
+    if (changed.has(WL_METERS)) {
+      const frame = parseMeters(this.values.get(WL_METERS), event.timestamp);
+      if (!frame) {
+        this.lastFrame = null;
         this.silenceAll();
+        return;
       }
-    });
-
-    es.addEventListener("meter", (event) => {
-      const frame = parseMeterFrame(event);
-      if (!frame) return;
       this.lastFrame = frame;
       this.feedMeters(frame);
-    });
+    }
+  }
 
-    // EventSource reconnects on its own; the server re-sends the current
-    // state on every open, so a gap never leaves us on a stale inventory.
+  /**
+   * The honest absence state: meters decay to the floor instead of holding
+   * the last level.
+   */
+  private setAbsent(): void {
+    this.lastFrame = null;
+    this.silenceAll();
+    if (this.state === ABSENT) return;
+    this.state = ABSENT;
+    for (const listener of this.stateListeners) listener(ABSENT);
   }
 
   private feedMeters(frame: WlMeterFrame): void {
@@ -206,9 +273,9 @@ class WavelinkClient {
   }
 }
 
-function parseState(event: MessageEvent<string>): WlState | null {
+function parseState(json: string): WlState | null {
   try {
-    const data = JSON.parse(event.data) as WlState;
+    const data = JSON.parse(json) as WlState;
     if (data.status !== "up" && data.status !== "absent") return null;
     return {
       status: data.status,
@@ -222,11 +289,12 @@ function parseState(event: MessageEvent<string>): WlState | null {
   }
 }
 
-function parseMeterFrame(event: MessageEvent<string>): WlMeterFrame | null {
+function parseMeters(json: string | undefined, at: number): WlMeterFrame | null {
+  if (json === undefined) return null;
   try {
-    const data = JSON.parse(event.data) as WlMeterFrame;
-    if (!data || typeof data.meters !== "object" || data.meters === null) return null;
-    return data;
+    const meters = JSON.parse(json) as WlMeterFrame["meters"];
+    if (!meters || typeof meters !== "object") return null;
+    return { at, meters };
   } catch {
     return null;
   }

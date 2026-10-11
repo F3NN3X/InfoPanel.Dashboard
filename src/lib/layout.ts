@@ -1,5 +1,7 @@
 import { DEFAULT_THEME, type ThemeTokens } from "./theme";
 import type { ModuleSettings } from "@/modules/types";
+import { normalizeApiBase } from "./data-api";
+import { YR_FORECAST_KEY } from "./sensors";
 
 /**
  * Layout engine — the dashboard is a grid of *placements*. Each placement
@@ -216,6 +218,8 @@ export interface DashboardConfig {
   theme: ThemeTokens;
   /** Corner radius in rem (shadcn --radius). */
   radius: number;
+  /** Base URL of InfoPanel's Data API (default http://127.0.0.1:3921). */
+  dataApiUrl?: string;
 }
 
 /** Dashboard-side configuration for one source (container). */
@@ -403,12 +407,28 @@ function normalizeProfile(p: MonitorProfile): MonitorProfile {
  */
 const LEGACY_ASSET_PREFIX = "http://127.0.0.1:3921/assets/";
 
+/**
+ * The DataBridge's open-meteo forecast is gone; bindings to it move to the
+ * yr plugin's forecast, resolved at runtime (YR_FORECAST_KEY) because the
+ * location slug differs per user.
+ */
+const LEGACY_FORECAST_KEYS = [
+  "plugins.InfoPanel.DataBridge.weather.forecast",
+  "plugins.data-bridge.weather.forecast",
+];
+
 function migrateAssetUrls(
   config: Partial<DashboardConfig>
 ): Partial<DashboardConfig> {
   const json = JSON.stringify(config);
-  if (!json.includes(LEGACY_ASSET_PREFIX)) return config;
-  return JSON.parse(json.replaceAll(LEGACY_ASSET_PREFIX, ASSET("")));
+  const needsFix =
+    json.includes(LEGACY_ASSET_PREFIX) ||
+    LEGACY_FORECAST_KEYS.some((k) => json.includes(k));
+  if (!needsFix) return config;
+  let fixed = json.replaceAll(LEGACY_ASSET_PREFIX, ASSET(""));
+  for (const key of LEGACY_FORECAST_KEYS)
+    fixed = fixed.replaceAll(key, YR_FORECAST_KEY);
+  return JSON.parse(fixed);
 }
 
 export function mergeConfig(input: Partial<DashboardConfig>): DashboardConfig {
@@ -449,6 +469,7 @@ export function mergeConfig(input: Partial<DashboardConfig>): DashboardConfig {
     profiles,
     theme: { ...DEFAULT_THEME, ...parsed.theme },
     radius: parsed.radius ?? defaults.radius,
+    dataApiUrl: normalizeApiBase(parsed.dataApiUrl) ?? undefined,
   };
 }
 
@@ -735,8 +756,7 @@ export function sampleProfile(): MonitorProfile {
   });
 
   // — Bottom row, left: current conditions + 7-day forecast table.
-  // The forecast lines come from the DataBridge's own open-meteo fetch
-  // (the yr plugin only pushes a single day).
+  // The forecast lines come from the yr plugin's multi-day forecast.
   const weather = sp({
     title: "Weather",
     background: "panel",
@@ -747,7 +767,7 @@ export function sampleProfile(): MonitorProfile {
       sw({ kind: "value", sensor: WEATHER("weather_desc"), fontSize: 13 }),
       sw({ kind: "stat", sensor: WEATHER("temp"), span: 2, color: SAMPLE_ACCENT, fontSize: 18 }),
       sw({ kind: "value", sensor: WEATHER("wind_speed"), label: "m/s", decimals: 1 }),
-      sw({ kind: "table", sensor: "plugins.InfoPanel.DataBridge.weather.forecast", rows: 7, span: 4, columns: 5, header: "Date, Weather, Temp, Precip, Wind" }),
+      sw({ kind: "table", sensor: YR_FORECAST_KEY, rows: 7, span: 4, columns: 5, header: "Date, Weather, Temp, Precip, Wind" }),
     ],
   });
 
@@ -1083,7 +1103,7 @@ export function arcv2Profile(): MonitorProfile {
       sw({ kind: "text", sensor: WEATHER("weather_desc"), fontSize: 14, color: ARCV2_CREAM }),
       sw({ kind: "stat", sensor: WEATHER("temp"), unit: "°C", fontSize: 14, color: ARCV2_CREAM }),
       sw({ kind: "value", sensor: WEATHER("wind_speed"), label: "Wind", unit: "m/s", fontSize: 11, color: ARCV2_CREAM }),
-      sw({ kind: "table", sensor: "plugins.InfoPanel.DataBridge.weather.forecast", rows: 7, columns: 5, fontSize: 14, header: "Date, Weather, Temp, Precip, Wind", span: 4 }),
+      sw({ kind: "table", sensor: YR_FORECAST_KEY, rows: 7, columns: 5, fontSize: 14, header: "Date, Weather, Temp, Precip, Wind", span: 4 }),
     ],
   });
 

@@ -56,7 +56,6 @@ const PLUGIN_NAMES: Record<string, string> = {
   InfoPanel: "InfoPanel",
   "InfoPanel.RTSS": "RTSS (FPS)",
   "InfoPanel.SteamAPI": "Steam",
-  "InfoPanel.DataBridge": "Data Bridge",
   "InfoPanel.Media": "Media",
   "InfoPanel.Spotify": "Spotify",
   "InfoPanel.VBZ": "VBZ",

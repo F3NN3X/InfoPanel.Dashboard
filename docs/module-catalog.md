@@ -25,7 +25,7 @@ picker shows and what the kiosk can render. The design decisions live in
 | `spotifymodern` | Spotify (modern) | 2×1 | `spotify.*`, `plugins.spotify-plugin.*` | modern set + Tint · Times · Progress |
 | `mediamodern` | Media (modern) | 2×1 | `plugins.media-plugin.*` | modern set + Tint · Times · Progress |
 | `steammodern` | Steam (modern) | 2×1 | `plugins.InfoPanel.SteamAPI.*` | modern set + Dim banner · Stats · News line |
-| `weathermodern` | Weather (modern) | 3×1 | `plugins.yr-weather-plugin.*`, `plugins.InfoPanel.DataBridge.weather.*` | modern set + Tint · Stats · Forecast · Feels-like · Forecast days · View (full/now/forecast/minimal) |
+| `weathermodern` | Weather (modern) | 3×1 | `plugins.yr-weather-plugin.*` | modern set + Tint · Stats · Forecast · Feels-like · Forecast days · View (full/now/forecast/minimal) |
 | `fpsmodern` | FPS (modern) | 2×1 | `plugins.InfoPanel.RTSS.*`, `plugins.fps-plugin.*` | modern set + Extra metrics · Trend sparkline · View (gauge/trend) |
 | `hardwaremodern` | Hardware (modern) | 2×1 | `libre.*`, `hwinfo.*` | modern set + Max rows (0 = all) · View (list/temps) · Fan readings |
 | `audiomodern` | Audio (modern) | 2×1 | `plugins.audio-level-meter.*` | modern set + Details · Source (device) · Volume · Mute · View (meter/volume) |
@@ -123,9 +123,8 @@ Shared design system (helpers exported from
 - **weathermodern** (`ModernWeather`) — `plugins.yr-weather-plugin.*`:
   `name`, `temp`, `feels_like`, `weather_desc`/`weather`, `humidity`,
   `pressure`, `wind_speed`, `wind_gust`, `wind_deg`, `rain`, `snow`,
-  `last_refreshed`, `weather_icon`; forecast from
-  `plugins.InfoPanel.DataBridge.weather.forecast` (open-meteo multi-day
-  lines) with the yr `forecast` as fallback.
+  `last_refreshed`, `weather_icon`; forecast from the yr
+  plugin's `forecast` (multi-day lines, starting tomorrow).
 - **steammodern** (`ModernSteam`) — `plugins.InfoPanel.SteamAPI.`:
   Profile (`player-name`, `online-status`, `steam-level`,
   `profile_image_url`, `current_game_banner_url`, `game_logo_url`,

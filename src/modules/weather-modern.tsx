@@ -10,7 +10,7 @@ import {
 
 /**
  * Modern weather widget — the adaptive redesign of the classic weather
- * module (MET Norway / yr plugin + the DataBridge open-meteo forecast).
+ * module (MET Norway / yr plugin, including its multi-day forecast).
  *
  * One component (`ModernWeather`) picks card / standard / compact / simple
  * from the zone's measured size and tints the surface from the current
@@ -18,8 +18,6 @@ import {
  */
 
 const P = "plugins.yr-weather-plugin.";
-/** The DataBridge's own open-meteo collector (multi-day forecast lines). */
-const BRIDGE = "plugins.InfoPanel.DataBridge.weather.";
 
 const WEATHER_MODERN_SETTINGS: ModuleSetting[] = [
   ...STANDARD_SETTINGS,
@@ -130,7 +128,7 @@ export const weatherModernModule: DashboardModule = {
   title: "Weather (modern)",
   minCols: 3,
   minRows: 1,
-  matches: (key) => key.startsWith(P) || key.startsWith(BRIDGE),
+  matches: (key) => key.startsWith(P),
   settings: WEATHER_MODERN_SETTINGS,
   render: (sensors, s) => {
     const cfg = modernProps(weatherModernModule, s);
@@ -159,9 +157,8 @@ export const weatherModernModule: DashboardModule = {
     const refreshed = text("last_refreshed");
     const icon = iconGlyph(text("weather_icon"));
 
-    // Prefer the DataBridge's open-meteo multi-day table.
-    const forecastRaw =
-      sensors[BRIDGE + "forecast"]?.text?.trim() || text("forecast") || "";
+    // The yr plugin's multi-day forecast, one line per day (starts tomorrow).
+    const forecastRaw = text("forecast")?.trim() ?? "";
     const forecast = forecastRaw
       .split("\n")
       .filter((l) => l.trim() !== "")

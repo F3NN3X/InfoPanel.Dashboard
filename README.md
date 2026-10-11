@@ -1,17 +1,18 @@
 # InfoPanel Dashboard
 
-A modern web dashboard (React, Tailwind, shadcn/ui) for live InfoPanel data, with a studio for designing layouts. It runs on its own: a small Node server serves the page, and the sensor data comes from the [InfoPanel.DataBridge](https://github.com/F3NN3X/InfoPanel.DataBridge) plugin.
+A modern web dashboard (React, Tailwind, shadcn/ui) for live InfoPanel data, with a studio for designing layouts. It runs on its own: a small Node server serves the page, and the sensor data comes from InfoPanel's native Data API.
 
 ```
-InfoPanel app ──push──▶ DataBridge plugin (127.0.0.1:3921)  ◀──sensors / SSE──┐
-                                                                               │
-                        Dashboard server (127.0.0.1:3922) ──page, config──▶ browser / InfoPanel web page profile
+InfoPanel Data API (127.0.0.1:3921)  ◀──sensors / SSE──┐
+                                                        │
+Dashboard server (127.0.0.1:3922) ──page, config──▶ browser / InfoPanel web page profile
 ```
 
 ## Requirements
 
 - Node.js 20 or newer
-- InfoPanel with the DataBridge plugin installed and running (it provides `http://127.0.0.1:3921/api/sensors` and `/events`)
+- InfoPanel with its Data API enabled (it provides `/api/sensors` and `/events`, by default on `http://127.0.0.1:3921`)
+- Optional: the `wavelink-plugin` for the Wave Link widget and the `yr-weather-plugin` for the weather forecast
 
 ## Run it
 
@@ -46,6 +47,12 @@ http://127.0.0.1:3922/?kiosk=1&profile=<profile id>
 Click the wrench button (or open `/?studio=1`) to edit layouts. Changes save automatically, and the **Save** button saves immediately. Every open kiosk page, including InfoPanel's web page profiles, picks up a saved change within about a second without reloading.
 
 The studio config is stored by the server in `%LOCALAPPDATA%\InfoPanel\Dashboard\config.json`. On first start the server imports the config the DataBridge plugin used to keep (`%LOCALAPPDATA%\InfoPanel\DataBridge\dashboard-config.json`), if there is one.
+
+### Data API URL
+
+The studio's side panel (with nothing selected) has a **Data API URL** setting, default `http://127.0.0.1:3921`. It is saved in the config, so kiosk pages follow it too, and changing it reconnects the live streams without a restart. **Test connection** checks that `{url}/api` answers.
+
+The Wave Link widget reads the `wavelink-plugin` entries through the filtered stream `{url}/events?prefix=plugins.wavelink-plugin.wavelink.`. The weather forecast comes from the yr plugin (`plugins.yr-weather-plugin.<location>.forecast`). The old DataBridge open-meteo forecast and the bridge's `/events/wavelink` stream are gone; saved layouts bound to the old forecast key are migrated automatically.
 
 ## Server endpoints
 

@@ -5,7 +5,7 @@
 // shares it, tells open pages when that config changes, and proxies
 // cover-art images so the page can sample their colours on a canvas.
 // Sensor data does not pass through here: pages read it straight from the
-// InfoPanel.DataBridge plugin (http://127.0.0.1:3921), which allows CORS.
+// InfoPanel Data API (http://127.0.0.1:3921 by default), which allows CORS.
 //
 // Node built-ins only. Environment:
 //   PORT  listen port (default 3922)

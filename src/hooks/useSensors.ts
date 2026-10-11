@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getApiBase, subscribeApiBase } from "@/lib/data-api";
 
 export interface SensorValue {
   value?: number;
@@ -17,14 +18,16 @@ export interface SensorSnapshot {
   sensors: Record<string, SensorValue>;
 }
 
-export const API_BASE = "http://127.0.0.1:3921";
-
 export function useSensors() {
   const [data, setData] = useState<SensorSnapshot | null>(null);
   const [connected, setConnected] = useState(false);
 
+  // The Data API URL is a dashboard setting; follow it when it changes.
+  const [base, setBase] = useState(getApiBase);
+  useEffect(() => subscribeApiBase(setBase), []);
+
   useEffect(() => {
-    const es = new EventSource(`${API_BASE}/events`);
+    const es = new EventSource(`${base}/events`);
 
     es.onopen = () => setConnected(true);
 
@@ -43,7 +46,7 @@ export function useSensors() {
     };
 
     return () => es.close();
-  }, []);
+  }, [base]);
 
   return { data, connected };
 }

@@ -213,7 +213,7 @@ surface builder + size hook). Four layouts picked from the measured zone:
 
 The surface tints from the **current condition** (sun → amber, rain → blue,
 snow → icy, thunder → violet; no canvas involved) in the same three
-finishes. The forecast strip parses the DataBridge's open-meteo multi-day
+finishes. The forecast strip parses the yr plugin's multi-day
 lines (`"Thu 8 Oct, Light rain, 12 °C / 4 °C, 8.1mm, 4.5 m/s N"`); zero
 precipitation is hidden from the stats. The classic `weather` module stays
 available.

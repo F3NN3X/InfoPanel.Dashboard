@@ -2,6 +2,7 @@ import { type CSSProperties } from "react";
 import { Image as ImageIcon } from "lucide-react";
 import { Gauge } from "@/components/Gauge";
 import { isImageUrl } from "@/lib/image";
+import { sensorAt } from "@/lib/sensors";
 import { hexToHsl } from "@/lib/theme";
 import type { SensorValue } from "@/hooks/useSensors";
 import type { Widget } from "@/lib/layout";
@@ -15,7 +16,7 @@ import { useHistory, useNow } from "./hooks";
  * like one, otherwise the bound sensor's text is used.
  */
 export function imageSrc(widget: Widget, sensors: SensorMap): string | undefined {
-  const s = widget.sensor ? sensors[widget.sensor] : undefined;
+  const s = widget.sensor ? sensorAt(sensors, widget.sensor) : undefined;
   return (
     (widget.text && isImageUrl(widget.text, widget.sensor ?? "image")
       ? widget.text
@@ -539,7 +540,7 @@ interface WidgetViewProps {
  */
 export function WidgetView({ widget, sensors }: WidgetViewProps) {
   if (!widget.visible) return null;
-  const s = widget.sensor ? sensors[widget.sensor] : undefined;
+  const s = widget.sensor ? sensorAt(sensors, widget.sensor) : undefined;
   const { text, unit } = widgetValue(s, widget);
   const subS = widget.subSensor ? sensors[widget.subSensor] : undefined;
   const sub = subS ? widgetValue(subS, widget).text : undefined;
