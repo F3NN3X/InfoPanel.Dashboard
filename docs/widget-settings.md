@@ -1,7 +1,7 @@
 # Widget Settings (Standardized)
 
-The schema, controls, and shared block behind every widget's **Advanced
-settings** in the studio. One reference for: what a setting *is*, what every
+The schema, controls, and shared block behind every widget's settings in
+the studio inspector (Content and Style tabs). One reference for: what a setting *is*, what every
 widget gets for free, and how a new widget adopts it.
 
 Companion to [`studio-redesign-zones-widgets.md`](studio-redesign-zones-widgets.md)
@@ -10,8 +10,10 @@ Companion to [`studio-redesign-zones-widgets.md`](studio-redesign-zones-widgets.
 ## The setting schema
 
 A module declares `settings: ModuleSetting[]` (`src/modules/types.ts`). The
-studio's Advanced inspector renders one control per entry
-(`SettingsPanel`); values are stored **per placement**
+studio's inspector renders one control per entry
+(`SettingsPanel`), on the Style tab for the standard look keys and settings
+in the standard style groups, on the Content tab otherwise
+(`isStyleSetting` in `src/components/studio/settings-model.ts`); values are stored **per placement**
 (`Placement.settings`) and merged over the defaults at render time via
 `effectiveSettings`.
 
@@ -82,9 +84,61 @@ Every adaptive (modern) widget spreads
 | `accent` | color | `""` | accent for fills / header icon (empty = auto) |
 | `background` | image | `""` | background image URL |
 | `backgroundOn` | boolean | `false` | use that image behind the surface |
+| `autoScale` | boolean | `true` | scale the content with the zone (see Scaling) |
+| `scale` | number | `100` | size %, 50–200, on top of auto-scale |
+| `alignX` | select | `auto` | left / center / right / spread |
+| `alignY` | select | `auto` | top / middle / bottom |
+| `padding` | select | `auto` | inner padding, px |
+| `gap` | select | `auto` | gap between items, px |
+| `radius` | select | `auto` | corner radius, px or pill |
+| `textColor` | color | `""` | main text color |
+| `mutedColor` | color | `""` | secondary text color |
+| `font` | select | `auto` | theme / sans / rounded / serif / mono |
+| `fontWeight` | select | `auto` | weight of the big values |
+| `labelCase` | select | `auto` | caption case: UPPERCASE / as written / Capitalized |
+| `stroke` | number | `100` | ring / bar thickness %, 50–250 |
+| `customCss` | text (multi-line) | `""` | CSS scoped to this widget (`:scope` = its root) |
+| `borderWidth` | select | `auto` | surface edge width, px (auto = 1px) |
+| `borderColor` | color | `""` | surface edge color |
+| `glow` | select | `none` | inner edge glow: none / soft / strong |
+| `glowColor` | color | `""` | glow color (empty = accent) |
+| `surfaceOpacity` | number | `100` | surface background opacity %, 0–100 |
+| `blur` | select | `auto` | backdrop blur, px |
+
+Everything from `autoScale` through `customCss` is `STYLE_SETTINGS`, which
+the plain modules (VBZ, notifications, text file, Stream Deck, web page)
+spread on their own; the surface keys after it are `SURFACE_SETTINGS` (only
+widgets with a surface box). In the studio the options sit in collapsible
+sections (the setting's `group`): Title & background, Size & alignment,
+Spacing & shape, Colors & type, Border, glow & CSS. "Auto" / empty always
+means the widget's own look.
+
+Modules with an idle rule (`DashboardModule.isIdle`: media / Spotify not
+playing, FPS without frames, Steam not in a game, notifications with none
+unread) add `IDLE_SETTING` (`hideWhenIdle`): the kiosk then hides the zone
+while idle, and the studio badges it "idle · hidden in kiosk".
+
+### Profile style, copy / paste and style presets
+
+The look-only keys (`PROFILE_STYLE_KEYS`: `surface`, `accent` and every
+key of `STYLE_SETTINGS` / `SURFACE_SETTINGS`) can be set once per profile
+(`MonitorProfile.style`, "Profile style" in the studio when nothing is
+selected). Resolution order: module default → profile style → the
+widget's own value (`withProfileStyle`). The inspector marks each row with a
+dot (own value, inherited from the profile, or own value overriding the
+profile), and a hover reset drops an own value.
+
+The inspector's style tools copy a widget's style (Copy / Paste), makes it
+the profile style (Use for profile), and saves / applies named presets
+(`DashboardConfig.stylePresets`). Paste and Apply replace the widget's
+style wholesale (`replaceStyle`): unset keys fall back to the profile /
+defaults again, content settings are untouched, and keys the widget has
+no setting for are skipped.
 
 Module-specific options follow the standard block and keep their own keys
-(`tint`, `showTimes`, `forecastDays`, `dimBanner`, `maxRows`, …).
+(`tint`, `showTimes`, `forecastDays`, `dimBanner`, `maxRows`, …); per-element
+colors (e.g. the System widget's CPU / GPU / RAM / VRAM colors) join the
+Colors & type group.
 
 ### Presets
 
@@ -124,7 +178,6 @@ Current `view` families:
 
 | widget | `view` options |
 |---|---|
-| `systemmodern` | `rings` / `trends` (→ `sparkline`) |
 | `hardwaremodern` | `list` / `temps` (→ `showFans`) |
 | `fpsmodern` | `gauge` / `trend` (→ `sparkline`) |
 | `audiomodern` | `meter` / `audiometer` (pro dB meter) / `volume` |
@@ -241,8 +294,8 @@ The device list comes from `enumerateDevices()` (the studio's
 machine (e.g. the Elgato Virtual Audio / Wave Mic capture side that music is
 routed to) — no Data API involved. Labels resolve once the microphone permission
 is granted: the studio offers an "Enable microphone access" button, and the
-kiosk's WebView2 auto-grants it via a `PermissionRequested` handler
-(`KioskWindow.cs`).
+kiosk's WebView2 host auto-grants it via a `PermissionRequested` handler
+(`KioskWindow.cs`, in the InfoPanel host app — not this repo).
 
 | key | options | default |
 |---|---|---|
@@ -274,10 +327,38 @@ Two small libraries back the trend/gauge looks (the reference dashboards'
 every modern widget; each component wraps its body in it:
 
 ```tsx
-<div ref={ref} className={cn("h-full w-full", className)}>
-  <ModernChrome chrome={chrome}>{body}</ModernChrome>
-</div>
+<ModernChrome chrome={chrome} designSize={DESIGN} className={className}>
+  <div ref={ref} className="h-full w-full">{body}</div>
+</ModernChrome>
 ```
+
+The measuring `ref` sits *inside* the chrome: the content is zoomed
+between the two, and a ResizeObserver inside a CSS `zoom` reports the
+unzoomed size, so the widget picks its variant and sizes its rings in its
+own coordinate space.
+
+- **Scaling** — the content box gets `zoom: s`, so text, rings and spacing
+  scale together. `s` is the user's Size % times, with `autoScale` on,
+  `min(zone.w / design.w, zone.h / design.h)` clamped to 1–3 (never shrunk), where
+  `designSize` is the zone size the widget's layout looks right at
+  (`byShape({ wide, tall, square })` picks one by the zone's shape).
+- **Style variables** — the chosen options become `--wp-pad`, `--wp-gap`,
+  `--wp-radius`, `--wp-fg`, `--wp-muted`, `--wp-weight`, `--wp-label-case`,
+  `--wp-x` / `--wp-y` (+ `-cross`), `--wp-text-align`, `--wp-flex`, and the
+  font family on the root. Widgets read them through
+  `components/widget-style.ts` (`ws.pad(20)`, `flow("row", { x, y })`,
+  `labelStyle()`, `ws.weight(700)`, `strokeOf(chrome, base)`), each with the
+  widget's own value as the fallback. Surface text colors from
+  `makeSurface` already read `--wp-fg` / `--wp-muted`.
+- **Surface box** — `surfaceBox(sv, chrome)` builds the widget's surface
+  (background, text color, edge) with the border, glow, opacity and blur
+  options applied. The glow sits inside the edge: an outer one would be
+  clipped by the zone. Opacity rewrites the alpha of every color in the
+  surface background (`fadeColors`), so gradients fade too.
+- **Custom CSS** — rendered as a `<style>` wrapped in
+  `@scope ([data-wp-scope="…"])` on the chrome root, so selectors match
+  inside this widget only. It is the user's own dashboard: the CSS is not
+  sanitized beyond that scope.
 
 - **Background image** — when `backgroundOn && background`, the image sits
   behind the surface (`object-cover`, dimmed with a `black/45` overlay).
@@ -331,11 +412,16 @@ render: (sensors, s) => {
 },
 ```
 
-And in the component: add `chrome?: ModernChrome` to the props, wrap the
-body in `<ModernChrome chrome={chrome}>` (keep the measuring `ref` on the
-outer div), and opt accent-sensitive elements in with
-`var(--wp-accent, <default>)`. Layout / surface / preset / title / icon /
-background then work everywhere with no further code.
+And in the component: add `chrome?: ModernChrome` to the props, make
+`<ModernChrome chrome={chrome} designSize={…}>` the root with the measuring
+`ref` on a div inside it, and opt elements in: accent with
+`var(--wp-accent, <default>)`, the surface box with `surfaceBox(sv, chrome)`
+and its padding / gap / radius with `ws.*`, the main flex with `flow()`,
+captions with `labelStyle()`, values with `ws.weight()`, strokes with
+`strokeOf()`. A widget whose content grows with its options should size
+`designSize` from what it shows (`ModernSystem`'s `designFor`), so
+auto-scale doesn't zoom a full widget as if it were empty. `ModernSystem`
+is the reference.
 
 ## Extending
 
@@ -349,8 +435,9 @@ background then work everywhere with no further code.
 
 ## The studio Sources view
 
-The studio toolbar has a **Sources** button that swaps the canvas for a
-two-pane manager (`components/studio/sources-panel.tsx`), modeled on
+The studio's left icon rail has a **Sources** button (and the top bar a
+**Design | Sources** switch) that swaps the canvas
+for a two-pane manager (`components/studio/sources-panel.tsx`), modeled on
 InfoPanel's own Sources tab:
 
 - **Left — catalog.** Every plugin the host is currently exposing, with the

@@ -21,14 +21,15 @@ picker shows and what the kiosk can render. The design decisions live in
 
 | id | Picker name | Min | Data source (sensor key prefix) | Options |
 |---|---|---|---|---|
-| `systemmodern` | System (modern) | 2×1 | `system.cpu.*`, `system.ram.*` | modern set + Trend sparkline · View (rings/trends) |
+| `systemmodern` | [System (modern)](system-widget.md) | 2×1 | `system.cpu.*`, `system.ram.*`, `libre.*` | modern set + Devices (CPU/GPU/RAM/Disks) · VRAM · Temperatures · Power · GPU clock · Memory used/total · Hardware names · GPU hotspot · GPU fans · GPU memory clock · GPU power % of limit · RAM page file · CPU threads (heatmap/bars) · Drive temperature / read-write / life · Drive filter · Trend sparklines · Sparkline length · Thresholds (temperature warn/critical, load warn/critical, VRAM/drive-full warn) · Units & labels (°C/°F, decimals, per-device labels) · per-device colors |
 | `spotifymodern` | Spotify (modern) | 2×1 | `spotify.*`, `plugins.spotify-plugin.*` | modern set + Tint · Times · Progress |
 | `mediamodern` | Media (modern) | 2×1 | `plugins.media-plugin.*` | modern set + Tint · Times · Progress |
 | `steammodern` | Steam (modern) | 2×1 | `plugins.InfoPanel.SteamAPI.*` | modern set + Dim banner · Stats · News line |
 | `weathermodern` | Weather (modern) | 3×1 | `plugins.yr-weather-plugin.*` | modern set + Tint · Stats · Forecast · Feels-like · Forecast days · View (full/now/forecast/minimal) |
 | `fpsmodern` | FPS (modern) | 2×1 | `plugins.InfoPanel.RTSS.*`, `plugins.fps-plugin.*` | modern set + Extra metrics · Trend sparkline · View (gauge/trend) |
 | `hardwaremodern` | Hardware (modern) | 2×1 | `libre.*`, `hwinfo.*` | modern set + Max rows (0 = all) · View (list/temps) · Fan readings |
-| `audiomodern` | Audio (modern) | 2×1 | `plugins.audio-level-meter.*` | modern set + Details · Source (device) · Volume · Mute · View (meter/volume) |
+| `audiomodern` | Audio (modern) | 2×1 | `plugins.audio-level-meter.*` | modern set + Details · Source (device) · Volume · Mute · View (meter/audiometer/volume) |
+| `wavelinkmodern` | Wave Link (modern) | 2×1 | none (reads `plugins.wavelink-plugin.wavelink.*` through the shared `wavelink` client) | modern set + Meters to show · Meter style · Meter orientation · Meter response · dB readouts & scale · Fader level · Mixes · Live / muted colors |
 | `bluetoothmodern` | Bluetooth (modern) | 2×1 | `plugins.bluetooth-battery-plugin.*` | modern set + Status · Devices · Battery · View (full/devices/status) |
 | `networkmodern` | Network (modern) | 2×1 | `libre.ethernet_*` | modern set + Session totals · Trend sparkline · View (speeds/totals) |
 | `vbz` | Departures | 2×1 | `plugins.InfoPanel.VBZ.*` | Status line |
@@ -45,14 +46,15 @@ own options.
 
 ## The modern widget family
 
-Ten adaptive modules: `spotifymodern`, `mediamodern`, `weathermodern`,
+Eleven adaptive modules: `spotifymodern`, `mediamodern`, `weathermodern`,
 `steammodern`, `systemmodern`, `fpsmodern`, `hardwaremodern`, `audiomodern`,
-`bluetoothmodern`, `networkmodern` — each is the sole version of its
+`bluetoothmodern`, `networkmodern`, `wavelinkmodern` — each is the sole version of its
 widget (the classic counterparts were retired in the 2026-10-09 cleanup).
 
 Shared design system (helpers exported from
-`components/ModernNowPlaying.tsx`: `makeSurface`, `useElementSize`,
-`useArtTint`, `RGB`, `Surface`):
+`components/ModernNowPlaying.tsx`: `makeSurface`, `useArtTint`, `RGB`,
+`Surface`; `useElementSize` lives in `hooks/use-element-size.ts` and is
+re-exported there; style helpers are in `components/widget-style.ts`):
 
 - **Adaptive layout.** Each component measures its zone (ResizeObserver) and
   `pickVariant` picks one of four:
@@ -72,7 +74,7 @@ Shared design system (helpers exported from
 - **Options.** Every module declares a `settings` schema
   (`ModuleSetting[]`); values are stored **per placement**
   (`Placement.settings`) and merged over the defaults at render time via
-  `effectiveSettings`. The studio's Advanced inspector renders the schema
+  `effectiveSettings`. The studio's inspector renders the schema
   generically (`SettingsPanel`). The modern family all spreads the shared
   `STANDARD_SETTINGS` block (preset / layout / surface / custom title /
   icon / accent / background image + use-as-background) and renders it with
@@ -82,8 +84,22 @@ Shared design system (helpers exported from
 
 ### Data keys read by each modern widget
 
-- **systemmodern** (`ModernSystem`) — `system.cpu.load`,
-  `system.ram.load` (ring gauges).
+- **systemmodern** (`ModernSystem`) — loads from `system.cpu.load` and
+  `system.ram.load`; the rest from LibreHardwareMonitor, found by key suffix
+  and unit because the keys carry the hardware name
+  (`src/lib/system-metrics.ts`): GPU `_gpu_core_load`, `_gpu_core` (°C),
+  `_gpu_package` (W), `_gpu_core_clock`, VRAM `_gpu_memory` (%),
+  `_gpu_memory_used` / `_gpu_memory_total` (MB); CPU `_cpu_total`,
+  `_core__tctl_tdie` or `_cpu_package` (°C), `_package` (W); RAM
+  `total_memory_memory_used` / `_available` (GB). Extras: per-thread CPU load
+  `_cpu_core__N` (%), GPU `_gpu_memory_junction` (hotspot), `_gpu_fan_N` (RPM) /
+  `_gpu_fan_N_control` (%), `_gpu_memory_clock`, `_gpu_power` (% of limit), page
+  file `virtual_memory_memory_used` / `_available` / `virtual_memory_memory`.
+  Drives, one per `<drive>_used_space` (%): `_temperature__N` (else
+  `_composite_temperature`), `_read_rate` / `_write_rate` (KB/s), `_life`,
+  `_total_space` / `_free_space` (GB); the doubled `_load` / `_data` variants
+  are ignored. Temperatures and power that read 0 count as unreadable and are
+  hidden; the first GPU wins.
 - **fpsmodern** (`ModernFps`) — RTSS: `fps`, `1% low fps`, `current frame
   time`, `gpu-name`, `resolution`, `refreshrate`, `windowtitle`,
   `graphics-api`, `display-mode`, `benchmark-mode`; fps-plugin: `fps`,
@@ -153,7 +169,7 @@ Shared design system (helpers exported from
    (or `null` when there is no live data).
 2. Register it in `modules/index.ts` — the studio picker, the kiosk, and
    `claimedKeys` pick it up from there.
-3. Build (`tsc -b && vite build`) + `deploy-web.ps1`; verify in the studio
+3. Typecheck, test and build (see `development.md`); verify in the studio
    picker, then in a real zone via the kiosk.
 
 ### Adding a new *modern* (adaptive) module

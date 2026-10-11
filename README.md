@@ -23,6 +23,8 @@ npm run serve      # build, then start the server
 
 Open http://127.0.0.1:3922. After the first build, `npm start` starts the server without rebuilding.
 
+On Windows you can double-click `start-dashboard.bat` instead. On the first run it installs the dependencies and builds the dashboard, then starts the server. Run `start-dashboard.bat rebuild` to build again after an update.
+
 | Script | What it does |
 |---|---|
 | `npm run dev` | Vite dev server on http://localhost:5173 with hot reload. Config and image-proxy requests are forwarded to the running dashboard server, so start that too. |
@@ -40,17 +42,19 @@ Create a desktop profile in InfoPanel, turn on **Web Page** mode, and set the UR
 http://127.0.0.1:3922/?kiosk=1&profile=<profile id>
 ```
 
-`?kiosk=1` shows the dashboard without the header or studio button. `?profile=` picks one of the studio's profiles; without it, the profile is chosen by window size.
+`?kiosk=1` shows the dashboard without the header or studio button. `?profile=` picks one of the studio's profiles; without it, the profile pinned in the studio is shown, or — when that is "auto" — the one matching the window size.
 
 ## The studio
 
-Click the wrench button (or open `/?studio=1`) to edit layouts. Changes save automatically, and the **Save** button saves immediately. Every open kiosk page, including InfoPanel's web page profiles, picks up a saved change within about a second without reloading.
+Click the wrench button (or open `/?studio=1`) to edit layouts. Changes save automatically, and the **Save** button (Ctrl+S) saves immediately. Every open kiosk page, including InfoPanel's web page profiles, picks up a saved change within about a second without reloading.
+
+Every studio edit can be undone (Ctrl+Z, redo with Ctrl+Shift+Z), **Ctrl+K** opens a command palette for any action, and **?** lists the keyboard shortcuts. The [customization guide](docs/customization-guide.md) walks through the studio layout.
 
 The studio config is stored by the server in `%LOCALAPPDATA%\InfoPanel\Dashboard\config.json`.
 
 ### Data API URL
 
-The studio's side panel (with nothing selected) has a **Data API URL** setting, default `http://127.0.0.1:3921`. It is saved in the config, so kiosk pages follow it too, and changing it reconnects the live streams without a restart. **Test connection** checks that `{url}/api` answers, and **Open API index** opens the Data API's page listing every key.
+The studio inspector's **Connection** tab (with nothing selected) has a **Data API URL** setting, default `http://127.0.0.1:3921`. It is saved in the config, so kiosk pages follow it too, and changing it reconnects the live streams without a restart. **Test connection** checks that `{url}/api` answers, and **Open API index** opens the Data API's page listing every key.
 
 ### How the dashboard reads the Data API
 
@@ -70,9 +74,13 @@ The weather forecast comes from the yr plugin (`plugins.yr-weather-plugin.<locat
 | GET | `/events/config` | Server-sent events: the config version on connect and after each save |
 | GET | `/api/image-proxy?url=` | Fetches an image so the page can sample its colours (https anywhere, http only on loopback) |
 
-## Docs
+## Documentation
 
-- [Widget catalog](docs/module-catalog.md)
-- [Widget settings](docs/widget-settings.md)
+The [docs index](docs/README.md) lists everything; the main entries:
+
+- [Customization guide](docs/customization-guide.md) - style a widget in the studio
+- [Widget catalog](docs/module-catalog.md) and [widget settings](docs/widget-settings.md)
+- [System widget](docs/system-widget.md)
+- [Architecture](docs/architecture.md) and [development](docs/development.md)
 - [Studio design: zones and widgets](docs/studio-redesign-zones-widgets.md)
 - `tools/ip-import.cjs` imports an InfoPanel profile as a dashboard layout.

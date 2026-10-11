@@ -1,5 +1,7 @@
 # Studio Redesign — One Studio, Draw Zones, Fill with Widgets
 
+> Historical: these notes predate the current studio layout (top bar, left rail and drawers, tabbed inspectors, undo, shortcuts) — see the [customization guide](customization-guide.md) and [architecture](architecture.md#4-kiosk-and-studio) for how it works now.
+
 Status: **implemented** (phases 1–3 landed 2026-10-08, see Decisions at the
 bottom). This document is the spec for the zone-based studio; the fluid-fill
 and widget-options rules below were added as the work landed.
