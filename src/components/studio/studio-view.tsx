@@ -799,14 +799,6 @@ export function StudioView({
                     <span className="truncate font-medium text-foreground">
                       {p.name}
                     </span>
-                    {config.kioskProfileId === p.id && (
-                      <span
-                        className="shrink-0 rounded bg-ring/25 px-1 text-[9px] font-semibold uppercase tracking-wide"
-                        title="Opens in the borderless kiosk window"
-                      >
-                        kiosk
-                      </span>
-                    )}
                   </div>
                   <div className="text-muted-foreground">
                     {p.width}×{p.height} · {p.cols}×{p.rows}
@@ -835,33 +827,6 @@ export function StudioView({
                 <Trash2 className="h-3 w-3" />
               </Button>
             </div>
-          </section>
-
-          <section className="space-y-2 border-t p-3">
-            <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Kiosk window
-            </div>
-            <p className="text-xs text-muted-foreground/60">
-              Which profile the borderless window (the bridge's "Show
-              Dashboard") opens.
-            </p>
-            <select
-              value={config.kioskProfileId ?? ""}
-              onChange={(e) =>
-                setConfig((c) => ({
-                  ...c,
-                  kioskProfileId: e.target.value || undefined,
-                }))
-              }
-              className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground outline-none focus:border-ring"
-            >
-              <option value="">Not set</option>
-              {config.profiles.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name} ({p.width}×{p.height})
-                </option>
-              ))}
-            </select>
           </section>
 
           <section className="space-y-2 border-t p-3">

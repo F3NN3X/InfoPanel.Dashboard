@@ -5,8 +5,7 @@ import path from "path";
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  // Relative asset base so the production build (dist/) works when opened
-  // directly from the filesystem in a kiosk browser (file://...).
+  // Relative asset base: the build works from any path it is served at.
   base: "./",
   resolve: {
     alias: {
@@ -15,5 +14,12 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    // The config store and image proxy live in the dashboard server
+    // (server.mjs, `npm start`); forward them so dev and the built pages
+    // share one config.
+    proxy: {
+      "/api": "http://127.0.0.1:3922",
+      "/events/config": "http://127.0.0.1:3922",
+    },
   },
 });

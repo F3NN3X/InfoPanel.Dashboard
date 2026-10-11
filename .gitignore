@@ -1,0 +1,11 @@
+node_modules/
+dist/
+*.tsbuildinfo
+*.log
+
+# IDE and OS artifacts
+.vs/
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

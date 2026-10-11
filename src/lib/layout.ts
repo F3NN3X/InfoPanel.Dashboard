@@ -206,11 +206,6 @@ export interface DashboardConfig {
   /** Profile id to show, or "auto" to match the window size. */
   activeProfile: string;
   /**
-   * Profile id the borderless kiosk window (the bridge's "Show Dashboard")
-   * opens. Set from the studio; synced to the bridge via POST /api/kiosk.
-   */
-  kioskProfileId?: string;
-  /**
    * Dashboard-side source preferences (which sources show and how they're
    * labelled). Keys are `{plugin}::{container}` (container "" for flat
    * sources). Pure display config — the host's own plugin settings are
@@ -395,13 +390,29 @@ function normalizeProfile(p: MonitorProfile): MonitorProfile {
 
 /**
  * Merge a stored/partial config over the defaults (tolerates missing
- * fields). Used by the local load and by the bridge-synced copy (the
- * kiosk window pulls the studio's latest state this way). Also runs the
+ * fields). Used by the local load and by the server-synced copy (the
+ * kiosk pages pull the studio's latest state this way). Also runs the
  * v1→v2 migration: fills explicit zone boxes + rows on legacy profiles,
  * drops the retired free-canvas profiles, and repoints pins that
  * referenced them.
  */
-export function mergeConfig(parsed: Partial<DashboardConfig>): DashboardConfig {
+/**
+ * Image paths saved while the DataBridge plugin served the dashboard point
+ * at http://127.0.0.1:3921/assets/<file>; those files now ship in the
+ * build under /assets/ip/arcv2/ (see ASSET). Rewrites any saved copy.
+ */
+const LEGACY_ASSET_PREFIX = "http://127.0.0.1:3921/assets/";
+
+function migrateAssetUrls(
+  config: Partial<DashboardConfig>
+): Partial<DashboardConfig> {
+  const json = JSON.stringify(config);
+  if (!json.includes(LEGACY_ASSET_PREFIX)) return config;
+  return JSON.parse(json.replaceAll(LEGACY_ASSET_PREFIX, ASSET("")));
+}
+
+export function mergeConfig(input: Partial<DashboardConfig>): DashboardConfig {
+  const parsed = migrateAssetUrls(input);
   const defaults = defaultConfig();
   const profiles = (
     parsed.profiles && parsed.profiles.length > 0
@@ -431,13 +442,9 @@ export function mergeConfig(parsed: Partial<DashboardConfig>): DashboardConfig {
   let activeProfile = parsed.activeProfile ?? defaults.activeProfile;
   if (activeProfile !== "auto" && !byId.has(activeProfile))
     activeProfile = "auto";
-  let kioskProfileId = parsed.kioskProfileId;
-  if (kioskProfileId && !byId.has(kioskProfileId))
-    kioskProfileId = ARCV2_PROFILE_ID;
   return {
     version: 2,
     activeProfile,
-    kioskProfileId,
     sourcePrefs: parsed.sourcePrefs,
     profiles,
     theme: { ...DEFAULT_THEME, ...parsed.theme },
@@ -862,8 +869,8 @@ const ARCV2_FAINT = "#ffffffe0";
  */
 const AMD = (n: string) => `libre.amd_ryzen_9_9950x3d_${n}`;
 const SPOTIFY = (n: string) => `plugins.spotify-plugin.spotify.${n}`;
-/** Export assets, copied into the bridge web root's assets/ folder. */
-const ASSET = (f: string) => `http://127.0.0.1:3921/assets/${f}`;
+/** InfoPanel export assets, shipped in public/assets/ip/arcv2/. */
+const ASSET = (f: string) => `/assets/ip/arcv2/${f}`;
 
 /** Shorthand for arcv2 panels (title hidden, no card background). */
 function ap(

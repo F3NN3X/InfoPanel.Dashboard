@@ -7,7 +7,7 @@ import { BarVisualizer } from "@/components/ui/bar-visualizer";
 import type { BarIdle } from "@/lib/audio/bar-levels";
 import type { Orientation } from "@/lib/audio/types";
 import { useSensorVisualSource } from "@/hooks/use-sensor-visual-source";
-import { API_BASE } from "@/hooks/useSensors";
+import { IMAGE_PROXY_URL } from "@/lib/dashboard-server";
 import { trackPeaks } from "@/lib/waveform-peaks";
 import { CaptureVisualizerRow } from "@/components/CaptureVisualizerRow";
 
@@ -26,7 +26,7 @@ import { CaptureVisualizerRow } from "@/components/CaptureVisualizerRow";
  * - `simple`   — small zones: small art + stacked text (the "SIMPLE" reference)
  *
  * The surface can be tinted with the cover art's dominant color (a
- * Vibrant-style palette sampled on a small canvas through the bridge's
+ * Vibrant-style palette sampled on a small canvas through the dashboard
  * image proxy; cross-origin art the proxy cannot reach degrades to an
  * untinted surface).
  */
@@ -346,15 +346,15 @@ const loadImageFrom = (src: string) =>
 /**
  * Load the cover art for pixel sampling. The local cover-art server sends no
  * CORS headers, so a direct cross-origin load taints the canvas and
- * `getImageData` throws. First fetch the bytes through the bridge's
- * same-origin image proxy (blob URLs stay untainted); when the bridge is
+ * `getImageData` throws. First fetch the bytes through the dashboard server's
+ * same-origin image proxy (blob URLs stay untainted); when the server is
  * offline, fall back to a direct load (it works for same-origin or
  * CORS-enabled art, and degrades to no tint otherwise).
  */
 async function loadTintableImage(url: string): Promise<HTMLImageElement | null> {
   try {
     const res = await fetch(
-      `${API_BASE}/api/image-proxy?url=${encodeURIComponent(url)}`
+      `${IMAGE_PROXY_URL}?url=${encodeURIComponent(url)}`
     );
     if (res.ok) {
       const blob = await res.blob();

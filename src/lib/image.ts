@@ -41,6 +41,8 @@ function keyHasImageHint(key: string): boolean {
  * - the URL path ends in an image extension,
  * - the sensor key names an image field (cover-art, icon, banner, ...),
  * - the host is a known image CDN.
+ * A root-relative path (the dashboard's own /assets/...) qualifies when it
+ * ends in an image extension.
  */
 export function isImageUrl(
   text: string | undefined | null,
@@ -48,6 +50,7 @@ export function isImageUrl(
 ): boolean {
   if (!text) return false;
   const t = text.trim();
+  if (t.startsWith("/") && !t.startsWith("//")) return EXT_RE.test(t);
   if (!URL_RE.test(t)) return false;
   if (EXT_RE.test(t)) return true;
   if (key && keyHasImageHint(key)) return true;

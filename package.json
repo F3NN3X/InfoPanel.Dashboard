@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "start": "node server.mjs",
+    "serve": "npm run build && node server.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
