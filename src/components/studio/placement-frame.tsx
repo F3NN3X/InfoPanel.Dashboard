@@ -3,16 +3,11 @@ import {
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from "react";
-import {
-  Eye,
-  EyeOff,
-  Minus,
-  Plus,
-  X,
-} from "lucide-react";
+import { Plus } from "lucide-react";
 import { BLANK_MODULE, type MonitorProfile, type Placement } from "@/lib/layout";
 import { hexToHsl } from "@/lib/theme";
 import { cn } from "@/lib/utils";
+import type { ZoneRect } from "./zone-geometry";
 
 /** Zone resize handles. */
 type Handle = "nw" | "n" | "ne" | "e" | "se" | "s" | "sw" | "w";
@@ -27,19 +22,14 @@ const HANDLES: { id: Handle; cursor: string; pos: string }[] = [
   { id: "w", cursor: "ew-resize", pos: "-left-1 top-1/2 h-4 w-3 -translate-y-1/2" },
 ];
 
-export interface ZoneRect {
-  col: number;
-  row: number;
-  cols: number;
-  rows: number;
-}
-
 interface PlacementFrameProps {
   placement: Placement;
   profile: MonitorProfile;
   studio: boolean;
   /** Whether the module currently has live data (kiosk hides empties). */
   hasData: boolean;
+  /** Idle and set to hide: the studio badges it (the kiosk hides it). */
+  idle?: boolean;
   title: string;
   /** Grid element width in display px (zoom applied) — cell pitch math. */
   gridWidth?: number;
@@ -61,9 +51,8 @@ interface PlacementFrameProps {
   onZoneDragEnd?: (id: string, rect: ZoneRect | null) => void;
   /** Dimmed while a zone drag is in flight (the indicator shows the target). */
   ghost?: boolean;
-  onSpan?: (id: string, span: number) => void;
-  onToggle?: (id: string) => void;
-  onRemove?: (id: string) => void;
+  /** Open the widget picker (the blank zone's "Pick a widget"). */
+  onPickWidget?: () => void;
   /** Highlight + select (studio view). */
   selected?: boolean;
   onSelect?: () => void;
@@ -75,14 +64,16 @@ const clampSpan = (span: number, cols: number) =>
 
 /**
  * The studio chrome around a zone: drag the body to move it, drag the
- * handles to resize it (the studio clamps to the grid + no overlap),
- * hide and remove controls. Renders plain content in kiosk mode.
+ * handles to resize it (the studio clamps to the grid + no overlap), and
+ * a size chip on hover (the selected zone's actions live in its floating
+ * toolbar). Renders plain content in kiosk mode.
  */
 export function PlacementFrame({
   placement,
   profile,
   studio,
   hasData,
+  idle,
   title,
   gridWidth = 0,
   zoom = 1,
@@ -91,9 +82,7 @@ export function PlacementFrame({
   onZoneDrag,
   onZoneDragEnd,
   ghost,
-  onSpan,
-  onToggle,
-  onRemove,
+  onPickWidget,
   selected,
   onSelect,
   children,
@@ -216,53 +205,18 @@ export function PlacementFrame({
           ? ({ "--accent": hexToHsl(design.accent) } as CSSProperties)
           : {}),
       }}
+      data-zone-id={studio ? placement.id : undefined}
       onClick={onSelect}
       onPointerDown={studio ? startMove : undefined}
     >
       {studio && (
         <>
-          {/* Controls */}
-          <div className="absolute right-1.5 top-1.5 z-20 flex items-center gap-1 opacity-60 transition-opacity group-hover:opacity-100">
-            <span className="rounded-md bg-popover/90 px-1.5 py-0.5 text-xs tabular-nums text-muted-foreground">
+          {/* Size chip on hover (the selected zone shows its toolbar) */}
+          {!selected && (
+            <span className="pointer-events-none absolute right-1.5 top-1.5 z-20 rounded-md bg-popover/90 px-1.5 py-0.5 text-xs tabular-nums text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
               {span}×{rowSpan}
             </span>
-            <button
-              className="rounded-md bg-popover/90 p-1 text-muted-foreground hover:text-foreground"
-              onClick={() =>
-                onSpan?.(placement.id, clampSpan(placement.colSpan - 1, profile.cols))
-              }
-              title="Narrower"
-            >
-              <Minus className="h-3 w-3" />
-            </button>
-            <button
-              className="rounded-md bg-popover/90 p-1 text-muted-foreground hover:text-foreground"
-              onClick={() =>
-                onSpan?.(placement.id, clampSpan(placement.colSpan + 1, profile.cols))
-              }
-              title="Wider"
-            >
-              <Plus className="h-3 w-3" />
-            </button>
-            <button
-              className="rounded-md bg-popover/90 p-1 text-muted-foreground hover:text-foreground"
-              onClick={() => onToggle?.(placement.id)}
-              title={placement.visible ? "Hide" : "Show"}
-            >
-              {placement.visible ? (
-                <Eye className="h-3 w-3" />
-              ) : (
-                <EyeOff className="h-3 w-3" />
-              )}
-            </button>
-            <button
-              className="rounded-md bg-popover/90 p-1 text-muted-foreground hover:text-destructive"
-              onClick={() => onRemove?.(placement.id)}
-              title="Remove"
-            >
-              <X className="h-3 w-3" />
-            </button>
-          </div>
+          )}
 
           {/* Resize handles (the studio clamps to the grid + no overlap) */}
           {HANDLES.map((h) => (
@@ -284,15 +238,26 @@ export function PlacementFrame({
       {/* The zone box is the truth: the widget content fills it (fluid),
           never its natural size, so the widget area always matches the zone. */}
       <div className="h-full min-w-0 w-full overflow-hidden">
+        {studio && idle && (
+          <div className="pointer-events-none absolute bottom-1.5 right-1.5 z-30 rounded-full bg-black/60 px-2 py-0.5 text-[10px] text-muted-foreground">
+            idle · hidden in kiosk
+          </div>
+        )}
         <div className="flex h-full w-full flex-col">
           {studio && blank ? (
-            <div className="flex h-full min-h-16 flex-col items-center justify-center gap-0.5 rounded-lg border border-dashed border-border/70 bg-card/20 p-3">
+            <div className="flex h-full min-h-16 flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-border/70 bg-card/20 p-3">
               <div className="text-sm font-medium text-muted-foreground">
                 Blank zone
               </div>
-              <div className="text-xs tabular-nums text-muted-foreground/60">
-                {span}×{rowSpan} — pick a widget
-              </div>
+              {onPickWidget && (
+                <button
+                  type="button"
+                  onClick={onPickWidget}
+                  className="flex items-center gap-1 rounded-md border border-border bg-popover/90 px-2 py-1 text-xs text-foreground transition-colors hover:border-ring hover:bg-accent"
+                >
+                  <Plus className="h-3 w-3" /> Pick a widget
+                </button>
+              )}
             </div>
           ) : studio && !hasData ? (
             <div className="flex h-full min-h-24 flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-border bg-card/40 p-4">

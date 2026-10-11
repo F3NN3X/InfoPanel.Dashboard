@@ -1,498 +1,234 @@
-import { WIDGET_ICONS } from "@/lib/widget-icons";
-import { Segmented } from "@/components/ui/segmented";
-import { sourceOptions } from "@/lib/sources";
+import { Fragment, type ReactNode } from "react";
+import { RotateCcw } from "lucide-react";
 import { useSensorCatalog, type ApiSources } from "@/lib/catalog";
-import { useAudioDevices } from "@/hooks/use-audio-devices";
-import { meterKey, useWavelinkState } from "@/lib/wavelink";
-import type { ReactNode } from "react";
-import {
-  type DashboardModule,
-  type ModuleSetting,
-  type ModuleSettingValue,
-  type ModuleSettings,
-} from "@/modules/types";
 import { cn } from "@/lib/utils";
+import type { ModuleSetting, ModuleSettingValue, ModuleSettings } from "@/modules/types";
+import { CollapsibleSection } from "./collapsible-section";
+import { SettingRow } from "./setting-control";
+import { settingState, type SettingState } from "./settings-model";
 
 interface SettingsPanelProps {
-  module: DashboardModule;
-  /** The placement's saved settings (undefined = all defaults). */
+  /** The settings schema (a module's `settings`, or the profile style). */
+  defs: ModuleSetting[] | undefined;
+  /** The saved settings (undefined = all defaults). */
   value?: ModuleSettings;
+  /**
+   * Values inherited from the profile's style: shown when `value` has no
+   * own entry; a row's dot says where its value comes from.
+   */
+  inherited?: ModuleSettings;
   onChange: (key: string, value: ModuleSettingValue) => void;
-  onReset: () => void;
+  /** Drop an own value (fall back to the inherited / default one). */
+  onClear?: (key: string) => void;
+  /** Reset every setting in `defs`; omit to hide the Reset link. */
+  onReset?: () => void;
+  title?: string;
+  /** Extra controls in the header row, before Reset. */
+  actions?: ReactNode;
+  /** Prefix of the remembered section ids ("widget", "profile", …). */
+  sectionScope?: string;
+  /** Open every group (e.g. while searching). */
+  openAll?: boolean;
+  /**
+   * Search results: render the rows flat, each under this breadcrumb
+   * ("Style › Colors & type") instead of in collapsible groups.
+   */
+  breadcrumb?: (def: ModuleSetting) => string;
 }
 
 /**
- * Schema-driven module settings editor. Renders one control per entry in
- * `module.settings`; values are stored on the placement, merged over the
- * module's defaults at render time.
+ * Schema-driven settings editor. Renders one control per entry in `defs`;
+ * values are stored on the placement (or profile), merged over the
+ * profile's style and the module's defaults at render time.
  */
 export function SettingsPanel({
-  module,
+  defs,
   value,
+  inherited,
   onChange,
+  onClear,
   onReset,
+  title = "Settings",
+  actions,
+  sectionScope = "widget",
+  openAll = false,
+  breadcrumb,
 }: SettingsPanelProps) {
   // Options of `optionsFrom: "sources"` come from the Data API's plugin tree.
   const { sources } = useSensorCatalog();
-  const defs = module.settings;
   if (!defs || defs.length === 0) return null;
+
+  const field = (def: ModuleSetting) => (
+    <SettingField
+      key={def.key}
+      def={def}
+      value={value}
+      inherited={inherited}
+      onChange={onChange}
+      onClear={onClear}
+      sources={sources}
+      crumb={breadcrumb?.(def)}
+    />
+  );
 
   return (
     <div>
-      <div className="mb-2 flex items-center justify-between">
+      <div className="mb-2 flex items-center justify-between gap-2">
         <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Settings
+          {title}
         </div>
-        <button
-          onClick={onReset}
-          className="text-[11px] text-muted-foreground hover:text-foreground"
-          title="Reset to module defaults"
-        >
-          Reset
-        </button>
+        <div className="flex items-center gap-2">
+          {actions}
+          {onReset && (
+            <button
+              onClick={onReset}
+              className="text-[11px] text-muted-foreground hover:text-foreground"
+              title="Reset to defaults"
+            >
+              Reset
+            </button>
+          )}
+        </div>
       </div>
       <div className="space-y-3">
-        {defs.map((def) => (
-          <SettingRow
-            key={def.key}
-            def={def}
-            value={value?.[def.key] ?? def.default}
-            onChange={(v) => onChange(def.key, v)}
-            onApply={(bundle) => {
-              // Preset bundle: persist each value alongside.
-              for (const [k, v] of Object.entries(bundle)) onChange(k, v);
-            }}
-            sources={sources}
-          />
-        ))}
+        {breadcrumb
+          ? defs.map(field)
+          : groupDefs(defs).map((block, i) => {
+              const rows = block.defs.map(field);
+              if (!block.group) return <Fragment key={`top-${i}`}>{rows}</Fragment>;
+              const changed = block.defs.filter(
+                (d) => value?.[d.key] !== undefined && value[d.key] !== d.default
+              ).length;
+              return (
+                <CollapsibleSection
+                  key={block.group}
+                  id={`${sectionScope}:${block.group}`}
+                  title={block.group}
+                  aside={changed > 0 ? `${changed} changed` : ""}
+                  forceOpen={openAll}
+                >
+                  {rows}
+                </CollapsibleSection>
+              );
+            })}
       </div>
     </div>
   );
 }
 
-function SettingRow({
+const STATE_DOT: Record<Exclude<SettingState, "default">, string> = {
+  own: "bg-ring",
+  profile: "bg-amber-400",
+  override: "bg-ring ring-[1.5px] ring-amber-400",
+};
+
+const STATE_TITLE: Record<Exclude<SettingState, "default">, string> = {
+  own: "Set on this widget",
+  profile: "From the profile style",
+  override: "Overrides the profile style",
+};
+
+/**
+ * One setting: its control plus a state dot in the left gutter (where the
+ * value comes from). Hovering a row with an own value turns the dot into a
+ * reset button that drops it (back to the profile style / the default).
+ */
+function SettingField({
   def,
   value,
+  inherited,
   onChange,
-  onApply,
+  onClear,
   sources,
+  crumb,
 }: {
   def: ModuleSetting;
-  value: ModuleSettingValue;
-  onChange: (value: ModuleSettingValue) => void;
-  /** Preset bundles: apply extra key/values alongside the selected one. */
-  onApply?: (bundle: ModuleSettings) => void;
+  value: ModuleSettings | undefined;
+  inherited: ModuleSettings | undefined;
+  onChange: (key: string, value: ModuleSettingValue) => void;
+  onClear?: (key: string) => void;
   sources: ApiSources | null;
+  crumb?: string;
 }) {
-  switch (def.type) {
-    case "boolean":
-      return (
-        <button
-          type="button"
-          onClick={() => onChange(value !== true)}
-          className="flex w-full items-center justify-between rounded-md border border-border px-3 py-2 text-left transition-colors hover:bg-accent/40"
-        >
-          <span className="text-xs text-muted-foreground">{def.label}</span>
+  const state = settingState(def.key, value, inherited, def.default);
+  const reset = () => (onClear ? onClear(def.key) : onChange(def.key, def.default));
+  return (
+    <div>
+      {crumb && <div className="mb-1 pl-3.5 text-[10px] text-muted-foreground/60">{crumb}</div>}
+      <div className="group/row relative pl-3.5">
+        {state !== "default" && (
           <span
             className={cn(
-              "relative h-4 w-7 rounded-full transition-colors",
-              value === true ? "bg-ring" : "bg-muted-foreground/30"
+              "absolute left-0 flex h-3 w-3 items-center justify-center",
+              def.type === "boolean" ? "top-[11px]" : "top-[2px]"
             )}
           >
             <span
+              title={STATE_TITLE[state]}
               className={cn(
-                "absolute top-0.5 h-3 w-3 rounded-full bg-background transition-all",
-                value === true ? "left-3.5" : "left-0.5"
+                "h-1.5 w-1.5 rounded-full",
+                STATE_DOT[state],
+                state !== "profile" && "group-hover/row:hidden"
               )}
             />
-          </span>
-        </button>
-      );
-
-    case "color": {
-      // "" means "auto" (the widget's own theme color). The native input
-      // can't hold an empty value, so it always gets a valid hex.
-      const raw = typeof value === "string" ? value : String(def.default ?? "");
-      const hasValue = raw.length > 0;
-      const hex = hasValue ? raw : "#000000";
-      return (
-        <div>
-          <div className="mb-1 text-xs text-muted-foreground">{def.label}</div>
-          <div className="flex items-center gap-2">
-            <input
-              type="color"
-              value={hex}
-              onChange={(e) => onChange(e.target.value)}
-              className="h-7 w-10 cursor-pointer rounded border border-border bg-transparent p-0.5"
-            />
-            <span className="text-xs tabular-nums text-muted-foreground">
-              {hasValue ? raw : "auto"}
-            </span>
-            {hasValue && (
+            {state !== "profile" && (
               <button
-                onClick={() => onChange("")}
-                title="Reset to auto (the widget's theme color)"
-                className="text-[11px] text-muted-foreground hover:text-foreground"
+                type="button"
+                onClick={reset}
+                title={
+                  state === "override"
+                    ? `${STATE_TITLE.override} — reset to the profile value`
+                    : `${STATE_TITLE.own} — reset to the default`
+                }
+                className="hidden text-muted-foreground hover:text-foreground group-hover/row:flex"
               >
-                auto
+                <RotateCcw className="h-2.5 w-2.5" />
               </button>
             )}
-          </div>
-        </div>
-      );
-    }
+          </span>
+        )}
+        <SettingRow
+          def={def}
+          value={value?.[def.key] ?? inherited?.[def.key] ?? def.default}
+          onChange={(v) => onChange(def.key, v)}
+          onApply={(bundle) => {
+            // Preset bundle: persist each value alongside.
+            for (const [k, v] of Object.entries(bundle)) onChange(k, v);
+          }}
+          sources={sources}
+        />
+      </div>
+    </div>
+  );
+}
 
-    case "number": {
-      const num =
-        typeof value === "number" ? value : Number(def.default) || 0;
-      return (
-        <div>
-          <div className="mb-1 flex justify-between text-xs text-muted-foreground">
-            <span>{def.label}</span>
-            <span className="tabular-nums">{String(num)}</span>
-          </div>
-          {def.min !== undefined || def.max !== undefined ? (
-            <input
-              type="range"
-              min={def.min}
-              max={def.max}
-              step={def.step}
-              value={num}
-              onChange={(e) => onChange(parseInt(e.target.value, 10))}
-              className="w-full accent-ring"
-            />
-          ) : (
-            <input
-              type="number"
-              min={def.min}
-              max={def.max}
-              step={def.step}
-              value={num}
-              onChange={(e) =>
-                onChange(e.target.value === "" ? def.default : Number(e.target.value))
-              }
-              className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground"
-            />
-          )}
-        </div>
-      );
-    }
+interface SettingBlock {
+  /** Undefined for top-level settings. */
+  group?: string;
+  defs: ModuleSetting[];
+}
 
-    case "select": {
-      // Capture devices: options come from an async `enumerateDevices()`
-      // hook, so a dedicated component owns it.
-      if (def.optionsFrom === "media") {
-        return (
-          <MediaDevicePicker def={def} value={String(value)} onChange={onChange} />
-        );
-      }
-      // Wave Link meters: options come from the plugin's live inventory
-      // (channels + output devices), so a dedicated component owns it.
-      if (def.optionsFrom === "wavelink") {
-        return (
-          <WavelinkMeterPicker def={def} value={String(value)} onChange={onChange} />
-        );
-      }
-      // Multi-select (stored comma-separated) over static or source options.
-      if (def.multiple) {
-        const multiOptions =
-          def.optionsFrom === "sources" && def.sourcePlugin
-            ? sourceOptions(sources, def.sourcePlugin)
-            : def.options;
-        return (
-          <div>
-            <div className="mb-1 text-xs text-muted-foreground">
-              {def.label}
-            </div>
-            <MultiSelect
-              value={String(value)}
-              onChange={onChange}
-              options={multiOptions ?? []}
-            />
-          </div>
-        );
-      }
-      const str = String(value);
-      const apply = (v: string) => {
-        onChange(v);
-        // Preset bundle: persist the option's extra values alongside.
-        const applies = def.options?.find((o) => o.value === v)?.applies;
-        if (applies) onApply?.(applies);
-      };
-      // Dynamic options resolved from live sensor data (a plugin's
-      // currently-exposed containers), falling back to the static list.
-      const options =
-        def.optionsFrom === "sources" && def.sourcePlugin
-          ? sourceOptions(sources, def.sourcePlugin)
-          : def.options;
-      if (options && options.length <= 4) {
-        return (
-          <div>
-            <div className="mb-1 text-xs text-muted-foreground">{def.label}</div>
-            <Segmented
-              options={options.map((o) => ({ value: o.value, label: o.label }))}
-              value={str}
-              onChange={apply}
-            />
-          </div>
-        );
-      }
-      return (
-        <div>
-          <div className="mb-1 text-xs text-muted-foreground">{def.label}</div>
-          <select
-            value={str}
-            onChange={(e) => apply(e.target.value)}
-            className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground"
-          >
-            {options?.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-        </div>
-      );
+/**
+ * Settings in display order: ungrouped ones as they come, each group
+ * collected into one block where its first setting appears.
+ */
+export function groupDefs(defs: ModuleSetting[]): SettingBlock[] {
+  const blocks: SettingBlock[] = [];
+  const byGroup = new Map<string, SettingBlock>();
+  for (const def of defs) {
+    if (!def.group) {
+      const last = blocks.at(-1);
+      if (last && !last.group) last.defs.push(def);
+      else blocks.push({ defs: [def] });
+      continue;
     }
-
-    case "icon": {
-      const str = String(value);
-      return (
-        <div>
-          <div className="mb-1 text-xs text-muted-foreground">{def.label}</div>
-          <div className="flex flex-wrap gap-1">
-            <IconButton active={str === ""} onClick={() => onChange("")} title="None">
-              <span className="text-xs">—</span>
-            </IconButton>
-            {Object.entries(WIDGET_ICONS).map(([name, Icon]) => (
-              <IconButton
-                key={name}
-                active={str === name}
-                onClick={() => onChange(name)}
-                title={name}
-              >
-                <Icon className="h-3.5 w-3.5" />
-              </IconButton>
-            ))}
-          </div>
-        </div>
-      );
+    let block = byGroup.get(def.group);
+    if (!block) {
+      block = { group: def.group, defs: [] };
+      byGroup.set(def.group, block);
+      blocks.push(block);
     }
-
-    case "image": {
-      const url = String(value);
-      return (
-        <div>
-          <div className="mb-1 text-xs text-muted-foreground">{def.label}</div>
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              value={url}
-              placeholder="https://…"
-              onChange={(e) => onChange(e.target.value)}
-              className="w-full min-w-0 rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground placeholder:text-muted-foreground/50"
-            />
-            {url !== "" && (
-              <img
-                src={url}
-                alt=""
-                className="h-7 w-7 shrink-0 rounded border border-border object-cover"
-                onError={(e) => ((e.target as HTMLImageElement).style.visibility = "hidden")}
-              />
-            )}
-          </div>
-        </div>
-      );
-    }
-
-    default:
-      return (
-        <div>
-          <div className="mb-1 text-xs text-muted-foreground">{def.label}</div>
-          <input
-            type="text"
-            value={String(value)}
-            onChange={(e) => onChange(e.target.value)}
-            className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground"
-          />
-        </div>
-      );
+    block.defs.push(def);
   }
-}
-
-function IconButton({
-  active,
-  onClick,
-  title,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  title: string;
-  children: ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      title={title}
-      className={cn(
-        "flex h-7 w-7 items-center justify-center rounded-md border text-muted-foreground transition-colors hover:text-foreground",
-        active ? "border-ring bg-accent text-foreground" : "border-border"
-      )}
-    >
-      {children}
-    </button>
-  );
-}
-
-/**
- * A checkbox list bound to a comma-separated string ("" = none). Used for
- * `multiple` select settings.
- */
-function MultiSelect({
-  value,
-  onChange,
-  options,
-}: {
-  value: string;
-  onChange: (value: ModuleSettingValue) => void;
-  options: { value: string; label: string }[];
-}) {
-  const selected = value
-    ? value.split(",").map((s) => s.trim()).filter(Boolean)
-    : [];
-  const toggle = (v: string) => {
-    const next = selected.includes(v)
-      ? selected.filter((x) => x !== v)
-      : [...selected, v];
-    onChange(next.join(","));
-  };
-  return (
-    <div className="flex flex-col gap-1">
-      {options.map((o) => (
-        <label
-          key={o.value}
-          className="flex cursor-pointer items-center gap-2 text-xs text-foreground"
-        >
-          <input
-            type="checkbox"
-            checked={selected.includes(o.value)}
-            onChange={() => toggle(o.value)}
-            className="accent-ring"
-          />
-          <span className="truncate">{o.label}</span>
-        </label>
-      ))}
-      {options.length === 0 && (
-        <span className="text-[11px] text-muted-foreground/60">
-          No options available
-        </span>
-      )}
-    </div>
-  );
-}
-
-/**
- * Picker for the browser's audio capture devices (the ones Web Audio can read
- * directly). Device ids are always enumerable; labels only resolve once the
- * microphone permission is granted, so a button unlocks them. Handles both
- * single-select and multi-select (`def.multiple`).
- */
-function MediaDevicePicker({
-  def,
-  value,
-  onChange,
-}: {
-  def: ModuleSetting;
-  value: string;
-  onChange: (value: ModuleSettingValue) => void;
-}) {
-  const { devices, status, request } = useAudioDevices();
-  const options = devices.map((d) => ({ value: d.deviceId, label: d.label }));
-  return (
-    <div>
-      <div className="mb-1 text-xs text-muted-foreground">{def.label}</div>
-      {def.multiple ? (
-        <MultiSelect value={value} onChange={onChange} options={options} />
-      ) : (
-        <select
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground"
-        >
-          <option value="">None (loudest live device)</option>
-          {options.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-      )}
-      {status !== "unsupported" && (
-        <button
-          type="button"
-          onClick={() => void request()}
-          className="mt-1 text-[11px] text-muted-foreground hover:text-foreground"
-        >
-          {status === "denied"
-            ? "Microphone blocked — allow access"
-            : "Enable microphone access"}
-        </button>
-      )}
-    </div>
-  );
-}
-
-/**
- * Picker for the Wave Link meter inventory (the plugin's live
- * channels + output devices). Handles both single-select and multi-select
- * (`def.multiple`); "" means all meters.
- */
-function WavelinkMeterPicker({
-  def,
-  value,
-  onChange,
-}: {
-  def: ModuleSetting;
-  value: string;
-  onChange: (value: ModuleSettingValue) => void;
-}) {
-  const state = useWavelinkState();
-  const options = [
-    ...state.channels.map((c) => ({
-      value: meterKey.channel(c.id),
-      label: `Channel · ${c.name}`,
-    })),
-    ...state.devices.map((d) => ({
-      value: meterKey.device(d.id),
-      label: `Device · ${d.name}`,
-    })),
-  ];
-  return (
-    <div>
-      <div className="mb-1 text-xs text-muted-foreground">{def.label}</div>
-      {def.multiple ? (
-        <MultiSelect value={value} onChange={onChange} options={options} />
-      ) : (
-        <select
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground"
-        >
-          <option value="">All meters</option>
-          {options.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-      )}
-      {state.status === "absent" && options.length === 0 && (
-        <span className="text-[11px] text-muted-foreground/60">
-          Wave Link is not running — start the app and its meters appear here.
-        </span>
-      )}
-    </div>
-  );
+  return blocks;
 }

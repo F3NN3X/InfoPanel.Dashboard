@@ -1,7 +1,7 @@
 import { useMemo, type ReactNode } from "react";
 import { GenericCard } from "@/modules/fallback";
 import { isClaimed, moduleReads, modules } from "@/modules";
-import type { SensorMap } from "@/modules/types";
+import { effectiveSettings, withProfileStyle, type ModuleSettings, type SensorMap } from "@/modules/types";
 import type { SensorValue } from "@/hooks/useSensors";
 import { useSensors } from "@/hooks/useSensors";
 import { PanelView } from "@/components/widgets/PanelView";
@@ -14,6 +14,11 @@ export interface PlacementRender {
   content: ReactNode;
   hasData: boolean;
   title: string;
+  /**
+   * Has data but nothing to show right now, and the widget is set to hide
+   * when idle: the kiosk hides it, the studio marks it.
+   */
+  idle?: boolean;
 }
 
 /**
@@ -45,7 +50,8 @@ export function placementPrefixes(p: Placement): string[] | null {
 export function placementContent(
   p: Placement,
   sensors: SensorMap,
-  unclaimed: Array<[string, SensorValue]>
+  unclaimed: Array<[string, SensorValue]>,
+  profileStyle?: ModuleSettings
 ): PlacementRender {
   if (p.module === BLANK_MODULE) {
     // A drawn, unfilled zone: nothing to render (the kiosk shows open
@@ -83,16 +89,21 @@ export function placementContent(
   }
   const mod = moduleById.get(p.module);
   if (!mod) return { content: null, hasData: false, title: p.module };
-  const content = mod.render(sensors, p.settings);
+  const settings = withProfileStyle(p.settings, profileStyle);
+  const content = mod.render(sensors, settings);
+  const cfg = mod.isIdle ? effectiveSettings(mod, settings) : undefined;
   return {
     content: content ?? null,
     hasData: content != null,
     title: mod.title,
+    idle: Boolean(cfg?.hideWhenIdle && mod.isIdle?.(sensors, cfg)),
   };
 }
 
 interface LivePlacementProps {
   placement: Placement;
+  /** The profile's style defaults (`MonitorProfile.style`). */
+  profileStyle?: ModuleSettings;
   /** Wraps the rendered content (the zone frame). */
   children: (render: PlacementRender) => ReactNode;
 }
@@ -102,7 +113,7 @@ interface LivePlacementProps {
  * it renders from, so a sensor change re-renders only the zones that show
  * it — not the whole grid.
  */
-export function LivePlacement({ placement, children }: LivePlacementProps) {
+export function LivePlacement({ placement, profileStyle, children }: LivePlacementProps) {
   const prefixes = placementPrefixes(placement);
   const sensors = useSensors(prefixes);
   const isCards = prefixes === null;
@@ -110,5 +121,5 @@ export function LivePlacement({ placement, children }: LivePlacementProps) {
     () => (isCards ? Object.entries(sensors).filter(([key]) => !isClaimed(key)) : []),
     [isCards, sensors]
   );
-  return <>{children(placementContent(placement, sensors, unclaimed))}</>;
+  return <>{children(placementContent(placement, sensors, unclaimed, profileStyle))}</>;
 }

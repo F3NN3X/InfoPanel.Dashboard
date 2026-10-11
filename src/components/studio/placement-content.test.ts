@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { placementPrefixes } from "./placement-content";
+import { placementContent, placementPrefixes } from "./placement-content";
 import { BLANK_MODULE, CARDS_ID, type Placement } from "@/lib/layout";
 import { YR_FORECAST_KEY } from "@/lib/sensors";
 
@@ -8,7 +8,7 @@ const place = (extra: Partial<Placement>): Placement =>
 
 describe("placementPrefixes", () => {
   it("reads a module's owned and read prefixes", () => {
-    expect(placementPrefixes(place({ module: "systemmodern" }))).toEqual(["system.cpu.", "system.ram."]);
+    expect(placementPrefixes(place({ module: "systemmodern" }))).toEqual(["system.cpu.", "system.ram.", "libre."]);
     expect(placementPrefixes(place({ module: "mediamodern" }))).toEqual([
       "plugins.media-plugin.",
       "plugins.audio-level-meter.",
@@ -37,5 +37,34 @@ describe("placementPrefixes", () => {
     expect(placementPrefixes(place({ module: BLANK_MODULE }))).toEqual([]);
     expect(placementPrefixes(place({ module: "wavelinkmodern" }))).toEqual([]);
     expect(placementPrefixes(place({ module: "unknown" }))).toEqual([]);
+  });
+});
+
+describe("placementContent", () => {
+  it("shows a System widget set to Disks only when just drive data exists", () => {
+    const drives = {
+      "libre.x_nvme_used_space": { value: 10, unit: "%", name: "X NVMe Used Space" },
+    } as never;
+    const disksOnly = place({ module: "systemmodern", settings: { devices: "disk" } });
+    expect(placementContent(disksOnly, drives, []).hasData).toBe(true);
+    expect(placementContent(place({ module: "systemmodern" }), drives, []).hasData).toBe(false);
+  });
+
+  const paused = { "plugins.media-plugin.media.playback-state": { value: 1 } } as never;
+  const playing = { "plugins.media-plugin.media.playback-state": { value: 2 } } as never;
+
+  it("flags an idle widget only when it is set to hide when idle", () => {
+    const media = place({ module: "mediamodern" });
+    expect(placementContent(media, paused, []).idle).toBe(false);
+    const hiding = place({ module: "mediamodern", settings: { hideWhenIdle: true } });
+    expect(placementContent(hiding, paused, []).idle).toBe(true);
+    expect(placementContent(hiding, playing, []).idle).toBe(false);
+  });
+
+  it("merges the profile style under the widget's own settings", () => {
+    const media = place({ module: "mediamodern" });
+    expect(placementContent(media, paused, [], { hideWhenIdle: true }).idle).toBe(true);
+    const own = place({ module: "mediamodern", settings: { hideWhenIdle: false } });
+    expect(placementContent(own, paused, [], { hideWhenIdle: true }).idle).toBe(false);
   });
 });

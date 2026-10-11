@@ -6,6 +6,7 @@ import {
   type ThemeTokens,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
+import { CollapsibleSection } from "./collapsible-section";
 
 const TOKEN_ROWS: [keyof ThemeTokens, string][] = [
   ["background", "Background"],
@@ -33,9 +34,10 @@ interface ThemePanelProps {
 }
 
 /**
- * shadcn-themer-style theme editor: preset swatches, per-token color
- * pickers (native color inputs converted to HSL triplets) and a corner
- * radius slider. Changes apply live through the CSS variables.
+ * shadcn-themer-style theme editor: preset swatches, a corner radius
+ * slider and, collapsed under "Custom colours", per-token color pickers
+ * (native color inputs converted to HSL triplets). Changes apply live
+ * through the CSS variables.
  */
 export function ThemePanel({
   tokens,
@@ -51,7 +53,7 @@ export function ThemePanel({
         <div className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
           Presets
         </div>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 gap-2">
           {THEME_PRESETS.map((preset) => (
             <button
               key={preset.name}
@@ -77,36 +79,8 @@ export function ThemePanel({
                   style={{ backgroundColor: hslToHex(preset.tokens.accent) }}
                 />
               </span>
-              <span className="truncate text-foreground/85">{preset.label}</span>
+              <span className="min-w-0 leading-tight text-foreground/85">{preset.label}</span>
             </button>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <div className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Tokens
-        </div>
-        <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-          {TOKEN_ROWS.map(([key, label]) => (
-            <label
-              key={key}
-              className="flex items-center justify-between gap-2 text-xs text-muted-foreground"
-            >
-              <span className="truncate">{label}</span>
-              <span className="flex items-center gap-1.5">
-                <span
-                  className="h-3.5 w-3.5 rounded border border-border"
-                  style={{ backgroundColor: hslToHex(tokens[key]) }}
-                />
-                <input
-                  type="color"
-                  value={hslToHex(tokens[key])}
-                  onChange={(e) => onToken(key, hexToHsl(e.target.value))}
-                  className="h-6 w-8 cursor-pointer rounded border border-border bg-transparent"
-                />
-              </span>
-            </label>
           ))}
         </div>
       </div>
@@ -131,6 +105,29 @@ export function ThemePanel({
           className="w-full accent-ring"
         />
       </div>
+
+      <CollapsibleSection
+        id="theme:Custom colours"
+        title="Custom colours"
+        aside={presetName === "custom" ? "edited" : ""}
+      >
+        <div className="grid grid-cols-2 gap-x-3 gap-y-2">
+          {TOKEN_ROWS.map(([key, label]) => (
+            <label
+              key={key}
+              className="flex items-center justify-between gap-2 text-xs text-muted-foreground"
+            >
+              <span className="truncate" title={label}>{label}</span>
+              <input
+                type="color"
+                value={hslToHex(tokens[key])}
+                onChange={(e) => onToken(key, hexToHsl(e.target.value))}
+                className="h-6 w-8 shrink-0 cursor-pointer rounded border border-border bg-transparent"
+              />
+            </label>
+          ))}
+        </div>
+      </CollapsibleSection>
     </div>
   );
 }
