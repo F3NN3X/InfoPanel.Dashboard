@@ -190,6 +190,48 @@ export default function App() {
     window.history.replaceState(null, "", window.location.pathname);
   };
 
+  // Studio "Save" button: flush the config to the bridge immediately (the
+  // normal sync is debounced 400ms) and then force the open kiosk window to
+  // re-navigate, so the display reflects the saved state right now.
+  const handleStudioSave = useCallback((cfg: DashboardConfig) => {
+    saveConfig(cfg); // local copy first (offline fallback)
+    const json = { "Content-Type": "application/json" };
+    void (async () => {
+      await Promise.allSettled([
+        fetch(`${API_BASE}/api/profiles`, {
+          method: "POST",
+          headers: json,
+          body: JSON.stringify(
+            cfg.profiles.map((p) => ({
+              id: p.id,
+              name: p.name,
+              width: p.width,
+              height: p.height,
+            }))
+          ),
+        }),
+        cfg.kioskProfileId
+          ? fetch(`${API_BASE}/api/kiosk`, {
+              method: "POST",
+              headers: json,
+              body: JSON.stringify({ profileId: cfg.kioskProfileId }),
+            })
+          : Promise.resolve(),
+        fetch(`${API_BASE}/api/config`, {
+          method: "POST",
+          headers: json,
+          body: JSON.stringify(cfg),
+        }),
+      ]);
+      // Force the open kiosk window to re-read the just-saved config.
+      await fetch(`${API_BASE}/api/kiosk-refresh`, { method: "POST" }).catch(
+        () => {
+          // Bridge offline — nothing to refresh.
+        }
+      );
+    })();
+  }, []);
+
   // The dedicated studio replaces the whole view.
   if (studio) {
     return (
@@ -201,6 +243,7 @@ export default function App() {
         windowWidth={windowSize.w}
         windowHeight={windowSize.h}
         onExitStudio={exitStudio}
+        onSave={handleStudioSave}
       />
     );
   }

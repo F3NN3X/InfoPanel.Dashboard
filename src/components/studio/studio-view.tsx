@@ -22,6 +22,7 @@ import {
   Monitor,
   Plus,
   RotateCcw,
+  Save,
   Trash2,
   Upload,
   Wrench,
@@ -178,6 +179,8 @@ interface StudioViewProps {
   windowWidth: number;
   windowHeight: number;
   onExitStudio: () => void;
+  /** Flush the config to the bridge and force the kiosk view to refresh. */
+  onSave: (config: DashboardConfig) => void;
 }
 
 /**
@@ -194,6 +197,7 @@ export function StudioView({
   windowWidth,
   windowHeight,
   onExitStudio,
+  onSave,
 }: StudioViewProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [zoneDrag, setZoneDrag] = useState<{
@@ -212,8 +216,17 @@ export function StudioView({
   const [scroll, setScroll] = useState({ left: 0, top: 0 });
   const [canvas, setCanvas] = useState({ w: 0, h: 0, viewW: 0, viewH: 0 });
   const [copied, setCopied] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const handleSave = () => {
+    onSave(config);
+    setSaved(true);
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => setSaved(false), 1500);
+  };
 
   // Deselect when switching profiles.
   useEffect(() => setSelectedId(null), [profile.id]);
@@ -1050,8 +1063,23 @@ export function StudioView({
               <Database className="h-3.5 w-3.5" />
               Sources
             </button>
-            <div className="ml-auto text-xs text-muted-foreground">
-              {profile.placements.length} placements
+            <div className="ml-auto flex items-center gap-3">
+              <Button
+                size="sm"
+                className="h-8 gap-1.5 text-xs"
+                onClick={handleSave}
+                title="Save to the bridge and refresh the kiosk view"
+              >
+                {saved ? (
+                  <Check className="h-3.5 w-3.5" />
+                ) : (
+                  <Save className="h-3.5 w-3.5" />
+                )}
+                {saved ? "Saved" : "Save"}
+              </Button>
+              <span className="text-xs text-muted-foreground">
+                {profile.placements.length} placements
+              </span>
             </div>
           </div>
 
