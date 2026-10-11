@@ -15,6 +15,7 @@ import { vbzModule } from "./vbz";
 import { notificationsModule } from "./notifications";
 import { textfileModule } from "./textfile";
 import { streamdeckModule } from "./streamdeck";
+import { webpageModule } from "./webpage";
 import type { DashboardModule, SensorMap } from "./types";
 
 /**
@@ -39,6 +40,7 @@ export const modules: DashboardModule[] = [
   notificationsModule,
   textfileModule,
   streamdeckModule,
+  webpageModule,
 ];
 
 /** Keys claimed by at least one registered module. */
