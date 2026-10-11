@@ -60,6 +60,20 @@ describe("recordChange", () => {
     ).toEqual([0, 1]);
   });
 
+  it("keeps quick edits to different panel fields as separate steps", () => {
+    // Title then accent of one panel, then a widget's label and unit.
+    const h = record([
+      [0, "z1:panel:title", 0],
+      [1, "z1:panel:title", 50],
+      [2, "z1:panel:accent", 100],
+      [3, "z1:panel-widget:w1:label", 150],
+      [4, "z1:panel-widget:w1:label", 200],
+      [5, "z1:panel-widget:w1:unit", 250],
+    ]);
+    expect(h.past).toEqual([0, 2, 3, 5]);
+    expect(undoChange(h, 6)!.value).toBe(5);
+  });
+
   it("clears the redo stack", () => {
     const h = record([[0, undefined, 0]]);
     const undone = undoChange(h, 1)!.history;

@@ -12,7 +12,6 @@ import {
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SCROLL_ROW_H, type MonitorProfile } from "@/lib/layout";
-import { panelPresets, type PanelPreset } from "@/lib/panelPresets";
 import { PlacementFrame } from "./placement-frame";
 import { LivePlacement } from "./placement-content";
 import { RulerH, RulerV } from "./rulers";
@@ -37,6 +36,10 @@ interface StudioCanvasProps {
   attachScroll: RefCallback<HTMLDivElement>;
   selectedId: string | null;
   onSelect: (id: string | null) => void;
+  /** The selected panel zone's selected widget (outlined on the canvas). */
+  selectedWidgetId: string | null;
+  /** Select a panel zone's widget (null = the panel itself). */
+  onSelectWidget: (zoneId: string, widgetId: string | null) => void;
   /** A zone was drawn on empty grid space (box already clamped). */
   onDrawZone: (rect: ZoneRect) => void;
   /** A zone is being moved/resized (box already clamped, fires per cell). */
@@ -45,7 +48,8 @@ interface StudioCanvasProps {
   onPickWidget: (id: string) => void;
   /** A palette widget / panel was dropped on the canvas. */
   onAddModule: (module: string) => void;
-  onAddPreset: (preset: PanelPreset) => void;
+  /** Add a panel preset (built in, starter or saved) by id. */
+  onAddPreset: (presetId: string) => void;
   /** Open the Add drawer (the empty canvas card). */
   onOpenAdd: () => void;
   /** The selected zone's toolbar, kept next to its frame. */
@@ -67,6 +71,8 @@ export function StudioCanvas({
   attachScroll,
   selectedId,
   onSelect,
+  selectedWidgetId,
+  onSelectWidget,
   onDrawZone,
   onZoneRect,
   onPickWidget,
@@ -184,8 +190,7 @@ export function StudioCanvas({
       return;
     }
     const presetId = e.dataTransfer.getData(DND_MIME_PANEL);
-    const preset = panelPresets.find((p) => p.id === presetId);
-    if (preset) onAddPreset(preset);
+    if (presetId) onAddPreset(presetId);
   };
 
   // Alignment guides: vertical lines at the column boundaries (gap-aware).
@@ -284,7 +289,8 @@ export function StudioCanvas({
               })
             }
             onDragOver={(e) => {
-              if (e.dataTransfer.types.includes(DND_MIME)) e.preventDefault();
+              const { types } = e.dataTransfer;
+              if (types.includes(DND_MIME) || types.includes(DND_MIME_PANEL)) e.preventDefault();
             }}
             onDrop={onCanvasDrop}
           >
@@ -350,7 +356,13 @@ export function StudioCanvas({
                   })()}
 
                 {profile.placements.map((p) => (
-                  <LivePlacement key={p.id} placement={p} profileStyle={profile.style}>
+                  <LivePlacement
+                    key={p.id}
+                    placement={p}
+                    profileStyle={profile.style}
+                    studio
+                    selection={selectedId === p.id && p.panel ? { selectedWidgetId } : undefined}
+                  >
                     {({ content, hasData, title, idle }) => (
                       <PlacementFrame
                         placement={p}
@@ -368,6 +380,7 @@ export function StudioCanvas({
                         onZoneDragEnd={onZoneDragEnd}
                         selected={selectedId === p.id}
                         onSelect={() => onSelect(p.id)}
+                        onSelectWidget={p.panel ? (widgetId) => onSelectWidget(p.id, widgetId) : undefined}
                         onPickWidget={() => onPickWidget(p.id)}
                       >
                         {content}

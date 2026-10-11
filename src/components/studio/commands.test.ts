@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
-import type { Placement } from "@/lib/layout";
+import { PANEL_ID, type Placement, type Widget } from "@/lib/layout";
 import type { ModuleSetting } from "@/modules/types";
 import { buildCommands, matchScore, rankCommands, type CommandState } from "./commands";
+import { insertables } from "./insert-panel";
 
 const zone = (id: string, colStart: number, rowStart: number, visible = true): Placement => ({
   id,
@@ -30,6 +31,8 @@ const base: CommandState = {
   placements: [zone("b", 3, 2), zone("a", 1, 1)],
   selected: null,
   settings: [],
+  widget: null,
+  canPasteWidget: false,
   canUndo: false,
   canRedo: false,
   showGrid: true,
@@ -85,6 +88,73 @@ describe("buildCommands", () => {
 
   it("has no zone commands without a selection", () => {
     expect(ids(base).some((id) => id.startsWith("zone:") || id.startsWith("setting:"))).toBe(false);
+  });
+});
+
+describe("buildCommands with a panel", () => {
+  const w = (id: string, label?: string, visible = true): Widget => ({ id, kind: "stat", label, visible });
+  const widgets = [w("a", "CPU"), w("b", "GPU", false), w("c")];
+  const panelZone: Placement = {
+    ...zone("p", 1, 1),
+    module: PANEL_ID,
+    panel: { id: "pd", title: "Stats", titleVisible: true, visible: true, background: "panel", widgets },
+  };
+
+  it("offers selecting each widget of the selected panel by name", () => {
+    const commands = buildCommands({ ...base, placements: [panelZone], selected: panelZone });
+    const select = commands.filter((c) => c.id.startsWith("select-widget:"));
+    expect(select.map((c) => c.label)).toEqual(["Select widget: CPU", "Select widget: GPU", "Select widget: Stat"]);
+    expect(select[1]).toMatchObject({ hint: "#2 · hidden", action: { type: "select-widget", id: "b" } });
+    expect(ids(base).some((id) => id.startsWith("widget:") || id.startsWith("select-widget:"))).toBe(false);
+  });
+
+  it("adds the selected widget's actions, moves only where possible, paste only with a copy", () => {
+    const first = ids({ ...base, selected: panelZone, widget: widgets[0] });
+    expect(first).toEqual(expect.arrayContaining(["widget:duplicate", "widget:copy", "widget:down", "widget:remove"]));
+    expect(first).not.toContain("widget:up");
+    expect(first).not.toContain("widget:paste");
+    const last = ids({ ...base, selected: panelZone, widget: widgets[2], canPasteWidget: true });
+    expect(last).toContain("widget:up");
+    expect(last).not.toContain("widget:down");
+    expect(last).toContain("widget:paste");
+  });
+
+  it("gives Ctrl+D / Del to the widget, not the zone, while one is selected", () => {
+    const byId = new Map(buildCommands({ ...base, selected: panelZone, widget: widgets[0] }).map((c) => [c.id, c]));
+    expect(byId.get("widget:duplicate")?.hint).toBe("Ctrl+D");
+    expect(byId.get("zone:duplicate")?.hint).toBeUndefined();
+    expect(byId.get("zone:remove")?.hint).toBeUndefined();
+    expect(byId.get("widget:remove")?.action).toEqual({ type: "widget-remove" });
+  });
+});
+
+describe("buildCommands with saved panels", () => {
+  const saved = {
+    id: "mine-1",
+    name: "My stats",
+    panel: { id: "pd", title: "Stats", titleVisible: true, visible: true, background: "panel" as const, widgets: [] },
+  };
+
+  it("offers adding the user's saved panels and the layout starters like built-in presets", () => {
+    const byId = new Map(buildCommands({ ...base, insertables: insertables([saved]) }).map((c) => [c.id, c]));
+    expect(byId.get("add:panel:mine-1")).toMatchObject({
+      label: "Add panel: My stats",
+      action: { type: "add-preset", id: "mine-1" },
+    });
+    expect(byId.get("add:panel:layout-stat-row")?.label).toBe("Add panel: Row of stats");
+  });
+
+  it("offers saving the selected zone as a preset only for panels", () => {
+    const panelZone: Placement = { ...zone("p", 1, 1), module: PANEL_ID, panel: saved.panel };
+    expect(ids({ ...base, selected: panelZone })).toContain("zone:save-preset");
+    expect(ids({ ...base, selected: zone("a", 1, 1) })).not.toContain("zone:save-preset");
+  });
+
+  it("names unlabeled widgets by their sensor, not the full key", () => {
+    const widget: Widget = { id: "g", kind: "gauge", sensor: "plugins.InfoPanel.RTSS.rtss.avg-fps", visible: true };
+    const panelZone: Placement = { ...zone("p", 1, 1), module: PANEL_ID, panel: { ...saved.panel, widgets: [widget] } };
+    const labels = buildCommands({ ...base, selected: panelZone }).map((c) => c.label);
+    expect(labels).toContain("Select widget: avg fps");
   });
 });
 

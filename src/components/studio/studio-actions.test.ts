@@ -6,7 +6,7 @@ import {
   type PanelDef,
   type Placement,
 } from "@/lib/layout";
-import type { PanelPreset } from "@/lib/panelPresets";
+import { userPanelPreset, type PanelPreset } from "@/lib/panelPresets";
 import {
   addBlankZone,
   addModulePlacement,
@@ -112,8 +112,21 @@ describe("addModulePlacement", () => {
   });
 });
 
+/** The preset's panel as a new zone gets it: normalized (a wrapping row stack). */
+const normalized: PanelDef = { ...panel, layout: "stack", direction: "row", wrap: true };
+
+/** A saved panel with its own look. */
+const saved = userPanelPreset({
+  id: "mine",
+  name: "Mine",
+  colSpan: 3,
+  rowSpan: 2,
+  panel: { ...panel, layout: "grid", columns: 2, widgets: [{ id: "w1", kind: "stat", sensor: "s", visible: true }] },
+  settings: { label: "Mine", surface: "glass", accent: "#ff0000" },
+});
+
 describe("addPresetPlacement", () => {
-  it("appends a panel placement built by the preset", () => {
+  it("appends a panel placement built by the preset, migrated (title → label, background → surface)", () => {
     const after = addPresetPlacement(profile([]), "pnl", preset(6, 3));
     expect(after.placements[0]).toEqual({
       id: "pnl",
@@ -123,8 +136,22 @@ describe("addPresetPlacement", () => {
       colSpan: 6,
       rowSpan: 3,
       visible: true,
-      panel,
+      panel: normalized,
+      settings: { label: "Preset panel", surface: "panel" },
     });
+  });
+
+  it("adds a saved panel as a fresh copy with its own look", () => {
+    const after = addPresetPlacement(profile([]), "pnl", saved).placements[0];
+    expect(after).toMatchObject({ colSpan: 3, rowSpan: 2, settings: { label: "Mine", surface: "glass", accent: "#ff0000" } });
+    expect(after.panel).toMatchObject({ layout: "grid", columns: 2 });
+    expect(after.panel!.id).not.toBe("panel");
+    expect(after.panel!.widgets).toHaveLength(1);
+    expect(after.panel!.widgets[0]).toMatchObject({ kind: "stat", sensor: "s" });
+    expect(after.panel!.widgets[0].id).not.toBe("w1");
+    // Two uses never share ids.
+    const again = addPresetPlacement(profile([]), "pnl", saved).placements[0];
+    expect(again.panel!.widgets[0].id).not.toBe(after.panel!.widgets[0].id);
   });
 });
 
@@ -228,6 +255,20 @@ describe("widget assignment", () => {
     });
   });
 
+  it("keeps the zone's box when growing would cover a neighbour", () => {
+    const before = profile([zone("a", 1, 1, 2, 1), zone("b", 3, 1, 2, 1)]);
+    expect(assignModule(before, "a", "cpu", { cols: 3, rows: 1 }).placements[0]).toMatchObject({
+      colStart: 1,
+      rowStart: 1,
+      colSpan: 2,
+      rowSpan: 1,
+    });
+    expect(assignPreset(before, "a", preset(3, 2)).placements[0]).toMatchObject({
+      colSpan: 2,
+      rowSpan: 1,
+    });
+  });
+
   it("never shrinks a zone and caps growth at the grid size", () => {
     const before = profile([zone("a", 1, 1, 5, 3)], 4, 2);
     expect(assignModule(before, "a", "cpu", { cols: 2, rows: 1 }).placements[0]).toMatchObject({
@@ -236,17 +277,26 @@ describe("widget assignment", () => {
     });
   });
 
-  it("assigns a preset panel and grows to its footprint", () => {
-    const before = profile([zone("a", 2, 2, 1, 1)]);
-    expect(assignPreset(before, "a", preset(4, 2)).placements[0]).toMatchObject({
+  it("assigns a preset panel and grows to its footprint, replacing the zone's settings with the panel's look", () => {
+    const before = profile([zone("a", 2, 2, 1, 1, { settings: { x: 1 } })]);
+    expect(assignPreset(before, "a", preset(4, 2)).placements[0]).toEqual({
+      id: "a",
       module: PANEL_ID,
-      panel,
-      settings: undefined,
+      panel: normalized,
+      settings: { label: "Preset panel", surface: "panel" },
       colStart: 2,
       rowStart: 2,
       colSpan: 4,
       rowSpan: 2,
+      visible: true,
     });
+  });
+
+  it("assigns a saved panel with its settings", () => {
+    const before = profile([zone("a", 1, 1, 1, 1, { settings: { x: 1 } })]);
+    const after = assignPreset(before, "a", saved).placements[0];
+    expect(after.settings).toEqual({ label: "Mine", surface: "glass", accent: "#ff0000" });
+    expect(after).toMatchObject({ colSpan: 3, rowSpan: 2, panel: { layout: "grid" } });
   });
 });
 

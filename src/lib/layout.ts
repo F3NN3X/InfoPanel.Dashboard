@@ -2,6 +2,14 @@ import { DEFAULT_THEME, type ThemeTokens } from "./theme";
 import type { ModuleSettings } from "@/modules/types";
 import { normalizeApiBase } from "./data-api";
 import { YR_FORECAST_KEY } from "./sensors";
+import {
+  normalizePanelPlacement,
+  normalizePanelPresets,
+  type PanelDef,
+  type UserPanelPreset,
+  type Widget,
+  type WidgetKind,
+} from "./panel-model";
 
 /**
  * Layout engine — the dashboard is a grid of *placements*. Each placement
@@ -20,125 +28,20 @@ export const BLANK_MODULE = "blank";
 /** Fixed row height (design px) for "scroll" profiles — the page scrolls. */
 export const SCROLL_ROW_H = 120;
 
-/* ---------------------------------------------------------------- *
- * Panels + widgets — the "layers and groups" model.
- *
- * Mirrors the host InfoPanel display-item tree: a *panel* (group) is a
- * placed block holding an ordered list of *widgets* (atomic items: a
- * stat readout, a bar, a gauge, a sparkline, a table, an image, a
- * clock, …). Every widget is independently bindable to a live sensor,
- * toggleable, reorderable, and restylable — which is what lets a
- * dashboard be assembled from arbitrary pieces.
- * ---------------------------------------------------------------- */
-
-export type WidgetKind =
-  | "stat" // label + big number tile
-  | "value" // compact inline readout
-  | "bar" // label + value + horizontal fill
-  | "gauge" // circular ring
-  | "sparkline" // rolling mini line graph
-  | "table" // rows from a multi-line text sensor
-  | "text" // static or bound text
-  | "image" // image (game cover, logo, album art, …)
-  | "clock" // live time / date
-  | "shape"; // decorative vbar / hbar / rect / circle
-
-/** Decorative shape kinds (the "simple shapes" you can drop into a panel). */
-export type ShapeType = "vbar" | "hbar" | "rect" | "circle";
-
-export interface Widget {
-  id: string;
-  kind: WidgetKind;
-  /** Shown above/beside the value. */
-  label?: string;
-  /** Full sensor key this widget reads (set via the sensor picker). */
-  sensor?: string;
-  /** Static text for "text"; static image URL for "image". */
-  text?: string;
-  unit?: string;
-  /** Decimals to render a numeric value with (0 = integer). */
-  decimals?: number;
-  /** Display-only multiplier for the number (e.g. B/s → GB/s). */
-  scale?: number;
-  /** Hex color override for this widget's accents. */
-  color?: string;
-  /** Bar/gauge denominator (percent = value / max). */
-  max?: number;
-  /** Invert the fill (e.g. frame time: higher = worse = less fill). */
-  inverted?: boolean;
-  /** Max rows for "table". */
-  rows?: number;
-  /** "clock" layout. */
-  clock?: "time" | "date" | "both";
-  /** Sparkline sample count. */
-  history?: number;
-  /**
-   * Font size in px for the value/text (ring diameter for "gauge").
-   * The label scales with it.
-   */
-  fontSize?: number;
-  /** Text alignment for "text", "table" and "clock". */
-  align?: "left" | "center" | "right";
-  /** Grid layout: number of panel columns this widget spans. */
-  span?: number;
-  /** Grid layout: number of panel rows this widget spans. */
-  rowSpan?: number;
-  /** Shape kind for "shape". */
-  shape?: ShapeType;
-  /** Thickness (bars) / diameter (circle), in px. */
-  thickness?: number;
-  /** Second bound sensor, rendered small below the value (value/stat). */
-  subSensor?: string;
-  /** "table": split each line into N comma-separated columns. */
-  columns?: number;
-  /** "table": static comma-separated header row. */
-  header?: string;
-  /** "image": max height in px (capped by the widget's cell). */
-  height?: number;
-  /** "overlay" panel layout: render this image widget as the panel's background. */
-  asBackground?: boolean;
-  /** "overlay" panel layout: which zone of the background this widget sits in. */
-  overlayZone?: "top" | "middle" | "bottom";
-  visible: boolean;
-}
-
-/** A custom panel (group) — a placed block of widgets. */
-export interface PanelDef {
-  id: string;
-  title: string;
-  titleVisible: boolean;
-  visible: boolean;
-  accent?: string;
-  background: "none" | "panel" | "bordered";
-  /**
-   * "wrap" flows widgets inline (default); "grid" arranges them in columns;
-   * "overlay" paints an image widget across the panel and layers the rest
-   * in top / middle / bottom zones on top of it.
-   */
-  layout?: "wrap" | "grid" | "overlay";
-  /** Column count for "grid" layout. */
-  columns?: number;
-  /**
-   * "grid" layout: explicit CSS grid-template-columns, overriding the
-   * equal `columns` split (arcv2's clock row sandwiches the time between
-   * two thin accent bars).
-   */
-  gridCols?: string;
-  /**
-   * "overlay" layout: the default dark scrim over the background keeps light
-   * text readable over any banner. Set to false for background art that is
-   * already a light or self-contrast design (arcv2's cream GPU/CPU panels,
-   * the yellow SPOTIFY card).
-   */
-  scrim?: boolean;
-  /**
-   * "overlay" layout: render the bottom zone as an N-column grid instead of a
-   * flex row, so value widgets line up under the pre-printed columns on the
-   * background art (arcv2's cream GPU/CPU panels). Cells are centered.
-   */
-  bottomGridCols?: number;
-  widgets: Widget[];
-}
+// Panels + widgets: the model (types, normalization) lives in panel-model.ts.
+export type {
+  BoxAlign,
+  BoxSize,
+  OverlayBand,
+  PanelDef,
+  PanelJustify,
+  PanelLayout,
+  ShapeType,
+  UserPanelPreset,
+  Widget,
+  WidgetBox,
+  WidgetKind,
+} from "./panel-model";
 
 /** Per-instance visual overrides for a placement. */
 export interface PlacementDesign {
@@ -228,6 +131,8 @@ export interface DashboardConfig {
   dataApiUrl?: string;
   /** Saved widget styles, applied from the studio inspector. */
   stylePresets?: StylePreset[];
+  /** Panels the user saved for reuse (Add / widget picker). */
+  panelPresets?: UserPanelPreset[];
 }
 
 /** A named set of style values (the keys in `PROFILE_STYLE_KEYS`). */
@@ -364,7 +269,7 @@ function normalizeProfile(p: MonitorProfile): MonitorProfile {
   const cols = Math.max(2, p.cols ?? 12);
   const rows = Math.max(1, p.rows ?? (p.height <= 700 ? 4 : 6));
   const placements = p.placements.map((pl) => ({
-    ...pl,
+    ...normalizePanelPlacement(pl),
     colSpan: Math.max(1, Math.min(cols, pl.colSpan ?? 1)),
   }));
   if (placements.every((pl) => pl.colStart !== undefined && pl.rowStart !== undefined)) {
@@ -486,6 +391,7 @@ export function mergeConfig(input: Partial<DashboardConfig>): DashboardConfig {
     radius: parsed.radius ?? defaults.radius,
     dataApiUrl: normalizeApiBase(parsed.dataApiUrl) ?? undefined,
     stylePresets: Array.isArray(parsed.stylePresets) ? parsed.stylePresets : undefined,
+    panelPresets: normalizePanelPresets(parsed.panelPresets),
   };
 }
 
@@ -703,19 +609,20 @@ function samplePanelPlacement(
  *   rows 4–6 weather (4) │ gpu (4)                    │ session (4)
  */
 export function sampleProfile(): MonitorProfile {
-  // — Left column, row 2: FPS rings — six small gauges in a single row.
+  // — Left column, row 2: FPS rings — six gauges in a single row. A gauge's
+  //   fontSize is its ring diameter: 56px fills the ~64px-tall strip row.
   const fpsRings = sp({
     title: "FPS rings",
     accent: SAMPLE_ACCENT,
     layout: "grid",
     columns: 6,
     widgets: [
-      sw({ kind: "gauge", sensor: RTSS("fps"), max: 240, fontSize: 20 }),
-      sw({ kind: "gauge", sensor: RTSS("avg-fps"), max: 240, fontSize: 20 }),
-      sw({ kind: "gauge", sensor: RTSS("1% low fps"), max: 240, fontSize: 20 }),
-      sw({ kind: "gauge", sensor: RTSS("refreshrate"), max: 240, fontSize: 20 }),
-      sw({ kind: "gauge", sensor: NVIDIA("gpu_core"), max: 100, fontSize: 20 }),
-      sw({ kind: "gauge", sensor: NVIDIA("gpu_memory_junction"), max: 100, fontSize: 20 }),
+      sw({ kind: "gauge", sensor: RTSS("fps"), max: 240, fontSize: 56 }),
+      sw({ kind: "gauge", sensor: RTSS("avg-fps"), max: 240, fontSize: 56 }),
+      sw({ kind: "gauge", sensor: RTSS("1% low fps"), max: 240, fontSize: 56 }),
+      sw({ kind: "gauge", sensor: RTSS("refreshrate"), max: 240, fontSize: 56 }),
+      sw({ kind: "gauge", sensor: NVIDIA("gpu_core"), max: 100, fontSize: 56 }),
+      sw({ kind: "gauge", sensor: NVIDIA("gpu_memory_junction"), max: 100, fontSize: 56 }),
     ],
   });
 
@@ -782,7 +689,7 @@ export function sampleProfile(): MonitorProfile {
       sw({ kind: "text", text: "Current surface data", span: 4, fontSize: 10, color: "#94a3b8" }),
       sw({ kind: "value", sensor: WEATHER("weather_desc"), fontSize: 13 }),
       sw({ kind: "stat", sensor: WEATHER("temp"), span: 2, color: SAMPLE_ACCENT, fontSize: 18 }),
-      sw({ kind: "value", sensor: WEATHER("wind_speed"), label: "m/s", decimals: 1 }),
+      sw({ kind: "value", sensor: WEATHER("wind_speed"), label: "wind", decimals: 1 }),
       sw({ kind: "table", sensor: YR_FORECAST_KEY, rows: 7, span: 4, columns: 5, header: "Date, Weather, Temp, Precip, Wind" }),
     ],
   });

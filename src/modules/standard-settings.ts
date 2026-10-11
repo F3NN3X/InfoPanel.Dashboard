@@ -1,5 +1,5 @@
 import type { ModernChrome } from "@/components/modern-chrome";
-import type { ModuleSetting, ModuleSettings } from "./types";
+import { settingKeys, type ModuleSetting, type ModuleSettings } from "./types";
 
 /**
  * The standard per-widget customization block. Every modern widget adopts
@@ -65,30 +65,13 @@ export const STYLE_SETTINGS: ModuleSetting[] = [
     group: GROUP_SIZE,
   },
   {
+    // One 3×3 picker for both axes; "Spread" (alignX "between") is a toggle.
     key: "alignX",
-    label: "Horizontal alignment",
-    type: "select",
+    keyY: "alignY",
+    label: "Alignment",
+    type: "align",
     default: "auto",
-    options: [
-      { value: "auto", label: "Auto" },
-      { value: "start", label: "Left" },
-      { value: "center", label: "Center" },
-      { value: "end", label: "Right" },
-      { value: "between", label: "Spread" },
-    ],
-    group: GROUP_SIZE,
-  },
-  {
-    key: "alignY",
-    label: "Vertical alignment",
-    type: "select",
-    default: "auto",
-    options: [
-      { value: "auto", label: "Auto" },
-      { value: "start", label: "Top" },
-      { value: "center", label: "Middle" },
-      { value: "end", label: "Bottom" },
-    ],
+    keywords: ["horizontal", "vertical", "left", "right", "top", "bottom", "middle", "center", "spread"],
     group: GROUP_SIZE,
   },
   {
@@ -294,6 +277,31 @@ export const STANDARD_SETTINGS: ModuleSetting[] = [
   ...SURFACE_SETTINGS,
 ];
 
+/** Standard keys a panel has no use for (no layout variants, design size or rings of its own). */
+const NOT_FOR_PANELS: ReadonlySet<string> = new Set(["preset", "layout", "autoScale", "stroke"]);
+
+/**
+ * A custom panel's look (its placement's settings): the standard block
+ * minus what panels don't have, with the panel's cards added to the
+ * surfaces and the custom title as the panel title.
+ */
+export const PANEL_SETTINGS: ModuleSetting[] = STANDARD_SETTINGS.filter(
+  (s) => !NOT_FOR_PANELS.has(s.key)
+).map((s) => {
+  if (s.key === "label") return { ...s, label: "Title (empty = hidden)" };
+  if (s.key !== "surface") return s;
+  return {
+    ...s,
+    default: "panel",
+    options: [
+      { value: "none", label: "None" },
+      { value: "panel", label: "Card" },
+      { value: "bordered", label: "Bordered card" },
+      ...(s.options ?? []),
+    ],
+  };
+});
+
 /**
  * The look-only keys: what a profile can set for all its widgets, and what
  * "Copy style" / style presets carry. Content, layout, title, icon and
@@ -302,8 +310,8 @@ export const STANDARD_SETTINGS: ModuleSetting[] = [
 export const PROFILE_STYLE_KEYS: ReadonlySet<string> = new Set([
   "surface",
   "accent",
-  ...STYLE_SETTINGS.map((s) => s.key),
-  ...SURFACE_SETTINGS.map((s) => s.key),
+  ...STYLE_SETTINGS.flatMap(settingKeys),
+  ...SURFACE_SETTINGS.flatMap(settingKeys),
 ]);
 
 /** The standard settings a profile can set (see `PROFILE_STYLE_KEYS`). */
@@ -337,7 +345,7 @@ export function replaceStyle(
 
 /** The standard block as a settings map (defaults only). */
 export const STANDARD_DEFAULTS: ModuleSettings = Object.fromEntries(
-  STANDARD_SETTINGS.map((s) => [s.key, s.default])
+  STANDARD_SETTINGS.flatMap((s) => settingKeys(s).map((key) => [key, s.default]))
 );
 
 /** A px select value ("auto" → undefined). */

@@ -19,8 +19,10 @@ import {
   type DashboardConfig,
   type MonitorProfile,
   type Placement,
+  type Widget,
 } from "@/lib/layout";
-import { panelPresets, type PanelPreset } from "@/lib/panelPresets";
+import { useSensorCatalog } from "@/lib/catalog";
+import { findPanelPreset, type PanelPreset } from "@/lib/panelPresets";
 import { THEME_PRESETS, type ThemeTokens } from "@/lib/theme";
 import * as actions from "./studio-actions";
 import { CommandPalette } from "./command-palette";
@@ -29,9 +31,11 @@ import { copyProfileJson, exportConfigFile, importConfigFile } from "./config-fi
 import { DocumentInspector, type DocumentTab } from "./document-inspector";
 import { StudioCanvas } from "./studio-canvas";
 import { StudioTopBar } from "./studio-top-bar";
-import { INSERTABLES, InsertPanel } from "./insert-panel";
+import { insertables, InsertPanel } from "./insert-panel";
 import { LayersPanel } from "./layers-panel";
 import { DRAWER_TITLES, LeftDrawer, LeftRail, useStoredDrawer, type RailItem } from "./left-rail";
+import { deletePanelPreset, renamePanelPreset, savePanelPreset } from "./panel-preset-actions";
+import { panelWidgetActions } from "./panel-widget-actions";
 import { ProfilesPanel } from "./profiles-panel";
 import { ShortcutsDialog } from "./shortcuts-dialog";
 import { moduleMinSize } from "./studio-modules";
@@ -40,6 +44,7 @@ import { useStudioShortcuts, type ShortcutAction } from "./use-studio-shortcuts"
 import { fitZoneRect, nudgeZone, resizeZone, type ZoneRect } from "./zone-geometry";
 import { ZoneInspector, type InspectorTab } from "./zone-inspector";
 import { ZoneToolbar } from "./zone-toolbar";
+import { widgetName } from "./widget-kinds";
 import { WidgetPickerDialog } from "./widget-picker-dialog";
 import { ZoomToolbar } from "./zoom-toolbar";
 
@@ -95,6 +100,10 @@ export function StudioView({
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const { zoom, setZoom, zoomStep, fitZoom, scrollRef, attachScroll } =
     useCanvasZoom(profile.width);
+  /** Sensor names for widget names (toolbar crumb, palette). */
+  const catalog = useSensorCatalog();
+  /** The panel inspector's "Save as panel preset" name input is open. */
+  const [presetNaming, setPresetNaming] = useState(false);
 
   const handleSave = () => {
     onSave(config);
@@ -106,9 +115,10 @@ export function StudioView({
   // Deselect when switching profiles.
   useEffect(() => setSelectedId(null), [profile.id]);
 
-  // A new selection starts the inspector at the top.
+  // A new selection starts the inspector at the top (no preset name input).
   useEffect(() => {
     inspectorRef.current?.scrollTo({ top: 0 });
+    setPresetNaming(false);
   }, [selectedId]);
 
   const selected = profile.placements.find((p) => p.id === selectedId) ?? null;
@@ -118,8 +128,54 @@ export function StudioView({
     if (selectedId !== null && !selected) setSelectedId(null);
   }, [selectedId, selected]);
 
+  /**
+   * The selected panel widget, tied to its zone: it only counts while that
+   * zone is selected and still holds it (another zone, an undo or a delete
+   * drops it).
+   */
+  const [widgetSel, setWidgetSel] = useState<{ zoneId: string; widgetId: string } | null>(null);
+  const selectedWidget =
+    (widgetSel &&
+      widgetSel.zoneId === selected?.id &&
+      selected.panel?.widgets.find((w) => w.id === widgetSel.widgetId)) ||
+    null;
+  const selectedWidgetId = selectedWidget?.id ?? null;
+  useEffect(() => {
+    if (widgetSel !== null && !selectedWidget) setWidgetSel(null);
+  }, [widgetSel, selectedWidget]);
+
+  /** Select a zone's widget (null = the panel itself). */
+  const selectWidget = (zoneId: string, widgetId: string | null) => {
+    setSelectedId(zoneId);
+    setWidgetSel(widgetId === null ? null : { zoneId, widgetId });
+  };
+
+  /** Canvas / palette pick: also opens the Content tab, where its editor is. */
+  const showWidget = (zoneId: string, widgetId: string | null) => {
+    selectWidget(zoneId, widgetId);
+    if (widgetId !== null) setInspectorTab("content");
+  };
+
+  /** Scroll the inspector so the widget editor shows below its sticky header. */
+  const revealWidgetEditor = () => {
+    const aside = inspectorRef.current;
+    const editor = aside?.querySelector<HTMLElement>("[data-widget-editor]");
+    if (!aside || !editor) return;
+    const header = aside.querySelector<HTMLElement>("[data-inspector-header]")?.offsetHeight ?? 0;
+    const top = editor.getBoundingClientRect().top - aside.getBoundingClientRect().top;
+    if (top >= header && top < aside.clientHeight - 64) return; // already in view
+    aside.scrollTo({ top: aside.scrollTop + top - header - 8, behavior: "smooth" });
+  };
+
+  // A newly selected widget brings its editor into view (Content tab).
+  useEffect(() => {
+    if (selectedWidgetId !== null && inspectorTab === "content") revealWidgetEditor();
+  }, [selectedWidgetId, inspectorTab]);
+
   /** The style copied with "Copy" in the inspector (session only). */
   const [styleClipboard, setStyleClipboard] = useState<ModuleSettings | null>(null);
+  /** The panel widget copied with "Copy" in the layers list (session only). */
+  const [widgetClipboard, setWidgetClipboard] = useState<Widget | null>(null);
 
   /* ---------------- profile + placement mutations ---------------- */
 
@@ -152,6 +208,21 @@ export function StudioView({
     updateProfile((p) => actions.addPresetPlacement(p, id, preset));
     setSelectedId(id);
   };
+
+  /** Add a panel preset (built in, starter or saved) by id. */
+  const addPanelPresetById = (presetId: string) => {
+    const preset = findPanelPreset(presetId, config.panelPresets);
+    if (preset) addPanelPreset(preset);
+  };
+
+  /** Save the selected panel zone to My panels (one undo step). */
+  const savePanelAsPreset = (name: string) => {
+    if (selected?.panel) setConfig((c) => savePanelPreset(c, selected, uid("panelpreset"), name));
+    setPresetNaming(false);
+  };
+
+  const renameSavedPanel = (id: string, name: string) => setConfig((c) => renamePanelPreset(c, id, name));
+  const deleteSavedPanel = (id: string) => setConfig((c) => deletePanelPreset(c, id));
 
   /** A zone drawn on the canvas becomes a blank zone, then is selected. */
   const addDrawnZone = (rect: ZoneRect) => {
@@ -250,9 +321,7 @@ export function StudioView({
         actions.assignModule(p, id, module, moduleMinSize(module))
       );
     } else if (value.startsWith("preset:")) {
-      const preset = panelPresets.find(
-        (x) => x.id === value.slice("preset:".length)
-      );
+      const preset = findPanelPreset(value.slice("preset:".length), config.panelPresets);
       if (preset) updateProfile((p) => actions.assignPreset(p, id, preset));
     }
   };
@@ -297,9 +366,10 @@ export function StudioView({
 
   /* ---------------- keyboard shortcuts + command palette ---------------- */
 
-  /** Esc: clear the settings search, else deselect, else close the drawer. */
+  /** Esc: clear the settings search, else step out (widget → zone → none), else close the drawer. */
   const escape = () => {
     if (inspectorQuery !== "") setInspectorQuery("");
+    else if (selectedWidget) setWidgetSel(null);
     else if (selectedId !== null) setSelectedId(null);
     else if (!showSources && drawer) setDrawer(null);
   };
@@ -313,6 +383,23 @@ export function StudioView({
         : resizeSelected({ cols: selected.colSpan + delta.cols, rows: selected.rowSpan + delta.rows });
     if (rect) setZoneRect(selected.id, rect, `zone-${kind}:${selected.id}`);
   };
+
+  /** Mutate the selected zone; keyed edits coalesce per zone. */
+  const updateSelected = (fn: (p: Placement) => Placement, key?: string) => {
+    if (selected) updatePlacement(selected.id, fn, key && `${selected.id}:${key}`);
+  };
+
+  /** The selected panel's widget edits (inspector, canvas keys, palette). */
+  const widgetActions = selected?.panel
+    ? panelWidgetActions({
+        placement: selected,
+        update: updateSelected,
+        selectedWidgetId,
+        onSelectWidget: (id) => selectWidget(selected.id, id),
+        widgetClipboard,
+        onCopyWidget: setWidgetClipboard,
+      })
+    : null;
 
   useStudioShortcuts((action: ShortcutAction) => {
     switch (action.type) {
@@ -328,7 +415,7 @@ export function StudioView({
       default:
         return runCommand(action);
     }
-  });
+  }, selectedWidget !== null);
 
   /** Carry out a command palette entry (or a shortcut with the same action). */
   const runCommand = (action: CommandAction) => {
@@ -336,12 +423,9 @@ export function StudioView({
       case "add-module":
         setShowSources(false);
         return addPlacement(action.id);
-      case "add-preset": {
-        const preset = panelPresets.find((p) => p.id === action.id);
+      case "add-preset":
         setShowSources(false);
-        if (preset) addPanelPreset(preset);
-        return;
-      }
+        return addPanelPresetById(action.id);
       case "profile":
         return activateProfile(action.id);
       case "drawer":
@@ -392,6 +476,28 @@ export function StudioView({
         return removePlacement(selected.id);
       case "pick-widget":
         return setPickerFor(selected.id);
+      case "save-panel-preset":
+        setShowSources(false);
+        setInspectorQuery("");
+        setInspectorTab("content");
+        inspectorRef.current?.scrollTo({ top: 0 });
+        return setPresetNaming(true);
+      case "select-widget":
+        return showWidget(selected.id, action.id);
+    }
+    if (!widgetActions || !selectedWidget) return;
+    const id = selectedWidget.id;
+    switch (action.type) {
+      case "widget-remove":
+        return widgetActions.remove(id);
+      case "widget-duplicate":
+        return widgetActions.duplicate(id);
+      case "widget-copy":
+        return widgetActions.copy(id);
+      case "widget-paste":
+        return widgetActions.paste(id);
+      case "widget-move":
+        return widgetActions.step(id, action.delta);
     }
   };
 
@@ -399,11 +505,13 @@ export function StudioView({
     selected && !selected.panel ? modules.find((m) => m.id === selected.module) : undefined;
   const commands = paletteOpen
     ? buildCommands({
-        insertables: INSERTABLES,
+        insertables: insertables(config.panelPresets),
         profiles: config.profiles,
         placements: profile.placements,
         selected,
         settings: selectedModule?.settings ?? [],
+        widget: selectedWidget,
+        canPasteWidget: widgetClipboard !== null,
         canUndo: history.canUndo,
         canRedo: history.canRedo,
         showGrid,
@@ -440,8 +548,11 @@ export function StudioView({
             {drawer === "add" && (
               <InsertPanel
                 placements={profile.placements}
+                savedPanels={config.panelPresets}
                 onAddModule={addPlacement}
                 onAddPreset={addPanelPreset}
+                onRenamePreset={renameSavedPanel}
+                onDeletePreset={deleteSavedPanel}
               />
             )}
             {drawer === "layers" && (
@@ -517,16 +628,19 @@ export function StudioView({
               attachScroll={attachScroll}
               selectedId={selectedId}
               onSelect={setSelectedId}
+              selectedWidgetId={selectedWidgetId}
+              onSelectWidget={showWidget}
               onDrawZone={addDrawnZone}
               onZoneRect={(id, rect) => setZoneRect(id, rect, `zone-drag:${id}`)}
               onPickWidget={pickWidget}
               onAddModule={addPlacement}
-              onAddPreset={addPanelPreset}
+              onAddPreset={addPanelPresetById}
               onOpenAdd={() => setDrawer("add")}
               zoneToolbar={
                 selected && (
                   <ZoneToolbar
                     placement={selected}
+                    widgetLabel={selectedWidget ? widgetName(selectedWidget, catalog) : undefined}
                     onPickWidget={() => setPickerFor(selected.id)}
                     canResize={(size) => resizeSelected(size) !== null}
                     onResize={(size) => {
@@ -571,12 +685,19 @@ export function StudioView({
               onTabChange={setInspectorTab}
               styleClipboard={styleClipboard}
               onCopyStyle={setStyleClipboard}
+              widgetClipboard={widgetClipboard}
+              onCopyWidget={setWidgetClipboard}
+              selectedWidgetId={selectedWidgetId}
+              onSelectWidget={(id) => selectWidget(selected.id, id)}
+              onShowWidget={() => {
+                setInspectorQuery("");
+                setInspectorTab("content");
+                requestAnimationFrame(revealWidgetEditor);
+              }}
               query={inspectorQuery}
               onQuery={setInspectorQuery}
               onClose={() => setSelectedId(null)}
-              update={(fn, key) =>
-                updatePlacement(selected.id, fn, key && `${selected.id}:${key}`)
-              }
+              update={updateSelected}
               onZoneBox={setZoneBox}
               onPickWidget={() => setPickerFor(selected.id)}
               onUseForProfile={(style) => setProfileStyle(() => style)}
@@ -598,6 +719,9 @@ export function StudioView({
               onToggleVisible={() => toggleVisible(selected.id)}
               onDuplicate={() => duplicatePlacement(selected.id)}
               onRemove={() => removePlacement(selected.id)}
+              presetNaming={presetNaming}
+              onPresetNaming={setPresetNaming}
+              onSavePanelPreset={savePanelAsPreset}
             />
           ) : (
             <DocumentInspector
@@ -627,6 +751,9 @@ export function StudioView({
       <WidgetPickerDialog
         placement={profile.placements.find((p) => p.id === pickerFor) ?? null}
         placements={profile.placements}
+        savedPanels={config.panelPresets}
+        onRenamePreset={renameSavedPanel}
+        onDeletePreset={deleteSavedPanel}
         onPick={(value) => {
           if (pickerFor) assignWidget(pickerFor, value);
           setPickerFor(null);

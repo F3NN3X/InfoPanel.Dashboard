@@ -11,6 +11,8 @@ interface ZoneDesignSectionProps {
   onChange: (fn: (design: PlacementDesign | undefined) => PlacementDesign) => void;
   /** Open regardless of the remembered state (a search match). */
   forceOpen?: boolean;
+  /** Offer the frame background (hidden for panels, which have their own card). */
+  showBackground?: boolean;
 }
 
 /** Search text for the section (its title and field labels). */
@@ -30,10 +32,11 @@ export function ZoneDesignSection({
   themeAccent,
   onChange,
   forceOpen,
+  showBackground = true,
 }: ZoneDesignSectionProps) {
   const set = [
     design?.accent,
-    design?.background && design.background !== "none",
+    showBackground && design?.background && design.background !== "none",
     design?.header,
   ].filter(Boolean).length;
   return (
@@ -70,23 +73,25 @@ export function ZoneDesignSection({
         </div>
       </div>
 
-      <div>
-        <div className="mb-1 text-xs text-muted-foreground">Frame background</div>
-        <Segmented
-          options={[
-            { value: "none", label: "None" },
-            { value: "panel", label: "Panel" },
-            { value: "bordered", label: "Bordered" },
-          ]}
-          value={design?.background ?? "none"}
-          onChange={(v) =>
-            onChange((d) => ({
-              ...d,
-              background: v as PlacementDesign["background"],
-            }))
-          }
-        />
-      </div>
+      {showBackground && (
+        <div>
+          <div className="mb-1 text-xs text-muted-foreground">Frame background</div>
+          <Segmented
+            options={[
+              { value: "none", label: "None" },
+              { value: "panel", label: "Panel" },
+              { value: "bordered", label: "Bordered" },
+            ]}
+            value={design?.background ?? "none"}
+            onChange={(v) =>
+              onChange((d) => ({
+                ...d,
+                background: v as PlacementDesign["background"],
+              }))
+            }
+          />
+        </div>
+      )}
 
       <button
         onClick={() => onChange((d) => ({ ...d, header: !d?.header }))}

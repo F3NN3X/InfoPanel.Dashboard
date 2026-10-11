@@ -15,7 +15,12 @@ export type ShortcutAction =
   | { type: "zoom-in" }
   | { type: "zoom-out" }
   | { type: "palette" }
-  | { type: "cheatsheet" };
+  | { type: "cheatsheet" }
+  | { type: "widget-remove" }
+  | { type: "widget-duplicate" }
+  | { type: "widget-copy" }
+  | { type: "widget-paste" }
+  | { type: "widget-move"; delta: -1 | 1 };
 
 /** The parts of a keydown event the mapping reads. */
 export interface KeyInput {
@@ -31,6 +36,11 @@ export interface ShortcutContext {
   typing: boolean;
   /** A dialog or menu is open (it handles its own keys). */
   overlay: boolean;
+  /**
+   * A panel widget is selected: Del, Ctrl+D, Ctrl+C / Ctrl+V and
+   * Alt+↑/↓ act on it (the arrows still move the zone).
+   */
+  widget?: boolean;
 }
 
 const ARROWS: Record<string, { cols: number; rows: number }> = {
@@ -54,6 +64,20 @@ function commandAction(e: KeyInput): ShortcutAction | null {
   return null;
 }
 
+/** With a widget selected, these act on it instead of the zone. */
+const WIDGET_SCOPED: Partial<Record<ShortcutAction["type"], ShortcutAction>> = {
+  remove: { type: "widget-remove" },
+  duplicate: { type: "widget-duplicate" },
+};
+
+/** Ctrl/cmd shortcuts on the selected widget (null = not one). */
+function widgetCommand(e: KeyInput): ShortcutAction | null {
+  const key = e.key.toLowerCase();
+  if (key === "c" && !e.shiftKey) return { type: "widget-copy" };
+  if (key === "v" && !e.shiftKey) return { type: "widget-paste" };
+  return null;
+}
+
 /** Ctrl/cmd shortcuts that stay live in text fields and dialogs. */
 const ALWAYS_LIVE = new Set<ShortcutAction["type"]>(["save", "undo", "redo"]);
 
@@ -62,8 +86,22 @@ const ALWAYS_LIVE = new Set<ShortcutAction["type"]>(["save", "undo", "redo"]);
  * keys are ignored while typing or while a dialog/menu is open; Esc,
  * Ctrl+S, Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y and Ctrl+K work while typing,
  * and Ctrl+S / undo / redo even with a dialog open (Esc is the dialog's).
+ * With `ctx.widget`, the widget keys (see `ShortcutContext.widget`) act
+ * on the selected panel widget.
  */
 export function shortcutAction(e: KeyInput, ctx: ShortcutContext): ShortcutAction | null {
+  const action = zoneAction(e, ctx);
+  if (!ctx.widget || ctx.typing || ctx.overlay) return action;
+  if (action) return WIDGET_SCOPED[action.type] ?? action;
+  if (e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+    if (e.key === "ArrowUp") return { type: "widget-move", delta: -1 };
+    if (e.key === "ArrowDown") return { type: "widget-move", delta: 1 };
+  }
+  return e.ctrlKey || e.metaKey ? widgetCommand(e) : null;
+}
+
+/** `shortcutAction` without a selected widget. */
+function zoneAction(e: KeyInput, ctx: ShortcutContext): ShortcutAction | null {
   if (e.altKey) return null;
   if (e.ctrlKey || e.metaKey) {
     const action = commandAction(e);
@@ -90,6 +128,9 @@ export const KEYS = {
   palette: "Ctrl+K",
   duplicate: "Ctrl+D",
   remove: "Del",
+  copy: "Ctrl+C",
+  paste: "Ctrl+V",
+  reorder: "Alt+↑ / ↓",
   hide: "H",
   deselect: "Esc",
   fit: "Ctrl+0",
@@ -108,7 +149,7 @@ export const SHORTCUT_GROUPS: { title: string; items: { keys: string; label: str
       { keys: KEYS.undo, label: "Undo" },
       { keys: `${KEYS.redo} / Ctrl+Y`, label: "Redo" },
       { keys: KEYS.cheatsheet, label: "Keyboard shortcuts" },
-      { keys: KEYS.deselect, label: "Clear search, deselect, or close the drawer" },
+      { keys: KEYS.deselect, label: "Clear search, step out (widget → zone → none), or close the drawer" },
     ],
   },
   {
@@ -120,6 +161,18 @@ export const SHORTCUT_GROUPS: { title: string; items: { keys: string; label: str
       { keys: KEYS.duplicate, label: "Duplicate" },
       { keys: KEYS.hide, label: "Hide / show" },
       { keys: `${KEYS.remove} / Backspace`, label: "Remove" },
+    ],
+  },
+  {
+    title: "Selected panel widget",
+    items: [
+      { keys: "Click / double-click", label: "Select a widget in the zone" },
+      { keys: `${KEYS.remove} / Backspace`, label: "Remove the widget" },
+      { keys: KEYS.duplicate, label: "Duplicate" },
+      { keys: KEYS.copy, label: "Copy" },
+      { keys: KEYS.paste, label: "Paste after it" },
+      { keys: KEYS.reorder, label: "Move earlier / later" },
+      { keys: "← ↑ → ↓", label: "Move the zone (Shift: resize)" },
     ],
   },
   {
@@ -151,11 +204,14 @@ function hasOverlay(): boolean {
 
 /**
  * Studio keyboard shortcuts on the window (see `shortcutAction`). The
- * handler always sees the latest `onAction`.
+ * handler always sees the latest `onAction` and `widget` (a panel widget
+ * is selected).
  */
-export function useStudioShortcuts(onAction: (action: ShortcutAction) => void) {
+export function useStudioShortcuts(onAction: (action: ShortcutAction) => void, widget = false) {
   const handler = useRef(onAction);
   handler.current = onAction;
+  const widgetRef = useRef(widget);
+  widgetRef.current = widget;
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -163,6 +219,7 @@ export function useStudioShortcuts(onAction: (action: ShortcutAction) => void) {
       const action = shortcutAction(e, {
         typing: isTyping(document.activeElement),
         overlay: hasOverlay(),
+        widget: widgetRef.current,
       });
       if (!action) return;
       e.preventDefault();

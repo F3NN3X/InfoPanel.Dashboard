@@ -67,14 +67,14 @@ const FONTS: Record<string, string> = {
   mono: "ui-monospace, 'Cascadia Code', 'Consolas', monospace",
 };
 
-const MAIN: Record<string, string> = {
+export const MAIN: Record<string, string> = {
   start: "flex-start",
   center: "center",
   end: "flex-end",
   between: "space-between",
 };
 /** As a cross-axis value "spread" has no meaning: stretch instead. */
-const CROSS: Record<string, string> = {
+export const CROSS: Record<string, string> = {
   start: "flex-start",
   center: "center",
   end: "flex-end",
@@ -88,7 +88,7 @@ const TEXT: Record<string, string> = { start: "left", center: "center", end: "ri
  * then overflows at the end (and is clipped there) instead of losing its
  * start off the left / top edge.
  */
-const safe = (value: string): string =>
+export const safe = (value: string): string =>
   value === "center" || value === "flex-end" ? `safe ${value}` : value;
 
 /** The `--wp-*` variables for the chosen options (unset ones are omitted). */

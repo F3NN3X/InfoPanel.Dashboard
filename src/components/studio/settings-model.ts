@@ -7,7 +7,12 @@ import {
   PROFILE_STYLE_KEYS,
   STANDARD_SETTINGS,
 } from "@/modules/standard-settings";
-import type { ModuleSetting, ModuleSettingValue, ModuleSettings } from "@/modules/types";
+import {
+  settingKeys,
+  type ModuleSetting,
+  type ModuleSettingValue,
+  type ModuleSettings,
+} from "@/modules/types";
 
 /**
  * The look keys: everything a profile can style plus the rest of the
@@ -15,7 +20,7 @@ import type { ModuleSetting, ModuleSettingValue, ModuleSettings } from "@/module
  */
 const STYLE_KEYS: ReadonlySet<string> = new Set([
   ...PROFILE_STYLE_KEYS,
-  ...STANDARD_SETTINGS.map((s) => s.key),
+  ...STANDARD_SETTINGS.flatMap(settingKeys),
 ]);
 
 /** The standard style groups; module settings filed there are look too. */
@@ -53,7 +58,7 @@ function fold(text: string): string {
 }
 
 /**
- * Settings matching a search query by label, key or option label (case- and
+ * Settings matching a search query by label, key, option label or keyword (case- and
  * diacritic-insensitive). Only when no setting matches that way does the
  * group name count, so "glow" finds the glow rows rather than the whole
  * "Border, glow & CSS" group, while "thresholds" still finds that group.
@@ -64,7 +69,7 @@ export function filterSettings(defs: ModuleSetting[], query: string): ModuleSett
   if (q === "") return defs;
   const hit = (texts: string[]) => texts.some((text) => fold(text).includes(q));
   const direct = defs.filter((d) =>
-    hit([d.label, d.key, ...(d.options?.map((o) => o.label) ?? [])])
+    hit([d.label, d.key, ...(d.options?.map((o) => o.label) ?? []), ...(d.keywords ?? [])])
   );
   return direct.length > 0 ? direct : defs.filter((d) => hit([d.group ?? ""]));
 }
@@ -96,6 +101,19 @@ export function settingState(
   if (hasInherited) return "profile";
   if (hasOwn && own?.[key] !== fallback) return "own";
   return "default";
+}
+
+const STATE_RANK: Record<SettingState, number> = { default: 0, profile: 1, own: 2, override: 3 };
+
+/** `settingState` over every key a setting stores (the strongest one wins). */
+export function settingStateOf(
+  def: ModuleSetting,
+  own: ModuleSettings | undefined,
+  inherited: ModuleSettings | undefined
+): SettingState {
+  return settingKeys(def)
+    .map((key) => settingState(key, own, inherited, def.default))
+    .reduce((a, b) => (STATE_RANK[b] > STATE_RANK[a] ? b : a), "default" as SettingState);
 }
 
 /** A settings map without the given keys (`undefined` when nothing is left). */

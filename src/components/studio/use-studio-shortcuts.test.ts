@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { shortcutAction, type KeyInput, type ShortcutContext } from "./use-studio-shortcuts";
+import { SHORTCUT_GROUPS, shortcutAction, type KeyInput, type ShortcutContext } from "./use-studio-shortcuts";
 
 const key = (k: string, mods: Partial<Omit<KeyInput, "key">> = {}): KeyInput => ({
   key: k,
@@ -80,5 +80,58 @@ describe("shortcutAction", () => {
     expect(shortcutAction(key("k", { ctrlKey: true }), DIALOG)).toBeNull();
     expect(shortcutAction(key("s", { ctrlKey: true }), DIALOG)).toEqual({ type: "save" });
     expect(shortcutAction(key("z", { ctrlKey: true }), DIALOG)).toEqual({ type: "undo" });
+  });
+
+  describe("with a panel widget selected", () => {
+    const WIDGET: ShortcutContext = { ...IDLE, widget: true };
+
+    it("removes and duplicates the widget instead of the zone", () => {
+      expect(shortcutAction(key("Delete"), WIDGET)).toEqual({ type: "widget-remove" });
+      expect(shortcutAction(key("Backspace"), WIDGET)).toEqual({ type: "widget-remove" });
+      expect(shortcutAction(key("d", { ctrlKey: true }), WIDGET)).toEqual({ type: "widget-duplicate" });
+    });
+
+    it("copies, pastes and reorders the widget", () => {
+      expect(shortcutAction(key("c", { ctrlKey: true }), WIDGET)).toEqual({ type: "widget-copy" });
+      expect(shortcutAction(key("V", { metaKey: true }), WIDGET)).toEqual({ type: "widget-paste" });
+      expect(shortcutAction(key("ArrowUp", { altKey: true }), WIDGET)).toEqual({ type: "widget-move", delta: -1 });
+      expect(shortcutAction(key("ArrowDown", { altKey: true }), WIDGET)).toEqual({ type: "widget-move", delta: 1 });
+      expect(shortcutAction(key("ArrowLeft", { altKey: true }), WIDGET)).toBeNull();
+      expect(shortcutAction(key("ArrowUp", { altKey: true, shiftKey: true }), WIDGET)).toBeNull();
+      expect(shortcutAction(key("c", { ctrlKey: true, shiftKey: true }), WIDGET)).toBeNull();
+    });
+
+    it("keeps the arrows on the zone, and Esc, save and undo as they are", () => {
+      expect(shortcutAction(key("ArrowRight"), WIDGET)).toEqual({ type: "nudge", cols: 1, rows: 0 });
+      expect(shortcutAction(key("ArrowDown", { shiftKey: true }), WIDGET)).toEqual({ type: "resize", cols: 0, rows: 1 });
+      expect(shortcutAction(key("Escape"), WIDGET)).toEqual({ type: "escape" });
+      expect(shortcutAction(key("z", { ctrlKey: true }), WIDGET)).toEqual({ type: "undo" });
+      expect(shortcutAction(key("h"), WIDGET)).toEqual({ type: "toggle-visible" });
+    });
+
+    it("leaves the widget keys to text fields and dialogs", () => {
+      const typing = { ...WIDGET, typing: true };
+      const dialog = { ...WIDGET, overlay: true };
+      expect(shortcutAction(key("c", { ctrlKey: true }), typing)).toBeNull();
+      expect(shortcutAction(key("v", { ctrlKey: true }), typing)).toBeNull();
+      expect(shortcutAction(key("Delete"), typing)).toBeNull();
+      expect(shortcutAction(key("ArrowUp", { altKey: true }), typing)).toBeNull();
+      expect(shortcutAction(key("c", { ctrlKey: true }), dialog)).toBeNull();
+      expect(shortcutAction(key("Delete"), dialog)).toBeNull();
+      expect(shortcutAction(key("z", { ctrlKey: true }), typing)).toEqual({ type: "undo" });
+    });
+  });
+});
+
+describe("SHORTCUT_GROUPS", () => {
+  it("lists the widget keys, with unique labels per group", () => {
+    const widget = SHORTCUT_GROUPS.find((g) => g.title === "Selected panel widget");
+    expect(widget?.items.map((i) => i.keys)).toEqual(
+      expect.arrayContaining(["Del / Backspace", "Ctrl+D", "Ctrl+C", "Ctrl+V", "Alt+↑ / ↓"])
+    );
+    for (const group of SHORTCUT_GROUPS) {
+      const labels = group.items.map((i) => i.label);
+      expect(new Set(labels).size).toBe(labels.length);
+    }
   });
 });

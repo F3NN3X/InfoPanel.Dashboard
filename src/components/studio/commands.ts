@@ -1,9 +1,10 @@
-import type { MonitorProfile, Placement } from "@/lib/layout";
+import type { MonitorProfile, Placement, Widget } from "@/lib/layout";
 import type { ModuleSetting } from "@/modules/types";
 import type { Drawer } from "./left-rail";
 import { isStyleSetting } from "./settings-model";
 import { placementTitle } from "./studio-modules";
 import { KEYS } from "./use-studio-shortcuts";
+import { widgetName } from "./widget-kinds";
 import { sortZones } from "./zone-geometry";
 import type { InspectorTab } from "./zone-inspector";
 
@@ -30,6 +31,13 @@ export type CommandAction =
   | { type: "toggle-visible" }
   | { type: "remove" }
   | { type: "pick-widget" }
+  | { type: "save-panel-preset" }
+  | { type: "select-widget"; id: string }
+  | { type: "widget-remove" }
+  | { type: "widget-duplicate" }
+  | { type: "widget-copy" }
+  | { type: "widget-paste" }
+  | { type: "widget-move"; delta: -1 | 1 }
   | { type: "tab"; tab: InspectorTab }
   | { type: "goto-setting"; tab: InspectorTab; label: string };
 
@@ -43,13 +51,17 @@ export interface Command {
 }
 
 export interface CommandState {
-  /** Widgets and panel presets the Add drawer offers. */
+  /** Widgets, layout starters, panel presets and saved panels the Add drawer offers. */
   insertables: { kind: "module" | "panel"; id: string; title: string }[];
   profiles: Pick<MonitorProfile, "id" | "name" | "width" | "height">[];
   placements: Placement[];
   selected: Placement | null;
   /** The selected widget's settings (empty for panels and blank zones). */
   settings: ModuleSetting[];
+  /** The selected panel widget (in `selected.panel`). */
+  widget: Widget | null;
+  /** A widget has been copied (Paste after is offered). */
+  canPasteWidget: boolean;
   canUndo: boolean;
   canRedo: boolean;
   showGrid: boolean;
@@ -89,7 +101,8 @@ function generalCommands(s: CommandState): Command[] {
   ];
 }
 
-function selectedCommands(selected: Placement, settings: ModuleSetting[]): Command[] {
+/** `widgetKeys`: Ctrl+D / Del act on the selected widget, so the zone's show no key. */
+function selectedCommands(selected: Placement, settings: ModuleSetting[], widgetKeys: boolean): Command[] {
   const zone = (id: string, label: string, action: CommandAction, hint?: string): Command => ({
     id: `zone:${id}`,
     label,
@@ -99,14 +112,15 @@ function selectedCommands(selected: Placement, settings: ModuleSetting[]): Comma
   });
   return [
     zone("pick", "Pick widget…", { type: "pick-widget" }),
-    zone("duplicate", "Duplicate zone", { type: "duplicate" }, KEYS.duplicate),
+    ...(selected.panel ? [zone("save-preset", "Save panel as preset…", { type: "save-panel-preset" })] : []),
+    zone("duplicate", "Duplicate zone", { type: "duplicate" }, widgetKeys ? undefined : KEYS.duplicate),
     zone(
       "visible",
       selected.visible ? "Hide zone" : "Show zone",
       { type: "toggle-visible" },
       KEYS.hide
     ),
-    zone("remove", "Remove zone", { type: "remove" }, KEYS.remove),
+    zone("remove", "Remove zone", { type: "remove" }, widgetKeys ? undefined : KEYS.remove),
     zone("tab:content", "Show Content tab", { type: "tab", tab: "content" }),
     zone("tab:style", "Show Style tab", { type: "tab", tab: "style" }),
     ...settings.map((def): Command => {
@@ -123,13 +137,51 @@ function selectedCommands(selected: Placement, settings: ModuleSetting[]): Comma
   ];
 }
 
+/** The selected panel widget's actions (Move only where it can go). */
+function widgetCommands(widgets: Widget[], widget: Widget, canPaste: boolean): Command[] {
+  const cmd = (id: string, label: string, action: CommandAction, hint?: string): Command => ({
+    id: `widget:${id}`,
+    label,
+    group: "Selected widget",
+    hint,
+    action,
+  });
+  const i = widgets.findIndex((w) => w.id === widget.id);
+  return [
+    cmd("duplicate", "Duplicate widget", { type: "widget-duplicate" }, KEYS.duplicate),
+    cmd("copy", "Copy widget", { type: "widget-copy" }, KEYS.copy),
+    ...(canPaste ? [cmd("paste", "Paste widget after", { type: "widget-paste" }, KEYS.paste)] : []),
+    ...(i > 0 ? [cmd("up", "Move widget earlier", { type: "widget-move", delta: -1 }, "Alt+↑")] : []),
+    ...(i >= 0 && i < widgets.length - 1
+      ? [cmd("down", "Move widget later", { type: "widget-move", delta: 1 }, "Alt+↓")]
+      : []),
+    cmd("remove", "Remove widget", { type: "widget-remove" }, KEYS.remove),
+  ];
+}
+
+/** "Select widget: …" for each widget of the selected panel. */
+function selectWidgetCommands(widgets: Widget[]): Command[] {
+  return widgets.map(
+    (w, i): Command => ({
+      id: `select-widget:${w.id}`,
+      label: `Select widget: ${widgetName(w)}`,
+      group: "Widgets",
+      hint: `#${i + 1}${w.visible ? "" : " · hidden"}`,
+      action: { type: "select-widget", id: w.id },
+    })
+  );
+}
+
 /**
  * Every command available in the studio's current state. Each one maps
  * to a control that is also reachable with the mouse.
  */
 export function buildCommands(s: CommandState): Command[] {
+  const widgets = s.selected?.panel?.widgets ?? [];
   return [
-    ...(s.selected ? selectedCommands(s.selected, s.settings) : []),
+    ...(s.widget ? widgetCommands(widgets, s.widget, s.canPasteWidget) : []),
+    ...(s.selected ? selectedCommands(s.selected, s.settings, s.widget !== null) : []),
+    ...selectWidgetCommands(widgets),
     ...generalCommands(s),
     ...s.insertables.map(
       (item): Command => ({

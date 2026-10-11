@@ -5,8 +5,10 @@ import { effectiveSettings, withProfileStyle, type ModuleSettings, type SensorMa
 import type { SensorValue } from "@/hooks/useSensors";
 import { useSensors } from "@/hooks/useSensors";
 import { PanelView } from "@/components/widgets/PanelView";
+import type { PanelSelection } from "@/components/widgets/panel-parts";
 import { YR_FORECAST_KEY, YR_FORECAST_PREFIX } from "@/lib/sensors";
 import { CARDS_ID, BLANK_MODULE, type Placement } from "@/lib/layout";
+import { panelSettings } from "@/lib/panel-model";
 
 const moduleById = new Map(modules.map((m) => [m.id, m]));
 
@@ -51,7 +53,11 @@ export function placementContent(
   p: Placement,
   sensors: SensorMap,
   unclaimed: Array<[string, SensorValue]>,
-  profileStyle?: ModuleSettings
+  profileStyle?: ModuleSettings,
+  /** Rendering on the studio canvas (empty panels show a hint). */
+  studio?: boolean,
+  /** The studio's widget selection, for the selected panel zone only. */
+  selection?: PanelSelection
 ): PlacementRender {
   if (p.module === BLANK_MODULE) {
     // A drawn, unfilled zone: nothing to render (the kiosk shows open
@@ -63,7 +69,15 @@ export function placementContent(
     // one widget is visible (an empty panel is hidden in kiosk mode).
     const hasData = p.panel.widgets.some((w) => w.visible);
     return {
-      content: <PanelView panel={p.panel} sensors={sensors} studio />,
+      content: (
+        <PanelView
+          panel={p.panel}
+          settings={withProfileStyle(panelSettings(p), profileStyle)}
+          sensors={sensors}
+          studio={studio}
+          selection={selection}
+        />
+      ),
       hasData,
       title: p.panel.title,
     };
@@ -104,6 +118,10 @@ interface LivePlacementProps {
   placement: Placement;
   /** The profile's style defaults (`MonitorProfile.style`). */
   profileStyle?: ModuleSettings;
+  /** On the studio canvas (see `placementContent`). */
+  studio?: boolean;
+  /** The selected panel zone's widget selection (see `placementContent`). */
+  selection?: PanelSelection;
   /** Wraps the rendered content (the zone frame). */
   children: (render: PlacementRender) => ReactNode;
 }
@@ -113,7 +131,7 @@ interface LivePlacementProps {
  * it renders from, so a sensor change re-renders only the zones that show
  * it — not the whole grid.
  */
-export function LivePlacement({ placement, profileStyle, children }: LivePlacementProps) {
+export function LivePlacement({ placement, profileStyle, studio, selection, children }: LivePlacementProps) {
   const prefixes = placementPrefixes(placement);
   const sensors = useSensors(prefixes);
   const isCards = prefixes === null;
@@ -121,5 +139,5 @@ export function LivePlacement({ placement, profileStyle, children }: LivePlaceme
     () => (isCards ? Object.entries(sensors).filter(([key]) => !isClaimed(key)) : []),
     [isCards, sensors]
   );
-  return <>{children(placementContent(placement, sensors, unclaimed, profileStyle))}</>;
+  return <>{children(placementContent(placement, sensors, unclaimed, profileStyle, studio, selection))}</>;
 }

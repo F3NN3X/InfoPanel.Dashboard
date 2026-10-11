@@ -10,6 +10,8 @@ interface CollapsibleSectionProps {
   aside?: ReactNode;
   /** Open regardless of the remembered state (e.g. a search match inside). */
   forceOpen?: boolean;
+  /** Open until the user closes it (default: closed until opened). */
+  defaultOpen?: boolean;
   children: ReactNode;
 }
 
@@ -19,10 +21,11 @@ export function CollapsibleSection({
   title,
   aside,
   forceOpen = false,
+  defaultOpen = false,
   children,
 }: CollapsibleSectionProps) {
   const { isOpen, setOpen } = useSectionState();
-  const open = forceOpen || isOpen(id);
+  const open = forceOpen || isOpen(id, defaultOpen);
   return (
     <div className="rounded-md border border-border/70">
       <button

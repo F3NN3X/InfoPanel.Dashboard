@@ -56,6 +56,12 @@ interface PlacementFrameProps {
   /** Highlight + select (studio view). */
   selected?: boolean;
   onSelect?: () => void;
+  /**
+   * Panel zones: a click (no drag) inside the already selected zone picks
+   * the widget under the pointer, or the panel itself (null) on empty
+   * space. A double-click on an unselected zone is select-then-pick.
+   */
+  onSelectWidget?: (widgetId: string | null) => void;
   children: ReactNode;
 }
 
@@ -85,11 +91,15 @@ export function PlacementFrame({
   onPickWidget,
   selected,
   onSelect,
+  onSelectWidget,
   children,
 }: PlacementFrameProps) {
   const span = clampSpan(placement.colSpan, profile.cols);
   const rowSpan = Math.max(1, placement.rowSpan);
   const design = placement.design;
+  // A panel draws its own card (Style › Surface): a saved zone-frame card
+  // from before would be a second one around it.
+  const frameCard = placement.panel ? undefined : design?.background;
   const blank = placement.module === BLANK_MODULE;
 
   // Cell pitch in display px (the grid renders at profile size × zoom,
@@ -104,13 +114,18 @@ export function PlacementFrame({
 
   /**
    * Move: press anywhere on the frame (except controls/handles) and drag.
-   * The top-left cell follows the pointer delta; the studio clamps.
+   * The top-left cell follows the pointer delta; the studio clamps. A
+   * press without a drag in the selected panel zone picks a widget.
    */
   function startMove(e: ReactPointerEvent) {
     if (e.button !== 0) return;
     const target = e.target as HTMLElement;
     if (target.closest("button, input, select, a, [data-no-drag]")) return;
     e.preventDefault();
+    // Captured at the press: the first click of a double-click selects the
+    // zone, the second (now selected) one picks the widget.
+    const pick = selected ? onSelectWidget : undefined;
+    const widgetId = target.closest<HTMLElement>("[data-widget-id]")?.dataset.widgetId ?? null;
     // preventDefault() suppresses the click event in Chromium, so the
     // frame's onClick={onSelect} never fires — select on the press itself.
     onSelect?.();
@@ -135,6 +150,7 @@ export function PlacementFrame({
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
       onZoneDragEnd?.(placement.id, last);
+      if (!active) pick?.(widgetId);
     };
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);
@@ -275,11 +291,11 @@ export function PlacementFrame({
                   {title}
                 </div>
               )}
-              {design?.background === "panel" ? (
+              {frameCard === "panel" ? (
                 <div className="min-h-0 flex-1 overflow-hidden rounded-lg bg-card/50 p-2">
                   {children}
                 </div>
-              ) : design?.background === "bordered" ? (
+              ) : frameCard === "bordered" ? (
                 <div className="min-h-0 flex-1 overflow-hidden rounded-lg border border-border bg-card/30 p-2">
                   {children}
                 </div>

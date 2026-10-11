@@ -5,24 +5,47 @@ import { sourceOptions } from "@/lib/sources";
 import { cn } from "@/lib/utils";
 import { WIDGET_ICONS } from "@/lib/widget-icons";
 import type { ModuleSetting, ModuleSettingValue, ModuleSettings } from "@/modules/types";
+import { AlignGrid } from "./align-grid";
 import { MediaDevicePicker, MultiSelect, WavelinkMeterPicker } from "./setting-pickers";
 
 /** The control for one setting, chosen by its schema type. */
 export function SettingRow({
   def,
   value,
+  valueY,
   onChange,
   onApply,
+  onPatch,
   sources,
 }: {
   def: ModuleSetting;
   value: ModuleSettingValue;
+  /** Type "align": the value of `def.keyY`. */
+  valueY?: ModuleSettingValue;
   onChange: (value: ModuleSettingValue) => void;
   /** Preset bundles: apply extra key/values alongside the selected one. */
   onApply?: (bundle: ModuleSettings) => void;
+  /** Type "align": write both keys as one change. */
+  onPatch?: (patch: ModuleSettings) => void;
   sources: ApiSources | null;
 }) {
   switch (def.type) {
+    case "align": {
+      const auto = String(def.default);
+      return (
+        <div>
+          <div className="mb-1 text-xs text-muted-foreground">{def.label}</div>
+          <AlignGrid
+            label={def.label}
+            x={String(value)}
+            y={String(valueY ?? def.default)}
+            spread="x"
+            onChange={(x, y) => onPatch?.({ [def.key]: x ?? auto, [def.keyY ?? def.key]: y ?? auto })}
+          />
+        </div>
+      );
+    }
+
     case "boolean":
       return (
         <button

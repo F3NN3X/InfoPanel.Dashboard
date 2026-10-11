@@ -2,9 +2,10 @@ import { useRef, useState } from "react";
 import { Dialog } from "@base-ui/react/dialog";
 import { Square, X } from "lucide-react";
 import { BLANK_MODULE, type Placement } from "@/lib/layout";
+import type { UserPanelPreset } from "@/lib/panel-model";
 import {
   filterInsertables,
-  INSERTABLES,
+  insertables,
   InsertFilters,
   InsertList,
   type InsertCategory,
@@ -16,6 +17,10 @@ interface WidgetPickerDialogProps {
   placement: Placement | null;
   /** Placements of the profile (usage counts). */
   placements: Placement[];
+  /** The user's saved panels (`config.panelPresets`). */
+  savedPanels?: UserPanelPreset[];
+  onRenamePreset: (id: string, name: string) => void;
+  onDeletePreset: (id: string) => void;
   /** Assign: "blank", "module:<id>" or "preset:<id>". */
   onPick: (value: string) => void;
   onClose: () => void;
@@ -25,7 +30,10 @@ interface WidgetPickerDialogProps {
 function PickerBody({
   placement,
   placements,
+  savedPanels,
   onPick,
+  onRenamePreset,
+  onDeletePreset,
 }: Omit<WidgetPickerDialogProps, "onClose" | "placement"> & { placement: Placement }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<InsertCategory>("All");
@@ -51,10 +59,12 @@ function PickerBody({
           </button>
         )}
         <InsertList
-          items={filterInsertables(INSERTABLES, query, category)}
+          items={filterInsertables(insertables(savedPanels), query, category)}
           placements={placements}
           context="picker"
           onPick={(item) => onPick(`${item.kind === "panel" ? "preset" : "module"}:${item.id}`)}
+          onRenamePreset={onRenamePreset}
+          onDeletePreset={onDeletePreset}
         />
       </div>
     </>
@@ -65,7 +75,7 @@ function PickerBody({
  * Pick the widget (or panel) for a zone: search, categories and minimum
  * sizes, plus "Blank zone". The zone grows to the widget's minimum size.
  */
-export function WidgetPickerDialog({ placement, placements, onPick, onClose }: WidgetPickerDialogProps) {
+export function WidgetPickerDialog({ placement, onClose, ...body }: WidgetPickerDialogProps) {
   const popupRef = useRef<HTMLDivElement>(null);
   return (
     <Dialog.Root open={placement !== null} onOpenChange={(open) => !open && onClose()}>
@@ -92,7 +102,7 @@ export function WidgetPickerDialog({ placement, placements, onPick, onClose }: W
                   <X className="h-4 w-4" />
                 </Dialog.Close>
               </div>
-              <PickerBody placement={placement} placements={placements} onPick={onPick} />
+              <PickerBody placement={placement} {...body} />
             </>
           )}
         </Dialog.Popup>

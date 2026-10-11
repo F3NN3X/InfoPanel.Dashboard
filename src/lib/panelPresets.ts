@@ -1,4 +1,7 @@
-import { newPanel, uid, type PanelDef, type Widget } from "./layout";
+import type { ModuleSettings } from "@/modules/types";
+import { clonePanel, newPanel, uid, type PanelDef, type Widget } from "./layout";
+import { layoutStarters } from "./panel-starters";
+import type { UserPanelPreset } from "./panel-model";
 
 type Seed = Omit<Widget, "id" | "visible"> & { visible?: boolean };
 
@@ -25,6 +28,10 @@ export interface PanelPreset {
   colSpan: number;
   rowSpan: number;
   make: () => PanelDef;
+  /** The panel's look (its placement settings); presets without one get the panel's own. */
+  settings?: ModuleSettings;
+  /** Saved by the user (`config.panelPresets`), not built in. */
+  user?: boolean;
 }
 
 /* ------------------------------------------------------------------ *
@@ -359,3 +366,27 @@ export const panelPresets: PanelPreset[] = [
       }),
   },
 ];
+
+/** A saved panel as a preset: every use gets a copy with fresh ids. */
+export function userPanelPreset(saved: UserPanelPreset): PanelPreset {
+  return {
+    id: saved.id,
+    title: saved.name,
+    description: "Saved panel",
+    colSpan: saved.colSpan ?? 2,
+    rowSpan: saved.rowSpan ?? 1,
+    make: () => clonePanel(saved.panel),
+    settings: saved.settings,
+    user: true,
+  };
+}
+
+/** The built-in presets, the layout starters and the user's saved panels. */
+export function allPanelPresets(saved: UserPanelPreset[] = []): PanelPreset[] {
+  return [...panelPresets, ...layoutStarters, ...saved.map(userPanelPreset)];
+}
+
+/** A preset (built in, starter or saved) by id. */
+export function findPanelPreset(id: string, saved?: UserPanelPreset[]): PanelPreset | undefined {
+  return allPanelPresets(saved).find((p) => p.id === id);
+}

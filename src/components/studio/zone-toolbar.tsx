@@ -7,6 +7,7 @@ import {
 } from "react";
 import {
   ChevronDown,
+  ChevronRight,
   Copy,
   Eye,
   EyeOff,
@@ -29,6 +30,8 @@ interface Size {
 
 interface ZoneToolbarProps {
   placement: Placement;
+  /** The selected panel widget's name: a second crumb after the zone's. */
+  widgetLabel?: string;
   /** Open the widget picker for this zone. */
   onPickWidget: () => void;
   /** Whether the zone can take this size (grid and other zones). */
@@ -71,9 +74,13 @@ function ToolButton({
   );
 }
 
-/** The selected zone's actions: widget, size steps, hide, duplicate, remove, style. */
+/**
+ * The selected zone's actions: widget (and the selected panel widget as a
+ * second crumb), size steps, hide, duplicate, remove, style.
+ */
 export function ZoneToolbar({
   placement: p,
+  widgetLabel,
   onPickWidget,
   canResize,
   onResize,
@@ -82,6 +89,8 @@ export function ZoneToolbar({
   onRemove,
   onStyle,
 }: ZoneToolbarProps) {
+  /** Ctrl+D / Del act on the zone only while no widget is selected. */
+  const zoneKeys = widgetLabel === undefined;
   /** A size-step button: disabled when the new size is blocked. */
   const step = (title: string, cols: number, rows: number, icon: ReactNode) => {
     const size = { cols: p.colSpan + cols, rows: p.rowSpan + rows };
@@ -102,6 +111,15 @@ export function ZoneToolbar({
         <span className="truncate">{placementTitle(p)}</span>
         <ChevronDown className="h-3 w-3 shrink-0 text-muted-foreground" />
       </button>
+      {widgetLabel !== undefined && (
+        <span
+          className="flex max-w-36 items-center gap-0.5 font-medium text-foreground"
+          title={`Selected widget — ${KEYS.deselect} selects the panel`}
+        >
+          <ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground" />
+          <span className="truncate rounded-sm bg-ring/15 px-1 py-0.5">{widgetLabel}</span>
+        </span>
+      )}
       <span className="px-1 tabular-nums text-muted-foreground" title="Zone size (grid cells)">
         {p.colSpan}×{p.rowSpan}
       </span>
@@ -114,10 +132,14 @@ export function ZoneToolbar({
       <ToolButton title={`${p.visible ? "Hide" : "Show"} (${KEYS.hide})`} onClick={onToggleVisible}>
         {p.visible ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
       </ToolButton>
-      <ToolButton title={`Duplicate (${KEYS.duplicate})`} onClick={onDuplicate}>
+      <ToolButton title={zoneKeys ? `Duplicate (${KEYS.duplicate})` : "Duplicate zone"} onClick={onDuplicate}>
         <Copy className="h-3.5 w-3.5" />
       </ToolButton>
-      <ToolButton title={`Remove (${KEYS.remove})`} onClick={onRemove} className="hover:text-destructive">
+      <ToolButton
+        title={zoneKeys ? `Remove (${KEYS.remove})` : "Remove zone"}
+        onClick={onRemove}
+        className="hover:text-destructive"
+      >
         <Trash2 className="h-3.5 w-3.5" />
       </ToolButton>
       <div className={DIVIDER} />

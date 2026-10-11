@@ -1,9 +1,15 @@
 import { Segmented } from "@/components/ui/segmented";
 import { useSensorCatalog } from "@/lib/catalog";
-import { CARDS_ID, PANEL_ID, type Placement, type StylePreset } from "@/lib/layout";
+import { CARDS_ID, PANEL_ID, type Placement, type StylePreset, type Widget } from "@/lib/layout";
+import { panelSettings } from "@/lib/panel-model";
 import { modules } from "@/modules";
-import { replaceStyle, styleOf } from "@/modules/standard-settings";
-import type { ModuleSetting, ModuleSettingValue, ModuleSettings } from "@/modules/types";
+import { PANEL_SETTINGS, replaceStyle, styleOf } from "@/modules/standard-settings";
+import {
+  settingKeys,
+  type ModuleSetting,
+  type ModuleSettingValue,
+  type ModuleSettings,
+} from "@/modules/types";
 import { PanelInspector } from "./panel-inspector";
 import { SettingsPanel } from "./settings-panel";
 import {
@@ -15,6 +21,7 @@ import {
 } from "./settings-model";
 import { StyleTools } from "./style-tools";
 import { placementTitle } from "./studio-modules";
+import { widgetName } from "./widget-kinds";
 import { ZONE_FRAME_TERMS, ZoneDesignSection } from "./zone-design-section";
 import type { ZoneRect } from "./zone-geometry";
 import { SettingsSearch, WidgetPicker, ZoneBoxFields, ZoneHeader } from "./zone-inspector-parts";
@@ -37,6 +44,14 @@ interface ZoneInspectorProps {
   /** The style copied with "Copy" (session only, survives reselection). */
   styleClipboard: ModuleSettings | null;
   onCopyStyle: (style: ModuleSettings) => void;
+  /** A panel widget copied with "Copy" (session only, survives reselection). */
+  widgetClipboard: Widget | null;
+  onCopyWidget: (widget: Widget) => void;
+  /** A panel's selected widget (kept by the studio; the canvas selects too). */
+  selectedWidgetId: string | null;
+  onSelectWidget: (id: string | null) => void;
+  /** Bring the selected widget's editor into view (its breadcrumb). */
+  onShowWidget: () => void;
   /** The settings search (kept by the studio: "Go to setting" fills it). */
   query: string;
   onQuery: (query: string) => void;
@@ -52,6 +67,11 @@ interface ZoneInspectorProps {
   onToggleVisible: () => void;
   onDuplicate: () => void;
   onRemove: () => void;
+  /** A panel's "Save as panel preset" name input is open (the palette opens it too). */
+  presetNaming: boolean;
+  onPresetNaming: (open: boolean) => void;
+  /** Save this panel zone to My panels. */
+  onSavePanelPreset: (name: string) => void;
 }
 
 const TABS = [
@@ -81,6 +101,11 @@ export function ZoneInspector({
   onTabChange,
   styleClipboard,
   onCopyStyle,
+  widgetClipboard,
+  onCopyWidget,
+  selectedWidgetId,
+  onSelectWidget,
+  onShowWidget,
   query,
   onQuery: setQuery,
   onClose,
@@ -93,6 +118,9 @@ export function ZoneInspector({
   onToggleVisible,
   onDuplicate,
   onRemove,
+  presetNaming,
+  onPresetNaming,
+  onSavePanelPreset,
 }: ZoneInspectorProps) {
   const catalog = useSensorCatalog();
   const selectedMod = modules.find((m) => m.id === selected.module);
@@ -101,10 +129,11 @@ export function ZoneInspector({
         selectedMod.prefixes.some((p) => k.startsWith(p))
       ).length
     : 0;
-  // Panels edit their widgets in the PanelInspector, not via settings.
-  const defs = selected.panel ? [] : (selectedMod?.settings ?? []);
-  const selectedStyleKeys = new Set(defs.map((d) => d.key));
+  // Panels edit their widgets in the PanelInspector; their look is settings.
+  const defs = selected.panel ? PANEL_SETTINGS : (selectedMod?.settings ?? []);
+  const selectedStyleKeys = new Set(defs.flatMap(settingKeys));
   const { content, style } = splitSettings(defs);
+  const selectedWidget = selected.panel?.widgets.find((w) => w.id === selectedWidgetId);
 
   /** Replace the widget's style (see `replaceStyle`). */
   const applyStyle = (next: ModuleSettings) =>
@@ -114,18 +143,21 @@ export function ZoneInspector({
     }));
 
   const settingsProps = {
-    value: selected.settings,
+    // A panel's legacy title / accent / card show until set here.
+    value: selected.panel ? panelSettings(selected) : selected.settings,
     inherited: profileStyle,
     onChange: (key: string, v: ModuleSettingValue) =>
       update((p) => ({ ...p, settings: { ...p.settings, [key]: v } }), `setting:${key}`),
-    onClear: (key: string) =>
-      update((p) => ({ ...p, settings: dropKeys(p.settings, new Set([key])) })),
+    onPatch: (patch: ModuleSettings) =>
+      update((p) => ({ ...p, settings: { ...p.settings, ...patch } }), `setting:${Object.keys(patch).join()}`),
+    onClear: (keys: string[]) =>
+      update((p) => ({ ...p, settings: dropKeys(p.settings, new Set(keys)) })),
   };
   /** Reset just the given settings (one tab's), keeping the others. */
   const resetDefs = (list: ModuleSetting[]) => () =>
     update((p) => ({
       ...p,
-      settings: dropKeys(p.settings, new Set(list.map((d) => d.key))),
+      settings: dropKeys(p.settings, new Set(list.flatMap(settingKeys))),
     }));
 
   const zoneFrame = (forceOpen?: boolean) => (
@@ -134,6 +166,8 @@ export function ZoneInspector({
       themeAccent={themeAccent}
       onChange={(fn) => update((p) => ({ ...p, design: fn(p.design) }), "design")}
       forceOpen={forceOpen}
+      // A panel draws its own card (Style › Surface): no second one around it.
+      showBackground={!selected.panel}
     />
   );
 
@@ -143,9 +177,12 @@ export function ZoneInspector({
 
   return (
     <section>
-      <div className="sticky top-0 z-10 space-y-2.5 border-b bg-popover p-3">
+      <div data-inspector-header className="sticky top-0 z-10 space-y-2.5 border-b bg-popover p-3">
         <ZoneHeader
           title={placementTitle(selected)}
+          widget={selectedWidget && widgetName(selectedWidget, catalog)}
+          onZoneCrumb={() => onSelectWidget(null)}
+          onWidgetCrumb={onShowWidget}
           sensors={
             selected.module !== CARDS_ID && selected.module !== PANEL_ID
               ? selectedSensors
@@ -181,7 +218,19 @@ export function ZoneInspector({
         ) : tab === "content" ? (
           <>
             <WidgetPicker placement={selected} onPickWidget={onPickWidget} />
-            {selected.panel && <PanelInspector placement={selected} update={(fn) => update(fn, "panel")} />}
+            {selected.panel && (
+              <PanelInspector
+                placement={selected}
+                update={update}
+                selectedWidgetId={selectedWidgetId}
+                onSelectWidget={onSelectWidget}
+                widgetClipboard={widgetClipboard}
+                onCopyWidget={onCopyWidget}
+                presetNaming={presetNaming}
+                onPresetNaming={onPresetNaming}
+                onSavePreset={onSavePanelPreset}
+              />
+            )}
             <SettingsPanel defs={content} onReset={resetDefs(content)} {...settingsProps} />
           </>
         ) : (

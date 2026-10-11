@@ -1,221 +1,109 @@
-import { type CSSProperties } from "react";
-import { hexToHsl } from "@/lib/theme";
-import type { PanelDef, Widget, WidgetKind } from "@/lib/layout";
-import type { SensorMap } from "@/modules/types";
+import type { CSSProperties } from "react";
+import type { PanelDef } from "@/lib/layout";
+import type { ModuleSettings, SensorMap } from "@/modules/types";
+import { chromeOf } from "@/modules/standard-settings";
 import { cn } from "@/lib/utils";
-import { WidgetView, imageSrc } from "./WidgetView";
-
-/** Kinds that want a full row of the panel (everything else flows inline). */
-const FULL_ROW: ReadonlySet<WidgetKind> = new Set([
-  "bar",
-  "table",
-  "image",
-  "sparkline",
-]);
+import { ModernChrome } from "@/components/modern-chrome";
+import { flow, surfaceBox, ws } from "@/components/widget-style";
+import {
+  panelCardStyle,
+  panelScope,
+  panelSurfaceColors,
+  panelSurfaceOf,
+  panelVars,
+} from "./panel-layout";
+import { PanelOverlay } from "./panel-overlay";
+import type { PanelSelection } from "./panel-parts";
+import { PanelStack } from "./panel-stack";
 
 interface PanelViewProps {
   panel: PanelDef;
+  /**
+   * The placement's resolved settings (own, legacy fallbacks, profile
+   * style — see `panelSettings` / `withProfileStyle`): the panel's look.
+   */
+  settings?: ModuleSettings;
   sensors: SensorMap;
   /** Show a hint for empty panels (studio only). */
   studio?: boolean;
+  /**
+   * The studio's widget selection while this panel's zone is selected:
+   * outlines the selected widget (and others on hover). Never in the kiosk.
+   */
+  selection?: PanelSelection;
 }
+
+/** Two CSS sources as one ("" when both are empty). */
+const joinCss = (...parts: (string | undefined)[]) => parts.filter((p) => p?.trim()).join("\n");
 
 /**
  * Renders a custom panel (group): an ordered list of widgets in a shared
  * background/accent scope. This is the "layer and group" unit — a panel is
  * placed on the canvas, its widgets are the individually bindable pieces.
+ *
+ * The look comes from the standard style settings like every widget
+ * (`ModernChrome`: Size %, colors, font, custom CSS, background image;
+ * the card via `surfaceBox`); the arrangement from the PanelDef.
+ *
+ * CSS hooks: `.wp-panel[data-panel-layout][data-panel-id]` (the card),
+ * `.wp-panel-title`, `.wp-panel-bg`, `.wp-panel-scrim`, `.wp-band[data-band]`
+ * and `.wp-widget.wp-widget--{kind}[data-widget-id][data-widget-kind]`.
  */
-export function PanelView({ panel, sensors, studio }: PanelViewProps) {
-  const visible = panel.widgets.filter((w) => w.visible);
-  const scope = panel.accent
-    ? ({ "--accent": hexToHsl(panel.accent) } as CSSProperties)
-    : undefined;
-  const isGrid = panel.layout === "grid";
-  const cols = panel.columns ?? 3;
+export function PanelView({ panel, settings, sensors, studio, selection }: PanelViewProps) {
+  const cfg = settings ?? {};
+  const title = String(cfg.label ?? (panel.titleVisible ? panel.title : ""));
+  const surface = panelSurfaceOf(cfg.surface ?? panel.background);
+  const chrome = chromeOf({ accent: panel.accent ?? "", ...cfg });
+  const overlay = panel.layout === "overlay";
+  const hug = panel.fit === "hug";
+  const layout = overlay ? "overlay" : panel.layout === "grid" ? "grid" : "stack";
 
-  const widgets =
-    visible.length === 0 ? null : isGrid ? (
+  const look: CSSProperties = overlay
+    ? { borderRadius: ws.radius("var(--radius)") }
+    : panelCardStyle(surface, chrome);
+
+  return (
+    <ModernChrome
+      // The panel draws its own title; its CSS joins the panel's own (presets).
+      chrome={{ ...chrome, label: "", icon: "", customCss: joinCss(chrome.customCss, panel.css) }}
+    >
       <div
-        className="grid min-h-0 flex-1 auto-rows-fr gap-x-4 gap-y-3"
-        style={{
-          gridTemplateColumns:
-            panel.gridCols ?? `repeat(${cols}, minmax(0, 1fr))`,
-        }}
+        className="flex h-full w-full"
+        // Hug: the panel keeps its content size, placed by the zone's alignment.
+        style={hug ? flow("row", { x: "start", y: "start" }) : undefined}
       >
-        {visible.map((w) => (
-          <div
-            key={w.id}
-            className="min-w-0"
-            style={{
-              gridColumn: w.span ? `span ${Math.min(w.span, cols)}` : undefined,
-              gridRow: w.rowSpan ? `span ${w.rowSpan}` : undefined,
-            }}
-          >
-            <WidgetView widget={w} sensors={sensors} />
-          </div>
-        ))}
-      </div>
-    ) : (
-      <div className="flex min-h-0 flex-1 flex-wrap items-start gap-x-5 gap-y-3">
-        {visible.map((w) => (
-          <div
-            key={w.id}
-            className={cn(
-              "min-w-0",
-              FULL_ROW.has(w.kind) ? "flex-1 basis-full" : "shrink-0"
-            )}
-          >
-            <WidgetView widget={w} sensors={sensors} />
-          </div>
-        ))}
-      </div>
-    );
-
-  const body = (
-    <div className="flex h-full flex-col gap-3">
-      {panel.titleVisible && (
-        <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-          <span
-            className="h-1.5 w-1.5 rounded-full"
-            style={
-              panel.accent
-                ? { backgroundColor: panel.accent }
-                : { backgroundColor: "hsl(var(--accent))" }
-            }
-          />
-          {panel.title}
-        </div>
-      )}
-      {visible.length === 0 ? (
-        studio ? (
-          <div className="flex min-h-20 items-center justify-center rounded-md border border-dashed border-border text-xs text-muted-foreground/60">
-            empty panel — add widgets in the inspector
-          </div>
-        ) : (
-          <div className="h-4" />
-        )
-      ) : (
-        widgets
-      )}
-    </div>
-  );
-
-  // — Overlay layout: one image widget paints the whole panel as a
-  //   background; the other widgets layer on top in top / middle / bottom
-  //   zones (a dark scrim keeps them readable over any banner).
-  if (panel.layout === "overlay") {
-    const bg =
-      visible.find((w) => w.kind === "image" && w.asBackground) ??
-      visible.find((w) => w.kind === "image");
-    const rest = visible.filter((w) => w !== bg);
-    const zone = (w: Widget) => w.overlayZone ?? "top";
-    const top = rest.filter((w) => zone(w) === "top");
-    const middle = rest.filter((w) => zone(w) === "middle");
-    const bottom = rest.filter((w) => zone(w) === "bottom");
-    const bgSrc = bg ? imageSrc(bg, sensors) : undefined;
-
-    const zoneRow = (items: Widget[], className: string) =>
-      items.length === 0 ? null : (
-        <div className={className}>
-          {items.map((w) => (
-            <div
-              key={w.id}
-              className={cn(
-                "min-w-0",
-                // Full-width widgets claim their share of the zone so a
-                // pair of bars (network, CPU RAM) splits it 50/50.
-                (w.kind === "table" ||
-                  w.kind === "text" ||
-                  w.kind === "bar" ||
-                  w.kind === "sparkline") &&
-                  "flex-1"
-              )}
-              style={
-                // In-zone images (e.g. the game icon) are square — cap them
-                // at their height so they sit beside text instead of
-                // stretching across the whole zone.
-                w.kind === "image"
-                  ? {
-                      width: w.height ?? 48,
-                      maxWidth: w.height ?? 48,
-                      flexShrink: 0,
-                    }
-                  : undefined
-              }
-            >
-              <WidgetView widget={w} sensors={sensors} />
-            </div>
-          ))}
-        </div>
-      );
-
-    return (
-      <div className="relative h-full overflow-hidden rounded-lg" style={scope}>
-        {bgSrc ? (
-          <img
-            src={bgSrc}
-            alt={panel.title}
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-        ) : (
-          <div className="absolute inset-0 bg-card/60" />
-        )}
-        {/* Scrim — bottom-weighted so the banner shows through up top.
-            Skipped for panels whose background art carries its own
-            contrast (panel.scrim === false). */}
-        {panel.scrim !== false && (
-          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/20" />
-        )}
-        {panel.titleVisible && (
-          <div className="absolute right-3 top-3 z-20 flex items-center gap-1.5 rounded-full bg-black/50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-widest text-foreground/90 backdrop-blur-sm">
-            <span
-              className="h-1.5 w-1.5 rounded-full"
-              style={
-                panel.accent
-                  ? { backgroundColor: panel.accent }
-                  : { backgroundColor: "hsl(var(--accent))" }
-              }
+        <div
+          className={cn(
+            "wp-panel relative overflow-hidden",
+            hug ? "max-h-full max-w-full" : "h-full w-full",
+            !overlay && "flex flex-col gap-3"
+          )}
+          data-panel-layout={layout}
+          data-panel-id={panel.id}
+          style={{ ...panelScope(chrome), ...panelVars(panel), ...look }}
+        >
+          {overlay ? (
+            <PanelOverlay
+              panel={panel}
+              sensors={sensors}
+              title={title}
+              icon={chrome.icon}
+              edge={String(surfaceBox(panelSurfaceColors(surface, chrome), chrome).boxShadow)}
+              selection={selection}
+              studio={studio}
             />
-            {panel.title}
-          </div>
-        )}
-        <div className="relative z-10 flex h-full flex-col justify-between gap-2 p-3 pr-3">
-          {zoneRow(top, "flex items-center gap-3")}
-          {zoneRow(middle, "flex items-center gap-4")}
-          {panel.bottomGridCols && bottom.length > 0 ? (
-            <div
-              className="grid items-end gap-x-2"
-              style={{
-                gridTemplateColumns: `repeat(${panel.bottomGridCols}, minmax(0, 1fr))`,
-              }}
-            >
-              {bottom.map((w) => (
-                <div key={w.id} className="min-w-0 text-center">
-                  <WidgetView widget={w} sensors={sensors} />
-                </div>
-              ))}
-            </div>
           ) : (
-            zoneRow(bottom, "flex items-end gap-4")
+            <PanelStack
+              panel={panel}
+              sensors={sensors}
+              title={title}
+              icon={chrome.icon}
+              studio={studio}
+              selection={selection}
+            />
           )}
         </div>
       </div>
-    );
-  }
-
-  return (
-    <div style={scope}>
-      {panel.background === "panel" ? (
-        <div className="h-full overflow-hidden rounded-lg bg-card/50 p-3">
-          {body}
-        </div>
-      ) : panel.background === "bordered" ? (
-        <div className="h-full overflow-hidden rounded-lg border border-border bg-card/30 p-3">
-          {body}
-        </div>
-      ) : (
-        <div className="h-full overflow-hidden p-1">{body}</div>
-      )}
-    </div>
+    </ModernChrome>
   );
 }

@@ -5,9 +5,10 @@ import {
   type MonitorProfile,
   type Placement,
 } from "@/lib/layout";
+import { normalizePanelPlacement } from "@/lib/panel-model";
 import type { PanelPreset } from "@/lib/panelPresets";
 import type { ModuleSettings } from "@/modules/types";
-import { firstFreeRect, type ZoneRect } from "./zone-geometry";
+import { firstFreeRect, zoneFits, type ZoneRect } from "./zone-geometry";
 
 /*
  * Pure profile mutations behind the studio's controls. Each takes the
@@ -71,6 +72,20 @@ export function addModulePlacement(
   return appendAtFreeSlot(profile, minSize, (pos) => zoneAt(id, module, pos));
 }
 
+/**
+ * A zone holding a fresh panel from the preset, migrated like a loaded
+ * one: normalized, with its look in the settings (title → label, …).
+ * A saved preset brings its own settings.
+ */
+function withPreset(p: Placement, preset: PanelPreset): Placement {
+  return normalizePanelPlacement({
+    ...p,
+    module: PANEL_ID,
+    panel: preset.make(),
+    settings: preset.settings ? { ...preset.settings } : undefined,
+  });
+}
+
 /** Add a pre-designed panel (a group of widgets) from a preset. */
 export function addPresetPlacement(
   profile: MonitorProfile,
@@ -80,7 +95,7 @@ export function addPresetPlacement(
   return appendAtFreeSlot(
     profile,
     { cols: preset.colSpan, rows: preset.rowSpan },
-    (pos) => ({ ...zoneAt(id, PANEL_ID, pos), panel: preset.make() })
+    (pos) => withPreset(zoneAt(id, PANEL_ID, pos), preset)
   );
 }
 
@@ -169,16 +184,23 @@ export function clearWidget(
   }));
 }
 
-/** Grow a zone to at least `min` cells, kept inside the grid. */
+/**
+ * Grow a zone to at least `min` cells, kept inside the grid. When the
+ * grown box would cover another zone, the zone keeps its current box.
+ */
 function growTo(profile: MonitorProfile, p: Placement, min: Size) {
   const cols = Math.min(Math.max(p.colSpan, min.cols), profile.cols);
   const rows = Math.min(Math.max(p.rowSpan, min.rows), profile.rows);
-  return {
-    colSpan: cols,
-    rowSpan: rows,
-    colStart: Math.min(p.colStart, profile.cols - cols + 1),
-    rowStart: Math.min(p.rowStart, profile.rows - rows + 1),
+  const grown = {
+    col: Math.min(p.colStart, profile.cols - cols + 1),
+    row: Math.min(p.rowStart, profile.rows - rows + 1),
+    cols,
+    rows,
   };
+  const r = zoneFits(grown, profile.placements, profile.cols, profile.rows, p.id)
+    ? grown
+    : { col: p.colStart, row: p.rowStart, cols: p.colSpan, rows: p.rowSpan };
+  return { colStart: r.col, rowStart: r.row, colSpan: r.cols, rowSpan: r.rows };
 }
 
 /** Assign a module to a zone, growing it to the module's minimum size. */
@@ -203,13 +225,9 @@ export function assignPreset(
   id: string,
   preset: PanelPreset
 ): MonitorProfile {
-  return updatePlacement(profile, id, (p) => ({
-    ...p,
-    module: PANEL_ID,
-    panel: preset.make(),
-    settings: undefined,
-    ...growTo(profile, p, { cols: preset.colSpan, rows: preset.rowSpan }),
-  }));
+  return updatePlacement(profile, id, (p) =>
+    withPreset({ ...p, ...growTo(profile, p, { cols: preset.colSpan, rows: preset.rowSpan }) }, preset)
+  );
 }
 
 /** Change the column count (2–24), keeping every zone inside the grid. */

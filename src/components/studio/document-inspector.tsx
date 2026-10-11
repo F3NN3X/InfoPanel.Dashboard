@@ -119,7 +119,8 @@ function ProfileStyleTab({
         value={value}
         breadcrumb={searching ? breadcrumb : undefined}
         onChange={(key, v) => onChange((s) => ({ ...s, [key]: v }))}
-        onClear={(key) => onChange((s) => dropKeys(s, new Set([key])) ?? {})}
+        onPatch={(patch) => onChange((s) => ({ ...s, ...patch }))}
+        onClear={(keys) => onChange((s) => dropKeys(s, new Set(keys)) ?? {})}
         onReset={searching ? undefined : () => onChange(() => ({}))}
       />
       {searching && defs.length === 0 && (

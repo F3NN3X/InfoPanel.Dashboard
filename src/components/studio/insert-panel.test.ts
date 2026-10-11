@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CARDS_ID } from "@/lib/layout";
-import { INSERTABLES, filterInsertables, type Insertable } from "./insert-panel";
+import { filterInsertables, insertables, type Insertable } from "./insert-panel";
 
 const item = (
   id: string,
@@ -41,7 +41,9 @@ describe("filterInsertables", () => {
   });
 });
 
-describe("INSERTABLES", () => {
+describe("insertables", () => {
+  const INSERTABLES = insertables();
+
   it("lists widgets (including Other sensors) and panel presets", () => {
     const cards = INSERTABLES.find((i) => i.id === CARDS_ID);
     expect(cards).toMatchObject({ kind: "module", title: "Other sensors", category: "Other" });
@@ -51,5 +53,42 @@ describe("INSERTABLES", () => {
   it("files unmapped modules under Other", () => {
     expect(INSERTABLES.find((i) => i.kind === "module" && i.id === "streamdeck")?.category).toBe("Other");
     expect(INSERTABLES.find((i) => i.kind === "module" && i.id === "systemmodern")?.category).toBe("System");
+  });
+});
+
+describe("insertables with saved panels", () => {
+  const saved = {
+    id: "panelpreset-1",
+    name: "Desk stats",
+    colSpan: 3,
+    rowSpan: 2,
+    panel: { id: "pd", title: "Stats", titleVisible: true, visible: true, background: "panel" as const, widgets: [] },
+  };
+  const list = insertables([saved]);
+
+  it("files saved panels under My panels and the starters under Layouts", () => {
+    expect(list.find((i) => i.id === "panelpreset-1")).toMatchObject({
+      kind: "panel",
+      title: "Desk stats",
+      category: "My panels",
+      cols: 3,
+      rows: 2,
+    });
+    expect(list.filter((i) => i.category === "Layouts").map((i) => i.title)).toEqual([
+      "Row of stats",
+      "2×2 stats",
+      "Hero overlay",
+      "Gauge row",
+      "Clock + date",
+      "Label / value list",
+    ]);
+    expect(list.find((i) => i.id === "cpu")?.category).toBe("System");
+  });
+
+  it("searches and filters saved panels like the rest", () => {
+    expect(ids(filterInsertables(list, "desk", "All"))).toEqual(["panelpreset-1"]);
+    expect(ids(filterInsertables(list, "", "My panels"))).toEqual(["panelpreset-1"]);
+    expect(ids(filterInsertables(list, "desk", "System"))).toEqual([]);
+    expect(ids(filterInsertables(list, "gauge", "Layouts"))).toEqual(["layout-gauge-row"]);
   });
 });

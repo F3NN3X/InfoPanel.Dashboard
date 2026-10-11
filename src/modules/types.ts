@@ -13,8 +13,15 @@ export type ModuleSettings = Record<string, ModuleSettingValue>;
 export interface ModuleSetting {
   key: string;
   label: string;
-  type: "text" | "number" | "select" | "boolean" | "color" | "icon" | "image";
+  type: "text" | "number" | "select" | "boolean" | "color" | "icon" | "image" | "align";
   default: ModuleSettingValue;
+  /**
+   * For type "align": the vertical key, written together with `key` (the
+   * horizontal one) by a 3×3 alignment picker. Both default to `default`.
+   */
+  keyY?: string;
+  /** Extra search terms (the settings search also matches label, key and options). */
+  keywords?: string[];
   /** Options for type "select". */
   options?: {
     value: string;
@@ -92,6 +99,11 @@ export interface DashboardModule {
   isIdle?: (sensors: SensorMap, settings: ModuleSettings) => boolean;
 }
 
+/** The keys a setting stores (two for an "align" picker). */
+export function settingKeys(def: ModuleSetting): string[] {
+  return def.keyY ? [def.key, def.keyY] : [def.key];
+}
+
 /** The module's defaults, merged with a placement's saved settings. */
 export function effectiveSettings(
   mod: DashboardModule,
@@ -99,7 +111,7 @@ export function effectiveSettings(
 ): ModuleSettings {
   const out: ModuleSettings = {};
   for (const def of mod.settings ?? []) {
-    out[def.key] = saved?.[def.key] ?? def.default;
+    for (const key of settingKeys(def)) out[key] = saved?.[key] ?? def.default;
   }
   return out;
 }

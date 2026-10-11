@@ -6,13 +6,14 @@ import {
   PROFILE_STYLE_KEYS,
   STANDARD_SETTINGS,
 } from "@/modules/standard-settings";
-import type { ModuleSetting } from "@/modules/types";
+import { effectiveSettings, type ModuleSetting } from "@/modules/types";
 import {
   dropKeys,
   filterSettings,
   isStyleSetting,
   matchesQuery,
   settingState,
+  settingStateOf,
   splitSettings,
 } from "./settings-model";
 
@@ -161,5 +162,30 @@ describe("dropKeys", () => {
   it("returns undefined when nothing is left", () => {
     expect(dropKeys({ a: 1 }, new Set(["a"]))).toBeUndefined();
     expect(dropKeys(undefined, new Set(["a"]))).toBeUndefined();
+  });
+});
+
+describe("the alignment picker setting", () => {
+  const align = STANDARD_SETTINGS.find((s) => s.type === "align")!;
+
+  it("stores both axes under the old keys", () => {
+    expect([align.key, align.keyY]).toEqual(["alignX", "alignY"]);
+    expect(PROFILE_STYLE_KEYS.has("alignX")).toBe(true);
+    expect(PROFILE_STYLE_KEYS.has("alignY")).toBe(true);
+    const mod = { id: "m", title: "M", prefixes: [], render: () => null, settings: [align] };
+    expect(effectiveSettings(mod, { alignY: "end" })).toEqual({ alignX: "auto", alignY: "end" });
+  });
+
+  it("is found by the search for either axis", () => {
+    for (const q of ["align", "horizontal", "vertical", "spread"])
+      expect(filterSettings(STANDARD_SETTINGS, q)).toContain(align);
+  });
+
+  it("takes the strongest state of its keys", () => {
+    expect(settingStateOf(align, undefined, undefined)).toBe("default");
+    expect(settingStateOf(align, { alignY: "end" }, undefined)).toBe("own");
+    expect(settingStateOf(align, { alignY: "end" }, { alignX: "start" })).toBe("own");
+    expect(settingStateOf(align, { alignX: "end" }, { alignX: "start" })).toBe("override");
+    expect(settingStateOf(align, {}, { alignY: "start" })).toBe("profile");
   });
 });

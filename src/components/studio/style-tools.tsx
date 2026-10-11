@@ -16,13 +16,13 @@ interface StyleToolsProps {
   onDeletePreset: (id: string) => void;
 }
 
-const ICON_BUTTON =
+export const ICON_BUTTON =
   "flex h-6 w-6 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-accent/40 hover:text-foreground disabled:pointer-events-none disabled:opacity-40 data-popup-open:bg-accent/40 data-popup-open:text-foreground";
-const POPUP =
+export const POPUP =
   "min-w-40 rounded-md border border-border bg-popover p-1 text-xs text-foreground shadow-lg outline-none";
-const ITEM =
+export const ITEM =
   "flex cursor-default items-center justify-between gap-3 rounded-[5px] px-2 py-1.5 outline-none select-none data-disabled:text-muted-foreground/50 data-highlighted:bg-accent data-popup-open:bg-accent/60";
-const SEPARATOR = "mx-1 my-1 h-px bg-border";
+export const SEPARATOR = "mx-1 my-1 h-px bg-border";
 
 /** A "▸" submenu listing the style presets. */
 function PresetSubmenu({

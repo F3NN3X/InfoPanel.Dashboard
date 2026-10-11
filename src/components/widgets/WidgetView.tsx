@@ -8,6 +8,7 @@ import type { SensorValue } from "@/hooks/useSensors";
 import type { Widget } from "@/lib/layout";
 import type { SensorMap } from "@/modules/types";
 import { cn } from "@/lib/utils";
+import { labelStyle, ws } from "@/components/widget-style";
 import { widgetPercent, widgetValue } from "./format";
 import { useHistory, useNow } from "./hooks";
 
@@ -61,23 +62,24 @@ function Stat({ widget, text, unit, sub }: Ctx) {
     <div className="flex flex-col gap-0.5" style={{ textAlign: widget.align }}>
       {widget.label && (
         <div
-          className="uppercase tracking-wide text-muted-foreground"
-          style={ls ? { fontSize: ls } : { fontSize: "0.75rem" }}
+          className="wp-label tracking-wide text-muted-foreground"
+          style={{ ...labelStyle(), fontSize: ls ?? "0.75rem" }}
         >
           {widget.label}
         </div>
       )}
       <div
-        className="font-bold tracking-tight tabular-nums text-foreground"
+        className="wp-value font-bold tracking-tight tabular-nums text-foreground"
         style={{
           fontSize: widget.fontSize ?? "1.5rem",
+          fontWeight: ws.weight(700),
           ...colorStyle(widget.color),
         }}
       >
         {text}
         {unit && (
           <span
-            className="ml-1 font-normal text-muted-foreground"
+            className="wp-unit ml-1 font-normal text-muted-foreground"
             style={{ fontSize: ls ?? "0.75rem" }}
           >
             {unit}
@@ -86,7 +88,7 @@ function Stat({ widget, text, unit, sub }: Ctx) {
       </div>
       {sub && (
         <div
-          className="tabular-nums text-muted-foreground"
+          className="wp-sub tabular-nums text-muted-foreground"
           style={{ fontSize: subSize(widget) }}
         >
           {sub}
@@ -102,16 +104,17 @@ function Value({ widget, text, unit, sub }: Ctx) {
     <div className="flex flex-col" style={{ textAlign: widget.align }}>
       <div className="flex items-baseline gap-1">
         <span
-          className="font-semibold tabular-nums text-foreground"
+          className="wp-value font-semibold tabular-nums text-foreground"
           style={{
             fontSize: widget.fontSize ?? "1.125rem",
+            fontWeight: ws.weight(600),
             ...colorStyle(widget.color),
           }}
         >
           {text}
           {unit && (
             <span
-              className="ml-0.5 font-normal text-muted-foreground"
+              className="wp-unit ml-0.5 font-normal text-muted-foreground"
               style={{ fontSize: ls ?? "0.75rem" }}
             >
               {unit}
@@ -120,8 +123,8 @@ function Value({ widget, text, unit, sub }: Ctx) {
         </span>
         {widget.label && (
           <span
-            className="text-muted-foreground"
-            style={{ fontSize: ls ?? "0.75rem" }}
+            className="wp-label text-muted-foreground"
+            style={{ ...labelStyle("none"), fontSize: ls ?? "0.75rem" }}
           >
             {widget.label}
           </span>
@@ -129,7 +132,7 @@ function Value({ widget, text, unit, sub }: Ctx) {
       </div>
       {sub && (
         <span
-          className="tabular-nums text-muted-foreground"
+          className="wp-sub tabular-nums text-muted-foreground"
           style={{ fontSize: subSize(widget) }}
         >
           {sub}
@@ -144,19 +147,19 @@ function Bar({ widget, sensor, text, unit }: Ctx) {
   return (
     <div className="w-full">
       <div className="mb-1 flex items-center justify-between gap-2 text-xs">
-        <span className="truncate text-muted-foreground">
+        <span className="wp-label truncate text-muted-foreground">
           {widget.label ?? "—"}
         </span>
-        <span className="tabular-nums text-foreground">
+        <span className="wp-value tabular-nums text-foreground">
           {text}
           {unit && (
-            <span className="ml-0.5 text-muted-foreground">{unit}</span>
+            <span className="wp-unit ml-0.5 text-muted-foreground">{unit}</span>
           )}
         </span>
       </div>
-      <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+      <div className="wp-bar-track h-2 w-full overflow-hidden rounded-full bg-secondary">
         <div
-          className="h-full rounded-full bg-primary transition-[width] duration-300"
+          className="wp-bar-fill h-full rounded-full bg-primary transition-[width] duration-300"
           style={{
             width: `${pct}%`,
             ...(widget.color ? { backgroundColor: widget.color } : {}),
@@ -173,7 +176,7 @@ function GaugeWidget({ widget, sensor, text, unit }: Ctx) {
     ? ({ "--accent": hexToHsl(widget.color) } as CSSProperties)
     : undefined;
   return (
-    <div style={scope} className="shrink-0">
+    <div style={scope} className="wp-gauge shrink-0">
       <Gauge
         label={widget.label ?? ""}
         value={text}
@@ -211,11 +214,11 @@ function Sparkline({ widget, sensor }: { widget: Widget; sensor?: SensorValue })
   return (
     <div className="w-full">
       <div className="mb-1 flex items-center justify-between gap-2 text-xs">
-        <span className="truncate text-muted-foreground">
+        <span className="wp-label truncate text-muted-foreground">
           {widget.label ?? "graph"}
         </span>
         <span
-          className="tabular-nums text-foreground"
+          className="wp-value tabular-nums text-foreground"
           style={colorStyle(widget.color)}
         >
           {last !== undefined ? Math.round(last) : "—"}
@@ -224,7 +227,7 @@ function Sparkline({ widget, sensor }: { widget: Widget; sensor?: SensorValue })
       <svg
         viewBox={`0 0 ${W} ${H}`}
         preserveAspectRatio="none"
-        className="h-12 w-full"
+        className="wp-spark h-12 w-full"
       >
         {points ? (
           <>
@@ -273,7 +276,7 @@ function Table({ widget, lines }: { widget: Widget; lines: string[] }) {
       .filter(Boolean);
     return (
       <div
-        className="grid gap-x-2 gap-y-1"
+        className="wp-table grid gap-x-2 gap-y-1"
         style={{
           gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
           fontSize: size ?? "0.75rem",
@@ -318,7 +321,7 @@ function Table({ widget, lines }: { widget: Widget; lines: string[] }) {
 
   // Default two-part mode: a leading head and the rest, right aligned.
   return (
-    <div className="space-y-1">
+    <div className="wp-table space-y-1">
       {lines.slice(0, rows).map((line, i) => {
         const idx = line.indexOf(", ");
         const head = idx > 0 ? line.slice(0, idx) : line;
@@ -367,15 +370,15 @@ function Text({ widget, text }: { widget: Widget; text: string }) {
     >
       {widget.label && (
         <div
-          className="uppercase tracking-wide text-muted-foreground"
-          style={{ fontSize: ls ?? "0.75rem" }}
+          className="wp-label tracking-wide text-muted-foreground"
+          style={{ ...labelStyle(), fontSize: ls ?? "0.75rem" }}
         >
           {widget.label}
         </div>
       )}
       <div
         className={cn(
-          "break-words text-foreground/90",
+          "wp-value break-words text-foreground/90",
           !text && "text-muted-foreground/60"
         )}
         style={{
@@ -414,7 +417,7 @@ function ImageWidget({ widget, src }: { widget: Widget; src?: string }) {
         </div>
       )}
       {widget.label && (
-        <div className="mt-1 text-xs uppercase tracking-wide text-muted-foreground">
+        <div className="wp-label mt-1 text-xs tracking-wide text-muted-foreground" style={labelStyle()}>
           {widget.label}
         </div>
       )}
@@ -443,15 +446,15 @@ function Clock({ widget }: { widget: Widget }) {
     >
       {mode !== "date" && (
         <div
-          className="font-bold tracking-tight tabular-nums"
-          style={{ fontSize: widget.fontSize ?? "2.25rem" }}
+          className="wp-clock-time font-bold tracking-tight tabular-nums"
+          style={{ fontSize: widget.fontSize ?? "2.25rem", fontWeight: ws.weight(700) }}
         >
           {time}
         </div>
       )}
       {mode !== "time" && (
         <div
-          className="text-muted-foreground"
+          className="wp-clock-date text-muted-foreground"
           style={
             widget.fontSize
               ? {
@@ -481,6 +484,7 @@ function Shape({ widget }: { widget: Widget }) {
     case "hbar":
       return (
         <div
+          className="wp-shape"
           style={{
             height: t,
             width: "100%",
@@ -494,14 +498,14 @@ function Shape({ widget }: { widget: Widget }) {
     case "rect":
       return (
         <div
-          className="h-full min-h-6 w-full"
+          className="wp-shape h-full min-h-6 w-full"
           style={{ borderRadius: radius, backgroundColor: color }}
         />
       );
     case "circle":
       return (
         <div
-          className="self-center"
+          className="wp-shape self-center"
           style={{
             width: t,
             height: t,
@@ -514,7 +518,7 @@ function Shape({ widget }: { widget: Widget }) {
     default:
       return (
         <div
-          className="h-full min-h-6"
+          className="wp-shape h-full min-h-6"
           style={{
             width: t,
             minWidth: t,
@@ -532,13 +536,36 @@ function Shape({ widget }: { widget: Widget }) {
 interface WidgetViewProps {
   widget: Widget;
   sensors: SensorMap;
+  /** Studio canvas: a widget that needs a sensor and has none says so. */
+  studio?: boolean;
 }
+
+/** Kinds that show nothing useful without a bound sensor (or static text). */
+const SENSOR_KINDS: ReadonlySet<Widget["kind"]> = new Set(["stat", "value", "bar", "gauge", "sparkline", "table"]);
 
 /**
  * Resolve a widget's bound sensor + display text, then dispatch to the
- * matching renderer. Hidden widgets render nothing.
+ * matching renderer. Hidden widgets render nothing. In the studio an
+ * unbound widget adds a "pick a sensor" hint (`.wp-hint`) under itself.
  */
-export function WidgetView({ widget, sensors }: WidgetViewProps) {
+export function WidgetView({ widget, sensors, studio }: WidgetViewProps) {
+  const view = <WidgetBody widget={widget} sensors={sensors} />;
+  if (!studio || !widget.visible || widget.sensor || widget.text || !SENSOR_KINDS.has(widget.kind)) return view;
+  return (
+    <div className="flex min-w-0 flex-col gap-0.5">
+      {view}
+      <span
+        className="wp-hint text-[10px] italic text-muted-foreground/60"
+        style={{ textAlign: widget.align ?? (widget.kind === "gauge" ? "center" : undefined) }}
+      >
+        pick a sensor
+      </span>
+    </div>
+  );
+}
+
+/** The widget's own renderer for its kind. */
+function WidgetBody({ widget, sensors }: Omit<WidgetViewProps, "studio">) {
   if (!widget.visible) return null;
   const s = widget.sensor ? sensorAt(sensors, widget.sensor) : undefined;
   const { text, unit } = widgetValue(s, widget);
@@ -563,7 +590,7 @@ export function WidgetView({ widget, sensors }: WidgetViewProps) {
       return (
         <div className="w-full">
           {widget.label && (
-            <div className="mb-1 text-xs text-muted-foreground">
+            <div className="wp-label mb-1 text-xs text-muted-foreground">
               {widget.label}
             </div>
           )}

@@ -2,10 +2,15 @@ import { Fragment, type ReactNode } from "react";
 import { RotateCcw } from "lucide-react";
 import { useSensorCatalog, type ApiSources } from "@/lib/catalog";
 import { cn } from "@/lib/utils";
-import type { ModuleSetting, ModuleSettingValue, ModuleSettings } from "@/modules/types";
+import {
+  settingKeys,
+  type ModuleSetting,
+  type ModuleSettingValue,
+  type ModuleSettings,
+} from "@/modules/types";
 import { CollapsibleSection } from "./collapsible-section";
 import { SettingRow } from "./setting-control";
-import { settingState, type SettingState } from "./settings-model";
+import { settingStateOf, type SettingState } from "./settings-model";
 
 interface SettingsPanelProps {
   /** The settings schema (a module's `settings`, or the profile style). */
@@ -18,8 +23,13 @@ interface SettingsPanelProps {
    */
   inherited?: ModuleSettings;
   onChange: (key: string, value: ModuleSettingValue) => void;
-  /** Drop an own value (fall back to the inherited / default one). */
-  onClear?: (key: string) => void;
+  /** Set several keys as one change (an "align" picker's two axes). */
+  onPatch: (patch: ModuleSettings) => void;
+  /**
+   * Drop a setting's own values (fall back to the inherited / default
+   * ones) — every key it stores, as one change.
+   */
+  onClear?: (keys: string[]) => void;
   /** Reset every setting in `defs`; omit to hide the Reset link. */
   onReset?: () => void;
   title?: string;
@@ -46,6 +56,7 @@ export function SettingsPanel({
   value,
   inherited,
   onChange,
+  onPatch,
   onClear,
   onReset,
   title = "Settings",
@@ -65,6 +76,7 @@ export function SettingsPanel({
       value={value}
       inherited={inherited}
       onChange={onChange}
+      onPatch={onPatch}
       onClear={onClear}
       sources={sources}
       crumb={breadcrumb?.(def)}
@@ -97,7 +109,7 @@ export function SettingsPanel({
               const rows = block.defs.map(field);
               if (!block.group) return <Fragment key={`top-${i}`}>{rows}</Fragment>;
               const changed = block.defs.filter(
-                (d) => value?.[d.key] !== undefined && value[d.key] !== d.default
+                (d) => settingKeys(d).some((k) => value?.[k] !== undefined && value[k] !== d.default)
               ).length;
               return (
                 <CollapsibleSection
@@ -138,6 +150,7 @@ function SettingField({
   value,
   inherited,
   onChange,
+  onPatch,
   onClear,
   sources,
   crumb,
@@ -146,12 +159,16 @@ function SettingField({
   value: ModuleSettings | undefined;
   inherited: ModuleSettings | undefined;
   onChange: (key: string, value: ModuleSettingValue) => void;
-  onClear?: (key: string) => void;
+  onPatch: (patch: ModuleSettings) => void;
+  onClear?: (keys: string[]) => void;
   sources: ApiSources | null;
   crumb?: string;
 }) {
-  const state = settingState(def.key, value, inherited, def.default);
-  const reset = () => (onClear ? onClear(def.key) : onChange(def.key, def.default));
+  const state = settingStateOf(def, value, inherited);
+  const keys = settingKeys(def);
+  const reset = () =>
+    onClear ? onClear(keys) : onPatch(Object.fromEntries(keys.map((k) => [k, def.default])));
+  const shown = (key: string) => value?.[key] ?? inherited?.[key] ?? def.default;
   return (
     <div>
       {crumb && <div className="mb-1 pl-3.5 text-[10px] text-muted-foreground/60">{crumb}</div>}
@@ -189,8 +206,10 @@ function SettingField({
         )}
         <SettingRow
           def={def}
-          value={value?.[def.key] ?? inherited?.[def.key] ?? def.default}
+          value={shown(def.key)}
+          valueY={def.keyY ? shown(def.keyY) : undefined}
           onChange={(v) => onChange(def.key, v)}
+          onPatch={onPatch}
           onApply={(bundle) => {
             // Preset bundle: persist each value alongside.
             for (const [k, v] of Object.entries(bundle)) onChange(k, v);

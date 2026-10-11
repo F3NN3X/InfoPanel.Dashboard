@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { ChevronDown, Copy, Eye, EyeOff, Search, Trash2, X } from "lucide-react";
+import { ChevronDown, ChevronRight, Copy, Eye, EyeOff, Search, Trash2, X } from "lucide-react";
 import { BLANK_MODULE, type Placement } from "@/lib/layout";
 import { placementTitle } from "./studio-modules";
 import { KEYS } from "./use-studio-shortcuts";
@@ -24,9 +24,42 @@ function HeaderButton({
   );
 }
 
+const CRUMB = "min-w-0 truncate rounded hover:text-foreground hover:underline";
+
+/**
+ * "Zone › Widget" when a panel widget is selected: the zone crumb goes
+ * back to the panel, the widget crumb brings its editor into view.
+ */
+function Breadcrumb({
+  title,
+  widget,
+  onZone,
+  onWidget,
+}: {
+  title: string;
+  widget: string;
+  onZone: () => void;
+  onWidget: () => void;
+}) {
+  return (
+    <nav aria-label="Selection" className="flex min-w-0 items-center gap-1 text-sm font-medium">
+      <button type="button" onClick={onZone} title={`Select the panel (${KEYS.deselect})`} className={`${CRUMB} max-w-[45%] shrink-0 text-muted-foreground`}>
+        {title}
+      </button>
+      <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60" />
+      <button type="button" onClick={onWidget} title="Show the widget's settings" className={`${CRUMB} text-foreground`}>
+        {widget}
+      </button>
+    </nav>
+  );
+}
+
 /** The inspector's title row: widget name, live-sensor count, zone actions. */
 export function ZoneHeader({
   title,
+  widget,
+  onZoneCrumb,
+  onWidgetCrumb,
   sensors,
   visible,
   onToggleVisible,
@@ -35,6 +68,10 @@ export function ZoneHeader({
   onClose,
 }: {
   title: string;
+  /** The selected panel widget's name (shown as a breadcrumb after the title). */
+  widget?: string;
+  onZoneCrumb?: () => void;
+  onWidgetCrumb?: () => void;
   /** Live sensors the widget reads (undefined = not applicable). */
   sensors: number | undefined;
   visible: boolean;
@@ -43,10 +80,16 @@ export function ZoneHeader({
   onRemove: () => void;
   onClose: () => void;
 }) {
+  /** Ctrl+D / Del act on the zone only while no widget is selected. */
+  const zoneKeys = widget === undefined;
   return (
     <div className="flex items-center gap-1">
       <div className="min-w-0 flex-1">
-        <div className="truncate text-sm font-medium text-foreground">{title}</div>
+        {widget !== undefined && onZoneCrumb && onWidgetCrumb ? (
+          <Breadcrumb title={title} widget={widget} onZone={onZoneCrumb} onWidget={onWidgetCrumb} />
+        ) : (
+          <div className="truncate text-sm font-medium text-foreground">{title}</div>
+        )}
         {sensors !== undefined && (
           <div className="text-[11px] text-muted-foreground">
             {sensors} live sensor{sensors === 1 ? "" : "s"}
@@ -56,10 +99,10 @@ export function ZoneHeader({
       <HeaderButton title={`${visible ? "Hide" : "Show"} (${KEYS.hide})`} onClick={onToggleVisible}>
         {visible ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
       </HeaderButton>
-      <HeaderButton title={`Duplicate (${KEYS.duplicate})`} onClick={onDuplicate}>
+      <HeaderButton title={zoneKeys ? `Duplicate (${KEYS.duplicate})` : "Duplicate zone"} onClick={onDuplicate}>
         <Copy className="h-3.5 w-3.5" />
       </HeaderButton>
-      <HeaderButton title={`Remove (${KEYS.remove})`} onClick={onRemove}>
+      <HeaderButton title={zoneKeys ? `Remove (${KEYS.remove})` : "Remove zone"} onClick={onRemove}>
         <Trash2 className="h-3.5 w-3.5" />
       </HeaderButton>
       <HeaderButton title={`Deselect (${KEYS.deselect})`} onClick={onClose}>
