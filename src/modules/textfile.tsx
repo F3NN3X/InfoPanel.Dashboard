@@ -27,7 +27,7 @@ export const textfileModule: DashboardModule = {
   title: "Text File",
   minCols: 2,
   minRows: 1,
-  matches: (key) => key.startsWith(P),
+  prefixes: [P],
   settings: [
     {
       key: "showMeta",

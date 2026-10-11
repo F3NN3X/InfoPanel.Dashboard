@@ -37,7 +37,7 @@ export interface CaptureVisualizerRowProps {
  * One pinned capture device as a labeled live visualizer row. Each row owns
  * its own Web Audio capture (`useMediaVisualSource`), so a widget can pin any
  * number of devices and render them stacked — real-time, independent of the
- * bridge's sensor refresh. The device label shows to the left of the
+ * Data API's sensor refresh. The device label shows to the left of the
  * visualizer; a device that fails to capture shows a small error note.
  */
 export function CaptureVisualizerRow({

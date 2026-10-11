@@ -1,5 +1,5 @@
 import { ModernSteam } from "@/components/ModernSteam";
-import { isImageUrl } from "@/lib/image";
+import { imageUrl } from "@/lib/image";
 import { entry, liveText, liveValue } from "@/lib/sensors";
 import { chromeOf, STANDARD_SETTINGS } from "./standard-settings";
 import {
@@ -54,7 +54,7 @@ export const steamModernModule: DashboardModule = {
   title: "Steam (modern)",
   minCols: 2,
   minRows: 1,
-  matches: (key) => key.startsWith(P),
+  prefixes: [P],
   settings: STEAM_MODERN_SETTINGS,
   render: (sensors, s) => {
     const cfg = modernProps(steamModernModule, s);
@@ -86,15 +86,13 @@ export const steamModernModule: DashboardModule = {
     if (!name && !game && totalGames === undefined) return null;
 
     const avatarUrl =
-      avatar && isImageUrl(avatar, "profile_image_url") ? avatar : undefined;
+      imageUrl(avatar, "profile_image_url");
     const bannerUrl =
-      banner && isImageUrl(banner, "current_game_banner_url") ? banner : undefined;
-    const logoUrl = logo && isImageUrl(logo, "game_logo_url") ? logo : undefined;
-    const iconUrl = icon && isImageUrl(icon, "game_icon_url") ? icon : undefined;
+      imageUrl(banner, "current_game_banner_url");
+    const logoUrl = imageUrl(logo, "game_logo_url");
+    const iconUrl = imageUrl(icon, "game_icon_url");
     const achIconUrl =
-      achIcon && isImageUrl(achIcon, "latest-achievement-icon")
-        ? achIcon
-        : undefined;
+      imageUrl(achIcon, "latest-achievement-icon");
 
     return (
       <ModernSteam

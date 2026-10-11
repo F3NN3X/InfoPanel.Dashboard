@@ -3,7 +3,7 @@ import {
   type ModernStyle,
   type ModernVariant,
 } from "@/components/ModernNowPlaying";
-import { isImageUrl } from "@/lib/image";
+import { imageUrl } from "@/lib/image";
 import {
   bySuffixOrName,
   entry,
@@ -21,6 +21,9 @@ import {
   type ModuleSettings,
   type SensorMap,
 } from "./types";
+
+/** The audio-level-meter plugin, which drives the visualizers' live level. */
+const AUDIO_LEVEL = "plugins.audio-level-meter.";
 
 /**
  * Modern now-playing widgets — the adaptive redesign of Now Playing / Media.
@@ -62,7 +65,7 @@ const MODERN_SETTINGS: ModuleSetting[] = [
     type: "select",
     default: "",
     optionsFrom: "sources",
-    sourcePlugin: "plugins.audio-level-meter.",
+    sourcePlugin: AUDIO_LEVEL,
   },
   {
     key: "liveCapture",
@@ -303,7 +306,7 @@ function liveLevelOf(
   sensors: SensorMap,
   cfg: ModuleSettings
 ): number | undefined {
-  const groups = groupByContainer(sensors, "plugins.audio-level-meter.");
+  const groups = groupByContainer(sensors, AUDIO_LEVEL);
   if (groups.size === 0) return undefined;
 
   const levelOf = (items: KeyedSensor[]): number | undefined =>
@@ -337,8 +340,8 @@ export const spotifyModernModule: DashboardModule = {
   title: "Spotify (modern)",
   minCols: 2,
   minRows: 1,
-  matches: (key) =>
-    key.startsWith("spotify.") || key.startsWith("plugins.spotify-plugin."),
+  prefixes: ["spotify.", "plugins.spotify-plugin."],
+  reads: [AUDIO_LEVEL],
   settings: MODERN_SETTINGS,
   render: (sensors, s) => {
     const cfg = modernProps(spotifyModernModule, s);
@@ -374,7 +377,7 @@ export const spotifyModernModule: DashboardModule = {
       <ModernNowPlaying
         track={track}
         artist={artist}
-        artUrl={art && isImageUrl(art, "art") ? art : undefined}
+        artUrl={imageUrl(art, "art")}
         progress={progress}
         isPlaying={playback === 2}
         liveLevel={liveLevelOf(sensors, effectiveSettings(spotifyModernModule, s))}
@@ -392,7 +395,8 @@ export const mediaModernModule: DashboardModule = {
   title: "Media (modern)",
   minCols: 2,
   minRows: 1,
-  matches: (key) => key.startsWith(P),
+  prefixes: [P],
+  reads: [AUDIO_LEVEL],
   settings: MODERN_SETTINGS,
   render: (sensors, s) => {
     const cfg = modernProps(mediaModernModule, s);
@@ -408,7 +412,7 @@ export const mediaModernModule: DashboardModule = {
       <ModernNowPlaying
         track={track}
         artist={artist}
-        artUrl={cover && isImageUrl(cover, "cover-art") ? cover : undefined}
+        artUrl={imageUrl(cover, "cover-art")}
         progress={progress}
         elapsed={elapsed}
         remaining={remaining}

@@ -1,5 +1,5 @@
 import { ModernSystem } from "@/components/ModernSystem";
-import { liveText, liveValue } from "@/lib/sensors";
+import { liveValue } from "@/lib/sensors";
 import { chromeOf, STANDARD_SETTINGS } from "./standard-settings";
 import {
   effectiveSettings,
@@ -9,13 +9,12 @@ import {
 
 /**
  * Modern system widget — ring-gauge redesign of the classic system module
- * (CPU / RAM rings + bridge status). One component (`ModernSystem`) picks
+ * (CPU / RAM rings). One component (`ModernSystem`) picks
  * card / standard / compact / simple from the measured zone size.
  */
 
 const SYSTEM_MODERN_SETTINGS: ModuleSetting[] = [
   ...STANDARD_SETTINGS,
-  { key: "showStatus", label: "Bridge status", type: "boolean", default: true },
   { key: "sparkline", label: "Trend sparkline", type: "boolean", default: false },
   {
     key: "view",
@@ -34,21 +33,19 @@ export const systemModernModule: DashboardModule = {
   title: "System (modern)",
   minCols: 2,
   minRows: 1,
-  matches: (key) => key.startsWith("system."),
+  prefixes: ["system.cpu.", "system.ram."],
   settings: SYSTEM_MODERN_SETTINGS,
   render: (sensors, s) => {
     const cfg = effectiveSettings(systemModernModule, s);
     const cpu = liveValue(sensors["system.cpu.load"]);
     const ram = liveValue(sensors["system.ram.load"]);
-    const status = liveText(sensors["system.bridge.status"]);
 
-    if (cpu === undefined && ram === undefined && !status) return null;
+    if (cpu === undefined && ram === undefined) return null;
 
     return (
       <ModernSystem
         cpu={cpu}
         ram={ram}
-        status={Boolean(cfg.showStatus) ? status : undefined}
         sparkline={Boolean(cfg.sparkline)}
         layout={String(cfg.layout) as
           | "auto"

@@ -10,14 +10,12 @@ import {
 /**
  * Modern system widget.
  *
- * Ring gauges for CPU / RAM load plus the bridge status, in the "dashboard
- * card" look: colored rings, value inside, soft glow behind. One component,
+ * Ring gauges for CPU / RAM load, in the "dashboard card" look: colored rings, value inside, soft glow behind. One component,
  * four layouts picked from the zone's measured size:
  *
- * - `card`     — tall/portrait zones: two rings side by side, status line
- *                below
- * - `standard` — wide zones: rings + labels left, status chip on the right
- * - `compact`  — very short zones: one pill (ring · % · ring · % · status)
+ * - `card`     — tall/portrait zones: two rings side by side
+ * - `standard` — wide zones: rings + labels
+ * - `compact`  — very short zones: one pill (ring · % · ring · %)
  * - `simple`   — small zones: two mini rings with values only
  */
 
@@ -28,8 +26,6 @@ export interface ModernSystemProps {
   cpu?: number;
   /** RAM usage, percent. */
   ram?: number;
-  /** Bridge status text ("running"). */
-  status?: string;
   /** Show a rolling trend sparkline under each ring. */
   sparkline?: boolean;
   layout?: SystemVariant | "auto";
@@ -104,37 +100,9 @@ function Ring({
   );
 }
 
-function StatusChip({
-  status,
-  size = "md",
-}: {
-  status?: string;
-  size?: "sm" | "md";
-}) {
-  const running = status !== undefined && status.toLowerCase() !== "stopped";
-  return (
-    <div
-      className={cn(
-        "flex items-center gap-2 rounded-full",
-        size === "sm" ? "px-2.5 py-1" : "px-3.5 py-1.5"
-      )}
-      style={{ background: "rgba(128,128,140,0.14)" }}
-    >
-      <span
-        className="inline-block h-2 w-2 rounded-full"
-        style={{ background: running ? "var(--wp-accent, #fb923c)" : "#71717a" }}
-      />
-      <span className="text-sm font-semibold">
-        {status ?? "—"}
-      </span>
-    </div>
-  );
-}
-
 export function ModernSystem({
   cpu,
   ram,
-  status,
   sparkline = false,
   layout = "auto",
   surfaceStyle = "glass",
@@ -183,12 +151,6 @@ export function ModernSystem({
             )}
           </div>
         </div>
-        {status !== undefined && (
-          <div className="flex items-center gap-2 text-sm" style={{ color: sv.muted }}>
-            <span className="inline-block h-2 w-2 rounded-full" style={{ background: "var(--wp-accent, #fb923c)" }} />
-            Bridge {status}
-          </div>
-        )}
       </div>
     );
   } else if (v === "compact") {
@@ -209,14 +171,6 @@ export function ModernSystem({
             ram
           </span>
         </div>
-        {status !== undefined && (
-          <div className="ml-auto flex items-center gap-1.5">
-            <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ background: "var(--wp-accent, #fb923c)" }} />
-            <span className="text-xs" style={{ color: sv.muted }}>
-              {status}
-            </span>
-          </div>
-        )}
       </div>
     );
   } else if (v === "simple") {
@@ -267,7 +221,6 @@ export function ModernSystem({
             </div>
           </div>
         </div>
-        {status !== undefined && <StatusChip status={status} />}
       </div>
     );
   }

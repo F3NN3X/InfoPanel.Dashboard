@@ -23,8 +23,6 @@ const DIST = path.join(path.dirname(fileURLToPath(import.meta.url)), "dist");
 const LOCAL = process.env.LOCALAPPDATA || path.join(process.env.HOME || ".", ".local", "share");
 const DATA_DIR = path.join(LOCAL, "InfoPanel", "Dashboard");
 const CONFIG_FILE = path.join(DATA_DIR, "config.json");
-// Where the DataBridge plugin kept the config before the dashboard moved out.
-const LEGACY_CONFIG_FILE = path.join(LOCAL, "InfoPanel", "DataBridge", "dashboard-config.json");
 
 const MAX_CONFIG_BYTES = 5 * 1024 * 1024;
 const MAX_PROXY_BYTES = 25 * 1024 * 1024;
@@ -51,10 +49,6 @@ const TYPES = {
 /* ---------------- config store ---------------- */
 
 fs.mkdirSync(DATA_DIR, { recursive: true });
-if (!fs.existsSync(CONFIG_FILE) && fs.existsSync(LEGACY_CONFIG_FILE)) {
-  fs.copyFileSync(LEGACY_CONFIG_FILE, CONFIG_FILE);
-  console.log(`imported config from ${LEGACY_CONFIG_FILE}`);
-}
 
 // Bumped on every save; open pages compare it to decide when to reload.
 let configVersion = fs.existsSync(CONFIG_FILE) ? Math.floor(fs.statSync(CONFIG_FILE).mtimeMs) : 0;

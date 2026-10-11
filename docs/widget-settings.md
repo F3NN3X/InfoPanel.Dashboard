@@ -221,7 +221,7 @@ no signal the `visualizerIdle` animation runs.
 
 ### Live capture (Web Audio) — `liveCapture: true`, `liveSources`
 
-The default live level comes from the bridge's sensor stream (the
+The default live level comes from the Data API's sensor stream (the
 AudioLevelMeter plugin), which the dashboard receives at ~1 Hz — plenty for a
 calm meter, but the waveform / bars trail the music. **Live capture** bypasses
 that ceiling: the widget reads the chosen audio *capture* device directly
@@ -239,7 +239,7 @@ source with its own spectrum, so several can be shown at once.
 The device list comes from `enumerateDevices()` (the studio's
 `MediaDevicePicker`), so it reflects the capture devices present on the
 machine (e.g. the Elgato Virtual Audio / Wave Mic capture side that music is
-routed to) — no bridge involved. Labels resolve once the microphone permission
+routed to) — no Data API involved. Labels resolve once the microphone permission
 is granted: the studio offers an "Enable microphone access" button, and the
 kiosk's WebView2 auto-grants it via a `PermissionRequested` handler
 (`KioskWindow.cs`).
@@ -297,7 +297,6 @@ Where the accent lands per widget:
 | `ModernNowPlaying` (media/spotify) | progress fill (overrides the surface fill) |
 | `ModernWeather` | the big temperature |
 | `ModernSteam` | the big total-playtime |
-| `ModernSystem` | the bridge-status dots |
 | `ModernFps` | the ring track (value arc keeps its semantic color) |
 | `ModernAudio` | level bar fill (red > 85% stays semantic) |
 | `ModernBluetooth` | battery bar fill (green tier; amber/red stay) |
@@ -365,9 +364,8 @@ InfoPanel's own Sources tab:
   compatible `source` setting (same plugin scope) and point it at this
   source.
 
-All state is dashboard-side. The bridge only *receives* pushes from the host
-(`POST /api/push`) and has no control channel back, so this view configures
-what the dashboard *shows* — it never reconfigures InfoPanel plugins; their
+All state is dashboard-side. The Data API is read-only towards InfoPanel's
+plugins, so this view configures what the dashboard *shows* — it never reconfigures InfoPanel plugins; their
 own settings stay in InfoPanel's Sources tab.
 
 - **Source preferences** — `config.sourcePrefs` on `DashboardConfig`

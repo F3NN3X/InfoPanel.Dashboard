@@ -93,7 +93,7 @@ export const hardwareModernModule: DashboardModule = {
   title: "Hardware (modern)",
   minCols: 2,
   minRows: 1,
-  matches: (key) => key.startsWith("libre.") || key.startsWith("hwinfo."),
+  prefixes: ["libre.", "hwinfo."],
   settings: HARDWARE_MODERN_SETTINGS,
   render: (sensors, s) => {
     const cfg = effectiveSettings(hardwareModernModule, s);

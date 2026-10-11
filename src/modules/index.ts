@@ -16,7 +16,7 @@ import { notificationsModule } from "./notifications";
 import { textfileModule } from "./textfile";
 import { streamdeckModule } from "./streamdeck";
 import { webpageModule } from "./webpage";
-import type { DashboardModule, SensorMap } from "./types";
+import type { DashboardModule } from "./types";
 
 /**
  * Dashboard module registry. Each InfoPanel plugin (or value source) is a
@@ -43,13 +43,16 @@ export const modules: DashboardModule[] = [
   webpageModule,
 ];
 
-/** Keys claimed by at least one registered module. */
-export function claimedKeys(sensors: SensorMap): Set<string> {
-  const claimed = new Set<string>();
-  for (const key of Object.keys(sensors)) {
-    if (modules.some((m) => m.matches(key))) claimed.add(key);
-  }
-  return claimed;
+const claimedPrefixes = modules.flatMap((m) => m.prefixes);
+
+/** True when a registered module owns the key. */
+export function isClaimed(key: string): boolean {
+  return claimedPrefixes.some((p) => key.startsWith(p));
+}
+
+/** Every prefix a module renders from (owned and read). */
+export function moduleReads(mod: DashboardModule): string[] {
+  return [...mod.prefixes, ...(mod.reads ?? [])];
 }
 
 export type { DashboardModule, SensorMap } from "./types";

@@ -21,6 +21,8 @@ const WL_PREFIX = "plugins.wavelink-plugin.wavelink.";
 const WL_STATUS = `${WL_PREFIX}status`;
 const WL_STATE = `${WL_PREFIX}state`;
 const WL_METERS = `${WL_PREFIX}meters`;
+/** Retry delay after the server refused the stream. */
+const RETRY_MS = 5000;
 
 /** One event of the filtered stream: the first is the full set, later ones deltas. */
 interface WlStreamEvent {
@@ -29,7 +31,7 @@ interface WlStreamEvent {
   removed?: string[];
 }
 
-/* ---------------- wire types (mirror the bridge's camelCase JSON) ---------------- */
+/* ---------------- wire types (mirror the plugin's camelCase JSON) ---------------- */
 
 export interface WlGain {
   value: number | null;
@@ -202,6 +204,14 @@ class WavelinkClient {
 
     // EventSource reconnects on its own and the first event after a
     // reconnect is the full set, so every event merges into `values`.
+    // A refused response closes it for good: retry while still current.
+    es.onerror = () => {
+      if (es.readyState !== EventSource.CLOSED) return;
+      this.setAbsent();
+      setTimeout(() => {
+        if (this.source === es) this.connect(base);
+      }, RETRY_MS);
+    };
   }
 
   private handle(event: WlStreamEvent): void {

@@ -14,7 +14,7 @@ export const notificationsModule: DashboardModule = {
   title: "Notifications",
   minCols: 2,
   minRows: 1,
-  matches: (key) => key.startsWith(P),
+  prefixes: [P],
   settings: [
     { key: "showHistory", label: "History list", type: "boolean", default: true },
     {

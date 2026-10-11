@@ -3,26 +3,28 @@ import {
   ChevronDown,
   ChevronRight,
   Database,
+  ExternalLink,
   Eye,
   EyeOff,
   Link2,
+  RefreshCw,
   Search,
 } from "lucide-react";
 import {
   groupSources,
   type SourceInfo,
 } from "@/lib/sources";
+import { refreshCatalog, useSensorCatalog } from "@/lib/catalog";
+import { getApiBase } from "@/lib/data-api";
 import {
   sourcePrefKey,
   type SourcePref,
 } from "@/lib/layout";
 import { modules } from "@/modules";
 import type { Placement } from "@/lib/layout";
-import type { SensorMap } from "@/modules/types";
 import { cn } from "@/lib/utils";
 
 interface SourcesPanelProps {
-  sensors: SensorMap;
   sourcePrefs: Record<string, SourcePref> | undefined;
   onPrefsChange: (key: string, pref: Partial<SourcePref>) => void;
   /** Placements in the active profile (for the "bind to widget" action). */
@@ -36,23 +38,26 @@ interface SourcesPanelProps {
 /**
  * The studio's Sources manager — an InfoPanel-style two-pane view.
  *
- * Left: every plugin the host is currently exposing, with the sources
- * (containers) each pushes, derived live from the sensor stream. Search,
- * expand, and enable/disable + rename a source.
+ * Left: every plugin the Data API exposes, with the sources (containers)
+ * each pushes, as `/api/sources` names them. Search, expand, and
+ * enable/disable + rename a source.
  *
- * Right: the selected source's details — live entries, a display-name
+ * Right: the selected source's details — its entries, a display-name
  * override, and a "bind to widget" action that points a widget at this
  * source. All dashboard-side; the host's own plugin config is untouched.
  */
 export function SourcesPanel({
-  sensors,
   sourcePrefs,
   onPrefsChange,
   placements,
   onBind,
   onUnbind,
 }: SourcesPanelProps) {
-  const groups = useMemo(() => groupSources(sensors), [sensors]);
+  const catalog = useSensorCatalog();
+  const groups = useMemo(
+    () => groupSources(catalog.sources, catalog.sensors),
+    [catalog.sources, catalog.sensors]
+  );
   const [search, setSearch] = useState("");
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
@@ -81,7 +86,25 @@ export function SourcesPanel({
         <div className="border-b border-border p-3">
           <div className="mb-2 flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
             <Database className="h-3.5 w-3.5" />
-            Sources
+            <span className="flex-1">Sources</span>
+            <button
+              onClick={() => void refreshCatalog()}
+              title="Reload from the Data API"
+              className="rounded p-0.5 hover:text-foreground"
+            >
+              <RefreshCw
+                className={cn("h-3.5 w-3.5", catalog.status === "loading" && "animate-spin")}
+              />
+            </button>
+            <a
+              href={`${getApiBase()}/`}
+              target="_blank"
+              rel="noreferrer"
+              title="Open the Data API index (every key, grouped by source)"
+              className="rounded p-0.5 hover:text-foreground"
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+            </a>
           </div>
           <div className="relative">
             <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
@@ -97,7 +120,11 @@ export function SourcesPanel({
         <div className="min-h-0 flex-1 overflow-y-auto">
           {shownGroups.length === 0 && (
             <div className="p-4 text-xs text-muted-foreground">
-              {q ? "No sources match your filter." : "No live sources yet."}
+              {q
+                ? "No sources match your filter."
+                : catalog.status === "error"
+                  ? "The Data API is not reachable."
+                  : "No live sources yet."}
             </div>
           )}
           {shownGroups.map((g) => {
@@ -295,7 +322,7 @@ function SourceDetail({
 
       <div>
         <div className="mb-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Live entries ({source.entries.length})
+          Entries ({source.entries.length})
         </div>
         <div className="overflow-hidden rounded-md border border-border">
           {source.entries.map((e) => (
@@ -303,14 +330,21 @@ function SourceDetail({
               key={e.key}
               className="flex items-center justify-between gap-3 border-b border-border/60 bg-background px-2.5 py-1.5 text-xs last:border-b-0"
             >
-              <span className="min-w-0 truncate text-muted-foreground" title={e.key}>
-                {e.id}
+              <span className="flex min-w-0 items-center gap-1.5" title={e.key}>
+                <span className="truncate text-muted-foreground">{e.label}</span>
+                {e.type && e.type !== "sensor" && e.type !== "text" && (
+                  <span className="shrink-0 rounded bg-accent/60 px-1 text-[10px] text-muted-foreground">
+                    {e.type}
+                  </span>
+                )}
               </span>
-              <span className="shrink-0 tabular-nums text-foreground">
-                {e.text ??
-                  (e.value !== undefined
-                    ? `${e.value}${e.unit ? ` ${e.unit}` : ""}`
-                    : "—")}
+              <span className="max-w-[55%] shrink-0 truncate tabular-nums text-foreground">
+                {e.type === "table"
+                  ? `${e.text?.split("\n").filter(Boolean).length ?? 0} rows`
+                  : e.text ??
+                    (e.value !== undefined
+                      ? `${e.value}${e.unit ? ` ${e.unit}` : ""}`
+                      : "—")}
               </span>
             </div>
           ))}

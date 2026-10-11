@@ -38,7 +38,7 @@ export const fpsModernModule: DashboardModule = {
   title: "FPS (modern)",
   minCols: 2,
   minRows: 1,
-  matches: (key) => key.startsWith(RTSS) || key.startsWith(FPS),
+  prefixes: [RTSS, FPS],
   settings: FPS_MODERN_SETTINGS,
   render: (sensors, s) => {
     const cfg = effectiveSettings(fpsModernModule, s);

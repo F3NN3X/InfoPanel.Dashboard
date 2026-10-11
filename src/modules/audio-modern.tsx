@@ -106,7 +106,7 @@ export const audioModernModule: DashboardModule = {
   title: "Audio (modern)",
   minCols: 2,
   minRows: 1,
-  matches: (key) => key.startsWith(P),
+  prefixes: [P],
   settings: AUDIO_MODERN_SETTINGS,
   render: (sensors, s) => {
     const cfg = effectiveSettings(audioModernModule, s);

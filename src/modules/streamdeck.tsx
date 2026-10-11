@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LayoutGrid } from "lucide-react";
-import { isImageUrl } from "@/lib/image";
+import { imageUrl } from "@/lib/image";
 import { byName, groupByContainer, liveText } from "@/lib/sensors";
 import { effectiveSettings, type DashboardModule } from "./types";
 
@@ -34,7 +34,7 @@ export const streamdeckModule: DashboardModule = {
   title: "Stream Deck",
   minCols: 3,
   minRows: 2,
-  matches: (key) => key.startsWith(P),
+  prefixes: [P],
   settings: [
     { key: "showProfile", label: "Active profile", type: "boolean", default: true },
     { key: "showLabels", label: "Button labels", type: "boolean", default: true },
@@ -63,7 +63,7 @@ export const streamdeckModule: DashboardModule = {
               row,
               key: icon.key,
               label: liveText(label),
-              icon: iconUrl && isImageUrl(iconUrl, icon.key) ? iconUrl : undefined,
+              icon: imageUrl(iconUrl, icon.key),
             };
           });
           buttons.sort((a, b) => a.row - b.row || a.col - b.col);

@@ -62,6 +62,17 @@ export function DataApiPanel({ value, onChange }: DataApiPanelProps) {
         {probe === "testing" && <span>testing...</span>}
         {probe === "ok" && <span className="text-emerald-400">connected</span>}
         {probe === "fail" && <span className="text-destructive">not reachable</span>}
+        {valid && (
+          <a
+            href={`${normalizeApiBase(draft)}/`}
+            target="_blank"
+            rel="noreferrer"
+            title="Every data point the Data API serves, grouped by source"
+            className="ml-auto hover:text-foreground hover:underline"
+          >
+            Open API index
+          </a>
+        )}
       </div>
     </div>
   );

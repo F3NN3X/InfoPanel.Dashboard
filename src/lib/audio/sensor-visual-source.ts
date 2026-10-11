@@ -42,7 +42,7 @@ const defaultShape = (bandCount: number): Float32Array => {
 
 /**
  * A `FrameSource<VisualFrame>` for the live audiocn visualizers, fed from a
- * polled level (the bridge's audio-level sensors push ~1 Hz, far too slow to
+ * polled level (the audio-level sensors push ~1 Hz, far too slow to
  * animate). A 20 fps timer smooths the level with VU-style ballistics (fast
  * attack, slow release) and pushes a frame per tick:
  *

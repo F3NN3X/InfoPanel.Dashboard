@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "typecheck": "tsc -b",
+    "test": "vitest run",
     "start": "node server.mjs",
     "serve": "npm run build && node server.mjs"
   },
@@ -25,6 +27,7 @@
     "@vitejs/plugin-react": "^4.3.4",
     "tailwindcss": "^4.3.3",
     "typescript": "~5.6.2",
-    "vite": "^6.0.1"
+    "vite": "^6.0.1",
+    "vitest": "^3.2.7"
   }
 }

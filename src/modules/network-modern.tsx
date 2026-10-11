@@ -42,7 +42,7 @@ export const networkModernModule: DashboardModule = {
   title: "Network (modern)",
   minCols: 2,
   minRows: 1,
-  matches: (key) => key.startsWith(NET),
+  prefixes: [NET],
   settings: NETWORK_MODERN_SETTINGS,
   render: (sensors, s) => {
     const cfg = effectiveSettings(networkModernModule, s);

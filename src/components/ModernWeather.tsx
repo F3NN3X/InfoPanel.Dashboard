@@ -1,5 +1,6 @@
 import { Droplets, Gauge, Wind as WindIcon, CloudRain } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { WeatherForecastDay } from "@/lib/forecast";
 import { ModernChrome, type ModernChrome as ModernChromeSpec } from "./modern-chrome";
 import {
   makeSurface,
@@ -29,15 +30,7 @@ import {
 
 export type WeatherVariant = "card" | "standard" | "compact" | "simple";
 
-export interface WeatherForecastDay {
-  date: string;
-  desc?: string;
-  high?: number;
-  low?: number;
-  /** mm */
-  precip?: number;
-  wind?: string;
-}
+export type { WeatherForecastDay };
 
 export interface ModernWeatherProps {
   location?: string;

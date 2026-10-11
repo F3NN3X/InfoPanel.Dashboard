@@ -31,10 +31,10 @@ export interface ModuleSetting {
    * - `"sources"` — the containers `sourcePlugin` currently exposes (live
    *   sensor data, no hardcoded device lists).
    * - `"media"` — the browser's audio *capture* devices (live
-   *   `enumerateDevices()`, no bridge involved). Used for the Web-Audio
+   *   `enumerateDevices()`, no Data API involved). Used for the Web-Audio
    *   live-capture source binding.
    * - `"wavelink"` — the Wave Link app's meter inventory (channels + output
-   *   devices) as streamed by the bridge; options are the meter keys the
+   *   devices) from the wavelink-plugin; options are the meter keys the
    *   widget filters on, "" = all meters.
    */
   optionsFrom?: "sources" | "media" | "wavelink";
@@ -65,8 +65,13 @@ export interface DashboardModule {
   /** Minimum zone footprint this widget renders well in (grid cells). */
   minCols?: number;
   minRows?: number;
-  /** Sensor keys this module consumes — the generic fallback skips these. */
-  matches: (key: string) => boolean;
+  /**
+   * Key prefixes this module owns: the generic fallback skips these keys,
+   * and the placement re-renders when one of them changes.
+   */
+  prefixes: string[];
+  /** Further prefixes the module reads without owning them. */
+  reads?: string[];
   /** Render the module's cards. Return null to hide the section. */
   render: (sensors: SensorMap, settings?: ModuleSettings) => ReactNode;
   /** Inspector-editable options; omit for modules with no settings. */

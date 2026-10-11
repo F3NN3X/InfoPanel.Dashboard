@@ -21,7 +21,7 @@ picker shows and what the kiosk can render. The design decisions live in
 
 | id | Picker name | Min | Data source (sensor key prefix) | Options |
 |---|---|---|---|---|
-| `systemmodern` | System (modern) | 2×1 | `system.*` | modern set + Bridge status · Trend sparkline · View (rings/trends) |
+| `systemmodern` | System (modern) | 2×1 | `system.cpu.*`, `system.ram.*` | modern set + Trend sparkline · View (rings/trends) |
 | `spotifymodern` | Spotify (modern) | 2×1 | `spotify.*`, `plugins.spotify-plugin.*` | modern set + Tint · Times · Progress |
 | `mediamodern` | Media (modern) | 2×1 | `plugins.media-plugin.*` | modern set + Tint · Times · Progress |
 | `steammodern` | Steam (modern) | 2×1 | `plugins.InfoPanel.SteamAPI.*` | modern set + Dim banner · Stats · News line |
@@ -83,7 +83,7 @@ Shared design system (helpers exported from
 ### Data keys read by each modern widget
 
 - **systemmodern** (`ModernSystem`) — `system.cpu.load`,
-  `system.ram.load` (ring gauges), `system.bridge.status` (status chip).
+  `system.ram.load` (ring gauges).
 - **fpsmodern** (`ModernFps`) — RTSS: `fps`, `1% low fps`, `current frame
   time`, `gpu-name`, `resolution`, `refreshrate`, `windowtitle`,
   `graphics-api`, `display-mode`, `benchmark-mode`; fps-plugin: `fps`,

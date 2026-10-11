@@ -1,4 +1,4 @@
-import { isImageUrl } from "@/lib/image";
+import { isImageUrl, resolveImageUrl } from "@/lib/image";
 import { cn } from "@/lib/utils";
 
 interface SmartValueProps {
@@ -27,7 +27,7 @@ export function SmartValue({
   if (isImageUrl(text, keyHint)) {
     return (
       <img
-        src={text}
+        src={resolveImageUrl(text)}
         alt=""
         loading="lazy"
         className={cn("h-16 w-16 rounded-md object-cover", imgClassName)}

@@ -34,14 +34,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { PlacementFrame } from "./placement-frame";
-import { placementContent } from "./placement-content";
+import { LivePlacement } from "./placement-content";
+import { useSensorCatalog } from "@/lib/catalog";
 import { RulerH, RulerV } from "./rulers";
 import { SettingsPanel } from "./settings-panel";
 import { ThemePanel } from "./theme-panel";
 import { DataApiPanel } from "./data-api-panel";
 import { PanelInspector } from "./panel-inspector";
 import { SourcesPanel } from "./sources-panel";
-import { modules, claimedKeys, type SensorMap } from "@/modules";
+import { modules } from "@/modules";
 import {
   BLANK_MODULE,
   CARDS_ID,
@@ -172,7 +173,6 @@ function firstFreeRect(
 }
 
 interface StudioViewProps {
-  sensors: SensorMap;
   config: DashboardConfig;
   /** The resolved (active) grid profile being edited. */
   profile: MonitorProfile;
@@ -180,7 +180,7 @@ interface StudioViewProps {
   windowWidth: number;
   windowHeight: number;
   onExitStudio: () => void;
-  /** Flush the config to the bridge and force the kiosk view to refresh. */
+  /** Flush the config to the server and force the kiosk view to refresh. */
   onSave: (config: DashboardConfig) => void;
 }
 
@@ -191,7 +191,6 @@ interface StudioViewProps {
  * theme presets and config export/import.
  */
 export function StudioView({
-  sensors,
   config,
   profile,
   setConfig,
@@ -301,10 +300,7 @@ export function StudioView({
       .catch(() => {});
   };
 
-  const unclaimed = (() => {
-    const claimed = claimedKeys(sensors);
-    return Object.entries(sensors).filter(([key]) => !claimed.has(key));
-  })();
+  const catalog = useSensorCatalog();
 
   const selected = profile.placements.find((p) => p.id === selectedId) ?? null;
 
@@ -765,7 +761,9 @@ export function StudioView({
     ? modules.find((m) => m.id === selected.module)
     : undefined;
   const selectedSensors = selectedMod
-    ? Object.keys(sensors).filter((k) => selectedMod.matches(k)).length
+    ? Object.keys(catalog.sensors).filter((k) =>
+        selectedMod.prefixes.some((p) => k.startsWith(p))
+      ).length
     : 0;
 
   return (
@@ -1034,7 +1032,7 @@ export function StudioView({
                 size="sm"
                 className="h-8 gap-1.5 text-xs"
                 onClick={handleSave}
-                title="Save to the bridge and refresh the kiosk view"
+                title="Save to the dashboard server and refresh the kiosk view"
               >
                 {saved ? (
                   <Check className="h-3.5 w-3.5" />
@@ -1052,7 +1050,6 @@ export function StudioView({
           {showSources ? (
             <div className="min-h-0 flex-1 overflow-hidden bg-background/40">
               <SourcesPanel
-                sensors={sensors}
                 sourcePrefs={config.sourcePrefs}
                 onPrefsChange={(key, pref) =>
                   setConfig((c) => ({
@@ -1180,12 +1177,10 @@ export function StudioView({
                           );
                         })()}
 
-                      {profile.placements.map((p) => {
-                        const { content, hasData, title } =
-                          placementContent(p, sensors, unclaimed);
-                        return (
+                      {profile.placements.map((p) => (
+                        <LivePlacement key={p.id} placement={p}>
+                          {({ content, hasData, title }) => (
                           <PlacementFrame
-                            key={p.id}
                             placement={p}
                             profile={profile}
                             studio
@@ -1206,8 +1201,9 @@ export function StudioView({
                           >
                             {content}
                           </PlacementFrame>
-                        );
-                      })}
+                          )}
+                        </LivePlacement>
+                      ))}
 
                       {profile.placements.length === 0 && (
                         <div className="col-span-full flex h-32 items-center justify-center rounded-lg border border-dashed border-border text-sm text-muted-foreground/60">
@@ -1393,7 +1389,6 @@ export function StudioView({
                 (selected.panel ? (
                   <PanelInspector
                     placement={selected}
-                    sensors={sensors}
                     update={(fn) => updatePlacement(selected.id, fn)}
                   />
                 ) : (
@@ -1518,7 +1513,6 @@ export function StudioView({
                       settings: undefined,
                     }))
                   }
-                  sensors={sensors}
                 />
               )}
                 </>

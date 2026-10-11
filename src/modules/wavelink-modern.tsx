@@ -13,9 +13,8 @@ import {
  * Wave Link widget — the Elgato app's mixer, live at device pace.
  *
  * Unlike every other module, this one claims no sensor keys: its data is
- * not InfoPanel sensor output but the bridge's Wave Link collector (its own
- * WebSocket to the app), surfaced as a REST inventory + a live meter SSE
- * stream. `matches` therefore returns false for everything, and the render
+ * JSON in the `wavelink-plugin` entries, read through their own 100 ms
+ * stream by the shared `wavelink` client. `prefixes` is therefore empty, and the render
  * reads only settings — the component pulls the inventory and the meters
  * from the shared `wavelink` client itself.
  */
@@ -87,8 +86,8 @@ export const wavelinkModernModule: DashboardModule = {
   title: "Wave Link (modern)",
   minCols: 2,
   minRows: 1,
-  // No sensor keys — the data comes from the bridge's Wave Link collector.
-  matches: () => false,
+  // No sensor keys — the data comes from the shared wavelink-plugin stream.
+  prefixes: [],
   settings: WAVELINK_SETTINGS,
   render: (_sensors, s) => {
     const cfg = effectiveSettings(wavelinkModernModule, s);

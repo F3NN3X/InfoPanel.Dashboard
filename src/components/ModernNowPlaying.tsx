@@ -100,7 +100,7 @@ export interface ModernNowPlayingProps {
    * Pinned Web Audio capture devices (stable `enumerateDevices()` ids). When
    * non-empty and a visualizer view is on, each device renders its own
    * labeled live row (stacked), fed by real-time Web Audio capture —
-   * independent of the bridge's ~1 Hz sensor ceiling. Empty/undefined falls
+   * independent of the Data API's ~1 Hz sensor ceiling. Empty/undefined falls
    * back to the single `liveLevel` sensor row.
    */
   captureDeviceIds?: string[];
@@ -368,7 +368,7 @@ async function loadTintableImage(url: string): Promise<HTMLImageElement | null> 
       }
     }
   } catch {
-    /* bridge offline — fall through to the direct load */
+    /* dashboard server offline — fall through to the direct load */
   }
   try {
     return await loadImageFrom(url);
@@ -379,7 +379,7 @@ async function loadTintableImage(url: string): Promise<HTMLImageElement | null> 
 
 /**
  * Vibrant-style cover-art palette (the `vibrant` accent + light/dark base
- * roles), sampled through the bridge image proxy. Art the proxy cannot
+ * roles), sampled through the dashboard server's image proxy. Art the proxy cannot
  * fetch (and that is not same-origin/CORS itself), or near-gray art with no
  * saturated accent, yields null — the surface then stays untinted.
  */

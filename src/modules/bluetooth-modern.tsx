@@ -48,7 +48,7 @@ export const bluetoothModernModule: DashboardModule = {
   title: "Bluetooth (modern)",
   minCols: 2,
   minRows: 1,
-  matches: (key) => key.startsWith(P),
+  prefixes: [P],
   settings: BLUETOOTH_MODERN_SETTINGS,
   render: (sensors, s) => {
     const cfg = effectiveSettings(bluetoothModernModule, s);

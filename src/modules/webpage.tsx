@@ -45,7 +45,7 @@ export const webpageModule: DashboardModule = {
   title: "Web Page",
   minCols: 4,
   minRows: 2,
-  matches: () => false,
+  prefixes: [],
   settings: [
     {
       key: "url",

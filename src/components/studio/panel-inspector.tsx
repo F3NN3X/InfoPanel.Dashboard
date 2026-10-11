@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ChevronDown,
   ChevronUp,
@@ -17,7 +17,9 @@ import {
   type Widget,
   type WidgetKind,
 } from "@/lib/layout";
-import type { SensorMap } from "@/modules/types";
+import { refreshCatalog, useSensorCatalog } from "@/lib/catalog";
+import { pickerOptions } from "@/lib/sources";
+import { sensorAt } from "@/lib/sensors";
 import { cn } from "@/lib/utils";
 
 /** Fallback for color inputs when no override is set (indigo-ish). */
@@ -39,24 +41,29 @@ const KIND_LABELS: Record<WidgetKind, string> = {
 const ALL_KINDS = Object.keys(KIND_LABELS) as WidgetKind[];
 
 /* ------------------------------------------------------------------ *
- * Sensor picker — searchable dropdown over the live sensor map.
+ * Sensor picker — searchable dropdown over the Data API's catalog
+ * (`/api/sources` names and types, values from a `/api/sensors` snapshot).
  * ------------------------------------------------------------------ */
 
 export function SensorPicker({
-  sensors,
   value,
   onChange,
 }: {
-  sensors: SensorMap;
   value?: string;
   onChange: (key: string | undefined) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const ref = useRef<HTMLDivElement>(null);
+  const catalog = useSensorCatalog();
+  const options = useMemo(
+    () => pickerOptions(catalog.sources, catalog.sensors),
+    [catalog.sources, catalog.sensors]
+  );
 
   useEffect(() => {
     if (!open) return;
+    void refreshCatalog(); // current names and values each time it opens
     const onDoc = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node))
         setOpen(false);
@@ -65,16 +72,9 @@ export function SensorPicker({
     return () => document.removeEventListener("mousedown", onDoc);
   }, [open]);
 
-  const current = value ? sensors[value] : undefined;
+  const current = value ? options.find((o) => o.key === value) : undefined;
   const q = query.trim().toLowerCase();
-  const matches = Object.entries(sensors)
-    .filter(
-      ([key, s]) =>
-        q === "" ||
-        s.name?.toLowerCase().includes(q) === true ||
-        key.toLowerCase().includes(q)
-    )
-    .slice(0, 30);
+  const matches = options.filter((o) => q === "" || o.search.includes(q)).slice(0, 50);
 
   return (
     <div ref={ref} className="relative">
@@ -94,7 +94,7 @@ export function SensorPicker({
             current ? "text-foreground" : "text-muted-foreground"
           )}
         >
-          {current?.name ?? value ?? "No sensor bound…"}
+          {current?.label ?? value ?? "No sensor bound…"}
         </span>
         <Search className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
       </button>
@@ -124,26 +124,36 @@ export function SensorPicker({
           <div className="max-h-56 overflow-y-auto">
             {matches.length === 0 ? (
               <div className="p-2 text-xs text-muted-foreground">
-                no sensors match
+                {catalog.status === "error"
+                  ? "the Data API is not reachable"
+                  : catalog.status === "loading" && options.length === 0
+                    ? "loading…"
+                    : "no sensors match"}
               </div>
             ) : (
-              matches.map(([key, s]) => (
+              matches.map((o) => (
                 <button
-                  key={key}
+                  key={o.key}
                   onClick={() => {
-                    onChange(key);
+                    onChange(o.key);
                     setOpen(false);
                   }}
+                  title={o.key}
                   className={cn(
                     "block w-full px-2 py-1.5 text-left text-xs hover:bg-accent",
-                    key === value && "bg-accent/60"
+                    o.key === value && "bg-accent/60"
                   )}
                 >
-                  <div className="truncate text-foreground">
-                    {s.name ?? key}
+                  <div className="flex items-center gap-1.5">
+                    <span className="truncate text-foreground">{o.label}</span>
+                    {o.type && o.type !== "sensor" && o.type !== "text" && (
+                      <span className="shrink-0 rounded bg-accent/60 px-1 text-[10px] text-muted-foreground">
+                        {o.type}
+                      </span>
+                    )}
                   </div>
                   <div className="truncate text-[10px] text-muted-foreground">
-                    {key}
+                    {o.where}
                   </div>
                 </button>
               ))
@@ -161,14 +171,12 @@ export function SensorPicker({
 
 interface PanelInspectorProps {
   placement: Placement;
-  sensors: SensorMap;
   /** Mutate the placement (panel def lives on it). */
   update: (fn: (p: Placement) => Placement) => void;
 }
 
 export function PanelInspector({
   placement,
-  sensors,
   update,
 }: PanelInspectorProps) {
   const panel = placement.panel!;
@@ -462,7 +470,6 @@ export function PanelInspector({
           </div>
           <WidgetEditor
             widget={selectedWidget}
-            sensors={sensors}
             panelLayout={panel.layout}
             onChange={(fn) =>
               updateWidget(selectedWidget.id, fn)
@@ -480,17 +487,20 @@ export function PanelInspector({
 
 function WidgetEditor({
   widget,
-  sensors,
   panelLayout,
   onChange,
 }: {
   widget: Widget;
-  sensors: SensorMap;
   panelLayout?: PanelDef["layout"];
   onChange: (fn: (w: Widget) => Widget) => void;
 }) {
   const set = <K extends keyof Widget>(key: K, value: Widget[K]) =>
     onChange((w) => ({ ...w, [key]: value }));
+  const catalog = useSensorCatalog();
+  const missing =
+    widget.sensor !== undefined &&
+    catalog.status === "ready" &&
+    sensorAt(catalog.sensors, widget.sensor) === undefined;
 
   const numeric = widget.kind !== "clock" && widget.kind !== "shape";
   const fillable = widget.kind === "bar" || widget.kind === "gauge";
@@ -551,11 +561,10 @@ function WidgetEditor({
         <div>
           <div className="mb-1 text-xs text-muted-foreground">Sensor</div>
           <SensorPicker
-            sensors={sensors}
             value={widget.sensor}
             onChange={(key) => set("sensor", key)}
           />
-          {widget.sensor && !sensors[widget.sensor] && (
+          {missing && (
             <div className="mt-1 text-[10px] text-yellow-500/80">
               not in the live sensor list — it will show “—”
             </div>
@@ -569,7 +578,6 @@ function WidgetEditor({
             Sub sensor <span className="text-muted-foreground/60">(below the value)</span>
           </div>
           <SensorPicker
-            sensors={sensors}
             value={widget.subSensor}
             onChange={(key) => set("subSensor", key)}
           />

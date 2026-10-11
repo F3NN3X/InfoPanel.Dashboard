@@ -1,7 +1,7 @@
 import { type CSSProperties } from "react";
 import { Image as ImageIcon } from "lucide-react";
 import { Gauge } from "@/components/Gauge";
-import { isImageUrl } from "@/lib/image";
+import { isImageUrl, resolveImageUrl } from "@/lib/image";
 import { sensorAt } from "@/lib/sensors";
 import { hexToHsl } from "@/lib/theme";
 import type { SensorValue } from "@/hooks/useSensors";
@@ -17,15 +17,15 @@ import { useHistory, useNow } from "./hooks";
  */
 export function imageSrc(widget: Widget, sensors: SensorMap): string | undefined {
   const s = widget.sensor ? sensorAt(sensors, widget.sensor) : undefined;
-  return (
+  const src =
     (widget.text && isImageUrl(widget.text, widget.sensor ?? "image")
       ? widget.text
       : undefined) ??
     (s?.text && isImageUrl(s.text, widget.sensor ?? "image")
       ? s.text
       : undefined) ??
-    (widget.text && isImageUrl(widget.text, "image") ? widget.text : undefined)
-  );
+    (widget.text && isImageUrl(widget.text, "image") ? widget.text : undefined);
+  return src && resolveImageUrl(src);
 }
 
 interface Ctx {

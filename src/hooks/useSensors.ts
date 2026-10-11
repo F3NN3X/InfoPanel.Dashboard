@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
-import { getApiBase, subscribeApiBase } from "@/lib/data-api";
+import { useMemo, useSyncExternalStore } from "react";
+import { sensorStore } from "@/lib/sensor-store";
+import { touches } from "@/lib/sensor-stream";
+import type { SensorMap } from "@/modules/types";
 
 export interface SensorValue {
   value?: number;
@@ -13,40 +15,45 @@ export interface SensorValue {
   source?: string;
 }
 
-export interface SensorSnapshot {
-  timestamp: number;
-  sensors: Record<string, SensorValue>;
+/**
+ * The live sensor map, re-rendering only when a key under one of
+ * `prefixes` changes (`null` = any key, and every stream). Mounting it keeps
+ * those namespaces' streams open. The map holds every streamed key, so
+ * callers read it exactly as before.
+ */
+export function useSensors(prefixes: readonly string[] | null): SensorMap {
+  const signature = prefixes === null ? "*" : prefixes.join("\n");
+  const view = useMemo(() => {
+    const list = prefixes === null ? null : signature === "" ? [] : signature.split("\n");
+    let snapshot = sensorStore.getValues();
+    return {
+      subscribe(onChange: () => void) {
+        const release = list && list.length === 0 ? () => {} : sensorStore.retain(list);
+        const unsubscribe = sensorStore.subscribe((changed) => {
+          if (!touches(changed, list)) return;
+          snapshot = sensorStore.getValues();
+          onChange();
+        });
+        // Catch up on anything that arrived before this subscription.
+        snapshot = sensorStore.getValues();
+        return () => {
+          unsubscribe();
+          release();
+        };
+      },
+      getSnapshot: () => snapshot,
+    };
+    // `signature` captures `prefixes` by value.
+  }, [signature]);
+  return useSyncExternalStore(view.subscribe, view.getSnapshot);
 }
 
-export function useSensors() {
-  const [data, setData] = useState<SensorSnapshot | null>(null);
-  const [connected, setConnected] = useState(false);
+/** Timestamp of the last sensor message (0 before the first). */
+export function useSensorsTimestamp(): number {
+  return useSyncExternalStore(sensorStore.subscribeTick, sensorStore.getTimestamp);
+}
 
-  // The Data API URL is a dashboard setting; follow it when it changes.
-  const [base, setBase] = useState(getApiBase);
-  useEffect(() => subscribeApiBase(setBase), []);
-
-  useEffect(() => {
-    const es = new EventSource(`${base}/events`);
-
-    es.onopen = () => setConnected(true);
-
-    es.onmessage = (event) => {
-      try {
-        const snapshot = JSON.parse(event.data) as SensorSnapshot;
-        setData(snapshot);
-        setConnected(true);
-      } catch (err) {
-        console.error("Failed to parse sensor data", err);
-      }
-    };
-
-    es.onerror = () => {
-      setConnected(false);
-    };
-
-    return () => es.close();
-  }, [base]);
-
-  return { data, connected };
+/** Whether every open sensor stream is connected. */
+export function useSensorsConnected(): boolean {
+  return useSyncExternalStore(sensorStore.subscribeStatus, sensorStore.isConnected);
 }

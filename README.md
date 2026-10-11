@@ -46,13 +46,20 @@ http://127.0.0.1:3922/?kiosk=1&profile=<profile id>
 
 Click the wrench button (or open `/?studio=1`) to edit layouts. Changes save automatically, and the **Save** button saves immediately. Every open kiosk page, including InfoPanel's web page profiles, picks up a saved change within about a second without reloading.
 
-The studio config is stored by the server in `%LOCALAPPDATA%\InfoPanel\Dashboard\config.json`. On first start the server imports the config the DataBridge plugin used to keep (`%LOCALAPPDATA%\InfoPanel\DataBridge\dashboard-config.json`), if there is one.
+The studio config is stored by the server in `%LOCALAPPDATA%\InfoPanel\Dashboard\config.json`.
 
 ### Data API URL
 
-The studio's side panel (with nothing selected) has a **Data API URL** setting, default `http://127.0.0.1:3921`. It is saved in the config, so kiosk pages follow it too, and changing it reconnects the live streams without a restart. **Test connection** checks that `{url}/api` answers.
+The studio's side panel (with nothing selected) has a **Data API URL** setting, default `http://127.0.0.1:3921`. It is saved in the config, so kiosk pages follow it too, and changing it reconnects the live streams without a restart. **Test connection** checks that `{url}/api` answers, and **Open API index** opens the Data API's page listing every key.
 
-The Wave Link widget reads the `wavelink-plugin` entries through the filtered stream `{url}/events?prefix=plugins.wavelink-plugin.wavelink.`. The weather forecast comes from the yr plugin (`plugins.yr-weather-plugin.<location>.forecast`). The old DataBridge open-meteo forecast and the bridge's `/events/wavelink` stream are gone; saved layouts bound to the old forecast key are migrated automatically.
+### How the dashboard reads the Data API
+
+- **Sensor values** come from filtered change streams, `{url}/events?prefix=<namespace>&interval=1000`: the full set under the prefix on connect, then only changed and removed keys. A page opens one stream per namespace its visible widgets read (`plugins.<plugin>.`, `libre.`, `system.`, …), folding the plugin streams into one `plugins.` stream past four, since browsers allow six connections per host. Each zone re-renders only when one of its own keys changes. Streams reconnect on their own, and a changed Data API URL drops the old values and reconnects.
+- **Wave Link** has its own 100 ms stream, `{url}/events?prefix=plugins.wavelink-plugin.wavelink.&interval=100`, feeding the meters without React re-renders.
+- **The studio's pickers** (sensor binding, Sources view, a widget's source select) use `{url}/api/sources` for plugin, container and entry names and entry types, and one `{url}/api/sensors` snapshot for values, re-fetched when a picker opens.
+- **Plugin images** (`/api/images/{pluginId}/{imageId}`) render as images; root-relative paths resolve against the Data API URL.
+
+The weather forecast comes from the yr plugin (`plugins.yr-weather-plugin.<location>.forecast`). Saved layouts bound to the retired DataBridge forecast key are migrated automatically.
 
 ## Server endpoints
 

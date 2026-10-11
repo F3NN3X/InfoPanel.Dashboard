@@ -1,6 +1,7 @@
 import { WIDGET_ICONS } from "@/lib/widget-icons";
 import { Segmented } from "@/components/ui/segmented";
 import { sourceOptions } from "@/lib/sources";
+import { useSensorCatalog, type ApiSources } from "@/lib/catalog";
 import { useAudioDevices } from "@/hooks/use-audio-devices";
 import { meterKey, useWavelinkState } from "@/lib/wavelink";
 import type { ReactNode } from "react";
@@ -9,7 +10,6 @@ import {
   type ModuleSetting,
   type ModuleSettingValue,
   type ModuleSettings,
-  type SensorMap,
 } from "@/modules/types";
 import { cn } from "@/lib/utils";
 
@@ -19,11 +19,6 @@ interface SettingsPanelProps {
   value?: ModuleSettings;
   onChange: (key: string, value: ModuleSettingValue) => void;
   onReset: () => void;
-  /**
-   * Live sensor map — needed for settings whose options resolve from real
-   * sensor data (e.g. `optionsFrom: "sources"`).
-   */
-  sensors?: SensorMap;
 }
 
 /**
@@ -36,8 +31,9 @@ export function SettingsPanel({
   value,
   onChange,
   onReset,
-  sensors,
 }: SettingsPanelProps) {
+  // Options of `optionsFrom: "sources"` come from the Data API's plugin tree.
+  const { sources } = useSensorCatalog();
   const defs = module.settings;
   if (!defs || defs.length === 0) return null;
 
@@ -66,7 +62,7 @@ export function SettingsPanel({
               // Preset bundle: persist each value alongside.
               for (const [k, v] of Object.entries(bundle)) onChange(k, v);
             }}
-            sensors={sensors}
+            sources={sources}
           />
         ))}
       </div>
@@ -79,14 +75,14 @@ function SettingRow({
   value,
   onChange,
   onApply,
-  sensors,
+  sources,
 }: {
   def: ModuleSetting;
   value: ModuleSettingValue;
   onChange: (value: ModuleSettingValue) => void;
   /** Preset bundles: apply extra key/values alongside the selected one. */
   onApply?: (bundle: ModuleSettings) => void;
-  sensors?: SensorMap;
+  sources: ApiSources | null;
 }) {
   switch (def.type) {
     case "boolean":
@@ -190,7 +186,7 @@ function SettingRow({
           <MediaDevicePicker def={def} value={String(value)} onChange={onChange} />
         );
       }
-      // Wave Link meters: options come from the bridge's live inventory
+      // Wave Link meters: options come from the plugin's live inventory
       // (channels + output devices), so a dedicated component owns it.
       if (def.optionsFrom === "wavelink") {
         return (
@@ -201,7 +197,7 @@ function SettingRow({
       if (def.multiple) {
         const multiOptions =
           def.optionsFrom === "sources" && def.sourcePlugin
-            ? sourceOptions(sensors ?? {}, def.sourcePlugin)
+            ? sourceOptions(sources, def.sourcePlugin)
             : def.options;
         return (
           <div>
@@ -227,7 +223,7 @@ function SettingRow({
       // currently-exposed containers), falling back to the static list.
       const options =
         def.optionsFrom === "sources" && def.sourcePlugin
-          ? sourceOptions(sensors ?? {}, def.sourcePlugin)
+          ? sourceOptions(sources, def.sourcePlugin)
           : def.options;
       if (options && options.length <= 4) {
         return (
@@ -449,7 +445,7 @@ function MediaDevicePicker({
 }
 
 /**
- * Picker for the Wave Link meter inventory (the bridge's live
+ * Picker for the Wave Link meter inventory (the plugin's live
  * channels + output devices). Handles both single-select and multi-select
  * (`def.multiple`); "" means all meters.
  */

@@ -29,7 +29,7 @@ export interface MediaVisualSourceHandle {
 
 /**
  * A `FrameSource<VisualFrame>` fed directly from a Web Audio `AnalyserNode` —
- * real, 60 fps, device-level audio (bypasses the bridge's ~1 Hz sensor
+ * real, 60 fps, device-level audio (bypasses the Data API's ~1 Hz sensor
  * ceiling). Each animation frame reads the analyser's dB spectrum, reduces it
  * to `bandCount` log-spaced 0..1 bands (a true spectrum, not a decorative
  * shape), keeps a ring of broadband levels for the scrolling waveform, and

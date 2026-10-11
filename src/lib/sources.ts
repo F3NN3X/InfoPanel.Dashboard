@@ -1,16 +1,12 @@
-import type { SensorValue } from "@/hooks/useSensors";
+import type { ApiSources } from "@/lib/catalog";
 import type { SensorMap } from "@/modules/types";
+import { YR_FORECAST_KEY, YR_FORECAST_RE } from "@/lib/sensors";
 
 /**
- * The dashboard's view of "sources" — every plugin the host is exposing,
- * and the containers (a.k.a. sources) each plugin pushes. Derived live from
- * the sensor map the bridge already streams, so the studio's Sources view
- * always reflects what is actually available (no host-side registry needed).
- *
- * Key shape:
- *   plugins.{plugin}.{container}.{entry...}  — a plugin's per-source entries
- *   {prefix}.{...}                           — flat value sources (libre.*,
- *                                              system.*, spotify.*, hwinfo.*)
+ * The studio's view of "sources": every plugin the Data API exposes with
+ * its containers and entries, as `/api/sources` names and types them, plus
+ * the flat (non-plugin) namespaces — `libre.*`, `hwinfo.*`, `system.*` and
+ * pushed sources such as `spotify.*` — from the sensor snapshot.
  */
 
 export interface SourceEntry {
@@ -18,8 +14,10 @@ export interface SourceEntry {
   key: string;
   /** Entry id (last key segment) or the flat remainder. */
   id: string;
-  /** Human label (the entry's display name, de-noised). */
+  /** Human label (the entry's display name). */
   label: string;
+  /** Entry type from `/api/sources` ("sensor", "text", "table", "image"). */
+  type?: string;
   value?: number;
   text?: string;
   unit?: string;
@@ -28,7 +26,7 @@ export interface SourceEntry {
 export interface SourceInfo {
   /** Container id ("" for flat, non-plugin sources). */
   id: string;
-  /** Owning plugin id. */
+  /** Owning plugin id (or the flat namespace). */
   pluginId: string;
   /** Friendly display name for this source. */
   label: string;
@@ -41,29 +39,11 @@ export interface PluginGroup {
   sources: SourceInfo[];
 }
 
-/** Known plugin ids → friendly names (the rest are pretty-printed). */
-const PLUGIN_NAMES: Record<string, string> = {
-  "audio-level-meter": "Audio Level Meter",
-  "clock-plugin": "Clock",
-  "drive-info-plugin": "Drive Info",
-  "media-plugin": "Media",
-  "network-info-plugin": "Network",
-  "spotify-plugin": "Spotify",
-  "system-info-plugin": "System Info",
-  "volume-plugin": "Volume",
-  "weather-plugin": "Weather",
-  "yr-weather-plugin": "yr Weather",
-  InfoPanel: "InfoPanel",
-  "InfoPanel.RTSS": "RTSS (FPS)",
-  "InfoPanel.SteamAPI": "Steam",
-  "InfoPanel.Media": "Media",
-  "InfoPanel.Spotify": "Spotify",
-  "InfoPanel.VBZ": "VBZ",
-  "InfoPanel.Notifications": "Notifications",
-  libre: "Hardware (Libre)",
-  system: "System (Bridge)",
-  spotify: "Spotify (legacy)",
+/** Names for the flat namespaces (the rest are pretty-printed). */
+const FLAT_NAMES: Record<string, string> = {
+  libre: "LibreHardwareMonitor",
   hwinfo: "HWiNFO",
+  system: "System",
 };
 
 function pretty(id: string): string {
@@ -73,103 +53,75 @@ function pretty(id: string): string {
     .trim();
 }
 
-export function pluginName(id: string): string {
-  return PLUGIN_NAMES[id] ?? pretty(id);
+/** Drop a plugin's leading decorative glyph (e.g. the audio meter's "🎵 "). */
+export function cleanName(name: string): string {
+  return name.replace(/^\p{Extended_Pictographic}\s*/u, "").trim();
 }
 
-/** Strip the plugin's decoration (a leading "🎵" glyph + trailing "· Entry"). */
-export function sourceLabel(sensor: SensorValue, key: string): string {
-  let n = sensor.name?.trim() ?? "";
-  if (n) {
-    // Drop a leading decorative glyph (e.g. "🎵 ") and a trailing "· Entry".
-    n = n.replace(/^\p{Extended_Pictographic}\s*/u, "");
-    n = n.replace(/\s·\s[^·]*$/u, "");
-  }
-  return n || key;
+const byLabel = (a: { label: string }, b: { label: string }) => a.label.localeCompare(b.label);
+
+function pluginGroups(sources: ApiSources | null, sensors: SensorMap): PluginGroup[] {
+  return (sources?.plugins ?? []).map((plugin) => ({
+    id: plugin.id,
+    name: plugin.name || pretty(plugin.id),
+    sources: plugin.containers
+      .map((c) => ({
+        id: c.id,
+        pluginId: plugin.id,
+        label: cleanName(c.name) || c.id,
+        entries: c.entries.map((e) => {
+          const s = sensors[e.key];
+          return {
+            key: e.key,
+            id: e.id,
+            label: e.name || e.id,
+            type: e.type,
+            value: s?.value,
+            text: s?.text,
+            unit: s?.unit,
+          };
+        }),
+      }))
+      // The audio meter's "default device" container leads its list.
+      .sort((a, b) =>
+        a.id === "default-audio" ? -1 : b.id === "default-audio" ? 1 : byLabel(a, b)
+      ),
+  }));
 }
 
-function splitKey(key: string): { plugin: string; container: string; entry: string } {
-  if (key.startsWith("plugins.")) {
-    const parts = key.split(".");
-    return {
-      plugin: parts[1],
-      container: parts[2] ?? "",
-      entry: parts.slice(3).join("."),
-    };
-  }
-  const parts = key.split(".");
-  return { plugin: parts[0], container: "", entry: parts.slice(1).join(".") };
-}
-
-/**
- * A friendly name for one source (container). Prefers the plugin's own
- * `device-name` entry, then a de-noised entry display name, then the raw id.
- */
-export function containerLabel(
-  sensors: SensorMap,
-  plugin: string,
-  container: string
-): string {
-  if (!container) return pluginName(plugin);
-  const devName = sensors[`plugins.${plugin}.${container}.device-name`]?.text;
-  if (devName && devName.trim() && devName.trim() !== "-") return devName.trim();
-  if (container === "default-audio") return "Default device";
-  // Fall back to the de-noised display name of the first entry.
-  for (const key of Object.keys(sensors)) {
-    if (key === `plugins.${plugin}.${container}`) continue;
-    if (key.startsWith(`plugins.${plugin}.${container}.`)) {
-      return sourceLabel(sensors[key], key);
-    }
-  }
-  return container;
-}
-
-/** Group every live sensor into plugins → sources → entries. */
-export function groupSources(sensors: SensorMap): PluginGroup[] {
-  const byPlugin = new Map<string, Map<string, SourceEntry[]>>();
-
-  for (const key of Object.keys(sensors)) {
-    const s = sensors[key];
-    const { plugin, container, entry } = splitKey(key);
-    const plugins = byPlugin.get(plugin) ?? new Map<string, SourceEntry[]>();
-    const entries = plugins.get(container) ?? [];
-    entries.push({
+function flatGroups(sensors: SensorMap): PluginGroup[] {
+  const byNs = new Map<string, SourceEntry[]>();
+  for (const [key, s] of Object.entries(sensors)) {
+    if (key.startsWith("plugins.")) continue;
+    const dot = key.indexOf(".");
+    const ns = dot < 0 ? key : key.slice(0, dot);
+    const list = byNs.get(ns) ?? [];
+    list.push({
       key,
-      id: entry || container || key,
-      label: sourceLabel(s, key),
+      id: key.slice(dot + 1),
+      label: s.name?.trim() || key,
+      type: s.value !== undefined ? "sensor" : "text",
       value: s.value,
       text: s.text,
       unit: s.unit,
     });
-    plugins.set(container, entries);
-    byPlugin.set(plugin, plugins);
+    byNs.set(ns, list);
   }
+  return [...byNs].map(([ns, entries]) => {
+    const name = FLAT_NAMES[ns] ?? pretty(ns);
+    return {
+      id: ns,
+      name,
+      sources: [{ id: "", pluginId: ns, label: name, entries: entries.sort(byLabel) }],
+    };
+  });
+}
 
-  const groups: PluginGroup[] = [];
-  for (const [plugin, containers] of [...byPlugin.entries()].sort((a, b) =>
-    pluginName(a[0]).localeCompare(pluginName(b[0]))
-  )) {
-    const sources: SourceInfo[] = [...containers.entries()]
-      .map(([id, entries]) => ({
-        id,
-        pluginId: plugin,
-        label: containerLabel(sensors, plugin, id),
-        // Keep the plugin's own ordering stable: name first, then key.
-        entries: [...entries].sort((a, b) =>
-          a.id.localeCompare(b.id)
-        ),
-      }))
-      .sort((a, b) => {
-        // Flat (containerless) sources sort by their label; containers put
-        // "default"/"all" first, then alphabetical.
-        if (!a.id && !b.id) return a.label.localeCompare(b.label);
-        if (a.id === "default-audio" && b.id !== "default-audio") return -1;
-        if (b.id === "default-audio" && a.id !== "default-audio") return 1;
-        return a.label.localeCompare(b.label);
-      });
-    groups.push({ id: plugin, name: pluginName(plugin), sources });
-  }
-  return groups;
+/** Every source the Data API offers, grouped plugin → container → entry. */
+export function groupSources(sources: ApiSources | null, sensors: SensorMap): PluginGroup[] {
+  return [...pluginGroups(sources, sensors), ...flatGroups(sensors)].sort((a, b) =>
+    a.name.localeCompare(b.name)
+  );
 }
 
 export interface SourceOption {
@@ -179,33 +131,58 @@ export interface SourceOption {
 
 /**
  * Options for a widget's "source" select: "all sources" plus one entry per
- * container the given plugin currently exposes. Used by the schema's
- * dynamic `optionsFrom: "sources"` setting type.
+ * container of the plugin under `prefix` (`plugins.<id>.`). Used by the
+ * schema's dynamic `optionsFrom: "sources"` setting type.
  */
-export function sourceOptions(
-  sensors: SensorMap,
-  prefix: string
-): SourceOption[] {
-  const opts: SourceOption[] = [{ value: "", label: "All sources" }];
-  const base = prefix.startsWith("plugins.")
-    ? prefix.slice("plugins.".length)
-    : prefix;
-  const contPrefix = prefix.startsWith("plugins.")
-    ? `plugins.${base}.`
-    : `${prefix}.`;
-  const seen = new Set<string>();
-  for (const key of Object.keys(sensors)) {
-    if (!key.startsWith(contPrefix)) continue;
-    const container = key
-      .slice(contPrefix.length)
-      .split(".")[0];
-    if (container && !seen.has(container)) {
-      seen.add(container);
-      opts.push({
-        value: container,
-        label: containerLabel(sensors, base, container),
-      });
+export function sourceOptions(sources: ApiSources | null, prefix: string): SourceOption[] {
+  const plugin = sources?.plugins.find((p) => `plugins.${p.id}.` === prefix);
+  const containers = pluginGroups(plugin ? { plugins: [plugin] } : null, {})[0]?.sources ?? [];
+  return [
+    { value: "", label: "All sources" },
+    ...containers.map((c) => ({ value: c.id, label: c.label })),
+  ];
+}
+
+/** One bindable key in the studio's sensor picker. */
+export interface PickerOption {
+  key: string;
+  label: string;
+  /** "Plugin › Container" (or the flat namespace's name). */
+  where: string;
+  type?: string;
+  /** Lower-cased text the picker's search matches against. */
+  search: string;
+}
+
+/**
+ * Every bindable key, plugin → container → entry order, plus the
+ * yr-forecast placeholder that follows the first configured location.
+ */
+export function pickerOptions(sources: ApiSources | null, sensors: SensorMap): PickerOption[] {
+  const out: PickerOption[] = [];
+  for (const group of groupSources(sources, sensors)) {
+    for (const source of group.sources) {
+      const where = source.id ? `${group.name} › ${source.label}` : group.name;
+      for (const e of source.entries) {
+        out.push({
+          key: e.key,
+          label: e.label,
+          where,
+          type: e.type,
+          search: `${e.label} ${where} ${e.key}`.toLowerCase(),
+        });
+      }
     }
   }
-  return opts;
+  if (out.some((o) => YR_FORECAST_RE.test(o.key))) {
+    const where = "Weather (yr) › first location";
+    out.unshift({
+      key: YR_FORECAST_KEY,
+      label: "Forecast",
+      where,
+      type: "table",
+      search: `forecast ${where} ${YR_FORECAST_KEY}`.toLowerCase(),
+    });
+  }
+  return out;
 }

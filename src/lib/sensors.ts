@@ -11,7 +11,9 @@ export interface KeyedSensor {
  * user: resolved to the first `plugins.yr-weather-plugin.<slug>.forecast`.
  */
 export const YR_FORECAST_KEY = "plugins.yr-weather-plugin.*.forecast";
-const YR_FORECAST_RE = /^plugins\.yr-weather-plugin\.[^.]+\.forecast$/;
+/** The key prefix the placeholder resolves under. */
+export const YR_FORECAST_PREFIX = "plugins.yr-weather-plugin.";
+export const YR_FORECAST_RE = /^plugins\.yr-weather-plugin\.[^.]+\.forecast$/;
 
 /** `sensors[key]`, resolving the YR_FORECAST_KEY placeholder. */
 export function sensorAt(

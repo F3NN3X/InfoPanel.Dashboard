@@ -1,4 +1,5 @@
-import { ModernWeather, type WeatherForecastDay } from "@/components/ModernWeather";
+import { ModernWeather } from "@/components/ModernWeather";
+import { parseForecast } from "@/lib/forecast";
 import { findEntry, liveText } from "@/lib/sensors";
 import { chromeOf, STANDARD_SETTINGS } from "./standard-settings";
 import {
@@ -74,25 +75,6 @@ function modernProps(mod: DashboardModule, s?: ModuleSettings) {
   };
 }
 
-/** "Thu 8 Oct, Light rain, 12 °C / 4 °C, 8.1mm, 4.5 m/s N" → day object. */
-function parseForecastLine(line: string): WeatherForecastDay {
-  const parts = line.split(", ");
-  const day: WeatherForecastDay = { date: parts[0] ?? line };
-  if (parts[1]) day.desc = parts[1];
-  const n = (s?: string) => {
-    const m = s?.match(/-?\d+(\.\d+)?/);
-    return m ? Number(m[0]) : undefined;
-  };
-  const temps = parts[2]?.split(/\s*\/\s*/);
-  if (temps && temps.length >= 2) {
-    day.high = n(temps[0]);
-    day.low = n(temps[1]);
-  }
-  day.precip = n(parts[3]);
-  if (parts[4]) day.wind = parts[4];
-  return day;
-}
-
 /**
  * The yr plugin's `weather_icon` is an icon *name* (Makin-Things/weather-icons
  * asset id, e.g. "rainy-2"), not a glyph — map it to an emoji. Non-ASCII
@@ -128,7 +110,7 @@ export const weatherModernModule: DashboardModule = {
   title: "Weather (modern)",
   minCols: 3,
   minRows: 1,
-  matches: (key) => key.startsWith(P),
+  prefixes: [P],
   settings: WEATHER_MODERN_SETTINGS,
   render: (sensors, s) => {
     const cfg = modernProps(weatherModernModule, s);
@@ -158,12 +140,7 @@ export const weatherModernModule: DashboardModule = {
     const icon = iconGlyph(text("weather_icon"));
 
     // The yr plugin's multi-day forecast, one line per day (starts tomorrow).
-    const forecastRaw = text("forecast")?.trim() ?? "";
-    const forecast = forecastRaw
-      .split("\n")
-      .filter((l) => l.trim() !== "")
-      .slice(0, cfg.forecastDays)
-      .map(parseForecastLine);
+    const forecast = parseForecast(text("forecast"), cfg.forecastDays);
 
     if (temp === undefined && !desc) return null;
 

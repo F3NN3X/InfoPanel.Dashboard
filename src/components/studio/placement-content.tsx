@@ -1,9 +1,11 @@
-import type { ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 import { GenericCard } from "@/modules/fallback";
-import { modules } from "@/modules";
+import { isClaimed, moduleReads, modules } from "@/modules";
 import type { SensorMap } from "@/modules/types";
 import type { SensorValue } from "@/hooks/useSensors";
+import { useSensors } from "@/hooks/useSensors";
 import { PanelView } from "@/components/widgets/PanelView";
+import { YR_FORECAST_KEY, YR_FORECAST_PREFIX } from "@/lib/sensors";
 import { CARDS_ID, BLANK_MODULE, type Placement } from "@/lib/layout";
 
 const moduleById = new Map(modules.map((m) => [m.id, m]));
@@ -12,6 +14,28 @@ export interface PlacementRender {
   content: ReactNode;
   hasData: boolean;
   title: string;
+}
+
+/**
+ * The sensor keys (as prefixes) a placement renders from: a module's
+ * prefixes, a panel's bound keys, `null` for the "cards" catch-all (every
+ * sensor), `[]` for none.
+ */
+export function placementPrefixes(p: Placement): string[] | null {
+  if (p.module === BLANK_MODULE) return [];
+  if (p.panel) {
+    const keys = new Set<string>();
+    for (const w of p.panel.widgets) {
+      if (!w.visible) continue;
+      for (const key of [w.sensor, w.subSensor]) {
+        if (key) keys.add(key === YR_FORECAST_KEY ? YR_FORECAST_PREFIX : key);
+      }
+    }
+    return [...keys].sort();
+  }
+  if (p.module === CARDS_ID) return null;
+  const mod = moduleById.get(p.module);
+  return mod ? moduleReads(mod) : [];
 }
 
 /**
@@ -65,4 +89,26 @@ export function placementContent(
     hasData: content != null,
     title: mod.title,
   };
+}
+
+interface LivePlacementProps {
+  placement: Placement;
+  /** Wraps the rendered content (the zone frame). */
+  children: (render: PlacementRender) => ReactNode;
+}
+
+/**
+ * A placement wired to the sensor store: it subscribes to just the keys
+ * it renders from, so a sensor change re-renders only the zones that show
+ * it — not the whole grid.
+ */
+export function LivePlacement({ placement, children }: LivePlacementProps) {
+  const prefixes = placementPrefixes(placement);
+  const sensors = useSensors(prefixes);
+  const isCards = prefixes === null;
+  const unclaimed = useMemo(
+    () => (isCards ? Object.entries(sensors).filter(([key]) => !isClaimed(key)) : []),
+    [isCards, sensors]
+  );
+  return <>{children(placementContent(placement, sensors, unclaimed))}</>;
 }

@@ -1,11 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { Wrench } from "lucide-react";
-import { useSensors } from "@/hooks/useSensors";
+import { useSensorsConnected, useSensorsTimestamp } from "@/hooks/useSensors";
 import { Badge } from "@/components/ui/badge";
-import { StudioView } from "@/components/studio/studio-view";
 import { PlacementFrame } from "@/components/studio/placement-frame";
-import { placementContent } from "@/components/studio/placement-content";
-import { claimedKeys } from "@/modules";
+import { LivePlacement } from "@/components/studio/placement-content";
 import { applyTheme } from "@/lib/theme";
 import { setApiBase } from "@/lib/data-api";
 import {
@@ -23,9 +21,12 @@ import {
 } from "@/lib/layout";
 import { cn } from "@/lib/utils";
 
+// The studio is an editing tool; kiosk pages never download it.
+const StudioView = lazy(() =>
+  import("@/components/studio/studio-view").then((m) => ({ default: m.StudioView }))
+);
+
 export default function App() {
-  const { data, connected } = useSensors();
-  const sensors = data?.sensors ?? {};
 
   // Kiosk mode (?kiosk=1, e.g. an InfoPanel web page profile): display
   // only — no header, no studio chrome, and the layout comes from the
@@ -124,12 +125,6 @@ export default function App() {
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  // Keys claimed by registered modules; "cards" placements show the rest.
-  const unclaimed = useMemo(() => {
-    const claimed = claimedKeys(sensors);
-    return Object.entries(sensors).filter(([key]) => !claimed.has(key));
-  }, [sensors]);
-
   const enterStudio = () => {
     setStudio(true);
     window.history.replaceState(null, "", "?studio=1");
@@ -152,16 +147,17 @@ export default function App() {
   // The dedicated studio replaces the whole view.
   if (studio) {
     return (
-      <StudioView
-        sensors={sensors}
-        config={config}
-        profile={profile}
-        setConfig={setConfig}
-        windowWidth={windowSize.w}
-        windowHeight={windowSize.h}
-        onExitStudio={exitStudio}
-        onSave={handleStudioSave}
-      />
+      <Suspense fallback={null}>
+        <StudioView
+          config={config}
+          profile={profile}
+          setConfig={setConfig}
+          windowWidth={windowSize.w}
+          windowHeight={windowSize.h}
+          onExitStudio={exitStudio}
+          onSave={handleStudioSave}
+        />
+      </Suspense>
     );
   }
 
@@ -195,24 +191,7 @@ export default function App() {
               </p>
             )}
           </div>
-          <div className="flex items-center gap-3">
-            <Badge
-              variant={connected ? "default" : "destructive"}
-              className="gap-1.5"
-            >
-              <span
-                className={`h-2 w-2 rounded-full ${
-                  connected ? "bg-emerald-400" : "bg-red-400"
-                }`}
-              />
-              {connected ? "Connected" : "Disconnected"}
-            </Badge>
-            {data && (
-              <span className="text-xs text-muted-foreground">
-                {new Date(data.timestamp).toLocaleTimeString()}
-              </span>
-            )}
-          </div>
+          <ConnectionStatus />
         </div>
       )}
 
@@ -229,25 +208,21 @@ export default function App() {
       >
         {profile.placements
           .filter((p) => p.visible)
-          .map((p) => {
-            const { content, hasData, title } = placementContent(
-              p,
-              sensors,
-              unclaimed
-            );
-            return (
-              <PlacementFrame
-                key={p.id}
-                placement={p}
-                profile={profile}
-                studio={false}
-                hasData={hasData}
-                title={title}
-              >
-                {content}
-              </PlacementFrame>
-            );
-          })}
+          .map((p) => (
+            <LivePlacement key={p.id} placement={p}>
+              {({ content, hasData, title }) => (
+                <PlacementFrame
+                  placement={p}
+                  profile={profile}
+                  studio={false}
+                  hasData={hasData}
+                  title={title}
+                >
+                  {content}
+                </PlacementFrame>
+              )}
+            </LivePlacement>
+          ))}
       </div>
 
       {/* Floating entry to the studio (not on display-only kiosk pages) */}
@@ -259,6 +234,27 @@ export default function App() {
         >
           <Wrench className="h-4 w-4" />
         </button>
+      )}
+    </div>
+  );
+}
+
+/** Header badge: stream status and the time of the last sensor message. */
+function ConnectionStatus() {
+  const connected = useSensorsConnected();
+  const timestamp = useSensorsTimestamp();
+  return (
+    <div className="flex items-center gap-3">
+      <Badge variant={connected ? "default" : "destructive"} className="gap-1.5">
+        <span
+          className={`h-2 w-2 rounded-full ${connected ? "bg-emerald-400" : "bg-red-400"}`}
+        />
+        {connected ? "Connected" : "Disconnected"}
+      </Badge>
+      {timestamp > 0 && (
+        <span className="text-xs text-muted-foreground">
+          {new Date(timestamp).toLocaleTimeString()}
+        </span>
       )}
     </div>
   );

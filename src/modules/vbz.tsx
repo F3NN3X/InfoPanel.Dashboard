@@ -15,7 +15,7 @@ export const vbzModule: DashboardModule = {
   title: "Departures",
   minCols: 2,
   minRows: 1,
-  matches: (key) => key.startsWith(P),
+  prefixes: [P],
   settings: [
     { key: "showStatus", label: "Status line", type: "boolean", default: true },
   ],
