@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, fmt, fmtRate, detect, pretty, Ring, Spark, Bar, heat, useHistory, tone, TONES, hw, Num, type ShellProps, type WidgetMeta } from "./kit";
+import { Widget, shell, get, num, fmt, fmtRate, detect, pretty, Ring, RingStack, Spark, Bar, heat, useHistory, tone, TONES, hw, Num, type ShellProps, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "SystemOverview",
@@ -89,20 +89,12 @@ export default function SystemOverview(p: SystemOverviewProps) {
         if (shape === "tile")
           return (
             <div className="flex h-full items-center gap-2" style={{ "--sys-base": "var(--accent)" } as CSSProperties}>
-              <div className="h-full min-w-0 flex-1">
-                <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" className="h-full w-full -rotate-90">
-                  {keys.slice(0, 3).map((k, i) => {
-                    const r = 44 - i * 13,
-                      c = 2 * Math.PI * r;
-                    return (
-                      <g key={k} style={vars(k)}>
-                        <circle cx="50" cy="50" r={r} fill="none" stroke="var(--accent)" strokeOpacity=".16" strokeWidth="10" />
-                        <circle cx="50" cy="50" r={r} fill="none" stroke="var(--accent)" strokeWidth="10" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - Math.min(100, ALL[k].v) / 100)} style={{ transition: "stroke-dashoffset .7s ease-out" }} />
-                      </g>
-                    );
-                  })}
-                </svg>
-              </div>
+              <RingStack
+                rings={keys.slice(0, 3).map((k) => ({ v: Math.min(100, ALL[k].v), color: col(k) ?? "var(--accent)", track: `color-mix(in oklab, ${col(k) ?? "var(--accent)"} 16%, transparent)` }))}
+                thickness={10}
+                gap={3}
+                className="h-full min-w-0 flex-1"
+              />
               {w - h > 60 && (
                 <div className="flex shrink-0 flex-col gap-1">
                   {keys.slice(0, 3).map((k) => (

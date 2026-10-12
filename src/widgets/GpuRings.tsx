@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, fmt, pretty, useSkin, numFont, hue, hw, type ShellProps, type WidgetMeta } from "./kit";
+import { Widget, shell, get, num, fmt, pretty, useSkin, numFont, hue, hw, RingStack, type ShellProps, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "GpuRings",
@@ -50,30 +50,12 @@ export default function GpuRings(p: GpuRingsProps) {
   ];
   const name = (get(d, "plugins.InfoPanel.RTSS.rtss.gpu-name") || pretty(gpu ?? "")).replace(/^NVIDIA GeForce /, "");
   const rings = (size: number) => (
-    <div className="relative shrink-0" style={{ width: size, height: size }}>
-      <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
-        {(
-          [
-            [44, outer.v, cO],
-            [32, inner.v, cI],
-          ] as const
-        ).map(([r, v, c]) => {
-          const C = 2 * Math.PI * r;
-          return (
-            <g key={r}>
-              <circle cx="50" cy="50" r={r} fill="none" stroke="var(--w-track)" strokeWidth="9" />
-              <circle cx="50" cy="50" r={r} fill="none" stroke={c} strokeWidth="9" strokeLinecap="round" strokeDasharray={C} strokeDashoffset={C * (1 - Math.min(100, v || 0) / 100)} style={{ transition: "stroke-dashoffset .7s ease-out" }} />
-            </g>
-          );
-        })}
-      </svg>
-      <div className="absolute inset-0 grid place-content-center text-center">
-        <b className="font-bold leading-none tabular-nums" style={{ fontSize: size * 0.19, ...numFont(sk) }}>
-          {fmt(G("gpu_core"), 0)}°C
-        </b>
-        {size > 100 && <span className="text-[11px] text-[color:var(--w-muted)]">Core</span>}
-      </div>
-    </div>
+    <RingStack rings={[{ v: outer.v, color: cO }, { v: inner.v, color: cI }]} thickness={9} gap={3} className="shrink-0" style={{ width: size, height: size }}>
+      <b className="font-bold leading-none tabular-nums" style={{ fontSize: size * 0.19, ...numFont(sk) }}>
+        {fmt(G("gpu_core"), 0)}°C
+      </b>
+      {size > 100 && <span className="text-[11px] text-[color:var(--w-muted)]">Core</span>}
+    </RingStack>
   );
   return (
     <Widget
