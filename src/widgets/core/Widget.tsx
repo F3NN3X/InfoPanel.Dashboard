@@ -127,7 +127,7 @@ export function Widget({ title, icon, iconOverride, accent, surface, radius, siz
         {tui && <div className="pointer-events-none absolute inset-[5px] rounded-[4px] border" style={{ borderColor: mix(45, "#3f3f46") }} />}
         {skin === "hud" && HUD_CORNERS.map((c) => <span key={c} className={`pointer-events-none absolute h-2.5 w-2.5 ${c}`} style={{ borderColor: "var(--accent)" }} />)}
         <div className={`relative flex min-h-0 min-w-0 flex-1 flex-col ${pad.className}`} style={{ ...pad.style, ...(zoom !== 1 ? { zoom } : null) }}>
-          {header && <SkinHeader kind={sk.header} title={heading} icon={headIcon} right={right} bleed={bleed} bg={patchBackground(surfBox.background, surf.tone)} />}
+          {header && <SkinHeader kind={sk.header} title={heading} icon={headIcon} right={useCompact ? undefined : right} bleed={bleed} bg={patchBackground(surfBox.background, surf.tone)} />}
           <div ref={cref} className="relative min-h-0 flex-1">
             {isStudio ? (
               <StudioView c={sObj!} w={box.w} h={box.h} icon={headIcon} />
