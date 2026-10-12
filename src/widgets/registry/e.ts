@@ -4,7 +4,7 @@ import { findEntry } from "@/lib/sensors";
 import { CARD_SETTINGS, IDLE_SETTING, STYLE_SETTINGS, SURFACE_SETTINGS } from "@/modules/standard-settings";
 import type { DashboardModule, ModuleSetting } from "@/modules/types";
 import { templateModule, type TemplateOptions } from "../module";
-import { boolOf, numberOf, stringOf } from "./settings-kit";
+import { boolOf, boolSetting, enumSetting, numberOf, numberSetting, stringOf, textSetting } from "./settings-kit";
 import Bluetooth, { meta as bluetoothMeta, type BluetoothProps } from "../Bluetooth";
 import Departures, { meta as departuresMeta, type DeparturesProps } from "../Departures";
 import Notifications, { meta as notificationsMeta, type NotificationsProps } from "../Notifications";
@@ -20,7 +20,7 @@ const EDGE_KEYS: ReadonlySet<string> = new Set(["borderWidth", "borderColor", "g
  * (no auto-scale, which would zoom the embedded page itself).
  */
 export const WEBPAGE_SETTINGS: ModuleSetting[] = [
-  { key: "url", label: "URL", type: "text", default: "", group: "Page" },
+  textSetting("url", "URL", "", { group: "Page" }),
   ...STYLE_SETTINGS.filter((d) => d.key === "scale" || d.key === "radius"),
   ...CARD_SETTINGS.filter((d) => d.key === "accent"),
   ...SURFACE_SETTINGS.filter((d) => EDGE_KEYS.has(d.key)),
@@ -34,7 +34,7 @@ export const webPageOptions: TemplateOptions<Pick<WebPageProps, "url">> = {
   toProps: (s) => ({ url: String(s.url ?? "") }),
 };
 
-export const TEXTFILE_SETTINGS: ModuleSetting[] = [{ key: "showMeta", label: "Size / lines / status header", type: "boolean", default: true, group: "Content" }];
+export const TEXTFILE_SETTINGS: ModuleSetting[] = [boolSetting("showMeta", "Size / lines / status header", true, { group: "Content" })];
 
 export const textFileOptions: TemplateOptions<Pick<TextFileProps, "showMeta">> = {
   meta: textFileMeta,
@@ -44,8 +44,8 @@ export const textFileOptions: TemplateOptions<Pick<TextFileProps, "showMeta">> =
 };
 
 export const NOTIFICATIONS_SETTINGS: ModuleSetting[] = [
-  { key: "showHistory", label: "History list", type: "boolean", default: true, group: "Content" },
-  { key: "maxLines", label: "Max history lines", type: "number", default: 50, min: 1, max: 200, step: 5, group: "Content" },
+  boolSetting("showHistory", "History list", true, { group: "Content" }),
+  numberSetting("maxLines", "Max history lines", 50, { min: 1, max: 200, step: 5, group: "Content" }),
   IDLE_SETTING,
 ];
 
@@ -60,7 +60,7 @@ export const notificationsOptions: TemplateOptions<Pick<NotificationsProps, "sho
   isIdle: notificationsIdle,
 };
 
-export const DEPARTURES_SETTINGS: ModuleSetting[] = [{ key: "showStatus", label: "Status line", type: "boolean", default: true, group: "Content" }];
+export const DEPARTURES_SETTINGS: ModuleSetting[] = [boolSetting("showStatus", "Status line", true, { group: "Content" })];
 
 export const departuresOptions: TemplateOptions<Pick<DeparturesProps, "showStatus">> = {
   meta: departuresMeta,
@@ -71,21 +71,20 @@ export const departuresOptions: TemplateOptions<Pick<DeparturesProps, "showStatu
 
 /** `view` bundles the three toggles through `applies`, as the legacy widget did; the toggles carry the behaviour. */
 export const BLUETOOTH_SETTINGS: ModuleSetting[] = [
-  {
-    key: "view",
-    label: "View",
-    type: "select",
-    default: "full",
-    options: [
+  enumSetting(
+    "view",
+    "View",
+    "full",
+    [
       { value: "full", label: "Status + devices" },
       { value: "devices", label: "Devices + battery", applies: { showDevices: true, showBattery: true } },
       { value: "status", label: "Status only", applies: { showDevices: false, showBattery: false } },
     ],
-    group: "Content",
-  },
-  { key: "showStatus", label: "Bluetooth status", type: "boolean", default: true, group: "Content" },
-  { key: "showDevices", label: "Paired devices", type: "boolean", default: true, group: "Content" },
-  { key: "showBattery", label: "Battery levels", type: "boolean", default: true, group: "Content" },
+    { group: "Content" },
+  ),
+  boolSetting("showStatus", "Bluetooth status", true, { group: "Content" }),
+  boolSetting("showDevices", "Paired devices", true, { group: "Content" }),
+  boolSetting("showBattery", "Battery levels", true, { group: "Content" }),
   { key: "batteryMidColor", label: "Battery medium color", type: "color", default: "", group: "Battery colors" },
   { key: "batteryLowColor", label: "Battery low color", type: "color", default: "", group: "Battery colors" },
 ];
@@ -104,8 +103,8 @@ export const bluetoothOptions: TemplateOptions<Pick<BluetoothProps, "showStatus"
 };
 
 export const STREAMDECK_SETTINGS: ModuleSetting[] = [
-  { key: "showProfile", label: "Active profile", type: "boolean", default: true, group: "Content" },
-  { key: "showLabels", label: "Button labels", type: "boolean", default: true, group: "Content" },
+  boolSetting("showProfile", "Active profile", true, { group: "Content" }),
+  boolSetting("showLabels", "Button labels", true, { group: "Content" }),
 ];
 
 export const streamDeckOptions: TemplateOptions<Pick<StreamDeckProps, "showProfile" | "showLabels">> = {
