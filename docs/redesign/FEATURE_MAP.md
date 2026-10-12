@@ -19,6 +19,8 @@ This is the **no-feature-loss checklist**. It is built from `reference/current-u
 
 Legend: **C / S / D** = the Content / Style / Data tab. **Adv** = hidden until "Advanced settings" is on. **Dash** = the Dashboard inspector (nothing selected).
 
+Rows marked **(+)** were added by the Phase 0 code inventory (`docs/settings-inventory.md`): they exist in the code today but were missing from this list. Their "New" column is a proposal that follows the rules above.
+
 ---
 
 ## 1. Top bar
@@ -31,6 +33,13 @@ Legend: **C / S / D** = the Content / Style / Data tab. **Adv** = hidden until "
 | Save | Primary button with an unsaved-changes dot |
 | Kiosk view | Secondary button |
 | `⋯` overflow | Last item on the right |
+| (+) `⋯` › Export config / Import config… | Keep in `⋯` (config-level items) |
+| (+) `⋯` › Copy profile JSON | Keep in `⋯`; also in the Profiles panel row menu |
+| (+) `⋯` › Reset everything… (confirm dialog with "Export first") | Keep in `⋯`, last item before the build id; same confirm dialog |
+| (+) `⋯` › Command palette… (Ctrl+K) and Keyboard shortcuts (?) | Keep in `⋯`; the palette is also on Ctrl+K and is unchanged (see §14) |
+| (+) `⋯` › build id (disabled item) | Keep as the last line of `⋯` |
+| (+) Save button shows "Saved" for a moment after saving; Save pushes to the dashboard server | Keep: primary button, checkmark flash; the dot means "edits not pushed yet" |
+| (+) Profile switcher menu: Auto (match window) entry with a check, profile size on each row | Keep inside the profile switcher |
 
 ## 2. Rail and drawers
 | Current | New |
@@ -50,6 +59,12 @@ Legend: **C / S / D** = the Content / Style / Data tab. **Adv** = hidden until "
 | Size, grid cols × rows, Fill / Scroll, gap (default 12), padding | Dash › Profile › Profile |
 | Profile theme / style / background: Inherit / Custom (/ None for the background) | Dash › Profile › This profile |
 | Shipped profiles (Sample 1920×550, ARCv2, Main display, Kiosk strip, Small 1024×600) | Same list; content unchanged |
+| (+) Delete the active profile (disabled when only one is left; Auto afterwards) | Profiles panel: delete button on the row; Dash › Profile |
+| (+) Profile name | Dash › Profile › Profile (editable name) |
+| (+) Design size W / H (free number fields) | Dash › Profile › Profile; the zoom-bar resolution button jumps here |
+| (+) Grid Cols (2–24) and Rows (1–24) −/+ steppers; zones are clamped into the grid | Dash › Profile › Profile |
+| (+) Gap and padding empty = default (placeholder shows it; padding default is 0 in a fill kiosk, 24 in scroll) | Dash › Profile › Profile; keep "empty = default" |
+| (+) Profile theme (Inherit / Custom colours + radius), profile Force global style (Inherit / On / Off) | Dash › Profile › This profile; editors in Dash › Appearance when the scope is This profile |
 
 ## 4. Canvas
 | Current | New |
@@ -64,6 +79,15 @@ Legend: **C / S / D** = the Content / Style / Data tab. **Adv** = hidden until "
 | Edge resize handles | Corner handle and ⇧arrows; **keep the edge handles too** if they exist today |
 | Minimum zone sizes per widget | Enforced on resize, on the W/H fields and on type change |
 | Blank zone ("Pick a widget") | Dashed tile; inspector Widget › Pick a widget plus Zone frame |
+| (+) Draw-to-create: drag across empty grid cells to draw a blank zone (clamped to the grid; nothing is added when there is no room) | Keep on the canvas; the new blank zone is selected; the empty-canvas card reads "Draw a zone, or drag a widget from Add" |
+| (+) Selection toolbar: four span-step buttons (Narrower / Wider / Shorter / Taller by one cell, disabled when blocked; Shift+arrows) | These are the "4 align/expand icons" above: chip More menu and context menu, keep the exact actions |
+| (+) Selection toolbar: widget-type crumb with Change widget, second crumb for the selected panel widget | Chip name (opens Widget type) plus a widget crumb for panels |
+| (+) Selection toolbar "Style" button (jumps to Colors & surface) | Chip action → opens the Style tab at Colors & surface |
+| (+) Arrow keys nudge a zone one cell; Shift+arrows resize it | Keep (README §5.4) |
+| (+) Drag a widget or panel from Add and drop on the canvas (auto-placed at its minimum size) | Keep, with a drop ghost |
+| (+) Move / resize ghost with a size label while dragging; 4 px drag threshold; hover size chip | Keep |
+| (+) Click inside a selected panel zone selects the panel widget under the pointer | Keep (Esc steps widget → zone → none) |
+| (+) Hidden zones stay selectable and editable on the canvas but do not show in the kiosk | Keep; Layers row dims them |
 
 ## 5. Bottom bar → zoom bar
 | Current | New |
@@ -75,6 +99,10 @@ Legend: **C / S / D** = the Content / Style / Data tab. **Adv** = hidden until "
 | Panel layout toggles (Side / Bottom / Auto) | Zoom bar dock button (cycles); Dash › General › Studio |
 | Dock splitter | Keep it on the Bottom dock |
 | Ctrl+\\ collapse | Same |
+| (+) Click the zoom % to reset to 100%; Ctrl+wheel zooms; Fit is "sticky" (stays fitted on resize) | Zoom bar % button and canvas; keep |
+| (+) Rulers are always on today (no toggle) | The Rulers toggle in the row above is new; default on |
+| (+) The "Magic wand" in the table above is today the **Auto** inspector-position icon (no canvas auto-arrange action exists) | Zoom bar dock button (cycles Auto / Side / Bottom); confirm before building a separate auto-arrange action |
+| (+) Dock collapse button at the left end of the zoom strip (bottom dock) | Keep |
 
 ## 6. Layers
 | Current | New |
@@ -84,6 +112,9 @@ Legend: **C / S / D** = the Content / Style / Data tab. **Adv** = hidden until "
 | Eye | Same |
 | Trash | Delete button in the row, context menu, ⌫ |
 | Hint text | Footer note |
+| (+) Click a row selects the zone and scrolls it into view on the canvas | Keep |
+| (+) Rows are in grid reading order (top to bottom, left to right) | Keep |
+| (+) Hidden zones dimmed in the list | Keep |
 
 ## 7. Library (Add drawer)
 | Current | New |
@@ -94,6 +125,11 @@ Legend: **C / S / D** = the Content / Style / Data tab. **Adv** = hidden until "
 | Panel presets (10) | Layouts › Panel presets |
 | My panels (saved from the panel "…" menu; shared by all profiles; exported; each use is a fresh copy) | My panels; save via the context menu "Save to My panels" |
 | Drag onto the grid | Drag with a drop ghost, or click to auto-place; a click fills a selected blank zone |
+| (+) Search box (matches title, id and description, every word) | Library search; Esc clears it |
+| (+) Usage count badge on each widget row (how many zones of the profile use it) | Keep on the widget cards |
+| (+) Section notes (minimum size, "sensor-free starters", panels note) | Keep as the section footers |
+| (+) My panels rows: Rename… / Delete in the row's "⋯" | Keep in the My panels group |
+| (+) Widget picker dialog for a zone (Change widget / Pick a widget) with the same search, chips and list | Keep: opened by the chip's name, Widget type, and Ctrl+K "Pick widget…" |
 
 ## 8. Inspector header and navigation
 | Current | New |
@@ -107,6 +143,12 @@ Legend: **C / S / D** = the Content / Style / Data tab. **Adv** = hidden until "
 | "N changed" per card; reset of only that card | "N changed" plus Reset on every section; changed-count badge on each tab |
 | Setting dots (default / set here / dashboard / profile / overriding; hover a set dot to reset) | Source dots (README §5.6), legend behind `help` in the footer; click a set-here dot to reset |
 | Inspector side / bottom dock, 300 px columns | Side 340 / Bottom 320 with 300 px columns / Auto |
+| (+) Esc clears the search first, then steps out (panel widget → zone → none), then closes the left drawer | Keep this order |
+| (+) Palette entries "Go to setting: …" and "Go to Widget settings / Colors & surface" scroll to and flash the card | Keep: the registry feeds the palette; the jump now switches tab and opens the section |
+| (+) Section open/closed state is remembered (`studio.sections`); beside the canvas sections collapse, in the dock all show | Keep as a persisted UI preference |
+| (+) Changed count, Reset and the info-tooltip hint on every card | Already listed; keep the hint tooltip too |
+| (+) Rows are locked (read-only) while the zone follows the global style or Force is on | Keep; shown as the amber "ignored" dot plus the Customize link |
+| (+) Zone-header breadcrumb "Panel › Widget" (crumbs select the panel / show the widget editor) | Keep above the tabs when a panel widget is selected |
 
 ## 9. General cards (all zones)
 | Current field | Tab › Section | Notes |
@@ -136,6 +178,12 @@ Legend: **C / S / D** = the Content / Style / Data tab. **Adv** = hidden until "
 | Glow none/soft/strong, glow color | S › Border & effects | the colour shows only when glow ≠ none |
 | Zone frame: accent, background, title header | S › Border & effects | Adv |
 | Custom CSS (`@scope`, `:scope` = root) | S › Advanced | Adv |
+| (+) Preset (Default / Dark / Light / Vivid / Mono quick look; writes surface, tint, accent) | S › Colors & surface, next to Surface (not a look key: absent from Global style) |
+| (+) Use as global… (All profiles / This profile) | Colors & surface "…" menu and the context menu |
+| (+) Style presets: Apply preset, Save as preset…, Delete preset | S › Colors & surface "…" menu (already named above as "Style preset"; Delete is also needed) |
+| (+) Frame background hidden on panels (they have their own surface) | S › Border & effects › Zone frame; keep the panel exception |
+| (+) Layout appears in the code for all 11 modern widgets, not only adaptive ones | See `settings-inventory.md` open question 2; default: keep on all 11 |
+| (+) Departures, Notifications, Text File, Stream Deck and Other sensors have no title, icon, preset, layout or background image, and their Surface defaults to Theme | Their Widget section shows only the type and Visible; Style shows the rest |
 
 ## 10. Widget-own categories
 | Widget | Section → tab |
@@ -154,8 +202,8 @@ Legend: **C / S / D** = the Content / Style / Data tab. **Adv** = hidden until "
 | Notifications | Content (history, max lines) → C |
 | Text File | Content (meta) → C |
 | Stream Deck | Content (profile, labels) → C |
-| Web Page | Page (URL) → C; Style reduced to Colors & surface, Border & effects, Advanced |
-| Other sensors | no settings |
+| Web Page | Page (URL) → C; Style reduced to Colors & surface, Border & effects, Advanced. **Code today:** also `scale` (Size & alignment) and `radius` (Spacing & shape), accent and the four border/glow keys, and no Custom CSS: keep what exists, see `settings-inventory.md` question 5 |
+| Other sensors | no own settings; it still has the card style (Surface default Theme, accent, size, spacing, typography, border and effects) |
 
 Enter each widget's **exact** current fields from its settings component. The prototype's fields are representative only.
 
@@ -177,6 +225,16 @@ Enter each widget's **exact** current fields from its settings component. The pr
 | Panel surfaces None / Card / Bordered card | S › Colors & surface (panels show these options) |
 | Save panel to My panels (panel "…" menu) | Context menu "Save to My panels" |
 | CSS hooks (`.wp-panel`, `.wp-widget--{kind}`, parts, variables, `@scope`) | Unchanged |
+| (+) Code view: Revert (drops the draft), inline parse errors, panel title change also updates the shown title | C › Panel › Code |
+| (+) Widget list keyboard: Up/Down select, Alt+Up/Down reorder, Delete removes; row menu Duplicate / Copy / Paste after / Change kind / Remove | C › Widgets; keep (README §5.4 shortcuts also apply) |
+| (+) Panel widget shortcuts: Del, Ctrl+D, Ctrl+C, Ctrl+V, Alt+Up/Down; palette "Select widget: …" for each widget | Keep |
+| (+) Grid track editor: chips accept any CSS track (`1fr`, `auto`, `120px`, `minmax(0, 1fr)`), +/− add or drop the last track, Equal | C › Layout (Column sizes / Row sizes) |
+| (+) Overlay Background: choose which image widget fills it; dark scrim toggle | C › Background |
+| (+) Panel widget: width/height Fixed px (1–4000), Align self, Column/Row start (1–24), Column/Row span (1–12) | C › Size & placement |
+| (+) Panel widget table: Rows 1–20 (7), Columns, Header; sparkline history 5–200 (40); image Max height; clock Show; shape Shape and Thickness | C › Display (per kind, `settings-inventory.md` §3.3) |
+| (+) "Not in the live sensor list" warning on a bound sensor | Keep under the Sensor field |
+| (+) Panel Gap and Padding empty = auto | Already noted in this section; keep the "auto" placeholder |
+| (+) Saved panels: Rename… / Delete in Add › My panels | Library (§7) |
 
 ## 12. Nothing selected → Dashboard inspector
 | Current | New |
@@ -192,6 +250,17 @@ Enter each widget's **exact** current fields from its settings component. The pr
 | General › Clock & date (12/24 h, seconds, locale) | Dash › General › Clock & date |
 | General › Display (motion, hide cursor in kiosk) | Dash › General › Display |
 | Connection (Data API URL) | Dash › General › Connection |
+| (+) Connection: Test connection (testing / connected / not reachable) and the "Open API index" link | Dash › General › Connection |
+| (+) Appearance gallery: Rename… / Delete on saved looks; image badge on looks that bring a background | Dash › Appearance › Appearance presets |
+| (+) After applying a preset: banner "N widgets keep their own style · N profiles have their own look" with **Make them follow** and Dismiss | Dash › Appearance › Appearance presets |
+| (+) Commands "Make all widgets follow global style", "Force global style…" and "Apply appearance: …" | Palette entries; also an action row in Dash › Appearance |
+| (+) Page background media: Upload… (drop a file on the field too), typed URL (Enter or blur), Library popover (delete a file, clean up unused files after a confirm), live preview, poster image | Dash › Appearance › Page background |
+| (+) Video options: Loop, Muted, Speed (0.5×–2×), Poster, performance hint | Dash › Appearance › Page background |
+| (+) Background Effects: Dim, Tint colour + opacity, Blur (0–40 px) | Dash › Appearance › Page background |
+| (+) Per-profile background modes Inherit / Custom / None; Custom starts from the dashboard background | Dash › Profile › This profile |
+| (+) Theme: six colour-only swatches that leave the radius alone; "edited" tag when tokens match no preset; Custom starts from the dashboard theme for a profile | Dash › Appearance › Theme |
+| (+) Six theme tokens (`popover`, `popover-foreground`, `secondary-foreground`, `accent-foreground`, `destructive-foreground`, `input`) are in the config and presets but not editable | Keep unreachable, or Adv (`settings-inventory.md` question 7) |
+| (+) General › Clock & date locale list (14 locales plus System; an unknown saved locale is kept as an option) | Dash › General › Clock & date |
 
 ## 13. Data
 | Current | New |
@@ -201,3 +270,18 @@ Enter each widget's **exact** current fields from its settings component. The pr
 | Panel widget sensor field | Sensor field → picker in single mode |
 | `/api/push`, `/api/clear` | Add source menu; Pushed via API category |
 | Data API URL | Dash › General › Connection |
+| (+) Sources mode: per-source show/hide (eye) and Display name (`sourcePrefs`, stored on the dashboard) | Sources mode, source row and detail; today nothing outside the Sources panel reads them |
+| (+) Sources mode: Bind to widget / Unbind (writes the widget's `source` setting) | Sources mode "Used by" actions and Data tab › Bound data |
+| (+) Sources mode: filter box, refresh (reload from the Data API), "Open API index" link, live value chip on each source | Sources mode toolbar and rows |
+| (+) Audio source (live level source, live capture, capture devices, microphone access) | D › Audio source (already stated in §10; listed here for the data checklist) |
+
+## 14. Keyboard, command palette and persistence (+)
+| Current | New |
+|---|---|
+| (+) Command palette (Ctrl+K): Add, Profiles, Zones, selected zone/widget actions, Go to setting, drawers, document tabs, layout modes, zoom, appearance presets, export/import/copy profile/shortcuts | Keep every command; the registry supplies the setting and tab entries; palette stays on Ctrl+K and in `⋯` |
+| (+) Shortcuts (cheat sheet `?`): Ctrl+S / Z / Shift+Z / Y / K / D / 0 / = / - / `\`, Esc, Del / Backspace, H, arrows, Shift+arrows; widget: Del, Ctrl+D, Ctrl+C, Ctrl+V, Alt+Up/Down | Keep (README §5.4); shortcuts never fire while focus is in an input |
+| (+) Copy style / Paste style clipboards and the copied panel widget are session-only | Keep session-only |
+| (+) Autosave: the studio pushes the config to the server 400 ms after a change; Save flushes; the kiosk reloads from `/events/config` | Keep (CLAUDE.md "Save") |
+| (+) Undo history: whole-config snapshots, limit 100, edits to one field within 500 ms coalesce | Keep; one drag / panel JSON apply / appearance preset = one step |
+| (+) Studio UI preferences in `localStorage`: `studio.layout`, `studio.dockHeight`, `studio.dockCollapsed`, `studio.drawer`, `studio.sections` | Keep; README §5.9 |
+| (+) Import config… runs the v1→v2 migration; invalid files are logged and ignored | Keep |
