@@ -145,6 +145,7 @@ function probe(fig: Element): Issue[] {
       overflowY: cs.overflowY,
       textOverflow: cs.textOverflow,
       whiteSpace: cs.whiteSpace,
+      lineClamp: cs.getPropertyValue("-webkit-line-clamp"),
       scrollWidth: el.scrollWidth,
       clientWidth: el.clientWidth,
       scrollHeight: el.scrollHeight,
