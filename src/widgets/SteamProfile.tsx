@@ -57,7 +57,8 @@ export default function SteamProfile(p: SteamProfileProps) {
               )}
             </div>
           );
-        const n = Math.max(0, Math.floor((h - 130) / 36));
+        // the head, the stats box and the gaps (16px) first; then friend rows of 33px, 10px apart
+        const n = Math.max(0, Math.floor((h - ((size === "lg" ? 64 : 48) + 61 + 32) + 10) / 43));
         return (
           <div className="flex h-full flex-col gap-4">
             {head}
