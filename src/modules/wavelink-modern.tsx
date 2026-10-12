@@ -101,7 +101,6 @@ export const wavelinkModernModule = templateModule({
   Component: WaveLink,
   settings: WAVELINK_SETTINGS,
   toProps: wavelinkToProps,
-  title: "Wave Link (modern)",
   // No sensor keys — the data comes from the shared wavelink-plugin stream.
-  legacy: { id: "wavelinkmodern", minCols: 2, minRows: 1, prefixes: [], libraryHidden: true },
+  alias: { id: "wavelinkmodern", title: "Wave Link (modern)", minCols: 2, minRows: 1, prefixes: [] },
 });

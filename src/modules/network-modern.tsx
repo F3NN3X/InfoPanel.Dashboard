@@ -46,6 +46,5 @@ export const networkModernModule = templateModule({
   Component: NetworkThroughput.default,
   settings: NETWORK_SETTINGS,
   toProps: networkToProps,
-  title: "Network (modern)",
-  legacy: { id: "networkmodern", minCols: 2, minRows: 1, prefixes: [NET], libraryHidden: true },
+  alias: { id: "networkmodern", title: "Network (modern)", minCols: 2, minRows: 1, prefixes: [NET] },
 });

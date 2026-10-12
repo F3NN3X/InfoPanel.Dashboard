@@ -69,6 +69,5 @@ export const weatherModernModule = templateModule({
   Component: Weather,
   settings: WEATHER_SETTINGS,
   toProps: weatherToProps,
-  title: "Weather (modern)",
-  legacy: { id: "weathermodern", minCols: 3, minRows: 1, prefixes: [P], libraryHidden: true },
+  alias: { id: "weathermodern", title: "Weather (modern)", minCols: 3, minRows: 1, prefixes: [P] },
 });

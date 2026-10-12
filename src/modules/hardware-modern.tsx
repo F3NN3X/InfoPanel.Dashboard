@@ -92,6 +92,5 @@ export const hardwareModernModule = templateModule({
   Component: Hardware,
   settings: HARDWARE_MODERN_SETTINGS,
   toProps: hardwareToProps,
-  title: "Hardware (modern)",
-  legacy: { id: "hardwaremodern", minCols: 2, minRows: 1, prefixes: ["libre.", "hwinfo."], libraryHidden: true },
+  alias: { id: "hardwaremodern", title: "Hardware (modern)", minCols: 2, minRows: 1, prefixes: ["libre.", "hwinfo."] },
 });

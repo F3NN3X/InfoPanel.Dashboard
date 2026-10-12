@@ -8,17 +8,21 @@ import { SKINS } from "./core/theme";
 import type { ShellProps, WidgetMeta } from "./core/types";
 import { toFlat } from "./data-adapter";
 
-/** A legacy module id that renders through a template: its own identity, footprint and full settings. */
+/**
+ * A legacy module id that renders through a template: its own identity, footprint and full
+ * settings, hidden from the Library. Its category, icon, description and drop size come from the
+ * Library's legacy tables, as before the port.
+ */
 export interface AliasOptions {
   id: string;
   title: string;
   minCols: number;
   minRows: number;
   prefixes: string[];
-  /** The legacy settings array, kept key for key (replaces the standard block + the template's own). */
-  settings: ModuleSetting[];
-  /** The legacy "nothing to show" rule: the zone renders nothing while it holds. */
-  hidden?: (sensors: SensorMap) => boolean;
+  /** The legacy settings array, kept key for key; default the settings block + the template's own. */
+  settings?: ModuleSetting[];
+  /** The legacy "nothing to show" rule over the resolved settings: the zone renders nothing while it holds. */
+  hidden?: (sensors: SensorMap, settings: ModuleSettings) => boolean;
 }
 
 export interface TemplateOptions<P extends object> {
@@ -33,8 +37,6 @@ export interface TemplateOptions<P extends object> {
   prefixes?: string[];
   /** Overrides `meta.name` as the module title. */
   title?: string;
-  /** A legacy module id served by this template: its own id, size, owned prefixes and Library visibility. */
-  legacy?: Pick<DashboardModule, "id" | "minCols" | "minRows" | "prefixes" | "libraryHidden">;
   /** The settings block before the template's own; default `STANDARD_SETTINGS`. */
   base?: ModuleSetting[];
   /** Makes this a Library-hidden alias of the template under a legacy id. */
@@ -72,7 +74,7 @@ export function withSkinSurface(look: ModuleSettings, saved: ModuleSettings | un
   return { ...look, surface: (skin && SKINS[skin]?.surface) || fallback };
 }
 
-export function templateModule<P extends object>({ meta, Component, settings, toProps, isIdle, prefixes, title, legacy, base, alias }: TemplateOptions<P>): DashboardModule {
+export function templateModule<P extends object>({ meta, Component, settings, toProps, isIdle, prefixes, title, base, alias }: TemplateOptions<P>): DashboardModule {
   const all = alias?.settings ?? [...(base ?? STANDARD_SETTINGS), ...settings];
   const surfaceDefault = String(all.find((d) => d.key === "surface")?.default ?? "glass");
   const mod: DashboardModule = {
@@ -85,12 +87,11 @@ export function templateModule<P extends object>({ meta, Component, settings, to
     settings: all,
     libraryHidden: alias ? true : undefined,
     isIdle,
-    category: meta.category,
-    icon: meta.icon,
-    description: meta.description,
-    defaultSize: meta.defaultSize,
-    ...legacy,
-    render: (sensors, saved) => (alias?.hidden?.(sensors) ? null : <TemplateZone sensors={sensors} saved={saved} />),
+    category: alias ? undefined : meta.category,
+    icon: alias ? undefined : meta.icon,
+    description: alias ? undefined : meta.description,
+    defaultSize: alias ? undefined : meta.defaultSize,
+    render: (sensors, saved) => (alias?.hidden?.(sensors, effectiveSettings(mod, saved)) ? null : <TemplateZone sensors={sensors} saved={saved} />),
   };
   function TemplateZone({ sensors, saved }: { sensors: SensorMap; saved?: ModuleSettings }) {
     const data = useMemo(() => toFlat(sensors), [sensors]);

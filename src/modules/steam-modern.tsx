@@ -3,7 +3,7 @@ import GameSpotlight, { meta, type GameSpotlightProps } from "@/widgets/GameSpot
 import { templateModule } from "@/widgets/module";
 import { SPOTLIGHT_COMPOSITE_SETTINGS } from "@/widgets/spotlight-settings";
 import { IDLE_SETTING } from "./standard-settings";
-import type { DashboardModule, ModuleSetting } from "./types";
+import type { ModuleSetting } from "./types";
 
 /**
  * Modern Steam widget, kept loadable under its old id: the adaptive card (game banner as the
@@ -28,24 +28,24 @@ export const STEAM_MODERN_SETTINGS: ModuleSetting[] = [
   ...SPOTLIGHT_COMPOSITE_SETTINGS,
 ];
 
-const template = templateModule<Pick<GameSpotlightProps, "layout" | "motion" | "scrim" | "showStats" | "showNews">>({
-  meta: { ...meta, id: "steammodern", name: "Steam (modern)", prefixes: [P], minSize: [2, 1] },
+export const steamModernModule = templateModule<Pick<GameSpotlightProps, "layout" | "motion" | "scrim" | "showStats" | "showNews">>({
+  meta,
   Component: GameSpotlight,
   settings: STEAM_MODERN_SETTINGS,
   // Dim banner on = the template's default scrim; off = none. The old card had no Ken Burns motion.
   toProps: (s) => ({ layout: "composite", motion: false, scrim: s.dimBanner ? undefined : 0, showStats: Boolean(s.showStats), showNews: Boolean(s.showNews) }),
   // Idle = not in a game.
   isIdle: (sensors) => !liveText(entry(sensors, P, SESSION, "current-game")),
-});
-
-export const steamModernModule: DashboardModule = {
-  ...template,
-  libraryHidden: true,
-  render: (sensors, s) => {
-    const name = liveText(entry(sensors, P, PROFILE, "player-name"));
-    const game = liveText(entry(sensors, P, SESSION, "current-game"));
-    const totalGames = liveValue(entry(sensors, P, LIBRARY, "total-games"));
+  alias: {
+    id: "steammodern",
+    title: "Steam (modern)",
+    minCols: 2,
+    minRows: 1,
+    prefixes: [P],
     // No profile, game or library: hide the section.
-    return !name && !game && totalGames === undefined ? null : template.render(sensors, s);
+    hidden: (sensors) =>
+      !liveText(entry(sensors, P, PROFILE, "player-name")) &&
+      !liveText(entry(sensors, P, SESSION, "current-game")) &&
+      liveValue(entry(sensors, P, LIBRARY, "total-games")) === undefined,
   },
-};
+});

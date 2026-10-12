@@ -123,5 +123,5 @@ export const audioModernModule = templateModule({
   toProps: audioToProps,
   // The volume plugin's volume / mute entries are read without being owned.
   prefixes: ["plugins.volume-plugin."],
-  legacy: { id: "audiomodern", minCols: 2, minRows: 1, prefixes: [P], libraryHidden: true },
+  alias: { id: "audiomodern", title: "Audio (modern)", minCols: 2, minRows: 1, prefixes: [P] },
 });

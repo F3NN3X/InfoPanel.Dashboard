@@ -18,17 +18,15 @@ function resolve(sensors: SensorMap, primary: string, fallback: string) {
 }
 
 function legacyMedia(id: string, title: string, source: "spotify" | "media", prefixes: string[], isIdle: DashboardModule["isIdle"]): DashboardModule {
-  const mod = templateModule({
+  return templateModule({
     meta: nowPlaying,
     Component: NowPlaying,
     settings: [IDLE_SETTING, ...MEDIA_SETTINGS, PLAYER_LAYOUT],
     toProps: (s) => legacyPropsOf(s, source),
     isIdle,
     prefixes: [AUDIO_LEVEL],
-    title,
+    alias: { id, title, minCols: 2, minRows: 1, prefixes },
   });
-  // The Library's own tables keep the legacy ids' category, icon and description.
-  return { ...mod, id, minCols: 2, minRows: 1, prefixes, libraryHidden: true, category: undefined, icon: undefined, description: undefined, defaultSize: undefined };
 }
 
 export const spotifyModernModule: DashboardModule = legacyMedia(

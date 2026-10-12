@@ -66,6 +66,37 @@ describe("templateModule", () => {
   });
 });
 
+describe("templateModule alias", () => {
+  const alias = { id: "demomodern", title: "Demo (modern)", minCols: 2, minRows: 1, prefixes: ["old."] };
+  const isIdle = () => true;
+  const aliased = (over: Partial<Parameters<typeof templateModule>[0]["alias"]> = {}) =>
+    templateModule({ meta, Component: Demo, settings: [own], toProps: (s) => ({ unit: String(s.unit) }), isIdle, prefixes: ["extra."], alias: { ...alias, ...over } });
+
+  it("serves the legacy id, title, size and prefixes, hidden from the Library without the template's Library fields", () => {
+    const mod = aliased();
+    expect(mod).toMatchObject({ id: "demomodern", title: "Demo (modern)", minCols: 2, minRows: 1, prefixes: ["old."], reads: ["extra."], libraryHidden: true, isIdle });
+    expect(mod).toMatchObject({ category: undefined, icon: undefined, description: undefined, defaultSize: undefined });
+  });
+
+  it("keeps the standard block + own settings by default, or the legacy array as given", () => {
+    expect(aliased().settings).toEqual([...STANDARD_SETTINGS, own]);
+    expect(aliased({ settings: [own] }).settings).toEqual([own]);
+  });
+
+  it("takes the surface default from the legacy settings", () => {
+    const surface: ModuleSetting = { key: "surface", label: "Surface", type: "select", default: "theme" };
+    renderToStaticMarkup(aliased({ settings: [surface, own] }).render({}) as never);
+    expect(seen().look?.surface).toBe("theme");
+  });
+
+  it("renders nothing while the hidden rule holds, judged on the resolved settings", () => {
+    const mod = aliased({ hidden: (sensors, s) => !sensors["old.a"] && s.unit === "x" });
+    expect(mod.render({})).toBeNull();
+    expect(mod.render({}, { unit: "y" })).not.toBeNull();
+    expect(mod.render({ "old.a": { value: 1, unit: "" } })).not.toBeNull();
+  });
+});
+
 describe("shellProps", () => {
   it("turns auto and empty into undefined", () => {
     expect(
