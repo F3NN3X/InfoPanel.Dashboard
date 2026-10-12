@@ -490,7 +490,7 @@ Where the accent lands per widget:
 | `ModernWeather` | the big temperature |
 | `ModernSteam` | the big total-playtime |
 | `ModernFps` | the ring track (value arc keeps its semantic color) |
-| `ModernAudio` | level bar fill (red > 85% stays semantic) |
+| `AudioMeter` | level bar fill (red > 85% stays semantic) |
 | `ModernBluetooth` | battery bar fill (green tier; amber/red stay) |
 | `ModernHardware` | the "other" kind-dot |
 | `ModernNetwork` | the utilization bar (DL/UL keep their green/blue) |

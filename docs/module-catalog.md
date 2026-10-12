@@ -115,7 +115,7 @@ re-exported there; style helpers are in `components/widget-style.ts`):
   (LibreHardwareMonitor): `download_speed` / `upload_speed` (bytes/s →
   formatted rate), `data_downloaded` / `data_uploaded` (session totals),
   `network_utilization` (0–100). Optional rolling speed sparklines.
-- **audiomodern** (`ModernAudio`) — `plugins.audio-level-meter.*`,
+- **audiomodern** (`AudioModern`: AudioMeter / MeterBridge / VolumeMixer by `view`) — `plugins.audio-level-meter.*`,
   grouped by container (device). Entries are resolved by **stable key
   suffix** — `audio-level`, `peak-level`, `rms-level`, `left-channel`,
   `right-channel`, `device-name` — because the plugin decorates its display

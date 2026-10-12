@@ -10,5 +10,6 @@ export * from "./core/icons";
 export * from "./core/look";
 export * from "./core/fonts";
 export * from "./core/primitives";
+export * from "./core/ballistics";
 export * from "./core/views";
 export * from "./core/Widget";

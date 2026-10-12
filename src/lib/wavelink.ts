@@ -320,7 +320,7 @@ export const wavelink = new WavelinkClient();
  * state event — connect, absence, and 1 s-change-only inventory polls.
  */
 export function useWavelinkState(): WlState {
-  return useSyncExternalStore(wavelink.subscribeState, wavelink.getState);
+  return useSyncExternalStore(wavelink.subscribeState, wavelink.getState, wavelink.getState);
 }
 
 /** A stable per-meter-key frame source for the AudioCN meters/readouts. */

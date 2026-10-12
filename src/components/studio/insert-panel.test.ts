@@ -61,8 +61,9 @@ describe("insertables", () => {
     expect(category("NetworkThroughput")).toBe("Network");
     expect(category("spotifymodern")).toBe("Media");
     expect(category("mediamodern")).toBe("Media");
-    expect(category("audiomodern")).toBe("Audio");
-    expect(category("wavelinkmodern")).toBe("Audio");
+    expect(category("audiomodern")).toBeUndefined();
+    expect(category("wavelinkmodern")).toBeUndefined();
+    for (const id of ["AudioMeter", "MeterBridge", "VolumeMixer", "WaveLink"]) expect(category(id), id).toBe("Audio");
     expect(category("weathermodern")).toBeUndefined();
     expect(category("Weather")).toBe("Info");
     for (const id of ["vbz", "notifications", "textfile"]) expect(category(id), id).toBe("Info");

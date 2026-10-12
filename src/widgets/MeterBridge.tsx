@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, fmt, Dot, LedLadder, STATE, type ShellProps, type WidgetMeta } from "./kit";
+import { Widget, shell, fmt, Dot, LedLadder, STATE, useMeterBallistics, type BallisticsPreset, type ShellProps, type WidgetMeta } from "./kit";
+import { audioIds, readDevice } from "./audio-data";
 
 export const meta: WidgetMeta = {
   id: "MeterBridge",
@@ -24,6 +25,7 @@ interface Channel {
   l: number;
   r: number;
   vol: number;
+  muted: boolean;
   lh: number;
   rh: number;
 }
@@ -49,6 +51,20 @@ export interface MeterBridgeProps extends ShellProps {
   showScale?: boolean;
   showVolume?: boolean;
   ladder?: "led" | "smooth";
+  /** List the default-device container too, as "Default device"; off by default (it repeats a device). */
+  includeDefault?: boolean;
+  /** Device names; default on. */
+  showName?: boolean;
+  /** L/R dB readouts; default on. */
+  showDetails?: boolean;
+  /** Muted marker (from the volume plugin); default on. */
+  showMute?: boolean;
+  /** Meter response; unset keeps the level as it is and the peak hold of `holdMs`. */
+  ballistics?: BallisticsPreset;
+  /** Colour of the safe zone, default the accent. */
+  levelColor?: string;
+  /** Colour of the clip zone, default red. */
+  hotColor?: string;
 }
 
 export default function MeterBridge(p: MeterBridgeProps) {
@@ -57,16 +73,11 @@ export default function MeterBridge(p: MeterBridgeProps) {
     warnDb = p.warnDb ?? -18,
     clipDb = p.clipDb ?? -6,
     holdMs = p.holdMs ?? 1500;
-  const ids = [...new Set(Object.keys(d || {}).map((k) => k.match(/^plugins\.audio-level-meter\.([^.]+)\.device-name$/)?.[1]).filter((id): id is string => !!id))].filter((id) => id !== "default-audio");
-  const volFor = (id: string) => {
-    const g = id.match(/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i)?.[1];
-    const key = g && Object.keys(d).find((k) => k.startsWith("plugins.volume-plugin") && k.includes(`{${g}}`) && k.endsWith(".volume"));
-    return key ? num(get(d, key)) : NaN;
-  };
+  const step = useMeterBallistics(p.ballistics);
+  const ids = audioIds(d).filter((id) => p.includeDefault || id !== "default-audio");
   const found = ids.map((id) => {
-    const k = (s: string) => get(d, `plugins.audio-level-meter.${id}.${s}`);
-    const full = String(k("device-name"));
-    return { id, name: full.replace(/\s*\(.+\)$/, ""), full, l: dbOf(num(k("left-channel"))), r: dbOf(num(k("right-channel"))), vol: volFor(id) };
+    const m = readDevice(d, id);
+    return { id, name: m.name, full: m.full, pl: m.l, pr: m.r, vol: m.vol, muted: m.muted };
   });
   const picked = p.channels ? p.channels.map((c) => found.find((x) => x.id === c || x.name.toLowerCase() === String(c).toLowerCase())).filter((x): x is (typeof found)[number] => !!x) : found;
   // peak hold: the held value lives in a ref and is stamped onto each channel
@@ -77,7 +88,22 @@ export default function MeterBridge(p: MeterBridgeProps) {
     if (!hv || cur >= hv.v || now - hv.t > holdMs) hold.current[key] = { v: cur, t: now };
     return hold.current[key].v;
   };
-  const ch: Channel[] = picked.map((c) => ({ ...c, lh: holdOf(c.id + "l", c.l), rh: holdOf(c.id + "r", c.r) }));
+  // with ballistics the smoothed level and the preset's own hold replace the raw level and `holdMs`
+  const side = (id: string, key: "l" | "r", pct: number) => {
+    const sm = step(id + key, pct);
+    return { db: dbOf(sm.v), held: p.ballistics ? (sm.hold !== undefined ? dbOf(sm.hold) : -Infinity) : undefined };
+  };
+  const ch: Channel[] = picked.map(({ pl, pr, ...c }) => {
+    const l = side(c.id, "l", pl),
+      r = side(c.id, "r", pr);
+    return { ...c, l: l.db, r: r.db, lh: l.held ?? holdOf(c.id + "l", l.db), rh: r.held ?? holdOf(c.id + "r", r.db) };
+  });
+  const lc = p.levelColor || "var(--accent)",
+    hc = p.hotColor || STATE.crit;
+  const showName = p.showName !== false,
+    showDetails = p.showDetails !== false,
+    showMute = p.showMute !== false;
+  const mute = (c: Channel) => showMute && c.muted && <span className="shrink-0 text-[10px] font-semibold" style={{ color: STATE.crit }} title="Muted">M</span>;
   const pos = (db: number) => Math.min(100, Math.max(0, ((Math.max(floor, db) - floor) / -floor) * 100));
   const vertical = p.orientation !== "horizontal";
   const anyLive = ch.some((c) => c.l > floor || c.r > floor);
@@ -85,7 +111,7 @@ export default function MeterBridge(p: MeterBridgeProps) {
   // called as a function (not a component): a plain render helper over the numbers it is given
   const ladder = (db: number, hdb: number, n: number, horiz = false) => {
     const held = Number.isFinite(hdb) && hdb > floor ? pos(hdb) : undefined;
-    if (p.ladder !== "smooth") return <LedLadder value={pos(db)} n={n} vertical={!horiz} zones={[pos(warnDb), pos(clipDb)]} hold={held} />;
+    if (p.ladder !== "smooth") return <LedLadder value={pos(db)} n={n} vertical={!horiz} zones={[pos(warnDb), pos(clipDb)]} hold={held} color={lc} hotColor={hc} />;
     return (
       <div className={`relative flex ${horiz ? "h-full flex-1 flex-row gap-[2px]" : "w-full flex-1 flex-col-reverse gap-[2px]"}`}>
         <div className="absolute inset-0 rounded-[2px] bg-[color:var(--w-track)]" />
@@ -93,7 +119,7 @@ export default function MeterBridge(p: MeterBridgeProps) {
           className="absolute rounded-[2px] transition-all duration-100"
           style={{
             ...(horiz ? { left: 0, top: 0, bottom: 0, width: `${pos(db)}%` } : { left: 0, right: 0, bottom: 0, height: `${pos(db)}%` }),
-            background: `linear-gradient(${horiz ? "90deg" : "0deg"}, var(--accent) 0%, var(--accent) ${pos(warnDb)}%, ${STATE.warn} ${pos(warnDb)}%, ${STATE.warn} ${pos(clipDb)}%, ${STATE.crit} ${pos(clipDb)}%)`,
+            background: `linear-gradient(${horiz ? "90deg" : "0deg"}, ${lc} 0%, ${lc} ${pos(warnDb)}%, ${STATE.warn} ${pos(warnDb)}%, ${STATE.warn} ${pos(clipDb)}%, ${hc} ${pos(clipDb)}%)`,
             backgroundSize: horiz ? `${(100 / Math.max(1, pos(db))) * 100}% 100%` : `100% ${(100 / Math.max(1, pos(db))) * 100}%`,
             backgroundPosition: horiz ? "left" : "bottom",
           }}
@@ -124,19 +150,24 @@ export default function MeterBridge(p: MeterBridgeProps) {
           return (
             <ul className="flex h-full flex-col justify-center gap-2 overflow-hidden">
               {ch.slice(0, n).map((c) => (
-                <li key={c.id} className="grid items-center gap-x-3" style={{ gridTemplateColumns: `${w > 340 ? 88 : 60}px minmax(0,1fr) ${w > 300 ? 72 : 40}px` }} title={c.full}>
+                <li key={c.id} className="grid items-center gap-x-3" style={{ gridTemplateColumns: `${w > 340 ? 88 : 60}px minmax(0,1fr)${showDetails ? ` ${w > 300 ? 72 : 40}px` : ""}` }} title={c.full}>
                   <div className="flex min-w-0 flex-col leading-tight">
-                    <span className="truncate text-xs font-semibold">{c.name}</span>
+                    <span className="flex items-center gap-1 text-xs font-semibold">
+                      {showName && <span className="truncate">{c.name}</span>}
+                      {mute(c)}
+                    </span>
                     {p.showVolume !== false && Number.isFinite(c.vol) && <span className="text-[10.5px] tabular-nums text-[color:var(--w-faint)]">{fmt(c.vol)}%</span>}
                   </div>
                   <div className="flex h-[22px] flex-col gap-[3px]">
                     {ladder(c.l, c.lh, segs, true)}
                     {ladder(c.r, c.rh, segs, true)}
                   </div>
-                  <div className="flex flex-col text-right font-mono text-[10px] leading-tight tabular-nums text-[color:var(--w-muted)]">
-                    <span>{fmtDb(c.l)}</span>
-                    {w > 300 && <span>{fmtDb(c.r)}</span>}
-                  </div>
+                  {showDetails && (
+                    <div className="flex flex-col text-right font-mono text-[10px] leading-tight tabular-nums text-[color:var(--w-muted)]">
+                      <span>{fmtDb(c.l)}</span>
+                      {w > 300 && <span>{fmtDb(c.r)}</span>}
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>
@@ -153,7 +184,10 @@ export default function MeterBridge(p: MeterBridgeProps) {
               <div key={c.id} className="flex min-h-0 min-w-0 flex-col gap-2" title={c.full}>
                 <div className="flex flex-col gap-1">
                   <div className="flex items-baseline justify-between gap-2">
-                    <span className="truncate text-[13px] font-semibold">{c.name}</span>
+                    <span className="flex min-w-0 items-center gap-1 text-[13px] font-semibold">
+                      {showName && <span className="truncate">{c.name}</span>}
+                      {mute(c)}
+                    </span>
                     {p.showVolume !== false && Number.isFinite(c.vol) && <span className="shrink-0 text-[13px] font-semibold tabular-nums">{fmt(c.vol)}%</span>}
                   </div>
                   {p.showVolume !== false && Number.isFinite(c.vol) && (
@@ -178,6 +212,7 @@ export default function MeterBridge(p: MeterBridgeProps) {
                     <div className="flex w-[7px]">{ladder(c.r, c.rh, segs)}</div>
                   </div>
                 </div>
+                {showDetails && (
                 <div className="grid grid-cols-2 gap-1 font-mono text-[10px] tabular-nums text-[color:var(--w-faint)]">
                   <span className="flex justify-between gap-1">
                     <span className="font-sans font-semibold text-[color:var(--w-muted)]">L</span>
@@ -188,6 +223,7 @@ export default function MeterBridge(p: MeterBridgeProps) {
                     {fmtDb(c.r)}
                   </span>
                 </div>
+                )}
               </div>
             ))}
           </div>

@@ -1,5 +1,6 @@
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, fmt, Num, Spark, LedLadder, STATE, hue, useHistory, type ShellProps, type WidgetMeta, type Data } from "./kit";
+import { Widget, shell, fmt, Num, Spark, LedLadder, STATE, hue, useHistory, useMeterBallistics, clamp, type BallisticsPreset, type ShellProps, type WidgetMeta } from "./kit";
+import { audioIds, readDevice, type AudioDevice } from "./audio-data";
 
 export const meta: WidgetMeta = {
   id: "AudioMeter",
@@ -12,16 +13,10 @@ export const meta: WidgetMeta = {
   description: "L/R level, peak, RMS and peak-hold for one device, or a meter bridge for all devices.",
 };
 
-const ids = (d: Data): string[] => [...new Set(Object.keys(d || {}).map((k) => k.match(/^plugins\.audio-level-meter\.([^.]+)\.device-name$/)?.[1]).filter((id): id is string => !!id))];
-const read = (d: Data, id: string) => {
-  const k = (s: string) => get(d, `plugins.audio-level-meter.${id}.${s}`);
-  const hold = num(k("peak-hold"));
-  return { id, name: String(k("device-name")).replace(/\s*\(.+\)$/, ""), l: num(k("left-channel")), r: num(k("right-channel")), level: num(k("audio-level")), peak: num(k("peak-level")), rms: num(k("rms-level")), hold: hold < -200 ? -96 : hold };
-};
 const db2pct = (db: number) => Math.min(100, Math.max(0, ((db + 60) / 60) * 100));
 const P = (a: number, r: number, cx = 50, cy = 56): [number, number] => [cx + r * Math.sin((a * Math.PI) / 180), cy - r * Math.cos((a * Math.PI) / 180)];
 // Analog VU: needle springs with a slight overshoot
-function Vu({ v, label }: { v: number; label: string }) {
+function Vu({ v, label, color, hot }: { v: number; label: string; color: string; hot: string }) {
   const a = -48 + (Math.min(100, Math.max(0, v)) / 100) * 96;
   return (
     <svg viewBox="0 0 100 64" className="h-full w-full">
@@ -29,10 +24,10 @@ function Vu({ v, label }: { v: number; label: string }) {
         const ang = -48 + i * 8;
         const [x1, y1] = P(ang, 38);
         const [x2, y2] = P(ang, i % 2 ? 41 : 44);
-        return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke={i >= 10 ? STATE.crit : "var(--w-muted)"} strokeWidth={i % 2 ? 0.6 : 1} />;
+        return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke={i >= 10 ? hot : "var(--w-muted)"} strokeWidth={i % 2 ? 0.6 : 1} />;
       })}
-      <path d={`M${P(32, 46).join(",")}A46,46 0 0 1 ${P(48, 46).join(",")}`} fill="none" stroke={STATE.crit} strokeWidth="2" />
-      <path d={`M${P(-48, 46).join(",")}A46,46 0 0 1 ${P(32, 46).join(",")}`} fill="none" stroke="var(--accent)" strokeWidth="1" opacity=".6" />
+      <path d={`M${P(32, 46).join(",")}A46,46 0 0 1 ${P(48, 46).join(",")}`} fill="none" stroke={hot} strokeWidth="2" />
+      <path d={`M${P(-48, 46).join(",")}A46,46 0 0 1 ${P(32, 46).join(",")}`} fill="none" stroke={color} strokeWidth="1" opacity=".6" />
       <text x="50" y="40" textAnchor="middle" fontSize="7" fill="var(--w-faint)" letterSpacing="1">
         VU · {label}
       </text>
@@ -50,83 +45,146 @@ export interface AudioMeterProps extends ShellProps {
   device?: string;
   mode?: "single" | "bridge";
   segments?: number;
-  meterStyle?: "led" | "bar" | "vu" | "ring" | "mirror" | "wave";
+  /** `bar` is the accent → amber → red gradient fill, `solid` one colour that turns hot. */
+  meterStyle?: "led" | "bar" | "solid" | "vu" | "ring" | "mirror" | "wave";
+  /** Bridge only: a column per device (default) or a row per device. */
+  orientation?: "vertical" | "horizontal";
+  /** Device name (header, bridge labels); default on. */
+  showDevice?: boolean;
+  /** Peak / RMS / hold / level readouts; default on. */
+  showDetails?: boolean;
+  /** Muted marker (from the volume plugin); default on. */
+  showMute?: boolean;
+  /** Device volume; default off. */
+  showVolume?: boolean;
+  /** Meter response; unset draws the sensor value as it is. */
+  ballistics?: BallisticsPreset;
+  /** Colour of the level, default the accent. */
+  levelColor?: string;
+  /** Colour of the hot zone (clip / above 85 %), default red. */
+  hotColor?: string;
 }
 
 export default function AudioMeter(p: AudioMeterProps) {
   const d = p.data;
-  const all = ids(d);
+  const all = audioIds(d);
   const bridge = p.mode === "bridge";
-  const one = read(d, p.device ?? (all.includes("default-audio") ? "default-audio" : all[0]));
+  const one = readDevice(d, p.device ?? (all.includes("default-audio") ? "default-audio" : all[0] ?? ""));
   const lH = useHistory(one.l, 72, 0.6);
   const rH = useHistory(one.r, 72, 0.6);
+  const step = useMeterBallistics(p.ballistics);
   const st = p.meterStyle ?? "led";
-  const holdPct = db2pct(one.hold);
-  const channels: [string, number][] = [
-    ["L", one.l],
-    ["R", one.r],
+  const lc = p.levelColor || "var(--accent)";
+  const hc = p.hotColor || STATE.crit;
+  const showDevice = p.showDevice !== false,
+    showDetails = p.showDetails !== false,
+    showMute = p.showMute !== false;
+  const ls = step("l", one.l),
+    rs = step("r", one.r);
+  const holdPct = p.ballistics ? (ls.hold !== undefined || rs.hold !== undefined ? Math.max(ls.hold ?? 0, rs.hold ?? 0) : undefined) : db2pct(one.hold);
+  const channels: [string, number, number | undefined][] = [
+    ["L", ls.v, ls.hold],
+    ["R", rs.v, rs.hold],
   ];
+  const devices: AudioDevice[] = bridge ? all.map((id) => readDevice(d, id)) : [];
+  const name = showDevice ? one.name : "Audio";
   return (
     <Widget
       {...shell(p)}
-      title={p.title ?? (bridge ? "Audio levels" : one.name)}
+      title={p.title ?? (bridge ? "Audio levels" : name)}
       icon="graphic_eq"
       studio={
         bridge
-          ? {
-              label: "Audio levels",
-              meters: all.filter((id) => id !== "default-audio").map((id) => {
-                const m = read(d, id);
-                return { n: m.name, v: Math.max(m.l, m.r) };
-              }),
-            }
-          : { label: one.name, value: one.peak, d: 1, unit: "dB", meters: [{ n: "L", v: one.l }, { n: "R", v: one.r }] }
+          ? { label: "Audio levels", meters: devices.map((m) => ({ n: m.name, v: Math.max(m.l, m.r) })) }
+          : { label: name, value: one.peak, d: 1, unit: "dB", meters: [{ n: "L", v: one.l }, { n: "R", v: one.r }] }
       }
-      compact={bridge ? undefined : { label: one.name, value: one.peak, d: 1, pct: one.level, unit: "dB", sub: `L ${fmt(one.l)}% · R ${fmt(one.r)}%` }}
-      right={bridge ? undefined : <span className="font-mono text-[10.5px] text-[color:var(--w-muted)]">{fmt(one.peak, 1)} dB</span>}
+      compact={bridge ? undefined : { label: name, value: one.peak, d: 1, pct: one.level, unit: "dB", sub: showMute && one.muted ? "Muted" : `L ${fmt(one.l)}% · R ${fmt(one.r)}%`, t: showMute && one.muted ? "crit" : undefined }}
+      right={
+        bridge ? undefined : (
+          <span className="flex items-center gap-1.5 font-mono text-[10.5px] text-[color:var(--w-muted)]">
+            {showMute && one.muted && <span style={{ color: STATE.crit }}>Muted</span>}
+            {fmt(one.peak, 1)} dB
+          </span>
+        )
+      }
     >
-      {({ size }) =>
-        bridge ? (
-          <div className="flex h-full gap-2">
-            {all
-              .filter((id) => id !== "default-audio")
-              .map((id) => {
-                const m = read(d, id);
+      {({ size, h }) => {
+        if (bridge && p.orientation === "horizontal") {
+          const n = Math.max(1, Math.floor((h + 8) / (30 + 8)));
+          return (
+            <ul className="flex h-full flex-col justify-center gap-2 overflow-hidden">
+              {devices.slice(0, n).map((m) => {
+                const l = step(m.id + "l", m.l),
+                  r = step(m.id + "r", m.r);
                 return (
-                  <div key={id} className="flex min-w-0 flex-1 flex-col items-center gap-1.5">
+                  <li key={m.id} className="grid items-center gap-x-3" style={{ gridTemplateColumns: showDevice ? `${size === "xs" ? 64 : 96}px minmax(0,1fr)` : "minmax(0,1fr)" }} title={m.full}>
+                    {showDevice && (
+                      <span className="flex min-w-0 flex-col text-xs leading-tight">
+                        <span className="truncate font-semibold">{m.name}</span>
+                        {size !== "xs" && (
+                          <span className="text-[10.5px] tabular-nums text-[color:var(--w-faint)]">
+                            {p.showVolume && Number.isFinite(m.vol) ? `${fmt(m.vol)}%` : ""}
+                            {showMute && m.muted && <span style={{ color: STATE.crit }}> muted</span>}
+                          </span>
+                        )}
+                      </span>
+                    )}
+                    <div className="flex h-[22px] flex-col gap-[3px]">
+                      <LedLadder value={l.v} n={size === "lg" ? 32 : 20} color={lc} hotColor={hc} hold={l.hold} />
+                      <LedLadder value={r.v} n={size === "lg" ? 32 : 20} color={lc} hotColor={hc} hold={r.hold} />
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          );
+        }
+        if (bridge)
+          return (
+            <div className="flex h-full gap-2">
+              {devices.slice(0, 6).map((m) => {
+                const l = step(m.id + "l", m.l),
+                  r = step(m.id + "r", m.r);
+                return (
+                  <div key={m.id} className="flex min-w-0 flex-1 flex-col items-center gap-1.5">
                     <div className="flex min-h-0 w-full flex-1 justify-center gap-[3px]">
                       <div className="flex w-2">
-                        <LedLadder value={m.l} vertical n={size === "lg" ? 28 : 16} />
+                        <LedLadder value={l.v} vertical n={size === "lg" ? 28 : 16} color={lc} hotColor={hc} hold={l.hold} />
                       </div>
                       <div className="flex w-2">
-                        <LedLadder value={m.r} vertical n={size === "lg" ? 28 : 16} />
+                        <LedLadder value={r.v} vertical n={size === "lg" ? 28 : 16} color={lc} hotColor={hc} hold={r.hold} />
                       </div>
                     </div>
-                    {size !== "xs" && (
-                      <span className="w-full truncate text-center text-[10px] text-[color:var(--w-muted)]" title={m.name}>
+                    {size !== "xs" && showDevice && (
+                      <span className="w-full truncate text-center text-[10px] text-[color:var(--w-muted)]" title={m.full}>
                         {m.name}
+                        {p.showVolume && Number.isFinite(m.vol) ? ` · ${fmt(m.vol)}%` : ""}
+                        {showMute && m.muted && <span style={{ color: STATE.crit }}> · muted</span>}
                       </span>
                     )}
                   </div>
                 );
               })}
-          </div>
-        ) : size === "xs" ? (
-          <div className="flex h-full flex-col justify-center gap-1.5">
-            <div className="flex h-2">
-              <LedLadder value={one.l} n={16} />
             </div>
-            <div className="flex h-2">
-              <LedLadder value={one.r} n={16} />
+          );
+        if (size === "xs")
+          return (
+            <div className="flex h-full flex-col justify-center gap-1.5">
+              <div className="flex h-2">
+                <LedLadder value={ls.v} n={16} color={lc} hotColor={hc} />
+              </div>
+              <div className="flex h-2">
+                <LedLadder value={rs.v} n={16} color={lc} hotColor={hc} />
+              </div>
             </div>
-          </div>
-        ) : (
+          );
+        return (
           <div className="flex h-full flex-col justify-center gap-2">
             {st === "vu" ? (
               <div className="flex min-h-0 flex-1 gap-2">
                 {channels.map(([c, v]) => (
                   <div key={c} className="flex min-h-0 min-w-0 flex-1 items-center justify-center rounded-xl bg-[color:var(--w-track)] p-1">
-                    <Vu v={v} label={c} />
+                    <Vu v={v} label={c} color={lc} hot={hc} />
                   </div>
                 ))}
               </div>
@@ -135,19 +193,19 @@ export default function AudioMeter(p: AudioMeterProps) {
                 <svg viewBox="0 0 100 100" className="aspect-square h-full max-h-full -rotate-90">
                   {(
                     [
-                      [42, one.l],
-                      [31, one.r],
+                      [42, ls.v],
+                      [31, rs.v],
                     ] as const
                   ).map(([r, v]) => {
                     const c = 2 * Math.PI * r;
                     return (
                       <g key={r}>
                         <circle cx="50" cy="50" r={r} fill="none" stroke="var(--w-track)" strokeWidth="8" />
-                        <circle cx="50" cy="50" r={r} fill="none" stroke={v > 85 ? STATE.crit : "var(--accent)"} strokeWidth="8" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - Math.min(100, v) / 100)} style={{ transition: "stroke-dashoffset .25s" }} />
+                        <circle cx="50" cy="50" r={r} fill="none" stroke={v > 85 ? hc : lc} strokeWidth="8" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - clamp(v) / 100)} style={{ transition: "stroke-dashoffset .25s" }} />
                       </g>
                     );
                   })}
-                  <circle cx="50" cy="50" r="42" fill="none" stroke="var(--w-fg)" strokeWidth="8" strokeDasharray={`1.2 ${2 * Math.PI * 42}`} strokeDashoffset={-2 * Math.PI * 42 * (holdPct / 100)} />
+                  {holdPct !== undefined && <circle cx="50" cy="50" r="42" fill="none" stroke="var(--w-fg)" strokeWidth="8" strokeDasharray={`1.2 ${2 * Math.PI * 42}`} strokeDashoffset={-2 * Math.PI * 42 * (clamp(holdPct) / 100)} />}
                 </svg>
                 {size !== "sm" && (
                   <div className="flex flex-col gap-1 text-xs">
@@ -164,11 +222,11 @@ export default function AudioMeter(p: AudioMeterProps) {
                 {[0, 1, 2].map((row) => (
                   <div key={row} className="flex h-full max-h-4 items-stretch gap-[3px]">
                     <div className="flex flex-1">
-                      <LedLadder value={one.l * (1 - row * 0.18)} n={16} zones={[62, 81]} reverse />
+                      <LedLadder value={ls.v * (1 - row * 0.18)} n={16} zones={[62, 81]} reverse color={lc} hotColor={hc} />
                     </div>
                     <span className="w-px bg-[color:var(--w-faint)]" />
                     <div className="flex flex-1">
-                      <LedLadder value={one.r * (1 - row * 0.18)} n={16} zones={[62, 81]} />
+                      <LedLadder value={rs.v * (1 - row * 0.18)} n={16} zones={[62, 81]} color={lc} hotColor={hc} />
                     </div>
                   </div>
                 ))}
@@ -179,28 +237,47 @@ export default function AudioMeter(p: AudioMeterProps) {
               </div>
             ) : st === "wave" ? (
               <div className="relative min-h-0 flex-1">
-                <Spark values={lH} min={0} max={100} graph="area" className="absolute inset-x-0 top-0 h-1/2" />
-                <Spark values={rH} min={0} max={100} graph="area" className="absolute inset-x-0 bottom-0 h-1/2 -scale-y-100" color={hue(60)} />
+                <Spark values={lH} min={0} max={100} graph="area" className="absolute inset-x-0 top-0 h-1/2" color={p.levelColor} />
+                <Spark values={rH} min={0} max={100} graph="area" className="absolute inset-x-0 bottom-0 h-1/2 -scale-y-100" color={p.levelColor || hue(60)} />
                 <div className="absolute inset-x-0 top-1/2 h-px bg-[color:var(--w-track)]" />
               </div>
             ) : (
-              channels.map(([c, v]) => (
-                <div key={c} className={`flex items-center gap-2 ${size === "lg" ? "h-5" : "h-3"}`}>
-                  <span className="w-3 text-[10px] font-semibold text-[color:var(--w-faint)]">{c}</span>
-                  {st === "bar" ? (
-                    <div className="relative h-full flex-1 overflow-hidden rounded-full bg-[color:var(--w-track)]">
-                      <div className="absolute inset-y-0 left-0 rounded-full transition-[width] duration-100" style={{ width: `${Math.min(100, v)}%`, background: `linear-gradient(90deg, var(--accent) 0%, var(--accent) 60%, ${STATE.warn} 82%, ${STATE.crit} 100%)`, backgroundSize: `${(100 / Math.max(1, v)) * 100}% 100%` }} />
-                      <div className="absolute inset-y-0 w-[2px] bg-[color:var(--w-fg)] transition-[left] duration-300" style={{ left: `${holdPct}%` }} />
-                    </div>
-                  ) : (
-                    <div className="flex h-full flex-1">
-                      <LedLadder value={v} n={p.segments ?? (size === "sm" ? 20 : 32)} />
-                    </div>
-                  )}
-                </div>
-              ))
+              channels.map(([c, v, hold]) => {
+                const marker = p.ballistics ? hold : holdPct;
+                return (
+                  <div key={c} className={`flex items-center gap-2 ${size === "lg" ? "h-5" : "h-3"}`}>
+                    <span className="w-3 text-[10px] font-semibold text-[color:var(--w-faint)]">{c}</span>
+                    {st === "bar" || st === "solid" ? (
+                      <div className="relative h-full flex-1 overflow-hidden rounded-full bg-[color:var(--w-track)]">
+                        <div
+                          className="absolute inset-y-0 left-0 rounded-full transition-[width] duration-100"
+                          style={
+                            st === "solid"
+                              ? { width: `${clamp(v)}%`, background: v > 85 ? hc : lc }
+                              : { width: `${clamp(v)}%`, background: `linear-gradient(90deg, ${lc} 0%, ${lc} 60%, ${STATE.warn} 82%, ${hc} 100%)`, backgroundSize: `${(100 / Math.max(1, v)) * 100}% 100%` }
+                          }
+                        />
+                        {marker !== undefined && <div className="absolute inset-y-0 w-[2px] bg-[color:var(--w-fg)] transition-[left] duration-300" style={{ left: `${marker}%` }} />}
+                      </div>
+                    ) : (
+                      <div className="flex h-full flex-1">
+                        <LedLadder value={v} n={p.segments ?? (size === "sm" ? 20 : 32)} color={lc} hotColor={hc} hold={p.ballistics ? hold : undefined} />
+                      </div>
+                    )}
+                  </div>
+                );
+              })
             )}
-            {size !== "sm" && (
+            {p.showVolume && Number.isFinite(one.vol) && (
+              <div className="flex items-center gap-2 text-[10.5px] text-[color:var(--w-faint)]">
+                <span>Vol</span>
+                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[color:var(--w-track)]">
+                  <div className="h-full rounded-full" style={{ width: `${clamp(one.vol)}%`, background: one.muted ? "var(--w-faint)" : "var(--w-muted)" }} />
+                </div>
+                <span className="tabular-nums text-[color:var(--w-fg)]">{fmt(one.vol)}%</span>
+              </div>
+            )}
+            {showDetails && size !== "sm" && (
               <div className="mt-1 grid grid-cols-4 gap-3 font-mono text-[11px]">
                 {[
                   ["Peak", `${fmt(one.peak, 1)} dB`],
@@ -216,8 +293,8 @@ export default function AudioMeter(p: AudioMeterProps) {
               </div>
             )}
           </div>
-        )
-      }
+        );
+      }}
     </Widget>
   );
 }

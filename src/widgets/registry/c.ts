@@ -1,4 +1,6 @@
 // Template widgets, group C: media / audio (see docs/redesign/phase9/brief-9.3c-templates.md).
+import { audioSettings, ballisticsOf } from "@/modules/audio-modern";
+import { WAVELINK_SETTINGS, wavelinkToProps } from "@/modules/wavelink-modern";
 import type { DashboardModule, ModuleSettings } from "@/modules/types";
 import { templateModule } from "../module";
 import AudioMeter, { meta as audioMeter, type AudioMeterProps } from "../AudioMeter";
@@ -24,20 +26,21 @@ export const GROUP_C: DashboardModule[] = [
   templateModule({
     meta: audioMeter,
     Component: AudioMeter,
-    settings: [],
-    toProps: pick<AudioMeterProps>(["device", "mode", "segments", "meterStyle"]),
+    settings: audioSettings("showDevice", "showDetails", "showVolume", "showMute", "meterBallistics", "levelColor", "hotColor"),
+    toProps: (s) => ({ ...pick<AudioMeterProps>(["device", "mode", "segments", "meterStyle", "showDevice", "showDetails", "showVolume", "showMute", "levelColor", "hotColor"])(s), ballistics: ballisticsOf(s) }),
   }),
   templateModule({
     meta: volumeMixer,
     Component: VolumeMixer,
-    settings: [],
-    toProps: pick<VolumeMixerProps>([]),
+    // a lone colour would be a one-setting category: it sits in Content with the toggles
+    settings: audioSettings("showDevice", "showMute", "levelColor").map((d) => (d.key === "levelColor" ? { ...d, group: "Content" } : d)),
+    toProps: pick<VolumeMixerProps>(["showDevice", "showMute", "levelColor"]),
   }),
   templateModule({
     meta: meterBridge,
     Component: MeterBridge,
-    settings: [],
-    toProps: pick<MeterBridgeProps>(["channels", "orientation", "floor", "segments", "holdMs", "warnDb", "clipDb", "showScale", "showVolume", "ladder"]),
+    settings: audioSettings("showDevice", "showDetails", "showMute", "meterBallistics", "levelColor", "hotColor"),
+    toProps: (s) => ({ ...pick<MeterBridgeProps>(["channels", "orientation", "floor", "segments", "holdMs", "warnDb", "clipDb", "showScale", "showVolume", "ladder", "showDetails", "showMute", "levelColor", "hotColor"])(s), showName: s.showDevice as boolean, ballistics: ballisticsOf(s) }),
   }),
   templateModule({
     meta: visualizer,
@@ -45,5 +48,5 @@ export const GROUP_C: DashboardModule[] = [
     settings: [],
     toProps: pick<VisualizerProps>(["mode", "device", "bands", "ramp", "sensitivity", "peaks"]),
   }),
-  templateModule({ meta: waveLink, Component: WaveLink, settings: [], toProps: () => ({}) }),
+  templateModule({ meta: waveLink, Component: WaveLink, settings: WAVELINK_SETTINGS, toProps: wavelinkToProps }),
 ];

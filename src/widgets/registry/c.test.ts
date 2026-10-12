@@ -1,6 +1,6 @@
 import { createElement } from "react";
 import { renderToString } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { SensorMap } from "@/modules/types";
 import snapshot from "../__fixtures__/snapshot.json";
 import { toFlat } from "../data-adapter";
@@ -12,6 +12,9 @@ import Visualizer, { meta as visualizer } from "../Visualizer";
 import VolumeMixer, { meta as volumeMixer } from "../VolumeMixer";
 import WaveLink, { meta as waveLink } from "../WaveLink";
 import { GROUP_C } from "./c";
+
+// WaveLink reads the shared Wave Link client, not sensor keys: give it a connected one.
+vi.mock("@/lib/wavelink", async (orig) => ({ ...(await orig<typeof import("@/lib/wavelink")>()), ...(await import("../__fixtures__/wavelink")).wavelinkMock() }));
 
 const data = toFlat(snapshot.sensors as SensorMap);
 const WIDGETS = [
