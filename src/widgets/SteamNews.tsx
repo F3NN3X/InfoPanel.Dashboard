@@ -30,7 +30,14 @@ export default function SteamNews(p: SteamNewsProps) {
   const items: NewsItem[] = !library.length && has(N("current_game_news_title")) ? [{ game: get(d, "plugins.InfoPanel.SteamAPI.SteamAPI-Session.current-game"), title: N("current_game_news_title") }] : library;
   const first = items[0] ?? {};
   return (
-    <Widget {...shell(p)} title={p.title ?? "News"} icon="newspaper" compact={{ label: first.game ?? "News", value: first.title, sub: first.date, kind: "text", icon: "newspaper" }}>
+    <Widget
+      {...shell(p)}
+      title={p.title ?? "News"}
+      icon="newspaper"
+      // the studio value is one nowrap line, so it carries the headline count and the first headline goes in `sub` and the rows
+      studio={{ label: first.game ?? "News", value: items.length, unit: items.length === 1 ? "headline" : "headlines", sub: first.title, rows: items.map((n) => ({ n: n.title ?? "", v: n.date ?? "" })) }}
+      compact={{ label: first.game ?? "News", value: first.title, sub: first.date, kind: "text", icon: "newspaper" }}
+    >
       {({ size, h }) => (
         <ul className="flex h-full flex-col gap-3 overflow-hidden">
           {items.slice(0, useFitRows(h, 18 + 22 * lines, 12)).map((n, i) => (
