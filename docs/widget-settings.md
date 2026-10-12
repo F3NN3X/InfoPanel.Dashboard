@@ -76,7 +76,7 @@ module's `render` filters its groups to that container when set.
 
 ## The standard block (`STANDARD_SETTINGS`)
 
-Every adaptive (modern) widget spreads
+Every widget spreads
 `STANDARD_SETTINGS` (`src/modules/standard-settings.ts`) into its
 `settings`, so every widget offers the same core customization:
 
@@ -90,7 +90,12 @@ Every adaptive (modern) widget spreads
 | `accent` | color | `""` | accent for fills / header icon (empty = auto) |
 | `background` | image | `""` | background image URL |
 | `backgroundOn` | boolean | `false` | use that image behind the surface |
-| `autoScale` | boolean | `true` | scale the content with the zone (see Scaling) |
+| `skin` | select | `auto` | auto / one of the 14 skins (see Look below) |
+| `variant` | select | `default` | default / studio (see Look below) |
+| `graph` | select | `auto` | graph style: auto / area / line / step / bars / dots / braille (Advanced) |
+| `meter` | select | `auto` | meter style: auto / bar / pill / segments / blocks / hair / wave / square (Advanced) |
+| `compactView` | select | `auto` | auto / off: off keeps the full layout in small zones (Advanced) |
+| `autoScale` | boolean | `true` | kept for older configs; see Scaling |
 | `scale` | number | `100` | size %, 50–200, on top of auto-scale |
 | `alignX` + `alignY` | align | `auto` | one picker: left / center / right / spread × top / middle / bottom |
 | `padding` | select | `auto` | inner padding, px |
@@ -110,20 +115,20 @@ Every adaptive (modern) widget spreads
 | `surfaceOpacity` | number | `100` | surface background opacity %, 0–100 |
 | `blur` | select | `auto` | backdrop blur, px |
 
-Everything from `autoScale` through `customCss` is `STYLE_SETTINGS`; the
+Everything from `skin` through `customCss` is `STYLE_SETTINGS`; the
 surface keys after it are `SURFACE_SETTINGS` (widgets with a surface box).
-The plain card modules (VBZ, notifications, text file, Stream Deck) and the
-"Other sensors" cards spread `CARD_SETTINGS` instead: `surface` (default
-`theme`, the shadcn card they always had), `accent`, `STYLE_SETTINGS` and
-`SURFACE_SETTINGS`, drawn by `StyledCard` (below). Web page takes `scale`,
-`radius`, `accent` and the border / glow keys (an edge drawn over the
-frame). In the studio the standard options sit in the **general
+The plain card modules (Departures, notifications, text file, Stream Deck) add
+`CARD_SETTINGS` after their own options, and the "Other sensors" cards use it
+alone: `surface` (default `theme`, the shadcn card they always had), `accent`,
+`STYLE_SETTINGS` and `SURFACE_SETTINGS`. Web page takes `scale`, `radius`,
+`accent` and the border / glow keys (an edge drawn over the frame). In the studio the standard options sit in the **general
 categories**, the same sections on every widget (`group` carries the title; the
 keys are listed in `GENERAL_CATEGORIES`):
 
 | Category | Keys |
 |---|---|
 | Widget | `label`, `icon`, `hideWhenIdle` (plus the type picker and *Visible*, added by the zone) |
+| Look | `skin`, `variant`, `graph`, `meter`, `compactView` (the last three are Advanced) |
 | Size & alignment | `layout`, `autoScale`, `scale`, `alignX` / `alignY` |
 | Typography | `textColor`, `mutedColor`, `font`, `fontWeight`, `labelCase` |
 | Spacing & shape | `padding`, `gap`, `radius`, `stroke` |
@@ -140,6 +145,37 @@ Modules with an idle rule (`DashboardModule.isIdle`: media / Spotify not
 playing, FPS without frames, Steam not in a game, notifications with none
 unread) add `IDLE_SETTING` (`hideWhenIdle`): the kiosk then hides the zone
 while idle, and the studio badges it "idle · hidden in kiosk".
+
+### Look: skin, variant, graph and meter
+
+The Look keys restyle a widget's whole drawing, not just its colors. They are
+ordinary look keys: they resolve default → dashboard → profile → widget, obey
+Follow / Custom and Force global style, show source dots, and are saved in
+style presets and appearance presets. Their defaults (`auto` / `default`)
+leave a widget looking as it always did.
+
+- **Skin** — `auto` or one of 14: `default`, `tui`, `macos`, `fluent`, `hud`,
+  `ink`, `retro`, `ios`, `android`, `synth`, `cyber`, `nixie`, `brutal`,
+  `instrument`. A skin sets the header style, numeral and label fonts (loaded
+  on first use), corner radius, ring thickness, and the default graph and meter
+  style. It also brings its own surface: with a skin chosen and no `surface`
+  saved, the skin's surface is used; a saved `surface` always wins, and the
+  default stays `glass` while the skin is `auto`. A skin's own accent applies
+  only while no accent is set and the surface is not light.
+- **Variant** — `default`, or `studio`, a dense summary of the same data (a
+  headline value, a trend and a few rows) drawn instead of the normal layout.
+- **Graph style** and **Meter style** — override the skin's choice for every
+  sparkline-type graph and for bars and meters in the widget (`auto` = the
+  skin's).
+- **Compact view** — zones of 1 x 1, strip or column shape swap to a compact
+  summary of tile, strip or column form (`auto`); `off` keeps the full layout.
+  Widgets without a compact descriptor ignore it.
+
+Skin, variant, graph, meter and compact view are drawn by the shared widget
+shell (below). They have no effect on custom panel zones, which hide
+`variant` and `compactView` (`NOT_FOR_PANELS`); with a skin set, a panel's bars,
+sparklines, gauges and numerals take the skin's primitives (see
+[architecture.md](architecture.md#the-widget-shell)).
 
 ### Global style, copy / paste and style presets
 
@@ -299,14 +335,14 @@ measurements. Options:
 | `meterOrientation` | horizontal / vertical | `horizontal` |
 | `meterBallistics` | peak (fast attack + peak-hold) / vu (slow) / instant | `peak` |
 
-In stacked (card) layouts a vertical meter renders *inline* (short meter +
+In stacked layouts a vertical meter renders *inline* (short meter +
 readout on one line per device) so many devices fit; the standard layout
 keeps full-height columns.
 
 ### Live waveform — `spotifymodern` / `mediamodern`, `waveform: true`
 
-Renders the audiocn **`LiveWaveform`** in place of the progress bar (card +
-standard layouts; compact / simple keep the progress pill / bar), so it
+Renders the audiocn **`LiveWaveform`** in place of the progress bar (the
+roomier size tiers; the compact view keeps the progress bar), so it
 animates in real time. The sensor stream carries no clip peaks, so it is
 fed by a small frame source (`lib/audio/sensor-visual-source.ts` +
 `hooks/use-sensor-visual-source.ts`):
@@ -389,46 +425,60 @@ kiosk's WebView2 host auto-grants it via a `PermissionRequested` handler
 | `liveCapture` | on / off | `off` |
 | `liveSources` | capture devices (one labeled row each); `""` = fall back to the sensor row | `""` |
 
-The audiocn views are options on the modern widgets only (the classic
+The audiocn views are options of the Audio and Now Playing widgets only (the classic
 `audio` / `spotify` / `media` modules were retired in the 2026-10-09
 cleanup). The static `Waveform` component remains vendored but is no longer
 used by the widgets (the `waveform` view is now live).
 
 ## Shared primitives
 
-Two small libraries back the trend/gauge looks (the reference dashboards'
-"history" sparklines and temp-gauge cards):
+The library's drawing parts live in `src/widgets/core/primitives.tsx` and are
+re-exported from `src/widgets/kit.ts`; a widget imports them from the kit.
 
-- **`lib/sparkline.tsx`** — `useHistory(value, size)` keeps a rolling window
-  of the last `size` *changed* samples (same number doesn't flatten the
-  line); `Sparkline` renders it as an SVG trend line with a soft gradient
-  fill. Used by `ModernSystem`, `ModernFps`, `ModernNetwork`.
-- **`lib/gauge.tsx`** — `ArcGauge` (a 270° arc, value colored by the
-  caller), plus `tempColor(t)` (green → amber → red at 55 / 70 / 85 °C) and
-  `tempWord(t)` (`Cool` / `Normal` / `Warm` / `Hot`). Used by
-  `ModernHardware` in its "temps" view.
+- **`Num`**, **`Bar`**, **`Spark`**, **`Ring`**, **`RingStack`**,
+  **`LedLadder`**, **`MiniViz`** and the other primitives read the active skin
+  (`useSkin`): numerals use the skin's font, a bar or meter takes the skin's
+  meter style unless the Meter style look key is set, a graph the skin's or
+  the Graph style look key's. A widget never sets a font or a fixed accent of
+  its own.
+- **`useHistory(value, len)`** (`core/layout.ts`) keeps an eased rolling window
+  of the last samples for any graphed value.
+- **State colors** — `STATE` (ok / warn / crit) are the only fixed colors;
+  everything else derives from the accent (`hue(deg)`).
 
-## The chrome layer (`ModernChrome`)
+The panel widgets keep their own small set: `lib/sparkline.tsx` (`useHistory`,
+`Sparkline`) feeds the panel `sparkline` widget; with a skin set the panel
+renderers use the library primitives instead (`components/widgets/panel-skin.tsx`).
 
-`components/modern-chrome.tsx` renders the standard keys identically in
-every modern widget; each component wraps its body in it:
+## The widget shell and the chrome layer
+
+Every library widget renders inside one `<Widget>` shell
+(`src/widgets/core/Widget.tsx`); a widget never draws its own background,
+border or radius. The shell applies the standard keys identically to all of
+them: `chromeOf(cfg)` (`standard-settings.ts`) turns the resolved settings
+into a `chrome` object, and the shell turns that into the surface box, text
+colors, font, padding, header, background image and scoped CSS. The `look`
+(resolved settings) reaches the shell through the module factory
+(`src/widgets/module.tsx`), so a widget file only declares what it draws:
 
 ```tsx
-<ModernChrome chrome={chrome} designSize={DESIGN} className={className}>
-  <div ref={ref} className="h-full w-full">{body}</div>
-</ModernChrome>
+<Widget {...shell(p)} title="Fans" icon="mode_fan" compact={…}>
+  {({ w, h, size, shape }) => /* content for the inner box */}
+</Widget>
 ```
 
-The measuring `ref` sits *inside* the chrome: the content is zoomed
-between the two, and a ResizeObserver inside a CSS `zoom` reports the
-unzoomed size, so the widget picks its variant and sizes its rings in its
-own coordinate space.
+The shell measures its own outer box and gives the content a size tier
+(`xs` / `sm` / `md` / `lg`) and a shape (`tile` / `strip` / `column` / `box`).
+Content is given the *inner* size after padding and header, so row counts and
+font sizes come from the room that is really there. `ModernChrome`
+(`components/modern-chrome.tsx`) remains the root of custom panel zones; the
+`ModernChrome` type is the `chrome` object both use.
 
-- **Scaling** — the content box gets `zoom: s`, so text, rings and spacing
-  scale together. `s` is the user's Size % times, with `autoScale` on,
-  `min(zone.w / design.w, zone.h / design.h)` clamped to 1–3 (never shrunk), where
-  `designSize` is the zone size the widget's layout looks right at
-  (`byShape({ wide, tall, square })` picks one by the zone's shape).
+- **Scaling** — the content box gets `zoom: s`, where `s` is the user's Size %
+  (50–200). The tier and shape are measured after the zoom, and the padding
+  option is not scaled by it. Library widgets adapt to their zone by tier and
+  shape rather than by scaling, so `autoScale` has no effect on them (the
+  key stays stored for older configs).
 - **Style variables** — the chosen options become `--wp-pad`, `--wp-gap`,
   `--wp-radius`, `--wp-fg`, `--wp-muted`, `--wp-weight`, `--wp-label-case`,
   `--wp-x` / `--wp-y` (+ `-cross`), `--wp-text-align`, `--wp-flex`, and the
@@ -451,88 +501,92 @@ own coordinate space.
   clipped by the zone. Opacity rewrites the alpha of every color in the
   surface background (`fadeColors`: rgb / hex and theme token colors
   `hsl(var(--x))` / `hsl(var(--x) / a)`), so gradients fade too.
-- **Surfaces** — `makeSurface(style, tint)` (`components/surfaces.ts`)
-  gives the colors: glass / matte-light / matte-dark are fixed palettes
-  (optionally tinted); `theme` is `hsl(var(--card) / 0.85)` with
-  card-foreground text, muted-foreground secondary text, a muted track, a
-  primary fill and a border ring — it follows the theme preset and the
-  re-scoped tokens, and ignores a tint.
-- **Plain cards** — `StyledCard` (`components/styled-card.tsx`) is the
-  card of the legacy modules and the catch-all cards:
-  `surfaceBox(surfaceColors(surface), chrome)` with `ws.radius` and the
-  surface's `--wp-fg`-aware text color. A fixed-palette surface also sets
-  the text and chip tokens (`surfaceTokens`) unless the user picked text
-  colors, so content drawn with `text-foreground` / `bg-secondary` stays
-  legible on it.
+- **Surfaces** — the shell resolves the `surface` setting through the surface
+  registry (`src/widgets/core/surfaces.ts`, `theme.ts`). `glass`,
+  `matte-light`, `matte-dark` and `theme` are the app's own materials
+  (`makeSurface`, `components/surfaces.ts`): fixed palettes, optionally
+  tinted; `theme` is `hsl(var(--card) / 0.85)` with card-foreground text, a
+  muted track, a primary fill and a border ring, so it follows the theme
+  preset and the re-scoped tokens and ignores a tint. The registry adds the
+  skins' own surfaces, which a skin picks when no `surface` is saved. Each
+  surface has a tone (dark, light or theme) and the shell derives the text
+  variables `--w-fg`, `--w-muted`, `--w-faint` and `--w-track` from it.
+- **Plain cards** — the card modules (Departures, notifications, text file,
+  Stream Deck) and the catch-all "Other sensors" cards are template widgets
+  too, so they use the same shell; their surface defaults to `theme`. A
+  fixed-palette surface also sets the text and chip tokens (`surfaceTokens`)
+  unless the user picked text colors, so content drawn with `text-foreground`
+  / `bg-secondary` stays legible on it.
 - **Custom CSS** — rendered as a `<style>` wrapped in
   `@scope ([data-wp-scope="…"])` on the chrome root, so selectors match
   inside this widget only. It is the user's own dashboard: the CSS is not
   sanitized beyond that scope.
 
 - **Background image** — when `backgroundOn && background`, the image sits
-  behind the surface (`object-cover`, under a scrim of the theme's page
-  color at 45 %: dark themes darken it, light themes lighten it).
+  behind the surface (`object-cover`, under a 45 % scrim: black on a dark
+  surface, white on a light one, the theme's page color on the theme surface).
   Glass surfaces let it show through; matte surfaces cover it (intended).
   Steam: a game banner always wins; the user's image is the fallback when
   there is no banner.
-- **Header** — an icon + custom-title line, top-left, only when set, in the
-  text color (`--wp-fg`, else the theme's) at 75 %.
+- **Header** — an icon + custom-title line, only when set, in the header
+  style of the skin (plain, boxed, window bar, …), in the text color
+  (`--w-fg`) at 75 %. The small size tier and the compact view hide it.
 - **Accent** — exposed to the widget as the `--wp-accent` CSS variable;
   components opt in per element, e.g.
   `background: "var(--wp-accent, #34d399)"` — the widget's default when the
   user picks no accent.
 
-Where the accent lands per widget:
+The shell sets the accent as `--accent` on the widget root (and the legacy
+`--wp-accent`); primitives read it, so a bar, ring or sparkline takes the
+accent unless it shows a state (ok / warn / crit), which keeps its fixed
+color. A skin may bring its own accent (ink, synth, cyber, nixie,
+instrument); an accent set on the zone, the profile or the dashboard always
+wins over it. Secondary series are rotated from the accent with `hue(deg)`.
+Where it lands per widget is the widget's own business: the big temperature
+in Weather, the progress fill in Now Playing, the ring track in FPS Monitor,
+and so on; the per-widget color options (device colors, speed colors,
+battery colors, …) override it for one element.
 
-| widget | accent tints |
-|---|---|
-| `ModernNowPlaying` (media/spotify) | progress fill (overrides the surface fill) |
-| `ModernWeather` | the big temperature |
-| `ModernSteam` | the big total-playtime |
-| `ModernFps` | the ring track (value arc keeps its semantic color) |
-| `AudioMeter` | level bar fill (red > 85% stays semantic) |
-| `Bluetooth` (template) | battery bar fill (accent tier; amber/red stay) |
-| `ModernHardware` | the "other" kind-dot |
-| `ModernNetwork` | the utilization bar (DL/UL keep their green/blue) |
-
-The module builds the `chrome` prop from resolved settings with the shared
-`chromeOf(cfg)` helper (`standard-settings.ts`).
+The shell builds the `chrome` object from the resolved settings with the
+shared `chromeOf(cfg)` helper (`standard-settings.ts`).
 
 ## Adopting the standard block (new widget)
 
-Three steps, all in the module file:
+A library widget is a component over flat data plus a registration; the
+factory `templateModule` (`src/widgets/module.tsx`) adds the standard block,
+the Look keys, the shell props and the empty state:
 
 ```ts
-import { chromeOf, STANDARD_SETTINGS } from "./standard-settings";
+export const MY_SETTINGS: ModuleSetting[] = [
+  { key: "showUnit", label: "Show unit", type: "boolean", default: true, group: "Content" },
+];
 
-settings: [
-  ...STANDARD_SETTINGS,
-  { key: "tint", label: "Tint from cover art", type: "boolean", default: true },
-],
-
-render: (sensors, s) => {
-  const cfg = effectiveSettings(myModule, s);
-  return (
-    <MyComponent
-      /* data props… */
-      layout={String(cfg.layout) as ModernVariant | "auto"}
-      surfaceStyle={String(cfg.surface) as ModernStyle}
-      chrome={chromeOf(cfg)}
-    />
-  );
-},
+templateModule({
+  meta,                       // id, name, category, icon, min / default size, description
+  Component: MyWidget,        // renders <Widget {...shell(p)}> over `data`
+  settings: MY_SETTINGS,    // after STANDARD_SETTINGS
+  toProps: (s) => ({ showUnit: s.showUnit !== false }),
+});
 ```
 
-And in the component: add `chrome?: ModernChrome` to the props, make
-`<ModernChrome chrome={chrome} designSize={…}>` the root with the measuring
-`ref` on a div inside it, and opt elements in: accent with
-`var(--wp-accent, <default>)`, the surface box with `surfaceBox(sv, chrome)`
-and its padding / gap / radius with `ws.*`, the main flex with `flow()`,
-captions with `labelStyle()`, values with `ws.weight()`, strokes with
-`strokeOf()`. A widget whose content grows with its options should size
-`designSize` from what it shows (`ModernSystem`'s `designFor`), so
-auto-scale doesn't zoom a full widget as if it were empty. `ModernSystem`
-is the reference.
+- The module's `render` reads the sensors through the data adapter
+  (`toFlat`, below), resolves the zone's look (`useZoneLook`: defaults,
+  then the skin's surface when none is saved), and passes `shellProps(look)`,
+  `toProps(look)` and `look` to the component. The component spreads
+  `shell(p)` onto `<Widget>`, which applies the look.
+- Stored keys never change: `toProps` maps the stored settings to props, so a
+  prop named like a standard key (`layout`, `icon`, `label`, `surface`,
+  `style`) is stored under another name (Now Playing `playerLayout`, Game
+  Spotlight `spotlightLayout`).
+- Colors and sizes come from the primitives and CSS variables, never from
+  fixed greys or fonts: the shell sets `--w-fg`, `--w-muted`, `--w-faint` and
+  `--w-track` from the surface, so text stays legible on light surfaces.
+- Fit, don't overflow: row counts come from the inner height, big numbers get a
+  font size fitted to their width, and anything that cannot fit is dropped,
+  not clipped. `?widget-qa` (see [architecture.md](architecture.md#qa-harness))
+  checks this at six spans.
+- A legacy module id that should keep loading passes `alias: { id, title, … }`;
+  it is hidden from the Library and keeps its own settings array key for key.
 
 ## Extending
 

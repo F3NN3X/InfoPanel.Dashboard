@@ -104,14 +104,15 @@ scroll horizontally; sections are never split between columns.
   the bin removes it. Hidden zones are dimmed but stay selectable (and do not
   show in the kiosk).
 - **Add** - every widget and panel, with a search box and category chips
-  (All, Layouts, My panels, System, Media, Network, Info, Other), in the
+  (All, Layouts, My panels, System, Hardware, Storage, Network, Media, Audio,
+  Info, Gaming, Generic), in the
   groups Widgets, Layouts, Panels and My panels (see
   [Creating a panel](#creating-a-panel)). **Drag** a card onto the canvas -
   a dashed ghost shows where it lands, or **No room** in red - or **click** it
   to place it at the first free spot. With a blank zone selected, a click
   fills that zone instead. The numbers are the minimum zone size in grid
   cells, and a badge counts how often a widget is already on the profile.
-  *Other sensors* is listed here too.
+  *Other sensors* is listed here too, under Generic.
 - **Profiles** - the monitor profiles. Click one to pin it, or pick **Auto
   (match window)**, which shows the profile closest to the window size (the
   entry names the one it picks, and that profile is tagged *auto*). **New**
@@ -287,7 +288,9 @@ them.
     *Waveform*, *Visualizer*, *Audio source*; System: *Devices*, *CPU*,
     *GPU*, *Memory*, *Drives*, *Trends*, *Thresholds*, *Units & labels*;
     Weather: *Display*, *Current conditions*, *Forecast*).
-  - *Style*: **Size & alignment** (**Layout** for the adaptive widgets,
+  - *Style*: **Look** (**Skin**, **Variant**; **Graph style**, **Meter
+    style** and **Compact view** are advanced - see [Skins and
+    variants](#skins-and-variants)), **Size & alignment** (**Layout**,
     **Scale with the zone**, **Size %**, the 3×3 **Alignment**),
     **Typography** (**Text color**, **Secondary text color**, **Font**,
     **Value weight**, **Label case**), **Spacing & shape** (**Inner
@@ -307,7 +310,7 @@ them.
   - **Web Page** has reduced styling: Colors & surface, Border & effects and
     Advanced only. The plain card widgets (Departures, Notifications, Text
     File, Stream Deck and the *Other sensors* cards) offer fewer of the
-    standard options than the modern widgets.
+    standard options than the other widgets.
 - **Panel zone** - *Content*: **Panel** (Visual or Code, Fill or Hug, gap,
   padding), **Layout** (Stack / Grid / Overlay options), **Background**
   (Overlay only), **Widgets**, and with a widget selected its cards under
@@ -665,19 +668,17 @@ panel's CSS.
 
 ## Scaling with the zone and Size %
 
-Every widget is designed for a certain size. With **Scale with the zone** on
-(the default), the content zooms to fit the zone: text, rings and spacing
-grow together when you make the zone bigger. It only grows content, between
-1x and 3x. A zone smaller than the design size is handled by the widget's
-compact layouts instead of shrinking.
+Widgets fit themselves to their zone: each one measures its zone, picks a
+layout for that size and shape (a 1×1 zone gets a compact tile, a wide strip a
+row, a larger box the full layout) and sizes its text, rings and rows from the
+room that is there. Making a zone bigger therefore shows more, not just larger
+content. The **Layout** option (Auto, Card, Standard, Compact, Simple) fixes
+the size class instead of measuring it.
 
-**Size (%)** (50-200) multiplies on top of that. Use it to make everything
-smaller or larger than the automatic fit. With **Scale with the zone** off,
-only Size % applies and the content keeps its natural size.
-
-A widget whose content grows with its options can raise its design size to
-match; the System widget does (see [system-widget.md](system-widget.md)), so
-the same zone zooms less when you switch more details on.
+**Size (%)** (50-200) zooms the content on top of that, and the layout is
+chosen from the zoomed size: 150 % in a zone makes the widget behave as if the
+zone were smaller. **Scale with the zone** is kept for older dashboards and
+changes nothing for widgets; only Size % applies.
 
 ## Alignment
 
@@ -690,6 +691,35 @@ vertical position). Left, center and right keep items at their natural size
 and move them. When the content is wider than the zone, a
 centered or right-aligned layout overflows at its end instead of cutting off
 its start.
+
+## Skins and variants
+
+The **Look** section (Style tab) restyles a whole widget, not just its colors.
+It resolves like every other look setting: you can set it once for the
+dashboard or a profile (Global style) and let widgets follow it.
+
+- **Skin** - Auto, or one of fourteen, each with its own fonts, corner
+  radius, header and graph and meter style: `default` (studio card), `tui`
+  (btop-style terminal), `macos`, `fluent` (Windows 11), `hud` (sci-fi HUD),
+  `ink` (monochrome editorial), `retro` (CRT terminal), `ios`, `android`
+  (Material You), `synth` (synthwave), `cyber` (cyberpunk), `nixie`, `brutal`
+  (neo-brutalist) and `instrument` (instrument rack). A skin brings its own
+  surface unless you pick one under *Colors & surface*, and its own accent
+  unless you set an accent. Its fonts load on first use; offline, the widget
+  falls back to the standard stack. **Font** under *Typography* overrides the
+  skin's fonts.
+- **Variant** - Default, or Studio: a dense summary of the same data (a
+  headline value, a trend and a few rows).
+- **Graph style** (advanced) - Auto, area, line, step, bars, dots or braille:
+  how trends are drawn.
+- **Meter style** (advanced) - Auto, bar, pill, segments, blocks, hair, wave
+  or square: how bars and level meters are drawn.
+- **Compact view** (advanced) - Auto, or Off. In a small zone most widgets
+  swap to a compact summary; Off keeps the full layout.
+
+Auto and Default leave a widget as it was. Skin, Graph style and Meter style
+also reach panels: with a skin set, a panel's bars, sparklines, gauges and
+numbers use the skin's drawing. Without a skin they render as before.
 
 ## Spacing and shape
 
@@ -748,14 +778,15 @@ dashboard wraps it in `@scope`, so selectors match inside the widget, and
 CSS `@scope` support; InfoPanel's web page profile uses a current WebView2.
 The CSS is not checked beyond that scope, since it is your own dashboard.
 
-The structure you can rely on (from `src/components/modern-chrome.tsx`):
+The structure you can rely on (from `src/widgets/core/Widget.tsx`; custom
+panels use `src/components/modern-chrome.tsx`, which is similar):
 
 ```
 :scope                       the root; fills the zone, position: relative
 ├─ img + overlay             only with a background image in use
-├─ div.z-10                  the zoomed content: scaled by Scale / Size %
-│    └─ the widget (surface box, rings, text, …)
-└─ div                       the title header, only when an icon or title is set
+└─ div                       the padded content box: scaled by Size %
+     ├─ the skin header      only when a title or icon is set (hidden in small zones)
+     └─ div                  the widget's content (surface box, rings, text, …)
 ```
 
 Lengths inside the content are scaled by the zoom; `:scope` itself and its

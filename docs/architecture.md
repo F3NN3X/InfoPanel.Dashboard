@@ -90,9 +90,10 @@ one in-flight fetch, and starts over when the Data API URL changes.
 extension, a sensor key naming an image field, a known image CDN, or a Data
 API image path). `resolveImageUrl` resolves a root-relative
 `/api/images/…` path against the Data API URL rather than the dashboard
-server. To sample colors from cover art, `ModernNowPlaying` fetches it through
-`/api/image-proxy?url=` on the dashboard server (https anywhere, http only on
-loopback).
+server. To sample colors from cover art, the Now Playing widget fetches it
+(`src/widgets/NowPlaying/art-tint.ts`) through `/api/image-proxy?url=` on the
+dashboard server (https anywhere, http only on loopback), except same-origin
+images, which it loads directly.
 
 ## 2. Per-zone rendering
 
@@ -160,32 +161,36 @@ that sets a value wins from the right:
 Placement.settings
   → resolveWith(appearance, settings, styleMode) dashboard → profile → own (see above)
   → mod.render(sensors, settings)
-       → effectiveSettings(mod, settings)         module defaults fill the rest
-       → chromeOf(cfg)                            settings → the `chrome` prop
-       → <Component chrome={…}>
-            → <ModernChrome>                      zoom / auto-scale, --wp-* variables and the
-                                                  re-scoped theme tokens (tokenScope), scoped
-                                                  custom CSS, background, header
-                 → surfaceBox(sv, chrome)         surface, border, glow, opacity, blur
+       → hasKeys(sensors, prefixes)               no key under the prefixes: null (no data)
+       → <TemplateZone>                           src/widgets/module.tsx (templateModule)
+            → toFlat(sensors), toNames(sensors)   the data adapter, memoised per map
+            → useZoneLook(defs, settings)         effectiveSettings; a chosen skin brings its
+                                                  surface; skin fonts are loaded
+            → <Component data names {...shellProps(look)} {...toProps(look)} look>
+                 → <Widget {...shell(p)}>         the shell (below): chromeOf(look) → zoom,
+                                                  surface box, text variables, header
+                      → content / <CompactView> / <StudioView>
   → PlacementFrame                                grid position, the zone's re-scoped tokens
                                                   (PlacementRender.scope); studio chrome or kiosk plain
 ```
 
 - `effectiveSettings` is in `src/modules/types.ts`,
-  `chromeOf` in `src/modules/standard-settings.ts`, `ModernChrome` in
-  `src/components/modern-chrome.tsx`, `surfaceBox`, `tokenScope` and the
-  `--wp-*` helpers in `src/components/widget-style.ts`, the surfaces
-  (`makeSurface`, the theme surface, `surfaceColors` / `surfaceTokens` for
-  the plain cards) in `src/components/surfaces.ts`, and `StyledCard` (the
-  legacy modules' and the catch-all cards' box) in
-  `src/components/styled-card.tsx`. The keys and their effects are in
-  [widget-settings.md](widget-settings.md).
-- `ModernChrome` zooms its content box (`zoom`), so text, rings and spacing
-  scale together. The widget measures itself in the unzoomed space and picks
-  its layout variant there.
+  `chromeOf` in `src/modules/standard-settings.ts`, `surfaceBox`, `tokenScope`
+  and the `--wp-*` helpers in `src/components/widget-style.ts`, and the
+  shared materials (`makeSurface`, the theme surface, `surfaceColors` /
+  `surfaceTokens`) in `src/components/surfaces.ts`. The keys and their effects
+  are in [widget-settings.md](widget-settings.md).
+- Every zone type that is a module goes this way: the 50 library templates, the
+  legacy ids (aliases of a template, `alias` in `templateModule`) and the
+  "Other sensors" catch-all (`src/modules/other-sensors.tsx`, one `SensorValue`
+  per unclaimed key). Only custom panels take the other pipeline (below).
+- `ModernChrome` (`src/components/modern-chrome.tsx`) is now the root of
+  panel zones; library widgets get the same `chrome` object from the shell.
 - A `render` that returns `null` means "no data": the studio shows a
   placeholder, the kiosk leaves the zone empty (`PlacementFrame` renders
-  nothing when `hasData` is false or the zone is blank).
+  nothing when `hasData` is false or the zone is blank). A template renders
+  nothing only while no key under its prefixes exists; `SENSORLESS` ids
+  (Clock, Calendar, Web Page, Wave Link) always render.
 - **Idle.** A module may define `isIdle(sensors, settings)`. When the
   placement's `hideWhenIdle` setting is on and `isIdle` is true,
   `placementContent` reports `idle: true`. The kiosk passes
@@ -193,6 +198,77 @@ Placement.settings
   studio keeps the zone and badges it "idle - hidden in kiosk".
 - `Placement.design` (accent, background, title header) is applied by
   `PlacementFrame` around the content, separately from the widget settings.
+- **Errors.** `PlacementFrame` wraps each zone in a boundary
+  (`src/components/zone-error-boundary.tsx`): a widget that throws shows a
+  small error tile and the other zones keep rendering.
+
+### The widget shell
+
+`src/widgets/` is the widget library: 50 templates, each a component over flat
+string data, drawn inside one `<Widget>` (`src/widgets/core/Widget.tsx`).
+`src/widgets/kit.ts` re-exports what a widget file needs from `core/`.
+
+- **Measuring.** `useBox` observes the shell's outer size and returns a
+  `Box`: `w`, `h`, a size tier (`xs` < 220×140 ≤ `sm` < 340×210 ≤ `md` <
+  500×320 ≤ `lg`) and a shape from the zone's aspect (`tile`, `strip`,
+  `column`, `box`). The standard `layout` option forces the tier. The
+  content callback receives the *inner* size (after padding and header) too,
+  so a widget counts its rows from the room that exists.
+- **Views.** Besides its normal layout a widget gives the shell a `compact`
+  descriptor (a tile, strip or column summary, used when the shape is not
+  `box` and `compactView` is not `off`) and a `studio` descriptor (the dense
+  variant). `CompactView` and `StudioView` (`core/views.tsx`) draw them.
+- **The look.** The shell maps the standard look keys onto the zone
+  (`core/look.ts`): `chromeVars`, the surface box with border, glow, opacity and
+  blur (`lookBox`), text colors, font and weight (replacing the skin's), label
+  case, padding and gap (overriding the tier padding), `stroke` (scaling ring
+  and graph strokes), the background image with a scrim, the scoped custom CSS
+  and the header icon and title. Size % zooms the content box; the tier and
+  shape are measured after the zoom.
+- **Text colors.** The shell sets `--w-fg`, `--w-muted`, `--w-faint` and
+  `--w-track` from the surface's tone (dark, light or theme), so text stays
+  legible on matte-light and on a light theme. Widgets use these variables, not
+  fixed greys; the fixed colors are `STATE` (ok, warn, crit).
+
+### Skins and surfaces
+
+A skin (`core/skins/<name>.ts`, 14 of them, registered in `SKIN_PACKS` in
+`core/theme.ts`) is a bundle of tokens: surface, radius, accent, fonts (UI and
+numerals), numeral weight and glow, graph and meter style, header style and ring
+thickness. `skinContext` merges it with the look into the `SkinCtx` that the
+primitives (`Num`, `Bar`, `Spark`, `Ring`, `LedLadder`, …) read, so a widget
+draws the same data in every skin. `resolveSurface` picks the surface:
+the `surface` setting, else the skin's, else `glass`. The app's four
+materials (`glass`, `matte-light`, `matte-dark`, `theme`) are registered in the
+same table beside the skins' own, so a stored surface keeps its meaning.
+A skin's accent applies only when no accent is set and the surface is not
+light. Skin fonts load lazily (`ensureSkinFonts`). Custom panels use the skin
+through `components/widgets/panel-skin.tsx` when a skin is set; with `auto`
+they render as before.
+
+### Data adapter (`src/widgets/data-adapter.ts`)
+
+Templates read `Record<string, string>`, the app has `SensorMap`
+(`{ value, text, unit, name }` per key). `toFlat(map)` turns a reading into its
+text, else the number plus its unit, and leaves out keys with neither;
+`toNames(map)` carries the sensors' display names for auto-discovered rows. Both
+are memoised per map identity. The data is the page's shared stream (the zone's
+`useSensors`); the adapter never opens another connection. Image URLs go
+through `resolveImageUrl`. Plugins whose containers are dynamic (files, device
+serials) are looked up with `entryText` and `containers`
+(`src/widgets/entries.ts`).
+
+### QA harness
+
+`?widget-qa` (a lazy chunk, `src/widgets/widget-qa.tsx`, never linked) renders
+every module at a set of spans through `placementContent` from fixture sensors
+(`src/widgets/__fixtures__/`), in both variants, any skin and surface, and on a
+light theme (`theme=paper`). `window.__qaOverflow()` reports, per zone, what
+pokes out of it (`exceeds`), leaf text that overlaps (`overlaps`) and content
+cut off by `overflow: hidden` (`clipped`); the geometry is pure
+(`qa-geometry.ts`, unit-tested). Parameters, the screenshot recipe and the
+probe are in [redesign/phase9/qa.md](redesign/phase9/qa.md). It is a
+development tool only.
 
 ### The render pipeline of a panel zone
 
