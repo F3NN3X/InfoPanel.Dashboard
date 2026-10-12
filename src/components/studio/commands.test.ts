@@ -227,3 +227,35 @@ describe("matchScore / rankCommands", () => {
     expect(matchScore("Écran", "ecr")).toBe(3);
   });
 });
+
+describe("buildCommands with several zones selected", () => {
+  const a = zone("a", 1, 1);
+  const b = zone("b", 3, 2, false);
+
+  it("offers hide, duplicate and remove for the whole selection only", () => {
+    const list = buildCommands({ ...base, selected: b, selection: [a, b] });
+    const group = list.filter((c) => c.group === "Selected zones");
+    expect(group.map((c) => c.label)).toEqual(["Duplicate 2 zones", "Hide 2 zones", "Remove 2 zones"]);
+    expect(list.some((c) => c.id === "zone:pick")).toBe(false);
+  });
+
+  it("offers Show when every selected zone is hidden", () => {
+    const hidden = zone("c", 5, 1, false);
+    const list = buildCommands({ ...base, selected: hidden, selection: [b, hidden] });
+    expect(list.find((c) => c.id === "zone:visible")?.label).toBe("Show 2 zones");
+  });
+
+  it("keeps the single-zone commands for one selected zone", () => {
+    expect(ids({ ...base, selected: a, selection: [a] })).toContain("zone:pick");
+  });
+});
+
+describe("select all", () => {
+  it("is offered with Ctrl+A while the profile has zones", () => {
+    expect(buildCommands(base).find((c) => c.id === "select-all")).toMatchObject({
+      action: { type: "select-all" },
+      hint: "Ctrl+A",
+    });
+    expect(ids({ ...base, placements: [] })).not.toContain("select-all");
+  });
+});

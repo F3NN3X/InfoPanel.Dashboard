@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import type { Placement } from "@/lib/layout";
 import {
   clampZoneRect,
+  enforceMinSize,
   firstFreeRect,
   fitZoneRect,
+  moveZoneSet,
   nudgeZone,
   rectsOverlap,
   resizeZone,
@@ -218,6 +220,101 @@ describe("resizeZone", () => {
       row: 1,
       cols: 1,
       rows: 1,
+    });
+  });
+});
+
+describe("moveZoneSet", () => {
+  const zones = [zone("a", 1, 1, 2, 1), zone("b", 3, 1, 2, 1), zone("c", 1, 3, 2, 2)];
+
+  it("moves every zone of the set by the same delta", () => {
+    expect(moveZoneSet(zones, ["a", "b"], { cols: 0, rows: 1 }, 12, 6)).toEqual({
+      a: { col: 1, row: 2, cols: 2, rows: 1 },
+      b: { col: 3, row: 2, cols: 2, rows: 1 },
+    });
+  });
+
+  it("lets members move into each other's old cells", () => {
+    expect(moveZoneSet(zones, ["a", "b"], { cols: 2, rows: 0 }, 12, 6)).toEqual({
+      a: { col: 3, row: 1, cols: 2, rows: 1 },
+      b: { col: 5, row: 1, cols: 2, rows: 1 },
+    });
+  });
+
+  it("blocks the whole move when one zone would leave the grid", () => {
+    expect(moveZoneSet(zones, ["a", "b"], { cols: -1, rows: 0 }, 12, 6)).toBeNull();
+    expect(moveZoneSet(zones, ["a", "b"], { cols: 9, rows: 0 }, 12, 6)).toBeNull();
+  });
+
+  it("blocks the whole move when one zone would overlap a zone outside the set", () => {
+    expect(moveZoneSet(zones, ["a", "b"], { cols: 0, rows: 2 }, 12, 6)).toBeNull();
+  });
+
+  it("ignores hidden zones outside the set", () => {
+    const withHidden = [zone("a", 1, 1, 2, 1), zone("h", 1, 2, 2, 1, false)];
+    expect(moveZoneSet(withHidden, ["a"], { cols: 0, rows: 1 }, 12, 6)).toEqual({
+      a: { col: 1, row: 2, cols: 2, rows: 1 },
+    });
+  });
+
+  it("returns null for an empty or unknown set", () => {
+    expect(moveZoneSet(zones, [], { cols: 1, rows: 0 }, 12, 6)).toBeNull();
+    expect(moveZoneSet(zones, ["x"], { cols: 1, rows: 0 }, 12, 6)).toBeNull();
+  });
+});
+
+describe("enforceMinSize", () => {
+  const z = zone("a", 3, 3, 4, 3);
+
+  it("keeps a right/bottom-edge resize at the minimum, anchored top-left", () => {
+    expect(enforceMinSize({ col: 3, row: 3, cols: 1, rows: 1 }, z, { cols: 2, rows: 2 })).toEqual({
+      col: 3,
+      row: 3,
+      cols: 2,
+      rows: 2,
+    });
+  });
+
+  it("keeps the right/bottom edge when the left/top edge was dragged", () => {
+    expect(enforceMinSize({ col: 6, row: 5, cols: 1, rows: 1 }, z, { cols: 2, rows: 2 })).toEqual({
+      col: 5,
+      row: 4,
+      cols: 2,
+      rows: 2,
+    });
+  });
+
+  it("leaves boxes at or above the minimum alone", () => {
+    const r = { col: 2, row: 3, cols: 5, rows: 3 };
+    expect(enforceMinSize(r, z, { cols: 2, rows: 2 })).toEqual(r);
+  });
+
+  it("never forces a zone already below its minimum to grow", () => {
+    const small = zone("s", 1, 1, 1, 1);
+    expect(enforceMinSize({ col: 1, row: 1, cols: 1, rows: 1 }, small, { cols: 3, rows: 2 })).toEqual({
+      col: 1,
+      row: 1,
+      cols: 1,
+      rows: 1,
+    });
+  });
+});
+
+describe("resizeZone with a minimum", () => {
+  it("blocks shrinking below the minimum and allows growing", () => {
+    const z = zone("a", 1, 1, 2, 2);
+    expect(resizeZone(z, { cols: 1, rows: 2 }, [z], 12, 6, { cols: 2, rows: 1 })).toBeNull();
+    expect(resizeZone(z, { cols: 2, rows: 1 }, [z], 12, 6, { cols: 2, rows: 1 })).toEqual({
+      col: 1,
+      row: 1,
+      cols: 2,
+      rows: 1,
+    });
+    expect(resizeZone(z, { cols: 3, rows: 2 }, [z], 12, 6, { cols: 4, rows: 4 })).toEqual({
+      col: 1,
+      row: 1,
+      cols: 3,
+      rows: 2,
     });
   });
 });

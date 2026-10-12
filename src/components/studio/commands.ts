@@ -30,6 +30,7 @@ export type CommandAction =
   | { type: "redo" }
   | { type: "shortcuts" }
   | { type: "select"; id: string }
+  | { type: "select-all" }
   | { type: "duplicate" }
   | { type: "toggle-visible" }
   | { type: "remove" }
@@ -62,7 +63,10 @@ export interface CommandState {
   insertables: { kind: "module" | "panel"; id: string; title: string }[];
   profiles: Pick<MonitorProfile, "id" | "name" | "width" | "height">[];
   placements: Placement[];
+  /** The primary selected zone. */
   selected: Placement | null;
+  /** Every selected zone, the primary last (default: just `selected`). */
+  selection?: Placement[];
   /** The selected widget's settings (empty for panels and blank zones). */
   settings: ModuleSetting[];
   /** The selected panel widget (in `selected.panel`). */
@@ -131,6 +135,31 @@ function generalCommands(s: CommandState): Command[] {
     general("zoom-fit", "Zoom to fit", { type: "zoom-fit" }, KEYS.fit),
     general("zoom-in", "Zoom in", { type: "zoom-in" }, KEYS.zoomIn),
     general("zoom-out", "Zoom out", { type: "zoom-out" }, KEYS.zoomOut),
+    ...(s.placements.length > 0
+      ? [general("select-all", "Select all zones", { type: "select-all" }, KEYS.selectAll)]
+      : []),
+  ];
+}
+
+/** Hide, duplicate and remove for several selected zones at once. */
+function selectionCommands(selection: Placement[]): Command[] {
+  const n = selection.length;
+  const zone = (id: string, label: string, action: CommandAction, hint: string): Command => ({
+    id: `zone:${id}`,
+    label,
+    group: "Selected zones",
+    hint,
+    action,
+  });
+  return [
+    zone("duplicate", `Duplicate ${n} zones`, { type: "duplicate" }, KEYS.duplicate),
+    zone(
+      "visible",
+      `${selection.some((p) => p.visible) ? "Hide" : "Show"} ${n} zones`,
+      { type: "toggle-visible" },
+      KEYS.hide
+    ),
+    zone("remove", `Remove ${n} zones`, { type: "remove" }, KEYS.remove),
   ];
 }
 
@@ -211,7 +240,11 @@ export function buildCommands(s: CommandState): Command[] {
   const widgets = s.selected?.panel?.widgets ?? [];
   return [
     ...(s.widget ? widgetCommands(widgets, s.widget, s.canPasteWidget) : []),
-    ...(s.selected ? selectedCommands(s.selected, s.settings, s.widget !== null) : []),
+    ...((s.selection?.length ?? 0) > 1
+      ? selectionCommands(s.selection!)
+      : s.selected
+        ? selectedCommands(s.selected, s.settings, s.widget !== null)
+        : []),
     ...selectWidgetCommands(widgets),
     ...generalCommands(s),
     ...s.appearancePresets.map(

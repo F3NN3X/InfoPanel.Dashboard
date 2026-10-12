@@ -51,6 +51,15 @@ describe("shortcutAction", () => {
     expect(shortcutAction(key("-", { ctrlKey: true }), IDLE)).toEqual({ type: "zoom-out" });
   });
 
+  it("maps Ctrl/cmd+A to select all, but not while typing or with a dialog open", () => {
+    expect(shortcutAction(key("a", { ctrlKey: true }), IDLE)).toEqual({ type: "select-all" });
+    expect(shortcutAction(key("A", { metaKey: true }), IDLE)).toEqual({ type: "select-all" });
+    expect(shortcutAction(key("a", { ctrlKey: true }), { ...IDLE, widget: true })).toEqual({ type: "select-all" });
+    expect(shortcutAction(key("a", { ctrlKey: true }), TYPING)).toBeNull();
+    expect(shortcutAction(key("a", { ctrlKey: true }), DIALOG)).toBeNull();
+    expect(shortcutAction(key("A", { ctrlKey: true, shiftKey: true }), IDLE)).toBeNull();
+  });
+
   it("maps Ctrl+\ to the dock toggle, but not while typing or with a dialog open", () => {
     expect(shortcutAction(key("\\", { ctrlKey: true }), IDLE)).toEqual({ type: "toggle-dock" });
     expect(shortcutAction(key("\\", { metaKey: true }), { ...IDLE, widget: true })).toEqual({ type: "toggle-dock" });
@@ -137,6 +146,8 @@ describe("SHORTCUT_GROUPS", () => {
     expect(widget?.items.map((i) => i.keys)).toEqual(
       expect.arrayContaining(["Del / Backspace", "Ctrl+D", "Ctrl+C", "Ctrl+V", "Alt+↑ / ↓"])
     );
+    const keys = SHORTCUT_GROUPS.flatMap((g) => g.items.map((i) => i.keys));
+    expect(keys).toContain("Ctrl+A");
     for (const group of SHORTCUT_GROUPS) {
       const labels = group.items.map((i) => i.label);
       expect(new Set(labels).size).toBe(labels.length);

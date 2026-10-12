@@ -8,6 +8,7 @@ import { BLANK_MODULE, type MonitorProfile, type Placement } from "@/lib/layout"
 import { profileGap, trackPitch } from "@/lib/profile-grid";
 import { hexToHsl } from "@/lib/theme";
 import { cn } from "@/lib/utils";
+import { isToggleClick, type SelectMode } from "./selection";
 import type { ZoneRect } from "./zone-geometry";
 
 /**
@@ -53,22 +54,31 @@ interface PlacementFrameProps {
   /**
    * Live zone box while a move/resize is in flight — the studio clamps it
    * (bounds + no overlap) and applies it; release commits (null = plain click).
+   * A move of a zone in a multi-zone selection moves the whole selection.
    */
   onZoneDrag?: (
     id: string,
     rect: ZoneRect,
-    pointer: { x: number; y: number }
+    pointer: { x: number; y: number },
+    kind: "move" | "resize"
   ) => void;
   onZoneDragEnd?: (id: string, rect: ZoneRect | null) => void;
   /** Dimmed while a zone drag is in flight (the indicator shows the target). */
   ghost?: boolean;
   /** Open the widget picker (the blank zone's "Pick a widget"). */
   onPickWidget?: () => void;
-  /** Highlight + select (studio view). */
+  /** In the selection: highlighted (studio view). */
   selected?: boolean;
-  onSelect?: () => void;
+  /** The primary selected zone: resize knobs, widget picking. */
+  primary?: boolean;
   /**
-   * Panel zones: a click (no drag) inside the already selected zone picks
+   * A press selects the zone (`primary`: a selected zone keeps the rest
+   * of the selection, for dragging it along), a click without a drag
+   * selects it alone (`only`), Shift / Ctrl / ⌘ toggles it (`toggle`).
+   */
+  onSelect?: (mode: SelectMode) => void;
+  /**
+   * Panel zones: a click (no drag) inside the already primary zone picks
    * the widget under the pointer, or the panel itself (null) on empty
    * space. A double-click on an unselected zone is select-then-pick.
    */
@@ -101,6 +111,7 @@ export function PlacementFrame({
   ghost,
   onPickWidget,
   selected,
+  primary,
   onSelect,
   onSelectWidget,
   children,
@@ -133,13 +144,18 @@ export function PlacementFrame({
     const target = e.target as HTMLElement;
     if (target.closest("button, input, select, a, [data-no-drag]")) return;
     e.preventDefault();
+    // Shift / Ctrl / ⌘: toggle the zone in the selection (no drag).
+    if (isToggleClick(e)) {
+      onSelect?.("toggle");
+      return;
+    }
     // Captured at the press: the first click of a double-click selects the
-    // zone, the second (now selected) one picks the widget.
-    const pick = selected ? onSelectWidget : undefined;
+    // zone, the second (now primary) one picks the widget.
+    const pick = primary ? onSelectWidget : undefined;
     const widgetId = target.closest<HTMLElement>("[data-widget-id]")?.dataset.widgetId ?? null;
     // preventDefault() suppresses the click event in Chromium, so the
-    // frame's onClick={onSelect} never fires — select on the press itself.
-    onSelect?.();
+    // frame's onClick never fires — select on the press itself.
+    onSelect?.("primary");
     const startX = e.clientX;
     const startY = e.clientY;
     const startCol = placement.colStart;
@@ -155,13 +171,16 @@ export function PlacementFrame({
       const dc = Math.round((ev.clientX - startX) / pitchX);
       const dr = pitchY > 0 ? Math.round((ev.clientY - startY) / pitchY) : 0;
       last = { col: startCol + dc, row: startRow + dr, cols: span, rows: rowSpan };
-      onZoneDrag?.(placement.id, last, { x: ev.clientX, y: ev.clientY });
+      onZoneDrag?.(placement.id, last, { x: ev.clientX, y: ev.clientY }, "move");
     };
     const up = () => {
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
       onZoneDragEnd?.(placement.id, last);
-      if (!active) pick?.(widgetId);
+      if (active) return;
+      // A click without a drag selects just this zone.
+      onSelect?.("only");
+      pick?.(widgetId);
     };
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);
@@ -202,7 +221,7 @@ export function PlacementFrame({
         rows = 1;
       }
       last = { col, row, cols, rows };
-      onZoneDrag?.(placement.id, last, { x: ev.clientX, y: ev.clientY });
+      onZoneDrag?.(placement.id, last, { x: ev.clientX, y: ev.clientY }, "resize");
     };
     const up = () => {
       window.removeEventListener("pointermove", move);
@@ -234,7 +253,10 @@ export function PlacementFrame({
           : {}),
       }}
       data-zone-id={studio ? placement.id : undefined}
-      onClick={onSelect}
+      // Clicks the press doesn't handle (a control in the zone, a handle).
+      onClick={(e) => {
+        if (!selected && !isToggleClick(e)) onSelect?.("only");
+      }}
       onPointerDown={studio ? startMove : undefined}
     >
       {studio && (
@@ -247,8 +269,9 @@ export function PlacementFrame({
           )}
 
           {/* Resize handles (the studio clamps to the grid + no overlap):
-              tinted on hover, with knobs on the selected zone */}
-          {HANDLES.map((h) => (
+              tinted on hover, with knobs on the primary zone; the other
+              zones of a multi-zone selection have none */}
+          {(primary || !selected) && HANDLES.map((h) => (
             <div
               key={h.id}
               data-no-drag
@@ -258,7 +281,7 @@ export function PlacementFrame({
               style={{ cursor: h.cursor }}
               title="Drag to resize"
             >
-              {selected && (
+              {primary && (
                 <span
                   className={cn(
                     "pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-[3px] border-[1.5px] border-ring bg-background shadow-sm transition-colors group-hover/handle:bg-ring",

@@ -8,6 +8,7 @@ import {
 import { normalizePanelPlacement } from "@/lib/panel-model";
 import type { PanelPreset } from "@/lib/panelPresets";
 import type { ModuleSettings } from "@/modules/types";
+import { ALL_MODULES } from "./studio-modules";
 import { firstFreeRect, zoneFits, type ZoneRect } from "./zone-geometry";
 
 /*
@@ -169,6 +170,70 @@ export function duplicatePlacement(
   const next = [...profile.placements];
   next.splice(i + 1, 0, clonePlacement(profile.placements[i]));
   return { ...profile, placements: next };
+}
+
+/** Set several zones' boxes at once (the caller checks them first). */
+export function setZoneRects(
+  profile: MonitorProfile,
+  rects: Record<string, ZoneRect>
+): MonitorProfile {
+  return {
+    ...profile,
+    placements: profile.placements.map((p) => {
+      const r = rects[p.id];
+      return r ? { ...p, colStart: r.col, rowStart: r.row, colSpan: r.cols, rowSpan: r.rows } : p;
+    }),
+  };
+}
+
+export function removeZones(
+  profile: MonitorProfile,
+  ids: readonly string[]
+): MonitorProfile {
+  const set = new Set(ids);
+  return { ...profile, placements: profile.placements.filter((x) => !set.has(x.id)) };
+}
+
+/** Hide every zone of the set while any of them shows; else show them all. */
+export function toggleZonesVisible(
+  profile: MonitorProfile,
+  ids: readonly string[]
+): MonitorProfile {
+  const set = new Set(ids);
+  const anyVisible = profile.placements.some((x) => set.has(x.id) && x.visible);
+  return {
+    ...profile,
+    placements: profile.placements.map((x) => (set.has(x.id) ? { ...x, visible: !anyVisible } : x)),
+  };
+}
+
+/**
+ * Copy each zone (new ids) to the first free spot of its size, rows
+ * first; earlier copies count as taken. A zone with no free spot is not
+ * copied. `copies` are the new ids, for selecting them.
+ */
+export function duplicateZones(
+  profile: MonitorProfile,
+  ids: readonly string[]
+): { profile: MonitorProfile; copies: string[] } {
+  let placements = profile.placements;
+  const copies: string[] = [];
+  for (const id of ids) {
+    const p = profile.placements.find((x) => x.id === id);
+    if (!p) continue;
+    const pos = firstFreeRect(profile.cols, profile.rows, { cols: p.colSpan, rows: p.rowSpan }, placements);
+    if (!pos) continue;
+    const copy = { ...clonePlacement(p), colStart: pos.col, rowStart: pos.row };
+    placements = [...placements, copy];
+    copies.push(copy.id);
+  }
+  return { profile: copies.length > 0 ? { ...profile, placements } : profile, copies };
+}
+
+/** A zone's minimum size: its widget's; blank zones and panels 1×1. */
+export function zoneMinSize(p: Placement): Size {
+  const meta = ALL_MODULES.find((m) => m.id === p.module);
+  return meta ? { cols: meta.minCols, rows: meta.minRows } : { cols: 1, rows: 1 };
 }
 
 /** Make a zone blank: drop its widget, panel and settings. */
