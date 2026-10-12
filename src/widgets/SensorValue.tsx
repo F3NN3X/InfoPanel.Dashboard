@@ -31,12 +31,15 @@ export interface SensorValueProps extends ShellProps {
   source?: string;
 }
 
+/** A number with an optional unit ("62.5 %", "1,234 MB/s"); IPs, times, versions and resolutions stay text. */
+export const isNumericText = (raw: string): boolean => /^-?\d[\d,]*(?:\.\d+)?(?:\s*[^\s\d.,:x/-][^\s\d]*)?$/.test(raw.trim());
+
 export default function SensorValue(p: SensorValueProps) {
   const d = p.data;
   const raw = get(d, p.sensor ?? "");
   const v = num(raw);
   const unit = p.unit ?? String(raw).replace(/^[-\d.,\s]+/, "").trim();
-  const numeric = Number.isFinite(v) && /^-?[\d.,]+\s*\S*$/.test(String(raw).trim());
+  const numeric = Number.isFinite(v) && isNumericText(String(raw));
   const hist = useHistory(v);
   const min = p.min ?? 0,
     max = p.max ?? (unit === "%" ? 100 : unit.includes("°") ? 100 : Math.max(1, ...hist) * 1.1);

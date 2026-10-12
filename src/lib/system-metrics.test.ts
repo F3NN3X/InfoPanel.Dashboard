@@ -240,10 +240,15 @@ describe("readSystemFlat", () => {
     expect(filterDisks(f.disks, "WDS100T2B0A-00SM50").map((d) => d.id)).toEqual(["libre.wdc_wds100t2b0a_00sm50"]);
     expect(filterDisks(f.disks, "KINGSTON").map((d) => d.id)).toEqual(["libre.kingston_sfyrd2000g"]);
     expect(filterDisks(f.disks, " - ")).toHaveLength(2);
+    // punctuation in a term stays exact against real names: "C:" does not loosen to "c"
+    expect(filterDisks([{ ...f.disks[0], name: "Crucial CT1000" }, { ...f.disks[1], name: "Local Disk (C:)" }], "C:").map((d) => d.name)).toEqual(["Local Disk (C:)"]);
   });
 
   it("ignores text values and keys outside libre / system", () => {
     expect(readSystemFlat({ "libre.x_cpu_total": "n/a", "plugins.y_cpu_total": "50 %" }).cpu.load).toBeUndefined();
+    expect(readSystemFlat({ "libre.x_cpu_total": "50 %" }).cpu.load).toBe(50);
+    expect(readSystemFlat({ "libre.x_cpu_total": " x" }).cpu.load).toBeUndefined();
+    expect(readSystemFlat({ "libre.x_cpu_total": "0x10 %" }).cpu.load).toBeUndefined();
   });
 });
 

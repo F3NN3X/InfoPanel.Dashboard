@@ -210,10 +210,13 @@ const looseName = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, " ").tri
 
 /** Drives whose name contains one of the comma-separated substrings (empty = all), ignoring case and punctuation. */
 export function filterDisks(disks: DiskReading[], filter: string): DiskReading[] {
-  const terms = filter.split(",").map(looseName).filter(Boolean);
-  return terms.length === 0
-    ? disks
-    : disks.filter((d) => terms.some((t) => looseName(d.name).includes(t)));
+  const terms = filter
+    .split(",")
+    .map((t) => t.trim().toLowerCase())
+    .filter((t) => looseName(t) !== "");
+  // the exact substring as before; the loose match only adds slug-named drives (`wds100t2b0a_00sm50`)
+  const match = (name: string, t: string) => name.toLowerCase().includes(t) || (/^[a-z0-9_]+$/i.test(name) && looseName(t).length >= 3 && looseName(name).includes(looseName(t)));
+  return terms.length === 0 ? disks : disks.filter((d) => terms.some((t) => match(d.name, t)));
 }
 
 export type TempUnit = "c" | "f";
@@ -296,8 +299,9 @@ export function readSystem(sensors: SensorMap): SystemReadings {
 /** `"62.5 %"` → value 62.5, unit "%"; text without a leading number has no value. */
 function unflatten(raw: string): SensorValue {
   const cut = raw.indexOf(" ");
-  const value = Number(cut < 0 ? raw : raw.slice(0, cut));
-  return raw !== "" && Number.isFinite(value) ? { value, unit: cut < 0 ? "" : raw.slice(cut + 1) } : { text: raw, unit: "" };
+  const head = cut < 0 ? raw : raw.slice(0, cut);
+  const value = Number(head);
+  return /^-?\d+(\.\d+)?(e-?\d+)?$/i.test(head) ? { value, unit: cut < 0 ? "" : raw.slice(cut + 1) } : { text: raw, unit: "" };
 }
 
 const flatCache = new WeakMap<object, { names?: Record<string, string>; readings: SystemReadings }>();
