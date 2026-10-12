@@ -8,7 +8,7 @@ import { useSkin, TONES } from "./theme";
 import { Icon, Bar, Ring, Spark, Img } from "./primitives";
 import type { Compact, Shape, Studio } from "./types";
 
-const NUM_GLOW: CSSProperties = { color: "color-mix(in oklab, var(--accent) 55%, #fff)", textShadow: "0 0 4px var(--accent), 0 0 14px var(--accent)" };
+const NUM_GLOW: CSSProperties = { color: "color-mix(in oklab, var(--accent) 55%, var(--w-fg))", textShadow: "0 0 4px var(--accent), 0 0 14px var(--accent)" };
 
 /* Compact views — rendered automatically for tile / strip / column shapes when a widget passes `compact`.
    compact = { label, value, unit, d, sub, icon, t, pct, hist, img, kind: 'spark' | 'bar' | 'ring' | 'text' } */
@@ -264,8 +264,10 @@ export interface SkinHeaderProps {
   icon?: string;
   right?: ReactNode;
   bleed?: boolean;
+  /** What the tui header patches paint over the box edge: the surface background. */
+  bg?: string;
 }
-export function SkinHeader({ kind, title, icon, right, bleed }: SkinHeaderProps) {
+export function SkinHeader({ kind, title, icon, right, bleed, bg = "#0b0b0d" }: SkinHeaderProps) {
   const sk = useSkin();
   // The look's gap replaces the space under the header; its label case applies to every header.
   const st = (def: "uppercase" | "none"): CSSProperties => ({ ...labelStyle(def), ...(sk.gap !== undefined ? { marginBottom: sk.gap } : null) });
@@ -273,12 +275,12 @@ export function SkinHeader({ kind, title, icon, right, bleed }: SkinHeaderProps)
   if (kind === "tui")
     return (
       <>
-        <div className="absolute left-3 top-[5px] z-10 flex max-w-[70%] -translate-y-1/2 items-center bg-[#0b0b0d] px-1 text-[11px] leading-none">
+        <div className="absolute left-3 top-[5px] z-10 flex max-w-[70%] -translate-y-1/2 items-center px-1 text-[11px] leading-none" style={{ background: bg }}>
           <span style={{ color: mix(55, "#52525b") }}>┐</span>
           <span className="truncate px-0.5 font-semibold lowercase text-[color:var(--accent)]" style={{ textTransform: "var(--wp-label-case, lowercase)" as CSSProperties["textTransform"] }}>{title}</span>
           <span style={{ color: mix(55, "#52525b") }}>┌</span>
         </div>
-        {right && <div className="absolute right-3 top-[5px] z-10 flex -translate-y-1/2 items-center gap-1 bg-[#0b0b0d] px-1 text-[10.5px] leading-none text-[color:var(--w-muted)]">{right}</div>}
+        {right && <div className="absolute right-3 top-[5px] z-10 flex -translate-y-1/2 items-center gap-1 px-1 text-[10.5px] leading-none text-[color:var(--w-muted)]" style={{ background: bg }}>{right}</div>}
       </>
     );
   const base = "relative z-10 flex min-w-0 items-center";
@@ -323,7 +325,7 @@ export function SkinHeader({ kind, title, icon, right, bleed }: SkinHeaderProps)
     );
   if (kind === "android")
     return (
-      <header className={`${base} mb-2.5 gap-2 text-[13px] font-medium`} style={{ color: mix(55, "#fff"), ...st("none") }}>
+      <header className={`${base} mb-2.5 gap-2 text-[13px] font-medium`} style={{ color: mix(55, "var(--w-fg)"), ...st("none") }}>
         {icon && (
           <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full" style={{ background: mix(28, "#1b1b1f") }}>
             <Icon name={icon} fill className="text-[16px]" />

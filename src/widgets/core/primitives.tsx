@@ -16,7 +16,7 @@ export function Icon({ name, className = "", fill }: { name?: string; className?
 
 const SCALES = ["sm", "md", "lg", "xl", "2xl"] as const;
 type Scale = (typeof SCALES)[number];
-const NUM_GLOW: CSSProperties = { color: "color-mix(in oklab, var(--accent) 55%, #fff)", textShadow: "0 0 4px var(--accent), 0 0 14px var(--accent), 0 0 30px color-mix(in oklab, var(--accent) 50%, transparent)" };
+const NUM_GLOW: CSSProperties = { color: "color-mix(in oklab, var(--accent) 55%, var(--w-fg))", textShadow: "0 0 4px var(--accent), 0 0 14px var(--accent), 0 0 30px color-mix(in oklab, var(--accent) 50%, transparent)" };
 
 export interface MetricProps {
   label?: ReactNode;
@@ -419,13 +419,16 @@ export interface MiniVizProps {
 export function MiniViz({ l = 0, r = 0, level = 0, mode = "bars", bands, ramp = "accent", playing = true, sens = 1.5, className = "" }: MiniVizProps) {
   const cv = useRef<HTMLCanvasElement | null>(null);
   const live = useRef({ l: 0, r: 0, lv: 0, mode, bands, ramp, playing, sens });
-  live.current = { l: l / 100, r: r / 100, lv: level / 100, mode, bands, ramp, playing, sens };
+  useEffect(() => {
+    live.current = { l: l / 100, r: r / 100, lv: level / 100, mode, bands, ramp, playing, sens };
+  });
   useEffect(() => {
     let raf = 0,
       vis = true,
       acc = "#34d399",
       track = "rgba(255,255,255,0.06)",
-      accT = -Infinity;
+      accT = -Infinity,
+      probe: HTMLSpanElement | undefined;
     const t0 = performance.now();
     const st: BandState = { v: [], pk: [], lv: 0 };
     const running = () => vis && !document.hidden;
@@ -446,7 +449,14 @@ export function MiniViz({ l = 0, r = 0, level = 0, mode = "bars", bands, ramp = 
       if (!ctx) return;
       if (now - accT > 600) {
         acc = accentOf(c);
-        track = canvasColor(ctx, getComputedStyle(c).getPropertyValue("--w-track").trim(), "rgba(255,255,255,0.06)");
+        // --w-track may be a color-mix(): a probe's computed colour is the resolved value the canvas can parse
+        if (!probe && c.parentElement) {
+          probe = document.createElement("span");
+          probe.style.display = "none";
+          probe.style.color = "var(--w-track)";
+          c.parentElement.appendChild(probe);
+        }
+        track = canvasColor(ctx, probe ? getComputedStyle(probe).color : "", "rgba(255,255,255,0.06)");
         accT = now;
       }
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -515,6 +525,7 @@ export function MiniViz({ l = 0, r = 0, level = 0, mode = "bars", bands, ramp = 
     wake();
     return () => {
       cancelAnimationFrame(raf);
+      probe?.remove();
       io?.disconnect();
       document.removeEventListener("visibilitychange", wake);
     };

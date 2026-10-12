@@ -1,14 +1,13 @@
 // The Widget shell every template renders into: measures itself, applies skin + surface + the standard
 // look, picks the view.
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { SCRIM } from "@/components/modern-chrome";
 import { chromeVars, scopedCss, zoomFor } from "@/components/widget-style";
 import { chromeOf } from "@/modules/standard-settings";
 import type { ModuleSettings } from "@/modules/types";
 import { useBox, type Box } from "./layout";
 import { mix } from "./tokens";
 import { SKINS, SkinCtx, resolveSurface, textVars } from "./theme";
-import { forcedTier, lookBox, resolveAccent, shellPad, skinContext } from "./look";
+import { forcedTier, lookBox, patchBackground, resolveAccent, scrimFor, shellPad, skinContext, withUserLook } from "./look";
 import { ensureSkinFonts } from "./fonts";
 import { CompactView, StudioView, SkinHeader } from "./views";
 import type { Compact, ShellProps, Studio, Tier } from "./types";
@@ -87,24 +86,28 @@ export function Widget({ title, icon, iconOverride, accent, surface, radius, siz
   const sk = SKINS[skin] ?? SKINS.default;
   const ctx = useMemo(() => skinContext(skin, { graph, meter, chrome }), [skin, graph, meter, chrome]);
   const isStudio = variant === "studio";
-  const surf = resolveSurface(look?.surface != null ? String(look.surface) : surface, skin, isStudio);
+  const surf = resolveSurface(look?.surface ? String(look.surface) : surface, skin, isStudio);
   const heading = chrome?.label || title;
   const headIcon = iconOverride || chrome?.icon || icon;
-  const sObj = isStudio ? ((typeof studio === "function" ? studio(box) : studio) ?? (typeof compact === "function" ? compact({ ...box, shape: "tile" }) : compact) ?? { label: heading, value: "" }) : null;
-  const cObj = !isStudio ? (typeof compact === "function" ? compact(box) : compact) : undefined;
+  const user = { icon: iconOverride || chrome?.icon, label: chrome?.label };
+  const sRaw = isStudio ? ((typeof studio === "function" ? studio(box) : studio) ?? (typeof compact === "function" ? compact({ ...box, shape: "tile" }) : compact) ?? { label: heading, value: "" }) : null;
+  const sObj = sRaw && withUserLook(sRaw, user);
+  const cRaw = !isStudio ? (typeof compact === "function" ? compact(box) : compact) : undefined;
+  const cObj = cRaw && withUserLook(cRaw, user);
   const useCompact = !!cObj && compactView !== "off" && box.shape !== "box";
   const tui = skin === "tui";
-  const pad = shellPad({ box, studio: isStudio, compact: useCompact, bleed, tui, padding: chrome?.padding });
+  const pad = shellPad({ box, studio: isStudio, compact: useCompact, bleed, tui, padding: chrome?.padding !== undefined ? Math.round((chrome.padding / zoom) * 100) / 100 : undefined });
   const header = !isStudio && showHeader && heading && (tui || (!useCompact && box.size !== "xs"));
   const css = chrome?.customCss ? scopedCss(scope, chrome.customCss) : "";
   const background = chrome?.backgroundOn && chrome.background ? chrome.background : "";
+  const surfBox = lookBox(surf, chrome);
   const rootStyle = {
     borderRadius: chrome?.radius ?? radius ?? sk.radius ?? 16,
     fontFamily: ctx.font,
-    ...lookBox(surf, chrome),
+    ...surfBox,
     ...textVars(surf.tone, chrome),
     ...chromeVars(chrome),
-    "--accent": resolveAccent(chrome?.accent || accent, sk),
+    "--accent": resolveAccent(chrome?.accent || accent, sk, surf.tone),
     color: "var(--w-fg)",
     ...style,
   } as CSSProperties;
@@ -115,13 +118,13 @@ export function Widget({ title, icon, iconOverride, accent, surface, radius, siz
         {background && (
           <>
             <img src={background} alt="" aria-hidden className="absolute inset-0 h-full w-full object-cover" />
-            <div className="absolute inset-0" style={{ background: SCRIM }} />
+            <div className="absolute inset-0" style={{ background: scrimFor(surf.tone) }} />
           </>
         )}
         {tui && <div className="pointer-events-none absolute inset-[5px] rounded-[4px] border" style={{ borderColor: mix(45, "#3f3f46") }} />}
         {skin === "hud" && HUD_CORNERS.map((c) => <span key={c} className={`pointer-events-none absolute h-2.5 w-2.5 ${c}`} style={{ borderColor: "var(--accent)" }} />)}
         <div className={`relative flex min-h-0 min-w-0 flex-1 flex-col ${pad.className}`} style={{ ...pad.style, ...(zoom !== 1 ? { zoom } : null) }}>
-          {header && <SkinHeader kind={sk.header} title={heading} icon={headIcon} right={right} bleed={bleed} />}
+          {header && <SkinHeader kind={sk.header} title={heading} icon={headIcon} right={right} bleed={bleed} bg={patchBackground(surfBox.background, surf.tone)} />}
           <div ref={cref} className="relative min-h-0 flex-1">
             {isStudio ? (
               <StudioView c={sObj!} w={box.w} h={box.h} icon={headIcon} />

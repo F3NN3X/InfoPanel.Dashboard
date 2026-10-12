@@ -4,6 +4,7 @@ import { useEffect, useMemo, type ComponentType } from "react";
 import { STANDARD_SETTINGS } from "@/modules/standard-settings";
 import { effectiveSettings, type DashboardModule, type ModuleSetting, type ModuleSettings, type SensorMap } from "@/modules/types";
 import { ensureSkinFonts } from "./core/fonts";
+import { SKINS } from "./core/theme";
 import type { ShellProps, WidgetMeta } from "./core/types";
 import { toFlat } from "./data-adapter";
 
@@ -40,6 +41,17 @@ export function shellProps(s: ModuleSettings): Partial<ShellProps> {
   };
 }
 
+/**
+ * The look with the surface decided: a value set at any style level wins, else a chosen skin
+ * brings its own surface, else `glass` (the default, so skin `auto` configs are unchanged).
+ * `effectiveSettings` always fills `surface`, so `saved` (resolved, not defaulted) says if it was set.
+ */
+export function withSkinSurface(look: ModuleSettings, saved: ModuleSettings | undefined): ModuleSettings {
+  if (chosen(saved?.surface)) return look;
+  const skin = chosen(look.skin);
+  return { ...look, surface: (skin && SKINS[skin]?.surface) || "glass" };
+}
+
 export function templateModule<P extends object>({ meta, Component, settings, toProps, isIdle, prefixes, title }: TemplateOptions<P>): DashboardModule {
   const all = [...STANDARD_SETTINGS, ...settings];
   const mod: DashboardModule = {
@@ -59,7 +71,7 @@ export function templateModule<P extends object>({ meta, Component, settings, to
   };
   function TemplateZone({ sensors, saved }: { sensors: SensorMap; saved?: ModuleSettings }) {
     const data = useMemo(() => toFlat(sensors), [sensors]);
-    const look = effectiveSettings(mod, saved);
+    const look = withSkinSurface(effectiveSettings(mod, saved), saved);
     const skin = chosen(look.skin);
     useEffect(() => {
       if (skin) ensureSkinFonts(skin);

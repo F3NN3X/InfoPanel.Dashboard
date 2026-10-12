@@ -40,7 +40,7 @@ describe("Widget look", () => {
     expect(html).toContain("--accent:#ff0000");
     expect(html).toContain("--w-fg:#123456");
     expect(html).toContain("zoom:1.5");
-    expect(html).toContain("padding:8px");
+    expect(html).toContain("padding:5.33px");
     expect(html).toContain("@scope");
     expect(html).toContain("data-wp-scope");
   });
@@ -49,6 +49,10 @@ describe("Widget look", () => {
     const html = render({ background: "/bg.png", backgroundOn: true }, { skin: "synth" });
     expect(html).toContain('src="/bg.png"');
     expect(html).toContain("--accent:#ff4fd8");
+  });
+
+  it("treats an empty surface as unset", () => {
+    expect(render({ surface: "" }, { surface: "solid" })).toContain("#141418");
   });
 
   it("renders the legacy light material with dark text", () => {

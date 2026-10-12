@@ -4,7 +4,7 @@ import { isClaimed, modules } from "@/modules";
 import { STANDARD_SETTINGS } from "@/modules/standard-settings";
 import { effectiveSettings, type ModuleSetting, type ModuleSettings } from "@/modules/types";
 import type { ShellProps, WidgetMeta } from "./core/types";
-import { shellProps, templateModule } from "./module";
+import { shellProps, templateModule, withSkinSurface } from "./module";
 import { TEMPLATE_MODULES } from "./registry";
 
 const meta: WidgetMeta = {
@@ -57,7 +57,7 @@ describe("templateModule", () => {
     renderToStaticMarkup(mod.render({ "demo.a": { value: 5, unit: "W" } }, saved) as never);
     expect(seen().data).toEqual({ "demo.a": "5 W" });
     expect(seen()).toMatchObject({ skin: "tui", title: "Hi", unit: "y", compactView: "off", radius: 12 });
-    expect(seen().look).toEqual(effectiveSettings(mod, saved));
+    expect(seen().look).toEqual({ ...effectiveSettings(mod, saved), surface: "tui" });
   });
 
   it("falls back to the defaults when nothing is saved", () => {
@@ -113,5 +113,17 @@ describe("registry", () => {
       expect(isClaimed(`${p}x`), p).toBe(false);
     expect(isClaimed("system.cpu.load")).toBe(true);
     expect(isClaimed("nothing.claims.this")).toBe(false);
+  });
+});
+
+describe("withSkinSurface", () => {
+  const look = (o: ModuleSettings): ModuleSettings => ({ surface: "glass", skin: "auto", ...o });
+  it("keeps glass for skin auto and brings the skin's surface otherwise", () => {
+    expect(withSkinSurface(look({}), {}).surface).toBe("glass");
+    expect(withSkinSurface(look({ skin: "ink" }), undefined).surface).toBe("outline");
+    expect(withSkinSurface(look({ skin: "default" }), {}).surface).toBe("glass");
+  });
+  it("lets a surface set at any level win", () => {
+    expect(withSkinSurface(look({ skin: "ink", surface: "theme" }), { surface: "theme" }).surface).toBe("theme");
   });
 });

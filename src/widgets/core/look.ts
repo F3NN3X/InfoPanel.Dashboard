@@ -2,19 +2,40 @@
 // pure helpers <Widget> composes, so the mapping is testable without a DOM.
 import type { CSSProperties } from "react";
 import type { ModernChrome } from "@/components/modern-chrome";
-import { surfaceBox } from "@/components/widget-style";
+import { SCRIM } from "@/components/modern-chrome";
+import { fadeColors, surfaceBox } from "@/components/widget-style";
 import { FONT_STACKS } from "@/lib/general";
 import type { Box } from "./layout";
 import { pickBy } from "./layout";
-import type { SurfaceDef } from "./surfaces";
+import type { SurfaceDef, SurfaceTone } from "./surfaces";
 import { SKINS } from "./theme";
-import type { SkinContext, SkinTokens, Tier } from "./types";
+import type { Compact, SkinContext, SkinTokens, Studio, Tier } from "./types";
 
 export const DEFAULT_ACCENT = "#34d399";
 
-/** Decision 6: an explicit accent always wins; a skin's own accent applies only when none is set. */
-export function resolveAccent(explicit: string | undefined, sk: Partial<SkinTokens>): string {
-  return explicit || sk.accent || DEFAULT_ACCENT;
+/**
+ * Decision 6: an explicit accent always wins; a skin's own accent applies only when none is set
+ * and the surface is not light (the skins' accents are pale or neon, invisible on a light card).
+ */
+export function resolveAccent(explicit: string | undefined, sk: Partial<SkinTokens>, tone?: SurfaceTone): string {
+  return explicit || (tone === "light" ? undefined : sk.accent) || DEFAULT_ACCENT;
+}
+
+/** The scrim over a background image: it darkens a dark card and lightens a light one, like the text. */
+export function scrimFor(tone: SurfaceTone): string {
+  return tone === "dark" ? "rgba(0, 0, 0, 0.45)" : tone === "light" ? "rgba(255, 255, 255, 0.45)" : SCRIM;
+}
+
+/** The colour that hides what is behind a header patch: the surface's own background when flat. */
+export function patchBackground(background: unknown, tone: SurfaceTone): string {
+  const bg = String(background ?? "");
+  if (bg && !bg.includes("gradient(")) return bg;
+  return tone === "light" ? "#f4f4f5" : tone === "theme" ? "hsl(var(--card))" : "#0b0b0d";
+}
+
+/** The zone's own icon and title replace the template descriptor's (explicit settings win). */
+export function withUserLook<T extends Compact | Studio>(c: T, user: { icon?: string; label?: string }): T {
+  return user.icon || user.label ? { ...c, ...(user.icon ? { icon: user.icon } : null), ...(user.label ? { label: user.label } : null) } : c;
 }
 
 /** The standard `layout` choices that force a tier; `auto` (or anything else) = measured. */
@@ -74,6 +95,18 @@ export function shellPad(o: {
 const DEFAULT_EDGE = "rgba(255, 255, 255, 0.1)";
 
 /**
+ * `fadeColors` for template backgrounds: rgb / hex / theme colours have their alpha scaled, and a
+ * `color-mix()` (accent tints) is mixed with transparent instead, since its colours are not literals.
+ */
+export function fadeBackground(background: string, factor: number): string {
+  const pct = Math.round(Math.min(1, Math.max(0, factor)) * 100);
+  return background
+    .split(/(color-mix\((?:[^()]|\([^()]*\))*\))/g)
+    .map((part, i) => (i % 2 ? `color-mix(in oklab, ${part} ${pct}%, transparent)` : fadeColors(part, factor)))
+    .join("");
+}
+
+/**
  * The surface's box style with the look's border, glow, opacity and blur. The app's materials go
  * through `surfaceBox` exactly as the modern widgets draw them; template surfaces keep their own
  * style and gain only what the look sets (the edge becomes an inset shadow of the chosen width).
@@ -88,11 +121,13 @@ export function lookBox(surf: SurfaceDef, chrome: ModernChrome | undefined): CSS
   const edge = chrome.borderWidth !== undefined || !!chrome.borderColor || (!!chrome.glow && chrome.glow !== "none");
   const box = surfaceBox({ background: String(s.background ?? ""), fg: "", ring: String(s.borderColor ?? DEFAULT_EDGE) }, chrome);
   const faded = (chrome.surfaceOpacity ?? 1) < 1 && s.background;
+  // A border-box background (holo) draws its ring as the CSS border, so that border stays.
+  const ringBorder = String(s.background ?? "").includes("border-box");
   return {
     ...s,
-    ...(faded ? { background: box.background } : null),
+    ...(faded ? { background: fadeBackground(String(s.background), chrome.surfaceOpacity!) } : null),
     ...(edge ? { boxShadow: [s.boxShadow, box.boxShadow].filter(Boolean).join(", ") } : null),
-    ...(chrome.borderWidth !== undefined ? { borderWidth: 0 } : null),
+    ...(chrome.borderWidth !== undefined && !ringBorder ? { borderWidth: 0 } : null),
     ...(chrome.blur !== undefined ? { backdropFilter: box.backdropFilter, WebkitBackdropFilter: box.WebkitBackdropFilter } : null),
   };
 }
