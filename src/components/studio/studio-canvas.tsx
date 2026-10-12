@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { PageBackground } from "@/components/page-background";
 import type { PageBackground as Background } from "@/lib/appearance";
 import type { Appearance } from "@/lib/style-resolve";
-import { SCROLL_ROW_H, type MonitorProfile } from "@/lib/layout";
+import { SCROLL_ROW_H, type MonitorProfile, type Placement } from "@/lib/layout";
 import { fontStack } from "@/lib/general";
 import {
   cellAt as gridCellAt,
@@ -36,7 +36,9 @@ import {
   DND_MIME_PANEL,
   placementTitle,
 } from "./studio-modules";
-import { fitZoneRect, type ZoneRect } from "./zone-geometry";
+import type { SelectMode } from "./selection";
+import { zoneMinSize } from "./studio-actions";
+import { enforceMinSize, fitZoneRect, moveZoneSet, type ZoneRect } from "./zone-geometry";
 import { ZoneToolbarLayer } from "./zone-toolbar";
 
 /** The canvas' dotted grid (also drawn over a page background). */
@@ -60,9 +62,11 @@ interface StudioCanvasProps {
   scrollRef: RefObject<HTMLDivElement | null>;
   /** Callback ref that attaches the scroll container to the zoom hook. */
   attachScroll: RefCallback<HTMLDivElement>;
-  selectedId: string | null;
-  onSelect: (id: string | null) => void;
-  /** The selected panel zone's selected widget (outlined on the canvas). */
+  /** The selected zones, the primary last. */
+  selectedIds: string[];
+  /** Select a zone (see `SelectMode`); null clears the selection. */
+  onSelect: (id: string | null, mode?: SelectMode) => void;
+  /** The primary panel zone's selected widget (outlined on the canvas). */
   selectedWidgetId: string | null;
   /** Select a panel zone's widget (null = the panel itself). */
   onSelectWidget: (zoneId: string, widgetId: string | null) => void;
@@ -70,6 +74,11 @@ interface StudioCanvasProps {
   onDrawZone: (rect: ZoneRect) => void;
   /** A zone is being moved/resized (box already clamped, fires per cell). */
   onZoneRect: (id: string, rect: ZoneRect) => void;
+  /**
+   * The selection is being moved by dragging its zone `id` (boxes already
+   * checked: all in the grid, no overlap; fires per cell).
+   */
+  onZoneRects: (id: string, rects: Record<string, ZoneRect>) => void;
   /** Open the widget picker for a (blank) zone. */
   onPickWidget: (id: string) => void;
   /** A palette widget / panel was dropped on the canvas. */
@@ -96,12 +105,13 @@ export function StudioCanvas({
   showGrid,
   scrollRef,
   attachScroll,
-  selectedId,
+  selectedIds,
   onSelect,
   selectedWidgetId,
   onSelectWidget,
   onDrawZone,
   onZoneRect,
+  onZoneRects,
   onPickWidget,
   onAddModule,
   onAddPreset,
@@ -110,10 +120,14 @@ export function StudioCanvas({
 }: StudioCanvasProps) {
   const [zoneDrag, setZoneDrag] = useState<{
     id: string;
+    /** The zones moving with it (just `id` unless a selection moves). */
+    ids: string[];
     rect: ZoneRect;
     x: number;
     y: number;
   } | null>(null);
+  /** The zones' boxes when the drag in flight started. */
+  const dragOrigin = useRef<Placement[] | null>(null);
   const [drawing, setDrawing] = useState<ZoneRect | null>(null);
   // A completed draw is followed by a click on the grid; it must not
   // deselect the zone just drawn (and selected).
@@ -163,28 +177,45 @@ export function StudioCanvas({
   }, [scrollRef, pageEl, zoom, profile.id, profile.cols, profile.width, profile.height, profile.padding, scroll]);
 
   /**
-   * Commit a zone move/resize: apply the clamped box. When it can't be
-   * placed without overlapping, the zone keeps its current box.
+   * Commit a zone move/resize: apply the clamped box (a resize keeps the
+   * widget's minimum size). When it can't be placed without overlapping,
+   * the zone keeps its current box. Dragging a zone of a multi-zone
+   * selection moves them all from where they started, or (when any would
+   * leave the grid or overlap another zone) leaves them where they are.
    */
   const onZoneDrag = (
     id: string,
     rect: ZoneRect,
-    pointer: { x: number; y: number }
+    pointer: { x: number; y: number },
+    kind: "move" | "resize"
   ) => {
-    const zone = profile.placements.find((p) => p.id === id);
+    const origin = (dragOrigin.current ??= profile.placements);
+    const zone = origin.find((p) => p.id === id);
     if (!zone) return;
-    const clamped = fitZoneRect(
-      rect,
-      profile.placements,
-      profile.cols,
-      profile.rows,
-      id
-    ) ?? { col: zone.colStart, row: zone.rowStart, cols: zone.colSpan, rows: zone.rowSpan };
+    const current = { col: zone.colStart, row: zone.rowStart, cols: zone.colSpan, rows: zone.rowSpan };
+    if (kind === "move" && selectedIds.length > 1 && selectedIds.includes(id)) {
+      const delta = { cols: rect.col - zone.colStart, rows: rect.row - zone.rowStart };
+      const rects = moveZoneSet(origin, selectedIds, delta, profile.cols, profile.rows);
+      if (rects) onZoneRects(id, rects);
+      setZoneDrag((d) => ({
+        id,
+        ids: selectedIds,
+        rect: rects?.[id] ?? d?.rect ?? current,
+        x: pointer.x,
+        y: pointer.y,
+      }));
+      return;
+    }
+    const box = kind === "resize" ? enforceMinSize(rect, zone, zoneMinSize(zone)) : rect;
+    const clamped = fitZoneRect(box, origin, profile.cols, profile.rows, id) ?? current;
     onZoneRect(id, clamped);
-    setZoneDrag({ id, rect: clamped, x: pointer.x, y: pointer.y });
+    setZoneDrag({ id, ids: [id], rect: clamped, x: pointer.x, y: pointer.y });
   };
 
-  const onZoneDragEnd = () => setZoneDrag(null);
+  const onZoneDragEnd = () => {
+    dragOrigin.current = null;
+    setZoneDrag(null);
+  };
 
   /**
    * Draw a new zone: press on an empty grid cell and drag out a box; on
@@ -280,7 +311,8 @@ export function StudioCanvas({
   const dragged = zoneDrag
     ? profile.placements.find((x) => x.id === zoneDrag.id)
     : undefined;
-  const selected = profile.placements.find((x) => x.id === selectedId);
+  const primaryId = selectedIds.at(-1) ?? null;
+  const selected = profile.placements.find((x) => x.id === primaryId);
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col">
@@ -420,7 +452,7 @@ export function StudioCanvas({
                       placement={p}
                       appearance={appearance}
                       studio
-                      selection={selectedId === p.id && p.panel ? { selectedWidgetId } : undefined}
+                      selection={primaryId === p.id && p.panel ? { selectedWidgetId } : undefined}
                     >
                       {({ content, hasData, title, idle, scope }) => (
                         <PlacementFrame
@@ -434,11 +466,12 @@ export function StudioCanvas({
                           gridWidth={gridWidth}
                           zoom={zoom}
                           rowHeight={rowH}
-                          ghost={zoneDrag?.id === p.id}
+                          ghost={zoneDrag?.ids.includes(p.id)}
                           onZoneDrag={onZoneDrag}
                           onZoneDragEnd={onZoneDragEnd}
-                          selected={selectedId === p.id}
-                          onSelect={() => onSelect(p.id)}
+                          selected={selectedIds.includes(p.id)}
+                          primary={primaryId === p.id}
+                          onSelect={(mode) => onSelect(p.id, mode)}
                           onSelectWidget={p.panel ? (widgetId) => onSelectWidget(p.id, widgetId) : undefined}
                           onPickWidget={() => onPickWidget(p.id)}
                         >
@@ -504,7 +537,7 @@ export function StudioCanvas({
           className="pointer-events-none fixed z-50 rounded-md border border-ring bg-popover px-2 py-1 text-[11px] font-medium shadow-lg"
           style={{ left: zoneDrag.x + 14, top: zoneDrag.y + 14 }}
         >
-          {placementTitle(dragged)}{" "}
+          {zoneDrag.ids.length > 1 ? `${zoneDrag.ids.length} zones` : placementTitle(dragged)}{" "}
           <span className="tabular-nums text-muted-foreground">
             → C{zoneDrag.rect.col} · R{zoneDrag.rect.row} · {zoneDrag.rect.cols}×{zoneDrag.rect.rows}
           </span>

@@ -2,14 +2,19 @@ import { Box, Eye, EyeOff, PanelsTopLeft, Square, Trash2 } from "lucide-react";
 import { BLANK_MODULE, PANEL_ID, type Placement } from "@/lib/layout";
 import { cn } from "@/lib/utils";
 import { useInspectorLayout } from "./inspector-layout";
+import { isToggleClick } from "./selection";
 import { placementTitle } from "./studio-modules";
 import { sortZones } from "./zone-geometry";
 
 interface LayersPanelProps {
   placements: Placement[];
-  selectedId: string | null;
-  /** Select the zone and bring it into view on the canvas. */
-  onSelect: (id: string) => void;
+  /** The selected zones, the primary last. */
+  selectedIds: string[];
+  /**
+   * Select the zone and bring it into view on the canvas, or (`toggle`:
+   * Shift / Ctrl / ⌘ click) add it to or remove it from the selection.
+   */
+  onSelect: (id: string, toggle: boolean) => void;
   onToggle: (id: string) => void;
   onRemove: (id: string) => void;
 }
@@ -26,7 +31,7 @@ const ROW_BUTTON = "rounded p-0.5 text-muted-foreground hover:bg-accent hover:te
 /** The Layers drawer: every zone of the profile in grid reading order. */
 export function LayersPanel({
   placements,
-  selectedId,
+  selectedIds,
   onSelect,
   onToggle,
   onRemove,
@@ -48,17 +53,19 @@ export function LayersPanel({
             key={p.id}
             role="button"
             tabIndex={0}
-            onClick={() => onSelect(p.id)}
+            // Shift+click would extend a text selection over the rows.
+            onMouseDown={(e) => isToggleClick(e) && e.preventDefault()}
+            onClick={(e) => onSelect(p.id, isToggleClick(e))}
             onKeyDown={(e) => {
               if (e.target === e.currentTarget && (e.key === "Enter" || e.key === " ")) {
                 e.preventDefault();
-                onSelect(p.id);
+                onSelect(p.id, false);
               }
             }}
             className={cn(
               "flex cursor-pointer items-center gap-2 rounded-md border px-2 text-xs",
               dock ? "py-1" : "py-1.5",
-              p.id === selectedId ? "border-ring bg-accent" : "border-border hover:border-ring/50",
+              selectedIds.includes(p.id) ? "border-ring bg-accent" : "border-border hover:border-ring/50",
               hidden && "opacity-50"
             )}
           >
@@ -91,7 +98,7 @@ export function LayersPanel({
         );
       })}
       <p className="pt-1 text-xs text-muted-foreground/60">
-        Click a zone to select it. Hidden zones stay editable but don't show in kiosk mode.
+        Click a zone to select it; Shift / Ctrl+click selects several. Hidden zones stay editable but don't show in kiosk mode.
       </p>
     </div>
   );

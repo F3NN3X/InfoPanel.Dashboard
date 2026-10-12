@@ -5,6 +5,7 @@ export type ShortcutAction =
   | { type: "remove" }
   | { type: "duplicate" }
   | { type: "toggle-visible" }
+  | { type: "select-all" }
   | { type: "escape" }
   | { type: "nudge"; cols: number; rows: number }
   | { type: "resize"; cols: number; rows: number }
@@ -60,6 +61,7 @@ function commandAction(e: KeyInput): ShortcutAction | null {
   if (key === "k") return { type: "palette" };
   if (key === "\\") return { type: "toggle-dock" };
   if (key === "d") return { type: "duplicate" };
+  if (key === "a" && !e.shiftKey) return { type: "select-all" };
   if (key === "0") return { type: "zoom-fit" };
   if (key === "=" || key === "+") return { type: "zoom-in" };
   if (key === "-" || key === "_") return { type: "zoom-out" };
@@ -129,6 +131,7 @@ export const KEYS = {
   save: "Ctrl+S",
   palette: "Ctrl+K",
   duplicate: "Ctrl+D",
+  selectAll: "Ctrl+A",
   remove: "Del",
   copy: "Ctrl+C",
   paste: "Ctrl+V",
@@ -156,11 +159,13 @@ export const SHORTCUT_GROUPS: { title: string; items: { keys: string; label: str
     ],
   },
   {
-    title: "Selected zone",
+    title: "Selected zones",
     items: [
-      { keys: "← ↑ → ↓", label: "Move one cell" },
-      { keys: "Shift+← / →", label: "Narrower / wider" },
-      { keys: "Shift+↑ / ↓", label: "Shorter / taller" },
+      { keys: "Shift / Ctrl+click", label: "Add to or remove from the selection" },
+      { keys: KEYS.selectAll, label: "Select all zones" },
+      { keys: "← ↑ → ↓", label: "Move the selection one cell" },
+      { keys: "Shift+← / →", label: "Narrower / wider (the primary zone)" },
+      { keys: "Shift+↑ / ↓", label: "Shorter / taller (the primary zone)" },
       { keys: KEYS.duplicate, label: "Duplicate" },
       { keys: KEYS.hide, label: "Hide / show" },
       { keys: `${KEYS.remove} / Backspace`, label: "Remove" },

@@ -17,14 +17,20 @@ import {
   changeRows,
   clearWidget,
   duplicatePlacement,
+  duplicateZones,
   removePlacement,
+  removeZones,
   setProfileStyle,
   setRowSpan,
   setSpan,
   setZoneRect,
+  setZoneRects,
   toggleVisible,
+  toggleZonesVisible,
   updatePlacement,
+  zoneMinSize,
 } from "./studio-actions";
+import { ALL_MODULES } from "./studio-modules";
 
 const zone = (
   id: string,
@@ -326,5 +332,75 @@ describe("setProfileStyle", () => {
     const styled = setProfileStyle(profile([]), (s) => ({ ...s, surface: "glass" }));
     expect(styled.style).toEqual({ surface: "glass" });
     expect(setProfileStyle(styled, () => ({})).style).toBeUndefined();
+  });
+});
+
+describe("setZoneRects", () => {
+  it("sets the listed zones' boxes and leaves the rest", () => {
+    const before = profile([zone("a", 1, 1, 2, 1), zone("b", 3, 1, 2, 1), zone("c", 5, 1, 1, 1)]);
+    const after = setZoneRects(before, {
+      a: { col: 1, row: 2, cols: 2, rows: 1 },
+      b: { col: 3, row: 2, cols: 3, rows: 2 },
+    });
+    expect(after.placements.map((p) => [p.id, p.colStart, p.rowStart, p.colSpan, p.rowSpan])).toEqual([
+      ["a", 1, 2, 2, 1],
+      ["b", 3, 2, 3, 2],
+      ["c", 5, 1, 1, 1],
+    ]);
+    expect(after.placements[2]).toBe(before.placements[2]);
+  });
+});
+
+describe("removeZones", () => {
+  it("removes every listed zone", () => {
+    const before = profile([zone("a", 1, 1, 1, 1), zone("b", 2, 1, 1, 1), zone("c", 3, 1, 1, 1)]);
+    expect(removeZones(before, ["a", "c", "x"]).placements.map((p) => p.id)).toEqual(["b"]);
+  });
+});
+
+describe("toggleZonesVisible", () => {
+  it("hides the whole set while any member shows", () => {
+    const before = profile([
+      zone("a", 1, 1, 1, 1, { visible: false }),
+      zone("b", 2, 1, 1, 1),
+      zone("c", 3, 1, 1, 1),
+    ]);
+    const after = toggleZonesVisible(before, ["a", "b"]);
+    expect(after.placements.map((p) => p.visible)).toEqual([false, false, true]);
+  });
+
+  it("shows the whole set when every member is hidden", () => {
+    const before = profile([zone("a", 1, 1, 1, 1, { visible: false }), zone("b", 2, 1, 1, 1, { visible: false })]);
+    expect(toggleZonesVisible(before, ["a", "b"]).placements.map((p) => p.visible)).toEqual([true, true]);
+  });
+});
+
+describe("duplicateZones", () => {
+  it("copies each zone to the first free spot of its size, rows first", () => {
+    const before = profile([zone("a", 1, 1, 2, 1, { settings: { x: 1 } }), zone("b", 3, 1, 4, 2)], 6, 4);
+    const { profile: after, copies } = duplicateZones(before, ["a", "b"]);
+    expect(copies).toHaveLength(2);
+    const [ca, cb] = copies.map((id) => after.placements.find((p) => p.id === id)!);
+    expect([ca.colStart, ca.rowStart, ca.colSpan, ca.rowSpan]).toEqual([1, 2, 2, 1]);
+    // b's copy can't sit beside it; the earlier copy counts as taken.
+    expect([cb.colStart, cb.rowStart, cb.colSpan, cb.rowSpan]).toEqual([1, 3, 4, 2]);
+    expect(ca.settings).toEqual({ x: 1 });
+    expect(ca.settings).not.toBe(before.placements[0].settings);
+  });
+
+  it("skips a zone with no free spot and keeps the profile when nothing fits", () => {
+    const full = profile([zone("a", 1, 1, 2, 2)], 2, 2);
+    const result = duplicateZones(full, ["a"]);
+    expect(result.copies).toEqual([]);
+    expect(result.profile).toBe(full);
+  });
+});
+
+describe("zoneMinSize", () => {
+  it("uses the widget's minimum, and 1×1 for blank zones and panels", () => {
+    const m = ALL_MODULES[0];
+    expect(zoneMinSize(zone("a", 1, 1, 1, 1, { module: m.id }))).toEqual({ cols: m.minCols, rows: m.minRows });
+    expect(zoneMinSize(zone("b", 1, 1, 1, 1, { module: BLANK_MODULE }))).toEqual({ cols: 1, rows: 1 });
+    expect(zoneMinSize(zone("c", 1, 1, 1, 1, { module: PANEL_ID }))).toEqual({ cols: 1, rows: 1 });
   });
 });

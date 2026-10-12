@@ -30,7 +30,12 @@ interface Size {
 }
 
 interface ZoneToolbarProps {
+  /** The primary selected zone (the toolbar sits next to it). */
   placement: Placement;
+  /** How many zones are selected: with more than one only hide, duplicate and remove show. */
+  count?: number;
+  /** Whether any selected zone shows (hide them all), else show them all. */
+  anyVisible?: boolean;
   /** The selected panel widget's name: a second crumb after the zone's. */
   widgetLabel?: string;
   /** Open the widget picker for this zone. */
@@ -38,6 +43,7 @@ interface ZoneToolbarProps {
   /** Whether the zone can take this size (grid and other zones). */
   canResize: (size: Size) => boolean;
   onResize: (size: Size) => void;
+  /* Act on every selected zone. */
   onToggleVisible: () => void;
   onDuplicate: () => void;
   onRemove: () => void;
@@ -77,12 +83,51 @@ function ToolButton({
   );
 }
 
+const BAR =
+  "flex items-center gap-0.5 whitespace-nowrap rounded-lg border border-border bg-popover/95 p-0.5 text-xs shadow-lg backdrop-blur";
+
+/** Several zones selected: their count, then hide, duplicate, remove. */
+function MultiToolbar({
+  count,
+  anyVisible,
+  onToggleVisible,
+  onDuplicate,
+  onRemove,
+  onDeselect,
+}: Pick<ZoneToolbarProps, "onToggleVisible" | "onDuplicate" | "onRemove" | "onDeselect"> & {
+  count: number;
+  anyVisible: boolean;
+}) {
+  return (
+    <div className={BAR}>
+      <span className="px-1.5 font-medium text-foreground">{count} selected</span>
+      <div className={DIVIDER} />
+      <ToolButton title={`${anyVisible ? "Hide" : "Show"} (${KEYS.hide})`} onClick={onToggleVisible}>
+        {anyVisible ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+      </ToolButton>
+      <ToolButton title={`Duplicate (${KEYS.duplicate})`} onClick={onDuplicate}>
+        <Copy className="h-3.5 w-3.5" />
+      </ToolButton>
+      <ToolButton title={`Remove (${KEYS.remove})`} onClick={onRemove} className="hover:text-destructive">
+        <Trash2 className="h-3.5 w-3.5" />
+      </ToolButton>
+      <div className={DIVIDER} />
+      <ToolButton title={`Deselect (${KEYS.deselect})`} onClick={onDeselect}>
+        <X className="h-3.5 w-3.5" />
+      </ToolButton>
+    </div>
+  );
+}
+
 /**
  * The selected zone's actions: widget (and the selected panel widget as a
- * second crumb), size steps, hide, duplicate, remove, style.
+ * second crumb), size steps, hide, duplicate, remove, style. With several
+ * zones selected, only the actions that apply to all of them.
  */
 export function ZoneToolbar({
   placement: p,
+  count = 1,
+  anyVisible = p.visible,
   widgetLabel,
   onPickWidget,
   canResize,
@@ -93,6 +138,17 @@ export function ZoneToolbar({
   onStyle,
   onDeselect,
 }: ZoneToolbarProps) {
+  if (count > 1)
+    return (
+      <MultiToolbar
+        count={count}
+        anyVisible={anyVisible}
+        onToggleVisible={onToggleVisible}
+        onDuplicate={onDuplicate}
+        onRemove={onRemove}
+        onDeselect={onDeselect}
+      />
+    );
   /** Ctrl+D / Del act on the zone only while no widget is selected. */
   const zoneKeys = widgetLabel === undefined;
   /** A size-step button: disabled when the new size is blocked. */
@@ -105,7 +161,7 @@ export function ZoneToolbar({
     );
   };
   return (
-    <div className="flex items-center gap-0.5 whitespace-nowrap rounded-lg border border-border bg-popover/95 p-0.5 text-xs shadow-lg backdrop-blur">
+    <div className={BAR}>
       <button
         type="button"
         onClick={onPickWidget}

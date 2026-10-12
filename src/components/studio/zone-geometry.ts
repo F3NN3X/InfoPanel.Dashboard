@@ -141,15 +141,24 @@ export function fitZoneRect(
 /**
  * The zone resized to `size` from its top-left corner (toolbar size
  * steps), or null when that leaves the grid or runs into another visible
- * zone — a blocked grow keeps the current size instead of moving.
+ * zone — a blocked grow keeps the current size instead of moving. With
+ * `min`, shrinking below it (or below the current size, if smaller) is
+ * blocked too.
  */
 export function resizeZone(
   zone: Placement,
   size: { cols: number; rows: number },
   others: Placement[],
   cols: number,
-  rows: number
+  rows: number,
+  min?: { cols: number; rows: number }
 ): ZoneRect | null {
+  if (
+    min &&
+    ((size.cols < zone.colSpan && size.cols < min.cols) ||
+      (size.rows < zone.rowSpan && size.rows < min.rows))
+  )
+    return null;
   const rect: ZoneRect = { col: zone.colStart, row: zone.rowStart, ...size };
   // Checked directly: clampZoneRect would push the zone elsewhere.
   return zoneFits(rect, others, cols, rows, zone.id) ? rect : null;
@@ -201,4 +210,58 @@ export function sortZones<T extends ZoneLike>(zones: T[]): T[] {
   return [...zones].sort(
     (a, b) => a.rowStart - b.rowStart || a.colStart - b.colStart
   );
+}
+
+/**
+ * The zones `ids` moved together by whole cells: each one's new box by
+ * id, or null when any would leave the grid or overlap a visible zone
+ * outside the set (the set moves as one block, or not at all).
+ */
+export function moveZoneSet(
+  placements: Placement[],
+  ids: readonly string[],
+  delta: { cols: number; rows: number },
+  cols: number,
+  rows: number
+): Record<string, ZoneRect> | null {
+  const set = new Set(ids);
+  const others = placements.filter((p) => !set.has(p.id));
+  const moved: Record<string, ZoneRect> = {};
+  for (const p of placements) {
+    if (!set.has(p.id)) continue;
+    const rect: ZoneRect = {
+      col: p.colStart + delta.cols,
+      row: p.rowStart + delta.rows,
+      cols: p.colSpan,
+      rows: p.rowSpan,
+    };
+    if (!zoneFits(rect, others, cols, rows)) return null;
+    moved[p.id] = rect;
+  }
+  return Object.keys(moved).length > 0 ? moved : null;
+}
+
+/**
+ * A resized box kept at least `min` cells — or the zone's current size,
+ * when an older zone is already smaller — with the edge opposite the
+ * dragged one held in place.
+ */
+export function enforceMinSize(
+  rect: ZoneRect,
+  zone: ZoneLike,
+  min: { cols: number; rows: number }
+): ZoneRect {
+  const minCols = Math.min(min.cols, zone.colSpan);
+  const minRows = Math.min(min.rows, zone.rowSpan);
+  const r = { ...rect };
+  if (r.cols < minCols) {
+    // The left edge was dragged: keep the right one.
+    if (r.col !== zone.colStart) r.col = r.col + r.cols - minCols;
+    r.cols = minCols;
+  }
+  if (r.rows < minRows) {
+    if (r.row !== zone.rowStart) r.row = r.row + r.rows - minRows;
+    r.rows = minRows;
+  }
+  return r;
 }
