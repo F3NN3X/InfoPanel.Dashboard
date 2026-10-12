@@ -67,15 +67,17 @@ export default function Forecast(p: ForecastProps) {
     >
       {({ w, h }) => {
         const tall = h > w * 1.1;
+        // under 130px the fixed columns alone (36 + 20 + 32 + gaps) outgrow the row: the range bar goes and the day takes the slack
+        const narrow = w < 130;
         if (tall)
           return (
             <ul className="flex h-full flex-col justify-between gap-1">
               {fc.slice(0, p.days ?? Math.max(1, Math.floor(h / 34))).map((f, i) => (
-                <li key={i} className="grid items-center gap-2 text-xs" style={{ gridTemplateColumns: w < 200 ? "36px 20px minmax(0,1fr) 32px" : "34px 22px 28px minmax(0,1fr) 28px" }} title={`${f.cond} · ${f.rain} mm · ${f.wind}`}>
-                  <span className="text-[color:var(--w-muted)]">{i === 0 ? "Tmrw" : f.day}</span>
+                <li key={i} className={`grid items-center text-xs ${narrow ? "gap-1" : "gap-2"}`} style={{ gridTemplateColumns: narrow ? "minmax(0,1fr) 18px auto" : w < 200 ? "36px 20px minmax(0,1fr) 32px" : "34px 22px 28px minmax(0,1fr) 28px" }} title={`${f.cond} · ${f.rain} mm · ${f.wind}`}>
+                  <span className="truncate text-[color:var(--w-muted)]">{i === 0 ? "Tmrw" : f.day}</span>
                   <Icon name={weatherIcon(f.cond)} className="text-lg text-[color:var(--w-fg)]" />
                   {w >= 200 && <span className="text-right tabular-nums text-[color:var(--w-faint)]">{fmt(f.lo, 0)}°</span>}
-                  {range(f, true)}
+                  {!narrow && range(f, true)}
                   <span className="font-medium tabular-nums">{fmt(f.hi, 0)}°</span>
                 </li>
               ))}
