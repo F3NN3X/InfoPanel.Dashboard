@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { ExternalLink, Link2, Plus, Trash2, Waypoints } from "lucide-react";
 import { Popover } from "@/components/ui/popover";
 import { useToast } from "@/components/ui/toast";
@@ -23,6 +24,7 @@ export function ExplorerHeader({ pointCount, sourceCount, apiBase, status }: Exp
   const copy = useCopy();
   const toast = useToast();
   const endpoints = useEndpoints();
+  const actionsRef = useRef<HTMLDivElement>(null);
 
   const clearPushed = () => {
     fetch(`${apiBase}/api/clear`, { method: "POST" })
@@ -37,8 +39,8 @@ export function ExplorerHeader({ pointCount, sourceCount, apiBase, status }: Exp
   return (
     <div className="flex flex-wrap items-center gap-3 border-b border-ui-subtle bg-ui-chrome px-4 py-3 font-ui">
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <div className="text-[14px] font-semibold text-ui-1">Data sources</div>
-        <div className="text-[11.5px] text-ui-4">
+        <div className="text-[14px] font-semibold leading-[1.2] text-ui-1">Data sources</div>
+        <div className="text-[11.5px] leading-[1.2] text-ui-4">
           {pointCount} data points from {sourceCount} sources
         </div>
       </div>
@@ -49,9 +51,10 @@ export function ExplorerHeader({ pointCount, sourceCount, apiBase, status }: Exp
         <span className="font-ui-mono text-ui-5">· live via SSE</span>
       </span>
 
-      <div className="flex items-center gap-3">
+      <div ref={actionsRef} className="flex items-center gap-3">
         <Popover
           align="end"
+          anchor={actionsRef}
           className="w-[min(520px,calc(100vw-32px))] rounded-[10px] p-1.5"
           triggerClassName="inline-flex h-[30px] items-center gap-1.5 whitespace-nowrap rounded-[7px] border border-ui-strong bg-ui-raised px-[11px] text-[12px] text-ui-1 hover:bg-[#1e1e23] aria-expanded:bg-ui-active"
           trigger={

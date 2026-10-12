@@ -5,7 +5,7 @@ import {
   type ReactNode,
   type RefObject,
 } from "react";
-import { ChevronDown, ChevronRight, Eye, EyeOff, MoreHorizontal } from "lucide-react";
+import { ChevronRight, Eye, EyeOff, MoreHorizontal } from "lucide-react";
 import type { Placement } from "@/lib/layout";
 import { cn } from "@/lib/utils";
 import { placementTitle } from "./studio-modules";
@@ -50,7 +50,7 @@ export function SelectionChip({
 }: SelectionChipProps) {
   const multi = count > 1;
   return (
-    <div className="flex h-6 items-center gap-0.5 whitespace-nowrap rounded-[6px] bg-ui-accent px-1 font-ui text-[11px] font-semibold text-ui-inverse-fg">
+    <div className="flex h-7 items-center gap-0.5 whitespace-nowrap rounded-[6px] bg-ui-accent px-1 font-ui text-[13px] font-bold text-ui-inverse-fg">
       {multi ? (
         <span className="px-1.5">{count} selected</span>
       ) : (
@@ -59,11 +59,10 @@ export function SelectionChip({
             type="button"
             onClick={onPickWidget}
             title="Change widget"
-            className={cn(CHIP_BUTTON, "max-w-44 gap-1 px-1.5")}
+            className={cn(CHIP_BUTTON, "max-w-44 px-1.5")}
           >
             <span className="truncate">{placementTitle(p)}</span>
-            <ChevronDown className="h-3 w-3 shrink-0 opacity-70" />
-          </button>
+                      </button>
           {widgetLabel !== undefined && (
             <span
               className="flex max-w-36 items-center gap-0.5"

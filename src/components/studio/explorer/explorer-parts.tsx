@@ -14,7 +14,7 @@ const TYPE_ICON: Record<PointType, LucideIcon> = {
 
 export function TypeIcon({ type, className }: { type: PointType; className?: string }) {
   const Icon = TYPE_ICON[type];
-  return <Icon className={cn("h-4 w-4 shrink-0 text-ui-4", className)} aria-hidden />;
+  return <Icon className={cn("h-[13px] w-[13px] shrink-0 text-ui-4", className)} aria-hidden />;
 }
 
 export const HEALTH_LABEL: Record<Health, string> = {
@@ -83,7 +83,7 @@ export function ToggleChip({ active, onClick, children }: ToggleChipProps) {
 export const CAPTION = "font-ui text-[10.5px] font-medium uppercase tracking-[0.05em] text-ui-5";
 
 /** The small label above an inspector field. */
-export const FIELD_LABEL = "font-ui text-[11.5px] text-ui-4";
+export const FIELD_LABEL = "font-ui text-[11.5px] leading-[1.25] text-ui-4";
 
 interface CopyFieldProps {
   label: string;
@@ -108,7 +108,7 @@ export function CopyField({ label, value, display, get, onCopy }: CopyFieldProps
         onClick={() => onCopy(value)}
         className="flex items-center gap-2 rounded-[7px] border border-ui-default bg-ui-app px-2.5 py-2 text-left text-ui-1 transition-colors hover:border-[#3a3a44]"
       >
-        <span className="min-w-0 flex-1 break-all font-ui-mono text-[11px]">
+        <span className="min-w-0 flex-1 break-all font-ui-mono text-[11px] leading-[1.3]">
           {get && <span className="text-ui-success">GET </span>}
           {display ?? value}
         </span>

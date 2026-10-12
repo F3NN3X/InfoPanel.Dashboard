@@ -79,12 +79,6 @@ export function zoneMenu(s: ZoneMenuState): MenuSpec {
     ...(single && s.panel ? [{ id: "save-panel" as const, label: "Save to My panels" }] : []),
     { id: "duplicate", label: "Duplicate", hint: `${MOD}D` },
     { id: "visible", label: s.anyVisible ? "Hide" : "Show", hint: "H" },
-    ...(single
-      ? [
-          "separator" as const,
-          ...STEPS.map(({ id, label, hint, cols, rows }) => ({ id, label, hint, disabled: !s.canStep(cols, rows) })),
-        ]
-      : []),
     "separator",
     { id: "copy-style", label: "Copy style", hint: `${MOD}${ALT}C`, disabled: !single },
     { id: "paste-style", label: "Paste style", hint: `${MOD}${ALT}V`, disabled: !s.canPasteStyle },
@@ -93,6 +87,8 @@ export function zoneMenu(s: ZoneMenuState): MenuSpec {
       ? [
           { id: "global-all" as const, label: "Global style: all profiles" },
           { id: "global-profile" as const, label: "Global style: this profile" },
+          "separator" as const,
+          ...STEPS.map(({ id, label, hint, cols, rows }) => ({ id, label, hint, disabled: !s.canStep(cols, rows) })),
         ]
       : []),
     "separator",

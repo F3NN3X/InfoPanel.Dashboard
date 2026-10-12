@@ -1,51 +1,51 @@
 import {
-  Activity,
   Bell,
   Bluetooth,
   Box,
-  Cloud,
   Cpu,
   FileText,
   Gamepad2,
   Gauge,
   Globe,
-  Headphones,
   LayoutGrid,
-  Music,
-  PanelsTopLeft,
-  Play,
+  ListMusic,
+  Monitor,
+  Music2,
+  SlidersHorizontal,
+  SunDim,
+  ArrowDownUp,
+  AudioLines,
+  Blocks,
   SquareDashed,
-  Train,
-  Volume2,
-  Wifi,
+  Bus,
   type LucideIcon,
 } from "lucide-react";
 import { BLANK_MODULE, CARDS_ID, PANEL_ID } from "@/lib/layout";
 
 /** The icon of each widget; anything unlisted gets a plain box. */
 const MODULE_ICONS: Record<string, LucideIcon> = {
-  systemmodern: Cpu,
-  hardwaremodern: Gauge,
-  fpsmodern: Activity,
-  spotifymodern: Music,
-  mediamodern: Play,
-  audiomodern: Volume2,
-  wavelinkmodern: Headphones,
+  systemmodern: Monitor,
+  hardwaremodern: Cpu,
+  fpsmodern: Gauge,
+  spotifymodern: ListMusic,
+  mediamodern: Music2,
+  audiomodern: AudioLines,
+  wavelinkmodern: SlidersHorizontal,
   steammodern: Gamepad2,
-  networkmodern: Wifi,
+  networkmodern: ArrowDownUp,
   bluetoothmodern: Bluetooth,
-  weathermodern: Cloud,
-  vbz: Train,
+  weathermodern: SunDim,
+  vbz: Bus,
   notifications: Bell,
   textfile: FileText,
   webpage: Globe,
   streamdeck: LayoutGrid,
-  [CARDS_ID]: LayoutGrid,
+  [CARDS_ID]: Blocks,
 };
 
 /** A zone's icon in Layers and the library: the widget's own, the panel icon, or the blank icon. */
 export function moduleIcon(module: string): LucideIcon {
   if (module === BLANK_MODULE) return SquareDashed;
-  if (module === PANEL_ID) return PanelsTopLeft;
+  if (module === PANEL_ID) return Blocks;
   return MODULE_ICONS[module] ?? Box;
 }

@@ -1,4 +1,4 @@
-import { ArrowRight, LayoutDashboard, PanelTop, SquarePlus, X } from "lucide-react";
+import { ArrowRight, Monitor, PanelTop, SquarePlus, X } from "lucide-react";
 import { formatReading, type DataPoint } from "@/lib/data-points";
 import type { Usage } from "@/lib/data-usage";
 import { barHeights, HISTORY_SIZE, type SampleHistory } from "@/lib/sample-history";
@@ -121,7 +121,7 @@ export function PointInspector({
       <div className="flex flex-col gap-2 border-t border-ui-subtle pt-3.5">
         <span className="text-[12.5px] font-semibold text-ui-1">Used by</span>
         {usedBy.map((u) => {
-          const Icon = u.panelWidgetId ? PanelTop : LayoutDashboard;
+          const Icon = u.panelWidgetId ? PanelTop : Monitor;
           return (
             <button
               key={`${u.zoneId}:${u.panelWidgetId ?? ""}`}
@@ -204,8 +204,8 @@ function History({ history, pointKey, unit, tick }: { history: SampleHistory; po
           ] as const
         ).map(([label, n]) => (
           <div key={label} className="flex flex-col gap-px">
-            <span className="text-[10.5px] text-ui-4">{label}</span>
-            <span className="font-ui-mono text-[11.5px] text-ui-1">{n === undefined ? "—" : fmt(n)}</span>
+            <span className="text-[10.5px] leading-[1.25] text-ui-4">{label}</span>
+            <span className="font-ui-mono text-[11.5px] leading-[1.25] text-ui-1">{n === undefined ? "—" : fmt(n)}</span>
           </div>
         ))}
       </div>
