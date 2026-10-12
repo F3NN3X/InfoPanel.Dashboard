@@ -19,6 +19,7 @@ import * as MemoryUsage from "../MemoryUsage";
 import * as Thermals from "../Thermals";
 import * as PowerDraw from "../PowerDraw";
 import * as Fans from "../Fans";
+import { SYSTEM_OVERVIEW_SETTINGS, systemOverviewProps } from "./system-overview";
 
 /** The stored settings whose key equals a widget prop name, passed straight through (unset / empty = the widget's default). */
 const pass =
@@ -27,7 +28,16 @@ const pass =
     Object.fromEntries(keys.filter((k) => s[k] !== undefined && s[k] !== "").map((k) => [k, s[k]])) as P;
 
 export const GROUP_A: DashboardModule[] = [
-  templateModule({ meta: SystemOverview.meta, Component: SystemOverview.default, settings: [], toProps: pass<Partial<SystemOverview.SystemOverviewProps>>("sections", "colors", "unifiedColor", "ring", "coreView", "heatRamp", "details", "warn", "crit") }),
+  templateModule({
+    meta: SystemOverview.meta,
+    Component: SystemOverview.default,
+    settings: SYSTEM_OVERVIEW_SETTINGS,
+    toProps: (s) => {
+      const base = pass<Partial<SystemOverview.SystemOverviewProps>>("sections", "colors", "unifiedColor", "ring", "coreView", "heatRamp", "details", "warn", "crit")(s);
+      const ext = systemOverviewProps(s);
+      return { ...base, ...ext, colors: base.colors || ext.colors ? { ...base.colors, ...ext.colors } : undefined };
+    },
+  }),
   templateModule({ meta: MenuBar.meta, Component: MenuBar.default, settings: [], toProps: pass<Partial<MenuBar.MenuBarProps>>("items", "stacked", "dropdown") }),
   templateModule({ meta: KpiTiles.meta, Component: KpiTiles.default, settings: [], toProps: pass<Partial<KpiTiles.KpiTilesProps>>("metrics", "lookback") }),
   templateModule({ meta: StatusTracker.meta, Component: StatusTracker.default, settings: [], toProps: pass<Partial<StatusTracker.StatusTrackerProps>>("tracks", "samples") }),

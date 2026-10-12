@@ -158,6 +158,44 @@ export function Ring({ value, max = 100, thickness: th0 = 8, t = "ok", color, ch
   );
 }
 
+// Concentric rings, outermost first (SystemOverview tile, GpuRings). `track` defaults to --w-track.
+export interface RingStackRing {
+  v: number;
+  color: string;
+  track?: string;
+}
+export interface RingStackProps {
+  rings: RingStackRing[];
+  thickness?: number;
+  gap?: number;
+  children?: ReactNode;
+  className?: string;
+  style?: CSSProperties;
+}
+export function RingStack({ rings, thickness: th0 = 9, gap = 3, children, className = "", style }: RingStackProps) {
+  const sk = useSkin();
+  const thickness = Math.max(1.5, th0 * (sk.ring ?? 1));
+  const cap = sk.skin === "hud" || sk.skin === "tui" ? "butt" : "round";
+  return (
+    <div className={`relative ${className}`} style={style}>
+      <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" className="h-full w-full -rotate-90">
+        {rings.map(({ v, color, track }, i) => {
+          const r = Math.max(thickness / 2 + 1, 50 - thickness / 2 - i * (thickness + gap)),
+            c = 2 * Math.PI * r;
+          return (
+            <g key={i}>
+              <circle cx="50" cy="50" r={r} fill="none" stroke={track ?? "var(--w-track)"} strokeWidth={thickness} />
+              <circle cx="50" cy="50" r={r} fill="none" stroke={color} strokeWidth={thickness} strokeLinecap={cap}
+                strokeDasharray={c} strokeDashoffset={c * (1 - clamp(v || 0) / 100)} style={{ transition: "stroke-dashoffset .7s ease-out" }} />
+            </g>
+          );
+        })}
+      </svg>
+      {children != null && <div className="absolute inset-0 flex flex-col items-center justify-center text-center">{children}</div>}
+    </div>
+  );
+}
+
 // Smooth (Catmull-Rom → cubic Bézier) area sparkline. Stretches to any box.
 type Pt = [number, number];
 const smoothPath = (pts: Pt[]) =>

@@ -53,7 +53,9 @@ describe("insertables", () => {
 
   it("files the legacy modules under the new chips", () => {
     const category = (id: string) => INSERTABLES.find((i) => i.kind === "module" && i.id === id)?.category;
-    expect(category("systemmodern")).toBe("System");
+    // Superseded by SystemOverview in the Library (phase 9.4); existing zones still load.
+    expect(category("systemmodern")).toBeUndefined();
+    expect(category("SystemOverview")).toBe("System");
     expect(category("hardwaremodern")).toBeUndefined();
     expect(category("Thermals")).toBe("Hardware");
     // Ported onto a template: the template's own entry stays, the legacy id is hidden from the Library.
