@@ -1,0 +1,4884 @@
+{
+ "timestamp": 1791830967035,
+ "sensors": {
+  "spotify.progress": {
+   "value": 0,
+   "unit": "%",
+   "source": "spotify"
+  },
+  "spotify.album": {
+   "text": "-",
+   "unit": "",
+   "source": "spotify"
+  },
+  "spotify.art": {
+   "text": "",
+   "unit": "",
+   "source": "spotify"
+  },
+  "spotify.track": {
+   "text": "♪ Spotify idle",
+   "unit": "",
+   "source": "spotify"
+  },
+  "spotify.artist": {
+   "text": "-",
+   "unit": "",
+   "source": "spotify"
+  },
+  "spotify.playing": {
+   "value": 0,
+   "unit": "",
+   "source": "spotify"
+  },
+  "system.cpu.load": {
+   "value": 62.5,
+   "unit": "%",
+   "min": 0,
+   "max": 100,
+   "name": "CPU Load",
+   "source": "system"
+  },
+  "system.ram.load": {
+   "value": 65.6,
+   "unit": "%",
+   "min": 0,
+   "max": 100,
+   "name": "RAM Load",
+   "source": "system"
+  },
+  "system.ram.free": {
+   "value": 34.4,
+   "unit": "%",
+   "min": 0,
+   "max": 100,
+   "name": "RAM Free",
+   "source": "system"
+  },
+  "system.bridge.status": {
+   "text": "running",
+   "unit": "",
+   "name": "Data API Status",
+   "source": "system"
+  },
+  "system.bridge.time": {
+   "text": "20:49:27",
+   "unit": "",
+   "name": "Data API Time",
+   "source": "system"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__15": {
+   "unit": "MHz",
+   "name": "AMD Ryzen 9 9950X3D Core #15",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__15_factor": {
+   "unit": "1",
+   "name": "AMD Ryzen 9 9950X3D Core #15",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_cpu_core__10": {
+   "value": 68.55000305175781,
+   "unit": "%",
+   "min": 0,
+   "max": 99.37999725341797,
+   "name": "AMD Ryzen 9 9950X3D CPU Core #10",
+   "source": "infopanel"
+  },
+  "libre.wifi_3_download_speed": {
+   "value": 0,
+   "unit": "KB/s",
+   "min": 0,
+   "max": 0,
+   "name": "WiFi 3 Download Speed",
+   "source": "infopanel"
+  },
+  "libre.wdc_wds100t2b0a_00sm50_total_space": {
+   "value": 1000.2048950195312,
+   "unit": "GB",
+   "min": 1000.2048950195312,
+   "max": 1000.2048950195312,
+   "name": "WDC WDS100T2B0A-00SM50 Total Space",
+   "source": "infopanel"
+  },
+  "libre.wdc_wds100t2b0a_00sm50_total_space_data": {
+   "value": 1000.2048950195312,
+   "unit": "GB",
+   "min": 1000.2048950195312,
+   "max": 1000.2048950195312,
+   "name": "WDC WDS100T2B0A-00SM50 Total Space",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_read_rate": {
+   "value": 2374196,
+   "unit": "KB/s",
+   "min": 1153.9986572265625,
+   "max": 155193104,
+   "name": "KINGSTON SFYRD2000G Read Rate",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_read_rate_throughput": {
+   "value": 74279392,
+   "unit": "KB/s",
+   "min": 0,
+   "max": 113667288,
+   "name": "KINGSTON SFYRD2000G Read Rate",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_read_rate_throughput_54": {
+   "value": 12850.404296875,
+   "unit": "KB/s",
+   "min": 0,
+   "max": 8323924,
+   "name": "KINGSTON SFYRD2000G Read Rate",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_read_activity": {
+   "value": 5.7343597412109375,
+   "unit": "%",
+   "min": 0.00013093465531710535,
+   "max": 100,
+   "name": "KINGSTON SFYRD2000G Read Activity",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_read_activity_load": {
+   "value": 10.063371658325195,
+   "unit": "%",
+   "min": 0,
+   "max": 17.47698402404785,
+   "name": "KINGSTON SFYRD2000G Read Activity",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_read_activity_load_51": {
+   "value": 0.1330803483724594,
+   "unit": "%",
+   "min": 0,
+   "max": 28.50960350036621,
+   "name": "KINGSTON SFYRD2000G Read Activity",
+   "source": "infopanel"
+  },
+  "libre.wdc_wds100t2b0a_00sm50_data_read": {
+   "value": 48391,
+   "unit": "GB",
+   "min": 0,
+   "max": 48391,
+   "name": "WDC WDS100T2B0A-00SM50 Data Read",
+   "source": "infopanel"
+  },
+  "libre.wdc_wds100t2b0a_00sm50_data_read_data": {
+   "value": 13401,
+   "unit": "GB",
+   "min": 0,
+   "max": 13401,
+   "name": "WDC WDS100T2B0A-00SM50 Data Read",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_gpu_fan_2": {
+   "value": 2025,
+   "unit": "RPM",
+   "min": 1184,
+   "max": 2213,
+   "name": "NVIDIA GeForce RTX 5090 GPU Fan 2",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_gpu_fan_2_control": {
+   "value": 56,
+   "unit": "%",
+   "min": 30,
+   "max": 63,
+   "name": "NVIDIA GeForce RTX 5090 GPU Fan 2",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__5_vid": {
+   "value": 1.5499999523162842,
+   "unit": "V",
+   "min": 1.5499999523162842,
+   "max": 1.5499999523162842,
+   "name": "AMD Ryzen 9 9950X3D Core #5 VID",
+   "source": "infopanel"
+  },
+  "libre.wifi_4_download_speed": {
+   "value": 0,
+   "unit": "KB/s",
+   "min": 0,
+   "max": 0,
+   "name": "WiFi 4 Download Speed",
+   "source": "infopanel"
+  },
+  "libre.ethernet_download_speed": {
+   "value": 920111.6875,
+   "unit": "KB/s",
+   "min": 1737.1282958984375,
+   "max": 118252080,
+   "name": "Ethernet Download Speed",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_d3d_copy": {
+   "value": 1.5568031072616577,
+   "unit": "%",
+   "min": 0,
+   "max": 7.648961067199707,
+   "name": "NVIDIA GeForce RTX 5090 D3D Copy",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_d3d_copy_load": {
+   "value": 0,
+   "unit": "%",
+   "min": 0,
+   "max": 0,
+   "name": "NVIDIA GeForce RTX 5090 D3D Copy",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_d3d_copy_load_12": {
+   "value": 0,
+   "unit": "%",
+   "min": 0,
+   "max": 0,
+   "name": "NVIDIA GeForce RTX 5090 D3D Copy",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_d3d_copy_load_13": {
+   "value": 0,
+   "unit": "%",
+   "min": 0,
+   "max": 0,
+   "name": "NVIDIA GeForce RTX 5090 D3D Copy",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_d3d_copy_load_8": {
+   "value": 0,
+   "unit": "%",
+   "min": 0,
+   "max": 0.03556867688894272,
+   "name": "NVIDIA GeForce RTX 5090 D3D Copy",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_d3d_copy_load_9": {
+   "value": 0.5114539265632629,
+   "unit": "%",
+   "min": -1432.025146484375,
+   "max": 1054.334716796875,
+   "name": "NVIDIA GeForce RTX 5090 D3D Copy",
+   "source": "infopanel"
+  },
+  "libre.wdc_wds100t2b0a_00sm50_free_space": {
+   "value": 184.19000244140625,
+   "unit": "GB",
+   "min": 184.19000244140625,
+   "max": 184.19000244140625,
+   "name": "WDC WDS100T2B0A-00SM50 Free Space",
+   "source": "infopanel"
+  },
+  "libre.wdc_wds100t2b0a_00sm50_free_space_data": {
+   "value": 70.77429962158203,
+   "unit": "GB",
+   "min": 70.77429962158203,
+   "max": 70.82386779785156,
+   "name": "WDC WDS100T2B0A-00SM50 Free Space",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_cpu_core__32": {
+   "value": 18.239999771118164,
+   "unit": "%",
+   "min": 0,
+   "max": 96.48999786376953,
+   "name": "AMD Ryzen 9 9950X3D CPU Core #32",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__2_vid": {
+   "value": 1.5499999523162842,
+   "unit": "V",
+   "min": 1.5499999523162842,
+   "max": 1.5499999523162842,
+   "name": "AMD Ryzen 9 9950X3D Core #2 VID",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__4_vid": {
+   "value": 1.5499999523162842,
+   "unit": "V",
+   "min": 1.5499999523162842,
+   "max": 1.5499999523162842,
+   "name": "AMD Ryzen 9 9950X3D Core #4 VID",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_gpu_core": {
+   "value": 58.88671875,
+   "unit": "°C",
+   "min": 28,
+   "max": 63.875,
+   "name": "NVIDIA GeForce RTX 5090 GPU Core",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_gpu_core_load": {
+   "value": 90,
+   "unit": "%",
+   "min": 0,
+   "max": 99,
+   "name": "NVIDIA GeForce RTX 5090 GPU Core",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_gpu_core_clock": {
+   "value": 2505,
+   "unit": "MHz",
+   "min": 247,
+   "max": 2842,
+   "name": "NVIDIA GeForce RTX 5090 GPU Core",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_cpu_core__8": {
+   "value": 71.69999694824219,
+   "unit": "%",
+   "min": 0,
+   "max": 100,
+   "name": "AMD Ryzen 9 9950X3D CPU Core #8",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__11_vid": {
+   "value": 1.5499999523162842,
+   "unit": "V",
+   "min": 1.5499999523162842,
+   "max": 1.5499999523162842,
+   "name": "AMD Ryzen 9 9950X3D Core #11 VID",
+   "source": "infopanel"
+  },
+  "libre.wdc_wds100t2b0a_00sm50_write_rate": {
+   "value": 0,
+   "unit": "KB/s",
+   "min": 0,
+   "max": 2281.0986328125,
+   "name": "WDC WDS100T2B0A-00SM50 Write Rate",
+   "source": "infopanel"
+  },
+  "libre.wdc_wds100t2b0a_00sm50_write_rate_throughput": {
+   "value": 3217.139404296875,
+   "unit": "KB/s",
+   "min": 1467.367919921875,
+   "max": 3425487,
+   "name": "WDC WDS100T2B0A-00SM50 Write Rate",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_d3d_jpeg_decode_3": {
+   "value": 0,
+   "unit": "%",
+   "min": 0,
+   "max": 0,
+   "name": "NVIDIA GeForce RTX 5090 D3D JPEG Decode 3",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_cpu_core__31": {
+   "value": 15.819999694824219,
+   "unit": "%",
+   "min": 0,
+   "max": 94.73999786376953,
+   "name": "AMD Ryzen 9 9950X3D CPU Core #31",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__15_vid": {
+   "value": 1.5499999523162842,
+   "unit": "V",
+   "min": 1.5499999523162842,
+   "max": 1.5499999523162842,
+   "name": "AMD Ryzen 9 9950X3D Core #15 VID",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_temperature__2": {
+   "value": 63.850006103515625,
+   "unit": "°C",
+   "min": 0,
+   "max": 63.850006103515625,
+   "name": "KINGSTON SFYRD2000G Temperature #2",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_temperature__2_temperature": {
+   "value": 55.850006103515625,
+   "unit": "°C",
+   "min": 0,
+   "max": 55.850006103515625,
+   "name": "KINGSTON SFYRD2000G Temperature #2",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_temperature__2_temperature_2": {
+   "value": 53.850006103515625,
+   "unit": "°C",
+   "min": 0,
+   "max": 53.850006103515625,
+   "name": "KINGSTON SFYRD2000G Temperature #2",
+   "source": "infopanel"
+  },
+  "libre.vethernet__wsl__hyper_v_firewall___download_speed": {
+   "value": 0,
+   "unit": "KB/s",
+   "min": 0,
+   "max": 36.390262603759766,
+   "name": "vEthernet (WSL (Hyper-V firewall)) Download Speed",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_total_activity": {
+   "value": 13.715362548828125,
+   "unit": "%",
+   "min": 0,
+   "max": 99.99749755859375,
+   "name": "KINGSTON SFYRD2000G Total Activity",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_total_activity_load": {
+   "value": 10.046770095825195,
+   "unit": "%",
+   "min": 0,
+   "max": 99.99732971191406,
+   "name": "KINGSTON SFYRD2000G Total Activity",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_total_activity_load_53": {
+   "value": 0.13036711513996124,
+   "unit": "%",
+   "min": 0,
+   "max": 99.9973373413086,
+   "name": "KINGSTON SFYRD2000G Total Activity",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_percentage_used": {
+   "value": 13,
+   "unit": "%",
+   "min": 0,
+   "max": 13,
+   "name": "KINGSTON SFYRD2000G Percentage Used",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_percentage_used_level": {
+   "value": 1,
+   "unit": "%",
+   "min": 0,
+   "max": 1,
+   "name": "KINGSTON SFYRD2000G Percentage Used",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_percentage_used_level_102": {
+   "value": 0,
+   "unit": "%",
+   "min": 0,
+   "max": 0,
+   "name": "KINGSTON SFYRD2000G Percentage Used",
+   "source": "infopanel"
+  },
+  "libre.wdc_wds100t2b0a_00sm50_write_activity": {
+   "value": 0,
+   "unit": "%",
+   "min": 0,
+   "max": 0.10678151994943619,
+   "name": "WDC WDS100T2B0A-00SM50 Write Activity",
+   "source": "infopanel"
+  },
+  "libre.wdc_wds100t2b0a_00sm50_write_activity_load": {
+   "value": 0.016729703173041344,
+   "unit": "%",
+   "min": 0.0000011593604085646803,
+   "max": 1.7996160984039307,
+   "name": "WDC WDS100T2B0A-00SM50 Write Activity",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__12__effective": {
+   "value": 0,
+   "unit": "MHz",
+   "min": 0,
+   "max": 0,
+   "name": "AMD Ryzen 9 9950X3D Core #12 (Effective)",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_free_space": {
+   "value": 1062.031494140625,
+   "unit": "GB",
+   "min": 1054.314208984375,
+   "max": 1066.342529296875,
+   "name": "KINGSTON SFYRD2000G Free Space",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_free_space_data": {
+   "value": 525.9051513671875,
+   "unit": "GB",
+   "min": 525.9051513671875,
+   "max": 525.9051513671875,
+   "name": "KINGSTON SFYRD2000G Free Space",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_free_space_data_31": {
+   "value": 848.1775512695312,
+   "unit": "GB",
+   "min": 847.69970703125,
+   "max": 848.2297973632812,
+   "name": "KINGSTON SFYRD2000G Free Space",
+   "source": "infopanel"
+  },
+  "libre.tailscale_data_downloaded": {
+   "value": 0.005740772932767868,
+   "unit": "GB",
+   "min": 0.004544226452708244,
+   "max": 0.005740772932767868,
+   "name": "Tailscale Data Downloaded",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__10__effective": {
+   "value": 0,
+   "unit": "MHz",
+   "min": 0,
+   "max": 0,
+   "name": "AMD Ryzen 9 9950X3D Core #10 (Effective)",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_gpu_memory_junction": {
+   "value": 66,
+   "unit": "°C",
+   "min": 40,
+   "max": 70,
+   "name": "NVIDIA GeForce RTX 5090 GPU Memory Junction",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_power_on_count": {
+   "value": 62,
+   "unit": "1",
+   "min": 0,
+   "max": 62,
+   "name": "KINGSTON SFYRD2000G Power On Count",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_power_on_count_factor": {
+   "value": 62,
+   "unit": "1",
+   "min": 0,
+   "max": 62,
+   "name": "KINGSTON SFYRD2000G Power On Count",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_power_on_count_factor_23": {
+   "value": 62,
+   "unit": "1",
+   "min": 0,
+   "max": 62,
+   "name": "KINGSTON SFYRD2000G Power On Count",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_life": {
+   "value": 87,
+   "unit": "%",
+   "min": 0,
+   "max": 87,
+   "name": "KINGSTON SFYRD2000G Life",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_life_level": {
+   "value": 99,
+   "unit": "%",
+   "min": 0,
+   "max": 99,
+   "name": "KINGSTON SFYRD2000G Life",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_life_level_20": {
+   "value": 100,
+   "unit": "%",
+   "min": 0,
+   "max": 100,
+   "name": "KINGSTON SFYRD2000G Life",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_total_space": {
+   "value": 2000.39892578125,
+   "unit": "GB",
+   "min": 2000.39892578125,
+   "max": 2000.39892578125,
+   "name": "KINGSTON SFYRD2000G Total Space",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_total_space_data": {
+   "value": 2000.39892578125,
+   "unit": "GB",
+   "min": 2000.39892578125,
+   "max": 2000.39892578125,
+   "name": "KINGSTON SFYRD2000G Total Space",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_total_space_data_32": {
+   "value": 2000.39892578125,
+   "unit": "GB",
+   "min": 2000.39892578125,
+   "max": 2000.39892578125,
+   "name": "KINGSTON SFYRD2000G Total Space",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_package": {
+   "value": 0,
+   "unit": "W",
+   "min": 0,
+   "max": 0,
+   "name": "AMD Ryzen 9 9950X3D Package",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_cpu_core__20": {
+   "value": 50.939998626708984,
+   "unit": "%",
+   "min": 0,
+   "max": 100,
+   "name": "AMD Ryzen 9 9950X3D CPU Core #20",
+   "source": "infopanel"
+  },
+  "libre.wifi_4_upload_speed": {
+   "value": 0,
+   "unit": "KB/s",
+   "min": 0,
+   "max": 0,
+   "name": "WiFi 4 Upload Speed",
+   "source": "infopanel"
+  },
+  "libre.bluetooth_network_connection_download_speed": {
+   "value": 0,
+   "unit": "KB/s",
+   "min": 0,
+   "max": 0,
+   "name": "Bluetooth Network Connection Download Speed",
+   "source": "infopanel"
+  },
+  "libre.wdc_wds100t2b0a_00sm50_data_written": {
+   "value": 28061,
+   "unit": "GB",
+   "min": 0,
+   "max": 28061,
+   "name": "WDC WDS100T2B0A-00SM50 Data Written",
+   "source": "infopanel"
+  },
+  "libre.wdc_wds100t2b0a_00sm50_data_written_data": {
+   "value": 13742,
+   "unit": "GB",
+   "min": 0,
+   "max": 13742,
+   "name": "WDC WDS100T2B0A-00SM50 Data Written",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_data_read": {
+   "value": 35099,
+   "unit": "GB",
+   "min": 0,
+   "max": 35099,
+   "name": "KINGSTON SFYRD2000G Data Read",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_data_read_data": {
+   "value": 36104,
+   "unit": "GB",
+   "min": 0,
+   "max": 36104,
+   "name": "KINGSTON SFYRD2000G Data Read",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_data_read_data_21": {
+   "value": 4822,
+   "unit": "GB",
+   "min": 0,
+   "max": 4822,
+   "name": "KINGSTON SFYRD2000G Data Read",
+   "source": "infopanel"
+  },
+  "libre.wdc_wds100t2b0a_00sm50_power_on_count": {
+   "value": 90,
+   "unit": "1",
+   "min": 0,
+   "max": 90,
+   "name": "WDC WDS100T2B0A-00SM50 Power On Count",
+   "source": "infopanel"
+  },
+  "libre.wdc_wds100t2b0a_00sm50_power_on_count_factor": {
+   "value": 91,
+   "unit": "1",
+   "min": 0,
+   "max": 91,
+   "name": "WDC WDS100T2B0A-00SM50 Power On Count",
+   "source": "infopanel"
+  },
+  "libre.wdc_wds100t2b0a_00sm50_read_activity": {
+   "value": 0,
+   "unit": "%",
+   "min": 0,
+   "max": 0.015869207680225372,
+   "name": "WDC WDS100T2B0A-00SM50 Read Activity",
+   "source": "infopanel"
+  },
+  "libre.wdc_wds100t2b0a_00sm50_read_activity_load": {
+   "value": 0,
+   "unit": "%",
+   "min": 0,
+   "max": 7.181412696838379,
+   "name": "WDC WDS100T2B0A-00SM50 Read Activity",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__2": {
+   "unit": "MHz",
+   "name": "AMD Ryzen 9 9950X3D Core #2",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__2_factor": {
+   "unit": "1",
+   "name": "AMD Ryzen 9 9950X3D Core #2",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__6": {
+   "unit": "MHz",
+   "name": "AMD Ryzen 9 9950X3D Core #6",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__6_factor": {
+   "unit": "1",
+   "name": "AMD Ryzen 9 9950X3D Core #6",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_data_written": {
+   "value": 74098,
+   "unit": "GB",
+   "min": 0,
+   "max": 74098,
+   "name": "KINGSTON SFYRD2000G Data Written",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_data_written_data": {
+   "value": 29643,
+   "unit": "GB",
+   "min": 0,
+   "max": 29643,
+   "name": "KINGSTON SFYRD2000G Data Written",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_data_written_data_22": {
+   "value": 8439,
+   "unit": "GB",
+   "min": 0,
+   "max": 8439,
+   "name": "KINGSTON SFYRD2000G Data Written",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_d3d_vr": {
+   "value": 0,
+   "unit": "%",
+   "min": 0,
+   "max": 0,
+   "name": "NVIDIA GeForce RTX 5090 D3D VR",
+   "source": "infopanel"
+  },
+  "libre.wdc_wds100t2b0a_00sm50_life": {
+   "value": 97,
+   "unit": "%",
+   "min": 0,
+   "max": 97,
+   "name": "WDC WDS100T2B0A-00SM50 Life",
+   "source": "infopanel"
+  },
+  "libre.wdc_wds100t2b0a_00sm50_life_level": {
+   "value": 99,
+   "unit": "%",
+   "min": 0,
+   "max": 99,
+   "name": "WDC WDS100T2B0A-00SM50 Life",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_d3d_dedicated_memory_used": {
+   "value": 11315.92578125,
+   "unit": "",
+   "min": 3876.23828125,
+   "max": 13912.19921875,
+   "name": "NVIDIA GeForce RTX 5090 D3D Dedicated Memory Used",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__8": {
+   "unit": "MHz",
+   "name": "AMD Ryzen 9 9950X3D Core #8",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__8_factor": {
+   "unit": "1",
+   "name": "AMD Ryzen 9 9950X3D Core #8",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_available_spare_threshold": {
+   "value": 10,
+   "unit": "%",
+   "min": 0,
+   "max": 10,
+   "name": "KINGSTON SFYRD2000G Available Spare Threshold",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_available_spare_threshold_level": {
+   "value": 10,
+   "unit": "%",
+   "min": 0,
+   "max": 10,
+   "name": "KINGSTON SFYRD2000G Available Spare Threshold",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_available_spare_threshold_level_101": {
+   "value": 10,
+   "unit": "%",
+   "min": 0,
+   "max": 10,
+   "name": "KINGSTON SFYRD2000G Available Spare Threshold",
+   "source": "infopanel"
+  },
+  "libre.ethernet_data_downloaded": {
+   "value": 192.584716796875,
+   "unit": "GB",
+   "min": 146.7430877685547,
+   "max": 192.584716796875,
+   "name": "Ethernet Data Downloaded",
+   "source": "infopanel"
+  },
+  "libre.wifi_network_utilization": {
+   "value": 0,
+   "unit": "%",
+   "min": 0,
+   "max": 0,
+   "name": "WiFi Network Utilization",
+   "source": "infopanel"
+  },
+  "libre.wdc_wds100t2b0a_00sm50_read_rate": {
+   "value": 0,
+   "unit": "KB/s",
+   "min": 0,
+   "max": 252.3411102294922,
+   "name": "WDC WDS100T2B0A-00SM50 Read Rate",
+   "source": "infopanel"
+  },
+  "libre.wdc_wds100t2b0a_00sm50_read_rate_throughput": {
+   "value": 0,
+   "unit": "KB/s",
+   "min": 0,
+   "max": 3785059,
+   "name": "WDC WDS100T2B0A-00SM50 Read Rate",
+   "source": "infopanel"
+  },
+  "libre.wdc_wds100t2b0a_00sm50_power_on_hours": {
+   "value": 45455,
+   "unit": "1",
+   "min": 0,
+   "max": 45455,
+   "name": "WDC WDS100T2B0A-00SM50 Power On Hours",
+   "source": "infopanel"
+  },
+  "libre.wdc_wds100t2b0a_00sm50_power_on_hours_factor": {
+   "value": 45459,
+   "unit": "1",
+   "min": 0,
+   "max": 45459,
+   "name": "WDC WDS100T2B0A-00SM50 Power On Hours",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_cpu_core__9": {
+   "value": 75.47000122070312,
+   "unit": "%",
+   "min": 0,
+   "max": 99.38999938964844,
+   "name": "AMD Ryzen 9 9950X3D CPU Core #9",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_write_rate": {
+   "value": 22056558,
+   "unit": "KB/s",
+   "min": 184223.109375,
+   "max": 529202080,
+   "name": "KINGSTON SFYRD2000G Write Rate",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_write_rate_throughput": {
+   "value": 2593.747802734375,
+   "unit": "KB/s",
+   "min": 0,
+   "max": 1085380.875,
+   "name": "KINGSTON SFYRD2000G Write Rate",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_write_rate_throughput_55": {
+   "value": 0,
+   "unit": "KB/s",
+   "min": 0,
+   "max": 11089309,
+   "name": "KINGSTON SFYRD2000G Write Rate",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__13": {
+   "unit": "MHz",
+   "name": "AMD Ryzen 9 9950X3D Core #13",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__13_factor": {
+   "unit": "1",
+   "name": "AMD Ryzen 9 9950X3D Core #13",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_available_spare": {
+   "value": 100,
+   "unit": "%",
+   "min": 0,
+   "max": 100,
+   "name": "KINGSTON SFYRD2000G Available Spare",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_available_spare_level": {
+   "value": 100,
+   "unit": "%",
+   "min": 0,
+   "max": 100,
+   "name": "KINGSTON SFYRD2000G Available Spare",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_available_spare_level_100": {
+   "value": 100,
+   "unit": "%",
+   "min": 0,
+   "max": 100,
+   "name": "KINGSTON SFYRD2000G Available Spare",
+   "source": "infopanel"
+  },
+  "libre.bluetooth_network_connection_data_downloaded": {
+   "value": 0,
+   "unit": "GB",
+   "min": 0,
+   "max": 0,
+   "name": "Bluetooth Network Connection Data Downloaded",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_gpu_pcie_tx": {
+   "value": 430367744,
+   "unit": "KB/s",
+   "min": 1024,
+   "max": 1616840704,
+   "name": "NVIDIA GeForce RTX 5090 GPU PCIe Tx",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_gpu_fan_3": {
+   "value": 2015,
+   "unit": "RPM",
+   "min": 1192,
+   "max": 2219,
+   "name": "NVIDIA GeForce RTX 5090 GPU Fan 3",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_gpu_fan_3_control": {
+   "value": 56,
+   "unit": "%",
+   "min": 30,
+   "max": 63,
+   "name": "NVIDIA GeForce RTX 5090 GPU Fan 3",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_cpu_core__16": {
+   "value": 59.75,
+   "unit": "%",
+   "min": 0,
+   "max": 99.37999725341797,
+   "name": "AMD Ryzen 9 9950X3D CPU Core #16",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_cpu_core__18": {
+   "value": 32.70000076293945,
+   "unit": "%",
+   "min": 0,
+   "max": 94.8499984741211,
+   "name": "AMD Ryzen 9 9950X3D CPU Core #18",
+   "source": "infopanel"
+  },
+  "libre.wifi_download_speed": {
+   "value": 0,
+   "unit": "KB/s",
+   "min": 0,
+   "max": 0,
+   "name": "WiFi Download Speed",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_d3d_video_decode": {
+   "value": 1.2631018161773682,
+   "unit": "%",
+   "min": 0,
+   "max": 11.355925559997559,
+   "name": "NVIDIA GeForce RTX 5090 D3D Video Decode",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_d3d_video_decode_load": {
+   "value": 1.285329818725586,
+   "unit": "%",
+   "min": 0,
+   "max": 10.85328197479248,
+   "name": "NVIDIA GeForce RTX 5090 D3D Video Decode",
+   "source": "infopanel"
+  },
+  "libre.bluetooth_network_connection_upload_speed": {
+   "value": 0,
+   "unit": "KB/s",
+   "min": 0,
+   "max": 0,
+   "name": "Bluetooth Network Connection Upload Speed",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_critical_temperature": {
+   "value": 88,
+   "unit": "°C",
+   "min": 0,
+   "max": 88,
+   "name": "KINGSTON SFYRD2000G Critical Temperature",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_critical_temperature_temperature": {
+   "value": 88,
+   "unit": "°C",
+   "min": 0,
+   "max": 88,
+   "name": "KINGSTON SFYRD2000G Critical Temperature",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_critical_temperature_temperature_11": {
+   "value": 88,
+   "unit": "°C",
+   "min": 0,
+   "max": 88,
+   "name": "KINGSTON SFYRD2000G Critical Temperature",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__11__smu": {
+   "value": 0,
+   "unit": "W",
+   "min": 0,
+   "max": 0,
+   "name": "AMD Ryzen 9 9950X3D Core #11 (SMU)",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_gpu_power": {
+   "value": 59.382999420166016,
+   "unit": "%",
+   "min": 6.456999778747559,
+   "max": 80.3290023803711,
+   "name": "NVIDIA GeForce RTX 5090 GPU Power",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_composite_temperature": {
+   "value": 54,
+   "unit": "°C",
+   "min": 0,
+   "max": 55,
+   "name": "KINGSTON SFYRD2000G Composite Temperature",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_composite_temperature_temperature": {
+   "value": 46,
+   "unit": "°C",
+   "min": 0,
+   "max": 46,
+   "name": "KINGSTON SFYRD2000G Composite Temperature",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_composite_temperature_temperature_0": {
+   "value": 41,
+   "unit": "°C",
+   "min": 0,
+   "max": 42,
+   "name": "KINGSTON SFYRD2000G Composite Temperature",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__1_vid": {
+   "value": 1.5499999523162842,
+   "unit": "V",
+   "min": 1.5499999523162842,
+   "max": 1.5499999523162842,
+   "name": "AMD Ryzen 9 9950X3D Core #1 VID",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__15__smu": {
+   "value": 0,
+   "unit": "W",
+   "min": 0,
+   "max": 0,
+   "name": "AMD Ryzen 9 9950X3D Core #15 (SMU)",
+   "source": "infopanel"
+  },
+  "libre.tailscale_download_speed": {
+   "value": 0,
+   "unit": "KB/s",
+   "min": 0,
+   "max": 7541.03466796875,
+   "name": "Tailscale Download Speed",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__3_vid": {
+   "value": 1.5499999523162842,
+   "unit": "V",
+   "min": 1.5499999523162842,
+   "max": 1.5499999523162842,
+   "name": "AMD Ryzen 9 9950X3D Core #3 VID",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_cpu_core_max": {
+   "value": 79.87000274658203,
+   "unit": "%",
+   "min": 23.1299991607666,
+   "max": 100,
+   "name": "AMD Ryzen 9 9950X3D CPU Core Max",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_warning_temperature": {
+   "value": 83,
+   "unit": "°C",
+   "min": 0,
+   "max": 83,
+   "name": "KINGSTON SFYRD2000G Warning Temperature",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_warning_temperature_temperature": {
+   "value": 83,
+   "unit": "°C",
+   "min": 0,
+   "max": 83,
+   "name": "KINGSTON SFYRD2000G Warning Temperature",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_warning_temperature_temperature_10": {
+   "value": 83,
+   "unit": "°C",
+   "min": 0,
+   "max": 83,
+   "name": "KINGSTON SFYRD2000G Warning Temperature",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_cpu_core__4": {
+   "value": 62.88999938964844,
+   "unit": "%",
+   "min": 0,
+   "max": 99.29000091552734,
+   "name": "AMD Ryzen 9 9950X3D CPU Core #4",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_d3d_optical_flow_accelerator_0": {
+   "value": 0,
+   "unit": "%",
+   "min": 0,
+   "max": 0,
+   "name": "NVIDIA GeForce RTX 5090 D3D Optical Flow Accelerator 0",
+   "source": "infopanel"
+  },
+  "libre.virtual_memory_memory_available": {
+   "value": 9.501354217529297,
+   "unit": "GB",
+   "min": 8.195930480957031,
+   "max": 41.14535140991211,
+   "name": "Virtual Memory Memory Available",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_cpu_core__30": {
+   "value": 25.790000915527344,
+   "unit": "%",
+   "min": 0,
+   "max": 93.87999725341797,
+   "name": "AMD Ryzen 9 9950X3D CPU Core #30",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__3": {
+   "unit": "MHz",
+   "name": "AMD Ryzen 9 9950X3D Core #3",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__3_factor": {
+   "unit": "1",
+   "name": "AMD Ryzen 9 9950X3D Core #3",
+   "source": "infopanel"
+  },
+  "libre.wifi_data_downloaded": {
+   "value": 0,
+   "unit": "GB",
+   "min": 0,
+   "max": 0,
+   "name": "WiFi Data Downloaded",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_write_activity": {
+   "value": 22.386999130249023,
+   "unit": "%",
+   "min": 0.00016343842435162514,
+   "max": 100,
+   "name": "KINGSTON SFYRD2000G Write Activity",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_write_activity_load": {
+   "value": 0.000989182386547327,
+   "unit": "%",
+   "min": 0,
+   "max": 7.291248321533203,
+   "name": "KINGSTON SFYRD2000G Write Activity",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_write_activity_load_52": {
+   "value": 0,
+   "unit": "%",
+   "min": 0,
+   "max": 12.516227722167969,
+   "name": "KINGSTON SFYRD2000G Write Activity",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_cores__average": {
+   "value": 0,
+   "unit": "MHz",
+   "min": 0,
+   "max": 0,
+   "name": "AMD Ryzen 9 9950X3D Cores (Average)",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__7": {
+   "unit": "MHz",
+   "name": "AMD Ryzen 9 9950X3D Core #7",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__7_factor": {
+   "unit": "1",
+   "name": "AMD Ryzen 9 9950X3D Core #7",
+   "source": "infopanel"
+  },
+  "libre.vethernet__default_switch__network_utilization": {
+   "value": 0,
+   "unit": "%",
+   "min": 0,
+   "max": 0.00060693034902215,
+   "name": "vEthernet (Default Switch) Network Utilization",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__1__effective": {
+   "value": 0,
+   "unit": "MHz",
+   "min": 0,
+   "max": 0,
+   "name": "AMD Ryzen 9 9950X3D Core #1 (Effective)",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__15__effective": {
+   "value": 0,
+   "unit": "MHz",
+   "min": 0,
+   "max": 0,
+   "name": "AMD Ryzen 9 9950X3D Core #15 (Effective)",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_cores__average_effective": {
+   "value": 0,
+   "unit": "MHz",
+   "min": 0,
+   "max": 0,
+   "name": "AMD Ryzen 9 9950X3D Cores (Average Effective)",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__3__effective": {
+   "value": 0,
+   "unit": "MHz",
+   "min": 0,
+   "max": 0,
+   "name": "AMD Ryzen 9 9950X3D Core #3 (Effective)",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__6__effective": {
+   "value": 0,
+   "unit": "MHz",
+   "min": 0,
+   "max": 0,
+   "name": "AMD Ryzen 9 9950X3D Core #6 (Effective)",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_gpu_core_voltage": {
+   "value": 0.8949999809265137,
+   "unit": "V",
+   "min": 0.800000011920929,
+   "max": 0.8999999761581421,
+   "name": "NVIDIA GeForce RTX 5090 GPU Core Voltage",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__1__smu": {
+   "value": 0,
+   "unit": "W",
+   "min": 0,
+   "max": 0,
+   "name": "AMD Ryzen 9 9950X3D Core #1 (SMU)",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__4__effective": {
+   "value": 0,
+   "unit": "MHz",
+   "min": 0,
+   "max": 0,
+   "name": "AMD Ryzen 9 9950X3D Core #4 (Effective)",
+   "source": "infopanel"
+  },
+  "libre.ethernet_network_utilization": {
+   "value": 0.3032618463039398,
+   "unit": "%",
+   "min": 0.0010001843329519033,
+   "max": 38.52643966674805,
+   "name": "Ethernet Network Utilization",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_cpu_core__19": {
+   "value": 57.86000061035156,
+   "unit": "%",
+   "min": 0,
+   "max": 100,
+   "name": "AMD Ryzen 9 9950X3D CPU Core #19",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__6__smu": {
+   "value": 0,
+   "unit": "W",
+   "min": 0,
+   "max": 0,
+   "name": "AMD Ryzen 9 9950X3D Core #6 (SMU)",
+   "source": "infopanel"
+  },
+  "libre.vethernet__default_switch__data_uploaded": {
+   "value": 0.021849218755960464,
+   "unit": "GB",
+   "min": 0.017918413504958153,
+   "max": 0.021849218755960464,
+   "name": "vEthernet (Default Switch) Data Uploaded",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__8__smu": {
+   "value": 0,
+   "unit": "W",
+   "min": 0,
+   "max": 0,
+   "name": "AMD Ryzen 9 9950X3D Core #8 (SMU)",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_cpu_core__7": {
+   "value": 69.80999755859375,
+   "unit": "%",
+   "min": 0,
+   "max": 100,
+   "name": "AMD Ryzen 9 9950X3D CPU Core #7",
+   "source": "infopanel"
+  },
+  "libre.wifi_4_data_downloaded": {
+   "value": 0,
+   "unit": "GB",
+   "min": 0,
+   "max": 0,
+   "name": "WiFi 4 Data Downloaded",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__10__smu": {
+   "value": 0,
+   "unit": "W",
+   "min": 0,
+   "max": 0,
+   "name": "AMD Ryzen 9 9950X3D Core #10 (SMU)",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_cpu_core__26": {
+   "value": 35.220001220703125,
+   "unit": "%",
+   "min": 0,
+   "max": 95.73999786376953,
+   "name": "AMD Ryzen 9 9950X3D CPU Core #26",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_gpu_memory": {
+   "value": 35.91007995605469,
+   "unit": "%",
+   "min": 13.107842445373535,
+   "max": 43.872962951660156,
+   "name": "NVIDIA GeForce RTX 5090 GPU Memory",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_gpu_memory_clock": {
+   "value": 14001,
+   "unit": "MHz",
+   "min": 810,
+   "max": 14001,
+   "name": "NVIDIA GeForce RTX 5090 GPU Memory",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_cpu_core__28": {
+   "value": 53.459999084472656,
+   "unit": "%",
+   "min": 0,
+   "max": 97.16000366210938,
+   "name": "AMD Ryzen 9 9950X3D CPU Core #28",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__10_vid": {
+   "value": 1.5499999523162842,
+   "unit": "V",
+   "min": 1.5499999523162842,
+   "max": 1.5499999523162842,
+   "name": "AMD Ryzen 9 9950X3D Core #10 VID",
+   "source": "infopanel"
+  },
+  "libre.wifi_upload_speed": {
+   "value": 0,
+   "unit": "KB/s",
+   "min": 0,
+   "max": 0,
+   "name": "WiFi Upload Speed",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_d3d_3d": {
+   "value": 93.40266418457031,
+   "unit": "%",
+   "min": -336514.09375,
+   "max": 485.193359375,
+   "name": "NVIDIA GeForce RTX 5090 D3D 3D",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_cpu_total": {
+   "value": 54.40999984741211,
+   "unit": "%",
+   "min": 4.849999904632568,
+   "max": 95.5199966430664,
+   "name": "AMD Ryzen 9 9950X3D CPU Total",
+   "source": "infopanel"
+  },
+  "libre.bluetooth_network_connection_network_utilization": {
+   "value": 0,
+   "unit": "%",
+   "min": 0,
+   "max": 0,
+   "name": "Bluetooth Network Connection Network Utilization",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__14_vid": {
+   "value": 1.5499999523162842,
+   "unit": "V",
+   "min": 1.5499999523162842,
+   "max": 1.5499999523162842,
+   "name": "AMD Ryzen 9 9950X3D Core #14 VID",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_gpu_fan_1": {
+   "value": 2022,
+   "unit": "RPM",
+   "min": 1188,
+   "max": 2228,
+   "name": "NVIDIA GeForce RTX 5090 GPU Fan 1",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_gpu_fan_1_control": {
+   "value": 56,
+   "unit": "%",
+   "min": 30,
+   "max": 63,
+   "name": "NVIDIA GeForce RTX 5090 GPU Fan 1",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_gpu_memory_total": {
+   "value": 32607,
+   "unit": "",
+   "min": 32607,
+   "max": 32607,
+   "name": "NVIDIA GeForce RTX 5090 GPU Memory Total",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_cpu_core__3": {
+   "value": 74.83999633789062,
+   "unit": "%",
+   "min": 0,
+   "max": 97.52999877929688,
+   "name": "AMD Ryzen 9 9950X3D CPU Core #3",
+   "source": "infopanel"
+  },
+  "libre.tailscale_network_utilization": {
+   "value": 0,
+   "unit": "%",
+   "min": 0,
+   "max": 0.0001366266078548506,
+   "name": "Tailscale Network Utilization",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_d3d_shared_memory_used": {
+   "value": 567.54296875,
+   "unit": "",
+   "min": 142.1875,
+   "max": 697.53125,
+   "name": "NVIDIA GeForce RTX 5090 D3D Shared Memory Used",
+   "source": "infopanel"
+  },
+  "libre.vethernet__wsl__hyper_v_firewall___upload_speed": {
+   "value": 0,
+   "unit": "KB/s",
+   "min": 0,
+   "max": 7586.49169921875,
+   "name": "vEthernet (WSL (Hyper-V firewall)) Upload Speed",
+   "source": "infopanel"
+  },
+  "libre.wdc_wds100t2b0a_00sm50_total_activity": {
+   "value": 0,
+   "unit": "%",
+   "min": 0,
+   "max": 99.99732208251953,
+   "name": "WDC WDS100T2B0A-00SM50 Total Activity",
+   "source": "infopanel"
+  },
+  "libre.wdc_wds100t2b0a_00sm50_total_activity_load": {
+   "value": 0.0354226790368557,
+   "unit": "%",
+   "min": 0,
+   "max": 99.99732971191406,
+   "name": "WDC WDS100T2B0A-00SM50 Total Activity",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__11": {
+   "unit": "MHz",
+   "name": "AMD Ryzen 9 9950X3D Core #11",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__11_factor": {
+   "unit": "1",
+   "name": "AMD Ryzen 9 9950X3D Core #11",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__12": {
+   "unit": "MHz",
+   "name": "AMD Ryzen 9 9950X3D Core #12",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__12_factor": {
+   "unit": "1",
+   "name": "AMD Ryzen 9 9950X3D Core #12",
+   "source": "infopanel"
+  },
+  "libre.wifi_3_data_downloaded": {
+   "value": 0,
+   "unit": "GB",
+   "min": 0,
+   "max": 0,
+   "name": "WiFi 3 Data Downloaded",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_power_on_hours": {
+   "value": 13126,
+   "unit": "1",
+   "min": 0,
+   "max": 13126,
+   "name": "KINGSTON SFYRD2000G Power On Hours",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_power_on_hours_factor": {
+   "value": 13127,
+   "unit": "1",
+   "min": 0,
+   "max": 13127,
+   "name": "KINGSTON SFYRD2000G Power On Hours",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_power_on_hours_factor_24": {
+   "value": 13127,
+   "unit": "1",
+   "min": 0,
+   "max": 13127,
+   "name": "KINGSTON SFYRD2000G Power On Hours",
+   "source": "infopanel"
+  },
+  "libre.total_memory_memory_used": {
+   "value": 41.7234001159668,
+   "unit": "GB",
+   "min": 27.46044921875,
+   "max": 61.6397590637207,
+   "name": "Total Memory Memory Used",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__16": {
+   "unit": "MHz",
+   "name": "AMD Ryzen 9 9950X3D Core #16",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__16_factor": {
+   "unit": "1",
+   "name": "AMD Ryzen 9 9950X3D Core #16",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_cpu_core__15": {
+   "value": 58.4900016784668,
+   "unit": "%",
+   "min": 0,
+   "max": 100,
+   "name": "AMD Ryzen 9 9950X3D CPU Core #15",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_cpu_core__17": {
+   "value": 38.9900016784668,
+   "unit": "%",
+   "min": 0,
+   "max": 100,
+   "name": "AMD Ryzen 9 9950X3D CPU Core #17",
+   "source": "infopanel"
+  },
+  "libre.total_memory_memory": {
+   "value": 65.52255249023438,
+   "unit": "%",
+   "min": 43.12397003173828,
+   "max": 96.79926300048828,
+   "name": "Total Memory Memory",
+   "source": "infopanel"
+  },
+  "libre.total_memory_memory_available": {
+   "value": 21.95452117919922,
+   "unit": "GB",
+   "min": 2.0381622314453125,
+   "max": 36.217472076416016,
+   "name": "Total Memory Memory Available",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_cpu_core__14": {
+   "value": 56.599998474121094,
+   "unit": "%",
+   "min": 0,
+   "max": 99.27999877929688,
+   "name": "AMD Ryzen 9 9950X3D CPU Core #14",
+   "source": "infopanel"
+  },
+  "libre.wdc_wds100t2b0a_00sm50_temperature": {
+   "value": 28,
+   "unit": "°C",
+   "min": 0,
+   "max": 29,
+   "name": "WDC WDS100T2B0A-00SM50 Temperature",
+   "source": "infopanel"
+  },
+  "libre.wdc_wds100t2b0a_00sm50_temperature_temperature": {
+   "value": 30,
+   "unit": "°C",
+   "min": 0,
+   "max": 31,
+   "name": "WDC WDS100T2B0A-00SM50 Temperature",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_d3d_security": {
+   "value": 0,
+   "unit": "%",
+   "min": 0,
+   "max": 1.0613147020339966,
+   "name": "NVIDIA GeForce RTX 5090 D3D Security",
+   "source": "infopanel"
+  },
+  "libre.vethernet__default_switch__data_downloaded": {
+   "value": 0,
+   "unit": "GB",
+   "min": 0,
+   "max": 0,
+   "name": "vEthernet (Default Switch) Data Downloaded",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_cpu_core__29": {
+   "value": 25.15999984741211,
+   "unit": "%",
+   "min": 0,
+   "max": 96.5999984741211,
+   "name": "AMD Ryzen 9 9950X3D CPU Core #29",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__9_vid": {
+   "value": 1.5499999523162842,
+   "unit": "V",
+   "min": 1.5499999523162842,
+   "max": 1.5499999523162842,
+   "name": "AMD Ryzen 9 9950X3D Core #9 VID",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_d3d_security_1": {
+   "value": 0,
+   "unit": "%",
+   "min": 0,
+   "max": 0,
+   "name": "NVIDIA GeForce RTX 5090 D3D Security_1",
+   "source": "infopanel"
+  },
+  "libre.ethernet_data_uploaded": {
+   "value": 12.993348121643066,
+   "unit": "GB",
+   "min": 10.172258377075195,
+   "max": 12.993348121643066,
+   "name": "Ethernet Data Uploaded",
+   "source": "infopanel"
+  },
+  "libre.vethernet__default_switch__download_speed": {
+   "value": 0,
+   "unit": "KB/s",
+   "min": 0,
+   "max": 0,
+   "name": "vEthernet (Default Switch) Download Speed",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__1": {
+   "unit": "MHz",
+   "name": "AMD Ryzen 9 9950X3D Core #1",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__1_factor": {
+   "unit": "1",
+   "name": "AMD Ryzen 9 9950X3D Core #1",
+   "source": "infopanel"
+  },
+  "libre.wifi_3_network_utilization": {
+   "value": 0,
+   "unit": "%",
+   "min": 0,
+   "max": 0,
+   "name": "WiFi 3 Network Utilization",
+   "source": "infopanel"
+  },
+  "libre.wdc_wds100t2b0a_00sm50_used_space": {
+   "value": 81.58477783203125,
+   "unit": "%",
+   "min": 81.58477783203125,
+   "max": 81.58477783203125,
+   "name": "WDC WDS100T2B0A-00SM50 Used Space",
+   "source": "infopanel"
+  },
+  "libre.wdc_wds100t2b0a_00sm50_used_space_load": {
+   "value": 92.92401885986328,
+   "unit": "%",
+   "min": 92.9190673828125,
+   "max": 92.92401885986328,
+   "name": "WDC WDS100T2B0A-00SM50 Used Space",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__4": {
+   "unit": "MHz",
+   "name": "AMD Ryzen 9 9950X3D Core #4",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__4_factor": {
+   "unit": "1",
+   "name": "AMD Ryzen 9 9950X3D Core #4",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__11__effective": {
+   "value": 0,
+   "unit": "MHz",
+   "min": 0,
+   "max": 0,
+   "name": "AMD Ryzen 9 9950X3D Core #11 (Effective)",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__8__effective": {
+   "value": 0,
+   "unit": "MHz",
+   "min": 0,
+   "max": 0,
+   "name": "AMD Ryzen 9 9950X3D Core #8 (Effective)",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__9__effective": {
+   "value": 0,
+   "unit": "MHz",
+   "min": 0,
+   "max": 0,
+   "name": "AMD Ryzen 9 9950X3D Core #9 (Effective)",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_used_space": {
+   "value": 46.90901565551758,
+   "unit": "%",
+   "min": 46.693504333496094,
+   "max": 47.29480743408203,
+   "name": "KINGSTON SFYRD2000G Used Space",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_used_space_load": {
+   "value": 73.70999145507812,
+   "unit": "%",
+   "min": 73.70999145507812,
+   "max": 73.70999145507812,
+   "name": "KINGSTON SFYRD2000G Used Space",
+   "source": "infopanel"
+  },
+  "libre.kingston_sfyrd2000g_used_space_load_30": {
+   "value": 57.59958267211914,
+   "unit": "%",
+   "min": 57.59696960449219,
+   "max": 57.62346649169922,
+   "name": "KINGSTON SFYRD2000G Used Space",
+   "source": "infopanel"
+  },
+  "libre.wifi_3_data_uploaded": {
+   "value": 0,
+   "unit": "GB",
+   "min": 0,
+   "max": 0,
+   "name": "WiFi 3 Data Uploaded",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__16__effective": {
+   "value": 0,
+   "unit": "MHz",
+   "min": 0,
+   "max": 0,
+   "name": "AMD Ryzen 9 9950X3D Core #16 (Effective)",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__13__effective": {
+   "value": 0,
+   "unit": "MHz",
+   "min": 0,
+   "max": 0,
+   "name": "AMD Ryzen 9 9950X3D Core #13 (Effective)",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__7__smu": {
+   "value": 0,
+   "unit": "W",
+   "min": 0,
+   "max": 0,
+   "name": "AMD Ryzen 9 9950X3D Core #7 (SMU)",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__14__smu": {
+   "value": 0,
+   "unit": "W",
+   "min": 0,
+   "max": 0,
+   "name": "AMD Ryzen 9 9950X3D Core #14 (SMU)",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__9__smu": {
+   "value": 0,
+   "unit": "W",
+   "min": 0,
+   "max": 0,
+   "name": "AMD Ryzen 9 9950X3D Core #9 (SMU)",
+   "source": "infopanel"
+  },
+  "libre.tailscale_upload_speed": {
+   "value": 0,
+   "unit": "KB/s",
+   "min": 0,
+   "max": 10570.712890625,
+   "name": "Tailscale Upload Speed",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_cpu_core__25": {
+   "value": 33.33000183105469,
+   "unit": "%",
+   "min": 0,
+   "max": 95.94999694824219,
+   "name": "AMD Ryzen 9 9950X3D CPU Core #25",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_cpu_core__27": {
+   "value": 48.43000030517578,
+   "unit": "%",
+   "min": 0,
+   "max": 97.97000122070312,
+   "name": "AMD Ryzen 9 9950X3D CPU Core #27",
+   "source": "infopanel"
+  },
+  "libre.virtual_memory_memory": {
+   "value": 90.06944274902344,
+   "unit": "%",
+   "min": 56.99597930908203,
+   "max": 91.43383026123047,
+   "name": "Virtual Memory Memory",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_gpu_memory_used": {
+   "value": 11709,
+   "unit": "",
+   "min": 4274,
+   "max": 14305,
+   "name": "NVIDIA GeForce RTX 5090 GPU Memory Used",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_cpu_core__24": {
+   "value": 63.52000045776367,
+   "unit": "%",
+   "min": 0,
+   "max": 97.83000183105469,
+   "name": "AMD Ryzen 9 9950X3D CPU Core #24",
+   "source": "infopanel"
+  },
+  "libre.ethernet_upload_speed": {
+   "value": 27581.61328125,
+   "unit": "KB/s",
+   "min": 691.1322021484375,
+   "max": 6204220,
+   "name": "Ethernet Upload Speed",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_d3d_video_encode": {
+   "value": 0,
+   "unit": "%",
+   "min": 0,
+   "max": 0,
+   "name": "NVIDIA GeForce RTX 5090 D3D Video Encode",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_d3d_video_encode_load": {
+   "value": 0,
+   "unit": "%",
+   "min": 0,
+   "max": 0,
+   "name": "NVIDIA GeForce RTX 5090 D3D Video Encode",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_d3d_video_encode_load_22": {
+   "value": 0,
+   "unit": "%",
+   "min": 0,
+   "max": 0,
+   "name": "NVIDIA GeForce RTX 5090 D3D Video Encode",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_gpu_memory_free": {
+   "value": 20897,
+   "unit": "",
+   "min": 18301,
+   "max": 28332,
+   "name": "NVIDIA GeForce RTX 5090 GPU Memory Free",
+   "source": "infopanel"
+  },
+  "libre.embedded_controller_vrm": {
+   "value": 0,
+   "unit": "°C",
+   "min": 0,
+   "max": 0,
+   "name": "Embedded Controller VRM",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__tctl_tdie": {
+   "value": 0,
+   "unit": "°C",
+   "min": 0,
+   "max": 0,
+   "name": "AMD Ryzen 9 9950X3D Core (Tctl/Tdie)",
+   "source": "infopanel"
+  },
+  "libre.vethernet__wsl__hyper_v_firewall___data_uploaded": {
+   "value": 0.20074401795864105,
+   "unit": "GB",
+   "min": 0.1968117654323578,
+   "max": 0.20074401795864105,
+   "name": "vEthernet (WSL (Hyper-V firewall)) Data Uploaded",
+   "source": "infopanel"
+  },
+  "libre.vethernet__default_switch__upload_speed": {
+   "value": 0,
+   "unit": "KB/s",
+   "min": 0,
+   "max": 7586.62939453125,
+   "name": "vEthernet (Default Switch) Upload Speed",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__5": {
+   "unit": "MHz",
+   "name": "AMD Ryzen 9 9950X3D Core #5",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__5_factor": {
+   "unit": "1",
+   "name": "AMD Ryzen 9 9950X3D Core #5",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_cpu_core__12": {
+   "value": 57.86000061035156,
+   "unit": "%",
+   "min": 0,
+   "max": 99.37999725341797,
+   "name": "AMD Ryzen 9 9950X3D CPU Core #12",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__14": {
+   "unit": "MHz",
+   "name": "AMD Ryzen 9 9950X3D Core #14",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__14_factor": {
+   "unit": "1",
+   "name": "AMD Ryzen 9 9950X3D Core #14",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__9": {
+   "unit": "MHz",
+   "name": "AMD Ryzen 9 9950X3D Core #9",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__9_factor": {
+   "unit": "1",
+   "name": "AMD Ryzen 9 9950X3D Core #9",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__10": {
+   "unit": "MHz",
+   "name": "AMD Ryzen 9 9950X3D Core #10",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__10_factor": {
+   "unit": "1",
+   "name": "AMD Ryzen 9 9950X3D Core #10",
+   "source": "infopanel"
+  },
+  "libre.wifi_4_network_utilization": {
+   "value": 0,
+   "unit": "%",
+   "min": 0,
+   "max": 0,
+   "name": "WiFi 4 Network Utilization",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_cpu_core__11": {
+   "value": 66.04000091552734,
+   "unit": "%",
+   "min": 0,
+   "max": 100,
+   "name": "AMD Ryzen 9 9950X3D CPU Core #11",
+   "source": "infopanel"
+  },
+  "libre.tailscale_data_uploaded": {
+   "value": 0.021963298320770264,
+   "unit": "GB",
+   "min": 0.017810959368944168,
+   "max": 0.021963298320770264,
+   "name": "Tailscale Data Uploaded",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_cpu_core__13": {
+   "value": 59.75,
+   "unit": "%",
+   "min": 0,
+   "max": 98.7699966430664,
+   "name": "AMD Ryzen 9 9950X3D CPU Core #13",
+   "source": "infopanel"
+  },
+  "libre.wifi_4_data_uploaded": {
+   "value": 0,
+   "unit": "GB",
+   "min": 0,
+   "max": 0,
+   "name": "WiFi 4 Data Uploaded",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__13__smu": {
+   "value": 0,
+   "unit": "W",
+   "min": 0,
+   "max": 0,
+   "name": "AMD Ryzen 9 9950X3D Core #13 (SMU)",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_gpu_package": {
+   "value": 361.26300048828125,
+   "unit": "W",
+   "min": 39.72800064086914,
+   "max": 452.2049865722656,
+   "name": "NVIDIA GeForce RTX 5090 GPU Package",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_gpu_video_engine": {
+   "value": 2,
+   "unit": "%",
+   "min": 0,
+   "max": 52,
+   "name": "NVIDIA GeForce RTX 5090 GPU Video Engine",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__6_vid": {
+   "value": 1.5499999523162842,
+   "unit": "V",
+   "min": 1.5499999523162842,
+   "max": 1.5499999523162842,
+   "name": "AMD Ryzen 9 9950X3D Core #6 VID",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__13_vid": {
+   "value": 1.5499999523162842,
+   "unit": "V",
+   "min": 1.5499999523162842,
+   "max": 1.5499999523162842,
+   "name": "AMD Ryzen 9 9950X3D Core #13 VID",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__8_vid": {
+   "value": 1.5499999523162842,
+   "unit": "V",
+   "min": 1.5499999523162842,
+   "max": 1.5499999523162842,
+   "name": "AMD Ryzen 9 9950X3D Core #8 VID",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_cpu_core__2": {
+   "value": 79.87000274658203,
+   "unit": "%",
+   "min": 0,
+   "max": 98.76000213623047,
+   "name": "AMD Ryzen 9 9950X3D CPU Core #2",
+   "source": "infopanel"
+  },
+  "libre.embedded_controller_cpu_optional_fan": {
+   "value": 0,
+   "unit": "RPM",
+   "min": 0,
+   "max": 0,
+   "name": "Embedded Controller CPU Optional Fan",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_cpu_core__6": {
+   "value": 57.86000061035156,
+   "unit": "%",
+   "min": 0,
+   "max": 100,
+   "name": "AMD Ryzen 9 9950X3D CPU Core #6",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__7_vid": {
+   "value": 1.5499999523162842,
+   "unit": "V",
+   "min": 1.5499999523162842,
+   "max": 1.5499999523162842,
+   "name": "AMD Ryzen 9 9950X3D Core #7 VID",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__2__effective": {
+   "value": 0,
+   "unit": "MHz",
+   "min": 0,
+   "max": 0,
+   "name": "AMD Ryzen 9 9950X3D Core #2 (Effective)",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__14__effective": {
+   "value": 0,
+   "unit": "MHz",
+   "min": 0,
+   "max": 0,
+   "name": "AMD Ryzen 9 9950X3D Core #14 (Effective)",
+   "source": "infopanel"
+  },
+  "libre.vethernet__wsl__hyper_v_firewall___data_downloaded": {
+   "value": 0.0017390325665473938,
+   "unit": "GB",
+   "min": 0.0017371699213981628,
+   "max": 0.0017390325665473938,
+   "name": "vEthernet (WSL (Hyper-V firewall)) Data Downloaded",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__7__effective": {
+   "value": 0,
+   "unit": "MHz",
+   "min": 0,
+   "max": 0,
+   "name": "AMD Ryzen 9 9950X3D Core #7 (Effective)",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__2__smu": {
+   "value": 0,
+   "unit": "W",
+   "min": 0,
+   "max": 0,
+   "name": "AMD Ryzen 9 9950X3D Core #2 (SMU)",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__4__smu": {
+   "value": 0,
+   "unit": "W",
+   "min": 0,
+   "max": 0,
+   "name": "AMD Ryzen 9 9950X3D Core #4 (SMU)",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__5__effective": {
+   "value": 0,
+   "unit": "MHz",
+   "min": 0,
+   "max": 0,
+   "name": "AMD Ryzen 9 9950X3D Core #5 (Effective)",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_cpu_core__22": {
+   "value": 50.310001373291016,
+   "unit": "%",
+   "min": 0,
+   "max": 100,
+   "name": "AMD Ryzen 9 9950X3D CPU Core #22",
+   "source": "infopanel"
+  },
+  "libre.wifi_3_upload_speed": {
+   "value": 0,
+   "unit": "KB/s",
+   "min": 0,
+   "max": 0,
+   "name": "WiFi 3 Upload Speed",
+   "source": "infopanel"
+  },
+  "libre.vethernet__wsl__hyper_v_firewall___network_utilization": {
+   "value": 0,
+   "unit": "%",
+   "min": 0,
+   "max": 0.0006069193477742374,
+   "name": "vEthernet (WSL (Hyper-V firewall)) Network Utilization",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__3__smu": {
+   "value": 0,
+   "unit": "W",
+   "min": 0,
+   "max": 0,
+   "name": "AMD Ryzen 9 9950X3D Core #3 (SMU)",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__5__smu": {
+   "value": 0,
+   "unit": "W",
+   "min": 0,
+   "max": 0,
+   "name": "AMD Ryzen 9 9950X3D Core #5 (SMU)",
+   "source": "infopanel"
+  },
+  "libre.bluetooth_network_connection_data_uploaded": {
+   "value": 0,
+   "unit": "GB",
+   "min": 0,
+   "max": 0,
+   "name": "Bluetooth Network Connection Data Uploaded",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_gpu_pcie_rx": {
+   "value": 1295331328,
+   "unit": "KB/s",
+   "min": 11264,
+   "max": 4294201344,
+   "name": "NVIDIA GeForce RTX 5090 GPU PCIe Rx",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__12__smu": {
+   "value": 0,
+   "unit": "W",
+   "min": 0,
+   "max": 0,
+   "name": "AMD Ryzen 9 9950X3D Core #12 (SMU)",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_cpu_core__21": {
+   "value": 56.599998474121094,
+   "unit": "%",
+   "min": 0,
+   "max": 100,
+   "name": "AMD Ryzen 9 9950X3D CPU Core #21",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_gpu_memory_controller": {
+   "value": 25,
+   "unit": "%",
+   "min": 0,
+   "max": 40,
+   "name": "NVIDIA GeForce RTX 5090 GPU Memory Controller",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_cpu_core__23": {
+   "value": 70.44000244140625,
+   "unit": "%",
+   "min": 0,
+   "max": 100,
+   "name": "AMD Ryzen 9 9950X3D CPU Core #23",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__12_vid": {
+   "value": 1.5499999523162842,
+   "unit": "V",
+   "min": 1.5499999523162842,
+   "max": 1.5499999523162842,
+   "name": "AMD Ryzen 9 9950X3D Core #12 VID",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__16__smu": {
+   "value": 0,
+   "unit": "W",
+   "min": 0,
+   "max": 0,
+   "name": "AMD Ryzen 9 9950X3D Core #16 (SMU)",
+   "source": "infopanel"
+  },
+  "libre.nvidia_geforce_rtx_5090_gpu_board_power": {
+   "value": 69.66999816894531,
+   "unit": "%",
+   "min": 6.466000080108643,
+   "max": 84.60700225830078,
+   "name": "NVIDIA GeForce RTX 5090 GPU Board Power",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_core__16_vid": {
+   "value": 1.5499999523162842,
+   "unit": "V",
+   "min": 1.5499999523162842,
+   "max": 1.5499999523162842,
+   "name": "AMD Ryzen 9 9950X3D Core #16 VID",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_cpu_core__1": {
+   "value": 79.25,
+   "unit": "%",
+   "min": 0,
+   "max": 100,
+   "name": "AMD Ryzen 9 9950X3D CPU Core #1",
+   "source": "infopanel"
+  },
+  "libre.amd_ryzen_9_9950x3d_cpu_core__5": {
+   "value": 65.41000366210938,
+   "unit": "%",
+   "min": 0,
+   "max": 99.37999725341797,
+   "name": "AMD Ryzen 9 9950X3D CPU Core #5",
+   "source": "infopanel"
+  },
+  "libre.virtual_memory_memory_used": {
+   "value": 86.17656707763672,
+   "unit": "GB",
+   "min": 54.532569885253906,
+   "max": 87.48199462890625,
+   "name": "Virtual Memory Memory Used",
+   "source": "infopanel"
+  },
+  "libre.wifi_data_uploaded": {
+   "value": 0,
+   "unit": "GB",
+   "min": 0,
+   "max": 0,
+   "name": "WiFi Data Uploaded",
+   "source": "infopanel"
+  },
+  "plugins.yr-weather-plugin.brevik-norway.weather_desc": {
+   "text": "Clear Sky",
+   "unit": "",
+   "name": "Brevik, Norway · Weather Description",
+   "source": "infopanel"
+  },
+  "plugins.weather-plugin.weather.temp": {
+   "value": 0,
+   "unit": "°C",
+   "min": 0,
+   "max": 0,
+   "avg": 0,
+   "name": "Weather · Temperature",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{187C48C4-4CCD-45DE-B5DC-43739AC29B0D}.ipv6-1": {
+   "text": "2001:db8::1",
+   "unit": "",
+   "name": "Ethernet · IPv6 Address",
+   "source": "infopanel"
+  },
+  "plugins.clock-plugin.clock.day": {
+   "value": 12,
+   "unit": "",
+   "min": 0,
+   "max": 12,
+   "avg": 12,
+   "name": "Clock · Day",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{37217669-42DA-4657-A55B-0D995D328250}.description": {
+   "text": "Tailscale Tunnel",
+   "unit": "",
+   "name": "Tailscale · Description",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.SteamAPI.SteamAPI-Social.friends-activity": {
+   "text": "Friend A, Online, WARDOGS, 2 hours ago\nFriend B, Online, ARC Raiders, 22 hours ago\nFriend C, Snooze, Euro Truck Simulator 2, 2 days ago\nFriend D, Online, FiveM, 22 hours ago\nFriend E, Snooze, , 2 days ago\nFriend F, Online, , 21 hours ago\nFriend G, Away, , 12 hours ago\nFriend H, Online, , 1 day ago",
+   "unit": "",
+   "name": "Friends & Social Activity · Friends Activity",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-cffd42bd-62a0-43d7-98d5-8b227c5ac3ce.left-channel": {
+   "value": 96.9000015258789,
+   "unit": "%",
+   "min": 0,
+   "max": 100,
+   "avg": 86.42333221435547,
+   "name": "🎵 System (Elgato Virtual Audio) · Left",
+   "source": "infopanel"
+  },
+  "plugins.drive-info-plugin.c.volume_label": {
+   "text": "Windows",
+   "unit": "",
+   "name": "C: · Volume Label",
+   "source": "infopanel"
+  },
+  "plugins.clock-plugin.clock.12-hour": {
+   "value": 8,
+   "unit": "",
+   "min": 0,
+   "max": 12,
+   "avg": 8,
+   "name": "Clock · 12 Hour",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.{0.0.0.00000000}.{e2087318-05b8-4830-84b9-1e6e8852d2f9}.friendly_name": {
+   "text": "Voice (Elgato Virtual Audio)",
+   "unit": "",
+   "name": "Voice (Elgato Virtual Audio) · Name",
+   "source": "infopanel"
+  },
+  "plugins.weather-plugin.weather.weather": {
+   "text": "-",
+   "unit": "",
+   "name": "Weather",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.SteamAPI.SteamAPI-Profile.game_grid_url": {
+   "text": "https://cdn2.steamgriddb.com/grid/ac80b7f0ea728befded9a1c5ba5330d2.png",
+   "unit": "",
+   "name": "User Profile & Status · Game Grid URL",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.{0.0.0.00000000}.{3c6e1f59-7949-4901-90a7-65282d08d714}.mute": {
+   "text": "False",
+   "unit": "",
+   "name": "Headphones (4- Arctis Nova Pro Wireless) · Mute",
+   "source": "infopanel"
+  },
+  "plugins.spotify-plugin.spotify.playback-state": {
+   "value": 0,
+   "unit": "",
+   "min": 0,
+   "max": 2,
+   "avg": 0,
+   "name": "Spotify · Playback State",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.{0.0.0.00000000}.{81fcb09e-e5cb-43ed-91b5-b02a98683de5}.mute": {
+   "text": "False",
+   "unit": "",
+   "name": "Speakers (Focusrite USB Audio) · Mute",
+   "source": "infopanel"
+  },
+  "plugins.weather-plugin.weather.wind_gust": {
+   "value": 0,
+   "unit": "m/s",
+   "min": 0,
+   "max": 0,
+   "avg": 0,
+   "name": "Weather · Wind Gust",
+   "source": "infopanel"
+  },
+  "plugins.spotify-plugin.spotify.artist": {
+   "text": "-",
+   "unit": "",
+   "name": "Spotify · Artist",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.{0.0.0.00000000}.{b34902c8-e0e8-44f3-bd36-efee55d6366e}.friendly_name": {
+   "text": "Browser (Elgato Virtual Audio)",
+   "unit": "",
+   "name": "Browser (Elgato Virtual Audio) · Name",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-3c6e1f59-7949-4901-90a7-65282d08d714.peak-hold": {
+   "value": -96,
+   "unit": "dB",
+   "min": -96,
+   "max": -96,
+   "avg": -96,
+   "name": "🎵 Headphones (4- Arctis Nova Pro Wireless) · Peak Hold",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.{0.0.0.00000000}.{b34902c8-e0e8-44f3-bd36-efee55d6366e}.volume": {
+   "value": 23,
+   "unit": "%",
+   "min": 10,
+   "max": 41,
+   "avg": 23,
+   "name": "Browser (Elgato Virtual Audio) · Volume",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-81fcb09e-e5cb-43ed-91b5-b02a98683de5.peak-hold": {
+   "value": -96,
+   "unit": "dB",
+   "min": -96,
+   "max": -96,
+   "avg": -96,
+   "name": "🎵 Speakers (Focusrite USB Audio) · Peak Hold",
+   "source": "infopanel"
+  },
+  "plugins.drive-info-plugin.c.used_space": {
+   "value": 894052,
+   "unit": "MB",
+   "min": 889941,
+   "max": 901469,
+   "avg": 894051.8125,
+   "name": "C: · Used Space",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.{0.0.0.00000000}.{3c6e1f59-7949-4901-90a7-65282d08d714}.short_name": {
+   "text": "Headphones (4- Arctis Nova Pro Wireless)",
+   "unit": "",
+   "name": "Headphones (4- Arctis Nova Pro Wireless) · Short Name",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{187C48C4-4CCD-45DE-B5DC-43739AC29B0D}.description": {
+   "text": "Realtek PCIe 2.5GbE Family Controller",
+   "unit": "",
+   "name": "Ethernet · Description",
+   "source": "infopanel"
+  },
+  "plugins.media-plugin.media.status-image": {
+   "text": "",
+   "unit": "",
+   "name": "Media · Status Image",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.{0.0.0.00000000}.{e2087318-05b8-4830-84b9-1e6e8852d2f9}.device_friendly_name": {
+   "text": "Elgato Virtual Audio",
+   "unit": "",
+   "name": "Voice (Elgato Virtual Audio) · Device Name",
+   "source": "infopanel"
+  },
+  "plugins.yr-weather-plugin.brevik-norway.pressure": {
+   "value": 1023,
+   "unit": "hPa",
+   "min": 0,
+   "max": 1023,
+   "avg": 1016.7000122070312,
+   "name": "Brevik, Norway · Pressure",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{8F376EDF-C409-4648-A994-6293C5529FAB}.status": {
+   "text": "Down",
+   "unit": "",
+   "name": "WiFi 4 · Status",
+   "source": "infopanel"
+  },
+  "plugins.yr-weather-plugin.brevik-norway.clouds": {
+   "value": 2.4000000953674316,
+   "unit": "%",
+   "min": 0,
+   "max": 100,
+   "avg": 29.907142639160156,
+   "name": "Brevik, Norway · Clouds",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-44a2e633-0f41-497a-9de0-227ceef7e6c4.rms-level": {
+   "value": -53.099998474121094,
+   "unit": "dB",
+   "min": -206,
+   "max": -0.10000000149011612,
+   "avg": -72.0616683959961,
+   "name": "🎵 Wave Mic 1 (Elgato Virtual Audio) · RMS",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.{0.0.0.00000000}.{e2087318-05b8-4830-84b9-1e6e8852d2f9}.volume": {
+   "value": 50,
+   "unit": "%",
+   "min": 50,
+   "max": 50,
+   "avg": 50,
+   "name": "Voice (Elgato Virtual Audio) · Volume",
+   "source": "infopanel"
+  },
+  "plugins.drive-info-plugin.f.format": {
+   "text": "NTFS",
+   "unit": "",
+   "name": "F: · Format",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-e3f0c952-76ad-40dd-96a3-b8326178a39e.peak-level": {
+   "value": -20.299999237060547,
+   "unit": "dB",
+   "min": -138.5,
+   "max": -6,
+   "avg": -22.426666259765625,
+   "name": "🎵 Headphones (Elgato Wave:3) · Peak",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-ad03964a-422c-4018-bb88-8f8e068c6537.peak-level": {
+   "value": -96,
+   "unit": "dB",
+   "min": -96,
+   "max": -2.299999952316284,
+   "avg": -96,
+   "name": "🎵 Music (Elgato Virtual Audio) · Peak",
+   "source": "infopanel"
+  },
+  "plugins.system-info-plugin.processes.memory-usage": {
+   "value": 26971.21875,
+   "unit": " MB",
+   "min": 0,
+   "max": 45840.46484375,
+   "avg": 26149.642578125,
+   "name": "Processes · Memory Usage",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.SteamAPI.SteamAPI-Library.recent-games": {
+   "text": "ARC Raiders, 4.5h, 263.4h\nWARDOGS, 3.0h, 23.7h",
+   "unit": "",
+   "name": "Library & Playtime Statistics · Recent Games",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.SteamAPI.SteamAPI-Achievements.achievements-unlocked": {
+   "value": 39,
+   "unit": "",
+   "min": 0,
+   "max": 39,
+   "avg": 39,
+   "name": "Achievements · Achievements Unlocked",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-e2087318-05b8-4830-84b9-1e6e8852d2f9.device-name": {
+   "text": "Voice (Elgato Virtual Audio)",
+   "unit": "",
+   "name": "🎵 Voice (Elgato Virtual Audio) · Device",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-e2087318-05b8-4830-84b9-1e6e8852d2f9.right-channel": {
+   "value": 0,
+   "unit": "%",
+   "min": 0,
+   "max": 100,
+   "avg": 7.394999980926514,
+   "name": "🎵 Voice (Elgato Virtual Audio) · Right",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.RTSS.rtss.refreshrate": {
+   "value": 240,
+   "unit": "Hz",
+   "min": 0,
+   "max": 240,
+   "avg": 240,
+   "name": "RTSS · Display Refresh Rate",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.SteamAPI.SteamAPI-Session.current-game-playtime": {
+   "value": 263.3999938964844,
+   "unit": "hrs",
+   "min": 0,
+   "max": 263.3999938964844,
+   "avg": 263.3999938964844,
+   "name": "Current Game & Session · Current Game Total Hours",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.SteamAPI.SteamAPI-Library.recent-playtime": {
+   "value": 7.400000095367432,
+   "unit": "hrs",
+   "min": 0,
+   "max": 7.400000095367432,
+   "avg": 7.400000095367432,
+   "name": "Library & Playtime Statistics · Recent Play Hours (2w)",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.SteamAPI.SteamAPI-Profile.player-name": {
+   "text": "Player One",
+   "unit": "",
+   "name": "User Profile & Status · Player Name",
+   "source": "infopanel"
+  },
+  "plugins.yr-weather-plugin.brevik-norway.snow": {
+   "value": 0,
+   "unit": "mm/h",
+   "min": 0,
+   "max": 0,
+   "avg": 0,
+   "name": "Brevik, Norway · Snow",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-e2087318-05b8-4830-84b9-1e6e8852d2f9.rms-level": {
+   "value": -96,
+   "unit": "dB",
+   "min": -130.6999969482422,
+   "max": 0,
+   "avg": -85.50833129882812,
+   "name": "🎵 Voice (Elgato Virtual Audio) · RMS",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.public-ip.ipv4": {
+   "text": "192.0.2.1",
+   "unit": "",
+   "name": "Public IP · IPv4",
+   "source": "infopanel"
+  },
+  "plugins.weather-plugin.weather.clouds": {
+   "value": 0,
+   "unit": "%",
+   "min": 0,
+   "max": 0,
+   "avg": 0,
+   "name": "Weather · Clouds",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{187C48C4-4CCD-45DE-B5DC-43739AC29B0D}.ipv6-6": {
+   "text": "2001:db8::2",
+   "unit": "",
+   "name": "Ethernet · IPv6 Address",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{1203651F-E172-4D15-9260-912B80E47C9E}.description": {
+   "text": "MediaTek Wi-Fi 7 MT7925 Wireless LAN Card",
+   "unit": "",
+   "name": "WiFi · Description",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.SteamAPI.SteamAPI-News.library-news": {
+   "text": "WARDOGS, Второй сезон WARDOGS стартует 15 октября - новое оружие, техника и экспериментальные ставки, Oct 10\nARC Raiders, Решение сменить внешний вид Селесты в Arc Raiders вызвало неоднозначную реакцию игроков, Oct 09",
+   "unit": "",
+   "name": "News & Updates · Library News",
+   "source": "infopanel"
+  },
+  "plugins.yr-weather-plugin.brevik-norway.wind_deg": {
+   "value": 222,
+   "unit": "°",
+   "min": 0,
+   "max": 340,
+   "avg": 128.57142639160156,
+   "name": "Brevik, Norway · Wind Degree",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{187C48C4-4CCD-45DE-B5DC-43739AC29B0D}.ipv6-2": {
+   "text": "2001:db8::3",
+   "unit": "",
+   "name": "Ethernet · IPv6 Address",
+   "source": "infopanel"
+  },
+  "plugins.spotify-plugin.spotify.remaining-time": {
+   "text": "00:00",
+   "unit": "",
+   "name": "Spotify · Remaining Time",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{8F376EDF-C409-4648-A994-6293C5529FAB}.name": {
+   "text": "WiFi 4",
+   "unit": "",
+   "name": "WiFi 4 · Name",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.RTSS.rtss.gpu-name": {
+   "text": "NVIDIA GeForce RTX 5090",
+   "unit": "",
+   "name": "RTSS · GPU Name",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-e3f0c952-76ad-40dd-96a3-b8326178a39e.audio-level": {
+   "value": 39,
+   "unit": "%",
+   "min": 0,
+   "max": 99.19999694824219,
+   "avg": 42.64833450317383,
+   "name": "🎵 Headphones (Elgato Wave:3) · Level",
+   "source": "infopanel"
+  },
+  "plugins.drive-info-plugin.e.available_space": {
+   "value": 808883,
+   "unit": "MB",
+   "min": 808422,
+   "max": 808932,
+   "avg": 808883,
+   "name": "E: · Available Space",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.{0.0.0.00000000}.{44a2e633-0f41-497a-9de0-227ceef7e6c4}.friendly_name": {
+   "text": "Wave Mic 1 (Elgato Virtual Audio)",
+   "unit": "",
+   "name": "Wave Mic 1 (Elgato Virtual Audio) · Name",
+   "source": "infopanel"
+  },
+  "plugins.yr-weather-plugin.brevik-norway.weather": {
+   "text": "clearsky",
+   "unit": "",
+   "name": "Brevik, Norway · Weather",
+   "source": "infopanel"
+  },
+  "plugins.drive-info-plugin.e.name": {
+   "text": "E:",
+   "unit": "",
+   "name": "E: · Name",
+   "source": "infopanel"
+  },
+  "plugins.weather-plugin.weather.min_temp": {
+   "value": 0,
+   "unit": "°C",
+   "min": 0,
+   "max": 0,
+   "avg": 0,
+   "name": "Weather · Minimum Temperature",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.{0.0.0.00000000}.{b34902c8-e0e8-44f3-bd36-efee55d6366e}.short_name": {
+   "text": "Browser ",
+   "unit": "",
+   "name": "Browser (Elgato Virtual Audio) · Short Name",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.{0.0.0.00000000}.{ad03964a-422c-4018-bb88-8f8e068c6537}.friendly_name": {
+   "text": "Music (Elgato Virtual Audio)",
+   "unit": "",
+   "name": "Music (Elgato Virtual Audio) · Name",
+   "source": "infopanel"
+  },
+  "plugins.system-info-plugin.processes.top-memory-usage": {
+   "text": "PioneerGame, 29.3%, 36.7%, 7005.6 MB\nvmmemWSL, 0.9%, 1.1%, 5003.4 MB\nchrome, 12.3%, 15.4%, 4553.1 MB\nzen, 0.9%, 1.1%, 2047.2 MB\nDiscord, 0.2%, 0.2%, 664.7 MB\nEverything, 0%, 0%, 662.8 MB\nInfoPanel, 0.3%, 0.4%, 655.8 MB\nmsedgewebview2, 5.1%, 6.3%, 614.2 MB\nclaude, 1.1%, 1.3%, 556.0 MB\nsteamwebhelper, 0%, 0%, 469.3 MB\nMsMpEng, 0.8%, 1.0%, 467.4 MB\ncom.docker.backend, 0.1%, 0.2%, 247.6 MB\nSecure System, 0%, 0%, 214.9 MB\nDocker Desktop, 0%, 0.1%, 197.3 MB\nElgato.WaveLink, 3.2%, 3.9%, 195.6 MB\nWindowsTerminal, 0%, 0%, 161.0 MB\nnode, 0.1%, 0.1%, 145.1 MB\nNVDisplay.Container, 0%, 0%, 144.3 MB\nMSPCManagerCore, 0%, 0%, 137.7 MB\nFanControl, 0%, 0%, 126.8 MB\nexplorer, 0%, 0%, 118.6 MB\ntailscaled, 0%, 0%, 112.5 MB\nMSPCManager, 0%, 0%, 91.9 MB\nMSPCManagerService, 0%, 0%, 85.4 MB\nmsedge, 0%, 0%, 76.1 MB\nDeckShot.Bridge, 0%, 0%, 75.2 MB\nWmiPrvSE, 1.1%, 1.3%, 68.3 MB\nctfmon, 0%, 0%, 64.6 MB\nStreamDeck, 0.3%, 0.4%, 57.5 MB\nnvcontainer, 0%, 0%, 56.9 MB\nOfficeClickToRun, 0%, 0%, 41.1 MB\nsteam, 0%, 0%, 33.4 MB\nOneDrive.Sync.Service, 0%, 0%, 28.7 MB\nSearchIndexer, 0%, 0%, 27.7 MB\ncom.docker.build, 0%, 0%, 23.3 MB\nQtWebEngineProcess, 0%, 0%, 21.1 MB\naudiodg, 0.4%, 0.5%, 20.6 MB\npostgres, 0%, 0%, 20.6 MB\nControlCenter, 0%, 0%, 19.4 MB\ngameoverlayui64, 0%, 0%, 16.7 MB\nESDDiscord, 0%, 0%, 14.8 MB\nRed Giant Service, 0%, 0%, 14.4 MB\npwsh, 0%, 0%, 14.2 MB\nEABackgroundService, 0%, 0%, 13.6 MB\nMpDefenderCoreService, 0%, 0%, 12.5 MB\nRuntimeBroker, 0%, 0%, 12.2 MB\nMicrosoftSecurityApp, 0%, 0%, 12.1 MB\nSearchFilterHost, 0%, 0%, 11.9 MB\nsystemvitals.proxy.vivremotion, 0%, 0%, 11.8 MB\nfontdrvhost, 0%, 0%, 11.6 MB\ntaskhostw, 0%, 0%, 11.6 MB\nTextInputHost, 0%, 0%, 11.5 MB\nStartMenuExperienceHost, 0%, 0%, 11.3 MB\nSearchHost, 0%, 0%, 11.2 MB\nconhost, 0%, 0%, 11.2 MB\nvmwp, 0%, 0%, 10.9 MB\ndocker-agent, 0%, 0%, 10.2 MB\ncom.docker.service, 0%, 0%, 10.0 MB\nPulseService, 0%, 0%, 9.9 MB\ntailscale-ipn, 0%, 0%, 8.6 MB\nOpenConsole, 0%, 0%, 8.5 MB\ngamingservices, 0%, 0%, 8.2 MB\nShareX, 0%, 0%, 8.2 MB\nGameInputRedistService, 0%, 0%, 8.2 MB\ndasHost, 0%, 0%, 8.1 MB\nMSIAfterburner, 0%, 0.1%, 7.6 MB\ndllhost, 0%, 0%, 7.3 MB\nservices, 0%, 0%, 6.9 MB\nNotepad, 0%, 0%, 6.7 MB\nPowerToys.Peek.UI, 0%, 0%, 6.6 MB\nvmms, 0%, 0%, 6.3 MB\nEverythingToolbar.Launcher, 0%, 0%, 6.0 MB\natkexComSvc, 0%, 0%, 5.9 MB\ncloud-drive-ui, 0%, 0%, 5.6 MB\ncowork-svc, 0%, 0%, 5.6 MB\nHerdHelper, 0%, 0%, 5.5 MB\nsteamservice, 0%, 0%, 5.3 MB\nPhoneExperienceHost, 0%, 0%, 5.3 MB\natiesrxx, 0%, 0%, 5.2 MB\nPowerToys.AdvancedPaste, 0%, 0%, 5.1 MB\nElgatoAudioControlServer, 0%, 0%, 5.0 MB\nAac3572MbHal_x86, 0%, 0%, 4.8 MB\nwslservice, 0%, 0%, 4.8 MB\nsihost, 0%, 0%, 4.6 MB\nNisSrv, 0%, 0%, 4.4 MB\nLightingService, 0%, 0%, 4.3 MB\nCrossDeviceService, 0%, 0%, 4.3 MB\nMicrosoft.CmdPal.UI, 0%, 0%, 4.3 MB\nstreamdeckyoutube, 0%, 0%, 4.2 MB\nPowerToys, 0%, 0%, 4.1 MB\nxdm-app, 0%, 0%, 4.1 MB\nGameInputSvc, 0%, 0%, 4.0 MB\nSecurityHealthService, 0%, 0%, 4.0 MB\nSearchProtocolHost, 0%, 0%, 3.9 MB\nFuryControllerService, 0%, 0%, 3.8 MB\nGameBarPresenceWriter, 0%, 0%, 3.5 MB\nservice, 0%, 0%, 3.1 MB\nAMDRSServ, 0%, 0%, 3.1 MB\nPowerToys.QuickAccess, 0%, 0%, 3.0 MB\nMidiSrv, 0%, 0%, 2.9 MB\ngamingservicesnet, 0%, 0%, 2.8 MB\nWavelinkSEService, 0%, 0%, 2.8 MB\natieclxx, 0%, 0%, 2.8 MB\nvmcompute, 0%, 0%, 2.7 MB\ncom.barraider.spotify, 0%, 0%, 2.6 MB\nAppActions, 0%, 0%, 2.5 MB\ncom.barraider.obstools, 0%, 0%, 2.5 MB\nASUS DriverHub, 0%, 0%, 2.5 MB\nShellHost, 0%, 0%, 2.5 MB\nAMDRSSrcExt, 0%, 0%, 2.5 MB\nPowerToys.ColorPickerUI, 0%, 0%, 2.3 MB\nPowerToys.FancyZones, 0%, 0%, 2.2 MB\nWindowsPackageManagerServer, 0%, 0%, 2.2 MB\nADU, 0%, 0%, 2.2 MB\nthinkterm-mux-server, 0%, 0%, 2.1 MB\npgagent, 0%, 0%, 2.1 MB\ndenuvo-anti-cheat-update-service, 0%, 0%, 2.0 MB\nLDSvc, 0%, 0%, 2.0 MB\nRTSS, 0%, 0%, 1.9 MB\nmsrdc, 0%, 0%, 1.9 MB\nControlServer, 0%, 0%, 1.9 MB\nAsusCertService, 0%, 0%, 1.9 MB\nCrossDeviceResume, 0%, 0%, 1.8 MB\nunsecapp, 0%, 0%, 1.8 MB\nCPUMetricsServer, 0%, 0%, 1.7 MB\nWUDFHost, 0%, 0%, 1.7 MB\ncloud-drive-daemon, 0%, 0%, 1.6 MB\nAsusUpdateCheck, 0%, 0%, 1.6 MB\nRTSSHooksLoader64, 0%, 0%, 1.6 MB\nextensionCardHal_x86, 0%, 0%, 1.6 MB\nYoutubeTicker, 0%, 0%, 1.5 MB\nMicrosoft.CmdPal.Ext.PowerToys, 0%, 0%, 1.5 MB\namdfendrsr, 0%, 0%, 1.5 MB\nAacKingstonDramHal_x86, 0%, 0%, 1.4 MB\nApplicationFrameHost, 0%, 0%, 1.4 MB\namdow, 0%, 0%, 1.3 MB\nvtun, 0%, 0%, 1.2 MB\nwininit, 0%, 0%, 1.2 MB\nRadeonSoftware, 0%, 0%, 1.1 MB\nwlanext, 0%, 0%, 1.1 MB\nvss-service-x64, 0%, 0%, 1.1 MB\nAmdPpkgSvc, 0%, 0%, 1.1 MB\nwinlogon, 0%, 0%, 1.1 MB\npg_ctl, 0%, 0%, 1.1 MB\nstreamdeck-discordmixer, 0%, 0%, 1.0 MB\namd3dvcacheSvc, 0%, 0%, 0.9 MB\nmtkbtsvc, 0%, 0%, 0.9 MB\nNgcIso, 0%, 0%, 0.9 MB\nAmdAppCompatSvc, 0%, 0%, 0.8 MB\ncmd, 0%, 0%, 0.8 MB\nApplePhotoStreams, 0%, 0%, 0.8 MB\nJetBrains.Etw.Collector.Host, 0%, 0%, 0.8 MB\nRegistry, 0%, 0%, 0.8 MB\ndeckshot-desktop, 0%, 0%, 0.7 MB\nLsaIso, 0%, 0%, 0.7 MB\nEncoderServer, 0%, 0%, 0.6 MB\nhelperservice, 0%, 0%, 0.5 MB\nShellExperienceHost, 0%, 0%, 0.4 MB\nwsl, 0%, 0%, 0.4 MB\nFileConverter, 0%, 0%, 0.4 MB\namd3dvcacheUser, 0%, 0%, 0.3 MB\nwslhost, 0%, 0%, 0.3 MB\nsmss, 0%, 0%, 0.3 MB\ncloud-drive-connect, 0%, 0%, 0.2 MB\nElgatoAudioControlServerWatcher, 0%, 0%, 0.2 MB\ncrashpad_handler, 0%, 0%, 0.2 MB\nDefenderSessionHelper, 0%, 0%, 0.2 MB\nAdobeNotificationClient, 0%, 0%, 0.2 MB\nOrca, 0%, 0%, 0.2 MB\nSecurityHealthSystray, 0%, 0%, 0.1 MB\nAbletonAudioCpl, 0%, 0%, 0.1 MB\nAppVShNotify, 0%, 0%, 0.1 MB\nwslrelay, 0%, 0%, 0.1 MB\nchrome-native-host, 0%, 0%, 0.0 MB\nffmpeg, 0%, 0%, 0.0 MB\nSystem, 1.1%, 1.4%, 0.0 MB",
+   "unit": "",
+   "name": "Processes · Top Memory Usage",
+   "source": "infopanel"
+  },
+  "plugins.system-info-plugin.processes.top-cpu-usage": {
+   "text": "PioneerGame, 29.3%, 36.7%, 7005.6 MB\nchrome, 12.3%, 15.4%, 4553.1 MB\nmsedgewebview2, 5.1%, 6.3%, 614.2 MB\nElgato.WaveLink, 3.2%, 3.9%, 195.6 MB\nSystem, 1.1%, 1.4%, 0.0 MB\nclaude, 1.1%, 1.3%, 556.0 MB\nWmiPrvSE, 1.1%, 1.3%, 68.3 MB\nvmmemWSL, 0.9%, 1.1%, 5003.4 MB\nzen, 0.9%, 1.1%, 2047.2 MB\nMsMpEng, 0.8%, 1.0%, 467.4 MB\naudiodg, 0.4%, 0.5%, 20.6 MB\nStreamDeck, 0.3%, 0.4%, 57.5 MB\nInfoPanel, 0.3%, 0.4%, 655.8 MB\nDiscord, 0.2%, 0.2%, 664.7 MB\ncom.docker.backend, 0.1%, 0.2%, 247.6 MB\nnode, 0.1%, 0.1%, 145.1 MB\nMSIAfterburner, 0%, 0.1%, 7.6 MB\nDocker Desktop, 0%, 0.1%, 197.3 MB\nPowerToys, 0%, 0%, 4.1 MB\nFanControl, 0%, 0%, 126.8 MB\nStartMenuExperienceHost, 0%, 0%, 11.3 MB\nCrossDeviceService, 0%, 0%, 4.3 MB\nunsecapp, 0%, 0%, 1.8 MB\nWindowsPackageManagerServer, 0%, 0%, 2.2 MB\nchrome-native-host, 0%, 0%, 0.0 MB\natiesrxx, 0%, 0%, 5.2 MB\nWavelinkSEService, 0%, 0%, 2.8 MB\nShellExperienceHost, 0%, 0%, 0.4 MB\nESDDiscord, 0%, 0%, 14.8 MB\nthinkterm-mux-server, 0%, 0%, 2.1 MB\namd3dvcacheSvc, 0%, 0%, 0.9 MB\ncloud-drive-connect, 0%, 0%, 0.2 MB\nYoutubeTicker, 0%, 0%, 1.5 MB\ncom.barraider.spotify, 0%, 0%, 2.6 MB\nAppActions, 0%, 0%, 2.5 MB\nApplicationFrameHost, 0%, 0%, 1.4 MB\nOfficeClickToRun, 0%, 0%, 41.1 MB\nAdobeNotificationClient, 0%, 0%, 0.2 MB\npg_ctl, 0%, 0%, 1.1 MB\ncloud-drive-ui, 0%, 0%, 5.6 MB\ncloud-drive-daemon, 0%, 0%, 1.6 MB\nwinlogon, 0%, 0%, 1.1 MB\nWUDFHost, 0%, 0%, 1.7 MB\nwlanext, 0%, 0%, 1.1 MB\nAmdPpkgSvc, 0%, 0%, 1.1 MB\nvss-service-x64, 0%, 0%, 1.1 MB\nOneDrive.Sync.Service, 0%, 0%, 28.7 MB\nvmcompute, 0%, 0%, 2.7 MB\nwininit, 0%, 0%, 1.2 MB\nShellHost, 0%, 0%, 2.5 MB\nMicrosoft.CmdPal.UI, 0%, 0%, 4.3 MB\nAacKingstonDramHal_x86, 0%, 0%, 1.4 MB\nAac3572MbHal_x86, 0%, 0%, 4.8 MB\nFileConverter, 0%, 0%, 0.4 MB\nAsusCertService, 0%, 0%, 1.9 MB\natkexComSvc, 0%, 0%, 5.9 MB\nApplePhotoStreams, 0%, 0%, 0.8 MB\nSearchIndexer, 0%, 0%, 27.7 MB\nservices, 0%, 0%, 6.9 MB\nShareX, 0%, 0%, 8.2 MB\nHerdHelper, 0%, 0%, 5.5 MB\nctfmon, 0%, 0%, 64.6 MB\nNgcIso, 0%, 0%, 0.9 MB\nEverythingToolbar.Launcher, 0%, 0%, 6.0 MB\nAppVShNotify, 0%, 0%, 0.1 MB\nMSPCManager, 0%, 0%, 91.9 MB\nNisSrv, 0%, 0%, 4.4 MB\nvmwp, 0%, 0%, 10.9 MB\nstreamdeck-discordmixer, 0%, 0%, 1.0 MB\namd3dvcacheUser, 0%, 0%, 0.3 MB\nMSPCManagerCore, 0%, 0%, 137.7 MB\namdow, 0%, 0%, 1.3 MB\nsmss, 0%, 0%, 0.3 MB\nMSPCManagerService, 0%, 0%, 85.4 MB\nservice, 0%, 0%, 3.1 MB\nwslrelay, 0%, 0%, 0.1 MB\nMicrosoft.CmdPal.Ext.PowerToys, 0%, 0%, 1.5 MB\nAMDRSServ, 0%, 0%, 3.1 MB\ncom.docker.build, 0%, 0%, 23.3 MB\nSecurityHealthService, 0%, 0%, 4.0 MB\nJetBrains.Etw.Collector.Host, 0%, 0%, 0.8 MB\nRTSSHooksLoader64, 0%, 0%, 1.6 MB\nRed Giant Service, 0%, 0%, 14.4 MB\nPhoneExperienceHost, 0%, 0%, 5.3 MB\nexplorer, 0%, 0%, 118.6 MB\ncrashpad_handler, 0%, 0%, 0.2 MB\ngamingservices, 0%, 0%, 8.2 MB\nTextInputHost, 0%, 0%, 11.5 MB\nsteamservice, 0%, 0%, 5.3 MB\nxdm-app, 0%, 0%, 4.1 MB\nSearchHost, 0%, 0%, 11.2 MB\nRadeonSoftware, 0%, 0%, 1.1 MB\ntailscale-ipn, 0%, 0%, 8.6 MB\nElgatoAudioControlServerWatcher, 0%, 0%, 0.2 MB\npgagent, 0%, 0%, 2.1 MB\ntaskhostw, 0%, 0%, 11.6 MB\nMicrosoftSecurityApp, 0%, 0%, 12.1 MB\nOpenConsole, 0%, 0%, 8.5 MB\nwslservice, 0%, 0%, 4.8 MB\nmsedge, 0%, 0%, 76.1 MB\nLDSvc, 0%, 0%, 2.0 MB\ncmd, 0%, 0%, 0.8 MB\nSecure System, 0%, 0%, 214.9 MB\nRuntimeBroker, 0%, 0%, 12.2 MB\nfontdrvhost, 0%, 0%, 11.6 MB\nGameInputSvc, 0%, 0%, 4.0 MB\nCPUMetricsServer, 0%, 0%, 1.7 MB\npwsh, 0%, 0%, 14.2 MB\nDeckShot.Bridge, 0%, 0%, 75.2 MB\ndllhost, 0%, 0%, 7.3 MB\npostgres, 0%, 0%, 20.6 MB\ndasHost, 0%, 0%, 8.1 MB\nSearchFilterHost, 0%, 0%, 11.9 MB\nstreamdeckyoutube, 0%, 0%, 4.2 MB\nMpDefenderCoreService, 0%, 0%, 12.5 MB\nconhost, 0%, 0%, 11.2 MB\nEverything, 0%, 0%, 662.8 MB\nPulseService, 0%, 0%, 9.9 MB\nQtWebEngineProcess, 0%, 0%, 21.1 MB\ndeckshot-desktop, 0%, 0%, 0.7 MB\nOrca, 0%, 0%, 0.2 MB\nmsrdc, 0%, 0%, 1.9 MB\ngamingservicesnet, 0%, 0%, 2.8 MB\nAbletonAudioCpl, 0%, 0%, 0.1 MB\nADU, 0%, 0%, 2.2 MB\nMidiSrv, 0%, 0%, 2.9 MB\natieclxx, 0%, 0%, 2.8 MB\nwsl, 0%, 0%, 0.4 MB\nSearchProtocolHost, 0%, 0%, 3.9 MB\nControlCenter, 0%, 0%, 19.4 MB\nElgatoAudioControlServer, 0%, 0%, 5.0 MB\nsystemvitals.proxy.vivremotion, 0%, 0%, 11.8 MB\nControlServer, 0%, 0%, 1.9 MB\nsteamwebhelper, 0%, 0%, 469.3 MB\nPowerToys.ColorPickerUI, 0%, 0%, 2.3 MB\nCrossDeviceResume, 0%, 0%, 1.8 MB\nAMDRSSrcExt, 0%, 0%, 2.5 MB\nvmms, 0%, 0%, 6.3 MB\nRTSS, 0%, 0%, 1.9 MB\nhelperservice, 0%, 0%, 0.5 MB\ntailscaled, 0%, 0%, 112.5 MB\nAmdAppCompatSvc, 0%, 0%, 0.8 MB\nPowerToys.FancyZones, 0%, 0%, 2.2 MB\nPowerToys.QuickAccess, 0%, 0%, 3.0 MB\nextensionCardHal_x86, 0%, 0%, 1.6 MB\nLsaIso, 0%, 0%, 0.7 MB\ncom.docker.service, 0%, 0%, 10.0 MB\nFuryControllerService, 0%, 0%, 3.8 MB\nsteam, 0%, 0%, 33.4 MB\nNotepad, 0%, 0%, 6.7 MB\nwslhost, 0%, 0%, 0.3 MB\ndocker-agent, 0%, 0%, 10.2 MB\nLightingService, 0%, 0%, 4.3 MB\nSecurityHealthSystray, 0%, 0%, 0.1 MB\nASUS DriverHub, 0%, 0%, 2.5 MB\nEncoderServer, 0%, 0%, 0.6 MB\nsihost, 0%, 0%, 4.6 MB\nPowerToys.Peek.UI, 0%, 0%, 6.6 MB\nNVDisplay.Container, 0%, 0%, 144.3 MB\nGameBarPresenceWriter, 0%, 0%, 3.5 MB\nffmpeg, 0%, 0%, 0.0 MB\nRegistry, 0%, 0%, 0.8 MB\ngameoverlayui64, 0%, 0%, 16.7 MB\nWindowsTerminal, 0%, 0%, 161.0 MB\nDefenderSessionHelper, 0%, 0%, 0.2 MB\nmtkbtsvc, 0%, 0%, 0.9 MB\nGameInputRedistService, 0%, 0%, 8.2 MB\namdfendrsr, 0%, 0%, 1.5 MB\ncowork-svc, 0%, 0%, 5.6 MB\ncom.barraider.obstools, 0%, 0%, 2.5 MB\nAsusUpdateCheck, 0%, 0%, 1.6 MB\nEABackgroundService, 0%, 0%, 13.6 MB\nnvcontainer, 0%, 0%, 56.9 MB\nPowerToys.AdvancedPaste, 0%, 0%, 5.1 MB\nvtun, 0%, 0%, 1.2 MB\ndenuvo-anti-cheat-update-service, 0%, 0%, 2.0 MB",
+   "unit": "",
+   "name": "Processes · Top CPU Usage",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-e3f0c952-76ad-40dd-96a3-b8326178a39e.peak-hold": {
+   "value": -13.300000190734863,
+   "unit": "dB",
+   "min": -863.0999755859375,
+   "max": -6,
+   "avg": -10.696666717529297,
+   "name": "🎵 Headphones (Elgato Wave:3) · Peak Hold",
+   "source": "infopanel"
+  },
+  "plugins.yr-weather-plugin.brevik-norway.wind_gust": {
+   "value": 2.5,
+   "unit": "m/s",
+   "min": 0,
+   "max": 9.399999618530273,
+   "avg": 5.135714530944824,
+   "name": "Brevik, Norway · Wind Gust",
+   "source": "infopanel"
+  },
+  "plugins.media-plugin.media.current-track": {
+   "text": "Sample Track",
+   "unit": "",
+   "name": "Media · Current Track",
+   "source": "infopanel"
+  },
+  "plugins.drive-info-plugin.g.type": {
+   "text": "Fixed",
+   "unit": "",
+   "name": "G: · Type",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{B2CA3DB0-3E46-469B-88E5-BE43DBAE0750}.id": {
+   "text": "{B2CA3DB0-3E46-469B-88E5-BE43DBAE0750}",
+   "unit": "",
+   "name": "Bluetooth Network Connection · Id",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{C5013AF7-2689-4840-B572-AAFE079B6E2A}.ipv4-0": {
+   "text": "192.0.2.2",
+   "unit": "",
+   "name": "vEthernet (Default Switch) · IPv4 Address",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.{0.0.0.00000000}.{cffd42bd-62a0-43d7-98d5-8b227c5ac3ce}.short_name": {
+   "text": "System ",
+   "unit": "",
+   "name": "System (Elgato Virtual Audio) · Short Name",
+   "source": "infopanel"
+  },
+  "plugins.drive-info-plugin.d.format": {
+   "text": "NTFS",
+   "unit": "",
+   "name": "D: · Format",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.{0.0.0.00000000}.{81fcb09e-e5cb-43ed-91b5-b02a98683de5}.device_friendly_name": {
+   "text": "Focusrite USB Audio",
+   "unit": "",
+   "name": "Speakers (Focusrite USB Audio) · Device Name",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.SteamAPI.SteamAPI-Achievements.latest-achievement": {
+   "text": "Today You, Tomorrow Me",
+   "unit": "",
+   "name": "Achievements · Latest Achievement",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-ad03964a-422c-4018-bb88-8f8e068c6537.audio-level": {
+   "value": 0,
+   "unit": "%",
+   "min": 0,
+   "max": 99.5999984741211,
+   "avg": 0,
+   "name": "🎵 Music (Elgato Virtual Audio) · Level",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{3DFA719A-9236-4AA7-9248-245E3284A417}.ipv4-0": {
+   "text": "192.0.2.3",
+   "unit": "",
+   "name": "vEthernet (WSL (Hyper-V firewall)) · IPv4 Address",
+   "source": "infopanel"
+  },
+  "plugins.weather-plugin.weather.rain": {
+   "value": 0,
+   "unit": "mm/h",
+   "min": 0,
+   "max": 0,
+   "avg": 0,
+   "name": "Weather · Rain",
+   "source": "infopanel"
+  },
+  "plugins.media-plugin.media.elapsed-time": {
+   "text": "20:50",
+   "unit": "",
+   "name": "Media · Elapsed Time",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.default-audio.right-channel": {
+   "value": 96.9000015258789,
+   "unit": "%",
+   "min": 0,
+   "max": 100,
+   "avg": 86.42333221435547,
+   "name": "Audio Level Meter · Right",
+   "source": "infopanel"
+  },
+  "plugins.yr-weather-plugin.brevik-norway.wind_speed": {
+   "value": 1.2000000476837158,
+   "unit": "m/s",
+   "min": 0,
+   "max": 3.799999952316284,
+   "avg": 1.899999976158142,
+   "name": "Brevik, Norway · Wind Speed",
+   "source": "infopanel"
+  },
+  "plugins.media-plugin.media.track-progress": {
+   "value": 0,
+   "unit": "",
+   "min": 0,
+   "max": 100,
+   "avg": 0,
+   "name": "Media · Track Progress (%)",
+   "source": "infopanel"
+  },
+  "plugins.clock-plugin.clock.minute": {
+   "value": 49,
+   "unit": "",
+   "min": 0,
+   "max": 59,
+   "avg": 49,
+   "name": "Clock · Minute",
+   "source": "infopanel"
+  },
+  "plugins.drive-info-plugin.d.name": {
+   "text": "D:",
+   "unit": "",
+   "name": "D: · Name",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.{0.0.0.00000000}.{81fcb09e-e5cb-43ed-91b5-b02a98683de5}.short_name": {
+   "text": "Speakers (Focusrite USB Audio)",
+   "unit": "",
+   "name": "Speakers (Focusrite USB Audio) · Short Name",
+   "source": "infopanel"
+  },
+  "plugins.spotify-plugin.spotify.auth-state": {
+   "value": 2,
+   "unit": "",
+   "min": 0,
+   "max": 2,
+   "avg": 2,
+   "name": "Spotify · Auth State",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-b34902c8-e0e8-44f3-bd36-efee55d6366e.rms-level": {
+   "value": -9.899999618530273,
+   "unit": "dB",
+   "min": -152.8000030517578,
+   "max": 0,
+   "avg": -11.164999961853027,
+   "name": "🎵 Browser (Elgato Virtual Audio) · RMS",
+   "source": "infopanel"
+  },
+  "plugins.system-info-plugin.processes.handle-count": {
+   "value": 276929,
+   "unit": "",
+   "min": 0,
+   "max": 12334340,
+   "avg": 276357.875,
+   "name": "Processes · Handle Count",
+   "source": "infopanel"
+  },
+  "plugins.media-plugin.media.artist": {
+   "text": "Unknown",
+   "unit": "",
+   "name": "Media · Artist",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-cffd42bd-62a0-43d7-98d5-8b227c5ac3ce.device-name": {
+   "text": "System (Elgato Virtual Audio)",
+   "unit": "",
+   "name": "🎵 System (Elgato Virtual Audio) · Device",
+   "source": "infopanel"
+  },
+  "plugins.drive-info-plugin.g.total_size": {
+   "value": 953866,
+   "unit": "MB",
+   "min": 953866,
+   "max": 953866,
+   "avg": 953866,
+   "name": "G: · Total Size",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.RTSS.rtss.windowtitle": {
+   "text": "﻿A​R​​​﻿C​﻿ ﻿R​​a​﻿​​​i﻿d﻿e​﻿rs",
+   "unit": "",
+   "name": "RTSS · Currently Capturing",
+   "source": "infopanel"
+  },
+  "plugins.system-info-plugin.uptime.hours": {
+   "text": "07",
+   "unit": "",
+   "name": "Uptime · Hours",
+   "source": "infopanel"
+  },
+  "plugins.weather-plugin.weather.ground_level": {
+   "value": 0,
+   "unit": "hPa",
+   "min": 0,
+   "max": 0,
+   "avg": 0,
+   "name": "Weather · Ground Level",
+   "source": "infopanel"
+  },
+  "plugins.wavelink-plugin.wavelink.app_version": {
+   "text": "",
+   "unit": "",
+   "name": "Wave Link · App Version",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.SteamAPI.SteamAPI-Profile.status": {
+   "text": "Playing ARC Raiders",
+   "unit": "",
+   "name": "User Profile & Status · Plugin Status",
+   "source": "infopanel"
+  },
+  "plugins.weather-plugin.weather.wind_speed": {
+   "value": 0,
+   "unit": "m/s",
+   "min": 0,
+   "max": 0,
+   "avg": 0,
+   "name": "Weather · Wind Speed",
+   "source": "infopanel"
+  },
+  "plugins.yr-weather-plugin.brevik-norway.weather_icon_url": {
+   "text": "https://raw.githubusercontent.com/Makin-Things/weather-icons/refs/heads/main/static/clear-night.svg",
+   "unit": "",
+   "name": "Brevik, Norway · Weather Icon URL",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.SteamAPI.SteamAPI-Profile.profile_image_url": {
+   "text": "",
+   "unit": "",
+   "name": "User Profile & Status · Profile Image URL",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.{0.0.0.00000000}.{3c6e1f59-7949-4901-90a7-65282d08d714}.volume": {
+   "value": 100,
+   "unit": "%",
+   "min": 100,
+   "max": 100,
+   "avg": 100,
+   "name": "Headphones (4- Arctis Nova Pro Wireless) · Volume",
+   "source": "infopanel"
+  },
+  "plugins.clock-plugin.clock.second": {
+   "value": 26,
+   "unit": "",
+   "min": 0,
+   "max": 59,
+   "avg": 23.149999618530273,
+   "name": "Clock · Second",
+   "source": "infopanel"
+  },
+  "plugins.weather-plugin.weather.sea_level": {
+   "value": 0,
+   "unit": "hPa",
+   "min": 0,
+   "max": 0,
+   "avg": 0,
+   "name": "Weather · Sea Level",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.{0.0.0.00000000}.{3c6e1f59-7949-4901-90a7-65282d08d714}.device_friendly_name": {
+   "text": "4- Arctis Nova Pro Wireless",
+   "unit": "",
+   "name": "Headphones (4- Arctis Nova Pro Wireless) · Device Name",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{187C48C4-4CCD-45DE-B5DC-43739AC29B0D}.id": {
+   "text": "{187C48C4-4CCD-45DE-B5DC-43739AC29B0D}",
+   "unit": "",
+   "name": "Ethernet · Id",
+   "source": "infopanel"
+  },
+  "plugins.yr-weather-plugin.brevik-norway.last_refreshed": {
+   "text": "2026-10-12 20:04",
+   "unit": "",
+   "name": "Brevik, Norway · Last Refreshed",
+   "source": "infopanel"
+  },
+  "plugins.drive-info-plugin.d.type": {
+   "text": "Fixed",
+   "unit": "",
+   "name": "D: · Type",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.SteamAPI.SteamAPI-Profile.game_icon_url": {
+   "text": "https://cdn2.steamgriddb.com/icon/fa05081cf25d10da0c72e2c4469f978a.png",
+   "unit": "",
+   "name": "User Profile & Status · Game Icon URL",
+   "source": "infopanel"
+  },
+  "plugins.spotify-plugin.spotify.track-progress": {
+   "value": 0,
+   "unit": "",
+   "min": 0,
+   "max": 99.29342651367188,
+   "avg": 0,
+   "name": "Spotify · Track Progress (%)",
+   "source": "infopanel"
+  },
+  "plugins.weather-plugin.weather.wind_deg": {
+   "value": 0,
+   "unit": "°",
+   "min": 0,
+   "max": 0,
+   "avg": 0,
+   "name": "Weather · Wind Degree",
+   "source": "infopanel"
+  },
+  "plugins.wavelink-plugin.wavelink.status": {
+   "text": "up",
+   "unit": "",
+   "name": "Wave Link · Status",
+   "source": "infopanel"
+  },
+  "plugins.weather-plugin.weather.feels_like": {
+   "value": 0,
+   "unit": "°C",
+   "min": 0,
+   "max": 0,
+   "avg": 0,
+   "name": "Weather · Feels Like",
+   "source": "infopanel"
+  },
+  "plugins.weather-plugin.weather.name": {
+   "text": "-",
+   "unit": "",
+   "name": "Weather · Name",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.SteamAPI.SteamAPI-Session.current-session-time": {
+   "text": "00:07",
+   "unit": "",
+   "name": "Current Game & Session · Current Session Duration",
+   "source": "infopanel"
+  },
+  "plugins.drive-info-plugin.f.available_space": {
+   "value": 175654,
+   "unit": "MB",
+   "min": 175654,
+   "max": 175654,
+   "avg": 175654,
+   "name": "F: · Available Space",
+   "source": "infopanel"
+  },
+  "plugins.system-info-plugin.uptime.days": {
+   "text": "05",
+   "unit": "",
+   "name": "Uptime · Days",
+   "source": "infopanel"
+  },
+  "plugins.media-plugin.media.source-app": {
+   "text": "F0DC299D809B9700",
+   "unit": "",
+   "name": "Media · Source App",
+   "source": "infopanel"
+  },
+  "plugins.drive-info-plugin.g.free_space": {
+   "value": 67492,
+   "unit": "MB",
+   "min": 67492,
+   "max": 67540,
+   "avg": 67492,
+   "name": "G: · Free Space",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-3c6e1f59-7949-4901-90a7-65282d08d714.peak-level": {
+   "value": -96,
+   "unit": "dB",
+   "min": -96,
+   "max": -96,
+   "avg": -96,
+   "name": "🎵 Headphones (4- Arctis Nova Pro Wireless) · Peak",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.SteamAPI.SteamAPI-Achievements.achievements-total": {
+   "value": 50,
+   "unit": "",
+   "min": 0,
+   "max": 50,
+   "avg": 50,
+   "name": "Achievements · Total Achievements",
+   "source": "infopanel"
+  },
+  "plugins.system-info-plugin.processes.thread-count": {
+   "value": 12995,
+   "unit": "",
+   "min": 0,
+   "max": 15425,
+   "avg": 12912.6162109375,
+   "name": "Processes · Thread Count",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.default-audio.device-name": {
+   "text": "System (Elgato Virtual Audio)",
+   "unit": "",
+   "name": "Audio Level Meter · Device",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.{0.0.0.00000000}.{44a2e633-0f41-497a-9de0-227ceef7e6c4}.volume": {
+   "value": 85,
+   "unit": "%",
+   "min": 85,
+   "max": 85,
+   "avg": 85,
+   "name": "Wave Mic 1 (Elgato Virtual Audio) · Volume",
+   "source": "infopanel"
+  },
+  "plugins.weather-plugin.weather.weather_icon_url": {
+   "text": "-",
+   "unit": "",
+   "name": "Weather · Weather Icon URL",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.SteamAPI.SteamAPI-Library.total-games": {
+   "value": 313,
+   "unit": "",
+   "min": 0,
+   "max": 313,
+   "avg": 313,
+   "name": "Library & Playtime Statistics · Total Games Owned",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-3c6e1f59-7949-4901-90a7-65282d08d714.right-channel": {
+   "value": 0,
+   "unit": "%",
+   "min": 0,
+   "max": 0,
+   "avg": 0,
+   "name": "🎵 Headphones (4- Arctis Nova Pro Wireless) · Right",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.RTSS.rtss.graphics-api": {
+   "text": "D3D12",
+   "unit": "",
+   "name": "RTSS · Graphics API",
+   "source": "infopanel"
+  },
+  "plugins.system-info-plugin.uptime.seconds": {
+   "text": "38",
+   "unit": "",
+   "name": "Uptime · Seconds",
+   "source": "infopanel"
+  },
+  "plugins.weather-plugin.weather.humidity": {
+   "value": 0,
+   "unit": "%",
+   "min": 0,
+   "max": 0,
+   "avg": 0,
+   "name": "Weather · Humidity",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-e3f0c952-76ad-40dd-96a3-b8326178a39e.rms-level": {
+   "value": -20.299999237060547,
+   "unit": "dB",
+   "min": -138.5,
+   "max": -6,
+   "avg": -22.426666259765625,
+   "name": "🎵 Headphones (Elgato Wave:3) · RMS",
+   "source": "infopanel"
+  },
+  "plugins.system-info-plugin.processes.cpu-usage": {
+   "value": 60.407962799072266,
+   "unit": "%",
+   "min": 0,
+   "max": 97.31785583496094,
+   "avg": 47.416168212890625,
+   "name": "Processes · CPU Usage",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.{0.0.0.00000000}.{e3f0c952-76ad-40dd-96a3-b8326178a39e}.volume": {
+   "value": 43,
+   "unit": "%",
+   "min": 0,
+   "max": 51,
+   "avg": 43,
+   "name": "Headphones (Elgato Wave:3) · Volume",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.{0.0.0.00000000}.{ad03964a-422c-4018-bb88-8f8e068c6537}.volume": {
+   "value": 7,
+   "unit": "%",
+   "min": 7,
+   "max": 12,
+   "avg": 7,
+   "name": "Music (Elgato Virtual Audio) · Volume",
+   "source": "infopanel"
+  },
+  "plugins.weather-plugin.weather.weather_icon": {
+   "text": "-",
+   "unit": "",
+   "name": "Weather · Weather Icon",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{187C48C4-4CCD-45DE-B5DC-43739AC29B0D}.speed": {
+   "value": 2500,
+   "unit": "Mbps",
+   "min": 2500,
+   "max": 2500,
+   "avg": 2500,
+   "name": "Ethernet · Speed",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.SteamAPI.SteamAPI-News.current_game_news_title": {
+   "text": "Решение сменить внешний вид Селесты в Arc Raiders вызвало неоднозначную реакцию игроков",
+   "unit": "",
+   "name": "News & Updates · Current Game News",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{4BF29CBA-CD4A-4BB4-B9DB-8B1E95E0ECA8}.description": {
+   "text": "MediaTek Wi-Fi 7 MT7925 Wireless LAN Card #3",
+   "unit": "",
+   "name": "WiFi 3 · Description",
+   "source": "infopanel"
+  },
+  "plugins.weather-plugin.weather.snow": {
+   "value": 0,
+   "unit": "mm/h",
+   "min": 0,
+   "max": 0,
+   "avg": 0,
+   "name": "Weather · Snow",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{8F376EDF-C409-4648-A994-6293C5529FAB}.speed": {
+   "value": 0,
+   "unit": "Mbps",
+   "min": 0,
+   "max": 0,
+   "avg": 0,
+   "name": "WiFi 4 · Speed",
+   "source": "infopanel"
+  },
+  "plugins.drive-info-plugin.g.name": {
+   "text": "G:",
+   "unit": "",
+   "name": "G: · Name",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-ad03964a-422c-4018-bb88-8f8e068c6537.left-channel": {
+   "value": 0,
+   "unit": "%",
+   "min": 0,
+   "max": 99.5999984741211,
+   "avg": 0,
+   "name": "🎵 Music (Elgato Virtual Audio) · Left",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{B2CA3DB0-3E46-469B-88E5-BE43DBAE0750}.ipv4-0": {
+   "text": "192.0.2.4",
+   "unit": "",
+   "name": "Bluetooth Network Connection · IPv4 Address",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.{0.0.0.00000000}.{44a2e633-0f41-497a-9de0-227ceef7e6c4}.device_friendly_name": {
+   "text": "Elgato Virtual Audio",
+   "unit": "",
+   "name": "Wave Mic 1 (Elgato Virtual Audio) · Device Name",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{4BF29CBA-CD4A-4BB4-B9DB-8B1E95E0ECA8}.speed": {
+   "value": 0,
+   "unit": "Mbps",
+   "min": 0,
+   "max": 0,
+   "avg": 0,
+   "name": "WiFi 3 · Speed",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{1203651F-E172-4D15-9260-912B80E47C9E}.name": {
+   "text": "WiFi",
+   "unit": "",
+   "name": "WiFi · Name",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.default.device_friendly_name": {
+   "text": "Elgato Virtual Audio",
+   "unit": "",
+   "name": "Default · Device Name",
+   "source": "infopanel"
+  },
+  "plugins.drive-info-plugin.f.free_space": {
+   "value": 175654,
+   "unit": "MB",
+   "min": 175654,
+   "max": 175654,
+   "avg": 175654,
+   "name": "F: · Free Space",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-44a2e633-0f41-497a-9de0-227ceef7e6c4.peak-level": {
+   "value": -53.099998474121094,
+   "unit": "dB",
+   "min": -206,
+   "max": -0.10000000149011612,
+   "avg": -72.0616683959961,
+   "name": "🎵 Wave Mic 1 (Elgato Virtual Audio) · Peak",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{3DFA719A-9236-4AA7-9248-245E3284A417}.id": {
+   "text": "{3DFA719A-9236-4AA7-9248-245E3284A417}",
+   "unit": "",
+   "name": "vEthernet (WSL (Hyper-V firewall)) · Id",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{C5013AF7-2689-4840-B572-AAFE079B6E2A}.status": {
+   "text": "Up",
+   "unit": "",
+   "name": "vEthernet (Default Switch) · Status",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.SteamAPI.SteamAPI-Profile.steam-level": {
+   "value": 29,
+   "unit": "",
+   "min": 0,
+   "max": 29,
+   "avg": 29,
+   "name": "User Profile & Status · Steam Level",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{C5013AF7-2689-4840-B572-AAFE079B6E2A}.speed": {
+   "value": 10000,
+   "unit": "Mbps",
+   "min": 10000,
+   "max": 10000,
+   "avg": 10000,
+   "name": "vEthernet (Default Switch) · Speed",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{8F376EDF-C409-4648-A994-6293C5529FAB}.ipv6-0": {
+   "text": "2001:db8::4",
+   "unit": "",
+   "name": "WiFi 4 · IPv6 Address",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-cffd42bd-62a0-43d7-98d5-8b227c5ac3ce.rms-level": {
+   "value": -8.699999809265137,
+   "unit": "dB",
+   "min": -241,
+   "max": 0,
+   "avg": -10.25666618347168,
+   "name": "🎵 System (Elgato Virtual Audio) · RMS",
+   "source": "infopanel"
+  },
+  "plugins.drive-info-plugin.c.type": {
+   "text": "Fixed",
+   "unit": "",
+   "name": "C: · Type",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{B2CA3DB0-3E46-469B-88E5-BE43DBAE0750}.speed": {
+   "value": 3,
+   "unit": "Mbps",
+   "min": 3,
+   "max": 3,
+   "avg": 3,
+   "name": "Bluetooth Network Connection · Speed",
+   "source": "infopanel"
+  },
+  "plugins.drive-info-plugin.f.used_space": {
+   "value": 778212,
+   "unit": "MB",
+   "min": 778212,
+   "max": 778212,
+   "avg": 778212,
+   "name": "F: · Used Space",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-e2087318-05b8-4830-84b9-1e6e8852d2f9.audio-level": {
+   "value": 0,
+   "unit": "%",
+   "min": 0,
+   "max": 100,
+   "avg": 13.273333549499512,
+   "name": "🎵 Voice (Elgato Virtual Audio) · Level",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-ad03964a-422c-4018-bb88-8f8e068c6537.peak-hold": {
+   "value": -863.0999755859375,
+   "unit": "dB",
+   "min": -863.0999755859375,
+   "max": -2.299999952316284,
+   "avg": -863.0999755859375,
+   "name": "🎵 Music (Elgato Virtual Audio) · Peak Hold",
+   "source": "infopanel"
+  },
+  "plugins.drive-info-plugin.f.name": {
+   "text": "F:",
+   "unit": "",
+   "name": "F: · Name",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-e2087318-05b8-4830-84b9-1e6e8852d2f9.peak-level": {
+   "value": -96,
+   "unit": "dB",
+   "min": -130.6999969482422,
+   "max": 0,
+   "avg": -85.50833129882812,
+   "name": "🎵 Voice (Elgato Virtual Audio) · Peak",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{187C48C4-4CCD-45DE-B5DC-43739AC29B0D}.ipv6-3": {
+   "text": "2001:db8::5",
+   "unit": "",
+   "name": "Ethernet · IPv6 Address",
+   "source": "infopanel"
+  },
+  "plugins.drive-info-plugin.d.free_space": {
+   "value": 501540,
+   "unit": "MB",
+   "min": 501540,
+   "max": 501540,
+   "avg": 501540,
+   "name": "D: · Free Space",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.RTSS.rtss.fps": {
+   "value": 77.75590515136719,
+   "unit": "FPS",
+   "min": 0,
+   "max": 167.79824829101562,
+   "avg": 87.671875,
+   "name": "RTSS · Frames Per Second",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-e2087318-05b8-4830-84b9-1e6e8852d2f9.left-channel": {
+   "value": 0,
+   "unit": "%",
+   "min": 0,
+   "max": 100,
+   "avg": 7.394999980926514,
+   "name": "🎵 Voice (Elgato Virtual Audio) · Left",
+   "source": "infopanel"
+  },
+  "plugins.drive-info-plugin.g.available_space": {
+   "value": 67492,
+   "unit": "MB",
+   "min": 67492,
+   "max": 67540,
+   "avg": 67492,
+   "name": "G: · Available Space",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{4BF29CBA-CD4A-4BB4-B9DB-8B1E95E0ECA8}.ipv4-0": {
+   "text": "192.0.2.5",
+   "unit": "",
+   "name": "WiFi 3 · IPv4 Address",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-44a2e633-0f41-497a-9de0-227ceef7e6c4.audio-level": {
+   "value": 51.20000076293945,
+   "unit": "%",
+   "min": 0,
+   "max": 100,
+   "avg": 35.58333206176758,
+   "name": "🎵 Wave Mic 1 (Elgato Virtual Audio) · Level",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.{0.0.0.00000000}.{3c6e1f59-7949-4901-90a7-65282d08d714}.friendly_name": {
+   "text": "Headphones (4- Arctis Nova Pro Wireless)",
+   "unit": "",
+   "name": "Headphones (4- Arctis Nova Pro Wireless) · Name",
+   "source": "infopanel"
+  },
+  "plugins.system-info-plugin.uptime.formatted": {
+   "text": "5:07:35:38",
+   "unit": "",
+   "name": "Uptime · Formatted",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.SteamAPI.SteamAPI-Social.friends-ingame": {
+   "value": 4,
+   "unit": "",
+   "min": 0,
+   "max": 5,
+   "avg": 4,
+   "name": "Friends & Social Activity · Friends In-Game",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{1203651F-E172-4D15-9260-912B80E47C9E}.status": {
+   "text": "Down",
+   "unit": "",
+   "name": "WiFi · Status",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{3DFA719A-9236-4AA7-9248-245E3284A417}.ipv6-0": {
+   "text": "2001:db8::6",
+   "unit": "",
+   "name": "vEthernet (WSL (Hyper-V firewall)) · IPv6 Address",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.default.mute": {
+   "text": "False",
+   "unit": "",
+   "name": "Default · Mute",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-b34902c8-e0e8-44f3-bd36-efee55d6366e.left-channel": {
+   "value": 94.19999694824219,
+   "unit": "%",
+   "min": 0,
+   "max": 100,
+   "avg": 82.76166534423828,
+   "name": "🎵 Browser (Elgato Virtual Audio) · Left",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-b34902c8-e0e8-44f3-bd36-efee55d6366e.right-channel": {
+   "value": 94.19999694824219,
+   "unit": "%",
+   "min": 0,
+   "max": 100,
+   "avg": 82.76166534423828,
+   "name": "🎵 Browser (Elgato Virtual Audio) · Right",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.{0.0.0.00000000}.{cffd42bd-62a0-43d7-98d5-8b227c5ac3ce}.mute": {
+   "text": "False",
+   "unit": "",
+   "name": "System (Elgato Virtual Audio) · Mute",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-e3f0c952-76ad-40dd-96a3-b8326178a39e.device-name": {
+   "text": "Headphones (Elgato Wave:3)",
+   "unit": "",
+   "name": "🎵 Headphones (Elgato Wave:3) · Device",
+   "source": "infopanel"
+  },
+  "plugins.media-plugin.media.cover-art": {
+   "text": "http://localhost:52312/cover?v=80",
+   "unit": "",
+   "name": "Media · Cover Art",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.RTSS.rtss.current frame time": {
+   "value": 12.592000007629395,
+   "unit": "ms",
+   "min": 0,
+   "max": 7284.88916015625,
+   "avg": 11.507766723632812,
+   "name": "RTSS · Current Frame Time",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{C5013AF7-2689-4840-B572-AAFE079B6E2A}.id": {
+   "text": "{C5013AF7-2689-4840-B572-AAFE079B6E2A}",
+   "unit": "",
+   "name": "vEthernet (Default Switch) · Id",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.{0.0.0.00000000}.{44a2e633-0f41-497a-9de0-227ceef7e6c4}.short_name": {
+   "text": "Wave Mic 1 ",
+   "unit": "",
+   "name": "Wave Mic 1 (Elgato Virtual Audio) · Short Name",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{37217669-42DA-4657-A55B-0D995D328250}.speed": {
+   "value": 100000,
+   "unit": "Mbps",
+   "min": 100000,
+   "max": 100000,
+   "avg": 100000,
+   "name": "Tailscale · Speed",
+   "source": "infopanel"
+  },
+  "plugins.wavelink-plugin.wavelink.meters": {
+   "text": "{\"device:{0.0.0.00000000}.{e3f0c952-76ad-40dd-96a3-b8326178a39e}\":{\"left\":53.642869999999995,\"right\":57.337950000000006},\"channel:PCM_OUT_00_V_00_SD1\":{\"left\":0,\"right\":0},\"channel:PCM_OUT_00_V_12_SD7\":{\"left\":32.65921,\"right\":34.860954},\"channel:PCM_OUT_00_V_04_SD3\":{\"left\":0,\"right\":0},\"channel:PCM_OUT_00_V_14_SD8\":{\"left\":0,\"right\":0}}",
+   "unit": "",
+   "name": "Wave Link · Meters",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-44a2e633-0f41-497a-9de0-227ceef7e6c4.left-channel": {
+   "value": 0.699999988079071,
+   "unit": "%",
+   "min": 0,
+   "max": 100,
+   "avg": 31.608333587646484,
+   "name": "🎵 Wave Mic 1 (Elgato Virtual Audio) · Left",
+   "source": "infopanel"
+  },
+  "plugins.system-info-plugin.processes.top-cpu-utility": {
+   "text": "PioneerGame, 29.3%, 36.7%, 7005.6 MB\nchrome, 12.3%, 15.4%, 4553.1 MB\nmsedgewebview2, 5.1%, 6.3%, 614.2 MB\nElgato.WaveLink, 3.2%, 3.9%, 195.6 MB\nSystem, 1.1%, 1.4%, 0.0 MB\nclaude, 1.1%, 1.3%, 556.0 MB\nWmiPrvSE, 1.1%, 1.3%, 68.3 MB\nvmmemWSL, 0.9%, 1.1%, 5003.4 MB\nzen, 0.9%, 1.1%, 2047.2 MB\nMsMpEng, 0.8%, 1.0%, 467.4 MB\naudiodg, 0.4%, 0.5%, 20.6 MB\nStreamDeck, 0.3%, 0.4%, 57.5 MB\nInfoPanel, 0.3%, 0.4%, 655.8 MB\nDiscord, 0.2%, 0.2%, 664.7 MB\ncom.docker.backend, 0.1%, 0.2%, 247.6 MB\nnode, 0.1%, 0.1%, 145.1 MB\nMSIAfterburner, 0%, 0.1%, 7.6 MB\nDocker Desktop, 0%, 0.1%, 197.3 MB\nQtWebEngineProcess, 0%, 0%, 21.1 MB\ndeckshot-desktop, 0%, 0%, 0.7 MB\nOrca, 0%, 0%, 0.2 MB\nmsrdc, 0%, 0%, 1.9 MB\ngamingservicesnet, 0%, 0%, 2.8 MB\nAbletonAudioCpl, 0%, 0%, 0.1 MB\nADU, 0%, 0%, 2.2 MB\nMidiSrv, 0%, 0%, 2.9 MB\nwsl, 0%, 0%, 0.4 MB\nSearchProtocolHost, 0%, 0%, 3.9 MB\nControlCenter, 0%, 0%, 19.4 MB\nElgatoAudioControlServer, 0%, 0%, 5.0 MB\nsystemvitals.proxy.vivremotion, 0%, 0%, 11.8 MB\nControlServer, 0%, 0%, 1.9 MB\nsteamwebhelper, 0%, 0%, 469.3 MB\nPulseService, 0%, 0%, 9.9 MB\natieclxx, 0%, 0%, 2.8 MB\nEverything, 0%, 0%, 662.8 MB\nfontdrvhost, 0%, 0%, 11.6 MB\nMpDefenderCoreService, 0%, 0%, 12.5 MB\nwslservice, 0%, 0%, 4.8 MB\nmsedge, 0%, 0%, 76.1 MB\nLDSvc, 0%, 0%, 2.0 MB\ncmd, 0%, 0%, 0.8 MB\nSecure System, 0%, 0%, 214.9 MB\nRuntimeBroker, 0%, 0%, 12.2 MB\nPowerToys.ColorPickerUI, 0%, 0%, 2.3 MB\nconhost, 0%, 0%, 11.2 MB\nGameInputSvc, 0%, 0%, 4.0 MB\npwsh, 0%, 0%, 14.2 MB\nDeckShot.Bridge, 0%, 0%, 75.2 MB\ndllhost, 0%, 0%, 7.3 MB\npostgres, 0%, 0%, 20.6 MB\ndasHost, 0%, 0%, 8.1 MB\nSearchFilterHost, 0%, 0%, 11.9 MB\nstreamdeckyoutube, 0%, 0%, 4.2 MB\nCPUMetricsServer, 0%, 0%, 1.7 MB\nCrossDeviceResume, 0%, 0%, 1.8 MB\nFuryControllerService, 0%, 0%, 3.8 MB\nvmms, 0%, 0%, 6.3 MB\nNVDisplay.Container, 0%, 0%, 144.3 MB\nGameBarPresenceWriter, 0%, 0%, 3.5 MB\nffmpeg, 0%, 0%, 0.0 MB\nRegistry, 0%, 0%, 0.8 MB\ngameoverlayui64, 0%, 0%, 16.7 MB\nWindowsTerminal, 0%, 0%, 161.0 MB\nDefenderSessionHelper, 0%, 0%, 0.2 MB\nPowerToys.Peek.UI, 0%, 0%, 6.6 MB\nmtkbtsvc, 0%, 0%, 0.9 MB\namdfendrsr, 0%, 0%, 1.5 MB\ncowork-svc, 0%, 0%, 5.6 MB\ncom.barraider.obstools, 0%, 0%, 2.5 MB\nAsusUpdateCheck, 0%, 0%, 1.6 MB\nEABackgroundService, 0%, 0%, 13.6 MB\nnvcontainer, 0%, 0%, 56.9 MB\nPowerToys.AdvancedPaste, 0%, 0%, 5.1 MB\nGameInputRedistService, 0%, 0%, 8.2 MB\nAMDRSSrcExt, 0%, 0%, 2.5 MB\nsihost, 0%, 0%, 4.6 MB\nASUS DriverHub, 0%, 0%, 2.5 MB\nRTSS, 0%, 0%, 1.9 MB\nhelperservice, 0%, 0%, 0.5 MB\ntailscaled, 0%, 0%, 112.5 MB\nAmdAppCompatSvc, 0%, 0%, 0.8 MB\nPowerToys.FancyZones, 0%, 0%, 2.2 MB\nPowerToys.QuickAccess, 0%, 0%, 3.0 MB\nextensionCardHal_x86, 0%, 0%, 1.6 MB\nEncoderServer, 0%, 0%, 0.6 MB\nLsaIso, 0%, 0%, 0.7 MB\nOpenConsole, 0%, 0%, 8.5 MB\nsteam, 0%, 0%, 33.4 MB\nNotepad, 0%, 0%, 6.7 MB\nwslhost, 0%, 0%, 0.3 MB\ndocker-agent, 0%, 0%, 10.2 MB\nLightingService, 0%, 0%, 4.3 MB\nSecurityHealthSystray, 0%, 0%, 0.1 MB\ncom.docker.service, 0%, 0%, 10.0 MB\nMicrosoftSecurityApp, 0%, 0%, 12.1 MB\nexplorer, 0%, 0%, 118.6 MB\npgagent, 0%, 0%, 2.1 MB\npg_ctl, 0%, 0%, 1.1 MB\ncloud-drive-ui, 0%, 0%, 5.6 MB\ncloud-drive-daemon, 0%, 0%, 1.6 MB\nwinlogon, 0%, 0%, 1.1 MB\nWUDFHost, 0%, 0%, 1.7 MB\nwlanext, 0%, 0%, 1.1 MB\nAmdPpkgSvc, 0%, 0%, 1.1 MB\nAdobeNotificationClient, 0%, 0%, 0.2 MB\nvss-service-x64, 0%, 0%, 1.1 MB\nvmcompute, 0%, 0%, 2.7 MB\nwininit, 0%, 0%, 1.2 MB\nShellHost, 0%, 0%, 2.5 MB\nMicrosoft.CmdPal.UI, 0%, 0%, 4.3 MB\nAacKingstonDramHal_x86, 0%, 0%, 1.4 MB\nAac3572MbHal_x86, 0%, 0%, 4.8 MB\nFileConverter, 0%, 0%, 0.4 MB\nOneDrive.Sync.Service, 0%, 0%, 28.7 MB\nAsusCertService, 0%, 0%, 1.9 MB\nOfficeClickToRun, 0%, 0%, 41.1 MB\nAppActions, 0%, 0%, 2.5 MB\nPowerToys, 0%, 0%, 4.1 MB\nFanControl, 0%, 0%, 126.8 MB\nStartMenuExperienceHost, 0%, 0%, 11.3 MB\nCrossDeviceService, 0%, 0%, 4.3 MB\nunsecapp, 0%, 0%, 1.8 MB\nWindowsPackageManagerServer, 0%, 0%, 2.2 MB\nchrome-native-host, 0%, 0%, 0.0 MB\nApplicationFrameHost, 0%, 0%, 1.4 MB\natiesrxx, 0%, 0%, 5.2 MB\nShellExperienceHost, 0%, 0%, 0.4 MB\nESDDiscord, 0%, 0%, 14.8 MB\nthinkterm-mux-server, 0%, 0%, 2.1 MB\namd3dvcacheSvc, 0%, 0%, 0.9 MB\ncloud-drive-connect, 0%, 0%, 0.2 MB\nYoutubeTicker, 0%, 0%, 1.5 MB\ncom.barraider.spotify, 0%, 0%, 2.6 MB\nWavelinkSEService, 0%, 0%, 2.8 MB\natkexComSvc, 0%, 0%, 5.9 MB\nApplePhotoStreams, 0%, 0%, 0.8 MB\nSearchIndexer, 0%, 0%, 27.7 MB\ncom.docker.build, 0%, 0%, 23.3 MB\nSecurityHealthService, 0%, 0%, 4.0 MB\nJetBrains.Etw.Collector.Host, 0%, 0%, 0.8 MB\nRTSSHooksLoader64, 0%, 0%, 1.6 MB\nRed Giant Service, 0%, 0%, 14.4 MB\nPhoneExperienceHost, 0%, 0%, 5.3 MB\nvtun, 0%, 0%, 1.2 MB\ncrashpad_handler, 0%, 0%, 0.2 MB\nTextInputHost, 0%, 0%, 11.5 MB\nsteamservice, 0%, 0%, 5.3 MB\nxdm-app, 0%, 0%, 4.1 MB\nSearchHost, 0%, 0%, 11.2 MB\nRadeonSoftware, 0%, 0%, 1.1 MB\ntailscale-ipn, 0%, 0%, 8.6 MB\nElgatoAudioControlServerWatcher, 0%, 0%, 0.2 MB\ngamingservices, 0%, 0%, 8.2 MB\nAMDRSServ, 0%, 0%, 3.1 MB\nMicrosoft.CmdPal.Ext.PowerToys, 0%, 0%, 1.5 MB\nwslrelay, 0%, 0%, 0.1 MB\nservices, 0%, 0%, 6.9 MB\nShareX, 0%, 0%, 8.2 MB\nHerdHelper, 0%, 0%, 5.5 MB\nctfmon, 0%, 0%, 64.6 MB\nNgcIso, 0%, 0%, 0.9 MB\nEverythingToolbar.Launcher, 0%, 0%, 6.0 MB\nAppVShNotify, 0%, 0%, 0.1 MB\nMSPCManager, 0%, 0%, 91.9 MB\nNisSrv, 0%, 0%, 4.4 MB\nvmwp, 0%, 0%, 10.9 MB\nstreamdeck-discordmixer, 0%, 0%, 1.0 MB\namd3dvcacheUser, 0%, 0%, 0.3 MB\nMSPCManagerCore, 0%, 0%, 137.7 MB\namdow, 0%, 0%, 1.3 MB\nsmss, 0%, 0%, 0.3 MB\nMSPCManagerService, 0%, 0%, 85.4 MB\nservice, 0%, 0%, 3.1 MB\ntaskhostw, 0%, 0%, 11.6 MB\ndenuvo-anti-cheat-update-service, 0%, 0%, 2.0 MB",
+   "unit": "",
+   "name": "Processes · Top CPU Utility",
+   "source": "infopanel"
+  },
+  "plugins.spotify-plugin.spotify.album": {
+   "text": "-",
+   "unit": "",
+   "name": "Spotify · Album",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.default.volume": {
+   "value": 40,
+   "unit": "%",
+   "min": 32,
+   "max": 51,
+   "avg": 40,
+   "name": "Default · Volume",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{8F376EDF-C409-4648-A994-6293C5529FAB}.id": {
+   "text": "{8F376EDF-C409-4648-A994-6293C5529FAB}",
+   "unit": "",
+   "name": "WiFi 4 · Id",
+   "source": "infopanel"
+  },
+  "plugins.drive-info-plugin.f.type": {
+   "text": "Fixed",
+   "unit": "",
+   "name": "F: · Type",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{37217669-42DA-4657-A55B-0D995D328250}.id": {
+   "text": "{37217669-42DA-4657-A55B-0D995D328250}",
+   "unit": "",
+   "name": "Tailscale · Id",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-81fcb09e-e5cb-43ed-91b5-b02a98683de5.audio-level": {
+   "value": 0,
+   "unit": "%",
+   "min": 0,
+   "max": 0,
+   "avg": 0,
+   "name": "🎵 Speakers (Focusrite USB Audio) · Level",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{1203651F-E172-4D15-9260-912B80E47C9E}.ipv6-0": {
+   "text": "2001:db8::7",
+   "unit": "",
+   "name": "WiFi · IPv6 Address",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-b34902c8-e0e8-44f3-bd36-efee55d6366e.peak-level": {
+   "value": -9.899999618530273,
+   "unit": "dB",
+   "min": -673.7999877929688,
+   "max": 0,
+   "avg": -11.164999961853027,
+   "name": "🎵 Browser (Elgato Virtual Audio) · Peak",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.{0.0.0.00000000}.{44a2e633-0f41-497a-9de0-227ceef7e6c4}.mute": {
+   "text": "False",
+   "unit": "",
+   "name": "Wave Mic 1 (Elgato Virtual Audio) · Mute",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.default.friendly_name": {
+   "text": "System (Elgato Virtual Audio)",
+   "unit": "",
+   "name": "Default · Name",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.public-ip.ipv6": {
+   "text": "-",
+   "unit": "",
+   "name": "Public IP · IPv6",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-44a2e633-0f41-497a-9de0-227ceef7e6c4.peak-hold": {
+   "value": -7.699999809265137,
+   "unit": "dB",
+   "min": -863.0999755859375,
+   "max": -0.10000000149011612,
+   "avg": -8.569999694824219,
+   "name": "🎵 Wave Mic 1 (Elgato Virtual Audio) · Peak Hold",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.default-audio.left-channel": {
+   "value": 96.9000015258789,
+   "unit": "%",
+   "min": 0,
+   "max": 100,
+   "avg": 86.42333221435547,
+   "name": "Audio Level Meter · Left",
+   "source": "infopanel"
+  },
+  "plugins.system-info-plugin.processes.cpu-utility": {
+   "value": 75.57962799072266,
+   "unit": "%",
+   "min": 0,
+   "max": 119.19024658203125,
+   "avg": 62.003143310546875,
+   "name": "Processes · CPU Utility",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{187C48C4-4CCD-45DE-B5DC-43739AC29B0D}.ipv6-4": {
+   "text": "2001:db8::8",
+   "unit": "",
+   "name": "Ethernet · IPv6 Address",
+   "source": "infopanel"
+  },
+  "plugins.drive-info-plugin.d.volume_label": {
+   "text": "games",
+   "unit": "",
+   "name": "D: · Volume Label",
+   "source": "infopanel"
+  },
+  "plugins.drive-info-plugin.e.volume_label": {
+   "text": "work",
+   "unit": "",
+   "name": "E: · Volume Label",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{4BF29CBA-CD4A-4BB4-B9DB-8B1E95E0ECA8}.status": {
+   "text": "Down",
+   "unit": "",
+   "name": "WiFi 3 · Status",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.RTSS.rtss.1% low fps": {
+   "value": 0.20000000298023224,
+   "unit": "FPS",
+   "min": 0,
+   "max": 28.700000762939453,
+   "avg": 0.20000000298023224,
+   "name": "RTSS · 1% Low FPS",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{37217669-42DA-4657-A55B-0D995D328250}.ipv6-0": {
+   "text": "2001:db8::9",
+   "unit": "",
+   "name": "Tailscale · IPv6 Address",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{4BF29CBA-CD4A-4BB4-B9DB-8B1E95E0ECA8}.name": {
+   "text": "WiFi 3",
+   "unit": "",
+   "name": "WiFi 3 · Name",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{187C48C4-4CCD-45DE-B5DC-43739AC29B0D}.ipv6-0": {
+   "text": "2001:db8::a",
+   "unit": "",
+   "name": "Ethernet · IPv6 Address",
+   "source": "infopanel"
+  },
+  "plugins.system-info-plugin.processes.memory-compression": {
+   "value": 0,
+   "unit": " MB",
+   "min": 0,
+   "max": 0,
+   "avg": 0,
+   "name": "Processes · Memory Compression",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.SteamAPI.SteamAPI-Profile.details": {
+   "text": "Level 29",
+   "unit": "",
+   "name": "User Profile & Status · Details",
+   "source": "infopanel"
+  },
+  "plugins.drive-info-plugin.c.total_size": {
+   "value": 1906714,
+   "unit": "MB",
+   "min": 1906714,
+   "max": 1906714,
+   "avg": 1906714,
+   "name": "C: · Total Size",
+   "source": "infopanel"
+  },
+  "plugins.system-info-plugin.uptime.minutes": {
+   "text": "35",
+   "unit": "",
+   "name": "Uptime · Minutes",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-cffd42bd-62a0-43d7-98d5-8b227c5ac3ce.right-channel": {
+   "value": 96.9000015258789,
+   "unit": "%",
+   "min": 0,
+   "max": 100,
+   "avg": 86.42333221435547,
+   "name": "🎵 System (Elgato Virtual Audio) · Right",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{C5013AF7-2689-4840-B572-AAFE079B6E2A}.name": {
+   "text": "vEthernet (Default Switch)",
+   "unit": "",
+   "name": "vEthernet (Default Switch) · Name",
+   "source": "infopanel"
+  },
+  "plugins.clock-plugin.clock.pm": {
+   "value": 1,
+   "unit": "",
+   "min": 0,
+   "max": 1,
+   "avg": 1,
+   "name": "Clock · PM",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{C5013AF7-2689-4840-B572-AAFE079B6E2A}.description": {
+   "text": "Hyper-V Virtual Ethernet Adapter",
+   "unit": "",
+   "name": "vEthernet (Default Switch) · Description",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.RTSS.rtss.avg-fps": {
+   "value": 75.30000305175781,
+   "unit": "FPS",
+   "min": 0,
+   "max": 127,
+   "avg": 74.77833557128906,
+   "name": "RTSS · Average FPS",
+   "source": "infopanel"
+  },
+  "plugins.drive-info-plugin.g.used_space": {
+   "value": 886374,
+   "unit": "MB",
+   "min": 886326,
+   "max": 886374,
+   "avg": 886374,
+   "name": "G: · Used Space",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.SteamAPI.SteamAPI-Session.session-start-time": {
+   "text": "20:42 12.10.2026",
+   "unit": "",
+   "name": "Current Game & Session · Session Started At",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-e3f0c952-76ad-40dd-96a3-b8326178a39e.right-channel": {
+   "value": 39,
+   "unit": "%",
+   "min": 0,
+   "max": 99.19999694824219,
+   "avg": 34.48666763305664,
+   "name": "🎵 Headphones (Elgato Wave:3) · Right",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-cffd42bd-62a0-43d7-98d5-8b227c5ac3ce.peak-hold": {
+   "value": -0.800000011920929,
+   "unit": "dB",
+   "min": -863.0999755859375,
+   "max": 0,
+   "avg": -1.1549999713897705,
+   "name": "🎵 System (Elgato Virtual Audio) · Peak Hold",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.{0.0.0.00000000}.{cffd42bd-62a0-43d7-98d5-8b227c5ac3ce}.volume": {
+   "value": 40,
+   "unit": "%",
+   "min": 32,
+   "max": 51,
+   "avg": 40,
+   "name": "System (Elgato Virtual Audio) · Volume",
+   "source": "infopanel"
+  },
+  "plugins.yr-weather-plugin.brevik-norway.humidity": {
+   "value": 87.0999984741211,
+   "unit": "%",
+   "min": 0,
+   "max": 96.69999694824219,
+   "avg": 83.57142639160156,
+   "name": "Brevik, Norway · Humidity",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.RTSS.rtss.display-mode": {
+   "text": "Borderless Fullscreen",
+   "unit": "",
+   "name": "RTSS · Display Mode",
+   "source": "infopanel"
+  },
+  "plugins.drive-info-plugin.d.total_size": {
+   "value": 1907726,
+   "unit": "MB",
+   "min": 1907726,
+   "max": 1907726,
+   "avg": 1907726,
+   "name": "D: · Total Size",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.{0.0.0.00000000}.{81fcb09e-e5cb-43ed-91b5-b02a98683de5}.volume": {
+   "value": 100,
+   "unit": "%",
+   "min": 100,
+   "max": 100,
+   "avg": 100,
+   "name": "Speakers (Focusrite USB Audio) · Volume",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.RTSS.rtss.game-category": {
+   "text": "Gaming",
+   "unit": "",
+   "name": "RTSS · Game Category",
+   "source": "infopanel"
+  },
+  "plugins.weather-plugin.weather.weather_desc": {
+   "text": "-",
+   "unit": "",
+   "name": "Weather · Weather Description",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-e3f0c952-76ad-40dd-96a3-b8326178a39e.left-channel": {
+   "value": 39,
+   "unit": "%",
+   "min": 0,
+   "max": 99.19999694824219,
+   "avg": 34.48666763305664,
+   "name": "🎵 Headphones (Elgato Wave:3) · Left",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-e2087318-05b8-4830-84b9-1e6e8852d2f9.peak-hold": {
+   "value": -5.199999809265137,
+   "unit": "dB",
+   "min": -863.0999755859375,
+   "max": 0,
+   "avg": -2.5766665935516357,
+   "name": "🎵 Voice (Elgato Virtual Audio) · Peak Hold",
+   "source": "infopanel"
+  },
+  "plugins.drive-info-plugin.e.free_space": {
+   "value": 808883,
+   "unit": "MB",
+   "min": 808422,
+   "max": 808932,
+   "avg": 808883,
+   "name": "E: · Free Space",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-b34902c8-e0e8-44f3-bd36-efee55d6366e.device-name": {
+   "text": "Browser (Elgato Virtual Audio)",
+   "unit": "",
+   "name": "🎵 Browser (Elgato Virtual Audio) · Device",
+   "source": "infopanel"
+  },
+  "plugins.drive-info-plugin.g.format": {
+   "text": "NTFS",
+   "unit": "",
+   "name": "G: · Format",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.SteamAPI.SteamAPI-Library.total-playtime": {
+   "value": 4488.7998046875,
+   "unit": "hrs",
+   "min": 0,
+   "max": 4488.7998046875,
+   "avg": 4488.7998046875,
+   "name": "Library & Playtime Statistics · All Games Total Hours",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-81fcb09e-e5cb-43ed-91b5-b02a98683de5.device-name": {
+   "text": "Speakers (Focusrite USB Audio)",
+   "unit": "",
+   "name": "🎵 Speakers (Focusrite USB Audio) · Device",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.{0.0.0.00000000}.{e3f0c952-76ad-40dd-96a3-b8326178a39e}.device_friendly_name": {
+   "text": "Elgato Wave:3",
+   "unit": "",
+   "name": "Headphones (Elgato Wave:3) · Device Name",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-3c6e1f59-7949-4901-90a7-65282d08d714.audio-level": {
+   "value": 0,
+   "unit": "%",
+   "min": 0,
+   "max": 0,
+   "avg": 0,
+   "name": "🎵 Headphones (4- Arctis Nova Pro Wireless) · Level",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.RTSS.rtss.max-fps": {
+   "value": 140.8000030517578,
+   "unit": "FPS",
+   "min": 0,
+   "max": 170.39999389648438,
+   "avg": 140.8000030517578,
+   "name": "RTSS · Max FPS",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.{0.0.0.00000000}.{b34902c8-e0e8-44f3-bd36-efee55d6366e}.mute": {
+   "text": "False",
+   "unit": "",
+   "name": "Browser (Elgato Virtual Audio) · Mute",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.RTSS.rtss.resolution": {
+   "text": "3840 x 2160",
+   "unit": "",
+   "name": "RTSS · Display Resolution",
+   "source": "infopanel"
+  },
+  "plugins.yr-weather-plugin.brevik-norway.sea_level": {
+   "value": 1023,
+   "unit": "hPa",
+   "min": 0,
+   "max": 1023,
+   "avg": 1016.7000122070312,
+   "name": "Brevik, Norway · Sea Level Pressure",
+   "source": "infopanel"
+  },
+  "plugins.media-plugin.media.playback-state": {
+   "value": 2,
+   "unit": "",
+   "min": 0,
+   "max": 2,
+   "avg": 2,
+   "name": "Media · Playback State",
+   "source": "infopanel"
+  },
+  "plugins.media-plugin.media.remaining-time": {
+   "text": "20:50",
+   "unit": "",
+   "name": "Media · Remaining Time",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{B2CA3DB0-3E46-469B-88E5-BE43DBAE0750}.description": {
+   "text": "Bluetooth Device (Personal Area Network)",
+   "unit": "",
+   "name": "Bluetooth Network Connection · Description",
+   "source": "infopanel"
+  },
+  "plugins.clock-plugin.clock.month": {
+   "value": 10,
+   "unit": "",
+   "min": 0,
+   "max": 10,
+   "avg": 10,
+   "name": "Clock · Month",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.SteamAPI.SteamAPI-Library.most-played-recent": {
+   "text": "ARC Raiders",
+   "unit": "",
+   "name": "Library & Playtime Statistics · Most Played Game (2w)",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.SteamAPI.SteamAPI-Profile.game_logo_url": {
+   "text": "http://localhost:39482/steam/logos/1808500_1852x440.png",
+   "unit": "",
+   "name": "User Profile & Status · Game Logo URL",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-81fcb09e-e5cb-43ed-91b5-b02a98683de5.peak-level": {
+   "value": -96,
+   "unit": "dB",
+   "min": -96,
+   "max": -96,
+   "avg": -96,
+   "name": "🎵 Speakers (Focusrite USB Audio) · Peak",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-44a2e633-0f41-497a-9de0-227ceef7e6c4.device-name": {
+   "text": "Wave Mic 1 (Elgato Virtual Audio)",
+   "unit": "",
+   "name": "🎵 Wave Mic 1 (Elgato Virtual Audio) · Device",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{3DFA719A-9236-4AA7-9248-245E3284A417}.status": {
+   "text": "Up",
+   "unit": "",
+   "name": "vEthernet (WSL (Hyper-V firewall)) · Status",
+   "source": "infopanel"
+  },
+  "plugins.spotify-plugin.spotify.current-track": {
+   "text": "♪ Spotify idle",
+   "unit": "",
+   "name": "Spotify · Current Track",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.SteamAPI.SteamAPI-Social.total-friends": {
+   "value": 26,
+   "unit": "",
+   "min": 0,
+   "max": 26,
+   "avg": 26,
+   "name": "Friends & Social Activity · Total Friends",
+   "source": "infopanel"
+  },
+  "plugins.drive-info-plugin.e.used_space": {
+   "value": 1098843,
+   "unit": "MB",
+   "min": 1098794,
+   "max": 1099304,
+   "avg": 1098843,
+   "name": "E: · Used Space",
+   "source": "infopanel"
+  },
+  "plugins.drive-info-plugin.c.available_space": {
+   "value": 1012662,
+   "unit": "MB",
+   "min": 1005245,
+   "max": 1016773,
+   "avg": 1012662.1875,
+   "name": "C: · Available Space",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{B2CA3DB0-3E46-469B-88E5-BE43DBAE0750}.ipv6-0": {
+   "text": "2001:db8::b",
+   "unit": "",
+   "name": "Bluetooth Network Connection · IPv6 Address",
+   "source": "infopanel"
+  },
+  "plugins.drive-info-plugin.f.total_size": {
+   "value": 953866,
+   "unit": "MB",
+   "min": 953866,
+   "max": 953866,
+   "avg": 953866,
+   "name": "F: · Total Size",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{4BF29CBA-CD4A-4BB4-B9DB-8B1E95E0ECA8}.id": {
+   "text": "{4BF29CBA-CD4A-4BB4-B9DB-8B1E95E0ECA8}",
+   "unit": "",
+   "name": "WiFi 3 · Id",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.SteamAPI.SteamAPI-Achievements.latest-achievement-icon": {
+   "text": "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/apps/1808500/ef2bf4fc11656a27cbf6c9cd797f6827d0f04f94.jpg",
+   "unit": "",
+   "name": "Achievements · Latest Achievement Icon",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.{0.0.0.00000000}.{ad03964a-422c-4018-bb88-8f8e068c6537}.device_friendly_name": {
+   "text": "Elgato Virtual Audio",
+   "unit": "",
+   "name": "Music (Elgato Virtual Audio) · Device Name",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-b34902c8-e0e8-44f3-bd36-efee55d6366e.audio-level": {
+   "value": 94.19999694824219,
+   "unit": "%",
+   "min": 0,
+   "max": 100,
+   "avg": 92.99500274658203,
+   "name": "🎵 Browser (Elgato Virtual Audio) · Level",
+   "source": "infopanel"
+  },
+  "plugins.drive-info-plugin.c.free_space": {
+   "value": 1012662,
+   "unit": "MB",
+   "min": 1005245,
+   "max": 1016773,
+   "avg": 1012662.1875,
+   "name": "C: · Free Space",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-44a2e633-0f41-497a-9de0-227ceef7e6c4.right-channel": {
+   "value": 0.699999988079071,
+   "unit": "%",
+   "min": 0,
+   "max": 100,
+   "avg": 31.608333587646484,
+   "name": "🎵 Wave Mic 1 (Elgato Virtual Audio) · Right",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{1203651F-E172-4D15-9260-912B80E47C9E}.speed": {
+   "value": 0,
+   "unit": "Mbps",
+   "min": 0,
+   "max": 0,
+   "avg": 0,
+   "name": "WiFi · Speed",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-ad03964a-422c-4018-bb88-8f8e068c6537.device-name": {
+   "text": "Music (Elgato Virtual Audio)",
+   "unit": "",
+   "name": "🎵 Music (Elgato Virtual Audio) · Device",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{3DFA719A-9236-4AA7-9248-245E3284A417}.name": {
+   "text": "vEthernet (WSL (Hyper-V firewall))",
+   "unit": "",
+   "name": "vEthernet (WSL (Hyper-V firewall)) · Name",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.SteamAPI.SteamAPI-Profile.online-status": {
+   "text": "ARC Raiders",
+   "unit": "",
+   "name": "User Profile & Status · Status",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{187C48C4-4CCD-45DE-B5DC-43739AC29B0D}.ipv6-5": {
+   "text": "2001:db8::c",
+   "unit": "",
+   "name": "Ethernet · IPv6 Address",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.default-audio.peak-hold": {
+   "value": -0.800000011920929,
+   "unit": "dB",
+   "min": -863.0999755859375,
+   "max": 0,
+   "avg": -1.1549999713897705,
+   "name": "Audio Level Meter · Peak Hold",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{37217669-42DA-4657-A55B-0D995D328250}.ipv6-1": {
+   "text": "2001:db8::d",
+   "unit": "",
+   "name": "Tailscale · IPv6 Address",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.SteamAPI.SteamAPI-Achievements.current-achievements": {
+   "value": 78,
+   "unit": "%",
+   "min": 0,
+   "max": 78,
+   "avg": 78,
+   "name": "Achievements · Current Game Achievements",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{8F376EDF-C409-4648-A994-6293C5529FAB}.ipv4-0": {
+   "text": "192.0.2.6",
+   "unit": "",
+   "name": "WiFi 4 · IPv4 Address",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-3c6e1f59-7949-4901-90a7-65282d08d714.rms-level": {
+   "value": -96,
+   "unit": "dB",
+   "min": -96,
+   "max": -96,
+   "avg": -96,
+   "name": "🎵 Headphones (4- Arctis Nova Pro Wireless) · RMS",
+   "source": "infopanel"
+  },
+  "plugins.drive-info-plugin.d.available_space": {
+   "value": 501540,
+   "unit": "MB",
+   "min": 501540,
+   "max": 501540,
+   "avg": 501540,
+   "name": "D: · Available Space",
+   "source": "infopanel"
+  },
+  "plugins.clock-plugin.clock.24-hour": {
+   "value": 20,
+   "unit": "",
+   "min": 0,
+   "max": 23,
+   "avg": 20,
+   "name": "Clock · 24 Hour",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-81fcb09e-e5cb-43ed-91b5-b02a98683de5.right-channel": {
+   "value": 0,
+   "unit": "%",
+   "min": 0,
+   "max": 0,
+   "avg": 0,
+   "name": "🎵 Speakers (Focusrite USB Audio) · Right",
+   "source": "infopanel"
+  },
+  "plugins.yr-weather-plugin.brevik-norway.temp": {
+   "text": "4.7 °C",
+   "unit": "",
+   "name": "Brevik, Norway · Temperature",
+   "source": "infopanel"
+  },
+  "plugins.drive-info-plugin.d.used_space": {
+   "value": 1406186,
+   "unit": "MB",
+   "min": 1406186,
+   "max": 1406186,
+   "avg": 1406186,
+   "name": "D: · Used Space",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.RTSS.rtss.min-fps": {
+   "value": 0.20000000298023224,
+   "unit": "FPS",
+   "min": 0,
+   "max": 90.5999984741211,
+   "avg": 0.20000000298023224,
+   "name": "RTSS · Min FPS",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{37217669-42DA-4657-A55B-0D995D328250}.name": {
+   "text": "Tailscale",
+   "unit": "",
+   "name": "Tailscale · Name",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.SteamAPI.SteamAPI-Library.recent-games-count": {
+   "value": 2,
+   "unit": "games",
+   "min": 0,
+   "max": 2,
+   "avg": 2,
+   "name": "Library & Playtime Statistics · Games Played Last 2w",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.{0.0.0.00000000}.{cffd42bd-62a0-43d7-98d5-8b227c5ac3ce}.device_friendly_name": {
+   "text": "Elgato Virtual Audio",
+   "unit": "",
+   "name": "System (Elgato Virtual Audio) · Device Name",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{4BF29CBA-CD4A-4BB4-B9DB-8B1E95E0ECA8}.ipv6-0": {
+   "text": "2001:db8::e",
+   "unit": "",
+   "name": "WiFi 3 · IPv6 Address",
+   "source": "infopanel"
+  },
+  "plugins.weather-plugin.weather.pressure": {
+   "value": 0,
+   "unit": "hPa",
+   "min": 0,
+   "max": 0,
+   "avg": 0,
+   "name": "Weather · Pressure",
+   "source": "infopanel"
+  },
+  "plugins.yr-weather-plugin.brevik-norway.rain": {
+   "value": 0,
+   "unit": "mm/h",
+   "min": 0,
+   "max": 0,
+   "avg": 0,
+   "name": "Brevik, Norway · Rain",
+   "source": "infopanel"
+  },
+  "plugins.spotify-plugin.spotify.cover-art": {
+   "text": "",
+   "unit": "",
+   "name": "Spotify · Cover URL",
+   "source": "infopanel"
+  },
+  "plugins.drive-info-plugin.e.format": {
+   "text": "NTFS",
+   "unit": "",
+   "name": "E: · Format",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-cffd42bd-62a0-43d7-98d5-8b227c5ac3ce.peak-level": {
+   "value": -8.699999809265137,
+   "unit": "dB",
+   "min": -241,
+   "max": 0,
+   "avg": -10.25666618347168,
+   "name": "🎵 System (Elgato Virtual Audio) · Peak",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.SteamAPI.SteamAPI-Session.avg-session-time": {
+   "text": "01:23",
+   "unit": "",
+   "name": "Current Game & Session · Avg Session Duration",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.SteamAPI.SteamAPI-Session.current-game": {
+   "text": "ARC Raiders",
+   "unit": "",
+   "name": "Current Game & Session · Current Game",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-81fcb09e-e5cb-43ed-91b5-b02a98683de5.rms-level": {
+   "value": -96,
+   "unit": "dB",
+   "min": -96,
+   "max": -96,
+   "avg": -96,
+   "name": "🎵 Speakers (Focusrite USB Audio) · RMS",
+   "source": "infopanel"
+  },
+  "plugins.yr-weather-plugin.brevik-norway.weather_icon": {
+   "text": "clear-night",
+   "unit": "",
+   "name": "Brevik, Norway · Weather Icon",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-b34902c8-e0e8-44f3-bd36-efee55d6366e.peak-hold": {
+   "value": -1.399999976158142,
+   "unit": "dB",
+   "min": -863.0999755859375,
+   "max": 0,
+   "avg": -2.1500000953674316,
+   "name": "🎵 Browser (Elgato Virtual Audio) · Peak Hold",
+   "source": "infopanel"
+  },
+  "plugins.spotify-plugin.spotify.elapsed-time": {
+   "text": "00:00",
+   "unit": "",
+   "name": "Spotify · Elapsed Time",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-3c6e1f59-7949-4901-90a7-65282d08d714.device-name": {
+   "text": "Headphones (4- Arctis Nova Pro Wireless)",
+   "unit": "",
+   "name": "🎵 Headphones (4- Arctis Nova Pro Wireless) · Device",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{1203651F-E172-4D15-9260-912B80E47C9E}.id": {
+   "text": "{1203651F-E172-4D15-9260-912B80E47C9E}",
+   "unit": "",
+   "name": "WiFi · Id",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-cffd42bd-62a0-43d7-98d5-8b227c5ac3ce.audio-level": {
+   "value": 96.9000015258789,
+   "unit": "%",
+   "min": 0,
+   "max": 100,
+   "avg": 89.08000183105469,
+   "name": "🎵 System (Elgato Virtual Audio) · Level",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.SteamAPI.SteamAPI-Profile.current_game_banner_url": {
+   "text": "https://cdn2.steamgriddb.com/hero/2fdffce305383ca941d174bd20517400.png",
+   "unit": "",
+   "name": "User Profile & Status · Current Game Banner URL",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.SteamAPI.SteamAPI-Library.recent-sessions": {
+   "value": 7,
+   "unit": "sessions",
+   "min": 0,
+   "max": 7,
+   "avg": 7,
+   "name": "Library & Playtime Statistics · Gaming Sessions (2w)",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.default-audio.rms-level": {
+   "value": -8.699999809265137,
+   "unit": "dB",
+   "min": -241,
+   "max": 0,
+   "avg": -10.25666618347168,
+   "name": "Audio Level Meter · RMS",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.{0.0.0.00000000}.{b34902c8-e0e8-44f3-bd36-efee55d6366e}.device_friendly_name": {
+   "text": "Elgato Virtual Audio",
+   "unit": "",
+   "name": "Browser (Elgato Virtual Audio) · Device Name",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{187C48C4-4CCD-45DE-B5DC-43739AC29B0D}.name": {
+   "text": "Ethernet",
+   "unit": "",
+   "name": "Ethernet · Name",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{3DFA719A-9236-4AA7-9248-245E3284A417}.speed": {
+   "value": 10000,
+   "unit": "Mbps",
+   "min": 10000,
+   "max": 10000,
+   "avg": 10000,
+   "name": "vEthernet (WSL (Hyper-V firewall)) · Speed",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.RTSS.rtss.architecture": {
+   "text": "x64",
+   "unit": "",
+   "name": "RTSS · Architecture",
+   "source": "infopanel"
+  },
+  "plugins.weather-plugin.weather.max_temp": {
+   "value": 0,
+   "unit": "°C",
+   "min": 0,
+   "max": 0,
+   "avg": 0,
+   "name": "Weather · Maximum Temperature",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-81fcb09e-e5cb-43ed-91b5-b02a98683de5.left-channel": {
+   "value": 0,
+   "unit": "%",
+   "min": 0,
+   "max": 0,
+   "avg": 0,
+   "name": "🎵 Speakers (Focusrite USB Audio) · Left",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-3c6e1f59-7949-4901-90a7-65282d08d714.left-channel": {
+   "value": 0,
+   "unit": "%",
+   "min": 0,
+   "max": 0,
+   "avg": 0,
+   "name": "🎵 Headphones (4- Arctis Nova Pro Wireless) · Left",
+   "source": "infopanel"
+  },
+  "plugins.wavelink-plugin.wavelink.state": {
+   "text": "{\"status\":\"up\",\"appVersion\":\"\",\"devices\":[{\"id\":\"SERIAL0001\\\\\\\\PCM_IN_01_C_00_SD1\",\"name\":\"Wave Mic 1\",\"deviceType\":\"commonWave\",\"inputs\":[{\"id\":\"SERIAL0001\\\\\\\\PCM_IN_01_C_00_SD1\",\"name\":\"Wave Mic 1\",\"isMuted\":true,\"gain\":{\"value\":0.45,\"min\":0,\"max\":40}}]},{\"id\":\"{0.0.1.00000000}.{d4d57f48-5de2-4cd3-a416-d4e69290b9ef}\",\"name\":\"Analogue 1 \\u002B 2 (Focusrite USB Audio)\",\"deviceType\":\"thirdParty\",\"inputs\":[{\"id\":\"{0.0.1.00000000}.{d4d57f48-5de2-4cd3-a416-d4e69290b9ef}\",\"name\":\"Analogue 1 \\u002B 2 (Focusrite USB Audio)\",\"isMuted\":false,\"gain\":{\"value\":1,\"min\":0,\"max\":1}}]}],\"channels\":[{\"id\":\"SERIAL0001\\\\\\\\PCM_IN_01_C_00_SD1\",\"name\":\"Wave Mic 1\",\"type\":\"Hardware\",\"level\":0.8481,\"isMuted\":false,\"mixes\":[{\"id\":\"PCM_IN_01_V_02_SD2\",\"level\":1,\"isMuted\":false},{\"id\":\"PCM_IN_01_V_04_SD3\",\"level\":1,\"isMuted\":false},{\"id\":\"PCM_IN_01_V_06_SD4\",\"level\":1,\"isMuted\":false}],\"apps\":[]},{\"id\":\"PCM_OUT_00_V_14_SD8\",\"name\":\"Voice\",\"type\":\"Software\",\"level\":0.5,\"isMuted\":false,\"mixes\":[{\"id\":\"PCM_IN_01_V_00_SD1\",\"level\":1,\"isMuted\":false},{\"id\":\"PCM_IN_01_V_08_SD5\",\"level\":1,\"isMuted\":false},{\"id\":\"PCM_IN_01_V_04_SD3\",\"level\":1,\"isMuted\":false},{\"id\":\"PCM_IN_01_V_06_SD4\",\"level\":1,\"isMuted\":false}],\"apps\":[{\"id\":\"Discord\",\"name\":\"Discord\"}]},{\"id\":\"PCM_OUT_00_V_04_SD3\",\"name\":\"Browser\",\"type\":\"Software\",\"level\":0.23,\"isMuted\":false,\"mixes\":[{\"id\":\"PCM_IN_01_V_00_SD1\",\"level\":1,\"isMuted\":false},{\"id\":\"PCM_IN_01_V_08_SD5\",\"level\":1,\"isMuted\":false},{\"id\":\"PCM_IN_01_V_04_SD3\",\"level\":1,\"isMuted\":false},{\"id\":\"PCM_IN_01_V_06_SD4\",\"level\":1,\"isMuted\":false}],\"apps\":[{\"id\":\"Zen\",\"name\":\"Zen\"},{\"id\":\"Microsoft Edge\",\"name\":\"Microsoft Edge\"},{\"id\":\"Helium\",\"name\":\"Helium\"}]},{\"id\":\"PCM_OUT_00_V_00_SD1\",\"name\":\"Music\",\"type\":\"Software\",\"level\":0.07,\"isMuted\":false,\"mixes\":[{\"id\":\"PCM_IN_01_V_00_SD1\",\"level\":1,\"isMuted\":false},{\"id\":\"PCM_IN_01_V_08_SD5\",\"level\":1,\"isMuted\":false},{\"id\":\"PCM_IN_01_V_04_SD3\",\"level\":1,\"isMuted\":false}],\"apps\":[{\"id\":\"Spotify\",\"name\":\"Spotify\"},{\"id\":\"Live\",\"name\":\"Live\"},{\"id\":\"RipX DAW\",\"name\":\"RipX DAW\"}]},{\"id\":\"PCM_OUT_00_V_12_SD7\",\"name\":\"System\",\"type\":\"Software\",\"level\":0.4,\"isMuted\":false,\"mixes\":[{\"id\":\"PCM_IN_01_V_00_SD1\",\"level\":1,\"isMuted\":false},{\"id\":\"PCM_IN_01_V_08_SD5\",\"level\":1,\"isMuted\":false},{\"id\":\"PCM_IN_01_V_04_SD3\",\"level\":1,\"isMuted\":false},{\"id\":\"PCM_IN_01_V_06_SD4\",\"level\":1,\"isMuted\":false}],\"apps\":[{\"id\":\"PioneerGame\",\"name\":\"PioneerGame\"}]}],\"mixes\":[{\"id\":\"PCM_IN_01_V_02_SD2\",\"name\":\"MicMix\",\"level\":0.8,\"isMuted\":false},{\"id\":\"PCM_IN_01_V_00_SD1\",\"name\":\"Headphones\",\"level\":1,\"isMuted\":false},{\"id\":\"PCM_IN_01_V_08_SD5\",\"name\":\"Speakers\",\"level\":1,\"isMuted\":false},{\"id\":\"PCM_IN_01_V_04_SD3\",\"name\":\"Stream Mix\",\"level\":1,\"isMuted\":false},{\"id\":\"PCM_IN_01_V_06_SD4\",\"name\":\"Record Mix\",\"level\":1,\"isMuted\":false}]}",
+   "unit": "",
+   "name": "Wave Link · State",
+   "source": "infopanel"
+  },
+  "plugins.yr-weather-plugin.brevik-norway.feels_like": {
+   "text": "4.7 °C",
+   "unit": "",
+   "name": "Brevik, Norway · Feels Like",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.RTSS.rtss.benchmark-mode": {
+   "text": "✓ Enabled",
+   "unit": "",
+   "name": "RTSS · Benchmark Mode",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.default.short_name": {
+   "text": "System",
+   "unit": "",
+   "name": "Default · Short Name",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{C5013AF7-2689-4840-B572-AAFE079B6E2A}.ipv6-0": {
+   "text": "2001:db8::f",
+   "unit": "",
+   "name": "vEthernet (Default Switch) · IPv6 Address",
+   "source": "infopanel"
+  },
+  "plugins.media-plugin.media.session-state": {
+   "value": 1,
+   "unit": "",
+   "min": 0,
+   "max": 1,
+   "avg": 1,
+   "name": "Media · Session State",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.{0.0.0.00000000}.{e3f0c952-76ad-40dd-96a3-b8326178a39e}.short_name": {
+   "text": "Headphones (Elgato Wave:3)",
+   "unit": "",
+   "name": "Headphones (Elgato Wave:3) · Short Name",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{B2CA3DB0-3E46-469B-88E5-BE43DBAE0750}.status": {
+   "text": "Down",
+   "unit": "",
+   "name": "Bluetooth Network Connection · Status",
+   "source": "infopanel"
+  },
+  "plugins.yr-weather-plugin.brevik-norway.forecast": {
+   "text": "Tue 13 Oct, Moderate Rain, 8 °C / 4 °C, 42.5mm, 3.1 m/s S\nWed 14 Oct, Partly Cloudy, 14 °C / 7 °C, 1.0mm, 2.2 m/s W\nThu 15 Oct, Cloudy, 15 °C / 10 °C, 0.0mm, 4.6 m/s SW\nFri 16 Oct, Moderate Rain, 14 °C / 11 °C, 5.7mm, 3.0 m/s W\nSat 17 Oct, Clear Sky, 11 °C / 6 °C, 0.0mm, 3.1 m/s S\nSun 18 Oct, Clear Sky, 10 °C / 2 °C, 0.0mm, 1.8 m/s SW\nMon 19 Oct, Partly Cloudy, 10 °C / 3 °C, 0.0mm, 1.2 m/s NW",
+   "unit": "",
+   "name": "Brevik, Norway · Forecast",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.{0.0.0.00000000}.{e3f0c952-76ad-40dd-96a3-b8326178a39e}.mute": {
+   "text": "False",
+   "unit": "",
+   "name": "Headphones (Elgato Wave:3) · Mute",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.SteamAPI.SteamAPI-Social.friends-online": {
+   "value": 8,
+   "unit": "",
+   "min": 0,
+   "max": 9,
+   "avg": 8,
+   "name": "Friends & Social Activity · Friends Online",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{1203651F-E172-4D15-9260-912B80E47C9E}.ipv4-0": {
+   "text": "192.0.2.7",
+   "unit": "",
+   "name": "WiFi · IPv4 Address",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.{0.0.0.00000000}.{81fcb09e-e5cb-43ed-91b5-b02a98683de5}.friendly_name": {
+   "text": "Speakers (Focusrite USB Audio)",
+   "unit": "",
+   "name": "Speakers (Focusrite USB Audio) · Name",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{187C48C4-4CCD-45DE-B5DC-43739AC29B0D}.status": {
+   "text": "Up",
+   "unit": "",
+   "name": "Ethernet · Status",
+   "source": "infopanel"
+  },
+  "plugins.yr-weather-plugin.brevik-norway.name": {
+   "text": "Brevik, Norway",
+   "unit": "",
+   "name": "Brevik, Norway · Name",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{B2CA3DB0-3E46-469B-88E5-BE43DBAE0750}.name": {
+   "text": "Bluetooth Network Connection",
+   "unit": "",
+   "name": "Bluetooth Network Connection · Name",
+   "source": "infopanel"
+  },
+  "plugins.drive-info-plugin.g.volume_label": {
+   "text": "aitools",
+   "unit": "",
+   "name": "G: · Volume Label",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.{0.0.0.00000000}.{e2087318-05b8-4830-84b9-1e6e8852d2f9}.short_name": {
+   "text": "Voice ",
+   "unit": "",
+   "name": "Voice (Elgato Virtual Audio) · Short Name",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.{0.0.0.00000000}.{ad03964a-422c-4018-bb88-8f8e068c6537}.short_name": {
+   "text": "Music ",
+   "unit": "",
+   "name": "Music (Elgato Virtual Audio) · Short Name",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-ad03964a-422c-4018-bb88-8f8e068c6537.rms-level": {
+   "value": -96,
+   "unit": "dB",
+   "min": -96,
+   "max": -2.299999952316284,
+   "avg": -96,
+   "name": "🎵 Music (Elgato Virtual Audio) · RMS",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.{0.0.0.00000000}.{e3f0c952-76ad-40dd-96a3-b8326178a39e}.friendly_name": {
+   "text": "Headphones (Elgato Wave:3)",
+   "unit": "",
+   "name": "Headphones (Elgato Wave:3) · Name",
+   "source": "infopanel"
+  },
+  "plugins.drive-info-plugin.c.name": {
+   "text": "C:",
+   "unit": "",
+   "name": "C: · Name",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.{0.0.0.00000000}.{e2087318-05b8-4830-84b9-1e6e8852d2f9}.mute": {
+   "text": "False",
+   "unit": "",
+   "name": "Voice (Elgato Virtual Audio) · Mute",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.default-audio.peak-level": {
+   "value": -8.699999809265137,
+   "unit": "dB",
+   "min": -241,
+   "max": 0,
+   "avg": -10.25666618347168,
+   "name": "Audio Level Meter · Peak",
+   "source": "infopanel"
+  },
+  "plugins.InfoPanel.SteamAPI.SteamAPI-Profile.game-status-text": {
+   "text": "Currently Playing",
+   "unit": "",
+   "name": "User Profile & Status · Game Status",
+   "source": "infopanel"
+  },
+  "plugins.drive-info-plugin.f.volume_label": {
+   "text": "resources",
+   "unit": "",
+   "name": "F: · Volume Label",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{37217669-42DA-4657-A55B-0D995D328250}.ipv4-0": {
+   "text": "192.0.2.8",
+   "unit": "",
+   "name": "Tailscale · IPv4 Address",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.default-audio.audio-level": {
+   "value": 96.9000015258789,
+   "unit": "%",
+   "min": 0,
+   "max": 100,
+   "avg": 89.08000183105469,
+   "name": "Audio Level Meter · Level",
+   "source": "infopanel"
+  },
+  "plugins.clock-plugin.clock.year": {
+   "value": 2026,
+   "unit": "",
+   "min": 0,
+   "max": 2026,
+   "avg": 2026,
+   "name": "Clock · Year",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{187C48C4-4CCD-45DE-B5DC-43739AC29B0D}.ipv4-0": {
+   "text": "192.0.2.9",
+   "unit": "",
+   "name": "Ethernet · IPv4 Address",
+   "source": "infopanel"
+  },
+  "plugins.drive-info-plugin.e.total_size": {
+   "value": 1907726,
+   "unit": "MB",
+   "min": 1907726,
+   "max": 1907726,
+   "avg": 1907726,
+   "name": "E: · Total Size",
+   "source": "infopanel"
+  },
+  "plugins.drive-info-plugin.e.type": {
+   "text": "Fixed",
+   "unit": "",
+   "name": "E: · Type",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{37217669-42DA-4657-A55B-0D995D328250}.status": {
+   "text": "Up",
+   "unit": "",
+   "name": "Tailscale · Status",
+   "source": "infopanel"
+  },
+  "plugins.system-info-plugin.processes.process-count": {
+   "value": 500,
+   "unit": "",
+   "min": 0,
+   "max": 620,
+   "avg": 495.9666748046875,
+   "name": "Processes · Process Count",
+   "source": "infopanel"
+  },
+  "plugins.drive-info-plugin.c.format": {
+   "text": "NTFS",
+   "unit": "",
+   "name": "C: · Format",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.{0.0.0.00000000}.{cffd42bd-62a0-43d7-98d5-8b227c5ac3ce}.friendly_name": {
+   "text": "System (Elgato Virtual Audio)",
+   "unit": "",
+   "name": "System (Elgato Virtual Audio) · Name",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{3DFA719A-9236-4AA7-9248-245E3284A417}.description": {
+   "text": "Hyper-V Virtual Ethernet Adapter #2",
+   "unit": "",
+   "name": "vEthernet (WSL (Hyper-V firewall)) · Description",
+   "source": "infopanel"
+  },
+  "plugins.network-info-plugin.{8F376EDF-C409-4648-A994-6293C5529FAB}.description": {
+   "text": "MediaTek Wi-Fi 7 MT7925 Wireless LAN Card #4",
+   "unit": "",
+   "name": "WiFi 4 · Description",
+   "source": "infopanel"
+  },
+  "plugins.media-plugin.media.album": {
+   "text": "Unknown",
+   "unit": "",
+   "name": "Media · Album",
+   "source": "infopanel"
+  },
+  "plugins.audio-level-meter.audio-meter-0-0-0-00000000-ad03964a-422c-4018-bb88-8f8e068c6537.right-channel": {
+   "value": 0,
+   "unit": "%",
+   "min": 0,
+   "max": 99.5999984741211,
+   "avg": 0,
+   "name": "🎵 Music (Elgato Virtual Audio) · Right",
+   "source": "infopanel"
+  },
+  "plugins.volume-plugin.{0.0.0.00000000}.{ad03964a-422c-4018-bb88-8f8e068c6537}.mute": {
+   "text": "False",
+   "unit": "",
+   "name": "Music (Elgato Virtual Audio) · Mute",
+   "source": "infopanel"
+  }
+ }
+}
