@@ -1,6 +1,6 @@
 /** Menu geometry (px), shared by the component and the clamping maths. */
 export const MENU_WIDTH = 220;
-export const MENU_ROW_H = 30;
+export const MENU_ROW_H = 29;
 export const MENU_SEPARATOR_H = 9;
 export const MENU_PADDING = 4;
 const EDGE = 8;

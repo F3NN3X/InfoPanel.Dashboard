@@ -301,7 +301,7 @@ export function InsertFilters({
             type="button"
             onClick={() => onCategory(c)}
             className={cn(
-              "h-6 rounded-xl border px-2.5 text-[11px] transition-colors",
+              "h-6 rounded-xl border px-[9px] text-[11px] transition-colors",
               c === category
                 ? "border-[#3a3a44] bg-ui-active text-ui-1"
                 : "border-ui-default text-[#a4a4ad]"

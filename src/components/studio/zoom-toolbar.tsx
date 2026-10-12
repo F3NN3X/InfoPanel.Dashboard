@@ -1,4 +1,4 @@
-import { Grid3x3, Minus, PanelBottom, PanelLeftClose, PanelRight, Plus, Ruler } from "lucide-react";
+import { Grid3x3, Minus, PanelBottom, PanelLeftClose, PanelRight, Plus, RulerDimensionLine } from "lucide-react";
 import { IconButton } from "@/components/ui/icon-button";
 import type { MonitorProfile } from "@/lib/layout";
 import { cn } from "@/lib/utils";
@@ -74,7 +74,7 @@ export function ZoomToolbar({
         <Grid3x3 className="h-[18px] w-[18px]" />
       </IconButton>
       <IconButton label="Toggle rulers" className={TOGGLE_BUTTON} active={showRulers} aria-pressed={showRulers} onClick={onToggleRulers}>
-        <Ruler className="h-[18px] w-[18px]" />
+        <RulerDimensionLine className="h-[18px] w-[18px]" />
       </IconButton>
       <Divider />
       <IconButton label={`Zoom out (${KEYS.zoomOut})`} className={BAR_BUTTON} onClick={() => onZoomStep(-1)}>

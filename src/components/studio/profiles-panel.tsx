@@ -46,7 +46,7 @@ function Thumb({ profile, active }: { profile: MonitorProfile; active: boolean }
   return (
     <span className="flex w-[34px] shrink-0 items-center justify-center">
       <span
-        className={cn("block w-full rounded-[3px] border bg-ui-app", active ? "border-ui-accent" : "border-ui-strong")}
+        className={cn("block w-full rounded-[3px] border-[1.5px] bg-ui-app", active ? "border-ui-accent" : "border-ui-default")}
         style={{ height }}
       />
     </span>
@@ -206,9 +206,9 @@ export function ProfilesPanel({
                     }}
                   />
                 ) : (
-                  <span className="block truncate text-[12.5px] text-ui-1">{p.name}</span>
+                  <span className="block truncate text-[12.5px] leading-[1.35] text-ui-1">{p.name}</span>
                 )}
-                <span className="block truncate font-ui-mono text-[10.5px] text-ui-4">{profileMeta(p)}</span>
+                <span className="block truncate font-ui-mono text-[10.5px] leading-[1.35] text-ui-4">{profileMeta(p)}</span>
               </span>
               {active && <Check className="h-[17px] w-[17px] shrink-0 text-[oklch(0.80_0.12_255)]" aria-label="Active" />}
               <RowMenu

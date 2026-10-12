@@ -89,7 +89,7 @@ export function PointTable({
   return (
     <div className="flex min-w-0 flex-1 flex-col bg-ui-app font-ui">
       <div className="space-y-2.5 border-b border-ui-subtle px-4 pb-2.5 pt-3">
-        <div className="flex flex-wrap items-center gap-1 text-[12.5px]">
+        <div className="flex flex-wrap items-center gap-1 text-[12.5px] leading-[1.25]">
           {crumbs.map((c, i) => {
             const tone = i === crumbs.length - 1 ? "font-semibold text-ui-1" : "text-[#8f8f99]";
             return (
@@ -321,7 +321,7 @@ function PointRow({ point, cols, values, usage, selected, onSelect, showUsedBy, 
           }}
           className={cn(ROW_ACTION, "text-ui-4 hover:text-ui-1")}
         >
-          <Copy className="h-[15px] w-[15px]" />
+          <Copy className="h-[11px] w-[11px]" />
         </button>
         <button
           type="button"
@@ -335,7 +335,7 @@ function PointRow({ point, cols, values, usage, selected, onSelect, showUsedBy, 
           }}
           className={cn(ROW_ACTION, "disabled:opacity-40", bound ? "text-ui-accent" : "text-ui-4")}
         >
-          <Link2 className="h-4 w-4" />
+          <Link2 className="h-[11px] w-[11px]" />
         </button>
       </div>
     </div>

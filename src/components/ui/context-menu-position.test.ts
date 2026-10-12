@@ -7,7 +7,7 @@ const viewport = { width: 1000, height: 700 };
 describe("menuHeight", () => {
   it("adds padding, rows and separators", () => {
     expect(menuHeight(0, 0)).toBe(8);
-    expect(menuHeight(3, 2)).toBe(8 + 90 + 18);
+    expect(menuHeight(3, 2)).toBe(8 + 87 + 18);
   });
 });
 

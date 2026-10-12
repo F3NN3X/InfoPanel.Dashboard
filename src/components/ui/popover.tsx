@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ReactNode, RefObject } from "react";
 import { Popover as BasePopover } from "@base-ui/react/popover";
 import { cn } from "@/lib/utils";
 
@@ -10,6 +10,8 @@ interface PopoverProps {
   triggerClassName?: string;
   side?: "top" | "bottom" | "left" | "right";
   align?: "start" | "center" | "end";
+  /** Position against this element instead of the trigger. */
+  anchor?: RefObject<Element | null>;
   className?: string;
   children: ReactNode;
 }
@@ -21,6 +23,7 @@ export function Popover({
   triggerClassName,
   side = "bottom",
   align = "start",
+  anchor,
   className,
   children,
 }: PopoverProps) {
@@ -30,7 +33,7 @@ export function Popover({
         {trigger}
       </BasePopover.Trigger>
       <BasePopover.Portal>
-        <BasePopover.Positioner side={side} align={align} sideOffset={6} className="z-[80]">
+        <BasePopover.Positioner side={side} align={align} anchor={anchor} sideOffset={6} className="z-[80]">
           <BasePopover.Popup
             className={cn(
               "rounded-[9px] border border-ui-menu bg-ui-raised p-2 font-ui text-[12.5px] text-ui-2 shadow-ui-menu outline-none",
