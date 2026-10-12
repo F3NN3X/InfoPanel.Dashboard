@@ -55,6 +55,10 @@ async (page) => JSON.stringify((await page.evaluate(() => window.__qaOverflow())
 figure. `kind: "exceeds"` is a descendant poking out of the zone box by more than 1px (`dx`/`dy` in
 px; an axis an ancestor clips with overflow is ignored). `kind: "overlaps"` is two leaf text elements
 whose rects intersect by more than 2px² (`dx` holds the area; the selector joins both with `X`).
+`kind: "clipped"` is a zone descendant with `overflow: hidden|clip` whose content is larger than its
+box (`scrollWidth > clientWidth + 1` or the same for height; `dx`/`dy` hold the hidden px). Elements that
+truncate on purpose (`text-overflow: ellipsis` with `white-space: nowrap`) and canvases, images, svg and
+video are skipped.
 The geometry is in `src/widgets/qa-geometry.ts`.
 
 Legacy modules only show images given as http(s) URLs or root-relative paths with an image extension,

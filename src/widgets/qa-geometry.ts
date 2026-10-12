@@ -25,3 +25,27 @@ export function overlaps(a: Box, b: Box, tol = 2): number {
   const area = w * h;
   return area > tol ? Math.round(area * 10) / 10 : 0;
 }
+
+export interface ClipInput {
+  tag: string;
+  overflowX: string;
+  overflowY: string;
+  textOverflow: string;
+  whiteSpace: string;
+  scrollWidth: number;
+  clientWidth: number;
+  scrollHeight: number;
+  clientHeight: number;
+}
+
+/** How much content an overflow-hidden/clip element hides per axis (px beyond `tol`); 0 = nothing cut off. */
+export function clippedContent(el: ClipInput, tol = 1): { dx: number; dy: number } {
+  if (["canvas", "img", "svg", "video"].includes(el.tag.toLowerCase())) return { dx: 0, dy: 0 };
+  if (el.textOverflow === "ellipsis" && el.whiteSpace === "nowrap") return { dx: 0, dy: 0 };
+  const clips = (o: string) => o === "hidden" || o === "clip";
+  const hidden = (scroll: number, client: number) => (scroll > client + tol ? scroll - client : 0);
+  return {
+    dx: clips(el.overflowX) ? hidden(el.scrollWidth, el.clientWidth) : 0,
+    dy: clips(el.overflowY) ? hidden(el.scrollHeight, el.clientHeight) : 0,
+  };
+}

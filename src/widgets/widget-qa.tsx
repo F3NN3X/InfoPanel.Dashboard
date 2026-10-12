@@ -5,7 +5,7 @@ import { THEME_PRESETS, themeVars } from "@/lib/theme";
 import type { Placement } from "@/lib/layout";
 import type { ModuleSettings } from "@/modules/types";
 import { fixtureSensors } from "./__fixtures__";
-import { exceeds, overlaps, type Box } from "./qa-geometry";
+import { clippedContent, exceeds, overlaps, type Box } from "./qa-geometry";
 
 /**
  * Dev-only oracle page for the widget library (`?widget-qa`): every module (legacy and template) at
@@ -95,7 +95,7 @@ export default function WidgetQa() {
 
 interface Issue {
   selector: string;
-  kind: "exceeds" | "overlaps";
+  kind: "exceeds" | "overlaps" | "clipped";
   dx: number;
   dy: number;
 }
@@ -138,6 +138,19 @@ function probe(fig: Element): Issue[] {
     const dy = clipped(el, root, "y") ? 0 : out.dy;
     if (dx || dy) issues.push({ selector: selectorOf(el, root), kind: "exceeds", dx, dy });
     if (el.children.length === 0 && el.textContent?.trim()) leaves.push({ el, box });
+    const cs = getComputedStyle(el);
+    const cut = clippedContent({
+      tag: el.tagName,
+      overflowX: cs.overflowX,
+      overflowY: cs.overflowY,
+      textOverflow: cs.textOverflow,
+      whiteSpace: cs.whiteSpace,
+      scrollWidth: el.scrollWidth,
+      clientWidth: el.clientWidth,
+      scrollHeight: el.scrollHeight,
+      clientHeight: el.clientHeight,
+    });
+    if (cut.dx || cut.dy) issues.push({ selector: selectorOf(el, root), kind: "clipped", ...cut });
   }
   for (let i = 0; i < leaves.length; i++) {
     for (let j = i + 1; j < leaves.length; j++) {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { exceeds, overlaps } from "./qa-geometry";
+import { clippedContent, exceeds, overlaps } from "./qa-geometry";
 
 const box = { left: 0, top: 0, right: 100, bottom: 50 };
 
@@ -24,5 +24,23 @@ describe("overlaps", () => {
     expect(overlaps(a, { left: 20, top: 0, right: 30, bottom: 10 })).toBe(0);
     expect(overlaps(a, { left: 10, top: 0, right: 20, bottom: 10 })).toBe(0);
     expect(overlaps(a, { left: 9, top: 9, right: 20, bottom: 20 })).toBe(0);
+  });
+});
+
+describe("clippedContent", () => {
+  const base = { tag: "div", overflowX: "hidden", overflowY: "hidden", textOverflow: "clip", whiteSpace: "normal", scrollWidth: 100, clientWidth: 100, scrollHeight: 40, clientHeight: 40 };
+  it("is zero when content fits, within tolerance", () => {
+    expect(clippedContent(base)).toEqual({ dx: 0, dy: 0 });
+    expect(clippedContent({ ...base, scrollWidth: 101 })).toEqual({ dx: 0, dy: 0 });
+  });
+  it("reports hidden content per clipped axis", () => {
+    expect(clippedContent({ ...base, scrollWidth: 130, scrollHeight: 55 })).toEqual({ dx: 30, dy: 15 });
+    expect(clippedContent({ ...base, overflowX: "visible", scrollWidth: 130 })).toEqual({ dx: 0, dy: 0 });
+    expect(clippedContent({ ...base, overflowY: "clip", scrollHeight: 60 })).toEqual({ dx: 0, dy: 20 });
+  });
+  it("ignores deliberate ellipsis truncation and replaced elements", () => {
+    expect(clippedContent({ ...base, textOverflow: "ellipsis", whiteSpace: "nowrap", scrollWidth: 300 })).toEqual({ dx: 0, dy: 0 });
+    expect(clippedContent({ ...base, textOverflow: "ellipsis", scrollWidth: 300 }).dx).toBe(200);
+    expect(clippedContent({ ...base, tag: "CANVAS", scrollWidth: 300 })).toEqual({ dx: 0, dy: 0 });
   });
 });
