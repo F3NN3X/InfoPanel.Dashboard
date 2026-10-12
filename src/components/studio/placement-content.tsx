@@ -51,6 +51,7 @@ export function placementPrefixes(p: Placement): string[] | null {
   }
   if (p.module === CARDS_ID) return null;
   const mod = moduleById.get(p.module);
+  if (mod?.readsAll) return null;
   return mod ? moduleReads(mod) : [];
 }
 
@@ -149,7 +150,7 @@ interface LivePlacementProps {
 export function LivePlacement({ placement, appearance, studio, selection, children }: LivePlacementProps) {
   const prefixes = placementPrefixes(placement);
   const sensors = useSensors(prefixes);
-  const isCards = prefixes === null;
+  const isCards = placement.module === CARDS_ID;
   const unclaimed = useMemo(
     () => (isCards ? Object.entries(sensors).filter(([key]) => !isClaimed(key)) : []),
     [isCards, sensors]

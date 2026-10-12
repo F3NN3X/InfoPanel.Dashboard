@@ -43,6 +43,11 @@ describe("placementPrefixes", () => {
     expect(placementPrefixes(place({ module: "wavelinkmodern" }))).toEqual([]);
     expect(placementPrefixes(place({ module: "unknown" }))).toEqual([]);
   });
+
+  it("subscribes a template that reads unnamed keys to every stream, but not a sensorless one", () => {
+    for (const id of ["SystemOverview", "SensorValue", "Thermals", "GameSpotlight"]) expect(placementPrefixes(place({ module: id }))).toBeNull();
+    for (const id of ["WaveLink", "WebPage", "Calendar", "webpage"]) expect(placementPrefixes(place({ module: id }))).toEqual([]);
+  });
 });
 
 describe("placementContent", () => {

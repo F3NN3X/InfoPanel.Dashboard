@@ -110,6 +110,8 @@ export interface DashboardModule {
   prefixes: string[];
   /** Further prefixes the module reads without owning them. */
   reads?: string[];
+  /** Reads keys it cannot name up front (no prefixes, but needs data): the zone subscribes to every stream. */
+  readsAll?: boolean;
   /** Render the module's cards. Return null to hide the section. */
   render: (sensors: SensorMap, settings?: ModuleSettings) => ReactNode;
   /** Inspector-editable options; omit for modules with no settings. */

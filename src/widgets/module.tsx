@@ -106,6 +106,7 @@ export function templateModule<P extends object>({ meta, Component, settings, to
     minRows: alias?.minRows ?? meta.minSize[1],
     prefixes: alias?.prefixes ?? meta.prefixes,
     reads: prefixes,
+    readsAll: !SENSORLESS.has(meta.id) && (alias?.prefixes ?? meta.prefixes).length === 0 && !prefixes?.length ? true : undefined,
     settings: all,
     libraryHidden: alias ? true : undefined,
     isIdle,
