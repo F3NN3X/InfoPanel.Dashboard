@@ -1,0 +1,96 @@
+import type { MouseEvent } from "react";
+import type { ModuleSettings } from "@/modules/types";
+import { Widget, shell, get, num, fmt, Num, Ring, Icon, Dot, Chip, STATE, type ShellProps, type WidgetMeta } from "./kit";
+
+export const meta: WidgetMeta = {
+  id: "VolumeMixer",
+  name: "Volume Mixer",
+  category: "Audio",
+  icon: "tune",
+  prefixes: ["plugins.volume-plugin.", "plugins.wavelink-plugin."],
+  defaultSize: [2, 2],
+  minSize: [1, 1],
+  description: "Per-device volume + mute, default device, and Wave Link status.",
+};
+
+export interface VolumeMixerProps extends ShellProps {
+  look?: ModuleSettings;
+  /** Without the callbacks the faders are read-only. */
+  onSetVolume?: (containerKey: string, value: number) => void;
+  onToggleMute?: (containerKey: string) => void;
+}
+
+export default function VolumeMixer(p: VolumeMixerProps) {
+  const d = p.data;
+  const keys = [...new Set(Object.keys(d || {}).map((k) => k.match(/^plugins\.volume-plugin\.(.+)\.short_name$/)?.[1]).filter((id): id is string => !!id))];
+  const ch = keys.map((id) => {
+    const k = (s: string) => get(d, `plugins.volume-plugin.${id}.${s}`);
+    return { id, name: String(k("short_name")).replace(/\s*\(.+$/, ""), full: k("friendly_name"), dev: k("device_friendly_name"), vol: num(k("volume")), mute: k("mute") === "True" };
+  });
+  const def = ch.find((c) => c.id === "default") ?? ch[0];
+  const list = ch.filter((c) => c.id !== "default");
+  const wl = get(d, "plugins.wavelink-plugin.wavelink.status") === "up";
+  const live = !!p.onSetVolume;
+  const setFrom = (id: string) => (e: MouseEvent<HTMLDivElement>) => {
+    if (!p.onSetVolume) return;
+    const r = e.currentTarget.getBoundingClientRect();
+    p.onSetVolume(id, Math.round(((e.clientX - r.left) / r.width) * 100));
+  };
+  return (
+    <Widget
+      {...shell(p)}
+      title={p.title ?? "Volume"}
+      icon="tune"
+      studio={def && { label: "Volume", live: wl, value: def.vol, unit: "%", sub: def.name, pct: def.vol, meters: list.map((c) => ({ n: c.name, v: c.mute ? 0 : c.vol })) }}
+      compact={def && { label: def.name, value: def.vol, unit: "%", pct: def.mute ? 0 : def.vol, kind: "ring", sub: def.mute ? "Muted" : "Default device", icon: def.mute ? "volume_off" : "volume_up" }}
+      right={
+        <Chip>
+          <Dot ok={wl} />
+          Wave Link
+        </Chip>
+      }
+    >
+      {({ size, h }) => {
+        if (!def) return null;
+        if (size === "xs" || size === "sm")
+          return (
+            <div className="flex h-full items-center gap-3">
+              <Ring value={def.mute ? 0 : def.vol} thickness={10} className="h-full max-h-24">
+                <Icon name={def.mute ? "volume_off" : "volume_up"} className="text-xl" />
+              </Ring>
+              <div className="flex min-w-0 flex-col">
+                <Num className="text-2xl font-semibold">
+                  {fmt(def.vol)}
+                  <span className="text-sm font-normal text-[color:var(--w-muted)]">%</span>
+                </Num>
+                <span className="truncate text-[11px] text-[color:var(--w-muted)]">{def.name}</span>
+              </div>
+            </div>
+          );
+        const n = Math.max(1, Math.floor((h + 10) / ((size === "lg" ? 34 : 30) + 10)));
+        return (
+          <ul className="flex h-full flex-col gap-2.5 overflow-hidden">
+            {list.slice(0, n).map((c) => (
+              <li key={c.id} className="grid grid-cols-[18px_minmax(0,1fr)_36px] items-center gap-x-2.5" title={c.full}>
+                <button type="button" onClick={() => p.onToggleMute?.(c.id)} className="flex items-center justify-center" style={{ color: c.mute ? STATE.crit : "var(--w-muted)" }}>
+                  <Icon name={c.mute ? "volume_off" : c.vol < 35 ? "volume_down" : "volume_up"} className="text-[17px]" />
+                </button>
+                <div className="flex min-w-0 flex-col gap-1">
+                  <span className="truncate text-xs text-[color:var(--w-fg)]">
+                    {c.name}
+                    {size === "lg" && <span className="text-[color:var(--w-faint)]"> · {c.dev}</span>}
+                  </span>
+                  <div onClick={setFrom(c.id)} className={`relative h-1.5 rounded-full bg-[color:var(--w-track)] ${live ? "cursor-pointer" : ""}`}>
+                    <div className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${c.vol}%`, background: c.mute ? "var(--w-faint)" : "var(--accent)" }} />
+                    <div className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[color:var(--w-fg)] shadow" style={{ left: `${c.vol}%` }} />
+                  </div>
+                </div>
+                <span className="text-right text-xs tabular-nums text-[color:var(--w-muted)]">{fmt(c.vol)}</span>
+              </li>
+            ))}
+          </ul>
+        );
+      }}
+    </Widget>
+  );
+}

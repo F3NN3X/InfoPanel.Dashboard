@@ -127,7 +127,7 @@ describe("insertGroups", () => {
 
   it("groups widgets by category, then starters, panel presets and My panels", () => {
     expect(titles).toEqual([
-      "System", "Hardware", "Network", "Media", "Audio", "Info", "Gaming", "Generic", "Layout starters", "Panel presets", "My panels",
+      "System", "Hardware", "Storage", "Network", "Media", "Audio", "Info", "Gaming", "Generic", "Layout starters", "Panel presets", "My panels",
     ]);
   });
 
@@ -135,7 +135,7 @@ describe("insertGroups", () => {
     const starters = groups.find((g) => g.title === "Layout starters")!;
     expect(starters.items.map((i) => i.title)[0]).toBe("Blank zone");
     expect(starters.items).toHaveLength(7);
-    expect(groups.filter((g) => g.items.every((i) => i.kind === "module" && i.id !== "blank"))).toHaveLength(8);
+    expect(groups.filter((g) => g.items.every((i) => i.kind === "module" && i.id !== "blank"))).toHaveLength(9);
     expect(groups.find((g) => g.title === "Panel presets")!.items).toHaveLength(10);
   });
 

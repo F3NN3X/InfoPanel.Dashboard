@@ -109,7 +109,7 @@ describe("registry", () => {
 
   it("leaves the catch-all claiming only the legacy prefixes", () => {
     const legacyPrefixes = legacy.flatMap((m) => m.prefixes);
-    for (const p of TEMPLATE_MODULES.flatMap((m) => m.prefixes).filter((p) => !legacyPrefixes.includes(p)))
+    for (const p of TEMPLATE_MODULES.flatMap((m) => m.prefixes).filter((p) => !legacyPrefixes.some((l) => p.startsWith(l))))
       expect(isClaimed(`${p}x`), p).toBe(false);
     expect(isClaimed("system.cpu.load")).toBe(true);
     expect(isClaimed("nothing.claims.this")).toBe(false);

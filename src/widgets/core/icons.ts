@@ -3,6 +3,9 @@
 // replace a header icon. Closest matches where lucide has no equivalent.
 import {
   Activity,
+  Volume1,
+  Volume2,
+  VolumeX,
   ArrowDown,
   ArrowLeftRight,
   ArrowUpDown,
@@ -94,6 +97,9 @@ export const MATERIAL_ICONS: Record<string, LucideIcon> = {
   mic: Mic,
   mic_off: MicOff,
   mode_fan: Fan,
+  volume_down: Volume1,
+  volume_off: VolumeX,
+  volume_up: Volume2,
   monitor_heart: HeartPulse,
   more_horiz: Ellipsis,
   music_note: Music,

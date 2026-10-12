@@ -1,0 +1,102 @@
+import type { ModuleSettings } from "@/modules/types";
+import { Widget, shell, get, num, fmt, fmtMB, Bar, BarRow, Ring, Num, tone, Pill, type ShellProps, type WidgetMeta, type Tone } from "./kit";
+
+export const meta: WidgetMeta = {
+  id: "DriveSpace",
+  name: "Drive Space",
+  category: "Storage",
+  icon: "hard_drive",
+  prefixes: ["plugins.drive-info-plugin."],
+  defaultSize: [2, 2],
+  minSize: [1, 1],
+  description: "Used / free space per volume with label, type and file system.",
+};
+
+export interface DriveSpaceProps extends ShellProps {
+  look?: ModuleSettings;
+  /** Pin one volume ("c", "d", …); omit to list all. */
+  drive?: string;
+  warn?: number;
+  crit?: number;
+  sort?: "usage" | "name";
+  /** Neutral tone below the thresholds (default true). */
+  neutral?: boolean;
+}
+
+export default function DriveSpace(p: DriveSpaceProps) {
+  const d = p.data;
+  const ids = [...new Set(Object.keys(d || {}).map((k) => k.match(/^plugins\.drive-info-plugin\.([^.]+)\.name$/)?.[1]).filter((x): x is string => !!x))];
+  const drives = ids.map((id) => {
+    const k = (s: string) => get(d, `plugins.drive-info-plugin.${id}.${s}`);
+    const total = num(k("total_size")),
+      used = num(k("used_space"));
+    return { id, name: k("name"), label: k("volume_label"), type: k("type"), format: k("format"), total, used, free: num(k("available_space")), pct: (used / total) * 100 };
+  });
+  const one = p.drive ? drives.find((x) => x.id === p.drive!.toLowerCase().replace(":", "")) : null;
+  const warn = p.warn ?? 80,
+    crit = p.crit ?? 92;
+  const list = (one ? [one] : [...drives]).sort((a, b) => (p.sort === "name" ? a.id.localeCompare(b.id) : b.pct - a.pct));
+  const neutral = p.neutral !== false;
+  const tn = (pct: number): Tone | "muted" => (pct >= (p.crit ?? 90) ? "crit" : pct >= (p.warn ?? 80) ? "warn" : neutral ? "muted" : "ok");
+  const critN = drives.filter((x) => x.pct >= (p.crit ?? 90)).length;
+  const first = one ?? drives[0];
+  return (
+    <Widget
+      {...shell(p)}
+      title={p.title ?? (one ? `${one.name} ${one.label}` : "Drives")}
+      icon="hard_drive"
+      right={critN > 0 && <Pill state="crit" className="text-[11px]">{critN} critical</Pill>}
+      studio={first && { label: "Drives", value: first.pct, unit: "%", sub: `${first.name} · ${fmtMB(first.free)} free`, pct: first.pct, rows: list.map((x) => ({ n: `${x.name} ${x.label}`, v: `${fmtMB(x.free)} free`, pct: x.pct })) }}
+      compact={first && { label: `${first.name} ${first.label}`, value: first.pct, unit: "%", sub: `${fmtMB(first.free)} free`, pct: first.pct, t: tone(first.pct, warn, crit) }}
+    >
+      {({ size, h }) => {
+        if (!first) return null;
+        if (size === "xs")
+          return (
+            <div className="flex h-full flex-col justify-center gap-1.5">
+              <div className="flex items-baseline justify-between">
+                <span className="text-sm font-semibold">{first.name}</span>
+                <span className="text-[11px] text-[color:var(--w-muted)]">{fmtMB(first.free)} free</span>
+              </div>
+              <Bar value={first.pct} t={tone(first.pct, warn, crit)} className="h-2" />
+            </div>
+          );
+        if (one && size !== "sm")
+          return (
+            <div className="flex h-full items-center gap-5">
+              <Ring value={one.pct} t={tone(one.pct, warn, crit)} className="h-full max-h-[170px]">
+                <Num className="text-3xl font-semibold">
+                  {fmt(one.pct, 0)}
+                  <span className="text-sm text-[color:var(--w-muted)]">%</span>
+                </Num>
+                <span className="text-[11px] text-[color:var(--w-muted)]">used</span>
+              </Ring>
+              <div className="grid flex-1 gap-2 text-xs">
+                {[["Free", fmtMB(one.free)], ["Used", fmtMB(one.used)], ["Total", fmtMB(one.total)], ["Type", `${one.type} · ${one.format}`]].map(([l, v]) => (
+                  <div key={l} className="flex justify-between gap-2">
+                    <span className="text-[color:var(--w-faint)]">{l}</span>
+                    <span className="tabular-nums text-[color:var(--w-fg)]">{v}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        const n = Math.max(1, Math.floor(h / (size === "lg" ? 46 : 38)));
+        return (
+          <div className="flex h-full flex-col gap-3 overflow-hidden">
+            {list.slice(0, n).map((x) => (
+              <BarRow
+                key={x.id}
+                label={<><span className="font-semibold">{x.name}</span> <span className="text-[color:var(--w-faint)]">{x.label}</span></>}
+                hint={size === "lg" ? `${x.format} · ${fmtMB(x.total)}` : null}
+                value={x.pct}
+                t={tn(x.pct) as Tone}
+                display={`${fmtMB(x.free)} free`}
+              />
+            ))}
+          </div>
+        );
+      }}
+    </Widget>
+  );
+}

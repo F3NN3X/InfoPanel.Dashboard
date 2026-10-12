@@ -4,7 +4,7 @@ import { FALLBACK_ICON, MATERIAL_ICONS, iconFor } from "./icons";
 import { weatherIcon } from "./primitives";
 
 const TEMPLATE_NAMES =
-  "account_circle album bolt calendar_month calendar_today dashboard developer_board device_thermostat donut_large equalizer graphic_eq grid_on group hard_drive health_and_safety health_metrics image lan library_books list_alt location_on lock_open memory memory_alt mic mic_off mode_fan monitor_heart more_horiz music_note newspaper partly_cloudy_day person public query_stats schedule sensors south speed sports_esports stacked_bar_chart stadia_controller swap_horiz swap_vert timeline timer trophy tune videogame_asset view_list view_week vital_signs".split(
+  "account_circle album bolt calendar_month calendar_today dashboard developer_board device_thermostat donut_large equalizer graphic_eq grid_on group hard_drive health_and_safety health_metrics image lan library_books list_alt location_on lock_open memory memory_alt mic mic_off mode_fan monitor_heart more_horiz music_note newspaper partly_cloudy_day person public query_stats schedule sensors south speed sports_esports stacked_bar_chart stadia_controller swap_horiz swap_vert timeline timer trophy tune videogame_asset view_list view_week vital_signs volume_down volume_off volume_up".split(
     " "
   );
 
