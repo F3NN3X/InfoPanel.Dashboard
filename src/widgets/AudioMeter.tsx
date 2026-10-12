@@ -142,7 +142,8 @@ export default function AudioMeter(p: AudioMeterProps) {
                       <LedLadder value={l.v} n={size === "lg" ? 32 : 20} color={lc} hotColor={hc} hold={l.hold} />
                       <LedLadder value={r.v} n={size === "lg" ? 32 : 20} color={lc} hotColor={hc} hold={r.hold} />
                     </div>
-                    <span className="flex items-baseline justify-end gap-1.5 whitespace-nowrap text-right tabular-nums">
+                    {/* leading-none: the 12px level and 10px dB on one baseline otherwise make a 19px line, taller than a 16px row */}
+                    <span className="flex items-baseline justify-end gap-1.5 whitespace-nowrap text-right leading-none tabular-nums">
                       <span className="text-xs font-semibold">{fmt(m.level)}%</span>
                       {size !== "xs" && showDetails && <span className="font-mono text-[10px] text-[color:var(--w-faint)]">{fmt(m.peak, 1)} dB</span>}
                     </span>
