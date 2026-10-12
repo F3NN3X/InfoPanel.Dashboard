@@ -324,6 +324,16 @@ export const Stat = ({ label, value, className = "" }: { label?: ReactNode; valu
     <span className="truncate text-[13px] font-medium tabular-nums text-[color:var(--w-fg)]">{value}</span>
   </div>
 );
+/** One legend line: colour swatch, label, trailing value. A null colour keeps the column but draws no swatch. */
+export function LegendRow({ color, label, value, className = "text-[12.5px]" }: { color?: string | null; label: ReactNode; value?: ReactNode; className?: string }) {
+  return (
+    <div className={`grid min-w-0 grid-cols-[10px_minmax(0,1fr)_auto] items-center gap-2 ${className}`}>
+      <i className="h-2.5 w-2.5 rounded-[3px]" style={{ background: color ?? "transparent" }} />
+      <span className="truncate text-[color:var(--w-muted)]">{label}</span>
+      <span className="font-medium tabular-nums">{value}</span>
+    </div>
+  );
+}
 export function Empty({ icon = "sensors_off", label = "No data" }: { icon?: string; label?: ReactNode }) {
   return (
     <div className="flex h-full flex-col items-center justify-center gap-1 text-[color:var(--w-faint)]">

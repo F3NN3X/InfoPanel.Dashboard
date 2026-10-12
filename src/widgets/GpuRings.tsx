@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, fmt, pretty, useSkin, numFont, hue, hw, RingStack, type ShellProps, type WidgetMeta } from "./kit";
+import { Widget, shell, get, num, fmt, pretty, useSkin, numFont, hue, hw, RingStack, LegendRow, type ShellProps, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "GpuRings",
@@ -74,11 +74,7 @@ export default function GpuRings(p: GpuRingsProps) {
             {(side ? w - size > 120 : h - size > 40) && (
               <div className="grid min-w-0 flex-1 gap-1.5 self-stretch content-center">
                 {legend.slice(0, rows).map(([c, l, v]) => (
-                  <div key={l} className="grid min-w-0 grid-cols-[10px_minmax(0,1fr)_auto] items-center gap-2 text-[12.5px]">
-                    <i className="h-2.5 w-2.5 rounded-[3px]" style={{ background: c ?? "transparent" }} />
-                    <span className="truncate text-[color:var(--w-muted)]">{l}</span>
-                    <span className="font-medium tabular-nums">{v}</span>
-                  </div>
+                  <LegendRow key={l} color={c} label={l} value={v} />
                 ))}
               </div>
             )}

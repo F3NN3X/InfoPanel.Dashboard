@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, fmt, fmtGB, fmtRate, detect, pretty, Metric, Ring, Spark, Stat, Bar, Num, useHistory, tone, Empty, type ShellProps, type WidgetMeta } from "./kit";
+import { Widget, shell, get, num, fmt, fmtGB, fmtRate, detect, pretty, Metric, Ring, Spark, Stat, Bar, Num, useHistory, tone, Empty, LegendRow, type ShellProps, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "StorageHealth",
@@ -78,9 +78,9 @@ export default function StorageHealth(p: StorageHealthProps) {
             <div className="relative min-h-0 flex-1">
               <Spark values={rH} min={0} className="absolute inset-0 h-full" />
               <Spark values={wH} min={0} fill={false} color="#a78bfa" className="absolute inset-0 h-full" />
-              <div className="absolute right-0 top-0 flex gap-2 text-[10px] text-[color:var(--w-faint)]">
-                <span style={{ color: "var(--accent)" }}>● read</span>
-                <span className="text-violet-400">● write</span>
+              <div className="absolute right-0 top-0 grid gap-0.5">
+                <LegendRow color="var(--accent)" label="read" value={fmtRate(rd)} className="text-[10px]" />
+                <LegendRow color="#a78bfa" label="write" value={fmtRate(wr)} className="text-[10px]" />
               </div>
             </div>
             <div className="flex flex-col gap-1">

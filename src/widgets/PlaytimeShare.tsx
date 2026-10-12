@@ -1,4 +1,4 @@
-import { Widget, shell, get, num, fmt, rows, hue, Num, type ShellProps, type WidgetMeta } from "./kit";
+import { Widget, shell, get, num, fmt, rows, hue, Num, LegendRow, type ShellProps, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "PlaytimeShare",
@@ -56,13 +56,18 @@ export default function PlaytimeShare(p: PlaytimeShareProps) {
           </div>
           <ul className="flex min-h-0 flex-col gap-1.5 overflow-hidden">
             {games.slice(0, Math.max(1, Math.floor((h - 120) / 22))).map((g, i) => (
-              <li key={g.name} className="grid min-w-0 grid-cols-[10px_minmax(0,1fr)_auto] items-center gap-2 text-[13px]">
-                <i className="h-2.5 w-2.5 rounded-[3px]" style={{ background: pal[i % pal.length] }} />
-                <span className="truncate">{g.name}</span>
-                <span className="whitespace-nowrap tabular-nums text-[color:var(--w-muted)]">
-                  <b className="font-medium text-[color:var(--w-fg)]">{fmt(g.two, 1)} h</b>
-                  {w > 300 && ` · ${fmt(g.total, 1)} h total`}
-                </span>
+              <li key={g.name}>
+                <LegendRow
+                  color={pal[i % pal.length]}
+                  label={<span className="text-[color:var(--w-fg)]">{g.name}</span>}
+                  className="text-[13px]"
+                  value={
+                    <span className="whitespace-nowrap font-normal text-[color:var(--w-muted)]">
+                      <b className="font-medium text-[color:var(--w-fg)]">{fmt(g.two, 1)} h</b>
+                      {w > 300 && ` · ${fmt(g.total, 1)} h total`}
+                    </span>
+                  }
+                />
               </li>
             ))}
           </ul>
