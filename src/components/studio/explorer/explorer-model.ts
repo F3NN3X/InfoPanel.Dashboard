@@ -1,5 +1,6 @@
 import type { SensorMap } from "@/modules/types";
 import {
+  fold,
   searchPoints,
   type DataContainer,
   type DataPoint,
@@ -61,8 +62,6 @@ export function filterPoints(points: readonly DataPoint[], f: PointFilter): Data
       (!f.inUse || (f.usage.byKey.get(p.key)?.length ?? 0) > 0)
   );
 }
-
-const fold = (text: string): string => text.toLowerCase();
 
 /**
  * The tree after the filter field and the health chip: a source stays when

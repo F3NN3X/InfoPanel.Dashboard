@@ -79,11 +79,14 @@ function Explorer({ config, setConfig, profile, onOpenZone }: SourcesPanelProps)
   const [inUse, setInUse] = useState(false);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
 
-  // Esc closes the point inspector (the endpoints popover handles its own Esc).
+  // Esc closes the point inspector, unless it was meant for a field or an open popup.
   useEffect(() => {
     if (selectedKey === null) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setSelectedKey(null);
+      if (e.key !== "Escape" || e.defaultPrevented) return;
+      const target = e.target instanceof Element ? e.target : null;
+      if (target?.closest('input, select, textarea, [role="dialog"], [role="menu"]')) return;
+      setSelectedKey(null);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -93,10 +96,11 @@ function Explorer({ config, setConfig, profile, onOpenZone }: SourcesPanelProps)
   const counts = useMemo(() => healthCounts(model.sources), [model.sources]);
 
   const filtered = useMemo(() => {
-    const allowed = health ? new Set(treeSources.map((s) => s.id)) : null;
+    // The health chip narrows the table; the tree's text filter only narrows the tree.
+    const allowed = health ? new Set(model.sources.filter((s) => s.status === health).map((s) => s.id)) : null;
     const pool = allowed ? model.points.filter((p) => allowed.has(p.sourceId)) : model.points;
     return filterPoints(pool, { scope, query, type, hideEmpty, inUse, usage });
-  }, [model.points, treeSources, health, scope, query, type, hideEmpty, inUse, usage]);
+  }, [model.points, model.sources, health, scope, query, type, hideEmpty, inUse, usage]);
   const rows = useMemo(() => flattenRows(filtered), [filtered]);
 
   const scopePoints = useMemo(
@@ -124,17 +128,20 @@ function Explorer({ config, setConfig, profile, onOpenZone }: SourcesPanelProps)
     if (bindPoint(config, zoneId, widgetId, key, modules, model) === config) {
       return toast(`${zone?.title ?? "That widget"} can't bind a single value`);
     }
-    setConfig((c) => bindPoint(c, zoneId, widgetId, key, modules, model), `bind:${key}`);
+    setConfig((c) => bindPoint(c, zoneId, widgetId, key, modules, model), `bind:${zoneId}:${widgetId ?? ""}:${key}`);
     toast(`Bound to ${zoneTitle(zoneId)}`);
   };
 
   const unbind = (key: string, zoneId: string, widgetId: string | undefined) => {
-    setConfig((c) => unbindPoint(c, zoneId, widgetId, key, modules, model), `bind:${key}`);
+    if (unbindPoint(config, zoneId, widgetId, key, modules, model) === config) {
+      return toast(`${zoneTitle(zoneId)} reads this data through its module; there is no binding to remove`);
+    }
+    setConfig((c) => unbindPoint(c, zoneId, widgetId, key, modules, model), `unbind:${zoneId}:${widgetId ?? ""}:${key}`);
     toast(`Unbound from ${zoneTitle(zoneId)}`);
   };
 
   const newWidget = (p: DataPoint) => {
-    setConfig((c) => addStatZone(c, profile.id, p, uid(PANEL_ID)), "explorer:new-widget");
+    setConfig((c) => addStatZone(c, profile.id, p, uid(PANEL_ID)));
     toast(`Added ${p.name}`);
   };
 
@@ -158,7 +165,7 @@ function Explorer({ config, setConfig, profile, onOpenZone }: SourcesPanelProps)
     { ok: 0, warn: 0, off: 0 }
   );
   const prefix = scope.kind === "all" ? "" : streamPrefix(scopePoints);
-  const streamUrl = prefix ? `${apiBase}/events?prefix=${prefix}` : `${apiBase}/events`;
+  const streamUrl = prefix ? `${apiBase}/events?prefix=${encodeURIComponent(prefix)}` : `${apiBase}/events`;
 
   const drawer = width < DRAWER_BELOW;
   const inspector = point ? (
@@ -213,6 +220,7 @@ function Explorer({ config, setConfig, profile, onOpenZone }: SourcesPanelProps)
           health={health}
           onHealth={setHealth}
           sourcePrefs={config.sourcePrefs}
+          onPrefsChange={onPrefsChange}
         />
         <PointTable
           breadcrumb={breadcrumb}

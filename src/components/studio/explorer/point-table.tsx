@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Copy, Link2, Search } from "lucide-react";
+import { Copy, Search } from "lucide-react";
 import { Segmented } from "@/components/ui/segmented";
 import type { DataPoint } from "@/lib/data-points";
 import type { UsageIndex } from "@/lib/data-usage";
@@ -110,6 +110,7 @@ export function PointTable({
         <div className="p-8 text-center text-[12.5px] text-ui-4">No data points match these filters.</div>
       ) : (
         <VirtualRows
+          key={`${breadcrumb}|${query}|${type}|${hideEmpty}|${inUse}|${shown}`}
           rows={rows}
           renderPoint={(p) => (
             <PointRow
@@ -133,7 +134,10 @@ interface VirtualRowsProps {
   renderPoint: (point: DataPoint) => ReactNode;
 }
 
-/** A fixed-row-height window over the flat list; the current group header stays pinned on top. */
+/**
+ * A fixed-row-height window over the flat list; the current group header stays pinned on top.
+ * The caller keys it on the filters, so a new result list starts scrolled to the top.
+ */
 function VirtualRows({ rows, renderPoint }: VirtualRowsProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [view, setView] = useState({ top: 0, height: 600 });
@@ -211,6 +215,7 @@ function PointRow({ point, cols, values, usage, selected, onSelect, showUsedBy }
       aria-current={selected}
       onClick={() => onSelect(point.key)}
       onKeyDown={(e) => {
+        if (e.target !== e.currentTarget) return;
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           onSelect(point.key);
@@ -244,7 +249,7 @@ function PointRow({ point, cols, values, usage, selected, onSelect, showUsedBy }
       <div className="flex justify-end gap-0.5">
         <button
           type="button"
-          aria-label="Copy key"
+          aria-label={`Copy key of ${point.name}`}
           title="Copy key"
           onClick={(e) => {
             e.stopPropagation();
@@ -253,18 +258,6 @@ function PointRow({ point, cols, values, usage, selected, onSelect, showUsedBy }
           className="flex h-6 w-6 items-center justify-center rounded text-ui-4 hover:bg-ui-active hover:text-ui-1"
         >
           <Copy className="h-3.5 w-3.5" />
-        </button>
-        <button
-          type="button"
-          aria-label="Bind"
-          title="Bind"
-          onClick={(e) => {
-            e.stopPropagation();
-            onSelect(point.key);
-          }}
-          className="flex h-6 w-6 items-center justify-center rounded text-ui-4 hover:bg-ui-active hover:text-ui-1"
-        >
-          <Link2 className="h-3.5 w-3.5" />
         </button>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useReducer } from "react";
 import { useSensors } from "@/hooks/useSensors";
-import { SampleHistory, recordSnapshot } from "@/lib/sample-history";
+import { subscribeApiBase } from "@/lib/data-api";
+import { SampleHistory, recordThrottled } from "@/lib/sample-history";
 import { sensorStore } from "@/lib/sensor-store";
 import type { SensorMap } from "@/modules/types";
 
@@ -14,7 +15,7 @@ import type { SensorMap } from "@/modules/types";
 export interface LiveData {
   values: SensorMap;
   history: SampleHistory;
-  /** Bumps once per new sensor message, for views that redraw their sparkline. */
+  /** Bumps once per recorded sample, for views that redraw their sparkline. */
   tick: number;
 }
 
@@ -26,14 +27,19 @@ export function useLiveData(active: boolean): LiveData {
 
   useEffect(() => {
     if (!active) return;
-    let last = 0;
-    return sensorStore.subscribeTick(() => {
-      const stamp = sensorStore.getTimestamp();
-      if (stamp === last) return;
-      last = stamp;
-      recordSnapshot(history, sensorStore.getValues());
+    // The store ticks on every message of every namespace stream; sample once per interval.
+    const offTick = sensorStore.subscribeTick(() => {
+      if (recordThrottled(history, sensorStore.getValues(), Date.now())) bump();
+    });
+    // A new Data API URL wipes the store's values; the old server's samples go with them.
+    const offBase = subscribeApiBase(() => {
+      history.clear();
       bump();
     });
+    return () => {
+      offTick();
+      offBase();
+    };
   }, [active, history]);
 
   return { values, history, tick };
