@@ -1,120 +1,110 @@
 import type { ReactNode } from "react";
-import { ChevronRight, Info } from "lucide-react";
+import { ChevronDown, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useInspectorLayout } from "./inspector-layout";
 import { useSectionState } from "./use-section-state";
 
-/** Attribute carrying a card's category id (jump-to and search reveal find cards by it). */
+/** Attribute carrying a section's id (jump-to finds sections by it). */
 export const SETTING_CARD = "data-setting-card";
 
-interface SettingCardProps {
-  /** The category id (also the remembered open state, `card:<id>`). */
+/** The remembered open state of a section. */
+export const sectionStateId = (id: string) => `section:${id}`;
+
+interface SettingSectionProps {
+  /** The section id (also its remembered open state). */
   id: string;
   title: string;
   /** Short description, shown as a tooltip on the info icon. */
   hint?: string;
-  /** Settings of this card set on the widget; 0 hides the badge and Reset. */
-  changed: number;
-  /** Small muted text after the title (e.g. the scope the card edits). */
+  /** The tab the section is in (search results label their sections with it). */
+  tabLabel?: string;
+  /** Small text after the title (e.g. the scope the section edits). */
   badge?: string;
-  /** Extra controls on a row above the rows (e.g. the style tools). */
+  /** Settings of this section set here; 0 hides the count and Reset. */
+  changed: number;
+  /** Header controls before Reset (the style tools). */
   actions?: ReactNode;
-  /** Drop just this card's own values. */
+  /** Drop just this section's own values. */
   onReset?: () => void;
-  /** Header collapses the body (beside the canvas); the dock shows every card open. */
-  collapsible?: boolean;
-  defaultOpen?: boolean;
   /** Open regardless of the remembered state (a search match inside). */
   forceOpen?: boolean;
-  /** Span every column of the dock (a code editor). */
+  /** Span every column of the bottom dock (a code editor). */
   wide?: boolean;
-  /** Marks the card the studio scrolls into view when a panel widget is selected. */
+  /** Marks the section the studio scrolls into view when a panel widget is selected. */
   editor?: boolean;
-  /** Briefly outline the card (it was just jumped to). */
+  /** Briefly outline the section (it was just jumped to). */
   flash?: boolean;
   children: ReactNode;
 }
 
 /**
- * A category card: title, hint, changed count with its own Reset, and the
- * rows. ~300px wide in the dock, full width beside the canvas, where it
- * can be collapsed.
+ * An inspector section (README §4.6): a header with a chevron that turns
+ * −90° when collapsed, the title, "N changed" and a Reset of only this
+ * section, then its field rows. It never splits across dock columns.
  */
-export function SettingCard({
+export function SettingSection({
   id,
   title,
   hint,
+  tabLabel,
   badge,
   changed,
   actions,
   onReset,
-  collapsible = false,
-  defaultOpen = true,
   forceOpen = false,
   wide = false,
   editor = false,
   flash = false,
   children,
-}: SettingCardProps) {
-  const dock = useInspectorLayout() === "dock";
+}: SettingSectionProps) {
   const { isOpen, setOpen } = useSectionState();
-  const canCollapse = collapsible && !dock;
-  const open = !canCollapse || forceOpen || isOpen(`card:${id}`, defaultOpen);
+  const open = forceOpen || isOpen(sectionStateId(id), true);
   return (
     <section
       {...{ [SETTING_CARD]: id }}
       data-widget-editor={editor ? "" : undefined}
       className={cn(
-        "break-inside-avoid rounded-md border bg-card/40 transition-shadow duration-500",
-        dock && !wide ? "w-[300px]" : "w-full",
-        dock && wide && "[column-span:all]",
-        flash ? "border-ring shadow-[0_0_0_2px_var(--color-ring)]" : "border-border/70"
+        "break-inside-avoid border-b border-ui-subtle transition-shadow duration-500",
+        wide && "[column-span:all]",
+        flash && "shadow-[inset_0_0_0_1.5px_var(--ui-accent)]"
       )}
     >
-      <header className="flex items-center gap-1.5 px-2.5 py-1.5">
-        {canCollapse ? (
-          <button
-            type="button"
-            aria-expanded={open}
-            onClick={() => setOpen(`card:${id}`, !open)}
-            className="flex min-w-0 items-center gap-1 text-left text-xs font-medium text-foreground"
-          >
-            <ChevronRight className={cn("h-3 w-3 shrink-0 transition-transform", open && "rotate-90")} />
-            <span className="truncate">{title}</span>
-          </button>
-        ) : (
-          <h3 className="min-w-0 truncate text-xs font-medium text-foreground">{title}</h3>
-        )}
-        {badge && <span className="shrink-0 text-[10px] text-muted-foreground/60">{badge}</span>}
+      <header className="flex min-h-[38px] items-center gap-2 px-4">
+        <button
+          type="button"
+          aria-expanded={open}
+          onClick={() => setOpen(sectionStateId(id), !open)}
+          className="flex min-w-0 flex-1 items-center gap-1.5 text-left"
+        >
+          <ChevronDown
+            className={cn("h-3.5 w-3.5 shrink-0 text-ui-4 transition-transform duration-150", !open && "-rotate-90")}
+          />
+          <span className="truncate text-[12.5px] font-semibold text-ui-1">{title}</span>
+          {tabLabel && (
+            <span className="shrink-0 rounded border border-ui-default px-1 text-[10.5px] text-ui-4">{tabLabel}</span>
+          )}
+          {badge && <span className="shrink-0 text-[11px] text-ui-5">{badge}</span>}
+        </button>
         {hint && (
-          <span title={hint} className="shrink-0 text-muted-foreground/60">
-            <Info className="h-3 w-3" aria-label={hint} />
+          <span title={hint} className="shrink-0 text-ui-5 hover:text-ui-2">
+            <Info className="h-3.5 w-3.5" aria-label={hint} />
           </span>
         )}
-        <span className="ml-auto flex shrink-0 items-center gap-1.5">
-          {changed > 0 && (
-            <span className="rounded-full bg-ring/20 px-1.5 text-[10px] tabular-nums text-foreground">
-              {changed}
-            </span>
-          )}
-          {changed > 0 && onReset && (
-            <button
-              type="button"
-              onClick={onReset}
-              title={`Reset ${title} to its defaults`}
-              className="text-[11px] text-muted-foreground hover:text-foreground"
-            >
-              Reset
-            </button>
-          )}
-        </span>
+        {changed > 0 && (
+          <span className="shrink-0 font-ui-mono text-[10px] text-ui-accent-text">{changed} changed</span>
+        )}
+        {actions}
+        {changed > 0 && onReset && (
+          <button
+            type="button"
+            onClick={onReset}
+            title={`Reset ${title}`}
+            className="shrink-0 text-[11px] text-ui-4 hover:text-ui-1"
+          >
+            Reset
+          </button>
+        )}
       </header>
-      {open && (
-        <div className="space-y-2 border-t border-border/60 px-2.5 py-2">
-          {actions && <div className="flex justify-end">{actions}</div>}
-          {children}
-        </div>
-      )}
+      {open && <div className="pb-2.5">{children}</div>}
     </section>
   );
 }

@@ -1,7 +1,10 @@
+import { useEffect, useRef } from "react";
 import type { DashboardConfig, MonitorProfile } from "@/lib/layout";
 import type { Appearance } from "@/lib/style-resolve";
 import { cn } from "@/lib/utils";
 import { DocumentInspector } from "./document-inspector";
+import { setInspectorTab } from "./inspector/inspector-prefs";
+import { MultiInspector } from "./inspector/multi-inspector";
 import { InspectorLayoutProvider } from "./inspector-layout";
 import type { useDocumentProps } from "./use-document-props";
 import type { StudioMutations } from "./use-studio-mutations";
@@ -21,12 +24,13 @@ interface StudioInspectorProps {
   edit: StudioMutations;
   documentProps: DocumentState["props"];
   setScopeStyle: DocumentState["setScopeStyle"];
+  /** Open a data point in Sources mode (a Bound data row); without it, Sources just opens. */
+  onOpenPoint?: (key: string) => void;
 }
 
 /**
- * The right (or docked) panel: the primary zone's inspector — with a note
- * when several zones are selected — or, with nothing selected, the
- * document inspector (appearance, background, general, connection).
+ * The right (or docked) panel: one zone's inspector, the shared look of
+ * several zones, or — with nothing selected — the Dashboard inspector.
  */
 export function StudioInspector({
   config,
@@ -37,61 +41,104 @@ export function StudioInspector({
   edit,
   documentProps,
   setScopeStyle,
+  onOpenPoint,
 }: StudioInspectorProps) {
-  const { selected, selectedWidgetId } = sel;
+  const { selected, selectedWidgetId, selection } = sel;
   const { docked } = ui;
+
+  // The zoom bar's resolution button and a profile's settings ask for a Dashboard tab.
+  const tabRequest = ui.documentTabRequest;
+  const lastTabRequest = useRef(tabRequest?.seq);
+  useEffect(() => {
+    if (!tabRequest || tabRequest.seq === lastTabRequest.current) return;
+    lastTabRequest.current = tabRequest.seq;
+    setInspectorTab("dashboard", tabRequest.tab);
+  }, [tabRequest]);
+
+  const openExplorer = () => ui.setMode("sources");
+  /** The Follow banner's "Edit global theme": Dashboard › Appearance. */
+  const editGlobalTheme = () => {
+    setInspectorTab("dashboard", "appearance");
+    sel.select(null);
+  };
+
+  const body =
+    selection.length > 1 ? (
+      <MultiInspector
+        zones={selection}
+        appearance={appearance}
+        updateProfile={edit.updateProfile}
+        onDeselect={(id) => sel.select(id, "toggle")}
+        onToggleVisible={edit.toggleSelectionVisible}
+        onDuplicate={edit.duplicateSelection}
+        onRemove={edit.removeSelection}
+        query={ui.inspectorQuery}
+        onQuery={ui.setInspectorQuery}
+        jumpTo={ui.inspectorJump}
+      />
+    ) : selected ? (
+      <ZoneInspector
+        placement={selected}
+        config={config}
+        profile={profile}
+        appearance={appearance}
+        stylePresets={config.stylePresets ?? []}
+        jumpTo={ui.inspectorJump}
+        request={ui.inspectorRequest}
+        styleClipboard={ui.styleClipboard}
+        onCopyStyle={ui.setStyleClipboard}
+        widgetClipboard={ui.widgetClipboard}
+        onCopyWidget={ui.setWidgetClipboard}
+        selectedWidgetId={selectedWidgetId}
+        onSelectWidget={(id) => sel.selectWidget(selected.id, id)}
+        onShowWidget={() => {
+          ui.setInspectorQuery("");
+          requestAnimationFrame(ui.revealEditor);
+        }}
+        query={ui.inspectorQuery}
+        onQuery={ui.setInspectorQuery}
+        update={edit.updateSelected}
+        updateProfile={edit.updateProfile}
+        onZoneBox={edit.setZoneBox}
+        onPickWidget={() => ui.setPickerFor(selected.id)}
+        onUseAsGlobal={(target, style) => setScopeStyle(target, () => style)}
+        onSavePreset={edit.saveStylePreset}
+        onDeletePreset={edit.deleteStylePreset}
+        onToggleVisible={() => edit.toggleVisible(selected.id)}
+        onDuplicate={() => edit.duplicateZones([selected.id])}
+        onRemove={() => edit.removePlacement(selected.id)}
+        presetNaming={ui.presetNaming}
+        onPresetNaming={ui.setPresetNaming}
+        onSavePanelPreset={edit.savePanelAsPreset}
+        onEditGlobalTheme={editGlobalTheme}
+        onOpenPoint={onOpenPoint ?? openExplorer}
+        onOpenExplorer={openExplorer}
+      />
+    ) : (
+      <DocumentInspector
+        jumpTo={ui.inspectorJump}
+        {...documentProps}
+        activeProfile={profile}
+        updateProfile={edit.updateProfile}
+        canRemoveProfile={config.profiles.length > 1}
+        onRemoveProfile={edit.removeProfile}
+        autoPick={config.activeProfile === "auto"}
+        onAutoPick={(auto) => edit.activateProfile(auto ? "auto" : profile.id)}
+        layoutMode={ui.studioLayout.mode}
+        onLayoutMode={ui.studioLayout.setMode}
+      />
+    );
+
   return (
     <aside
       ref={ui.inspectorRef}
+      aria-label="Inspector"
       className={cn(
-        "flex flex-col bg-popover/40",
-        docked ? "h-full min-w-0 flex-1 overflow-hidden" : "w-72 shrink-0 overflow-y-auto border-l"
+        "flex flex-col overflow-hidden bg-ui-panel font-ui text-ui-2",
+        docked ? "h-full min-w-0 flex-1 border-t border-ui-subtle" : "w-[340px] shrink-0 border-l border-ui-subtle"
       )}
     >
-      <InspectorLayoutProvider value={docked ? "dock" : "side"}>
-        {sel.selection.length > 1 && (
-          <p className="shrink-0 border-b px-3 py-1.5 text-xs text-muted-foreground">
-            {sel.selection.length} zones selected
-          </p>
-        )}
-        {selected ? (
-          <ZoneInspector
-            placement={selected}
-            cols={profile.cols}
-            rows={profile.rows}
-            appearance={appearance}
-            stylePresets={config.stylePresets ?? []}
-            jumpTo={ui.inspectorJump}
-            styleClipboard={ui.styleClipboard}
-            onCopyStyle={ui.setStyleClipboard}
-            widgetClipboard={ui.widgetClipboard}
-            onCopyWidget={ui.setWidgetClipboard}
-            selectedWidgetId={selectedWidgetId}
-            onSelectWidget={(id) => sel.selectWidget(selected.id, id)}
-            onShowWidget={() => {
-              ui.setInspectorQuery("");
-              requestAnimationFrame(ui.revealEditor);
-            }}
-            query={ui.inspectorQuery}
-            onQuery={ui.setInspectorQuery}
-            onClose={() => sel.select(null)}
-            update={edit.updateSelected}
-            onZoneBox={edit.setZoneBox}
-            onPickWidget={() => ui.setPickerFor(selected.id)}
-            onUseAsGlobal={(target, style) => setScopeStyle(target, () => style)}
-            onSavePreset={edit.saveStylePreset}
-            onDeletePreset={edit.deleteStylePreset}
-            onToggleVisible={() => edit.toggleVisible(selected.id)}
-            onDuplicate={() => edit.duplicateZones([selected.id])}
-            onRemove={() => edit.removePlacement(selected.id)}
-            presetNaming={ui.presetNaming}
-            onPresetNaming={ui.setPresetNaming}
-            onSavePanelPreset={edit.savePanelAsPreset}
-          />
-        ) : (
-          <DocumentInspector jumpTo={ui.inspectorJump} {...documentProps} />
-        )}
-      </InspectorLayoutProvider>
+      <InspectorLayoutProvider value={docked ? "dock" : "side"}>{body}</InspectorLayoutProvider>
     </aside>
   );
 }

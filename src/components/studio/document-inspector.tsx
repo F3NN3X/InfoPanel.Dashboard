@@ -1,28 +1,39 @@
 import { useState } from "react";
-import { PROFILE_STYLE_SETTINGS } from "@/modules/standard-settings";
-import type { ModuleSettings } from "@/modules/types";
+import { Segmented } from "@/components/ui/segmented";
 import type { PageBackground } from "@/lib/appearance";
 import type { GeneralSettings } from "@/lib/general";
-import type { StyleSource } from "@/lib/style-resolve";
+import type { MonitorProfile } from "@/lib/layout";
 import { THEME_PRESETS, type ThemeTokens } from "@/lib/theme";
+import type { ModuleSettings } from "@/modules/types";
 import { AppearanceGallery } from "./appearance-gallery";
 import { GlobalStyleScope, type AppearanceTarget } from "./appearance-panel";
 import { BackgroundPanel, type BackgroundTarget } from "./background-panel";
-import { CategorySheet, type SheetCard, type SheetGroup } from "./category-sheet";
 import { DataApiPanel } from "./data-api-panel";
 import { generalCards } from "./general-panel";
-import { categorize, filterCategories } from "./inspector-categories";
-import { HeaderSlot, InspectorHeader, useInspectorLayout } from "./inspector-layout";
+import { InspectorNote, InspectorView, type SectionParts } from "./inspector/inspector-view";
+import { AutoPick, ProfileFields, ProfileInherit } from "./inspector/profile-sections";
+import { HeaderSlot } from "./inspector-layout";
+import {
+  globalStyleValues,
+  inspectorNotes,
+  isVisible,
+  type InspectorContext,
+  type InspectorSection,
+} from "./inspector-model";
 import { ProfileThemePanel, type ProfileTheme } from "./profile-theme-panel";
-import { dropKeys, matchesQuery } from "./settings-model";
+import type { FieldsApi } from "./settings-panel";
+import { dropKeys } from "./settings-model";
+import type { LayoutMode } from "./studio-layout";
 import { ThemePanel } from "./theme-panel";
 import type { AppearancePresetsApi } from "./use-appearance-presets";
-import { SettingsSearch } from "./zone-inspector-parts";
+import { DashboardHeader } from "./zone-inspector-parts";
+import { shownValue, shownValues } from "./inspector/zone-fields";
+import { PROFILE_STYLE_SETTINGS } from "@/modules/standard-settings";
 
-/** The parts of the document sheet (the palette's "Appearance…" and friends jump to them). */
+/** The parts of the dashboard inspector the palette's "Appearance…" and friends jump to. */
 export type DocumentTab = "appearance" | "background" | "general" | "connection";
 
-/** The card each part jumps to. */
+/** The section each part jumps to (its document card id). */
 export const DOCUMENT_CARD: Record<DocumentTab, string> = {
   appearance: "doc:appearance",
   background: "doc:background",
@@ -31,7 +42,7 @@ export const DOCUMENT_CARD: Record<DocumentTab, string> = {
 };
 
 export interface DocumentInspectorProps {
-  /** Scroll to a card whenever `seq` changes (the palette's document commands). */
+  /** Open, reveal and outline a section whenever `seq` changes (the palette's document commands). */
   jumpTo?: { id: string; seq: number };
   theme: ThemeTokens;
   radius: number;
@@ -67,16 +78,36 @@ export interface DocumentInspectorProps {
   onDataApiUrl: (url: string) => void;
 }
 
+/** What the Profile and General tabs edit besides the document props. */
+export interface DashboardStudioProps {
+  /** The active profile, whole (Profile tab). */
+  activeProfile: MonitorProfile;
+  updateProfile: (fn: (p: MonitorProfile) => MonitorProfile, key?: string) => void;
+  canRemoveProfile: boolean;
+  onRemoveProfile: () => void;
+  /** The config picks the profile by window size ("auto"). */
+  autoPick: boolean;
+  onAutoPick: (auto: boolean) => void;
+  /** General › Studio: the inspector position. */
+  layoutMode: LayoutMode;
+  onLayoutMode: (mode: LayoutMode) => void;
+}
+
+const INSPECTOR_POSITIONS = [
+  { value: "side" as const, label: "Side" },
+  { value: "bottom" as const, label: "Bottom" },
+  { value: "auto" as const, label: "Auto", title: "Bottom for wide, short profiles; else beside the canvas" },
+];
+
 /**
- * Right panel with nothing selected, as one sheet like a zone's: the
- * global style (scope switch and force, the presets gallery, then the style
- * in the same categories as a widget's), the page (theme colors, background),
- * General (font, clock, motion, kiosk cursor) and Connection (Data API).
- * The scope switch sits in the first card; theme colors follow it, the
- * background card has its own.
+ * The inspector with nothing selected: the Dashboard, in the tabs Profile ·
+ * Appearance · Global style · General (README §4.7), with the same
+ * sections, dots, search and Advanced filter as a zone. The registry
+ * places the existing cards (scope and force, presets, theme, page
+ * background, general, connection) into its sections.
  */
-export function DocumentInspector(props: DocumentInspectorProps) {
-  // Remount per profile: the scopes start where this profile has its own settings.
+export function DocumentInspector(props: DocumentInspectorProps & DashboardStudioProps) {
+  // Remount per profile: the scope starts where this profile has its own settings.
   return <DocumentSheet key={props.profile.id} {...props} />;
 }
 
@@ -100,37 +131,66 @@ function DocumentSheet({
   onGeneral,
   dataApiUrl,
   onDataApiUrl,
-}: DocumentInspectorProps) {
-  const dock = useInspectorLayout() === "dock";
+  activeProfile,
+  updateProfile,
+  canRemoveProfile,
+  onRemoveProfile,
+  autoPick,
+  onAutoPick,
+  layoutMode,
+  onLayoutMode,
+}: DocumentInspectorProps & DashboardStudioProps) {
   const [query, setQuery] = useState("");
-  const searching = query.trim() !== "";
   const [target, setTarget] = useState<AppearanceTarget>(
     profile.style || profile.styleEnforce !== undefined ? "profile" : "all"
   );
   const all = target === "all";
+  const scope = all ? "All profiles" : "This profile";
+  const context: InspectorContext = { kind: "dashboard", scope: target, profileName: profile.name };
+
   const change = (fn: (style: ModuleSettings) => ModuleSettings) => onStyle(target, fn);
-  // This profile inherits the dashboard style (its rows' dots say so).
-  const inherited = all ? undefined : dashboardStyle;
-  const inheritedFrom = inherited
-    ? Object.fromEntries(Object.keys(inherited).map((k): [string, StyleSource] => [k, "dashboard"]))
-    : undefined;
-  const scope = all ? "all profiles" : "this profile";
+  const values = globalStyleValues(target, dashboardStyle, profile.style);
+  const fields: FieldsApi = {
+    values,
+    shown: (key, def) => shownValue(values, key, def),
+    onChange: (key, v) => change((s) => ({ ...s, [key]: v })),
+    onPatch: (patch) => change((s) => ({ ...s, ...patch })),
+    onClear: (keys) => change((s) => dropKeys(s, new Set(keys)) ?? {}),
+  };
+  const effective = shownValues(values, PROFILE_STYLE_SETTINGS);
+  const generalById = new Map(generalCards(general, onGeneral).map((c) => [c.id, c] as const));
 
-  const visible = (cards: SheetCard[]) => (searching ? cards.filter((c) => matchesQuery(c.terms, query)) : cards);
-  const groupsOf = (list: SheetGroup[]) =>
-    list.map((g) => ({ ...g, cards: visible(g.cards) })).filter((g) => g.cards.length > 0);
-
-  const leading = groupsOf([
-    {
-      heading: "Appearance",
-      cards: [
-        {
-          id: "doc:appearance",
-          title: "Global style",
-          badge: scope,
-          hint: "The defaults every widget starts from; choose whether you edit all profiles or this one",
-          terms: ["Global style", "Appearance", "All profiles", "This profile", "Force global style", "Scope"],
-          node: (
+  const parts = (s: InspectorSection): SectionParts => {
+    switch (s.special) {
+      case "profileFields":
+        return {
+          body: (
+            <ProfileFields
+              profile={activeProfile}
+              updateProfile={updateProfile}
+              canRemove={canRemoveProfile}
+              onRemove={onRemoveProfile}
+            />
+          ),
+        };
+      case "profileInherit":
+        return {
+          body: (
+            <ProfileInherit
+              profile={activeProfile}
+              dashboardTheme={{ theme, radius }}
+              dashboardBackground={background}
+              onProfileTheme={onProfileTheme}
+              onBackground={onBackground}
+              updateProfile={updateProfile}
+            />
+          ),
+        };
+      case "profileSelection":
+        return { body: <AutoPick auto={autoPick} onAuto={onAutoPick} /> };
+      case "scope":
+        return {
+          body: (
             <GlobalStyleScope
               target={target}
               onTarget={setTarget}
@@ -140,30 +200,13 @@ function DocumentSheet({
               onEnforce={onEnforce}
             />
           ),
-        },
-        {
-          id: "doc:presets",
-          title: "Presets",
+        };
+      case "presets":
+        return { badge: scope, body: <AppearanceGallery api={presets} target={target} /> };
+      case "theme":
+        return {
           badge: scope,
-          hint: "Whole looks: theme colors, style and background",
-          wide: true,
-          terms: ["Presets", "Look", "Theme", "Save current as preset"],
-          node: <AppearanceGallery api={presets} target={target} />,
-        },
-      ],
-    },
-  ]);
-  const groups = groupsOf([
-    {
-      heading: "Page",
-      cards: [
-        {
-          id: "doc:theme",
-          title: "Theme colors",
-          badge: scope,
-          hint: "The dashboard's colors and corner radius; a profile can use its own",
-          terms: ["Theme colors", "Theme", "Colors", "Radius", "Accent"],
-          node: all ? (
+          body: all ? (
             <ThemePanel
               tokens={theme}
               radius={radius}
@@ -182,13 +225,10 @@ function DocumentSheet({
               onChange={onProfileTheme}
             />
           ),
-        },
-        {
-          id: "doc:background",
-          title: "Background",
-          hint: "The page behind the grid (a color, gradient, image or video)",
-          terms: ["Background", "Page background", "Color", "Gradient", "Image", "Video"],
-          node: (
+        };
+      case "pageBackground":
+        return {
+          body: (
             <BackgroundPanel
               dashboard={background}
               profileBackground={profile.background}
@@ -196,58 +236,54 @@ function DocumentSheet({
               onChange={onBackground}
             />
           ),
-        },
-      ],
-    },
-    { heading: "General", cards: generalCards(general, onGeneral) },
-    {
-      heading: "Connection",
-      cards: [
-        {
-          id: "doc:connection",
-          title: "Data API URL",
-          hint: "Where the dashboard reads live sensor data",
-          terms: ["Connection", "Data API", "URL", "Test connection", "API index"],
-          node: <DataApiPanel value={dataApiUrl} onChange={onDataApiUrl} />,
-        },
-      ],
-    },
-  ]);
+        };
+      case "type":
+      case "clock":
+      case "display": {
+        const card = s.cardId ? generalById.get(s.cardId) : undefined;
+        return card ? { body: card.node, changed: card.changed, onReset: card.onReset } : {};
+      }
+      case "studio":
+        return {
+          body: (
+            <div className="space-y-1">
+              <span className="text-[12.5px] text-ui-2">Inspector position</span>
+              <Segmented
+                label="Inspector position"
+                options={INSPECTOR_POSITIONS}
+                value={layoutMode}
+                onChange={onLayoutMode}
+                className="w-full *:flex-1"
+              />
+            </div>
+          ),
+        };
+      case "connection":
+        return { body: <DataApiPanel value={dataApiUrl} onChange={onDataApiUrl} /> };
+      default:
+        return { badge: scope };
+    }
+  };
 
-  const base = categorize(PROFILE_STYLE_SETTINGS);
-  const sheet = (
-    <CategorySheet
-      categories={searching ? filterCategories(base, query) : base}
-      moduleTitle=""
-      generalTitle="Global style"
-      badge={scope}
-      openByDefault
-      openAll={searching}
-      value={all ? dashboardStyle : profile.style}
-      inherited={inherited}
-      inheritedFrom={inheritedFrom}
-      onChange={(key, v) => change((s) => ({ ...s, [key]: v }))}
-      onPatch={(patch) => change((s) => ({ ...s, ...patch }))}
-      onClear={(keys) => change((s) => dropKeys(s, new Set(keys)) ?? {})}
-      leading={leading}
-      groups={groups}
-      jumpTo={jumpTo}
-    />
-  );
+  const notes = (tab: Parameters<typeof inspectorNotes>[1]) =>
+    inspectorNotes(context, tab).map((n) => <InspectorNote key={n.kind}>{n.text}</InspectorNote>);
 
   return (
-    <section className={dock ? "flex h-full min-h-0 flex-col" : undefined}>
-      <InspectorHeader side="sticky top-0 z-10 space-y-2.5 border-b bg-popover p-3">
-        <HeaderSlot className="min-w-60 flex-1">
-          <p className="text-xs text-muted-foreground">
-            Select a zone to edit it — or set the appearance, background, general settings and connection here.
-          </p>
+    <InspectorView
+      context={context}
+      contextKey="dashboard"
+      header={
+        <HeaderSlot className="w-80 shrink-0">
+          <DashboardHeader profileName={profile.name} />
         </HeaderSlot>
-        <HeaderSlot className="w-56 shrink-0">
-          <SettingsSearch query={query} onQuery={setQuery} />
-        </HeaderSlot>
-      </InspectorHeader>
-      {dock ? sheet : <div className="p-4">{sheet}</div>}
-    </section>
+      }
+      fields={fields}
+      visible={(def) => isVisible(def, effective)}
+      parts={parts}
+      notes={notes}
+      query={query}
+      onQuery={setQuery}
+      jumpTo={jumpTo}
+    />
   );
 }

@@ -7,43 +7,28 @@ const MODES = [
 ];
 
 /**
- * The top of a widget's Style tab: follow the global style or keep a
- * custom look. Following (or a forced global style) shows the look rows
- * read-only; "Customize" switches back to custom. The widget's own values
- * stay stored either way.
+ * Colors & surface › Look: follow the global style or keep a custom look.
+ * The widget's own values stay stored either way; the Style tab's banner
+ * explains what following (or a forced global style) means.
  */
 export function StyleModeBar({
   mode,
-  enforced,
   onMode,
 }: {
   /** The placement's `styleMode` (unset counts as custom). */
   mode: StyleMode | undefined;
-  /** The global style is forced on every widget of the profile. */
-  enforced: boolean;
   onMode: (mode: StyleMode) => void;
 }) {
-  const value = mode === "follow" ? "follow" : "custom";
   return (
     <div className="space-y-1.5">
-      <Segmented options={MODES} value={value} onChange={onMode} className="w-full *:flex-1" />
-      {enforced ? (
-        <p className="text-[11px] text-muted-foreground/70">
-          The global style is forced on every widget (Appearance); this widget&apos;s own look is
-          kept but not shown.
-        </p>
-      ) : value === "follow" ? (
-        <p className="text-[11px] text-muted-foreground/70">
-          Takes the global style (Appearance); its own look is kept but not shown.{" "}
-          <button
-            type="button"
-            className="text-foreground underline-offset-2 hover:underline"
-            onClick={() => onMode("custom")}
-          >
-            Customize
-          </button>
-        </p>
-      ) : null}
+      <div className="text-[12.5px] text-ui-2">Look</div>
+      <Segmented
+        options={MODES}
+        value={mode === "follow" ? "follow" : "custom"}
+        onChange={onMode}
+        label="Look"
+        className="w-full *:flex-1"
+      />
     </div>
   );
 }

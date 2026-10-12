@@ -18,12 +18,12 @@ interface StyleToolsProps {
 }
 
 export const ICON_BUTTON =
-  "flex h-6 w-6 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-accent/40 hover:text-foreground disabled:pointer-events-none disabled:opacity-40 data-popup-open:bg-accent/40 data-popup-open:text-foreground";
+  "flex h-6 w-6 items-center justify-center rounded-md border border-ui-strong text-ui-3 transition-colors hover:bg-ui-hover hover:text-ui-1 disabled:pointer-events-none disabled:opacity-40 data-popup-open:bg-ui-hover data-popup-open:text-ui-1";
 export const POPUP =
-  "min-w-40 rounded-md border border-border bg-popover p-1 text-xs text-foreground shadow-lg outline-none";
+  "min-w-40 rounded-[9px] border border-ui-menu bg-ui-raised p-1 font-ui text-[12.5px] text-ui-2 shadow-ui-menu outline-none";
 export const ITEM =
-  "flex cursor-default items-center justify-between gap-3 rounded-[5px] px-2 py-1.5 outline-none select-none data-disabled:text-muted-foreground/50 data-highlighted:bg-accent data-popup-open:bg-accent/60";
-export const SEPARATOR = "mx-1 my-1 h-px bg-border";
+  "flex h-[30px] cursor-default items-center justify-between gap-3 rounded-md px-2 outline-none select-none data-disabled:text-ui-5 data-highlighted:bg-ui-hover data-highlighted:text-ui-1 data-popup-open:bg-ui-hover";
+export const SEPARATOR = "mx-1 my-1 h-px bg-ui-subtle";
 
 /** A "▸" submenu listing the style presets. */
 function PresetSubmenu({
@@ -93,7 +93,7 @@ export function StyleTools({
           }}
           onBlur={() => !name.trim() && setName(null)}
           placeholder="Preset name"
-          className="w-28 rounded-md border border-border bg-background px-2 py-0.5 text-xs text-foreground placeholder:text-muted-foreground/50"
+          className="h-6 w-28 rounded-md border border-ui-default bg-ui-app px-2 text-[12px] text-ui-1 outline-none placeholder:text-ui-5 focus:border-ui-accent"
         />
         <button
           type="button"

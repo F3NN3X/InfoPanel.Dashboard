@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSectionState } from "./use-section-state";
 
@@ -15,7 +16,7 @@ interface CollapsibleSectionProps {
   children: ReactNode;
 }
 
-/** A bordered inspector section that remembers whether it is open. */
+/** A bordered sub-section inside an inspector section that remembers whether it is open. */
 export function CollapsibleSection({
   id,
   title,
@@ -27,24 +28,20 @@ export function CollapsibleSection({
   const { isOpen, setOpen } = useSectionState();
   const open = forceOpen || isOpen(id, defaultOpen);
   return (
-    <div className="break-inside-avoid rounded-md border border-border/70">
+    <div className="break-inside-avoid rounded-lg border border-ui-default">
       <button
         type="button"
         aria-expanded={open}
         onClick={() => setOpen(id, !open)}
-        className="flex w-full items-center justify-between px-2.5 py-2 text-left text-xs font-medium text-foreground"
+        className="flex w-full items-center gap-1.5 px-2.5 py-2 text-left text-[12px] font-medium text-ui-1"
       >
-        <span>{title}</span>
-        <span className="text-[11px] font-normal text-muted-foreground">
-          {aside}
-          <span className={cn("ml-1.5 inline-block transition-transform", open && "rotate-90")}>
-            ›
-          </span>
-        </span>
+        <ChevronDown
+          className={cn("h-3.5 w-3.5 shrink-0 text-ui-4 transition-transform duration-150", !open && "-rotate-90")}
+        />
+        <span className="flex-1">{title}</span>
+        <span className="font-ui-mono text-[10px] font-normal text-ui-accent-text">{aside}</span>
       </button>
-      {open && (
-        <div className="space-y-3 border-t border-border/70 px-2.5 py-2.5">{children}</div>
-      )}
+      {open && <div className="space-y-3 border-t border-ui-default px-2.5 py-2.5">{children}</div>}
     </div>
   );
 }

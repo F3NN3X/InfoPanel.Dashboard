@@ -1,13 +1,33 @@
-import type { ReactNode } from "react";
+import { Ban } from "lucide-react";
+import { IconGrid, type IconGridItem } from "@/components/ui/icon-grid";
 import type { ApiSources } from "@/lib/catalog";
 import { sourceOptions } from "@/lib/sources";
-import { cn } from "@/lib/utils";
 import { WIDGET_ICONS } from "@/lib/widget-icons";
 import type { ModuleSetting, ModuleSettingValue, ModuleSettings } from "@/modules/types";
 import { AlignGrid } from "./align-grid";
 import { MediaField } from "./media-field";
-import { ColorRow, SegmentedRow, SelectRow, SliderRow, StackRow, TextRow, ToggleRow } from "./setting-rows";
+import {
+  ColorRow,
+  SegmentedRow,
+  SelectRow,
+  SliderRow,
+  StackRow,
+  TextRow,
+  ToggleRow,
+  type RowLabelProps,
+} from "./setting-rows";
 import { MediaDevicePicker, MultiSelect, WavelinkMeterPicker } from "./setting-pickers";
+
+/** The icon grid's cells: "none" first, then every widget icon. */
+const ICONS: IconGridItem[] = [
+  { id: "", label: "None", icon: <Ban /> },
+  ...Object.entries(WIDGET_ICONS).map(([name, Icon]) => ({ id: name, label: name, icon: <Icon /> })),
+];
+
+/** Placeholders of text settings by key. */
+const PLACEHOLDERS: Record<string, string> = {
+  label: "Uses the widget name",
+};
 
 /** The control for one setting, chosen by its schema type. */
 export function SettingRow({
@@ -18,6 +38,8 @@ export function SettingRow({
   onApply,
   onPatch,
   sources,
+  lead,
+  hint,
 }: {
   def: ModuleSetting;
   value: ModuleSettingValue;
@@ -29,12 +51,16 @@ export function SettingRow({
   /** Type "align": write both keys as one change. */
   onPatch?: (patch: ModuleSettings) => void;
   sources: ApiSources | null;
+  /** Before the label (the source dot). */
+  lead?: RowLabelProps["lead"];
+  hint?: string;
 }) {
+  const label: RowLabelProps = { label: def.label, lead, hint };
   switch (def.type) {
     case "align": {
       const auto = String(def.default);
       return (
-        <StackRow label={def.label}>
+        <StackRow {...label}>
           <AlignGrid
             label={def.label}
             x={String(value)}
@@ -47,21 +73,17 @@ export function SettingRow({
     }
 
     case "boolean":
-      return <ToggleRow label={def.label} value={value === true} onChange={onChange} />;
+      return <ToggleRow {...label} value={value === true} onChange={onChange} />;
 
     case "color":
       return (
-        <ColorRow
-          label={def.label}
-          value={typeof value === "string" ? value : String(def.default ?? "")}
-          onChange={onChange}
-        />
+        <ColorRow {...label} value={typeof value === "string" ? value : String(def.default ?? "")} onChange={onChange} />
       );
 
     case "number":
       return (
         <SliderRow
-          label={def.label}
+          {...label}
           value={typeof value === "number" ? value : Number(def.default) || 0}
           min={def.min}
           max={def.max}
@@ -75,26 +97,23 @@ export function SettingRow({
       // Capture devices: options come from an async `enumerateDevices()`
       // hook, so a dedicated component owns it.
       if (def.optionsFrom === "media") {
-        return (
-          <MediaDevicePicker def={def} value={String(value)} onChange={onChange} />
-        );
+        return <MediaDevicePicker def={def} value={String(value)} onChange={onChange} lead={lead} hint={hint} />;
       }
       // Wave Link meters: options come from the plugin's live inventory
       // (channels + output devices), so a dedicated component owns it.
       if (def.optionsFrom === "wavelink") {
-        return (
-          <WavelinkMeterPicker def={def} value={String(value)} onChange={onChange} />
-        );
+        return <WavelinkMeterPicker def={def} value={String(value)} onChange={onChange} lead={lead} hint={hint} />;
       }
-      // Multi-select (stored comma-separated) over static or source options.
+      // Dynamic options resolved from live sensor data (a plugin's
+      // currently-exposed containers), falling back to the static list.
+      const options =
+        (def.optionsFrom === "sources" && def.sourcePlugin ? sourceOptions(sources, def.sourcePlugin) : def.options) ??
+        [];
+      // Multi-select (stored comma-separated): a checklist.
       if (def.multiple) {
-        const multiOptions =
-          def.optionsFrom === "sources" && def.sourcePlugin
-            ? sourceOptions(sources, def.sourcePlugin)
-            : def.options;
         return (
-          <StackRow label={def.label}>
-            <MultiSelect value={String(value)} onChange={onChange} options={multiOptions ?? []} />
+          <StackRow {...label}>
+            <MultiSelect value={String(value)} onChange={onChange} options={options} label={def.label} />
           </StackRow>
         );
       }
@@ -104,91 +123,50 @@ export function SettingRow({
         const applies = def.options?.find((o) => o.value === v)?.applies;
         if (applies) onApply?.(applies);
       };
-      // Dynamic options resolved from live sensor data (a plugin's
-      // currently-exposed containers), falling back to the static list.
-      const options =
-        (def.optionsFrom === "sources" && def.sourcePlugin
-          ? sourceOptions(sources, def.sourcePlugin)
-          : def.options) ?? [];
       const choices = options.map((o) => ({ value: o.value, label: o.label }));
       return options.length <= 4 && options.length > 0 ? (
-        <SegmentedRow label={def.label} options={choices} value={String(value)} onChange={apply} />
+        <SegmentedRow {...label} options={choices} value={String(value)} onChange={apply} />
       ) : (
-        <SelectRow label={def.label} options={choices} value={String(value)} onChange={apply} />
+        <SelectRow {...label} options={choices} value={String(value)} onChange={apply} />
       );
     }
 
-    case "icon": {
-      const str = String(value);
+    case "icon":
       return (
-        <StackRow label={def.label}>
-          <div className="flex flex-wrap gap-1">
-            <IconButton active={str === ""} onClick={() => onChange("")} title="None">
-              <span className="text-xs">—</span>
-            </IconButton>
-            {Object.entries(WIDGET_ICONS).map(([name, Icon]) => (
-              <IconButton
-                key={name}
-                active={str === name}
-                onClick={() => onChange(name)}
-                title={name}
-              >
-                <Icon className="h-3.5 w-3.5" />
-              </IconButton>
-            ))}
-          </div>
+        <StackRow {...label}>
+          <IconGrid icons={ICONS} value={String(value)} onChange={onChange} columns={7} label={def.label} />
         </StackRow>
       );
-    }
 
     case "image": {
-      // Typed, uploaded or picked from the library; "" means none.
+      // Typed, uploaded, dropped or picked from the library; "" means none.
       const url = String(value);
+      // The field draws its own label (with Upload and the library); the dot sits before it.
       return (
-        <MediaField
-          label={def.label}
-          kind="image"
-          value={url === "" ? undefined : url}
-          onChange={(src) => onChange(src ?? "")}
-          preview="thumb"
-        />
+        <div className="flex gap-2">
+          {lead && <span className="pt-[5px]">{lead}</span>}
+          <div className="min-w-0 flex-1">
+            <MediaField
+              label={def.label}
+              kind="image"
+              value={url === "" ? undefined : url}
+              onChange={(src) => onChange(src ?? "")}
+              preview="thumb"
+            />
+          </div>
+        </div>
       );
     }
 
     default:
       return (
         <TextRow
-          label={def.label}
+          {...label}
           value={String(value)}
           multiline={def.multiline}
+          placeholder={PLACEHOLDERS[def.key]}
           onChange={onChange}
         />
       );
   }
-}
-
-function IconButton({
-  active,
-  onClick,
-  title,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  title: string;
-  children: ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      title={title}
-      className={cn(
-        "flex h-7 w-7 items-center justify-center rounded-md border text-muted-foreground transition-colors hover:text-foreground",
-        active ? "border-ring bg-accent text-foreground" : "border-border"
-      )}
-    >
-      {children}
-    </button>
-  );
 }

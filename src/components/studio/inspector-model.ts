@@ -578,3 +578,46 @@ export function inspectorNotes(
   }
   return notes;
 }
+
+// -- view helpers -----------------------------------------------------------------
+
+/**
+ * The settings several zones share, in the first zone's order (the
+ * multi-select edits only what every selected zone has).
+ */
+export function sharedDefs(defsList: readonly ModuleSetting[][]): ModuleSetting[] {
+  const [first = [], ...rest] = defsList;
+  const others = rest.map((defs) => new Set(defs.map((d) => d.key)));
+  return first.filter((d) => others.every((keys) => keys.has(d.key)));
+}
+
+/**
+ * The sections with only the settings that show for the current values
+ * (`visibleIf`); a section left with nothing to show drops out.
+ */
+export function visibleSections(
+  sections: InspectorSection[],
+  visible: (def: ModuleSetting) => boolean
+): InspectorSection[] {
+  return sections.flatMap((s) => {
+    const settings = s.settings.filter(visible);
+    if (settings.length === s.settings.length) return [s];
+    return settings.length > 0 || s.extras.length > 0 || s.special ? [{ ...s, settings }] : [];
+  });
+}
+
+/**
+ * The section a jump ("Go to …" in the palette, the selection chip's
+ * Style) lands on: by its id, its document card id, or the first section
+ * of a general category that was split across tabs.
+ */
+export function jumpTarget(sections: InspectorSection[], id: string): InspectorSection | undefined {
+  return (
+    sections.find((s) => s.id === id) ??
+    sections.find((s) => s.cardId === id) ??
+    sections.find((s) => s.id.startsWith(`${id}@`))
+  );
+}
+
+/** Whether a section's custom UI matches a search (blank = yes). */
+export const extraMatches = (e: SectionExtra, query: string): boolean => matchesQuery(EXTRA_TERMS[e.kind], query);
