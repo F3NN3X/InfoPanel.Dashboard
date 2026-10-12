@@ -1,6 +1,6 @@
 // Primitives: icons, numerals, meters, rings, graphs, chips, images and the inline visualiser.
 // Text and track colours come from the shell's --w-* variables (decision 5).
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { has, clamp, fmt } from "./data";
 import { mix } from "./tokens";
 import { rampColor, accentOf, useSkin, STATE, TONES, tone } from "./theme";
@@ -267,7 +267,7 @@ export interface SparkProps {
 }
 // Graph styles: area · line · step · bars · dots · braille (from the skin, or pass graph=)
 export function Spark({ values = [], min, max, className = "h-10", fill = true, color = "var(--accent)", width = 1.75, graph }: SparkProps) {
-  const id = useRef(`sp${Math.random().toString(36).slice(2, 8)}`).current;
+  const id = `sp${useId().replace(/:/g, "")}`;
   const sk = useSkin();
   const mode = graph ?? sk.graph ?? "area";
   if (values.length < 2) return <div className={className} />;
