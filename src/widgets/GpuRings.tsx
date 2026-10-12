@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, fmt, pretty, useSkin, numFont, hue, hw, RingStack, LegendRow, type ShellProps, type WidgetMeta } from "./kit";
+import { fitRows, Widget, shell, get, num, fmt, pretty, useSkin, numFont, hue, hw, RingStack, LegendRow, type ShellProps, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "GpuRings",
@@ -50,7 +50,7 @@ export default function GpuRings(p: GpuRingsProps) {
   ];
   const name = (get(d, "plugins.InfoPanel.RTSS.rtss.gpu-name") || pretty(gpu ?? "")).replace(/^NVIDIA GeForce /, "");
   const rings = (size: number) => (
-    <RingStack rings={[{ v: outer.v, color: cO }, { v: inner.v, color: cI }]} thickness={9} gap={3} className="shrink-0" style={{ width: size, height: size }}>
+    <RingStack rings={[{ v: outer.v, color: cO }, { v: inner.v, color: cI }]} thickness={size < 110 ? 6 : 9} gap={3} className="shrink-0" style={{ width: size, height: size }}>
       <b className="font-bold leading-none tabular-nums" style={{ fontSize: size * 0.19, ...numFont(sk) }}>
         {fmt(G("gpu_core"), 0)}°C
       </b>
@@ -67,7 +67,7 @@ export default function GpuRings(p: GpuRingsProps) {
       {({ w, h }) => {
         const side = w > h * 1.35;
         const size = Math.max(60, Math.min(side ? h : h * 0.55, side ? w * 0.45 : w, 150));
-        const rows = Math.max(2, Math.floor((side ? h : h - size - 12) / 22));
+        const rows = fitRows(side ? h : h - size - 12, 19, 6);
         return (
           <div className={`flex h-full min-w-0 items-center gap-4 ${side ? "" : "flex-col justify-center"}`}>
             {rings(size)}
