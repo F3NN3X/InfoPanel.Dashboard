@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, fmt, fmtGB, fmtRate, detect, pretty, Metric, Ring, Spark, Stat, Bar, Num, useHistory, tone, Empty, LegendRow, type ShellProps, type WidgetMeta } from "./kit";
+import { StatGrid, Widget, shell, get, num, fmt, fmtGB, fmtRate, detect, pretty, Metric, Ring, Spark, Stat, Bar, Num, useHistory, tone, Empty, LegendRow, type ShellProps, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "StorageHealth",
@@ -91,12 +91,15 @@ export default function StorageHealth(p: StorageHealthProps) {
               <Bar value={k("used_space")} className="h-1.5" />
             </div>
             {size === "lg" && (
-              <div className="grid grid-cols-4 gap-3 border-t border-[color:var(--w-track)] pt-3">
-                <Stat label="Written" value={fmtGB(k("data_written"))} />
-                <Stat label="Read total" value={fmtGB(k("data_read"))} />
-                <Stat label="Power-on" value={`${fmt(k("power_on_hours"))} h`} />
-                <Stat label={Number.isFinite(k("available_spare")) ? "Spare" : "Power cycles"} value={Number.isFinite(k("available_spare")) ? `${fmt(k("available_spare"))}%` : fmt(k("power_on_count"))} />
-              </div>
+              <StatGrid
+                cols={4}
+                items={[
+                  { label: "Written", value: fmtGB(k("data_written")) },
+                  { label: "Read total", value: fmtGB(k("data_read")) },
+                  { label: "Power-on", value: `${fmt(k("power_on_hours"))} h` },
+                  { label: Number.isFinite(k("available_spare")) ? "Spare" : "Power cycles", value: Number.isFinite(k("available_spare")) ? `${fmt(k("available_spare"))}%` : fmt(k("power_on_count")) },
+                ]}
+              />
             )}
           </div>
         )

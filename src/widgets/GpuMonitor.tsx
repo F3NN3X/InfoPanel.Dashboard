@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, fmt, pretty, Metric, Ring, Spark, Stat, BarRow, useHistory, tone, Empty, hw, STATE, Num, type ShellProps, type WidgetMeta } from "./kit";
+import { StatGrid, Widget, shell, get, num, fmt, pretty, Metric, Ring, Spark, Stat, BarRow, useHistory, tone, Empty, hw, STATE, Num, type ShellProps, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "GpuMonitor",
@@ -100,12 +100,15 @@ export default function GpuMonitor(p: GpuMonitorProps) {
                   ))}
                 </div>
                 <Spark values={hist} min={0} max={100} className="min-h-0 flex-1" />
-                <div className="grid grid-cols-4 gap-3 border-t border-[color:var(--w-track)] pt-3">
-                  <Stat label="Mem clock" value={`${fmt(k("gpu_memory_clock"), 0)} MHz`} />
-                  <Stat label="Voltage" value={`${fmt(k("gpu_core_voltage"), 3)} V`} />
-                  <Stat label="Board power" value={`${fmt(k("gpu_board_power"), 1)}%`} />
-                  <Stat label="Fans" value={fans.length ? `${fmt(fans.reduce((a, b) => a + b, 0) / fans.length, 0)} RPM` : "–"} />
-                </div>
+                <StatGrid
+                  cols={4}
+                  items={[
+                    { label: "Mem clock", value: `${fmt(k("gpu_memory_clock"), 0)} MHz` },
+                    { label: "Voltage", value: `${fmt(k("gpu_core_voltage"), 3)} V` },
+                    { label: "Board power", value: `${fmt(k("gpu_board_power"), 1)}%` },
+                    { label: "Fans", value: fans.length ? `${fmt(fans.reduce((a, b) => a + b, 0) / fans.length, 0)} RPM` : "–" },
+                  ]}
+                />
               </>
             )}
           </div>

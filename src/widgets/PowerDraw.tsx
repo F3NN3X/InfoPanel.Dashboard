@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, fmt, Spark, Stat, useHistory, hue, hw, Num, type ShellProps, type WidgetMeta } from "./kit";
+import { StatGrid, Widget, shell, get, num, fmt, Spark, useHistory, hue, hw, Num, type ShellProps, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "PowerDraw",
@@ -55,11 +55,14 @@ export default function PowerDraw(p: PowerDrawProps) {
           </div>
           {size !== "sm" && <Spark values={hist} min={0} className="min-h-0 flex-1" />}
           {size === "lg" && (
-            <div className="grid grid-cols-3 gap-3 border-t border-[color:var(--w-track)] pt-3">
-              <Stat label="Budget" value={`${fmt(budget)} W`} />
-              <Stat label="Headroom" value={`${fmt(budget - total, 0)} W`} />
-              <Stat label="GPU board limit" value={`${fmt(board, 1)}%`} />
-            </div>
+            <StatGrid
+              cols={3}
+              items={[
+                { label: "Budget", value: `${fmt(budget)} W` },
+                { label: "Headroom", value: `${fmt(budget - total, 0)} W` },
+                { label: "GPU board limit", value: `${fmt(board, 1)}%` },
+              ]}
+            />
           )}
         </div>
       )}

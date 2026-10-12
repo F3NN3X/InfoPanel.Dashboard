@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, fmt, pretty, has, Metric, Ring, Spark, Stat, useHistory, tone, Empty, heat, hw, Num, type ShellProps, type WidgetMeta } from "./kit";
+import { StatGrid, Widget, shell, get, num, fmt, pretty, has, Metric, Ring, Spark, Stat, useHistory, tone, Empty, heat, hw, Num, type ShellProps, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "CpuMonitor",
@@ -133,12 +133,15 @@ export default function CpuMonitor(p: CpuMonitorProps) {
               </div>
             )}
             {size === "lg" && (
-              <div className="grid grid-cols-4 gap-3 border-t border-[color:var(--w-track)] pt-3">
-                <Stat label="Tctl/Tdie" value={`${fmt(temp, 1)} °C`} />
-                <Stat label="Core VID" value={`${fmt(cores[0]?.vid ?? NaN, 2)} V`} />
-                <Stat label="VRM" value={Number.isFinite(vrm) ? `${fmt(vrm, 0)} °C` : "–"} />
-                <Stat label="CPU fan" value={Number.isFinite(fan) ? `${fmt(fan, 0)} RPM` : "–"} />
-              </div>
+              <StatGrid
+                cols={4}
+                items={[
+                  { label: "Tctl/Tdie", value: `${fmt(temp, 1)} °C` },
+                  { label: "Core VID", value: `${fmt(cores[0]?.vid ?? NaN, 2)} V` },
+                  { label: "VRM", value: Number.isFinite(vrm) ? `${fmt(vrm, 0)} °C` : "–" },
+                  { label: "CPU fan", value: Number.isFinite(fan) ? `${fmt(fan, 0)} RPM` : "–" },
+                ]}
+              />
             )}
           </div>
         )

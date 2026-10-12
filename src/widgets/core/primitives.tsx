@@ -324,6 +324,16 @@ export const Stat = ({ label, value, className = "" }: { label?: ReactNode; valu
     <span className="truncate text-[13px] font-medium tabular-nums text-[color:var(--w-fg)]">{value}</span>
   </div>
 );
+/** A footer row of label/value stats under a rule, `cols` per row (3 or 4). */
+export function StatGrid({ items, cols = 4 }: { items: { label: ReactNode; value: ReactNode }[]; cols?: 3 | 4 }) {
+  return (
+    <div className={`grid ${cols === 3 ? "grid-cols-3" : "grid-cols-4"} gap-3 border-t border-[color:var(--w-track)] pt-3`}>
+      {items.map((x, i) => (
+        <Stat key={i} label={x.label} value={x.value} />
+      ))}
+    </div>
+  );
+}
 /** One legend line: colour swatch, label, trailing value. A null colour keeps the column but draws no swatch. */
 export function LegendRow({ color, label, value, className = "text-[12.5px]" }: { color?: string | null; label: ReactNode; value?: ReactNode; className?: string }) {
   return (
