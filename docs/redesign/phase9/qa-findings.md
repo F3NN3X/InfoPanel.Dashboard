@@ -46,3 +46,38 @@ viewport, 4 s rAF sample: fixture data 240 fps, worst frame 4.4 ms; live data 23
 ## Carried from the review ledger
 - #40 SensorGroup: item labels from the sensor display name (`sensorLabel`), not the key's last segment.
 - #16 overlaps above (SystemStatus, Clock, SteamLibrary, CpuMonitor) are the same rows.
+
+## Sweep 2 (after consolidation; probe with `clipped`; 3984 renders: 50 templates × 6 spans + 16 legacy ids × 4 spans, × cell 110/150 × default/instrument/tui × default/studio)
+Notation: `span@cell/skin/variant(d|s)`; `dx/dy` = px hidden. Line-clamped text is excluded (fixed in 6464236) — ignore rows whose element is `line-clamp-*`.
+
+### F1 — core (tui skin), owner: `src/widgets/core/**`
+- tui compact views 1×1/1×2: the header's right slot (`div.absolute.right-3 > …`) overlaps the compact label/value — AudioMeter, CoreHeatmap (also 2×1/2×2), FpsMonitor, GpuMonitor, NetworkAdapters, NetworkThroughput, NowPlaying, ProcessList, ServiceHealth, SteamProfile, StorageHealth, Visualizer, Weather.
+- tui `div.overflow-hidden.whitespace-pre` (braille/text graph or text meter) wider than its box by 3–49px at 1×1, 2×1, 3×1, 1×2 (and 4×2 StorageHealth): CpuMonitor, GpuMonitor, FpsMonitor, PowerDraw, SystemStatus, Thermals, NetworkThroughput, MenuBar 2×1/2×2, StorageHealth 4×2. Size the text graph from the measured width (chars = floor(w / charW)).
+- Vitals under tui (3×1, 1×2, 4×2; 2×1/2×2 at 150): unit/label spans overlap.
+
+### F2 — groups A/B/E templates, owner: those `src/widgets/<Id>.tsx`
+- SystemStatus 4×2 (all skins, 110+150): superscript unit (`span.ml-0.5.align-top`) overlaps.
+- Clock 4×2 (default, tui): `span.mt-2.text-sm` overlaps.
+- CpuMonitor 2×1@150 (default, instrument): `span.truncate.text-[10.5px]` overlaps.
+- SystemOverview: 2×1@110 content clipped dy 19–21 (also `systemmodern` 2×1); 4×2@110 tui and 2×2@150 instrument overlaps in the detail line.
+- KpiTiles 3×1, 4×2 (default/instrument): tiles clipped dy 5.
+- Vitals 3×1, 1×2 (default/instrument): value clipped dx 8 / dy 14.
+- ProcessList studio 1×2, 2×2, 4×2 @150: clipped dy 11–13.
+- DiskIO studio 1×2 and tui 1×1/2×1: clipped dx 33–42.
+- Forecast 1×2 (instrument, tui): dx 2–4. GpuRings 1×2 tui: dx 4 / dy 2.
+- Weather 4×2 (all): dy 33–42; `weathermodern` 3×2/4×2/6×3: dy 9–33.
+- NetworkAdapters 2×1@150: list dy 2; 1×2 tui line-clamp-3 (ignore).
+- Bluetooth 2×1@150 and `bluetoothmodern` 3×2@110 / 2×1@150: grid dx 11–27.
+- TextFile 2×1 (also `textfile` 2×1): `pre` clipped dy 13–14 — fit lines to height.
+- #40 SensorGroup: item labels via `sensorLabel` (display names).
+
+### F3 — groups C/D templates, owner: those `src/widgets/<Id>.tsx`
+- NowPlaying 3×1 default and studio 1×1/1×2/2×2: content dx 96.
+- SteamGame 3×1 default, studio 2×2: dx 96.
+- GameSpotlight: 39 combos (3×1, 1×2, 4×2 default; studio 1×1/1×2/2×2): dx 11–75 / dy 3–79.
+- MeterBridge 1×1: list dx 34–36. WaveLink 1×1/1×2: dx 27–29.
+- PlaytimeShare 2×1@150: list dy 11–16. SteamProfile 4×2: list dy 4–5.
+- SteamLibrary 4×2@110, 2×1/2×2/4×2@150: superscript unit overlaps.
+- FramePacing 3×1 (and 2×1 tui): dy 6–8. `fpsmodern` 2×1@150: dy 8.
+
+### Light theme — owners as above by widget (rows in the "Light theme" table)
