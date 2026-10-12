@@ -27,6 +27,13 @@ describe("textfile", () => {
     expect(html({ layout: "card", showMeta: false })).not.toContain("5 lines");
   });
 
+  it("keeps the title, size, line count, status and the text at 2x1", () => {
+    const out = html({ layout: "simple" });
+    for (const text of ["Text File", "2.0 KB", "5 lines", "OK", "Release notes"]) expect(out).toContain(text);
+    expect(out).not.toContain("overflow-y-auto");
+    expect(html({ layout: "simple", showMeta: false })).not.toContain("5 lines");
+  });
+
   it("renders nothing without plugin data", () => {
     expect(textfileModule.render({}, {})).toBeNull();
   });
