@@ -16,7 +16,13 @@ export const meta: WidgetMeta = {
 };
 
 // Everything here sits on artwork behind a dark scrim, so the text stays light on every surface.
-const ON_ART = { "--w-fg": "#f4f4f5", "--w-muted": "#d4d4d8", "--w-faint": "#a1a1aa", "--w-track": "rgba(255,255,255,0.15)" } as CSSProperties;
+const ON_ART = { color: "#f4f4f5", "--w-fg": "#f4f4f5", "--w-muted": "#d4d4d8", "--w-faint": "#a1a1aa", "--w-track": "rgba(255,255,255,0.15)" } as CSSProperties;
+
+/** A playtime sensor ("263.3999… hrs") as "263.4 h"; other text passes through. */
+export const hoursText = (v: string): string => {
+  const m = /^\s*(-?\d+(?:\.\d+)?)\s*(?:h|hrs?)?\s*$/i.exec(String(v));
+  return m ? `${fmt(Number(m[1]), 1)} h` : v;
+};
 
 export interface GameSpotlightProps extends ShellProps {
   /** `composite`: the old Steam card in one layout (profile, session, playtime, library, achievements, friends, news). */
@@ -60,14 +66,14 @@ export default function GameSpotlight(p: GameSpotlightProps) {
   const motion = p.motion !== false,
     scrim = p.scrim ?? 0.6;
   const statusText = P("game-status-text") || "Now playing";
-  const stats: [string, string][] = [["Session", S("current-session-time")], ["Playtime", S("current-game-playtime")], ["Avg session", S("avg-session-time")], ...(fps > 0 ? [["FPS", fmt(fps)] as [string, string]] : [])];
+  const stats: [string, string][] = [["Session", S("current-session-time")], ["Playtime", hoursText(S("current-game-playtime"))], ["Avg session", S("avg-session-time")], ...(fps > 0 ? [["FPS", fmt(fps)] as [string, string]] : [])];
 
   return (
     <Widget
       {...shell(p)}
       bleed
       showHeader={false}
-      studio={{ label: statusText, live: true, value: game, sub: `${S("current-session-time")} session · ${S("current-game-playtime")}`, img: poster || banner, kind: "text", progress: { a: "Achievements", pct: ach, b: `${fmt(ach)}%` } }}
+      studio={{ label: statusText, live: true, value: game, sub: `${S("current-session-time")} session · ${hoursText(S("current-game-playtime"))}`, img: poster || banner, kind: "text", progress: { a: "Achievements", pct: ach, b: `${fmt(ach)}%` } }}
       compact={(box) => (box.shape === "tile" && p.layout !== "composite" ? { label: statusText, value: game, kind: "text", sub: `${S("current-session-time")} session`, img: poster || banner, pct: ach, icon: "stadia_controller" } : undefined)}
     >
       {({ w, h, shape }) => {
@@ -146,19 +152,19 @@ export default function GameSpotlight(p: GameSpotlightProps) {
             <div className={`relative flex h-full overflow-hidden ${tall ? "flex-col" : "flex-row"}`} style={ON_ART}>
               <KenBurns src={banner} on={false} className="scale-110 opacity-60 blur-2xl" />
               <div className="absolute inset-0 bg-black/55" />
-              <div className={`relative shrink-0 p-3 ${tall ? "h-[58%]" : "h-full"}`}>
+              <div className={`relative p-3 ${tall ? "min-h-0 flex-1" : "h-full shrink-0"}`}>
                 <Img src={poster} icon="image" className={`h-full rounded-xl object-cover shadow-2xl ring-1 ring-white/10 ${tall ? "w-full" : "aspect-[2/3]"}`} />
               </div>
-              <div className="relative flex min-w-0 flex-1 flex-col justify-between gap-3 p-4 pl-1">
+              <div className={`relative flex min-w-0 flex-col gap-3 ${tall ? "shrink-0 p-3 pt-0" : "flex-1 justify-between p-4 pl-1"}`}>
                 <div className="flex flex-col gap-1">
-                  <span className="text-[10.5px] font-medium uppercase tracking-[0.12em] text-[color:var(--w-faint)]">{statusText}</span>
-                  <span className={`${tall ? "text-base" : "text-2xl"} font-bold leading-tight`}>{game}</span>
+                  <span className="truncate text-[10.5px] font-medium uppercase tracking-[0.12em] text-[color:var(--w-faint)]">{statusText}</span>
+                  <span className={`${tall ? "line-clamp-2 text-sm" : "text-2xl"} font-bold leading-tight`}>{game}</span>
                 </div>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                  {stats.slice(0, tall ? 2 : 4).map(([l, v]) => (
+                <div className={`grid gap-x-4 gap-y-2 ${tall && w < 150 ? "grid-cols-1" : "grid-cols-2"}`}>
+                  {stats.slice(0, tall ? (w < 150 ? 1 : 2) : 4).map(([l, v]) => (
                     <div key={l} className="flex flex-col">
                       <span className="text-[10.5px] text-[color:var(--w-faint)]">{l}</span>
-                      <span className="text-sm font-semibold tabular-nums">{v}</span>
+                      <span className="whitespace-nowrap text-sm font-semibold tabular-nums">{v}</span>
                     </div>
                   ))}
                 </div>
@@ -185,7 +191,7 @@ export default function GameSpotlight(p: GameSpotlightProps) {
               <Logo src={logo} name={game} size={big} className="relative mx-auto max-h-[45%] max-w-[80%] !object-center text-center" />
               <span className="relative flex items-center gap-2 text-xs text-[color:var(--w-fg)]">
                 <Dot ok />
-                {S("current-session-time")} this session · {S("current-game-playtime")}
+                {S("current-session-time")} this session · {hoursText(S("current-game-playtime"))}
               </span>
             </div>
           );
