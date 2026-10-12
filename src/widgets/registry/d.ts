@@ -6,6 +6,7 @@ import FpsMonitor, { meta as fpsMonitorMeta, type FpsMonitorProps } from "../Fps
 import FramePacing, { meta as framePacingMeta, type FramePacingProps } from "../FramePacing";
 import { FPS_LOOK_SETTINGS, fpsLookProps } from "../fps-settings";
 import GameSpotlight, { meta as gameSpotlightMeta, type GameSpotlightProps } from "../GameSpotlight";
+import { SPOTLIGHT_COMPOSITE_SETTINGS, SPOTLIGHT_LAYOUT_SETTING, compositeProps } from "../spotlight-settings";
 import OsdStrip, { meta as osdStripMeta, type OsdCell, type OsdStripProps } from "../OsdStrip";
 import PlaytimeShare, { meta as playtimeShareMeta, type PlaytimeShareProps } from "../PlaytimeShare";
 import SteamGame, { meta as steamGameMeta, type SteamGameProps } from "../SteamGame";
@@ -45,12 +46,14 @@ export const GROUP_D: DashboardModule[] = [
     ],
     toProps: (s: ModuleSettings) => ({ target: numberOf(s.target), ...fpsLookProps(s) }),
   }),
-  templateModule<Pick<GameSpotlightProps, "layout" | "motion" | "scrim" | "music" | "progress" | "vizMode">>({
+  templateModule<Pick<GameSpotlightProps, "layout" | "motion" | "scrim" | "music" | "progress" | "vizMode" | "showStats" | "showNews">>({
     meta: gameSpotlightMeta,
     Component: GameSpotlight,
-    settings: [],
+    settings: [SPOTLIGHT_LAYOUT_SETTING, ...SPOTLIGHT_COMPOSITE_SETTINGS],
     toProps: (s) => ({
-      layout: oneOf(s.layout, ["hero", "poster", "logo", "ticker", "combo"]),
+      // The standard `layout` keeps its meaning; the template's own layout is stored as `spotlightLayout`.
+      layout: oneOf(s.spotlightLayout, ["hero", "poster", "logo", "ticker", "combo", "composite"]),
+      ...compositeProps(s),
       motion: boolOf(s.motion),
       scrim: numberOf(s.scrim),
       music: oneOf(s.music, ["media", "spotify"]),
