@@ -10,29 +10,56 @@ saves immediately, and open kiosk pages update within about a second.
 
 ## The studio layout
 
+```
+┌──────────────────────────── top bar ────────────────────────────┐
+├──┬────────────┬───────────────────────────────┬─────────────────┤
+│  │ left panel │ canvas                        │ inspector       │
+│R │ Layers /   │                               │ (Side: 340 px)  │
+│a │ Add /      │      [ floating zoom bar ]    │                 │
+│i │ Profiles   │                               │                 │
+│l │ (256 px)   ├───────────────────────────────┴─────────────────┤
+│  │            │ inspector (Bottom: 320 px high)                 │
+└──┴────────────┴─────────────────────────────────────────────────┘
+```
+
 The bar along the top holds, from left to right:
 
 - the active profile's name - click it to switch to another profile or to
-  **Auto (match window)**, the same as in the Profiles drawer - with its
-  design size, grid (columns × rows) and zone count;
-- **Design | Sources** - the canvas, or the sources manager (the same as the
-  rail's Sources button);
+  **Auto (match window)** - with its design size, grid (columns × rows),
+  fit and zone count;
+- **Design | Sources** - the canvas, or the [Data Explorer](#data-explorer-and-binding)
+  (the same as the rail's Sources button);
 - **Undo** and **Redo** (see [Undo, shortcuts and the command
   palette](#undo-shortcuts-and-the-command-palette));
-- **Save**, **Kiosk view** (leave the studio) and the **...** menu:
-  **Export config** downloads the whole config as a JSON file, **Import
-  config...** loads one, **Copy profile JSON** copies the active profile,
-  **Command palette...** and **Keyboard shortcuts** open those dialogs, and
-  **Reset everything...** restores the default dashboard after a
-  confirmation (it wipes every profile, the theme, the style presets and
-  all widget settings; Undo brings it back only until you leave the studio,
-  so export first). The menu also shows the build id.
+- **Kiosk view** (leave the studio), **Save** and the **...** menu.
+  Changes are pushed to the server automatically; **Save** flushes them at
+  once, and the small dot on it means "edits not pushed yet". The **...**
+  menu holds **Export config** (downloads the whole config as a JSON file),
+  **Import config...**, **Copy profile JSON**, **Command palette...**,
+  **Keyboard shortcuts** and **Reset everything...** (restores the default
+  dashboard after a confirmation: it wipes every profile, the theme, the
+  style presets and all widget settings; Undo brings it back only until you
+  leave the studio, so export first). The menu also shows the build id.
 
-A strip under the canvas (never over the page, so it covers no widgets)
-toggles the grid, zooms (or **Ctrl + wheel** over the canvas, **Ctrl + =** /
-**Ctrl + -**), fits the page to the canvas (**Ctrl + 0**), shows the design
-size and holds the [layout switch](#inspector-placement-side-bottom-auto).
-The page is centered in the canvas whenever it is smaller than the view.
+The **icon rail** (52 px) at the left opens one **left panel** at a time -
+**Layers**, **Add** and **Profiles** - or switches to **Sources**; the
+keyboard icon at its bottom opens the shortcut list. Click the open panel's
+icon again to collapse it and give the canvas the full width. The studio
+remembers the open panel, also after a reload. The left panel stays beside
+the rail in every inspector placement.
+
+A **floating zoom bar** sits over the bottom of the canvas, centred. It
+toggles the left panel, the grid and the rulers, zooms out and in (or
+**Ctrl + wheel** over the canvas, **Ctrl + =** / **Ctrl + -**), fits the page
+(**Fit**, **Ctrl + 0**), shows the design size (click it to open Dashboard ›
+Profile) and holds the [inspector position
+button](#inspector-placement-side-bottom-auto). The page is centered in the
+canvas whenever it is smaller than the view. The grid and ruler toggles are
+remembered.
+
+On first run a **quick tips** card sits at the bottom left of the canvas;
+dismiss it and it stays away. A profile without zones shows a card instead:
+**Browse widgets** opens Add, **Use sample layout** loads the shipped sample.
 
 **Fit is sticky.** The studio opens fitted: the zoom is the largest one at
 which the whole page (width and height) fits the canvas, and it follows the
@@ -40,97 +67,93 @@ window, the profile and the panels as they change. Any manual zoom (the
 buttons, **Ctrl + wheel**, **Ctrl + =** / **Ctrl + -**, the percentage button
 that resets to 100%) stops that; **Fit** (the button, **Ctrl + 0** or the
 palette) turns it back on. A scroll profile (not *Fill viewport*) is fitted to
-the width only.
-
-A narrow icon rail on the left opens one drawer at a time; click the open
-drawer's icon again to collapse it and give the canvas the full width. The
-studio remembers the open drawer, also after a reload. With the inspector
-below the canvas (see the next section) the drawer opens as the first column
-of the dock instead of beside the rail.
+the width only. The zoom mode is remembered.
 
 ### Inspector placement: Side, Bottom, Auto
 
-The inspector can sit **beside** the canvas (Side: a 288 px column on the
-right, the drawer left of the canvas) or **below** it (Bottom: a dock under
-the canvas). Wide, short side displays such as 1920 x 550 leave most of a
-normal window empty under the page, so the dock puts the inspector there and
-lets the page use the full width. The three icons at the right of the strip
-under the canvas choose the mode (or use the palette: **Layout: Auto**,
-**Layout: Side**, **Layout: Bottom**); the choice is remembered per browser.
+The inspector sits **beside** the canvas (**Side**: a 340 px column on the
+right) or **below** it (**Bottom**: a dock 320 px high). Wide, short side
+displays such as 1920 x 550 leave most of a normal window empty under the
+page, so the dock puts the inspector there and lets the page use the full
+width. The dock button at the right of the zoom bar cycles **Auto → Side →
+Bottom** (the palette has **Layout: Auto / Side / Bottom**, and the same
+choice is under Dashboard › General › Studio); it is remembered per browser.
 
-- **Auto** (the default) picks Bottom when, with the panels off the sides and
-  the page fitted to the full canvas width, at least about 35% of the studio
-  height is left free and the dock would get at least 220 px. Otherwise Side.
-  A portrait or tall profile therefore stays Side, and so does a scroll
-  profile whose height can't be judged. The Auto tooltip says which placement
-  is in use. The Sources view always uses Side.
+- **Auto** (the default) picks Bottom when the profile's design size is wider
+  than 2.5 : 1 (width / height), otherwise Side. Only the profile's aspect
+  ratio counts, not the window.
 - **Side** and **Bottom** force the placement.
 
-In the dock, the first column is the open drawer (Add, Layers or Profiles,
-about 380 px with its own scroll, a title and a close button; the Add cards
-form a two-column grid and the Profiles fields a compact grid). Beside it the
-inspector spans the rest, with its header (the zone's title and actions, zone
-box and settings search) on one row. Below it a **category list** (about
-176 px) sits at the left and the **cards** flow into columns 300 px wide;
-the dock scrolls vertically when they don't fit. Layers, the zone toolbar,
-scroll-to-zone and the widget editor reveal work the same in both
-placements. Wide cards (the presets gallery, a panel's Code view) span all
-columns as a strip.
+In the dock the inspector's sections flow into columns about 300 px wide that
+scroll horizontally; sections are never split between columns.
 
 - **Resize** the dock by dragging the splitter above it; the height is
-  applied when you release, and a release close to the automatic height goes
-  back to automatic. **Double-click** the splitter to reset it. The dock is
-  never smaller than 200 px nor larger than 70% of the studio.
-- **Collapse and expand** it with `Ctrl + \` (or the chevron at the left of
-  the strip). Collapsed, the dock is just the strip, with what is inside
-  (the selected zone, or the document settings) as a hint, and the canvas takes
-  the full height. Selecting a zone or clicking a rail icon expands it
-  again. The collapsed state is remembered too.
+  applied when you release. **Double-click** the splitter to reset it. The
+  dock is never smaller than 200 px nor larger than 70% of the studio.
+- **Collapse and expand** it with `Ctrl + \` (or the chevron in its top row).
+  Collapsed, the dock is just that row and the canvas takes the full height.
+  The collapsed state and the dragged height are remembered too.
 
+### The left panel
+
+- **Layers** - every zone of the profile, with an icon for its type (the
+  widget's own, a panel, or a blank zone), its name, a paint-brush when it has
+  its own look and its size in cells. Click a row to select the zone and
+  scroll it into view; **Shift / Ctrl-click** adds or removes it from the
+  selection; right-click opens the zone menu. The eye hides or shows it and
+  the bin removes it. Hidden zones are dimmed but stay selectable (and do not
+  show in the kiosk).
 - **Add** - every widget and panel, with a search box and category chips
   (All, Layouts, My panels, System, Media, Network, Info, Other), in the
-  sections Widgets, Layouts, Panels and My panels (see
-  [Creating a panel](#creating-a-panel)). Drag a row onto the canvas, or
-  click **+** to add it at the first free spot. The numbers are the minimum
-  zone size in grid cells, and a badge counts how often a widget is already
-  on the profile. *Other sensors* is listed here too.
-- **Layers** - every zone of the profile in grid order (row, then column),
-  with its column, row and size. Click a row to select the zone and scroll
-  it into view; the eye hides or shows it and the bin removes it. Hidden
-  zones are dimmed but stay selectable.
+  groups Widgets, Layouts, Panels and My panels (see
+  [Creating a panel](#creating-a-panel)). **Drag** a card onto the canvas -
+  a dashed ghost shows where it lands, or **No room** in red - or **click** it
+  to place it at the first free spot. With a blank zone selected, a click
+  fills that zone instead. The numbers are the minimum zone size in grid
+  cells, and a badge counts how often a widget is already on the profile.
+  *Other sensors* is listed here too.
 - **Profiles** - the monitor profiles. Click one to pin it, or pick **Auto
   (match window)**, which shows the profile closest to the window size (the
   entry names the one it picks, and that profile is tagged *auto*). **New**
   adds a profile for the current window size, the bin deletes the active
-  one. Below the list are the active profile's **Name**, **W** and **H**
-  (design size in px), **Cols** and **Rows** steppers, **Scroll / Fill
-  viewport**, and **Gap px** and **Padding px** (see [Grid spacing: gap
-  and padding](#grid-spacing-gap-and-padding)).
-- **Sources** - swaps the canvas for the sources manager (see
-  [widget-settings.md](widget-settings.md#the-studio-sources-view)). Click it
-  again, any drawer icon, or **Design** in the top bar to go back to the
-  canvas.
+  one. A profile's name, design size, grid, fit, gap and padding are edited
+  in Dashboard › Profile (see [Grid spacing: gap and
+  padding](#grid-spacing-gap-and-padding)).
+- **Sources** - swaps the canvas and inspector for the Data Explorer (see
+  [Data Explorer and binding](#data-explorer-and-binding)). Click it again,
+  any panel icon, or **Design** in the top bar to go back to the canvas.
 
-An empty profile shows a card on the canvas: drag across the grid to draw a
-zone, or click **Open Add** to open the Add drawer. A drawn zone starts blank;
-its **Pick a widget** button opens the widget picker.
+### Selecting, moving and resizing zones
 
-Hovering a zone shows its size in grid cells. Clicking selects it and shows
-a toolbar above it (below when there is no room), which keeps its size at
-any zoom: the widget name (click it to pick another widget), the size,
-**Narrower / Wider / Shorter / Taller**, **Hide / Show**, **Duplicate**,
-**Remove**, **Style** (jumps the inspector to the *Colors & surface* card) and
-**Deselect**.
+Drag across empty grid cells to draw a new, blank zone; its **Pick a widget**
+button opens the widget picker. Hovering a zone shows its size in grid cells.
+Clicking selects it. **Shift / Ctrl-click** (on the canvas or in Layers) adds
+or removes a zone from the selection; **Ctrl + A** selects all. The last zone
+you picked is the *primary* one: it shows the handles, the keyboard resize
+and the inspector. With several zones selected the inspector shows only the
+shared look (Style) and a chip row with Hide, Duplicate and Delete; a style
+change applies to all of them.
+
+A small **selection chip** sits above the primary zone (below it when there is
+no room) and keeps its size at any zoom. It shows the widget name (or "N
+selected"), the size, **Hide / Show** and **More**, which opens the zone menu.
 The selected zone shows knobs on its corners and edges: drag a corner to
-resize both ways, or any point along an edge to resize that side (edges
-and corners are tinted on hover, on every zone). To deselect, click
-**Deselect** in the toolbar, press **Esc**, or click empty canvas (the
-page padding, the gaps between zones, or the area around the page). The size
-steps never overlap another zone: a step that would run into a neighbour
-or past the grid is disabled. A zone you draw on the canvas is selected
-straight away, with its toolbar. With a zone selected, the arrow keys move
-it one cell and **Shift + arrows** resize it; like dragging, a move that
-would overlap another zone or leave the grid does nothing.
+resize both ways, or any point along an edge to resize that side. Dragging
+a tile moves it (all selected zones move together). Moves and resizes never
+overlap another zone or leave the grid, and widget minimum sizes are
+enforced. **Esc** during a drag cancels it; one drag is one undo step.
+To deselect press **Esc** or click empty canvas (the page padding, the gaps
+between zones, or the area around the page).
+
+**Context menus.** Right-click a zone (or click **More** on the chip) for:
+**Change widget...**, **Edit style**, **Bind data...**, **Save to My panels**
+(panels), **Duplicate**, **Hide / Show**, the size steps **Narrower / Wider /
+Shorter / Taller** (a step that would run into a neighbour or past the grid
+is disabled), **Copy style**, **Paste style**, **Follow global style**,
+**Deselect** and **Delete**. With several zones the widget-only rows and the
+size steps are left out. Right-click empty canvas for **Add widget...**,
+**Select all**, **Zoom to fit**, **Edit global theme** (Dashboard ›
+Appearance) and **Keyboard shortcuts**.
 
 The widget picker lists every widget and panel (layout starters and your
 saved panels included) with a search box (focused when it opens), the
@@ -144,11 +167,14 @@ then the zone keeps its size and you can resize it yourself.
 Every studio edit can be undone: zones, widgets, settings, the theme,
 profiles and sources. **Undo** and **Redo** in the top bar are greyed out
 when there is nothing to undo or redo. A run of changes to the same thing -
-dragging a slider, moving or resizing a zone, typing in a field, holding an
-arrow key - counts as one step as long as the changes come less than half a
-second apart. The studio keeps the last 100 steps; leaving the studio, or the
-server's copy arriving when the studio opens, starts a fresh history. Undone
-changes are saved and synced like any other edit.
+dragging a slider, typing in a field, holding an arrow key - counts as one
+step as long as the changes come less than half a second apart. A pointer
+drag (moving or resizing zones, however long it takes), applying a panel's
+JSON and applying an appearance preset are one step each. The studio keeps
+the last 100 steps; leaving the studio, or the server's copy arriving when
+the studio opens, starts a fresh history. Switching profile does not clear
+it (the switch is itself a step). Undone changes are saved and synced like
+any other edit.
 
 **Ctrl + K** opens the command palette: type part of a name and press
 **Enter** (or click) to run it, **arrow keys** to move through the list,
@@ -156,15 +182,14 @@ changes are saved and synced like any other edit.
 
 - add any widget or panel - layout starters and your saved panels included
   (at the first free spot), switch profile (or
-  Auto), select a zone by name, open the Add, Layers or Profiles drawer or
+  Auto), select a zone by name, open the Add, Layers or Profiles panel or
   Sources, toggle the grid, zoom, save, export, import, copy the profile
   JSON, undo, redo and the shortcut list, and **Appearance...**,
   **Background...**, **General settings...** and **Connection...** (each
-  jumps the document inspector to that card);
+  opens that part of the Dashboard inspector);
 - for the selected zone: pick a widget, duplicate, hide or show, remove,
-  **Go to Widget settings** and **Go to Colors & surface (style)** (jump to
-  those cards), and **Go to setting: ...** for each of the widget's options,
-  which puts the option in the settings search (its category is the hint);
+  copy / paste / follow-global style, and **Go to setting: ...** for each of
+  the widget's options, which puts the option in the inspector's search;
 - for a selected panel zone: **Save panel as preset...** (opens the name
   input), **Select widget: ...** for each of its widgets, and with a widget
   selected: duplicate, copy, paste after, move earlier / later and remove
@@ -173,140 +198,188 @@ changes are saved and synced like any other edit.
 Matches that start with what you typed come first, then matches at the
 start of a word, then anywhere in the name.
 
+Keyboard shortcuts (**?** lists them in the studio):
+
 | Keys | Action |
 |---|---|
 | Ctrl + K | Command palette |
 | Ctrl + S | Save |
 | Ctrl + Z | Undo |
 | Ctrl + Shift + Z, Ctrl + Y | Redo |
-| ? | Keyboard shortcuts (also in the **...** menu) |
-| Esc | Clear the settings search, else step out (widget, then zone), else close the drawer |
-| Arrow keys | Move the selected zone one cell |
-| Shift + Left / Right | Selected zone narrower / wider |
-| Shift + Up / Down | Selected zone shorter / taller |
-| Ctrl + D | Duplicate the selected zone (or the selected panel widget) |
-| H | Hide / show the selected zone |
-| Del, Backspace | Remove the selected zone (or only the selected panel widget) |
+| ? | Keyboard shortcuts |
+| Esc | Close a menu or dialog, then clear the search, step out (widget → zone → none), or close the left panel |
+| Ctrl + Enter | Apply the panel JSON (inside the code editor) |
+| Shift / Ctrl + click | Add a zone to or remove it from the selection |
+| Ctrl + A | Select all zones |
+| Arrow keys | Move the selection one cell |
+| Shift + Left / Right | Primary zone narrower / wider |
+| Shift + Up / Down | Primary zone shorter / taller |
+| Ctrl + D | Duplicate the selected zones (or the selected panel widget) |
+| H | Hide / show the selected zones |
+| Ctrl + Alt + C / V | Copy the primary zone's style / paste it onto the selection |
+| Del, Backspace | Remove the selected zones (or only the selected panel widget) |
 | Ctrl + C / Ctrl + V | Copy the selected panel widget / paste the copy after it |
 | Alt + Up / Down | Move the selected panel widget earlier / later |
 | Ctrl + 0 | Fit the page to the canvas and keep it fitted |
 | Ctrl + = / Ctrl + - | Zoom in / out (stops the sticky fit) |
-| Ctrl + \ | Collapse / expand the bottom dock (Bottom placement only) |
+| Ctrl + wheel | Zoom |
+| Ctrl + \ | Collapse / expand the bottom dock |
 
-While you type in a field (a setting, the search box, the zone box), the
-plain keys go to the field; Esc, Ctrl + S, Ctrl + K, undo and redo still
-work. With a dialog or menu open, its own keys win (Esc closes it). The
-tooltips of the toolbar and top bar buttons show their shortcut (the zone's
-Duplicate and Remove only while no panel widget is selected, since Ctrl + D
-and Del then act on the widget).
+While you type in a field (a setting, the search box, the zone name), the
+plain keys go to the field; Ctrl + S and Ctrl + K still work, and so does
+undo / redo outside text fields (inside one they are the browser's own). With
+a dialog or menu open, its own keys win (Esc closes it). While a pointer drag
+is in flight only Esc (cancel) works. In Sources mode the canvas keys are off.
+The tooltips of the top bar buttons show their shortcut (the zone's Duplicate
+and Remove only while no panel widget is selected, since Ctrl + D and Del
+then act on the widget).
 
 ## Where the options are
 
-Select a zone on the canvas. The inspector (on the right, or in the bottom dock) then shows a fixed
-header with the widget's name and live-sensor count, **Hide / Show**,
-**Duplicate** and **Remove** buttons, the zone box (column, row, width,
-height in grid cells) and a **Search settings** box. Below it is **one
-sheet of cards**, with no Content / Style tabs. In the dock a **category
-list** on the left names every card in order, with the number of options
-you changed in each; click an entry to scroll to its card (it is outlined
-for a moment). Beside the canvas the same cards are stacked, each
-collapsible (the studio remembers which are open, also after a reload).
+The inspector is driven by one registry: the widget's own `settings` (each
+with a `tab`, `advanced`, `hint` and `visibleIf`), the general look settings
+every widget shares, the panel and panel-widget fields, and the dashboard
+settings. It never hard-codes a panel per widget.
 
-Every card has a title, an **i** tooltip that says what it holds, a count
-of the options set on this widget and its own **Reset**, which restores
-just that card's options. The order is the same for every zone:
+**Header.** A selected zone shows its icon, an editable name, a meta line
+(`3×2 · min 2×1 · N data points`, `Panel · Stack · 3 widgets` or `Blank zone
+· 2×1`), and **Hide**, **Duplicate** and **Delete**. Under it is the
+**placement row** (column, row, width, height in grid cells; values are
+checked against neighbours and minimum sizes) and a **Search settings** box.
 
-**General** - the same cards for every widget, panel and blank zone:
+**Tabs.** A widget or panel zone has **Content**, **Style** and **Data**; a
+small pill on a tab counts the options set on this zone. The open tab is
+remembered per kind of selection. A blank zone and a multi-selection have no
+tabs. **Search settings** looks through all tabs at once: the tabs give way
+to the matching options, each section labelled with its tab, and a line says
+"N settings across all tabs". It covers labels, keys and option names, and
+the custom cards by title and keywords; **Esc** clears it, and a message says
+when nothing matches.
 
-- **Widget** - the widget type (**Change**, or **Pick** on a blank zone;
-  a panel zone shows *Custom panel*), **Custom title** and **Icon**,
-  **Hide when idle** (widgets that can be idle) and **Visible**.
-- **Size & alignment** - **Layout** (auto, card, standard, compact,
-  simple), **Scale with the zone**, **Size %** and the 3×3 **Alignment**.
-- **Typography** - **Text color**, **Secondary text color**, **Font**,
-  **Value weight** and **Label case**.
-- **Spacing & shape** - **Inner padding**, **Gap between items**,
-  **Corner radius** and **Ring / bar thickness**.
-- **Colors & surface** - **Follow global | Custom** at the top (see [Follow
-  global or custom](#follow-global-or-custom)) and the style tools (below),
-  then **Preset**, **Surface**, **Accent color**, **Background image** with
-  **Use as background**, **Surface opacity** and **Background blur**.
-- **Border & effects** - **Border width** and **color**, **Edge glow** and
-  **Glow color**, and the zone's own **Zone frame**: **Frame accent**,
-  **Frame background** (none / panel / bordered) and **Frame title
-  header**. A blank zone shows only the Widget card and this one.
-- **Advanced** - **Custom CSS** (see [Custom CSS](#custom-css)).
+**Sections.** Each section is collapsible (the studio remembers which are
+open), shows "N changed" and has its own **Reset**, which restores just that
+section's options. A short hint sits behind an **i** icon on a row.
 
-Cards without options for a widget are left out (the plain card widgets and
-Web Page have fewer standard options than the modern widgets).
+**Source dots.** A 7 px dot before a label says where its value comes from
+(hover it for the explanation; the **?** in the footer lists them):
 
-**The widget's own cards** follow, one per category of its options, for
-example Media: *Now playing*, *Cover art*, *Waveform*, *Visualizer*,
-*Waveform shape*, *Audio source*; System: *Devices*, *CPU*, *GPU*,
-*Memory*, *Drives*, *Trends*, *Thresholds*, *Units & labels*, *Device
-colors*; Weather: *Display*, *Current conditions*, *Forecast*. The list
-shows them under the widget's name.
+- no dot - the default;
+- teal - from the dashboard style (all profiles);
+- violet - from the profile style;
+- blue - set here (on this widget, or in the scope being edited);
+- blue with a ring - set here, overriding a global value;
+- amber ring - set here but **ignored** (the widget follows the global style,
+  or the global style is forced).
 
-**A panel zone** adds its own cards after those (see [Panels](#panels)):
-under **Panel** the panel's card, *Layout*, *Background* (overlay panels)
-and *Widgets*, and under **Selected widget** the cards of the widget you
-selected.
+Click a dot that is set here to reset that option.
 
-**Search settings** filters the whole sheet: matching options are listed in
-their cards and empty cards disappear (a card name such as "thresholds"
-finds the whole card, when no option matches). It covers labels, keys and
-option names, and the panel cards by their title and field names. **Esc**
-clears it; a message says when nothing matches.
+**Advanced.** The footer has an **Advanced settings** toggle (off by default
+and remembered). While it is off, advanced options are tucked away and a
+dashed **Show N advanced settings** button at the end of the list reveals
+them.
 
-With nothing selected (click empty grid space or the inspector's close
-button), the inspector shows a short hint and a **Search settings** box,
-then the document sheet, one card each (with the same list in the dock):
+**What each context shows:**
 
-- **Appearance** - **Global style** (the **All profiles | This profile**
-  switch, which scopes the style cards below and the theme colors, and the
-  **Force global style on every widget** switch, see [Appearance (global
-  style)](#appearance-global-style)) and the
-  [appearance presets](#appearance-presets) gallery, a wide card.
-- **Global style** - the style itself, in the same cards as a widget's
-  (Size & alignment, Typography, Spacing & shape, Colors & surface, Border &
-  effects, Advanced), each with a count and Reset for the scope being edited.
-- **Page** - **Theme colors**: the theme swatches (**Colors only** - each
-  with its colors and full name), the **Corner radius** slider and,
-  collapsed under **Custom colors**, a color picker per theme token. Under
-  **All profiles** these are the dashboard's theme colors; under **This
-  profile** the card starts with **Inherit | Custom** (see [Theme colors per
-  profile](#theme-colours-per-profile)). **Background**: the page background
-  behind the grid, with its own **All profiles | This profile** switch (see
-  [Page background](#page-background)).
-- **General** - *Type*, *Clock & date* and *Display*: the page font, the
-  clock format and date locale, motion and the kiosk cursor, for every
-  profile (see [General settings](#general-settings)).
-- **Connection** - the **Data API URL** and its connection test.
+- **Widget zone** -
+  - *Content*: **Widget** (type, custom title, icon, **Hide when idle** for
+    the five widgets that have an idle state, **Visible**), then the
+    widget's own categories (for example Media: *Now playing*, *Cover art*,
+    *Waveform*, *Visualizer*, *Audio source*; System: *Devices*, *CPU*,
+    *GPU*, *Memory*, *Drives*, *Trends*, *Thresholds*, *Units & labels*;
+    Weather: *Display*, *Current conditions*, *Forecast*).
+  - *Style*: **Size & alignment** (**Layout** for the adaptive widgets,
+    **Scale with the zone**, **Size %**, the 3×3 **Alignment**),
+    **Typography** (**Text color**, **Secondary text color**, **Font**,
+    **Value weight**, **Label case**), **Spacing & shape** (**Inner
+    padding**, **Gap between items**, **Corner radius**, **Ring / bar
+    thickness**), **Colors & surface** (**Follow global | Custom**, the style
+    tools, **Preset**, **Surface**, **Accent color**, **Background image** with
+    **Use as background**, **Surface opacity** and **Background blur**),
+    **Border & effects** (**Border width** and **color**, **Edge glow** and
+    **Glow color** - only while the glow is not none - and the **Zone
+    frame**: **Frame accent**, **Frame background**, **Frame title
+    header**) and **Advanced** (**Custom CSS**, see [Custom CSS](#custom-css));
+    the widget's own color pickers (e.g. the System widget's device colors)
+    sit here too, marked advanced.
+  - *Data*: **Bound data** (see [Data Explorer and
+    binding](#data-explorer-and-binding)) and data-related own categories
+    (for example *Audio source*).
+  - **Web Page** has reduced styling: Colors & surface, Border & effects and
+    Advanced only. The plain card widgets (Departures, Notifications, Text
+    File, Stream Deck and the *Other sensors* cards) offer fewer of the
+    standard options than the modern widgets.
+- **Panel zone** - *Content*: **Panel** (Visual or Code, Fill or Hug, gap,
+  padding), **Layout** (Stack / Grid / Overlay options), **Background**
+  (Overlay only), **Widgets**, and with a widget selected its cards under
+  **Selected widget** (see [Panels](#panels)); *Style*: the same look
+  sections as a widget; *Data*: **Sensors used** by its widgets.
+- **Blank zone** - **Widget** with a **Pick a widget** button, and **Zone
+  frame**.
+- **Several zones** - only the shared Style sections.
+- **Nothing selected: the Dashboard inspector.** Click empty canvas or press
+  Esc. Its tabs:
+  - **Profile** - the profile's name, design size, grid, fit, gap and
+    padding; **This profile** (Theme / Style / Background: **Inherit** or
+    custom); and **Profile selection** (**Auto-pick by window size**).
+  - **Appearance** - **Scope** (**All profiles | This profile**, plus **Force
+    global style**, see [Appearance (global style)](#appearance-global-style)),
+    the [appearance presets](#appearance-presets) gallery, **Theme** (theme
+    colors, corner radius, see [Theme colours per
+    profile](#theme-colours-per-profile)) and **Page background** (see
+    [Page background](#page-background)).
+  - **Global style** - the look itself, in the same sections as a widget's
+    Style tab, written at the dashboard or profile level by the Scope.
+  - **General** - *Type*, *Clock & date*, *Display*, *Studio* (the inspector
+    position: Side, Bottom or Auto) and *Connection* (the Data API URL and
+    its test); see [General settings](#general-settings).
 
-(The theme editor used to be a tab of its own, **Theme**; it is the *Theme
-colors* card now.)
+"Auto" or an empty value always means the widget's own look.
 
-"Auto" or an empty value always means the widget's own look. Not every widget
-has every option: the modern widgets have the full set; the plain card
-widgets (Departures, Notifications, Text File, Stream Deck and the *Other
-sensors* cards) offer a surface (Theme by default - the card they always
-had), accent, size, alignment, spacing, colors, type, border, glow,
-opacity, blur and CSS; Web Page offers Size %, corner radius, accent,
-border and edge glow.
+### Data Explorer and binding
+
+**Sources** mode replaces everything right of the rail with the Data
+Explorer: a header (the number of data points and sources, whether the Data
+API is running and live over SSE, an **Endpoints** popover that copies a
+route, and **Add source**), a **source tree** (filter, health chips for
+healthy / no data / offline, categories Built-in / Plugins / Hardware
+monitors / Pushed via API, and a row per source and container), a **point
+table** and a **point inspector**. The table has a search, a type control
+(All / Numbers / Text / Lists / Links), **Hide empty** and **In use** chips,
+and for each point its name, live value, which zones use it, and copy-key and
+**Bind** buttons. The point inspector shows the value (numbers get a
+24-sample Min / Avg / Max history), the key and stream URL to copy, **Used
+by** (each zone links back to the canvas), a select to **Bind** the point to a
+zone, and **New widget from this value**. With no point selected it shows a
+summary of the group, a "stream this group" prefix URL and the sources'
+**Show in dashboard** and display-name preferences. Below a 1240 px window
+the point inspector becomes a drawer, and below 1000 px the table drops its
+**Used by** column. All values come from the page's one live sensor stream.
+
+A zone's bindings are the keys it reads; nothing extra is stored. A panel
+widget claims its **Sensor** (and sub sensor); a widget zone claims its
+module's data prefixes, narrowed to one container when the widget's source
+setting is set (a widget can be bound to a container, never to a single
+key). The Data tab's **Bound data** lists them with their live value (amber
+**No data** when empty), an unbind button and **Bind**; click a row to open
+the point in the Explorer. **Bind** opens a search over every data point
+(multi-word, over name, key, source, container and kind): in a widget zone
+each row toggles a binding, and from a panel widget's **Sensor** field
+picking a point sets the sensor and closes the picker. The zone menu's
+**Bind data...** opens the same picker.
 
 ## Panels
 
 A *panel* is a zone that holds your own group of small widgets - stats,
 values, bars, gauges, sparklines, tables, text, images, clocks and shapes -
 each bound to any sensor. Its **arrangement** (stack, grid or overlay) and
-its widgets are edited in its own cards (below the general ones); its
+its widgets are edited in its own cards (next to the general ones); its
 **look** (title, card, spacing, colors, font, border, glow, CSS) in the
-general cards, like any widget's. A panel draws its own card, so the zone frame's background does not
+general sections, like any widget's. A panel draws its own card, so the zone frame's background does not
 apply to it.
 
 ### Creating a panel
 
-The Add drawer and the widget picker list three kinds of panel, each with a
+The Add panel and the widget picker list three kinds of panel, each with a
 category chip:
 
 - **Layouts** - sensor-free starters that show what the arrangements can do:
@@ -324,13 +397,13 @@ category chip:
 Drag a row onto the canvas, click **+** to add it at the first free spot,
 use the widget picker to put it in the selected zone, or type **Add panel:
 ...** in the command palette. A new panel zone is ready to edit straight
-away: its title and card are already settings of its general cards.
+away: its title and card are already settings of its general sections.
 
-**Save as panel preset**: in a panel zone's *Panel* card, the **...** next to
+**Save as panel preset**: in a panel zone's *Panel* section, the **...** next to
 **Visual / Code** has **Save as panel preset...** (the command palette has
 *Save panel as preset...* too). Type a name (it starts as the panel's
 title) and press **Enter**; **Esc** cancels. The preset keeps the panel's
-arrangement, widgets and sensors, its look (the panel's general-card settings)
+arrangement, widgets and sensors, its look (the panel's general settings)
 and the zone size, and appears under **My panels**. Saving is one undo step.
 The **...** on a My panels row renames it (in place: Enter or clicking away
 saves, Esc cancels) or deletes it. Saved panels are stored in the config, shared by all
@@ -340,12 +413,12 @@ changing a placed copy never changes the preset or other copies.
 Duplicate a panel zone with the zone's **Duplicate** (or Ctrl + D with no
 panel widget selected).
 
-### The panel cards
+### The panel sections
 
-The panel's **title** (empty = hidden) is the *Widget* card's **Custom
+The panel's **title** (empty = hidden) is the *Widget* section's **Custom
 title**, and its card and accent are *Colors & surface*'s **Surface**
 (none / card / bordered card, glass, matte, theme) and **Accent color**;
-the panel cards below do not repeat them. The **Panel** card has **Visual
+the panel sections below do not repeat them. The **Panel** section has **Visual
 / Code**, which switches between the editors and the panel as JSON (see
 [Code view](#code-view)), and **...** with Save as panel preset. **Layout**
 is the arrangement (next section), **Background** (overlay panels) picks the
@@ -417,13 +490,13 @@ stack.
 
 ### Editing widgets
 
-- The **Widgets** card is a layer list. Drag a row to reorder it (or select
+- The **Widgets** section is a layer list. Drag a row to reorder it (or select
   it and press **Alt + Up / Down** with the list focused), the eye hides a
   widget, and **...** offers Duplicate, Copy, Paste after, Change kind and
-  Delete. **Add widget** (at the top of the card) inserts the chosen kind
+  Delete. **Add widget** (at the top of the section) inserts the chosen kind
   after the selected widget. An unlabeled widget is listed by its sensor's
   name.
-- The selected widget's editor is a set of cards under **Selected widget**,
+- The selected widget's editor is a set of sections under **Selected widget**,
   in the same order as a zone's own (only the cards its kind uses):
   - **<Kind> widget** (with **Change kind**): label, sensor, sub sensor
     (shown small below the value), unit, decimals, scale (multiplier, e.g.
@@ -439,20 +512,20 @@ stack.
   - **Colors**: the widget's color;
   - **Advanced**: **Class names** (hooks for the panel's CSS) and **Custom
     CSS** scoped to the widget, with the list of hooks.
-  **Change kind** (in the first card or the layer's **...**) keeps the
+  **Change kind** (in the first section or the layer's **...**) keeps the
   label, sensor, unit, color, layout and CSS.
-- With **Code** chosen in the *Panel* card, the layout, widgets and widget
-  cards give way to one wide **Code** card (see [Code view](#code-view)).
+- With **Code** chosen in the *Panel* section, the layout, widgets and widget
+  sections give way to one wide **Code** section (see [Code view](#code-view)).
 
 ### Selecting widgets on the canvas
 
 With the panel zone selected, click one of its widgets (a double-click on a
 widget of an unselected panel does both at once). The widget gets an outline
-(the others show a faint one on hover), the zone toolbar and the inspector
+(the others show a faint one on hover), the selection chip and the inspector
 header show *Zone > Widget* (click the zone crumb to go back to the panel,
-the widget crumb to scroll to its editor), and the inspector scrolls to its
-cards under **Selected widget** (the widget's data, display, size &
-placement, typography, color and advanced cards, in the zone's own order). Clicking empty space in the panel selects the panel again; dragging
+the widget crumb to scroll to its editor), and the inspector shows its
+sections under **Selected widget** (the widget's data, display, size &
+placement, typography, color and advanced sections, in the zone's own order). Clicking empty space in the panel selects the panel again; dragging
 still moves the zone.
 
 With a widget selected:
@@ -632,7 +705,7 @@ Each is a pixel step, or Auto for the widget's own value.
   such as the progress bar or the big temperature; each widget decides where
   it lands.
 - **Text color** and **Secondary text color** override the surface's text.
-- **Font** (Theme, sans, rounded, serif, mono), **Value weight** and **Label
+- **Font** (Theme, or any font of the [catalog](#fonts)), **Value weight** and **Label
   case** (UPPERCASE, as written, Capitalized). *Theme* uses the page font,
   which is **General > Font** (see [General settings](#general-settings)).
 - **Ring / bar thickness (%)** (50-250) scales rings and bars.
@@ -736,8 +809,8 @@ declarations.
 ## Page background
 
 The page behind the zones can be a color, a gradient, an image or a video. With
-nothing selected, open the **Background** tab (or **Background...** in the
-command palette). The studio canvas shows the background as the kiosk will,
+nothing selected, open the Dashboard inspector's **Appearance** tab and its
+**Page background** section (or **Background...** in the command palette). The studio canvas shows the background as the kiosk will,
 with the dotted grid drawn over it.
 
 At the top, choose what you edit:
@@ -834,7 +907,7 @@ unused.
 
 An appearance preset is a whole look in one click: theme colours and corner
 radius, the global style and, for some, a page background. The gallery at
-the top of the **Appearance** tab shows each one as a small drawing of the
+the top of the Dashboard inspector's **Appearance** tab shows each one as a small drawing of the
 look (its page background and two mini widgets with its surface, accent,
 corners and glow), with its name and a one-line description. Click a card to
 apply it. The built-ins:
@@ -897,16 +970,16 @@ preset restyles the one widget you apply it to. The theme swatches under
 ## Appearance (global style)
 
 Look-only options can be set once for every widget instead of per widget.
-With nothing selected, the **Appearance** tab lists them: surface, accent,
+With nothing selected, the Dashboard inspector's **Global style** tab lists them: surface, accent,
 size and alignment, spacing, colors and type, border, glow, opacity, blur
 and custom CSS. Content settings, layout, title, icon and the background
 image are always per widget.
 
-A switch at the top picks what you edit:
+A switch (**Scope**, on the Appearance tab) picks what you edit:
 
 - **All profiles** - the dashboard style, for every widget in every profile.
 - **This profile** - this profile's style, over the dashboard's. Rows the
-  dashboard style sets show its value with a blue dot until you set them
+  dashboard style sets show its value with a teal dot until you set them
   here.
 
 The order of precedence is: the widget's default, then the dashboard style,
@@ -925,29 +998,33 @@ A dot left of an option says where its value comes from (hover it for the
 explanation):
 
 - no dot - the default;
-- accent dot - set here (on this widget, or in this scope);
-- blue dot - from the dashboard style (All profiles);
-- amber dot - from the profile style;
-- accent dot with an amber ring - set here, overriding the global style.
+- blue dot - set here (on this widget, or in this scope);
+- teal dot - from the dashboard style (All profiles);
+- violet dot - from the profile style;
+- blue dot with a ring - set here, overriding the global style;
+- amber ring - set here but ignored (the widget follows the global style, or
+  it is forced).
 
-Hovering an option you set turns its dot into a reset button: it drops the
-value, so the option falls back to the global style (or the default). In
-the document inspector's *Global style* cards the same dots and reset apply
-to the scope's own values, and **Search settings** filters them (for example
-"radius").
+Clicking a dot that is set here resets it: it drops the value, so the option
+falls back to the global style (or the default). On the Global style tab the
+same dots and reset apply to the scope's own values, and **Search settings**
+filters them (for example "radius").
 
-Each card's **Reset** there clears that card's options of the scope being
-edited.
+Each section's **Reset** there clears that section's options of the scope
+being edited.
 
 ### Follow global or custom
 
-The top of a widget's *Colors & surface* card has **Follow global | Custom**:
+The top of a widget's *Colors & surface* section has **Follow global | Custom**:
 
 - **Custom** (also what a widget without a choice does) - the widget's own
   values win, option by option.
-- **Follow global** - only the dashboard / profile style applies. The look
-  rows turn read-only and show the global values; the widget's own values
-  stay saved, and **Customize** switches back to Custom.
+- **Follow global** - only the dashboard / profile style applies. The
+  widget's own values stay saved but ignored (their dots get the amber
+  ring), and a banner on the Style tab says so, with a link to **Edit global
+  theme** (Dashboard › Appearance). Editing a look option while the widget
+  follows switches it to Custom; **Follow global style** in the zone menu
+  clears the widget's look overrides.
 
 Panels saved by earlier versions keep their card and accent as their own
 values, so the global surface doesn't reach them until they follow: set
@@ -981,13 +1058,12 @@ Inherit / Custom switch are undo steps like any other.
 
 ## General settings
 
-With nothing selected, the **General** tab holds preferences that are not
+With nothing selected, the Dashboard inspector's **General** tab holds preferences that are not
 a look. They apply to every profile, in the kiosk and in the studio.
 
-- **Font** - the page font: *System* (the browser's default, as before),
-  *Sans*, *Rounded*, *Serif* or *Mono*. Every widget whose **Font** is
-  *Theme* uses it; a Font set on the widget, or in the global style, still
-  wins.
+- **Font** - the page font, from the [font catalog](#fonts). Every widget
+  whose **Font** is *Theme* uses it; a Font set on the widget, or in the
+  global style, still wins.
 - **Clock** - *Locale* (the date locale decides 12 or 24 hours), *24 h*
   or *12 h*; **Show seconds** (on by default); **Date & time locale** -
   *System* or one of the listed locales (for example *Deutsch (Deutschland)
@@ -1005,10 +1081,21 @@ a look. They apply to every profile, in the kiosk and in the studio.
 Each change is one undo step (the same option changed in quick succession is
 merged).
 
+## Fonts
+
+The page font (General › Type) and every widget's **Font** option offer the
+same catalog (`src/lib/fonts.ts`): *System* (the browser's default), *Sans*,
+*Rounded*, *Serif* and *Mono* (the original system stacks, whose ids saved
+configs keep) and Google Fonts: Inter, Geist, Roboto, Manrope, Outfit, Space
+Grotesk, IBM Plex Sans, Nunito, Rajdhani, Orbitron, Oswald, JetBrains Mono and
+Fira Code. A Google font is downloaded the first time something uses it and
+always has a system fallback, so a kiosk without internet still renders (in
+the fallback). The studio's own chrome is a separate matter: it uses Geist and
+Geist Mono and does not follow the dashboard font.
+
 ## Grid spacing: gap and padding
 
-Each profile has its own spacing, under the active profile in the
-**Profiles** drawer:
+Each profile has its own spacing, in Dashboard › Profile:
 
 - **Gap px** - the space between zones. Empty means 12 px, the spacing
   every profile had before.
@@ -1019,14 +1106,14 @@ Each profile has its own spacing, under the active profile in the
 
 Both take 0 to 200 px. The studio canvas draws the profile at its design
 size with the same gap and padding (as the kiosk page shows it), and
-drawing, moving and resizing zones, the column guides and the zone toolbar
+drawing, moving and resizing zones, the column guides and the selection chip
 all follow the gap. A gap of 0 makes the zones touch; with no card surface
 (for example the *Minimal* preset) that turns the grid into one seamless
 page.
 
 ## Copy, Paste, Use as global and presets
 
-The buttons at the top of the *Colors & surface* card work on a
+The buttons at the top of the *Colors & surface* section work on a
 widget's look-only options:
 
 - **Copy** remembers the selected widget's style; **Paste** replaces another
