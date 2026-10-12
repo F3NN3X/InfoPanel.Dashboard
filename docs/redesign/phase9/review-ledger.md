@@ -28,8 +28,8 @@ Findings from reviews, with the decision taken. Status: open / fixed (commit) / 
 ## First browser QA (8aa3757, `?widget-qa`, 44 templates × 6 spans × cell 110/150 × default/studio)
 | # | Sev | Where | Finding | Decision |
 |---|---|---|---|---|
-| 16 | med | SystemStatus 4×2, Clock 4×2, SteamLibrary 2×1/2×2/4×2 (150), CpuMonitor 2×1 (150) | text overlaps (probe `overlaps`) | open: fix in 9.8 sweep |
-| 17 | med | QA probe | content clipped by the shell's `overflow:hidden` is not reported (clipped axes ignored) | open: add a `clipped` kind (scrollHeight/scrollWidth > client + 1 on zone descendants with overflow hidden) in 9.8 |
+| 16 | med | SystemStatus 4×2, Clock 4×2, SteamLibrary 2×1/2×2/4×2 (150), CpuMonitor 2×1 (150) | text overlaps (probe `overlaps`) | fixed: 9.8 sweeps 2–3 (per-widget `fix: <widget> fits at …` commits); full 14-skin × 2-variant sweep at 110/150 is clean |
+| 17 | med | QA probe | content clipped by the shell's `overflow:hidden` is not reported (clipped axes ignored) | fixed (d21fbaa) |
 | 18 | low | legacy `hardwaremodern` | duplicate React keys (two sensors share a display name) | fixed (076c150: rows keyed by sensor key) |
 | 19 | low | legacy image path | `/assets/...` root-relative images go through `/api/image-proxy` and 400 in dev | fixed (art tint loads same-origin images directly) |
 | 20 | low | `core/primitives.tsx` Spark | gradient id from `Math.random()` in a ref initialiser | fixed (f32be1d) |
@@ -40,7 +40,7 @@ Findings from reviews, with the decision taken. Status: open / fixed (commit) / 
 | 21 | high | `templateModule` render | legacy modules returned `null` with no data, so the kiosk hid the zone (`hasData` false); templates render an empty state instead → empty zones now show in the kiosk | fixed (379692c) |
 | 22 | med | data adapter | `toFlat` drops `SensorValue.name`, so auto-discovered rows (Hardware, SensorGroup) show key-derived labels instead of the sensor's display name | fixed (ceb476a) |
 | 23 | low | Network | legacy showed KB/s values as bytes/s; the template shows the sensor's real unit, and the busiest adapter instead of ethernet only | accepted: a bug fix; noted in the PR |
-| 24 | low | ports | `docs/widget-settings.md`, `docs/module-catalog.md` still name deleted `Modern*` components | open: docs pass in 9.8 |
+| 24 | low | ports | `docs/widget-settings.md`, `docs/module-catalog.md` still name deleted `Modern*` components | fixed (0bfea1a) |
 | 25 | med | `templateModule` | three parallel ports added three legacy-alias mechanisms (`legacy`, `alias`/`base`, per-module) | fixed (e743142) |
 | 26 | med | Bluetooth | devices matched by last key segment because names are dropped (see #22); unverified on real plugin keys | fixed (ceb476a) |
 | 27 | low | Departures / Notifications | rows cut to fit the zone instead of a scroll area | accepted: kiosk zones aren't scrolled; "fit, don't overflow" rule |
@@ -58,12 +58,20 @@ Findings from reviews, with the decision taken. Status: open / fixed (commit) / 
 | 35 | low | Hardware 3×2, System 3×2, vbz 6×3 | text overlaps (probe) | fixed (probe clean on legacy ids at 110 and 150 after the parity pass) |
 | 36 | high | all ported modules | visual parity findings: see `visual-review.md` (27 rows: 10 high, 10 med, 7 low) | fixed (4102a12 8c63783 c3e60f6 83c80ba d47fab3 5f55942..84b55e7); remaining lows accepted |
 | 37 | med | Other sensors | the sensor `source` line was dropped; multi-line values clamp to 3 lines | fixed 9.4c: source line restored; multi-line values scroll instead of clamping |
-| 38 | low | `src/components/SmartValue.tsx` | unused after the Other sensors port | open: delete in 9.6 |
+| 38 | low | `src/components/SmartValue.tsx` | unused after the Other sensors port | fixed (541eacb) |
 | 39 | low | Wave Link 3×2/4×2 | mix-route chips and output devices show only in column / lg layouts (legacy fit them by scrolling) | accepted: kiosk zones don't scroll; information still available at larger spans |
 
 ## Inspector schemas (9.5)
 | # | Sev | Where | Finding | Decision |
 |---|---|---|---|---|
-| 40 | med | SensorGroup | item labels derived from the key's last segment, not the sensor display name (`names`, #22) | open: use `sensorLabel` |
+| 40 | med | SensorGroup | item labels derived from the key's last segment, not the sensor display name (`names`, #22) | fixed (1d7f6ea) |
 | 41 | low | SensorGroup | per-item label/max/warn/crit/decimals not settable (shared values only) | accepted: new template capability beyond today's features; shared thresholds cover the common case |
 | 42 | low | VolumeMixer | `onSetVolume` / `onToggleMute` callbacks not wired, faders read-only (as the legacy volume view) | accepted: no write API in the dashboard today |
+| 43 | high | template modules (25, e.g. SystemOverview, Vitals, Thermals, SensorValue) | no prefixes, so `useSensors([])` retained no stream and the zone never repainted in the kiosk | fixed: `readsAll` modules subscribe to every stream; sensorless ones keep `[]` |
+| 44 | med | Other sensors (SensorValue) | IPs, times, versions, resolutions parsed as numbers | fixed: `isNumericText` |
+| 45 | med | `readSystemFlat` | `" x"` / `"0x10"` read as numbers | fixed: strict decimal first token |
+| 46 | med | `filterDisks` | stored `"C:"` loosened to `"c"` and matched any drive with a c | fixed: exact substring first; loose match only for slug-named drives and terms of 3+ chars |
+| 47 | low | `ZoneErrorBoundary` | reset key was the children element, so a caught error cleared every tick | fixed: keyed on the placement object |
+| 48 | low | synth / brutal / hud skins | fitted numerals clipped (wide display faces), Achievements progress row and FPS facts overflowed | fixed: `numWide` skin token, truncating progress label, facts hidden below 190px when metrics show |
+| 49 | low | WebPage iframe / `customCss` scope | no `sandbox`, `javascript:` not filtered; `}` in custom CSS escapes `@scope` | accepted for this branch: identical on main (not a regression); follow-up |
+| 50 | low | toFlat / panel sparkline / PanelSkin ctx / render-time refs (review #3 part, #6–#8, #10) | unit dropped when text is set; seed point; context rebuilt per render; StrictMode double-steps in dev | accepted: text shown verbatim as on main; others cosmetic or dev-only |
