@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { StatGrid, Widget, shell, get, num, fmt, pretty, has, Metric, Ring, Spark, Stat, useHistory, tone, Empty, heat, hw, Num, type ShellProps, type WidgetMeta } from "./kit";
+import { fitRows, StatGrid, Widget, shell, get, num, fmt, pretty, has, Metric, Ring, Spark, Stat, useHistory, tone, Empty, heat, hw, Num, type ShellProps, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "CpuMonitor",
@@ -71,7 +71,7 @@ export default function CpuMonitor(p: CpuMonitorProps) {
       compact={{ label: "CPU", value: total, unit: "%", sub: Number.isFinite(temp) && temp > 0 ? `${fmt(temp, 0)}°C · ${fmt(power, 0)} W` : `${fmt(power, 0)} W`, hist, min: 0, max: 100, t: tone(total, warn, crit) }}
       right={Number.isFinite(temp) && temp > 0 && <span className="tabular-nums text-[color:var(--w-fg)]">{fmt(temp, 0)}°C</span>}
     >
-      {({ size }) =>
+      {({ size, h }) =>
         size === "xs" ? (
           <div className="flex h-full items-center justify-between gap-2">
             <Metric label="CPU" value={total} unit="%" scale="lg" t={tone(total, warn, crit)} />
@@ -86,9 +86,11 @@ export default function CpuMonitor(p: CpuMonitorProps) {
               </Num>
             </Ring>
             <div className="grid min-w-0 flex-1 gap-1.5">
-              <Stat label="Max core" value={`${fmt(maxCore, 0)}%`} />
-              <Stat label="Package" value={`${fmt(power, 1)} W`} />
-              <Stat label="Clock" value={`${fmt(clock / 1000, 2)} GHz`} />
+              {[
+                <Stat key="max" label="Max core" value={`${fmt(maxCore, 0)}%`} />,
+                <Stat key="pkg" label="Package" value={`${fmt(power, 1)} W`} />,
+                <Stat key="clk" label="Clock" value={`${fmt(clock / 1000, 2)} GHz`} />,
+              ].slice(0, h > 0 ? fitRows(h, 38, 6) : 3)}
             </div>
           </div>
         ) : (
