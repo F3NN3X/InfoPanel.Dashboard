@@ -21,6 +21,9 @@ export interface CalendarProps extends ShellProps {
   weekStart?: number;
 }
 
+// Today's pill: near-black text on a light accent, white on a dark one (the class's dark text stays where relative colours are unsupported).
+const TODAY = { background: "var(--accent)", color: "oklch(from var(--accent) clamp(0, (0.7 - l) * 1000, 1) 0 0)" };
+
 export default function Calendar(p: CalendarProps) {
   const d = p.data;
   const k = (s: string) => num(get(d, `plugins.clock-plugin.clock.${s}`));
@@ -58,7 +61,7 @@ export default function Calendar(p: CalendarProps) {
                 <span
                   key={i}
                   className={`flex items-center justify-center rounded-md tabular-nums ${c === day ? "font-semibold text-[#0c0c0e]" : c ? "text-[color:var(--w-fg)]" : ""}`}
-                  style={c === day ? { background: "var(--accent)" } : undefined}
+                  style={c === day ? TODAY : undefined}
                 >
                   {c ?? ""}
                 </span>
