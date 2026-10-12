@@ -2,6 +2,7 @@ import { type CSSProperties } from "react";
 import { Image as ImageIcon } from "lucide-react";
 import { Gauge } from "@/components/Gauge";
 import { Bar as SkinBar, Ring, Spark } from "@/widgets/core/primitives";
+import { useHistory } from "@/widgets/core/layout";
 import { isImageUrl, resolveImageUrl } from "@/lib/image";
 import { sensorAt } from "@/lib/sensors";
 import { formatClock } from "@/lib/general";
@@ -13,7 +14,7 @@ import type { SensorMap } from "@/modules/types";
 import { cn } from "@/lib/utils";
 import { labelStyle } from "@/components/widget-style";
 import { widgetPercent, widgetValue } from "./format";
-import { useHistory, useNow } from "./hooks";
+import { useNow } from "./hooks";
 import { panelNum, usePanelSkin } from "./panel-skin";
 
 /**
@@ -223,7 +224,9 @@ function GaugeWidget({ widget, sensor, text, unit }: Ctx) {
 }
 
 function Sparkline({ widget, sensor }: { widget: Widget; sensor?: SensorValue }) {
-  const history = useHistory(sensor?.value, widget.history ?? 40);
+  const eased = useHistory(sensor?.value ?? NaN, widget.history ?? 40, 1);
+  // The core seeds a first sample as two points; this panel always drew it as one.
+  const history = eased.length === 2 && eased[0] === eased[1] ? eased.slice(0, 1) : eased;
   const sk = usePanelSkin();
   const last = history[history.length - 1];
   const W = 200;
