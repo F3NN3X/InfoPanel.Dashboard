@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, fmt, Num, Spark, STATE, hue, useHistory, type ShellProps, type WidgetMeta, type Data } from "./kit";
+import { Widget, shell, get, num, fmt, Num, Spark, LedLadder, STATE, hue, useHistory, type ShellProps, type WidgetMeta, type Data } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "AudioMeter",
@@ -18,19 +18,6 @@ const read = (d: Data, id: string) => {
   const hold = num(k("peak-hold"));
   return { id, name: String(k("device-name")).replace(/\s*\(.+\)$/, ""), l: num(k("left-channel")), r: num(k("right-channel")), level: num(k("audio-level")), peak: num(k("peak-level")), rms: num(k("rms-level")), hold: hold < -200 ? -96 : hold };
 };
-const zone = (i: number, n: number, over = "var(--accent)") => (i >= n * 0.9 ? STATE.crit : i >= n * 0.72 ? STATE.warn : over);
-// 0..100% into lit segments, accent → amber → red
-function Leds({ v, n = 24, vertical }: { v: number; n?: number; vertical?: boolean }) {
-  const lit = Math.round((Math.min(100, Math.max(0, v)) / 100) * n);
-  return (
-    <div className={`flex flex-1 gap-[2px] ${vertical ? "flex-col-reverse" : ""}`}>
-      {Array.from({ length: n }, (_, i) => (
-        <span key={i} className="flex-1 rounded-[2px] transition-opacity duration-100" style={{ background: zone(i, n), opacity: i < lit ? 1 : 0.1 }} />
-      ))}
-    </div>
-  );
-}
-
 const db2pct = (db: number) => Math.min(100, Math.max(0, ((db + 60) / 60) * 100));
 const P = (a: number, r: number, cx = 50, cy = 56): [number, number] => [cx + r * Math.sin((a * Math.PI) / 180), cy - r * Math.cos((a * Math.PI) / 180)];
 // Analog VU: needle springs with a slight overshoot
@@ -109,10 +96,10 @@ export default function AudioMeter(p: AudioMeterProps) {
                   <div key={id} className="flex min-w-0 flex-1 flex-col items-center gap-1.5">
                     <div className="flex min-h-0 w-full flex-1 justify-center gap-[3px]">
                       <div className="flex w-2">
-                        <Leds v={m.l} vertical n={size === "lg" ? 28 : 16} />
+                        <LedLadder value={m.l} vertical n={size === "lg" ? 28 : 16} />
                       </div>
                       <div className="flex w-2">
-                        <Leds v={m.r} vertical n={size === "lg" ? 28 : 16} />
+                        <LedLadder value={m.r} vertical n={size === "lg" ? 28 : 16} />
                       </div>
                     </div>
                     {size !== "xs" && (
@@ -127,10 +114,10 @@ export default function AudioMeter(p: AudioMeterProps) {
         ) : size === "xs" ? (
           <div className="flex h-full flex-col justify-center gap-1.5">
             <div className="flex h-2">
-              <Leds v={one.l} n={16} />
+              <LedLadder value={one.l} n={16} />
             </div>
             <div className="flex h-2">
-              <Leds v={one.r} n={16} />
+              <LedLadder value={one.r} n={16} />
             </div>
           </div>
         ) : (
@@ -176,16 +163,12 @@ export default function AudioMeter(p: AudioMeterProps) {
               <div className="flex min-h-0 flex-1 flex-col justify-center gap-1.5">
                 {[0, 1, 2].map((row) => (
                   <div key={row} className="flex h-full max-h-4 items-stretch gap-[3px]">
-                    <div className="flex flex-1 flex-row-reverse gap-[2px]">
-                      {Array.from({ length: 16 }, (_, i) => (
-                        <span key={i} className="flex-1 rounded-[2px] transition-opacity duration-100" style={{ background: i > 12 ? STATE.crit : i > 9 ? STATE.warn : "var(--accent)", opacity: i < Math.round(((one.l * (1 - row * 0.18)) / 100) * 16) ? 1 : 0.08 }} />
-                      ))}
+                    <div className="flex flex-1">
+                      <LedLadder value={one.l * (1 - row * 0.18)} n={16} zones={[62, 81]} reverse />
                     </div>
                     <span className="w-px bg-[color:var(--w-faint)]" />
-                    <div className="flex flex-1 gap-[2px]">
-                      {Array.from({ length: 16 }, (_, i) => (
-                        <span key={i} className="flex-1 rounded-[2px] transition-opacity duration-100" style={{ background: i > 12 ? STATE.crit : i > 9 ? STATE.warn : "var(--accent)", opacity: i < Math.round(((one.r * (1 - row * 0.18)) / 100) * 16) ? 1 : 0.08 }} />
-                      ))}
+                    <div className="flex flex-1">
+                      <LedLadder value={one.r * (1 - row * 0.18)} n={16} zones={[62, 81]} />
                     </div>
                   </div>
                 ))}
@@ -211,7 +194,7 @@ export default function AudioMeter(p: AudioMeterProps) {
                     </div>
                   ) : (
                     <div className="flex h-full flex-1">
-                      <Leds v={v} n={p.segments ?? (size === "sm" ? 20 : 32)} />
+                      <LedLadder value={v} n={p.segments ?? (size === "sm" ? 20 : 32)} />
                     </div>
                   )}
                 </div>

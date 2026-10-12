@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, fmt, Dot, STATE, type ShellProps, type WidgetMeta } from "./kit";
+import { Widget, shell, get, num, fmt, Dot, LedLadder, STATE, type ShellProps, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "MeterBridge",
@@ -16,7 +16,6 @@ export const meta: WidgetMeta = {
 const dbOf = (pct: number) => (pct > 0 ? 20 * Math.log10(pct / 100) : -Infinity);
 const fmtDb = (db: number) => (Number.isFinite(db) ? fmt(db, db > -10 ? 1 : 0) : "-∞");
 const SCALE = [0, -6, -12, -18, -24, -36, -48, -60];
-const ZONE = (db: number, warnDb: number, clipDb: number) => (db > clipDb ? STATE.crit : db > warnDb ? STATE.warn : "var(--accent)");
 
 interface Channel {
   id: string;
@@ -84,31 +83,25 @@ export default function MeterBridge(p: MeterBridgeProps) {
   const anyLive = ch.some((c) => c.l > floor || c.r > floor);
 
   // called as a function (not a component): a plain render helper over the numbers it is given
-  const ladder = (db: number, hdb: number, n: number, horiz = false) => (
-    <div className={`relative flex ${horiz ? "h-full flex-1 flex-row gap-[2px]" : "w-full flex-1 flex-col-reverse gap-[2px]"}`}>
-      {p.ladder === "smooth" ? (
-        <>
-          <div className="absolute inset-0 rounded-[2px] bg-[color:var(--w-track)]" />
-          <div
-            className="absolute rounded-[2px] transition-all duration-100"
-            style={{
-              ...(horiz ? { left: 0, top: 0, bottom: 0, width: `${pos(db)}%` } : { left: 0, right: 0, bottom: 0, height: `${pos(db)}%` }),
-              background: `linear-gradient(${horiz ? "90deg" : "0deg"}, var(--accent) 0%, var(--accent) ${pos(warnDb)}%, ${STATE.warn} ${pos(warnDb)}%, ${STATE.warn} ${pos(clipDb)}%, ${STATE.crit} ${pos(clipDb)}%)`,
-              backgroundSize: horiz ? `${(100 / Math.max(1, pos(db))) * 100}% 100%` : `100% ${(100 / Math.max(1, pos(db))) * 100}%`,
-              backgroundPosition: horiz ? "left" : "bottom",
-            }}
-          />
-        </>
-      ) : (
-        Array.from({ length: n }, (_, i) => {
-          const segDb = floor + ((i + 0.5) / n) * -floor,
-            on = segDb <= db;
-          return <span key={i} className="min-h-0 min-w-0 flex-1 rounded-[1.5px] transition-opacity duration-75" style={{ background: ZONE(segDb, warnDb, clipDb), opacity: on ? 1 : 0.16 }} />;
-        })
-      )}
-      {Number.isFinite(hdb) && hdb > floor && <span className="absolute rounded-full bg-[color:var(--w-fg)] transition-all duration-150" style={horiz ? { left: `calc(${pos(hdb)}% - 1px)`, top: -1, bottom: -1, width: 2 } : { bottom: `calc(${pos(hdb)}% - 1px)`, left: -1, right: -1, height: 2 }} />}
-    </div>
-  );
+  const ladder = (db: number, hdb: number, n: number, horiz = false) => {
+    const held = Number.isFinite(hdb) && hdb > floor ? pos(hdb) : undefined;
+    if (p.ladder !== "smooth") return <LedLadder value={pos(db)} n={n} vertical={!horiz} zones={[pos(warnDb), pos(clipDb)]} hold={held} />;
+    return (
+      <div className={`relative flex ${horiz ? "h-full flex-1 flex-row gap-[2px]" : "w-full flex-1 flex-col-reverse gap-[2px]"}`}>
+        <div className="absolute inset-0 rounded-[2px] bg-[color:var(--w-track)]" />
+        <div
+          className="absolute rounded-[2px] transition-all duration-100"
+          style={{
+            ...(horiz ? { left: 0, top: 0, bottom: 0, width: `${pos(db)}%` } : { left: 0, right: 0, bottom: 0, height: `${pos(db)}%` }),
+            background: `linear-gradient(${horiz ? "90deg" : "0deg"}, var(--accent) 0%, var(--accent) ${pos(warnDb)}%, ${STATE.warn} ${pos(warnDb)}%, ${STATE.warn} ${pos(clipDb)}%, ${STATE.crit} ${pos(clipDb)}%)`,
+            backgroundSize: horiz ? `${(100 / Math.max(1, pos(db))) * 100}% 100%` : `100% ${(100 / Math.max(1, pos(db))) * 100}%`,
+            backgroundPosition: horiz ? "left" : "bottom",
+          }}
+        />
+        {held !== undefined && <span className="absolute rounded-full bg-[color:var(--w-fg)] transition-all duration-150" style={horiz ? { left: `calc(${held}% - 1px)`, top: -1, bottom: -1, width: 2 } : { bottom: `calc(${held}% - 1px)`, left: -1, right: -1, height: 2 }} />}
+      </div>
+    );
+  };
 
   return (
     <Widget

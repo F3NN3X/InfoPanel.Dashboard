@@ -532,3 +532,33 @@ export function MiniViz({ l = 0, r = 0, level = 0, mode = "bars", bands, ramp = 
   }, []);
   return <canvas ref={cv} className={`block w-full ${className}`} />;
 }
+
+export interface LedLadderProps {
+  /** 0..100 */
+  value: number;
+  n?: number;
+  vertical?: boolean;
+  /** Horizontal ladders fill from the right (the mirrored left channel). */
+  reverse?: boolean;
+  /** Where the amber and the red zone start, in % of the scale. */
+  zones?: [warn: number, clip: number];
+  /** Peak-hold marker position in %; none when unset. */
+  hold?: number;
+  /** Colour of the safe zone, default the accent. */
+  color?: string;
+  /** Colour of the clip zone, default red. */
+  hotColor?: string;
+}
+// Segmented level ladder, accent → amber → red; a segment is lit when its centre is at or below the value.
+export function LedLadder({ value, n = 24, vertical, reverse, zones = [72, 90], hold, color = "var(--accent)", hotColor = STATE.crit }: LedLadderProps) {
+  const v = clamp(value);
+  return (
+    <div className={`relative flex flex-1 gap-[2px] ${vertical ? "w-full flex-col-reverse" : `h-full ${reverse ? "flex-row-reverse" : "flex-row"}`}`}>
+      {Array.from({ length: n }, (_, i) => {
+        const at = ((i + 0.5) / n) * 100;
+        return <span key={i} className="min-h-0 min-w-0 flex-1 rounded-[2px] transition-opacity duration-100" style={{ background: at > zones[1] ? hotColor : at > zones[0] ? STATE.warn : color, opacity: at <= v ? 1 : 0.14 }} />;
+      })}
+      {hold !== undefined && hold > 0 && <span className="absolute rounded-full bg-[color:var(--w-fg)] transition-all duration-150" style={vertical ? { bottom: `calc(${clamp(hold)}% - 1px)`, left: -1, right: -1, height: 2 } : { left: `calc(${clamp(hold)}% - 1px)`, top: -1, bottom: -1, width: 2 }} />}
+    </div>
+  );
+}
