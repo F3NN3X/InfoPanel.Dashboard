@@ -60,3 +60,10 @@ Findings from reviews, with the decision taken. Status: open / fixed (commit) / 
 | 37 | med | Other sensors | the sensor `source` line was dropped; multi-line values clamp to 3 lines | fixed 9.4c: source line restored; multi-line values scroll instead of clamping |
 | 38 | low | `src/components/SmartValue.tsx` | unused after the Other sensors port | open: delete in 9.6 |
 | 39 | low | Wave Link 3×2/4×2 | mix-route chips and output devices show only in column / lg layouts (legacy fit them by scrolling) | accepted: kiosk zones don't scroll; information still available at larger spans |
+
+## Inspector schemas (9.5)
+| # | Sev | Where | Finding | Decision |
+|---|---|---|---|---|
+| 40 | med | SensorGroup | item labels derived from the key's last segment, not the sensor display name (`names`, #22) | open: use `sensorLabel` |
+| 41 | low | SensorGroup | per-item label/max/warn/crit/decimals not settable (shared values only) | accepted: new template capability beyond today's features; shared thresholds cover the common case |
+| 42 | low | VolumeMixer | `onSetVolume` / `onToggleMute` callbacks not wired, faders read-only (as the legacy volume view) | accepted: no write API in the dashboard today |
