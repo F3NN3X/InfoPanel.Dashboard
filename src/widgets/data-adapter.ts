@@ -1,9 +1,7 @@
 // The bridge from the app's sensor map to the flat string data the widget templates read.
 // The stream itself is the app's (`useSensors` / `lib/sensor-store.ts`); nothing here opens another.
-import { useSensors } from "@/hooks/useSensors";
 import { resolveImageUrl } from "@/lib/image";
 import type { SensorMap } from "@/modules/types";
-import type { Data } from "./core/types";
 
 /** `{ key: "62.5 %" }`: what the templates' `num()` / `get()` parse. */
 export type FlatData = Record<string, string>;
@@ -40,11 +38,6 @@ export function toNames(map: SensorMap): FlatNames {
   for (const [key, s] of Object.entries(map)) if (s.name?.trim()) names[key] = s.name.trim();
   nameCache.set(map, names);
   return names;
-}
-
-/** The flat data of the sensors under `prefixes` (`null` = every key). */
-export function useWidgetData(prefixes: readonly string[] | null): Data {
-  return toFlat(useSensors(prefixes));
 }
 
 /** An image value for `<img src>`: Data API paths (`/api/images/...`) resolve against the API. */

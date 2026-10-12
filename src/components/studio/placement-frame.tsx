@@ -151,7 +151,7 @@ export function PlacementFrame({
   useEffect(() => () => stopDrag.current?.(), []);
 
   const body = (
-    <ZoneErrorBoundary title={title} resetKey={children}>
+    <ZoneErrorBoundary title={title} resetKey={placement}>
       {children}
     </ZoneErrorBoundary>
   );
