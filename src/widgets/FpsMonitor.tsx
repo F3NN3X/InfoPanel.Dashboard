@@ -78,7 +78,7 @@ interface GaugeViewProps {
 export function GaugeView({ idle, size, w, h, fps, low, low01, ft, hz, maxFps, tone, ringColor, sparkColor, hist, source, gpu, resolution, title, extras }: GaugeViewProps) {
   const color = ringColor || undefined;
   const tall = h >= w * 0.72;
-  const ringSize = Math.max(40, tall ? Math.min(w * 0.7, h * 0.45, 150) : Math.min(h - 4, w * 0.34, 140));
+  const ringSize = Math.max(40, tall ? Math.min(w * 0.7, h * 0.45, 150) : Math.min(h - (size === "xs" ? 4 : 24), w * 0.34, 140));
   const numColor = color ?? (tone !== "ok" ? TONES[tone] : undefined);
   const ring = (
     <div className="shrink-0" style={{ width: ringSize, height: ringSize }}>
@@ -251,9 +251,11 @@ export default function FpsMonitor(p: FpsMonitorProps) {
                 <Stat label="Frame time" value={`${fmt(ft, 1)} ms`} />
               </div>
             </div>
-            <div className="relative min-h-0 flex-1">
-              <Spark values={hist} min={0} className="absolute inset-0 h-full" />
-              <span className="absolute right-0 top-0 text-[10px] text-[color:var(--w-faint)]">frame time</span>
+            <div className="flex min-h-0 flex-1 flex-col">
+              <span className="shrink-0 self-end text-[10px] text-[color:var(--w-faint)]">frame time</span>
+              <div className="relative min-h-0 flex-1">
+                <Spark values={hist} min={0} className="absolute inset-0 h-full" />
+              </div>
             </div>
             {size === "lg" && (
               <div className="grid grid-cols-4 gap-3 border-t border-[color:var(--w-track)] pt-3">
