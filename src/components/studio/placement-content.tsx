@@ -13,6 +13,7 @@ import { YR_FORECAST_KEY, YR_FORECAST_PREFIX } from "@/lib/sensors";
 import { CARDS_ID, BLANK_MODULE, type Placement } from "@/lib/layout";
 import { panelLegacyLook, panelOwnSettings } from "@/lib/panel-model";
 import { resolveWith, type Appearance } from "@/lib/style-resolve";
+import { safeRender } from "@/components/zone-error-boundary";
 
 const moduleById = new Map(modules.map((m) => [m.id, m]));
 
@@ -130,7 +131,7 @@ export function placementContent(
   const mod = moduleById.get(p.module);
   if (!mod) return { content: null, hasData: false, title: p.module };
   const settings = resolveWith(appearance, p.settings, p.styleMode);
-  const content = mod.render(sensors, settings);
+  const content = safeRender(mod.title, () => mod.render(sensors, settings));
   // Only the module's own keys (a stored color it has no option for stays inert).
   const cfg = effectiveSettings(mod, settings);
   return {

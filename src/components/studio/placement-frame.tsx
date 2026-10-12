@@ -10,6 +10,7 @@ import { BLANK_MODULE, type MonitorProfile, type Placement } from "@/lib/layout"
 import { profileGap, trackPitch } from "@/lib/profile-grid";
 import { hexToHsl } from "@/lib/theme";
 import { cn } from "@/lib/utils";
+import { ZoneErrorBoundary } from "@/components/zone-error-boundary";
 import { pastDragThreshold, trackPointer } from "./pointer-drag";
 import { isToggleClick, type SelectMode } from "./selection";
 import type { ZoneRect } from "./zone-geometry";
@@ -148,6 +149,12 @@ export function PlacementFrame({
   // A drag in flight is aborted if the frame unmounts (a mode switch mid-drag).
   const stopDrag = useRef<(() => void) | null>(null);
   useEffect(() => () => stopDrag.current?.(), []);
+
+  const body = (
+    <ZoneErrorBoundary title={title} resetKey={children}>
+      {children}
+    </ZoneErrorBoundary>
+  );
 
   // Hide empty modules (and blank zones) in kiosk mode (they claim no space).
   if (!studio && (!hasData || blank)) return null;
@@ -364,14 +371,14 @@ export function PlacementFrame({
               )}
               {frameCard === "panel" ? (
                 <div className="min-h-0 flex-1 overflow-hidden rounded-lg bg-card/50 p-2">
-                  {children}
+                  {body}
                 </div>
               ) : frameCard === "bordered" ? (
                 <div className="min-h-0 flex-1 overflow-hidden rounded-lg border border-border bg-card/30 p-2">
-                  {children}
+                  {body}
                 </div>
               ) : (
-                <div className="min-h-0 flex-1">{children}</div>
+                <div className="min-h-0 flex-1">{body}</div>
               )}
             </>
           )}
