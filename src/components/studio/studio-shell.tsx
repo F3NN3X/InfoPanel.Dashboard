@@ -22,7 +22,7 @@ interface StudioShellProps {
  * The studio body below the top bar: rail, left panel, then the canvas
  * (the zoom bar floats over it) with the inspector beside it or, in the
  * bottom placement, in a dock under a splitter (only its top row when
- * collapsed).
+ * collapsed; the inspector stays mounted behind it).
  */
 export function StudioShell({ layout, rail, drawer, main, bar, inspector, dockToggle }: StudioShellProps) {
   const { layout: l, collapsed } = layout;
@@ -54,7 +54,8 @@ export function StudioShell({ layout, rail, drawer, main, bar, inspector, dockTo
               style={{ height: l.dockHeight }}
             >
               <div className="flex h-7 shrink-0 items-center px-1.5">{dockToggle}</div>
-              {!collapsed && <div className="flex min-h-0 flex-1">{inspector}</div>}
+              {/* Collapsed, the inspector stays mounted (its tab, scroll and search survive) but out of sight and focus. */}
+              <div className={collapsed ? "invisible h-0 overflow-hidden" : "flex min-h-0 flex-1"}>{inspector}</div>
             </div>
           </>
         )}

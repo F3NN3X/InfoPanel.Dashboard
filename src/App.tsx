@@ -191,14 +191,16 @@ export default function App() {
   // Studio "Save" button: flush the config to the server immediately (the
   // normal sync is debounced 400ms); open kiosk pages pick it up from the
   // config event stream.
+  // Resolves to whether the server took it, so the button only says "Saved" when it did.
   const handleStudioSave = useCallback((cfg: DashboardConfig) => {
     saveConfig(cfg); // local copy first (offline fallback)
-    pushConfig(cfg)
-      // An edit made since the click is still unpushed (its debounced push clears the dot).
-      .then(() => latestConfig.current === cfg && setPushPending(false))
-      .catch(() => {
-        // Server offline — kiosk pages keep their last copy; the dot stays.
-      });
+    return pushConfig(cfg)
+      .then(() => {
+        // An edit made since the click is still unpushed (its debounced push clears the dot).
+        if (latestConfig.current === cfg) setPushPending(false);
+        return true;
+      })
+      .catch(() => false); // Server offline — kiosk pages keep their last copy; the dot stays.
   }, []);
 
   // The dedicated studio replaces the whole view.

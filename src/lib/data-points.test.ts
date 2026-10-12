@@ -4,6 +4,9 @@ import {
   buildDataModel,
   categoryOf,
   classifyValue,
+  formatNumber,
+  formatReading,
+  inferDevicePrefixes,
   healthCounts,
   healthOf,
   kindOfUnit,
@@ -212,5 +215,94 @@ describe("search", () => {
     const p = { ...model.points[0], raw: "26.2 %" };
     expect(matchesPoint(p, "26.2")).toBe(true);
     expect(matchesPoint({ ...p, raw: "running" }, "running")).toBe(true);
+  });
+});
+
+describe("formatNumber and formatReading", () => {
+  it("rounds to two decimals, trims zeros and keeps integers", () => {
+    expect(formatNumber(-24.799999237060547)).toBe("-24.8");
+    expect(formatNumber(26.2)).toBe("26.2");
+    expect(formatNumber(1.005)).toBe("1");
+    expect(formatNumber(12.345)).toBe("12.35");
+    expect(formatNumber(4500)).toBe("4500");
+    expect(formatNumber(-0.001)).toBe("0");
+  });
+
+  it("keeps the unit", () => {
+    expect(formatReading(-24.799999237060547, "dB")).toBe("-24.8 dB");
+    expect(formatReading(3, "")).toBe("3");
+    expect(formatReading(3, undefined)).toBe("3");
+  });
+
+  it("shortens long fractions in text readings only", () => {
+    const m = buildDataModel(null, {
+      "pushed.a": { text: "-24.799999237060547 dB", unit: "" },
+      "pushed.b": { text: "26.20 %", unit: "" },
+    });
+    expect(m.byKey.get("pushed.a")?.raw).toBe("-24.8 dB");
+    expect(m.byKey.get("pushed.b")?.raw).toBe("26.20 %");
+  });
+});
+
+describe("inferDevicePrefixes", () => {
+  it("groups by the longest word run the names share before they branch", () => {
+    const names = [
+      "AMD Ryzen 9 9950X3D Core #1",
+      "AMD Ryzen 9 9950X3D Core #15",
+      "AMD Ryzen 9 9950X3D Package",
+      "AMD Ryzen 9 9950X3D Total Load",
+      "WiFi 3 Download Speed",
+      "WiFi 3 Upload Speed",
+      "WDC WDS100T2B0A-00SM50 Total Space",
+      "WDC WDS100T2B0A-00SM50 Used Space",
+      "Lonely",
+    ];
+    expect(inferDevicePrefixes(names)).toEqual([
+      "AMD Ryzen 9 9950X3D",
+      "AMD Ryzen 9 9950X3D",
+      "AMD Ryzen 9 9950X3D",
+      "AMD Ryzen 9 9950X3D",
+      "WiFi 3",
+      "WiFi 3",
+      "WDC WDS100T2B0A-00SM50",
+      "WDC WDS100T2B0A-00SM50",
+      "",
+    ]);
+  });
+
+  it("leaves a name that stands alone, and never eats the whole name", () => {
+    expect(inferDevicePrefixes(["Fan 1", "Total Memory Used"])).toEqual(["", ""]);
+    expect(inferDevicePrefixes(["Used", "Used"])).toEqual(["", ""]);
+  });
+});
+
+describe("hardware monitors without a device on the reading", () => {
+  const monitor: ApiSources = { plugins: [] };
+  const named = (name: string, value: number, unit: string) => ({ value, unit, name, source: "infopanel" });
+  const flat: SensorMap = {
+    "libre.cpu_core_1": named("AMD Ryzen 9 9950X3D Core #1", 61, "°C"),
+    "libre.cpu_core_15": named("AMD Ryzen 9 9950X3D Core #15", 58, "°C"),
+    "libre.cpu_package": named("AMD Ryzen 9 9950X3D Package", 70, "°C"),
+    "libre.wifi_down": named("WiFi 3 Download Speed", 1200, "KB/s"),
+    "libre.wifi_up": named("WiFi 3 Upload Speed", 300, "KB/s"),
+    "libre.disk_total": named("WDC WDS100T2B0A-00SM50 Total Space", 931.5, "GB"),
+    "libre.disk_used": named("WDC WDS100T2B0A-00SM50 Used Space", 400.25, "GB"),
+    "libre.odd": named("Odd One", 1, "W"),
+  };
+  const model = buildDataModel(monitor, flat);
+  const libre = model.sources.find((s) => s.id === "libre")!;
+
+  it("infers one container per device from the names", () => {
+    const titles = libre.containers.map((c) => c.title);
+    expect(titles).toHaveLength(4);
+    expect(titles).toEqual(expect.arrayContaining(["AMD Ryzen 9 9950X3D", "WDC WDS100T2B0A-00SM50", "WiFi 3"]));
+    expect(model.byKey.get("libre.cpu_core_15")?.containerTitle).toBe("AMD Ryzen 9 9950X3D");
+  });
+
+  it("strips the device from the point names", () => {
+    expect(model.byKey.get("libre.cpu_core_15")?.name).toBe("Core #15");
+    expect(model.byKey.get("libre.wifi_down")?.name).toBe("Download Speed");
+    expect(model.byKey.get("libre.disk_total")?.name).toBe("Total Space");
+    expect(model.byKey.get("libre.odd")?.name).toBe("Odd One");
   });
 });

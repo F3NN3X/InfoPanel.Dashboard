@@ -27,6 +27,10 @@ interface GlobalStyleScopeProps {
   profileEnforce: boolean | undefined;
   /** Set the force switch (a profile's `undefined` = the dashboard's). */
   onEnforce: (target: AppearanceTarget, value: boolean | undefined) => void;
+  /** What still hides this scope's global style: widgets with their own look, profile styles. */
+  overrides: { widgets: number; profiles: number };
+  /** Make the overriding widgets follow the global style. */
+  onFollowAll: () => void;
 }
 
 const FORCE_LABEL = "Force global style";
@@ -45,6 +49,8 @@ export function GlobalStyleScope({
   dashboardEnforce,
   profileEnforce,
   onEnforce,
+  overrides,
+  onFollowAll,
 }: GlobalStyleScopeProps) {
   const all = target === "all";
   return (
@@ -76,6 +82,34 @@ export function GlobalStyleScope({
           onChange={(c) => onEnforce("profile", c === "inherit" ? undefined : c === "on")}
         />
       )}
+      <FollowAllRow overrides={overrides} onFollowAll={onFollowAll} />
+    </div>
+  );
+}
+
+/** "Make all widgets follow": drops the looks that hide the global style (they stay stored). */
+function FollowAllRow({ overrides, onFollowAll }: Pick<GlobalStyleScopeProps, "overrides" | "onFollowAll">) {
+  const { widgets, profiles } = overrides;
+  const hidden = [
+    widgets > 0 && `${widgets} widget${widgets === 1 ? "" : "s"}`,
+    profiles > 0 && `${profiles} profile${profiles === 1 ? "" : "s"}`,
+  ].filter(Boolean);
+  return (
+    <div className="flex items-center gap-3">
+      <div className="min-w-0 flex-1">
+        <div className="text-[12.5px] text-ui-1">Make all widgets follow</div>
+        <div className="text-[11px] leading-snug text-ui-4">
+          {hidden.length > 0 ? `${hidden.join(" and ")} keep their own look` : "Every widget already follows"}
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={onFollowAll}
+        disabled={hidden.length === 0}
+        className="h-7 shrink-0 rounded-md border border-ui-strong bg-ui-raised px-2.5 text-[12px] text-ui-2 hover:text-ui-1 disabled:opacity-40"
+      >
+        Follow
+      </button>
     </div>
   );
 }

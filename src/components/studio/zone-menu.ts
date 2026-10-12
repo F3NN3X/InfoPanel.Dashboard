@@ -19,6 +19,8 @@ export type MenuItemId =
   | "copy-style"
   | "paste-style"
   | "follow-global"
+  | "global-all"
+  | "global-profile"
   | "deselect"
   | "remove"
   | "add-widget"
@@ -87,6 +89,12 @@ export function zoneMenu(s: ZoneMenuState): MenuSpec {
     { id: "copy-style", label: "Copy style", hint: `${MOD}${ALT}C` },
     { id: "paste-style", label: "Paste style", hint: `${MOD}${ALT}V`, disabled: !s.canPasteStyle },
     { id: "follow-global", label: "Follow global style" },
+    ...(single
+      ? [
+          { id: "global-all" as const, label: "Use as global style: all profiles" },
+          { id: "global-profile" as const, label: "Use as global style: this profile" },
+        ]
+      : []),
     "separator",
     { id: "deselect", label: "Deselect", hint: "Esc" },
     { id: "remove", label: "Delete", hint: "⌫", danger: true },
@@ -134,6 +142,10 @@ export function menuAction(id: MenuItemId): CommandAction {
       return { type: "paste-style" };
     case "follow-global":
       return { type: "follow-global" };
+    case "global-all":
+      return { type: "use-global", target: "all" };
+    case "global-profile":
+      return { type: "use-global", target: "profile" };
     case "deselect":
       return { type: "deselect" };
     case "remove":

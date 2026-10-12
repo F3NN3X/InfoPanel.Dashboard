@@ -11,6 +11,7 @@ import {
   filterSources,
   flattenRows,
   matchesType,
+  rawValue,
   rowAt,
   rowOffsets,
   stickyIndex,
@@ -187,6 +188,13 @@ describe("displayValue and streamPrefix", () => {
   it("prefers the live reading over the snapshot", () => {
     expect(displayValue(point, { [point.key]: { value: 55, unit: "%" } })).toBe("55 %");
     expect(displayValue(point, {})).toBe(point.raw);
+  });
+
+  it("rounds a long reading for display and keeps the raw one copyable", () => {
+    const live = { [point.key]: { value: -24.799999237060547, unit: "dB" } };
+    expect(displayValue(point, live)).toBe("-24.8 dB");
+    expect(rawValue(point, live)).toBe("-24.799999237060547 dB");
+    expect(rawValue(point, {})).toBe(point.raw);
   });
 
   it("uses the common dotted prefix of a group", () => {

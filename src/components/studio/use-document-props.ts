@@ -62,7 +62,7 @@ export function useDocumentProps(
   const setGeneral = <K extends keyof GeneralSettings>(key: K, value: GeneralSettings[K]) =>
     setConfig((c) => ({ ...c, general: withGeneral(c.general, key, value) }), `general:${key}`);
 
-  const props: Omit<DocumentInspectorProps, "jumpTo"> = {
+  const props: Omit<DocumentInspectorProps, "jumpTo" | "query" | "onQuery"> = {
     theme: config.theme,
     radius: config.radius,
     onToken: (key, value) =>

@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
  */
 
 export const FIELD =
-  "rounded-md border border-ui-default bg-ui-app px-2 text-[12px] text-ui-1 outline-none placeholder:text-ui-5 focus:border-ui-accent";
+  "rounded-md border border-ui-default bg-ui-app px-2 text-[12px] text-ui-1 outline-none placeholder:text-ui-4 focus:border-ui-accent";
 
 export interface RowLabelProps {
   label: string;
@@ -33,7 +33,7 @@ function Label({ label, lead, hint, className }: RowLabelProps & { className?: s
         {label}
       </span>
       {hint && (
-        <span title={hint} className="shrink-0 text-ui-5 hover:text-ui-2">
+        <span title={hint} className="shrink-0 text-ui-4 hover:text-ui-2">
           <Info className="h-3.5 w-3.5" aria-label={hint} />
         </span>
       )}

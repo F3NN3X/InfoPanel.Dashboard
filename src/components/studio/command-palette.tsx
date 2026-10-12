@@ -52,7 +52,7 @@ function PaletteBody({ commands, onRun }: Pick<CommandPaletteProps, "commands" |
           onKeyDown={onKeyDown}
           placeholder="Type a command or search…"
           aria-label="Command"
-          className="w-full bg-transparent py-2.5 pl-9 pr-3 text-sm text-ui-1 outline-none placeholder:text-ui-5"
+          className="w-full bg-transparent py-2.5 pl-9 pr-3 text-sm text-ui-1 outline-none placeholder:text-ui-4"
         />
       </div>
       <div ref={listRef} role="listbox" className="min-h-0 flex-1 overflow-y-auto p-1">

@@ -148,14 +148,30 @@ export function categoryOf(sourceId: string, isPlugin: boolean): SourceCategory 
   return "Pushed via API";
 }
 
+/** A number for display: at most two decimals, trailing zeros trimmed, integers stay integers. */
+export function formatNumber(n: number): string {
+  if (!Number.isFinite(n)) return String(n);
+  const rounded = Math.round(n * 100) / 100;
+  return String(Object.is(rounded, -0) ? 0 : rounded);
+}
+
+/** A reading for display: the formatted number and its unit ("-24.8 dB"). */
+export function formatReading(value: number, unit?: string): string {
+  const u = (unit ?? "").trim();
+  return u ? `${formatNumber(value)} ${u}` : formatNumber(value);
+}
+
 /** The displayed value and its parts, from an entry and its live reading. */
 function describeEntry(entry: SourceEntry): Classified & { raw: string } {
   if (typeof entry.value === "number") {
     const unit = (entry.unit ?? "").trim();
-    return { type: "number", num: entry.value, unit, raw: unit ? `${entry.value} ${unit}` : String(entry.value) };
+    return { type: "number", num: entry.value, unit, raw: formatReading(entry.value, unit) };
   }
   const raw = (entry.text ?? "").trim();
-  return { ...classifyValue(raw), raw };
+  const classified = classifyValue(raw);
+  // A long fraction in text ("-24.799999237060547 dB") is shortened; short values keep their own spelling.
+  const long = classified.type === "number" && /\.\d{3,}/.test(raw);
+  return { ...classified, raw: long ? formatReading(classified.num ?? 0, classified.unit) : raw };
 }
 
 /**
@@ -166,6 +182,29 @@ function stripDevice(name: string, device: string): string {
   return device && name.startsWith(`${device} `) ? name.slice(device.length + 1) : name;
 }
 
+/**
+ * The leading words that several names share, per name ("" when none does):
+ * "AMD Ryzen 9 9950X3D Core #1" and "... Package" share "AMD Ryzen 9 9950X3D".
+ * The prefix grows while every name through it continues with the same word,
+ * and stops where the names branch; a name that stands alone has no prefix.
+ */
+export function inferDevicePrefixes(names: readonly string[]): string[] {
+  const words = names.map((n) => n.trim().split(/\s+/).filter(Boolean));
+  const counts = new Map<string, number>();
+  for (const w of words) {
+    for (let k = 1; k < w.length; k++) {
+      const prefix = w.slice(0, k).join(" ");
+      counts.set(prefix, (counts.get(prefix) ?? 0) + 1);
+    }
+  }
+  return words.map((w) => {
+    if (w.length < 2 || (counts.get(w[0]) ?? 0) < 2) return "";
+    let k = 1;
+    while (k + 1 < w.length && counts.get(w.slice(0, k + 1).join(" ")) === counts.get(w.slice(0, k).join(" "))) k++;
+    return w.slice(0, k).join(" ");
+  });
+}
+
 interface RawContainer {
   rawId: string;
   title: string;
@@ -174,15 +213,26 @@ interface RawContainer {
 
 /**
  * A flat hardware monitor is one container in `groupSources`; split it into
- * one per device (the reading's `source`), when the stream names it.
+ * one per device: the reading's `source` when it names one, else the leading
+ * words its point names share.
  */
 function deviceContainers(group: PluginGroup, sensors: SensorMap): RawContainer[] {
+  const entries = group.sources.flatMap((s) => s.entries);
+  const own = (e: SourceEntry): string => {
+    const device = sensors[e.key]?.source?.trim() ?? "";
+    return device && ![group.id, group.name, "infopanel"].some((x) => x.toLowerCase() === device.toLowerCase())
+      ? device
+      : "";
+  };
+  const unnamed = entries.filter((e) => !own(e));
+  const prefixes = inferDevicePrefixes(unnamed.map((e) => e.label));
+  const inferred = new Map(unnamed.map((e, i) => [e.key, prefixes[i]]));
   const byDevice = new Map<string, SourceEntry[]>();
-  for (const entry of group.sources.flatMap((s) => s.entries)) {
-    const device = sensors[entry.key]?.source?.trim() || group.name;
+  for (const entry of entries) {
+    const device = own(entry) || inferred.get(entry.key) || group.name;
     byDevice.set(device, [...(byDevice.get(device) ?? []), entry]);
   }
-  return [...byDevice].map(([title, entries]) => ({ rawId: title, title, entries }));
+  return [...byDevice].map(([title, list]) => ({ rawId: title, title, entries: list }));
 }
 
 function rawContainers(group: PluginGroup, category: SourceCategory, sensors: SensorMap): RawContainer[] {

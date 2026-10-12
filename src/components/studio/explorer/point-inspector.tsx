@@ -6,7 +6,7 @@ import type { Usage } from "@/lib/data-usage";
 import type { SampleHistory } from "@/lib/sample-history";
 import type { SensorMap } from "@/modules/types";
 import { cn } from "@/lib/utils";
-import { displayValue } from "./explorer-model";
+import { displayValue, rawValue } from "./explorer-model";
 import { CAPTION, Chip, TypeIcon } from "./explorer-parts";
 import { useCopy } from "./use-copy";
 
@@ -91,6 +91,9 @@ export function PointInspector({
           </div>
         </div>
 
+        {point.type === "number" && rawValue(point, values) !== value && (
+          <CopyField label="Exact value" value={rawValue(point, values)} onCopy={copy} />
+        )}
         <CopyField label="Key" value={point.key} onCopy={copy} />
         <CopyField label="Stream URL" value={streamUrl} onCopy={copy} />
 

@@ -85,6 +85,7 @@ export function StyleTools({
       <div className="flex items-center gap-1">
         <input
           autoFocus
+          aria-label="Style preset name"
           value={name}
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => {
@@ -93,7 +94,7 @@ export function StyleTools({
           }}
           onBlur={() => !name.trim() && setName(null)}
           placeholder="Preset name"
-          className="h-6 w-28 rounded-md border border-ui-default bg-ui-app px-2 text-[12px] text-ui-1 outline-none placeholder:text-ui-5 focus:border-ui-accent"
+          className="h-6 w-28 rounded-md border border-ui-default bg-ui-app px-2 text-[12px] text-ui-1 outline-none placeholder:text-ui-4 focus:border-ui-accent"
         />
         <button
           type="button"

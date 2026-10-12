@@ -66,7 +66,7 @@ interface InspectorViewProps {
   query: string;
   onQuery: (query: string) => void;
   /** Open, reveal and outline a section whenever `seq` changes. */
-  jumpTo?: { id: string; seq: number };
+  jumpTo?: { id: string; key?: string; seq: number };
 }
 
 /** How long a jumped-to section stays outlined. */
@@ -96,7 +96,7 @@ function Tabs({
   onTab: (tab: TabId) => void;
 }) {
   return (
-    <div role="tablist" className="flex shrink-0 gap-4 border-b border-ui-subtle px-4">
+    <div role="tablist" className="flex shrink-0 gap-3 overflow-x-auto border-b border-ui-subtle px-4">
       {tabs.map((t) => {
         const selected = t.id === active;
         const n = counts[t.id] ?? 0;
@@ -108,7 +108,7 @@ function Tabs({
             aria-selected={selected}
             onClick={() => onTab(t.id)}
             className={cn(
-              "-mb-px flex h-9 items-center gap-1.5 border-b-2 text-[12.5px] font-medium transition-colors",
+              "flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 text-[12.5px] font-medium transition-colors",
               selected ? "border-ui-1 text-ui-1" : "border-transparent text-ui-4 hover:text-ui-2"
             )}
           >
@@ -209,11 +209,15 @@ export function InspectorView({
     setOpen(sectionStateId(target.id), true);
     // The tab renders first, then the section scrolls into view.
     requestAnimationFrame(() =>
-      requestAnimationFrame(() =>
-        root.current
-          ?.querySelector(`[${SETTING_CARD}="${CSS.escape(target.id)}"]`)
-          ?.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" })
-      )
+      requestAnimationFrame(() => {
+        const card = root.current?.querySelector(`[${SETTING_CARD}="${CSS.escape(target.id)}"]`);
+        card?.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" });
+        // "Go to setting" also puts the cursor in the field.
+        if (jumpTo.key)
+          card
+            ?.querySelector<HTMLElement>(`[data-setting-key="${CSS.escape(jumpTo.key)}"] :is(input, select, textarea, button)`)
+            ?.focus({ preventScroll: true });
+      })
     );
     setFlash(target.id);
     clearTimeout(timer.current);

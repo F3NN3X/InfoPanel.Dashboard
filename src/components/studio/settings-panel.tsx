@@ -38,7 +38,7 @@ export function SettingField({
 }) {
   const state = sourceState(def, fields.values);
   return (
-    <div className="break-inside-avoid px-4 py-1.5">
+    <div data-setting-key={def.key} className="break-inside-avoid px-4 py-1.5">
       <SettingRow
         def={def}
         value={fields.shown(def.key, def)}

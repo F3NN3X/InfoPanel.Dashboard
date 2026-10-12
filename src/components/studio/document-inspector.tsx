@@ -43,7 +43,10 @@ export const DOCUMENT_CARD: Record<DocumentTab, string> = {
 
 export interface DocumentInspectorProps {
   /** Open, reveal and outline a section whenever `seq` changes (the palette's document commands). */
-  jumpTo?: { id: string; seq: number };
+  jumpTo?: { id: string; key?: string; seq: number };
+  /** The settings search (the studio's Esc clears it). */
+  query: string;
+  onQuery: (query: string) => void;
   theme: ThemeTokens;
   radius: number;
   onToken: (key: keyof ThemeTokens, value: string) => void;
@@ -113,6 +116,8 @@ export function DocumentInspector(props: DocumentInspectorProps & DashboardStudi
 
 function DocumentSheet({
   jumpTo,
+  query,
+  onQuery,
   theme,
   radius,
   onToken,
@@ -140,7 +145,6 @@ function DocumentSheet({
   layoutMode,
   onLayoutMode,
 }: DocumentInspectorProps & DashboardStudioProps) {
-  const [query, setQuery] = useState("");
   const [target, setTarget] = useState<AppearanceTarget>(
     profile.style || profile.styleEnforce !== undefined ? "profile" : "all"
   );
@@ -205,6 +209,8 @@ function DocumentSheet({
               dashboardEnforce={dashboardEnforce}
               profileEnforce={profile.styleEnforce}
               onEnforce={onEnforce}
+              overrides={presets.overrides(target)}
+              onFollowAll={() => presets.clearOverrides(target)}
             />
           ),
         };
@@ -288,7 +294,7 @@ function DocumentSheet({
       parts={parts}
       notes={notes}
       query={query}
-      onQuery={setQuery}
+      onQuery={onQuery}
       jumpTo={jumpTo}
     />
   );

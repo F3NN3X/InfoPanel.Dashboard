@@ -51,7 +51,7 @@ export function DataPicker({ open, onOpenChange, points, mode, bound, onToggle, 
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search 650+ data points — e.g. gpu temp, steam level"
               aria-label="Search data points"
-              className="h-9 w-full rounded-lg border border-ui-default bg-ui-app pl-9 pr-3 text-[13px] text-ui-1 outline-none placeholder:text-ui-5 focus:border-ui-accent"
+              className="h-9 w-full rounded-lg border border-ui-default bg-ui-app pl-9 pr-3 text-[13px] text-ui-1 outline-none placeholder:text-ui-4 focus:border-ui-accent"
             />
           </div>
           <ul className="min-h-0 flex-1 overflow-y-auto p-1.5">

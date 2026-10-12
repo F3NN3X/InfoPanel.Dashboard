@@ -52,7 +52,7 @@ export function GroupSummary({
           <StatusDot health={worst} />
           {status.ok} {HEALTH_LABEL.ok} · {status.warn} {HEALTH_LABEL.warn} · {status.off} {HEALTH_LABEL.off}
         </div>
-        <div className="text-ui-4">{CALLOUT[worst]}</div>
+        <div className="text-ui-3">{CALLOUT[worst]}</div>
       </div>
 
       <div>
@@ -81,7 +81,7 @@ export function GroupSummary({
                     onChange={(e) => onPrefsChange(key, { displayName: e.target.value || undefined })}
                     placeholder={c.title}
                     aria-label={`Display name for ${c.title}`}
-                    className="h-7 w-full rounded border border-ui-default bg-ui-app px-2 text-[12px] text-ui-1 placeholder:text-ui-5 focus:border-ui-accent/60 focus:outline-none"
+                    className="h-7 w-full rounded border border-ui-default bg-ui-app px-2 text-[12px] text-ui-1 placeholder:text-ui-4 focus:border-ui-accent/60 focus:outline-none"
                   />
                 </div>
               );

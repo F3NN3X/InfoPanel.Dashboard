@@ -1,9 +1,9 @@
 import type { MonitorProfile, Placement, Widget } from "@/lib/layout";
-import type { ModuleSetting } from "@/modules/types";
+import type { AppearanceTarget } from "./appearance-panel";
 import type { DocumentTab } from "./document-inspector";
 import type { Drawer } from "./left-rail";
 import type { LayoutMode } from "./studio-layout";
-import { categoryTitleOf } from "./inspector-categories";
+import { allSections, type InspectorContext } from "./inspector-model";
 import { placementTitle } from "./studio-modules";
 import { KEYS } from "./use-studio-shortcuts";
 import { widgetName } from "./widget-kinds";
@@ -47,7 +47,8 @@ export type CommandAction =
   | { type: "follow-all" }
   | { type: "toggle-enforce" }
   | { type: "apply-appearance"; id: string }
-  | { type: "goto-setting"; label: string }
+  | { type: "goto-setting"; section: string; key?: string }
+  | { type: "use-global"; target: AppearanceTarget }
   | { type: "edit-style" }
   | { type: "bind-data" }
   | { type: "edit-theme" }
@@ -76,8 +77,11 @@ export interface CommandState {
   selected: Placement | null;
   /** Every selected zone, the primary last (default: just `selected`). */
   selection?: Placement[];
-  /** The selected widget's settings (empty for panels and blank zones). */
-  settings: ModuleSetting[];
+  /**
+   * What the inspector shows now (a widget, a panel, the Dashboard), for the
+   * "Go to setting" entries; null when it has no sections (several zones, a blank zone).
+   */
+  context: InspectorContext | null;
   /** The selected panel widget (in `selected.panel`). */
   widget: Widget | null;
   /** A widget has been copied (Paste after is offered). */
@@ -185,11 +189,13 @@ function styleCommands(): Command[] {
     style("copy", "Copy style", { type: "copy-style" }, KEYS.copyStyle),
     style("paste", "Paste style", { type: "paste-style" }, KEYS.pasteStyle),
     style("follow", "Follow global style", { type: "follow-global" }),
+    style("global-all", "Use as global style: all profiles", { type: "use-global", target: "all" }),
+    style("global-profile", "Use as global style: this profile", { type: "use-global", target: "profile" }),
   ];
 }
 
 /** `widgetKeys`: Ctrl+D / Del act on the selected widget, so the zone's show no key. */
-function selectedCommands(selected: Placement, settings: ModuleSetting[], widgetKeys: boolean): Command[] {
+function selectedCommands(selected: Placement, widgetKeys: boolean): Command[] {
   const zone = (id: string, label: string, action: CommandAction, hint?: string): Command => ({
     id: `zone:${id}`,
     label,
@@ -210,16 +216,37 @@ function selectedCommands(selected: Placement, settings: ModuleSetting[], widget
     zone("remove", "Remove zone", { type: "remove" }, widgetKeys ? undefined : KEYS.remove),
     zone("card:widget", "Go to Widget settings", { type: "goto-card", id: "widget" }),
     zone("card:colors", "Go to Colors & surface (style)", { type: "goto-card", id: "colors" }),
-    ...settings.map(
+  ];
+}
+
+/**
+ * "Go to setting: …" for every setting of the inspector's current context,
+ * and "Go to section: …" for a section that is custom UI only (the Dashboard's
+ * cards, a panel's layout): each jumps to its tab and section.
+ */
+function settingCommands(context: InspectorContext, group: string): Command[] {
+  return allSections(context).flatMap((s): Command[] => [
+    ...s.settings.map(
       (def): Command => ({
-        id: `setting:${def.key}`,
+        id: `setting:${s.id}:${def.key}`,
         label: `Go to setting: ${def.label}`,
-        group: "Selected zone",
-        hint: categoryTitleOf(def),
-        action: { type: "goto-setting", label: def.label },
+        group,
+        hint: s.title,
+        action: { type: "goto-setting", section: s.id, key: def.key },
       })
     ),
-  ];
+    ...(s.settings.length === 0 && s.special
+      ? [
+          {
+            id: `section:${s.id}`,
+            label: `Go to section: ${s.title}`,
+            group,
+            hint: "Inspector",
+            action: { type: "goto-setting", section: s.id } as const,
+          },
+        ]
+      : []),
+  ]);
 }
 
 /** The selected panel widget's actions (Move only where it can go). */
@@ -268,8 +295,9 @@ export function buildCommands(s: CommandState): Command[] {
     ...((s.selection?.length ?? 0) > 1
       ? selectionCommands(s.selection!)
       : s.selected
-        ? selectedCommands(s.selected, s.settings, s.widget !== null)
+        ? selectedCommands(s.selected, s.widget !== null)
         : []),
+    ...(s.context ? settingCommands(s.context, s.selected ? "Selected zone" : "Dashboard") : []),
     ...(s.selected ? styleCommands() : []),
     ...selectWidgetCommands(widgets),
     ...generalCommands(s),

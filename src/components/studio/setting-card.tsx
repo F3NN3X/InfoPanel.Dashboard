@@ -82,10 +82,10 @@ export function SettingSection({
           {tabLabel && (
             <span className="shrink-0 rounded border border-ui-default px-1 text-[10.5px] text-ui-4">{tabLabel}</span>
           )}
-          {badge && <span className="shrink-0 text-[11px] text-ui-5">{badge}</span>}
+          {badge && <span className="shrink-0 text-[11px] text-ui-4">{badge}</span>}
         </button>
         {hint && (
-          <span title={hint} className="shrink-0 text-ui-5 hover:text-ui-2">
+          <span title={hint} className="shrink-0 text-ui-4 hover:text-ui-2">
             <Info className="h-3.5 w-3.5" aria-label={hint} />
           </span>
         )}
