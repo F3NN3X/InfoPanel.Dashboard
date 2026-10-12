@@ -40,7 +40,7 @@ export function Metric({ label, value, unit, d = 0, scale = "md", sub, t = "ok",
       {label && <span className="truncate text-[11px] font-medium text-[color:var(--w-muted)]">{label}</span>}
       <span className={`${big} font-semibold leading-none tracking-tight tabular-nums`} style={{ fontFamily: sk.num, fontWeight: sk.numWeight, fontStretch: sk.numStretch, ...(sk.numGlow ? NUM_GLOW : null), ...(t !== "ok" ? { color: TONES[t] } : null) }}>
         {shown}
-        {unit && <span className="ml-0.5 align-top text-[0.45em] font-medium text-[color:var(--w-muted)]">{unit}</span>}
+        {unit && <span className="ml-0.5 inline-block align-top leading-none text-[0.45em] font-medium text-[color:var(--w-muted)]">{unit}</span>}
       </span>
       {sub && <span className="mt-1 truncate text-[11px] text-[color:var(--w-faint)]">{sub}</span>}
     </div>
