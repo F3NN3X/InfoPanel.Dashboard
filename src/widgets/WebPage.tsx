@@ -1,7 +1,7 @@
 import { surfaceBox } from "@/components/widget-style";
 import { chromeOf } from "@/modules/standard-settings";
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, Empty, type ShellProps, type WidgetMeta } from "./kit";
+import { Widget, shell, Icon, type ShellProps, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "WebPage",
@@ -81,7 +81,10 @@ export default function WebPage(p: WebPageProps) {
             <div className="pointer-events-none absolute inset-0" style={{ boxShadow: surfaceBox(EDGE, chrome).boxShadow }} />
           </div>
         ) : (
-          <Empty icon="language" label="Enter a URL in the inspector" />
+          <div className="flex h-full flex-col items-center justify-center gap-1 text-[color:var(--w-muted)]">
+            <Icon name="language" className="text-xl" />
+            <span className="text-xs">Enter a URL in the inspector</span>
+          </div>
         )
       }
     </Widget>
