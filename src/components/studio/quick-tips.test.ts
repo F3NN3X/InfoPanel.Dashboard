@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { TIPS_KEY, dismissTips, tipsDismissed } from "./quick-tips";
+import { TIPS, TIPS_KEY, dismissTips, tipsDismissed } from "./quick-tips";
 
 function memory(initial: Record<string, string> = {}) {
   const data = { ...initial };
@@ -29,5 +29,12 @@ describe("tipsDismissed / dismissTips", () => {
     };
     expect(tipsDismissed(broken)).toBe(false);
     expect(() => dismissTips(broken)).not.toThrow();
+  });
+});
+
+describe("TIPS", () => {
+  it("has the three lines of the design, shortcuts last", () => {
+    expect(TIPS).toHaveLength(3);
+    expect(TIPS[2]).toContain("? for shortcuts");
   });
 });

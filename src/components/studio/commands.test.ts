@@ -73,7 +73,7 @@ describe("buildCommands", () => {
     expect(find("layout:bottom")?.action).toEqual({ type: "layout", mode: "bottom" });
     expect(find("layout:side")?.hint).toBe("current");
     expect(find("layout:auto")?.hint).toBeUndefined();
-    expect(find("toggle-dock")).toMatchObject({ label: "Toggle dock", hint: "Ctrl+\\", action: { type: "toggle-dock" } });
+    expect(find("toggle-dock")).toMatchObject({ label: "Toggle inspector", hint: "Ctrl+\\", action: { type: "toggle-dock" } });
   });
 
   it("offers the General and Connection tabs", () => {

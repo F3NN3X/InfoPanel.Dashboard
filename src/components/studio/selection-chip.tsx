@@ -50,7 +50,7 @@ export function SelectionChip({
 }: SelectionChipProps) {
   const multi = count > 1;
   return (
-    <div className="flex h-6 items-center gap-0.5 whitespace-nowrap rounded-[6px] bg-ui-accent px-1 font-ui text-[11px] font-semibold text-ui-inverse-fg shadow-ui-float">
+    <div className="flex h-6 items-center gap-0.5 whitespace-nowrap rounded-[6px] bg-ui-accent px-1 font-ui text-[11px] font-semibold text-ui-inverse-fg">
       {multi ? (
         <span className="px-1.5">{count} selected</span>
       ) : (
@@ -73,11 +73,11 @@ export function SelectionChip({
               <span className="truncate rounded-sm bg-black/15 px-1">{widgetLabel}</span>
             </span>
           )}
-          <span className="px-1 font-ui-mono font-medium tabular-nums opacity-80" title="Zone size (grid cells)">
-            {p.colSpan}×{p.rowSpan}
-          </span>
         </>
       )}
+      <span className="px-1 font-ui-mono font-medium tabular-nums opacity-70" title="Zone size (grid cells)">
+        {p.colSpan}×{p.rowSpan}
+      </span>
       <button
         type="button"
         onClick={onToggleVisible}

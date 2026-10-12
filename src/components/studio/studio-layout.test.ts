@@ -2,10 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   AUTO_BOTTOM_ASPECT,
   BAR_H,
-  CANVAS_PAD,
+  CANVAS_PAD_X,
+  CANVAS_PAD_Y,
   DEFAULT_DOCK,
   MIN_DOCK,
-  RULER_H,
   autoPlacement,
   clampDock,
   computeLayout,
@@ -13,6 +13,8 @@ import {
   leftPanelFits,
   placementFor,
   nextLayoutMode,
+  stepZoom,
+  ZOOM_STEPS,
   type LayoutInput,
 } from "./studio-layout";
 
@@ -36,20 +38,20 @@ function layout(patch: Partial<LayoutInput> & Pick<LayoutInput, "page">) {
 
 describe("fitZoomFor", () => {
   it("fits width and height, whichever is tighter", () => {
-    const box = { width: 1032, height: 516 };
-    // 1032 / (1000 + 32) = 1, 516 / (1000 + 32) = 0.5
+    const box = { width: 1000 + CANVAS_PAD_X, height: 500 + CANVAS_PAD_Y };
+    // (1080 - 80) / 1000 = 1, (660 - 160) / 1000 = 0.5
     expect(fitZoomFor(box, { width: 1000, height: 1000 })).toBe(0.5);
-    expect(fitZoomFor({ width: 516, height: 9999 }, { width: 1000, height: 100 })).toBe(0.5);
+    expect(fitZoomFor({ width: 500 + CANVAS_PAD_X, height: 9999 }, { width: 1000, height: 100 })).toBe(0.5);
   });
 
   it("fits the width only without a page height", () => {
-    expect(fitZoomFor({ width: 1032, height: 10 }, { width: 1000, height: 0 })).toBe(1);
+    expect(fitZoomFor({ width: 1000 + CANVAS_PAD_X, height: 10 }, { width: 1000, height: 0 })).toBe(1);
   });
 
   it("floors to 1% so the page never overshoots", () => {
     const z = fitZoomFor({ width: 1000, height: 9999 }, { width: 1920, height: 100 });
-    expect(z).toBe(0.51);
-    expect((1920 + CANVAS_PAD) * z).toBeLessThanOrEqual(1000);
+    expect(z).toBe(0.47);
+    expect(1920 * z + CANVAS_PAD_X).toBeLessThanOrEqual(1000);
   });
 
   it("clamps to the zoom range", () => {
@@ -102,16 +104,16 @@ describe("computeLayout (auto)", () => {
     const l = layout({ page: { width: 1920, height: 550 } });
     expect(l.placement).toBe("bottom");
     expect(l.dockHeight).toBe(DEFAULT_DOCK);
-    expect(l.canvasWidth).toBe(2000 - RAIL - 28);
-    expect(l.canvasHeight + RULER_H + l.dockHeight).toBe(BODY.height);
+    expect(l.canvasWidth).toBe(2000 - RAIL);
+    expect(l.canvasHeight + l.dockHeight).toBe(BODY.height);
   });
 
   it("keeps a portrait 1080x1920 profile beside the inspector", () => {
     const l = layout({ page: { width: 1080, height: 1920 } });
     expect(l.placement).toBe("side");
     expect(l.dockHeight).toBe(0);
-    expect(l.canvasWidth).toBe(2000 - RAIL - SIDE - 28);
-    expect(l.canvasHeight).toBe(BODY.height - RULER_H);
+    expect(l.canvasWidth).toBe(2000 - RAIL - SIDE);
+    expect(l.canvasHeight).toBe(BODY.height);
   });
 
   it("keeps an 800x480 page beside the inspector (ratio under 2.5)", () => {
@@ -152,7 +154,7 @@ describe("computeLayout (explicit modes)", () => {
   it("side mode ignores a wide profile", () => {
     const l = layout({ page: { width: 1920, height: 550 }, mode: "side" });
     expect(l.placement).toBe("side");
-    expect(l.canvasWidth).toBe(2000 - RAIL - SIDE - 28);
+    expect(l.canvasWidth).toBe(2000 - RAIL - SIDE);
   });
 
   it("bottom mode forces the dock for a portrait page", () => {
@@ -161,7 +163,7 @@ describe("computeLayout (explicit modes)", () => {
     expect(l.dockHeight).toBe(DEFAULT_DOCK);
     // The page fits by height in what is left above the dock.
     expect(l.fitZoom).toBe(
-      Math.floor(((BODY.height - DEFAULT_DOCK - RULER_H) / (1920 + CANVAS_PAD)) * 100) / 100
+      Math.floor(((BODY.height - DEFAULT_DOCK - CANVAS_PAD_Y) / 1920) * 100) / 100
     );
   });
 
@@ -206,7 +208,7 @@ describe("computeLayout (odd sizes)", () => {
       mode: "side",
     });
     expect(l.canvasWidth).toBe(0);
-    expect(l.canvasHeight).toBe(400 - RULER_H);
+    expect(l.canvasHeight).toBe(400);
   });
 
   it("handles a page with no size", () => {
@@ -223,13 +225,13 @@ describe("computeLayout (open left panel)", () => {
   it("beside the canvas it narrows the canvas", () => {
     const l = layout({ page: { width: 1080, height: 1920 }, drawer: DRAWER });
     expect(l.placement).toBe("side");
-    expect(l.canvasWidth).toBe(2000 - RAIL - DRAWER - SIDE - 28);
+    expect(l.canvasWidth).toBe(2000 - RAIL - DRAWER - SIDE);
   });
 
   it("with the dock below it still narrows the canvas (the panel is not a dock column)", () => {
     const withDrawer = layout({ page: strip, drawer: DRAWER });
     expect(withDrawer.placement).toBe("bottom");
-    expect(withDrawer.canvasWidth).toBe(2000 - RAIL - DRAWER - 28);
+    expect(withDrawer.canvasWidth).toBe(2000 - RAIL - DRAWER);
     expect(withDrawer.dockHeight).toBe(layout({ page: strip }).dockHeight);
   });
 });
@@ -242,7 +244,7 @@ describe("computeLayout (collapsed dock)", () => {
     const closed = layout({ page: strip, collapsed: true });
     expect(closed.placement).toBe("bottom");
     expect(closed.dockHeight).toBe(BAR_H);
-    expect(closed.canvasHeight).toBe(BODY.height - BAR_H - RULER_H);
+    expect(closed.canvasHeight).toBe(BODY.height - BAR_H);
     expect(closed.canvasHeight).toBeGreaterThan(open.canvasHeight);
   });
 
@@ -250,9 +252,40 @@ describe("computeLayout (collapsed dock)", () => {
     expect(layout({ page: strip, collapsed: true, dockHeight: 500 }).dockHeight).toBe(BAR_H);
   });
 
-  it("does not change the side placement", () => {
+  it("keeps the side placement but frees the inspector's column for the canvas", () => {
     const page = { width: 1080, height: 1920 };
-    expect(layout({ page, collapsed: true })).toEqual(layout({ page }));
+    const open = layout({ page });
+    const closed = layout({ page, collapsed: true });
+    expect(closed.placement).toBe("side");
+    expect(closed.dockHeight).toBe(0);
+    expect(closed.canvasWidth).toBe(open.canvasWidth + SIDE);
+    expect(closed.canvasHeight).toBe(open.canvasHeight);
+  });
+});
+
+describe("stepZoom", () => {
+  it("steps along the stops from a stop", () => {
+    expect(stepZoom(1, 1)).toBe(1.25);
+    expect(stepZoom(1, -1)).toBe(0.75);
+    expect(stepZoom(0.25, -1)).toBe(0.25);
+    expect(stepZoom(2, 1)).toBe(2);
+  });
+
+  it("goes the requested way from an off-stop zoom such as Fit", () => {
+    expect(stepZoom(0.63, 1)).toBe(0.75);
+    expect(stepZoom(0.63, -1)).toBe(0.5);
+    expect(stepZoom(1.55, 1)).toBe(2);
+    expect(stepZoom(1.55, -1)).toBe(1.5);
+    expect(stepZoom(0.1, -1)).toBe(0.25);
+    expect(stepZoom(3, 1)).toBe(2);
+  });
+
+  it("always moves in the asked direction inside the range", () => {
+    for (let z = 0.3; z < 1.95; z += 0.037) {
+      expect(stepZoom(z, 1)).toBeGreaterThan(z);
+      expect(stepZoom(z, -1)).toBeLessThan(z);
+      expect(ZOOM_STEPS).toContain(stepZoom(z, 1));
+    }
   });
 });
 
@@ -275,6 +308,10 @@ describe("left panel overlay", () => {
   it("counts an unmeasured body or a closed panel as fitting", () => {
     expect(leftPanelFits(0, "side", widths)).toBe(true);
     expect(leftPanelFits(800, "side", { ...widths, drawer: 0 })).toBe(true);
+  });
+
+  it("a collapsed side inspector takes no width, so the panel fits sooner", () => {
+    expect(leftPanelFits(1024, "side", { ...widths, inspector: 0 })).toBe(true);
   });
 
   it("resolves the placement for each mode", () => {

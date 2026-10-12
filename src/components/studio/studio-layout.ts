@@ -9,12 +9,26 @@ export type Placement = "side" | "bottom";
 
 export const ZOOM_MIN = 0.25;
 export const ZOOM_MAX = 2;
+/** The zoom buttons' stops. */
+export const ZOOM_STEPS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2];
 
-/** Padding around the page inside the canvas (`p-4` both sides; scales with zoom). */
-export const CANVAS_PAD = 32;
-/** The vertical ruler's width and the horizontal ruler's height. */
-export const RULER_W = 28;
-export const RULER_H = 24;
+/**
+ * The next zoom stop in `dir`: the first one above `zoom` going in, the last one
+ * below it going out (a fitted zoom is rarely on a stop), clamped to the range.
+ */
+export function stepZoom(zoom: number, dir: 1 | -1): number {
+  const eps = 1e-6;
+  const next =
+    dir > 0 ? ZOOM_STEPS.find((s) => s > zoom + eps) : [...ZOOM_STEPS].reverse().find((s) => s < zoom - eps);
+  return next ?? (dir > 0 ? ZOOM_MAX : ZOOM_MIN);
+}
+
+/**
+ * The scroll area's padding around the page (unscaled, 64 / 40 / 96 px): room for the
+ * selection chip above, the ruler labels beside and the zoom bar below.
+ */
+export const CANVAS_PAD_X = 80;
+export const CANVAS_PAD_Y = 160;
 /** The bottom dock's top row (collapse toggle): all that shows while it is collapsed. */
 export const BAR_H = 28;
 
@@ -53,7 +67,7 @@ export interface LayoutInput {
   mode: LayoutMode;
   /** The user's dock height (dragged splitter), if any. */
   dockHeight?: number | null;
-  /** The dock is collapsed to its bar (bottom placement only). */
+  /** The inspector is collapsed: the dock shows only its bar (bottom), or the side column is gone. */
   collapsed?: boolean;
 }
 
@@ -61,7 +75,7 @@ export interface StudioLayout {
   placement: Placement;
   /** Height of the bottom dock (0 in the side placement). */
   dockHeight: number;
-  /** The canvas scroll box (inside the rulers). */
+  /** The canvas scroll box. */
   canvasWidth: number;
   canvasHeight: number;
   fitZoom: number;
@@ -75,8 +89,8 @@ const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(ma
  */
 export function fitZoomFor(box: Size, page: Size): number {
   const limits: number[] = [];
-  if (page.width > 0) limits.push(box.width / (page.width + CANVAS_PAD));
-  if (page.height > 0) limits.push(box.height / (page.height + CANVAS_PAD));
+  if (page.width > 0) limits.push((box.width - CANVAS_PAD_X) / page.width);
+  if (page.height > 0) limits.push((box.height - CANVAS_PAD_Y) / page.height);
   if (limits.length === 0) return 1;
   const z = Math.min(...limits);
   if (!(z > 0)) return ZOOM_MIN;
@@ -84,7 +98,7 @@ export function fitZoomFor(box: Size, page: Size): number {
   return clamp(Math.floor(z * 100) / 100, ZOOM_MIN, ZOOM_MAX);
 }
 
-/** The dock height (its bar included) clamped to [MIN_DOCK, MAX_DOCK_SHARE of the body]. */
+/** The dock height clamped to [MIN_DOCK, MAX_DOCK_SHARE of the body]. */
 export function clampDock(height: number, bodyHeight: number): number {
   return Math.round(clamp(height, MIN_DOCK, Math.max(MIN_DOCK, bodyHeight * MAX_DOCK_SHARE)));
 }
@@ -112,7 +126,8 @@ export function placementFor(mode: LayoutMode, design?: Size, forceSide = false)
  * Whether the open left panel fits beside the canvas (and a side inspector).
  * When it does not, the shell lays it over the canvas instead of squeezing
  * the canvas below its minimum and scrolling the studio sideways. An
- * unmeasured body (width 0) counts as fitting.
+ * unmeasured body (width 0) counts as fitting. `widths.inspector` is 0 while
+ * the side inspector is collapsed.
  */
 export function leftPanelFits(bodyWidth: number, placement: Placement, widths: { rail: number; drawer: number; inspector: number }): boolean {
   if (bodyWidth <= 0 || widths.drawer <= 0) return true;
@@ -125,8 +140,8 @@ export function computeLayout(input: LayoutInput): StudioLayout {
   const { body, page, rail, drawer = 0, inspector, mode, design, dockHeight, collapsed } = input;
   const side = (): StudioLayout => {
     const box = {
-      width: Math.max(0, body.width - rail - drawer - inspector - RULER_W),
-      height: Math.max(0, body.height - RULER_H),
+      width: Math.max(0, body.width - rail - drawer - (collapsed ? 0 : inspector)),
+      height: Math.max(0, body.height),
     };
     return {
       placement: "side",
@@ -139,9 +154,9 @@ export function computeLayout(input: LayoutInput): StudioLayout {
   if (body.width <= 0 || body.height <= 0 || mode === "side") return side();
   if (mode === "auto" && autoPlacement(design) === "side") return side();
 
-  const width = Math.max(0, body.width - rail - drawer - RULER_W);
+  const width = Math.max(0, body.width - rail - drawer);
   const dock = collapsed ? BAR_H : clampDock(dockHeight != null && dockHeight > 0 ? dockHeight : DEFAULT_DOCK, body.height);
-  const box = { width, height: Math.max(0, body.height - dock - RULER_H) };
+  const box = { width, height: Math.max(0, body.height - dock) };
   return {
     placement: "bottom",
     dockHeight: dock,

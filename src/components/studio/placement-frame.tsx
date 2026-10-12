@@ -5,33 +5,32 @@ import {
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from "react";
+import { Plus } from "lucide-react";
 import { BLANK_MODULE, type MonitorProfile, type Placement } from "@/lib/layout";
 import { profileGap, trackPitch } from "@/lib/profile-grid";
 import { hexToHsl } from "@/lib/theme";
 import { cn } from "@/lib/utils";
-import { trackPointer } from "./pointer-drag";
+import { pastDragThreshold, trackPointer } from "./pointer-drag";
 import { isToggleClick, type SelectMode } from "./selection";
 import type { ZoneRect } from "./zone-geometry";
 
 /**
- * Zone resize handles: each edge is draggable along its whole length, the
- * corners on top of them. `pos` is the hit area, `grip` the knob the
- * selected zone shows on it.
+ * Zone resize handles: invisible hit areas along each edge, the corners on
+ * top of them. Only the bottom-right one draws the design's 11x11 knob.
  */
 type Handle = "nw" | "n" | "ne" | "e" | "se" | "s" | "sw" | "w";
 // Above the widget content (which can carry its own z-10).
 const EDGE = "z-20";
 const CORNER = "z-30 h-3.5 w-3.5";
-// The bottom-right knob is the resize handle of the design (11x11); the rest are slimmer.
-const HANDLES: { id: Handle; cursor: string; pos: string; grip: string }[] = [
-  { id: "n", cursor: "ns-resize", pos: `${EDGE} -top-1 left-2 right-2 h-2`, grip: "h-2 w-7" },
-  { id: "e", cursor: "ew-resize", pos: `${EDGE} -right-1 top-2 bottom-2 w-2`, grip: "h-7 w-2" },
-  { id: "s", cursor: "ns-resize", pos: `${EDGE} -bottom-1 left-2 right-2 h-2`, grip: "h-2 w-7" },
-  { id: "w", cursor: "ew-resize", pos: `${EDGE} -left-1 top-2 bottom-2 w-2`, grip: "h-7 w-2" },
-  { id: "nw", cursor: "nwse-resize", pos: `${CORNER} -left-[7px] -top-[7px]`, grip: "h-3 w-3" },
-  { id: "ne", cursor: "nesw-resize", pos: `${CORNER} -right-[7px] -top-[7px]`, grip: "h-3 w-3" },
-  { id: "se", cursor: "nwse-resize", pos: `${CORNER} -right-[7px] -bottom-[7px]`, grip: "h-[11px] w-[11px]" },
-  { id: "sw", cursor: "nesw-resize", pos: `${CORNER} -left-[7px] -bottom-[7px]`, grip: "h-3 w-3" },
+const HANDLES: { id: Handle; cursor: string; pos: string }[] = [
+  { id: "n", cursor: "ns-resize", pos: `${EDGE} -top-1 left-2 right-2 h-2` },
+  { id: "e", cursor: "ew-resize", pos: `${EDGE} -right-1 top-2 bottom-2 w-2` },
+  { id: "s", cursor: "ns-resize", pos: `${EDGE} -bottom-1 left-2 right-2 h-2` },
+  { id: "w", cursor: "ew-resize", pos: `${EDGE} -left-1 top-2 bottom-2 w-2` },
+  { id: "nw", cursor: "nwse-resize", pos: `${CORNER} -left-[7px] -top-[7px]` },
+  { id: "ne", cursor: "nesw-resize", pos: `${CORNER} -right-[7px] -top-[7px]` },
+  { id: "se", cursor: "nwse-resize", pos: `${CORNER} -right-[7px] -bottom-[7px]` },
+  { id: "sw", cursor: "nesw-resize", pos: `${CORNER} -left-[7px] -bottom-[7px]` },
 ];
 
 interface PlacementFrameProps {
@@ -78,8 +77,10 @@ interface PlacementFrameProps {
   onPickWidget?: () => void;
   /** In the selection: highlighted (studio view). */
   selected?: boolean;
-  /** The primary selected zone: resize knobs, widget picking. */
+  /** The primary selected zone: widget picking. */
   primary?: boolean;
+  /** The only selected zone: its edges resize it, the corner shows the knob. */
+  canResize?: boolean;
   /**
    * A press selects the zone (`primary`: a selected zone keeps the rest
    * of the selection, for dragging it along), a click without a drag
@@ -100,9 +101,9 @@ const clampSpan = (span: number, cols: number) =>
 
 /**
  * The studio chrome around a zone: drag the body to move it, drag the
- * handles to resize it (the studio clamps to the grid + no overlap), and
- * a size chip on hover (the selected zone's actions live in its floating
- * toolbar). Renders plain content in kiosk mode.
+ * corner knob or edges to resize it (the studio clamps to the grid + no
+ * overlap). The selected zone's actions live in its selection chip.
+ * Renders plain content in kiosk mode.
  */
 export function PlacementFrame({
   placement,
@@ -124,6 +125,7 @@ export function PlacementFrame({
   onPickWidget,
   selected,
   primary,
+  canResize,
   onSelect,
   onSelectWidget,
   children,
@@ -181,7 +183,7 @@ export function PlacementFrame({
 
     stopDrag.current = trackPointer(
       (ev) => {
-        if (!active && Math.hypot(ev.clientX - startX, ev.clientY - startY) > 4) {
+        if (!active && pastDragThreshold(ev.clientX - startX, ev.clientY - startY)) {
           active = true;
           onZoneDragStart?.(placement.id);
         }
@@ -250,6 +252,7 @@ export function PlacementFrame({
     <div
       className={cn(
         "group relative min-w-0 transition-opacity",
+        studio && (ghost ? "cursor-grabbing" : "cursor-grab"),
         // Hidden zones stay editable but show faded (the kiosk drops them).
         studio && !placement.visible && "opacity-35"
       )}
@@ -282,51 +285,43 @@ export function PlacementFrame({
       {studio && (
         <>
           {/* Selection: a 1px accent border plus a 1px ring; lifted while dragged */}
-          <div
-            aria-hidden
-            className={cn(
-              "pointer-events-none absolute inset-0 z-[15] rounded-[6px] border transition-[box-shadow,border-color] duration-150",
-              selected ? "border-ui-accent" : "border-dashed border-ui-strong group-hover:border-ui-accent/50"
-            )}
-            style={{
-              boxShadow:
-                [selected && "0 0 0 1px var(--ui-accent)", ghost && "0 14px 36px rgba(0,0,0,.55)"]
-                  .filter(Boolean)
-                  .join(", ") || undefined,
-            }}
-          />
-          {/* Size chip on hover (the selected zone shows its toolbar) */}
-          {!selected && (
-            <span className="pointer-events-none absolute right-1.5 top-1.5 z-20 rounded-md bg-ui-raised/90 px-1.5 py-0.5 font-ui text-xs tabular-nums text-ui-3 opacity-0 transition-opacity group-hover:opacity-100">
-              {span}×{rowSpan}
-            </span>
+          {(selected || ghost) && (
+            <div
+              aria-hidden
+              className={cn(
+                "pointer-events-none absolute inset-0 z-[15] rounded-lg border transition-[box-shadow,border-color] duration-150",
+                selected ? "border-ui-accent" : "border-transparent"
+              )}
+              style={{
+                boxShadow:
+                  [selected && "0 0 0 1px var(--ui-accent)", ghost && "0 14px 36px rgba(0,0,0,.55)"]
+                    .filter(Boolean)
+                    .join(", ") || undefined,
+              }}
+            />
           )}
 
-          {/* Resize handles (the studio clamps to the grid + no overlap):
-              tinted on hover, with knobs on the primary zone; the other
-              zones of a multi-zone selection have none */}
-          {(primary || !selected) && HANDLES.map((h) => (
-            <div
-              key={h.id}
-              data-no-drag
-              data-resize-handle={h.id}
-              onPointerDown={(e) => startResize(e, h.id)}
-              className={cn("group/handle absolute rounded-sm transition-colors hover:bg-ui-accent/40", h.pos)}
-              style={{ cursor: h.cursor }}
-              title="Drag to resize"
-            >
-              {primary && (
-                <span
-                  className={cn(
-                    "pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-[3px] border-2 border-ui-accent bg-[#ededf0] shadow-sm transition-colors group-hover/handle:bg-ui-accent",
-                    h.grip
-                  )}
-                  // Same size on screen at any canvas zoom.
-                  style={{ scale: String(1 / zoom) }}
-                />
-              )}
-            </div>
-          ))}
+          {/* Resize (the studio clamps to the grid + no overlap): invisible edges, the knob at the corner */}
+          {canResize &&
+            HANDLES.map((h) => (
+              <div
+                key={h.id}
+                data-no-drag
+                data-resize-handle={h.id}
+                onPointerDown={(e) => startResize(e, h.id)}
+                className={cn("absolute", h.pos)}
+                style={{ cursor: h.cursor }}
+                title={h.id === "se" ? "Drag to resize (Shift + arrows)" : undefined}
+              >
+                {h.id === "se" && (
+                  <span
+                    className="pointer-events-none absolute left-1/2 top-1/2 h-[11px] w-[11px] -translate-x-1/2 -translate-y-1/2 rounded-[3px] border-2 border-ui-accent bg-[#ededf0]"
+                    // Same size on screen at any canvas zoom.
+                    style={{ scale: String(1 / zoom) }}
+                  />
+                )}
+              </div>
+            ))}
         </>
       )}
 
@@ -345,9 +340,9 @@ export function PlacementFrame({
                 <button
                   type="button"
                   onClick={onPickWidget}
-                  className="rounded-md px-2 py-1 font-ui text-xs text-ui-4 transition-colors hover:bg-ui-hover hover:text-ui-1"
+                  className="flex items-center gap-1 rounded-md px-2 py-1 font-ui text-[11px] text-[#8a8a94] transition-colors hover:bg-ui-hover hover:text-ui-1"
                 >
-                  + Pick a widget
+                  <Plus className="h-[15px] w-[15px]" /> Pick a widget
                 </button>
               )}
             </div>

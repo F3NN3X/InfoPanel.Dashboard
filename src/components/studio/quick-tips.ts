@@ -21,10 +21,9 @@ export function dismissTips(storage?: TipStorage): void {
   }
 }
 
-/** The tips on the card. */
-export const TIPS: { title: string; body: string }[] = [
-  { title: "Add a widget", body: "Drag one from Add onto the canvas, or click it to place it." },
-  { title: "Move and resize", body: "Drag a tile, or its corner handle. Arrow keys nudge, Shift+arrows resize." },
-  { title: "Select several", body: "Shift- or Ctrl-click to select more, then move or style them together." },
-  { title: "Right-click", body: "Tiles and the canvas have menus. Press ? for every shortcut." },
+/** The tip lines on the card; `?` marks where the shortcuts keycap goes. */
+export const TIPS: string[] = [
+  "Drag to move · corner to resize",
+  "Shift-click to multi-select",
+  "Right-click for more · ? for shortcuts",
 ];

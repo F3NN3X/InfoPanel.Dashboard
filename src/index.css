@@ -183,6 +183,13 @@
   scrollbar-color: var(--ui-border-menu) transparent;
 }
 
+/* Studio chrome radii are fixed (README §9): the dashboard theme's --radius,
+   which applyTheme writes inline on :root, only reaches the canvas page (it
+   re-declares --radius from the theme itself). !important beats the inline value. */
+:root:has(.studio-root) {
+  --radius: 0.5rem !important;
+}
+
 /* Kiosk mode: a borderless kiosk strip must not show scrollbars when
    content is squeezed into the window — clip quietly instead. Content
    stays wheel-scrollable, the bars just disappear. */

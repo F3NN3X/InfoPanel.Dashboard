@@ -17,7 +17,6 @@ import { SCROLL_ROW_H, type MonitorProfile, type Placement } from "@/lib/layout"
 import { fontStack } from "@/lib/general";
 import {
   cellAt as gridCellAt,
-  columnGuides,
   profileGap,
   profilePadding,
   trackSize,
@@ -26,9 +25,9 @@ import {
 import { useGeneral } from "@/hooks/use-general";
 import { cn } from "@/lib/utils";
 import { PlacementFrame } from "./placement-frame";
-import { trackPointer } from "./pointer-drag";
+import { pastDragThreshold, trackPointer } from "./pointer-drag";
 import { LivePlacement } from "./placement-content";
-import { RulerH, RulerV } from "./rulers";
+import { RulerLabels } from "./rulers";
 import { EmptyLayoutCard, QuickTipsCard } from "./canvas-cards";
 import { dropGhost, dropSize, libraryItemOf, type LibraryItem } from "./drop-ghost";
 import { DND_MIME, DND_MIME_PANEL, placementTitle } from "./studio-modules";
@@ -37,11 +36,14 @@ import { SelectionChipLayer } from "./selection-chip";
 import { zoneMinSize } from "./studio-actions";
 import { enforceMinSize, fitZoneRect, moveZoneSet, type ZoneRect } from "./zone-geometry";
 
-/** The canvas' dot grid (the board's alignment guides are the optional grid lines). */
+/** The canvas' dot grid, at a fixed pitch on the scroll area (not scaled by the zoom). */
 const DOTS = "radial-gradient(#1f1f25 1px, transparent 1px)";
 const DOT_PITCH = "18px 18px";
-/** The optional grid lines. */
-const GRID_LINE = "bg-[#1a1a20]";
+/** The scroll area's padding around the page (see `CANVAS_PAD_X/Y`): room for the chip, ruler labels and zoom bar. */
+const SCROLL_PAD = "64px 40px 96px";
+/** The optional grid: a line at the left / top edge of every cell, drawn over the tiles. */
+const GRID_LINES =
+  "linear-gradient(to right, rgba(255,255,255,0.07) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.07) 1px, transparent 1px)";
 /** The drop ghost's colours: free (the accent) and "No room". */
 const GHOST_OK = { line: "var(--ui-accent)", fill: "oklch(0.72 0.15 255 / 0.12)" };
 const GHOST_DENIED = { line: "oklch(0.70 0.17 25)", fill: "oklch(0.70 0.17 25 / 0.10)" };
@@ -57,6 +59,8 @@ interface StudioCanvasProps {
    * canvas; unset = the dashboard theme the studio chrome uses.
    */
   themeScope?: CSSProperties;
+  /** The theme's corner radius (rem): the chrome keeps fixed radii, the page follows the theme. */
+  radius: number;
   zoom: number;
   showGrid: boolean;
   /** Draw the rulers (default on). */
@@ -105,7 +109,7 @@ interface StudioCanvasProps {
 }
 
 /**
- * The design canvas: rulers, the zoomable board where zones are drawn,
+ * The design canvas: the zoomable board (with ruler labels) where zones are drawn,
  * moved and resized (biome-style, no overlap), drop target for the
  * library (with a drop ghost), and the move/resize ghosts.
  */
@@ -114,6 +118,7 @@ export function StudioCanvas({
   background,
   appearance,
   themeScope,
+  radius,
   zoom,
   showGrid,
   showRulers = true,
@@ -156,11 +161,9 @@ export function StudioCanvas({
   const drewRef = useRef(false);
   const [gridEl, setGridEl] = useState<HTMLDivElement | null>(null);
   const [gridWidth, setGridWidth] = useState(0);
-  const [scroll, setScroll] = useState({ left: 0, top: 0 });
   const [pageEl, setPageEl] = useState<HTMLDivElement | null>(null);
-  // Page size (design px), viewport (screen px) and the page's origin in the
-  // scrolled content (screen px; the page is centered when it is smaller).
-  const [canvas, setCanvas] = useState({ w: 0, h: 0, viewW: 0, viewH: 0, ox: 0, oy: 0 });
+  // The page's size in design px, for the ruler labels.
+  const [canvas, setCanvas] = useState({ w: 0, h: 0 });
   /** The library item being dragged (read at its dragstart; dragover can't read data). */
   const dragItem = useRef<LibraryItem | null>(null);
   const [dropPreview, setDropPreview] = useState<{ rect: ZoneRect; ok: boolean } | null>(null);
@@ -179,27 +182,19 @@ export function StudioCanvas({
     return () => window.removeEventListener("resize", onResize);
   }, [gridEl, zoom]);
 
-  // Canvas measurements for the rulers: they start at the page's corner.
+  // The page's measurements for the rulers.
   useLayoutEffect(() => {
-    const el = scrollRef.current;
-    if (!el || !pageEl) return;
+    if (!pageEl) return;
     const measure = () => {
-      const s = el.getBoundingClientRect();
       const p = pageEl.getBoundingClientRect();
-      setCanvas({
-        w: p.width / zoom,
-        h: p.height / zoom,
-        viewW: el.clientWidth,
-        viewH: el.clientHeight,
-        ox: p.left - s.left + el.scrollLeft,
-        oy: p.top - s.top + el.scrollTop,
-      });
+      const [w, h] = [p.width / zoom, p.height / zoom];
+      setCanvas((c) => (c.w === w && c.h === h ? c : { w, h }));
     };
     measure();
     const observer = new ResizeObserver(measure);
-    observer.observe(el);
+    observer.observe(pageEl);
     return () => observer.disconnect();
-  }, [scrollRef, pageEl, zoom, profile.id, profile.cols, profile.width, profile.height, profile.padding, scroll]);
+  }, [pageEl, zoom, profile.id, profile.cols, profile.width, profile.height, profile.padding]);
 
   // The library's drag data is only readable at its dragstart: remember the
   // item so the drop ghost can size itself while the pointer moves.
@@ -270,7 +265,8 @@ export function StudioCanvas({
 
   /**
    * Draw a new zone: press on an empty grid cell and drag out a box; on
-   * release a blank zone is created (the user then assigns a widget).
+   * release a blank zone is created (the user then assigns a widget). A
+   * press that never leaves the drag threshold is a plain click: it deselects.
    */
   const startDraw = (e: ReactPointerEvent) => {
     if (e.button !== 0) return;
@@ -278,10 +274,16 @@ export function StudioCanvas({
     const start = cellAt(e.clientX, e.clientY);
     if (!start) return;
     e.preventDefault();
+    const [startX, startY] = [e.clientX, e.clientY];
     let rect: ZoneRect = { col: start.col, row: start.row, cols: 1, rows: 1 };
-    setDrawing(rect);
+    let dragging = false;
     stopDraw.current = trackPointer(
       (ev) => {
+        if (!dragging) {
+          if (!pastDragThreshold(ev.clientX - startX, ev.clientY - startY)) return;
+          dragging = true;
+          setDrawing(rect);
+        }
         const c = cellAt(ev.clientX, ev.clientY);
         if (!c) return;
         rect = {
@@ -295,6 +297,7 @@ export function StudioCanvas({
       (cancelled) => {
         setDrawing(null);
         if (cancelled) return;
+        if (!dragging) return onSelect(null);
         drewRef.current = true;
         setTimeout(() => (drewRef.current = false), 0);
         // No room for the drawn box (the grid is full there): nothing is added.
@@ -347,17 +350,14 @@ export function StudioCanvas({
   /** Gap in display px. */
   const g = gap * zoom;
 
-  // Alignment lines: at the column / row boundaries (gap-aware).
-  // Design px: these sit inside the zoomed page (CSS zoom scales them).
+  // Design px: the ghosts sit inside the zoomed page (CSS zoom scales them).
   const colW = gridWidth > 0 ? trackSize(gridWidth, profile.cols, gap) : 0;
-  const guides = colW > 0 ? columnGuides(gridWidth, profile.cols, gap) : [];
 
   // Row geometry: fill mode → uniform rows over the profile height;
   // scroll mode → fixed SCROLL_ROW_H rows (the canvas scrolls).
   const rowH = fill
     ? Math.max(24, trackSize(profile.height - 2 * padding, profile.rows, gap))
     : SCROLL_ROW_H;
-  const rowGuides = columnGuides(profile.rows * rowH + (profile.rows - 1) * gap, profile.rows, gap);
   const getGridRect = () => gridEl?.getBoundingClientRect() ?? null;
 
   /** The 1-based grid cell under a screen point (null outside the grid). */
@@ -388,83 +388,55 @@ export function StudioCanvas({
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col bg-ui-app">
-      {/* Ruler row */}
-      {showRulers && (
-        <div className="flex shrink-0">
-          <div className="h-6 w-7 shrink-0 border-b border-r border-ui-subtle bg-ui-chrome" />
-          <div className="min-w-0 flex-1">
-            <RulerH
-              length={canvas.w}
-              zoom={zoom}
-              offset={scroll.left - canvas.ox}
-              view={canvas.viewW}
-            />
-          </div>
-        </div>
-      )}
-
-      <div className="flex min-h-0 flex-1">
-        {showRulers && (
-          <RulerV
-            length={canvas.h}
-            zoom={zoom}
-            offset={scroll.top - canvas.oy}
-            view={canvas.viewH}
-          />
-        )}
-
+      <div
+        className="relative min-h-0 flex-1"
+        // On the wrapper, not the scroller: the cards over the canvas are drop targets too.
+        onDragOver={onCanvasDragOver}
+        onDragLeave={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDropPreview(null);
+        }}
+        onDrop={onCanvasDrop}
+      >
         <div
-          className="relative min-w-0 flex-1"
-          // On the wrapper, not the scroller: the cards over the canvas are drop targets too.
-          onDragOver={onCanvasDragOver}
-          onDragLeave={(e) => {
-            if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDropPreview(null);
+          ref={attachScroll}
+          className="h-full w-full overflow-auto"
+          style={{ backgroundImage: DOTS, backgroundSize: DOT_PITCH }}
+          onContextMenu={(e) => {
+            e.preventDefault();
+            onContextMenu(null, e.clientX, e.clientY);
           }}
-          onDrop={onCanvasDrop}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) onSelect(null);
+          }}
         >
+          {/* A click on the empty canvas around the page deselects. */}
           <div
-            ref={attachScroll}
-            className="h-full w-full overflow-auto"
-            onScroll={(e) =>
-              setScroll({
-                left: e.currentTarget.scrollLeft,
-                top: e.currentTarget.scrollTop,
-              })
-            }
-            onContextMenu={(e) => {
-              e.preventDefault();
-              onContextMenu(null, e.clientX, e.clientY);
-            }}
             onClick={(e) => {
               if (e.target === e.currentTarget) onSelect(null);
             }}
+            className="flex min-h-full w-fit min-w-full"
+            style={{ padding: SCROLL_PAD }}
           >
-            {/* A click on the empty canvas around the page deselects. */}
+            {/* The page: exactly the profile's design size (the kiosk
+                window renders the same profile 1:1), its padding around
+                the grid, and its own theme / font / radius scoped here. */}
             <div
-              onClick={(e) => {
-                if (e.target === e.currentTarget) onSelect(null);
-              }}
-              className="flex min-h-full w-fit min-w-full p-4"
-              style={{
-                zoom,
-                backgroundImage: DOTS,
-                backgroundSize: DOT_PITCH,
-              }}
-            >
-              {/* The page: exactly the profile's design size (the kiosk
-                  window renders the same profile 1:1), its padding around
-                  the grid, and its own theme / font scoped here. */}
-              <div
-                ref={setPageEl}
-                data-theme-scope={themeScope ? "" : undefined}
-                className={cn(
-                  "relative isolate",
-                  // Centered while smaller than the view (both axes).
-                  profile.width > 0 ? "m-auto shrink-0" : "flex-1",
-                  themeScope && !background && "bg-background",
-                  themeScope && "text-foreground"
-                )}
-                style={{
+              ref={setPageEl}
+              data-theme-scope={themeScope ? "" : undefined}
+              className={cn(
+                "relative isolate",
+                // Centered while smaller than the view (both axes).
+                profile.width > 0 ? "m-auto shrink-0" : "flex-1",
+                themeScope && !background && "bg-background",
+                themeScope && "text-foreground"
+              )}
+              style={
+                {
+                  zoom,
+                  "--radius": `${radius}rem`,
+                  "--radius-lg": "var(--radius)",
+                  "--radius-md": "calc(var(--radius) - 2px)",
+                  "--radius-sm": "calc(var(--radius) - 4px)",
                   ...themeScope,
                   padding,
                   fontFamily: font,
@@ -473,11 +445,13 @@ export function StudioCanvas({
                   outlineOffset: 6,
                   ...(profile.width > 0 ? { width: profile.width } : {}),
                   ...(fill ? { height: profile.height } : {}),
-                }}
-                onClick={(e) => {
-                  if (e.target === e.currentTarget) onSelect(null);
-                }}
-              >
+                } as CSSProperties
+              }
+              onClick={(e) => {
+                if (e.target === e.currentTarget) onSelect(null);
+              }}
+            >
+              {showRulers && <RulerLabels width={canvas.w} height={canvas.h} />}
                 {/* Page background (as in the kiosk) behind the tiles */}
                 {background && <PageBackground background={background} className="absolute inset-0 -z-20" />}
                 <div
@@ -497,23 +471,17 @@ export function StudioCanvas({
                     if (e.target === e.currentTarget && !drewRef.current) onSelect(null);
                   }}
                 >
-                  {/* Optional grid lines at the column / row boundaries */}
-                  {showGrid &&
-                    guides.map((x, i) => (
-                      <div
-                        key={`c${i}`}
-                        className={cn("pointer-events-none absolute bottom-0 top-0 w-px", GRID_LINE)}
-                        style={{ left: x }}
-                      />
-                    ))}
-                  {showGrid &&
-                    rowGuides.map((y, i) => (
-                      <div
-                        key={`r${i}`}
-                        className={cn("pointer-events-none absolute left-0 right-0 h-px", GRID_LINE)}
-                        style={{ top: y }}
-                      />
-                    ))}
+                  {/* Optional grid, over the tiles (below the selection) */}
+                  {showGrid && (
+                    <div
+                      aria-hidden
+                      className="pointer-events-none absolute inset-0 z-[12]"
+                      style={{
+                        backgroundImage: GRID_LINES,
+                        backgroundSize: `calc((100% + ${gap}px) / ${profile.cols}) calc((100% + ${gap}px) / ${profile.rows})`,
+                      }}
+                    />
+                  )}
 
                   {/* Drawing / move-resize ghost */}
                   {(drawing || zoneDrag) &&
@@ -523,7 +491,7 @@ export function StudioCanvas({
                       if (!style) return null;
                       return (
                         <div
-                          className="pointer-events-none absolute z-30 rounded-lg border-2 border-dashed border-ui-accent bg-ui-accent/10"
+                          className="pointer-events-none absolute z-30 rounded-[8px] border-2 border-dashed border-ui-accent bg-ui-accent/10"
                           style={style}
                         >
                           <span className="absolute left-1.5 top-0.5 font-ui-mono text-[10px] font-semibold tabular-nums text-ui-accent-text">
@@ -541,7 +509,7 @@ export function StudioCanvas({
                       const tone = dropPreview.ok ? GHOST_OK : GHOST_DENIED;
                       return (
                         <div
-                          className="pointer-events-none absolute z-30 flex items-center justify-center rounded-lg border-[1.5px] border-dashed font-ui text-[11px] font-semibold"
+                          className="pointer-events-none absolute z-30 flex items-center justify-center rounded-[8px] border-[1.5px] border-dashed font-ui text-[11px] font-medium"
                           style={{ ...style, borderColor: tone.line, background: tone.fill, color: tone.line }}
                         >
                           {dropPreview.ok ? "Drop here" : "No room"}
@@ -576,6 +544,7 @@ export function StudioCanvas({
                           onZoneDragCancel={onZoneDragCancel}
                           selected={selectedIds.includes(p.id)}
                           primary={primaryId === p.id}
+                          canResize={primaryId === p.id && selectedIds.length === 1}
                           onSelect={(mode) => onSelect(p.id, mode)}
                           onSelectWidget={p.panel ? (widgetId) => onSelectWidget(p.id, widgetId) : undefined}
                           onPickWidget={() => onPickWidget(p.id)}
@@ -622,7 +591,6 @@ export function StudioCanvas({
 
           <QuickTipsCard />
         </div>
-      </div>
 
       {/* Zone-drag ghost: follows the pointer (outside the zoomed canvas)
           so the zone being moved/resized is always visibly tracked. */}
