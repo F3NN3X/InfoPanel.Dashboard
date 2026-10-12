@@ -259,3 +259,14 @@ describe("select all", () => {
     expect(ids({ ...base, placements: [] })).not.toContain("select-all");
   });
 });
+
+describe("buildCommands style commands", () => {
+  it("offers copy, paste and follow only with a selection", () => {
+    const ids = (selected: Placement | null) =>
+      buildCommands({ ...base, selected, selection: selected ? [selected] : [] })
+        .filter((c) => c.group === "Zone style")
+        .map((c) => c.action.type);
+    expect(ids(null)).toEqual([]);
+    expect(ids(zone("a", 1, 1))).toEqual(["copy-style", "paste-style", "follow-global"]);
+  });
+});

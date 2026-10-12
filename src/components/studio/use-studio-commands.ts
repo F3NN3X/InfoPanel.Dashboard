@@ -1,4 +1,6 @@
 import { modules } from "@/modules";
+import { useToast } from "@/components/ui/toast";
+import { styleOf } from "@/modules/standard-settings";
 import type { DashboardConfig, MonitorProfile } from "@/lib/layout";
 import type { HistorySetter } from "@/hooks/use-config-history";
 import type { Appearance } from "@/lib/style-resolve";
@@ -43,6 +45,7 @@ export function useStudioCommands({
   appearancePresets,
 }: CommandDeps) {
   const { selected, selectedWidget } = sel;
+  const toast = useToast();
 
   /** Select a zone (Layers drawer, palette) and bring it into view on the canvas. */
   const focusZone = (id: string) => {
@@ -154,6 +157,16 @@ export function useStudioCommands({
         return edit.updateProfile(followAll);
       case "toggle-enforce":
         return setConfig((c) => toggleEnforce(c, profile));
+      case "edit-theme":
+        // Deselect: the inspector shows the dashboard, on its Appearance tab.
+        ui.setMode("design");
+        sel.select(null);
+        ui.requestInspectorTab("appearance");
+        return void requestAnimationFrame(() => ui.jumpInspector(DOCUMENT_CARD.appearance));
+      case "deselect":
+        return sel.select(null);
+      case "sample-layout":
+        return edit.loadSampleLayout();
       case "apply-appearance": {
         const preset = appearancePresets.presets.find((p) => p.id === action.id);
         return preset && appearancePresets.apply(preset, "all");
@@ -169,6 +182,30 @@ export function useStudioCommands({
         return edit.removeSelection();
       case "pick-widget":
         return ui.setPickerFor(selected.id);
+      case "edit-style":
+        ui.setMode("design");
+        ui.setInspectorQuery("");
+        ui.jumpInspector("colors");
+        return ui.requestInspectorTab("style");
+      case "bind-data":
+        ui.setMode("design");
+        return ui.requestInspectorTab("data", true);
+      case "copy-style":
+        ui.setStyleClipboard(styleOf(selected.settings));
+        return toast("Style copied");
+      case "paste-style":
+        if (!ui.styleClipboard) return;
+        edit.pasteStyleSelection(ui.styleClipboard);
+        return toast("Style pasted");
+      case "follow-global":
+        return edit.followGlobalSelection();
+      case "resize-step": {
+        const rect = edit.resizeSelected({
+          cols: selected.colSpan + action.cols,
+          rows: selected.rowSpan + action.rows,
+        });
+        return rect && edit.setZoneRect(selected.id, rect);
+      }
       case "save-panel-preset":
         ui.setMode("design");
         ui.setInspectorQuery("");

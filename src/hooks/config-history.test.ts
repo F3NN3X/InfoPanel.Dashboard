@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   COALESCE_MS,
   HISTORY_LIMIT,
+  beginTransaction,
+  cancelTransaction,
+  commitTransaction,
   emptyHistory,
   recordChange,
   redoChange,
@@ -114,5 +117,58 @@ describe("undoChange / redoChange", () => {
     const u = undoChange(h, 1)!;
     expect(recordChange(u.history, 0, "a", 10).past).toEqual([0]);
     expect(recordChange(u.history, 0, "a", 10).future).toEqual([]);
+  });
+});
+
+describe("transactions", () => {
+  it("records nothing while open and one step at the commit, however long the pauses", () => {
+    let h = beginTransaction(emptyHistory<number>(), 0);
+    h = recordChange(h, 0, "drag", 0);
+    h = recordChange(h, 1, "drag", 5 * COALESCE_MS);
+    h = recordChange(h, 2, undefined, 10 * COALESCE_MS);
+    expect(h.past).toEqual([]);
+    h = commitTransaction(h, 3, 11 * COALESCE_MS);
+    expect(h.past).toEqual([0]);
+    expect(h.txn).toBeNull();
+    expect(undoChange(h, 3)?.value).toBe(0);
+  });
+
+  it("a commit with no change adds no step", () => {
+    const h = commitTransaction(beginTransaction(emptyHistory<number>(), 7), 7, 0);
+    expect(h.past).toEqual([]);
+    expect(h.txn).toBeNull();
+  });
+
+  it("a commit clears the redo stack like any change", () => {
+    const base = { ...emptyHistory<number>(), past: [0], future: [9] };
+    const h = commitTransaction(beginTransaction(base, 1), 2, 0);
+    expect(h.past).toEqual([0, 1]);
+    expect(h.future).toEqual([]);
+  });
+
+  it("does not coalesce with the step before it", () => {
+    const before = recordChange(emptyHistory<number>(), 0, "drag", 0);
+    const h = commitTransaction(beginTransaction(before, 1), 2, 10);
+    expect(h.past).toEqual([0, 1]);
+  });
+
+  it("cancel returns the start snapshot and the history as it was", () => {
+    const base = recordChange(emptyHistory<number>(), 0, undefined, 0);
+    const open = recordChange(beginTransaction(base, 1), 1, "drag", 5);
+    const step = cancelTransaction(open);
+    expect(step?.value).toBe(1);
+    expect(step?.history.past).toEqual([0]);
+    expect(step?.history.txn).toBeNull();
+  });
+
+  it("commit and cancel outside a transaction do nothing", () => {
+    const h = emptyHistory<number>();
+    expect(commitTransaction(h, 1, 0)).toBe(h);
+    expect(cancelTransaction(h)).toBeNull();
+  });
+
+  it("a second begin keeps the first start", () => {
+    const h = beginTransaction(beginTransaction(emptyHistory<number>(), 1), 5);
+    expect(h.txn?.start).toBe(1);
   });
 });

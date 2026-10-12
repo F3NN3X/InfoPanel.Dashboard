@@ -3,11 +3,11 @@ import {
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from "react";
-import { Plus } from "lucide-react";
 import { BLANK_MODULE, type MonitorProfile, type Placement } from "@/lib/layout";
 import { profileGap, trackPitch } from "@/lib/profile-grid";
 import { hexToHsl } from "@/lib/theme";
 import { cn } from "@/lib/utils";
+import { trackPointer } from "./pointer-drag";
 import { isToggleClick, type SelectMode } from "./selection";
 import type { ZoneRect } from "./zone-geometry";
 
@@ -20,6 +20,7 @@ type Handle = "nw" | "n" | "ne" | "e" | "se" | "s" | "sw" | "w";
 // Above the widget content (which can carry its own z-10).
 const EDGE = "z-20";
 const CORNER = "z-30 h-3.5 w-3.5";
+// The bottom-right knob is the resize handle of the design (11x11); the rest are slimmer.
 const HANDLES: { id: Handle; cursor: string; pos: string; grip: string }[] = [
   { id: "n", cursor: "ns-resize", pos: `${EDGE} -top-1 left-2 right-2 h-2`, grip: "h-2 w-7" },
   { id: "e", cursor: "ew-resize", pos: `${EDGE} -right-1 top-2 bottom-2 w-2`, grip: "h-7 w-2" },
@@ -27,7 +28,7 @@ const HANDLES: { id: Handle; cursor: string; pos: string; grip: string }[] = [
   { id: "w", cursor: "ew-resize", pos: `${EDGE} -left-1 top-2 bottom-2 w-2`, grip: "h-7 w-2" },
   { id: "nw", cursor: "nwse-resize", pos: `${CORNER} -left-[7px] -top-[7px]`, grip: "h-3 w-3" },
   { id: "ne", cursor: "nesw-resize", pos: `${CORNER} -right-[7px] -top-[7px]`, grip: "h-3 w-3" },
-  { id: "se", cursor: "nwse-resize", pos: `${CORNER} -right-[7px] -bottom-[7px]`, grip: "h-3 w-3" },
+  { id: "se", cursor: "nwse-resize", pos: `${CORNER} -right-[7px] -bottom-[7px]`, grip: "h-[11px] w-[11px]" },
   { id: "sw", cursor: "nesw-resize", pos: `${CORNER} -left-[7px] -bottom-[7px]`, grip: "h-3 w-3" },
 ];
 
@@ -63,8 +64,14 @@ interface PlacementFrameProps {
     kind: "move" | "resize"
   ) => void;
   onZoneDragEnd?: (id: string, rect: ZoneRect | null) => void;
-  /** Dimmed while a zone drag is in flight (the indicator shows the target). */
+  /** A move / resize really started (past the drag threshold): the studio opens its undo transaction. */
+  onZoneDragStart?: (id: string) => void;
+  /** Esc aborted the drag: the studio puts the zone back. */
+  onZoneDragCancel?: (id: string) => void;
+  /** Being moved or resized: lifted with a shadow. */
   ghost?: boolean;
+  /** Right-click (viewport px): the studio opens the zone menu. */
+  onContextMenu?: (x: number, y: number) => void;
   /** Open the widget picker (the blank zone's "Pick a widget"). */
   onPickWidget?: () => void;
   /** In the selection: highlighted (studio view). */
@@ -108,7 +115,10 @@ export function PlacementFrame({
   rowHeight,
   onZoneDrag,
   onZoneDragEnd,
+  onZoneDragStart,
+  onZoneDragCancel,
   ghost,
+  onContextMenu,
   onPickWidget,
   selected,
   primary,
@@ -163,27 +173,27 @@ export function PlacementFrame({
     let active = false;
     let last: ZoneRect | null = null;
 
-    const move = (ev: PointerEvent) => {
-      if (!active && Math.hypot(ev.clientX - startX, ev.clientY - startY) > 4) {
-        active = true;
+    trackPointer(
+      (ev) => {
+        if (!active && Math.hypot(ev.clientX - startX, ev.clientY - startY) > 4) {
+          active = true;
+          onZoneDragStart?.(placement.id);
+        }
+        if (!active || pitchX <= 0) return;
+        const dc = Math.round((ev.clientX - startX) / pitchX);
+        const dr = pitchY > 0 ? Math.round((ev.clientY - startY) / pitchY) : 0;
+        last = { col: startCol + dc, row: startRow + dr, cols: span, rows: rowSpan };
+        onZoneDrag?.(placement.id, last, { x: ev.clientX, y: ev.clientY }, "move");
+      },
+      (cancelled) => {
+        if (cancelled) return active ? onZoneDragCancel?.(placement.id) : undefined;
+        onZoneDragEnd?.(placement.id, last);
+        if (active) return;
+        // A click without a drag selects just this zone.
+        onSelect?.("only");
+        pick?.(widgetId);
       }
-      if (!active || pitchX <= 0) return;
-      const dc = Math.round((ev.clientX - startX) / pitchX);
-      const dr = pitchY > 0 ? Math.round((ev.clientY - startY) / pitchY) : 0;
-      last = { col: startCol + dc, row: startRow + dr, cols: span, rows: rowSpan };
-      onZoneDrag?.(placement.id, last, { x: ev.clientX, y: ev.clientY }, "move");
-    };
-    const up = () => {
-      window.removeEventListener("pointermove", move);
-      window.removeEventListener("pointerup", up);
-      onZoneDragEnd?.(placement.id, last);
-      if (active) return;
-      // A click without a drag selects just this zone.
-      onSelect?.("only");
-      pick?.(widgetId);
-    };
-    window.addEventListener("pointermove", move);
-    window.addEventListener("pointerup", up);
+    );
   }
 
   /** Resize: drag a handle; the opposite edge stays put. */
@@ -193,54 +203,48 @@ export function PlacementFrame({
     const startX = e.clientX;
     const startY = e.clientY;
     let last: ZoneRect | null = null;
+    onZoneDragStart?.(placement.id);
 
-    const move = (ev: PointerEvent) => {
-      const dc = pitchX > 0 ? Math.round((ev.clientX - startX) / pitchX) : 0;
-      const dr = pitchY > 0 ? Math.round((ev.clientY - startY) / pitchY) : 0;
-      let col = placement.colStart;
-      let row = placement.rowStart;
-      let cols = span;
-      let rows = rowSpan;
-      if (h === "w" || h === "nw" || h === "sw") {
-        col = placement.colStart + dc;
-        cols = span - dc;
-      }
-      if (h === "e" || h === "ne" || h === "se") cols = span + dc;
-      if (h === "n" || h === "nw" || h === "ne") {
-        row = placement.rowStart + dr;
-        rows = rowSpan - dr;
-      }
-      if (h === "s" || h === "se" || h === "sw") rows = rowSpan + dr;
-      // Keep the box at least one cell: shrink-past-zero pushes the start.
-      if (cols < 1) {
-        col += 1 - cols;
-        cols = 1;
-      }
-      if (rows < 1) {
-        row += 1 - rows;
-        rows = 1;
-      }
-      last = { col, row, cols, rows };
-      onZoneDrag?.(placement.id, last, { x: ev.clientX, y: ev.clientY }, "resize");
-    };
-    const up = () => {
-      window.removeEventListener("pointermove", move);
-      window.removeEventListener("pointerup", up);
-      onZoneDragEnd?.(placement.id, last);
-    };
-    window.addEventListener("pointermove", move);
-    window.addEventListener("pointerup", up);
+    trackPointer(
+      (ev) => {
+        const dc = pitchX > 0 ? Math.round((ev.clientX - startX) / pitchX) : 0;
+        const dr = pitchY > 0 ? Math.round((ev.clientY - startY) / pitchY) : 0;
+        let col = placement.colStart;
+        let row = placement.rowStart;
+        let cols = span;
+        let rows = rowSpan;
+        if (h === "w" || h === "nw" || h === "sw") {
+          col = placement.colStart + dc;
+          cols = span - dc;
+        }
+        if (h === "e" || h === "ne" || h === "se") cols = span + dc;
+        if (h === "n" || h === "nw" || h === "ne") {
+          row = placement.rowStart + dr;
+          rows = rowSpan - dr;
+        }
+        if (h === "s" || h === "se" || h === "sw") rows = rowSpan + dr;
+        // Keep the box at least one cell: shrink-past-zero pushes the start.
+        if (cols < 1) {
+          col += 1 - cols;
+          cols = 1;
+        }
+        if (rows < 1) {
+          row += 1 - rows;
+          rows = 1;
+        }
+        last = { col, row, cols, rows };
+        onZoneDrag?.(placement.id, last, { x: ev.clientX, y: ev.clientY }, "resize");
+      },
+      (cancelled) => (cancelled ? onZoneDragCancel?.(placement.id) : onZoneDragEnd?.(placement.id, last))
+    );
   }
 
   return (
     <div
       className={cn(
-        "group relative min-w-0",
-        studio &&
-          (selected
-            ? "ring-2 ring-ring"
-            : "outline-dashed outline-1 outline-ring/40"),
-        studio && ghost && "opacity-40"
+        "group relative min-w-0 transition-opacity",
+        // Hidden zones stay editable but show faded (the kiosk drops them).
+        studio && !placement.visible && "opacity-35"
       )}
       style={{
         gridColumn: `${placement.colStart} / span ${span}`,
@@ -258,12 +262,35 @@ export function PlacementFrame({
         if (!selected && !isToggleClick(e)) onSelect?.("only");
       }}
       onPointerDown={studio ? startMove : undefined}
+      onContextMenu={
+        studio
+          ? (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onContextMenu?.(e.clientX, e.clientY);
+            }
+          : undefined
+      }
     >
       {studio && (
         <>
+          {/* Selection: a 1px accent border plus a 1px ring; lifted while dragged */}
+          <div
+            aria-hidden
+            className={cn(
+              "pointer-events-none absolute inset-0 z-[15] rounded-[6px] border transition-[box-shadow,border-color] duration-150",
+              selected ? "border-ui-accent" : "border-dashed border-ui-strong group-hover:border-ui-accent/50"
+            )}
+            style={{
+              boxShadow:
+                [selected && "0 0 0 1px var(--ui-accent)", ghost && "0 14px 36px rgba(0,0,0,.55)"]
+                  .filter(Boolean)
+                  .join(", ") || undefined,
+            }}
+          />
           {/* Size chip on hover (the selected zone shows its toolbar) */}
           {!selected && (
-            <span className="pointer-events-none absolute right-1.5 top-1.5 z-20 rounded-md bg-popover/90 px-1.5 py-0.5 text-xs tabular-nums text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
+            <span className="pointer-events-none absolute right-1.5 top-1.5 z-20 rounded-md bg-ui-raised/90 px-1.5 py-0.5 font-ui text-xs tabular-nums text-ui-3 opacity-0 transition-opacity group-hover:opacity-100">
               {span}×{rowSpan}
             </span>
           )}
@@ -277,14 +304,14 @@ export function PlacementFrame({
               data-no-drag
               data-resize-handle={h.id}
               onPointerDown={(e) => startResize(e, h.id)}
-              className={cn("group/handle absolute rounded-sm transition-colors hover:bg-ring/40", h.pos)}
+              className={cn("group/handle absolute rounded-sm transition-colors hover:bg-ui-accent/40", h.pos)}
               style={{ cursor: h.cursor }}
               title="Drag to resize"
             >
               {primary && (
                 <span
                   className={cn(
-                    "pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-[3px] border-[1.5px] border-ring bg-background shadow-sm transition-colors group-hover/handle:bg-ring",
+                    "pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-[3px] border-2 border-ui-accent bg-[#ededf0] shadow-sm transition-colors group-hover/handle:bg-ui-accent",
                     h.grip
                   )}
                   // Same size on screen at any canvas zoom.
@@ -306,17 +333,14 @@ export function PlacementFrame({
         )}
         <div className="flex h-full w-full flex-col">
           {studio && blank ? (
-            <div className="flex h-full min-h-16 flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-border/70 bg-card/20 p-3">
-              <div className="text-sm font-medium text-muted-foreground">
-                Blank zone
-              </div>
+            <div className="flex h-full min-h-16 flex-col items-center justify-center rounded-lg border border-dashed border-[#3a3a44] p-3">
               {onPickWidget && (
                 <button
                   type="button"
                   onClick={onPickWidget}
-                  className="flex items-center gap-1 rounded-md border border-border bg-popover/90 px-2 py-1 text-xs text-foreground transition-colors hover:border-ring hover:bg-accent"
+                  className="rounded-md px-2 py-1 font-ui text-xs text-ui-4 transition-colors hover:bg-ui-hover hover:text-ui-1"
                 >
-                  <Plus className="h-3 w-3" /> Pick a widget
+                  + Pick a widget
                 </button>
               )}
             </div>

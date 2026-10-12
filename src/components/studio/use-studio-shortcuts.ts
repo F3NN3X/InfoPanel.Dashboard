@@ -6,6 +6,8 @@ export type ShortcutAction =
   | { type: "duplicate" }
   | { type: "toggle-visible" }
   | { type: "select-all" }
+  | { type: "copy-style" }
+  | { type: "paste-style" }
   | { type: "escape" }
   | { type: "nudge"; cols: number; rows: number }
   | { type: "resize"; cols: number; rows: number }
@@ -27,6 +29,8 @@ export type ShortcutAction =
 /** The parts of a keydown event the mapping reads. */
 export interface KeyInput {
   key: string;
+  /** The physical key (Alt changes `key` on some layouts, so Ctrl+Alt+C / V read this). */
+  code?: string;
   ctrlKey: boolean;
   metaKey: boolean;
   shiftKey: boolean;
@@ -104,9 +108,20 @@ export function shortcutAction(e: KeyInput, ctx: ShortcutContext): ShortcutActio
   return e.ctrlKey || e.metaKey ? widgetCommand(e) : null;
 }
 
+/** Ctrl/cmd+Alt+C / V: copy / paste the zone's style (by `code`, not `key`). */
+function styleAction(e: KeyInput): ShortcutAction | null {
+  if (e.shiftKey) return null;
+  if (e.code === "KeyC") return { type: "copy-style" };
+  if (e.code === "KeyV") return { type: "paste-style" };
+  return null;
+}
+
 /** `shortcutAction` without a selected widget. */
 function zoneAction(e: KeyInput, ctx: ShortcutContext): ShortcutAction | null {
-  if (e.altKey) return null;
+  if (e.altKey) {
+    const action = e.ctrlKey || e.metaKey ? styleAction(e) : null;
+    return action && !ctx.typing && !ctx.overlay ? action : null;
+  }
   if (e.ctrlKey || e.metaKey) {
     const action = commandAction(e);
     if (!action) return null;
@@ -131,6 +146,8 @@ export const KEYS = {
   save: "Ctrl+S",
   palette: "Ctrl+K",
   duplicate: "Ctrl+D",
+  copyStyle: "Ctrl+Alt+C",
+  pasteStyle: "Ctrl+Alt+V",
   selectAll: "Ctrl+A",
   remove: "Del",
   copy: "Ctrl+C",
@@ -168,6 +185,8 @@ export const SHORTCUT_GROUPS: { title: string; items: { keys: string; label: str
       { keys: "Shift+↑ / ↓", label: "Shorter / taller (the primary zone)" },
       { keys: KEYS.duplicate, label: "Duplicate" },
       { keys: KEYS.hide, label: "Hide / show" },
+      { keys: KEYS.copyStyle, label: "Copy the primary zone's style" },
+      { keys: KEYS.pasteStyle, label: "Paste the style onto the selection" },
       { keys: `${KEYS.remove} / Backspace`, label: "Remove" },
     ],
   },

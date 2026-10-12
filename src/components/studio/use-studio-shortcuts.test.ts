@@ -60,6 +60,19 @@ describe("shortcutAction", () => {
     expect(shortcutAction(key("A", { ctrlKey: true, shiftKey: true }), IDLE)).toBeNull();
   });
 
+  it("maps Ctrl/cmd+Alt+C / V to copy / paste style by the physical key", () => {
+    // Alt+C types "ç" on some layouts: only `code` is reliable.
+    const chord = (code: string, mods = {}) => key("ç", { ctrlKey: true, altKey: true, code, ...mods });
+    expect(shortcutAction(chord("KeyC"), IDLE)).toEqual({ type: "copy-style" });
+    expect(shortcutAction(chord("KeyV", { ctrlKey: false, metaKey: true }), IDLE)).toEqual({ type: "paste-style" });
+    expect(shortcutAction(chord("KeyC"), { ...IDLE, widget: true })).toEqual({ type: "copy-style" });
+    expect(shortcutAction(chord("KeyC"), TYPING)).toBeNull();
+    expect(shortcutAction(chord("KeyC"), DIALOG)).toBeNull();
+    expect(shortcutAction(chord("KeyC", { shiftKey: true }), IDLE)).toBeNull();
+    expect(shortcutAction(chord("KeyX"), IDLE)).toBeNull();
+    expect(shortcutAction(key("c", { altKey: true, code: "KeyC" }), IDLE)).toBeNull();
+  });
+
   it("maps Ctrl+\ to the dock toggle, but not while typing or with a dialog open", () => {
     expect(shortcutAction(key("\\", { ctrlKey: true }), IDLE)).toEqual({ type: "toggle-dock" });
     expect(shortcutAction(key("\\", { metaKey: true }), { ...IDLE, widget: true })).toEqual({ type: "toggle-dock" });

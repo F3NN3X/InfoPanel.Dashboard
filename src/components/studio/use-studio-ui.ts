@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { DashboardConfig, MonitorProfile, Widget } from "@/lib/layout";
-import type { ModuleSettings } from "@/modules/types";
+import type { InspectorTab, ModuleSettings } from "@/modules/types";
 import { useStoredDrawer, type RailItem } from "./left-rail";
 import { revealWidgetEditor, scrollInspectorToTop } from "./inspector-scroll";
 import { useCanvasZoom } from "./use-canvas-zoom";
@@ -22,6 +22,18 @@ export function useStudioUi(config: DashboardConfig, profile: MonitorProfile, on
   /** A request to scroll the zone inspector to a card (`seq` makes repeats count). */
   const [inspectorJump, setInspectorJump] = useState<{ id: string; seq: number }>();
   const jumpInspector = (id: string) => setInspectorJump((j) => ({ id, seq: (j?.seq ?? 0) + 1 }));
+  /**
+   * A request to show an inspector tab: a zone's tab, or "appearance" (the
+   * dashboard inspector). `picker` also opens the Data tab's bind picker;
+   * `seq` makes repeats count.
+   */
+  const [inspectorRequest, setInspectorRequest] = useState<{
+    tab: InspectorTab | "appearance";
+    picker: boolean;
+    seq: number;
+  }>();
+  const requestInspectorTab = (tab: InspectorTab | "appearance", picker = false) =>
+    setInspectorRequest((r) => ({ tab, picker, seq: (r?.seq ?? 0) + 1 }));
   /** The zone inspector's settings search ("Go to setting" fills it). */
   const [inspectorQuery, setInspectorQuery] = useState("");
   const inspectorRef = useRef<HTMLElement>(null);
@@ -92,6 +104,8 @@ export function useStudioUi(config: DashboardConfig, profile: MonitorProfile, on
     setShowGrid,
     inspectorJump,
     jumpInspector,
+    inspectorRequest,
+    requestInspectorTab,
     inspectorQuery,
     setInspectorQuery,
     inspectorRef,

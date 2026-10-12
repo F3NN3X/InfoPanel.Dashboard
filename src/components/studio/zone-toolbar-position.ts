@@ -13,8 +13,8 @@ export interface ToolbarPosition {
   side: "above" | "below" | "inside";
 }
 
-/** Space between the zone and its toolbar, and the viewport inset. */
-const GAP = 6;
+/** Space between the zone and its chip, and the viewport inset. */
+const GAP = 7;
 const INSET = 4;
 
 /**
