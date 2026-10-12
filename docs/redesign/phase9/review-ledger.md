@@ -56,3 +56,6 @@ Findings from reviews, with the decision taken. Status: open / fixed (commit) / 
 | 33 | med | System 4×2 | legacy default look had load rings per device; the alias shows a column grid without rings; "Clock 0.00 GHz" shown when the clock sensor is missing | open: alias defaults to the ring layout; hide stats whose value is missing |
 | 34 | med | Wave Link 3×2/4×2/6×3 | dB scale labels overlap the channel names and meters (probe: 26 overlaps) | open: scale only when there is width; labels below names |
 | 35 | low | Hardware 3×2, System 3×2, vbz 6×3 | text overlaps (probe) | open: 9.8 sweep |
+| 36 | high | all ported modules | visual parity findings: see `visual-review.md` (27 rows: 10 high, 10 med, 7 low) | open: parity pass per module |
+| 37 | med | Other sensors | the sensor `source` line was dropped; multi-line values clamp to 3 lines | open: restore the source line |
+| 38 | low | `src/components/SmartValue.tsx` | unused after the Other sensors port | open: delete in 9.6 |
