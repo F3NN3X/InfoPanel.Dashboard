@@ -25,3 +25,4 @@ it where the spec says.
 | — | Undo cap | Stays 100. |
 | — | Fonts | Google Fonts: Geist / Geist Mono for chrome; catalog in `src/lib/fonts.ts`, loaded on demand. |
 | — | Bottom dock | The left panel stays separate; the drawer no longer becomes a dock column. |
+| — | Undo on profile switch | History stays whole-config; switching profile does not clear it (a switch is itself an undo step). |
