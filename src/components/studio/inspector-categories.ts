@@ -2,6 +2,7 @@ import {
   GROUP_ADVANCED,
   GROUP_COLORS,
   GROUP_EFFECTS,
+  GROUP_LOOK,
   GROUP_SIZE,
   GROUP_SPACING,
   GROUP_TYPOGRAPHY,
@@ -42,6 +43,13 @@ export const GENERAL_CATEGORIES: readonly GeneralCategory[] = [
     title: GROUP_WIDGET,
     hint: "Title, icon and visibility",
     keys: ["label", "icon", "hideWhenIdle"],
+  },
+  {
+    id: "look",
+    tab: "style",
+    title: GROUP_LOOK,
+    hint: "Skin, variant, graph and meter style",
+    keys: ["skin", "variant", "graph", "meter", "compactView"],
   },
   {
     id: "size",

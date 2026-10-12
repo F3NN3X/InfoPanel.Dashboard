@@ -117,6 +117,7 @@ describe("widget sections", () => {
   it("files the look cards in Style, then the color categories, as advanced", () => {
     const style = sectionsFor(system, "style");
     expect(titles(style)).toEqual([
+      "Look",
       "Size & alignment",
       "Typography",
       "Spacing & shape",
@@ -234,6 +235,7 @@ describe("panel sections", () => {
 
   it("has the same look cards as a widget and lists its sensors in Data", () => {
     expect(titles(sectionsFor(panel, "style"))).toEqual([
+      "Look",
       "Size & alignment",
       "Typography",
       "Spacing & shape",
@@ -258,6 +260,7 @@ describe("blank zone and several zones", () => {
     const sections = sectionsFor({ kind: "multi", defs: spotify.kind === "widget" ? spotify.defs : [] });
     expect(sections.every((s) => s.tab === "style")).toBe(true);
     expect(titles(sections)).toEqual([
+      "Look",
       "Size & alignment",
       "Typography",
       "Spacing & shape",
@@ -288,6 +291,7 @@ describe("dashboard sections", () => {
   it("has the look categories as the global style, without Follow, Preset or the Widget card", () => {
     const style = sectionsFor(dash, "gstyle");
     expect(titles(style)).toEqual([
+      "Look",
       "Size & alignment",
       "Typography",
       "Spacing & shape",
@@ -379,6 +383,7 @@ describe("applyAdvanced", () => {
     const sections = sectionsFor(system, "style");
     const { sections: shown, hiddenCount } = applyAdvanced(sections, false);
     expect(titles(shown)).toEqual([
+      "Look",
       "Size & alignment",
       "Typography",
       "Spacing & shape",
@@ -388,8 +393,8 @@ describe("applyAdvanced", () => {
     expect(find(shown, "Size & alignment").settings.map((d) => d.key)).toEqual(["layout", "scale", "alignX"]);
     expect(find(shown, "Colors & surface").settings.map((d) => d.key)).not.toContain("background");
     expect(find(shown, "Border & effects").extras).toEqual([]);
-    // autoScale + background + backgroundOn + frame (3) + custom CSS + 5 device colors
-    expect(hiddenCount).toBe(1 + 2 + 3 + 1 + 5);
+    // autoScale + background + backgroundOn + frame (3) + custom CSS + 5 device colors + graph, meter, compactView
+    expect(hiddenCount).toBe(1 + 2 + 3 + 1 + 5 + 3);
     const total = sections.reduce((n, s) => n + sectionSize(s), 0);
     expect(shown.reduce((n, s) => n + sectionSize(s), 0) + hiddenCount).toBe(total);
   });

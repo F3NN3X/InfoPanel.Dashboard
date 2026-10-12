@@ -1,5 +1,6 @@
 import type { ModernChrome } from "@/components/modern-chrome";
 import { FONT_CATALOG } from "@/lib/fonts";
+import { SKIN_PACKS } from "@/widgets/core/theme";
 import { settingKeys, type ModuleSetting, type ModuleSettings } from "./types";
 
 /**
@@ -15,6 +16,7 @@ import { settingKeys, type ModuleSetting, type ModuleSettings } from "./types";
  *
  * - `preset` / `layout` / `surface` — style preset, layout variant, surface
  * - Widget: `label`, `icon`
+ * - Look: `skin`, `variant`, `graph`, `meter`, `compactView` (the template widgets' shell)
  * - Size & alignment: `autoScale`, `scale`, `alignX`, `alignY`
  * - Typography: `textColor`, `mutedColor`, `font`, `fontWeight`, `labelCase`
  * - Spacing & shape: `padding`, `gap`, `radius`, `stroke`
@@ -40,6 +42,7 @@ import { settingKeys, type ModuleSetting, type ModuleSettings } from "./types";
  * settings use their own group names instead; these are the standard block's.
  */
 export const GROUP_WIDGET = "Widget";
+export const GROUP_LOOK = "Look";
 export const GROUP_SIZE = "Size & alignment";
 export const GROUP_TYPOGRAPHY = "Typography";
 export const GROUP_SPACING = "Spacing & shape";
@@ -53,8 +56,70 @@ const pxOptions = (values: number[]) => [
   ...values.map((v) => ({ value: String(v), label: `${v} px` })),
 ];
 
+/** "auto" plus the given values, capitalised, for the look selects. */
+const autoOptions = (values: readonly string[]) => [
+  { value: "auto", label: "Auto" },
+  ...values.map((v) => ({ value: v, label: v[0].toUpperCase() + v.slice(1) })),
+];
+
 /** Size, alignment, spacing, colors and type — every widget gets these. */
 export const STYLE_SETTINGS: ModuleSetting[] = [
+  {
+    // "auto" is the default skin; a template widget's shell reads these (see `widgets/module.tsx`).
+    key: "skin",
+    label: "Skin",
+    type: "select",
+    default: "auto",
+    options: autoOptions(SKIN_PACKS.map((p) => p.name)),
+    keywords: ["theme", "style", "look", ...SKIN_PACKS.map((p) => p.name)],
+    group: GROUP_LOOK,
+  },
+  {
+    key: "variant",
+    label: "Variant",
+    type: "select",
+    default: "default",
+    options: [
+      { value: "default", label: "Default" },
+      { value: "studio", label: "Studio" },
+    ],
+    keywords: ["skin", "style", "studio"],
+    group: GROUP_LOOK,
+  },
+  {
+    key: "graph",
+    label: "Graph style",
+    type: "select",
+    default: "auto",
+    options: autoOptions(["area", "line", "step", "bars", "dots", "braille"]),
+    keywords: ["chart", "sparkline", "skin"],
+    advanced: true,
+    group: GROUP_LOOK,
+  },
+  {
+    key: "meter",
+    label: "Meter style",
+    type: "select",
+    default: "auto",
+    options: autoOptions(["bar", "pill", "segments", "blocks", "hair", "wave", "square"]),
+    keywords: ["gauge", "progress", "skin"],
+    advanced: true,
+    group: GROUP_LOOK,
+  },
+  {
+    key: "compactView",
+    label: "Compact view",
+    type: "select",
+    default: "auto",
+    options: [
+      { value: "auto", label: "Auto" },
+      { value: "off", label: "Off" },
+    ],
+    hint: "Small zones swap to a compact summary; Off keeps the full layout",
+    keywords: ["small", "summary", "tile"],
+    advanced: true,
+    group: GROUP_LOOK,
+  },
   {
     key: "autoScale",
     label: "Scale with the zone",
@@ -290,7 +355,7 @@ export const STANDARD_SETTINGS: ModuleSetting[] = [
 ];
 
 /** Standard keys a panel has no use for (no layout variants, design size or rings of its own). */
-const NOT_FOR_PANELS: ReadonlySet<string> = new Set(["preset", "layout", "autoScale", "stroke"]);
+const NOT_FOR_PANELS: ReadonlySet<string> = new Set(["preset", "layout", "autoScale", "stroke", "variant", "compactView"]);
 
 /**
  * A custom panel's look (its placement's settings): the standard block

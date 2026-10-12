@@ -46,6 +46,7 @@ describe("general categories", () => {
   it("keeps the canonical order and unique ids / titles", () => {
     expect(GENERAL_CATEGORIES.map((c) => c.title)).toEqual([
       "Widget",
+      "Look",
       "Size & alignment",
       "Typography",
       "Spacing & shape",
