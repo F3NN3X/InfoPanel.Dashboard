@@ -1,4 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
+import { fitFontPx } from "./fit-font";
 import { Widget, shell, get, num, fmt, fmtRate, detect, Spark, useHistory, tone, TONES, hw, type ShellProps, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
@@ -52,6 +53,12 @@ export default function Vitals(p: VitalsProps) {
       {({ w, h }) => {
         const cols = w / h > 2.4 ? keys.length : w / h < 0.7 ? 1 : 2;
         const cardW = (w - (cols - 1) * 8) / cols;
+        // the tui skin sets everything in a wide monospace face: fit the numerals with wider glyphs and drop the sub line sooner
+        const tui = p.skin === "tui";
+        const rows = Math.ceil(keys.length / cols);
+        const cardH = (h - (rows - 1) * 8) / rows;
+        // 16px padding + the 13px label line + 4px under the value leave the rest to the numerals
+        const maxFs = Math.max(13, Math.min(24, cardH - 33));
         return (
           <div className="grid h-full gap-2" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))`, gridAutoRows: "minmax(0,1fr)" }}>
             {keys.map((k) => {
@@ -61,12 +68,12 @@ export default function Vitals(p: VitalsProps) {
                 <div key={k} className="relative flex min-w-0 flex-col overflow-hidden rounded-xl bg-[color:var(--w-track)] px-3 py-2">
                   <Spark values={H[k]} min={0} max={m.max} className="absolute inset-x-0 bottom-0 h-1/2 opacity-80" />
                   <div className="relative flex items-baseline justify-between gap-2">
-                    <span className="text-[10.5px] font-medium uppercase tracking-[0.08em] text-[color:var(--w-muted)]">{m.label}</span>
-                    {cardW > 110 && <span className="truncate text-[10.5px] text-[color:var(--w-faint)]">{m.sub}</span>}
+                    <span className={`shrink-0 whitespace-nowrap text-[10.5px] font-medium uppercase ${tui ? "" : "tracking-[0.08em]"} text-[color:var(--w-muted)]`}>{m.label}</span>
+                    {cardW > (tui ? 170 : 110) && <span className="truncate text-[10.5px] text-[color:var(--w-faint)]">{m.sub}</span>}
                   </div>
-                  <span className="relative mt-auto block max-w-full overflow-hidden whitespace-nowrap pb-1 font-semibold leading-none tabular-nums" style={{ fontSize: Math.round(Math.max(13, Math.min(24, (cardW - 26) / ((fmt(m.v, m.unit === "MB/s" ? 1 : 0).length + m.unit.length * 0.45) * 0.62)))), ...(t !== "ok" ? { color: TONES[t] } : null) }}>
+                  <span className="relative mt-auto block max-w-full overflow-hidden whitespace-nowrap pb-1 font-semibold leading-none tabular-nums" style={{ fontSize: fitFontPx(cardW - 24, fmt(m.v, m.unit === "MB/s" ? 1 : 0).length + m.unit.length * 0.5, 13, maxFs, tui ? 0.72 : 0.62), ...(t !== "ok" ? { color: TONES[t] } : null) }}>
                     {fmt(m.v, m.unit === "MB/s" ? 1 : 0)}
-                    <span className="ml-0.5 text-[11px] font-medium text-[color:var(--w-muted)]">{m.unit}</span>
+                    <span className="ml-0.5 text-[0.5em] font-medium text-[color:var(--w-muted)]">{m.unit}</span>
                   </span>
                 </div>
               );
