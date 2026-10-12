@@ -41,7 +41,7 @@ Findings from reviews, with the decision taken. Status: open / fixed (commit) / 
 | 22 | med | data adapter | `toFlat` drops `SensorValue.name`, so auto-discovered rows (Hardware, SensorGroup) show key-derived labels instead of the sensor's display name | open: expose names alongside the flat map (e.g. a `names` prop / context read by `sensorLabel(key)`) |
 | 23 | low | Network | legacy showed KB/s values as bytes/s; the template shows the sensor's real unit, and the busiest adapter instead of ethernet only | accepted: a bug fix; noted in the PR |
 | 24 | low | ports | `docs/widget-settings.md`, `docs/module-catalog.md` still name deleted `Modern*` components | open: docs pass in 9.8 |
-| 25 | med | `templateModule` | three parallel ports added three legacy-alias mechanisms (`legacy`, `alias`/`base`, per-module) | open: one `alias` option at merge time |
+| 25 | med | `templateModule` | three parallel ports added three legacy-alias mechanisms (`legacy`, `alias`/`base`, per-module) | fixed (e743142) |
 | 26 | med | Bluetooth | devices matched by last key segment because names are dropped (see #22); unverified on real plugin keys | open: re-check after #22 |
 | 27 | low | Departures / Notifications | rows cut to fit the zone instead of a scroll area | accepted: kiosk zones aren't scrolled; "fit, don't overflow" rule |
 | 28 | med | System alias | default device colours now follow the template palette (RAM green → amber); D1 says today's colours stay the default | open: the legacy alias passes today's default device colours when the stored colour is unset |
