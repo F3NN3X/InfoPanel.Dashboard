@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { Search } from "lucide-react";
-import { CARDS_ID, type Placement } from "@/lib/layout";
+import { BLANK_MODULE, CARDS_ID, type Placement } from "@/lib/layout";
 import type { UserPanelPreset } from "@/lib/panel-model";
 import { allPanelPresets, type PanelPreset } from "@/lib/panelPresets";
 import { cn } from "@/lib/utils";
-import { useInspectorLayout } from "./inspector-layout";
 import { InsertRow, type InsertContext } from "./insert-row";
 import { ALL_MODULES } from "./studio-modules";
 
@@ -41,6 +40,27 @@ const MODULE_CATEGORIES: Record<string, InsertCategory> = {
   [CARDS_ID]: "Other",
 };
 
+/** The first half of each widget card's description (the card appends "· min W×H"). */
+const MODULE_DESCRIPTIONS: Record<string, string> = {
+  systemmodern: "CPU, RAM and GPU load",
+  hardwaremodern: "Temperatures, fans and power",
+  fpsmodern: "Frame rate and frame times",
+  spotifymodern: "Now playing on Spotify",
+  mediamodern: "Whatever media is playing",
+  audiomodern: "Audio devices and levels",
+  wavelinkmodern: "Wave Link mixer",
+  steammodern: "Steam profile and game",
+  networkmodern: "Throughput and totals",
+  bluetoothmodern: "Connected devices",
+  weathermodern: "Conditions and forecast",
+  vbz: "Public transport departures",
+  notifications: "Recent notifications",
+  textfile: "Show a text file",
+  webpage: "Embed a web page",
+  streamdeck: "Stream Deck keys",
+  [CARDS_ID]: "Every other sensor",
+};
+
 /** Category per built-in panel preset id; anything not listed is "Other". */
 const PRESET_CATEGORIES: Record<string, InsertCategory> = {
   system: "System",
@@ -70,12 +90,26 @@ interface InsertableBase {
   category: InsertCategory;
 }
 
-/** Something the Add drawer can insert: a widget module or a panel preset. */
+/** Something the Add panel can insert: a widget module or a panel preset. */
 export type Insertable =
   | (InsertableBase & { kind: "module" })
   | (InsertableBase & { kind: "panel"; preset: PanelPreset });
 
-/** Every widget, layout starter, panel preset and saved panel, categorised. */
+/** The first card of Layout starters: an empty zone to fill later. */
+const BLANK_ZONE: Insertable = {
+  kind: "module",
+  id: BLANK_MODULE,
+  title: "Blank zone",
+  description: "Empty — pick a widget later",
+  cols: 2,
+  rows: 1,
+  category: "Layouts",
+};
+
+/** The blank zone card (a panel preset can share its id "blank"). */
+export const isBlankZone = (i: Insertable): boolean => i.kind === "module" && i.id === BLANK_MODULE;
+
+/** Every widget, the blank zone, layout starter, panel preset and saved panel, categorised. */
 export function insertables(saved?: UserPanelPreset[]): Insertable[] {
   return [
     ...ALL_MODULES.map(
@@ -83,11 +117,13 @@ export function insertables(saved?: UserPanelPreset[]): Insertable[] {
         kind: "module",
         id: m.id,
         title: m.title,
+        description: MODULE_DESCRIPTIONS[m.id],
         cols: m.minCols,
         rows: m.minRows,
         category: MODULE_CATEGORIES[m.id] ?? "Other",
       })
     ),
+    BLANK_ZONE,
     ...allPanelPresets(saved).map(
       (p): Insertable => ({
         kind: "panel",
@@ -120,29 +156,68 @@ export function filterInsertables<T extends InsertableBase>(
   });
 }
 
+export interface InsertGroup {
+  title: string;
+  items: Insertable[];
+  /** A line under the cards. */
+  note?: string;
+}
+
+const WIDGET_GROUPS: InsertCategory[] = ["System", "Media", "Network", "Info", "Other"];
+
+/**
+ * The non-empty groups of a (filtered) list: the widgets by category, then
+ * Layout starters (the blank zone and the six starters), Panel presets and
+ * My panels.
+ */
+export function insertGroups(items: Insertable[]): InsertGroup[] {
+  const panels = items.filter((i) => i.kind === "panel");
+  const groups: InsertGroup[] = [
+    ...WIDGET_GROUPS.map((c) => ({
+      title: c,
+      items: items.filter((i) => i.kind === "module" && !isBlankZone(i) && i.category === c),
+    })),
+    {
+      title: "Layout starters",
+      items: items.filter((i) => isBlankZone(i) || (i.kind === "panel" && i.category === "Layouts")),
+      note: "Sensor-free starters: bind each widget in the inspector.",
+    },
+    {
+      title: "Panel presets",
+      items: panels.filter((i) => i.category !== "Layouts" && i.category !== "My panels"),
+      note: "Panels are groups of widgets: bind, reorder and style each one in the inspector.",
+    },
+    {
+      title: "My panels",
+      items: panels.filter((i) => i.category === "My panels"),
+      note: "Saved with the panel's ⋯ › Save to My panels.",
+    },
+  ];
+  return groups.filter((g) => g.items.length > 0);
+}
+
 interface InsertListProps {
   items: Insertable[];
-  /** Add the item (the "+" button, or a click when `pickOnClick`). */
+  /** Add the item (a click on its card). */
   onPick: (item: Insertable) => void;
   /** Usage counts come from these (widgets only). */
   placements?: Placement[];
   /**
-   * Where the list lives: the Add drawer (rows drag onto the canvas, "+"
-   * adds) or the widget picker (the whole row picks for the zone).
+   * Where the list lives: the Add panel (cards drag onto the canvas) or the
+   * widget picker (a click picks for the zone).
    */
   context: InsertContext;
-  /** Rename / delete a saved panel (its row's "⋯"). */
+  /** Rename / delete a saved panel (its card's "⋯"). */
   onRenamePreset?: (id: string, name: string) => void;
   onDeletePreset?: (id: string) => void;
 }
 
-const SECTION_LABEL = "text-xs font-medium uppercase tracking-wider text-muted-foreground";
-const NOTE = "text-xs text-muted-foreground/60";
+const GROUP_LABEL = "text-[11px] font-medium uppercase tracking-wider text-ui-4";
 
 /**
- * The insertable widgets, layout starters, panels and saved panels in
- * sections. Reusable outside the drawer (the widget picker passes
- * `context="picker"`).
+ * The insertable widgets, layout starters, panels and saved panels as
+ * groups of cards in two columns. Reusable outside the panel (the widget
+ * picker passes `context="picker"`).
  */
 export function InsertList({
   items,
@@ -152,52 +227,31 @@ export function InsertList({
   onRenamePreset,
   onDeletePreset,
 }: InsertListProps) {
-  const inDrawer = context === "drawer";
-  const dock = useInspectorLayout() === "dock";
-  const panels = items.filter((i) => i.kind === "panel");
-  const sections = [
-    { title: "Widgets", items: items.filter((i) => i.kind === "module") },
-    { title: "Layouts", items: panels.filter((i) => i.category === "Layouts") },
-    { title: "Panels", items: panels.filter((i) => i.category !== "Layouts" && i.category !== "My panels") },
-    { title: "My panels", items: panels.filter((i) => i.category === "My panels") },
-  ];
-  const notes: Record<string, string> = {
-    Widgets: inDrawer
-      ? "Numbers are the minimum zone size (grid cells). Drop a widget, or draw a zone first and assign it from the inspector."
-      : "Numbers are the minimum zone size (grid cells); the zone grows to fit.",
-    Layouts: "Sensor-free starters: bind each widget in the inspector.",
-    Panels: inDrawer
-      ? "Panels are groups of widgets. Drop one, then bind, reorder and style each widget in the inspector."
-      : "Panels are groups of widgets. Bind, reorder and style each widget in the inspector.",
-    "My panels": "Saved with the panel's ⋯ › Save as panel preset.",
-  };
-  const row = (item: Insertable) => (
-    <InsertRow
-      key={`${item.kind}:${item.id}`}
-      item={item}
-      count={item.kind === "module" ? placements.filter((p) => p.module === item.id).length : 0}
-      context={context}
-      onPick={() => onPick(item)}
-      saved={
-        item.category === "My panels" && onRenamePreset && onDeletePreset
-          ? { onRename: (name) => onRenamePreset(item.id, name), onDelete: () => onDeletePreset(item.id) }
-          : undefined
-      }
-    />
-  );
-  if (items.length === 0) return <p className={NOTE}>Nothing matches.</p>;
+  if (items.length === 0) return <p className="text-xs text-ui-5">Nothing matches.</p>;
   return (
     <div className="space-y-4">
-      {sections
-        .filter((s) => s.items.length > 0)
-        .map((s) => (
-          <section key={s.title} className="space-y-2">
-            <div className={SECTION_LABEL}>{s.title}</div>
-            {/* In the dock the cards form a two-column grid. */}
-            {dock ? <div className="grid grid-cols-2 gap-1.5">{s.items.map(row)}</div> : s.items.map(row)}
-            <p className={NOTE}>{notes[s.title]}</p>
-          </section>
-        ))}
+      {insertGroups(items).map((g) => (
+        <section key={g.title} className="space-y-2">
+          <div className={GROUP_LABEL}>{g.title}</div>
+          <div className="grid grid-cols-2 gap-1.5">
+            {g.items.map((item) => (
+              <InsertRow
+                key={`${item.kind}:${item.id}`}
+                item={item}
+                count={item.kind === "module" ? placements.filter((p) => p.module === item.id).length : 0}
+                context={context}
+                onPick={() => onPick(item)}
+                saved={
+                  item.category === "My panels" && onRenamePreset && onDeletePreset
+                    ? { onRename: (name) => onRenamePreset(item.id, name), onDelete: () => onDeletePreset(item.id) }
+                    : undefined
+                }
+              />
+            ))}
+          </div>
+          {g.note && <p className="text-[10.5px] leading-snug text-ui-5">{g.note}</p>}
+        </section>
+      ))}
     </div>
   );
 }
@@ -219,8 +273,8 @@ export function InsertFilters({
 }) {
   return (
     <div className="space-y-2">
-      <label className="flex items-center gap-1.5 rounded-md border bg-background px-2 py-1">
-        <Search className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+      <label className="flex h-[30px] items-center gap-1.5 rounded-md border border-ui-default bg-ui-app px-2">
+        <Search className="h-3.5 w-3.5 shrink-0 text-ui-4" />
         <input
           value={query}
           autoFocus={autoFocus}
@@ -230,8 +284,8 @@ export function InsertFilters({
             e.stopPropagation();
             onQuery("");
           }}
-          placeholder="Search widgets and panels"
-          className="min-w-0 flex-1 bg-transparent text-xs text-foreground outline-none placeholder:text-muted-foreground/50"
+          placeholder="Search widgets"
+          className="min-w-0 flex-1 bg-transparent text-xs text-ui-1 outline-none placeholder:text-ui-5"
         />
       </label>
       <div className="flex flex-wrap gap-1">
@@ -241,10 +295,10 @@ export function InsertFilters({
             type="button"
             onClick={() => onCategory(c)}
             className={cn(
-              "rounded-full border px-2 py-0.5 text-[11px] transition-colors",
+              "h-6 rounded-xl border px-2.5 text-[11px] transition-colors",
               c === category
-                ? "border-ring bg-accent text-foreground"
-                : "border-border text-muted-foreground hover:text-foreground"
+                ? "border-[#3a3a44] bg-ui-active text-ui-1"
+                : "border-ui-default text-ui-3 hover:text-ui-1"
             )}
           >
             {c}
@@ -264,9 +318,13 @@ interface InsertPanelProps {
   onAddPreset: (preset: PanelPreset) => void;
   onRenamePreset: (id: string, name: string) => void;
   onDeletePreset: (id: string) => void;
+  /** The one selected zone when it is blank: a click on a card fills it instead of adding a zone. */
+  blankZoneId?: string;
+  /** Fill the blank zone with the card's widget or panel ("module:<id>" / "preset:<id>" for `assignWidget`). */
+  onFillBlank?: (zoneId: string, item: Insertable) => void;
 }
 
-/** The Add drawer: search and filter widgets and panels, drag or add them. */
+/** The Add panel: search and filter widgets and panels, drag or click them in. */
 export function InsertPanel({
   placements,
   savedPanels,
@@ -274,27 +332,35 @@ export function InsertPanel({
   onAddPreset,
   onRenamePreset,
   onDeletePreset,
+  blankZoneId,
+  onFillBlank,
 }: InsertPanelProps) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<InsertCategory>("All");
+  const pick = (item: Insertable) => {
+    if (blankZoneId && onFillBlank && !isBlankZone(item)) onFillBlank(blankZoneId, item);
+    else if (item.kind === "panel") onAddPreset(item.preset);
+    else onAddModule(item.id);
+  };
   return (
-    <div className="space-y-3 p-3">
-      <InsertFilters
-        query={query}
-        onQuery={setQuery}
-        category={category}
-        onCategory={setCategory}
-      />
-      <InsertList
-        items={filterInsertables(insertables(savedPanels), query, category)}
-        placements={placements}
-        context="drawer"
-        onPick={(item) =>
-          item.kind === "panel" ? onAddPreset(item.preset) : onAddModule(item.id)
-        }
-        onRenamePreset={onRenamePreset}
-        onDeletePreset={onDeletePreset}
-      />
-    </div>
+    <>
+      <div className="shrink-0 space-y-2 border-b border-ui-subtle p-3">
+        <div className="text-[13px] font-semibold text-ui-1">Add</div>
+        <InsertFilters query={query} onQuery={setQuery} category={category} onCategory={setCategory} />
+      </div>
+      <div className="min-h-0 flex-1 overflow-y-auto p-3">
+        <InsertList
+          items={filterInsertables(insertables(savedPanels), query, category)}
+          placements={placements}
+          context="drawer"
+          onPick={pick}
+          onRenamePreset={onRenamePreset}
+          onDeletePreset={onDeletePreset}
+        />
+      </div>
+      <p className="shrink-0 border-t border-ui-subtle px-3 py-2.5 text-[10.5px] leading-snug text-ui-5">
+        Drag onto an empty zone, or click to auto-place. With a blank zone selected, a click fills it.
+      </p>
+    </>
   );
 }

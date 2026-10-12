@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
-import { ToastProvider, useToast } from "@/components/ui/toast";
+import { useToast } from "@/components/ui/toast";
 import type { HistorySetter } from "@/hooks/use-config-history";
 import { useSensorCatalog } from "@/lib/catalog";
 import { getApiBase, subscribeApiBase } from "@/lib/data-api";
@@ -48,16 +48,8 @@ interface SourcesPanelProps {
   onOpenZone: (zoneId: string) => void;
 }
 
-/** Sources mode: the Data Explorer (source tree, point table, point inspector). */
-export function SourcesPanel(props: SourcesPanelProps) {
-  return (
-    <ToastProvider>
-      <Explorer {...props} />
-    </ToastProvider>
-  );
-}
-
-function Explorer({ config, setConfig, profile, onOpenZone }: SourcesPanelProps) {
+/** Sources mode: the Data Explorer (source tree, point table, point inspector). Toasts come from the studio's provider. */
+export function SourcesPanel({ config, setConfig, profile, onOpenZone }: SourcesPanelProps) {
   const toast = useToast();
   const catalog = useSensorCatalog();
   const { values, history, tick } = useLiveData(true);

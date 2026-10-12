@@ -56,14 +56,14 @@ export function DockSplitter({ dockHeight, bodyHeight, autoHeight, onCommit }: D
       title="Drag to resize the panel (double-click for automatic)"
       onPointerDown={onPointerDown}
       onDoubleClick={() => onCommit(null)}
-      className="group relative z-20 h-1 shrink-0 cursor-row-resize touch-none border-t bg-popover/60"
+      className="group relative z-20 h-1 shrink-0 cursor-row-resize touch-none border-t border-ui-subtle bg-ui-panel"
     >
       {/* A wider hit area than the 4px line. */}
       <div className="absolute inset-x-0 -top-1.5 h-4" />
       <div
         className={cn(
-          "pointer-events-none absolute inset-x-0 top-0 h-0.5 -translate-y-1/2 bg-ring/0 transition-colors group-hover:bg-ring/60",
-          drag !== null && "bg-ring"
+          "pointer-events-none absolute inset-x-0 top-0 h-0.5 -translate-y-1/2 bg-ui-accent/0 transition-colors group-hover:bg-ui-accent/60",
+          drag !== null && "bg-ui-accent"
         )}
         style={drag !== null ? { transform: `translateY(${-drag}px)` } : undefined}
       />
