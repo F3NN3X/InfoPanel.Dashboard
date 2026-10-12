@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { HISTORY_SIZE, SampleHistory, recordSnapshot, recordThrottled } from "./sample-history";
+import { HISTORY_SIZE, barHeights, SampleHistory, recordSnapshot, recordThrottled } from "./sample-history";
 
 describe("SampleHistory", () => {
   it("keeps samples oldest first and reports min / avg / max", () => {
@@ -68,5 +68,16 @@ describe("recordThrottled", () => {
     h.clear();
     expect(h.get("cpu")).toEqual([]);
     expect(recordThrottled(h, snap, 1100)).toBe(true);
+  });
+});
+
+describe("barHeights", () => {
+  it("scales samples between 20% and 100%", () => {
+    expect(barHeights([10, 20, 30])).toEqual([20, 60, 100]);
+  });
+
+  it("draws a flat series at 20% and nothing for no samples", () => {
+    expect(barHeights([5, 5])).toEqual([20, 20]);
+    expect(barHeights([])).toEqual([]);
   });
 });

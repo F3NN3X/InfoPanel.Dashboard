@@ -203,9 +203,12 @@ function StudioViewBody({
         setConfig={setConfig}
         profile={profile}
         focusPointKey={focusPointKey}
-        onOpenZone={(id) => {
+        selectedZoneId={sel.primaryId}
+        onOpenZone={(id, opts) => {
           ui.setMode("design");
           focusZone(id);
+          if (opts?.widgetId) sel.selectWidget(id, opts.widgetId);
+          if (opts?.dataTab) ui.requestInspectorTab("data");
         }}
       />
     </div>

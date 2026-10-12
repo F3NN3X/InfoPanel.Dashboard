@@ -31,6 +31,13 @@ describe("addStatZone", () => {
     expect(next.profiles[0].placements).toHaveLength(profile.placements.length + 1);
   });
 
+  it("makes the zone two rows tall for a number and one for anything else", () => {
+    const zoneOf = (p: DataPoint) =>
+      addStatZone(defaultConfig(), defaultConfig().profiles[0].id, p, "z1").profiles[0].placements.find((pl) => pl.id === "z1");
+    expect(zoneOf(point)?.rowSpan).toBe(2);
+    expect(zoneOf({ ...point, type: "text", num: null, unit: "" })?.rowSpan).toBe(1);
+  });
+
   it("leaves other profiles alone", () => {
     const config = defaultConfig();
     expect(addStatZone(config, "nope", point, "z1").profiles).toEqual(config.profiles);

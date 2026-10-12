@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Hash, Link2, List, Minus, ToggleLeft, Type, type LucideIcon } from "lucide-react";
+import { Ban, Copy, Hash, Link2, List, ToggleRight, Type, type LucideIcon } from "lucide-react";
 import type { Health, PointType } from "@/lib/data-points";
 import { cn } from "@/lib/utils";
 
@@ -8,13 +8,13 @@ const TYPE_ICON: Record<PointType, LucideIcon> = {
   text: Type,
   list: List,
   url: Link2,
-  bool: ToggleLeft,
-  empty: Minus,
+  bool: ToggleRight,
+  empty: Ban,
 };
 
 export function TypeIcon({ type, className }: { type: PointType; className?: string }) {
   const Icon = TYPE_ICON[type];
-  return <Icon className={cn("h-3.5 w-3.5 shrink-0 text-ui-4", className)} aria-hidden />;
+  return <Icon className={cn("h-4 w-4 shrink-0 text-ui-4", className)} aria-hidden />;
 }
 
 export const HEALTH_LABEL: Record<Health, string> = {
@@ -40,12 +40,12 @@ export function StatusDot({ health, className }: { health: Health; className?: s
   );
 }
 
-/** A small bordered tag ("Temp", "number", "● Live"). */
+/** A small borderless tag (the unit kind: "Temp"); pass a className for the larger value-card chips. */
 export function Chip({ children, className }: { children: ReactNode; className?: string }) {
   return (
     <span
       className={cn(
-        "inline-flex shrink-0 items-center rounded border border-ui-default bg-ui-app px-1.5 py-px font-ui text-[10.5px] text-ui-3",
+        "inline-flex shrink-0 items-center rounded-lg bg-[#1e1e24] px-1.5 py-px font-ui text-[10px] text-[#a4a4ad]",
         className
       )}
     >
@@ -68,10 +68,10 @@ export function ToggleChip({ active, onClick, children }: ToggleChipProps) {
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        "inline-flex h-6 items-center gap-1.5 rounded-full border px-2.5 font-ui text-[11.5px] transition-colors",
+        "inline-flex h-7 items-center gap-[5px] rounded-full border px-2.5 font-ui text-[11.5px] transition-colors",
         active
-          ? "border-ui-accent/50 bg-ui-accent-soft text-ui-accent-text"
-          : "border-ui-default text-ui-3 hover:bg-ui-hover hover:text-ui-1"
+          ? "border-ui-accent/50 bg-ui-accent-soft text-ui-1"
+          : "border-ui-strong text-[#a4a4ad] hover:bg-ui-hover hover:text-ui-1"
       )}
     >
       {children}
@@ -79,5 +79,41 @@ export function ToggleChip({ active, onClick, children }: ToggleChipProps) {
   );
 }
 
-/** The sticky-header look shared by section captions. */
-export const CAPTION = "font-ui text-[11px] font-medium uppercase tracking-wider text-ui-4";
+/** Uppercase section caption: tree categories and table column heads. */
+export const CAPTION = "font-ui text-[10.5px] font-medium uppercase tracking-[0.05em] text-ui-5";
+
+/** The small label above an inspector field. */
+export const FIELD_LABEL = "font-ui text-[11.5px] text-ui-4";
+
+interface CopyFieldProps {
+  label: string;
+  /** What is copied. */
+  value: string;
+  /** What is shown when it differs from `value` (a path for a copied URL). */
+  display?: string;
+  /** Shows a green GET before the text. */
+  get?: boolean;
+  onCopy: (text: string) => void;
+}
+
+/** A labelled field that copies its value when clicked; long text wraps. */
+export function CopyField({ label, value, display, get, onCopy }: CopyFieldProps) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <span className={FIELD_LABEL}>{label}</span>
+      <button
+        type="button"
+        title="Copy"
+        aria-label={`Copy ${label.toLowerCase()}`}
+        onClick={() => onCopy(value)}
+        className="flex items-center gap-2 rounded-[7px] border border-ui-default bg-ui-app px-2.5 py-2 text-left text-ui-1 transition-colors hover:border-[#3a3a44]"
+      >
+        <span className="min-w-0 flex-1 break-all font-ui-mono text-[11px]">
+          {get && <span className="text-ui-success">GET </span>}
+          {display ?? value}
+        </span>
+        <Copy className="h-[15px] w-[15px] shrink-0 text-ui-4" />
+      </button>
+    </div>
+  );
+}
