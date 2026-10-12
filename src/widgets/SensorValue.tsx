@@ -1,4 +1,6 @@
 import type { ModuleSettings } from "@/modules/types";
+import { isImageUrl } from "@/lib/image";
+import { widgetImage } from "./data-adapter";
 import { Widget, shell, get, num, fmt, has, Metric, Ring, Spark, Bar, Num, useHistory, tone, type ShellProps, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
@@ -54,7 +56,11 @@ export default function SensorValue(p: SensorValueProps) {
         !numeric ? (
           <div className="flex h-full flex-col justify-center">
             {size === "xs" && <span className="text-[11px] text-[color:var(--w-muted)]">{label}</span>}
-            <span className="line-clamp-3 text-base font-medium">{has(raw) ? raw : "—"}</span>
+            {has(raw) && isImageUrl(raw, p.sensor) ? (
+              <img src={widgetImage(raw)} alt="" loading="lazy" className="max-h-full min-h-0 w-auto self-center rounded-md object-contain" onError={(e) => ((e.target as HTMLImageElement).style.display = "none")} />
+            ) : (
+              <span className="line-clamp-3 whitespace-pre-line break-words text-base font-medium">{has(raw) ? raw : "—"}</span>
+            )}
           </div>
         ) : disp === "gauge" ? (
           <div className="flex h-full items-center justify-center">

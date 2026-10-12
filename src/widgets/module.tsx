@@ -86,6 +86,16 @@ function hasKeys(sensors: SensorMap, prefixes: readonly string[]): boolean {
   return prefixes.length === 0 ? keys.length > 0 : keys.some((k) => prefixes.some((p) => k.startsWith(p)));
 }
 
+/** A zone's look: the defaults under `saved` with the surface decided (see `withSkinSurface`), the chosen skin's fonts loaded. */
+export function useZoneLook(defs: ModuleSetting[], saved: ModuleSettings | undefined, surfaceDefault: string): ModuleSettings {
+  const look = withSkinSurface(effectiveSettings({ settings: defs }, saved), saved, surfaceDefault);
+  const skin = chosen(look.skin);
+  useEffect(() => {
+    if (skin) ensureSkinFonts(skin);
+  }, [skin]);
+  return look;
+}
+
 export function templateModule<P extends object>({ meta, Component, settings, toProps, isIdle, prefixes, title, base, alias }: TemplateOptions<P>): DashboardModule {
   const all = alias?.settings ?? [...(base ?? STANDARD_SETTINGS), ...settings];
   const surfaceDefault = String(all.find((d) => d.key === "surface")?.default ?? "glass");
@@ -112,11 +122,7 @@ export function templateModule<P extends object>({ meta, Component, settings, to
   function TemplateZone({ sensors, saved }: { sensors: SensorMap; saved?: ModuleSettings }) {
     const data = useMemo(() => toFlat(sensors), [sensors]);
     const names = useMemo(() => toNames(sensors), [sensors]);
-    const look = withSkinSurface(effectiveSettings(mod, saved), saved, surfaceDefault);
-    const skin = chosen(look.skin);
-    useEffect(() => {
-      if (skin) ensureSkinFonts(skin);
-    }, [skin]);
+    const look = useZoneLook(all, saved, surfaceDefault);
     return <Component data={data} names={names} {...shellProps(look)} {...toProps(look)} look={look} />;
   }
   return mod;

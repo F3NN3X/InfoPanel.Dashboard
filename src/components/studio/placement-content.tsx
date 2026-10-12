@@ -1,9 +1,8 @@
 import { useMemo, type CSSProperties, type ReactNode } from "react";
-import { GenericCard } from "@/modules/fallback";
+import { OtherSensors } from "@/modules/other-sensors";
 import { isClaimed, moduleReads, modules } from "@/modules";
 import { chromeOf } from "@/modules/standard-settings";
 import { effectiveSettings, type ModuleSettings, type SensorMap } from "@/modules/types";
-import { ModernChrome } from "@/components/modern-chrome";
 import { tokenScope } from "@/components/widget-style";
 import type { SensorValue } from "@/hooks/useSensors";
 import { useSensors } from "@/hooks/useSensors";
@@ -107,24 +106,11 @@ export function placementContent(
     if (unclaimed.length === 0)
       return { content: null, hasData: false, title: "Other sensors" };
     const subCols = p.colSpan >= 8 ? 4 : p.colSpan >= 4 ? 3 : 2;
-    // One look for every card (the zone's `CARD_SETTINGS`; unset = the theme card).
     const cfg = resolveWith(appearance, p.settings, p.styleMode) ?? {};
-    const chrome = chromeOf(cfg);
     return {
       hasData: true,
       title: "Other sensors",
-      content: (
-        <ModernChrome chrome={chrome}>
-          <div
-            className="grid h-full w-full auto-rows-fr gap-3"
-            style={{ gridTemplateColumns: `repeat(${subCols}, minmax(0, 1fr))` }}
-          >
-            {unclaimed.map(([key, sensor]) => (
-              <GenericCard key={key} sensorKey={key} sensor={sensor} surface={cfg.surface} chrome={chrome} />
-            ))}
-          </div>
-        </ModernChrome>
-      ),
+      content: <OtherSensors unclaimed={unclaimed} settings={cfg} subCols={subCols} />,
       scope: frameScope(cfg),
     };
   }

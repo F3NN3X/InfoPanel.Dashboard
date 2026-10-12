@@ -131,7 +131,7 @@ export function settingKeys(def: ModuleSetting): string[] {
 
 /** The module's defaults, merged with a placement's saved settings. */
 export function effectiveSettings(
-  mod: DashboardModule,
+  mod: Pick<DashboardModule, "settings">,
   saved?: ModuleSettings
 ): ModuleSettings {
   const out: ModuleSettings = {};

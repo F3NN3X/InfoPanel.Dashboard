@@ -1,3 +1,4 @@
+import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { placementContent, placementPrefixes } from "./placement-content";
 import { BLANK_MODULE, CARDS_ID, type Placement } from "@/lib/layout";
@@ -99,5 +100,46 @@ describe("template zones with no data", () => {
   it("hides the legacy ids that alias a template like the template itself", () => {
     const alias = modules.find((m) => m.id === "fpsmodern")!;
     expect(placementContent(place({ module: alias.id }), {}, []).hasData).toBe(false);
+  });
+});
+
+describe("Other sensors zone", () => {
+  const unclaimed = [
+    ["acme.temp", { value: 41.25, unit: "°C", name: "Acme Board Temp" }],
+    ["acme.note", { text: "line one\nline two", unit: "" }],
+  ] as never as Parameters<typeof placementContent>[2];
+  const html = (extra: Partial<Placement> = {}) => {
+    const r = placementContent(place({ module: CARDS_ID, colSpan: 4, ...extra }), {}, unclaimed);
+    return renderToString(r.content as never);
+  };
+
+  it("renders each unclaimed sensor as a sensor widget, named by its display name or key", () => {
+    const out = html();
+    expect(out).toContain("Acme Board Temp");
+    expect(out).toContain("41");
+    expect(out).toContain("acme.note");
+    expect(out).toContain("line one");
+  });
+
+  it("lays the cards out on the sub-grid column rule", () => {
+    const cols = (colSpan: number) => html({ colSpan }).match(/repeat\((\d), minmax/)?.[1];
+    expect([cols(2), cols(4), cols(8)]).toEqual(["2", "3", "4"]);
+  });
+
+  it("honours the zone's card settings (accent) and defaults to the theme surface", () => {
+    expect(html({ settings: { accent: "#ff0000" } })).toContain("--accent:#ff0000");
+    expect(html()).not.toContain("--accent:#ff0000");
+    expect(html()).toContain("var(--card)");
+    expect(html({ settings: { surface: "glass" } })).not.toContain("var(--card)");
+  });
+
+  it("keeps image values as images", () => {
+    const pics = [["acme.cover_url", { text: "https://example.com/cover.png", unit: "" }]] as never as Parameters<typeof placementContent>[2];
+    const out = renderToString(placementContent(place({ module: CARDS_ID }), {}, pics).content as never);
+    expect(out).toContain('<img src="https://example.com/cover.png"');
+  });
+
+  it("has no data when nothing is unclaimed", () => {
+    expect(placementContent(place({ module: CARDS_ID }), {}, []).hasData).toBe(false);
   });
 });

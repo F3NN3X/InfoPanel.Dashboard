@@ -384,7 +384,7 @@ const standard = (key: string): ModuleSetting => STANDARD_SETTINGS.find((s) => s
 /**
  * The plain card widgets (the legacy modules, the "Other sensors" cards):
  * a surface — "Theme" by default, the shadcn card they always had — an
- * accent, and the style and surface options (`StyledCard` draws them).
+ * accent, and the style and surface options (the Other sensors cards draw them).
  */
 export const CARD_SETTINGS: ModuleSetting[] = [
   { ...standard("surface"), default: "theme" },
