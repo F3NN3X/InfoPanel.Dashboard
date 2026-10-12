@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { fitRows, Widget, shell, get, num, fmt, pretty, useSkin, numFont, hue, hw, RingStack, LegendRow, type ShellProps, type WidgetMeta } from "./kit";
+import { Widget, shell, get, num, fmt, pretty, useSkin, numFont, hue, hw, RingStack, LegendRow, type ShellProps, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "GpuRings",
@@ -67,7 +67,15 @@ export default function GpuRings(p: GpuRingsProps) {
       {({ w, h }) => {
         const side = w > h * 1.35;
         const size = Math.max(60, Math.min(side ? h : h * 0.55, side ? w * 0.45 : w, 150));
-        const rows = fitRows(side ? h : h - size - 12, 19, 6);
+        // a narrow legend wraps long values onto a second 19px line: count rows by the lines they take (12.5px glyphs, 26px for swatch and gaps)
+        const avail = side ? h : h - size - 16,
+          legendW = (side ? w - size - 16 : w) - 26;
+        let rows = 0;
+        for (let used = -6; rows < legend.length; rows++) {
+          used += Math.max(1, Math.ceil((legend[rows][2].length * 12.5 * 0.62) / Math.max(1, legendW))) * 19 + 6;
+          if (used > avail) break;
+        }
+        rows = Math.max(1, rows);
         return (
           <div className={`flex h-full min-w-0 items-center gap-4 ${side ? "" : "flex-col justify-center"}`}>
             {rings(size)}
