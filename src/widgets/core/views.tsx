@@ -3,6 +3,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import { labelStyle } from "@/components/widget-style";
 import { clamp, fmt } from "./data";
+import { fitRows } from "./layout";
 import { mix } from "./tokens";
 import { useSkin, TONES } from "./theme";
 import { Icon, Bar, Ring, Spark, Img } from "./primitives";
@@ -202,7 +203,8 @@ export function StudioView({ c, w, h, icon }: { c: Studio; w: number; h: number;
   }
   if (c.rows && h >= 130) {
     const head = h >= 210 && c.value != null;
-    const n = Math.max(1, Math.floor((h - (head ? 86 : 34)) / 24));
+    // a row is the 10.5px line + 3px bar (≈22px) with a 7px gap
+    const n = fitRows(h - (head ? 86 : 34), 22, 7);
     return (
       <div className="flex h-full min-w-0 flex-col">
         {label()}
@@ -211,11 +213,11 @@ export function StudioView({ c, w, h, icon }: { c: Studio; w: number; h: number;
           {c.rows.slice(0, n).map((r, i) => (
             <div key={i} className="flex min-w-0 flex-col gap-[3px]">
               <div className="flex min-w-0 items-baseline justify-between gap-2 text-[10.5px]">
-                <span className="flex min-w-0 items-center gap-1.5 truncate font-medium">
+                <span className="flex min-w-0 items-center gap-1.5 font-medium">
                   {r.dot != null && <span className="h-[5px] w-[5px] shrink-0 rounded-full" style={{ background: r.dot ? "oklch(0.75 0.15 150)" : "#52525b" }} />}
-                  {r.n}
+                  <span className="truncate">{r.n}</span>
                 </span>
-                <span className="shrink-0 tabular-nums text-[color:var(--w-muted)]">{r.v}</span>
+                <span className="min-w-0 truncate tabular-nums text-[color:var(--w-muted)]">{r.v}</span>
               </div>
               {Number.isFinite(r.pct) && thin(r.pct!)}
             </div>
