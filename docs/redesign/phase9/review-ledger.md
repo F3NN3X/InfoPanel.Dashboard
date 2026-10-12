@@ -31,7 +31,7 @@ Findings from reviews, with the decision taken. Status: open / fixed (commit) / 
 | 16 | med | SystemStatus 4×2, Clock 4×2, SteamLibrary 2×1/2×2/4×2 (150), CpuMonitor 2×1 (150) | text overlaps (probe `overlaps`) | open: fix in 9.8 sweep |
 | 17 | med | QA probe | content clipped by the shell's `overflow:hidden` is not reported (clipped axes ignored) | open: add a `clipped` kind (scrollHeight/scrollWidth > client + 1 on zone descendants with overflow hidden) in 9.8 |
 | 18 | low | legacy `hardwaremodern` | duplicate React keys (two sensors share a display name) | open: port keys rows by sensor key |
-| 19 | low | legacy image path | `/assets/...` root-relative images go through `/api/image-proxy` and 400 in dev | open: ported widgets load root-relative paths directly (`widgetImage`) |
+| 19 | low | legacy image path | `/assets/...` root-relative images go through `/api/image-proxy` and 400 in dev | fixed (art tint loads same-origin images directly) |
 | 20 | low | `core/primitives.tsx` Spark | gradient id from `Math.random()` in a ref initialiser | fixed (f32be1d) |
 
 ## Ports, batch 1 (8cb380a, de0a098, 076c150, worktree 07ac636 / 96fb74a)
@@ -55,8 +55,8 @@ Findings from reviews, with the decision taken. Status: open / fixed (commit) / 
 | 32 | high | Hardware 4×2 | raw floats (`58.88671875 °C`), names missing/clipped, a horizontal scrollbar inside the zone, header added; legacy showed `58.9` with names and no scrollbar | fixed 9.4c: one-decimal values, no scroll containers, header off unless titled (names via #22) |
 | 33 | med | System 4×2 | legacy default look had load rings per device; the alias shows a column grid without rings; "Clock 0.00 GHz" shown when the clock sensor is missing | fixed 9.4c: 0 GHz clock hidden; 2x1 rings are CPU · GPU · RAM (VRAM dropped, amber when hot); 4x2 falls back to 2 columns so rings show |
 | 34 | med | Wave Link 3×2/4×2/6×3 | dB scale labels overlap the channel names and meters (probe: 26 overlaps) | open: scale only when there is width; labels below names |
-| 35 | low | Hardware 3×2, System 3×2, vbz 6×3 | text overlaps (probe) | open: 9.8 sweep |
-| 36 | high | all ported modules | visual parity findings: see `visual-review.md` (27 rows: 10 high, 10 med, 7 low) | open: parity pass per module |
+| 35 | low | Hardware 3×2, System 3×2, vbz 6×3 | text overlaps (probe) | fixed (probe clean on legacy ids at 110 and 150 after the parity pass) |
+| 36 | high | all ported modules | visual parity findings: see `visual-review.md` (27 rows: 10 high, 10 med, 7 low) | fixed (4102a12 8c63783 c3e60f6 83c80ba d47fab3 5f55942..84b55e7); remaining lows accepted |
 | 37 | med | Other sensors | the sensor `source` line was dropped; multi-line values clamp to 3 lines | fixed 9.4c: source line restored; multi-line values scroll instead of clamping |
 | 38 | low | `src/components/SmartValue.tsx` | unused after the Other sensors port | open: delete in 9.6 |
 | 39 | low | Wave Link 3×2/4×2 | mix-route chips and output devices show only in column / lg layouts (legacy fit them by scrolling) | accepted: kiosk zones don't scroll; information still available at larger spans |

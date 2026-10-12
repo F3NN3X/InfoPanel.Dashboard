@@ -95,6 +95,17 @@ const loadImageFrom = (src: string) =>
     img.src = src;
   });
 
+/** A root-relative path or a URL on this page's origin. */
+export function isSameOrigin(url: string, origin = globalThis.location?.origin): boolean {
+  if (url.startsWith("/") && !url.startsWith("//")) return true;
+  if (url.startsWith("data:") || url.startsWith("blob:")) return true;
+  try {
+    return origin !== undefined && new URL(url).origin === origin;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Load the cover art for pixel sampling. The local cover-art server sends no
  * CORS headers, so a direct cross-origin load taints the canvas and
@@ -104,6 +115,8 @@ const loadImageFrom = (src: string) =>
  * CORS-enabled art, and degrades to no tint otherwise).
  */
 async function loadTintableImage(url: string): Promise<HTMLImageElement | null> {
+  // The dashboard's own assets are same-origin: no proxy needed (it rejects relative URLs).
+  if (isSameOrigin(url)) return loadImageFrom(url).catch(() => null);
   try {
     const res = await fetch(
       `${IMAGE_PROXY_URL}?url=${encodeURIComponent(url)}`
