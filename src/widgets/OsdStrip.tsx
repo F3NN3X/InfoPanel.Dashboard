@@ -22,7 +22,7 @@ export interface OsdStripProps extends ShellProps {
 }
 
 // The strip is a dark panel of its own, so its text stays light on every surface.
-const OSD_TEXT = { "--w-fg": "#f4f4f5", "--w-muted": "#d4d4d8", "--w-faint": "#a1a1aa", "--w-track": "rgba(255,255,255,0.1)" } as CSSProperties;
+const OSD_TEXT = { color: "#f4f4f5", "--w-fg": "#f4f4f5", "--w-muted": "#d4d4d8", "--w-faint": "#a1a1aa", "--w-track": "rgba(255,255,255,0.1)" } as CSSProperties;
 
 export default function OsdStrip(p: OsdStripProps) {
   const d = p.data;
@@ -63,7 +63,7 @@ export default function OsdStrip(p: OsdStripProps) {
         const n = Math.max(1, Math.min(keys.length, Math.floor(w / 92)));
         return (
           <div className="flex h-full flex-col justify-center gap-1.5">
-            <div className="grid min-w-0 overflow-hidden rounded-md bg-black/55 ring-1 ring-white/10" style={{ ...OSD_TEXT, gridTemplateColumns: `repeat(${n}, minmax(0,1fr))` }}>
+            <div className="grid min-w-0 overflow-hidden rounded-md bg-[#17171b] ring-1 ring-white/10" style={{ ...OSD_TEXT, gridTemplateColumns: `repeat(${n}, minmax(0,1fr))` }}>
               {keys.slice(0, n).map((k, i) => {
                 const [l, v, c] = ALL[k];
                 return (
