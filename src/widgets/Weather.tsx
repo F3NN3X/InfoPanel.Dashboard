@@ -107,13 +107,18 @@ function Current(p: WeatherProps) {
         if (size === "xs" || size === "sm" || (!showStats && !showForecast)) return <div className="flex h-full items-center">{now}</div>;
         const snow = num(k("snow")) > 0;
         const shown = Math.max(1, Math.min(7, Math.round(p.days ?? (size === "lg" ? 7 : 5))));
-        // the forecast cells shed their rows (rain, bar, low) to the height left under the current block and the stats
-        const budget = h > 0 ? h - (size === "lg" && showStats ? 130 : 60) - 16 : Infinity;
-        const bar = size === "lg" && budget >= 144,
-          showLo = budget >= 98,
-          showRain = budget >= 119 + (bar ? 46 : 0);
+        // the forecast cells shed their rows (rain, bar, low) to the height left under the current block and the stats:
+        // the temperature (48 / 60px) + description (20) + feels line (16), or the stats grid (one row 38, three rows 128)
+        const topH = Math.max(size === "lg" ? 72 : 60, (size === "lg" ? 60 : 48) + 20 + (feelsLine ? 16 : 0), showStats ? (size === "lg" ? 128 : 38) : 0);
+        const budget = h > 0 ? h - topH - 16 : Infinity;
+        // a cell is 78px (rule + padding, day, icon, high); the low adds 22, the bar 46, the rain 21.
+        // Just short of that, the gaps close up (16 -> 12 above, 6 -> 4 inside) to keep the forecast row.
+        const tight = budget < 78 && budget + 8 >= 74;
+        const bar = size === "lg" && budget >= 78 + 22 + 46,
+          showLo = budget >= 78 + 22,
+          showRain = budget >= 78 + 22 + 21 + (bar ? 46 : 0);
         return (
-          <div className="flex h-full flex-col gap-4">
+          <div className={`flex h-full flex-col ${tight ? "gap-3" : "gap-4"}`}>
             <div className="flex items-start justify-between gap-4">
               {now}
               {showStats && <div className="grid shrink-0 grid-cols-2 gap-x-4 gap-y-2">
@@ -129,10 +134,10 @@ function Current(p: WeatherProps) {
                 )}
               </div>}
             </div>
-            {showForecast && fc.length > 0 && budget >= 76 && (
+            {showForecast && fc.length > 0 && (budget >= 78 || tight) && (
               <div className="mt-auto grid gap-1.5 border-t border-[color:var(--w-track)] pt-3" style={{ gridTemplateColumns: `repeat(${Math.min(fc.length, shown)}, minmax(0,1fr))` }}>
                 {fc.slice(0, shown).map((f, i) => (
-                  <div key={i} className="flex flex-col items-center gap-1.5" title={`${f.cond} · ${f.rain} mm · ${f.wind}`}>
+                  <div key={i} className={`flex flex-col items-center ${tight ? "gap-1" : "gap-1.5"}`} title={`${f.cond} · ${f.rain} mm · ${f.wind}`}>
                     <span className="whitespace-nowrap text-[11px] text-[color:var(--w-muted)]">{i === 0 ? `Tmrw ${f.date.split(" ")[1] ?? ""}` : f.date}</span>
                     <Icon name={weatherIcon(f.cond)} className="text-xl text-[color:var(--w-fg)]" />
                     <span className="text-xs font-semibold tabular-nums">{fmt(T(f.hi), 0)}°</span>
