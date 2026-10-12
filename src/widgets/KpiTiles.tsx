@@ -74,13 +74,13 @@ export default function KpiTiles(p: KpiTilesProps) {
                 prev = hist[Math.max(0, hist.length - 1 - back)],
                 delta = m.v - prev,
                 pct = prev ? (delta / Math.abs(prev)) * 100 : 0;
-              const big = Math.max(20, Math.min(36, tileH * 0.32));
+              const big = Math.max(20, Math.min(36, tileH * 0.32, tileH - 62));
               const last = hist[hist.length - 1] ?? 0;
               return (
                 <div key={key} className="relative flex min-h-0 min-w-0 flex-col gap-1 overflow-hidden rounded-lg border border-[color:var(--w-track)] px-3 pb-2.5 pt-3">
                   <div className="flex items-baseline justify-between gap-2">
                     <span className="truncate text-[11px] font-medium uppercase tracking-[0.06em] text-[color:var(--w-muted)]">{m.l}</span>
-                    <span className="whitespace-nowrap text-xs tabular-nums" style={{ color: Math.abs(pct) < 1 ? "#a1a1aa" : delta > 0 ? "#EDB232" : "#3CC97F" }}>
+                    <span className="whitespace-nowrap text-xs tabular-nums" style={{ color: Math.abs(pct) < 1 ? "var(--w-muted)" : delta > 0 ? "#EDB232" : "#3CC97F" }}>
                       {Math.abs(pct) < 1 ? "→ 0%" : `${delta > 0 ? "▲" : "▼"} ${fmt(Math.abs(pct), 0)}%`}
                     </span>
                   </div>
@@ -88,8 +88,8 @@ export default function KpiTiles(p: KpiTilesProps) {
                     {fmt(m.v, m.d ?? 0)}
                     <span className="ml-0.5 text-[0.5em] font-semibold text-[color:var(--w-muted)]">{m.u}</span>
                   </span>
-                  {tileH > 110 && <span className="truncate text-xs text-[color:var(--w-faint)]">{m.sub}</span>}
-                  {tileH > 86 && (
+                  {tileH > 126 && <span className="truncate text-xs text-[color:var(--w-faint)]">{m.sub}</span>}
+                  {tileH > 100 && (
                     <div className="relative mt-auto h-[38%] min-h-[18px] max-h-10">
                       <Spark values={hist} min={0} max={m.max} className="absolute inset-0 h-full" />
                       <span className="absolute right-0 h-[7px] w-[7px] -translate-y-1/2 translate-x-1/2 rounded-full bg-[var(--accent)]" style={{ top: `${100 - ((last - 0) / ((m.max ?? Math.max(...hist) * 1.08) || 1)) * 94 - 3}%`, boxShadow: "0 0 0 3px color-mix(in oklab, var(--accent) 22%, transparent)" }} />
