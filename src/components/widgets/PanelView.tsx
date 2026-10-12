@@ -13,6 +13,7 @@ import {
   panelVars,
 } from "./panel-layout";
 import { PanelOverlay } from "./panel-overlay";
+import { PANEL_SKIN_VARS, PanelSkin, panelSkinOf } from "./panel-skin";
 import type { PanelSelection } from "./panel-parts";
 import { PanelStack } from "./panel-stack";
 
@@ -64,53 +65,57 @@ export function PanelView({ panel: own, settings, sensors, studio, selection, en
   const hug = panel.fit === "hug";
   const layout = overlay ? "overlay" : panel.layout === "grid" ? "grid" : "stack";
 
+  const skin = panelSkinOf(cfg);
+
   const look: CSSProperties = overlay
     ? { borderRadius: ws.radius("var(--radius)") }
     : panelCardStyle(surface, chrome);
 
   return (
-    <ModernChrome
-      // The panel draws its own title; its CSS joins the panel's own (presets).
-      chrome={{ ...chrome, label: "", icon: "", customCss: joinCss(chrome.customCss, panel.css) }}
-    >
-      <div
-        className="flex h-full w-full"
-        // Hug: the panel keeps its content size, placed by the zone's alignment.
-        style={hug ? flow("row", { x: "start", y: "start" }) : undefined}
+    <PanelSkin skin={skin} graph={String(cfg.graph ?? "auto")} meter={String(cfg.meter ?? "auto")} chrome={chrome}>
+      <ModernChrome
+        // The panel draws its own title; its CSS joins the panel's own (presets).
+        chrome={{ ...chrome, label: "", icon: "", customCss: joinCss(chrome.customCss, panel.css) }}
       >
         <div
-          className={cn(
-            "wp-panel relative overflow-hidden",
-            hug ? "max-h-full max-w-full" : "h-full w-full",
-            !overlay && "flex flex-col gap-3"
-          )}
-          data-panel-layout={layout}
-          data-panel-id={panel.id}
-          // The theme tokens are re-scoped on the ModernChrome root (`tokenScope`).
-          style={{ ...panelVars(panel), ...look }}
+          className="flex h-full w-full"
+          // Hug: the panel keeps its content size, placed by the zone's alignment.
+          style={hug ? flow("row", { x: "start", y: "start" }) : undefined}
         >
-          {overlay ? (
-            <PanelOverlay
-              panel={panel}
-              sensors={sensors}
-              title={title}
-              icon={chrome.icon}
-              edge={String(surfaceBox(panelSurfaceColors(surface, chrome), chrome).boxShadow)}
-              selection={selection}
-              studio={studio}
-            />
-          ) : (
-            <PanelStack
-              panel={panel}
-              sensors={sensors}
-              title={title}
-              icon={chrome.icon}
-              studio={studio}
-              selection={selection}
-            />
-          )}
+          <div
+            className={cn(
+              "wp-panel relative overflow-hidden",
+              hug ? "max-h-full max-w-full" : "h-full w-full",
+              !overlay && "flex flex-col gap-3"
+            )}
+            data-panel-layout={layout}
+            data-panel-id={panel.id}
+            // The theme tokens are re-scoped on the ModernChrome root (`tokenScope`).
+            style={{ ...panelVars(panel), ...(skin ? PANEL_SKIN_VARS : null), ...look }}
+          >
+            {overlay ? (
+              <PanelOverlay
+                panel={panel}
+                sensors={sensors}
+                title={title}
+                icon={chrome.icon}
+                edge={String(surfaceBox(panelSurfaceColors(surface, chrome), chrome).boxShadow)}
+                selection={selection}
+                studio={studio}
+              />
+            ) : (
+              <PanelStack
+                panel={panel}
+                sensors={sensors}
+                title={title}
+                icon={chrome.icon}
+                studio={studio}
+                selection={selection}
+              />
+            )}
+          </div>
         </div>
-      </div>
-    </ModernChrome>
+      </ModernChrome>
+    </PanelSkin>
   );
 }
