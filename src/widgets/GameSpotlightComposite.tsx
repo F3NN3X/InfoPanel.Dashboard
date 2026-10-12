@@ -187,6 +187,33 @@ export function CompositeView(p: CompositeProps) {
         )}
       </div>
     );
+  } else if (w > 0 && w < 460) {
+    // too narrow for three columns (they would overlap): profile on the left, the total and the stats stacked on the right
+    body = (
+      <div className="flex h-full items-center gap-4 p-4">
+        <div className="w-[40%] min-w-0 shrink-0">
+          {profile(clamp(h * 0.25, 32, 48))}
+          {gameMark("mt-2.5 h-9 w-full !object-left")}
+        </div>
+        <div className="min-w-0 flex-1 text-right">
+          <Num className="block leading-none" style={{ color: bigColor, fontSize: clamp(h * 0.2, 24, 40) }}>
+            {total}
+          </Num>
+          <Text className="mt-1 text-xs text-[color:var(--w-muted)]">{game ? `total in ${game}` : "Not playing"}</Text>
+          {p.showStats && (
+            <>
+              <Text className="mt-1.5 text-xs tabular-nums text-[color:var(--w-muted)]">{[games, friends].filter(Boolean).join(" · ") || "—"}</Text>
+              <div className="flex items-center justify-end gap-1.5 text-sm font-semibold tabular-nums text-[color:var(--w-fg)]">
+                {achIcon}
+                {ach}
+              </div>
+              <Text className="text-xs text-[color:var(--w-muted)]">{latestAch ? `latest: ${latestAch}` : "achievements"}</Text>
+            </>
+          )}
+          {p.showNews && news && h >= 180 && <Text className="mt-1 text-[10px] text-[color:var(--w-muted)]">{news}</Text>}
+        </div>
+      </div>
+    );
   } else {
     body = (
       <div className="flex h-full items-center gap-4 p-4">

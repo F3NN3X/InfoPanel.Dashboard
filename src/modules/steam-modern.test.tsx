@@ -1,9 +1,10 @@
+import { createElement } from "react";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { fixtureSensors } from "@/widgets/__fixtures__";
 import { enumValues, settingRow } from "@/widgets/__fixtures__/legacy-parity";
 import legacy from "@/widgets/__fixtures__/legacy-settings.json";
-import { overlay, pickVariant } from "@/widgets/GameSpotlightComposite";
+import { CompositeView, overlay, pickVariant, type CompositeProps } from "@/widgets/GameSpotlightComposite";
 import { compositeProps } from "@/widgets/spotlight-settings";
 import { steamModernModule } from "./steam-modern";
 import type { ModuleSettings, SensorMap } from "./types";
@@ -64,6 +65,23 @@ describe("steammodern (alias of GameSpotlight composite)", () => {
   it("dimBanner off removes the scrim over the banner", () => {
     expect(html(fixtureSensors(), { layout: "standard", dimBanner: true })).toContain("rgba(3,6,16");
     expect(html(fixtureSensors(), { layout: "standard", dimBanner: false })).not.toContain("rgba(3,6,16");
+  });
+});
+
+describe("composite at 3x2", () => {
+  const props: CompositeProps = { w: 340, h: 220, name: "Player One", status: "Online", level: 29, game: "ARC Raiders", playtime: 263, sessionTime: "00:07", sessionStart: "", totalGames: 313, achPct: 78, latestAch: "Today You", friendsOnline: 8, totalFriends: 26, news: "", showStats: true, showNews: true, motion: false, scrim: 0.6 };
+  const at = (w: number) => renderToString(createElement(CompositeView, { ...props, w }));
+
+  it("keeps the library total, friends and the playtime when the zone is too narrow for three columns", () => {
+    const out = at(340);
+    for (const text of ["313 games", "8/26 online", "263h", "78%", "latest: Today You"]) expect(out).toContain(text);
+    // two columns, not the three that overlap below ~460px
+    expect(out).toContain("w-[40%]");
+    expect(out).not.toContain("min-w-[140px]");
+  });
+
+  it("keeps the three-column layout in wide zones", () => {
+    expect(at(640)).toContain("min-w-[140px]");
   });
 });
 
