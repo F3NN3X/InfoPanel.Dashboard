@@ -33,6 +33,15 @@ function Analog({ h, m, s, seconds }: { h: number; m: number; s: number; seconds
   );
 }
 
+const TIME_PX = { xs: 30, sm: 48, md: 72, lg: 96 };
+/** The time's font size: the tier's, held down so the time, the seconds / AM-PM and the date line fit the box. */
+function timePx(size: keyof typeof TIME_PX, w: number, h: number, secs: boolean, h12: boolean, date: boolean): number {
+  const dateH = date ? (size === "xs" ? 15 : 28) : 0;
+  const byH = h > 0 ? h - dateH : Infinity;
+  const byW = w > 0 ? (w - (secs ? 36 : 0) - (h12 ? 34 : 0)) / 3.2 : Infinity;
+  return Math.round(Math.max(24, Math.min(TIME_PX[size], byH, byW)));
+}
+
 export interface ClockProps extends ShellProps {
   look?: ModuleSettings;
   format?: "24h" | "12h";
@@ -62,7 +71,7 @@ export default function Clock(p: ClockProps) {
       showHeader={!!p.title}
       studio={{ label: `${DAYS[date.getDay()]} · ${day} ${MONTHS[mon - 1]}`, value: `${pad(hh)}:${pad(M)}`, unit: h12 ? (k("pm") ? "PM" : "AM") : secs ? pad(S) : "", kind: "value" }}
     >
-      {({ size }) =>
+      {({ size, w, h }) =>
         p.face === "analog" ? (
           <div className="flex h-full items-center justify-center gap-5">
             <Analog h={H} m={M} s={S} seconds={secs} />
@@ -81,7 +90,7 @@ export default function Clock(p: ClockProps) {
         ) : (
           <div className="flex h-full flex-col justify-center">
             <div className="flex items-baseline gap-1.5 leading-none">
-              <Num className={`${{ xs: "text-3xl", sm: "text-5xl", md: "text-7xl", lg: "text-8xl" }[size]} font-semibold tracking-tight`}>
+              <Num className="font-semibold tracking-tight" style={{ fontSize: timePx(size, w, h, secs && size !== "xs", h12, p.showDate !== false) }}>
                 {pad(hh)}
                 <span className="animate-pulse text-[color:var(--accent)]">:</span>
                 {pad(M)}
