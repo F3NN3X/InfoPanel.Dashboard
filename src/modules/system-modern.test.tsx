@@ -257,4 +257,22 @@ describe("SystemOverview zone", () => {
     expect(html).toContain("--accent:#000000");
     expect(html).toContain(">Memory<");
   });
+
+  // visual-review rows: systemmodern 2x1 / 4x2 / 3x2 (ledger #33)
+  it("hides a stat whose sensor reads nothing: no 0.00 GHz clock", () => {
+    const zero = { ...SENSORS };
+    const key = Object.keys(zero).find((k) => k.endsWith("_cores__average_effective"))!;
+    zero[key] = { ...zero[key], value: 0, text: undefined };
+    const html = renderToString(createElement(SystemOverview, { data: toFlat(zero), details: "full", ...systemModernProps(effectiveSettings(mod, {})) }));
+    expect(html).toContain("Max core");
+    expect(html).not.toContain("Clock");
+    expect(html).not.toContain("0.00 GHz");
+  });
+
+  it("keeps the legacy ring layout and device colours by default (CPU blue, RAM green)", () => {
+    const props = systemModernProps(defaults());
+    expect(props.colors).toMatchObject({ cpu: "#38bdf8", ram: "#4ade80" });
+    expect(props.sections).toEqual(["cpu", "gpu", "vram", "ram"]);
+    expect(props.ring).toBeUndefined();
+  });
 });

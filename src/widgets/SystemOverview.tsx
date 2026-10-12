@@ -164,7 +164,10 @@ export default function SystemOverview(p: SystemOverviewProps) {
   const pct = (v: number) => `${fmt(v, dec)}%`;
   // Thresholds are in °C; the text follows the chosen unit.
   const temp = (l: string, c: number | undefined, bare = false): Stat[] => (c === undefined ? [] : [{ l, v: formatTemp(c, p.tempUnit ?? "c", dec), t: tone(c, tempWarn, tempCrit), bare }]);
-  const stat = (show: boolean, value: number | undefined, s: (v: number) => Stat): Stat[] => (show && value !== undefined && Number.isFinite(value) ? [s(value)] : []);
+  const stat = (show: boolean, value: number | undefined, s: (v: number) => Stat | null): Stat[] => {
+    const out = show && value !== undefined && Number.isFinite(value) ? s(value) : null;
+    return out ? [out] : [];
+  };
 
   const cores = r.cpu.cores;
   const net = detect(d, /^libre\.(.+)_download_speed$/).sort((a, b) => L(`${b}_download_speed`) - L(`${a}_download_speed`))[0];
@@ -192,7 +195,8 @@ export default function SystemOverview(p: SystemOverviewProps) {
       stats: [
         ...(on("temps") ? temp("Temp", r.cpu.temp, true) : []),
         ...stat(on("power"), r.cpu.power, (v) => ({ l: "Power", v: `${fmt(v, 0)} W`, bare: true })),
-        ...stat(true, C("cores__average_effective"), (v) => ({ l: "Clock", v: `${fmt(v / 1000, 2)} GHz` })),
+        // a clock sensor reading 0 is a missing one
+        ...stat(true, C("cores__average_effective"), (v) => (v > 0 ? { l: "Clock", v: `${fmt(v / 1000, 2)} GHz` } : null)),
         ...stat(true, C("cpu_core_max"), (v) => ({ l: "Max core", v: `${fmt(v, 0)}%` })),
       ],
       present: r.cpu.load !== undefined,
@@ -256,18 +260,23 @@ export default function SystemOverview(p: SystemOverviewProps) {
       {({ w, h, shape }) => {
         if (keys.length === 0) return <Empty icon="dashboard" label="No system data" />;
         // 1×1: concentric activity rings
-        if (shape === "tile")
+        if (shape === "tile") {
+          // VRAM is a detail of the GPU at this size: the three rings are the loads (CPU, GPU, RAM), amber / red when hot.
+          const rings = keys.filter((k) => k !== "vram").slice(0, 3);
           return (
             <div className="flex h-full items-center gap-2" style={{ "--sys-base": "var(--accent)" } as CSSProperties}>
               <RingStack
-                rings={keys.slice(0, 3).map((k) => ({ v: Math.min(100, ALL[k].v), color: col(k) ?? "var(--accent)", track: `color-mix(in oklab, ${col(k) ?? "var(--accent)"} 16%, transparent)` }))}
+                rings={rings.map((k) => {
+                  const c = toneOf(k) === "ok" ? col(k) ?? "var(--accent)" : TONES[toneOf(k)];
+                  return { v: Math.min(100, ALL[k].v), color: c, track: `color-mix(in oklab, ${c} 16%, transparent)` };
+                })}
                 thickness={10}
                 gap={3}
                 className="h-full min-w-0 flex-1"
               />
               {w - h > 60 && (
                 <div className="flex shrink-0 flex-col gap-1">
-                  {keys.slice(0, 3).map((k) => (
+                  {rings.map((k) => (
                     <span key={k} className="flex items-baseline gap-1.5 text-[11px]" style={vars(k)}>
                       <span className="text-[color:var(--w-faint)]">{label(k)}</span>
                       <Num className="text-[color:var(--accent)]">{fmt(ALL[k].v, dec)}%</Num>
@@ -277,8 +286,10 @@ export default function SystemOverview(p: SystemOverviewProps) {
               )}
             </div>
           );
+        }
         const ratio = w / Math.max(1, h);
-        const cols = shape === "column" || ratio < 0.8 ? 1 : ratio > 1.9 || keys.length <= 2 ? keys.length : 2;
+        // one row of sections only while each keeps room for its ring (~150px); else two columns
+        const cols = shape === "column" || ratio < 0.8 ? 1 : keys.length <= 2 || (ratio > 1.9 && (w - (keys.length - 1) * 18) / keys.length >= 150) ? keys.length : 2;
         const rowsN = Math.ceil(keys.length / cols);
         const cellH = (h - (rowsN - 1) * 14) / rowsN,
           cellW = (w - (cols - 1) * 18) / cols;
