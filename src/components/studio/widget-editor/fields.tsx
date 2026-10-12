@@ -121,5 +121,7 @@ export function ColorInput({
   value: string | undefined;
   onChange: (value: string | undefined) => void;
 }) {
-  return <ColorRow label={label} value={value ?? ""} onChange={(v) => onChange(v || undefined)} />;
+  return (
+    <ColorRow label={label} value={value ?? ""} onChange={(v) => onChange(v || undefined)} onReset={() => onChange(undefined)} />
+  );
 }

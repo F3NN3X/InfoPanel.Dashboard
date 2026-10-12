@@ -1,9 +1,9 @@
-import { DeviceChecklist } from "@/components/ui/device-checklist";
+import { Square, SquareCheck } from "lucide-react";
 import { useAudioDevices } from "@/hooks/use-audio-devices";
 import { cn } from "@/lib/utils";
 import { meterKey, useWavelinkState } from "@/lib/wavelink";
 import type { ModuleSetting, ModuleSettingValue } from "@/modules/types";
-import { FIELD, StackRow, type RowLabelProps } from "./setting-rows";
+import { SELECT as SELECT_BASE, StackRow, type RowLabelProps } from "./setting-rows";
 
 /** A comma-separated list ("" = none) as its items. */
 const splitList = (value: string): string[] => (value ? value.split(",").map((s) => s.trim()).filter(Boolean) : []);
@@ -24,17 +24,32 @@ export function MultiSelect({
   label?: string;
 }) {
   if (options.length === 0) return <span className="text-[11px] text-ui-4">No options available</span>;
+  const ticked = splitList(value);
+  const toggle = (id: string) => onChange((ticked.includes(id) ? ticked.filter((v) => v !== id) : [...ticked, id]).join(","));
   return (
-    <DeviceChecklist
-      label={label}
-      devices={options.map((o) => ({ id: o.value, label: o.label }))}
-      value={splitList(value)}
-      onChange={(ids) => onChange(ids.join(","))}
-    />
+    <div role="group" aria-label={label} className="flex flex-col gap-0.5">
+      {options.map((o) => {
+        const on = ticked.includes(o.value);
+        const Box = on ? SquareCheck : Square;
+        return (
+          <button
+            key={o.value}
+            type="button"
+            role="checkbox"
+            aria-checked={on}
+            onClick={() => toggle(o.value)}
+            className="flex items-center gap-2 px-0.5 py-1 text-left text-[12px] text-[#d4d4da]"
+          >
+            <Box className={cn("h-[18px] w-[18px] shrink-0", on ? "text-ui-accent" : "text-ui-4")} />
+            <span className="min-w-0 flex-1 truncate">{o.label}</span>
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
-const SELECT = cn(FIELD, "h-7 w-full bg-ui-hover");
+const SELECT = cn(SELECT_BASE, "w-full max-w-none");
 const LINK = "text-[11px] text-ui-4 hover:text-ui-1";
 
 interface PickerProps {

@@ -1,8 +1,7 @@
 import { Menu } from "@base-ui/react/menu";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import type { WidgetKind } from "@/lib/panel-model";
 import { cn } from "@/lib/utils";
-import { FIELD } from "./setting-rows";
 import { ITEM, POPUP } from "./style-tools";
 import { ALL_KINDS, KIND_INFO } from "./widget-kinds";
 
@@ -32,36 +31,15 @@ export function AddWidgetSelect({ onAdd }: { onAdd: (kind: WidgetKind) => void }
       onChange={(e) => e.target.value && onAdd(e.target.value as WidgetKind)}
       aria-label="Add panel widget"
       title="Add a widget after the selected one"
-      className={cn(FIELD, "h-7 w-full bg-ui-hover")}
+      className="mt-1 h-[30px] w-full cursor-pointer rounded-[7px] border border-dashed border-ui-menu bg-ui-raised px-2 text-[12px] text-ui-2 outline-none focus:border-ui-accent"
     >
       <option value="">+ Add panel widget…</option>
       {ALL_KINDS.map((kind) => (
         <option key={kind} value={kind}>
-          {KIND_INFO[kind].label} — {KIND_INFO[kind].hint}
+          {KIND_INFO[kind].label}
         </option>
       ))}
     </select>
-  );
-}
-
-/** A "Change kind" dropdown (the widget editor's header). */
-export function ChangeKindMenu({ kind, onChange }: { kind: WidgetKind; onChange: (kind: WidgetKind) => void }) {
-  return (
-    <Menu.Root>
-      <Menu.Trigger
-        className="flex h-6 items-center gap-0.5 rounded-md px-1.5 text-[11.5px] text-ui-3 hover:bg-ui-hover hover:text-ui-1 data-popup-open:bg-ui-hover data-popup-open:text-ui-1"
-        title="Turn this widget into another kind (label, sensor, unit and color stay)"
-      >
-        Change kind <ChevronDown className="h-3 w-3" />
-      </Menu.Trigger>
-      <Menu.Portal>
-        <Menu.Positioner className="z-50" sideOffset={4} align="end">
-          <Menu.Popup className={POPUP}>
-            <KindItems current={kind} onPick={onChange} />
-          </Menu.Popup>
-        </Menu.Positioner>
-      </Menu.Portal>
-    </Menu.Root>
   );
 }
 

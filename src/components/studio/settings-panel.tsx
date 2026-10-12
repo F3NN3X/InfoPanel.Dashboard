@@ -23,8 +23,8 @@ export interface FieldsApi {
 }
 
 /**
- * One setting as a field row (padding 6px 16px): the source dot before its
- * label (clicking a dot set here resets the setting), the hint, and the
+ * One setting as a field row (padding 6px 16px): the source dot (none at the
+ * default) before its label (clicking a dot set here resets the setting), the hint, and the
  * control chosen by its schema type.
  */
 export function SettingField({
@@ -48,7 +48,7 @@ export function SettingField({
         onApply={fields.onPatch}
         sources={sources}
         hint={def.hint}
-        lead={<SourceDot state={state} onReset={() => fields.onClear(settingKeys(def))} />}
+        lead={state === "default" ? undefined : <SourceDot state={state} onReset={() => fields.onClear(settingKeys(def))} />}
       />
     </div>
   );

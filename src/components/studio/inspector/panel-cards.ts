@@ -34,11 +34,12 @@ export function cardsBySection(groups: readonly SheetGroup[]): Map<SpecialSectio
 export function panelState(
   groups: readonly SheetGroup[],
   layout: string | undefined
-): { layout: PanelLayoutKind; codeView: boolean; selectedWidget: boolean } {
+): { layout: PanelLayoutKind; codeView: boolean; selectedWidget: boolean; selectedLabel?: string } {
   const ids = new Set(groups.flatMap((g) => g.cards.map((c) => c.id)));
   return {
     layout: layout === "grid" || layout === "overlay" ? layout : "stack",
     codeView: ids.has("panel:code"),
     selectedWidget: ids.has("widget:kind"),
+    selectedLabel: groups.flatMap((g) => g.cards).find((c) => c.id === "widget:kind")?.title,
   };
 }

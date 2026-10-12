@@ -19,8 +19,8 @@ export function useInspectorLayout(): InspectorLayout {
 export const INSPECTOR_SCROLL = "data-inspector-scroll";
 
 /**
- * The inspector's header: a stack beside the canvas, a single wrapping row
- * in the dock. Children go through `HeaderSlot` to size themselves in the row.
+ * The inspector's header: a stack beside the canvas, a wrapping row
+ * in the dock (the search and tabs follow it at full width in both). Children go through `HeaderSlot` to size themselves in the row.
  */
 export function InspectorHeader({ children }: { children: ReactNode }) {
   const dock = useInspectorLayout() === "dock";
@@ -29,8 +29,8 @@ export function InspectorHeader({ children }: { children: ReactNode }) {
       data-inspector-header=""
       className={
         dock
-          ? "flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 border-b border-ui-subtle px-4 py-2.5"
-          : "shrink-0 space-y-3 border-b border-ui-subtle px-4 pb-3 pt-3.5"
+          ? "flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 px-4 pb-3 pt-3.5"
+          : "shrink-0 space-y-3 px-4 pb-3 pt-3.5"
       }
     >
       {children}

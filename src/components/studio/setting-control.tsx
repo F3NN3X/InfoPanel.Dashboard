@@ -5,6 +5,7 @@ import { sourceOptions } from "@/lib/sources";
 import { WIDGET_ICONS } from "@/lib/widget-icons";
 import type { ModuleSetting, ModuleSettingValue, ModuleSettings } from "@/modules/types";
 import { AlignGrid } from "./align-grid";
+import { splitUnit } from "./inspector/number-box";
 import { MediaField } from "./media-field";
 import {
   ColorRow,
@@ -24,10 +25,13 @@ const ICONS: IconGridItem[] = [
   ...Object.entries(WIDGET_ICONS).map(([name, Icon]) => ({ id: name, label: name, icon: <Icon /> })),
 ];
 
-/** Placeholders of text settings by key. */
+/** Placeholders of text settings by key (a panel's title, empty = hidden, has none). */
 const PLACEHOLDERS: Record<string, string> = {
   label: "Uses the widget name",
 };
+
+const placeholderOf = (def: ModuleSetting): string | undefined =>
+  def.label.startsWith("Title") ? undefined : PLACEHOLDERS[def.key];
 
 /** The control for one setting, chosen by its schema type. */
 export function SettingRow({
@@ -80,10 +84,14 @@ export function SettingRow({
         <ColorRow {...label} value={typeof value === "string" ? value : String(def.default ?? "")} onChange={onChange} />
       );
 
-    case "number":
+    case "number": {
+      // "Size (%)": the unit moves to the value box.
+      const { label: name, unit } = splitUnit(def.label);
       return (
         <SliderRow
           {...label}
+          label={name}
+          unit={unit}
           value={typeof value === "number" ? value : Number(def.default) || 0}
           min={def.min}
           max={def.max}
@@ -92,6 +100,7 @@ export function SettingRow({
           onChange={onChange}
         />
       );
+    }
 
     case "select": {
       // Capture devices: options come from an async `enumerateDevices()`
@@ -124,7 +133,8 @@ export function SettingRow({
         if (applies) onApply?.(applies);
       };
       const choices = options.map((o) => ({ value: o.value, label: o.label }));
-      return options.length <= 4 && options.length > 0 ? (
+      // Up to four options share a row; Layout (five) does too, the other long lists are selects.
+      return (options.length <= 4 || def.key === "layout") && options.length > 0 ? (
         <SegmentedRow {...label} options={choices} value={String(value)} onChange={apply} />
       ) : (
         <SelectRow {...label} options={choices} value={String(value)} onChange={apply} />
@@ -134,7 +144,13 @@ export function SettingRow({
     case "icon":
       return (
         <StackRow {...label}>
-          <IconGrid icons={ICONS} value={String(value)} onChange={onChange} columns={7} label={def.label} />
+          <IconGrid
+            icons={ICONS}
+            value={String(value)}
+            onChange={onChange}
+            label={def.label}
+            className="grid-cols-[repeat(auto-fill,minmax(30px,1fr))]!"
+          />
         </StackRow>
       );
 
@@ -164,7 +180,7 @@ export function SettingRow({
           {...label}
           value={String(value)}
           multiline={def.multiline}
-          placeholder={PLACEHOLDERS[def.key]}
+          placeholder={placeholderOf(def)}
           onChange={onChange}
         />
       );

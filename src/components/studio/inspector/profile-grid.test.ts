@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { MonitorProfile, Placement } from "@/lib/layout";
-import { stepGrid } from "./profile-grid";
+import { parseSize, sizeChoice, sizeOfChoice, stepGrid } from "./profile-grid";
 
 const zone = (id: string, extra: Partial<Placement>): Placement => ({
   id,
@@ -49,5 +49,22 @@ describe("stepGrid", () => {
     const p = profile([], { cols: 2, rows: 24 });
     expect(stepGrid(p, "cols", -1)).toBe(p);
     expect(stepGrid(p, "rows", 1)).toBe(p);
+  });
+});
+
+describe("design size", () => {
+  it("names a preset, else custom", () => {
+    expect(sizeChoice(1920, 550)).toBe("1920×550");
+    expect(sizeChoice(1920, 551)).toBe("custom");
+    expect(sizeOfChoice("2560×720")).toEqual({ width: 2560, height: 720 });
+    expect(sizeOfChoice("custom")).toBeNull();
+  });
+
+  it("parses only positive whole numbers, so clearing the field writes nothing", () => {
+    expect(parseSize("1080")).toBe(1080);
+    expect(parseSize("")).toBeNull();
+    expect(parseSize("0")).toBeNull();
+    expect(parseSize("-5")).toBeNull();
+    expect(parseSize("abc")).toBeNull();
   });
 });

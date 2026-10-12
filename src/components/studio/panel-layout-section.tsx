@@ -5,13 +5,13 @@ import { AlignGrid } from "./align-grid";
 import { splitTracks } from "./grid-tracks";
 import { TrackEditor } from "./track-editor";
 import { MediaField } from "./media-field";
-import { SelectRow } from "./setting-rows";
+import { SEGMENTED_CLASS, SelectRow } from "./setting-rows";
 import { Field, InlineField, NumberInput, Switch } from "./widget-editor/fields";
 
 type Layout = "stack" | "grid" | "overlay";
 
 /** A segmented control spanning its row. */
-const FULL = "w-full *:flex-1";
+const FULL = SEGMENTED_CLASS;
 
 const BANDS: { band: OverlayBand; label: string }[] = [
   { band: "top", label: "Top" },
@@ -262,7 +262,7 @@ export function PanelMainFields({
           <p className="mt-1 text-[11.5px] leading-snug text-ui-4">A hugging panel sits where Size &amp; alignment puts it.</p>
         )}
       </Field>
-      <InlineField label="Gap (px)">
+      <InlineField label="Gap">
         <NumberInput
           value={panel.gap}
           min={0}
@@ -273,7 +273,7 @@ export function PanelMainFields({
           onChange={(v) => setField("gap", v)}
         />
       </InlineField>
-      <InlineField label="Padding (px)">
+      <InlineField label="Padding">
         <NumberInput
           value={panel.padding}
           min={0}

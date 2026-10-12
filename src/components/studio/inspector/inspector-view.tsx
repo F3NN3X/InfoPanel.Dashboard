@@ -5,7 +5,7 @@ import { Toggle } from "@/components/ui/toggle";
 import { useSensorCatalog } from "@/lib/catalog";
 import { cn } from "@/lib/utils";
 import type { ModuleSetting } from "@/modules/types";
-import { HeaderSlot, INSPECTOR_SCROLL, InspectorHeader, useInspectorLayout } from "../inspector-layout";
+import { INSPECTOR_SCROLL, InspectorHeader, useInspectorLayout } from "../inspector-layout";
 import {
   allSections,
   applyAdvanced,
@@ -37,7 +37,6 @@ export interface SectionParts {
   bottom?: ReactNode;
   /** Header controls before Reset (the style tools). */
   actions?: ReactNode;
-  badge?: string;
   /** Changed fields the custom UI holds (added to the rows'). */
   changed?: number;
   /** Reset the custom UI's fields (the section's Reset also clears its rows). */
@@ -46,6 +45,8 @@ export interface SectionParts {
   wide?: boolean;
   /** The section `revealWidgetEditor` scrolls to. */
   editor?: boolean;
+  /** A plain block with its own title row (Bound data): no chevron, count or Reset. */
+  plain?: boolean;
 }
 
 interface InspectorViewProps {
@@ -77,7 +78,7 @@ const always = () => true;
 /** A note or banner (README §4.6). */
 export function InspectorNote({ children }: { children: ReactNode }) {
   return (
-    <div className="mx-4 mt-3 break-inside-avoid rounded-lg border border-ui-default bg-ui-raised px-3 py-2.5 text-[12px] leading-snug text-ui-2">
+    <div className="mx-4 mb-1 mt-3 break-inside-avoid rounded-lg border border-ui-default bg-ui-raised px-3 py-2.5 text-[12px] leading-snug text-ui-2">
       {children}
     </div>
   );
@@ -96,7 +97,7 @@ function Tabs({
   onTab: (tab: TabId) => void;
 }) {
   return (
-    <div role="tablist" className="flex shrink-0 gap-3 overflow-x-auto border-b border-ui-subtle px-4">
+    <div role="tablist" className="flex shrink-0 gap-[18px] overflow-x-auto border-b border-ui-subtle px-4">
       {tabs.map((t) => {
         const selected = t.id === active;
         const n = counts[t.id] ?? 0;
@@ -108,13 +109,13 @@ function Tabs({
             aria-selected={selected}
             onClick={() => onTab(t.id)}
             className={cn(
-              "flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 text-[12.5px] font-medium transition-colors",
-              selected ? "border-ui-1 text-ui-1" : "border-transparent text-ui-4 hover:text-ui-2"
+              "-mb-px flex shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 pb-2.5 pt-[9px] text-[12.5px] font-medium transition-colors",
+              selected ? "border-ui-1 text-ui-1" : "border-transparent text-[#8f8f99] hover:text-ui-2"
             )}
           >
             {t.label}
             {n > 0 && (
-              <span className="rounded-full bg-ui-accent-soft px-1.5 font-ui-mono text-[10px] leading-4 text-ui-accent-text">
+              <span className="rounded-lg bg-ui-accent/[.16] px-[5px] py-px font-ui-mono text-[10px] text-ui-accent-text">
                 {n}
               </span>
             )}
@@ -194,7 +195,8 @@ export function InspectorView({
     : tabs.length > 0
       ? all.filter((s) => s.tab === tab)
       : all;
-  const { sections, hiddenCount } = applyAdvanced(listed, advanced);
+  // A search lists every match, advanced or not.
+  const { sections, hiddenCount } = applyAdvanced(listed, advanced || searching);
   const tabLabel = (s: InspectorSection) =>
     result ? (result.groups.find((g) => g.section.id === s.id)?.tabLabel ?? "") : "";
 
@@ -228,7 +230,7 @@ export function InspectorView({
   /** In the dock each block is one unbreakable column cell (a wide section takes two). */
   const cell = (key: string, node: ReactNode, wide = false) =>
     node && dock ? (
-      <div key={key} className={cn("shrink-0 border-r border-ui-subtle", wide ? "w-[600px]" : "w-[300px]")}>
+      <div key={key} className={cn("shrink-0", wide ? "w-[600px]" : "w-[300px]")}>
         {node}
       </div>
     ) : (
@@ -240,15 +242,24 @@ export function InspectorView({
   const renderSection = (s: InspectorSection) => {
     const p = parts(s);
     const whole = full.get(s.id) ?? s;
+    if (p.plain)
+      return cell(
+        s.id,
+        <section
+          key={s.id}
+          {...{ [SETTING_CARD]: s.id }}
+          className="break-inside-avoid border-b border-[#1c1c21] px-4 pb-3.5 pt-3"
+        >
+          {p.body}
+        </section>
+      );
     return cell(
       s.id,
       <SettingSection
         key={s.id}
         id={s.id}
         title={s.title}
-        hint={s.hint}
         tabLabel={tabLabel(s) || undefined}
-        badge={p.badge}
         changed={changedOf(whole)}
         actions={p.actions}
         onReset={() => {
@@ -274,26 +285,27 @@ export function InspectorView({
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <InspectorHeader>
-        {header}
-        <HeaderSlot className="w-56 shrink-0">
-          <SettingsSearch query={query} onQuery={onQuery} />
-        </HeaderSlot>
-      </InspectorHeader>
+      <InspectorHeader>{header}</InspectorHeader>
+      <div className="shrink-0 px-4 pb-2.5">
+        <SettingsSearch query={query} onQuery={onQuery} />
+      </div>
       {!searching && tabs.length > 0 && <Tabs tabs={tabs} active={tab} counts={counts} onTab={setTab} />}
+      {searching && (
+        <p className="shrink-0 border-b border-ui-subtle px-4 pb-2 pt-1.5 text-[11.5px] text-[#8a8a94]">
+          {result?.total ?? 0} setting{result?.total === 1 ? "" : "s"} across all tabs
+        </p>
+      )}
       <div
         {...{ [INSPECTOR_SCROLL]: "" }}
         ref={root}
         className={cn("min-h-0 flex-1", dock ? "overflow-auto" : "overflow-y-auto")}
       >
-        {/* The lead (search count or context notes) spans the full width above the
-            columns; as a dock cell it would take a whole column even when it renders nothing. */}
+        {/* The context notes span the full width above the columns; as a dock cell one
+            would take a whole column even when it renders nothing. */}
         {searching ? (
-          <p className="px-4 pb-1 pt-3 text-[11px] text-ui-4">
-            {result && result.total > 0
-              ? `${result.total} setting${result.total === 1 ? "" : "s"} across all tabs`
-              : `No settings match '${query.trim()}'.`}
-          </p>
+          result?.total === 0 && (
+            <p className="px-4 py-8 text-center text-[12.5px] text-[#8a8a94]">No settings match “{query.trim()}”.</p>
+          )
         ) : (
           notes?.(tab)
         )}
@@ -312,7 +324,7 @@ export function InspectorView({
                 <button
                   type="button"
                   onClick={() => setAdvanced(true)}
-                  className="w-full rounded-lg border border-dashed border-ui-strong py-2 text-[12px] text-ui-3 hover:border-ui-accent hover:text-ui-1"
+                  className="w-full rounded-[7px] border border-dashed border-ui-strong p-[9px] text-[12px] text-ui-3 hover:border-[#3a3a44] hover:text-ui-1"
                 >
                   Show {hiddenCount} advanced setting{hiddenCount === 1 ? "" : "s"}
                 </button>

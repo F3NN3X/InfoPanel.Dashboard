@@ -62,6 +62,8 @@ export type InspectorContext =
       codeView?: boolean;
       /** A panel widget is selected: its cards follow the list. */
       selectedWidget?: boolean;
+      /** The selected panel widget's kind name (the titles of its cards). */
+      selectedLabel?: string;
     }
   | { kind: "blank" }
   /** Several zones: the shared look only, no tabs. */
@@ -237,11 +239,11 @@ function widgetSections(context: Extract<InspectorContext, { kind: "widget" }>):
 }
 
 const PANEL_WIDGET_CARDS: [SpecialSection, string, string[]][] = [
-  ["widgetKind", "Selected widget", ["Kind", "Change kind"]],
+  ["widgetKind", "Selected", ["Kind", "Change kind"]],
   ["widgetDisplay", "Display", ["Label", "Sensor", "Unit"]],
   ["widgetPlacement", "Size & placement", ["Sizing", "Span", "Band"]],
   ["widgetColors", "Typography & colors", ["Color"]],
-  ["widgetAdvanced", "Selected widget advanced", ["Class names", "Custom CSS"]],
+  ["widgetAdvanced", "Selected · Advanced", ["Class names", "Custom CSS"]],
 ];
 
 function panelSections(context: Extract<InspectorContext, { kind: "panel" }>): InspectorSection[] {
@@ -251,20 +253,26 @@ function panelSections(context: Extract<InspectorContext, { kind: "panel" }>): I
     section({ id, title, tab: "content", special, advanced, terms });
   return [
     content("panel", "Panel", "panel", ["Visual", "Code", "JSON", "Fill", "Hug", "Gap", "Padding"]),
-    ...inTab(sections, "content"),
     ...(visual ? [content("layout", "Layout", "panelLayout", ["Stack", "Grid", "Overlay", "Direction", "Columns"])] : []),
     ...(visual && context.layout === "overlay" ? [content("background", "Background", "panelBackground", ["Image", "Dim"])] : []),
     ...(visual ? [content("widgets", "Widgets", "panelWidgets", ["Add panel widget"])] : []),
     ...(!visual ? [content("json", "Panel JSON", "panelJson", ["Apply"])] : []),
     ...(visual && context.selectedWidget
       ? PANEL_WIDGET_CARDS.map(([special, title, terms]) =>
-          content(`item-${special}`, title, special, terms, special === "widgetAdvanced")
+          content(
+            `item-${special}`,
+            special === "widgetKind" ? `Selected · ${context.selectedLabel ?? "widget"}` : title,
+            special,
+            terms,
+            special === "widgetAdvanced"
+          )
         )
       : []),
+    ...inTab(sections, "content"),
     ...inTab(sections, "style"),
     section({
       id: "panel-data",
-      title: "Sensors used",
+      title: "Bound data",
       tab: "data",
       special: "panelData",
       terms: ["Sensors", "Data points"],

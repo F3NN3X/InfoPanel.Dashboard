@@ -1,8 +1,7 @@
 import type { PanelDef, Widget, WidgetKind } from "@/lib/panel-model";
 import type { SheetCard } from "../category-sheet";
-import { InlineRow } from "../setting-rows";
-import { ChangeKindMenu } from "../widget-kind-menu";
-import { KIND_INFO } from "../widget-kinds";
+import { SelectRow } from "../setting-rows";
+import { ALL_KINDS, KIND_INFO } from "../widget-kinds";
 import { DataFields, hasData } from "./data-section";
 import { hasKindFields, KindFields } from "./display-section";
 import { LayoutFields } from "./layout-section";
@@ -30,24 +29,23 @@ export function widgetCards({ widget, panel, onChange, onChangeKind, enforce, on
   const set = <K extends keyof Widget>(key: K, value: Widget[K]) =>
     onChange((w) => ({ ...w, [key]: value }), key);
   const props = { widget, panel, set, onChange, enforce, onOpenExplorer };
-  const { label, icon: Icon, hint } = KIND_INFO[widget.kind];
+  const { label, hint } = KIND_INFO[widget.kind];
   const cards: (SheetCard | false)[] = [
     {
       id: "widget:kind",
-      title: `${label} widget`,
+      title: label,
       hint: "The kind and what is particular to it",
       editor: true,
       terms: ["Kind", "Widget", label, "Change kind", "Static text", "Image URL", "Max", "Invert fill", "Shape", "Thickness", "Max height", "Rows", "Columns", "Header", "History samples", "Show", "Text alignment"],
       node: (
         <>
-          <InlineRow label="Kind" hint={hint}>
-            <span className="flex items-center gap-2">
-              <span className="flex items-center gap-1.5 text-[12.5px] text-ui-1">
-                <Icon className="h-3.5 w-3.5 text-ui-3" /> {label}
-              </span>
-              <ChangeKindMenu kind={widget.kind} onChange={onChangeKind} />
-            </span>
-          </InlineRow>
+          <SelectRow
+            label="Kind"
+            hint={hint}
+            options={ALL_KINDS.map((k) => ({ value: k, label: KIND_INFO[k].label }))}
+            value={widget.kind}
+            onChange={(k) => onChangeKind(k as WidgetKind)}
+          />
           {hasKindFields(widget) ? (
             <KindFields {...props} />
           ) : (

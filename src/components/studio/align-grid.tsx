@@ -93,17 +93,12 @@ export function AlignGrid({ x, y, onChange, only, spread, stretch, label = "Alig
     onChange(axis === "x" ? v : x, axis === "y" ? v : y);
   };
 
-  const caption = (axis: AlignAxis) => {
-    const v = axis === "x" ? x : y;
-    return isSet(v) ? (NAMES[axis][v] ?? v) : "Auto";
-  };
-
   return (
-    <div className={cn("flex items-start gap-2", className)}>
+    <div className={cn("flex items-center gap-3", className)}>
       <div
         role="radiogroup"
         aria-label={label}
-        className="grid shrink-0 grid-cols-3 gap-0.5 rounded-md border border-ui-default bg-ui-app p-0.5"
+        className="grid shrink-0 grid-cols-3 gap-[3px] rounded-[7px] border border-ui-default bg-ui-app p-1"
       >
         {POS.flatMap((cy, r) =>
           POS.map((cx, c) => {
@@ -128,56 +123,43 @@ export function AlignGrid({ x, y, onChange, only, spread, stretch, label = "Alig
                 onKeyDown={(e) => onKeyDown(e, i)}
                 className={cn(
                   "flex h-[22px] w-[22px] items-center justify-center rounded-[4px] transition-colors outline-none focus-visible:ring-1 focus-visible:ring-ui-accent/60",
-                  on ? "bg-ui-active" : "hover:bg-ui-hover"
+                  on ? "bg-ui-accent/[.22]" : "hover:bg-ui-hover"
                 )}
               >
-                <span
-                  className={cn(
-                    "rounded-full",
-                    on ? "h-2 w-2 bg-ui-accent" : "h-1 w-1 bg-ui-5"
-                  )}
-                />
+                <span className={cn("h-1.5 w-1.5 rounded-full", on ? "bg-ui-accent" : "bg-[#4a4a52]")} />
               </button>
             );
           })
         )}
       </div>
-      <div className="min-w-0 space-y-1">
-        <div className="font-ui-mono text-[11px] text-ui-3">
-          {only === "x"
-            ? caption("x")
-            : only === "y"
-              ? caption("y")
-              : isSet(x) || isSet(y)
-                ? `${caption("y")} · ${caption("x")}`
-                : "Auto"}
-        </div>
-        <div className="flex flex-wrap gap-1">
-          {spread && (
-            <ToggleChip on={(spread === "x" ? x : y) === "between"} onClick={() => toggle(spread, "between")}>
-              Spread
-            </ToggleChip>
-          )}
-          {stretch && (
-            <ToggleChip on={(stretch === "x" ? x : y) === "stretch"} onClick={() => toggle(stretch, "stretch")}>
-              Stretch
-            </ToggleChip>
-          )}
-        </div>
+      <div className="flex flex-col gap-1">
+        <Chip on={!anySet && !toggled("x") && !toggled("y")} onClick={() => onChange(undefined, undefined)}>
+          Auto
+        </Chip>
+        {spread && (
+          <Chip on={(spread === "x" ? x : y) === "between"} onClick={() => toggle(spread, "between")}>
+            Spread
+          </Chip>
+        )}
+        {stretch && (
+          <Chip on={(stretch === "x" ? x : y) === "stretch"} onClick={() => toggle(stretch, "stretch")}>
+            Stretch
+          </Chip>
+        )}
       </div>
     </div>
   );
 }
 
-function ToggleChip({ on, onClick, children }: { on: boolean; onClick: () => void; children: string }) {
+function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: string }) {
   return (
     <button
       type="button"
       aria-pressed={on}
       onClick={onClick}
       className={cn(
-        "rounded-md border px-2 py-0.5 text-[11px] transition-colors",
-        on ? "border-ui-accent bg-ui-accent-soft text-ui-accent-text" : "border-ui-default text-ui-3 hover:text-ui-1"
+        "h-6 rounded-md border px-2.5 text-[11.5px] transition-colors",
+        on ? "border-[#3a3a44] bg-ui-active text-ui-1" : "border-ui-strong text-ui-3 hover:text-ui-1"
       )}
     >
       {children}
