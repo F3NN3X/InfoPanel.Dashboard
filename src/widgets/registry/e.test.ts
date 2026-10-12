@@ -5,11 +5,15 @@ import type { SensorMap } from "@/modules/types";
 import { fixtureSensors } from "../__fixtures__";
 import { toFlat } from "../data-adapter";
 import type { ShellProps } from "../kit";
+import TextFile, { meta as textFile } from "../TextFile";
 import WebPage, { meta as webPage } from "../WebPage";
 import { GROUP_E } from "./e";
 
 // [meta, component, category, props that give the widget something to show]
-const WIDGETS: [typeof webPage, ComponentType<ShellProps>, string, Record<string, unknown>][] = [[webPage, WebPage, "Generic", { url: "https://example.com" }]];
+const WIDGETS: [typeof webPage, ComponentType<ShellProps>, string, Record<string, unknown>][] = [
+  [webPage, WebPage, "Generic", { url: "https://example.com" }],
+  [textFile, TextFile, "Info", {}],
+];
 const SIZES = ["xs", "sm", "md", "lg"] as const;
 const VARIANTS = ["default", "studio"] as const;
 const SKINS = ["default", "instrument", "tui"] as const;

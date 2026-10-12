@@ -3,7 +3,10 @@
 import { CARD_SETTINGS, STYLE_SETTINGS, SURFACE_SETTINGS } from "@/modules/standard-settings";
 import type { DashboardModule, ModuleSetting } from "@/modules/types";
 import { templateModule, type TemplateOptions } from "../module";
+import TextFile, { meta as textFileMeta, type TextFileProps } from "../TextFile";
 import WebPage, { meta as webPageMeta, type WebPageProps } from "../WebPage";
+
+const boolOf = (v: unknown): boolean | undefined => (typeof v === "boolean" ? v : undefined);
 
 /** The frame's edge: border and glow only (the page covers any surface). */
 const EDGE_KEYS: ReadonlySet<string> = new Set(["borderWidth", "borderColor", "glow", "glowColor"]);
@@ -27,4 +30,13 @@ export const webPageOptions: TemplateOptions<Pick<WebPageProps, "url">> = {
   toProps: (s) => ({ url: String(s.url ?? "") }),
 };
 
-export const GROUP_E: DashboardModule[] = [templateModule(webPageOptions)];
+export const TEXTFILE_SETTINGS: ModuleSetting[] = [{ key: "showMeta", label: "Size / lines / status header", type: "boolean", default: true, group: "Content" }];
+
+export const textFileOptions: TemplateOptions<Pick<TextFileProps, "showMeta">> = {
+  meta: textFileMeta,
+  Component: TextFile,
+  settings: TEXTFILE_SETTINGS,
+  toProps: (s) => ({ showMeta: boolOf(s.showMeta) }),
+};
+
+export const GROUP_E: DashboardModule[] = [templateModule(webPageOptions), templateModule(textFileOptions)];
