@@ -149,7 +149,7 @@ function Footer({ advanced, onAdvanced }: { advanced: boolean; onAdvanced: (on: 
  * across tabs, the tabs with their changed counts, the notes, collapsible
  * sections of field rows (with the context's custom UI), the hidden
  * advanced count and the footer. Beside the canvas the sections stack; in
- * the bottom dock they flow into 300 px columns that scroll sideways.
+ * the bottom dock they flow, whole, into 300 px columns that scroll sideways.
  */
 export function InspectorView({
   context,
@@ -221,12 +221,23 @@ export function InspectorView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jumpTo?.seq]);
 
+  /** In the dock each block is one unbreakable column cell (a wide section takes two). */
+  const cell = (key: string, node: ReactNode, wide = false) =>
+    node && dock ? (
+      <div key={key} className={cn("shrink-0 border-r border-ui-subtle", wide ? "w-[600px]" : "w-[300px]")}>
+        {node}
+      </div>
+    ) : (
+      node
+    );
+
   const pad = (node: ReactNode) => node && <div className="space-y-2 px-4 py-1.5">{node}</div>;
 
   const renderSection = (s: InspectorSection) => {
     const p = parts(s);
     const whole = full.get(s.id) ?? s;
-    return (
+    return cell(
+      s.id,
       <SettingSection
         key={s.id}
         id={s.id}
@@ -252,7 +263,8 @@ export function InspectorView({
         ))}
         {pad(p.body)}
         {pad(p.bottom)}
-      </SettingSection>
+      </SettingSection>,
+      p.wide
     );
   };
 
@@ -268,34 +280,41 @@ export function InspectorView({
       <div
         {...{ [INSPECTOR_SCROLL]: "" }}
         ref={root}
-        className={cn("min-h-0 flex-1", dock ? "overflow-x-auto overflow-y-hidden" : "overflow-y-auto")}
+        className={cn("min-h-0 flex-1", dock ? "overflow-auto" : "overflow-y-auto")}
       >
         <div
           className={cn(
-            dock && "h-full columns-[300px] gap-x-0 [column-fill:auto] [column-rule:1px_solid_var(--ui-border-subtle)]"
+            // Columns of whole sections: a flex column that wraps never splits an item (CSS
+            // columns do when one is taller than the dock); a taller one scrolls the dock.
+            dock && "flex h-full flex-col flex-wrap content-start"
           )}
         >
-          {searching ? (
-            <p className="break-inside-avoid px-4 pb-1 pt-3 text-[11px] text-ui-4">
-              {result && result.total > 0
-                ? `${result.total} setting${result.total === 1 ? "" : "s"} across all tabs`
-                : `No settings match '${query.trim()}'.`}
-            </p>
-          ) : (
-            notes?.(tab)
+          {cell(
+            "lead",
+            searching ? (
+              <p className="px-4 pb-1 pt-3 text-[11px] text-ui-4">
+                {result && result.total > 0
+                  ? `${result.total} setting${result.total === 1 ? "" : "s"} across all tabs`
+                  : `No settings match '${query.trim()}'.`}
+              </p>
+            ) : (
+              notes?.(tab)
+            )
           )}
           {sections.map(renderSection)}
-          {hiddenCount > 0 && (
-            <div className="break-inside-avoid p-4">
-              <button
-                type="button"
-                onClick={() => setAdvanced(true)}
-                className="w-full rounded-lg border border-dashed border-ui-strong py-2 text-[12px] text-ui-3 hover:border-ui-accent hover:text-ui-1"
-              >
-                Show {hiddenCount} advanced setting{hiddenCount === 1 ? "" : "s"}
-              </button>
-            </div>
-          )}
+          {hiddenCount > 0 &&
+            cell(
+              "advanced",
+              <div className="p-4">
+                <button
+                  type="button"
+                  onClick={() => setAdvanced(true)}
+                  className="w-full rounded-lg border border-dashed border-ui-strong py-2 text-[12px] text-ui-3 hover:border-ui-accent hover:text-ui-1"
+                >
+                  Show {hiddenCount} advanced setting{hiddenCount === 1 ? "" : "s"}
+                </button>
+              </div>
+            )}
         </div>
       </div>
       <Footer advanced={advanced} onAdvanced={setAdvanced} />

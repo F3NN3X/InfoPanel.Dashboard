@@ -80,13 +80,13 @@ export function ZoomToolbar({
         "rounded-[10px] border border-ui-strong bg-ui-raised font-ui shadow-ui-float"
       )}
     >
-      <IconButton label="Toggle the left panel" className={BAR_BUTTON} active={leftOpen} onClick={onToggleLeft}>
+      <IconButton label="Toggle the left panel" className={BAR_BUTTON} active={leftOpen} aria-pressed={leftOpen} onClick={onToggleLeft}>
         <PanelLeft className="h-4 w-4" />
       </IconButton>
-      <IconButton label="Toggle grid" className={BAR_BUTTON} active={showGrid} onClick={onToggleGrid}>
+      <IconButton label="Toggle grid" className={BAR_BUTTON} active={showGrid} aria-pressed={showGrid} onClick={onToggleGrid}>
         <Grid3x3 className="h-4 w-4" />
       </IconButton>
-      <IconButton label="Toggle rulers" className={BAR_BUTTON} active={showRulers} onClick={onToggleRulers}>
+      <IconButton label="Toggle rulers" className={BAR_BUTTON} active={showRulers} aria-pressed={showRulers} onClick={onToggleRulers}>
         <Ruler className="h-4 w-4" />
       </IconButton>
       <Divider />

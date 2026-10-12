@@ -74,6 +74,16 @@ function ModeSwitch({ mode, onMode }: Pick<StudioTopBarProps, "mode" | "onMode">
       role="radiogroup"
       aria-label="Mode"
       className="flex rounded-lg border border-ui-default bg-ui-raised p-0.5"
+      onKeyDown={(e) => {
+        // Radio-group keys: arrows pick the neighbour (wrapping) and move focus to it.
+        const step = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 0;
+        if (step === 0) return;
+        e.preventDefault();
+        const at = MODES.findIndex((m) => m.value === mode);
+        const next = MODES[(at + step + MODES.length) % MODES.length];
+        onMode(next.value);
+        e.currentTarget.querySelectorAll<HTMLElement>('[role="radio"]')[MODES.indexOf(next)]?.focus();
+      }}
     >
       {MODES.map((m) => (
         <button
@@ -81,6 +91,7 @@ function ModeSwitch({ mode, onMode }: Pick<StudioTopBarProps, "mode" | "onMode">
           type="button"
           role="radio"
           aria-checked={m.value === mode}
+          tabIndex={m.value === mode ? 0 : -1}
           title={m.title}
           onClick={() => onMode(m.value)}
           className={cn(

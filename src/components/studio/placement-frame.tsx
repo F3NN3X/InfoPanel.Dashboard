@@ -1,4 +1,6 @@
 import {
+  useEffect,
+  useRef,
   type CSSProperties,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
@@ -141,6 +143,10 @@ export function PlacementFrame({
   const pitchX = gridWidth > 0 ? trackPitch(gridWidth, profile.cols, gap) * zoom : 0;
   const pitchY = rowHeight !== undefined ? (rowHeight + gap) * zoom : 0;
 
+  // A drag in flight is aborted if the frame unmounts (a mode switch mid-drag).
+  const stopDrag = useRef<(() => void) | null>(null);
+  useEffect(() => () => stopDrag.current?.(), []);
+
   // Hide empty modules (and blank zones) in kiosk mode (they claim no space).
   if (!studio && (!hasData || blank)) return null;
 
@@ -173,7 +179,7 @@ export function PlacementFrame({
     let active = false;
     let last: ZoneRect | null = null;
 
-    trackPointer(
+    stopDrag.current = trackPointer(
       (ev) => {
         if (!active && Math.hypot(ev.clientX - startX, ev.clientY - startY) > 4) {
           active = true;
@@ -198,6 +204,7 @@ export function PlacementFrame({
 
   /** Resize: drag a handle; the opposite edge stays put. */
   function startResize(e: ReactPointerEvent, h: Handle) {
+    if (e.button !== 0) return;
     e.preventDefault();
     e.stopPropagation();
     const startX = e.clientX;
@@ -205,7 +212,7 @@ export function PlacementFrame({
     let last: ZoneRect | null = null;
     onZoneDragStart?.(placement.id);
 
-    trackPointer(
+    stopDrag.current = trackPointer(
       (ev) => {
         const dc = pitchX > 0 ? Math.round((ev.clientX - startX) / pitchX) : 0;
         const dr = pitchY > 0 ? Math.round((ev.clientY - startY) / pitchY) : 0;

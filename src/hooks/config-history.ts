@@ -64,12 +64,20 @@ export function beginTransaction<T>(history: History<T>, start: T): History<T> {
   return history.txn ? history : { ...history, txn: { start } };
 }
 
-/** End a transaction: its changes (`current` differs from the start) become one step. */
-export function commitTransaction<T>(history: History<T>, current: T, at: number): History<T> {
+/**
+ * End a transaction: its changes (`current` differs from the start, by
+ * `same`: identity unless the caller compares by value) become one step.
+ */
+export function commitTransaction<T>(
+  history: History<T>,
+  current: T,
+  at: number,
+  same: (a: T, b: T) => boolean = Object.is
+): History<T> {
   if (!history.txn) return history;
   const { start } = history.txn;
   const open = { ...history, txn: null };
-  return current === start ? open : recordChange(open, start, undefined, at);
+  return same(current, start) ? open : recordChange(open, start, undefined, at);
 }
 
 /** Abort a transaction: the snapshot to restore, and the history as it was before it. */
@@ -78,6 +86,15 @@ export function cancelTransaction<T>(
 ): { history: History<T>; value: T } | null {
   if (!history.txn) return null;
   return { value: history.txn.start, history: { ...history, txn: null } };
+}
+
+/**
+ * A fresh history for a value replaced from outside (the server copy
+ * arriving). A transaction in flight stays open from the new value, so the
+ * drag still commits as one step and Esc still restores something.
+ */
+export function resetHistory<T>(history: History<T>, value: T): History<T> {
+  return history.txn ? { ...emptyHistory<T>(), txn: { start: value } } : emptyHistory<T>();
 }
 
 /** Step back: the snapshot to show, and `current` moves to the redo stack. */

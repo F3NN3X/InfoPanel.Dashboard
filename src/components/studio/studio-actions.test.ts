@@ -12,6 +12,7 @@ import {
   addModuleAt,
   addPresetAt,
   canGrowTo,
+  canToggleZonesVisible,
   followGlobalStyle,
   pasteStyleToZones,
   withSampleZones,
@@ -483,3 +484,26 @@ describe("withSampleZones", () => {
     expect(out.placements.map((p) => p.id)).not.toContain("s1");
   });
 });
+
+describe("hidden zones and no-op box changes", () => {
+  it("refuses to show a zone whose cells were taken while it was hidden", () => {
+    const p = profile([zone("a", 1, 1, 3, 2, { visible: false }), zone("b", 1, 1, 3, 2)]);
+    expect(canToggleZonesVisible(p, ["a"])).toBe(false);
+    expect(canToggleZonesVisible(p, ["b"])).toBe(true); // hiding is always fine
+  });
+
+  it("allows showing a hidden zone with free cells, and refuses a pair that overlap each other", () => {
+    const free = profile([zone("a", 1, 1, 3, 2, { visible: false }), zone("b", 5, 1, 3, 2)]);
+    expect(canToggleZonesVisible(free, ["a"])).toBe(true);
+    const pair = profile([zone("a", 1, 1, 3, 2, { visible: false }), zone("b", 2, 1, 3, 2, { visible: false })]);
+    expect(canToggleZonesVisible(pair, ["a", "b"])).toBe(false);
+  });
+
+  it("returns the same profile when a box is already there", () => {
+    const p = profile([zone("a", 2, 2, 3, 2), zone("b", 6, 2, 2, 2)]);
+    expect(setZoneRect(p, "a", { col: 2, row: 2, cols: 3, rows: 2 })).toBe(p);
+    expect(setZoneRects(p, { a: { col: 2, row: 2, cols: 3, rows: 2 } })).toBe(p);
+    expect(setZoneRect(p, "a", { col: 1, row: 2, cols: 3, rows: 2 })).not.toBe(p);
+  });
+});
+

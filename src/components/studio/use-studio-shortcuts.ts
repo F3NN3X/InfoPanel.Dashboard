@@ -35,6 +35,8 @@ export interface KeyInput {
   metaKey: boolean;
   shiftKey: boolean;
   altKey: boolean;
+  /** AltGr is down (Ctrl+Alt on some layouts): a typed character, not a chord. */
+  altGraph?: boolean;
 }
 
 export interface ShortcutContext {
@@ -47,6 +49,8 @@ export interface ShortcutContext {
    * Alt+↑/↓ act on it (the arrows still move the zone).
    */
   widget?: boolean;
+  /** A pointer drag is in flight: only Esc (the drag's own cancel) is left alive. */
+  dragging?: boolean;
 }
 
 const ARROWS: Record<string, { cols: number; rows: number }> = {
@@ -86,18 +90,20 @@ function widgetCommand(e: KeyInput): ShortcutAction | null {
   return null;
 }
 
-/** Ctrl/cmd shortcuts that stay live in text fields and dialogs. */
+/** Ctrl/cmd shortcuts that stay live in text fields and dialogs (undo / redo stay a text field's own while typing). */
 const ALWAYS_LIVE = new Set<ShortcutAction["type"]>(["save", "undo", "redo"]);
 
 /**
  * Map a key press to a studio action, or null to leave it alone. Plain
- * keys are ignored while typing or while a dialog/menu is open; Esc,
- * Ctrl+S, Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y and Ctrl+K work while typing,
- * and Ctrl+S / undo / redo even with a dialog open (Esc is the dialog's).
+ * keys (and Esc) are ignored while typing or while a dialog/menu is open;
+ * Ctrl+S and Ctrl+K work while typing, and Ctrl+S / undo / redo even with a
+ * dialog open (Esc is the dialog's). Undo / redo in a text field are the
+ * browser's own. While a drag is in flight everything is ignored.
  * With `ctx.widget`, the widget keys (see `ShortcutContext.widget`) act
  * on the selected panel widget.
  */
 export function shortcutAction(e: KeyInput, ctx: ShortcutContext): ShortcutAction | null {
+  if (ctx.dragging) return null;
   const action = zoneAction(e, ctx);
   if (!ctx.widget || ctx.typing || ctx.overlay) return action;
   if (action) return WIDGET_SCOPED[action.type] ?? action;
@@ -110,7 +116,7 @@ export function shortcutAction(e: KeyInput, ctx: ShortcutContext): ShortcutActio
 
 /** Ctrl/cmd+Alt+C / V: copy / paste the zone's style (by `code`, not `key`). */
 function styleAction(e: KeyInput): ShortcutAction | null {
-  if (e.shiftKey) return null;
+  if (e.shiftKey || e.altGraph) return null;
   if (e.code === "KeyC") return { type: "copy-style" };
   if (e.code === "KeyV") return { type: "paste-style" };
   return null;
@@ -125,12 +131,13 @@ function zoneAction(e: KeyInput, ctx: ShortcutContext): ShortcutAction | null {
   if (e.ctrlKey || e.metaKey) {
     const action = commandAction(e);
     if (!action) return null;
+    if (action.type === "undo" || action.type === "redo") return ctx.typing ? null : action;
     if (ALWAYS_LIVE.has(action.type)) return action;
     if (action.type === "palette") return ctx.overlay ? null : action;
     return ctx.typing || ctx.overlay ? null : action;
   }
-  if (e.key === "Escape") return ctx.overlay ? null : { type: "escape" };
   if (ctx.typing || ctx.overlay) return null;
+  if (e.key === "Escape") return { type: "escape" };
   if (e.key === "Delete" || e.key === "Backspace") return { type: "remove" };
   if (e.key === "h" || e.key === "H") return e.shiftKey ? null : { type: "toggle-visible" };
   if (e.key === "?") return { type: "cheatsheet" };
@@ -234,22 +241,40 @@ function hasOverlay(): boolean {
 /**
  * Studio keyboard shortcuts on the window (see `shortcutAction`). The
  * handler always sees the latest `onAction` and `widget` (a panel widget
- * is selected).
+ * is selected); `dragging` says whether a pointer drag is in flight.
  */
-export function useStudioShortcuts(onAction: (action: ShortcutAction) => void, widget = false) {
+export function useStudioShortcuts(
+  onAction: (action: ShortcutAction) => void,
+  widget = false,
+  dragging: () => boolean = () => false
+) {
   const handler = useRef(onAction);
   handler.current = onAction;
   const widgetRef = useRef(widget);
   widgetRef.current = widget;
+  const draggingRef = useRef(dragging);
+  draggingRef.current = dragging;
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.defaultPrevented || e.isComposing) return;
-      const action = shortcutAction(e, {
-        typing: isTyping(document.activeElement),
-        overlay: hasOverlay(),
-        widget: widgetRef.current,
-      });
+      const action = shortcutAction(
+        {
+          key: e.key,
+          code: e.code,
+          ctrlKey: e.ctrlKey,
+          metaKey: e.metaKey,
+          shiftKey: e.shiftKey,
+          altKey: e.altKey,
+          altGraph: e.getModifierState("AltGraph"),
+        },
+        {
+          dragging: draggingRef.current(),
+          typing: isTyping(document.activeElement),
+          overlay: hasOverlay(),
+          widget: widgetRef.current,
+        }
+      );
       if (!action) return;
       e.preventDefault();
       handler.current(action);

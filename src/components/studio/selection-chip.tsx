@@ -26,6 +26,8 @@ interface SelectionChipProps {
   onToggleVisible: () => void;
   /** Open the zone context menu below the More button (viewport px). */
   onMore: (x: number, y: number) => void;
+  /** The zone context menu is open (More's `aria-expanded`). */
+  moreOpen?: boolean;
 }
 
 const CHIP_BUTTON =
@@ -44,6 +46,7 @@ export function SelectionChip({
   onPickWidget,
   onToggleVisible,
   onMore,
+  moreOpen = false,
 }: SelectionChipProps) {
   const multi = count > 1;
   return (
@@ -79,6 +82,7 @@ export function SelectionChip({
         type="button"
         onClick={onToggleVisible}
         title={`${anyVisible ? "Hide" : "Show"} (${KEYS.hide})`}
+        aria-label={anyVisible ? "Hide" : "Show"}
         className={cn(CHIP_BUTTON, "w-6")}
       >
         {anyVisible ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
@@ -90,6 +94,9 @@ export function SelectionChip({
           onMore(r.left, r.bottom + 4);
         }}
         title="More"
+        aria-label="More"
+        aria-haspopup="menu"
+        aria-expanded={moreOpen}
         className={cn(CHIP_BUTTON, "w-6")}
       >
         <MoreHorizontal className="h-3.5 w-3.5" />
