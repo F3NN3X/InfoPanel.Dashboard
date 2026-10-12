@@ -126,4 +126,35 @@ describe("audiomodern", () => {
     expect(renderModule(audioModernModule, { layout: "card", view: "audiometer", showMute: true }, sensors())).toContain(">M<");
     expect(renderModule(audioModernModule, { layout: "card", view: "audiometer", showMute: false }, sensors())).not.toContain(">M<");
   });
+
+  // visual-review rows: the level value and peak dB at every span, and all six devices (not four)
+  describe("parity at small spans", () => {
+    const html = (layout: string, extra: Record<string, string | boolean> = {}) => renderModule(audioModernModule, { layout, ...extra }, sensors());
+    const flat = (h: string) => h.replace(/<[^>]+>/g, "|").replace(/\|+/g, "|");
+
+    it("shows the level percentage of each device at 2x1 (xs)", () => {
+      const out = flat(html("simple"));
+      expect(out).toContain("|97|%|");
+      expect(out).toContain("|39|%|");
+    });
+    it.each(["compact", "standard", "card"])("shows the level and the peak dB of each device at %s", (layout) => {
+      const out = flat(html(layout));
+      expect(out).toContain("|97|%|-8.7| dB|");
+      expect(out).toContain("|39|%|-20.3| dB|");
+    });
+    it("lists all six devices, not the four the row height used to allow", () => {
+      for (const layout of ["simple", "standard"]) {
+        const out = html(layout);
+        for (const name of ["Voice", "System", "Default device", "Headphones", "Browser", "Speakers"]) expect(out, `${layout}/${name}`).toContain(name);
+      }
+    });
+    it("keeps the peak out when the details are off", () => {
+      expect(flat(html("standard", { showDetails: false }))).not.toContain("-8.7");
+    });
+    it("shows the level and peak under each column of the vertical bridge", () => {
+      const out = flat(html("standard", { meterOrientation: "vertical" }));
+      expect(out).toContain("|97|%|");
+      expect(out).toContain("|-8.7| dB|");
+    });
+  });
 });
