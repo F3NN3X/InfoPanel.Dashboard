@@ -1,5 +1,6 @@
 // Template widgets, group A: system and hardware (see docs/redesign/phase9/brief-9.3c-templates.md).
 import type { DashboardModule, ModuleSettings } from "@/modules/types";
+import { THERMALS_SETTINGS } from "@/modules/hardware-modern";
 import { templateModule } from "../module";
 import * as SystemOverview from "../SystemOverview";
 import * as MenuBar from "../MenuBar";
@@ -40,7 +41,7 @@ export const GROUP_A: DashboardModule[] = [
   templateModule({ meta: GpuRings.meta, Component: GpuRings.default, settings: [], toProps: pass<Partial<GpuRings.GpuRingsProps>>("gpu", "outer", "inner", "colors") }),
   templateModule({ meta: GpuMonitor.meta, Component: GpuMonitor.default, settings: [], toProps: pass<Partial<GpuMonitor.GpuMonitorProps>>("gpu", "warnTemp", "critTemp") }),
   templateModule({ meta: MemoryUsage.meta, Component: MemoryUsage.default, settings: [], toProps: pass<Partial<MemoryUsage.MemoryUsageProps>>("warn", "crit") }),
-  templateModule({ meta: Thermals.meta, Component: Thermals.default, settings: [], toProps: pass<Partial<Thermals.ThermalsProps>>("sortBy", "warn", "crit", "max") }),
+  templateModule({ meta: Thermals.meta, Component: Thermals.default, settings: THERMALS_SETTINGS, toProps: pass<Partial<Thermals.ThermalsProps>>("sortBy", "warn", "crit", "max", "view", "discover", "showFans", "fanColor") }),
   templateModule({ meta: PowerDraw.meta, Component: PowerDraw.default, settings: [], toProps: pass<Partial<PowerDraw.PowerDrawProps>>("budget") }),
   templateModule({ meta: Fans.meta, Component: Fans.default, settings: [], toProps: pass<Partial<Fans.FansProps>>("maxRpm", "spin") }),
 ];

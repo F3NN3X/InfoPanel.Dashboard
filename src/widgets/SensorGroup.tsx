@@ -1,4 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
+import Discovered from "./SensorGroup/Discovered";
 import { Widget, shell, get, num, fmt, has, Bar, Num, tone, TONES, type ShellProps, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
@@ -36,9 +37,21 @@ export interface SensorGroupProps extends ShellProps {
   layout?: "auto" | "rows" | "grid";
   /** Show a bar per item (default true). */
   bars?: boolean;
+  /** List every `libre.*` / `hwinfo.*` reading instead of `sensors` (temps, fans, power first). */
+  auto?: boolean;
+  /** Auto mode: rows shown, 0 = all (default 12). */
+  maxRows?: number;
+  /** Auto mode: the dot colour per reading kind; empty = temperature red, fan blue, power amber. */
+  tempColor?: string;
+  fanColor?: string;
+  powerColor?: string;
 }
 
 export default function SensorGroup(p: SensorGroupProps) {
+  return p.auto ? <Discovered {...p} /> : <Listed {...p} />;
+}
+
+function Listed(p: SensorGroupProps) {
   const d = p.data;
   const items = (p.sensors ?? DEFAULT).map((s) => {
     const raw = get(d, s.key);

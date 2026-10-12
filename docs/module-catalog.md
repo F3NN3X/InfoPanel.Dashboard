@@ -106,7 +106,7 @@ re-exported there; style helpers are in `components/widget-style.ts`):
   `1% low fps` / `1% low`, `0.1% low`, `current frame time` / `frame time`,
   `gpu-name`, `gpu utilization`, `gpu busy`, `cpu busy`, `display latency`,
   `refreshrate`, `resolution`, `windowtitle`.
-- **hardwaremodern** (`ModernHardware`) — every live `libre.*` / `hwinfo.*`
+- **hardwaremodern** (`SensorGroup` auto / `Thermals` templates) — every live `libre.*` / `hwinfo.*`
   entry (LibreHardwareMonitor / HWiNFO exports); rows are kind-dotted
   (temp / fan / power first), capped by the `maxRows` option. The "temps"
   view renders the top four temperature readings as 270° arc gauges

@@ -1,5 +1,6 @@
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, fmt, detect, pretty, tone, TONES, useHistory, Empty, hw, type Tone, type ShellProps, type WidgetMeta } from "./kit";
+import { Widget, shell, get, num, fmt, detect, pretty, tone, TONES, useHistory, Empty, Ring, Num, hw, type Tone, type ShellProps, type WidgetMeta } from "./kit";
+import { readings } from "./hardware-readings";
 
 export const meta: WidgetMeta = {
   id: "Thermals",
@@ -20,6 +21,13 @@ export interface ThermalsProps extends ShellProps {
   crit?: number;
   /** Bar scale, default 100. */
   max?: number;
+  /** `gauges` draws the hottest four sensors as rings with a fan row under them. */
+  view?: "bars" | "gauges";
+  /** Read every `libre.*` / `hwinfo.*` temperature instead of the curated CPU / GPU / disk / VRM list. */
+  discover?: boolean;
+  /** Gauges view: the fan readings row (default on) and its dot colour (empty = blue). */
+  showFans?: boolean;
+  fanColor?: string;
 }
 
 interface Sensor {
@@ -37,14 +45,15 @@ export default function Thermals(p: ThermalsProps) {
     gpu = hw(d).gpu;
   const L = (k: string) => num(get(d, `libre.${k}`));
   const raw: { id: string; label: string; v: number; warn: number; crit: number }[] = [];
-  if (cpu) raw.push({ id: "cpu", label: "CPU", v: L(`${cpu}_core__tctl_tdie`), warn: 80, crit: 90 });
-  if (gpu) {
+  if (p.discover) for (const r of readings(d)) if (r.kind === "temp") raw.push({ id: r.key, label: r.label, v: r.value, warn: 70, crit: 85 });
+  if (cpu && !p.discover) raw.push({ id: "cpu", label: "CPU", v: L(`${cpu}_core__tctl_tdie`), warn: 80, crit: 90 });
+  if (gpu && !p.discover) {
     raw.push({ id: "gpu", label: "GPU", v: L(`${gpu}_gpu_core`), warn: 75, crit: 85 });
     raw.push({ id: "hot", label: "GPU memory", v: L(`${gpu}_gpu_memory_junction`), warn: 90, crit: 100 });
   }
-  for (const s of detect(d, /^libre\.(.+)_power_on_hours$/))
+  for (const s of p.discover ? [] : detect(d, /^libre\.(.+)_power_on_hours$/))
     raw.push({ id: s, label: pretty(s).split(" ")[0], v: [`${s}_composite_temperature`, `${s}_temperature`, `${s}_temperature__2`].map(L).find(Number.isFinite) ?? NaN, warn: L(`${s}_warning_temperature`) || 70, crit: L(`${s}_critical_temperature`) || 85 });
-  raw.push({ id: "vrm", label: "VRM", v: L("embedded_controller_vrm"), warn: 90, crit: 105 });
+  if (!p.discover) raw.push({ id: "vrm", label: "VRM", v: L("embedded_controller_vrm"), warn: 90, crit: 105 });
   const list: Sensor[] = raw.filter((x) => Number.isFinite(x.v) && x.v > 0).map((x) => ({ ...x, t: tone(x.v, p.warn ?? x.warn, p.crit ?? x.crit) }));
   if (p.sortBy !== "fixed") list.sort((a, b) => b.v - a.v);
   const top = list[0];
@@ -65,6 +74,39 @@ export default function Thermals(p: ThermalsProps) {
       compact={{ label: `Hottest · ${top.label}`, value: top.v, unit: "°C", sub: list.slice(1, 3).map((x) => `${x.label} ${fmt(x.v, 0)}°`).join(" · "), hist, t: top.t }}
     >
       {({ size, h }) => {
+        if (p.view === "gauges") {
+          const fans = p.showFans === false ? [] : readings(d).filter((r) => r.kind === "fan").slice(0, 4);
+          const ring = Math.round(Math.min(96, Math.max(44, h * 0.24)));
+          return (
+            <div className="flex h-full flex-col items-center justify-center gap-3 overflow-hidden">
+              <div className="grid grid-cols-2 justify-items-center gap-x-4 gap-y-3">
+                {list.slice(0, 4).map((x) => (
+                  <div key={x.id} className="flex flex-col items-center gap-1">
+                    <div style={{ width: ring }}>
+                      <Ring value={x.v} max={max} thickness={9} t={x.t}>
+                        <Num className="text-sm font-semibold">{fmt(x.v, 0)}°</Num>
+                      </Ring>
+                    </div>
+                    <span className="max-w-[96px] truncate text-[11px] text-[color:var(--w-muted)]" title={x.label}>
+                      {x.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              {fans.length > 0 && (
+                <div className="flex flex-wrap justify-center gap-2">
+                  {fans.map((r) => (
+                    <span key={r.key} className="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--w-track)] px-2.5 py-1 text-[11px]" title={r.label}>
+                      <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: p.fanColor || "#38bdf8" }} />
+                      <span className="max-w-[120px] truncate text-[color:var(--w-muted)]">{r.label}</span>
+                      <span className="font-semibold tabular-nums">{r.text}</span>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        }
         const n = Math.max(1, Math.floor(h / (size === "lg" ? 36 : 28)));
         return (
           <ul className="flex h-full flex-col justify-center gap-2.5 overflow-hidden">

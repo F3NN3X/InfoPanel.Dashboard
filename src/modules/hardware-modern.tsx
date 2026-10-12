@@ -1,23 +1,31 @@
-import { ModernHardware, type ModernHardwareRow } from "@/components/ModernHardware";
-import { liveText, liveValue } from "@/lib/sensors";
-import { chromeOf, STANDARD_SETTINGS } from "./standard-settings";
-import {
-  effectiveSettings,
-  type DashboardModule,
-  type ModuleSetting,
-  type SensorMap,
-} from "./types";
+import SensorGroup, { meta, type SensorGroupProps } from "@/widgets/SensorGroup";
+import Thermals, { type ThermalsProps } from "@/widgets/Thermals";
+import { templateModule } from "@/widgets/module";
+import type { ModuleSetting, ModuleSettings } from "./types";
 
 /**
  * Modern hardware widget — key readings from the LibreHardwareMonitor /
- * HWiNFO exports (the `libre.*` and `hwinfo.*` sensor keys) as a modern
- * list with kind-colored dots (temp / fan / power). One component
- * (`ModernHardware`) picks card / standard / compact / simple from the
- * measured zone size.
+ * HWiNFO exports (the `libre.*` and `hwinfo.*` sensor keys). The reading list is the
+ * `SensorGroup` template in auto-discovery mode (kind-colored dots: temp / fan / power),
+ * the Temp gauges view is the `Thermals` template; both render through the widget shell.
  */
 
+const MAX_ROWS: ModuleSetting = {
+  key: "maxRows",
+  label: "Max rows (0 = all)",
+  type: "number",
+  default: 12,
+  min: 0,
+  max: 100,
+  step: 2,
+  group: "Content",
+};
+const SHOW_FANS: ModuleSetting = { key: "showFans", label: "Fan readings", type: "boolean", default: true, group: "Content" };
+const TEMP_COLOR: ModuleSetting = { key: "tempColor", label: "Temperature dot color", type: "color", default: "", group: "Dot colors" };
+const FAN_COLOR: ModuleSetting = { key: "fanColor", label: "Fan dot color", type: "color", default: "", group: "Dot colors" };
+const POWER_COLOR: ModuleSetting = { key: "powerColor", label: "Power dot color", type: "color", default: "", group: "Dot colors" };
+
 const HARDWARE_MODERN_SETTINGS: ModuleSetting[] = [
-  ...STANDARD_SETTINGS,
   {
     key: "view",
     label: "View",
@@ -29,102 +37,61 @@ const HARDWARE_MODERN_SETTINGS: ModuleSetting[] = [
     ],
     group: "Content",
   },
-  {
-    key: "maxRows",
-    label: "Max rows (0 = all)",
-    type: "number",
-    default: 12,
-    min: 0,
-    max: 100,
-    step: 2,
-    group: "Content",
-  },
-  { key: "showFans", label: "Fan readings", type: "boolean", default: true, group: "Content" },
-  { key: "tempColor", label: "Temperature dot color", type: "color", default: "", group: "Dot colors" },
-  { key: "fanColor", label: "Fan dot color", type: "color", default: "", group: "Dot colors" },
-  { key: "powerColor", label: "Power dot color", type: "color", default: "", group: "Dot colors" },
+  MAX_ROWS,
+  SHOW_FANS,
+  TEMP_COLOR,
+  FAN_COLOR,
+  POWER_COLOR,
 ];
 
-/** Classify a reading by its name / unit for the dot color. */
-function kindOf(name: string, unit: string): ModernHardwareRow["kind"] {
-  const t = `${name} ${unit}`.toLowerCase();
-  if (/fan|rpm/.test(t)) return "fan";
-  if (/watt|power|\bw\b/.test(t)) return "power";
-  if (/temp|°c|celsius|°c\b/.test(t)) return "temp";
-  return "other";
-}
+/** The SensorGroup template's own settings: the auto-discovered list. */
+export const SENSOR_GROUP_SETTINGS: ModuleSetting[] = [
+  { key: "auto", label: "Auto-discover hardware readings", type: "boolean", default: false, group: "Content" },
+  { ...MAX_ROWS, visibleIf: (v) => Boolean(v.auto) },
+  { ...TEMP_COLOR, visibleIf: (v) => Boolean(v.auto) },
+  { ...FAN_COLOR, visibleIf: (v) => Boolean(v.auto) },
+  { ...POWER_COLOR, visibleIf: (v) => Boolean(v.auto) },
+];
 
-/**
- * Pick the readings worth surfacing: temperatures, fans, power first
- * (the interesting ones), then everything else.
- */
-function pickRows(
-  sensors: SensorMap,
-  maxRows: number
-): ModernHardwareRow[] {
-  const entries = Object.entries(sensors).filter(
-    ([key]) => key.startsWith("libre.") || key.startsWith("hwinfo.")
-  );
-
-  const rows: ModernHardwareRow[] = [];
-  for (const [key, sensor] of entries) {
-    const value = liveValue(sensor);
-    const text = liveText(sensor);
-    if (value === undefined && !text) continue;
-    const label = sensor.name ?? key;
-    const unit = sensor.unit ?? "";
-    const kind = kindOf(label, unit);
-    rows.push({
-      label,
-      value: text ?? (value !== undefined ? `${value.toFixed(1)}` : "—"),
-      kind,
-      temp: kind === "temp" ? value : undefined,
-      fan: kind === "fan" ? value : undefined,
-    });
-  }
-
-  const rank: Record<ModernHardwareRow["kind"], number> = {
-    temp: 0,
-    fan: 1,
-    power: 2,
-    other: 3,
-  };
-  rows.sort((a, b) => rank[a.kind] - rank[b.kind]);
-  return maxRows > 0 ? rows.slice(0, maxRows) : rows;
-}
-
-export const hardwareModernModule: DashboardModule = {
-  id: "hardwaremodern",
-  title: "Hardware (modern)",
-  minCols: 2,
-  minRows: 1,
-  prefixes: ["libre.", "hwinfo."],
-  settings: HARDWARE_MODERN_SETTINGS,
-  render: (sensors, s) => {
-    const cfg = effectiveSettings(hardwareModernModule, s);
-    const maxRows = Math.max(0, Math.round(Number(cfg.maxRows) || 0));
-    const rows = pickRows(sensors, maxRows);
-    if (rows.length === 0) return null;
-
-    return (
-      <ModernHardware
-        rows={rows}
-        gauges={String(cfg.view) === "temps"}
-        showFans={Boolean(cfg.showFans)}
-        kindColors={{
-          temp: String(cfg.tempColor ?? ""),
-          fan: String(cfg.fanColor ?? ""),
-          power: String(cfg.powerColor ?? ""),
-        }}
-        layout={String(cfg.layout) as
-          | "auto"
-          | "card"
-          | "standard"
-          | "compact"
-          | "simple"}
-        surfaceStyle={String(cfg.surface) as "glass" | "matte-light" | "matte-dark"}
-        chrome={chromeOf(cfg)}
-      />
-    );
+/** The Thermals template's own settings: gauges, every sensor, the fan row. */
+export const THERMALS_SETTINGS: ModuleSetting[] = [
+  {
+    key: "view",
+    label: "View",
+    type: "select",
+    default: "bars",
+    options: [
+      { value: "bars", label: "Bars" },
+      { value: "gauges", label: "Temp gauges" },
+    ],
+    group: "Content",
   },
-};
+  { key: "discover", label: "All temperature sensors", type: "boolean", default: false, group: "Content" },
+  { ...SHOW_FANS, visibleIf: (v) => v.view === "gauges" },
+  { ...FAN_COLOR, group: "Content", visibleIf: (v) => v.view === "gauges" },
+];
+
+type HardwareProps = SensorGroupProps & ThermalsProps & { gauges?: boolean };
+
+/** The Temp gauges view is Thermals; the reading list is SensorGroup in auto mode. */
+function Hardware({ gauges, ...p }: HardwareProps) {
+  return gauges ? <Thermals {...p} view="gauges" discover /> : <SensorGroup {...p} auto />;
+}
+
+export const hardwareToProps = (s: ModuleSettings): Partial<HardwareProps> => ({
+  gauges: s.view === "temps",
+  maxRows: Math.max(0, Math.round(Number(s.maxRows) || 0)),
+  showFans: Boolean(s.showFans),
+  tempColor: String(s.tempColor ?? ""),
+  fanColor: String(s.fanColor ?? ""),
+  powerColor: String(s.powerColor ?? ""),
+});
+
+export const hardwareModernModule = templateModule({
+  meta,
+  Component: Hardware,
+  settings: HARDWARE_MODERN_SETTINGS,
+  toProps: hardwareToProps,
+  title: "Hardware (modern)",
+  legacy: { id: "hardwaremodern", minCols: 2, minRows: 1, prefixes: ["libre.", "hwinfo."], libraryHidden: true },
+});
