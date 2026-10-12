@@ -32,52 +32,59 @@ export default function PlaytimeShare(p: PlaytimeShareProps) {
       studio={{ label: "Playtime · 2 weeks", value: num(Lb("recent-playtime")), d: 1, unit: "h", rows: games.map((g) => ({ n: g.name, v: `${fmt(g.two, 1)} h`, pct: (g.two / sum) * 100 })) }}
       compact={{ label: "Last 2 weeks", value: num(Lb("recent-playtime")), d: 1, unit: "h", sub: games[0]?.name, pct: ((games[0]?.two || 0) / sum) * 100 }}
     >
-      {({ w, h }) => (
-        <div className="flex h-full min-w-0 flex-col gap-3">
-          <div className="flex items-end gap-6">
-            <div className="flex flex-col gap-1">
-              <span className="text-[11px] font-medium uppercase tracking-[0.06em] text-[color:var(--w-muted)]">Last 2 weeks</span>
-              <span className="text-[28px]">
-                <Num className="leading-none">{fmt(num(Lb("recent-playtime")), 1)}</Num>
-                <span className="ml-1 text-sm text-[color:var(--w-muted)]">h</span>
-              </span>
+      {({ w, h }) => {
+        // what the figures, the share bar and the lifetime line leave of the height, in 20px rows 6px apart
+        const footer = h > 170;
+        const rowsN = Math.max(0, Math.floor((h - 99 - (footer ? 28 : 0) + 6) / 26));
+        return (
+          <div className="flex h-full min-w-0 flex-col gap-3">
+            <div className="flex items-end gap-6">
+              <div className="flex flex-col gap-1">
+                <span className="text-[11px] font-medium uppercase tracking-[0.06em] text-[color:var(--w-muted)]">Last 2 weeks</span>
+                <span className="text-[28px]">
+                  <Num className="leading-none">{fmt(num(Lb("recent-playtime")), 1)}</Num>
+                  <span className="ml-1 text-sm text-[color:var(--w-muted)]">h</span>
+                </span>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-[11px] font-medium uppercase tracking-[0.06em] text-[color:var(--w-muted)]">Sessions</span>
+                <span className="text-[28px]">
+                  <Num className="leading-none">{fmt(num(Lb("recent-sessions")))}</Num>
+                </span>
+              </div>
             </div>
-            <div className="flex flex-col gap-1">
-              <span className="text-[11px] font-medium uppercase tracking-[0.06em] text-[color:var(--w-muted)]">Sessions</span>
-              <span className="text-[28px]">
-                <Num className="leading-none">{fmt(num(Lb("recent-sessions")))}</Num>
-              </span>
+            <div className="flex h-3 w-full gap-[2px] overflow-hidden rounded-md">
+              {games.map((g, i) => (
+                <span key={g.name} title={`${g.name} · ${fmt(g.two, 1)} h`} className="h-full transition-[flex-grow] duration-700 first:rounded-l-md last:rounded-r-md" style={{ flexGrow: g.two, background: pal[i % pal.length] }} />
+              ))}
             </div>
+            {rowsN > 0 && (
+              <ul className="flex min-h-0 flex-col gap-1.5 overflow-hidden">
+                {games.slice(0, rowsN).map((g, i) => (
+                  <li key={g.name}>
+                    <LegendRow
+                      color={pal[i % pal.length]}
+                      label={<span className="text-[color:var(--w-fg)]">{g.name}</span>}
+                      className="text-[13px]"
+                      value={
+                        <span className="whitespace-nowrap font-normal text-[color:var(--w-muted)]">
+                          <b className="font-medium text-[color:var(--w-fg)]">{fmt(g.two, 1)} h</b>
+                          {w > 300 && ` · ${fmt(g.total, 1)} h total`}
+                        </span>
+                      }
+                    />
+                  </li>
+                ))}
+              </ul>
+            )}
+            {footer && (
+              <span className="mt-auto truncate text-xs text-[color:var(--w-faint)]">
+                Library: {fmt(num(Lb("total-games")))} games · {fmt(num(Lb("total-playtime")))} h lifetime
+              </span>
+            )}
           </div>
-          <div className="flex h-3 w-full gap-[2px] overflow-hidden rounded-md">
-            {games.map((g, i) => (
-              <span key={g.name} title={`${g.name} · ${fmt(g.two, 1)} h`} className="h-full transition-[flex-grow] duration-700 first:rounded-l-md last:rounded-r-md" style={{ flexGrow: g.two, background: pal[i % pal.length] }} />
-            ))}
-          </div>
-          <ul className="flex min-h-0 flex-col gap-1.5 overflow-hidden">
-            {games.slice(0, Math.max(1, Math.floor((h - 120) / 22))).map((g, i) => (
-              <li key={g.name}>
-                <LegendRow
-                  color={pal[i % pal.length]}
-                  label={<span className="text-[color:var(--w-fg)]">{g.name}</span>}
-                  className="text-[13px]"
-                  value={
-                    <span className="whitespace-nowrap font-normal text-[color:var(--w-muted)]">
-                      <b className="font-medium text-[color:var(--w-fg)]">{fmt(g.two, 1)} h</b>
-                      {w > 300 && ` · ${fmt(g.total, 1)} h total`}
-                    </span>
-                  }
-                />
-              </li>
-            ))}
-          </ul>
-          {h > 170 && (
-            <span className="mt-auto truncate text-xs text-[color:var(--w-faint)]">
-              Library: {fmt(num(Lb("total-games")))} games · {fmt(num(Lb("total-playtime")))} h lifetime
-            </span>
-          )}
-        </div>
-      )}
+        );
+      }}
     </Widget>
   );
 }
