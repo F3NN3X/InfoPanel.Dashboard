@@ -1,0 +1,1737 @@
+{
+ "skins": {
+  "default": {},
+  "tui": {
+   "surface": "tui",
+   "radius": 6,
+   "font": "'JetBrains Mono','Geist Mono',ui-monospace,monospace",
+   "num": "'JetBrains Mono','Geist Mono',monospace",
+   "graph": "braille",
+   "meter": "blocks",
+   "header": "tui",
+   "ring": 0.8
+  },
+  "macos": {
+   "surface": "vibrancy",
+   "radius": 22,
+   "font": "-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',system-ui,sans-serif",
+   "num": "ui-rounded,'SF Pro Rounded',-apple-system,system-ui,sans-serif",
+   "graph": "area",
+   "meter": "pill",
+   "header": "macos",
+   "ring": 1.45
+  },
+  "fluent": {
+   "surface": "mica",
+   "radius": 8,
+   "font": "'Segoe UI Variable Text','Segoe UI',system-ui,sans-serif",
+   "num": "'Segoe UI Variable Display','Segoe UI',system-ui,sans-serif",
+   "numWeight": 600,
+   "graph": "line",
+   "meter": "bar",
+   "header": "fluent"
+  },
+  "hud": {
+   "surface": "hud",
+   "radius": 2,
+   "font": "'Geist Mono',ui-monospace,monospace",
+   "num": "'Geist Mono',monospace",
+   "numWeight": 400,
+   "graph": "step",
+   "meter": "segments",
+   "header": "hud",
+   "ring": 0.45
+  },
+  "ink": {
+   "surface": "outline",
+   "radius": 14,
+   "accent": "#f4f4f5",
+   "num": "'Instrument Serif',Georgia,serif",
+   "numWeight": 400,
+   "graph": "line",
+   "meter": "hair",
+   "header": "ink",
+   "ring": 0.35
+  },
+  "retro": {
+   "surface": "terminal",
+   "radius": 6,
+   "font": "'VT323',monospace",
+   "num": "'VT323',monospace",
+   "numWeight": 400,
+   "numUp": true,
+   "graph": "bars",
+   "meter": "blocks",
+   "header": "retro",
+   "ring": 1.2
+  },
+  "ios": {
+   "surface": "ios",
+   "radius": 24,
+   "font": "-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif",
+   "num": "ui-rounded,'SF Pro Rounded',-apple-system,system-ui,sans-serif",
+   "numWeight": 700,
+   "graph": "area",
+   "meter": "pill",
+   "header": "ios",
+   "ring": 1.7
+  },
+  "android": {
+   "surface": "material",
+   "radius": 28,
+   "font": "'Roboto Flex','Google Sans Flex',Roboto,system-ui,sans-serif",
+   "num": "'Roboto Flex',Roboto,system-ui,sans-serif",
+   "numWeight": 500,
+   "graph": "area",
+   "meter": "wave",
+   "header": "android",
+   "ring": 1.5
+  },
+  "synth": {
+   "surface": "synth",
+   "radius": 14,
+   "accent": "#ff4fd8",
+   "font": "'Geist',system-ui,sans-serif",
+   "num": "'Orbitron',sans-serif",
+   "numWeight": 700,
+   "numGlow": true,
+   "glow": true,
+   "graph": "line",
+   "meter": "segments",
+   "header": "synth"
+  },
+  "brutal": {
+   "surface": "brutal",
+   "radius": 0,
+   "font": "'Space Grotesk',system-ui,sans-serif",
+   "num": "'Space Grotesk',system-ui,sans-serif",
+   "numWeight": 700,
+   "graph": "bars",
+   "meter": "square",
+   "header": "brutal",
+   "ring": 1.6
+  },
+  "cyber": {
+   "surface": "cyber",
+   "radius": 0,
+   "accent": "#f5e642",
+   "font": "'Chakra Petch',system-ui,sans-serif",
+   "num": "'Chakra Petch',system-ui,sans-serif",
+   "numWeight": 600,
+   "graph": "step",
+   "meter": "segments",
+   "header": "cyber",
+   "ring": 0.6
+  },
+  "nixie": {
+   "surface": "nixie",
+   "radius": 12,
+   "accent": "#ff8a3d",
+   "font": "'Geist',system-ui,sans-serif",
+   "num": "'Nixie One',serif",
+   "numWeight": 400,
+   "numGlow": true,
+   "glow": true,
+   "graph": "line",
+   "meter": "segments",
+   "header": "nixie",
+   "ring": 0.5
+  },
+  "instrument": {
+   "surface": "instrument",
+   "radius": 10,
+   "accent": "#7D95FF",
+   "font": "'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif",
+   "num": "'Archivo','IBM Plex Sans',sans-serif",
+   "numWeight": 700,
+   "numStretch": "82%",
+   "graph": "area",
+   "meter": "bar",
+   "header": "instrument",
+   "ring": 1.1
+  }
+ },
+ "surfaces": {
+  "solid": {
+   "classes": "border border-white/[0.06]",
+   "style": {
+    "background": "#141418"
+   }
+  },
+  "glass": {
+   "classes": "backdrop-blur-xl border border-white/10",
+   "style": {
+    "background": "linear-gradient(160deg, rgba(255,255,255,.09), rgba(255,255,255,.03))",
+    "boxShadow": "inset 0 1px 0 rgba(255,255,255,.08)"
+   }
+  },
+  "outline": {
+   "classes": "border border-white/15",
+   "style": {
+    "background": "transparent"
+   }
+  },
+  "flat": {
+   "classes": "",
+   "style": {
+    "background": "transparent"
+   }
+  },
+  "tinted": {
+   "classes": "border",
+   "style": {
+    "background": "linear-gradient(155deg, color-mix(in oklab, var(--accent) 22%, #141418), #121215 65%)",
+    "borderColor": "color-mix(in oklab, var(--accent) 28%, transparent)"
+   }
+  },
+  "aurora": {
+   "classes": "border border-white/[0.07]",
+   "style": {
+    "background": "radial-gradient(120% 90% at 0% 0%, color-mix(in oklab, var(--accent) 38%, transparent), transparent 55%), radial-gradient(90% 80% at 100% 100%, color-mix(in oklab, #a78bfa 26%, transparent), transparent 60%), #0f0f13"
+   }
+  },
+  "neon": {
+   "classes": "border",
+   "style": {
+    "background": "#0a0a0d",
+    "borderColor": "color-mix(in oklab, var(--accent) 80%, transparent)",
+    "boxShadow": "0 0 22px -6px color-mix(in oklab, var(--accent) 70%, transparent), inset 0 0 22px -12px color-mix(in oklab, var(--accent) 80%, transparent)"
+   }
+  },
+  "holo": {
+   "classes": "border border-transparent",
+   "style": {
+    "background": "linear-gradient(#121215,#121215) padding-box, conic-gradient(from 210deg, var(--accent), #a78bfa, #f472b6, #fbbf24, var(--accent)) border-box"
+   }
+  },
+  "mesh": {
+   "classes": "border border-white/[0.06]",
+   "style": {
+    "background": "radial-gradient(rgba(255,255,255,.075) 1px, transparent 1.2px) 0 0/12px 12px, #121215"
+   }
+  },
+  "carbon": {
+   "classes": "border border-white/[0.06]",
+   "style": {
+    "background": "repeating-linear-gradient(45deg, #17171b 0 5px, #121215 5px 10px)"
+   }
+  },
+  "inset": {
+   "classes": "",
+   "style": {
+    "background": "#0e0e11",
+    "boxShadow": "inset 0 2px 8px rgba(0,0,0,.7), inset 0 -1px 0 rgba(255,255,255,.05), 0 1px 0 rgba(255,255,255,.04)"
+   }
+  },
+  "tui": {
+   "classes": "",
+   "style": {
+    "background": "#0b0b0d"
+   }
+  },
+  "vibrancy": {
+   "classes": "backdrop-blur-2xl border border-white/[0.08]",
+   "style": {
+    "background": "linear-gradient(180deg, rgba(62,62,68,.66), rgba(38,38,42,.66))",
+    "boxShadow": "0 12px 30px -12px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.1)"
+   }
+  },
+  "mica": {
+   "classes": "border border-white/[0.07]",
+   "style": {
+    "background": "radial-gradient(140% 120% at 0% 0%, color-mix(in oklab, var(--accent) 11%, transparent), transparent 60%), #202023",
+    "boxShadow": "inset 0 1px 0 rgba(255,255,255,.05)"
+   }
+  },
+  "hud": {
+   "classes": "",
+   "style": {
+    "background": "repeating-linear-gradient(90deg, color-mix(in oklab, var(--accent) 8%, transparent) 0 1px, transparent 1px 22px), repeating-linear-gradient(0deg, color-mix(in oklab, var(--accent) 8%, transparent) 0 1px, transparent 1px 22px), radial-gradient(120% 100% at 50% 0%, color-mix(in oklab, var(--accent) 10%, transparent), transparent 70%), #07090b",
+    "boxShadow": "inset 0 0 0 1px color-mix(in oklab, var(--accent) 20%, transparent)"
+   }
+  },
+  "ios": {
+   "classes": "",
+   "style": {
+    "background": "#1c1c1e",
+    "boxShadow": "0 1px 0 rgba(255,255,255,.04) inset, 0 18px 40px -18px rgba(0,0,0,.8)"
+   }
+  },
+  "material": {
+   "classes": "",
+   "style": {
+    "background": "linear-gradient(color-mix(in oklab, var(--accent) 15%, #1b1b1f), color-mix(in oklab, var(--accent) 15%, #1b1b1f))"
+   }
+  },
+  "synth": {
+   "classes": "border",
+   "style": {
+    "background": "linear-gradient(to top, rgba(255,79,216,.22) 0 1px, transparent 1px) 0 100%/100% 14px repeat-y, linear-gradient(90deg, rgba(56,232,255,.10) 0 1px, transparent 1px) 0 0/22px 100%, linear-gradient(180deg, #12062a 0%, #2a0b3d 62%, #45104a 100%)",
+    "borderColor": "rgba(255,79,216,.35)",
+    "boxShadow": "0 0 24px -8px rgba(255,79,216,.55)"
+   }
+  },
+  "brutal": {
+   "classes": "border-2",
+   "style": {
+    "background": "#121212",
+    "borderColor": "#f4f4f5",
+    "boxShadow": "5px 5px 0 0 var(--accent)",
+    "width": "calc(100% - 6px)",
+    "height": "calc(100% - 6px)"
+   }
+  },
+  "cyber": {
+   "classes": "",
+   "style": {
+    "background": "linear-gradient(135deg, color-mix(in oklab, var(--accent) 18%, transparent) 0 10%, transparent 10%), linear-gradient(#0e0e0b, #0e0e0b)",
+    "clipPath": "polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px))",
+    "boxShadow": "inset 0 0 0 1px color-mix(in oklab, var(--accent) 55%, transparent)"
+   }
+  },
+  "nixie": {
+   "classes": "border border-black",
+   "style": {
+    "background": "radial-gradient(120% 90% at 50% 0%, rgba(255,138,61,.10), transparent 60%), linear-gradient(180deg, #1a1210, #0c0907)",
+    "boxShadow": "inset 0 1px 0 rgba(255,255,255,.06), inset 0 -20px 40px -20px rgba(0,0,0,.9)"
+   }
+  },
+  "instrument": {
+   "classes": "border",
+   "style": {
+    "background": "#161A20",
+    "borderColor": "#29303A"
+   }
+  },
+  "studio": {
+   "classes": "border",
+   "style": {
+    "background": "linear-gradient(160deg, rgba(255,255,255,.075), rgba(255,255,255,.022))",
+    "borderColor": "rgba(255,255,255,.08)"
+   }
+  },
+  "terminal": {
+   "classes": "border font-mono",
+   "style": {
+    "background": "repeating-linear-gradient(0deg, rgba(255,255,255,.03) 0 1px, transparent 1px 3px), #060807",
+    "borderColor": "color-mix(in oklab, var(--accent) 30%, transparent)",
+    "textShadow": "0 0 8px color-mix(in oklab, var(--accent) 45%, transparent)"
+   }
+  }
+ },
+ "ramps": {
+  "accent": null,
+  "thermal": [
+   "#1e3a8a",
+   "#0ea5e9",
+   "#22c55e",
+   "#facc15",
+   "#f97316",
+   "#ef4444"
+  ],
+  "viridis": [
+   "#440154",
+   "#3b528b",
+   "#21918c",
+   "#5ec962",
+   "#fde725"
+  ],
+  "magma": [
+   "#000004",
+   "#3b0f70",
+   "#8c2981",
+   "#de4968",
+   "#fe9f6d",
+   "#fcfdbf"
+  ],
+  "ice": [
+   "#0b1020",
+   "#1e3a5f",
+   "#2f7fb5",
+   "#7dd3fc",
+   "#f0f9ff"
+  ],
+  "synth": [
+   "#12062a",
+   "#6b1ea8",
+   "#ff4fd8",
+   "#ff9e5e",
+   "#ffe66d"
+  ],
+  "mono": [
+   "#18181b",
+   "#52525b",
+   "#a1a1aa",
+   "#fafafa"
+  ]
+ },
+ "tones": {
+  "ok": "var(--accent)",
+  "warn": "#fbbf24",
+  "crit": "#f87171",
+  "muted": "#71717a"
+ },
+ "state": {
+  "ok": "#3CC97F",
+  "warn": "#EDB232",
+  "crit": "#F2665E",
+  "none": "rgba(255,255,255,0.07)"
+ },
+ "instr": {
+  "card": "#161A20",
+  "muted": "#20252D",
+  "mutedFg": "#8D96A4",
+  "border": "#29303A",
+  "primary": "#7D95FF",
+  "chart2": "#3FC4D0",
+  "ok": "#3CC97F",
+  "warn": "#EDB232",
+  "crit": "#F2665E"
+ },
+ "catalog": [
+  {
+   "id": "SystemOverview",
+   "name": "System Overview",
+   "category": "System",
+   "icon": "dashboard",
+   "description": "One panel for CPU, GPU and RAM, with optional VRAM and network. Each section has its own colour, ring, stats and smooth graph, and the CPU section adds a core heatmap that brightens with load. Shows as activity rings at 1×1.",
+   "prefixes": [],
+   "props": "sections ['cpu','gpu','ram','vram','net']\ncolors { cpu, gpu, ram, vram, net } | unifiedColor\nring 'ring'|'none', coreView 'heatmap'|'bars'|'off'\nheatRamp, details 'auto'|'min'|'full'",
+   "4x2": {
+    "sections": [
+     "cpu",
+     "gpu",
+     "ram"
+    ]
+   },
+   "2x2": {
+    "sections": [
+     "cpu",
+     "gpu",
+     "ram",
+     "vram"
+    ]
+   }
+  },
+  {
+   "id": "MenuBar",
+   "name": "Menu Bar",
+   "category": "System",
+   "icon": "more_horiz",
+   "description": "An always-visible glance strip in the style of iStat Menus: each label sits over its value, with mini history bars. Click an item to open its detail panel.",
+   "prefixes": [],
+   "props": "items ['cpu','gpu','temp','mem','down','up','nvme']\nstacked, dropdown"
+  },
+  {
+   "id": "KpiTiles",
+   "name": "KPI Tiles",
+   "category": "System",
+   "icon": "query_stats",
+   "description": "The four numbers you check first. Each tile shows the value, its change over recent readings, and a trend line with a live end dot.",
+   "prefixes": [],
+   "props": "metrics ['cpu','gpu','ram','net','vram','power']\nlookback"
+  },
+  {
+   "id": "StatusTracker",
+   "name": "Status Tracker",
+   "category": "System",
+   "icon": "view_week",
+   "description": "A history of states with one block per reading: OK, 50–80%, above 80% / down, or no data. Hover a block to see its value.",
+   "prefixes": [],
+   "props": "tracks [{ label, key, kind, warn, crit, up }]\nsamples"
+  },
+  {
+   "id": "SystemStatus",
+   "name": "System Status",
+   "category": "System",
+   "icon": "monitor_heart",
+   "description": "CPU + RAM load and Data API health.",
+   "prefixes": [
+    "system."
+   ],
+   "props": "warn, crit"
+  },
+  {
+   "id": "Vitals",
+   "name": "Vitals",
+   "category": "System",
+   "icon": "vital_signs",
+   "description": "CPU, GPU, RAM and network side by side. Shows as a row in wide zones, a 2×2 grid in square ones and a stack in tall ones.",
+   "prefixes": [],
+   "props": "metrics ['cpu','gpu','ram','net','vram','fps']"
+  },
+  {
+   "id": "ServiceHealth",
+   "name": "Service Health",
+   "category": "System",
+   "icon": "health_and_safety",
+   "description": "Status board for every data source: Data API, LibreHW, RTSS, Wave Link, Spotify, Steam, weather and network.",
+   "prefixes": [],
+   "props": "—"
+  },
+  {
+   "id": "ProcessList",
+   "name": "Processes",
+   "category": "System",
+   "icon": "list_alt",
+   "description": "Top processes by CPU or memory plus process, thread and handle counts.",
+   "prefixes": [
+    "plugins.system-info-plugin.processes."
+   ],
+   "props": "sort 'cpu'|'utility'|'memory'\nrows (auto-fit)",
+   "4x2": {
+    "sort": "memory"
+   }
+  },
+  {
+   "id": "Uptime",
+   "name": "Uptime",
+   "category": "System",
+   "icon": "timer",
+   "description": "Time since boot, split into days, hours, minutes and seconds.",
+   "prefixes": [
+    "plugins.system-info-plugin.uptime."
+   ],
+   "props": "showSeconds"
+  },
+  {
+   "id": "CpuMonitor",
+   "name": "CPU Monitor",
+   "category": "Hardware",
+   "icon": "memory",
+   "description": "Total and per-core load as bars or a heatmap. Also shows clocks, Tctl, package power, VID, VRM and CPU fan.",
+   "prefixes": [
+    "libre.amd_ryzen",
+    "libre.embedded_controller"
+   ],
+   "props": "coreView 'bars'|'heatmap'|'off'\ncoreMetric 'load'|'clock'\nheatRamp 'accent'|'thermal'\ncpu, warn, crit",
+   "2x2": {
+    "coreView": "heatmap"
+   },
+   "4x2": {
+    "coreView": "heatmap",
+    "heatRamp": "thermal"
+   }
+  },
+  {
+   "id": "CoreHeatmap",
+   "name": "Core Heatmap",
+   "category": "Hardware",
+   "icon": "grid_on",
+   "description": "Per-core heatmap: grid, honeycomb, radial or scrolling waterfall, in seven colour ramps.",
+   "prefixes": [],
+   "props": "shape 'grid'|'hex'|'radial'|'waterfall'\nramp, metric, showValues, history",
+   "2x2": {
+    "shape": "hex",
+    "ramp": "thermal"
+   },
+   "4x2": {
+    "shape": "waterfall",
+    "ramp": "viridis"
+   },
+   "1x2": {
+    "shape": "radial"
+   }
+  },
+  {
+   "id": "GpuRings",
+   "name": "GPU Rings",
+   "category": "Hardware",
+   "icon": "donut_large",
+   "description": "Stacked radial rings, used only for bounded percentages: VRAM on the outside, core load inside, temperature in the centre. A legend lists clocks, power and fans.",
+   "prefixes": [],
+   "props": "outer 'vram'|'load'|'power'\ninner 'load'|'vram'|'fan'\ncolors { outer, inner }"
+  },
+  {
+   "id": "GpuMonitor",
+   "name": "GPU Monitor",
+   "category": "Hardware",
+   "icon": "developer_board",
+   "description": "Load, core and hotspot temps, power, VRAM, clocks, fans and D3D engines.",
+   "prefixes": [
+    "libre.nvidia_"
+   ],
+   "props": "gpu (sensor slug)\nwarnTemp, critTemp"
+  },
+  {
+   "id": "MemoryUsage",
+   "name": "Memory",
+   "category": "Hardware",
+   "icon": "memory_alt",
+   "description": "Physical and virtual memory: load, used and available.",
+   "prefixes": [
+    "libre.total_memory",
+    "libre.virtual_memory"
+   ],
+   "props": "warn, crit"
+  },
+  {
+   "id": "Thermals",
+   "name": "Thermals",
+   "category": "Hardware",
+   "icon": "device_thermostat",
+   "description": "Every temperature in one list, hottest first, with a warning marker on each row.",
+   "prefixes": [],
+   "props": "sortBy 'hottest'|'fixed'\nwarn, crit, max"
+  },
+  {
+   "id": "PowerDraw",
+   "name": "Power Draw",
+   "category": "Hardware",
+   "icon": "bolt",
+   "description": "CPU and GPU package watts as a split bar, with a history of the total.",
+   "prefixes": [],
+   "props": "budget (W)"
+  },
+  {
+   "id": "Fans",
+   "name": "Fans",
+   "category": "Hardware",
+   "icon": "mode_fan",
+   "description": "GPU fans with duty % plus the CPU fan. Each icon spins in proportion to its RPM.",
+   "prefixes": [],
+   "props": "maxRpm, spin"
+  },
+  {
+   "id": "DriveSpace",
+   "name": "Drive Space",
+   "category": "Storage",
+   "icon": "hard_drive",
+   "description": "Used and free space per volume, with label, type and file system.",
+   "prefixes": [
+    "plugins.drive-info-plugin."
+   ],
+   "props": "drive ('c', 'd'…) or all\nwarn, crit",
+   "2x2": {
+    "drive": "c"
+   }
+  },
+  {
+   "id": "StorageHealth",
+   "name": "SSD Health",
+   "category": "Storage",
+   "icon": "health_metrics",
+   "description": "SMART life, temperature, read/write rate, activity, TBW, spare and power-on hours.",
+   "prefixes": [
+    "libre.kingston_",
+    "libre.wdc_"
+   ],
+   "props": "disk (sensor slug)",
+   "2x2": {
+    "disk": "wdc_wds100t2b0a_00sm50"
+   }
+  },
+  {
+   "id": "DiskIO",
+   "name": "Disk I/O",
+   "category": "Storage",
+   "icon": "swap_horiz",
+   "description": "Read and write throughput for every physical disk, plus a combined history.",
+   "prefixes": [],
+   "props": "—"
+  },
+  {
+   "id": "NetworkThroughput",
+   "name": "Network Traffic",
+   "category": "Network",
+   "icon": "swap_vert",
+   "description": "Live download and upload rate with history, totals and utilisation for any adapter.",
+   "prefixes": [
+    "libre.ethernet",
+    "libre.wifi",
+    "libre.tailscale",
+    "libre.bluetooth_network",
+    "libre.vethernet"
+   ],
+   "props": "adapter ('ethernet', 'wifi', 'tailscale'…)",
+   "2x2": {
+    "adapter": "tailscale"
+   }
+  },
+  {
+   "id": "NetworkAdapters",
+   "name": "Network Adapters",
+   "category": "Network",
+   "icon": "lan",
+   "description": "Public IP plus each adapter’s status, link speed, IPv4 and IPv6.",
+   "prefixes": [
+    "plugins.network-info-plugin."
+   ],
+   "props": "showDown, showIpv6\nhideIp (blur until hover)",
+   "4x2": {
+    "showDown": true
+   }
+  },
+  {
+   "id": "NowPlaying",
+   "name": "Now Playing",
+   "category": "Media",
+   "icon": "music_note",
+   "description": "Track, artist, album, cover art and progress from Windows Media, Spotify or a pushed source.",
+   "prefixes": [
+    "plugins.media-plugin.",
+    "plugins.spotify-plugin.",
+    "spotify."
+   ],
+   "props": "source 'auto'|'media'|'spotify'|'pushed'\nlayout 'card'|'vinyl'|'backdrop'|'wave'\nprogress 'bar'|'wave'|'visualizer'\nvizMode, vizDevice, vizRamp, showTimeline\nshowArt",
+   "4x2": {
+    "layout": "backdrop",
+    "progress": "visualizer",
+    "vizMode": "mirror"
+   },
+   "3x1": {
+    "progress": "visualizer"
+   }
+  },
+  {
+   "id": "AudioMeter",
+   "name": "Audio Meter",
+   "category": "Audio",
+   "icon": "graphic_eq",
+   "description": "L/R LED meter with peak, RMS, hold and level, or a meter bridge showing every device.",
+   "prefixes": [
+    "plugins.audio-level-meter."
+   ],
+   "props": "device (container id)\nmode 'single'|'bridge'\nsegments",
+   "4x2": {
+    "mode": "bridge"
+   },
+   "1x2": {
+    "mode": "bridge"
+   }
+  },
+  {
+   "id": "VolumeMixer",
+   "name": "Volume Mixer",
+   "category": "Audio",
+   "icon": "tune",
+   "description": "Volume and mute for each device, plus the default device and Wave Link status.",
+   "prefixes": [
+    "plugins.volume-plugin."
+   ],
+   "props": "onSetVolume(id, v)\nonToggleMute(id)"
+  },
+  {
+   "id": "MeterBridge",
+   "name": "Meter Bridge",
+   "category": "Audio",
+   "icon": "graphic_eq",
+   "description": "Studio-style meters for every channel: a dB scale, stereo LED ladders with dimmed zone colours, peak hold, volume and L/R dB readouts. Switches to horizontal rows in short zones.",
+   "prefixes": [],
+   "props": "channels [names|ids], orientation\nladder 'led'|'smooth', segments, floor\nwarnDb, clipDb, holdMs, showScale, showVolume",
+   "4x2": {
+    "channels": [
+     "Voice",
+     "Browser",
+     "Music",
+     "System"
+    ]
+   }
+  },
+  {
+   "id": "Visualizer",
+   "name": "Visualizer",
+   "category": "Audio",
+   "icon": "equalizer",
+   "description": "Canvas audio visualiser driven by the level meter: bars, mirror, radial, wave, blob or LED dots.",
+   "prefixes": [],
+   "props": "mode 'bars'|'mirror'|'radial'|'wave'|'blob'|'dots'\ndevice, ramp, bands, sensitivity, peaks",
+   "2x2": {
+    "mode": "radial"
+   },
+   "1x2": {
+    "mode": "mirror"
+   },
+   "3x1": {
+    "mode": "wave"
+   }
+  },
+  {
+   "id": "WaveLink",
+   "name": "Wave Link",
+   "category": "Audio",
+   "icon": "mic",
+   "description": "Elgato Wave Link inputs with mute and gain, and live L/R meters for each channel.",
+   "prefixes": [
+    "plugins.wavelink-plugin."
+   ],
+   "props": "—"
+  },
+  {
+   "id": "Clock",
+   "name": "Clock",
+   "category": "Info",
+   "icon": "schedule",
+   "description": "Digital or analog clock with date, 12/24 h and seconds.",
+   "prefixes": [
+    "plugins.clock-plugin."
+   ],
+   "props": "face 'digital'|'analog'\nformat '24h'|'12h'\nshowSeconds, showDate",
+   "2x2": {
+    "face": "analog"
+   },
+   "4x2": {
+    "face": "analog"
+   }
+  },
+  {
+   "id": "Calendar",
+   "name": "Calendar",
+   "category": "Info",
+   "icon": "calendar_today",
+   "description": "Today’s date plus a month grid, taken from the clock plugin.",
+   "prefixes": [],
+   "props": "weekStart 0|1"
+  },
+  {
+   "id": "Weather",
+   "name": "Weather",
+   "category": "Info",
+   "icon": "partly_cloudy_day",
+   "description": "Conditions, feels-like, wind, humidity, pressure, rain or snow, and a 7-day forecast.",
+   "prefixes": [
+    "plugins.yr-weather-plugin.",
+    "plugins.weather-plugin."
+   ],
+   "props": "provider 'yr'|'owm'\nlocation, units 'C'|'F'"
+  },
+  {
+   "id": "Forecast",
+   "name": "Forecast",
+   "category": "Info",
+   "icon": "calendar_month",
+   "description": "Daily forecast with hi/lo range bars. Runs across in wide zones and down in tall ones.",
+   "prefixes": [],
+   "props": "location, days, units 'C'|'F'"
+  },
+  {
+   "id": "FpsMonitor",
+   "name": "FPS Monitor",
+   "category": "Gaming",
+   "icon": "speed",
+   "description": "RTSS frame rate, 1% low, frame-time graph, min/avg/max, display and API.",
+   "prefixes": [
+    "plugins.InfoPanel.RTSS."
+   ],
+   "props": "target (fps, default = refresh)"
+  },
+  {
+   "id": "GameSpotlight",
+   "name": "Game Spotlight",
+   "category": "Gaming",
+   "icon": "stadia_controller",
+   "description": "Now playing for games: the Steam hero banner with slow Ken Burns motion, game logo, poster and icon, plus session, playtime, FPS, achievements and friends. The combo layout overlays the current music track.",
+   "prefixes": [],
+   "props": "layout 'hero'|'poster'|'logo'|'ticker'|'combo'\nmotion, scrim, music 'media'|'spotify'",
+   "2x2": {
+    "layout": "poster"
+   }
+  },
+  {
+   "id": "OsdStrip",
+   "name": "OSD Strip",
+   "category": "Gaming",
+   "icon": "videogame_asset",
+   "description": "An in-game overlay strip like RTSS or Afterburner: cells in a fixed order with monospace digits, and colour only when a value drops.",
+   "prefixes": [],
+   "props": "cells ['fps','low','ft','gpu','cpu','vram','display']\ntarget"
+  },
+  {
+   "id": "FramePacing",
+   "name": "Frame Pacing",
+   "category": "Gaming",
+   "icon": "timeline",
+   "description": "A frame-time graph with budget lines for your refresh rate and for 60 Hz. Average FPS hides stutter; frame-time spikes show it.",
+   "prefixes": [],
+   "props": "budgets [Hz…], window"
+  },
+  {
+   "id": "PlaytimeShare",
+   "name": "Playtime Share",
+   "category": "Gaming",
+   "icon": "stacked_bar_chart",
+   "description": "How the last two weeks of play split between games, as one bar with a segment per game sized by its share.",
+   "prefixes": [],
+   "props": "colors []"
+  },
+  {
+   "id": "SteamProfile",
+   "name": "Steam Profile",
+   "category": "Gaming",
+   "icon": "account_circle",
+   "description": "Avatar, persona, status, level and friends online or in-game, with recent activity.",
+   "prefixes": [
+    "plugins.InfoPanel.SteamAPI.SteamAPI-Profile.",
+    "plugins.InfoPanel.SteamAPI.SteamAPI-Social."
+   ],
+   "props": "—"
+  },
+  {
+   "id": "SteamGame",
+   "name": "Current Game",
+   "category": "Gaming",
+   "icon": "stadia_controller",
+   "description": "Hero art, session time, playtime, average session and achievement progress.",
+   "prefixes": [
+    "plugins.InfoPanel.SteamAPI.SteamAPI-Session.",
+    "plugins.InfoPanel.SteamAPI.SteamAPI-Achievements."
+   ],
+   "props": "art 'banner'|'grid'|'none'\nscrim 0–1"
+  },
+  {
+   "id": "Achievements",
+   "name": "Achievements",
+   "category": "Gaming",
+   "icon": "trophy",
+   "description": "Completion ring for the current game, unlocked/total and the latest unlock.",
+   "prefixes": [],
+   "props": "—"
+  },
+  {
+   "id": "SteamLibrary",
+   "name": "Steam Library",
+   "category": "Gaming",
+   "icon": "library_books",
+   "description": "Games owned, total and recent playtime, recent games and game news.",
+   "prefixes": [
+    "plugins.InfoPanel.SteamAPI.SteamAPI-Library.",
+    "plugins.InfoPanel.SteamAPI.SteamAPI-News."
+   ],
+   "props": "showNews"
+  },
+  {
+   "id": "SteamNews",
+   "name": "Game News",
+   "category": "Gaming",
+   "icon": "newspaper",
+   "description": "The latest headlines for the current game and your library.",
+   "prefixes": [],
+   "props": "lines (clamp)"
+  },
+  {
+   "id": "SensorValue",
+   "name": "Sensor",
+   "category": "Generic",
+   "icon": "sensors",
+   "description": "Bind any single data point and show it as a value, gauge, bar or sparkline with thresholds.",
+   "prefixes": [],
+   "props": "sensor (key), label\ndisplay 'value'|'gauge'|'bar'|'spark'\nmin, max, warn, crit, decimals",
+   "1x1": {
+    "sensor": "libre.nvidia_geforce_rtx_5090_gpu_core",
+    "label": "GPU temp",
+    "display": "gauge",
+    "max": 100,
+    "warn": 70,
+    "crit": 85
+   },
+   "2x1": {
+    "sensor": "system.cpu.load",
+    "label": "CPU load",
+    "display": "gauge",
+    "warn": 75,
+    "crit": 90
+   },
+   "3x1": {
+    "sensor": "libre.ethernet_download_speed",
+    "label": "Ethernet ↓",
+    "display": "spark"
+   },
+   "1x2": {
+    "sensor": "libre.kingston_sfyrd2000g_temperature__2",
+    "label": "NVMe",
+    "display": "bar",
+    "max": 90,
+    "warn": 70
+   },
+   "2x2": {
+    "sensor": "libre.kingston_sfyrd2000g_temperature__2",
+    "label": "NVMe temp",
+    "display": "bar",
+    "max": 90,
+    "warn": 70
+   },
+   "4x2": {
+    "sensor": "libre.ethernet_download_speed",
+    "label": "Ethernet ↓",
+    "display": "spark"
+   }
+  },
+  {
+   "id": "SensorGroup",
+   "name": "Sensor Group",
+   "category": "Generic",
+   "icon": "view_list",
+   "description": "Bind any list of data points, shown as rows or a tile grid, each with an optional bar and thresholds.",
+   "prefixes": [],
+   "props": "sensors [{ key, label, max, warn, crit }]\nlayout 'auto'|'rows'|'grid', bars"
+  }
+ ],
+ "metas": {
+  "Achievements": {
+   "id": "Achievements",
+   "name": "Achievements",
+   "category": "Gaming",
+   "icon": "trophy",
+   "prefixes": [],
+   "defaultSize": [
+    2,
+    1
+   ],
+   "minSize": [
+    1,
+    1
+   ],
+   "description": "Current game achievement completion ring, unlocked / total and the latest unlock."
+  },
+  "AudioMeter": {
+   "id": "AudioMeter",
+   "name": "Audio Meter",
+   "category": "Audio",
+   "icon": "graphic_eq",
+   "prefixes": [
+    "plugins.audio-level-meter."
+   ],
+   "defaultSize": [
+    2,
+    1
+   ],
+   "minSize": [
+    1,
+    1
+   ],
+   "description": "L/R level, peak, RMS and peak-hold for one device, or a meter bridge for all devices."
+  },
+  "Calendar": {
+   "id": "Calendar",
+   "name": "Calendar",
+   "category": "Info",
+   "icon": "calendar_today",
+   "prefixes": [],
+   "defaultSize": [
+    2,
+    2
+   ],
+   "minSize": [
+    1,
+    1
+   ],
+   "description": "Today plus a month grid, driven by the clock plugin date. Week starts Monday by default."
+  },
+  "Clock": {
+   "id": "Clock",
+   "name": "Clock",
+   "category": "Info",
+   "icon": "schedule",
+   "prefixes": [
+    "plugins.clock-plugin."
+   ],
+   "defaultSize": [
+    2,
+    1
+   ],
+   "minSize": [
+    1,
+    1
+   ],
+   "description": "Digital or analog clock with date, 12/24h and seconds."
+  },
+  "CoreHeatmap": {
+   "id": "CoreHeatmap",
+   "name": "Core Heatmap",
+   "category": "Hardware",
+   "icon": "grid_on",
+   "prefixes": [],
+   "defaultSize": [
+    2,
+    2
+   ],
+   "minSize": [
+    1,
+    1
+   ],
+   "description": "Per-core CPU heatmap in four shapes: grid, honeycomb, radial and a scrolling waterfall, with selectable colour ramps."
+  },
+  "CpuMonitor": {
+   "id": "CpuMonitor",
+   "name": "CPU Monitor",
+   "category": "Hardware",
+   "icon": "memory",
+   "prefixes": [
+    "libre.amd_",
+    "libre.intel_",
+    "libre.embedded_controller"
+   ],
+   "defaultSize": [
+    3,
+    2
+   ],
+   "minSize": [
+    1,
+    1
+   ],
+   "description": "Total + per-core load, clocks, temperature, package power, VID, VRM and fan."
+  },
+  "DiskIO": {
+   "id": "DiskIO",
+   "name": "Disk I/O",
+   "category": "Storage",
+   "icon": "swap_horiz",
+   "prefixes": [],
+   "defaultSize": [
+    2,
+    2
+   ],
+   "minSize": [
+    1,
+    1
+   ],
+   "description": "Read / write throughput and activity for every physical disk, plus combined history."
+  },
+  "DriveSpace": {
+   "id": "DriveSpace",
+   "name": "Drive Space",
+   "category": "Storage",
+   "icon": "hard_drive",
+   "prefixes": [
+    "plugins.drive-info-plugin."
+   ],
+   "defaultSize": [
+    2,
+    2
+   ],
+   "minSize": [
+    1,
+    1
+   ],
+   "description": "Used / free space per volume with label, type and file system."
+  },
+  "Fans": {
+   "id": "Fans",
+   "name": "Fans",
+   "category": "Hardware",
+   "icon": "mode_fan",
+   "prefixes": [],
+   "defaultSize": [
+    2,
+    1
+   ],
+   "minSize": [
+    1,
+    1
+   ],
+   "description": "GPU fans 1–3 with duty %, plus CPU fan. Icons spin at a speed proportional to RPM."
+  },
+  "Forecast": {
+   "id": "Forecast",
+   "name": "Forecast",
+   "category": "Info",
+   "icon": "calendar_month",
+   "prefixes": [],
+   "defaultSize": [
+    4,
+    1
+   ],
+   "minSize": [
+    1,
+    1
+   ],
+   "description": "Multi-day MET/Yr forecast — horizontal in wide zones, vertical list in tall ones, with hi/lo range bars."
+  },
+  "FpsMonitor": {
+   "id": "FpsMonitor",
+   "name": "FPS Monitor",
+   "category": "Gaming",
+   "icon": "speed",
+   "prefixes": [
+    "plugins.InfoPanel.RTSS."
+   ],
+   "defaultSize": [
+    3,
+    2
+   ],
+   "minSize": [
+    1,
+    1
+   ],
+   "description": "RTSS frame rate, 1% low, frame time graph, game and display info."
+  },
+  "FramePacing": {
+   "id": "FramePacing",
+   "name": "Frame Pacing",
+   "category": "Gaming",
+   "icon": "timeline",
+   "prefixes": [],
+   "defaultSize": [
+    4,
+    2
+   ],
+   "minSize": [
+    2,
+    1
+   ],
+   "description": "Frame-time graph with refresh-rate and 60 Hz budget lines — average FPS hides stutter, frame-time spikes show it. Friendly empty state when no game runs."
+  },
+  "GameSpotlight": {
+   "id": "GameSpotlight",
+   "name": "Game Spotlight",
+   "category": "Gaming",
+   "icon": "stadia_controller",
+   "prefixes": [],
+   "defaultSize": [
+    4,
+    2
+   ],
+   "minSize": [
+    1,
+    1
+   ],
+   "description": "Now-playing for games: Steam hero banner with slow Ken Burns motion, game logo, poster art and icon, plus session, playtime, FPS, achievements, friends — and an optional music overlay."
+  },
+  "GpuMonitor": {
+   "id": "GpuMonitor",
+   "name": "GPU Monitor",
+   "category": "Hardware",
+   "icon": "developer_board",
+   "prefixes": [
+    "libre.nvidia_",
+    "libre.amd_radeon",
+    "libre.intel_arc"
+   ],
+   "defaultSize": [
+    3,
+    2
+   ],
+   "minSize": [
+    1,
+    1
+   ],
+   "description": "Load, temps, power, VRAM, clocks, fans, PCIe and D3D engines."
+  },
+  "GpuRings": {
+   "id": "GpuRings",
+   "name": "GPU Rings",
+   "category": "Hardware",
+   "icon": "donut_large",
+   "prefixes": [],
+   "defaultSize": [
+    3,
+    2
+   ],
+   "minSize": [
+    1,
+    1
+   ],
+   "description": "Stacked radial rings for bounded percentages only — VRAM outer, core load inner, temperature in the centre — with a legend of clocks, power and fans."
+  },
+  "KpiTiles": {
+   "id": "KpiTiles",
+   "name": "KPI Tiles",
+   "category": "System",
+   "icon": "query_stats",
+   "prefixes": [],
+   "defaultSize": [
+    6,
+    1
+   ],
+   "minSize": [
+    1,
+    1
+   ],
+   "description": "The four numbers you check first: value, change since ~10 readings ago, then a trend sparkline with a live end dot."
+  },
+  "MemoryUsage": {
+   "id": "MemoryUsage",
+   "name": "Memory",
+   "category": "Hardware",
+   "icon": "memory_alt",
+   "prefixes": [
+    "libre.total_memory",
+    "libre.virtual_memory"
+   ],
+   "defaultSize": [
+    2,
+    1
+   ],
+   "minSize": [
+    1,
+    1
+   ],
+   "description": "Physical + virtual memory load, used and available."
+  },
+  "MenuBar": {
+   "id": "MenuBar",
+   "name": "Menu Bar",
+   "category": "System",
+   "icon": "more_horiz",
+   "prefixes": [],
+   "defaultSize": [
+    6,
+    1
+   ],
+   "minSize": [
+    2,
+    1
+   ],
+   "description": "Always-visible glance strip (iStat Menus style): label stacked over value, mini bars, click an item to open its detail."
+  },
+  "MeterBridge": {
+   "id": "MeterBridge",
+   "name": "Meter Bridge",
+   "category": "Audio",
+   "icon": "graphic_eq",
+   "prefixes": [],
+   "defaultSize": [
+    4,
+    3
+   ],
+   "minSize": [
+    1,
+    1
+   ],
+   "description": "Studio-style multi-channel level meters: dB scale, stereo LED ladders with dimmed zone colours, peak-hold markers, per-channel volume and live L/R dB readouts."
+  },
+  "NetworkAdapters": {
+   "id": "NetworkAdapters",
+   "name": "Network Adapters",
+   "category": "Network",
+   "icon": "lan",
+   "prefixes": [
+    "plugins.network-info-plugin."
+   ],
+   "defaultSize": [
+    2,
+    2
+   ],
+   "minSize": [
+    1,
+    1
+   ],
+   "description": "Public IP plus each adapter’s status, link speed, IPv4 and IPv6 addresses."
+  },
+  "NetworkThroughput": {
+   "id": "NetworkThroughput",
+   "name": "Network Traffic",
+   "category": "Network",
+   "icon": "swap_vert",
+   "prefixes": [
+    "libre.ethernet",
+    "libre.wifi",
+    "libre.tailscale",
+    "libre.bluetooth_network",
+    "libre.vethernet"
+   ],
+   "defaultSize": [
+    3,
+    1
+   ],
+   "minSize": [
+    1,
+    1
+   ],
+   "description": "Live download / upload rate with history, totals and utilisation per adapter."
+  },
+  "NowPlaying": {
+   "id": "NowPlaying",
+   "name": "Now Playing",
+   "category": "Media",
+   "icon": "music_note",
+   "prefixes": [
+    "plugins.media-plugin.",
+    "plugins.spotify-plugin.",
+    "spotify."
+   ],
+   "defaultSize": [
+    3,
+    1
+   ],
+   "minSize": [
+    1,
+    1
+   ],
+   "description": "Track, artist, album, cover art and progress from Windows Media, Spotify or a pushed source."
+  },
+  "OsdStrip": {
+   "id": "OsdStrip",
+   "name": "OSD Strip",
+   "category": "Gaming",
+   "icon": "videogame_asset",
+   "prefixes": [],
+   "defaultSize": [
+    6,
+    1
+   ],
+   "minSize": [
+    2,
+    1
+   ],
+   "description": "In-game overlay strip (RTSS / Afterburner OSD): fixed cell order, monospace digits, colour only when a value drops."
+  },
+  "PlaytimeShare": {
+   "id": "PlaytimeShare",
+   "name": "Playtime Share",
+   "category": "Gaming",
+   "icon": "stacked_bar_chart",
+   "prefixes": [],
+   "defaultSize": [
+    3,
+    2
+   ],
+   "minSize": [
+    1,
+    1
+   ],
+   "description": "How the last two weeks of play split between games — one bar, segments sized by share — with sessions and library totals."
+  },
+  "PowerDraw": {
+   "id": "PowerDraw",
+   "name": "Power Draw",
+   "category": "Hardware",
+   "icon": "bolt",
+   "prefixes": [],
+   "defaultSize": [
+    2,
+    1
+   ],
+   "minSize": [
+    1,
+    1
+   ],
+   "description": "CPU package + GPU package watts, split bar, total history and GPU board-power limit."
+  },
+  "ProcessList": {
+   "id": "ProcessList",
+   "name": "Processes",
+   "category": "System",
+   "icon": "list_alt",
+   "prefixes": [
+    "plugins.system-info-plugin.processes."
+   ],
+   "defaultSize": [
+    2,
+    2
+   ],
+   "minSize": [
+    1,
+    1
+   ],
+   "description": "Top processes by CPU or memory, plus process / thread / handle counts."
+  },
+  "SensorGroup": {
+   "id": "SensorGroup",
+   "name": "Sensor Group",
+   "category": "Generic",
+   "icon": "view_list",
+   "prefixes": [],
+   "defaultSize": [
+    2,
+    2
+   ],
+   "minSize": [
+    1,
+    1
+   ],
+   "description": "Bind any list of data points. Rows or a tile grid, each with optional bar and thresholds."
+  },
+  "SensorValue": {
+   "id": "SensorValue",
+   "name": "Sensor",
+   "category": "Generic",
+   "icon": "sensors",
+   "prefixes": [],
+   "defaultSize": [
+    1,
+    1
+   ],
+   "minSize": [
+    1,
+    1
+   ],
+   "description": "Bind any single data point. Shows it as a value, gauge, bar or sparkline with thresholds."
+  },
+  "ServiceHealth": {
+   "id": "ServiceHealth",
+   "name": "Service Health",
+   "category": "System",
+   "icon": "health_and_safety",
+   "prefixes": [],
+   "defaultSize": [
+    2,
+    2
+   ],
+   "minSize": [
+    1,
+    1
+   ],
+   "description": "One status board for every data source: Data API, LibreHW, RTSS, Wave Link, Spotify, media, Steam, weather, network."
+  },
+  "StatusTracker": {
+   "id": "StatusTracker",
+   "name": "Status Tracker",
+   "category": "System",
+   "icon": "view_week",
+   "prefixes": [],
+   "defaultSize": [
+    4,
+    2
+   ],
+   "minSize": [
+    2,
+    1
+   ],
+   "description": "History of a state, one block per reading (Tremor Tracker style): OK, 50–80 %, above 80 %, no data. Hover a block for its value."
+  },
+  "SteamGame": {
+   "id": "SteamGame",
+   "name": "Current Game",
+   "category": "Gaming",
+   "icon": "stadia_controller",
+   "prefixes": [
+    "plugins.InfoPanel.SteamAPI.SteamAPI-Session.",
+    "plugins.InfoPanel.SteamAPI.SteamAPI-Achievements.",
+    "plugins.InfoPanel.SteamAPI.SteamAPI-Profile.current_game_banner_url",
+    "plugins.InfoPanel.SteamAPI.SteamAPI-Profile.game_"
+   ],
+   "defaultSize": [
+    4,
+    2
+   ],
+   "minSize": [
+    2,
+    1
+   ],
+   "description": "Game hero art, session time, total playtime, average session and achievement progress."
+  },
+  "SteamLibrary": {
+   "id": "SteamLibrary",
+   "name": "Steam Library",
+   "category": "Gaming",
+   "icon": "library_books",
+   "prefixes": [
+    "plugins.InfoPanel.SteamAPI.SteamAPI-Library.",
+    "plugins.InfoPanel.SteamAPI.SteamAPI-News."
+   ],
+   "defaultSize": [
+    3,
+    2
+   ],
+   "minSize": [
+    1,
+    1
+   ],
+   "description": "Games owned, total + recent playtime, recent games with 2-week hours, and game news."
+  },
+  "SteamNews": {
+   "id": "SteamNews",
+   "name": "Game News",
+   "category": "Gaming",
+   "icon": "newspaper",
+   "prefixes": [],
+   "defaultSize": [
+    3,
+    1
+   ],
+   "minSize": [
+    1,
+    1
+   ],
+   "description": "Latest headlines for the current game and your library. Long titles clamp to fit."
+  },
+  "SteamProfile": {
+   "id": "SteamProfile",
+   "name": "Steam Profile",
+   "category": "Gaming",
+   "icon": "account_circle",
+   "prefixes": [
+    "plugins.InfoPanel.SteamAPI.SteamAPI-Profile.",
+    "plugins.InfoPanel.SteamAPI.SteamAPI-Social."
+   ],
+   "defaultSize": [
+    2,
+    2
+   ],
+   "minSize": [
+    1,
+    1
+   ],
+   "description": "Avatar, persona, status, level and friends online / in-game with recent activity."
+  },
+  "StorageHealth": {
+   "id": "StorageHealth",
+   "name": "SSD Health",
+   "category": "Storage",
+   "icon": "health_metrics",
+   "prefixes": [
+    "libre.kingston_",
+    "libre.wdc_",
+    "libre.samsung_",
+    "libre.crucial_",
+    "libre.wd_"
+   ],
+   "defaultSize": [
+    3,
+    2
+   ],
+   "minSize": [
+    1,
+    1
+   ],
+   "description": "SMART life, temperature, read/write rate, activity, TBW, spare and power-on hours."
+  },
+  "SystemOverview": {
+   "id": "SystemOverview",
+   "name": "System Overview",
+   "category": "System",
+   "icon": "dashboard",
+   "prefixes": [],
+   "defaultSize": [
+    5,
+    2
+   ],
+   "minSize": [
+    1,
+    1
+   ],
+   "description": "Unified CPU · GPU · RAM (+ VRAM, network) panel. Each section has its own colour, ring, stats, smooth graph; CPU adds a load-intensity core heatmap."
+  },
+  "SystemStatus": {
+   "id": "SystemStatus",
+   "name": "System Status",
+   "category": "System",
+   "icon": "monitor_heart",
+   "prefixes": [
+    "system."
+   ],
+   "defaultSize": [
+    2,
+    1
+   ],
+   "minSize": [
+    1,
+    1
+   ],
+   "description": "CPU + RAM load and Data API health."
+  },
+  "Thermals": {
+   "id": "Thermals",
+   "name": "Thermals",
+   "category": "Hardware",
+   "icon": "device_thermostat",
+   "prefixes": [],
+   "defaultSize": [
+    2,
+    2
+   ],
+   "minSize": [
+    1,
+    1
+   ],
+   "description": "Every temperature sensor in one place — CPU, GPU core + hotspot, NVMe/SSD, VRM — hottest first."
+  },
+  "Uptime": {
+   "id": "Uptime",
+   "name": "Uptime",
+   "category": "System",
+   "icon": "timer",
+   "prefixes": [
+    "plugins.system-info-plugin.uptime."
+   ],
+   "defaultSize": [
+    2,
+    1
+   ],
+   "minSize": [
+    1,
+    1
+   ],
+   "description": "Time since boot as days / hours / minutes / seconds."
+  },
+  "Visualizer": {
+   "id": "Visualizer",
+   "name": "Visualizer",
+   "category": "Audio",
+   "icon": "equalizer",
+   "prefixes": [],
+   "defaultSize": [
+    3,
+    2
+   ],
+   "minSize": [
+    1,
+    1
+   ],
+   "description": "Canvas audio visualiser driven by the level meter (L/R + level): bars, mirror, radial, wave, blob and LED-dot modes at 60 fps."
+  },
+  "Vitals": {
+   "id": "Vitals",
+   "name": "Vitals",
+   "category": "System",
+   "icon": "vital_signs",
+   "prefixes": [],
+   "defaultSize": [
+    4,
+    1
+   ],
+   "minSize": [
+    1,
+    1
+   ],
+   "description": "CPU, GPU, RAM and network side-by-side. Reflows into a row, 2×2 grid or stack to suit the zone."
+  },
+  "VolumeMixer": {
+   "id": "VolumeMixer",
+   "name": "Volume Mixer",
+   "category": "Audio",
+   "icon": "tune",
+   "prefixes": [
+    "plugins.volume-plugin.",
+    "plugins.wavelink-plugin."
+   ],
+   "defaultSize": [
+    2,
+    2
+   ],
+   "minSize": [
+    1,
+    1
+   ],
+   "description": "Per-device volume + mute, default device, and Wave Link status."
+  },
+  "WaveLink": {
+   "id": "WaveLink",
+   "name": "Wave Link",
+   "category": "Audio",
+   "icon": "mic",
+   "prefixes": [
+    "plugins.wavelink-plugin."
+   ],
+   "defaultSize": [
+    2,
+    2
+   ],
+   "minSize": [
+    1,
+    1
+   ],
+   "description": "Elgato Wave Link inputs with mute + gain, and live L/R meters per channel."
+  },
+  "Weather": {
+   "id": "Weather",
+   "name": "Weather",
+   "category": "Info",
+   "icon": "partly_cloudy_day",
+   "prefixes": [
+    "plugins.yr-weather-plugin.",
+    "plugins.weather-plugin."
+   ],
+   "defaultSize": [
+    3,
+    2
+   ],
+   "minSize": [
+    1,
+    1
+   ],
+   "description": "Current conditions, feels-like, wind, humidity, pressure, rain/snow and 7-day forecast (MET/Yr or OpenWeatherMap)."
+  }
+ }
+}

@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=JetBrains+Mono:wght@400;600&family=VT323&family=Instrument+Serif&family=Roboto+Flex:wght@400;500;700&family=Orbitron:wght@500;700&family=Space+Grotesk:wght@500;700&family=Chakra+Petch:wght@400;600&family=Nixie+One&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..500,0..1,0&display=block" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
+<script src="./sources-data.js"></script>
+<style>
+body { margin: 0; background: #0c0c0e; color: #ededf0; font-family: Geist, system-ui, sans-serif; }
+a { color: #ededf0; } a:hover { color: #34d399; }
+.material-symbols-rounded { font-family: 'Material Symbols Rounded'; font-weight: normal; font-style: normal; letter-spacing: normal; text-transform: none; white-space: nowrap; direction: ltr; -webkit-font-smoothing: antialiased; }
+.font-mono { font-family: 'Geist Mono', ui-monospace, monospace; }
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #0c0c0e; font-family: Geist, system-ui, sans-serif; color: #ededf0;">
+  <header style="background: #0c0c0e;">
+    <div style="max-width: 1720px; margin: 0 auto; padding: 18px 32px 14px; display: flex; flex-direction: column; gap: 14px;">
+      <div style="display: flex; align-items: flex-end; gap: 24px; flex-wrap: wrap;">
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 22px; height: 22px; border-radius: 6px; background: #34d399;"></div>
+            <h1 style="margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.01em;">Widget templates</h1>
+          </div>
+          <p style="margin: 0; font-size: 13px; color: #8a8a94;">React + Tailwind. Each template reshapes itself for the grid span it's dropped into and binds to the InfoPanel Data API.</p>
+        </div>
+        <div style="margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; font-family: 'Geist Mono', monospace; font-size: 11.5px; color: #a1a1aa;">
+          <span style="padding: 5px 10px; white-space: nowrap; flex-shrink: 0; border: 1px solid #24242a; border-radius: 7px; background: #111114;">{{ widgetCount }} templates</span>
+          <span style="padding: 5px 10px; white-space: nowrap; flex-shrink: 0; border: 1px solid #24242a; border-radius: 7px; background: #111114;">{{ surfaceCount }} surfaces</span>
+          <span style="padding: 5px 10px; white-space: nowrap; flex-shrink: 0; border: 1px solid #24242a; border-radius: 7px; background: #111114;">{{ covered }} / {{ total }} data points mapped</span>
+          <span style="padding: 5px 10px; white-space: nowrap; flex-shrink: 0; border: 1px solid #24242a; border-radius: 7px; background: #111114;">src/widgets/</span>
+        </div>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: flex-end; padding: 10px 12px; border: 1px solid #1f1f24; border-radius: 10px; background: #0f0f12;">
+        <sc-for list="{{ selects }}" as="s" hint-placeholder-count="6">
+          <label style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">
+            <span style="font-family: 'Geist Mono', monospace; font-size: 9.5px; letter-spacing: 0.06em; text-transform: uppercase; color: #6f6f79;">{{ s.label }}</span>
+            <select value="{{ s.value }}" onChange="{{ s.onChange }}" style="height: 28px; min-width: 96px; padding: 0 8px; border-radius: 7px; border: 1px solid #2a2a31; background: #17171b; color: #ededf0; font: 500 12px Geist, sans-serif; cursor: pointer;">
+              <sc-for list="{{ s.options }}" as="o" hint-placeholder-count="4">
+                <option value="{{ o }}">{{ o }}</option>
+              </sc-for>
+            </select>
+          </label>
+        </sc-for>
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <span style="font-family: 'Geist Mono', monospace; font-size: 9.5px; letter-spacing: 0.06em; text-transform: uppercase; color: #6f6f79;">Accent</span>
+          <div style="display: flex; align-items: center; gap: 6px; height: 28px;">
+            <sc-for list="{{ swatches }}" as="sw" hint-placeholder-count="6">
+              <button type="button" onClick="{{ sw.pick }}" title="{{ sw.c }}" style="width: 22px; height: 22px; border-radius: 6px; cursor: pointer; padding: 0; background: {{ sw.c }}; border: 2px solid {{ sw.ring }};"></button>
+            </sc-for>
+            <input type="color" value="{{ accentVal }}" onChange="{{ onAccent }}" style="width: 26px; height: 24px; padding: 0; border: 1px solid #2a2a31; border-radius: 6px; background: #17171b; cursor: pointer;">
+          </div>
+        </div>
+        <sc-for list="{{ ranges }}" as="r" hint-placeholder-count="2">
+          <label style="display: flex; flex-direction: column; gap: 4px;">
+            <span style="font-family: 'Geist Mono', monospace; font-size: 9.5px; letter-spacing: 0.06em; text-transform: uppercase; color: #6f6f79;">{{ r.label }} · {{ r.value }}{{ r.unit }}</span>
+            <input type="range" min="{{ r.min }}" max="{{ r.max }}" step="{{ r.step }}" value="{{ r.value }}" onChange="{{ r.onChange }}" style="width: 120px; height: 28px; accent-color: #34d399; cursor: pointer;">
+          </label>
+        </sc-for>
+        <div style="display: flex; gap: 6px; align-self: flex-end;">
+          <button type="button" onClick="{{ toggleLive }}" style="height: 28px; padding: 0 12px; border-radius: 7px; border: 1px solid #2a2a31; background: #17171b; color: #ededf0; font: 500 12px Geist, sans-serif; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 6px;"><span style="width: 7px; height: 7px; border-radius: 50%; background: {{ liveDot }};"></span>{{ liveLabel }}</button>
+          <button type="button" onClick="{{ resetUi }}" style="height: 28px; padding: 0 12px; border-radius: 7px; border: 1px solid #2a2a31; background: transparent; color: #a1a1aa; font: 500 12px Geist, sans-serif; cursor: pointer; white-space: nowrap;">Reset</button>
+        </div>
+      </div>
+    </div>
+  </header>
+  <nav style="position: sticky; top: 0; z-index: 20; background: rgba(12,12,14,0.9); backdrop-filter: blur(14px); border-bottom: 1px solid #1f1f24;">
+    <div style="max-width: 1720px; margin: 0 auto; padding: 10px 32px;">
+      <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
+        <sc-for list="{{ cats }}" as="c" hint-placeholder-count="10">
+          <button type="button" onClick="{{ c.pick }}" style="height: 28px; padding: 0 12px; white-space: nowrap; flex-shrink: 0; border-radius: 14px; font: 500 12px Geist, sans-serif; cursor: pointer; border: 1px solid {{ c.border }}; background: {{ c.bg }}; color: {{ c.fg }};">{{ c.label }} <span style="color: #6f6f79; margin-left: 4px;">{{ c.count }}</span></button>
+        </sc-for>
+        <div style="margin-left: auto; display: flex; flex-wrap: wrap; gap: 6px 14px; white-space: nowrap; font-size: 11px; color: #6f6f79; font-family: 'Geist Mono', monospace;">
+          <span>1×1 tile</span><span>3×1+ strip</span><span>1×2+ column</span><span>2×1 · 2×2 · 4×2 full</span><span>cell {{ cell }}px</span>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main style="max-width: 1720px; margin: 0 auto; padding: 8px 32px 64px; display: flex; flex-direction: column; gap: 36px;">
+    <sc-for list="{{ groups }}" as="grp" hint-placeholder-count="3">
+      <div id="{{ grp.anchor }}" style="display: flex; flex-direction: column; scroll-margin-top: 64px;">
+        <div style="display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; padding: 22px 0 14px;">
+          <span class="material-symbols-rounded" style="font-size: 26px; color: #34d399; align-self: center;">{{ grp.icon }}</span>
+          <h2 style="margin: 0; font-size: 26px; font-weight: 600; letter-spacing: -0.02em;">{{ grp.name }}</h2>
+          <span style="font-family: 'Geist Mono', monospace; font-size: 11.5px; color: #8a8a94; white-space: nowrap;">{{ grp.meta }}</span>
+          <p style="margin: 0; flex-basis: 100%; font-size: 13px; color: #a1a1aa; max-width: 80ch; text-wrap: pretty;">{{ grp.desc }}</p>
+        </div>
+        <sc-for list="{{ grp.galleries }}" as="g" hint-placeholder-count="1">
+          <section id="{{ g.id }}" style="display: grid; grid-template-columns: minmax(220px, 260px) minmax(0, 1fr); gap: 28px; padding: 24px 0; border-top: 1px solid #1a1a1f;">
+            <div style="display: flex; flex-direction: column; gap: 10px; min-width: 0;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="material-symbols-rounded" style="font-size: 20px; color: #34d399;">{{ g.icon }}</span>
+                <h3 style="margin: 0; font-size: 16px; font-weight: 600;">{{ g.title }}</h3>
+                <span style="padding: 2px 6px; border-radius: 5px; background: #17171b; color: #a1a1aa; font-size: 10px; font-weight: 600; letter-spacing: 0.04em;">GALLERY</span>
+              </div>
+              <p style="margin: 0; font-size: 12.5px; line-height: 1.5; color: #a1a1aa; text-wrap: pretty;">{{ g.desc }}</p>
+              <code style="font-family: 'Geist Mono', monospace; font-size: 11px; line-height: 1.6; color: #8a8a94; white-space: pre-wrap;">{{ g.props }}</code>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 18px; min-width: 0; align-items: flex-start;">
+              <sc-for list="{{ g.cards }}" as="c" hint-placeholder-count="4">
+                <div style="display: flex; flex-direction: column; gap: 7px; max-width: 100%; min-width: 0;">
+                  <span style="font-family: 'Geist Mono', monospace; font-size: 10.5px; color: #c9c9cf; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: {{ c.w }}px;">{{ c.label }}</span>
+                  <div style="width: {{ c.w }}px; height: {{ c.h }}px; max-width: 100%;">
+                    <x-import component="WidgetPreview" from="./widgets/_preview/WidgetPreview.jsx" widget="{{ c.id }}" data="{{ data }}" theme="{{ c.theme }}" extra="{{ c.extra }}" hint-size="100%,100%"></x-import>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </section>
+        </sc-for>
+        <sc-for list="{{ grp.widgets }}" as="w" hint-placeholder-count="2">
+          <section id="{{ w.id }}" style="display: grid; grid-template-columns: minmax(220px, 260px) minmax(0, 1fr); gap: 28px; padding: 24px 0; border-top: 1px solid #1a1a1f;">
+            <div style="display: flex; flex-direction: column; gap: 10px; min-width: 0;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="material-symbols-rounded" style="font-size: 20px; color: #34d399;">{{ w.icon }}</span>
+                <h3 style="margin: 0; font-size: 16px; font-weight: 600;">{{ w.name }}</h3>
+                <sc-if value="{{ w.isNew }}" hint-placeholder-val="{{ false }}">
+                  <span style="padding: 2px 6px; border-radius: 5px; background: rgba(52,211,153,0.14); color: #6ee7b7; font-size: 10px; font-weight: 600; letter-spacing: 0.04em;">NEW</span>
+                </sc-if>
+              </div>
+              <p style="margin: 0; font-size: 12.5px; line-height: 1.5; color: #a1a1aa; text-wrap: pretty;">{{ w.description }}</p>
+              <div style="display: flex; flex-wrap: wrap; gap: 6px; font-family: 'Geist Mono', monospace; font-size: 10.5px;">
+                <span style="padding: 3px 7px; border-radius: 5px; background: #17171b; color: #c9c9cf; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis;">{{ w.category }}</span>
+                <span style="padding: 3px 7px; border-radius: 5px; background: #17171b; color: #c9c9cf; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis;">{{ w.points }}</span>
+                <span style="padding: 3px 7px; border-radius: 5px; background: #17171b; color: #c9c9cf; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis;">{{ w.file }}</span>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 4px;">
+                <span style="font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em; color: #6f6f79;">Props</span>
+                <code style="font-family: 'Geist Mono', monospace; font-size: 11px; line-height: 1.6; color: #8a8a94; white-space: pre-wrap;">{{ w.props }}</code>
+              </div>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-start; min-width: 0;">
+              <sc-for list="{{ w.frames }}" as="f" hint-placeholder-count="6">
+                <div style="display: flex; flex-direction: column; gap: 7px; max-width: 100%; min-width: 0;">
+                  <div style="display: flex; flex-wrap: wrap; gap: 2px 8px; white-space: nowrap; font-family: 'Geist Mono', monospace; font-size: 10.5px; color: #6f6f79;">
+                    <span style="color: #c9c9cf;">{{ f.span }}</span><span>{{ f.dims }}</span><span>{{ f.note }}</span>
+                  </div>
+                  <div style="width: {{ f.w }}px; height: {{ f.h }}px; resize: {{ f.resize }}; overflow: hidden; min-width: 100px; min-height: 80px; max-width: 100%; background-image: radial-gradient(#1c1c22 1px, transparent 1px); background-size: 14px 14px;">
+                    <x-import component="WidgetPreview" from="./widgets/_preview/WidgetPreview.jsx" widget="{{ w.id }}" data="{{ data }}" theme="{{ theme }}" extra="{{ f.extra }}" hint-size="100%,100%"></x-import>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </section>
+        </sc-for>
+      </div>
+    </sc-for>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;variant&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;default&quot;,&quot;options&quot;:[&quot;default&quot;,&quot;studio&quot;],&quot;tsType&quot;:&quot;string&quot;},&quot;skin&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;default&quot;,&quot;options&quot;:[&quot;default&quot;,&quot;instrument&quot;,&quot;tui&quot;,&quot;macos&quot;,&quot;ios&quot;,&quot;android&quot;,&quot;fluent&quot;,&quot;hud&quot;,&quot;ink&quot;,&quot;retro&quot;,&quot;synth&quot;,&quot;brutal&quot;,&quot;cyber&quot;,&quot;nixie&quot;],&quot;tsType&quot;:&quot;string&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#34d399&quot;,&quot;options&quot;:[&quot;#34d399&quot;,&quot;#60a5fa&quot;,&quot;#7D95FF&quot;,&quot;#fbbf24&quot;],&quot;tsType&quot;:&quot;string&quot;},&quot;surface&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;auto&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;instrument&quot;,&quot;studio&quot;,&quot;solid&quot;,&quot;glass&quot;,&quot;outline&quot;,&quot;flat&quot;,&quot;tinted&quot;,&quot;aurora&quot;,&quot;neon&quot;,&quot;holo&quot;,&quot;mesh&quot;,&quot;carbon&quot;,&quot;inset&quot;,&quot;terminal&quot;,&quot;vibrancy&quot;,&quot;mica&quot;,&quot;hud&quot;,&quot;tui&quot;,&quot;ios&quot;,&quot;material&quot;,&quot;synth&quot;,&quot;brutal&quot;,&quot;cyber&quot;,&quot;nixie&quot;],&quot;tsType&quot;:&quot;string&quot;},&quot;graph&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;auto&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;area&quot;,&quot;line&quot;,&quot;step&quot;,&quot;bars&quot;,&quot;dots&quot;,&quot;braille&quot;],&quot;tsType&quot;:&quot;string&quot;},&quot;meter&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;auto&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;bar&quot;,&quot;pill&quot;,&quot;segments&quot;,&quot;blocks&quot;,&quot;hair&quot;,&quot;wave&quot;,&quot;square&quot;],&quot;tsType&quot;:&quot;string&quot;},&quot;radius&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:16,&quot;min&quot;:0,&quot;max&quot;:28,&quot;step&quot;:1,&quot;unit&quot;:&quot;px&quot;,&quot;tsType&quot;:&quot;number&quot;},&quot;cell&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:150,&quot;min&quot;:110,&quot;max&quot;:210,&quot;step&quot;:10,&quot;unit&quot;:&quot;px&quot;,&quot;tsType&quot;:&quot;number&quot;},&quot;live&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+const NEW = ['MenuBar', 'KpiTiles', 'GpuRings', 'StatusTracker', 'OsdStrip', 'FramePacing', 'PlaytimeShare', 'SystemOverview', 'MeterBridge', 'GameSpotlight', 'CoreHeatmap', 'Visualizer', 'Vitals', 'ServiceHealth', 'Thermals', 'PowerDraw', 'Fans', 'DiskIO', 'WaveLink', 'Calendar', 'Forecast', 'Achievements', 'SteamNews', 'SensorGroup'];
+const CATALOG = [
+  { id: 'SystemOverview', name: 'System Overview', category: 'System', icon: 'dashboard', description: 'One panel for CPU, GPU and RAM, with optional VRAM and network. Each section has its own colour, ring, stats and smooth graph, and the CPU section adds a core heatmap that brightens with load. Shows as activity rings at 1×1.', prefixes: [], props: "sections ['cpu','gpu','ram','vram','net']\ncolors { cpu, gpu, ram, vram, net } | unifiedColor\nring 'ring'|'none', coreView 'heatmap'|'bars'|'off'\nheatRamp, details 'auto'|'min'|'full'",
+    '4x2': { sections: ['cpu', 'gpu', 'ram'] }, '2x2': { sections: ['cpu', 'gpu', 'ram', 'vram'] } },
+  { id: 'MenuBar', name: 'Menu Bar', category: 'System', icon: 'more_horiz', description: 'An always-visible glance strip in the style of iStat Menus: each label sits over its value, with mini history bars. Click an item to open its detail panel.', prefixes: [], props: "items ['cpu','gpu','temp','mem','down','up','nvme']\nstacked, dropdown" },
+  { id: 'KpiTiles', name: 'KPI Tiles', category: 'System', icon: 'query_stats', description: 'The four numbers you check first. Each tile shows the value, its change over recent readings, and a trend line with a live end dot.', prefixes: [], props: "metrics ['cpu','gpu','ram','net','vram','power']\nlookback" },
+  { id: 'StatusTracker', name: 'Status Tracker', category: 'System', icon: 'view_week', description: 'A history of states with one block per reading: OK, 50–80%, above 80% / down, or no data. Hover a block to see its value.', prefixes: [], props: "tracks [{ label, key, kind, warn, crit, up }]\nsamples" },
+  { id: 'SystemStatus', name: 'System Status', category: 'System', icon: 'monitor_heart', description: 'CPU + RAM load and Data API health.', prefixes: ['system.'], props: 'warn, crit' },
+  { id: 'Vitals', name: 'Vitals', category: 'System', icon: 'vital_signs', description: 'CPU, GPU, RAM and network side by side. Shows as a row in wide zones, a 2×2 grid in square ones and a stack in tall ones.', prefixes: [], props: "metrics ['cpu','gpu','ram','net','vram','fps']" },
+  { id: 'ServiceHealth', name: 'Service Health', category: 'System', icon: 'health_and_safety', description: 'Status board for every data source: Data API, LibreHW, RTSS, Wave Link, Spotify, Steam, weather and network.', prefixes: [], props: '—' },
+  { id: 'ProcessList', name: 'Processes', category: 'System', icon: 'list_alt', description: 'Top processes by CPU or memory plus process, thread and handle counts.', prefixes: ['plugins.system-info-plugin.processes.'], props: "sort 'cpu'|'utility'|'memory'\nrows (auto-fit)", '4x2': { sort: 'memory' } },
+  { id: 'Uptime', name: 'Uptime', category: 'System', icon: 'timer', description: 'Time since boot, split into days, hours, minutes and seconds.', prefixes: ['plugins.system-info-plugin.uptime.'], props: 'showSeconds' },
+  { id: 'CpuMonitor', name: 'CPU Monitor', category: 'Hardware', icon: 'memory', description: 'Total and per-core load as bars or a heatmap. Also shows clocks, Tctl, package power, VID, VRM and CPU fan.', prefixes: ['libre.amd_ryzen', 'libre.embedded_controller'], props: "coreView 'bars'|'heatmap'|'off'\ncoreMetric 'load'|'clock'\nheatRamp 'accent'|'thermal'\ncpu, warn, crit",
+    '2x2': { coreView: 'heatmap' }, '4x2': { coreView: 'heatmap', heatRamp: 'thermal' } },
+  { id: 'CoreHeatmap', name: 'Core Heatmap', category: 'Hardware', icon: 'grid_on', description: 'Per-core heatmap: grid, honeycomb, radial or scrolling waterfall, in seven colour ramps.', prefixes: [], props: "shape 'grid'|'hex'|'radial'|'waterfall'\nramp, metric, showValues, history", '2x2': { shape: 'hex', ramp: 'thermal' }, '4x2': { shape: 'waterfall', ramp: 'viridis' }, '1x2': { shape: 'radial' } },
+  { id: 'GpuRings', name: 'GPU Rings', category: 'Hardware', icon: 'donut_large', description: 'Stacked radial rings, used only for bounded percentages: VRAM on the outside, core load inside, temperature in the centre. A legend lists clocks, power and fans.', prefixes: [], props: "outer 'vram'|'load'|'power'\ninner 'load'|'vram'|'fan'\ncolors { outer, inner }" },
+  { id: 'GpuMonitor', name: 'GPU Monitor', category: 'Hardware', icon: 'developer_board', description: 'Load, core and hotspot temps, power, VRAM, clocks, fans and D3D engines.', prefixes: ['libre.nvidia_'], props: 'gpu (sensor slug)\nwarnTemp, critTemp' },
+  { id: 'MemoryUsage', name: 'Memory', category: 'Hardware', icon: 'memory_alt', description: 'Physical and virtual memory: load, used and available.', prefixes: ['libre.total_memory', 'libre.virtual_memory'], props: 'warn, crit' },
+  { id: 'Thermals', name: 'Thermals', category: 'Hardware', icon: 'device_thermostat', description: 'Every temperature in one list, hottest first, with a warning marker on each row.', prefixes: [], props: "sortBy 'hottest'|'fixed'\nwarn, crit, max" },
+  { id: 'PowerDraw', name: 'Power Draw', category: 'Hardware', icon: 'bolt', description: 'CPU and GPU package watts as a split bar, with a history of the total.', prefixes: [], props: 'budget (W)' },
+  { id: 'Fans', name: 'Fans', category: 'Hardware', icon: 'mode_fan', description: 'GPU fans with duty % plus the CPU fan. Each icon spins in proportion to its RPM.', prefixes: [], props: 'maxRpm, spin' },
+  { id: 'DriveSpace', name: 'Drive Space', category: 'Storage', icon: 'hard_drive', description: 'Used and free space per volume, with label, type and file system.', prefixes: ['plugins.drive-info-plugin.'], props: "drive ('c', 'd'…) or all\nwarn, crit", '2x2': { drive: 'c' } },
+  { id: 'StorageHealth', name: 'SSD Health', category: 'Storage', icon: 'health_metrics', description: 'SMART life, temperature, read/write rate, activity, TBW, spare and power-on hours.', prefixes: ['libre.kingston_', 'libre.wdc_'], props: 'disk (sensor slug)', '2x2': { disk: 'wdc_wds100t2b0a_00sm50' } },
+  { id: 'DiskIO', name: 'Disk I/O', category: 'Storage', icon: 'swap_horiz', description: 'Read and write throughput for every physical disk, plus a combined history.', prefixes: [], props: '—' },
+  { id: 'NetworkThroughput', name: 'Network Traffic', category: 'Network', icon: 'swap_vert', description: 'Live download and upload rate with history, totals and utilisation for any adapter.', prefixes: ['libre.ethernet', 'libre.wifi', 'libre.tailscale', 'libre.bluetooth_network', 'libre.vethernet'], props: "adapter ('ethernet', 'wifi', 'tailscale'…)", '2x2': { adapter: 'tailscale' } },
+  { id: 'NetworkAdapters', name: 'Network Adapters', category: 'Network', icon: 'lan', description: 'Public IP plus each adapter’s status, link speed, IPv4 and IPv6.', prefixes: ['plugins.network-info-plugin.'], props: 'showDown, showIpv6\nhideIp (blur until hover)', '4x2': { showDown: true } },
+  { id: 'NowPlaying', name: 'Now Playing', category: 'Media', icon: 'music_note', description: 'Track, artist, album, cover art and progress from Windows Media, Spotify or a pushed source.', prefixes: ['plugins.media-plugin.', 'plugins.spotify-plugin.', 'spotify.'], props: "source 'auto'|'media'|'spotify'|'pushed'\nlayout 'card'|'vinyl'|'backdrop'|'wave'\nprogress 'bar'|'wave'|'visualizer'\nvizMode, vizDevice, vizRamp, showTimeline\nshowArt", '4x2': { layout: 'backdrop', progress: 'visualizer', vizMode: 'mirror' }, '3x1': { progress: 'visualizer' } },
+  { id: 'AudioMeter', name: 'Audio Meter', category: 'Audio', icon: 'graphic_eq', description: 'L/R LED meter with peak, RMS, hold and level, or a meter bridge showing every device.', prefixes: ['plugins.audio-level-meter.'], props: "device (container id)\nmode 'single'|'bridge'\nsegments", '4x2': { mode: 'bridge' }, '1x2': { mode: 'bridge' } },
+  { id: 'VolumeMixer', name: 'Volume Mixer', category: 'Audio', icon: 'tune', description: 'Volume and mute for each device, plus the default device and Wave Link status.', prefixes: ['plugins.volume-plugin.'], props: 'onSetVolume(id, v)\nonToggleMute(id)' },
+  { id: 'MeterBridge', name: 'Meter Bridge', category: 'Audio', icon: 'graphic_eq', description: 'Studio-style meters for every channel: a dB scale, stereo LED ladders with dimmed zone colours, peak hold, volume and L/R dB readouts. Switches to horizontal rows in short zones.', prefixes: [], props: "channels [names|ids], orientation\nladder 'led'|'smooth', segments, floor\nwarnDb, clipDb, holdMs, showScale, showVolume", '4x2': { channels: ['Voice', 'Browser', 'Music', 'System'] } },
+  { id: 'Visualizer', name: 'Visualizer', category: 'Audio', icon: 'equalizer', description: 'Canvas audio visualiser driven by the level meter: bars, mirror, radial, wave, blob or LED dots.', prefixes: [], props: "mode 'bars'|'mirror'|'radial'|'wave'|'blob'|'dots'\ndevice, ramp, bands, sensitivity, peaks", '2x2': { mode: 'radial' }, '1x2': { mode: 'mirror' }, '3x1': { mode: 'wave' } },
+  { id: 'WaveLink', name: 'Wave Link', category: 'Audio', icon: 'mic', description: 'Elgato Wave Link inputs with mute and gain, and live L/R meters for each channel.', prefixes: ['plugins.wavelink-plugin.'], props: '—' },
+  { id: 'Clock', name: 'Clock', category: 'Info', icon: 'schedule', description: 'Digital or analog clock with date, 12/24 h and seconds.', prefixes: ['plugins.clock-plugin.'], props: "face 'digital'|'analog'\nformat '24h'|'12h'\nshowSeconds, showDate", '2x2': { face: 'analog' }, '4x2': { face: 'analog' } },
+  { id: 'Calendar', name: 'Calendar', category: 'Info', icon: 'calendar_today', description: 'Today’s date plus a month grid, taken from the clock plugin.', prefixes: [], props: 'weekStart 0|1' },
+  { id: 'Weather', name: 'Weather', category: 'Info', icon: 'partly_cloudy_day', description: 'Conditions, feels-like, wind, humidity, pressure, rain or snow, and a 7-day forecast.', prefixes: ['plugins.yr-weather-plugin.', 'plugins.weather-plugin.'], props: "provider 'yr'|'owm'\nlocation, units 'C'|'F'" },
+  { id: 'Forecast', name: 'Forecast', category: 'Info', icon: 'calendar_month', description: 'Daily forecast with hi/lo range bars. Runs across in wide zones and down in tall ones.', prefixes: [], props: "location, days, units 'C'|'F'" },
+  { id: 'FpsMonitor', name: 'FPS Monitor', category: 'Gaming', icon: 'speed', description: 'RTSS frame rate, 1% low, frame-time graph, min/avg/max, display and API.', prefixes: ['plugins.InfoPanel.RTSS.'], props: 'target (fps, default = refresh)' },
+  { id: 'GameSpotlight', name: 'Game Spotlight', category: 'Gaming', icon: 'stadia_controller', description: 'Now playing for games: the Steam hero banner with slow Ken Burns motion, game logo, poster and icon, plus session, playtime, FPS, achievements and friends. The combo layout overlays the current music track.', prefixes: [], props: "layout 'hero'|'poster'|'logo'|'ticker'|'combo'\nmotion, scrim, music 'media'|'spotify'", '2x2': { layout: 'poster' } },
+  { id: 'OsdStrip', name: 'OSD Strip', category: 'Gaming', icon: 'videogame_asset', description: 'An in-game overlay strip like RTSS or Afterburner: cells in a fixed order with monospace digits, and colour only when a value drops.', prefixes: [], props: "cells ['fps','low','ft','gpu','cpu','vram','display']\ntarget" },
+  { id: 'FramePacing', name: 'Frame Pacing', category: 'Gaming', icon: 'timeline', description: 'A frame-time graph with budget lines for your refresh rate and for 60 Hz. Average FPS hides stutter; frame-time spikes show it.', prefixes: [], props: "budgets [Hz…], window" },
+  { id: 'PlaytimeShare', name: 'Playtime Share', category: 'Gaming', icon: 'stacked_bar_chart', description: 'How the last two weeks of play split between games, as one bar with a segment per game sized by its share.', prefixes: [], props: 'colors []' },
+  { id: 'SteamProfile', name: 'Steam Profile', category: 'Gaming', icon: 'account_circle', description: 'Avatar, persona, status, level and friends online or in-game, with recent activity.', prefixes: ['plugins.InfoPanel.SteamAPI.SteamAPI-Profile.', 'plugins.InfoPanel.SteamAPI.SteamAPI-Social.'], props: '—' },
+  { id: 'SteamGame', name: 'Current Game', category: 'Gaming', icon: 'stadia_controller', description: 'Hero art, session time, playtime, average session and achievement progress.', prefixes: ['plugins.InfoPanel.SteamAPI.SteamAPI-Session.', 'plugins.InfoPanel.SteamAPI.SteamAPI-Achievements.'], props: "art 'banner'|'grid'|'none'\nscrim 0–1" },
+  { id: 'Achievements', name: 'Achievements', category: 'Gaming', icon: 'trophy', description: 'Completion ring for the current game, unlocked/total and the latest unlock.', prefixes: [], props: '—' },
+  { id: 'SteamLibrary', name: 'Steam Library', category: 'Gaming', icon: 'library_books', description: 'Games owned, total and recent playtime, recent games and game news.', prefixes: ['plugins.InfoPanel.SteamAPI.SteamAPI-Library.', 'plugins.InfoPanel.SteamAPI.SteamAPI-News.'], props: 'showNews' },
+  { id: 'SteamNews', name: 'Game News', category: 'Gaming', icon: 'newspaper', description: 'The latest headlines for the current game and your library.', prefixes: [], props: 'lines (clamp)' },
+  { id: 'SensorValue', name: 'Sensor', category: 'Generic', icon: 'sensors', description: 'Bind any single data point and show it as a value, gauge, bar or sparkline with thresholds.', prefixes: [], props: "sensor (key), label\ndisplay 'value'|'gauge'|'bar'|'spark'\nmin, max, warn, crit, decimals",
+    '1x1': { sensor: 'libre.nvidia_geforce_rtx_5090_gpu_core', label: 'GPU temp', display: 'gauge', max: 100, warn: 70, crit: 85 }, '2x1': { sensor: 'system.cpu.load', label: 'CPU load', display: 'gauge', warn: 75, crit: 90 },
+    '3x1': { sensor: 'libre.ethernet_download_speed', label: 'Ethernet ↓', display: 'spark' }, '1x2': { sensor: 'libre.kingston_sfyrd2000g_temperature__2', label: 'NVMe', display: 'bar', max: 90, warn: 70 },
+    '2x2': { sensor: 'libre.kingston_sfyrd2000g_temperature__2', label: 'NVMe temp', display: 'bar', max: 90, warn: 70 }, '4x2': { sensor: 'libre.ethernet_download_speed', label: 'Ethernet ↓', display: 'spark' } },
+  { id: 'SensorGroup', name: 'Sensor Group', category: 'Generic', icon: 'view_list', description: 'Bind any list of data points, shown as rows or a tile grid, each with an optional bar and thresholds.', prefixes: [], props: "sensors [{ key, label, max, warn, crit }]\nlayout 'auto'|'rows'|'grid', bars" },
+];
+const SPANS = [[1, 1, 'tile'], [2, 1, ''], [3, 1, 'strip'], [1, 2, 'column'], [2, 2, ''], [4, 2, 'drag ↘']];
+const SURF_ALL = ['solid', 'glass', 'outline', 'flat', 'tinted', 'aurora', 'neon', 'holo', 'mesh', 'carbon', 'inset', 'terminal', 'studio', 'instrument', 'vibrancy', 'mica', 'ios', 'material', 'hud', 'tui', 'synth', 'brutal', 'cyber', 'nixie'];
+const DEMO = {
+  'plugins.InfoPanel.RTSS.rtss.fps': '141 FPS', 'plugins.InfoPanel.RTSS.rtss.1% low fps': '108 FPS', 'plugins.InfoPanel.RTSS.rtss.current frame time': '7.1 ms',
+  'plugins.InfoPanel.RTSS.rtss.min-fps': '96 FPS', 'plugins.InfoPanel.RTSS.rtss.avg-fps': '138 FPS', 'plugins.InfoPanel.RTSS.rtss.max-fps': '187 FPS',
+  'plugins.InfoPanel.RTSS.rtss.windowtitle': 'ARC Raiders', 'plugins.InfoPanel.RTSS.rtss.graphics-api': 'DX12', 'plugins.InfoPanel.RTSS.rtss.display-mode': 'Fullscreen',
+  'plugins.media-plugin.media.track-progress': '34', 'libre.amd_ryzen_9_9950x3d_package': '78.4 W', 'libre.amd_ryzen_9_9950x3d_core__tctl_tdie': '61.3 °C', 'libre.amd_ryzen_9_9950x3d_cores__average_effective': '4612 MHz',
+  'libre.embedded_controller_vrm': '48 °C', 'libre.embedded_controller_cpu_optional_fan': '1150 RPM', 'libre.nvidia_geforce_rtx_5090_gpu_package': '212.6 W',
+  'plugins.wavelink-plugin.wavelink.state': '{"status":"up","devices":[{"name":"Wave Mic 1","inputs":[{"name":"Wave Mic 1","isMuted":false,"gain":{"value":0.45,"min":0,"max":40}}]},{"name":"Focusrite","inputs":[{"name":"Analogue 1 + 2","isMuted":true,"gain":{"value":0.6,"min":0,"max":1}}]}]}',
+};
+const LIVE = /(%|°C|W|MHz|KB\/s|RPM|FPS|ms|dB| V)$/;
+
+class Component extends DCLogic {
+  state = { cat: 'All', data: {}, ui: {} };
+  // page settings = prop defaults (Tweaks) overridden by the on-page controls
+  P() {
+    const D = { variant: 'default', skin: 'default', accent: '#34d399', surface: 'auto', graph: 'auto', meter: 'auto', radius: 16, cell: 150, live: true };
+    const pr = Object.fromEntries(Object.entries(this.props || {}).filter(([, v]) => v !== undefined));
+    return { ...D, ...pr, ...this.state.ui };
+  }
+  setUi(k, v) { this.setState((s) => ({ ui: { ...s.ui, [k]: v } })); }
+  base = {}; walk = {};
+  componentDidMount() {
+    const src = window.IP_SOURCES || [];
+    for (const s of src) for (const g of s.groups) for (const [k, , v] of g.rows) this.base[k] = v;
+    const keys = Object.keys(this.base);
+    this.total = keys.length;
+    this.covered = keys.filter((k) => CATALOG.some((c) => c.prefixes.some((p) => k.startsWith(p)))).length;
+    for (const k in DEMO) this.base[k] = DEMO[k];
+    for (const k of keys) {
+      if (/amd_ryzen_9_9950x3d_core__\d+__effective$/.test(k)) this.base[k] = `${4300 + Math.round(Math.random() * 1000)} MHz`;
+      if (/amd_ryzen_9_9950x3d_cpu_core__\d+$/.test(k)) this.base[k] = `${(5 + Math.random() * 70).toFixed(2)} %`;
+      if (/audio-level-meter\..+\.(left|right)-channel$|audio-level$/.test(k)) this.base[k] = `${8 + Math.round(Math.random() * 30)} %`;
+    }
+    this.base['plugins.wavelink-plugin.wavelink.meters'] = JSON.stringify(Object.fromEntries(['ch1', 'ch2', 'ch3', 'ch4', 'ch5'].map((c) => [`channel:${c}`, { left: 0.4, right: 0.4 }])));
+    this.setState({ data: this.frame() });
+    this.timer = setInterval(() => { if (this.P().live) this.setState({ data: this.frame() }); }, 1200);
+  }
+  componentWillUnmount() { clearInterval(this.timer); }
+  frame() {
+    const out = {}; const now = new Date();
+    for (const k in this.base) {
+      const v = String(this.base[k]);
+      if (!LIVE.test(v.trim())) { out[k] = v; continue; }
+      const m = v.match(/-?\d+(\.\d+)?/); if (!m) { out[k] = v; continue; }
+      const n = parseFloat(m[0]); const dec = Math.max(0, (m[1] || '').length - 1);
+      const audio = /audio-level-meter/.test(k), rate = /KB\/s/.test(v);
+      // smooth random walk with momentum, so graphs move like real telemetry
+      const w = (this.walk[k] = Math.max(-1, Math.min(1, (this.walk[k] || 0) * 0.82 + (Math.random() - 0.5) * 0.55)));
+      let x = n === 0 && !audio ? 0 : n * (1 + w * (audio ? 0.8 : rate ? 0.45 : 0.1));
+      if (v.trim().endsWith('%')) x = Math.max(0, Math.min(100, x));
+      out[k] = v.replace(m[0], x.toFixed(dec));
+    }
+    const m = JSON.parse(this.base['plugins.wavelink-plugin.wavelink.meters']);
+    for (const c in m) m[c] = { left: Math.random() * 0.8, right: Math.random() * 0.8 };
+    out['plugins.wavelink-plugin.wavelink.meters'] = JSON.stringify(m);
+    const H = now.getHours();
+    Object.assign(out, { 'plugins.clock-plugin.clock.24-hour': String(H), 'plugins.clock-plugin.clock.12-hour': String(H % 12 || 12), 'plugins.clock-plugin.clock.minute': String(now.getMinutes()),
+      'plugins.clock-plugin.clock.second': String(now.getSeconds()), 'plugins.clock-plugin.clock.pm': H >= 12 ? '1' : '0', 'system.bridge.time': now.toTimeString().slice(0, 8) });
+    return out;
+  }
+  renderVals() {
+    const P = this.P();
+    const skin = P.skin;
+    const theme = { accent: P.accent, surface: P.surface, radius: skin === 'default' ? P.radius : undefined, skin, graph: P.graph, meter: P.meter, variant: P.variant };
+    const cell = P.cell, gap = 10;
+    const px = (n) => n * cell + (n - 1) * gap;
+    const SKIN_NOTES = { default: 'studio default', tui: 'btop-style · braille graphs · block meters', macos: 'Sonoma widget · vibrancy · rounded numerals', fluent: 'Windows 11 · Mica · Segoe UI Variable', hud: 'sci-fi · grid · corner brackets · stepped graphs', ink: 'monochrome · hairlines · serif numerals', retro: 'CRT · VT323 · scanlines · bar graphs',
+      ios: 'iOS 18 widget · bold rounded numerals · Activity-ring thickness', android: 'Material You · tonal surface · 28px · squiggly progress', synth: 'synthwave · horizon grid · neon glow · Orbitron',
+      brutal: 'neo-brutalist · hard offset shadow · Space Grotesk', cyber: 'cyberpunk · chamfered corners · signal yellow', nixie: 'nixie tube · smoked glass · glowing numerals', instrument: 'instrument rack · IBM Plex · Archivo numerals · state-only colour' };
+    const T = { accent: theme.accent, skin, surface: theme.surface, graph: theme.graph, meter: theme.meter, radius: theme.radius, variant: theme.variant };
+    const card = (id, label, cw, ch, extra) => ({ id, label, w: px(cw), h: px(ch), extra, theme: T });
+    const ST = { ...T, variant: 'studio' };
+    const sc = (id, label, cw, ch, extra) => ({ id, label, w: px(cw), h: px(ch), extra, theme: ST });
+    // Sampler gallery shows the instrument skin by default and follows whichever skin, variant, surface or accent you pick in Tweaks
+    const IT = { ...T, skin: skin === 'default' ? 'instrument' : skin, accent: skin === 'default' && P.accent === '#34d399' ? '#7D95FF' : T.accent };
+    const ic = (id, label, cw, ch, extra) => ({ id, label, w: px(cw), h: px(ch), extra, theme: IT });
+    const galleries = [
+      { id: 'sampler', icon: 'precision_manufacturing', title: 'Sampler patterns', desc: 'Every pattern from the Widget Sampler, shown in the new instrument skin: IBM Plex Sans and Mono, condensed Archivo numerals, shadcn-style tokens, and colour only for state. All of these also work in any other skin.', props: "skin 'instrument'\n+ MenuBar · KpiTiles · GpuRings · StatusTracker\n  OsdStrip · FramePacing · PlaytimeShare\n+ heatmap hot outline · mirrored network · drive badges\n  status pills · achievement pips · process tabs",
+        cards: [ic('MenuBar', 'menu bar · click an item', 6, 2), ic('KpiTiles', 'KPI tiles', 6, 1), ic('CoreHeatmap', 'heatmap · hot outline', 3, 2, { shape: 'grid' }), ic('GpuRings', 'radial rings', 3, 2),
+          ic('NetworkThroughput', 'mirrored area', 3, 2, { chart: 'mirrored', adapter: 'ethernet' }), ic('DriveSpace', 'drives · fullest first', 3, 2), ic('StatusTracker', 'status tracker', 4, 2), ic('MeterBridge', 'LED meters + volume', 4, 2, { channels: ['Voice', 'Browser', 'Music', 'System'] }),
+          ic('ProcessList', 'ranked list · tabs', 3, 2), ic('ServiceHealth', 'status pills', 3, 2, { layout: 'pills' }), ic('OsdStrip', 'overlay strip', 6, 1), ic('FramePacing', 'frame pacing', 4, 2),
+          ic('SteamGame', 'media hero', 3, 2), ic('Achievements', 'pip progress', 3, 2, { display: 'pips' }), ic('PlaytimeShare', 'share bar', 3, 2), ic('SteamProfile', 'presence + feed', 3, 2)] },
+      { id: 'studio-variant', icon: 'auto_awesome_mosaic', title: 'Studio variant', desc: 'The clean sample widgets from the Studio app as a variant of every template: a mono micro-label, a big tight value at the bottom, a quiet sub line, a 3px bar, and a single-row label/value form for 1-row zones. Meters, rows, core grids and cover art appear where the data suits them.', props: "variant 'default' | 'studio'\n(combines with skin, surface, accent)",
+        cards: [sc('SystemStatus', 'stat · 2×1', 2, 1), sc('CpuMonitor', 'stat + line · 2×2', 2, 2), sc('MemoryUsage', 'stat + bar · 1×1', 1, 1), sc('NetworkThroughput', 'single row · 3×1', 3, 1), sc('Clock', 'clock · 2×1', 2, 1),
+          sc('NowPlaying', 'media · 3×1', 3, 1), sc('NowPlaying', 'media · 3×2', 3, 2), sc('VolumeMixer', 'meters · 3×2', 3, 2), sc('MeterBridge', 'meters · 2×2', 2, 2), sc('SystemOverview', 'rows · 2×2', 2, 2),
+          sc('Thermals', 'rows · 2×2', 2, 2), sc('ServiceHealth', 'rows + dots · 2×3', 2, 3), sc('CoreHeatmap', 'core grid · 2×2', 2, 2), sc('DriveSpace', 'rows · 2×2', 2, 2), sc('Weather', 'stat · 2×1', 2, 1),
+          sc('GameSpotlight', 'game · 3×2', 3, 2), sc('ProcessList', 'rows · 2×3', 2, 3), sc('Fans', 'single row · 4×1', 4, 1), sc('Uptime', 'stat · 1×1', 1, 1), sc('FpsMonitor', 'stat · 2×2', 2, 2)] },
+      { id: 'system-overview', icon: 'dashboard', title: 'System Overview', desc: 'The unified system panel at different spans and settings. Each section can have its own colour or follow the accent, and the CPU heatmap brightens as each core’s load rises.', props: "sections, colors, unifiedColor, ring, coreView, heatRamp, details",
+        cards: [card('SystemOverview', '5×2 · cpu gpu ram', 5, 2, null), card('SystemOverview', '5×2 · + vram · net', 5, 2, { sections: ['cpu', 'gpu', 'ram', 'vram', 'net'] }), card('SystemOverview', '3×1 · min', 3, 1, null),
+          card('SystemOverview', '2×2 · grid', 2, 2, { sections: ['cpu', 'gpu', 'ram', 'vram'] }), card('SystemOverview', '1×1 · activity rings', 1, 1, null), card('SystemOverview', '1×3 · stack · unified', 1, 3, { unifiedColor: true }),
+          card('SystemOverview', '4×2 · thermal heatmap · no rings', 4, 2, { ring: 'none', heatRamp: 'thermal' })] },
+      { id: 'meter-bridge', icon: 'graphic_eq', title: 'Meter Bridge', desc: 'Multi-channel meters built from your current design. The zone colours stay dimly lit so the scale reads at a glance, peak-hold ticks fall back after 1.5 s, and the volume % comes from the volume plugin.', props: "channels, orientation, ladder, segments, floor, warnDb, clipDb, holdMs",
+        cards: [card('MeterBridge', '4×3 · led', 4, 3, { channels: ['Voice', 'Browser', 'Music', 'System'] }), card('MeterBridge', '4×3 · smooth', 4, 3, { channels: ['Voice', 'Browser', 'Music', 'System'], ladder: 'smooth' }),
+          card('MeterBridge', '4×2 · horizontal', 4, 2, { orientation: 'horizontal' }), card('MeterBridge', '2×2 · two channels', 2, 2, { channels: ['Wave Mic 1', 'Headphones'] })] },
+      { id: 'game-spotlight', icon: 'stadia_controller', title: 'Game Spotlight', desc: 'Now playing for games, built from the Steam hero banner, logo, poster and icon. If the logo URL can’t load, the game title is typeset in its place.', props: "layout hero · poster · logo · ticker · combo\nmotion, scrim, music",
+        cards: [card('GameSpotlight', 'hero', 4, 2, { layout: 'hero' }), card('GameSpotlight', 'combo · music overlay', 4, 2, { layout: 'combo' }), card('GameSpotlight', 'combo · visualizer', 4, 2, { layout: 'combo', progress: 'visualizer', vizMode: 'mirror' }), card('GameSpotlight', 'poster', 3, 2, { layout: 'poster' }),
+          card('GameSpotlight', 'logo', 3, 2, { layout: 'logo' }), card('GameSpotlight', 'ticker (auto in strips)', 4, 1, null), card('GameSpotlight', 'column', 1, 3, null), card('GameSpotlight', 'tile', 1, 1, null)] },
+      { id: 'heatmaps', icon: 'grid_on', title: 'Heatmaps', desc: 'CoreHeatmap has four shapes and seven colour ramps. Waterfall scrolls each core’s history like a spectrogram.', props: "shape grid · hex · radial · waterfall\nramp accent · thermal · viridis · magma · ice · synth · mono\nmetric load · clock · power · vid",
+        cards: [card('CoreHeatmap', 'grid · accent', 2, 2, { shape: 'grid' }), card('CoreHeatmap', 'hex · thermal', 2, 2, { shape: 'hex', ramp: 'thermal' }), card('CoreHeatmap', 'radial · magma', 2, 2, { shape: 'radial', ramp: 'magma' }),
+          card('CoreHeatmap', 'waterfall · viridis', 4, 2, { shape: 'waterfall', ramp: 'viridis' }), card('CoreHeatmap', 'grid · clock · ice', 2, 1, { metric: 'clock', ramp: 'ice' }), card('CoreHeatmap', 'hex · synth', 1, 1, { shape: 'hex', ramp: 'synth' })] },
+      { id: 'visualizers', icon: 'equalizer', title: 'Visualizers', desc: 'Canvas visualisers that run at 60 fps, driven by the live level meter. The API has no FFT, so the bands are synthesised from the L/R levels.', props: "mode bars · mirror · radial · wave · blob · dots\nramp, bands, sensitivity, peaks",
+        cards: [card('Visualizer', 'bars', 3, 2, { mode: 'bars' }), card('Visualizer', 'mirror · synth ramp', 3, 1, { mode: 'mirror', ramp: 'synth' }), card('Visualizer', 'radial', 2, 2, { mode: 'radial' }),
+          card('Visualizer', 'blob · magma', 2, 2, { mode: 'blob', ramp: 'magma' }), card('Visualizer', 'wave', 3, 1, { mode: 'wave' }), card('Visualizer', 'dots · thermal', 2, 2, { mode: 'dots', ramp: 'thermal' })] },
+      { id: 'meters', icon: 'graphic_eq', title: 'Level meters', desc: 'AudioMeter comes in six meter styles. Each one shows the L/R channels plus peak, RMS and peak hold.', props: "meterStyle led · bar · vu · ring · mirror · wave\nmode single · bridge",
+        cards: [card('AudioMeter', 'led', 2, 1, { meterStyle: 'led' }), card('AudioMeter', 'bar + hold', 2, 1, { meterStyle: 'bar' }), card('AudioMeter', 'vu (analog)', 3, 2, { meterStyle: 'vu' }),
+          card('AudioMeter', 'ring', 2, 2, { meterStyle: 'ring' }), card('AudioMeter', 'mirror', 3, 1, { meterStyle: 'mirror' }), card('AudioMeter', 'wave', 2, 2, { meterStyle: 'wave' }), card('AudioMeter', 'bridge', 4, 2, { mode: 'bridge' })] },
+      { id: 'media', icon: 'album', title: 'Media layouts', desc: 'NowPlaying in four layouts. Vinyl spins while a track plays, and backdrop blurs the cover art behind the card like a lock screen. Any layout can replace its progress bar with a live visualiser, driven by the level meter, with a thin timeline underneath.', props: "layout card · vinyl · backdrop · wave\nprogress bar · wave · visualizer\nvizMode bars · mirror · wave · dots · line\nvizDevice, vizRamp, showTimeline",
+        cards: [card('NowPlaying', 'card', 3, 1, { layout: 'card' }), card('NowPlaying', 'vinyl', 3, 2, { layout: 'vinyl' }), card('NowPlaying', 'backdrop', 3, 2, { layout: 'backdrop' }), card('NowPlaying', 'wave', 2, 2, { layout: 'wave' }),
+          card('NowPlaying', 'card · visualizer bars', 3, 1, { layout: 'card', progress: 'visualizer', vizMode: 'bars' }), card('NowPlaying', 'backdrop · visualizer mirror', 3, 2, { layout: 'backdrop', progress: 'visualizer', vizMode: 'mirror' }),
+          card('NowPlaying', 'vinyl · visualizer wave', 3, 2, { layout: 'vinyl', progress: 'visualizer', vizMode: 'wave' }), card('NowPlaying', 'wave layout · visualizer dots', 2, 2, { layout: 'wave', progress: 'visualizer', vizMode: 'dots' }),
+          card('NowPlaying', 'card · visualizer line · synth ramp', 4, 2, { layout: 'card', progress: 'visualizer', vizMode: 'line', vizRamp: 'synth' })] },
+    ];
+    // Style galleries: every skin and every surface, rendered with the current variant/accent
+    const skinCards = Object.keys(SKIN_NOTES).flatMap((name) => {
+      const th = { accent: theme.accent, skin: name, surface: 'auto', graph: P.graph, meter: P.meter, variant: P.variant };
+      return [{ id: 'CpuMonitor', label: `${name} · ${SKIN_NOTES[name]}`, w: px(3), h: px(2), extra: null, theme: th }, { id: 'NetworkThroughput', label: `${name} · strip`, w: px(2), h: px(1), extra: null, theme: th }];
+    });
+    galleries.push(
+      { id: 'skins', icon: 'style', title: 'Skins', desc: 'A skin restyles the frame, type, graphs and meters of every widget. Set it on one widget or on a whole profile; graph and meter can override the skin’s own choices.', props: `skin ${Object.keys(SKIN_NOTES).join(' · ')}\ngraph area · line · step · bars · dots · braille\nmeter bar · pill · segments · blocks · hair · wave · square`, cards: skinCards },
+      { id: 'surfaces', icon: 'texture', title: 'Surfaces', desc: 'Pass surface to any widget. Every surface takes its colour from the accent, and auto uses the skin’s own surface.', props: `surface auto · ${SURF_ALL.join(' · ')}`, cards: SURF_ALL.map((s) => ({ id: 'SystemStatus', label: s, w: px(2), h: px(2), extra: null, theme: { ...theme, surface: s } })) },
+    );
+    const GROUPS = [
+      { name: 'Style', icon: 'palette', desc: 'Variants, skins and surfaces. Each one applies to every template on the page; use the controls above to try them across the whole catalogue.', galleries: ['studio-variant', 'sampler', 'skins', 'surfaces'] },
+      { name: 'System', icon: 'monitor_heart', desc: 'Whole-machine summaries, glance strips, KPIs, processes, uptime and data-source health.', galleries: ['system-overview'] },
+      { name: 'Hardware', icon: 'memory', desc: 'CPU, GPU and memory monitors, core heatmaps, temperatures, power and fans.', galleries: ['heatmaps'] },
+      { name: 'Storage', icon: 'hard_drive', desc: 'Volume capacity, SSD health and disk throughput.', galleries: [] },
+      { name: 'Network', icon: 'lan', desc: 'Live traffic per adapter, addresses and link status.', galleries: [] },
+      { name: 'Media', icon: 'album', desc: 'Now playing from Windows Media, Spotify or a pushed source.', galleries: ['media'] },
+      { name: 'Audio', icon: 'graphic_eq', desc: 'Level meters, meter bridges, visualisers, the volume mixer and Wave Link.', galleries: ['meter-bridge', 'meters', 'visualizers'] },
+      { name: 'Info', icon: 'schedule', desc: 'Clock, calendar, weather and forecast.', galleries: [] },
+      { name: 'Gaming', icon: 'stadia_controller', desc: 'RTSS frame data, in-game overlays, Steam presence, current game, achievements, library and news.', galleries: ['game-spotlight'] },
+      { name: 'Generic', icon: 'sensors', desc: 'Bind any data point or list of points.', galleries: [] },
+    ];
+    const base = this.base;
+    const countFor = (c) => Object.keys(base).filter((k) => c.prefixes.some((p) => k.startsWith(p))).length;
+    const toWidget = (c) => ({
+      ...c, isNew: NEW.includes(c.id), file: `widgets/${c.id}.jsx`, points: c.prefixes.length ? `${countFor(c)} points` : 'shared / any',
+      frames: SPANS.map(([cw, ch, note]) => ({ span: `${cw}×${ch}`, w: px(cw), h: px(ch), dims: `${px(cw)}×${px(ch)}`, note, resize: cw === 4 ? 'both' : 'none', extra: c[`${cw}x${ch}`] || null })),
+    });
+    const groups = GROUPS.filter((g) => this.state.cat === 'All' || this.state.cat === g.name).map((g) => {
+      const ws = CATALOG.filter((c) => c.category === g.name);
+      const gs = g.galleries.map((id) => galleries.find((x) => x.id === id)).filter(Boolean);
+      return { ...g, anchor: `group-${g.name.toLowerCase()}`, widgets: ws.map(toWidget), galleries: gs,
+        meta: [ws.length ? `${ws.length} template${ws.length > 1 ? 's' : ''}` : '', gs.length ? `${gs.length} galler${gs.length > 1 ? 'ies' : 'y'}` : ''].filter(Boolean).join(' · ') };
+    });
+    const sel = (key, label, options) => ({ label, value: P[key], options, onChange: (e) => this.setUi(key, e.target.value) });
+    const SWATCH = ['#34d399', '#60a5fa', '#7D95FF', '#a78bfa', '#f472b6', '#fbbf24', '#f87171'];
+    return {
+      theme, cell, data: this.state.data, widgetCount: CATALOG.length, surfaceCount: SURF_ALL.length, covered: this.covered ?? '–', total: this.total ?? '–', groups,
+      selects: [sel('variant', 'Variant', ['default', 'studio']), sel('skin', 'Skin', Object.keys(SKIN_NOTES)), sel('surface', 'Surface', ['auto', ...SURF_ALL]),
+        sel('graph', 'Graph', ['auto', 'area', 'line', 'step', 'bars', 'dots', 'braille']), sel('meter', 'Meter', ['auto', 'bar', 'pill', 'segments', 'blocks', 'hair', 'wave', 'square'])],
+      swatches: SWATCH.map((c) => ({ c, ring: P.accent.toLowerCase() === c.toLowerCase() ? '#ededf0' : 'transparent', pick: () => this.setUi('accent', c) })),
+      accentVal: P.accent, onAccent: (e) => this.setUi('accent', e.target.value),
+      ranges: [{ label: 'Radius', unit: skin === 'default' ? 'px' : 'px (skin)', value: P.radius, min: 0, max: 28, step: 1, onChange: (e) => this.setUi('radius', +e.target.value) },
+        { label: 'Cell', unit: 'px', value: P.cell, min: 110, max: 210, step: 10, onChange: (e) => this.setUi('cell', +e.target.value) }],
+      liveLabel: P.live ? 'Live data' : 'Paused', liveDot: P.live ? 'oklch(0.75 0.15 150)' : '#52525b', toggleLive: () => this.setUi('live', !P.live), resetUi: () => this.setState({ ui: {} }),
+      cats: ['All', ...GROUPS.map((g) => g.name)].map((c) => { const on = this.state.cat === c; const g = GROUPS.find((x) => x.name === c);
+        return { label: c, count: c === 'All' ? CATALOG.length : CATALOG.filter((x) => x.category === c).length + (g?.galleries.length ?? 0),
+          bg: on ? '#2a2a31' : '#111114', border: on ? '#3a3a44' : '#24242a', fg: on ? '#ededf0' : '#a1a1aa', pick: () => this.setState({ cat: c }) }; }),
+    };
+  }
+}
+</script>
+</body>
+</html>
