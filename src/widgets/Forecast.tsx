@@ -71,7 +71,7 @@ export default function Forecast(p: ForecastProps) {
           return (
             <ul className="flex h-full flex-col justify-between gap-1">
               {fc.slice(0, p.days ?? Math.max(1, Math.floor(h / 34))).map((f, i) => (
-                <li key={i} className="grid items-center gap-2 text-xs" style={{ gridTemplateColumns: w < 200 ? "30px 20px minmax(0,1fr) 26px" : "34px 22px 28px minmax(0,1fr) 28px" }} title={`${f.cond} · ${f.rain} mm · ${f.wind}`}>
+                <li key={i} className="grid items-center gap-2 text-xs" style={{ gridTemplateColumns: w < 200 ? "36px 20px minmax(0,1fr) 32px" : "34px 22px 28px minmax(0,1fr) 28px" }} title={`${f.cond} · ${f.rain} mm · ${f.wind}`}>
                   <span className="text-[color:var(--w-muted)]">{i === 0 ? "Tmrw" : f.day}</span>
                   <Icon name={weatherIcon(f.cond)} className="text-lg text-[color:var(--w-fg)]" />
                   {w >= 200 && <span className="text-right tabular-nums text-[color:var(--w-faint)]">{fmt(f.lo, 0)}°</span>}
