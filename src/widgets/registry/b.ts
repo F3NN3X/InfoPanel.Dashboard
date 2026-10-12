@@ -1,6 +1,7 @@
 // Template widgets, group B: storage, network, info, generic (see docs/redesign/phase9/brief-9.3c-templates.md).
 import type { DashboardModule, ModuleSettings } from "@/modules/types";
 import { NETWORK_SETTINGS } from "@/modules/network-modern";
+import { WEATHER_SETTINGS, weatherToProps } from "@/modules/weather-modern";
 import { templateModule } from "../module";
 import * as DriveSpace from "../DriveSpace";
 import * as StorageHealth from "../StorageHealth";
@@ -28,7 +29,7 @@ export const GROUP_B: DashboardModule[] = [
   templateModule({ meta: NetworkAdapters.meta, Component: NetworkAdapters.default, settings: [], toProps: pass<Partial<NetworkAdapters.NetworkAdaptersProps>>("showDown", "showIpv6", "hideIp") }),
   templateModule({ meta: Clock.meta, Component: Clock.default, settings: [], toProps: pass<Partial<Clock.ClockProps>>("format", "showSeconds", "showDate", "face") }),
   templateModule({ meta: Calendar.meta, Component: Calendar.default, settings: [], toProps: pass<Partial<Calendar.CalendarProps>>("weekStart") }),
-  templateModule({ meta: Weather.meta, Component: Weather.default, settings: [], toProps: pass<Partial<Weather.WeatherProps>>("provider", "location", "units") }),
+  templateModule({ meta: Weather.meta, Component: Weather.default, settings: WEATHER_SETTINGS, toProps: (s) => ({ ...pass<Partial<Weather.WeatherProps>>("provider", "location", "units")(s), ...weatherToProps(s) }) }),
   templateModule({ meta: Forecast.meta, Component: Forecast.default, settings: [], toProps: pass<Partial<Forecast.ForecastProps>>("location", "days", "units") }),
   templateModule({ meta: SensorValue.meta, Component: SensorValue.default, settings: [], toProps: pass<Partial<SensorValue.SensorValueProps>>("sensor", "label", "display", "min", "max", "warn", "crit", "decimals", "unit") }),
   templateModule({ meta: SensorGroup.meta, Component: SensorGroup.default, settings: [], toProps: pass<Partial<SensorGroup.SensorGroupProps>>("sensors", "layout", "bars") }),

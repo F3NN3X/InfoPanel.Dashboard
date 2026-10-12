@@ -136,7 +136,7 @@ re-exported there; style helpers are in `components/widget-style.ts`):
 - **mediamodern** (`ModernNowPlaying`) — `plugins.media-plugin.media.*`:
   `current-track`, `artist`, `cover-art`, `track-progress`,
   `elapsed-time`, `remaining-time`, `playback-state` (= 2 → playing).
-- **weathermodern** (`ModernWeather`) — `plugins.yr-weather-plugin.*`:
+- **weathermodern** (`Weather` template) — `plugins.yr-weather-plugin.*`:
   `name`, `temp`, `feels_like`, `weather_desc`/`weather`, `humidity`,
   `pressure`, `wind_speed`, `wind_gust`, `wind_deg`, `rain`, `snow`,
   `last_refreshed`, `weather_icon`; forecast from the yr
