@@ -12,7 +12,7 @@ const CARD_SECTION: Record<string, SpecialSection> = {
   "panel:background": "panelBackground",
   "panel:widgets": "panelWidgets",
   "panel:code": "panelJson",
-  "widget:data": "widgetKind",
+  "widget:kind": "widgetKind",
   "widget:display": "widgetDisplay",
   "widget:layout": "widgetPlacement",
   "widget:typography": "widgetColors",
@@ -39,6 +39,6 @@ export function panelState(
   return {
     layout: layout === "grid" || layout === "overlay" ? layout : "stack",
     codeView: ids.has("panel:code"),
-    selectedWidget: ids.has("widget:data"),
+    selectedWidget: ids.has("widget:kind"),
   };
 }

@@ -1,5 +1,6 @@
 import type { WidgetKind } from "@/lib/panel-model";
-import { ColorInput, Field, INPUT, NumberInput, TextInput } from "./fields";
+import { TextRow } from "../setting-rows";
+import { ColorInput, Field, InlineField, NumberInput, TextInput } from "./fields";
 import type { WidgetSectionProps } from "./types";
 
 /** Kinds that read `fontSize` (a gauge's ring diameter). */
@@ -35,7 +36,7 @@ export const hasColor = (widget: WidgetSectionProps["widget"]) => COLORED.has(wi
 /** Font size (a gauge's ring size). */
 export function TypographyFields({ widget, set }: WidgetSectionProps) {
   return (
-    <Field label={widget.kind === "gauge" ? "Ring size (px)" : "Font size (px)"}>
+    <InlineField label={widget.kind === "gauge" ? "Ring size (px)" : "Font size (px)"}>
       <NumberInput
         value={widget.fontSize}
         min={8}
@@ -45,13 +46,22 @@ export function TypographyFields({ widget, set }: WidgetSectionProps) {
         placeholder="auto"
         onChange={(v) => set("fontSize", v)}
       />
-    </Field>
+    </InlineField>
   );
 }
 
 /** The widget's color override. */
-export function ColorFields({ widget, set }: WidgetSectionProps) {
-  return <ColorInput label="Color" value={widget.color} onChange={(v) => set("color", v)} />;
+export function ColorFields({ widget, set, enforce }: WidgetSectionProps) {
+  return (
+    <>
+      <ColorInput label="Color" value={widget.color} onChange={(v) => set("color", v)} />
+      {enforce && (
+        <p className="text-[11.5px] leading-snug text-ui-warning">
+          Force global style is on — this widget's own look values are ignored.
+        </p>
+      )}
+    </>
+  );
 }
 
 /** Extra class names and the widget's own CSS, with the hooks it can target. */
@@ -61,24 +71,22 @@ export function AdvancedFields({ widget, set }: WidgetSectionProps) {
       <Field label="Class names" hint="hooks for panel CSS">
         <TextInput value={widget.className} placeholder="big accent" mono onChange={(v) => set("className", v)} />
       </Field>
-      <Field label="Custom CSS" hint="scoped to this widget">
-        <textarea
-          value={widget.css ?? ""}
-          onChange={(e) => set("css", e.target.value || undefined)}
-          rows={4}
-          spellCheck={false}
-          placeholder=":scope .wp-value { color: tomato }"
-          className={`${INPUT} resize-y font-mono text-[11px] placeholder:text-muted-foreground/50`}
-        />
-        <dl className="mt-1 grid grid-cols-[auto_1fr] gap-x-2 text-[10px] text-muted-foreground/70">
-          {HOOKS.map(([hook, what]) => (
-            <div key={hook} className="contents">
-              <dt className="font-mono">{hook}</dt>
-              <dd>{what}</dd>
-            </div>
-          ))}
-        </dl>
-      </Field>
+      <TextRow
+        label="Custom CSS"
+        hint="scoped to this widget's cell"
+        multiline
+        value={widget.css ?? ""}
+        placeholder=":scope .wp-value { color: tomato }"
+        onChange={(v) => set("css", v || undefined)}
+      />
+      <dl className="grid grid-cols-[auto_1fr] gap-x-2 text-[10.5px] text-ui-4">
+        {HOOKS.map(([hook, what]) => (
+          <div key={hook} className="contents">
+            <dt className="font-ui-mono">{hook}</dt>
+            <dd>{what}</dd>
+          </div>
+        ))}
+      </dl>
     </>
   );
 }

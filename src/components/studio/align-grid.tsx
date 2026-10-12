@@ -103,7 +103,7 @@ export function AlignGrid({ x, y, onChange, only, spread, stretch, label = "Alig
       <div
         role="radiogroup"
         aria-label={label}
-        className="grid shrink-0 grid-cols-3 gap-0.5 rounded-md border border-border bg-background p-0.5"
+        className="grid shrink-0 grid-cols-3 gap-0.5 rounded-md border border-ui-default bg-ui-app p-0.5"
       >
         {POS.flatMap((cy, r) =>
           POS.map((cx, c) => {
@@ -127,14 +127,14 @@ export function AlignGrid({ x, y, onChange, only, spread, stretch, label = "Alig
                 onFocus={() => setFocus(i)}
                 onKeyDown={(e) => onKeyDown(e, i)}
                 className={cn(
-                  "flex h-5 w-5 items-center justify-center rounded-[4px] transition-colors outline-none focus-visible:ring-1 focus-visible:ring-ring",
-                  on ? "bg-accent" : "hover:bg-accent/40"
+                  "flex h-[22px] w-[22px] items-center justify-center rounded-[4px] transition-colors outline-none focus-visible:ring-1 focus-visible:ring-ui-accent/60",
+                  on ? "bg-ui-active" : "hover:bg-ui-hover"
                 )}
               >
                 <span
                   className={cn(
                     "rounded-full",
-                    on ? "h-2 w-2 bg-ring" : "h-1 w-1 bg-muted-foreground/50"
+                    on ? "h-2 w-2 bg-ui-accent" : "h-1 w-1 bg-ui-5"
                   )}
                 />
               </button>
@@ -143,7 +143,7 @@ export function AlignGrid({ x, y, onChange, only, spread, stretch, label = "Alig
         )}
       </div>
       <div className="min-w-0 space-y-1">
-        <div className="text-[11px] tabular-nums text-muted-foreground">
+        <div className="font-ui-mono text-[11px] text-ui-3">
           {only === "x"
             ? caption("x")
             : only === "y"
@@ -176,8 +176,8 @@ function ToggleChip({ on, onClick, children }: { on: boolean; onClick: () => voi
       aria-pressed={on}
       onClick={onClick}
       className={cn(
-        "rounded border px-1.5 py-0.5 text-[10px] transition-colors",
-        on ? "border-ring bg-accent text-foreground" : "border-border text-muted-foreground hover:text-foreground"
+        "rounded-md border px-2 py-0.5 text-[11px] transition-colors",
+        on ? "border-ui-accent bg-ui-accent-soft text-ui-accent-text" : "border-ui-default text-ui-3 hover:text-ui-1"
       )}
     >
       {children}

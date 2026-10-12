@@ -1,15 +1,14 @@
 import { useState } from "react";
-import { Segmented } from "@/components/ui/segmented";
 import { withPanelField, type PanelDef, type Widget, type WidgetKind } from "@/lib/panel-model";
 import { newWidget, type Placement } from "@/lib/layout";
 import type { SheetGroup } from "./category-sheet";
 import { PanelCodeView } from "./panel-code-view";
 import { PanelLayers } from "./panel-layers";
-import { PanelBackgroundFields, PanelLayoutFields } from "./panel-layout-section";
+import { PanelBackgroundFields, PanelLayoutFields, PanelMainFields } from "./panel-layout-section";
 import { PanelMenu, PresetNameInput } from "./panel-preset-tools";
 import { panelWidgetActions } from "./panel-widget-actions";
 import { widgetCards } from "./widget-editor";
-import { AddWidgetMenu } from "./widget-kind-menu";
+import { AddWidgetSelect } from "./widget-kind-menu";
 import { widgetName } from "./widget-kinds";
 import { useSensorCatalog } from "@/lib/catalog";
 
@@ -33,14 +32,19 @@ interface PanelSheetArgs {
   onPresetNaming: (open: boolean) => void;
   /** Save this panel zone to My panels under a name. */
   onSavePreset: (name: string) => void;
+  /** Force global style is on: a widget's own color is ignored. */
+  enforce?: boolean;
+  /** Open Sources mode (the sensor field's data picker offers it). */
+  onOpenExplorer: () => void;
 }
 
 /**
- * A panel zone's own cards: Panel (Visual / Code, preset), Layout,
- * Background (overlay), Widgets (the layers), and the selected widget's
- * editor cards. The inspector places each in the Content section the
- * registry marks for it (`inspector/panel-cards.ts`). In the Code view the layout, widget and
- * editor cards give way to one wide code card. `undefined` for other zones.
+ * A panel zone's own cards: Panel (Visual / Code, size, gap, padding,
+ * preset), Layout, Background (overlay), Widgets (the layers), and the
+ * selected widget's editor cards. The inspector places each in the Content
+ * section the registry marks for it (`inspector/panel-cards.ts`). In the
+ * Code view the layout, widget and editor cards give way to one wide code
+ * card. `undefined` for other zones.
  * (Title, accent and surface are the Widget and Colors & surface cards.)
  */
 export function usePanelSheet({
@@ -53,6 +57,8 @@ export function usePanelSheet({
   presetNaming,
   onPresetNaming,
   onSavePreset,
+  enforce,
+  onOpenExplorer,
 }: PanelSheetArgs): SheetGroup[] | undefined {
   const [view, setView] = useState<"visual" | "code">("visual");
   const catalog = useSensorCatalog();
@@ -89,26 +95,19 @@ export function usePanelSheet({
       id: "panel:main",
       title: "Panel",
       hint: "The panel as a whole. Its title, surface and accent are in Widget and Colors & surface.",
-      terms: ["Panel", "Visual", "Code", "JSON", "Save as panel preset", "preset"],
-      actions: (
-        <div className="flex items-center gap-1">
-          <Segmented
-            options={[
-              { value: "visual", label: "Visual" },
-              { value: "code", label: "Code", title: "Edit the panel as JSON" },
-            ]}
-            value={view}
-            onChange={setView}
-          />
-          <PanelMenu onSavePreset={() => onPresetNaming(true)} />
-        </div>
-      ),
-      node: presetNaming ? (
-        <PresetNameInput initial={panel.title} onSave={onSavePreset} onCancel={() => onPresetNaming(false)} />
-      ) : (
-        <p className="text-[11px] leading-snug text-muted-foreground/70">
-          {panel.widgets.length} widget{panel.widgets.length === 1 ? "" : "s"}, {layout} layout.
-        </p>
+      terms: ["Panel", "Editor", "Visual", "Code", "JSON", "Size", "Fill", "Hug", "Gap", "Padding", "Save as panel preset", "preset"],
+      actions: <PanelMenu onSavePreset={() => onPresetNaming(true)} />,
+      node: (
+        <>
+          <PanelMainFields panel={panel} setField={setPanelField} view={view} onView={setView} />
+          {presetNaming ? (
+            <PresetNameInput initial={panel.title} onSave={onSavePreset} onCancel={() => onPresetNaming(false)} />
+          ) : (
+            <p className="text-[11.5px] leading-snug text-ui-4">
+              {panel.widgets.length} widget{panel.widgets.length === 1 ? "" : "s"}, {layout} layout.
+            </p>
+          )}
+        </>
       ),
     },
   ];
@@ -119,7 +118,7 @@ export function usePanelSheet({
       hint: "How the widgets are arranged and how the panel fits its zone",
       terms: [
         "Layout", "Stack", "Grid", "Overlay", "Direction", "Wrap", "Alignment", "Columns", "Column sizes",
-        "Row sizes", "Cell alignment", "Band alignment", "Bottom band columns", "Gap", "Padding", "Fit in zone", "Fill", "Hug",
+        "Row sizes", "Cell alignment", "Band alignment", "Bottom band columns",
       ],
       node: <PanelLayoutFields {...layoutProps} />,
     });
@@ -128,7 +127,7 @@ export function usePanelSheet({
         id: "panel:background",
         title: "Background",
         hint: "The image that fills the overlay",
-        terms: ["Background", "Background image", "scrim", "Dark scrim"],
+        terms: ["Background", "Background image", "Image URL", "Upload", "Dim", "scrim", "Dark scrim"],
         node: <PanelBackgroundFields {...layoutProps} />,
       });
     }
@@ -137,9 +136,10 @@ export function usePanelSheet({
       title: `Widgets (${panel.widgets.length})`,
       hint: "Drag to reorder; the eye hides a widget",
       terms: ["Widgets", "Add widget", "Layers", ...panel.widgets.map((w) => widgetName(w, catalog))],
-      actions: <AddWidgetMenu onAdd={(kind: WidgetKind) => actions.insert(newWidget(kind))} />,
       node: (
-        <PanelLayers
+        <>
+          <AddWidgetSelect onAdd={(kind: WidgetKind) => actions.insert(newWidget(kind))} />
+          <PanelLayers
           widgets={panel.widgets}
           selectedId={selectedWidgetId}
           onSelect={onSelectWidget}
@@ -151,6 +151,10 @@ export function usePanelSheet({
           onChangeKind={actions.changeKind}
           onRemove={actions.remove}
         />
+          <p className="text-[11.5px] leading-snug text-ui-4">
+            Click a widget to edit it. Copy / paste and change kind keep the shared fields.
+          </p>
+        </>
       ),
     });
   } else {
@@ -175,6 +179,8 @@ export function usePanelSheet({
               panel,
               onChange: (fn, field) => updateWidget(selectedWidget.id, fn, field),
               onChangeKind: (kind) => actions.changeKind(selectedWidget.id, kind),
+              enforce,
+              onOpenExplorer,
             }),
           },
         ]
