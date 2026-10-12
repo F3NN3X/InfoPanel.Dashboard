@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, fmt, Metric, BarRow, Ring, Spark, Dot, useHistory, tone, Num, type ShellProps, type WidgetMeta } from "./kit";
+import { Widget, shell, get, num, fmt, Metric, BarRow, Ring, Spark, Dot, useHistory, tone, TONES, Num, type ShellProps, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "SystemStatus",
@@ -64,7 +64,12 @@ export default function SystemStatus(p: SystemStatusProps) {
                 { l: "RAM", v: ram, h: ramH },
               ].map(({ l, v, h }) => (
                 <div key={l} className="flex min-h-0 min-w-0 flex-col">
-                  <Metric label={l} value={v} unit="%" scale="lg" t={tone(v, warn, crit)} />
+                  {/* the unit sits on the baseline here: a superscript unit rides up into the label above in the wide skins */}
+                  <span className="truncate text-[11px] font-medium text-[color:var(--w-muted)]">{l}</span>
+                  <Num className="shrink-0 whitespace-nowrap text-4xl font-semibold leading-none" style={tone(v, warn, crit) !== "ok" ? { color: TONES[tone(v, warn, crit)] } : undefined}>
+                    {fmt(v, 0)}
+                    <span className="ml-0.5 text-base font-medium text-[color:var(--w-muted)]">%</span>
+                  </Num>
                   <Spark values={h} min={0} max={100} className="mt-2 min-h-0 flex-1" />
                 </div>
               ))}
