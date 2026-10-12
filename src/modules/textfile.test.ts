@@ -1,6 +1,9 @@
+import { createElement } from "react";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { fixtureSensors } from "@/widgets/__fixtures__";
+import { toFlat } from "@/widgets/data-adapter";
+import TextFile from "@/widgets/TextFile";
 import { textFileOptions } from "@/widgets/registry/e";
 import { textfileModule } from "./textfile";
 import { effectiveSettings, type ModuleSettings } from "./types";
@@ -28,10 +31,10 @@ describe("textfile", () => {
   });
 
   it("keeps the title, size, line count, status and the text at 2x1", () => {
-    const out = html({ layout: "simple" });
+    const out = renderToString(createElement(TextFile, { data: toFlat(fixtureSensors()), size: "xs" }));
     for (const text of ["Text File", "2.0 KB", "5 lines", "OK", "Release notes"]) expect(out).toContain(text);
     expect(out).not.toContain("overflow-y-auto");
-    expect(html({ layout: "simple", showMeta: false })).not.toContain("5 lines");
+    expect(renderToString(createElement(TextFile, { data: toFlat(fixtureSensors()), size: "xs", showMeta: false }))).not.toContain("5 lines");
   });
 
   it("renders nothing without plugin data", () => {
