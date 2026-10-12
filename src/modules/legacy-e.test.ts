@@ -6,6 +6,7 @@ import { webPageOptions } from "@/widgets/registry/e";
 import { toEmbeddable } from "@/widgets/WebPage";
 import { bluetoothModernModule } from "./bluetooth-modern";
 import { notificationsModule } from "./notifications";
+import { streamdeckModule } from "./streamdeck";
 import { vbzModule } from "./vbz";
 import { textfileModule } from "./textfile";
 import { webpageModule } from "./webpage";
@@ -20,7 +21,7 @@ interface Captured {
   prefixes: string[];
   settings: unknown[];
 }
-const MODULES: DashboardModule[] = [webpageModule, textfileModule, notificationsModule, vbzModule, bluetoothModernModule];
+const MODULES: DashboardModule[] = [webpageModule, textfileModule, notificationsModule, vbzModule, bluetoothModernModule, streamdeckModule];
 const LAYOUTS = ["card", "standard", "compact", "simple"] as const; // forced tiers lg / md / sm / xs
 const sensors = fixtureSensors();
 const html = (mod: DashboardModule, s: ModuleSettings) => renderToString(mod.render(sensors, s) as never);

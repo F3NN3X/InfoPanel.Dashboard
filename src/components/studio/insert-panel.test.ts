@@ -63,7 +63,7 @@ describe("insertables", () => {
     for (const id of ["weathermodern", "Departures", "Notifications", "TextFile"]) expect(category(id), id).toBe("Info");
     expect(category("steammodern")).toBe("Gaming");
     expect(category("fpsmodern")).toBe("Gaming");
-    for (const id of ["Bluetooth", "streamdeck", "WebPage", CARDS_ID]) expect(category(id), id).toBe("Generic");
+    for (const id of ["Bluetooth", "StreamDeck", "WebPage", CARDS_ID]) expect(category(id), id).toBe("Generic");
   });
 
   it("has no Other chip", () => {

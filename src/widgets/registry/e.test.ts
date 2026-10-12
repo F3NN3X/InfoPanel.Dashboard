@@ -8,6 +8,7 @@ import type { ShellProps } from "../kit";
 import Bluetooth, { meta as bluetooth } from "../Bluetooth";
 import Departures, { meta as departures } from "../Departures";
 import Notifications, { meta as notifications } from "../Notifications";
+import StreamDeck, { meta as streamDeck } from "../StreamDeck";
 import TextFile, { meta as textFile } from "../TextFile";
 import WebPage, { meta as webPage } from "../WebPage";
 import { GROUP_E } from "./e";
@@ -19,6 +20,7 @@ const WIDGETS: [typeof webPage, ComponentType<ShellProps>, string, Record<string
   [notifications, Notifications, "Info", {}],
   [departures, Departures, "Info", {}],
   [bluetooth, Bluetooth, "Generic", {}],
+  [streamDeck, StreamDeck, "Generic", {}],
 ];
 const SIZES = ["xs", "sm", "md", "lg"] as const;
 const VARIANTS = ["default", "studio"] as const;

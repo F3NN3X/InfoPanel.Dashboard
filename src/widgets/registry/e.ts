@@ -7,6 +7,7 @@ import { templateModule, type TemplateOptions } from "../module";
 import Bluetooth, { meta as bluetoothMeta, type BluetoothProps } from "../Bluetooth";
 import Departures, { meta as departuresMeta, type DeparturesProps } from "../Departures";
 import Notifications, { meta as notificationsMeta, type NotificationsProps } from "../Notifications";
+import StreamDeck, { meta as streamDeckMeta, type StreamDeckProps } from "../StreamDeck";
 import TextFile, { meta as textFileMeta, type TextFileProps } from "../TextFile";
 import WebPage, { meta as webPageMeta, type WebPageProps } from "../WebPage";
 
@@ -105,10 +106,23 @@ export const bluetoothOptions: TemplateOptions<Pick<BluetoothProps, "showStatus"
   }),
 };
 
+export const STREAMDECK_SETTINGS: ModuleSetting[] = [
+  { key: "showProfile", label: "Active profile", type: "boolean", default: true, group: "Content" },
+  { key: "showLabels", label: "Button labels", type: "boolean", default: true, group: "Content" },
+];
+
+export const streamDeckOptions: TemplateOptions<Pick<StreamDeckProps, "showProfile" | "showLabels">> = {
+  meta: streamDeckMeta,
+  Component: StreamDeck,
+  settings: STREAMDECK_SETTINGS,
+  toProps: (s) => ({ showProfile: boolOf(s.showProfile), showLabels: boolOf(s.showLabels) }),
+};
+
 export const GROUP_E: DashboardModule[] = [
   templateModule(webPageOptions),
   templateModule(textFileOptions),
   templateModule(notificationsOptions),
   templateModule(departuresOptions),
   templateModule(bluetoothOptions),
+  templateModule(streamDeckOptions),
 ];
