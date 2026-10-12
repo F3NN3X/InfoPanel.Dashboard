@@ -29,6 +29,8 @@ export interface WaveLinkProps extends ShellProps {
   /** `vertical` = mixer columns (where the zone is tall enough), `horizontal` = a row per channel. */
   meterOrientation?: "vertical" | "horizontal";
   ballistics?: BallisticsPreset;
+  /** Colour of the meters' safe zone; default the accent. */
+  levelColor?: string;
   /** Colour of the live dots; default green. */
   liveColor?: string;
   /** Colour of the muted markers and the not-running dot; default red. */
@@ -41,6 +43,8 @@ export interface Opts {
   mixes: boolean;
   variant: MeterVariant;
   preset: BallisticsPreset;
+  /** Meter colour; default the accent. */
+  color?: string;
 }
 
 const fader = (level: number | null): string => (level === null ? "—" : `${Math.round(level * 100)}%`);
@@ -93,7 +97,7 @@ function MixColumn({ channel, state, o }: { channel: WlChannel; state: WlState; 
         {channel.isMuted && <MuteMark />}
         {o.fader && <span className="ml-auto shrink-0 text-xs font-bold tabular-nums">{fader(channel.level)}</span>}
       </div>
-      <div className="flex min-h-0 flex-1 items-stretch gap-1">
+      <div className="flex min-h-0 flex-1 items-stretch gap-1 py-1.5">
         {o.readout && (
           <div className="relative w-5 shrink-0 font-mono text-[9px] tabular-nums text-[color:var(--w-faint)]">
             {[0, -12, -24, -48].map((db) => (
@@ -103,7 +107,7 @@ function MixColumn({ channel, state, o }: { channel: WlChannel; state: WlState; 
             ))}
           </div>
         )}
-        <MeterPair levels={levels} vertical variant={o.variant} color="var(--accent)" hot={STATE.crit} />
+        <MeterPair levels={levels} vertical variant={o.variant} color={o.color ?? "var(--accent)"} hot={STATE.crit} />
       </div>
       {o.readout && (
         <div className="flex items-center justify-between gap-2 font-mono text-[11px] tabular-nums">
@@ -137,7 +141,7 @@ function ChannelRow({ channel, state, o, wide }: { channel: WlChannel; state: Wl
           </span>
           {o.fader && <span className="text-[10.5px] tabular-nums text-[color:var(--w-faint)]">{fader(channel.level)}</span>}
         </div>
-        <MeterPair levels={levels} variant={o.variant} color="var(--accent)" hot={STATE.crit} thickness={wide ? 8 : 6} />
+        <MeterPair levels={levels} variant={o.variant} color={o.color ?? "var(--accent)"} hot={STATE.crit} thickness={wide ? 8 : 6} />
         {o.readout && (
           <div className="flex flex-col text-right font-mono text-[10px] leading-tight tabular-nums text-[color:var(--w-muted)]">
             <span>{fmtDb(levels.l.v)}</span>
@@ -154,6 +158,32 @@ function ChannelRow({ channel, state, o, wide }: { channel: WlChannel; state: Wl
   );
 }
 
+const DENSE_H = 22,
+  DENSE_GAP = 4;
+const denseFits = (count: number, h: number): boolean => count * (DENSE_H + DENSE_GAP) - DENSE_GAP <= h;
+
+/** One line per channel: name, fader, thin L/R meters, dB readouts; many channels in a short zone. */
+function DenseRow({ channel, o, w }: { channel: WlChannel; o: Opts; w: number }) {
+  const levels = useWlLevels(meterKey.channel(channel.id), o.preset);
+  return (
+    <div className="flex min-w-0 items-center gap-2" style={{ height: DENSE_H }}>
+      <span className={`flex shrink-0 items-center gap-1 text-xs font-semibold ${w >= 260 ? "w-[84px]" : "w-[64px]"}`}>
+        <span className="truncate" title={channel.name}>
+          {channel.name}
+        </span>
+        {channel.isMuted && <MuteMark />}
+      </span>
+      {o.fader && <span className="w-9 shrink-0 text-right text-[11px] tabular-nums text-[color:var(--w-muted)]">{fader(channel.level)}</span>}
+      <MeterPair levels={levels} variant={o.variant} color={o.color ?? "var(--accent)"} hot={STATE.crit} thickness={5} className="min-w-0 flex-1" />
+      {o.readout && w >= 280 && (
+        <span className="w-[60px] shrink-0 text-right font-mono text-[10px] tabular-nums text-[color:var(--w-muted)]">
+          {fmtDb(levels.l.v)} {fmtDb(levels.r.v)}
+        </span>
+      )}
+    </div>
+  );
+}
+
 /** An output device: name, input mute, thin L/R meters, gain. */
 function DeviceRow({ device, o }: { device: WlDevice; o: Opts }) {
   const levels = useWlLevels(meterKey.device(device.id), o.preset);
@@ -165,7 +195,7 @@ function DeviceRow({ device, o }: { device: WlDevice; o: Opts }) {
         {device.name}
       </span>
       {device.inputs.some((i) => i.isMuted) && <MuteMark />}
-      <MeterPair levels={levels} variant={o.variant} color="var(--accent)" hot={STATE.crit} thickness={4} className="min-w-0 flex-1" />
+      <MeterPair levels={levels} variant={o.variant} color={o.color ?? "var(--accent)"} hot={STATE.crit} thickness={4} className="min-w-0 flex-1" />
       {o.fader && gain !== undefined && gain !== null && <span className="shrink-0 text-[11px] tabular-nums text-[color:var(--w-muted)]">{Math.round(gain * 100)}%</span>}
     </div>
   );
@@ -187,8 +217,10 @@ export interface WaveLinkLayoutProps {
 export function WaveLinkLayout({ size, w, h, up, state, channels, devices, o, vertical }: WaveLinkLayoutProps) {
   if (!channels.length && !devices.length) return <Empty icon="mic_off" label={up ? "No channels" : "Wave Link is not running"} />;
   const dim = up ? "" : "opacity-60";
-  if (vertical && size !== "xs" && size !== "sm" && h >= 150) {
-    const n = Math.max(1, Math.min(6, channels.length, Math.floor((w + 12) / (96 + 12))));
+  const cols = Math.max(1, Math.min(6, channels.length, Math.floor((w + 12) / (96 + 12))));
+  // columns only when they hold every channel, or when one line per channel would not either
+  if (vertical && size !== "xs" && size !== "sm" && h >= 150 && (cols >= channels.length || !denseFits(channels.length, h))) {
+    const n = cols;
     const side = size === "lg" && devices.length > 0 && w >= n * 108 + 220;
     return (
       <div className={`flex h-full flex-col gap-2 ${dim}`}>
@@ -212,6 +244,16 @@ export function WaveLinkLayout({ size, w, h, up, state, channels, devices, o, ve
   const wide = w > 300 && h >= 100;
   const rowH = wide && o.mixes ? 56 : 40;
   const n = Math.max(1, Math.floor((h + 8) / (rowH + 8)));
+  if (channels.length > n) {
+    const dn = Math.max(1, Math.floor((h + DENSE_GAP) / (DENSE_H + DENSE_GAP)));
+    return (
+      <div className={`flex h-full flex-col justify-center gap-1 overflow-hidden ${dim}`}>
+        {channels.slice(0, dn).map((c) => (
+          <DenseRow key={c.id} channel={c} o={o} w={w} />
+        ))}
+      </div>
+    );
+  }
   return (
     <div className={`flex h-full flex-col justify-center gap-2 overflow-hidden ${dim}`}>
       {channels.slice(0, n).map((c) => (
@@ -228,7 +270,7 @@ export default function WaveLink(p: WaveLinkProps) {
   const picked = p.source ? p.source.split(",").map((s) => s.trim()).filter(Boolean) : null;
   const channels = picked ? state.channels.filter((c) => picked.includes(meterKey.channel(c.id))) : state.channels;
   const devices = picked ? state.devices.filter((d) => picked.includes(meterKey.device(d.id))) : state.devices;
-  const o: Opts = { readout: p.showReadout !== false, fader: p.showFader !== false, mixes: p.showMixes !== false, variant: p.meterVariant ?? "solid", preset: p.ballistics ?? "peak" };
+  const o: Opts = { readout: p.showReadout !== false, fader: p.showFader !== false, mixes: p.showMixes !== false, variant: p.meterVariant ?? "solid", preset: p.ballistics ?? "peak", color: p.levelColor || undefined };
   const first = channels[0];
   const vars = { "--wl-live": p.liveColor || STATE.ok, "--wl-mute": p.muteColor || STATE.crit } as CSSProperties;
   return (
@@ -244,7 +286,7 @@ export default function WaveLink(p: WaveLinkProps) {
         </Chip>
       }
       studio={{ label: "Wave Link", live: up, value: first ? (first.isMuted ? "Muted" : "Live") : up ? "Up" : "Off", sub: first?.name, meters: channels.map((c) => ({ n: c.name, v: c.isMuted ? 0 : (c.level ?? 0) * 100 })) }}
-      compact={first ? { label: first.name, value: first.isMuted ? "Muted" : "Live", sub: o.fader ? `Fader ${fader(first.level)}` : undefined, icon: first.isMuted ? "mic_off" : "mic", kind: "value", t: first.isMuted ? "crit" : "ok" } : { label: "Wave Link", value: up ? "Up" : "Off", kind: "value" }}
+      compact={channels.length > 1 ? undefined : first ? { label: first.name, value: first.isMuted ? "Muted" : "Live", sub: o.fader ? `Fader ${fader(first.level)}` : undefined, icon: first.isMuted ? "mic_off" : "mic", kind: "value", t: first.isMuted ? "crit" : "ok" } : { label: "Wave Link", value: up ? "Up" : "Off", kind: "value" }}
     >
       {({ size, w, h }) => <WaveLinkLayout size={size} w={w} h={h} up={up} state={state} channels={channels} devices={devices} o={o} vertical={p.meterOrientation !== "horizontal"} />}
     </Widget>

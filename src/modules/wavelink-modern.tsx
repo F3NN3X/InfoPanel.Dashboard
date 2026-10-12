@@ -84,6 +84,9 @@ export const WAVELINK_SETTINGS: ModuleSetting[] = [
   { key: "muteColor", label: "Muted / offline color", type: "color", default: "", group: "Meter", advanced: true },
 ];
 
+/** The colour the legacy widget metered in (`--meter-ok`). */
+export const LEGACY_METER_OK = "oklch(0.72 0.12 200)";
+
 export const wavelinkToProps = (s: ModuleSettings): Partial<WaveLinkProps> => ({
   source: String(s.source ?? ""),
   showReadout: Boolean(s.showReadout),
@@ -100,7 +103,8 @@ export const wavelinkModernModule = templateModule({
   meta,
   Component: WaveLink,
   settings: WAVELINK_SETTINGS,
-  toProps: wavelinkToProps,
+  // The legacy meter's teal safe zone.
+  toProps: (s) => ({ ...wavelinkToProps(s), levelColor: LEGACY_METER_OK }),
   // No sensor keys — the data comes from the shared wavelink-plugin stream.
   alias: { id: "wavelinkmodern", title: "Wave Link (modern)", minCols: 2, minRows: 1, prefixes: [] },
 });

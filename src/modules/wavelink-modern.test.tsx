@@ -6,7 +6,7 @@ import type { Opts } from "@/widgets/WaveLink";
 import { WaveLinkLayout } from "@/widgets/WaveLink";
 import { FORCED_LAYOUTS, VARIANTS, renderModule, settingPairs } from "./port-helpers";
 import { STANDARD_SETTINGS } from "./standard-settings";
-import { wavelinkModernModule, wavelinkToProps } from "./wavelink-modern";
+import { LEGACY_METER_OK, wavelinkModernModule, wavelinkToProps } from "./wavelink-modern";
 
 // The Wave Link client is a singleton over an EventSource: the widget gets a connected one.
 const live = vi.hoisted(() => ({ absent: false }));
@@ -119,6 +119,37 @@ describe("wavelinkmodern", () => {
     it("says so when there is nothing to show", () => {
       expect(layout({ up: false, channels: [], devices: [] })).toContain("Wave Link is not running");
       expect(layout({ channels: [], devices: [] })).toContain("No channels");
+    });
+  });
+
+  describe("parity at small spans", () => {
+    const names = ["Wave Mic 1", "Voice", "Browser", "Music", "Game"];
+    const five = names.map((n, i) => ({ ...WL_LIVE.channels[0], id: `c${i}`, name: n, level: [0.85, 0.5, 0.23, 0.07, 0.4][i], isMuted: false }));
+    const lay = (p: Partial<Parameters<typeof WaveLinkLayout>[0]>) =>
+      renderToString(createElement(WaveLinkLayout, { size: "xs", w: 210, h: 90, up: true, state: WL_LIVE, channels: five, devices: [], o: O, vertical: true, ...p }));
+
+    it("lists three channels with their fader at 2x1", () => {
+      const html = lay({});
+      for (const n of names.slice(0, 3)) expect(html).toContain(n);
+      for (const v of ["85%", "50%", "23%"]) expect(html).toContain(v);
+    });
+    it("lists all five channels at 3x2 and 4x2 instead of the columns that fit", () => {
+      for (const [w, h] of [[310, 150], [440, 150]]) {
+        const html = lay({ size: "md", w, h });
+        for (const n of names) expect(html, `${w}/${n}`).toContain(n);
+      }
+    });
+    it("keeps the mixer columns when they hold every channel", () => {
+      const html = lay({ size: "lg", w: 900, h: 420, channels: five.slice(0, 3) });
+      expect(html).toContain("L</span>");
+      expect(html).toContain("−12");
+    });
+    it("shows the dB readout in the dense rows only where there is width", () => {
+      expect(lay({ size: "md", w: 310, h: 150 })).toMatch(/-11 -11|-12 -6|-∞/);
+      expect(lay({ size: "md", w: 250, h: 150 })).not.toMatch(/font-mono/);
+    });
+    it("meters the alias in the legacy teal and keeps the accent for the template", () => {
+      expect(renderModule(wavelinkModernModule, { layout: "standard", meterVariant: "segmented" }, {})).toContain(LEGACY_METER_OK);
     });
   });
 
