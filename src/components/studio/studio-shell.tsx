@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
+import { cn } from "@/lib/utils";
 import { DockSplitter } from "./dock-splitter";
+import { CollapseTab, DockToggle, ExpandStrip } from "./dock-toggle";
 import type { useStudioLayout } from "./use-studio-layout";
 
 interface StudioShellProps {
@@ -14,17 +16,18 @@ interface StudioShellProps {
   bar: ReactNode;
   /** The inspector `<aside>` (null in the Sources view). */
   inspector: ReactNode;
-  /** The bottom dock's collapse toggle (its top row). */
-  dockToggle: ReactNode;
+  /** What the collapsed inspector holds (the bottom dock's bar says it). */
+  summary: string;
 }
 
 /**
  * The studio body below the top bar: rail, left panel, then the canvas
  * (the zoom bar floats over it) with the inspector beside it or, in the
- * bottom placement, in a dock under a splitter (only its top row when
- * collapsed; the inspector stays mounted behind it).
+ * bottom placement, in a dock under a splitter. Collapsed (Ctrl+\), the side
+ * inspector leaves a slim strip and the dock only its bar; either way the
+ * inspector stays mounted behind it.
  */
-export function StudioShell({ layout, rail, drawer, main, bar, inspector, dockToggle }: StudioShellProps) {
+export function StudioShell({ layout, rail, drawer, main, bar, inspector, summary }: StudioShellProps) {
   const { layout: l, collapsed } = layout;
   const docked = l.placement === "bottom" && inspector !== null;
   return (
@@ -42,7 +45,15 @@ export function StudioShell({ layout, rail, drawer, main, bar, inspector, dockTo
             {main}
             {bar}
           </main>
-          {!docked && inspector}
+          {inspector !== null && !docked && (
+            <>
+              <div className={collapsed ? "hidden" : "relative flex shrink-0"}>
+                {inspector}
+                <CollapseTab placement="side" onToggle={layout.toggleCollapsed} className="absolute -left-4 top-1/2 z-30 -translate-y-1/2" />
+              </div>
+              {collapsed && <ExpandStrip onToggle={layout.toggleCollapsed} />}
+            </>
+          )}
         </div>
         {docked && (
           <>
@@ -55,10 +66,17 @@ export function StudioShell({ layout, rail, drawer, main, bar, inspector, dockTo
               />
             )}
             <div
-              className="flex shrink-0 flex-col border-t border-ui-subtle bg-ui-panel"
+              // The inspector's own top border is the dock's edge; the bar needs one of its own.
+              className={cn("relative flex shrink-0 flex-col bg-ui-panel", collapsed && "border-t border-ui-subtle")}
               style={{ height: l.dockHeight }}
             >
-              <div className="flex h-7 shrink-0 items-center px-1.5">{dockToggle}</div>
+              {collapsed ? (
+                <div className="flex h-7 shrink-0 items-center px-1.5">
+                  <DockToggle onToggle={layout.toggleCollapsed} summary={summary} />
+                </div>
+              ) : (
+                <CollapseTab placement="bottom" onToggle={layout.toggleCollapsed} className="absolute -top-4 right-4 z-30" />
+              )}
               {/* Collapsed, the inspector stays mounted (its tab, scroll and search survive) but out of sight and focus. */}
               <div className={collapsed ? "invisible h-0 overflow-hidden" : "flex min-h-0 flex-1"}>{inspector}</div>
             </div>

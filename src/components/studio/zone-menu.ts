@@ -86,18 +86,18 @@ export function zoneMenu(s: ZoneMenuState): MenuSpec {
         ]
       : []),
     "separator",
-    { id: "copy-style", label: "Copy style", hint: `${MOD}${ALT}C` },
+    { id: "copy-style", label: "Copy style", hint: `${MOD}${ALT}C`, disabled: !single },
     { id: "paste-style", label: "Paste style", hint: `${MOD}${ALT}V`, disabled: !s.canPasteStyle },
     { id: "follow-global", label: "Follow global style" },
     ...(single
       ? [
-          { id: "global-all" as const, label: "Use as global style: all profiles" },
-          { id: "global-profile" as const, label: "Use as global style: this profile" },
+          { id: "global-all" as const, label: "Global style: all profiles" },
+          { id: "global-profile" as const, label: "Global style: this profile" },
         ]
       : []),
     "separator",
     { id: "deselect", label: "Deselect", hint: "Esc" },
-    { id: "remove", label: "Delete", hint: "⌫", danger: true },
+    { id: "remove", label: single ? "Delete" : `Delete ${s.count} widgets`, hint: "⌫", danger: true },
   ]);
 }
 

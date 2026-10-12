@@ -48,6 +48,14 @@ describe("zoneMenu", () => {
     expect(item(zoneMenu(base), "remove")).toMatchObject({ danger: true });
   });
 
+  it("counts the zones in Delete and disables Copy style for a multi-selection", () => {
+    const multi = zoneMenu({ ...base, count: 3 });
+    expect(item(multi, "remove")).toMatchObject({ label: "Delete 3 widgets" });
+    expect(item(multi, "copy-style")).toMatchObject({ disabled: true });
+    expect(item(zoneMenu(base), "remove")).toMatchObject({ label: "Delete" });
+    expect(item(zoneMenu(base), "copy-style")).toMatchObject({ disabled: false });
+  });
+
   it("drops the single-zone rows for a multi-selection, without doubled separators", () => {
     const spec = zoneMenu({ ...base, count: 3, panel: true });
     expect(ids(spec)).toEqual(["edit-style", "duplicate", "visible", "copy-style", "paste-style", "follow-global", "deselect", "remove"]);

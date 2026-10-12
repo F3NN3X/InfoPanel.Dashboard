@@ -62,13 +62,12 @@ export function useStudioCommands({
     );
   };
 
-  /** Esc: clear the settings search, else step out (widget → zones → none), else close the drawer. Sources has its own. */
+  /** Esc: clear the settings search, else step out (widget → zones → none). Sources has its own. */
   const escape = () => {
     if (ui.showSources) return;
     if (ui.inspectorQuery !== "") ui.setInspectorQuery("");
     else if (selectedWidget) sel.clearWidget();
     else if (sel.selectedIds.length > 0) sel.select(null);
-    else if (ui.drawer) ui.setDrawer(null);
   };
 
   /** The primary panel's widget edits (inspector, canvas keys, palette). */
@@ -113,12 +112,12 @@ export function useStudioCommands({
         return edit.activateProfile(action.id);
       case "drawer":
         ui.setMode("design");
-        ui.studioLayout.setCollapsed(false);
         return ui.setDrawer(action.drawer);
       case "layout":
         return ui.studioLayout.setMode(action.mode);
       case "toggle-dock":
-        return ui.docked && ui.studioLayout.toggleCollapsed();
+        // The inspector, in either placement (Sources has none).
+        return !ui.showSources && ui.studioLayout.toggleCollapsed();
       case "sources":
         return ui.toggleSources();
       case "toggle-grid":

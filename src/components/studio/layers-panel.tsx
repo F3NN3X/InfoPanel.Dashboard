@@ -24,7 +24,7 @@ interface LayersPanelProps {
   onContextMenu?: (id: string, x: number, y: number) => void;
 }
 
-const ROW_BUTTON = "h-6 w-6";
+const ROW_BUTTON = "h-6 w-6 rounded-[5px] text-[#7c7c86] hover:bg-[#26262c]";
 
 /** The Layers panel: every zone of the profile in grid reading order. */
 export function LayersPanel({
@@ -38,20 +38,25 @@ export function LayersPanel({
 }: LayersPanelProps) {
   return (
     <>
-      <div className="flex shrink-0 items-center gap-2 border-b border-ui-subtle py-2.5 pl-3 pr-2.5">
-        <span className="text-[13px] font-semibold text-ui-1">Layers</span>
-        <span className="flex-1 font-ui-mono text-[11px] text-ui-4">{placements.length}</span>
-        <IconButton label="Add a widget" className="h-[26px] w-[26px]" onClick={onAdd}>
-          <Plus className="h-4 w-4" />
+      <div className="flex shrink-0 items-center justify-between px-3.5 pb-2.5 pt-3.5">
+        <div className="flex items-baseline gap-2">
+          <span className="text-[13px] font-semibold text-ui-1">Layers</span>
+          <span className="font-ui-mono text-[11px] text-ui-4">{placements.length}</span>
+        </div>
+        <IconButton
+          label="Add a widget"
+          className="h-[26px] w-[26px] rounded-md border border-ui-strong bg-ui-raised text-ui-1 hover:bg-[#1e1e23]"
+          onClick={onAdd}
+        >
+          <Plus className="h-[18px] w-[18px]" />
         </IconButton>
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto p-1.5">
-        {placements.length === 0 && (
-          <p className="p-2 text-xs text-ui-4">No zones yet. Draw one on the canvas, or add a widget.</p>
-        )}
+      <div className="flex min-h-0 flex-1 flex-col gap-px overflow-y-auto px-2 pb-2">
+        {placements.length === 0 && <p className="px-2 py-5 text-center text-xs text-ui-4">No widgets yet.</p>}
         {sortZones(placements).map((p) => {
           const Icon = moduleIcon(p.module);
           const hidden = p.visible === false;
+          const selected = selectedIds.includes(p.id);
           return (
             <div
               key={p.id}
@@ -76,18 +81,29 @@ export function LayersPanel({
                 }
               }}
               className={cn(
-                "flex cursor-pointer items-center gap-2 rounded-[7px] py-1.5 pl-2 pr-1.5 transition-colors",
+                "flex cursor-pointer items-center gap-[9px] rounded-[7px] py-1.5 pl-2 pr-1.5 transition-colors",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ui-accent/60",
-                selectedIds.includes(p.id) ? "bg-ui-accent-soft" : "hover:bg-ui-hover",
+                selected ? "bg-ui-accent-soft" : "hover:bg-ui-hover",
                 hidden && "opacity-50"
               )}
             >
-              <Icon className="h-4 w-4 shrink-0 text-ui-3" strokeWidth={1.75} />
-              <span className="min-w-0 flex-1 truncate text-[12.5px] text-ui-1">{placementTitle(p)}</span>
+              <Icon
+                className={cn("h-[17px] w-[17px] shrink-0", selected ? "text-[oklch(0.80_0.12_255)]" : "text-[#8a8a94]")}
+                strokeWidth={1.5}
+              />
+              <span className={cn("min-w-0 flex-1 truncate text-[12.5px]", selected ? "text-white" : "text-[#d4d4da]")}>
+                {placementTitle(p)}
+              </span>
               {p.styleMode === "custom" && (
-                <Paintbrush className="h-3 w-3 shrink-0 text-ui-4" aria-label="Custom style" />
+                <Paintbrush
+                  className="h-3.5 w-3.5 shrink-0 text-[#8a8a94]"
+                  aria-label="Custom style"
+                  // The SVG title carries the tooltip.
+                >
+                  <title>Custom style — not following theme</title>
+                </Paintbrush>
               )}
-              <span className="shrink-0 font-ui-mono text-[10.5px] text-ui-4">
+              <span className="shrink-0 font-ui-mono text-[10.5px] text-[#6f6f79]">
                 {p.colSpan}×{p.rowSpan}
               </span>
               <IconButton
@@ -98,7 +114,7 @@ export function LayersPanel({
                   onToggle(p.id);
                 }}
               >
-                {hidden ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                {hidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </IconButton>
               <IconButton
                 label="Delete"
@@ -109,13 +125,13 @@ export function LayersPanel({
                   onRemove(p.id);
                 }}
               >
-                <Trash2 className="h-3.5 w-3.5" />
+                <Trash2 className="h-4 w-4" />
               </IconButton>
             </div>
           );
         })}
       </div>
-      <p className="shrink-0 border-t border-ui-subtle px-3 py-2.5 text-[10.5px] leading-snug text-ui-4">
+      <p className="shrink-0 text-pretty border-t border-ui-subtle px-3.5 py-3 text-[11.5px] leading-[1.45] text-[#7c7c86]">
         Shift-click to select several. Hidden widgets stay editable but don't show in kiosk view.
       </p>
     </>

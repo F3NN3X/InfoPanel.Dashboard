@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Search } from "lucide-react";
-import { BLANK_MODULE, CARDS_ID, type Placement } from "@/lib/layout";
+import { BLANK_MODULE, CARDS_ID } from "@/lib/layout";
 import type { UserPanelPreset } from "@/lib/panel-model";
 import { allPanelPresets, type PanelPreset } from "@/lib/panelPresets";
 import { cn } from "@/lib/utils";
+import { dropSize } from "./drop-ghost";
 import { InsertRow, type InsertContext } from "./insert-row";
 import { ALL_MODULES } from "./studio-modules";
 
@@ -100,7 +101,7 @@ const BLANK_ZONE: Insertable = {
   kind: "module",
   id: BLANK_MODULE,
   title: "Blank zone",
-  description: "Empty — pick a widget later",
+  description: "Pick a widget later",
   cols: 2,
   rows: 1,
   category: "Layouts",
@@ -156,11 +157,19 @@ export function filterInsertables<T extends InsertableBase>(
   });
 }
 
+/**
+ * The footprint an item takes when placed on a grid: a widget drops at least
+ * 3×2 (its minimum if larger), a panel at its own size; both kept inside the grid.
+ */
+export function insertDropSize(item: Insertable, grid: { cols: number; rows: number }): { cols: number; rows: number } {
+  return item.kind === "module"
+    ? dropSize({ cols: item.cols, rows: item.rows }, grid)
+    : { cols: Math.min(grid.cols, item.cols), rows: Math.min(grid.rows, item.rows) };
+}
+
 export interface InsertGroup {
   title: string;
   items: Insertable[];
-  /** A line under the cards. */
-  note?: string;
 }
 
 const WIDGET_GROUPS: InsertCategory[] = ["System", "Media", "Network", "Info", "Other"];
@@ -180,17 +189,14 @@ export function insertGroups(items: Insertable[]): InsertGroup[] {
     {
       title: "Layout starters",
       items: items.filter((i) => isBlankZone(i) || (i.kind === "panel" && i.category === "Layouts")),
-      note: "Sensor-free starters: bind each widget in the inspector.",
     },
     {
       title: "Panel presets",
       items: panels.filter((i) => i.category !== "Layouts" && i.category !== "My panels"),
-      note: "Panels are groups of widgets: bind, reorder and style each one in the inspector.",
     },
     {
       title: "My panels",
       items: panels.filter((i) => i.category === "My panels"),
-      note: "Saved with the panel's ⋯ › Save to My panels.",
     },
   ];
   return groups.filter((g) => g.items.length > 0);
@@ -200,13 +206,13 @@ interface InsertListProps {
   items: Insertable[];
   /** Add the item (a click on its card). */
   onPick: (item: Insertable) => void;
-  /** Usage counts come from these (widgets only). */
-  placements?: Placement[];
   /**
    * Where the list lives: the Add panel (cards drag onto the canvas) or the
    * widget picker (a click picks for the zone).
    */
   context: InsertContext;
+  /** The grid items are placed on: cards show the size they drop with (else their minimum). */
+  grid?: { cols: number; rows: number };
   /** Rename / delete a saved panel (its card's "⋯"). */
   onRenamePreset?: (id: string, name: string) => void;
   onDeletePreset?: (id: string) => void;
@@ -222,8 +228,8 @@ const GROUP_LABEL = "text-[11px] font-medium uppercase tracking-wider text-ui-4"
 export function InsertList({
   items,
   onPick,
-  placements = [],
   context,
+  grid,
   onRenamePreset,
   onDeletePreset,
 }: InsertListProps) {
@@ -238,8 +244,8 @@ export function InsertList({
               <InsertRow
                 key={`${item.kind}:${item.id}`}
                 item={item}
-                count={item.kind === "module" ? placements.filter((p) => p.module === item.id).length : 0}
                 context={context}
+                size={grid ? insertDropSize(item, grid) : { cols: item.cols, rows: item.rows }}
                 onPick={() => onPick(item)}
                 saved={
                   item.category === "My panels" && onRenamePreset && onDeletePreset
@@ -249,7 +255,6 @@ export function InsertList({
               />
             ))}
           </div>
-          {g.note && <p className="text-[10.5px] leading-snug text-ui-4">{g.note}</p>}
         </section>
       ))}
     </div>
@@ -272,9 +277,9 @@ export function InsertFilters({
   autoFocus?: boolean;
 }) {
   return (
-    <div className="space-y-2">
-      <label className="flex h-[30px] items-center gap-1.5 rounded-md border border-ui-default bg-ui-app px-2">
-        <Search className="h-3.5 w-3.5 shrink-0 text-ui-4" />
+    <div className="space-y-2.5">
+      <label className="flex h-[30px] items-center gap-1.5 rounded-[7px] border border-ui-default bg-ui-app px-2">
+        <Search className="h-4 w-4 shrink-0 text-ui-4" />
         <input
           aria-label="Search the library"
           value={query}
@@ -286,7 +291,7 @@ export function InsertFilters({
             onQuery("");
           }}
           placeholder="Search widgets"
-          className="min-w-0 flex-1 bg-transparent text-xs text-ui-1 outline-none placeholder:text-ui-4"
+          className="min-w-0 flex-1 bg-transparent text-[12.5px] text-ui-1 outline-none placeholder:text-ui-4"
         />
       </label>
       <div className="flex flex-wrap gap-1">
@@ -299,7 +304,7 @@ export function InsertFilters({
               "h-6 rounded-xl border px-2.5 text-[11px] transition-colors",
               c === category
                 ? "border-[#3a3a44] bg-ui-active text-ui-1"
-                : "border-ui-default text-ui-3 hover:text-ui-1"
+                : "border-ui-default text-[#a4a4ad]"
             )}
           >
             {c}
@@ -311,8 +316,8 @@ export function InsertFilters({
 }
 
 interface InsertPanelProps {
-  /** The active profile's placements (usage counts). */
-  placements: Placement[];
+  /** The active profile's grid: cards show the size they drop with. */
+  grid: { cols: number; rows: number };
   /** The user's saved panels (`config.panelPresets`). */
   savedPanels?: UserPanelPreset[];
   onAddModule: (module: string) => void;
@@ -327,7 +332,7 @@ interface InsertPanelProps {
 
 /** The Add panel: search and filter widgets and panels, drag or click them in. */
 export function InsertPanel({
-  placements,
+  grid,
   savedPanels,
   onAddModule,
   onAddPreset,
@@ -345,21 +350,21 @@ export function InsertPanel({
   };
   return (
     <>
-      <div className="shrink-0 space-y-2 border-b border-ui-subtle p-3">
-        <div className="text-[13px] font-semibold text-ui-1">Add</div>
+      <div className="shrink-0 space-y-2.5 px-3.5 pb-2.5 pt-3.5">
+        <div className="text-[13px] font-semibold text-ui-1">Add widget</div>
         <InsertFilters query={query} onQuery={setQuery} category={category} onCategory={setCategory} />
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto p-3">
+      <div className="min-h-0 flex-1 overflow-y-auto px-3.5 pb-3.5">
         <InsertList
           items={filterInsertables(insertables(savedPanels), query, category)}
-          placements={placements}
           context="drawer"
+          grid={grid}
           onPick={pick}
           onRenamePreset={onRenamePreset}
           onDeletePreset={onDeletePreset}
         />
       </div>
-      <p className="shrink-0 border-t border-ui-subtle px-3 py-2.5 text-[10.5px] leading-snug text-ui-4">
+      <p className="shrink-0 text-pretty border-t border-ui-subtle px-3.5 py-3 text-[11.5px] leading-[1.45] text-[#7c7c86]">
         Drag onto an empty zone, or click to auto-place. With a blank zone selected, a click fills it.
       </p>
     </>

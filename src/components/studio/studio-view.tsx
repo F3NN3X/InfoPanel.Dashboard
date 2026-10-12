@@ -24,7 +24,6 @@ import { StudioInspector } from "./studio-inspector";
 import { StudioShell } from "./studio-shell";
 import { ShortcutsDialog } from "./shortcuts-dialog";
 import { placementTitle } from "./studio-modules";
-import { DockToggle } from "./dock-toggle";
 import { useStudioCommands } from "./use-studio-commands";
 import { useStudioMutations } from "./use-studio-mutations";
 import { useStudioSelection } from "./use-studio-selection";
@@ -163,7 +162,7 @@ function StudioViewBody({
     <StudioDrawer
       drawer={drawer}
       insert={{
-        placements: profile.placements,
+        grid: profile,
         savedPanels: config.panelPresets,
         onAddModule: edit.addPlacement,
         onAddPreset: edit.addPanelPreset,
@@ -203,9 +202,12 @@ function StudioViewBody({
         setConfig={setConfig}
         profile={profile}
         focusPointKey={focusPointKey}
-        onOpenZone={(id) => {
+        selectedZoneId={sel.primaryId}
+        onOpenZone={(id, opts) => {
           ui.setMode("design");
           focusZone(id);
+          if (opts?.widgetId) sel.selectWidget(id, opts.widgetId);
+          if (opts?.dataTab) ui.requestInspectorTab("data");
         }}
       />
     </div>
@@ -215,6 +217,7 @@ function StudioViewBody({
       background={resolveBackground(config, profile)}
       appearance={appearance}
       themeScope={themeScope}
+      radius={resolveTheme(config, profile).radius}
       zoom={ui.zoom}
       showGrid={ui.showGrid}
       showRulers={ui.showRulers}
@@ -259,18 +262,18 @@ function StudioViewBody({
   const bar = showSources ? null : (
     <ZoomToolbar
       zoom={ui.zoom}
-      leftOpen={drawer !== null}
+      fitting={ui.fitting}
       onToggleLeft={ui.toggleLeft}
       showGrid={ui.showGrid}
       onToggleGrid={() => ui.setShowGrid((s) => !s)}
       showRulers={ui.showRulers}
       onToggleRulers={() => ui.setShowRulers((s) => !s)}
       onZoomStep={ui.zoomStep}
-      onZoomReset={() => ui.setZoom(1)}
       onFit={ui.fitZoom}
       profile={profile}
       onOpenProfile={openProfileSettings}
       layoutMode={studioLayout.mode}
+      placement={studioLayout.layout.placement}
       onCycleLayout={studioLayout.cycleMode}
     />
   );
@@ -315,18 +318,11 @@ function StudioViewBody({
         main={mainEl}
         bar={bar}
         inspector={showSources ? null : inspectorAside}
-        dockToggle={
-          <DockToggle
-            collapsed={studioLayout.collapsed}
-            onToggle={studioLayout.toggleCollapsed}
-            summary={selected ? placementTitle(selected) : "Appearance · Background · General · Connection"}
-          />
-        }
+        summary={selected ? placementTitle(selected) : "Appearance · Background · General · Connection"}
       />
 
       <WidgetPickerDialog
         placement={profile.placements.find((p) => p.id === ui.pickerFor) ?? null}
-        placements={profile.placements}
         savedPanels={config.panelPresets}
         onRenamePreset={edit.renameSavedPanel}
         onDeletePreset={edit.deleteSavedPanel}

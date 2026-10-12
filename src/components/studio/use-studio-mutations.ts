@@ -166,7 +166,10 @@ export function useStudioMutations({ config, profile, setConfig, sel, onPresetSa
     updateProfile((p) => actions.toggleZonesVisible(p, ids));
   };
   const toggleVisible = (id: string) => toggleZones([id]);
-  const removePlacement = (id: string) => updateProfile((p) => actions.removePlacement(p, id));
+  const removePlacement = (id: string) => {
+    updateProfile((p) => actions.removePlacement(p, id));
+    toast("Deleted 1 widget · ⌘Z to undo");
+  };
 
   /** Copy zones to free spots (one undo step) and select the copies. */
   const duplicateZones = (ids: readonly string[]) => {

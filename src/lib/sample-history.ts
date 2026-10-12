@@ -59,6 +59,14 @@ export class SampleHistory {
   }
 }
 
+/** Sparkline bar heights (percent, 20 to 100) for samples scaled between their min and max. */
+export function barHeights(samples: readonly number[]): number[] {
+  if (samples.length === 0) return [];
+  const min = Math.min(...samples);
+  const span = Math.max(...samples) - min || 1;
+  return samples.map((v) => 20 + ((v - min) / span) * 80);
+}
+
 /** Push every numeric reading of a snapshot into the history. */
 export function recordSnapshot(history: SampleHistory, sensors: SensorMap): void {
   for (const [key, sensor] of Object.entries(sensors)) {

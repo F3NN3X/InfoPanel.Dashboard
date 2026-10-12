@@ -10,7 +10,7 @@ import {
   type Health,
 } from "@/lib/data-points";
 import { useLiveData } from "@/lib/data-live";
-import { bindPoint, computeUsage, unbindPoint } from "@/lib/data-usage";
+import { bindPoint, computeUsage, unbindPoint, type Usage } from "@/lib/data-usage";
 import { PANEL_ID, uid, type DashboardConfig, type MonitorProfile, type SourcePref } from "@/lib/layout";
 import { modules } from "@/modules";
 import { cn } from "@/lib/utils";
@@ -18,16 +18,26 @@ import { addStatZone } from "./explorer/explorer-actions";
 import { ExplorerHeader } from "./explorer/explorer-header";
 import {
   ALL_SCOPE,
+  bindOptions,
+  containerScope,
+  crumbs,
   filterPoints,
   filterSources,
   flattenRows,
+  resolveBindTarget,
   scopeContainers,
+  scopeNote,
+  scopeStats,
   streamPrefix,
+  summaryHeading,
+  type BindOption,
+  type BindZone,
   type Scope,
+  type TableRow,
   type TypeFilter,
 } from "./explorer/explorer-model";
 import { GroupSummary } from "./explorer/group-summary";
-import { PointInspector, type BindZone } from "./explorer/point-inspector";
+import { PointInspector } from "./explorer/point-inspector";
 import { PointTable } from "./explorer/point-table";
 import { SourceTree } from "./explorer/source-tree";
 import { useViewportWidth } from "./explorer/use-viewport-width";
@@ -44,14 +54,16 @@ interface SourcesPanelProps {
   setConfig: HistorySetter;
   /** The active profile (for "Used by" and the zones a point can be bound to). */
   profile: MonitorProfile;
-  /** Leave Sources mode and select a zone on the canvas. */
-  onOpenZone: (zoneId: string) => void;
+  /** The canvas zone selected in Design mode; the default target for binding. */
+  selectedZoneId: string | null;
+  /** Leave Sources mode and select a zone (and one of its panel widgets, on the Data tab) on the canvas. */
+  onOpenZone: (zoneId: string, opts?: { widgetId?: string; dataTab?: boolean }) => void;
   /** Select this data point (the inspector's Bound data rows open it); selects again whenever it changes. */
   focusPointKey?: string;
 }
 
 /** Sources mode: the Data Explorer (source tree, point table, point inspector). Toasts come from the studio's provider. */
-export function SourcesPanel({ config, setConfig, profile, onOpenZone, focusPointKey }: SourcesPanelProps) {
+export function SourcesPanel({ config, setConfig, profile, selectedZoneId, onOpenZone, focusPointKey }: SourcesPanelProps) {
   const toast = useToast();
   const catalog = useSensorCatalog();
   const { values, history, tick } = useLiveData(true);
@@ -72,6 +84,7 @@ export function SourcesPanel({ config, setConfig, profile, onOpenZone, focusPoin
   const [hideEmpty, setHideEmpty] = useState(false);
   const [inUse, setInUse] = useState(false);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const [bindChoice, setBindChoice] = useState<BindOption | null>(null);
 
   useEffect(() => {
     if (focusPointKey) setSelectedKey(focusPointKey);
@@ -94,12 +107,11 @@ export function SourcesPanel({ config, setConfig, profile, onOpenZone, focusPoin
   const treeSources = useMemo(() => filterSources(model.sources, treeQuery, health), [model.sources, treeQuery, health]);
   const counts = useMemo(() => healthCounts(model.sources), [model.sources]);
 
-  const filtered = useMemo(() => {
-    // The health chip narrows the table; the tree's text filter only narrows the tree.
-    const allowed = health ? new Set(model.sources.filter((s) => s.status === health).map((s) => s.id)) : null;
-    const pool = allowed ? model.points.filter((p) => allowed.has(p.sourceId)) : model.points;
-    return filterPoints(pool, { scope, query, type, hideEmpty, inUse, usage });
-  }, [model.points, model.sources, health, scope, query, type, hideEmpty, inUse, usage]);
+  // The health chips and the tree filter only narrow the tree, never the table.
+  const filtered = useMemo(
+    () => filterPoints(model.points, { scope, query, type, hideEmpty, inUse, usage }),
+    [model.points, scope, query, type, hideEmpty, inUse, usage]
+  );
   const rows = useMemo(() => flattenRows(filtered), [filtered]);
 
   const scopePoints = useMemo(
@@ -119,6 +131,8 @@ export function SourcesPanel({ config, setConfig, profile, onOpenZone, focusPoin
       })),
     [profile.placements]
   );
+  const options = useMemo(() => bindOptions(zones), [zones]);
+  const target = resolveBindTarget(options, bindChoice, selectedZoneId);
   const zoneTitle = (id: string) => zones.find((z) => z.id === id)?.title ?? "widget";
 
   const bind = (key: string, zoneId: string, widgetId: string | undefined) => {
@@ -139,10 +153,20 @@ export function SourcesPanel({ config, setConfig, profile, onOpenZone, focusPoin
     toast(`Unbound from ${zoneTitle(zoneId)}`);
   };
 
-  const newWidget = (p: DataPoint) => {
-    setConfig((c) => addStatZone(c, profile.id, p, uid(PANEL_ID)));
-    toast(`Added ${p.name}`);
+  const toggleBind = (p: DataPoint, bound: boolean) => {
+    if (!target) return;
+    (bound ? unbind : bind)(p.key, target.zoneId, target.widgetId);
   };
+
+  /** Add a stat zone for the point, then leave Sources mode with that zone selected. */
+  const newWidget = (p: DataPoint) => {
+    const zoneId = uid(PANEL_ID);
+    setConfig((c) => addStatZone(c, profile.id, p, zoneId));
+    toast(`Added ${p.name}`);
+    onOpenZone(zoneId);
+  };
+
+  const openUsage = (u: Usage) => onOpenZone(u.zoneId, { widgetId: u.panelWidgetId, dataTab: true });
 
   const onPrefsChange = (key: string, pref: Partial<SourcePref>) =>
     setConfig(
@@ -151,21 +175,18 @@ export function SourcesPanel({ config, setConfig, profile, onOpenZone, focusPoin
     );
 
   const scopeSource = scope.kind === "all" ? null : (model.sources.find((s) => s.id === (scope.kind === "source" ? scope.id : scope.sourceId)) ?? null);
-  const breadcrumb =
-    scope.kind === "all"
-      ? "All data points"
-      : scope.kind === "source"
-        ? (scopeSource?.name ?? "")
-        : `${scopeSource?.name ?? ""} › ${scopeContainers(model.sources, scope)[0]?.title ?? ""}`;
-
+  const heading = summaryHeading(scope, model.sources);
   const containers = scopeContainers(model.sources, scope);
-  const containerHealth = containers.reduce<Record<Health, number>>(
-    (acc, c) => ({ ...acc, [c.status]: acc[c.status] + 1 }),
-    { ok: 0, warn: 0, off: 0 }
-  );
   const prefix = scope.kind === "all" ? "" : streamPrefix(scopePoints);
-  const streamUrl = prefix ? `${apiBase}/events?prefix=${encodeURIComponent(prefix)}` : `${apiBase}/events`;
+  const streamRoute = `/events?prefix=${encodeURIComponent(prefix)}`;
+  const changeScope = (next: Scope) => {
+    setScope(next);
+    setSelectedKey(null);
+  };
+  const onGroup = (row: Extract<TableRow, { kind: "group" }>) =>
+    changeScope(containerScope(model.sources, row.sourceId, row.id));
 
+  const loading = model.points.length === 0 && (catalog.status === "loading" || catalog.status === "idle");
   const drawer = width < DRAWER_BELOW;
   const inspector = point ? (
     <PointInspector
@@ -175,20 +196,23 @@ export function SourcesPanel({ config, setConfig, profile, onOpenZone, focusPoin
       tick={tick}
       apiBase={apiBase}
       usedBy={usage.byKey.get(point.key) ?? []}
-      zones={zones}
+      options={options}
+      target={target}
+      onTarget={setBindChoice}
       onBind={(zoneId, widgetId) => bind(point.key, zoneId, widgetId)}
       onUnbind={(zoneId, widgetId) => unbind(point.key, zoneId, widgetId)}
       onNewWidget={() => newWidget(point)}
-      onOpenZone={onOpenZone}
+      onOpenUsage={openUsage}
       onClose={() => setSelectedKey(null)}
     />
   ) : (
     <GroupSummary
-      title={breadcrumb}
-      pointCount={scopePoints.length}
+      title={heading.title}
+      sub={heading.sub}
+      stats={scopeStats(scopePoints, values, usage)}
+      note={scopeNote(scope, model.sources)}
       containers={containers}
-      status={containerHealth}
-      streamUrl={streamUrl}
+      stream={prefix ? { path: streamRoute, url: `${apiBase}${streamRoute}` } : null}
       prefPlugin={scopeSource?.category === "Plugins" ? scopeSource.id : null}
       sourcePrefs={config.sourcePrefs}
       onPrefsChange={onPrefsChange}
@@ -201,19 +225,18 @@ export function SourcesPanel({ config, setConfig, profile, onOpenZone, focusPoin
         pointCount={model.points.length}
         sourceCount={model.sources.length}
         apiBase={apiBase}
-        running={values["system.bridge.status"]?.text === "running"}
-        loading={catalog.status === "loading"}
+        status={values["system.bridge.status"]?.text ?? ""}
       />
+      {loading ? (
+        <div className="grid flex-1 place-items-center text-[12.5px] text-ui-4">Loading data points…</div>
+      ) : (
       <div className="relative flex min-h-0 flex-1">
         <SourceTree
           sources={treeSources}
           counts={counts}
           totalPoints={model.points.length}
           scope={scope}
-          onScope={(next) => {
-            setScope(next);
-            setSelectedKey(null);
-          }}
+          onScope={changeScope}
           query={treeQuery}
           onQuery={setTreeQuery}
           health={health}
@@ -222,7 +245,11 @@ export function SourcesPanel({ config, setConfig, profile, onOpenZone, focusPoin
           onPrefsChange={onPrefsChange}
         />
         <PointTable
-          breadcrumb={breadcrumb}
+          crumbs={crumbs(scope, model.sources)}
+          onScope={changeScope}
+          onGroup={onGroup}
+          target={target}
+          onToggleBind={toggleBind}
           shown={filtered.length}
           total={scopePoints.length}
           rows={rows}
@@ -251,6 +278,7 @@ export function SourcesPanel({ config, setConfig, profile, onOpenZone, focusPoin
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }

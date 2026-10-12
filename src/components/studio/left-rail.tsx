@@ -11,7 +11,7 @@ const RAIL: { id: RailItem; label: string; icon: LucideIcon }[] = [
   { id: "layers", label: "Layers", icon: Layers },
   { id: "add", label: "Add", icon: SquarePlus },
   { id: "profiles", label: "Profiles", icon: Monitor },
-  { id: "sources", label: "Sources", icon: Database },
+  { id: "sources", label: "Data sources", icon: Database },
 ];
 
 /** localStorage key holding the open drawer ("none" when collapsed). */
@@ -74,7 +74,7 @@ function RailButton({ label, icon: Icon, active, onClick }: RailButtonProps) {
           active ? "bg-[#1e1e24] text-ui-1" : "text-ui-4 hover:bg-ui-hover hover:text-ui-2"
         )}
       >
-        <Icon className="h-[21px] w-[21px]" strokeWidth={1.75} />
+        <Icon className="h-[21px] w-[21px]" strokeWidth={1.5} />
       </Tooltip.Trigger>
       <Tooltip.Portal>
         <Tooltip.Positioner side="right" sideOffset={8} className="z-50">
@@ -91,7 +91,7 @@ function RailButton({ label, icon: Icon, active, onClick }: RailButtonProps) {
 export function LeftRail({ active, onSelect, onShortcuts }: LeftRailProps) {
   return (
     <Tooltip.Provider delay={300}>
-      <nav className="flex w-[52px] shrink-0 flex-col items-center gap-1 border-r border-ui-subtle bg-ui-chrome py-2">
+      <nav className="flex w-[52px] shrink-0 flex-col items-center gap-1 border-r border-ui-subtle bg-ui-chrome py-2.5">
         {RAIL.map((item) => (
           <RailButton
             key={item.id}

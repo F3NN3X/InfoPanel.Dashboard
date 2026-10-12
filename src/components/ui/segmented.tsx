@@ -13,6 +13,8 @@ interface SegmentedProps<T extends string> {
   onChange: (value: T) => void;
   /** Accessible name of the group. */
   label?: string;
+  /** `bar` is the top bar's Design | Sources variant (bigger, on the raised surface). */
+  size?: "field" | "bar";
   className?: string;
 }
 
@@ -22,13 +24,19 @@ export function Segmented<T extends string>({
   value,
   onChange,
   label,
+  size = "field",
   className,
 }: SegmentedProps<T>) {
+  const bar = size === "bar";
   return (
     <div
       role="radiogroup"
       aria-label={label}
-      className={cn("flex flex-wrap rounded-md border border-ui-default bg-ui-app p-0.5", className)}
+      className={cn(
+        "flex flex-wrap border border-ui-default p-0.5",
+        bar ? "gap-0.5 rounded-lg bg-ui-raised" : "rounded-[7px] bg-ui-app",
+        className
+      )}
     >
       {options.map((o) => (
         <button
@@ -39,8 +47,9 @@ export function Segmented<T extends string>({
           title={o.title}
           onClick={() => onChange(o.value)}
           className={cn(
-            "rounded-[5px] px-2 py-1 text-xs transition-colors",
-            o.value === value ? "bg-ui-active text-ui-1" : "text-ui-3 hover:text-ui-1"
+            "font-medium transition-colors",
+            bar ? "rounded-md px-3.5 py-[5px] text-[12.5px]" : "rounded-[5px] px-[9px] py-1 text-[11.5px]",
+            o.value === value ? "bg-ui-active text-ui-1" : "text-[#8f8f99] hover:text-ui-1"
           )}
         >
           {o.label}

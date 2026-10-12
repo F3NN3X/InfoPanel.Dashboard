@@ -16,8 +16,6 @@ import { placementTitle } from "./studio-modules";
 interface WidgetPickerDialogProps {
   /** The zone to assign a widget to; null = closed. */
   placement: Placement | null;
-  /** Placements of the profile (usage counts). */
-  placements: Placement[];
   /** The user's saved panels (`config.panelPresets`). */
   savedPanels?: UserPanelPreset[];
   onRenamePreset: (id: string, name: string) => void;
@@ -30,7 +28,6 @@ interface WidgetPickerDialogProps {
 /** Search, categories and the list; remounts (resets) on every open. */
 function PickerBody({
   placement,
-  placements,
   savedPanels,
   onPick,
   onRenamePreset,
@@ -61,7 +58,6 @@ function PickerBody({
         )}
         <InsertList
           items={filterInsertables(insertables(savedPanels).filter((i) => !isBlankZone(i)), query, category)}
-          placements={placements}
           context="picker"
           onPick={(item) => onPick(`${item.kind === "panel" ? "preset" : "module"}:${item.id}`)}
           onRenamePreset={onRenamePreset}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CARDS_ID } from "@/lib/layout";
-import { filterInsertables, insertGroups, insertables, type Insertable } from "./insert-panel";
+import { filterInsertables, insertDropSize, insertGroups, insertables, type Insertable } from "./insert-panel";
 
 const item = (
   id: string,
@@ -122,5 +122,25 @@ describe("insertGroups", () => {
   it("drops empty groups", () => {
     expect(insertGroups(filterInsertables(list, "", "Media")).map((g) => g.title)).toEqual(["Media"]);
     expect(insertGroups([])).toEqual([]);
+  });
+});
+
+describe("insertDropSize", () => {
+  const grid = { cols: 12, rows: 6 };
+
+  it("drops a small widget at 3×2, not its 2×1 minimum", () => {
+    expect(insertDropSize(item("systemmodern", "System", "System"), grid)).toEqual({ cols: 3, rows: 2 });
+  });
+
+  it("keeps a larger minimum and stays inside a small grid", () => {
+    const big: Insertable = { ...item("a", "A", "Other"), cols: 5, rows: 4 };
+    expect(insertDropSize(big, grid)).toEqual({ cols: 5, rows: 4 });
+    expect(insertDropSize(big, { cols: 4, rows: 3 })).toEqual({ cols: 4, rows: 3 });
+  });
+
+  it("gives a panel its own size, clamped to the grid", () => {
+    const panel = { ...item("p", "P", "Other"), kind: "panel" as const, cols: 6, rows: 2, preset: {} as never };
+    expect(insertDropSize(panel, grid)).toEqual({ cols: 6, rows: 2 });
+    expect(insertDropSize(panel, { cols: 4, rows: 1 })).toEqual({ cols: 4, rows: 1 });
   });
 });
