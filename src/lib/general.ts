@@ -5,7 +5,9 @@
  * changed keys; `resolveGeneral` fills the defaults.
  */
 
-export type GeneralFont = "system" | "sans" | "rounded" | "serif" | "mono";
+import { ensureFont, FONT_CATALOG, FONT_IDS, fontById, type FontId } from "@/lib/fonts";
+
+export type GeneralFont = FontId;
 export type MotionChoice = "system" | "reduce" | "full";
 
 export interface GeneralSettings {
@@ -43,19 +45,20 @@ export const GENERAL_DEFAULTS: ResolvedGeneral = {
 };
 
 /** CSS font stacks for the font choices (also the widget style's Font option). */
-export const FONT_STACKS: Record<Exclude<GeneralFont, "system">, string> = {
-  sans: "ui-sans-serif, system-ui, 'Segoe UI', sans-serif",
-  rounded: "ui-rounded, 'SF Pro Rounded', 'Nunito', 'Segoe UI Variable Display', system-ui, sans-serif",
-  serif: "ui-serif, Georgia, 'Times New Roman', serif",
-  mono: "ui-monospace, 'Cascadia Code', 'Consolas', monospace",
-};
+export const FONT_STACKS: Record<Exclude<GeneralFont, "system">, string> = Object.fromEntries(
+  FONT_CATALOG.flatMap((f) => ("stack" in f ? [[f.id, f.stack]] : []))
+) as Record<Exclude<GeneralFont, "system">, string>;
 
-const FONTS: readonly GeneralFont[] = ["system", "sans", "rounded", "serif", "mono"];
+const FONTS: readonly GeneralFont[] = FONT_IDS;
 const MOTIONS: readonly MotionChoice[] = ["system", "reduce", "full"];
 
-/** The font-family for a choice; undefined = the page's own ("system"). */
+/**
+ * The font-family for a choice; undefined = the page's own ("system").
+ * Also makes sure a web font's stylesheet is loading (idempotent).
+ */
 export function fontStack(font: GeneralFont): string | undefined {
-  return font === "system" ? undefined : FONT_STACKS[font];
+  ensureFont(font);
+  return fontById(font)?.stack;
 }
 
 /** Whether the runtime can format dates in this locale ("" = the system's). */

@@ -1,4 +1,5 @@
 import type { ModernChrome } from "@/components/modern-chrome";
+import { FONT_CATALOG } from "@/lib/fonts";
 import { settingKeys, type ModuleSetting, type ModuleSettings } from "./types";
 
 /**
@@ -114,10 +115,7 @@ export const STYLE_SETTINGS: ModuleSetting[] = [
     default: "auto",
     options: [
       { value: "auto", label: "Theme" },
-      { value: "sans", label: "Sans" },
-      { value: "rounded", label: "Rounded" },
-      { value: "serif", label: "Serif" },
-      { value: "mono", label: "Mono" },
+      ...FONT_CATALOG.filter((f) => f.id !== "system").map((f) => ({ value: f.id, label: f.label })),
     ],
     group: GROUP_TYPOGRAPHY,
   },
@@ -414,7 +412,7 @@ export function chromeOf(cfg: ModuleSettings): ModernChrome {
     radius: px(cfg.radius),
     textColor: String(cfg.textColor ?? ""),
     mutedColor: String(cfg.mutedColor ?? ""),
-    font: pick(cfg.font, ["auto", "sans", "rounded", "serif", "mono"] as const, "auto"),
+    font: pick(cfg.font, FONT_CATALOG.map((f) => (f.id === "system" ? "auto" : f.id)), "auto"),
     fontWeight: pick(cfg.fontWeight, ["auto", "400", "500", "600", "700", "800"] as const, "auto"),
     labelCase: pick(cfg.labelCase, ["auto", "uppercase", "none", "capitalize"] as const, "auto"),
     stroke: percent(cfg.stroke),
