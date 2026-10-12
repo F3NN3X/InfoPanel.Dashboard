@@ -432,7 +432,7 @@ export function KenBurns({ src, className = "", on = true }: { src?: string; cla
     return () => a.cancel();
   }, [on, src]);
   return (
-    <div ref={ref} className={`absolute inset-0 ${className}`}>
+    <div ref={ref} data-qa-bleed className={`absolute inset-0 ${className}`}>
       <Img src={src} icon="sports_esports" className="h-full w-full" />
     </div>
   );

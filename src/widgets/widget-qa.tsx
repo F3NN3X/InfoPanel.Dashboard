@@ -146,6 +146,7 @@ function probe(fig: Element): Issue[] {
       textOverflow: cs.textOverflow,
       whiteSpace: cs.whiteSpace,
       lineClamp: cs.getPropertyValue("-webkit-line-clamp"),
+      bleed: el.closest("[data-qa-bleed]") !== null,
       scrollWidth: el.scrollWidth,
       clientWidth: el.clientWidth,
       scrollHeight: el.scrollHeight,

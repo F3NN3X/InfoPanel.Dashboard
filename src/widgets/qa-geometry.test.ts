@@ -45,4 +45,8 @@ describe("clippedContent", () => {
     expect(clippedContent({ ...base, lineClamp: "2", scrollHeight: 90 })).toEqual({ dx: 0, dy: 0 });
     expect(clippedContent({ ...base, lineClamp: "none", scrollHeight: 90 }).dy).toBe(50);
   });
+  it("ignores intentional bleed art", () => {
+    expect(clippedContent({ ...base, bleed: true, scrollWidth: 300, scrollHeight: 90 })).toEqual({ dx: 0, dy: 0 });
+    expect(clippedContent({ ...base, bleed: false, scrollWidth: 300 }).dx).toBe(200);
+  });
 });
