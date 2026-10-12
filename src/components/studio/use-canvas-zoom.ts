@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { fitZoomFor } from "./studio-layout";
+import { loadZoomPref, saveZoomPref } from "./zoom-pref";
 
 const ZOOM_STEPS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2];
 
@@ -22,8 +23,11 @@ function stepZoom(z: number, dir: number): number {
  * `scrollRef`.
  */
 export function useCanvasZoom(page: { width: number; height: number }) {
-  const [manual, setManual] = useState(1);
-  const [fitting, setFitting] = useState(true);
+  // The zoom mode (fit, or a manual zoom) is remembered across reloads.
+  const [initial] = useState(loadZoomPref);
+  const [manual, setManual] = useState(initial.manual);
+  const [fitting, setFitting] = useState(initial.fitting);
+  useEffect(() => saveZoomPref({ fitting, manual }), [fitting, manual]);
   const [box, setBox] = useState({ width: 0, height: 0 });
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const [scrollEl, setScrollEl] = useState<HTMLDivElement | null>(null);

@@ -75,7 +75,7 @@ export function useStudioMutations({ config, profile, setConfig, sel, onPresetSa
   /** A library item's name (toasts) and its footprint when placed on this grid. */
   const libraryInfo = (item: LibraryItem): { title: string; size: { cols: number; rows: number } } | null => {
     if (item.kind === "module") {
-      const title = ALL_MODULES.find((m) => m.id === item.id)?.title;
+      const title = item.id === BLANK_MODULE ? "Blank zone" : ALL_MODULES.find((m) => m.id === item.id)?.title;
       return title ? { title, size: dropSize(moduleMinSize(item.id), profile) } : null;
     }
     const preset = findPanelPreset(item.id, config.panelPresets);
@@ -125,7 +125,7 @@ export function useStudioMutations({ config, profile, setConfig, sel, onPresetSa
   const fillBlank = (zoneId: string, item: LibraryItem) => {
     const zone = profile.placements.find((p) => p.id === zoneId);
     const info = libraryInfo(item);
-    if (!zone || !info) return;
+    if (!zone || !info || item.id === BLANK_MODULE) return;
     if (item.kind === "module") {
       if (!actions.canGrowTo(profile, zoneId, moduleMinSize(item.id)))
         return void toast("Not enough room in this zone");

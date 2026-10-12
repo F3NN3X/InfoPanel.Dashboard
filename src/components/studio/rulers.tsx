@@ -39,7 +39,7 @@ function ticks(length: number, zoom: number, offset: number, view: number) {
 export function RulerH({ length, zoom, offset, view }: RulerProps) {
   const { out, showLabels } = ticks(length, zoom, offset, view);
   return (
-    <div className="relative h-6 select-none overflow-hidden border-b border-border bg-popover/60">
+    <div className="relative h-6 select-none overflow-hidden border-b border-ui-subtle bg-ui-chrome">
       {out.map((t) => (
         <div
           key={t.x}
@@ -48,15 +48,15 @@ export function RulerH({ length, zoom, offset, view }: RulerProps) {
         >
           {t.major ? (
             <>
-              <div className="h-2.5 w-px bg-muted-foreground/60" />
+              <div className="h-2.5 w-px bg-ui-5" />
               {showLabels && (
-                <div className="absolute -top-0.5 left-1 text-[10px] leading-none tabular-nums text-muted-foreground/70">
+                <div className="absolute -top-0.5 left-1 font-ui-mono text-[8px] leading-none text-[#5a5a63]">
                   {t.x}
                 </div>
               )}
             </>
           ) : (
-            <div className="h-1.5 w-px bg-muted-foreground/30" />
+            <div className="h-1.5 w-px bg-ui-5/40" />
           )}
         </div>
       ))}
@@ -67,7 +67,7 @@ export function RulerH({ length, zoom, offset, view }: RulerProps) {
 export function RulerV({ length, zoom, offset, view }: RulerProps) {
   const { out, showLabels } = ticks(length, zoom, offset, view);
   return (
-    <div className="relative w-7 shrink-0 select-none overflow-hidden border-r border-border bg-popover/60">
+    <div className="relative w-7 shrink-0 select-none overflow-hidden border-r border-ui-subtle bg-ui-chrome">
       {out.map((t) => (
         <div
           key={t.x}
@@ -76,15 +76,15 @@ export function RulerV({ length, zoom, offset, view }: RulerProps) {
         >
           {t.major ? (
             <>
-              <div className="h-px w-2 bg-muted-foreground/60" />
+              <div className="h-px w-2 bg-ui-5" />
               {showLabels && (
-                <div className="absolute left-2.5 top-1 text-[10px] leading-none tabular-nums text-muted-foreground/70">
+                <div className="absolute left-2.5 top-1 font-ui-mono text-[8px] leading-none text-[#5a5a63]">
                   {t.x}
                 </div>
               )}
             </>
           ) : (
-            <div className="h-px w-1.5 bg-muted-foreground/30" />
+            <div className="h-px w-1.5 bg-ui-5/40" />
           )}
         </div>
       ))}

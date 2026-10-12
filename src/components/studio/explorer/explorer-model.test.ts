@@ -121,6 +121,12 @@ describe("filterSources", () => {
   it("returns nothing when nothing matches", () => {
     expect(filterSources(model.sources, "zzz", null)).toEqual([]);
   });
+
+  it("ignores diacritics like the point search does", () => {
+    const accented = [{ ...model.sources[0], name: "Écran" }];
+    expect(filterSources(accented, "ecran", null)).toHaveLength(1);
+    expect(filterSources(accented, "ÉCRAN", null)).toHaveLength(1);
+  });
 });
 
 describe("flattenRows", () => {

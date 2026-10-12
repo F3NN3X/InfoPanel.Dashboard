@@ -1,6 +1,27 @@
 import { useState } from "react";
-import { ChevronDown, ChevronRight, CloudUpload, Cpu, Database, Puzzle, Search, Server, type LucideIcon } from "lucide-react";
-import { CATEGORIES, type DataSource, type Health, type SourceCategory } from "@/lib/data-points";
+import {
+  ChevronDown,
+  ChevronRight,
+  CloudUpload,
+  Cpu,
+  Database,
+  Eye,
+  EyeOff,
+  MoreHorizontal,
+  Pencil,
+  Puzzle,
+  Search,
+  Server,
+  type LucideIcon,
+} from "lucide-react";
+import { ContextMenu, type ContextMenuEntry } from "@/components/ui/context-menu";
+import {
+  CATEGORIES,
+  type DataContainer,
+  type DataSource,
+  type Health,
+  type SourceCategory,
+} from "@/lib/data-points";
 import { sourcePrefKey, type SourcePref } from "@/lib/layout";
 import { cn } from "@/lib/utils";
 import type { Scope } from "./explorer-model";
@@ -27,6 +48,23 @@ interface SourceTreeProps {
   health: Health | null;
   onHealth: (health: Health | null) => void;
   sourcePrefs: Record<string, SourcePref> | undefined;
+  onPrefsChange: (key: string, pref: Partial<SourcePref>) => void;
+}
+
+interface PrefMenu {
+  x: number;
+  y: number;
+  key: string;
+}
+
+/**
+ * The preference key a tree row edits: a plugin's container (its source row
+ * when it has just one), or any other source as a whole, as the old panel did.
+ */
+function prefKeyOf(s: DataSource, c?: DataContainer): string | null {
+  if (s.category !== "Plugins") return c ? null : sourcePrefKey(s.id, "");
+  const container = c ?? (s.containers.length === 1 ? s.containers[0] : undefined);
+  return container ? sourcePrefKey(s.id, container.id.slice(s.id.length + 1)) : null;
 }
 
 /** The explorer's left column: filter, health chips, "All data points" and the categorised sources. */
@@ -41,9 +79,48 @@ export function SourceTree({
   health,
   onHealth,
   sourcePrefs,
+  onPrefsChange,
 }: SourceTreeProps) {
   const [open, setOpen] = useState<Record<string, boolean>>({});
+  const [menu, setMenu] = useState<PrefMenu | null>(null);
+  const [renaming, setRenaming] = useState<string | null>(null);
   const searching = query.trim() !== "";
+
+  /** The label, overflow menu and rename field of the row that edits preference `key`. */
+  const prefProps = (key: string | null, name: string) => {
+    const pref = key ? sourcePrefs?.[key] : undefined;
+    return {
+      label: pref?.displayName?.trim() || name,
+      muted: pref?.enabled === false,
+      onMenu:
+        key === null ? undefined : (rect: DOMRect) => setMenu({ x: rect.left, y: rect.bottom + 4, key }),
+      rename:
+        key !== null && renaming === key
+          ? {
+              value: pref?.displayName ?? "",
+              placeholder: name,
+              onCommit: (value: string) => {
+                setRenaming(null);
+                onPrefsChange(key, { displayName: value.trim() || undefined });
+              },
+              onCancel: () => setRenaming(null),
+            }
+          : undefined,
+    };
+  };
+
+  const menuEntries = (m: PrefMenu): ContextMenuEntry[] => {
+    const enabled = sourcePrefs?.[m.key]?.enabled !== false;
+    return [
+      {
+        id: "visibility",
+        label: enabled ? "Hide in dashboard" : "Show in dashboard",
+        icon: enabled ? <EyeOff /> : <Eye />,
+        onSelect: () => onPrefsChange(m.key, { enabled: !enabled }),
+      },
+      { id: "rename", label: "Rename…", icon: <Pencil />, onSelect: () => setRenaming(m.key) },
+    ];
+  };
 
   return (
     <div className="flex w-[264px] shrink-0 flex-col border-r border-ui-subtle bg-ui-panel font-ui">
@@ -104,29 +181,26 @@ export function SourceTree({
                       selected={scope.kind === "source" && scope.id === s.id}
                       onClick={() => onScope({ kind: "source", id: s.id })}
                       icon={CATEGORY_ICON[category]}
-                      label={s.name}
+                      {...prefProps(prefKeyOf(s), s.name)}
                       count={s.count}
                       status={s.status}
                       indent={12}
                       chevron={expandable ? (expanded ? "open" : "closed") : undefined}
+                      chevronDisabled={searching}
                       onChevron={() => setOpen((o) => ({ ...o, [s.id]: !o[s.id] }))}
                     />
                     {expanded &&
-                      s.containers.map((c) => {
-                        const pref = sourcePrefs?.[sourcePrefKey(s.id, c.id.slice(s.id.length + 1))];
-                        return (
-                          <Row
-                            key={c.id}
-                            selected={scope.kind === "container" && scope.id === c.id}
-                            onClick={() => onScope({ kind: "container", id: c.id, sourceId: s.id })}
-                            label={pref?.displayName?.trim() || c.title}
-                            muted={pref?.enabled === false}
-                            count={c.points.length}
-                            status={c.status}
-                            indent={46}
-                          />
-                        );
-                      })}
+                      s.containers.map((c) => (
+                        <Row
+                          key={c.id}
+                          selected={scope.kind === "container" && scope.id === c.id}
+                          onClick={() => onScope({ kind: "container", id: c.id, sourceId: s.id })}
+                          {...prefProps(prefKeyOf(s, c), c.title)}
+                          count={c.points.length}
+                          status={c.status}
+                          indent={46}
+                        />
+                      ))}
                   </div>
                 );
               })}
@@ -134,6 +208,7 @@ export function SourceTree({
           );
         })}
       </div>
+      {menu && <ContextMenu x={menu.x} y={menu.y} entries={menuEntries(menu)} onClose={() => setMenu(null)} />}
     </div>
   );
 }
@@ -148,10 +223,30 @@ interface RowProps {
   status?: Health;
   muted?: boolean;
   chevron?: "open" | "closed";
+  /** A filtered tree is forced open, so the chevron has nothing to do. */
+  chevronDisabled?: boolean;
   onChevron?: () => void;
+  /** Opens the row's show / rename menu, anchored at its button. */
+  onMenu?: (anchor: DOMRect) => void;
+  /** Swaps the label for a text field. */
+  rename?: { value: string; placeholder: string; onCommit: (value: string) => void; onCancel: () => void };
 }
 
-function Row({ selected, onClick, label, count, indent, icon: Icon, status, muted, chevron, onChevron }: RowProps) {
+function Row({
+  selected,
+  onClick,
+  label,
+  count,
+  indent,
+  icon: Icon,
+  status,
+  muted,
+  chevron,
+  chevronDisabled,
+  onChevron,
+  onMenu,
+  rename,
+}: RowProps) {
   const Chevron = chevron === "open" ? ChevronDown : ChevronRight;
   return (
     <div
@@ -160,6 +255,7 @@ function Row({ selected, onClick, label, count, indent, icon: Icon, status, mute
       aria-current={selected}
       onClick={onClick}
       onKeyDown={(e) => {
+        if (e.target !== e.currentTarget) return;
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           onClick();
@@ -174,12 +270,14 @@ function Row({ selected, onClick, label, count, indent, icon: Icon, status, mute
       {chevron ? (
         <button
           type="button"
-          aria-label={chevron === "open" ? "Collapse" : "Expand"}
+          aria-label={`${chevron === "open" ? "Collapse" : "Expand"} ${label}`}
+          aria-expanded={chevron === "open"}
+          disabled={chevronDisabled}
           onClick={(e) => {
             e.stopPropagation();
             onChevron?.();
           }}
-          className="-ml-1 flex h-5 w-4 items-center justify-center text-ui-4 hover:text-ui-1"
+          className="-ml-1 flex h-5 w-4 items-center justify-center text-ui-4 hover:text-ui-1 disabled:opacity-40 disabled:hover:text-ui-4"
         >
           <Chevron className="h-3.5 w-3.5" />
         </button>
@@ -187,8 +285,42 @@ function Row({ selected, onClick, label, count, indent, icon: Icon, status, mute
         Icon && indent < 40 && <span className="-ml-1 w-4" />
       )}
       {Icon && <Icon className="h-3.5 w-3.5 shrink-0 text-ui-4" />}
-      <span className={cn("min-w-0 flex-1 truncate", muted && "text-ui-4 line-through")}>{label}</span>
+      {rename ? (
+        <input
+          autoFocus
+          defaultValue={rename.value}
+          placeholder={rename.placeholder}
+          aria-label={`Display name for ${rename.placeholder}`}
+          onClick={(e) => e.stopPropagation()}
+          onBlur={(e) => rename.onCommit(e.currentTarget.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") e.currentTarget.blur();
+            if (e.key === "Escape") {
+              e.stopPropagation();
+              e.currentTarget.value = rename.value; // the blur that follows must not save the edit
+              rename.onCancel();
+            }
+          }}
+          className="h-6 min-w-0 flex-1 rounded border border-ui-default bg-ui-app px-1.5 text-[12px] text-ui-1 placeholder:text-ui-5 focus:border-ui-accent/60 focus:outline-none"
+        />
+      ) : (
+        <span className={cn("min-w-0 flex-1 truncate", muted && "text-ui-4 line-through")}>{label}</span>
+      )}
       <span className="font-ui-mono text-[11px] tabular-nums text-ui-4">{count}</span>
+      {onMenu && (
+        <button
+          type="button"
+          aria-label={`Options for ${label}`}
+          aria-haspopup="menu"
+          onClick={(e) => {
+            e.stopPropagation();
+            onMenu(e.currentTarget.getBoundingClientRect());
+          }}
+          className="-mr-1 flex h-5 w-5 items-center justify-center rounded text-ui-4 hover:bg-ui-active hover:text-ui-1"
+        >
+          <MoreHorizontal className="h-3.5 w-3.5" />
+        </button>
+      )}
       {status && <StatusDot health={status} />}
     </div>
   );

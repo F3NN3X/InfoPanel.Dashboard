@@ -1,12 +1,18 @@
 import type { CSSProperties, Dispatch, SetStateAction } from "react";
 import { useConfigHistory } from "@/hooks/use-config-history";
+import { ToastProvider } from "@/components/ui/toast";
 import { SourcesPanel } from "./sources-panel";
-import { defaultConfig, resolveProfile, type DashboardConfig, type MonitorProfile } from "@/lib/layout";
+import {
+  BLANK_MODULE,
+  defaultConfig,
+  resolveProfile,
+  type DashboardConfig,
+  type MonitorProfile,
+} from "@/lib/layout";
 import { resolveBackground } from "@/lib/appearance";
 import { useSensorCatalog } from "@/lib/catalog";
 import { appearanceOf } from "@/lib/style-resolve";
 import { resolveTheme, themeVars } from "@/lib/theme";
-import * as actions from "./studio-actions";
 import { CommandPalette } from "./command-palette";
 import { exportConfigFile, importConfigFile } from "./config-file";
 import { useDocumentProps } from "./use-document-props";
@@ -23,7 +29,8 @@ import { useStudioCommands } from "./use-studio-commands";
 import { useStudioMutations } from "./use-studio-mutations";
 import { useStudioSelection } from "./use-studio-selection";
 import { useInspectorFollowsSelection, useStudioUi } from "./use-studio-ui";
-import { ZoneToolbar } from "./zone-toolbar";
+import { SelectionChip } from "./selection-chip";
+import { StudioContextMenu, useContextMenu } from "./zone-context-menu";
 import { widgetName } from "./widget-kinds";
 import { WidgetPickerDialog } from "./widget-picker-dialog";
 import { ZoomToolbar } from "./zoom-toolbar";
@@ -38,6 +45,8 @@ interface StudioViewProps {
   onExitStudio: () => void;
   /** Flush the config to the server and force the kiosk view to refresh. */
   onSave: (config: DashboardConfig) => void;
+  /** Edits the server does not have yet (the dot on Save). */
+  pushPending: boolean;
 }
 
 /**
@@ -50,7 +59,16 @@ interface StudioViewProps {
  * shortcuts and the Ctrl+K command palette reach the same actions as the
  * mouse. The state lives in the `use-studio-*` hooks; this composes them.
  */
-export function StudioView({
+export function StudioView(props: StudioViewProps) {
+  // The toast host wraps the view so the hooks below can raise toasts.
+  return (
+    <ToastProvider>
+      <StudioViewBody {...props} />
+    </ToastProvider>
+  );
+}
+
+function StudioViewBody({
   config,
   profile,
   setConfig: setConfigState,
@@ -58,6 +76,7 @@ export function StudioView({
   windowHeight,
   onExitStudio,
   onSave,
+  pushPending,
 }: StudioViewProps) {
   const history = useConfigHistory(config, setConfigState);
   const setConfig = history.set;
@@ -81,6 +100,7 @@ export function StudioView({
   );
   /** The global style the zones render under. */
   const appearance = appearanceOf(config, profile);
+  const menus = useContextMenu(sel);
   const { runCommand, commands, focusZone } = useStudioCommands({
     config,
     profile,
@@ -94,7 +114,21 @@ export function StudioView({
   });
   /** Sensor names for widget names (toolbar crumb, palette). */
   const catalog = useSensorCatalog();
-  const { docked, studioLayout, showSources, drawer } = ui;
+  const { studioLayout, showSources, drawer } = ui;
+
+  /** Switch profile (or Auto): the selection resets with the profile; the zoom returns to fit. */
+  const activateProfile = (id: string) => {
+    edit.activateProfile(id);
+    ui.fitZoom();
+  };
+  /** The zoom bar's resolution button and a profile's "Size, grid and spacing…": Dashboard › Profile. */
+  const openProfileSettings = () => {
+    ui.setMode("design");
+    sel.select(null);
+    ui.openDocumentTab("profile");
+  };
+  /** The one selected zone, when it is blank: the Add panel's click fills it. */
+  const blankZoneId = selected && sel.selection.length === 1 && selected.module === BLANK_MODULE ? selected.id : undefined;
 
   /** The profile's own theme, scoped to the canvas (the chrome keeps the dashboard's). */
   const ownTheme = profile.theme !== undefined || profile.radius !== undefined;
@@ -117,8 +151,6 @@ export function StudioView({
   const drawerEl = drawer && (
     <StudioDrawer
       drawer={drawer}
-      docked={docked}
-      onClose={() => ui.setDrawer(null)}
       insert={{
         placements: profile.placements,
         savedPanels: config.panelPresets,
@@ -126,6 +158,8 @@ export function StudioView({
         onAddPreset: edit.addPanelPreset,
         onRenamePreset: edit.renameSavedPanel,
         onDeletePreset: edit.deleteSavedPanel,
+        blankZoneId,
+        onFillBlank: edit.fillBlank,
       }}
       layers={{
         placements: profile.placements,
@@ -133,19 +167,20 @@ export function StudioView({
         onSelect: (id, toggle) => (toggle ? sel.select(id, "toggle") : focusZone(id)),
         onToggle: edit.toggleVisible,
         onRemove: edit.removePlacement,
+        onContextMenu: menus.open,
+        onAdd: () => ui.setDrawer("add"),
       }}
       profiles={{
         profiles: config.profiles,
         activeProfile: config.activeProfile,
         profile,
         autoProfileId: resolveProfile({ ...config, activeProfile: "auto" }, windowWidth, windowHeight).id,
-        onActivate: edit.activateProfile,
+        onActivate: activateProfile,
         onAddProfile: edit.addProfile,
         onRemoveProfile: edit.removeProfile,
         onProfileChange: (patch) =>
           edit.updateProfile((p) => ({ ...p, ...patch }), `profile:${Object.keys(patch).join()}`),
-        onCols: (delta) => edit.updateProfile((p) => actions.changeCols(p, delta)),
-        onRows: (delta) => edit.updateProfile((p) => actions.changeRows(p, delta)),
+        onOpenSettings: openProfileSettings,
       }}
     />
   );
@@ -170,6 +205,7 @@ export function StudioView({
       themeScope={themeScope}
       zoom={ui.zoom}
       showGrid={ui.showGrid}
+      showRulers={ui.showRulers}
       scrollRef={ui.scrollRef}
       attachScroll={ui.attachScroll}
       selectedIds={sel.selectedIds}
@@ -183,27 +219,24 @@ export function StudioView({
         sel.select(id);
         ui.setPickerFor(id);
       }}
-      onAddModule={edit.addPlacement}
-      onAddPreset={edit.addPanelPresetById}
+      onDragBegin={history.begin}
+      onDragCommit={history.commit}
+      onDragCancel={history.cancel}
+      dropSizeOf={edit.dropSizeOf}
+      onDropItem={edit.dropItem}
+      onContextMenu={menus.open}
       onOpenAdd={() => ui.setDrawer("add")}
-      zoneToolbar={
+      onUseSample={() => runCommand({ type: "sample-layout" })}
+      selectionChip={
         selected && (
-          <ZoneToolbar
+          <SelectionChip
             placement={selected}
             count={sel.selection.length}
             anyVisible={sel.selection.some((p) => p.visible)}
             widgetLabel={selectedWidget ? widgetName(selectedWidget, catalog) : undefined}
             onPickWidget={() => ui.setPickerFor(selected.id)}
-            canResize={(size) => edit.resizeSelected(size) !== null}
-            onResize={(size) => {
-              const rect = edit.resizeSelected(size);
-              if (rect) edit.setZoneRect(selected.id, rect);
-            }}
             onToggleVisible={edit.toggleSelectionVisible}
-            onDuplicate={edit.duplicateSelection}
-            onRemove={edit.removeSelection}
-            onStyle={() => ui.jumpInspector("colors")}
-            onDeselect={() => sel.select(null)}
+            onMore={(x, y) => menus.open(selected.id, x, y)}
           />
         )
       }
@@ -213,37 +246,37 @@ export function StudioView({
   const bar = showSources ? null : (
     <ZoomToolbar
       zoom={ui.zoom}
+      leftOpen={drawer !== null}
+      onToggleLeft={ui.toggleLeft}
       showGrid={ui.showGrid}
       onToggleGrid={() => ui.setShowGrid((s) => !s)}
+      showRulers={ui.showRulers}
+      onToggleRulers={() => ui.setShowRulers((s) => !s)}
       onZoomStep={ui.zoomStep}
       onZoomReset={() => ui.setZoom(1)}
       onFit={ui.fitZoom}
       profile={profile}
+      onOpenProfile={openProfileSettings}
       layoutMode={studioLayout.mode}
-      placement={studioLayout.layout.placement}
-      onLayoutMode={studioLayout.setMode}
-      leading={
-        docked && (
-          <DockToggle
-            collapsed={studioLayout.collapsed}
-            onToggle={studioLayout.toggleCollapsed}
-            summary={selected ? placementTitle(selected) : "Appearance · Background · General · Connection"}
-          />
-        )
-      }
+      onCycleLayout={studioLayout.cycleMode}
     />
   );
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-background text-foreground">
+    <div className="flex h-screen flex-col overflow-hidden bg-ui-app font-ui text-ui-1">
       <StudioTopBar
         profiles={config.profiles}
         activeProfile={config.activeProfile}
         profile={profile}
-        onActivate={edit.activateProfile}
+        onActivate={activateProfile}
+        onOpenProfiles={() => {
+          ui.setMode("design");
+          ui.setDrawer("profiles");
+        }}
         mode={ui.mode}
         onMode={ui.setMode}
         saved={ui.saved}
+        unsaved={pushPending}
         onSave={ui.handleSave}
         onExitStudio={onExitStudio}
         onExport={() => exportConfigFile(config)}
@@ -258,11 +291,24 @@ export function StudioView({
       />
       <StudioShell
         layout={studioLayout}
-        rail={<LeftRail active={showSources ? "sources" : drawer} onSelect={ui.onRail} />}
+        rail={
+          <LeftRail
+            active={showSources ? "sources" : drawer}
+            onSelect={ui.onRail}
+            onShortcuts={() => ui.setShortcutsOpen(true)}
+          />
+        }
         drawer={!showSources && drawer && drawerEl}
         main={mainEl}
         bar={bar}
-        inspector={inspectorAside}
+        inspector={showSources ? null : inspectorAside}
+        dockToggle={
+          <DockToggle
+            collapsed={studioLayout.collapsed}
+            onToggle={studioLayout.toggleCollapsed}
+            summary={selected ? placementTitle(selected) : "Appearance · Background · General · Connection"}
+          />
+        }
       />
 
       <WidgetPickerDialog
@@ -283,6 +329,19 @@ export function StudioView({
         commands={commands}
         onRun={(command) => runCommand(command.action)}
       />
+      {menus.menu && (
+        <StudioContextMenu
+          menu={menus.menu}
+          sel={sel}
+          canPasteStyle={ui.styleClipboard !== null}
+          canStep={(cols, rows) =>
+            selected !== null &&
+            edit.resizeSelected({ cols: selected.colSpan + cols, rows: selected.rowSpan + rows }) !== null
+          }
+          onRun={runCommand}
+          onClose={menus.close}
+        />
+      )}
       <ShortcutsDialog open={ui.shortcutsOpen} onOpenChange={ui.setShortcutsOpen} />
       <input
         ref={ui.importRef}

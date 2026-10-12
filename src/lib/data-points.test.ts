@@ -74,6 +74,18 @@ describe("classifyValue", () => {
     expect(classifyValue("13:46:55").type).toBe("text");
   });
 
+  it("treats bracketed text as a list only when it is JSON", () => {
+    expect(classifyValue("[Unknown]").type).toBe("text");
+    expect(classifyValue("{not json").type).toBe("text");
+    expect(classifyValue('["a","b"]').type).toBe("list");
+  });
+
+  it("keeps a unit to one token", () => {
+    expect(classifyValue("12 GB free").type).toBe("text");
+    expect(classifyValue("0 items")).toEqual({ type: "number", num: 0, unit: "items" });
+    expect(classifyValue("480MB")).toEqual({ type: "number", num: 480, unit: "MB" });
+  });
+
   it("splits a number from its unit", () => {
     expect(classifyValue("26.2 %")).toEqual({ type: "number", num: 26.2, unit: "%" });
     expect(classifyValue("-863.1 dB")).toEqual({ type: "number", num: -863.1, unit: "dB" });
@@ -194,5 +206,11 @@ describe("search", () => {
     const p = { ...model.points[0], name: "Écran Température" };
     expect(matchesPoint(p, "ECRAN temperature")).toBe(true);
     expect(matchesPoint(p, "ecran gpu")).toBe(false);
+  });
+
+  it("searches the displayed value too", () => {
+    const p = { ...model.points[0], raw: "26.2 %" };
+    expect(matchesPoint(p, "26.2")).toBe(true);
+    expect(matchesPoint({ ...p, raw: "running" }, "running")).toBe(true);
   });
 });

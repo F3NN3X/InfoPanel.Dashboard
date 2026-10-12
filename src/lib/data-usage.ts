@@ -177,7 +177,7 @@ export function bindPoint(
     const binding = mod && sourceBinding(mod, key, model);
     if (!binding) return pl;
     const { def, container } = binding;
-    const current = splitList(pl.settings?.[def.key]);
+    const current = splitList(pl.settings?.[def.key] ?? def.default);
     const next = def.multiple ? [...new Set([...current, container])].join(",") : container;
     if (pl.settings?.[def.key] === next) return pl;
     return { ...pl, settings: { ...pl.settings, [def.key]: next } };
@@ -214,7 +214,7 @@ export function unbindPoint(
     const binding = mod && sourceBinding(mod, key, model);
     if (!binding) return pl;
     const { def, container } = binding;
-    const current = splitList(pl.settings?.[def.key]);
+    const current = splitList(pl.settings?.[def.key] ?? def.default);
     if (!current.includes(container)) return pl;
     const next = current.filter((c) => c !== container).join(",");
     return { ...pl, settings: { ...pl.settings, [def.key]: next } };

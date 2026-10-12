@@ -1,118 +1,134 @@
-import { LayoutGrid, Maximize2, PanelBottom, PanelRight, Wand2, ZoomIn, ZoomOut, type LucideIcon } from "lucide-react";
-import type { ReactNode } from "react";
+import {
+  Grid3x3,
+  LayoutPanelTop,
+  Maximize2,
+  Minus,
+  PanelBottom,
+  PanelLeft,
+  PanelRight,
+  Plus,
+  Ruler,
+  type LucideIcon,
+} from "lucide-react";
+import { IconButton } from "@/components/ui/icon-button";
 import type { MonitorProfile } from "@/lib/layout";
 import { cn } from "@/lib/utils";
-import type { LayoutMode, Placement } from "./studio-layout";
+import type { LayoutMode } from "./studio-layout";
 import { KEYS } from "./use-studio-shortcuts";
 
 interface ZoomToolbarProps {
   zoom: number;
+  leftOpen: boolean;
+  onToggleLeft: () => void;
   showGrid: boolean;
   onToggleGrid: () => void;
+  showRulers: boolean;
+  onToggleRulers: () => void;
   onZoomStep: (dir: 1 | -1) => void;
   onZoomReset: () => void;
   onFit: () => void;
-  /** The profile shown on the canvas (size label). */
+  /** The profile shown on the canvas (resolution button). */
   profile: MonitorProfile;
-  /** The layout mode, where the inspector is now, and the switch. */
+  /** Open Dashboard › Profile. */
+  onOpenProfile: () => void;
+  /** The inspector position setting; the button cycles it. */
   layoutMode: LayoutMode;
-  placement: Placement;
-  onLayoutMode: (mode: LayoutMode) => void;
-  /** Left end of the strip (the dock's collapse button). */
-  leading?: ReactNode;
+  onCycleLayout: () => void;
 }
 
-const LAYOUTS: { mode: LayoutMode; label: string; icon: LucideIcon }[] = [
-  { mode: "auto", label: "Auto", icon: Wand2 },
-  { mode: "side", label: "Side", icon: PanelRight },
-  { mode: "bottom", label: "Bottom", icon: PanelBottom },
-];
+const DOCK: Record<LayoutMode, { label: string; icon: LucideIcon }> = {
+  side: { label: "Side", icon: PanelRight },
+  bottom: { label: "Bottom", icon: PanelBottom },
+  auto: { label: "Auto", icon: LayoutPanelTop },
+};
 
-const ICON_BUTTON =
-  "rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground";
+const BAR_BUTTON = "h-7 w-7 rounded-md";
+const TEXT_BUTTON =
+  "flex h-7 items-center gap-1.5 rounded-md px-2 text-xs text-ui-3 transition-colors hover:bg-ui-hover hover:text-ui-1";
+
+function Divider() {
+  return <div className="mx-1 h-4 w-px shrink-0 bg-ui-strong" />;
+}
 
 /**
- * The strip under the canvas (outside the page, so it never covers
- * widgets): grid toggle, zoom, fit, size and the inspector layout switch.
+ * The floating bar over the canvas (16 px from the bottom, centred): left
+ * panel, grid and ruler toggles, zoom, the resolution button and the
+ * inspector position.
  */
 export function ZoomToolbar({
   zoom,
+  leftOpen,
+  onToggleLeft,
   showGrid,
   onToggleGrid,
+  showRulers,
+  onToggleRulers,
   onZoomStep,
   onZoomReset,
   onFit,
   profile,
+  onOpenProfile,
   layoutMode,
-  placement,
-  onLayoutMode,
-  leading,
+  onCycleLayout,
 }: ZoomToolbarProps) {
+  const dock = DOCK[layoutMode];
+  const DockIcon = dock.icon;
   return (
-    <div className="flex h-9 shrink-0 items-center gap-2 border-t bg-popover/40 px-2">
-      {leading}
-      <div className="flex min-w-0 flex-1 justify-center">
-      <div className="flex items-center gap-1 rounded-full border border-border bg-popover/90 px-2 py-1">
-        <button
-          onClick={onToggleGrid}
-          title="Toggle grid"
-          className={cn(
-            "rounded-full p-1.5 transition-colors hover:bg-accent",
-            showGrid ? "text-foreground" : "text-muted-foreground"
-          )}
-        >
-          <LayoutGrid className="h-3.5 w-3.5" />
-        </button>
-        <div className="h-4 w-px bg-border" />
-        <button
-          onClick={() => onZoomStep(-1)}
-          title={`Zoom out (${KEYS.zoomOut})`}
-          className={ICON_BUTTON}
-        >
-          <ZoomOut className="h-3.5 w-3.5" />
-        </button>
-        <button
-          onClick={onZoomReset}
-          title="Reset to 100%"
-          className="min-w-12 rounded-full px-1.5 text-center text-xs tabular-nums text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-        >
-          {Math.round(zoom * 100)}%
-        </button>
-        <button
-          onClick={() => onZoomStep(1)}
-          title={`Zoom in (${KEYS.zoomIn})`}
-          className={ICON_BUTTON}
-        >
-          <ZoomIn className="h-3.5 w-3.5" />
-        </button>
-        <button
-          onClick={onFit}
-          title={`Fit the page to the canvas and keep it fitted (${KEYS.fit})`}
-          className={ICON_BUTTON}
-        >
-          <Maximize2 className="h-3.5 w-3.5" />
-        </button>
-        <div className="h-4 w-px bg-border" />
-        <span className="px-1 text-xs tabular-nums text-muted-foreground">
-          {profile.width} × {profile.height}
-        </span>
-        <div className="h-4 w-px bg-border" />
-        {LAYOUTS.map(({ mode, label, icon: Icon }) => (
-          <button
-            key={mode}
-            onClick={() => onLayoutMode(mode)}
-            aria-pressed={layoutMode === mode}
-            title={`Layout: ${label}${mode === "auto" ? ` (inspector ${placement === "bottom" ? "below" : "beside"} the canvas now)` : ""}`}
-            className={cn(
-              "rounded-full p-1.5 transition-colors hover:bg-accent",
-              layoutMode === mode ? "bg-accent text-foreground" : "text-muted-foreground"
-            )}
-          >
-            <Icon className="h-3.5 w-3.5" />
-          </button>
-        ))}
-      </div>
-      </div>
+    <div
+      className={cn(
+        "absolute bottom-4 left-1/2 z-30 flex h-9 -translate-x-1/2 items-center gap-0.5 whitespace-nowrap px-1.5",
+        "rounded-[10px] border border-ui-strong bg-ui-raised font-ui shadow-ui-float"
+      )}
+    >
+      <IconButton label="Toggle the left panel" className={BAR_BUTTON} active={leftOpen} onClick={onToggleLeft}>
+        <PanelLeft className="h-4 w-4" />
+      </IconButton>
+      <IconButton label="Toggle grid" className={BAR_BUTTON} active={showGrid} onClick={onToggleGrid}>
+        <Grid3x3 className="h-4 w-4" />
+      </IconButton>
+      <IconButton label="Toggle rulers" className={BAR_BUTTON} active={showRulers} onClick={onToggleRulers}>
+        <Ruler className="h-4 w-4" />
+      </IconButton>
+      <Divider />
+      <IconButton label={`Zoom out (${KEYS.zoomOut})`} className={BAR_BUTTON} onClick={() => onZoomStep(-1)}>
+        <Minus className="h-4 w-4" />
+      </IconButton>
+      <button
+        type="button"
+        onClick={onZoomReset}
+        title="Reset to 100%"
+        className="h-7 min-w-11 rounded-md px-1.5 text-center font-ui-mono text-xs text-ui-2 transition-colors hover:bg-ui-hover hover:text-ui-1"
+      >
+        {Math.round(zoom * 100)}%
+      </button>
+      <IconButton label={`Zoom in (${KEYS.zoomIn})`} className={BAR_BUTTON} onClick={() => onZoomStep(1)}>
+        <Plus className="h-4 w-4" />
+      </IconButton>
+      <button
+        type="button"
+        onClick={onFit}
+        title={`Fit the page to the canvas and keep it fitted (${KEYS.fit})`}
+        className={TEXT_BUTTON}
+      >
+        <Maximize2 className="h-3.5 w-3.5" /> Fit
+      </button>
+      <Divider />
+      <button
+        type="button"
+        onClick={onOpenProfile}
+        title="Profile size, grid and spacing"
+        className={cn(TEXT_BUTTON, "font-ui-mono")}
+      >
+        {profile.width} × {profile.height}
+      </button>
+      <button
+        type="button"
+        onClick={onCycleLayout}
+        title={`Inspector position: ${dock.label} (click to change)`}
+        className={TEXT_BUTTON}
+      >
+        <DockIcon className="h-3.5 w-3.5" /> {dock.label}
+      </button>
     </div>
   );
 }

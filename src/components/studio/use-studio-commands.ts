@@ -161,8 +161,7 @@ export function useStudioCommands({
         // Deselect: the inspector shows the dashboard, on its Appearance tab.
         ui.setMode("design");
         sel.select(null);
-        ui.requestInspectorTab("appearance");
-        return void requestAnimationFrame(() => ui.jumpInspector(DOCUMENT_CARD.appearance));
+        return ui.openDocumentTab("appearance");
       case "deselect":
         return sel.select(null);
       case "sample-layout":

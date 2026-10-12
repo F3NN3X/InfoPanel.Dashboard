@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CARDS_ID } from "@/lib/layout";
-import { filterInsertables, insertables, type Insertable } from "./insert-panel";
+import { filterInsertables, insertGroups, insertables, type Insertable } from "./insert-panel";
 
 const item = (
   id: string,
@@ -75,6 +75,7 @@ describe("insertables with saved panels", () => {
       rows: 2,
     });
     expect(list.filter((i) => i.category === "Layouts").map((i) => i.title)).toEqual([
+      "Blank zone",
       "Row of stats",
       "2×2 stats",
       "Hero overlay",
@@ -90,5 +91,36 @@ describe("insertables with saved panels", () => {
     expect(ids(filterInsertables(list, "", "My panels"))).toEqual(["panelpreset-1"]);
     expect(ids(filterInsertables(list, "desk", "System"))).toEqual([]);
     expect(ids(filterInsertables(list, "gauge", "Layouts"))).toEqual(["layout-gauge-row"]);
+  });
+});
+
+describe("insertGroups", () => {
+  const list = insertables([
+    {
+      id: "panelpreset-1",
+      name: "Desk stats",
+      colSpan: 3,
+      rowSpan: 2,
+      panel: { id: "pd", title: "Stats", titleVisible: true, visible: true, background: "panel" as const, widgets: [] },
+    },
+  ]);
+  const groups = insertGroups(list);
+  const titles = groups.map((g) => g.title);
+
+  it("groups widgets by category, then starters, panel presets and My panels", () => {
+    expect(titles).toEqual(["System", "Media", "Network", "Info", "Other", "Layout starters", "Panel presets", "My panels"]);
+  });
+
+  it("leads the starters with the blank zone and counts widgets, starters and presets", () => {
+    const starters = groups.find((g) => g.title === "Layout starters")!;
+    expect(starters.items.map((i) => i.title)[0]).toBe("Blank zone");
+    expect(starters.items).toHaveLength(7);
+    expect(groups.filter((g) => g.items.every((i) => i.kind === "module" && i.id !== "blank"))).toHaveLength(5);
+    expect(groups.find((g) => g.title === "Panel presets")!.items).toHaveLength(10);
+  });
+
+  it("drops empty groups", () => {
+    expect(insertGroups(filterInsertables(list, "", "Media")).map((g) => g.title)).toEqual(["Media"]);
+    expect(insertGroups([])).toEqual([]);
   });
 });

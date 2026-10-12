@@ -93,7 +93,18 @@ const KIND: Record<string, string> = {
 /** What a unit measures ("" for unknown units). */
 export const kindOfUnit = (unit: string): string => KIND[unit.trim()] ?? "";
 
-const NUMBER_WITH_UNIT = /^(-?\d+(?:\.\d+)?)(?:\s*([^\d\s][^\d]*))?$/;
+/** A number with an optional one-token unit ("26.2 °C", "480MB"); "12 GB free" is text. */
+const NUMBER_WITH_UNIT = /^(-?\d+(?:\.\d+)?)(?:\s*([^\d\s]+))?$/;
+
+/** Whether text is a JSON array or object ("[Unknown]" is not). */
+function isJsonStructure(value: string): boolean {
+  if (!/^[{[]/.test(value)) return false;
+  try {
+    return typeof JSON.parse(value) === "object";
+  } catch {
+    return false;
+  }
+}
 
 interface Classified {
   type: PointType;
@@ -106,7 +117,7 @@ export function classifyValue(raw: string): Classified {
   const value = raw.trim();
   if (value === "" || value === "-" || value === "—") return { type: "empty", num: null, unit: "" };
   if (/^https?:\/\//.test(value)) return { type: "url", num: null, unit: "" };
-  if (value.includes("\n") || /^[{[]/.test(value)) return { type: "list", num: null, unit: "" };
+  if (value.includes("\n") || isJsonStructure(value)) return { type: "list", num: null, unit: "" };
   if (/^(true|false)$/i.test(value)) return { type: "bool", num: null, unit: "" };
   const m = NUMBER_WITH_UNIT.exec(value);
   if (m) return { type: "number", num: parseFloat(m[1]), unit: (m[2] ?? "").trim() };
@@ -232,16 +243,16 @@ export function healthCounts(sources: readonly DataSource[]): Record<Health, num
 }
 
 /** Lower-case and strip diacritics ("Écran" → "ecran"). */
-function fold(text: string): string {
+export function fold(text: string): string {
   return text.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
 }
 
-/** Whether a point matches every word of the query (name, key, source, container, kind). */
+/** Whether a point matches every word of the query (name, key, source, container, kind, value). */
 export function matchesPoint(point: DataPoint, query: string): boolean {
   const words = fold(query).split(/\s+/).filter(Boolean);
   if (words.length === 0) return true;
   const haystack = fold(
-    [point.name, point.key, point.sourceName, point.containerTitle, point.kind].join("\n")
+    [point.name, point.key, point.sourceName, point.containerTitle, point.kind, point.raw].join("\n")
   );
   return words.every((w) => haystack.includes(w));
 }

@@ -58,8 +58,8 @@ interface StudioCanvasProps {
   themeScope?: CSSProperties;
   zoom: number;
   showGrid: boolean;
-  /** Draw the rulers along the top and left. */
-  showRulers: boolean;
+  /** Draw the rulers (default on). */
+  showRulers?: boolean;
   /** The scroll container (shared with the zoom hook for wheel + fit). */
   scrollRef: RefObject<HTMLDivElement | null>;
   /** Callback ref that attaches the scroll container to the zoom hook. */
@@ -115,7 +115,7 @@ export function StudioCanvas({
   themeScope,
   zoom,
   showGrid,
-  showRulers,
+  showRulers = true,
   scrollRef,
   attachScroll,
   selectedIds,
@@ -384,7 +384,7 @@ export function StudioCanvas({
       {/* Ruler row */}
       {showRulers && (
         <div className="flex shrink-0">
-          <div className="h-6 w-7 shrink-0 border-b border-r border-border bg-popover/60" />
+          <div className="h-6 w-7 shrink-0 border-b border-r border-ui-subtle bg-ui-chrome" />
           <div className="min-w-0 flex-1">
             <RulerH
               length={canvas.w}

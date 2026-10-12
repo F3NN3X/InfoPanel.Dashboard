@@ -1,4 +1,4 @@
-import type { Placement } from "@/lib/layout";
+import { BLANK_MODULE, type Placement } from "@/lib/layout";
 import { DND_MIME, DND_MIME_PANEL, ALL_MODULES } from "./studio-modules";
 import { zoneFits, type ZoneRect } from "./zone-geometry";
 
@@ -16,7 +16,7 @@ export interface LibraryItem {
  */
 export function libraryItemOf(getData: (type: string) => string): LibraryItem | null {
   const module = getData(DND_MIME);
-  if (module && ALL_MODULES.some((m) => m.id === module)) return { kind: "module", id: module };
+  if (module && (module === BLANK_MODULE || ALL_MODULES.some((m) => m.id === module))) return { kind: "module", id: module };
   const panel = getData(DND_MIME_PANEL);
   return panel ? { kind: "panel", id: panel } : null;
 }

@@ -3,6 +3,7 @@ import { SCROLL_ROW_H, type MonitorProfile } from "@/lib/layout";
 import { profileGap, profilePadding } from "@/lib/profile-grid";
 import {
   computeLayout,
+  nextLayoutMode,
   type LayoutMode,
   type PageSize,
   type StudioLayout,
@@ -13,10 +14,10 @@ const MODE_KEY = "studio.layout";
 const DOCK_KEY = "studio.dockHeight";
 const COLLAPSED_KEY = "studio.dockCollapsed";
 
-/** Width of the side inspector (`w-72`). */
-export const INSPECTOR_WIDTH = 288;
-/** Width of the left rail (`w-12`) and of an open drawer (`w-64`). */
-export const RAIL_WIDTH = 48;
+/** Width of the side inspector. */
+export const INSPECTOR_WIDTH = 340;
+/** Width of the icon rail and of the open left panel (`w-64`). */
+export const RAIL_WIDTH = 52;
 export const DRAWER_WIDTH = 256;
 
 /** The stored layout mode; anything unknown = auto. */
@@ -67,8 +68,10 @@ interface StudioLayoutOptions {
   page: PageSize;
   /** Width of the rail. */
   rail: number;
-  /** Width of the open drawer beside the canvas (it moves into the dock below). */
+  /** Width of the open left panel. */
   drawer: number;
+  /** The profile's design size (Auto picks Bottom for a wide strip). */
+  design: { width: number; height: number };
   /** The inspector stays beside the canvas (Sources view). */
   forceSide?: boolean;
 }
@@ -78,7 +81,7 @@ interface StudioLayoutOptions {
  * `bodyRef` callback ref and works out where the inspector goes. The mode
  * and a dragged dock height are remembered per viewer.
  */
-export function useStudioLayout({ page, rail, drawer, forceSide }: StudioLayoutOptions) {
+export function useStudioLayout({ page, rail, drawer, design, forceSide }: StudioLayoutOptions) {
   const [mode, setModeState] = useState<LayoutMode>(() => load(MODE_KEY, parseMode));
   const [dock, setDockState] = useState<number | null>(() => load(DOCK_KEY, parseDock));
   const [collapsed, setCollapsedState] = useState(() => load(COLLAPSED_KEY, (raw) => raw === "1"));
@@ -99,6 +102,9 @@ export function useStudioLayout({ page, rail, drawer, forceSide }: StudioLayoutO
     store(MODE_KEY, next === "auto" ? null : next);
   }, []);
 
+  /** Cycle the inspector position: Auto → Side → Bottom → Auto. */
+  const cycleMode = useCallback(() => setMode(nextLayoutMode(mode)), [mode, setMode]);
+
   /** Set the dock height; null returns to the automatic one. */
   const setDockHeight = useCallback((next: number | null) => {
     setDockState(next);
@@ -112,12 +118,14 @@ export function useStudioLayout({ page, rail, drawer, forceSide }: StudioLayoutO
   const toggleCollapsed = useCallback(() => setCollapsed(!collapsed), [setCollapsed, collapsed]);
 
   const { width: pageW, height: pageH, naturalHeight } = page;
+  const { width: designW, height: designH } = design;
   const layouts = useMemo(() => {
     const input = {
       body,
       page: { width: pageW, height: pageH, naturalHeight },
       rail,
       drawer,
+      design: { width: designW, height: designH },
       inspector: INSPECTOR_WIDTH,
       mode: forceSide ? ("side" as const) : mode,
     };
@@ -125,7 +133,7 @@ export function useStudioLayout({ page, rail, drawer, forceSide }: StudioLayoutO
       layout: computeLayout({ ...input, dockHeight: dock, collapsed }),
       auto: computeLayout(input),
     };
-  }, [body, pageW, pageH, naturalHeight, rail, drawer, forceSide, mode, dock, collapsed]);
+  }, [body, pageW, pageH, naturalHeight, designW, designH, rail, drawer, forceSide, mode, dock, collapsed]);
 
   const layout: StudioLayout = layouts.layout;
   return {
@@ -136,6 +144,7 @@ export function useStudioLayout({ page, rail, drawer, forceSide }: StudioLayoutO
     autoDockHeight: layouts.auto.dockHeight,
     mode,
     setMode,
+    cycleMode,
     setDockHeight,
     /** The dock shows only its bar (bottom placement). */
     collapsed,

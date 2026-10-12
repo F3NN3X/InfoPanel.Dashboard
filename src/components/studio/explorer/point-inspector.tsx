@@ -53,7 +53,8 @@ export function PointInspector({
   const copy = useCopy();
   const live = point.key in values;
   const value = displayValue(point, values);
-  const streamUrl = `${apiBase}/events?prefix=${point.key}`;
+  // `prefix` matches by prefix, so this also streams keys that extend this one ("cpu.temp2").
+  const streamUrl = `${apiBase}/events?prefix=${encodeURIComponent(point.key)}`;
 
   return (
     <div className="flex h-full w-full flex-col overflow-y-auto bg-ui-panel font-ui text-ui-2">

@@ -55,6 +55,10 @@ describe("libraryItemOf", () => {
     expect(libraryItemOf(data({ [DND_MIME]: id }))).toEqual({ kind: "module", id });
   });
 
+  it("reads the blank zone card", () => {
+    expect(libraryItemOf(data({ [DND_MIME]: "blank" }))).toEqual({ kind: "module", id: "blank" });
+  });
+
   it("reads a panel preset id", () => {
     expect(libraryItemOf(data({ [DND_MIME_PANEL]: "p1" }))).toEqual({ kind: "panel", id: "p1" });
   });

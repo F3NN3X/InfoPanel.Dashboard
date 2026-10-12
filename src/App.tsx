@@ -100,14 +100,24 @@ export default function App() {
   // Push the full config (profiles with placements, theme) to the server.
   // Kiosk pages (InfoPanel's WebView2) keep their own isolated storage, so
   // this shared copy is how they reflect the studio's latest state.
+  // `pushPending` is true from an edit until its push lands (the studio's
+  // Save dot); a newer edit supersedes an older push still in flight.
+  const [pushPending, setPushPending] = useState(false);
   useEffect(() => {
     if (kiosk || !synced) return; // kiosk pages only read; don't push from them
+    let superseded = false;
+    setPushPending(true);
     const t = window.setTimeout(() => {
-      pushConfig(config).catch(() => {
-        // Server offline — kiosk pages keep their last copy.
-      });
+      pushConfig(config)
+        .then(() => !superseded && setPushPending(false))
+        .catch(() => {
+          // Server offline — kiosk pages keep their last copy.
+        });
     }, 400);
-    return () => window.clearTimeout(t);
+    return () => {
+      superseded = true;
+      window.clearTimeout(t);
+    };
   }, [config, kiosk, synced]);
 
   // Kiosk: pull the shared config on load and again whenever the server
@@ -175,9 +185,11 @@ export default function App() {
   // config event stream.
   const handleStudioSave = useCallback((cfg: DashboardConfig) => {
     saveConfig(cfg); // local copy first (offline fallback)
-    pushConfig(cfg).catch(() => {
-      // Server offline — kiosk pages keep their last copy.
-    });
+    pushConfig(cfg)
+      .then(() => setPushPending(false))
+      .catch(() => {
+        // Server offline — kiosk pages keep their last copy.
+      });
   }, []);
 
   // The dedicated studio replaces the whole view.
@@ -193,6 +205,7 @@ export default function App() {
             windowHeight={windowSize.h}
             onExitStudio={exitStudio}
             onSave={handleStudioSave}
+            pushPending={pushPending}
           />
         </Suspense>
       </GeneralProvider>

@@ -172,7 +172,8 @@ export const SHORTCUT_GROUPS: { title: string; items: { keys: string; label: str
       { keys: KEYS.undo, label: "Undo" },
       { keys: `${KEYS.redo} / Ctrl+Y`, label: "Redo" },
       { keys: KEYS.cheatsheet, label: "Keyboard shortcuts" },
-      { keys: KEYS.deselect, label: "Clear search, step out (widget → zone → none), or close the drawer" },
+      { keys: KEYS.deselect, label: "Close a menu or dialog, then clear search, step out (widget → zone → none), or close the drawer" },
+      { keys: "Ctrl+Enter", label: "Apply the panel JSON (inside the code editor)" },
     ],
   },
   {
