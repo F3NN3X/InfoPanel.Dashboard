@@ -127,11 +127,14 @@ function MixColumn({ channel, state, o }: { channel: WlChannel; state: WlState; 
 }
 
 /** A channel row: name, fader, horizontal L/R meters, dB readouts, mix routes. */
-function ChannelRow({ channel, state, o, wide }: { channel: WlChannel; state: WlState; o: Opts; wide: boolean }) {
+function ChannelRow({ channel, state, o, wide, w }: { channel: WlChannel; state: WlState; o: Opts; wide: boolean; w: number }) {
   const levels = useWlLevels(meterKey.channel(channel.id), o.preset);
+  // a tile has no room for the readout column; the name column narrows to fit
+  const narrow = w < 150,
+    readout = o.readout && !narrow;
   return (
     <div className="min-w-0">
-      <div className="grid items-center gap-x-3" style={{ gridTemplateColumns: `${wide ? 96 : 64}px minmax(0,1fr)${o.readout ? ` ${wide ? 72 : 40}px` : ""}` }}>
+      <div className="grid items-center gap-x-3" style={{ gridTemplateColumns: `${wide ? 96 : narrow ? 40 : 64}px minmax(0,1fr)${readout ? ` ${wide ? 72 : 40}px` : ""}` }}>
         <div className="flex min-w-0 flex-col leading-tight">
           <span className="flex items-center gap-1 text-xs font-semibold">
             <span className="truncate" title={channel.name}>
@@ -142,7 +145,7 @@ function ChannelRow({ channel, state, o, wide }: { channel: WlChannel; state: Wl
           {o.fader && <span className="text-[10.5px] tabular-nums text-[color:var(--w-faint)]">{fader(channel.level)}</span>}
         </div>
         <MeterPair levels={levels} variant={o.variant} color={o.color ?? "var(--accent)"} hot={STATE.crit} thickness={wide ? 8 : 6} />
-        {o.readout && (
+        {readout && (
           <div className="flex flex-col text-right font-mono text-[10px] leading-tight tabular-nums text-[color:var(--w-muted)]">
             <span>{fmtDb(levels.l.v)}</span>
             {wide && <span>{fmtDb(levels.r.v)}</span>}
@@ -165,15 +168,16 @@ const denseFits = (count: number, h: number): boolean => count * (DENSE_H + DENS
 /** One line per channel: name, fader, thin L/R meters, dB readouts; many channels in a short zone. */
 function DenseRow({ channel, o, w }: { channel: WlChannel; o: Opts; w: number }) {
   const levels = useWlLevels(meterKey.channel(channel.id), o.preset);
+  const narrow = w < 150;
   return (
     <div className="flex min-w-0 items-center gap-2" style={{ height: DENSE_H }}>
-      <span className={`flex shrink-0 items-center gap-1 text-xs font-semibold ${w >= 260 ? "w-[84px]" : "w-[64px]"}`}>
+      <span className={`flex shrink-0 items-center gap-1 text-xs font-semibold ${w >= 260 ? "w-[84px]" : narrow ? "w-[40px]" : "w-[64px]"}`}>
         <span className="truncate" title={channel.name}>
           {channel.name}
         </span>
         {channel.isMuted && <MuteMark />}
       </span>
-      {o.fader && <span className="w-9 shrink-0 text-right text-[11px] tabular-nums text-[color:var(--w-muted)]">{fader(channel.level)}</span>}
+      {o.fader && !narrow && <span className="w-9 shrink-0 text-right text-[11px] tabular-nums text-[color:var(--w-muted)]">{fader(channel.level)}</span>}
       <MeterPair levels={levels} variant={o.variant} color={o.color ?? "var(--accent)"} hot={STATE.crit} thickness={5} className="min-w-0 flex-1" />
       {o.readout && w >= 280 && (
         <span className="w-[60px] shrink-0 text-right font-mono text-[10px] tabular-nums text-[color:var(--w-muted)]">
@@ -257,7 +261,7 @@ export function WaveLinkLayout({ size, w, h, up, state, channels, devices, o, ve
   return (
     <div className={`flex h-full flex-col justify-center gap-2 overflow-hidden ${dim}`}>
       {channels.slice(0, n).map((c) => (
-        <ChannelRow key={c.id} channel={c} state={state} o={o} wide={wide} />
+        <ChannelRow key={c.id} channel={c} state={state} o={o} wide={wide} w={w} />
       ))}
       {size === "lg" && devices.slice(0, Math.max(0, n - channels.length)).map((d) => <DeviceRow key={d.id} device={d} o={o} />)}
     </div>
