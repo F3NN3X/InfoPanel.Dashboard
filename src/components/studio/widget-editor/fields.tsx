@@ -1,21 +1,28 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import { ColorRow, ToggleRow } from "../setting-rows";
+import { ColorRow, FIELD, InlineRow, StackRow, ToggleRow } from "../setting-rows";
 
-/* Small labelled inputs shared by the panel and widget editors. */
+/* Small labelled inputs shared by the panel and widget editors, on the inspector's row components. */
 
-export const INPUT =
-  "w-full rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground outline-none focus:border-ring";
+export const INPUT = cn(FIELD, "h-7 w-full");
 
-export function Field({ label, hint, children }: { label: ReactNode; hint?: string; children: ReactNode }) {
+/** A label (with an info hint) over its control: the inspector's stacked row. */
+export function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
   return (
     <div className="break-inside-avoid">
-      <div className="mb-0.5 text-xs text-muted-foreground">
-        {label}
-        {hint && <span className="text-muted-foreground/60"> ({hint})</span>}
-      </div>
-      {children}
+      <StackRow label={label} hint={hint}>
+        {children}
+      </StackRow>
     </div>
+  );
+}
+
+/** A label left and a small control right (numbers, selects): the inspector's inline row. */
+export function InlineField({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
+  return (
+    <InlineRow label={label} hint={hint}>
+      {children}
+    </InlineRow>
   );
 }
 
@@ -37,7 +44,7 @@ export function TextInput({
       placeholder={placeholder}
       spellCheck={mono ? false : undefined}
       onChange={(e) => onChange(e.target.value || undefined)}
-      className={cn(INPUT, mono && "font-mono text-[11px]")}
+      className={cn(INPUT, mono && "font-ui-mono text-[11.5px]")}
     />
   );
 }
@@ -85,7 +92,7 @@ export function NumberInput({
         const n = float ? parseFloat(e.target.value) : parseInt(e.target.value, 10);
         onChange(clamp(Number.isFinite(n) ? n : fallback));
       }}
-      className={cn(INPUT, "tabular-nums", className ?? "w-24")}
+      className={cn(INPUT, "text-right font-ui-mono text-[11.5px]", className ?? "w-24")}
     />
   );
 }

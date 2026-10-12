@@ -4,9 +4,14 @@ import { withLayout, type BoxAlign, type OverlayBand, type PanelDef, type PanelJ
 import { AlignGrid } from "./align-grid";
 import { splitTracks } from "./grid-tracks";
 import { TrackEditor } from "./track-editor";
-import { Field, NumberInput, Switch } from "./widget-editor/fields";
+import { MediaField } from "./media-field";
+import { SelectRow } from "./setting-rows";
+import { Field, InlineField, NumberInput, Switch } from "./widget-editor/fields";
 
 type Layout = "stack" | "grid" | "overlay";
+
+/** A segmented control spanning its row. */
+const FULL = "w-full *:flex-1";
 
 const BANDS: { band: OverlayBand; label: string }[] = [
   { band: "top", label: "Top" },
@@ -32,13 +37,13 @@ interface PanelLayoutSectionProps {
 /** A small "− n +" stepper. */
 function Stepper({ value, min, max, onChange }: { value: number; min: number; max: number; onChange: (n: number) => void }) {
   const btn =
-    "flex h-6 w-6 items-center justify-center rounded border border-border text-muted-foreground hover:bg-accent/40 hover:text-foreground disabled:pointer-events-none disabled:opacity-40";
+    "flex h-6 w-6 items-center justify-center rounded-md border border-ui-default text-ui-3 hover:bg-ui-hover hover:text-ui-1 disabled:pointer-events-none disabled:opacity-40";
   return (
     <div className="flex items-center gap-1">
       <button type="button" className={btn} aria-label="Fewer" disabled={value <= min} onClick={() => onChange(value - 1)}>
         <Minus className="h-3 w-3" />
       </button>
-      <span className="w-6 text-center text-xs tabular-nums text-foreground">{value}</span>
+      <span className="w-6 text-center font-ui-mono text-[12px] text-ui-1">{value}</span>
       <button type="button" className={btn} aria-label="More" disabled={value >= max} onClick={() => onChange(value + 1)}>
         <Plus className="h-3 w-3" />
       </button>
@@ -53,19 +58,18 @@ function StackFields({ panel, setField, updatePanel }: PanelLayoutSectionProps) 
   const cross = panel.align;
   return (
     <>
-      <div className="flex items-end gap-2">
-        <Field label="Direction">
-          <Segmented
-            options={[
-              { value: "row", label: "Row" },
-              { value: "column", label: "Column" },
-            ]}
-            value={row ? "row" : "column"}
-            onChange={(v) => setField("direction", v)}
-          />
-        </Field>
-        <Switch label="Wrap" on={panel.wrap ?? true} onChange={(on) => setField("wrap", on)} className="h-8 px-2" />
-      </div>
+      <Field label="Direction">
+        <Segmented
+          options={[
+            { value: "row", label: "Row" },
+            { value: "column", label: "Column" },
+          ]}
+          value={row ? "row" : "column"}
+          onChange={(v) => setField("direction", v)}
+          className={FULL}
+        />
+      </Field>
+      <Switch label="Wrap" on={panel.wrap ?? true} onChange={(on) => setField("wrap", on)} />
       <Field label="Alignment" hint={row ? "spread = across the row" : "spread = down the column"}>
         <AlignGrid
           label="Widget alignment"
@@ -94,14 +98,14 @@ function GridFields({ panel, setField, updatePanel }: PanelLayoutSectionProps) {
   const columns = panel.columns ?? 3;
   return (
     <>
-      <Field label="Columns">
+      <InlineField label="Columns">
         <Stepper
           value={panel.gridCols ? splitTracks(panel.gridCols).length : columns}
           min={1}
           max={12}
           onChange={(n) => updatePanel((p) => ({ ...p, columns: n, gridCols: undefined }), "panel:columns")}
         />
-      </Field>
+      </InlineField>
       <Field label="Column sizes">
         <TrackEditor
           name="Column"
@@ -148,31 +152,40 @@ function GridFields({ panel, setField, updatePanel }: PanelLayoutSectionProps) {
  */
 export function PanelBackgroundFields({ panel, setField, updatePanel }: PanelLayoutSectionProps) {
   const images = panel.widgets.filter((w) => w.kind === "image");
-  const bg = images.find((w) => w.asBackground)?.id ?? "";
+  const chosen = images.find((w) => w.asBackground);
+  const shown = chosen ?? images[0];
   return (
     <>
-      <Field label="Background image">
-        <select
-          value={bg}
-          onChange={(e) =>
-            updatePanel((p) => ({
-              ...p,
-              widgets: p.widgets.map((w) =>
-                w.kind === "image" ? { ...w, asBackground: w.id === e.target.value || undefined } : w
-              ),
-            }))
+      <SelectRow
+        label="Background image"
+        hint="which image widget fills the overlay"
+        value={chosen?.id ?? ""}
+        options={[
+          { value: "", label: images.length > 0 ? "First image widget" : "None (add an image widget)" },
+          ...images.map((w, i) => ({ value: w.id, label: w.label || w.sensor || w.text || `Image ${i + 1}` })),
+        ]}
+        onChange={(id) =>
+          updatePanel((p) => ({
+            ...p,
+            widgets: p.widgets.map((w) => (w.kind === "image" ? { ...w, asBackground: w.id === id || undefined } : w)),
+          }))
+        }
+      />
+      {shown && (
+        <MediaField
+          label="Image URL"
+          kind="image"
+          value={shown.text}
+          preview="thumb"
+          onChange={(src) =>
+            updatePanel(
+              (p) => ({ ...p, widgets: p.widgets.map((w) => (w.id === shown.id ? { ...w, text: src } : w)) }),
+              `panel-widget:${shown.id}:text`
+            )
           }
-          className="w-full rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground"
-        >
-          <option value="">{images.length > 0 ? "First image widget" : "None (add an image widget)"}</option>
-          {images.map((w, i) => (
-            <option key={w.id} value={w.id}>
-              {w.label || w.sensor || w.text || `Image ${i + 1}`}
-            </option>
-          ))}
-        </select>
-      </Field>
-      <Switch label="Dark scrim over the image" on={panel.scrim !== false} onChange={(on) => setField("scrim", on ? undefined : false)} />
+        />
+      )}
+      <Switch label="Dim the image (dark scrim)" on={panel.scrim !== false} onChange={(on) => setField("scrim", on ? undefined : false)} />
     </>
   );
 }
@@ -181,11 +194,10 @@ export function PanelBackgroundFields({ panel, setField, updatePanel }: PanelLay
 function OverlayFields({ panel, setField }: PanelLayoutSectionProps) {
   return (
     <>
-      <div className="space-y-1.5">
-        <div className="text-xs text-muted-foreground">Band alignment</div>
+      <Field label="Band alignment">
         {BANDS.map(({ band, label }) => (
-          <div key={band} className="flex items-center gap-2">
-            <span className="w-12 shrink-0 text-[11px] text-muted-foreground">{label}</span>
+          <div key={band} className="mb-1 flex items-center gap-2">
+            <span className="w-12 shrink-0 text-[11.5px] text-ui-3">{label}</span>
             <Segmented
               options={JUSTIFY_OPTIONS}
               value={panel.overlayAlign?.[band] ?? "start"}
@@ -193,8 +205,8 @@ function OverlayFields({ panel, setField }: PanelLayoutSectionProps) {
             />
           </div>
         ))}
-      </div>
-      <Field label="Bottom band columns" hint="empty = a row">
+      </Field>
+      <InlineField label="Bottom band columns" hint="empty = a row">
         <NumberInput
           value={panel.bottomGridCols}
           min={1}
@@ -204,21 +216,87 @@ function OverlayFields({ panel, setField }: PanelLayoutSectionProps) {
           placeholder="row"
           onChange={(v) => setField("bottomGridCols", v)}
         />
-      </Field>
+      </InlineField>
     </>
   );
 }
 
 /**
- * The panel's arrangement (the Layout card): Stack /
- * Grid / Overlay with each layout's own fields, spacing, and whether the
- * panel fills its zone or hugs its content.
+ * The Panel section's own fields (README 4.7): the editor (Visual / Code),
+ * whether the panel fills its zone or hugs its content, gap and padding
+ * (empty = auto).
+ */
+export function PanelMainFields({
+  panel,
+  setField,
+  view,
+  onView,
+}: Pick<PanelLayoutSectionProps, "panel" | "setField"> & {
+  view: "visual" | "code";
+  onView: (view: "visual" | "code") => void;
+}) {
+  return (
+    <>
+      <Field label="Editor">
+        <Segmented
+          options={[
+            { value: "visual", label: "Visual" },
+            { value: "code", label: "Code", title: "Edit the panel as JSON" },
+          ]}
+          value={view}
+          onChange={onView}
+          className={FULL}
+        />
+      </Field>
+      <Field label="Size">
+        <Segmented
+          options={[
+            { value: "fill", label: "Fill", title: "Stretch over the whole zone" },
+            { value: "hug", label: "Hug", title: "Shrink to the content" },
+          ]}
+          value={panel.fit ?? "fill"}
+          onChange={(v) => setField("fit", v === "fill" ? undefined : v)}
+          className={FULL}
+        />
+        {panel.fit === "hug" && (
+          <p className="mt-1 text-[11.5px] leading-snug text-ui-4">A hugging panel sits where Size &amp; alignment puts it.</p>
+        )}
+      </Field>
+      <InlineField label="Gap (px)">
+        <NumberInput
+          value={panel.gap}
+          min={0}
+          max={200}
+          optional
+          fallback={0}
+          placeholder="auto"
+          onChange={(v) => setField("gap", v)}
+        />
+      </InlineField>
+      <InlineField label="Padding (px)">
+        <NumberInput
+          value={panel.padding}
+          min={0}
+          max={200}
+          optional
+          fallback={0}
+          placeholder="auto"
+          onChange={(v) => setField("padding", v)}
+        />
+      </InlineField>
+    </>
+  );
+}
+
+/**
+ * The panel's arrangement (the Layout section): Stack / Grid / Overlay with
+ * each layout's own fields.
  */
 export function PanelLayoutFields(props: PanelLayoutSectionProps) {
-  const { panel, setField, updatePanel } = props;
+  const { panel, updatePanel } = props;
   const layout: Layout = panel.layout === "wrap" || !panel.layout ? "stack" : panel.layout;
   return (
-    <div className="space-y-3">
+    <>
       <Field label="Layout">
         <Segmented
           options={[
@@ -228,52 +306,12 @@ export function PanelLayoutFields(props: PanelLayoutSectionProps) {
           ]}
           value={layout}
           onChange={(v) => updatePanel((p) => withLayout(p, v), "panel:layout")}
+          className={FULL}
         />
       </Field>
       {layout === "stack" && <StackFields {...props} />}
       {layout === "grid" && <GridFields {...props} />}
       {layout === "overlay" && <OverlayFields {...props} />}
-      <div className="grid grid-cols-2 gap-2">
-        <Field label="Gap (px)">
-          <NumberInput
-            value={panel.gap}
-            min={0}
-            max={200}
-            optional
-            fallback={0}
-            placeholder="auto"
-            className="w-full"
-            onChange={(v) => setField("gap", v)}
-          />
-        </Field>
-        <Field label="Padding (px)">
-          <NumberInput
-            value={panel.padding}
-            min={0}
-            max={200}
-            optional
-            fallback={0}
-            placeholder="auto"
-            className="w-full"
-            onChange={(v) => setField("padding", v)}
-          />
-        </Field>
-      </div>
-      <Field label="Fit in zone">
-        <Segmented
-          options={[
-            { value: "fill", label: "Fill", title: "Stretch over the whole zone" },
-            { value: "hug", label: "Hug", title: "Shrink to the content" },
-          ]}
-          value={panel.fit ?? "fill"}
-          onChange={(v) => setField("fit", v === "fill" ? undefined : v)}
-        />
-        {panel.fit === "hug" && (
-          <p className="mt-1 text-[11px] leading-snug text-muted-foreground/70">
-            A hugging panel sits where Size &amp; alignment puts it.
-          </p>
-        )}
-      </Field>
-    </div>
+    </>
   );
 }

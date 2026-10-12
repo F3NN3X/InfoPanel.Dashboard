@@ -1,6 +1,9 @@
 import { useState } from "react";
+import { useToast } from "@/components/ui/toast";
 import { uid } from "@/lib/layout";
 import { parsePanelJson, type PanelDef } from "@/lib/panel-model";
+import { cn } from "@/lib/utils";
+import { FIELD } from "./setting-rows";
 
 interface PanelCodeViewProps {
   panel: PanelDef;
@@ -8,12 +11,16 @@ interface PanelCodeViewProps {
   onApply: (panel: PanelDef) => void;
 }
 
+/** The toast for a rejected panel JSON: the parser's message after "Invalid JSON — ". */
+export const invalidJsonToast = (error: string) => `Invalid JSON — ${error.replace(/^Invalid JSON:\s*/, "")}`;
+
 /**
- * The panel as JSON: edit, then Apply (checked by `parsePanelJson`;
- * missing or repeated widget ids get fresh ones). Until edited it follows
- * the panel (undo, the visual editor).
+ * The panel as JSON (README §4.6): edit, then Apply or Ctrl+Enter (checked
+ * by `parsePanelJson`; missing or repeated widget ids get fresh ones). Until
+ * edited it follows the panel (undo, the visual editor).
  */
 export function PanelCodeView({ panel, onApply }: PanelCodeViewProps) {
+  const toast = useToast();
   const json = JSON.stringify(panel, null, 2);
   const [draft, setDraft] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -21,10 +28,14 @@ export function PanelCodeView({ panel, onApply }: PanelCodeViewProps) {
 
   const apply = () => {
     const parsed = parsePanelJson(text, () => uid("w"));
-    if (!parsed.ok) return setError(parsed.error);
+    if (!parsed.ok) {
+      setError(parsed.error);
+      return toast(invalidJsonToast(parsed.error));
+    }
     onApply(parsed.panel);
     setDraft(null);
     setError(null);
+    toast("Panel updated · one undo step");
   };
 
   const revert = () => {
@@ -46,20 +57,19 @@ export function PanelCodeView({ panel, onApply }: PanelCodeViewProps) {
             apply();
           }
         }}
-        rows={18}
         spellCheck={false}
         aria-label="Panel JSON"
         aria-invalid={error !== null}
-        className="w-full resize-y rounded-md border border-border bg-background px-2 py-1.5 font-mono text-[11px] leading-snug text-foreground outline-none focus:border-ring aria-invalid:border-red-500/70"
+        className={cn(FIELD, "block h-[260px] w-full resize-y py-1.5 font-ui-mono text-[11.5px] leading-relaxed aria-invalid:border-ui-danger")}
       />
-      {error && <div className="text-[11px] text-red-400">{error}</div>}
+      {error && <div className="text-[11.5px] text-ui-danger">{error}</div>}
       <div className="flex items-center justify-end gap-2">
-        <span className="mr-auto text-[10px] text-muted-foreground/60">Ctrl+Enter applies</span>
+        <span className="mr-auto text-[11px] text-ui-4">Ctrl+Enter to apply · one undo step</span>
         <button
           type="button"
           onClick={revert}
           disabled={draft === null}
-          className="text-[11px] text-muted-foreground hover:text-foreground disabled:opacity-40"
+          className="text-[11.5px] text-ui-3 hover:text-ui-1 disabled:opacity-40"
         >
           Revert
         </button>
@@ -67,7 +77,7 @@ export function PanelCodeView({ panel, onApply }: PanelCodeViewProps) {
           type="button"
           onClick={apply}
           disabled={draft === null}
-          className="rounded-md border border-border px-2 py-1 text-xs text-foreground hover:bg-accent/40 disabled:opacity-40"
+          className="h-7 rounded-md bg-ui-inverse px-3 text-[12px] font-medium text-ui-inverse-fg disabled:opacity-40"
         >
           Apply
         </button>
