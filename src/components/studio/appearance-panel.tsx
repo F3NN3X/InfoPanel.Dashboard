@@ -1,6 +1,4 @@
-import { Segmented } from "@/components/ui/segmented";
-import type { ModuleSetting } from "@/modules/types";
-import { SettingRow } from "./setting-control";
+import { SegmentedRow, ToggleRow } from "./setting-rows";
 
 /** Which global style (or background) a card edits. */
 export type AppearanceTarget = "all" | "profile";
@@ -19,13 +17,6 @@ const ENFORCE_CHOICES = [
   { value: "off" as const, label: "Off", title: "Don't force it in this profile" },
 ];
 
-const ENFORCE: ModuleSetting = {
-  key: "styleEnforce",
-  label: "Force global style on every widget",
-  type: "boolean",
-  default: false,
-};
-
 const enforceChoice = (v: boolean | undefined): EnforceChoice => (v === undefined ? "inherit" : v ? "on" : "off");
 
 interface GlobalStyleScopeProps {
@@ -38,11 +29,14 @@ interface GlobalStyleScopeProps {
   onEnforce: (target: AppearanceTarget, value: boolean | undefined) => void;
 }
 
+const FORCE_LABEL = "Force global style";
+const FORCE_HINT = "Every widget shows the global style; their own look values are ignored";
+
 /**
- * The top of the global style: which style the cards below edit (all
- * profiles, or this one over the dashboard's) and its "Force global style"
- * switch. A widget's own look overrides the style unless the widget follows
- * it or the style is forced.
+ * Appearance › Scope: which style the presets, theme, background and
+ * Global style tab edit (all profiles, or this one over the dashboard's)
+ * and its "Force global style" switch. A widget's own look overrides the
+ * style unless the widget follows it or the style is forced.
  */
 export function GlobalStyleScope({
   target,
@@ -54,36 +48,33 @@ export function GlobalStyleScope({
 }: GlobalStyleScopeProps) {
   const all = target === "all";
   return (
-    <div className="space-y-2">
-      <Segmented options={SCOPES} value={target} onChange={onTarget} className="w-full *:flex-1" />
-      <p className="text-[11px] leading-snug text-muted-foreground/70">
+    <div className="space-y-3">
+      <SegmentedRow label="Apply to" options={SCOPES} value={target} onChange={(v) => onTarget(v as AppearanceTarget)} />
+      <p className="text-[11px] leading-snug text-ui-4">
         {all ? (
           <>Defaults for every widget in every profile.</>
         ) : (
           <>
-            Defaults for every widget in <span className="text-foreground/85">{profileName}</span>, over the
-            dashboard&apos;s.
+            Defaults for every widget in <span className="text-ui-2">{profileName}</span>, over the dashboard&apos;s.
           </>
         )}{" "}
         A widget&apos;s own setting overrides them unless it follows the global style.
       </p>
       {all ? (
-        <SettingRow
-          def={ENFORCE}
+        <ToggleRow
+          label={FORCE_LABEL}
+          hint={FORCE_HINT}
           value={dashboardEnforce === true}
-          onChange={(v) => onEnforce("all", v === true)}
-          sources={null}
+          onChange={(v) => onEnforce("all", v)}
         />
       ) : (
-        <div className="space-y-1">
-          <div className="text-xs text-muted-foreground">{ENFORCE.label}</div>
-          <Segmented
-            options={ENFORCE_CHOICES}
-            value={enforceChoice(profileEnforce)}
-            onChange={(c) => onEnforce("profile", c === "inherit" ? undefined : c === "on")}
-            className="w-full *:flex-1"
-          />
-        </div>
+        <SegmentedRow
+          label={FORCE_LABEL}
+          hint={FORCE_HINT}
+          options={ENFORCE_CHOICES}
+          value={enforceChoice(profileEnforce)}
+          onChange={(c) => onEnforce("profile", c === "inherit" ? undefined : c === "on")}
+        />
       )}
     </div>
   );

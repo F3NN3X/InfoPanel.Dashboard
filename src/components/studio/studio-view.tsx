@@ -1,4 +1,4 @@
-import type { CSSProperties, Dispatch, SetStateAction } from "react";
+import { useEffect, useState, type CSSProperties, type Dispatch, type SetStateAction } from "react";
 import { useConfigHistory } from "@/hooks/use-config-history";
 import { ToastProvider } from "@/components/ui/toast";
 import { SourcesPanel } from "./sources-panel";
@@ -115,6 +115,11 @@ function StudioViewBody({
   /** Sensor names for widget names (toolbar crumb, palette). */
   const catalog = useSensorCatalog();
   const { studioLayout, showSources, drawer } = ui;
+  /** The data point the inspector's Bound data row opened in Sources mode. */
+  const [focusPointKey, setFocusPointKey] = useState<string>();
+  useEffect(() => {
+    if (!showSources) setFocusPointKey(undefined);
+  }, [showSources]);
 
   /** Switch profile (or Auto): the selection resets with the profile; the zoom returns to fit. */
   const activateProfile = (id: string) => {
@@ -145,6 +150,10 @@ function StudioViewBody({
       edit={edit}
       documentProps={documentProps}
       setScopeStyle={setScopeStyle}
+      onOpenPoint={(key) => {
+        setFocusPointKey(key);
+        ui.setMode("sources");
+      }}
     />
   );
 
@@ -191,6 +200,7 @@ function StudioViewBody({
         config={config}
         setConfig={setConfig}
         profile={profile}
+        focusPointKey={focusPointKey}
         onOpenZone={(id) => {
           ui.setMode("design");
           focusZone(id);

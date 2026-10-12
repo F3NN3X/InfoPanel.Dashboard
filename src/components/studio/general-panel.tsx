@@ -1,4 +1,3 @@
-import type { ModuleSetting, ModuleSettingValue } from "@/modules/types";
 import {
   COMMON_LOCALES,
   resolveGeneral,
@@ -8,7 +7,8 @@ import {
 } from "@/lib/general";
 import { FONT_CATALOG } from "@/lib/fonts";
 import type { SheetCard } from "./category-sheet";
-import { SettingRow } from "./setting-control";
+import { SourceDot } from "./inspector/source-dot";
+import { SegmentedRow, SelectRow, ToggleRow } from "./setting-rows";
 
 interface GeneralPanelProps {
   /** `DashboardConfig.general` (only the changed keys). */
@@ -17,70 +17,44 @@ interface GeneralPanelProps {
   onChange: <K extends keyof GeneralSettings>(key: K, value: GeneralSettings[K]) => void;
 }
 
-const FONT: ModuleSetting = {
-  key: "font",
-  label: "Font",
-  type: "select",
-  default: "system",
-  options: FONT_CATALOG.map((f) => ({ value: f.id, label: f.label })),
-};
+const FONTS = FONT_CATALOG.map((f) => ({ value: f.id, label: f.label }));
 
-const CLOCK: ModuleSetting = {
-  key: "hour12",
-  label: "Clock",
-  type: "select",
-  default: "auto",
-  options: [
-    { value: "auto", label: "Locale" },
-    { value: "24", label: "24 h" },
-    { value: "12", label: "12 h" },
-  ],
-};
+const CLOCKS = [
+  { value: "auto", label: "Locale" },
+  { value: "24", label: "24 h" },
+  { value: "12", label: "12 h" },
+];
 
-const SECONDS: ModuleSetting = { key: "showSeconds", label: "Show seconds", type: "boolean", default: true };
+const MOTIONS = [
+  { value: "system", label: "System" },
+  { value: "reduce", label: "Reduce" },
+  { value: "full", label: "Full" },
+];
 
-const MOTION: ModuleSetting = {
-  key: "motion",
-  label: "Motion",
-  type: "select",
-  default: "system",
-  options: [
-    { value: "system", label: "System" },
-    { value: "reduce", label: "Reduce" },
-    { value: "full", label: "Full" },
-  ],
-};
-
-const CURSOR: ModuleSetting = { key: "hideCursor", label: "Hide cursor in kiosk", type: "boolean", default: false };
-
-/** The locale select: System, the common locales, and a saved one not among them. */
-function localeSetting(current: string): ModuleSetting {
+/** The locale options: System, the common locales, and a saved one not among them. */
+function localeOptions(current: string): { value: string; label: string }[] {
   const known = current === "" || COMMON_LOCALES.some((l) => l.value === current);
-  return {
-    key: "locale",
-    label: "Date & time locale",
-    type: "select",
-    default: "",
-    options: [
-      { value: "", label: "System" },
-      ...COMMON_LOCALES.map((l) => ({ value: l.value, label: `${l.label} · ${l.value}` })),
-      ...(known ? [] : [{ value: current, label: current }]),
-    ],
-  };
+  return [
+    { value: "", label: "System" },
+    ...COMMON_LOCALES.map((l) => ({ value: l.value, label: `${l.label} · ${l.value}` })),
+    ...(known ? [] : [{ value: current, label: current }]),
+  ];
 }
-
-const HINT = "text-[11px] leading-snug text-muted-foreground/70";
 
 /**
  * The General cards (nothing selected): dashboard-wide preferences for
  * every profile — the page font, how clocks read, motion and the kiosk
- * cursor. Each card counts the keys set in it and resets just those.
+ * cursor. Each row has a dot (set here / default; click to reset) and
+ * each card counts the keys set in it and resets just those.
  */
 export function generalCards(general: GeneralSettings | undefined, onChange: GeneralPanelProps["onChange"]): SheetCard[] {
   const g = resolveGeneral({ general });
   const clock = g.hour12 === undefined ? "auto" : g.hour12 ? "12" : "24";
-  const row = (def: ModuleSetting, value: ModuleSettingValue, set: (v: ModuleSettingValue) => void) => (
-    <SettingRow def={def} value={value} onChange={set} sources={null} />
+  const dot = (key: keyof GeneralSettings) => (
+    <SourceDot
+      state={general?.[key] !== undefined ? "here" : "default"}
+      onReset={() => onChange(key, undefined)}
+    />
   );
   const set = (keys: (keyof GeneralSettings)[]) => keys.filter((k) => general?.[k] !== undefined);
   const reset = (keys: (keyof GeneralSettings)[]) => () => keys.forEach((k) => onChange(k, undefined));
@@ -97,12 +71,14 @@ export function generalCards(general: GeneralSettings | undefined, onChange: Gen
       changed: set([...type]).length,
       onReset: reset([...type]),
       node: (
-        <>
-          {row(FONT, g.font, (v) => onChange("font", v === "system" ? undefined : (v as GeneralFont)))}
-          <p className={HINT}>
-            Every widget whose Font is Theme uses it; a Font set on the widget or in the global style still wins.
-          </p>
-        </>
+        <SelectRow
+          label="Font"
+          lead={dot("font")}
+          hint="Every widget whose Font is Theme uses it; a Font set on the widget or in the global style still wins."
+          options={FONTS}
+          value={g.font}
+          onChange={(v) => onChange("font", v === "system" ? undefined : (v as GeneralFont))}
+        />
       ),
     },
     {
@@ -114,13 +90,28 @@ export function generalCards(general: GeneralSettings | undefined, onChange: Gen
       onReset: reset([...clockKeys]),
       node: (
         <>
-          {row(CLOCK, clock, (v) => onChange("hour12", v === "auto" ? undefined : v === "12"))}
-          {row(SECONDS, g.showSeconds, (v) => onChange("showSeconds", v === true ? undefined : false))}
-          {row(localeSetting(g.locale), g.locale, (v) => onChange("locale", v === "" ? undefined : String(v)))}
-          <p className={HINT}>
-            For the Clock widget: the date&apos;s order and names follow the locale, and so does the clock when it
-            is set to Locale.
-          </p>
+          <SegmentedRow
+            label="Clock"
+            lead={dot("hour12")}
+            hint="Locale follows the date & time locale below"
+            options={CLOCKS}
+            value={clock}
+            onChange={(v) => onChange("hour12", v === "auto" ? undefined : v === "12")}
+          />
+          <ToggleRow
+            label="Show seconds"
+            lead={dot("showSeconds")}
+            value={g.showSeconds}
+            onChange={(v) => onChange("showSeconds", v ? undefined : false)}
+          />
+          <SelectRow
+            label="Date & time locale"
+            lead={dot("locale")}
+            hint="For the Clock widget: the date's order and names follow the locale, and so does the clock when it is set to Locale."
+            options={localeOptions(g.locale)}
+            value={g.locale}
+            onChange={(v) => onChange("locale", v === "" ? undefined : v)}
+          />
         </>
       ),
     },
@@ -133,12 +124,20 @@ export function generalCards(general: GeneralSettings | undefined, onChange: Gen
       onReset: reset([...display]),
       node: (
         <>
-          {row(MOTION, g.motion, (v) => onChange("motion", v === "system" ? undefined : (v as MotionChoice)))}
-          <p className={HINT}>
-            Reduce shows a background video&apos;s poster and calms meters and waveforms; System follows the
-            operating system&apos;s setting.
-          </p>
-          {row(CURSOR, g.hideCursor, (v) => onChange("hideCursor", v === true ? true : undefined))}
+          <SegmentedRow
+            label="Motion"
+            lead={dot("motion")}
+            hint="Reduce shows a background video's poster and calms meters and waveforms; System follows the operating system's setting."
+            options={MOTIONS}
+            value={g.motion}
+            onChange={(v) => onChange("motion", v === "system" ? undefined : (v as MotionChoice))}
+          />
+          <ToggleRow
+            label="Hide cursor in kiosk"
+            lead={dot("hideCursor")}
+            value={g.hideCursor}
+            onChange={(v) => onChange("hideCursor", v ? true : undefined)}
+          />
         </>
       ),
     },

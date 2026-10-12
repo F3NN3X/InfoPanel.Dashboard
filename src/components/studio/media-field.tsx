@@ -5,6 +5,7 @@ import { mediaUrl } from "@/lib/appearance";
 import { AssetError, acceptOf, formatBytes, uploadAsset, type AssetKind } from "@/lib/assets";
 import { cn } from "@/lib/utils";
 import { MediaLibrary } from "./media-library";
+import { FIELD } from "./setting-rows";
 import { ICON_BUTTON } from "./style-tools";
 
 interface MediaFieldProps {
@@ -73,11 +74,11 @@ export function MediaField({ label, kind, value, onChange, preview = "large", fi
         if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDragging(false);
       }}
       onDrop={onDrop}
-      className={cn("space-y-2 rounded-md", dragging && "outline-2 outline-offset-2 outline-ring outline-dashed")}
+      className={cn("space-y-2 rounded-md", dragging && "outline-2 outline-offset-2 outline-ui-accent outline-dashed")}
     >
       <div>
         <div className="mb-1 flex items-center justify-between gap-2">
-          <span className="text-xs text-muted-foreground">{label}</span>
+          <span className="text-[12.5px] text-ui-2">{label}</span>
           <div className="flex items-center gap-1">
             <button
               type="button"
@@ -114,20 +115,21 @@ export function MediaField({ label, kind, value, onChange, preview = "large", fi
               if (e.key === "Enter") commit();
             }}
             className={cn(
-              "w-full min-w-0 rounded-md border bg-background px-2 py-1.5 text-xs text-foreground placeholder:text-muted-foreground/50",
-              valid ? "border-border" : "border-destructive"
+              FIELD,
+              "h-[30px] w-full min-w-0",
+              !valid && "border-ui-danger"
             )}
           />
           {preview === "thumb" && value && <Thumb kind={kind} src={value} />}
         </div>
-        {!valid && <div className="mt-1 text-[11px] text-destructive">Use an http(s) URL or a path such as /assets/…</div>}
+        {!valid && <div className="mt-1 text-[11px] text-ui-danger">Use an http(s) URL or a path such as /assets/…</div>}
         {status.state === "uploading" && (
-          <div className="mt-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+          <div className="mt-1 flex items-center gap-1.5 text-[11px] text-ui-4">
             <Loader2 className="h-3 w-3 animate-spin" />
             Uploading {status.name} ({formatBytes(status.size)})…
           </div>
         )}
-        {status.state === "error" && <div className="mt-1 text-[11px] text-destructive">{status.message}</div>}
+        {status.state === "error" && <div className="mt-1 text-[11px] text-ui-danger">{status.message}</div>}
       </div>
       {preview === "large" && value && <LargePreview kind={kind} src={value} fill={fill} />}
     </div>
@@ -138,7 +140,7 @@ function Thumb({ kind, src }: { kind: AssetKind; src: string }) {
   const [broken, setBroken] = useState(false);
   useEffect(() => setBroken(false), [src]);
   if (broken) return null;
-  const className = "h-7 w-7 shrink-0 rounded border border-border object-cover";
+  const className = "h-7 w-7 shrink-0 rounded border border-ui-default object-cover";
   return kind === "image" ? (
     <img src={src} alt="" className={className} onError={() => setBroken(true)} />
   ) : (
@@ -152,11 +154,11 @@ function LargePreview({ kind, src, fill }: { kind: AssetKind; src: string; fill:
   useEffect(() => setBroken(false), [src]);
   return (
     <div
-      className="flex h-24 items-center justify-center overflow-hidden rounded-md border border-border"
+      className="flex h-24 items-center justify-center overflow-hidden rounded-md border border-ui-default bg-ui-app"
       style={{ backgroundColor: fill }}
     >
       {broken ? (
-        <span className="text-[11px] text-muted-foreground">The {kind} could not be loaded</span>
+        <span className="text-[11px] text-ui-4">The {kind} could not be loaded</span>
       ) : kind === "image" ? (
         <img src={src} alt="" className="max-h-full max-w-full object-contain" onError={() => setBroken(true)} />
       ) : (

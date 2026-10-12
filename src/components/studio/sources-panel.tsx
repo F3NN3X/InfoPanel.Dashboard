@@ -46,10 +46,12 @@ interface SourcesPanelProps {
   profile: MonitorProfile;
   /** Leave Sources mode and select a zone on the canvas. */
   onOpenZone: (zoneId: string) => void;
+  /** Select this data point (the inspector's Bound data rows open it); selects again whenever it changes. */
+  focusPointKey?: string;
 }
 
 /** Sources mode: the Data Explorer (source tree, point table, point inspector). Toasts come from the studio's provider. */
-export function SourcesPanel({ config, setConfig, profile, onOpenZone }: SourcesPanelProps) {
+export function SourcesPanel({ config, setConfig, profile, onOpenZone, focusPointKey }: SourcesPanelProps) {
   const toast = useToast();
   const catalog = useSensorCatalog();
   const { values, history, tick } = useLiveData(true);
@@ -70,6 +72,10 @@ export function SourcesPanel({ config, setConfig, profile, onOpenZone }: Sources
   const [hideEmpty, setHideEmpty] = useState(false);
   const [inUse, setInUse] = useState(false);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (focusPointKey) setSelectedKey(focusPointKey);
+  }, [focusPointKey]);
 
   // Esc closes the point inspector, unless it was meant for a field or an open popup.
   useEffect(() => {

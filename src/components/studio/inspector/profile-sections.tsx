@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { Segmented } from "@/components/ui/segmented";
 import { Toggle } from "@/components/ui/toggle";
+import { useToast } from "@/components/ui/toast";
 import { BACKGROUND_DEFAULTS, type PageBackground } from "@/lib/appearance";
 import type { MonitorProfile } from "@/lib/layout";
 import { MAX_SPACING, normalizeSpacing, profileGap, profilePadding } from "@/lib/profile-grid";
@@ -10,7 +11,7 @@ import { cn } from "@/lib/utils";
 import type { BackgroundTarget } from "../background-panel";
 import type { ProfileTheme } from "../profile-theme-panel";
 import { FIELD } from "../setting-rows";
-import { changeCols, changeRows } from "../studio-actions";
+import { GRID_REFUSED, stepGrid } from "./profile-grid";
 
 /**
  * Dashboard › Profile (README §4.7): the active profile's name, design
@@ -100,8 +101,14 @@ export function ProfileFields({
   canRemove: boolean;
   onRemove: () => void;
 }) {
+  const toast = useToast();
   const patch = (p: Partial<MonitorProfile>) =>
     updateProfile((cur) => ({ ...cur, ...p }), `profile:${Object.keys(p).join()}`);
+  // The refusal is decided on the profile as rendered; the update then applies the same step.
+  const step = (axis: "cols" | "rows", delta: number) => {
+    if (stepGrid(profile, axis, delta) === null) toast(GRID_REFUSED);
+    else updateProfile((p) => stepGrid(p, axis, delta) ?? p);
+  };
   return (
     <div className="space-y-3">
       <Field label="Name">
@@ -126,8 +133,8 @@ export function ProfileFields({
         </Field>
       </div>
       <div className="flex gap-2">
-        <Stepper label="Columns" value={profile.cols} onStep={(d) => updateProfile((p) => changeCols(p, d))} />
-        <Stepper label="Rows" value={profile.rows} onStep={(d) => updateProfile((p) => changeRows(p, d))} />
+        <Stepper label="Columns" value={profile.cols} onStep={(d) => step("cols", d)} />
+        <Stepper label="Rows" value={profile.rows} onStep={(d) => step("rows", d)} />
       </div>
       <div className="space-y-1">
         <span className={LABEL}>Fit</span>

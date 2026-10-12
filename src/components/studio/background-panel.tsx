@@ -1,18 +1,12 @@
-import { useState } from "react";
-import { Segmented } from "@/components/ui/segmented";
 import { BACKGROUND_DEFAULTS, type BackgroundType, type PageBackground } from "@/lib/appearance";
 import { BackgroundEditor } from "./background-editor";
+import { SegmentedRow } from "./setting-rows";
 
 /** Which background the tab edits. */
 export type BackgroundTarget = "all" | "profile";
 
 /** A profile's own background: none set, its own, or explicitly none. */
 type ProfileMode = "inherit" | "custom" | "none";
-
-const SCOPES = [
-  { value: "all" as const, label: "All profiles" },
-  { value: "profile" as const, label: "This profile" },
-];
 
 const MODES = [
   { value: "inherit" as const, label: "Inherit", title: "Use the dashboard background" },
@@ -32,6 +26,9 @@ const TYPE_NAMES: Record<BackgroundType, string> = {
 };
 
 interface BackgroundPanelProps {
+  /** Which background to edit: the Scope section's choice. */
+  target: BackgroundTarget;
+  onTarget: (target: BackgroundTarget) => void;
   /** The dashboard background (every profile without its own). */
   dashboard: PageBackground | undefined;
   /** The active profile's own background. */
@@ -47,12 +44,18 @@ function profileMode(bg: PageBackground | undefined): ProfileMode {
 }
 
 /**
- * The page background: the dashboard's ("All profiles") or the active
- * profile's own ("This profile": inherit the dashboard's, a custom one,
- * or none).
+ * Appearance › Page background, of the Scope section's target: the
+ * dashboard's ("All profiles") or the active profile's own ("This
+ * profile": inherit the dashboard's, a custom one, or none).
  */
-export function BackgroundPanel({ dashboard, profileBackground, profileName, onChange }: BackgroundPanelProps) {
-  const [target, setTarget] = useState<BackgroundTarget>(profileBackground ? "profile" : "all");
+export function BackgroundPanel({
+  target,
+  onTarget,
+  dashboard,
+  profileBackground,
+  profileName,
+  onChange,
+}: BackgroundPanelProps) {
   const mode = profileMode(profileBackground);
   const dashboardBg = dashboard ?? { type: "none" };
 
@@ -68,40 +71,40 @@ export function BackgroundPanel({ dashboard, profileBackground, profileName, onC
       );
   };
 
+  if (target === "all") {
+    return (
+      <div className="space-y-2">
+        <p className="text-[11px] leading-snug text-ui-4">
+          Behind the grid of every profile that has no background of its own.
+        </p>
+        <BackgroundEditor value={dashboardBg} types={ALL_TYPES} onChange={(bg) => onChange("all", bg)} />
+      </div>
+    );
+  }
   return (
-    <div className="space-y-3">
-      <Segmented options={SCOPES} value={target} onChange={setTarget} className="w-full *:flex-1" />
-
-      {target === "all" ? (
-        <>
-          <p className="text-[11px] text-muted-foreground/70">
-            Behind the grid of every profile that has no background of its own.
-          </p>
-          <BackgroundEditor value={dashboardBg} types={ALL_TYPES} onChange={(bg) => onChange("all", bg)} />
-        </>
-      ) : (
-        <>
-          <p className="text-[11px] text-muted-foreground/70">
-            Only for <span className="text-foreground/85">{profileName}</span>.
-          </p>
-          <Segmented options={MODES} value={mode} onChange={setMode} className="w-full *:flex-1" />
-          {mode === "inherit" && (
-            <p className="text-xs text-muted-foreground">
-              Uses the dashboard background ({TYPE_NAMES[dashboardBg.type]}).{" "}
-              <button type="button" className="text-foreground underline-offset-2 hover:underline" onClick={() => setTarget("all")}>
-                Edit it
-              </button>
-            </p>
-          )}
-          {mode === "none" && (
-            <p className="text-xs text-muted-foreground">
-              No background on this profile; the theme&apos;s background color shows.
-            </p>
-          )}
-          {mode === "custom" && profileBackground && (
-            <BackgroundEditor value={profileBackground} types={OWN_TYPES} onChange={(bg) => onChange("profile", bg)} />
-          )}
-        </>
+    <div className="space-y-2">
+      <p className="text-[11px] leading-snug text-ui-4">
+        Only for <span className="text-ui-2">{profileName}</span>.
+      </p>
+      <SegmentedRow
+        label="Background"
+        options={MODES}
+        value={mode}
+        onChange={(m) => setMode(m as ProfileMode)}
+      />
+      {mode === "inherit" && (
+        <p className="text-[12px] text-ui-3">
+          Uses the dashboard background ({TYPE_NAMES[dashboardBg.type]}).{" "}
+          <button type="button" className="text-ui-1 underline-offset-2 hover:underline" onClick={() => onTarget("all")}>
+            Edit it
+          </button>
+        </p>
+      )}
+      {mode === "none" && (
+        <p className="text-[12px] text-ui-3">No background on this profile; the theme&apos;s background color shows.</p>
+      )}
+      {mode === "custom" && profileBackground && (
+        <BackgroundEditor value={profileBackground} types={OWN_TYPES} onChange={(bg) => onChange("profile", bg)} />
       )}
     </div>
   );

@@ -75,15 +75,15 @@ export function MediaLibrary({ kind, value, onPick }: MediaLibraryProps) {
         <Library className="h-3 w-3" />
       </Popover.Trigger>
       <Popover.Portal>
-        <Popover.Positioner className="z-50" sideOffset={4} align="end">
-          <Popover.Popup className="w-72 space-y-2 rounded-md border border-border bg-popover p-2 text-xs text-foreground shadow-lg outline-none">
+        <Popover.Positioner className="z-[80]" sideOffset={4} align="end">
+          <Popover.Popup className="w-72 space-y-2 rounded-[9px] border border-ui-menu bg-ui-raised p-2 font-ui text-[12px] text-ui-2 shadow-ui-menu outline-none">
             <div className="flex items-center justify-between">
-              <Popover.Title className="font-medium">Uploaded {kind === "image" ? "images" : "videos"}</Popover.Title>
-              <span className="text-[11px] text-muted-foreground">{state ? `${shown.length} files` : "Loading…"}</span>
+              <Popover.Title className="font-medium text-ui-1">Uploaded {kind === "image" ? "images" : "videos"}</Popover.Title>
+              <span className="text-[11px] text-ui-4">{state ? `${shown.length} files` : "Loading…"}</span>
             </div>
-            {error && <div className="text-[11px] text-destructive">{error}</div>}
+            {error && <div className="text-[11px] text-ui-danger">{error}</div>}
             {state && shown.length === 0 && (
-              <p className="py-4 text-center text-[11px] text-muted-foreground">
+              <p className="py-4 text-center text-[11px] text-ui-4">
                 Nothing uploaded yet. Use Upload… or drop a file on the field.
               </p>
             )}
@@ -134,18 +134,18 @@ function CleanupRow({
 }) {
   if (confirming) {
     return (
-      <div className="space-y-1.5 border-t border-border pt-2">
-        <p className="text-[11px] text-muted-foreground">
+      <div className="space-y-1.5 border-t border-ui-default pt-2">
+        <p className="text-[11px] text-ui-4">
           Delete {count} file{count === 1 ? "" : "s"} the saved config doesn&apos;t use (images and videos)? Undo can&apos;t bring them back.
         </p>
         <div className="flex justify-end gap-1.5">
-          <button type="button" onClick={onCancel} className="rounded-md border border-border px-2 py-1 hover:bg-accent/40">
+          <button type="button" onClick={onCancel} className="rounded-md border border-ui-default px-2 py-1 hover:bg-ui-hover">
             Cancel
           </button>
           <button
             type="button"
             onClick={onConfirm}
-            className="rounded-md bg-destructive px-2 py-1 text-destructive-foreground hover:bg-destructive/90"
+            className="rounded-md bg-ui-danger px-2 py-1 text-white hover:opacity-90"
           >
             Delete {count}
           </button>
@@ -154,13 +154,13 @@ function CleanupRow({
     );
   }
   return (
-    <div className="flex items-center justify-between border-t border-border pt-2">
-      <span className="text-[11px] text-muted-foreground">{count} unused (images and videos)</span>
+    <div className="flex items-center justify-between border-t border-ui-default pt-2">
+      <span className="text-[11px] text-ui-4">{count} unused (images and videos)</span>
       <button
         type="button"
         disabled={count === 0}
         onClick={onAsk}
-        className="rounded-md border border-border px-2 py-1 hover:bg-accent/40 disabled:pointer-events-none disabled:opacity-40"
+        className="rounded-md border border-ui-default px-2 py-1 hover:bg-ui-hover disabled:pointer-events-none disabled:opacity-40"
       >
         Clean up unused…
       </button>
@@ -185,8 +185,8 @@ function AssetTile({
   return (
     <div
       className={cn(
-        "group relative overflow-hidden rounded-md border bg-background",
-        selected ? "border-ring" : "border-border"
+        "group relative overflow-hidden rounded-md border bg-ui-app",
+        selected ? "border-ui-accent" : "border-ui-default"
       )}
     >
       <button type="button" onClick={onPick} title={`Use this ${asset.kind}`} className="block aspect-video w-full">
@@ -200,9 +200,9 @@ function AssetTile({
           </span>
         )}
       </button>
-      <div className="flex items-center justify-between gap-1 px-1 py-0.5 text-[10px] text-muted-foreground">
+      <div className="flex items-center justify-between gap-1 px-1 py-0.5 text-[10px] text-ui-4">
         <span className="tabular-nums">{formatBytes(asset.size)}</span>
-        {unused && <span className="rounded-full bg-muted px-1 text-[9px] leading-tight">unused</span>}
+        {unused && <span className="rounded-full bg-ui-hover px-1 text-[9px] leading-tight">unused</span>}
       </div>
       <button
         type="button"
@@ -211,7 +211,7 @@ function AssetTile({
         title={confirming ? "Click again to delete" : "Delete from the server"}
         className={cn(
           "absolute right-0.5 top-0.5 flex h-5 items-center justify-center rounded bg-black/60 px-1 text-white opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100",
-          confirming && "bg-destructive opacity-100"
+          confirming && "bg-ui-danger opacity-100"
         )}
       >
         <Trash2 className="h-3 w-3" />
