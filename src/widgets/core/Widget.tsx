@@ -42,6 +42,8 @@ export interface WidgetProps {
   studio?: Studio | ((box: Box) => Studio | undefined);
   /** The zone's resolved settings (`src/modules/standard-settings.ts`); absent = template behaviour. */
   look?: ModuleSettings;
+  /** A full-bleed layer under the content (e.g. blurred cover art). */
+  backdrop?: ReactNode;
 }
 
 type ShellInput = Partial<ShellProps> & { look?: ModuleSettings; iconOverride?: string };
@@ -66,7 +68,7 @@ export const shell = (p: ShellInput): Partial<WidgetProps> => ({
 
 const HUD_CORNERS = ["left-1.5 top-1.5 border-l border-t", "right-1.5 top-1.5 border-r border-t", "left-1.5 bottom-1.5 border-l border-b", "right-1.5 bottom-1.5 border-r border-b"];
 
-export function Widget({ title, icon, iconOverride, accent, surface, radius, size, showHeader = true, right, className = "", style, children, bleed, compact, compactView, skin = "default", graph, meter, variant, studio, look }: WidgetProps) {
+export function Widget({ title, icon, iconOverride, accent, surface, radius, size, showHeader = true, right, className = "", style, children, bleed, compact, compactView, skin = "default", graph, meter, variant, studio, look, backdrop }: WidgetProps) {
   const chrome = useMemo(() => (look ? chromeOf(look) : undefined), [look]);
   // Size % zooms the content; the tier and shape are taken from the zoomed size.
   const zoom = chrome ? zoomFor({ w: 0, h: 0 }, undefined, chrome) : 1;
@@ -121,6 +123,7 @@ export function Widget({ title, icon, iconOverride, accent, surface, radius, siz
             <div className="absolute inset-0" style={{ background: scrimFor(surf.tone) }} />
           </>
         )}
+        {backdrop}
         {tui && <div className="pointer-events-none absolute inset-[5px] rounded-[4px] border" style={{ borderColor: mix(45, "#3f3f46") }} />}
         {skin === "hud" && HUD_CORNERS.map((c) => <span key={c} className={`pointer-events-none absolute h-2.5 w-2.5 ${c}`} style={{ borderColor: "var(--accent)" }} />)}
         <div className={`relative flex min-h-0 min-w-0 flex-1 flex-col ${pad.className}`} style={{ ...pad.style, ...(zoom !== 1 ? { zoom } : null) }}>

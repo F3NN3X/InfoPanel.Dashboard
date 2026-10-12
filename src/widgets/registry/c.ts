@@ -1,11 +1,12 @@
 // Template widgets, group C: media / audio (see docs/redesign/phase9/brief-9.3c-templates.md).
 import { audioSettings, ballisticsOf } from "@/modules/audio-modern";
 import { WAVELINK_SETTINGS, wavelinkToProps } from "@/modules/wavelink-modern";
-import type { DashboardModule, ModuleSettings } from "@/modules/types";
+import type { DashboardModule, ModuleSetting, ModuleSettings } from "@/modules/types";
 import { templateModule } from "../module";
 import AudioMeter, { meta as audioMeter, type AudioMeterProps } from "../AudioMeter";
 import MeterBridge, { meta as meterBridge, type MeterBridgeProps } from "../MeterBridge";
 import NowPlaying, { meta as nowPlaying, type NowPlayingProps } from "../NowPlaying";
+import { MEDIA_SETTINGS, PLAYER_LAYOUT, VIZ_ENGINE, sharedPropsOf } from "../NowPlaying/settings";
 import Visualizer, { meta as visualizer, type VisualizerProps } from "../Visualizer";
 import VolumeMixer, { meta as volumeMixer, type VolumeMixerProps } from "../VolumeMixer";
 import WaveLink, { meta as waveLink } from "../WaveLink";
@@ -16,12 +17,25 @@ const pick =
   (s: ModuleSettings): P =>
     Object.fromEntries(keys.filter((k) => s[k] !== undefined).map((k) => [k, s[k]])) as P;
 
+/** The legacy media keys a new NowPlaying zone can use; the engine-picking and mapped keys stay with the legacy modules. */
+const LEGACY_ONLY = ["waveform", "visualizer", "waveformVariant", "visualizerMirrored", "liveSource"];
+const NOW_PLAYING_SETTINGS: ModuleSetting[] = [
+  PLAYER_LAYOUT,
+  VIZ_ENGINE,
+  // the template draws untinted unless asked
+  ...MEDIA_SETTINGS.filter((d) => !LEGACY_ONLY.includes(d.key)).map((d) => (d.key === "tint" ? { ...d, default: false } : d)),
+];
+
 export const GROUP_C: DashboardModule[] = [
   templateModule({
     meta: nowPlaying,
     Component: NowPlaying,
-    settings: [],
-    toProps: pick<NowPlayingProps>(["source", "showArt", "layout", "progress", "vizMode", "vizDevice", "vizRamp", "showTimeline"]),
+    settings: NOW_PLAYING_SETTINGS,
+    // vizMode / vizDevice are stored under the legacy keys waveformVariant / liveSource (PHASE9_PLAN §3.2)
+    toProps: (s) => {
+      const own = pick<NowPlayingProps>(["source", "showArt", "progress", "vizMode", "vizDevice", "vizRamp", "showTimeline", "vizEngine"])(s);
+      return { ...own, ...sharedPropsOf(s), vizMode: (s.waveformVariant ?? own.vizMode) as NowPlayingProps["vizMode"], vizDevice: s.liveSource === undefined ? own.vizDevice : String(s.liveSource) };
+    },
   }),
   templateModule({
     meta: audioMeter,

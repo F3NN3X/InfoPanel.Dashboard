@@ -61,8 +61,9 @@ describe("insertables", () => {
     // Ported onto a template: the template's own entry stays, the legacy id is hidden from the Library.
     expect(category("networkmodern")).toBeUndefined();
     expect(category("NetworkThroughput")).toBe("Network");
-    expect(category("spotifymodern")).toBe("Media");
-    expect(category("mediamodern")).toBe("Media");
+    // superseded by the NowPlaying template (libraryHidden), which sits under Media
+    for (const id of ["spotifymodern", "mediamodern"]) expect(category(id), id).toBeUndefined();
+    expect(category("NowPlaying")).toBe("Media");
     expect(category("audiomodern")).toBeUndefined();
     expect(category("wavelinkmodern")).toBeUndefined();
     for (const id of ["AudioMeter", "MeterBridge", "VolumeMixer", "WaveLink"]) expect(category(id), id).toBe("Audio");

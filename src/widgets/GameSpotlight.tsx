@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
-import { Widget, shell, get, num, fmt, has, Img, Icon, Bar, Ring, Dot, MiniViz, KenBurns, Logo, type MiniVizProps, type ShellProps, type WidgetMeta } from "./kit";
+import { Widget, shell, get, num, fmt, has, Img, Icon, Bar, Ring, Dot, MediaProgress, KenBurns, Logo, type MiniVizProps, type ShellProps, type WidgetMeta } from "./kit";
 import type { ModuleSettings } from "@/modules/types";
 import { widgetImage } from "./data-adapter";
 import { CompositeView } from "./GameSpotlightComposite";
@@ -222,17 +222,16 @@ export default function GameSpotlight(p: GameSpotlightProps) {
                     <div className="flex min-w-0 flex-1 flex-col gap-1">
                       <span className="truncate text-xs font-semibold">{track}</span>
                       <span className="truncate text-[11px] text-[color:var(--w-faint)]">{has(artist) ? artist : "Now playing"}</span>
-                      {p.progress === "visualizer" ? (
-                        <MiniViz
-                          l={num(get(d, "plugins.audio-level-meter.default-audio.left-channel")) || 0}
-                          r={num(get(d, "plugins.audio-level-meter.default-audio.right-channel")) || 0}
-                          level={num(get(d, "plugins.audio-level-meter.default-audio.audio-level")) || 0}
-                          mode={p.vizMode ?? "bars"}
-                          className="h-6"
-                        />
-                      ) : (
-                        <Bar value={prog > 1 ? prog : prog * 100} style="wave" className="h-2" />
-                      )}
+                      <MediaProgress
+                        mode={p.progress === "visualizer" ? "visualizer" : "wave"}
+                        pct={prog > 1 ? prog : prog * 100}
+                        l={num(get(d, "plugins.audio-level-meter.default-audio.left-channel")) || 0}
+                        r={num(get(d, "plugins.audio-level-meter.default-audio.right-channel")) || 0}
+                        level={num(get(d, "plugins.audio-level-meter.default-audio.audio-level")) || 0}
+                        vizMode={p.vizMode}
+                        className="h-6"
+                        barClassName="h-2"
+                      />
                     </div>
                   </div>
                 ) : (

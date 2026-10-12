@@ -1,6 +1,12 @@
+import type { CSSProperties } from "react";
+import { makeSurfacePalette, type ModernStyle } from "@/components/surfaces";
+import { surfaceBox } from "@/components/widget-style";
+import { trackPeaks } from "@/lib/waveform-peaks";
+import { chromeOf } from "@/modules/standard-settings";
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, has, Img, Bar, Chip, MiniViz, type ShellProps, type WidgetMeta, type Data } from "./kit";
+import { Widget, shell, get, num, has, Img, Chip, MediaProgress, LIVE_TUNING_KEYS, type LiveTuning, type MediaProgressMode, type VizEngine, type ShellProps, type WidgetMeta, type Data } from "./kit";
 import { widgetImage } from "./data-adapter";
+import { useArtTint } from "./NowPlaying/art-tint";
 
 export const meta: WidgetMeta = {
   id: "NowPlaying",
@@ -31,9 +37,11 @@ const SOURCES: Record<string, (d: Data) => Track> = {
     const state = num(k("playback-state"));
     return { track: k("current-track"), artist: k("artist"), album: k("album"), elapsed: k("elapsed-time"), remaining: k("remaining-time"), progress: num(k("track-progress")), playing: state === 4 || state === 2, art: k("cover-art"), app: "Media" };
   },
+  // a pushed `spotify.*` value wins over the plugin's, as the legacy Spotify widget read them
   spotify: (d) => {
-    const k = (s: string) => get(d, `plugins.spotify-plugin.spotify.${s}`);
-    return { track: k("current-track"), artist: k("artist"), album: k("album"), elapsed: k("elapsed-time"), remaining: k("remaining-time"), progress: num(k("track-progress")), playing: num(k("playback-state")) === 1, art: k("cover-art"), app: "Spotify" };
+    const k = (s: string, pushed?: string) => (pushed && get(d, `spotify.${pushed}`)) || get(d, `plugins.spotify-plugin.spotify.${s}`);
+    const state = num(k("playback-state", "playing"));
+    return { track: k("current-track", "track"), artist: k("artist", "artist"), album: k("album", "album"), elapsed: k("elapsed-time"), remaining: k("remaining-time"), progress: num(k("track-progress", "progress")), playing: state === 1 || state === 2, art: k("cover-art", "art"), app: "Spotify" };
   },
   pushed: (d) => {
     const k = (s: string) => get(d, `spotify.${s}`);
@@ -66,18 +74,56 @@ function Vinyl({ art, playing, className = "" }: { art?: string; playing: boolea
   );
 }
 
-export interface NowPlayingProps extends ShellProps {
+// The surfaces the cover-art tint recolours (the app's fixed-palette materials; theme takes no tint).
+const TINTABLE: readonly string[] = ["glass", "matte-light", "matte-dark"];
+const AUDIO = "plugins.audio-level-meter.";
+
+/**
+ * The audio-level-meter container to read: unset = `default-audio`; a pinned one while it reports a
+ * level; else ("" or a device gone quiet) the loudest live one, so music routed to a virtual or
+ * secondary device still drives the visualiser.
+ */
+export function levelDevice(d: Data, wanted: string | undefined): string {
+  if (wanted === undefined) return "default-audio";
+  if (wanted && has(get(d, `${AUDIO}${wanted}.audio-level`))) return wanted;
+  let best = wanted;
+  let top = -Infinity;
+  for (const key of Object.keys(d)) {
+    if (!key.startsWith(AUDIO) || !key.endsWith(".audio-level")) continue;
+    const v = num(get(d, key));
+    if (v > top) {
+      top = v;
+      best = key.slice(AUDIO.length, -".audio-level".length);
+    }
+  }
+  return best;
+}
+
+export interface NowPlayingProps extends ShellProps, Partial<LiveTuning> {
   look?: ModuleSettings;
   source?: "auto" | "media" | "spotify" | "pushed";
   showArt?: boolean;
+  /** Stored as `playerLayout` (the standard `layout` keeps its meaning). */
   layout?: "card" | "vinyl" | "backdrop" | "wave";
   progress?: "bar" | "wave" | "visualizer";
   vizMode?: "bars" | "mirror" | "wave" | "dots" | "line";
-  /** audio-level-meter container */
+  /** audio-level-meter container; "" = the loudest live device */
   vizDevice?: string;
   vizRamp?: string;
   /** thin progress under the visualiser, default true */
   showTimeline?: boolean;
+  /** elapsed / remaining times, default true */
+  showTimes?: boolean;
+  /** the progress row (bar, wave or visualiser), default true */
+  showProgress?: boolean;
+  /** tint the surface and accent from the cover art, default false */
+  tint?: boolean;
+  /** blurred, darkened cover art behind the content, default false */
+  artBackground?: boolean;
+  /** what draws the visualiser, default `mini` */
+  vizEngine?: VizEngine;
+  /** Web Audio capture devices, one live row each in place of the sensor row */
+  captureDevices?: string[];
 }
 
 export default function NowPlaying(p: NowPlayingProps) {
@@ -87,11 +133,50 @@ export default function NowPlaying(p: NowPlayingProps) {
   const pct = m.progress > 1 ? m.progress : m.progress * 100;
   const cover = widgetImage(m.art);
   const art = p.showArt !== false;
-  const viz = p.progress === "visualizer";
-  const A = (s: string) => num(get(d, `plugins.audio-level-meter.${p.vizDevice ?? "default-audio"}.${s}`)) || 0;
-  const miniViz = (h: string) => <MiniViz l={A("left-channel")} r={A("right-channel")} level={A("audio-level")} mode={p.vizMode ?? "bars"} ramp={p.vizRamp ?? "accent"} playing={m.playing} className={h} />;
+  const showProgress = p.showProgress !== false;
+  const viz = showProgress && p.progress === "visualizer";
+  const device = levelDevice(d, p.vizDevice);
+  const A = (s: string) => num(get(d, `${AUDIO}${device}.${s}`)) || 0;
+  const tuning = Object.fromEntries(LIVE_TUNING_KEYS.filter((k) => p[k] !== undefined).map((k) => [k, p[k]])) as Partial<LiveTuning>;
+  const media = (mode: MediaProgressMode, h = "", barClassName?: string) =>
+    showProgress && (
+      <MediaProgress
+        mode={mode}
+        pct={pct}
+        l={A("left-channel")}
+        r={A("right-channel")}
+        level={A("audio-level")}
+        vizMode={p.vizMode}
+        ramp={p.vizRamp}
+        playing={m.playing}
+        sens={1.5 * (p.waveformSensitivity ?? 1)}
+        engine={p.vizEngine}
+        tuning={tuning}
+        shape={trackPeaks(m.track, m.artist)}
+        captureDevices={p.captureDevices}
+        className={h}
+        barClassName={barClassName}
+      />
+    );
+  const miniViz = (h: string) => media("visualizer", h);
+  // cover-art tint: the legacy materials rebuilt from the art's palette, its vibrant fill as the accent
+  const artTint = useArtTint(cover, p.tint === true);
+  const surfaceName = String(p.look?.surface ?? p.surface ?? "glass");
+  const palette = artTint && TINTABLE.includes(surfaceName) ? makeSurfacePalette(surfaceName as ModernStyle, artTint) : null;
+  const sh = shell(p);
+  const style: CSSProperties | undefined = palette ? { ...sh.style, background: surfaceBox(palette, p.look ? chromeOf(p.look) : undefined).background } : sh.style;
+  const backdrop =
+    p.artBackground && cover ? (
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{ backgroundImage: `url(${cover})`, backgroundSize: "cover", backgroundPosition: "center", filter: "blur(28px) brightness(0.4) saturate(1.25)", transform: "scale(1.15)" }}
+      />
+    ) : undefined;
+  const showTimes = p.showTimes !== false;
   // called as functions (not components) so the canvas keeps its state between renders
   const times = (cls: string) =>
+    showTimes &&
     has(m.elapsed) && (
       <div className={`flex justify-between font-mono text-[10px] ${cls}`}>
         <span>{m.elapsed}</span>
@@ -99,7 +184,7 @@ export default function NowPlaying(p: NowPlayingProps) {
       </div>
     );
   const vizBlock = (h: string, onImage = false) => (
-    <div className="flex flex-col gap-1">
+    <div className="flex min-w-0 flex-col gap-1">
       {miniViz(h)}
       {p.showTimeline !== false && (
         <div className={`h-px w-full ${onImage ? "bg-white/10" : "bg-[color:var(--w-track)]"}`}>
@@ -110,21 +195,24 @@ export default function NowPlaying(p: NowPlayingProps) {
     </div>
   );
   const waveBlock = (h: string, onImage = false) =>
-    viz ? (
+    !showProgress ? null : viz ? (
       vizBlock(h, onImage)
     ) : (
       <div className="flex flex-col gap-1">
-        <Bar value={pct} style="wave" className="h-2.5" />
+        {media("wave")}
         {times(onImage ? "text-zinc-300" : "text-[color:var(--w-muted)]")}
       </div>
     );
   return (
     <Widget
-      {...shell(p)}
+      {...sh}
+      accent={palette ? palette.fill : sh.accent}
+      style={style}
+      backdrop={backdrop}
       title={p.title ?? "Now playing"}
       icon="music_note"
-      studio={{ label: m.app, live: m.playing, value: m.track || "—", sub: m.artist, img: art ? cover : undefined, kind: "text", progress: { a: m.elapsed, b: m.remaining, pct }, viz: viz ? miniViz : undefined }}
-      compact={{ label: m.app, value: m.track || "—", sub: m.artist, kind: "text", pct, img: art ? cover : undefined, icon: "music_note", viz: viz ? miniViz : undefined }}
+      studio={{ label: m.app, live: m.playing, value: m.track || "—", sub: m.artist, img: art ? cover : undefined, kind: "text", progress: showProgress ? { a: showTimes ? m.elapsed : undefined, b: showTimes ? m.remaining : undefined, pct } : undefined, viz: viz ? miniViz : undefined }}
+      compact={{ label: m.app, value: m.track || "—", sub: m.artist, kind: "text", pct: showProgress ? pct : undefined, img: art ? cover : undefined, icon: "music_note", viz: viz ? miniViz : undefined }}
       right={
         <Chip>
           <span className="text-[9px]">{m.playing ? "▶" : "❚❚"}</span>
@@ -142,11 +230,11 @@ export default function NowPlaying(p: NowPlayingProps) {
             </span>
           </div>
         );
-        const progress = viz ? (
+        const progress = !showProgress ? null : viz ? (
           vizBlock(size === "lg" ? "h-12" : size === "md" ? "h-9" : "h-6")
         ) : (
           <div className="flex flex-col gap-1">
-            <Bar value={pct} style={p.progress === "wave" ? "wave" : undefined} className={p.progress === "wave" ? "h-2.5" : "h-1"} />
+            {media(p.progress === "wave" ? "wave" : "bar")}
             {times("text-[color:var(--w-faint)]")}
           </div>
         );
@@ -194,7 +282,7 @@ export default function NowPlaying(p: NowPlayingProps) {
           return (
             <div className="flex h-full flex-col justify-center gap-2">
               {text("text-sm")}
-              {viz ? miniViz("h-5") : <Bar value={pct} className="h-1" />}
+              {media(viz ? "visualizer" : "bar", "h-5")}
             </div>
           );
         if (size === "lg" && art)

@@ -11,5 +11,6 @@ export * from "./core/look";
 export * from "./core/fonts";
 export * from "./core/primitives";
 export * from "./core/ballistics";
+export * from "./core/media-progress";
 export * from "./core/views";
 export * from "./core/Widget";
