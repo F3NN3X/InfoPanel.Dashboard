@@ -27,6 +27,8 @@ export interface SensorValueProps extends ShellProps {
   decimals?: number;
   /** Overrides the unit read from the value. */
   unit?: string;
+  /** Where the value comes from (a plugin name): a quiet line under the value. */
+  source?: string;
 }
 
 export default function SensorValue(p: SensorValueProps) {
@@ -41,6 +43,11 @@ export default function SensorValue(p: SensorValueProps) {
   const t = tone(v, p.warn, p.crit);
   const label = p.label ?? p.title ?? String(p.sensor ?? "").split(".").pop()!.replace(/[_-]+/g, " ");
   const disp = p.display ?? "value";
+  const source = p.source ? (
+    <span className="mt-1 shrink-0 truncate text-center text-[11px] text-[color:var(--w-faint)]" title={p.source}>
+      {p.source}
+    </span>
+  ) : null;
   return (
     <Widget
       {...shell(p)}
@@ -48,7 +55,7 @@ export default function SensorValue(p: SensorValueProps) {
       icon="sensors"
       compact={
         numeric
-          ? { label, value: v, d: p.decimals ?? (Math.abs(v) < 10 ? 1 : 0), unit, t, hist: disp === "spark" ? hist : undefined, pct: disp === "bar" || disp === "gauge" ? ((v - min) / (max - min)) * 100 : undefined, kind: ({ gauge: "ring", bar: "bar", spark: "spark" } as const)[disp as "gauge" | "bar" | "spark"] ?? "value" }
+          ? { label, value: v, d: p.decimals ?? (Math.abs(v) < 10 ? 1 : 0), unit, sub: p.source, t, hist: disp === "spark" ? hist : undefined, pct: disp === "bar" || disp === "gauge" ? ((v - min) / (max - min)) * 100 : undefined, kind: ({ gauge: "ring", bar: "bar", spark: "spark" } as const)[disp as "gauge" | "bar" | "spark"] ?? "value" }
           : undefined
       }
     >
@@ -59,8 +66,9 @@ export default function SensorValue(p: SensorValueProps) {
             {has(raw) && isImageUrl(raw, p.sensor) ? (
               <img src={widgetImage(raw)} alt="" loading="lazy" className="max-h-full min-h-0 w-auto self-center rounded-md object-contain" onError={(e) => ((e.target as HTMLImageElement).style.display = "none")} />
             ) : (
-              <span className="line-clamp-3 whitespace-pre-line break-words text-base font-medium">{has(raw) ? raw : "—"}</span>
+              <span className="min-h-0 overflow-y-auto whitespace-pre-line break-words text-base font-medium">{has(raw) ? raw : "—"}</span>
             )}
+            {source}
           </div>
         ) : disp === "gauge" ? (
           <div className="flex h-full items-center justify-center">
@@ -74,6 +82,7 @@ export default function SensorValue(p: SensorValueProps) {
             <Metric label={size === "xs" ? label : null} value={v} d={p.decimals ?? (Math.abs(v) < 10 ? 1 : 0)} unit={unit} t={t} scale={{ xs: "lg", sm: "xl", md: "2xl", lg: "2xl" }[size] as "lg" | "xl" | "2xl"} />
             {disp === "bar" && <Bar value={v - min} max={max - min} t={t} className="h-2" />}
             {disp === "spark" && <Spark values={hist} className="min-h-0 flex-1" />}
+            {source}
           </div>
         )
       }

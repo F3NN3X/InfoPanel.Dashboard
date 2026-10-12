@@ -20,8 +20,8 @@ export function OtherSensors({ unclaimed, settings, subCols }: { unclaimed: Arra
   const names = useMemo(() => toNames(map), [map]);
   return (
     <div className="grid h-full w-full auto-rows-fr gap-3" style={{ gridTemplateColumns: `repeat(${subCols}, minmax(0, 1fr))` }}>
-      {unclaimed.map(([key]) => (
-        <SensorValue key={key} data={data} names={names} sensor={key} label={sensorLabel(key, names, key)} {...shellProps(look)} look={look} />
+      {unclaimed.map(([key, sensor]) => (
+        <SensorValue key={key} data={data} names={names} sensor={key} label={sensorLabel(key, names, key)} source={sensor.source || undefined} {...shellProps(look)} look={look} />
       ))}
     </div>
   );
