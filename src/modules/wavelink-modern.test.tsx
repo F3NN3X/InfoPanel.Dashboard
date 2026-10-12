@@ -69,8 +69,8 @@ describe("wavelinkmodern", () => {
 
   it("renders the non-default values of each enum setting", () => {
     const html = (s: Record<string, string | number | boolean>) => renderModule(wavelinkModernModule, { layout: "standard", ...s }, {});
-    expect(html({ meterVariant: "segmented" })).toContain("opacity:0.14");
-    expect(html({ meterVariant: "solid" })).not.toContain("opacity:0.14");
+    expect(html({ meterVariant: "segmented" })).toContain("12%, var(--w-track))");
+    expect(html({ meterVariant: "solid" })).not.toContain("12%, var(--w-track))");
     expect(html({ meterVariant: "gradient" })).toContain("linear-gradient");
     for (const meterBallistics of ["vu", "instant"]) expect(html({ meterBallistics }).length).toBeGreaterThan(0);
     expect(html({ meterOrientation: "horizontal" })).toContain("Music");

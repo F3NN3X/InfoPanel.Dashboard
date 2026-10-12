@@ -11,6 +11,12 @@ describe("LedLadder", () => {
     const lit = segments(html({ value: 50, n: 10 })).filter((s) => s.includes("opacity:1"));
     expect(lit).toHaveLength(5);
   });
+  it("draws unlit segments as the surface track tinted by their zone", () => {
+    const s = segments(html({ value: 0, n: 10, zones: [50, 80] }));
+    expect(s[0]).toContain("color-mix(in oklab, var(--accent) 12%, var(--w-track))");
+    expect(s[9]).toContain("var(--w-track)");
+    expect(s[0]).not.toContain("opacity");
+  });
   it("colours the zones accent, amber, red", () => {
     const s = segments(html({ value: 100, n: 10, zones: [50, 80] }));
     expect(s[0]).toContain("var(--accent)");

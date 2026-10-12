@@ -97,13 +97,13 @@ describe("audiomodern", () => {
     expect(all).toContain("flex-col-reverse");
     expect(all).toContain("Browser");
     expect(all).toContain("Default device");
-    expect(html({ meterVariant: "segmented" })).toContain("opacity:0.14");
-    expect(html({ meterVariant: "solid" })).not.toContain("opacity:0.14");
+    expect(html({ meterVariant: "segmented" })).toContain("12%, var(--w-track))");
+    expect(html({ meterVariant: "solid" })).not.toContain("12%, var(--w-track))");
     expect(html({ meterVariant: "solid" })).not.toContain("linear-gradient(90deg");
     expect(html({ meterVariant: "gradient" })).toContain("linear-gradient(90deg");
     // pro view: smooth ladders for solid / gradient, LEDs for segmented
-    expect(html({ view: "audiometer", meterVariant: "segmented" })).toContain("opacity:0.14");
-    expect(html({ view: "audiometer", meterVariant: "solid" })).not.toContain("opacity:0.14");
+    expect(html({ view: "audiometer", meterVariant: "segmented" })).toContain("12%, var(--w-track))");
+    expect(html({ view: "audiometer", meterVariant: "solid" })).not.toContain("12%, var(--w-track))");
     expect(html({ view: "audiometer", layout: "card", meterVariant: "gradient" })).toContain("linear-gradient");
     for (const meterBallistics of ["vu", "instant"]) expect(html({ meterBallistics }).length).toBeGreaterThan(0);
     // volume view with one device shows that device only
