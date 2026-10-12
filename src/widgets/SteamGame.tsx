@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import { Widget, shell, get, num, fmt, has, Img, Bar, Stat, GlassPill, Icon, type ShellProps, type WidgetMeta } from "./kit";
 import { widgetImage } from "./data-adapter";
+import { hoursText } from "./GameSpotlight";
 
 export const meta: WidgetMeta = {
   id: "SteamGame",
@@ -14,7 +15,7 @@ export const meta: WidgetMeta = {
 };
 
 // The text sits on artwork behind a dark scrim, so it stays light on every surface.
-const ON_ART = { "--w-fg": "#f4f4f5", "--w-muted": "#d4d4d8", "--w-faint": "#a1a1aa", "--w-track": "rgba(255,255,255,0.15)" } as CSSProperties;
+const ON_ART = { color: "#f4f4f5", "--w-fg": "#f4f4f5", "--w-muted": "#d4d4d8", "--w-faint": "#a1a1aa", "--w-track": "rgba(255,255,255,0.15)" } as CSSProperties;
 
 export interface SteamGameProps extends ShellProps {
   art?: "banner" | "grid" | "none";
@@ -37,7 +38,7 @@ export default function SteamGame(p: SteamGameProps) {
       {...shell(p)}
       bleed
       showHeader={false}
-      compact={{ label: "Playing", value: S("current-game"), kind: "text", sub: `${S("current-session-time")} session · ${S("current-game-playtime")}`, img: widgetImage(P("current_game_banner_url")), pct: (unlocked / total) * 100, icon: "stadia_controller" }}
+      compact={{ label: "Playing", value: S("current-game"), kind: "text", sub: `${S("current-session-time")} session · ${hoursText(S("current-game-playtime"))}`, img: widgetImage(P("current_game_banner_url")), pct: (unlocked / total) * 100, icon: "stadia_controller" }}
     >
       {({ size }) => (
         <div className="relative h-full w-full" style={ON_ART}>
@@ -55,7 +56,7 @@ export default function SteamGame(p: SteamGameProps) {
                 <span className="text-xs text-[color:var(--w-muted)]">{S("current-session-time")} session</span>
               ) : (
                 <div className="flex flex-wrap items-end gap-x-6 gap-y-2">
-                  <Stat label="Playtime" value={S("current-game-playtime")} />
+                  <Stat label="Playtime" value={hoursText(S("current-game-playtime"))} />
                   {size !== "sm" && <Stat label="Avg session" value={S("avg-session-time")} />}
                   {size === "lg" && <Stat label="Started" value={S("session-start-time")} />}
                   {size !== "sm" && Number.isFinite(total) && (
