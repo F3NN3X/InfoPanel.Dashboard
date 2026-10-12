@@ -21,6 +21,9 @@ export interface TextFileProps extends ShellProps {
   showMeta?: boolean;
 }
 
+// line height (px) of the xs body; its line count is the height left under the meta line over this
+const XS_LINE = 16;
+
 function humanBytes(bytes: number): string | undefined {
   if (!Number.isFinite(bytes) || bytes <= 0) return undefined;
   if (bytes < 1024) return `${bytes} B`;
@@ -68,7 +71,7 @@ export default function TextFile(p: TextFileProps) {
       }
       studio={{ label: "Text File", value: hasLines ? lines : "", unit: hasLines ? "lines" : undefined, sub: [size, status].filter(Boolean).join(" · "), rows: body.slice(0, 8).map((n) => ({ n, v: "" })) }}
     >
-      {({ size }) =>
+      {({ size, h }) =>
         content === undefined && status === undefined ? (
           <Empty icon="description" label="No content" />
         ) : size === "xs" ? (
@@ -78,7 +81,7 @@ export default function TextFile(p: TextFileProps) {
               <span className="shrink-0 font-medium uppercase tracking-[0.08em]">{p.title ?? "Text File"}</span>
               {showMeta && <span className="truncate">{bits.join(" · ")}</span>}
             </div>
-            <pre className="min-h-0 flex-1 overflow-hidden whitespace-pre-wrap break-words font-mono text-xs leading-snug text-[color:var(--w-fg)]/85">{content ?? "No content"}</pre>
+            <pre className="min-h-0 flex-1 overflow-hidden whitespace-pre-wrap break-words font-mono text-xs text-[color:var(--w-fg)]/85" style={{ display: "-webkit-box", WebkitBoxOrient: "vertical", WebkitLineClamp: Math.max(1, Math.floor((h - 18) / XS_LINE)), lineHeight: `${XS_LINE}px` }}>{content ?? "No content"}</pre>
           </div>
         ) : (
           <pre className="h-full overflow-y-auto whitespace-pre-wrap break-words font-mono text-xs leading-relaxed text-[color:var(--w-fg)]/85">{content ?? "No content"}</pre>
