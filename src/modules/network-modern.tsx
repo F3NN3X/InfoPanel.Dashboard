@@ -3,6 +3,8 @@ import * as NetworkThroughput from "@/widgets/NetworkThroughput";
 import type { ModuleSetting, ModuleSettings } from "./types";
 
 const NET = "libre.ethernet_";
+const DEFAULT_DL_COLOR = "#34d399";
+const DEFAULT_UL_COLOR = "#60a5fa";
 
 /**
  * Modern network widget — current download / upload speed (the `libre.*`
@@ -37,8 +39,9 @@ export const networkToProps = (s: ModuleSettings): Partial<NetworkThroughput.Net
   view: s.view === "totals" ? "totals" : "speeds",
   showTotals: Boolean(s.showTotals),
   sparkline: Boolean(s.sparkline),
-  downloadColor: String(s.downloadColor ?? ""),
-  uploadColor: String(s.uploadColor ?? ""),
+  // the legacy widget's default speed colours, kept for the alias
+  downloadColor: String(s.downloadColor || DEFAULT_DL_COLOR),
+  uploadColor: String(s.uploadColor || DEFAULT_UL_COLOR),
 });
 
 export const networkModernModule = templateModule({

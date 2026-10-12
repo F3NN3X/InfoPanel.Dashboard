@@ -8,7 +8,7 @@ export interface Reading {
   /** The sensor key: unique, so it keys the row. */
   key: string;
   label: string;
-  /** The value as the API reports it, with its unit. */
+  /** The value with its unit, a plain number rounded to one decimal. */
   text: string;
   value: number;
   unit: string;
@@ -35,10 +35,12 @@ export function readings(data: Data | undefined, names?: Record<string, string>)
   const out: Reading[] = [];
   for (const key of Object.keys(data ?? {})) {
     if (!key.startsWith("libre.") && !key.startsWith("hwinfo.")) continue;
-    const text = get(data, key);
-    const value = num(text);
-    if (text === "" || (Number.isFinite(value) && value === 0)) continue;
-    const unit = Number.isFinite(value) ? text.replace(/^[-\d.,\s]+/, "").trim() : "";
+    const raw = get(data, key);
+    const value = num(raw);
+    if (raw === "" || (Number.isFinite(value) && value === 0)) continue;
+    const unit = Number.isFinite(value) ? raw.replace(/^[-\d.,\s]+/, "").trim() : "";
+    // a plain number (`58.88671875 °C`) is shown to one decimal, as the legacy list did
+    const text = /^-?\d+(\.\d+)?(\s|$)/.test(raw) ? `${value.toLocaleString("en-US", { maximumFractionDigits: 1 })}${unit ? ` ${unit}` : ""}` : raw;
     const label = sensorLabel(key, names, pretty(key.replace(/^(libre|hwinfo)\./, "")).replace(/ {2,}/g, " "));
     out.push({ key, label, text, value, unit, kind: kindOf(label, unit) });
   }

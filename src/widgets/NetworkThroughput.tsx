@@ -30,10 +30,14 @@ export interface NetworkThroughputProps extends ShellProps {
 
 // A rate readout; called as a function so nothing is defined during render.
 const UP = "#a78bfa";
-const rate = (dir: "down" | "up", v: number, big: string, color: string, custom: boolean) => (
-  <div className="flex min-w-0 items-center gap-1.5" style={{ color }}>
-    <Icon name={dir === "down" ? "south" : "north"} className="text-[15px]" />
-    <Num className={`${big} truncate font-semibold`} style={custom ? undefined : { color: "var(--w-fg)" }}>{fmtRate(v)}</Num>
+const rate = (dir: "down" | "up", v: number, big: string, color: string, custom: boolean, label?: string) => (
+  <div className="flex min-w-0 flex-col" style={{ color }}>
+    <div className="flex items-center gap-1.5">
+      <Icon name={dir === "down" ? "south" : "north"} className="text-[15px]" />
+      {label && <span className="text-[10.5px] font-medium uppercase tracking-[0.08em] text-[color:var(--w-muted)]">{label}</span>}
+      {!label && <Num className={`${big} truncate font-semibold`} style={custom ? undefined : { color: "var(--w-fg)" }}>{fmtRate(v)}</Num>}
+    </div>
+    {label && <Num className={`${big} truncate font-semibold`} style={custom ? undefined : { color: "var(--w-fg)" }}>{fmtRate(v)}</Num>}
   </div>
 );
 
@@ -63,7 +67,10 @@ export default function NetworkThroughput(p: NetworkThroughputProps) {
       {...shell(p)}
       title={name}
       icon="swap_vert"
-      compact={{ label: name, value: fmtRate(dn), sub: `↑ ${fmtRate(up)}`, hist: dH, min: 0, icon: "south" }}
+      compact={(box) =>
+        // a 2x1 tile has no room for the sub line: lay both speeds out instead of dropping the upload
+        box.shape === "tile" && box.w >= 200 ? undefined : { label: name, value: fmtRate(dn), sub: `↑ ${fmtRate(up)}`, hist: dH, min: 0, icon: "south" }
+      }
       right={<span className="tabular-nums text-[color:var(--w-muted)]">{fmt(k("network_utilization"), 1)}%</span>}
     >
       {({ size }) =>
@@ -73,14 +80,12 @@ export default function NetworkThroughput(p: NetworkThroughputProps) {
             {rate("up", up, "text-base", ulColor, !!p.uploadColor)}
           </div>
         ) : (
-          <div className="flex h-full flex-col gap-2">
-            <div className="flex flex-wrap gap-x-5 gap-y-1">
-              {rate("down", dn, size === "lg" ? "text-3xl" : "text-xl", dlColor, !!p.downloadColor)}
-              {rate("up", up, size === "lg" ? "text-3xl" : "text-xl", ulColor, !!p.uploadColor)}
+          <div className={`flex h-full flex-col gap-2 ${showChart ? "" : "justify-center gap-4"}`}>
+            <div className="flex flex-wrap gap-x-8 gap-y-1">
+              {rate("down", dn, size === "lg" ? "text-3xl" : "text-xl", dlColor, !!p.downloadColor, "Download")}
+              {rate("up", up, size === "lg" ? "text-3xl" : "text-xl", ulColor, !!p.uploadColor, "Upload")}
             </div>
-            {!showChart ? (
-              <div className="min-h-0 flex-1" />
-            ) : p.chart === "mirrored" ? (
+            {!showChart ? null : p.chart === "mirrored" ? (
               <div className="relative min-h-[24px] flex-1">
                 <Spark values={dH} min={0} max={Math.max(1, ...dH, ...uH)} color={dlColor} className="absolute inset-x-0 top-0 h-1/2" />
                 <Spark values={uH} min={0} max={Math.max(1, ...dH, ...uH)} color={p.uploadColor || hue(70)} className="absolute inset-x-0 bottom-0 h-1/2 -scale-y-100" />

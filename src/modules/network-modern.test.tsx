@@ -72,4 +72,16 @@ describe("networkmodern", () => {
     expect(renderModule(networkModernModule, { layout: "standard", downloadColor: "#ff0000", uploadColor: "#00ff00" })).toMatch(/#ff0000[\s\S]*#00ff00|#00ff00[\s\S]*#ff0000/i);
     expect(renderModule(networkModernModule, { layout: "card", sparkline: true })).toContain("<svg");
   });
+
+  it("keeps the upload speed, the upload arrow and the legacy colours at 2x1 and up", () => {
+    const xs = renderModule(networkModernModule, { layout: "simple" });
+    expect(xs).toMatch(/lucide-arrow-down[\s\S]*lucide-arrow-up/);
+    expect(xs).not.toContain("circle-dashed");
+    expect(xs.match(/\d+(\.\d+)? (KB|MB|GB)\/s/g)).toHaveLength(2);
+    expect(xs).toContain("#34d399");
+    expect(xs).toContain("#60a5fa");
+    const md = renderModule(networkModernModule, { layout: "standard" });
+    expect(md).toContain("Download");
+    expect(md).toContain("Upload");
+  });
 });

@@ -1,10 +1,12 @@
 // SensorGroup in auto-discovery mode: every `libre.*` / `hwinfo.*` reading as a dot-and-value row,
 // temperatures first, then fans, power and the rest (the hardware list).
+import { cn } from "@/lib/utils";
 import { Widget, shell, Num, Empty, STATE } from "../kit";
 import { readings, type Reading, type ReadingKind } from "../hardware-readings";
 import type { SensorGroupProps } from "../SensorGroup";
 
 const DOTS: Record<ReadingKind, string> = { temp: STATE.crit, fan: "#38bdf8", power: STATE.warn, other: "var(--accent)" };
+const GAP = 6;
 
 export default function Discovered(p: SensorGroupProps) {
   const all = readings(p.data, p.names);
@@ -17,29 +19,35 @@ export default function Discovered(p: SensorGroupProps) {
         <Empty />
       </Widget>
     );
+  // No compact view: a small zone keeps the rows (as many as fit), never a lone headline value.
   return (
     <Widget
       {...shell(p)}
       title={p.title ?? "Hardware"}
       icon="view_list"
+      showHeader={!!p.title}
       studio={{ label: p.title ?? "Hardware", value: first.value, unit: first.unit, sub: first.label, rows: list.map((r) => ({ n: r.label, v: r.text })) }}
-      compact={{ label: first.label, value: first.value, unit: first.unit, sub: list.slice(1, 3).map((r) => `${r.label} ${r.text}`).join(" · ") }}
     >
-      {({ w }) => (
-        <div className="grid h-full auto-rows-min gap-1.5 overflow-y-auto" style={{ gridTemplateColumns: `repeat(${w < 260 ? 1 : w < 420 ? 2 : 3}, minmax(0,1fr))` }}>
-          {list.map((r) => (
-            <div key={r.key} className="flex min-w-0 items-center gap-2 rounded-lg bg-[color:var(--w-track)] px-2.5 py-1.5">
-              <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: dot(r) }} />
-              <span className="min-w-0 truncate text-xs text-[color:var(--w-fg)]" title={r.label}>
-                {r.label}
-              </span>
-              <Num className="ml-auto shrink-0 text-sm font-semibold" weight={600}>
-                {r.text}
-              </Num>
-            </div>
-          ))}
-        </div>
-      )}
+      {({ w, h }) => {
+        const cols = w < 260 ? 1 : w < 420 ? 2 : 3;
+        const small = h > 0 && h < 120;
+        const fit = h > 0 ? Math.max(1, Math.floor((h + GAP) / ((small ? 24 : 32) + GAP))) : Infinity;
+        return (
+          <div className="grid h-full auto-rows-min content-start overflow-hidden" style={{ gap: GAP, gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))` }}>
+            {list.slice(0, fit * cols).map((r) => (
+              <div key={r.key} className={cn("flex min-w-0 items-center gap-2 rounded-lg bg-[color:var(--w-track)] px-2.5", small ? "py-0.5" : "py-1.5")}>
+                <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: dot(r) }} />
+                <span className={cn("min-w-0 truncate text-[color:var(--w-fg)]", small ? "text-[10px]" : "text-xs")} title={r.label}>
+                  {r.label}
+                </span>
+                <Num className={cn("ml-auto shrink-0 font-semibold", small ? "text-xs" : "text-sm")} weight={600}>
+                  {r.text}
+                </Num>
+              </div>
+            ))}
+          </div>
+        );
+      }}
     </Widget>
   );
 }

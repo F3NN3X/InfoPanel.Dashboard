@@ -95,4 +95,25 @@ describe("hardwaremodern", () => {
     expect(temps({ fanColor: "#222222" })).toContain("#222222");
     expect((temps({}).match(/stroke-dashoffset="/g) ?? []).length).toBe(4);
   });
+
+  // visual-review rows: hardwaremodern 2x1 (high), 3x2 / 6x3 (med); ledger #32
+  describe("parity at small spans", () => {
+    const sensors = { "libre.gpu_core": { value: 58.88671875, unit: "°C" }, "libre.ssd_temp": { value: 63.850006103515625, unit: "°C" } };
+    const at = (layout: string) => renderModule(hardwareModernModule, { layout }, sensors);
+
+    it.each(["simple", "compact", "standard", "card"])("lists both sensors to one decimal at %s, never a raw float", (layout) => {
+      const html = at(layout);
+      expect(html).toContain("58.9");
+      expect(html).toContain("63.9");
+      expect(html).not.toContain("58.88");
+      expect(html).not.toContain("63.8500");
+    });
+
+    it("has no scroll container and no header unless titled", () => {
+      const html = at("standard");
+      expect(html).not.toContain("overflow-y-auto");
+      expect(html).not.toMatch(/Hardware/i);
+      expect(renderModule(hardwareModernModule, { layout: "standard", label: "Rig" }, sensors)).toContain("Rig");
+    });
+  });
 });
