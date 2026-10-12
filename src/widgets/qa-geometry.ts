@@ -32,6 +32,8 @@ export interface ClipInput {
   overflowY: string;
   textOverflow: string;
   whiteSpace: string;
+  /** `-webkit-line-clamp`: "none" unless the text is clamped on purpose. */
+  lineClamp?: string;
   scrollWidth: number;
   clientWidth: number;
   scrollHeight: number;
@@ -42,6 +44,7 @@ export interface ClipInput {
 export function clippedContent(el: ClipInput, tol = 1): { dx: number; dy: number } {
   if (["canvas", "img", "svg", "video"].includes(el.tag.toLowerCase())) return { dx: 0, dy: 0 };
   if (el.textOverflow === "ellipsis" && el.whiteSpace === "nowrap") return { dx: 0, dy: 0 };
+  if (el.lineClamp && el.lineClamp !== "none") return { dx: 0, dy: 0 };
   const clips = (o: string) => o === "hidden" || o === "clip";
   const hidden = (scroll: number, client: number) => (scroll > client + tol ? scroll - client : 0);
   return {

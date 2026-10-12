@@ -20,7 +20,7 @@ export function CompactView({ c, shape, w, h, icon }: { c: Compact; shape: Shape
   const textLen = String(val ?? "–").length + (c.unit ? String(c.unit).length * 0.45 : 0);
   const fit = (base: number, avail: number) => ({ fontSize: Math.round(Math.max(13, Math.min(base, avail / (Math.max(2.5, textLen) * 0.62)))) });
   const value = (cls: string, base?: number, avail = 0) => (
-    <span className={`${cls} block max-w-full overflow-hidden whitespace-nowrap font-semibold leading-none tracking-tight tabular-nums`} style={{ ...(base ? fit(base, avail) : null), fontFamily: sk.num, fontWeight: sk.numWeight, ...(sk.numGlow ? NUM_GLOW : null), ...(c.t && c.t !== "ok" ? { color: TONES[c.t] } : null) }}>
+    <span className={`${cls} block max-w-full overflow-x-clip whitespace-nowrap font-semibold leading-none tracking-tight tabular-nums`} style={{ ...(base ? fit(base, avail) : null), fontFamily: sk.num, fontWeight: sk.numWeight, ...(sk.numGlow ? NUM_GLOW : null), ...(c.t && c.t !== "ok" ? { color: TONES[c.t] } : null) }}>
       {val ?? "–"}
       {c.unit && <span className="ml-0.5 text-[0.45em] font-medium text-[color:var(--w-muted)]">{c.unit}</span>}
     </span>
@@ -137,7 +137,7 @@ export function StudioView({ c, w, h, icon }: { c: Studio; w: number; h: number;
     c.kind === "text" ? (
       <span className="line-clamp-2 text-[15px] font-semibold leading-snug">{val ?? "—"}</span>
     ) : (
-      <span className="block max-w-full overflow-hidden whitespace-nowrap font-semibold leading-[1.05] tracking-[-0.02em] tabular-nums" style={{ fontSize: fitPx(max), fontFamily: sk.num, fontWeight: sk.numWeight ?? 600, color: toneC, ...glow }}>
+      <span className="block max-w-full overflow-x-clip whitespace-nowrap font-semibold leading-[1.05] tracking-[-0.02em] tabular-nums" style={{ fontSize: fitPx(max), fontFamily: sk.num, fontWeight: sk.numWeight ?? 600, color: toneC, ...glow }}>
         {val ?? "–"}
         {c.unit && <span className="ml-0.5 text-[0.5em] font-medium text-[color:var(--w-muted)]">{c.unit}</span>}
       </span>

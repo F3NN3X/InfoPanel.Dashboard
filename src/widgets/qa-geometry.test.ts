@@ -42,5 +42,7 @@ describe("clippedContent", () => {
     expect(clippedContent({ ...base, textOverflow: "ellipsis", whiteSpace: "nowrap", scrollWidth: 300 })).toEqual({ dx: 0, dy: 0 });
     expect(clippedContent({ ...base, textOverflow: "ellipsis", scrollWidth: 300 }).dx).toBe(200);
     expect(clippedContent({ ...base, tag: "CANVAS", scrollWidth: 300 })).toEqual({ dx: 0, dy: 0 });
+    expect(clippedContent({ ...base, lineClamp: "2", scrollHeight: 90 })).toEqual({ dx: 0, dy: 0 });
+    expect(clippedContent({ ...base, lineClamp: "none", scrollHeight: 90 }).dy).toBe(50);
   });
 });
