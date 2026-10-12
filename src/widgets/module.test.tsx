@@ -61,7 +61,7 @@ describe("templateModule", () => {
   });
 
   it("falls back to the defaults when nothing is saved", () => {
-    renderToStaticMarkup(mod.render({}) as never);
+    renderToStaticMarkup(mod.render({ "demo.a": { value: 5, unit: "W" } }) as never);
     expect(seen()).toMatchObject({ unit: "x", skin: undefined, graph: undefined, meter: undefined, title: undefined });
   });
 });
@@ -85,15 +85,36 @@ describe("templateModule alias", () => {
 
   it("takes the surface default from the legacy settings", () => {
     const surface: ModuleSetting = { key: "surface", label: "Surface", type: "select", default: "theme" };
-    renderToStaticMarkup(aliased({ settings: [surface, own] }).render({}) as never);
+    renderToStaticMarkup(aliased({ settings: [surface, own] }).render({ "old.a": { value: 1, unit: "" } }) as never);
     expect(seen().look?.surface).toBe("theme");
   });
 
   it("renders nothing while the hidden rule holds, judged on the resolved settings", () => {
     const mod = aliased({ hidden: (sensors, s) => !sensors["old.a"] && s.unit === "x" });
-    expect(mod.render({})).toBeNull();
-    expect(mod.render({}, { unit: "y" })).not.toBeNull();
+    expect(mod.render({ "old.b": { value: 1, unit: "" } })).toBeNull();
+    expect(mod.render({ "old.b": { value: 1, unit: "" } }, { unit: "y" })).not.toBeNull();
     expect(mod.render({ "old.a": { value: 1, unit: "" } })).not.toBeNull();
+  });
+});
+
+describe("templateModule with no data", () => {
+  it("renders nothing until a key under its prefixes or reads exists, aliases included", () => {
+    const mod = build();
+    expect(mod.render({})).toBeNull();
+    expect(mod.render({ "other.a": { value: 1, unit: "" } })).toBeNull();
+    expect(mod.render({ "demo.a": { value: 1, unit: "" } })).not.toBeNull();
+    expect(mod.render({ "extra.a": { value: 1, unit: "" } })).not.toBeNull();
+    const aliased = templateModule({ meta, Component: Demo, settings: [], toProps: () => ({}), alias: { id: "d", title: "D", minCols: 1, minRows: 1, prefixes: ["old."] } });
+    expect(aliased.render({})).toBeNull();
+    expect(aliased.render({ "old.a": { value: 1, unit: "" } })).not.toBeNull();
+  });
+
+  it("reads any key when the module has no prefixes, and always renders the sensorless ids", () => {
+    const open = templateModule({ meta: { ...meta, prefixes: [] }, Component: Demo, settings: [], toProps: () => ({}) });
+    expect(open.render({})).toBeNull();
+    expect(open.render({ "any.key": { value: 1, unit: "" } })).not.toBeNull();
+    const clock = templateModule({ meta: { ...meta, id: "Clock" }, Component: Demo, settings: [], toProps: () => ({}) });
+    expect(clock.render({})).not.toBeNull();
   });
 });
 

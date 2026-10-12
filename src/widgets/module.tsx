@@ -74,6 +74,18 @@ export function withSkinSurface(look: ModuleSettings, saved: ModuleSettings | un
   return { ...look, surface: (skin && SKINS[skin]?.surface) || fallback };
 }
 
+/**
+ * Template ids whose data is not a sensor key (the browser clock, the Wave Link socket, a URL), so
+ * they render with an empty sensor map; every other template renders nothing until a key shows up.
+ */
+export const SENSORLESS: ReadonlySet<string> = new Set(["Clock", "Calendar", "WebPage", "WaveLink"]);
+
+/** Whether the map holds a key under any prefix (a module with no prefixes reads any key). */
+function hasKeys(sensors: SensorMap, prefixes: readonly string[]): boolean {
+  const keys = Object.keys(sensors);
+  return prefixes.length === 0 ? keys.length > 0 : keys.some((k) => prefixes.some((p) => k.startsWith(p)));
+}
+
 export function templateModule<P extends object>({ meta, Component, settings, toProps, isIdle, prefixes, title, base, alias }: TemplateOptions<P>): DashboardModule {
   const all = alias?.settings ?? [...(base ?? STANDARD_SETTINGS), ...settings];
   const surfaceDefault = String(all.find((d) => d.key === "surface")?.default ?? "glass");
@@ -91,7 +103,11 @@ export function templateModule<P extends object>({ meta, Component, settings, to
     icon: alias ? undefined : meta.icon,
     description: alias ? undefined : meta.description,
     defaultSize: alias ? undefined : meta.defaultSize,
-    render: (sensors, saved) => (alias?.hidden?.(sensors, effectiveSettings(mod, saved)) ? null : <TemplateZone sensors={sensors} saved={saved} />),
+    // No data renders nothing, so the kiosk hides the zone and the studio says "no live data yet".
+    render: (sensors, saved) =>
+      (!SENSORLESS.has(meta.id) && !hasKeys(sensors, [...mod.prefixes, ...(mod.reads ?? [])])) || alias?.hidden?.(sensors, effectiveSettings(mod, saved)) ? null : (
+        <TemplateZone sensors={sensors} saved={saved} />
+      ),
   };
   function TemplateZone({ sensors, saved }: { sensors: SensorMap; saved?: ModuleSettings }) {
     const data = useMemo(() => toFlat(sensors), [sensors]);

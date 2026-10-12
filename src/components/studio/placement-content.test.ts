@@ -2,6 +2,10 @@ import { describe, expect, it } from "vitest";
 import { placementContent, placementPrefixes } from "./placement-content";
 import { BLANK_MODULE, CARDS_ID, type Placement } from "@/lib/layout";
 import { YR_FORECAST_KEY } from "@/lib/sensors";
+import { modules } from "@/modules";
+import { SENSORLESS } from "@/widgets/module";
+import { TEMPLATE_MODULES } from "@/widgets/registry";
+import { fixtureSensors } from "@/widgets/__fixtures__";
 
 const place = (extra: Partial<Placement>): Placement =>
   ({ id: "p", module: "", col: 1, row: 1, colSpan: 2, rowSpan: 1, visible: true, ...extra }) as Placement;
@@ -75,5 +79,25 @@ describe("placementContent", () => {
     expect(accent(own, { ...global, enforce: true })).toBe("120 100% 50%");
     // Content keys stay the widget's, followed or not.
     expect(placementContent({ ...own, styleMode: "follow" }, paused, [], global).idle).toBe(true);
+  });
+});
+
+describe("template zones with no data", () => {
+  it("keeps an explicit allow-list of the templates that render without sensor keys", () => {
+    expect([...SENSORLESS].sort()).toEqual(["Calendar", "Clock", "WaveLink", "WebPage"]);
+  });
+
+  it("hides every other template on an empty map and shows it with data", () => {
+    const sensors = fixtureSensors();
+    for (const mod of TEMPLATE_MODULES) {
+      const p = place({ module: mod.id });
+      expect(placementContent(p, {}, []).hasData, `${mod.id} empty`).toBe(SENSORLESS.has(mod.id));
+      expect(placementContent(p, sensors, []).hasData, `${mod.id} fixture`).toBe(true);
+    }
+  });
+
+  it("hides the legacy ids that alias a template like the template itself", () => {
+    const alias = modules.find((m) => m.id === "fpsmodern")!;
+    expect(placementContent(place({ module: alias.id }), {}, []).hasData).toBe(false);
   });
 });
