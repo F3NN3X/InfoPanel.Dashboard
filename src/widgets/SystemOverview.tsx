@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 import type { ModuleSettings } from "@/modules/types";
 import { filterDisks, formatRate, formatTemp, readSystemFlat, type DiskReading } from "@/lib/system-metrics";
-import { Widget, shell, get, num, fmt, fmtRate, detect, pretty, Ring, RingStack, Spark, Bar, Empty, heat, useHistory, tone, TONES, hw, Num, type ShellProps, type Tone, type WidgetMeta } from "./kit";
+import { useFitRows, Widget, shell, get, num, fmt, fmtRate, detect, pretty, Ring, RingStack, Spark, Bar, Empty, heat, useHistory, tone, TONES, hw, Num, type ShellProps, type Tone, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "SystemOverview",
@@ -111,7 +111,7 @@ function CoreGrid({ cores, cellW, view, ramp }: { cores: number[]; cellW: number
 /** The drives as used-space bars with their details, as many as fit `h`. */
 function DriveList({ drives, h }: { drives: Drive[]; h: number }) {
   const rowH = drives.some((d) => d.details.length) ? 44 : 30;
-  const shown = drives.slice(0, Math.max(1, Math.floor((h + 6) / rowH)));
+  const shown = drives.slice(0, useFitRows(h, rowH - 6, 6));
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-1.5 overflow-hidden">
       {shown.map((d) => (

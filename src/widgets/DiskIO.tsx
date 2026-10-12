@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, fmt, fmtRate, detect, pretty, Spark, useHistory, type ShellProps, type WidgetMeta } from "./kit";
+import { useFitRows, Widget, shell, get, num, fmt, fmtRate, detect, pretty, Spark, useHistory, type ShellProps, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "DiskIO",
@@ -36,7 +36,7 @@ export default function DiskIO(p: DiskIOProps) {
       {({ size, h }) =>
         h < 200 ? (
           <ul className="flex h-full flex-col justify-center gap-2.5 overflow-hidden">
-            {disks.slice(0, Math.max(1, Math.floor((h + 10) / 40))).map((x) => (
+            {disks.slice(0, useFitRows(h, 30, 10)).map((x) => (
               <li key={x.id} className="flex flex-col gap-1 text-xs">
                 <div className="flex justify-between gap-2">
                   <span className="font-medium text-[color:var(--w-fg)]">{x.name}</span>

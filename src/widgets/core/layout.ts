@@ -67,6 +67,12 @@ export function easeHistory(hist: number[], value: number, len = 48, ease = 0.45
   return (hist.length ? [...hist, v] : [v, v]).slice(-len);
 }
 
+/** How many rows of height `rowH` (separated by `gap`) fit in `h`; always at least one. */
+export const fitRows = (h: number, rowH: number, gap = 0): number => Math.max(1, Math.floor((h + gap) / (rowH + gap)));
+
+/** `fitRows` for use in a widget body; stateless, so safe to call from any render branch. */
+export const useFitRows = (h: number, rowH: number, gap = 0): number => fitRows(h, rowH, gap);
+
 // Rolling history, eased (EMA) so graphs glide instead of jitter. ease 1 = raw.
 export function useHistory(value: number, len = 48, ease = 0.45): number[] {
   const ref = useRef<number[]>([]);

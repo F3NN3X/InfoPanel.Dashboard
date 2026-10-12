@@ -1,7 +1,7 @@
 // SensorGroup in auto-discovery mode: every `libre.*` / `hwinfo.*` reading as a dot-and-value row,
 // temperatures first, then fans, power and the rest (the hardware list).
 import { cn } from "@/lib/utils";
-import { Widget, shell, Num, Empty, STATE } from "../kit";
+import { useFitRows, Widget, shell, Num, Empty, STATE } from "../kit";
 import { readings, type Reading, type ReadingKind } from "../hardware-readings";
 import type { SensorGroupProps } from "../SensorGroup";
 
@@ -31,7 +31,7 @@ export default function Discovered(p: SensorGroupProps) {
       {({ w, h }) => {
         const cols = w < 260 ? 1 : w < 420 ? 2 : 3;
         const small = h > 0 && h < 120;
-        const fit = h > 0 ? Math.max(1, Math.floor((h + GAP) / ((small ? 24 : 32) + GAP))) : Infinity;
+        const fit = h > 0 ? useFitRows(h, small ? 24 : 32, GAP) : Infinity;
         return (
           <div className="grid h-full auto-rows-min content-start overflow-hidden" style={{ gap: GAP, gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))` }}>
             {list.slice(0, fit * cols).map((r) => (

@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, fmt, Dot, LedLadder, STATE, useMeterBallistics, type BallisticsPreset, type ShellProps, type WidgetMeta } from "./kit";
+import { useFitRows, Widget, shell, fmt, Dot, LedLadder, STATE, useMeterBallistics, type BallisticsPreset, type ShellProps, type WidgetMeta } from "./kit";
 import { audioIds, readDevice } from "./audio-data";
 
 export const meta: WidgetMeta = {
@@ -145,7 +145,7 @@ export default function MeterBridge(p: MeterBridgeProps) {
       {({ w, h }) => {
         if (!vertical || h < 120) {
           const rowH = 30,
-            n = Math.max(1, Math.floor((h + 8) / (rowH + 8)));
+            n = useFitRows(h, rowH, 8);
           const segs = p.segments ?? Math.max(12, Math.floor(w / 14));
           return (
             <ul className="flex h-full flex-col justify-center gap-2 overflow-hidden">

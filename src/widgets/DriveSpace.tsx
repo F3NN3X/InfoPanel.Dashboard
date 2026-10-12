@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, fmt, fmtMB, Bar, BarRow, Ring, Num, tone, Pill, type ShellProps, type WidgetMeta, type Tone } from "./kit";
+import { useFitRows, Widget, shell, get, num, fmt, fmtMB, Bar, BarRow, Ring, Num, tone, Pill, type ShellProps, type WidgetMeta, type Tone } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "DriveSpace",
@@ -81,7 +81,7 @@ export default function DriveSpace(p: DriveSpaceProps) {
               </div>
             </div>
           );
-        const n = Math.max(1, Math.floor(h / (size === "lg" ? 46 : 38)));
+        const n = useFitRows(h, size === "lg" ? 46 : 38);
         return (
           <div className="flex h-full flex-col gap-3 overflow-hidden">
             {list.slice(0, n).map((x) => (

@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, fmt, STATE, hw, Pill, type ShellProps, type WidgetMeta } from "./kit";
+import { useFitRows, Widget, shell, get, num, fmt, STATE, hw, Pill, type ShellProps, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "StatusTracker",
@@ -82,7 +82,7 @@ export default function StatusTracker(p: StatusTrackerProps) {
     >
       {({ w, h }) => {
         const labelW = w > 360 ? 112 : 76,
-          rowsFit = Math.max(1, Math.floor((h - (h > 130 ? 46 : 0) + 10) / 34));
+          rowsFit = useFitRows(h - (h > 130 ? 46 : 0), 24, 10);
         return (
           <div className="flex h-full min-w-0 flex-col gap-2.5">
             {tracks.slice(0, rowsFit).map((t) => (

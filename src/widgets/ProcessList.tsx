@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, fmt, fmtMB, rows, Metric, Stat, Bar, Segmented, type ShellProps, type WidgetMeta } from "./kit";
+import { useFitRows, Widget, shell, get, num, fmt, fmtMB, rows, Metric, Stat, Bar, Segmented, type ShellProps, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "ProcessList",
@@ -52,7 +52,7 @@ export default function ProcessList(p: ProcessListProps) {
     >
       {({ size, h }) => {
         if (size === "xs") return <Metric label="Processes" value={num(k("process-count"))} scale="lg" sub={`${fmt(num(k("thread-count")))} threads`} className="h-full justify-center" />;
-        const n = p.rows ?? Math.max(1, Math.floor((h - (size === "sm" ? 0 : 58)) / 26));
+        const n = p.rows ?? useFitRows(h - (size === "sm" ? 0 : 58), 26);
         return (
           <div className="flex h-full flex-col gap-3">
             {size !== "sm" && (

@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 import { meterKey, useWavelinkState, type WlChannel, type WlDevice, type WlMix, type WlState } from "@/lib/wavelink";
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, Icon, Chip, Empty, STATE, type BallisticsPreset, type ShellProps, type Tier, type WidgetMeta } from "./kit";
+import { useFitRows, Widget, shell, Icon, Chip, Empty, STATE, type BallisticsPreset, type ShellProps, type Tier, type WidgetMeta } from "./kit";
 import { MeterPair, dbPos, fmtDb, useWlLevels, type MeterVariant } from "./WaveLink/meters";
 
 export const meta: WidgetMeta = {
@@ -243,9 +243,9 @@ export function WaveLinkLayout({ size, w, h, up, state, channels, devices, o, ve
   }
   const wide = w > 300 && h >= 100;
   const rowH = wide && o.mixes ? 56 : 40;
-  const n = Math.max(1, Math.floor((h + 8) / (rowH + 8)));
+  const n = useFitRows(h, rowH, 8);
   if (channels.length > n) {
-    const dn = Math.max(1, Math.floor((h + DENSE_GAP) / (DENSE_H + DENSE_GAP)));
+    const dn = useFitRows(h, DENSE_H, DENSE_GAP);
     return (
       <div className={`flex h-full flex-col justify-center gap-1 overflow-hidden ${dim}`}>
         {channels.slice(0, dn).map((c) => (

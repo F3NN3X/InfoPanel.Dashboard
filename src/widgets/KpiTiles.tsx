@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, fmt, Spark, useHistory, useSkin, numFont, hw, type ShellProps, type WidgetMeta } from "./kit";
+import { useFitRows, Widget, shell, get, num, fmt, Spark, useHistory, useSkin, numFont, hw, type ShellProps, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "KpiTiles",
@@ -64,7 +64,7 @@ export default function KpiTiles(p: KpiTilesProps) {
     >
       {({ w, h }) => {
         const cols = Math.max(1, Math.min(keys.length, Math.floor((w + 12) / 160)));
-        const shown = keys.slice(0, cols * Math.max(1, Math.floor((h + 12) / 100)));
+        const shown = keys.slice(0, cols * useFitRows(h, 88, 12));
         const tileH = (h - (Math.ceil(shown.length / cols) - 1) * 12) / Math.ceil(shown.length / cols);
         return (
           <div className="grid h-full gap-3" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))`, gridAutoRows: "minmax(0,1fr)" }}>

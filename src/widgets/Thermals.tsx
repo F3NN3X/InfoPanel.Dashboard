@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, fmt, detect, pretty, tone, TONES, useHistory, Empty, Ring, Num, hw, type Tone, type ShellProps, type WidgetMeta } from "./kit";
+import { useFitRows, Widget, shell, get, num, fmt, detect, pretty, tone, TONES, useHistory, Empty, Ring, Num, hw, type Tone, type ShellProps, type WidgetMeta } from "./kit";
 import { readings } from "./hardware-readings";
 
 export const meta: WidgetMeta = {
@@ -107,7 +107,7 @@ export default function Thermals(p: ThermalsProps) {
             </div>
           );
         }
-        const n = Math.max(1, Math.floor(h / (size === "lg" ? 36 : 28)));
+        const n = useFitRows(h, size === "lg" ? 36 : 28);
         return (
           <ul className="flex h-full flex-col justify-center gap-2.5 overflow-hidden">
             {list.slice(0, n).map((x) => (

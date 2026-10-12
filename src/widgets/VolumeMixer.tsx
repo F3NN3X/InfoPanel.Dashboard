@@ -1,6 +1,6 @@
 import type { MouseEvent } from "react";
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, fmt, Num, Ring, Icon, Dot, Chip, STATE, type ShellProps, type WidgetMeta } from "./kit";
+import { useFitRows, Widget, shell, get, num, fmt, Num, Ring, Icon, Dot, Chip, STATE, type ShellProps, type WidgetMeta } from "./kit";
 import { guidOf } from "./audio-data";
 
 export const meta: WidgetMeta = {
@@ -80,7 +80,7 @@ export default function VolumeMixer(p: VolumeMixerProps) {
               </div>
             </div>
           );
-        const n = Math.max(1, Math.floor((h + 10) / ((size === "lg" ? 34 : 30) + 10)));
+        const n = useFitRows(h, size === "lg" ? 34 : 30, 10);
         return (
           <ul className="flex h-full flex-col gap-2.5 overflow-hidden">
             {list.slice(0, n).map((c) => (

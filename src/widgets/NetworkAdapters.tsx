@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, fmt, has, Dot, Chip, Icon, type ShellProps, type WidgetMeta } from "./kit";
+import { useFitRows, Widget, shell, get, num, fmt, has, Dot, Chip, Icon, type ShellProps, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "NetworkAdapters",
@@ -63,7 +63,7 @@ export default function NetworkAdapters(p: NetworkAdaptersProps) {
           </div>
         );
         if (size === "xs") return <div className="flex h-full items-center">{pub}</div>;
-        const n = Math.max(1, Math.floor((h - 64 + 8) / ((size === "lg" ? 46 : 40) + 8)));
+        const n = useFitRows(h - 64, size === "lg" ? 46 : 40, 8);
         return (
           <div className="flex h-full flex-col gap-3">
             {pub}

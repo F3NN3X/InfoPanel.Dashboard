@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, fmt, Num, Spark, LedLadder, STATE, hue, useHistory, useMeterBallistics, clamp, type BallisticsPreset, type ShellProps, type WidgetMeta } from "./kit";
+import { Widget, useFitRows, shell, fmt, Num, Spark, LedLadder, STATE, hue, useHistory, useMeterBallistics, clamp, type BallisticsPreset, type ShellProps, type WidgetMeta } from "./kit";
 import { audioIds, readDevice, type AudioDevice } from "./audio-data";
 
 export const meta: WidgetMeta = {
@@ -113,7 +113,7 @@ export default function AudioMeter(p: AudioMeterProps) {
           // every device (up to 6) gets a row: the row shrinks to fit, down to two thin ladders
           const gap = 4,
             minRow = 16,
-            n = Math.max(1, Math.min(devices.length, 6, h > 0 ? Math.floor((h + gap) / (minRow + gap)) : 6));
+            n = Math.max(1, Math.min(devices.length, 6, h > 0 ? useFitRows(h, minRow, gap) : 6));
           const rowH = Math.min(30, Math.max(minRow, Math.floor((h - gap * (n - 1)) / n)));
           const tall = rowH >= 26;
           return (

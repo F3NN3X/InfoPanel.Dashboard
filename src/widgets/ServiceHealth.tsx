@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, has, Dot, Pill, type ShellProps, type WidgetMeta } from "./kit";
+import { useFitRows, Widget, shell, get, num, has, Dot, Pill, type ShellProps, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "ServiceHealth",
@@ -66,7 +66,7 @@ export default function ServiceHealth(p: ServiceHealthProps) {
           </div>
         ) : (
           <ul className="grid h-full content-start gap-x-4 gap-y-2" style={{ gridTemplateColumns: w > 420 ? "repeat(2, minmax(0,1fr))" : "minmax(0,1fr)" }}>
-            {list.slice(0, (w > 420 ? 2 : 1) * Math.max(1, Math.floor(h / 24))).map((x) => (
+            {list.slice(0, (w > 420 ? 2 : 1) * useFitRows(h, 24)).map((x) => (
               <li key={x.label} className="flex min-w-0 items-center gap-2 text-xs">
                 <Dot ok={x.ok} className={!x.ok && x.idle ? "!bg-amber-400" : ""} />
                 <span className="truncate text-[color:var(--w-fg)]">{x.label}</span>

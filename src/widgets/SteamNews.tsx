@@ -1,4 +1,4 @@
-import { Widget, shell, get, rows, has, type ShellProps, type WidgetMeta } from "./kit";
+import { useFitRows, Widget, shell, get, rows, has, type ShellProps, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "SteamNews",
@@ -33,7 +33,7 @@ export default function SteamNews(p: SteamNewsProps) {
     <Widget {...shell(p)} title={p.title ?? "News"} icon="newspaper" compact={{ label: first.game ?? "News", value: first.title, sub: first.date, kind: "text", icon: "newspaper" }}>
       {({ size, h }) => (
         <ul className="flex h-full flex-col gap-3 overflow-hidden">
-          {items.slice(0, Math.max(1, Math.floor((h + 12) / (18 + 22 * lines + 12)))).map((n, i) => (
+          {items.slice(0, useFitRows(h, 18 + 22 * lines, 12)).map((n, i) => (
             <li key={i} className="flex min-w-0 gap-3">
               <span className="mt-1 h-auto w-0.5 shrink-0 rounded-full" style={{ background: i === 0 ? "var(--accent)" : "var(--w-track)" }} />
               <div className="flex min-w-0 flex-col gap-0.5">
