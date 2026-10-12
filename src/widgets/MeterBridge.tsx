@@ -146,11 +146,14 @@ export default function MeterBridge(p: MeterBridgeProps) {
         if (!vertical || h < 120) {
           const rowH = 30,
             n = useFitRows(h, rowH, 8);
-          const segs = p.segments ?? Math.max(12, Math.floor(w / 14));
+          // a tile has no room for the readout column; the name column narrows to fit
+          const narrow = w < 150,
+            details = showDetails && !narrow;
+          const segs = p.segments ?? Math.max(narrow ? 6 : 12, Math.floor(w / 14));
           return (
             <ul className="flex h-full flex-col justify-center gap-2 overflow-hidden">
               {ch.slice(0, n).map((c) => (
-                <li key={c.id} className="grid items-center gap-x-3" style={{ gridTemplateColumns: `${w > 340 ? 88 : 60}px minmax(0,1fr)${showDetails ? ` ${w > 300 ? 72 : 40}px` : ""}` }} title={c.full}>
+                <li key={c.id} className="grid items-center gap-x-3" style={{ gridTemplateColumns: `${w > 340 ? 88 : narrow ? 36 : 60}px minmax(0,1fr)${details ? ` ${w > 300 ? 72 : 40}px` : ""}` }} title={c.full}>
                   <div className="flex min-w-0 flex-col leading-tight">
                     <span className="flex items-center gap-1 text-xs font-semibold">
                       {showName && <span className="truncate">{c.name}</span>}
@@ -162,7 +165,7 @@ export default function MeterBridge(p: MeterBridgeProps) {
                     {ladder(c.l, c.lh, segs, true)}
                     {ladder(c.r, c.rh, segs, true)}
                   </div>
-                  {showDetails && (
+                  {details && (
                     <div className="flex flex-col text-right font-mono text-[10px] leading-tight tabular-nums text-[color:var(--w-muted)]">
                       <span>{fmtDb(c.l)}</span>
                       {w > 300 && <span>{fmtDb(c.r)}</span>}
