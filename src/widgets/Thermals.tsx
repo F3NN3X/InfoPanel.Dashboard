@@ -115,7 +115,7 @@ export default function Thermals(p: ThermalsProps) {
                 <span className="truncate text-[color:var(--w-fg)]">{x.label}</span>
                 <div className="relative h-2 overflow-hidden rounded-full bg-[color:var(--w-track)]">
                   <div className="absolute inset-y-0 left-0 rounded-full transition-[width] duration-700 ease-out" style={{ width: `${(x.v / max) * 100}%`, background: `linear-gradient(90deg, ${TONES.ok}, ${TONES[x.t]})` }} />
-                  <div className="absolute inset-y-0 w-px bg-amber-300/50" style={{ left: `${((p.warn ?? x.warn) / max) * 100}%` }} />
+                  <div className="absolute inset-y-0 w-0.5" style={{ left: `${((p.warn ?? x.warn) / max) * 100}%`, background: "color-mix(in oklab, #f59e0b 80%, var(--w-fg))" }} />
                 </div>
                 <span className="text-right font-medium tabular-nums" style={x.t !== "ok" ? { color: TONES[x.t] } : undefined}>
                   {fmt(x.v, 0)}°C
