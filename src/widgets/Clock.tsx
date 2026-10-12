@@ -35,7 +35,7 @@ function Analog({ h, m, s, seconds }: { h: number; m: number; s: number; seconds
 
 const TIME_PX = { xs: 30, sm: 48, md: 72, lg: 96 };
 /** The time's font size: the tier's, held down so the time, the seconds / AM-PM and the date line fit the box. */
-function timePx(size: keyof typeof TIME_PX, w: number, h: number, secs: boolean, h12: boolean, date: boolean): number {
+export function timePx(size: keyof typeof TIME_PX, w: number, h: number, secs: boolean, h12: boolean, date: boolean): number {
   const dateH = date ? (size === "xs" ? 15 : 28) : 0;
   const byH = h > 0 ? h - dateH : Infinity;
   const byW = w > 0 ? (w - (secs ? 36 : 0) - (h12 ? 34 : 0)) / 3.2 : Infinity;
