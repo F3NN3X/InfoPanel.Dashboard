@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import { FONT_STACKS } from "@/lib/general";
+import { ensureFont } from "@/lib/fonts";
 import { hexToHsl } from "@/lib/theme";
 import type { ModernChrome } from "./modern-chrome";
 
@@ -135,7 +136,10 @@ export function chromeVars(chrome: ModernChrome | undefined): CSSProperties | un
     v["--wp-y-cross"] = safe(CROSS[chrome.alignY]);
   }
   const style = v as CSSProperties;
-  if (chrome.font && chrome.font !== "auto") style.fontFamily = FONTS[chrome.font];
+  if (chrome.font && chrome.font !== "auto") {
+    ensureFont(chrome.font);
+    style.fontFamily = FONTS[chrome.font];
+  }
   return Object.keys(style).length > 0 ? style : undefined;
 }
 

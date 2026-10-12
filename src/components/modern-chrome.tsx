@@ -1,4 +1,5 @@
 import { useId, type CSSProperties, type ReactNode } from "react";
+import type { FontId } from "@/lib/fonts";
 import { widgetIcon } from "@/lib/widget-icons";
 import { useElementSize } from "@/hooks/use-element-size";
 import { cn } from "@/lib/utils";
@@ -34,7 +35,7 @@ const SCRIM = "hsl(var(--background) / 0.45)";
  */
 export type AlignX = "auto" | "start" | "center" | "end" | "between";
 export type AlignY = "auto" | "start" | "center" | "end";
-export type FontChoice = "auto" | "sans" | "rounded" | "serif" | "mono";
+export type FontChoice = "auto" | Exclude<FontId, "system">;
 export type FontWeightChoice = "auto" | "400" | "500" | "600" | "700" | "800";
 export type LabelCase = "auto" | "uppercase" | "none" | "capitalize";
 export type GlowChoice = "none" | "soft" | "strong";

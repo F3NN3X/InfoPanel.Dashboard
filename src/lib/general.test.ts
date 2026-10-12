@@ -72,6 +72,10 @@ describe("fontStack", () => {
     expect(fontStack("system")).toBeUndefined();
     expect(fontStack("mono")).toContain("monospace");
   });
+
+  it("resolves catalog web fonts with a fallback", () => {
+    expect(fontStack("inter")).toMatch(/^.Inter., .*sans-serif$/);
+  });
 });
 
 describe("formatClock", () => {
