@@ -89,7 +89,8 @@ rendered components. Tests sit beside the code they cover:
 | Readings | `src/lib/system-metrics.test.ts` (System widget readings, thresholds, units), `src/lib/forecast.test.ts`, `src/lib/image.test.ts` |
 | Widget style | `src/components/widget-style.test.ts` (zoom, `--wp-*` variables, `chromeOf`, `surfaceBox`, scoped CSS, profile style), `src/components/surfaces.test.ts`, `src/components/wavelink-layout.test.ts` (the Wave Link layout picked per zone size) |
 | Config and appearance | `src/lib/layout.test.ts` (`mergeConfig` migration and guards), `src/lib/panel-model.test.ts`, `src/lib/style-resolve.test.ts` (style layers), `src/lib/appearance-presets.test.ts` (applying, overrides, saved looks), `src/lib/theme.test.ts` (profile theme over the dashboard's), `src/lib/general.test.ts` (general settings, clock formatting), `src/lib/profile-grid.test.ts` (gap / padding defaults and the track math for gaps 0, 12 and 24) |
-| Studio | `src/components/studio/placement-content.test.ts` (per-zone prefixes and content), `src/components/studio/settings-panel.test.ts` (setting groups), and the other `*.test.ts` beside the studio modules (commands, shortcuts, zone geometry, studio and appearance actions, …) |
+| Studio | `src/components/studio/placement-content.test.ts` (per-zone prefixes and content), `src/components/studio/inspector-model.test.ts` (tabs, sections, search, Advanced, source dots) and `inspector-categories.test.ts` (every module's settings resolve to a known category), `studio-layout.test.ts` (Side / Bottom / Auto, fit zoom), `use-studio-shortcuts.test.ts`, `zone-menu.test.ts`, and the other `*.test.ts` beside the studio modules (commands, zone geometry, studio and appearance actions, the explorer model, …) |
+| Data layer and history | `src/lib/data-points.test.ts` (normalising the catalog, health, search), `src/lib/data-usage.test.ts` (Used by, bind / unbind), `src/lib/sample-history.test.ts`, `src/lib/fonts.test.ts` (the font catalog), `src/hooks/config-history.test.ts` (undo stacks, coalescing, transactions) |
 | Page background and media | `src/lib/appearance.test.ts` (background layers, video style and `videoPolicy`), `src/lib/assets.test.ts` (upload / library requests with a mocked `fetch`) |
 | Server | `server/assets.test.mjs` (magic-byte sniffing, asset id validation against traversal, `Range` parsing, loopback check). Vitest's default pattern picks up `.test.mjs`, so `npm test` runs it |
 
@@ -121,6 +122,13 @@ A newer global TypeScript can reject `tsconfig.json`: TypeScript 6 stops with
    [widget-settings.md, "Adopting the standard block"](widget-settings.md#adopting-the-standard-block-new-widget).
 3. Add a row to [module-catalog.md](module-catalog.md), and a unit test for
    any logic that reads sensor keys (see `src/lib/system-metrics.test.ts`).
+
+The studio inspector needs no code for the new widget's options: each
+`ModuleSetting` in `settings` is filed into a section by its `group` and into
+a tab by `tab` (or by its category), and can be `advanced`, carry a `hint`, or
+show only while `visibleIf(values)` holds. See [architecture.md, "Adding a
+setting to a module"](architecture.md#adding-a-setting-to-a-module). The
+category test fails for an unfiled option.
 
 `prefixes` and `reads` decide which streams the zone opens and which changes
 re-render it; see [architecture](architecture.md#2-per-zone-rendering).

@@ -5,7 +5,7 @@ The project overview, install steps and server endpoints are in the
 
 ## Using the dashboard
 
-- [Customization guide](customization-guide.md) - the studio layout (top bar, left rail and drawers, canvas, inspector beside or below it, sticky fit zoom), undo, keyboard shortcuts and the command palette, panels (layout starters, saved panels, stack / grid / overlay layouts, alignment, the widget editor, canvas selection, the Code view and panel CSS hooks), and making a widget look the way you want: scaling, alignment, colors, borders, custom CSS, presets, hiding idle widgets; and the dashboard-wide settings: appearance presets, the global style, theme colours (per profile too), the page background (image or video, uploads), general settings (font, clock and locale, motion, kiosk cursor) and the grid gap and padding.
+- [Customization guide](customization-guide.md) - the studio layout (top bar, icon rail and left panel, canvas with a floating zoom bar, inspector Side 340 / Bottom 320 / Auto, sticky fit zoom), selecting zones, context menus, undo, keyboard shortcuts and the command palette, the tabbed inspector (sections, source dots, Advanced, search), the Data Explorer and binding, panels (layout starters, saved panels, stack / grid / overlay layouts, alignment, the widget editor, canvas selection, the Code view and panel CSS hooks), and making a widget look the way you want: scaling, alignment, colors, borders, custom CSS, presets, hiding idle widgets; and the dashboard-wide settings (the Dashboard inspector): appearance presets, the global style, theme colours (per profile too), the page background (image or video, uploads), the font catalog, general settings (font, clock and locale, motion, kiosk cursor) and the grid gap and padding.
 
 ## Widgets
 
@@ -15,8 +15,9 @@ The project overview, install steps and server endpoints are in the
 
 ## Internals
 
-- [Architecture](architecture.md) - how data flows from the InfoPanel Data API to a zone, how a zone (and a custom panel) is rendered, how the config is stored and synced (with a table of where each setting comes from: app default, dashboard, profile, widget), how the theme, page background, grid spacing and general settings reach the page, and how the studio is put together (shell and layout, rail and drawers, top bar, inspectors, undo history, shortcuts, selection model, saved panels).
-- [Studio design: zones and widgets](studio-redesign-zones-widgets.md) - the original design notes behind the zone-based studio (historical; predates the current layout).
+- [Architecture](architecture.md) - how data flows from the InfoPanel Data API to a zone, how a zone (and a custom panel) is rendered, how the config is stored and synced (with a table of where each setting comes from: app default, dashboard, profile, widget), how the theme, page background, grid spacing and general settings reach the page, and how the studio is put together (shell and layout, chrome tokens and fonts, canvas, rail and left panels, top bar, the registry-driven inspector and how to add a setting, the Data Explorer and binding, undo history and drag transactions, shortcuts, selection model, saved panels).
+- [Studio redesign](redesign/README.md) - the spec the studio was rebuilt from (layout, inspector, Data Explorer, tokens), with [decisions](redesign/DECISIONS.md) and the [feature map](redesign/FEATURE_MAP.md).
+- [Studio design: zones and widgets](studio-redesign-zones-widgets.md) - the grid model that still holds (zones, no overlap, fluid fill, config v2); the rest is superseded by the redesign.
 
 ## Development
 

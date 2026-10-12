@@ -79,7 +79,7 @@ namespace that mounted widgets read.
 
 ### The studio's catalog (`src/lib/catalog.ts`)
 
-The studio's pickers (sensor binding, the Sources view, a widget's source
+The studio's pickers (the Data Explorer, the bind picker, a widget's source
 select) do not use the streams. `useSensorCatalog` fetches `/api/sources` and
 one `/api/sensors` snapshot together, reuses a copy younger than 10 s, shares
 one in-flight fetch, and starts over when the Data API URL changes.
@@ -532,7 +532,7 @@ it, scaled by the canvas zoom where they work in screen px. The track math
 profile's `padding`, else the page defaults (a `fill` kiosk page 0, a
 `fill` page with the header 12, `scroll` 24). The studio draws a "page"
 of the profile's design size with the kiosk padding and puts the grid inside
-it; the zone toolbar re-measures when gap or padding change.
+it; the selection chip re-measures when gap or padding change.
 
 **Theme** (`src/lib/theme.ts`). `resolveTheme(config, profile)` lays a
 profile's own `theme` / `radius` over the dashboard's; `themeVars` turns
@@ -595,183 +595,279 @@ play with sound and falls back to muted when the browser refuses
 (`NotAllowedError`).
 
 **Studio shell** (`src/components/studio/studio-view.tsx`). The studio is a
-top bar over the studio body, which `studio-shell.tsx` assembles from the
-left rail, the open drawer, the canvas (`studio-canvas.tsx`, or the sources
-manager in Sources mode), the strip under it (`zoom-toolbar.tsx`: grid,
-zoom, fit, size and the layout switch) and the inspector, beside the
-canvas (Side) or in a bottom dock (Bottom), see Studio layout below.
-`studio-view.tsx` owns the UI state (selection,
-open drawer, inspector search and card jumps, zoom, dialogs) and turns every
-control into a config change through the pure profile mutations in
-`studio-actions.ts`; zone boxes are clamped by `zone-geometry.ts`
+top bar over the studio body, which `studio-shell.tsx` assembles: the icon
+rail (`left-rail.tsx`), the open left panel (`studio-drawers.tsx`: Layers,
+Add or Profiles in a 256 px column), the canvas (`studio-canvas.tsx`, or the
+Data Explorer in Sources mode) with the floating zoom bar over it
+(`zoom-toolbar.tsx`) and the inspector, beside the canvas (Side) or in a
+bottom dock (Bottom), see Studio layout below. `studio-view.tsx` only
+composes; the state lives in hooks beside it: `use-studio-selection.ts` (the
+zone selection and the selected panel widget), `use-studio-ui.ts` (mode, open
+panel, grid and ruler flags, zoom, dialogs, inspector search and jump
+requests, the style and widget clipboards), `use-studio-layout.ts`,
+`use-studio-mutations.ts` (every control turned into a config change through
+the pure profile mutations in `studio-actions.ts`), `use-studio-commands.ts`
+(the one dispatcher the palette, shortcuts and context menus share) and
+`use-studio-shortcuts.ts`. Zone boxes are clamped by `zone-geometry.ts`
 (`fitZoneRect`, `resizeZone`, `nudgeZone`), which never lets zones overlap
 and keeps the old box when there is no room. App.tsx still owns the config,
 its persistence and the server push.
 
-**Studio inspector** (`src/components/studio/zone-inspector.tsx`,
-`document-inspector.tsx`). Both inspectors are **one sheet of cards**, with
-no tabs: `category-sheet.tsx` (`CategorySheet`) renders the cards - in the dock
-a category list (`navSections` in `setting-card-model.ts`: headers, entries,
-changed counts; a click scrolls to the card and outlines it) beside cards in
-300 px CSS columns, beside the canvas the same cards stacked and collapsible
-- and `setting-card.tsx` (`SettingCard`: title, hint, scope badge, changed
-count, per-card Reset, optional `wide` span) draws each one. Rows come from
-`setting-control.tsx` (`SettingRow`), which picks a compact row from
-`setting-rows.tsx` (toggle, slider with inline number, segmented, select,
-color, text) by the setting's type; `settings-panel.tsx`'s `SettingField`
-adds the state dot (`settingState`: default / dashboard / profile / own /
-override) and the hover reset. Neighbouring short toggles share a line
-(`pairRows`).
+**Chrome tokens vs the dashboard theme.** The studio's own UI is styled with
+the `--ui-*` tokens in `src/index.css` (backgrounds, borders, five text
+levels, the fixed blue accent, success / warning / danger, the two source-dot
+colours, inverse, shadows), exposed to Tailwind as `bg-ui-panel`,
+`text-ui-2`, `border-ui-subtle`, `shadow-ui-menu` and so on, and set in
+Geist / Geist Mono (`font-ui`, `font-ui-mono`). They never change with the
+dashboard. The dashboard theme (`--wp-*` and the theme tokens of "Theme") only
+colours the widgets on the canvas and the kiosk page; the page font comes from
+`src/lib/fonts.ts`: `FONT_CATALOG` holds the five system stacks (their ids are
+stored in configs and never change) and the Google fonts (`google` = the
+css2 family spec). `ensureFont(id)` appends the stylesheet link once, on
+demand, and every stack ends in a system fallback so an offline kiosk still
+renders.
 
-*Categories.* `inspector-categories.ts` holds the canonical general
-categories (`GENERAL_CATEGORIES`: Widget, Size & alignment, Typography,
-Spacing & shape, Colors & surface, Border & effects, Advanced) with the
-standard keys each owns (filed by key; the rest by the setting's `group`).
-`categorize(defs)` returns the general cards in that order, then the widget's
-own in first-appearance order (module settings carry a `group` each; the test
-`inspector-categories.test.ts` checks every module resolves to a known
-category), `withGeneral` adds the general cards a zone fills itself, and
-`filterCategories` is the search (matching rows win, a card title counts only
-when no row matches). `setting-card-model.ts` has the pure helpers
-(`changedDefs` / `resetKeysOf` over `settingStateOf`, `pairRows`,
-`navSections`). `settings-model.ts` keeps `filterSettings`, `rowMatches`,
-`settingState` and `dropKeys`.
+**Studio canvas** (`studio-canvas.tsx`, `placement-frame.tsx`,
+`selection-chip.tsx`, `drop-ghost.ts`, `canvas-cards.tsx`,
+`pointer-drag.ts`). The canvas draws the profile's page with rulers and the
+dot grid; each zone is a `placement-frame.tsx` that renders the real widget
+(`placement-content.tsx`) and owns the press: a plain press selects (and,
+past a small threshold, starts a move), Shift / Ctrl / Cmd toggles, a press on
+empty grid space (handled by `studio-canvas.tsx`) draws a new blank zone. `selection-chip.tsx` is the small
+chip over the primary zone (name or "N selected", size, Hide, More); it is
+rendered outside the page's CSS `zoom` so it keeps a constant size, and
+`zone-toolbar-position.ts` places it above or below the zone. The right-click
+menus come from `zone-menu.ts` (pure specs: `zoneMenu`, `canvasMenu`,
+`menuAction`) rendered by `zone-context-menu.tsx`. A library drag from Add
+shows the ghost from `drop-ghost.ts` (`dropSize`, `zoneFits`: a dashed
+"Drop here" or a red "No room"). `canvas-cards.tsx` holds the empty-layout
+card and the first-run quick tips (`quick-tips.ts`, flag `studio.tipDismissed`).
+`trackPointer` (`pointer-drag.ts`) follows every drag: pointer move, release,
+Esc or window blur cancel it.
 
-*Zone sheet* (`zone-inspector.tsx`). A fixed header holds the widget title,
-hide / duplicate / remove, the zone box and the settings search. The sheet is
-`categorize` of the zone's settings (a module's, `PANEL_SETTINGS` or
-`CARD_SETTINGS`) plus what the zone adds to general cards through `extras`:
-the widget type picker and *Visible* in Widget, `StyleModeBar` (Follow /
-Custom) and `StyleTools` in Colors & surface, the zone frame
-(`zone-design-section.tsx`) in Border & effects. A blank zone gets only
-those. A panel zone adds `groups` from `usePanelSheet` (`panel-sheet.tsx`):
-the Panel, Layout, Background and Widgets cards and, with a widget selected,
-its cards from `widgetCards` (`widget-editor/`: data, display, size &
-placement, typography, color, advanced); the Code view swaps those for one
-wide card. The studio asks the sheet to scroll to a card with a `jumpTo`
-`{ id, seq }` (the toolbar's Style button, "Go to Widget settings", "Go to
-Colors & surface", "Save panel as preset"); `inspector-scroll.ts` still
-reveals `[data-widget-editor]` for a newly selected widget.
+**Studio inspector** (`inspector-model.ts`, `inspector/`, `zone-inspector.tsx`,
+`document-inspector.tsx`, `studio-inspector.tsx`). One registry drives every
+inspector. `inspector-model.ts` is pure: given an `InspectorContext` (a
+widget zone with its module's `settings`, a panel, a blank zone, several
+zones, or the dashboard) it returns the tabs (`inspectorTabs`: Content /
+Style / Data for a widget or panel; Profile / Appearance / Global style /
+General for the dashboard; none for a blank or multi selection) and the
+ordered `InspectorSection`s of each (`allSections`, `sectionsFor`). A section
+is a list of `ModuleSetting`s, optional `extras` (the widget picker, Visible,
+Follow / Custom, the style tools, the zone frame) and optionally a `special`
+marker for custom UI (the panel editor, Bound data, the presets gallery, the
+theme editor, ...). `searchAll` searches every tab at once;
+`applyAdvanced` hides advanced settings and counts them for "Show N advanced
+settings"; `sourceState` and `changedCount` give each row's source dot and
+the "N changed" counts. Sections come from `inspector-categories.ts`:
+`GENERAL_CATEGORIES` (Widget, Size & alignment, Typography, Spacing & shape,
+Colors & surface, Border & effects, Advanced) own the standard keys,
+`categorize(defs)` returns them in that order and then the module's own
+categories in first-appearance order, and `categoryTab` / `ModuleSetting.tab`
+decide the tab (see [Adding a setting](#adding-a-setting-to-a-module)).
+`inspector/inspector-view.tsx` renders the result (header, search, tabs, the
+sections, the Advanced footer with the dot legend) for both placements;
+`source-dot.tsx` draws the dots; `inspector-prefs.ts` keeps the Advanced flag
+and the open tab per context in localStorage (`studio.inspectorAdvanced`,
+`studio.inspectorTabs`), open sections live in `studio.sections`.
 
-*Document sheet* (`document-inspector.tsx`, nothing selected). The same
-`CategorySheet`: **Appearance** (`appearance-panel.tsx`'s `GlobalStyleScope`
-with the All profiles / This profile switch and force, and the presets
-gallery as a wide card), the global style as general category cards over
-`PROFILE_STYLE_SETTINGS`, **Page** (theme colors - `theme-panel.tsx` for the
-dashboard's, `profile-theme-panel.tsx` with Inherit / Custom for a profile's
-own - and the background: `background-panel.tsx` for its All profiles / This
-profile scope, `background-editor.tsx`, `background-video.tsx`; edits go
-through `withBackground`, undo-keyed per scope by `backgroundKey`),
-**General** (`general-panel.tsx`'s `generalCards`, written with
-`withGeneral`) and **Connection** (the Data API URL). Open state of
-collapsible cards is kept in localStorage (`studio.sections`, ids
-`card:<id>`). See the [customization guide](customization-guide.md).
+*Source dots.* `settings-model.ts`'s `settingStateOf` classifies a row as
+`default`, `dashboard`, `profile`, `here`, `overriding` (set here over a global
+value) or `ignored` (set here but the widget follows the global style, or it
+is forced). The inputs are the widget's stored settings and
+`resolveStyle` (`src/lib/style-resolve.ts`), the same resolution the canvas
+renders; clicking a dot that is set here resets the row (`dropKeys`).
+
+*Zone inspector* (`zone-inspector.tsx`). The header holds the icon, the
+editable name, the meta line and Hide / Duplicate / Delete, then the placement
+row (validated by `zone-geometry.ts`) and the search. The body is
+`inspector-view.tsx` fed by `widgetContext(module)` or a panel context.
+Panels plug their own editor in through `panel-sheet.tsx`
+(`usePanelSheet`: the Panel, Layout, Background, Widgets cards and, with a
+widget selected, its cards from `widget-editor/`: kind, display, size &
+placement, typography, colour, advanced); `inspector/panel-cards.ts` maps each
+card to its special section, and the Code view swaps them for one JSON card.
+The Data tab is `inspector/bound-data.tsx` over `bound-data-model.ts`: the
+rows are `boundRows` (a panel's widgets' sensors, or the keys a widget zone
+claims, from `data-usage.ts`), and `data-picker.tsx` is the bind dialog
+(widget mode: multi-toggle; item mode: a panel widget's Sensor field).
+Several zones use `inspector/multi-inspector.tsx` (the shared Style sections,
+written to every selected zone).
+
+*Dashboard inspector* (`document-inspector.tsx`, nothing selected, over
+`use-document-props.ts` for its data and edits). Profile
+(`inspector/profile-sections.tsx`: profile fields, This profile
+Inherit / Custom, Auto-pick), Appearance (`appearance-panel.tsx`'s scope and
+Force switch, the presets gallery `appearance-gallery.tsx`, `theme-panel.tsx` /
+`profile-theme-panel.tsx`, and the page background `background-panel.tsx`,
+`background-editor.tsx`, `background-video.tsx`; background edits go through
+`withBackground`, undo-keyed per scope by `backgroundKey`), Global style (the
+look sections over `PROFILE_STYLE_SETTINGS`, written at the dashboard or
+profile level) and General (`general-panel.tsx`: Type, Clock & date, Display,
+Studio = the inspector position, Connection = the Data API URL). See the
+[customization guide](customization-guide.md).
+
+**Data Explorer and binding** (`sources-panel.tsx`, `explorer/`,
+`src/lib/data-points.ts`, `data-usage.ts`, `data-live.ts`,
+`sample-history.ts`). Sources mode swaps the canvas and the inspector for
+`sources-panel.tsx`. `data-points.ts` normalises the catalog (`/api/sources`
+plus the `/api/sensors` snapshot, via `useSensorCatalog`) into
+source → container → point: `buildDataModel` classifies each value
+(`classifyValue`: empty, url, list, bool, number, text), maps a unit to a kind
+(`kindOfUnit`), gives each source a category and a health (`healthOf`: off =
+no points, warn = every point empty or zero, else ok), and `searchPoints` is
+the multi-word AND search. `data-usage.ts` derives "Used by" from the config
+(`computeUsage`: a panel widget claims its `sensor` and `subSensor`; a widget
+zone claims its module's `prefixes`, narrowed to one container when the
+module's `optionsFrom: "sources"` setting is set) and holds the writes behind
+Bind and Unbind (`bindPoint`, `unbindPoint`): they only set the widget fields
+and settings the zones already read, so no new field is stored and old configs
+load unchanged. `data-live.ts`'s `useLiveData` reads the page's one
+sensor store (`sensor-store.ts`) - never one stream per row - and feeds a
+`SampleHistory` (24 samples, one per ~900 ms) for the point inspector's
+sparkline and Min / Avg / Max. The pure parts of the view live in
+`explorer/explorer-model.ts` (scopes, filters, the flattened rows the table
+windows), `explorer-endpoints.ts` (the routes of `GET /api`),
+`explorer-actions.ts` (`addStatZone`: "New widget from this value"); the
+components are `source-tree.tsx`, `point-table.tsx`, `point-inspector.tsx`,
+`group-summary.tsx` (which also keeps `sourcePrefs`, the show / display-name
+preferences) and `explorer-header.tsx`.
 
 **Studio layout** (`studio-layout.ts`, `use-studio-layout.ts`). The pure
-`computeLayout({ body, page, rail, drawer, inspector, mode, dockHeight,
-collapsed })` returns `{ placement, dockHeight, canvasWidth, canvasHeight,
-fitZoom }`. `body` is the studio below the top bar; `page` the profile's
-design size (`height` 0 for a scroll profile, then `naturalHeight` from
-its grid); `rail`, `drawer` and `inspector` are the widths beside the canvas
-(the drawer counts only there: in the dock it is a column). `side` subtracts
-rail, drawer, inspector, the vertical ruler (28 px), the horizontal ruler
-(24 px) and the strip under the canvas (`BAR_H`, 36 px). `auto` goes to the
-dock when the page, fitted to the width without the inspector, leaves at
-least `AUTO_FREE_SHARE` (35%) of the body free and at least `AUTO_MIN_DOCK`
-(220 px); an unknown page height stays `side`. The dock height (its strip
-included) is the free height, or the user's, clamped to `MIN_DOCK` (200 px)
-.. `MAX_DOCK_SHARE` (70%) of the body; collapsed it is `BAR_H`. `fitZoomFor`
-is the largest zoom (floored to 1%, within 0.25 .. 2) at which the page plus
-32 design px of padding fit a box; a page without a height is fitted to the
-width only. `useStudioLayout` measures the body with a ResizeObserver
-(`bodyRef`) and keeps the mode, the dragged dock height and the collapsed
-flag in localStorage (`studio.layout`, `studio.dockHeight`,
+`computeLayout({ body, page, rail, drawer, design, inspector, mode,
+dockHeight, collapsed })` returns `{ placement, dockHeight, canvasWidth,
+canvasHeight, fitZoom }`. `body` is the studio below the top bar; `page` the
+profile's design size (`height` 0 for a scroll profile, then `naturalHeight`
+from its grid). The left panel (`drawer`) is a column beside the canvas in both
+placements. `side` subtracts rail, left panel, inspector (`INSPECTOR_WIDTH`,
+340 px), the vertical ruler (28 px) and the horizontal ruler (24 px). `auto`
+decides by the profile alone (`autoPlacement`): Bottom when the design size's
+width / height is above `AUTO_BOTTOM_ASPECT` (2.5), else Side - the window and
+the free space no longer matter. The dock height (its 28 px toggle row
+included) is 320 px (`DEFAULT_DOCK`) or the user's dragged value, clamped to
+`MIN_DOCK` (200 px) .. `MAX_DOCK_SHARE` (70%) of the body; collapsed it is
+`BAR_H`. `nextLayoutMode` is the zoom bar's dock button (Auto → Side →
+Bottom). `fitZoomFor` is the largest zoom (floored to 1%, within 0.25 .. 2) at
+which the page plus 32 design px of padding fit a box; a page without a height
+is fitted to the width only. `useStudioLayout` measures the body with a
+ResizeObserver (`bodyRef`) and keeps the mode, the dragged dock height and the
+collapsed flag in localStorage (`studio.layout`, `studio.dockHeight`,
 `studio.dockCollapsed`, each in try/catch); `pageSize(profile)` gives the page
 as the canvas draws it. `studio-shell.tsx` renders the placement: a row (rail,
-drawer, canvas with its strip, inspector) for Side, or rail and canvas over a
-`dock-splitter.tsx` (pointer capture, a guide line while dragging, commit on
-release, snap to auto, double-click reset) and the dock (the strip with
-`dock-toggle.tsx`, then the drawer and the inspector as columns).
-`studio-drawers.tsx` renders the open drawer beside the rail or as the dock's
-first column.
+left panel, canvas with the zoom bar floating over it, inspector) for Side, or
+rail, left panel and canvas over a `dock-splitter.tsx` (pointer capture, a
+guide line while dragging, commit on release, double-click reset) and the dock
+(a top row with `dock-toggle.tsx`, then the inspector).
 
-**Sticky fit** (`use-canvas-zoom.ts`). `useCanvasZoom(page)` measures the
-canvas scroll container with a ResizeObserver; while `fitting` (the
-default) the zoom is `fitZoomFor(box, page)` and follows the container and
-the profile. Any manual zoom (`setZoom`, steps, Ctrl + wheel) turns
-`fitting` off; `fitZoom()` turns it on. `studio-canvas.tsx` centers the page
-(flex with `m-auto`) and offsets the rulers by the page's origin.
+**Sticky fit** (`use-canvas-zoom.ts`, `zoom-pref.ts`). `useCanvasZoom(page)`
+measures the canvas scroll container with a ResizeObserver; while `fitting`
+(the default) the zoom is `fitZoomFor(box, page)` and follows the container
+and the profile. Any manual zoom (`setZoom`, steps, Ctrl + wheel) turns
+`fitting` off; `fitZoom()` turns it on. The mode is stored (`studio.zoom`).
+`studio-canvas.tsx` centers the page (flex with `m-auto`) and offsets the
+rulers by the page's origin.
 
 **Inspector in the dock** (`inspector-layout.tsx`, `inspector-scroll.ts`).
-`InspectorLayout` (`"side" | "dock"`) is a React context that the inspectors
-and panels read (`useInspectorLayout`); `InspectorHeader`, `HeaderSlot` and
-`InspectorBody` switch their wrapper classes, so Side renders as before and
-the dock gets a one-row header and a body of CSS columns (about 17.5 rem,
-balanced, with `break-inside-avoid` on sections and rows).
-`inspector-scroll.ts` finds the scrolling element (the aside beside the
-canvas, `data-inspector-scroll` in the dock) for scroll-to-top and the
-widget-editor reveal. `use-document-props.ts` holds the document inspector's
-data and edits (theme, global style, background, general, Data API URL).
+`InspectorLayout` (`"side" | "dock"`) is a React context that the inspector
+parts read (`useInspectorLayout`); `InspectorHeader`, `HeaderSlot` and
+`InspectorBody` switch their wrapper classes, so Side stacks the sections and
+the dock gets a one-row header and a body of CSS columns (about 300 px,
+`break-inside-avoid` on sections). `inspector-scroll.ts` finds the scrolling
+element for scroll-to-top and the widget-editor reveal.
 
-**Studio left rail** (`left-rail.tsx`). A 48 px icon rail opens one drawer
-at a time, remembered in localStorage (`studio.drawer`): **Add**
-(`insert-panel.tsx`; `filterInsertables` searches and filters by category,
-and `InsertList` is reusable with an `onPick` callback), **Layers**
-(`layers-panel.tsx`, zones in `sortZones` order) and **Profiles**
-(`profiles-panel.tsx`: profile list, the Auto entry via `resolveProfile`,
-and the active profile's name, size, grid, fit, gap and padding). **Sources** is not a
-drawer: it swaps the canvas for `sources-panel.tsx`.
+**Studio left rail and panels** (`left-rail.tsx`). A 52 px icon rail opens
+one panel at a time, remembered in localStorage (`studio.drawer`): **Add**
+(`insert-panel.tsx`: search, category chips, widget / layout / panel cards
+that drag (HTML5 drag, MIME in `studio-modules.ts`) or click to place;
+`filterInsertables` searches and filters, `InsertList` is reusable with an
+`onPick` callback), **Layers** (`layers-panel.tsx`, zones in `sortZones`
+order, Shift / Ctrl-click to multi-select) and **Profiles**
+(`profiles-panel.tsx`: profile list with a thumbnail, the Auto entry via
+`resolveProfile`, Auto-pick). **Sources** is not a panel: it swaps the canvas
+for the Data Explorer. The keyboard icon opens `shortcuts-dialog.tsx`.
 
-**Studio top bar and zone toolbar.** `studio-top-bar.tsx` holds the profile
-switcher (a Base UI menu), the Design | Sources switch, Undo / Redo, Save,
-Kiosk view and a "..." menu: Export / Import (`config-file.ts`), Copy
-profile JSON, Command palette, Keyboard shortcuts, Reset everything (behind
-`reset-config-dialog.tsx`) and the build id. The selected
-zone gets `zone-toolbar.tsx`, rendered over the canvas viewport but outside
-its CSS `zoom` so it keeps a constant size; `toolbarPosition`
-(`zone-toolbar-position.ts`) puts it above the zone, below it, or inside a
-zone taller than the view, and it re-measures on scroll, zoom and resize.
-`widget-picker-dialog.tsx` reuses `InsertFilters` and `InsertList` to assign
-a widget (`assignModule` / `assignPreset` / `clearWidget` in
-`studio-actions.ts`).
+**Studio top bar.** `studio-top-bar.tsx` holds the profile switcher (a Base UI
+menu), the Design | Sources switch, Undo / Redo, Kiosk view, Save (a dot while
+edits are not pushed yet) and a "..." menu: Export / Import
+(`config-file.ts`), Copy profile JSON, Command palette, Keyboard shortcuts,
+Reset everything (behind `reset-config-dialog.tsx`) and the build id.
+`widget-picker-dialog.tsx` reuses `InsertFilters` and `InsertList` to assign a
+widget (`assignModule` / `assignPreset` / `clearWidget` in `studio-actions.ts`).
 
 **Undo history** (`src/hooks/use-config-history.ts`, `config-history.ts`).
 The studio wraps App's `setConfig` in `useConfigHistory`, so every studio
 edit records the previous config snapshot; undo and redo write snapshots
 back through the same setter, which means persistence, the debounced server
 push and the kiosk event stream treat them like any other edit. A change
-can carry a key (`<zone>:setting:<key>`, `zone-drag:<id>`, `theme:<token>`,
+can carry a key (`<zone>:setting:<key>`, `theme:<token>`,
 `<profile>:profile-theme:<token>`, `general:<key>`, `profile:gap` and so
 on): same-key changes less than 500 ms apart coalesce into one step.
 Panel field edits are keyed per field (`<zone>:panel:<field>`,
 `<zone>:panel-widget:<widget>:<field>`); structural edits (add, remove,
-reorder, duplicate, paste, change kind, Code view Apply) and the saved-panel
-edits carry no key, so each is its own step.
-The stacks hold 100 steps and live only while the studio is open; a config
-replaced from outside (the server copy loaded on open) clears them. When an
-undo removes the selected zone, the selection is cleared.
+reorder, duplicate, paste, change kind, Code view Apply, applying an
+appearance preset) and the saved-panel edits carry no key, so each is its own
+step. **Transactions** make a whole pointer drag one step however long it
+takes: `begin()` snapshots the config when a move or resize really starts
+(`placement-frame.tsx`'s drag-start callback), changes during it only move the
+config (`recordChange` ignores them while `txn` is set), `commit()` records
+start → current as one step (nothing if it ended where it began) and
+`cancel()` (Esc, window blur) restores the start snapshot and records nothing.
+Undo, redo and the shortcuts stand down while a transaction is open
+(`dragging()`). The stacks hold 100 steps and live only while the studio is
+open; a config replaced from outside (the server copy loaded on open) clears
+them, but switching profile does not: a switch is itself a step. When an undo
+removes the selected zone, the selection is cleared.
 
 **Shortcuts and command palette.** `use-studio-shortcuts.ts` listens on the
 window; the pure `shortcutAction` maps a key press to an action, ignoring
-plain keys while focus is in a field or a dialog / menu is open. The
+plain keys while focus is in a field or a dialog / menu is open and everything
+but Esc while a drag is in flight; `SHORTCUT_GROUPS` there is the list the
+cheat sheet shows (General, Selected zones, Selected panel widget, Canvas).
+Ctrl+Alt+C / V read `event.code` (Alt changes `key` on some layouts). The
 command palette (`command-palette.tsx`, Ctrl+K) lists `buildCommands` from
 `commands.ts`, a pure function of the studio state whose entries carry an
-action descriptor that `studio-view.tsx` carries out (the shortcuts share
-that dispatcher); `rankCommands` orders matches prefix > word start >
-substring. `shortcuts-dialog.tsx` is the cheat sheet.
+action descriptor that `use-studio-commands.ts` carries out (the shortcuts and
+the context-menu rows share that dispatcher); `rankCommands` orders matches
+prefix > word start > substring.
 
-**Selection model.** `studio-view.tsx` keeps the selected zone and, for a
-panel zone, the selected widget (`{ zoneId, widgetId }`): the widget only
-counts while its zone is selected and still holds it, so selecting another
-zone, an undo or a delete drops it. The canvas selects it (a click inside
-the selected panel zone, or a double-click on a widget of another panel;
-`placement-frame.tsx` hit-tests `[data-widget-id]`), as do the layer list,
-the palette's *Select widget* and the breadcrumbs. With a widget selected
-the shortcuts run in widget mode (`ShortcutContext.widget`): Del, Ctrl+D,
-Ctrl+C / Ctrl+V and Alt+Up / Down map to `widget-*` actions that
-`panel-widget-actions.ts` carries out on the selected panel, while the
-arrow keys keep moving the zone; Esc steps out widget > zone > nothing. The
-palette and the zone's Duplicate / Remove tooltips drop their Ctrl+D / Del
-hints in widget mode. Widget names in the layers, crumbs and palette come
-from `widgetName` (`widget-kinds.ts`): the label, else the sensor's name
+**Selection model.** `use-studio-selection.ts` keeps the selected zones as an
+ordered list - the last is the *primary* zone (chip, handles, keyboard resize,
+inspector) - and, for a panel zone, the selected widget
+(`{ zoneId, widgetId }`). `selection.ts` defines how a click changes it:
+`only`, `toggle` (Shift / Ctrl / Cmd) and `primary` (a press on a selected
+zone before a drag keeps the rest). The widget only counts while its zone is
+the one selected zone and still holds it, so selecting another zone, an undo
+or a delete drops it. The canvas selects it (a click inside the selected panel
+zone, or a double-click on a widget of another panel; `placement-frame.tsx`
+hit-tests `[data-widget-id]`), as do the layer list, the palette's *Select
+widget* and the breadcrumbs. With a widget selected the shortcuts run in
+widget mode (`ShortcutContext.widget`): Del, Ctrl+D, Ctrl+C / Ctrl+V and
+Alt+Up / Down map to `widget-*` actions that `panel-widget-actions.ts` carries
+out on the selected panel, while the arrow keys keep moving the zone; Esc steps
+out widget > zone > nothing. Widget names in the layers, crumbs and palette
+come from `widgetName` (`widget-kinds.ts`): the label, else the sensor's name
 from the Data API catalog, else the key's last segment.
+
+### Adding a setting to a module
+
+Settings are plain `ModuleSetting` entries in a module's `settings` array
+(`src/modules/types.ts`); the inspector renders them with no UI code. Besides
+the usual `key`, `label`, `type` and `default`:
+
+- `group` names the section (category) it joins; settings that share a group
+  render together, placed where the group first appears.
+- `tab` (`"content" | "style" | "data"`) picks the inspector tab. Unset, a
+  setting follows its category: the general categories by their kind, a
+  widget's own categories in Content, those made only of colour pickers in
+  Style. Put a data-related category in Data explicitly.
+- `advanced: true` tucks it away until the Advanced toggle is on (a category
+  can be advanced as a whole).
+- `hint` is the one-line explanation behind the row's info icon, and is
+  searched.
+- `visibleIf(values)` shows the row only while it holds for the zone's
+  effective values (for example the glow colour only when glow is not none).
+
+`inspector-categories.test.ts` checks every module resolves to a known
+category. Keys that are look settings (`PROFILE_STYLE_KEYS`) take part in the
+dashboard / profile / own layering and get source dots; never rename a key or
+change a default without a migration, since saved configs hold them.

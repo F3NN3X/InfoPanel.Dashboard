@@ -48,21 +48,21 @@ http://127.0.0.1:3922/?kiosk=1&profile=<profile id>
 
 Click the wrench button (or open `/?studio=1`) to edit layouts. Changes save automatically, and the **Save** button (Ctrl+S) saves immediately. Every open kiosk page, including InfoPanel's web page profiles, picks up a saved change within about a second without reloading.
 
-Every studio edit can be undone (Ctrl+Z, redo with Ctrl+Shift+Z), **Ctrl+K** opens a command palette for any action, and **?** lists the keyboard shortcuts. The [customization guide](docs/customization-guide.md) walks through the studio layout.
+Every studio edit can be undone (Ctrl+Z, redo with Ctrl+Shift+Z), **Ctrl+K** opens a command palette for any action, and **?** lists the keyboard shortcuts. The studio is a top bar, an icon rail with a left panel (**Layers**, **Add**, **Profiles**), the canvas with a floating zoom bar, and the inspector beside it (340 px) or below it (320 px; **Auto** picks below for profiles wider than 2.5 : 1). Click a zone to select it (Shift- or Ctrl-click for several), drag to move or resize, drag widgets in from **Add**, and right-click for menus. The inspector's **Content / Style / Data** tabs, search and Advanced toggle are driven by the widgets' settings, and dots show where each value comes from. **Sources** opens the Data Explorer for every data point and what uses it. The [customization guide](docs/customization-guide.md) walks through the studio layout.
 
-With nothing selected, the inspector sets the look of every profile or just one: **Appearance** (one-click appearance presets, the global widget style, theme colours), **Background** (a colour, gradient, image or video behind the grid, by URL or upload), **General** (page font, 12 / 24 h clock and date locale, motion, hiding the cursor on kiosk pages) and **Connection**. Each profile also has its own gap between zones and padding around the grid (Profiles drawer).
+With nothing selected, the Dashboard inspector sets the look of every profile or just one: **Profile** (design size, grid, gap and padding, which parts inherit), **Appearance** (one-click appearance presets, theme colours, a colour, gradient, image or video page background by URL or upload), **Global style** (the widget look shared by every widget) and **General** (page font, 12 / 24 h clock and date locale, motion, hiding the cursor on kiosk pages, the inspector position, the Data API URL).
 
 The studio config is stored by the server in `%LOCALAPPDATA%\InfoPanel\Dashboard\config.json`.
 
 ### Data API URL
 
-The studio inspector's **Connection** tab (with nothing selected) has a **Data API URL** setting, default `http://127.0.0.1:3921`. It is saved in the config, so kiosk pages follow it too, and changing it reconnects the live streams without a restart. **Test connection** checks that `{url}/api` answers, and **Open API index** opens the Data API's page listing every key.
+The Dashboard inspector's **General** tab (with nothing selected) has a **Connection** section with a **Data API URL** setting, default `http://127.0.0.1:3921`. It is saved in the config, so kiosk pages follow it too, and changing it reconnects the live streams without a restart. **Test connection** checks that `{url}/api` answers, and **Open API index** opens the Data API's page listing every key.
 
 ### How the dashboard reads the Data API
 
 - **Sensor values** come from filtered change streams, `{url}/events?prefix=<namespace>&interval=1000`: the full set under the prefix on connect, then only changed and removed keys. A page opens one stream per namespace its visible widgets read (`plugins.<plugin>.`, `libre.`, `system.`, …), folding the plugin streams into one `plugins.` stream past four, since browsers allow six connections per host. Each zone re-renders only when one of its own keys changes. Streams reconnect on their own, and a changed Data API URL drops the old values and reconnects.
 - **Wave Link** has its own 100 ms stream, `{url}/events?prefix=plugins.wavelink-plugin.wavelink.&interval=100`, feeding the meters without React re-renders.
-- **The studio's pickers** (sensor binding, Sources view, a widget's source select) use `{url}/api/sources` for plugin, container and entry names and entry types, and one `{url}/api/sensors` snapshot for values, re-fetched when a picker opens.
+- **The studio's pickers** (the Data Explorer, the bind picker, a widget's source select) use `{url}/api/sources` for plugin, container and entry names and entry types, and one `{url}/api/sensors` snapshot for values, re-fetched when a picker opens.
 - **Plugin images** (`/api/images/{pluginId}/{imageId}`) render as images; root-relative paths resolve against the Data API URL.
 
 The weather forecast comes from the yr plugin (`plugins.yr-weather-plugin.<location>.forecast`). Saved layouts bound to the retired DataBridge forecast key are migrated automatically.
@@ -82,10 +82,10 @@ The weather forecast comes from the yr plugin (`plugins.yr-weather-plugin.<locat
 
 The [docs index](docs/README.md) lists everything; the main entries:
 
-- [Customization guide](docs/customization-guide.md) - the studio, styling widgets, appearance and general settings
+- [Customization guide](docs/customization-guide.md) - the studio, the inspector, the Data Explorer, styling widgets, appearance and general settings
 - [Widget catalog](docs/module-catalog.md) and [widget settings](docs/widget-settings.md)
 - [System widget](docs/system-widget.md)
 - [Architecture](docs/architecture.md) and [development](docs/development.md)
-- [Studio design: zones and widgets](docs/studio-redesign-zones-widgets.md)
+- [Studio design](docs/redesign/README.md) (the redesign spec) and [zones and widgets](docs/studio-redesign-zones-widgets.md) (the grid model)
 - `tools/ip-import.cjs` imports an InfoPanel profile as a dashboard layout.
 - `tools/gen-bg.mjs` regenerates the background image of the Glass and Frosted presets.

@@ -1,18 +1,18 @@
 # Widget Settings (Standardized)
 
 The schema, controls, and shared block behind every widget's settings in
-the studio inspector (one sheet of category cards). One reference for: what a setting *is*, what every
+the studio inspector (tabs of collapsible sections, driven by one registry). One reference for: what a setting *is*, what every
 widget gets for free, and how a new widget adopts it.
 
-Companion to [`studio-redesign-zones-widgets.md`](studio-redesign-zones-widgets.md)
-(the why) and [`module-catalog.md`](module-catalog.md) (the what, per module).
+Companion to [`redesign/`](redesign/README.md) (the studio's design) and [`module-catalog.md`](module-catalog.md) (the what, per module).
 
 ## The setting schema
 
 A module declares `settings: ModuleSetting[]` (`src/modules/types.ts`). The
 studio's inspector renders one control per entry, as a compact row in a
-card (`CategorySheet`, `SettingCard` and `setting-rows.tsx`). The card is the
-setting's *category*: standard keys are filed by key in the general
+section (`inspector-model.ts` builds the sections and `setting-control.tsx` /
+`setting-rows.tsx` draw the rows). The section is the setting's *category*:
+standard keys are filed by key in the general
 categories (`GENERAL_CATEGORIES` in
 `src/components/studio/inspector-categories.ts`), module-specific ones by
 their `group` (`categorize`); values are stored **per placement**
@@ -118,7 +118,7 @@ The plain card modules (VBZ, notifications, text file, Stream Deck) and the
 `SURFACE_SETTINGS`, drawn by `StyledCard` (below). Web page takes `scale`,
 `radius`, `accent` and the border / glow keys (an edge drawn over the
 frame). In the studio the standard options sit in the **general
-categories**, the same cards on every widget (`group` carries the title; the
+categories**, the same sections on every widget (`group` carries the title; the
 keys are listed in `GENERAL_CATEGORIES`):
 
 | Category | Keys |
@@ -146,8 +146,8 @@ while idle, and the studio badges it "idle · hidden in kiosk".
 The look-only keys (`PROFILE_STYLE_KEYS`: `surface`, `accent` and every
 key of `STYLE_SETTINGS` / `SURFACE_SETTINGS`) can be set once for every
 profile (`DashboardConfig.style`) and per profile (`MonitorProfile.style`),
-in the studio's **Appearance** tab (All profiles / This profile) when
-nothing is selected. Resolution order (`resolveStyle`,
+in the Dashboard inspector (nothing selected: **Appearance** for the scope
+(All profiles / This profile), **Global style** for the values). Resolution order (`resolveStyle`,
 `src/lib/style-resolve.ts`): module default → dashboard style → profile
 style → the widget's own value. A placement's `styleMode: "follow"` skips
 its own look values (kept stored); `styleEnforce` (dashboard, or the
@@ -171,14 +171,24 @@ look keys, and every value must be one of the setting's options
 (`isValidStyleValue`); a new look option therefore becomes available to
 presets automatically.
 
+Four optional fields place a row in the inspector (everything else about the
+registry is in [architecture.md](architecture.md#adding-a-setting-to-a-module)):
+
+| Field | Effect |
+|---|---|
+| `tab` | `"content"`, `"style"` or `"data"`. Unset, the category decides: general categories by their kind, a widget's own categories in Content, those made only of color pickers in Style. Put data-related options in Data. |
+| `advanced` | Tucked away until the inspector's **Advanced settings** toggle is on (counted in "Show N advanced settings"). |
+| `hint` | One-line explanation behind the row's info icon; it is searched too. |
+| `visibleIf(values)` | The row shows only while this holds for the zone's effective values (e.g. glow colour only when glow is not none). |
+
 Module-specific options follow the standard block and keep their own keys
 (`tint`, `showTimes`, `forecastDays`, `dimBanner`, `maxRows`, …). Give each
-one a `group`: its own category card (aim for 2-10 options each; a card
+one a `group`: its own category section (aim for 2-10 options each; a section
 named like a general one is not allowed). The test
 `inspector-categories.test.ts` fails for an unfiled option or a one-option
 category that is not on its allow-list. Per-element colors (e.g. the System
 widget's CPU / GPU / RAM / VRAM colors) get a category of their own
-("Device colors"), not the general Colors & surface card. Examples: Media -
+("Device colors"), not the general Colors & surface section. Examples: Media -
 *Now playing*, *Cover art*, *Waveform*, *Visualizer*, *Waveform shape*,
 *Audio source*; System - *Devices*, *CPU*, *GPU*, *Memory*, *Drives*,
 *Trends*, *Thresholds*, *Units & labels*, *Device colors*.
@@ -186,7 +196,7 @@ widget's CPU / GPU / RAM / VRAM colors) get a category of their own
 ### Panels (`PANEL_SETTINGS`)
 
 A custom panel zone's look is its placement's `settings` too, rendered on
-the general cards from `PANEL_SETTINGS` (`src/modules/standard-settings.ts`):
+the general sections from `PANEL_SETTINGS` (`src/modules/standard-settings.ts`):
 the standard block without `preset`, `layout`, `autoScale` and `stroke`
 (a panel has no layout variants, design size or rings of its own), with
 two changes:
@@ -527,40 +537,37 @@ is the reference.
 ## Extending
 
 - **New control type** — add it to the `ModuleSetting.type` union, a case in
-  `SettingsPanel`, and (if it takes extra data) fields on `ModuleSetting`.
+  `SettingRow` (`setting-control.tsx`), and (if it takes extra data) fields on `ModuleSetting`.
   The renderer is fully schema-driven; nothing else changes.
 - **New icon** — one line in `lib/widget-icons.ts` (`WIDGET_ICONS`); it
   shows up in every icon picker.
 - **New preset** — an option with `applies` on the standard `preset`
   select; it applies to every module that declares those keys.
 
-## The studio Sources view
+## The studio Data Explorer
 
 The studio's left icon rail has a **Sources** button (and the top bar a
-**Design | Sources** switch) that swaps the canvas
-for a two-pane manager (`components/studio/sources-panel.tsx`), modeled on
-InfoPanel's own Sources tab:
+**Design | Sources** switch) that swaps the canvas and the inspector for the
+Data Explorer (`components/studio/sources-panel.tsx`, `explorer/`): a source
+tree, a table of every data point with its live value and the zones that use
+it, and a point inspector. The customization guide describes it
+([Data Explorer and binding](customization-guide.md#data-explorer-and-binding));
+this section is about what it stores.
 
-- **Left — catalog.** Every plugin the host is currently exposing, with the
-  sources (containers) each pushes, derived **live from the sensor stream**
-  (`groupSources`, `lib/sources.ts`). Search filters across plugin names,
-  source labels, and container ids; each plugin group collapses; each source
-  row has an eye toggle (show/hide) and a live value chip.
-- **Right — detail.** The selected source's live entries (key / value table),
-  a display-name override, the show-in-dashboard toggle, and a
-  **bind-to-widget** action: pick any placement whose module declares a
-  compatible `source` setting (same plugin scope) and point it at this
-  source.
-
-All state is dashboard-side. The Data API is read-only towards InfoPanel's
-plugins, so this view configures what the dashboard *shows* — it never reconfigures InfoPanel plugins; their
-own settings stay in InfoPanel's Sources tab.
+The tree and table are derived **live** from `/api/sources` and the sensor
+stream (`buildDataModel`, `src/lib/data-points.ts`); "Used by" is derived from
+the config (`computeUsage`, `src/lib/data-usage.ts`). The Data API is
+read-only towards InfoPanel's plugins, so the Explorer configures what the
+dashboard *shows* - it never reconfigures InfoPanel plugins; their own
+settings stay in InfoPanel's Sources tab.
 
 - **Source preferences** — `config.sourcePrefs` on `DashboardConfig`
   (`lib/layout.ts`), persisted with the rest of the dashboard config. Keys
   are `{plugin}::{container}` (`""` container for flat sources); values are
   `{ enabled?, displayName? }`.
-- **Binding** — a placement's `settings.source` (the container id, `""` =
-  all devices). Bind/Unbind in the Sources view write exactly the same key
-  the widget's own "Source (device)" select writes, so both paths stay in
-  sync.
+- **Binding** — `bindPoint` / `unbindPoint` write only fields that already
+  exist: a panel widget's `sensor`, or a placement's `settings.source` (the
+  container id, `""` = all devices; a widget can be bound to a container,
+  never to a single key). That is the key the widget's own "Source (device)"
+  select writes, so the Explorer, the inspector's Bound data and the select
+  stay in sync.
