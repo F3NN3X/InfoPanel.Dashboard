@@ -35,3 +35,5 @@ it where the spec says.
 | 22 | Endpoints popover copy | Copies the full URL, not the path the row shows. |
 | 23 | Bottom-dock header | Header and the placement fields stay on one row in the dock, to save height. |
 | 24 | Inspector simplifications not taken | Kept as real settings: background Position / Tint / Blur stay visible (no model change), gradient and Fill rows, the overlay Dark scrim (no Dim slider), number inputs for panel Gap / Padding / Columns, the Font select and Clock Locale option, the full preset preview swatches, and the "Show advanced colors" button (#8). |
+| 25 | Zone context menu extras | Kept after the prototype's items: Change widget, Global style (all profiles / this profile), Narrower / Wider / Shorter / Taller, Deselect. |
+| 26 | Inspector tabs | The changed-count pills (README §4) need a tighter strip than the prototype's pill-less one: 12px side padding and a 10px gap, so four dashboard tabs fit 324px without scrolling. |
