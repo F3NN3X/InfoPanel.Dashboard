@@ -4,6 +4,8 @@ import { profileGap, profilePadding } from "@/lib/profile-grid";
 import {
   computeLayout,
   nextLayoutMode,
+  leftPanelFits,
+  placementFor,
   type LayoutMode,
   type PageSize,
   type StudioLayout,
@@ -119,12 +121,18 @@ export function useStudioLayout({ page, rail, drawer, design, forceSide }: Studi
 
   const { width: pageW, height: pageH, naturalHeight } = page;
   const { width: designW, height: designH } = design;
+  const leftOverlay = !leftPanelFits(body.width, placementFor(mode, design, forceSide), {
+    rail,
+    drawer,
+    inspector: INSPECTOR_WIDTH,
+  });
   const layouts = useMemo(() => {
     const input = {
       body,
       page: { width: pageW, height: pageH, naturalHeight },
       rail,
-      drawer,
+      // An overlaid left panel takes no width from the canvas.
+      drawer: leftOverlay ? 0 : drawer,
       design: { width: designW, height: designH },
       inspector: INSPECTOR_WIDTH,
       mode: forceSide ? ("side" as const) : mode,
@@ -133,13 +141,15 @@ export function useStudioLayout({ page, rail, drawer, design, forceSide }: Studi
       layout: computeLayout({ ...input, dockHeight: dock, collapsed }),
       auto: computeLayout(input),
     };
-  }, [body, pageW, pageH, naturalHeight, designW, designH, rail, drawer, forceSide, mode, dock, collapsed]);
+  }, [body, pageW, pageH, naturalHeight, designW, designH, rail, drawer, leftOverlay, forceSide, mode, dock, collapsed]);
 
   const layout: StudioLayout = layouts.layout;
   return {
     bodyRef: setBodyEl,
     body,
     layout,
+    /** The left panel does not fit beside the canvas: the shell lays it over the canvas. */
+    leftOverlay,
     /** The dock height without the user's override (the splitter snaps to it). */
     autoDockHeight: layouts.auto.dockHeight,
     mode,

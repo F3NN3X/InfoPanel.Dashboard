@@ -99,6 +99,27 @@ export function autoPlacement(design?: Size): Placement {
   return design && design.height > 0 && design.width / design.height > AUTO_BOTTOM_ASPECT ? "bottom" : "side";
 }
 
+/** The narrowest canvas the studio keeps (the shell's `main` min width). */
+export const MIN_CANVAS = 420;
+
+/** Where the inspector goes for a mode, before any measuring. */
+export function placementFor(mode: LayoutMode, design?: Size, forceSide = false): Placement {
+  if (forceSide || mode === "side") return "side";
+  return mode === "bottom" ? "bottom" : autoPlacement(design);
+}
+
+/**
+ * Whether the open left panel fits beside the canvas (and a side inspector).
+ * When it does not, the shell lays it over the canvas instead of squeezing
+ * the canvas below its minimum and scrolling the studio sideways. An
+ * unmeasured body (width 0) counts as fitting.
+ */
+export function leftPanelFits(bodyWidth: number, placement: Placement, widths: { rail: number; drawer: number; inspector: number }): boolean {
+  if (bodyWidth <= 0 || widths.drawer <= 0) return true;
+  const need = widths.rail + widths.drawer + MIN_CANVAS + (placement === "side" ? widths.inspector : 0);
+  return bodyWidth >= need;
+}
+
 /** Compute the placement, dock and canvas boxes, and the fit zoom. */
 export function computeLayout(input: LayoutInput): StudioLayout {
   const { body, page, rail, drawer = 0, inspector, mode, design, dockHeight, collapsed } = input;

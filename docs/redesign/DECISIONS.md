@@ -26,3 +26,7 @@ it where the spec says.
 | — | Fonts | Google Fonts: Geist / Geist Mono for chrome; catalog in `src/lib/fonts.ts`, loaded on demand. |
 | — | Bottom dock | The left panel stays separate; the drawer no longer becomes a dock column. |
 | — | Undo on profile switch | History stays whole-config; switching profile does not clear it (a switch is itself an undo step). |
+| 16 | Live value per source in the Explorer tree | Not shown. Sources show a point count and a health dot; live values are per point in the table and point inspector (a value per tree row would re-render the tree on every sample and most sources have no single representative value). |
+| 17 | Short toggles paired two to a line | Not restored: one field per row, as the spec's field rows. |
+| 18 | Narrow windows | When the left panel does not fit beside a 420px canvas (and a side inspector), it floats over the canvas as a drawer instead of scrolling the studio sideways. |
+| 19 | `--ui-text-4` | `#85858f` instead of the spec's `#7c7c86`, so faint labels reach 4.5:1 on every chrome surface. |

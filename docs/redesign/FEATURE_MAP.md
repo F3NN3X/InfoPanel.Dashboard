@@ -277,7 +277,7 @@ Enter each widget's **exact** current fields from its settings component. The pr
 | Data API URL | Dash › General › Connection | ✅ `data-api-panel.tsx:15` |
 | (+) Sources mode: per-source show/hide (eye) and Display name (`sourcePrefs`, stored on the dashboard) | Sources mode, source row and detail; today nothing outside the Sources panel reads them | ✅ `explorer/source-tree.tsx:93` (eye + display name), `group-summary.tsx:29` (decision #12) |
 | (+) Sources mode: Bind to widget / Unbind (writes the widget's `source` setting) | Sources mode "Used by" actions and Data tab › Bound data | ✅ `explorer/point-inspector.tsx:184` → `sources-panel.tsx:124`; Data tab `inspector/bound-data.tsx:36` |
-| (+) Sources mode: filter box, refresh (reload from the Data API), "Open API index" link, live value chip on each source | Sources mode toolbar and rows | ⚠️ partial: filter box, reload `explorer/explorer-header.tsx:58` and API index link work; the per-source live value chip is gone (tree rows show a point count + health dot, `explorer/source-tree.tsx:309-324`; live values only per point in `explorer/point-table.tsx`) |
+| (+) Sources mode: filter box, refresh (reload from the Data API), "Open API index" link, live value chip on each source | Sources mode toolbar and rows | ✅ (decision #16): filter box and reload `explorer/explorer-header.tsx:58`, API index link; live values per point in the table and point inspector, sources show a count + health dot |
 | (+) Audio source (live level source, live capture, capture devices, microphone access) | D › Audio source (already stated in §10; listed here for the data checklist) | ✅ `src/modules/modern-media.tsx:267-287` (Data tab), `setting-pickers.tsx` |
 
 ## 14. Keyboard, command palette and persistence (+)
@@ -306,7 +306,7 @@ Features of the deleted or rewritten `zone-toolbar.tsx`, `settings-panel.tsx`, `
 | Rail brand glyph "Dashboard studio" (no action) | Accent square in the top bar | ✅ `studio-top-bar.tsx` (decorative) |
 | Rail drawer titles (`DRAWER_TITLES`) | Each panel draws its own header | ✅ `insert-panel.tsx:328`, `layers-panel.tsx:30`, `profiles-panel.tsx:146` |
 | Panel inspector: Title, Show title, Background (None / Panel / Bordered), Accent | Widget › Title (empty = hidden), Colors & surface › Surface and Accent | ✅ `standard-settings.ts:298-313` (legacy `titleVisible` / `background` / `accent` still read when the setting is absent) |
-| Settings card: short toggles paired two to a line (`pairRows`) | One field per row | ⚠️ partial: cosmetic only, no setting lost; accept or restore in `inspector/inspector-view.tsx` |
+| Settings card: short toggles paired two to a line (`pairRows`) | One field per row | ✅ (decision #17): one field per row, as the spec's field rows; no setting lost |
 | Settings card: dock category list on the left with per-category changed counts | Tabs with changed pills, sections with "N changed" | ✅ `inspector/inspector-view.tsx:87`, `setting-card.tsx:93` |
-| Source detail pane: live value chip per source | Count + health dot per source | ⚠️ partial: see §13 |
+| Source detail pane: live value chip per source | Count + health dot per source | ✅ (decision #16): count + health dot per source; live values per point |
 

@@ -28,9 +28,14 @@ export function StudioShell({ layout, rail, drawer, main, bar, inspector, dockTo
   const { layout: l, collapsed } = layout;
   const docked = l.placement === "bottom" && inspector !== null;
   return (
-    <div ref={layout.bodyRef} className="flex min-h-0 flex-1 overflow-x-auto">
+    <div ref={layout.bodyRef} className="relative flex min-h-0 flex-1 overflow-x-auto">
       {rail}
-      {drawer}
+      {drawer && layout.leftOverlay ? (
+        // Too narrow to sit beside the canvas: the left panel floats over it as a drawer.
+        <div className="absolute inset-y-0 left-[52px] z-30 flex shadow-ui-drawer">{drawer}</div>
+      ) : (
+        drawer
+      )}
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex min-h-0 flex-1">
           <main className="relative flex min-w-[420px] flex-1 flex-col">

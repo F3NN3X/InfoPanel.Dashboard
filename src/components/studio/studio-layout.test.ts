@@ -10,6 +10,8 @@ import {
   clampDock,
   computeLayout,
   fitZoomFor,
+  leftPanelFits,
+  placementFor,
   nextLayoutMode,
   type LayoutInput,
 } from "./studio-layout";
@@ -251,5 +253,35 @@ describe("computeLayout (collapsed dock)", () => {
   it("does not change the side placement", () => {
     const page = { width: 1080, height: 1920 };
     expect(layout({ page, collapsed: true })).toEqual(layout({ page }));
+  });
+});
+
+describe("left panel overlay", () => {
+  const widths = { rail: RAIL, drawer: 256, inspector: SIDE };
+
+  it("fits beside the canvas and a side inspector on a wide window", () => {
+    expect(leftPanelFits(1440, "side", widths)).toBe(true);
+  });
+
+  it("overlays at 1024 with the inspector at the side (52 + 256 + 420 + 340 = 1068)", () => {
+    expect(leftPanelFits(1024, "side", widths)).toBe(false);
+    expect(leftPanelFits(1068, "side", widths)).toBe(true);
+  });
+
+  it("fits at 1024 when the inspector is in the bottom dock", () => {
+    expect(leftPanelFits(1024, "bottom", widths)).toBe(true);
+  });
+
+  it("counts an unmeasured body or a closed panel as fitting", () => {
+    expect(leftPanelFits(0, "side", widths)).toBe(true);
+    expect(leftPanelFits(800, "side", { ...widths, drawer: 0 })).toBe(true);
+  });
+
+  it("resolves the placement for each mode", () => {
+    const strip = { width: 1920, height: 550 };
+    expect(placementFor("auto", strip)).toBe("bottom");
+    expect(placementFor("auto", { width: 1920, height: 1080 })).toBe("side");
+    expect(placementFor("bottom", strip, true)).toBe("side");
+    expect(placementFor("side", strip)).toBe("side");
   });
 });
