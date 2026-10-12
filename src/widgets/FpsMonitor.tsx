@@ -75,7 +75,7 @@ interface GaugeViewProps {
 }
 
 /** The FPS ring against the refresh rate, with 1% low, frame time, metrics and the display facts around it. */
-function GaugeView({ idle, size, w, h, fps, low, low01, ft, hz, maxFps, tone, ringColor, sparkColor, hist, source, gpu, resolution, title, extras }: GaugeViewProps) {
+export function GaugeView({ idle, size, w, h, fps, low, low01, ft, hz, maxFps, tone, ringColor, sparkColor, hist, source, gpu, resolution, title, extras }: GaugeViewProps) {
   const color = ringColor || undefined;
   const tall = h >= w * 0.72;
   const ringSize = Math.max(40, tall ? Math.min(w * 0.7, h * 0.45, 150) : Math.min(h - 4, w * 0.34, 140));
@@ -112,7 +112,8 @@ function GaugeView({ idle, size, w, h, fps, low, low01, ft, hz, maxFps, tone, ri
     );
   const stats = (
     <div className="flex items-center gap-5">
-      {low > 0 && <Stat label={low01 > 0 ? `1% low · ${fmt(low01)} 0.1%` : "1% low"} value={`${fmt(low)} fps`} />}
+      {low > 0 && <Stat label="1% low" value={`${fmt(low)} fps`} />}
+      {low01 > 0 && <Stat label="0.1% low" value={`${fmt(low01)} fps`} />}
       {ft > 0 && <Stat label="Frame time" value={`${fmt(ft, 1)} ms`} />}
     </div>
   );
@@ -131,6 +132,14 @@ function GaugeView({ idle, size, w, h, fps, low, low01, ft, hz, maxFps, tone, ri
     <span className="text-[10.5px] font-medium text-[color:var(--w-muted)]">
       {source} · {fmt(maxFps)} Hz
     </span>
+  );
+  const side = size !== "sm" && w > 440;
+  // narrower than the side column's width: the GPU and display facts sit under the metrics
+  const facts = size !== "sm" && !side && (gpu || resolution) && (
+    <div className="min-w-0 text-[11px] text-[color:var(--w-faint)]">
+      {gpu && <div className="truncate font-medium text-[color:var(--w-muted)]">{gpu}</div>}
+      <div className="truncate">{[resolution, hz > 0 ? `${fmt(hz)} Hz` : ""].filter(Boolean).join(" · ")}</div>
+    </div>
   );
   if (tall)
     return (
@@ -153,8 +162,9 @@ function GaugeView({ idle, size, w, h, fps, low, low01, ft, hz, maxFps, tone, ri
         {stats}
         {spark}
         {metrics}
+        {facts}
       </div>
-      {size !== "sm" && w > 440 && (
+      {side && (
         <div className="w-[26%] max-w-[220px] shrink-0 text-right">
           <div className="truncate text-sm font-medium text-[color:var(--w-fg)]">{gpu || "–"}</div>
           <div className="truncate text-[11px] text-[color:var(--w-faint)]">{[resolution, hz > 0 ? `${fmt(hz)} Hz` : ""].filter(Boolean).join(" · ")}</div>

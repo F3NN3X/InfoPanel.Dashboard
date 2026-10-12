@@ -1,8 +1,10 @@
+import { createElement } from "react";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import legacy from "@/widgets/__fixtures__/legacy-settings.json";
 import { enumValues, settingRow } from "@/widgets/__fixtures__/legacy-parity";
 import { fixtureSensors } from "@/widgets/__fixtures__";
+import { GaugeView } from "@/widgets/FpsMonitor";
 import { fpsLookProps } from "@/widgets/fps-settings";
 import { fpsModernModule } from "./fps-modern";
 import type { ModuleSettings, SensorMap } from "./types";
@@ -61,6 +63,27 @@ describe("fpsmodern (alias of FpsMonitor)", () => {
     };
     const out = html(sensors, { layout: "card" });
     for (const text of ["PresentMon", "118", "84", "8.5", "GPU util", "91%", "CPU busy", "3.2 ms", "62"]) expect(out).toContain(text);
+  });
+});
+
+describe("fpsmodern small spans", () => {
+  const gauge = (w: number, h: number, size: "sm" | "md" | "lg") =>
+    renderToString(
+      createElement(GaugeView, { idle: false, size, w, h, fps: 78, low: 62, low01: 40, ft: 12.6, hz: 240, maxFps: 240, tone: "ok", sparkColor: "#fff", source: "RTSS", gpu: "NVIDIA GeForce RTX", resolution: "3840 x 2160", title: "Arc Raiders", extras: [] })
+    );
+
+  it("keeps the GPU name and the resolution / refresh line at 3x2 and 4x2, not only in the side column", () => {
+    for (const [w, h] of [[340, 220], [440, 220]] as const) {
+      const out = gauge(w, h, "md");
+      for (const text of ["NVIDIA GeForce RTX", "3840 x 2160", "240 Hz"]) expect(out, `${w}x${h}`).toContain(text);
+    }
+  });
+
+  it("labels the 1% low and the 0.1% low separately", () => {
+    const out = gauge(340, 220, "md");
+    expect(out).toContain("1% low");
+    expect(out).toContain("0.1% low");
+    expect(out).not.toContain("1% low ·");
   });
 });
 
