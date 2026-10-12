@@ -62,7 +62,9 @@ describe("insertables", () => {
     expect(category("wavelinkmodern")).toBe("Audio");
     for (const id of ["weathermodern", "vbz", "notifications", "textfile"]) expect(category(id), id).toBe("Info");
     expect(category("steammodern")).toBe("Gaming");
-    expect(category("fpsmodern")).toBe("Gaming");
+    // fpsmodern is an alias of the FpsMonitor template: hidden from the Library, the template stays.
+    expect(INSERTABLES.some((i) => i.kind === "module" && i.id === "fpsmodern")).toBe(false);
+    expect(category("FpsMonitor")).toBe("Gaming");
     for (const id of ["bluetoothmodern", "streamdeck", "webpage", CARDS_ID]) expect(category(id), id).toBe("Generic");
   });
 

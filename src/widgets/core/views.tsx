@@ -54,13 +54,13 @@ export function CompactView({ c, shape, w, h, icon }: { c: Compact; shape: Shape
           {textVal ? value("truncate text-base") : value("", h < 130 ? 24 : 30, w * 0.38)}
           {c.sub && <span className="truncate text-[11px] text-[color:var(--w-faint)]">{c.sub}</span>}
         </div>
-        {kind === "spark" && <Spark values={c.hist} min={c.min} max={c.max} className="h-[70%] min-w-0 flex-1" />}
+        {kind === "spark" && <Spark values={c.hist} min={c.min} max={c.max} color={c.color} className="h-[70%] min-w-0 flex-1" />}
         {kind === "bar" && (
           <div className="flex min-w-0 flex-1 flex-col gap-1">
             <Bar value={c.pct!} t={c.t} className="h-2" />
           </div>
         )}
-        {kind === "ring" && <Ring value={c.pct!} t={c.t} thickness={11} className="h-[78%] shrink-0" />}
+        {kind === "ring" && <Ring value={c.pct!} t={c.t} color={c.color} thickness={11} className="h-[78%] shrink-0" />}
         {c.viz ? <div className="min-w-0 flex-1">{c.viz("h-[56%] max-h-14")}</div> : textVal && Number.isFinite(c.pct) && <Bar value={c.pct!} className="h-1 w-1/4 shrink-0" />}
       </div>
     );
@@ -71,7 +71,7 @@ export function CompactView({ c, shape, w, h, icon }: { c: Compact; shape: Shape
         {textVal ? <span className="line-clamp-3 text-base font-semibold leading-tight">{val}</span> : value("", w < 150 ? 24 : 36, w - 26)}
         {c.sub && <span className="line-clamp-2 text-[11px] text-[color:var(--w-faint)]">{c.sub}</span>}
         <div className="relative mt-auto min-h-0 flex-1">
-          {kind === "spark" && <Spark values={c.hist} min={c.min} max={c.max} className="absolute inset-0 h-full" />}
+          {kind === "spark" && <Spark values={c.hist} min={c.min} max={c.max} color={c.color} className="absolute inset-0 h-full" />}
           {(kind === "bar" || kind === "ring") && (
             <div className="absolute inset-y-0 left-0 right-0 mx-auto flex w-full max-w-[56px] flex-col justify-end overflow-hidden rounded-xl bg-[color:var(--w-track)]">
               <div className="w-full rounded-xl transition-[height] duration-700 ease-out" style={{ height: `${clamp(c.pct!)}%`, background: TONES[c.t ?? "ok"] }} />
@@ -87,7 +87,7 @@ export function CompactView({ c, shape, w, h, icon }: { c: Compact; shape: Shape
       {label}
       {kind === "ring" ? (
         <div className="flex min-h-0 flex-1 items-center justify-center pt-1.5">
-          <Ring value={c.pct!} t={c.t} thickness={10} className="h-full max-h-full">
+          <Ring value={c.pct!} t={c.t} color={c.color} thickness={10} className="h-full max-h-full">
             <span className="font-semibold tabular-nums" style={{ fontSize: Math.max(12, Math.min(18, (w * 0.45) / Math.max(2.5, String(val).length * 0.62))) }}>
               {val}
               <span className="text-[10px] text-[color:var(--w-muted)]">{c.unit}</span>
@@ -100,7 +100,7 @@ export function CompactView({ c, shape, w, h, icon }: { c: Compact; shape: Shape
             {textVal ? <span className={`${tiny ? "text-[13px]" : "text-sm"} line-clamp-2 font-semibold leading-tight`}>{val}</span> : value("", tiny ? 22 : w < 160 || h < 160 ? 24 : 34, w - 26)}
             {c.sub && !(tiny && (kind === "spark" || kind === "bar" || textVal)) && <span className="truncate text-[11px] text-[color:var(--w-faint)]">{c.sub}</span>}
           </div>
-          {kind === "spark" && <Spark values={c.hist} min={c.min} max={c.max} className={`${tiny ? "mt-1.5 h-[22%]" : "mt-2 h-[28%]"} shrink-0`} />}
+          {kind === "spark" && <Spark values={c.hist} min={c.min} max={c.max} color={c.color} className={`${tiny ? "mt-1.5 h-[22%]" : "mt-2 h-[28%]"} shrink-0`} />}
           {kind === "bar" && <Bar value={c.pct!} t={c.t} className={`${tiny ? "mt-2" : "mt-2.5"} h-1.5 shrink-0`} />}
         </>
       )}
