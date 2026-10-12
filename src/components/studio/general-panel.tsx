@@ -6,6 +6,7 @@ import {
   type GeneralSettings,
   type MotionChoice,
 } from "@/lib/general";
+import { FONT_CATALOG } from "@/lib/fonts";
 import type { SheetCard } from "./category-sheet";
 import { SettingRow } from "./setting-control";
 
@@ -21,13 +22,7 @@ const FONT: ModuleSetting = {
   label: "Font",
   type: "select",
   default: "system",
-  options: [
-    { value: "system", label: "System" },
-    { value: "sans", label: "Sans" },
-    { value: "rounded", label: "Rounded" },
-    { value: "serif", label: "Serif" },
-    { value: "mono", label: "Mono" },
-  ],
+  options: FONT_CATALOG.map((f) => ({ value: f.id, label: f.label })),
 };
 
 const CLOCK: ModuleSetting = {
