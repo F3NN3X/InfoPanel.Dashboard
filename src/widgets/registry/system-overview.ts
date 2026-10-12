@@ -2,6 +2,7 @@
 // the subset a SystemOverview zone stores under the same keys, plus the mapping to template props.
 import type { ModuleSetting, ModuleSettings } from "@/modules/types";
 import type { Detail, Section, SystemOverviewProps } from "../SystemOverview";
+import { boolSetting, colorSetting, enumSetting, numberSetting, oneOf, splitKeys, textSetting } from "./settings-kit";
 
 const DEVICES = ["cpu", "gpu", "ram", "disk"] as const;
 const GROUP_THRESHOLDS = "Thresholds";
@@ -54,8 +55,9 @@ const DETAIL_KEYS: Record<Detail, string> = {
   diskLife: "showDiskLife",
 };
 
-const LABEL_KEYS: Partial<Record<Section, string>> = { cpu: "cpuLabel", gpu: "gpuLabel", ram: "ramLabel", disk: "diskLabel" };
-const COLOR_KEYS: Partial<Record<Section, string>> = { cpu: "cpuColor", gpu: "gpuColor", ram: "ramColor", disk: "diskColor", vram: "vramColor" };
+const LABEL_KEYS: Partial<Record<Section, string>> = { cpu: "cpuLabel", gpu: "gpuLabel", ram: "ramLabel", disk: "diskLabel", net: "netLabel" };
+const COLOR_KEYS: Partial<Record<Section, string>> = { cpu: "cpuColor", gpu: "gpuColor", ram: "ramColor", disk: "diskColor", vram: "vramColor", net: "netColor" };
+const SECTIONS: readonly Section[] = ["cpu", "gpu", "ram", "vram", "disk", "net"];
 
 /** Settings in the legacy order; `devices`, `showVram` and the CPU block are legacy-only (a SystemOverview zone has `sections` / `coreView`). */
 function settings(legacy: boolean): ModuleSetting[] {
@@ -186,8 +188,24 @@ function settings(legacy: boolean): ModuleSetting[] {
 
 /** systemmodern's own settings, keys and defaults unchanged. */
 export const SYSTEM_MODERN_SETTINGS: ModuleSetting[] = settings(true);
-/** The SystemOverview zone's settings for the props it gained from systemmodern. */
-export const SYSTEM_OVERVIEW_SETTINGS: ModuleSetting[] = settings(false);
+const GROUP_OVERVIEW = "System Overview";
+
+/** The SystemOverview props the template has of its own (systemmodern has no such keys): sections, core view, ring, detail level, load thresholds, NET label and colour. */
+const OVERVIEW_ONLY: ModuleSetting[] = [
+  enumSetting("sections", "Sections", "cpu,gpu,ram", SECTIONS.map((v) => ({ value: v, label: v === "disk" ? "Disks" : v === "net" ? "Network" : v.toUpperCase() })), { multiple: true, group: GROUP_OVERVIEW }),
+  enumSetting("details", "Detail level", "auto", [{ value: "auto", label: "Auto" }, { value: "min", label: "Minimal" }, { value: "full", label: "Full" }], { group: GROUP_OVERVIEW }),
+  enumSetting("ring", "Load rings", "ring", [{ value: "ring", label: "Rings" }, { value: "none", label: "None" }], { group: GROUP_OVERVIEW }),
+  enumSetting("coreView", "CPU threads view", "heatmap", [{ value: "heatmap", label: "Heatmap" }, { value: "bars", label: "Bars" }, { value: "off", label: "Off" }], { group: GROUP_OVERVIEW }),
+  numberSetting("loadWarn", "Load warning (%)", 80, { min: 10, max: 100, step: 5, group: GROUP_THRESHOLDS }),
+  numberSetting("loadCrit", "Load critical (%)", 92, { min: 10, max: 100, step: 5, group: GROUP_THRESHOLDS }),
+  textSetting("netLabel", "Network label", "", { group: GROUP_UNITS }),
+  boolSetting("unifiedColor", "Accent for every section", false, { group: "Device colors", tab: "style", advanced: true }),
+  enumSetting("heatRamp", "Thread heat ramp", "accent", [{ value: "accent", label: "Accent" }, { value: "thermal", label: "Thermal" }], { group: "Device colors", tab: "style", advanced: true }),
+  colorSetting("netColor", "Network color", { group: "Device colors" }),
+];
+
+/** The SystemOverview zone's settings for the props it gained from systemmodern, then its own. */
+export const SYSTEM_OVERVIEW_SETTINGS: ModuleSetting[] = [...settings(false), ...OVERVIEW_ONLY];
 
 /** The device colours systemmodern had before the port (`ModernSystem` at 6513067); the template's own palette differs (RAM is amber). */
 export const LEGACY_COLORS: Partial<Record<Section, string>> = { cpu: "#38bdf8", gpu: "#a78bfa", ram: "#4ade80", vram: "#fbbf24", disk: "#fb7185" };
@@ -203,6 +221,13 @@ export function systemOverviewProps(s: ModuleSettings): Partial<SystemOverviewPr
     // VRAM was part of the GPU block; it is its own section here, right after the GPU.
     out.sections = DEVICES.filter((k) => picked.has(k)).flatMap((k): Section[] => (k === "gpu" && s.showVram !== false ? ["gpu", "vram"] : [k]));
   }
+  // The sections and thread view defaults are the template's own, so they stay unset until changed.
+  if (s.sections !== undefined && s.sections !== "cpu,gpu,ram") out.sections = splitKeys(s.sections).flatMap((k) => oneOf(k, SECTIONS) ?? []);
+  if (has(s, "details")) out.details = oneOf(s.details, ["auto", "min", "full"]);
+  if (has(s, "ring")) out.ring = s.ring === "none" ? "none" : "ring";
+  if (has(s, "heatRamp")) out.heatRamp = String(s.heatRamp);
+  if (s.unifiedColor !== undefined) out.unifiedColor = Boolean(s.unifiedColor);
+  if (has(s, "coreView") && s.coreView !== "heatmap") out.coreView = oneOf(s.coreView, ["heatmap", "bars", "off"]);
   if (s.showCores !== undefined) out.coreView = s.showCores ? (s.coreStyle === "bars" ? "bars" : "heatmap") : "off";
   const show = Object.fromEntries((Object.entries(DETAIL_KEYS) as [Detail, string][]).filter(([, key]) => s[key] !== undefined).map(([d, key]) => [d, Boolean(s[key])]));
   if (Object.keys(show).length) out.show = show;

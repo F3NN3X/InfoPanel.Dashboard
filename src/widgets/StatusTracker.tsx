@@ -40,13 +40,15 @@ export default function StatusTracker(p: StatusTrackerProps) {
   const eth = Object.keys(d || {})
     .find((k) => /^plugins\.network-info-plugin\.\{[^}]+\}\.name$/.test(k) && get(d, k) === "Ethernet")
     ?.replace(/\.name$/, ".status");
-  const tracks: Track[] = p.tracks ?? [
+  const defaults: Track[] = [
     { label: "Hottest thread", key: `libre.${cpu}_cpu_core_max`, kind: "threshold", warn: 50, crit: 80 },
     { label: "GPU load", key: `libre.${gpu}_gpu_core_load`, kind: "threshold", warn: 50, crit: 80 },
     { label: "Memory", key: "libre.total_memory_memory", kind: "threshold", warn: 80, crit: 92 },
     { label: "Ethernet", key: eth, kind: "status", up: "Up" },
     { label: "Data API", key: "system.bridge.status", kind: "status", up: "running" },
   ];
+  // A track without a key (an inspector slot left on its default) takes the detected key of the default at its position.
+  const tracks: Track[] = p.tracks?.map((t, i) => (t.key === undefined ? { ...t, key: defaults[i]?.key } : t)) ?? defaults;
   const N = p.samples ?? 60;
   const hist = useRef<Record<string, Cell[]>>({});
   const lastT = useRef("");

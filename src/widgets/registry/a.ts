@@ -2,7 +2,7 @@
 import type { DashboardModule } from "@/modules/types";
 import { THERMALS_SETTINGS } from "@/modules/hardware-modern";
 import { templateModule } from "../module";
-import { pass } from "./settings-kit";
+import * as S from "./a-settings";
 import * as SystemOverview from "../SystemOverview";
 import * as MenuBar from "../MenuBar";
 import * as KpiTiles from "../KpiTiles";
@@ -27,26 +27,22 @@ export const GROUP_A: DashboardModule[] = [
     meta: SystemOverview.meta,
     Component: SystemOverview.default,
     settings: SYSTEM_OVERVIEW_SETTINGS,
-    toProps: (s) => {
-      const base = pass<Partial<SystemOverview.SystemOverviewProps>>("sections", "colors", "unifiedColor", "ring", "coreView", "heatRamp", "details", "warn", "crit")(s);
-      const ext = systemOverviewProps(s);
-      return { ...base, ...ext, colors: base.colors || ext.colors ? { ...base.colors, ...ext.colors } : undefined };
-    },
+    toProps: systemOverviewProps,
   }),
-  templateModule({ meta: MenuBar.meta, Component: MenuBar.default, settings: [], toProps: pass<Partial<MenuBar.MenuBarProps>>("items", "stacked", "dropdown") }),
-  templateModule({ meta: KpiTiles.meta, Component: KpiTiles.default, settings: [], toProps: pass<Partial<KpiTiles.KpiTilesProps>>("metrics", "lookback") }),
-  templateModule({ meta: StatusTracker.meta, Component: StatusTracker.default, settings: [], toProps: pass<Partial<StatusTracker.StatusTrackerProps>>("tracks", "samples") }),
-  templateModule({ meta: SystemStatus.meta, Component: SystemStatus.default, settings: [], toProps: pass<Partial<SystemStatus.SystemStatusProps>>("warn", "crit") }),
-  templateModule({ meta: Vitals.meta, Component: Vitals.default, settings: [], toProps: pass<Partial<Vitals.VitalsProps>>("metrics") }),
-  templateModule({ meta: ServiceHealth.meta, Component: ServiceHealth.default, settings: [], toProps: pass<Partial<ServiceHealth.ServiceHealthProps>>("layout") }),
-  templateModule({ meta: ProcessList.meta, Component: ProcessList.default, settings: [], toProps: pass<Partial<ProcessList.ProcessListProps>>("sort", "rows") }),
-  templateModule({ meta: Uptime.meta, Component: Uptime.default, settings: [], toProps: pass<Partial<Uptime.UptimeProps>>("showSeconds") }),
-  templateModule({ meta: CpuMonitor.meta, Component: CpuMonitor.default, settings: [], toProps: pass<Partial<CpuMonitor.CpuMonitorProps>>("cpu", "coreView", "coreMetric", "heatRamp", "warn", "crit") }),
-  templateModule({ meta: CoreHeatmap.meta, Component: CoreHeatmap.default, settings: [], toProps: pass<Partial<CoreHeatmap.CoreHeatmapProps>>("cpu", "shape", "ramp", "metric", "showValues", "history", "hotOutline") }),
-  templateModule({ meta: GpuRings.meta, Component: GpuRings.default, settings: [], toProps: pass<Partial<GpuRings.GpuRingsProps>>("gpu", "outer", "inner", "colors") }),
-  templateModule({ meta: GpuMonitor.meta, Component: GpuMonitor.default, settings: [], toProps: pass<Partial<GpuMonitor.GpuMonitorProps>>("gpu", "warnTemp", "critTemp") }),
-  templateModule({ meta: MemoryUsage.meta, Component: MemoryUsage.default, settings: [], toProps: pass<Partial<MemoryUsage.MemoryUsageProps>>("warn", "crit") }),
-  templateModule({ meta: Thermals.meta, Component: Thermals.default, settings: THERMALS_SETTINGS, toProps: pass<Partial<Thermals.ThermalsProps>>("sortBy", "warn", "crit", "max", "view", "discover", "showFans", "fanColor") }),
-  templateModule({ meta: PowerDraw.meta, Component: PowerDraw.default, settings: [], toProps: pass<Partial<PowerDraw.PowerDrawProps>>("budget") }),
-  templateModule({ meta: Fans.meta, Component: Fans.default, settings: [], toProps: pass<Partial<Fans.FansProps>>("maxRpm", "spin") }),
+  templateModule({ meta: MenuBar.meta, Component: MenuBar.default, settings: S.MENUBAR_SETTINGS, toProps: S.menuBarProps }),
+  templateModule({ meta: KpiTiles.meta, Component: KpiTiles.default, settings: S.KPITILES_SETTINGS, toProps: S.kpiTilesProps }),
+  templateModule({ meta: StatusTracker.meta, Component: StatusTracker.default, settings: S.STATUSTRACKER_SETTINGS, toProps: S.statusTrackerProps }),
+  templateModule({ meta: SystemStatus.meta, Component: SystemStatus.default, settings: S.SYSTEMSTATUS_SETTINGS, toProps: S.systemStatusProps }),
+  templateModule({ meta: Vitals.meta, Component: Vitals.default, settings: S.VITALS_SETTINGS, toProps: S.vitalsProps }),
+  templateModule({ meta: ServiceHealth.meta, Component: ServiceHealth.default, settings: S.SERVICEHEALTH_SETTINGS, toProps: S.serviceHealthProps }),
+  templateModule({ meta: ProcessList.meta, Component: ProcessList.default, settings: S.PROCESSLIST_SETTINGS, toProps: S.processListProps }),
+  templateModule({ meta: Uptime.meta, Component: Uptime.default, settings: S.UPTIME_SETTINGS, toProps: S.uptimeProps }),
+  templateModule({ meta: CpuMonitor.meta, Component: CpuMonitor.default, settings: S.CPUMONITOR_SETTINGS, toProps: S.cpuMonitorProps }),
+  templateModule({ meta: CoreHeatmap.meta, Component: CoreHeatmap.default, settings: S.COREHEATMAP_SETTINGS, toProps: S.coreHeatmapProps }),
+  templateModule({ meta: GpuRings.meta, Component: GpuRings.default, settings: S.GPURINGS_SETTINGS, toProps: S.gpuRingsProps }),
+  templateModule({ meta: GpuMonitor.meta, Component: GpuMonitor.default, settings: S.GPUMONITOR_SETTINGS, toProps: S.gpuMonitorProps }),
+  templateModule({ meta: MemoryUsage.meta, Component: MemoryUsage.default, settings: S.MEMORYUSAGE_SETTINGS, toProps: S.memoryUsageProps }),
+  templateModule({ meta: Thermals.meta, Component: Thermals.default, settings: [...THERMALS_SETTINGS, ...S.THERMALS_EXTRA_SETTINGS], toProps: S.thermalsProps }),
+  templateModule({ meta: PowerDraw.meta, Component: PowerDraw.default, settings: S.POWERDRAW_SETTINGS, toProps: S.powerDrawProps }),
+  templateModule({ meta: Fans.meta, Component: Fans.default, settings: S.FANS_SETTINGS, toProps: S.fansProps }),
 ];
