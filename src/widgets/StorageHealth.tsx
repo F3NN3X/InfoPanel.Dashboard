@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { StatGrid, Widget, shell, get, num, fmt, fmtGB, fmtRate, detect, pretty, Metric, Ring, Spark, Stat, Bar, Num, useHistory, tone, Empty, LegendRow, type ShellProps, type WidgetMeta } from "./kit";
+import { StatGrid, Widget, shell, get, num, fmt, fmtGB, fmtRate, detect, pretty, Metric, Ring, Spark, Stat, Bar, Num, useHistory, useSkin, tone, Empty, LegendRow, type ShellProps, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "StorageHealth",
@@ -16,6 +16,31 @@ export interface StorageHealthProps extends ShellProps {
   look?: ModuleSettings;
   /** Sensor slug, e.g. "kingston_sfyrd2000g"; default = first detected. */
   disk?: string;
+}
+
+/** Read and write history. Two braille text graphs cannot share a box, so under braille they stack below the legend. */
+function RateGraph({ rH, wH, rd, wr }: { rH: number[]; wH: number[]; rd: number; wr: number }) {
+  const legend = (
+    <>
+      <LegendRow color="var(--accent)" label="read" value={fmtRate(rd)} className="text-[10px]" />
+      <LegendRow color="#a78bfa" label="write" value={fmtRate(wr)} className="text-[10px]" />
+    </>
+  );
+  if (useSkin().graph === "braille")
+    return (
+      <div className="flex min-h-0 flex-1 flex-col gap-1">
+        <div className="grid grid-cols-2 gap-3">{legend}</div>
+        <Spark values={rH} min={0} className="min-h-0 flex-1" />
+        <Spark values={wH} min={0} color="#a78bfa" className="min-h-0 flex-1" />
+      </div>
+    );
+  return (
+    <div className="relative min-h-0 flex-1">
+      <Spark values={rH} min={0} className="absolute inset-0 h-full" />
+      <Spark values={wH} min={0} fill={false} color="#a78bfa" className="absolute inset-0 h-full" />
+      <div className="absolute right-0 top-0 grid gap-0.5">{legend}</div>
+    </div>
+  );
 }
 
 export default function StorageHealth(p: StorageHealthProps) {
@@ -75,14 +100,7 @@ export default function StorageHealth(p: StorageHealthProps) {
                 <Stat label="Activity" value={`${fmt(k("total_activity"), 0)}%`} />
               </div>
             </div>
-            <div className="relative min-h-0 flex-1">
-              <Spark values={rH} min={0} className="absolute inset-0 h-full" />
-              <Spark values={wH} min={0} fill={false} color="#a78bfa" className="absolute inset-0 h-full" />
-              <div className="absolute right-0 top-0 grid gap-0.5">
-                <LegendRow color="var(--accent)" label="read" value={fmtRate(rd)} className="text-[10px]" />
-                <LegendRow color="#a78bfa" label="write" value={fmtRate(wr)} className="text-[10px]" />
-              </div>
-            </div>
+            <RateGraph rH={rH} wH={wH} rd={rd} wr={wr} />
             <div className="flex flex-col gap-1">
               <div className="flex justify-between text-[11px] text-[color:var(--w-muted)]">
                 <span>{fmtGB(k("free_space"))} free</span>
