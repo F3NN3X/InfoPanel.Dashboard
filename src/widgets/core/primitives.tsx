@@ -6,6 +6,7 @@ import { mix } from "./tokens";
 import { rampColor, accentOf, useSkin, STATE, TONES, tone } from "./theme";
 import { iconFor } from "./icons";
 import type { Tone } from "./types";
+import { cn } from "@/lib/utils";
 
 /* ───────── primitives ───────── */
 // Material Symbols names rendered as lucide icons (see icons.ts); sized by the font size like the glyphs were.
@@ -64,7 +65,7 @@ export function Bar({ value, max = 100, t = "ok", className = "h-1.5", track = "
     const n = m === "blocks" ? 14 : 24,
       lit = Math.round((pct / 100) * n);
     return (
-      <div className={`flex w-full gap-[2px] ${className}`}>
+      <div className={cn("flex w-full gap-[2px]", className)}>
         {Array.from({ length: n }, (_, i) => (
           <span key={i} className="min-w-0 flex-1 rounded-[1px] transition-colors duration-300" style={{ background: i < lit ? (m === "blocks" ? blockColor(i, n) : TONES[t]) : "var(--w-track)" }} />
         ))}
@@ -73,7 +74,7 @@ export function Bar({ value, max = 100, t = "ok", className = "h-1.5", track = "
   }
   if (m === "wave")
     return (
-      <div className={`relative w-full min-h-[8px] ${className}`}>
+      <div className={cn("relative w-full min-h-[8px]", className)}>
         <svg viewBox="0 0 100 10" preserveAspectRatio="none" className="absolute inset-0 h-full w-full overflow-visible">
           <line x1={pct} y1="5" x2="100" y2="5" stroke="var(--w-track)" strokeWidth="2.5" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
           <path
@@ -88,19 +89,19 @@ export function Bar({ value, max = 100, t = "ok", className = "h-1.5", track = "
     );
   if (m === "square")
     return (
-      <div className={`w-full border border-[color:var(--w-fg)]/70 bg-transparent p-[1px] min-h-[8px] ${className}`}>
+      <div className={cn("w-full border border-[color:var(--w-fg)]/70 bg-transparent p-[1px] min-h-[8px]", className)}>
         <div className="h-full transition-[width] duration-500" style={{ width: `${pct}%`, background: TONES[t] }} />
       </div>
     );
   if (m === "hair")
     return (
-      <div className={`relative w-full ${className}`}>
+      <div className={cn("relative w-full", className)}>
         <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-[color:var(--w-track)]" />
         <div className="absolute left-0 top-1/2 h-[2px] -translate-y-1/2 transition-[width] duration-500" style={{ width: `${pct}%`, background: TONES[t] }} />
       </div>
     );
   return (
-    <div className={`w-full overflow-hidden rounded-full ${m === "pill" ? "bg-[color:var(--w-track)] min-h-[6px]" : track} ${className}`}>
+    <div className={cn("w-full overflow-hidden rounded-full", m === "pill" ? "bg-[color:var(--w-track)] min-h-[6px]" : track, className)}>
       <div className="h-full rounded-full transition-[width] duration-500 ease-out" style={{ width: `${pct}%`, background: m === "pill" && t === "ok" ? `linear-gradient(90deg, ${mix(70, "#fff")}, var(--accent))` : TONES[t] }} />
     </div>
   );
