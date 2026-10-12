@@ -179,18 +179,21 @@ export function RingStack({ rings, thickness: th0 = 9, gap = 3, children, classN
   const cap = sk.skin === "hud" || sk.skin === "tui" ? "butt" : "round";
   return (
     <div className={`relative ${className}`} style={style}>
-      <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" className="h-full w-full -rotate-90">
-        {rings.map(({ v, color, track }, i) => {
-          const r = Math.max(thickness / 2 + 1, 50 - thickness / 2 - i * (thickness + gap)),
-            c = 2 * Math.PI * r;
-          return (
-            <g key={i}>
-              <circle cx="50" cy="50" r={r} fill="none" stroke={track ?? "var(--w-track)"} strokeWidth={thickness} />
-              <circle cx="50" cy="50" r={r} fill="none" stroke={color} strokeWidth={thickness} strokeLinecap={cap}
-                strokeDasharray={c} strokeDashoffset={c * (1 - clamp(v || 0) / 100)} style={{ transition: "stroke-dashoffset .7s ease-out" }} />
-            </g>
-          );
-        })}
+      {/* rotate the drawing, not the svg: a rotated non-square svg's box pokes out of its zone */}
+      <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" className="h-full w-full">
+        <g transform="rotate(-90 50 50)">
+          {rings.map(({ v, color, track }, i) => {
+            const r = Math.max(thickness / 2 + 1, 50 - thickness / 2 - i * (thickness + gap)),
+              c = 2 * Math.PI * r;
+            return (
+              <g key={i}>
+                <circle cx="50" cy="50" r={r} fill="none" stroke={track ?? "var(--w-track)"} strokeWidth={thickness} />
+                <circle cx="50" cy="50" r={r} fill="none" stroke={color} strokeWidth={thickness} strokeLinecap={cap}
+                  strokeDasharray={c} strokeDashoffset={c * (1 - clamp(v || 0) / 100)} style={{ transition: "stroke-dashoffset .7s ease-out" }} />
+              </g>
+            );
+          })}
+        </g>
       </svg>
       {children != null && <div className="absolute inset-0 flex flex-col items-center justify-center text-center">{children}</div>}
     </div>
