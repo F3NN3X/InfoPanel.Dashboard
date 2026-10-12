@@ -40,7 +40,9 @@ describe("colour helpers", () => {
 describe("STATE / TONES", () => {
   it("share the semantic warn and crit colours", () => {
     expect(STATE).toEqual({ ok: "#3CC97F", warn: "#EDB232", crit: "#F2665E", none: "rgba(255,255,255,0.07)" });
-    expect(TONES).toEqual({ ok: "var(--accent)", warn: STATE.warn, crit: STATE.crit, muted: "#71717a" });
+    expect(TONES).toEqual({ ok: "var(--accent)", warn: `var(--w-warn, ${STATE.warn})`, crit: `var(--w-crit, ${STATE.crit})`, muted: "#71717a" });
+    expect(TEXT_VARS.light["--w-warn"]).toBeDefined();
+    expect(TEXT_VARS.dark["--w-warn"]).toBeUndefined();
   });
 });
 

@@ -346,7 +346,7 @@ export function StatGrid({ items, cols = 4 }: { items: { label: ReactNode; value
 export function LegendRow({ color, label, value, className = "text-[12.5px]" }: { color?: string | null; label: ReactNode; value?: ReactNode; className?: string }) {
   return (
     <div className={`grid min-w-0 grid-cols-[10px_minmax(0,1fr)_auto] items-center gap-2 ${className}`}>
-      <i className="h-2.5 w-2.5 rounded-[3px]" style={{ background: color ?? "transparent" }} />
+      <i className={`h-2.5 w-2.5 rounded-[3px] ${color ? "ring-1 ring-inset ring-[color:var(--w-fg)]/15" : ""}`} style={{ background: color ?? "transparent" }} />
       <span className="truncate text-[color:var(--w-muted)]">{label}</span>
       <span className="font-medium tabular-nums">{value}</span>
     </div>
