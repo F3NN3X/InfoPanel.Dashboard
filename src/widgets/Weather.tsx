@@ -66,7 +66,8 @@ function Current(p: WeatherProps) {
     feels = num(k("feels_like"));
   const fc = rows(k("forecast")).map(([date, cond, range, rain, wind]) => {
     const [hi, lo] = String(range).split("/").map(num);
-    return { date: date?.split(" ")[0], cond, hi, lo, rain: num(rain), wind };
+    // "Tue 13 Oct" -> "Tue 13", as the legacy forecast cells read
+    return { date: String(date).match(/^\w{3}\s+\d{1,2}/)?.[0] ?? date?.split(" ")[0], cond, hi, lo, rain: num(rain), wind };
   });
   const lo = Math.min(...fc.map((f) => f.lo)),
     hi = Math.max(...fc.map((f) => f.hi));
@@ -77,10 +78,12 @@ function Current(p: WeatherProps) {
   const showForecast = p.showForecast ?? (p.view === undefined || p.view === "full");
   const tint = p.tint ? conditionTint(k("weather_desc")) : undefined;
   const feelsText = showFeels ? ` · feels ${fmt(T(feels), 0)}°` : "";
+  const feelsLine = showFeels ? `feels like ${fmt(T(feels), 0)}°` : "";
   return (
     <Widget
       {...shell(p)}
       accent={p.accent ?? tint}
+      backdrop={tint && <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: `linear-gradient(150deg, color-mix(in srgb, ${tint} 42%, transparent), color-mix(in srgb, ${tint} 12%, transparent))` }} />}
       title={p.title ?? (has(k("name")) ? k("name") : "Weather")}
       icon="location_on"
       compact={{ label: has(k("name")) ? k("name") : "Weather", value: `${fmt(T(temp), 0)}°`, sub: `${k("weather_desc")}${feelsText}`, icon, kind: "value" }}
@@ -93,10 +96,10 @@ function Current(p: WeatherProps) {
             <div className="flex min-w-0 flex-col">
               <Num className={`${{ xs: "text-2xl", sm: "text-4xl", md: "text-5xl", lg: "text-6xl" }[size]} font-semibold leading-none tracking-tight`}>{fmt(T(temp), 0)}°</Num>
               {size !== "xs" && (
-                <span className="mt-1 truncate text-xs text-[color:var(--w-muted)]">
-                  {k("weather_desc")}
-                  {feelsText}
-                </span>
+                <>
+                  <span className="mt-1 truncate text-xs text-[color:var(--w-muted)]">{k("weather_desc")}</span>
+                  {feelsLine && <span className="truncate text-xs text-[color:var(--w-muted)] first-letter:uppercase">{feelsLine}</span>}
+                </>
               )}
             </div>
           </div>
@@ -125,7 +128,7 @@ function Current(p: WeatherProps) {
               <div className="mt-auto grid gap-1.5 border-t border-[color:var(--w-track)] pt-3" style={{ gridTemplateColumns: `repeat(${Math.min(fc.length, shown)}, minmax(0,1fr))` }}>
                 {fc.slice(0, shown).map((f, i) => (
                   <div key={i} className="flex flex-col items-center gap-1.5" title={`${f.cond} · ${f.rain} mm · ${f.wind}`}>
-                    <span className="text-[11px] text-[color:var(--w-muted)]">{i === 0 ? "Tmrw" : f.date}</span>
+                    <span className="whitespace-nowrap text-[11px] text-[color:var(--w-muted)]">{i === 0 ? `Tmrw ${f.date.split(" ")[1] ?? ""}` : f.date}</span>
                     <Icon name={weatherIcon(f.cond)} className="text-xl text-[color:var(--w-fg)]" />
                     <span className="text-xs font-semibold tabular-nums">{fmt(T(f.hi), 0)}°</span>
                     {size === "lg" && (
@@ -134,6 +137,7 @@ function Current(p: WeatherProps) {
                       </div>
                     )}
                     <span className="text-[11px] tabular-nums text-[color:var(--w-faint)]">{fmt(T(f.lo), 0)}°</span>
+                    {f.rain > 0 && <span className="whitespace-nowrap text-[10px] tabular-nums text-sky-300">{`${f.rain}mm`}</span>}
                   </div>
                 ))}
               </div>

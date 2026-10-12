@@ -89,4 +89,15 @@ describe("weathermodern", () => {
     expect(days(2)).toBe(2);
     expect(days(4)).toBe(4);
   });
+
+  it("keeps the forecast dates, rain amounts, the feels-like line and the condition tint", () => {
+    const html = renderModule(weatherModernModule, { layout: "standard" });
+    expect(html).toContain("Tmrw 13");
+    expect(html).toContain("Wed 14");
+    expect(html).toContain("42.5mm");
+    expect(html).toContain("1mm");
+    expect(html).toContain("feels like");
+    expect(html).toContain("color-mix(in srgb, rgb(248, 176, 58)");
+    expect(renderModule(weatherModernModule, { layout: "standard", tint: false })).not.toContain("color-mix(in srgb, rgb(");
+  });
 });
