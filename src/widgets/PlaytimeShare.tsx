@@ -11,7 +11,7 @@ export const meta: WidgetMeta = {
   description: "How the last two weeks of play split between games — one bar, segments sized by share — with sessions and library totals.",
 };
 
-const PALETTE = [hue(0), hue(70), hue(140), hue(210), hue(280), "rgba(255,255,255,0.35)"];
+export const PALETTE = [hue(0), hue(70), hue(140), hue(210), hue(280), "rgba(255,255,255,0.35)"];
 
 export interface PlaytimeShareProps extends ShellProps {
   /** Segment colours; default = accent-derived palette. */
