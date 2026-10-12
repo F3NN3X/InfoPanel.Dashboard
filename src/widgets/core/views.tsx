@@ -163,7 +163,7 @@ export function StudioView({ c, w, h, icon }: { c: Studio; w: number; h: number;
     return (
       <div className="flex h-full min-w-0 flex-col">
         <div className="flex min-h-0 flex-1 items-center gap-2.5">
-          <div className="aspect-square h-full max-h-[160px] shrink-0 overflow-hidden rounded-md">
+          <div className="aspect-square h-full max-h-[160px] shrink-0 overflow-hidden rounded-md" style={{ maxWidth: Math.max(24, Math.round((w - 26) * 0.5)) }}>
             <Img src={c.img} icon={c.icon ?? icon} className="h-full w-full" />
           </div>
           <div className="flex min-w-0 flex-col gap-[3px]">
