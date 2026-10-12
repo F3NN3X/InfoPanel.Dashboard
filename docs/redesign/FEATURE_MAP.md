@@ -124,8 +124,8 @@ Rows marked **(+)** were added by the Phase 0 code inventory (`docs/settings-inv
 ## 7. Library (Add drawer)
 | Current | New | Status |
 |---|---|---|
-| Chips: All, Layouts, My panels, System, Media, Network, Info, Other | Same chips | ✅ `insert-panel.tsx:12,260` |
-| 16 widgets | Widget cards with "min W×H" | ✅ `insert-panel.tsx:113`, min W×H `insert-row.tsx:81` |
+| Chips: All, Layouts, My panels, System, Media, Network, Info, Other | Same chips; "Other" is replaced by Hardware, Storage, Audio, Gaming and Generic (decision D2 in `PHASE9_PLAN.md`) | ✅ `insert-panel.tsx:12,260` |
+| 16 widgets | Widget cards with "min W×H"; the Library now lists the 50 template widgets (§16), the 16 legacy ids stay loadable and are hidden from it | ✅ `insert-panel.tsx:113` (hidden: `libraryHidden`), min W×H `insert-row.tsx:81`; library §16 |
 | Layout starters (6) | Layouts › Layout starters, plus "Blank zone" | ✅ `insert-panel.tsx:99,173` (Blank zone + 6 starters, `src/lib/panel-starters.ts`) |
 | Panel presets (10) | Layouts › Panel presets | ✅ `insert-panel.tsx:173` (`src/lib/panelPresets.ts`, 10) |
 | My panels (saved from the panel "…" menu; shared by all profiles; exported; each use is a fresh copy) | My panels; save via the context menu "Save to My panels" | ✅ `insert-panel.tsx:173`; save via `zone-menu.ts:77` → `use-studio-mutations.ts:144` → `panel-preset-actions.ts:33` |
@@ -158,12 +158,12 @@ Rows marked **(+)** were added by the Phase 0 code inventory (`docs/settings-inv
 ## 9. General cards (all zones)
 | Current field | Tab › Section | Notes | Status |
 |---|---|---|---|
-| Widget type + Change | C › Widget | select of the 16 types | ✅ `zone-inspector.tsx:240` → `zone-inspector-parts.tsx:324` |
+| Widget type + Change | C › Widget | select of the registered types | ✅ `zone-inspector.tsx:240` → `zone-inspector-parts.tsx:324` (the list is the 50 templates and the catch-all) |
 | Custom title | C › Widget | | ✅ `standard-settings.ts:274` |
 | Icon (grid of about 20, including none) | C › Widget | icon grid | ✅ `standard-settings.ts:275`, `setting-control.tsx:134` (20 icons + none) |
 | Hide when idle | C › Widget | only Spotify, Media, Steam, FPS, Notifications | ✅ `standard-settings.ts:223` (IDLE_SETTING on Spotify, Media, Steam, FPS, Notifications) (decision #13) |
 | Visible | C › Widget, plus header eye | | ✅ `zone-inspector.tsx:242` + header eye `zone-inspector-parts.tsx:35` |
-| Layout auto/card/standard/compact/simple | S › Size & alignment | adaptive widgets only | ✅ `standard-settings.ts:249` (decision #2: all 11 modern widgets) |
+| Layout auto/card/standard/compact/simple | S › Size & alignment | adaptive widgets only | ✅ `standard-settings.ts:249` (decision #2: all 11 modern widgets; now every template widget: the value forces the shell's size tier, `core/look.ts` `LAYOUT_TIERS`) |
 | Scale with the zone | S › Size & alignment | Adv | ✅ `standard-settings.ts:59` (Adv) |
 | Size % | S › Size & alignment | | ✅ `standard-settings.ts:67` |
 | 3×3 alignment (+ Auto / Spread) | S › Size & alignment | alignment grid | ✅ `standard-settings.ts:78` → `align-grid.tsx:43` |
@@ -193,22 +193,22 @@ Rows marked **(+)** were added by the Phase 0 code inventory (`docs/settings-inv
 ## 10. Widget-own categories
 | Widget | Section → tab | Status |
 |---|---|---|
-| System | Devices, CPU, GPU, Memory, Drives, Trends, Thresholds, Units & labels → C; Device colors → S (Adv) | ✅ `src/modules/system-modern.tsx` (groups Devices…Units & labels; Device colors Adv via `inspector-categories.ts:96`) |
-| Spotify / Media | Now playing (times, progress), Cover art (tint, blurred bg), Waveform (live, style, mode, gain, active), Visualizer (on, count, alignment, idle, mirrored · resting · loading sweep · orientation = Adv) → C; Waveform shape (bar width, gap, radius, min height, line width, edge fade, fade width) → C (Adv); Audio source (level source, live capture, capture devices checklist, microphone access) → D | ✅ `src/modules/modern-media.tsx` (Audio source → Data tab `:267-287`; waveform shape + visualizer extras Adv; mic button `setting-pickers.tsx`) |
-| Steam | Content (dim banner, stats, news) → C | ✅ `src/modules/steam-modern.tsx` |
-| Hardware | Content (list / temp gauges, rows, fans) → C; Dot colors → S (Adv) | ✅ `src/modules/hardware-modern.tsx` (Dot colors Adv) |
-| Weather | Display (full/now/forecast/minimal, tint), Current conditions, Forecast (days) → C | ✅ `src/modules/weather-modern.tsx` |
-| FPS | Content (gauge/trend, metrics, sparkline) → C; Gauge colors → S (Adv) | ✅ `src/modules/fps-modern.tsx` (Gauge colors Adv) |
-| Audio | Content (device, meter/volume) → C; Meter (solid/segmented/gradient, orientation, ballistics; colours Adv) → C | ✅ `src/modules/audio-modern.tsx` (decisions #3, #4: meter colours Adv) |
-| Wave Link | Content (meters to show, dB readout, fader, mixes) → C; Meter → C | ✅ `src/modules/wavelink-modern.tsx` |
-| Bluetooth | Content (full/devices/status) → C; Battery colors → S (Adv) | ✅ `src/modules/bluetooth-modern.tsx` (Battery colors Adv) |
-| Network | Content (speeds/totals, sparkline) → C; Speed colors → S (Adv) | ✅ `src/modules/network-modern.tsx` (Speed colors Adv) |
-| Departures | Content (status) → C | ✅ `src/modules/vbz.tsx` |
-| Notifications | Content (history, max lines) → C | ✅ `src/modules/notifications.tsx` |
-| Text File | Content (meta) → C | ✅ `src/modules/textfile.tsx` |
-| Stream Deck | Content (profile, labels) → C | ✅ `src/modules/streamdeck.tsx` |
-| Web Page | Page (URL) → C; Style reduced to Colors & surface, Border & effects, Advanced. **Code today:** also `scale` (Size & alignment) and `radius` (Spacing & shape), accent and the four border/glow keys, and no Custom CSS: keep what exists, see `settings-inventory.md` question 5 | ✅ (decision #5) `src/modules/webpage.tsx:72`; note `inspector-model.ts:577` |
-| Other sensors | no own settings; it still has the card style (Surface default Theme, accent, size, spacing, typography, border and effects) | ✅ `standard-settings.ts:322` |
+| System | Devices, CPU, GPU, Memory, Drives, Trends, Thresholds, Units & labels → C; Device colors → S (Adv) | ✅ `src/modules/system-modern.tsx` (alias of the SystemOverview template: groups Devices…Units & labels; Device colors Adv via `inspector-categories.ts:96`); drawn by `src/widgets/SystemOverview.tsx`, keys mapped in `src/widgets/registry/system-overview.ts` |
+| Spotify / Media | Now playing (times, progress), Cover art (tint, blurred bg), Waveform (live, style, mode, gain, active), Visualizer (on, count, alignment, idle, mirrored · resting · loading sweep · orientation = Adv) → C; Waveform shape (bar width, gap, radius, min height, line width, edge fade, fade width) → C (Adv); Audio source (level source, live capture, capture devices checklist, microphone access) → D | ✅ `src/modules/modern-media.tsx` (alias of the NowPlaying template; Audio source → Data tab `:267-287`; waveform shape + visualizer extras Adv; mic button `setting-pickers.tsx`); drawn by `src/widgets/NowPlaying.tsx`, keys in `src/widgets/NowPlaying/settings.ts` |
+| Steam | Content (dim banner, stats, news) → C | ✅ `src/modules/steam-modern.tsx` (alias of GameSpotlight, composite mode); drawn by `src/widgets/GameSpotlight.tsx`, keys in `src/widgets/spotlight-settings.ts` |
+| Hardware | Content (list / temp gauges, rows, fans) → C; Dot colors → S (Adv) | ✅ `src/modules/hardware-modern.tsx` (Dot colors Adv); the list view is `src/widgets/SensorGroup.tsx`, the temps view `src/widgets/Thermals.tsx` |
+| Weather | Display (full/now/forecast/minimal, tint), Current conditions, Forecast (days) → C | ✅ `src/modules/weather-modern.tsx` (alias of Weather); drawn by `src/widgets/Weather.tsx` |
+| FPS | Content (gauge/trend, metrics, sparkline) → C; Gauge colors → S (Adv) | ✅ `src/modules/fps-modern.tsx` (Gauge colors Adv; alias of FpsMonitor); drawn by `src/widgets/FpsMonitor.tsx`, keys in `src/widgets/fps-settings.ts` |
+| Audio | Content (device, meter/volume) → C; Meter (solid/segmented/gradient, orientation, ballistics; colours Adv) → C | ✅ `src/modules/audio-modern.tsx` (decisions #3, #4: meter colours Adv); drawn by `src/widgets/AudioModern.tsx`, which picks AudioMeter / MeterBridge / VolumeMixer by `view` |
+| Wave Link | Content (meters to show, dB readout, fader, mixes) → C; Meter → C | ✅ `src/modules/wavelink-modern.tsx` (alias of WaveLink); drawn by `src/widgets/WaveLink.tsx` |
+| Bluetooth | Content (full/devices/status) → C; Battery colors → S (Adv) | ✅ `src/modules/bluetooth-modern.tsx` (Battery colors Adv; alias of Bluetooth); drawn by `src/widgets/Bluetooth.tsx`, options in `src/widgets/registry/e.ts:73` |
+| Network | Content (speeds/totals, sparkline) → C; Speed colors → S (Adv) | ✅ `src/modules/network-modern.tsx` (Speed colors Adv; alias of NetworkThroughput); drawn by `src/widgets/NetworkThroughput.tsx` |
+| Departures | Content (status) → C | ✅ `src/modules/vbz.tsx` (alias of Departures); drawn by `src/widgets/Departures.tsx`, options in `src/widgets/registry/e.ts:63` |
+| Notifications | Content (history, max lines) → C | ✅ `src/modules/notifications.tsx` (alias of Notifications); drawn by `src/widgets/Notifications.tsx`, options in `src/widgets/registry/e.ts:46` |
+| Text File | Content (meta) → C | ✅ `src/modules/textfile.tsx` (alias of TextFile); drawn by `src/widgets/TextFile.tsx`, options in `src/widgets/registry/e.ts:37` |
+| Stream Deck | Content (profile, labels) → C | ✅ `src/modules/streamdeck.tsx` (alias of StreamDeck); drawn by `src/widgets/StreamDeck.tsx`, options in `src/widgets/registry/e.ts:105` |
+| Web Page | Page (URL) → C; Style reduced to Colors & surface, Border & effects, Advanced. **Code today:** also `scale` (Size & alignment) and `radius` (Spacing & shape), accent and the four border/glow keys, and no Custom CSS: keep what exists, see `settings-inventory.md` question 5 | ✅ (decision #5) `src/modules/webpage.tsx` (alias of WebPage, settings `src/widgets/registry/e.ts:22`); drawn by `src/widgets/WebPage.tsx`; note `inspector-model.ts:577` |
+| Other sensors | no own settings; it still has the card style (Surface default Theme, accent, size, spacing, typography, border and effects) | ✅ `standard-settings.ts:322`; drawn by `src/modules/other-sensors.tsx`, one `src/widgets/SensorValue.tsx` per key |
 
 Enter each widget's **exact** current fields from its settings component. The prototype's fields are representative only.
 
@@ -310,3 +310,26 @@ Features of the deleted or rewritten `zone-toolbar.tsx`, `settings-panel.tsx`, `
 | Settings card: dock category list on the left with per-category changed counts | Tabs with changed pills, sections with "N changed" | ✅ `inspector/inspector-view.tsx:87`, `setting-card.tsx:93` |
 | Source detail pane: live value chip per source | Count + health dot per source | ✅ (decision #16): count + health dot per source; live values per point |
 
+## 16. Widget library (Phase 9)
+Rows from `docs/redesign/widgets/docs/CLAUDE_CODE.md` §3, plus the six templates written for the plugin cards and Other sensors. Plan and decisions: `PHASE9_PLAN.md`. Every widget renders inside one shell (`src/widgets/core/Widget.tsx`).
+
+| Capability | Where | Status |
+|---|---|---|
+| 44 widget templates in the Library, by category (System 9, Hardware 8, Storage 3, Network 2, Media 1, Audio 5, Info 4, Gaming 10, Generic 2) | Add › Library, chips System · Hardware · Storage · Network · Media · Audio · Info · Gaming · Generic | ✅ registered in `src/widgets/registry/a.ts:25`, `b.ts:69`, `c.ts:35`, `d.ts:42`; chips `insert-panel.tsx:13`; each is `templateModule` (`src/widgets/module.tsx`), min size from `meta.minSize` |
+| Departures template (replaces the plain VBZ card) | Library › Info; Content › Status line | ✅ `src/widgets/Departures.tsx`, `registry/e.ts:63`; legacy id `vbz` aliases it |
+| Notifications template | Library › Info; Content › History, Max history lines; Hide when idle | ✅ `src/widgets/Notifications.tsx`, `registry/e.ts:46`; legacy id `notifications` aliases it |
+| Text File template | Library › Info; Content › Size / lines / status header | ✅ `src/widgets/TextFile.tsx`, `registry/e.ts:37`; legacy id `textfile` aliases it |
+| Bluetooth template | Library › Generic; Content › Status, Devices, Battery, View; Style › Battery colors (Adv) | ✅ `src/widgets/Bluetooth.tsx`, `registry/e.ts:73`; legacy id `bluetoothmodern` aliases it |
+| Stream Deck template | Library › Generic; Content › Profile, Button labels | ✅ `src/widgets/StreamDeck.tsx`, `registry/e.ts:105`; legacy id `streamdeck` aliases it |
+| Web Page template | Library › Generic; Content › Page (URL); reduced Style | ✅ `src/widgets/WebPage.tsx`, `registry/e.ts:22`; legacy id `webpage` aliases it |
+| Other sensors on the shell (one Sensor card per unclaimed key) | Library › Generic; Style (card look, Surface default Theme) | ✅ `src/modules/other-sensors.tsx`, `src/widgets/SensorValue.tsx` |
+| Sensor Group (auto-discovered rows) | Library › Generic; Content and Data per its options | ✅ `src/widgets/SensorGroup.tsx`, `registry/b.ts:69` |
+| Skin (14) | Style › Look › Skin, Follow / Custom, source dot | ✅ `standard-settings.ts:69` (in `STYLE_SETTINGS`, so dashboard / profile / widget resolution, dots and presets apply); category `inspector-categories.ts:48`; skins `src/widgets/core/skins/*.ts` |
+| Variant (default / studio) | Style › Look › Variant | ✅ `standard-settings.ts:78`; drawn by `StudioView` in `core/views.tsx` |
+| Graph style (6), Meter style (7) | Style › Look (Adv) | ✅ `standard-settings.ts:90,100`; resolved in `core/look.ts` `skinContext` |
+| Per-widget layout options (e.g. Now Playing layout and visualizer) | Content tab, per the widget's own sections; the standard Layout stays in Style › Size & alignment | ✅ Now Playing `src/widgets/NowPlaying/settings.ts:269` (`playerLayout`) and visualizer group `:71`; other widgets' options in `src/widgets/registry/a-settings.ts`, `registry/settings-kit.ts` and `registry/a.ts`–`e.ts` (a template prop named like a standard key is stored under another key, `PHASE9_PLAN.md` §3 rule 3) |
+| Shape-aware compact views (tile / strip / column) | Automatic by zone shape; Style › Look › Compact view = Off (Adv) keeps the full layout | ✅ shape `src/widgets/core/layout.ts:12`; switch `core/Widget.tsx:99`; setting `standard-settings.ts:110` |
+| Sensor and device pickers for widget settings | Data tab | ✅ `sensorSetting` / `deviceSetting` in `src/widgets/registry/settings-kit.ts`, rendered by `setting-pickers.tsx` |
+| Skin-aware panel widgets (a skin set → Bar / Spark / Ring / Num) | Style › Look on a panel zone (Variant and Compact view are hidden) | ✅ `src/components/widgets/panel-skin.tsx`; `NOT_FOR_PANELS` `standard-settings.ts:358` |
+| Per-zone error tile (a throwing widget does not blank the kiosk) | Automatic | ✅ `src/components/zone-error-boundary.tsx`, `placement-frame.tsx:154` |
+| Widget QA page (every module at six spans, overflow / overlap / clipping probe) | Dev only: `?widget-qa` | ✅ `src/widgets/widget-qa.tsx`, `qa-geometry.ts`; `docs/redesign/phase9/qa.md` |
