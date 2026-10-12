@@ -1,6 +1,7 @@
 // Template widgets, group D: gaming (see docs/redesign/phase9/brief-9.3c-templates.md).
 import type { DashboardModule, ModuleSettings } from "@/modules/types";
 import { templateModule } from "../module";
+import { boolOf, listOf, numberOf, oneOf } from "./settings-kit";
 import Achievements, { meta as achievementsMeta, type AchievementsProps } from "../Achievements";
 import FpsMonitor, { meta as fpsMonitorMeta, type FpsMonitorProps } from "../FpsMonitor";
 import FramePacing, { meta as framePacingMeta, type FramePacingProps } from "../FramePacing";
@@ -13,15 +14,6 @@ import SteamGame, { meta as steamGameMeta, type SteamGameProps } from "../SteamG
 import SteamLibrary, { meta as steamLibraryMeta, type SteamLibraryProps } from "../SteamLibrary";
 import SteamNews, { meta as steamNewsMeta, type SteamNewsProps } from "../SteamNews";
 import SteamProfile, { meta as steamProfileMeta, type SteamProfileProps } from "../SteamProfile";
-
-/** A stored number, or undefined when unset or not numeric. */
-const numberOf = (v: unknown): number | undefined => (v === undefined || v === "" || v === null || !Number.isFinite(Number(v)) ? undefined : Number(v));
-/** A stored value that is one of `allowed`, or undefined. */
-const oneOf = <T extends string>(v: unknown, allowed: readonly T[]): T | undefined => allowed.find((a) => a === v);
-/** A stored list, narrowed item by item; undefined when it is not a list. */
-const listOf = <T>(v: unknown, item: (x: unknown) => T | undefined): T[] | undefined =>
-  Array.isArray(v) ? v.map(item).filter((x): x is T => x !== undefined) : undefined;
-const boolOf = (v: unknown): boolean | undefined => (typeof v === "boolean" ? v : undefined);
 
 const OSD_CELLS = ["fps", "low", "ft", "gpu", "cpu", "vram", "display"] as const satisfies readonly OsdCell[];
 

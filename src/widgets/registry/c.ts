@@ -1,8 +1,9 @@
 // Template widgets, group C: media / audio (see docs/redesign/phase9/brief-9.3c-templates.md).
 import { audioSettings, ballisticsOf } from "@/modules/audio-modern";
 import { WAVELINK_SETTINGS, wavelinkToProps } from "@/modules/wavelink-modern";
-import type { DashboardModule, ModuleSetting, ModuleSettings } from "@/modules/types";
+import type { DashboardModule, ModuleSetting } from "@/modules/types";
 import { templateModule } from "../module";
+import { pick } from "./settings-kit";
 import AudioMeter, { meta as audioMeter, type AudioMeterProps } from "../AudioMeter";
 import MeterBridge, { meta as meterBridge, type MeterBridgeProps } from "../MeterBridge";
 import NowPlaying, { meta as nowPlaying, type NowPlayingProps } from "../NowPlaying";
@@ -10,12 +11,6 @@ import { MEDIA_SETTINGS, PLAYER_LAYOUT, VIZ_ENGINE, sharedPropsOf } from "../Now
 import Visualizer, { meta as visualizer, type VisualizerProps } from "../Visualizer";
 import VolumeMixer, { meta as volumeMixer, type VolumeMixerProps } from "../VolumeMixer";
 import WaveLink, { meta as waveLink } from "../WaveLink";
-
-/** The stored settings whose key is one of the widget's prop names, passed straight through. */
-const pick =
-  <P extends object>(keys: readonly (keyof P & string)[]) =>
-  (s: ModuleSettings): P =>
-    Object.fromEntries(keys.filter((k) => s[k] !== undefined).map((k) => [k, s[k]])) as P;
 
 /** The legacy media keys a new NowPlaying zone can use; the engine-picking and mapped keys stay with the legacy modules. */
 const LEGACY_ONLY = ["waveform", "visualizer", "waveformVariant", "visualizerMirrored", "liveSource"];

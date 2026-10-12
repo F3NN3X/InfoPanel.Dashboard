@@ -1,9 +1,10 @@
 // Template widgets, group B: storage, network, info, generic (see docs/redesign/phase9/brief-9.3c-templates.md).
-import type { DashboardModule, ModuleSettings } from "@/modules/types";
+import type { DashboardModule } from "@/modules/types";
 import { SENSOR_GROUP_SETTINGS } from "@/modules/hardware-modern";
 import { NETWORK_SETTINGS } from "@/modules/network-modern";
 import { WEATHER_SETTINGS, weatherToProps } from "@/modules/weather-modern";
 import { templateModule } from "../module";
+import { pass } from "./settings-kit";
 import * as DriveSpace from "../DriveSpace";
 import * as StorageHealth from "../StorageHealth";
 import * as DiskIO from "../DiskIO";
@@ -15,12 +16,6 @@ import * as Weather from "../Weather";
 import * as Forecast from "../Forecast";
 import * as SensorValue from "../SensorValue";
 import * as SensorGroup from "../SensorGroup";
-
-/** The stored settings whose key equals a widget prop name, passed straight through (unset / empty = the widget's default). */
-const pass =
-  <P extends object>(...keys: (keyof P & string)[]) =>
-  (s: ModuleSettings): P =>
-    Object.fromEntries(keys.filter((k) => s[k] !== undefined && s[k] !== "").map((k) => [k, s[k]])) as P;
 
 export const GROUP_B: DashboardModule[] = [
   templateModule({ meta: DriveSpace.meta, Component: DriveSpace.default, settings: [], toProps: pass<Partial<DriveSpace.DriveSpaceProps>>("drive", "warn", "crit", "sort", "neutral") }),

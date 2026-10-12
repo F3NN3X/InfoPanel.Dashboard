@@ -181,3 +181,11 @@ describe("the alignment picker setting", () => {
     expect(settingStateOf(align, {}, { alignY: "start" })).toBe("profile");
   });
 });
+
+describe("sensor settings search", () => {
+  const sensor: ModuleSetting = { key: "src", label: "Source", type: "sensor", default: "" };
+  it("answers to sensor, data and bind", () => {
+    for (const q of ["sensor", "data", "bind"]) expect(filterSettings([sensor], q)).toEqual([sensor]);
+    expect(filterSettings([{ ...sensor, type: "text" }], "bind")).toEqual([]);
+  });
+});

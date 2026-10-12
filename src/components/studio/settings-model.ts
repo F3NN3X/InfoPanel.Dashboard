@@ -25,10 +25,19 @@ export function filterSettings(defs: ModuleSetting[], query: string): ModuleSett
   return direct.length > 0 ? direct : defs.filter((d) => matchesQuery([d.group ?? ""], query));
 }
 
+/** What a sensor setting also answers to in the search. */
+const SENSOR_KEYWORDS = ["sensor", "data", "bind"];
+
 /** Whether a setting's label, key, option labels or keywords match a query. */
 export function rowMatches(def: ModuleSetting, query: string): boolean {
   return matchesQuery(
-    [def.label, def.key, ...(def.options?.map((o) => o.label) ?? []), ...(def.keywords ?? [])],
+    [
+      def.label,
+      def.key,
+      ...(def.options?.map((o) => o.label) ?? []),
+      ...(def.keywords ?? []),
+      ...(def.type === "sensor" ? SENSOR_KEYWORDS : []),
+    ],
     query
   );
 }

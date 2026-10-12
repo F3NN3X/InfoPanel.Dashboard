@@ -9,6 +9,12 @@ export type ModuleSettings = Record<string, ModuleSettingValue>;
 /** The inspector tabs of a widget or panel zone. */
 export type InspectorTab = "content" | "style" | "data";
 
+/** The device kinds a select can list from the live keys (`optionsFrom`). */
+export type DeviceKind = "cpu" | "gpu" | "disk" | "adapter" | "audio" | "drive";
+/** Whether an `optionsFrom` value is one of the device kinds. */
+export const isDeviceKind = (v: string | undefined): v is DeviceKind =>
+  v === "cpu" || v === "gpu" || v === "disk" || v === "adapter" || v === "audio" || v === "drive";
+
 /**
  * One inspector-editable option. The studio renders controls from this
  * schema; values are stored per-placement (see Placement.settings).
@@ -16,7 +22,7 @@ export type InspectorTab = "content" | "style" | "data";
 export interface ModuleSetting {
   key: string;
   label: string;
-  type: "text" | "number" | "select" | "boolean" | "color" | "icon" | "image" | "align";
+  type: "text" | "number" | "select" | "boolean" | "color" | "icon" | "image" | "align" | "sensor";
   default: ModuleSettingValue;
   /**
    * For type "align": the vertical key, written together with `key` (the
@@ -46,14 +52,16 @@ export interface ModuleSetting {
    * - `"wavelink"` — the Wave Link app's meter inventory (channels + output
    *   devices) from the wavelink-plugin; options are the meter keys the
    *   widget filters on, "" = all meters.
+   * - `"cpu" | "gpu" | "disk" | "adapter" | "audio" | "drive"` — the devices
+   *   found in the live keys (`deviceOptions`), "" = Auto first. Data tab by default.
    */
-  optionsFrom?: "sources" | "media" | "wavelink";
+  optionsFrom?: "sources" | "media" | "wavelink" | DeviceKind;
   /** Key prefix whose containers become the dynamic select's options. */
   sourcePlugin?: string;
   /**
-   * For type "select": allow picking several options. The value is stored as
-   * a comma-separated string ("" = none). Rendered as a checkbox list in the
-   * studio.
+   * For type "select" (or "sensor"): allow picking several options. The value
+   * is stored as a comma-separated string ("" = none), ordered. Rendered as a
+   * checkbox list in the studio (a list of bound sensors for "sensor").
    */
   multiple?: boolean;
   /** For type "text": a multi-line editor (e.g. custom CSS). */

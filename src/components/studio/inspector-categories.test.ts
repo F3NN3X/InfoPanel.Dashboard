@@ -231,3 +231,16 @@ describe("tabs and advanced", () => {
     expect(isAdvanced(def("x"), cat([color("a")]))).toBe(true);
   });
 });
+
+describe("data settings", () => {
+  const sensor: ModuleSetting = { key: "sensor", label: "Sensor", type: "sensor", default: "", group: "Value" };
+  const device: ModuleSetting = { key: "cpu", label: "CPU", type: "select", default: "", optionsFrom: "cpu", group: "Value" };
+  const category = categorize([sensor, device, def("title", "Value")])[0];
+
+  it("default to the Data tab, an explicit tab still wins", () => {
+    expect(tabOf(sensor, category)).toBe("data");
+    expect(tabOf(device, category)).toBe("data");
+    expect(tabOf(def("title", "Value"), category)).toBe("content");
+    expect(tabOf({ ...sensor, tab: "content" }, category)).toBe("content");
+  });
+});

@@ -214,6 +214,7 @@ export function ZoneInspector({
     onChange: (key, v) => update((p) => withSettings(p, { [key]: v }, enforce), `setting:${key}`),
     onPatch: (patch) => update((p) => withSettings(p, patch, enforce), `setting:${Object.keys(patch).join()}`),
     onClear: (keys) => update((p) => withoutSettings(p, keys)),
+    onOpenExplorer,
   };
   const effective = shownValues(values, defs);
 

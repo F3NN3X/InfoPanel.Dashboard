@@ -6,7 +6,7 @@ import { buildDataModel } from "@/lib/data-points";
 import { sensorAt } from "@/lib/sensors";
 import { DataPicker } from "../inspector/data-picker";
 import { liveText } from "../inspector/bound-data-model";
-import { StackRow } from "../setting-rows";
+import { StackRow, type RowLabelProps } from "../setting-rows";
 import { sensorName } from "../widget-kinds";
 
 const SMALL_BUTTON =
@@ -15,6 +15,8 @@ const SMALL_BUTTON =
 interface SensorFieldProps {
   label: string;
   hint?: string;
+  /** Before the label (the source dot). */
+  lead?: RowLabelProps["lead"];
   value: string | undefined;
   onChange: (key: string | undefined) => void;
   /** The picker's "Open data explorer". */
@@ -26,7 +28,7 @@ interface SensorFieldProps {
  * value and `edit`, which opens the data picker in single-select (item)
  * mode; picking a point sets the field and closes the picker.
  */
-export function SensorField({ label, hint, value, onChange, onOpenExplorer }: SensorFieldProps) {
+export function SensorField({ label, hint, lead, value, onChange, onOpenExplorer }: SensorFieldProps) {
   const [open, setOpen] = useState(false);
   const catalog = useSensorCatalog();
   const model = useMemo(() => buildDataModel(catalog.sources, catalog.sensors), [catalog.sources, catalog.sensors]);
@@ -40,7 +42,7 @@ export function SensorField({ label, hint, value, onChange, onOpenExplorer }: Se
   };
 
   return (
-    <StackRow label={label} hint={hint}>
+    <StackRow label={label} hint={hint} lead={lead}>
       <div className="flex items-center gap-2 rounded-[7px] border border-ui-default bg-ui-app py-[7px] pl-[9px] pr-1.5 hover:border-[#3a3a44]">
         <span className="min-w-0 flex-1">
           {value ? (

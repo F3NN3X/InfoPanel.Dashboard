@@ -8,7 +8,7 @@ import {
   GROUP_TYPOGRAPHY,
   GROUP_WIDGET,
 } from "@/modules/standard-settings";
-import type { InspectorTab, ModuleSetting } from "@/modules/types";
+import { isDeviceKind, type InspectorTab, type ModuleSetting } from "@/modules/types";
 import { matchesQuery, rowMatches } from "./settings-model";
 
 /** A general category: the same for every widget, panel and blank zone. */
@@ -212,9 +212,12 @@ export function categoryAdvanced(category: InspectorCategory): boolean {
   return isColorCategory(category.defs);
 }
 
-/** The tab a setting sits in: its own `tab`, else its category's. */
+/** Whether a setting binds data: a sensor, or a device picked from the live keys. */
+export const isDataSetting = (def: ModuleSetting): boolean => def.type === "sensor" || isDeviceKind(def.optionsFrom);
+
+/** The tab a setting sits in: its own `tab`, else Data for data settings, else its category's. */
 export function tabOf(def: ModuleSetting, category: InspectorCategory): InspectorTab {
-  return def.tab ?? categoryTab(category);
+  return def.tab ?? (isDataSetting(def) ? "data" : categoryTab(category));
 }
 
 /** Whether a setting is advanced: flagged itself, or in an advanced category. */

@@ -1,7 +1,8 @@
 // Template widgets, group A: system and hardware (see docs/redesign/phase9/brief-9.3c-templates.md).
-import type { DashboardModule, ModuleSettings } from "@/modules/types";
+import type { DashboardModule } from "@/modules/types";
 import { THERMALS_SETTINGS } from "@/modules/hardware-modern";
 import { templateModule } from "../module";
+import { pass } from "./settings-kit";
 import * as SystemOverview from "../SystemOverview";
 import * as MenuBar from "../MenuBar";
 import * as KpiTiles from "../KpiTiles";
@@ -20,12 +21,6 @@ import * as Thermals from "../Thermals";
 import * as PowerDraw from "../PowerDraw";
 import * as Fans from "../Fans";
 import { SYSTEM_OVERVIEW_SETTINGS, systemOverviewProps } from "./system-overview";
-
-/** The stored settings whose key equals a widget prop name, passed straight through (unset / empty = the widget's default). */
-const pass =
-  <P extends object>(...keys: (keyof P & string)[]) =>
-  (s: ModuleSettings): P =>
-    Object.fromEntries(keys.filter((k) => s[k] !== undefined && s[k] !== "").map((k) => [k, s[k]])) as P;
 
 export const GROUP_A: DashboardModule[] = [
   templateModule({

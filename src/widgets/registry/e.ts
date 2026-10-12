@@ -4,16 +4,13 @@ import { findEntry } from "@/lib/sensors";
 import { CARD_SETTINGS, IDLE_SETTING, STYLE_SETTINGS, SURFACE_SETTINGS } from "@/modules/standard-settings";
 import type { DashboardModule, ModuleSetting } from "@/modules/types";
 import { templateModule, type TemplateOptions } from "../module";
+import { boolOf, numberOf, stringOf } from "./settings-kit";
 import Bluetooth, { meta as bluetoothMeta, type BluetoothProps } from "../Bluetooth";
 import Departures, { meta as departuresMeta, type DeparturesProps } from "../Departures";
 import Notifications, { meta as notificationsMeta, type NotificationsProps } from "../Notifications";
 import StreamDeck, { meta as streamDeckMeta, type StreamDeckProps } from "../StreamDeck";
 import TextFile, { meta as textFileMeta, type TextFileProps } from "../TextFile";
 import WebPage, { meta as webPageMeta, type WebPageProps } from "../WebPage";
-
-const boolOf = (v: unknown): boolean | undefined => (typeof v === "boolean" ? v : undefined);
-const stringOf = (v: unknown): string | undefined => (typeof v === "string" && v ? v : undefined);
-const numberOf =(v: unknown): number | undefined => (v === undefined || v === "" || v === null || !Number.isFinite(Number(v)) ? undefined : Number(v));
 
 /** The frame's edge: border and glow only (the page covers any surface). */
 const EDGE_KEYS: ReadonlySet<string> = new Set(["borderWidth", "borderColor", "glow", "glowColor"]);

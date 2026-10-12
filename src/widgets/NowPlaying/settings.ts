@@ -3,6 +3,7 @@
 import type { ModuleSetting, ModuleSettings } from "@/modules/types";
 import { LIVE_TUNING_DEFAULTS, LIVE_TUNING_KEYS, type LiveTuning, type VizEngine } from "../core/media-progress";
 import type { NowPlayingProps } from "../NowPlaying";
+import { oneOf } from "../registry/settings-kit";
 
 /** The audio-level-meter plugin, which drives the visualizers' live level. */
 export const AUDIO_LEVEL = "plugins.audio-level-meter.";
@@ -292,8 +293,6 @@ export const VIZ_ENGINE: ModuleSetting = {
   ],
   group: "Visualizer",
 };
-
-const oneOf = <T extends string>(v: unknown, allowed: readonly T[]): T | undefined => allowed.find((a) => a === v);
 
 /**
  * The pinned Web Audio capture devices (one visualizer row each). Only active while `liveCapture`

@@ -1,9 +1,11 @@
 import { Square, SquareCheck } from "lucide-react";
 import { useAudioDevices } from "@/hooks/use-audio-devices";
+import { useSensorCatalog } from "@/lib/catalog";
+import { deviceOptions } from "@/lib/device-options";
 import { cn } from "@/lib/utils";
 import { meterKey, useWavelinkState } from "@/lib/wavelink";
-import type { ModuleSetting, ModuleSettingValue } from "@/modules/types";
-import { SELECT as SELECT_BASE, StackRow, type RowLabelProps } from "./setting-rows";
+import type { DeviceKind, ModuleSetting, ModuleSettingValue } from "@/modules/types";
+import { SELECT as SELECT_BASE, SelectRow, StackRow, type RowLabelProps } from "./setting-rows";
 
 /** A comma-separated list ("" = none) as its items. */
 const splitList = (value: string): string[] => (value ? value.split(",").map((s) => s.trim()).filter(Boolean) : []);
@@ -124,4 +126,15 @@ export function WavelinkMeterPicker({ def, value, onChange, lead, hint }: Picker
       )}
     </StackRow>
   );
+}
+
+/**
+ * Picker for a hardware / audio / drive device found in the live keys ("" = Auto first). A stored
+ * value that is not live right now stays listed, so opening the inspector never rewrites it.
+ */
+export function DevicePicker({ def, kind, value, onChange, lead, hint }: PickerProps & { kind: DeviceKind }) {
+  const { sensors } = useSensorCatalog();
+  const live = deviceOptions(kind, sensors);
+  const options = live.some((o) => o.value === value) ? live : [...live, { value, label: `${value} (not live)` }];
+  return <SelectRow label={def.label} lead={lead} hint={hint} options={options} value={value} onChange={onChange} />;
 }

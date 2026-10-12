@@ -20,6 +20,8 @@ export interface FieldsApi {
   onPatch: (patch: ModuleSettings) => void;
   /** Drop settings' own values (back to the inherited / default ones) as one change. */
   onClear: (keys: string[]) => void;
+  /** Sensor settings: the data picker's "Open data explorer". */
+  onOpenExplorer?: () => void;
 }
 
 /**
@@ -46,6 +48,7 @@ export function SettingField({
         onChange={(v) => fields.onChange(def.key, v)}
         onPatch={fields.onPatch}
         onApply={fields.onPatch}
+        onOpenExplorer={fields.onOpenExplorer}
         sources={sources}
         hint={def.hint}
         lead={state === "default" ? undefined : <SourceDot state={state} onReset={() => fields.onClear(settingKeys(def))} />}

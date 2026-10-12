@@ -3,7 +3,7 @@ import { IconGrid, type IconGridItem } from "@/components/ui/icon-grid";
 import type { ApiSources } from "@/lib/catalog";
 import { sourceOptions } from "@/lib/sources";
 import { WIDGET_ICONS } from "@/lib/widget-icons";
-import type { ModuleSetting, ModuleSettingValue, ModuleSettings } from "@/modules/types";
+import { isDeviceKind, type ModuleSetting, type ModuleSettingValue, type ModuleSettings } from "@/modules/types";
 import { AlignGrid } from "./align-grid";
 import { splitUnit } from "./inspector/number-box";
 import { MediaField } from "./media-field";
@@ -17,7 +17,9 @@ import {
   ToggleRow,
   type RowLabelProps,
 } from "./setting-rows";
-import { MediaDevicePicker, MultiSelect, WavelinkMeterPicker } from "./setting-pickers";
+import { DevicePicker, MediaDevicePicker, MultiSelect, WavelinkMeterPicker } from "./setting-pickers";
+import { SensorField } from "./widget-editor/sensor-field";
+import { SensorListField } from "./widget-editor/sensor-list-field";
 
 /** The icon grid's cells: "none" first, then every widget icon. */
 const ICONS: IconGridItem[] = [
@@ -41,6 +43,7 @@ export function SettingRow({
   onChange,
   onApply,
   onPatch,
+  onOpenExplorer,
   sources,
   lead,
   hint,
@@ -54,6 +57,8 @@ export function SettingRow({
   onApply?: (bundle: ModuleSettings) => void;
   /** Type "align": write both keys as one change. */
   onPatch?: (patch: ModuleSettings) => void;
+  /** Type "sensor": the data picker's "Open data explorer". */
+  onOpenExplorer?: () => void;
   sources: ApiSources | null;
   /** Before the label (the source dot). */
   lead?: RowLabelProps["lead"];
@@ -73,6 +78,20 @@ export function SettingRow({
             onChange={(x, y) => onPatch?.({ [def.key]: x ?? auto, [def.keyY ?? def.key]: y ?? auto })}
           />
         </StackRow>
+      );
+    }
+
+    case "sensor": {
+      const explorer = onOpenExplorer ?? (() => {});
+      return def.multiple ? (
+        <SensorListField {...label} value={String(value)} onChange={onChange} onOpenExplorer={explorer} />
+      ) : (
+        <SensorField
+          {...label}
+          value={value === "" ? undefined : String(value)}
+          onChange={(key) => onChange(key ?? "")}
+          onOpenExplorer={explorer}
+        />
       );
     }
 
@@ -112,6 +131,10 @@ export function SettingRow({
       // (channels + output devices), so a dedicated component owns it.
       if (def.optionsFrom === "wavelink") {
         return <WavelinkMeterPicker def={def} value={String(value)} onChange={onChange} lead={lead} hint={hint} />;
+      }
+      // Hardware / audio / drive devices found in the live keys, "" = Auto.
+      if (isDeviceKind(def.optionsFrom) && !def.multiple) {
+        return <DevicePicker def={def} kind={def.optionsFrom} value={String(value)} onChange={onChange} lead={lead} hint={hint} />;
       }
       // Dynamic options resolved from live sensor data (a plugin's
       // currently-exposed containers), falling back to the static list.
