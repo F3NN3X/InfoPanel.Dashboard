@@ -3,7 +3,7 @@
 import type { ModuleSetting, ModuleSettings } from "@/modules/types";
 import { LIVE_TUNING_DEFAULTS, LIVE_TUNING_KEYS, type LiveTuning, type VizEngine } from "../core/media-progress";
 import type { NowPlayingProps } from "../NowPlaying";
-import { oneOf } from "../registry/settings-kit";
+import { boolSetting, colorSetting, deviceSetting, enumSetting, oneOf } from "../registry/settings-kit";
 
 /** The audio-level-meter plugin, which drives the visualizers' live level. */
 export const AUDIO_LEVEL = "plugins.audio-level-meter.";
@@ -293,6 +293,26 @@ export const VIZ_ENGINE: ModuleSetting = {
   ],
   group: "Visualizer",
 };
+
+/**
+ * The template's own props: `vizMode` and `vizDevice` are stored under the legacy keys `waveformVariant` and
+ * `liveSource` (PHASE9_PLAN §3.2), here with the template's full option set.
+ */
+export const NOW_PLAYING_OWN: ModuleSetting[] = [
+  enumSetting("source", "Source", "auto", [{ value: "auto", label: "Auto" }, { value: "media", label: "Windows Media" }, { value: "spotify", label: "Spotify" }, { value: "pushed", label: "Pushed" }], { group: "Now playing" }),
+  boolSetting("showArt", "Cover art", true, { group: "Now playing" }),
+  enumSetting("progress", "Progress row", "bar", [{ value: "bar", label: "Bar" }, { value: "wave", label: "Wave" }, { value: "visualizer", label: "Visualizer" }], { group: "Now playing" }),
+  enumSetting(
+    "waveformVariant",
+    "Visualizer mode",
+    "bars",
+    [{ value: "bars", label: "Bars" }, { value: "mirror", label: "Mirror" }, { value: "wave", label: "Wave" }, { value: "dots", label: "Dots" }, { value: "line", label: "Line" }],
+    { group: "Visualizer" },
+  ),
+  deviceSetting("liveSource", "Visualizer device", "audio", { group: "Visualizer" }),
+  boolSetting("showTimeline", "Timeline under the visualizer", true, { group: "Visualizer" }),
+  colorSetting("vizRamp", "Visualizer color", { group: "Visualizer" }),
+];
 
 /**
  * The pinned Web Audio capture devices (one visualizer row each). Only active while `liveCapture`
