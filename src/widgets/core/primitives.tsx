@@ -344,6 +344,10 @@ export function LegendRow({ color, label, value, className = "text-[12.5px]" }: 
     </div>
   );
 }
+/** A dark frosted pill for overlays on artwork. */
+export const GlassPill = ({ children, className = "" }: { children?: ReactNode; className?: string }) => (
+  <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full bg-black/45 px-2.5 py-1 text-[11px] font-medium text-zinc-100 ring-1 ring-white/10 backdrop-blur-md ${className}`}>{children}</span>
+);
 export function Empty({ icon = "sensors_off", label = "No data" }: { icon?: string; label?: ReactNode }) {
   return (
     <div className="flex h-full flex-col items-center justify-center gap-1 text-[color:var(--w-faint)]">

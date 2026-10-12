@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { Widget, shell, get, num, fmt, has, Img, Bar, Stat, Chip, Icon, type ShellProps, type WidgetMeta } from "./kit";
+import { Widget, shell, get, num, fmt, has, Img, Bar, Stat, GlassPill, Icon, type ShellProps, type WidgetMeta } from "./kit";
 import { widgetImage } from "./data-adapter";
 
 export const meta: WidgetMeta = {
@@ -47,7 +47,7 @@ export default function SteamGame(p: SteamGameProps) {
             <div className="flex items-center gap-2">
               {size !== "xs" && <Img src={widgetImage(P("game_icon_url"))} icon="stadia_controller" className="h-6 w-6 rounded-md" />}
               <span className="truncate text-[11px] font-medium uppercase tracking-[0.08em] text-[color:var(--w-muted)]">{P("game-status-text") || "Now playing"}</span>
-              {size !== "xs" && <Chip className="ml-auto !bg-black/40 backdrop-blur">⏱ {S("current-session-time")}</Chip>}
+              {size !== "xs" && <GlassPill className="ml-auto">⏱ {S("current-session-time")}</GlassPill>}
             </div>
             <div className="mt-auto flex flex-col gap-2">
               <span className={`${{ xs: "text-base", sm: "text-xl", md: "text-3xl", lg: "text-4xl" }[size]} truncate font-bold leading-tight tracking-tight drop-shadow`}>{S("current-game")}</span>

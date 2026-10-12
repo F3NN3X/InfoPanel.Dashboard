@@ -1,5 +1,5 @@
-import type { CSSProperties, ReactNode } from "react";
-import { Widget, shell, get, num, fmt, has, Img, Icon, Bar, Ring, Dot, MediaProgress, KenBurns, Logo, type MiniVizProps, type ShellProps, type WidgetMeta } from "./kit";
+import type { CSSProperties } from "react";
+import { Widget, GlassPill, shell, get, num, fmt, has, Img, Icon, Bar, Ring, Dot, MediaProgress, KenBurns, Logo, type MiniVizProps, type ShellProps, type WidgetMeta } from "./kit";
 import type { ModuleSettings } from "@/modules/types";
 import { widgetImage } from "./data-adapter";
 import { CompositeView } from "./GameSpotlightComposite";
@@ -17,10 +17,6 @@ export const meta: WidgetMeta = {
 
 // Everything here sits on artwork behind a dark scrim, so the text stays light on every surface.
 const ON_ART = { "--w-fg": "#f4f4f5", "--w-muted": "#d4d4d8", "--w-faint": "#a1a1aa", "--w-track": "rgba(255,255,255,0.15)" } as CSSProperties;
-
-const GlassPill = ({ children, className = "" }: { children?: ReactNode; className?: string }) => (
-  <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full bg-black/45 px-2.5 py-1 text-[11px] font-medium text-zinc-100 ring-1 ring-white/10 backdrop-blur-md ${className}`}>{children}</span>
-);
 
 export interface GameSpotlightProps extends ShellProps {
   /** `composite`: the old Steam card in one layout (profile, session, playtime, library, achievements, friends, news). */
