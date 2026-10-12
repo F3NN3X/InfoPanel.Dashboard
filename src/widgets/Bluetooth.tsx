@@ -74,7 +74,7 @@ export default function Bluetooth(p: BluetoothProps) {
         )}
       </div>
       {showBattery && (
-        <div className="mt-1 h-[5px] overflow-hidden rounded-full bg-[color:var(--w-track)]" style={{ width: small ? "80px" : "100%" }}>
+        <div className="mt-1 h-[5px] overflow-hidden rounded-full bg-[color:var(--w-track)]" style={{ width: "100%", maxWidth: small ? 80 : undefined }}>
           {d.battery !== undefined && <div className="h-full rounded-full transition-[width] duration-300" style={{ width: `${Math.round(d.battery)}%`, background: color(d.battery) }} />}
         </div>
       )}
@@ -103,8 +103,10 @@ export default function Bluetooth(p: BluetoothProps) {
         if (size === "xs") return <Metric label="Bluetooth" value={status ?? "—"} scale="sm" sub={countLabel} className="h-full justify-center" />;
         const tall = h >= w * 0.72;
         const perRow = showBattery ? 46 : 28;
+        // the wide layout's device grid is what is left of the width after the head column and the gap: two columns only when each is 100px or more
+        const cols = tall || w <= 0 || w - Math.max(w * 0.3, 140) - 20 - 28 >= 216 ? 2 : 1;
         // before the first measurement (h = 0) up to 6 devices render
-        const shown = showDevices ? devices.slice(0, h > 0 ? Math.min(6, Math.max(1, Math.floor((h - 36) / perRow) * (tall ? 1 : 2))) : 6) : [];
+        const shown = showDevices ? devices.slice(0, h > 0 ? Math.min(6, Math.max(1, Math.floor((h - 36) / perRow) * (tall ? 1 : cols))) : 6) : [];
         // the wide layout's head column is narrow: the count sits under the status so the status is never cut
         const head = (
           <div className={`flex shrink-0 ${tall ? "items-center gap-2" : "flex-col gap-1"}`}>
@@ -123,7 +125,7 @@ export default function Bluetooth(p: BluetoothProps) {
         ) : (
           <div className="flex h-full min-h-0 items-center gap-5">
             <div className="flex w-[30%] min-w-[140px] shrink-0 flex-col gap-1.5">{head}</div>
-            <div className="grid min-w-0 flex-1 auto-rows-min grid-cols-2 gap-x-4 gap-y-2 overflow-hidden">{shown.map((d) => row(d, true))}</div>
+            <div className="grid min-w-0 flex-1 auto-rows-min gap-x-4 gap-y-2 overflow-hidden" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))` }}>{shown.map((d) => row(d, true))}</div>
           </div>
         );
       }}
