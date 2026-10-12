@@ -65,7 +65,7 @@ describe("audiomodern", () => {
   });
 
   it("routes each view to its template props", () => {
-    const base = audioToProps(DEFAULTS);
+    const base = { data: {}, ...audioToProps(DEFAULTS) };
     expect(audioMeterProps(base)).toMatchObject({ device: undefined, mode: "bridge", meterStyle: "solid", orientation: "horizontal", ballistics: "peak" });
     expect(audioMeterProps({ ...base, source: VOICE, meterVariant: "segmented", meterOrientation: "vertical" })).toMatchObject({ device: VOICE, mode: "single", meterStyle: "led", orientation: "vertical" });
     expect(audioMeterProps({ ...base, meterVariant: "gradient" }).meterStyle).toBe("bar");
