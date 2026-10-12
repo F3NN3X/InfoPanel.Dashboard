@@ -286,6 +286,17 @@ export function InspectorView({
         ref={root}
         className={cn("min-h-0 flex-1", dock ? "overflow-auto" : "overflow-y-auto")}
       >
+        {/* The lead (search count or context notes) spans the full width above the
+            columns; as a dock cell it would take a whole column even when it renders nothing. */}
+        {searching ? (
+          <p className="px-4 pb-1 pt-3 text-[11px] text-ui-4">
+            {result && result.total > 0
+              ? `${result.total} setting${result.total === 1 ? "" : "s"} across all tabs`
+              : `No settings match '${query.trim()}'.`}
+          </p>
+        ) : (
+          notes?.(tab)
+        )}
         <div
           className={cn(
             // Columns of whole sections: a flex column that wraps never splits an item (CSS
@@ -293,18 +304,6 @@ export function InspectorView({
             dock && "flex h-full flex-col flex-wrap content-start"
           )}
         >
-          {cell(
-            "lead",
-            searching ? (
-              <p className="px-4 pb-1 pt-3 text-[11px] text-ui-4">
-                {result && result.total > 0
-                  ? `${result.total} setting${result.total === 1 ? "" : "s"} across all tabs`
-                  : `No settings match '${query.trim()}'.`}
-              </p>
-            ) : (
-              notes?.(tab)
-            )
-          )}
           {sections.map(renderSection)}
           {hiddenCount > 0 &&
             cell(
