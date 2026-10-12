@@ -39,9 +39,9 @@ export default function DiskIO(p: DiskIOProps) {
             {disks.slice(0, useFitRows(h, 30, 10)).map((x) => (
               <li key={x.id} className="flex flex-col gap-1 text-xs">
                 <div className="flex justify-between gap-2">
-                  <span className="font-medium text-[color:var(--w-fg)]">{x.name}</span>
-                  <span className="tabular-nums text-[color:var(--w-muted)]">
-                    <span className="text-[color:var(--accent)]">R</span> {fmtRate(x.r)} Â· <span className="text-violet-400">W</span> {fmtRate(x.w)}
+                  <span className="shrink-0 font-medium text-[color:var(--w-fg)]">{x.name}</span>
+                  <span className="min-w-0 truncate tabular-nums text-[color:var(--w-muted)]">
+                    <span style={{ color: "color-mix(in oklab, var(--accent) 60%, var(--w-fg))" }}>R</span> {fmtRate(x.r)} · <span style={{ color: "color-mix(in oklab, #a78bfa 60%, var(--w-fg))" }}>W</span> {fmtRate(x.w)}
                   </span>
                 </div>
                 <div className="flex h-1.5 overflow-hidden rounded-full bg-[color:var(--w-track)]">
