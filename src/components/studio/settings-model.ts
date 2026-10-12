@@ -45,42 +45,58 @@ export function matchesQuery(texts: string[], query: string): boolean {
  *   a panel's legacy look counts as its default)
  * - `dashboard` — inherited from the dashboard style (all profiles)
  * - `profile` — inherited from the profile's style
- * - `own` — set on this widget
- * - `override` — set on this widget over an inherited value
+ * - `here` — set on this widget
+ * - `overriding` — set on this widget over an inherited value
+ * - `ignored` — set on this widget but not used: the widget follows the
+ *   global style, or the style is forced
  */
-export type SettingState = "default" | "dashboard" | "profile" | "own" | "override";
+export type SettingState = "default" | "dashboard" | "profile" | "here" | "overriding" | "ignored";
+
+/** The states whose value is stored on the widget itself (it can be reset there). */
+export const SET_HERE: ReadonlySet<SettingState> = new Set(["here", "overriding", "ignored"]);
 
 /**
  * `inheritedFrom`: the layer of each inherited value (`resolveStyle`'s
- * `source`); unlisted inherited keys count as the profile's.
+ * `source`); unlisted inherited keys count as the profile's. `ignoreOwn`:
+ * the widget's own value is not in effect, so it reads `ignored` instead.
  */
 export function settingState(
   key: string,
   own: ModuleSettings | undefined,
   inherited: ModuleSettings | undefined,
   fallback: ModuleSettingValue,
-  inheritedFrom?: Record<string, StyleSource>
+  inheritedFrom?: Record<string, StyleSource>,
+  ignoreOwn?: boolean
 ): SettingState {
   const from = inheritedFrom?.[key] ?? "profile";
   const hasOwn = own?.[key] !== undefined;
   const hasInherited = inherited?.[key] !== undefined && from !== "default";
-  if (hasOwn && hasInherited) return "override";
+  if (ignoreOwn && hasOwn && (hasInherited || own?.[key] !== fallback)) return "ignored";
+  if (hasOwn && hasInherited) return "overriding";
   if (hasInherited) return from === "dashboard" ? "dashboard" : "profile";
-  if (hasOwn && own?.[key] !== fallback) return "own";
+  if (hasOwn && own?.[key] !== fallback) return "here";
   return "default";
 }
 
-const STATE_RANK: Record<SettingState, number> = { default: 0, dashboard: 1, profile: 2, own: 3, override: 4 };
+const STATE_RANK: Record<SettingState, number> = {
+  default: 0,
+  dashboard: 1,
+  profile: 2,
+  here: 3,
+  overriding: 4,
+  ignored: 5,
+};
 
 /** `settingState` over every key a setting stores (the strongest one wins). */
 export function settingStateOf(
   def: ModuleSetting,
   own: ModuleSettings | undefined,
   inherited: ModuleSettings | undefined,
-  inheritedFrom?: Record<string, StyleSource>
+  inheritedFrom?: Record<string, StyleSource>,
+  ignoreOwn?: boolean
 ): SettingState {
   return settingKeys(def)
-    .map((key) => settingState(key, own, inherited, def.default, inheritedFrom))
+    .map((key) => settingState(key, own, inherited, def.default, inheritedFrom, ignoreOwn))
     .reduce((a, b) => (STATE_RANK[b] > STATE_RANK[a] ? b : a), "default" as SettingState);
 }
 

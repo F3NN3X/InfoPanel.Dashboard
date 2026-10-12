@@ -142,17 +142,19 @@ export function SettingsPanel({
 }
 
 const STATE_DOT: Record<Exclude<SettingState, "default">, string> = {
-  own: "bg-ring",
+  here: "bg-ring",
   dashboard: "bg-sky-400",
   profile: "bg-amber-400",
-  override: "bg-ring ring-[1.5px] ring-amber-400",
+  overriding: "bg-ring ring-[1.5px] ring-amber-400",
+  ignored: "ring-[1.5px] ring-amber-400",
 };
 
 const STATE_TITLE: Record<Exclude<SettingState, "default">, string> = {
-  own: "Set here",
+  here: "Set here",
   dashboard: "From the dashboard style (all profiles)",
   profile: "From the profile style",
-  override: "Overrides the global style",
+  overriding: "Overrides the global style",
+  ignored: "Set here but ignored: this widget follows the global style",
 };
 
 /** Inherited states: their dot is not a reset button. */
@@ -211,9 +213,9 @@ export function SettingField({
                 type="button"
                 onClick={reset}
                 title={
-                  state === "override"
-                    ? `${STATE_TITLE.override} — reset to the inherited value`
-                    : `${STATE_TITLE.own} — reset to the default`
+                  state === "overriding"
+                    ? `${STATE_TITLE.overriding} — reset to the inherited value`
+                    : `${STATE_TITLE.here} — reset to the default`
                 }
                 className="hidden text-muted-foreground hover:text-foreground group-hover/row:flex"
               >

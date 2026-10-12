@@ -87,8 +87,8 @@ describe("settingState", () => {
     expect(settingState("glow", {}, {}, "none")).toBe("default");
   });
 
-  it("is own when only the widget sets it", () => {
-    expect(settingState("glow", { glow: "soft" }, undefined, "none")).toBe("own");
+  it("is here when only the widget sets it", () => {
+    expect(settingState("glow", { glow: "soft" }, undefined, "none")).toBe("here");
   });
 
   it("is default when the widget's own value is the default", () => {
@@ -99,13 +99,13 @@ describe("settingState", () => {
     expect(settingState("glow", {}, { glow: "soft" }, "none")).toBe("profile");
   });
 
-  it("is override when both set it", () => {
-    expect(settingState("glow", { glow: "strong" }, { glow: "soft" }, "none")).toBe("override");
-    expect(settingState("glow", { glow: "none" }, { glow: "soft" }, "none")).toBe("override");
+  it("is overriding when both set it", () => {
+    expect(settingState("glow", { glow: "strong" }, { glow: "soft" }, "none")).toBe("overriding");
+    expect(settingState("glow", { glow: "none" }, { glow: "soft" }, "none")).toBe("overriding");
   });
 
   it("treats false and 0 as set values", () => {
-    expect(settingState("tint", { tint: false }, undefined, true)).toBe("own");
+    expect(settingState("tint", { tint: false }, undefined, true)).toBe("here");
     expect(settingState("scale", undefined, { scale: 0 }, 100)).toBe("profile");
   });
 
@@ -113,13 +113,29 @@ describe("settingState", () => {
     const from = { glow: "dashboard", radius: "profile" } as const;
     expect(settingState("glow", {}, { glow: "soft" }, "none", from)).toBe("dashboard");
     expect(settingState("radius", {}, { radius: "8" }, "auto", from)).toBe("profile");
-    expect(settingState("glow", { glow: "strong" }, { glow: "soft" }, "none", from)).toBe("override");
+    expect(settingState("glow", { glow: "strong" }, { glow: "soft" }, "none", from)).toBe("overriding");
   });
 
   it("does not mark a value from the default layer (a panel's legacy look)", () => {
     const from = { surface: "default" } as const;
     expect(settingState("surface", {}, { surface: "bordered" }, "panel", from)).toBe("default");
-    expect(settingState("surface", { surface: "glass" }, { surface: "bordered" }, "panel", from)).toBe("own");
+    expect(settingState("surface", { surface: "glass" }, { surface: "bordered" }, "panel", from)).toBe("here");
+  });
+
+  it("is ignored when a set value is not in effect (the widget follows, or the style is forced)", () => {
+    expect(settingState("glow", { glow: "soft" }, undefined, "none", undefined, true)).toBe("ignored");
+    expect(settingState("glow", { glow: "soft" }, { glow: "strong" }, "none", undefined, true)).toBe("ignored");
+    expect(settingState("tint", { tint: false }, undefined, true, undefined, true)).toBe("ignored");
+  });
+
+  it("is not ignored when there is nothing to ignore", () => {
+    expect(settingState("glow", undefined, undefined, "none", undefined, true)).toBe("default");
+    expect(settingState("glow", { glow: "none" }, undefined, "none", undefined, true)).toBe("default");
+    expect(settingState("glow", {}, { glow: "soft" }, "none", { glow: "dashboard" }, true)).toBe("dashboard");
+  });
+
+  it("ignores an own default that hides an inherited value", () => {
+    expect(settingState("glow", { glow: "none" }, { glow: "soft" }, "none", undefined, true)).toBe("ignored");
   });
 
   it("ranks the dashboard state under the profile one", () => {
@@ -159,9 +175,9 @@ describe("the alignment picker setting", () => {
 
   it("takes the strongest state of its keys", () => {
     expect(settingStateOf(align, undefined, undefined)).toBe("default");
-    expect(settingStateOf(align, { alignY: "end" }, undefined)).toBe("own");
-    expect(settingStateOf(align, { alignY: "end" }, { alignX: "start" })).toBe("own");
-    expect(settingStateOf(align, { alignX: "end" }, { alignX: "start" })).toBe("override");
+    expect(settingStateOf(align, { alignY: "end" }, undefined)).toBe("here");
+    expect(settingStateOf(align, { alignY: "end" }, { alignX: "start" })).toBe("here");
+    expect(settingStateOf(align, { alignX: "end" }, { alignX: "start" })).toBe("overriding");
     expect(settingStateOf(align, {}, { alignY: "start" })).toBe("profile");
   });
 });

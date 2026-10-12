@@ -60,6 +60,7 @@ export const STYLE_SETTINGS: ModuleSetting[] = [
     label: "Scale with the zone",
     type: "boolean",
     default: true,
+    advanced: true,
     group: GROUP_SIZE,
   },
   {
@@ -195,6 +196,7 @@ export const SURFACE_SETTINGS: ModuleSetting[] = [
     label: "Glow color (empty = accent)",
     type: "color",
     default: "",
+    visibleIf: (values) => (values.glow ?? "none") !== "none",
     group: GROUP_EFFECTS,
   },
   {
@@ -248,6 +250,7 @@ export const STANDARD_SETTINGS: ModuleSetting[] = [
     label: "Layout",
     type: "select",
     default: "auto",
+    hint: "Adaptive widgets pick a layout from their measured size; this forces one",
     options: [
       { value: "auto", label: "Auto (fit to zone)" },
       { value: "card", label: "Card" },
@@ -271,12 +274,13 @@ export const STANDARD_SETTINGS: ModuleSetting[] = [
   { key: "label", label: "Custom title", type: "text", default: "", group: GROUP_WIDGET },
   { key: "icon", label: "Icon", type: "icon", default: "", group: GROUP_WIDGET },
   { key: "accent", label: "Accent color", type: "color", default: "", group: GROUP_COLORS },
-  { key: "background", label: "Background image", type: "image", default: "", group: GROUP_COLORS },
+  { key: "background", label: "Background image", type: "image", default: "", group: GROUP_COLORS, advanced: true },
   {
     key: "backgroundOn",
     label: "Use as background",
     type: "boolean",
     default: false,
+    advanced: true,
     group: GROUP_COLORS,
   },
   ...STYLE_SETTINGS,

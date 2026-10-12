@@ -7,7 +7,7 @@ import {
   GROUP_TYPOGRAPHY,
   GROUP_WIDGET,
 } from "@/modules/standard-settings";
-import type { ModuleSetting } from "@/modules/types";
+import type { InspectorTab, ModuleSetting } from "@/modules/types";
 import { matchesQuery, rowMatches } from "./settings-model";
 
 /** A general category: the same for every widget, panel and blank zone. */
@@ -16,6 +16,10 @@ interface GeneralCategory {
   /** Also the `group` of the standard settings filed in it. */
   title: string;
   hint: string;
+  /** The inspector tab it sits in (Content for the Widget card, Style for the look). */
+  tab: InspectorTab;
+  /** Only shown with "Advanced settings" on. */
+  advanced?: boolean;
   /**
    * The standard setting keys it holds (an "align" picker counts once, by
    * its horizontal key). Ungrouped keys (`preset`, `layout`, `surface`,
@@ -34,47 +38,63 @@ interface GeneralCategory {
 export const GENERAL_CATEGORIES: readonly GeneralCategory[] = [
   {
     id: "widget",
+    tab: "content",
     title: GROUP_WIDGET,
     hint: "Title, icon and visibility",
     keys: ["label", "icon", "hideWhenIdle"],
   },
   {
     id: "size",
+    tab: "style",
     title: GROUP_SIZE,
     hint: "Layout, scale and alignment in the zone",
     keys: ["layout", "autoScale", "scale", "alignX"],
   },
   {
     id: "typography",
+    tab: "style",
     title: GROUP_TYPOGRAPHY,
     hint: "Font, weight, case and text colors",
     keys: ["textColor", "mutedColor", "font", "fontWeight", "labelCase"],
   },
   {
     id: "spacing",
+    tab: "style",
     title: GROUP_SPACING,
     hint: "Padding, gaps, corners and stroke thickness",
     keys: ["padding", "gap", "radius", "stroke"],
   },
   {
     id: "colors",
+    tab: "style",
     title: GROUP_COLORS,
     hint: "Preset, surface, accent, background, opacity and blur",
     keys: ["preset", "surface", "accent", "background", "backgroundOn", "surfaceOpacity", "blur"],
   },
   {
     id: "effects",
+    tab: "style",
     title: GROUP_EFFECTS,
     hint: "Border and edge glow",
     keys: ["borderWidth", "borderColor", "glow", "glowColor"],
   },
   {
     id: "advanced",
+    tab: "style",
+    advanced: true,
     title: GROUP_ADVANCED,
     hint: "Custom CSS",
     keys: ["customCss"],
   },
 ];
+
+/**
+ * Whether a widget's own category is made of color pickers only (Device
+ * colors, Dot colors, Gauge colors, ...): those are look settings, filed
+ * in Style and tucked away as advanced.
+ */
+const isColorCategory = (defs: ModuleSetting[]): boolean =>
+  defs.length > 0 && defs.every((d) => d.type === "color");
 
 /** Where settings that name no category (and no standard key) end up. */
 export const OTHER_TITLE = "Other";
@@ -166,4 +186,30 @@ export function filterCategories(
     .map((c) => ({ ...c, defs: c.defs.filter((d) => rowMatches(d, query)) }))
     .filter((c) => c.defs.length > 0);
   return rows.length > 0 ? rows : categories.filter((c) => matchesQuery([c.title], query));
+}
+
+const GENERAL_SPEC_BY_ID: ReadonlyMap<string, GeneralCategory> = new Map(
+  GENERAL_CATEGORIES.map((c) => [c.id, c] as const)
+);
+
+/** The tab a category sits in (a setting's own `tab` can still move it, see `tabOf`). */
+export function categoryTab(category: InspectorCategory): InspectorTab {
+  if (category.general) return GENERAL_SPEC_BY_ID.get(category.id)?.tab ?? "style";
+  return isColorCategory(category.defs) ? "style" : "content";
+}
+
+/** Whether a whole category is advanced (custom CSS, a widget's color categories). */
+export function categoryAdvanced(category: InspectorCategory): boolean {
+  if (category.general) return GENERAL_SPEC_BY_ID.get(category.id)?.advanced ?? false;
+  return isColorCategory(category.defs);
+}
+
+/** The tab a setting sits in: its own `tab`, else its category's. */
+export function tabOf(def: ModuleSetting, category: InspectorCategory): InspectorTab {
+  return def.tab ?? categoryTab(category);
+}
+
+/** Whether a setting is advanced: flagged itself, or in an advanced category. */
+export function isAdvanced(def: ModuleSetting, category: InspectorCategory): boolean {
+  return def.advanced === true || categoryAdvanced(category);
 }

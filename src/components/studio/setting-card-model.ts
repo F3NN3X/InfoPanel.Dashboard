@@ -4,7 +4,7 @@ import type { InspectorCategory } from "./inspector-categories";
 import { settingStateOf, type SettingState } from "./settings-model";
 
 /** States whose value is set on the widget itself (so it can be reset there). */
-const OWN_STATES: ReadonlySet<SettingState> = new Set(["own", "override"]);
+const OWN_STATES: ReadonlySet<SettingState> = new Set(["here", "overriding"]);
 
 /**
  * The settings of a card with a value of their own on the widget (not

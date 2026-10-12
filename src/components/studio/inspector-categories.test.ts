@@ -14,6 +14,10 @@ import {
   GENERAL_CATEGORIES,
   OTHER_TITLE,
   withGeneral,
+  categoryAdvanced,
+  categoryTab,
+  isAdvanced,
+  tabOf,
 } from "./inspector-categories";
 
 const def = (key: string, group?: string, label = key): ModuleSetting => ({
@@ -181,5 +185,48 @@ describe("withGeneral", () => {
 
   it("keeps existing ones and adds nothing for unknown ids", () => {
     expect(withGeneral(cats, ["advanced", "nope"])).toEqual(cats);
+  });
+});
+
+describe("tabs and advanced", () => {
+  const cat = (defs: ModuleSetting[], title = "Own") => categorize(defs.map((d) => ({ ...d, group: d.group ?? title })))[0];
+  const color = (key: string): ModuleSetting => ({ key, label: key, type: "color", default: "" });
+
+  it("files the Widget card in Content and the look cards in Style", () => {
+    const tabs = Object.fromEntries(
+      categorize(STANDARD_SETTINGS).map((c) => [c.title, categoryTab(c)])
+    );
+    expect(tabs).toMatchObject({
+      Widget: "content",
+      "Size & alignment": "style",
+      Typography: "style",
+      "Spacing & shape": "style",
+      "Colors & surface": "style",
+      "Border & effects": "style",
+      Advanced: "style",
+    });
+  });
+
+  it("files a widget's own categories in Content, those of color pickers in Style as advanced", () => {
+    const plain = cat([def("showFans")]);
+    expect([categoryTab(plain), categoryAdvanced(plain)]).toEqual(["content", false]);
+    const colors = cat([color("a"), color("b")], "Device colors");
+    expect([categoryTab(colors), categoryAdvanced(colors)]).toEqual(["style", true]);
+    const mixed = cat([color("a"), def("b")], "Meter");
+    expect([categoryTab(mixed), categoryAdvanced(mixed)]).toEqual(["content", false]);
+  });
+
+  it("only the Advanced general category is advanced by itself", () => {
+    const advanced = categorize(STANDARD_SETTINGS).filter(categoryAdvanced);
+    expect(advanced.map((c) => c.title)).toEqual(["Advanced"]);
+  });
+
+  it("lets a setting's own tab and advanced flag win", () => {
+    const own = cat([def("x")]);
+    expect(tabOf({ ...def("x"), tab: "data" }, own)).toBe("data");
+    expect(tabOf(def("x"), own)).toBe("content");
+    expect(isAdvanced({ ...def("x"), advanced: true }, own)).toBe(true);
+    expect(isAdvanced(def("x"), own)).toBe(false);
+    expect(isAdvanced(def("x"), cat([color("a")]))).toBe(true);
   });
 });

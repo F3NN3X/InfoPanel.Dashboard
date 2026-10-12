@@ -6,6 +6,9 @@ export type SensorMap = Record<string, SensorValue>;
 export type ModuleSettingValue = string | number | boolean;
 export type ModuleSettings = Record<string, ModuleSettingValue>;
 
+/** The inspector tabs of a widget or panel zone. */
+export type InspectorTab = "content" | "style" | "data";
+
 /**
  * One inspector-editable option. The studio renders controls from this
  * schema; values are stored per-placement (see Placement.settings).
@@ -65,6 +68,18 @@ export interface ModuleSetting {
    * placed where the group first appears.
    */
   group?: string;
+  /**
+   * The inspector tab it sits in. Unset: its category's tab (general
+   * categories by their kind, a widget's own categories in Content, those made
+   * of color pickers in Style) — see `inspector-categories.ts`.
+   */
+  tab?: InspectorTab;
+  /** Tucked away until "Advanced settings" is on (its category's flag also counts). */
+  advanced?: boolean;
+  /** One-line explanation, shown behind an info icon. */
+  hint?: string;
+  /** Shown only while this holds for the zone's effective values (default: always). */
+  visibleIf?: (values: ModuleSettings) => boolean;
 }
 
 /**

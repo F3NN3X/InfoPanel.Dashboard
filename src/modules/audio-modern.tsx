@@ -105,8 +105,8 @@ const AUDIO_MODERN_SETTINGS: ModuleSetting[] = [
     ],
     group: "Meter",
   },
-  { key: "levelColor", label: "Level bar color", type: "color", default: "", group: "Meter" },
-  { key: "hotColor", label: "Hot level color", type: "color", default: "", group: "Meter" },
+  { key: "levelColor", label: "Level bar color", type: "color", default: "", group: "Meter", advanced: true },
+  { key: "hotColor", label: "Hot level color", type: "color", default: "", group: "Meter", advanced: true },
 ];
 
 export const audioModernModule: DashboardModule = {

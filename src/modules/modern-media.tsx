@@ -127,6 +127,8 @@ const MODERN_SETTINGS: ModuleSetting[] = [
   },
   {
     key: "visualizerMirrored",
+
+    advanced: true,
     label: "Visualizer mirrored",
     type: "boolean",
     default: false,
@@ -134,6 +136,8 @@ const MODERN_SETTINGS: ModuleSetting[] = [
   },
   {
     key: "visualizerMinLevel",
+
+    advanced: true,
     label: "Visualizer resting bar size",
     type: "number",
     default: 0.08,
@@ -156,6 +160,8 @@ const MODERN_SETTINGS: ModuleSetting[] = [
   },
   {
     key: "visualizerLoading",
+
+    advanced: true,
     label: "Visualizer loading sweep",
     type: "boolean",
     default: false,
@@ -163,6 +169,8 @@ const MODERN_SETTINGS: ModuleSetting[] = [
   },
   {
     key: "visualizerOrientation",
+
+    advanced: true,
     label: "Visualizer orientation",
     type: "select",
     default: "horizontal",
@@ -174,6 +182,8 @@ const MODERN_SETTINGS: ModuleSetting[] = [
   },
   {
     key: "waveformBarWidth",
+
+    advanced: true,
     label: "Waveform bar width (px)",
     type: "number",
     default: 3,
@@ -184,6 +194,8 @@ const MODERN_SETTINGS: ModuleSetting[] = [
   },
   {
     key: "waveformBarGap",
+
+    advanced: true,
     label: "Waveform bar gap (px)",
     type: "number",
     default: 1,
@@ -194,6 +206,8 @@ const MODERN_SETTINGS: ModuleSetting[] = [
   },
   {
     key: "waveformBarRadius",
+
+    advanced: true,
     label: "Waveform bar radius (px)",
     type: "number",
     default: 1.5,
@@ -204,6 +218,8 @@ const MODERN_SETTINGS: ModuleSetting[] = [
   },
   {
     key: "waveformMinBarHeight",
+
+    advanced: true,
     label: "Waveform min bar height (px)",
     type: "number",
     default: 4,
@@ -214,6 +230,8 @@ const MODERN_SETTINGS: ModuleSetting[] = [
   },
   {
     key: "waveformLineWidth",
+
+    advanced: true,
     label: "Waveform line width (px)",
     type: "number",
     default: 1.5,
@@ -224,6 +242,8 @@ const MODERN_SETTINGS: ModuleSetting[] = [
   },
   {
     key: "waveformFadeEdges",
+
+    advanced: true,
     label: "Waveform edge fade",
     type: "boolean",
     default: true,
@@ -231,6 +251,8 @@ const MODERN_SETTINGS: ModuleSetting[] = [
   },
   {
     key: "waveformFadeWidth",
+
+    advanced: true,
     label: "Waveform fade width (px)",
     type: "number",
     default: 24,
@@ -241,6 +263,8 @@ const MODERN_SETTINGS: ModuleSetting[] = [
   },
   {
     key: "liveSource",
+
+    tab: "data",
     label: "Live level source (audio device)",
     type: "select",
     default: "",
@@ -250,6 +274,8 @@ const MODERN_SETTINGS: ModuleSetting[] = [
   },
   {
     key: "liveCapture",
+
+    tab: "data",
     label: "Live capture (Web Audio, real-time)",
     type: "boolean",
     default: false,
@@ -257,6 +283,8 @@ const MODERN_SETTINGS: ModuleSetting[] = [
   },
   {
     key: "liveSources",
+
+    tab: "data",
     label: "Capture devices (one visualizer row each)",
     type: "select",
     default: "",

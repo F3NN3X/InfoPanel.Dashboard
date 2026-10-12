@@ -86,8 +86,8 @@ const WAVELINK_SETTINGS: ModuleSetting[] = [
     ],
     group: "Meter",
   },
-  { key: "liveColor", label: "Live indicator color", type: "color", default: "", group: "Meter" },
-  { key: "muteColor", label: "Muted / offline color", type: "color", default: "", group: "Meter" },
+  { key: "liveColor", label: "Live indicator color", type: "color", default: "", group: "Meter", advanced: true },
+  { key: "muteColor", label: "Muted / offline color", type: "color", default: "", group: "Meter", advanced: true },
 ];
 
 export const wavelinkModernModule: DashboardModule = {
