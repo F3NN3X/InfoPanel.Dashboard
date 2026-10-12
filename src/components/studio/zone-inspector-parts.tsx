@@ -29,7 +29,7 @@ export function HeaderIcon({ children }: { children: ReactNode }) {
 }
 
 const META = "truncate text-[11px] text-[#8a8a94]";
-const TITLE = "truncate text-[14px] font-semibold text-ui-1";
+const TITLE = "truncate text-[14px] font-semibold leading-4 text-ui-1";
 
 /** Hide / Duplicate / Delete (28×28; delete turns red on hover). */
 function ZoneActions({
@@ -144,7 +144,7 @@ export function ZoneHeader({
               onChange={(e) => onName(e.target.value)}
               className={cn(
                 TITLE,
-                "-ml-1 block h-6 w-full rounded-[5px] border border-transparent bg-transparent px-1 outline-none placeholder:text-ui-4 hover:border-ui-strong focus:border-ui-accent"
+                "-ml-1 block h-[21px] w-full rounded-[5px] border border-transparent bg-transparent px-1 outline-none placeholder:text-ui-4 hover:border-ui-strong focus:border-ui-accent"
               )}
             />
           ) : (
@@ -325,7 +325,7 @@ export function WidgetPicker({ placement, onPickWidget }: { placement: Placement
   const blank = placement.module === BLANK_MODULE;
   return (
     <div className="space-y-2">
-      <InlineRow label="Widget type">
+      <InlineRow label="Widget type" hint="Change keeps the general settings">
         <button
           type="button"
           onClick={onPickWidget}

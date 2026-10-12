@@ -118,7 +118,9 @@ export function MediaField({ label, kind, value, onChange, preview = "large", fi
           >
             <Upload className="h-[15px] w-[15px]" /> Upload
           </button>
-          <MediaLibrary kind={kind} value={value} onPick={onChange} />
+          <span className="flex shrink-0">
+            <MediaLibrary kind={kind} value={value} onPick={onChange} />
+          </span>
         </div>
         {!valid && <div className="mt-1 text-[11px] text-ui-danger">Use an http(s) URL or a path such as /assets/…</div>}
         {status.state === "uploading" && (

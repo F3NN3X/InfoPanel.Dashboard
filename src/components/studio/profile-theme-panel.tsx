@@ -1,5 +1,6 @@
 import { THEME_PRESETS, resolveTheme, type ThemeTokens } from "@/lib/theme";
 import { SegmentedRow } from "./setting-rows";
+import { matchesQuery } from "./settings-model";
 import { ThemePanel } from "./theme-panel";
 
 /** A profile's own theme: unset fields = the dashboard's. */
@@ -15,6 +16,8 @@ interface ProfileThemePanelProps {
   profileName: string;
   /** Replace the profile's own theme (both fields undefined = inherit). */
   onChange: (next: ProfileTheme, key?: string) => void;
+  /** The inspector search (see ThemePanel). */
+  query?: string;
 }
 
 const MODES = [
@@ -28,30 +31,32 @@ const MODES = [
  * this profile; the studio canvas previews them, its chrome keeps the
  * dashboard's). Custom starts from the dashboard's current theme.
  */
-export function ProfileThemePanel({ dashboard, profile, profileName, onChange }: ProfileThemePanelProps) {
+export function ProfileThemePanel({ dashboard, profile, profileName, onChange, query = "" }: ProfileThemePanelProps) {
   const custom = profile.theme !== undefined || profile.radius !== undefined;
   const { tokens, radius } = resolveTheme(dashboard, profile);
-  const presetName =
-    THEME_PRESETS.find((p) => JSON.stringify(p.tokens) === JSON.stringify(tokens))?.name ?? "custom";
+  const presetName = THEME_PRESETS.find((p) => JSON.stringify(p.tokens) === JSON.stringify(tokens))?.name ?? "custom";
 
+  // While searching the mode switch only lists when it is what matches.
+  const showMode = matchesQuery(["This profile", "Inherit", "Custom"], query) || !custom;
   return (
     <div className="space-y-3">
-      <SegmentedRow
-        label="This profile"
-        options={MODES}
-        value={custom ? "custom" : "inherit"}
-        onChange={(mode) =>
-          onChange(mode === "inherit" ? {} : { theme: { ...dashboard.theme }, radius: dashboard.radius })
-        }
-      />
+      {showMode && (
+        <SegmentedRow
+          label="This profile"
+          options={MODES}
+          value={custom ? "custom" : "inherit"}
+          onChange={(mode) =>
+            onChange(mode === "inherit" ? {} : { theme: { ...dashboard.theme }, radius: dashboard.radius })
+          }
+        />
+      )}
       {custom ? (
         <ThemePanel
           tokens={tokens}
           radius={radius}
           presetName={presetName}
-          onToken={(key, value) =>
-            onChange({ ...profile, theme: { ...tokens, [key]: value } }, `profile-theme:${key}`)
-          }
+          query={query}
+          onToken={(key, value) => onChange({ ...profile, theme: { ...tokens, [key]: value } }, `profile-theme:${key}`)}
           onRadius={(r) => onChange({ ...profile, radius: r }, "profile-radius")}
           onPreset={(name) => {
             const preset = THEME_PRESETS.find((p) => p.name === name);
@@ -60,8 +65,8 @@ export function ProfileThemePanel({ dashboard, profile, profileName, onChange }:
         />
       ) : (
         <p className="text-[11px] leading-snug text-ui-4">
-          <span className="text-ui-2">{profileName}</span> uses the dashboard&apos;s theme colours and
-          corner radius (All profiles).
+          <span className="text-ui-2">{profileName}</span> uses the dashboard&apos;s theme colours and corner radius
+          (All profiles).
         </p>
       )}
     </div>

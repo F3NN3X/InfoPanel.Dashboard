@@ -179,8 +179,31 @@
    the kiosk page keeps its own scrollbar rules below. */
 :root:has(.studio-root) {
   color-scheme: dark;
-  scrollbar-width: thin;
-  scrollbar-color: var(--ui-border-menu) transparent;
+}
+
+/* Thin thumb, no arrow buttons. The standard scrollbar-width/-color would switch
+   Chromium on Windows to the classic bar (with buttons), so the studio styles the
+   webkit parts instead. */
+:root:has(.studio-root) *::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+:root:has(.studio-root) *::-webkit-scrollbar-button {
+  display: none;
+}
+
+:root:has(.studio-root) *::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+:root:has(.studio-root) *::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+:root:has(.studio-root) *::-webkit-scrollbar-thumb {
+  background: var(--ui-border-menu);
+  border-radius: 3px;
 }
 
 /* Studio chrome radii are fixed (README §9): the dashboard theme's --radius,

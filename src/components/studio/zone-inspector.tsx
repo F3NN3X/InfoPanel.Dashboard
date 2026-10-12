@@ -238,7 +238,7 @@ export function ZoneInspector({
       case "widgetPicker":
         return { at: "top", node: <WidgetPicker placement={zone} onPickWidget={onPickWidget} /> };
       case "visible":
-        return { at: "bottom", node: <ToggleRow label="Visible" value={zone.visible} onChange={onToggleVisible} /> };
+        return { at: "bottom", node: <ToggleRow label="Visible" hint="Hidden zones stay editable but do not show in kiosk mode" value={zone.visible} onChange={onToggleVisible} /> };
       case "styleMode":
         return {
           at: "top",

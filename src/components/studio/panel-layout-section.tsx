@@ -237,7 +237,7 @@ export function PanelMainFields({
 }) {
   return (
     <>
-      <Field label="Editor">
+      <Field label="Editor" hint="Code edits the panel as JSON (Apply or Ctrl+Enter, one undo step)">
         <Segmented
           options={[
             { value: "visual", label: "Visual" },
@@ -248,7 +248,7 @@ export function PanelMainFields({
           className={FULL}
         />
       </Field>
-      <Field label="Size">
+      <Field label="Size" hint="Fill the zone, or shrink to the content">
         <Segmented
           options={[
             { value: "fill", label: "Fill", title: "Stretch over the whole zone" },

@@ -132,7 +132,12 @@ export function SettingRow({
         const applies = def.options?.find((o) => o.value === v)?.applies;
         if (applies) onApply?.(applies);
       };
-      const choices = options.map((o) => ({ value: o.value, label: o.label }));
+      // Layout's "Auto (fit to zone)" shows as "Auto" (the cell is narrow); the full text is the tooltip.
+      const choices = options.map((o) => ({
+        value: o.value,
+        label: def.key === "layout" && o.value === "auto" ? "Auto" : o.label,
+        title: o.label,
+      }));
       // Up to four options share a row; Layout (five) does too, the other long lists are selects.
       return (options.length <= 4 || def.key === "layout") && options.length > 0 ? (
         <SegmentedRow {...label} options={choices} value={String(value)} onChange={apply} />
