@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, has, Img, Bar, Chip, MiniViz, type ShellProps, type WidgetMeta, type Data } from "./kit";
+import { Widget, shell, get, num, has, Img, Chip, MediaProgress, type MediaProgressMode, type ShellProps, type WidgetMeta, type Data } from "./kit";
 import { widgetImage } from "./data-adapter";
 
 export const meta: WidgetMeta = {
@@ -89,7 +89,10 @@ export default function NowPlaying(p: NowPlayingProps) {
   const art = p.showArt !== false;
   const viz = p.progress === "visualizer";
   const A = (s: string) => num(get(d, `plugins.audio-level-meter.${p.vizDevice ?? "default-audio"}.${s}`)) || 0;
-  const miniViz = (h: string) => <MiniViz l={A("left-channel")} r={A("right-channel")} level={A("audio-level")} mode={p.vizMode ?? "bars"} ramp={p.vizRamp ?? "accent"} playing={m.playing} className={h} />;
+  const media = (mode: MediaProgressMode, h = "", barClassName?: string) => (
+    <MediaProgress mode={mode} pct={pct} l={A("left-channel")} r={A("right-channel")} level={A("audio-level")} vizMode={p.vizMode} ramp={p.vizRamp} playing={m.playing} className={h} barClassName={barClassName} />
+  );
+  const miniViz = (h: string) => media("visualizer", h);
   // called as functions (not components) so the canvas keeps its state between renders
   const times = (cls: string) =>
     has(m.elapsed) && (
@@ -114,7 +117,7 @@ export default function NowPlaying(p: NowPlayingProps) {
       vizBlock(h, onImage)
     ) : (
       <div className="flex flex-col gap-1">
-        <Bar value={pct} style="wave" className="h-2.5" />
+        {media("wave")}
         {times(onImage ? "text-zinc-300" : "text-[color:var(--w-muted)]")}
       </div>
     );
@@ -146,7 +149,7 @@ export default function NowPlaying(p: NowPlayingProps) {
           vizBlock(size === "lg" ? "h-12" : size === "md" ? "h-9" : "h-6")
         ) : (
           <div className="flex flex-col gap-1">
-            <Bar value={pct} style={p.progress === "wave" ? "wave" : undefined} className={p.progress === "wave" ? "h-2.5" : "h-1"} />
+            {media(p.progress === "wave" ? "wave" : "bar")}
             {times("text-[color:var(--w-faint)]")}
           </div>
         );
@@ -194,7 +197,7 @@ export default function NowPlaying(p: NowPlayingProps) {
           return (
             <div className="flex h-full flex-col justify-center gap-2">
               {text("text-sm")}
-              {viz ? miniViz("h-5") : <Bar value={pct} className="h-1" />}
+              {media(viz ? "visualizer" : "bar", "h-5")}
             </div>
           );
         if (size === "lg" && art)
