@@ -224,6 +224,7 @@ export const SURFACE_SETTINGS: ModuleSetting[] = [
 export const IDLE_SETTING: ModuleSetting = {
   key: "hideWhenIdle",
   label: "Hide when idle",
+  hint: "Hides the widget while its source has nothing to show",
   type: "boolean",
   default: false,
 };

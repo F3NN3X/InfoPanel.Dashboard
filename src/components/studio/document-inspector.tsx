@@ -226,6 +226,7 @@ function DocumentSheet({
               onToken={onToken}
               onRadius={onRadius}
               onPreset={onThemePreset}
+              query={query}
             />
           ) : (
             <ProfileThemePanel
@@ -233,6 +234,7 @@ function DocumentSheet({
               profile={{ theme: profile.theme, radius: profile.radius }}
               profileName={profile.name}
               onChange={onProfileTheme}
+              query={query}
             />
           ),
         };

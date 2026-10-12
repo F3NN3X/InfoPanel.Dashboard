@@ -108,13 +108,13 @@ export function BoundData({
                   className="flex min-w-0 flex-1 items-center gap-[9px] text-left"
                 >
                   <TypeIcon type={point?.type ?? "empty"} />
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[12px] text-ui-1">{point?.name ?? key}</span>
-                    <span className="block truncate text-[10.5px] text-ui-4">{pointPlace(point)}</span>
+                  <span className="flex min-w-0 flex-1 flex-col gap-px">
+                    <span className="block truncate text-[12px] leading-[15px] text-ui-1">{point?.name ?? key}</span>
+                    <span className="block truncate text-[10.5px] leading-[13px] text-ui-4">{pointPlace(point)}</span>
                   </span>
                   <span
                     className={cn(
-                      "max-w-24 shrink-0 truncate font-ui-mono text-[11px]",
+                      "max-w-24 shrink-0 truncate font-ui-mono text-[11px] leading-[15px]",
                       value === null ? "text-ui-warning" : "text-ui-2"
                     )}
                   >

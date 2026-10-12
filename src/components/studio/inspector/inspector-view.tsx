@@ -97,7 +97,7 @@ function Tabs({
   onTab: (tab: TabId) => void;
 }) {
   return (
-    <div role="tablist" className="flex shrink-0 gap-[18px] overflow-x-auto border-b border-ui-subtle px-4">
+    <div role="tablist" className="flex shrink-0 gap-2.5 overflow-x-auto border-b border-ui-subtle px-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       {tabs.map((t) => {
         const selected = t.id === active;
         const n = counts[t.id] ?? 0;
@@ -109,13 +109,13 @@ function Tabs({
             aria-selected={selected}
             onClick={() => onTab(t.id)}
             className={cn(
-              "-mb-px flex shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 pb-2.5 pt-[9px] text-[12.5px] font-medium transition-colors",
+              "-mb-px flex shrink-0 items-center gap-1 whitespace-nowrap border-b-2 pb-2.5 pt-[9px] text-[12.5px] font-medium transition-colors",
               selected ? "border-ui-1 text-ui-1" : "border-transparent text-[#8f8f99] hover:text-ui-2"
             )}
           >
             {t.label}
             {n > 0 && (
-              <span className="rounded-lg bg-ui-accent/[.16] px-[5px] py-px font-ui-mono text-[10px] text-ui-accent-text">
+              <span className="rounded-lg bg-ui-accent/[.16] px-1 py-px font-ui-mono text-[10px] text-ui-accent-text">
                 {n}
               </span>
             )}
