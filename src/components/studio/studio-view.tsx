@@ -657,33 +657,13 @@ export function StudioView({
   const mainEl = showSources ? (
     <div className="min-h-0 flex-1 overflow-hidden bg-background/40">
       <SourcesPanel
-        sourcePrefs={config.sourcePrefs}
-        onPrefsChange={(key, pref) =>
-          setConfig(
-            (c) => ({
-              ...c,
-              sourcePrefs: {
-                ...c.sourcePrefs,
-                [key]: { ...c.sourcePrefs?.[key], ...pref },
-              },
-            }),
-            `source-pref:${key}`
-          )
-        }
-        placements={profile.placements}
-        onBind={(placementId, container) =>
-          updatePlacement(placementId, (p) => ({
-            ...p,
-            settings: { ...p.settings, source: container },
-          }))
-        }
-        onUnbind={(placementId) =>
-          updatePlacement(placementId, (p) => {
-            const settings = { ...p.settings };
-            delete settings.source;
-            return { ...p, settings };
-          })
-        }
+        config={config}
+        setConfig={setConfig}
+        profile={profile}
+        onOpenZone={(id) => {
+          setShowSources(false);
+          focusZone(id);
+        }}
       />
     </div>
   ) : (
