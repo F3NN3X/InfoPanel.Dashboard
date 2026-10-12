@@ -431,9 +431,12 @@ export function KenBurns({ src, className = "", on = true }: { src?: string; cla
     const a = el.animate([{ transform: "scale(1.06) translate(0%,0%)" }, { transform: "scale(1.18) translate(-2.5%,-1.5%)" }], { duration: 22000, iterations: Infinity, direction: "alternate", easing: "ease-in-out" });
     return () => a.cancel();
   }, [on, src]);
+  // the art is scaled past its box; its own clip keeps that bleed out of the widget's scroll area
   return (
-    <div ref={ref} data-qa-bleed className={`absolute inset-0 ${className}`}>
-      <Img src={src} icon="sports_esports" className="h-full w-full" />
+    <div data-qa-bleed className="absolute inset-0 overflow-hidden">
+      <div ref={ref} className={`absolute inset-0 ${className}`}>
+        <Img src={src} icon="sports_esports" className="h-full w-full" />
+      </div>
     </div>
   );
 }
