@@ -141,6 +141,8 @@ function zoneAction(e: KeyInput, ctx: ShortcutContext): ShortcutAction | null {
   if (e.key === "Delete" || e.key === "Backspace") return { type: "remove" };
   if (e.key === "h" || e.key === "H") return e.shiftKey ? null : { type: "toggle-visible" };
   if (e.key === "?") return { type: "cheatsheet" };
+  if (e.key === "+" || e.key === "=") return { type: "zoom-in" };
+  if (e.key === "-") return { type: "zoom-out" };
   const arrow = ARROWS[e.key];
   if (arrow) return { type: e.shiftKey ? "resize" : "nudge", ...arrow };
   return null;
@@ -163,8 +165,8 @@ export const KEYS = {
   hide: "H",
   deselect: "Esc",
   fit: "Ctrl+0",
-  zoomIn: "Ctrl+=",
-  zoomOut: "Ctrl+-",
+  zoomIn: "+",
+  zoomOut: "-",
   dock: "Ctrl+\\",
   cheatsheet: "?",
 } as const;
@@ -179,7 +181,7 @@ export const SHORTCUT_GROUPS: { title: string; items: { keys: string; label: str
       { keys: KEYS.undo, label: "Undo" },
       { keys: `${KEYS.redo} / Ctrl+Y`, label: "Redo" },
       { keys: KEYS.cheatsheet, label: "Keyboard shortcuts" },
-      { keys: KEYS.deselect, label: "Close a menu or dialog, then clear search, step out (widget → zone → none), or close the drawer" },
+      { keys: KEYS.deselect, label: "Close a menu or dialog, then clear search, step out (widget → zone → none)" },
       { keys: "Ctrl+Enter", label: "Apply the panel JSON (inside the code editor)" },
     ],
   },
@@ -214,10 +216,10 @@ export const SHORTCUT_GROUPS: { title: string; items: { keys: string; label: str
     title: "Canvas",
     items: [
       { keys: KEYS.fit, label: "Fit to width" },
-      { keys: KEYS.zoomIn, label: "Zoom in" },
-      { keys: KEYS.zoomOut, label: "Zoom out" },
+      { keys: `${KEYS.zoomIn} / Ctrl+=`, label: "Zoom in" },
+      { keys: `${KEYS.zoomOut} / Ctrl+-`, label: "Zoom out" },
       { keys: "Ctrl+wheel", label: "Zoom" },
-      { keys: KEYS.dock, label: "Collapse / expand the bottom dock" },
+      { keys: KEYS.dock, label: "Collapse / expand the inspector" },
     ],
   },
 ];

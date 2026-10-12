@@ -38,3 +38,11 @@ export function trackPointer(
   document.addEventListener("keydown", key, true);
   return lost;
 }
+
+/** How far (px) a press must travel before it counts as a drag rather than a click. */
+export const DRAG_THRESHOLD = 4;
+
+/** Whether a pointer that moved (dx, dy) from its press has started a drag. */
+export function pastDragThreshold(dx: number, dy: number): boolean {
+  return Math.hypot(dx, dy) > DRAG_THRESHOLD;
+}

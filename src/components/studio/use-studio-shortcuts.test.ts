@@ -51,6 +51,15 @@ describe("shortcutAction", () => {
     expect(shortcutAction(key("-", { ctrlKey: true }), IDLE)).toEqual({ type: "zoom-out" });
   });
 
+  it("zooms with plain + / = and -, but not while typing or with a dialog open", () => {
+    expect(shortcutAction(key("+", { shiftKey: true }), IDLE)).toEqual({ type: "zoom-in" });
+    expect(shortcutAction(key("="), IDLE)).toEqual({ type: "zoom-in" });
+    expect(shortcutAction(key("-"), IDLE)).toEqual({ type: "zoom-out" });
+    expect(shortcutAction(key("+"), TYPING)).toBeNull();
+    expect(shortcutAction(key("-"), TYPING)).toBeNull();
+    expect(shortcutAction(key("-"), DIALOG)).toBeNull();
+  });
+
   it("maps Ctrl/cmd+A to select all, but not while typing or with a dialog open", () => {
     expect(shortcutAction(key("a", { ctrlKey: true }), IDLE)).toEqual({ type: "select-all" });
     expect(shortcutAction(key("A", { metaKey: true }), IDLE)).toEqual({ type: "select-all" });

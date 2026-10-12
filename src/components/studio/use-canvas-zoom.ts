@@ -1,16 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { fitZoomFor } from "./studio-layout";
+import { fitZoomFor, stepZoom } from "./studio-layout";
 import { loadZoomPref, saveZoomPref } from "./zoom-pref";
-
-const ZOOM_STEPS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2];
-
-/** The next zoom step in `dir` (an off-step zoom counts as 100%). */
-function stepZoom(z: number, dir: number): number {
-  const i = ZOOM_STEPS.indexOf(z);
-  return ZOOM_STEPS[
-    Math.max(0, Math.min(ZOOM_STEPS.length - 1, (i === -1 ? 3 : i) + dir))
-  ];
-}
 
 /**
  * Canvas zoom: discrete steps, ctrl/cmd + wheel over the scroll container,

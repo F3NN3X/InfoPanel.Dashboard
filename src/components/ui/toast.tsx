@@ -12,7 +12,7 @@ export function useToast(): ShowToast {
   return useContext(ToastContext);
 }
 
-/** Hosts the toast: top-centre, inverse colours, gone after ~1.8 s. */
+/** Hosts the toast: top-centre (14px under the top bar), inverse colours, gone after ~1.8 s. */
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toast, setToast] = useState<{ id: number; message: string } | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -33,7 +33,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         <div
           key={toast.id}
           role="status"
-          className="pointer-events-none fixed left-1/2 top-3 z-[100] -translate-x-1/2 rounded-lg bg-ui-inverse px-3.5 py-2 font-ui text-[12.5px] font-medium text-ui-inverse-fg shadow-ui-float"
+          className="pointer-events-none fixed left-1/2 top-[62px] z-[100] -translate-x-1/2 rounded-lg bg-ui-inverse px-3 py-[7px] font-ui text-xs font-medium text-ui-inverse-fg shadow-ui-float"
         >
           {toast.message}
         </div>

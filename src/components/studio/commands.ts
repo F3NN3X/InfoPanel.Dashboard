@@ -144,7 +144,7 @@ function generalCommands(s: CommandState): Command[] {
     ...LAYOUT_MODES.map(({ mode, label }) =>
       general(`layout:${mode}`, `Layout: ${label}`, { type: "layout", mode }, s.layoutMode === mode ? "current" : undefined)
     ),
-    general("toggle-dock", "Toggle dock", { type: "toggle-dock" }, KEYS.dock),
+    general("toggle-dock", "Toggle inspector", { type: "toggle-dock" }, KEYS.dock),
     general("zoom-fit", "Zoom to fit", { type: "zoom-fit" }, KEYS.fit),
     general("zoom-in", "Zoom in", { type: "zoom-in" }, KEYS.zoomIn),
     general("zoom-out", "Zoom out", { type: "zoom-out" }, KEYS.zoomOut),

@@ -7,7 +7,7 @@ import {
   Download,
   Info,
   Keyboard,
-  LayoutGrid,
+  Maximize,
   MoreHorizontal,
   Redo2,
   RotateCcw,
@@ -73,7 +73,7 @@ function ModeSwitch({ mode, onMode }: Pick<StudioTopBarProps, "mode" | "onMode">
     <div
       role="radiogroup"
       aria-label="Mode"
-      className="flex rounded-lg border border-ui-default bg-ui-raised p-0.5"
+      className="flex gap-0.5 rounded-lg border border-ui-default bg-ui-raised p-0.5"
       onKeyDown={(e) => {
         // Radio-group keys: arrows pick the neighbour (wrapping) and move focus to it.
         const step = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 0;
@@ -119,23 +119,23 @@ function ProfileSwitcher({
 }: Pick<StudioTopBarProps, "profiles" | "activeProfile" | "profile" | "onActivate" | "onOpenProfiles">) {
   const auto = activeProfile === "auto";
   return (
-    <div className="flex min-w-0 items-center">
+    // One hover target: the name opens the Profiles panel, the chevron the switch menu.
+    <div className="flex min-w-0 items-center rounded-md transition-colors hover:bg-ui-hover">
       <button
         type="button"
         onClick={onOpenProfiles}
-        title="Profiles"
-        className="flex h-8 min-w-0 items-center gap-1.5 rounded-md px-2 text-[13px] font-semibold text-ui-1 transition-colors hover:bg-ui-hover"
+        title={auto ? "Profiles (auto-picked by window size)" : "Profiles"}
+        className="flex h-8 min-w-0 items-center py-1 pl-1.5 text-[13px] font-semibold text-ui-1"
       >
         <span className="truncate">{profile.name}</span>
-        {auto && <span className="shrink-0 text-[10px] font-normal text-ui-4">auto</span>}
       </button>
       <Menu.Root>
         <Menu.Trigger
           aria-label="Switch profile"
           title="Switch profile"
-          className="flex h-8 w-6 shrink-0 items-center justify-center rounded-md text-ui-4 transition-colors hover:bg-ui-hover hover:text-ui-1 data-popup-open:bg-ui-hover data-popup-open:text-ui-1"
+          className="flex h-8 w-6 shrink-0 items-center justify-center rounded-md text-ui-3 transition-colors hover:text-ui-1 data-popup-open:bg-ui-hover data-popup-open:text-ui-1"
         >
-          <ChevronDown className="h-3.5 w-3.5" />
+          <ChevronDown className="h-[18px] w-[18px]" />
         </Menu.Trigger>
         <Menu.Portal>
           <Menu.Positioner className="z-[80]" sideOffset={4} align="start">
@@ -258,7 +258,7 @@ export function StudioTopBar(props: StudioTopBarProps) {
       <div className="flex min-w-0 items-center gap-2.5">
         <span className="h-[26px] w-[26px] shrink-0 rounded-[7px] bg-ui-accent" aria-hidden />
         <ProfileSwitcher {...props} />
-        <span className="hidden shrink-0 truncate font-ui-mono text-[11px] text-ui-4 md:inline">
+        <span className="min-w-0 truncate font-ui-mono text-[11px] text-ui-4">
           {profileSummary(profile)}
         </span>
       </div>
@@ -273,7 +273,7 @@ export function StudioTopBar(props: StudioTopBarProps) {
           disabled={!canUndo}
           onClick={onUndo}
         >
-          <Undo2 className="h-4 w-4" />
+          <Undo2 className="h-[19px] w-[19px]" strokeWidth={1.75} />
         </IconButton>
         <IconButton
           label={`Redo (${KEYS.redo})`}
@@ -282,32 +282,26 @@ export function StudioTopBar(props: StudioTopBarProps) {
           disabled={!canRedo}
           onClick={onRedo}
         >
-          <Redo2 className="h-4 w-4" />
+          <Redo2 className="h-[19px] w-[19px]" strokeWidth={1.75} />
         </IconButton>
-        <div className="mx-1 h-5 w-px bg-ui-strong" />
+        <div className="mx-1 h-5 w-px bg-ui-default" />
         <button
           type="button"
           onClick={onExitStudio}
-          className="flex h-8 items-center gap-1.5 rounded-[7px] border border-ui-strong bg-ui-raised px-3 text-[12.5px] font-medium text-ui-2 transition-colors hover:bg-ui-hover hover:text-ui-1"
+          className="flex h-8 items-center gap-1.5 whitespace-nowrap rounded-[7px] border border-ui-strong bg-ui-raised px-3 text-[12.5px] font-medium text-ui-2 transition-colors hover:bg-ui-hover hover:text-ui-1"
         >
-          <LayoutGrid className="h-3.5 w-3.5" /> Kiosk view
+          <Maximize className="h-[17px] w-[17px]" strokeWidth={1.75} /> Kiosk view
         </button>
         <button
           type="button"
           onClick={onSave}
           title={`Save to the dashboard server and refresh the kiosk view (${KEYS.save})`}
-          className="flex h-8 items-center gap-1.5 rounded-[7px] bg-ui-inverse px-3.5 text-[12.5px] font-semibold text-ui-inverse-fg transition-opacity hover:opacity-90"
+          className="flex h-8 items-center gap-[7px] whitespace-nowrap rounded-[7px] bg-ui-inverse px-3.5 text-[12.5px] font-semibold text-ui-inverse-fg transition-opacity hover:opacity-90"
         >
-          {saved ? (
-            <>
-              <Check className="h-3.5 w-3.5" /> Saved
-            </>
-          ) : (
-            <>
-              Save
-              {unsaved && <span className="h-1.5 w-1.5 rounded-full bg-ui-accent" aria-label="Unsaved changes" />}
-            </>
+          {!saved && unsaved && (
+            <span className="h-1.5 w-1.5 rounded-full bg-[oklch(0.62_0.17_255)]" aria-label="Unsaved changes" />
           )}
+          {saved ? "Saved" : "Save"}
         </button>
         <MoreMenu {...props} />
       </div>

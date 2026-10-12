@@ -39,10 +39,10 @@ export function profileMeta(p: MonitorProfile): string {
   return `${p.width}×${p.height} · ${p.cols}×${p.rows} · ${p.fit === "fill" ? "Fill" : "Scroll"}`;
 }
 
-/** A 34-wide outline in the profile's aspect ratio (height clamped to a sane band). */
+/** A 34-wide outline in the profile's aspect ratio (at least 8 high). */
 function Thumb({ profile, active }: { profile: MonitorProfile; active: boolean }) {
   const ratio = profile.width > 0 && profile.height > 0 ? profile.height / profile.width : 9 / 16;
-  const height = Math.round(Math.min(Math.max(THUMB_W * ratio, 10), 44));
+  const height = Math.round(Math.max(8, THUMB_W * ratio));
   return (
     <span className="flex w-[34px] shrink-0 items-center justify-center">
       <span
@@ -75,7 +75,8 @@ function RowMenu({
         onClick={(e) => e.stopPropagation()}
         title="Profile actions"
         aria-label="Profile actions"
-        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-ui-4 hover:bg-ui-active hover:text-ui-1 data-popup-open:bg-ui-active data-popup-open:text-ui-1"
+        // Out of sight until the row is hovered or focused, so the meta line keeps its width.
+        className="hidden h-6 w-6 shrink-0 items-center justify-center rounded-md text-ui-4 hover:bg-ui-active hover:text-ui-1 focus-visible:flex group-focus-within:flex group-hover:flex data-popup-open:flex data-popup-open:bg-ui-active data-popup-open:text-ui-1"
       >
         <MoreHorizontal className="h-3.5 w-3.5" />
       </Menu.Trigger>
@@ -160,20 +161,20 @@ export function ProfilesPanel({
   const autoName = profiles.find((p) => p.id === autoProfileId)?.name ?? "—";
   return (
     <>
-      <div className="flex shrink-0 items-center gap-2 border-b border-ui-subtle py-2.5 pl-3 pr-2.5">
-        <span className="flex-1 text-[13px] font-semibold text-ui-1">Profiles</span>
+      <div className="flex shrink-0 items-center justify-between px-3.5 pb-2.5 pt-3.5">
+        <span className="text-[13px] font-semibold text-ui-1">Profiles</span>
         <IconButton
           label="New profile"
-          className="h-[26px] w-[26px]"
+          className="h-[26px] w-[26px] rounded-md border border-ui-strong bg-ui-raised text-ui-1 hover:bg-[#1e1e23]"
           onClick={() => {
             onAddProfile();
             toast("Profile created");
           }}
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-[18px] w-[18px]" />
         </IconButton>
       </div>
-      <div className="min-h-0 flex-1 space-y-0.5 overflow-y-auto p-1.5">
+      <div className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto px-2 pb-2">
         {profiles.map((p) => {
           const active = p.id === profile.id;
           return (
@@ -189,9 +190,9 @@ export function ProfilesPanel({
                 }
               }}
               className={cn(
-                "flex cursor-pointer items-center gap-2.5 rounded-[7px] py-1.5 pl-2 pr-1.5 transition-colors",
+                "group flex cursor-pointer items-center gap-2.5 rounded-lg p-2 transition-colors",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ui-accent/60",
-                active ? "bg-ui-accent-soft" : "hover:bg-ui-hover"
+                active ? "bg-[oklch(0.72_0.15_255/0.12)]" : "hover:bg-ui-hover"
               )}
             >
               <Thumb profile={p} active={active} />
@@ -209,7 +210,7 @@ export function ProfilesPanel({
                 )}
                 <span className="block truncate font-ui-mono text-[10.5px] text-ui-4">{profileMeta(p)}</span>
               </span>
-              {active && <Check className="h-3.5 w-3.5 shrink-0 text-ui-accent-text" aria-label="Active" />}
+              {active && <Check className="h-[17px] w-[17px] shrink-0 text-[oklch(0.80_0.12_255)]" aria-label="Active" />}
               <RowMenu
                 profile={p}
                 canDelete={active && profiles.length > 1}
@@ -227,16 +228,16 @@ export function ProfilesPanel({
           );
         })}
       </div>
-      <div className="shrink-0 space-y-2 border-t border-ui-subtle px-3 py-2.5">
+      <div className="shrink-0 space-y-2 border-t border-ui-subtle px-3.5 py-3">
         <div className="flex items-center gap-2">
-          <span className="flex-1 text-[12.5px] text-ui-2">Auto-pick by window size</span>
+          <span className="flex-1 text-xs text-ui-2">Auto-pick by window size</span>
           <Toggle
             checked={auto}
             label="Auto-pick by window size"
             onChange={(on) => onActivate(on ? "auto" : profile.id)}
           />
         </div>
-        <p className="text-[10.5px] leading-snug text-ui-4">
+        <p className="text-pretty text-[11.5px] leading-[1.45] text-[#7c7c86]">
           {auto ? "Showing" : "Would show"} {autoName}. Each profile has its own size, grid, zones, theme, style and
           background.
         </p>

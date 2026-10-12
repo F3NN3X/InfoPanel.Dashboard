@@ -124,7 +124,8 @@ export function useStudioLayout({ page, rail, drawer, design, forceSide }: Studi
   const leftOverlay = !leftPanelFits(body.width, placementFor(mode, design, forceSide), {
     rail,
     drawer,
-    inspector: INSPECTOR_WIDTH,
+    // A collapsed side inspector leaves its column to the canvas.
+    inspector: collapsed ? 0 : INSPECTOR_WIDTH,
   });
   const layouts = useMemo(() => {
     const input = {
@@ -156,7 +157,7 @@ export function useStudioLayout({ page, rail, drawer, design, forceSide }: Studi
     setMode,
     cycleMode,
     setDockHeight,
-    /** The dock shows only its bar (bottom placement). */
+    /** The inspector is collapsed: the dock shows only its bar (bottom), the side column is hidden. */
     collapsed,
     setCollapsed,
     toggleCollapsed,

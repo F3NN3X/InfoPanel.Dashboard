@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { LayoutDashboard, X } from "lucide-react";
+import { Kbd } from "@/components/ui/kbd";
 import { TIPS, dismissTips, tipsDismissed } from "./quick-tips";
 
 interface EmptyLayoutCardProps {
@@ -13,24 +14,24 @@ interface EmptyLayoutCardProps {
 export function EmptyLayoutCard({ onBrowse, onUseSample }: EmptyLayoutCardProps) {
   return (
     <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
-      <div className="pointer-events-auto flex w-72 flex-col items-center gap-3 rounded-xl border border-ui-menu bg-ui-raised px-6 py-6 text-center font-ui shadow-ui-float">
-        <LayoutDashboard className="h-7 w-7 text-ui-4" strokeWidth={1.5} />
+      <div className="flex max-w-[340px] flex-col items-center gap-2.5 rounded-xl border border-ui-default bg-ui-panel px-7 py-6 text-center font-ui">
+        <LayoutDashboard className="h-7 w-7 text-[#8a8a94]" strokeWidth={1.5} />
         <div className="text-[14px] font-semibold text-ui-1">This layout is empty</div>
-        <p className="text-[12px] leading-relaxed text-ui-3">
-          Draw a zone on the grid, or drag a widget from Add.
+        <p className="text-pretty text-[12px] leading-normal text-ui-3">
+          Drag a widget from the library onto the grid, or start from the sample layout.
         </p>
-        <div className="flex gap-2">
+        <div className="pointer-events-auto mt-1.5 flex gap-2">
           <button
             type="button"
             onClick={onBrowse}
-            className="h-8 rounded-lg bg-ui-accent px-3 text-[12px] font-semibold text-ui-inverse-fg transition-opacity hover:opacity-90"
+            className="h-[30px] rounded-[7px] bg-ui-inverse px-3 text-[12px] font-semibold text-ui-inverse-fg transition-opacity hover:opacity-90"
           >
             Browse widgets
           </button>
           <button
             type="button"
             onClick={onUseSample}
-            className="h-8 rounded-lg border border-ui-strong px-3 text-[12px] font-medium text-ui-2 transition-colors hover:bg-ui-hover hover:text-ui-1"
+            className="h-[30px] rounded-[7px] border border-ui-strong bg-ui-raised px-3 text-[12px] text-ui-1 transition-colors hover:bg-ui-hover"
           >
             Use sample layout
           </button>
@@ -40,33 +41,48 @@ export function EmptyLayoutCard({ onBrowse, onUseSample }: EmptyLayoutCardProps)
   );
 }
 
+/** One tip line; a lone `?` becomes a keycap. */
+function TipLine({ text }: { text: string }) {
+  const [before, after] = text.split("?");
+  return after === undefined ? (
+    <>{text}</>
+  ) : (
+    <>
+      {before}
+      <Kbd className="h-auto min-w-0 rounded-[4px] bg-transparent px-1 py-0 text-[11.5px] leading-[1.6] text-[#b4b4bc]">?</Kbd>
+      {after}
+    </>
+  );
+}
+
 /** The first-run tips card (bottom-left, 64 px up, 250 wide); dismissing it is remembered. */
 export function QuickTipsCard() {
   const [open, setOpen] = useState(() => !tipsDismissed());
   if (!open) return null;
   return (
-    <div className="absolute bottom-16 left-4 z-20 w-[250px] rounded-xl border border-ui-menu bg-ui-raised p-3 font-ui shadow-ui-float">
-      <div className="mb-2 flex items-center justify-between">
-        <span className="text-[12px] font-semibold text-ui-1">Quick tips</span>
+    <div className="absolute bottom-16 left-4 z-20 flex w-[250px] flex-col gap-2 rounded-[10px] border border-ui-strong bg-ui-raised px-3.5 py-3 font-ui shadow-ui-float">
+      <div className="flex items-center justify-between">
+        <span className="text-[12.5px] font-semibold text-ui-1">Quick tips</span>
         <button
           type="button"
           title="Dismiss"
+          aria-label="Dismiss"
           onClick={() => {
             dismissTips();
             setOpen(false);
           }}
-          className="flex h-5 w-5 items-center justify-center rounded-md text-ui-4 transition-colors hover:bg-ui-hover hover:text-ui-1"
+          className="text-ui-3 transition-colors hover:text-ui-1"
         >
-          <X className="h-3.5 w-3.5" />
+          <X className="h-4 w-4" />
         </button>
       </div>
-      <ul className="space-y-1.5">
-        {TIPS.map((tip) => (
-          <li key={tip.title} className="text-[11.5px] leading-snug text-ui-3">
-            <span className="font-medium text-ui-2">{tip.title}.</span> {tip.body}
-          </li>
+      <div className="text-[11.5px] leading-[1.6] text-[#b4b4bc]">
+        {TIPS.map((line) => (
+          <div key={line}>
+            <TipLine text={line} />
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }

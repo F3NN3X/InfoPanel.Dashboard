@@ -52,7 +52,7 @@ export function useStudioUi(config: DashboardConfig, profile: MonitorProfile, on
     expandDock();
     setDocumentTabRequest((r) => ({ tab, seq: (r?.seq ?? 0) + 1 }));
   };
-  /** A request for an inspector tab or section brings a collapsed bottom dock back first. */
+  /** A request for an inspector tab or section brings a collapsed inspector (dock or side column) back first. */
   function expandDock() {
     if (studioLayout.collapsed) studioLayout.setCollapsed(false);
   }

@@ -1,7 +1,6 @@
 import { useEffect, useRef, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
-import { Kbd } from "@/components/ui/kbd";
 import { clampMenuPosition, menuHeight, MENU_WIDTH } from "./context-menu-position";
 
 export type ContextMenuEntry =
@@ -96,7 +95,7 @@ export function ContextMenu({ x, y, entries, onClose }: ContextMenuProps) {
     >
       {entries.map((e, i) =>
         e === "separator" ? (
-          <div key={i} role="separator" className="mx-1 my-1 h-px bg-ui-subtle" />
+          <div key={i} role="separator" className="mx-0.5 my-1 h-px bg-[#26262c]" />
         ) : (
           <button
             key={e.id}
@@ -108,15 +107,15 @@ export function ContextMenu({ x, y, entries, onClose }: ContextMenuProps) {
               e.onSelect();
             }}
             className={cn(
-              "flex h-[30px] w-full items-center gap-2 rounded-md px-2 text-left text-[12.5px] outline-none focus-visible:bg-ui-hover focus-visible:text-ui-1 disabled:opacity-40",
-              e.danger ? "text-ui-danger hover:bg-ui-danger/15" : "text-ui-2 hover:bg-ui-hover hover:text-ui-1"
+              "flex h-[30px] w-full items-center gap-2 rounded-md px-2 text-left text-[12.5px] outline-none focus-visible:bg-[#24242a] disabled:text-[#55555e]",
+              e.danger ? "text-ui-danger hover:bg-ui-danger/15" : "text-[#e4e4e8] hover:bg-[#24242a] disabled:hover:bg-transparent"
             )}
           >
-            <span className="flex h-4 w-4 shrink-0 items-center justify-center [&>svg]:h-3.5 [&>svg]:w-3.5">
+            <span className="flex h-4 w-4 shrink-0 items-center justify-center [&>svg]:h-4 [&>svg]:w-4">
               {e.icon}
             </span>
             <span className="min-w-0 flex-1 truncate">{e.label}</span>
-            {e.hint && <Kbd className="border-transparent bg-transparent">{e.hint}</Kbd>}
+            {e.hint && <span className="font-ui-mono text-[10.5px] text-ui-5">{e.hint}</span>}
           </button>
         )
       )}

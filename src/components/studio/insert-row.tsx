@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Menu } from "@base-ui/react/menu";
-import { LayoutGrid, MoreHorizontal, PanelsTopLeft } from "lucide-react";
+import { LayoutDashboard, MoreHorizontal, PanelsTopLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Insertable } from "./insert-panel";
 import { DND_MIME, DND_MIME_PANEL } from "./studio-modules";
@@ -72,11 +72,11 @@ function SavedPanelMenu({ onRename, onDelete }: { onRename: () => void; onDelete
 /** A card's icon: the widget's own, or the layout / panel glyph. */
 function cardIcon(item: Insertable) {
   if (item.kind === "module") return moduleIcon(item.id);
-  return item.category === "Layouts" ? LayoutGrid : PanelsTopLeft;
+  return item.category === "Layouts" ? LayoutDashboard : PanelsTopLeft;
 }
 
 /** The card's second line: widgets end it with "· min W×H". */
-function describe(item: Insertable): string {
+export function describe(item: Insertable): string {
   if (item.kind !== "module") return item.description ?? "";
   return `${item.description ?? "Widget"} · min ${item.cols}×${item.rows}`;
 }
@@ -84,13 +84,14 @@ function describe(item: Insertable): string {
 /** One library card: icon, drop size, name, description (and "⋯" for saved panels). */
 export function InsertRow({
   item,
-  count,
+  size,
   context,
   onPick,
   saved,
 }: {
   item: Insertable;
-  count: number;
+  /** The size shown on the card: what it drops with (drawer), or its minimum (picker). */
+  size: { cols: number; rows: number };
   context: InsertContext;
   onPick: () => void;
   /** Set for the user's saved panels. */
@@ -118,16 +119,15 @@ export function InsertRow({
       }}
       title={item.description ? `${item.description} — ${hint.toLowerCase()}` : hint}
       className={cn(
-        "flex min-w-0 cursor-pointer flex-col gap-1 rounded-lg border border-ui-default bg-ui-tile p-2.5 text-left",
-        "transition-colors hover:border-ui-accent focus-visible:outline-none focus-visible:border-ui-accent",
+        "flex min-w-0 cursor-pointer flex-col gap-1.5 rounded-lg border border-ui-default bg-ui-tile p-2.5 text-left",
+        "transition-colors hover:border-ui-accent hover:bg-[#17171c] focus-visible:outline-none focus-visible:border-ui-accent",
         draggable && "active:cursor-grabbing"
       )}
     >
-      <div className="flex items-center justify-between gap-1 text-ui-3">
-        <Icon className="h-5 w-5 shrink-0" strokeWidth={1.75} />
-        <span className="flex items-center gap-1.5 font-ui-mono text-[10px] text-ui-4">
-          {count > 0 && <span className="text-ui-accent-text">×{count}</span>}
-          {item.cols}×{item.rows}
+      <div className="flex items-center justify-between gap-1 text-[#c8c8ce]">
+        <Icon className="h-5 w-5 shrink-0" strokeWidth={1.5} />
+        <span className="flex items-center gap-1.5 font-ui-mono text-[10px] text-ui-5">
+          {size.cols}×{size.rows}
           {saved && <SavedPanelMenu onRename={() => setRenaming(true)} onDelete={saved.onDelete} />}
         </span>
       </div>
@@ -140,9 +140,9 @@ export function InsertRow({
           }}
         />
       ) : (
-        <span className="truncate text-xs font-medium text-ui-1">{item.title}</span>
+        <span className="break-words text-xs font-medium text-ui-1">{item.title}</span>
       )}
-      <span className="line-clamp-2 text-[10.5px] leading-snug text-[#8a8a94]">{describe(item)}</span>
+      <span className="text-[10.5px] leading-[1.35] text-[#8a8a94]">{describe(item)}</span>
     </div>
   );
 }
