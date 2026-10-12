@@ -1,6 +1,6 @@
 import type { ModuleSettings } from "@/modules/types";
 import { fitFontPx } from "./fit-font";
-import { Widget, shell, get, num, fmt, fmtRate, detect, Spark, useHistory, tone, TONES, hw, type ShellProps, type WidgetMeta } from "./kit";
+import { Widget, shell, get, num, fmt, fmtRate, detect, Spark, useHistory, useSkin, tone, TONES, hw, type ShellProps, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "Vitals",
@@ -25,6 +25,35 @@ interface Vital {
 export interface VitalsProps extends ShellProps {
   look?: ModuleSettings;
   metrics?: Metric[];
+}
+
+/** One metric card. A braille graph is text, so it takes its own rows above the value instead of sitting behind it. */
+function VitalCard({ m, hist, w, h, tui }: { m: Vital; hist: number[]; w: number; h: number; tui: boolean }) {
+  const braille = useSkin().graph === "braille";
+  const t = m.max ? tone(m.v, 75, 90) : "ok";
+  const text = fmt(m.v, m.unit === "MB/s" ? 1 : 0);
+  // short cards trade vertical padding for numeral height
+  const padY = h - 33 < 13 ? 4 : 8;
+  // the padding + the 13px label line + 4px under the value leave the rest to the numerals
+  const maxFs = Math.max(10, Math.min(24, Math.floor(h - padY * 2 - 17)));
+  // the tui skin sets everything in a wide monospace face: fit the numerals with wider glyphs and drop the sub line sooner
+  const fs = fitFontPx(w - 24, text.length + m.unit.length * 0.5, 10, maxFs, tui ? 0.72 : 0.62);
+  // one 10px braille row under a 4px gap
+  const graphRows = braille && h - padY * 2 - 13 - (fs + 4) >= 14;
+  return (
+    <div className="relative flex min-w-0 flex-col overflow-hidden rounded-xl bg-[color:var(--w-track)] px-3" style={{ paddingTop: padY, paddingBottom: padY }}>
+      {!braille && <Spark values={hist} min={0} max={m.max} className="absolute inset-x-0 bottom-0 h-1/2 opacity-80" />}
+      <div className="relative flex items-baseline justify-between gap-2 leading-[13px]">
+        <span className={`shrink-0 whitespace-nowrap text-[10.5px] font-medium uppercase ${tui ? "" : "tracking-[0.08em]"} text-[color:var(--w-muted)]`}>{m.label}</span>
+        {w > (tui ? 170 : 110) && <span className="truncate text-[10.5px] text-[color:var(--w-faint)]">{m.sub}</span>}
+      </div>
+      {graphRows && <Spark values={hist} min={0} max={m.max} className="mt-1 min-h-0 flex-1 opacity-80" />}
+      <span className="relative mt-auto block max-w-full overflow-hidden whitespace-nowrap pb-1 font-semibold leading-none tabular-nums" style={{ fontSize: fs, ...(t !== "ok" ? { color: TONES[t] } : null) }}>
+        {text}
+        <span className="ml-0.5 text-[0.5em] font-medium text-[color:var(--w-muted)]">{m.unit}</span>
+      </span>
+    </div>
+  );
 }
 
 export default function Vitals(p: VitalsProps) {
@@ -53,31 +82,13 @@ export default function Vitals(p: VitalsProps) {
       {({ w, h }) => {
         const cols = w / h > 2.4 ? keys.length : w / h < 0.7 ? 1 : 2;
         const cardW = (w - (cols - 1) * 8) / cols;
-        // the tui skin sets everything in a wide monospace face: fit the numerals with wider glyphs and drop the sub line sooner
-        const tui = p.skin === "tui";
         const rows = Math.ceil(keys.length / cols);
         const cardH = (h - (rows - 1) * 8) / rows;
-        // 16px padding + the 13px label line + 4px under the value leave the rest to the numerals
-        const maxFs = Math.max(13, Math.min(24, cardH - 33));
         return (
           <div className="grid h-full gap-2" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))`, gridAutoRows: "minmax(0,1fr)" }}>
-            {keys.map((k) => {
-              const m = all[k];
-              const t = m.max ? tone(m.v, 75, 90) : "ok";
-              return (
-                <div key={k} className="relative flex min-w-0 flex-col overflow-hidden rounded-xl bg-[color:var(--w-track)] px-3 py-2">
-                  <Spark values={H[k]} min={0} max={m.max} className="absolute inset-x-0 bottom-0 h-1/2 opacity-80" />
-                  <div className="relative flex items-baseline justify-between gap-2">
-                    <span className={`shrink-0 whitespace-nowrap text-[10.5px] font-medium uppercase ${tui ? "" : "tracking-[0.08em]"} text-[color:var(--w-muted)]`}>{m.label}</span>
-                    {cardW > (tui ? 170 : 110) && <span className="truncate text-[10.5px] text-[color:var(--w-faint)]">{m.sub}</span>}
-                  </div>
-                  <span className="relative mt-auto block max-w-full overflow-hidden whitespace-nowrap pb-1 font-semibold leading-none tabular-nums" style={{ fontSize: fitFontPx(cardW - 24, fmt(m.v, m.unit === "MB/s" ? 1 : 0).length + m.unit.length * 0.5, 13, maxFs, tui ? 0.72 : 0.62), ...(t !== "ok" ? { color: TONES[t] } : null) }}>
-                    {fmt(m.v, m.unit === "MB/s" ? 1 : 0)}
-                    <span className="ml-0.5 text-[0.5em] font-medium text-[color:var(--w-muted)]">{m.unit}</span>
-                  </span>
-                </div>
-              );
-            })}
+            {keys.map((k) => (
+              <VitalCard key={k} m={all[k]} hist={H[k]} w={cardW} h={cardH} tui={p.skin === "tui"} />
+            ))}
           </div>
         );
       }}
