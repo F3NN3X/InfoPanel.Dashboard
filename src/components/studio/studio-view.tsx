@@ -44,7 +44,8 @@ interface StudioViewProps {
   windowHeight: number;
   onExitStudio: () => void;
   /** Flush the config to the server and force the kiosk view to refresh. */
-  onSave: (config: DashboardConfig) => void;
+  /** Push now; resolves to whether the server took it. */
+  onSave: (config: DashboardConfig) => Promise<boolean>;
   /** Edits the server does not have yet (the dot on Save). */
   pushPending: boolean;
 }
@@ -111,6 +112,7 @@ function StudioViewBody({
     edit,
     appearance,
     appearancePresets,
+    setScopeStyle,
   });
   /** Sensor names for widget names (toolbar crumb, palette). */
   const catalog = useSensorCatalog();

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { DashboardConfig, MonitorProfile, Widget } from "@/lib/layout";
 import type { InspectorTab, ModuleSettings } from "@/modules/types";
+import { useToast } from "@/components/ui/toast";
 import { useStoredDrawer, type Drawer, type RailItem } from "./left-rail";
 import { revealWidgetEditor, scrollInspectorToTop } from "./inspector-scroll";
 import { useCanvasZoom } from "./use-canvas-zoom";
@@ -14,7 +15,8 @@ import { DRAWER_WIDTH, RAIL_WIDTH, pageSize, useStudioLayout } from "./use-studi
  * remembered), open dialogs, the
  * inspector's search and jump target, and the session clipboards.
  */
-export function useStudioUi(config: DashboardConfig, profile: MonitorProfile, onSave: (config: DashboardConfig) => void) {
+export function useStudioUi(config: DashboardConfig, profile: MonitorProfile, onSave: (config: DashboardConfig) => Promise<boolean>) {
+  const toast = useToast();
   const [mode, setMode] = useState<StudioMode>("design");
   const showSources = mode === "sources";
   const toggleSources = () => setMode((m) => (m === "sources" ? "design" : "sources"));
@@ -26,8 +28,11 @@ export function useStudioUi(config: DashboardConfig, profile: MonitorProfile, on
   if (drawer) lastDrawer.current = drawer;
 
   /** A request to scroll the zone inspector to a card (`seq` makes repeats count). */
-  const [inspectorJump, setInspectorJump] = useState<{ id: string; seq: number }>();
-  const jumpInspector = (id: string) => setInspectorJump((j) => ({ id, seq: (j?.seq ?? 0) + 1 }));
+  const [inspectorJump, setInspectorJump] = useState<{ id: string; key?: string; seq: number }>();
+  const jumpInspector = (id: string, key?: string) => {
+    expandDock();
+    setInspectorJump((j) => ({ id, key, seq: (j?.seq ?? 0) + 1 }));
+  };
   /**
    * A request to show a zone inspector tab. `picker` also opens the Data tab's bind picker;
    * `seq` makes repeats count.
@@ -37,11 +42,20 @@ export function useStudioUi(config: DashboardConfig, profile: MonitorProfile, on
     picker: boolean;
     seq: number;
   }>();
-  const requestInspectorTab = (tab: InspectorTab, picker = false) =>
+  const requestInspectorTab = (tab: InspectorTab, picker = false) => {
+    expandDock();
     setInspectorRequest((r) => ({ tab, picker, seq: (r?.seq ?? 0) + 1 }));
+  };
   /** A request for a Dashboard inspector tab (`seq` makes repeats count): the inspector shows it while nothing is selected. */
   const [documentTabRequest, setDocumentTabRequest] = useState<{ tab: string; seq: number }>();
-  const openDocumentTab = (tab: string) => setDocumentTabRequest((r) => ({ tab, seq: (r?.seq ?? 0) + 1 }));
+  const openDocumentTab = (tab: string) => {
+    expandDock();
+    setDocumentTabRequest((r) => ({ tab, seq: (r?.seq ?? 0) + 1 }));
+  };
+  /** A request for an inspector tab or section brings a collapsed bottom dock back first. */
+  function expandDock() {
+    if (studioLayout.collapsed) studioLayout.setCollapsed(false);
+  }
   /** The zone inspector's settings search ("Go to setting" fills it). */
   const [inspectorQuery, setInspectorQuery] = useState("");
   const inspectorRef = useRef<HTMLElement>(null);
@@ -72,11 +86,23 @@ export function useStudioUi(config: DashboardConfig, profile: MonitorProfile, on
 
   const [saved, setSaved] = useState(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mounted = useRef(true);
+  useEffect(
+    () => () => {
+      mounted.current = false;
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+    },
+    []
+  );
+  /** Flush to the server; "Saved" shows only when it took the config, else the dot stays and a toast says so. */
   const handleSave = () => {
-    onSave(config);
-    setSaved(true);
-    if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => setSaved(false), 1500);
+    void onSave(config).then((ok) => {
+      if (!mounted.current) return;
+      if (!ok) return toast("Couldn't save to the server — try again");
+      setSaved(true);
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+      saveTimer.current = setTimeout(() => setSaved(false), 1500);
+    });
   };
 
   /**

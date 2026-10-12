@@ -106,6 +106,7 @@ export function MediaField({ label, kind, value, onChange, preview = "large", fi
         <div className="flex items-center gap-2">
           <input
             type="text"
+            aria-label="Image or video URL"
             value={draft}
             placeholder={dragging ? "Drop to upload" : "https://… or drop a file"}
             spellCheck={false}

@@ -65,6 +65,7 @@ describe("liveText", () => {
   it("prefers the live number with its unit", () => {
     expect(liveText({ value: 51, unit: "%" }, point("k"))).toBe("51 %");
     expect(liveText({ value: 3, unit: "" }, undefined)).toBe("3");
+    expect(liveText({ value: 12.3456, unit: "GB" }, undefined)).toBe("12.35 GB");
   });
 
   it("falls back to live text, then the snapshot; empty is no data", () => {

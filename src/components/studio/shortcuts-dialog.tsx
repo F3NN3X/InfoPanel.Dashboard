@@ -14,7 +14,7 @@ function Keys({ keys }: { keys: string }) {
     <span className="flex flex-wrap items-center justify-end gap-x-1 gap-y-1">
       {keys.split(" / ").map((alt, i) => (
         <span key={alt} className="flex items-center gap-1">
-          {i > 0 && <span className="text-[10.5px] text-ui-5">/</span>}
+          {i > 0 && <span className="text-[10.5px] text-ui-4">/</span>}
           {alt.split("+").map((key, j) => (
             <Kbd key={j}>{key}</Kbd>
           ))}
@@ -56,7 +56,7 @@ export function ShortcutsDialog({ open, onOpenChange }: ShortcutsDialogProps) {
                 </dl>
               </section>
             ))}
-            <p className="text-[11px] text-ui-5">
+            <p className="text-[11px] text-ui-4">
               Plain keys are ignored while typing in a field; Esc, Ctrl+S, undo and redo always work.
             </p>
           </div>

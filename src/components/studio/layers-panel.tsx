@@ -40,14 +40,14 @@ export function LayersPanel({
     <>
       <div className="flex shrink-0 items-center gap-2 border-b border-ui-subtle py-2.5 pl-3 pr-2.5">
         <span className="text-[13px] font-semibold text-ui-1">Layers</span>
-        <span className="flex-1 font-ui-mono text-[11px] text-ui-5">{placements.length}</span>
+        <span className="flex-1 font-ui-mono text-[11px] text-ui-4">{placements.length}</span>
         <IconButton label="Add a widget" className="h-[26px] w-[26px]" onClick={onAdd}>
           <Plus className="h-4 w-4" />
         </IconButton>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto p-1.5">
         {placements.length === 0 && (
-          <p className="p-2 text-xs text-ui-5">No zones yet. Draw one on the canvas, or add a widget.</p>
+          <p className="p-2 text-xs text-ui-4">No zones yet. Draw one on the canvas, or add a widget.</p>
         )}
         {sortZones(placements).map((p) => {
           const Icon = moduleIcon(p.module);
@@ -87,7 +87,7 @@ export function LayersPanel({
               {p.styleMode === "custom" && (
                 <Paintbrush className="h-3 w-3 shrink-0 text-ui-4" aria-label="Custom style" />
               )}
-              <span className="shrink-0 font-ui-mono text-[10.5px] text-ui-5">
+              <span className="shrink-0 font-ui-mono text-[10.5px] text-ui-4">
                 {p.colSpan}×{p.rowSpan}
               </span>
               <IconButton
@@ -115,7 +115,7 @@ export function LayersPanel({
           );
         })}
       </div>
-      <p className="shrink-0 border-t border-ui-subtle px-3 py-2.5 text-[10.5px] leading-snug text-ui-5">
+      <p className="shrink-0 border-t border-ui-subtle px-3 py-2.5 text-[10.5px] leading-snug text-ui-4">
         Shift-click to select several. Hidden widgets stay editable but don't show in kiosk view.
       </p>
     </>

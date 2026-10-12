@@ -117,6 +117,8 @@ export function StudioInspector({
     ) : (
       <DocumentInspector
         jumpTo={ui.inspectorJump}
+        query={ui.inspectorQuery}
+        onQuery={ui.setInspectorQuery}
         {...documentProps}
         activeProfile={profile}
         updateProfile={edit.updateProfile}

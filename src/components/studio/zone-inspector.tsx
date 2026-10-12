@@ -48,7 +48,7 @@ interface ZoneInspectorProps {
   appearance: Appearance;
   stylePresets: StylePreset[];
   /** Open and reveal a section (the selection chip's Style, the palette) whenever `seq` changes. */
-  jumpTo?: { id: string; seq: number };
+  jumpTo?: { id: string; key?: string; seq: number };
   /** The style copied with "Copy" (session only, survives reselection). */
   styleClipboard: ModuleSettings | null;
   onCopyStyle: (style: ModuleSettings) => void;

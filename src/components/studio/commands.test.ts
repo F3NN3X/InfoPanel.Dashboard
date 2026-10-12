@@ -30,7 +30,7 @@ const base: CommandState = {
   profiles: [{ id: "p1", name: "Desk", width: 1920, height: 1080 }],
   placements: [zone("b", 3, 2), zone("a", 1, 1)],
   selected: null,
-  settings: [],
+  context: null,
   widget: null,
   canPasteWidget: false,
   canUndo: false,
@@ -116,21 +116,40 @@ describe("buildCommands", () => {
     const commands = buildCommands({
       ...base,
       selected: zone("a", 1, 1, false),
-      settings: [glow, threshold],
+      context: { kind: "widget", defs: [glow, threshold] },
     });
     const byId = new Map(commands.map((c) => [c.id, c]));
     expect(byId.get("zone:visible")?.label).toBe("Show zone");
     expect(byId.has("zone:duplicate")).toBe(true);
     expect(byId.has("zone:remove")).toBe(true);
     expect(byId.has("zone:pick")).toBe(true);
-    expect(byId.get("setting:glow")?.action).toEqual({ type: "goto-setting", label: "Glow" });
-    expect(byId.get("setting:glow")?.hint).toBe("Border & effects");
+    const glowId = [...byId.keys()].find((id) => id.endsWith(":glow"))!;
+    expect(byId.get(glowId)?.action).toMatchObject({ type: "goto-setting", key: "glow" });
+    expect(byId.get(glowId)?.hint).toBe("Border & effects");
     expect(byId.get("zone:card:colors")?.action).toEqual({ type: "goto-card", id: "colors" });
-    expect(byId.get("setting:warnAt")?.action).toEqual({
-      type: "goto-setting",
-      label: "Warn at",
-    });
-    expect(byId.get("setting:warnAt")?.hint).toBe("Thresholds");
+    const warnId = [...byId.keys()].find((id) => id.endsWith(":warnAt"))!;
+    expect(byId.get(warnId)?.action).toMatchObject({ type: "goto-setting", key: "warnAt" });
+    expect(byId.get(warnId)?.hint).toBe("Thresholds");
+  });
+
+  it("offers Go to setting for a panel and for the Dashboard, each jumping to its section", () => {
+    const panel = buildCommands({ ...base, selected: zone("a", 1, 1), context: { kind: "panel", defs: [setting("gap", "Gap")] } });
+    const gap = panel.find((c) => c.id.endsWith(":gap"))!;
+    expect(gap).toMatchObject({ label: "Go to setting: Gap", group: "Selected zone" });
+    expect(gap.action).toMatchObject({ type: "goto-setting", key: "gap" });
+
+    const dash = buildCommands({ ...base, context: { kind: "dashboard", scope: "all" } });
+    const settings = dash.filter((c) => c.id.startsWith("setting:"));
+    expect(settings.length).toBeGreaterThan(0);
+    expect(settings.every((c) => c.group === "Dashboard")).toBe(true);
+    // A custom-UI-only card gets a section jump instead.
+    expect(dash.find((c) => c.id === "section:profile")?.action).toEqual({ type: "goto-setting", section: "profile" });
+  });
+
+  it("offers Use as global style for the selected zone", () => {
+    const list = buildCommands({ ...base, selected: zone("a", 1, 1) });
+    expect(list.find((c) => c.id === "style:global-all")?.action).toEqual({ type: "use-global", target: "all" });
+    expect(list.find((c) => c.id === "style:global-profile")?.action).toEqual({ type: "use-global", target: "profile" });
   });
 
   it("has no zone commands without a selection", () => {
@@ -261,12 +280,12 @@ describe("select all", () => {
 });
 
 describe("buildCommands style commands", () => {
-  it("offers copy, paste and follow only with a selection", () => {
+  it("offers copy, paste, follow and use-as-global only with a selection", () => {
     const ids = (selected: Placement | null) =>
       buildCommands({ ...base, selected, selection: selected ? [selected] : [] })
         .filter((c) => c.group === "Zone style")
         .map((c) => c.action.type);
     expect(ids(null)).toEqual([]);
-    expect(ids(zone("a", 1, 1))).toEqual(["copy-style", "paste-style", "follow-global"]);
+    expect(ids(zone("a", 1, 1))).toEqual(["copy-style", "paste-style", "follow-global", "use-global", "use-global"]);
   });
 });

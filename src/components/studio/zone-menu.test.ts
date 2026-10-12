@@ -20,6 +20,8 @@ describe("zoneMenu", () => {
       "copy-style",
       "paste-style",
       "follow-global",
+      "global-all",
+      "global-profile",
       "deselect",
       "remove",
     ]);
@@ -70,6 +72,7 @@ describe("menuAction", () => {
   it("maps the size steps to resize-step deltas", () => {
     expect(menuAction("narrower")).toEqual({ type: "resize-step", cols: -1, rows: 0 });
     expect(menuAction("taller")).toEqual({ type: "resize-step", cols: 0, rows: 1 });
+    expect(menuAction("global-profile")).toEqual({ type: "use-global", target: "profile" });
   });
 
   it("opens the Add drawer for Add widget", () => {

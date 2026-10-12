@@ -1,5 +1,6 @@
 import type { SensorMap } from "@/modules/types";
 import {
+  formatReading,
   fold,
   searchPoints,
   type DataContainer,
@@ -183,6 +184,13 @@ export function streamPrefix(points: readonly DataPoint[]): string {
 export function displayValue(point: DataPoint, values: SensorMap): string {
   const live = values[point.key];
   if (!live) return point.raw;
-  if (typeof live.value === "number") return live.unit ? `${live.value} ${live.unit}` : String(live.value);
+  if (typeof live.value === "number") return formatReading(live.value, live.unit);
   return live.text?.trim() || point.raw;
+}
+
+/** The unrounded reading, for copying ("-24.799999237060547 dB"). */
+export function rawValue(point: DataPoint, values: SensorMap): string {
+  const live = values[point.key];
+  if (typeof live?.value === "number") return live.unit ? `${live.value} ${live.unit}` : String(live.value);
+  return live?.text?.trim() || point.raw;
 }

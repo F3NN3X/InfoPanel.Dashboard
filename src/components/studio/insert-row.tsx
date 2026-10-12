@@ -125,7 +125,7 @@ export function InsertRow({
     >
       <div className="flex items-center justify-between gap-1 text-ui-3">
         <Icon className="h-5 w-5 shrink-0" strokeWidth={1.75} />
-        <span className="flex items-center gap-1.5 font-ui-mono text-[10px] text-ui-5">
+        <span className="flex items-center gap-1.5 font-ui-mono text-[10px] text-ui-4">
           {count > 0 && <span className="text-ui-accent-text">×{count}</span>}
           {item.cols}×{item.rows}
           {saved && <SavedPanelMenu onRename={() => setRenaming(true)} onDelete={saved.onDelete} />}

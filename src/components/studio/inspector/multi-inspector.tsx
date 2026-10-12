@@ -23,7 +23,7 @@ interface MultiInspectorProps {
   onRemove: () => void;
   query: string;
   onQuery: (query: string) => void;
-  jumpTo?: { id: string; seq: number };
+  jumpTo?: { id: string; key?: string; seq: number };
 }
 
 /**

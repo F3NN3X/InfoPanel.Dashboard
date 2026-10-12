@@ -207,7 +207,7 @@ export function ProfilesPanel({
                 ) : (
                   <span className="block truncate text-[12.5px] text-ui-1">{p.name}</span>
                 )}
-                <span className="block truncate font-ui-mono text-[10.5px] text-ui-5">{profileMeta(p)}</span>
+                <span className="block truncate font-ui-mono text-[10.5px] text-ui-4">{profileMeta(p)}</span>
               </span>
               {active && <Check className="h-3.5 w-3.5 shrink-0 text-ui-accent-text" aria-label="Active" />}
               <RowMenu
@@ -236,7 +236,7 @@ export function ProfilesPanel({
             onChange={(on) => onActivate(on ? "auto" : profile.id)}
           />
         </div>
-        <p className="text-[10.5px] leading-snug text-ui-5">
+        <p className="text-[10.5px] leading-snug text-ui-4">
           {auto ? "Showing" : "Would show"} {autoName}. Each profile has its own size, grid, zones, theme, style and
           background.
         </p>

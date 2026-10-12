@@ -266,7 +266,7 @@ function BoxField({
         refused ? "border-ui-danger" : "border-ui-default"
       )}
     >
-      <span className="font-ui-mono text-[10px] text-ui-5">{label}</span>
+      <span className="font-ui-mono text-[10px] text-ui-4">{label}</span>
       <input
         type="number"
         min={1}
@@ -340,7 +340,7 @@ export function WidgetPicker({ placement, onPickWidget }: { placement: Placement
         </span>
       </button>
       {placement.panel && (
-        <p className="text-[11px] text-ui-5">Edit the panel&apos;s widgets in Content; picking another widget replaces the panel.</p>
+        <p className="text-[11px] text-ui-4">Edit the panel&apos;s widgets in Content; picking another widget replaces the panel.</p>
       )}
     </div>
   );

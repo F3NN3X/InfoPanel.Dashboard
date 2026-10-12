@@ -49,6 +49,8 @@ const ICONS: Record<MenuItemId, ReactNode> = {
   "copy-style": <Clipboard />,
   "paste-style": <ClipboardPaste />,
   "follow-global": <Globe />,
+  "global-all": <Globe />,
+  "global-profile": <Globe />,
   deselect: <X />,
   remove: <Trash2 />,
   "add-widget": <Plus />,

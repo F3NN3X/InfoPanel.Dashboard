@@ -227,7 +227,7 @@ export function InsertList({
   onRenamePreset,
   onDeletePreset,
 }: InsertListProps) {
-  if (items.length === 0) return <p className="text-xs text-ui-5">Nothing matches.</p>;
+  if (items.length === 0) return <p className="text-xs text-ui-4">Nothing matches.</p>;
   return (
     <div className="space-y-4">
       {insertGroups(items).map((g) => (
@@ -249,7 +249,7 @@ export function InsertList({
               />
             ))}
           </div>
-          {g.note && <p className="text-[10.5px] leading-snug text-ui-5">{g.note}</p>}
+          {g.note && <p className="text-[10.5px] leading-snug text-ui-4">{g.note}</p>}
         </section>
       ))}
     </div>
@@ -276,6 +276,7 @@ export function InsertFilters({
       <label className="flex h-[30px] items-center gap-1.5 rounded-md border border-ui-default bg-ui-app px-2">
         <Search className="h-3.5 w-3.5 shrink-0 text-ui-4" />
         <input
+          aria-label="Search the library"
           value={query}
           autoFocus={autoFocus}
           onChange={(e) => onQuery(e.target.value)}
@@ -285,7 +286,7 @@ export function InsertFilters({
             onQuery("");
           }}
           placeholder="Search widgets"
-          className="min-w-0 flex-1 bg-transparent text-xs text-ui-1 outline-none placeholder:text-ui-5"
+          className="min-w-0 flex-1 bg-transparent text-xs text-ui-1 outline-none placeholder:text-ui-4"
         />
       </label>
       <div className="flex flex-wrap gap-1">
@@ -358,7 +359,7 @@ export function InsertPanel({
           onDeletePreset={onDeletePreset}
         />
       </div>
-      <p className="shrink-0 border-t border-ui-subtle px-3 py-2.5 text-[10.5px] leading-snug text-ui-5">
+      <p className="shrink-0 border-t border-ui-subtle px-3 py-2.5 text-[10.5px] leading-snug text-ui-4">
         Drag onto an empty zone, or click to auto-place. With a blank zone selected, a click fills it.
       </p>
     </>

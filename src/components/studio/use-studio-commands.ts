@@ -1,4 +1,5 @@
 import { modules } from "@/modules";
+import { BLANK_MODULE } from "@/lib/layout";
 import { useToast } from "@/components/ui/toast";
 import { styleOf } from "@/modules/standard-settings";
 import type { DashboardConfig, MonitorProfile } from "@/lib/layout";
@@ -9,6 +10,8 @@ import { buildCommands, type CommandAction } from "./commands";
 import { copyProfileJson, exportConfigFile } from "./config-file";
 import { DOCUMENT_CARD } from "./document-inspector";
 import { insertables } from "./insert-panel";
+import { widgetContext, type InspectorContext } from "./inspector-model";
+import { zoneDefs } from "./inspector/zone-fields";
 import { panelWidgetActions } from "./panel-widget-actions";
 import type { useDocumentProps } from "./use-document-props";
 import type { StudioMutations } from "./use-studio-mutations";
@@ -26,6 +29,7 @@ interface CommandDeps {
   edit: StudioMutations;
   appearance: Appearance;
   appearancePresets: ReturnType<typeof useDocumentProps>["appearancePresets"];
+  setScopeStyle: ReturnType<typeof useDocumentProps>["setScopeStyle"];
 }
 
 /**
@@ -43,6 +47,7 @@ export function useStudioCommands({
   edit,
   appearance,
   appearancePresets,
+  setScopeStyle,
 }: CommandDeps) {
   const { selected, selectedWidget } = sel;
   const toast = useToast();
@@ -148,7 +153,9 @@ export function useStudioCommands({
         ui.setInspectorQuery("");
         return ui.jumpInspector(action.id);
       case "goto-setting":
-        return ui.setInspectorQuery(action.label);
+        ui.setMode("design");
+        ui.setInspectorQuery("");
+        return ui.jumpInspector(action.section, action.key);
       case "document-tab":
         ui.setMode("design");
         sel.select(null);
@@ -199,6 +206,11 @@ export function useStudioCommands({
         return toast("Style pasted");
       case "follow-global":
         return edit.followGlobalSelection();
+      case "use-global": {
+        const style = styleOf(selected.settings);
+        setScopeStyle(action.target, () => style);
+        return toast(action.target === "all" ? "Style is now the global style" : "Style is now this profile's global style");
+      }
       case "resize-step": {
         const rect = edit.resizeSelected({
           cols: selected.colSpan + action.cols,
@@ -230,8 +242,15 @@ export function useStudioCommands({
     }
   };
 
-  const selectedModule =
-    selected && !selected.panel ? modules.find((m) => m.id === selected.module) : undefined;
+  /** What the inspector shows now, for the palette's "Go to setting" entries. */
+  const inspectorContext = (): InspectorContext | null => {
+    if (sel.selection.length > 1) return null;
+    if (!selected) return { kind: "dashboard", scope: "all" };
+    if (selected.module === BLANK_MODULE) return null;
+    const mod = selected.panel ? undefined : modules.find((m) => m.id === selected.module);
+    if (mod) return widgetContext(mod);
+    return { kind: selected.panel ? "panel" : "widget", defs: zoneDefs(selected) } as InspectorContext;
+  };
   const commands = ui.paletteOpen
     ? buildCommands({
         insertables: insertables(config.panelPresets),
@@ -239,7 +258,7 @@ export function useStudioCommands({
         placements: profile.placements,
         selected,
         selection: sel.selection,
-        settings: selectedModule?.settings ?? [],
+        context: inspectorContext(),
         widget: selectedWidget,
         canPasteWidget: ui.widgetClipboard !== null,
         canUndo: history.canUndo,

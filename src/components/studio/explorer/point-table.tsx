@@ -86,7 +86,7 @@ export function PointTable({
               onChange={(e) => onQuery(e.target.value)}
               placeholder="Search key, name or value"
               aria-label="Search key, name or value"
-              className="h-8 w-full rounded-md border border-ui-default bg-ui-panel pl-8 pr-2 text-[12.5px] text-ui-1 placeholder:text-ui-5 focus:border-ui-accent/60 focus:outline-none"
+              className="h-8 w-full rounded-md border border-ui-default bg-ui-panel pl-8 pr-2 text-[12.5px] text-ui-1 placeholder:text-ui-4 focus:border-ui-accent/60 focus:outline-none"
             />
           </div>
           <Segmented label="Type" options={TYPE_OPTIONS} value={type} onChange={onType} />
@@ -235,7 +235,7 @@ function PointRow({ point, cols, values, usage, selected, onSelect, showUsedBy }
             <span className="truncate text-[12.5px] text-ui-1">{point.name}</span>
             {point.kind && <Chip>{point.kind}</Chip>}
           </div>
-          <div className="truncate font-ui-mono text-[10.5px] text-ui-5">{point.key}</div>
+          <div className="truncate font-ui-mono text-[10.5px] text-ui-4">{point.key}</div>
         </div>
       </div>
       <span title={value} className={cn("truncate font-ui-mono text-[12px]", value ? "text-ui-2" : "text-ui-5")}>

@@ -23,7 +23,7 @@ export function MultiSelect({
   options: { value: string; label: string }[];
   label?: string;
 }) {
-  if (options.length === 0) return <span className="text-[11px] text-ui-5">No options available</span>;
+  if (options.length === 0) return <span className="text-[11px] text-ui-4">No options available</span>;
   return (
     <DeviceChecklist
       label={label}
@@ -103,7 +103,7 @@ export function WavelinkMeterPicker({ def, value, onChange, lead, hint }: Picker
         </select>
       )}
       {state.status === "absent" && options.length === 0 && (
-        <span className="text-[11px] text-ui-5">
+        <span className="text-[11px] text-ui-4">
           Wave Link is not running — start the app and its meters appear here.
         </span>
       )}

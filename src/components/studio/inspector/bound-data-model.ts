@@ -1,5 +1,5 @@
 import type { SensorValue } from "@/hooks/useSensors";
-import { searchPoints, type DataModel, type DataPoint } from "@/lib/data-points";
+import { formatReading, searchPoints, type DataModel, type DataPoint } from "@/lib/data-points";
 import type { UsageIndex } from "@/lib/data-usage";
 import type { DashboardConfig, MonitorProfile, Placement } from "@/lib/layout";
 
@@ -36,7 +36,7 @@ export function boundRows(zone: Placement, usage: UsageIndex, model: DataModel):
 
 /** A live value as text; null when there is none ("No data"). */
 export function liveText(live: SensorValue | undefined, point: DataPoint | undefined): string | null {
-  if (live && typeof live.value === "number") return live.unit ? `${live.value} ${live.unit}` : String(live.value);
+  if (live && typeof live.value === "number") return formatReading(live.value, live.unit);
   const text = live?.text?.trim();
   if (text) return text;
   return point && point.type !== "empty" && point.raw.trim() !== "" ? point.raw : null;
