@@ -2,27 +2,7 @@ import { hslToHex, hexToHsl, THEME_PRESETS, type ThemeTokens } from "@/lib/theme
 import { useInspectorAdvanced } from "./inspector/inspector-prefs";
 import { ColorPill } from "./inspector/color-pill";
 import { InlineRow, SelectRow, SliderRow } from "./setting-rows";
-import { matchesQuery } from "./settings-model";
-
-/** Tokens with an editor row; the first six are always shown (DECISIONS.md #8), the rest are Advanced. */
-const VISIBLE_TOKENS: [keyof ThemeTokens, string][] = [
-  ["primary", "Primary"],
-  ["accent", "Accent"],
-  ["background", "Background"],
-  ["foreground", "Foreground"],
-  ["card", "Card"],
-  ["card-foreground", "Card text"],
-];
-
-const ADVANCED_TOKENS: [keyof ThemeTokens, string][] = [
-  ["primary-foreground", "Primary text"],
-  ["secondary", "Secondary"],
-  ["muted", "Muted"],
-  ["muted-foreground", "Muted text"],
-  ["destructive", "Destructive"],
-  ["border", "Border"],
-  ["ring", "Ring"],
-];
+import { ADVANCED_TOKENS, themeRows, type TokenRow } from "./theme-rows";
 
 interface ThemePanelProps {
   tokens: ThemeTokens;
@@ -54,23 +34,16 @@ function TokenRow({ label, value, onChange }: { label: string; value: string; on
 export function ThemePanel({ tokens, radius, presetName, onToken, onRadius, onPreset, query = "" }: ThemePanelProps) {
   const [advanced, setAdvanced] = useInspectorAdvanced();
   const edited = presetName === "custom";
-  const row = ([key, label]: [keyof ThemeTokens, string]) => (
+  const row = ([key, label]: TokenRow) => (
     <TokenRow key={key} label={label} value={tokens[key]} onChange={(v) => onToken(key, v)} />
   );
-  const presetLabels = THEME_PRESETS.map((p) => p.label);
-  const matched = {
-    preset: matchesQuery(["Theme", ...presetLabels], query),
-    radius: matchesQuery(["Corner radius", "Radius"], query),
-    visible: VISIBLE_TOKENS.filter(([, label]) => matchesQuery([label], query)),
-    hidden: ADVANCED_TOKENS.filter(([, label]) => matchesQuery([label], query)),
-  };
-  // A search that names a row lists just those rows; one that only names the section lists them all.
-  const filtering =
-    query.trim() !== "" && (matched.preset || matched.radius || matched.visible.length + matched.hidden.length > 0);
-  const showPreset = !filtering || matched.preset;
-  const showRadius = !filtering || matched.radius;
-  const visibleTokens = filtering ? matched.visible : VISIBLE_TOKENS;
-  const hiddenTokens = filtering ? matched.hidden : ADVANCED_TOKENS;
+  const {
+    filtering,
+    preset: showPreset,
+    radius: showRadius,
+    visible: visibleTokens,
+    advanced: hiddenTokens,
+  } = themeRows(query);
   return (
     <div className="space-y-2">
       {showPreset && (
