@@ -56,22 +56,35 @@ export default function Notifications(p: NotificationsProps) {
       title={p.title ?? "Notifications"}
       icon="notifications"
       right={hasCount ? <Chip>{Math.round(count)}</Chip> : undefined}
-      compact={{ label: "Notifications", value: hasCount ? Math.round(count) : "–", sub: last ?? status ?? "", t: hasCount && count > 0 ? worst : "ok", kind: "value", icon: "notifications" }}
+      compact={(box) =>
+        // a 2x1 tile hides the compact sub line, which would lose the status: lay out the title and the status instead
+        box.shape === "tile" && box.w >= 200 ? undefined : { label: "Notifications", value: hasCount ? Math.round(count) : "–", sub: last ?? status ?? "", t: hasCount && count > 0 ? worst : "ok", kind: "value", icon: "notifications" }
+      }
       studio={{ label: "Notifications", value: hasCount ? Math.round(count) : "–", sub: last ?? status ?? "", rows: lines.map((l) => ({ n: l.message, v: l.time })) }}
     >
-      {({ size }) => {
+      {({ size, h }) => {
         if (last === undefined && !hasCount && !status) return <Empty icon="notifications" label="No notifications" />;
-        if (size === "xs") return <Metric label="Notifications" value={hasCount ? Math.round(count) : "–"} scale="lg" sub={last} className="h-full justify-center" />;
+        if (size === "xs")
+          return (
+            <div className="flex h-full min-w-0 flex-col justify-center gap-0.5">
+              <Metric label="Notifications" value={hasCount ? Math.round(count) : "–"} scale="lg" sub={last} />
+              {status && <div className="truncate text-[10px] text-[color:var(--w-faint)]">{status}</div>}
+            </div>
+          );
+        // the history shows the lines that fit (no scroll container); before the first measurement (h = 0) all of them
+        const rowH = size === "lg" ? 26 : 20;
+        const fit = h > 0 ? Math.max(1, Math.floor((h - 72) / rowH)) : lines.length;
+        const text = size === "lg" ? "text-sm" : "text-xs";
         return (
           <div className="flex h-full min-h-0 flex-col">
-            {last && <div className="truncate text-sm font-medium text-[color:var(--w-fg)]">{last}</div>}
+            {last && <div className={`truncate font-medium text-[color:var(--w-fg)] ${size === "lg" ? "text-base" : "text-sm"}`}>{last}</div>}
             {status && <div className="mt-1 truncate text-xs text-[color:var(--w-faint)]">{status}</div>}
             {showHistory && (
-              <div className="mt-3 min-h-0 flex-1 space-y-1 overflow-y-auto border-t border-[color:var(--w-track)] pt-3">
-                {lines.map((l, i) => {
+              <div className="mt-3 min-h-0 flex-1 space-y-1 overflow-hidden border-t border-[color:var(--w-track)] pt-3">
+                {lines.slice(0, fit).map((l, i) => {
                   const c = typeColor(l.type);
                   return (
-                    <div key={i} className="flex items-baseline gap-2 text-xs">
+                    <div key={i} className={`flex items-baseline gap-2 ${text}`}>
                       <span className="shrink-0 font-mono tabular-nums text-[color:var(--w-muted)]">{l.time}</span>
                       <span
                         className="shrink-0 rounded px-1.5 py-px text-[10px] tracking-wider text-[color:var(--w-muted)]"

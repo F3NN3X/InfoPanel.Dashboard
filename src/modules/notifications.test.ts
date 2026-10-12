@@ -34,6 +34,13 @@ describe("notifications", () => {
     expect(html({ layout: "card", showHistory: false })).not.toContain("Disk space is low on D:");
   });
 
+  it("keeps the status line at 2x1 and draws the history without a scroll container", () => {
+    const xs = html({ layout: "simple" });
+    expect(xs).toContain("Listening");
+    expect(xs).toContain("Notifications");
+    expect(html({ layout: "card" })).not.toContain("overflow-y-auto");
+  });
+
   it("is idle while nothing is unread", () => {
     const at = (n: number): SensorMap => ({ [`${P}notification-count`]: { value: n, unit: "", name: "n" } as never });
     expect(notificationsModule.isIdle?.(at(0), {})).toBe(true);
