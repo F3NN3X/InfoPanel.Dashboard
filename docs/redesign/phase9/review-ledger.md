@@ -32,21 +32,21 @@ Findings from reviews, with the decision taken. Status: open / fixed (commit) / 
 | 17 | med | QA probe | content clipped by the shell's `overflow:hidden` is not reported (clipped axes ignored) | open: add a `clipped` kind (scrollHeight/scrollWidth > client + 1 on zone descendants with overflow hidden) in 9.8 |
 | 18 | low | legacy `hardwaremodern` | duplicate React keys (two sensors share a display name) | open: port keys rows by sensor key |
 | 19 | low | legacy image path | `/assets/...` root-relative images go through `/api/image-proxy` and 400 in dev | open: ported widgets load root-relative paths directly (`widgetImage`) |
-| 20 | low | `core/primitives.tsx` Spark | gradient id from `Math.random()` in a ref initialiser | open: use `useId()` (SSR-stable) |
+| 20 | low | `core/primitives.tsx` Spark | gradient id from `Math.random()` in a ref initialiser | fixed (f32be1d) |
 
 ## Ports, batch 1 (8cb380a, de0a098, 076c150, worktree 07ac636 / 96fb74a)
 | # | Sev | Where | Finding | Decision |
 |---|---|---|---|---|
-| 21 | high | `templateModule` render | legacy modules returned `null` with no data, so the kiosk hid the zone (`hasData` false); templates render an empty state instead → empty zones now show in the kiosk | open: factory returns `null` when no key under the module's prefixes/reads exists (legacy and template alike), matching the old rule |
-| 22 | med | data adapter | `toFlat` drops `SensorValue.name`, so auto-discovered rows (Hardware, SensorGroup) show key-derived labels instead of the sensor's display name | open: expose names alongside the flat map (e.g. a `names` prop / context read by `sensorLabel(key)`) |
+| 21 | high | `templateModule` render | legacy modules returned `null` with no data, so the kiosk hid the zone (`hasData` false); templates render an empty state instead → empty zones now show in the kiosk | fixed (379692c) |
+| 22 | med | data adapter | `toFlat` drops `SensorValue.name`, so auto-discovered rows (Hardware, SensorGroup) show key-derived labels instead of the sensor's display name | fixed (ceb476a) |
 | 23 | low | Network | legacy showed KB/s values as bytes/s; the template shows the sensor's real unit, and the busiest adapter instead of ethernet only | accepted: a bug fix; noted in the PR |
 | 24 | low | ports | `docs/widget-settings.md`, `docs/module-catalog.md` still name deleted `Modern*` components | open: docs pass in 9.8 |
 | 25 | med | `templateModule` | three parallel ports added three legacy-alias mechanisms (`legacy`, `alias`/`base`, per-module) | fixed (e743142) |
-| 26 | med | Bluetooth | devices matched by last key segment because names are dropped (see #22); unverified on real plugin keys | open: re-check after #22 |
+| 26 | med | Bluetooth | devices matched by last key segment because names are dropped (see #22); unverified on real plugin keys | fixed (ceb476a) |
 | 27 | low | Departures / Notifications | rows cut to fit the zone instead of a scroll area | accepted: kiosk zones aren't scrolled; "fit, don't overflow" rule |
-| 28 | med | System alias | default device colours now follow the template palette (RAM green → amber); D1 says today's colours stay the default | open: the legacy alias passes today's default device colours when the stored colour is unset |
-| 29 | low | System | hardware/drive names rebuilt from key slugs ("Kingston" vs "KINGSTON") | open: resolved by #22 |
-| 30 | low | NowPlaying "loudest live device" | legacy fallback that matched a sensor *named* "Level" dropped (names lost, #22) | open: restore with #22 |
+| 28 | med | System alias | default device colours now follow the template palette (RAM green → amber); D1 says today's colours stay the default | fixed (47385d2) |
+| 29 | low | System | hardware/drive names rebuilt from key slugs ("Kingston" vs "KINGSTON") | fixed (ceb476a) |
+| 30 | low | NowPlaying "loudest live device" | legacy fallback that matched a sensor *named* "Level" dropped (names lost, #22) | fixed (ceb476a) |
 | 31 | low | NowPlaying | legacy compact pill (progress as fill + knob) replaced by the template's compact view | accepted: progress still shown; D1 allows a new look |
 
 ## Before/after screenshots (cell 110; `docs/redesign/phase9/shots/{before,after}`)
