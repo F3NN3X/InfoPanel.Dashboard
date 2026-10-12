@@ -48,3 +48,11 @@ Findings from reviews, with the decision taken. Status: open / fixed (commit) / 
 | 29 | low | System | hardware/drive names rebuilt from key slugs ("Kingston" vs "KINGSTON") | open: resolved by #22 |
 | 30 | low | NowPlaying "loudest live device" | legacy fallback that matched a sensor *named* "Level" dropped (names lost, #22) | open: restore with #22 |
 | 31 | low | NowPlaying | legacy compact pill (progress as fill + knob) replaced by the template's compact view | accepted: progress still shown; D1 allows a new look |
+
+## Before/after screenshots (cell 110; `docs/redesign/phase9/shots/{before,after}`)
+| # | Sev | Where | Finding | Decision |
+|---|---|---|---|---|
+| 32 | high | Hardware 4×2 | raw floats (`58.88671875 °C`), names missing/clipped, a horizontal scrollbar inside the zone, header added; legacy showed `58.9` with names and no scrollbar | open: format to the legacy decimals, names via #22, no scroll containers, header off by default for the alias |
+| 33 | med | System 4×2 | legacy default look had load rings per device; the alias shows a column grid without rings; "Clock 0.00 GHz" shown when the clock sensor is missing | open: alias defaults to the ring layout; hide stats whose value is missing |
+| 34 | med | Wave Link 3×2/4×2/6×3 | dB scale labels overlap the channel names and meters (probe: 26 overlaps) | open: scale only when there is width; labels below names |
+| 35 | low | Hardware 3×2, System 3×2, vbz 6×3 | text overlaps (probe) | open: 9.8 sweep |
