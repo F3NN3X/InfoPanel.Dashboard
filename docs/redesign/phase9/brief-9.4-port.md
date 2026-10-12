@@ -44,3 +44,13 @@ with **every** stored setting honoured and no feature lost. Old component(s) del
 ## Report (≤12 lines)
 Commit hash, files, tests added, any feature you could only approximate (be explicit), anything
 left undone. The controller takes before/after screenshots with the QA harness.
+
+## Working in a worktree
+You may be running in an isolated git worktree. If `node_modules` is missing there, link the main
+checkout's instead of installing: `cmd //c mklink //J node_modules E:\GitHub\MyRepos\InfoPanel.Dashboard\node_modules`.
+Commit on your worktree branch; the controller merges. Do not push.
+
+## Known issues to fix while porting
+- `hardwaremodern`: key rows by sensor key, not display name (duplicate React keys today).
+- Images: root-relative `/assets/...` paths load directly, not through `/api/image-proxy` (`widgetImage`).
+- NowPlaying: the template's `layout` is stored as `playerLayout` (the standard `layout` keeps its meaning).

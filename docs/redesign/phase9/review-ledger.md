@@ -24,3 +24,12 @@ Findings from reviews, with the decision taken. Status: open / fixed (commit) / 
 |---|---|---|---|---|
 | 14 | med | `module.tsx` / `STANDARD_SETTINGS.surface` default `glass` | `effectiveSettings` always fills `surface`, so a chosen skin never brings its own surface | fixed (e2fc8f8) |
 | 15 | low | inspector | Skin/Graph/Meter show on legacy widgets where they do nothing | accepted until 9.4: every legacy widget renders through the shell after its port |
+
+## First browser QA (8aa3757, `?widget-qa`, 44 templates × 6 spans × cell 110/150 × default/studio)
+| # | Sev | Where | Finding | Decision |
+|---|---|---|---|---|
+| 16 | med | SystemStatus 4×2, Clock 4×2, SteamLibrary 2×1/2×2/4×2 (150), CpuMonitor 2×1 (150) | text overlaps (probe `overlaps`) | open: fix in 9.8 sweep |
+| 17 | med | QA probe | content clipped by the shell's `overflow:hidden` is not reported (clipped axes ignored) | open: add a `clipped` kind (scrollHeight/scrollWidth > client + 1 on zone descendants with overflow hidden) in 9.8 |
+| 18 | low | legacy `hardwaremodern` | duplicate React keys (two sensors share a display name) | open: port keys rows by sensor key |
+| 19 | low | legacy image path | `/assets/...` root-relative images go through `/api/image-proxy` and 400 in dev | open: ported widgets load root-relative paths directly (`widgetImage`) |
+| 20 | low | `core/primitives.tsx` Spark | gradient id from `Math.random()` in a ref initialiser | open: use `useId()` (SSR-stable) |
