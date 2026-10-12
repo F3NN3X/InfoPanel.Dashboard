@@ -1,10 +1,11 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LayoutGrid } from "lucide-react";
 import { imageUrl } from "@/lib/image";
 import { byName, groupByContainer, liveText } from "@/lib/sensors";
 import { ModernChrome } from "@/components/modern-chrome";
+import { accentIcon, StyledCard } from "@/components/styled-card";
 import { byShape, ws } from "@/components/widget-style";
-import { chromeOf, STYLE_SETTINGS } from "./standard-settings";
+import { CARD_SETTINGS, chromeOf } from "./standard-settings";
 import { effectiveSettings, type DashboardModule } from "./types";
 
 const P = "plugins.InfoPanel.StreamDeck.";
@@ -48,17 +49,18 @@ export const streamdeckModule: DashboardModule = {
   minRows: 2,
   prefixes: [P],
   settings: [
-    { key: "showProfile", label: "Active profile", type: "boolean", default: true },
-    { key: "showLabels", label: "Button labels", type: "boolean", default: true },
-    ...STYLE_SETTINGS,
+    { key: "showProfile", label: "Active profile", type: "boolean", default: true, group: "Content" },
+    { key: "showLabels", label: "Button labels", type: "boolean", default: true, group: "Content" },
+    ...CARD_SETTINGS,
   ],
   render: (sensors, s) => {
     const cfg = effectiveSettings(streamdeckModule, s);
+    const chrome = chromeOf(cfg);
     const groups = [...groupByContainer(sensors, P).entries()];
     if (groups.length === 0) return null;
 
     return (
-      <ModernChrome chrome={chromeOf(cfg)} designSize={DESIGN}>
+      <ModernChrome chrome={chrome} designSize={DESIGN}>
       <div
         className="grid h-full w-full auto-rows-fr grid-cols-1 lg:grid-cols-2"
         style={{ gap: ws.gap(16) }}
@@ -90,11 +92,7 @@ export const streamdeckModule: DashboardModule = {
             // show profile info only.
             if (!cfg.showProfile || !profile) return null;
             return (
-              <Card
-                key={serial}
-                className="flex min-h-0 min-w-0 flex-col overflow-hidden border-border bg-card"
-                style={{ borderRadius: ws.radius("var(--radius-lg, 0.5rem)") }}
-              >
+              <StyledCard key={serial} surface={cfg.surface} chrome={chrome}>
                 <CardHeader
                   className="shrink-0 pb-2"
                   style={{ paddingInline: ws.pad(24), paddingTop: ws.pad(24) }}
@@ -106,24 +104,20 @@ export const streamdeckModule: DashboardModule = {
                 <CardContent className="flex min-h-0 flex-1 items-center" style={{ paddingInline: ws.pad(24), paddingBottom: ws.pad(24) }}>
                   {profile && <div className="text-sm text-foreground/85">{profile}</div>}
                 </CardContent>
-              </Card>
+              </StyledCard>
             );
           }
 
           const cols = buttons.length <= 15 ? 5 : 6;
 
           return (
-            <Card
-              key={serial}
-              className="flex min-h-0 min-w-0 flex-col overflow-hidden border-border bg-card"
-              style={{ borderRadius: ws.radius("var(--radius-lg, 0.5rem)") }}
-            >
+            <StyledCard key={serial} surface={cfg.surface} chrome={chrome}>
               <CardHeader
                 className="shrink-0 pb-2"
                 style={{ paddingInline: ws.pad(24), paddingTop: ws.pad(24) }}
               >
                 <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
-                  <LayoutGrid className="h-3.5 w-3.5" />
+                  <LayoutGrid className="h-3.5 w-3.5" style={accentIcon} />
                   <span className="truncate" title={deviceName}>
                     {deviceName}
                   </span>
@@ -169,7 +163,7 @@ export const streamdeckModule: DashboardModule = {
                   ))}
                 </div>
               </CardContent>
-            </Card>
+            </StyledCard>
           );
         })}
       </div>

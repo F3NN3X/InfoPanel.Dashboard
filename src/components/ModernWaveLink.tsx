@@ -20,6 +20,7 @@ import {
 } from "@/lib/wavelink";
 import type { BallisticsPreset } from "@/lib/audio/ballistics";
 import type { Orientation } from "@/lib/audio/types";
+import { pickWaveLinkVariant, type WaveLinkVariant } from "./wavelink-layout";
 
 /**
  * The Wave Link widget — the Elgato app's full mixer, live at device pace.
@@ -34,11 +35,13 @@ import type { Orientation } from "@/lib/audio/types";
  * dimmed, with the meters decayed to the floor and a note that the app is
  * not running — a meter that freezes on a stale level is a lying meter.
  *
- * Layouts (auto-picked from the zone's measured size, like ModernAudio):
- * - `card`     — tall/portrait zones: stacked channel rows
+ * Layouts (auto-picked from the zone's measured size and the channel
+ * count, see `pickWaveLinkVariant` in wavelink-layout.ts):
+ * - `card`     — tall/portrait zones, and zones too narrow for the
+ *                mixer columns: stacked channel rows
  * - `standard` — wide zones: mixer columns side by side
  * - `compact`  — very short zones: name · fader % · bar
- * - `simple`   — small zones: the first channel only
+ * - `simple`   — the first channel only (chosen in the settings)
  *
  * The standard style options apply through `ModernChrome` and the
  * `widget-style` helpers: it scales with the zone (designed for about
@@ -58,8 +61,6 @@ const DESIGN = byShape({
   square: { w: 720, h: 520 },
 });
 
-export type WaveLinkVariant = "card" | "standard" | "compact" | "simple";
-
 export interface ModernWaveLinkProps {
   /** Which meter keys to show (comma-separated, "" = all). */
   source?: string;
@@ -77,18 +78,6 @@ export interface ModernWaveLinkProps {
   meterOrientation?: Orientation;
   meterBallistics?: BallisticsPreset;
   className?: string;
-}
-
-function pickVariant(
-  w: number,
-  h: number,
-  forced: WaveLinkVariant | "auto"
-): WaveLinkVariant {
-  if (forced !== "auto") return forced;
-  if (!w || !h) return "standard";
-  if (h <= 72) return "compact";
-  if (w <= 340 && h >= 180) return "card";
-  return "standard";
 }
 
 const fmtFader = (level: number | null): string =>
@@ -112,7 +101,6 @@ export function ModernWaveLink({
   const { ref, w, h } = useElementSize();
   const state = useWavelinkState();
   const sv = makeSurface(surfaceStyle, null);
-  const v = pickVariant(w, h, layout);
   const up = state.status === "up";
 
   // The meter thickness and the live / mute colors reach the pieces below
@@ -135,6 +123,7 @@ export function ModernWaveLink({
   const devices = selected
     ? state.devices.filter((d) => selected.includes(meterKey.device(d.id)))
     : state.devices;
+  const v = pickWaveLinkVariant(w, h, layout, { channels: channels.length, devices: devices.length > 0 });
 
   const common = {
     meterVariant,
@@ -479,7 +468,7 @@ function MixColumn({
 }) {
   const source = useWavelinkMeter(meterKey.channel(channel.id));
   return (
-    <div className="flex min-w-0 flex-col gap-1" style={{ flex: ws.flex() }}>
+    <div className="flex min-w-0 flex-col gap-1 overflow-hidden" style={{ flex: ws.flex() }}>
       <div className="flex min-w-0 items-center gap-1.5">
         <span className="truncate text-xs font-semibold" title={channel.name}>
           {channel.name}
@@ -530,7 +519,11 @@ function MixColumn({
   );
 }
 
-/** A stacked row (card layout): name, horizontal meters, readouts, mixes. */
+/**
+ * A stacked row (card layout): name, horizontal meters, readouts, mixes.
+ * The meters stay horizontal whatever the Meter orientation (that option
+ * shapes the mixer columns): a vertical one would stand as tall as the row.
+ */
 function CardRow({
   channel,
   state,
@@ -538,7 +531,6 @@ function CardRow({
   showFader,
   showMixes,
   meterVariant,
-  meterOrientation,
   meterBallistics,
 }: {
   channel: WlChannel;
@@ -577,7 +569,7 @@ function CardRow({
         <LevelMeter
           source={source}
           channelCount={2}
-          orientation={meterOrientation}
+          orientation="horizontal"
           variant={meterVariant}
           ballistics={meterBallistics}
           size="sm"

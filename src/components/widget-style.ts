@@ -1,4 +1,6 @@
 import type { CSSProperties } from "react";
+import { FONT_STACKS } from "@/lib/general";
+import { hexToHsl } from "@/lib/theme";
 import type { ModernChrome } from "./modern-chrome";
 
 /**
@@ -60,12 +62,8 @@ export function zoomFor(
 /** Two decimals: avoids re-layout churn from sub-pixel size jitter. */
 const round = (v: number) => Math.round(v * 100) / 100;
 
-const FONTS: Record<string, string> = {
-  sans: "ui-sans-serif, system-ui, 'Segoe UI', sans-serif",
-  rounded: "ui-rounded, 'SF Pro Rounded', 'Nunito', 'Segoe UI Variable Display', system-ui, sans-serif",
-  serif: "ui-serif, Georgia, 'Times New Roman', serif",
-  mono: "ui-monospace, 'Cascadia Code', 'Consolas', monospace",
-};
+/** The Font option's stacks ("Theme" = auto inherits the page font, see General settings). */
+const FONTS: Record<string, string> = FONT_STACKS;
 
 export const MAIN: Record<string, string> = {
   start: "flex-start",
@@ -91,10 +89,32 @@ const TEXT: Record<string, string> = { start: "left", center: "center", end: "ri
 export const safe = (value: string): string =>
   value === "center" || value === "flex-end" ? `safe ${value}` : value;
 
-/** The `--wp-*` variables for the chosen options (unset ones are omitted). */
+const HEX = /^#[0-9a-f]{6}/i;
+
+/**
+ * The theme tokens re-scoped to the widget's colors (hex only — the tokens
+ * are HSL triplets): its accent, text and secondary text. Everything inside
+ * that reads the theme (Tailwind's `text-foreground`, `hsl(var(--accent))`,
+ * the "theme" surface) then follows the widget's — or the global — colors.
+ */
+export function tokenScope(chrome: ModernChrome | undefined): Record<string, string> {
+  const v: Record<string, string> = {};
+  if (chrome?.accent && HEX.test(chrome.accent)) v["--accent"] = hexToHsl(chrome.accent);
+  if (chrome?.textColor && HEX.test(chrome.textColor)) {
+    v["--foreground"] = hexToHsl(chrome.textColor);
+    v["--card-foreground"] = v["--foreground"];
+  }
+  if (chrome?.mutedColor && HEX.test(chrome.mutedColor)) v["--muted-foreground"] = hexToHsl(chrome.mutedColor);
+  return v;
+}
+
+/**
+ * The `--wp-*` variables for the chosen options (unset ones are omitted),
+ * plus the re-scoped theme tokens (`tokenScope`).
+ */
 export function chromeVars(chrome: ModernChrome | undefined): CSSProperties | undefined {
   if (!chrome) return undefined;
-  const v: Record<string, string> = {};
+  const v: Record<string, string> = tokenScope(chrome);
   if (chrome.accent) v["--wp-accent"] = chrome.accent;
   if (chrome.padding !== undefined) v["--wp-pad"] = `${chrome.padding}px`;
   if (chrome.gap !== undefined) v["--wp-gap"] = `${chrome.gap}px`;
@@ -207,7 +227,8 @@ export function surfaceBox(sv: SurfaceColors, chrome: ModernChrome | undefined):
 }
 
 /**
- * Multiply the alpha of every `rgb()` / `rgba()` / hex color in a CSS
+ * Multiply the alpha of every `rgb()` / `rgba()` / hex color and every
+ * theme token color (`hsl(var(--x))`, `hsl(var(--x) / a)`) in a CSS
  * background (a plain color or a gradient) by `factor`.
  */
 export function fadeColors(background: string, factor: number): string {
@@ -221,7 +242,10 @@ export function fadeColors(background: string, factor: number): string {
       const full = hex.length === 3 ? [...hex].map((c) => c + c).join("") : hex;
       const [r, g, b] = [0, 2, 4].map((i) => parseInt(full.slice(i, i + 2), 16));
       return `rgba(${r}, ${g}, ${b}, ${alpha(1)})`;
-    });
+    })
+    .replace(/hsl\(\s*var\((--[\w-]+)\)\s*(?:\/\s*([\d.]+)\s*)?\)/g, (_, token: string, a) =>
+      `hsl(var(${token}) / ${alpha(a === undefined ? 1 : Number(a))})`
+    );
 }
 
 /**

@@ -22,10 +22,16 @@ export function moduleMinSize(module: string): { cols: number; rows: number } {
   return { cols: meta?.minCols ?? 2, rows: meta?.minRows ?? 1 };
 }
 
+/** A panel's title: the Widget card's title (`label`) when it is set, else the panel's own. */
+export function panelTitle(p: Placement): string {
+  const label = String(p.settings?.label ?? "");
+  return label !== "" ? label : (p.panel?.title ?? "");
+}
+
 /** Display title of a placement: panel title, module title, or its id. */
 export function placementTitle(p: Placement): string {
   return (
-    p.panel?.title ??
+    (p.panel ? panelTitle(p) : undefined) ??
     ALL_MODULES.find((m) => m.id === p.module)?.title ??
     p.module
   );

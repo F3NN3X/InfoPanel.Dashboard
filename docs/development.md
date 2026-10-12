@@ -24,14 +24,26 @@ From `package.json`:
 ## Dev server vs the standalone server
 
 **Standalone server (`server.mjs`).** Serves the built `dist/`, stores the
-studio config, streams config changes to kiosk pages and proxies cover-art
-images. It uses only Node built-ins. Environment variables it reads:
+studio config and uploaded media, streams config changes to kiosk pages and
+proxies cover-art images. It uses only Node built-ins; the media routes are
+in `server/assets.mjs`. Environment variables it reads:
 
 | Variable | Default | Meaning |
 |---|---|---|
 | `PORT` | `3922` | Listen port |
 | `HOST` | `127.0.0.1` | Listen address |
 | `LOCALAPPDATA` | - | The config is `%LOCALAPPDATA%\InfoPanel\Dashboard\config.json`. If unset, `$HOME/.local/share/InfoPanel/Dashboard/config.json` |
+| `ALLOW_REMOTE_UPLOAD` | unset | `1` accepts media uploads and deletes from other machines; otherwise only from loopback (the server answers 403) |
+| `ALLOWED_HOSTS` | unset | Extra `Host` names to serve, comma separated (e.g. `kiosk.lan,panel.example`). Without it only `localhost`, `127.0.0.1`, `[::1]` and `HOST` are served (421 otherwise); with `HOST=0.0.0.0` any IP address and the machine name work too |
+| `ASSETS_MAX_BYTES` | `2147483648` | Cap on the total size of the uploaded media; an upload that would pass it gets 507 |
+
+Uploaded images and videos go to an `assets` folder next to `config.json`
+(`%LOCALAPPDATA%\InfoPanel\Dashboard\assets`), created on the first upload.
+Files are named by content hash; deleting one by hand breaks every config
+that refers to it, so prefer the studio's library (it can list what the saved
+config no longer uses). Copy the folder along with `config.json` to move a
+dashboard to another machine. Routes and security rules are in
+[architecture](architecture.md#uploaded-media-serverassetsmjs-srclibassetsts).
 
 It answers 503 for pages until `dist/` exists, so run `npm run build` once
 (or use `npm run serve`). Endpoints are listed in the README.
@@ -41,7 +53,9 @@ config store and image proxy live in the standalone server, so Vite forwards
 `/api` and `/events/config` to `http://127.0.0.1:3922` (`vite.config.ts`).
 Start `npm start` in a second terminal, otherwise the dev page cannot load or
 save the config. Sensor data is not proxied: the page reads the Data API
-directly, using the `dataApiUrl` from the config.
+directly, using the `dataApiUrl` from the config. Uploads work through the
+proxy too (`/api/assets`, including `Range` requests for video); the server
+sees them coming from the proxy on loopback.
 
 Because a non-kiosk page loads the server's config on open and then pushes
 every change back, a dev page and the standalone dashboard share one config
@@ -73,10 +87,14 @@ rendered components. Tests sit beside the code they cover:
 | Sensor streaming | `src/lib/sensor-stream.test.ts` (merging, namespaces, stream planning), `src/lib/sensor-store.test.ts` (reference counting, reconnects, discovery) |
 | Data API | `src/lib/data-api.test.ts`, `src/lib/catalog.test.ts`, `src/lib/sources.test.ts`, `src/lib/sensors.test.ts` |
 | Readings | `src/lib/system-metrics.test.ts` (System widget readings, thresholds, units), `src/lib/forecast.test.ts`, `src/lib/image.test.ts` |
-| Widget style | `src/components/widget-style.test.ts` (zoom, `--wp-*` variables, `chromeOf`, `surfaceBox`, scoped CSS, profile style) |
-| Studio | `src/components/studio/placement-content.test.ts` (per-zone prefixes and content), `src/components/studio/settings-panel.test.ts` (setting groups) |
+| Widget style | `src/components/widget-style.test.ts` (zoom, `--wp-*` variables, `chromeOf`, `surfaceBox`, scoped CSS, profile style), `src/components/surfaces.test.ts`, `src/components/wavelink-layout.test.ts` (the Wave Link layout picked per zone size) |
+| Config and appearance | `src/lib/layout.test.ts` (`mergeConfig` migration and guards), `src/lib/panel-model.test.ts`, `src/lib/style-resolve.test.ts` (style layers), `src/lib/appearance-presets.test.ts` (applying, overrides, saved looks), `src/lib/theme.test.ts` (profile theme over the dashboard's), `src/lib/general.test.ts` (general settings, clock formatting), `src/lib/profile-grid.test.ts` (gap / padding defaults and the track math for gaps 0, 12 and 24) |
+| Studio | `src/components/studio/placement-content.test.ts` (per-zone prefixes and content), `src/components/studio/settings-panel.test.ts` (setting groups), and the other `*.test.ts` beside the studio modules (commands, shortcuts, zone geometry, studio and appearance actions, …) |
+| Page background and media | `src/lib/appearance.test.ts` (background layers, video style and `videoPolicy`), `src/lib/assets.test.ts` (upload / library requests with a mocked `fetch`) |
+| Server | `server/assets.test.mjs` (magic-byte sniffing, asset id validation against traversal, `Range` parsing, loopback check). Vitest's default pattern picks up `.test.mjs`, so `npm test` runs it |
 
-At the last check there were 12 test files and 107 tests, all passing.
+`npm test` prints the current number of test files and tests; all of them
+should pass.
 
 ## Typecheck
 

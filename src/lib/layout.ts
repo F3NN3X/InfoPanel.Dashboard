@@ -1,6 +1,11 @@
-import { DEFAULT_THEME, type ThemeTokens } from "./theme";
+import { DEFAULT_THEME, normalizeThemePatch, type ThemeTokens } from "./theme";
+import { normalizeBackground, type PageBackground } from "./appearance";
+import { normalizeAppearancePresets, type AppearancePreset } from "./appearance-presets";
 import type { ModuleSettings } from "@/modules/types";
+import type { StyleMode } from "./style-resolve";
 import { normalizeApiBase } from "./data-api";
+import { normalizeGeneral, type GeneralSettings } from "./general";
+import { normalizeSpacing } from "./profile-grid";
 import { YR_FORECAST_KEY } from "./sensors";
 import {
   normalizePanelPlacement,
@@ -76,6 +81,12 @@ export interface Placement {
   design?: PlacementDesign;
   /** Present when this placement renders a custom panel (group). */
   panel?: PanelDef;
+  /**
+   * "follow": the dashboard / profile style only — the widget's own look
+   * values stay stored but are ignored; "custom": its own look wins.
+   * Unset: its own values win key by key (as "custom").
+   */
+  styleMode?: StyleMode;
 }
 
 export interface MonitorProfile {
@@ -102,9 +113,30 @@ export interface MonitorProfile {
   /**
    * Style defaults for every widget in the profile (the look-only keys of
    * the standard settings, see `PROFILE_STYLE_KEYS`). A widget's own
-   * value overrides them.
+   * value overrides them (see `resolveStyle`).
    */
   style?: ModuleSettings;
+  /**
+   * Force the global style on every widget of this profile (own looks
+   * ignored); unset = the dashboard's choice.
+   */
+  styleEnforce?: boolean;
+  /**
+   * This profile's page background, replacing the dashboard's
+   * (`{ type: "none" }`: none for this profile; unset: the dashboard's).
+   */
+  background?: PageBackground;
+  /**
+   * This profile's theme colours over the dashboard's (`resolveTheme`);
+   * unset = the dashboard's theme.
+   */
+  theme?: Partial<ThemeTokens>;
+  /** This profile's corner radius in rem; unset = the dashboard's. */
+  radius?: number;
+  /** Space between zones in px (unset = `DEFAULT_GRID_GAP`, see profile-grid.ts). */
+  gap?: number;
+  /** Space around the grid in px (unset = the page's default per mode, see `profilePadding`). */
+  padding?: number;
   /**
    * Set on shipped (non-user) profiles; when the app ships an updated copy
    * of a profile with a higher version, the saved copy is replaced.
@@ -133,6 +165,19 @@ export interface DashboardConfig {
   stylePresets?: StylePreset[];
   /** Panels the user saved for reuse (Add / widget picker). */
   panelPresets?: UserPanelPreset[];
+  /** Page background behind every profile's grid (see appearance.ts). */
+  background?: PageBackground;
+  /**
+   * Style defaults for every widget in every profile (the look keys); a
+   * profile's `style` and a widget's own values override them.
+   */
+  style?: ModuleSettings;
+  /** Force the global style on every widget (a profile can override it). */
+  styleEnforce?: boolean;
+  /** Whole looks the user saved (Appearance gallery; see appearance-presets.ts). */
+  appearancePresets?: AppearancePreset[];
+  /** Font, clock format, locale, motion and kiosk cursor (see general.ts). */
+  general?: GeneralSettings;
 }
 
 /** A named set of style values (the keys in `PROFILE_STYLE_KEYS`). */
@@ -281,7 +326,7 @@ function normalizeProfile(p: MonitorProfile): MonitorProfile {
       pl.rowSpan = Math.min(pl.rowSpan, rows - pl.rowStart + 1);
       pl.colSpan = Math.min(pl.colSpan, cols - pl.colStart + 1);
     }
-    return { ...p, cols, rows, placements };
+    return { ...p, cols, rows, placements, ...profileExtras(p) };
   }
   // Auto-flow: explicit rowStarts pin their row; auto items advance a
   // left-to-right flow pointer that wraps at the grid edge.
@@ -309,7 +354,18 @@ function normalizeProfile(p: MonitorProfile): MonitorProfile {
     pl.rowSpan = Math.min(pl.rowSpan, rows - pl.rowStart + 1);
     pl.colSpan = Math.min(pl.colSpan, cols - pl.colStart + 1);
   }
-  return { ...p, cols, rows, placements };
+  return { ...p, cols, rows, placements, ...profileExtras(p) };
+}
+
+/** A profile's appearance fields, guarded (bad values dropped). */
+function profileExtras(p: MonitorProfile): Partial<MonitorProfile> {
+  return {
+    background: normalizeBackground(p.background),
+    theme: normalizeThemePatch(p.theme),
+    radius: typeof p.radius === "number" && Number.isFinite(p.radius) ? p.radius : undefined,
+    gap: normalizeSpacing(p.gap),
+    padding: normalizeSpacing(p.padding),
+  };
 }
 
 /**
@@ -350,6 +406,9 @@ function migrateAssetUrls(
     fixed = fixed.replaceAll(key, YR_FORECAST_KEY);
   return JSON.parse(fixed);
 }
+
+const isSettings = (v: unknown): v is ModuleSettings =>
+  typeof v === "object" && v !== null && !Array.isArray(v);
 
 export function mergeConfig(input: Partial<DashboardConfig>): DashboardConfig {
   const parsed = migrateAssetUrls(input);
@@ -392,6 +451,11 @@ export function mergeConfig(input: Partial<DashboardConfig>): DashboardConfig {
     dataApiUrl: normalizeApiBase(parsed.dataApiUrl) ?? undefined,
     stylePresets: Array.isArray(parsed.stylePresets) ? parsed.stylePresets : undefined,
     panelPresets: normalizePanelPresets(parsed.panelPresets),
+    background: normalizeBackground(parsed.background),
+    style: isSettings(parsed.style) ? parsed.style : undefined,
+    styleEnforce: typeof parsed.styleEnforce === "boolean" ? parsed.styleEnforce : undefined,
+    appearancePresets: normalizeAppearancePresets(parsed.appearancePresets),
+    general: normalizeGeneral(parsed.general),
   };
 }
 

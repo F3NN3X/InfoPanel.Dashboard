@@ -141,8 +141,12 @@ function GridFields({ panel, setField, updatePanel }: PanelLayoutSectionProps) {
   );
 }
 
-/** Overlay: background image, scrim, per-band alignment, bottom grid. */
-function OverlayFields({ panel, setField, updatePanel }: PanelLayoutSectionProps) {
+/**
+ * An overlay's background: which image widget fills it, and the dark
+ * scrim over it. (The zone's own "Background image" in Colors & surface is
+ * a separate picture behind the whole panel.)
+ */
+export function PanelBackgroundFields({ panel, setField, updatePanel }: PanelLayoutSectionProps) {
   const images = panel.widgets.filter((w) => w.kind === "image");
   const bg = images.find((w) => w.asBackground)?.id ?? "";
   return (
@@ -158,7 +162,7 @@ function OverlayFields({ panel, setField, updatePanel }: PanelLayoutSectionProps
               ),
             }))
           }
-          className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground"
+          className="w-full rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground"
         >
           <option value="">{images.length > 0 ? "First image widget" : "None (add an image widget)"}</option>
           {images.map((w, i) => (
@@ -169,6 +173,14 @@ function OverlayFields({ panel, setField, updatePanel }: PanelLayoutSectionProps
         </select>
       </Field>
       <Switch label="Dark scrim over the image" on={panel.scrim !== false} onChange={(on) => setField("scrim", on ? undefined : false)} />
+    </>
+  );
+}
+
+/** Overlay: per-band alignment, bottom grid. */
+function OverlayFields({ panel, setField }: PanelLayoutSectionProps) {
+  return (
+    <>
       <div className="space-y-1.5">
         <div className="text-xs text-muted-foreground">Band alignment</div>
         {BANDS.map(({ band, label }) => (
@@ -198,11 +210,11 @@ function OverlayFields({ panel, setField, updatePanel }: PanelLayoutSectionProps
 }
 
 /**
- * The panel's arrangement (Content tab, under the panel header): Stack /
+ * The panel's arrangement (the Layout card): Stack /
  * Grid / Overlay with each layout's own fields, spacing, and whether the
  * panel fills its zone or hugs its content.
  */
-export function PanelLayoutSection(props: PanelLayoutSectionProps) {
+export function PanelLayoutFields(props: PanelLayoutSectionProps) {
   const { panel, setField, updatePanel } = props;
   const layout: Layout = panel.layout === "wrap" || !panel.layout ? "stack" : panel.layout;
   return (
@@ -258,7 +270,7 @@ export function PanelLayoutSection(props: PanelLayoutSectionProps) {
         />
         {panel.fit === "hug" && (
           <p className="mt-1 text-[11px] leading-snug text-muted-foreground/70">
-            A hugging panel sits where Style › Size &amp; alignment puts it.
+            A hugging panel sits where Size &amp; alignment puts it.
           </p>
         )}
       </Field>

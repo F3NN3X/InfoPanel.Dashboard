@@ -238,11 +238,41 @@ export function hexToHsl(hex: string): string {
   )}%`;
 }
 
+const TOKEN_KEYS = Object.keys(DEFAULT_THEME) as (keyof ThemeTokens)[];
+
+/** A stored partial theme (a profile's own colours): token strings only; undefined when empty. */
+export function normalizeThemePatch(input: unknown): Partial<ThemeTokens> | undefined {
+  if (typeof input !== "object" || input === null || Array.isArray(input)) return undefined;
+  const v = input as Record<string, unknown>;
+  const out = Object.fromEntries(
+    TOKEN_KEYS.filter((k) => typeof v[k] === "string").map((k) => [k, v[k] as string])
+  ) as Partial<ThemeTokens>;
+  return Object.keys(out).length > 0 ? out : undefined;
+}
+
+/** The theme a profile shows: its own colours / radius over the dashboard's. */
+export function resolveTheme(
+  config: { theme: ThemeTokens; radius: number },
+  profile?: { theme?: Partial<ThemeTokens>; radius?: number }
+): { tokens: ThemeTokens; radius: number } {
+  return {
+    tokens: profile?.theme ? { ...config.theme, ...profile.theme } : config.theme,
+    radius: profile?.radius ?? config.radius,
+  };
+}
+
+/** A theme (+ corner radius) as CSS variables (`--background`, ..., `--radius`). */
+export function themeVars(tokens: ThemeTokens, radius = 0.5): Record<string, string> {
+  return {
+    ...Object.fromEntries(Object.entries(tokens).map(([key, value]) => [`--${key}`, value])),
+    "--radius": `${radius}rem`,
+  };
+}
+
 /** Write a theme (+ corner radius) to the document root as CSS variables. */
 export function applyTheme(tokens: ThemeTokens, radius = 0.5): void {
   const root = document.documentElement;
-  for (const [key, value] of Object.entries(tokens)) {
-    root.style.setProperty(`--${key}`, value);
+  for (const [key, value] of Object.entries(themeVars(tokens, radius))) {
+    root.style.setProperty(key, value);
   }
-  root.style.setProperty("--radius", `${radius}rem`);
 }

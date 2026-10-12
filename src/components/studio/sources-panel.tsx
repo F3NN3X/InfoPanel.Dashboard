@@ -1,3 +1,4 @@
+import { panelTitle } from "./studio-modules";
 import { useMemo, useState } from "react";
 import {
   ChevronDown,
@@ -407,7 +408,7 @@ function SourceDetail({
 }
 
 function placementTitle(p: Placement): string {
-  if (p.panel) return p.panel.title || "Panel";
+  if (p.panel) return panelTitle(p) || "Panel";
   const mod = modules.find((m) => m.id === p.module);
   return mod?.title ?? p.module;
 }

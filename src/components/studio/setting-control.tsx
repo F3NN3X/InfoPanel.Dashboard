@@ -1,11 +1,12 @@
 import type { ReactNode } from "react";
-import { Segmented } from "@/components/ui/segmented";
 import type { ApiSources } from "@/lib/catalog";
 import { sourceOptions } from "@/lib/sources";
 import { cn } from "@/lib/utils";
 import { WIDGET_ICONS } from "@/lib/widget-icons";
 import type { ModuleSetting, ModuleSettingValue, ModuleSettings } from "@/modules/types";
 import { AlignGrid } from "./align-grid";
+import { MediaField } from "./media-field";
+import { ColorRow, SegmentedRow, SelectRow, SliderRow, StackRow, TextRow, ToggleRow } from "./setting-rows";
 import { MediaDevicePicker, MultiSelect, WavelinkMeterPicker } from "./setting-pickers";
 
 /** The control for one setting, chosen by its schema type. */
@@ -33,8 +34,7 @@ export function SettingRow({
     case "align": {
       const auto = String(def.default);
       return (
-        <div>
-          <div className="mb-1 text-xs text-muted-foreground">{def.label}</div>
+        <StackRow label={def.label}>
           <AlignGrid
             label={def.label}
             x={String(value)}
@@ -42,102 +42,34 @@ export function SettingRow({
             spread="x"
             onChange={(x, y) => onPatch?.({ [def.key]: x ?? auto, [def.keyY ?? def.key]: y ?? auto })}
           />
-        </div>
+        </StackRow>
       );
     }
 
     case "boolean":
+      return <ToggleRow label={def.label} value={value === true} onChange={onChange} />;
+
+    case "color":
       return (
-        <button
-          type="button"
-          onClick={() => onChange(value !== true)}
-          className="flex w-full items-center justify-between rounded-md border border-border px-3 py-2 text-left transition-colors hover:bg-accent/40"
-        >
-          <span className="text-xs text-muted-foreground">{def.label}</span>
-          <span
-            className={cn(
-              "relative h-4 w-7 rounded-full transition-colors",
-              value === true ? "bg-ring" : "bg-muted-foreground/30"
-            )}
-          >
-            <span
-              className={cn(
-                "absolute top-0.5 h-3 w-3 rounded-full bg-background transition-all",
-                value === true ? "left-3.5" : "left-0.5"
-              )}
-            />
-          </span>
-        </button>
+        <ColorRow
+          label={def.label}
+          value={typeof value === "string" ? value : String(def.default ?? "")}
+          onChange={onChange}
+        />
       );
 
-    case "color": {
-      // "" means "auto" (the widget's own theme color). The native input
-      // can't hold an empty value, so it always gets a valid hex.
-      const raw = typeof value === "string" ? value : String(def.default ?? "");
-      const hasValue = raw.length > 0;
-      const hex = hasValue ? raw : "#000000";
+    case "number":
       return (
-        <div>
-          <div className="mb-1 text-xs text-muted-foreground">{def.label}</div>
-          <div className="flex items-center gap-2">
-            <input
-              type="color"
-              value={hex}
-              onChange={(e) => onChange(e.target.value)}
-              className="h-7 w-10 cursor-pointer rounded border border-border bg-transparent p-0.5"
-            />
-            <span className="text-xs tabular-nums text-muted-foreground">
-              {hasValue ? raw : "auto"}
-            </span>
-            {hasValue && (
-              <button
-                onClick={() => onChange("")}
-                title="Reset to auto (the widget's theme color)"
-                className="text-[11px] text-muted-foreground hover:text-foreground"
-              >
-                auto
-              </button>
-            )}
-          </div>
-        </div>
+        <SliderRow
+          label={def.label}
+          value={typeof value === "number" ? value : Number(def.default) || 0}
+          min={def.min}
+          max={def.max}
+          step={def.step}
+          fallback={Number(def.default) || 0}
+          onChange={onChange}
+        />
       );
-    }
-
-    case "number": {
-      const num =
-        typeof value === "number" ? value : Number(def.default) || 0;
-      return (
-        <div>
-          <div className="mb-1 flex justify-between text-xs text-muted-foreground">
-            <span>{def.label}</span>
-            <span className="tabular-nums">{String(num)}</span>
-          </div>
-          {def.min !== undefined || def.max !== undefined ? (
-            <input
-              type="range"
-              min={def.min}
-              max={def.max}
-              step={def.step}
-              value={num}
-              onChange={(e) => onChange(parseInt(e.target.value, 10))}
-              className="w-full accent-ring"
-            />
-          ) : (
-            <input
-              type="number"
-              min={def.min}
-              max={def.max}
-              step={def.step}
-              value={num}
-              onChange={(e) =>
-                onChange(e.target.value === "" ? def.default : Number(e.target.value))
-              }
-              className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground"
-            />
-          )}
-        </div>
-      );
-    }
 
     case "select": {
       // Capture devices: options come from an async `enumerateDevices()`
@@ -161,19 +93,11 @@ export function SettingRow({
             ? sourceOptions(sources, def.sourcePlugin)
             : def.options;
         return (
-          <div>
-            <div className="mb-1 text-xs text-muted-foreground">
-              {def.label}
-            </div>
-            <MultiSelect
-              value={String(value)}
-              onChange={onChange}
-              options={multiOptions ?? []}
-            />
-          </div>
+          <StackRow label={def.label}>
+            <MultiSelect value={String(value)} onChange={onChange} options={multiOptions ?? []} />
+          </StackRow>
         );
       }
-      const str = String(value);
       const apply = (v: string) => {
         onChange(v);
         // Preset bundle: persist the option's extra values alongside.
@@ -183,44 +107,21 @@ export function SettingRow({
       // Dynamic options resolved from live sensor data (a plugin's
       // currently-exposed containers), falling back to the static list.
       const options =
-        def.optionsFrom === "sources" && def.sourcePlugin
+        (def.optionsFrom === "sources" && def.sourcePlugin
           ? sourceOptions(sources, def.sourcePlugin)
-          : def.options;
-      if (options && options.length <= 4) {
-        return (
-          <div>
-            <div className="mb-1 text-xs text-muted-foreground">{def.label}</div>
-            <Segmented
-              options={options.map((o) => ({ value: o.value, label: o.label }))}
-              value={str}
-              onChange={apply}
-            />
-          </div>
-        );
-      }
-      return (
-        <div>
-          <div className="mb-1 text-xs text-muted-foreground">{def.label}</div>
-          <select
-            value={str}
-            onChange={(e) => apply(e.target.value)}
-            className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground"
-          >
-            {options?.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-        </div>
+          : def.options) ?? [];
+      const choices = options.map((o) => ({ value: o.value, label: o.label }));
+      return options.length <= 4 && options.length > 0 ? (
+        <SegmentedRow label={def.label} options={choices} value={String(value)} onChange={apply} />
+      ) : (
+        <SelectRow label={def.label} options={choices} value={String(value)} onChange={apply} />
       );
     }
 
     case "icon": {
       const str = String(value);
       return (
-        <div>
-          <div className="mb-1 text-xs text-muted-foreground">{def.label}</div>
+        <StackRow label={def.label}>
           <div className="flex flex-wrap gap-1">
             <IconButton active={str === ""} onClick={() => onChange("")} title="None">
               <span className="text-xs">—</span>
@@ -236,62 +137,32 @@ export function SettingRow({
               </IconButton>
             ))}
           </div>
-        </div>
+        </StackRow>
       );
     }
 
     case "image": {
+      // Typed, uploaded or picked from the library; "" means none.
       const url = String(value);
       return (
-        <div>
-          <div className="mb-1 text-xs text-muted-foreground">{def.label}</div>
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              value={url}
-              placeholder="https://…"
-              onChange={(e) => onChange(e.target.value)}
-              className="w-full min-w-0 rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground placeholder:text-muted-foreground/50"
-            />
-            {url !== "" && (
-              <img
-                src={url}
-                alt=""
-                className="h-7 w-7 shrink-0 rounded border border-border object-cover"
-                onError={(e) => ((e.target as HTMLImageElement).style.visibility = "hidden")}
-              />
-            )}
-          </div>
-        </div>
+        <MediaField
+          label={def.label}
+          kind="image"
+          value={url === "" ? undefined : url}
+          onChange={(src) => onChange(src ?? "")}
+          preview="thumb"
+        />
       );
     }
 
     default:
-      if (def.multiline) {
-        return (
-          <div>
-            <div className="mb-1 text-xs text-muted-foreground">{def.label}</div>
-            <textarea
-              value={String(value)}
-              onChange={(e) => onChange(e.target.value)}
-              rows={5}
-              spellCheck={false}
-              placeholder=":scope { border-radius: 0 }"
-              className="w-full resize-y rounded-md border border-border bg-background px-2 py-1.5 font-mono text-[11px] text-foreground placeholder:text-muted-foreground/50"
-            />
-          </div>
-        );
-      }
       return (
-        <div>
-          <div className="mb-1 text-xs text-muted-foreground">{def.label}</div>
-          <input
-            type="text"
-            value={String(value)}
-            onChange={(e) => onChange(e.target.value)}
-            className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground"
-          />
-        </div>
+        <TextRow
+          label={def.label}
+          value={String(value)}
+          multiline={def.multiline}
+          onChange={onChange}
+        />
       );
   }
 }

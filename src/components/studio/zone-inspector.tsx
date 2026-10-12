@@ -1,46 +1,47 @@
-import { Segmented } from "@/components/ui/segmented";
 import { useSensorCatalog } from "@/lib/catalog";
 import { CARDS_ID, PANEL_ID, type Placement, type StylePreset, type Widget } from "@/lib/layout";
-import { panelSettings } from "@/lib/panel-model";
+import { panelLegacyLook, panelOwnSettings } from "@/lib/panel-model";
+import { followsGlobal, resolveStyle, type Appearance } from "@/lib/style-resolve";
 import { modules } from "@/modules";
-import { PANEL_SETTINGS, replaceStyle, styleOf } from "@/modules/standard-settings";
+import {
+  CARD_SETTINGS,
+  PANEL_SETTINGS,
+  PROFILE_STYLE_KEYS,
+  replaceStyle,
+  styleOf,
+} from "@/modules/standard-settings";
 import {
   settingKeys,
   type ModuleSetting,
   type ModuleSettingValue,
   type ModuleSettings,
 } from "@/modules/types";
-import { PanelInspector } from "./panel-inspector";
-import { SettingsPanel } from "./settings-panel";
-import {
-  dropKeys,
-  filterSettings,
-  isStyleSetting,
-  matchesQuery,
-  splitSettings,
-} from "./settings-model";
+import { usePanelSheet } from "./panel-sheet";
+import { HeaderSlot, InspectorHeader, useInspectorLayout } from "./inspector-layout";
+import { CategorySheet, type CardExtra } from "./category-sheet";
+import { categorize, filterCategories, withGeneral } from "./inspector-categories";
+import { ToggleRow } from "./setting-rows";
+import { dropKeys, matchesQuery } from "./settings-model";
+import type { AppearanceTarget } from "./appearance-panel";
+import { withStyleMode } from "./appearance-actions";
+import { StyleModeBar } from "./style-mode-bar";
 import { StyleTools } from "./style-tools";
 import { placementTitle } from "./studio-modules";
 import { widgetName } from "./widget-kinds";
-import { ZONE_FRAME_TERMS, ZoneDesignSection } from "./zone-design-section";
+import { ZONE_FRAME_TERMS, ZoneFrameFields, zoneFrameSet } from "./zone-design-section";
 import type { ZoneRect } from "./zone-geometry";
 import { SettingsSearch, WidgetPicker, ZoneBoxFields, ZoneHeader } from "./zone-inspector-parts";
-
-export type InspectorTab = "content" | "style";
 
 interface ZoneInspectorProps {
   placement: Placement;
   /** Grid size of the profile (zone box input limits). */
   cols: number;
   rows: number;
-  /** The profile's style (inherited by the widget's settings). */
-  profileStyle: ModuleSettings | undefined;
-  /** The theme's accent token (zone accent fallback). */
-  themeAccent: string;
+  /** The global style (dashboard + profile, forced or not) the widget inherits. */
+  appearance: Appearance;
   stylePresets: StylePreset[];
-  /** The open tab (kept by the studio so it survives reselection). */
-  tab: InspectorTab;
-  onTabChange: (tab: InspectorTab) => void;
+  /** Scroll to a card (the toolbar's Style button, the palette) whenever `seq` changes. */
+  jumpTo?: { id: string; seq: number };
   /** The style copied with "Copy" (session only, survives reselection). */
   styleClipboard: ModuleSettings | null;
   onCopyStyle: (style: ModuleSettings) => void;
@@ -61,7 +62,8 @@ interface ZoneInspectorProps {
   onZoneBox: (patch: Partial<ZoneRect>) => void;
   /** Open the widget picker for this zone. */
   onPickWidget: () => void;
-  onUseForProfile: (style: ModuleSettings) => void;
+  /** Make the widget's style the global style of every profile, or of this one. */
+  onUseAsGlobal: (target: AppearanceTarget, style: ModuleSettings) => void;
   onSavePreset: (name: string, settings: ModuleSettings) => void;
   onDeletePreset: (id: string) => void;
   onToggleVisible: () => void;
@@ -74,31 +76,27 @@ interface ZoneInspectorProps {
   onSavePanelPreset: (name: string) => void;
 }
 
-const TABS = [
-  { value: "content" as const, label: "Content" },
-  { value: "style" as const, label: "Style" },
-];
-
-/** "Content › Thresholds" — where a search result lives. */
-function breadcrumb(def: ModuleSetting): string {
-  const tab = isStyleSetting(def) ? "Style" : "Content";
-  return def.group ? `${tab} › ${def.group}` : tab;
-}
+/** Search text of what the zone adds to a card, by card id. */
+const EXTRA_TERMS: Record<string, string[]> = {
+  widget: ["Widget", "Type", "Change", "Pick", "Visible"],
+  colors: ["Follow global", "Custom", "Style", "Copy style", "Paste style", "Preset"],
+  effects: ZONE_FRAME_TERMS,
+};
 
 /**
  * Right panel for the selected zone: a fixed header (title, actions, zone
- * box, search), then Content (widget + its settings) and Style (the look
- * and the zone frame) tabs. A search shows matches from both tabs flat.
+ * box, search), then one sheet of cards: the general ones (Widget, Size &
+ * alignment, Typography, Spacing & shape, Colors & surface, Border &
+ * effects with the zone frame, Advanced), the widget's own, and for a
+ * panel its editors. A search filters cards and rows across the sheet.
  */
 export function ZoneInspector({
   placement: selected,
   cols,
   rows,
-  profileStyle,
-  themeAccent,
+  appearance,
   stylePresets,
-  tab,
-  onTabChange,
+  jumpTo,
   styleClipboard,
   onCopyStyle,
   widgetClipboard,
@@ -112,7 +110,7 @@ export function ZoneInspector({
   update,
   onZoneBox,
   onPickWidget,
-  onUseForProfile,
+  onUseAsGlobal,
   onSavePreset,
   onDeletePreset,
   onToggleVisible,
@@ -122,6 +120,7 @@ export function ZoneInspector({
   onPresetNaming,
   onSavePanelPreset,
 }: ZoneInspectorProps) {
+  const dock = useInspectorLayout() === "dock";
   const catalog = useSensorCatalog();
   const selectedMod = modules.find((m) => m.id === selected.module);
   const selectedSensors = selectedMod
@@ -130,10 +129,24 @@ export function ZoneInspector({
       ).length
     : 0;
   // Panels edit their widgets in the PanelInspector; their look is settings.
-  const defs = selected.panel ? PANEL_SETTINGS : (selectedMod?.settings ?? []);
+  const defs = selected.panel
+    ? PANEL_SETTINGS
+    : selected.module === CARDS_ID
+      ? CARD_SETTINGS
+      : (selectedMod?.settings ?? []);
   const selectedStyleKeys = new Set(defs.flatMap(settingKeys));
-  const { content, style } = splitSettings(defs);
   const selectedWidget = selected.panel?.widgets.find((w) => w.id === selectedWidgetId);
+  const panelSheet = usePanelSheet({
+    placement: selected,
+    update,
+    selectedWidgetId,
+    onSelectWidget,
+    widgetClipboard,
+    onCopyWidget,
+    presetNaming,
+    onPresetNaming,
+    onSavePreset: onSavePanelPreset,
+  });
 
   /** Replace the widget's style (see `replaceStyle`). */
   const applyStyle = (next: ModuleSettings) =>
@@ -142,10 +155,22 @@ export function ZoneInspector({
       settings: replaceStyle(p.settings, next, selectedStyleKeys),
     }));
 
+  // What the widget inherits: a panel's legacy accent / card (no dot), then
+  // the dashboard and profile style. Following (or forced): look rows locked.
+  const inherited = resolveStyle({
+    moduleDefaults: selected.panel ? panelLegacyLook(selected) : undefined,
+    dashboard: appearance.dashboard,
+    profile: appearance.profile,
+  });
+  const follows = followsGlobal(selected.styleMode, appearance.enforce);
+  const hasLook = defs.some((d) => PROFILE_STYLE_KEYS.has(d.key));
+
   const settingsProps = {
-    // A panel's legacy title / accent / card show until set here.
-    value: selected.panel ? panelSettings(selected) : selected.settings,
-    inherited: profileStyle,
+    // A panel's legacy title shows until set here.
+    value: selected.panel ? panelOwnSettings(selected) : selected.settings,
+    inherited: inherited.settings,
+    inheritedFrom: inherited.source,
+    locked: follows ? (def: ModuleSetting) => PROFILE_STYLE_KEYS.has(def.key) : undefined,
     onChange: (key: string, v: ModuleSettingValue) =>
       update((p) => ({ ...p, settings: { ...p.settings, [key]: v } }), `setting:${key}`),
     onPatch: (patch: ModuleSettings) =>
@@ -153,31 +178,87 @@ export function ZoneInspector({
     onClear: (keys: string[]) =>
       update((p) => ({ ...p, settings: dropKeys(p.settings, new Set(keys)) })),
   };
-  /** Reset just the given settings (one tab's), keeping the others. */
-  const resetDefs = (list: ModuleSetting[]) => () =>
-    update((p) => ({
-      ...p,
-      settings: dropKeys(p.settings, new Set(list.flatMap(settingKeys))),
-    }));
+  const searching = query.trim() !== "";
+  const base = categorize(defs);
+  const termsMatch = (id: string) => !searching || matchesQuery(EXTRA_TERMS[id] ?? [], query);
 
-  const zoneFrame = (forceOpen?: boolean) => (
-    <ZoneDesignSection
-      design={selected.design}
-      themeAccent={themeAccent}
-      onChange={(fn) => update((p) => ({ ...p, design: fn(p.design) }), "design")}
-      forceOpen={forceOpen}
-      // A panel draws its own card (Style › Surface): no second one around it.
-      showBackground={!selected.panel}
+  const extras: Record<string, CardExtra> = {
+    widget: {
+      top: <WidgetPicker placement={selected} onPickWidget={onPickWidget} />,
+      bottom: <ToggleRow label="Visible" value={selected.visible} onChange={onToggleVisible} />,
+    },
+    ...(hasLook
+      ? {
+          colors: {
+            top: (
+              <StyleModeBar
+                mode={selected.styleMode}
+                enforced={appearance.enforce}
+                onMode={(mode) => update((p) => withStyleMode(p, mode), "style-mode")}
+              />
+            ),
+            actions: (
+              <StyleTools
+                canPaste={styleClipboard !== null}
+                presets={stylePresets}
+                onCopy={() => onCopyStyle(styleOf(selected.settings))}
+                onPaste={() => styleClipboard && applyStyle(styleClipboard)}
+                onUseAsGlobal={(target) => onUseAsGlobal(target, styleOf(selected.settings))}
+                onSavePreset={(name) => onSavePreset(name, styleOf(selected.settings))}
+                onApplyPreset={(id) => {
+                  const preset = stylePresets.find((p) => p.id === id);
+                  if (preset) applyStyle(preset.settings);
+                }}
+                onDeletePreset={onDeletePreset}
+              />
+            ),
+          },
+        }
+      : {}),
+    effects: {
+      // A panel draws its own card (Colors & surface › Surface): no second one around it.
+      bottom: (
+        <ZoneFrameFields
+          design={selected.design}
+          onChange={(fn) => update((p) => ({ ...p, design: fn(p.design) }), "design")}
+          showBackground={!selected.panel}
+        />
+      ),
+      changed: zoneFrameSet(selected.design, !selected.panel),
+      onReset: () => update((p) => ({ ...p, design: undefined })),
+    },
+  };
+  const categories = withGeneral(
+    searching ? filterCategories(base, query) : base,
+    Object.keys(extras).filter(termsMatch)
+  );
+  // A card keeps its additions while searching only when they match (the style bar stays with its card).
+  const shown = Object.fromEntries(
+    Object.entries(extras).filter(
+      ([id]) => categories.some((c) => c.id === id) && (termsMatch(id) || id === "colors")
+    )
+  );
+
+  const panelGroups = (panelSheet ?? [])
+    .map((g) => ({ ...g, cards: searching ? g.cards.filter((c) => matchesQuery(c.terms, query)) : g.cards }))
+    .filter((g) => g.cards.length > 0);
+
+  const sheet = (
+    <CategorySheet
+      categories={categories}
+      moduleTitle={selectedMod?.title ?? placementTitle(selected)}
+      openAll={searching}
+      extras={shown}
+      jumpTo={jumpTo}
+      groups={panelGroups}
+      {...settingsProps}
     />
   );
 
-  const searching = query.trim() !== "";
-  const matches = searching ? [...filterSettings(content, query), ...filterSettings(style, query)] : [];
-  const frameMatches = searching && matchesQuery(ZONE_FRAME_TERMS, query);
-
   return (
-    <section>
-      <div data-inspector-header className="sticky top-0 z-10 space-y-2.5 border-b bg-popover p-3">
+    <section className={dock ? "flex h-full min-h-0 flex-col" : undefined}>
+      <InspectorHeader inspectorHeader side="sticky top-0 z-10 space-y-2.5 border-b bg-popover p-3">
+        <HeaderSlot className="w-72 shrink-0">
         <ZoneHeader
           title={placementTitle(selected)}
           widget={selectedWidget && widgetName(selectedWidget, catalog)}
@@ -194,72 +275,16 @@ export function ZoneInspector({
           onRemove={onRemove}
           onClose={onClose}
         />
-        <ZoneBoxFields placement={selected} cols={cols} rows={rows} onZoneBox={onZoneBox} />
-        <SettingsSearch query={query} onQuery={setQuery} />
-        {!searching && (
-          <Segmented options={TABS} value={tab} onChange={onTabChange} className="w-full *:flex-1" />
-        )}
-      </div>
+        </HeaderSlot>
+        <HeaderSlot className="w-72 shrink-0">
+          <ZoneBoxFields placement={selected} cols={cols} rows={rows} onZoneBox={onZoneBox} />
+        </HeaderSlot>
+        <HeaderSlot className="w-56 shrink-0">
+          <SettingsSearch query={query} onQuery={setQuery} />
+        </HeaderSlot>
+      </InspectorHeader>
 
-      <div className="space-y-4 p-4">
-        {searching ? (
-          <>
-            <SettingsPanel title="Results" defs={matches} breadcrumb={breadcrumb} {...settingsProps} />
-            {frameMatches && (
-              <div>
-                <div className="mb-1 pl-3.5 text-[10px] text-muted-foreground/60">Style › Zone frame</div>
-                {zoneFrame(true)}
-              </div>
-            )}
-            {matches.length === 0 && !frameMatches && (
-              <div className="py-6 text-center text-xs text-muted-foreground/70">No settings match</div>
-            )}
-          </>
-        ) : tab === "content" ? (
-          <>
-            <WidgetPicker placement={selected} onPickWidget={onPickWidget} />
-            {selected.panel && (
-              <PanelInspector
-                placement={selected}
-                update={update}
-                selectedWidgetId={selectedWidgetId}
-                onSelectWidget={onSelectWidget}
-                widgetClipboard={widgetClipboard}
-                onCopyWidget={onCopyWidget}
-                presetNaming={presetNaming}
-                onPresetNaming={onPresetNaming}
-                onSavePreset={onSavePanelPreset}
-              />
-            )}
-            <SettingsPanel defs={content} onReset={resetDefs(content)} {...settingsProps} />
-          </>
-        ) : (
-          <>
-            <SettingsPanel
-              title="Style"
-              defs={style}
-              onReset={resetDefs(style)}
-              actions={
-                <StyleTools
-                  canPaste={styleClipboard !== null}
-                  presets={stylePresets}
-                  onCopy={() => onCopyStyle(styleOf(selected.settings))}
-                  onPaste={() => styleClipboard && applyStyle(styleClipboard)}
-                  onUseForProfile={() => onUseForProfile(styleOf(selected.settings))}
-                  onSavePreset={(name) => onSavePreset(name, styleOf(selected.settings))}
-                  onApplyPreset={(id) => {
-                    const preset = stylePresets.find((p) => p.id === id);
-                    if (preset) applyStyle(preset.settings);
-                  }}
-                  onDeletePreset={onDeletePreset}
-                />
-              }
-              {...settingsProps}
-            />
-            {zoneFrame()}
-          </>
-        )}
-      </div>
+      {dock ? sheet : <div className="p-4">{sheet}</div>}
     </section>
   );
 }

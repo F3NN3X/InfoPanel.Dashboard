@@ -1,9 +1,10 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bell } from "lucide-react";
 import { findEntry, liveText } from "@/lib/sensors";
 import { ModernChrome } from "@/components/modern-chrome";
+import { accentIcon, StyledCard } from "@/components/styled-card";
 import { byShape, labelStyle, ws } from "@/components/widget-style";
-import { chromeOf, IDLE_SETTING, STYLE_SETTINGS } from "./standard-settings";
+import { CARD_SETTINGS, chromeOf, IDLE_SETTING } from "./standard-settings";
 import { effectiveSettings, type DashboardModule } from "./types";
 
 const P = "plugins.InfoPanel.Notifications.";
@@ -29,7 +30,7 @@ export const notificationsModule: DashboardModule = {
   minRows: 1,
   prefixes: [P],
   settings: [
-    { key: "showHistory", label: "History list", type: "boolean", default: true },
+    { key: "showHistory", label: "History list", type: "boolean", default: true, group: "Content" },
     {
       key: "maxLines",
       label: "Max history lines",
@@ -38,14 +39,16 @@ export const notificationsModule: DashboardModule = {
       min: 1,
       max: 200,
       step: 5,
+      group: "Content",
     },
     IDLE_SETTING,
-    ...STYLE_SETTINGS,
+    ...CARD_SETTINGS,
   ],
   // Idle = nothing unread.
   isIdle: (sensors) => !(Number(findEntry(sensors, P, "notification-count")?.sensor.value) > 0),
   render: (sensors, s) => {
     const cfg = effectiveSettings(notificationsModule, s);
+    const chrome = chromeOf(cfg);
     const count = findEntry(sensors, P, "notification-count")?.sensor.value;
     const last = liveText(findEntry(sensors, P, "last-notification")?.sensor);
     const status = liveText(findEntry(sensors, P, "status")?.sensor);
@@ -60,14 +63,11 @@ export const notificationsModule: DashboardModule = {
         .slice(0, Math.max(1, Math.round(Number(cfg.maxLines) || 50))) ?? [];
 
     return (
-      <ModernChrome chrome={chromeOf(cfg)} designSize={DESIGN}>
-      <Card
-        className="flex h-full w-full min-h-0 min-w-0 flex-col overflow-hidden border-border bg-card"
-          style={{ borderRadius: ws.radius("var(--radius-lg, 0.5rem)") }}
-        >
+      <ModernChrome chrome={chrome} designSize={DESIGN}>
+      <StyledCard surface={cfg.surface} chrome={chrome} className="h-full w-full">
         <CardHeader className="pb-2" style={{ paddingInline: ws.pad(24), paddingTop: ws.pad(24) }}>
           <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
-            <Bell className="h-3.5 w-3.5" /> Notifications
+            <Bell className="h-3.5 w-3.5" style={accentIcon} /> Notifications
             {count !== undefined && (
               <span className="rounded-full bg-secondary px-2 py-0.5 text-xs text-muted-foreground">
                 {Math.round(count)}
@@ -112,7 +112,7 @@ export const notificationsModule: DashboardModule = {
             </div>
           )}
         </CardContent>
-      </Card>
+      </StyledCard>
       </ModernChrome>
     );
   },

@@ -13,19 +13,20 @@ import { settingKeys, type ModuleSetting, type ModuleSettings } from "./types";
  * turned into the component's `chrome` prop by `chromeOf`:
  *
  * - `preset` / `layout` / `surface` — style preset, layout variant, surface
- * - Title & background: `label`, `icon`, `accent`, `background`,
- *   `backgroundOn`
+ * - Widget: `label`, `icon`
  * - Size & alignment: `autoScale`, `scale`, `alignX`, `alignY`
- * - Spacing & shape: `padding`, `gap`, `radius`
- * - Colors & type: `textColor`, `mutedColor`, `font`, `fontWeight`,
- *   `labelCase`, `stroke`
- * - Border, glow & CSS: `borderWidth`, `borderColor`, `glow`,
- *   `glowColor`, `surfaceOpacity`, `blur` (surfaced widgets only) and
- *   `customCss` (every widget)
+ * - Typography: `textColor`, `mutedColor`, `font`, `fontWeight`, `labelCase`
+ * - Spacing & shape: `padding`, `gap`, `radius`, `stroke`
+ * - Colors & surface: `accent`, `background`, `backgroundOn`, `surfaceOpacity`,
+ *   `blur` (the last two on surfaced widgets only)
+ * - Border & effects: `borderWidth`, `borderColor`, `glow`, `glowColor`
+ *   (surfaced widgets only)
+ * - Advanced: `customCss` (every widget)
  *
  * Widgets without layout variants or surfaces (the plain modules) spread
  * `STYLE_SETTINGS` only. Module-specific options come after these and keep
- * their own keys; per-element colors join the "Colors & type" group.
+ * their own keys and their own `group` (the inspector category, see
+ * `inspector-categories.ts`).
  * Modules that can be idle (see `DashboardModule.isIdle`) add
  * `IDLE_SETTING`.
  *
@@ -33,11 +34,17 @@ import { settingKeys, type ModuleSetting, type ModuleSettings } from "./types";
  * (`MonitorProfile.style`); a widget's own value overrides the profile's.
  */
 
-export const GROUP_TITLE = "Title & background";
+/**
+ * The general inspector categories (see `inspector-categories.ts`). Module
+ * settings use their own group names instead; these are the standard block's.
+ */
+export const GROUP_WIDGET = "Widget";
 export const GROUP_SIZE = "Size & alignment";
+export const GROUP_TYPOGRAPHY = "Typography";
 export const GROUP_SPACING = "Spacing & shape";
-export const GROUP_COLORS = "Colors & type";
-export const GROUP_EFFECTS = "Border, glow & CSS";
+export const GROUP_COLORS = "Colors & surface";
+export const GROUP_EFFECTS = "Border & effects";
+export const GROUP_ADVANCED = "Advanced";
 
 /** "auto" plus pixel steps, for the spacing selects. */
 const pxOptions = (values: number[]) => [
@@ -98,8 +105,8 @@ export const STYLE_SETTINGS: ModuleSetting[] = [
     options: [...pxOptions([0, 4, 8, 12, 16, 20, 28]), { value: "999", label: "Pill" }],
     group: GROUP_SPACING,
   },
-  { key: "textColor", label: "Text color", type: "color", default: "", group: GROUP_COLORS },
-  { key: "mutedColor", label: "Secondary text color", type: "color", default: "", group: GROUP_COLORS },
+  { key: "textColor", label: "Text color", type: "color", default: "", group: GROUP_TYPOGRAPHY },
+  { key: "mutedColor", label: "Secondary text color", type: "color", default: "", group: GROUP_TYPOGRAPHY },
   {
     key: "font",
     label: "Font",
@@ -112,7 +119,7 @@ export const STYLE_SETTINGS: ModuleSetting[] = [
       { value: "serif", label: "Serif" },
       { value: "mono", label: "Mono" },
     ],
-    group: GROUP_COLORS,
+    group: GROUP_TYPOGRAPHY,
   },
   {
     key: "fontWeight",
@@ -127,7 +134,7 @@ export const STYLE_SETTINGS: ModuleSetting[] = [
       { value: "700", label: "Bold" },
       { value: "800", label: "Heavy" },
     ],
-    group: GROUP_COLORS,
+    group: GROUP_TYPOGRAPHY,
   },
   {
     key: "labelCase",
@@ -140,7 +147,7 @@ export const STYLE_SETTINGS: ModuleSetting[] = [
       { value: "none", label: "As written" },
       { value: "capitalize", label: "Capitalized" },
     ],
-    group: GROUP_COLORS,
+    group: GROUP_TYPOGRAPHY,
   },
   {
     key: "stroke",
@@ -150,7 +157,7 @@ export const STYLE_SETTINGS: ModuleSetting[] = [
     min: 50,
     max: 250,
     step: 10,
-    group: GROUP_COLORS,
+    group: GROUP_SPACING,
   },
   {
     key: "customCss",
@@ -158,7 +165,7 @@ export const STYLE_SETTINGS: ModuleSetting[] = [
     type: "text",
     multiline: true,
     default: "",
-    group: GROUP_EFFECTS,
+    group: GROUP_ADVANCED,
   },
 ];
 
@@ -200,7 +207,7 @@ export const SURFACE_SETTINGS: ModuleSetting[] = [
     min: 0,
     max: 100,
     step: 5,
-    group: GROUP_EFFECTS,
+    group: GROUP_COLORS,
   },
   {
     key: "blur",
@@ -208,7 +215,7 @@ export const SURFACE_SETTINGS: ModuleSetting[] = [
     type: "select",
     default: "auto",
     options: pxOptions([0, 4, 8, 16, 24, 40]),
-    group: GROUP_EFFECTS,
+    group: GROUP_COLORS,
   },
 ];
 
@@ -260,18 +267,19 @@ export const STANDARD_SETTINGS: ModuleSetting[] = [
       { value: "glass", label: "Glass" },
       { value: "matte-light", label: "Matte (light)" },
       { value: "matte-dark", label: "Matte (dark)" },
+      { value: "theme", label: "Theme" },
     ],
   },
-  { key: "label", label: "Custom title", type: "text", default: "", group: GROUP_TITLE },
-  { key: "icon", label: "Icon", type: "icon", default: "", group: GROUP_TITLE },
-  { key: "accent", label: "Accent color", type: "color", default: "", group: GROUP_TITLE },
-  { key: "background", label: "Background image", type: "image", default: "", group: GROUP_TITLE },
+  { key: "label", label: "Custom title", type: "text", default: "", group: GROUP_WIDGET },
+  { key: "icon", label: "Icon", type: "icon", default: "", group: GROUP_WIDGET },
+  { key: "accent", label: "Accent color", type: "color", default: "", group: GROUP_COLORS },
+  { key: "background", label: "Background image", type: "image", default: "", group: GROUP_COLORS },
   {
     key: "backgroundOn",
     label: "Use as background",
     type: "boolean",
     default: false,
-    group: GROUP_TITLE,
+    group: GROUP_COLORS,
   },
   ...STYLE_SETTINGS,
   ...SURFACE_SETTINGS,
@@ -301,6 +309,20 @@ export const PANEL_SETTINGS: ModuleSetting[] = STANDARD_SETTINGS.filter(
     ],
   };
 });
+
+const standard = (key: string): ModuleSetting => STANDARD_SETTINGS.find((s) => s.key === key)!;
+
+/**
+ * The plain card widgets (the legacy modules, the "Other sensors" cards):
+ * a surface — "Theme" by default, the shadcn card they always had — an
+ * accent, and the style and surface options (`StyledCard` draws them).
+ */
+export const CARD_SETTINGS: ModuleSetting[] = [
+  { ...standard("surface"), default: "theme" },
+  standard("accent"),
+  ...STYLE_SETTINGS,
+  ...SURFACE_SETTINGS,
+];
 
 /**
  * The look-only keys: what a profile can set for all its widgets, and what

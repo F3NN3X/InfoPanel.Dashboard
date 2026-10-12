@@ -11,6 +11,16 @@ import { useSensorVisualSource } from "@/hooks/use-sensor-visual-source";
 import { IMAGE_PROXY_URL } from "@/lib/dashboard-server";
 import { trackPeaks } from "@/lib/waveform-peaks";
 import { CaptureVisualizerRow } from "@/components/CaptureVisualizerRow";
+import {
+  darken,
+  lighten,
+  makeSurface,
+  makeSurfacePalette,
+  type ArtTint,
+  type ModernStyle,
+  type RGB,
+  type Surface,
+} from "./surfaces";
 
 /**
  * Modern now-playing widget.
@@ -45,7 +55,6 @@ const DESIGN = byShape({
 });
 
 export type ModernVariant = "card" | "standard" | "compact" | "simple";
-export type ModernStyle = "glass" | "matte-light" | "matte-dark";
 
 export interface ModernNowPlayingProps {
   track?: string;
@@ -122,143 +131,8 @@ export interface ModernNowPlayingProps {
   className?: string;
 }
 
-export type RGB = [number, number, number];
-
-const mix = (a: RGB, b: RGB, t: number): RGB => [
-  Math.round(a[0] + (b[0] - a[0]) * t),
-  Math.round(a[1] + (b[1] - a[1]) * t),
-  Math.round(a[2] + (b[2] - a[2]) * t),
-];
-const lighten = (c: RGB, t: number) => mix(c, [255, 255, 255], t);
-const darken = (c: RGB, t: number) => mix(c, [0, 0, 0], t);
-const rgba = (c: RGB, a = 1) =>
-  a >= 1 ? `rgb(${c[0]}, ${c[1]}, ${c[2]})` : `rgba(${c[0]}, ${c[1]}, ${c[2]}, ${a})`;
-
-export interface Surface {
-  background: string;
-  fg: string;
-  muted: string;
-  track: string;
-  fill: string;
-  ring: string;
-}
-
-/** Shared surface builder (glass / matte light / matte dark) for the modern widgets. */
-export function makeSurface(style: ModernStyle, tint: RGB | null): Surface {
-  return withTextOverrides(buildSurface(style, tint));
-}
-
-/**
- * Text colors as `var(--wp-fg, …)` / `var(--wp-muted, …)`, so the widget's
- * "Text color" options (set by ModernChrome) override every surface.
- */
-function withTextOverrides(s: Surface): Surface {
-  return { ...s, fg: `var(--wp-fg, ${s.fg})`, muted: `var(--wp-muted, ${s.muted})` };
-}
-
-function buildSurface(style: ModernStyle, tint: RGB | null): Surface {
-  if (style === "matte-light") {
-    const base = tint ? lighten(tint, 0.74) : ([244, 244, 245] as RGB);
-    return {
-      background: rgba(base),
-      fg: "rgb(24, 24, 27)",
-      muted: "rgba(24, 24, 27, 0.6)",
-      track: "rgba(24, 24, 27, 0.16)",
-      fill: rgba(tint ? darken(tint, 0.12) : ([113, 113, 122] as RGB)),
-      ring: "rgba(255, 255, 255, 0.4)",
-    };
-  }
-  if (style === "matte-dark") {
-    const base = tint ? darken(tint, 0.72) : ([24, 24, 27] as RGB);
-    return {
-      background: rgba(base),
-      fg: "rgb(250, 250, 250)",
-      muted: "rgba(250, 250, 250, 0.6)",
-      track: "rgba(255, 255, 255, 0.14)",
-      fill: rgba(tint ? lighten(tint, 0.4) : ([161, 161, 170] as RGB)),
-      ring: "rgba(255, 255, 255, 0.1)",
-    };
-  }
-  // glass
-  if (tint) {
-    return {
-      background: `linear-gradient(155deg, ${rgba(lighten(tint, 0.15), 0.45)} 0%, ${rgba(
-        darken(tint, 0.6),
-        0.8
-      )} 100%)`,
-      fg: "rgb(250, 250, 250)",
-      muted: "rgba(250, 250, 250, 0.65)",
-      track: "rgba(255, 255, 255, 0.16)",
-      fill: rgba(lighten(tint, 0.3)),
-      ring: "rgba(255, 255, 255, 0.12)",
-    };
-  }
-  return {
-    background:
-      "linear-gradient(155deg, rgba(24, 24, 27, 0.85) 0%, rgba(24, 24, 27, 0.55) 100%)",
-    fg: "rgb(250, 250, 250)",
-    muted: "rgba(250, 250, 250, 0.6)",
-    track: "rgba(255, 255, 255, 0.14)",
-    fill: "rgb(52, 211, 153)",
-    ring: "rgba(255, 255, 255, 0.1)",
-  };
-}
-
-/**
- * A Vibrant-style palette of roles sampled from the cover art: the dominant
- * saturated color (`vibrant`, the accent) plus its light/dark variants for
- * the surface base. Built saturation-weighted (see `computeArtTint`), not a
- * flat pixel average, so a cover with one strong color tints with that
- * color instead of a muddy gray average.
- */
-export interface ArtTint {
-  vibrant: RGB;
-  light: RGB;
-  dark: RGB;
-}
-
-/**
- * The surface built from the cover-art palette roles — the same mixes as
- * `makeSurface`, driven by the palette instead of a single average color.
- */
-export function makeSurfacePalette(style: ModernStyle, tint: ArtTint): Surface {
-  return withTextOverrides(buildSurfacePalette(style, tint));
-}
-
-function buildSurfacePalette(style: ModernStyle, tint: ArtTint): Surface {
-  if (style === "matte-light") {
-    return {
-      background: rgba(tint.light),
-      fg: "rgb(24, 24, 27)",
-      muted: "rgba(24, 24, 27, 0.6)",
-      track: "rgba(24, 24, 27, 0.16)",
-      fill: rgba(darken(tint.vibrant, 0.12)),
-      ring: "rgba(255, 255, 255, 0.4)",
-    };
-  }
-  if (style === "matte-dark") {
-    return {
-      background: rgba(tint.dark),
-      fg: "rgb(250, 250, 250)",
-      muted: "rgba(250, 250, 250, 0.6)",
-      track: "rgba(255, 255, 255, 0.14)",
-      fill: rgba(lighten(tint.vibrant, 0.4)),
-      ring: "rgba(255, 255, 255, 0.1)",
-    };
-  }
-  // glass
-  return {
-    background: `linear-gradient(155deg, ${rgba(lighten(tint.vibrant, 0.15), 0.45)} 0%, ${rgba(
-      tint.dark,
-      0.8
-    )} 100%)`,
-    fg: "rgb(250, 250, 250)",
-    muted: "rgba(250, 250, 250, 0.65)",
-    track: "rgba(255, 255, 255, 0.16)",
-    fill: rgba(lighten(tint.vibrant, 0.3)),
-    ring: "rgba(255, 255, 255, 0.12)",
-  };
-}
+// The surfaces moved to ./surfaces; re-exported for the widgets importing them from here.
+export { makeSurface, makeSurfacePalette, type ArtTint, type ModernStyle, type RGB, type Surface } from "./surfaces";
 
 const rgbToHsl = (
   r: number,

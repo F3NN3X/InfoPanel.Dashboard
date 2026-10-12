@@ -119,7 +119,9 @@ export function effectiveSettings(
 /**
  * A placement's saved settings over the profile's style defaults: the
  * widget's own value wins, then the profile's, then (in
- * `effectiveSettings`) the module default.
+ * `effectiveSettings`) the module default. Rendering resolves the full
+ * dashboard → profile → own layering with follow / force instead
+ * (`resolveStyle` in `lib/style-resolve.ts`).
  */
 export function withProfileStyle(
   saved: ModuleSettings | undefined,

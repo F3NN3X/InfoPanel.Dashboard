@@ -27,7 +27,7 @@ export function CollapsibleSection({
   const { isOpen, setOpen } = useSectionState();
   const open = forceOpen || isOpen(id, defaultOpen);
   return (
-    <div className="rounded-md border border-border/70">
+    <div className="break-inside-avoid rounded-md border border-border/70">
       <button
         type="button"
         aria-expanded={open}

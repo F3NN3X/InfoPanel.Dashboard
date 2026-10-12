@@ -2,7 +2,7 @@ import { ModernWaveLink } from "@/components/ModernWaveLink";
 import type { LevelMeterVariant } from "@/components/ui/level-meter";
 import type { BallisticsPreset } from "@/lib/audio/ballistics";
 import type { Orientation } from "@/lib/audio/types";
-import { chromeOf, GROUP_COLORS, STANDARD_SETTINGS } from "./standard-settings";
+import { chromeOf, STANDARD_SETTINGS } from "./standard-settings";
 import {
   effectiveSettings,
   type DashboardModule,
@@ -28,6 +28,28 @@ const WAVELINK_SETTINGS: ModuleSetting[] = [
     default: "",
     multiple: true,
     optionsFrom: "wavelink",
+    group: "Content",
+  },
+  {
+    key: "showReadout",
+    label: "dB readouts & scale",
+    type: "boolean",
+    default: true,
+    group: "Content",
+  },
+  {
+    key: "showFader",
+    label: "Fader level",
+    type: "boolean",
+    default: true,
+    group: "Content",
+  },
+  {
+    key: "showMixes",
+    label: "Mixes (routes & output mixers)",
+    type: "boolean",
+    default: true,
+    group: "Content",
   },
   {
     key: "meterVariant",
@@ -39,6 +61,7 @@ const WAVELINK_SETTINGS: ModuleSetting[] = [
       { value: "segmented", label: "Segmented" },
       { value: "gradient", label: "Gradient" },
     ],
+    group: "Meter",
   },
   {
     key: "meterOrientation",
@@ -49,6 +72,7 @@ const WAVELINK_SETTINGS: ModuleSetting[] = [
       { value: "vertical", label: "Vertical" },
       { value: "horizontal", label: "Horizontal" },
     ],
+    group: "Meter",
   },
   {
     key: "meterBallistics",
@@ -60,27 +84,10 @@ const WAVELINK_SETTINGS: ModuleSetting[] = [
       { value: "vu", label: "VU (slow)" },
       { value: "instant", label: "Instant" },
     ],
+    group: "Meter",
   },
-  {
-    key: "showReadout",
-    label: "dB readouts & scale",
-    type: "boolean",
-    default: true,
-  },
-  {
-    key: "showFader",
-    label: "Fader level",
-    type: "boolean",
-    default: true,
-  },
-  {
-    key: "showMixes",
-    label: "Mixes (routes & output mixers)",
-    type: "boolean",
-    default: true,
-  },
-  { key: "liveColor", label: "Live indicator color", type: "color", default: "", group: GROUP_COLORS },
-  { key: "muteColor", label: "Muted / offline color", type: "color", default: "", group: GROUP_COLORS },
+  { key: "liveColor", label: "Live indicator color", type: "color", default: "", group: "Meter" },
+  { key: "muteColor", label: "Muted / offline color", type: "color", default: "", group: "Meter" },
 ];
 
 export const wavelinkModernModule: DashboardModule = {

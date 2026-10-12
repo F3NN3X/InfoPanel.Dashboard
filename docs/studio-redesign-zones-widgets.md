@@ -175,7 +175,7 @@ The options exist to show/hide a widget's elements, not to restyle it:
 | notifications | History list · Max history lines |
 | vbz | Status line |
 
-Custom-panel widgets have their own per-widget options in `PanelInspector`
+Custom-panel widgets have their own per-widget options in cards (`widget-editor/`, `panel-sheet.tsx`)
 (visible/hide, sensor binding, layout zones, decimals, colors), and the
 `CARDS` catch-all renders the remaining unclaimed sensors as generic cards.
 

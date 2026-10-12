@@ -1,7 +1,7 @@
 # Widget Settings (Standardized)
 
 The schema, controls, and shared block behind every widget's settings in
-the studio inspector (Content and Style tabs). One reference for: what a setting *is*, what every
+the studio inspector (one sheet of category cards). One reference for: what a setting *is*, what every
 widget gets for free, and how a new widget adopts it.
 
 Companion to [`studio-redesign-zones-widgets.md`](studio-redesign-zones-widgets.md)
@@ -10,10 +10,12 @@ Companion to [`studio-redesign-zones-widgets.md`](studio-redesign-zones-widgets.
 ## The setting schema
 
 A module declares `settings: ModuleSetting[]` (`src/modules/types.ts`). The
-studio's inspector renders one control per entry
-(`SettingsPanel`), on the Style tab for the standard look keys and settings
-in the standard style groups, on the Content tab otherwise
-(`isStyleSetting` in `src/components/studio/settings-model.ts`); values are stored **per placement**
+studio's inspector renders one control per entry, as a compact row in a
+card (`CategorySheet`, `SettingCard` and `setting-rows.tsx`). The card is the
+setting's *category*: standard keys are filed by key in the general
+categories (`GENERAL_CATEGORIES` in
+`src/components/studio/inspector-categories.ts`), module-specific ones by
+their `group` (`categorize`); values are stored **per placement**
 (`Placement.settings`) and merged over the defaults at render time via
 `effectiveSettings`.
 
@@ -82,7 +84,7 @@ Every adaptive (modern) widget spreads
 |---|---|---|---|
 | `preset` | select | `default` | one-click bundle — see presets below |
 | `layout` | select | `auto` | auto / card / standard / compact / simple |
-| `surface` | select | `glass` | glass / matte-light / matte-dark |
+| `surface` | select | `glass` | glass / matte-light / matte-dark / theme (from the theme tokens) |
 | `label` | text | `""` | custom title line (empty = the widget's own header) |
 | `icon` | icon | `""` | header icon (empty = none) |
 | `accent` | color | `""` | accent for fills / header icon (empty = auto) |
@@ -96,7 +98,7 @@ Every adaptive (modern) widget spreads
 | `radius` | select | `auto` | corner radius, px or pill |
 | `textColor` | color | `""` | main text color |
 | `mutedColor` | color | `""` | secondary text color |
-| `font` | select | `auto` | theme / sans / rounded / serif / mono |
+| `font` | select | `auto` | theme (the page font, General > Font) / sans / rounded / serif / mono |
 | `fontWeight` | select | `auto` | weight of the big values |
 | `labelCase` | select | `auto` | caption case: UPPERCASE / as written / Capitalized |
 | `stroke` | number | `100` | ring / bar thickness %, 50–250 |
@@ -108,45 +110,83 @@ Every adaptive (modern) widget spreads
 | `surfaceOpacity` | number | `100` | surface background opacity %, 0–100 |
 | `blur` | select | `auto` | backdrop blur, px |
 
-Everything from `autoScale` through `customCss` is `STYLE_SETTINGS`, which
-the plain modules (VBZ, notifications, text file, Stream Deck, web page)
-spread on their own; the surface keys after it are `SURFACE_SETTINGS` (only
-widgets with a surface box). In the studio the options sit in collapsible
-sections (the setting's `group`): Title & background, Size & alignment,
-Spacing & shape, Colors & type, Border, glow & CSS. "Auto" / empty always
-means the widget's own look.
+Everything from `autoScale` through `customCss` is `STYLE_SETTINGS`; the
+surface keys after it are `SURFACE_SETTINGS` (widgets with a surface box).
+The plain card modules (VBZ, notifications, text file, Stream Deck) and the
+"Other sensors" cards spread `CARD_SETTINGS` instead: `surface` (default
+`theme`, the shadcn card they always had), `accent`, `STYLE_SETTINGS` and
+`SURFACE_SETTINGS`, drawn by `StyledCard` (below). Web page takes `scale`,
+`radius`, `accent` and the border / glow keys (an edge drawn over the
+frame). In the studio the standard options sit in the **general
+categories**, the same cards on every widget (`group` carries the title; the
+keys are listed in `GENERAL_CATEGORIES`):
+
+| Category | Keys |
+|---|---|
+| Widget | `label`, `icon`, `hideWhenIdle` (plus the type picker and *Visible*, added by the zone) |
+| Size & alignment | `layout`, `autoScale`, `scale`, `alignX` / `alignY` |
+| Typography | `textColor`, `mutedColor`, `font`, `fontWeight`, `labelCase` |
+| Spacing & shape | `padding`, `gap`, `radius`, `stroke` |
+| Colors & surface | `preset`, `surface`, `accent`, `background`, `backgroundOn`, `surfaceOpacity`, `blur` (plus Follow / Custom and the style tools) |
+| Border & effects | `borderWidth`, `borderColor`, `glow`, `glowColor` (plus the zone frame) |
+| Advanced | `customCss` |
+
+`preset`, `layout`, `surface` and `hideWhenIdle` carry no `group` and are
+filed by key. "Auto" / empty always means the widget's own look. The
+constants are `GROUP_WIDGET`, `GROUP_SIZE`, `GROUP_TYPOGRAPHY`,
+`GROUP_SPACING`, `GROUP_COLORS`, `GROUP_EFFECTS` and `GROUP_ADVANCED`.
 
 Modules with an idle rule (`DashboardModule.isIdle`: media / Spotify not
 playing, FPS without frames, Steam not in a game, notifications with none
 unread) add `IDLE_SETTING` (`hideWhenIdle`): the kiosk then hides the zone
 while idle, and the studio badges it "idle · hidden in kiosk".
 
-### Profile style, copy / paste and style presets
+### Global style, copy / paste and style presets
 
 The look-only keys (`PROFILE_STYLE_KEYS`: `surface`, `accent` and every
-key of `STYLE_SETTINGS` / `SURFACE_SETTINGS`) can be set once per profile
-(`MonitorProfile.style`, "Profile style" in the studio when nothing is
-selected). Resolution order: module default → profile style → the
-widget's own value (`withProfileStyle`). The inspector marks each row with a
-dot (own value, inherited from the profile, or own value overriding the
-profile), and a hover reset drops an own value.
+key of `STYLE_SETTINGS` / `SURFACE_SETTINGS`) can be set once for every
+profile (`DashboardConfig.style`) and per profile (`MonitorProfile.style`),
+in the studio's **Appearance** tab (All profiles / This profile) when
+nothing is selected. Resolution order (`resolveStyle`,
+`src/lib/style-resolve.ts`): module default → dashboard style → profile
+style → the widget's own value. A placement's `styleMode: "follow"` skips
+its own look values (kept stored); `styleEnforce` (dashboard, or the
+profile's when set) does that for every widget and also drops a panel's
+own widget colors. The inspector marks each row with a dot (own value,
+from the dashboard style, from the profile style, or own value overriding
+them), and a hover reset drops an own value.
 
-The inspector's style tools copy a widget's style (Copy / Paste), makes it
-the profile style (Use for profile), and saves / applies named presets
-(`DashboardConfig.stylePresets`). Paste and Apply replace the widget's
-style wholesale (`replaceStyle`): unset keys fall back to the profile /
-defaults again, content settings are untouched, and keys the widget has
+The inspector's style tools copy a widget's style (Copy / Paste), make it
+the global style (Use as global… → All profiles / This profile), and save /
+apply named presets (`DashboardConfig.stylePresets`). Paste and Apply
+replace the widget's style wholesale (`replaceStyle`): unset keys fall back
+to the global style / defaults again, content settings are untouched, and keys the widget has
 no setting for are skipped.
 
+Appearance presets (`DashboardConfig.appearancePresets` and the built-ins in
+`src/lib/appearance-presets.ts`) work one level up: they set the theme, the
+radius and the dashboard or profile style (plus, optionally, the page
+background) - a whole look, not one widget. Their `style` uses the same
+look keys, and every value must be one of the setting's options
+(`isValidStyleValue`); a new look option therefore becomes available to
+presets automatically.
+
 Module-specific options follow the standard block and keep their own keys
-(`tint`, `showTimes`, `forecastDays`, `dimBanner`, `maxRows`, …); per-element
-colors (e.g. the System widget's CPU / GPU / RAM / VRAM colors) join the
-Colors & type group.
+(`tint`, `showTimes`, `forecastDays`, `dimBanner`, `maxRows`, …). Give each
+one a `group`: its own category card (aim for 2-10 options each; a card
+named like a general one is not allowed). The test
+`inspector-categories.test.ts` fails for an unfiled option or a one-option
+category that is not on its allow-list. Per-element colors (e.g. the System
+widget's CPU / GPU / RAM / VRAM colors) get a category of their own
+("Device colors"), not the general Colors & surface card. Examples: Media -
+*Now playing*, *Cover art*, *Waveform*, *Visualizer*, *Waveform shape*,
+*Audio source*; System - *Devices*, *CPU*, *GPU*, *Memory*, *Drives*,
+*Trends*, *Thresholds*, *Units & labels*, *Device colors*.
 
 ### Panels (`PANEL_SETTINGS`)
 
 A custom panel zone's look is its placement's `settings` too, rendered on
-the Style tab from `PANEL_SETTINGS` (`src/modules/standard-settings.ts`):
+the general cards from `PANEL_SETTINGS` (`src/modules/standard-settings.ts`):
 the standard block without `preset`, `layout`, `autoScale` and `stroke`
 (a panel has no layout variants, design size or rings of its own), with
 two changes:
@@ -154,7 +194,7 @@ two changes:
 | key | change |
 |---|---|
 | `label` | "Title (empty = hidden)": the panel's title line (`.wp-panel-title`) |
-| `surface` | default `panel`; options `none` / `panel` (card) / `bordered` (bordered card) before glass / matte-light / matte-dark |
+| `surface` | default `panel`; options `none` / `panel` (card) / `bordered` (bordered card) before glass / matte-light / matte-dark / theme |
 
 `alignX` + `alignY` place a panel whose **Fit in zone** is Hug; `padding`
 and `gap` are the fallbacks for the panel's own Gap / Padding fields;
@@ -164,9 +204,12 @@ widgets are not settings: they live in `Placement.panel` (see
 [architecture.md](architecture.md#the-render-pipeline-of-a-panel-zone)).
 
 Panels saved before the look moved here keep `title` / `titleVisible` /
-`accent` / `background` on the PanelDef; loading copies them into `label`
-/ `accent` / `surface` (`normalizePanelPlacement`), and `panelSettings`
-reads them as fallbacks until then. A saved panel preset
+`accent` / `background` on the PanelDef. Loading copies the title into
+`label` (`normalizePanelPlacement`); the accent and background stay the
+panel's lowest style layer (`panelLegacyLook`, below the dashboard and
+profile style), read at render time. Panels migrated by older builds hold
+`accent` / `surface` copies as their own values; following the global
+style lets it through. A saved panel preset
 (`DashboardConfig.panelPresets`) stores these settings with the panel.
 
 The panel editor's alignment pickers (stack alignment, grid cell
@@ -384,22 +427,46 @@ own coordinate space.
   `labelStyle()`, `ws.weight(700)`, `strokeOf(chrome, base)`), each with the
   widget's own value as the fallback. Surface text colors from
   `makeSurface` already read `--wp-fg` / `--wp-muted`.
+- **Token re-scope** — `tokenScope(chrome)` (part of `chromeVars`) also
+  sets the theme tokens on the root from the hex accent / text / secondary
+  text colors: `--accent`, `--foreground` and `--card-foreground`,
+  `--muted-foreground` (as the HSL triplets the theme uses). Anything inside
+  that reads the theme — Tailwind's `text-foreground`, `hsl(var(--accent))`,
+  the theme surface, a panel's widgets — follows the widget's colors, and
+  so the global style. `placementContent` returns the same tokens as
+  `scope` for the zone frame.
 - **Surface box** — `surfaceBox(sv, chrome)` builds the widget's surface
   (background, text color, edge) with the border, glow, opacity and blur
   options applied. The glow sits inside the edge: an outer one would be
   clipped by the zone. Opacity rewrites the alpha of every color in the
-  surface background (`fadeColors`), so gradients fade too.
+  surface background (`fadeColors`: rgb / hex and theme token colors
+  `hsl(var(--x))` / `hsl(var(--x) / a)`), so gradients fade too.
+- **Surfaces** — `makeSurface(style, tint)` (`components/surfaces.ts`)
+  gives the colors: glass / matte-light / matte-dark are fixed palettes
+  (optionally tinted); `theme` is `hsl(var(--card) / 0.85)` with
+  card-foreground text, muted-foreground secondary text, a muted track, a
+  primary fill and a border ring — it follows the theme preset and the
+  re-scoped tokens, and ignores a tint.
+- **Plain cards** — `StyledCard` (`components/styled-card.tsx`) is the
+  card of the legacy modules and the catch-all cards:
+  `surfaceBox(surfaceColors(surface), chrome)` with `ws.radius` and the
+  surface's `--wp-fg`-aware text color. A fixed-palette surface also sets
+  the text and chip tokens (`surfaceTokens`) unless the user picked text
+  colors, so content drawn with `text-foreground` / `bg-secondary` stays
+  legible on it.
 - **Custom CSS** — rendered as a `<style>` wrapped in
   `@scope ([data-wp-scope="…"])` on the chrome root, so selectors match
   inside this widget only. It is the user's own dashboard: the CSS is not
   sanitized beyond that scope.
 
 - **Background image** — when `backgroundOn && background`, the image sits
-  behind the surface (`object-cover`, dimmed with a `black/45` overlay).
+  behind the surface (`object-cover`, under a scrim of the theme's page
+  color at 45 %: dark themes darken it, light themes lighten it).
   Glass surfaces let it show through; matte surfaces cover it (intended).
   Steam: a game banner always wins; the user's image is the fallback when
   there is no banner.
-- **Header** — an icon + custom-title line, top-left, only when set.
+- **Header** — an icon + custom-title line, top-left, only when set, in the
+  text color (`--wp-fg`, else the theme's) at 75 %.
 - **Accent** — exposed to the widget as the `--wp-accent` CSS variable;
   components opt in per element, e.g.
   `background: "var(--wp-accent, #34d399)"` — the widget's default when the

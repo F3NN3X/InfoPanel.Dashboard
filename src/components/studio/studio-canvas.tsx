@@ -3,6 +3,7 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  type CSSProperties,
   type DragEvent,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
@@ -11,7 +12,21 @@ import {
 } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PageBackground } from "@/components/page-background";
+import type { PageBackground as Background } from "@/lib/appearance";
+import type { Appearance } from "@/lib/style-resolve";
 import { SCROLL_ROW_H, type MonitorProfile } from "@/lib/layout";
+import { fontStack } from "@/lib/general";
+import {
+  cellAt as gridCellAt,
+  columnGuides,
+  profileGap,
+  profilePadding,
+  trackSize,
+  zoneBox,
+} from "@/lib/profile-grid";
+import { useGeneral } from "@/hooks/use-general";
+import { cn } from "@/lib/utils";
 import { PlacementFrame } from "./placement-frame";
 import { LivePlacement } from "./placement-content";
 import { RulerH, RulerV } from "./rulers";
@@ -24,10 +39,21 @@ import {
 import { fitZoneRect, type ZoneRect } from "./zone-geometry";
 import { ZoneToolbarLayer } from "./zone-toolbar";
 
-const GRID_GAP = 12; // must match the canvas grid's gap-3
+/** The canvas' dotted grid (also drawn over a page background). */
+const DOTS = "radial-gradient(circle, hsl(var(--ring) / 0.22) 1px, transparent 1.25px)";
+const DOT_PITCH = "24px 24px";
 
 interface StudioCanvasProps {
   profile: MonitorProfile;
+  /** The profile's resolved page background, drawn behind its grid. */
+  background?: Background;
+  /** The global style the zones render under (see `resolveStyle`). */
+  appearance?: Appearance;
+  /**
+   * The profile's own theme as CSS variables (`themeVars`), scoped to the
+   * canvas; unset = the dashboard theme the studio chrome uses.
+   */
+  themeScope?: CSSProperties;
   zoom: number;
   showGrid: boolean;
   /** The scroll container (shared with the zoom hook for wheel + fit). */
@@ -54,8 +80,6 @@ interface StudioCanvasProps {
   onOpenAdd: () => void;
   /** The selected zone's toolbar, kept next to its frame. */
   zoneToolbar?: ReactNode;
-  /** Floating overlay over the canvas viewport (the zoom toolbar). */
-  overlay?: ReactNode;
 }
 
 /**
@@ -65,6 +89,9 @@ interface StudioCanvasProps {
  */
 export function StudioCanvas({
   profile,
+  background,
+  appearance,
+  themeScope,
   zoom,
   showGrid,
   scrollRef,
@@ -80,7 +107,6 @@ export function StudioCanvas({
   onAddPreset,
   onOpenAdd,
   zoneToolbar,
-  overlay,
 }: StudioCanvasProps) {
   const [zoneDrag, setZoneDrag] = useState<{
     id: string;
@@ -95,31 +121,46 @@ export function StudioCanvas({
   const [gridEl, setGridEl] = useState<HTMLDivElement | null>(null);
   const [gridWidth, setGridWidth] = useState(0);
   const [scroll, setScroll] = useState({ left: 0, top: 0 });
-  const [canvas, setCanvas] = useState({ w: 0, h: 0, viewW: 0, viewH: 0 });
+  const [pageEl, setPageEl] = useState<HTMLDivElement | null>(null);
+  // Page size (design px), viewport (screen px) and the page's origin in the
+  // scrolled content (screen px; the page is centered when it is smaller).
+  const [canvas, setCanvas] = useState({ w: 0, h: 0, viewW: 0, viewH: 0, ox: 0, oy: 0 });
 
-  // Measure the grid for resize calculations and alignment guides.
+  // Measure the grid for resize calculations and alignment guides, in
+  // design px: the on-screen width over the zoom (clientWidth inside a CSS
+  // zoom is reported in different units by different Chromium versions).
   useLayoutEffect(() => {
-    if (gridEl) setGridWidth(gridEl.clientWidth);
-  }, [gridEl, profile.id, profile.cols]);
+    if (gridEl && zoom > 0) setGridWidth(gridEl.getBoundingClientRect().width / zoom);
+  }, [gridEl, zoom, profile.id, profile.cols, profile.width, profile.padding, profile.fit]);
   useEffect(() => {
     const onResize = () => {
-      if (gridEl) setGridWidth(gridEl.clientWidth);
+      if (gridEl && zoom > 0) setGridWidth(gridEl.getBoundingClientRect().width / zoom);
     };
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
-  }, [gridEl]);
+  }, [gridEl, zoom]);
 
-  // Canvas measurements (design px) for the rulers.
+  // Canvas measurements for the rulers: they start at the page's corner.
   useLayoutEffect(() => {
     const el = scrollRef.current;
-    if (!el) return;
-    setCanvas({
-      w: el.clientWidth,
-      h: el.scrollHeight / zoom,
-      viewW: el.clientWidth,
-      viewH: el.clientHeight,
-    });
-  }, [zoom, profile.id, profile.cols, scroll]);
+    if (!el || !pageEl) return;
+    const measure = () => {
+      const s = el.getBoundingClientRect();
+      const p = pageEl.getBoundingClientRect();
+      setCanvas({
+        w: p.width / zoom,
+        h: p.height / zoom,
+        viewW: el.clientWidth,
+        viewH: el.clientHeight,
+        ox: p.left - s.left + el.scrollLeft,
+        oy: p.top - s.top + el.scrollTop,
+      });
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [scrollRef, pageEl, zoom, profile.id, profile.cols, profile.width, profile.height, profile.padding, scroll]);
 
   /**
    * Commit a zone move/resize: apply the clamped box. When it can't be
@@ -193,62 +234,48 @@ export function StudioCanvas({
     if (presetId) onAddPreset(presetId);
   };
 
+  // The profile's spacing (as the kiosk page shows it): the gap between
+  // zones and the padding around the grid, inside the profile's size.
+  const gap = profileGap(profile);
+  const padding = profilePadding(profile, true);
+  const fill = profile.fit === "fill" && profile.height > 0;
+  /** Gap in display px. */
+  const g = gap * zoom;
+
   // Alignment guides: vertical lines at the column boundaries (gap-aware).
-  const colW =
-    gridWidth > 0
-      ? (gridWidth - (profile.cols - 1) * GRID_GAP * zoom) / profile.cols
-      : 0;
-  const guides =
-    colW > 0
-      ? Array.from({ length: profile.cols - 1 }, (_, i) =>
-          (i + 1) * (colW + GRID_GAP * zoom) - GRID_GAP * zoom * 0.5
-        )
-      : [];
+  // Design px: these sit inside the zoomed page (CSS zoom scales them).
+  const colW = gridWidth > 0 ? trackSize(gridWidth, profile.cols, gap) : 0;
+  const guides = colW > 0 ? columnGuides(gridWidth, profile.cols, gap) : [];
 
   // Row geometry: fill mode → uniform rows over the profile height;
   // scroll mode → fixed SCROLL_ROW_H rows (the canvas scrolls).
-  const rowH =
-    profile.fit === "fill" && profile.height > 0
-      ? Math.max(
-          24,
-          (profile.height - (profile.rows - 1) * GRID_GAP) / profile.rows
-        )
-      : SCROLL_ROW_H;
+  const rowH = fill
+    ? Math.max(24, trackSize(profile.height - 2 * padding, profile.rows, gap))
+    : SCROLL_ROW_H;
   const getGridRect = () => gridEl?.getBoundingClientRect() ?? null;
 
   /** The 1-based grid cell under a screen point (null outside the grid). */
   const cellAt = (x: number, y: number): { col: number; row: number } | null => {
     const rect = getGridRect();
-    if (!rect || rect.width <= 0 || rect.height <= 0) return null;
-    const pitchX = (rect.width + GRID_GAP * zoom) / profile.cols;
-    const pitchY = (rect.height + GRID_GAP * zoom) / profile.rows;
-    const col = Math.floor((x - rect.left) / pitchX) + 1;
-    const row = Math.floor((y - rect.top) / pitchY) + 1;
-    if (col < 1 || col > profile.cols || row < 1 || row > profile.rows)
-      return null;
-    return { col, row };
+    if (!rect) return null;
+    return gridCellAt(x - rect.left, y - rect.top, rect, profile.cols, profile.rows, g);
   };
 
   /** Grid-local display-px box for a ZoneRect (drawing / drag ghost). */
   const zoneBoxStyle = (r: ZoneRect) => {
     if (colW <= 0) return null;
-    const g = GRID_GAP * zoom;
-    const gridH =
-      profile.fit === "fill" && profile.height > 0
-        ? profile.height * zoom
-        : profile.rows * SCROLL_ROW_H * zoom + (profile.rows - 1) * g;
-    const rowHd =
-      profile.fit === "fill" && profile.height > 0
-        ? (gridH - (profile.rows - 1) * g) / profile.rows
-        : SCROLL_ROW_H * zoom;
-    const pitchY = (gridH + g) / profile.rows;
-    return {
-      left: (r.col - 1) * (colW + g),
-      top: (r.row - 1) * pitchY,
-      width: r.cols * colW + (r.cols - 1) * g,
-      height: r.rows * rowHd + (r.rows - 1) * g,
-    };
+    // The ghost sits inside the zoomed page, so its box is in design px
+    // (CSS zoom scales it); display px here would apply the zoom twice.
+    const rowHd = fill
+      ? trackSize(profile.height - 2 * padding, profile.rows, gap)
+      : SCROLL_ROW_H;
+    return zoneBox(r, { width: colW, height: rowHd }, gap);
   };
+
+  // The canvas paints the profile's page (its background, or its own
+  // theme's page color) with the dots kept over it.
+  const paintsPage = Boolean(background || themeScope);
+  const font = fontStack(useGeneral().font);
 
   const dragged = zoneDrag
     ? profile.placements.find((x) => x.id === zoneDrag.id)
@@ -264,7 +291,7 @@ export function StudioCanvas({
           <RulerH
             length={canvas.w}
             zoom={zoom}
-            offset={scroll.left}
+            offset={scroll.left - canvas.ox}
             view={canvas.viewW}
           />
         </div>
@@ -274,7 +301,7 @@ export function StudioCanvas({
         <RulerV
           length={canvas.h}
           zoom={zoom}
-          offset={scroll.top}
+          offset={scroll.top - canvas.oy}
           view={canvas.viewH}
         />
 
@@ -293,102 +320,135 @@ export function StudioCanvas({
               if (types.includes(DND_MIME) || types.includes(DND_MIME_PANEL)) e.preventDefault();
             }}
             onDrop={onCanvasDrop}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) onSelect(null);
+            }}
           >
+            {/* A click on the empty canvas around the page deselects. */}
             <div
-              className="w-fit min-w-full p-4"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) onSelect(null);
+              }}
+              className="flex min-h-full w-fit min-w-full p-4"
               style={{
                 zoom,
-                backgroundImage: showGrid
-                  ? "radial-gradient(circle, hsl(var(--ring) / 0.22) 1px, transparent 1.25px)"
-                  : undefined,
-                backgroundSize: "24px 24px",
+                backgroundImage: showGrid ? DOTS : undefined,
+                backgroundSize: DOT_PITCH,
               }}
             >
+              {/* The page: exactly the profile's design size (the kiosk
+                  window renders the same profile 1:1), its padding around
+                  the grid, and its own theme / font scoped here. */}
               <div
-                ref={setGridEl}
-                className="relative grid gap-3"
+                ref={setPageEl}
+                data-theme-scope={themeScope ? "" : undefined}
+                className={cn(
+                  "relative isolate",
+                  // Centered while smaller than the view (both axes).
+                  profile.width > 0 ? "m-auto shrink-0" : "flex-1",
+                  themeScope && !background && "bg-background",
+                  themeScope && "text-foreground"
+                )}
                 style={{
-                  gridTemplateColumns: `repeat(${profile.cols}, minmax(0, 1fr))`,
-                  // Explicit uniform rows: fill mode stretches over the
-                  // profile height, scroll mode uses fixed cell heights.
-                  gridTemplateRows:
-                    profile.fit === "fill" && profile.height > 0
-                      ? `repeat(${profile.rows}, minmax(0, 1fr))`
-                      : `repeat(${profile.rows}, ${SCROLL_ROW_H}px)`,
-                  // The canvas is exactly the profile's design size
-                  // (the kiosk window renders the same profile 1:1).
+                  ...themeScope,
+                  padding,
+                  fontFamily: font,
                   ...(profile.width > 0 ? { width: profile.width } : {}),
-                  ...(profile.fit === "fill" && profile.height > 0
-                    ? { height: profile.height }
-                    : {}),
+                  ...(fill ? { height: profile.height } : {}),
                 }}
-                onPointerDown={startDraw}
                 onClick={(e) => {
-                  if (e.target === e.currentTarget && !drewRef.current) onSelect(null);
+                  if (e.target === e.currentTarget) onSelect(null);
                 }}
               >
-                {/* Column alignment guides */}
-                {showGrid &&
-                  guides.map((x, i) => (
-                    <div
-                      key={i}
-                      className="pointer-events-none absolute bottom-0 top-0 w-px bg-ring/15"
-                      style={{ left: x }}
-                    />
+                {/* Page background (as in the kiosk), the dots kept over it,
+                    in line with the canvas' own (offset by its p-4) */}
+                {background && <PageBackground background={background} className="absolute inset-0 -z-20" />}
+                {paintsPage && showGrid && (
+                  <div
+                    className="pointer-events-none absolute inset-0 -z-10"
+                    style={{ backgroundImage: DOTS, backgroundSize: DOT_PITCH, backgroundPosition: "-16px -16px" }}
+                  />
+                )}
+                <div
+                  ref={setGridEl}
+                  className={cn("relative isolate grid", fill && "h-full")}
+                  style={{
+                    gap,
+                    gridTemplateColumns: `repeat(${profile.cols}, minmax(0, 1fr))`,
+                    // Explicit uniform rows: fill mode stretches over the
+                    // profile height, scroll mode uses fixed cell heights.
+                    gridTemplateRows: fill
+                      ? `repeat(${profile.rows}, minmax(0, 1fr))`
+                      : `repeat(${profile.rows}, ${SCROLL_ROW_H}px)`,
+                  }}
+                  onPointerDown={startDraw}
+                  onClick={(e) => {
+                    if (e.target === e.currentTarget && !drewRef.current) onSelect(null);
+                  }}
+                >
+                  {/* Column alignment guides */}
+                  {showGrid &&
+                    guides.map((x, i) => (
+                      <div
+                        key={i}
+                        className="pointer-events-none absolute bottom-0 top-0 w-px bg-ring/15"
+                        style={{ left: x }}
+                      />
+                    ))}
+
+                  {/* Drawing / move-resize ghost */}
+                  {(drawing || zoneDrag) &&
+                    (() => {
+                      const r = drawing ?? zoneDrag!.rect;
+                      const style = zoneBoxStyle(r);
+                      if (!style) return null;
+                      return (
+                        <div
+                          className="pointer-events-none absolute z-30 rounded-lg border-2 border-dashed border-ring bg-ring/10"
+                          style={style}
+                        >
+                          <span className="absolute left-1.5 top-0.5 text-[10px] font-semibold tabular-nums text-ring">
+                            C{r.col} · R{r.row} · {r.cols}×{r.rows}
+                          </span>
+                        </div>
+                      );
+                    })()}
+
+                  {profile.placements.map((p) => (
+                    <LivePlacement
+                      key={p.id}
+                      placement={p}
+                      appearance={appearance}
+                      studio
+                      selection={selectedId === p.id && p.panel ? { selectedWidgetId } : undefined}
+                    >
+                      {({ content, hasData, title, idle, scope }) => (
+                        <PlacementFrame
+                          placement={p}
+                          profile={profile}
+                          studio
+                          hasData={hasData}
+                          idle={idle}
+                          title={title}
+                          scope={scope}
+                          gridWidth={gridWidth}
+                          zoom={zoom}
+                          rowHeight={rowH}
+                          ghost={zoneDrag?.id === p.id}
+                          onZoneDrag={onZoneDrag}
+                          onZoneDragEnd={onZoneDragEnd}
+                          selected={selectedId === p.id}
+                          onSelect={() => onSelect(p.id)}
+                          onSelectWidget={p.panel ? (widgetId) => onSelectWidget(p.id, widgetId) : undefined}
+                          onPickWidget={() => onPickWidget(p.id)}
+                        >
+                          {content}
+                        </PlacementFrame>
+                      )}
+                    </LivePlacement>
                   ))}
 
-                {/* Drawing / move-resize ghost */}
-                {(drawing || zoneDrag) &&
-                  (() => {
-                    const r = drawing ?? zoneDrag!.rect;
-                    const style = zoneBoxStyle(r);
-                    if (!style) return null;
-                    return (
-                      <div
-                        className="pointer-events-none absolute z-30 rounded-lg border-2 border-dashed border-ring bg-ring/10"
-                        style={style}
-                      >
-                        <span className="absolute left-1.5 top-0.5 text-[10px] font-semibold tabular-nums text-ring">
-                          C{r.col} · R{r.row} · {r.cols}×{r.rows}
-                        </span>
-                      </div>
-                    );
-                  })()}
-
-                {profile.placements.map((p) => (
-                  <LivePlacement
-                    key={p.id}
-                    placement={p}
-                    profileStyle={profile.style}
-                    studio
-                    selection={selectedId === p.id && p.panel ? { selectedWidgetId } : undefined}
-                  >
-                    {({ content, hasData, title, idle }) => (
-                      <PlacementFrame
-                        placement={p}
-                        profile={profile}
-                        studio
-                        hasData={hasData}
-                        idle={idle}
-                        title={title}
-                        gridWidth={gridWidth}
-                        zoom={zoom}
-                        gap={GRID_GAP}
-                        rowHeight={rowH}
-                        ghost={zoneDrag?.id === p.id}
-                        onZoneDrag={onZoneDrag}
-                        onZoneDragEnd={onZoneDragEnd}
-                        selected={selectedId === p.id}
-                        onSelect={() => onSelect(p.id)}
-                        onSelectWidget={p.panel ? (widgetId) => onSelectWidget(p.id, widgetId) : undefined}
-                        onPickWidget={() => onPickWidget(p.id)}
-                      >
-                        {content}
-                      </PlacementFrame>
-                    )}
-                  </LivePlacement>
-                ))}
-
+                </div>
               </div>
             </div>
           </div>
@@ -408,6 +468,8 @@ export function StudioCanvas({
                 profile.fit,
                 profile.width,
                 profile.height,
+                gap,
+                padding,
                 gridWidth,
               ].join("|")}
             >
@@ -432,7 +494,6 @@ export function StudioCanvas({
             </div>
           )}
 
-          {overlay}
         </div>
       </div>
 

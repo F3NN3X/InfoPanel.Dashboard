@@ -61,10 +61,19 @@ describe("placementContent", () => {
     expect(placementContent(hiding, playing, []).idle).toBe(false);
   });
 
-  it("merges the profile style under the widget's own settings", () => {
+  it("resolves the look under the global style (frame tokens follow it)", () => {
+    const accent = (p: Placement, a: Parameters<typeof placementContent>[3]) =>
+      (placementContent(p, paused, [], a).scope as Record<string, string> | undefined)?.["--accent"];
+    const global = { dashboard: { accent: "#ff0000" }, profile: { accent: "#00ff00" }, enforce: false };
     const media = place({ module: "mediamodern" });
-    expect(placementContent(media, paused, [], { hideWhenIdle: true }).idle).toBe(true);
-    const own = place({ module: "mediamodern", settings: { hideWhenIdle: false } });
-    expect(placementContent(own, paused, [], { hideWhenIdle: true }).idle).toBe(false);
+    expect(accent(media, undefined)).toBeUndefined();
+    expect(accent(media, { dashboard: { accent: "#ff0000" }, enforce: false })).toBe("0 100% 50%");
+    expect(accent(media, global)).toBe("120 100% 50%");
+    const own = place({ module: "mediamodern", settings: { accent: "#0000ff", hideWhenIdle: true } });
+    expect(accent(own, global)).toBe("240 100% 50%");
+    expect(accent({ ...own, styleMode: "follow" }, global)).toBe("120 100% 50%");
+    expect(accent(own, { ...global, enforce: true })).toBe("120 100% 50%");
+    // Content keys stay the widget's, followed or not.
+    expect(placementContent({ ...own, styleMode: "follow" }, paused, [], global).idle).toBe(true);
   });
 });

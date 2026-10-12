@@ -22,19 +22,6 @@ const P = "plugins.yr-weather-plugin.";
 
 const WEATHER_MODERN_SETTINGS: ModuleSetting[] = [
   ...STANDARD_SETTINGS,
-  { key: "tint", label: "Tint from conditions", type: "boolean", default: true },
-  { key: "showStats", label: "Stats row", type: "boolean", default: true },
-  { key: "showForecast", label: "Forecast strip", type: "boolean", default: true },
-  { key: "showFeels", label: "Feels-like", type: "boolean", default: true },
-  {
-    key: "forecastDays",
-    label: "Forecast days",
-    type: "number",
-    default: 5,
-    min: 1,
-    max: 7,
-    step: 1,
-  },
   {
     key: "view",
     label: "View",
@@ -58,6 +45,21 @@ const WEATHER_MODERN_SETTINGS: ModuleSetting[] = [
         applies: { showStats: false, showForecast: false, showFeels: false },
       },
     ],
+    group: "Display",
+  },
+  { key: "tint", label: "Tint from conditions", type: "boolean", default: true, group: "Display" },
+  { key: "showStats", label: "Stats row", type: "boolean", default: true, group: "Current conditions" },
+  { key: "showFeels", label: "Feels-like", type: "boolean", default: true, group: "Current conditions" },
+  { key: "showForecast", label: "Forecast strip", type: "boolean", default: true, group: "Forecast" },
+  {
+    key: "forecastDays",
+    label: "Forecast days",
+    type: "number",
+    default: 5,
+    min: 1,
+    max: 7,
+    step: 1,
+    group: "Forecast",
   },
 ];
 

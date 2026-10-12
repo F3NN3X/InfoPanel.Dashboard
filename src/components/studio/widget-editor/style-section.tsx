@@ -1,5 +1,4 @@
 import type { WidgetKind } from "@/lib/panel-model";
-import { CollapsibleSection } from "../collapsible-section";
 import { ColorInput, Field, INPUT, NumberInput, TextInput } from "./fields";
 import type { WidgetSectionProps } from "./types";
 
@@ -27,26 +26,38 @@ const HOOKS = [
   [".wp-bar-fill", "bar fill"],
 ] as const;
 
-/** The widget's look: color, font size, extra class names and its own CSS. */
-export function StyleSection({ widget, set }: WidgetSectionProps) {
+/** Whether the kind reads `fontSize`. */
+export const hasTypography = (widget: WidgetSectionProps["widget"]) => SIZED.has(widget.kind);
+
+/** Whether the kind reads `color`. */
+export const hasColor = (widget: WidgetSectionProps["widget"]) => COLORED.has(widget.kind);
+
+/** Font size (a gauge's ring size). */
+export function TypographyFields({ widget, set }: WidgetSectionProps) {
   return (
-    <CollapsibleSection id="panel-widget:style" title="Style">
-      {COLORED.has(widget.kind) && (
-        <ColorInput label="Color" value={widget.color} onChange={(v) => set("color", v)} />
-      )}
-      {SIZED.has(widget.kind) && (
-        <Field label={widget.kind === "gauge" ? "Ring size (px)" : "Font size (px)"}>
-          <NumberInput
-            value={widget.fontSize}
-            min={8}
-            max={200}
-            optional
-            fallback={8}
-            placeholder="auto"
-            onChange={(v) => set("fontSize", v)}
-          />
-        </Field>
-      )}
+    <Field label={widget.kind === "gauge" ? "Ring size (px)" : "Font size (px)"}>
+      <NumberInput
+        value={widget.fontSize}
+        min={8}
+        max={200}
+        optional
+        fallback={8}
+        placeholder="auto"
+        onChange={(v) => set("fontSize", v)}
+      />
+    </Field>
+  );
+}
+
+/** The widget's color override. */
+export function ColorFields({ widget, set }: WidgetSectionProps) {
+  return <ColorInput label="Color" value={widget.color} onChange={(v) => set("color", v)} />;
+}
+
+/** Extra class names and the widget's own CSS, with the hooks it can target. */
+export function AdvancedFields({ widget, set }: WidgetSectionProps) {
+  return (
+    <>
       <Field label="Class names" hint="hooks for panel CSS">
         <TextInput value={widget.className} placeholder="big accent" mono onChange={(v) => set("className", v)} />
       </Field>
@@ -68,6 +79,6 @@ export function StyleSection({ widget, set }: WidgetSectionProps) {
           ))}
         </dl>
       </Field>
-    </CollapsibleSection>
+    </>
   );
 }

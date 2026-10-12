@@ -1,7 +1,6 @@
 import { useSensorCatalog } from "@/lib/catalog";
 import type { WidgetKind } from "@/lib/panel-model";
 import { sensorAt } from "@/lib/sensors";
-import { CollapsibleSection } from "../collapsible-section";
 import { SensorPicker } from "../sensor-picker";
 import { Field, NumberInput, Switch, TextInput } from "./fields";
 import type { WidgetSectionProps } from "./types";
@@ -9,8 +8,11 @@ import type { WidgetSectionProps } from "./types";
 /** Kinds that show a number (unit, decimals and scale apply). */
 const NUMERIC: ReadonlySet<WidgetKind> = new Set(["stat", "value", "bar", "gauge", "sparkline", "text"]);
 
+/** Whether the widget has data fields (a shape has none). */
+export const hasData = (widget: WidgetSectionProps["widget"]) => widget.kind !== "shape";
+
 /** What the widget shows: label, bound sensor(s), static text and number format. */
-export function DataSection({ widget, set }: WidgetSectionProps) {
+export function DataFields({ widget, set }: WidgetSectionProps) {
   const catalog = useSensorCatalog();
   const missing =
     widget.sensor !== undefined &&
@@ -19,9 +21,8 @@ export function DataSection({ widget, set }: WidgetSectionProps) {
   const bindable = widget.kind !== "clock" && widget.kind !== "shape";
   const fillable = widget.kind === "bar" || widget.kind === "gauge";
 
-  if (widget.kind === "shape") return null;
   return (
-    <CollapsibleSection id="panel-widget:data" title="Data" defaultOpen>
+    <>
       <Field label="Label">
         <TextInput value={widget.label} placeholder="…" onChange={(v) => set("label", v)} />
       </Field>
@@ -103,6 +104,6 @@ export function DataSection({ widget, set }: WidgetSectionProps) {
           />
         </div>
       )}
-    </CollapsibleSection>
+    </>
   );
 }

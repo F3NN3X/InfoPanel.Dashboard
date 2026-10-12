@@ -1,6 +1,6 @@
 import { ModernFps } from "@/components/ModernFps";
 import { entry, liveText, liveValue } from "@/lib/sensors";
-import { chromeOf, GROUP_COLORS, IDLE_SETTING, STANDARD_SETTINGS } from "./standard-settings";
+import { chromeOf, IDLE_SETTING, STANDARD_SETTINGS } from "./standard-settings";
 import {
   effectiveSettings,
   type DashboardModule,
@@ -20,10 +20,6 @@ const FPS = "plugins.fps-plugin.";
 const FPS_MODERN_SETTINGS: ModuleSetting[] = [
   ...STANDARD_SETTINGS,
   IDLE_SETTING,
-  { key: "showMetrics", label: "Extra metrics", type: "boolean", default: true },
-  { key: "sparkline", label: "Trend sparkline", type: "boolean", default: false },
-  { key: "ringColor", label: "Ring color", type: "color", default: "", group: GROUP_COLORS },
-  { key: "sparkColor", label: "Trend sparkline color", type: "color", default: "", group: GROUP_COLORS },
   {
     key: "view",
     label: "View",
@@ -33,7 +29,12 @@ const FPS_MODERN_SETTINGS: ModuleSetting[] = [
       { value: "gauge", label: "Gauge" },
       { value: "trend", label: "Trend", applies: { sparkline: true } },
     ],
+    group: "Content",
   },
+  { key: "showMetrics", label: "Extra metrics", type: "boolean", default: true, group: "Content" },
+  { key: "sparkline", label: "Trend sparkline", type: "boolean", default: false, group: "Content" },
+  { key: "ringColor", label: "Ring color", type: "color", default: "", group: "Gauge colors" },
+  { key: "sparkColor", label: "Trend sparkline color", type: "color", default: "", group: "Gauge colors" },
 ];
 
 export const fpsModernModule: DashboardModule = {

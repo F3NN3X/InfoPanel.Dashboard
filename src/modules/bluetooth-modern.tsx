@@ -1,6 +1,6 @@
 import { ModernBluetooth } from "@/components/ModernBluetooth";
 import { byName, groupByContainer, liveText } from "@/lib/sensors";
-import { chromeOf, GROUP_COLORS, STANDARD_SETTINGS } from "./standard-settings";
+import { chromeOf, STANDARD_SETTINGS } from "./standard-settings";
 import {
   effectiveSettings,
   type DashboardModule,
@@ -19,11 +19,6 @@ const P = "plugins.bluetooth-battery-plugin.";
 
 const BLUETOOTH_MODERN_SETTINGS: ModuleSetting[] = [
   ...STANDARD_SETTINGS,
-  { key: "showStatus", label: "Bluetooth status", type: "boolean", default: true },
-  { key: "showDevices", label: "Paired devices", type: "boolean", default: true },
-  { key: "showBattery", label: "Battery levels", type: "boolean", default: true },
-  { key: "batteryMidColor", label: "Battery medium color", type: "color", default: "", group: GROUP_COLORS },
-  { key: "batteryLowColor", label: "Battery low color", type: "color", default: "", group: GROUP_COLORS },
   {
     key: "view",
     label: "View",
@@ -42,7 +37,13 @@ const BLUETOOTH_MODERN_SETTINGS: ModuleSetting[] = [
         applies: { showDevices: false, showBattery: false },
       },
     ],
+    group: "Content",
   },
+  { key: "showStatus", label: "Bluetooth status", type: "boolean", default: true, group: "Content" },
+  { key: "showDevices", label: "Paired devices", type: "boolean", default: true, group: "Content" },
+  { key: "showBattery", label: "Battery levels", type: "boolean", default: true, group: "Content" },
+  { key: "batteryMidColor", label: "Battery medium color", type: "color", default: "", group: "Battery colors" },
+  { key: "batteryLowColor", label: "Battery low color", type: "color", default: "", group: "Battery colors" },
 ];
 
 export const bluetoothModernModule: DashboardModule = {

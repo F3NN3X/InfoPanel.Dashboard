@@ -4,7 +4,13 @@ import { useSensorsConnected, useSensorsTimestamp } from "@/hooks/useSensors";
 import { Badge } from "@/components/ui/badge";
 import { PlacementFrame } from "@/components/studio/placement-frame";
 import { LivePlacement } from "@/components/studio/placement-content";
-import { applyTheme } from "@/lib/theme";
+import { PageBackground } from "@/components/page-background";
+import { resolveBackground } from "@/lib/appearance";
+import { appearanceOf } from "@/lib/style-resolve";
+import { applyTheme, resolveTheme } from "@/lib/theme";
+import { fontStack, formatClock, resolveGeneral } from "@/lib/general";
+import { profileGap, profilePadding } from "@/lib/profile-grid";
+import { GeneralProvider, useGeneral } from "@/hooks/use-general";
 import { setApiBase } from "@/lib/data-api";
 import {
   CONFIG_EVENTS_URL,
@@ -59,6 +65,9 @@ export default function App() {
 
   const profile = resolveProfile(config, windowSize.w, windowSize.h);
   const fill = profile.fit === "fill";
+  const background = resolveBackground(config, profile);
+  const appearance = appearanceOf(config, profile);
+  const general = useMemo(() => resolveGeneral({ general: config.general }), [config.general]);
 
   // Persist the config (layout, profiles, theme) on every change.
   useEffect(() => saveConfig(config), [config]);
@@ -132,11 +141,17 @@ export default function App() {
   // client reconnect to the new base.
   useEffect(() => setApiBase(config.dataApiUrl), [config.dataApiUrl]);
 
-  // Apply the theme as CSS variables on :root.
-  useEffect(
-    () => applyTheme(config.theme, config.radius),
-    [config.theme, config.radius]
-  );
+  // Apply the theme as CSS variables on :root: the shown profile's (its
+  // own colours over the dashboard's). The studio's chrome keeps the
+  // dashboard theme; its canvas scopes the edited profile's.
+  const shownTheme = studio ? undefined : profile;
+  useEffect(() => {
+    const { tokens, radius } = resolveTheme(
+      { theme: config.theme, radius: config.radius },
+      shownTheme && { theme: shownTheme.theme, radius: shownTheme.radius }
+    );
+    applyTheme(tokens, radius);
+  }, [config.theme, config.radius, shownTheme?.theme, shownTheme?.radius]);
 
   // Track window size for automatic profile selection.
   useEffect(() => {
@@ -168,95 +183,108 @@ export default function App() {
   // The dedicated studio replaces the whole view.
   if (studio) {
     return (
-      <Suspense fallback={null}>
-        <StudioView
-          config={config}
-          profile={profile}
-          setConfig={setConfig}
-          windowWidth={windowSize.w}
-          windowHeight={windowSize.h}
-          onExitStudio={exitStudio}
-          onSave={handleStudioSave}
-        />
-      </Suspense>
+      <GeneralProvider value={general}>
+        <Suspense fallback={null}>
+          <StudioView
+            config={config}
+            profile={profile}
+            setConfig={setConfig}
+            windowWidth={windowSize.w}
+            windowHeight={windowSize.h}
+            onExitStudio={exitStudio}
+            onSave={handleStudioSave}
+          />
+        </Suspense>
+      </GeneralProvider>
     );
   }
 
   return (
-    <div
-      className={cn(
-        "flex flex-col bg-background text-foreground",
-        kiosk && "kiosk",
-        fill
-          ? kiosk
-            ? "h-screen overflow-hidden"
-            : "h-screen overflow-hidden p-3 gap-3"
-          : "min-h-screen p-6 gap-4"
-      )}
-    >
-      {/* Header (hidden in kiosk mode) */}
-      {!kiosk && (
-        <div className={cn("flex items-center justify-between", fill && "shrink-0")}>
-          <div className="flex items-baseline gap-3">
-            <h1
-              className={cn(
-                "font-semibold tracking-tight",
-                fill ? "text-base" : "text-2xl"
-              )}
-            >
-              System Dashboard
-            </h1>
-            {!fill && (
-              <p className="text-sm text-muted-foreground">
-                Live data from the InfoPanel Data API
-              </p>
-            )}
-          </div>
-          <ConnectionStatus />
-        </div>
-      )}
-
-      {/* Kiosk grid of zones (read-only) */}
+    <GeneralProvider value={general}>
       <div
-        className={cn("grid gap-3", fill && "min-h-0 flex-1")}
-        style={{
-          gridTemplateColumns: `repeat(${profile.cols}, minmax(0, 1fr))`,
-          // Explicit uniform rows, mirroring the studio canvas.
-          gridTemplateRows: fill
-            ? `repeat(${profile.rows}, minmax(0, 1fr))`
-            : `repeat(${profile.rows}, ${SCROLL_ROW_H}px)`,
-        }}
+        className={cn(
+          // A page background replaces the theme's page color (it sits
+          // behind the grid, under this element's own paint).
+          "flex flex-col text-foreground",
+          !background && "bg-background",
+          kiosk && "kiosk",
+          kiosk && general.hideCursor && "kiosk-hide-cursor",
+          fill
+            ? kiosk
+              ? "h-screen overflow-hidden"
+              : "h-screen overflow-hidden gap-3"
+            : "min-h-screen gap-4"
+        )}
+        style={{ padding: profilePadding(profile, kiosk), fontFamily: fontStack(general.font) }}
       >
-        {profile.placements
-          .filter((p) => p.visible)
-          .map((p) => (
-            <LivePlacement key={p.id} placement={p} profileStyle={profile.style}>
-              {({ content, hasData, title, idle }) => (
-                <PlacementFrame
-                  placement={p}
-                  profile={profile}
-                  studio={false}
-                  hasData={hasData && !idle}
-                  title={title}
-                >
-                  {content}
-                </PlacementFrame>
-              )}
-            </LivePlacement>
-          ))}
-      </div>
+        {background && <PageBackground background={background} className="fixed inset-0 -z-10" />}
 
-      {/* Floating entry to the studio (not on display-only kiosk pages) */}
-      {!kiosk && (
-        <button
-          onClick={enterStudio}
-          className="fixed bottom-4 right-4 z-50 rounded-full border bg-popover p-2.5 text-muted-foreground shadow-lg opacity-50 transition-opacity hover:opacity-100"
-          title="Open dashboard studio"
+        {/* Header (hidden in kiosk mode) */}
+        {!kiosk && (
+          <div className={cn("flex items-center justify-between", fill && "shrink-0")}>
+            <div className="flex items-baseline gap-3">
+              <h1
+                className={cn(
+                  "font-semibold tracking-tight",
+                  fill ? "text-base" : "text-2xl"
+                )}
+              >
+                System Dashboard
+              </h1>
+              {!fill && (
+                <p className="text-sm text-muted-foreground">
+                  Live data from the InfoPanel Data API
+                </p>
+              )}
+            </div>
+            <ConnectionStatus />
+          </div>
+        )}
+
+        {/* Kiosk grid of zones (read-only) */}
+        <div
+          className={cn("grid", fill && "min-h-0 flex-1")}
+          style={{
+            gap: profileGap(profile),
+            gridTemplateColumns: `repeat(${profile.cols}, minmax(0, 1fr))`,
+            // Explicit uniform rows, mirroring the studio canvas.
+            gridTemplateRows: fill
+              ? `repeat(${profile.rows}, minmax(0, 1fr))`
+              : `repeat(${profile.rows}, ${SCROLL_ROW_H}px)`,
+          }}
         >
-          <Wrench className="h-4 w-4" />
-        </button>
-      )}
-    </div>
+          {profile.placements
+            .filter((p) => p.visible)
+            .map((p) => (
+              <LivePlacement key={p.id} placement={p} appearance={appearance}>
+                {({ content, hasData, title, idle, scope }) => (
+                  <PlacementFrame
+                    placement={p}
+                    profile={profile}
+                    studio={false}
+                    hasData={hasData && !idle}
+                    title={title}
+                    scope={scope}
+                  >
+                    {content}
+                  </PlacementFrame>
+                )}
+              </LivePlacement>
+            ))}
+        </div>
+
+        {/* Floating entry to the studio (not on display-only kiosk pages) */}
+        {!kiosk && (
+          <button
+            onClick={enterStudio}
+            className="fixed bottom-4 right-4 z-50 rounded-full border bg-popover p-2.5 text-muted-foreground shadow-lg opacity-50 transition-opacity hover:opacity-100"
+            title="Open dashboard studio"
+          >
+            <Wrench className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+    </GeneralProvider>
   );
 }
 
@@ -264,6 +292,7 @@ export default function App() {
 function ConnectionStatus() {
   const connected = useSensorsConnected();
   const timestamp = useSensorsTimestamp();
+  const general = useGeneral();
   return (
     <div className="flex items-center gap-3">
       <Badge variant={connected ? "default" : "destructive"} className="gap-1.5">
@@ -274,7 +303,7 @@ function ConnectionStatus() {
       </Badge>
       {timestamp > 0 && (
         <span className="text-xs text-muted-foreground">
-          {new Date(timestamp).toLocaleTimeString()}
+          {formatClock(new Date(timestamp), { ...general, showSeconds: true }).time}
         </span>
       )}
     </div>

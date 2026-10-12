@@ -1,19 +1,27 @@
 import { SmartValue } from "@/components/SmartValue";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { ModernChrome } from "@/components/modern-chrome";
+import { StyledCard } from "@/components/styled-card";
 import type { SensorValue } from "@/hooks/useSensors";
 
 /**
  * Generic card for sensor keys no registered module claimed — new plugins
  * that don't have a dedicated module render here automatically. Image URL
  * values (cover art, icons, banners) render as <img>; multi-line values
- * (flattened tables) render line by line.
+ * (flattened tables) render line by line. The card follows the zone's
+ * style (`StyledCard`); the zone wraps the grid in its `ModernChrome`.
  */
 export function GenericCard({
   sensorKey,
   sensor,
+  surface,
+  chrome,
 }: {
   sensorKey: string;
   sensor: SensorValue;
+  /** The zone's resolved `surface` setting (default: the theme card). */
+  surface?: unknown;
+  chrome?: ModernChrome;
 }) {
   const title = sensor.name ?? sensorKey;
   const display =
@@ -24,7 +32,7 @@ export function GenericCard({
         : undefined;
 
   return (
-    <Card className="flex min-h-0 min-w-0 flex-col overflow-hidden border-border bg-card">
+    <StyledCard surface={surface ?? "theme"} chrome={chrome}>
       <CardHeader className="shrink-0 pb-2">
         <CardTitle
           className="truncate text-sm font-medium text-muted-foreground"
@@ -52,6 +60,6 @@ export function GenericCard({
           <div className="mt-2 text-xs text-muted-foreground/60">{sensor.source}</div>
         )}
       </CardContent>
-    </Card>
+    </StyledCard>
   );
 }

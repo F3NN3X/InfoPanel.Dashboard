@@ -51,6 +51,14 @@ describe("shortcutAction", () => {
     expect(shortcutAction(key("-", { ctrlKey: true }), IDLE)).toEqual({ type: "zoom-out" });
   });
 
+  it("maps Ctrl+\ to the dock toggle, but not while typing or with a dialog open", () => {
+    expect(shortcutAction(key("\\", { ctrlKey: true }), IDLE)).toEqual({ type: "toggle-dock" });
+    expect(shortcutAction(key("\\", { metaKey: true }), { ...IDLE, widget: true })).toEqual({ type: "toggle-dock" });
+    expect(shortcutAction(key("\\", { ctrlKey: true }), TYPING)).toBeNull();
+    expect(shortcutAction(key("\\", { ctrlKey: true }), DIALOG)).toBeNull();
+    expect(shortcutAction(key("\\"), IDLE)).toBeNull();
+  });
+
   it("leaves unrelated keys and Alt combos alone", () => {
     expect(shortcutAction(key("a"), IDLE)).toBeNull();
     expect(shortcutAction(key("c", { ctrlKey: true }), IDLE)).toBeNull();

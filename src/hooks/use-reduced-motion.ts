@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { useGeneral } from "./use-general";
 
 const QUERY = "(prefers-reduced-motion: reduce)";
 
@@ -22,6 +23,12 @@ const getSnapshot = () =>
 
 const getServerSnapshot = () => false;
 
-/** True when the user asked the system to reduce motion. */
-export const useReducedMotion = (): boolean =>
-  useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+/**
+ * True when motion should be reduced: the OS setting, unless General ›
+ * Motion overrides it ("reduce" / "full" beat the OS).
+ */
+export const useReducedMotion = (): boolean => {
+  const system = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const { motion } = useGeneral();
+  return motion === "system" ? system : motion === "reduce";
+};

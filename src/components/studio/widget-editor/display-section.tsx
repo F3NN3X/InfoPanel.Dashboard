@@ -1,6 +1,5 @@
 import { Segmented } from "@/components/ui/segmented";
 import type { Widget, WidgetKind } from "@/lib/panel-model";
-import { CollapsibleSection } from "../collapsible-section";
 import { Field, NumberInput, TextInput } from "./fields";
 import type { WidgetSectionProps } from "./types";
 
@@ -10,11 +9,13 @@ const ALIGNABLE: ReadonlySet<WidgetKind> = new Set(["stat", "value", "table", "t
 /** Kinds with display options of their own. */
 const HAS_DISPLAY: ReadonlySet<WidgetKind> = new Set([...ALIGNABLE, "image", "shape", "sparkline"]);
 
+/** Whether the widget's kind has display options. */
+export const hasDisplay = (widget: WidgetSectionProps["widget"]) => HAS_DISPLAY.has(widget.kind);
+
 /** How the widget's kind presents its data (shape, rows, clock layout, …). */
-export function DisplaySection({ widget, set }: WidgetSectionProps) {
-  if (!HAS_DISPLAY.has(widget.kind)) return null;
+export function DisplayFields({ widget, set }: WidgetSectionProps) {
   return (
-    <CollapsibleSection id="panel-widget:display" title="Display" defaultOpen>
+    <>
       {widget.kind === "shape" && (
         <>
           <Field label="Shape">
@@ -130,6 +131,6 @@ export function DisplaySection({ widget, set }: WidgetSectionProps) {
           />
         </Field>
       )}
-    </CollapsibleSection>
+    </>
   );
 }

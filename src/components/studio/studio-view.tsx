@@ -2,6 +2,7 @@ import {
   useEffect,
   useRef,
   useState,
+  type CSSProperties,
   type Dispatch,
   type SetStateAction,
 } from "react";
@@ -21,28 +22,37 @@ import {
   type Placement,
   type Widget,
 } from "@/lib/layout";
+import { resolveBackground } from "@/lib/appearance";
 import { useSensorCatalog } from "@/lib/catalog";
+import { appearanceOf } from "@/lib/style-resolve";
 import { findPanelPreset, type PanelPreset } from "@/lib/panelPresets";
-import { THEME_PRESETS, type ThemeTokens } from "@/lib/theme";
+import { resolveTheme, themeVars } from "@/lib/theme";
 import * as actions from "./studio-actions";
+import { followAll, toggleEnforce } from "./appearance-actions";
 import { CommandPalette } from "./command-palette";
 import { buildCommands, type CommandAction } from "./commands";
 import { copyProfileJson, exportConfigFile, importConfigFile } from "./config-file";
-import { DocumentInspector, type DocumentTab } from "./document-inspector";
+import { DOCUMENT_CARD, DocumentInspector } from "./document-inspector";
+import { useDocumentProps } from "./use-document-props";
 import { StudioCanvas } from "./studio-canvas";
 import { StudioTopBar } from "./studio-top-bar";
-import { insertables, InsertPanel } from "./insert-panel";
-import { LayersPanel } from "./layers-panel";
-import { DRAWER_TITLES, LeftDrawer, LeftRail, useStoredDrawer, type RailItem } from "./left-rail";
+import { insertables } from "./insert-panel";
+import { LeftRail, useStoredDrawer, type RailItem } from "./left-rail";
+import { StudioDrawer } from "./studio-drawers";
+import { StudioShell } from "./studio-shell";
 import { deletePanelPreset, renamePanelPreset, savePanelPreset } from "./panel-preset-actions";
 import { panelWidgetActions } from "./panel-widget-actions";
-import { ProfilesPanel } from "./profiles-panel";
 import { ShortcutsDialog } from "./shortcuts-dialog";
-import { moduleMinSize } from "./studio-modules";
+import { moduleMinSize, placementTitle } from "./studio-modules";
 import { useCanvasZoom } from "./use-canvas-zoom";
+import { cn } from "@/lib/utils";
+import { DockToggle } from "./dock-toggle";
+import { InspectorLayoutProvider } from "./inspector-layout";
+import { revealWidgetEditor, scrollInspectorToTop } from "./inspector-scroll";
+import { DRAWER_WIDTH, RAIL_WIDTH, pageSize, useStudioLayout } from "./use-studio-layout";
 import { useStudioShortcuts, type ShortcutAction } from "./use-studio-shortcuts";
 import { fitZoneRect, nudgeZone, resizeZone, type ZoneRect } from "./zone-geometry";
-import { ZoneInspector, type InspectorTab } from "./zone-inspector";
+import { ZoneInspector } from "./zone-inspector";
 import { ZoneToolbar } from "./zone-toolbar";
 import { widgetName } from "./widget-kinds";
 import { WidgetPickerDialog } from "./widget-picker-dialog";
@@ -81,12 +91,11 @@ export function StudioView({
   const history = useConfigHistory(config, setConfigState);
   const setConfig = history.set;
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  /** The zone inspector's open tab, kept across selections. */
-  const [inspectorTab, setInspectorTab] = useState<InspectorTab>("content");
+  /** A request to scroll the zone inspector to a card (`seq` makes repeats count). */
+  const [inspectorJump, setInspectorJump] = useState<{ id: string; seq: number }>();
+  const jumpInspector = (id: string) => setInspectorJump((j) => ({ id, seq: (j?.seq ?? 0) + 1 }));
   /** The zone inspector's settings search ("Go to setting" fills it). */
   const [inspectorQuery, setInspectorQuery] = useState("");
-  /** The document inspector's open tab (nothing selected). */
-  const [documentTab, setDocumentTab] = useState<DocumentTab>("theme");
   const [showGrid, setShowGrid] = useState(true);
   const [showSources, setShowSources] = useState(false);
   const [drawer, setDrawer] = useStoredDrawer();
@@ -98,8 +107,15 @@ export function StudioView({
   const [pickerFor, setPickerFor] = useState<string | null>(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
-  const { zoom, setZoom, zoomStep, fitZoom, scrollRef, attachScroll } =
-    useCanvasZoom(profile.width);
+  const page = pageSize(profile);
+  const { zoom, setZoom, zoomStep, fitZoom, scrollRef, attachScroll } = useCanvasZoom(page);
+  const studioLayout = useStudioLayout({
+    page,
+    rail: RAIL_WIDTH,
+    drawer: !showSources && drawer ? DRAWER_WIDTH : 0,
+    forceSide: showSources,
+  });
+  const docked = studioLayout.layout.placement === "bottom";
   /** Sensor names for widget names (toolbar crumb, palette). */
   const catalog = useSensorCatalog();
   /** The panel inspector's "Save as panel preset" name input is open. */
@@ -117,11 +133,16 @@ export function StudioView({
 
   // A new selection starts the inspector at the top (no preset name input).
   useEffect(() => {
-    inspectorRef.current?.scrollTo({ top: 0 });
+    scrollInspectorToTop(inspectorRef.current);
     setPresetNaming(false);
   }, [selectedId]);
 
   const selected = profile.placements.find((p) => p.id === selectedId) ?? null;
+
+  // Selecting a zone brings a collapsed dock back (its inspector is the point).
+  useEffect(() => {
+    if (selectedId !== null && studioLayout.collapsed) studioLayout.setCollapsed(false);
+  }, [selectedId]);
 
   // An undo/redo (or any edit) can remove the selected zone: deselect.
   useEffect(() => {
@@ -150,27 +171,15 @@ export function StudioView({
     setWidgetSel(widgetId === null ? null : { zoneId, widgetId });
   };
 
-  /** Canvas / palette pick: also opens the Content tab, where its editor is. */
-  const showWidget = (zoneId: string, widgetId: string | null) => {
-    selectWidget(zoneId, widgetId);
-    if (widgetId !== null) setInspectorTab("content");
-  };
+  /** Canvas / palette pick (the editor is revealed by the effect below). */
+  const showWidget = selectWidget;
 
-  /** Scroll the inspector so the widget editor shows below its sticky header. */
-  const revealWidgetEditor = () => {
-    const aside = inspectorRef.current;
-    const editor = aside?.querySelector<HTMLElement>("[data-widget-editor]");
-    if (!aside || !editor) return;
-    const header = aside.querySelector<HTMLElement>("[data-inspector-header]")?.offsetHeight ?? 0;
-    const top = editor.getBoundingClientRect().top - aside.getBoundingClientRect().top;
-    if (top >= header && top < aside.clientHeight - 64) return; // already in view
-    aside.scrollTo({ top: aside.scrollTop + top - header - 8, behavior: "smooth" });
-  };
+  const revealEditor = () => revealWidgetEditor(inspectorRef.current);
 
-  // A newly selected widget brings its editor into view (Content tab).
+  // A newly selected widget brings its editor into view.
   useEffect(() => {
-    if (selectedWidgetId !== null && inspectorTab === "content") revealWidgetEditor();
-  }, [selectedWidgetId, inspectorTab]);
+    if (selectedWidgetId !== null) revealEditor();
+  }, [selectedWidgetId]);
 
   /** The style copied with "Copy" in the inspector (session only). */
   const [styleClipboard, setStyleClipboard] = useState<ModuleSettings | null>(null);
@@ -253,9 +262,11 @@ export function StudioView({
     }
     if (showSources) {
       setShowSources(false);
+      studioLayout.setCollapsed(false);
       setDrawer(item);
       return;
     }
+    if (drawer !== item) studioLayout.setCollapsed(false);
     setDrawer(drawer === item ? null : item);
   };
 
@@ -332,8 +343,12 @@ export function StudioView({
     setPickerFor(id);
   };
 
-  const setProfileStyle = (fn: (style: ModuleSettings) => ModuleSettings) =>
-    updateProfile((p) => actions.setProfileStyle(p, fn), "profile-style");
+  const { props: documentProps, setScopeStyle, appearancePresets } = useDocumentProps(
+    config,
+    profile,
+    setConfig,
+    updateProfile
+  );
 
   const addProfile = () => {
     const np = newProfile(
@@ -359,10 +374,10 @@ export function StudioView({
 
   const activateProfile = (id: string) => setConfig((c) => ({ ...c, activeProfile: id }));
 
-  const applyPreset = (name: string) => {
-    const preset = THEME_PRESETS.find((p) => p.name === name);
-    if (preset) setConfig((c) => ({ ...c, theme: { ...preset.tokens } }));
-  };
+  /** The profile's own theme, scoped to the canvas (the chrome keeps the dashboard's). */
+  const ownTheme = profile.theme !== undefined || profile.radius !== undefined;
+  const canvasTheme = ownTheme ? resolveTheme(config, profile) : null;
+  const themeScope = canvasTheme ? (themeVars(canvasTheme.tokens, canvasTheme.radius) as CSSProperties) : undefined;
 
   /* ---------------- keyboard shortcuts + command palette ---------------- */
 
@@ -430,7 +445,12 @@ export function StudioView({
         return activateProfile(action.id);
       case "drawer":
         setShowSources(false);
+        studioLayout.setCollapsed(false);
         return setDrawer(action.drawer);
+      case "layout":
+        return studioLayout.setMode(action.mode);
+      case "toggle-dock":
+        return docked && studioLayout.toggleCollapsed();
       case "sources":
         return setShowSources((v) => !v);
       case "toggle-grid":
@@ -459,12 +479,24 @@ export function StudioView({
       case "select":
         setShowSources(false);
         return focusZone(action.id);
-      case "tab":
+      case "goto-card":
         setInspectorQuery("");
-        return setInspectorTab(action.tab);
+        return jumpInspector(action.id);
       case "goto-setting":
-        setInspectorTab(action.tab);
         return setInspectorQuery(action.label);
+      case "document-tab":
+        setShowSources(false);
+        setSelectedId(null);
+        // The sheet mounts first; then it scrolls to the card.
+        return void requestAnimationFrame(() => jumpInspector(DOCUMENT_CARD[action.tab]));
+      case "follow-all":
+        return updateProfile(followAll);
+      case "toggle-enforce":
+        return setConfig((c) => toggleEnforce(c, profile));
+      case "apply-appearance": {
+        const preset = appearancePresets.presets.find((p) => p.id === action.id);
+        return preset && appearancePresets.apply(preset, "all");
+      }
     }
     if (!selected) return;
     switch (action.type) {
@@ -479,8 +511,7 @@ export function StudioView({
       case "save-panel-preset":
         setShowSources(false);
         setInspectorQuery("");
-        setInspectorTab("content");
-        inspectorRef.current?.scrollTo({ top: 0 });
+        jumpInspector("panel");
         return setPresetNaming(true);
       case "select-widget":
         return showWidget(selected.id, action.id);
@@ -503,6 +534,8 @@ export function StudioView({
 
   const selectedModule =
     selected && !selected.panel ? modules.find((m) => m.id === selected.module) : undefined;
+  /** The global style the zones render under. */
+  const appearance = appearanceOf(config, profile);
   const commands = paletteOpen
     ? buildCommands({
         insertables: insertables(config.panelPresets),
@@ -516,173 +549,29 @@ export function StudioView({
         canRedo: history.canRedo,
         showGrid,
         showSources,
+        layoutMode: studioLayout.mode,
+        enforced: appearance.enforce,
+        appearancePresets: appearancePresets.presets,
       })
     : [];
 
-  return (
-    <div className="flex h-screen flex-col overflow-hidden bg-background text-foreground">
-      <StudioTopBar
-        profiles={config.profiles}
-        activeProfile={config.activeProfile}
-        profile={profile}
-        onActivate={activateProfile}
-        mode={showSources ? "sources" : "design"}
-        onMode={(mode) => setShowSources(mode === "sources")}
-        saved={saved}
-        onSave={handleSave}
-        onExitStudio={onExitStudio}
-        onExport={() => exportConfigFile(config)}
-        onImport={() => importRef.current?.click()}
-        onReset={() => setConfig(defaultConfig())}
-        canUndo={history.canUndo}
-        canRedo={history.canRedo}
-        onUndo={history.undo}
-        onRedo={history.redo}
-        onPalette={() => setPaletteOpen(true)}
-        onShortcuts={() => setShortcutsOpen(true)}
-      />
-      <div className="flex min-h-0 flex-1 overflow-x-auto">
-        <LeftRail active={showSources ? "sources" : drawer} onSelect={onRail} />
-        {!showSources && drawer && (
-          <LeftDrawer title={DRAWER_TITLES[drawer]}>
-            {drawer === "add" && (
-              <InsertPanel
-                placements={profile.placements}
-                savedPanels={config.panelPresets}
-                onAddModule={addPlacement}
-                onAddPreset={addPanelPreset}
-                onRenamePreset={renameSavedPanel}
-                onDeletePreset={deleteSavedPanel}
-              />
-            )}
-            {drawer === "layers" && (
-              <LayersPanel
-                placements={profile.placements}
-                selectedId={selectedId}
-                onSelect={focusZone}
-                onToggle={toggleVisible}
-                onRemove={removePlacement}
-              />
-            )}
-            {drawer === "profiles" && (
-              <ProfilesPanel
-                profiles={config.profiles}
-                activeProfile={config.activeProfile}
-                profile={profile}
-                autoProfileId={
-                  resolveProfile({ ...config, activeProfile: "auto" }, windowWidth, windowHeight).id
-                }
-                onActivate={activateProfile}
-                onAddProfile={addProfile}
-                onRemoveProfile={removeProfile}
-                onProfileChange={(patch) =>
-                  updateProfile((p) => ({ ...p, ...patch }), `profile:${Object.keys(patch).join()}`)
-                }
-                onCols={(delta) => updateProfile((p) => actions.changeCols(p, delta))}
-                onRows={(delta) => updateProfile((p) => actions.changeRows(p, delta))}
-              />
-            )}
-          </LeftDrawer>
-        )}
-
-        <main className="flex min-w-[420px] flex-1 flex-col">
-
-          {showSources ? (
-            <div className="min-h-0 flex-1 overflow-hidden bg-background/40">
-              <SourcesPanel
-                sourcePrefs={config.sourcePrefs}
-                onPrefsChange={(key, pref) =>
-                  setConfig(
-                    (c) => ({
-                      ...c,
-                      sourcePrefs: {
-                        ...c.sourcePrefs,
-                        [key]: { ...c.sourcePrefs?.[key], ...pref },
-                      },
-                    }),
-                    `source-pref:${key}`
-                  )
-                }
-                placements={profile.placements}
-                onBind={(placementId, container) =>
-                  updatePlacement(placementId, (p) => ({
-                    ...p,
-                    settings: { ...p.settings, source: container },
-                  }))
-                }
-                onUnbind={(placementId) =>
-                  updatePlacement(placementId, (p) => {
-                    const settings = { ...p.settings };
-                    delete settings.source;
-                    return { ...p, settings };
-                  })
-                }
-              />
-            </div>
-          ) : (
-            <StudioCanvas
-              profile={profile}
-              zoom={zoom}
-              showGrid={showGrid}
-              scrollRef={scrollRef}
-              attachScroll={attachScroll}
-              selectedId={selectedId}
-              onSelect={setSelectedId}
-              selectedWidgetId={selectedWidgetId}
-              onSelectWidget={showWidget}
-              onDrawZone={addDrawnZone}
-              onZoneRect={(id, rect) => setZoneRect(id, rect, `zone-drag:${id}`)}
-              onPickWidget={pickWidget}
-              onAddModule={addPlacement}
-              onAddPreset={addPanelPresetById}
-              onOpenAdd={() => setDrawer("add")}
-              zoneToolbar={
-                selected && (
-                  <ZoneToolbar
-                    placement={selected}
-                    widgetLabel={selectedWidget ? widgetName(selectedWidget, catalog) : undefined}
-                    onPickWidget={() => setPickerFor(selected.id)}
-                    canResize={(size) => resizeSelected(size) !== null}
-                    onResize={(size) => {
-                      const rect = resizeSelected(size);
-                      if (rect) setZoneRect(selected.id, rect);
-                    }}
-                    onToggleVisible={() => toggleVisible(selected.id)}
-                    onDuplicate={() => duplicatePlacement(selected.id)}
-                    onRemove={() => removePlacement(selected.id)}
-                    onStyle={() => setInspectorTab("style")}
-                  />
-                )
-              }
-              overlay={
-                <ZoomToolbar
-                  zoom={zoom}
-                  showGrid={showGrid}
-                  onToggleGrid={() => setShowGrid((s) => !s)}
-                  onZoomStep={zoomStep}
-                  onZoomReset={() => setZoom(1)}
-                  onFit={fitZoom}
-                  profile={profile}
-                />
-              }
-            />
-          )}
-        </main>
-
+  const inspectorAside = (
         <aside
           ref={inspectorRef}
-          className="flex w-72 shrink-0 flex-col overflow-y-auto border-l bg-popover/40"
+          className={cn(
+            "flex flex-col bg-popover/40",
+            docked ? "h-full min-w-0 flex-1 overflow-hidden" : "w-72 shrink-0 overflow-y-auto border-l"
+          )}
         >
+          <InspectorLayoutProvider value={docked ? "dock" : "side"}>
           {selected ? (
             <ZoneInspector
               placement={selected}
               cols={profile.cols}
               rows={profile.rows}
-              profileStyle={profile.style}
-              themeAccent={config.theme.accent}
+              appearance={appearance}
               stylePresets={config.stylePresets ?? []}
-              tab={inspectorTab}
-              onTabChange={setInspectorTab}
+              jumpTo={inspectorJump}
               styleClipboard={styleClipboard}
               onCopyStyle={setStyleClipboard}
               widgetClipboard={widgetClipboard}
@@ -691,8 +580,7 @@ export function StudioView({
               onSelectWidget={(id) => selectWidget(selected.id, id)}
               onShowWidget={() => {
                 setInspectorQuery("");
-                setInspectorTab("content");
-                requestAnimationFrame(revealWidgetEditor);
+                requestAnimationFrame(revealEditor);
               }}
               query={inspectorQuery}
               onQuery={setInspectorQuery}
@@ -700,7 +588,7 @@ export function StudioView({
               update={updateSelected}
               onZoneBox={setZoneBox}
               onPickWidget={() => setPickerFor(selected.id)}
-              onUseForProfile={(style) => setProfileStyle(() => style)}
+              onUseAsGlobal={(target, style) => setScopeStyle(target, () => style)}
               onSavePreset={(name, settings) =>
                 setConfig((c) => ({
                   ...c,
@@ -724,29 +612,176 @@ export function StudioView({
               onSavePanelPreset={savePanelAsPreset}
             />
           ) : (
-            <DocumentInspector
-              tab={documentTab}
-              onTabChange={setDocumentTab}
-              theme={config.theme}
-              radius={config.radius}
-              onToken={(key, value) =>
-                setConfig(
-                  (c) => ({ ...c, theme: { ...c.theme, [key]: value } as ThemeTokens }),
-                  `theme:${key}`
-                )
-              }
-              onRadius={(radius) => setConfig((c) => ({ ...c, radius }), "radius")}
-              onThemePreset={applyPreset}
-              profileStyle={profile.style}
-              onProfileStyle={setProfileStyle}
-              dataApiUrl={config.dataApiUrl}
-              onDataApiUrl={(dataApiUrl) =>
-                setConfig((c) => ({ ...c, dataApiUrl }), "data-api-url")
-              }
-            />
+            <DocumentInspector jumpTo={inspectorJump} {...documentProps} />
           )}
+          </InspectorLayoutProvider>
         </aside>
-      </div>
+  );
+
+  const drawerEl = drawer && (
+    <StudioDrawer
+      drawer={drawer}
+      docked={docked}
+      onClose={() => setDrawer(null)}
+      insert={{
+        placements: profile.placements,
+        savedPanels: config.panelPresets,
+        onAddModule: addPlacement,
+        onAddPreset: addPanelPreset,
+        onRenamePreset: renameSavedPanel,
+        onDeletePreset: deleteSavedPanel,
+      }}
+      layers={{
+        placements: profile.placements,
+        selectedId,
+        onSelect: focusZone,
+        onToggle: toggleVisible,
+        onRemove: removePlacement,
+      }}
+      profiles={{
+        profiles: config.profiles,
+        activeProfile: config.activeProfile,
+        profile,
+        autoProfileId: resolveProfile({ ...config, activeProfile: "auto" }, windowWidth, windowHeight).id,
+        onActivate: activateProfile,
+        onAddProfile: addProfile,
+        onRemoveProfile: removeProfile,
+        onProfileChange: (patch) =>
+          updateProfile((p) => ({ ...p, ...patch }), `profile:${Object.keys(patch).join()}`),
+        onCols: (delta) => updateProfile((p) => actions.changeCols(p, delta)),
+        onRows: (delta) => updateProfile((p) => actions.changeRows(p, delta)),
+      }}
+    />
+  );
+
+  const mainEl = showSources ? (
+    <div className="min-h-0 flex-1 overflow-hidden bg-background/40">
+      <SourcesPanel
+        sourcePrefs={config.sourcePrefs}
+        onPrefsChange={(key, pref) =>
+          setConfig(
+            (c) => ({
+              ...c,
+              sourcePrefs: {
+                ...c.sourcePrefs,
+                [key]: { ...c.sourcePrefs?.[key], ...pref },
+              },
+            }),
+            `source-pref:${key}`
+          )
+        }
+        placements={profile.placements}
+        onBind={(placementId, container) =>
+          updatePlacement(placementId, (p) => ({
+            ...p,
+            settings: { ...p.settings, source: container },
+          }))
+        }
+        onUnbind={(placementId) =>
+          updatePlacement(placementId, (p) => {
+            const settings = { ...p.settings };
+            delete settings.source;
+            return { ...p, settings };
+          })
+        }
+      />
+    </div>
+  ) : (
+    <StudioCanvas
+      profile={profile}
+      background={resolveBackground(config, profile)}
+      appearance={appearance}
+      themeScope={themeScope}
+      zoom={zoom}
+      showGrid={showGrid}
+      scrollRef={scrollRef}
+      attachScroll={attachScroll}
+      selectedId={selectedId}
+      onSelect={setSelectedId}
+      selectedWidgetId={selectedWidgetId}
+      onSelectWidget={showWidget}
+      onDrawZone={addDrawnZone}
+      onZoneRect={(id, rect) => setZoneRect(id, rect, `zone-drag:${id}`)}
+      onPickWidget={pickWidget}
+      onAddModule={addPlacement}
+      onAddPreset={addPanelPresetById}
+      onOpenAdd={() => setDrawer("add")}
+      zoneToolbar={
+        selected && (
+          <ZoneToolbar
+            placement={selected}
+            widgetLabel={selectedWidget ? widgetName(selectedWidget, catalog) : undefined}
+            onPickWidget={() => setPickerFor(selected.id)}
+            canResize={(size) => resizeSelected(size) !== null}
+            onResize={(size) => {
+              const rect = resizeSelected(size);
+              if (rect) setZoneRect(selected.id, rect);
+            }}
+            onToggleVisible={() => toggleVisible(selected.id)}
+            onDuplicate={() => duplicatePlacement(selected.id)}
+            onRemove={() => removePlacement(selected.id)}
+            onStyle={() => jumpInspector("colors")}
+            onDeselect={() => setSelectedId(null)}
+          />
+        )
+      }
+    />
+  );
+
+  const bar = showSources ? null : (
+    <ZoomToolbar
+      zoom={zoom}
+      showGrid={showGrid}
+      onToggleGrid={() => setShowGrid((s) => !s)}
+      onZoomStep={zoomStep}
+      onZoomReset={() => setZoom(1)}
+      onFit={fitZoom}
+      profile={profile}
+      layoutMode={studioLayout.mode}
+      placement={studioLayout.layout.placement}
+      onLayoutMode={studioLayout.setMode}
+      leading={
+        docked && (
+          <DockToggle
+            collapsed={studioLayout.collapsed}
+            onToggle={studioLayout.toggleCollapsed}
+            summary={selected ? placementTitle(selected) : "Appearance · Background · General · Connection"}
+          />
+        )
+      }
+    />
+  );
+
+  return (
+    <div className="flex h-screen flex-col overflow-hidden bg-background text-foreground">
+      <StudioTopBar
+        profiles={config.profiles}
+        activeProfile={config.activeProfile}
+        profile={profile}
+        onActivate={activateProfile}
+        mode={showSources ? "sources" : "design"}
+        onMode={(mode) => setShowSources(mode === "sources")}
+        saved={saved}
+        onSave={handleSave}
+        onExitStudio={onExitStudio}
+        onExport={() => exportConfigFile(config)}
+        onImport={() => importRef.current?.click()}
+        onReset={() => setConfig(defaultConfig())}
+        canUndo={history.canUndo}
+        canRedo={history.canRedo}
+        onUndo={history.undo}
+        onRedo={history.redo}
+        onPalette={() => setPaletteOpen(true)}
+        onShortcuts={() => setShortcutsOpen(true)}
+      />
+      <StudioShell
+        layout={studioLayout}
+        rail={<LeftRail active={showSources ? "sources" : drawer} onSelect={onRail} />}
+        drawer={!showSources && drawer && drawerEl}
+        main={mainEl}
+        bar={bar}
+        inspector={inspectorAside}
+      />
 
       <WidgetPickerDialog
         placement={profile.placements.find((p) => p.id === pickerFor) ?? null}

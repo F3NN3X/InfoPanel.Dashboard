@@ -6,8 +6,8 @@ import { cn } from "@/lib/utils";
 import { ModernChrome } from "@/components/modern-chrome";
 import { flow, surfaceBox, ws } from "@/components/widget-style";
 import {
+  enforcedPanel,
   panelCardStyle,
-  panelScope,
   panelSurfaceColors,
   panelSurfaceOf,
   panelVars,
@@ -19,10 +19,15 @@ import { PanelStack } from "./panel-stack";
 interface PanelViewProps {
   panel: PanelDef;
   /**
-   * The placement's resolved settings (own, legacy fallbacks, profile
-   * style — see `panelSettings` / `withProfileStyle`): the panel's look.
+   * The placement's resolved settings (legacy look, dashboard and profile
+   * style, own — see `resolveStyle`): the panel's look.
    */
   settings?: ModuleSettings;
+  /**
+   * The global style is forced: the widgets' own colors give way to the
+   * resolved accent and text colors (`enforcedPanel`).
+   */
+  enforced?: boolean;
   sensors: SensorMap;
   /** Show a hint for empty panels (studio only). */
   studio?: boolean;
@@ -49,11 +54,12 @@ const joinCss = (...parts: (string | undefined)[]) => parts.filter((p) => p?.tri
  * `.wp-panel-title`, `.wp-panel-bg`, `.wp-panel-scrim`, `.wp-band[data-band]`
  * and `.wp-widget.wp-widget--{kind}[data-widget-id][data-widget-kind]`.
  */
-export function PanelView({ panel, settings, sensors, studio, selection }: PanelViewProps) {
+export function PanelView({ panel: own, settings, sensors, studio, selection, enforced }: PanelViewProps) {
   const cfg = settings ?? {};
-  const title = String(cfg.label ?? (panel.titleVisible ? panel.title : ""));
-  const surface = panelSurfaceOf(cfg.surface ?? panel.background);
-  const chrome = chromeOf({ accent: panel.accent ?? "", ...cfg });
+  const title = String(cfg.label ?? (own.titleVisible ? own.title : ""));
+  const surface = panelSurfaceOf(cfg.surface ?? own.background);
+  const chrome = chromeOf({ accent: own.accent ?? "", ...cfg });
+  const panel = enforced ? enforcedPanel(own, chrome.accent || undefined) : own;
   const overlay = panel.layout === "overlay";
   const hug = panel.fit === "hug";
   const layout = overlay ? "overlay" : panel.layout === "grid" ? "grid" : "stack";
@@ -80,7 +86,8 @@ export function PanelView({ panel, settings, sensors, studio, selection }: Panel
           )}
           data-panel-layout={layout}
           data-panel-id={panel.id}
-          style={{ ...panelScope(chrome), ...panelVars(panel), ...look }}
+          // The theme tokens are re-scoped on the ModernChrome root (`tokenScope`).
+          style={{ ...panelVars(panel), ...look }}
         >
           {overlay ? (
             <PanelOverlay

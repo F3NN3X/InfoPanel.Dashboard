@@ -4,6 +4,7 @@ import { CARDS_ID, type Placement } from "@/lib/layout";
 import type { UserPanelPreset } from "@/lib/panel-model";
 import { allPanelPresets, type PanelPreset } from "@/lib/panelPresets";
 import { cn } from "@/lib/utils";
+import { useInspectorLayout } from "./inspector-layout";
 import { InsertRow, type InsertContext } from "./insert-row";
 import { ALL_MODULES } from "./studio-modules";
 
@@ -152,6 +153,7 @@ export function InsertList({
   onDeletePreset,
 }: InsertListProps) {
   const inDrawer = context === "drawer";
+  const dock = useInspectorLayout() === "dock";
   const panels = items.filter((i) => i.kind === "panel");
   const sections = [
     { title: "Widgets", items: items.filter((i) => i.kind === "module") },
@@ -191,7 +193,8 @@ export function InsertList({
         .map((s) => (
           <section key={s.title} className="space-y-2">
             <div className={SECTION_LABEL}>{s.title}</div>
-            {s.items.map(row)}
+            {/* In the dock the cards form a two-column grid. */}
+            {dock ? <div className="grid grid-cols-2 gap-1.5">{s.items.map(row)}</div> : s.items.map(row)}
             <p className={NOTE}>{notes[s.title]}</p>
           </section>
         ))}

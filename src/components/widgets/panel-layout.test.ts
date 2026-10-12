@@ -3,9 +3,9 @@ import { describe, expect, it } from "vitest";
 import { normalizePanel, type PanelDef, type Widget } from "@/lib/panel-model";
 import { chromeOf, STANDARD_DEFAULTS } from "@/modules/standard-settings";
 import {
+  enforcedPanel,
   panelCardStyle,
   panelLayoutStyle,
-  panelScope,
   panelSurfaceOf,
   panelVars,
   widgetBoxStyle,
@@ -198,21 +198,43 @@ describe("panelCardStyle", () => {
   });
 });
 
-describe("panelSurfaceOf / panelScope", () => {
+describe("panelSurfaceOf", () => {
   it("falls back to the card for unknown surfaces", () => {
     expect(panelSurfaceOf("bordered")).toBe("bordered");
     expect(panelSurfaceOf("glass")).toBe("glass");
+    expect(panelSurfaceOf("theme")).toBe("theme");
     expect(panelSurfaceOf("nope")).toBe("panel");
     expect(panelSurfaceOf(undefined)).toBe("panel");
   });
 
-  it("re-scopes the theme tokens to the panel's hex colors", () => {
-    expect(panelScope(undefined)).toBeUndefined();
-    expect(panelScope({ accent: "", textColor: "red" })).toBeUndefined();
-    expect(panelScope({ accent: "#ffffff", textColor: "#000000", mutedColor: "#ff0000" })).toEqual({
-      "--accent": "0 0% 100%",
-      "--foreground": "0 0% 0%",
-      "--muted-foreground": "0 100% 50%",
-    });
+  it("draws the theme surface from the theme tokens", () => {
+    const style = panelCardStyle("theme", chromeOf({ ...STANDARD_DEFAULTS, surfaceOpacity: 50 }));
+    expect(String(style.background)).toBe("hsl(var(--card) / 0.43)");
+  });
+});
+
+describe("enforcedPanel", () => {
+  const colored: PanelDef = {
+    id: "p",
+    title: "t",
+    titleVisible: true,
+    visible: true,
+    background: "panel",
+    widgets: [
+      { id: "a", kind: "stat", visible: true, color: "#ff0000" },
+      { id: "b", kind: "bar", visible: true, color: "#00ff00" },
+      { id: "c", kind: "shape", visible: true },
+    ],
+  };
+
+  it("drops text colors and gives fills the resolved accent", () => {
+    const out = enforcedPanel(colored, "#123456").widgets;
+    expect(out.map((w) => w.color)).toEqual([undefined, "#123456", undefined]);
+    expect(enforcedPanel(colored, undefined).widgets[1].color).toBeUndefined();
+  });
+
+  it("returns a panel without widget colors as is", () => {
+    const plain = { ...colored, widgets: [colored.widgets[2]] };
+    expect(enforcedPanel(plain, "#123456")).toBe(plain);
   });
 });

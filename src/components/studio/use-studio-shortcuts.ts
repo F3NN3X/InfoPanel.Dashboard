@@ -15,6 +15,7 @@ export type ShortcutAction =
   | { type: "zoom-in" }
   | { type: "zoom-out" }
   | { type: "palette" }
+  | { type: "toggle-dock" }
   | { type: "cheatsheet" }
   | { type: "widget-remove" }
   | { type: "widget-duplicate" }
@@ -57,6 +58,7 @@ function commandAction(e: KeyInput): ShortcutAction | null {
   if (key === "z") return e.shiftKey ? { type: "redo" } : { type: "undo" };
   if (key === "y") return { type: "redo" };
   if (key === "k") return { type: "palette" };
+  if (key === "\\") return { type: "toggle-dock" };
   if (key === "d") return { type: "duplicate" };
   if (key === "0") return { type: "zoom-fit" };
   if (key === "=" || key === "+") return { type: "zoom-in" };
@@ -136,6 +138,7 @@ export const KEYS = {
   fit: "Ctrl+0",
   zoomIn: "Ctrl+=",
   zoomOut: "Ctrl+-",
+  dock: "Ctrl+\\",
   cheatsheet: "?",
 } as const;
 
@@ -182,6 +185,7 @@ export const SHORTCUT_GROUPS: { title: string; items: { keys: string; label: str
       { keys: KEYS.zoomIn, label: "Zoom in" },
       { keys: KEYS.zoomOut, label: "Zoom out" },
       { keys: "Ctrl+wheel", label: "Zoom" },
+      { keys: KEYS.dock, label: "Collapse / expand the bottom dock" },
     ],
   },
 ];

@@ -51,32 +51,31 @@ Besides the standard block (see
 [widget-settings.md](widget-settings.md#the-standard-block-standard_settings):
 preset, layout, surface, title, icon, accent, background, size, alignment,
 spacing, colors and type, border, glow, opacity, blur, custom CSS), the
-widget has these keys, all on the studio inspector's Content tab except
-the colors (Style tab, *Colors & type*). "Group" is the collapsible section;
-"top" means the ungrouped list at the top of the tab.
+widget has these keys, each in a category card of the studio inspector
+(after the general cards, in this order). "Category" is the card.
 
-| Key | Type | Default | Effect | Group |
+| Key | Type | Default | Effect | Category |
 |---|---|---|---|---|
-| `devices` | multi-select: `cpu`, `gpu`, `ram`, `disk` | `cpu,gpu,ram` | Which device blocks to show. They always appear in the order CPU, GPU, RAM, Disks. With none selected the widget renders nothing. | top |
-| `showVram` | boolean | on | GPU memory bar under the GPU | top |
-| `showTemps` | boolean | on | CPU and GPU temperature | top |
-| `showPower` | boolean | on | CPU and GPU power draw, in W | top |
-| `showClock` | boolean | off | GPU core clock, in MHz | top |
-| `showMemory` | boolean | on | Used / total GB for RAM and VRAM (otherwise VRAM shows a percentage) | top |
-| `showNames` | boolean | off | Hardware model under the device label (CPU and GPU) | top |
-| `showHotspot` | boolean | off | GPU memory junction temperature ("Hotspot") | top |
-| `showFans` | boolean | off | GPU fan speed: average RPM and duty % | top |
-| `showMemClock` | boolean | off | GPU memory clock ("Mem … MHz") | top |
-| `showPowerLimit` | boolean | off | GPU power as % of its limit ("… % limit") | top |
-| `showPageFile` | boolean | off | RAM page file, used / total GB (else a percentage) | top |
-| `showCores` | boolean | off | One block per CPU thread under the CPU | top |
-| `coreStyle` | `heatmap` / `bars` | `heatmap` | Thread block style | top |
-| `showDiskTemp` | boolean | on | Per-drive temperature | top |
-| `showDiskIo` | boolean | on | Per-drive read and write rate (`R …`, `W …`) | top |
-| `showDiskLife` | boolean | off | Per-drive remaining life ("Life …%") | top |
-| `diskFilter` | text | empty | Comma-separated drive names to show; empty = all | top |
-| `sparkline` | boolean | off | Rolling trend line per load (CPU, GPU, RAM) and for VRAM | top |
-| `historyLength` | number 12-120, step 12 | 48 | Samples kept for the sparklines | top |
+| `devices` | multi-select: `cpu`, `gpu`, `ram`, `disk` | `cpu,gpu,ram` | Which device blocks to show. They always appear in the order CPU, GPU, RAM, Disks. With none selected the widget renders nothing. | Devices |
+| `showVram` | boolean | on | GPU memory bar under the GPU | GPU |
+| `showTemps` | boolean | on | CPU and GPU temperature | Devices |
+| `showPower` | boolean | on | CPU and GPU power draw, in W | Devices |
+| `showClock` | boolean | off | GPU core clock, in MHz | GPU |
+| `showMemory` | boolean | on | Used / total GB for RAM and VRAM (otherwise VRAM shows a percentage) | Memory |
+| `showNames` | boolean | off | Hardware model under the device label (CPU and GPU) | Devices |
+| `showHotspot` | boolean | off | GPU memory junction temperature ("Hotspot") | GPU |
+| `showFans` | boolean | off | GPU fan speed: average RPM and duty % | GPU |
+| `showMemClock` | boolean | off | GPU memory clock ("Mem … MHz") | GPU |
+| `showPowerLimit` | boolean | off | GPU power as % of its limit ("… % limit") | GPU |
+| `showPageFile` | boolean | off | RAM page file, used / total GB (else a percentage) | Memory |
+| `showCores` | boolean | off | One block per CPU thread under the CPU | CPU |
+| `coreStyle` | `heatmap` / `bars` | `heatmap` | Thread block style | CPU |
+| `showDiskTemp` | boolean | on | Per-drive temperature | Drives |
+| `showDiskIo` | boolean | on | Per-drive read and write rate (`R …`, `W …`) | Drives |
+| `showDiskLife` | boolean | off | Per-drive remaining life ("Life …%") | Drives |
+| `diskFilter` | text | empty | Comma-separated drive names to show; empty = all | Drives |
+| `sparkline` | boolean | off | Rolling trend line per load (CPU, GPU, RAM) and for VRAM | Trends |
+| `historyLength` | number 12-120, step 12 | 48 | Samples kept for the sparklines | Trends |
 | `tempWarn` | number 50-100, step 5 | 80 | Temperature warning, °C | Thresholds |
 | `tempCrit` | number 50-110, step 5 | 90 | Temperature critical, °C | Thresholds |
 | `loadWarn` | number 10-100, step 5 | 80 | Load warning, % | Thresholds |
@@ -85,7 +84,7 @@ the colors (Style tab, *Colors & type*). "Group" is the collapsible section;
 | `tempUnit` | `c` / `f` | `c` | Temperature unit for display | Units & labels |
 | `decimals` | `0` / `1` | `0` | Decimals on percentages and temperatures | Units & labels |
 | `cpuLabel`, `gpuLabel`, `ramLabel`, `diskLabel` | text | empty | Replace the device label ("CPU", "GPU", "RAM", "Disks") | Units & labels |
-| `cpuColor`, `gpuColor`, `ramColor`, `diskColor`, `vramColor` | color | empty | Ring / bar color per device and for the VRAM bar; empty = default | Colors & type |
+| `cpuColor`, `gpuColor`, `ramColor`, `diskColor`, `vramColor` | color | empty | Ring / bar color per device and for the VRAM bar; empty = default | Device colors |
 
 Default colors: CPU `#38bdf8`, GPU `#a78bfa`, RAM `#4ade80`, VRAM `#fbbf24`,
 Disks `#fb7185`. A threshold value of 0 (or a non-number) falls back to its

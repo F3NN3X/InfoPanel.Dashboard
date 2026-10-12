@@ -1,56 +1,10 @@
 import {
-  GROUP_COLORS,
-  GROUP_EFFECTS,
-  GROUP_SIZE,
-  GROUP_SPACING,
-  GROUP_TITLE,
-  PROFILE_STYLE_KEYS,
-  STANDARD_SETTINGS,
-} from "@/modules/standard-settings";
-import {
   settingKeys,
   type ModuleSetting,
   type ModuleSettingValue,
   type ModuleSettings,
 } from "@/modules/types";
-
-/**
- * The look keys: everything a profile can style plus the rest of the
- * standard block (preset, layout, title, icon, background image).
- */
-const STYLE_KEYS: ReadonlySet<string> = new Set([
-  ...PROFILE_STYLE_KEYS,
-  ...STANDARD_SETTINGS.flatMap(settingKeys),
-]);
-
-/** The standard style groups; module settings filed there are look too. */
-const STYLE_GROUPS: ReadonlySet<string> = new Set([
-  GROUP_TITLE,
-  GROUP_SIZE,
-  GROUP_SPACING,
-  GROUP_COLORS,
-  GROUP_EFFECTS,
-]);
-
-/**
- * Whether a setting belongs on the inspector's Style tab: a standard look
- * key, or a module setting in one of the standard style groups (e.g. a
- * per-element color under "Colors & type"). Everything else is content.
- */
-export function isStyleSetting(def: ModuleSetting): boolean {
-  return STYLE_KEYS.has(def.key) || (def.group !== undefined && STYLE_GROUPS.has(def.group));
-}
-
-/** A module's settings split into the Content and Style tabs, order kept. */
-export function splitSettings(defs: ModuleSetting[]): {
-  content: ModuleSetting[];
-  style: ModuleSetting[];
-} {
-  return {
-    content: defs.filter((d) => !isStyleSetting(d)),
-    style: defs.filter(isStyleSetting),
-  };
-}
+import type { StyleSource } from "@/lib/style-resolve";
 
 /** Lower-case and strip diacritics ("Écran" → "ecran"). */
 function fold(text: string): string {
@@ -61,17 +15,22 @@ function fold(text: string): string {
  * Settings matching a search query by label, key, option label or keyword (case- and
  * diacritic-insensitive). Only when no setting matches that way does the
  * group name count, so "glow" finds the glow rows rather than the whole
- * "Border, glow & CSS" group, while "thresholds" still finds that group.
+ * "Border & effects" group, while "thresholds" still finds that group.
  * A blank query matches everything.
  */
 export function filterSettings(defs: ModuleSetting[], query: string): ModuleSetting[] {
   const q = fold(query.trim());
   if (q === "") return defs;
-  const hit = (texts: string[]) => texts.some((text) => fold(text).includes(q));
-  const direct = defs.filter((d) =>
-    hit([d.label, d.key, ...(d.options?.map((o) => o.label) ?? []), ...(d.keywords ?? [])])
+  const direct = defs.filter((d) => rowMatches(d, query));
+  return direct.length > 0 ? direct : defs.filter((d) => matchesQuery([d.group ?? ""], query));
+}
+
+/** Whether a setting's label, key, option labels or keywords match a query. */
+export function rowMatches(def: ModuleSetting, query: string): boolean {
+  return matchesQuery(
+    [def.label, def.key, ...(def.options?.map((o) => o.label) ?? []), ...(def.keywords ?? [])],
+    query
   );
-  return direct.length > 0 ? direct : defs.filter((d) => hit([d.group ?? ""]));
 }
 
 /** Whether free text matches a search query (same folding as above). */
@@ -82,37 +41,46 @@ export function matchesQuery(texts: string[], query: string): boolean {
 
 /**
  * Where a setting's shown value comes from:
- * - `default` — nothing set (or this widget's value equals the default)
+ * - `default` — nothing set (or this widget's value equals the default;
+ *   a panel's legacy look counts as its default)
+ * - `dashboard` — inherited from the dashboard style (all profiles)
  * - `profile` — inherited from the profile's style
  * - `own` — set on this widget
- * - `override` — set on this widget over a profile style value
+ * - `override` — set on this widget over an inherited value
  */
-export type SettingState = "default" | "profile" | "own" | "override";
+export type SettingState = "default" | "dashboard" | "profile" | "own" | "override";
 
+/**
+ * `inheritedFrom`: the layer of each inherited value (`resolveStyle`'s
+ * `source`); unlisted inherited keys count as the profile's.
+ */
 export function settingState(
   key: string,
   own: ModuleSettings | undefined,
   inherited: ModuleSettings | undefined,
-  fallback: ModuleSettingValue
+  fallback: ModuleSettingValue,
+  inheritedFrom?: Record<string, StyleSource>
 ): SettingState {
+  const from = inheritedFrom?.[key] ?? "profile";
   const hasOwn = own?.[key] !== undefined;
-  const hasInherited = inherited?.[key] !== undefined;
+  const hasInherited = inherited?.[key] !== undefined && from !== "default";
   if (hasOwn && hasInherited) return "override";
-  if (hasInherited) return "profile";
+  if (hasInherited) return from === "dashboard" ? "dashboard" : "profile";
   if (hasOwn && own?.[key] !== fallback) return "own";
   return "default";
 }
 
-const STATE_RANK: Record<SettingState, number> = { default: 0, profile: 1, own: 2, override: 3 };
+const STATE_RANK: Record<SettingState, number> = { default: 0, dashboard: 1, profile: 2, own: 3, override: 4 };
 
 /** `settingState` over every key a setting stores (the strongest one wins). */
 export function settingStateOf(
   def: ModuleSetting,
   own: ModuleSettings | undefined,
-  inherited: ModuleSettings | undefined
+  inherited: ModuleSettings | undefined,
+  inheritedFrom?: Record<string, StyleSource>
 ): SettingState {
   return settingKeys(def)
-    .map((key) => settingState(key, own, inherited, def.default))
+    .map((key) => settingState(key, own, inherited, def.default, inheritedFrom))
     .reduce((a, b) => (STATE_RANK[b] > STATE_RANK[a] ? b : a), "default" as SettingState);
 }
 

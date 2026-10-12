@@ -3,7 +3,9 @@ import { Image as ImageIcon } from "lucide-react";
 import { Gauge } from "@/components/Gauge";
 import { isImageUrl, resolveImageUrl } from "@/lib/image";
 import { sensorAt } from "@/lib/sensors";
+import { formatClock } from "@/lib/general";
 import { hexToHsl } from "@/lib/theme";
+import { useGeneral } from "@/hooks/use-general";
 import type { SensorValue } from "@/hooks/useSensors";
 import type { Widget } from "@/lib/layout";
 import type { SensorMap } from "@/modules/types";
@@ -427,17 +429,8 @@ function ImageWidget({ widget, src }: { widget: Widget; src?: string }) {
 
 function Clock({ widget }: { widget: Widget }) {
   const now = useNow(1000);
-  const time = now.toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
-  const date = now.toLocaleDateString([], {
-    weekday: "short",
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
+  // 12 / 24 h, seconds and the locale come from General settings.
+  const { time, date } = formatClock(now, useGeneral());
   const mode = widget.clock ?? "both";
   return (
     <div

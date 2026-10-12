@@ -37,6 +37,9 @@ const base: CommandState = {
   canRedo: false,
   showGrid: true,
   showSources: false,
+  layoutMode: "auto",
+  enforced: false,
+  appearancePresets: [],
 };
 
 const ids = (state: CommandState) => buildCommands(state).map((c) => c.id);
@@ -56,6 +59,49 @@ describe("buildCommands", () => {
     expect(list).toContain("sources");
   });
 
+  it("offers opening the Background tab, with or without a selection", () => {
+    const command = buildCommands(base).find((c) => c.id === "background");
+    expect(command?.label).toBe("Background…");
+    expect(command?.action).toEqual({ type: "document-tab", tab: "background" });
+    expect(ids({ ...base, selected: zone("a", 1, 1) })).toContain("background");
+  });
+
+  it("offers the three layouts (marking the current one) and the dock toggle", () => {
+    const list = buildCommands({ ...base, layoutMode: "side" });
+    const find = (id: string) => list.find((c) => c.id === id);
+    expect(find("layout:auto")).toMatchObject({ label: "Layout: Auto", action: { type: "layout", mode: "auto" } });
+    expect(find("layout:bottom")?.action).toEqual({ type: "layout", mode: "bottom" });
+    expect(find("layout:side")?.hint).toBe("current");
+    expect(find("layout:auto")?.hint).toBeUndefined();
+    expect(find("toggle-dock")).toMatchObject({ label: "Toggle dock", hint: "Ctrl+\\", action: { type: "toggle-dock" } });
+  });
+
+  it("offers the General and Connection tabs", () => {
+    const find = (id: string) => buildCommands(base).find((c) => c.id === id);
+    expect(find("general")).toMatchObject({ label: "General settings…", action: { type: "document-tab", tab: "general" } });
+    expect(find("connection")?.action).toEqual({ type: "document-tab", tab: "connection" });
+    expect(ids({ ...base, selected: zone("a", 1, 1) })).toContain("general");
+  });
+
+  it("offers applying each appearance preset", () => {
+    const state = { ...base, appearancePresets: [{ id: "builtin:light", name: "Light" }, { id: "u1", name: "Mine" }] };
+    const list = buildCommands(state).filter((c) => c.group === "Appearance");
+    expect(list.map((c) => c.label)).toEqual(["Apply appearance: Light", "Apply appearance: Mine"]);
+    expect(list[1].action).toEqual({ type: "apply-appearance", id: "u1" });
+    expect(ids(base).some((id) => id.startsWith("appearance:"))).toBe(false);
+  });
+
+  it("offers the global style: the Appearance tab, follow all and the force toggle", () => {
+    const find = (state: CommandState, id: string) => buildCommands(state).find((c) => c.id === id);
+    expect(find(base, "appearance")?.action).toEqual({ type: "document-tab", tab: "appearance" });
+    expect(find(base, "follow-all")).toMatchObject({
+      label: "Make all widgets follow global style",
+      action: { type: "follow-all" },
+    });
+    expect(find(base, "toggle-enforce")?.label).toBe("Force global style on every widget");
+    expect(find({ ...base, enforced: true }, "toggle-enforce")?.label).toBe("Stop forcing global style");
+  });
+
   it("lists undo / redo only when there is something to undo / redo", () => {
     expect(ids(base)).not.toContain("undo");
     expect(ids(base)).not.toContain("redo");
@@ -64,7 +110,7 @@ describe("buildCommands", () => {
     expect(list).toContain("redo");
   });
 
-  it("adds the selected zone's actions and its settings, routed to the right tab", () => {
+  it("adds the selected zone's actions and its settings and the card jumps", () => {
     const glow = setting("glow", "Glow", "Border, glow & CSS");
     const threshold = setting("warnAt", "Warn at", "Thresholds");
     const commands = buildCommands({
@@ -77,13 +123,14 @@ describe("buildCommands", () => {
     expect(byId.has("zone:duplicate")).toBe(true);
     expect(byId.has("zone:remove")).toBe(true);
     expect(byId.has("zone:pick")).toBe(true);
-    expect(byId.get("setting:glow")?.action).toEqual({ type: "goto-setting", tab: "style", label: "Glow" });
+    expect(byId.get("setting:glow")?.action).toEqual({ type: "goto-setting", label: "Glow" });
+    expect(byId.get("setting:glow")?.hint).toBe("Border & effects");
+    expect(byId.get("zone:card:colors")?.action).toEqual({ type: "goto-card", id: "colors" });
     expect(byId.get("setting:warnAt")?.action).toEqual({
       type: "goto-setting",
-      tab: "content",
       label: "Warn at",
     });
-    expect(byId.get("setting:warnAt")?.hint).toBe("Content › Thresholds");
+    expect(byId.get("setting:warnAt")?.hint).toBe("Thresholds");
   });
 
   it("has no zone commands without a selection", () => {

@@ -26,7 +26,8 @@ export async function fetchConfig(): Promise<Partial<DashboardConfig> | null> {
 export async function pushConfig(config: DashboardConfig): Promise<void> {
   const res = await fetch(CONFIG_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    // The custom header makes a cross-site POST preflight (see server.mjs).
+    headers: { "Content-Type": "application/json", "X-Dashboard-Config": "1" },
     body: JSON.stringify(config),
   });
   if (!res.ok) throw new Error(`config save failed: ${res.status}`);

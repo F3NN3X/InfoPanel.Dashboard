@@ -115,3 +115,22 @@
   width: 0;
   height: 0;
 }
+
+/* General › Hide cursor in kiosk: no pointer anywhere on the page. */
+.kiosk-hide-cursor,
+.kiosk-hide-cursor * {
+  cursor: none !important;
+}
+
+/* A region with its own theme tokens (the studio canvas showing a profile
+   with its own colours): the derived colors above are resolved where they
+   are declared, so re-declare them against the scoped tokens. */
+[data-theme-scope] {
+  --meter-clip: hsl(var(--destructive));
+  --meter-clip-foreground: hsl(var(--destructive-foreground));
+  --channel-mute: hsl(var(--destructive));
+  --channel-mute-foreground: hsl(var(--destructive-foreground));
+  --wave-progress: hsl(var(--primary));
+  --wave-unplayed: hsl(var(--muted-foreground));
+  --wave-cursor: hsl(var(--foreground));
+}

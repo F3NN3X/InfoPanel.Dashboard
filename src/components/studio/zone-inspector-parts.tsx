@@ -175,8 +175,8 @@ export function WidgetPicker({
 }) {
   const blank = placement.module === BLANK_MODULE;
   return (
-    <div>
-      <div className="mb-1 text-xs text-muted-foreground">Widget</div>
+    <div className="break-inside-avoid">
+      <div className="mb-1 text-xs text-muted-foreground">Type</div>
       <button
         type="button"
         onClick={onPickWidget}

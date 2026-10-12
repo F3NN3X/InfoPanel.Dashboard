@@ -5,21 +5,29 @@ import {
 } from "react";
 import { Plus } from "lucide-react";
 import { BLANK_MODULE, type MonitorProfile, type Placement } from "@/lib/layout";
+import { profileGap, trackPitch } from "@/lib/profile-grid";
 import { hexToHsl } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import type { ZoneRect } from "./zone-geometry";
 
-/** Zone resize handles. */
+/**
+ * Zone resize handles: each edge is draggable along its whole length, the
+ * corners on top of them. `pos` is the hit area, `grip` the knob the
+ * selected zone shows on it.
+ */
 type Handle = "nw" | "n" | "ne" | "e" | "se" | "s" | "sw" | "w";
-const HANDLES: { id: Handle; cursor: string; pos: string }[] = [
-  { id: "nw", cursor: "nwse-resize", pos: "-left-1 -top-1 h-3 w-3" },
-  { id: "n", cursor: "ns-resize", pos: "left-1/2 -top-1 h-3 w-4 -translate-x-1/2" },
-  { id: "ne", cursor: "nwse-resize", pos: "-right-1 -top-1 h-3 w-3" },
-  { id: "e", cursor: "ew-resize", pos: "-right-1 top-1/2 h-4 w-3 -translate-y-1/2" },
-  { id: "se", cursor: "nwse-resize", pos: "-right-1 -bottom-1 h-3 w-3" },
-  { id: "s", cursor: "ns-resize", pos: "left-1/2 -bottom-1 h-3 w-4 -translate-x-1/2" },
-  { id: "sw", cursor: "nwse-resize", pos: "-left-1 -bottom-1 h-3 w-3" },
-  { id: "w", cursor: "ew-resize", pos: "-left-1 top-1/2 h-4 w-3 -translate-y-1/2" },
+// Above the widget content (which can carry its own z-10).
+const EDGE = "z-20";
+const CORNER = "z-30 h-3.5 w-3.5";
+const HANDLES: { id: Handle; cursor: string; pos: string; grip: string }[] = [
+  { id: "n", cursor: "ns-resize", pos: `${EDGE} -top-1 left-2 right-2 h-2`, grip: "h-2 w-7" },
+  { id: "e", cursor: "ew-resize", pos: `${EDGE} -right-1 top-2 bottom-2 w-2`, grip: "h-7 w-2" },
+  { id: "s", cursor: "ns-resize", pos: `${EDGE} -bottom-1 left-2 right-2 h-2`, grip: "h-2 w-7" },
+  { id: "w", cursor: "ew-resize", pos: `${EDGE} -left-1 top-2 bottom-2 w-2`, grip: "h-7 w-2" },
+  { id: "nw", cursor: "nwse-resize", pos: `${CORNER} -left-[7px] -top-[7px]`, grip: "h-3 w-3" },
+  { id: "ne", cursor: "nesw-resize", pos: `${CORNER} -right-[7px] -top-[7px]`, grip: "h-3 w-3" },
+  { id: "se", cursor: "nwse-resize", pos: `${CORNER} -right-[7px] -bottom-[7px]`, grip: "h-3 w-3" },
+  { id: "sw", cursor: "nesw-resize", pos: `${CORNER} -left-[7px] -bottom-[7px]`, grip: "h-3 w-3" },
 ];
 
 interface PlacementFrameProps {
@@ -31,12 +39,15 @@ interface PlacementFrameProps {
   /** Idle and set to hide: the studio badges it (the kiosk hides it). */
   idle?: boolean;
   title: string;
-  /** Grid element width in display px (zoom applied) — cell pitch math. */
+  /**
+   * The theme tokens re-scoped to the zone's resolved colors
+   * (`PlacementRender.scope`): the zone frame's header and card read them.
+   */
+  scope?: CSSProperties;
+  /** Grid element width in design px (zoom not applied) — cell pitch math. */
   gridWidth?: number;
   /** Canvas zoom (screen px per design px). */
   zoom?: number;
-  /** CSS grid gap in design px. */
-  gap?: number;
   /** Grid row height in design px (fill: 1fr over the height, scroll: fixed). */
   rowHeight?: number;
   /**
@@ -81,9 +92,9 @@ export function PlacementFrame({
   hasData,
   idle,
   title,
+  scope,
   gridWidth = 0,
   zoom = 1,
-  gap = 12,
   rowHeight,
   onZoneDrag,
   onZoneDragEnd,
@@ -102,11 +113,11 @@ export function PlacementFrame({
   const frameCard = placement.panel ? undefined : design?.background;
   const blank = placement.module === BLANK_MODULE;
 
-  // Cell pitch in display px (the grid renders at profile size × zoom,
-  // gaps included, so the track pitch is the full width divided over the
-  // column/row count).
-  const pitchX =
-    gridWidth > 0 ? (gridWidth + gap * zoom) / profile.cols : 0;
+  // Cell pitch in display px (the design-px pitch × zoom, gaps included:
+  // the full width plus one gap divided over the column count; rows the
+  // row height plus a gap).
+  const gap = profileGap(profile);
+  const pitchX = gridWidth > 0 ? trackPitch(gridWidth, profile.cols, gap) * zoom : 0;
   const pitchY = rowHeight !== undefined ? (rowHeight + gap) * zoom : 0;
 
   // Hide empty modules (and blank zones) in kiosk mode (they claim no space).
@@ -215,6 +226,7 @@ export function PlacementFrame({
       style={{
         gridColumn: `${placement.colStart} / span ${span}`,
         gridRow: `${placement.rowStart} / span ${rowSpan}`,
+        ...scope,
         // Per-placement accent override: scopes the theme's --accent token to
         // this frame's subtree (rings, gauges, highlights recolor with it).
         ...(design?.accent
@@ -234,19 +246,29 @@ export function PlacementFrame({
             </span>
           )}
 
-          {/* Resize handles (the studio clamps to the grid + no overlap) */}
+          {/* Resize handles (the studio clamps to the grid + no overlap):
+              tinted on hover, with knobs on the selected zone */}
           {HANDLES.map((h) => (
             <div
               key={h.id}
               data-no-drag
+              data-resize-handle={h.id}
               onPointerDown={(e) => startResize(e, h.id)}
-              className={cn(
-                "absolute z-10 rounded-sm bg-ring/0 transition-colors hover:bg-ring/60",
-                h.pos
-              )}
+              className={cn("group/handle absolute rounded-sm transition-colors hover:bg-ring/40", h.pos)}
               style={{ cursor: h.cursor }}
               title="Drag to resize"
-            />
+            >
+              {selected && (
+                <span
+                  className={cn(
+                    "pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-[3px] border-[1.5px] border-ring bg-background shadow-sm transition-colors group-hover/handle:bg-ring",
+                    h.grip
+                  )}
+                  // Same size on screen at any canvas zoom.
+                  style={{ scale: String(1 / zoom) }}
+                />
+              )}
+            </div>
           ))}
         </>
       )}

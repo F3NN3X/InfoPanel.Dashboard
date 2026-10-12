@@ -3,7 +3,7 @@ import { bySuffixOrName, groupByContainer } from "@/lib/sensors";
 import type { LevelMeterVariant } from "@/components/ui/level-meter";
 import type { BallisticsPreset } from "@/lib/audio/ballistics";
 import type { Orientation } from "@/lib/audio/types";
-import { chromeOf, GROUP_COLORS, STANDARD_SETTINGS } from "./standard-settings";
+import { chromeOf, STANDARD_SETTINGS } from "./standard-settings";
 import {
   effectiveSettings,
   type DashboardModule,
@@ -33,16 +33,8 @@ const AUDIO_MODERN_SETTINGS: ModuleSetting[] = [
     default: "",
     optionsFrom: "sources",
     sourcePlugin: P,
+    group: "Content",
   },
-  {
-    key: "showDetails",
-    label: "Peak / RMS & L/R/volume details",
-    type: "boolean",
-    default: true,
-  },
-  { key: "showDevice", label: "Device name", type: "boolean", default: true },
-  { key: "showVolume", label: "Volume bar", type: "boolean", default: false },
-  { key: "showMute", label: "Mute indicator", type: "boolean", default: true },
   {
     key: "view",
     label: "View",
@@ -66,9 +58,18 @@ const AUDIO_MODERN_SETTINGS: ModuleSetting[] = [
         },
       },
     ],
+    group: "Content",
   },
-  { key: "levelColor", label: "Level bar color", type: "color", default: "", group: GROUP_COLORS },
-  { key: "hotColor", label: "Hot level color", type: "color", default: "", group: GROUP_COLORS },
+  { key: "showDevice", label: "Device name", type: "boolean", default: true, group: "Content" },
+  {
+    key: "showDetails",
+    label: "Peak / RMS & L/R/volume details",
+    type: "boolean",
+    default: true,
+    group: "Content",
+  },
+  { key: "showVolume", label: "Volume bar", type: "boolean", default: false, group: "Content" },
+  { key: "showMute", label: "Mute indicator", type: "boolean", default: true, group: "Content" },
   {
     key: "meterVariant",
     label: "Meter style",
@@ -79,6 +80,7 @@ const AUDIO_MODERN_SETTINGS: ModuleSetting[] = [
       { value: "segmented", label: "Segmented" },
       { value: "gradient", label: "Gradient" },
     ],
+    group: "Meter",
   },
   {
     key: "meterOrientation",
@@ -89,6 +91,7 @@ const AUDIO_MODERN_SETTINGS: ModuleSetting[] = [
       { value: "horizontal", label: "Horizontal" },
       { value: "vertical", label: "Vertical" },
     ],
+    group: "Meter",
   },
   {
     key: "meterBallistics",
@@ -100,7 +103,10 @@ const AUDIO_MODERN_SETTINGS: ModuleSetting[] = [
       { value: "vu", label: "VU (slow)" },
       { value: "instant", label: "Instant" },
     ],
+    group: "Meter",
   },
+  { key: "levelColor", label: "Level bar color", type: "color", default: "", group: "Meter" },
+  { key: "hotColor", label: "Hot level color", type: "color", default: "", group: "Meter" },
 ];
 
 export const audioModernModule: DashboardModule = {

@@ -50,6 +50,8 @@ Click the wrench button (or open `/?studio=1`) to edit layouts. Changes save aut
 
 Every studio edit can be undone (Ctrl+Z, redo with Ctrl+Shift+Z), **Ctrl+K** opens a command palette for any action, and **?** lists the keyboard shortcuts. The [customization guide](docs/customization-guide.md) walks through the studio layout.
 
+With nothing selected, the inspector sets the look of every profile or just one: **Appearance** (one-click appearance presets, the global widget style, theme colours), **Background** (a colour, gradient, image or video behind the grid, by URL or upload), **General** (page font, 12 / 24 h clock and date locale, motion, hiding the cursor on kiosk pages) and **Connection**. Each profile also has its own gap between zones and padding around the grid (Profiles drawer).
+
 The studio config is stored by the server in `%LOCALAPPDATA%\InfoPanel\Dashboard\config.json`.
 
 ### Data API URL
@@ -73,14 +75,17 @@ The weather forecast comes from the yr plugin (`plugins.yr-weather-plugin.<locat
 | GET / POST | `/api/config` | Read or save the studio config |
 | GET | `/events/config` | Server-sent events: the config version on connect and after each save |
 | GET | `/api/image-proxy?url=` | Fetches an image so the page can sample its colours (https anywhere, http only on loopback) |
+| GET / POST | `/api/assets` | List uploaded images and videos (`?unused=1`: those the saved config doesn't use), or upload one (header `X-Dashboard-Asset: 1`, loopback only unless `ALLOW_REMOTE_UPLOAD=1`) |
+| GET / DELETE | `/api/assets/<id>` | Serve an uploaded file (immutable cache, `Range` support) or delete it |
 
 ## Documentation
 
 The [docs index](docs/README.md) lists everything; the main entries:
 
-- [Customization guide](docs/customization-guide.md) - style a widget in the studio
+- [Customization guide](docs/customization-guide.md) - the studio, styling widgets, appearance and general settings
 - [Widget catalog](docs/module-catalog.md) and [widget settings](docs/widget-settings.md)
 - [System widget](docs/system-widget.md)
 - [Architecture](docs/architecture.md) and [development](docs/development.md)
 - [Studio design: zones and widgets](docs/studio-redesign-zones-widgets.md)
 - `tools/ip-import.cjs` imports an InfoPanel profile as a dashboard layout.
+- `tools/gen-bg.mjs` regenerates the background image of the Glass and Frosted presets.

@@ -15,6 +15,7 @@ import {
   FoldVertical,
   Paintbrush,
   Trash2,
+  X,
   UnfoldHorizontal,
   UnfoldVertical,
 } from "lucide-react";
@@ -40,8 +41,10 @@ interface ZoneToolbarProps {
   onToggleVisible: () => void;
   onDuplicate: () => void;
   onRemove: () => void;
-  /** Switch the inspector to the Style tab. */
+  /** Jump the inspector to the Colors & surface card. */
   onStyle: () => void;
+  /** Clear the selection. */
+  onDeselect: () => void;
 }
 
 const ICON_BUTTON =
@@ -88,6 +91,7 @@ export function ZoneToolbar({
   onDuplicate,
   onRemove,
   onStyle,
+  onDeselect,
 }: ZoneToolbarProps) {
   /** Ctrl+D / Del act on the zone only while no widget is selected. */
   const zoneKeys = widgetLabel === undefined;
@@ -151,6 +155,10 @@ export function ZoneToolbar({
       >
         <Paintbrush className="h-3.5 w-3.5" /> Style
       </button>
+      <div className={DIVIDER} />
+      <ToolButton title="Deselect (Esc)" onClick={onDeselect}>
+        <X className="h-3.5 w-3.5" />
+      </ToolButton>
     </div>
   );
 }

@@ -1,12 +1,13 @@
 import type { MonitorProfile, Placement, Widget } from "@/lib/layout";
 import type { ModuleSetting } from "@/modules/types";
+import type { DocumentTab } from "./document-inspector";
 import type { Drawer } from "./left-rail";
-import { isStyleSetting } from "./settings-model";
+import type { LayoutMode } from "./studio-layout";
+import { categoryTitleOf } from "./inspector-categories";
 import { placementTitle } from "./studio-modules";
 import { KEYS } from "./use-studio-shortcuts";
 import { widgetName } from "./widget-kinds";
 import { sortZones } from "./zone-geometry";
-import type { InspectorTab } from "./zone-inspector";
 
 /** What a command palette entry does (the studio carries it out). */
 export type CommandAction =
@@ -16,6 +17,8 @@ export type CommandAction =
   | { type: "drawer"; drawer: Drawer }
   | { type: "sources" }
   | { type: "toggle-grid" }
+  | { type: "layout"; mode: LayoutMode }
+  | { type: "toggle-dock" }
   | { type: "zoom-fit" }
   | { type: "zoom-in" }
   | { type: "zoom-out" }
@@ -38,8 +41,12 @@ export type CommandAction =
   | { type: "widget-copy" }
   | { type: "widget-paste" }
   | { type: "widget-move"; delta: -1 | 1 }
-  | { type: "tab"; tab: InspectorTab }
-  | { type: "goto-setting"; tab: InspectorTab; label: string };
+  | { type: "goto-card"; id: string }
+  | { type: "document-tab"; tab: DocumentTab }
+  | { type: "follow-all" }
+  | { type: "toggle-enforce" }
+  | { type: "apply-appearance"; id: string }
+  | { type: "goto-setting"; label: string };
 
 export interface Command {
   id: string;
@@ -66,12 +73,24 @@ export interface CommandState {
   canRedo: boolean;
   showGrid: boolean;
   showSources: boolean;
+  /** The studio layout mode (the current one is marked in the palette). */
+  layoutMode: LayoutMode;
+  /** The global style is forced on every widget of the profile. */
+  enforced: boolean;
+  /** Built-in and saved appearance presets (applied to all profiles). */
+  appearancePresets: { id: string; name: string }[];
 }
 
 const DRAWERS: { drawer: Drawer; label: string }[] = [
   { drawer: "add", label: "Add" },
   { drawer: "layers", label: "Layers" },
   { drawer: "profiles", label: "Profiles" },
+];
+
+const LAYOUT_MODES: { mode: LayoutMode; label: string }[] = [
+  { mode: "auto", label: "Auto" },
+  { mode: "side", label: "Side" },
+  { mode: "bottom", label: "Bottom" },
 ];
 
 function generalCommands(s: CommandState): Command[] {
@@ -93,8 +112,22 @@ function generalCommands(s: CommandState): Command[] {
     ...DRAWERS.map(({ drawer, label }) =>
       general(`drawer:${drawer}`, `Open drawer: ${label}`, { type: "drawer", drawer })
     ),
+    general("background", "Background…", { type: "document-tab", tab: "background" }),
+    general("appearance", "Appearance…", { type: "document-tab", tab: "appearance" }),
+    general("general", "General settings…", { type: "document-tab", tab: "general" }, "font, clock, motion"),
+    general("connection", "Connection…", { type: "document-tab", tab: "connection" }, "Data API URL"),
+    general("follow-all", "Make all widgets follow global style", { type: "follow-all" }, "this profile"),
+    general(
+      "toggle-enforce",
+      s.enforced ? "Stop forcing global style" : "Force global style on every widget",
+      { type: "toggle-enforce" }
+    ),
     general("sources", s.showSources ? "Back to Design" : "Open Sources", { type: "sources" }),
     general("grid", s.showGrid ? "Hide grid" : "Show grid", { type: "toggle-grid" }),
+    ...LAYOUT_MODES.map(({ mode, label }) =>
+      general(`layout:${mode}`, `Layout: ${label}`, { type: "layout", mode }, s.layoutMode === mode ? "current" : undefined)
+    ),
+    general("toggle-dock", "Toggle dock", { type: "toggle-dock" }, KEYS.dock),
     general("zoom-fit", "Zoom to fit", { type: "zoom-fit" }, KEYS.fit),
     general("zoom-in", "Zoom in", { type: "zoom-in" }, KEYS.zoomIn),
     general("zoom-out", "Zoom out", { type: "zoom-out" }, KEYS.zoomOut),
@@ -121,19 +154,17 @@ function selectedCommands(selected: Placement, settings: ModuleSetting[], widget
       KEYS.hide
     ),
     zone("remove", "Remove zone", { type: "remove" }, widgetKeys ? undefined : KEYS.remove),
-    zone("tab:content", "Show Content tab", { type: "tab", tab: "content" }),
-    zone("tab:style", "Show Style tab", { type: "tab", tab: "style" }),
-    ...settings.map((def): Command => {
-      const tab: InspectorTab = isStyleSetting(def) ? "style" : "content";
-      const where = tab === "style" ? "Style" : "Content";
-      return {
+    zone("card:widget", "Go to Widget settings", { type: "goto-card", id: "widget" }),
+    zone("card:colors", "Go to Colors & surface (style)", { type: "goto-card", id: "colors" }),
+    ...settings.map(
+      (def): Command => ({
         id: `setting:${def.key}`,
         label: `Go to setting: ${def.label}`,
         group: "Selected zone",
-        hint: def.group ? `${where} › ${def.group}` : where,
-        action: { type: "goto-setting", tab, label: def.label },
-      };
-    }),
+        hint: categoryTitleOf(def),
+        action: { type: "goto-setting", label: def.label },
+      })
+    ),
   ];
 }
 
@@ -183,6 +214,15 @@ export function buildCommands(s: CommandState): Command[] {
     ...(s.selected ? selectedCommands(s.selected, s.settings, s.widget !== null) : []),
     ...selectWidgetCommands(widgets),
     ...generalCommands(s),
+    ...s.appearancePresets.map(
+      (p): Command => ({
+        id: `appearance:${p.id}`,
+        label: `Apply appearance: ${p.name}`,
+        group: "Appearance",
+        hint: "all profiles",
+        action: { type: "apply-appearance", id: p.id },
+      })
+    ),
     ...s.insertables.map(
       (item): Command => ({
         id: `add:${item.kind}:${item.id}`,

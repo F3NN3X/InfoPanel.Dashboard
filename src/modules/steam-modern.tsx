@@ -33,9 +33,10 @@ const STEAM_MODERN_SETTINGS: ModuleSetting[] = [
     label: "Dim banner for text",
     type: "boolean",
     default: true,
+    group: "Content",
   },
-  { key: "showStats", label: "Stats", type: "boolean", default: true },
-  { key: "showNews", label: "News line", type: "boolean", default: true },
+  { key: "showStats", label: "Stats", type: "boolean", default: true, group: "Content" },
+  { key: "showNews", label: "News line", type: "boolean", default: true, group: "Content" },
 ];
 
 function modernProps(mod: DashboardModule, s?: ModuleSettings) {

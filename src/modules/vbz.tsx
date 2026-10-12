@@ -1,9 +1,10 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Train } from "lucide-react";
 import { findEntry, liveText } from "@/lib/sensors";
 import { ModernChrome } from "@/components/modern-chrome";
+import { accentIcon, StyledCard } from "@/components/styled-card";
 import { byShape, flow, ws } from "@/components/widget-style";
-import { chromeOf, STYLE_SETTINGS } from "./standard-settings";
+import { CARD_SETTINGS, chromeOf } from "./standard-settings";
 import { effectiveSettings, type DashboardModule } from "./types";
 
 const P = "plugins.InfoPanel.VBZ.";
@@ -29,11 +30,12 @@ export const vbzModule: DashboardModule = {
   minRows: 1,
   prefixes: [P],
   settings: [
-    { key: "showStatus", label: "Status line", type: "boolean", default: true },
-    ...STYLE_SETTINGS,
+    { key: "showStatus", label: "Status line", type: "boolean", default: true, group: "Content" },
+    ...CARD_SETTINGS,
   ],
   render: (sensors, s) => {
     const cfg = effectiveSettings(vbzModule, s);
+    const chrome = chromeOf(cfg);
     const station = liveText(findEntry(sensors, P, "station_name")?.sensor);
     const status = liveText(findEntry(sensors, P, "status")?.sensor);
 
@@ -55,14 +57,11 @@ export const vbzModule: DashboardModule = {
     if (!station && rows.length === 0) return null;
 
     return (
-      <ModernChrome chrome={chromeOf(cfg)} designSize={DESIGN}>
-      <Card
-        className="flex h-full w-full min-h-0 min-w-0 flex-col overflow-hidden border-border bg-card"
-          style={{ borderRadius: ws.radius("var(--radius-lg, 0.5rem)") }}
-        >
+      <ModernChrome chrome={chrome} designSize={DESIGN}>
+      <StyledCard surface={cfg.surface} chrome={chrome} className="h-full w-full">
         <CardHeader className="pb-2" style={{ paddingInline: ws.pad(24), paddingTop: ws.pad(24) }}>
           <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
-            <Train className="h-3.5 w-3.5" />
+            <Train className="h-3.5 w-3.5" style={accentIcon} />
             <span className="truncate" title={station}>
               {station ?? "Departures"}
             </span>
@@ -99,7 +98,7 @@ export const vbzModule: DashboardModule = {
             <div className="mt-3 text-xs text-muted-foreground/60">{status}</div>
           )}
         </CardContent>
-      </Card>
+      </StyledCard>
       </ModernChrome>
     );
   },

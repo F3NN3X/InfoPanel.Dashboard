@@ -10,6 +10,7 @@ import {
 } from "@/modules/types";
 import { CollapsibleSection } from "./collapsible-section";
 import { SettingRow } from "./setting-control";
+import type { StyleSource } from "@/lib/style-resolve";
 import { settingStateOf, type SettingState } from "./settings-model";
 
 interface SettingsPanelProps {
@@ -18,10 +19,18 @@ interface SettingsPanelProps {
   /** The saved settings (undefined = all defaults). */
   value?: ModuleSettings;
   /**
-   * Values inherited from the profile's style: shown when `value` has no
-   * own entry; a row's dot says where its value comes from.
+   * Values inherited from the global style (dashboard / profile): shown
+   * when `value` has no own entry; a row's dot says where its value
+   * comes from.
    */
   inherited?: ModuleSettings;
+  /** The layer of each inherited value (unlisted: the profile style). */
+  inheritedFrom?: Record<string, StyleSource>;
+  /**
+   * Rows shown read-only (the widget follows the global style): their
+   * value is the inherited one, the control can't be changed.
+   */
+  locked?: (def: ModuleSetting) => boolean;
   onChange: (key: string, value: ModuleSettingValue) => void;
   /** Set several keys as one change (an "align" picker's two axes). */
   onPatch: (patch: ModuleSettings) => void;
@@ -55,6 +64,8 @@ export function SettingsPanel({
   defs,
   value,
   inherited,
+  inheritedFrom,
+  locked,
   onChange,
   onPatch,
   onClear,
@@ -73,8 +84,10 @@ export function SettingsPanel({
     <SettingField
       key={def.key}
       def={def}
-      value={value}
+      value={locked?.(def) ? undefined : value}
       inherited={inherited}
+      inheritedFrom={inheritedFrom}
+      locked={locked?.(def) ?? false}
       onChange={onChange}
       onPatch={onPatch}
       onClear={onClear}
@@ -85,7 +98,7 @@ export function SettingsPanel({
 
   return (
     <div>
-      <div className="mb-2 flex items-center justify-between gap-2">
+      <div className="mb-2 flex break-after-avoid items-center justify-between gap-2">
         <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
           {title}
         </div>
@@ -130,25 +143,32 @@ export function SettingsPanel({
 
 const STATE_DOT: Record<Exclude<SettingState, "default">, string> = {
   own: "bg-ring",
+  dashboard: "bg-sky-400",
   profile: "bg-amber-400",
   override: "bg-ring ring-[1.5px] ring-amber-400",
 };
 
 const STATE_TITLE: Record<Exclude<SettingState, "default">, string> = {
-  own: "Set on this widget",
+  own: "Set here",
+  dashboard: "From the dashboard style (all profiles)",
   profile: "From the profile style",
-  override: "Overrides the profile style",
+  override: "Overrides the global style",
 };
+
+/** Inherited states: their dot is not a reset button. */
+const INHERITED: ReadonlySet<SettingState> = new Set(["dashboard", "profile"]);
 
 /**
  * One setting: its control plus a state dot in the left gutter (where the
  * value comes from). Hovering a row with an own value turns the dot into a
  * reset button that drops it (back to the profile style / the default).
  */
-function SettingField({
+export function SettingField({
   def,
   value,
   inherited,
+  inheritedFrom,
+  locked,
   onChange,
   onPatch,
   onClear,
@@ -158,43 +178,41 @@ function SettingField({
   def: ModuleSetting;
   value: ModuleSettings | undefined;
   inherited: ModuleSettings | undefined;
+  inheritedFrom: Record<string, StyleSource> | undefined;
+  locked: boolean;
   onChange: (key: string, value: ModuleSettingValue) => void;
   onPatch: (patch: ModuleSettings) => void;
   onClear?: (keys: string[]) => void;
   sources: ApiSources | null;
   crumb?: string;
 }) {
-  const state = settingStateOf(def, value, inherited);
+  const state = settingStateOf(def, value, inherited, inheritedFrom);
+  const resettable = !locked && !INHERITED.has(state);
   const keys = settingKeys(def);
   const reset = () =>
     onClear ? onClear(keys) : onPatch(Object.fromEntries(keys.map((k) => [k, def.default])));
   const shown = (key: string) => value?.[key] ?? inherited?.[key] ?? def.default;
   return (
-    <div>
+    <div className="break-inside-avoid">
       {crumb && <div className="mb-1 pl-3.5 text-[10px] text-muted-foreground/60">{crumb}</div>}
       <div className="group/row relative pl-3.5">
         {state !== "default" && (
-          <span
-            className={cn(
-              "absolute left-0 flex h-3 w-3 items-center justify-center",
-              def.type === "boolean" ? "top-[11px]" : "top-[2px]"
-            )}
-          >
+          <span className="absolute left-0 top-[5px] flex h-3 w-3 items-center justify-center">
             <span
               title={STATE_TITLE[state]}
               className={cn(
                 "h-1.5 w-1.5 rounded-full",
                 STATE_DOT[state],
-                state !== "profile" && "group-hover/row:hidden"
+                resettable && "group-hover/row:hidden"
               )}
             />
-            {state !== "profile" && (
+            {resettable && (
               <button
                 type="button"
                 onClick={reset}
                 title={
                   state === "override"
-                    ? `${STATE_TITLE.override} — reset to the profile value`
+                    ? `${STATE_TITLE.override} — reset to the inherited value`
                     : `${STATE_TITLE.own} — reset to the default`
                 }
                 className="hidden text-muted-foreground hover:text-foreground group-hover/row:flex"
@@ -204,18 +222,21 @@ function SettingField({
             )}
           </span>
         )}
-        <SettingRow
-          def={def}
-          value={shown(def.key)}
-          valueY={def.keyY ? shown(def.keyY) : undefined}
-          onChange={(v) => onChange(def.key, v)}
-          onPatch={onPatch}
-          onApply={(bundle) => {
-            // Preset bundle: persist each value alongside.
-            for (const [k, v] of Object.entries(bundle)) onChange(k, v);
-          }}
-          sources={sources}
-        />
+        {/* Locked: read-only (inert), the inherited value shows. */}
+        <div inert={locked} className={cn(locked && "opacity-60")}>
+          <SettingRow
+            def={def}
+            value={shown(def.key)}
+            valueY={def.keyY ? shown(def.keyY) : undefined}
+            onChange={(v) => onChange(def.key, v)}
+            onPatch={onPatch}
+            onApply={(bundle) => {
+              // Preset bundle: persist each value alongside.
+              for (const [k, v] of Object.entries(bundle)) onChange(k, v);
+            }}
+            sources={sources}
+          />
+        </div>
       </div>
     </div>
   );

@@ -3,7 +3,9 @@ import { Minus, Pin, Plus, Trash2, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import type { MonitorProfile } from "@/lib/layout";
+import { MAX_SPACING, normalizeSpacing, profileGap, profilePadding } from "@/lib/profile-grid";
 import { cn } from "@/lib/utils";
+import { useInspectorLayout } from "./inspector-layout";
 
 interface ProfilesPanelProps {
   profiles: MonitorProfile[];
@@ -17,7 +19,7 @@ interface ProfilesPanelProps {
   onActivate: (id: string) => void;
   onAddProfile: () => void;
   onRemoveProfile: () => void;
-  /** Patch the active profile's own fields (name, size, fit). */
+  /** Patch the active profile's own fields (name, size, fit, gap, padding). */
   onProfileChange: (patch: Partial<MonitorProfile>) => void;
   onCols: (delta: number) => void;
   onRows: (delta: number) => void;
@@ -62,6 +64,38 @@ function CountStepper({
   );
 }
 
+/** A px field for the grid spacing: empty = the default (shown as the placeholder). */
+function SpacingInput({
+  label,
+  title,
+  value,
+  placeholder,
+  onChange,
+}: {
+  label: string;
+  title: string;
+  value: number | undefined;
+  placeholder: number;
+  onChange: (value: number | undefined) => void;
+}) {
+  return (
+    <label className="flex-1 space-y-1 text-xs text-muted-foreground" title={title}>
+      {label}
+      <input
+        type="number"
+        min={0}
+        max={MAX_SPACING}
+        value={value ?? ""}
+        placeholder={`${placeholder} (default)`}
+        onChange={(e) =>
+          onChange(e.target.value === "" ? undefined : normalizeSpacing(Number(e.target.value)))
+        }
+        className={INPUT}
+      />
+    </label>
+  );
+}
+
 /** One selectable entry of the profile list. */
 function ProfileEntry({
   active,
@@ -85,17 +119,19 @@ function ProfileEntry({
   );
 }
 
-/** The active profile's name, design size, grid and fit. */
+/** The active profile's name, design size, grid, fit and spacing. */
 function ProfileSettings({
   profile,
   onProfileChange,
   onCols,
   onRows,
 }: Pick<ProfilesPanelProps, "profile" | "onProfileChange" | "onCols" | "onRows">) {
+  // In the dock the fields sit in a compact two-column grid.
+  const dock = useInspectorLayout() === "dock";
   return (
-    <section className="space-y-2 border-t p-3">
-      <div className={LABEL}>Active profile</div>
-      <label className="block space-y-1 text-xs text-muted-foreground">
+    <section className={cn("border-t p-3", dock ? "grid grid-cols-2 gap-x-3 gap-y-2" : "space-y-2")}>
+      <div className={cn(LABEL, dock && "col-span-2")}>Active profile</div>
+      <label className={cn("block space-y-1 text-xs text-muted-foreground", dock && "col-span-2")}>
         Name
         <input
           value={profile.name}
@@ -103,7 +139,7 @@ function ProfileSettings({
           className={INPUT}
         />
       </label>
-      <div className="flex gap-2">
+      <div className={cn("flex gap-2", dock && "col-span-2")}>
         <label className="flex-1 space-y-1 text-xs text-muted-foreground">
           W
           <input
@@ -126,6 +162,7 @@ function ProfileSettings({
       <CountStepper label="Cols" value={profile.cols} fewer="Fewer columns" more="More columns" onStep={onCols} />
       <CountStepper label="Rows" value={profile.rows} fewer="Fewer rows" more="More rows" onStep={onRows} />
       <Segmented
+        className={dock ? "col-span-2" : undefined}
         options={[
           { value: "scroll", label: "Scroll" },
           { value: "fill", label: "Fill viewport" },
@@ -133,6 +170,22 @@ function ProfileSettings({
         value={profile.fit}
         onChange={(fit) => onProfileChange({ fit })}
       />
+      <div className={cn("flex gap-2", dock && "col-span-2")}>
+        <SpacingInput
+          label="Gap px"
+          title="Space between zones"
+          value={profile.gap}
+          placeholder={profileGap({ fit: profile.fit })}
+          onChange={(gap) => onProfileChange({ gap })}
+        />
+        <SpacingInput
+          label="Padding px"
+          title="Space around the grid (empty: 0 for a fill kiosk page, 24 for scroll)"
+          value={profile.padding}
+          placeholder={profilePadding({ fit: profile.fit }, true)}
+          onChange={(padding) => onProfileChange({ padding })}
+        />
+      </div>
     </section>
   );
 }

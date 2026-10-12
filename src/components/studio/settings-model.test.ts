@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  GROUP_COLORS,
   GROUP_EFFECTS,
-  IDLE_SETTING,
   PROFILE_STYLE_KEYS,
   STANDARD_SETTINGS,
 } from "@/modules/standard-settings";
@@ -10,11 +8,9 @@ import { effectiveSettings, type ModuleSetting } from "@/modules/types";
 import {
   dropKeys,
   filterSettings,
-  isStyleSetting,
   matchesQuery,
   settingState,
   settingStateOf,
-  splitSettings,
 } from "./settings-model";
 
 const def = (key: string, extra: Partial<ModuleSetting> = {}): ModuleSetting => ({
@@ -23,46 +19,6 @@ const def = (key: string, extra: Partial<ModuleSetting> = {}): ModuleSetting => 
   type: "boolean",
   default: false,
   ...extra,
-});
-
-describe("isStyleSetting", () => {
-  it("treats every standard setting and profile style key as style", () => {
-    for (const s of STANDARD_SETTINGS) expect(isStyleSetting(s)).toBe(true);
-    for (const key of PROFILE_STYLE_KEYS) expect(isStyleSetting(def(key))).toBe(true);
-    for (const key of ["label", "icon", "background", "backgroundOn", "preset", "layout"])
-      expect(isStyleSetting(def(key))).toBe(true);
-  });
-
-  it("treats hide-when-idle and module settings as content", () => {
-    expect(isStyleSetting(IDLE_SETTING)).toBe(false);
-    expect(isStyleSetting(def("showTemps"))).toBe(false);
-    expect(isStyleSetting(def("tempWarn", { group: "Thresholds" }))).toBe(false);
-  });
-
-  it("files module settings in a standard style group under style", () => {
-    expect(isStyleSetting(def("cpuColor", { type: "color", group: GROUP_COLORS }))).toBe(true);
-    expect(isStyleSetting(def("x", { group: GROUP_EFFECTS }))).toBe(true);
-  });
-});
-
-describe("splitSettings", () => {
-  it("splits into content and style, preserving order", () => {
-    const defs = [
-      def("preset"),
-      def("devices"),
-      def("glow"),
-      IDLE_SETTING,
-      def("tempWarn", { group: "Thresholds" }),
-      def("cpuColor", { group: GROUP_COLORS }),
-    ];
-    const { content, style } = splitSettings(defs);
-    expect(content.map((d) => d.key)).toEqual(["devices", "hideWhenIdle", "tempWarn"]);
-    expect(style.map((d) => d.key)).toEqual(["preset", "glow", "cpuColor"]);
-  });
-
-  it("handles no settings", () => {
-    expect(splitSettings([])).toEqual({ content: [], style: [] });
-  });
 });
 
 describe("filterSettings", () => {
@@ -97,7 +53,7 @@ describe("filterSettings", () => {
   });
 
   it("falls back to the group name when no row matches directly", () => {
-    expect(keys("border, glow")).toEqual(["glow", "glowColor", "blur"]);
+    expect(keys("border & effects")).toEqual(["glow", "glowColor", "blur"]);
   });
 
   it("matches the key, the group and option labels", () => {
@@ -151,6 +107,26 @@ describe("settingState", () => {
   it("treats false and 0 as set values", () => {
     expect(settingState("tint", { tint: false }, undefined, true)).toBe("own");
     expect(settingState("scale", undefined, { scale: 0 }, 100)).toBe("profile");
+  });
+
+  it("tells the dashboard style from the profile style", () => {
+    const from = { glow: "dashboard", radius: "profile" } as const;
+    expect(settingState("glow", {}, { glow: "soft" }, "none", from)).toBe("dashboard");
+    expect(settingState("radius", {}, { radius: "8" }, "auto", from)).toBe("profile");
+    expect(settingState("glow", { glow: "strong" }, { glow: "soft" }, "none", from)).toBe("override");
+  });
+
+  it("does not mark a value from the default layer (a panel's legacy look)", () => {
+    const from = { surface: "default" } as const;
+    expect(settingState("surface", {}, { surface: "bordered" }, "panel", from)).toBe("default");
+    expect(settingState("surface", { surface: "glass" }, { surface: "bordered" }, "panel", from)).toBe("own");
+  });
+
+  it("ranks the dashboard state under the profile one", () => {
+    const def = STANDARD_SETTINGS.find((s) => s.type === "align")!;
+    const from = { alignX: "dashboard", alignY: "profile" } as const;
+    expect(settingStateOf(def, {}, { alignX: "start", alignY: "end" }, from)).toBe("profile");
+    expect(settingStateOf(def, {}, { alignX: "start" }, from)).toBe("dashboard");
   });
 });
 

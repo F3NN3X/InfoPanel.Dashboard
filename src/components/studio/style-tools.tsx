@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Menu } from "@base-ui/react/menu";
 import { Check, ChevronRight, ClipboardPaste, Copy, MoreHorizontal } from "lucide-react";
 import type { StylePreset } from "@/lib/layout";
+import type { AppearanceTarget } from "./appearance-panel";
 
 interface StyleToolsProps {
   /** Something was copied (Paste is enabled). */
@@ -9,8 +10,8 @@ interface StyleToolsProps {
   presets: StylePreset[];
   onCopy: () => void;
   onPaste: () => void;
-  /** Make this widget's style the profile's default. */
-  onUseForProfile: () => void;
+  /** Make this widget's style the global style of every profile, or of this one. */
+  onUseAsGlobal: (target: AppearanceTarget) => void;
   onSavePreset: (name: string) => void;
   onApplyPreset: (id: string) => void;
   onDeletePreset: (id: string) => void;
@@ -56,15 +57,15 @@ function PresetSubmenu({
 
 /**
  * Inspector actions for a widget's look (the keys in `PROFILE_STYLE_KEYS`):
- * copy / paste it between widgets, and a "⋯" menu to make it the profile
- * default and keep named presets.
+ * copy / paste it between widgets, and a "⋯" menu to make it the global
+ * style (all profiles or this one) and keep named presets.
  */
 export function StyleTools({
   canPaste,
   presets,
   onCopy,
   onPaste,
-  onUseForProfile,
+  onUseAsGlobal,
   onSavePreset,
   onApplyPreset,
   onDeletePreset,
@@ -128,13 +129,31 @@ export function StyleTools({
         <Menu.Portal>
           <Menu.Positioner className="z-50" sideOffset={4} align="end">
             <Menu.Popup className={POPUP}>
-              <Menu.Item
-                className={ITEM}
-                onClick={onUseForProfile}
-                title="Make this style the default for every widget in the profile"
-              >
-                Use for profile
-              </Menu.Item>
+              <Menu.SubmenuRoot>
+                <Menu.SubmenuTrigger className={ITEM}>
+                  Use as global… <ChevronRight className="h-3 w-3" />
+                </Menu.SubmenuTrigger>
+                <Menu.Portal>
+                  <Menu.Positioner className="z-50" sideOffset={4} alignOffset={-4}>
+                    <Menu.Popup className={POPUP}>
+                      <Menu.Item
+                        className={ITEM}
+                        onClick={() => onUseAsGlobal("all")}
+                        title="Make this style the default for every widget in every profile"
+                      >
+                        All profiles
+                      </Menu.Item>
+                      <Menu.Item
+                        className={ITEM}
+                        onClick={() => onUseAsGlobal("profile")}
+                        title="Make this style the default for every widget in this profile"
+                      >
+                        This profile
+                      </Menu.Item>
+                    </Menu.Popup>
+                  </Menu.Positioner>
+                </Menu.Portal>
+              </Menu.SubmenuRoot>
               <Menu.Separator className={SEPARATOR} />
               <PresetSubmenu label="Apply preset" presets={presets} onPick={onApplyPreset} />
               <Menu.Item className={ITEM} onClick={() => setName("")}>

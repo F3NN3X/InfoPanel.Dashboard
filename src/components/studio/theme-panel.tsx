@@ -34,7 +34,9 @@ interface ThemePanelProps {
 }
 
 /**
- * shadcn-themer-style theme editor: preset swatches, a corner radius
+ * shadcn-themer-style theme editor (Appearance › Theme colours): theme
+ * swatches that change the colours only (appearance presets above change
+ * the whole look), a corner radius
  * slider and, collapsed under "Custom colours", per-token color pickers
  * (native color inputs converted to HSL triplets). Changes apply live
  * through the CSS variables.
@@ -51,7 +53,7 @@ export function ThemePanel({
     <div className="space-y-5">
       <div>
         <div className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Presets
+          Colours only
         </div>
         <div className="grid grid-cols-2 gap-2">
           {THEME_PRESETS.map((preset) => (

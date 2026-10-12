@@ -1,6 +1,6 @@
 import { ModernNetwork } from "@/components/ModernNetwork";
 import { liveValue } from "@/lib/sensors";
-import { chromeOf, GROUP_COLORS, STANDARD_SETTINGS } from "./standard-settings";
+import { chromeOf, STANDARD_SETTINGS } from "./standard-settings";
 import {
   effectiveSettings,
   type DashboardModule,
@@ -19,10 +19,6 @@ const NET = "libre.ethernet_";
 
 const NETWORK_MODERN_SETTINGS: ModuleSetting[] = [
   ...STANDARD_SETTINGS,
-  { key: "showTotals", label: "Session totals", type: "boolean", default: true },
-  { key: "sparkline", label: "Trend sparkline", type: "boolean", default: false },
-  { key: "downloadColor", label: "Download color", type: "color", default: "", group: GROUP_COLORS },
-  { key: "uploadColor", label: "Upload color", type: "color", default: "", group: GROUP_COLORS },
   {
     key: "view",
     label: "View",
@@ -36,7 +32,12 @@ const NETWORK_MODERN_SETTINGS: ModuleSetting[] = [
         applies: { showTotals: true, sparkline: true },
       },
     ],
+    group: "Content",
   },
+  { key: "showTotals", label: "Session totals", type: "boolean", default: true, group: "Content" },
+  { key: "sparkline", label: "Trend sparkline", type: "boolean", default: false, group: "Content" },
+  { key: "downloadColor", label: "Download color", type: "color", default: "", group: "Speed colors" },
+  { key: "uploadColor", label: "Upload color", type: "color", default: "", group: "Speed colors" },
 ];
 
 export const networkModernModule: DashboardModule = {

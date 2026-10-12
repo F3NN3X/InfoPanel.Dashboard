@@ -126,7 +126,7 @@ const saved = userPanelPreset({
 });
 
 describe("addPresetPlacement", () => {
-  it("appends a panel placement built by the preset, migrated (title → label, background → surface)", () => {
+  it("appends a panel placement built by the preset, migrated (title → label; the card stays a render-time layer)", () => {
     const after = addPresetPlacement(profile([]), "pnl", preset(6, 3));
     expect(after.placements[0]).toEqual({
       id: "pnl",
@@ -137,7 +137,7 @@ describe("addPresetPlacement", () => {
       rowSpan: 3,
       visible: true,
       panel: normalized,
-      settings: { label: "Preset panel", surface: "panel" },
+      settings: { label: "Preset panel" },
     });
   });
 
@@ -277,13 +277,13 @@ describe("widget assignment", () => {
     });
   });
 
-  it("assigns a preset panel and grows to its footprint, replacing the zone's settings with the panel's look", () => {
+  it("assigns a preset panel and grows to its footprint, replacing the zone's settings with the panel's", () => {
     const before = profile([zone("a", 2, 2, 1, 1, { settings: { x: 1 } })]);
     expect(assignPreset(before, "a", preset(4, 2)).placements[0]).toEqual({
       id: "a",
       module: PANEL_ID,
       panel: normalized,
-      settings: { label: "Preset panel", surface: "panel" },
+      settings: { label: "Preset panel" },
       colStart: 2,
       rowStart: 2,
       colSpan: 4,

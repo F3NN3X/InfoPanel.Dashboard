@@ -1,6 +1,7 @@
 import { Box, Eye, EyeOff, PanelsTopLeft, Square, Trash2 } from "lucide-react";
 import { BLANK_MODULE, PANEL_ID, type Placement } from "@/lib/layout";
 import { cn } from "@/lib/utils";
+import { useInspectorLayout } from "./inspector-layout";
 import { placementTitle } from "./studio-modules";
 import { sortZones } from "./zone-geometry";
 
@@ -30,6 +31,7 @@ export function LayersPanel({
   onToggle,
   onRemove,
 }: LayersPanelProps) {
+  const dock = useInspectorLayout() === "dock";
   if (placements.length === 0)
     return (
       <p className="p-3 text-xs text-muted-foreground/60">
@@ -37,7 +39,7 @@ export function LayersPanel({
       </p>
     );
   return (
-    <div className="space-y-1 p-3">
+    <div className={dock ? "space-y-0.5 p-2" : "space-y-1 p-3"}>
       {sortZones(placements).map((p) => {
         const Icon = zoneIcon(p);
         const hidden = p.visible === false;
@@ -54,7 +56,8 @@ export function LayersPanel({
               }
             }}
             className={cn(
-              "flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-xs",
+              "flex cursor-pointer items-center gap-2 rounded-md border px-2 text-xs",
+              dock ? "py-1" : "py-1.5",
               p.id === selectedId ? "border-ring bg-accent" : "border-border hover:border-ring/50",
               hidden && "opacity-50"
             )}

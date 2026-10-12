@@ -1,7 +1,7 @@
 import { Globe } from "lucide-react";
 import { ModernChrome } from "@/components/modern-chrome";
-import { ws } from "@/components/widget-style";
-import { chromeOf, STYLE_SETTINGS } from "./standard-settings";
+import { surfaceBox, ws } from "@/components/widget-style";
+import { chromeOf, CARD_SETTINGS, STYLE_SETTINGS, SURFACE_SETTINGS } from "./standard-settings";
 import { effectiveSettings, type DashboardModule } from "./types";
 
 
@@ -44,9 +44,15 @@ function toEmbeddable(raw: string): string {
  * sensor data is consumed, so the widget is always "present" (a placeholder
  * shows until a URL is set).
  * Follows the style system as far as an iframe allows: zoom scales the
- * embedded page, and only the corner radius applies (an iframe has no
- * padding, gap, alignment, labels or values to style).
+ * embedded page, and the corner radius, border and edge glow apply (an
+ * iframe has no padding, gap, alignment, labels or values to style).
  */
+
+/** The frame's edge: border and glow only (the page covers any surface). */
+const EDGE_KEYS: ReadonlySet<string> = new Set(["borderWidth", "borderColor", "glow", "glowColor"]);
+
+/** The frame's own 1px edge (`border-white/10` before the style options). */
+const EDGE = { background: "transparent", fg: "inherit", ring: "rgba(255, 255, 255, 0.1)" };
 export const webpageModule: DashboardModule = {
   id: "webpage",
   title: "Web Page",
@@ -59,10 +65,13 @@ export const webpageModule: DashboardModule = {
       label: "URL",
       type: "text",
       default: "",
+      group: "Page",
     },
     // An iframe has no layout of its own: only its size and corners apply
     // (no auto-scale, which would zoom the embedded page itself).
     ...STYLE_SETTINGS.filter((d) => d.key === "scale" || d.key === "radius"),
+    ...CARD_SETTINGS.filter((d) => d.key === "accent"),
+    ...SURFACE_SETTINGS.filter((d) => EDGE_KEYS.has(d.key)),
   ],
   render: (_sensors, s) => {
     const cfg = effectiveSettings(webpageModule, s);
@@ -89,10 +98,7 @@ export const webpageModule: DashboardModule = {
     // key={src}: remount (and reload) the frame whenever the URL changes.
     return (
       <ModernChrome chrome={chrome}>
-      <div
-        className="h-full w-full overflow-hidden border border-white/10"
-        style={{ borderRadius: radius }}
-      >
+      <div className="relative h-full w-full overflow-hidden" style={{ borderRadius: radius }}>
         <iframe
           key={src}
           src={src}
@@ -100,6 +106,11 @@ export const webpageModule: DashboardModule = {
           className="h-full w-full border-0 bg-white"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
           allowFullScreen
+        />
+        {/* The edge sits over the page (an inset shadow under it would be covered). */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{ borderRadius: radius, boxShadow: surfaceBox(EDGE, chrome).boxShadow }}
         />
       </div>
       </ModernChrome>

@@ -1,6 +1,6 @@
 import { ModernHardware, type ModernHardwareRow } from "@/components/ModernHardware";
 import { liveText, liveValue } from "@/lib/sensors";
-import { chromeOf, GROUP_COLORS, STANDARD_SETTINGS } from "./standard-settings";
+import { chromeOf, STANDARD_SETTINGS } from "./standard-settings";
 import {
   effectiveSettings,
   type DashboardModule,
@@ -19,15 +19,6 @@ import {
 const HARDWARE_MODERN_SETTINGS: ModuleSetting[] = [
   ...STANDARD_SETTINGS,
   {
-    key: "maxRows",
-    label: "Max rows (0 = all)",
-    type: "number",
-    default: 12,
-    min: 0,
-    max: 100,
-    step: 2,
-  },
-  {
     key: "view",
     label: "View",
     type: "select",
@@ -36,11 +27,22 @@ const HARDWARE_MODERN_SETTINGS: ModuleSetting[] = [
       { value: "list", label: "Reading list" },
       { value: "temps", label: "Temp gauges", applies: { showFans: true } },
     ],
+    group: "Content",
   },
-  { key: "showFans", label: "Fan readings", type: "boolean", default: true },
-  { key: "tempColor", label: "Temperature dot color", type: "color", default: "", group: GROUP_COLORS },
-  { key: "fanColor", label: "Fan dot color", type: "color", default: "", group: GROUP_COLORS },
-  { key: "powerColor", label: "Power dot color", type: "color", default: "", group: GROUP_COLORS },
+  {
+    key: "maxRows",
+    label: "Max rows (0 = all)",
+    type: "number",
+    default: 12,
+    min: 0,
+    max: 100,
+    step: 2,
+    group: "Content",
+  },
+  { key: "showFans", label: "Fan readings", type: "boolean", default: true, group: "Content" },
+  { key: "tempColor", label: "Temperature dot color", type: "color", default: "", group: "Dot colors" },
+  { key: "fanColor", label: "Fan dot color", type: "color", default: "", group: "Dot colors" },
+  { key: "powerColor", label: "Power dot color", type: "color", default: "", group: "Dot colors" },
 ];
 
 /** Classify a reading by its name / unit for the dot color. */
