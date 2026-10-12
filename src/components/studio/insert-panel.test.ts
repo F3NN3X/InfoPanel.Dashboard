@@ -55,7 +55,9 @@ describe("insertables", () => {
     const category = (id: string) => INSERTABLES.find((i) => i.kind === "module" && i.id === id)?.category;
     expect(category("systemmodern")).toBe("System");
     expect(category("hardwaremodern")).toBe("Hardware");
-    expect(category("networkmodern")).toBe("Network");
+    // Ported onto a template: the template's own entry stays, the legacy id is hidden from the Library.
+    expect(category("networkmodern")).toBeUndefined();
+    expect(category("NetworkThroughput")).toBe("Network");
     expect(category("spotifymodern")).toBe("Media");
     expect(category("mediamodern")).toBe("Media");
     expect(category("audiomodern")).toBe("Audio");

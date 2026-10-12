@@ -1,24 +1,17 @@
-import { ModernNetwork } from "@/components/ModernNetwork";
-import { liveValue } from "@/lib/sensors";
-import { chromeOf, STANDARD_SETTINGS } from "./standard-settings";
-import {
-  effectiveSettings,
-  type DashboardModule,
-  type ModuleSetting,
-} from "./types";
+import { templateModule } from "@/widgets/module";
+import * as NetworkThroughput from "@/widgets/NetworkThroughput";
+import type { ModuleSetting, ModuleSettings } from "./types";
 
 const NET = "libre.ethernet_";
 
 /**
- * Modern network widget — current download / upload speed (the
- * `libre.ethernet_*` LibreHardwareMonitor keys) with a session totals row
- * and link utilization, plus optional rolling speed sparklines. One
- * component (`ModernNetwork`) picks card / standard / compact / simple
- * from the measured zone size.
+ * Modern network widget — current download / upload speed (the `libre.*`
+ * LibreHardwareMonitor adapter keys, the busiest adapter) with a session
+ * totals row and link utilization, plus optional rolling speed sparklines. Rendered by the
+ * `NetworkThroughput` template through the widget shell.
  */
 
-const NETWORK_MODERN_SETTINGS: ModuleSetting[] = [
-  ...STANDARD_SETTINGS,
+export const NETWORK_SETTINGS: ModuleSetting[] = [
   {
     key: "view",
     label: "View",
@@ -40,49 +33,19 @@ const NETWORK_MODERN_SETTINGS: ModuleSetting[] = [
   { key: "uploadColor", label: "Upload color", type: "color", default: "", group: "Speed colors" },
 ];
 
-export const networkModernModule: DashboardModule = {
-  id: "networkmodern",
+export const networkToProps = (s: ModuleSettings): Partial<NetworkThroughput.NetworkThroughputProps> => ({
+  view: s.view === "totals" ? "totals" : "speeds",
+  showTotals: Boolean(s.showTotals),
+  sparkline: Boolean(s.sparkline),
+  downloadColor: String(s.downloadColor ?? ""),
+  uploadColor: String(s.uploadColor ?? ""),
+});
+
+export const networkModernModule = templateModule({
+  meta: NetworkThroughput.meta,
+  Component: NetworkThroughput.default,
+  settings: NETWORK_SETTINGS,
+  toProps: networkToProps,
   title: "Network (modern)",
-  minCols: 2,
-  minRows: 1,
-  prefixes: [NET],
-  settings: NETWORK_MODERN_SETTINGS,
-  render: (sensors, s) => {
-    const cfg = effectiveSettings(networkModernModule, s);
-    const download = liveValue(sensors[NET + "download_speed"]);
-    const upload = liveValue(sensors[NET + "upload_speed"]);
-    const downloadTotal = liveValue(sensors[NET + "data_downloaded"]);
-    const uploadTotal = liveValue(sensors[NET + "data_uploaded"]);
-    const utilization = liveValue(sensors[NET + "network_utilization"]);
-
-    if (
-      download === undefined &&
-      upload === undefined &&
-      downloadTotal === undefined &&
-      utilization === undefined
-    )
-      return null;
-
-    return (
-      <ModernNetwork
-        download={download}
-        upload={upload}
-        downloadTotal={downloadTotal}
-        uploadTotal={uploadTotal}
-        utilization={utilization}
-        sparkline={Boolean(cfg.sparkline)}
-        showTotals={Boolean(cfg.showTotals)}
-        downloadColor={String(cfg.downloadColor ?? "")}
-        uploadColor={String(cfg.uploadColor ?? "")}
-        layout={String(cfg.layout) as
-          | "auto"
-          | "card"
-          | "standard"
-          | "compact"
-          | "simple"}
-        surfaceStyle={String(cfg.surface) as "glass" | "matte-light" | "matte-dark"}
-        chrome={chromeOf(cfg)}
-      />
-    );
-  },
-};
+  legacy: { id: "networkmodern", minCols: 2, minRows: 1, prefixes: [NET], libraryHidden: true },
+});

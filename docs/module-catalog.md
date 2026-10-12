@@ -111,7 +111,7 @@ re-exported there; style helpers are in `components/widget-style.ts`):
   (temp / fan / power first), capped by the `maxRows` option. The "temps"
   view renders the top four temperature readings as 270° arc gauges
   (`ArcGauge` / `tempColor` / `tempWord`) plus a fan-reading chip row.
-- **networkmodern** (`ModernNetwork`) — `libre.ethernet_*`
+- **networkmodern** (`NetworkThroughput` template) — `libre.ethernet_*`
   (LibreHardwareMonitor): `download_speed` / `upload_speed` (bytes/s →
   formatted rate), `data_downloaded` / `data_uploaded` (session totals),
   `network_utilization` (0–100). Optional rolling speed sparklines.

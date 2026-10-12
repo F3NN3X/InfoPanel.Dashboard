@@ -20,6 +20,8 @@ export interface TemplateOptions<P extends object> {
   prefixes?: string[];
   /** Overrides `meta.name` as the module title. */
   title?: string;
+  /** A legacy module id served by this template: its own id, size, owned prefixes and Library visibility. */
+  legacy?: Pick<DashboardModule, "id" | "minCols" | "minRows" | "prefixes" | "libraryHidden">;
 }
 
 /** A select value that means "unset": `auto` or empty. */
@@ -52,7 +54,7 @@ export function withSkinSurface(look: ModuleSettings, saved: ModuleSettings | un
   return { ...look, surface: (skin && SKINS[skin]?.surface) || "glass" };
 }
 
-export function templateModule<P extends object>({ meta, Component, settings, toProps, isIdle, prefixes, title }: TemplateOptions<P>): DashboardModule {
+export function templateModule<P extends object>({ meta, Component, settings, toProps, isIdle, prefixes, title, legacy }: TemplateOptions<P>): DashboardModule {
   const all = [...STANDARD_SETTINGS, ...settings];
   const mod: DashboardModule = {
     id: meta.id,
@@ -67,6 +69,7 @@ export function templateModule<P extends object>({ meta, Component, settings, to
     icon: meta.icon,
     description: meta.description,
     defaultSize: meta.defaultSize,
+    ...legacy,
     render: (sensors, saved) => <TemplateZone sensors={sensors} saved={saved} />,
   };
   function TemplateZone({ sensors, saved }: { sensors: SensorMap; saved?: ModuleSettings }) {

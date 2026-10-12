@@ -1,5 +1,6 @@
 // Template widgets, group B: storage, network, info, generic (see docs/redesign/phase9/brief-9.3c-templates.md).
 import type { DashboardModule, ModuleSettings } from "@/modules/types";
+import { NETWORK_SETTINGS } from "@/modules/network-modern";
 import { templateModule } from "../module";
 import * as DriveSpace from "../DriveSpace";
 import * as StorageHealth from "../StorageHealth";
@@ -23,7 +24,7 @@ export const GROUP_B: DashboardModule[] = [
   templateModule({ meta: DriveSpace.meta, Component: DriveSpace.default, settings: [], toProps: pass<Partial<DriveSpace.DriveSpaceProps>>("drive", "warn", "crit", "sort", "neutral") }),
   templateModule({ meta: StorageHealth.meta, Component: StorageHealth.default, settings: [], toProps: pass<Partial<StorageHealth.StorageHealthProps>>("disk") }),
   templateModule({ meta: DiskIO.meta, Component: DiskIO.default, settings: [], toProps: () => ({}) }),
-  templateModule({ meta: NetworkThroughput.meta, Component: NetworkThroughput.default, settings: [], toProps: pass<Partial<NetworkThroughput.NetworkThroughputProps>>("adapter", "chart") }),
+  templateModule({ meta: NetworkThroughput.meta, Component: NetworkThroughput.default, settings: NETWORK_SETTINGS, toProps: pass<Partial<NetworkThroughput.NetworkThroughputProps>>("adapter", "chart", "view", "showTotals", "sparkline", "downloadColor", "uploadColor") }),
   templateModule({ meta: NetworkAdapters.meta, Component: NetworkAdapters.default, settings: [], toProps: pass<Partial<NetworkAdapters.NetworkAdaptersProps>>("showDown", "showIpv6", "hideIp") }),
   templateModule({ meta: Clock.meta, Component: Clock.default, settings: [], toProps: pass<Partial<Clock.ClockProps>>("format", "showSeconds", "showDate", "face") }),
   templateModule({ meta: Calendar.meta, Component: Calendar.default, settings: [], toProps: pass<Partial<Calendar.CalendarProps>>("weekStart") }),
