@@ -1,6 +1,6 @@
 // Shared layouts: CompactView (tile / strip / column), StudioView (variant="studio") and the per-skin headers.
 // Text and track colours come from the shell's --w-* variables; label case follows the look (`--wp-label-case`).
-import type { CSSProperties, ReactNode } from "react";
+import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { labelStyle } from "@/components/widget-style";
 import { clamp, fmt } from "./data";
 import { fitRows } from "./layout";
@@ -269,20 +269,47 @@ export interface SkinHeaderProps {
   /** What the tui header patches paint over the box edge: the surface background. */
   bg?: string;
 }
+/** Whether the tui header's right slot fits on the box edge beside the title; it is dropped when it does not. */
+function useTuiRightFits(on: boolean) {
+  const leftRef = useRef<HTMLDivElement | null>(null);
+  const rightRef = useRef<HTMLDivElement | null>(null);
+  // the slot's last measured width, kept while it is dropped so a wider box can bring it back
+  const rightW = useRef(0);
+  const [fits, setFits] = useState(true);
+  useLayoutEffect(() => {
+    const left = leftRef.current;
+    const host = left?.parentElement;
+    if (!on || !left || !host) return;
+    const check = () => {
+      if (rightRef.current) rightW.current = rightRef.current.offsetWidth;
+      // both slots sit 12px in from the edges (left-3 / right-3), 8px apart
+      setFits(left.offsetWidth + rightW.current + 8 <= host.clientWidth - 24);
+    };
+    const ro = new ResizeObserver(check);
+    ro.observe(host);
+    ro.observe(left);
+    if (rightRef.current) ro.observe(rightRef.current);
+    check();
+    return () => ro.disconnect();
+  }, [on, fits]);
+  return { leftRef, rightRef, fits };
+}
+
 export function SkinHeader({ kind, title, icon, right, bleed, bg = "#0b0b0d" }: SkinHeaderProps) {
   const sk = useSkin();
+  const tuiRight = useTuiRightFits(kind === "tui" && !!right);
   // The look's gap replaces the space under the header; its label case applies to every header.
   const st = (def: "uppercase" | "none"): CSSProperties => ({ ...labelStyle(def), ...(sk.gap !== undefined ? { marginBottom: sk.gap } : null) });
   const r = right && <span className="ml-auto flex shrink-0 items-center gap-1.5 normal-case tracking-normal">{right}</span>;
   if (kind === "tui")
     return (
       <>
-        <div className="absolute left-3 top-[5px] z-10 flex max-w-[70%] -translate-y-1/2 items-center px-1 text-[11px] leading-none" style={{ background: bg }}>
+        <div ref={tuiRight.leftRef} className="absolute left-3 top-[5px] z-10 flex max-w-[70%] -translate-y-1/2 items-center px-1 text-[11px] leading-none" style={{ background: bg }}>
           <span style={{ color: mix(55, "#52525b") }}>┐</span>
           <span className="truncate px-0.5 font-semibold lowercase text-[color:var(--accent)]" style={{ textTransform: "var(--wp-label-case, lowercase)" as CSSProperties["textTransform"] }}>{title}</span>
           <span style={{ color: mix(55, "#52525b") }}>┌</span>
         </div>
-        {right && <div className="absolute right-3 top-[5px] z-10 flex -translate-y-1/2 items-center gap-1 px-1 text-[10.5px] leading-none text-[color:var(--w-muted)]" style={{ background: bg }}>{right}</div>}
+        {right && tuiRight.fits && <div ref={tuiRight.rightRef} className="absolute right-3 top-[5px] z-10 flex -translate-y-1/2 items-center gap-1 px-1 text-[10.5px] leading-none text-[color:var(--w-muted)]" style={{ background: bg }}>{right}</div>}
       </>
     );
   const base = "relative z-10 flex min-w-0 items-center";
