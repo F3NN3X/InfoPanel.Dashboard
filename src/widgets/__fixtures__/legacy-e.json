@@ -1,0 +1,2181 @@
+{
+ "webpage": {
+  "title": "Web Page",
+  "minCols": 4,
+  "minRows": 2,
+  "prefixes": [],
+  "settings": [
+   {
+    "key": "url",
+    "keyY": null,
+    "type": "text",
+    "default": "",
+    "group": "Page",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "scale",
+    "keyY": null,
+    "type": "number",
+    "default": 100,
+    "group": "Size & alignment",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "radius",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Spacing & shape",
+    "advanced": false,
+    "options": [
+     "auto",
+     "0",
+     "4",
+     "8",
+     "12",
+     "16",
+     "20",
+     "28",
+     "999"
+    ]
+   },
+   {
+    "key": "accent",
+    "keyY": null,
+    "type": "color",
+    "default": "",
+    "group": "Colors & surface",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "borderWidth",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Border & effects",
+    "advanced": false,
+    "options": [
+     "auto",
+     "0",
+     "1",
+     "2",
+     "3",
+     "4",
+     "6"
+    ]
+   },
+   {
+    "key": "borderColor",
+    "keyY": null,
+    "type": "color",
+    "default": "",
+    "group": "Border & effects",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "glow",
+    "keyY": null,
+    "type": "select",
+    "default": "none",
+    "group": "Border & effects",
+    "advanced": false,
+    "options": [
+     "none",
+     "soft",
+     "strong"
+    ]
+   },
+   {
+    "key": "glowColor",
+    "keyY": null,
+    "type": "color",
+    "default": "",
+    "group": "Border & effects",
+    "advanced": false,
+    "options": null
+   }
+  ]
+ },
+ "textfile": {
+  "title": "Text File",
+  "minCols": 2,
+  "minRows": 1,
+  "prefixes": [
+   "plugins.InfoPanel.TextFile."
+  ],
+  "settings": [
+   {
+    "key": "showMeta",
+    "keyY": null,
+    "type": "boolean",
+    "default": true,
+    "group": "Content",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "surface",
+    "keyY": null,
+    "type": "select",
+    "default": "theme",
+    "group": null,
+    "advanced": false,
+    "options": [
+     "glass",
+     "matte-light",
+     "matte-dark",
+     "theme"
+    ]
+   },
+   {
+    "key": "accent",
+    "keyY": null,
+    "type": "color",
+    "default": "",
+    "group": "Colors & surface",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "skin",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Look",
+    "advanced": false,
+    "options": [
+     "auto",
+     "default",
+     "tui",
+     "macos",
+     "fluent",
+     "hud",
+     "ink",
+     "retro",
+     "ios",
+     "android",
+     "synth",
+     "brutal",
+     "cyber",
+     "nixie",
+     "instrument"
+    ]
+   },
+   {
+    "key": "variant",
+    "keyY": null,
+    "type": "select",
+    "default": "default",
+    "group": "Look",
+    "advanced": false,
+    "options": [
+     "default",
+     "studio"
+    ]
+   },
+   {
+    "key": "graph",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Look",
+    "advanced": true,
+    "options": [
+     "auto",
+     "area",
+     "line",
+     "step",
+     "bars",
+     "dots",
+     "braille"
+    ]
+   },
+   {
+    "key": "meter",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Look",
+    "advanced": true,
+    "options": [
+     "auto",
+     "bar",
+     "pill",
+     "segments",
+     "blocks",
+     "hair",
+     "wave",
+     "square"
+    ]
+   },
+   {
+    "key": "compactView",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Look",
+    "advanced": true,
+    "options": [
+     "auto",
+     "off"
+    ]
+   },
+   {
+    "key": "autoScale",
+    "keyY": null,
+    "type": "boolean",
+    "default": true,
+    "group": "Size & alignment",
+    "advanced": true,
+    "options": null
+   },
+   {
+    "key": "scale",
+    "keyY": null,
+    "type": "number",
+    "default": 100,
+    "group": "Size & alignment",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "alignX",
+    "keyY": "alignY",
+    "type": "align",
+    "default": "auto",
+    "group": "Size & alignment",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "padding",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Spacing & shape",
+    "advanced": false,
+    "options": [
+     "auto",
+     "0",
+     "4",
+     "8",
+     "12",
+     "16",
+     "20",
+     "24",
+     "32",
+     "48"
+    ]
+   },
+   {
+    "key": "gap",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Spacing & shape",
+    "advanced": false,
+    "options": [
+     "auto",
+     "0",
+     "4",
+     "8",
+     "12",
+     "16",
+     "24",
+     "32",
+     "48"
+    ]
+   },
+   {
+    "key": "radius",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Spacing & shape",
+    "advanced": false,
+    "options": [
+     "auto",
+     "0",
+     "4",
+     "8",
+     "12",
+     "16",
+     "20",
+     "28",
+     "999"
+    ]
+   },
+   {
+    "key": "textColor",
+    "keyY": null,
+    "type": "color",
+    "default": "",
+    "group": "Typography",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "mutedColor",
+    "keyY": null,
+    "type": "color",
+    "default": "",
+    "group": "Typography",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "font",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Typography",
+    "advanced": false,
+    "options": [
+     "auto",
+     "sans",
+     "rounded",
+     "serif",
+     "mono",
+     "inter",
+     "geist",
+     "roboto",
+     "manrope",
+     "outfit",
+     "space-grotesk",
+     "ibm-plex-sans",
+     "nunito",
+     "rajdhani",
+     "orbitron",
+     "oswald",
+     "jetbrains-mono",
+     "fira-code",
+     "geist-mono",
+     "ibm-plex-mono",
+     "archivo",
+     "vt323",
+     "instrument-serif",
+     "roboto-flex",
+     "chakra-petch",
+     "nixie-one"
+    ]
+   },
+   {
+    "key": "fontWeight",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Typography",
+    "advanced": false,
+    "options": [
+     "auto",
+     "400",
+     "500",
+     "600",
+     "700",
+     "800"
+    ]
+   },
+   {
+    "key": "labelCase",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Typography",
+    "advanced": false,
+    "options": [
+     "auto",
+     "uppercase",
+     "none",
+     "capitalize"
+    ]
+   },
+   {
+    "key": "stroke",
+    "keyY": null,
+    "type": "number",
+    "default": 100,
+    "group": "Spacing & shape",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "customCss",
+    "keyY": null,
+    "type": "text",
+    "default": "",
+    "group": "Advanced",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "borderWidth",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Border & effects",
+    "advanced": false,
+    "options": [
+     "auto",
+     "0",
+     "1",
+     "2",
+     "3",
+     "4",
+     "6"
+    ]
+   },
+   {
+    "key": "borderColor",
+    "keyY": null,
+    "type": "color",
+    "default": "",
+    "group": "Border & effects",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "glow",
+    "keyY": null,
+    "type": "select",
+    "default": "none",
+    "group": "Border & effects",
+    "advanced": false,
+    "options": [
+     "none",
+     "soft",
+     "strong"
+    ]
+   },
+   {
+    "key": "glowColor",
+    "keyY": null,
+    "type": "color",
+    "default": "",
+    "group": "Border & effects",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "surfaceOpacity",
+    "keyY": null,
+    "type": "number",
+    "default": 100,
+    "group": "Colors & surface",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "blur",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Colors & surface",
+    "advanced": false,
+    "options": [
+     "auto",
+     "0",
+     "4",
+     "8",
+     "16",
+     "24",
+     "40"
+    ]
+   }
+  ]
+ },
+ "notifications": {
+  "title": "Notifications",
+  "minCols": 2,
+  "minRows": 1,
+  "prefixes": [
+   "plugins.InfoPanel.Notifications."
+  ],
+  "settings": [
+   {
+    "key": "showHistory",
+    "keyY": null,
+    "type": "boolean",
+    "default": true,
+    "group": "Content",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "maxLines",
+    "keyY": null,
+    "type": "number",
+    "default": 50,
+    "group": "Content",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "hideWhenIdle",
+    "keyY": null,
+    "type": "boolean",
+    "default": false,
+    "group": null,
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "surface",
+    "keyY": null,
+    "type": "select",
+    "default": "theme",
+    "group": null,
+    "advanced": false,
+    "options": [
+     "glass",
+     "matte-light",
+     "matte-dark",
+     "theme"
+    ]
+   },
+   {
+    "key": "accent",
+    "keyY": null,
+    "type": "color",
+    "default": "",
+    "group": "Colors & surface",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "skin",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Look",
+    "advanced": false,
+    "options": [
+     "auto",
+     "default",
+     "tui",
+     "macos",
+     "fluent",
+     "hud",
+     "ink",
+     "retro",
+     "ios",
+     "android",
+     "synth",
+     "brutal",
+     "cyber",
+     "nixie",
+     "instrument"
+    ]
+   },
+   {
+    "key": "variant",
+    "keyY": null,
+    "type": "select",
+    "default": "default",
+    "group": "Look",
+    "advanced": false,
+    "options": [
+     "default",
+     "studio"
+    ]
+   },
+   {
+    "key": "graph",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Look",
+    "advanced": true,
+    "options": [
+     "auto",
+     "area",
+     "line",
+     "step",
+     "bars",
+     "dots",
+     "braille"
+    ]
+   },
+   {
+    "key": "meter",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Look",
+    "advanced": true,
+    "options": [
+     "auto",
+     "bar",
+     "pill",
+     "segments",
+     "blocks",
+     "hair",
+     "wave",
+     "square"
+    ]
+   },
+   {
+    "key": "compactView",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Look",
+    "advanced": true,
+    "options": [
+     "auto",
+     "off"
+    ]
+   },
+   {
+    "key": "autoScale",
+    "keyY": null,
+    "type": "boolean",
+    "default": true,
+    "group": "Size & alignment",
+    "advanced": true,
+    "options": null
+   },
+   {
+    "key": "scale",
+    "keyY": null,
+    "type": "number",
+    "default": 100,
+    "group": "Size & alignment",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "alignX",
+    "keyY": "alignY",
+    "type": "align",
+    "default": "auto",
+    "group": "Size & alignment",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "padding",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Spacing & shape",
+    "advanced": false,
+    "options": [
+     "auto",
+     "0",
+     "4",
+     "8",
+     "12",
+     "16",
+     "20",
+     "24",
+     "32",
+     "48"
+    ]
+   },
+   {
+    "key": "gap",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Spacing & shape",
+    "advanced": false,
+    "options": [
+     "auto",
+     "0",
+     "4",
+     "8",
+     "12",
+     "16",
+     "24",
+     "32",
+     "48"
+    ]
+   },
+   {
+    "key": "radius",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Spacing & shape",
+    "advanced": false,
+    "options": [
+     "auto",
+     "0",
+     "4",
+     "8",
+     "12",
+     "16",
+     "20",
+     "28",
+     "999"
+    ]
+   },
+   {
+    "key": "textColor",
+    "keyY": null,
+    "type": "color",
+    "default": "",
+    "group": "Typography",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "mutedColor",
+    "keyY": null,
+    "type": "color",
+    "default": "",
+    "group": "Typography",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "font",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Typography",
+    "advanced": false,
+    "options": [
+     "auto",
+     "sans",
+     "rounded",
+     "serif",
+     "mono",
+     "inter",
+     "geist",
+     "roboto",
+     "manrope",
+     "outfit",
+     "space-grotesk",
+     "ibm-plex-sans",
+     "nunito",
+     "rajdhani",
+     "orbitron",
+     "oswald",
+     "jetbrains-mono",
+     "fira-code",
+     "geist-mono",
+     "ibm-plex-mono",
+     "archivo",
+     "vt323",
+     "instrument-serif",
+     "roboto-flex",
+     "chakra-petch",
+     "nixie-one"
+    ]
+   },
+   {
+    "key": "fontWeight",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Typography",
+    "advanced": false,
+    "options": [
+     "auto",
+     "400",
+     "500",
+     "600",
+     "700",
+     "800"
+    ]
+   },
+   {
+    "key": "labelCase",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Typography",
+    "advanced": false,
+    "options": [
+     "auto",
+     "uppercase",
+     "none",
+     "capitalize"
+    ]
+   },
+   {
+    "key": "stroke",
+    "keyY": null,
+    "type": "number",
+    "default": 100,
+    "group": "Spacing & shape",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "customCss",
+    "keyY": null,
+    "type": "text",
+    "default": "",
+    "group": "Advanced",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "borderWidth",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Border & effects",
+    "advanced": false,
+    "options": [
+     "auto",
+     "0",
+     "1",
+     "2",
+     "3",
+     "4",
+     "6"
+    ]
+   },
+   {
+    "key": "borderColor",
+    "keyY": null,
+    "type": "color",
+    "default": "",
+    "group": "Border & effects",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "glow",
+    "keyY": null,
+    "type": "select",
+    "default": "none",
+    "group": "Border & effects",
+    "advanced": false,
+    "options": [
+     "none",
+     "soft",
+     "strong"
+    ]
+   },
+   {
+    "key": "glowColor",
+    "keyY": null,
+    "type": "color",
+    "default": "",
+    "group": "Border & effects",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "surfaceOpacity",
+    "keyY": null,
+    "type": "number",
+    "default": 100,
+    "group": "Colors & surface",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "blur",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Colors & surface",
+    "advanced": false,
+    "options": [
+     "auto",
+     "0",
+     "4",
+     "8",
+     "16",
+     "24",
+     "40"
+    ]
+   }
+  ]
+ },
+ "vbz": {
+  "title": "Departures",
+  "minCols": 2,
+  "minRows": 1,
+  "prefixes": [
+   "plugins.InfoPanel.VBZ."
+  ],
+  "settings": [
+   {
+    "key": "showStatus",
+    "keyY": null,
+    "type": "boolean",
+    "default": true,
+    "group": "Content",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "surface",
+    "keyY": null,
+    "type": "select",
+    "default": "theme",
+    "group": null,
+    "advanced": false,
+    "options": [
+     "glass",
+     "matte-light",
+     "matte-dark",
+     "theme"
+    ]
+   },
+   {
+    "key": "accent",
+    "keyY": null,
+    "type": "color",
+    "default": "",
+    "group": "Colors & surface",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "skin",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Look",
+    "advanced": false,
+    "options": [
+     "auto",
+     "default",
+     "tui",
+     "macos",
+     "fluent",
+     "hud",
+     "ink",
+     "retro",
+     "ios",
+     "android",
+     "synth",
+     "brutal",
+     "cyber",
+     "nixie",
+     "instrument"
+    ]
+   },
+   {
+    "key": "variant",
+    "keyY": null,
+    "type": "select",
+    "default": "default",
+    "group": "Look",
+    "advanced": false,
+    "options": [
+     "default",
+     "studio"
+    ]
+   },
+   {
+    "key": "graph",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Look",
+    "advanced": true,
+    "options": [
+     "auto",
+     "area",
+     "line",
+     "step",
+     "bars",
+     "dots",
+     "braille"
+    ]
+   },
+   {
+    "key": "meter",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Look",
+    "advanced": true,
+    "options": [
+     "auto",
+     "bar",
+     "pill",
+     "segments",
+     "blocks",
+     "hair",
+     "wave",
+     "square"
+    ]
+   },
+   {
+    "key": "compactView",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Look",
+    "advanced": true,
+    "options": [
+     "auto",
+     "off"
+    ]
+   },
+   {
+    "key": "autoScale",
+    "keyY": null,
+    "type": "boolean",
+    "default": true,
+    "group": "Size & alignment",
+    "advanced": true,
+    "options": null
+   },
+   {
+    "key": "scale",
+    "keyY": null,
+    "type": "number",
+    "default": 100,
+    "group": "Size & alignment",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "alignX",
+    "keyY": "alignY",
+    "type": "align",
+    "default": "auto",
+    "group": "Size & alignment",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "padding",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Spacing & shape",
+    "advanced": false,
+    "options": [
+     "auto",
+     "0",
+     "4",
+     "8",
+     "12",
+     "16",
+     "20",
+     "24",
+     "32",
+     "48"
+    ]
+   },
+   {
+    "key": "gap",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Spacing & shape",
+    "advanced": false,
+    "options": [
+     "auto",
+     "0",
+     "4",
+     "8",
+     "12",
+     "16",
+     "24",
+     "32",
+     "48"
+    ]
+   },
+   {
+    "key": "radius",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Spacing & shape",
+    "advanced": false,
+    "options": [
+     "auto",
+     "0",
+     "4",
+     "8",
+     "12",
+     "16",
+     "20",
+     "28",
+     "999"
+    ]
+   },
+   {
+    "key": "textColor",
+    "keyY": null,
+    "type": "color",
+    "default": "",
+    "group": "Typography",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "mutedColor",
+    "keyY": null,
+    "type": "color",
+    "default": "",
+    "group": "Typography",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "font",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Typography",
+    "advanced": false,
+    "options": [
+     "auto",
+     "sans",
+     "rounded",
+     "serif",
+     "mono",
+     "inter",
+     "geist",
+     "roboto",
+     "manrope",
+     "outfit",
+     "space-grotesk",
+     "ibm-plex-sans",
+     "nunito",
+     "rajdhani",
+     "orbitron",
+     "oswald",
+     "jetbrains-mono",
+     "fira-code",
+     "geist-mono",
+     "ibm-plex-mono",
+     "archivo",
+     "vt323",
+     "instrument-serif",
+     "roboto-flex",
+     "chakra-petch",
+     "nixie-one"
+    ]
+   },
+   {
+    "key": "fontWeight",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Typography",
+    "advanced": false,
+    "options": [
+     "auto",
+     "400",
+     "500",
+     "600",
+     "700",
+     "800"
+    ]
+   },
+   {
+    "key": "labelCase",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Typography",
+    "advanced": false,
+    "options": [
+     "auto",
+     "uppercase",
+     "none",
+     "capitalize"
+    ]
+   },
+   {
+    "key": "stroke",
+    "keyY": null,
+    "type": "number",
+    "default": 100,
+    "group": "Spacing & shape",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "customCss",
+    "keyY": null,
+    "type": "text",
+    "default": "",
+    "group": "Advanced",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "borderWidth",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Border & effects",
+    "advanced": false,
+    "options": [
+     "auto",
+     "0",
+     "1",
+     "2",
+     "3",
+     "4",
+     "6"
+    ]
+   },
+   {
+    "key": "borderColor",
+    "keyY": null,
+    "type": "color",
+    "default": "",
+    "group": "Border & effects",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "glow",
+    "keyY": null,
+    "type": "select",
+    "default": "none",
+    "group": "Border & effects",
+    "advanced": false,
+    "options": [
+     "none",
+     "soft",
+     "strong"
+    ]
+   },
+   {
+    "key": "glowColor",
+    "keyY": null,
+    "type": "color",
+    "default": "",
+    "group": "Border & effects",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "surfaceOpacity",
+    "keyY": null,
+    "type": "number",
+    "default": 100,
+    "group": "Colors & surface",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "blur",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Colors & surface",
+    "advanced": false,
+    "options": [
+     "auto",
+     "0",
+     "4",
+     "8",
+     "16",
+     "24",
+     "40"
+    ]
+   }
+  ]
+ },
+ "bluetoothmodern": {
+  "title": "Bluetooth (modern)",
+  "minCols": 2,
+  "minRows": 1,
+  "prefixes": [
+   "plugins.bluetooth-battery-plugin."
+  ],
+  "settings": [
+   {
+    "key": "preset",
+    "keyY": null,
+    "type": "select",
+    "default": "default",
+    "group": null,
+    "advanced": false,
+    "options": [
+     "default",
+     "dark",
+     "light",
+     "vivid",
+     "mono"
+    ]
+   },
+   {
+    "key": "layout",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": null,
+    "advanced": false,
+    "options": [
+     "auto",
+     "card",
+     "standard",
+     "compact",
+     "simple"
+    ]
+   },
+   {
+    "key": "surface",
+    "keyY": null,
+    "type": "select",
+    "default": "glass",
+    "group": null,
+    "advanced": false,
+    "options": [
+     "glass",
+     "matte-light",
+     "matte-dark",
+     "theme"
+    ]
+   },
+   {
+    "key": "label",
+    "keyY": null,
+    "type": "text",
+    "default": "",
+    "group": "Widget",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "icon",
+    "keyY": null,
+    "type": "icon",
+    "default": "",
+    "group": "Widget",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "accent",
+    "keyY": null,
+    "type": "color",
+    "default": "",
+    "group": "Colors & surface",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "background",
+    "keyY": null,
+    "type": "image",
+    "default": "",
+    "group": "Colors & surface",
+    "advanced": true,
+    "options": null
+   },
+   {
+    "key": "backgroundOn",
+    "keyY": null,
+    "type": "boolean",
+    "default": false,
+    "group": "Colors & surface",
+    "advanced": true,
+    "options": null
+   },
+   {
+    "key": "skin",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Look",
+    "advanced": false,
+    "options": [
+     "auto",
+     "default",
+     "tui",
+     "macos",
+     "fluent",
+     "hud",
+     "ink",
+     "retro",
+     "ios",
+     "android",
+     "synth",
+     "brutal",
+     "cyber",
+     "nixie",
+     "instrument"
+    ]
+   },
+   {
+    "key": "variant",
+    "keyY": null,
+    "type": "select",
+    "default": "default",
+    "group": "Look",
+    "advanced": false,
+    "options": [
+     "default",
+     "studio"
+    ]
+   },
+   {
+    "key": "graph",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Look",
+    "advanced": true,
+    "options": [
+     "auto",
+     "area",
+     "line",
+     "step",
+     "bars",
+     "dots",
+     "braille"
+    ]
+   },
+   {
+    "key": "meter",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Look",
+    "advanced": true,
+    "options": [
+     "auto",
+     "bar",
+     "pill",
+     "segments",
+     "blocks",
+     "hair",
+     "wave",
+     "square"
+    ]
+   },
+   {
+    "key": "compactView",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Look",
+    "advanced": true,
+    "options": [
+     "auto",
+     "off"
+    ]
+   },
+   {
+    "key": "autoScale",
+    "keyY": null,
+    "type": "boolean",
+    "default": true,
+    "group": "Size & alignment",
+    "advanced": true,
+    "options": null
+   },
+   {
+    "key": "scale",
+    "keyY": null,
+    "type": "number",
+    "default": 100,
+    "group": "Size & alignment",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "alignX",
+    "keyY": "alignY",
+    "type": "align",
+    "default": "auto",
+    "group": "Size & alignment",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "padding",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Spacing & shape",
+    "advanced": false,
+    "options": [
+     "auto",
+     "0",
+     "4",
+     "8",
+     "12",
+     "16",
+     "20",
+     "24",
+     "32",
+     "48"
+    ]
+   },
+   {
+    "key": "gap",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Spacing & shape",
+    "advanced": false,
+    "options": [
+     "auto",
+     "0",
+     "4",
+     "8",
+     "12",
+     "16",
+     "24",
+     "32",
+     "48"
+    ]
+   },
+   {
+    "key": "radius",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Spacing & shape",
+    "advanced": false,
+    "options": [
+     "auto",
+     "0",
+     "4",
+     "8",
+     "12",
+     "16",
+     "20",
+     "28",
+     "999"
+    ]
+   },
+   {
+    "key": "textColor",
+    "keyY": null,
+    "type": "color",
+    "default": "",
+    "group": "Typography",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "mutedColor",
+    "keyY": null,
+    "type": "color",
+    "default": "",
+    "group": "Typography",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "font",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Typography",
+    "advanced": false,
+    "options": [
+     "auto",
+     "sans",
+     "rounded",
+     "serif",
+     "mono",
+     "inter",
+     "geist",
+     "roboto",
+     "manrope",
+     "outfit",
+     "space-grotesk",
+     "ibm-plex-sans",
+     "nunito",
+     "rajdhani",
+     "orbitron",
+     "oswald",
+     "jetbrains-mono",
+     "fira-code",
+     "geist-mono",
+     "ibm-plex-mono",
+     "archivo",
+     "vt323",
+     "instrument-serif",
+     "roboto-flex",
+     "chakra-petch",
+     "nixie-one"
+    ]
+   },
+   {
+    "key": "fontWeight",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Typography",
+    "advanced": false,
+    "options": [
+     "auto",
+     "400",
+     "500",
+     "600",
+     "700",
+     "800"
+    ]
+   },
+   {
+    "key": "labelCase",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Typography",
+    "advanced": false,
+    "options": [
+     "auto",
+     "uppercase",
+     "none",
+     "capitalize"
+    ]
+   },
+   {
+    "key": "stroke",
+    "keyY": null,
+    "type": "number",
+    "default": 100,
+    "group": "Spacing & shape",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "customCss",
+    "keyY": null,
+    "type": "text",
+    "default": "",
+    "group": "Advanced",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "borderWidth",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Border & effects",
+    "advanced": false,
+    "options": [
+     "auto",
+     "0",
+     "1",
+     "2",
+     "3",
+     "4",
+     "6"
+    ]
+   },
+   {
+    "key": "borderColor",
+    "keyY": null,
+    "type": "color",
+    "default": "",
+    "group": "Border & effects",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "glow",
+    "keyY": null,
+    "type": "select",
+    "default": "none",
+    "group": "Border & effects",
+    "advanced": false,
+    "options": [
+     "none",
+     "soft",
+     "strong"
+    ]
+   },
+   {
+    "key": "glowColor",
+    "keyY": null,
+    "type": "color",
+    "default": "",
+    "group": "Border & effects",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "surfaceOpacity",
+    "keyY": null,
+    "type": "number",
+    "default": 100,
+    "group": "Colors & surface",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "blur",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Colors & surface",
+    "advanced": false,
+    "options": [
+     "auto",
+     "0",
+     "4",
+     "8",
+     "16",
+     "24",
+     "40"
+    ]
+   },
+   {
+    "key": "view",
+    "keyY": null,
+    "type": "select",
+    "default": "full",
+    "group": "Content",
+    "advanced": false,
+    "options": [
+     "full",
+     "devices",
+     "status"
+    ]
+   },
+   {
+    "key": "showStatus",
+    "keyY": null,
+    "type": "boolean",
+    "default": true,
+    "group": "Content",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "showDevices",
+    "keyY": null,
+    "type": "boolean",
+    "default": true,
+    "group": "Content",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "showBattery",
+    "keyY": null,
+    "type": "boolean",
+    "default": true,
+    "group": "Content",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "batteryMidColor",
+    "keyY": null,
+    "type": "color",
+    "default": "",
+    "group": "Battery colors",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "batteryLowColor",
+    "keyY": null,
+    "type": "color",
+    "default": "",
+    "group": "Battery colors",
+    "advanced": false,
+    "options": null
+   }
+  ]
+ },
+ "streamdeck": {
+  "title": "Stream Deck",
+  "minCols": 3,
+  "minRows": 2,
+  "prefixes": [
+   "plugins.InfoPanel.StreamDeck."
+  ],
+  "settings": [
+   {
+    "key": "showProfile",
+    "keyY": null,
+    "type": "boolean",
+    "default": true,
+    "group": "Content",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "showLabels",
+    "keyY": null,
+    "type": "boolean",
+    "default": true,
+    "group": "Content",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "surface",
+    "keyY": null,
+    "type": "select",
+    "default": "theme",
+    "group": null,
+    "advanced": false,
+    "options": [
+     "glass",
+     "matte-light",
+     "matte-dark",
+     "theme"
+    ]
+   },
+   {
+    "key": "accent",
+    "keyY": null,
+    "type": "color",
+    "default": "",
+    "group": "Colors & surface",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "skin",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Look",
+    "advanced": false,
+    "options": [
+     "auto",
+     "default",
+     "tui",
+     "macos",
+     "fluent",
+     "hud",
+     "ink",
+     "retro",
+     "ios",
+     "android",
+     "synth",
+     "brutal",
+     "cyber",
+     "nixie",
+     "instrument"
+    ]
+   },
+   {
+    "key": "variant",
+    "keyY": null,
+    "type": "select",
+    "default": "default",
+    "group": "Look",
+    "advanced": false,
+    "options": [
+     "default",
+     "studio"
+    ]
+   },
+   {
+    "key": "graph",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Look",
+    "advanced": true,
+    "options": [
+     "auto",
+     "area",
+     "line",
+     "step",
+     "bars",
+     "dots",
+     "braille"
+    ]
+   },
+   {
+    "key": "meter",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Look",
+    "advanced": true,
+    "options": [
+     "auto",
+     "bar",
+     "pill",
+     "segments",
+     "blocks",
+     "hair",
+     "wave",
+     "square"
+    ]
+   },
+   {
+    "key": "compactView",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Look",
+    "advanced": true,
+    "options": [
+     "auto",
+     "off"
+    ]
+   },
+   {
+    "key": "autoScale",
+    "keyY": null,
+    "type": "boolean",
+    "default": true,
+    "group": "Size & alignment",
+    "advanced": true,
+    "options": null
+   },
+   {
+    "key": "scale",
+    "keyY": null,
+    "type": "number",
+    "default": 100,
+    "group": "Size & alignment",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "alignX",
+    "keyY": "alignY",
+    "type": "align",
+    "default": "auto",
+    "group": "Size & alignment",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "padding",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Spacing & shape",
+    "advanced": false,
+    "options": [
+     "auto",
+     "0",
+     "4",
+     "8",
+     "12",
+     "16",
+     "20",
+     "24",
+     "32",
+     "48"
+    ]
+   },
+   {
+    "key": "gap",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Spacing & shape",
+    "advanced": false,
+    "options": [
+     "auto",
+     "0",
+     "4",
+     "8",
+     "12",
+     "16",
+     "24",
+     "32",
+     "48"
+    ]
+   },
+   {
+    "key": "radius",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Spacing & shape",
+    "advanced": false,
+    "options": [
+     "auto",
+     "0",
+     "4",
+     "8",
+     "12",
+     "16",
+     "20",
+     "28",
+     "999"
+    ]
+   },
+   {
+    "key": "textColor",
+    "keyY": null,
+    "type": "color",
+    "default": "",
+    "group": "Typography",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "mutedColor",
+    "keyY": null,
+    "type": "color",
+    "default": "",
+    "group": "Typography",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "font",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Typography",
+    "advanced": false,
+    "options": [
+     "auto",
+     "sans",
+     "rounded",
+     "serif",
+     "mono",
+     "inter",
+     "geist",
+     "roboto",
+     "manrope",
+     "outfit",
+     "space-grotesk",
+     "ibm-plex-sans",
+     "nunito",
+     "rajdhani",
+     "orbitron",
+     "oswald",
+     "jetbrains-mono",
+     "fira-code",
+     "geist-mono",
+     "ibm-plex-mono",
+     "archivo",
+     "vt323",
+     "instrument-serif",
+     "roboto-flex",
+     "chakra-petch",
+     "nixie-one"
+    ]
+   },
+   {
+    "key": "fontWeight",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Typography",
+    "advanced": false,
+    "options": [
+     "auto",
+     "400",
+     "500",
+     "600",
+     "700",
+     "800"
+    ]
+   },
+   {
+    "key": "labelCase",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Typography",
+    "advanced": false,
+    "options": [
+     "auto",
+     "uppercase",
+     "none",
+     "capitalize"
+    ]
+   },
+   {
+    "key": "stroke",
+    "keyY": null,
+    "type": "number",
+    "default": 100,
+    "group": "Spacing & shape",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "customCss",
+    "keyY": null,
+    "type": "text",
+    "default": "",
+    "group": "Advanced",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "borderWidth",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Border & effects",
+    "advanced": false,
+    "options": [
+     "auto",
+     "0",
+     "1",
+     "2",
+     "3",
+     "4",
+     "6"
+    ]
+   },
+   {
+    "key": "borderColor",
+    "keyY": null,
+    "type": "color",
+    "default": "",
+    "group": "Border & effects",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "glow",
+    "keyY": null,
+    "type": "select",
+    "default": "none",
+    "group": "Border & effects",
+    "advanced": false,
+    "options": [
+     "none",
+     "soft",
+     "strong"
+    ]
+   },
+   {
+    "key": "glowColor",
+    "keyY": null,
+    "type": "color",
+    "default": "",
+    "group": "Border & effects",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "surfaceOpacity",
+    "keyY": null,
+    "type": "number",
+    "default": 100,
+    "group": "Colors & surface",
+    "advanced": false,
+    "options": null
+   },
+   {
+    "key": "blur",
+    "keyY": null,
+    "type": "select",
+    "default": "auto",
+    "group": "Colors & surface",
+    "advanced": false,
+    "options": [
+     "auto",
+     "0",
+     "4",
+     "8",
+     "16",
+     "24",
+     "40"
+    ]
+   }
+  ]
+ }
+}

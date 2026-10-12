@@ -4,5 +4,6 @@ import { GROUP_A } from "./registry/a";
 import { GROUP_B } from "./registry/b";
 import { GROUP_C } from "./registry/c";
 import { GROUP_D } from "./registry/d";
+import { GROUP_E } from "./registry/e";
 
-export const TEMPLATE_MODULES: DashboardModule[] = [...GROUP_A, ...GROUP_B, ...GROUP_C, ...GROUP_D];
+export const TEMPLATE_MODULES: DashboardModule[] = [...GROUP_A, ...GROUP_B, ...GROUP_C, ...GROUP_D, ...GROUP_E];
