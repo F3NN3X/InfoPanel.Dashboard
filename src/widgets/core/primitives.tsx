@@ -210,6 +210,8 @@ const smoothPath = (pts: Pt[]) =>
   }, "");
 const BR_L = [0x01, 0x02, 0x04, 0x40],
   BR_R = [0x08, 0x10, 0x20, 0x80];
+/** Braille columns that fit `width`; `charW` is the measured advance, as the glyph may fall back to a wider font. */
+export const brailleCols = (width: number, charW: number) => Math.max(1, Math.floor(width / (charW > 0 ? charW : 6.02)));
 // btop-style braille area graph: 2×4 dots per character, rows tinted accent → red toward the top
 function Braille({ values, lo, hi, className }: { values: number[]; lo: number; hi: number; className: string }) {
   const ref = useRef<HTMLDivElement | null>(null);
@@ -217,9 +219,14 @@ function Braille({ values, lo, hi, className }: { values: number[]; lo: number; 
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const ro = new ResizeObserver(([e]) => {
-      const { width, height } = e.contentRect;
-      setDim({ c: Math.max(1, Math.floor(width / 6.02)), r: Math.max(1, Math.floor(height / 10)) });
+    const ro = new ResizeObserver(() => {
+      // measure the real glyph advance and the layout width in the same (zoom-adjusted) units
+      const probe = document.createElement("span");
+      probe.textContent = "⣿".repeat(40);
+      el.appendChild(probe);
+      const charW = probe.getBoundingClientRect().width / 40 / (el.getBoundingClientRect().width / (el.clientWidth || 1) || 1);
+      el.removeChild(probe);
+      setDim({ c: brailleCols(el.clientWidth, charW), r: Math.max(1, Math.floor(el.clientHeight / 10)) });
     });
     ro.observe(el);
     return () => ro.disconnect();
