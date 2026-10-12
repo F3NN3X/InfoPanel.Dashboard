@@ -19,7 +19,7 @@ export function CompactView({ c, shape, w, h, icon }: { c: Compact; shape: Shape
   const val = typeof c.value === "number" ? fmt(c.value, c.d ?? 0) : c.value;
   // numbers shrink to fit the available width instead of overflowing (text values clamp instead)
   const textLen = String(val ?? "–").length + (c.unit ? String(c.unit).length * 0.45 : 0);
-  const fit = (base: number, avail: number) => ({ fontSize: Math.round(Math.max(13, Math.min(base, avail / (Math.max(2.5, textLen) * 0.62)))) });
+  const fit = (base: number, avail: number) => ({ fontSize: Math.round(Math.max(13, Math.min(base, avail / (Math.max(2.5, textLen) * 0.62 * (sk.numWide ?? 1))))) });
   const value = (cls: string, base?: number, avail = 0) => (
     <span className={`${cls} block max-w-full overflow-x-clip whitespace-nowrap font-semibold leading-none tracking-tight tabular-nums`} style={{ ...(base ? fit(base, avail) : null), fontFamily: sk.num, fontWeight: sk.numWeight, ...(sk.numGlow ? NUM_GLOW : null), ...(c.t && c.t !== "ok" ? { color: TONES[c.t] } : null) }}>
       {val ?? "–"}
@@ -133,7 +133,7 @@ export function StudioView({ c, w, h, icon }: { c: Studio; w: number; h: number;
     </div>
   );
   const len = String(val ?? "–").length + (c.unit ? String(c.unit).length * 0.5 : 0);
-  const fitPx = (max: number) => Math.round(Math.max(14, Math.min(max, (w - 26) / (Math.max(2.5, len) * 0.6))));
+  const fitPx = (max: number) => Math.round(Math.max(11, Math.min(max, (w - 26) / (Math.max(2.5, len) * 0.6 * (sk.numWide ?? 1)))));
   const big = (max: number): ReactNode =>
     c.kind === "text" ? (
       <span className="line-clamp-2 text-[15px] font-semibold leading-snug">{val ?? "—"}</span>
@@ -175,9 +175,9 @@ export function StudioView({ c, w, h, icon }: { c: Studio; w: number; h: number;
         {c.viz && <div className="mt-2 shrink-0">{c.viz("h-7")}</div>}
         {(pr || Number.isFinite(c.pct)) && (
           <div className="mt-2 flex shrink-0 items-center gap-2 text-[9px] text-[color:var(--w-muted)]" style={mono}>
-            {pr?.a && <span>{pr.a}</span>}
-            {thin(pr?.pct ?? c.pct ?? 0, "flex-1")}
-            {pr?.b && <span>{pr.b}</span>}
+            {pr?.a && <span className="min-w-0 truncate">{pr.a}</span>}
+            {thin(pr?.pct ?? c.pct ?? 0, "min-w-6 flex-1")}
+            {pr?.b && <span className="shrink-0">{pr.b}</span>}
           </div>
         )}
       </div>

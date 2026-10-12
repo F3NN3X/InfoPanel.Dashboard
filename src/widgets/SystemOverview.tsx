@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 import type { ModuleSettings } from "@/modules/types";
 import { filterDisks, formatRate, formatTemp, readSystemFlat, type DiskReading } from "@/lib/system-metrics";
-import { useFitRows, Widget, shell, get, num, fmt, fmtRate, detect, pretty, Ring, RingStack, Spark, Bar, Empty, heat, useHistory, tone, TONES, hw, Num, type ShellProps, type Tone, type WidgetMeta } from "./kit";
+import { useFitRows, Widget, shell, get, num, fmt, fmtRate, detect, pretty, Ring, RingStack, Spark, Bar, Empty, heat, useHistory, tone, TONES, hw, Num, useSkin, type ShellProps, type Tone, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "SystemOverview",
@@ -152,6 +152,7 @@ function DetailLine({ stats, width }: { stats: Stat[]; width?: number }) {
 }
 
 export default function SystemOverview(p: SystemOverviewProps) {
+  const sk = useSkin();
   const d = p.data;
   const cpu = hw(d).cpu,
     gpu = hw(d).gpu;
@@ -329,7 +330,7 @@ export default function SystemOverview(p: SystemOverviewProps) {
                     <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                       <div className={`flex min-w-0 gap-x-2 ${stacked ? "flex-col gap-y-1" : "items-baseline"}`}>
                         <span className="shrink-0 text-[11px] font-semibold uppercase tracking-[0.12em] text-[color:var(--w-muted)]">{label(k)}</span>
-                        <Num className="whitespace-nowrap leading-none" style={{ fontSize: Math.max(12, Math.min(20, (cellW - (ring ? rpx + 12 : 0) - (stacked ? 0 : 44) - 2) / (big.length * 0.68))), color: t === "ok" ? "var(--accent)" : TONES[t] }}>
+                        <Num className="whitespace-nowrap leading-none" style={{ fontSize: Math.max(12, Math.min(20, (cellW - (cols > 1 && i % cols ? 19 : 0) - (ring ? rpx + 12 : 0) - (stacked ? 0 : 44) - 2) / (big.length * 0.68 * (sk.numWide ?? 1)))), color: t === "ok" ? "var(--accent)" : TONES[t] }}>
                           {big}
                         </Num>
                       </div>

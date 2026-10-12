@@ -134,8 +134,8 @@ export function GaugeView({ idle, size, w, h, fps, low, low01, ft, hz, maxFps, t
     </span>
   );
   const side = size !== "sm" && w > 440;
-  // narrower than the side column's width: the GPU and display facts sit under the metrics
-  const facts = size !== "sm" && !side && (gpu || resolution) && (
+  // narrower than the side column's width: the GPU and display facts sit under the metrics, when there is room
+  const facts = size !== "sm" && !side && (gpu || resolution) && (!metrics || h >= 190) && (
     <div className="min-w-0 text-[11px] text-[color:var(--w-faint)]">
       {gpu && <div className="truncate font-medium text-[color:var(--w-muted)]">{gpu}</div>}
       <div className="truncate">{[resolution, hz > 0 ? `${fmt(hz)} Hz` : ""].filter(Boolean).join(" · ")}</div>

@@ -75,6 +75,8 @@ export interface SkinTokens {
   numStretch: string;
   numUp: boolean;
   numGlow: boolean;
+  /** Numeral advance relative to a normal sans (1); wide display faces set more so fitted numbers still fit. */
+  numWide: number;
   glow: boolean;
   graph: string;
   meter: string;
