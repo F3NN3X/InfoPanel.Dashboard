@@ -295,6 +295,9 @@ export default function SystemOverview(p: SystemOverviewProps) {
           cellW = (w - (cols - 1) * 18) / cols;
         const level = p.details && p.details !== "auto" ? p.details : cellH < 92 ? "min" : cellH < 170 ? "mid" : "full";
         const ring = p.ring !== "none" && cellW > 130 && cellH > 54;
+        // a cell under ~62px keeps the label and value on one line, one under ~40px drops the name / detail line under them
+        const stacked = cellW < 120 && (h <= 0 || cellH >= 62),
+          roomy = h <= 0 || cellH >= 40;
         const rpx = Math.round(Math.max(40, Math.min(level === "min" ? cellH - 8 : 86, cellH * 0.42, cellW * 0.34)));
         return (
           <div className="grid h-full" style={{ "--sys-base": "var(--accent)", gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))`, gridTemplateRows: `repeat(${rowsN}, minmax(0,1fr))`, columnGap: 18, rowGap: 14 } as CSSProperties}>
@@ -306,7 +309,7 @@ export default function SystemOverview(p: SystemOverviewProps) {
               const showSpark = sparkline && k !== "disk";
               const showBar = k === "vram" || k === "ram";
               // Below "full" the details shrink to one line; at "min" it stands in for a hidden name.
-              const detailLine = level !== "full" && s.stats.length > 0 && (level === "mid" || !s.name);
+              const detailLine = roomy && level !== "full" && s.stats.length > 0 && (level === "mid" || !s.name);
               const headH = Math.max(ring ? rpx : 34, 34);
               return (
                 <section key={k} style={vars(k)} className={`flex min-h-0 min-w-0 flex-col gap-2.5 ${cols > 1 && i % cols ? "border-l border-[color:var(--w-track)] pl-[18px]" : ""}`}>
@@ -319,13 +322,13 @@ export default function SystemOverview(p: SystemOverviewProps) {
                       </div>
                     )}
                     <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                      <div className={`flex min-w-0 gap-x-2 ${cellW < 120 ? "flex-col gap-y-1" : "items-baseline"}`}>
+                      <div className={`flex min-w-0 gap-x-2 ${stacked ? "flex-col gap-y-1" : "items-baseline"}`}>
                         <span className="shrink-0 text-[11px] font-semibold uppercase tracking-[0.12em] text-[color:var(--w-muted)]">{label(k)}</span>
-                        <Num className="whitespace-nowrap leading-none" style={{ fontSize: Math.max(12, Math.min(20, (cellW - (ring ? rpx + 12 : 0) - (cellW < 120 ? 0 : 44) - 2) / (big.length * 0.68))), color: t === "ok" ? "var(--accent)" : TONES[t] }}>
+                        <Num className="whitespace-nowrap leading-none" style={{ fontSize: Math.max(12, Math.min(20, (cellW - (ring ? rpx + 12 : 0) - (stacked ? 0 : 44) - 2) / (big.length * 0.68))), color: t === "ok" ? "var(--accent)" : TONES[t] }}>
                           {big}
                         </Num>
                       </div>
-                      {s.name && <span className="truncate text-[11px] text-[color:var(--w-faint)]">{s.name}</span>}
+                      {s.name && roomy && <span className="truncate text-[11px] text-[color:var(--w-faint)]">{s.name}</span>}
                       {detailLine && <DetailLine stats={s.stats} />}
                     </div>
                   </div>
