@@ -81,3 +81,15 @@ Notation: `span@cell/skin/variant(d|s)`; `dx/dy` = px hidden. Line-clamped text 
 - FramePacing 3×1 (and 2×1 tui): dy 6–8. `fpsmodern` 2×1@150: dy 8.
 
 ### Light theme — owners as above by widget (rows in the "Light theme" table)
+
+## Sweep 3 (after round 2; 7968 renders: + skins ink/android/macos, + Other sensors; 0 error tiles) — 15 rows
+- Clock: overlaps in 20 combos (1×1, 2×1, 3×1, 1×2, 4×2 @110 default…) — `span.mt-1.text-[11px]` (regression from the 4×2 fix).
+- CoreHeatmap 1×1/2×1/1×2/2×2 tui, Visualizer 1×1/1×2 tui: header right slot (`div.absolute.right-3`) still overlaps.
+- StorageHealth 4×2 tui: text graph rows overlap the stat labels.
+- Vitals: tui overlaps (3×1, 1×2, 4×2 @110; 2×1, 3×1 @150) on the unit `span.ml-0.5.text-[0.5em]`; clipped dy 3 at 1×2 (all skins), 3×1 tui.
+- GameSpotlight 3×1, 1×2, 4×2 (all skins): real clipping dx 6–14 / dy 3–11 outside the Ken Burns bleed.
+- SystemOverview 2×1 @110 (and `systemmodern` 2×1): content clipped dy 19–21.
+- Forecast 1×2 @110 (all skins): dx 12–14.
+- Weather 4×2 @110 tui/android (and `weathermodern` 3×2/4×2): dy 3–9.
+- GpuRings 1×2 tui/macos: dy 2–5. NetworkAdapters 2×1@150 android: dy 3. `audiomodern` 2×1@150 ink: dy 2.
+- Light theme left: LedLadder/MeterBridge unlit segments too faint on light surfaces; Calendar "today" pill white text on a pale accent.
