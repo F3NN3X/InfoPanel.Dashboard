@@ -67,8 +67,11 @@ describe("insertables", () => {
     expect(category("weathermodern")).toBeUndefined();
     expect(category("Weather")).toBe("Info");
     for (const id of ["vbz", "notifications", "textfile"]) expect(category(id), id).toBe("Info");
-    expect(category("steammodern")).toBe("Gaming");
-    expect(category("fpsmodern")).toBe("Gaming");
+    // fpsmodern and steammodern are aliases of templates: hidden from the Library, the templates stay.
+    for (const [alias, template] of [["fpsmodern", "FpsMonitor"], ["steammodern", "GameSpotlight"]]) {
+      expect(INSERTABLES.some((i) => i.kind === "module" && i.id === alias), alias).toBe(false);
+      expect(category(template), template).toBe("Gaming");
+    }
     for (const id of ["bluetoothmodern", "streamdeck", "webpage", CARDS_ID]) expect(category(id), id).toBe("Generic");
   });
 

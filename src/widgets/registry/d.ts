@@ -4,7 +4,9 @@ import { templateModule } from "../module";
 import Achievements, { meta as achievementsMeta, type AchievementsProps } from "../Achievements";
 import FpsMonitor, { meta as fpsMonitorMeta, type FpsMonitorProps } from "../FpsMonitor";
 import FramePacing, { meta as framePacingMeta, type FramePacingProps } from "../FramePacing";
+import { FPS_LOOK_SETTINGS, fpsLookProps } from "../fps-settings";
 import GameSpotlight, { meta as gameSpotlightMeta, type GameSpotlightProps } from "../GameSpotlight";
+import { SPOTLIGHT_COMPOSITE_SETTINGS, SPOTLIGHT_LAYOUT_SETTING, compositeProps } from "../spotlight-settings";
 import OsdStrip, { meta as osdStripMeta, type OsdCell, type OsdStripProps } from "../OsdStrip";
 import PlaytimeShare, { meta as playtimeShareMeta, type PlaytimeShareProps } from "../PlaytimeShare";
 import SteamGame, { meta as steamGameMeta, type SteamGameProps } from "../SteamGame";
@@ -24,13 +26,34 @@ const boolOf = (v: unknown): boolean | undefined => (typeof v === "boolean" ? v 
 const OSD_CELLS = ["fps", "low", "ft", "gpu", "cpu", "vram", "display"] as const satisfies readonly OsdCell[];
 
 export const GROUP_D: DashboardModule[] = [
-  templateModule<Pick<FpsMonitorProps, "target">>({ meta: fpsMonitorMeta, Component: FpsMonitor, settings: [], toProps: (s: ModuleSettings) => ({ target: numberOf(s.target) }) }),
-  templateModule<Pick<GameSpotlightProps, "layout" | "motion" | "scrim" | "music" | "progress" | "vizMode">>({
+  templateModule<Pick<FpsMonitorProps, "target" | "view" | "showMetrics" | "sparkline" | "ringColor" | "sparkColor">>({
+    meta: fpsMonitorMeta,
+    Component: FpsMonitor,
+    settings: [
+      {
+        key: "view",
+        label: "View",
+        type: "select",
+        default: "frametime",
+        options: [
+          { value: "frametime", label: "Frame-time graph" },
+          { value: "gauge", label: "Gauge" },
+          { value: "trend", label: "Trend", applies: { sparkline: true } },
+        ],
+        group: "Content",
+      },
+      ...FPS_LOOK_SETTINGS,
+    ],
+    toProps: (s: ModuleSettings) => ({ target: numberOf(s.target), ...fpsLookProps(s) }),
+  }),
+  templateModule<Pick<GameSpotlightProps, "layout" | "motion" | "scrim" | "music" | "progress" | "vizMode" | "showStats" | "showNews">>({
     meta: gameSpotlightMeta,
     Component: GameSpotlight,
-    settings: [],
+    settings: [SPOTLIGHT_LAYOUT_SETTING, ...SPOTLIGHT_COMPOSITE_SETTINGS],
     toProps: (s) => ({
-      layout: oneOf(s.layout, ["hero", "poster", "logo", "ticker", "combo"]),
+      // The standard `layout` keeps its meaning; the template's own layout is stored as `spotlightLayout`.
+      layout: oneOf(s.spotlightLayout, ["hero", "poster", "logo", "ticker", "combo", "composite"]),
+      ...compositeProps(s),
       motion: boolOf(s.motion),
       scrim: numberOf(s.scrim),
       music: oneOf(s.music, ["media", "spotify"]),

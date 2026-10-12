@@ -31,6 +31,8 @@ export interface Compact {
   sub?: string;
   icon?: string;
   t?: Tone;
+  /** Ring / graph colour; replaces the tone's. */
+  color?: string;
   pct?: number;
   hist?: number[];
   min?: number;

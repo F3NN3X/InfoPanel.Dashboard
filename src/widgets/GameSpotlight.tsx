@@ -1,6 +1,8 @@
 import type { CSSProperties, ReactNode } from "react";
 import { Widget, shell, get, num, fmt, has, Img, Icon, Bar, Ring, Dot, MiniViz, KenBurns, Logo, type MiniVizProps, type ShellProps, type WidgetMeta } from "./kit";
+import type { ModuleSettings } from "@/modules/types";
 import { widgetImage } from "./data-adapter";
+import { CompositeView } from "./GameSpotlightComposite";
 
 export const meta: WidgetMeta = {
   id: "GameSpotlight",
@@ -21,7 +23,8 @@ const GlassPill = ({ children, className = "" }: { children?: ReactNode; classNa
 );
 
 export interface GameSpotlightProps extends ShellProps {
-  layout?: "hero" | "poster" | "logo" | "ticker" | "combo";
+  /** `composite`: the old Steam card in one layout (profile, session, playtime, library, achievements, friends, news). */
+  layout?: "hero" | "poster" | "logo" | "ticker" | "combo" | "composite";
   /** Ken Burns motion; default on. */
   motion?: boolean;
   /** Scrim strength 0-1; default 0.6. */
@@ -31,6 +34,12 @@ export interface GameSpotlightProps extends ShellProps {
   /** Progress of the combo music card. */
   progress?: "wave" | "visualizer";
   vizMode?: MiniVizProps["mode"];
+  /** Composite: the achievements / library / friends column; default on. */
+  showStats?: boolean;
+  /** Composite: the news line; default on. */
+  showNews?: boolean;
+  /** The zone's resolved look; its `layout` forces the composite variant. */
+  look?: ModuleSettings;
 }
 
 export default function GameSpotlight(p: GameSpotlightProps) {
@@ -63,9 +72,42 @@ export default function GameSpotlight(p: GameSpotlightProps) {
       bleed
       showHeader={false}
       studio={{ label: statusText, live: true, value: game, sub: `${S("current-session-time")} session · ${S("current-game-playtime")}`, img: poster || banner, kind: "text", progress: { a: "Achievements", pct: ach, b: `${fmt(ach)}%` } }}
-      compact={(box) => (box.shape === "tile" ? { label: statusText, value: game, kind: "text", sub: `${S("current-session-time")} session`, img: poster || banner, pct: ach, icon: "stadia_controller" } : undefined)}
+      compact={(box) => (box.shape === "tile" && p.layout !== "composite" ? { label: statusText, value: game, kind: "text", sub: `${S("current-session-time")} session`, img: poster || banner, pct: ach, icon: "stadia_controller" } : undefined)}
     >
       {({ w, h, shape }) => {
+        if (p.layout === "composite") {
+          const N = (container: string, id: string) => get(d, `plugins.InfoPanel.SteamAPI.SteamAPI-${container}.${id}`);
+          return (
+            <CompositeView
+              w={w}
+              h={h}
+              forced={p.look?.layout}
+              accent={p.accent}
+              name={P("player-name")}
+              status={P("online-status")}
+              level={num(P("steam-level"))}
+              avatar={widgetImage(P("profile_image_url"))}
+              game={game}
+              playtime={num(S("current-game-playtime"))}
+              sessionTime={S("current-session-time")}
+              sessionStart={S("session-start-time")}
+              banner={banner}
+              logo={logo}
+              icon={icon}
+              totalGames={num(N("Library", "total-games"))}
+              achPct={num(A("current-achievements"))}
+              latestAch={A("latest-achievement")}
+              achIcon={widgetImage(A("latest-achievement-icon"))}
+              friendsOnline={num(N("Social", "friends-online"))}
+              totalFriends={num(N("Social", "total-friends"))}
+              news={N("News", "current_game_news_title")}
+              showStats={p.showStats !== false}
+              showNews={p.showNews !== false}
+              motion={motion}
+              scrim={scrim}
+            />
+          );
+        }
         const lay = shape === "strip" ? "ticker" : shape === "column" ? "poster-tall" : (p.layout ?? "hero");
         const big = h > 260 ? "text-5xl" : h > 180 ? "text-4xl" : "text-2xl";
         if (lay === "ticker")

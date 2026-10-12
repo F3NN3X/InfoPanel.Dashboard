@@ -135,10 +135,12 @@ export interface RingProps {
   max?: number;
   thickness?: number;
   t?: Tone;
+  /** Stroke colour; replaces the tone's. */
+  color?: string;
   children?: ReactNode;
   className?: string;
 }
-export function Ring({ value, max = 100, thickness: th0 = 8, t = "ok", children, className = "" }: RingProps) {
+export function Ring({ value, max = 100, thickness: th0 = 8, t = "ok", color, children, className = "" }: RingProps) {
   const sk = useSkin();
   const thickness = Math.max(1.5, th0 * (sk.ring ?? 1));
   const r = 50 - thickness / 2,
@@ -148,7 +150,7 @@ export function Ring({ value, max = 100, thickness: th0 = 8, t = "ok", children,
     <div className={`relative aspect-square ${className}`}>
       <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
         <circle cx="50" cy="50" r={r} fill="none" stroke="var(--w-track)" strokeWidth={thickness} />
-        <circle cx="50" cy="50" r={r} fill="none" stroke={TONES[t]} strokeWidth={thickness} strokeLinecap={sk.skin === "hud" || sk.skin === "tui" ? "butt" : "round"}
+        <circle cx="50" cy="50" r={r} fill="none" stroke={color ?? TONES[t]} strokeWidth={thickness} strokeLinecap={sk.skin === "hud" || sk.skin === "tui" ? "butt" : "round"}
           strokeDasharray={c} strokeDashoffset={c * (1 - pct)} style={{ transition: "stroke-dashoffset .6s ease-out" }} />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">{children}</div>
