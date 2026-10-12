@@ -4,13 +4,15 @@ import { findEntry } from "@/lib/sensors";
 import { CARD_SETTINGS, IDLE_SETTING, STYLE_SETTINGS, SURFACE_SETTINGS } from "@/modules/standard-settings";
 import type { DashboardModule, ModuleSetting } from "@/modules/types";
 import { templateModule, type TemplateOptions } from "../module";
+import Bluetooth, { meta as bluetoothMeta, type BluetoothProps } from "../Bluetooth";
 import Departures, { meta as departuresMeta, type DeparturesProps } from "../Departures";
 import Notifications, { meta as notificationsMeta, type NotificationsProps } from "../Notifications";
 import TextFile, { meta as textFileMeta, type TextFileProps } from "../TextFile";
 import WebPage, { meta as webPageMeta, type WebPageProps } from "../WebPage";
 
 const boolOf = (v: unknown): boolean | undefined => (typeof v === "boolean" ? v : undefined);
-const numberOf = (v: unknown): number | undefined => (v === undefined || v === "" || v === null || !Number.isFinite(Number(v)) ? undefined : Number(v));
+const stringOf = (v: unknown): string | undefined => (typeof v === "string" && v ? v : undefined);
+const numberOf =(v: unknown): number | undefined => (v === undefined || v === "" || v === null || !Number.isFinite(Number(v)) ? undefined : Number(v));
 
 /** The frame's edge: border and glow only (the page covers any surface). */
 const EDGE_KEYS: ReadonlySet<string> = new Set(["borderWidth", "borderColor", "glow", "glowColor"]);
@@ -69,9 +71,44 @@ export const departuresOptions: TemplateOptions<Pick<DeparturesProps, "showStatu
   toProps: (s) => ({ showStatus: boolOf(s.showStatus) }),
 };
 
+/** `view` bundles the three toggles through `applies`, as the legacy widget did; the toggles carry the behaviour. */
+export const BLUETOOTH_SETTINGS: ModuleSetting[] = [
+  {
+    key: "view",
+    label: "View",
+    type: "select",
+    default: "full",
+    options: [
+      { value: "full", label: "Status + devices" },
+      { value: "devices", label: "Devices + battery", applies: { showDevices: true, showBattery: true } },
+      { value: "status", label: "Status only", applies: { showDevices: false, showBattery: false } },
+    ],
+    group: "Content",
+  },
+  { key: "showStatus", label: "Bluetooth status", type: "boolean", default: true, group: "Content" },
+  { key: "showDevices", label: "Paired devices", type: "boolean", default: true, group: "Content" },
+  { key: "showBattery", label: "Battery levels", type: "boolean", default: true, group: "Content" },
+  { key: "batteryMidColor", label: "Battery medium color", type: "color", default: "", group: "Battery colors" },
+  { key: "batteryLowColor", label: "Battery low color", type: "color", default: "", group: "Battery colors" },
+];
+
+export const bluetoothOptions: TemplateOptions<Pick<BluetoothProps, "showStatus" | "showDevices" | "showBattery" | "batteryMidColor" | "batteryLowColor">> = {
+  meta: bluetoothMeta,
+  Component: Bluetooth,
+  settings: BLUETOOTH_SETTINGS,
+  toProps: (s) => ({
+    showStatus: boolOf(s.showStatus),
+    showDevices: boolOf(s.showDevices),
+    showBattery: boolOf(s.showBattery),
+    batteryMidColor: stringOf(s.batteryMidColor),
+    batteryLowColor: stringOf(s.batteryLowColor),
+  }),
+};
+
 export const GROUP_E: DashboardModule[] = [
   templateModule(webPageOptions),
   templateModule(textFileOptions),
   templateModule(notificationsOptions),
   templateModule(departuresOptions),
+  templateModule(bluetoothOptions),
 ];

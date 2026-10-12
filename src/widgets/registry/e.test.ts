@@ -5,6 +5,7 @@ import type { SensorMap } from "@/modules/types";
 import { fixtureSensors } from "../__fixtures__";
 import { toFlat } from "../data-adapter";
 import type { ShellProps } from "../kit";
+import Bluetooth, { meta as bluetooth } from "../Bluetooth";
 import Departures, { meta as departures } from "../Departures";
 import Notifications, { meta as notifications } from "../Notifications";
 import TextFile, { meta as textFile } from "../TextFile";
@@ -17,6 +18,7 @@ const WIDGETS: [typeof webPage, ComponentType<ShellProps>, string, Record<string
   [textFile, TextFile, "Info", {}],
   [notifications, Notifications, "Info", {}],
   [departures, Departures, "Info", {}],
+  [bluetooth, Bluetooth, "Generic", {}],
 ];
 const SIZES = ["xs", "sm", "md", "lg"] as const;
 const VARIANTS = ["default", "studio"] as const;

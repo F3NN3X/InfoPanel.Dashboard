@@ -491,7 +491,7 @@ Where the accent lands per widget:
 | `ModernSteam` | the big total-playtime |
 | `ModernFps` | the ring track (value arc keeps its semantic color) |
 | `ModernAudio` | level bar fill (red > 85% stays semantic) |
-| `ModernBluetooth` | battery bar fill (green tier; amber/red stay) |
+| `Bluetooth` (template) | battery bar fill (accent tier; amber/red stay) |
 | `ModernHardware` | the "other" kind-dot |
 | `ModernNetwork` | the utilization bar (DL/UL keep their green/blue) |
 

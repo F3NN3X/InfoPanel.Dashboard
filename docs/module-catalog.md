@@ -125,7 +125,7 @@ re-exported there; style helpers are in `components/widget-style.ts`):
   device) is labelled "Default device" so it doesn't read as a duplicate of
   that device's own container. The optional `source` setting binds the
   widget to one device (`""` = show all).
-- **bluetoothmodern** (`ModernBluetooth`) —
+- **bluetoothmodern** (`Bluetooth` template, `src/widgets/Bluetooth.tsx`) —
   `plugins.bluetooth-battery-plugin.*`: the status container (the one with
   a `.bt_status` key) gives the status line; every other container is a
   paired device (`Name`, `Status`, `Battery Level` → green/amber/red bar).

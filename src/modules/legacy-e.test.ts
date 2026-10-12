@@ -4,6 +4,7 @@ import legacy from "@/widgets/__fixtures__/legacy-e.json";
 import { fixtureSensors } from "@/widgets/__fixtures__";
 import { webPageOptions } from "@/widgets/registry/e";
 import { toEmbeddable } from "@/widgets/WebPage";
+import { bluetoothModernModule } from "./bluetooth-modern";
 import { notificationsModule } from "./notifications";
 import { vbzModule } from "./vbz";
 import { textfileModule } from "./textfile";
@@ -19,7 +20,7 @@ interface Captured {
   prefixes: string[];
   settings: unknown[];
 }
-const MODULES: DashboardModule[] = [webpageModule, textfileModule, notificationsModule, vbzModule];
+const MODULES: DashboardModule[] = [webpageModule, textfileModule, notificationsModule, vbzModule, bluetoothModernModule];
 const LAYOUTS = ["card", "standard", "compact", "simple"] as const; // forced tiers lg / md / sm / xs
 const sensors = fixtureSensors();
 const html = (mod: DashboardModule, s: ModuleSettings) => renderToString(mod.render(sensors, s) as never);
