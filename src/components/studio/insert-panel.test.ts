@@ -56,8 +56,9 @@ describe("insertables", () => {
     expect(category("systemmodern")).toBe("System");
     expect(category("hardwaremodern")).toBe("Hardware");
     expect(category("networkmodern")).toBe("Network");
-    expect(category("spotifymodern")).toBe("Media");
-    expect(category("mediamodern")).toBe("Media");
+    // superseded by the NowPlaying template (libraryHidden), which sits under Media
+    for (const id of ["spotifymodern", "mediamodern"]) expect(category(id), id).toBeUndefined();
+    expect(category("NowPlaying")).toBe("Media");
     expect(category("audiomodern")).toBe("Audio");
     expect(category("wavelinkmodern")).toBe("Audio");
     for (const id of ["weathermodern", "vbz", "notifications", "textfile"]) expect(category(id), id).toBe("Info");

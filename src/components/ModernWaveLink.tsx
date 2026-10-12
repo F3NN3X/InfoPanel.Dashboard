@@ -3,7 +3,7 @@ import type { CSSProperties, ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 import { ModernChrome, type ModernChrome as ModernChromeSpec } from "./modern-chrome";
-import { makeSurface, type ModernStyle } from "./ModernNowPlaying";
+import { makeSurface, type ModernStyle } from "./surfaces";
 import { useElementSize } from "@/hooks/use-element-size";
 import { byShape, flow, labelStyle, strokeOf, surfaceBox, ws } from "./widget-style";
 import { LevelMeter, type LevelMeterVariant } from "@/components/ui/level-meter";

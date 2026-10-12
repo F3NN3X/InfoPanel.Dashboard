@@ -1,10 +1,7 @@
 import { Gamepad2, User } from "lucide-react";
 import { ModernChrome, type ModernChrome as ModernChromeSpec } from "./modern-chrome";
-import {
-  makeSurface,
-  useElementSize,
-  type ModernStyle,
-} from "./ModernNowPlaying";
+import { useElementSize } from "@/hooks/use-element-size";
+import { makeSurface, type ModernStyle } from "./surfaces";
 import { byShape, flow, surfaceBox, textAlign, ws } from "./widget-style";
 
 /**

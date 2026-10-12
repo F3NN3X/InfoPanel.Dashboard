@@ -1,7 +1,7 @@
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { Sparkline, useHistory } from "@/lib/sparkline";
 import { ModernChrome, type ModernChrome as ModernChromeSpec } from "./modern-chrome";
-import { makeSurface, type ModernStyle } from "./ModernNowPlaying";
+import { makeSurface, type ModernStyle } from "./surfaces";
 import { useElementSize } from "@/hooks/use-element-size";
 import { byShape, flow, labelStyle, strokeOf, surfaceBox, ws } from "./widget-style";
 

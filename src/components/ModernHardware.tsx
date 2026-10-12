@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { ArcGauge, tempColor, tempWord } from "@/lib/gauge";
 import { ModernChrome, type ModernChrome as ModernChromeSpec } from "./modern-chrome";
-import { makeSurface, type ModernStyle } from "./ModernNowPlaying";
+import { makeSurface, type ModernStyle } from "./surfaces";
 import { useElementSize } from "@/hooks/use-element-size";
 import { byShape, flow, strokeOf, surfaceBox, ws } from "./widget-style";
 

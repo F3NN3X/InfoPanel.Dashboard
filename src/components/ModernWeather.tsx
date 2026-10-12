@@ -1,13 +1,8 @@
 import { Droplets, Gauge, Wind as WindIcon, CloudRain } from "lucide-react";
 import type { WeatherForecastDay } from "@/lib/forecast";
 import { ModernChrome, type ModernChrome as ModernChromeSpec } from "./modern-chrome";
-import {
-  makeSurface,
-  useElementSize,
-  type ModernStyle,
-  type RGB,
-  type Surface,
-} from "./ModernNowPlaying";
+import { useElementSize } from "@/hooks/use-element-size";
+import { makeSurface, type ModernStyle, type RGB, type Surface } from "./surfaces";
 import { byShape, flow, labelStyle, surfaceBox, textAlign, ws } from "./widget-style";
 
 /**
