@@ -44,7 +44,7 @@ const SENSOR_VALUE_SETTINGS: ModuleSetting[] = [
   optional("crit", "Critical at", THRESHOLDS),
 ];
 
-// SensorGroup's `sensors` are stored as ordered keys (labelled from the key); the bar range, decimals and thresholds are shared by every item.
+// SensorGroup's `sensors` are stored as ordered keys (labelled from the sensor display name); the bar range, decimals and thresholds are shared by every item.
 const GROUP_SHARED = { groupMax: "max", groupDecimals: "decimals", groupWarn: "warn", groupCrit: "crit" } as const;
 const SENSOR_GROUP_OWN: ModuleSetting[] = [
   sensorSetting("sensors", "Sensors", { group: "Sensor group", multiple: true, hint: "Empty = the sample list" }),
@@ -60,7 +60,7 @@ function sensorItems(s: ModuleSettings): SensorGroup.SensorGroupProps["sensors"]
   const keys = splitKeys(s.sensors);
   if (!keys.length) return undefined;
   const shared = Object.fromEntries(Object.entries(GROUP_SHARED).flatMap(([k, prop]) => (numberOf(s[k]) === undefined ? [] : [[prop, numberOf(s[k])]])));
-  return keys.map((key) => ({ key, label: (key.split(".").pop() ?? key).replace(/[_-]+/g, " "), ...shared }));
+  return keys.map((key) => ({ key, ...shared }));
 }
 
 const units = (group: string): ModuleSetting => enumSetting("units", "Units", "C", [{ value: "C", label: "°C" }, { value: "F", label: "°F" }], { group });

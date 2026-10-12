@@ -1,6 +1,6 @@
 import type { ModuleSettings } from "@/modules/types";
 import Discovered from "./SensorGroup/Discovered";
-import { Widget, shell, get, num, fmt, has, Bar, Num, tone, TONES, type ShellProps, type WidgetMeta } from "./kit";
+import { Widget, shell, get, num, fmt, has, sensorLabel, Bar, Num, tone, TONES, type ShellProps, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "SensorGroup",
@@ -15,7 +15,8 @@ export const meta: WidgetMeta = {
 
 export interface SensorItem {
   key: string;
-  label: string;
+  /** Blank = the sensor's display name. */
+  label?: string;
   max?: number;
   warn?: number;
   crit?: number;
@@ -56,7 +57,8 @@ function Listed(p: SensorGroupProps) {
   const items = (p.sensors ?? DEFAULT).map((s) => {
     const raw = get(d, s.key);
     const v = num(raw);
-    return { ...s, raw, v, unit: String(raw).replace(/^[-\d.,\s]+/, "").trim(), t: tone(v, s.warn, s.crit) };
+    const label = s.label || sensorLabel(s.key, p.names, (s.key.split(".").pop() ?? s.key).replace(/[_-]+/g, " "));
+    return { ...s, label, raw, v, unit: String(raw).replace(/^[-\d.,\s]+/, "").trim(), t: tone(v, s.warn, s.crit) };
   });
   const first = items[0];
   return (
