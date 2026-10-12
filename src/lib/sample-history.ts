@@ -2,6 +2,8 @@ import type { SensorMap } from "@/modules/types";
 
 /** Samples kept per key (the inspector's sparkline). */
 export const HISTORY_SIZE = 24;
+/** Spacing of recorded samples; a hair under the stream's 1 s cadence so none is skipped. */
+export const SAMPLE_GAP_MS = 900;
 
 export interface HistoryStats {
   min: number;
@@ -15,6 +17,8 @@ export interface HistoryStats {
  */
 export class SampleHistory {
   private readonly buffers = new Map<string, { samples: number[]; next: number; count: number }>();
+  /** When the last throttled snapshot was recorded (ms), 0 before the first. */
+  lastRecordedAt = 0;
 
   constructor(private readonly size: number = HISTORY_SIZE) {}
 
@@ -51,6 +55,7 @@ export class SampleHistory {
   /** Forget everything (the Data API URL changed). */
   clear(): void {
     this.buffers.clear();
+    this.lastRecordedAt = 0;
   }
 }
 
@@ -61,4 +66,20 @@ export function recordSnapshot(history: SampleHistory, sensors: SensorMap): void
       history.push(key, sensor.value);
     }
   }
+}
+
+/**
+ * Record a snapshot at most once per `gap` ms, however many stream messages
+ * arrive in between; returns whether it was recorded.
+ */
+export function recordThrottled(
+  history: SampleHistory,
+  sensors: SensorMap,
+  now: number,
+  gap: number = SAMPLE_GAP_MS
+): boolean {
+  if (now - history.lastRecordedAt < gap) return false;
+  history.lastRecordedAt = now;
+  recordSnapshot(history, sensors);
+  return true;
 }

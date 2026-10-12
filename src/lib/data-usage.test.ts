@@ -32,6 +32,14 @@ const mods: ModuleInfo[] = [
       { key: "source", label: "S", type: "select", default: "", optionsFrom: "sources", sourcePlugin: AUDIO, multiple: true },
     ],
   },
+  {
+    id: "defaulted",
+    title: "Defaulted",
+    prefixes: [AUDIO],
+    settings: [
+      { key: "source", label: "S", type: "select", default: "a,b", optionsFrom: "sources", sourcePlugin: AUDIO, multiple: true },
+    ],
+  },
   { id: "hardware", title: "Hardware", prefixes: ["libre.", "hwinfo."] },
   { id: "nothing", title: "Nothing", prefixes: [] },
 ];
@@ -183,5 +191,22 @@ describe("bindPoint / unbindPoint", () => {
     expect(unbindPoint(config, "h", undefined, "libre.cpu_temp", mods)).toBe(config);
     expect(bindPoint(config, "a", undefined, "system.cpu.load", mods)).toBe(config);
     expect(bindPoint(config, "h", undefined, "libre.cpu_temp")).toBe(config);
+  });
+
+  it("keeps a multiple setting's default containers when binding another", () => {
+    const config = configWith([zone("d", "defaulted")]);
+    const bound = bindPoint(config, "d", undefined, dev("c", "x"), mods);
+    expect(placementsOf(bound)[0].settings).toEqual({ source: "a,b,c" });
+  });
+
+  it("unbinds a default-supplied container", () => {
+    const config = configWith([zone("d", "defaulted")]);
+    const cleared = unbindPoint(config, "d", undefined, dev("a", "x"), mods);
+    expect(placementsOf(cleared)[0].settings).toEqual({ source: "b" });
+  });
+
+  it("changes nothing when unbinding from a module that owns the whole prefix", () => {
+    const config = configWith([zone("a", "audio")]);
+    expect(unbindPoint(config, "a", undefined, dev("usb", "peak-level"), mods)).toBe(config);
   });
 });

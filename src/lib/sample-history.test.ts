@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { HISTORY_SIZE, SampleHistory, recordSnapshot } from "./sample-history";
+import { HISTORY_SIZE, SampleHistory, recordSnapshot, recordThrottled } from "./sample-history";
 
 describe("SampleHistory", () => {
   it("keeps samples oldest first and reports min / avg / max", () => {
@@ -47,5 +47,26 @@ describe("recordSnapshot", () => {
     expect(h.get("cpu")).toEqual([12]);
     expect(h.get("title")).toEqual([]);
     expect(h.get("bad")).toEqual([]);
+  });
+});
+
+describe("recordThrottled", () => {
+  const snap = { cpu: { value: 1, unit: "%" } };
+
+  it("records once per gap however many messages arrive", () => {
+    const h = new SampleHistory();
+    expect(recordThrottled(h, snap, 1000)).toBe(true);
+    expect(recordThrottled(h, snap, 1300)).toBe(false);
+    expect(recordThrottled(h, snap, 1600)).toBe(false);
+    expect(recordThrottled(h, snap, 1950)).toBe(true);
+    expect(h.get("cpu")).toEqual([1, 1]);
+  });
+
+  it("starts over after clear()", () => {
+    const h = new SampleHistory();
+    recordThrottled(h, snap, 1000);
+    h.clear();
+    expect(h.get("cpu")).toEqual([]);
+    expect(recordThrottled(h, snap, 1100)).toBe(true);
   });
 });
