@@ -11,7 +11,7 @@ import { chromeVars, scopedCss, ws, zoomFor, type DesignSizeSpec } from "./widge
  * light theme lightens the image instead of darkening it.
  */
 const HEADER_COLOR = `color-mix(in oklab, ${ws.fg("hsl(var(--foreground))")} 75%, transparent)`;
-const SCRIM = "hsl(var(--background) / 0.45)";
+export const SCRIM = "hsl(var(--background) / 0.45)";
 
 /**
  * The standard per-widget chrome (see `modules/standard-settings.ts` and

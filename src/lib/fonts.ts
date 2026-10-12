@@ -58,6 +58,26 @@ export const FONT_CATALOG = [
     google: "JetBrains Mono:wght@400..800",
   },
   { id: "fira-code", label: "Fira Code", stack: `'Fira Code', ${MONO}`, google: "Fira Code:wght@400..700" },
+  // The widget skins' families (`src/widgets/core/skins/*`).
+  { id: "geist-mono", label: "Geist Mono", stack: `'Geist Mono', ${MONO}`, google: "Geist Mono:wght@400..800" },
+  {
+    id: "ibm-plex-mono",
+    label: "IBM Plex Mono",
+    stack: `'IBM Plex Mono', ${MONO}`,
+    google: "IBM Plex Mono:wght@400;500;600;700",
+  },
+  { id: "archivo", label: "Archivo", stack: `'Archivo', ${SANS}`, google: "Archivo:wdth,wght@62..125,400..800" },
+  { id: "vt323", label: "VT323", stack: `'VT323', ${MONO}`, google: "VT323" },
+  {
+    id: "instrument-serif",
+    label: "Instrument Serif",
+    // Georgia is the serif fallback; the generic family keeps a kiosk without it legible.
+    stack: "'Instrument Serif', Georgia, 'Times New Roman', sans-serif",
+    google: "Instrument Serif",
+  },
+  { id: "roboto-flex", label: "Roboto Flex", stack: `'Roboto Flex', ${SANS}`, google: "Roboto Flex:wght@400..800" },
+  { id: "chakra-petch", label: "Chakra Petch", stack: `'Chakra Petch', ${DISPLAY}`, google: "Chakra Petch:wght@400;500;600;700" },
+  { id: "nixie-one", label: "Nixie One", stack: `'Nixie One', ${DISPLAY}`, google: "Nixie One" },
 ] as const satisfies readonly FontDef[];
 
 export type FontId = (typeof FONT_CATALOG)[number]["id"];
