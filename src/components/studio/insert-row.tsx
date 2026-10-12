@@ -4,6 +4,7 @@ import { LayoutDashboard, MoreHorizontal, PanelsTopLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Insertable } from "./insert-panel";
 import { DND_MIME, DND_MIME_PANEL } from "./studio-modules";
+import { iconFor } from "@/widgets/core/icons";
 import { moduleIcon } from "./zone-icons";
 
 export type InsertContext = "drawer" | "picker";
@@ -71,7 +72,7 @@ function SavedPanelMenu({ onRename, onDelete }: { onRename: () => void; onDelete
 
 /** A card's icon: the widget's own, or the layout / panel glyph. */
 function cardIcon(item: Insertable) {
-  if (item.kind === "module") return moduleIcon(item.id);
+  if (item.kind === "module") return item.icon ? iconFor(item.icon) : moduleIcon(item.id);
   return item.category === "Layouts" ? LayoutDashboard : PanelsTopLeft;
 }
 

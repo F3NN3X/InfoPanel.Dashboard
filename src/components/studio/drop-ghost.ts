@@ -30,6 +30,21 @@ export function dropSize(min: Size, grid: { cols: number; rows: number }): Size 
 }
 
 /**
+ * What a widget drops with: its declared default size (never below its minimum), else 3×2 or the
+ * minimum; kept inside the grid.
+ */
+export function moduleDropSize(module: string, grid: { cols: number; rows: number }): Size {
+  const meta = ALL_MODULES.find((m) => m.id === module);
+  const min = { cols: meta?.minCols ?? 2, rows: meta?.minRows ?? 1 };
+  return meta?.defaultSize ? defaultDropSize(meta.defaultSize, min, grid) : dropSize(min, grid);
+}
+
+/** A declared default size (cols, rows), at least the minimum, kept inside the grid. */
+export function defaultDropSize(def: [number, number], min: Size, grid: { cols: number; rows: number }): Size {
+  return { cols: Math.min(grid.cols, Math.max(def[0], min.cols)), rows: Math.min(grid.rows, Math.max(def[1], min.rows)) };
+}
+
+/**
  * The drop ghost for a pointer over `cell`: the box centred on the cell,
  * clamped into the grid, and whether it is free of other visible zones.
  */

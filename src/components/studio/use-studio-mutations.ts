@@ -14,7 +14,7 @@ import { findPanelPreset, type PanelPreset } from "@/lib/panelPresets";
 import type { ModuleSettings } from "@/modules/types";
 import * as actions from "./studio-actions";
 import { deletePanelPreset, renamePanelPreset, savePanelPreset } from "./panel-preset-actions";
-import { dropSize, type LibraryItem } from "./drop-ghost";
+import { moduleDropSize, type LibraryItem } from "./drop-ghost";
 import { ALL_MODULES, moduleMinSize } from "./studio-modules";
 import type { StudioSelection } from "./use-studio-selection";
 import {
@@ -68,7 +68,7 @@ export function useStudioMutations({ config, profile, setConfig, sel, onPresetSa
   const libraryInfo = (item: LibraryItem): { title: string; size: { cols: number; rows: number } } | null => {
     if (item.kind === "module") {
       const title = item.id === BLANK_MODULE ? "Blank zone" : ALL_MODULES.find((m) => m.id === item.id)?.title;
-      return title ? { title, size: dropSize(moduleMinSize(item.id), profile) } : null;
+      return title ? { title, size: moduleDropSize(item.id, profile) } : null;
     }
     const preset = findPanelPreset(item.id, config.panelPresets);
     if (!preset) return null;

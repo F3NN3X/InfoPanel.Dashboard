@@ -112,6 +112,16 @@ export interface DashboardModule {
    * setting on, the kiosk hides the zone while this holds.
    */
   isIdle?: (sensors: SensorMap, settings: ModuleSettings) => boolean;
+  /** Library chip (`INSERT_CATEGORIES`); unset: the Library's own table for the legacy ids. */
+  category?: string;
+  /** Library card icon: a Material Symbols or widget-icon name (`widgets/core/icons.ts`). */
+  icon?: string;
+  /** Library card description; unset: the Library's own table. */
+  description?: string;
+  /** Footprint (cols, rows) a drop gets when larger than the minimum; unset: 3×2 or the minimum. */
+  defaultSize?: [number, number];
+  /** Skipped by the Library; the module still loads and renders where it is placed. */
+  libraryHidden?: boolean;
 }
 
 /** The keys a setting stores (two for an "align" picker). */

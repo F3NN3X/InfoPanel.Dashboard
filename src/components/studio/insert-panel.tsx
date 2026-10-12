@@ -4,7 +4,7 @@ import { BLANK_MODULE, CARDS_ID } from "@/lib/layout";
 import type { UserPanelPreset } from "@/lib/panel-model";
 import { allPanelPresets, type PanelPreset } from "@/lib/panelPresets";
 import { cn } from "@/lib/utils";
-import { dropSize } from "./drop-ghost";
+import { defaultDropSize, dropSize } from "./drop-ghost";
 import { InsertRow, type InsertContext } from "./insert-row";
 import { ALL_MODULES } from "./studio-modules";
 
@@ -15,30 +15,39 @@ export const INSERT_CATEGORIES = [
   "Layouts",
   "My panels",
   "System",
-  "Media",
+  "Hardware",
+  "Storage",
   "Network",
+  "Media",
+  "Audio",
   "Info",
-  "Other",
+  "Gaming",
+  "Generic",
 ] as const;
 export type InsertCategory = (typeof INSERT_CATEGORIES)[number];
 
-/** Category per widget module id; anything not listed is "Other". */
+const isInsertCategory = (c: string | undefined): c is InsertCategory =>
+  INSERT_CATEGORIES.includes(c as InsertCategory);
+
+/** Category of the legacy widget module ids; a module's own `category` wins, anything else is "Generic". */
 const MODULE_CATEGORIES: Record<string, InsertCategory> = {
   systemmodern: "System",
-  hardwaremodern: "System",
-  fpsmodern: "System",
+  hardwaremodern: "Hardware",
+  networkmodern: "Network",
   spotifymodern: "Media",
   mediamodern: "Media",
-  audiomodern: "Media",
-  wavelinkmodern: "Media",
-  networkmodern: "Network",
-  bluetoothmodern: "Network",
+  audiomodern: "Audio",
+  wavelinkmodern: "Audio",
   weathermodern: "Info",
   vbz: "Info",
   notifications: "Info",
   textfile: "Info",
-  webpage: "Info",
-  [CARDS_ID]: "Other",
+  steammodern: "Gaming",
+  fpsmodern: "Gaming",
+  bluetoothmodern: "Generic",
+  streamdeck: "Generic",
+  webpage: "Generic",
+  [CARDS_ID]: "Generic",
 };
 
 /** The first half of each widget card's description (the card appends "· min W×H"). */
@@ -62,7 +71,7 @@ const MODULE_DESCRIPTIONS: Record<string, string> = {
   [CARDS_ID]: "Every other sensor",
 };
 
-/** Category per built-in panel preset id; anything not listed is "Other". */
+/** Category per built-in panel preset id; anything not listed is "Generic". */
 const PRESET_CATEGORIES: Record<string, InsertCategory> = {
   system: "System",
   ram: "System",
@@ -78,7 +87,7 @@ const PRESET_CATEGORIES: Record<string, InsertCategory> = {
 function presetCategory(p: PanelPreset): InsertCategory {
   if (p.user) return "My panels";
   if (p.id.startsWith("layout-")) return "Layouts";
-  return PRESET_CATEGORIES[p.id] ?? "Other";
+  return PRESET_CATEGORIES[p.id] ?? "Generic";
 }
 
 interface InsertableBase {
@@ -89,6 +98,10 @@ interface InsertableBase {
   cols: number;
   rows: number;
   category: InsertCategory;
+  /** A Library icon name from the module (`widgets/core/icons.ts`); unset: the studio's own table. */
+  icon?: string;
+  /** The footprint a widget declares for a drop (cols, rows); never below its minimum. */
+  defaultSize?: [number, number];
 }
 
 /** Something the Add panel can insert: a widget module or a panel preset. */
@@ -113,15 +126,17 @@ export const isBlankZone = (i: Insertable): boolean => i.kind === "module" && i.
 /** Every widget, the blank zone, layout starter, panel preset and saved panel, categorised. */
 export function insertables(saved?: UserPanelPreset[]): Insertable[] {
   return [
-    ...ALL_MODULES.map(
+    ...ALL_MODULES.filter((m) => !m.libraryHidden).map(
       (m): Insertable => ({
         kind: "module",
         id: m.id,
         title: m.title,
-        description: MODULE_DESCRIPTIONS[m.id],
+        description: m.description ?? MODULE_DESCRIPTIONS[m.id],
         cols: m.minCols,
         rows: m.minRows,
-        category: MODULE_CATEGORIES[m.id] ?? "Other",
+        category: isInsertCategory(m.category) ? m.category : (MODULE_CATEGORIES[m.id] ?? "Generic"),
+        icon: m.icon,
+        defaultSize: m.defaultSize,
       })
     ),
     BLANK_ZONE,
@@ -158,13 +173,13 @@ export function filterInsertables<T extends InsertableBase>(
 }
 
 /**
- * The footprint an item takes when placed on a grid: a widget drops at least
- * 3×2 (its minimum if larger), a panel at its own size; both kept inside the grid.
+ * The footprint an item takes when placed on a grid: a widget drops at its declared default
+ * size, else at least 3×2 (its minimum if larger), a panel at its own size; all kept inside the grid.
  */
 export function insertDropSize(item: Insertable, grid: { cols: number; rows: number }): { cols: number; rows: number } {
-  return item.kind === "module"
-    ? dropSize({ cols: item.cols, rows: item.rows }, grid)
-    : { cols: Math.min(grid.cols, item.cols), rows: Math.min(grid.rows, item.rows) };
+  const min = { cols: item.cols, rows: item.rows };
+  if (item.kind === "module") return item.defaultSize ? defaultDropSize(item.defaultSize, min, grid) : dropSize(min, grid);
+  return { cols: Math.min(grid.cols, item.cols), rows: Math.min(grid.rows, item.rows) };
 }
 
 export interface InsertGroup {
@@ -172,7 +187,7 @@ export interface InsertGroup {
   items: Insertable[];
 }
 
-const WIDGET_GROUPS: InsertCategory[] = ["System", "Media", "Network", "Info", "Other"];
+const WIDGET_GROUPS: InsertCategory[] = ["System", "Hardware", "Storage", "Network", "Media", "Audio", "Info", "Gaming", "Generic"];
 
 /**
  * The non-empty groups of a (filtered) list: the widgets by category, then

@@ -1,13 +1,31 @@
 import { modules } from "@/modules";
 import { CARDS_ID, type Placement } from "@/lib/layout";
 
+/** A placeable widget: its minimum zone footprint and the Library fields it declares. */
+export interface ModuleMeta {
+  id: string;
+  title: string;
+  minCols: number;
+  minRows: number;
+  category?: string;
+  icon?: string;
+  description?: string;
+  defaultSize?: [number, number];
+  libraryHidden?: boolean;
+}
+
 /** Every widget the studio can place, with its minimum zone footprint. */
-export const ALL_MODULES = [
+export const ALL_MODULES: ModuleMeta[] = [
   ...modules.map((m) => ({
     id: m.id,
     title: m.title,
     minCols: m.minCols ?? 2,
     minRows: m.minRows ?? 1,
+    category: m.category,
+    icon: m.icon,
+    description: m.description,
+    defaultSize: m.defaultSize,
+    libraryHidden: m.libraryHidden,
   })),
   { id: CARDS_ID, title: "Other sensors", minCols: 4, minRows: 2 },
 ];
