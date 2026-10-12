@@ -30,3 +30,8 @@ it where the spec says.
 | 17 | Short toggles paired two to a line | Not restored: one field per row, as the spec's field rows. |
 | 18 | Narrow windows | When the left panel does not fit beside a 420px canvas (and a side inspector), it floats over the canvas as a drawer instead of scrolling the studio sideways. |
 | 19 | `--ui-text-4` | `#85858f` instead of the spec's `#7c7c86`, so faint labels reach 4.5:1 on every chrome surface. |
+| 20 | Side inspector collapse | A collapse tab at 50% opacity on the inspector's left edge (not in the prototype), and a 20px strip to expand it again; Ctrl+\ collapses both placements. |
+| 21 | Inspector default mode | Auto (Side, or Bottom for a profile wider than 2.5 : 1) rather than the prototype's fixed Side. |
+| 22 | Endpoints popover copy | Copies the full URL, not the path the row shows. |
+| 23 | Bottom-dock header | Header and the placement fields stay on one row in the dock, to save height. |
+| 24 | Inspector simplifications not taken | Kept as real settings: background Position / Tint / Blur stay visible (no model change), gradient and Fill rows, the overlay Dark scrim (no Dim slider), number inputs for panel Gap / Padding / Columns, the Font select and Clock Locale option, the full preset preview swatches, and the "Show advanced colors" button (#8). |
