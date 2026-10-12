@@ -15,17 +15,17 @@ export const CANVAS_PAD = 32;
 /** The vertical ruler's width and the horizontal ruler's height. */
 export const RULER_W = 28;
 export const RULER_H = 24;
-/** The strip under the canvas (zoom, layout switch): a footer beside it, the dock's top row in the dock. */
-export const BAR_H = 36;
+/** The bottom dock's top row (collapse toggle): all that shows while it is collapsed. */
+export const BAR_H = 28;
 
+/** The bottom dock's height until the user drags the splitter. */
+export const DEFAULT_DOCK = 320;
 /** The dock never gets smaller than this (it holds the inspector). */
 export const MIN_DOCK = 200;
 /** ... nor larger than this share of the studio body. */
 export const MAX_DOCK_SHARE = 0.7;
-/** Auto switches to the dock when the page leaves this share of the body free ... */
-export const AUTO_FREE_SHARE = 0.35;
-/** ... and the dock would get at least this much. */
-export const AUTO_MIN_DOCK = 220;
+/** Auto puts the inspector below the canvas for a profile wider than this width / height ratio. */
+export const AUTO_BOTTOM_ASPECT = 2.5;
 
 interface Size {
   width: number;
@@ -44,8 +44,10 @@ export interface LayoutInput {
   page: PageSize;
   /** Width of the rail. */
   rail: number;
-  /** Width of the open drawer: beside the canvas only (the dock holds it below). */
+  /** Width of the open left panel (beside the canvas in both placements). */
   drawer?: number;
+  /** The profile's design size, for Auto: a wide strip goes below the canvas. */
+  design?: Size;
   /** Width of the side inspector. */
   inspector: number;
   mode: LayoutMode;
@@ -87,13 +89,23 @@ export function clampDock(height: number, bodyHeight: number): number {
   return Math.round(clamp(height, MIN_DOCK, Math.max(MIN_DOCK, bodyHeight * MAX_DOCK_SHARE)));
 }
 
+/** The mode after `mode` in the zoom bar's dock button: Auto → Side → Bottom → Auto. */
+export function nextLayoutMode(mode: LayoutMode): LayoutMode {
+  return mode === "auto" ? "side" : mode === "side" ? "bottom" : "auto";
+}
+
+/** Where Auto puts the inspector: Bottom for a profile wider than 2.5 : 1, else Side. */
+export function autoPlacement(design?: Size): Placement {
+  return design && design.height > 0 && design.width / design.height > AUTO_BOTTOM_ASPECT ? "bottom" : "side";
+}
+
 /** Compute the placement, dock and canvas boxes, and the fit zoom. */
 export function computeLayout(input: LayoutInput): StudioLayout {
-  const { body, page, rail, drawer = 0, inspector, mode, dockHeight, collapsed } = input;
+  const { body, page, rail, drawer = 0, inspector, mode, design, dockHeight, collapsed } = input;
   const side = (): StudioLayout => {
     const box = {
       width: Math.max(0, body.width - rail - drawer - inspector - RULER_W),
-      height: Math.max(0, body.height - RULER_H - BAR_H),
+      height: Math.max(0, body.height - RULER_H),
     };
     return {
       placement: "side",
@@ -104,27 +116,10 @@ export function computeLayout(input: LayoutInput): StudioLayout {
     };
   };
   if (body.width <= 0 || body.height <= 0 || mode === "side") return side();
+  if (mode === "auto" && autoPlacement(design) === "side") return side();
 
-  // The canvas without the inspector beside it, and the page fitted to its width.
-  const width = Math.max(0, body.width - rail - RULER_W);
-  const pageHeight = page.height > 0 ? page.height : (page.naturalHeight ?? 0);
-  const widthZoom = fitZoomFor({ width, height: 0 }, { width: page.width, height: 0 });
-  const needed = pageHeight > 0 ? (pageHeight + CANVAS_PAD) * widthZoom + RULER_H : 0;
-  const free = body.height - needed;
-
-  if (mode === "auto") {
-    // An unknown page height can't be judged: stay beside the canvas.
-    if (pageHeight <= 0) return side();
-    if (free < body.height * AUTO_FREE_SHARE || free < AUTO_MIN_DOCK) return side();
-  }
-
-  const wanted =
-    dockHeight != null && dockHeight > 0
-      ? dockHeight
-      : pageHeight > 0
-        ? free
-        : body.height * AUTO_FREE_SHARE;
-  const dock = collapsed ? BAR_H : clampDock(wanted, body.height);
+  const width = Math.max(0, body.width - rail - drawer - RULER_W);
+  const dock = collapsed ? BAR_H : clampDock(dockHeight != null && dockHeight > 0 ? dockHeight : DEFAULT_DOCK, body.height);
   const box = { width, height: Math.max(0, body.height - dock - RULER_H) };
   return {
     placement: "bottom",

@@ -1,15 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import type { DashboardConfig, MonitorProfile, Widget } from "@/lib/layout";
 import type { ModuleSettings } from "@/modules/types";
-import { useStoredDrawer, type RailItem } from "./left-rail";
+import { useStoredDrawer, type Drawer, type RailItem } from "./left-rail";
 import { revealWidgetEditor, scrollInspectorToTop } from "./inspector-scroll";
 import { useCanvasZoom } from "./use-canvas-zoom";
+import { useStoredFlag } from "./use-stored-flag";
 import type { StudioMode } from "./studio-top-bar";
 import { DRAWER_WIDTH, RAIL_WIDTH, pageSize, useStudioLayout } from "./use-studio-layout";
 
 /**
  * The studio's view state, apart from the selection: Design | Sources,
- * the rail drawer, the dock layout and zoom, toggles, open dialogs, the
+ * the rail drawer, the dock layout and zoom, toggles (grid and rulers are
+ * remembered), open dialogs, the
  * inspector's search and jump target, and the session clipboards.
  */
 export function useStudioUi(config: DashboardConfig, profile: MonitorProfile, onSave: (config: DashboardConfig) => void) {
@@ -17,11 +19,18 @@ export function useStudioUi(config: DashboardConfig, profile: MonitorProfile, on
   const showSources = mode === "sources";
   const toggleSources = () => setMode((m) => (m === "sources" ? "design" : "sources"));
   const [drawer, setDrawer] = useStoredDrawer();
-  const [showGrid, setShowGrid] = useState(true);
+  const [showGrid, setShowGrid] = useStoredFlag("studio.grid", true);
+  const [showRulers, setShowRulers] = useStoredFlag("studio.rulers", true);
+  /** The panel the rail last had open, for the zoom bar's left-panel toggle. */
+  const lastDrawer = useRef<Drawer>(drawer ?? "add");
+  if (drawer) lastDrawer.current = drawer;
 
   /** A request to scroll the zone inspector to a card (`seq` makes repeats count). */
   const [inspectorJump, setInspectorJump] = useState<{ id: string; seq: number }>();
   const jumpInspector = (id: string) => setInspectorJump((j) => ({ id, seq: (j?.seq ?? 0) + 1 }));
+  /** A request for a Dashboard inspector tab (`seq` makes repeats count): the inspector shows it while nothing is selected. */
+  const [documentTabRequest, setDocumentTabRequest] = useState<{ tab: string; seq: number }>();
+  const openDocumentTab = (tab: string) => setDocumentTabRequest((r) => ({ tab, seq: (r?.seq ?? 0) + 1 }));
   /** The zone inspector's settings search ("Go to setting" fills it). */
   const [inspectorQuery, setInspectorQuery] = useState("");
   const inspectorRef = useRef<HTMLElement>(null);
@@ -45,6 +54,7 @@ export function useStudioUi(config: DashboardConfig, profile: MonitorProfile, on
     page,
     rail: RAIL_WIDTH,
     drawer: !showSources && drawer ? DRAWER_WIDTH : 0,
+    design: { width: profile.width, height: profile.height },
     forceSide: showSources,
   });
   const docked = studioLayout.layout.placement === "bottom";
@@ -59,8 +69,8 @@ export function useStudioUi(config: DashboardConfig, profile: MonitorProfile, on
   };
 
   /**
-   * Rail click: Sources toggles the full-width sources mode (the drawer
-   * stays remembered underneath); a drawer icon opens that drawer, or
+   * Rail click: Sources toggles the full-width sources mode (the panel
+   * stays remembered underneath); a panel icon opens that panel, or
    * collapses it when it is already open.
    */
   const onRail = (item: RailItem) => {
@@ -70,12 +80,16 @@ export function useStudioUi(config: DashboardConfig, profile: MonitorProfile, on
     }
     if (showSources) {
       setMode("design");
-      studioLayout.setCollapsed(false);
       setDrawer(item);
       return;
     }
-    if (drawer !== item) studioLayout.setCollapsed(false);
     setDrawer(drawer === item ? null : item);
+  };
+
+  /** The zoom bar's left-panel toggle: close the panel, or reopen the last one. */
+  const toggleLeft = () => {
+    if (showSources) setMode("design");
+    setDrawer(drawer && !showSources ? null : lastDrawer.current);
   };
 
   const revealEditor = () => revealWidgetEditor(inspectorRef.current);
@@ -88,8 +102,13 @@ export function useStudioUi(config: DashboardConfig, profile: MonitorProfile, on
     drawer,
     setDrawer,
     onRail,
+    toggleLeft,
     showGrid,
     setShowGrid,
+    showRulers,
+    setShowRulers,
+    documentTabRequest,
+    openDocumentTab,
     inspectorJump,
     jumpInspector,
     inspectorQuery,

@@ -6,57 +6,59 @@ interface StudioShellProps {
   layout: ReturnType<typeof useStudioLayout>;
   /** The icon rail. */
   rail: ReactNode;
-  /** The open drawer (null = none): beside the rail, or the dock's first column. */
+  /** The open left panel (null = none). */
   drawer: ReactNode;
   /** The canvas (or the Sources view). */
   main: ReactNode;
-  /** The strip under the canvas (null in the Sources view): zoom + layout switch. */
+  /** The floating zoom bar over the canvas (null in the Sources view). */
   bar: ReactNode;
-  /** The inspector `<aside>`. */
+  /** The inspector `<aside>` (null in the Sources view). */
   inspector: ReactNode;
+  /** The bottom dock's collapse toggle (its top row). */
+  dockToggle: ReactNode;
 }
 
 /**
- * The studio body below the top bar. Side placement: rail, drawer, canvas
- * (with its strip under it) and the inspector in a row. Bottom placement:
- * rail and canvas on top; under a splitter, the dock holds the strip, then
- * the drawer and the inspector as columns (only the strip when collapsed).
+ * The studio body below the top bar: rail, left panel, then the canvas
+ * (the zoom bar floats over it) with the inspector beside it or, in the
+ * bottom placement, in a dock under a splitter (only its top row when
+ * collapsed).
  */
-export function StudioShell({ layout, rail, drawer, main, bar, inspector }: StudioShellProps) {
+export function StudioShell({ layout, rail, drawer, main, bar, inspector, dockToggle }: StudioShellProps) {
   const { layout: l, collapsed } = layout;
-  const docked = l.placement === "bottom";
+  const docked = l.placement === "bottom" && inspector !== null;
   return (
-    <div ref={layout.bodyRef} className="flex min-h-0 flex-1 flex-col">
-      <div className="flex min-h-0 flex-1 overflow-x-auto">
-        {rail}
-        {!docked && drawer}
-        <main className="flex min-w-[420px] flex-1 flex-col">
-          {main}
-          {!docked && bar}
-        </main>
-        {!docked && inspector}
-      </div>
-      {docked && (
-        <>
-          {!collapsed && (
-            <DockSplitter
-              dockHeight={l.dockHeight}
-              bodyHeight={layout.body.height}
-              autoHeight={layout.autoDockHeight}
-              onCommit={layout.setDockHeight}
-            />
-          )}
-          <div className="flex shrink-0 flex-col" style={{ height: l.dockHeight }}>
+    <div ref={layout.bodyRef} className="flex min-h-0 flex-1 overflow-x-auto">
+      {rail}
+      {drawer}
+      <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex min-h-0 flex-1">
+          <main className="relative flex min-w-[420px] flex-1 flex-col">
+            {main}
             {bar}
+          </main>
+          {!docked && inspector}
+        </div>
+        {docked && (
+          <>
             {!collapsed && (
-              <div className="flex min-h-0 flex-1">
-                {drawer}
-                {inspector}
-              </div>
+              <DockSplitter
+                dockHeight={l.dockHeight}
+                bodyHeight={layout.body.height}
+                autoHeight={layout.autoDockHeight}
+                onCommit={layout.setDockHeight}
+              />
             )}
-          </div>
-        </>
-      )}
+            <div
+              className="flex shrink-0 flex-col border-t border-ui-subtle bg-ui-panel"
+              style={{ height: l.dockHeight }}
+            >
+              <div className="flex h-7 shrink-0 items-center px-1.5">{dockToggle}</div>
+              {!collapsed && <div className="flex min-h-0 flex-1">{inspector}</div>}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }

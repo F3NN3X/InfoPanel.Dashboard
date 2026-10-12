@@ -1,12 +1,18 @@
 import type { CSSProperties, Dispatch, SetStateAction } from "react";
 import { useConfigHistory } from "@/hooks/use-config-history";
+import { ToastProvider } from "@/components/ui/toast";
 import { SourcesPanel } from "./sources-panel";
-import { defaultConfig, resolveProfile, type DashboardConfig, type MonitorProfile } from "@/lib/layout";
+import {
+  BLANK_MODULE,
+  defaultConfig,
+  resolveProfile,
+  type DashboardConfig,
+  type MonitorProfile,
+} from "@/lib/layout";
 import { resolveBackground } from "@/lib/appearance";
 import { useSensorCatalog } from "@/lib/catalog";
 import { appearanceOf } from "@/lib/style-resolve";
 import { resolveTheme, themeVars } from "@/lib/theme";
-import * as actions from "./studio-actions";
 import { CommandPalette } from "./command-palette";
 import { exportConfigFile, importConfigFile } from "./config-file";
 import { useDocumentProps } from "./use-document-props";
@@ -38,6 +44,8 @@ interface StudioViewProps {
   onExitStudio: () => void;
   /** Flush the config to the server and force the kiosk view to refresh. */
   onSave: (config: DashboardConfig) => void;
+  /** Edits the server does not have yet (the dot on Save). */
+  pushPending: boolean;
 }
 
 /**
@@ -58,6 +66,7 @@ export function StudioView({
   windowHeight,
   onExitStudio,
   onSave,
+  pushPending,
 }: StudioViewProps) {
   const history = useConfigHistory(config, setConfigState);
   const setConfig = history.set;
@@ -94,7 +103,21 @@ export function StudioView({
   });
   /** Sensor names for widget names (toolbar crumb, palette). */
   const catalog = useSensorCatalog();
-  const { docked, studioLayout, showSources, drawer } = ui;
+  const { studioLayout, showSources, drawer } = ui;
+
+  /** Switch profile (or Auto): the selection resets with the profile; the zoom returns to fit. */
+  const activateProfile = (id: string) => {
+    edit.activateProfile(id);
+    ui.fitZoom();
+  };
+  /** The zoom bar's resolution button and a profile's "Size, grid and spacing…": Dashboard › Profile. */
+  const openProfileSettings = () => {
+    ui.setMode("design");
+    sel.select(null);
+    ui.openDocumentTab("profile");
+  };
+  /** The one selected zone, when it is blank: the Add panel's click fills it. */
+  const blankZoneId = selected && sel.selection.length === 1 && selected.module === BLANK_MODULE ? selected.id : undefined;
 
   /** The profile's own theme, scoped to the canvas (the chrome keeps the dashboard's). */
   const ownTheme = profile.theme !== undefined || profile.radius !== undefined;
@@ -117,8 +140,6 @@ export function StudioView({
   const drawerEl = drawer && (
     <StudioDrawer
       drawer={drawer}
-      docked={docked}
-      onClose={() => ui.setDrawer(null)}
       insert={{
         placements: profile.placements,
         savedPanels: config.panelPresets,
@@ -126,6 +147,8 @@ export function StudioView({
         onAddPreset: edit.addPanelPreset,
         onRenamePreset: edit.renameSavedPanel,
         onDeletePreset: edit.deleteSavedPanel,
+        blankZoneId,
+        onFillBlank: (zoneId, item) => edit.assignWidget(zoneId, `${item.kind === "panel" ? "preset" : "module"}:${item.id}`),
       }}
       layers={{
         placements: profile.placements,
@@ -133,19 +156,19 @@ export function StudioView({
         onSelect: (id, toggle) => (toggle ? sel.select(id, "toggle") : focusZone(id)),
         onToggle: edit.toggleVisible,
         onRemove: edit.removePlacement,
+        onAdd: () => ui.setDrawer("add"),
       }}
       profiles={{
         profiles: config.profiles,
         activeProfile: config.activeProfile,
         profile,
         autoProfileId: resolveProfile({ ...config, activeProfile: "auto" }, windowWidth, windowHeight).id,
-        onActivate: edit.activateProfile,
+        onActivate: activateProfile,
         onAddProfile: edit.addProfile,
         onRemoveProfile: edit.removeProfile,
         onProfileChange: (patch) =>
           edit.updateProfile((p) => ({ ...p, ...patch }), `profile:${Object.keys(patch).join()}`),
-        onCols: (delta) => edit.updateProfile((p) => actions.changeCols(p, delta)),
-        onRows: (delta) => edit.updateProfile((p) => actions.changeRows(p, delta)),
+        onOpenSettings: openProfileSettings,
       }}
     />
   );
@@ -170,6 +193,7 @@ export function StudioView({
       themeScope={themeScope}
       zoom={ui.zoom}
       showGrid={ui.showGrid}
+      showRulers={ui.showRulers}
       scrollRef={ui.scrollRef}
       attachScroll={ui.attachScroll}
       selectedIds={sel.selectedIds}
@@ -213,88 +237,103 @@ export function StudioView({
   const bar = showSources ? null : (
     <ZoomToolbar
       zoom={ui.zoom}
+      leftOpen={drawer !== null}
+      onToggleLeft={ui.toggleLeft}
       showGrid={ui.showGrid}
       onToggleGrid={() => ui.setShowGrid((s) => !s)}
+      showRulers={ui.showRulers}
+      onToggleRulers={() => ui.setShowRulers((s) => !s)}
       onZoomStep={ui.zoomStep}
       onZoomReset={() => ui.setZoom(1)}
       onFit={ui.fitZoom}
       profile={profile}
+      onOpenProfile={openProfileSettings}
       layoutMode={studioLayout.mode}
-      placement={studioLayout.layout.placement}
-      onLayoutMode={studioLayout.setMode}
-      leading={
-        docked && (
-          <DockToggle
-            collapsed={studioLayout.collapsed}
-            onToggle={studioLayout.toggleCollapsed}
-            summary={selected ? placementTitle(selected) : "Appearance · Background · General · Connection"}
-          />
-        )
-      }
+      onCycleLayout={studioLayout.cycleMode}
     />
   );
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-background text-foreground">
-      <StudioTopBar
-        profiles={config.profiles}
-        activeProfile={config.activeProfile}
-        profile={profile}
-        onActivate={edit.activateProfile}
-        mode={ui.mode}
-        onMode={ui.setMode}
-        saved={ui.saved}
-        onSave={ui.handleSave}
-        onExitStudio={onExitStudio}
-        onExport={() => exportConfigFile(config)}
-        onImport={() => ui.importRef.current?.click()}
-        onReset={() => setConfig(defaultConfig())}
-        canUndo={history.canUndo}
-        canRedo={history.canRedo}
-        onUndo={history.undo}
-        onRedo={history.redo}
-        onPalette={() => ui.setPaletteOpen(true)}
-        onShortcuts={() => ui.setShortcutsOpen(true)}
-      />
-      <StudioShell
-        layout={studioLayout}
-        rail={<LeftRail active={showSources ? "sources" : drawer} onSelect={ui.onRail} />}
-        drawer={!showSources && drawer && drawerEl}
-        main={mainEl}
-        bar={bar}
-        inspector={inspectorAside}
-      />
+    <ToastProvider>
+      <div className="flex h-screen flex-col overflow-hidden bg-ui-app font-ui text-ui-1">
+        <StudioTopBar
+          profiles={config.profiles}
+          activeProfile={config.activeProfile}
+          profile={profile}
+          onActivate={activateProfile}
+          onOpenProfiles={() => {
+            ui.setMode("design");
+            ui.setDrawer("profiles");
+          }}
+          mode={ui.mode}
+          onMode={ui.setMode}
+          saved={ui.saved}
+          unsaved={pushPending}
+          onSave={ui.handleSave}
+          onExitStudio={onExitStudio}
+          onExport={() => exportConfigFile(config)}
+          onImport={() => ui.importRef.current?.click()}
+          onReset={() => setConfig(defaultConfig())}
+          canUndo={history.canUndo}
+          canRedo={history.canRedo}
+          onUndo={history.undo}
+          onRedo={history.redo}
+          onPalette={() => ui.setPaletteOpen(true)}
+          onShortcuts={() => ui.setShortcutsOpen(true)}
+        />
+        <StudioShell
+          layout={studioLayout}
+          rail={
+            <LeftRail
+              active={showSources ? "sources" : drawer}
+              onSelect={ui.onRail}
+              onShortcuts={() => ui.setShortcutsOpen(true)}
+            />
+          }
+          drawer={!showSources && drawer && drawerEl}
+          main={mainEl}
+          bar={bar}
+          inspector={showSources ? null : inspectorAside}
+          dockToggle={
+            <DockToggle
+              collapsed={studioLayout.collapsed}
+              onToggle={studioLayout.toggleCollapsed}
+              summary={selected ? placementTitle(selected) : "Appearance · Background · General · Connection"}
+            />
+          }
+        />
 
-      <WidgetPickerDialog
-        placement={profile.placements.find((p) => p.id === ui.pickerFor) ?? null}
-        placements={profile.placements}
-        savedPanels={config.panelPresets}
-        onRenamePreset={edit.renameSavedPanel}
-        onDeletePreset={edit.deleteSavedPanel}
-        onPick={(value) => {
-          if (ui.pickerFor) edit.assignWidget(ui.pickerFor, value);
-          ui.setPickerFor(null);
-        }}
-        onClose={() => ui.setPickerFor(null)}
-      />
-      <CommandPalette
-        open={ui.paletteOpen}
-        onOpenChange={ui.setPaletteOpen}
-        commands={commands}
-        onRun={(command) => runCommand(command.action)}
-      />
-      <ShortcutsDialog open={ui.shortcutsOpen} onOpenChange={ui.setShortcutsOpen} />
-      <input
-        ref={ui.importRef}
-        type="file"
-        accept="application/json"
-        className="hidden"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) importConfigFile(file, setConfig);
-          e.target.value = "";
-        }}
-      />
-    </div>
+        <WidgetPickerDialog
+          placement={profile.placements.find((p) => p.id === ui.pickerFor) ?? null}
+          placements={profile.placements}
+          savedPanels={config.panelPresets}
+          onRenamePreset={edit.renameSavedPanel}
+          onDeletePreset={edit.deleteSavedPanel}
+          onPick={(value) => {
+            if (ui.pickerFor) edit.assignWidget(ui.pickerFor, value);
+            ui.setPickerFor(null);
+          }}
+          onClose={() => ui.setPickerFor(null)}
+        />
+        <CommandPalette
+          open={ui.paletteOpen}
+          onOpenChange={ui.setPaletteOpen}
+          commands={commands}
+          onRun={(command) => runCommand(command.action)}
+        />
+        <ShortcutsDialog open={ui.shortcutsOpen} onOpenChange={ui.setShortcutsOpen} />
+        <input
+          ref={ui.importRef}
+          type="file"
+          accept="application/json"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) importConfigFile(file, setConfig);
+            e.target.value = "";
+          }}
+        />
+      </div>
+    </ToastProvider>
   );
 }

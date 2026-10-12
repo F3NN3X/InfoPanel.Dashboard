@@ -58,6 +58,8 @@ interface StudioCanvasProps {
   themeScope?: CSSProperties;
   zoom: number;
   showGrid: boolean;
+  /** Draw the rulers (default on). */
+  showRulers?: boolean;
   /** The scroll container (shared with the zoom hook for wheel + fit). */
   scrollRef: RefObject<HTMLDivElement | null>;
   /** Callback ref that attaches the scroll container to the zoom hook. */
@@ -103,6 +105,7 @@ export function StudioCanvas({
   themeScope,
   zoom,
   showGrid,
+  showRulers = true,
   scrollRef,
   attachScroll,
   selectedIds,
@@ -317,25 +320,29 @@ export function StudioCanvas({
   return (
     <div className="relative flex min-h-0 flex-1 flex-col">
       {/* Ruler row */}
-      <div className="flex shrink-0">
-        <div className="h-6 w-7 shrink-0 border-b border-r border-border bg-popover/60" />
-        <div className="min-w-0 flex-1">
-          <RulerH
-            length={canvas.w}
-            zoom={zoom}
-            offset={scroll.left - canvas.ox}
-            view={canvas.viewW}
-          />
+      {showRulers && (
+        <div className="flex shrink-0">
+          <div className="h-6 w-7 shrink-0 border-b border-r border-ui-subtle bg-ui-chrome" />
+          <div className="min-w-0 flex-1">
+            <RulerH
+              length={canvas.w}
+              zoom={zoom}
+              offset={scroll.left - canvas.ox}
+              view={canvas.viewW}
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="flex min-h-0 flex-1">
-        <RulerV
-          length={canvas.h}
-          zoom={zoom}
-          offset={scroll.top - canvas.oy}
-          view={canvas.viewH}
-        />
+        {showRulers && (
+          <RulerV
+            length={canvas.h}
+            zoom={zoom}
+            offset={scroll.top - canvas.oy}
+            view={canvas.viewH}
+          />
+        )}
 
         <div className="relative min-w-0 flex-1">
           <div

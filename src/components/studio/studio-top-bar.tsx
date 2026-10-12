@@ -7,21 +7,19 @@ import {
   Download,
   Info,
   Keyboard,
-  Monitor,
+  LayoutGrid,
   MoreHorizontal,
   Redo2,
   RotateCcw,
-  Save,
   Search,
   Undo2,
   Upload,
   Wand2,
-  Wrench,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Segmented } from "@/components/ui/segmented";
+import { IconButton } from "@/components/ui/icon-button";
 import { BUILD_ID } from "@/lib/buildInfo";
 import type { MonitorProfile } from "@/lib/layout";
+import { cn } from "@/lib/utils";
 import { copyProfileJson } from "./config-file";
 import { ResetConfigDialog } from "./reset-config-dialog";
 import { KEYS } from "./use-studio-shortcuts";
@@ -36,10 +34,14 @@ interface StudioTopBarProps {
   profile: MonitorProfile;
   /** Pin a profile id, or "auto" to match the window size. */
   onActivate: (id: string) => void;
+  /** The profile name opens the Profiles left panel. */
+  onOpenProfiles: () => void;
   mode: StudioMode;
   onMode: (mode: StudioMode) => void;
   /** Briefly true after a save (shows "Saved"). */
   saved: boolean;
+  /** Edits the server does not have yet (the dot on Save). */
+  unsaved: boolean;
   onSave: () => void;
   onExitStudio: () => void;
   onExport: () => void;
@@ -60,58 +62,105 @@ const MODES = [
 ];
 
 const POPUP =
-  "min-w-48 rounded-md border border-border bg-popover p-1 text-xs text-foreground shadow-lg outline-none";
+  "min-w-52 rounded-[9px] border border-ui-menu bg-ui-raised p-1 font-ui text-[12.5px] text-ui-2 shadow-ui-menu outline-none";
 const ITEM =
-  "flex cursor-default items-center gap-2 rounded-[5px] px-2 py-1.5 outline-none select-none data-disabled:text-muted-foreground/60 data-highlighted:bg-accent";
-const SEPARATOR = "mx-1 my-1 h-px bg-border";
+  "flex h-[30px] cursor-default items-center gap-2 rounded-md px-2 outline-none select-none data-disabled:text-ui-5 data-highlighted:bg-ui-hover";
+const SEPARATOR = "mx-1 my-1 h-px bg-ui-subtle";
 
-/** Profile name + menu to switch profile (or Auto), like the Profiles drawer. */
+/** Design | Sources: raised container, active segment lifted. */
+function ModeSwitch({ mode, onMode }: Pick<StudioTopBarProps, "mode" | "onMode">) {
+  return (
+    <div
+      role="radiogroup"
+      aria-label="Mode"
+      className="flex rounded-lg border border-ui-default bg-ui-raised p-0.5"
+    >
+      {MODES.map((m) => (
+        <button
+          key={m.value}
+          type="button"
+          role="radio"
+          aria-checked={m.value === mode}
+          title={m.title}
+          onClick={() => onMode(m.value)}
+          className={cn(
+            "rounded-md px-3.5 py-[5px] text-[12.5px] font-medium transition-colors",
+            m.value === mode ? "bg-ui-active text-ui-1" : "text-[#8f8f99] hover:text-ui-1"
+          )}
+        >
+          {m.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * The profile name (opens the Profiles panel) with a chevron menu to switch
+ * profile or pick Auto without opening the panel.
+ */
 function ProfileSwitcher({
   profiles,
   activeProfile,
   profile,
   onActivate,
-}: Pick<StudioTopBarProps, "profiles" | "activeProfile" | "profile" | "onActivate">) {
+  onOpenProfiles,
+}: Pick<StudioTopBarProps, "profiles" | "activeProfile" | "profile" | "onActivate" | "onOpenProfiles">) {
   const auto = activeProfile === "auto";
   return (
-    <Menu.Root>
-      <Menu.Trigger
-        title="Switch profile"
-        className="flex h-8 min-w-0 items-center gap-1.5 rounded-md px-2 text-sm text-foreground transition-colors hover:bg-accent data-popup-open:bg-accent"
+    <div className="flex min-w-0 items-center">
+      <button
+        type="button"
+        onClick={onOpenProfiles}
+        title="Profiles"
+        className="flex h-8 min-w-0 items-center gap-1.5 rounded-md px-2 text-[13px] font-semibold text-ui-1 transition-colors hover:bg-ui-hover"
       >
-        <Monitor className="h-4 w-4 shrink-0 text-muted-foreground" />
         <span className="truncate">{profile.name}</span>
-        {auto && <span className="shrink-0 text-[10px] text-muted-foreground">auto</span>}
-        <ChevronDown className="h-3 w-3 shrink-0 text-muted-foreground" />
-      </Menu.Trigger>
-      <Menu.Portal>
-        <Menu.Positioner className="z-50" sideOffset={4} align="start">
-          <Menu.Popup className={POPUP}>
-            <Menu.Item className={ITEM} onClick={() => onActivate("auto")}>
-              <Wand2 className="h-3.5 w-3.5" />
-              <span className="flex-1">Auto (match window)</span>
-              {auto && <Check className="h-3.5 w-3.5" />}
-            </Menu.Item>
-            <Menu.Separator className={SEPARATOR} />
-            {profiles.map((p) => (
-              <Menu.Item key={p.id} className={ITEM} onClick={() => onActivate(p.id)}>
-                <span className="flex-1 truncate">{p.name}</span>
-                <span className="tabular-nums text-muted-foreground">
-                  {p.width}×{p.height}
-                </span>
-                <span className="w-3.5">{!auto && p.id === profile.id && <Check className="h-3.5 w-3.5" />}</span>
+        {auto && <span className="shrink-0 text-[10px] font-normal text-ui-4">auto</span>}
+      </button>
+      <Menu.Root>
+        <Menu.Trigger
+          aria-label="Switch profile"
+          title="Switch profile"
+          className="flex h-8 w-6 shrink-0 items-center justify-center rounded-md text-ui-4 transition-colors hover:bg-ui-hover hover:text-ui-1 data-popup-open:bg-ui-hover data-popup-open:text-ui-1"
+        >
+          <ChevronDown className="h-3.5 w-3.5" />
+        </Menu.Trigger>
+        <Menu.Portal>
+          <Menu.Positioner className="z-[80]" sideOffset={4} align="start">
+            <Menu.Popup className={POPUP}>
+              <Menu.Item className={ITEM} onClick={() => onActivate("auto")}>
+                <Wand2 className="h-3.5 w-3.5" />
+                <span className="flex-1">Auto (match window)</span>
+                {auto && <Check className="h-3.5 w-3.5" />}
               </Menu.Item>
-            ))}
-          </Menu.Popup>
-        </Menu.Positioner>
-      </Menu.Portal>
-    </Menu.Root>
+              <Menu.Separator className={SEPARATOR} />
+              {profiles.map((p) => (
+                <Menu.Item key={p.id} className={ITEM} onClick={() => onActivate(p.id)}>
+                  <span className="flex-1 truncate">{p.name}</span>
+                  <span className="font-ui-mono text-[10.5px] text-ui-4">
+                    {p.width}×{p.height}
+                  </span>
+                  <span className="w-3.5">{!auto && p.id === profile.id && <Check className="h-3.5 w-3.5" />}</span>
+                </Menu.Item>
+              ))}
+            </Menu.Popup>
+          </Menu.Positioner>
+        </Menu.Portal>
+      </Menu.Root>
+    </div>
   );
+}
+
+/** `1920 × 550 · 12 × 6 · Fill · 10 zones`. */
+export function profileSummary(p: MonitorProfile): string {
+  const zones = p.placements.length;
+  return `${p.width} × ${p.height} · ${p.cols} × ${p.rows} · ${p.fit === "fill" ? "Fill" : "Scroll"} · ${zones} ${zones === 1 ? "zone" : "zones"}`;
 }
 
 /**
  * "⋯": export / import / copy profile JSON / reset, the command palette
- * and shortcut cheat sheet, and the build id.
+ * and shortcut sheet, and the build id.
  */
 function MoreMenu({
   profile,
@@ -120,10 +169,7 @@ function MoreMenu({
   onReset,
   onPalette,
   onShortcuts,
-}: Pick<
-  StudioTopBarProps,
-  "profile" | "onExport" | "onImport" | "onReset" | "onPalette" | "onShortcuts"
->) {
+}: Pick<StudioTopBarProps, "profile" | "onExport" | "onImport" | "onReset" | "onPalette" | "onShortcuts">) {
   const [copied, setCopied] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
 
@@ -142,12 +188,12 @@ function MoreMenu({
         <Menu.Trigger
           aria-label="More actions"
           title={copied ? "Profile JSON copied" : "More actions"}
-          className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground data-popup-open:bg-accent data-popup-open:text-foreground"
+          className="flex h-8 w-8 items-center justify-center rounded-md text-ui-3 transition-colors hover:bg-ui-hover hover:text-ui-1 data-popup-open:bg-ui-hover data-popup-open:text-ui-1"
         >
-          {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <MoreHorizontal className="h-4 w-4" />}
+          {copied ? <Check className="h-4 w-4 text-ui-success" /> : <MoreHorizontal className="h-4 w-4" />}
         </Menu.Trigger>
         <Menu.Portal>
-          <Menu.Positioner className="z-50" sideOffset={4} align="end">
+          <Menu.Positioner className="z-[80]" sideOffset={4} align="end">
             <Menu.Popup className={POPUP}>
               <Menu.Item className={ITEM} onClick={onExport}>
                 <Download className="h-3.5 w-3.5" /> Export config
@@ -162,91 +208,96 @@ function MoreMenu({
               <Menu.Item className={ITEM} onClick={onPalette}>
                 <Search className="h-3.5 w-3.5" />
                 <span className="flex-1">Command palette…</span>
-                <span className="text-muted-foreground">{KEYS.palette}</span>
+                <span className="font-ui-mono text-[10.5px] text-ui-4">{KEYS.palette}</span>
               </Menu.Item>
               <Menu.Item className={ITEM} onClick={onShortcuts}>
                 <Keyboard className="h-3.5 w-3.5" />
                 <span className="flex-1">Keyboard shortcuts</span>
-                <span className="text-muted-foreground">{KEYS.cheatsheet}</span>
+                <span className="font-ui-mono text-[10.5px] text-ui-4">{KEYS.cheatsheet}</span>
               </Menu.Item>
               <Menu.Separator className={SEPARATOR} />
-              <Menu.Item className={`${ITEM} text-destructive`} onClick={() => setConfirmReset(true)}>
+              <Menu.Item className={cn(ITEM, "text-ui-danger")} onClick={() => setConfirmReset(true)}>
                 <RotateCcw className="h-3.5 w-3.5" /> Reset everything…
               </Menu.Item>
               <Menu.Separator className={SEPARATOR} />
               <Menu.Item className={ITEM} disabled>
                 <Info className="h-3.5 w-3.5" />
-                <span className="tabular-nums">build {BUILD_ID}</span>
+                <span className="font-ui-mono text-[10.5px]">build {BUILD_ID}</span>
               </Menu.Item>
             </Menu.Popup>
           </Menu.Positioner>
         </Menu.Portal>
       </Menu.Root>
-      <ResetConfigDialog
-        open={confirmReset}
-        onOpenChange={setConfirmReset}
-        onExport={onExport}
-        onReset={onReset}
-      />
+      <ResetConfigDialog open={confirmReset} onOpenChange={setConfirmReset} onExport={onExport} onReset={onReset} />
     </>
   );
 }
 
-const ICON_BUTTON =
-  "flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:pointer-events-none disabled:opacity-40";
+/** Undo / redo: #c9c9cf when they can act, #4a4a52 when they cannot. */
+const HISTORY_BUTTON = "text-[#c9c9cf] disabled:text-[#4a4a52] disabled:opacity-100";
 
 /**
- * The studio's top bar: profile switcher and size, Design | Sources, then
- * undo / redo, Save, Kiosk view and the "⋯" menu.
+ * The studio's top bar: profile switcher and meta, Design | Sources, then
+ * undo / redo, Kiosk view, Save and the "⋯" menu.
  */
 export function StudioTopBar(props: StudioTopBarProps) {
-  const { profile, mode, onMode, saved, onSave, onExitStudio, canUndo, canRedo, onUndo, onRedo } =
-    props;
+  const { profile, mode, onMode, saved, unsaved, onSave, onExitStudio, canUndo, canRedo, onUndo, onRedo } = props;
   return (
-    <header className="grid h-11 shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-3 border-b bg-popover/40 px-2">
-      <div className="flex min-w-0 items-center gap-2">
+    <header className="grid h-12 shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-3 border-b border-ui-subtle bg-ui-chrome px-3 font-ui">
+      <div className="flex min-w-0 items-center gap-2.5">
+        <span className="h-[26px] w-[26px] shrink-0 rounded-[7px] bg-ui-accent" aria-hidden />
         <ProfileSwitcher {...props} />
-        <span className="shrink-0 truncate text-xs tabular-nums text-muted-foreground">
-          {profile.width}×{profile.height} · {profile.cols}×{profile.rows} ·{" "}
-          {profile.placements.length} zones
+        <span className="hidden shrink-0 truncate font-ui-mono text-[11px] text-ui-4 md:inline">
+          {profileSummary(profile)}
         </span>
       </div>
 
-      <Segmented options={MODES} value={mode} onChange={onMode} />
+      <ModeSwitch mode={mode} onMode={onMode} />
 
       <div className="flex items-center justify-end gap-1.5">
-        <button
-          type="button"
-          aria-label="Undo"
-          title={`Undo (${KEYS.undo})`}
+        <IconButton
+          label={`Undo (${KEYS.undo})`}
+          size={32}
+          className={HISTORY_BUTTON}
           disabled={!canUndo}
           onClick={onUndo}
-          className={ICON_BUTTON}
         >
           <Undo2 className="h-4 w-4" />
+        </IconButton>
+        <IconButton
+          label={`Redo (${KEYS.redo})`}
+          size={32}
+          className={HISTORY_BUTTON}
+          disabled={!canRedo}
+          onClick={onRedo}
+        >
+          <Redo2 className="h-4 w-4" />
+        </IconButton>
+        <div className="mx-1 h-5 w-px bg-ui-strong" />
+        <button
+          type="button"
+          onClick={onExitStudio}
+          className="flex h-8 items-center gap-1.5 rounded-[7px] border border-ui-strong bg-ui-raised px-3 text-[12.5px] font-medium text-ui-2 transition-colors hover:bg-ui-hover hover:text-ui-1"
+        >
+          <LayoutGrid className="h-3.5 w-3.5" /> Kiosk view
         </button>
         <button
           type="button"
-          aria-label="Redo"
-          title={`Redo (${KEYS.redo})`}
-          disabled={!canRedo}
-          onClick={onRedo}
-          className={ICON_BUTTON}
-        >
-          <Redo2 className="h-4 w-4" />
-        </button>
-        <Button
-          size="sm"
-          className="h-8 gap-1.5 text-xs"
           onClick={onSave}
           title={`Save to the dashboard server and refresh the kiosk view (${KEYS.save})`}
+          className="flex h-8 items-center gap-1.5 rounded-[7px] bg-ui-inverse px-3.5 text-[12.5px] font-semibold text-ui-inverse-fg transition-opacity hover:opacity-90"
         >
-          {saved ? <Check className="h-3.5 w-3.5" /> : <Save className="h-3.5 w-3.5" />}
-          {saved ? "Saved" : "Save"}
-        </Button>
-        <Button size="sm" variant="outline" className="h-8 gap-1.5 text-xs" onClick={onExitStudio}>
-          <Wrench className="h-3.5 w-3.5" /> Kiosk view
-        </Button>
+          {saved ? (
+            <>
+              <Check className="h-3.5 w-3.5" /> Saved
+            </>
+          ) : (
+            <>
+              Save
+              {unsaved && <span className="h-1.5 w-1.5 rounded-full bg-ui-accent" aria-label="Unsaved changes" />}
+            </>
+          )}
+        </button>
         <MoreMenu {...props} />
       </div>
     </header>
