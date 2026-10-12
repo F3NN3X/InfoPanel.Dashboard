@@ -38,12 +38,6 @@ interface MutationDeps {
   windowSize: { width: number; height: number };
 }
 
-const sameRect = (zone: Placement, rect: ZoneRect) =>
-  zone.colStart === rect.col &&
-  zone.rowStart === rect.row &&
-  zone.colSpan === rect.cols &&
-  zone.rowSpan === rect.rows;
-
 /**
  * Every edit the studio makes to the config, through the undo history.
  * Same-`key` changes coalesce into one undo step (a drag, a key repeat).
@@ -54,13 +48,11 @@ export function useStudioMutations({ config, profile, setConfig, sel, onPresetSa
 
   /** Mutate the active profile; same-`key` changes coalesce in undo. */
   const updateProfile = (fn: (p: MonitorProfile) => MonitorProfile, key?: string) => {
-    setConfig(
-      (c) => ({
-        ...c,
-        profiles: c.profiles.map((p) => (p.id === profile.id ? fn(p) : p)),
-      }),
-      key
-    );
+    // The same config back when `fn` changes nothing: the history records no step.
+    setConfig((c) => {
+      const profiles = c.profiles.map((p) => (p.id === profile.id ? fn(p) : p));
+      return profiles.every((p, i) => p === c.profiles[i]) ? c : { ...c, profiles };
+    }, key);
   };
 
   /** Generic placement mutation (settings, design, ...). */
@@ -133,6 +125,8 @@ export function useStudioMutations({ config, profile, setConfig, sel, onPresetSa
     } else {
       const preset = findPanelPreset(item.id, config.panelPresets);
       if (!preset) return;
+      if (!actions.canGrowTo(profile, zoneId, { cols: preset.colSpan, rows: preset.rowSpan }))
+        return void toast("Not enough room in this zone");
       updateProfile((p) => actions.assignPreset(p, zoneId, preset));
     }
     toast(`Placed ${info.title}`);
@@ -165,7 +159,13 @@ export function useStudioMutations({ config, profile, setConfig, sel, onPresetSa
     sel.select(id);
   };
 
-  const toggleVisible = (id: string) => updateProfile((p) => actions.toggleVisible(p, id));
+  /** Hide or show zones; showing is refused when their cells were taken meanwhile. */
+  const toggleZones = (ids: readonly string[]) => {
+    if (ids.length === 0) return;
+    if (!actions.canToggleZonesVisible(profile, ids)) return void toast("No room to show — it overlaps another widget");
+    updateProfile((p) => actions.toggleZonesVisible(p, ids));
+  };
+  const toggleVisible = (id: string) => toggleZones([id]);
   const removePlacement = (id: string) => updateProfile((p) => actions.removePlacement(p, id));
 
   /** Copy zones to free spots (one undo step) and select the copies. */
@@ -183,9 +183,7 @@ export function useStudioMutations({ config, profile, setConfig, sel, onPresetSa
   };
 
   /* The selection's hide / duplicate / remove (toolbar, keys, palette). */
-  const toggleSelectionVisible = () => {
-    if (sel.selectedIds.length > 0) updateProfile((p) => actions.toggleZonesVisible(p, sel.selectedIds));
-  };
+  const toggleSelectionVisible = () => toggleZones(sel.selectedIds);
   const duplicateSelection = () => duplicateZones(sel.selectedIds);
   const removeSelection = () => {
     const n = sel.selectedIds.length;
@@ -210,17 +208,17 @@ export function useStudioMutations({ config, profile, setConfig, sel, onPresetSa
     sel.select(null);
   };
 
-  /** Set a zone's box; `key` makes a drag or key repeat one undo step. */
-  const setZoneRect = (id: string, rect: ZoneRect, key?: string) => {
-    const zone = profile.placements.find((p) => p.id === id);
-    if (!zone || !sameRect(zone, rect)) updateProfile((p) => actions.setZoneRect(p, id, rect), key);
-  };
+  /**
+   * Set a zone's box; `key` makes a drag or key repeat one undo step. Checked
+   * against the newest profile (a drag's handler is a render behind), so a
+   * move back to the start box is applied rather than skipped.
+   */
+  const setZoneRect = (id: string, rect: ZoneRect, key?: string) =>
+    updateProfile((p) => actions.setZoneRect(p, id, rect), key);
 
   /** Set several zones' boxes as one step (a multi-zone drag or nudge). */
-  const setZoneRects = (rects: Record<string, ZoneRect>, key?: string) => {
-    const changed = profile.placements.some((p) => rects[p.id] && !sameRect(p, rects[p.id]));
-    if (changed) updateProfile((p) => actions.setZoneRects(p, rects), key);
-  };
+  const setZoneRects = (rects: Record<string, ZoneRect>, key?: string) =>
+    updateProfile((p) => actions.setZoneRects(p, rects), key);
 
   /** Arrow keys: move the whole selection one cell (all or nothing). */
   const moveSelection = (delta: { cols: number; rows: number }) => {
@@ -263,10 +261,14 @@ export function useStudioMutations({ config, profile, setConfig, sel, onPresetSa
       updateProfile((p) => actions.clearWidget(p, id));
     } else if (value.startsWith("module:")) {
       const module = value.slice("module:".length);
+      if (!actions.canGrowTo(profile, id, moduleMinSize(module))) return void toast("Not enough room in this zone");
       updateProfile((p) => actions.assignModule(p, id, module, moduleMinSize(module)));
     } else if (value.startsWith("preset:")) {
       const preset = findPanelPreset(value.slice("preset:".length), config.panelPresets);
-      if (preset) updateProfile((p) => actions.assignPreset(p, id, preset));
+      if (!preset) return;
+      if (!actions.canGrowTo(profile, id, { cols: preset.colSpan, rows: preset.rowSpan }))
+        return void toast("Not enough room in this zone");
+      updateProfile((p) => actions.assignPreset(p, id, preset));
     }
   };
 

@@ -96,10 +96,7 @@ describe("shortcutAction", () => {
     expect(shortcutAction(key("?"), TYPING)).toBeNull();
     expect(shortcutAction(key("d", { ctrlKey: true }), TYPING)).toBeNull();
     expect(shortcutAction(key("0", { ctrlKey: true }), TYPING)).toBeNull();
-    expect(shortcutAction(key("Escape"), TYPING)).toEqual({ type: "escape" });
     expect(shortcutAction(key("s", { ctrlKey: true }), TYPING)).toEqual({ type: "save" });
-    expect(shortcutAction(key("z", { ctrlKey: true }), TYPING)).toEqual({ type: "undo" });
-    expect(shortcutAction(key("y", { ctrlKey: true }), TYPING)).toEqual({ type: "redo" });
     expect(shortcutAction(key("k", { ctrlKey: true }), TYPING)).toEqual({ type: "palette" });
   });
 
@@ -167,3 +164,27 @@ describe("SHORTCUT_GROUPS", () => {
     }
   });
 });
+
+describe("shortcutAction guards", () => {
+  it("leaves Esc and undo / redo to a text field while typing", () => {
+    expect(shortcutAction(key("Escape"), TYPING)).toBeNull();
+    expect(shortcutAction(key("z", { ctrlKey: true }), TYPING)).toBeNull();
+    expect(shortcutAction(key("z", { ctrlKey: true, shiftKey: true }), TYPING)).toBeNull();
+    expect(shortcutAction(key("y", { ctrlKey: true }), TYPING)).toBeNull();
+    expect(shortcutAction(key("z", { ctrlKey: true }), DIALOG)).toEqual({ type: "undo" });
+  });
+
+  it("ignores every key during a drag", () => {
+    const dragging = { ...IDLE, dragging: true };
+    for (const k of [key("Delete"), key("h"), key("Escape"), key("ArrowLeft"), key("z", { ctrlKey: true }), key("d", { ctrlKey: true })]) {
+      expect(shortcutAction(k, dragging)).toBeNull();
+    }
+  });
+
+  it("does not treat AltGr+C / V as style chords", () => {
+    const altGr = { ctrlKey: true, altKey: true, altGraph: true };
+    expect(shortcutAction(key("c", { ...altGr, code: "KeyC" }), IDLE)).toBeNull();
+    expect(shortcutAction(key("v", { ...altGr, code: "KeyV" }), IDLE)).toBeNull();
+  });
+});
+

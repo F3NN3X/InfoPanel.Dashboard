@@ -20,7 +20,7 @@ interface CommandDeps {
   config: DashboardConfig;
   profile: MonitorProfile;
   setConfig: HistorySetter;
-  history: { undo: () => void; redo: () => void; canUndo: boolean; canRedo: boolean };
+  history: { undo: () => void; redo: () => void; dragging: () => boolean; canUndo: boolean; canRedo: boolean };
   ui: StudioUi;
   sel: StudioSelection;
   edit: StudioMutations;
@@ -57,12 +57,13 @@ export function useStudioCommands({
     );
   };
 
-  /** Esc: clear the settings search, else step out (widget → zones → none), else close the drawer. */
+  /** Esc: clear the settings search, else step out (widget → zones → none), else close the drawer. Sources has its own. */
   const escape = () => {
+    if (ui.showSources) return;
     if (ui.inspectorQuery !== "") ui.setInspectorQuery("");
     else if (selectedWidget) sel.clearWidget();
     else if (sel.selectedIds.length > 0) sel.select(null);
-    else if (!ui.showSources && ui.drawer) ui.setDrawer(null);
+    else if (ui.drawer) ui.setDrawer(null);
   };
 
   /** The primary panel's widget edits (inspector, canvas keys, palette). */
@@ -92,7 +93,7 @@ export function useStudioCommands({
       default:
         return runCommand(action);
     }
-  }, selectedWidget !== null);
+  }, selectedWidget !== null, history.dragging);
 
   /** Carry out a command palette entry (or a shortcut with the same action). */
   const runCommand = (action: CommandAction) => {

@@ -140,12 +140,17 @@ export function addBlankZone(
   };
 }
 
-/** Set a zone's box (the caller clamps it first). */
+const hasRect = (p: Placement, r: ZoneRect) =>
+  p.colStart === r.col && p.rowStart === r.row && p.colSpan === r.cols && p.rowSpan === r.rows;
+
+/** Set a zone's box (the caller clamps it first); the same profile back when it is already there. */
 export function setZoneRect(
   profile: MonitorProfile,
   id: string,
   rect: ZoneRect
 ): MonitorProfile {
+  const zone = profile.placements.find((p) => p.id === id);
+  if (!zone || hasRect(zone, rect)) return profile;
   return updatePlacement(profile, id, (p) => ({
     ...p,
     colStart: rect.col,
@@ -200,11 +205,12 @@ export function duplicatePlacement(
   return { ...profile, placements: next };
 }
 
-/** Set several zones' boxes at once (the caller checks them first). */
+/** Set several zones' boxes at once (the caller checks them first); the same profile back when none moves. */
 export function setZoneRects(
   profile: MonitorProfile,
   rects: Record<string, ZoneRect>
 ): MonitorProfile {
+  if (!profile.placements.some((p) => rects[p.id] && !hasRect(p, rects[p.id]))) return profile;
   return {
     ...profile,
     placements: profile.placements.map((p) => {
@@ -233,6 +239,27 @@ export function toggleZonesVisible(
     ...profile,
     placements: profile.placements.map((x) => (set.has(x.id) ? { ...x, visible: !anyVisible } : x)),
   };
+}
+
+/**
+ * Whether toggling these zones is allowed: hiding always is; showing is
+ * not when a shown zone would land on another visible one (the room it
+ * left was handed out while it was hidden).
+ */
+export function canToggleZonesVisible(profile: MonitorProfile, ids: readonly string[]): boolean {
+  const next = toggleZonesVisible(profile, ids);
+  const set = new Set(ids);
+  return next.placements
+    .filter((p) => set.has(p.id) && p.visible)
+    .every((p) =>
+      zoneFits(
+        { col: p.colStart, row: p.rowStart, cols: p.colSpan, rows: p.rowSpan },
+        next.placements,
+        profile.cols,
+        profile.rows,
+        p.id
+      )
+    );
 }
 
 /**

@@ -26,6 +26,7 @@ import {
 import { useGeneral } from "@/hooks/use-general";
 import { cn } from "@/lib/utils";
 import { PlacementFrame } from "./placement-frame";
+import { trackPointer } from "./pointer-drag";
 import { LivePlacement } from "./placement-content";
 import { RulerH, RulerV } from "./rulers";
 import { EmptyLayoutCard, QuickTipsCard } from "./canvas-cards";
@@ -147,6 +148,9 @@ export function StudioCanvas({
   /** The zones' boxes when the drag in flight started. */
   const dragOrigin = useRef<Placement[] | null>(null);
   const [drawing, setDrawing] = useState<ZoneRect | null>(null);
+  /** Aborts a draw in flight (Esc / unmount are handled by `trackPointer`). */
+  const stopDraw = useRef<(() => void) | null>(null);
+  useEffect(() => () => stopDraw.current?.(), []);
   // A completed draw is followed by a click on the grid; it must not
   // deselect the zone just drawn (and selected).
   const drewRef = useRef(false);
@@ -276,29 +280,28 @@ export function StudioCanvas({
     e.preventDefault();
     let rect: ZoneRect = { col: start.col, row: start.row, cols: 1, rows: 1 };
     setDrawing(rect);
-    const move = (ev: PointerEvent) => {
-      const c = cellAt(ev.clientX, ev.clientY);
-      if (!c) return;
-      rect = {
-        col: Math.min(start.col, c.col),
-        row: Math.min(start.row, c.row),
-        cols: Math.abs(c.col - start.col) + 1,
-        rows: Math.abs(c.row - start.row) + 1,
-      };
-      setDrawing(rect);
-    };
-    const up = () => {
-      window.removeEventListener("pointermove", move);
-      window.removeEventListener("pointerup", up);
-      setDrawing(null);
-      drewRef.current = true;
-      setTimeout(() => (drewRef.current = false), 0);
-      // No room for the drawn box (the grid is full there): nothing is added.
-      const fitted = fitZoneRect(rect, profile.placements, profile.cols, profile.rows);
-      if (fitted) onDrawZone(fitted);
-    };
-    window.addEventListener("pointermove", move);
-    window.addEventListener("pointerup", up);
+    stopDraw.current = trackPointer(
+      (ev) => {
+        const c = cellAt(ev.clientX, ev.clientY);
+        if (!c) return;
+        rect = {
+          col: Math.min(start.col, c.col),
+          row: Math.min(start.row, c.row),
+          cols: Math.abs(c.col - start.col) + 1,
+          rows: Math.abs(c.row - start.row) + 1,
+        };
+        setDrawing(rect);
+      },
+      (cancelled) => {
+        setDrawing(null);
+        if (cancelled) return;
+        drewRef.current = true;
+        setTimeout(() => (drewRef.current = false), 0);
+        // No room for the drawn box (the grid is full there): nothing is added.
+        const fitted = fitZoneRect(rect, profile.placements, profile.cols, profile.rows);
+        if (fitted) onDrawZone(fitted);
+      }
+    );
   };
 
   const isLibraryDrag = (e: DragEvent) =>
@@ -325,11 +328,15 @@ export function StudioCanvas({
   /** Drop: the zone is created at the ghost's spot, or "No room there". */
   const onCanvasDrop = (e: DragEvent) => {
     e.preventDefault();
-    const preview = dropPreview;
     dragItem.current = null;
     setDropPreview(null);
     const item = libraryItemOf((type) => e.dataTransfer.getData(type));
-    if (item) onDropItem(item, preview?.ok ? preview.rect : null);
+    if (!item) return;
+    // Sized from the dropped item itself: a drag from another window had no ghost size.
+    const cell = cellAt(e.clientX, e.clientY);
+    const size = dropSizeOf(item);
+    const ghost = cell && size ? dropGhost(cell, size, profile, profile.placements) : null;
+    onDropItem(item, ghost?.ok ? ghost.rect : null);
   };
 
   // The profile's spacing (as the kiosk page shows it): the gap between
@@ -406,7 +413,15 @@ export function StudioCanvas({
           />
         )}
 
-        <div className="relative min-w-0 flex-1">
+        <div
+          className="relative min-w-0 flex-1"
+          // On the wrapper, not the scroller: the cards over the canvas are drop targets too.
+          onDragOver={onCanvasDragOver}
+          onDragLeave={(e) => {
+            if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDropPreview(null);
+          }}
+          onDrop={onCanvasDrop}
+        >
           <div
             ref={attachScroll}
             className="h-full w-full overflow-auto"
@@ -416,11 +431,6 @@ export function StudioCanvas({
                 top: e.currentTarget.scrollTop,
               })
             }
-            onDragOver={onCanvasDragOver}
-            onDragLeave={(e) => {
-              if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDropPreview(null);
-            }}
-            onDrop={onCanvasDrop}
             onContextMenu={(e) => {
               e.preventDefault();
               onContextMenu(null, e.clientX, e.clientY);

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Wrench } from "lucide-react";
 import { useSensorsConnected, useSensorsTimestamp } from "@/hooks/useSensors";
 import { Badge } from "@/components/ui/badge";
@@ -103,6 +103,14 @@ export default function App() {
   // `pushPending` is true from an edit until its push lands (the studio's
   // Save dot); a newer edit supersedes an older push still in flight.
   const [pushPending, setPushPending] = useState(false);
+  // The newest config, to tell whether a finished push is still the latest state.
+  const latestConfig = useRef(config);
+  latestConfig.current = config;
+  // Before the server copy is read nothing is pushed, but an edit is still unpushed.
+  const firstConfig = useRef(config);
+  useEffect(() => {
+    if (!kiosk && !synced && config !== firstConfig.current) setPushPending(true);
+  }, [config, kiosk, synced]);
   useEffect(() => {
     if (kiosk || !synced) return; // kiosk pages only read; don't push from them
     let superseded = false;
@@ -186,9 +194,10 @@ export default function App() {
   const handleStudioSave = useCallback((cfg: DashboardConfig) => {
     saveConfig(cfg); // local copy first (offline fallback)
     pushConfig(cfg)
-      .then(() => setPushPending(false))
+      // An edit made since the click is still unpushed (its debounced push clears the dot).
+      .then(() => latestConfig.current === cfg && setPushPending(false))
       .catch(() => {
-        // Server offline — kiosk pages keep their last copy.
+        // Server offline — kiosk pages keep their last copy; the dot stays.
       });
   }, []);
 

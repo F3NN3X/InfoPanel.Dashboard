@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Menu } from "@base-ui/react/menu";
 import { Check, MoreHorizontal, Plus } from "lucide-react";
 import { IconButton } from "@/components/ui/icon-button";
@@ -113,7 +113,14 @@ function RowMenu({
 /** The inline name input of the profile being renamed. */
 function RenameInput({ initial, onDone }: { initial: string; onDone: (name: string | null) => void }) {
   const [name, setName] = useState(initial);
-  const commit = () => onDone(name.trim() || null);
+  // Enter / Esc finish it; the blur the unmount may fire must not finish it again.
+  const finished = useRef(false);
+  const finish = (value: string | null) => {
+    if (finished.current) return;
+    finished.current = true;
+    onDone(value);
+  };
+  const commit = () => finish(name.trim() || null);
   return (
     <input
       autoFocus
@@ -123,7 +130,7 @@ function RenameInput({ initial, onDone }: { initial: string; onDone: (name: stri
       onKeyDown={(e) => {
         e.stopPropagation();
         if (e.key === "Enter") commit();
-        if (e.key === "Escape") onDone(null);
+        if (e.key === "Escape") finish(null);
       }}
       onBlur={commit}
       aria-label="Profile name"

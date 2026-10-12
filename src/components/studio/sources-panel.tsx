@@ -72,10 +72,11 @@ export function SourcesPanel({ config, setConfig, profile, onOpenZone }: Sources
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
 
   // Esc closes the point inspector, unless it was meant for a field or an open popup.
+  // (The studio shortcuts mark Esc handled before this runs, so it can't check defaultPrevented.)
   useEffect(() => {
     if (selectedKey === null) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Escape" || e.defaultPrevented) return;
+      if (e.key !== "Escape") return;
       const target = e.target instanceof Element ? e.target : null;
       if (target?.closest('input, select, textarea, [role="dialog"], [role="menu"]')) return;
       setSelectedKey(null);

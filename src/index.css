@@ -174,6 +174,15 @@
   }
 }
 
+/* The studio is dark chrome: native controls and thin dark scrollbars, from the
+   --ui tokens. Scoped to the studio page (it marks its root .studio-root) so
+   the kiosk page keeps its own scrollbar rules below. */
+:root:has(.studio-root) {
+  color-scheme: dark;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ui-border-menu) transparent;
+}
+
 /* Kiosk mode: a borderless kiosk strip must not show scrollbars when
    content is squeezed into the window — clip quietly instead. Content
    stays wheel-scrollable, the bars just disappear. */

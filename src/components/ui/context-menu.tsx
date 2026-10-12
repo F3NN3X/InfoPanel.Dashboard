@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useRef, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import { Kbd } from "@/components/ui/kbd";
@@ -26,9 +26,41 @@ interface ContextMenuProps {
   onClose: () => void;
 }
 
-/** A 220 px right-click menu, clamped to the viewport; closes on pick, Esc or outside click. */
+/**
+ * A 220 px right-click menu, clamped to the viewport; closes on pick, Esc or
+ * outside click. Keyboard: focus lands on the first enabled item, arrows /
+ * Home / End move between items, Enter / Space pick, and focus returns to
+ * where it was when the menu closes.
+ */
 export function ContextMenu({ x, y, entries, onClose }: ContextMenuProps) {
   const ref = useRef<HTMLDivElement>(null);
+
+  // Focus in on open, back out on close.
+  useEffect(() => {
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    ref.current?.querySelector<HTMLElement>('[role="menuitem"]:not(:disabled)')?.focus();
+    return () => {
+      // Only when focus is still nowhere (a pick may have opened a dialog that took it).
+      if (opener?.isConnected && (!document.activeElement || document.activeElement === document.body)) opener.focus();
+    };
+  }, []);
+
+  /** Arrow / Home / End between the enabled items (wrapping); Tab leaves the menu. */
+  const onMenuKey = (e: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Tab") return onClose();
+    const items = [...e.currentTarget.querySelectorAll<HTMLElement>('[role="menuitem"]:not(:disabled)')];
+    if (items.length === 0) return;
+    const at = items.indexOf(document.activeElement as HTMLElement);
+    const next =
+      e.key === "ArrowDown" ? (at + 1) % items.length
+      : e.key === "ArrowUp" ? (at <= 0 ? items.length - 1 : at - 1)
+      : e.key === "Home" ? 0
+      : e.key === "End" ? items.length - 1
+      : -1;
+    if (next < 0) return;
+    e.preventDefault();
+    items[next].focus();
+  };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -59,6 +91,7 @@ export function ContextMenu({ x, y, entries, onClose }: ContextMenuProps) {
       role="menu"
       style={{ left, top, width: MENU_WIDTH }}
       onContextMenu={(e) => e.preventDefault()}
+      onKeyDown={onMenuKey}
       className="fixed z-[90] rounded-[9px] border border-ui-menu bg-ui-raised p-1 font-ui shadow-ui-menu"
     >
       {entries.map((e, i) =>
@@ -75,7 +108,7 @@ export function ContextMenu({ x, y, entries, onClose }: ContextMenuProps) {
               e.onSelect();
             }}
             className={cn(
-              "flex h-[30px] w-full items-center gap-2 rounded-md px-2 text-left text-[12.5px] disabled:opacity-40",
+              "flex h-[30px] w-full items-center gap-2 rounded-md px-2 text-left text-[12.5px] outline-none focus-visible:bg-ui-hover focus-visible:text-ui-1 disabled:opacity-40",
               e.danger ? "text-ui-danger hover:bg-ui-danger/15" : "text-ui-2 hover:bg-ui-hover hover:text-ui-1"
             )}
           >

@@ -7,6 +7,7 @@ import {
   commitTransaction,
   emptyHistory,
   recordChange,
+  resetHistory,
   redoChange,
   undoChange,
   type History,
@@ -172,3 +173,25 @@ describe("transactions", () => {
     expect(h.txn?.start).toBe(1);
   });
 });
+
+describe("transactions and external resets", () => {
+  it("keeps an open transaction across an external reset, starting from the new value", () => {
+    const open = beginTransaction(record([[1, undefined, 0]]), 5);
+    const reset = resetHistory(open, 9);
+    expect(reset.past).toEqual([]);
+    expect(reset.txn).toEqual({ start: 9 });
+    expect(commitTransaction(reset, 12, 1).past).toEqual([9]);
+  });
+
+  it("resets to empty when no transaction is open", () => {
+    expect(resetHistory(record([[1, undefined, 0]]), 9)).toEqual(emptyHistory());
+  });
+
+  it("records no step when the end equals the start by the given comparison", () => {
+    const open = beginTransaction(emptyHistory<{ n: number }>(), { n: 1 });
+    const same = (a: { n: number }, b: { n: number }) => a.n === b.n;
+    expect(commitTransaction(open, { n: 1 }, 0, same).past).toEqual([]);
+    expect(commitTransaction(open, { n: 1 }, 0).past).toHaveLength(1);
+  });
+});
+

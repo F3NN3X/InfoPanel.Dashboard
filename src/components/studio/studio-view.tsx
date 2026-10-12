@@ -237,6 +237,7 @@ function StudioViewBody({
             onPickWidget={() => ui.setPickerFor(selected.id)}
             onToggleVisible={edit.toggleSelectionVisible}
             onMore={(x, y) => menus.open(selected.id, x, y)}
+            moreOpen={menus.menu !== null}
           />
         )
       }
@@ -263,7 +264,7 @@ function StudioViewBody({
   );
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-ui-app font-ui text-ui-1">
+    <div className="studio-root flex h-screen flex-col overflow-hidden bg-ui-app font-ui text-ui-1">
       <StudioTopBar
         profiles={config.profiles}
         activeProfile={config.activeProfile}

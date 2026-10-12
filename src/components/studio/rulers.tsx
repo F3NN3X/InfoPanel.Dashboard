@@ -6,6 +6,10 @@
 
 const STEPS = [10, 20, 25, 50, 100, 200, 500, 1000, 2000, 5000];
 
+/** Labels sit every 100 design px; zoomed out far enough that they'd collide, every coarser step. */
+const LABEL_EVERY = 100;
+const MIN_LABEL_GAP = 36;
+
 function stepFor(minScreen: number, zoom: number) {
   for (const s of STEPS) if (s * zoom >= minScreen) return s;
   return 10000;
@@ -21,8 +25,8 @@ interface RulerProps {
   view: number;
 }
 
-function ticks(length: number, zoom: number, offset: number, view: number) {
-  const step = stepFor(64, zoom);
+export function ticks(length: number, zoom: number, offset: number, view: number) {
+  const step = LABEL_EVERY * zoom >= MIN_LABEL_GAP ? LABEL_EVERY : stepFor(MIN_LABEL_GAP, zoom);
   const minor = step / 5;
   const i0 = Math.max(0, Math.floor(offset / zoom / minor));
   const i1 = Math.min(
@@ -33,11 +37,11 @@ function ticks(length: number, zoom: number, offset: number, view: number) {
   for (let i = i0; i <= i1; i++) {
     out.push({ x: Math.round(i * minor), major: i % 5 === 0 });
   }
-  return { out, showLabels: step * zoom >= 56 };
+  return out;
 }
 
 export function RulerH({ length, zoom, offset, view }: RulerProps) {
-  const { out, showLabels } = ticks(length, zoom, offset, view);
+  const out = ticks(length, zoom, offset, view);
   return (
     <div className="relative h-6 select-none overflow-hidden border-b border-ui-subtle bg-ui-chrome">
       {out.map((t) => (
@@ -49,11 +53,9 @@ export function RulerH({ length, zoom, offset, view }: RulerProps) {
           {t.major ? (
             <>
               <div className="h-2.5 w-px bg-ui-5" />
-              {showLabels && (
-                <div className="absolute -top-0.5 left-1 font-ui-mono text-[8px] leading-none text-[#5a5a63]">
-                  {t.x}
-                </div>
-              )}
+              <div className="absolute -top-0.5 left-1 font-ui-mono text-[8px] leading-none text-[#5a5a63]">
+                {t.x}
+              </div>
             </>
           ) : (
             <div className="h-1.5 w-px bg-ui-5/40" />
@@ -65,7 +67,7 @@ export function RulerH({ length, zoom, offset, view }: RulerProps) {
 }
 
 export function RulerV({ length, zoom, offset, view }: RulerProps) {
-  const { out, showLabels } = ticks(length, zoom, offset, view);
+  const out = ticks(length, zoom, offset, view);
   return (
     <div className="relative w-7 shrink-0 select-none overflow-hidden border-r border-ui-subtle bg-ui-chrome">
       {out.map((t) => (
@@ -77,11 +79,9 @@ export function RulerV({ length, zoom, offset, view }: RulerProps) {
           {t.major ? (
             <>
               <div className="h-px w-2 bg-ui-5" />
-              {showLabels && (
-                <div className="absolute left-2.5 top-1 font-ui-mono text-[8px] leading-none text-[#5a5a63]">
-                  {t.x}
-                </div>
-              )}
+              <div className="absolute left-2.5 top-1 font-ui-mono text-[8px] leading-none text-[#5a5a63]">
+                {t.x}
+              </div>
             </>
           ) : (
             <div className="h-px w-1.5 bg-ui-5/40" />
