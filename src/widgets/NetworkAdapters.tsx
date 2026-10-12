@@ -63,11 +63,11 @@ export default function NetworkAdapters(p: NetworkAdaptersProps) {
           </div>
         );
         if (size === "xs") return <div className="flex h-full items-center">{pub}</div>;
-        const n = useFitRows(h - 64, size === "lg" ? 46 : 40, 8);
+        const n = useFitRows(h - 57, size === "lg" ? 46 : 36, 8);
         return (
-          <div className="flex h-full flex-col gap-3">
+          <div className="flex h-full flex-col gap-2">
             {pub}
-            <ul className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden border-t border-[color:var(--w-track)] pt-3">
+            <ul className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden border-t border-[color:var(--w-track)] pt-2">
               {ads.slice(0, n).map((a) => (
                 <li key={a.id} className="flex min-w-0 flex-col gap-0.5">
                   <div className="flex min-w-0 items-center gap-2 text-xs">
