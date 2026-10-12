@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { filterDisks, formatRate, formatTemp, levelOf, readSystem } from "./system-metrics";
+import type { SensorMap } from "@/modules/types";
+import { toFlat } from "@/widgets/data-adapter";
+import { filterDisks, formatRate, formatTemp, readSystem, readSystemFlat } from "./system-metrics";
 
 const s = (value: number, unit: string, name: string) => ({ value, unit, name });
 const GPU = "libre.nvidia_geforce_rtx_5090";
@@ -205,20 +207,32 @@ describe("readSystem", () => {
   });
 });
 
-describe("levelOf", () => {
-  it("is normal below warn, warn from warn, crit from crit", () => {
-    expect(levelOf(79.9, 80, 90)).toBe("normal");
-    expect(levelOf(80, 80, 90)).toBe("warn");
-    expect(levelOf(89.9, 80, 90)).toBe("warn");
-    expect(levelOf(90, 80, 90)).toBe("crit");
+describe("readSystemFlat", () => {
+  const flat = toFlat(live as SensorMap);
+  const f = readSystemFlat(flat);
+
+  it("reads the same values from the templates' flat data, without sensor names", () => {
+    const r = readSystem(live);
+    expect(f).toEqual({
+      ...r,
+      cpu: { ...r.cpu, name: undefined },
+      gpu: { ...r.gpu, name: undefined },
+      disks: r.disks.map((d) => ({ ...d, name: d.id.replace(/^libre\./, "") })),
+    });
   });
 
-  it("is normal for a missing reading", () => {
-    expect(levelOf(undefined, 80, 90)).toBe("normal");
+  it("memoises per data identity", () => {
+    expect(readSystemFlat(flat)).toBe(f);
   });
 
-  it("lets crit win if the thresholds are inverted", () => {
-    expect(levelOf(85, 90, 80)).toBe("crit");
+  it("filters slug-named drives by hardware-name substrings, ignoring punctuation", () => {
+    expect(filterDisks(f.disks, "WDS100T2B0A-00SM50").map((d) => d.id)).toEqual(["libre.wdc_wds100t2b0a_00sm50"]);
+    expect(filterDisks(f.disks, "KINGSTON").map((d) => d.id)).toEqual(["libre.kingston_sfyrd2000g"]);
+    expect(filterDisks(f.disks, " - ")).toHaveLength(2);
+  });
+
+  it("ignores text values and keys outside libre / system", () => {
+    expect(readSystemFlat({ "libre.x_cpu_total": "n/a", "plugins.y_cpu_total": "50 %" }).cpu.load).toBeUndefined();
   });
 });
 

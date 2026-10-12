@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, fmt, fmtRate, detect, pretty, Ring, RingStack, Spark, Bar, heat, useHistory, tone, TONES, hw, Num, type ShellProps, type WidgetMeta } from "./kit";
+import { filterDisks, formatRate, formatTemp, readSystemFlat, type DiskReading } from "@/lib/system-metrics";
+import { Widget, shell, get, num, fmt, fmtRate, detect, pretty, Ring, RingStack, Spark, Bar, Empty, heat, useHistory, tone, TONES, hw, Num, type ShellProps, type Tone, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "SystemOverview",
@@ -10,14 +11,18 @@ export const meta: WidgetMeta = {
   prefixes: [],
   defaultSize: [5, 2],
   minSize: [1, 1],
-  description: "Unified CPU · GPU · RAM (+ VRAM, network) panel. Each section has its own colour, ring, stats, smooth graph; CPU adds a load-intensity core heatmap.",
+  description: "Unified CPU · GPU · RAM (+ VRAM, drives, network) panel. Each section has its own colour, ring, stats, smooth graph; CPU adds a load-intensity core heatmap.",
 };
 
-type Section = "cpu" | "gpu" | "ram" | "vram" | "net";
-const DEF: Record<Section, string> = { cpu: "#38bdf8", gpu: "#a78bfa", ram: "#fbbf24", vram: "#facc15", net: "#34d399" };
+export type Section = "cpu" | "gpu" | "ram" | "vram" | "disk" | "net";
+const DEF: Record<Section, string> = { cpu: "#38bdf8", gpu: "#a78bfa", ram: "#fbbf24", vram: "#facc15", disk: "#fb7185", net: "#34d399" };
 // Under a non-default skin, sections derive from the skin's accent by hue rotation, so the palette follows the skin.
-const SHIFT: Record<Section, number> = { cpu: 0, gpu: 55, ram: -45, vram: -80, net: 120 };
+const SHIFT: Record<Section, number> = { cpu: 0, gpu: 55, ram: -45, vram: -80, disk: 160, net: 120 };
 const sectionColor = (k: Section) => (SHIFT[k] ? `oklch(from var(--sys-base) l c calc(h + ${SHIFT[k]}))` : "var(--sys-base)");
+const LABEL: Record<Section, string> = { cpu: "CPU", gpu: "GPU", ram: "RAM", vram: "VRAM", disk: "Disks", net: "NET" };
+
+/** The details each switch shows; an unset switch is on. */
+export type Detail = "names" | "temps" | "power" | "clock" | "hotspot" | "fans" | "memClock" | "powerLimit" | "memory" | "pageFile" | "diskTemp" | "diskIo" | "diskLife";
 
 export interface SystemOverviewProps extends ShellProps {
   look?: ModuleSettings;
@@ -29,52 +34,216 @@ export interface SystemOverviewProps extends ShellProps {
   coreView?: "heatmap" | "bars" | "off";
   heatRamp?: string;
   details?: "auto" | "min" | "full";
+  /** Load warning / critical, percent. */
   warn?: number;
   crit?: number;
+  /** Detail switches (hardware names, temperatures, power, clocks, fans, memory, page file, drive details). */
+  show?: Partial<Record<Detail, boolean>>;
+  /** Trend graphs under the loads. */
+  sparkline?: boolean;
+  /** Graph window, in changed samples. */
+  historyLength?: number;
+  /** Temperature warning / critical, °C. */
+  tempWarn?: number;
+  tempCrit?: number;
+  /** VRAM / drive fullness warning, percent; red at `crit`. */
+  vramWarn?: number;
+  tempUnit?: "c" | "f";
+  /** Decimals on percentages and temperatures. */
+  decimals?: 0 | 1;
+  /** Section label overrides. */
+  labels?: Partial<Record<Section, string>>;
+  /** Comma-separated drive-name substrings; empty = all drives. */
+  diskFilter?: string;
+}
+
+interface Stat {
+  l: string;
+  v: string;
+  t?: Tone;
+  /** In the inline detail line, the value alone ("64°C") instead of "label value". */
+  bare?: boolean;
 }
 
 interface SectionData {
-  label: string;
   v: number;
   name: string;
   big?: string;
-  stats: [string, string][];
+  stats: Stat[];
+  /** Fullness (VRAM, drives) tones by `vramWarn` instead of the load warning. */
+  capacity?: boolean;
+  /** Whether the machine reports this section at all. */
+  present: boolean;
+}
+
+interface Drive {
+  id: string;
+  name: string;
+  used: number;
+  text: string;
+  t: Tone;
+  details: Stat[];
+}
+
+/** GB as "51.4" / "128". */
+const gb = (v: number) => fmt(v, v >= 100 ? 0 : 1);
+/** A slug drive name (flat data has no sensor names) → "Kingston SFYRD2000G". */
+const driveName = (name: string) => (/^[a-z0-9_]+$/.test(name) ? pretty(name) : name);
+const inline = (s: Stat) => (s.bare ? s.v : `${s.l} ${s.v}`);
+
+function CoreGrid({ cores, cellW, view, ramp }: { cores: number[]; cellW: number; view: "heatmap" | "bars"; ramp?: string }) {
+  const hc = cellW > 170 ? 8 : 4;
+  return (
+    <div className="absolute inset-0 grid gap-[3px]" style={{ gridTemplateColumns: `repeat(${Math.min(cores.length, hc)}, minmax(0,1fr))`, gridTemplateRows: `repeat(${Math.ceil(cores.length / hc)}, minmax(0,1fr))`, maxHeight: Math.ceil(cores.length / hc) * 16 }}>
+      {cores.map((v, ci) =>
+        view === "bars" ? (
+          <div key={ci} className="flex min-h-0 flex-col justify-end overflow-hidden rounded-[3px] bg-[color:var(--w-track)]">
+            <div className="transition-[height] duration-700" style={{ height: `${Math.max(6, v)}%`, background: "var(--accent)" }} />
+          </div>
+        ) : (
+          <div key={ci} title={`Core ${ci + 1} · ${fmt(v, 0)}%`} className="min-h-0 rounded-[3px] transition-colors duration-700" style={{ background: heat(v, ramp ?? "accent") }} />
+        )
+      )}
+    </div>
+  );
+}
+
+/** The drives as used-space bars with their details, as many as fit `h`. */
+function DriveList({ drives, h }: { drives: Drive[]; h: number }) {
+  const rowH = drives.some((d) => d.details.length) ? 44 : 30;
+  const shown = drives.slice(0, Math.max(1, Math.floor((h + 6) / rowH)));
+  return (
+    <div className="flex min-h-0 flex-1 flex-col gap-1.5 overflow-hidden">
+      {shown.map((d) => (
+        <div key={d.id} className="flex min-w-0 flex-col gap-1">
+          <div className="flex min-w-0 items-baseline justify-between gap-2 text-[11px]">
+            <span className="min-w-0 truncate text-[color:var(--w-fg)]" title={d.name}>
+              {d.name}
+            </span>
+            <span className="shrink-0 font-semibold tabular-nums" style={d.t !== "ok" ? { color: TONES[d.t] } : undefined}>
+              {d.text}
+            </span>
+          </div>
+          <Bar value={d.used} t={d.t} className="h-1.5 shrink-0" />
+          {d.details.length > 0 && <DetailLine stats={d.details} />}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Details as one line: "64°C · 120 W · Hotspot 80°C", warnings tinted. */
+function DetailLine({ stats }: { stats: Stat[] }) {
+  return (
+    <span className="truncate text-[11px] tabular-nums text-[color:var(--w-faint)]">
+      {stats.map((s, i) => (
+        <span key={s.l} style={s.t && s.t !== "ok" ? { color: TONES[s.t], fontWeight: 600 } : undefined}>
+          {i > 0 && " · "}
+          {inline(s)}
+        </span>
+      ))}
+    </span>
+  );
 }
 
 export default function SystemOverview(p: SystemOverviewProps) {
   const d = p.data;
   const cpu = hw(d).cpu,
     gpu = hw(d).gpu;
+  const r = readSystemFlat(d);
   const L = (k: string) => num(get(d, `libre.${k}`));
   const C = (k: string) => L(`${cpu}_${k}`),
     G = (k: string) => L(`${gpu}_${k}`);
-  const cores: number[] = [];
-  for (let i = 1; i <= 64; i++) {
-    const v = C(`cpu_core__${i}`);
-    if (!Number.isFinite(v)) break;
-    cores.push(v);
-  }
-  const fans = [1, 2, 3].map((i) => G(`gpu_fan_${i}`)).filter((v) => v > 0);
-  const net = detect(d, /^libre\.(.+)_download_speed$/).sort((a, b) => L(`${b}_download_speed`) - L(`${a}_download_speed`))[0];
-  const ramUsed = L("total_memory_memory_used"),
-    ramTot = ramUsed + L("total_memory_memory_available");
-  const vUsed = L("virtual_memory_memory_used"),
-    vTot = vUsed + L("virtual_memory_memory_available");
-  const ALL: Record<Section, SectionData> = {
-    cpu: { label: "CPU", v: C("cpu_total"), name: pretty(cpu ?? "").replace(/^AMD Ryzen/, "Ryzen"), stats: [["Temp", `${fmt(C("core__tctl_tdie"), 0)}°C`], ["Power", `${fmt(C("package"), 0)} W`], ["Clock", `${fmt(C("cores__average_effective") / 1000, 2)} GHz`], ["Max core", `${fmt(C("cpu_core_max"), 0)}%`]] },
-    gpu: { label: "GPU", v: G("gpu_core_load"), name: (get(d, "plugins.InfoPanel.RTSS.rtss.gpu-name") || pretty(gpu ?? "")).replace(/^NVIDIA /, ""), stats: [["Temp", `${fmt(G("gpu_core"), 0)}°C`], ["Hotspot", `${fmt(G("gpu_memory_junction"), 0)}°C`], ["Power", `${fmt(G("gpu_package"), 0)} W`], ["Clock", `${fmt(G("gpu_core_clock"), 0)} MHz`], ["Mem", `${fmt(G("gpu_memory_clock"), 0)} MHz`], ["Fans", fans.length ? `${fmt(fans.reduce((a, b) => a + b, 0) / fans.length, 0)} rpm` : "idle"]] },
-    ram: { label: "RAM", v: L("total_memory_memory"), name: `${fmt(ramUsed, 1)} / ${fmt(ramTot, 0)} GB`, stats: [["Free", `${fmt(L("total_memory_memory_available"), 1)} GB`], ["Page", `${fmt(vUsed, 0)} / ${fmt(vTot, 0)} GB`], ["Page load", `${fmt(L("virtual_memory_memory"), 0)}%`]] },
-    vram: { label: "VRAM", v: (G("gpu_memory_used") / G("gpu_memory_total")) * 100, name: `${fmt(G("gpu_memory_used") / 1024, 1)} / ${fmt(G("gpu_memory_total") / 1024, 0)} GB`, stats: [["Free", `${fmt(G("gpu_memory_free") / 1024, 1)} GB`], ["Ctrl", `${fmt(G("gpu_memory_controller"), 0)}%`]] },
-    net: { label: "NET", v: (L(`${net}_download_speed`) / (2500 * 128)) * 100, name: pretty(net ?? ""), big: fmtRate(L(`${net}_download_speed`)), stats: [["Down", fmtRate(L(`${net}_download_speed`))], ["Up", fmtRate(L(`${net}_upload_speed`))], ["Total ↓", `${fmt(L(`${net}_data_downloaded`), 1)} GB`]] },
-  };
-  const H: Record<Section, number[]> = { cpu: useHistory(ALL.cpu.v, 60), gpu: useHistory(ALL.gpu.v, 60), ram: useHistory(ALL.ram.v, 60), vram: useHistory(ALL.vram.v, 60), net: useHistory(ALL.net.v, 60) };
-  const keys = (p.sections ?? (["cpu", "gpu", "ram"] as Section[])).filter((k) => ALL[k]);
-  const skinned = p.skin && p.skin !== "default";
-  const col = (k: Section): string | undefined => (p.unifiedColor ? undefined : p.colors?.[k] ?? (skinned ? (p.skin === "ink" ? undefined : sectionColor(k)) : DEF[k]));
-  const vars = (k: Section) => (col(k) ? ({ "--accent": col(k) } as CSSProperties) : undefined);
+  const dec = p.decimals === 1 ? 1 : 0;
+  const on = (k: Detail) => p.show?.[k] !== false;
   const warn = p.warn ?? 80,
     crit = p.crit ?? 92;
+  const tempWarn = p.tempWarn ?? 80,
+    tempCrit = p.tempCrit ?? 90,
+    capWarn = p.vramWarn ?? warn;
+  const pct = (v: number) => `${fmt(v, dec)}%`;
+  // Thresholds are in °C; the text follows the chosen unit.
+  const temp = (l: string, c: number | undefined, bare = false): Stat[] => (c === undefined ? [] : [{ l, v: formatTemp(c, p.tempUnit ?? "c", dec), t: tone(c, tempWarn, tempCrit), bare }]);
+  const stat = (show: boolean, value: number | undefined, s: (v: number) => Stat): Stat[] => (show && value !== undefined && Number.isFinite(value) ? [s(value)] : []);
+
+  const cores = r.cpu.cores;
+  const net = detect(d, /^libre\.(.+)_download_speed$/).sort((a, b) => L(`${b}_download_speed`) - L(`${a}_download_speed`))[0];
+  const vr = r.gpu.vram,
+    page = r.ram.page;
+  const drives: Drive[] = filterDisks(r.disks, p.diskFilter ?? "").map((x: DiskReading) => ({
+    id: x.id,
+    name: driveName(x.name),
+    used: x.used ?? NaN,
+    text: x.used === undefined ? "–" : pct(x.used),
+    t: tone(x.used ?? NaN, capWarn, crit),
+    details: [
+      ...(on("diskTemp") ? temp("Temp", x.temp, true) : []),
+      ...stat(on("diskIo"), x.read, (v) => ({ l: "R", v: formatRate(v) })),
+      ...stat(on("diskIo"), x.write, (v) => ({ l: "W", v: formatRate(v) })),
+      ...stat(on("diskLife"), x.life, (v) => ({ l: "Life", v: `${fmt(v, 0)}%` })),
+    ],
+  }));
+  const fullest = drives.filter((x) => Number.isFinite(x.used)).sort((a, b) => b.used - a.used)[0];
+
+  const ALL: Record<Section, SectionData> = {
+    cpu: {
+      v: r.cpu.load ?? NaN,
+      name: on("names") ? (r.cpu.name ?? pretty(cpu ?? "")).replace(/^AMD Ryzen/, "Ryzen") : "",
+      stats: [
+        ...(on("temps") ? temp("Temp", r.cpu.temp, true) : []),
+        ...stat(on("power"), r.cpu.power, (v) => ({ l: "Power", v: `${fmt(v, 0)} W`, bare: true })),
+        ...stat(true, C("cores__average_effective"), (v) => ({ l: "Clock", v: `${fmt(v / 1000, 2)} GHz` })),
+        ...stat(true, C("cpu_core_max"), (v) => ({ l: "Max core", v: `${fmt(v, 0)}%` })),
+      ],
+      present: r.cpu.load !== undefined,
+    },
+    gpu: {
+      v: r.gpu.load ?? NaN,
+      name: on("names") ? (get(d, "plugins.InfoPanel.RTSS.rtss.gpu-name") || r.gpu.name || pretty(gpu ?? "")).replace(/^NVIDIA /, "") : "",
+      stats: [
+        ...(on("temps") ? temp("Temp", r.gpu.temp, true) : []),
+        ...(on("hotspot") ? temp("Hotspot", r.gpu.hotspot) : []),
+        ...stat(on("power"), r.gpu.power, (v) => ({ l: "Power", v: `${fmt(v, 0)} W`, bare: true })),
+        ...stat(on("powerLimit"), r.gpu.powerLimit, (v) => ({ l: "Limit", v: `${fmt(v, 0)}%` })),
+        ...stat(on("clock"), r.gpu.clock, (v) => ({ l: "Clock", v: `${fmt(v, 0)} MHz`, bare: true })),
+        ...stat(on("memClock"), r.gpu.memClock, (v) => ({ l: "Mem", v: `${fmt(v, 0)} MHz` })),
+        ...(on("fans") && r.gpu.load !== undefined ? [{ l: "Fans", v: r.gpu.fanRpm !== undefined ? `${fmt(r.gpu.fanRpm, 0)} rpm${r.gpu.fanPct !== undefined ? ` · ${fmt(r.gpu.fanPct, 0)}%` : ""}` : "idle" }] : []),
+      ],
+      present: r.gpu.load !== undefined,
+    },
+    ram: {
+      v: r.ram.load ?? NaN,
+      name: on("memory") && r.ram.used !== undefined && r.ram.total !== undefined ? `${gb(r.ram.used)} / ${gb(r.ram.total)} GB` : "",
+      stats: [
+        ...stat(on("memory"), L("total_memory_memory_available"), (v) => ({ l: "Free", v: `${fmt(v, 1)} GB` })),
+        ...(on("pageFile") && page?.used !== undefined && page.total !== undefined ? [{ l: "Page", v: `${gb(page.used)} / ${gb(page.total)} GB` }] : []),
+        ...stat(on("pageFile"), page?.load, (v) => ({ l: "Page load", v: pct(v) })),
+      ],
+      present: r.ram.load !== undefined,
+    },
+    vram: {
+      v: vr.load ?? NaN,
+      name: on("memory") && vr.used !== undefined && vr.total !== undefined ? `${gb(vr.used)} / ${gb(vr.total)} GB` : "",
+      stats: [...stat(on("memory"), G("gpu_memory_free"), (v) => ({ l: "Free", v: `${fmt(v / 1024, 1)} GB` })), ...stat(true, G("gpu_memory_controller"), (v) => ({ l: "Ctrl", v: `${fmt(v, 0)}%` }))],
+      capacity: true,
+      present: vr.load !== undefined,
+    },
+    disk: { v: fullest?.used ?? NaN, name: fullest?.name ?? "", stats: [], capacity: true, present: drives.length > 0 },
+    net: { v: (L(`${net}_download_speed`) / (2500 * 128)) * 100, name: pretty(net ?? ""), big: fmtRate(L(`${net}_download_speed`)), stats: [{ l: "Down", v: fmtRate(L(`${net}_download_speed`)) }, { l: "Up", v: fmtRate(L(`${net}_upload_speed`)) }, { l: "Total ↓", v: `${fmt(L(`${net}_data_downloaded`), 1)} GB` }], present: !!net },
+  };
+  const len = Math.max(12, Math.round(p.historyLength ?? 60));
+  const H: Record<Section, number[]> = { cpu: useHistory(ALL.cpu.v, len), gpu: useHistory(ALL.gpu.v, len), ram: useHistory(ALL.ram.v, len), vram: useHistory(ALL.vram.v, len), disk: useHistory(ALL.disk.v, len), net: useHistory(ALL.net.v, len) };
+  // A section the machine does not report (no GPU, no drives) is left out.
+  const keys = (p.sections ?? (["cpu", "gpu", "ram"] as Section[])).filter((k) => ALL[k]?.present);
+  const label = (k: Section) => p.labels?.[k] || LABEL[k];
+  const skinned = p.skin && p.skin !== "default";
+  const col = (k: Section): string | undefined => (p.unifiedColor ? undefined : p.colors?.[k] || (skinned ? (p.skin === "ink" ? undefined : sectionColor(k)) : DEF[k]));
+  const vars = (k: Section) => (col(k) ? ({ "--accent": col(k) } as CSSProperties) : undefined);
+  const toneOf = (k: Section) => tone(ALL[k].v, ALL[k].capacity ? capWarn : warn, crit);
+  const shown = (k: Section) => ALL[k].big ?? pct(ALL[k].v);
   const coreView = p.coreView ?? "heatmap";
+  const sparkline = p.sparkline !== false;
+  const lead = ALL[keys[0] ?? "cpu"];
 
   return (
     <Widget
@@ -82,9 +251,10 @@ export default function SystemOverview(p: SystemOverviewProps) {
       showHeader={!!p.title}
       title={p.title}
       icon="dashboard"
-      studio={{ label: "System", value: ALL.cpu.v, unit: "%", sub: ALL.cpu.name, hist: H.cpu, min: 0, max: 100, rows: keys.map((k) => ({ n: ALL[k].label, v: ALL[k].big ?? `${fmt(ALL[k].v, 0)}%`, pct: ALL[k].v })) }}
+      studio={{ label: "System", value: lead.v, unit: "%", sub: lead.name, hist: H[keys[0] ?? "cpu"], min: 0, max: 100, rows: keys.map((k) => ({ n: label(k), v: shown(k), pct: ALL[k].v })) }}
     >
       {({ w, h, shape }) => {
+        if (keys.length === 0) return <Empty icon="dashboard" label="No system data" />;
         // 1×1: concentric activity rings
         if (shape === "tile")
           return (
@@ -99,8 +269,8 @@ export default function SystemOverview(p: SystemOverviewProps) {
                 <div className="flex shrink-0 flex-col gap-1">
                   {keys.slice(0, 3).map((k) => (
                     <span key={k} className="flex items-baseline gap-1.5 text-[11px]" style={vars(k)}>
-                      <span className="text-[color:var(--w-faint)]">{ALL[k].label}</span>
-                      <Num className="text-[color:var(--accent)]">{fmt(ALL[k].v, 0)}%</Num>
+                      <span className="text-[color:var(--w-faint)]">{label(k)}</span>
+                      <Num className="text-[color:var(--accent)]">{fmt(ALL[k].v, dec)}%</Num>
                     </span>
                   ))}
                 </div>
@@ -119,7 +289,14 @@ export default function SystemOverview(p: SystemOverviewProps) {
           <div className="grid h-full" style={{ "--sys-base": "var(--accent)", gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))`, gridTemplateRows: `repeat(${rowsN}, minmax(0,1fr))`, columnGap: 18, rowGap: 14 } as CSSProperties}>
             {keys.map((k, i) => {
               const s = ALL[k],
-                t = tone(s.v, warn, crit);
+                t = toneOf(k),
+                big = shown(k);
+              const showCores = k === "cpu" && coreView !== "off" && cores.length > 0;
+              const showSpark = sparkline && k !== "disk";
+              const showBar = k === "vram" || k === "ram";
+              // Below "full" the details shrink to one line; at "min" it stands in for a hidden name.
+              const detailLine = level !== "full" && s.stats.length > 0 && (level === "mid" || !s.name);
+              const headH = Math.max(ring ? rpx : 34, 34);
               return (
                 <section key={k} style={vars(k)} className={`flex min-h-0 min-w-0 flex-col gap-2.5 ${cols > 1 && i % cols ? "border-l border-[color:var(--w-track)] pl-[18px]" : ""}`}>
                   <div className="flex min-w-0 items-center gap-3">
@@ -132,54 +309,54 @@ export default function SystemOverview(p: SystemOverviewProps) {
                     )}
                     <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                       <div className={`flex min-w-0 gap-x-2 ${cellW < 120 ? "flex-col gap-y-1" : "items-baseline"}`}>
-                        <span className="shrink-0 text-[11px] font-semibold uppercase tracking-[0.12em] text-[color:var(--w-muted)]">{s.label}</span>
-                        <Num className="whitespace-nowrap leading-none" style={{ fontSize: Math.max(12, Math.min(20, (cellW - (ring ? rpx + 12 : 0) - (cellW < 120 ? 0 : 44) - 2) / (String(s.big ?? fmt(s.v, 0) + "%").length * 0.68))), color: t === "ok" ? "var(--accent)" : TONES[t] }}>
-                          {s.big ?? `${fmt(s.v, 0)}%`}
+                        <span className="shrink-0 text-[11px] font-semibold uppercase tracking-[0.12em] text-[color:var(--w-muted)]">{label(k)}</span>
+                        <Num className="whitespace-nowrap leading-none" style={{ fontSize: Math.max(12, Math.min(20, (cellW - (ring ? rpx + 12 : 0) - (cellW < 120 ? 0 : 44) - 2) / (big.length * 0.68))), color: t === "ok" ? "var(--accent)" : TONES[t] }}>
+                          {big}
                         </Num>
                       </div>
-                      <span className="truncate text-[11px] text-[color:var(--w-faint)]">{s.name}</span>
+                      {s.name && <span className="truncate text-[11px] text-[color:var(--w-faint)]">{s.name}</span>}
+                      {detailLine && <DetailLine stats={s.stats} />}
                     </div>
                   </div>
-                  {level === "full" && (
+                  {level === "full" && s.stats.length > 0 && (
                     <div className="grid gap-x-3 gap-y-1" style={{ gridTemplateColumns: cellW < 230 ? "minmax(0,1fr)" : "repeat(2, minmax(0,1fr))" }}>
-                      {s.stats.slice(0, Math.max(2, Math.min(cellW < 130 ? 2 : cellW < 230 ? 3 : 6, Math.floor((cellH - Math.max(ring ? rpx : 34, 34) - 40) / (cellW < 130 ? 28 : 18)) * (cellW < 230 ? 1 : 2)))).map(([l, v]) =>
+                      {s.stats.slice(0, Math.max(2, Math.min(cellW < 130 ? 2 : cellW < 230 ? 3 : 6, Math.floor((cellH - headH - 40) / (cellW < 130 ? 28 : 18)) * (cellW < 230 ? 1 : 2)))).map(({ l, v, t: st }) =>
                         cellW < 130 ? (
                           <div key={l} className="flex min-w-0 flex-col whitespace-nowrap text-[11px] leading-tight">
                             <span className="truncate text-[color:var(--w-faint)]">{l}</span>
-                            <span className="truncate tabular-nums text-[color:var(--w-fg)]">{v}</span>
+                            <span className="truncate tabular-nums text-[color:var(--w-fg)]" style={st && st !== "ok" ? { color: TONES[st] } : undefined}>
+                              {v}
+                            </span>
                           </div>
                         ) : (
                           <div key={l} className="flex min-w-0 items-baseline justify-between gap-2 whitespace-nowrap text-[11.5px]">
                             <span className="min-w-0 truncate text-[color:var(--w-faint)]">{l}</span>
-                            <span className="shrink-0 text-right tabular-nums text-[color:var(--w-fg)]">{v}</span>
+                            <span className="shrink-0 text-right tabular-nums text-[color:var(--w-fg)]" style={st && st !== "ok" ? { color: TONES[st] } : undefined}>
+                              {v}
+                            </span>
                           </div>
                         )
                       )}
                     </div>
                   )}
-                  {level !== "min" && (
+                  {level !== "min" && k === "disk" && <DriveList drives={drives} h={cellH - headH - 10} />}
+                  {level !== "min" && k !== "disk" && (showCores || showSpark || showBar) && (
                     <div className="relative mt-auto min-h-[14px] flex-1 overflow-hidden">
-                      {k === "cpu" && coreView !== "off" && cores.length > 0 ? (
-                        (() => {
-                          const hc = cellW > 170 ? 8 : 4;
-                          return (
-                            <div className="absolute inset-0 grid gap-[3px]" style={{ gridTemplateColumns: `repeat(${Math.min(cores.length, hc)}, minmax(0,1fr))`, gridTemplateRows: `repeat(${Math.ceil(cores.length / hc)}, minmax(0,1fr))`, maxHeight: Math.ceil(cores.length / hc) * 16 }}>
-                              {cores.map((v, ci) =>
-                                coreView === "bars" ? (
-                                  <div key={ci} className="flex min-h-0 flex-col justify-end overflow-hidden rounded-[3px] bg-[color:var(--w-track)]">
-                                    <div className="transition-[height] duration-700" style={{ height: `${Math.max(6, v)}%`, background: "var(--accent)" }} />
-                                  </div>
-                                ) : (
-                                  <div key={ci} title={`Core ${ci + 1} · ${fmt(v, 0)}%`} className="min-h-0 rounded-[3px] transition-colors duration-700" style={{ background: heat(v, p.heatRamp ?? "accent") }} />
-                                )
-                              )}
+                      {showCores ? (
+                        showSpark && level === "full" ? (
+                          <div className="absolute inset-0 flex flex-col gap-1.5">
+                            <Spark values={H.cpu} min={0} max={100} className="h-5 shrink-0" />
+                            <div className="relative min-h-0 flex-1">
+                              <CoreGrid cores={cores} cellW={cellW} view={coreView} ramp={p.heatRamp} />
                             </div>
-                          );
-                        })()
+                          </div>
+                        ) : (
+                          <CoreGrid cores={cores} cellW={cellW} view={coreView} ramp={p.heatRamp} />
+                        )
                       ) : (
                         <div className="absolute inset-x-0 bottom-0 flex h-full max-h-12 flex-col justify-end gap-1.5">
-                          <Spark values={H[k]} min={0} max={k === "net" ? undefined : 100} className="min-h-0 flex-1" />
-                          {(k === "vram" || k === "ram") && <Bar value={s.v} t={t} className="h-1.5 shrink-0" />}
+                          {showSpark && <Spark values={H[k]} min={0} max={k === "net" ? undefined : 100} className="min-h-0 flex-1" />}
+                          {showBar && <Bar value={s.v} t={t} className="h-1.5 shrink-0" />}
                         </div>
                       )}
                     </div>
