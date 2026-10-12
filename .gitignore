@@ -15,3 +15,6 @@ Thumbs.db
 
 # Playwright MCP screenshots and snapshots
 .playwright-mcp/
+
+# Widget QA screenshots
+docs/redesign/phase9/shots/

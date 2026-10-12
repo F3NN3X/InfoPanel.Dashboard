@@ -6,7 +6,7 @@ import "./index.css";
 // ?ui-preview: a gallery of the studio chrome primitives (a lazy chunk, never linked).
 const UiPreview = lazy(() => import("@/components/ui/ui-preview"));
 const preview = new URLSearchParams(window.location.search).has("ui-preview");
-// ?widget-qa: the widget core on every skin, from the sensor snapshot (a lazy chunk, never linked).
+// ?widget-qa: every module at a set of spans from fixture sensors, with an overflow probe (a lazy chunk, never linked).
 const WidgetQa = lazy(() => import("@/widgets/widget-qa"));
 const widgetQa = new URLSearchParams(window.location.search).has("widget-qa");
 
