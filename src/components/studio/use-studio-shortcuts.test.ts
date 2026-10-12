@@ -88,7 +88,7 @@ describe("shortcutAction", () => {
     expect(shortcutAction(key("H", { shiftKey: true }), IDLE)).toBeNull();
   });
 
-  it("ignores plain keys while typing, but keeps Esc, save, undo/redo and the palette", () => {
+  it("ignores plain keys while typing, but keeps save and the palette", () => {
     expect(shortcutAction(key("Delete"), TYPING)).toBeNull();
     expect(shortcutAction(key("Backspace"), TYPING)).toBeNull();
     expect(shortcutAction(key("h"), TYPING)).toBeNull();
@@ -145,7 +145,7 @@ describe("shortcutAction", () => {
       expect(shortcutAction(key("ArrowUp", { altKey: true }), typing)).toBeNull();
       expect(shortcutAction(key("c", { ctrlKey: true }), dialog)).toBeNull();
       expect(shortcutAction(key("Delete"), dialog)).toBeNull();
-      expect(shortcutAction(key("z", { ctrlKey: true }), typing)).toEqual({ type: "undo" });
+      expect(shortcutAction(key("z", { ctrlKey: true }), typing)).toBeNull(); // the text field's own undo
     });
   });
 });

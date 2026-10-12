@@ -66,8 +66,8 @@ export function WidgetCell({ widget, sensors, className, style, selection, studi
         widget.className,
         selection &&
           (selection.selectedWidgetId === widget.id
-            ? "rounded-sm outline-2 -outline-offset-2 outline-ring"
-            : "rounded-sm hover:outline-1 hover:-outline-offset-1 hover:outline-ring/50")
+            ? "rounded-sm outline-[1.5px] -outline-offset-2 outline-ui-accent"
+            : "rounded-sm hover:outline-1 hover:-outline-offset-1 hover:outline-ui-accent/50")
       )}
       style={style}
       data-widget-id={widget.id}
