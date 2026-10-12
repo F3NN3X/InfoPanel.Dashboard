@@ -133,7 +133,12 @@ function DriveList({ drives, h }: { drives: Drive[]; h: number }) {
 }
 
 /** Details as one line: "64°C · 120 W · Hotspot 80°C", warnings tinted. */
-function DetailLine({ stats }: { stats: Stat[] }) {
+function DetailLine({ stats, width }: { stats: Stat[]; width?: number }) {
+  // with a known width, drop the stats that would run past it (~6.2px a character) instead of letting the line truncate mid-stat
+  if (width !== undefined && width > 0) {
+    let used = 0;
+    stats = stats.filter((s, i) => (used += (inline(s).length + (i > 0 ? 3 : 0)) * 6.2) <= width || i === 0);
+  }
   return (
     <span className="truncate text-[11px] tabular-nums text-[color:var(--w-faint)]">
       {stats.map((s, i) => (
@@ -329,7 +334,7 @@ export default function SystemOverview(p: SystemOverviewProps) {
                         </Num>
                       </div>
                       {s.name && roomy && <span className="truncate text-[11px] text-[color:var(--w-faint)]">{s.name}</span>}
-                      {detailLine && <DetailLine stats={s.stats} />}
+                      {detailLine && <DetailLine stats={s.stats} width={cellW - (ring ? rpx + 12 : 0)} />}
                     </div>
                   </div>
                   {level === "full" && s.stats.length > 0 && (
