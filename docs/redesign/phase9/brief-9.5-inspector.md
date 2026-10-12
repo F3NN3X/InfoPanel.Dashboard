@@ -44,3 +44,17 @@ file(s), its templates if a prop needs a small fix, and your test. Commit with e
 paths; retry on `index.lock`.
 
 Report in ≤12 lines: commit hash, settings added per widget (counts), anything left unreachable.
+
+## Part 1 result (a8e07e9) — helper API for Part 2, from `src/widgets/registry/settings-kit.ts`
+Narrowing: `pass<P>(...keys)`, `pick<P>(keys[])`, `numberOf`, `oneOf(v, allowed)`, `listOf(v, item)`,
+`stringOf`, `boolOf`; key lists `splitKeys`, `joinKeys`, `toggleKey`. Builders:
+`enumSetting(key, label, def, options, extra?)`, `boolSetting(key, label, def, extra?)`,
+`numberSetting(key, label, def, extra?)`, `textSetting(key, label, def?, extra?)`,
+`colorSetting(key, label, extra?)` (style, advanced), `sensorSetting(key, label, extra?)`,
+`deviceSetting(key, label, kind, extra?)`; flattened colours `ColorEntry {entry, key, label}`,
+`colorSettings(entries, extra?)`, `colorsOf(s, entries)` in `toProps`.
+
+Group files: A = `registry/a.ts` + `registry/system-overview.ts`; B = `registry/b.ts`;
+C = `registry/c.ts` + `src/widgets/NowPlaying/settings.ts`; D = `registry/d.ts`; E = `registry/e.ts`.
+Legacy alias settings arrays must not change (their parity tests guard them); add new settings to the
+template modules.
