@@ -6,6 +6,10 @@ import {
   allSections,
   applyAdvanced,
   changedCount,
+  extraMatches,
+  jumpTarget,
+  sharedDefs,
+  visibleSections,
   globalStyleValues,
   isVisible,
   inspectorNotes,
@@ -499,5 +503,38 @@ describe("settingKeys coverage", () => {
     const keys = allSections(spotify).flatMap((s) => s.settings.flatMap(settingKeys));
     expect(keys).toContain("alignY");
     expect(keysOf(allSections(spotify))).not.toContain("alignY");
+  });
+});
+
+describe("view helpers", () => {
+  const a: ModuleSetting = { key: "a", label: "A", type: "boolean", default: false };
+  const b: ModuleSetting = { key: "b", label: "B", type: "boolean", default: false };
+  const c: ModuleSetting = { key: "c", label: "C", type: "boolean", default: false };
+
+  it("sharedDefs keeps the settings every zone has, in the first zone's order", () => {
+    expect(sharedDefs([[b, a, c], [a, b], [c, b, a]]).map((d) => d.key)).toEqual(["b", "a"]);
+    expect(sharedDefs([])).toEqual([]);
+  });
+
+  it("visibleSections drops hidden settings and sections left empty", () => {
+    const sections = allSections(spotify);
+    const visible = visibleSections(sections, (d) => d.key !== "glowColor");
+    expect(keysOf(visible)).not.toContain("glowColor");
+    const none = visibleSections(sections, () => false);
+    expect(none.every((s) => s.extras.length > 0 || s.special !== undefined)).toBe(true);
+  });
+
+  it("jumpTarget finds a section by id, document card or split id", () => {
+    expect(jumpTarget(allSections(spotify), "colors")?.title).toBe("Colors & surface");
+    const dashboard = allSections({ kind: "dashboard", scope: "all" });
+    expect(jumpTarget(dashboard, "doc:type")?.tab).toBe("general");
+    expect(jumpTarget(dashboard, "doc:background")?.id).toBe("ap-bg");
+    expect(jumpTarget(dashboard, "nope")).toBeUndefined();
+  });
+
+  it("extraMatches searches custom UI by its terms", () => {
+    expect(extraMatches({ kind: "zoneFrame", advanced: true, count: 3 }, "frame")).toBe(true);
+    expect(extraMatches({ kind: "zoneFrame", advanced: true, count: 3 }, "glow")).toBe(false);
+    expect(extraMatches({ kind: "visible", advanced: false, count: 1 }, "")).toBe(true);
   });
 });

@@ -27,7 +27,8 @@ export function zoneFrameSet(design: PlacementDesign | undefined, showBackground
 
 /**
  * The zone's own frame around the widget: accent override, background and
- * title header (`placement.design`). Rows for a card (Border & effects).
+ * title header (`placement.design`). Rows for a section (Border & effects,
+ * or a blank zone's Zone frame).
  */
 export function ZoneFrameFields({ design, onChange, showBackground = true }: ZoneFrameFieldsProps) {
   return (

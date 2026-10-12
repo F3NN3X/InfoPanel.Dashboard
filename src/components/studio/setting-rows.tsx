@@ -1,35 +1,52 @@
 import type { ReactNode } from "react";
+import { Info } from "lucide-react";
+import { ColorField } from "@/components/ui/color-field";
 import { Segmented } from "@/components/ui/segmented";
+import { SliderField } from "@/components/ui/slider-field";
+import { Toggle } from "@/components/ui/toggle";
 import { cn } from "@/lib/utils";
 
 /**
- * Compact setting rows for the inspector cards: one line where the control
- * is small (label left, control right), label over control otherwise. The
- * state dot and hover reset live in `SettingField`'s left gutter, so a row
- * is just its label and control.
+ * The inspector's field rows (README §4.6): the label (12.5, optional info
+ * hint) with the control on its right when it is small (toggle, select,
+ * colour, number), or under it when it needs the width (segmented, slider,
+ * text, code, grids). `lead` is what sits before the label: the source dot.
  */
 
-const FIELD =
-  "rounded-md border border-border bg-background px-2 text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring";
+export const FIELD =
+  "rounded-md border border-ui-default bg-ui-app px-2 text-[12px] text-ui-1 outline-none placeholder:text-ui-5 focus:border-ui-accent";
+
+export interface RowLabelProps {
+  label: string;
+  /** Before the label (the source dot). */
+  lead?: ReactNode;
+  /** One-line explanation behind an info icon. */
+  hint?: string;
+}
 
 /** The label of a row (truncated to one line, full text on hover). */
-function Label({ children, className }: { children: ReactNode; className?: string }) {
+function Label({ label, lead, hint, className }: RowLabelProps & { className?: string }) {
   return (
-    <span
-      title={typeof children === "string" ? children : undefined}
-      className={cn("min-w-0 truncate text-xs text-muted-foreground", className)}
-    >
-      {children}
+    <span className={cn("flex min-w-0 items-center gap-2", className)}>
+      {lead}
+      <span title={label} className="min-w-0 truncate text-[12.5px] text-ui-2">
+        {label}
+      </span>
+      {hint && (
+        <span title={hint} className="shrink-0 text-ui-5 hover:text-ui-2">
+          <Info className="h-3.5 w-3.5" aria-label={hint} />
+        </span>
+      )}
     </span>
   );
 }
 
 /** Label over a full-width control (segmented, text, lists, pickers). */
-export function StackRow({ label, children }: { label: string; children: ReactNode }) {
+export function StackRow({ children, ...label }: RowLabelProps & { children: ReactNode }) {
   return (
-    <div className="space-y-1">
+    <div className="space-y-1.5">
       <div className="flex min-h-5 items-center">
-        <Label>{label}</Label>
+        <Label {...label} />
       </div>
       {children}
     </div>
@@ -37,61 +54,37 @@ export function StackRow({ label, children }: { label: string; children: ReactNo
 }
 
 /** Label left, control right, one line. */
-function InlineRow({ label, children }: { label: string; children: ReactNode }) {
+export function InlineRow({ children, ...label }: RowLabelProps & { children: ReactNode }) {
   return (
-    <div className="flex min-h-6 items-center justify-between gap-2">
-      <Label className="flex-1">{label}</Label>
+    <div className="flex min-h-7 items-center justify-between gap-2">
+      <Label {...label} className="flex-1" />
       {children}
     </div>
   );
 }
 
 export function ToggleRow({
-  label,
   value,
   onChange,
-}: {
-  label: string;
-  value: boolean;
-  onChange: (value: boolean) => void;
-}) {
+  ...label
+}: RowLabelProps & { value: boolean; onChange: (value: boolean) => void }) {
   return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={value}
-      onClick={() => onChange(!value)}
-      className="flex min-h-6 w-full items-center justify-between gap-2 text-left"
-    >
-      <Label className="flex-1">{label}</Label>
-      <span
-        className={cn(
-          "relative h-4 w-7 shrink-0 rounded-full transition-colors",
-          value ? "bg-ring" : "bg-muted-foreground/30"
-        )}
-      >
-        <span
-          className={cn(
-            "absolute top-0.5 h-3 w-3 rounded-full bg-background transition-all",
-            value ? "left-3.5" : "left-0.5"
-          )}
-        />
-      </span>
-    </button>
+    <InlineRow {...label}>
+      <Toggle checked={value} onChange={onChange} label={label.label} />
+    </InlineRow>
   );
 }
 
-/** A number: a slider under the label when bounded, with an inline numeric input. */
+/** A number: a slider with its value box under the label when bounded, else an inline value box. */
 export function SliderRow({
-  label,
   value,
   min,
   max,
   step,
   fallback,
   onChange,
-}: {
-  label: string;
+  ...label
+}: RowLabelProps & {
   value: number;
   min?: number;
   max?: number;
@@ -100,72 +93,63 @@ export function SliderRow({
   fallback: number;
   onChange: (value: number) => void;
 }) {
-  const ranged = min !== undefined || max !== undefined;
-  const input = (
-    <input
-      type="number"
-      min={min}
-      max={max}
-      step={step}
-      value={value}
-      onChange={(e) => onChange(e.target.value === "" ? fallback : Number(e.target.value))}
-      className={cn(FIELD, "h-6 w-16 shrink-0 text-right tabular-nums")}
-    />
-  );
-  if (!ranged) return <InlineRow label={label}>{input}</InlineRow>;
+  if (min !== undefined && max !== undefined) {
+    return (
+      <StackRow {...label}>
+        <SliderField value={value} min={min} max={max} step={step} label={label.label} onChange={onChange} />
+      </StackRow>
+    );
+  }
   return (
-    <div>
-      <InlineRow label={label}>{input}</InlineRow>
+    <InlineRow {...label}>
       <input
-        type="range"
+        type="number"
         min={min}
         max={max}
         step={step}
         value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        aria-label={label}
-        className="block h-3 w-full accent-ring"
+        aria-label={label.label}
+        onChange={(e) => onChange(e.target.value === "" ? fallback : Number(e.target.value))}
+        className={cn(FIELD, "h-[26px] w-[64px] shrink-0 text-right font-ui-mono text-[11.5px]")}
       />
-    </div>
+    </InlineRow>
   );
 }
 
 export function SegmentedRow({
-  label,
   options,
   value,
   onChange,
-}: {
-  label: string;
+  ...label
+}: RowLabelProps & {
   options: { value: string; label: string }[];
   value: string;
   onChange: (value: string) => void;
 }) {
   return (
-    <StackRow label={label}>
-      <Segmented options={options} value={value} onChange={onChange} className="w-full *:flex-1" />
+    <StackRow {...label}>
+      <Segmented options={options} value={value} onChange={onChange} label={label.label} className="w-full *:flex-1" />
     </StackRow>
   );
 }
 
 export function SelectRow({
-  label,
   options,
   value,
   onChange,
-}: {
-  label: string;
+  ...label
+}: RowLabelProps & {
   options: { value: string; label: string }[];
   value: string;
   onChange: (value: string) => void;
 }) {
   return (
-    <InlineRow label={label}>
+    <InlineRow {...label}>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        aria-label={label}
-        className={cn(FIELD, "h-6 w-36 max-w-[55%] shrink-0")}
+        aria-label={label.label}
+        className={cn(FIELD, "h-7 w-36 max-w-[55%] shrink-0 bg-ui-hover")}
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>
@@ -177,77 +161,51 @@ export function SelectRow({
   );
 }
 
-/** "" means auto (the widget's own theme color); the native input always needs a hex. */
+/** "" means Auto (the widget's own theme color). */
 export function ColorRow({
-  label,
   value,
   onChange,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-}) {
-  const hasValue = value.length > 0;
+  ...label
+}: RowLabelProps & { value: string; onChange: (value: string) => void }) {
   return (
-    <InlineRow label={label}>
-      <span className="flex shrink-0 items-center gap-1.5">
-        {hasValue && (
-          <button
-            type="button"
-            onClick={() => onChange("")}
-            title="Reset to auto (the widget's theme color)"
-            className="text-[11px] text-muted-foreground hover:text-foreground"
-          >
-            auto
-          </button>
-        )}
-        <span className="w-14 text-right text-[11px] tabular-nums text-muted-foreground">
-          {hasValue ? value : "auto"}
-        </span>
-        <input
-          type="color"
-          value={hasValue ? value : "#000000"}
-          onChange={(e) => onChange(e.target.value)}
-          aria-label={label}
-          className={cn(
-            "h-6 w-8 cursor-pointer rounded border border-border bg-transparent p-0.5",
-            !hasValue && "opacity-50"
-          )}
-        />
-      </span>
+    <InlineRow {...label}>
+      <ColorField value={value} onChange={onChange} label={label.label} />
     </InlineRow>
   );
 }
 
 export function TextRow({
-  label,
   value,
   multiline,
+  placeholder,
   onChange,
-}: {
-  label: string;
+  ...label
+}: RowLabelProps & {
   value: string;
+  /** A code area (mono, 96 high): custom CSS. */
   multiline?: boolean;
+  placeholder?: string;
   onChange: (value: string) => void;
 }) {
   return (
-    <StackRow label={label}>
+    <StackRow {...label}>
       {multiline ? (
         <textarea
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          rows={5}
           spellCheck={false}
-          placeholder=":scope { border-radius: 0 }"
-          className={cn(FIELD, "w-full resize-y py-1.5 font-mono text-[11px] placeholder:text-muted-foreground/50")}
+          aria-label={label.label}
+          placeholder={placeholder ?? ":scope { border-radius: 0 }"}
+          className={cn(FIELD, "block h-24 w-full resize-y py-1.5 font-ui-mono text-[11.5px] leading-relaxed")}
         />
       ) : (
         <input
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          aria-label={label}
-          className={cn(FIELD, "h-6 w-full")}
+          aria-label={label.label}
+          placeholder={placeholder}
+          className={cn(FIELD, "h-[30px] w-full")}
         />
       )}
     </StackRow>

@@ -36,9 +36,10 @@ interface PanelSheetArgs {
 }
 
 /**
- * A panel zone's own cards, after the general ones: Panel (Visual / Code,
- * preset), Layout, Background (overlay), Widgets (the layers), and the
- * selected widget's editor cards. In the Code view the layout, widget and
+ * A panel zone's own cards: Panel (Visual / Code, preset), Layout,
+ * Background (overlay), Widgets (the layers), and the selected widget's
+ * editor cards. The inspector places each in the Content section the
+ * registry marks for it (`inspector/panel-cards.ts`). In the Code view the layout, widget and
  * editor cards give way to one wide code card. `undefined` for other zones.
  * (Title, accent and surface are the Widget and Colors & surface cards.)
  */
