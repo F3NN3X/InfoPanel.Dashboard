@@ -63,11 +63,14 @@ export default function NetworkAdapters(p: NetworkAdaptersProps) {
           </div>
         );
         if (size === "xs") return <div className="flex h-full items-center">{pub}</div>;
-        const n = useFitRows(h - 57, size === "lg" ? 46 : 36, 8);
+        // under the public IP: an 8px gap, the 1px rule and 8px padding; a list without room for one adapter is left out
+        const room = h - 58,
+          rowH = size === "lg" ? 46 : 35;
+        const n = room >= rowH ? useFitRows(room, rowH, 8) : 0;
         return (
           <div className="flex h-full flex-col gap-2">
             {pub}
-            <ul className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden border-t border-[color:var(--w-track)] pt-2">
+            {n > 0 && <ul className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden border-t border-[color:var(--w-track)] pt-2">
               {ads.slice(0, n).map((a) => (
                 <li key={a.id} className="flex min-w-0 flex-col gap-0.5">
                   <div className="flex min-w-0 items-center gap-2 text-xs">
@@ -82,7 +85,7 @@ export default function NetworkAdapters(p: NetworkAdaptersProps) {
                   </div>
                 </li>
               ))}
-            </ul>
+            </ul>}
           </div>
         );
       }}
