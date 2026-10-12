@@ -8,6 +8,19 @@ import { SKINS } from "./core/theme";
 import type { ShellProps, WidgetMeta } from "./core/types";
 import { toFlat } from "./data-adapter";
 
+/** A legacy module id that renders through a template: its own identity, footprint and full settings. */
+export interface AliasOptions {
+  id: string;
+  title: string;
+  minCols: number;
+  minRows: number;
+  prefixes: string[];
+  /** The legacy settings array, kept key for key (replaces the standard block + the template's own). */
+  settings: ModuleSetting[];
+  /** The legacy "nothing to show" rule: the zone renders nothing while it holds. */
+  hidden?: (sensors: SensorMap) => boolean;
+}
+
 export interface TemplateOptions<P extends object> {
   meta: WidgetMeta;
   Component: ComponentType<ShellProps & { look?: ModuleSettings } & P>;
@@ -22,6 +35,10 @@ export interface TemplateOptions<P extends object> {
   title?: string;
   /** A legacy module id served by this template: its own id, size, owned prefixes and Library visibility. */
   legacy?: Pick<DashboardModule, "id" | "minCols" | "minRows" | "prefixes" | "libraryHidden">;
+  /** The settings block before the template's own; default `STANDARD_SETTINGS`. */
+  base?: ModuleSetting[];
+  /** Makes this a Library-hidden alias of the template under a legacy id. */
+  alias?: AliasOptions;
 }
 
 /** A select value that means "unset": `auto` or empty. */
@@ -47,34 +64,37 @@ export function shellProps(s: ModuleSettings): Partial<ShellProps> {
  * The look with the surface decided: a value set at any style level wins, else a chosen skin
  * brings its own surface, else `glass` (the default, so skin `auto` configs are unchanged).
  * `effectiveSettings` always fills `surface`, so `saved` (resolved, not defaulted) says if it was set.
+ * `fallback` is the module's own surface default (`theme` for the plain card widgets).
  */
-export function withSkinSurface(look: ModuleSettings, saved: ModuleSettings | undefined): ModuleSettings {
+export function withSkinSurface(look: ModuleSettings, saved: ModuleSettings | undefined, fallback = "glass"): ModuleSettings {
   if (chosen(saved?.surface)) return look;
   const skin = chosen(look.skin);
-  return { ...look, surface: (skin && SKINS[skin]?.surface) || "glass" };
+  return { ...look, surface: (skin && SKINS[skin]?.surface) || fallback };
 }
 
-export function templateModule<P extends object>({ meta, Component, settings, toProps, isIdle, prefixes, title, legacy }: TemplateOptions<P>): DashboardModule {
-  const all = [...STANDARD_SETTINGS, ...settings];
+export function templateModule<P extends object>({ meta, Component, settings, toProps, isIdle, prefixes, title, legacy, base, alias }: TemplateOptions<P>): DashboardModule {
+  const all = alias?.settings ?? [...(base ?? STANDARD_SETTINGS), ...settings];
+  const surfaceDefault = String(all.find((d) => d.key === "surface")?.default ?? "glass");
   const mod: DashboardModule = {
-    id: meta.id,
-    title: title ?? meta.name,
-    minCols: meta.minSize[0],
-    minRows: meta.minSize[1],
-    prefixes: meta.prefixes,
+    id: alias?.id ?? meta.id,
+    title: alias?.title ?? title ?? meta.name,
+    minCols: alias?.minCols ?? meta.minSize[0],
+    minRows: alias?.minRows ?? meta.minSize[1],
+    prefixes: alias?.prefixes ?? meta.prefixes,
     reads: prefixes,
     settings: all,
+    libraryHidden: alias ? true : undefined,
     isIdle,
     category: meta.category,
     icon: meta.icon,
     description: meta.description,
     defaultSize: meta.defaultSize,
     ...legacy,
-    render: (sensors, saved) => <TemplateZone sensors={sensors} saved={saved} />,
+    render: (sensors, saved) => (alias?.hidden?.(sensors) ? null : <TemplateZone sensors={sensors} saved={saved} />),
   };
   function TemplateZone({ sensors, saved }: { sensors: SensorMap; saved?: ModuleSettings }) {
     const data = useMemo(() => toFlat(sensors), [sensors]);
-    const look = withSkinSurface(effectiveSettings(mod, saved), saved);
+    const look = withSkinSurface(effectiveSettings(mod, saved), saved, surfaceDefault);
     const skin = chosen(look.skin);
     useEffect(() => {
       if (skin) ensureSkinFonts(skin);

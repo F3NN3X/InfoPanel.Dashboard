@@ -65,14 +65,14 @@ describe("insertables", () => {
     expect(category("wavelinkmodern")).toBeUndefined();
     for (const id of ["AudioMeter", "MeterBridge", "VolumeMixer", "WaveLink"]) expect(category(id), id).toBe("Audio");
     expect(category("weathermodern")).toBeUndefined();
-    expect(category("Weather")).toBe("Info");
-    for (const id of ["vbz", "notifications", "textfile"]) expect(category(id), id).toBe("Info");
+    for (const id of ["Weather", "Departures", "Notifications", "TextFile"]) expect(category(id), id).toBe("Info");
     // fpsmodern and steammodern are aliases of templates: hidden from the Library, the templates stay.
     for (const [alias, template] of [["fpsmodern", "FpsMonitor"], ["steammodern", "GameSpotlight"]]) {
       expect(INSERTABLES.some((i) => i.kind === "module" && i.id === alias), alias).toBe(false);
       expect(category(template), template).toBe("Gaming");
     }
-    for (const id of ["bluetoothmodern", "streamdeck", "webpage", CARDS_ID]) expect(category(id), id).toBe("Generic");
+    for (const id of ["vbz", "notifications", "textfile", "bluetoothmodern", "streamdeck", "webpage"]) expect(category(id), id).toBeUndefined();
+    for (const id of ["Bluetooth", "StreamDeck", "WebPage", CARDS_ID]) expect(category(id), id).toBe("Generic");
   });
 
   it("has no Other chip", () => {

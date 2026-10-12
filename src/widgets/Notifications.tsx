@@ -1,0 +1,95 @@
+import type { ModuleSettings } from "@/modules/types";
+import { entryText } from "./entries";
+import { Widget, shell, num, Chip, Empty, Metric, STATE, type ShellProps, type WidgetMeta } from "./kit";
+
+const P = "plugins.InfoPanel.Notifications.";
+
+export const meta: WidgetMeta = {
+  id: "Notifications",
+  name: "Notifications",
+  category: "Info",
+  icon: "notifications",
+  prefixes: [P],
+  defaultSize: [3, 2],
+  minSize: [2, 1],
+  description: "The latest toast notification and the history list from the Notifications plugin.",
+};
+
+export interface NotificationsProps extends ShellProps {
+  look?: ModuleSettings;
+  /** The history list (default true). */
+  showHistory?: boolean;
+  /** Max history lines, 1-200 (default 50). */
+  maxLines?: number;
+}
+
+interface Line {
+  time: string;
+  type: string;
+  message: string;
+}
+
+/** Error and Warning keep their semantic colours; every other type is neutral. */
+const typeColor = (type: string): string | undefined => (type === "Error" ? STATE.crit : type === "Warning" ? STATE.warn : undefined);
+
+export default function Notifications(p: NotificationsProps) {
+  const k = (id: string) => entryText(p.data, P, id);
+  const count = num(k("notification-count"));
+  const hasCount = Number.isFinite(count);
+  const last = k("last-notification");
+  const status = k("status");
+  const max = Math.max(1, Math.round(Number(p.maxLines) || 50));
+  // "time, type, message" per line
+  const lines: Line[] = (k("notification-history") ?? "")
+    .split("\n")
+    .filter((l) => l.trim() !== "")
+    .slice(0, max)
+    .map((l) => {
+      const [time, type, ...rest] = l.split(", ");
+      return { time, type: type ?? "", message: rest.join(", ") };
+    });
+  const showHistory = (p.showHistory ?? true) && lines.length > 0;
+  const worst = lines.some((l) => l.type === "Error") ? "crit" : lines.some((l) => l.type === "Warning") ? "warn" : "ok";
+  return (
+    <Widget
+      {...shell(p)}
+      title={p.title ?? "Notifications"}
+      icon="notifications"
+      right={hasCount ? <Chip>{Math.round(count)}</Chip> : undefined}
+      compact={{ label: "Notifications", value: hasCount ? Math.round(count) : "–", sub: last ?? status ?? "", t: hasCount && count > 0 ? worst : "ok", kind: "value", icon: "notifications" }}
+      studio={{ label: "Notifications", value: hasCount ? Math.round(count) : "–", sub: last ?? status ?? "", rows: lines.map((l) => ({ n: l.message, v: l.time })) }}
+    >
+      {({ size }) => {
+        if (last === undefined && !hasCount && !status) return <Empty icon="notifications" label="No notifications" />;
+        if (size === "xs") return <Metric label="Notifications" value={hasCount ? Math.round(count) : "–"} scale="lg" sub={last} className="h-full justify-center" />;
+        return (
+          <div className="flex h-full min-h-0 flex-col">
+            {last && <div className="truncate text-sm font-medium text-[color:var(--w-fg)]">{last}</div>}
+            {status && <div className="mt-1 truncate text-xs text-[color:var(--w-faint)]">{status}</div>}
+            {showHistory && (
+              <div className="mt-3 min-h-0 flex-1 space-y-1 overflow-y-auto border-t border-[color:var(--w-track)] pt-3">
+                {lines.map((l, i) => {
+                  const c = typeColor(l.type);
+                  return (
+                    <div key={i} className="flex items-baseline gap-2 text-xs">
+                      <span className="shrink-0 font-mono tabular-nums text-[color:var(--w-muted)]">{l.time}</span>
+                      <span
+                        className="shrink-0 rounded px-1.5 py-px text-[10px] tracking-wider text-[color:var(--w-muted)]"
+                        style={{ background: c ? `color-mix(in oklab, ${c} 14%, transparent)` : "var(--w-track)", ...(c ? { color: c } : null) }}
+                      >
+                        {l.type}
+                      </span>
+                      <span className="min-w-0 truncate text-[color:var(--w-muted)]" title={l.message}>
+                        {l.message}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      }}
+    </Widget>
+  );
+}
