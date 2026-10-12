@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { ChevronDown, Info } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSectionState } from "./use-section-state";
 
@@ -13,12 +13,8 @@ interface SettingSectionProps {
   /** The section id (also its remembered open state). */
   id: string;
   title: string;
-  /** Short description, shown as a tooltip on the info icon. */
-  hint?: string;
   /** The tab the section is in (search results label their sections with it). */
   tabLabel?: string;
-  /** Small text after the title (e.g. the scope the section edits). */
-  badge?: string;
   /** Settings of this section set here; 0 hides the count and Reset. */
   changed: number;
   /** Header controls before Reset (the style tools). */
@@ -44,9 +40,7 @@ interface SettingSectionProps {
 export function SettingSection({
   id,
   title,
-  hint,
   tabLabel,
-  badge,
   changed,
   actions,
   onReset,
@@ -63,32 +57,24 @@ export function SettingSection({
       {...{ [SETTING_CARD]: id }}
       data-widget-editor={editor ? "" : undefined}
       className={cn(
-        "break-inside-avoid border-b border-ui-subtle transition-shadow duration-500",
+        "break-inside-avoid border-b border-[#1c1c21] transition-shadow duration-500",
         wide && "[column-span:all]",
         flash && "shadow-[inset_0_0_0_1.5px_var(--ui-accent)]"
       )}
     >
-      <header className="flex min-h-[38px] items-center gap-2 px-4">
+      <header className="flex items-center gap-1.5 pl-2.5 pr-3">
         <button
           type="button"
           aria-expanded={open}
           onClick={() => setOpen(sectionStateId(id), !open)}
-          className="flex min-w-0 flex-1 items-center gap-1.5 text-left"
+          className="flex min-w-0 flex-1 items-center gap-1 py-3 text-left"
         >
           <ChevronDown
-            className={cn("h-3.5 w-3.5 shrink-0 text-ui-4 transition-transform duration-150", !open && "-rotate-90")}
+            className={cn("h-[18px] w-[18px] shrink-0 text-ui-4 transition-transform duration-150", !open && "-rotate-90")}
           />
           <span className="truncate text-[12.5px] font-semibold text-ui-1">{title}</span>
-          {tabLabel && (
-            <span className="shrink-0 rounded border border-ui-default px-1 text-[10.5px] text-ui-4">{tabLabel}</span>
-          )}
-          {badge && <span className="shrink-0 text-[11px] text-ui-4">{badge}</span>}
+          {tabLabel && <span className="ml-1 shrink-0 text-[11px] text-ui-4">{tabLabel}</span>}
         </button>
-        {hint && (
-          <span title={hint} className="shrink-0 text-ui-4 hover:text-ui-2">
-            <Info className="h-3.5 w-3.5" aria-label={hint} />
-          </span>
-        )}
         {changed > 0 && (
           <span className="shrink-0 font-ui-mono text-[10px] text-ui-accent-text">{changed} changed</span>
         )}
@@ -98,13 +84,13 @@ export function SettingSection({
             type="button"
             onClick={onReset}
             title={`Reset ${title}`}
-            className="shrink-0 text-[11px] text-ui-4 hover:text-ui-1"
+            className="h-[22px] shrink-0 rounded-[5px] px-[7px] text-[11px] text-ui-3 hover:bg-[#1e1e23] hover:text-ui-1"
           >
             Reset
           </button>
         )}
       </header>
-      {open && <div className="pb-2.5">{children}</div>}
+      {open && <div className="pb-3">{children}</div>}
     </section>
   );
 }

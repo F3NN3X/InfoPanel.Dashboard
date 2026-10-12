@@ -20,3 +20,38 @@ export function stepGrid(profile: MonitorProfile, axis: "cols" | "rows", delta: 
   );
   return outside ? null : next;
 }
+
+/** The design sizes the Profile tab offers (README §4.7). */
+export const SIZE_PRESETS: readonly { width: number; height: number }[] = [
+  { width: 1920, height: 550 },
+  { width: 1920, height: 1080 },
+  { width: 2560, height: 720 },
+  { width: 1280, height: 400 },
+  { width: 1024, height: 600 },
+  { width: 800, height: 480 },
+];
+
+export const CUSTOM_SIZE = "custom";
+
+const sizeKey = (width: number, height: number) => `${width}×${height}`;
+
+/** The select value of a design size: its preset, else "custom". */
+export function sizeChoice(width: number, height: number): string {
+  return SIZE_PRESETS.some((p) => p.width === width && p.height === height) ? sizeKey(width, height) : CUSTOM_SIZE;
+}
+
+export const SIZE_OPTIONS = [
+  ...SIZE_PRESETS.map((p) => ({ value: sizeKey(p.width, p.height), label: sizeKey(p.width, p.height) })),
+  { value: CUSTOM_SIZE, label: "Custom" },
+];
+
+/** A preset's select value as a size (null for "custom"). */
+export function sizeOfChoice(choice: string): { width: number; height: number } | null {
+  return SIZE_PRESETS.find((p) => sizeKey(p.width, p.height) === choice) ?? null;
+}
+
+/** Typed design-size text as pixels: a positive whole number, else null (nothing is written). */
+export function parseSize(text: string): number | null {
+  const n = parseInt(text, 10);
+  return Number.isFinite(n) && n >= 1 ? n : null;
+}

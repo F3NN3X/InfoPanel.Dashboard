@@ -96,13 +96,11 @@ function cardParts(cards: SheetCard[], editor: boolean, wide: boolean): SectionP
   return {
     body: cards.map((c) => (
       <div key={c.id} className="space-y-2">
-        {cards.length > 1 && <div className="text-[11px] font-medium uppercase tracking-wider text-ui-4">{c.title}</div>}
         {c.node}
       </div>
     )),
     actions:
       cards.some((c) => c.actions) ? <span className="flex items-center gap-1">{cards.map((c) => c.actions && <span key={c.id}>{c.actions}</span>)}</span> : undefined,
-    badge: cards.find((c) => c.badge)?.badge,
     changed: cards.reduce((n, c) => n + (c.changed ?? 0), 0),
     onReset: () => cards.forEach((c) => c.onReset?.()),
     editor,
@@ -289,7 +287,7 @@ export function ZoneInspector({
     switch (s.special) {
       case "boundData":
       case "panelData":
-        return { body: bound };
+        return { body: bound, plain: true };
       case "blankPick":
         return { body: <WidgetPicker placement={zone} onPickWidget={onPickWidget} /> };
       case "zoneFrame":

@@ -42,22 +42,36 @@ export function liveText(live: SensorValue | undefined, point: DataPoint | undef
   return point && point.type !== "empty" && point.raw.trim() !== "" ? point.raw : null;
 }
 
-/** `Source · Container` under a row's name (the container only when it has one). */
+/** `Source › Container` under a row's name (the container only when it has one). */
 export function pointPlace(point: DataPoint | undefined): string {
   if (!point) return "Not in the live sensor list";
   return point.containerTitle && point.containerTitle !== point.sourceName
-    ? `${point.sourceName} · ${point.containerTitle}`
+    ? `${point.sourceName} › ${point.containerTitle}`
     : point.sourceName;
 }
 
 /** The picker shows this many results at most. */
 export const PICKER_LIMIT = 80;
 
-/** The picker's results: multi-word AND search, at most `PICKER_LIMIT`, and how many matched. */
-export function pickerResults(points: readonly DataPoint[], query: string): { shown: DataPoint[]; total: number } {
+/**
+ * The picker's results: multi-word AND search, at most `PICKER_LIMIT`, and
+ * how many matched. With no query the bound points come first.
+ */
+export function pickerResults(
+  points: readonly DataPoint[],
+  query: string,
+  bound: ReadonlySet<string> = new Set()
+): { shown: DataPoint[]; total: number } {
   const matches = searchPoints(points, query);
-  return { shown: matches.slice(0, PICKER_LIMIT), total: matches.length };
+  const ordered =
+    query.trim() === "" && bound.size > 0
+      ? [...matches.filter((p) => bound.has(p.key)), ...matches.filter((p) => !bound.has(p.key))]
+      : matches;
+  return { shown: ordered.slice(0, PICKER_LIMIT), total: matches.length };
 }
+
+/** The picker footer's count: `80+ results` when the cap cut the list. */
+export const resultsLabel = (shown: number): string => `${shown}${shown === PICKER_LIMIT ? "+" : ""} results`;
 
 /**
  * A config edit (`bindPoint` / `unbindPoint`) as an edit of one profile,

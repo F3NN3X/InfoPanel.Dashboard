@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Menu } from "@base-ui/react/menu";
-import { Image, MoreHorizontal, Plus, X } from "lucide-react";
+import { BookmarkPlus, Image, MoreHorizontal, X } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { isBuiltinPreset, type AppearancePreset } from "@/lib/appearance-presets";
 import type { ThemeTokens } from "@/lib/theme";
@@ -106,7 +106,7 @@ function PresetCard({
         onClick={onApply}
         className={cn(
           "block w-full text-left outline-none transition-shadow focus-visible:ring-2 focus-visible:ring-ui-accent/60",
-          active ? "ring-2 ring-ui-accent ring-offset-2 ring-offset-ui-panel" : "hover:ring-1 hover:ring-ui-strong"
+          active ? "ring-2 ring-ui-accent" : "hover:ring-1 hover:ring-ui-strong"
         )}
         style={{ borderRadius: `${preset.radius}rem` }}
         title={`${preset.name} — ${preset.description}`}
@@ -115,7 +115,7 @@ function PresetCard({
       >
         <AppearancePreview preset={preset} />
       </button>
-      <div className="mt-1.5 flex min-h-5 items-center gap-1">
+      <div className="mt-[5px] flex min-h-5 items-center gap-1">
         {renaming ? (
           <NameInput
             initial={preset.name}
@@ -130,7 +130,7 @@ function PresetCard({
           <button
             type="button"
             onClick={onApply}
-            className={cn("min-w-0 flex-1 truncate text-left text-[11.5px]", active ? "text-ui-1" : "text-ui-3")}
+            className={cn("min-w-0 flex-1 truncate text-left text-[11.5px]", active ? "text-ui-1" : "text-[#b4b4bc]")}
           >
             {preset.name}
           </button>
@@ -207,13 +207,7 @@ export function AppearanceGallery({
 
   return (
     <div className="space-y-3">
-      {target === "profile" && (
-        <p className="text-[11px] leading-snug text-ui-4">
-          Here a preset gives this profile its own theme colours, corner radius, style and background; the other
-          profiles keep theirs.
-        </p>
-      )}
-      <div className="grid grid-cols-3 gap-x-2.5 gap-y-3">
+      <div className="grid grid-cols-3 gap-2">
         {api.presets.map((preset) => (
           <PresetCard
             key={preset.id}
@@ -260,10 +254,10 @@ export function AppearanceGallery({
         <button
           type="button"
           onClick={() => setNaming(true)}
-          className="flex h-7 items-center gap-1.5 rounded-md border border-ui-strong px-2.5 text-[12px] text-ui-2 hover:bg-ui-hover hover:text-ui-1"
+          className="flex h-[30px] w-full items-center justify-center gap-1.5 rounded-[7px] border border-ui-strong bg-ui-raised text-[12px] text-ui-1 hover:bg-[#1e1e23]"
           title="Keep the current theme, style and background as a preset"
         >
-          <Plus className="h-3.5 w-3.5" />
+          <BookmarkPlus className="h-4 w-4" />
           Save current look as preset
         </button>
       )}

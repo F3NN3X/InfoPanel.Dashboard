@@ -105,7 +105,7 @@ export function generalCards(general: GeneralSettings | undefined, onChange: Gen
             onChange={(v) => onChange("showSeconds", v ? undefined : false)}
           />
           <SelectRow
-            label="Date & time locale"
+            label="Date locale"
             lead={dot("locale")}
             hint="For the Clock widget: the date's order and names follow the locale, and so does the clock when it is set to Locale."
             options={localeOptions(g.locale)}
@@ -133,7 +133,7 @@ export function generalCards(general: GeneralSettings | undefined, onChange: Gen
             onChange={(v) => onChange("motion", v === "system" ? undefined : (v as MotionChoice))}
           />
           <ToggleRow
-            label="Hide cursor in kiosk"
+            label="Hide cursor in kiosk mode"
             lead={dot("hideCursor")}
             value={g.hideCursor}
             onChange={(v) => onChange("hideCursor", v ? true : undefined)}

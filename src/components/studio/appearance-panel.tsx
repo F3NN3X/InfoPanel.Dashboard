@@ -1,4 +1,4 @@
-import { SegmentedRow, ToggleRow } from "./setting-rows";
+import { SegmentedRow } from "./setting-rows";
 
 /** Which global style (or background) a card edits. */
 export type AppearanceTarget = "all" | "profile";
@@ -12,7 +12,7 @@ export const SCOPES = [
 ];
 
 const ENFORCE_CHOICES = [
-  { value: "inherit" as const, label: "Inherit", title: "Use the dashboard's choice" },
+  { value: "inherit" as const, label: "Inherit", title: "Use the dashboard's choice (off unless it is forced)" },
   { value: "on" as const, label: "On", title: "Force the global style in this profile" },
   { value: "off" as const, label: "Off", title: "Don't force it in this profile" },
 ];
@@ -22,7 +22,6 @@ const enforceChoice = (v: boolean | undefined): EnforceChoice => (v === undefine
 interface GlobalStyleScopeProps {
   target: AppearanceTarget;
   onTarget: (target: AppearanceTarget) => void;
-  profileName: string;
   dashboardEnforce: boolean | undefined;
   profileEnforce: boolean | undefined;
   /** Set the force switch (a profile's `undefined` = the dashboard's). */
@@ -45,7 +44,6 @@ const FORCE_HINT = "Every widget shows the global style; their own look values a
 export function GlobalStyleScope({
   target,
   onTarget,
-  profileName,
   dashboardEnforce,
   profileEnforce,
   onEnforce,
@@ -56,32 +54,13 @@ export function GlobalStyleScope({
   return (
     <div className="space-y-3">
       <SegmentedRow label="Apply to" options={SCOPES} value={target} onChange={(v) => onTarget(v as AppearanceTarget)} />
-      <p className="text-[11px] leading-snug text-ui-4">
-        {all ? (
-          <>Defaults for every widget in every profile.</>
-        ) : (
-          <>
-            Defaults for every widget in <span className="text-ui-2">{profileName}</span>, over the dashboard&apos;s.
-          </>
-        )}{" "}
-        A widget&apos;s own setting overrides them unless it follows the global style.
-      </p>
-      {all ? (
-        <ToggleRow
-          label={FORCE_LABEL}
-          hint={FORCE_HINT}
-          value={dashboardEnforce === true}
-          onChange={(v) => onEnforce("all", v)}
-        />
-      ) : (
-        <SegmentedRow
-          label={FORCE_LABEL}
-          hint={FORCE_HINT}
-          options={ENFORCE_CHOICES}
-          value={enforceChoice(profileEnforce)}
-          onChange={(c) => onEnforce("profile", c === "inherit" ? undefined : c === "on")}
-        />
-      )}
+      <SegmentedRow
+        label={FORCE_LABEL}
+        hint={FORCE_HINT}
+        options={ENFORCE_CHOICES}
+        value={enforceChoice(all ? dashboardEnforce : profileEnforce)}
+        onChange={(c) => onEnforce(target, c === "inherit" ? undefined : c === "on")}
+      />
       <FollowAllRow overrides={overrides} onFollowAll={onFollowAll} />
     </div>
   );

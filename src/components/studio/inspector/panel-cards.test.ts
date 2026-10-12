@@ -25,8 +25,8 @@ describe("cardsBySection", () => {
 
 describe("panelState", () => {
   it("reads the code view and the selected widget off the cards", () => {
-    expect(panelState(visual, "wrap")).toEqual({ layout: "stack", codeView: false, selectedWidget: true });
+    expect(panelState(visual, "wrap")).toEqual({ layout: "stack", codeView: false, selectedWidget: true, selectedLabel: "widget:kind" });
     const code: SheetGroup[] = [{ heading: "Panel", cards: [card("panel:main"), card("panel:code")] }];
-    expect(panelState(code, "overlay")).toEqual({ layout: "overlay", codeView: true, selectedWidget: false });
+    expect(panelState(code, "overlay")).toEqual({ layout: "overlay", codeView: true, selectedWidget: false, selectedLabel: undefined });
   });
 });

@@ -15,8 +15,6 @@ export interface SheetCard {
   wide?: boolean;
   /** The card `revealWidgetEditor` scrolls to. */
   editor?: boolean;
-  /** Small text after the title (the scope the card edits). */
-  badge?: string;
   /** Settings set in this card (the count and Reset). */
   changed?: number;
   onReset?: () => void;

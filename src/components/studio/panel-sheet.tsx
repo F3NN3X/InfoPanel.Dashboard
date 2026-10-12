@@ -100,12 +100,8 @@ export function usePanelSheet({
       node: (
         <>
           <PanelMainFields panel={panel} setField={setPanelField} view={view} onView={setView} />
-          {presetNaming ? (
+          {presetNaming && (
             <PresetNameInput initial={panel.title} onSave={onSavePreset} onCancel={() => onPresetNaming(false)} />
-          ) : (
-            <p className="text-[11.5px] leading-snug text-ui-4">
-              {panel.widgets.length} widget{panel.widgets.length === 1 ? "" : "s"}, {layout} layout.
-            </p>
           )}
         </>
       ),
@@ -133,12 +129,11 @@ export function usePanelSheet({
     }
     panelCards.push({
       id: "panel:widgets",
-      title: `Widgets (${panel.widgets.length})`,
+      title: "Widgets",
       hint: "Drag to reorder; the eye hides a widget",
       terms: ["Widgets", "Add widget", "Layers", ...panel.widgets.map((w) => widgetName(w, catalog))],
       node: (
         <>
-          <AddWidgetSelect onAdd={(kind: WidgetKind) => actions.insert(newWidget(kind))} />
           <PanelLayers
           widgets={panel.widgets}
           selectedId={selectedWidgetId}
@@ -151,7 +146,8 @@ export function usePanelSheet({
           onChangeKind={actions.changeKind}
           onRemove={actions.remove}
         />
-          <p className="text-[11.5px] leading-snug text-ui-4">
+          <AddWidgetSelect onAdd={(kind: WidgetKind) => actions.insert(newWidget(kind))} />
+          <p className="text-[11px] leading-snug text-ui-5">
             Click a widget to edit it. Copy / paste and change kind keep the shared fields.
           </p>
         </>

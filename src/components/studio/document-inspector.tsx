@@ -149,7 +149,6 @@ function DocumentSheet({
     profile.style || profile.styleEnforce !== undefined ? "profile" : "all"
   );
   const all = target === "all";
-  const scope = all ? "All profiles" : "This profile";
   const context: InspectorContext = { kind: "dashboard", scope: target, profileName: profile.name };
 
   const change = (fn: (style: ModuleSettings) => ModuleSettings) => onStyle(target, fn);
@@ -205,7 +204,6 @@ function DocumentSheet({
             <GlobalStyleScope
               target={target}
               onTarget={setTarget}
-              profileName={profile.name}
               dashboardEnforce={dashboardEnforce}
               profileEnforce={profile.styleEnforce}
               onEnforce={onEnforce}
@@ -215,10 +213,9 @@ function DocumentSheet({
           ),
         };
       case "presets":
-        return { badge: scope, body: <AppearanceGallery api={presets} target={target} look={currentLook} /> };
+        return { body: <AppearanceGallery api={presets} target={target} look={currentLook} /> };
       case "theme":
         return {
-          badge: scope,
           body: all ? (
             <ThemePanel
               tokens={theme}
@@ -273,7 +270,7 @@ function DocumentSheet({
       case "connection":
         return { body: <DataApiPanel value={dataApiUrl} onChange={onDataApiUrl} /> };
       default:
-        return { badge: scope };
+        return {};
     }
   };
 

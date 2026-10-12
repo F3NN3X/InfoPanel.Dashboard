@@ -1,13 +1,15 @@
-import { Plus, X } from "lucide-react";
+import { Link2, X } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { useSensors } from "@/hooks/useSensors";
 import type { DataModel, DataPoint } from "@/lib/data-points";
 import { bindPoint, unbindPoint, type UsageIndex } from "@/lib/data-usage";
 import type { DashboardConfig, MonitorProfile, Placement } from "@/lib/layout";
+import { cn } from "@/lib/utils";
 import { modules } from "@/modules";
 import { TypeIcon } from "../explorer/explorer-parts";
 import { boundRows, inProfile, liveText, pointPlace } from "./bound-data-model";
 import { DataPicker } from "./data-picker";
+import { widgetName } from "../widget-kinds";
 import { zoneName } from "./zone-meta";
 
 interface BoundDataProps {
@@ -77,34 +79,33 @@ export function BoundData({
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <span className="font-ui-mono text-[11px] text-ui-4">
-          {rows.length} bound
-        </span>
+      <div className="flex items-center gap-2">
+        <span className="text-[12.5px] font-semibold text-ui-1">Bound data</span>
+        <span className="font-ui-mono text-[11px] text-ui-4">{rows.length}</span>
         <button
           type="button"
           onClick={openPicker}
-          className="flex h-7 items-center gap-1 rounded-md border border-ui-strong bg-ui-raised px-2.5 text-[12px] text-ui-2 hover:text-ui-1"
+          className="ml-auto flex h-[26px] items-center gap-1 rounded-md border border-ui-strong bg-ui-raised px-[9px] text-[11.5px] text-ui-1 hover:bg-[#1e1e23]"
         >
-          <Plus className="h-3.5 w-3.5" /> Bind
+          <Link2 className="h-[15px] w-[15px]" /> Bind
         </button>
       </div>
       {rows.length === 0 ? (
-        <p className="text-[12px] leading-snug text-ui-4">No data bound yet. Bind a value to make this widget live.</p>
+        <span className="block text-[12px] text-ui-4">No data bound yet. Bind a value to make this widget live.</span>
       ) : (
-        <ul className="space-y-1">
+        <ul className="space-y-2">
           {rows.map(({ key, point, panelWidgetId }) => {
             const value = liveText(live[key], point);
             return (
               <li
                 key={`${panelWidgetId ?? ""}:${key}`}
-                className="flex items-center gap-2 rounded-[7px] border border-ui-subtle bg-ui-app pl-2 pr-1 hover:border-ui-strong"
+                className="flex items-center gap-[9px] rounded-[7px] border border-ui-subtle bg-ui-app py-[7px] pl-2 pr-1.5 hover:border-[#33333a]"
               >
                 <button
                   type="button"
                   onClick={() => onOpenPoint(key)}
                   title={`Open ${key} in Sources`}
-                  className="flex min-w-0 flex-1 items-center gap-2 py-1.5 text-left"
+                  className="flex min-w-0 flex-1 items-center gap-[9px] text-left"
                 >
                   <TypeIcon type={point?.type ?? "empty"} />
                   <span className="min-w-0 flex-1">
@@ -112,11 +113,10 @@ export function BoundData({
                     <span className="block truncate text-[10.5px] text-ui-4">{pointPlace(point)}</span>
                   </span>
                   <span
-                    className={
-                      value === null
-                        ? "shrink-0 text-[11px] text-ui-warning"
-                        : "max-w-[40%] shrink-0 truncate font-ui-mono text-[11.5px] text-ui-2"
-                    }
+                    className={cn(
+                      "max-w-24 shrink-0 truncate font-ui-mono text-[11px]",
+                      value === null ? "text-ui-warning" : "text-ui-2"
+                    )}
                   >
                     {value ?? "No data"}
                   </span>
@@ -127,7 +127,7 @@ export function BoundData({
                     onClick={() => unbind(key, panelWidgetId)}
                     aria-label={`Unbind ${point?.name ?? key}`}
                     title="Unbind"
-                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded text-ui-4 hover:bg-ui-hover hover:text-ui-danger"
+                    className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-[5px] text-ui-4 hover:bg-[#26262c] hover:text-ui-1"
                   >
                     <X className="h-3.5 w-3.5" />
                   </button>
@@ -140,6 +140,7 @@ export function BoundData({
       <DataPicker
         open={picker}
         onOpenChange={onPicker}
+        title={mode === "item" ? `Pick a sensor for ${widget ? widgetName(widget) : "this widget"}` : `Bind data to ${title}`}
         points={model.points}
         mode={mode}
         bound={bound}

@@ -50,7 +50,7 @@ export const GROUP_ADVANCED = "Advanced";
 /** "auto" plus pixel steps, for the spacing selects. */
 const pxOptions = (values: number[]) => [
   { value: "auto", label: "Auto" },
-  ...values.map((v) => ({ value: String(v), label: `${v}px` })),
+  ...values.map((v) => ({ value: String(v), label: `${v} px` })),
 ];
 
 /** Size, alignment, spacing, colors and type — every widget gets these. */
@@ -160,7 +160,7 @@ export const STYLE_SETTINGS: ModuleSetting[] = [
   },
   {
     key: "customCss",
-    label: "Custom CSS (scoped to this widget; :scope = its root)",
+    label: "Custom CSS (@scope, :scope = root)",
     type: "text",
     multiline: true,
     default: "",
@@ -193,9 +193,10 @@ export const SURFACE_SETTINGS: ModuleSetting[] = [
   },
   {
     key: "glowColor",
-    label: "Glow color (empty = accent)",
+    label: "Glow color",
     type: "color",
     default: "",
+    hint: "Auto uses the accent",
     visibleIf: (values) => (values.glow ?? "none") !== "none",
     group: GROUP_EFFECTS,
   },
@@ -230,7 +231,7 @@ export const IDLE_SETTING: ModuleSetting = {
 export const STANDARD_SETTINGS: ModuleSetting[] = [
   {
     key: "preset",
-    label: "Preset",
+    label: "Style preset",
     type: "select",
     default: "default",
     options: [

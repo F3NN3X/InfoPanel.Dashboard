@@ -1,6 +1,6 @@
 import { useState, type DragEvent, type KeyboardEvent, type ReactNode } from "react";
 import { Menu } from "@base-ui/react/menu";
-import { Copy, Eye, EyeOff, GripVertical, MoreHorizontal, Trash2 } from "lucide-react";
+import { ArrowUp, Copy, Eye, EyeOff, GripVertical, MoreHorizontal, Trash2 } from "lucide-react";
 import { IconButton } from "@/components/ui/icon-button";
 import type { Widget, WidgetKind } from "@/lib/panel-model";
 import { cn } from "@/lib/utils";
@@ -81,9 +81,7 @@ export function PanelLayers({
 
   if (widgets.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-ui-strong px-3 py-3 text-center text-[12px] text-ui-4">
-        No widgets in this panel yet.
-      </div>
+      <span className="block py-1 text-[12px] text-ui-5">No widgets in this panel yet.</span>
     );
   }
 
@@ -114,10 +112,10 @@ export function PanelLayers({
             onDrop={onDrop}
             onClick={() => onSelect(w.id)}
             className={cn(
-              "relative flex cursor-pointer items-center gap-1.5 rounded-[7px] border py-1 pl-1 pr-0.5",
+              "relative flex cursor-pointer items-center gap-[7px] rounded-[7px] border py-1.5 pl-1.5 pr-1",
               w.id === selectedId
-                ? "border-ui-accent bg-ui-accent-soft"
-                : "border-ui-subtle bg-ui-app hover:border-ui-strong",
+                ? "border-ui-accent/50 bg-ui-accent/[.12]"
+                : "border-ui-subtle bg-ui-app hover:border-[#33333a]",
               w.id === dragId && "opacity-40",
               !w.visible && "opacity-50"
             )}
@@ -127,11 +125,14 @@ export function PanelLayers({
             <GripVertical className="h-3.5 w-3.5 shrink-0 cursor-grab text-ui-5" />
             <Icon className="h-4 w-4 shrink-0 text-ui-3" aria-label={label} />
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-[12.5px] text-ui-1">{widgetName(w)}</span>
+              <span className="block truncate text-[12px] text-ui-1">{widgetName(w)}</span>
               <span className="block truncate text-[10.5px] text-ui-4">
-                {w.sensor ? `${label} · ${sensorName(w.sensor)}` : label}
+                {`${label} · ${w.sensor ? sensorName(w.sensor) : "no sensor"}`}
               </span>
             </span>
+            <RowButton label="Move up" onClick={() => onMove(w.id, i - 1)}>
+              <ArrowUp className="h-3.5 w-3.5" />
+            </RowButton>
             <RowButton
               label={w.visible ? "Hide widget" : "Show widget"}
               onClick={() => onToggleVisible(w.id)}
@@ -147,7 +148,7 @@ export function PanelLayers({
             <Menu.Root>
               <Menu.Trigger
                 onClick={(e) => e.stopPropagation()}
-                className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-ui-3 hover:bg-ui-hover hover:text-ui-1 data-popup-open:bg-ui-hover data-popup-open:text-ui-1"
+                className="inline-flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-[5px] text-ui-3 hover:bg-ui-hover hover:text-ui-1 data-popup-open:bg-ui-hover data-popup-open:text-ui-1"
                 title="Widget actions"
                 aria-label="Widget actions"
               >
@@ -190,7 +191,7 @@ function RowButton({
     <IconButton
       label={label}
       danger={danger}
-      className="h-6 w-6"
+      className="h-[22px] w-[22px]"
       onClick={(e) => {
         e.stopPropagation();
         onClick();

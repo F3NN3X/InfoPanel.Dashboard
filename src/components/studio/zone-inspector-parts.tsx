@@ -3,9 +3,9 @@ import {
   ChevronDown,
   ChevronRight,
   Copy,
+  BoxSelect,
   Eye,
   EyeOff,
-  Layers,
   LayoutDashboard,
   Search,
   Trash2,
@@ -14,15 +14,15 @@ import {
 import { IconButton } from "@/components/ui/icon-button";
 import { BLANK_MODULE, type Placement } from "@/lib/layout";
 import { cn } from "@/lib/utils";
-import { FIELD } from "./setting-rows";
+import { FIELD, InlineRow, SELECT } from "./setting-rows";
 import { placementTitle } from "./studio-modules";
 import { KEYS } from "./use-studio-shortcuts";
 import type { ZoneRect } from "./zone-geometry";
 
-/** The 32 px icon box of a header. */
+/** The 32 px icon box of a header (the glyph in the accent text colour). */
 export function HeaderIcon({ children }: { children: ReactNode }) {
   return (
-    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#1c1c21] text-ui-2 [&>svg]:h-4 [&>svg]:w-4">
+    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#1c1c21] text-[oklch(0.78_0.12_255)] [&>svg]:h-[19px] [&>svg]:w-[19px]">
       {children}
     </span>
   );
@@ -38,9 +38,12 @@ function ZoneActions({
   onDuplicate,
   onRemove,
   zoneKeys = true,
+  stateIcon = true,
 }: {
   /** Every zone acted on is hidden (the eye shows them again). */
   hidden: boolean;
+  /** The eye shows the state (open when visible); false: always open (several zones). */
+  stateIcon?: boolean;
   onToggleVisible: () => void;
   onDuplicate: () => void;
   onRemove: () => void;
@@ -50,7 +53,7 @@ function ZoneActions({
   return (
     <span className="flex shrink-0 items-center">
       <IconButton label={`${hidden ? "Show" : "Hide"} (${KEYS.hide})`} onClick={onToggleVisible}>
-        {hidden ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+        {hidden && stateIcon ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
       </IconButton>
       <IconButton label={zoneKeys ? `Duplicate (${KEYS.duplicate})` : "Duplicate zone"} onClick={onDuplicate}>
         <Copy className="h-4 w-4" />
@@ -141,7 +144,7 @@ export function ZoneHeader({
               onChange={(e) => onName(e.target.value)}
               className={cn(
                 TITLE,
-                "-ml-1 block h-6 w-full rounded-md border border-transparent bg-transparent px-1 outline-none placeholder:text-ui-4 hover:border-ui-default focus:border-ui-accent"
+                "-ml-1 block h-6 w-full rounded-[5px] border border-transparent bg-transparent px-1 outline-none placeholder:text-ui-4 hover:border-ui-strong focus:border-ui-accent"
               )}
             />
           ) : (
@@ -183,7 +186,7 @@ export function MultiHeader({
     <div className="space-y-2">
       <div className="flex items-center gap-2.5">
         <HeaderIcon>
-          <Layers />
+          <BoxSelect />
         </HeaderIcon>
         <div className="min-w-0 flex-1">
           <div className={TITLE}>{zones.length} zones selected</div>
@@ -191,6 +194,7 @@ export function MultiHeader({
         </div>
         <ZoneActions
           hidden={zones.every((z) => !z.visible)}
+          stateIcon={false}
           onToggleVisible={onToggleVisible}
           onDuplicate={onDuplicate}
           onRemove={onRemove}
@@ -198,21 +202,17 @@ export function MultiHeader({
       </div>
       <div className="flex flex-wrap gap-1">
         {zones.map((z) => (
-          <span
+          <button
             key={z.id}
-            className="inline-flex h-6 max-w-full items-center gap-1 rounded-md border border-ui-default bg-ui-raised pl-2 pr-0.5 text-[11.5px] text-ui-2"
+            type="button"
+            onClick={() => onDeselect(z.id)}
+            aria-label={`Remove ${z.name} from the selection`}
+            title="Remove from the selection"
+            className="inline-flex h-6 max-w-full items-center gap-1 rounded-xl border border-ui-strong bg-ui-raised pl-2 pr-1 text-[11.5px] text-[#d4d4da]"
           >
             <span className="truncate">{z.name}</span>
-            <button
-              type="button"
-              onClick={() => onDeselect(z.id)}
-              aria-label={`Remove ${z.name} from the selection`}
-              title="Remove from the selection"
-              className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-ui-4 hover:bg-ui-hover hover:text-ui-1"
-            >
-              <X className="h-3 w-3" />
-            </button>
-          </span>
+            <X className="h-3.5 w-3.5 shrink-0 text-ui-4" />
+          </button>
         ))}
       </div>
     </div>
@@ -262,7 +262,7 @@ function BoxField({
     <label
       title={refused ? "That spot overlaps another widget or is below the minimum size" : undefined}
       className={cn(
-        "flex h-[30px] items-center gap-1.5 rounded-md border bg-ui-app px-2 focus-within:border-ui-accent",
+        "flex h-[30px] items-center gap-1.5 rounded-[7px] border bg-ui-app px-2 focus-within:border-ui-accent",
         refused ? "border-ui-danger" : "border-ui-default"
       )}
     >
@@ -320,27 +320,28 @@ export function ZoneBoxFields({
   );
 }
 
-/** The zone's widget, and a button that opens the widget picker. */
+/** The zone's widget as an inline select-style button that opens the widget picker. */
 export function WidgetPicker({ placement, onPickWidget }: { placement: Placement; onPickWidget: () => void }) {
   const blank = placement.module === BLANK_MODULE;
   return (
-    <div className="space-y-1.5">
-      <div className="text-[12.5px] text-ui-2">Widget type</div>
-      <button
-        type="button"
-        onClick={onPickWidget}
-        title="Pick a widget for this zone"
-        className={cn(FIELD, "flex h-[30px] w-full items-center gap-2 text-left hover:border-ui-strong")}
-      >
-        <span className={cn("flex-1 truncate", blank && "text-ui-4")}>
-          {blank ? "Blank — no widget" : placement.panel ? "Custom panel" : placementTitle(placement)}
-        </span>
-        <span className="flex shrink-0 items-center gap-0.5 text-[11px] text-ui-4">
-          {blank ? "Pick" : "Change"} <ChevronDown className="h-3 w-3" />
-        </span>
-      </button>
+    <div className="space-y-2">
+      <InlineRow label="Widget type">
+        <button
+          type="button"
+          onClick={onPickWidget}
+          title="Pick a widget for this zone"
+          className={cn(SELECT, "flex min-w-0 items-center gap-1 text-left hover:border-ui-menu")}
+        >
+          <span className={cn("min-w-0 flex-1 truncate", blank && "text-ui-4")}>
+            {blank ? "Blank — no widget" : placement.panel ? "Custom panel" : placementTitle(placement)}
+          </span>
+          <ChevronDown className="h-3.5 w-3.5 shrink-0 text-ui-4" />
+        </button>
+      </InlineRow>
       {placement.panel && (
-        <p className="text-[11px] text-ui-4">Edit the panel&apos;s widgets in Content; picking another widget replaces the panel.</p>
+        <p className="text-[11px] leading-snug text-ui-5">
+          Edit the panel&apos;s widgets in Content; picking another widget replaces the panel.
+        </p>
       )}
     </div>
   );
@@ -350,7 +351,7 @@ export function WidgetPicker({ placement, onPickWidget }: { placement: Placement
 export function SettingsSearch({ query, onQuery }: { query: string; onQuery: (query: string) => void }) {
   return (
     <div className="relative">
-      <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ui-4" />
+      <Search className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-ui-4" />
       <input
         type="text"
         value={query}
@@ -362,7 +363,7 @@ export function SettingsSearch({ query, onQuery }: { query: string; onQuery: (qu
         }}
         placeholder="Search settings"
         aria-label="Search settings"
-        className={cn(FIELD, "h-[30px] w-full pl-8 pr-7")}
+        className={cn(FIELD, "h-[30px] w-full rounded-[7px] pl-[30px] pr-7")}
       />
       {query !== "" && (
         <button

@@ -1,4 +1,5 @@
 import { Segmented } from "@/components/ui/segmented";
+import { SEGMENTED_CLASS, StackRow } from "./setting-rows";
 import type { StyleMode } from "@/lib/style-resolve";
 
 const MODES = [
@@ -20,15 +21,14 @@ export function StyleModeBar({
   onMode: (mode: StyleMode) => void;
 }) {
   return (
-    <div className="space-y-1.5">
-      <div className="text-[12.5px] text-ui-2">Look</div>
+    <StackRow label="Look">
       <Segmented
         options={MODES}
         value={mode === "follow" ? "follow" : "custom"}
         onChange={onMode}
         label="Look"
-        className="w-full *:flex-1"
+        className={SEGMENTED_CLASS}
       />
-    </div>
+    </StackRow>
   );
 }

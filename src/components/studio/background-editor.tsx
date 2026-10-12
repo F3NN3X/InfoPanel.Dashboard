@@ -7,6 +7,7 @@ import {
   withBackgroundType,
 } from "@/lib/appearance";
 import { AlignGrid } from "./align-grid";
+import { ColorPill } from "./inspector/color-pill";
 import { VideoFields } from "./background-video";
 import { MediaField } from "./media-field";
 import { InlineRow, SegmentedRow, SliderRow, StackRow } from "./setting-rows";
@@ -118,14 +119,9 @@ export function BackgroundEditor({ value, types, onChange }: BackgroundEditorPro
 
 /** Dim, tint and blur over the media. */
 function Effects({ value, onPatch }: { value: PageBackground; onPatch: (p: Partial<PageBackground>) => void }) {
-  const set = [value.dim, value.tintOpacity, value.blur].filter((v) => (v ?? 0) > 0).length;
   return (
-    <div className="space-y-2 border-t border-ui-subtle pt-2">
-      <div className="flex items-baseline justify-between">
-        <span className="text-[12.5px] font-semibold text-ui-1">Effects</span>
-        {set > 0 && <span className="font-ui-mono text-[10px] text-ui-accent-text">{set} set</span>}
-      </div>
-      <SliderRow label="Dim (%)" value={value.dim ?? 0} min={0} max={100} fallback={0} onChange={(dim) => onPatch({ dim })} />
+    <>
+      <SliderRow label="Dim" unit="%" value={value.dim ?? 0} min={0} max={100} fallback={0} onChange={(dim) => onPatch({ dim })} />
       <ColorRow
         label="Tint"
         value={value.tint}
@@ -133,15 +129,16 @@ function Effects({ value, onPatch }: { value: PageBackground; onPatch: (p: Parti
         onChange={(tint) => onPatch({ tint, tintOpacity: value.tintOpacity || 30 })}
       />
       <SliderRow
-        label="Tint opacity (%)"
+        label="Tint opacity"
+        unit="%"
         value={value.tintOpacity ?? 0}
         min={0}
         max={100}
         fallback={0}
         onChange={(tintOpacity) => onPatch({ tintOpacity })}
       />
-      <SliderRow label="Blur (px)" value={value.blur ?? 0} min={0} max={MAX_BLUR} fallback={0} onChange={(blur) => onPatch({ blur })} />
-    </div>
+      <SliderRow label="Blur" unit="px" value={value.blur ?? 0} min={0} max={MAX_BLUR} fallback={0} onChange={(blur) => onPatch({ blur })} />
+    </>
   );
 }
 
@@ -167,21 +164,7 @@ function ColorRow({
   const shown = value ?? fallback ?? "#000000";
   return (
     <InlineRow label={label}>
-      <span className="flex items-center gap-1.5">
-        <span className="font-ui-mono text-[11.5px] text-ui-2">{shown}</span>
-        <label
-          className="relative h-[22px] w-[22px] shrink-0 cursor-pointer overflow-hidden rounded-md border border-ui-strong"
-          style={{ backgroundColor: shown }}
-        >
-          <input
-            type="color"
-            aria-label={label}
-            value={pickerHex(shown)}
-            onChange={(e) => onChange(e.target.value)}
-            className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-          />
-        </label>
-      </span>
+      <ColorPill value={pickerHex(shown)} label={label} onChange={onChange} />
     </InlineRow>
   );
 }

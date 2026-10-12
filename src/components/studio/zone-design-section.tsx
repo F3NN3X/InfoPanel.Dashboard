@@ -37,6 +37,7 @@ export function ZoneFrameFields({ design, onChange, showBackground = true }: Zon
         label="Frame accent"
         value={design?.accent ?? ""}
         onChange={(accent) => onChange((d) => ({ ...d, accent: accent || undefined }))}
+        onReset={() => onChange((d) => ({ ...d, accent: undefined }))}
       />
       {showBackground && (
         <SegmentedRow

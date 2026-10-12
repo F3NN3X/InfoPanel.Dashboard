@@ -202,8 +202,8 @@ describe("Web Page", () => {
 });
 
 describe("panel sections", () => {
-  it("lists Panel, Widget, Layout and Widgets in Content", () => {
-    expect(titles(sectionsFor(panel, "content"))).toEqual(["Panel", "Widget", "Layout", "Widgets"]);
+  it("lists Panel, Layout and Widgets, then the Widget card, in Content", () => {
+    expect(titles(sectionsFor(panel, "content"))).toEqual(["Panel", "Layout", "Widgets", "Widget"]);
     expect(find(sectionsFor(panel, "content"), "Widget").extras.map((e) => e.kind)).toEqual(["visible"]);
   });
 
@@ -211,22 +211,25 @@ describe("panel sections", () => {
     const overlay: InspectorContext = { ...panel, layout: "overlay", selectedWidget: true } as InspectorContext;
     expect(titles(sectionsFor(overlay, "content"))).toEqual([
       "Panel",
-      "Widget",
       "Layout",
       "Background",
       "Widgets",
-      "Selected widget",
+      "Selected · widget",
       "Display",
       "Size & placement",
       "Typography & colors",
-      "Selected widget advanced",
+      "Selected · Advanced",
+      "Widget",
     ]);
+    expect(
+      titles(sectionsFor({ ...overlay, selectedLabel: "Slider" } as InspectorContext, "content")).filter((t) => t.startsWith("Selected ·"))
+    ).toEqual(["Selected · Slider", "Selected · Advanced"]);
     expect(sectionsFor(overlay, "content").filter((s) => s.advanced).map((s) => s.special)).toEqual(["widgetAdvanced"]);
   });
 
   it("swaps the layout and widget cards for the JSON in the code view", () => {
     const code: InspectorContext = { ...panel, codeView: true } as InspectorContext;
-    expect(titles(sectionsFor(code, "content"))).toEqual(["Panel", "Widget", "Panel JSON"]);
+    expect(titles(sectionsFor(code, "content"))).toEqual(["Panel", "Panel JSON", "Widget"]);
   });
 
   it("has the same look cards as a widget and lists its sensors in Data", () => {
@@ -405,7 +408,7 @@ describe("applyAdvanced", () => {
 
   it("drops a section left with nothing but keeps custom-only ones", () => {
     const { sections } = applyAdvanced(sectionsFor(panel, "content"), false);
-    expect(titles(sections)).toEqual(["Panel", "Widget", "Layout", "Widgets"]);
+    expect(titles(sections)).toEqual(["Panel", "Layout", "Widgets", "Widget"]);
   });
 });
 

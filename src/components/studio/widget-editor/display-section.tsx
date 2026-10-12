@@ -1,5 +1,6 @@
 import { Segmented } from "@/components/ui/segmented";
 import type { Widget, WidgetKind } from "@/lib/panel-model";
+import { SEGMENTED_CLASS } from "../setting-rows";
 import { Field, InlineField, NumberInput, Switch, TextInput } from "./fields";
 import type { WidgetSectionProps } from "./types";
 
@@ -28,7 +29,7 @@ export function KindFields({ widget, set }: WidgetSectionProps) {
               ]}
               value={widget.shape ?? "vbar"}
               onChange={(v) => set("shape", v as Widget["shape"])}
-              className="w-full *:flex-1"
+              className={SEGMENTED_CLASS}
             />
           </Field>
           <InlineField label="Thickness / diameter (px)">
@@ -130,7 +131,7 @@ export function KindFields({ widget, set }: WidgetSectionProps) {
             ]}
             value={widget.clock ?? "both"}
             onChange={(v) => set("clock", v as Widget["clock"])}
-            className="w-full *:flex-1"
+            className={SEGMENTED_CLASS}
           />
         </Field>
       )}
@@ -145,7 +146,7 @@ export function KindFields({ widget, set }: WidgetSectionProps) {
             ]}
             value={widget.align ?? "left"}
             onChange={(v) => set("align", v as Widget["align"])}
-            className="w-full *:flex-1"
+            className={SEGMENTED_CLASS}
           />
         </Field>
       )}

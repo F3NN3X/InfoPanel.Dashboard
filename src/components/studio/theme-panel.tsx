@@ -1,5 +1,6 @@
 import { hslToHex, hexToHsl, THEME_PRESETS, type ThemeTokens } from "@/lib/theme";
 import { useInspectorAdvanced } from "./inspector/inspector-prefs";
+import { ColorPill } from "./inspector/color-pill";
 import { InlineRow, SelectRow, SliderRow } from "./setting-rows";
 
 /** Tokens with an editor row; the first six are always shown (DECISIONS.md #8), the rest are Advanced. */
@@ -44,21 +45,7 @@ function TokenRow({
   const hex = hslToHex(value);
   return (
     <InlineRow label={label}>
-      <span className="flex items-center gap-1.5">
-        <span className="font-ui-mono text-[11.5px] text-ui-2">{hex.toUpperCase()}</span>
-        <label
-          className="relative h-[22px] w-[22px] shrink-0 cursor-pointer overflow-hidden rounded-md border border-ui-strong"
-          style={{ backgroundColor: hex }}
-        >
-          <input
-            type="color"
-            aria-label={label}
-            value={hex}
-            onChange={(e) => onChange(hexToHsl(e.currentTarget.value))}
-            className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-          />
-        </label>
-      </span>
+      <ColorPill value={hex} label={label} onChange={(v) => onChange(hexToHsl(v))} />
     </InlineRow>
   );
 }
@@ -78,7 +65,7 @@ export function ThemePanel({ tokens, radius, presetName, onToken, onRadius, onPr
   return (
     <div className="space-y-2">
       <SelectRow
-        label="Preset"
+        label="Theme"
         hint="Theme colours only; the corner radius stays"
         options={[
           ...THEME_PRESETS.map((p) => ({ value: p.name, label: p.label })),
@@ -87,7 +74,7 @@ export function ThemePanel({ tokens, radius, presetName, onToken, onRadius, onPr
         value={presetName}
         onChange={(name) => name !== "custom" && onPreset(name)}
       />
-      <SliderRow label="Corner radius (rem)" value={radius} min={0} max={1.25} step={0.25} fallback={0.5} onChange={onRadius} />
+      <SliderRow label="Corner radius" unit="rem" value={radius} min={0} max={1.5} step={0.05} fallback={0.5} onChange={onRadius} />
       {VISIBLE_TOKENS.map(row)}
       {advanced ? (
         ADVANCED_TOKENS.map(row)
@@ -95,7 +82,7 @@ export function ThemePanel({ tokens, radius, presetName, onToken, onRadius, onPr
         <button
           type="button"
           onClick={() => setAdvanced(true)}
-          className="w-full rounded-lg border border-dashed border-ui-strong py-1.5 text-[12px] text-ui-3 hover:border-ui-accent hover:text-ui-1"
+          className="w-full rounded-[7px] border border-dashed border-ui-strong p-[9px] text-[12px] text-ui-3 hover:border-[#3a3a44] hover:text-ui-1"
         >
           Show {ADVANCED_TOKENS.length} advanced colors
         </button>

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { DataModel, DataPoint } from "@/lib/data-points";
 import { bindPoint, type UsageIndex } from "@/lib/data-usage";
 import type { DashboardConfig, MonitorProfile, Placement } from "@/lib/layout";
-import { boundRows, inProfile, liveText, pickerResults, PICKER_LIMIT, pointPlace } from "./bound-data-model";
+import { boundRows, inProfile, liveText, pickerResults, PICKER_LIMIT, pointPlace, resultsLabel } from "./bound-data-model";
 
 const point = (key: string, patch: Partial<DataPoint> = {}): DataPoint => ({
   key,
@@ -78,7 +78,7 @@ describe("liveText", () => {
 
 describe("pointPlace", () => {
   it("names the source and container", () => {
-    expect(pointPlace(point("k"))).toBe("System · CPU");
+    expect(pointPlace(point("k"))).toBe("System › CPU");
     expect(pointPlace(point("k", { containerTitle: "" }))).toBe("System");
     expect(pointPlace(undefined)).toBe("Not in the live sensor list");
   });
@@ -91,6 +91,17 @@ describe("pickerResults", () => {
     expect(shown).toHaveLength(PICKER_LIMIT);
     expect(total).toBe(PICKER_LIMIT + 5);
     expect(pickerResults(points, "gpu").total).toBe(0);
+  });
+
+  it("lists the bound points first when there is no query", () => {
+    const points = ["a", "b", "c"].map((k) => point(k));
+    expect(pickerResults(points, "", new Set(["c"])).shown.map((p) => p.key)).toEqual(["c", "a", "b"]);
+    expect(pickerResults(points, "system", new Set(["c"])).total).toBe(3);
+  });
+
+  it("labels the count, with a plus at the cap", () => {
+    expect(resultsLabel(3)).toBe("3 results");
+    expect(resultsLabel(PICKER_LIMIT)).toBe(`${PICKER_LIMIT}+ results`);
   });
 });
 

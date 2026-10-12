@@ -6,7 +6,6 @@ import { AssetError, acceptOf, formatBytes, uploadAsset, type AssetKind } from "
 import { cn } from "@/lib/utils";
 import { MediaLibrary } from "./media-library";
 import { FIELD } from "./setting-rows";
-import { ICON_BUTTON } from "./style-tools";
 
 interface MediaFieldProps {
   label: string;
@@ -77,20 +76,8 @@ export function MediaField({ label, kind, value, onChange, preview = "large", fi
       className={cn("space-y-2 rounded-md", dragging && "outline-2 outline-offset-2 outline-ui-accent outline-dashed")}
     >
       <div>
-        <div className="mb-1 flex items-center justify-between gap-2">
+        <div className="mb-2 flex min-h-[26px] items-center">
           <span className="text-[12.5px] text-ui-2">{label}</span>
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              className={cn(ICON_BUTTON, "w-auto gap-1 px-1.5 text-[11px]")}
-              disabled={busy}
-              onClick={() => fileInput.current?.click()}
-              title={`Upload ${kind === "image" ? "an image" : "a video"} to the dashboard server (or drop a file here)`}
-            >
-              <Upload className="h-3 w-3" /> Upload {kind}…
-            </button>
-            <MediaLibrary kind={kind} value={value} onPick={onChange} />
-          </div>
         </div>
         <input
           ref={fileInput}
@@ -122,6 +109,16 @@ export function MediaField({ label, kind, value, onChange, preview = "large", fi
             )}
           />
           {preview === "thumb" && value && <Thumb kind={kind} src={value} />}
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => fileInput.current?.click()}
+            title={`Upload ${kind === "image" ? "an image" : "a video"} to the dashboard server (or drop a file here)`}
+            className="flex h-[30px] shrink-0 items-center gap-1 whitespace-nowrap rounded-md border border-ui-strong bg-ui-hover px-[9px] text-[11.5px] text-ui-1 hover:bg-[#222228] disabled:opacity-50"
+          >
+            <Upload className="h-[15px] w-[15px]" /> Upload
+          </button>
+          <MediaLibrary kind={kind} value={value} onPick={onChange} />
         </div>
         {!valid && <div className="mt-1 text-[11px] text-ui-danger">Use an http(s) URL or a path such as /assets/…</div>}
         {status.state === "uploading" && (
