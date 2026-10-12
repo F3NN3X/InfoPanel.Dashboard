@@ -8,7 +8,7 @@ const visual: SheetGroup[] = [
   { heading: "Panel", cards: ["panel:main", "panel:layout", "panel:widgets"].map(card) },
   {
     heading: "Selected widget",
-    cards: ["widget:data", "widget:layout", "widget:typography", "widget:colors", "widget:advanced"].map(card),
+    cards: ["widget:kind", "widget:display", "widget:layout", "widget:typography", "widget:colors", "widget:advanced"].map(card),
   },
 ];
 
@@ -17,6 +17,8 @@ describe("cardsBySection", () => {
     const map = cardsBySection(visual);
     expect(map.get("panel")?.map((c) => c.id)).toEqual(["panel:main"]);
     expect(map.get("widgetColors")?.map((c) => c.id)).toEqual(["widget:typography", "widget:colors"]);
+    expect(map.get("widgetKind")?.map((c) => c.id)).toEqual(["widget:kind"]);
+    expect(map.get("widgetDisplay")?.map((c) => c.id)).toEqual(["widget:display"]);
     expect(map.has("panelJson")).toBe(false);
   });
 });
