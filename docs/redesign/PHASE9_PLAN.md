@@ -2,7 +2,8 @@
 
 Source handoff: `G:\win_user-folders\Downloads\Widget Studio UI Redesign (1)\widgets` (44 templates,
 14 skins, 24 surfaces, 2 variants) and its `docs/CLAUDE_CODE.md`. QA oracle: `Widget Templates.dc.html`
-in the parent folder. Status: **draft, awaiting approval**. Decisions are in §8.
+in the parent folder. Status: **implemented** on `feat/widget-library` (9.0–9.8). Decisions are in §8; review findings and
+their outcome in `phase9/review-ledger.md`, QA in `phase9/qa.md` and `phase9/qa-findings.md`.
 
 ## 1. Requirements (restated)
 - Bring the 44 templates into `src/widgets/` as the app's widget system. Every widget renders inside

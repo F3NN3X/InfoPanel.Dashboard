@@ -31,3 +31,18 @@ The spec is in `docs/redesign/`. Read `README.md` → `DATA_MODEL.md` → `FEATU
 - **Save:** the studio auto-pushes to the server; the Save button flushes, and its dot means
   "edits not pushed yet".
 - Work phase by phase; the app builds and tests pass at the end of each phase.
+
+## Widget library
+
+Every widget is a template in `src/widgets/<Id>.tsx` rendered inside the `<Widget>` shell
+(`src/widgets/core/`), registered through `templateModule` (`src/widgets/module.tsx`, registry in
+`src/widgets/registry/`). The legacy module ids in `src/modules/` are aliases of templates with their
+old settings arrays; never change those arrays. The plan and decisions are in
+`docs/redesign/PHASE9_PLAN.md`; the rendering path, skins and data adapter in `docs/architecture.md`.
+
+- **Settings:** build them with `src/widgets/registry/settings-kit.ts`; every setting reaches the template
+  through `toProps`. Schema tests (`registry/*.schema.test.ts`) guard each group.
+- **Data:** templates get flat strings (`toFlat`) and display names (`names`, read with `sensorLabel`).
+  A template that cannot name its keys is `readsAll`; one that needs no data belongs in `SENSORLESS`.
+- **Fit:** no overflow at cell 110 and 150 in any skin or variant. Check with the `?widget-qa` page
+  and `window.__qaOverflow()` (`docs/redesign/phase9/qa.md`, including the full-sweep script).

@@ -106,8 +106,12 @@ A zone only re-renders when one of the keys it reads changes.
   (`src/components/studio/placement-content.tsx`): `[]` for a blank zone,
   the bound sensor keys of the visible widgets for a custom panel,
   `null` (every sensor) for the "cards" catch-all, and `moduleReads` for a
-  module. A module with no prefixes (Web Page; Wave Link, which reads its own
-  stream) subscribes to nothing and opens no sensor stream.
+  module. A widget template that needs data but cannot name its keys up front
+  (a bound sensor, discovered hardware: System overview, Vitals, Thermals,
+  Sensor value, …) is marked `readsAll` by `templateModule` and gets `null`, so
+  it subscribes to every stream. A module with no prefixes and no data need
+  (Web Page, Calendar; Wave Link, which reads its own stream)
+  subscribes to nothing and opens no sensor stream.
 - `LivePlacement` calls `useSensors(prefixes)` (`src/hooks/useSensors.ts`).
   That retains the namespaces for the lifetime of the component and wraps the
   store in `useSyncExternalStore`, notifying only when a changed key starts
@@ -235,7 +239,8 @@ string data, drawn inside one `<Widget>` (`src/widgets/core/Widget.tsx`).
 A skin (`core/skins/<name>.ts`, 14 of them, registered in `SKIN_PACKS` in
 `core/theme.ts`) is a bundle of tokens: surface, radius, accent, fonts (UI and
 numerals), numeral weight and glow, graph and meter style, header style and ring
-thickness. `skinContext` merges it with the look into the `SkinCtx` that the
+thickness, plus `numWide` (the numeral face's width against a normal sans, for
+wide faces such as Orbitron, so fitted numbers still fit). `skinContext` merges it with the look into the `SkinCtx` that the
 primitives (`Num`, `Bar`, `Spark`, `Ring`, `LedLadder`, …) read, so a widget
 draws the same data in every skin. `resolveSurface` picks the surface:
 the `surface` setting, else the skin's, else `glass`. The app's four

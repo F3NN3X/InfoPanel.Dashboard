@@ -31,8 +31,7 @@ the page's cell). It writes one PNG per figure and returns only the count, never
 async (page) => {
   const stage = "before";
   const cell = new URL(page.url()).searchParams.get("cell") ?? "110";
-  const dir = `docs/redesign/phase9/shots/${stage}`;
-  require("fs").mkdirSync(dir, { recursive: true });
+  const dir = `docs/redesign/phase9/shots/${stage}`; // screenshot() creates it; fs is not available here
   const figs = await page.locator("figure[data-qa-module]").all();
   for (const fig of figs) {
     const m = await fig.getAttribute("data-qa-module");
@@ -57,9 +56,36 @@ px; an axis an ancestor clips with overflow is ignored). `kind: "overlaps"` is t
 whose rects intersect by more than 2px² (`dx` holds the area; the selector joins both with `X`).
 `kind: "clipped"` is a zone descendant with `overflow: hidden|clip` whose content is larger than its
 box (`scrollWidth > clientWidth + 1` or the same for height; `dx`/`dy` hold the hidden px). Elements that
-truncate on purpose (`text-overflow: ellipsis` with `white-space: nowrap`) and canvases, images, svg and
-video are skipped.
+truncate on purpose (`text-overflow: ellipsis` with `white-space: nowrap`, or `-webkit-line-clamp`),
+art inside a `[data-qa-bleed]` container, and canvases, images, svg and video are skipped.
 The geometry is in `src/widgets/qa-geometry.ts`.
+
+## Full sweep
+
+The acceptance check: every module at every span, cells 110 and 150, all 14 skins, both variants
+(56 page loads per id list, about 18,600 zones, 2–4 minutes). Run through `browser_run_code_unsafe`;
+it returns one line per failing `module|kind` and the count of error tiles (`[role=alert]`), which must
+both be zero.
+
+```js
+async (page) => {
+  const ids = ["<template ids, comma-separated>", "<legacy ids, comma-separated>"];
+  const spans = ["1x1,2x1,3x1,1x2,2x2,4x2", "2x1,3x2,4x2,6x3"];
+  const skins = ["default", "instrument", "tui", "ink", "android", "macos", "hud", "retro", "synth", "brutal", "cyber", "nixie", "fluent", "ios"];
+  const rows = {}; let errs = 0;
+  for (const cell of [110, 150]) for (const skin of skins) for (const variant of ["default", "studio"]) for (const i of [0, 1]) {
+    await page.goto(`${new URL(page.url()).origin}/?widget-qa&module=${ids[i]}&spans=${spans[i]}&cell=${cell}&skin=${skin}&variant=${variant}`);
+    await page.waitForTimeout(1800);
+    errs += await page.evaluate(() => document.querySelectorAll("[role=alert]").length);
+    for (const f of await page.evaluate(() => window.__qaOverflow()))
+      for (const x of f.issues) (rows[`${f.module}|${x.kind}`] ??= new Set()).add(`${f.span}@${cell}/${skin}/${variant[0]} d${x.dx}/${x.dy}`);
+  }
+  return JSON.stringify({ errs, rows: Object.fromEntries(Object.entries(rows).map(([k, v]) => [k, [...v].slice(0, 5)])) });
+}
+```
+
+The last full run (end of 9.8) was clean: 0 rows, 0 error tiles. Findings and decisions are in
+`review-ledger.md` and `qa-findings.md`.
 
 Legacy modules only show images given as http(s) URLs or root-relative paths with an image extension,
 so the fixtures use `/assets/qa/*.svg` (in `public/`), not data URLs.
