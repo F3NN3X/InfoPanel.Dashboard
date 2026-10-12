@@ -10,8 +10,6 @@ import {
   type RefCallback,
   type RefObject,
 } from "react";
-import { Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { PageBackground } from "@/components/page-background";
 import type { PageBackground as Background } from "@/lib/appearance";
 import type { Appearance } from "@/lib/style-resolve";
@@ -30,20 +28,22 @@ import { cn } from "@/lib/utils";
 import { PlacementFrame } from "./placement-frame";
 import { LivePlacement } from "./placement-content";
 import { RulerH, RulerV } from "./rulers";
-import {
-  ALL_MODULES,
-  DND_MIME,
-  DND_MIME_PANEL,
-  placementTitle,
-} from "./studio-modules";
+import { EmptyLayoutCard, QuickTipsCard } from "./canvas-cards";
+import { dropGhost, dropSize, libraryItemOf, type LibraryItem } from "./drop-ghost";
+import { DND_MIME, DND_MIME_PANEL, placementTitle } from "./studio-modules";
 import type { SelectMode } from "./selection";
+import { SelectionChipLayer } from "./selection-chip";
 import { zoneMinSize } from "./studio-actions";
 import { enforceMinSize, fitZoneRect, moveZoneSet, type ZoneRect } from "./zone-geometry";
-import { ZoneToolbarLayer } from "./zone-toolbar";
 
-/** The canvas' dotted grid (also drawn over a page background). */
-const DOTS = "radial-gradient(circle, hsl(var(--ring) / 0.22) 1px, transparent 1.25px)";
-const DOT_PITCH = "24px 24px";
+/** The canvas' dot grid (the board's alignment guides are the optional grid lines). */
+const DOTS = "radial-gradient(#1f1f25 1px, transparent 1px)";
+const DOT_PITCH = "18px 18px";
+/** The optional grid lines. */
+const GRID_LINE = "bg-[#1a1a20]";
+/** The drop ghost's colours: free (the accent) and "No room". */
+const GHOST_OK = { line: "var(--ui-accent)", fill: "oklch(0.72 0.15 255 / 0.12)" };
+const GHOST_DENIED = { line: "oklch(0.70 0.17 25)", fill: "oklch(0.70 0.17 25 / 0.10)" };
 
 interface StudioCanvasProps {
   profile: MonitorProfile;
@@ -81,22 +81,32 @@ interface StudioCanvasProps {
    * checked: all in the grid, no overlap; fires per cell).
    */
   onZoneRects: (id: string, rects: Record<string, ZoneRect>) => void;
+  /** A move / resize begins: all its changes are one undo step until commit. */
+  onDragBegin: () => void;
+  /** The drag was released. */
+  onDragCommit: () => void;
+  /** Esc aborted the drag: restore the start. */
+  onDragCancel: () => void;
   /** Open the widget picker for a (blank) zone. */
   onPickWidget: (id: string) => void;
-  /** A palette widget / panel was dropped on the canvas. */
-  onAddModule: (module: string) => void;
-  /** Add a panel preset (built in, starter or saved) by id. */
-  onAddPreset: (presetId: string) => void;
+  /** The footprint a library item drops with on this grid (null = unknown item). */
+  dropSizeOf: (item: LibraryItem) => { cols: number; rows: number } | null;
+  /** A library item was dropped: at the ghost's box, or null when the ghost said no room. */
+  onDropItem: (item: LibraryItem, rect: ZoneRect | null) => void;
+  /** Right-click (viewport px) on a zone, or on empty canvas (null). */
+  onContextMenu: (id: string | null, x: number, y: number) => void;
   /** Open the Add drawer (the empty canvas card). */
   onOpenAdd: () => void;
-  /** The selected zone's toolbar, kept next to its frame. */
-  zoneToolbar?: ReactNode;
+  /** Load the sample layout (the empty canvas card). */
+  onUseSample: () => void;
+  /** The selected zone's chip, kept above its frame. */
+  selectionChip?: ReactNode;
 }
 
 /**
- * The design canvas: rulers, the zoomable grid where zones are drawn,
+ * The design canvas: rulers, the zoomable board where zones are drawn,
  * moved and resized (biome-style, no overlap), drop target for the
- * palettes, and the move/resize ghosts.
+ * library (with a drop ghost), and the move/resize ghosts.
  */
 export function StudioCanvas({
   profile,
@@ -115,11 +125,16 @@ export function StudioCanvas({
   onDrawZone,
   onZoneRect,
   onZoneRects,
+  onDragBegin,
+  onDragCommit,
+  onDragCancel,
   onPickWidget,
-  onAddModule,
-  onAddPreset,
+  dropSizeOf,
+  onDropItem,
+  onContextMenu,
   onOpenAdd,
-  zoneToolbar,
+  onUseSample,
+  selectionChip,
 }: StudioCanvasProps) {
   const [zoneDrag, setZoneDrag] = useState<{
     id: string;
@@ -142,6 +157,9 @@ export function StudioCanvas({
   // Page size (design px), viewport (screen px) and the page's origin in the
   // scrolled content (screen px; the page is centered when it is smaller).
   const [canvas, setCanvas] = useState({ w: 0, h: 0, viewW: 0, viewH: 0, ox: 0, oy: 0 });
+  /** The library item being dragged (read at its dragstart; dragover can't read data). */
+  const dragItem = useRef<LibraryItem | null>(null);
+  const [dropPreview, setDropPreview] = useState<{ rect: ZoneRect; ok: boolean } | null>(null);
 
   // Measure the grid for resize calculations and alignment guides, in
   // design px: the on-screen width over the zoom (clientWidth inside a CSS
@@ -178,6 +196,25 @@ export function StudioCanvas({
     observer.observe(el);
     return () => observer.disconnect();
   }, [scrollRef, pageEl, zoom, profile.id, profile.cols, profile.width, profile.height, profile.padding, scroll]);
+
+  // The library's drag data is only readable at its dragstart: remember the
+  // item so the drop ghost can size itself while the pointer moves.
+  useEffect(() => {
+    const onStart = (e: globalThis.DragEvent) => {
+      const data = e.dataTransfer;
+      dragItem.current = data ? libraryItemOf((type) => data.getData(type)) : null;
+    };
+    const onEnd = () => {
+      dragItem.current = null;
+      setDropPreview(null);
+    };
+    document.addEventListener("dragstart", onStart);
+    document.addEventListener("dragend", onEnd);
+    return () => {
+      document.removeEventListener("dragstart", onStart);
+      document.removeEventListener("dragend", onEnd);
+    };
+  }, []);
 
   /**
    * Commit a zone move/resize: apply the clamped box (a resize keeps the
@@ -218,6 +255,13 @@ export function StudioCanvas({
   const onZoneDragEnd = () => {
     dragOrigin.current = null;
     setZoneDrag(null);
+    onDragCommit();
+  };
+
+  const onZoneDragCancel = () => {
+    dragOrigin.current = null;
+    setZoneDrag(null);
+    onDragCancel();
   };
 
   /**
@@ -257,15 +301,35 @@ export function StudioCanvas({
     window.addEventListener("pointerup", up);
   };
 
+  const isLibraryDrag = (e: DragEvent) =>
+    e.dataTransfer.types.includes(DND_MIME) || e.dataTransfer.types.includes(DND_MIME_PANEL);
+
+  /** Library drag over the board: the ghost follows the pointer's cell. */
+  const onCanvasDragOver = (e: DragEvent) => {
+    if (!isLibraryDrag(e)) return;
+    e.preventDefault();
+    const cell = cellAt(e.clientX, e.clientY);
+    const size = (dragItem.current && dropSizeOf(dragItem.current)) ?? dropSize({ cols: 1, rows: 1 }, profile);
+    const next = cell ? dropGhost(cell, size, profile, profile.placements) : null;
+    setDropPreview((prev) =>
+      prev?.ok === next?.ok &&
+      prev?.rect.col === next?.rect.col &&
+      prev?.rect.row === next?.rect.row &&
+      prev?.rect.cols === next?.rect.cols &&
+      prev?.rect.rows === next?.rect.rows
+        ? prev
+        : next
+    );
+  };
+
+  /** Drop: the zone is created at the ghost's spot, or "No room there". */
   const onCanvasDrop = (e: DragEvent) => {
     e.preventDefault();
-    const module = e.dataTransfer.getData(DND_MIME);
-    if (module && ALL_MODULES.some((m) => m.id === module)) {
-      onAddModule(module);
-      return;
-    }
-    const presetId = e.dataTransfer.getData(DND_MIME_PANEL);
-    if (presetId) onAddPreset(presetId);
+    const preview = dropPreview;
+    dragItem.current = null;
+    setDropPreview(null);
+    const item = libraryItemOf((type) => e.dataTransfer.getData(type));
+    if (item) onDropItem(item, preview?.ok ? preview.rect : null);
   };
 
   // The profile's spacing (as the kiosk page shows it): the gap between
@@ -276,7 +340,7 @@ export function StudioCanvas({
   /** Gap in display px. */
   const g = gap * zoom;
 
-  // Alignment guides: vertical lines at the column boundaries (gap-aware).
+  // Alignment lines: at the column / row boundaries (gap-aware).
   // Design px: these sit inside the zoomed page (CSS zoom scales them).
   const colW = gridWidth > 0 ? trackSize(gridWidth, profile.cols, gap) : 0;
   const guides = colW > 0 ? columnGuides(gridWidth, profile.cols, gap) : [];
@@ -286,6 +350,7 @@ export function StudioCanvas({
   const rowH = fill
     ? Math.max(24, trackSize(profile.height - 2 * padding, profile.rows, gap))
     : SCROLL_ROW_H;
+  const rowGuides = columnGuides(profile.rows * rowH + (profile.rows - 1) * gap, profile.rows, gap);
   const getGridRect = () => gridEl?.getBoundingClientRect() ?? null;
 
   /** The 1-based grid cell under a screen point (null outside the grid). */
@@ -306,9 +371,6 @@ export function StudioCanvas({
     return zoneBox(r, { width: colW, height: rowHd }, gap);
   };
 
-  // The canvas paints the profile's page (its background, or its own
-  // theme's page color) with the dots kept over it.
-  const paintsPage = Boolean(background || themeScope);
   const font = fontStack(useGeneral().font);
 
   const dragged = zoneDrag
@@ -318,7 +380,7 @@ export function StudioCanvas({
   const selected = profile.placements.find((x) => x.id === primaryId);
 
   return (
-    <div className="relative flex min-h-0 flex-1 flex-col">
+    <div className="relative flex min-h-0 flex-1 flex-col bg-ui-app">
       {/* Ruler row */}
       {showRulers && (
         <div className="flex shrink-0">
@@ -354,11 +416,15 @@ export function StudioCanvas({
                 top: e.currentTarget.scrollTop,
               })
             }
-            onDragOver={(e) => {
-              const { types } = e.dataTransfer;
-              if (types.includes(DND_MIME) || types.includes(DND_MIME_PANEL)) e.preventDefault();
+            onDragOver={onCanvasDragOver}
+            onDragLeave={(e) => {
+              if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDropPreview(null);
             }}
             onDrop={onCanvasDrop}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              onContextMenu(null, e.clientX, e.clientY);
+            }}
             onClick={(e) => {
               if (e.target === e.currentTarget) onSelect(null);
             }}
@@ -371,7 +437,7 @@ export function StudioCanvas({
               className="flex min-h-full w-fit min-w-full p-4"
               style={{
                 zoom,
-                backgroundImage: showGrid ? DOTS : undefined,
+                backgroundImage: DOTS,
                 backgroundSize: DOT_PITCH,
               }}
             >
@@ -392,6 +458,9 @@ export function StudioCanvas({
                   ...themeScope,
                   padding,
                   fontFamily: font,
+                  // The board's dashed outline, 6px off the page.
+                  outline: "1px dashed #2a2a31",
+                  outlineOffset: 6,
                   ...(profile.width > 0 ? { width: profile.width } : {}),
                   ...(fill ? { height: profile.height } : {}),
                 }}
@@ -399,15 +468,8 @@ export function StudioCanvas({
                   if (e.target === e.currentTarget) onSelect(null);
                 }}
               >
-                {/* Page background (as in the kiosk), the dots kept over it,
-                    in line with the canvas' own (offset by its p-4) */}
+                {/* Page background (as in the kiosk) behind the tiles */}
                 {background && <PageBackground background={background} className="absolute inset-0 -z-20" />}
-                {paintsPage && showGrid && (
-                  <div
-                    className="pointer-events-none absolute inset-0 -z-10"
-                    style={{ backgroundImage: DOTS, backgroundSize: DOT_PITCH, backgroundPosition: "-16px -16px" }}
-                  />
-                )}
                 <div
                   ref={setGridEl}
                   className={cn("relative isolate grid", fill && "h-full")}
@@ -425,13 +487,21 @@ export function StudioCanvas({
                     if (e.target === e.currentTarget && !drewRef.current) onSelect(null);
                   }}
                 >
-                  {/* Column alignment guides */}
+                  {/* Optional grid lines at the column / row boundaries */}
                   {showGrid &&
                     guides.map((x, i) => (
                       <div
-                        key={i}
-                        className="pointer-events-none absolute bottom-0 top-0 w-px bg-ring/15"
+                        key={`c${i}`}
+                        className={cn("pointer-events-none absolute bottom-0 top-0 w-px", GRID_LINE)}
                         style={{ left: x }}
+                      />
+                    ))}
+                  {showGrid &&
+                    rowGuides.map((y, i) => (
+                      <div
+                        key={`r${i}`}
+                        className={cn("pointer-events-none absolute left-0 right-0 h-px", GRID_LINE)}
+                        style={{ top: y }}
                       />
                     ))}
 
@@ -443,12 +513,28 @@ export function StudioCanvas({
                       if (!style) return null;
                       return (
                         <div
-                          className="pointer-events-none absolute z-30 rounded-lg border-2 border-dashed border-ring bg-ring/10"
+                          className="pointer-events-none absolute z-30 rounded-lg border-2 border-dashed border-ui-accent bg-ui-accent/10"
                           style={style}
                         >
-                          <span className="absolute left-1.5 top-0.5 text-[10px] font-semibold tabular-nums text-ring">
+                          <span className="absolute left-1.5 top-0.5 font-ui-mono text-[10px] font-semibold tabular-nums text-ui-accent-text">
                             C{r.col} · R{r.row} · {r.cols}×{r.rows}
                           </span>
+                        </div>
+                      );
+                    })()}
+
+                  {/* Library drop ghost: where the dragged item would land */}
+                  {dropPreview &&
+                    (() => {
+                      const style = zoneBoxStyle(dropPreview.rect);
+                      if (!style) return null;
+                      const tone = dropPreview.ok ? GHOST_OK : GHOST_DENIED;
+                      return (
+                        <div
+                          className="pointer-events-none absolute z-30 flex items-center justify-center rounded-lg border-[1.5px] border-dashed font-ui text-[11px] font-semibold"
+                          style={{ ...style, borderColor: tone.line, background: tone.fill, color: tone.line }}
+                        >
+                          {dropPreview.ok ? "Drop here" : "No room"}
                         </div>
                       );
                     })()}
@@ -475,12 +561,15 @@ export function StudioCanvas({
                           rowHeight={rowH}
                           ghost={zoneDrag?.ids.includes(p.id)}
                           onZoneDrag={onZoneDrag}
+                          onZoneDragStart={onDragBegin}
                           onZoneDragEnd={onZoneDragEnd}
+                          onZoneDragCancel={onZoneDragCancel}
                           selected={selectedIds.includes(p.id)}
                           primary={primaryId === p.id}
                           onSelect={(mode) => onSelect(p.id, mode)}
                           onSelectWidget={p.panel ? (widgetId) => onSelectWidget(p.id, widgetId) : undefined}
                           onPickWidget={() => onPickWidget(p.id)}
+                          onContextMenu={(x, y) => onContextMenu(p.id, x, y)}
                         >
                           {content}
                         </PlacementFrame>
@@ -493,8 +582,8 @@ export function StudioCanvas({
             </div>
           </div>
 
-          {selected && zoneToolbar && !zoneDrag && !drawing && (
-            <ZoneToolbarLayer
+          {selected && selectionChip && !zoneDrag && !drawing && (
+            <SelectionChipLayer
               scrollRef={scrollRef}
               zoneId={selected.id}
               layoutKey={[
@@ -513,27 +602,15 @@ export function StudioCanvas({
                 gridWidth,
               ].join("|")}
             >
-              {zoneToolbar}
-            </ZoneToolbarLayer>
+              {selectionChip}
+            </SelectionChipLayer>
           )}
 
           {profile.placements.length === 0 && !drawing && (
-            <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
-              <div className="pointer-events-auto flex flex-col items-center gap-3 rounded-lg border border-border bg-popover/95 px-6 py-5 text-center shadow-lg">
-                <div className="text-sm font-medium text-foreground">
-                  Draw a zone, or drag a widget from Add
-                </div>
-                <p className="max-w-64 text-xs text-muted-foreground">
-                  Drag across the empty grid to draw a zone, then pick a
-                  widget for it.
-                </p>
-                <Button size="sm" variant="outline" className="h-8 gap-1.5 text-xs" onClick={onOpenAdd}>
-                  <Plus className="h-3.5 w-3.5" /> Open Add
-                </Button>
-              </div>
-            </div>
+            <EmptyLayoutCard onBrowse={onOpenAdd} onUseSample={onUseSample} />
           )}
 
+          <QuickTipsCard />
         </div>
       </div>
 
@@ -541,11 +618,11 @@ export function StudioCanvas({
           so the zone being moved/resized is always visibly tracked. */}
       {zoneDrag && dragged && (
         <div
-          className="pointer-events-none fixed z-50 rounded-md border border-ring bg-popover px-2 py-1 text-[11px] font-medium shadow-lg"
+          className="pointer-events-none fixed z-50 rounded-md border border-ui-menu bg-ui-raised px-2 py-1 font-ui text-[11px] font-medium text-ui-1 shadow-ui-float"
           style={{ left: zoneDrag.x + 14, top: zoneDrag.y + 14 }}
         >
           {zoneDrag.ids.length > 1 ? `${zoneDrag.ids.length} zones` : placementTitle(dragged)}{" "}
-          <span className="tabular-nums text-muted-foreground">
+          <span className="font-ui-mono tabular-nums text-ui-3">
             → C{zoneDrag.rect.col} · R{zoneDrag.rect.row} · {zoneDrag.rect.cols}×{zoneDrag.rect.rows}
           </span>
         </div>

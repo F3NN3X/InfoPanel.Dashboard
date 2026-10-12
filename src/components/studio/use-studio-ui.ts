@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { DashboardConfig, MonitorProfile, Widget } from "@/lib/layout";
-import type { ModuleSettings } from "@/modules/types";
+import type { InspectorTab, ModuleSettings } from "@/modules/types";
 import { useStoredDrawer, type Drawer, type RailItem } from "./left-rail";
 import { revealWidgetEditor, scrollInspectorToTop } from "./inspector-scroll";
 import { useCanvasZoom } from "./use-canvas-zoom";
@@ -28,6 +28,17 @@ export function useStudioUi(config: DashboardConfig, profile: MonitorProfile, on
   /** A request to scroll the zone inspector to a card (`seq` makes repeats count). */
   const [inspectorJump, setInspectorJump] = useState<{ id: string; seq: number }>();
   const jumpInspector = (id: string) => setInspectorJump((j) => ({ id, seq: (j?.seq ?? 0) + 1 }));
+  /**
+   * A request to show a zone inspector tab. `picker` also opens the Data tab's bind picker;
+   * `seq` makes repeats count.
+   */
+  const [inspectorRequest, setInspectorRequest] = useState<{
+    tab: InspectorTab;
+    picker: boolean;
+    seq: number;
+  }>();
+  const requestInspectorTab = (tab: InspectorTab, picker = false) =>
+    setInspectorRequest((r) => ({ tab, picker, seq: (r?.seq ?? 0) + 1 }));
   /** A request for a Dashboard inspector tab (`seq` makes repeats count): the inspector shows it while nothing is selected. */
   const [documentTabRequest, setDocumentTabRequest] = useState<{ tab: string; seq: number }>();
   const openDocumentTab = (tab: string) => setDocumentTabRequest((r) => ({ tab, seq: (r?.seq ?? 0) + 1 }));
@@ -111,6 +122,8 @@ export function useStudioUi(config: DashboardConfig, profile: MonitorProfile, on
     openDocumentTab,
     inspectorJump,
     jumpInspector,
+    inspectorRequest,
+    requestInspectorTab,
     inspectorQuery,
     setInspectorQuery,
     inspectorRef,

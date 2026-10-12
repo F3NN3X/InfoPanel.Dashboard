@@ -9,6 +9,12 @@ import {
 import { userPanelPreset, type PanelPreset } from "@/lib/panelPresets";
 import {
   addBlankZone,
+  addModuleAt,
+  addPresetAt,
+  canGrowTo,
+  followGlobalStyle,
+  pasteStyleToZones,
+  withSampleZones,
   addModulePlacement,
   addPresetPlacement,
   assignModule,
@@ -402,5 +408,78 @@ describe("zoneMinSize", () => {
     expect(zoneMinSize(zone("a", 1, 1, 1, 1, { module: m.id }))).toEqual({ cols: m.minCols, rows: m.minRows });
     expect(zoneMinSize(zone("b", 1, 1, 1, 1, { module: BLANK_MODULE }))).toEqual({ cols: 1, rows: 1 });
     expect(zoneMinSize(zone("c", 1, 1, 1, 1, { module: PANEL_ID }))).toEqual({ cols: 1, rows: 1 });
+  });
+});
+
+describe("addModuleAt / addPresetAt", () => {
+  it("adds at the exact box", () => {
+    const after = addModuleAt(profile([]), "n", "cpu", { col: 5, row: 2, cols: 3, rows: 2 });
+    expect(after.placements[0]).toMatchObject({ id: "n", module: "cpu", colStart: 5, rowStart: 2, colSpan: 3, rowSpan: 2 });
+    const p = addPresetAt(profile([]), "n", preset(2, 1), { col: 3, row: 3, cols: 2, rows: 1 });
+    expect(p.placements[0]).toMatchObject({ id: "n", module: PANEL_ID, colStart: 3, rowStart: 3 });
+    expect(p.placements[0].panel).toBeDefined();
+  });
+});
+
+describe("canGrowTo", () => {
+  const blank = (id: string, c: number, r: number, w: number, h: number) =>
+    zone(id, c, r, w, h, { module: BLANK_MODULE });
+
+  it("is true when the zone has the room", () => {
+    const p = profile([blank("b", 1, 1, 3, 2)]);
+    expect(canGrowTo(p, "b", { cols: 3, rows: 2 })).toBe(true);
+    expect(canGrowTo(p, "b", { cols: 5, rows: 2 })).toBe(true);
+  });
+
+  it("is false when growing would cover another zone", () => {
+    const p = profile([blank("b", 1, 1, 1, 1), zone("o", 2, 1, 2, 1)], 4, 2);
+    expect(canGrowTo(p, "b", { cols: 2, rows: 1 })).toBe(false);
+  });
+
+  it("is false for an unknown zone", () => {
+    expect(canGrowTo(profile([]), "x", { cols: 1, rows: 1 })).toBe(false);
+  });
+});
+
+describe("pasteStyleToZones", () => {
+  it("replaces the look of the set, skipping blanks and other zones", () => {
+    const p = profile([
+      zone("a", 1, 1, 2, 1, { module: "fpsmodern", settings: { accent: "#f00" } }),
+      zone("b", 3, 1, 2, 1, { module: BLANK_MODULE }),
+      zone("c", 5, 1, 2, 1, { module: "fpsmodern", settings: { accent: "#0f0" } }),
+    ]);
+    const out = pasteStyleToZones(p, ["a", "b"], { accent: "#00f" });
+    expect(out.placements[0].settings?.accent).toBe("#00f");
+    expect(out.placements[1]).toBe(p.placements[1]);
+    expect(out.placements[2]).toBe(p.placements[2]);
+  });
+
+  it("switches a following zone to custom", () => {
+    const p = profile([zone("a", 1, 1, 2, 1, { module: "fpsmodern", styleMode: "follow" })]);
+    expect(pasteStyleToZones(p, ["a"], { accent: "#00f" }).placements[0].styleMode).toBe("custom");
+  });
+});
+
+describe("followGlobalStyle", () => {
+  it("sets follow and drops the look keys, keeping content settings", () => {
+    const p = profile([zone("a", 1, 1, 2, 1, { module: "cpu", settings: { accent: "#f00", sensor: "x" } })]);
+    const out = followGlobalStyle(p, ["a"]).placements[0];
+    expect(out.styleMode).toBe("follow");
+    expect(out.settings).toEqual({ sensor: "x" });
+  });
+
+  it("leaves no settings when nothing is left", () => {
+    const p = profile([zone("a", 1, 1, 2, 1, { module: "cpu", settings: { accent: "#f00" } })]);
+    expect(followGlobalStyle(p, ["a"]).placements[0].settings).toBeUndefined();
+  });
+});
+
+describe("withSampleZones", () => {
+  it("takes the sample's grid and fresh copies of its zones", () => {
+    const sample = profile([zone("s1", 1, 1, 2, 1), zone("s2", 3, 1, 2, 1)], 8, 3);
+    const out = withSampleZones(profile([]), sample);
+    expect(out).toMatchObject({ id: "prof", cols: 8, rows: 3 });
+    expect(out.placements).toHaveLength(2);
+    expect(out.placements.map((p) => p.id)).not.toContain("s1");
   });
 });

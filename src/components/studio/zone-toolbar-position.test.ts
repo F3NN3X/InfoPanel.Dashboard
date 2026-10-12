@@ -7,12 +7,12 @@ const bar = { width: 300, height: 30 };
 describe("toolbarPosition", () => {
   it("sits above the zone, left-aligned", () => {
     const zone = { left: 100, top: 200, width: 200, height: 100 };
-    expect(toolbarPosition(zone, view, bar)).toEqual({ left: 100, top: 164, side: "above" });
+    expect(toolbarPosition(zone, view, bar)).toEqual({ left: 100, top: 163, side: "above" });
   });
 
   it("goes below when there is no room above", () => {
     const zone = { left: 100, top: 10, width: 200, height: 100 };
-    expect(toolbarPosition(zone, view, bar)).toEqual({ left: 100, top: 116, side: "below" });
+    expect(toolbarPosition(zone, view, bar)).toEqual({ left: 100, top: 117, side: "below" });
   });
 
   it("pins inside a zone that leaves no room above or below", () => {

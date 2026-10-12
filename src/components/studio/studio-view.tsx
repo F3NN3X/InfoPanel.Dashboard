@@ -29,7 +29,8 @@ import { useStudioCommands } from "./use-studio-commands";
 import { useStudioMutations } from "./use-studio-mutations";
 import { useStudioSelection } from "./use-studio-selection";
 import { useInspectorFollowsSelection, useStudioUi } from "./use-studio-ui";
-import { ZoneToolbar } from "./zone-toolbar";
+import { SelectionChip } from "./selection-chip";
+import { StudioContextMenu, useContextMenu } from "./zone-context-menu";
 import { widgetName } from "./widget-kinds";
 import { WidgetPickerDialog } from "./widget-picker-dialog";
 import { ZoomToolbar } from "./zoom-toolbar";
@@ -58,7 +59,16 @@ interface StudioViewProps {
  * shortcuts and the Ctrl+K command palette reach the same actions as the
  * mouse. The state lives in the `use-studio-*` hooks; this composes them.
  */
-export function StudioView({
+export function StudioView(props: StudioViewProps) {
+  // The toast host wraps the view so the hooks below can raise toasts.
+  return (
+    <ToastProvider>
+      <StudioViewBody {...props} />
+    </ToastProvider>
+  );
+}
+
+function StudioViewBody({
   config,
   profile,
   setConfig: setConfigState,
@@ -90,6 +100,7 @@ export function StudioView({
   );
   /** The global style the zones render under. */
   const appearance = appearanceOf(config, profile);
+  const menus = useContextMenu(sel);
   const { runCommand, commands, focusZone } = useStudioCommands({
     config,
     profile,
@@ -148,7 +159,7 @@ export function StudioView({
         onRenamePreset: edit.renameSavedPanel,
         onDeletePreset: edit.deleteSavedPanel,
         blankZoneId,
-        onFillBlank: (zoneId, item) => edit.assignWidget(zoneId, `${item.kind === "panel" ? "preset" : "module"}:${item.id}`),
+        onFillBlank: edit.fillBlank,
       }}
       layers={{
         placements: profile.placements,
@@ -156,6 +167,7 @@ export function StudioView({
         onSelect: (id, toggle) => (toggle ? sel.select(id, "toggle") : focusZone(id)),
         onToggle: edit.toggleVisible,
         onRemove: edit.removePlacement,
+        onContextMenu: menus.open,
         onAdd: () => ui.setDrawer("add"),
       }}
       profiles={{
@@ -207,27 +219,24 @@ export function StudioView({
         sel.select(id);
         ui.setPickerFor(id);
       }}
-      onAddModule={edit.addPlacement}
-      onAddPreset={edit.addPanelPresetById}
+      onDragBegin={history.begin}
+      onDragCommit={history.commit}
+      onDragCancel={history.cancel}
+      dropSizeOf={edit.dropSizeOf}
+      onDropItem={edit.dropItem}
+      onContextMenu={menus.open}
       onOpenAdd={() => ui.setDrawer("add")}
-      zoneToolbar={
+      onUseSample={() => runCommand({ type: "sample-layout" })}
+      selectionChip={
         selected && (
-          <ZoneToolbar
+          <SelectionChip
             placement={selected}
             count={sel.selection.length}
             anyVisible={sel.selection.some((p) => p.visible)}
             widgetLabel={selectedWidget ? widgetName(selectedWidget, catalog) : undefined}
             onPickWidget={() => ui.setPickerFor(selected.id)}
-            canResize={(size) => edit.resizeSelected(size) !== null}
-            onResize={(size) => {
-              const rect = edit.resizeSelected(size);
-              if (rect) edit.setZoneRect(selected.id, rect);
-            }}
             onToggleVisible={edit.toggleSelectionVisible}
-            onDuplicate={edit.duplicateSelection}
-            onRemove={edit.removeSelection}
-            onStyle={() => ui.jumpInspector("colors")}
-            onDeselect={() => sel.select(null)}
+            onMore={(x, y) => menus.open(selected.id, x, y)}
           />
         )
       }
@@ -254,86 +263,97 @@ export function StudioView({
   );
 
   return (
-    <ToastProvider>
-      <div className="flex h-screen flex-col overflow-hidden bg-ui-app font-ui text-ui-1">
-        <StudioTopBar
-          profiles={config.profiles}
-          activeProfile={config.activeProfile}
-          profile={profile}
-          onActivate={activateProfile}
-          onOpenProfiles={() => {
-            ui.setMode("design");
-            ui.setDrawer("profiles");
-          }}
-          mode={ui.mode}
-          onMode={ui.setMode}
-          saved={ui.saved}
-          unsaved={pushPending}
-          onSave={ui.handleSave}
-          onExitStudio={onExitStudio}
-          onExport={() => exportConfigFile(config)}
-          onImport={() => ui.importRef.current?.click()}
-          onReset={() => setConfig(defaultConfig())}
-          canUndo={history.canUndo}
-          canRedo={history.canRedo}
-          onUndo={history.undo}
-          onRedo={history.redo}
-          onPalette={() => ui.setPaletteOpen(true)}
-          onShortcuts={() => ui.setShortcutsOpen(true)}
-        />
-        <StudioShell
-          layout={studioLayout}
-          rail={
-            <LeftRail
-              active={showSources ? "sources" : drawer}
-              onSelect={ui.onRail}
-              onShortcuts={() => ui.setShortcutsOpen(true)}
-            />
-          }
-          drawer={!showSources && drawer && drawerEl}
-          main={mainEl}
-          bar={bar}
-          inspector={showSources ? null : inspectorAside}
-          dockToggle={
-            <DockToggle
-              collapsed={studioLayout.collapsed}
-              onToggle={studioLayout.toggleCollapsed}
-              summary={selected ? placementTitle(selected) : "Appearance · Background · General · Connection"}
-            />
-          }
-        />
+    <div className="flex h-screen flex-col overflow-hidden bg-ui-app font-ui text-ui-1">
+      <StudioTopBar
+        profiles={config.profiles}
+        activeProfile={config.activeProfile}
+        profile={profile}
+        onActivate={activateProfile}
+        onOpenProfiles={() => {
+          ui.setMode("design");
+          ui.setDrawer("profiles");
+        }}
+        mode={ui.mode}
+        onMode={ui.setMode}
+        saved={ui.saved}
+        unsaved={pushPending}
+        onSave={ui.handleSave}
+        onExitStudio={onExitStudio}
+        onExport={() => exportConfigFile(config)}
+        onImport={() => ui.importRef.current?.click()}
+        onReset={() => setConfig(defaultConfig())}
+        canUndo={history.canUndo}
+        canRedo={history.canRedo}
+        onUndo={history.undo}
+        onRedo={history.redo}
+        onPalette={() => ui.setPaletteOpen(true)}
+        onShortcuts={() => ui.setShortcutsOpen(true)}
+      />
+      <StudioShell
+        layout={studioLayout}
+        rail={
+          <LeftRail
+            active={showSources ? "sources" : drawer}
+            onSelect={ui.onRail}
+            onShortcuts={() => ui.setShortcutsOpen(true)}
+          />
+        }
+        drawer={!showSources && drawer && drawerEl}
+        main={mainEl}
+        bar={bar}
+        inspector={showSources ? null : inspectorAside}
+        dockToggle={
+          <DockToggle
+            collapsed={studioLayout.collapsed}
+            onToggle={studioLayout.toggleCollapsed}
+            summary={selected ? placementTitle(selected) : "Appearance · Background · General · Connection"}
+          />
+        }
+      />
 
-        <WidgetPickerDialog
-          placement={profile.placements.find((p) => p.id === ui.pickerFor) ?? null}
-          placements={profile.placements}
-          savedPanels={config.panelPresets}
-          onRenamePreset={edit.renameSavedPanel}
-          onDeletePreset={edit.deleteSavedPanel}
-          onPick={(value) => {
-            if (ui.pickerFor) edit.assignWidget(ui.pickerFor, value);
-            ui.setPickerFor(null);
-          }}
-          onClose={() => ui.setPickerFor(null)}
+      <WidgetPickerDialog
+        placement={profile.placements.find((p) => p.id === ui.pickerFor) ?? null}
+        placements={profile.placements}
+        savedPanels={config.panelPresets}
+        onRenamePreset={edit.renameSavedPanel}
+        onDeletePreset={edit.deleteSavedPanel}
+        onPick={(value) => {
+          if (ui.pickerFor) edit.assignWidget(ui.pickerFor, value);
+          ui.setPickerFor(null);
+        }}
+        onClose={() => ui.setPickerFor(null)}
+      />
+      <CommandPalette
+        open={ui.paletteOpen}
+        onOpenChange={ui.setPaletteOpen}
+        commands={commands}
+        onRun={(command) => runCommand(command.action)}
+      />
+      {menus.menu && (
+        <StudioContextMenu
+          menu={menus.menu}
+          sel={sel}
+          canPasteStyle={ui.styleClipboard !== null}
+          canStep={(cols, rows) =>
+            selected !== null &&
+            edit.resizeSelected({ cols: selected.colSpan + cols, rows: selected.rowSpan + rows }) !== null
+          }
+          onRun={runCommand}
+          onClose={menus.close}
         />
-        <CommandPalette
-          open={ui.paletteOpen}
-          onOpenChange={ui.setPaletteOpen}
-          commands={commands}
-          onRun={(command) => runCommand(command.action)}
-        />
-        <ShortcutsDialog open={ui.shortcutsOpen} onOpenChange={ui.setShortcutsOpen} />
-        <input
-          ref={ui.importRef}
-          type="file"
-          accept="application/json"
-          className="hidden"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) importConfigFile(file, setConfig);
-            e.target.value = "";
-          }}
-        />
-      </div>
-    </ToastProvider>
+      )}
+      <ShortcutsDialog open={ui.shortcutsOpen} onOpenChange={ui.setShortcutsOpen} />
+      <input
+        ref={ui.importRef}
+        type="file"
+        accept="application/json"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) importConfigFile(file, setConfig);
+          e.target.value = "";
+        }}
+      />
+    </div>
   );
 }

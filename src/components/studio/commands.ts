@@ -47,7 +47,16 @@ export type CommandAction =
   | { type: "follow-all" }
   | { type: "toggle-enforce" }
   | { type: "apply-appearance"; id: string }
-  | { type: "goto-setting"; label: string };
+  | { type: "goto-setting"; label: string }
+  | { type: "edit-style" }
+  | { type: "bind-data" }
+  | { type: "edit-theme" }
+  | { type: "copy-style" }
+  | { type: "paste-style" }
+  | { type: "follow-global" }
+  | { type: "deselect" }
+  | { type: "resize-step"; cols: number; rows: number }
+  | { type: "sample-layout" };
 
 export interface Command {
   id: string;
@@ -163,6 +172,22 @@ function selectionCommands(selection: Placement[]): Command[] {
   ];
 }
 
+/** Copy / paste the look and follow the global style, for the selected zone(s). */
+function styleCommands(): Command[] {
+  const style = (id: string, label: string, action: CommandAction, hint?: string): Command => ({
+    id: `style:${id}`,
+    label,
+    group: "Zone style",
+    hint,
+    action,
+  });
+  return [
+    style("copy", "Copy style", { type: "copy-style" }, KEYS.copyStyle),
+    style("paste", "Paste style", { type: "paste-style" }, KEYS.pasteStyle),
+    style("follow", "Follow global style", { type: "follow-global" }),
+  ];
+}
+
 /** `widgetKeys`: Ctrl+D / Del act on the selected widget, so the zone's show no key. */
 function selectedCommands(selected: Placement, settings: ModuleSetting[], widgetKeys: boolean): Command[] {
   const zone = (id: string, label: string, action: CommandAction, hint?: string): Command => ({
@@ -245,6 +270,7 @@ export function buildCommands(s: CommandState): Command[] {
       : s.selected
         ? selectedCommands(s.selected, s.settings, s.widget !== null)
         : []),
+    ...(s.selected ? styleCommands() : []),
     ...selectWidgetCommands(widgets),
     ...generalCommands(s),
     ...s.appearancePresets.map(

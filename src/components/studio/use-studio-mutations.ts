@@ -1,8 +1,10 @@
 import type { HistorySetter } from "@/hooks/use-config-history";
+import { useToast } from "@/components/ui/toast";
 import {
   BLANK_MODULE,
   PANEL_ID,
   newProfile,
+  sampleProfile,
   uid,
   type DashboardConfig,
   type MonitorProfile,
@@ -12,9 +14,17 @@ import { findPanelPreset, type PanelPreset } from "@/lib/panelPresets";
 import type { ModuleSettings } from "@/modules/types";
 import * as actions from "./studio-actions";
 import { deletePanelPreset, renamePanelPreset, savePanelPreset } from "./panel-preset-actions";
-import { moduleMinSize } from "./studio-modules";
+import { dropSize, type LibraryItem } from "./drop-ghost";
+import { ALL_MODULES, moduleMinSize } from "./studio-modules";
 import type { StudioSelection } from "./use-studio-selection";
-import { enforceMinSize, fitZoneRect, moveZoneSet, resizeZone, type ZoneRect } from "./zone-geometry";
+import {
+  enforceMinSize,
+  firstFreeRect,
+  fitZoneRect,
+  moveZoneSet,
+  resizeZone,
+  type ZoneRect,
+} from "./zone-geometry";
 
 interface MutationDeps {
   config: DashboardConfig;
@@ -40,6 +50,7 @@ const sameRect = (zone: Placement, rect: ZoneRect) =>
  */
 export function useStudioMutations({ config, profile, setConfig, sel, onPresetSaved, windowSize }: MutationDeps) {
   const { selected } = sel;
+  const toast = useToast();
 
   /** Mutate the active profile; same-`key` changes coalesce in undo. */
   const updateProfile = (fn: (p: MonitorProfile) => MonitorProfile, key?: string) => {
@@ -61,28 +72,86 @@ export function useStudioMutations({ config, profile, setConfig, sel, onPresetSa
     if (selected) updatePlacement(selected.id, fn, key && `${selected.id}:${key}`);
   };
 
-  const addPlacement = (module: string) => {
-    const id = uid(module);
-    updateProfile((p) => actions.addModulePlacement(p, id, module, moduleMinSize(module)));
-    sel.select(id);
+  /** A library item's name (toasts) and its footprint when placed on this grid. */
+  const libraryInfo = (item: LibraryItem): { title: string; size: { cols: number; rows: number } } | null => {
+    if (item.kind === "module") {
+      const title = item.id === BLANK_MODULE ? "Blank zone" : ALL_MODULES.find((m) => m.id === item.id)?.title;
+      return title ? { title, size: dropSize(moduleMinSize(item.id), profile) } : null;
+    }
+    const preset = findPanelPreset(item.id, config.panelPresets);
+    if (!preset) return null;
+    return {
+      title: preset.title,
+      size: { cols: Math.min(profile.cols, preset.colSpan), rows: Math.min(profile.rows, preset.rowSpan) },
+    };
   };
+
+  /** The footprint a dragged library item would drop with (null = unknown item). */
+  const dropSizeOf = (item: LibraryItem) => libraryInfo(item)?.size ?? null;
+
+  /** Create a library item's zone in `rect` (already checked free) and select it. */
+  const createAt = (item: LibraryItem, rect: ZoneRect) => {
+    const preset = item.kind === "panel" ? findPanelPreset(item.id, config.panelPresets) : undefined;
+    if (item.kind === "panel" && !preset) return null;
+    const id = uid(item.kind === "panel" ? PANEL_ID : item.id);
+    updateProfile((p) =>
+      preset ? actions.addPresetAt(p, id, preset, rect) : actions.addModuleAt(p, id, item.id, rect)
+    );
+    sel.select(id);
+    return id;
+  };
+
+  /** A library item dropped on the canvas at the ghost's box (null = the ghost said no room). */
+  const dropItem = (item: LibraryItem, rect: ZoneRect | null) => {
+    if (!rect) return void toast("No room there");
+    const info = libraryInfo(item);
+    if (info && createAt(item, rect)) toast(`Added ${info.title}`);
+  };
+
+  /** A click in the library: the first free spot, rows first. */
+  const placeItem = (item: LibraryItem) => {
+    const info = libraryInfo(item);
+    if (!info) return;
+    const pos = firstFreeRect(profile.cols, profile.rows, info.size, profile.placements);
+    if (!pos) return void toast("No free space — resize or remove a widget first");
+    createAt(item, pos);
+    toast(`Placed ${info.title}`);
+  };
+
+  /**
+   * A click in the library with a blank zone selected: the widget fills
+   * it, growing it to the widget's minimum when there is room.
+   */
+  const fillBlank = (zoneId: string, item: LibraryItem) => {
+    const zone = profile.placements.find((p) => p.id === zoneId);
+    const info = libraryInfo(item);
+    if (!zone || !info || item.id === BLANK_MODULE) return;
+    if (item.kind === "module") {
+      if (!actions.canGrowTo(profile, zoneId, moduleMinSize(item.id)))
+        return void toast("Not enough room in this zone");
+      updateProfile((p) => actions.assignModule(p, zoneId, item.id, moduleMinSize(item.id)));
+    } else {
+      const preset = findPanelPreset(item.id, config.panelPresets);
+      if (!preset) return;
+      updateProfile((p) => actions.assignPreset(p, zoneId, preset));
+    }
+    toast(`Placed ${info.title}`);
+  };
+
+  const addPlacement = (module: string) => placeItem({ kind: "module", id: module });
 
   /** Add a pre-designed panel (a group of widgets) from a preset. */
-  const addPanelPreset = (preset: PanelPreset) => {
-    const id = uid(PANEL_ID);
-    updateProfile((p) => actions.addPresetPlacement(p, id, preset));
-    sel.select(id);
-  };
+  const addPanelPreset = (preset: PanelPreset) => placeItem({ kind: "panel", id: preset.id });
 
   /** Add a panel preset (built in, starter or saved) by id. */
-  const addPanelPresetById = (presetId: string) => {
-    const preset = findPanelPreset(presetId, config.panelPresets);
-    if (preset) addPanelPreset(preset);
-  };
+  const addPanelPresetById = (presetId: string) => placeItem({ kind: "panel", id: presetId });
 
   /** Save the primary panel zone to My panels (one undo step). */
   const savePanelAsPreset = (name: string) => {
-    if (selected?.panel) setConfig((c) => savePanelPreset(c, selected, uid("panelpreset"), name));
+    if (selected?.panel) {
+      setConfig((c) => savePanelPreset(c, selected, uid("panelpreset"), name));
+      toast(`Saved '${name}' to My panels`);
+    }
     onPresetSaved();
   };
 
@@ -108,7 +177,9 @@ export function useStudioMutations({ config, profile, setConfig, sel, onPresetSa
       return result.profile;
     });
     // The history setter runs the update synchronously.
-    if (copies.length > 0) sel.selectMany(copies);
+    if (copies.length === 0) return void toast("No free space for a copy");
+    sel.selectMany(copies);
+    toast(copies.length > 1 ? `Duplicated ${copies.length} widgets` : "Duplicated");
   };
 
   /* The selection's hide / duplicate / remove (toolbar, keys, palette). */
@@ -117,7 +188,26 @@ export function useStudioMutations({ config, profile, setConfig, sel, onPresetSa
   };
   const duplicateSelection = () => duplicateZones(sel.selectedIds);
   const removeSelection = () => {
-    if (sel.selectedIds.length > 0) updateProfile((p) => actions.removeZones(p, sel.selectedIds));
+    const n = sel.selectedIds.length;
+    if (n === 0) return;
+    updateProfile((p) => actions.removeZones(p, sel.selectedIds));
+    toast(`Deleted ${n} widget${n === 1 ? "" : "s"} · ⌘Z to undo`);
+  };
+
+  /** Paste a copied style onto the selection (one undo step). */
+  const pasteStyleSelection = (style: ModuleSettings) => {
+    if (sel.selectedIds.length > 0) updateProfile((p) => actions.pasteStyleToZones(p, sel.selectedIds, style));
+  };
+
+  /** The selection follows the global style; their own look is cleared (one undo step). */
+  const followGlobalSelection = () => {
+    if (sel.selectedIds.length > 0) updateProfile((p) => actions.followGlobalStyle(p, sel.selectedIds));
+  };
+
+  /** The empty-layout card: the shipped sample's grid and zones, one undo step. */
+  const loadSampleLayout = () => {
+    updateProfile((p) => actions.withSampleZones(p, sampleProfile()));
+    sel.select(null);
   };
 
   /** Set a zone's box; `key` makes a drag or key repeat one undo step. */
@@ -218,6 +308,12 @@ export function useStudioMutations({ config, profile, setConfig, sel, onPresetSa
     updateSelected,
     addPlacement,
     addPanelPreset,
+    dropSizeOf,
+    dropItem,
+    fillBlank,
+    pasteStyleSelection,
+    followGlobalSelection,
+    loadSampleLayout,
     addPanelPresetById,
     savePanelAsPreset,
     renameSavedPanel,

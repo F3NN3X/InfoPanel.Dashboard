@@ -17,10 +17,15 @@ export interface History<T> {
   /** Key and time of the last recorded change (for coalescing). */
   lastKey: string | null;
   lastAt: number;
+  /**
+   * The snapshot a transaction (one drag) started from; while set, changes
+   * are not recorded and `commitTransaction` records them as one step.
+   */
+  txn: { start: T } | null;
 }
 
 export function emptyHistory<T>(): History<T> {
-  return { past: [], future: [], lastKey: null, lastAt: 0 };
+  return { past: [], future: [], lastKey: null, lastAt: 0, txn: null };
 }
 
 /**
@@ -34,6 +39,8 @@ export function recordChange<T>(
   key: string | undefined,
   at: number
 ): History<T> {
+  // Inside a transaction the changes only move the config; the commit records them.
+  if (history.txn) return history;
   const coalesce =
     key !== undefined &&
     key === history.lastKey &&
@@ -44,7 +51,33 @@ export function recordChange<T>(
     future: [],
     lastKey: key ?? null,
     lastAt: at,
+    txn: null,
   };
+}
+
+/**
+ * Start a transaction from `start` (the config at pointer-down): every
+ * change until `commitTransaction` / `cancelTransaction` is one undo step,
+ * however long the pauses between them.
+ */
+export function beginTransaction<T>(history: History<T>, start: T): History<T> {
+  return history.txn ? history : { ...history, txn: { start } };
+}
+
+/** End a transaction: its changes (`current` differs from the start) become one step. */
+export function commitTransaction<T>(history: History<T>, current: T, at: number): History<T> {
+  if (!history.txn) return history;
+  const { start } = history.txn;
+  const open = { ...history, txn: null };
+  return current === start ? open : recordChange(open, start, undefined, at);
+}
+
+/** Abort a transaction: the snapshot to restore, and the history as it was before it. */
+export function cancelTransaction<T>(
+  history: History<T>
+): { history: History<T>; value: T } | null {
+  if (!history.txn) return null;
+  return { value: history.txn.start, history: { ...history, txn: null } };
 }
 
 /** Step back: the snapshot to show, and `current` moves to the redo stack. */
@@ -60,6 +93,7 @@ export function undoChange<T>(
       future: [...history.future, current],
       lastKey: null,
       lastAt: 0,
+      txn: null,
     },
   };
 }
@@ -77,6 +111,7 @@ export function redoChange<T>(
       future: history.future.slice(0, -1),
       lastKey: null,
       lastAt: 0,
+      txn: null,
     },
   };
 }
