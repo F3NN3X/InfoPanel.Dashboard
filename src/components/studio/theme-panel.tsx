@@ -1,24 +1,22 @@
-import { Palette } from "lucide-react";
-import {
-  hslToHex,
-  hexToHsl,
-  THEME_PRESETS,
-  type ThemeTokens,
-} from "@/lib/theme";
-import { cn } from "@/lib/utils";
-import { CollapsibleSection } from "./collapsible-section";
+import { hslToHex, hexToHsl, THEME_PRESETS, type ThemeTokens } from "@/lib/theme";
+import { useInspectorAdvanced } from "./inspector/inspector-prefs";
+import { InlineRow, SelectRow, SliderRow } from "./setting-rows";
 
-const TOKEN_ROWS: [keyof ThemeTokens, string][] = [
+/** Tokens with an editor row; the first six are always shown (DECISIONS.md #8), the rest are Advanced. */
+const VISIBLE_TOKENS: [keyof ThemeTokens, string][] = [
+  ["primary", "Primary"],
+  ["accent", "Accent"],
   ["background", "Background"],
   ["foreground", "Foreground"],
   ["card", "Card"],
   ["card-foreground", "Card text"],
-  ["primary", "Primary"],
+];
+
+const ADVANCED_TOKENS: [keyof ThemeTokens, string][] = [
   ["primary-foreground", "Primary text"],
   ["secondary", "Secondary"],
   ["muted", "Muted"],
   ["muted-foreground", "Muted text"],
-  ["accent", "Accent"],
   ["destructive", "Destructive"],
   ["border", "Border"],
   ["ring", "Ring"],
@@ -33,103 +31,75 @@ interface ThemePanelProps {
   onPreset: (name: string) => void;
 }
 
-/**
- * shadcn-themer-style theme editor (Appearance › Theme colours): theme
- * swatches that change the colours only (appearance presets above change
- * the whole look), a corner radius
- * slider and, collapsed under "Custom colours", per-token color pickers
- * (native color inputs converted to HSL triplets). Changes apply live
- * through the CSS variables.
- */
-export function ThemePanel({
-  tokens,
-  radius,
-  presetName,
-  onToken,
-  onRadius,
-  onPreset,
-}: ThemePanelProps) {
+/** A theme colour: its hex and a swatch opening the native picker (stored as an HSL triplet). */
+function TokenRow({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const hex = hslToHex(value);
   return (
-    <div className="space-y-5">
-      <div>
-        <div className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Colours only
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          {THEME_PRESETS.map((preset) => (
-            <button
-              key={preset.name}
-              onClick={() => onPreset(preset.name)}
-              className={cn(
-                "flex items-center gap-2 rounded-lg border p-2 text-left text-xs",
-                presetName === preset.name
-                  ? "border-ring ring-2 ring-ring/40"
-                  : "border-border hover:border-ring/50"
-              )}
-            >
-              <span className="flex shrink-0 -space-x-1.5">
-                <span
-                  className="h-4 w-4 rounded-full border border-foreground/20"
-                  style={{ backgroundColor: hslToHex(preset.tokens.background) }}
-                />
-                <span
-                  className="h-4 w-4 rounded-full border border-foreground/20"
-                  style={{ backgroundColor: hslToHex(preset.tokens.primary) }}
-                />
-                <span
-                  className="h-4 w-4 rounded-full border border-foreground/20"
-                  style={{ backgroundColor: hslToHex(preset.tokens.accent) }}
-                />
-              </span>
-              <span className="min-w-0 leading-tight text-foreground/85">{preset.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
+    <InlineRow label={label}>
+      <span className="flex items-center gap-1.5">
+        <span className="font-ui-mono text-[11.5px] text-ui-2">{hex.toUpperCase()}</span>
+        <label
+          className="relative h-[22px] w-[22px] shrink-0 cursor-pointer overflow-hidden rounded-md border border-ui-strong"
+          style={{ backgroundColor: hex }}
+        >
+          <input
+            type="color"
+            aria-label={label}
+            value={hex}
+            onChange={(e) => onChange(hexToHsl(e.currentTarget.value))}
+            className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+          />
+        </label>
+      </span>
+    </InlineRow>
+  );
+}
 
-      <div>
-        <div className="mb-2 flex items-center justify-between text-xs">
-          <span className="font-medium uppercase tracking-wider text-muted-foreground">
-            <Palette className="mr-1 inline h-3.5 w-3.5" />
-            Corner radius
-          </span>
-          <span className="tabular-nums text-muted-foreground">
-            {radius}rem
-          </span>
-        </div>
-        <input
-          type="range"
-          min={0}
-          max={1.25}
-          step={0.25}
-          value={radius}
-          onChange={(e) => onRadius(parseFloat(e.target.value))}
-          className="w-full accent-ring"
-        />
-      </div>
-
-      <CollapsibleSection
-        id="theme:Custom colours"
-        title="Custom colours"
-        aside={presetName === "custom" ? "edited" : ""}
-      >
-        <div className="grid grid-cols-2 gap-x-3 gap-y-2">
-          {TOKEN_ROWS.map(([key, label]) => (
-            <label
-              key={key}
-              className="flex items-center justify-between gap-2 text-xs text-muted-foreground"
-            >
-              <span className="truncate" title={label}>{label}</span>
-              <input
-                type="color"
-                value={hslToHex(tokens[key])}
-                onChange={(e) => onToken(key, hexToHsl(e.target.value))}
-                className="h-6 w-8 shrink-0 cursor-pointer rounded border border-border bg-transparent"
-              />
-            </label>
-          ))}
-        </div>
-      </CollapsibleSection>
+/**
+ * Appearance › Theme (shadcn-themer style): a theme preset that changes
+ * the colours only (appearance presets above change the whole look), the
+ * corner radius, and per-token colour pickers — the main ones always, the
+ * rest as Advanced. Changes apply live through the CSS variables.
+ */
+export function ThemePanel({ tokens, radius, presetName, onToken, onRadius, onPreset }: ThemePanelProps) {
+  const [advanced, setAdvanced] = useInspectorAdvanced();
+  const edited = presetName === "custom";
+  const row = ([key, label]: [keyof ThemeTokens, string]) => (
+    <TokenRow key={key} label={label} value={tokens[key]} onChange={(v) => onToken(key, v)} />
+  );
+  return (
+    <div className="space-y-2">
+      <SelectRow
+        label="Preset"
+        hint="Theme colours only; the corner radius stays"
+        options={[
+          ...THEME_PRESETS.map((p) => ({ value: p.name, label: p.label })),
+          ...(edited ? [{ value: "custom", label: "Custom (edited)" }] : []),
+        ]}
+        value={presetName}
+        onChange={(name) => name !== "custom" && onPreset(name)}
+      />
+      <SliderRow label="Corner radius (rem)" value={radius} min={0} max={1.25} step={0.25} fallback={0.5} onChange={onRadius} />
+      {VISIBLE_TOKENS.map(row)}
+      {advanced ? (
+        ADVANCED_TOKENS.map(row)
+      ) : (
+        <button
+          type="button"
+          onClick={() => setAdvanced(true)}
+          className="w-full rounded-lg border border-dashed border-ui-strong py-1.5 text-[12px] text-ui-3 hover:border-ui-accent hover:text-ui-1"
+        >
+          Show {ADVANCED_TOKENS.length} advanced colors
+        </button>
+      )}
     </div>
   );
 }

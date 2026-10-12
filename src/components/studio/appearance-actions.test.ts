@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { DashboardConfig, MonitorProfile, Placement } from "@/lib/layout";
+import { BUILTIN_APPEARANCE_PRESETS, presetTokens } from "@/lib/appearance-presets";
 import {
+  activePresetId,
+  appliedMessage,
   enforceKey,
   followAll,
   styleKey,
@@ -93,5 +96,31 @@ describe("withStyleMode / followAll", () => {
     expect(p.placements.map((z) => z.styleMode)).toEqual(["follow", "follow"]);
     expect(p.placements[1].settings).toEqual({ accent: "#ff0000" });
     expect(followAll(p)).toBe(p);
+  });
+});
+
+describe("appliedMessage", () => {
+  it("names the scope", () => {
+    expect(appliedMessage("Glass", "all")).toBe("Applied Glass to all profiles");
+    expect(appliedMessage("Glass", "profile")).toBe("Applied Glass to this profile");
+  });
+});
+
+describe("activePresetId", () => {
+  const glass = BUILTIN_APPEARANCE_PRESETS.find((p) => p.id === "builtin:glass")!;
+  const dark = BUILTIN_APPEARANCE_PRESETS.find((p) => p.id === "builtin:dark")!;
+
+  it("finds the preset whose theme, radius and style the look has", () => {
+    const look = { tokens: presetTokens(glass), radius: glass.radius, style: { ...glass.style, accent: "#fff" } };
+    expect(activePresetId(BUILTIN_APPEARANCE_PRESETS, look)).toBe("builtin:glass");
+    expect(activePresetId(BUILTIN_APPEARANCE_PRESETS, { ...look, style: dark.style, radius: dark.radius })).toBe(
+      "builtin:dark"
+    );
+  });
+
+  it("is undefined for a look matching none", () => {
+    expect(
+      activePresetId(BUILTIN_APPEARANCE_PRESETS, { tokens: presetTokens(dark), radius: 0.1, style: dark.style })
+    ).toBeUndefined();
   });
 });

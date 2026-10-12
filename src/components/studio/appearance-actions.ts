@@ -1,6 +1,8 @@
 import type { BackgroundScope } from "@/lib/appearance";
+import { presetTokens, type AppearancePreset } from "@/lib/appearance-presets";
 import type { DashboardConfig, MonitorProfile, Placement } from "@/lib/layout";
 import type { StyleMode } from "@/lib/style-resolve";
+import type { ThemeTokens } from "@/lib/theme";
 import type { ModuleSettings } from "@/modules/types";
 import { setProfileStyle } from "./studio-actions";
 
@@ -82,4 +84,25 @@ export function toggleEnforce(config: DashboardConfig, profile: MonitorProfile):
   if (profile.styleEnforce !== undefined)
     return withStyleEnforce(config, { kind: "profile", profileId: profile.id }, !profile.styleEnforce);
   return withStyleEnforce(config, { kind: "all" }, !config.styleEnforce);
+}
+
+/** The toast after applying a preset. */
+export const appliedMessage = (name: string, target: "all" | "profile"): string =>
+  `Applied ${name} to ${target === "all" ? "all profiles" : "this profile"}`;
+
+/**
+ * The preset the current look is: same theme colours, corner radius and
+ * every style key the preset sets (the first match; undefined = a custom look).
+ */
+export function activePresetId(
+  presets: readonly AppearancePreset[],
+  look: { tokens: ThemeTokens; radius: number; style: ModuleSettings | undefined }
+): string | undefined {
+  const tokens = JSON.stringify(look.tokens);
+  return presets.find(
+    (p) =>
+      p.radius === look.radius &&
+      JSON.stringify(presetTokens(p)) === tokens &&
+      Object.entries(p.style).every(([key, value]) => look.style?.[key] === value)
+  )?.id;
 }

@@ -1,4 +1,3 @@
-import { Segmented } from "@/components/ui/segmented";
 import {
   BACKGROUND_DEFAULTS,
   MAX_BLUR,
@@ -9,8 +8,8 @@ import {
 } from "@/lib/appearance";
 import { AlignGrid } from "./align-grid";
 import { VideoFields } from "./background-video";
-import { CollapsibleSection } from "./collapsible-section";
 import { MediaField } from "./media-field";
+import { InlineRow, SegmentedRow, SliderRow, StackRow } from "./setting-rows";
 
 const TYPE_LABELS: Record<BackgroundType, string> = {
   none: "None",
@@ -46,29 +45,28 @@ export function BackgroundEditor({ value, types, onChange }: BackgroundEditorPro
   const isMedia = value.type === "image" || value.type === "video";
   const noun = value.type === "video" ? "video" : "image";
   return (
-    <div className="space-y-3">
-      <Segmented
+    <div className="space-y-2">
+      <SegmentedRow
+        label="Type"
         options={types.map((t) => ({ value: t, label: TYPE_LABELS[t] }))}
         value={value.type}
-        onChange={(type) => onChange(withBackgroundType(value, type))}
-        className="w-full *:flex-1"
+        onChange={(type) => onChange(withBackgroundType(value, type as BackgroundType))}
       />
 
       {value.type === "color" && (
-        <ColorField label="Color" value={value.color} fallback={BACKGROUND_DEFAULTS.color} onChange={(color) => patch({ color })} />
+        <ColorRow label="Color" value={value.color} fallback={BACKGROUND_DEFAULTS.color} onChange={(color) => patch({ color })} />
       )}
 
       {value.type === "gradient" && (
         <>
-          <div className="grid grid-cols-2 gap-3">
-            <ColorField label="From" value={gradient.from} onChange={(from) => patch({ gradient: { ...gradient, from } })} />
-            <ColorField label="To" value={gradient.to} onChange={(to) => patch({ gradient: { ...gradient, to } })} />
-          </div>
-          <RangeField
-            label="Angle"
+          <ColorRow label="From" value={gradient.from} onChange={(from) => patch({ gradient: { ...gradient, from } })} />
+          <ColorRow label="To" value={gradient.to} onChange={(to) => patch({ gradient: { ...gradient, to } })} />
+          <SliderRow
+            label="Angle (°)"
             value={gradient.angle}
+            min={0}
             max={359}
-            unit="°"
+            fallback={0}
             onChange={(angle) => patch({ gradient: { ...gradient, angle } })}
           />
         </>
@@ -81,18 +79,14 @@ export function BackgroundEditor({ value, types, onChange }: BackgroundEditorPro
 
       {isMedia && (
         <>
-          <div>
-            <div className="mb-1 text-xs text-muted-foreground">Fit</div>
-            <Segmented
-              options={value.type === "video" ? VIDEO_FITS : FITS}
-              value={fit}
-              onChange={(f) => patch({ fit: f })}
-              className="w-full *:flex-1"
-            />
-          </div>
+          <SegmentedRow
+            label="Fit"
+            options={value.type === "video" ? VIDEO_FITS : FITS}
+            value={fit}
+            onChange={(f) => patch({ fit: f as BackgroundFit })}
+          />
           {fit !== "stretch" && (
-            <div className="break-inside-avoid">
-              <div className="mb-1 text-xs text-muted-foreground">Position</div>
+            <StackRow label="Position">
               <AlignGrid
                 label={`${noun === "video" ? "Video" : "Image"} position`}
                 x={position.x}
@@ -106,9 +100,9 @@ export function BackgroundEditor({ value, types, onChange }: BackgroundEditorPro
                   })
                 }
               />
-            </div>
+            </StackRow>
           )}
-          <ColorField
+          <ColorRow
             label={`Fill (behind the ${noun})`}
             value={value.color}
             fallback={BACKGROUND_DEFAULTS.color}
@@ -117,32 +111,37 @@ export function BackgroundEditor({ value, types, onChange }: BackgroundEditorPro
         </>
       )}
 
-      {(value.type === "gradient" || isMedia) && <EffectsSection value={value} onPatch={patch} />}
+      {(value.type === "gradient" || isMedia) && <Effects value={value} onPatch={patch} />}
     </div>
   );
 }
 
 /** Dim, tint and blur over the media. */
-function EffectsSection({ value, onPatch }: { value: PageBackground; onPatch: (p: Partial<PageBackground>) => void }) {
+function Effects({ value, onPatch }: { value: PageBackground; onPatch: (p: Partial<PageBackground>) => void }) {
   const set = [value.dim, value.tintOpacity, value.blur].filter((v) => (v ?? 0) > 0).length;
   return (
-    <CollapsibleSection id="background:Effects" title="Effects" aside={set > 0 ? `${set} set` : ""} defaultOpen>
-      <RangeField label="Dim" value={value.dim ?? 0} max={100} unit="%" onChange={(dim) => onPatch({ dim })} />
-      <ColorField
+    <div className="space-y-2 border-t border-ui-subtle pt-2">
+      <div className="flex items-baseline justify-between">
+        <span className="text-[12.5px] font-semibold text-ui-1">Effects</span>
+        {set > 0 && <span className="font-ui-mono text-[10px] text-ui-accent-text">{set} set</span>}
+      </div>
+      <SliderRow label="Dim (%)" value={value.dim ?? 0} min={0} max={100} fallback={0} onChange={(dim) => onPatch({ dim })} />
+      <ColorRow
         label="Tint"
         value={value.tint}
         fallback={BACKGROUND_DEFAULTS.tint}
         onChange={(tint) => onPatch({ tint, tintOpacity: value.tintOpacity || 30 })}
       />
-      <RangeField
-        label="Tint opacity"
+      <SliderRow
+        label="Tint opacity (%)"
         value={value.tintOpacity ?? 0}
+        min={0}
         max={100}
-        unit="%"
+        fallback={0}
         onChange={(tintOpacity) => onPatch({ tintOpacity })}
       />
-      <RangeField label="Blur" value={value.blur ?? 0} max={MAX_BLUR} unit="px" onChange={(blur) => onPatch({ blur })} />
-    </CollapsibleSection>
+      <SliderRow label="Blur (px)" value={value.blur ?? 0} min={0} max={MAX_BLUR} fallback={0} onChange={(blur) => onPatch({ blur })} />
+    </div>
   );
 }
 
@@ -153,7 +152,7 @@ function pickerHex(color: string): string {
   return short ? `#${short[1]}${short[1]}${short[2]}${short[2]}${short[3]}${short[3]}` : "#000000";
 }
 
-function ColorField({
+function ColorRow({
   label,
   value,
   fallback,
@@ -167,54 +166,22 @@ function ColorField({
 }) {
   const shown = value ?? fallback ?? "#000000";
   return (
-    <div>
-      <div className="mb-1 text-xs text-muted-foreground">{label}</div>
-      <div className="flex items-center gap-2">
-        <input
-          type="color"
-          aria-label={label}
-          value={pickerHex(shown)}
-          onChange={(e) => onChange(e.target.value)}
-          className="h-7 w-10 cursor-pointer rounded border border-border bg-transparent p-0.5"
-        />
-        <span className="text-xs tabular-nums text-muted-foreground">{shown}</span>
-      </div>
-    </div>
-  );
-}
-
-function RangeField({
-  label,
-  value,
-  max,
-  unit,
-  onChange,
-}: {
-  label: string;
-  value: number;
-  max: number;
-  unit: string;
-  onChange: (value: number) => void;
-}) {
-  return (
-    <div>
-      <div className="mb-1 flex justify-between text-xs text-muted-foreground">
-        <span>{label}</span>
-        <span className="tabular-nums">
-          {value}
-          {unit}
-        </span>
-      </div>
-      <input
-        type="range"
-        aria-label={label}
-        min={0}
-        max={max}
-        step={1}
-        value={value}
-        onChange={(e) => onChange(parseInt(e.target.value, 10))}
-        className="w-full accent-ring"
-      />
-    </div>
+    <InlineRow label={label}>
+      <span className="flex items-center gap-1.5">
+        <span className="font-ui-mono text-[11.5px] text-ui-2">{shown}</span>
+        <label
+          className="relative h-[22px] w-[22px] shrink-0 cursor-pointer overflow-hidden rounded-md border border-ui-strong"
+          style={{ backgroundColor: shown }}
+        >
+          <input
+            type="color"
+            aria-label={label}
+            value={pickerHex(shown)}
+            onChange={(e) => onChange(e.target.value)}
+            className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+          />
+        </label>
+      </span>
+    </InlineRow>
   );
 }

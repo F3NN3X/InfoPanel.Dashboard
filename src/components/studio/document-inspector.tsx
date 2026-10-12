@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { Segmented } from "@/components/ui/segmented";
 import type { PageBackground } from "@/lib/appearance";
 import type { GeneralSettings } from "@/lib/general";
 import type { MonitorProfile } from "@/lib/layout";
-import { THEME_PRESETS, type ThemeTokens } from "@/lib/theme";
+import { THEME_PRESETS, resolveTheme, type ThemeTokens } from "@/lib/theme";
 import type { ModuleSettings } from "@/modules/types";
-import { AppearanceGallery } from "./appearance-gallery";
+import { AppearanceGallery, type CurrentLook } from "./appearance-gallery";
 import { GlobalStyleScope, type AppearanceTarget } from "./appearance-panel";
 import { BackgroundPanel, type BackgroundTarget } from "./background-panel";
 import { DataApiPanel } from "./data-api-panel";
@@ -22,6 +21,7 @@ import {
 } from "./inspector-model";
 import { ProfileThemePanel, type ProfileTheme } from "./profile-theme-panel";
 import type { FieldsApi } from "./settings-panel";
+import { SegmentedRow } from "./setting-rows";
 import { dropKeys } from "./settings-model";
 import type { LayoutMode } from "./studio-layout";
 import { ThemePanel } from "./theme-panel";
@@ -157,6 +157,13 @@ function DocumentSheet({
     onPatch: (patch) => change((s) => ({ ...s, ...patch })),
     onClear: (keys) => change((s) => dropKeys(s, new Set(keys)) ?? {}),
   };
+  // The look the presets are compared with: the scope's theme and style over the dashboard's.
+  const shownTheme = resolveTheme({ theme, radius }, all ? undefined : profile);
+  const currentLook: CurrentLook = {
+    tokens: shownTheme.tokens,
+    radius: shownTheme.radius,
+    style: all ? dashboardStyle : { ...dashboardStyle, ...profile.style },
+  };
   const effective = shownValues(values, PROFILE_STYLE_SETTINGS);
   const generalById = new Map(generalCards(general, onGeneral).map((c) => [c.id, c] as const));
 
@@ -202,7 +209,7 @@ function DocumentSheet({
           ),
         };
       case "presets":
-        return { badge: scope, body: <AppearanceGallery api={presets} target={target} /> };
+        return { badge: scope, body: <AppearanceGallery api={presets} target={target} look={currentLook} /> };
       case "theme":
         return {
           badge: scope,
@@ -230,6 +237,8 @@ function DocumentSheet({
         return {
           body: (
             <BackgroundPanel
+              target={target}
+              onTarget={setTarget}
               dashboard={background}
               profileBackground={profile.background}
               profileName={profile.name}
@@ -246,16 +255,13 @@ function DocumentSheet({
       case "studio":
         return {
           body: (
-            <div className="space-y-1">
-              <span className="text-[12.5px] text-ui-2">Inspector position</span>
-              <Segmented
-                label="Inspector position"
-                options={INSPECTOR_POSITIONS}
-                value={layoutMode}
-                onChange={onLayoutMode}
-                className="w-full *:flex-1"
-              />
-            </div>
+            <SegmentedRow
+              label="Inspector position"
+              hint="A browser preference; the zoom bar's dock button changes it too"
+              options={INSPECTOR_POSITIONS}
+              value={layoutMode}
+              onChange={(m) => onLayoutMode(m as LayoutMode)}
+            />
           ),
         };
       case "connection":

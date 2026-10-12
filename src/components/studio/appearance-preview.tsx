@@ -24,15 +24,15 @@ function MiniTile({ preset, value, fill }: { preset: AppearancePreset; value: st
   const chrome = chromeOf(preset.style);
   // Glow sizes are page pixels too; the soft one reads right at this scale.
   const box = surfaceBox(surfaceColors(preset.style.surface), { ...chrome, glow: chrome.glow === "none" ? "none" : "soft" });
-  const radius = (chrome.radius ?? preset.radius * 16) * 0.4;
+  const radius = (chrome.radius ?? preset.radius * 16) * 0.3;
   const accent = chrome.accent || "hsl(var(--primary))";
   return (
     <div
-      className="flex min-w-0 flex-1 flex-col justify-between p-1.5"
+      className="flex min-w-0 flex-1 flex-col justify-between p-1"
       style={{ ...chromeVars(chrome), ...box, borderRadius: radius }}
     >
-      <div className="text-[13px] font-semibold leading-none tabular-nums">{value}</div>
-      <div className="h-[3px] w-full rounded-full" style={{ background: "rgb(128 128 128 / 0.25)" }}>
+      <div className="text-[10px] font-semibold leading-none tabular-nums">{value}</div>
+      <div className="h-[2px] w-full rounded-full" style={{ background: "rgb(128 128 128 / 0.25)" }}>
         <div className="h-full rounded-full" style={{ width: `${fill}%`, background: accent }} />
       </div>
     </div>
@@ -49,9 +49,12 @@ export function AppearancePreview({ preset }: { preset: AppearancePreset }) {
     Object.entries(presetTokens(preset)).map(([key, value]) => [`--${key}`, value])
   );
   return (
-    <div className="relative h-16 overflow-hidden rounded-md" style={tokens as CSSProperties}>
+    <div
+      className="relative h-10 overflow-hidden border border-ui-default"
+      style={{ ...(tokens as CSSProperties), borderRadius: `${preset.radius}rem` }}
+    >
       <MiniPage bg={preset.background} />
-      <div className="relative flex h-full gap-1.5 p-2">
+      <div className="relative flex h-full gap-1 p-1.5">
         <MiniTile preset={preset} value="42°" fill={62} />
         <MiniTile preset={preset} value="7.3" fill={35} />
       </div>

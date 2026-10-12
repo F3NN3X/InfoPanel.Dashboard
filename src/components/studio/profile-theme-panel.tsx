@@ -1,5 +1,5 @@
-import { Segmented } from "@/components/ui/segmented";
 import { THEME_PRESETS, resolveTheme, type ThemeTokens } from "@/lib/theme";
+import { SegmentedRow } from "./setting-rows";
 import { ThemePanel } from "./theme-panel";
 
 /** A profile's own theme: unset fields = the dashboard's. */
@@ -36,13 +36,13 @@ export function ProfileThemePanel({ dashboard, profile, profileName, onChange }:
 
   return (
     <div className="space-y-3">
-      <Segmented
+      <SegmentedRow
+        label="This profile"
         options={MODES}
         value={custom ? "custom" : "inherit"}
         onChange={(mode) =>
           onChange(mode === "inherit" ? {} : { theme: { ...dashboard.theme }, radius: dashboard.radius })
         }
-        className="w-full *:flex-1"
       />
       {custom ? (
         <ThemePanel
@@ -59,8 +59,8 @@ export function ProfileThemePanel({ dashboard, profile, profileName, onChange }:
           }}
         />
       ) : (
-        <p className="text-[11px] text-muted-foreground/70">
-          <span className="text-foreground/85">{profileName}</span> uses the dashboard&apos;s theme colours and
+        <p className="text-[11px] leading-snug text-ui-4">
+          <span className="text-ui-2">{profileName}</span> uses the dashboard&apos;s theme colours and
           corner radius (All profiles).
         </p>
       )}
