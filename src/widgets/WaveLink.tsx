@@ -129,8 +129,8 @@ function MixColumn({ channel, state, o }: { channel: WlChannel; state: WlState; 
 /** A channel row: name, fader, horizontal L/R meters, dB readouts, mix routes. */
 function ChannelRow({ channel, state, o, wide, w }: { channel: WlChannel; state: WlState; o: Opts; wide: boolean; w: number }) {
   const levels = useWlLevels(meterKey.channel(channel.id), o.preset);
-  // a tile has no room for the readout column; the name column narrows to fit
-  const narrow = w < 150,
+  // a tile has no room for the readout column; the name column narrows to fit (w 0 = not measured yet)
+  const narrow = w > 0 && w < 150,
     readout = o.readout && !narrow;
   return (
     <div className="min-w-0">
@@ -168,7 +168,7 @@ const denseFits = (count: number, h: number): boolean => count * (DENSE_H + DENS
 /** One line per channel: name, fader, thin L/R meters, dB readouts; many channels in a short zone. */
 function DenseRow({ channel, o, w }: { channel: WlChannel; o: Opts; w: number }) {
   const levels = useWlLevels(meterKey.channel(channel.id), o.preset);
-  const narrow = w < 150;
+  const narrow = w > 0 && w < 150;
   return (
     <div className="flex min-w-0 items-center gap-2" style={{ height: DENSE_H }}>
       <span className={`flex shrink-0 items-center gap-1 text-xs font-semibold ${w >= 260 ? "w-[84px]" : narrow ? "w-[40px]" : "w-[64px]"}`}>
