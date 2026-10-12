@@ -1,38 +1,12 @@
 import { useState } from "react";
-import {
-  ChevronDown,
-  ChevronRight,
-  CloudUpload,
-  Cpu,
-  Database,
-  Eye,
-  EyeOff,
-  MoreHorizontal,
-  Pencil,
-  Puzzle,
-  Search,
-  Server,
-  type LucideIcon,
-} from "lucide-react";
+import { ChevronDown, Database, Eye, EyeOff, MoreHorizontal, Pencil, Search, type LucideIcon } from "lucide-react";
 import { ContextMenu, type ContextMenuEntry } from "@/components/ui/context-menu";
-import {
-  CATEGORIES,
-  type DataContainer,
-  type DataSource,
-  type Health,
-  type SourceCategory,
-} from "@/lib/data-points";
+import { CATEGORIES, type DataContainer, type DataSource, type Health } from "@/lib/data-points";
 import { sourcePrefKey, type SourcePref } from "@/lib/layout";
 import { cn } from "@/lib/utils";
 import type { Scope } from "./explorer-model";
-import { HEALTH_LABEL, StatusDot, CAPTION } from "./explorer-parts";
-
-const CATEGORY_ICON: Record<SourceCategory, LucideIcon> = {
-  "Built-in": Server,
-  Plugins: Puzzle,
-  "Hardware monitors": Cpu,
-  "Pushed via API": CloudUpload,
-};
+import { CAPTION, HEALTH_LABEL, StatusDot } from "./explorer-parts";
+import { sourceIcon } from "./source-icons";
 
 const HEALTHS: Health[] = ["ok", "warn", "off"];
 
@@ -124,18 +98,18 @@ export function SourceTree({
 
   return (
     <div className="flex w-[264px] shrink-0 flex-col border-r border-ui-subtle bg-ui-panel font-ui">
-      <div className="space-y-2 border-b border-ui-subtle p-3">
+      <div className="flex flex-col gap-2 px-3 pb-2 pt-3">
         <div className="relative">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ui-4" />
+          <Search className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-ui-4" />
           <input
             value={query}
             onChange={(e) => onQuery(e.target.value)}
             placeholder="Filter sources"
             aria-label="Filter sources"
-            className="h-8 w-full rounded-md border border-ui-default bg-ui-app pl-8 pr-2 text-[12.5px] text-ui-1 placeholder:text-ui-4 focus:border-ui-accent/60 focus:outline-none"
+            className="h-[30px] w-full rounded-[7px] border border-ui-default bg-ui-app pl-8 pr-2 text-[12.5px] text-ui-1 placeholder:text-ui-4 focus:border-ui-accent/60 focus:outline-none"
           />
         </div>
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-1">
           {HEALTHS.map((h) => (
             <button
               key={h}
@@ -143,8 +117,8 @@ export function SourceTree({
               aria-pressed={health === h}
               onClick={() => onHealth(health === h ? null : h)}
               className={cn(
-                "inline-flex h-6 items-center gap-1.5 rounded-full border px-2 text-[11.5px] transition-colors",
-                health === h ? "border-ui-accent/50 bg-ui-accent-soft text-ui-1" : "border-ui-default text-ui-3 hover:bg-ui-hover"
+                "inline-flex h-6 items-center gap-[5px] whitespace-nowrap rounded-full border px-2 text-[11px] text-ui-2 transition-colors",
+                health === h ? "border-[#3a3a44] bg-[#26262c]" : "border-ui-default hover:bg-ui-hover"
               )}
             >
               <StatusDot health={h} />
@@ -154,38 +128,39 @@ export function SourceTree({
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto py-1.5">
+      <div className="flex min-h-0 flex-1 flex-col gap-px overflow-y-auto px-2 pb-3">
         <Row
+          kind="all"
           selected={scope.kind === "all"}
           onClick={() => onScope({ kind: "all" })}
           icon={Database}
           label="All data points"
           count={totalPoints}
-          indent={12}
         />
-        {sources.length === 0 && (
-          <div className="px-4 py-3 text-xs text-ui-4">No sources match.</div>
-        )}
+        {sources.length === 0 && <div className="px-2 py-3 text-xs text-ui-4">No sources match.</div>}
         {CATEGORIES.map((category) => {
           const inCategory = sources.filter((s) => s.category === category);
           if (inCategory.length === 0) return null;
           return (
-            <div key={category}>
-              <div className={cn(CAPTION, "px-3 pb-1 pt-3")}>{category}</div>
+            <div key={category} className="mt-2.5 flex flex-col gap-px">
+              <span className={cn(CAPTION, "px-2 pb-1")}>{category}</span>
               {inCategory.map((s) => {
                 const expandable = s.containers.length > 1;
                 const expanded = expandable && (searching || open[s.id] === true);
                 return (
-                  <div key={s.id}>
+                  <div key={s.id} className="flex flex-col gap-px">
                     <Row
+                      kind="source"
                       selected={scope.kind === "source" && scope.id === s.id}
-                      onClick={() => onScope({ kind: "source", id: s.id })}
-                      icon={CATEGORY_ICON[category]}
+                      onClick={() => {
+                        onScope({ kind: "source", id: s.id });
+                        if (expandable) setOpen((o) => ({ ...o, [s.id]: true }));
+                      }}
+                      icon={sourceIcon(s)}
                       {...prefProps(prefKeyOf(s), s.name)}
                       count={s.count}
                       status={s.status}
-                      indent={12}
-                      chevron={expandable ? (expanded ? "open" : "closed") : undefined}
+                      chevron={expandable ? (expanded ? "open" : "closed") : "none"}
                       chevronDisabled={searching}
                       onChevron={() => setOpen((o) => ({ ...o, [s.id]: !o[s.id] }))}
                     />
@@ -193,12 +168,12 @@ export function SourceTree({
                       s.containers.map((c) => (
                         <Row
                           key={c.id}
+                          kind="container"
                           selected={scope.kind === "container" && scope.id === c.id}
                           onClick={() => onScope({ kind: "container", id: c.id, sourceId: s.id })}
                           {...prefProps(prefKeyOf(s, c), c.title)}
                           count={c.points.length}
-                          status={c.status}
-                          indent={46}
+                          dimmed={c.status === "warn"}
                         />
                       ))}
                   </div>
@@ -214,15 +189,20 @@ export function SourceTree({
 }
 
 interface RowProps {
+  /** The "All data points" row, a source row (chevron, icon, health dot) or a container row. */
+  kind: "all" | "source" | "container";
   selected: boolean;
   onClick: () => void;
   label: string;
   count: number;
-  indent: number;
   icon?: LucideIcon;
   status?: Health;
+  /** The container reports no data. */
+  dimmed?: boolean;
+  /** Hidden from the dashboard by its preference. */
   muted?: boolean;
-  chevron?: "open" | "closed";
+  /** "none" keeps the chevron's room so sources line up. */
+  chevron?: "open" | "closed" | "none";
   /** A filtered tree is forced open, so the chevron has nothing to do. */
   chevronDisabled?: boolean;
   onChevron?: () => void;
@@ -232,22 +212,37 @@ interface RowProps {
   rename?: { value: string; placeholder: string; onCommit: (value: string) => void; onCancel: () => void };
 }
 
+const ROW_BOX: Record<RowProps["kind"], string> = {
+  all: "gap-[9px] rounded-[7px] px-2 py-[7px]",
+  source: "gap-1.5 rounded-[7px] py-1.5 pl-0.5 pr-2",
+  container: "gap-2 rounded-md py-[5px] pl-[46px] pr-2",
+};
+
 function Row({
+  kind,
   selected,
   onClick,
   label,
   count,
-  indent,
   icon: Icon,
   status,
+  dimmed,
   muted,
-  chevron,
+  chevron = "none",
   chevronDisabled,
   onChevron,
   onMenu,
   rename,
 }: RowProps) {
-  const Chevron = chevron === "open" ? ChevronDown : ChevronRight;
+  const labelTone = selected
+    ? "text-white"
+    : kind === "container"
+      ? dimmed
+        ? "text-ui-4"
+        : "text-[#b4b4bc]"
+      : kind === "all"
+        ? "text-ui-1"
+        : "text-ui-2";
   return (
     <div
       role="button"
@@ -261,30 +256,33 @@ function Row({
           onClick();
         }
       }}
-      style={{ paddingLeft: indent }}
       className={cn(
-        "flex h-8 cursor-pointer items-center gap-2 pr-3 text-[12.5px] transition-colors",
-        selected ? "bg-ui-active text-ui-1" : "text-ui-2 hover:bg-ui-hover"
+        "group relative flex cursor-pointer items-center transition-colors",
+        ROW_BOX[kind],
+        selected ? "bg-ui-accent-soft" : "hover:bg-ui-hover"
       )}
     >
-      {chevron ? (
+      {kind === "source" && (
         <button
           type="button"
-          aria-label={`${chevron === "open" ? "Collapse" : "Expand"} ${label}`}
-          aria-expanded={chevron === "open"}
-          disabled={chevronDisabled}
+          aria-label={chevron === "none" ? undefined : `${chevron === "open" ? "Collapse" : "Expand"} ${label}`}
+          aria-expanded={chevron === "none" ? undefined : chevron === "open"}
+          aria-hidden={chevron === "none" || undefined}
+          tabIndex={chevron === "none" ? -1 : 0}
+          disabled={chevronDisabled || chevron === "none"}
           onClick={(e) => {
             e.stopPropagation();
             onChevron?.();
           }}
-          className="-ml-1 flex h-5 w-4 items-center justify-center text-ui-4 hover:text-ui-1 disabled:opacity-40 disabled:hover:text-ui-4"
+          className={cn(
+            "grid h-[18px] w-[18px] shrink-0 place-items-center text-ui-5 hover:text-ui-1 disabled:hover:text-ui-5",
+            chevron === "none" ? "opacity-0" : chevronDisabled && "opacity-40"
+          )}
         >
-          <Chevron className="h-3.5 w-3.5" />
+          <ChevronDown className={cn("h-4 w-4 transition-transform", chevron !== "open" && "-rotate-90")} />
         </button>
-      ) : (
-        Icon && indent < 40 && <span className="-ml-1 w-4" />
       )}
-      {Icon && <Icon className="h-3.5 w-3.5 shrink-0 text-ui-4" />}
+      {Icon && <Icon className={cn("shrink-0 text-ui-4", kind === "all" ? "h-[17px] w-[17px]" : "h-4 w-4")} />}
       {rename ? (
         <input
           autoFocus
@@ -304,9 +302,19 @@ function Row({
           className="h-6 min-w-0 flex-1 rounded border border-ui-default bg-ui-app px-1.5 text-[12px] text-ui-1 placeholder:text-ui-4 focus:border-ui-accent/60 focus:outline-none"
         />
       ) : (
-        <span className={cn("min-w-0 flex-1 truncate", muted && "text-ui-4 line-through")}>{label}</span>
+        <span
+          className={cn(
+            "min-w-0 flex-1 truncate",
+            kind === "container" ? "text-[12px]" : "text-[12.5px]",
+            kind === "all" && "font-medium",
+            labelTone,
+            muted && "line-through opacity-60"
+          )}
+        >
+          {label}
+        </span>
       )}
-      <span className="font-ui-mono text-[11px] tabular-nums text-ui-4">{count}</span>
+      <span className={cn("font-ui-mono text-[10.5px] tabular-nums", kind === "all" ? "text-ui-4" : "text-ui-5")}>{count}</span>
       {onMenu && (
         <button
           type="button"
@@ -316,7 +324,10 @@ function Row({
             e.stopPropagation();
             onMenu(e.currentTarget.getBoundingClientRect());
           }}
-          className="-mr-1 flex h-5 w-5 items-center justify-center rounded text-ui-4 hover:bg-ui-active hover:text-ui-1"
+          className={cn(
+            "absolute top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded bg-ui-hover text-ui-3 opacity-0 hover:bg-ui-active hover:text-ui-1 focus-visible:opacity-100 group-hover:opacity-100",
+            status ? "right-5" : "right-2"
+          )}
         >
           <MoreHorizontal className="h-3.5 w-3.5" />
         </button>
