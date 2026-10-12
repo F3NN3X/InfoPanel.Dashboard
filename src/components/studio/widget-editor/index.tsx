@@ -1,9 +1,10 @@
 import type { PanelDef, Widget, WidgetKind } from "@/lib/panel-model";
 import type { SheetCard } from "../category-sheet";
+import { InlineRow } from "../setting-rows";
 import { ChangeKindMenu } from "../widget-kind-menu";
 import { KIND_INFO } from "../widget-kinds";
 import { DataFields, hasData } from "./data-section";
-import { DisplayFields, hasDisplay } from "./display-section";
+import { hasKindFields, KindFields } from "./display-section";
 import { LayoutFields } from "./layout-section";
 import { AdvancedFields, ColorFields, hasColor, hasTypography, TypographyFields } from "./style-section";
 
@@ -13,40 +14,54 @@ interface WidgetCardsProps {
   /** `field`: the edited field (quick edits to one field are one undo step). */
   onChange: (fn: (w: Widget) => Widget, field?: string) => void;
   onChangeKind: (kind: WidgetKind) => void;
+  /** Force global style is on (the color is ignored). */
+  enforce?: boolean;
+  /** Open Sources mode (the sensor field's data picker offers it). */
+  onOpenExplorer: () => void;
 }
 
 /**
- * The selected panel widget's editor as sheet cards, in the zone's own
- * order: the widget and its data, display, size & placement, typography,
- * color, advanced (class names, CSS). Only the cards its kind uses.
+ * The selected panel widget's editor as sheet cards (README §4.7): Kind
+ * (change kind + the kind's own fields), Display (label, sensors, number
+ * format), Size & placement, Typography and Colors, Advanced (class names,
+ * CSS). Only the cards its kind uses.
  */
-export function widgetCards({ widget, panel, onChange, onChangeKind }: WidgetCardsProps): SheetCard[] {
+export function widgetCards({ widget, panel, onChange, onChangeKind, enforce, onOpenExplorer }: WidgetCardsProps): SheetCard[] {
   const set = <K extends keyof Widget>(key: K, value: Widget[K]) =>
     onChange((w) => ({ ...w, [key]: value }), key);
-  const props = { widget, panel, set, onChange };
-  const { label, icon: Icon } = KIND_INFO[widget.kind];
+  const props = { widget, panel, set, onChange, enforce, onOpenExplorer };
+  const { label, icon: Icon, hint } = KIND_INFO[widget.kind];
   const cards: (SheetCard | false)[] = [
     {
-      id: "widget:data",
+      id: "widget:kind",
       title: `${label} widget`,
-      hint: "What the widget shows",
-      actions: <ChangeKindMenu kind={widget.kind} onChange={onChangeKind} />,
+      hint: "The kind and what is particular to it",
       editor: true,
-      terms: ["Widget", label, "Label", "Sensor", "Sub sensor", "Static text", "Image URL", "Unit", "Decimals", "Scale", "Max", "Invert fill", "Change"],
-      node: hasData(widget) ? (
-        <DataFields {...props} />
-      ) : (
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Icon className="h-3.5 w-3.5" /> No data: a decorative shape
-        </div>
+      terms: ["Kind", "Widget", label, "Change kind", "Static text", "Image URL", "Max", "Invert fill", "Shape", "Thickness", "Max height", "Rows", "Columns", "Header", "History samples", "Show", "Text alignment"],
+      node: (
+        <>
+          <InlineRow label="Kind" hint={hint}>
+            <span className="flex items-center gap-2">
+              <span className="flex items-center gap-1.5 text-[12.5px] text-ui-1">
+                <Icon className="h-3.5 w-3.5 text-ui-3" /> {label}
+              </span>
+              <ChangeKindMenu kind={widget.kind} onChange={onChangeKind} />
+            </span>
+          </InlineRow>
+          {hasKindFields(widget) ? (
+            <KindFields {...props} />
+          ) : (
+            !hasData(widget) && <p className="text-[12px] text-ui-4">No data: a decorative shape.</p>
+          )}
+        </>
       ),
     },
-    hasDisplay(widget) && {
+    hasData(widget) && {
       id: "widget:display",
       title: "Display",
-      hint: "How the kind presents its data",
-      terms: ["Display", "Shape", "Thickness", "Max height", "Rows", "Columns", "Header", "History samples", "Show", "Text alignment"],
-      node: <DisplayFields {...props} />,
+      hint: "What the widget shows",
+      terms: ["Display", "Label", "Sensor", "Sub sensor", "Unit", "Decimals", "Scale"],
+      node: <DataFields {...props} />,
     },
     {
       id: "widget:layout",

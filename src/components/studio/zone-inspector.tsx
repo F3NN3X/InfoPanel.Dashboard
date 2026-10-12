@@ -172,6 +172,8 @@ export function ZoneInspector({
       presetNaming,
       onPresetNaming,
       onSavePreset: onSavePanelPreset,
+      enforce,
+      onOpenExplorer,
     }) ?? [];
   const cards = cardsBySection(groups);
 

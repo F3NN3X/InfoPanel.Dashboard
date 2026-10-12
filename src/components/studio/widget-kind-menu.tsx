@@ -1,22 +1,15 @@
 import { Menu } from "@base-ui/react/menu";
-import { ChevronDown, ChevronRight, Plus } from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import type { WidgetKind } from "@/lib/panel-model";
 import { cn } from "@/lib/utils";
+import { FIELD } from "./setting-rows";
 import { ITEM, POPUP } from "./style-tools";
 import { ALL_KINDS, KIND_INFO } from "./widget-kinds";
 
-/** One menu item per widget kind: icon, name and (optionally) a one-line description. */
-function KindItems({
-  current,
-  described,
-  onPick,
-}: {
-  current?: WidgetKind;
-  described?: boolean;
-  onPick: (kind: WidgetKind) => void;
-}) {
+/** One menu item per widget kind: icon and name. */
+function KindItems({ current, onPick }: { current?: WidgetKind; onPick: (kind: WidgetKind) => void }) {
   return ALL_KINDS.map((kind) => {
-    const { label, icon: Icon, hint } = KIND_INFO[kind];
+    const { label, icon: Icon } = KIND_INFO[kind];
     return (
       <Menu.Item
         key={kind}
@@ -24,34 +17,30 @@ function KindItems({
         disabled={kind === current}
         onClick={() => onPick(kind)}
       >
-        <Icon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-        <span className="min-w-0">
-          <span className="block">{label}</span>
-          {described && <span className="block text-[10px] text-muted-foreground">{hint}</span>}
-        </span>
+        <Icon className="h-3.5 w-3.5 shrink-0 text-ui-3" />
+        <span className="min-w-0 flex-1">{label}</span>
       </Menu.Item>
     );
   });
 }
 
-/** The "Add widget" button: a menu of kinds with a description each. */
-export function AddWidgetMenu({ onAdd }: { onAdd: (kind: WidgetKind) => void }) {
+/** The "+ Add panel widget…" select: one option per widget kind, added after the selected widget. */
+export function AddWidgetSelect({ onAdd }: { onAdd: (kind: WidgetKind) => void }) {
   return (
-    <Menu.Root>
-      <Menu.Trigger
-        className="flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-accent/40 hover:text-foreground data-popup-open:bg-accent/40 data-popup-open:text-foreground"
-        title="Add a widget after the selected one"
-      >
-        <Plus className="h-3 w-3" /> Add widget
-      </Menu.Trigger>
-      <Menu.Portal>
-        <Menu.Positioner className="z-50" sideOffset={4} align="end">
-          <Menu.Popup className={cn(POPUP, "min-w-52")}>
-            <KindItems described onPick={onAdd} />
-          </Menu.Popup>
-        </Menu.Positioner>
-      </Menu.Portal>
-    </Menu.Root>
+    <select
+      value=""
+      onChange={(e) => e.target.value && onAdd(e.target.value as WidgetKind)}
+      aria-label="Add panel widget"
+      title="Add a widget after the selected one"
+      className={cn(FIELD, "h-7 w-full bg-ui-hover")}
+    >
+      <option value="">+ Add panel widget…</option>
+      {ALL_KINDS.map((kind) => (
+        <option key={kind} value={kind}>
+          {KIND_INFO[kind].label} — {KIND_INFO[kind].hint}
+        </option>
+      ))}
+    </select>
   );
 }
 
@@ -60,7 +49,7 @@ export function ChangeKindMenu({ kind, onChange }: { kind: WidgetKind; onChange:
   return (
     <Menu.Root>
       <Menu.Trigger
-        className="flex items-center gap-0.5 text-[11px] text-muted-foreground hover:text-foreground data-popup-open:text-foreground"
+        className="flex h-6 items-center gap-0.5 rounded-md px-1.5 text-[11.5px] text-ui-3 hover:bg-ui-hover hover:text-ui-1 data-popup-open:bg-ui-hover data-popup-open:text-ui-1"
         title="Turn this widget into another kind (label, sensor, unit and color stay)"
       >
         Change kind <ChevronDown className="h-3 w-3" />
