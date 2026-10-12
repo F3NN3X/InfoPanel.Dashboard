@@ -8,6 +8,8 @@ export type Tone = "ok" | "warn" | "crit";
 
 export interface ShellProps {
   data: Data;
+  /** The sensors' display names by key (`SensorValue.name`); read through `sensorLabel`. */
+  names?: Record<string, string>;
   accent?: string;
   surface?: string;
   radius?: number;

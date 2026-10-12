@@ -7,7 +7,7 @@ import type { SensorGroupProps } from "../SensorGroup";
 const DOTS: Record<ReadingKind, string> = { temp: STATE.crit, fan: "#38bdf8", power: STATE.warn, other: "var(--accent)" };
 
 export default function Discovered(p: SensorGroupProps) {
-  const all = readings(p.data);
+  const all = readings(p.data, p.names);
   const list = p.maxRows && p.maxRows > 0 ? all.slice(0, p.maxRows) : all;
   const dot = (r: Reading) => (p.tempColor && r.kind === "temp" ? p.tempColor : p.fanColor && r.kind === "fan" ? p.fanColor : p.powerColor && r.kind === "power" ? p.powerColor : DOTS[r.kind]);
   const first = list[0];

@@ -225,6 +225,17 @@ describe("readSystemFlat", () => {
     expect(readSystemFlat(flat)).toBe(f);
   });
 
+  it("takes hardware and drive names from the sensor names when given", () => {
+    const names = Object.fromEntries(Object.entries(live).map(([k, v]) => [k, v.name]));
+    const named = readSystemFlat(flat, names);
+    const r = readSystem(live);
+    expect(named.cpu.name).toBe(r.cpu.name);
+    expect(named.gpu.name).toBe(r.gpu.name);
+    expect(named.disks.map((d) => d.name)).toEqual(r.disks.map((d) => d.name));
+    expect(readSystemFlat(flat, names)).toBe(named);
+    expect(readSystemFlat(flat).cpu.name).toBeUndefined();
+  });
+
   it("filters slug-named drives by hardware-name substrings, ignoring punctuation", () => {
     expect(filterDisks(f.disks, "WDS100T2B0A-00SM50").map((d) => d.id)).toEqual(["libre.wdc_wds100t2b0a_00sm50"]);
     expect(filterDisks(f.disks, "KINGSTON").map((d) => d.id)).toEqual(["libre.kingston_sfyrd2000g"]);

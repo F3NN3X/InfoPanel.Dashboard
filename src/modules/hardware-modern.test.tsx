@@ -76,10 +76,11 @@ describe("hardwaremodern", () => {
     const html = renderModule(hardwareModernModule, { layout: "card", maxRows: 0 });
     expect(error).not.toHaveBeenCalled();
     error.mockRestore();
-    expect(html).toContain("Cpu Package Temp");
-    expect(html.indexOf("Cpu Package Temp")).toBeLessThan(html.indexOf("Cpu Fan"));
-    expect(html.indexOf("Cpu Fan")).toBeLessThan(html.indexOf("Cpu Power"));
-    expect(html.indexOf("Cpu Power")).toBeLessThan(html.indexOf("Vcore"));
+    // labelled with the sensors' display names
+    expect(html).toContain("CPU Package Temp");
+    expect(html.indexOf("CPU Package Temp")).toBeLessThan(html.indexOf("CPU Fan"));
+    expect(html.indexOf("CPU Fan")).toBeLessThan(html.indexOf("CPU Package Power"));
+    expect(html.indexOf("CPU Package Power")).toBeLessThan(html.indexOf("Vcore"));
   });
 
   it("renders the non-default values", () => {

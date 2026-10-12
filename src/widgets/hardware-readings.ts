@@ -1,6 +1,6 @@
 // The hardware readings of the Data API (`libre.*` and `hwinfo.*`), found without a fixed key list:
 // SensorGroup lists them, Thermals draws the temperatures as gauges.
-import { get, num, pretty, type Data } from "./kit";
+import { get, num, pretty, sensorLabel, type Data } from "./kit";
 
 export type ReadingKind = "temp" | "fan" | "power" | "other";
 
@@ -28,9 +28,10 @@ export function kindOf(name: string, unit: string): ReadingKind {
 
 /**
  * Every live `libre.*` / `hwinfo.*` reading (empty and numeric-zero values are skipped), temperatures
- * first, then fans, power and the rest in the order the API lists them.
+ * first, then fans, power and the rest in the order the API lists them. A row is labelled with the
+ * sensor's display name when `names` has one, else with its key prettified.
  */
-export function readings(data: Data | undefined): Reading[] {
+export function readings(data: Data | undefined, names?: Record<string, string>): Reading[] {
   const out: Reading[] = [];
   for (const key of Object.keys(data ?? {})) {
     if (!key.startsWith("libre.") && !key.startsWith("hwinfo.")) continue;
@@ -38,7 +39,7 @@ export function readings(data: Data | undefined): Reading[] {
     const value = num(text);
     if (text === "" || (Number.isFinite(value) && value === 0)) continue;
     const unit = Number.isFinite(value) ? text.replace(/^[-\d.,\s]+/, "").trim() : "";
-    const label = pretty(key.replace(/^(libre|hwinfo)\./, "")).replace(/ {2,}/g, " ");
+    const label = sensorLabel(key, names, pretty(key.replace(/^(libre|hwinfo)\./, "")).replace(/ {2,}/g, " "));
     out.push({ key, label, text, value, unit, kind: kindOf(label, unit) });
   }
   return out.sort((a, b) => RANK[a.kind] - RANK[b.kind]);

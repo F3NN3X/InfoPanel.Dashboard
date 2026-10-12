@@ -37,9 +37,9 @@ interface Device {
   battery?: number;
 }
 
-/** The entry of a device container by the last segment of its key (the plugin's display names are lost in flat data). */
-const field = (items: { key: string; text: string }[], re: RegExp): string | undefined => {
-  const hit = items.find((i) => re.test(i.key.slice(i.key.lastIndexOf(".") + 1)));
+/** The entry of a device container by its display name (as the plugin names it), else by the last segment of its key. */
+const field = (items: { key: string; text: string }[], names: Record<string, string> | undefined, name: string, re: RegExp): string | undefined => {
+  const hit = items.find((i) => names?.[i.key] === name) ?? items.find((i) => re.test(i.key.slice(i.key.lastIndexOf(".") + 1)));
   return hit && has(hit.text) ? hit.text : undefined;
 };
 
@@ -53,8 +53,8 @@ export default function Bluetooth(p: BluetoothProps) {
   const devices: Device[] = groups
     .filter((items) => items.length > 0 && !isStatus(items))
     .map((items, i) => {
-      const b = num(field(items, /battery/i));
-      return { key: items[0].key, name: field(items, /(^|[-_])name$/i) ?? `Device ${i + 1}`, status: field(items, /status$/i), battery: Number.isFinite(b) && b > 0 ? clamp(b) : undefined };
+      const b = num(field(items, p.names, "Battery Level", /battery/i));
+      return { key: items[0].key, name: field(items, p.names, "Name", /(^|[-_])name$/i) ?? `Device ${i + 1}`, status: field(items, p.names, "Status", /status$/i), battery: Number.isFinite(b) && b > 0 ? clamp(b) : undefined };
     });
   const showStatus = p.showStatus ?? true;
   const showDevices = p.showDevices ?? true;

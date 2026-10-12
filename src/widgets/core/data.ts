@@ -8,6 +8,8 @@ export const get = (data: Data | undefined, key: string, fb = ""): string => {
   if (v == null) return fb;
   return typeof v === "object" ? v.value ?? fb : v;
 };
+/** A sensor's display name, or `fallback` (a label derived from the key) when it has none. */
+export const sensorLabel = (key: string, names: Record<string, string> | undefined, fallback: string): string => names?.[key] || fallback;
 export const num = (v: unknown): number => {
   const m = String(v ?? "").replace(",", ".").match(/-?\d+(\.\d+)?/);
   return m ? parseFloat(m[0]) : NaN;

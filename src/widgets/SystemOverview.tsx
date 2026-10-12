@@ -150,7 +150,7 @@ export default function SystemOverview(p: SystemOverviewProps) {
   const d = p.data;
   const cpu = hw(d).cpu,
     gpu = hw(d).gpu;
-  const r = readSystemFlat(d);
+  const r = readSystemFlat(d, p.names);
   const L = (k: string) => num(get(d, `libre.${k}`));
   const C = (k: string) => L(`${cpu}_${k}`),
     G = (k: string) => L(`${gpu}_${k}`);

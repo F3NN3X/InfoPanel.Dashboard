@@ -6,7 +6,7 @@ import { effectiveSettings, type DashboardModule, type ModuleSetting, type Modul
 import { ensureSkinFonts } from "./core/fonts";
 import { SKINS } from "./core/theme";
 import type { ShellProps, WidgetMeta } from "./core/types";
-import { toFlat } from "./data-adapter";
+import { toFlat, toNames } from "./data-adapter";
 
 /**
  * A legacy module id that renders through a template: its own identity, footprint and full
@@ -111,12 +111,13 @@ export function templateModule<P extends object>({ meta, Component, settings, to
   };
   function TemplateZone({ sensors, saved }: { sensors: SensorMap; saved?: ModuleSettings }) {
     const data = useMemo(() => toFlat(sensors), [sensors]);
+    const names = useMemo(() => toNames(sensors), [sensors]);
     const look = withSkinSurface(effectiveSettings(mod, saved), saved, surfaceDefault);
     const skin = chosen(look.skin);
     useEffect(() => {
       if (skin) ensureSkinFonts(skin);
     }, [skin]);
-    return <Component data={data} {...shellProps(look)} {...toProps(look)} look={look} />;
+    return <Component data={data} names={names} {...shellProps(look)} {...toProps(look)} look={look} />;
   }
   return mod;
 }

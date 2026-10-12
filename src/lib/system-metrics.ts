@@ -300,21 +300,21 @@ function unflatten(raw: string): SensorValue {
   return raw !== "" && Number.isFinite(value) ? { value, unit: cut < 0 ? "" : raw.slice(cut + 1) } : { text: raw, unit: "" };
 }
 
-const flatCache = new WeakMap<object, SystemReadings>();
+const flatCache = new WeakMap<object, { names?: Record<string, string>; readings: SystemReadings }>();
 
 /**
  * The readings from the widget templates' flat data (`{ key: "62.5 %" }`, `widgets/data-adapter.ts`).
- * Flat data carries no sensor names, so hardware names stay unset and drives are named by their key
- * slug (`kingston_sfyrd2000g`). Memoised per data identity.
+ * Flat data carries no sensor names: without `names` (the display names by key) hardware names stay
+ * unset and drives are named by their key slug (`kingston_sfyrd2000g`). Memoised per data identity.
  */
-export function readSystemFlat(data: Record<string, string | { value: string }>): SystemReadings {
+export function readSystemFlat(data: Record<string, string | { value: string }>, names?: Record<string, string>): SystemReadings {
   const hit = flatCache.get(data);
-  if (hit) return hit;
+  if (hit && hit.names === names) return hit.readings;
   const sensors: SensorMap = {};
   for (const [key, v] of Object.entries(data)) {
-    if (key.startsWith("libre.") || key.startsWith("system.")) sensors[key] = unflatten(typeof v === "object" ? v.value : v);
+    if (key.startsWith("libre.") || key.startsWith("system.")) sensors[key] = { ...unflatten(typeof v === "object" ? v.value : v), name: names?.[key] };
   }
   const readings = readSystem(sensors);
-  flatCache.set(data, readings);
+  flatCache.set(data, { names, readings });
   return readings;
 }

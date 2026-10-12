@@ -50,3 +50,18 @@ describe("bluetoothmodern", () => {
     expect(effectiveSettings(bluetoothModernModule).surface).toBe("glass");
   });
 });
+
+describe("bluetoothmodern display names", () => {
+  const P = "plugins.bluetooth-battery-plugin.";
+  const sensors = {
+    [`${P}main.s1`]: { text: "Bluetooth On", unit: "", name: "Status" },
+    [`${P}d1.x1`]: { text: "Pods Max", unit: "", name: "Name" },
+    [`${P}d1.x2`]: { text: "Connected", unit: "", name: "Status" },
+    [`${P}d1.x3`]: { value: 73, unit: "%", name: "Battery Level" },
+  };
+
+  it("matches device fields on the sensors' display names when the keys say nothing", () => {
+    const out = renderToString(bluetoothModernModule.render(sensors, { layout: "card" }) as never);
+    for (const text of ["Pods Max", "Connected", "73%"]) expect(out).toContain(text);
+  });
+});

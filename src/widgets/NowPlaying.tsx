@@ -81,19 +81,20 @@ const AUDIO = "plugins.audio-level-meter.";
 /**
  * The audio-level-meter container to read: unset = `default-audio`; a pinned one while it reports a
  * level; else ("" or a device gone quiet) the loudest live one, so music routed to a virtual or
- * secondary device still drives the visualiser.
+ * secondary device still drives the visualiser. A level is the `audio-level` entry, or one the
+ * plugin names "Level" (`names`).
  */
-export function levelDevice(d: Data, wanted: string | undefined): string {
+export function levelDevice(d: Data, wanted: string | undefined, names?: Record<string, string>): string {
   if (wanted === undefined) return "default-audio";
   if (wanted && has(get(d, `${AUDIO}${wanted}.audio-level`))) return wanted;
   let best = wanted;
   let top = -Infinity;
   for (const key of Object.keys(d)) {
-    if (!key.startsWith(AUDIO) || !key.endsWith(".audio-level")) continue;
+    if (!key.startsWith(AUDIO) || !(key.endsWith(".audio-level") || names?.[key] === "Level")) continue;
     const v = num(get(d, key));
     if (v > top) {
       top = v;
-      best = key.slice(AUDIO.length, -".audio-level".length);
+      best = key.slice(AUDIO.length).split(".")[0];
     }
   }
   return best;
@@ -135,7 +136,7 @@ export default function NowPlaying(p: NowPlayingProps) {
   const art = p.showArt !== false;
   const showProgress = p.showProgress !== false;
   const viz = showProgress && p.progress === "visualizer";
-  const device = levelDevice(d, p.vizDevice);
+  const device = levelDevice(d, p.vizDevice, p.names);
   const A = (s: string) => num(get(d, `${AUDIO}${device}.${s}`)) || 0;
   const tuning = Object.fromEntries(LIVE_TUNING_KEYS.filter((k) => p[k] !== undefined).map((k) => [k, p[k]])) as Partial<LiveTuning>;
   const media = (mode: MediaProgressMode, h = "", barClassName?: string) =>

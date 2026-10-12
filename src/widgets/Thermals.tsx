@@ -45,7 +45,7 @@ export default function Thermals(p: ThermalsProps) {
     gpu = hw(d).gpu;
   const L = (k: string) => num(get(d, `libre.${k}`));
   const raw: { id: string; label: string; v: number; warn: number; crit: number }[] = [];
-  if (p.discover) for (const r of readings(d)) if (r.kind === "temp") raw.push({ id: r.key, label: r.label, v: r.value, warn: 70, crit: 85 });
+  if (p.discover) for (const r of readings(d, p.names)) if (r.kind === "temp") raw.push({ id: r.key, label: r.label, v: r.value, warn: 70, crit: 85 });
   if (cpu && !p.discover) raw.push({ id: "cpu", label: "CPU", v: L(`${cpu}_core__tctl_tdie`), warn: 80, crit: 90 });
   if (gpu && !p.discover) {
     raw.push({ id: "gpu", label: "GPU", v: L(`${gpu}_gpu_core`), warn: 75, crit: 85 });
@@ -75,7 +75,7 @@ export default function Thermals(p: ThermalsProps) {
     >
       {({ size, h }) => {
         if (p.view === "gauges") {
-          const fans = p.showFans === false ? [] : readings(d).filter((r) => r.kind === "fan").slice(0, 4);
+          const fans = p.showFans === false ? [] : readings(d, p.names).filter((r) => r.kind === "fan").slice(0, 4);
           const ring = Math.round(Math.min(96, Math.max(44, h * 0.24)));
           return (
             <div className="flex h-full flex-col items-center justify-center gap-3 overflow-hidden">

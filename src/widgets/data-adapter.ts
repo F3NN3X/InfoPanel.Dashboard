@@ -27,6 +27,21 @@ export function toFlat(map: SensorMap): FlatData {
   return flat;
 }
 
+/** `{ key: "CPU Package Temp" }`: the sensors' display names, for the keys that have one. */
+export type FlatNames = Record<string, string>;
+
+const nameCache = new WeakMap<SensorMap, FlatNames>();
+
+/** The display names of the map (`SensorValue.name`, blanks left out). Memoised per map identity, like `toFlat`. */
+export function toNames(map: SensorMap): FlatNames {
+  const hit = nameCache.get(map);
+  if (hit) return hit;
+  const names: FlatNames = {};
+  for (const [key, s] of Object.entries(map)) if (s.name?.trim()) names[key] = s.name.trim();
+  nameCache.set(map, names);
+  return names;
+}
+
 /** The flat data of the sensors under `prefixes` (`null` = every key). */
 export function useWidgetData(prefixes: readonly string[] | null): Data {
   return toFlat(useSensors(prefixes));

@@ -2,7 +2,7 @@ import { createElement } from "react";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { fixtureSensors } from "@/widgets/__fixtures__";
-import { toFlat } from "@/widgets/data-adapter";
+import { toFlat, toNames } from "@/widgets/data-adapter";
 import SystemOverview from "@/widgets/SystemOverview";
 import { systemOverviewProps } from "@/widgets/registry/system-overview";
 import { GROUP_A } from "@/widgets/registry/a";
@@ -190,6 +190,13 @@ describe("systemmodern module", () => {
     const filtered = full({ devices: "disk", diskFilter: "WDS100T2B0A-00SM50" });
     expect(filtered).toContain("WDC WDS100T2B0A 00SM50");
     expect(filtered).not.toContain("Kingston");
+  });
+
+  it("names drives by their sensors' display names when the fixture has them", () => {
+    const named = { ...SENSORS, "libre.kingston_sfyrd2000g_used_space": { ...SENSORS["libre.kingston_sfyrd2000g_used_space"], name: "KINGSTON SFYRD2000G Used Space" } };
+    const html = renderToString(createElement(SystemOverview, { data: toFlat(named), names: toNames(named), details: "full", ...systemOverviewProps(effectiveSettings(mod, { devices: "disk" })) }));
+    expect(html).toContain("KINGSTON SFYRD2000G");
+    expect(full({ devices: "disk" })).toContain("Kingston SFYRD2000G");
   });
 
   it("tints a load past its warning and a temperature past its threshold", () => {

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { SensorMap } from "@/modules/types";
 import { get, hw, num } from "./core/data";
 import snapshot from "./__fixtures__/snapshot.json";
-import { toFlat, widgetImage } from "./data-adapter";
+import { toFlat, toNames, widgetImage } from "./data-adapter";
 
 describe("toFlat", () => {
   it("joins a value and its unit with a space", () => {
@@ -52,5 +52,18 @@ describe("widgetImage", () => {
 
   it("resolves Data API image paths against the API", () => {
     expect(widgetImage("/api/images/p/i")).toMatch(/\/api\/images\/p\/i$/);
+  });
+});
+
+describe("toNames", () => {
+  it("collects the display names by key, trimmed, leaving blanks out", () => {
+    const map: SensorMap = { a: { value: 1, unit: "", name: " CPU Package " }, b: { value: 2, unit: "", name: "  " }, c: { value: 3, unit: "" } };
+    expect(toNames(map)).toEqual({ a: "CPU Package" });
+  });
+
+  it("is memoised per map identity", () => {
+    const map: SensorMap = { a: { value: 1, unit: "", name: "A" } };
+    expect(toNames(map)).toBe(toNames(map));
+    expect(toNames({ ...map })).not.toBe(toNames(map));
   });
 });

@@ -182,4 +182,9 @@ describe("levelDevice", () => {
   it("takes the loudest live device for an empty pick", () => expect(levelDevice(d, "")).toBe("loud"));
   it("keeps a pinned device while it reports", () => expect(levelDevice(d, "quiet")).toBe("quiet"));
   it("falls back to the loudest when the pinned device is gone", () => expect(levelDevice(d, "gone")).toBe("loud"));
+  it("counts an entry the plugin names Level when the key says nothing", () => {
+    const named = { "plugins.audio-level-meter.quiet.audio-level": "5 %", "plugins.audio-level-meter.virtual.x9": "80 %" };
+    expect(levelDevice(named, "")).toBe("quiet");
+    expect(levelDevice(named, "", { "plugins.audio-level-meter.virtual.x9": "Level" })).toBe("virtual");
+  });
 });

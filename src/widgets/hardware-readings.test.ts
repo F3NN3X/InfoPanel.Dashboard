@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { sensorLabel } from "./core/data";
 import { kindOf, readings } from "./hardware-readings";
 
 describe("readings", () => {
@@ -34,5 +35,20 @@ describe("readings", () => {
     ["Vcore", "V", "other"],
   ])("classifies %s / %s as %s", (name, unit, kind) => {
     expect(kindOf(name, unit)).toBe(kind);
+  });
+});
+
+describe("sensor names", () => {
+  it("falls back to the given label without a name", () => {
+    expect(sensorLabel("a", undefined, "Fb")).toBe("Fb");
+    expect(sensorLabel("a", { b: "B" }, "Fb")).toBe("Fb");
+    expect(sensorLabel("a", { a: "A" }, "Fb")).toBe("A");
+  });
+
+  it("labels readings with the sensor's display name, else the prettified key", () => {
+    const data = { "libre.gpu_core": "54 °C", "libre.cpu_fan": "1180 RPM" };
+    const list = readings(data, { "libre.gpu_core": "GPU Core" });
+    expect(list.find((r) => r.key === "libre.gpu_core")?.label).toBe("GPU Core");
+    expect(list.find((r) => r.key === "libre.cpu_fan")?.label).toBe("Cpu Fan");
   });
 });
