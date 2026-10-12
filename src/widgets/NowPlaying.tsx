@@ -213,7 +213,10 @@ export default function NowPlaying(p: NowPlayingProps) {
       title={p.title ?? "Now playing"}
       icon="music_note"
       studio={{ label: m.app, live: m.playing, value: m.track || "—", sub: m.artist, img: art ? cover : undefined, kind: "text", progress: showProgress ? { a: showTimes ? m.elapsed : undefined, b: showTimes ? m.remaining : undefined, pct } : undefined, viz: viz ? miniViz : undefined }}
-      compact={{ label: m.app, value: m.track || "—", sub: m.artist, kind: "text", pct: showProgress ? pct : undefined, img: art ? cover : undefined, icon: "music_note", viz: viz ? miniViz : undefined }}
+      compact={(box) =>
+        // a 2x1 tile would draw the cover as a huge backdrop under the text: lay out tile, title, artist and time instead
+        box.shape === "tile" && box.w >= 200 ? undefined : { label: m.app, value: m.track || "—", sub: m.artist, kind: "text", pct: showProgress ? pct : undefined, img: art ? cover : undefined, icon: "music_note", viz: viz ? miniViz : undefined }
+      }
       right={
         <Chip>
           <span className="text-[9px]">{m.playing ? "▶" : "❚❚"}</span>
@@ -281,9 +284,15 @@ export default function NowPlaying(p: NowPlayingProps) {
           );
         if (size === "xs")
           return (
-            <div className="flex h-full flex-col justify-center gap-2">
-              {text("text-sm")}
-              {media(viz ? "visualizer" : "bar", "h-5")}
+            <div className="flex h-full min-w-0 flex-col justify-center gap-1.5">
+              <div className="flex min-w-0 items-center gap-3">
+                {art && <Img src={cover} icon="album" className="aspect-square h-11 shrink-0 rounded-lg" />}
+                <div className="flex min-w-0 flex-col">
+                  {text("text-sm")}
+                  {showTimes && has(m.elapsed) && <span className="truncate font-mono text-[10px] text-[color:var(--w-faint)]">{`${m.elapsed} / ${m.remaining}`}</span>}
+                </div>
+              </div>
+              {media(viz ? "visualizer" : "bar", "h-4")}
             </div>
           );
         if (size === "lg" && art)

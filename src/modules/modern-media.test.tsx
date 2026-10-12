@@ -118,6 +118,12 @@ describe("legacy media modules", () => {
       expect(text(off)).not.toContain("01:34");
     });
 
+    it.each(MODULES)("$id at 2x1 keeps the cover tile, title, artist and the elapsed / total time", (mod) => {
+      const html = render(mod, { layout: "simple" });
+      for (const part of ["Sample Track", "Sample Artist", "01:34 / 02:11", "/assets/qa/cover.svg"]) expect(html).toContain(part);
+      expect(render(mod, { layout: "simple", showTimes: false })).not.toContain("01:34 / 02:11");
+    });
+
     it("draws the live waveform for waveform, the bar visualizer for visualizer", () => {
       expect(render(mediaModernModule, { layout: "standard", waveform: true })).toContain('data-slot="live-waveform"');
       const bars = render(mediaModernModule, { layout: "standard", waveform: true, visualizer: true, visualizerBarCount: 12 });
