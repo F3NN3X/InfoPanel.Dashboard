@@ -60,7 +60,7 @@ describe("insertables", () => {
     expect(category("mediamodern")).toBe("Media");
     expect(category("audiomodern")).toBe("Audio");
     expect(category("wavelinkmodern")).toBe("Audio");
-    for (const id of ["weathermodern", "vbz", "Notifications", "TextFile"]) expect(category(id), id).toBe("Info");
+    for (const id of ["weathermodern", "Departures", "Notifications", "TextFile"]) expect(category(id), id).toBe("Info");
     expect(category("steammodern")).toBe("Gaming");
     expect(category("fpsmodern")).toBe("Gaming");
     for (const id of ["bluetoothmodern", "streamdeck", "WebPage", CARDS_ID]) expect(category(id), id).toBe("Generic");

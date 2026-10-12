@@ -5,6 +5,7 @@ import { fixtureSensors } from "@/widgets/__fixtures__";
 import { webPageOptions } from "@/widgets/registry/e";
 import { toEmbeddable } from "@/widgets/WebPage";
 import { notificationsModule } from "./notifications";
+import { vbzModule } from "./vbz";
 import { textfileModule } from "./textfile";
 import { webpageModule } from "./webpage";
 import { effectiveSettings, type DashboardModule, type ModuleSettings } from "./types";
@@ -18,7 +19,7 @@ interface Captured {
   prefixes: string[];
   settings: unknown[];
 }
-const MODULES: DashboardModule[] = [webpageModule, textfileModule, notificationsModule];
+const MODULES: DashboardModule[] = [webpageModule, textfileModule, notificationsModule, vbzModule];
 const LAYOUTS = ["card", "standard", "compact", "simple"] as const; // forced tiers lg / md / sm / xs
 const sensors = fixtureSensors();
 const html = (mod: DashboardModule, s: ModuleSettings) => renderToString(mod.render(sensors, s) as never);

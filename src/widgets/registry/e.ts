@@ -4,6 +4,7 @@ import { findEntry } from "@/lib/sensors";
 import { CARD_SETTINGS, IDLE_SETTING, STYLE_SETTINGS, SURFACE_SETTINGS } from "@/modules/standard-settings";
 import type { DashboardModule, ModuleSetting } from "@/modules/types";
 import { templateModule, type TemplateOptions } from "../module";
+import Departures, { meta as departuresMeta, type DeparturesProps } from "../Departures";
 import Notifications, { meta as notificationsMeta, type NotificationsProps } from "../Notifications";
 import TextFile, { meta as textFileMeta, type TextFileProps } from "../TextFile";
 import WebPage, { meta as webPageMeta, type WebPageProps } from "../WebPage";
@@ -59,4 +60,18 @@ export const notificationsOptions: TemplateOptions<Pick<NotificationsProps, "sho
   isIdle: notificationsIdle,
 };
 
-export const GROUP_E: DashboardModule[] = [templateModule(webPageOptions), templateModule(textFileOptions), templateModule(notificationsOptions)];
+export const DEPARTURES_SETTINGS: ModuleSetting[] = [{ key: "showStatus", label: "Status line", type: "boolean", default: true, group: "Content" }];
+
+export const departuresOptions: TemplateOptions<Pick<DeparturesProps, "showStatus">> = {
+  meta: departuresMeta,
+  Component: Departures,
+  settings: DEPARTURES_SETTINGS,
+  toProps: (s) => ({ showStatus: boolOf(s.showStatus) }),
+};
+
+export const GROUP_E: DashboardModule[] = [
+  templateModule(webPageOptions),
+  templateModule(textFileOptions),
+  templateModule(notificationsOptions),
+  templateModule(departuresOptions),
+];

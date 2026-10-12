@@ -5,6 +5,7 @@ import type { SensorMap } from "@/modules/types";
 import { fixtureSensors } from "../__fixtures__";
 import { toFlat } from "../data-adapter";
 import type { ShellProps } from "../kit";
+import Departures, { meta as departures } from "../Departures";
 import Notifications, { meta as notifications } from "../Notifications";
 import TextFile, { meta as textFile } from "../TextFile";
 import WebPage, { meta as webPage } from "../WebPage";
@@ -15,6 +16,7 @@ const WIDGETS: [typeof webPage, ComponentType<ShellProps>, string, Record<string
   [webPage, WebPage, "Generic", { url: "https://example.com" }],
   [textFile, TextFile, "Info", {}],
   [notifications, Notifications, "Info", {}],
+  [departures, Departures, "Info", {}],
 ];
 const SIZES = ["xs", "sm", "md", "lg"] as const;
 const VARIANTS = ["default", "studio"] as const;
