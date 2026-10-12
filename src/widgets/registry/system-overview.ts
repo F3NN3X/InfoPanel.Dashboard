@@ -189,6 +189,9 @@ export const SYSTEM_MODERN_SETTINGS: ModuleSetting[] = settings(true);
 /** The SystemOverview zone's settings for the props it gained from systemmodern. */
 export const SYSTEM_OVERVIEW_SETTINGS: ModuleSetting[] = settings(false);
 
+/** The device colours systemmodern had before the port (`ModernSystem` at 6513067); the template's own palette differs (RAM is amber). */
+export const LEGACY_COLORS: Partial<Record<Section, string>> = { cpu: "#38bdf8", gpu: "#a78bfa", ram: "#4ade80", vram: "#fbbf24", disk: "#fb7185" };
+
 const text = (v: unknown) => String(v ?? "").trim();
 const has = (s: ModuleSettings, key: string) => s[key] !== undefined && s[key] !== "";
 
@@ -218,4 +221,10 @@ export function systemOverviewProps(s: ModuleSettings): Partial<SystemOverviewPr
   const colors = Object.fromEntries((Object.entries(COLOR_KEYS) as [Section, string][]).filter(([, key]) => text(s[key])).map(([k, key]) => [k, text(s[key])]));
   if (Object.keys(colors).length) out.colors = colors;
   return out;
+}
+
+/** `systemOverviewProps` for the legacy systemmodern id: a device colour not stored keeps today's default. */
+export function systemModernProps(s: ModuleSettings): Partial<SystemOverviewProps> {
+  const props = systemOverviewProps(s);
+  return { ...props, colors: { ...LEGACY_COLORS, ...props.colors } };
 }

@@ -1,20 +1,20 @@
 import { readSystem, SYSTEM_PREFIXES } from "@/lib/system-metrics";
 import { templateModule } from "@/widgets/module";
 import SystemOverview, { meta } from "@/widgets/SystemOverview";
-import { SYSTEM_MODERN_SETTINGS, systemOverviewProps } from "@/widgets/registry/system-overview";
+import { SYSTEM_MODERN_SETTINGS, systemModernProps } from "@/widgets/registry/system-overview";
 import type { SensorMap } from "./types";
 
 /**
  * Modern system widget — CPU / GPU / RAM / Disks, rendered by the SystemOverview template: a load
  * ring per device (drives get used-space bars), with temperature, power, clock, memory, VRAM, fan
  * and page-file details, an optional per-thread CPU grid and trend sparkline, every part
- * switchable. The stored keys are unchanged; `systemOverviewProps` maps them to template props.
+ * switchable. The stored keys are unchanged; `systemModernProps` maps them to template props, with today's device colours as the default.
  */
 export const systemModernModule = templateModule({
   meta,
   Component: SystemOverview,
   settings: SYSTEM_MODERN_SETTINGS,
-  toProps: systemOverviewProps,
+  toProps: systemModernProps,
   // Hardware details come from LibreHardwareMonitor, which the Hardware widget owns.
   prefixes: SYSTEM_PREFIXES.filter((p) => !p.startsWith("system.")),
   // SystemOverview supersedes it in the Library; existing zones keep loading.

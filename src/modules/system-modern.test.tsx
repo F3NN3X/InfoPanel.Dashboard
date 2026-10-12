@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { fixtureSensors } from "@/widgets/__fixtures__";
 import { toFlat, toNames } from "@/widgets/data-adapter";
 import SystemOverview from "@/widgets/SystemOverview";
-import { systemOverviewProps } from "@/widgets/registry/system-overview";
+import { systemModernProps, systemOverviewProps } from "@/widgets/registry/system-overview";
 import { GROUP_A } from "@/widgets/registry/a";
 import { STANDARD_SETTINGS } from "./standard-settings";
 import { systemModernModule as mod } from "./system-modern";
@@ -219,6 +219,19 @@ describe("systemmodern module", () => {
   });
 });
 
+describe("systemmodern default colours", () => {
+  it("passes today's device colours when none is stored, the stored colour winning", () => {
+    expect(systemModernProps(effectiveSettings(mod, {})).colors).toEqual({ cpu: "#38bdf8", gpu: "#a78bfa", ram: "#4ade80", vram: "#fbbf24", disk: "#fb7185" });
+    expect(systemModernProps(effectiveSettings(mod, { ramColor: "#000000" })).colors).toMatchObject({ ram: "#000000", cpu: "#38bdf8" });
+  });
+
+  it("renders RAM green by default and the stored colour when set", () => {
+    expect(render({ devices: "ram" })).toContain("--accent:#4ade80");
+    expect(render({ devices: "ram" })).not.toContain("--accent:#fbbf24");
+    expect(render({ devices: "ram", ramColor: "#123456" })).toContain("--accent:#123456");
+  });
+});
+
 describe("SystemOverview zone", () => {
   const tpl = GROUP_A.find((m) => m.id === "SystemOverview")!;
 
@@ -232,6 +245,11 @@ describe("SystemOverview zone", () => {
     expect(p.sparkline).toBe(true);
     expect(p.historyLength).toBe(60);
     expect(Object.values(p.show ?? {}).every(Boolean)).toBe(true);
+  });
+
+  it("keeps the template's own palette (RAM amber) where the legacy id keeps its green", () => {
+    expect(renderToString(tpl.render(SENSORS, {}) as never)).toContain("--accent:#fbbf24");
+    expect(systemOverviewProps(effectiveSettings(tpl, {})).colors).toBeUndefined();
   });
 
   it("applies the colour and label keys", () => {
