@@ -39,7 +39,7 @@ export default function Calendar(p: CalendarProps) {
         <div className="flex h-full gap-5">
           {(size === "lg" || w > 420) && (
             <div className="flex shrink-0 flex-col justify-between">
-              <span className="text-sm font-medium text-[color:var(--accent)]">{W[date.getDay()]}</span>
+              <span className="text-sm font-medium" style={{ color: "color-mix(in oklab, var(--accent) 60%, var(--w-fg))" }}>{W[date.getDay()]}</span>
               <Num className="text-7xl font-semibold leading-none tracking-tight">{day}</Num>
               <span className="text-sm text-[color:var(--w-muted)]">
                 {M[mon - 1]} {yr} · W{week}
