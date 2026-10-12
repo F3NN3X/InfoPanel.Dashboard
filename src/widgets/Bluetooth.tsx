@@ -86,7 +86,10 @@ export default function Bluetooth(p: BluetoothProps) {
       title={p.title ?? "Bluetooth"}
       icon="bluetooth"
       right={count > 0 ? <Chip>{countLabel}</Chip> : undefined}
-      compact={{ label: "Bluetooth", value: status ?? "—", sub: countLabel, kind: "text", icon: "bluetooth" }}
+      compact={(box) =>
+        // a 2x1 tile drops the sub line, which would lose the device count: lay the status and count out instead
+        box.shape === "tile" && box.w >= 200 ? undefined : { label: "Bluetooth", value: status ?? "—", sub: countLabel, kind: "text", icon: "bluetooth" }
+      }
       studio={{
         label: "Bluetooth",
         value: count,
@@ -102,11 +105,14 @@ export default function Bluetooth(p: BluetoothProps) {
         const perRow = showBattery ? 46 : 28;
         // before the first measurement (h = 0) up to 6 devices render
         const shown = showDevices ? devices.slice(0, h > 0 ? Math.min(6, Math.max(1, Math.floor((h - 36) / perRow) * (tall ? 1 : 2))) : 6) : [];
+        // the wide layout's head column is narrow: the count sits under the status so the status is never cut
         const head = (
-          <div className="flex shrink-0 items-center gap-2">
-            <Icon name="bluetooth" className="text-base text-[color:var(--w-muted)]" />
-            {showStatus && status && <span className="truncate text-sm font-semibold text-[color:var(--w-fg)]">{status}</span>}
-            <span className="ml-auto shrink-0 text-xs text-[color:var(--w-muted)]">{countLabel}</span>
+          <div className={`flex shrink-0 ${tall ? "items-center gap-2" : "flex-col gap-1"}`}>
+            <div className="flex min-w-0 items-center gap-2">
+              <Icon name="bluetooth" className="text-base text-[color:var(--w-muted)]" />
+              {showStatus && status && <span className="truncate text-sm font-semibold text-[color:var(--w-fg)]">{status}</span>}
+            </div>
+            <span className={`shrink-0 text-xs text-[color:var(--w-muted)] ${tall ? "ml-auto" : ""}`}>{countLabel}</span>
           </div>
         );
         return tall ? (

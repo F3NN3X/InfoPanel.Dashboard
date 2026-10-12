@@ -64,4 +64,8 @@ describe("bluetoothmodern display names", () => {
     const out = renderToString(bluetoothModernModule.render(sensors, { layout: "card" }) as never);
     for (const text of ["Pods Max", "Connected", "73%"]) expect(out).toContain(text);
   });
+
+  it("keeps the device count next to the status at 2x1", () => {
+    for (const layout of ["simple", "compact", "standard"]) for (const text of ["Bluetooth On", "3 devices"]) expect(html({ layout }), layout).toContain(text);
+  });
 });
