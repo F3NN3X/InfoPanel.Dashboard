@@ -15,8 +15,9 @@ import fs from "node:fs";
 export const ROTATE_PAUSE_MS = 30_000;
 const TICK_MS = 1000;
 
-/** The empty state. `shown` (the profile a kiosk last reported) and `nextAt` are runtime only. */
-export const emptyState = () => ({ profile: null, shown: null, pages: {}, override: {}, nextAt: {} });
+/** The empty state. `shown` (the profile a kiosk last reported), `nextAt` and `alerts` (the active list
+ * server/alerts.mjs publishes) are runtime only. */
+export const emptyState = () => ({ profile: null, shown: null, pages: {}, override: {}, nextAt: {}, alerts: [] });
 
 const profilesOf = (config) => (Array.isArray(config?.profiles) ? config.profiles : []);
 const findProfile = (config, id) => profilesOf(config).find((p) => p && p.id === id);
@@ -162,7 +163,7 @@ export function reduce(state, action, config, now) {
   }
 }
 
-/** What clients see: per profile its page and whether it rotates, plus the override and shown profile. */
+/** What clients see: per profile its page and whether it rotates, the override and shown profile, and the active alerts. */
 export function publicState(state, config) {
   const profiles = {};
   for (const p of profilesOf(config)) {
@@ -173,7 +174,7 @@ export function publicState(state, config) {
       override: state.override[p.id] ?? null,
     };
   }
-  return { profile: state.profile, shown: state.shown, profiles };
+  return { profile: state.profile, shown: state.shown, profiles, alerts: state.alerts };
 }
 
 /** The durable part, as saved to control.json. */
@@ -235,6 +236,10 @@ export function createControl({ file, readConfig, now = () => Date.now(), tickMs
   return {
     dispatch,
     get: () => publicState(state, config),
+    /** Publish the active alerts (from server/alerts.mjs); listeners fire only when the list changed. */
+    setAlerts(list) {
+      if (JSON.stringify(list) !== JSON.stringify(state.alerts)) commit({ ...state, alerts: list });
+    },
     /** The config was saved: re-read it, drop stale overrides, publish. */
     configChanged() {
       const previous = config;

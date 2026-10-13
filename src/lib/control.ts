@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import type { ActiveAlert, AlertAction } from "./alerts";
 import type { DashboardConfig, MonitorProfile } from "./layout";
 
 /**
@@ -18,15 +19,19 @@ export interface ControlState {
   /** The profile a kiosk last reported showing. */
   shown: string | null;
   profiles: Record<string, { page: string | null; rotating: boolean; override: "on" | "off" | null }>;
+  /** The alerts the server holds right now (see alerts.ts). */
+  alerts?: ActiveAlert[];
 }
 
-export type ControlAction = "page" | "profile" | "rotate" | "touch";
+export type ControlAction = "page" | "profile" | "rotate" | "touch" | "alert";
 
 /**
  * Send a control action. Resolves to the new state, or null when the server
  * is offline or refuses — callers never have to catch.
  */
-export async function postControl(action: ControlAction, body: object): Promise<ControlState | null> {
+export async function postControl(action: "alert", body: AlertAction): Promise<{ alerts: ActiveAlert[] } | null>;
+export async function postControl(action: ControlAction, body: object): Promise<ControlState | null>;
+export async function postControl(action: ControlAction, body: object): Promise<unknown> {
   try {
     const res = await fetch(`${CONTROL_URL}/${action}`, {
       method: "POST",
@@ -35,7 +40,7 @@ export async function postControl(action: ControlAction, body: object): Promise<
       body: JSON.stringify(body),
     });
     if (!res.ok) return null;
-    return (await res.json()) as ControlState;
+    return await res.json();
   } catch {
     return null;
   }

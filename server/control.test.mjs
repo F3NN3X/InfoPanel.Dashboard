@@ -128,6 +128,32 @@ describe("createControl", () => {
       profile: null,
       shown: null,
       profiles: {},
+      alerts: [],
     });
+  });
+  it("publishes the active alerts and notifies only when they change", () => {
+    const c = config();
+    const ctl = createControl({ file: tmp(), readConfig: () => c, tickMs: 0 });
+    const seen = [];
+    ctl.subscribe((s) => seen.push(s));
+    const list = [{ id: "a1", ruleId: "r1" }];
+    ctl.setAlerts(list);
+    ctl.setAlerts([{ id: "a1", ruleId: "r1" }]);
+    expect(seen).toHaveLength(1);
+    expect(seen[0].alerts).toEqual(list);
+    expect(ctl.get().alerts).toEqual(list);
+    ctl.dispatch({ type: "page", profile: "desk", page: "game" });
+    expect(ctl.get().alerts).toEqual(list);
+    ctl.setAlerts([]);
+    expect(ctl.get().alerts).toEqual([]);
+  });
+  it("keeps alerts out of control.json", () => {
+    const file = tmp();
+    const c = config();
+    const a = createControl({ file, readConfig: () => c, tickMs: 0 });
+    a.dispatch({ type: "page", profile: "desk", page: "stream" });
+    a.setAlerts([{ id: "a1" }]);
+    expect(JSON.parse(fs.readFileSync(file, "utf8")).alerts).toBeUndefined();
+    expect(createControl({ file, readConfig: () => c, tickMs: 0 }).get().alerts).toEqual([]);
   });
 });

@@ -92,6 +92,17 @@ describe("postControl", () => {
     expect(JSON.parse(init.body)).toEqual({ profile: "p1", page: "a" });
   });
 
+  it("posts the alert actions and returns the alert list", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ alerts: [] }) });
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(postControl("alert", { id: "a1", action: "ack" })).resolves.toEqual({ alerts: [] });
+    await postControl("alert", { ruleId: "r1", action: "test" });
+    expect(fetchMock.mock.calls[0][0]).toBe("/api/control/alert");
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ id: "a1", action: "ack" });
+    expect(fetchMock.mock.calls[1][1].headers["X-Dashboard-Control"]).toBe("1");
+    expect(JSON.parse(fetchMock.mock.calls[1][1].body)).toEqual({ ruleId: "r1", action: "test" });
+  });
+
   it("resolves null when refused or offline", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 403 }));
     await expect(postControl("touch", {})).resolves.toBeNull();
