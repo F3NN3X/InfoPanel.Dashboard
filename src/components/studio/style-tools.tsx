@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Menu } from "@base-ui/react/menu";
 import { Check, ChevronRight, ClipboardPaste, Copy, MoreHorizontal } from "lucide-react";
 import type { StylePreset } from "@/lib/layout";
+import type { AppearanceTarget } from "./appearance-panel";
 
 interface StyleToolsProps {
   /** Something was copied (Paste is enabled). */
@@ -9,20 +10,20 @@ interface StyleToolsProps {
   presets: StylePreset[];
   onCopy: () => void;
   onPaste: () => void;
-  /** Make this widget's style the profile's default. */
-  onUseForProfile: () => void;
+  /** Make this widget's style the global style of every profile, or of this one. */
+  onUseAsGlobal: (target: AppearanceTarget) => void;
   onSavePreset: (name: string) => void;
   onApplyPreset: (id: string) => void;
   onDeletePreset: (id: string) => void;
 }
 
 export const ICON_BUTTON =
-  "flex h-6 w-6 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-accent/40 hover:text-foreground disabled:pointer-events-none disabled:opacity-40 data-popup-open:bg-accent/40 data-popup-open:text-foreground";
+  "flex h-6 w-6 items-center justify-center rounded-md border border-ui-strong text-ui-3 transition-colors hover:bg-ui-hover hover:text-ui-1 disabled:pointer-events-none disabled:opacity-40 data-popup-open:bg-ui-hover data-popup-open:text-ui-1";
 export const POPUP =
-  "min-w-40 rounded-md border border-border bg-popover p-1 text-xs text-foreground shadow-lg outline-none";
+  "min-w-40 rounded-[9px] border border-ui-menu bg-ui-raised p-1 font-ui text-[12.5px] text-ui-2 shadow-ui-menu outline-none";
 export const ITEM =
-  "flex cursor-default items-center justify-between gap-3 rounded-[5px] px-2 py-1.5 outline-none select-none data-disabled:text-muted-foreground/50 data-highlighted:bg-accent data-popup-open:bg-accent/60";
-export const SEPARATOR = "mx-1 my-1 h-px bg-border";
+  "flex h-[30px] cursor-default items-center justify-between gap-3 rounded-md px-2 outline-none select-none data-disabled:text-ui-5 data-highlighted:bg-ui-hover data-highlighted:text-ui-1 data-popup-open:bg-ui-hover";
+export const SEPARATOR = "mx-1 my-1 h-px bg-ui-subtle";
 
 /** A "▸" submenu listing the style presets. */
 function PresetSubmenu({
@@ -56,15 +57,15 @@ function PresetSubmenu({
 
 /**
  * Inspector actions for a widget's look (the keys in `PROFILE_STYLE_KEYS`):
- * copy / paste it between widgets, and a "⋯" menu to make it the profile
- * default and keep named presets.
+ * copy / paste it between widgets, and a "⋯" menu to make it the global
+ * style (all profiles or this one) and keep named presets.
  */
 export function StyleTools({
   canPaste,
   presets,
   onCopy,
   onPaste,
-  onUseForProfile,
+  onUseAsGlobal,
   onSavePreset,
   onApplyPreset,
   onDeletePreset,
@@ -84,6 +85,7 @@ export function StyleTools({
       <div className="flex items-center gap-1">
         <input
           autoFocus
+          aria-label="Style preset name"
           value={name}
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => {
@@ -92,7 +94,7 @@ export function StyleTools({
           }}
           onBlur={() => !name.trim() && setName(null)}
           placeholder="Preset name"
-          className="w-28 rounded-md border border-border bg-background px-2 py-0.5 text-xs text-foreground placeholder:text-muted-foreground/50"
+          className="h-6 w-28 rounded-md border border-ui-default bg-ui-app px-2 text-[12px] text-ui-1 outline-none placeholder:text-ui-4 focus:border-ui-accent"
         />
         <button
           type="button"
@@ -128,13 +130,31 @@ export function StyleTools({
         <Menu.Portal>
           <Menu.Positioner className="z-50" sideOffset={4} align="end">
             <Menu.Popup className={POPUP}>
-              <Menu.Item
-                className={ITEM}
-                onClick={onUseForProfile}
-                title="Make this style the default for every widget in the profile"
-              >
-                Use for profile
-              </Menu.Item>
+              <Menu.SubmenuRoot>
+                <Menu.SubmenuTrigger className={ITEM}>
+                  Use as global… <ChevronRight className="h-3 w-3" />
+                </Menu.SubmenuTrigger>
+                <Menu.Portal>
+                  <Menu.Positioner className="z-50" sideOffset={4} alignOffset={-4}>
+                    <Menu.Popup className={POPUP}>
+                      <Menu.Item
+                        className={ITEM}
+                        onClick={() => onUseAsGlobal("all")}
+                        title="Make this style the default for every widget in every profile"
+                      >
+                        All profiles
+                      </Menu.Item>
+                      <Menu.Item
+                        className={ITEM}
+                        onClick={() => onUseAsGlobal("profile")}
+                        title="Make this style the default for every widget in this profile"
+                      >
+                        This profile
+                      </Menu.Item>
+                    </Menu.Popup>
+                  </Menu.Positioner>
+                </Menu.Portal>
+              </Menu.SubmenuRoot>
               <Menu.Separator className={SEPARATOR} />
               <PresetSubmenu label="Apply preset" presets={presets} onPick={onApplyPreset} />
               <Menu.Item className={ITEM} onClick={() => setName("")}>

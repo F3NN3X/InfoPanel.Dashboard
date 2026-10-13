@@ -5,6 +5,9 @@ export type ShortcutAction =
   | { type: "remove" }
   | { type: "duplicate" }
   | { type: "toggle-visible" }
+  | { type: "select-all" }
+  | { type: "copy-style" }
+  | { type: "paste-style" }
   | { type: "escape" }
   | { type: "nudge"; cols: number; rows: number }
   | { type: "resize"; cols: number; rows: number }
@@ -15,6 +18,7 @@ export type ShortcutAction =
   | { type: "zoom-in" }
   | { type: "zoom-out" }
   | { type: "palette" }
+  | { type: "toggle-dock" }
   | { type: "cheatsheet" }
   | { type: "widget-remove" }
   | { type: "widget-duplicate" }
@@ -25,10 +29,14 @@ export type ShortcutAction =
 /** The parts of a keydown event the mapping reads. */
 export interface KeyInput {
   key: string;
+  /** The physical key (Alt changes `key` on some layouts, so Ctrl+Alt+C / V read this). */
+  code?: string;
   ctrlKey: boolean;
   metaKey: boolean;
   shiftKey: boolean;
   altKey: boolean;
+  /** AltGr is down (Ctrl+Alt on some layouts): a typed character, not a chord. */
+  altGraph?: boolean;
 }
 
 export interface ShortcutContext {
@@ -41,6 +49,8 @@ export interface ShortcutContext {
    * Alt+↑/↓ act on it (the arrows still move the zone).
    */
   widget?: boolean;
+  /** A pointer drag is in flight: only Esc (the drag's own cancel) is left alive. */
+  dragging?: boolean;
 }
 
 const ARROWS: Record<string, { cols: number; rows: number }> = {
@@ -57,7 +67,9 @@ function commandAction(e: KeyInput): ShortcutAction | null {
   if (key === "z") return e.shiftKey ? { type: "redo" } : { type: "undo" };
   if (key === "y") return { type: "redo" };
   if (key === "k") return { type: "palette" };
+  if (key === "\\") return { type: "toggle-dock" };
   if (key === "d") return { type: "duplicate" };
+  if (key === "a" && !e.shiftKey) return { type: "select-all" };
   if (key === "0") return { type: "zoom-fit" };
   if (key === "=" || key === "+") return { type: "zoom-in" };
   if (key === "-" || key === "_") return { type: "zoom-out" };
@@ -78,18 +90,20 @@ function widgetCommand(e: KeyInput): ShortcutAction | null {
   return null;
 }
 
-/** Ctrl/cmd shortcuts that stay live in text fields and dialogs. */
+/** Ctrl/cmd shortcuts that stay live in text fields and dialogs (undo / redo stay a text field's own while typing). */
 const ALWAYS_LIVE = new Set<ShortcutAction["type"]>(["save", "undo", "redo"]);
 
 /**
  * Map a key press to a studio action, or null to leave it alone. Plain
- * keys are ignored while typing or while a dialog/menu is open; Esc,
- * Ctrl+S, Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y and Ctrl+K work while typing,
- * and Ctrl+S / undo / redo even with a dialog open (Esc is the dialog's).
+ * keys (and Esc) are ignored while typing or while a dialog/menu is open;
+ * Ctrl+S and Ctrl+K work while typing, and Ctrl+S / undo / redo even with a
+ * dialog open (Esc is the dialog's). Undo / redo in a text field are the
+ * browser's own. While a drag is in flight everything is ignored.
  * With `ctx.widget`, the widget keys (see `ShortcutContext.widget`) act
  * on the selected panel widget.
  */
 export function shortcutAction(e: KeyInput, ctx: ShortcutContext): ShortcutAction | null {
+  if (ctx.dragging) return null;
   const action = zoneAction(e, ctx);
   if (!ctx.widget || ctx.typing || ctx.overlay) return action;
   if (action) return WIDGET_SCOPED[action.type] ?? action;
@@ -100,21 +114,35 @@ export function shortcutAction(e: KeyInput, ctx: ShortcutContext): ShortcutActio
   return e.ctrlKey || e.metaKey ? widgetCommand(e) : null;
 }
 
+/** Ctrl/cmd+Alt+C / V: copy / paste the zone's style (by `code`, not `key`). */
+function styleAction(e: KeyInput): ShortcutAction | null {
+  if (e.shiftKey || e.altGraph) return null;
+  if (e.code === "KeyC") return { type: "copy-style" };
+  if (e.code === "KeyV") return { type: "paste-style" };
+  return null;
+}
+
 /** `shortcutAction` without a selected widget. */
 function zoneAction(e: KeyInput, ctx: ShortcutContext): ShortcutAction | null {
-  if (e.altKey) return null;
+  if (e.altKey) {
+    const action = e.ctrlKey || e.metaKey ? styleAction(e) : null;
+    return action && !ctx.typing && !ctx.overlay ? action : null;
+  }
   if (e.ctrlKey || e.metaKey) {
     const action = commandAction(e);
     if (!action) return null;
+    if (action.type === "undo" || action.type === "redo") return ctx.typing ? null : action;
     if (ALWAYS_LIVE.has(action.type)) return action;
     if (action.type === "palette") return ctx.overlay ? null : action;
     return ctx.typing || ctx.overlay ? null : action;
   }
-  if (e.key === "Escape") return ctx.overlay ? null : { type: "escape" };
   if (ctx.typing || ctx.overlay) return null;
+  if (e.key === "Escape") return { type: "escape" };
   if (e.key === "Delete" || e.key === "Backspace") return { type: "remove" };
   if (e.key === "h" || e.key === "H") return e.shiftKey ? null : { type: "toggle-visible" };
   if (e.key === "?") return { type: "cheatsheet" };
+  if (e.key === "+" || e.key === "=") return { type: "zoom-in" };
+  if (e.key === "-") return { type: "zoom-out" };
   const arrow = ARROWS[e.key];
   if (arrow) return { type: e.shiftKey ? "resize" : "nudge", ...arrow };
   return null;
@@ -127,6 +155,9 @@ export const KEYS = {
   save: "Ctrl+S",
   palette: "Ctrl+K",
   duplicate: "Ctrl+D",
+  copyStyle: "Ctrl+Alt+C",
+  pasteStyle: "Ctrl+Alt+V",
+  selectAll: "Ctrl+A",
   remove: "Del",
   copy: "Ctrl+C",
   paste: "Ctrl+V",
@@ -134,8 +165,9 @@ export const KEYS = {
   hide: "H",
   deselect: "Esc",
   fit: "Ctrl+0",
-  zoomIn: "Ctrl+=",
-  zoomOut: "Ctrl+-",
+  zoomIn: "+",
+  zoomOut: "-",
+  dock: "Ctrl+\\",
   cheatsheet: "?",
 } as const;
 
@@ -149,17 +181,22 @@ export const SHORTCUT_GROUPS: { title: string; items: { keys: string; label: str
       { keys: KEYS.undo, label: "Undo" },
       { keys: `${KEYS.redo} / Ctrl+Y`, label: "Redo" },
       { keys: KEYS.cheatsheet, label: "Keyboard shortcuts" },
-      { keys: KEYS.deselect, label: "Clear search, step out (widget → zone → none), or close the drawer" },
+      { keys: KEYS.deselect, label: "Close a menu or dialog, then clear search, step out (widget → zone → none)" },
+      { keys: "Ctrl+Enter", label: "Apply the panel JSON (inside the code editor)" },
     ],
   },
   {
-    title: "Selected zone",
+    title: "Selected zones",
     items: [
-      { keys: "← ↑ → ↓", label: "Move one cell" },
-      { keys: "Shift+← / →", label: "Narrower / wider" },
-      { keys: "Shift+↑ / ↓", label: "Shorter / taller" },
+      { keys: "Shift / Ctrl+click", label: "Add to or remove from the selection" },
+      { keys: KEYS.selectAll, label: "Select all zones" },
+      { keys: "← ↑ → ↓", label: "Move the selection one cell" },
+      { keys: "Shift+← / →", label: "Narrower / wider (the primary zone)" },
+      { keys: "Shift+↑ / ↓", label: "Shorter / taller (the primary zone)" },
       { keys: KEYS.duplicate, label: "Duplicate" },
       { keys: KEYS.hide, label: "Hide / show" },
+      { keys: KEYS.copyStyle, label: "Copy the primary zone's style" },
+      { keys: KEYS.pasteStyle, label: "Paste the style onto the selection" },
       { keys: `${KEYS.remove} / Backspace`, label: "Remove" },
     ],
   },
@@ -179,9 +216,10 @@ export const SHORTCUT_GROUPS: { title: string; items: { keys: string; label: str
     title: "Canvas",
     items: [
       { keys: KEYS.fit, label: "Fit to width" },
-      { keys: KEYS.zoomIn, label: "Zoom in" },
-      { keys: KEYS.zoomOut, label: "Zoom out" },
+      { keys: `${KEYS.zoomIn} / Ctrl+=`, label: "Zoom in" },
+      { keys: `${KEYS.zoomOut} / Ctrl+-`, label: "Zoom out" },
       { keys: "Ctrl+wheel", label: "Zoom" },
+      { keys: KEYS.dock, label: "Collapse / expand the inspector" },
     ],
   },
 ];
@@ -205,22 +243,40 @@ function hasOverlay(): boolean {
 /**
  * Studio keyboard shortcuts on the window (see `shortcutAction`). The
  * handler always sees the latest `onAction` and `widget` (a panel widget
- * is selected).
+ * is selected); `dragging` says whether a pointer drag is in flight.
  */
-export function useStudioShortcuts(onAction: (action: ShortcutAction) => void, widget = false) {
+export function useStudioShortcuts(
+  onAction: (action: ShortcutAction) => void,
+  widget = false,
+  dragging: () => boolean = () => false
+) {
   const handler = useRef(onAction);
   handler.current = onAction;
   const widgetRef = useRef(widget);
   widgetRef.current = widget;
+  const draggingRef = useRef(dragging);
+  draggingRef.current = dragging;
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.defaultPrevented || e.isComposing) return;
-      const action = shortcutAction(e, {
-        typing: isTyping(document.activeElement),
-        overlay: hasOverlay(),
-        widget: widgetRef.current,
-      });
+      const action = shortcutAction(
+        {
+          key: e.key,
+          code: e.code,
+          ctrlKey: e.ctrlKey,
+          metaKey: e.metaKey,
+          shiftKey: e.shiftKey,
+          altKey: e.altKey,
+          altGraph: e.getModifierState("AltGraph"),
+        },
+        {
+          dragging: draggingRef.current(),
+          typing: isTyping(document.activeElement),
+          overlay: hasOverlay(),
+          widget: widgetRef.current,
+        }
+      );
       if (!action) return;
       e.preventDefault();
       handler.current(action);

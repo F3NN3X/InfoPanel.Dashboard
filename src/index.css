@@ -92,6 +92,78 @@
   --color-channel-monitor-foreground: var(--channel-monitor-foreground);
 }
 
+/* Studio chrome tokens (docs/redesign/README.md §9). Fixed values: the
+   dashboard theme (lib/theme.ts applyTheme) never writes these, so editing
+   the theme recolours widgets on the canvas but not the studio itself. */
+:root {
+  --ui-bg-app: #0c0c0e;
+  --ui-bg-chrome: #0f0f12;
+  --ui-bg-panel: #111114;
+  --ui-bg-raised: #17171b;
+  --ui-bg-tile: #141418;
+  --ui-bg-hover: #1a1a1f;
+  --ui-bg-active: #2a2a31;
+  --ui-border-subtle: #1f1f24;
+  --ui-border-default: #24242a;
+  --ui-border-strong: #2a2a31;
+  --ui-border-menu: #2e2e35;
+  --ui-text-1: #ededf0;
+  --ui-text-2: #c9c9cf;
+  --ui-text-3: #9696a0;
+  --ui-text-4: #85858f;
+  --ui-text-5: #6f6f79;
+  --ui-accent: oklch(0.72 0.15 255);
+  --ui-accent-soft: oklch(0.72 0.15 255 / 0.14);
+  --ui-accent-text: oklch(0.82 0.12 255);
+  --ui-success: oklch(0.75 0.15 150);
+  --ui-warning: oklch(0.8 0.15 75);
+  --ui-danger: oklch(0.72 0.17 25);
+  --ui-dot-profile: oklch(0.74 0.13 300);
+  --ui-dot-dashboard: oklch(0.76 0.11 190);
+  --ui-inverse-bg: #ededf0;
+  --ui-inverse-fg: #0c0c0e;
+  --ui-shadow-float: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --ui-shadow-menu: 0 12px 32px rgba(0, 0, 0, 0.55);
+  --ui-shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.6);
+  --ui-shadow-drawer: -16px 0 40px rgba(0, 0, 0, 0.5);
+}
+
+/* Utilities: bg-ui-panel, text-ui-2, border-ui-default, shadow-ui-menu, font-ui ... */
+@theme inline {
+  --color-ui-app: var(--ui-bg-app);
+  --color-ui-chrome: var(--ui-bg-chrome);
+  --color-ui-panel: var(--ui-bg-panel);
+  --color-ui-raised: var(--ui-bg-raised);
+  --color-ui-tile: var(--ui-bg-tile);
+  --color-ui-hover: var(--ui-bg-hover);
+  --color-ui-active: var(--ui-bg-active);
+  --color-ui-subtle: var(--ui-border-subtle);
+  --color-ui-default: var(--ui-border-default);
+  --color-ui-strong: var(--ui-border-strong);
+  --color-ui-menu: var(--ui-border-menu);
+  --color-ui-1: var(--ui-text-1);
+  --color-ui-2: var(--ui-text-2);
+  --color-ui-3: var(--ui-text-3);
+  --color-ui-4: var(--ui-text-4);
+  --color-ui-5: var(--ui-text-5);
+  --color-ui-accent: var(--ui-accent);
+  --color-ui-accent-soft: var(--ui-accent-soft);
+  --color-ui-accent-text: var(--ui-accent-text);
+  --color-ui-success: var(--ui-success);
+  --color-ui-warning: var(--ui-warning);
+  --color-ui-danger: var(--ui-danger);
+  --color-ui-dot-profile: var(--ui-dot-profile);
+  --color-ui-dot-dashboard: var(--ui-dot-dashboard);
+  --color-ui-inverse: var(--ui-inverse-bg);
+  --color-ui-inverse-fg: var(--ui-inverse-fg);
+  --shadow-ui-float: var(--ui-shadow-float);
+  --shadow-ui-menu: var(--ui-shadow-menu);
+  --shadow-ui-modal: var(--ui-shadow-modal);
+  --shadow-ui-drawer: var(--ui-shadow-drawer);
+  --font-ui: "Geist", ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  --font-ui-mono: "Geist Mono", ui-monospace, "Cascadia Code", Consolas, monospace;
+}
+
 @layer base {
   * {
     @apply border-border;
@@ -100,6 +172,45 @@
   body {
     @apply bg-background text-foreground antialiased;
   }
+}
+
+/* The studio is dark chrome: native controls and thin dark scrollbars, from the
+   --ui tokens. Scoped to the studio page (it marks its root .studio-root) so
+   the kiosk page keeps its own scrollbar rules below. */
+:root:has(.studio-root) {
+  color-scheme: dark;
+}
+
+/* Thin thumb, no arrow buttons. The standard scrollbar-width/-color would switch
+   Chromium on Windows to the classic bar (with buttons), so the studio styles the
+   webkit parts instead. */
+:root:has(.studio-root) *::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+:root:has(.studio-root) *::-webkit-scrollbar-button {
+  display: none;
+}
+
+:root:has(.studio-root) *::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+:root:has(.studio-root) *::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+:root:has(.studio-root) *::-webkit-scrollbar-thumb {
+  background: var(--ui-border-menu);
+  border-radius: 3px;
+}
+
+/* Studio chrome radii are fixed (README §9): the dashboard theme's --radius,
+   which applyTheme writes inline on :root, only reaches the canvas page (it
+   re-declares --radius from the theme itself). !important beats the inline value. */
+:root:has(.studio-root) {
+  --radius: 0.5rem !important;
 }
 
 /* Kiosk mode: a borderless kiosk strip must not show scrollbars when
@@ -114,4 +225,23 @@
   display: none; /* Chromium/WebView2 */
   width: 0;
   height: 0;
+}
+
+/* General › Hide cursor in kiosk: no pointer anywhere on the page. */
+.kiosk-hide-cursor,
+.kiosk-hide-cursor * {
+  cursor: none !important;
+}
+
+/* A region with its own theme tokens (the studio canvas showing a profile
+   with its own colours): the derived colors above are resolved where they
+   are declared, so re-declare them against the scoped tokens. */
+[data-theme-scope] {
+  --meter-clip: hsl(var(--destructive));
+  --meter-clip-foreground: hsl(var(--destructive-foreground));
+  --channel-mute: hsl(var(--destructive));
+  --channel-mute-foreground: hsl(var(--destructive-foreground));
+  --wave-progress: hsl(var(--primary));
+  --wave-unplayed: hsl(var(--muted-foreground));
+  --wave-cursor: hsl(var(--foreground));
 }

@@ -1,8 +1,17 @@
 import { useId, type CSSProperties, type ReactNode } from "react";
+import type { FontId } from "@/lib/fonts";
 import { widgetIcon } from "@/lib/widget-icons";
 import { useElementSize } from "@/hooks/use-element-size";
 import { cn } from "@/lib/utils";
-import { chromeVars, scopedCss, zoomFor, type DesignSizeSpec } from "./widget-style";
+import { chromeVars, scopedCss, ws, zoomFor, type DesignSizeSpec } from "./widget-style";
+
+/**
+ * The header text: the text color (the user's, else the theme's) at 75 %,
+ * and the scrim over a background image: the theme's page color, so a
+ * light theme lightens the image instead of darkening it.
+ */
+const HEADER_COLOR = `color-mix(in oklab, ${ws.fg("hsl(var(--foreground))")} 75%, transparent)`;
+export const SCRIM = "hsl(var(--background) / 0.45)";
 
 /**
  * The standard per-widget chrome (see `modules/standard-settings.ts` and
@@ -21,11 +30,12 @@ import { chromeVars, scopedCss, zoomFor, type DesignSizeSpec } from "./widget-st
  * Every modern widget wraps its body in this. Glass surfaces let the
  * background show through; matte surfaces cover it (that is intended).
  * The surface's border / glow / opacity / blur are the widget's to apply
- * (`surfaceBox`); custom CSS is scoped here to this widget's root.
+ * (`surfaceBox`); custom CSS is scoped here to this widget's root, and the
+ * theme tokens are re-scoped to the widget's colors (`tokenScope`).
  */
 export type AlignX = "auto" | "start" | "center" | "end" | "between";
 export type AlignY = "auto" | "start" | "center" | "end";
-export type FontChoice = "auto" | "sans" | "rounded" | "serif" | "mono";
+export type FontChoice = "auto" | Exclude<FontId, "system">;
 export type FontWeightChoice = "auto" | "400" | "500" | "600" | "700" | "800";
 export type LabelCase = "auto" | "uppercase" | "none" | "capitalize";
 export type GlowChoice = "none" | "soft" | "strong";
@@ -115,7 +125,7 @@ export function ModernChrome({
             aria-hidden
             className="absolute inset-0 h-full w-full object-cover"
           />
-          <div className="absolute inset-0 bg-black/45" />
+          <div className="absolute inset-0" style={{ background: SCRIM }} />
         </>
       )}
       <div
@@ -125,7 +135,10 @@ export function ModernChrome({
         {children}
       </div>
       {showHeader && (
-        <div className="absolute left-3 top-2 z-20 flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wider text-foreground/75">
+        <div
+          className="absolute left-3 top-2 z-20 flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wider"
+          style={{ color: HEADER_COLOR }}
+        >
           {Icon && (
             <Icon
               className="h-3.5 w-3.5"

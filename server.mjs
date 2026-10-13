@@ -3,18 +3,27 @@
 // Serves the production build (dist/), stores the studio config so every
 // view of the dashboard (a browser tab, InfoPanel's native WebView2 page)
 // shares it, tells open pages when that config changes, and proxies
-// cover-art images so the page can sample their colours on a canvas.
+// cover-art images so the page can sample their colours on a canvas, and
+// stores uploaded media (backgrounds) under DATA_DIR/assets — see
+// server/assets.mjs for its routes and security rules.
 // Sensor data does not pass through here: pages read it straight from the
 // InfoPanel Data API (http://127.0.0.1:3921 by default), which allows CORS.
 //
 // Node built-ins only. Environment:
 //   PORT  listen port (default 3922)
 //   HOST  listen address (default 127.0.0.1)
+//   ALLOW_REMOTE_UPLOAD=1  accept media uploads / deletes from other machines
+//   ALLOWED_HOSTS  extra Host names to accept, comma separated (see
+//                  server/request-guard.mjs)
+//   ASSETS_MAX_BYTES  total size cap of the uploaded media (default 2 GB)
 
 import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import os from "node:os";
+import { createAssets } from "./server/assets.mjs";
+import { configWriteRefusal, createRequestGuard, parseAllowedHosts } from "./server/request-guard.mjs";
 
 const PORT = Number(process.env.PORT) || 3922;
 const HOST = process.env.HOST || "127.0.0.1";
@@ -23,6 +32,7 @@ const DIST = path.join(path.dirname(fileURLToPath(import.meta.url)), "dist");
 const LOCAL = process.env.LOCALAPPDATA || path.join(process.env.HOME || ".", ".local", "share");
 const DATA_DIR = path.join(LOCAL, "InfoPanel", "Dashboard");
 const CONFIG_FILE = path.join(DATA_DIR, "config.json");
+const ASSETS_DIR = path.join(DATA_DIR, "assets");
 
 const MAX_CONFIG_BYTES = 5 * 1024 * 1024;
 const MAX_PROXY_BYTES = 25 * 1024 * 1024;
@@ -40,6 +50,9 @@ const TYPES = {
   ".jpeg": "image/jpeg",
   ".gif": "image/gif",
   ".webp": "image/webp",
+  ".avif": "image/avif",
+  ".mp4": "video/mp4",
+  ".webm": "video/webm",
   ".ico": "image/x-icon",
   ".woff": "font/woff",
   ".woff2": "font/woff2",
@@ -90,12 +103,17 @@ function readBody(req, limit) {
 
 /* ---------------- routes ---------------- */
 
+const handleAssets = createAssets({ dir: ASSETS_DIR, configFile: CONFIG_FILE, send });
+
 async function handleConfig(req, res) {
   if (req.method === "GET") {
     if (!fs.existsSync(CONFIG_FILE)) return send(res, 404);
     return send(res, 200, fs.readFileSync(CONFIG_FILE), TYPES[".json"]);
   }
   if (req.method !== "POST") return send(res, 405);
+
+  const refusal = configWriteRefusal(req.headers);
+  if (refusal) return send(res, refusal.status, refusal.message);
 
   let body;
   try {
@@ -190,20 +208,37 @@ function serveStatic(req, res, pathname) {
     "Cache-Control": isHtml ? "no-store" : "no-cache",
   });
   if (req.method === "HEAD") return res.end();
-  fs.createReadStream(file).pipe(res);
+  const stream = fs.createReadStream(file);
+  stream.on("error", () => res.destroy());
+  stream.pipe(res);
 }
 
+const guard = createRequestGuard({
+  host: HOST,
+  allowedHosts: parseAllowedHosts(process.env.ALLOWED_HOSTS),
+  machineName: os.hostname(),
+});
+
 const server = http.createServer(async (req, res) => {
+  const refused = guard(req);
+  if (refused) {
+    res.setHeader("Connection", "close");
+    return send(res, refused.status, refused.message);
+  }
   const { pathname, searchParams } = new URL(req.url ?? "/", "http://localhost");
   try {
     if (pathname === "/api/config") return await handleConfig(req, res);
     if (pathname === "/events/config") return handleConfigEvents(req, res);
     if (pathname === "/api/image-proxy") return await handleImageProxy(req, res, searchParams);
+    if (pathname === "/api/assets" || pathname.startsWith("/api/assets/")) {
+      return await handleAssets(req, res, pathname, searchParams);
+    }
     if (pathname.startsWith("/api/")) return send(res, 404);
     return serveStatic(req, res, pathname);
   } catch (err) {
-    if (!res.headersSent) send(res, 500, String(err));
-    else res.end();
+    console.error(`${req.method} ${pathname} failed:`, err);
+    if (!res.headersSent) send(res, 500, "internal error");
+    else res.destroy();
   }
 });
 

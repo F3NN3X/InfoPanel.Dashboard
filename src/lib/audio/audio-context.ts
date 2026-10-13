@@ -16,5 +16,27 @@ export const getSharedAudioContext = (): AudioContext | null => {
     (window as WebkitWindow).webkitAudioContext;
   if (!Ctor) return null;
   shared = new Ctor();
+  resumeOnGesture(shared);
   return shared;
 };
+
+/** What the page shows while the browser holds the context suspended (autoplay policy). */
+export const GESTURE_HINT = "Click or tap the dashboard once to start capture";
+
+/**
+ * Browsers start an AudioContext suspended until the page gets a user gesture (autoplay policy), and
+ * `resume()` stays pending until then. The first click, tap or key press anywhere on the page resumes
+ * it, so a kiosk needs one tap after granting the microphone.
+ */
+function resumeOnGesture(ctx: AudioContext): void {
+  const events = ["pointerdown", "keydown", "touchstart"] as const;
+  const resume = () => {
+    void ctx.resume().catch(() => undefined);
+    if (ctx.state === "running") stop();
+  };
+  const stop = () => events.forEach((e) => window.removeEventListener(e, resume, true));
+  events.forEach((e) => window.addEventListener(e, resume, true));
+  ctx.addEventListener("statechange", () => {
+    if (ctx.state === "running") stop();
+  });
+}

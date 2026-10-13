@@ -1,52 +1,65 @@
+import { Square, SquareCheck } from "lucide-react";
 import { useAudioDevices } from "@/hooks/use-audio-devices";
+import { useSensorCatalog } from "@/lib/catalog";
+import { deviceOptions } from "@/lib/device-options";
+import { cn } from "@/lib/utils";
 import { meterKey, useWavelinkState } from "@/lib/wavelink";
-import type { ModuleSetting, ModuleSettingValue } from "@/modules/types";
+import type { DeviceKind, ModuleSetting, ModuleSettingValue } from "@/modules/types";
+import { SELECT as SELECT_BASE, SelectRow, StackRow, type RowLabelProps } from "./setting-rows";
+
+/** A comma-separated list ("" = none) as its items. */
+const splitList = (value: string): string[] => (value ? value.split(",").map((s) => s.trim()).filter(Boolean) : []);
 
 /**
- * A checkbox list bound to a comma-separated string ("" = none). Used for
+ * A checklist bound to a comma-separated string ("" = none). Used for
  * `multiple` select settings.
  */
 export function MultiSelect({
   value,
   onChange,
   options,
+  label,
 }: {
   value: string;
   onChange: (value: ModuleSettingValue) => void;
   options: { value: string; label: string }[];
+  label?: string;
 }) {
-  const selected = value
-    ? value.split(",").map((s) => s.trim()).filter(Boolean)
-    : [];
-  const toggle = (v: string) => {
-    const next = selected.includes(v)
-      ? selected.filter((x) => x !== v)
-      : [...selected, v];
-    onChange(next.join(","));
-  };
+  if (options.length === 0) return <span className="text-[11px] text-ui-4">No options available</span>;
+  const ticked = splitList(value);
+  const toggle = (id: string) => onChange((ticked.includes(id) ? ticked.filter((v) => v !== id) : [...ticked, id]).join(","));
   return (
-    <div className="flex flex-col gap-1">
-      {options.map((o) => (
-        <label
-          key={o.value}
-          className="flex cursor-pointer items-center gap-2 text-xs text-foreground"
-        >
-          <input
-            type="checkbox"
-            checked={selected.includes(o.value)}
-            onChange={() => toggle(o.value)}
-            className="accent-ring"
-          />
-          <span className="truncate">{o.label}</span>
-        </label>
-      ))}
-      {options.length === 0 && (
-        <span className="text-[11px] text-muted-foreground/60">
-          No options available
-        </span>
-      )}
+    <div role="group" aria-label={label} className="flex flex-col gap-0.5">
+      {options.map((o) => {
+        const on = ticked.includes(o.value);
+        const Box = on ? SquareCheck : Square;
+        return (
+          <button
+            key={o.value}
+            type="button"
+            role="checkbox"
+            aria-checked={on}
+            onClick={() => toggle(o.value)}
+            className="flex items-center gap-2 px-0.5 py-1 text-left text-[12px] text-[#d4d4da]"
+          >
+            <Box className={cn("h-[18px] w-[18px] shrink-0", on ? "text-ui-accent" : "text-ui-4")} />
+            <span className="min-w-0 flex-1 truncate">{o.label}</span>
+          </button>
+        );
+      })}
     </div>
   );
+}
+
+const SELECT = cn(SELECT_BASE, "w-full max-w-none");
+const LINK = "text-[11px] text-ui-4 hover:text-ui-1";
+
+interface PickerProps {
+  def: ModuleSetting;
+  value: string;
+  onChange: (value: ModuleSettingValue) => void;
+  lead?: RowLabelProps["lead"];
+  hint?: string;
 }
 
 /**
@@ -55,28 +68,15 @@ export function MultiSelect({
  * microphone permission is granted, so a button unlocks them. Handles both
  * single-select and multi-select (`def.multiple`).
  */
-export function MediaDevicePicker({
-  def,
-  value,
-  onChange,
-}: {
-  def: ModuleSetting;
-  value: string;
-  onChange: (value: ModuleSettingValue) => void;
-}) {
+export function MediaDevicePicker({ def, value, onChange, lead, hint }: PickerProps) {
   const { devices, status, request } = useAudioDevices();
   const options = devices.map((d) => ({ value: d.deviceId, label: d.label }));
   return (
-    <div>
-      <div className="mb-1 text-xs text-muted-foreground">{def.label}</div>
+    <StackRow label={def.label} lead={lead} hint={hint}>
       {def.multiple ? (
-        <MultiSelect value={value} onChange={onChange} options={options} />
+        <MultiSelect value={value} onChange={onChange} options={options} label={def.label} />
       ) : (
-        <select
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground"
-        >
+        <select value={value} onChange={(e) => onChange(e.target.value)} aria-label={def.label} className={SELECT}>
           <option value="">None (loudest live device)</option>
           {options.map((o) => (
             <option key={o.value} value={o.value}>
@@ -86,17 +86,11 @@ export function MediaDevicePicker({
         </select>
       )}
       {status !== "unsupported" && (
-        <button
-          type="button"
-          onClick={() => void request()}
-          className="mt-1 text-[11px] text-muted-foreground hover:text-foreground"
-        >
-          {status === "denied"
-            ? "Microphone blocked — allow access"
-            : "Enable microphone access"}
+        <button type="button" onClick={() => void request()} className={LINK}>
+          {status === "denied" ? "Microphone blocked — allow access" : "Enable microphone access"}
         </button>
       )}
-    </div>
+    </StackRow>
   );
 }
 
@@ -105,37 +99,18 @@ export function MediaDevicePicker({
  * channels + output devices). Handles both single-select and multi-select
  * (`def.multiple`); "" means all meters.
  */
-export function WavelinkMeterPicker({
-  def,
-  value,
-  onChange,
-}: {
-  def: ModuleSetting;
-  value: string;
-  onChange: (value: ModuleSettingValue) => void;
-}) {
+export function WavelinkMeterPicker({ def, value, onChange, lead, hint }: PickerProps) {
   const state = useWavelinkState();
   const options = [
-    ...state.channels.map((c) => ({
-      value: meterKey.channel(c.id),
-      label: `Channel · ${c.name}`,
-    })),
-    ...state.devices.map((d) => ({
-      value: meterKey.device(d.id),
-      label: `Device · ${d.name}`,
-    })),
+    ...state.channels.map((c) => ({ value: meterKey.channel(c.id), label: `Channel · ${c.name}` })),
+    ...state.devices.map((d) => ({ value: meterKey.device(d.id), label: `Device · ${d.name}` })),
   ];
   return (
-    <div>
-      <div className="mb-1 text-xs text-muted-foreground">{def.label}</div>
+    <StackRow label={def.label} lead={lead} hint={hint}>
       {def.multiple ? (
-        <MultiSelect value={value} onChange={onChange} options={options} />
+        <MultiSelect value={value} onChange={onChange} options={options} label={def.label} />
       ) : (
-        <select
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground"
-        >
+        <select value={value} onChange={(e) => onChange(e.target.value)} aria-label={def.label} className={SELECT}>
           <option value="">All meters</option>
           {options.map((o) => (
             <option key={o.value} value={o.value}>
@@ -145,10 +120,21 @@ export function WavelinkMeterPicker({
         </select>
       )}
       {state.status === "absent" && options.length === 0 && (
-        <span className="text-[11px] text-muted-foreground/60">
+        <span className="text-[11px] text-ui-4">
           Wave Link is not running — start the app and its meters appear here.
         </span>
       )}
-    </div>
+    </StackRow>
   );
+}
+
+/**
+ * Picker for a hardware / audio / drive device found in the live keys ("" = Auto first). A stored
+ * value that is not live right now stays listed, so opening the inspector never rewrites it.
+ */
+export function DevicePicker({ def, kind, value, onChange, lead, hint }: PickerProps & { kind: DeviceKind }) {
+  const { sensors } = useSensorCatalog();
+  const live = deviceOptions(kind, sensors);
+  const options = live.some((o) => o.value === value) ? live : [...live, { value, label: `${value} (not live)` }];
+  return <SelectRow label={def.label} lead={lead} hint={hint} options={options} value={value} onChange={onChange} />;
 }

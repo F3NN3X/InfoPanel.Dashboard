@@ -8,6 +8,8 @@ import {
   normalizePanel,
   normalizePanelPlacement,
   normalizePanelPresets,
+  panelLegacyLook,
+  panelOwnSettings,
   panelSettings,
   parsePanelJson,
   withLayout,
@@ -127,13 +129,31 @@ describe("panelSettings / normalizePanelPlacement", () => {
     const before = placement(panel({ accent: "#ff0000" }));
     const once = normalizePanelPlacement(before);
     expect(once.panel).toMatchObject({ title: "CPU", titleVisible: true, accent: "#ff0000", background: "bordered" });
-    expect(once.settings).toEqual({ label: "CPU", accent: "#ff0000", surface: "bordered" });
+    // The legacy look stays a render-time fallback (below the global style).
+    expect(once.settings).toEqual({ label: "CPU" });
     expect(normalizePanelPlacement(once)).toEqual(once);
+  });
+
+  it("keeps the look a panel migrated by an older build holds", () => {
+    const old = placement(panel({ accent: "#ff0000" }), { label: "CPU", accent: "#ff0000", surface: "bordered" });
+    expect(normalizePanelPlacement(old).settings).toEqual({ label: "CPU", accent: "#ff0000", surface: "bordered" });
   });
 
   it("passes other placements through", () => {
     const module: Placement = { ...placement(panel()), module: "systemmodern", panel: undefined };
     expect(normalizePanelPlacement(module)).toBe(module);
+  });
+});
+
+describe("panelOwnSettings / panelLegacyLook", () => {
+  it("adds only the legacy title to the own settings", () => {
+    expect(panelOwnSettings(placement(panel({ accent: "#ff0000" })))).toEqual({ label: "CPU" });
+    expect(panelOwnSettings(placement(panel(), { label: "Mine", radius: "4" }))).toEqual({ label: "Mine", radius: "4" });
+  });
+
+  it("reads the legacy accent and card as a style layer", () => {
+    expect(panelLegacyLook(placement(panel({ accent: "#ff0000" })))).toEqual({ accent: "#ff0000", surface: "bordered" });
+    expect(panelLegacyLook({ ...placement(panel()), panel: undefined })).toBeUndefined();
   });
 });
 
@@ -167,7 +187,7 @@ describe("shipped panels", () => {
   it.each([
     ["sample", sampleProfile],
     ["arcv2", arcv2Profile],
-  ])("%s: every panel loads normalized, with its look in settings", (_, make) => {
+  ])("%s: every panel loads normalized, its look a render-time layer", (_, make) => {
     const raw = make();
     const loaded = mergeConfig({ profiles: [raw] }).profiles.find((p) => p.id === raw.id)!;
     const before = panels(raw.placements);
@@ -178,8 +198,11 @@ describe("shipped panels", () => {
       expect(["stack", "grid", "overlay"]).toContain(pl.panel!.layout);
       expect(pl.panel!.widgets).toHaveLength(src.widgets.length);
       expect(pl.settings?.label).toBe(src.titleVisible ? src.title : "");
-      expect(pl.settings?.surface).toBe(src.background);
-      expect(pl.settings?.accent).toBe(src.accent);
+      // The legacy look stays out of the settings (the global style can reach it).
+      expect(pl.settings?.surface).toBeUndefined();
+      expect(pl.settings?.accent).toBeUndefined();
+      expect(panelLegacyLook(pl)?.surface).toBe(src.background);
+      expect(panelLegacyLook(pl)?.accent).toBe(src.accent);
       expect(normalizePanelPlacement(pl)).toEqual(pl);
     });
   });

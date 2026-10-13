@@ -1,16 +1,21 @@
 import { type CSSProperties } from "react";
 import { Image as ImageIcon } from "lucide-react";
 import { Gauge } from "@/components/Gauge";
+import { Bar as SkinBar, Ring, Spark } from "@/widgets/core/primitives";
+import { useHistory } from "@/widgets/core/layout";
 import { isImageUrl, resolveImageUrl } from "@/lib/image";
 import { sensorAt } from "@/lib/sensors";
+import { formatClock } from "@/lib/general";
 import { hexToHsl } from "@/lib/theme";
+import { useGeneral } from "@/hooks/use-general";
 import type { SensorValue } from "@/hooks/useSensors";
 import type { Widget } from "@/lib/layout";
 import type { SensorMap } from "@/modules/types";
 import { cn } from "@/lib/utils";
-import { labelStyle, ws } from "@/components/widget-style";
+import { labelStyle } from "@/components/widget-style";
 import { widgetPercent, widgetValue } from "./format";
-import { useHistory, useNow } from "./hooks";
+import { useNow } from "./hooks";
+import { panelNum, usePanelSkin } from "./panel-skin";
 
 /**
  * Resolve an image widget's source URL: a static URL wins when it looks
@@ -58,6 +63,7 @@ function subSize(widget: Widget): number {
 
 function Stat({ widget, text, unit, sub }: Ctx) {
   const ls = labelSize(widget);
+  const sk = usePanelSkin();
   return (
     <div className="flex flex-col gap-0.5" style={{ textAlign: widget.align }}>
       {widget.label && (
@@ -72,7 +78,7 @@ function Stat({ widget, text, unit, sub }: Ctx) {
         className="wp-value font-bold tracking-tight tabular-nums text-foreground"
         style={{
           fontSize: widget.fontSize ?? "1.5rem",
-          fontWeight: ws.weight(700),
+          ...panelNum(sk, 700),
           ...colorStyle(widget.color),
         }}
       >
@@ -100,6 +106,7 @@ function Stat({ widget, text, unit, sub }: Ctx) {
 
 function Value({ widget, text, unit, sub }: Ctx) {
   const ls = labelSize(widget);
+  const sk = usePanelSkin();
   return (
     <div className="flex flex-col" style={{ textAlign: widget.align }}>
       <div className="flex items-baseline gap-1">
@@ -107,7 +114,7 @@ function Value({ widget, text, unit, sub }: Ctx) {
           className="wp-value font-semibold tabular-nums text-foreground"
           style={{
             fontSize: widget.fontSize ?? "1.125rem",
-            fontWeight: ws.weight(600),
+            ...panelNum(sk, 600),
             ...colorStyle(widget.color),
           }}
         >
@@ -144,34 +151,61 @@ function Value({ widget, text, unit, sub }: Ctx) {
 
 function Bar({ widget, sensor, text, unit }: Ctx) {
   const pct = widgetPercent(sensor, widget);
+  const sk = usePanelSkin();
   return (
     <div className="w-full">
       <div className="mb-1 flex items-center justify-between gap-2 text-xs">
         <span className="wp-label truncate text-muted-foreground">
           {widget.label ?? "—"}
         </span>
-        <span className="wp-value tabular-nums text-foreground">
+        <span className="wp-value tabular-nums text-foreground" style={sk ? panelNum(sk, 400) : undefined}>
           {text}
           {unit && (
             <span className="wp-unit ml-0.5 text-muted-foreground">{unit}</span>
           )}
         </span>
       </div>
-      <div className="wp-bar-track h-2 w-full overflow-hidden rounded-full bg-secondary">
-        <div
-          className="wp-bar-fill h-full rounded-full bg-primary transition-[width] duration-300"
-          style={{
-            width: `${pct}%`,
-            ...(widget.color ? { backgroundColor: widget.color } : {}),
-          }}
-        />
-      </div>
+      {sk ? (
+        // The core meter in the skin's style; `pct` already carries `inverted`. Its fill reads `--accent` as a color.
+        <div className="wp-bar-track" style={{ "--accent": widget.color ?? "hsl(var(--primary))" } as CSSProperties}>
+          <SkinBar value={pct} className="h-2" />
+        </div>
+      ) : (
+        <div className="wp-bar-track h-2 w-full overflow-hidden rounded-full bg-secondary">
+          <div
+            className="wp-bar-fill h-full rounded-full bg-primary transition-[width] duration-300"
+            style={{
+              width: `${pct}%`,
+              ...(widget.color ? { backgroundColor: widget.color } : {}),
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }
 
 function GaugeWidget({ widget, sensor, text, unit }: Ctx) {
   const pct = widgetPercent(sensor, widget);
+  const sk = usePanelSkin();
+  if (sk) {
+    // The core ring: its thickness scales with the skin's `ring`; the number sits inside, the label under it.
+    const size = widget.fontSize ?? 80;
+    return (
+      <div className="wp-gauge flex shrink-0 flex-col items-center gap-1.5" style={{ width: size }}>
+        <Ring value={pct} thickness={8} color={widget.color ?? "hsl(var(--accent))"} className="w-full">
+          <span
+            className="tabular-nums text-foreground"
+            style={{ fontSize: widget.fontSize ? Math.round(widget.fontSize * 0.28) : 14, ...panelNum(sk, 600) }}
+          >
+            {text}
+            {unit && <span className="ml-0.5 font-normal text-muted-foreground" style={{ fontSize: "0.7em" }}>{unit}</span>}
+          </span>
+        </Ring>
+        {widget.label && <span className="wp-label text-[10px] uppercase tracking-wide text-muted-foreground">{widget.label}</span>}
+      </div>
+    );
+  }
   const scope = widget.color
     ? ({ "--accent": hexToHsl(widget.color) } as CSSProperties)
     : undefined;
@@ -190,7 +224,10 @@ function GaugeWidget({ widget, sensor, text, unit }: Ctx) {
 }
 
 function Sparkline({ widget, sensor }: { widget: Widget; sensor?: SensorValue }) {
-  const history = useHistory(sensor?.value, widget.history ?? 40);
+  const eased = useHistory(sensor?.value ?? NaN, widget.history ?? 40, 1);
+  // The core seeds a first sample as two points; this panel always drew it as one.
+  const history = eased.length === 2 && eased[0] === eased[1] ? eased.slice(0, 1) : eased;
+  const sk = usePanelSkin();
   const last = history[history.length - 1];
   const W = 200;
   const H = 48;
@@ -219,11 +256,15 @@ function Sparkline({ widget, sensor }: { widget: Widget; sensor?: SensorValue })
         </span>
         <span
           className="wp-value tabular-nums text-foreground"
-          style={colorStyle(widget.color)}
+          style={sk ? { ...panelNum(sk, 400), ...colorStyle(widget.color) } : colorStyle(widget.color)}
         >
           {last !== undefined ? Math.round(last) : "—"}
         </span>
       </div>
+      {sk ? (
+        // The core graph in the skin's style (history length = the widget's `history`).
+        <Spark values={history} className="wp-spark h-12" color={widget.color ?? "hsl(var(--accent))"} />
+      ) : (
       <svg
         viewBox={`0 0 ${W} ${H}`}
         preserveAspectRatio="none"
@@ -256,11 +297,13 @@ function Sparkline({ widget, sensor }: { widget: Widget; sensor?: SensorValue })
           />
         )}
       </svg>
+      )}
     </div>
   );
 }
 
 function Table({ widget, lines }: { widget: Widget; lines: string[] }) {
+  const font = usePanelSkin()?.num;
   const rows = widget.rows ?? 7;
   const size = widget.fontSize
     ? Math.max(10, Math.round(widget.fontSize * 0.55))
@@ -281,6 +324,7 @@ function Table({ widget, lines }: { widget: Widget; lines: string[] }) {
           gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
           fontSize: size ?? "0.75rem",
           textAlign: widget.align,
+          fontFamily: font,
         }}
       >
         {header.map((h, j) => (
@@ -321,7 +365,7 @@ function Table({ widget, lines }: { widget: Widget; lines: string[] }) {
 
   // Default two-part mode: a leading head and the rest, right aligned.
   return (
-    <div className="wp-table space-y-1">
+    <div className="wp-table space-y-1" style={font ? { fontFamily: font } : undefined}>
       {lines.slice(0, rows).map((line, i) => {
         const idx = line.indexOf(", ");
         const head = idx > 0 ? line.slice(0, idx) : line;
@@ -363,6 +407,7 @@ function Table({ widget, lines }: { widget: Widget; lines: string[] }) {
 
 function Text({ widget, text }: { widget: Widget; text: string }) {
   const ls = labelSize(widget);
+  const sk = usePanelSkin();
   return (
     <div
       className="flex min-w-0 flex-col gap-0.5"
@@ -384,6 +429,7 @@ function Text({ widget, text }: { widget: Widget; text: string }) {
         style={{
           fontSize: widget.fontSize ?? "0.875rem",
           whiteSpace: "pre-line",
+          fontFamily: sk?.font,
           ...colorStyle(widget.color),
         }}
       >
@@ -427,18 +473,10 @@ function ImageWidget({ widget, src }: { widget: Widget; src?: string }) {
 
 function Clock({ widget }: { widget: Widget }) {
   const now = useNow(1000);
-  const time = now.toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
-  const date = now.toLocaleDateString([], {
-    weekday: "short",
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
+  // 12 / 24 h, seconds and the locale come from General settings.
+  const { time, date } = formatClock(now, useGeneral());
   const mode = widget.clock ?? "both";
+  const sk = usePanelSkin();
   return (
     <div
       className="flex flex-col"
@@ -447,7 +485,7 @@ function Clock({ widget }: { widget: Widget }) {
       {mode !== "date" && (
         <div
           className="wp-clock-time font-bold tracking-tight tabular-nums"
-          style={{ fontSize: widget.fontSize ?? "2.25rem", fontWeight: ws.weight(700) }}
+          style={{ fontSize: widget.fontSize ?? "2.25rem", ...panelNum(sk, 700) }}
         >
           {time}
         </div>

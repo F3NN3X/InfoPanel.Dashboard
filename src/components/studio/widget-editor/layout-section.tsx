@@ -8,7 +8,6 @@ import {
   type WidgetBox,
 } from "@/lib/panel-model";
 import { AlignGrid } from "../align-grid";
-import { CollapsibleSection } from "../collapsible-section";
 import { Field, NumberInput, Switch } from "./fields";
 import type { WidgetSectionProps } from "./types";
 
@@ -102,7 +101,7 @@ function SelfAlign({
  * Where the widget sits in its panel: size and own alignment in a stack /
  * grid, span and cell in a grid, the band (and background) in an overlay.
  */
-export function LayoutSection({ widget, panel, set, onChange }: WidgetSectionProps) {
+export function LayoutFields({ widget, panel, set, onChange }: WidgetSectionProps) {
   const layout = panel.layout === "wrap" || !panel.layout ? "stack" : panel.layout;
   const grid = layout === "grid";
   const box = widget.box ?? {};
@@ -134,7 +133,7 @@ export function LayoutSection({ widget, panel, set, onChange }: WidgetSectionPro
   );
 
   return (
-    <CollapsibleSection id="panel-widget:layout" title="Layout" defaultOpen>
+    <>
       {layout === "overlay" ? (
         <>
           {widget.kind === "image" && (
@@ -183,6 +182,6 @@ export function LayoutSection({ widget, panel, set, onChange }: WidgetSectionPro
           )}
         </>
       )}
-    </CollapsibleSection>
+    </>
   );
 }

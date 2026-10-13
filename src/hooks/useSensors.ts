@@ -1,4 +1,4 @@
-import { useMemo, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useSyncExternalStore } from "react";
 import { sensorStore } from "@/lib/sensor-store";
 import { touches } from "@/lib/sensor-stream";
 import type { SensorMap } from "@/modules/types";
@@ -56,4 +56,12 @@ export function useSensorsTimestamp(): number {
 /** Whether every open sensor stream is connected. */
 export function useSensorsConnected(): boolean {
   return useSyncExternalStore(sensorStore.subscribeStatus, sensorStore.isConnected);
+}
+
+/**
+ * Keeps a fast (100 ms) stream open for `prefix` while mounted (`null` = none): the audio widgets'
+ * levels and spectrum. The values reach `useSensors` readers through the same map.
+ */
+export function useFastSensors(prefix: string | null): void {
+  useEffect(() => (prefix ? sensorStore.retainFast(prefix) : undefined), [prefix]);
 }

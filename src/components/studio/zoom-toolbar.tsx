@@ -1,84 +1,118 @@
-import {
-  LayoutGrid,
-  Maximize2,
-  ZoomIn,
-  ZoomOut,
-} from "lucide-react";
+import { Grid3x3, Minus, PanelBottom, PanelLeftClose, PanelRight, Plus, RulerDimensionLine } from "lucide-react";
+import { IconButton } from "@/components/ui/icon-button";
 import type { MonitorProfile } from "@/lib/layout";
 import { cn } from "@/lib/utils";
+import type { LayoutMode, Placement } from "./studio-layout";
 import { KEYS } from "./use-studio-shortcuts";
 
 interface ZoomToolbarProps {
   zoom: number;
+  /** The zoom follows the fit (the Fit button shows active). */
+  fitting: boolean;
+  onToggleLeft: () => void;
   showGrid: boolean;
   onToggleGrid: () => void;
+  showRulers: boolean;
+  onToggleRulers: () => void;
   onZoomStep: (dir: 1 | -1) => void;
-  onZoomReset: () => void;
   onFit: () => void;
-  /** The profile shown on the canvas (size label). */
+  /** The profile shown on the canvas (resolution button). */
   profile: MonitorProfile;
+  /** Open Dashboard › Profile. */
+  onOpenProfile: () => void;
+  /** The inspector position setting; the button cycles it. */
+  layoutMode: LayoutMode;
+  /** Where the inspector actually is (Auto resolves to one of these). */
+  placement: Placement;
+  onCycleLayout: () => void;
 }
 
-const ICON_BUTTON =
-  "rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground";
+const DOCK_LABEL: Record<LayoutMode, string> = { side: "Side", bottom: "Bottom", auto: "Auto" };
 
-/** Floating pill under the canvas: grid toggle, zoom, fit, size. */
+const BAR_BUTTON = "h-7 w-7 rounded-md hover:bg-[#24242a]";
+const TOGGLE_BUTTON = cn(BAR_BUTTON, "text-[#c9c9cf]");
+const TEXT_BUTTON = "flex h-[26px] items-center gap-1 rounded-md px-2 text-[11.5px] text-[#c9c9cf] transition-colors hover:bg-[#24242a]";
+
+function Divider() {
+  return <div className="mx-1 h-[18px] w-px shrink-0 bg-ui-strong" />;
+}
+
+/**
+ * The floating bar over the canvas (16 px from the bottom, centred): left
+ * panel, grid and ruler toggles, zoom, Fit, the resolution button and the
+ * inspector position.
+ */
 export function ZoomToolbar({
   zoom,
+  fitting,
+  onToggleLeft,
   showGrid,
   onToggleGrid,
+  showRulers,
+  onToggleRulers,
   onZoomStep,
-  onZoomReset,
   onFit,
   profile,
+  onOpenProfile,
+  layoutMode,
+  placement,
+  onCycleLayout,
 }: ZoomToolbarProps) {
+  const DockIcon = placement === "bottom" ? PanelBottom : PanelRight;
+  const dockLabel = DOCK_LABEL[layoutMode];
   return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-3 z-30 flex justify-center">
-      <div className="pointer-events-auto flex items-center gap-1 rounded-full border border-border bg-popover/90 px-2 py-1.5 shadow-lg backdrop-blur">
-        <button
-          onClick={onToggleGrid}
-          title="Toggle grid"
-          className={cn(
-            "rounded-full p-1.5 transition-colors hover:bg-accent",
-            showGrid ? "text-foreground" : "text-muted-foreground"
-          )}
-        >
-          <LayoutGrid className="h-3.5 w-3.5" />
-        </button>
-        <div className="h-4 w-px bg-border" />
-        <button
-          onClick={() => onZoomStep(-1)}
-          title={`Zoom out (${KEYS.zoomOut})`}
-          className={ICON_BUTTON}
-        >
-          <ZoomOut className="h-3.5 w-3.5" />
-        </button>
-        <button
-          onClick={onZoomReset}
-          title="Reset to 100%"
-          className="min-w-12 rounded-full px-1.5 text-center text-xs tabular-nums text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-        >
-          {Math.round(zoom * 100)}%
-        </button>
-        <button
-          onClick={() => onZoomStep(1)}
-          title={`Zoom in (${KEYS.zoomIn})`}
-          className={ICON_BUTTON}
-        >
-          <ZoomIn className="h-3.5 w-3.5" />
-        </button>
-        <button
-          onClick={onFit}
-          title={`Fit design width to viewport (${KEYS.fit})`}
-          className={ICON_BUTTON}
-        >
-          <Maximize2 className="h-3.5 w-3.5" />
-        </button>
-        <div className="h-4 w-px bg-border" />
-        <span className="px-1 text-xs tabular-nums text-muted-foreground">
-          {profile.width} × {profile.height}
-        </span>
-      </div>
+    <div
+      className={cn(
+        "absolute bottom-4 left-1/2 z-30 flex h-9 -translate-x-1/2 items-center gap-0.5 whitespace-nowrap px-1",
+        "rounded-[10px] border border-ui-strong bg-ui-raised font-ui shadow-ui-float"
+      )}
+    >
+      <IconButton label="Toggle the left panel" className={BAR_BUTTON} onClick={onToggleLeft}>
+        <PanelLeftClose className="h-[18px] w-[18px]" />
+      </IconButton>
+      <IconButton label="Toggle grid" className={TOGGLE_BUTTON} active={showGrid} aria-pressed={showGrid} onClick={onToggleGrid}>
+        <Grid3x3 className="h-[18px] w-[18px]" />
+      </IconButton>
+      <IconButton label="Toggle rulers" className={TOGGLE_BUTTON} active={showRulers} aria-pressed={showRulers} onClick={onToggleRulers}>
+        <RulerDimensionLine className="h-[18px] w-[18px]" />
+      </IconButton>
+      <Divider />
+      <IconButton label={`Zoom out (${KEYS.zoomOut})`} className={BAR_BUTTON} onClick={() => onZoomStep(-1)}>
+        <Minus className="h-[18px] w-[18px]" />
+      </IconButton>
+      <span className="min-w-11 text-center font-ui-mono text-[11.5px] text-ui-1">{Math.round(zoom * 100)}%</span>
+      <IconButton label={`Zoom in (${KEYS.zoomIn})`} className={BAR_BUTTON} onClick={() => onZoomStep(1)}>
+        <Plus className="h-[18px] w-[18px]" />
+      </IconButton>
+      <button
+        type="button"
+        onClick={onFit}
+        aria-pressed={fitting}
+        title={`Fit the page to the canvas and keep it fitted (${KEYS.fit})`}
+        className={cn(
+          "h-[26px] rounded-md px-[9px] text-[11.5px] font-medium transition-colors",
+          fitting ? "bg-ui-active text-ui-1" : "text-[#8f8f99] hover:bg-[#24242a]"
+        )}
+      >
+        Fit
+      </button>
+      <Divider />
+      <button
+        type="button"
+        onClick={onOpenProfile}
+        title="Profile size, grid and spacing"
+        className={cn(TEXT_BUTTON, "font-ui-mono text-[11px]")}
+      >
+        {profile.width} × {profile.height}
+      </button>
+      <button
+        type="button"
+        onClick={onCycleLayout}
+        title={`Inspector position: ${dockLabel} (click to change; ${KEYS.dock} collapses)`}
+        className={cn(TEXT_BUTTON, "pl-1.5")}
+      >
+        <DockIcon className="h-[17px] w-[17px]" /> {dockLabel}
+      </button>
     </div>
   );
 }

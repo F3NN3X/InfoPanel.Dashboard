@@ -9,3 +9,12 @@ dist/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# Claude Code agent worktrees
+.claude/worktrees/
+
+# Playwright MCP screenshots and snapshots
+.playwright-mcp/
+
+# Widget QA screenshots
+docs/redesign/phase9/shots/

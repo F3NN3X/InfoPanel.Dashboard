@@ -1,14 +1,18 @@
-import { useMemo, type ReactNode } from "react";
-import { GenericCard } from "@/modules/fallback";
+import { useMemo, type CSSProperties, type ReactNode } from "react";
+import { OtherSensors } from "@/modules/other-sensors";
 import { isClaimed, moduleReads, modules } from "@/modules";
-import { effectiveSettings, withProfileStyle, type ModuleSettings, type SensorMap } from "@/modules/types";
+import { chromeOf } from "@/modules/standard-settings";
+import { effectiveSettings, type ModuleSettings, type SensorMap } from "@/modules/types";
+import { tokenScope } from "@/components/widget-style";
 import type { SensorValue } from "@/hooks/useSensors";
 import { useSensors } from "@/hooks/useSensors";
 import { PanelView } from "@/components/widgets/PanelView";
 import type { PanelSelection } from "@/components/widgets/panel-parts";
 import { YR_FORECAST_KEY, YR_FORECAST_PREFIX } from "@/lib/sensors";
 import { CARDS_ID, BLANK_MODULE, type Placement } from "@/lib/layout";
-import { panelSettings } from "@/lib/panel-model";
+import { panelLegacyLook, panelOwnSettings } from "@/lib/panel-model";
+import { resolveWith, type Appearance } from "@/lib/style-resolve";
+import { safeRender } from "@/components/zone-error-boundary";
 
 const moduleById = new Map(modules.map((m) => [m.id, m]));
 
@@ -21,6 +25,11 @@ export interface PlacementRender {
    * when idle: the kiosk hides it, the studio marks it.
    */
   idle?: boolean;
+  /**
+   * The theme tokens re-scoped to the zone's resolved colors, for the zone
+   * frame around the content (its header and card read them too).
+   */
+  scope?: CSSProperties;
 }
 
 /**
@@ -42,18 +51,26 @@ export function placementPrefixes(p: Placement): string[] | null {
   }
   if (p.module === CARDS_ID) return null;
   const mod = moduleById.get(p.module);
+  if (mod?.readsAll) return null;
   return mod ? moduleReads(mod) : [];
+}
+
+/** Tokens for the zone frame (`undefined` when nothing is re-scoped). */
+function frameScope(settings: ModuleSettings | undefined): CSSProperties | undefined {
+  const v = tokenScope(chromeOf(settings ?? {}));
+  return Object.keys(v).length > 0 ? (v as CSSProperties) : undefined;
 }
 
 /**
  * Render the content of a placement (module or the "cards" catch-all grid).
- * Shared by the kiosk grid and the studio canvas.
+ * Shared by the kiosk grid and the studio canvas. `appearance` is the
+ * global style the placement's look resolves under (`resolveStyle`).
  */
 export function placementContent(
   p: Placement,
   sensors: SensorMap,
   unclaimed: Array<[string, SensorValue]>,
-  profileStyle?: ModuleSettings,
+  appearance?: Appearance,
   /** Rendering on the studio canvas (empty panels show a hint). */
   studio?: boolean,
   /** The studio's widget selection, for the selected panel zone only. */
@@ -68,11 +85,14 @@ export function placementContent(
     // A custom panel renders its own widgets; it "has data" when at least
     // one widget is visible (an empty panel is hidden in kiosk mode).
     const hasData = p.panel.widgets.some((w) => w.visible);
+    // The legacy PanelDef look is the lowest layer, under the global style.
+    const settings = resolveWith(appearance, panelOwnSettings(p), p.styleMode, panelLegacyLook(p));
     return {
       content: (
         <PanelView
           panel={p.panel}
-          settings={withProfileStyle(panelSettings(p), profileStyle)}
+          settings={settings}
+          enforced={appearance?.enforce}
           sensors={sensors}
           studio={studio}
           selection={selection}
@@ -80,44 +100,40 @@ export function placementContent(
       ),
       hasData,
       title: p.panel.title,
+      scope: frameScope(settings),
     };
   }
   if (p.module === CARDS_ID) {
     if (unclaimed.length === 0)
       return { content: null, hasData: false, title: "Other sensors" };
     const subCols = p.colSpan >= 8 ? 4 : p.colSpan >= 4 ? 3 : 2;
+    const cfg = resolveWith(appearance, p.settings, p.styleMode) ?? {};
     return {
       hasData: true,
       title: "Other sensors",
-      content: (
-        <div
-          className="grid h-full w-full auto-rows-fr gap-3"
-          style={{ gridTemplateColumns: `repeat(${subCols}, minmax(0, 1fr))` }}
-        >
-          {unclaimed.map(([key, sensor]) => (
-            <GenericCard key={key} sensorKey={key} sensor={sensor} />
-          ))}
-        </div>
-      ),
+      content: <OtherSensors unclaimed={unclaimed} settings={cfg} subCols={subCols} />,
+      scope: frameScope(cfg),
     };
   }
   const mod = moduleById.get(p.module);
   if (!mod) return { content: null, hasData: false, title: p.module };
-  const settings = withProfileStyle(p.settings, profileStyle);
-  const content = mod.render(sensors, settings);
-  const cfg = mod.isIdle ? effectiveSettings(mod, settings) : undefined;
+  const settings = resolveWith(appearance, p.settings, p.styleMode);
+  const content = safeRender(mod.title, () => mod.render(sensors, settings));
+  // Only the module's own keys (a stored color it has no option for stays inert).
+  const cfg = effectiveSettings(mod, settings);
   return {
     content: content ?? null,
     hasData: content != null,
     title: mod.title,
-    idle: Boolean(cfg?.hideWhenIdle && mod.isIdle?.(sensors, cfg)),
+    idle: Boolean(cfg.hideWhenIdle && mod.isIdle?.(sensors, cfg)),
+    scope: frameScope(cfg),
   };
 }
 
 interface LivePlacementProps {
   placement: Placement;
-  /** The profile's style defaults (`MonitorProfile.style`). */
-  profileStyle?: ModuleSettings;
+  /** The global style (dashboard + profile style, forced or not). */
+  appearance?: Appearance;
   /** On the studio canvas (see `placementContent`). */
   studio?: boolean;
   /** The selected panel zone's widget selection (see `placementContent`). */
@@ -131,13 +147,13 @@ interface LivePlacementProps {
  * it renders from, so a sensor change re-renders only the zones that show
  * it — not the whole grid.
  */
-export function LivePlacement({ placement, profileStyle, studio, selection, children }: LivePlacementProps) {
+export function LivePlacement({ placement, appearance, studio, selection, children }: LivePlacementProps) {
   const prefixes = placementPrefixes(placement);
   const sensors = useSensors(prefixes);
-  const isCards = prefixes === null;
+  const isCards = placement.module === CARDS_ID;
   const unclaimed = useMemo(
     () => (isCards ? Object.entries(sensors).filter(([key]) => !isClaimed(key)) : []),
     [isCards, sensors]
   );
-  return <>{children(placementContent(placement, sensors, unclaimed, profileStyle, studio, selection))}</>;
+  return <>{children(placementContent(placement, sensors, unclaimed, appearance, studio, selection))}</>;
 }

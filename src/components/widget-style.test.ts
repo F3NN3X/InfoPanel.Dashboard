@@ -9,6 +9,7 @@ import {
   scopedCss,
   strokeOf,
   surfaceBox,
+  tokenScope,
   ws,
   zoomFor,
 } from "./widget-style";
@@ -92,6 +93,28 @@ describe("chromeVars", () => {
       "--wp-x-cross": "safe center",
     });
     expect(vars.fontFamily).toContain("monospace");
+  });
+});
+
+describe("tokenScope", () => {
+  it("re-scopes the theme tokens to the hex colors", () => {
+    expect(tokenScope(undefined)).toEqual({});
+    expect(tokenScope({ accent: "", textColor: "red" })).toEqual({});
+    expect(tokenScope({ accent: "#ffffff", textColor: "#000000", mutedColor: "#ff0000" })).toEqual({
+      "--accent": "0 0% 100%",
+      "--foreground": "0 0% 0%",
+      "--card-foreground": "0 0% 0%",
+      "--muted-foreground": "0 100% 50%",
+    });
+  });
+
+  it("is part of the widget root's variables", () => {
+    expect(chromeVars({ accent: "#ff0000", textColor: "#00ff00" })).toMatchObject({
+      "--wp-accent": "#ff0000",
+      "--accent": "0 100% 50%",
+      "--wp-fg": "#00ff00",
+      "--foreground": "120 100% 50%",
+    });
   });
 });
 
@@ -202,6 +225,14 @@ describe("fadeColors", () => {
     ).toBe("linear-gradient(155deg, rgba(24, 24, 27, 0.43) 0%, rgba(1, 2, 3, 0.5) 100%)");
     expect(fadeColors("#ff0000", 0.25)).toBe("rgba(255, 0, 0, 0.25)");
     expect(fadeColors("#abc", 0)).toBe("rgba(170, 187, 204, 0)");
+  });
+
+  it("fades theme token colors", () => {
+    expect(fadeColors("hsl(var(--card))", 0.5)).toBe("hsl(var(--card) / 0.5)");
+    expect(fadeColors("hsl(var(--card) / 0.85)", 0.5)).toBe("hsl(var(--card) / 0.43)");
+    expect(fadeColors("linear-gradient(hsl(var(--a)/0.4), #000)", 0.5)).toBe(
+      "linear-gradient(hsl(var(--a) / 0.2), rgba(0, 0, 0, 0.5))"
+    );
   });
 });
 

@@ -30,13 +30,16 @@ const base: CommandState = {
   profiles: [{ id: "p1", name: "Desk", width: 1920, height: 1080 }],
   placements: [zone("b", 3, 2), zone("a", 1, 1)],
   selected: null,
-  settings: [],
+  context: null,
   widget: null,
   canPasteWidget: false,
   canUndo: false,
   canRedo: false,
   showGrid: true,
   showSources: false,
+  layoutMode: "auto",
+  enforced: false,
+  appearancePresets: [],
 };
 
 const ids = (state: CommandState) => buildCommands(state).map((c) => c.id);
@@ -56,6 +59,49 @@ describe("buildCommands", () => {
     expect(list).toContain("sources");
   });
 
+  it("offers opening the Background tab, with or without a selection", () => {
+    const command = buildCommands(base).find((c) => c.id === "background");
+    expect(command?.label).toBe("Background…");
+    expect(command?.action).toEqual({ type: "document-tab", tab: "background" });
+    expect(ids({ ...base, selected: zone("a", 1, 1) })).toContain("background");
+  });
+
+  it("offers the three layouts (marking the current one) and the dock toggle", () => {
+    const list = buildCommands({ ...base, layoutMode: "side" });
+    const find = (id: string) => list.find((c) => c.id === id);
+    expect(find("layout:auto")).toMatchObject({ label: "Layout: Auto", action: { type: "layout", mode: "auto" } });
+    expect(find("layout:bottom")?.action).toEqual({ type: "layout", mode: "bottom" });
+    expect(find("layout:side")?.hint).toBe("current");
+    expect(find("layout:auto")?.hint).toBeUndefined();
+    expect(find("toggle-dock")).toMatchObject({ label: "Toggle inspector", hint: "Ctrl+\\", action: { type: "toggle-dock" } });
+  });
+
+  it("offers the General and Connection tabs", () => {
+    const find = (id: string) => buildCommands(base).find((c) => c.id === id);
+    expect(find("general")).toMatchObject({ label: "General settings…", action: { type: "document-tab", tab: "general" } });
+    expect(find("connection")?.action).toEqual({ type: "document-tab", tab: "connection" });
+    expect(ids({ ...base, selected: zone("a", 1, 1) })).toContain("general");
+  });
+
+  it("offers applying each appearance preset", () => {
+    const state = { ...base, appearancePresets: [{ id: "builtin:light", name: "Light" }, { id: "u1", name: "Mine" }] };
+    const list = buildCommands(state).filter((c) => c.group === "Appearance");
+    expect(list.map((c) => c.label)).toEqual(["Apply appearance: Light", "Apply appearance: Mine"]);
+    expect(list[1].action).toEqual({ type: "apply-appearance", id: "u1" });
+    expect(ids(base).some((id) => id.startsWith("appearance:"))).toBe(false);
+  });
+
+  it("offers the global style: the Appearance tab, follow all and the force toggle", () => {
+    const find = (state: CommandState, id: string) => buildCommands(state).find((c) => c.id === id);
+    expect(find(base, "appearance")?.action).toEqual({ type: "document-tab", tab: "appearance" });
+    expect(find(base, "follow-all")).toMatchObject({
+      label: "Make all widgets follow global style",
+      action: { type: "follow-all" },
+    });
+    expect(find(base, "toggle-enforce")?.label).toBe("Force global style on every widget");
+    expect(find({ ...base, enforced: true }, "toggle-enforce")?.label).toBe("Stop forcing global style");
+  });
+
   it("lists undo / redo only when there is something to undo / redo", () => {
     expect(ids(base)).not.toContain("undo");
     expect(ids(base)).not.toContain("redo");
@@ -64,26 +110,46 @@ describe("buildCommands", () => {
     expect(list).toContain("redo");
   });
 
-  it("adds the selected zone's actions and its settings, routed to the right tab", () => {
+  it("adds the selected zone's actions and its settings and the card jumps", () => {
     const glow = setting("glow", "Glow", "Border, glow & CSS");
     const threshold = setting("warnAt", "Warn at", "Thresholds");
     const commands = buildCommands({
       ...base,
       selected: zone("a", 1, 1, false),
-      settings: [glow, threshold],
+      context: { kind: "widget", defs: [glow, threshold] },
     });
     const byId = new Map(commands.map((c) => [c.id, c]));
     expect(byId.get("zone:visible")?.label).toBe("Show zone");
     expect(byId.has("zone:duplicate")).toBe(true);
     expect(byId.has("zone:remove")).toBe(true);
     expect(byId.has("zone:pick")).toBe(true);
-    expect(byId.get("setting:glow")?.action).toEqual({ type: "goto-setting", tab: "style", label: "Glow" });
-    expect(byId.get("setting:warnAt")?.action).toEqual({
-      type: "goto-setting",
-      tab: "content",
-      label: "Warn at",
-    });
-    expect(byId.get("setting:warnAt")?.hint).toBe("Content › Thresholds");
+    const glowId = [...byId.keys()].find((id) => id.endsWith(":glow"))!;
+    expect(byId.get(glowId)?.action).toMatchObject({ type: "goto-setting", key: "glow" });
+    expect(byId.get(glowId)?.hint).toBe("Border & effects");
+    expect(byId.get("zone:card:colors")?.action).toEqual({ type: "goto-card", id: "colors" });
+    const warnId = [...byId.keys()].find((id) => id.endsWith(":warnAt"))!;
+    expect(byId.get(warnId)?.action).toMatchObject({ type: "goto-setting", key: "warnAt" });
+    expect(byId.get(warnId)?.hint).toBe("Thresholds");
+  });
+
+  it("offers Go to setting for a panel and for the Dashboard, each jumping to its section", () => {
+    const panel = buildCommands({ ...base, selected: zone("a", 1, 1), context: { kind: "panel", defs: [setting("gap", "Gap")] } });
+    const gap = panel.find((c) => c.id.endsWith(":gap"))!;
+    expect(gap).toMatchObject({ label: "Go to setting: Gap", group: "Selected zone" });
+    expect(gap.action).toMatchObject({ type: "goto-setting", key: "gap" });
+
+    const dash = buildCommands({ ...base, context: { kind: "dashboard", scope: "all" } });
+    const settings = dash.filter((c) => c.id.startsWith("setting:"));
+    expect(settings.length).toBeGreaterThan(0);
+    expect(settings.every((c) => c.group === "Dashboard")).toBe(true);
+    // A custom-UI-only card gets a section jump instead.
+    expect(dash.find((c) => c.id === "section:profile")?.action).toEqual({ type: "goto-setting", section: "profile" });
+  });
+
+  it("offers Use as global style for the selected zone", () => {
+    const list = buildCommands({ ...base, selected: zone("a", 1, 1) });
+    expect(list.find((c) => c.id === "style:global-all")?.action).toEqual({ type: "use-global", target: "all" });
+    expect(list.find((c) => c.id === "style:global-profile")?.action).toEqual({ type: "use-global", target: "profile" });
   });
 
   it("has no zone commands without a selection", () => {
@@ -178,5 +244,48 @@ describe("matchScore / rankCommands", () => {
 
   it("ignores case and diacritics", () => {
     expect(matchScore("Écran", "ecr")).toBe(3);
+  });
+});
+
+describe("buildCommands with several zones selected", () => {
+  const a = zone("a", 1, 1);
+  const b = zone("b", 3, 2, false);
+
+  it("offers hide, duplicate and remove for the whole selection only", () => {
+    const list = buildCommands({ ...base, selected: b, selection: [a, b] });
+    const group = list.filter((c) => c.group === "Selected zones");
+    expect(group.map((c) => c.label)).toEqual(["Duplicate 2 zones", "Hide 2 zones", "Remove 2 zones"]);
+    expect(list.some((c) => c.id === "zone:pick")).toBe(false);
+  });
+
+  it("offers Show when every selected zone is hidden", () => {
+    const hidden = zone("c", 5, 1, false);
+    const list = buildCommands({ ...base, selected: hidden, selection: [b, hidden] });
+    expect(list.find((c) => c.id === "zone:visible")?.label).toBe("Show 2 zones");
+  });
+
+  it("keeps the single-zone commands for one selected zone", () => {
+    expect(ids({ ...base, selected: a, selection: [a] })).toContain("zone:pick");
+  });
+});
+
+describe("select all", () => {
+  it("is offered with Ctrl+A while the profile has zones", () => {
+    expect(buildCommands(base).find((c) => c.id === "select-all")).toMatchObject({
+      action: { type: "select-all" },
+      hint: "Ctrl+A",
+    });
+    expect(ids({ ...base, placements: [] })).not.toContain("select-all");
+  });
+});
+
+describe("buildCommands style commands", () => {
+  it("offers copy, paste, follow and use-as-global only with a selection", () => {
+    const ids = (selected: Placement | null) =>
+      buildCommands({ ...base, selected, selection: selected ? [selected] : [] })
+        .filter((c) => c.group === "Zone style")
+        .map((c) => c.action.type);
+    expect(ids(null)).toEqual([]);
+    expect(ids(zone("a", 1, 1))).toEqual(["copy-style", "paste-style", "follow-global", "use-global", "use-global"]);
   });
 });

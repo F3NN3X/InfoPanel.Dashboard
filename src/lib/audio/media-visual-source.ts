@@ -14,6 +14,9 @@ export interface MediaVisualSourceOptions {
   historyLength?: number;
   /** Minimum time between history entries, ms. Default 50. */
   historyIntervalMs?: number;
+  /** The dB mapped to band 0 / band 1. Default the analyser window, -100 / -30. */
+  minDb?: number;
+  maxDb?: number;
 }
 
 export interface MediaVisualSourceHandle {
@@ -47,6 +50,7 @@ export function createMediaVisualSource(
   const historyIntervalMs = Math.max(16, options.historyIntervalMs ?? 50);
   const minHz = options.minHz ?? 30;
   const maxHz = options.maxHz ?? 16000;
+  const range = { minDb: options.minDb, maxDb: options.maxDb };
 
   const listeners = new Set<(frame: VisualFrame) => void>();
   let analyser: AnalyserNode | null = null;
@@ -84,7 +88,7 @@ export function createMediaVisualSource(
       (analyser.context as AudioContext | null)?.sampleRate ?? 44100;
 
     analyser.getFloatFrequencyData(spectrum);
-    bandsFromSpectrum(spectrum, sampleRate, edges, bands);
+    bandsFromSpectrum(spectrum, sampleRate, edges, bands, range);
 
     // Broadband level for the scrolling history: the mean of the bands.
     let sum = 0;

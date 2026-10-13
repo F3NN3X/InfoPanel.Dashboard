@@ -1,24 +1,18 @@
 import { useState, type ReactNode } from "react";
 import { Tooltip } from "@base-ui/react/tooltip";
-import { Database, LayoutGrid, Layers, Monitor, Plus, type LucideIcon } from "lucide-react";
+import { Database, Keyboard, Layers, SquarePlus, Monitor, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-/** The left drawers; Sources is a canvas mode, not a drawer. */
+/** The left panels; Sources is a canvas mode, not a panel. */
 export type Drawer = "add" | "layers" | "profiles";
 export type RailItem = Drawer | "sources";
 
 const RAIL: { id: RailItem; label: string; icon: LucideIcon }[] = [
-  { id: "add", label: "Add", icon: Plus },
   { id: "layers", label: "Layers", icon: Layers },
+  { id: "add", label: "Add", icon: SquarePlus },
   { id: "profiles", label: "Profiles", icon: Monitor },
-  { id: "sources", label: "Sources", icon: Database },
+  { id: "sources", label: "Data sources", icon: Database },
 ];
-
-export const DRAWER_TITLES: Record<Drawer, string> = {
-  add: "Add",
-  layers: "Layers",
-  profiles: "Profiles",
-};
 
 /** localStorage key holding the open drawer ("none" when collapsed). */
 const STORAGE_KEY = "studio.drawer";
@@ -53,53 +47,73 @@ interface LeftRailProps {
   /** The highlighted item (open drawer or Sources), or null. */
   active: RailItem | null;
   onSelect: (item: RailItem) => void;
+  /** The keyboard icon at the bottom opens the shortcuts sheet. */
+  onShortcuts: () => void;
 }
 
-/** 48px icon rail at the studio's left edge; each icon opens a drawer. */
-export function LeftRail({ active, onSelect }: LeftRailProps) {
+interface RailButtonProps {
+  label: string;
+  icon: LucideIcon;
+  active?: boolean;
+  onClick: () => void;
+}
+
+/** One 38×38 rail icon with a tooltip to its right. */
+function RailButton({ label, icon: Icon, active, onClick }: RailButtonProps) {
+  return (
+    // Not hoverable: the popup sits over the panel, and hovering it
+    // must not keep it open once the pointer leaves the rail.
+    <Tooltip.Root disableHoverablePopup>
+      <Tooltip.Trigger
+        aria-label={label}
+        aria-pressed={active}
+        onClick={onClick}
+        className={cn(
+          "flex h-[38px] w-[38px] items-center justify-center rounded-[9px] transition-colors",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ui-accent/60",
+          active ? "bg-[#1e1e24] text-ui-1" : "text-ui-4 hover:bg-ui-hover hover:text-ui-2"
+        )}
+      >
+        <Icon className="h-[21px] w-[21px]" strokeWidth={1.5} />
+      </Tooltip.Trigger>
+      <Tooltip.Portal>
+        <Tooltip.Positioner side="right" sideOffset={8} className="z-50">
+          <Tooltip.Popup className="pointer-events-none rounded-md border border-ui-menu bg-ui-raised px-2 py-1 font-ui text-xs text-ui-2 shadow-ui-menu">
+            {label}
+          </Tooltip.Popup>
+        </Tooltip.Positioner>
+      </Tooltip.Portal>
+    </Tooltip.Root>
+  );
+}
+
+/** 52px icon rail at the studio's left edge; each icon opens a left panel, Sources the explorer. */
+export function LeftRail({ active, onSelect, onShortcuts }: LeftRailProps) {
   return (
     <Tooltip.Provider delay={300}>
-      <nav className="flex w-12 shrink-0 flex-col items-center gap-1 border-r bg-popover/60 py-2">
-        <span className="mb-1 flex h-9 w-9 items-center justify-center" title="Dashboard studio">
-          <LayoutGrid className="h-4 w-4" />
-        </span>
-        {RAIL.map(({ id, label, icon: Icon }) => (
-          // Not hoverable: the popup sits over the drawer, and hovering it
-          // must not keep it open once the pointer leaves the rail.
-          <Tooltip.Root key={id} disableHoverablePopup>
-            <Tooltip.Trigger
-              aria-label={label}
-              aria-pressed={active === id}
-              onClick={() => onSelect(id)}
-              className={cn(
-                "flex h-9 w-9 items-center justify-center rounded-md transition-colors",
-                active === id
-                  ? "bg-accent text-foreground"
-                  : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
-              )}
-            >
-              <Icon className="h-4 w-4" />
-            </Tooltip.Trigger>
-            <Tooltip.Portal>
-              <Tooltip.Positioner side="right" sideOffset={8} className="z-50">
-                <Tooltip.Popup className="pointer-events-none rounded-md border bg-popover px-2 py-1 text-xs text-foreground shadow-md">
-                  {label}
-                </Tooltip.Popup>
-              </Tooltip.Positioner>
-            </Tooltip.Portal>
-          </Tooltip.Root>
+      <nav className="flex w-[52px] shrink-0 flex-col items-center gap-1 border-r border-ui-subtle bg-ui-chrome py-2.5">
+        {RAIL.map((item) => (
+          <RailButton
+            key={item.id}
+            label={item.label}
+            icon={item.icon}
+            active={active === item.id}
+            onClick={() => onSelect(item.id)}
+          />
         ))}
+        <div className="mt-auto">
+          <RailButton label="Keyboard shortcuts" icon={Keyboard} onClick={onShortcuts} />
+        </div>
       </nav>
     </Tooltip.Provider>
   );
 }
 
-/** The drawer next to the rail: a titled, scrolling column. */
-export function LeftDrawer({ title, children }: { title: string; children: ReactNode }) {
+/** The 256px left panel next to the rail; the panels bring their own header and scrolling. */
+export function LeftDrawer({ children }: { children: ReactNode }) {
   return (
-    <aside className="flex w-64 shrink-0 flex-col border-r bg-popover/40">
-      <div className="border-b px-3 py-2.5 text-sm font-semibold">{title}</div>
-      <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
+    <aside className="flex w-64 shrink-0 flex-col border-r border-ui-subtle bg-ui-panel font-ui">
+      {children}
     </aside>
   );
 }

@@ -9,6 +9,13 @@ import {
 import { userPanelPreset, type PanelPreset } from "@/lib/panelPresets";
 import {
   addBlankZone,
+  addModuleAt,
+  addPresetAt,
+  canGrowTo,
+  canToggleZonesVisible,
+  followGlobalStyle,
+  pasteStyleToZones,
+  withSampleZones,
   addModulePlacement,
   addPresetPlacement,
   assignModule,
@@ -17,14 +24,20 @@ import {
   changeRows,
   clearWidget,
   duplicatePlacement,
+  duplicateZones,
   removePlacement,
+  removeZones,
   setProfileStyle,
   setRowSpan,
   setSpan,
   setZoneRect,
+  setZoneRects,
   toggleVisible,
+  toggleZonesVisible,
   updatePlacement,
+  zoneMinSize,
 } from "./studio-actions";
+import { ALL_MODULES } from "./studio-modules";
 
 const zone = (
   id: string,
@@ -126,7 +139,7 @@ const saved = userPanelPreset({
 });
 
 describe("addPresetPlacement", () => {
-  it("appends a panel placement built by the preset, migrated (title → label, background → surface)", () => {
+  it("appends a panel placement built by the preset, migrated (title → label; the card stays a render-time layer)", () => {
     const after = addPresetPlacement(profile([]), "pnl", preset(6, 3));
     expect(after.placements[0]).toEqual({
       id: "pnl",
@@ -137,7 +150,7 @@ describe("addPresetPlacement", () => {
       rowSpan: 3,
       visible: true,
       panel: normalized,
-      settings: { label: "Preset panel", surface: "panel" },
+      settings: { label: "Preset panel" },
     });
   });
 
@@ -277,13 +290,13 @@ describe("widget assignment", () => {
     });
   });
 
-  it("assigns a preset panel and grows to its footprint, replacing the zone's settings with the panel's look", () => {
+  it("assigns a preset panel and grows to its footprint, replacing the zone's settings with the panel's", () => {
     const before = profile([zone("a", 2, 2, 1, 1, { settings: { x: 1 } })]);
     expect(assignPreset(before, "a", preset(4, 2)).placements[0]).toEqual({
       id: "a",
       module: PANEL_ID,
       panel: normalized,
-      settings: { label: "Preset panel", surface: "panel" },
+      settings: { label: "Preset panel" },
       colStart: 2,
       rowStart: 2,
       colSpan: 4,
@@ -328,3 +341,169 @@ describe("setProfileStyle", () => {
     expect(setProfileStyle(styled, () => ({})).style).toBeUndefined();
   });
 });
+
+describe("setZoneRects", () => {
+  it("sets the listed zones' boxes and leaves the rest", () => {
+    const before = profile([zone("a", 1, 1, 2, 1), zone("b", 3, 1, 2, 1), zone("c", 5, 1, 1, 1)]);
+    const after = setZoneRects(before, {
+      a: { col: 1, row: 2, cols: 2, rows: 1 },
+      b: { col: 3, row: 2, cols: 3, rows: 2 },
+    });
+    expect(after.placements.map((p) => [p.id, p.colStart, p.rowStart, p.colSpan, p.rowSpan])).toEqual([
+      ["a", 1, 2, 2, 1],
+      ["b", 3, 2, 3, 2],
+      ["c", 5, 1, 1, 1],
+    ]);
+    expect(after.placements[2]).toBe(before.placements[2]);
+  });
+});
+
+describe("removeZones", () => {
+  it("removes every listed zone", () => {
+    const before = profile([zone("a", 1, 1, 1, 1), zone("b", 2, 1, 1, 1), zone("c", 3, 1, 1, 1)]);
+    expect(removeZones(before, ["a", "c", "x"]).placements.map((p) => p.id)).toEqual(["b"]);
+  });
+});
+
+describe("toggleZonesVisible", () => {
+  it("hides the whole set while any member shows", () => {
+    const before = profile([
+      zone("a", 1, 1, 1, 1, { visible: false }),
+      zone("b", 2, 1, 1, 1),
+      zone("c", 3, 1, 1, 1),
+    ]);
+    const after = toggleZonesVisible(before, ["a", "b"]);
+    expect(after.placements.map((p) => p.visible)).toEqual([false, false, true]);
+  });
+
+  it("shows the whole set when every member is hidden", () => {
+    const before = profile([zone("a", 1, 1, 1, 1, { visible: false }), zone("b", 2, 1, 1, 1, { visible: false })]);
+    expect(toggleZonesVisible(before, ["a", "b"]).placements.map((p) => p.visible)).toEqual([true, true]);
+  });
+});
+
+describe("duplicateZones", () => {
+  it("copies each zone to the first free spot of its size, rows first", () => {
+    const before = profile([zone("a", 1, 1, 2, 1, { settings: { x: 1 } }), zone("b", 3, 1, 4, 2)], 6, 4);
+    const { profile: after, copies } = duplicateZones(before, ["a", "b"]);
+    expect(copies).toHaveLength(2);
+    const [ca, cb] = copies.map((id) => after.placements.find((p) => p.id === id)!);
+    expect([ca.colStart, ca.rowStart, ca.colSpan, ca.rowSpan]).toEqual([1, 2, 2, 1]);
+    // b's copy can't sit beside it; the earlier copy counts as taken.
+    expect([cb.colStart, cb.rowStart, cb.colSpan, cb.rowSpan]).toEqual([1, 3, 4, 2]);
+    expect(ca.settings).toEqual({ x: 1 });
+    expect(ca.settings).not.toBe(before.placements[0].settings);
+  });
+
+  it("skips a zone with no free spot and keeps the profile when nothing fits", () => {
+    const full = profile([zone("a", 1, 1, 2, 2)], 2, 2);
+    const result = duplicateZones(full, ["a"]);
+    expect(result.copies).toEqual([]);
+    expect(result.profile).toBe(full);
+  });
+});
+
+describe("zoneMinSize", () => {
+  it("uses the widget's minimum, and 1×1 for blank zones and panels", () => {
+    const m = ALL_MODULES[0];
+    expect(zoneMinSize(zone("a", 1, 1, 1, 1, { module: m.id }))).toEqual({ cols: m.minCols, rows: m.minRows });
+    expect(zoneMinSize(zone("b", 1, 1, 1, 1, { module: BLANK_MODULE }))).toEqual({ cols: 1, rows: 1 });
+    expect(zoneMinSize(zone("c", 1, 1, 1, 1, { module: PANEL_ID }))).toEqual({ cols: 1, rows: 1 });
+  });
+});
+
+describe("addModuleAt / addPresetAt", () => {
+  it("adds at the exact box", () => {
+    const after = addModuleAt(profile([]), "n", "cpu", { col: 5, row: 2, cols: 3, rows: 2 });
+    expect(after.placements[0]).toMatchObject({ id: "n", module: "cpu", colStart: 5, rowStart: 2, colSpan: 3, rowSpan: 2 });
+    const p = addPresetAt(profile([]), "n", preset(2, 1), { col: 3, row: 3, cols: 2, rows: 1 });
+    expect(p.placements[0]).toMatchObject({ id: "n", module: PANEL_ID, colStart: 3, rowStart: 3 });
+    expect(p.placements[0].panel).toBeDefined();
+  });
+});
+
+describe("canGrowTo", () => {
+  const blank = (id: string, c: number, r: number, w: number, h: number) =>
+    zone(id, c, r, w, h, { module: BLANK_MODULE });
+
+  it("is true when the zone has the room", () => {
+    const p = profile([blank("b", 1, 1, 3, 2)]);
+    expect(canGrowTo(p, "b", { cols: 3, rows: 2 })).toBe(true);
+    expect(canGrowTo(p, "b", { cols: 5, rows: 2 })).toBe(true);
+  });
+
+  it("is false when growing would cover another zone", () => {
+    const p = profile([blank("b", 1, 1, 1, 1), zone("o", 2, 1, 2, 1)], 4, 2);
+    expect(canGrowTo(p, "b", { cols: 2, rows: 1 })).toBe(false);
+  });
+
+  it("is false for an unknown zone", () => {
+    expect(canGrowTo(profile([]), "x", { cols: 1, rows: 1 })).toBe(false);
+  });
+});
+
+describe("pasteStyleToZones", () => {
+  it("replaces the look of the set, skipping blanks and other zones", () => {
+    const p = profile([
+      zone("a", 1, 1, 2, 1, { module: "fpsmodern", settings: { accent: "#f00" } }),
+      zone("b", 3, 1, 2, 1, { module: BLANK_MODULE }),
+      zone("c", 5, 1, 2, 1, { module: "fpsmodern", settings: { accent: "#0f0" } }),
+    ]);
+    const out = pasteStyleToZones(p, ["a", "b"], { accent: "#00f" });
+    expect(out.placements[0].settings?.accent).toBe("#00f");
+    expect(out.placements[1]).toBe(p.placements[1]);
+    expect(out.placements[2]).toBe(p.placements[2]);
+  });
+
+  it("switches a following zone to custom", () => {
+    const p = profile([zone("a", 1, 1, 2, 1, { module: "fpsmodern", styleMode: "follow" })]);
+    expect(pasteStyleToZones(p, ["a"], { accent: "#00f" }).placements[0].styleMode).toBe("custom");
+  });
+});
+
+describe("followGlobalStyle", () => {
+  it("sets follow and drops the look keys, keeping content settings", () => {
+    const p = profile([zone("a", 1, 1, 2, 1, { module: "cpu", settings: { accent: "#f00", sensor: "x" } })]);
+    const out = followGlobalStyle(p, ["a"]).placements[0];
+    expect(out.styleMode).toBe("follow");
+    expect(out.settings).toEqual({ sensor: "x" });
+  });
+
+  it("leaves no settings when nothing is left", () => {
+    const p = profile([zone("a", 1, 1, 2, 1, { module: "cpu", settings: { accent: "#f00" } })]);
+    expect(followGlobalStyle(p, ["a"]).placements[0].settings).toBeUndefined();
+  });
+});
+
+describe("withSampleZones", () => {
+  it("takes the sample's grid and fresh copies of its zones", () => {
+    const sample = profile([zone("s1", 1, 1, 2, 1), zone("s2", 3, 1, 2, 1)], 8, 3);
+    const out = withSampleZones(profile([]), sample);
+    expect(out).toMatchObject({ id: "prof", cols: 8, rows: 3 });
+    expect(out.placements).toHaveLength(2);
+    expect(out.placements.map((p) => p.id)).not.toContain("s1");
+  });
+});
+
+describe("hidden zones and no-op box changes", () => {
+  it("refuses to show a zone whose cells were taken while it was hidden", () => {
+    const p = profile([zone("a", 1, 1, 3, 2, { visible: false }), zone("b", 1, 1, 3, 2)]);
+    expect(canToggleZonesVisible(p, ["a"])).toBe(false);
+    expect(canToggleZonesVisible(p, ["b"])).toBe(true); // hiding is always fine
+  });
+
+  it("allows showing a hidden zone with free cells, and refuses a pair that overlap each other", () => {
+    const free = profile([zone("a", 1, 1, 3, 2, { visible: false }), zone("b", 5, 1, 3, 2)]);
+    expect(canToggleZonesVisible(free, ["a"])).toBe(true);
+    const pair = profile([zone("a", 1, 1, 3, 2, { visible: false }), zone("b", 2, 1, 3, 2, { visible: false })]);
+    expect(canToggleZonesVisible(pair, ["a", "b"])).toBe(false);
+  });
+
+  it("returns the same profile when a box is already there", () => {
+    const p = profile([zone("a", 2, 2, 3, 2), zone("b", 6, 2, 2, 2)]);
+    expect(setZoneRect(p, "a", { col: 2, row: 2, cols: 3, rows: 2 })).toBe(p);
+    expect(setZoneRects(p, { a: { col: 2, row: 2, cols: 3, rows: 2 } })).toBe(p);
+    expect(setZoneRect(p, "a", { col: 1, row: 2, cols: 3, rows: 2 })).not.toBe(p);
+  });
+});
+

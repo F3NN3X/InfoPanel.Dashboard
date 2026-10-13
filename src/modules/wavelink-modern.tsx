@@ -1,26 +1,20 @@
-import { ModernWaveLink } from "@/components/ModernWaveLink";
-import type { LevelMeterVariant } from "@/components/ui/level-meter";
-import type { BallisticsPreset } from "@/lib/audio/ballistics";
-import type { Orientation } from "@/lib/audio/types";
-import { chromeOf, GROUP_COLORS, STANDARD_SETTINGS } from "./standard-settings";
-import {
-  effectiveSettings,
-  type DashboardModule,
-  type ModuleSetting,
-} from "./types";
+import { templateModule } from "@/widgets/module";
+import WaveLink, { meta, type WaveLinkProps } from "@/widgets/WaveLink";
+import { ballisticsOf } from "./audio-modern";
+import type { ModuleSetting, ModuleSettings } from "./types";
 
 /**
- * Wave Link widget — the Elgato app's mixer, live at device pace.
+ * Wave Link widget — the Elgato app's mixer, live at device pace. Rendered
+ * by the `WaveLink` template through the widget shell.
  *
  * Unlike every other module, this one claims no sensor keys: its data is
  * JSON in the `wavelink-plugin` entries, read through their own 100 ms
- * stream by the shared `wavelink` client. `prefixes` is therefore empty, and the render
- * reads only settings — the component pulls the inventory and the meters
- * from the shared `wavelink` client itself.
+ * stream by the shared `wavelink` client (`useWavelinkState` /
+ * `useWavelinkMeter`). `prefixes` is therefore empty and the sensors are
+ * not read at all.
  */
 
-const WAVELINK_SETTINGS: ModuleSetting[] = [
-  ...STANDARD_SETTINGS,
+export const WAVELINK_SETTINGS: ModuleSetting[] = [
   {
     key: "source",
     label: "Meters to show",
@@ -28,6 +22,28 @@ const WAVELINK_SETTINGS: ModuleSetting[] = [
     default: "",
     multiple: true,
     optionsFrom: "wavelink",
+    group: "Content",
+  },
+  {
+    key: "showReadout",
+    label: "dB readouts & scale",
+    type: "boolean",
+    default: true,
+    group: "Content",
+  },
+  {
+    key: "showFader",
+    label: "Fader level",
+    type: "boolean",
+    default: true,
+    group: "Content",
+  },
+  {
+    key: "showMixes",
+    label: "Mixes (routes & output mixers)",
+    type: "boolean",
+    default: true,
+    group: "Content",
   },
   {
     key: "meterVariant",
@@ -39,6 +55,7 @@ const WAVELINK_SETTINGS: ModuleSetting[] = [
       { value: "segmented", label: "Segmented" },
       { value: "gradient", label: "Gradient" },
     ],
+    group: "Meter",
   },
   {
     key: "meterOrientation",
@@ -49,6 +66,7 @@ const WAVELINK_SETTINGS: ModuleSetting[] = [
       { value: "vertical", label: "Vertical" },
       { value: "horizontal", label: "Horizontal" },
     ],
+    group: "Meter",
   },
   {
     key: "meterBallistics",
@@ -60,59 +78,33 @@ const WAVELINK_SETTINGS: ModuleSetting[] = [
       { value: "vu", label: "VU (slow)" },
       { value: "instant", label: "Instant" },
     ],
+    group: "Meter",
   },
-  {
-    key: "showReadout",
-    label: "dB readouts & scale",
-    type: "boolean",
-    default: true,
-  },
-  {
-    key: "showFader",
-    label: "Fader level",
-    type: "boolean",
-    default: true,
-  },
-  {
-    key: "showMixes",
-    label: "Mixes (routes & output mixers)",
-    type: "boolean",
-    default: true,
-  },
-  { key: "liveColor", label: "Live indicator color", type: "color", default: "", group: GROUP_COLORS },
-  { key: "muteColor", label: "Muted / offline color", type: "color", default: "", group: GROUP_COLORS },
+  { key: "liveColor", label: "Live indicator color", type: "color", default: "", group: "Meter", advanced: true },
+  { key: "muteColor", label: "Muted / offline color", type: "color", default: "", group: "Meter", advanced: true },
 ];
 
-export const wavelinkModernModule: DashboardModule = {
-  id: "wavelinkmodern",
-  title: "Wave Link (modern)",
-  minCols: 2,
-  minRows: 1,
-  // No sensor keys — the data comes from the shared wavelink-plugin stream.
-  prefixes: [],
+/** The colour the legacy widget metered in (`--meter-ok`). */
+export const LEGACY_METER_OK = "oklch(0.72 0.12 200)";
+
+export const wavelinkToProps = (s: ModuleSettings): Partial<WaveLinkProps> => ({
+  source: String(s.source ?? ""),
+  showReadout: Boolean(s.showReadout),
+  showFader: Boolean(s.showFader),
+  showMixes: Boolean(s.showMixes),
+  meterVariant: s.meterVariant === "segmented" ? "segmented" : s.meterVariant === "gradient" ? "gradient" : "solid",
+  meterOrientation: s.meterOrientation === "horizontal" ? "horizontal" : "vertical",
+  ballistics: ballisticsOf(s),
+  liveColor: String(s.liveColor ?? ""),
+  muteColor: String(s.muteColor ?? ""),
+});
+
+export const wavelinkModernModule = templateModule({
+  meta,
+  Component: WaveLink,
   settings: WAVELINK_SETTINGS,
-  render: (_sensors, s) => {
-    const cfg = effectiveSettings(wavelinkModernModule, s);
-    return (
-      <ModernWaveLink
-        source={String(cfg.source ?? "")}
-        showReadout={Boolean(cfg.showReadout)}
-        showFader={Boolean(cfg.showFader)}
-        showMixes={Boolean(cfg.showMixes)}
-        liveColor={String(cfg.liveColor ?? "")}
-        muteColor={String(cfg.muteColor ?? "")}
-        layout={String(cfg.layout) as
-          | "auto"
-          | "card"
-          | "standard"
-          | "compact"
-          | "simple"}
-        surfaceStyle={String(cfg.surface) as "glass" | "matte-light" | "matte-dark"}
-        chrome={chromeOf(cfg)}
-        meterVariant={String(cfg.meterVariant) as LevelMeterVariant}
-        meterOrientation={String(cfg.meterOrientation) as Orientation}
-        meterBallistics={String(cfg.meterBallistics) as BallisticsPreset}
-      />
-    );
-  },
-};
+  // The legacy meter's teal safe zone.
+  toProps: (s) => ({ ...wavelinkToProps(s), levelColor: LEGACY_METER_OK }),
+  // No sensor keys — the data comes from the shared wavelink-plugin stream.
+  alias: { id: "wavelinkmodern", title: "Wave Link (modern)", minCols: 2, minRows: 1, prefixes: [] },
+});

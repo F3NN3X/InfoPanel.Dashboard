@@ -1,0 +1,146 @@
+// The Widget shell every template renders into: measures itself, applies skin + surface + the standard
+// look, picks the view.
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { chromeVars, scopedCss, zoomFor } from "@/components/widget-style";
+import { chromeOf } from "@/modules/standard-settings";
+import type { ModuleSettings } from "@/modules/types";
+import { useBox, type Box } from "./layout";
+import { mix } from "./tokens";
+import { SKINS, SkinCtx, resolveSurface, textVars } from "./theme";
+import { forcedTier, lookBox, patchBackground, resolveAccent, scrimFor, shellPad, skinContext, withUserLook } from "./look";
+import { ensureSkinFonts } from "./fonts";
+import { CompactView, StudioView, SkinHeader } from "./views";
+import type { Compact, ShellProps, Studio, Tier } from "./types";
+
+/** What a template's layout callback receives: the inner content size plus the outer box. */
+export interface LayoutBox extends Box {
+  outerW: number;
+  outerH: number;
+}
+
+export interface WidgetProps {
+  title?: string;
+  icon?: string;
+  /** A stored icon (Material or `lib/widget-icons.ts` name) replacing the header icon. */
+  iconOverride?: string;
+  accent?: string;
+  surface?: string;
+  radius?: number;
+  size?: Tier | "auto";
+  showHeader?: boolean;
+  right?: ReactNode;
+  className?: string;
+  style?: CSSProperties;
+  children?: ReactNode | ((box: LayoutBox) => ReactNode);
+  bleed?: boolean;
+  compact?: Compact | ((box: Box) => Compact | undefined);
+  compactView?: "auto" | "off";
+  skin?: string;
+  graph?: string;
+  meter?: string;
+  variant?: "default" | "studio";
+  studio?: Studio | ((box: Box) => Studio | undefined);
+  /** The zone's resolved settings (`src/modules/standard-settings.ts`); absent = template behaviour. */
+  look?: ModuleSettings;
+  /** A full-bleed layer under the content (e.g. blurred cover art). */
+  backdrop?: ReactNode;
+}
+
+type ShellInput = Partial<ShellProps> & { look?: ModuleSettings; iconOverride?: string };
+
+export const shell = (p: ShellInput): Partial<WidgetProps> => ({
+  accent: p.accent,
+  surface: p.surface,
+  radius: p.radius,
+  size: p.size,
+  showHeader: p.showHeader,
+  className: p.className,
+  style: p.style && typeof p.style === "object" ? p.style : undefined,
+  title: p.title,
+  compactView: p.compactView,
+  skin: p.skin,
+  graph: p.graph,
+  meter: p.meter,
+  variant: p.variant,
+  look: p.look,
+  iconOverride: p.iconOverride,
+});
+
+const HUD_CORNERS = ["left-1.5 top-1.5 border-l border-t", "right-1.5 top-1.5 border-r border-t", "left-1.5 bottom-1.5 border-l border-b", "right-1.5 bottom-1.5 border-r border-b"];
+
+export function Widget({ title, icon, iconOverride, accent, surface, radius, size, showHeader = true, right, className = "", style, children, bleed, compact, compactView, skin = "default", graph, meter, variant, studio, look, backdrop }: WidgetProps) {
+  const chrome = useMemo(() => (look ? chromeOf(look) : undefined), [look]);
+  // Size % zooms the content; the tier and shape are taken from the zoomed size.
+  const zoom = chrome ? zoomFor({ w: 0, h: 0 }, undefined, chrome) : 1;
+  const [ref, box] = useBox(forcedTier(look?.layout, size), zoom);
+  // tier/shape come from the outer box; layouts get the inner content size (after padding + header)
+  const cref = useRef<HTMLDivElement | null>(null);
+  const [inner, setInner] = useState({ w: 0, h: 0 });
+  useLayoutEffect(() => {
+    const el = cref.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([e]) => setInner({ w: e.contentRect.width, h: e.contentRect.height }));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  useEffect(() => ensureSkinFonts(skin), [skin]);
+  const scope = useId();
+  const sk = SKINS[skin] ?? SKINS.default;
+  const ctx = useMemo(() => skinContext(skin, { graph, meter, chrome }), [skin, graph, meter, chrome]);
+  const isStudio = variant === "studio";
+  const surf = resolveSurface(look?.surface ? String(look.surface) : surface, skin, isStudio);
+  const heading = chrome?.label || title;
+  const headIcon = iconOverride || chrome?.icon || icon;
+  const user = { icon: iconOverride || chrome?.icon, label: chrome?.label };
+  const sRaw = isStudio ? ((typeof studio === "function" ? studio(box) : studio) ?? (typeof compact === "function" ? compact({ ...box, shape: "tile" }) : compact) ?? { label: heading, value: "" }) : null;
+  const sObj = sRaw && withUserLook(sRaw, user);
+  const cRaw = !isStudio ? (typeof compact === "function" ? compact(box) : compact) : undefined;
+  const cObj = cRaw && withUserLook(cRaw, user);
+  const useCompact = !!cObj && compactView !== "off" && box.shape !== "box";
+  const tui = skin === "tui";
+  const pad = shellPad({ box, studio: isStudio, compact: useCompact, bleed, tui, padding: chrome?.padding !== undefined ? Math.round((chrome.padding / zoom) * 100) / 100 : undefined });
+  const header = !isStudio && showHeader && heading && (tui || (!useCompact && box.size !== "xs"));
+  const css = chrome?.customCss ? scopedCss(scope, chrome.customCss) : "";
+  const background = chrome?.backgroundOn && chrome.background ? chrome.background : "";
+  const surfBox = lookBox(surf, chrome);
+  const rootStyle = {
+    borderRadius: chrome?.radius ?? radius ?? sk.radius ?? 16,
+    fontFamily: ctx.font,
+    ...surfBox,
+    ...textVars(surf.tone, chrome),
+    ...chromeVars(chrome),
+    "--accent": resolveAccent(chrome?.accent || accent, sk, surf.tone),
+    color: "var(--w-fg)",
+    ...style,
+  } as CSSProperties;
+  return (
+    <SkinCtx.Provider value={ctx}>
+      <div ref={ref} style={rootStyle} data-wp-scope={css ? scope : undefined} className={`relative flex h-full w-full min-w-0 flex-col overflow-hidden antialiased ${surf.c} ${className}`}>
+        {css && <style>{css}</style>}
+        {background && (
+          <>
+            <img src={background} alt="" aria-hidden className="absolute inset-0 h-full w-full object-cover" />
+            <div className="absolute inset-0" style={{ background: scrimFor(surf.tone) }} />
+          </>
+        )}
+        {backdrop}
+        {tui && <div className="pointer-events-none absolute inset-[5px] rounded-[4px] border" style={{ borderColor: mix(45, "#3f3f46") }} />}
+        {skin === "hud" && HUD_CORNERS.map((c) => <span key={c} className={`pointer-events-none absolute h-2.5 w-2.5 ${c}`} style={{ borderColor: "var(--accent)" }} />)}
+        <div className={`relative flex min-h-0 min-w-0 flex-1 flex-col ${pad.className}`} style={{ ...pad.style, ...(zoom !== 1 ? { zoom } : null) }}>
+          {header && <SkinHeader kind={sk.header} title={heading} icon={headIcon} right={useCompact ? undefined : right} bleed={bleed} bg={patchBackground(surfBox.background, surf.tone)} />}
+          <div ref={cref} className="relative min-h-0 flex-1">
+            {isStudio ? (
+              <StudioView c={sObj!} w={box.w} h={box.h} icon={headIcon} />
+            ) : useCompact ? (
+              <CompactView c={cObj!} shape={box.shape} w={box.w} h={box.h} icon={headIcon} />
+            ) : typeof children === "function" ? (
+              children({ ...box, w: inner.w || box.w, h: inner.h || box.h, outerW: box.w, outerH: box.h })
+            ) : (
+              children
+            )}
+          </div>
+        </div>
+      </div>
+    </SkinCtx.Provider>
+  );
+}

@@ -278,4 +278,51 @@ describe("SensorStore", () => {
     await vi.advanceTimersByTimeAsync(120_000);
     expect(fetchImpl).toHaveBeenCalledTimes(2);
   });
+
+  describe("fast streams", () => {
+    const AUDIO = "plugins.audio-level-meter.";
+    const intervalOf = (s: FakeStream) => new URL(s.url).searchParams.get("interval");
+
+    it("opens a dedicated stream at the fast interval, beside the slow ones", async () => {
+      const { store, live, prefixOf } = setup();
+      store.retain(["system.cpu."]);
+      store.retainFast(AUDIO);
+      await flush();
+      expect(live().map((s) => `${prefixOf(s)}@${intervalOf(s)}`).sort()).toEqual([`${AUDIO}@100`, "system.@1000"]);
+    });
+
+    it("drops the slow stream of a namespace the fast one covers", async () => {
+      const { store, live, prefixOf } = setup();
+      store.retain([AUDIO, "plugins.media-plugin."]);
+      store.retainFast(AUDIO);
+      await flush();
+      expect(live().map(prefixOf).sort()).toEqual([AUDIO, "plugins.media-plugin."]);
+    });
+
+    it("takes one slot of the budget, so plugin streams fold one sooner", async () => {
+      const { store, live, prefixOf } = setup();
+      store.retain(["plugins.a.", "plugins.b.", "system.", "libre."]);
+      await flush();
+      expect(live().map(prefixOf).sort()).toEqual(["libre.", "plugins.a.", "plugins.b.", "system."]);
+      store.retainFast(AUDIO);
+      await flush();
+      await vi.advanceTimersByTimeAsync(2500);
+      expect(live().map(prefixOf).sort()).toEqual(["libre.", "plugins.", AUDIO, "system."]);
+    });
+
+    it("feeds the shared map and closes after the grace delay once released", async () => {
+      const { store, live } = setup();
+      const release = store.retainFast(AUDIO);
+      await flush();
+      const fast = live()[0];
+      fast.open();
+      fast.send({ sensors: { [`${AUDIO}dev.audio-level`]: sensor(42) } });
+      expect(store.getValues()[`${AUDIO}dev.audio-level`]?.value).toBe(42);
+      release();
+      await flush();
+      await vi.advanceTimersByTimeAsync(2500);
+      expect(live()).toHaveLength(0);
+      expect(store.getValues()[`${AUDIO}dev.audio-level`]).toBeUndefined();
+    });
+  });
 });

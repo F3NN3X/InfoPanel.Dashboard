@@ -1,46 +1,54 @@
-import { Segmented } from "@/components/ui/segmented";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useToast } from "@/components/ui/toast";
 import { useSensorCatalog } from "@/lib/catalog";
-import { CARDS_ID, PANEL_ID, type Placement, type StylePreset, type Widget } from "@/lib/layout";
-import { panelSettings } from "@/lib/panel-model";
+import { BLANK_MODULE, type DashboardConfig, type MonitorProfile, type Placement, type StylePreset, type Widget } from "@/lib/layout";
+import { withPanelField } from "@/lib/panel-model";
+import type { Appearance } from "@/lib/style-resolve";
 import { modules } from "@/modules";
-import { PANEL_SETTINGS, replaceStyle, styleOf } from "@/modules/standard-settings";
+import { replaceStyle, styleOf } from "@/modules/standard-settings";
+import { settingKeys, type ModuleSettings } from "@/modules/types";
+import type { AppearanceTarget } from "./appearance-panel";
+import { withStyleMode } from "./appearance-actions";
+import type { SheetCard } from "./category-sheet";
+import { BoundData } from "./inspector/bound-data";
+import { setInspectorTab } from "./inspector/inspector-prefs";
+import { InspectorNote, InspectorView, type SectionParts } from "./inspector/inspector-view";
+import { cardsBySection, panelState } from "./inspector/panel-cards";
+import { useZoneData } from "./inspector/use-zone-data";
+import { shownValue, shownValues, withoutSettings, withSettings, zoneDefs, zoneLookValues } from "./inspector/zone-fields";
+import { zoneMeta, zoneName } from "./inspector/zone-meta";
+import { HeaderSlot } from "./inspector-layout";
 import {
-  settingKeys,
-  type ModuleSetting,
-  type ModuleSettingValue,
-  type ModuleSettings,
-} from "@/modules/types";
-import { PanelInspector } from "./panel-inspector";
-import { SettingsPanel } from "./settings-panel";
-import {
-  dropKeys,
-  filterSettings,
-  isStyleSetting,
-  matchesQuery,
-  splitSettings,
-} from "./settings-model";
+  inspectorNotes,
+  isVisible,
+  widgetContext,
+  type InspectorContext,
+  type InspectorSection,
+  type SectionExtra,
+} from "./inspector-model";
+import type { InspectorTab } from "@/modules/types";
+import { usePanelSheet } from "./panel-sheet";
+import { ToggleRow } from "./setting-rows";
+import type { FieldsApi } from "./settings-panel";
+import { zoneMinSize } from "./studio-actions";
+import { StyleModeBar } from "./style-mode-bar";
 import { StyleTools } from "./style-tools";
-import { placementTitle } from "./studio-modules";
 import { widgetName } from "./widget-kinds";
-import { ZONE_FRAME_TERMS, ZoneDesignSection } from "./zone-design-section";
+import { ZoneFrameFields, zoneFrameSet } from "./zone-design-section";
 import type { ZoneRect } from "./zone-geometry";
-import { SettingsSearch, WidgetPicker, ZoneBoxFields, ZoneHeader } from "./zone-inspector-parts";
-
-export type InspectorTab = "content" | "style";
+import { moduleIcon } from "./zone-icons";
+import { WidgetPicker, ZoneBoxFields, ZoneHeader } from "./zone-inspector-parts";
 
 interface ZoneInspectorProps {
   placement: Placement;
-  /** Grid size of the profile (zone box input limits). */
-  cols: number;
-  rows: number;
-  /** The profile's style (inherited by the widget's settings). */
-  profileStyle: ModuleSettings | undefined;
-  /** The theme's accent token (zone accent fallback). */
-  themeAccent: string;
+  config: DashboardConfig;
+  /** The active profile (its grid limits the placement row; its zones the data usage). */
+  profile: MonitorProfile;
+  /** The global style (dashboard + profile, forced or not) the widget inherits. */
+  appearance: Appearance;
   stylePresets: StylePreset[];
-  /** The open tab (kept by the studio so it survives reselection). */
-  tab: InspectorTab;
-  onTabChange: (tab: InspectorTab) => void;
+  /** Open and reveal a section (the selection chip's Style, the palette) whenever `seq` changes. */
+  jumpTo?: { id: string; key?: string; seq: number };
   /** The style copied with "Copy" (session only, survives reselection). */
   styleClipboard: ModuleSettings | null;
   onCopyStyle: (style: ModuleSettings) => void;
@@ -55,13 +63,15 @@ interface ZoneInspectorProps {
   /** The settings search (kept by the studio: "Go to setting" fills it). */
   query: string;
   onQuery: (query: string) => void;
-  onClose: () => void;
   /** Mutate the placement; changes with the same `key` coalesce in undo. */
   update: (fn: (p: Placement) => Placement, key?: string) => void;
+  /** Mutate the active profile (bindings). */
+  updateProfile: (fn: (p: MonitorProfile) => MonitorProfile, key?: string) => void;
   onZoneBox: (patch: Partial<ZoneRect>) => void;
   /** Open the widget picker for this zone. */
   onPickWidget: () => void;
-  onUseForProfile: (style: ModuleSettings) => void;
+  /** Make the widget's style the global style of every profile, or of this one. */
+  onUseAsGlobal: (target: AppearanceTarget, style: ModuleSettings) => void;
   onSavePreset: (name: string, settings: ModuleSettings) => void;
   onDeletePreset: (id: string) => void;
   onToggleVisible: () => void;
@@ -72,33 +82,47 @@ interface ZoneInspectorProps {
   onPresetNaming: (open: boolean) => void;
   /** Save this panel zone to My panels. */
   onSavePanelPreset: (name: string) => void;
+  /** The Follow banner's "Edit global theme": Dashboard › Appearance. */
+  onEditGlobalTheme: () => void;
+  /** Open a bound point in Sources mode. */
+  onOpenPoint: (key: string) => void;
+  onOpenExplorer: () => void;
+  /** Show a tab, and maybe the data picker, whenever `seq` changes (the zone context menu). */
+  request?: { tab: InspectorTab; picker: boolean; seq: number };
 }
 
-const TABS = [
-  { value: "content" as const, label: "Content" },
-  { value: "style" as const, label: "Style" },
-];
-
-/** "Content › Thresholds" — where a search result lives. */
-function breadcrumb(def: ModuleSetting): string {
-  const tab = isStyleSetting(def) ? "Style" : "Content";
-  return def.group ? `${tab} › ${def.group}` : tab;
+/** The custom cards of a special section as one body (a caption over each when several share it). */
+function cardParts(cards: SheetCard[], editor: boolean, wide: boolean): SectionParts {
+  return {
+    body: cards.map((c) => (
+      <div key={c.id} className="space-y-2">
+        {c.node}
+      </div>
+    )),
+    actions:
+      cards.some((c) => c.actions) ? <span className="flex items-center gap-1">{cards.map((c) => c.actions && <span key={c.id}>{c.actions}</span>)}</span> : undefined,
+    changed: cards.reduce((n, c) => n + (c.changed ?? 0), 0),
+    onReset: () => cards.forEach((c) => c.onReset?.()),
+    editor,
+    wide: wide || cards.some((c) => c.wide),
+  };
 }
 
 /**
- * Right panel for the selected zone: a fixed header (title, actions, zone
- * box, search), then Content (widget + its settings) and Style (the look
- * and the zone frame) tabs. A search shows matches from both tabs flat.
+ * The inspector of one zone (README §4.6–4.7): the header (icon, editable
+ * name, meta, Hide / Duplicate / Delete, the panel crumbs) and placement
+ * row, then the registry's tabs — Content · Style · Data for widgets and
+ * panels, Widget + Zone frame for a blank zone. The zone's custom UI
+ * (widget picker, Follow / Custom, style tools, zone frame, a panel's
+ * editors, Bound data) fills the sections the registry marks for it.
  */
 export function ZoneInspector({
-  placement: selected,
-  cols,
-  rows,
-  profileStyle,
-  themeAccent,
+  placement: zone,
+  config,
+  profile,
+  appearance,
   stylePresets,
-  tab,
-  onTabChange,
+  jumpTo,
   styleClipboard,
   onCopyStyle,
   widgetClipboard,
@@ -107,12 +131,12 @@ export function ZoneInspector({
   onSelectWidget,
   onShowWidget,
   query,
-  onQuery: setQuery,
-  onClose,
+  onQuery,
   update,
+  updateProfile,
   onZoneBox,
   onPickWidget,
-  onUseForProfile,
+  onUseAsGlobal,
   onSavePreset,
   onDeletePreset,
   onToggleVisible,
@@ -121,145 +145,239 @@ export function ZoneInspector({
   presetNaming,
   onPresetNaming,
   onSavePanelPreset,
+  onEditGlobalTheme,
+  onOpenPoint,
+  onOpenExplorer,
+  request,
 }: ZoneInspectorProps) {
+  const toast = useToast();
+  const [picker, setPicker] = useState(false);
   const catalog = useSensorCatalog();
-  const selectedMod = modules.find((m) => m.id === selected.module);
-  const selectedSensors = selectedMod
-    ? Object.keys(catalog.sensors).filter((k) =>
-        selectedMod.prefixes.some((p) => k.startsWith(p))
-      ).length
-    : 0;
-  // Panels edit their widgets in the PanelInspector; their look is settings.
-  const defs = selected.panel ? PANEL_SETTINGS : (selectedMod?.settings ?? []);
-  const selectedStyleKeys = new Set(defs.flatMap(settingKeys));
-  const { content, style } = splitSettings(defs);
-  const selectedWidget = selected.panel?.widgets.find((w) => w.id === selectedWidgetId);
+  const data = useZoneData(profile);
+  const mod = modules.find((m) => m.id === zone.module);
+  const blank = zone.module === BLANK_MODULE;
+  const defs = zoneDefs(zone);
+  const styleKeys = new Set(defs.flatMap(settingKeys));
+  const enforce = appearance.enforce;
+  const groups =
+    usePanelSheet({
+      placement: zone,
+      update,
+      selectedWidgetId,
+      onSelectWidget,
+      widgetClipboard,
+      onCopyWidget,
+      presetNaming,
+      onPresetNaming,
+      onSavePreset: onSavePanelPreset,
+      enforce,
+      onOpenExplorer,
+    }) ?? [];
+  const cards = cardsBySection(groups);
+
+  const context: InspectorContext = blank
+    ? { kind: "blank" }
+    : zone.panel
+      ? { kind: "panel", defs, ...panelState(groups, zone.panel.layout) }
+      : mod
+        ? widgetContext(mod)
+        : { kind: "widget", defs };
+
+  // A panel widget picked on the canvas: its editor is in Content.
+  useEffect(() => {
+    if (selectedWidgetId === null) return;
+    setInspectorTab("panel", "content");
+    requestAnimationFrame(() =>
+      document.querySelector("[data-widget-editor]")?.scrollIntoView({ block: "nearest", inline: "nearest" })
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedWidgetId]);
+
+  // "Edit style" / "Bind data…" from the zone's context menu.
+  const lastRequest = useRef(request?.seq);
+  useEffect(() => {
+    if (!request || request.seq === lastRequest.current) return;
+    lastRequest.current = request.seq;
+    if (context.kind === "blank" || context.kind === "multi") return;
+    onQuery("");
+    setInspectorTab(context.kind, request.tab);
+    if (!request.picker) return;
+    if (zone.panel && !selectedWidgetId) toast("Select a widget in the panel first");
+    else setPicker(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [request?.seq]);
+
+  const values = zoneLookValues(zone, appearance);
+  const fields: FieldsApi = {
+    values,
+    shown: (key, def) => shownValue(values, key, def),
+    onChange: (key, v) => update((p) => withSettings(p, { [key]: v }, enforce), `setting:${key}`),
+    onPatch: (patch) => update((p) => withSettings(p, patch, enforce), `setting:${Object.keys(patch).join()}`),
+    onClear: (keys) => update((p) => withoutSettings(p, keys)),
+    onOpenExplorer,
+  };
+  const effective = shownValues(values, defs);
 
   /** Replace the widget's style (see `replaceStyle`). */
   const applyStyle = (next: ModuleSettings) =>
-    update((p) => ({
-      ...p,
-      settings: replaceStyle(p.settings, next, selectedStyleKeys),
-    }));
+    update((p) => ({ ...p, settings: replaceStyle(p.settings, next, styleKeys) }));
 
-  const settingsProps = {
-    // A panel's legacy title / accent / card show until set here.
-    value: selected.panel ? panelSettings(selected) : selected.settings,
-    inherited: profileStyle,
-    onChange: (key: string, v: ModuleSettingValue) =>
-      update((p) => ({ ...p, settings: { ...p.settings, [key]: v } }), `setting:${key}`),
-    onPatch: (patch: ModuleSettings) =>
-      update((p) => ({ ...p, settings: { ...p.settings, ...patch } }), `setting:${Object.keys(patch).join()}`),
-    onClear: (keys: string[]) =>
-      update((p) => ({ ...p, settings: dropKeys(p.settings, new Set(keys)) })),
-  };
-  /** Reset just the given settings (one tab's), keeping the others. */
-  const resetDefs = (list: ModuleSetting[]) => () =>
-    update((p) => ({
-      ...p,
-      settings: dropKeys(p.settings, new Set(list.flatMap(settingKeys))),
-    }));
-
-  const zoneFrame = (forceOpen?: boolean) => (
-    <ZoneDesignSection
-      design={selected.design}
-      themeAccent={themeAccent}
+  const zoneFrame = (showBackground: boolean): SectionParts => ({
+    changed: zoneFrameSet(zone.design, showBackground),
+    onReset: () => update((p) => ({ ...p, design: undefined })),
+  });
+  const frameFields = (showBackground: boolean) => (
+    <ZoneFrameFields
+      design={zone.design}
       onChange={(fn) => update((p) => ({ ...p, design: fn(p.design) }), "design")}
-      forceOpen={forceOpen}
-      // A panel draws its own card (Style › Surface): no second one around it.
-      showBackground={!selected.panel}
+      showBackground={showBackground}
     />
   );
 
-  const searching = query.trim() !== "";
-  const matches = searching ? [...filterSettings(content, query), ...filterSettings(style, query)] : [];
-  const frameMatches = searching && matchesQuery(ZONE_FRAME_TERMS, query);
+  const extraNode = (e: SectionExtra): { at: "top" | "bottom" | "actions"; node: ReactNode } => {
+    switch (e.kind) {
+      case "widgetPicker":
+        return { at: "top", node: <WidgetPicker placement={zone} onPickWidget={onPickWidget} /> };
+      case "visible":
+        return { at: "bottom", node: <ToggleRow label="Visible" hint="Hidden zones stay editable but do not show in kiosk mode" value={zone.visible} onChange={onToggleVisible} /> };
+      case "styleMode":
+        return {
+          at: "top",
+          node: <StyleModeBar mode={zone.styleMode} onMode={(mode) => update((p) => withStyleMode(p, mode), "style-mode")} />,
+        };
+      case "styleTools":
+        return {
+          at: "actions",
+          node: (
+            <StyleTools
+              canPaste={styleClipboard !== null}
+              presets={stylePresets}
+              onCopy={() => onCopyStyle(styleOf(zone.settings))}
+              onPaste={() => styleClipboard && applyStyle(styleClipboard)}
+              onUseAsGlobal={(target) => onUseAsGlobal(target, styleOf(zone.settings))}
+              onSavePreset={(name) => onSavePreset(name, styleOf(zone.settings))}
+              onApplyPreset={(id) => {
+                const preset = stylePresets.find((p) => p.id === id);
+                if (preset) applyStyle(preset.settings);
+              }}
+              onDeletePreset={onDeletePreset}
+            />
+          ),
+        };
+      case "zoneFrame":
+        // A panel draws its own card (Colors & surface › Surface): no frame background around it.
+        return { at: "bottom", node: frameFields(!zone.panel) };
+    }
+  };
 
-  return (
-    <section>
-      <div data-inspector-header className="sticky top-0 z-10 space-y-2.5 border-b bg-popover p-3">
+  const bound = (
+    <BoundData
+      zone={zone}
+      config={config}
+      data={data}
+      selectedWidgetId={selectedWidgetId}
+      updateProfile={updateProfile}
+      onOpenPoint={onOpenPoint}
+      onOpenExplorer={onOpenExplorer}
+      picker={picker}
+      onPicker={setPicker}
+    />
+  );
+
+  const parts = (s: InspectorSection): SectionParts => {
+    switch (s.special) {
+      case "boundData":
+      case "panelData":
+        return { body: bound, plain: true };
+      case "blankPick":
+        return { body: <WidgetPicker placement={zone} onPickWidget={onPickWidget} /> };
+      case "zoneFrame":
+        return { ...zoneFrame(true), body: frameFields(true) };
+      case undefined:
+        break;
+      default:
+        return cardParts(cards.get(s.special) ?? [], s.special === "widgetKind", s.special === "panelJson");
+    }
+    const placed = s.extras.map(extraNode);
+    const at = (where: "top" | "bottom" | "actions") => {
+      const nodes = placed.filter((p) => p.at === where).map((p, i) => <div key={i}>{p.node}</div>);
+      return nodes.length > 0 ? nodes : undefined;
+    };
+    const frame = s.extras.some((e) => e.kind === "zoneFrame") ? zoneFrame(!zone.panel) : {};
+    // A panel can be replaced by a widget too (Change).
+    const top =
+      zone.panel && s.id === "widget"
+        ? [<WidgetPicker key="picker" placement={zone} onPickWidget={onPickWidget} />, ...(at("top") ?? [])]
+        : at("top");
+    return { ...frame, top, bottom: at("bottom"), actions: at("actions") };
+  };
+
+  const present = (s: InspectorSection) =>
+    s.special === undefined ||
+    ["boundData", "panelData", "blankPick", "zoneFrame"].includes(s.special) ||
+    (cards.get(s.special)?.length ?? 0) > 0;
+
+  const notes = (tab: Parameters<typeof inspectorNotes>[1]) =>
+    inspectorNotes(context, tab, { mode: zone.styleMode, enforce }).map((n) => (
+      <InspectorNote key={n.kind}>
+        {n.text}
+        {n.kind === "follow" && (
+          <>
+            {" "}
+            <button type="button" onClick={onEditGlobalTheme} className="text-ui-accent-text hover:underline">
+              Edit global theme
+            </button>
+          </>
+        )}
+      </InspectorNote>
+    ));
+
+  const hasLabel = defs.some((d) => d.key === "label");
+  const onName = zone.panel
+    ? (name: string) => update((p) => withPanelField(p, "title", name), "panel:title")
+    : hasLabel
+      ? (name: string) => update((p) => withSettings(p, { label: name }, enforce), "setting:label")
+      : undefined;
+  const selectedWidget = zone.panel?.widgets.find((w) => w.id === selectedWidgetId);
+  const Icon = moduleIcon(zone.module);
+
+  const header = (
+    <>
+      <HeaderSlot className="w-80 shrink-0">
         <ZoneHeader
-          title={placementTitle(selected)}
+          icon={<Icon />}
+          name={zone.panel ? zoneName(zone) : hasLabel ? String(zone.settings?.label ?? "") : zoneName(zone)}
+          placeholder={mod?.title}
+          onName={onName}
+          meta={zoneMeta(zone, { dataPoints: data.usage.byZone.get(zone.id)?.length ?? 0, min: zoneMinSize(zone) })}
+          visible={zone.visible}
           widget={selectedWidget && widgetName(selectedWidget, catalog)}
           onZoneCrumb={() => onSelectWidget(null)}
           onWidgetCrumb={onShowWidget}
-          sensors={
-            selected.module !== CARDS_ID && selected.module !== PANEL_ID
-              ? selectedSensors
-              : undefined
-          }
-          visible={selected.visible}
           onToggleVisible={onToggleVisible}
           onDuplicate={onDuplicate}
           onRemove={onRemove}
-          onClose={onClose}
         />
-        <ZoneBoxFields placement={selected} cols={cols} rows={rows} onZoneBox={onZoneBox} />
-        <SettingsSearch query={query} onQuery={setQuery} />
-        {!searching && (
-          <Segmented options={TABS} value={tab} onChange={onTabChange} className="w-full *:flex-1" />
-        )}
-      </div>
+      </HeaderSlot>
+      <HeaderSlot className="w-72 shrink-0">
+        <ZoneBoxFields placement={zone} cols={profile.cols} rows={profile.rows} onZoneBox={onZoneBox} />
+      </HeaderSlot>
+    </>
+  );
 
-      <div className="space-y-4 p-4">
-        {searching ? (
-          <>
-            <SettingsPanel title="Results" defs={matches} breadcrumb={breadcrumb} {...settingsProps} />
-            {frameMatches && (
-              <div>
-                <div className="mb-1 pl-3.5 text-[10px] text-muted-foreground/60">Style › Zone frame</div>
-                {zoneFrame(true)}
-              </div>
-            )}
-            {matches.length === 0 && !frameMatches && (
-              <div className="py-6 text-center text-xs text-muted-foreground/70">No settings match</div>
-            )}
-          </>
-        ) : tab === "content" ? (
-          <>
-            <WidgetPicker placement={selected} onPickWidget={onPickWidget} />
-            {selected.panel && (
-              <PanelInspector
-                placement={selected}
-                update={update}
-                selectedWidgetId={selectedWidgetId}
-                onSelectWidget={onSelectWidget}
-                widgetClipboard={widgetClipboard}
-                onCopyWidget={onCopyWidget}
-                presetNaming={presetNaming}
-                onPresetNaming={onPresetNaming}
-                onSavePreset={onSavePanelPreset}
-              />
-            )}
-            <SettingsPanel defs={content} onReset={resetDefs(content)} {...settingsProps} />
-          </>
-        ) : (
-          <>
-            <SettingsPanel
-              title="Style"
-              defs={style}
-              onReset={resetDefs(style)}
-              actions={
-                <StyleTools
-                  canPaste={styleClipboard !== null}
-                  presets={stylePresets}
-                  onCopy={() => onCopyStyle(styleOf(selected.settings))}
-                  onPaste={() => styleClipboard && applyStyle(styleClipboard)}
-                  onUseForProfile={() => onUseForProfile(styleOf(selected.settings))}
-                  onSavePreset={(name) => onSavePreset(name, styleOf(selected.settings))}
-                  onApplyPreset={(id) => {
-                    const preset = stylePresets.find((p) => p.id === id);
-                    if (preset) applyStyle(preset.settings);
-                  }}
-                  onDeletePreset={onDeletePreset}
-                />
-              }
-              {...settingsProps}
-            />
-            {zoneFrame()}
-          </>
-        )}
-      </div>
-    </section>
+  return (
+    <InspectorView
+      context={context}
+      contextKey={context.kind}
+      header={header}
+      fields={fields}
+      visible={(def) => isVisible(def, effective)}
+      present={present}
+      parts={parts}
+      notes={notes}
+      query={query}
+      onQuery={onQuery}
+      jumpTo={jumpTo}
+    />
   );
 }

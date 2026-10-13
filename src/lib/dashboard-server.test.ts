@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { fetchConfig } from "./dashboard-server";
+import { fetchConfig, pushConfig } from "./dashboard-server";
+import type { DashboardConfig } from "./layout";
 
 const respond = (status: number, body?: unknown) =>
   vi.stubGlobal(
@@ -25,5 +26,21 @@ describe("fetchConfig", () => {
   it("throws when the server answers with an error, so nothing gets pushed over it", async () => {
     respond(502);
     await expect(fetchConfig()).rejects.toThrow("502");
+  });
+});
+
+describe("pushConfig", () => {
+  it("posts JSON with the config header the server requires", async () => {
+    respond(200, { ok: true });
+    await pushConfig({ profiles: [] } as unknown as DashboardConfig);
+    const [url, init] = vi.mocked(fetch).mock.calls[0];
+    expect(url).toBe("/api/config");
+    expect(init?.method).toBe("POST");
+    expect(init?.headers).toEqual({ "Content-Type": "application/json", "X-Dashboard-Config": "1" });
+  });
+
+  it("throws on a refusal", async () => {
+    respond(403);
+    await expect(pushConfig({} as DashboardConfig)).rejects.toThrow("403");
   });
 });

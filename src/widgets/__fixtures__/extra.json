@@ -1,0 +1,461 @@
+{
+  "sensors": {
+    "plugins.InfoPanel.VBZ.station_name": {
+      "text": "Zürich, Bahnhofplatz",
+      "unit": ""
+    },
+    "plugins.InfoPanel.VBZ.status": {
+      "text": "Updated 12:04",
+      "unit": ""
+    },
+    "plugins.InfoPanel.VBZ.dep_1_line": {
+      "text": "13",
+      "unit": ""
+    },
+    "plugins.InfoPanel.VBZ.dep_1_dest": {
+      "text": "Frankenstrasse",
+      "unit": ""
+    },
+    "plugins.InfoPanel.VBZ.dep_1_time": {
+      "text": "2 min",
+      "unit": ""
+    },
+    "plugins.InfoPanel.VBZ.dep_2_line": {
+      "text": "4",
+      "unit": ""
+    },
+    "plugins.InfoPanel.VBZ.dep_2_dest": {
+      "text": "Bahnhofquai",
+      "unit": ""
+    },
+    "plugins.InfoPanel.VBZ.dep_2_time": {
+      "text": "5 min",
+      "unit": ""
+    },
+    "plugins.InfoPanel.VBZ.dep_3_line": {
+      "text": "11",
+      "unit": ""
+    },
+    "plugins.InfoPanel.VBZ.dep_3_dest": {
+      "text": "Auzelg",
+      "unit": ""
+    },
+    "plugins.InfoPanel.VBZ.dep_3_time": {
+      "text": "8 min",
+      "unit": ""
+    },
+    "plugins.InfoPanel.VBZ.dep_4_line": {
+      "text": "7",
+      "unit": ""
+    },
+    "plugins.InfoPanel.VBZ.dep_4_dest": {
+      "text": "Stettbach",
+      "unit": ""
+    },
+    "plugins.InfoPanel.VBZ.dep_4_time": {
+      "text": "12 min",
+      "unit": ""
+    },
+    "plugins.InfoPanel.VBZ.dep_5_line": {
+      "text": "15",
+      "unit": ""
+    },
+    "plugins.InfoPanel.VBZ.dep_5_dest": {
+      "text": "Bucheggplatz",
+      "unit": ""
+    },
+    "plugins.InfoPanel.VBZ.dep_5_time": {
+      "text": "16 min",
+      "unit": ""
+    },
+    "plugins.bluetooth-battery-plugin.bt.bt_status": {
+      "text": "Bluetooth On",
+      "unit": "",
+      "name": "Status"
+    },
+    "plugins.bluetooth-battery-plugin.dev0.name": {
+      "text": "Headset Pro",
+      "unit": "",
+      "name": "Name"
+    },
+    "plugins.bluetooth-battery-plugin.dev0.status": {
+      "text": "Connected",
+      "unit": "",
+      "name": "Status"
+    },
+    "plugins.bluetooth-battery-plugin.dev0.battery": {
+      "value": 82,
+      "unit": "%",
+      "name": "Battery Level"
+    },
+    "plugins.bluetooth-battery-plugin.dev1.name": {
+      "text": "Keyboard K3",
+      "unit": "",
+      "name": "Name"
+    },
+    "plugins.bluetooth-battery-plugin.dev1.status": {
+      "text": "Connected",
+      "unit": "",
+      "name": "Status"
+    },
+    "plugins.bluetooth-battery-plugin.dev1.battery": {
+      "value": 41,
+      "unit": "%",
+      "name": "Battery Level"
+    },
+    "plugins.bluetooth-battery-plugin.dev2.name": {
+      "text": "Mouse M2",
+      "unit": "",
+      "name": "Name"
+    },
+    "plugins.bluetooth-battery-plugin.dev2.status": {
+      "text": "Connected",
+      "unit": "",
+      "name": "Status"
+    },
+    "plugins.bluetooth-battery-plugin.dev2.battery": {
+      "value": 14,
+      "unit": "%",
+      "name": "Battery Level"
+    },
+    "plugins.InfoPanel.Notifications.notifications.notification-count": {
+      "value": 3,
+      "unit": ""
+    },
+    "plugins.InfoPanel.Notifications.notifications.last-notification": {
+      "text": "Build finished: 0 errors, 2 warnings",
+      "unit": ""
+    },
+    "plugins.InfoPanel.Notifications.notifications.status": {
+      "text": "Listening",
+      "unit": ""
+    },
+    "plugins.InfoPanel.Notifications.notifications.notification-history": {
+      "text": "12:04, Info, Build finished\n11:58, Warning, Disk space is low on D:\n11:32, Error, Backup job failed\n11:10, Info, Update downloaded\n10:47, Info, Sync complete",
+      "unit": ""
+    },
+    "plugins.InfoPanel.TextFile.file.content": {
+      "text": "# Release notes\n- Faster startup\n- New widget library\n- Fixed the clock drift\n- Minor polish",
+      "unit": ""
+    },
+    "plugins.InfoPanel.TextFile.file.status": {
+      "text": "OK",
+      "unit": ""
+    },
+    "plugins.InfoPanel.TextFile.file.file-size": {
+      "value": 2048,
+      "unit": "B"
+    },
+    "plugins.InfoPanel.TextFile.file.line-count": {
+      "value": 5,
+      "unit": ""
+    },
+    "plugins.InfoPanel.StreamDeck.deck1.device-name": {
+      "text": "Stream Deck MK.2",
+      "unit": "",
+      "name": "Device Name"
+    },
+    "plugins.InfoPanel.StreamDeck.deck1.active-profile": {
+      "text": "Streaming",
+      "unit": "",
+      "name": "Active Profile"
+    },
+    "plugins.InfoPanel.StreamDeck.deck1.btn-icon-AB12-0,0": {
+      "text": "/assets/qa/deck.svg",
+      "unit": ""
+    },
+    "plugins.InfoPanel.StreamDeck.deck1.btn-AB12-0,0": {
+      "text": "Scene 1",
+      "unit": ""
+    },
+    "plugins.InfoPanel.StreamDeck.deck1.btn-icon-AB12-1,0": {
+      "text": "/assets/qa/deck.svg",
+      "unit": ""
+    },
+    "plugins.InfoPanel.StreamDeck.deck1.btn-AB12-1,0": {
+      "text": "Scene 2",
+      "unit": ""
+    },
+    "plugins.InfoPanel.StreamDeck.deck1.btn-icon-AB12-2,0": {
+      "text": "/assets/qa/deck.svg",
+      "unit": ""
+    },
+    "plugins.InfoPanel.StreamDeck.deck1.btn-AB12-2,0": {
+      "text": "Mute",
+      "unit": ""
+    },
+    "plugins.InfoPanel.StreamDeck.deck1.btn-icon-AB12-3,0": {
+      "text": "/assets/qa/deck.svg",
+      "unit": ""
+    },
+    "plugins.InfoPanel.StreamDeck.deck1.btn-AB12-3,0": {
+      "text": "Record",
+      "unit": ""
+    },
+    "plugins.InfoPanel.StreamDeck.deck1.btn-icon-AB12-4,0": {
+      "text": "/assets/qa/deck.svg",
+      "unit": ""
+    },
+    "plugins.InfoPanel.StreamDeck.deck1.btn-AB12-4,0": {
+      "text": "Live",
+      "unit": ""
+    },
+    "plugins.InfoPanel.StreamDeck.deck1.btn-icon-AB12-0,1": {
+      "text": "/assets/qa/deck.svg",
+      "unit": ""
+    },
+    "plugins.InfoPanel.StreamDeck.deck1.btn-AB12-0,1": {
+      "text": "Chat",
+      "unit": ""
+    },
+    "plugins.InfoPanel.StreamDeck.deck1.btn-icon-AB12-1,1": {
+      "text": "/assets/qa/deck.svg",
+      "unit": ""
+    },
+    "plugins.InfoPanel.StreamDeck.deck1.btn-AB12-1,1": {
+      "text": "Music",
+      "unit": ""
+    },
+    "plugins.InfoPanel.StreamDeck.deck1.btn-icon-AB12-2,1": {
+      "text": "/assets/qa/deck.svg",
+      "unit": ""
+    },
+    "plugins.InfoPanel.StreamDeck.deck1.btn-AB12-2,1": {
+      "text": "Clip",
+      "unit": ""
+    },
+    "plugins.InfoPanel.StreamDeck.deck1.btn-icon-AB12-3,1": {
+      "text": "/assets/qa/deck.svg",
+      "unit": ""
+    },
+    "plugins.InfoPanel.StreamDeck.deck1.btn-AB12-3,1": {
+      "text": "Cam",
+      "unit": ""
+    },
+    "plugins.InfoPanel.StreamDeck.deck1.btn-icon-AB12-4,1": {
+      "text": "/assets/qa/deck.svg",
+      "unit": ""
+    },
+    "plugins.InfoPanel.StreamDeck.deck1.btn-AB12-4,1": {
+      "text": "Light",
+      "unit": ""
+    },
+    "plugins.InfoPanel.StreamDeck.deck1.btn-icon-AB12-0,2": {
+      "text": "/assets/qa/deck.svg",
+      "unit": ""
+    },
+    "plugins.InfoPanel.StreamDeck.deck1.btn-AB12-0,2": {
+      "text": "Game",
+      "unit": ""
+    },
+    "plugins.InfoPanel.StreamDeck.deck1.btn-icon-AB12-1,2": {
+      "text": "/assets/qa/deck.svg",
+      "unit": ""
+    },
+    "plugins.InfoPanel.StreamDeck.deck1.btn-AB12-1,2": {
+      "text": "BRB",
+      "unit": ""
+    },
+    "plugins.InfoPanel.StreamDeck.deck1.btn-icon-AB12-2,2": {
+      "text": "/assets/qa/deck.svg",
+      "unit": ""
+    },
+    "plugins.InfoPanel.StreamDeck.deck1.btn-AB12-2,2": {
+      "text": "Ads",
+      "unit": ""
+    },
+    "plugins.InfoPanel.StreamDeck.deck1.btn-icon-AB12-3,2": {
+      "text": "/assets/qa/deck.svg",
+      "unit": ""
+    },
+    "plugins.InfoPanel.StreamDeck.deck1.btn-AB12-3,2": {
+      "text": "Raid",
+      "unit": ""
+    },
+    "plugins.InfoPanel.StreamDeck.deck1.btn-icon-AB12-4,2": {
+      "text": "/assets/qa/deck.svg",
+      "unit": ""
+    },
+    "plugins.InfoPanel.StreamDeck.deck1.btn-AB12-4,2": {
+      "text": "End",
+      "unit": ""
+    },
+    "hwinfo.cpu_package_temp": {
+      "value": 61.5,
+      "unit": "°C",
+      "name": "CPU Package Temp"
+    },
+    "hwinfo.gpu_temp": {
+      "value": 54,
+      "unit": "°C",
+      "name": "GPU Temperature"
+    },
+    "hwinfo.cpu_fan": {
+      "value": 1180,
+      "unit": "RPM",
+      "name": "CPU Fan"
+    },
+    "hwinfo.case_fan": {
+      "value": 860,
+      "unit": "RPM",
+      "name": "Case Fan 1"
+    },
+    "hwinfo.cpu_power": {
+      "value": 78.4,
+      "unit": "W",
+      "name": "CPU Package Power"
+    },
+    "hwinfo.gpu_power": {
+      "value": 212.6,
+      "unit": "W",
+      "name": "GPU Power"
+    },
+    "hwinfo.vcore": {
+      "value": 1.21,
+      "unit": "V",
+      "name": "Vcore"
+    },
+    "hwinfo.ssd_temp": {
+      "value": 42,
+      "unit": "°C",
+      "name": "SSD Temperature"
+    },
+    "plugins.fps-plugin.fps.fps": {
+      "value": 118,
+      "unit": "FPS",
+      "name": "FPS"
+    },
+    "plugins.fps-plugin.fps.1% low fps": {
+      "value": 84,
+      "unit": "FPS"
+    },
+    "plugins.fps-plugin.fps.0.1% low": {
+      "value": 62,
+      "unit": "FPS"
+    },
+    "plugins.fps-plugin.fps.current frame time": {
+      "value": 8.5,
+      "unit": "ms"
+    },
+    "plugins.fps-plugin.fps.gpu-name": {
+      "text": "Synthetic GPU 8000",
+      "unit": ""
+    },
+    "plugins.fps-plugin.fps.resolution": {
+      "text": "2560 x 1440",
+      "unit": ""
+    },
+    "plugins.fps-plugin.fps.refreshrate": {
+      "value": 144,
+      "unit": "Hz"
+    },
+    "plugins.fps-plugin.fps.windowtitle": {
+      "text": "Sample Game",
+      "unit": ""
+    },
+    "plugins.fps-plugin.fps.gpu utilization": {
+      "value": 91,
+      "unit": "%"
+    },
+    "plugins.fps-plugin.fps.gpu busy": {
+      "value": 7.9,
+      "unit": "ms"
+    },
+    "plugins.fps-plugin.fps.cpu busy": {
+      "value": 3.2,
+      "unit": "ms"
+    },
+    "plugins.fps-plugin.fps.display latency": {
+      "value": 14.3,
+      "unit": "ms"
+    },
+    "spotify.playing": {
+      "value": 2,
+      "unit": ""
+    },
+    "spotify.progress": {
+      "value": 42,
+      "unit": "%"
+    },
+    "spotify.track": {
+      "text": "Sample Track",
+      "unit": ""
+    },
+    "spotify.artist": {
+      "text": "Sample Artist",
+      "unit": ""
+    },
+    "spotify.album": {
+      "text": "Sample Album",
+      "unit": ""
+    },
+    "spotify.art": {
+      "text": "/assets/qa/cover.svg",
+      "unit": ""
+    },
+    "plugins.spotify-plugin.spotify.playback-state": {
+      "value": 2,
+      "unit": ""
+    },
+    "plugins.spotify-plugin.spotify.track-progress": {
+      "value": 42,
+      "unit": ""
+    },
+    "plugins.spotify-plugin.spotify.current-track": {
+      "text": "Sample Track",
+      "unit": ""
+    },
+    "plugins.spotify-plugin.spotify.artist": {
+      "text": "Sample Artist",
+      "unit": ""
+    },
+    "plugins.spotify-plugin.spotify.album": {
+      "text": "Sample Album",
+      "unit": ""
+    },
+    "plugins.spotify-plugin.spotify.cover-art": {
+      "text": "/assets/qa/cover.svg",
+      "unit": ""
+    },
+    "plugins.spotify-plugin.spotify.elapsed-time": {
+      "text": "01:34",
+      "unit": ""
+    },
+    "plugins.spotify-plugin.spotify.remaining-time": {
+      "text": "02:11",
+      "unit": ""
+    },
+    "plugins.media-plugin.media.playback-state": {
+      "value": 2,
+      "unit": ""
+    },
+    "plugins.media-plugin.media.track-progress": {
+      "value": 42,
+      "unit": ""
+    },
+    "plugins.media-plugin.media.current-track": {
+      "text": "Sample Track",
+      "unit": ""
+    },
+    "plugins.media-plugin.media.artist": {
+      "text": "Sample Artist",
+      "unit": ""
+    },
+    "plugins.media-plugin.media.album": {
+      "text": "Sample Album",
+      "unit": ""
+    },
+    "plugins.media-plugin.media.cover-art": {
+      "text": "/assets/qa/cover.svg",
+      "unit": ""
+    },
+    "plugins.media-plugin.media.elapsed-time": {
+      "text": "01:34",
+      "unit": ""
+    },
+    "plugins.media-plugin.media.remaining-time": {
+      "text": "02:11",
+      "unit": ""
+    }
+  }
+}

@@ -5,11 +5,19 @@ CPU, GPU, RAM and Disks as device blocks: a load ring each (drives get
 used-space bars), with temperature, power, memory and other details beside it.
 This page is the full reference; the one-line entry is in
 [module-catalog.md](module-catalog.md), and the standard options shared with
-every modern widget are in [widget-settings.md](widget-settings.md).
+every widget are in [widget-settings.md](widget-settings.md).
 
-Code: `src/modules/system-modern.tsx` (settings and wiring),
-`src/components/ModernSystem.tsx` (layout), `src/lib/system-metrics.ts`
-(reading the sensors).
+`systemmodern` is an alias of the **System Overview** template: the id, the
+keys and today's defaults are unchanged, the zone draws through the shared
+widget shell, and the Library lists System Overview instead. A System
+Overview zone reads the same keys but chooses its blocks with `sections`
+(CPU, GPU, RAM, VRAM, Disks, Net) and `coreView` instead of `devices`,
+`showVram` and `showCores`, and starts with every detail and its graphs on.
+
+Code: `src/modules/system-modern.tsx` (alias and wiring),
+`src/widgets/registry/system-overview.ts` (the stored keys and how they map
+to template props), `src/widgets/SystemOverview.tsx` (layout),
+`src/lib/system-metrics.ts` (reading the sensors).
 
 ## Where the data comes from
 
@@ -50,33 +58,33 @@ trailing " CPU Total" / " GPU Core" removed.
 Besides the standard block (see
 [widget-settings.md](widget-settings.md#the-standard-block-standard_settings):
 preset, layout, surface, title, icon, accent, background, size, alignment,
-spacing, colors and type, border, glow, opacity, blur, custom CSS), the
-widget has these keys, all on the studio inspector's Content tab except
-the colors (Style tab, *Colors & type*). "Group" is the collapsible section;
-"top" means the ungrouped list at the top of the tab.
+spacing, colors and type, border, glow, opacity, blur, custom CSS, and the
+look keys skin, variant, graph style, meter style and compact view), the
+widget has these keys, each in a category card of the studio inspector
+(after the general cards, in this order). "Category" is the card.
 
-| Key | Type | Default | Effect | Group |
+| Key | Type | Default | Effect | Category |
 |---|---|---|---|---|
-| `devices` | multi-select: `cpu`, `gpu`, `ram`, `disk` | `cpu,gpu,ram` | Which device blocks to show. They always appear in the order CPU, GPU, RAM, Disks. With none selected the widget renders nothing. | top |
-| `showVram` | boolean | on | GPU memory bar under the GPU | top |
-| `showTemps` | boolean | on | CPU and GPU temperature | top |
-| `showPower` | boolean | on | CPU and GPU power draw, in W | top |
-| `showClock` | boolean | off | GPU core clock, in MHz | top |
-| `showMemory` | boolean | on | Used / total GB for RAM and VRAM (otherwise VRAM shows a percentage) | top |
-| `showNames` | boolean | off | Hardware model under the device label (CPU and GPU) | top |
-| `showHotspot` | boolean | off | GPU memory junction temperature ("Hotspot") | top |
-| `showFans` | boolean | off | GPU fan speed: average RPM and duty % | top |
-| `showMemClock` | boolean | off | GPU memory clock ("Mem … MHz") | top |
-| `showPowerLimit` | boolean | off | GPU power as % of its limit ("… % limit") | top |
-| `showPageFile` | boolean | off | RAM page file, used / total GB (else a percentage) | top |
-| `showCores` | boolean | off | One block per CPU thread under the CPU | top |
-| `coreStyle` | `heatmap` / `bars` | `heatmap` | Thread block style | top |
-| `showDiskTemp` | boolean | on | Per-drive temperature | top |
-| `showDiskIo` | boolean | on | Per-drive read and write rate (`R …`, `W …`) | top |
-| `showDiskLife` | boolean | off | Per-drive remaining life ("Life …%") | top |
-| `diskFilter` | text | empty | Comma-separated drive names to show; empty = all | top |
-| `sparkline` | boolean | off | Rolling trend line per load (CPU, GPU, RAM) and for VRAM | top |
-| `historyLength` | number 12-120, step 12 | 48 | Samples kept for the sparklines | top |
+| `devices` | multi-select: `cpu`, `gpu`, `ram`, `disk` | `cpu,gpu,ram` | Which device blocks to show. They always appear in the order CPU, GPU, RAM, Disks. With none selected the widget renders nothing. | Devices |
+| `showVram` | boolean | on | GPU memory bar under the GPU | GPU |
+| `showTemps` | boolean | on | CPU and GPU temperature | Devices |
+| `showPower` | boolean | on | CPU and GPU power draw, in W | Devices |
+| `showClock` | boolean | off | GPU core clock, in MHz | GPU |
+| `showMemory` | boolean | on | Used / total GB for RAM and VRAM (otherwise VRAM shows a percentage) | Memory |
+| `showNames` | boolean | off | Hardware model under the device label (CPU and GPU) | Devices |
+| `showHotspot` | boolean | off | GPU memory junction temperature ("Hotspot") | GPU |
+| `showFans` | boolean | off | GPU fan speed: average RPM and duty % | GPU |
+| `showMemClock` | boolean | off | GPU memory clock ("Mem … MHz") | GPU |
+| `showPowerLimit` | boolean | off | GPU power as % of its limit ("… % limit") | GPU |
+| `showPageFile` | boolean | off | RAM page file, used / total GB (else a percentage) | Memory |
+| `showCores` | boolean | off | One block per CPU thread under the CPU | CPU |
+| `coreStyle` | `heatmap` / `bars` | `heatmap` | Thread block style | CPU |
+| `showDiskTemp` | boolean | on | Per-drive temperature | Drives |
+| `showDiskIo` | boolean | on | Per-drive read and write rate (`R …`, `W …`) | Drives |
+| `showDiskLife` | boolean | off | Per-drive remaining life ("Life …%") | Drives |
+| `diskFilter` | text | empty | Comma-separated drive names to show; empty = all | Drives |
+| `sparkline` | boolean | off | Rolling trend line per load (CPU, GPU, RAM) and for VRAM | Trends |
+| `historyLength` | number 12-120, step 12 | 48 | Samples kept for the sparklines | Trends |
 | `tempWarn` | number 50-100, step 5 | 80 | Temperature warning, °C | Thresholds |
 | `tempCrit` | number 50-110, step 5 | 90 | Temperature critical, °C | Thresholds |
 | `loadWarn` | number 10-100, step 5 | 80 | Load warning, % | Thresholds |
@@ -85,7 +93,7 @@ the colors (Style tab, *Colors & type*). "Group" is the collapsible section;
 | `tempUnit` | `c` / `f` | `c` | Temperature unit for display | Units & labels |
 | `decimals` | `0` / `1` | `0` | Decimals on percentages and temperatures | Units & labels |
 | `cpuLabel`, `gpuLabel`, `ramLabel`, `diskLabel` | text | empty | Replace the device label ("CPU", "GPU", "RAM", "Disks") | Units & labels |
-| `cpuColor`, `gpuColor`, `ramColor`, `diskColor`, `vramColor` | color | empty | Ring / bar color per device and for the VRAM bar; empty = default | Colors & type |
+| `cpuColor`, `gpuColor`, `ramColor`, `diskColor`, `vramColor` | color | empty | Ring / bar color per device and for the VRAM bar; empty = default | Device colors |
 
 Default colors: CPU `#38bdf8`, GPU `#a78bfa`, RAM `#4ade80`, VRAM `#fbbf24`,
 Disks `#fb7185`. A threshold value of 0 (or a non-number) falls back to its
@@ -93,30 +101,36 @@ default.
 
 ## Layouts
 
-`pickVariant` chooses the layout from the zone's measured size, in this
-order (the size is measured inside the zoom, so it is the widget's own
-unscaled space):
+The widget draws inside the shared shell, which measures the zone and hands
+the layout its size tier (`xs` / `sm` / `md` / `lg`) and its shape. The shape
+follows the grid span: a 1 x 1 zone is a **tile**, a wide, short one a
+**strip**, a tall, narrow one a **column**, anything else a **box**. Setting
+the standard `layout` option fixes the tier (card = `lg`, standard = `md`,
+compact = `sm`, simple = `xs`); the shape is always measured.
 
-| Order | Condition | Layout | Look |
+| Shape | Look |
+|---|---|
+| Tile | Concentric activity rings for CPU, GPU and RAM (VRAM is a detail of the GPU here), amber or red when hot; the three loads are listed beside them when the tile is wide enough |
+| Anything else | The device blocks in a grid: one column for a column or a tall box, one row while each block keeps about 150 px for its ring, otherwise two columns |
+
+How much each block shows follows its own height: under 92 px a single line
+(ring or value, label), under 170 px adds the detail line, above that the
+full block with the stats, the thread grid, the sparkline and the drive list.
+The ring is dropped when a block is under about 130 px wide or 54 px tall.
+The **Studio** variant replaces the whole layout with a compact summary
+(lead load, trend and one row per device). The widget has no separate
+compact view of its own, so the Compact view look key changes nothing here.
+
+What each level shows:
+
+| | full | mid | min |
 |---|---|---|---|
-| 1 | height <= 72 | `compact` | One pill: per device a ring (no number inside), the load text, the label and the first temperature |
-| 2 | width < 300 and height < 150 | `simple` | Mini rings with the value inside and the label below |
-| 3 | height >= 0.72 x width | `card` | Tall: the device blocks stacked |
-| 4 | otherwise | `standard` | Wide: the device blocks side by side |
-
-Until the zone has been measured the widget uses `standard`. Setting the
-standard `layout` option to a fixed value skips this choice.
-
-What each layout shows:
-
-| | standard / card | compact / simple |
-|---|---|---|
-| Load ring, label and value | yes | yes (compact: ring, value text, label) |
-| Detail line (temperature, power, clock, …) | yes | compact: only the first temperature; simple: none |
-| VRAM bar | yes | no |
-| Sparklines | yes | no |
-| CPU thread grid | yes | no |
-| Drive list | yes | no; the Disks block becomes one ring for the fullest drive |
+| Load ring, label and value | yes | yes | yes |
+| Detail line (temperature, power, clock, ...) | yes | yes | only when the block has no hardware name |
+| VRAM bar | yes | yes | no |
+| Sparklines | yes | no | no |
+| CPU thread grid | yes | yes | no |
+| Drive list | yes | yes | no |
 
 ## What each device shows
 
@@ -163,13 +177,13 @@ reading. Warning is amber (`#f59e0b`), critical red (`#ef4444`).
 | VRAM bar | `vramWarn` / `loadCrit` | the bar |
 | Drive used space | `vramWarn` / `loadCrit` | the bar and the percentage |
 
-The Disks ring in the compact and simple layouts shows the fullest drive and
+The Disks ring in a small block shows the fullest drive and
 uses the drive rule.
 
 ## The thread grid
 
-`showCores` adds one small block per CPU thread under the CPU in the standard
-and card layouts. The loads come from `…_cpu_core__N` keys (unit %), sorted by
+`showCores` adds one small block per CPU thread under the CPU once the block
+is tall enough (see Layouts). The loads come from `…_cpu_core__N` keys (unit %), sorted by
 N. Up to 16 threads the grid has up to 8 columns; beyond that it has a quarter
 of the thread count in columns, at most 16 (so 32 threads make four rows of 8).
 `coreStyle` picks the look:
@@ -204,25 +218,14 @@ For each drive the widget reads, by suffix on that identifier:
 comma-separated terms, ignoring case (for example `kingston, samsung`). It
 matches the hardware name, not a drive letter.
 
-## Content-aware design size
+## Sizing
 
-Auto-scale zooms the content until the zone holds the widget's design size
-(see "Scaling" in [widget-settings.md](widget-settings.md#the-chrome-layer-modernchrome)).
-A fixed design size would zoom a widget full of details as if it were three
-rings, so `designFor` computes it from what is actually shown. The base sizes
-are 560 x 220 (wide), 300 x 420 (tall) and 380 x 300 (square). It grows them
-from the visible blocks:
-
-- each device block counts as 230 px wide (a Disks block 270) plus a 24 px gap;
-- a block's height is the larger of 88 px (plus the thread grid: 14 px per row
-  of 8 threads, plus 8) and 32 px plus 20 px per detail (plus 46 px for the
-  VRAM bar); the Disks block is 30 px plus 56 px per drive;
-- zones that stack (the card shape) are sized for the column, at least 300 px
-  wide.
-
-So adding devices, details, threads or drives raises the design size and
-lowers the zoom for the same zone; auto-scale only ever grows the content
-(between 1x and 3x, then multiplied by Size %).
+The template fits itself to its zone, so there is no design size to
+compute: the shell measures the zone, the layout picks the grid and the detail
+level above, and the ring size comes from the block's own height and width.
+The standard **Size %** option zooms the content on top of that (the tier and
+shape are then measured after the zoom). **Scale with the zone** has nothing
+left to scale; the setting stays stored for older configs.
 
 ## Known limits
 
@@ -235,10 +238,11 @@ lowers the zoom for the same zone; auto-scale only ever grows the content
   on your system will simply not appear.
 - **No CPU clock.** The widget has a GPU clock option but reads no CPU clock.
 - **First GPU only.** With several GPUs the first match in key order is used.
-- **Compact and simple omit** the thread grid, the VRAM bar, sparklines and
-  the drive list.
+- **Small blocks omit** the thread grid, sparklines, the VRAM bar and the
+  drive list (see the levels under Layouts); the tile shows loads only.
 - **No data, no widget.** The widget renders nothing (the zone is empty in
   the kiosk) until a CPU, RAM or GPU load — or, with Disks selected, a drive —
   is available.
-- **Layout is per zone size.** A zone too small for a layout's content clips
-  it (the surface hides overflow); pick a larger zone or a more compact layout.
+- **Layout is per zone size.** The detail level drops as the zone shrinks, so
+  a small zone hides details rather than clipping them; pick a larger zone to
+  see them.

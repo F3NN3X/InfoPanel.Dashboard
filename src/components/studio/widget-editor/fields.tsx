@@ -1,21 +1,28 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import { COLOR_FALLBACK } from "../widget-kinds";
+import { ColorRow, FIELD, InlineRow, StackRow, ToggleRow } from "../setting-rows";
 
-/* Small labelled inputs shared by the panel and widget editors. */
+/* Small labelled inputs shared by the panel and widget editors, on the inspector's row components. */
 
-export const INPUT =
-  "w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground outline-none focus:border-ring";
+export const INPUT = cn(FIELD, "h-7 w-full");
 
-export function Field({ label, hint, children }: { label: ReactNode; hint?: string; children: ReactNode }) {
+/** A label (with an info hint) over its control: the inspector's stacked row. */
+export function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
   return (
-    <div>
-      <div className="mb-1 text-xs text-muted-foreground">
-        {label}
-        {hint && <span className="text-muted-foreground/60"> ({hint})</span>}
-      </div>
-      {children}
+    <div className="break-inside-avoid">
+      <StackRow label={label} hint={hint}>
+        {children}
+      </StackRow>
     </div>
+  );
+}
+
+/** A label left and a small control right (numbers, selects): the inspector's inline row. */
+export function InlineField({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
+  return (
+    <InlineRow label={label} hint={hint}>
+      {children}
+    </InlineRow>
   );
 }
 
@@ -37,7 +44,7 @@ export function TextInput({
       placeholder={placeholder}
       spellCheck={mono ? false : undefined}
       onChange={(e) => onChange(e.target.value || undefined)}
-      className={cn(INPUT, mono && "font-mono text-[11px]")}
+      className={cn(INPUT, mono && "font-ui-mono text-[11.5px]")}
     />
   );
 }
@@ -85,52 +92,26 @@ export function NumberInput({
         const n = float ? parseFloat(e.target.value) : parseInt(e.target.value, 10);
         onChange(clamp(Number.isFinite(n) ? n : fallback));
       }}
-      className={cn(INPUT, "tabular-nums", className ?? "w-24")}
+      className={cn(INPUT, "text-right font-ui-mono text-[11.5px]", className ?? "w-24")}
     />
   );
 }
 
-/** A labelled on/off switch row. */
+/** A labelled on/off switch row (the same row as the inspector's toggles). */
 export function Switch({
   label,
   on,
   onChange,
-  className,
 }: {
-  label: ReactNode;
+  label: string;
   on: boolean;
   onChange: (on: boolean) => void;
   className?: string;
 }) {
-  return (
-    <button
-      type="button"
-      aria-pressed={on}
-      onClick={() => onChange(!on)}
-      className={cn(
-        "flex w-full items-center justify-between gap-2 rounded-md border border-border px-3 py-2 text-left text-xs text-muted-foreground transition-colors hover:bg-accent/40",
-        className
-      )}
-    >
-      <span>{label}</span>
-      <span
-        className={cn(
-          "relative h-4 w-7 shrink-0 rounded-full transition-colors",
-          on ? "bg-ring" : "bg-muted-foreground/30"
-        )}
-      >
-        <span
-          className={cn(
-            "absolute top-0.5 h-3 w-3 rounded-full bg-background transition-all",
-            on ? "left-3.5" : "left-0.5"
-          )}
-        />
-      </span>
-    </button>
-  );
+  return <ToggleRow label={label} value={on} onChange={onChange} />;
 }
 
-/** A color override with a "Use theme" reset (`undefined` = theme). */
+/** A color override (`undefined` = theme), one line like the inspector's color rows. */
 export function ColorInput({
   label,
   value,
@@ -141,24 +122,6 @@ export function ColorInput({
   onChange: (value: string | undefined) => void;
 }) {
   return (
-    <div>
-      <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
-        <span>{label}</span>
-        {value && (
-          <button type="button" onClick={() => onChange(undefined)} className="hover:text-foreground">
-            Use theme
-          </button>
-        )}
-      </div>
-      <div className="flex items-center gap-2">
-        <input
-          type="color"
-          value={value ?? COLOR_FALLBACK}
-          onChange={(e) => onChange(e.target.value)}
-          className="h-7 w-10 cursor-pointer rounded border border-border bg-transparent p-0.5"
-        />
-        <span className="text-xs tabular-nums text-muted-foreground">{value ?? "theme"}</span>
-      </div>
-    </div>
+    <ColorRow label={label} value={value ?? ""} onChange={(v) => onChange(v || undefined)} onReset={() => onChange(undefined)} />
   );
 }

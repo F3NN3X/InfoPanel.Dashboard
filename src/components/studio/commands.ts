@@ -1,12 +1,13 @@
 import type { MonitorProfile, Placement, Widget } from "@/lib/layout";
-import type { ModuleSetting } from "@/modules/types";
+import type { AppearanceTarget } from "./appearance-panel";
+import type { DocumentTab } from "./document-inspector";
 import type { Drawer } from "./left-rail";
-import { isStyleSetting } from "./settings-model";
+import type { LayoutMode } from "./studio-layout";
+import { allSections, type InspectorContext } from "./inspector-model";
 import { placementTitle } from "./studio-modules";
 import { KEYS } from "./use-studio-shortcuts";
 import { widgetName } from "./widget-kinds";
 import { sortZones } from "./zone-geometry";
-import type { InspectorTab } from "./zone-inspector";
 
 /** What a command palette entry does (the studio carries it out). */
 export type CommandAction =
@@ -16,6 +17,8 @@ export type CommandAction =
   | { type: "drawer"; drawer: Drawer }
   | { type: "sources" }
   | { type: "toggle-grid" }
+  | { type: "layout"; mode: LayoutMode }
+  | { type: "toggle-dock" }
   | { type: "zoom-fit" }
   | { type: "zoom-in" }
   | { type: "zoom-out" }
@@ -27,6 +30,7 @@ export type CommandAction =
   | { type: "redo" }
   | { type: "shortcuts" }
   | { type: "select"; id: string }
+  | { type: "select-all" }
   | { type: "duplicate" }
   | { type: "toggle-visible" }
   | { type: "remove" }
@@ -38,8 +42,22 @@ export type CommandAction =
   | { type: "widget-copy" }
   | { type: "widget-paste" }
   | { type: "widget-move"; delta: -1 | 1 }
-  | { type: "tab"; tab: InspectorTab }
-  | { type: "goto-setting"; tab: InspectorTab; label: string };
+  | { type: "goto-card"; id: string }
+  | { type: "document-tab"; tab: DocumentTab }
+  | { type: "follow-all" }
+  | { type: "toggle-enforce" }
+  | { type: "apply-appearance"; id: string }
+  | { type: "goto-setting"; section: string; key?: string }
+  | { type: "use-global"; target: AppearanceTarget }
+  | { type: "edit-style" }
+  | { type: "bind-data" }
+  | { type: "edit-theme" }
+  | { type: "copy-style" }
+  | { type: "paste-style" }
+  | { type: "follow-global" }
+  | { type: "deselect" }
+  | { type: "resize-step"; cols: number; rows: number }
+  | { type: "sample-layout" };
 
 export interface Command {
   id: string;
@@ -55,9 +73,15 @@ export interface CommandState {
   insertables: { kind: "module" | "panel"; id: string; title: string }[];
   profiles: Pick<MonitorProfile, "id" | "name" | "width" | "height">[];
   placements: Placement[];
+  /** The primary selected zone. */
   selected: Placement | null;
-  /** The selected widget's settings (empty for panels and blank zones). */
-  settings: ModuleSetting[];
+  /** Every selected zone, the primary last (default: just `selected`). */
+  selection?: Placement[];
+  /**
+   * What the inspector shows now (a widget, a panel, the Dashboard), for the
+   * "Go to setting" entries; null when it has no sections (several zones, a blank zone).
+   */
+  context: InspectorContext | null;
   /** The selected panel widget (in `selected.panel`). */
   widget: Widget | null;
   /** A widget has been copied (Paste after is offered). */
@@ -66,12 +90,24 @@ export interface CommandState {
   canRedo: boolean;
   showGrid: boolean;
   showSources: boolean;
+  /** The studio layout mode (the current one is marked in the palette). */
+  layoutMode: LayoutMode;
+  /** The global style is forced on every widget of the profile. */
+  enforced: boolean;
+  /** Built-in and saved appearance presets (applied to all profiles). */
+  appearancePresets: { id: string; name: string }[];
 }
 
 const DRAWERS: { drawer: Drawer; label: string }[] = [
   { drawer: "add", label: "Add" },
   { drawer: "layers", label: "Layers" },
   { drawer: "profiles", label: "Profiles" },
+];
+
+const LAYOUT_MODES: { mode: LayoutMode; label: string }[] = [
+  { mode: "auto", label: "Auto" },
+  { mode: "side", label: "Side" },
+  { mode: "bottom", label: "Bottom" },
 ];
 
 function generalCommands(s: CommandState): Command[] {
@@ -93,16 +129,73 @@ function generalCommands(s: CommandState): Command[] {
     ...DRAWERS.map(({ drawer, label }) =>
       general(`drawer:${drawer}`, `Open drawer: ${label}`, { type: "drawer", drawer })
     ),
+    general("background", "Background…", { type: "document-tab", tab: "background" }),
+    general("appearance", "Appearance…", { type: "document-tab", tab: "appearance" }),
+    general("general", "General settings…", { type: "document-tab", tab: "general" }, "font, clock, motion"),
+    general("connection", "Connection…", { type: "document-tab", tab: "connection" }, "Data API URL"),
+    general("follow-all", "Make all widgets follow global style", { type: "follow-all" }, "this profile"),
+    general(
+      "toggle-enforce",
+      s.enforced ? "Stop forcing global style" : "Force global style on every widget",
+      { type: "toggle-enforce" }
+    ),
     general("sources", s.showSources ? "Back to Design" : "Open Sources", { type: "sources" }),
     general("grid", s.showGrid ? "Hide grid" : "Show grid", { type: "toggle-grid" }),
+    ...LAYOUT_MODES.map(({ mode, label }) =>
+      general(`layout:${mode}`, `Layout: ${label}`, { type: "layout", mode }, s.layoutMode === mode ? "current" : undefined)
+    ),
+    general("toggle-dock", "Toggle inspector", { type: "toggle-dock" }, KEYS.dock),
     general("zoom-fit", "Zoom to fit", { type: "zoom-fit" }, KEYS.fit),
     general("zoom-in", "Zoom in", { type: "zoom-in" }, KEYS.zoomIn),
     general("zoom-out", "Zoom out", { type: "zoom-out" }, KEYS.zoomOut),
+    ...(s.placements.length > 0
+      ? [general("select-all", "Select all zones", { type: "select-all" }, KEYS.selectAll)]
+      : []),
+  ];
+}
+
+/** Hide, duplicate and remove for several selected zones at once. */
+function selectionCommands(selection: Placement[]): Command[] {
+  const n = selection.length;
+  const zone = (id: string, label: string, action: CommandAction, hint: string): Command => ({
+    id: `zone:${id}`,
+    label,
+    group: "Selected zones",
+    hint,
+    action,
+  });
+  return [
+    zone("duplicate", `Duplicate ${n} zones`, { type: "duplicate" }, KEYS.duplicate),
+    zone(
+      "visible",
+      `${selection.some((p) => p.visible) ? "Hide" : "Show"} ${n} zones`,
+      { type: "toggle-visible" },
+      KEYS.hide
+    ),
+    zone("remove", `Remove ${n} zones`, { type: "remove" }, KEYS.remove),
+  ];
+}
+
+/** Copy / paste the look and follow the global style, for the selected zone(s). */
+function styleCommands(): Command[] {
+  const style = (id: string, label: string, action: CommandAction, hint?: string): Command => ({
+    id: `style:${id}`,
+    label,
+    group: "Zone style",
+    hint,
+    action,
+  });
+  return [
+    style("copy", "Copy style", { type: "copy-style" }, KEYS.copyStyle),
+    style("paste", "Paste style", { type: "paste-style" }, KEYS.pasteStyle),
+    style("follow", "Follow global style", { type: "follow-global" }),
+    style("global-all", "Use as global style: all profiles", { type: "use-global", target: "all" }),
+    style("global-profile", "Use as global style: this profile", { type: "use-global", target: "profile" }),
   ];
 }
 
 /** `widgetKeys`: Ctrl+D / Del act on the selected widget, so the zone's show no key. */
-function selectedCommands(selected: Placement, settings: ModuleSetting[], widgetKeys: boolean): Command[] {
+function selectedCommands(selected: Placement, widgetKeys: boolean): Command[] {
   const zone = (id: string, label: string, action: CommandAction, hint?: string): Command => ({
     id: `zone:${id}`,
     label,
@@ -121,20 +214,39 @@ function selectedCommands(selected: Placement, settings: ModuleSetting[], widget
       KEYS.hide
     ),
     zone("remove", "Remove zone", { type: "remove" }, widgetKeys ? undefined : KEYS.remove),
-    zone("tab:content", "Show Content tab", { type: "tab", tab: "content" }),
-    zone("tab:style", "Show Style tab", { type: "tab", tab: "style" }),
-    ...settings.map((def): Command => {
-      const tab: InspectorTab = isStyleSetting(def) ? "style" : "content";
-      const where = tab === "style" ? "Style" : "Content";
-      return {
-        id: `setting:${def.key}`,
-        label: `Go to setting: ${def.label}`,
-        group: "Selected zone",
-        hint: def.group ? `${where} › ${def.group}` : where,
-        action: { type: "goto-setting", tab, label: def.label },
-      };
-    }),
+    zone("card:widget", "Go to Widget settings", { type: "goto-card", id: "widget" }),
+    zone("card:colors", "Go to Colors & surface (style)", { type: "goto-card", id: "colors" }),
   ];
+}
+
+/**
+ * "Go to setting: …" for every setting of the inspector's current context,
+ * and "Go to section: …" for a section that is custom UI only (the Dashboard's
+ * cards, a panel's layout): each jumps to its tab and section.
+ */
+function settingCommands(context: InspectorContext, group: string): Command[] {
+  return allSections(context).flatMap((s): Command[] => [
+    ...s.settings.map(
+      (def): Command => ({
+        id: `setting:${s.id}:${def.key}`,
+        label: `Go to setting: ${def.label}`,
+        group,
+        hint: s.title,
+        action: { type: "goto-setting", section: s.id, key: def.key },
+      })
+    ),
+    ...(s.settings.length === 0 && s.special
+      ? [
+          {
+            id: `section:${s.id}`,
+            label: `Go to section: ${s.title}`,
+            group,
+            hint: "Inspector",
+            action: { type: "goto-setting", section: s.id } as const,
+          },
+        ]
+      : []),
+  ]);
 }
 
 /** The selected panel widget's actions (Move only where it can go). */
@@ -180,9 +292,24 @@ export function buildCommands(s: CommandState): Command[] {
   const widgets = s.selected?.panel?.widgets ?? [];
   return [
     ...(s.widget ? widgetCommands(widgets, s.widget, s.canPasteWidget) : []),
-    ...(s.selected ? selectedCommands(s.selected, s.settings, s.widget !== null) : []),
+    ...((s.selection?.length ?? 0) > 1
+      ? selectionCommands(s.selection!)
+      : s.selected
+        ? selectedCommands(s.selected, s.widget !== null)
+        : []),
+    ...(s.context ? settingCommands(s.context, s.selected ? "Selected zone" : "Dashboard") : []),
+    ...(s.selected ? styleCommands() : []),
     ...selectWidgetCommands(widgets),
     ...generalCommands(s),
+    ...s.appearancePresets.map(
+      (p): Command => ({
+        id: `appearance:${p.id}`,
+        label: `Apply appearance: ${p.name}`,
+        group: "Appearance",
+        hint: "all profiles",
+        action: { type: "apply-appearance", id: p.id },
+      })
+    ),
     ...s.insertables.map(
       (item): Command => ({
         id: `add:${item.kind}:${item.id}`,

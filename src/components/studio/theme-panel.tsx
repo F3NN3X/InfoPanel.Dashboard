@@ -1,28 +1,8 @@
-import { Palette } from "lucide-react";
-import {
-  hslToHex,
-  hexToHsl,
-  THEME_PRESETS,
-  type ThemeTokens,
-} from "@/lib/theme";
-import { cn } from "@/lib/utils";
-import { CollapsibleSection } from "./collapsible-section";
-
-const TOKEN_ROWS: [keyof ThemeTokens, string][] = [
-  ["background", "Background"],
-  ["foreground", "Foreground"],
-  ["card", "Card"],
-  ["card-foreground", "Card text"],
-  ["primary", "Primary"],
-  ["primary-foreground", "Primary text"],
-  ["secondary", "Secondary"],
-  ["muted", "Muted"],
-  ["muted-foreground", "Muted text"],
-  ["accent", "Accent"],
-  ["destructive", "Destructive"],
-  ["border", "Border"],
-  ["ring", "Ring"],
-];
+import { hslToHex, hexToHsl, THEME_PRESETS, type ThemeTokens } from "@/lib/theme";
+import { useInspectorAdvanced } from "./inspector/inspector-prefs";
+import { ColorPill } from "./inspector/color-pill";
+import { InlineRow, SelectRow, SliderRow } from "./setting-rows";
+import { ADVANCED_TOKENS, themeRows, type TokenRow } from "./theme-rows";
 
 interface ThemePanelProps {
   tokens: ThemeTokens;
@@ -31,103 +11,77 @@ interface ThemePanelProps {
   onToken: (key: keyof ThemeTokens, value: string) => void;
   onRadius: (radius: number) => void;
   onPreset: (name: string) => void;
+  /** The inspector search: lists only the matching rows (every row when none matches). */
+  query?: string;
+}
+
+/** A theme colour: its hex and a swatch opening the native picker (stored as an HSL triplet). */
+function TokenRow({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
+  const hex = hslToHex(value);
+  return (
+    <InlineRow label={label}>
+      <ColorPill value={hex} label={label} onChange={(v) => onChange(hexToHsl(v))} />
+    </InlineRow>
+  );
 }
 
 /**
- * shadcn-themer-style theme editor: preset swatches, a corner radius
- * slider and, collapsed under "Custom colours", per-token color pickers
- * (native color inputs converted to HSL triplets). Changes apply live
- * through the CSS variables.
+ * Appearance › Theme (shadcn-themer style): a theme preset that changes
+ * the colours only (appearance presets above change the whole look), the
+ * corner radius, and per-token colour pickers — the main ones always, the
+ * rest as Advanced. Changes apply live through the CSS variables.
  */
-export function ThemePanel({
-  tokens,
-  radius,
-  presetName,
-  onToken,
-  onRadius,
-  onPreset,
-}: ThemePanelProps) {
+export function ThemePanel({ tokens, radius, presetName, onToken, onRadius, onPreset, query = "" }: ThemePanelProps) {
+  const [advanced, setAdvanced] = useInspectorAdvanced();
+  const edited = presetName === "custom";
+  const row = ([key, label]: TokenRow) => (
+    <TokenRow key={key} label={label} value={tokens[key]} onChange={(v) => onToken(key, v)} />
+  );
+  const {
+    filtering,
+    preset: showPreset,
+    radius: showRadius,
+    visible: visibleTokens,
+    advanced: hiddenTokens,
+  } = themeRows(query);
   return (
-    <div className="space-y-5">
-      <div>
-        <div className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Presets
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          {THEME_PRESETS.map((preset) => (
-            <button
-              key={preset.name}
-              onClick={() => onPreset(preset.name)}
-              className={cn(
-                "flex items-center gap-2 rounded-lg border p-2 text-left text-xs",
-                presetName === preset.name
-                  ? "border-ring ring-2 ring-ring/40"
-                  : "border-border hover:border-ring/50"
-              )}
-            >
-              <span className="flex shrink-0 -space-x-1.5">
-                <span
-                  className="h-4 w-4 rounded-full border border-foreground/20"
-                  style={{ backgroundColor: hslToHex(preset.tokens.background) }}
-                />
-                <span
-                  className="h-4 w-4 rounded-full border border-foreground/20"
-                  style={{ backgroundColor: hslToHex(preset.tokens.primary) }}
-                />
-                <span
-                  className="h-4 w-4 rounded-full border border-foreground/20"
-                  style={{ backgroundColor: hslToHex(preset.tokens.accent) }}
-                />
-              </span>
-              <span className="min-w-0 leading-tight text-foreground/85">{preset.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <div className="mb-2 flex items-center justify-between text-xs">
-          <span className="font-medium uppercase tracking-wider text-muted-foreground">
-            <Palette className="mr-1 inline h-3.5 w-3.5" />
-            Corner radius
-          </span>
-          <span className="tabular-nums text-muted-foreground">
-            {radius}rem
-          </span>
-        </div>
-        <input
-          type="range"
-          min={0}
-          max={1.25}
-          step={0.25}
-          value={radius}
-          onChange={(e) => onRadius(parseFloat(e.target.value))}
-          className="w-full accent-ring"
+    <div className="space-y-2">
+      {showPreset && (
+        <SelectRow
+          label="Theme"
+          hint="Theme colours only; the corner radius stays"
+          options={[
+            ...THEME_PRESETS.map((p) => ({ value: p.name, label: p.label })),
+            ...(edited ? [{ value: "custom", label: "Custom (edited)" }] : []),
+          ]}
+          value={presetName}
+          onChange={(name) => name !== "custom" && onPreset(name)}
         />
-      </div>
-
-      <CollapsibleSection
-        id="theme:Custom colours"
-        title="Custom colours"
-        aside={presetName === "custom" ? "edited" : ""}
-      >
-        <div className="grid grid-cols-2 gap-x-3 gap-y-2">
-          {TOKEN_ROWS.map(([key, label]) => (
-            <label
-              key={key}
-              className="flex items-center justify-between gap-2 text-xs text-muted-foreground"
-            >
-              <span className="truncate" title={label}>{label}</span>
-              <input
-                type="color"
-                value={hslToHex(tokens[key])}
-                onChange={(e) => onToken(key, hexToHsl(e.target.value))}
-                className="h-6 w-8 shrink-0 cursor-pointer rounded border border-border bg-transparent"
-              />
-            </label>
-          ))}
-        </div>
-      </CollapsibleSection>
+      )}
+      {showRadius && (
+        <SliderRow
+          label="Corner radius"
+          unit="rem"
+          value={radius}
+          min={0}
+          max={1.5}
+          step={0.05}
+          fallback={0.5}
+          onChange={onRadius}
+        />
+      )}
+      {visibleTokens.map(row)}
+      {advanced || filtering ? (
+        hiddenTokens.map(row)
+      ) : (
+        <button
+          type="button"
+          onClick={() => setAdvanced(true)}
+          className="w-full rounded-[7px] border border-dashed border-ui-strong p-[9px] text-[12px] text-ui-3 hover:border-[#3a3a44] hover:text-ui-1"
+        >
+          Show {ADVANCED_TOKENS.length} advanced colors
+        </button>
+      )}
     </div>
   );
 }

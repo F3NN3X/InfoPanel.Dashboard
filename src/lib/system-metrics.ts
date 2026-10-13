@@ -205,24 +205,18 @@ function readDisks(sensors: SensorMap, keys: string[]): DiskReading[] {
     });
 }
 
-/** Drives whose name contains one of the comma-separated substrings (empty = all). */
+/** Lower case with punctuation as spaces, so "WDS100T2B0A-00SM50" matches the slug name "wds100t2b0a_00sm50". */
+const looseName = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+
+/** Drives whose name contains one of the comma-separated substrings (empty = all), ignoring case and punctuation. */
 export function filterDisks(disks: DiskReading[], filter: string): DiskReading[] {
   const terms = filter
     .split(",")
     .map((t) => t.trim().toLowerCase())
-    .filter(Boolean);
-  return terms.length === 0
-    ? disks
-    : disks.filter((d) => terms.some((t) => d.name.toLowerCase().includes(t)));
-}
-
-export type Level = "normal" | "warn" | "crit";
-
-/** Where a value sits against its warning and critical thresholds. */
-export function levelOf(value: number | undefined, warn: number, crit: number): Level {
-  if (value === undefined) return "normal";
-  if (value >= crit) return "crit";
-  return value >= warn ? "warn" : "normal";
+    .filter((t) => looseName(t) !== "");
+  // the exact substring as before; the loose match only adds slug-named drives (`wds100t2b0a_00sm50`)
+  const match = (name: string, t: string) => name.toLowerCase().includes(t) || (/^[a-z0-9_]+$/i.test(name) && looseName(t).length >= 3 && looseName(name).includes(looseName(t)));
+  return terms.length === 0 ? disks : disks.filter((d) => terms.some((t) => match(d.name, t)));
 }
 
 export type TempUnit = "c" | "f";
@@ -300,4 +294,31 @@ export function readSystem(sensors: SensorMap): SystemReadings {
     },
     disks: readDisks(sensors, keys),
   };
+}
+
+/** `"62.5 %"` → value 62.5, unit "%"; text without a leading number has no value. */
+function unflatten(raw: string): SensorValue {
+  const cut = raw.indexOf(" ");
+  const head = cut < 0 ? raw : raw.slice(0, cut);
+  const value = Number(head);
+  return /^-?\d+(\.\d+)?(e-?\d+)?$/i.test(head) ? { value, unit: cut < 0 ? "" : raw.slice(cut + 1) } : { text: raw, unit: "" };
+}
+
+const flatCache = new WeakMap<object, { names?: Record<string, string>; readings: SystemReadings }>();
+
+/**
+ * The readings from the widget templates' flat data (`{ key: "62.5 %" }`, `widgets/data-adapter.ts`).
+ * Flat data carries no sensor names: without `names` (the display names by key) hardware names stay
+ * unset and drives are named by their key slug (`kingston_sfyrd2000g`). Memoised per data identity.
+ */
+export function readSystemFlat(data: Record<string, string | { value: string }>, names?: Record<string, string>): SystemReadings {
+  const hit = flatCache.get(data);
+  if (hit && hit.names === names) return hit.readings;
+  const sensors: SensorMap = {};
+  for (const [key, v] of Object.entries(data)) {
+    if (key.startsWith("libre.") || key.startsWith("system.")) sensors[key] = { ...unflatten(typeof v === "object" ? v.value : v), name: names?.[key] };
+  }
+  const readings = readSystem(sensors);
+  flatCache.set(data, { names, readings });
+  return readings;
 }

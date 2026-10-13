@@ -6,23 +6,29 @@ import { cn } from "@/lib/utils";
 import { ModernChrome } from "@/components/modern-chrome";
 import { flow, surfaceBox, ws } from "@/components/widget-style";
 import {
+  enforcedPanel,
   panelCardStyle,
-  panelScope,
   panelSurfaceColors,
   panelSurfaceOf,
   panelVars,
 } from "./panel-layout";
 import { PanelOverlay } from "./panel-overlay";
+import { PANEL_SKIN_VARS, PanelSkin, panelSkinOf } from "./panel-skin";
 import type { PanelSelection } from "./panel-parts";
 import { PanelStack } from "./panel-stack";
 
 interface PanelViewProps {
   panel: PanelDef;
   /**
-   * The placement's resolved settings (own, legacy fallbacks, profile
-   * style — see `panelSettings` / `withProfileStyle`): the panel's look.
+   * The placement's resolved settings (legacy look, dashboard and profile
+   * style, own — see `resolveStyle`): the panel's look.
    */
   settings?: ModuleSettings;
+  /**
+   * The global style is forced: the widgets' own colors give way to the
+   * resolved accent and text colors (`enforcedPanel`).
+   */
+  enforced?: boolean;
   sensors: SensorMap;
   /** Show a hint for empty panels (studio only). */
   studio?: boolean;
@@ -49,61 +55,67 @@ const joinCss = (...parts: (string | undefined)[]) => parts.filter((p) => p?.tri
  * `.wp-panel-title`, `.wp-panel-bg`, `.wp-panel-scrim`, `.wp-band[data-band]`
  * and `.wp-widget.wp-widget--{kind}[data-widget-id][data-widget-kind]`.
  */
-export function PanelView({ panel, settings, sensors, studio, selection }: PanelViewProps) {
+export function PanelView({ panel: own, settings, sensors, studio, selection, enforced }: PanelViewProps) {
   const cfg = settings ?? {};
-  const title = String(cfg.label ?? (panel.titleVisible ? panel.title : ""));
-  const surface = panelSurfaceOf(cfg.surface ?? panel.background);
-  const chrome = chromeOf({ accent: panel.accent ?? "", ...cfg });
+  const title = String(cfg.label ?? (own.titleVisible ? own.title : ""));
+  const surface = panelSurfaceOf(cfg.surface ?? own.background);
+  const chrome = chromeOf({ accent: own.accent ?? "", ...cfg });
+  const panel = enforced ? enforcedPanel(own, chrome.accent || undefined) : own;
   const overlay = panel.layout === "overlay";
   const hug = panel.fit === "hug";
   const layout = overlay ? "overlay" : panel.layout === "grid" ? "grid" : "stack";
+
+  const skin = panelSkinOf(cfg);
 
   const look: CSSProperties = overlay
     ? { borderRadius: ws.radius("var(--radius)") }
     : panelCardStyle(surface, chrome);
 
   return (
-    <ModernChrome
-      // The panel draws its own title; its CSS joins the panel's own (presets).
-      chrome={{ ...chrome, label: "", icon: "", customCss: joinCss(chrome.customCss, panel.css) }}
-    >
-      <div
-        className="flex h-full w-full"
-        // Hug: the panel keeps its content size, placed by the zone's alignment.
-        style={hug ? flow("row", { x: "start", y: "start" }) : undefined}
+    <PanelSkin skin={skin} graph={String(cfg.graph ?? "auto")} meter={String(cfg.meter ?? "auto")} chrome={chrome}>
+      <ModernChrome
+        // The panel draws its own title; its CSS joins the panel's own (presets).
+        chrome={{ ...chrome, label: "", icon: "", customCss: joinCss(chrome.customCss, panel.css) }}
       >
         <div
-          className={cn(
-            "wp-panel relative overflow-hidden",
-            hug ? "max-h-full max-w-full" : "h-full w-full",
-            !overlay && "flex flex-col gap-3"
-          )}
-          data-panel-layout={layout}
-          data-panel-id={panel.id}
-          style={{ ...panelScope(chrome), ...panelVars(panel), ...look }}
+          className="flex h-full w-full"
+          // Hug: the panel keeps its content size, placed by the zone's alignment.
+          style={hug ? flow("row", { x: "start", y: "start" }) : undefined}
         >
-          {overlay ? (
-            <PanelOverlay
-              panel={panel}
-              sensors={sensors}
-              title={title}
-              icon={chrome.icon}
-              edge={String(surfaceBox(panelSurfaceColors(surface, chrome), chrome).boxShadow)}
-              selection={selection}
-              studio={studio}
-            />
-          ) : (
-            <PanelStack
-              panel={panel}
-              sensors={sensors}
-              title={title}
-              icon={chrome.icon}
-              studio={studio}
-              selection={selection}
-            />
-          )}
+          <div
+            className={cn(
+              "wp-panel relative overflow-hidden",
+              hug ? "max-h-full max-w-full" : "h-full w-full",
+              !overlay && "flex flex-col gap-3"
+            )}
+            data-panel-layout={layout}
+            data-panel-id={panel.id}
+            // The theme tokens are re-scoped on the ModernChrome root (`tokenScope`).
+            style={{ ...panelVars(panel), ...(skin ? PANEL_SKIN_VARS : null), ...look }}
+          >
+            {overlay ? (
+              <PanelOverlay
+                panel={panel}
+                sensors={sensors}
+                title={title}
+                icon={chrome.icon}
+                edge={String(surfaceBox(panelSurfaceColors(surface, chrome), chrome).boxShadow)}
+                selection={selection}
+                studio={studio}
+              />
+            ) : (
+              <PanelStack
+                panel={panel}
+                sensors={sensors}
+                title={title}
+                icon={chrome.icon}
+                studio={studio}
+                selection={selection}
+              />
+            )}
+          </div>
         </div>
-      </div>
-    </ModernChrome>
+      </ModernChrome>
+    </PanelSkin>
   );
 }

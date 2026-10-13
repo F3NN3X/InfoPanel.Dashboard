@@ -8,12 +8,19 @@ import {
 } from "react";
 import type { DashboardConfig } from "@/lib/layout";
 import {
+  beginTransaction,
+  cancelTransaction,
+  commitTransaction,
   emptyHistory,
   recordChange,
   redoChange,
+  resetHistory,
   undoChange,
   type History,
 } from "./config-history";
+
+/** Deep equality for the config, which is plain JSON (a drag back to its start is no step). */
+const sameValue = (a: DashboardConfig, b: DashboardConfig) => a === b || JSON.stringify(a) === JSON.stringify(b);
 
 /** A config setter that records an undo step; `key` coalesces repeats. */
 export type HistorySetter = (action: SetStateAction<DashboardConfig>, key?: string) => void;
@@ -49,7 +56,7 @@ export function useConfigHistory(
   useLayoutEffect(() => {
     if (config === latest.current) return;
     latest.current = config;
-    history.current = emptyHistory();
+    history.current = resetHistory(history.current, config);
     setCounts({ undo: 0, redo: 0 });
   }, [config]);
 
@@ -63,15 +70,35 @@ export function useConfigHistory(
     [apply]
   );
 
+  const begin = useCallback(() => {
+    history.current = beginTransaction(history.current, latest.current);
+  }, []);
+
+  const commit = useCallback(() => {
+    if (!history.current.txn) return;
+    history.current = commitTransaction(history.current, latest.current, Date.now(), sameValue);
+    setCounts({ undo: history.current.past.length, redo: history.current.future.length });
+  }, []);
+
+  const cancel = useCallback(() => {
+    const step = cancelTransaction(history.current);
+    if (step) apply(step.value, step.history);
+  }, [apply]);
+
+  /** Whether a drag transaction is open (the shortcuts stand down meanwhile). */
+  const dragging = useCallback(() => history.current.txn !== null, []);
+
   const undo = useCallback(() => {
+    if (history.current.txn) return;
     const step = undoChange(history.current, latest.current);
     if (step) apply(step.value, step.history);
   }, [apply]);
 
   const redo = useCallback(() => {
+    if (history.current.txn) return;
     const step = redoChange(history.current, latest.current);
     if (step) apply(step.value, step.history);
   }, [apply]);
 
-  return { set, undo, redo, canUndo: counts.undo > 0, canRedo: counts.redo > 0 };
+  return { set, begin, commit, cancel, undo, redo, dragging, canUndo: counts.undo > 0, canRedo: counts.redo > 0 };
 }

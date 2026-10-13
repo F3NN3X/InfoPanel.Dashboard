@@ -1,11 +1,12 @@
-import { useState, type DragEvent, type KeyboardEvent } from "react";
+import { useState, type DragEvent, type KeyboardEvent, type ReactNode } from "react";
 import { Menu } from "@base-ui/react/menu";
-import { Eye, EyeOff, GripVertical, MoreHorizontal } from "lucide-react";
+import { ArrowUp, Copy, Eye, EyeOff, GripVertical, MoreHorizontal, Trash2 } from "lucide-react";
+import { IconButton } from "@/components/ui/icon-button";
 import type { Widget, WidgetKind } from "@/lib/panel-model";
 import { cn } from "@/lib/utils";
-import { ITEM, POPUP, SEPARATOR } from "./style-tools";
+import { ITEM, POPUP } from "./style-tools";
 import { ChangeKindSubmenu } from "./widget-kind-menu";
-import { KIND_INFO, widgetName } from "./widget-kinds";
+import { KIND_INFO, sensorName, widgetName } from "./widget-kinds";
 
 /** Drag payload type of a layer row (only rows of this list accept it). */
 const DND_MIME_WIDGET = "application/x-infopanel-widget";
@@ -26,8 +27,9 @@ interface PanelLayersProps {
 }
 
 /**
- * The panel's widgets as layers: drag a row (or Alt+↑/↓ with the list
- * focused) to reorder, ↑/↓ to select, the eye to hide, "⋯" for the rest.
+ * The panel's widgets as layers (README §4.6): drag a row (or Alt+↑/↓ with
+ * the list focused) to reorder, ↑/↓ to select; each row hides, duplicates
+ * and deletes, and its "⋯" copies, pastes and changes the kind.
  */
 export function PanelLayers({
   widgets,
@@ -79,9 +81,7 @@ export function PanelLayers({
 
   if (widgets.length === 0) {
     return (
-      <div className="rounded-md border border-dashed border-border p-2 text-center text-xs text-muted-foreground/60">
-        no widgets yet — add one above
-      </div>
+      <span className="block py-1 text-[12px] text-ui-5">No widgets in this panel yet.</span>
     );
   }
 
@@ -92,7 +92,7 @@ export function PanelLayers({
       tabIndex={0}
       onKeyDown={onKeyDown}
       onDragLeave={(e) => !e.currentTarget.contains(e.relatedTarget as Node) && setDropAt(null)}
-      className="space-y-1 rounded-md outline-none focus-visible:ring-1 focus-visible:ring-ring"
+      className="space-y-1 rounded-md outline-none focus-visible:ring-1 focus-visible:ring-ui-accent/60"
     >
       {widgets.map((w, i) => {
         const { icon: Icon, label } = KIND_INFO[w.kind];
@@ -112,59 +112,58 @@ export function PanelLayers({
             onDrop={onDrop}
             onClick={() => onSelect(w.id)}
             className={cn(
-              "relative flex cursor-pointer items-center gap-1.5 rounded-md border px-1.5 py-1",
-              w.id === selectedId ? "border-ring bg-accent/40" : "border-border hover:border-ring/40",
+              "relative flex cursor-pointer items-center gap-[7px] rounded-[7px] border py-1.5 pl-1.5 pr-1",
+              w.id === selectedId
+                ? "border-ui-accent/50 bg-ui-accent/[.12]"
+                : "border-ui-subtle bg-ui-app hover:border-[#33333a]",
               w.id === dragId && "opacity-40",
               !w.visible && "opacity-50"
             )}
           >
             {dropAt === i && <DropLine edge="top" />}
             {dropAt === i + 1 && i === widgets.length - 1 && <DropLine edge="bottom" />}
-            <GripVertical className="h-3 w-3 shrink-0 cursor-grab text-muted-foreground/50" />
-            <Icon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-label={label} />
-            <span className="min-w-0 flex-1 truncate text-xs text-foreground/85" title={`${label}: ${widgetName(w)}`}>
-              {widgetName(w)}
+            <GripVertical className="h-3.5 w-3.5 shrink-0 cursor-grab text-ui-5" />
+            <Icon className="h-4 w-4 shrink-0 text-ui-3" aria-label={label} />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[12px] text-ui-1">{widgetName(w)}</span>
+              <span className="block truncate text-[10.5px] text-ui-4">
+                {`${label} · ${w.sensor ? sensorName(w.sensor) : "no sensor"}`}
+              </span>
             </span>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onToggleVisible(w.id);
-              }}
-              className="rounded p-0.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-              title={w.visible ? "Hide widget" : "Show widget"}
+            <RowButton label="Move up" onClick={() => onMove(w.id, i - 1)}>
+              <ArrowUp className="h-3.5 w-3.5" />
+            </RowButton>
+            <RowButton
+              label={w.visible ? "Hide widget" : "Show widget"}
+              onClick={() => onToggleVisible(w.id)}
             >
               {w.visible ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
-            </button>
+            </RowButton>
+            <RowButton label="Duplicate widget" onClick={() => onDuplicate(w.id)}>
+              <Copy className="h-3.5 w-3.5" />
+            </RowButton>
+            <RowButton label="Delete widget" danger onClick={() => onRemove(w.id)}>
+              <Trash2 className="h-3.5 w-3.5" />
+            </RowButton>
             <Menu.Root>
               <Menu.Trigger
                 onClick={(e) => e.stopPropagation()}
-                className="rounded p-0.5 text-muted-foreground hover:bg-accent hover:text-foreground data-popup-open:bg-accent data-popup-open:text-foreground"
+                className="inline-flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-[5px] text-ui-3 hover:bg-ui-hover hover:text-ui-1 data-popup-open:bg-ui-hover data-popup-open:text-ui-1"
                 title="Widget actions"
+                aria-label="Widget actions"
               >
                 <MoreHorizontal className="h-3.5 w-3.5" />
               </Menu.Trigger>
               <Menu.Portal>
                 <Menu.Positioner className="z-50" sideOffset={4} align="end">
                   <Menu.Popup className={POPUP}>
-                    <Menu.Item className={ITEM} onClick={() => onDuplicate(w.id)}>
-                      Duplicate
-                    </Menu.Item>
                     <Menu.Item className={ITEM} onClick={() => onCopy(w.id)}>
                       Copy
                     </Menu.Item>
-                    <Menu.Item
-                      className={ITEM}
-                      disabled={!onPasteAfter}
-                      onClick={() => onPasteAfter?.(w.id)}
-                    >
+                    <Menu.Item className={ITEM} disabled={!onPasteAfter} onClick={() => onPasteAfter?.(w.id)}>
                       Paste after
                     </Menu.Item>
                     <ChangeKindSubmenu kind={w.kind} onChange={(kind) => onChangeKind(w.id, kind)} />
-                    <Menu.Separator className={SEPARATOR} />
-                    <Menu.Item className={cn(ITEM, "text-red-400")} onClick={() => onRemove(w.id)}>
-                      Delete
-                    </Menu.Item>
                   </Menu.Popup>
                 </Menu.Positioner>
               </Menu.Portal>
@@ -176,12 +175,39 @@ export function PanelLayers({
   );
 }
 
+/** A row's icon button (clicks stay off the row's select). */
+function RowButton({
+  label,
+  danger,
+  onClick,
+  children,
+}: {
+  label: string;
+  danger?: boolean;
+  onClick: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <IconButton
+      label={label}
+      danger={danger}
+      className="h-[22px] w-[22px]"
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
+    >
+      {children}
+    </IconButton>
+  );
+}
+
 /** The insertion line shown while dragging a row. */
 function DropLine({ edge }: { edge: "top" | "bottom" }) {
   return (
     <span
       className={cn(
-        "pointer-events-none absolute inset-x-0 h-0.5 rounded-full bg-ring",
+        "pointer-events-none absolute inset-x-0 h-0.5 rounded-full bg-ui-accent",
         edge === "top" ? "-top-[3px]" : "-bottom-[3px]"
       )}
     />

@@ -16,6 +16,7 @@ import { notificationsModule } from "./notifications";
 import { textfileModule } from "./textfile";
 import { streamdeckModule } from "./streamdeck";
 import { webpageModule } from "./webpage";
+import { TEMPLATE_MODULES } from "@/widgets/registry";
 import type { DashboardModule } from "./types";
 
 /**
@@ -24,7 +25,7 @@ import type { DashboardModule } from "./types";
  * section. Add a new plugin by adding a module here — the App renders
  * everything registered and feeds unclaimed keys to the generic fallback.
  */
-export const modules: DashboardModule[] = [
+const legacyModules: DashboardModule[] = [
   systemModernModule,
   spotifyModernModule,
   mediaModernModule,
@@ -43,7 +44,12 @@ export const modules: DashboardModule[] = [
   webpageModule,
 ];
 
-const claimedPrefixes = modules.flatMap((m) => m.prefixes);
+/** The legacy modules, then the template widgets (`src/widgets/registry.ts`). */
+export const modules: DashboardModule[] = [...legacyModules, ...TEMPLATE_MODULES];
+
+// Only the legacy modules claim keys for the "Other sensors" catch-all: a template's prefixes count
+// as claimed only while it is placed, so listing it in the registry must not empty the catch-all.
+const claimedPrefixes = legacyModules.flatMap((m) => m.prefixes);
 
 /** True when a registered module owns the key. */
 export function isClaimed(key: string): boolean {

@@ -1,19 +1,24 @@
 import { useState } from "react";
 import { Menu } from "@base-ui/react/menu";
-import { MoreHorizontal, Plus } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { LayoutDashboard, MoreHorizontal, PanelsTopLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Insertable } from "./insert-panel";
 import { DND_MIME, DND_MIME_PANEL } from "./studio-modules";
-import { ITEM, POPUP, SEPARATOR } from "./style-tools";
+import { iconFor } from "@/widgets/core/icons";
+import { moduleIcon } from "./zone-icons";
 
 export type InsertContext = "drawer" | "picker";
 
-/** Rename / delete for a saved panel's row. */
+/** Rename / delete for a saved panel's card. */
 export interface SavedPanelActions {
   onRename: (name: string) => void;
   onDelete: () => void;
 }
+
+const MENU_POPUP =
+  "min-w-36 rounded-[9px] border border-ui-menu bg-ui-raised p-1 font-ui text-[12.5px] text-ui-2 shadow-ui-menu outline-none";
+const MENU_ITEM =
+  "flex h-[30px] cursor-default items-center gap-2 rounded-md px-2 outline-none select-none data-highlighted:bg-ui-hover";
 
 /** The inline name input of a saved panel being renamed. */
 function RenameInput({ initial, onDone }: { initial: string; onDone: (name: string | null) => void }) {
@@ -32,30 +37,30 @@ function RenameInput({ initial, onDone }: { initial: string; onDone: (name: stri
       }}
       onBlur={commit}
       aria-label="Panel name"
-      className="min-w-0 flex-1 rounded border border-border bg-background px-1.5 py-0.5 text-xs text-foreground outline-none focus:border-ring"
+      className="min-w-0 flex-1 rounded border border-ui-strong bg-ui-app px-1.5 py-0.5 text-xs text-ui-1 outline-none focus:border-ui-accent"
     />
   );
 }
 
-/** The "⋯" menu of a saved panel's row. */
+/** The "⋯" menu of a saved panel's card. */
 function SavedPanelMenu({ onRename, onDelete }: { onRename: () => void; onDelete: () => void }) {
   return (
     <Menu.Root>
       <Menu.Trigger
         onClick={(e) => e.stopPropagation()}
-        className="rounded p-0.5 hover:bg-accent hover:text-foreground data-popup-open:bg-accent data-popup-open:text-foreground"
+        className="rounded p-0.5 text-ui-4 hover:bg-ui-hover hover:text-ui-1 data-popup-open:bg-ui-hover data-popup-open:text-ui-1"
         title="Saved panel actions"
+        aria-label="Saved panel actions"
       >
-        <MoreHorizontal className="h-3 w-3" />
+        <MoreHorizontal className="h-3.5 w-3.5" />
       </Menu.Trigger>
       <Menu.Portal>
-        <Menu.Positioner className="z-50" sideOffset={4} align="end">
-          <Menu.Popup className={POPUP} onClick={(e) => e.stopPropagation()}>
-            <Menu.Item className={ITEM} onClick={onRename}>
+        <Menu.Positioner className="z-[80]" sideOffset={4} align="end">
+          <Menu.Popup className={MENU_POPUP} onClick={(e) => e.stopPropagation()}>
+            <Menu.Item className={MENU_ITEM} onClick={onRename}>
               Rename…
             </Menu.Item>
-            <Menu.Separator className={SEPARATOR} />
-            <Menu.Item className={cn(ITEM, "text-red-400")} onClick={onDelete}>
+            <Menu.Item className={cn(MENU_ITEM, "text-ui-danger")} onClick={onDelete}>
               Delete
             </Menu.Item>
           </Menu.Popup>
@@ -65,41 +70,68 @@ function SavedPanelMenu({ onRename, onDelete }: { onRename: () => void; onDelete
   );
 }
 
-/** One row: title, minimum size, usage badge, add button (and "⋯" for saved panels). */
+/** A card's icon: the widget's own, or the layout / panel glyph. */
+function cardIcon(item: Insertable) {
+  if (item.kind === "module") return item.icon ? iconFor(item.icon) : moduleIcon(item.id);
+  return item.category === "Layouts" ? LayoutDashboard : PanelsTopLeft;
+}
+
+/** The card's second line: widgets end it with "· min W×H". */
+export function describe(item: Insertable): string {
+  if (item.kind !== "module") return item.description ?? "";
+  return `${item.description ?? "Widget"} · min ${item.cols}×${item.rows}`;
+}
+
+/** One library card: icon, drop size, name, description (and "⋯" for saved panels). */
 export function InsertRow({
   item,
-  count,
+  size,
   context,
   onPick,
   saved,
 }: {
   item: Insertable;
-  count: number;
+  /** The size shown on the card: what it drops with (drawer), or its minimum (picker). */
+  size: { cols: number; rows: number };
   context: InsertContext;
   onPick: () => void;
   /** Set for the user's saved panels. */
   saved?: SavedPanelActions;
 }) {
   const [renaming, setRenaming] = useState(false);
+  const Icon = cardIcon(item);
   const draggable = context === "drawer" && !renaming;
-  const pickOnClick = context === "picker" && !renaming;
-  const hint = context === "drawer" ? "Drag onto the canvas, or click + to add" : "Click to use it for this zone";
-  const thing = item.kind === "panel" ? "panel" : "widget";
+  const hint = context === "drawer" ? "Drag onto the canvas, or click to add" : "Click to use it for this zone";
   return (
     <div
+      role="button"
+      tabIndex={0}
       draggable={draggable}
       onDragStart={(e) => {
         e.dataTransfer.setData(item.kind === "panel" ? DND_MIME_PANEL : DND_MIME, item.id);
         e.dataTransfer.effectAllowed = "copy";
       }}
-      onClick={pickOnClick ? onPick : undefined}
-      className={cn(
-        "flex items-center justify-between rounded-md border border-border px-2 py-1.5 text-xs hover:border-ring/50",
-        draggable && "cursor-grab active:cursor-grabbing",
-        pickOnClick && "cursor-pointer"
-      )}
+      onClick={renaming ? undefined : onPick}
+      onKeyDown={(e) => {
+        if (e.target === e.currentTarget && (e.key === "Enter" || e.key === " ")) {
+          e.preventDefault();
+          onPick();
+        }
+      }}
       title={item.description ? `${item.description} — ${hint.toLowerCase()}` : hint}
+      className={cn(
+        "flex min-w-0 cursor-pointer flex-col gap-1.5 rounded-lg border border-ui-default bg-ui-tile p-2.5 text-left",
+        "transition-colors hover:border-ui-accent hover:bg-[#17171c] focus-visible:outline-none focus-visible:border-ui-accent",
+        draggable && "active:cursor-grabbing"
+      )}
     >
+      <div className="flex items-center justify-between gap-1 text-[#c8c8ce]">
+        <Icon className="h-5 w-5 shrink-0" strokeWidth={1.5} />
+        <span className="flex items-center gap-1.5 font-ui-mono text-[10px] text-ui-5">
+          {size.cols}×{size.rows}
+          {saved && <SavedPanelMenu onRename={() => setRenaming(true)} onDelete={saved.onDelete} />}
+        </span>
+      </div>
       {renaming && saved ? (
         <RenameInput
           initial={item.title}
@@ -109,31 +141,9 @@ export function InsertRow({
           }}
         />
       ) : (
-        <span className="truncate text-foreground/85">{item.title}</span>
+        <span className="break-words text-xs font-medium text-ui-1">{item.title}</span>
       )}
-      <span className="ml-2 flex shrink-0 items-center gap-1 text-muted-foreground">
-        <span className="tabular-nums text-[10px] text-muted-foreground/60">
-          {item.cols}×{item.rows}
-        </span>
-        {count > 0 && (
-          <Badge variant="secondary" className="px-1.5 text-[10px]">
-            {count}
-          </Badge>
-        )}
-        {saved && <SavedPanelMenu onRename={() => setRenaming(true)} onDelete={saved.onDelete} />}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onPick();
-          }}
-          className="rounded p-0.5 hover:bg-accent hover:text-foreground"
-          title={
-            context === "picker" ? `Use this ${thing}` : item.kind === "panel" ? "Add panel to canvas" : "Add to canvas"
-          }
-        >
-          <Plus className="h-3 w-3" />
-        </button>
-      </span>
+      <span className="text-[10.5px] leading-[1.35] text-[#8a8a94]">{describe(item)}</span>
     </div>
   );
 }

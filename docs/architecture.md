@@ -9,13 +9,13 @@ InfoPanel Data API  (default http://127.0.0.1:3921)
    /events?prefix=…   /api/sensors   /api/sources   /api/images/…
         │  read straight from the browser (CORS)
         ▼
- browser page ──── /api/config, /events/config, /api/image-proxy ────▶ dashboard server
- (kiosk or studio)                                                      (server.mjs, 127.0.0.1:3922)
+ browser page ──── /api/config, /events/config, /api/image-proxy, /api/assets ────▶ dashboard server
+ (kiosk or studio)                                                                   (server.mjs, 127.0.0.1:3922)
 ```
 
 Sensor data never passes through the dashboard server. `server.mjs` serves
-the build, stores the config and proxies cover-art images; the page talks to
-the Data API directly.
+the build, stores the config and uploaded media, and proxies cover-art
+images; the page talks to the Data API directly.
 
 ## 1. The InfoPanel Data API
 
@@ -79,7 +79,7 @@ namespace that mounted widgets read.
 
 ### The studio's catalog (`src/lib/catalog.ts`)
 
-The studio's pickers (sensor binding, the Sources view, a widget's source
+The studio's pickers (the Data Explorer, the bind picker, a widget's source
 select) do not use the streams. `useSensorCatalog` fetches `/api/sources` and
 one `/api/sensors` snapshot together, reuses a copy younger than 10 s, shares
 one in-flight fetch, and starts over when the Data API URL changes.
@@ -90,9 +90,10 @@ one in-flight fetch, and starts over when the Data API URL changes.
 extension, a sensor key naming an image field, a known image CDN, or a Data
 API image path). `resolveImageUrl` resolves a root-relative
 `/api/images/…` path against the Data API URL rather than the dashboard
-server. To sample colors from cover art, `ModernNowPlaying` fetches it through
-`/api/image-proxy?url=` on the dashboard server (https anywhere, http only on
-loopback).
+server. To sample colors from cover art, the Now Playing widget fetches it
+(`src/widgets/NowPlaying/art-tint.ts`) through `/api/image-proxy?url=` on the
+dashboard server (https anywhere, http only on loopback), except same-origin
+images, which it loads directly.
 
 ## 2. Per-zone rendering
 
@@ -105,8 +106,12 @@ A zone only re-renders when one of the keys it reads changes.
   (`src/components/studio/placement-content.tsx`): `[]` for a blank zone,
   the bound sensor keys of the visible widgets for a custom panel,
   `null` (every sensor) for the "cards" catch-all, and `moduleReads` for a
-  module. A module with no prefixes (Web Page; Wave Link, which reads its own
-  stream) subscribes to nothing and opens no sensor stream.
+  module. A widget template that needs data but cannot name its keys up front
+  (a bound sensor, discovered hardware: System overview, Vitals, Thermals,
+  Sensor value, …) is marked `readsAll` by `templateModule` and gets `null`, so
+  it subscribes to every stream. A module with no prefixes and no data need
+  (Web Page; Wave Link, which reads its own stream)
+  subscribes to nothing and opens no sensor stream.
 - `LivePlacement` calls `useSensors(prefixes)` (`src/hooks/useSensors.ts`).
   That retains the namespaces for the lifetime of the component and wraps the
   store in `useSyncExternalStore`, notifying only when a changed key starts
@@ -116,32 +121,80 @@ A zone only re-renders when one of the keys it reads changes.
 The kiosk grid (`App.tsx`) and the studio canvas both render zones through
 `LivePlacement`.
 
+### Style resolution (`src/lib/style-resolve.ts`)
+
+Every zone's look is resolved before it renders. Only the look keys
+(`PROFILE_STYLE_KEYS`) are layered, lowest first:
+
+```
+module default            (a panel: its legacy PanelDef accent / background)
+  → dashboard style       DashboardConfig.style
+  → profile style         MonitorProfile.style
+  → the widget's own      Placement.settings - skipped when Placement.styleMode is
+                          "follow" or the global style is forced
+```
+
+`resolveStyle({ moduleDefaults, dashboard, profile, own, mode, enforce })`
+returns the settings (content keys always from `own`) and a per-key
+`source` (`default` / `dashboard` / `profile` / `own`) that the
+inspector's dots show. `appearanceOf(config, profile)` collects the two
+style layers and the force switch (`profile.styleEnforce ?? config.styleEnforce`)
+into an `Appearance`; `App.tsx` and the studio canvas pass it to
+`LivePlacement`, and `placementContent` resolves each zone with
+`resolveWith(appearance, own, placement.styleMode, moduleDefaults)`. A
+`styleMode` of `"custom"` or none keeps the per-key order; `"follow"`
+ignores the widget's own look values but keeps them stored.
+
+### Where each setting comes from
+
+Every layered setting resolves the same way, lowest first; the first level
+that sets a value wins from the right:
+
+| Setting | App default | Dashboard (`DashboardConfig`) | Profile (`MonitorProfile`) | Widget (`Placement`) | Resolved by |
+|---|---|---|---|---|---|
+| Look keys (surface, accent, font, …) | the module's defaults | `style` | `style` | `settings` (unless `styleMode: "follow"` or forced) | `resolveStyle` (style-resolve.ts) |
+| Force global style | off | `styleEnforce` | `styleEnforce` | - | `isEnforced` |
+| Theme colours, corner radius | `DEFAULT_THEME`, 0.5 rem | `theme`, `radius` | `theme` (partial, over the dashboard's), `radius` | - | `resolveTheme` (theme.ts) |
+| Page background | none (the theme's page colour) | `background` | `background` (`{ type: "none" }` turns it off) | - (a widget's own background image is a look key) | `resolveBackground` (appearance.ts) |
+| Grid gap, padding | 12 px; padding per mode (`profilePadding`) | - | `gap`, `padding` | - | `profileGap` / `profilePadding` (profile-grid.ts) |
+| General (font, clock, locale, motion, cursor) | `GENERAL_DEFAULTS` | `general` | - | - (a widget's Font look key beats the page font) | `resolveGeneral` (general.ts) |
+
 ### The render pipeline of a module zone
 
 ```
 Placement.settings
-  → withProfileStyle(settings, profile.style)    placement value wins, then profile style
+  → resolveWith(appearance, settings, styleMode) dashboard → profile → own (see above)
   → mod.render(sensors, settings)
-       → effectiveSettings(mod, settings)         module defaults fill the rest
-       → chromeOf(cfg)                            settings → the `chrome` prop
-       → <Component chrome={…}>
-            → <ModernChrome>                      zoom / auto-scale, --wp-* variables,
-                                                  scoped custom CSS, background, header
-                 → surfaceBox(sv, chrome)         surface, border, glow, opacity, blur
-  → PlacementFrame                                grid position; studio chrome or kiosk plain
+       → hasKeys(sensors, prefixes)               no key under the prefixes: null (no data)
+       → <TemplateZone>                           src/widgets/module.tsx (templateModule)
+            → toFlat(sensors), toNames(sensors)   the data adapter, memoised per map
+            → useZoneLook(defs, settings)         effectiveSettings; a chosen skin brings its
+                                                  surface; skin fonts are loaded
+            → <Component data names {...shellProps(look)} {...toProps(look)} look>
+                 → <Widget {...shell(p)}>         the shell (below): chromeOf(look) → zoom,
+                                                  surface box, text variables, header
+                      → content / <CompactView> / <StudioView>
+  → PlacementFrame                                grid position, the zone's re-scoped tokens
+                                                  (PlacementRender.scope); studio chrome or kiosk plain
 ```
 
-- `withProfileStyle` and `effectiveSettings` are in `src/modules/types.ts`,
-  `chromeOf` in `src/modules/standard-settings.ts`, `ModernChrome` in
-  `src/components/modern-chrome.tsx`, `surfaceBox` and the `--wp-*` helpers in
-  `src/components/widget-style.ts`. The keys and their effects are in
-  [widget-settings.md](widget-settings.md).
-- `ModernChrome` zooms its content box (`zoom`), so text, rings and spacing
-  scale together. The widget measures itself in the unzoomed space and picks
-  its layout variant there.
+- `effectiveSettings` is in `src/modules/types.ts`,
+  `chromeOf` in `src/modules/standard-settings.ts`, `surfaceBox`, `tokenScope`
+  and the `--wp-*` helpers in `src/components/widget-style.ts`, and the
+  shared materials (`makeSurface`, the theme surface, `surfaceColors` /
+  `surfaceTokens`) in `src/components/surfaces.ts`. The keys and their effects
+  are in [widget-settings.md](widget-settings.md).
+- Every zone type that is a module goes this way: the 50 library templates, the
+  legacy ids (aliases of a template, `alias` in `templateModule`) and the
+  "Other sensors" catch-all (`src/modules/other-sensors.tsx`, one `SensorValue`
+  per unclaimed key). Only custom panels take the other pipeline (below).
+- `ModernChrome` (`src/components/modern-chrome.tsx`) is now the root of
+  panel zones; library widgets get the same `chrome` object from the shell.
 - A `render` that returns `null` means "no data": the studio shows a
   placeholder, the kiosk leaves the zone empty (`PlacementFrame` renders
-  nothing when `hasData` is false or the zone is blank).
+  nothing when `hasData` is false or the zone is blank). A template renders
+  nothing only while no key under its prefixes exists; `SENSORLESS` ids
+  (Clock, Calendar, Web Page, Wave Link) always render.
 - **Idle.** A module may define `isIdle(sensors, settings)`. When the
   placement's `hideWhenIdle` setting is on and `isIdle` is true,
   `placementContent` reports `idle: true`. The kiosk passes
@@ -149,6 +202,103 @@ Placement.settings
   studio keeps the zone and badges it "idle - hidden in kiosk".
 - `Placement.design` (accent, background, title header) is applied by
   `PlacementFrame` around the content, separately from the widget settings.
+- **Errors.** `PlacementFrame` wraps each zone in a boundary
+  (`src/components/zone-error-boundary.tsx`): a widget that throws shows a
+  small error tile and the other zones keep rendering.
+
+### The widget shell
+
+`src/widgets/` is the widget library: 50 templates, each a component over flat
+string data, drawn inside one `<Widget>` (`src/widgets/core/Widget.tsx`).
+`src/widgets/kit.ts` re-exports what a widget file needs from `core/`.
+
+- **Measuring.** `useBox` observes the shell's outer size and returns a
+  `Box`: `w`, `h`, a size tier (`xs` < 220×140 ≤ `sm` < 340×210 ≤ `md` <
+  500×320 ≤ `lg`) and a shape from the zone's aspect (`tile`, `strip`,
+  `column`, `box`). The standard `layout` option forces the tier. The
+  content callback receives the *inner* size (after padding and header) too,
+  so a widget counts its rows from the room that exists.
+- **Views.** Besides its normal layout a widget gives the shell a `compact`
+  descriptor (a tile, strip or column summary, used when the shape is not
+  `box` and `compactView` is not `off`) and a `studio` descriptor (the dense
+  variant). `CompactView` and `StudioView` (`core/views.tsx`) draw them.
+- **The look.** The shell maps the standard look keys onto the zone
+  (`core/look.ts`): `chromeVars`, the surface box with border, glow, opacity and
+  blur (`lookBox`), text colors, font and weight (replacing the skin's), label
+  case, padding and gap (overriding the tier padding), `stroke` (scaling ring
+  and graph strokes), the background image with a scrim, the scoped custom CSS
+  and the header icon and title. Size % zooms the content box; the tier and
+  shape are measured after the zoom.
+- **Text colors.** The shell sets `--w-fg`, `--w-muted`, `--w-faint` and
+  `--w-track` from the surface's tone (dark, light or theme), so text stays
+  legible on matte-light and on a light theme. Widgets use these variables, not
+  fixed greys; the fixed colors are `STATE` (ok, warn, crit).
+
+### Skins and surfaces
+
+A skin (`core/skins/<name>.ts`, 14 of them, registered in `SKIN_PACKS` in
+`core/theme.ts`) is a bundle of tokens: surface, radius, accent, fonts (UI and
+numerals), numeral weight and glow, graph and meter style, header style and ring
+thickness, plus `numWide` (the numeral face's width against a normal sans, for
+wide faces such as Orbitron, so fitted numbers still fit). `skinContext` merges it with the look into the `SkinCtx` that the
+primitives (`Num`, `Bar`, `Spark`, `Ring`, `LedLadder`, …) read, so a widget
+draws the same data in every skin. `resolveSurface` picks the surface:
+the `surface` setting, else the skin's, else `glass`. The app's four
+materials (`glass`, `matte-light`, `matte-dark`, `theme`) are registered in the
+same table beside the skins' own, so a stored surface keeps its meaning.
+A skin's accent applies only when no accent is set and the surface is not
+light. Skin fonts load lazily (`ensureSkinFonts`). Custom panels use the skin
+through `components/widgets/panel-skin.tsx` when a skin is set; with `auto`
+they render as before.
+
+### Data adapter (`src/widgets/data-adapter.ts`)
+
+Templates read `Record<string, string>`, the app has `SensorMap`
+(`{ value, text, unit, name }` per key). `toFlat(map)` turns a reading into its
+text, else the number plus its unit, and leaves out keys with neither;
+`toNames(map)` carries the sensors' display names for auto-discovered rows. Both
+are memoised per map identity. The data is the page's shared stream (the zone's
+`useSensors`); the adapter never opens another connection. Image URLs go
+through `resolveImageUrl`. Plugins whose containers are dynamic (files, device
+serials) are looked up with `entryText` and `containers`
+(`src/widgets/entries.ts`).
+
+### QA harness
+
+`?widget-qa` (a lazy chunk, `src/widgets/widget-qa.tsx`, never linked) renders
+every module at a set of spans through `placementContent` from fixture sensors
+(`src/widgets/__fixtures__/`), in both variants, any skin and surface, and on a
+light theme (`theme=paper`). `window.__qaOverflow()` reports, per zone, what
+pokes out of it (`exceeds`), leaf text that overlaps (`overlaps`) and content
+cut off by `overflow: hidden` (`clipped`); the geometry is pure
+(`qa-geometry.ts`, unit-tested). Parameters, the screenshot recipe and the
+probe are in [redesign/phase9/qa.md](redesign/phase9/qa.md). It is a
+development tool only.
+
+### Audio visualiser (`src/widgets/core/viz/`)
+
+One engine draws every visualiser (NowPlaying and the legacy media widgets through `MediaProgress`,
+GameSpotlight's music card, the Visualizer widget); it replaces `MiniViz`, `BarVisualizer` and
+`LiveWaveform` and their sources (`sensor-visual-source`, `bar-levels`, `history-playback`).
+
+- `use-viz-input.ts`: per row, the live source in order capture (Web Audio, `useMediaVisualSource`,
+  bands on the plugin's -80..0 dBFS scale) > the AudioMeter plugin's `spectrum` > its level > none.
+  `input.ts` (pure) shapes the bands with `dynamics.ts` (back to dB, a treble tilt in dB/oct around
+  1 kHz, floor..ceiling to 0..1, a slow auto-gain that never lifts silence), eases them by time and
+  keeps a 50 ms level history for `scroll`. It runs in the frame loop's update phase while an engine
+  reads it.
+- `engine.ts`: a canvas painted in the paint phase, DPR-aware, asleep off-screen and while hidden;
+  `palette.ts` resolves the Follow / Custom colours through a probe at most every 500 ms, so a theme
+  or skin change repaints live; `draw.ts` has one drawing per style. Reduced motion jumps the easing
+  and the peak caps. Nothing is synthesised: every pixel comes from the bands, the waveform or the
+  level history.
+- `?viz-gallery` (a lazy dev page, `viz-gallery.tsx`) draws every style under four skins and three
+  Custom looks from a deterministic test signal.
+- Capture: `getSharedAudioContext` starts suspended until a user gesture; `resumeOnGesture` resumes it
+  on the first pointerdown / keydown / touchstart, and `useMediaVisualSource` reports `"blocked"`
+  (with `GESTURE_HINT`) until then instead of waiting on `resume()`.
+- In dev, `window.__vizInputs()` lists every live input (device, source, raw and shaped peak band,
+  bands), for checking a test tone against the bands.
 
 ### The render pipeline of a panel zone
 
@@ -165,14 +315,17 @@ view's guard (`parsePanelJson`).
 
 ```
 Placement.panel + Placement.settings
-  → panelSettings(placement)                     own settings; legacy title / accent / background as fallback
-  → withProfileStyle(…, profile.style)
-  → <PanelView>                                  src/components/widgets/PanelView.tsx
+  → panelOwnSettings(placement)                  own settings; legacy title as the label fallback
+  → resolveWith(appearance, …, styleMode, panelLegacyLook(placement))
+                                                 legacy accent / background as the lowest layer
+  → <PanelView enforced>                         src/components/widgets/PanelView.tsx; forced:
+                                                 enforcedPanel drops the widgets' own colors
        → chromeOf(cfg) → <ModernChrome>          no design size: Size %, --wp-* variables,
                                                   custom CSS + panel.css, background image
             → div                                 places a hugging panel (fit: "hug") by alignX / alignY
                  → .wp-panel                      panelCardStyle (surface box, padding, radius),
-                                                  panelScope (accent / text colors), panelVars (--panel-*)
+                                                  panelVars (--panel-*); the tokens are re-scoped
+                                                  on the ModernChrome root
                       → <PanelStack>              stack or grid: panelLayoutStyle, widgetBoxStyle per cell
                       → <PanelOverlay>            overlay: background image, scrim, three bands
                            → <WidgetCell>         .wp-widget.wp-widget--{kind}, data-widget-*, scoped
@@ -183,7 +336,7 @@ Placement.panel + Placement.settings
 `src/components/widgets/panel-layout.ts` turns a `PanelDef` into CSS. The
 panel's own fields become `--panel-*` variables on `.wp-panel`
 (`panelVars`); the stack / grid container and the cells read them as
-`var(--panel-gap, <Style tab --wp-gap>, <built-in px>)`, so a panel that sets
+`var(--panel-gap, <Spacing & shape --wp-gap>, <built-in px>)`, so a panel that sets
 nothing keeps the old literal spacing, and panel CSS can set the variables
 too. `widgetBoxStyle` maps a widget's `box` (hug / fill / px per axis,
 `self`, grid `col` / `row`) and its `span` / `rowSpan` to flex or grid item
@@ -200,15 +353,36 @@ least one widget is visible.
 
 - `DashboardConfig` - `version: 2`, `activeProfile` (a profile id or `"auto"`),
   `profiles`, `theme`, `radius`, `dataApiUrl?`, `stylePresets?`,
-  `panelPresets?`, `sourcePrefs?`.
+  `panelPresets?`, `sourcePrefs?`, `background?` (the page background),
+  `style?` (the dashboard style, every profile), `styleEnforce?`
+  (force the global style on every widget), `appearancePresets?` (the
+  user's saved appearance presets) and `general?` (see below).
 - `MonitorProfile` - `id`, `name`, design `width`/`height`, `cols`, `rows`,
   `fit` (`"scroll"` with fixed `SCROLL_ROW_H` = 120 px rows, or `"fill"` to
-  fill the viewport), `placements`, optional `style` (profile style) and
-  `sampleVersion`.
+  fill the viewport), `placements`, optional `style` (profile style, over
+  the dashboard's), `styleEnforce` (overrides the dashboard's when set),
+  `background` (replaces the dashboard's; `{ type: "none" }` turns it off
+  for the profile), `theme` (a partial `ThemeTokens` over the dashboard's
+  theme) and `radius` (rem), `gap` and `padding` (px, see `profile-grid.ts`)
+  and `sampleVersion`.
 - `Placement` - `module` (a registry id, `cards`, `blank` or `panel`), the zone
   box (`colStart`, `rowStart`, `colSpan`, `rowSpan`), `visible`, `settings`,
-  `design`, `panel`.
+  `design`, `panel`, `styleMode?` (`"follow"` / `"custom"`, see [Style
+  resolution](#style-resolution-srclibstyle-resolvets)).
 - `StylePreset` - `{ id, name, settings }`, a named set of look-only keys.
+- `GeneralSettings` (`src/lib/general.ts`) - `font?` (`system`, `sans`,
+  `rounded`, `serif`, `mono`), `hour12?` (unset = the locale's choice),
+  `showSeconds?`, `locale?` (a BCP 47 tag, `""` = the system's), `motion?`
+  (`system`, `reduce`, `full`) and `hideCursor?`. Stored sparse;
+  `resolveGeneral` fills `GENERAL_DEFAULTS`.
+- `PageBackground` (`src/lib/appearance.ts`) - `type` (`none`, `color`,
+  `gradient`, `image`, `video`), `color` (the color, or the fill behind an
+  image), `gradient` `{ from, to, angle }`, `src`, `fit` (`cover`,
+  `contain`, `stretch`, `center`, `tile`), `position` `{ x, y }` (each
+  `start` / `center` / `end`), `dim` and `tintOpacity` (0-100), `tint`,
+  `blur` (px); for video also `poster` (an image URL), `loop` and `muted`
+  (both default on) and `rate` (0.25-4, default 1).
+  Stored sparse: unset fields use `BACKGROUND_DEFAULTS` when drawn.
 - `UserPanelPreset` (`src/lib/panel-model.ts`) - a panel the user saved
   (Add > My panels): `{ id, name, panel, settings?, colSpan?, rowSpan? }`,
   where `settings` is the panel's look (its `PANEL_SETTINGS` keys). The
@@ -218,6 +392,48 @@ least one widget is visible.
   all three, and `userPanelPreset` adapts a saved one (every use clones its
   panel with fresh ids). Saving, renaming and deleting are the pure config
   edits in `src/components/studio/panel-preset-actions.ts`.
+- `AppearancePreset` (`src/lib/appearance-presets.ts`) - a whole look:
+  `{ id, name, description, theme, radius, style, background? }`, where
+  `theme` is a `ThemeTokens` object or a theme preset name (`"paper"`, …),
+  `radius` the theme radius in rem, `style` look keys only
+  (`PROFILE_STYLE_KEYS`) and `background` a complete `PageBackground`. The
+  built-ins (`BUILTIN_APPEARANCE_PRESETS`, ids `builtin:*`) are code; the
+  user's live in `config.appearancePresets`. Not to be confused with
+  `StylePreset`, which restyles one widget.
+
+### Appearance presets (`src/lib/appearance-preset-apply.ts`)
+
+`applyAppearancePreset(config, preset, scope, { includeBackground })` is
+pure config → config, and the studio sets its result in one `setConfig`
+call without a coalescing key, so one undo step reverts a whole preset:
+
+- scope `{ kind: "all" }` writes `theme` (the preset's tokens), `radius`
+  and `style` (replaced wholesale);
+- scope `{ kind: "profile" }` writes the profile's `theme` (the preset's
+  full tokens), `radius` and `style`; the dashboard and the other profiles
+  are untouched. Look keys the dashboard style sets but the preset doesn't
+  are written as their setting defaults, so the profile shows the preset
+  rather than a blend;
+- the preset's `background` goes to the same scope when `includeBackground`
+  is true or, when it is unset, only if the scope has none yet (unset, an
+  empty media background, or the dashboard's `"none"`; a profile's `"none"`
+  is a choice and stays). A preset without a background never clears one;
+- placements (and with them all content keys) are never touched.
+
+`countOverrides(config, scope)` counts the widgets whose own look keys show
+over the global style (not following, not forced); `countProfileOverrides`
+counts, for "all", profiles with their own look (style, theme or radius).
+`clearOverrides` sets those widgets to `styleMode: "follow"` (their values
+stay) and, for "all", drops the profiles' styles, themes and radii.
+`presetFromCurrent` captures the resolved theme of the scope (a profile's
+own colours over the dashboard's). `saveAppearancePreset`, `renameAppearancePreset` and
+`deleteAppearancePreset` manage the user's list. The studio wires them through `useAppearancePresets`
+(`src/components/studio/use-appearance-presets.ts`); the palette's
+**Apply appearance: …** commands apply to "all".
+
+`isValidStyleValue` / `invalidStyleKeys` check look values against the
+options of `PROFILE_STYLE_SETTINGS` (select options, number bounds, CSS
+colours); the tests run every built-in through it.
 
 ### Loading and migration
 
@@ -237,12 +453,32 @@ for both the local copy and the server copy:
 - migrates every panel placement (`normalizePanelPlacement`): the panel is
   normalized (`normalizePanel`: the legacy `"wrap"` or a missing layout
   becomes a wrapping row stack, full-row kinds get `box.w: "fill"`;
-  idempotent) and the legacy `title` / `titleVisible` / `accent` /
-  `background` are copied into the placement's settings as `label` /
-  `accent` / `surface` (the PanelDef fields stay for older builds);
+  idempotent) and the legacy `title` / `titleVisible` are copied into the
+  placement's settings as `label`. The legacy `accent` / `background`
+  stay render-time fallbacks below the global style (`panelLegacyLook`);
+  panels migrated by older builds keep the `accent` / `surface` copies
+  they hold until they follow the global style (the PanelDef fields stay
+  for older builds);
+- keeps `style` when it is an object and `styleEnforce` when it is a
+  boolean;
+- keeps `general` through `normalizeGeneral` (known fonts and motion
+  values, booleans, and a locale only when
+  `Intl.DateTimeFormat.supportedLocalesOf` accepts it), and per profile a
+  `theme` of token strings (`normalizeThemePatch`), a finite `radius`, and
+  `gap` / `padding` rounded and clamped to 0-200 px (`normalizeSpacing`);
+- keeps the dashboard's and each profile's `background` only when
+  `normalizeBackground` accepts it (an object with a known `type`); invalid
+  fields are dropped, numbers clamped, and a `src` must be http(s), a path or
+  a `data:` image or video;
 - keeps only usable saved panels (`normalizePanelPresets`, a hand-written
   guard: id, name, a panel with a widget list, object settings, whole-number
-  spans) and normalizes their panels.
+  spans) and normalizes their panels;
+- keeps only usable appearance presets (`normalizeAppearancePresets`, a
+  hand-written guard: a non-empty id that isn't `builtin:*`, a name, a
+  known theme preset name or a token object (merged over the default
+  theme, unknown tokens dropped); look values that aren't valid options are
+  dropped, `radius` is clamped to 0-2 and `background` goes through
+  `normalizeBackground`).
 
 A panel added in the studio (`addPresetPlacement` / `assignPreset` in
 `studio-actions.ts`) goes through the same `normalizePanelPlacement`, so it
@@ -261,6 +497,86 @@ set it uses `$HOME/.local/share/InfoPanel/Dashboard` (`./.local/share/…` when
 `HOME` is unset too). It writes a temp file and renames it. A body must be a
 JSON object and at most 5 MB, otherwise the server answers 400 or 413.
 `GET /api/config` answers 404 until a config has been saved.
+
+### Uploaded media (`server/assets.mjs`, `src/lib/assets.ts`)
+
+Images and videos uploaded in the studio are stored by the dashboard server
+in `<data dir>\assets`, next to `config.json` (created on the first upload).
+A file is named by its content, `<sha256 hex>.<ext>`, so the same file
+uploaded twice is stored once and an asset URL never changes meaning. The
+config refers to an asset by its same-origin URL, `/api/assets/<id>`, in the
+same fields that take any other URL (`background.src` / `poster`, a widget's
+`background` setting). The kiosk loads it from the server like the page
+itself, so InfoPanel's WebView2, which has its own browser storage, shows the
+same files as the studio.
+
+| Route | Answer |
+|---|---|
+| `POST /api/assets` | Raw file body with its `Content-Type`. `200 { id, url, type, size }` (also for a file already stored); 403, 413, 415, 400 for an empty or aborted body |
+| `GET /api/assets` | `[{ id, url, type, kind, size, mtime }]`, newest first |
+| `GET /api/assets?unused=1` | The same, minus every id the saved `config.json` text contains as `/api/assets/<id>` |
+| `GET` / `HEAD /api/assets/<id>` | The file: its sniffed type, `Cache-Control: public, max-age=31536000, immutable`, `X-Content-Type-Options: nosniff`, `Accept-Ranges: bytes`; a `Range: bytes=…` header gets 206 with `Content-Range`, or 416 past the end |
+| `DELETE /api/assets/<id>` | 204, or 404 when it is not there |
+
+Rules the server enforces:
+
+- **Type by content.** The first bytes decide the type (`sniffType`): PNG,
+  JPEG, GIF, WebP, AVIF, MP4 (ISO-BMFF video brands) and WebM. Any Matroska
+  EBML header counts as WebM (DocType `webm` or `matroska`: tools write the
+  latter into `.webm` files, and Chromium plays both), and `video/x-matroska`
+  is declared WebM. SVG, HTML, HEIC, QuickTime and anything else are refused
+  (415), and the declared `Content-Type` must name the same type.
+- **Size.** Images up to 25 MB, videos up to 300 MB (413). A `Content-Length`
+  over the limit is refused before reading; otherwise the body is streamed to
+  a temp file while it is hashed (never held in memory) and the upload stops
+  at the limit. The temp file is deleted on any refusal and renamed to the id
+  on success; temp files left by a restart are removed when the server
+  starts.
+- **Paths.** A file path is only built from an id matching
+  `^[a-f0-9]{64}\.(png|jpg|gif|webp|avif|mp4|webm)$`; anything else under
+  `/api/assets/` is 404. There is no directory listing other than the JSON
+  list.
+- **Writes.** `POST` and `DELETE` need the header `X-Dashboard-Asset: 1`
+  (403 without it). A custom header makes a browser preflight a cross-site
+  request, and the server never answers preflights with CORS headers, so
+  another website can't upload or delete through a visitor's browser. Writes
+  are accepted from loopback addresses only, unless the server runs with
+  `ALLOW_REMOTE_UPLOAD=1` (403 otherwise).
+- **Quotas.** At most 2 uploads run at once (429), and the stored media
+  (the whole `assets` folder, temp files included) plus the incoming
+  `Content-Length` (the type's limit when it is missing) may not pass
+  `ASSETS_MAX_BYTES`, default 2 GB (507). Both are checked before the body is
+  read.
+- **Read errors.** A file that vanishes while being streamed (a concurrent
+  delete) destroys that response; it never crashes the server.
+
+#### Request gate (`server/request-guard.mjs`)
+
+Every request passes this gate before routing:
+
+- **Host allowlist (DNS rebinding).** A rebound page is same-origin with the
+  server and arrives from loopback, so the peer address proves nothing; its
+  `Host` still carries its own name. Only `localhost`, `127.0.0.1` and `[::1]`
+  (any port, so the Vite dev proxy works), the configured `HOST` and the names
+  in `ALLOWED_HOSTS` are served; anything else gets 421 on every route. When
+  `HOST` is `0.0.0.0` or `::` any IP-literal Host and the machine's hostname
+  are allowed too, since LAN clients use IPs.
+- **Cross-site writes.** For `POST`, `PUT`, `PATCH` and `DELETE`, a
+  `Sec-Fetch-Site` other than `same-origin` / `none`, or an `Origin` whose
+  host differs from `Host`, gets 403. Two loopback names count as the same
+  machine, because the dev proxy keeps the browser's `Origin` while the
+  server sees another `Host`.
+- **Config writes.** `POST /api/config` needs `Content-Type:
+  application/json` (415) and the header `X-Dashboard-Config: 1` (403), so it
+  can't be sent as a simple cross-site request.
+- **Errors.** A 500 answers `internal error`; the details are logged on the
+  server only.
+
+Nothing is deleted automatically. The studio's library (see Studio
+inspector) lists the files and offers **Clean up unused**, which deletes what
+`?unused=1` reports after a confirm. The scan reads the saved config only, so
+a file used by an edit that has not been saved yet, or only by the undo
+history, counts as unused.
 
 ### Sync (`src/App.tsx`, `src/lib/dashboard-server.ts`, `server.mjs`)
 
@@ -311,86 +627,353 @@ The grid uses `profile.cols` equal columns and `profile.rows` rows. With
 `fit: "fill"` the rows share the viewport height equally; with `"scroll"` each
 row is `SCROLL_ROW_H` (120 px) and the page scrolls.
 
+**Grid spacing** (`src/lib/profile-grid.ts`). `profileGap(profile)` (the
+profile's `gap`, else `DEFAULT_GRID_GAP` = 12) is the one source of the gap
+between zones: the kiosk grid, the studio canvas grid, its column guides
+(`columnGuides`), drawing (`cellAt`), the drawing / drag ghost (`zoneBox`)
+and the move / resize pitch in `placement-frame.tsx` (`trackPitch`) all read
+it, scaled by the canvas zoom where they work in screen px. The track math
+(`trackSize`, `trackPitch`) is pure and tested for gaps 0, 12 and 24.
+`profilePadding(profile, kiosk)` is the space around the grid: the
+profile's `padding`, else the page defaults (a `fill` kiosk page 0, a
+`fill` page with the header 12, `scroll` 24). The studio draws a "page"
+of the profile's design size with the kiosk padding and puts the grid inside
+it; the selection chip re-measures when gap or padding change.
+
+**Theme** (`src/lib/theme.ts`). `resolveTheme(config, profile)` lays a
+profile's own `theme` / `radius` over the dashboard's; `themeVars` turns
+tokens into `--background`, …, `--radius`. The kiosk and dashboard page
+write the shown profile's theme to `:root` (`applyTheme`). The studio keeps
+the dashboard theme on `:root` for its own chrome and, for a profile with its
+own theme, sets the profile's variables on the canvas page element
+(`data-theme-scope`, painted `bg-background`); `index.css` re-declares the
+colours derived from tokens (meters, waveforms) under `[data-theme-scope]`,
+since a `var()` inside a custom property resolves where it is declared.
+
+**General settings** (`src/lib/general.ts`, `src/hooks/use-general.tsx`).
+`App.tsx` resolves `config.general` and provides it through
+`GeneralProvider` to the kiosk page and the studio; `useGeneral()` reads it
+(defaults outside a provider).
+
+- Font: the page root (kiosk) and the studio canvas page set
+  `font-family` from `fontStack(general.font)` (`system` sets none). A
+  widget's Font option on `auto` (labelled Theme) sets no `font-family`,
+  so it inherits; the
+  widget-style `FONTS` are the same `FONT_STACKS`.
+- Clock: `formatClock(now, general)` formats the panel Clock widget
+  (`WidgetView.tsx`) and the header's last-update time with the locale,
+  `hour12` (unset = the locale's) and seconds.
+- Motion: `useReducedMotion()` (`src/hooks/use-reduced-motion.ts`) returns
+  the OS media query for `system` and the override for `reduce` / `full`,
+  so its users - the page background's `videoPolicy`, the media field
+  preview, the level meter and the audio visualiser - follow it.
+- Cursor: with `hideCursor`, the kiosk root gets `kiosk-hide-cursor`
+  (`cursor: none` on it and every descendant, in `index.css`).
+
+**Page background** (`src/lib/appearance.ts`,
+`src/components/page-background.tsx`). `resolveBackground(config, profile)`
+picks the profile's own background, else the dashboard's; `none` at either
+level resolves to no background. `backgroundLayers` turns it into CSS for
+three layers: the fill (color, or the letterbox behind an image), the media
+(gradient or image, with `filter: blur()` and a negative inset of twice the
+radius so the clipped edges stay sharp) and the overlay (tint, then dim, as
+stacked gradients). `PageBackground` renders them with
+`pointer-events: none`. The kiosk (`App.tsx`) puts it `fixed inset-0 -z-10`
+behind the grid and drops the root's `bg-background` while a background is
+set (the body keeps the theme color under it). The studio canvas renders it
+`absolute` inside the profile-sized page element around the grid (made
+`isolate`, so the negative z-index stays inside it) with a copy of the
+dotted grid above it.
+
+A **video** background renders as a `<video autoplay muted playsinline
+preload="auto">` between the fill and the overlay, styled by `videoStyle`:
+fit and position as `object-fit` / `object-position` (`stretch` is `fill`;
+`tile` can't repeat and centers), blur with the same edge bleed as an image.
+`videoPolicy({ motion, hidden })` decides what it does: `poster` on reduced
+motion (`use-reduced-motion.ts`: the OS setting unless General > Motion
+overrides it), where `posterBackground`
+swaps in the poster as an image background (or only the fill without a
+poster) and no video is loaded; `pause` while the page is hidden
+(`use-document-hidden.ts`, the `visibilitychange` event); `play` otherwise.
+`rate` is applied as `playbackRate` (also `defaultPlaybackRate`, so it
+survives a reload of the source). With `muted: false` the element tries to
+play with sound and falls back to muted when the browser refuses
+(`NotAllowedError`).
+
 **Studio shell** (`src/components/studio/studio-view.tsx`). The studio is a
-top bar over three columns: the left rail with its drawer, the canvas
-(`studio-canvas.tsx`, or the sources manager in Sources mode) and the
-inspector on the right. `studio-view.tsx` owns the UI state (selection,
-open drawer, inspector tabs and search, zoom, dialogs) and turns every
-control into a config change through the pure profile mutations in
-`studio-actions.ts`; zone boxes are clamped by `zone-geometry.ts`
+top bar over the studio body, which `studio-shell.tsx` assembles: the icon
+rail (`left-rail.tsx`), the open left panel (`studio-drawers.tsx`: Layers,
+Add or Profiles in a 256 px column), the canvas (`studio-canvas.tsx`, or the
+Data Explorer in Sources mode) with the floating zoom bar over it
+(`zoom-toolbar.tsx`) and the inspector, beside the canvas (Side) or in a
+bottom dock (Bottom), see Studio layout below. `studio-view.tsx` only
+composes; the state lives in hooks beside it: `use-studio-selection.ts` (the
+zone selection and the selected panel widget), `use-studio-ui.ts` (mode, open
+panel, grid and ruler flags, zoom, dialogs, inspector search and jump
+requests, the style and widget clipboards), `use-studio-layout.ts`,
+`use-studio-mutations.ts` (every control turned into a config change through
+the pure profile mutations in `studio-actions.ts`), `use-studio-commands.ts`
+(the one dispatcher the palette, shortcuts and context menus share) and
+`use-studio-shortcuts.ts`. Zone boxes are clamped by `zone-geometry.ts`
 (`fitZoneRect`, `resizeZone`, `nudgeZone`), which never lets zones overlap
 and keeps the old box when there is no room. App.tsx still owns the config,
 its persistence and the server push.
 
-**Studio inspector** (`src/components/studio/zone-inspector.tsx`,
-`document-inspector.tsx`). With nothing selected, the side panel shows the
-theme, the profile style and the Data API URL. With a zone selected, a fixed
-header holds the widget title, hide / duplicate / remove, the zone box and a
-settings search; below it a **Content** tab (widget picker button, panel editor,
-content settings) and a **Style** tab (style tools, look settings, the zone
-frame). `settings-model.ts` decides which tab a setting belongs to
-(`isStyleSetting`) and filters the search (`filterSettings`); collapsible
-sections remember their open state in localStorage (`studio.sections`). See
-the [customization guide](customization-guide.md).
+**Chrome tokens vs the dashboard theme.** The studio's own UI is styled with
+the `--ui-*` tokens in `src/index.css` (backgrounds, borders, five text
+levels, the fixed blue accent, success / warning / danger, the two source-dot
+colours, inverse, shadows), exposed to Tailwind as `bg-ui-panel`,
+`text-ui-2`, `border-ui-subtle`, `shadow-ui-menu` and so on, and set in
+Geist / Geist Mono (`font-ui`, `font-ui-mono`). They never change with the
+dashboard. The dashboard theme (`--wp-*` and the theme tokens of "Theme") only
+colours the widgets on the canvas and the kiosk page; the page font comes from
+`src/lib/fonts.ts`: `FONT_CATALOG` holds the five system stacks (their ids are
+stored in configs and never change) and the Google fonts (`google` = the
+css2 family spec). `ensureFont(id)` appends the stylesheet link once, on
+demand, and every stack ends in a system fallback so an offline kiosk still
+renders.
 
-**Studio left rail** (`left-rail.tsx`). A 48 px icon rail opens one drawer
-at a time, remembered in localStorage (`studio.drawer`): **Add**
-(`insert-panel.tsx`; `filterInsertables` searches and filters by category,
-and `InsertList` is reusable with an `onPick` callback), **Layers**
-(`layers-panel.tsx`, zones in `sortZones` order) and **Profiles**
-(`profiles-panel.tsx`: profile list, the Auto entry via `resolveProfile`,
-and the active profile's name, size, grid and fit). **Sources** is not a
-drawer: it swaps the canvas for `sources-panel.tsx`.
+**Studio canvas** (`studio-canvas.tsx`, `placement-frame.tsx`,
+`selection-chip.tsx`, `drop-ghost.ts`, `canvas-cards.tsx`,
+`pointer-drag.ts`). The canvas draws the profile's page with rulers and the
+dot grid; each zone is a `placement-frame.tsx` that renders the real widget
+(`placement-content.tsx`) and owns the press: a plain press selects (and,
+past a small threshold, starts a move), Shift / Ctrl / Cmd toggles, a press on
+empty grid space (handled by `studio-canvas.tsx`) draws a new blank zone. `selection-chip.tsx` is the small
+chip over the primary zone (name or "N selected", size, Hide, More); it is
+rendered outside the page's CSS `zoom` so it keeps a constant size, and
+`zone-toolbar-position.ts` places it above or below the zone. The right-click
+menus come from `zone-menu.ts` (pure specs: `zoneMenu`, `canvasMenu`,
+`menuAction`) rendered by `zone-context-menu.tsx`. A library drag from Add
+shows the ghost from `drop-ghost.ts` (`dropSize`, `zoneFits`: a dashed
+"Drop here" or a red "No room"). `canvas-cards.tsx` holds the empty-layout
+card and the first-run quick tips (`quick-tips.ts`, flag `studio.tipDismissed`).
+`trackPointer` (`pointer-drag.ts`) follows every drag: pointer move, release,
+Esc or window blur cancel it.
 
-**Studio top bar and zone toolbar.** `studio-top-bar.tsx` holds the profile
-switcher (a Base UI menu), the Design | Sources switch, Undo / Redo, Save,
-Kiosk view and a "..." menu: Export / Import (`config-file.ts`), Copy
-profile JSON, Command palette, Keyboard shortcuts, Reset everything (behind
-`reset-config-dialog.tsx`) and the build id. The selected
-zone gets `zone-toolbar.tsx`, rendered over the canvas viewport but outside
-its CSS `zoom` so it keeps a constant size; `toolbarPosition`
-(`zone-toolbar-position.ts`) puts it above the zone, below it, or inside a
-zone taller than the view, and it re-measures on scroll, zoom and resize.
-`widget-picker-dialog.tsx` reuses `InsertFilters` and `InsertList` to assign
-a widget (`assignModule` / `assignPreset` / `clearWidget` in
-`studio-actions.ts`).
+**Studio inspector** (`inspector-model.ts`, `inspector/`, `zone-inspector.tsx`,
+`document-inspector.tsx`, `studio-inspector.tsx`). One registry drives every
+inspector. `inspector-model.ts` is pure: given an `InspectorContext` (a
+widget zone with its module's `settings`, a panel, a blank zone, several
+zones, or the dashboard) it returns the tabs (`inspectorTabs`: Content /
+Style / Data for a widget or panel; Profile / Appearance / Global style /
+General for the dashboard; none for a blank or multi selection) and the
+ordered `InspectorSection`s of each (`allSections`, `sectionsFor`). A section
+is a list of `ModuleSetting`s, optional `extras` (the widget picker, Visible,
+Follow / Custom, the style tools, the zone frame) and optionally a `special`
+marker for custom UI (the panel editor, Bound data, the presets gallery, the
+theme editor, ...). `searchAll` searches every tab at once;
+`applyAdvanced` hides advanced settings and counts them for "Show N advanced
+settings"; `sourceState` and `changedCount` give each row's source dot and
+the "N changed" counts. Sections come from `inspector-categories.ts`:
+`GENERAL_CATEGORIES` (Widget, Size & alignment, Typography, Spacing & shape,
+Colors & surface, Border & effects, Advanced) own the standard keys,
+`categorize(defs)` returns them in that order and then the module's own
+categories in first-appearance order, and `categoryTab` / `ModuleSetting.tab`
+decide the tab (see [Adding a setting](#adding-a-setting-to-a-module)).
+`inspector/inspector-view.tsx` renders the result (header, search, tabs, the
+sections, the Advanced footer with the dot legend) for both placements;
+`source-dot.tsx` draws the dots; `inspector-prefs.ts` keeps the Advanced flag
+and the open tab per context in localStorage (`studio.inspectorAdvanced`,
+`studio.inspectorTabs`), open sections live in `studio.sections`.
+
+*Source dots.* `settings-model.ts`'s `settingStateOf` classifies a row as
+`default`, `dashboard`, `profile`, `here`, `overriding` (set here over a global
+value) or `ignored` (set here but the widget follows the global style, or it
+is forced). The inputs are the widget's stored settings and
+`resolveStyle` (`src/lib/style-resolve.ts`), the same resolution the canvas
+renders; clicking a dot that is set here resets the row (`dropKeys`).
+
+*Zone inspector* (`zone-inspector.tsx`). The header holds the icon, the
+editable name, the meta line and Hide / Duplicate / Delete, then the placement
+row (validated by `zone-geometry.ts`) and the search. The body is
+`inspector-view.tsx` fed by `widgetContext(module)` or a panel context.
+Panels plug their own editor in through `panel-sheet.tsx`
+(`usePanelSheet`: the Panel, Layout, Background, Widgets cards and, with a
+widget selected, its cards from `widget-editor/`: kind, display, size &
+placement, typography, colour, advanced); `inspector/panel-cards.ts` maps each
+card to its special section, and the Code view swaps them for one JSON card.
+The Data tab is `inspector/bound-data.tsx` over `bound-data-model.ts`: the
+rows are `boundRows` (a panel's widgets' sensors, or the keys a widget zone
+claims, from `data-usage.ts`), and `data-picker.tsx` is the bind dialog
+(widget mode: multi-toggle; item mode: a panel widget's Sensor field).
+Several zones use `inspector/multi-inspector.tsx` (the shared Style sections,
+written to every selected zone).
+
+*Dashboard inspector* (`document-inspector.tsx`, nothing selected, over
+`use-document-props.ts` for its data and edits). Profile
+(`inspector/profile-sections.tsx`: profile fields, This profile
+Inherit / Custom, Auto-pick), Appearance (`appearance-panel.tsx`'s scope and
+Force switch, the presets gallery `appearance-gallery.tsx`, `theme-panel.tsx` /
+`profile-theme-panel.tsx`, and the page background `background-panel.tsx`,
+`background-editor.tsx`, `background-video.tsx`; background edits go through
+`withBackground`, undo-keyed per scope by `backgroundKey`), Global style (the
+look sections over `PROFILE_STYLE_SETTINGS`, written at the dashboard or
+profile level) and General (`general-panel.tsx`: Type, Clock & date, Display,
+Studio = the inspector position, Connection = the Data API URL). See the
+[customization guide](customization-guide.md).
+
+**Data Explorer and binding** (`sources-panel.tsx`, `explorer/`,
+`src/lib/data-points.ts`, `data-usage.ts`, `data-live.ts`,
+`sample-history.ts`). Sources mode swaps the canvas and the inspector for
+`sources-panel.tsx`. `data-points.ts` normalises the catalog (`/api/sources`
+plus the `/api/sensors` snapshot, via `useSensorCatalog`) into
+source → container → point: `buildDataModel` classifies each value
+(`classifyValue`: empty, url, list, bool, number, text), maps a unit to a kind
+(`kindOfUnit`), gives each source a category and a health (`healthOf`: off =
+no points, warn = every point empty or zero, else ok), and `searchPoints` is
+the multi-word AND search. `data-usage.ts` derives "Used by" from the config
+(`computeUsage`: a panel widget claims its `sensor` and `subSensor`; a widget
+zone claims its module's `prefixes`, narrowed to one container when the
+module's `optionsFrom: "sources"` setting is set) and holds the writes behind
+Bind and Unbind (`bindPoint`, `unbindPoint`): they only set the widget fields
+and settings the zones already read, so no new field is stored and old configs
+load unchanged. `data-live.ts`'s `useLiveData` reads the page's one
+sensor store (`sensor-store.ts`) - never one stream per row - and feeds a
+`SampleHistory` (24 samples, one per ~900 ms) for the point inspector's
+sparkline and Min / Avg / Max. The pure parts of the view live in
+`explorer/explorer-model.ts` (scopes, filters, the flattened rows the table
+windows), `explorer-endpoints.ts` (the routes of `GET /api`),
+`explorer-actions.ts` (`addStatZone`: "New widget from this value"); the
+components are `source-tree.tsx`, `point-table.tsx`, `point-inspector.tsx`,
+`group-summary.tsx` (which also keeps `sourcePrefs`, the show / display-name
+preferences) and `explorer-header.tsx`.
+
+**Studio layout** (`studio-layout.ts`, `use-studio-layout.ts`). The pure
+`computeLayout({ body, page, rail, drawer, design, inspector, mode,
+dockHeight, collapsed })` returns `{ placement, dockHeight, canvasWidth,
+canvasHeight, fitZoom }`. `body` is the studio below the top bar; `page` the
+profile's design size (`height` 0 for a scroll profile, then `naturalHeight`
+from its grid). The left panel (`drawer`) is a column beside the canvas in both
+placements. `side` subtracts rail, left panel, inspector (`INSPECTOR_WIDTH`,
+340 px), the vertical ruler (28 px) and the horizontal ruler (24 px). `auto`
+decides by the profile alone (`autoPlacement`): Bottom when the design size's
+width / height is above `AUTO_BOTTOM_ASPECT` (2.5), else Side - the window and
+the free space no longer matter. The dock height (its 28 px toggle row
+included) is 320 px (`DEFAULT_DOCK`) or the user's dragged value, clamped to
+`MIN_DOCK` (200 px) .. `MAX_DOCK_SHARE` (70%) of the body; collapsed it is
+`BAR_H`. `nextLayoutMode` is the zoom bar's dock button (Auto → Side →
+Bottom). `fitZoomFor` is the largest zoom (floored to 1%, within 0.25 .. 2) at
+which the page plus 32 design px of padding fit a box; a page without a height
+is fitted to the width only. `useStudioLayout` measures the body with a
+ResizeObserver (`bodyRef`) and keeps the mode, the dragged dock height and the
+collapsed flag in localStorage (`studio.layout`, `studio.dockHeight`,
+`studio.dockCollapsed`, each in try/catch); `pageSize(profile)` gives the page
+as the canvas draws it. `studio-shell.tsx` renders the placement: a row (rail,
+left panel, canvas with the zoom bar floating over it, inspector) for Side, or
+rail, left panel and canvas over a `dock-splitter.tsx` (pointer capture, a
+guide line while dragging, commit on release, double-click reset) and the dock
+(a top row with `dock-toggle.tsx`, then the inspector).
+
+**Sticky fit** (`use-canvas-zoom.ts`, `zoom-pref.ts`). `useCanvasZoom(page)`
+measures the canvas scroll container with a ResizeObserver; while `fitting`
+(the default) the zoom is `fitZoomFor(box, page)` and follows the container
+and the profile. Any manual zoom (`setZoom`, steps, Ctrl + wheel) turns
+`fitting` off; `fitZoom()` turns it on. The mode is stored (`studio.zoom`).
+`studio-canvas.tsx` centers the page (flex with `m-auto`) and offsets the
+rulers by the page's origin.
+
+**Inspector in the dock** (`inspector-layout.tsx`, `inspector-scroll.ts`).
+`InspectorLayout` (`"side" | "dock"`) is a React context that the inspector
+parts read (`useInspectorLayout`); `InspectorHeader`, `HeaderSlot` and
+`InspectorBody` switch their wrapper classes, so Side stacks the sections and
+the dock gets a one-row header and a body of CSS columns (about 300 px,
+`break-inside-avoid` on sections). `inspector-scroll.ts` finds the scrolling
+element for scroll-to-top and the widget-editor reveal.
+
+**Studio left rail and panels** (`left-rail.tsx`). A 52 px icon rail opens
+one panel at a time, remembered in localStorage (`studio.drawer`): **Add**
+(`insert-panel.tsx`: search, category chips, widget / layout / panel cards
+that drag (HTML5 drag, MIME in `studio-modules.ts`) or click to place;
+`filterInsertables` searches and filters, `InsertList` is reusable with an
+`onPick` callback), **Layers** (`layers-panel.tsx`, zones in `sortZones`
+order, Shift / Ctrl-click to multi-select) and **Profiles**
+(`profiles-panel.tsx`: profile list with a thumbnail, the Auto entry via
+`resolveProfile`, Auto-pick). **Sources** is not a panel: it swaps the canvas
+for the Data Explorer. The keyboard icon opens `shortcuts-dialog.tsx`.
+
+**Studio top bar.** `studio-top-bar.tsx` holds the profile switcher (a Base UI
+menu), the Design | Sources switch, Undo / Redo, Kiosk view, Save (a dot while
+edits are not pushed yet) and a "..." menu: Export / Import
+(`config-file.ts`), Copy profile JSON, Command palette, Keyboard shortcuts,
+Reset everything (behind `reset-config-dialog.tsx`) and the build id.
+`widget-picker-dialog.tsx` reuses `InsertFilters` and `InsertList` to assign a
+widget (`assignModule` / `assignPreset` / `clearWidget` in `studio-actions.ts`).
 
 **Undo history** (`src/hooks/use-config-history.ts`, `config-history.ts`).
 The studio wraps App's `setConfig` in `useConfigHistory`, so every studio
 edit records the previous config snapshot; undo and redo write snapshots
 back through the same setter, which means persistence, the debounced server
 push and the kiosk event stream treat them like any other edit. A change
-can carry a key (`<zone>:setting:<key>`, `zone-drag:<id>`, `theme:<token>`
-and so on): same-key changes less than 500 ms apart coalesce into one step.
+can carry a key (`<zone>:setting:<key>`, `theme:<token>`,
+`<profile>:profile-theme:<token>`, `general:<key>`, `profile:gap` and so
+on): same-key changes less than 500 ms apart coalesce into one step.
 Panel field edits are keyed per field (`<zone>:panel:<field>`,
 `<zone>:panel-widget:<widget>:<field>`); structural edits (add, remove,
-reorder, duplicate, paste, change kind, Code view Apply) and the saved-panel
-edits carry no key, so each is its own step.
-The stacks hold 100 steps and live only while the studio is open; a config
-replaced from outside (the server copy loaded on open) clears them. When an
-undo removes the selected zone, the selection is cleared.
+reorder, duplicate, paste, change kind, Code view Apply, applying an
+appearance preset) and the saved-panel edits carry no key, so each is its own
+step. **Transactions** make a whole pointer drag one step however long it
+takes: `begin()` snapshots the config when a move or resize really starts
+(`placement-frame.tsx`'s drag-start callback), changes during it only move the
+config (`recordChange` ignores them while `txn` is set), `commit()` records
+start → current as one step (nothing if it ended where it began) and
+`cancel()` (Esc, window blur) restores the start snapshot and records nothing.
+Undo, redo and the shortcuts stand down while a transaction is open
+(`dragging()`). The stacks hold 100 steps and live only while the studio is
+open; a config replaced from outside (the server copy loaded on open) clears
+them, but switching profile does not: a switch is itself a step. When an undo
+removes the selected zone, the selection is cleared.
 
 **Shortcuts and command palette.** `use-studio-shortcuts.ts` listens on the
 window; the pure `shortcutAction` maps a key press to an action, ignoring
-plain keys while focus is in a field or a dialog / menu is open. The
+plain keys while focus is in a field or a dialog / menu is open and everything
+but Esc while a drag is in flight; `SHORTCUT_GROUPS` there is the list the
+cheat sheet shows (General, Selected zones, Selected panel widget, Canvas).
+Ctrl+Alt+C / V read `event.code` (Alt changes `key` on some layouts). The
 command palette (`command-palette.tsx`, Ctrl+K) lists `buildCommands` from
 `commands.ts`, a pure function of the studio state whose entries carry an
-action descriptor that `studio-view.tsx` carries out (the shortcuts share
-that dispatcher); `rankCommands` orders matches prefix > word start >
-substring. `shortcuts-dialog.tsx` is the cheat sheet.
+action descriptor that `use-studio-commands.ts` carries out (the shortcuts and
+the context-menu rows share that dispatcher); `rankCommands` orders matches
+prefix > word start > substring.
 
-**Selection model.** `studio-view.tsx` keeps the selected zone and, for a
-panel zone, the selected widget (`{ zoneId, widgetId }`): the widget only
-counts while its zone is selected and still holds it, so selecting another
-zone, an undo or a delete drops it. The canvas selects it (a click inside
-the selected panel zone, or a double-click on a widget of another panel;
-`placement-frame.tsx` hit-tests `[data-widget-id]`), as do the layer list,
-the palette's *Select widget* and the breadcrumbs. With a widget selected
-the shortcuts run in widget mode (`ShortcutContext.widget`): Del, Ctrl+D,
-Ctrl+C / Ctrl+V and Alt+Up / Down map to `widget-*` actions that
-`panel-widget-actions.ts` carries out on the selected panel, while the
-arrow keys keep moving the zone; Esc steps out widget > zone > nothing. The
-palette and the zone's Duplicate / Remove tooltips drop their Ctrl+D / Del
-hints in widget mode. Widget names in the layers, crumbs and palette come
-from `widgetName` (`widget-kinds.ts`): the label, else the sensor's name
+**Selection model.** `use-studio-selection.ts` keeps the selected zones as an
+ordered list - the last is the *primary* zone (chip, handles, keyboard resize,
+inspector) - and, for a panel zone, the selected widget
+(`{ zoneId, widgetId }`). `selection.ts` defines how a click changes it:
+`only`, `toggle` (Shift / Ctrl / Cmd) and `primary` (a press on a selected
+zone before a drag keeps the rest). The widget only counts while its zone is
+the one selected zone and still holds it, so selecting another zone, an undo
+or a delete drops it. The canvas selects it (a click inside the selected panel
+zone, or a double-click on a widget of another panel; `placement-frame.tsx`
+hit-tests `[data-widget-id]`), as do the layer list, the palette's *Select
+widget* and the breadcrumbs. With a widget selected the shortcuts run in
+widget mode (`ShortcutContext.widget`): Del, Ctrl+D, Ctrl+C / Ctrl+V and
+Alt+Up / Down map to `widget-*` actions that `panel-widget-actions.ts` carries
+out on the selected panel, while the arrow keys keep moving the zone; Esc steps
+out widget > zone > nothing. Widget names in the layers, crumbs and palette
+come from `widgetName` (`widget-kinds.ts`): the label, else the sensor's name
 from the Data API catalog, else the key's last segment.
+
+### Adding a setting to a module
+
+Settings are plain `ModuleSetting` entries in a module's `settings` array
+(`src/modules/types.ts`); the inspector renders them with no UI code. Besides
+the usual `key`, `label`, `type` and `default`:
+
+- `group` names the section (category) it joins; settings that share a group
+  render together, placed where the group first appears.
+- `tab` (`"content" | "style" | "data"`) picks the inspector tab. Unset, a
+  setting follows its category: the general categories by their kind, a
+  widget's own categories in Content, those made only of colour pickers in
+  Style. Put a data-related category in Data explicitly.
+- `advanced: true` tucks it away until the Advanced toggle is on (a category
+  can be advanced as a whole).
+- `hint` is the one-line explanation behind the row's info icon, and is
+  searched.
+- `visibleIf(values)` shows the row only while it holds for the zone's
+  effective values (for example the glow colour only when glow is not none).
+
+`inspector-categories.test.ts` checks every module resolves to a known
+category. Keys that are look settings (`PROFILE_STYLE_KEYS`) take part in the
+dashboard / profile / own layering and get source dots; never rename a key or
+change a default without a migration, since saved configs hold them.

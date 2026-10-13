@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  GROUP_COLORS,
   GROUP_EFFECTS,
-  IDLE_SETTING,
   PROFILE_STYLE_KEYS,
   STANDARD_SETTINGS,
 } from "@/modules/standard-settings";
@@ -10,11 +8,9 @@ import { effectiveSettings, type ModuleSetting } from "@/modules/types";
 import {
   dropKeys,
   filterSettings,
-  isStyleSetting,
   matchesQuery,
   settingState,
   settingStateOf,
-  splitSettings,
 } from "./settings-model";
 
 const def = (key: string, extra: Partial<ModuleSetting> = {}): ModuleSetting => ({
@@ -23,46 +19,6 @@ const def = (key: string, extra: Partial<ModuleSetting> = {}): ModuleSetting => 
   type: "boolean",
   default: false,
   ...extra,
-});
-
-describe("isStyleSetting", () => {
-  it("treats every standard setting and profile style key as style", () => {
-    for (const s of STANDARD_SETTINGS) expect(isStyleSetting(s)).toBe(true);
-    for (const key of PROFILE_STYLE_KEYS) expect(isStyleSetting(def(key))).toBe(true);
-    for (const key of ["label", "icon", "background", "backgroundOn", "preset", "layout"])
-      expect(isStyleSetting(def(key))).toBe(true);
-  });
-
-  it("treats hide-when-idle and module settings as content", () => {
-    expect(isStyleSetting(IDLE_SETTING)).toBe(false);
-    expect(isStyleSetting(def("showTemps"))).toBe(false);
-    expect(isStyleSetting(def("tempWarn", { group: "Thresholds" }))).toBe(false);
-  });
-
-  it("files module settings in a standard style group under style", () => {
-    expect(isStyleSetting(def("cpuColor", { type: "color", group: GROUP_COLORS }))).toBe(true);
-    expect(isStyleSetting(def("x", { group: GROUP_EFFECTS }))).toBe(true);
-  });
-});
-
-describe("splitSettings", () => {
-  it("splits into content and style, preserving order", () => {
-    const defs = [
-      def("preset"),
-      def("devices"),
-      def("glow"),
-      IDLE_SETTING,
-      def("tempWarn", { group: "Thresholds" }),
-      def("cpuColor", { group: GROUP_COLORS }),
-    ];
-    const { content, style } = splitSettings(defs);
-    expect(content.map((d) => d.key)).toEqual(["devices", "hideWhenIdle", "tempWarn"]);
-    expect(style.map((d) => d.key)).toEqual(["preset", "glow", "cpuColor"]);
-  });
-
-  it("handles no settings", () => {
-    expect(splitSettings([])).toEqual({ content: [], style: [] });
-  });
 });
 
 describe("filterSettings", () => {
@@ -97,7 +53,7 @@ describe("filterSettings", () => {
   });
 
   it("falls back to the group name when no row matches directly", () => {
-    expect(keys("border, glow")).toEqual(["glow", "glowColor", "blur"]);
+    expect(keys("border & effects")).toEqual(["glow", "glowColor", "blur"]);
   });
 
   it("matches the key, the group and option labels", () => {
@@ -131,8 +87,8 @@ describe("settingState", () => {
     expect(settingState("glow", {}, {}, "none")).toBe("default");
   });
 
-  it("is own when only the widget sets it", () => {
-    expect(settingState("glow", { glow: "soft" }, undefined, "none")).toBe("own");
+  it("is here when only the widget sets it", () => {
+    expect(settingState("glow", { glow: "soft" }, undefined, "none")).toBe("here");
   });
 
   it("is default when the widget's own value is the default", () => {
@@ -143,14 +99,50 @@ describe("settingState", () => {
     expect(settingState("glow", {}, { glow: "soft" }, "none")).toBe("profile");
   });
 
-  it("is override when both set it", () => {
-    expect(settingState("glow", { glow: "strong" }, { glow: "soft" }, "none")).toBe("override");
-    expect(settingState("glow", { glow: "none" }, { glow: "soft" }, "none")).toBe("override");
+  it("is overriding when both set it", () => {
+    expect(settingState("glow", { glow: "strong" }, { glow: "soft" }, "none")).toBe("overriding");
+    expect(settingState("glow", { glow: "none" }, { glow: "soft" }, "none")).toBe("overriding");
   });
 
   it("treats false and 0 as set values", () => {
-    expect(settingState("tint", { tint: false }, undefined, true)).toBe("own");
+    expect(settingState("tint", { tint: false }, undefined, true)).toBe("here");
     expect(settingState("scale", undefined, { scale: 0 }, 100)).toBe("profile");
+  });
+
+  it("tells the dashboard style from the profile style", () => {
+    const from = { glow: "dashboard", radius: "profile" } as const;
+    expect(settingState("glow", {}, { glow: "soft" }, "none", from)).toBe("dashboard");
+    expect(settingState("radius", {}, { radius: "8" }, "auto", from)).toBe("profile");
+    expect(settingState("glow", { glow: "strong" }, { glow: "soft" }, "none", from)).toBe("overriding");
+  });
+
+  it("does not mark a value from the default layer (a panel's legacy look)", () => {
+    const from = { surface: "default" } as const;
+    expect(settingState("surface", {}, { surface: "bordered" }, "panel", from)).toBe("default");
+    expect(settingState("surface", { surface: "glass" }, { surface: "bordered" }, "panel", from)).toBe("here");
+  });
+
+  it("is ignored when a set value is not in effect (the widget follows, or the style is forced)", () => {
+    expect(settingState("glow", { glow: "soft" }, undefined, "none", undefined, true)).toBe("ignored");
+    expect(settingState("glow", { glow: "soft" }, { glow: "strong" }, "none", undefined, true)).toBe("ignored");
+    expect(settingState("tint", { tint: false }, undefined, true, undefined, true)).toBe("ignored");
+  });
+
+  it("is not ignored when there is nothing to ignore", () => {
+    expect(settingState("glow", undefined, undefined, "none", undefined, true)).toBe("default");
+    expect(settingState("glow", { glow: "none" }, undefined, "none", undefined, true)).toBe("default");
+    expect(settingState("glow", {}, { glow: "soft" }, "none", { glow: "dashboard" }, true)).toBe("dashboard");
+  });
+
+  it("ignores an own default that hides an inherited value", () => {
+    expect(settingState("glow", { glow: "none" }, { glow: "soft" }, "none", undefined, true)).toBe("ignored");
+  });
+
+  it("ranks the dashboard state under the profile one", () => {
+    const def = STANDARD_SETTINGS.find((s) => s.type === "align")!;
+    const from = { alignX: "dashboard", alignY: "profile" } as const;
+    expect(settingStateOf(def, {}, { alignX: "start", alignY: "end" }, from)).toBe("profile");
+    expect(settingStateOf(def, {}, { alignX: "start" }, from)).toBe("dashboard");
   });
 });
 
@@ -183,9 +175,17 @@ describe("the alignment picker setting", () => {
 
   it("takes the strongest state of its keys", () => {
     expect(settingStateOf(align, undefined, undefined)).toBe("default");
-    expect(settingStateOf(align, { alignY: "end" }, undefined)).toBe("own");
-    expect(settingStateOf(align, { alignY: "end" }, { alignX: "start" })).toBe("own");
-    expect(settingStateOf(align, { alignX: "end" }, { alignX: "start" })).toBe("override");
+    expect(settingStateOf(align, { alignY: "end" }, undefined)).toBe("here");
+    expect(settingStateOf(align, { alignY: "end" }, { alignX: "start" })).toBe("here");
+    expect(settingStateOf(align, { alignX: "end" }, { alignX: "start" })).toBe("overriding");
     expect(settingStateOf(align, {}, { alignY: "start" })).toBe("profile");
+  });
+});
+
+describe("sensor settings search", () => {
+  const sensor: ModuleSetting = { key: "src", label: "Source", type: "sensor", default: "" };
+  it("answers to sensor, data and bind", () => {
+    for (const q of ["sensor", "data", "bind"]) expect(filterSettings([sensor], q)).toEqual([sensor]);
+    expect(filterSettings([{ ...sensor, type: "text" }], "bind")).toEqual([]);
   });
 });

@@ -245,13 +245,40 @@ export function panelSettings(pl: Placement): ModuleSettings | undefined {
 }
 
 /**
+ * A panel placement's own settings with the legacy title as the `label`
+ * fallback — no legacy look (see `panelLegacyLook`).
+ */
+export function panelOwnSettings(pl: Placement): ModuleSettings | undefined {
+  const panel = pl.panel;
+  if (!panel || pl.settings?.label !== undefined) return pl.settings;
+  return { ...pl.settings, label: panel.titleVisible ? panel.title : "" };
+}
+
+/**
+ * The legacy PanelDef look (accent → `accent`, background → `surface`):
+ * the panel's lowest style layer, below the dashboard and profile style.
+ * Read at render time only, never written to the settings.
+ */
+export function panelLegacyLook(pl: Placement): ModuleSettings | undefined {
+  const panel = pl.panel;
+  if (!panel) return undefined;
+  const look: ModuleSettings = {};
+  if (panel.accent) look.accent = panel.accent;
+  if (panel.background) look.surface = panel.background;
+  return Object.keys(look).length > 0 ? look : undefined;
+}
+
+/**
  * Migrate a panel placement (D5): normalize its panel and copy the legacy
- * title / accent / background into its settings. The PanelDef fields stay
+ * title into its settings. The legacy accent / card stay render-time
+ * fallbacks (`panelLegacyLook`) so the global style can reach the panel;
+ * panels migrated by older builds keep the copies they hold (their zone's
+ * "Follow global" lets the global style through). The PanelDef fields stay
  * (older builds still read them). Other placements pass through.
  */
 export function normalizePanelPlacement(pl: Placement): Placement {
   if (!pl.panel) return pl;
-  return { ...pl, panel: normalizePanel(pl.panel), settings: panelSettings(pl) };
+  return { ...pl, panel: normalizePanel(pl.panel), settings: panelOwnSettings(pl) };
 }
 
 /**

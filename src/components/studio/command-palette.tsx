@@ -40,8 +40,8 @@ function PaletteBody({ commands, onRun }: Pick<CommandPaletteProps, "commands" |
 
   return (
     <>
-      <div className="relative border-b">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+      <div className="relative border-b border-ui-subtle">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ui-4" />
         <input
           type="text"
           value={query}
@@ -52,17 +52,17 @@ function PaletteBody({ commands, onRun }: Pick<CommandPaletteProps, "commands" |
           onKeyDown={onKeyDown}
           placeholder="Type a command or search…"
           aria-label="Command"
-          className="w-full bg-transparent py-2.5 pl-9 pr-3 text-sm text-foreground outline-none placeholder:text-muted-foreground/50"
+          className="w-full bg-transparent py-2.5 pl-9 pr-3 text-sm text-ui-1 outline-none placeholder:text-ui-4"
         />
       </div>
       <div ref={listRef} role="listbox" className="min-h-0 flex-1 overflow-y-auto p-1">
         {results.length === 0 && (
-          <div className="py-6 text-center text-xs text-muted-foreground/70">No commands match</div>
+          <div className="py-6 text-center text-xs text-ui-4">No commands match</div>
         )}
         {results.map((command, i) => (
           <div key={command.id}>
             {!searching && command.group !== results[i - 1]?.group && (
-              <div className="px-2 pb-1 pt-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70">
+              <div className="px-2 pb-1 pt-2 text-[11px] font-medium uppercase tracking-wider text-ui-4">
                 {command.group}
               </div>
             )}
@@ -73,13 +73,13 @@ function PaletteBody({ commands, onRun }: Pick<CommandPaletteProps, "commands" |
               onMouseMove={() => setActive(i)}
               onClick={() => onRun(command)}
               className={cn(
-                "flex cursor-default items-center gap-2 rounded-[5px] px-2 py-1.5 text-xs",
-                i === current ? "bg-accent text-foreground" : "text-foreground/90"
+                "flex cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-xs",
+                i === current ? "bg-ui-hover text-ui-1" : "text-ui-2"
               )}
             >
               <span className="min-w-0 flex-1 truncate">{command.label}</span>
               {command.hint && (
-                <span className="shrink-0 tabular-nums text-muted-foreground">{command.hint}</span>
+                <span className="shrink-0 font-ui-mono text-[10.5px] text-ui-4">{command.hint}</span>
               )}
             </div>
           </div>
@@ -102,7 +102,7 @@ export function CommandPalette({ open, onOpenChange, commands, onRun }: CommandP
         <Dialog.Popup
           ref={popupRef}
           initialFocus={() => popupRef.current?.querySelector("input") ?? true}
-          className="fixed left-1/2 top-[15vh] z-50 flex max-h-[60vh] w-[32rem] -translate-x-1/2 flex-col rounded-lg border border-border bg-popover text-foreground shadow-xl outline-none"
+          className="fixed left-1/2 top-[15vh] z-50 flex max-h-[60vh] w-[32rem] -translate-x-1/2 flex-col rounded-xl border border-ui-strong bg-ui-raised font-ui text-ui-1 shadow-ui-modal outline-none"
         >
           <Dialog.Title className="sr-only">Command palette</Dialog.Title>
           {open && (

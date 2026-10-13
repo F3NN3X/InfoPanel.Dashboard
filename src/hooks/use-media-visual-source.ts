@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { getSharedAudioContext } from "@/lib/audio/audio-context";
+import { GESTURE_HINT, getSharedAudioContext } from "@/lib/audio/audio-context";
 import {
   createMediaVisualSource,
   type MediaVisualSourceHandle,
@@ -17,11 +17,14 @@ export interface MediaVisualSource {
    * state); real 60 fps frames once ready.
    */
   readonly source: FrameSource<VisualFrame>;
-  /** "loading" while the stream starts, "ready" when live, "error" on failure. */
-  status: "idle" | "loading" | "ready" | "error";
+  /**
+   * "loading" while the stream starts, "ready" when live, "blocked" while the browser holds audio until
+   * a user gesture (autoplay policy; `error` carries the hint), "error" on failure.
+   */
+  status: "idle" | "loading" | "ready" | "blocked" | "error";
   /** The capture device's label (resolved once the stream is live). */
   label: string;
-  /** Set when `status` is "error" (device missing, permission denied…). */
+  /** Set when `status` is "error" (device missing, permission denied…) or "blocked" (the gesture hint). */
   error?: string;
 }
 
@@ -61,6 +64,7 @@ export function useMediaVisualSource(
     let stream: MediaStream | null = null;
     let sourceNode: MediaStreamAudioSourceNode | null = null;
     let analyser: AnalyserNode | null = null;
+    let unlisten: (() => void) | null = null;
     setStatus("loading");
     setError(undefined);
 
@@ -74,11 +78,9 @@ export function useMediaVisualSource(
         return;
       }
       try {
-        if (ctx.state === "suspended") {
-          // Autoplay policy: a kiosk (permission granted) resumes freely; a
-          // studio tab may need a user gesture. Surface it if it fails.
-          await ctx.resume();
-        }
+        // Autoplay policy: without a user gesture `resume()` never settles, so don't wait on it. The
+        // graph is built anyway; the status says "blocked" until the first click or key resumes it.
+        if (ctx.state === "suspended") void ctx.resume().catch(() => undefined);
         stream = await navigator.mediaDevices.getUserMedia({
           audio: { deviceId: { exact: deviceId } },
         });
@@ -98,7 +100,8 @@ export function useMediaVisualSource(
       try {
         sourceNode = ctx.createMediaStreamSource(stream);
         analyser = ctx.createAnalyser();
-        analyser.fftSize = 1024;
+        // the plugin's FFT size, so both resolve the bass bands alike
+        analyser.fftSize = 2048;
         analyser.smoothingTimeConstant = 0.55;
         // Document the dB window the band reduction uses (the byte output
         // scales to it; the float dB output is raw, mapped in the source).
@@ -106,7 +109,15 @@ export function useMediaVisualSource(
         analyser.maxDecibels = -30;
         sourceNode.connect(analyser);
         handle.attach(analyser);
-        setStatus("ready");
+        const sync = () => {
+          if (cancelled) return;
+          const running = ctx.state === "running";
+          setStatus(running ? "ready" : "blocked");
+          setError(running ? undefined : GESTURE_HINT);
+        };
+        sync();
+        ctx.addEventListener("statechange", sync);
+        unlisten = () => ctx.removeEventListener("statechange", sync);
 
         // Resolve the friendly label now that permission is granted.
         navigator.mediaDevices
@@ -129,6 +140,7 @@ export function useMediaVisualSource(
 
     return () => {
       cancelled = true;
+      unlisten?.();
       handle.detach();
       try {
         sourceNode?.disconnect();

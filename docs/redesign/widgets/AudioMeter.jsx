@@ -1,0 +1,125 @@
+import React from 'react';
+import { Widget, shell, get, num, fmt, Spark, useHistory } from './kit';
+
+export const meta = { id: 'AudioMeter', name: 'Audio Meter', category: 'Audio', icon: 'graphic_eq',
+  prefixes: ['plugins.audio-level-meter.'], defaultSize: [2, 1], minSize: [1, 1],
+  description: 'L/R level, peak, RMS and peak-hold for one device, or a meter bridge for all devices.' };
+
+const ids = (d) => [...new Set(Object.keys(d || {}).map((k) => k.match(/^plugins\.audio-level-meter\.([^.]+)\.device-name$/)?.[1]).filter(Boolean))];
+const read = (d, id) => {
+  const k = (s) => get(d, `plugins.audio-level-meter.${id}.${s}`);
+  const hold = num(k('peak-hold'));
+  return { id, name: String(k('device-name')).replace(/\s*\(.+\)$/, ''), l: num(k('left-channel')), r: num(k('right-channel')), level: num(k('audio-level')), peak: num(k('peak-level')), rms: num(k('rms-level')), hold: hold < -200 ? -96 : hold };
+};
+// 0..100% into lit segments, green → amber → red
+function Leds({ v, n = 24, vertical }) {
+  const lit = Math.round((Math.min(100, Math.max(0, v)) / 100) * n);
+  return (
+    <div className={`flex flex-1 gap-[2px] ${vertical ? 'flex-col-reverse' : ''}`}>
+      {Array.from({ length: n }, (_, i) => {
+        const c = i >= n * 0.9 ? '#f87171' : i >= n * 0.72 ? '#fbbf24' : 'var(--accent)';
+        return <span key={i} className="flex-1 rounded-[2px] transition-opacity duration-100" style={{ background: c, opacity: i < lit ? 1 : 0.1 }} />;
+      })}
+    </div>
+  );
+}
+
+const db2pct = (db) => Math.min(100, Math.max(0, ((db + 60) / 60) * 100));
+const P = (a, r, cx = 50, cy = 56) => [cx + r * Math.sin((a * Math.PI) / 180), cy - r * Math.cos((a * Math.PI) / 180)];
+// Analog VU: needle springs with a slight overshoot
+function Vu({ v, label }) {
+  const a = -48 + (Math.min(100, Math.max(0, v)) / 100) * 96;
+  return (
+    <svg viewBox="0 0 100 64" className="h-full w-full">
+      {Array.from({ length: 13 }, (_, i) => { const ang = -48 + i * 8; const [x1, y1] = P(ang, 38); const [x2, y2] = P(ang, i % 2 ? 41 : 44); return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke={i >= 10 ? '#f87171' : 'rgba(255,255,255,.45)'} strokeWidth={i % 2 ? 0.6 : 1} />; })}
+      <path d={`M${P(32, 46).join(',')}A46,46 0 0 1 ${P(48, 46).join(',')}`} fill="none" stroke="#f87171" strokeWidth="2" />
+      <path d={`M${P(-48, 46).join(',')}A46,46 0 0 1 ${P(32, 46).join(',')}`} fill="none" stroke="var(--accent)" strokeWidth="1" opacity=".6" />
+      <text x="50" y="40" textAnchor="middle" fontSize="7" fill="rgba(255,255,255,.4)" letterSpacing="1">VU · {label}</text>
+      <g style={{ transform: `rotate(${a}deg)`, transformOrigin: '50px 56px', transition: 'transform .45s cubic-bezier(.34,1.7,.5,1)' }}>
+        <line x1="50" y1="58" x2="50" y2="12" stroke="#fafafa" strokeWidth="1.1" strokeLinecap="round" />
+      </g>
+      <circle cx="50" cy="56" r="3.2" fill="#27272a" stroke="rgba(255,255,255,.3)" strokeWidth=".6" />
+    </svg>
+  );
+}
+
+// props: device (container id, default "default-audio"), mode 'single' | 'bridge', segments,
+//        meterStyle 'led' | 'bar' | 'vu' | 'ring' | 'mirror' | 'wave'
+export default function AudioMeter(p) {
+  const d = p.data;
+  const all = ids(d);
+  const bridge = p.mode === 'bridge';
+  const one = read(d, p.device ?? (all.includes('default-audio') ? 'default-audio' : all[0]));
+  const lH = useHistory(one.l, 72, 0.6), rH = useHistory(one.r, 72, 0.6);
+  const st = p.meterStyle ?? 'led';
+  const holdPct = db2pct(one.hold);
+  return (
+    <Widget {...shell(p)} title={p.title ?? (bridge ? 'Audio levels' : one.name)} icon="graphic_eq" studio={bridge ? { label: 'Audio levels', meters: all.filter((id) => id !== 'default-audio').map((id) => { const m = read(d, id); return { n: m.name, v: Math.max(m.l, m.r) }; }) } : { label: one.name, value: one.peak, d: 1, unit: 'dB', meters: [{ n: 'L', v: one.l }, { n: 'R', v: one.r }] }} compact={!bridge && { label: one.name, value: one.peak, d: 1, unit: 'dB', pct: one.level, sub: `L ${fmt(one.l)}% · R ${fmt(one.r)}%` }}
+      right={!bridge && <span className="font-mono text-[10.5px] text-zinc-400">{fmt(one.peak, 1)} dB</span>}>
+      {({ size }) => bridge ? (
+        <div className="flex h-full gap-2">
+          {all.filter((id) => id !== 'default-audio').map((id) => { const m = read(d, id); return (
+            <div key={id} className="flex min-w-0 flex-1 flex-col items-center gap-1.5">
+              <div className="flex min-h-0 w-full flex-1 justify-center gap-[3px]"><div className="flex w-2"><Leds v={m.l} vertical n={size === 'lg' ? 28 : 16} /></div><div className="flex w-2"><Leds v={m.r} vertical n={size === 'lg' ? 28 : 16} /></div></div>
+              {size !== 'xs' && <span className="w-full truncate text-center text-[10px] text-zinc-400" title={m.name}>{m.name}</span>}
+            </div>
+          ); })}
+        </div>
+      ) : size === 'xs' ? (
+        <div className="flex h-full flex-col justify-center gap-1.5">
+          <div className="flex h-2"><Leds v={one.l} n={16} /></div><div className="flex h-2"><Leds v={one.r} n={16} /></div>
+        </div>
+      ) : (
+        <div className="flex h-full flex-col justify-center gap-2">
+          {st === 'vu' ? (
+            <div className="flex min-h-0 flex-1 gap-2">{[['L', one.l], ['R', one.r]].map(([c, v]) => <div key={c} className="flex min-h-0 min-w-0 flex-1 items-center justify-center rounded-xl bg-gradient-to-b from-white/[0.07] to-white/[0.02] p-1"><Vu v={v} label={c} /></div>)}</div>
+          ) : st === 'ring' ? (
+            <div className="flex min-h-0 flex-1 items-center justify-center gap-4">
+              <svg viewBox="0 0 100 100" className="aspect-square h-full max-h-full -rotate-90">
+                {[[42, one.l], [31, one.r]].map(([r, v]) => { const c = 2 * Math.PI * r; return (
+                  <g key={r}><circle cx="50" cy="50" r={r} fill="none" stroke="rgba(255,255,255,.07)" strokeWidth="8" />
+                    <circle cx="50" cy="50" r={r} fill="none" stroke={v > 85 ? '#f87171' : 'var(--accent)'} strokeWidth="8" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - Math.min(100, v) / 100)} style={{ transition: 'stroke-dashoffset .25s' }} /></g>); })}
+                <circle cx="50" cy="50" r="42" fill="none" stroke="#fafafa" strokeWidth="8" strokeDasharray={`1.2 ${2 * Math.PI * 42}`} strokeDashoffset={-2 * Math.PI * 42 * (holdPct / 100)} />
+              </svg>
+              {size !== 'sm' && <div className="flex flex-col gap-1 text-xs"><span className="text-zinc-500">Outer L · Inner R</span><span className="text-2xl font-semibold tabular-nums">{fmt(one.level, 0)}<span className="text-xs text-zinc-400">%</span></span></div>}
+            </div>
+          ) : st === 'mirror' ? (
+            <div className="flex min-h-0 flex-1 flex-col justify-center gap-1.5">
+              {[0, 1, 2].map((row) => (
+                <div key={row} className="flex h-full max-h-4 items-stretch gap-[3px]">
+                  <div className="flex flex-1 flex-row-reverse gap-[2px]">{Array.from({ length: 16 }, (_, i) => <span key={i} className="flex-1 rounded-[2px] transition-opacity duration-100" style={{ background: i > 12 ? '#f87171' : i > 9 ? '#fbbf24' : 'var(--accent)', opacity: i < Math.round(((one.l * (1 - row * 0.18)) / 100) * 16) ? 1 : 0.08 }} />)}</div>
+                  <span className="w-px bg-white/30" />
+                  <div className="flex flex-1 gap-[2px]">{Array.from({ length: 16 }, (_, i) => <span key={i} className="flex-1 rounded-[2px] transition-opacity duration-100" style={{ background: i > 12 ? '#f87171' : i > 9 ? '#fbbf24' : 'var(--accent)', opacity: i < Math.round(((one.r * (1 - row * 0.18)) / 100) * 16) ? 1 : 0.08 }} />)}</div>
+                </div>
+              ))}
+              <div className="flex justify-between text-[10px] font-semibold text-zinc-500"><span>L</span><span>R</span></div>
+            </div>
+          ) : st === 'wave' ? (
+            <div className="relative min-h-0 flex-1">
+              <Spark values={lH} min={0} max={100} graph="area" className="absolute inset-x-0 top-0 h-1/2" />
+              <Spark values={rH} min={0} max={100} graph="area" className="absolute inset-x-0 bottom-0 h-1/2 -scale-y-100" color="#a78bfa" />
+              <div className="absolute inset-x-0 top-1/2 h-px bg-white/15" />
+            </div>
+          ) : [['L', one.l], ['R', one.r]].map(([c, v]) => (
+            <div key={c} className={`flex items-center gap-2 ${size === 'lg' ? 'h-5' : 'h-3'}`}>
+              <span className="w-3 text-[10px] font-semibold text-zinc-500">{c}</span>
+              {st === 'bar' ? (
+                <div className="relative h-full flex-1 overflow-hidden rounded-full bg-white/[0.07]">
+                  <div className="absolute inset-y-0 left-0 rounded-full transition-[width] duration-100" style={{ width: `${Math.min(100, v)}%`, background: 'linear-gradient(90deg, var(--accent) 0%, var(--accent) 60%, #fbbf24 82%, #f87171 100%)', backgroundSize: `${(100 / Math.max(1, v)) * 100}% 100%` }} />
+                  <div className="absolute inset-y-0 w-[2px] bg-white transition-[left] duration-300" style={{ left: `${holdPct}%` }} />
+                </div>
+              ) : <div className="flex h-full flex-1"><Leds v={v} n={p.segments ?? (size === 'sm' ? 20 : 32)} /></div>}
+            </div>
+          ))}
+          {size !== 'sm' && (
+            <div className="mt-1 grid grid-cols-4 gap-3 font-mono text-[11px]">
+              {[['Peak', `${fmt(one.peak, 1)} dB`], ['RMS', `${fmt(one.rms, 1)} dB`], ['Hold', `${fmt(one.hold, 1)} dB`], ['Level', `${fmt(one.level, 1)}%`]].map(([l, v]) => (
+                <div key={l} className="flex flex-col"><span className="font-sans text-[10px] text-zinc-500">{l}</span><span className="text-zinc-200">{v}</span></div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </Widget>
+  );
+}

@@ -1,9 +1,8 @@
 import type { CSSProperties } from "react";
 import type { ModernChrome } from "@/components/modern-chrome";
-import { makeSurface } from "@/components/ModernNowPlaying";
+import { makeSurface } from "@/components/surfaces";
 import { CROSS, MAIN, safe, surfaceBox, ws, type SurfaceColors } from "@/components/widget-style";
 import { defaultBoxW, type BoxAlign, type BoxSize, type PanelDef, type PanelJustify, type Widget } from "@/lib/panel-model";
-import { hexToHsl } from "@/lib/theme";
 
 /**
  * A panel's arrangement as CSS. The panel's own layout fields are written
@@ -15,7 +14,7 @@ import { hexToHsl } from "@/lib/theme";
  */
 
 /** The card choices of a panel: the theme cards plus the module surfaces. */
-export const PANEL_SURFACES = ["none", "panel", "bordered", "glass", "matte-light", "matte-dark"] as const;
+export const PANEL_SURFACES = ["none", "panel", "bordered", "glass", "matte-light", "matte-dark", "theme"] as const;
 export type PanelSurface = (typeof PANEL_SURFACES)[number];
 
 export const panelSurfaceOf = (value: unknown): PanelSurface =>
@@ -151,16 +150,20 @@ export function panelCardStyle(surface: PanelSurface, chrome: ModernChrome | und
   };
 }
 
-const HEX = /^#[0-9a-f]{6}/i;
+/** Kinds whose `color` is a fill (the accent's job); the others color text. */
+const FILL_KINDS: ReadonlySet<Widget["kind"]> = new Set(["bar", "gauge", "sparkline", "shape"]);
 
 /**
- * Theme tokens re-scoped for the panel's subtree: its accent, text and
- * secondary text colors (hex only; the widgets' Tailwind colors read them).
+ * A panel under a forced global style: its widgets' own colors give way —
+ * fills take the resolved accent (`accent`, hex; else the theme's), text
+ * takes the resolved text colors (the re-scoped theme tokens).
  */
-export function panelScope(chrome: ModernChrome | undefined): CSSProperties | undefined {
-  const v: Record<string, string> = {};
-  if (chrome?.accent && HEX.test(chrome.accent)) v["--accent"] = hexToHsl(chrome.accent);
-  if (chrome?.textColor && HEX.test(chrome.textColor)) v["--foreground"] = hexToHsl(chrome.textColor);
-  if (chrome?.mutedColor && HEX.test(chrome.mutedColor)) v["--muted-foreground"] = hexToHsl(chrome.mutedColor);
-  return Object.keys(v).length > 0 ? (v as CSSProperties) : undefined;
+export function enforcedPanel(panel: PanelDef, accent: string | undefined): PanelDef {
+  if (!panel.widgets.some((w) => w.color !== undefined)) return panel;
+  return {
+    ...panel,
+    widgets: panel.widgets.map((w) =>
+      w.color === undefined ? w : { ...w, color: FILL_KINDS.has(w.kind) && accent ? accent : undefined }
+    ),
+  };
 }

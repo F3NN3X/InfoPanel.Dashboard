@@ -1,0 +1,67 @@
+import React from 'react';
+import { Widget, shell, get, num, fmt, detect, pretty, Metric, Ring, Spark, Stat, BarRow, Bar, useHistory, tone, Empty, Icon, hw } from './kit';
+
+export const meta = { id: 'GpuMonitor', name: 'GPU Monitor', category: 'Hardware', icon: 'developer_board',
+  prefixes: ['libre.nvidia_', 'libre.amd_radeon', 'libre.intel_arc'], defaultSize: [3, 2], minSize: [1, 1],
+  description: 'Load, temps, power, VRAM, clocks, fans, PCIe and D3D engines.' };
+
+export default function GpuMonitor(p) {
+  const d = p.data;
+  const id = p.gpu ?? hw(d).gpu;
+  if (!id) return <Widget {...shell(p)} title="GPU" icon="developer_board"><Empty /></Widget>;
+  const k = (s) => num(get(d, `libre.${id}_${s}`));
+  const load = k('gpu_core_load'), temp = k('gpu_core'), hot = k('gpu_memory_junction'), watts = k('gpu_package');
+  const used = k('gpu_memory_used'), total = k('gpu_memory_total');
+  const fans = [1, 2, 3].map((i) => k(`gpu_fan_${i}`)).filter(Number.isFinite);
+  const engines = [['3D', k('d3d_3d')], ['Copy', k('d3d_copy')], ['Decode', k('d3d_video_decode')], ['Encode', k('d3d_video_encode')], ['Mem ctrl', k('gpu_memory_controller')], ['Video eng', k('gpu_video_engine')]];
+  const hist = useHistory(load);
+  const name = p.title ?? (get(d, 'plugins.InfoPanel.RTSS.rtss.gpu-name') || pretty(id)).replace(/^NVIDIA GeForce /i, '');
+  const warnT = p.warnTemp ?? 75, critT = p.critTemp ?? 85;
+  return (
+    <Widget {...shell(p)} title={name} icon="developer_board" compact={{ label: 'GPU', value: load, unit: '%', sub: `${fmt(temp, 0)}°C · ${fmt(watts, 0)} W`, hist, min: 0, max: 100 }}
+      right={<span className="tabular-nums" style={{ color: tone(temp, warnT, critT) === 'ok' ? '#d4d4d8' : tone(temp, warnT, critT) === 'warn' ? '#fbbf24' : '#f87171' }}>{fmt(temp, 0)}°C</span>}>
+      {({ size }) => size === 'xs' ? (
+        <div className="flex h-full items-center justify-between gap-2">
+          <Metric label="GPU" value={load} unit="%" scale="lg" />
+          <div className="text-right text-[11px] leading-tight text-zinc-400"><div className="tabular-nums text-zinc-200">{fmt(watts, 0)} W</div>{fmt(temp, 0)}°C</div>
+        </div>
+      ) : size === 'sm' ? (
+        <div className="flex h-full items-center gap-3">
+          <Ring value={load} thickness={9} className="h-full max-h-28">
+            <span className="text-xl font-semibold tabular-nums">{fmt(load, 0)}<span className="text-xs text-zinc-400">%</span></span>
+          </Ring>
+          <div className="flex min-w-0 flex-1 flex-col gap-2">
+            <BarRow label="VRAM" value={used} max={total} display={`${fmt(used / 1024, 1)} GB`} />
+            <div className="grid grid-cols-2 gap-2"><Stat label="Power" value={`${fmt(watts, 0)} W`} /><Stat label="Clock" value={`${fmt(k('gpu_core_clock'), 0)}`} /></div>
+          </div>
+        </div>
+      ) : (
+        <div className="flex h-full flex-col gap-3">
+          <div className="flex items-end gap-5">
+            <Metric value={load} unit="%" scale={size === 'lg' ? 'xl' : 'lg'} sub="Core load" />
+            <div className="grid flex-1 grid-cols-3 gap-3">
+              <Stat label="Power" value={`${fmt(watts, 1)} W`} />
+              <Stat label="Core" value={`${fmt(k('gpu_core_clock'), 0)} MHz`} />
+              <Stat label="Hotspot" value={`${fmt(hot, 0)} °C`} />
+            </div>
+          </div>
+          <BarRow label="VRAM" value={used} max={total} hint={`of ${fmt(total / 1024, 0)} GB`} display={`${fmt(used / 1024, 1)} GB`} />
+          {size === 'md' ? <Spark values={hist} min={0} max={100} className="min-h-0 flex-1" /> : (
+            <>
+              <div className="grid grid-cols-3 gap-x-4 gap-y-2.5">
+                {engines.map(([l, v]) => <BarRow key={l} label={l} value={v} />)}
+              </div>
+              <Spark values={hist} min={0} max={100} className="min-h-0 flex-1" />
+              <div className="grid grid-cols-4 gap-3 border-t border-white/[0.06] pt-3">
+                <Stat label="Mem clock" value={`${fmt(k('gpu_memory_clock'), 0)} MHz`} />
+                <Stat label="Voltage" value={`${fmt(k('gpu_core_voltage'), 3)} V`} />
+                <Stat label="Board power" value={`${fmt(k('gpu_board_power'), 1)}%`} />
+                <Stat label="Fans" value={fans.length ? `${fmt(fans.reduce((a, b) => a + b, 0) / fans.length, 0)} RPM` : '–'} />
+              </div>
+            </>
+          )}
+        </div>
+      )}
+    </Widget>
+  );
+}

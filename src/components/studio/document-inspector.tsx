@@ -1,131 +1,300 @@
 import { useState } from "react";
-import { Segmented } from "@/components/ui/segmented";
-import { PROFILE_STYLE_SETTINGS } from "@/modules/standard-settings";
-import type { ModuleSetting, ModuleSettings } from "@/modules/types";
-import { THEME_PRESETS, type ThemeTokens } from "@/lib/theme";
+import type { PageBackground } from "@/lib/appearance";
+import type { GeneralSettings } from "@/lib/general";
+import type { MonitorProfile } from "@/lib/layout";
+import { THEME_PRESETS, resolveTheme, type ThemeTokens } from "@/lib/theme";
+import type { ModuleSettings } from "@/modules/types";
+import { AppearanceGallery, type CurrentLook } from "./appearance-gallery";
+import { GlobalStyleScope, type AppearanceTarget } from "./appearance-panel";
+import { BackgroundPanel, type BackgroundTarget } from "./background-panel";
 import { DataApiPanel } from "./data-api-panel";
-import { dropKeys, filterSettings } from "./settings-model";
-import { SettingsPanel } from "./settings-panel";
+import { generalCards } from "./general-panel";
+import { InspectorNote, InspectorView, type SectionParts } from "./inspector/inspector-view";
+import { AutoPick, ProfileFields, ProfileInherit } from "./inspector/profile-sections";
+import { HeaderSlot } from "./inspector-layout";
+import {
+  globalStyleValues,
+  inspectorNotes,
+  isVisible,
+  type InspectorContext,
+  type InspectorSection,
+} from "./inspector-model";
+import { ProfileThemePanel, type ProfileTheme } from "./profile-theme-panel";
+import type { FieldsApi } from "./settings-panel";
+import { SegmentedRow } from "./setting-rows";
+import { dropKeys } from "./settings-model";
+import type { LayoutMode } from "./studio-layout";
 import { ThemePanel } from "./theme-panel";
-import { SettingsSearch } from "./zone-inspector-parts";
+import type { AppearancePresetsApi } from "./use-appearance-presets";
+import { DashboardHeader } from "./zone-inspector-parts";
+import { shownValue, shownValues } from "./inspector/zone-fields";
+import { PROFILE_STYLE_SETTINGS } from "@/modules/standard-settings";
 
-export type DocumentTab = "theme" | "profile" | "connection";
+/** The parts of the dashboard inspector the palette's "Appearance…" and friends jump to. */
+export type DocumentTab = "appearance" | "background" | "general" | "connection";
 
-interface DocumentInspectorProps {
-  /** The open tab (kept by the studio so it survives selecting a zone). */
-  tab: DocumentTab;
-  onTabChange: (tab: DocumentTab) => void;
+/** The section each part jumps to (its document card id). */
+export const DOCUMENT_CARD: Record<DocumentTab, string> = {
+  appearance: "doc:appearance",
+  background: "doc:background",
+  general: "doc:type",
+  connection: "doc:connection",
+};
+
+export interface DocumentInspectorProps {
+  /** Open, reveal and outline a section whenever `seq` changes (the palette's document commands). */
+  jumpTo?: { id: string; key?: string; seq: number };
+  /** The settings search (the studio's Esc clears it). */
+  query: string;
+  onQuery: (query: string) => void;
   theme: ThemeTokens;
   radius: number;
   onToken: (key: keyof ThemeTokens, value: string) => void;
   onRadius: (radius: number) => void;
   onThemePreset: (name: string) => void;
-  /** The active profile's style (defaults for every widget). */
-  profileStyle: ModuleSettings | undefined;
-  onProfileStyle: (fn: (style: ModuleSettings) => ModuleSettings) => void;
+  /** The dashboard style (defaults for every widget of every profile). */
+  dashboardStyle: ModuleSettings | undefined;
+  dashboardEnforce: boolean | undefined;
+  onStyle: (target: AppearanceTarget, fn: (style: ModuleSettings) => ModuleSettings) => void;
+  onEnforce: (target: AppearanceTarget, value: boolean | undefined) => void;
+  /** The appearance presets gallery. */
+  presets: AppearancePresetsApi;
+  /** The dashboard's page background (every profile without its own). */
+  background: PageBackground | undefined;
+  /** The active profile (its own background and style, and its name). */
+  profile: {
+    id: string;
+    name: string;
+    background?: PageBackground;
+    style?: ModuleSettings;
+    styleEnforce?: boolean;
+    theme?: Partial<ThemeTokens>;
+    radius?: number;
+  };
+  /** Set the active profile's own theme colours / radius (both unset = inherit). */
+  onProfileTheme: (next: ProfileTheme, key?: string) => void;
+  onBackground: (target: BackgroundTarget, bg: PageBackground | undefined) => void;
+  /** General settings (font, clock, locale, motion, kiosk cursor). */
+  general: GeneralSettings | undefined;
+  onGeneral: <K extends keyof GeneralSettings>(key: K, value: GeneralSettings[K]) => void;
   dataApiUrl: string | undefined;
   onDataApiUrl: (url: string) => void;
 }
 
-const TABS = [
-  { value: "theme" as const, label: "Theme" },
-  { value: "profile" as const, label: "Profile style" },
-  { value: "connection" as const, label: "Connection" },
-];
-
-/** "Profile style › Colors & type" — where a search result lives. */
-function breadcrumb(def: ModuleSetting): string {
-  return def.group ? `Profile style › ${def.group}` : "Profile style";
+/** What the Profile and General tabs edit besides the document props. */
+export interface DashboardStudioProps {
+  /** The active profile, whole (Profile tab). */
+  activeProfile: MonitorProfile;
+  updateProfile: (fn: (p: MonitorProfile) => MonitorProfile, key?: string) => void;
+  canRemoveProfile: boolean;
+  onRemoveProfile: () => void;
+  /** The config picks the profile by window size ("auto"). */
+  autoPick: boolean;
+  onAutoPick: (auto: boolean) => void;
+  /** General › Studio: the inspector position. */
+  layoutMode: LayoutMode;
+  onLayoutMode: (mode: LayoutMode) => void;
 }
 
+const INSPECTOR_POSITIONS = [
+  { value: "side" as const, label: "Side" },
+  { value: "bottom" as const, label: "Bottom" },
+  { value: "auto" as const, label: "Auto", title: "Bottom for wide, short profiles; else beside the canvas" },
+];
+
 /**
- * Right panel with nothing selected: a hint, then Theme, Profile style
- * (searchable, defaults for every widget) and Connection (Data API) tabs.
+ * The inspector with nothing selected: the Dashboard, in the tabs Profile ·
+ * Appearance · Global style · General (README §4.7), with the same
+ * sections, dots, search and Advanced filter as a zone. The registry
+ * places the existing cards (scope and force, presets, theme, page
+ * background, general, connection) into its sections.
  */
-export function DocumentInspector({
-  tab,
-  onTabChange,
+export function DocumentInspector(props: DocumentInspectorProps & DashboardStudioProps) {
+  // Remount per profile: the scope starts where this profile has its own settings.
+  return <DocumentSheet key={props.profile.id} {...props} />;
+}
+
+function DocumentSheet({
+  jumpTo,
+  query,
+  onQuery,
   theme,
   radius,
   onToken,
   onRadius,
   onThemePreset,
-  profileStyle,
-  onProfileStyle,
+  dashboardStyle,
+  dashboardEnforce,
+  onStyle,
+  onEnforce,
+  presets,
+  background,
+  profile,
+  onProfileTheme,
+  onBackground,
+  general,
+  onGeneral,
   dataApiUrl,
   onDataApiUrl,
-}: DocumentInspectorProps) {
-  return (
-    <section>
-      <div className="sticky top-0 z-10 space-y-2.5 border-b bg-popover p-3">
-        <p className="text-xs text-muted-foreground">
-          Select a zone to edit it — or set the theme, profile style and
-          connection here.
-        </p>
-        <Segmented options={TABS} value={tab} onChange={onTabChange} className="w-full *:flex-1" />
-      </div>
-
-      <div className="p-4">
-        {tab === "theme" ? (
-          <ThemePanel
-            tokens={theme}
-            radius={radius}
-            presetName={
-              THEME_PRESETS.find(
-                (p) => JSON.stringify(p.tokens) === JSON.stringify(theme)
-              )?.name ?? "custom"
-            }
-            onToken={onToken}
-            onRadius={onRadius}
-            onPreset={onThemePreset}
-          />
-        ) : tab === "profile" ? (
-          <ProfileStyleTab value={profileStyle} onChange={onProfileStyle} />
-        ) : (
-          <>
-            <div className="mb-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Data API URL
-            </div>
-            <DataApiPanel value={dataApiUrl} onChange={onDataApiUrl} />
-          </>
-        )}
-      </div>
-    </section>
+  activeProfile,
+  updateProfile,
+  canRemoveProfile,
+  onRemoveProfile,
+  autoPick,
+  onAutoPick,
+  layoutMode,
+  onLayoutMode,
+}: DocumentInspectorProps & DashboardStudioProps) {
+  const [target, setTarget] = useState<AppearanceTarget>(
+    profile.style || profile.styleEnforce !== undefined ? "profile" : "all"
   );
-}
+  const all = target === "all";
+  const context: InspectorContext = { kind: "dashboard", scope: target, profileName: profile.name };
 
-/** The profile's style settings with a search box over them. */
-function ProfileStyleTab({
-  value,
-  onChange,
-}: {
-  value: ModuleSettings | undefined;
-  onChange: (fn: (style: ModuleSettings) => ModuleSettings) => void;
-}) {
-  const [query, setQuery] = useState("");
-  const searching = query.trim() !== "";
-  const defs = searching ? filterSettings(PROFILE_STYLE_SETTINGS, query) : PROFILE_STYLE_SETTINGS;
+  const change = (fn: (style: ModuleSettings) => ModuleSettings) => onStyle(target, fn);
+  const values = globalStyleValues(target, dashboardStyle, profile.style);
+  const fields: FieldsApi = {
+    values,
+    shown: (key, def) => shownValue(values, key, def),
+    onChange: (key, v) => change((s) => ({ ...s, [key]: v })),
+    onPatch: (patch) => change((s) => ({ ...s, ...patch })),
+    onClear: (keys) => change((s) => dropKeys(s, new Set(keys)) ?? {}),
+  };
+  // The look the presets are compared with: the scope's theme and style over the dashboard's.
+  const shownTheme = resolveTheme({ theme, radius }, all ? undefined : profile);
+  const currentLook: CurrentLook = {
+    tokens: shownTheme.tokens,
+    radius: shownTheme.radius,
+    style: all ? dashboardStyle : { ...dashboardStyle, ...profile.style },
+  };
+  const effective = shownValues(values, PROFILE_STYLE_SETTINGS);
+  const generalById = new Map(generalCards(general, onGeneral).map((c) => [c.id, c] as const));
+
+  const parts = (s: InspectorSection): SectionParts => {
+    switch (s.special) {
+      case "profileFields":
+        return {
+          body: (
+            <ProfileFields
+              profile={activeProfile}
+              updateProfile={updateProfile}
+              canRemove={canRemoveProfile}
+              onRemove={onRemoveProfile}
+            />
+          ),
+        };
+      case "profileInherit":
+        return {
+          body: (
+            <ProfileInherit
+              profile={activeProfile}
+              dashboardTheme={{ theme, radius }}
+              dashboardBackground={background}
+              onProfileTheme={onProfileTheme}
+              onBackground={onBackground}
+              updateProfile={updateProfile}
+            />
+          ),
+        };
+      case "profileSelection":
+        return { body: <AutoPick auto={autoPick} onAuto={onAutoPick} /> };
+      case "scope":
+        return {
+          body: (
+            <GlobalStyleScope
+              target={target}
+              onTarget={setTarget}
+              dashboardEnforce={dashboardEnforce}
+              profileEnforce={profile.styleEnforce}
+              onEnforce={onEnforce}
+              overrides={presets.overrides(target)}
+              onFollowAll={() => presets.clearOverrides(target)}
+            />
+          ),
+        };
+      case "presets":
+        return { body: <AppearanceGallery api={presets} target={target} look={currentLook} /> };
+      case "theme":
+        return {
+          body: all ? (
+            <ThemePanel
+              tokens={theme}
+              radius={radius}
+              presetName={
+                THEME_PRESETS.find((p) => JSON.stringify(p.tokens) === JSON.stringify(theme))?.name ?? "custom"
+              }
+              onToken={onToken}
+              onRadius={onRadius}
+              onPreset={onThemePreset}
+              query={query}
+            />
+          ) : (
+            <ProfileThemePanel
+              dashboard={{ theme, radius }}
+              profile={{ theme: profile.theme, radius: profile.radius }}
+              profileName={profile.name}
+              onChange={onProfileTheme}
+              query={query}
+            />
+          ),
+        };
+      case "pageBackground":
+        return {
+          body: (
+            <BackgroundPanel
+              target={target}
+              onTarget={setTarget}
+              dashboard={background}
+              profileBackground={profile.background}
+              profileName={profile.name}
+              onChange={onBackground}
+            />
+          ),
+        };
+      case "type":
+      case "clock":
+      case "display": {
+        const card = s.cardId ? generalById.get(s.cardId) : undefined;
+        return card ? { body: card.node, changed: card.changed, onReset: card.onReset } : {};
+      }
+      case "studio":
+        return {
+          body: (
+            <SegmentedRow
+              label="Inspector position"
+              hint="A browser preference; the zoom bar's dock button changes it too"
+              options={INSPECTOR_POSITIONS}
+              value={layoutMode}
+              onChange={(m) => onLayoutMode(m as LayoutMode)}
+            />
+          ),
+        };
+      case "connection":
+        return { body: <DataApiPanel value={dataApiUrl} onChange={onDataApiUrl} /> };
+      default:
+        return {};
+    }
+  };
+
+  const notes = (tab: Parameters<typeof inspectorNotes>[1]) =>
+    inspectorNotes(context, tab).map((n) => <InspectorNote key={n.kind}>{n.text}</InspectorNote>);
+
   return (
-    <div className="space-y-3">
-      <p className="text-[11px] text-muted-foreground/70">
-        Defaults for every widget in this profile; a widget&apos;s own
-        setting overrides them.
-      </p>
-      <SettingsSearch query={query} onQuery={setQuery} />
-      <SettingsPanel
-        title={searching ? "Results" : "Profile style"}
-        sectionScope="profile"
-        defs={defs}
-        value={value}
-        breadcrumb={searching ? breadcrumb : undefined}
-        onChange={(key, v) => onChange((s) => ({ ...s, [key]: v }))}
-        onPatch={(patch) => onChange((s) => ({ ...s, ...patch }))}
-        onClear={(keys) => onChange((s) => dropKeys(s, new Set(keys)) ?? {})}
-        onReset={searching ? undefined : () => onChange(() => ({}))}
-      />
-      {searching && defs.length === 0 && (
-        <div className="py-6 text-center text-xs text-muted-foreground/70">No settings match</div>
-      )}
-    </div>
+    <InspectorView
+      context={context}
+      contextKey="dashboard"
+      header={
+        <HeaderSlot className="w-80 shrink-0">
+          <DashboardHeader profileName={profile.name} />
+        </HeaderSlot>
+      }
+      fields={fields}
+      visible={(def) => isVisible(def, effective)}
+      parts={parts}
+      notes={notes}
+      query={query}
+      onQuery={onQuery}
+      jumpTo={jumpTo}
+    />
   );
 }
