@@ -14,7 +14,8 @@
 import fs from "node:fs";
 
 export const HISTORY_MAX = 200;
-export const NOTIFICATION_KEY = "notifications.latest";
+/** The Notifications plugin (2.0+) publishes the newest Windows notification here as JSON. */
+export const NOTIFICATION_KEY = "plugins.InfoPanel.Notifications.windows.latest";
 const DEFAULT_API = "http://127.0.0.1:3921";
 const TICK_MS = 1000;
 const SAVE_DEBOUNCE_MS = 1000;

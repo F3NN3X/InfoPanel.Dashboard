@@ -1,6 +1,6 @@
 # Alerts (plan)
 
-Status: **approved 2026-10-13**. Context: `../ROADMAP.md` §A; outputs ride the control
+Status: **done 2026-10-13** (A1–A5; results in §Verification). Context: `../ROADMAP.md` §A; outputs ride the control
 channel from `../pages/PLAN.md` (P3).
 
 ## Decisions (user, 2026-10-13)
@@ -88,3 +88,20 @@ Discord message", "any notification from …".
 - **Notification access** can be revoked in Windows privacy settings: the plugin reports "denied" and
   the studio shows it.
 - **Rule storms** (a flapping sensor): duration + hysteresis + cooldown, and at most 3 toasts on screen.
+
+## Verification (2026-10-13)
+
+- `npm run typecheck`, `npm test` and `npm run build` exit 0.
+- Production build on a throwaway server (copy of the live config) against the live Data API:
+  - **Sensor rule**: the "GPU power near limit" preset picked `libre.nvidia_geforce_rtx_5090_gpu_package`
+    (W) after the unit fix; with the threshold at 200 W it fired for real ("267.5 W"), showed on the
+    kiosk as a centred overlay, a tap acknowledged it, and Test fired a one-shot with the blur backdrop
+    and countdown.
+  - **Windows notification**: Notifications plugin 2.0.0 (branch `feat/windows-notifications`)
+    publishes `plugins.InfoPanel.Notifications.windows.{latest,count,apps,recent,access}`
+    (access `Allowed`); a PowerShell toast reached `latest` within the 1 s poll; a notification rule
+    filtered on "Windows PowerShell" fired and the kiosk showed it as a warning banner.
+- Fixed during verification: presets match the threshold's unit; a rule without a sensor is kept and
+  subscribes to nothing; the body no longer repeats the rule name; the engine and studio use the
+  plugin's real keys.
+- Not verified: quiet hours and page switching on a live display (unit tests only).

@@ -54,9 +54,11 @@ const OP_LABEL: Record<SensorOp, string> = {
 
 const NUMERIC_OPS: readonly SensorOp[] = [">", ">=", "<", "<="];
 
-/** App names the Notifications plugin publishes (`notifications.apps`: a JSON array or a comma list). */
+/** App names the Notifications plugin (2.0+) publishes (`…windows.apps`: a JSON array, or a comma list). */
+export const NOTIFICATION_APPS_KEY = "plugins.InfoPanel.Notifications.windows.apps";
+
 export function notificationApps(points: readonly DataPoint[]): string[] {
-  const p = points.find((x) => /^notifications\.(apps|app-list)$/i.test(x.key));
+  const p = points.find((x) => x.key === NOTIFICATION_APPS_KEY);
   if (!p) return [];
   try {
     const list: unknown = JSON.parse(p.raw);

@@ -2,7 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { HISTORY_MAX, act, activeAlerts, createAlerts, emptyAlertsState, evaluate, isQuiet, keysOf, prefixOf, takeEvents } from "./alerts.mjs";
+import { HISTORY_MAX, NOTIFICATION_KEY, act, activeAlerts, createAlerts, emptyAlertsState, evaluate, isQuiet, keysOf, prefixOf, takeEvents } from "./alerts.mjs";
 import { createControl } from "./control.mjs";
 
 const T0 = 1_000_000;
@@ -30,7 +30,7 @@ const notif = (over = {}, source = {}) => ({
 const cfg = (rules, extra = {}) => ({ enabled: true, rules, defaults: { style: "toast", position: "top-right", backdrop: "none", size: "m", seconds: 8 }, ...extra });
 const temp = (value, unit = "°C") => ({ "gpu.temp": { value, unit } });
 const note = (over = {}) => ({
-  "notifications.latest": { text: JSON.stringify({ id: "1", app: "Discord", title: "Hi", body: "hello there", time: 1, ...over }) },
+  [NOTIFICATION_KEY]: { text: JSON.stringify({ id: "1", app: "Discord", title: "Hi", body: "hello there", time: 1, ...over }) },
 });
 
 /** Run readings through evaluate at the given times; returns the final state and all events. */
@@ -206,8 +206,8 @@ describe("evaluate: notifications", () => {
     expect(hit({ match: "hi" }, { body: "" })).toBe(1);
   });
   it("treats malformed input as nothing", () => {
-    const bad = (text) => ({ "notifications.latest": { text } });
-    const r = run(cfg([notif()]), [[T0, bad("{")], [T0 + 1000, bad("[]")], [T0 + 2000, bad(JSON.stringify({ app: "x" }))], [T0 + 3000, { "notifications.latest": { value: 3 } }]]);
+    const bad = (text) => ({ [NOTIFICATION_KEY]: { text } });
+    const r = run(cfg([notif()]), [[T0, bad("{")], [T0 + 1000, bad("[]")], [T0 + 2000, bad(JSON.stringify({ app: "x" }))], [T0 + 3000, { [NOTIFICATION_KEY]: { value: 3 } }]]);
     expect(r.events).toEqual([]);
   });
   it("expires after its seconds, or stays until acknowledged at 0", () => {
@@ -357,7 +357,7 @@ describe("history", () => {
 describe("helpers", () => {
   it("lists the keys of the enabled rules and the notification feed", () => {
     const alerts = cfg([sensor(), sensor({ id: "r2", enabled: false }, { key: "cpu.temp" }), notif()]);
-    expect(keysOf(alerts).sort()).toEqual(["gpu.temp", "notifications.latest"]);
+    expect(keysOf(alerts).sort()).toEqual(["gpu.temp", NOTIFICATION_KEY]);
     expect(keysOf(cfg([sensor()], { enabled: false }))).toEqual([]);
     expect(keysOf(undefined)).toEqual([]);
   });
@@ -420,7 +420,7 @@ describe("createAlerts", () => {
     expect(h.streams.map((s) => s.url).sort()).toEqual([
       "http://10.0.0.5:3921/events?prefix=cpu.&interval=1000",
       "http://10.0.0.5:3921/events?prefix=gpu.&interval=1000",
-      "http://10.0.0.5:3921/events?prefix=notifications.&interval=1000",
+      "http://10.0.0.5:3921/events?prefix=plugins.InfoPanel.Notifications.windows.&interval=1000",
     ]);
     h.engine.stop();
   });
