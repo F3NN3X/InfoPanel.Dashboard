@@ -60,7 +60,7 @@ Runtime state that is not config and not undoable: the active page per profile, 
 
 ## S. Stream Deck plugin (native, Elgato SDK v2, TypeScript)
 
-Separate repo: `InfoPanel.StreamDeckDashboard`. Talks only to the dashboard server (`/api/config`, `/api/control`, `/events/control`).
+Separate repo: `InfoPanel.StreamDeckDashboard` (plan: `streamdeck/PLAN.md`). Talks only to the dashboard server (`/api/config`, `/api/control`, `/events/control`).
 
 | Action | Key | Feedback |
 |---|---|---|
