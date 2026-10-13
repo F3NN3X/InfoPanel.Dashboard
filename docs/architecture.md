@@ -275,6 +275,26 @@ cut off by `overflow: hidden` (`clipped`); the geometry is pure
 probe are in [redesign/phase9/qa.md](redesign/phase9/qa.md). It is a
 development tool only.
 
+### Audio visualiser (`src/widgets/core/viz/`)
+
+One engine draws every visualiser (NowPlaying and the legacy media widgets through `MediaProgress`,
+GameSpotlight's music card, the Visualizer widget); it replaces `MiniViz`, `BarVisualizer` and
+`LiveWaveform` and their sources (`sensor-visual-source`, `bar-levels`, `history-playback`).
+
+- `use-viz-input.ts`: per row, the live source in order capture (Web Audio, `useMediaVisualSource`,
+  bands on the plugin's -80..0 dBFS scale) > the AudioMeter plugin's `spectrum` > its level > none.
+  `input.ts` (pure) shapes the bands with `dynamics.ts` (back to dB, a treble tilt in dB/oct around
+  1 kHz, floor..ceiling to 0..1, a slow auto-gain that never lifts silence), eases them by time and
+  keeps a 50 ms level history for `scroll`. It runs in the frame loop's update phase while an engine
+  reads it.
+- `engine.ts`: a canvas painted in the paint phase, DPR-aware, asleep off-screen and while hidden;
+  `palette.ts` resolves the Follow / Custom colours through a probe at most every 500 ms, so a theme
+  or skin change repaints live; `draw.ts` has one drawing per style. Reduced motion jumps the easing
+  and the peak caps. Nothing is synthesised: every pixel comes from the bands, the waveform or the
+  level history.
+- `?viz-gallery` (a lazy dev page, `viz-gallery.tsx`) draws every style under four skins and three
+  Custom looks from a deterministic test signal.
+
 ### The render pipeline of a panel zone
 
 A custom panel (`module: "panel"`) carries its own widget tree in
@@ -641,7 +661,7 @@ since a `var()` inside a custom property resolves where it is declared.
 - Motion: `useReducedMotion()` (`src/hooks/use-reduced-motion.ts`) returns
   the OS media query for `system` and the override for `reduce` / `full`,
   so its users - the page background's `videoPolicy`, the media field
-  preview, the level meter, bar visualizer and live waveform - follow it.
+  preview, the level meter and the audio visualiser - follow it.
 - Cursor: with `hideCursor`, the kiosk root gets `kiosk-hide-cursor`
   (`cursor: none` on it and every descendant, in `index.css`).
 

@@ -312,14 +312,12 @@ Current `view` families:
 
 The audio + media widgets can render with the vendored **audiocn**
 audio-visualization library (`src/lib/audio/*`, `src/components/ui/` —
-`LevelMeter`, `DbReadout`, `DbScale`, `ClipIndicator`, `Waveform`,
-`LiveWaveform`, `BarVisualizer`). Those components read CSS custom
+`LevelMeter`, `DbReadout`, `DbScale`, `ClipIndicator`, `Waveform`). Those components read CSS custom
 properties as *colors*, so `index.css` defines the page-level color vars
 they need (`--meter-ok|warn|clip`, `--channel-*`, `--wave-progress|unplayed|cursor`),
 each wrapped in `hsl(var(--token))` so the runtime theme engine keeps
-working. The live canvas components (`LiveWaveform`, `BarVisualizer`)
-paint with the element's *text color*, so they inherit the widget
-surface's foreground and work on every surface style with no extra vars.
+working. The audio visualiser is not audiocn any more: one engine
+(`src/widgets/core/viz/`, below) draws it everywhere.
 
 ### Pro level meter — `audiomodern`, `view: "audiometer"`
 
@@ -339,75 +337,91 @@ In stacked layouts a vertical meter renders *inline* (short meter +
 readout on one line per device) so many devices fit; the standard layout
 keeps full-height columns.
 
-### Live waveform — `spotifymodern` / `mediamodern`, `waveform: true`
+### Audio visualiser — NowPlaying `progress: "visualizer"`, the Visualizer widget, the legacy media widgets
 
-Renders the audiocn **`LiveWaveform`** in place of the progress bar (the
-roomier size tiers; the compact view keeps the progress bar), so it
-animates in real time. The sensor stream carries no clip peaks, so it is
-fed by a small frame source (`lib/audio/sensor-visual-source.ts` +
-`hooks/use-sensor-visual-source.ts`):
+One renderer (`<AudioViz>`, `src/widgets/core/viz/`) draws every visualiser. It replaces the
+inline `MiniViz`, the audiocn `LiveWaveform` and `BarVisualizer`, and the Visualizer widget's own
+canvas loop. Its input, in order:
 
-- the **level** is live data — the AudioLevelMeter plugin's `audio-level`
-  (VU %) for the device chosen in `liveSource`, on a 100 ms stream while a
-  visualiser is mounted, smoothed at 20 fps with VU-style ballistics (fast
-  attack, slow release);
-- the **bands** are the plugin's real spectrum (`spectrum`, v1.3.0+: 32
-  log-spaced FFT bands of what the device plays, captured by WASAPI
-  loopback), each eased on its own. Without it (an older plugin, spectrum
-  off) every band follows the level; nothing is synthesised;
-- `scrolling` mode scrolls the smoothed level history (each history entry
-  is one 50 ms sample, so the scroll speed is real-time);
-- when the audio plugin is absent (or the level settles at silence) the
-  source sleeps and the component shows its idle state — no wasted frames.
+- **capture**: a pinned Web Audio input device (`liveCapture` + `liveSources`, below), 60 fps FFT
+  bands and the true waveform;
+- **plugin**: the AudioMeter plugin's `spectrum` (v1.3.0+: 32 log-spaced bands, 30 Hz–16 kHz,
+  dBFS from a -80 dB floor), on the 100 ms stream;
+- **level**: without a spectrum, every band follows the plugin's level;
+- **none**: no audio plugin data, so nothing is drawn.
 
-| key | options | default |
-|---|---|---|
-| `waveform` | on / off | `off` |
-| `liveSource` | audio device (live container select); `""` (the default) = all devices → the **loudest** live device wins, so music routed to a virtual / secondary device (e.g. Elgato Virtual Audio) still drives the visualizer; pin a device to meter just it | `""` (all) |
-| `waveformVariant` | bars / line / mirror | `bars` |
-| `waveformMode` | scrolling (level history) / static (current bands) | `scrolling` |
-| `waveformBarWidth` | 1–12 px | `3` |
-| `waveformBarGap` | 0–8 px | `1` |
-| `waveformBarRadius` | 0–8 px | `1.5` |
-| `waveformMinBarHeight` | 0–40 px | `4` |
-| `waveformLineWidth` | 0.5–6 px | `1.5` |
-| `waveformFadeEdges` | on / off | `on` |
-| `waveformFadeWidth` | 0–200 px | `24` |
-| `waveformSensitivity` | 0.1–4 (visual gain) | `1` |
-| `waveformActive` | on / off (off = idle dotted line) | `on` |
+Nothing is synthesised: no random values, no time-driven carriers, no idle animation. Every
+source goes through the same **dynamics**: back to dB, plus a treble **tilt** (dB per octave
+around 1 kHz, because real music sits 15–25 dB lower in the treble than in the bass), the
+**floor–ceiling** window mapped to 0..1, then a slow **auto-gain** (150 ms attack, 3 s release) that
+puts the loudest band near 0.9 and never lifts a band below the floor. Bands ease by time with the
+attack and release. Reduced motion jumps instead of easing, and the peak caps don't fall.
 
-### Bar visualizer — `spotifymodern` / `mediamodern`, `visualizer: true`
+**Styles** (`waveformVariant` on NowPlaying, `mode` on the Visualizer widget): bars, mirror,
+wave, line, dots, radial, blob, scroll (the level history, newest on the right). Without capture,
+wave and line draw a smooth curve through the bands (wave mirrored with layered strokes); with
+capture they draw the true waveform.
 
-Renders the audiocn **`BarVisualizer`** in place of the progress bar,
-fed by the same live level source as the waveform (the per-track shape is
-resampled to the bar count, so the bars read as a live spectrum of the
-track; when both `waveform` and `visualizer` are on, the bar visualizer
-wins). Bars paint on the animation frame without re-rendering React; with
-no signal the `visualizerIdle` animation runs.
+**Look** (NowPlaying template and Visualizer widget; the legacy aliases render with the defaults,
+which follow the theme and skin):
 
-| key | options | default |
-|---|---|---|
-| `visualizer` | on / off | `off` |
-| `visualizerBarCount` | 4–64 | `24` |
-| `visualizerAlign` | center / start / end | `center` |
-| `visualizerMirrored` | on / off | `off` |
-| `visualizerMinLevel` | 0–0.5 (resting bar size) | `0.08` |
-| `visualizerIdle` | static / pulse / wave | `static` |
-| `visualizerLoading` | on / off (sweep animation) | `off` |
-| `visualizerOrientation` | horizontal / vertical | `horizontal` |
+| key | group | options | default |
+|---|---|---|---|
+| `vizColorMode` | Visualizer colors (Style, Adv) | follow / solid / gradient / ramp | `follow` |
+| `vizGradient` | Visualizer colors | vertical / horizontal / radial (gradient only) | `vertical` |
+| `vizRamp` (NowPlaying) / `ramp` (Visualizer) | Visualizer colors | colour 1, or a ramp name (thermal, viridis, magma, ice, synth, mono) | `""` (accent) |
+| `vizColor2`, `vizColor3` | Visualizer colors | colours 2 and 3 (gradient, ramp) | `""` |
+| `vizPeakColor` | Visualizer colors | peak-cap colour | `""` |
+| `vizOpacity` | Visualizer colors | 10–100 % | `100` |
+| `vizGlow` | Visualizer colors | auto (the skin's `glow`) / on / off | `auto` |
+| `vizShape` | Visualizer shape | auto (the skin's `meter`: segments / blocks → segments, pill, square, else round) / round / square / segments (3 px LED cells) / pill | `auto` |
+| `vizGap` | Visualizer shape | 0–80 % of the bar slot | `30` |
+| `vizPeaks` (NowPlaying) / `peaks` (Visualizer) | Visualizer shape / Visualizer | peak caps with hold | off / on |
+| `vizFloorDb` | Visualizer dynamics (Adv) | -90…-30 dB | `-60` |
+| `vizCeilDb` | Visualizer dynamics | -30…0 dB | `-12` |
+| `vizTilt` | Visualizer dynamics | 0–6 dB/oct | `3` |
+| `vizAutoGain` | Visualizer dynamics | on / off | on |
+| `vizAttack` | Visualizer dynamics | 10–500 ms | `60` |
+| `vizRelease` | Visualizer dynamics | 50–2000 ms | `300` |
+
+**Follow** takes the zone's accent (dimmed toward the low values), the track colour and the
+skin. A ramp name saved in colour 1 keeps working in Follow and Ramp. **Custom** is solid (colour
+1), a gradient (colours 1 → 2 → 3) or a per-band ramp by value.
+
+**The old engines' keys** (NowPlaying and the legacy media widgets; no key renamed, no default
+changed). The NowPlaying template no longer offers an engine picker: one style picker covers
+everything, and picking a style clears a stored `vizEngine`.
+
+| key | now |
+|---|---|
+| `vizEngine` (template, hidden) / `waveform`, `visualizer` (legacy) | read to pick the style (`vizStyleOf`): live waveform scrolling (its default) → scroll; static → bars, or line / mirror per `waveformVariant`; bar visualizer → bars, or mirror when `waveformVariant` / `visualizerMirrored` says so; the inline canvas keeps `waveformVariant` |
+| `waveformMode` (hidden in the template) | scrolling / static, read by `vizStyleOf` |
+| `visualizerBarCount` | bar count, every style (4–64, default 24) |
+| `visualizerAlign`, `visualizerOrientation`, `visualizerMinLevel` | where bars grow from, row or column, resting bar size |
+| `waveformLineWidth` | stroke of wave / line / scroll |
+| `waveformFadeEdges`, `waveformFadeWidth` | edge fade, any style |
+| `waveformSensitivity` | visual gain after the dynamics |
+| `waveformBarWidth` + `waveformBarGap` (hidden in the template) | the gap, when saved away from 3 / 1 and `vizGap` is unset |
+| `waveformBarRadius` (hidden) | 0 → square, other saved values → round, while `vizShape` is auto |
+| `waveformMinBarHeight` (hidden) | the smallest bar in px, when saved away from 4 |
+| `visualizerIdle`, `visualizerLoading`, `waveformActive` (hidden in the template) | no longer drawn (pulse / wave idle, the loading sweep and the idle dotted line were synthesised); saved values are ignored |
+
+The legacy media widgets' settings lists are unchanged. The NowPlaying template's progress row
+option `wave` is labelled "Wavy progress bar": it is the track progress, not audio.
 
 ### Live capture (Web Audio) — `liveCapture: true`, `liveSources`
 
-The default live level comes from the Data API's sensor stream (the
-AudioLevelMeter plugin), which the dashboard receives at ~1 Hz — plenty for a
-calm meter, but the waveform / bars trail the music. **Live capture** bypasses
-that ceiling: the widget reads the chosen audio *capture* device directly
+The default input comes from the Data API's sensor stream (the
+AudioLevelMeter plugin's spectrum and level), every 100 ms. **Live capture**
+gives a 60 fps spectrum and the true waveform: the widget reads the chosen audio *capture* device directly
 through the browser's Web Audio API (`getUserMedia` + an `AnalyserNode`), at
 the display's native frame rate. Each pinned device is a real, independent
 source with its own spectrum, so several can be shown at once.
 
 - `liveCapture` (boolean, off) — switch the visualizers from the sensor stream
-  to Web Audio capture.
+  to Web Audio capture. In the kiosk this needs the profile set to Interactive
+  once, then Allow in the prompt; it captures an input device (a loopback such
+  as a Wave Link output), not the render device the plugin meters.
 - `liveSources` (multi-select, `optionsFrom: "media"`) — the capture devices
   to pin, **one labeled visualizer row each** (stacked). With `liveCapture` on
   and no devices pinned, it falls back to the single sensor row; with
@@ -437,7 +451,7 @@ The library's drawing parts live in `src/widgets/core/primitives.tsx` and are
 re-exported from `src/widgets/kit.ts`; a widget imports them from the kit.
 
 - **`Num`**, **`Bar`**, **`Spark`**, **`Ring`**, **`RingStack`**,
-  **`LedLadder`**, **`MiniViz`** and the other primitives read the active skin
+  **`LedLadder`**, **`AudioViz`** and the other primitives read the active skin
   (`useSkin`): numerals use the skin's font, a bar or meter takes the skin's
   meter style unless the Meter style look key is set, a graph the skin's or
   the Graph style look key's. A widget never sets a font or a fixed accent of
