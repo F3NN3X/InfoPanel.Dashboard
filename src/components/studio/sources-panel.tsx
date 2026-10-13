@@ -11,7 +11,7 @@ import {
 } from "@/lib/data-points";
 import { useLiveData } from "@/lib/data-live";
 import { bindPoint, computeUsage, unbindPoint, type Usage } from "@/lib/data-usage";
-import { PANEL_ID, uid, type DashboardConfig, type MonitorProfile, type SourcePref } from "@/lib/layout";
+import { PANEL_ID, uid, type DashboardConfig, type ProfileView, type SourcePref } from "@/lib/layout";
 import { modules } from "@/modules";
 import { cn } from "@/lib/utils";
 import { addStatZone } from "./explorer/explorer-actions";
@@ -53,7 +53,7 @@ interface SourcesPanelProps {
   /** The history-recording config setter (the optional key merges consecutive edits). */
   setConfig: HistorySetter;
   /** The active profile (for "Used by" and the zones a point can be bound to). */
-  profile: MonitorProfile;
+  profile: ProfileView;
   /** The canvas zone selected in Design mode; the default target for binding. */
   selectedZoneId: string | null;
   /** Leave Sources mode and select a zone (and one of its panel widgets, on the Data tab) on the canvas. */
@@ -161,7 +161,7 @@ export function SourcesPanel({ config, setConfig, profile, selectedZoneId, onOpe
   /** Add a stat zone for the point, then leave Sources mode with that zone selected. */
   const newWidget = (p: DataPoint) => {
     const zoneId = uid(PANEL_ID);
-    setConfig((c) => addStatZone(c, profile.id, p, zoneId));
+    setConfig((c) => addStatZone(c, profile.id, p, zoneId, profile.pageId));
     toast(`Added ${p.name}`);
     onOpenZone(zoneId);
   };

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { bindPoint, claimedPrefixes, computeUsage, unbindPoint, type ModuleInfo } from "./data-usage";
+import { mainPage } from "./pages";
 import { buildDataModel } from "./data-points";
 import { PANEL_ID, defaultConfig, type DashboardConfig, type Placement } from "./layout";
 import type { Widget } from "./panel-model";
@@ -63,9 +64,9 @@ const panelZone = (id: string, widgets: Widget[]): Placement =>
 
 function configWith(placements: Placement[]): DashboardConfig {
   const base = defaultConfig();
-  return { ...base, profiles: [{ ...base.profiles[0], placements }] };
+  return { ...base, profiles: [{ ...base.profiles[0], pages: [mainPage(placements)] }] };
 }
-const placementsOf = (c: DashboardConfig) => c.profiles[0].placements;
+const placementsOf = (c: DashboardConfig) => c.profiles[0].pages[0].placements;
 
 describe("claimedPrefixes", () => {
   it("claims the whole prefix until a source is picked, then that container", () => {

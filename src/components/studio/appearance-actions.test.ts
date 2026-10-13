@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { DashboardConfig, MonitorProfile, Placement } from "@/lib/layout";
+import { mainPage, profileWithPage } from "@/lib/pages";
 import { BUILTIN_APPEARANCE_PRESETS, presetTokens } from "@/lib/appearance-presets";
 import {
   activePresetId,
@@ -32,12 +33,12 @@ const profile = (id: string, extra: Partial<MonitorProfile> = {}): MonitorProfil
   cols: 12,
   rows: 6,
   fit: "scroll",
-  placements: [zone("a"), zone("b", { styleMode: "custom", settings: { accent: "#ff0000" } })],
+  pages: [mainPage([zone("a"), zone("b", { styleMode: "custom", settings: { accent: "#ff0000" } })])],
   ...extra,
 });
 
 const config = (extra: Partial<DashboardConfig> = {}): DashboardConfig =>
-  ({ version: 2, activeProfile: "auto", profiles: [profile("p1"), profile("p2")], theme: {}, radius: 0.5, ...extra }) as DashboardConfig;
+  ({ version: 3, activeProfile: "auto", profiles: [profile("p1"), profile("p2")], theme: {}, radius: 0.5, ...extra }) as DashboardConfig;
 
 const ALL = { kind: "all" } as const;
 const P1 = { kind: "profile", profileId: "p1" } as const;
@@ -92,7 +93,7 @@ describe("withStyleMode / followAll", () => {
   });
 
   it("makes every widget of a profile follow, and is a no-op when they all do", () => {
-    const p = followAll(profile("p1"));
+    const p = followAll(profileWithPage(profile("p1")));
     expect(p.placements.map((z) => z.styleMode)).toEqual(["follow", "follow"]);
     expect(p.placements[1].settings).toEqual({ accent: "#ff0000" });
     expect(followAll(p)).toBe(p);

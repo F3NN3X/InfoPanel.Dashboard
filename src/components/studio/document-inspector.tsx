@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { PageBackground } from "@/lib/appearance";
 import type { GeneralSettings } from "@/lib/general";
-import type { MonitorProfile } from "@/lib/layout";
+import type { PageRotate, ProfilePage, ProfileView } from "@/lib/layout";
 import { THEME_PRESETS, resolveTheme, type ThemeTokens } from "@/lib/theme";
 import type { ModuleSettings } from "@/modules/types";
 import { AppearanceGallery, type CurrentLook } from "./appearance-gallery";
@@ -10,7 +10,7 @@ import { BackgroundPanel, type BackgroundTarget } from "./background-panel";
 import { DataApiPanel } from "./data-api-panel";
 import { generalCards } from "./general-panel";
 import { InspectorNote, InspectorView, type SectionParts } from "./inspector/inspector-view";
-import { AutoPick, ProfileFields, ProfileInherit } from "./inspector/profile-sections";
+import { AutoPick, AutoRotate, ProfileFields, ProfileInherit } from "./inspector/profile-sections";
 import { HeaderSlot } from "./inspector-layout";
 import {
   globalStyleValues,
@@ -84,13 +84,16 @@ export interface DocumentInspectorProps {
 /** What the Profile and General tabs edit besides the document props. */
 export interface DashboardStudioProps {
   /** The active profile, whole (Profile tab). */
-  activeProfile: MonitorProfile;
-  updateProfile: (fn: (p: MonitorProfile) => MonitorProfile, key?: string) => void;
+  activeProfile: ProfileView;
+  updateProfile: (fn: (p: ProfileView) => ProfileView, key?: string) => void;
   canRemoveProfile: boolean;
   onRemoveProfile: () => void;
   /** The config picks the profile by window size ("auto"). */
   autoPick: boolean;
   onAutoPick: (auto: boolean) => void;
+  /** The active profile's pages (Auto-rotate's checklist) and the write of its `rotate` option. */
+  pages: ProfilePage[];
+  onRotate: (patch: Partial<PageRotate>) => void;
   /** General › Studio: the inspector position. */
   layoutMode: LayoutMode;
   onLayoutMode: (mode: LayoutMode) => void;
@@ -142,6 +145,8 @@ function DocumentSheet({
   onRemoveProfile,
   autoPick,
   onAutoPick,
+  pages,
+  onRotate,
   layoutMode,
   onLayoutMode,
 }: DocumentInspectorProps & DashboardStudioProps) {
@@ -180,6 +185,7 @@ function DocumentSheet({
               updateProfile={updateProfile}
               canRemove={canRemoveProfile}
               onRemove={onRemoveProfile}
+              otherZones={pages.filter((pg) => pg.id !== activeProfile.pageId).flatMap((pg) => pg.placements)}
             />
           ),
         };
@@ -198,6 +204,8 @@ function DocumentSheet({
         };
       case "profileSelection":
         return { body: <AutoPick auto={autoPick} onAuto={onAutoPick} /> };
+      case "profileRotate":
+        return { body: <AutoRotate rotate={activeProfile.rotate} pages={pages} onChange={onRotate} /> };
       case "scope":
         return {
           body: (

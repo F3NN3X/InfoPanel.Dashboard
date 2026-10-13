@@ -19,6 +19,7 @@ import {
 import { IconButton } from "@/components/ui/icon-button";
 import { BUILD_ID } from "@/lib/buildInfo";
 import type { MonitorProfile } from "@/lib/layout";
+import { zoneCount } from "@/lib/pages";
 import { cn } from "@/lib/utils";
 import { copyProfileJson } from "./config-file";
 import { ResetConfigDialog } from "./reset-config-dialog";
@@ -163,10 +164,11 @@ function ProfileSwitcher({
   );
 }
 
-/** `1920 × 550 · 12 × 6 · Fill · 10 zones`. */
+/** `1920 × 550 · 12 × 6 · Fill · 10 zones`, with `· 3 pages` when there are several. */
 export function profileSummary(p: MonitorProfile): string {
-  const zones = p.placements.length;
-  return `${p.width} × ${p.height} · ${p.cols} × ${p.rows} · ${p.fit === "fill" ? "Fill" : "Scroll"} · ${zones} ${zones === 1 ? "zone" : "zones"}`;
+  const zones = zoneCount(p);
+  const pages = p.pages.length > 1 ? ` · ${p.pages.length} pages` : "";
+  return `${p.width} × ${p.height} · ${p.cols} × ${p.rows} · ${p.fit === "fill" ? "Fill" : "Scroll"} · ${zones} ${zones === 1 ? "zone" : "zones"}${pages}`;
 }
 
 /**

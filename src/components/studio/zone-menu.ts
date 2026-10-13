@@ -12,6 +12,7 @@ export type MenuItemId =
   | "save-panel"
   | "duplicate"
   | "visible"
+  | "move-to-page"
   | "narrower"
   | "wider"
   | "shorter"
@@ -35,6 +36,8 @@ export interface MenuItemSpec {
   hint?: string;
   danger?: boolean;
   disabled?: boolean;
+  /** A flyout of pages to pick from (Move to page). */
+  pages?: { id: string; name: string }[];
 }
 
 export type MenuSpec = (MenuItemSpec | "separator")[];
@@ -50,6 +53,8 @@ export interface ZoneMenuState {
   canPasteStyle: boolean;
   /** Whether the primary zone can take this size step (cells). */
   canStep: (cols: number, rows: number) => boolean;
+  /** The profile's other pages; "Move to page" is offered when there are any. */
+  otherPages?: { id: string; name: string }[];
 }
 
 const STEPS: { id: MenuItemId; label: string; hint: string; cols: number; rows: number }[] = [
@@ -79,6 +84,9 @@ export function zoneMenu(s: ZoneMenuState): MenuSpec {
     ...(single && s.panel ? [{ id: "save-panel" as const, label: "Save to My panels" }] : []),
     { id: "duplicate", label: "Duplicate", hint: `${MOD}D` },
     { id: "visible", label: s.anyVisible ? "Hide" : "Show", hint: "H" },
+    ...(s.otherPages && s.otherPages.length > 0
+      ? [{ id: "move-to-page" as const, label: "Move to page", pages: s.otherPages }]
+      : []),
     "separator",
     { id: "copy-style", label: "Copy style", hint: `${MOD}${ALT}C`, disabled: !single },
     { id: "paste-style", label: "Paste style", hint: `${MOD}${ALT}V`, disabled: !s.canPasteStyle },
@@ -110,7 +118,7 @@ export function canvasMenu(): MenuSpec {
 }
 
 /** The command a menu row runs. */
-export function menuAction(id: MenuItemId): CommandAction {
+export function menuAction(id: Exclude<MenuItemId, "move-to-page">): CommandAction {
   switch (id) {
     case "pick":
       return { type: "pick-widget" };

@@ -57,7 +57,15 @@ export type CommandAction =
   | { type: "follow-global" }
   | { type: "deselect" }
   | { type: "resize-step"; cols: number; rows: number }
-  | { type: "sample-layout" };
+  | { type: "sample-layout" }
+  | { type: "page-go"; id: string }
+  | { type: "page-next" }
+  | { type: "page-prev" }
+  | { type: "page-add" }
+  | { type: "page-duplicate" }
+  | { type: "page-delete" }
+  | { type: "page-rename" }
+  | { type: "move-to-page"; id: string };
 
 export interface Command {
   id: string;
@@ -72,6 +80,9 @@ export interface CommandState {
   /** Widgets, layout starters, panel presets and saved panels the Add drawer offers. */
   insertables: { kind: "module" | "panel"; id: string; title: string }[];
   profiles: Pick<MonitorProfile, "id" | "name" | "width" | "height">[];
+  /** The pages of the profile being edited, and the one on the canvas. */
+  pages: { id: string; name: string }[];
+  currentPage: string;
   placements: Placement[];
   /** The primary selected zone. */
   selected: Placement | null;
@@ -151,6 +162,32 @@ function generalCommands(s: CommandState): Command[] {
     ...(s.placements.length > 0
       ? [general("select-all", "Select all zones", { type: "select-all" }, KEYS.selectAll)]
       : []),
+  ];
+}
+
+/** Go to a page, and add / rename / duplicate / delete the current one. */
+function pageCommands(s: CommandState): Command[] {
+  const page = (id: string, label: string, action: CommandAction, hint?: string): Command => ({
+    id: `page:${id}`,
+    label,
+    group: "Pages",
+    hint,
+    action,
+  });
+  return [
+    ...s.pages.map((p) =>
+      page(`go:${p.id}`, `Go to page: ${p.name}`, { type: "page-go", id: p.id }, p.id === s.currentPage ? "current" : undefined)
+    ),
+    page("add", "Add page", { type: "page-add" }),
+    ...(s.pages.length > 1
+      ? [
+          page("next", "Next page", { type: "page-next" }, KEYS.nextPage),
+          page("prev", "Previous page", { type: "page-prev" }, KEYS.prevPage),
+        ]
+      : []),
+    page("duplicate", "Duplicate page", { type: "page-duplicate" }),
+    page("rename", "Rename page", { type: "page-rename" }),
+    ...(s.pages.length > 1 ? [page("delete", "Delete page", { type: "page-delete" })] : []),
   ];
 }
 
@@ -301,6 +338,7 @@ export function buildCommands(s: CommandState): Command[] {
     ...(s.selected ? styleCommands() : []),
     ...selectWidgetCommands(widgets),
     ...generalCommands(s),
+    ...pageCommands(s),
     ...s.appearancePresets.map(
       (p): Command => ({
         id: `appearance:${p.id}`,

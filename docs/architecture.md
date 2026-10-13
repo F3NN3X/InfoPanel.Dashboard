@@ -351,7 +351,7 @@ least one widget is visible.
 
 ### Types (`src/lib/layout.ts`)
 
-- `DashboardConfig` - `version: 2`, `activeProfile` (a profile id or `"auto"`),
+- `DashboardConfig` - `version: 3`, `activeProfile` (a profile id or `"auto"`),
   `profiles`, `theme`, `radius`, `dataApiUrl?`, `stylePresets?`,
   `panelPresets?`, `sourcePrefs?`, `background?` (the page background),
   `style?` (the dashboard style, every profile), `styleEnforce?`
@@ -359,12 +359,18 @@ least one widget is visible.
   user's saved appearance presets) and `general?` (see below).
 - `MonitorProfile` - `id`, `name`, design `width`/`height`, `cols`, `rows`,
   `fit` (`"scroll"` with fixed `SCROLL_ROW_H` = 120 px rows, or `"fill"` to
-  fill the viewport), `placements`, optional `style` (profile style, over
+  fill the viewport), `pages` (at least one `ProfilePage`: `id`, `name`,
+  `icon?`, `placements`), `rotate?` (`PageRotate`, auto-rotate), optional `style` (profile style, over
   the dashboard's), `styleEnforce` (overrides the dashboard's when set),
   `background` (replaces the dashboard's; `{ type: "none" }` turns it off
   for the profile), `theme` (a partial `ThemeTokens` over the dashboard's
   theme) and `radius` (rem), `gap` and `padding` (px, see `profile-grid.ts`)
   and `sampleVersion`.
+- `ProfileView` - one page of a profile as the studio and kiosk edit and draw it:
+  the profile minus `pages`, plus that page's `placements` and `pageId`.
+  `src/lib/pages.ts` converts (`profileWithPage`, `applyView`, `onPage`) and
+  holds the whole-profile walkers (`allPlacements`, `mapPlacements`) and the
+  page operations.
 - `Placement` - `module` (a registry id, `cards`, `blank` or `panel`), the zone
   box (`colStart`, `rowStart`, `colSpan`, `rowSpan`), `visible`, `settings`,
   `design`, `panel`, `styleMode?` (`"follow"` / `"custom"`, see [Style
@@ -373,7 +379,7 @@ least one widget is visible.
 - `GeneralSettings` (`src/lib/general.ts`) - `font?` (`system`, `sans`,
   `rounded`, `serif`, `mono`), `hour12?` (unset = the locale's choice),
   `showSeconds?`, `locale?` (a BCP 47 tag, `""` = the system's), `motion?`
-  (`system`, `reduce`, `full`) and `hideCursor?`. Stored sparse;
+  (`system`, `reduce`, `full`), `hideCursor?` and `kioskPageNav?` (kiosk page dots and swipe). Stored sparse;
   `resolveGeneral` fills `GENERAL_DEFAULTS`.
 - `PageBackground` (`src/lib/appearance.ts`) - `type` (`none`, `color`,
   `gradient`, `image`, `video`), `color` (the color, or the fill behind an
@@ -447,6 +453,10 @@ for both the local copy and the server copy:
 - re-adds the shipped profiles `sample-1920x1080` and `arcv2` when missing,
   and replaces a saved copy whose `sampleVersion` differs from the shipped
   `SAMPLE_PROFILE_VERSION` / `ARCV2_PROFILE_VERSION`;
+- v2 to v3: a profile with `placements` and no `pages` gets
+  `pages: [{ id: "main", name: "Main", placements }]` (none of either: one
+  empty Main page); stored pages get unique ids and names, and `rotate` is
+  clamped (`normalizeRotate`). The output has no `placements` key;
 - falls back to `activeProfile: "auto"` when the pinned id no longer exists;
 - merges `theme` over the default theme, and keeps `dataApiUrl` only when it
   is a valid http(s) URL;
@@ -594,14 +604,51 @@ history, counts as unused.
   subscribers of `GET /events/config` (server-sent events). A new subscriber
   gets the current version straight away; a 15 s keep-alive comment keeps the
   stream open.
+- **Downgrade guard.** `POST /api/config` is refused with 409
+  (`versionRefusal`, `server/config-guard.mjs`) when the stored config's
+  `version` is above the posted one, so an older build cannot overwrite a
+  config with pages it cannot read. The studio then stops auto-pushing and
+  shows a banner asking for a reload.
 - **Pull.** A kiosk page opens `/events/config`; every message, including
   the first, makes it fetch `/api/config`, run `mergeConfig`, store the result
   in its own `localStorage` (the offline fallback) and re-render. If the server
   is offline or has no config, the page keeps its local copy.
 
-The Vite dev server (`npm run dev`) proxies `/api` and `/events/config` to
+The Vite dev server (`npm run dev`) proxies `/api`, `/events/config` and `/events/control` to
 `http://127.0.0.1:3922`, so a dev page shares the config of the running
 dashboard server (`vite.config.ts`).
+
+### Control channel (`server/control.mjs`, `src/lib/control.ts`)
+
+Runtime state that is not config (no undo, not in `config.json`): the page each
+profile shows, a profile override, and page auto-rotation with its runtime
+override. The server owns it (`createControl`), saves the durable part to
+`control.json` and runs the rotation timer, so every kiosk and Stream Deck key
+stays in step.
+
+- **Write.** `POST /api/control/{page,profile,rotate,touch}` with a JSON body
+  and the `X-Dashboard-Control: 1` header; the client is `postControl`, which
+  resolves `null` when offline or refused. Writers: the kiosk's dots and swipe
+  (`page`, `rotate`), any pointer-down while rotating (`touch`, at most every
+  5 s; the server then holds rotation 30 s), the studio's "Show on kiosk" and
+  rotate toggle.
+- **Read.** `GET /api/control`, and `GET /events/control` (SSE; the Vite dev
+  server proxies both). `useControl` opens one stream per page. A kiosk adds
+  `?profile=<id>` so the server learns which profile it shows (`shown`), which
+  is what an action without a profile targets.
+- **Kiosk resolution.** Profile: the URL `?profile=` pin, then
+  `control.profile`, then `resolveProfile` (`kioskProfileId`). Page: the URL
+  `?page=` pin, then the control page for that profile, then the first page
+  (`kioskPageId`). A tap or swipe switches locally first and the stream
+  confirms. With the server unreachable the kiosk keeps the first page or pin.
+  The zone grid is keyed by page id and fades in over 250 ms (instant with
+  reduced motion).
+- **Navigation** (`general.kioskPageNav`, off by default). With 2+ pages and no
+  valid `?page=` pin the kiosk shows `PageDots` (tap to switch, long-press 600 ms
+  to toggle rotation, a pause glyph while a saved rotation is stopped) and
+  switches on a horizontal swipe (`swipeDirection`: 60 px or more, mostly
+  horizontal, under 600 ms). The grid's bottom padding is at least 20 px so the
+  dots never cover a zone.
 
 ## 4. Kiosk and studio
 
@@ -610,7 +657,8 @@ dashboard server (`vite.config.ts`).
 | Parameter | Effect |
 |---|---|
 | `kiosk=1` | Kiosk mode: no header, no studio button, no config push, and the layout is pulled from the server (see Sync). Only the value `1` counts. |
-| `profile=<id>` | Pins that profile when it exists in the config; an unknown id is ignored. Applies on load and after every kiosk pull. |
+| `profile=<id>` | Pins that profile when it exists in the config; an unknown id is ignored. Applies on load and after every kiosk pull. It also wins over the control channel's profile. |
+| `page=<id>` | Pins that page of the shown profile when it exists (without it: the control channel's page, else the first). A pinned kiosk has no dots or swipe. |
 | `studio` (any value; the app itself writes `?studio=1`) | Opens the studio instead of the grid. |
 
 The studio is loaded lazily (`React.lazy`), so kiosk pages that never open it
@@ -953,6 +1001,20 @@ out on the selected panel, while the arrow keys keep moving the zone; Esc steps
 out widget > zone > nothing. Widget names in the layers, crumbs and palette
 come from `widgetName` (`widget-kinds.ts`): the label, else the sensor's name
 from the Data API catalog, else the key's last segment.
+
+**Pages in the studio** (`page-tabs.tsx`, `use-studio-mutations.ts`, `src/lib/pages.ts`). The studio
+edits one page of the profile at a time: `App.tsx` holds `studioPage` (view state, not in the undo
+history, and it falls back to the first page when the page vanishes) and resolves the `ProfileView`
+with `profileWithPage`, so every existing reader keeps working on that page. The `PageTabs` strip above
+the canvas switches, adds, renames (double-click), reorders (pointer drag, one `movePage` per drop),
+duplicates, deletes (confirmed, never the last) and sets the icon (`page-icons.ts`). Page edits go
+through `updateStored` (the whole stored profile, same no-op identity rule as `updateProfile`); each is
+one undo step. A page switch clears the selection, which never spans pages. "Move to page" in the zone
+menu is `moveZonesToPage` (`studio-actions.ts`): a zone keeps its box when free on the target page,
+else takes the first free spot at its size, and the whole move is refused when any zone has no room.
+Ctrl+PageUp / PageDown step through the pages (wrapping) and the palette has the page commands. The
+profile inspector's Auto-rotate section writes `rotate` through `updateStored`; rotation itself runs
+on the kiosk (a later phase).
 
 ### Adding a setting to a module
 

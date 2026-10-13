@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import type { DashboardConfig, MonitorProfile } from "@/lib/layout";
+import type { DashboardConfig, ProfileView } from "@/lib/layout";
 import type { Appearance } from "@/lib/style-resolve";
 import { cn } from "@/lib/utils";
 import { DocumentInspector } from "./document-inspector";
@@ -16,7 +16,7 @@ type DocumentState = ReturnType<typeof useDocumentProps>;
 
 interface StudioInspectorProps {
   config: DashboardConfig;
-  profile: MonitorProfile;
+  profile: ProfileView;
   /** The global style the zones render under. */
   appearance: Appearance;
   ui: StudioUi;
@@ -126,6 +126,8 @@ export function StudioInspector({
         onRemoveProfile={edit.removeProfile}
         autoPick={config.activeProfile === "auto"}
         onAutoPick={(auto) => edit.activateProfile(auto ? "auto" : profile.id)}
+        pages={(config.profiles.find((p) => p.id === profile.id) ?? config.profiles[0]).pages}
+        onRotate={edit.setRotate}
         layoutMode={ui.studioLayout.mode}
         onLayoutMode={ui.studioLayout.setMode}
       />

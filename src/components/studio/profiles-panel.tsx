@@ -34,9 +34,10 @@ const MENU_ITEM =
 
 const THUMB_W = 34;
 
-/** The meta line of a row: `1920×550 · 12×6 · Fill`. */
+/** The meta line of a row: `1920×550 · 12×6 · Fill`, with `· 3 pages` when there are several. */
 export function profileMeta(p: MonitorProfile): string {
-  return `${p.width}×${p.height} · ${p.cols}×${p.rows} · ${p.fit === "fill" ? "Fill" : "Scroll"}`;
+  const pages = p.pages.length > 1 ? ` · ${p.pages.length} pages` : "";
+  return `${p.width}×${p.height} · ${p.cols}×${p.rows} · ${p.fit === "fill" ? "Fill" : "Scroll"}${pages}`;
 }
 
 /** A 34-wide outline in the profile's aspect ratio (at least 8 high). */
@@ -111,8 +112,16 @@ function RowMenu({
   );
 }
 
-/** The inline name input of the profile being renamed. */
-function RenameInput({ initial, onDone }: { initial: string; onDone: (name: string | null) => void }) {
+/** The inline name input of the profile (or page) being renamed. */
+export function RenameInput({
+  initial,
+  onDone,
+  label = "Profile name",
+}: {
+  initial: string;
+  onDone: (name: string | null) => void;
+  label?: string;
+}) {
   const [name, setName] = useState(initial);
   // Enter / Esc finish it; the blur the unmount may fire must not finish it again.
   const finished = useRef(false);
@@ -134,7 +143,7 @@ function RenameInput({ initial, onDone }: { initial: string; onDone: (name: stri
         if (e.key === "Escape") finish(null);
       }}
       onBlur={commit}
-      aria-label="Profile name"
+      aria-label={label}
       className="w-full rounded border border-ui-strong bg-ui-app px-1.5 py-0.5 text-[12.5px] text-ui-1 outline-none focus:border-ui-accent"
     />
   );

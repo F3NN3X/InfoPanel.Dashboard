@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { mainPage, pageOf } from "./pages";
 import { panelLegacyLook } from "./panel-model";
 import {
   ARCV2_PROFILE_ID,
@@ -7,8 +8,8 @@ import {
   SAMPLE_PROFILE_ID,
   arcv2Profile,
   mergeConfig,
-  type MonitorProfile,
   type PanelDef,
+  type StoredProfile,
 } from "./layout";
 
 const legacyPanel: PanelDef = {
@@ -21,7 +22,8 @@ const legacyPanel: PanelDef = {
   widgets: [{ id: "w", kind: "bar", visible: true }],
 };
 
-const userProfile = (extra: Partial<MonitorProfile> = {}): MonitorProfile => ({
+// A v2 profile: its zones are `placements`, not pages.
+const userProfile = (extra: Partial<StoredProfile> = {}): StoredProfile => ({
   id: "mine",
   name: "Mine",
   width: 1920,
@@ -39,7 +41,7 @@ const userProfile = (extra: Partial<MonitorProfile> = {}): MonitorProfile => ({
 describe("mergeConfig", () => {
   it("fills a missing config with the defaults (shipped profiles included)", () => {
     const c = mergeConfig({});
-    expect(c.version).toBe(2);
+    expect(c.version).toBe(3);
     expect(c.activeProfile).toBe("auto");
     const ids = c.profiles.map((p) => p.id);
     expect(ids).toContain(SAMPLE_PROFILE_ID);
@@ -55,7 +57,7 @@ describe("mergeConfig", () => {
 
   it("normalizes panel placements and leaves module placements alone", () => {
     const [mine] = mergeConfig({ profiles: [userProfile()] }).profiles;
-    const [panel, module] = mine.placements;
+    const [panel, module] = pageOf(mine).placements;
     expect(panel.panel).toMatchObject({ layout: "stack", direction: "row", wrap: true, title: "Net" });
     expect(panel.panel?.widgets[0].box).toEqual({ w: "fill" });
     expect(panel.settings).toEqual({ label: "" });
@@ -70,10 +72,10 @@ describe("mergeConfig", () => {
   });
 
   it("replaces an outdated shipped profile with the current version", () => {
-    const old = { ...arcv2Profile(), sampleVersion: ARCV2_PROFILE_VERSION - 1, placements: [] };
+    const old = { ...arcv2Profile(), sampleVersion: ARCV2_PROFILE_VERSION - 1, pages: [mainPage()] };
     const arc = mergeConfig({ profiles: [old] }).profiles.find((p) => p.id === ARCV2_PROFILE_ID)!;
     expect(arc.sampleVersion).toBe(ARCV2_PROFILE_VERSION);
-    expect(arc.placements.length).toBeGreaterThan(0);
+    expect(pageOf(arc).placements.length).toBeGreaterThan(0);
   });
 
   it("keeps the dashboard style and its force switch, dropping malformed ones", () => {

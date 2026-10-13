@@ -276,7 +276,7 @@ describe("dashboard sections", () => {
   const dash: InspectorContext = { kind: "dashboard", scope: "all" };
 
   it("maps onto the existing cards", () => {
-    expect(titles(sectionsFor(dash, "profile"))).toEqual(["Profile", "This profile", "Profile selection"]);
+    expect(titles(sectionsFor(dash, "profile"))).toEqual(["Profile", "This profile", "Profile selection", "Auto-rotate"]);
     expect(titles(sectionsFor(dash, "appearance"))).toEqual(["Scope", "Appearance presets", "Theme", "Page background"]);
     expect(titles(sectionsFor(dash, "general"))).toEqual(["Type", "Clock & date", "Display", "Studio", "Connection"]);
     expect(sectionsFor(dash, "appearance").map((s) => s.cardId)).toEqual([

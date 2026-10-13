@@ -334,3 +334,26 @@ Rows from `docs/redesign/widgets/docs/CLAUDE_CODE.md` §3, plus the six template
 | Skin-aware panel widgets (a skin set → Bar / Spark / Ring / Num) | Style › Look on a panel zone (Variant and Compact view are hidden) | ✅ `src/components/widgets/panel-skin.tsx`; `NOT_FOR_PANELS` `standard-settings.ts:358` |
 | Per-zone error tile (a throwing widget does not blank the kiosk) | Automatic | ✅ `src/components/zone-error-boundary.tsx`, `placement-frame.tsx:154` |
 | Widget QA page (every module at six spans, overflow / overlap / clipping probe) | Dev only: `?widget-qa` | ✅ `src/widgets/widget-qa.tsx`, `qa-geometry.ts`; `docs/redesign/phase9/qa.md` |
+
+## 17. Pages (profile pages, P2)
+Plan: `docs/redesign/pages/PLAN.md`. The studio edits one page of the active profile at a time; page ops are the pure helpers in `src/lib/pages.ts`.
+
+| Capability | Where | Status |
+|---|---|---|
+| Page tabs above the canvas (switch; "+" to add; shown with a single page too) | Design mode, strip over the canvas | ✅ `src/components/studio/page-tabs.tsx`; mounted in `studio-view.tsx`; page shown = `studioPage` in `src/App.tsx` |
+| Add, rename (double-click, Enter / Esc), duplicate, delete (confirm, not the last) | Tab, its "⋯" or right-click menu | ✅ `page-tabs.tsx` (`pageMenuEntries`); mutations `addNewPage`, `renamePageTo`, `duplicateCurrentPage`, `deletePage` in `use-studio-mutations.ts` |
+| Reorder pages by dragging a tab | Tab strip | ✅ `page-tabs.tsx` (`dropIndex`, `trackPointer`); `movePageTo` in `use-studio-mutations.ts` |
+| Page icon (searchable lucide set, None) | Tab menu › Icon… | ✅ `page-tabs.tsx` `IconDialog`, `src/components/studio/page-icons.ts` |
+| Move selected zones to another page | Zone menu › Move to page ▸ | ✅ `moveZonesToPage` in `studio-actions.ts`; `moveSelectionToPage` in `use-studio-mutations.ts`; flyout rows `src/components/ui/context-menu.tsx`; `zone-menu.ts` |
+| Page commands: Go to page, Add / Duplicate / Rename / Delete page, Next / Previous page | Command palette | ✅ `pageCommands` in `commands.ts`; run in `use-studio-commands.ts` |
+| Ctrl+PageDown / Ctrl+PageUp next / previous page (wraps, not while typing) | Shortcut, listed in the shortcuts dialog | ✅ `use-studio-shortcuts.ts` |
+| Page count next to the zone count | Profiles panel row, top bar profile line | ✅ `profileMeta` in `profiles-panel.tsx`, `profileSummary` in `studio-top-bar.tsx` |
+| Auto-rotate: on / off, seconds (3 to 3600), page checklist | Dash › Profile › Auto-rotate | ✅ `AutoRotate` in `inspector/profile-sections.tsx`; `profileRotate` section in `inspector-model.ts`; write `setRotate` (`updateStored`, key `profile:rotate`) |
+| Kiosk shows the profile's active page (`?page=<id>` pins one; first page when the server is unreachable) | Kiosk | ✅ `kioskPageId` in `src/lib/control.ts`; `src/App.tsx` |
+| Cross-fade on a page switch (250 ms; instant with reduced motion) | Kiosk | ✅ `PageGrid` in `src/App.tsx`, `.page-fade-in` in `src/index.css`, `use-reduced-motion.ts` |
+| Page dots (tap a dot; page name as label) when `kioskPageNav` is on and the profile has 2+ pages; the grid reserves their strip | Kiosk; Dash › General › Display › Page dots and swipe | ✅ `src/components/page-dots.tsx`; setting `general.kioskPageNav` (`src/lib/general.ts`, `general-panel.tsx`) |
+| Swipe left / right for the next / previous page (60 px, mostly horizontal, under 600 ms) | Kiosk, same setting | ✅ `swipeDirection` in `src/lib/swipe.ts`; handlers in `src/App.tsx` |
+| Rotate toggle: long-press the dots (pause glyph while a saved rotation is stopped) | Kiosk | ✅ `page-dots.tsx`; `postControl("rotate")` |
+| Rotate toggle in the studio (Play / Pause, "Back to the saved setting", tooltip names runtime and saved) | Page-tab strip, right end, with 2+ pages | ✅ `src/components/studio/rotate-toggle.tsx`; mounted in `page-tabs.tsx` |
+| Marker on the tab the kiosk shows; "Show on kiosk" in the tab menu | Page tabs | ✅ `page-tabs.tsx` (`kioskPage`, `pageMenuEntries`); wired in `studio-view.tsx` |
+| Control API: `GET /api/control`, `POST /api/control/{page,profile,rotate,touch}`, SSE `/events/control`; a touch holds rotation 30 s | Server; Stream Deck plugin | ✅ `server/control.mjs`, `server.mjs`; client `src/lib/control.ts` (`postControl`, `useControl`) |

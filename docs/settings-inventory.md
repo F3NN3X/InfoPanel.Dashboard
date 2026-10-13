@@ -613,6 +613,7 @@ Only changed keys are stored; each card counts what it sets and resets only its 
 | `locale` | Date & time locale | select | System (`""`), plus en-US, en-GB, de-DE, de-CH, fr-FR, it-IT, es-ES, nl-NL, sv-SE, nb-NO, pl-PL, pt-BR, ja-JP, zh-CN; a saved unknown locale is added as an option | `""` | General | Dash › General › Clock & date |
 | `motion` | Motion | segmented | system (System), reduce (Reduce), full (Full) | `system` | General | Dash › General › Display |
 | `hideCursor` | Hide cursor in kiosk | toggle | | `false` | General | Dash › General › Display |
+| `kioskPageNav` | Page dots and swipe | toggle | | `false` | General | Dash › General › Display |
 
 The "Studio" section of the spec (inspector position) has no stored setting in the config: see §7.
 

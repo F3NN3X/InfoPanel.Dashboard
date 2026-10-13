@@ -60,7 +60,7 @@ export function generalCards(general: GeneralSettings | undefined, onChange: Gen
   const reset = (keys: (keyof GeneralSettings)[]) => () => keys.forEach((k) => onChange(k, undefined));
   const type = ["font"] as const;
   const clockKeys = ["hour12", "showSeconds", "locale"] as const;
-  const display = ["motion", "hideCursor"] as const;
+  const display = ["motion", "hideCursor", "kioskPageNav"] as const;
 
   return [
     {
@@ -118,8 +118,8 @@ export function generalCards(general: GeneralSettings | undefined, onChange: Gen
     {
       id: "doc:display",
       title: "Display",
-      hint: "Motion and the kiosk cursor",
-      terms: ["Display", "Motion", "Reduce", "Hide cursor", "Kiosk"],
+      hint: "Motion, the kiosk cursor and page navigation",
+      terms: ["Display", "Motion", "Reduce", "Hide cursor", "Kiosk", "Pages", "Page dots", "Swipe"],
       changed: set([...display]).length,
       onReset: reset([...display]),
       node: (
@@ -137,6 +137,13 @@ export function generalCards(general: GeneralSettings | undefined, onChange: Gen
             lead={dot("hideCursor")}
             value={g.hideCursor}
             onChange={(v) => onChange("hideCursor", v ? true : undefined)}
+          />
+          <ToggleRow
+            label="Page dots and swipe"
+            lead={dot("kioskPageNav")}
+            hint="In the kiosk: tap a dot or swipe to switch pages; long-press the dots to pause or resume auto-rotate"
+            value={g.kioskPageNav}
+            onChange={(v) => onChange("kioskPageNav", v ? true : undefined)}
           />
         </>
       ),

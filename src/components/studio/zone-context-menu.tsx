@@ -12,6 +12,7 @@ import {
   Keyboard,
   Link2,
   Maximize,
+  MoveRight,
   Paintbrush,
   Palette,
   Plus,
@@ -42,6 +43,7 @@ const ICONS: Record<MenuItemId, ReactNode> = {
   "save-panel": <BookmarkPlus />,
   duplicate: <Copy />,
   visible: null, // Eye / EyeOff by the label
+  "move-to-page": <MoveRight />,
   narrower: <FoldHorizontal />,
   wider: <UnfoldHorizontal />,
   shorter: <FoldVertical />,
@@ -63,6 +65,18 @@ const ICONS: Record<MenuItemId, ReactNode> = {
 function entriesOf(spec: MenuSpec, run: (action: CommandAction) => void): ContextMenuEntry[] {
   return spec.map((item): ContextMenuEntry => {
     if (item === "separator") return item;
+    if (item.id === "move-to-page") {
+      return {
+        id: item.id,
+        label: item.label,
+        icon: ICONS[item.id],
+        submenu: (item.pages ?? []).map((p) => ({
+          id: `page:${p.id}`,
+          label: p.name,
+          onSelect: () => run({ type: "move-to-page", id: p.id }),
+        })),
+      };
+    }
     const action = menuAction(item.id);
     return {
       id: item.id,
@@ -96,12 +110,14 @@ interface StudioContextMenuProps {
   canPasteStyle: boolean;
   /** Whether the primary zone can take this size step. */
   canStep: (cols: number, rows: number) => boolean;
+  /** The profile's other pages, for "Move to page". */
+  otherPages: { id: string; name: string }[];
   onRun: (action: CommandAction) => void;
   onClose: () => void;
 }
 
 /** The zone menu (selection) or the canvas menu, as a right-click popup. */
-export function StudioContextMenu({ menu, sel, canPasteStyle, canStep, onRun, onClose }: StudioContextMenuProps) {
+export function StudioContextMenu({ menu, sel, canPasteStyle, canStep, otherPages, onRun, onClose }: StudioContextMenuProps) {
   const spec =
     menu.kind === "canvas" || !sel.selected
       ? canvasMenu()
@@ -111,6 +127,7 @@ export function StudioContextMenu({ menu, sel, canPasteStyle, canStep, onRun, on
           anyVisible: sel.selection.some((p) => p.visible),
           canPasteStyle,
           canStep,
+          otherPages,
         });
   return <ContextMenu x={menu.x} y={menu.y} entries={entriesOf(spec, onRun)} onClose={onClose} />;
 }

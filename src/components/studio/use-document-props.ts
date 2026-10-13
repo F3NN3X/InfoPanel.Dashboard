@@ -1,7 +1,7 @@
 import type { HistorySetter } from "@/hooks/use-config-history";
 import { backgroundKey, withBackground, type BackgroundScope, type PageBackground } from "@/lib/appearance";
 import { withGeneral, type GeneralSettings } from "@/lib/general";
-import type { DashboardConfig, MonitorProfile } from "@/lib/layout";
+import type { DashboardConfig, ProfileView } from "@/lib/layout";
 import { THEME_PRESETS, type ThemeTokens } from "@/lib/theme";
 import type { ModuleSettings } from "@/modules/types";
 import {
@@ -25,9 +25,9 @@ import { useAppearancePresets } from "./use-appearance-presets";
  */
 export function useDocumentProps(
   config: DashboardConfig,
-  profile: MonitorProfile,
+  profile: ProfileView,
   setConfig: HistorySetter,
-  updateProfile: (fn: (p: MonitorProfile) => MonitorProfile, key?: string) => void
+  updateProfile: (fn: (p: ProfileView) => ProfileView, key?: string) => void
 ) {
   /** The global style a target edits: the dashboard's or this profile's. */
   const styleScope = (target: AppearanceTarget): StyleScope =>

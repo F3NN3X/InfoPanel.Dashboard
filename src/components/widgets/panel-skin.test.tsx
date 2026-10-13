@@ -3,6 +3,7 @@ import { renderToString } from "react-dom/server";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { fixtureSensors } from "@/widgets/__fixtures__";
 import { arcv2Profile, newPanel, newWidget, sampleProfile, type WidgetKind } from "@/lib/layout";
+import { allPlacements } from "@/lib/pages";
 import { panelPresets } from "@/lib/panelPresets";
 import type { PanelDef } from "@/lib/panel-model";
 import type { ModuleSettings } from "@/modules/types";
@@ -13,7 +14,7 @@ const sensors = fixtureSensors();
 const shipped: [string, PanelDef, ModuleSettings | undefined][] = [
   ...panelPresets.map((p) => [`preset ${p.id}`, p.make(), p.settings] as [string, PanelDef, ModuleSettings | undefined]),
   ...[sampleProfile(), arcv2Profile()].flatMap((prof) =>
-    prof.placements.filter((pl) => pl.panel).map((pl, i) => [`${prof.id} panel ${i}`, pl.panel!, pl.settings] as [string, PanelDef, ModuleSettings | undefined])
+    allPlacements(prof).filter((pl) => pl.panel).map((pl, i) => [`${prof.id} panel ${i}`, pl.panel!, pl.settings] as [string, PanelDef, ModuleSettings | undefined])
   ),
 ];
 

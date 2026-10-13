@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useToast } from "@/components/ui/toast";
 import { useSensorCatalog } from "@/lib/catalog";
-import { BLANK_MODULE, type DashboardConfig, type MonitorProfile, type Placement, type StylePreset, type Widget } from "@/lib/layout";
+import { BLANK_MODULE, type DashboardConfig, type ProfileView, type Placement, type StylePreset, type Widget } from "@/lib/layout";
 import { withPanelField } from "@/lib/panel-model";
 import type { Appearance } from "@/lib/style-resolve";
 import { modules } from "@/modules";
@@ -43,7 +43,7 @@ interface ZoneInspectorProps {
   placement: Placement;
   config: DashboardConfig;
   /** The active profile (its grid limits the placement row; its zones the data usage). */
-  profile: MonitorProfile;
+  profile: ProfileView;
   /** The global style (dashboard + profile, forced or not) the widget inherits. */
   appearance: Appearance;
   stylePresets: StylePreset[];
@@ -66,7 +66,7 @@ interface ZoneInspectorProps {
   /** Mutate the placement; changes with the same `key` coalesce in undo. */
   update: (fn: (p: Placement) => Placement, key?: string) => void;
   /** Mutate the active profile (bindings). */
-  updateProfile: (fn: (p: MonitorProfile) => MonitorProfile, key?: string) => void;
+  updateProfile: (fn: (p: ProfileView) => ProfileView, key?: string) => void;
   onZoneBox: (patch: Partial<ZoneRect>) => void;
   /** Open the widget picker for this zone. */
   onPickWidget: () => void;

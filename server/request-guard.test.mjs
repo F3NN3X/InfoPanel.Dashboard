@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { configWriteRefusal, createRequestGuard, hostnameOf, parseAllowedHosts } from "./request-guard.mjs";
+import { configWriteRefusal, controlWriteRefusal, createRequestGuard, hostnameOf, parseAllowedHosts } from "./request-guard.mjs";
 
 const req = (method, headers) => ({ method, headers });
 
@@ -83,5 +83,14 @@ describe("parseAllowedHosts / configWriteRefusal", () => {
     expect(configWriteRefusal({ "x-dashboard-config": "1" })?.status).toBe(415);
     expect(configWriteRefusal({ "content-type": "application/json" })?.status).toBe(403);
     expect(configWriteRefusal({ "content-type": "application/json; charset=utf-8", "x-dashboard-config": "1" })).toBeNull();
+  });
+});
+
+describe("controlWriteRefusal", () => {
+  it("requires JSON and the control header", () => {
+    expect(controlWriteRefusal({ "content-type": "application/json", "x-dashboard-control": "1" })).toBeNull();
+    expect(controlWriteRefusal({ "content-type": "text/plain", "x-dashboard-control": "1" })?.status).toBe(415);
+    expect(controlWriteRefusal({ "content-type": "application/json" })?.status).toBe(403);
+    expect(controlWriteRefusal({ "content-type": "application/json", "x-dashboard-config": "1" })?.status).toBe(403);
   });
 });

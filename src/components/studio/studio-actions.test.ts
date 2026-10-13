@@ -3,9 +3,11 @@ import {
   BLANK_MODULE,
   PANEL_ID,
   type MonitorProfile,
+  type ProfileView,
   type PanelDef,
   type Placement,
 } from "@/lib/layout";
+import { mainPage } from "@/lib/pages";
 import { userPanelPreset, type PanelPreset } from "@/lib/panelPresets";
 import {
   addBlankZone,
@@ -14,6 +16,7 @@ import {
   canGrowTo,
   canToggleZonesVisible,
   followGlobalStyle,
+  moveZonesToPage,
   pasteStyleToZones,
   withSampleZones,
   addModulePlacement,
@@ -57,7 +60,7 @@ const zone = (
   ...extra,
 });
 
-const profile = (placements: Placement[], cols = 12, rows = 6): MonitorProfile => ({
+const profile = (placements: Placement[], cols = 12, rows = 6): ProfileView => ({
   id: "prof",
   name: "Test",
   width: 1920,
@@ -478,10 +481,36 @@ describe("followGlobalStyle", () => {
 describe("withSampleZones", () => {
   it("takes the sample's grid and fresh copies of its zones", () => {
     const sample = profile([zone("s1", 1, 1, 2, 1), zone("s2", 3, 1, 2, 1)], 8, 3);
-    const out = withSampleZones(profile([]), sample);
+    const { placements, ...rest } = sample;
+    const out = withSampleZones(profile([]), { ...rest, pages: [mainPage(placements)] });
     expect(out).toMatchObject({ id: "prof", cols: 8, rows: 3 });
     expect(out.placements).toHaveLength(2);
     expect(out.placements.map((p) => p.id)).not.toContain("s1");
+  });
+
+  it("keeps the shared grid and scales the sample onto it when another page has zones", () => {
+    const sample = profile([zone("s1", 1, 1, 6, 3), zone("s2", 7, 4, 6, 3)], 12, 6);
+    const { placements, ...rest } = sample;
+    const target = { ...profile([]), cols: 12, rows: 12 };
+    const out = withSampleZones(target, { ...rest, pages: [mainPage(placements)] }, true);
+    expect(out).toMatchObject({ cols: 12, rows: 12 });
+    expect(out.placements.map((p) => [p.colStart, p.rowStart, p.colSpan, p.rowSpan])).toEqual([
+      [1, 1, 6, 6],
+      [7, 7, 6, 6],
+    ]);
+  });
+
+  it("moves a zone that collides after shrinking, and leaves out one with no room", () => {
+    const sample = profile([zone("a", 1, 1, 1, 1), zone("b", 2, 1, 1, 1), zone("c", 1, 2, 2, 1)], 2, 2);
+    const { placements, ...rest } = sample;
+    const target = { ...profile([]), cols: 1, rows: 2 };
+    const out = withSampleZones(target, { ...rest, pages: [mainPage(placements)] }, true);
+    expect(out).toMatchObject({ cols: 1, rows: 2 });
+    // a and b both shrink onto column 1, row 1: b moves to row 2; c then has no room.
+    expect(out.placements.map((p) => [p.colStart, p.rowStart])).toEqual([
+      [1, 1],
+      [1, 2],
+    ]);
   });
 });
 
@@ -507,3 +536,80 @@ describe("hidden zones and no-op box changes", () => {
   });
 });
 
+
+describe("moveZonesToPage", () => {
+  const stored = (a: Placement[], b: Placement[], cols = 12, rows = 6): MonitorProfile => ({
+    id: "prof",
+    name: "Test",
+    width: 1920,
+    height: 1080,
+    cols,
+    rows,
+    fit: "scroll",
+    pages: [
+      { id: "a", name: "A", placements: a },
+      { id: "b", name: "B", placements: b },
+    ],
+  });
+  const min1 = () => ({ cols: 1, rows: 1 });
+
+  it("keeps the box when it is free on the target page", () => {
+    const out = moveZonesToPage(stored([zone("z", 3, 2, 4, 2)], [zone("y", 1, 1, 2, 2)]), ["z"], "a", "b", min1);
+    expect(out?.pages[0].placements).toEqual([]);
+    expect(out?.pages[1].placements.find((p) => p.id === "z")).toMatchObject({
+      colStart: 3,
+      rowStart: 2,
+      colSpan: 4,
+      rowSpan: 2,
+    });
+  });
+
+  it("takes the first free spot for its size when the box is taken", () => {
+    const out = moveZonesToPage(stored([zone("z", 1, 1, 3, 2)], [zone("y", 1, 1, 3, 2)]), ["z"], "a", "b", min1);
+    expect(out?.pages[1].placements.find((p) => p.id === "z")).toMatchObject({
+      colStart: 4,
+      rowStart: 1,
+      colSpan: 3,
+      rowSpan: 2,
+    });
+  });
+
+  it("refuses, changing nothing, when a zone has no room", () => {
+    const p = stored([zone("z", 1, 1, 2, 2)], [zone("y", 1, 1, 4, 2)], 4, 2);
+    expect(moveZonesToPage(p, ["z"], "a", "b", min1)).toBeNull();
+  });
+
+  it("moves several zones, placing each against the ones already landed", () => {
+    const p = stored([zone("z1", 1, 1, 3, 2), zone("z2", 1, 1, 3, 2, { visible: false })], [zone("y", 1, 1, 3, 2)]);
+    const out = moveZonesToPage(p, ["z1", "z2"], "a", "b", min1);
+    const landed = out?.pages[1].placements ?? [];
+    expect(landed.map((x) => x.id)).toEqual(["y", "z1", "z2"]);
+    expect(landed[1]).toMatchObject({ colStart: 4, rowStart: 1 });
+    expect(landed[2]).toMatchObject({ colStart: 7, rowStart: 1 }); // after z1, which landed first
+    expect(out?.pages[0].placements).toEqual([]);
+  });
+
+  it("refuses when the second of two zones has no room", () => {
+    const p = stored([zone("z1", 1, 1, 2, 2), zone("z2", 3, 1, 2, 2)], [], 3, 2);
+    expect(moveZonesToPage(p, ["z1", "z2"], "a", "b", min1)).toBeNull();
+  });
+
+  it("keeps ids and every other field, and leaves other zones alone", () => {
+    const p = stored([zone("z", 1, 1, 2, 2, { module: "systemmodern" }), zone("stay", 5, 1, 2, 2)], []);
+    const out = moveZonesToPage(p, ["z"], "a", "b", min1);
+    expect(out?.pages[1].placements[0]).toMatchObject({ id: "z", module: "systemmodern" });
+    expect(out?.pages[0].placements.map((x) => x.id)).toEqual(["stay"]);
+  });
+
+  it("does not relocate below the widget minimum", () => {
+    const p = stored([zone("z", 1, 1, 1, 1)], [zone("y", 1, 1, 1, 1)], 3, 1);
+    const out = moveZonesToPage(p, ["z"], "a", "b", () => ({ cols: 2, rows: 1 }));
+    expect(out?.pages[1].placements.find((x) => x.id === "z")).toMatchObject({ colStart: 2, colSpan: 2 });
+  });
+
+  it("is a no-op for the same page or missing ids", () => {
+    const p = stored([zone("z", 1, 1, 2, 2)], []);
+    expect(moveZonesToPage(p, ["z"], "a", "a", min1)).toBe(p);
+    expect(moveZonesToPage(p, ["nope"], "a", "b", min1)).toBe(p);
+  });
+});

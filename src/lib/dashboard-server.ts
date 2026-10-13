@@ -22,6 +22,13 @@ export async function fetchConfig(): Promise<Partial<DashboardConfig> | null> {
   return parsed && Array.isArray(parsed.profiles) ? parsed : null;
 }
 
+/** The server holds a config saved by a newer dashboard version and refused this one (409). */
+export class NewerConfigError extends Error {
+  constructor() {
+    super("a newer dashboard version saved this config; reload");
+  }
+}
+
 /** Save the config on the server, where every kiosk page reads it. */
 export async function pushConfig(config: DashboardConfig): Promise<void> {
   const res = await fetch(CONFIG_URL, {
@@ -30,5 +37,6 @@ export async function pushConfig(config: DashboardConfig): Promise<void> {
     headers: { "Content-Type": "application/json", "X-Dashboard-Config": "1" },
     body: JSON.stringify(config),
   });
+  if (res.status === 409) throw new NewerConfigError();
   if (!res.ok) throw new Error(`config save failed: ${res.status}`);
 }

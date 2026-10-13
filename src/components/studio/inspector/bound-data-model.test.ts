@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { DataModel, DataPoint } from "@/lib/data-points";
 import { bindPoint, type UsageIndex } from "@/lib/data-usage";
-import type { DashboardConfig, MonitorProfile, Placement } from "@/lib/layout";
+import type { DashboardConfig, Placement, ProfileView } from "@/lib/layout";
 import { boundRows, inProfile, liveText, pickerResults, PICKER_LIMIT, pointPlace, resultsLabel } from "./bound-data-model";
 
 const point = (key: string, patch: Partial<DataPoint> = {}): DataPoint => ({
@@ -108,7 +108,7 @@ describe("pickerResults", () => {
 describe("inProfile", () => {
   it("applies a config edit to one profile", () => {
     const panel = { title: "P", widgets: [{ id: "a", kind: "stat" }] } as Placement["panel"];
-    const profile = { id: "p", name: "P", placements: [zone({ module: "panel", panel })] } as unknown as MonitorProfile;
+    const profile = { id: "p", name: "P", placements: [zone({ module: "panel", panel })] } as unknown as ProfileView;
     const config = { profiles: [profile] } as unknown as DashboardConfig;
     const next = inProfile(config, (c) => bindPoint(c, "z1", "a", "system.cpu.load"))(profile);
     expect(next.placements[0].panel?.widgets[0].sensor).toBe("system.cpu.load");

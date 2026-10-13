@@ -3,7 +3,7 @@ import { useToast } from "@/components/ui/toast";
 import { useSensors } from "@/hooks/useSensors";
 import type { DataModel, DataPoint } from "@/lib/data-points";
 import { bindPoint, unbindPoint, type UsageIndex } from "@/lib/data-usage";
-import type { DashboardConfig, MonitorProfile, Placement } from "@/lib/layout";
+import type { DashboardConfig, ProfileView, Placement } from "@/lib/layout";
 import { cn } from "@/lib/utils";
 import { modules } from "@/modules";
 import { TypeIcon } from "../explorer/explorer-parts";
@@ -19,7 +19,7 @@ interface BoundDataProps {
   /** A panel's selected widget: Bind sets its sensor. */
   selectedWidgetId: string | null;
   /** Edit the active profile (one undo step per `key`). */
-  updateProfile: (fn: (p: MonitorProfile) => MonitorProfile, key?: string) => void;
+  updateProfile: (fn: (p: ProfileView) => ProfileView, key?: string) => void;
   /** Open a point in Sources mode. */
   onOpenPoint: (key: string) => void;
   /** Open Sources mode (the picker's "Open data explorer"). */

@@ -8,6 +8,8 @@
 // server/assets.mjs for its routes and security rules.
 // Sensor data does not pass through here: pages read it straight from the
 // InfoPanel Data API (http://127.0.0.1:3921 by default), which allows CORS.
+// It also holds the runtime control state (active page per profile, page
+// rotation; server/control.mjs) for kiosks, the studio and the Stream Deck.
 //
 // Node built-ins only. Environment:
 //   PORT  listen port (default 3922)
@@ -23,7 +25,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import os from "node:os";
 import { createAssets } from "./server/assets.mjs";
-import { configWriteRefusal, createRequestGuard, parseAllowedHosts } from "./server/request-guard.mjs";
+import { versionRefusal } from "./server/config-guard.mjs";
+import { createControl } from "./server/control.mjs";
+import { configWriteRefusal, controlWriteRefusal, createRequestGuard, parseAllowedHosts } from "./server/request-guard.mjs";
 
 const PORT = Number(process.env.PORT) || 3922;
 const HOST = process.env.HOST || "127.0.0.1";
@@ -33,6 +37,7 @@ const LOCAL = process.env.LOCALAPPDATA || path.join(process.env.HOME || ".", ".l
 const DATA_DIR = path.join(LOCAL, "InfoPanel", "Dashboard");
 const CONFIG_FILE = path.join(DATA_DIR, "config.json");
 const ASSETS_DIR = path.join(DATA_DIR, "assets");
+const CONTROL_FILE = path.join(DATA_DIR, "control.json");
 
 const MAX_CONFIG_BYTES = 5 * 1024 * 1024;
 const MAX_PROXY_BYTES = 25 * 1024 * 1024;
@@ -74,6 +79,63 @@ function saveConfig(json) {
   configVersion = Math.max(Date.now(), configVersion + 1);
   const event = `data: ${JSON.stringify({ version: configVersion })}\n\n`;
   for (const res of configListeners) res.write(event);
+  control.configChanged();
+}
+
+function readConfigFile() {
+  try {
+    return JSON.parse(fs.readFileSync(CONFIG_FILE, "utf8"));
+  } catch {
+    return null;
+  }
+}
+
+/* ---------------- control state ---------------- */
+
+const control = createControl({ file: CONTROL_FILE, readConfig: readConfigFile });
+const MAX_CONTROL_BYTES = 4096;
+const CONTROL_ACTIONS = new Set(["page", "profile", "rotate", "touch"]);
+
+/** GET /api/control → the state; POST /api/control/<action> with a JSON body → the new state. */
+async function handleControl(req, res, pathname) {
+  if (pathname === "/api/control") {
+    if (req.method !== "GET") return send(res, 405);
+    return send(res, 200, JSON.stringify(control.get()), TYPES[".json"]);
+  }
+  const type = pathname.slice("/api/control/".length);
+  if (!CONTROL_ACTIONS.has(type)) return send(res, 404);
+  if (req.method !== "POST") return send(res, 405);
+  const refusal = controlWriteRefusal(req.headers);
+  if (refusal) return send(res, refusal.status, refusal.message);
+  let body;
+  try {
+    body = JSON.parse((await readBody(req, MAX_CONTROL_BYTES)) || "{}");
+    if (!body || typeof body !== "object" || Array.isArray(body)) throw new Error();
+  } catch {
+    return send(res, 400, "expected a JSON object");
+  }
+  const result = control.dispatch({ ...body, type });
+  if (result.error) return send(res, 400, result.error);
+  send(res, 200, JSON.stringify(result.state), TYPES[".json"]);
+}
+
+/** SSE of the control state; `?profile=<id>` reports the profile this kiosk shows. */
+function handleControlEvents(req, res, query) {
+  res.writeHead(200, {
+    "Content-Type": "text/event-stream",
+    "Cache-Control": "no-store",
+    Connection: "keep-alive",
+  });
+  const shown = query.get("profile");
+  if (shown) control.dispatch({ type: "shown", profile: shown });
+  const write = (state) => res.write(`data: ${JSON.stringify(state)}\n\n`);
+  write(control.get());
+  const unsubscribe = control.subscribe(write);
+  const keepAlive = setInterval(() => res.write(": keep-alive\n\n"), 15_000);
+  req.on("close", () => {
+    clearInterval(keepAlive);
+    unsubscribe();
+  });
 }
 
 /* ---------------- helpers ---------------- */
@@ -121,12 +183,18 @@ async function handleConfig(req, res) {
   } catch {
     return send(res, 413);
   }
+  let parsed;
   try {
     // Must be the config object itself, so a stray client can't clobber it.
-    const parsed = JSON.parse(body);
+    parsed = JSON.parse(body);
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error();
   } catch {
     return send(res, 400, "expected a config object");
+  }
+  // An older build must not overwrite a config a newer one saved.
+  if (fs.existsSync(CONFIG_FILE)) {
+    const stale = versionRefusal(fs.readFileSync(CONFIG_FILE, "utf8"), parsed);
+    if (stale) return send(res, stale.status, stale.message);
   }
   saveConfig(body);
   send(res, 200, JSON.stringify({ ok: true, version: configVersion }), TYPES[".json"]);
@@ -229,6 +297,8 @@ const server = http.createServer(async (req, res) => {
   try {
     if (pathname === "/api/config") return await handleConfig(req, res);
     if (pathname === "/events/config") return handleConfigEvents(req, res);
+    if (pathname === "/api/control" || pathname.startsWith("/api/control/")) return await handleControl(req, res, pathname);
+    if (pathname === "/events/control") return handleControlEvents(req, res, searchParams);
     if (pathname === "/api/image-proxy") return await handleImageProxy(req, res, searchParams);
     if (pathname === "/api/assets" || pathname.startsWith("/api/assets/")) {
       return await handleAssets(req, res, pathname, searchParams);

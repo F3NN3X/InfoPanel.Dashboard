@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { SCROLL_ROW_H, type MonitorProfile } from "@/lib/layout";
+import { SCROLL_ROW_H, type ProfileView } from "@/lib/layout";
 import { profileGap, profilePadding } from "@/lib/profile-grid";
 import {
   computeLayout,
@@ -37,7 +37,7 @@ export function parseDock(raw: string | null): number | null {
  * The profile's page as the canvas draws it: a "fill" page has its design
  * height, a scroll page the height of its grid at the natural row size.
  */
-export function pageSize(profile: MonitorProfile): PageSize {
+export function pageSize(profile: ProfileView): PageSize {
   const fill = profile.fit === "fill" && profile.height > 0;
   const gap = profileGap(profile);
   return {

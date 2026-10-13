@@ -2,7 +2,7 @@ import { modules } from "@/modules";
 import { BLANK_MODULE } from "@/lib/layout";
 import { useToast } from "@/components/ui/toast";
 import { styleOf } from "@/modules/standard-settings";
-import type { DashboardConfig, MonitorProfile } from "@/lib/layout";
+import type { DashboardConfig, ProfileView } from "@/lib/layout";
 import type { HistorySetter } from "@/hooks/use-config-history";
 import type { Appearance } from "@/lib/style-resolve";
 import { followAll, toggleEnforce } from "./appearance-actions";
@@ -21,7 +21,7 @@ import type { StudioUi } from "./use-studio-ui";
 
 interface CommandDeps {
   config: DashboardConfig;
-  profile: MonitorProfile;
+  profile: ProfileView;
   setConfig: HistorySetter;
   history: { undo: () => void; redo: () => void; dragging: () => boolean; canUndo: boolean; canRedo: boolean };
   ui: StudioUi;
@@ -30,6 +30,8 @@ interface CommandDeps {
   appearance: Appearance;
   appearancePresets: ReturnType<typeof useDocumentProps>["appearancePresets"];
   setScopeStyle: ReturnType<typeof useDocumentProps>["setScopeStyle"];
+  /** Show another page of the profile on the canvas. */
+  onPageChange: (pageId: string) => void;
 }
 
 /**
@@ -48,9 +50,12 @@ export function useStudioCommands({
   appearance,
   appearancePresets,
   setScopeStyle,
+  onPageChange,
 }: CommandDeps) {
   const { selected, selectedWidget } = sel;
   const toast = useToast();
+  const pages = (config.profiles.find((p) => p.id === profile.id) ?? config.profiles[0]).pages;
+  const currentPage = profile.pageId ?? pages[0].id;
 
   /** Select a zone (Layers drawer, palette) and bring it into view on the canvas. */
   const focusZone = (id: string) => {
@@ -135,7 +140,7 @@ export function useStudioCommands({
       case "import":
         return ui.importRef.current?.click();
       case "copy-profile":
-        copyProfileJson(profile).catch(() => {});
+        copyProfileJson(config.profiles.find((p) => p.id === profile.id) ?? config.profiles[0]).catch(() => {});
         return;
       case "undo":
         return history.undo();
@@ -173,6 +178,27 @@ export function useStudioCommands({
         return sel.select(null);
       case "sample-layout":
         return edit.loadSampleLayout();
+      case "page-go":
+        ui.setMode("design");
+        return onPageChange(action.id);
+      case "page-next":
+        return edit.stepPage(1);
+      case "page-prev":
+        return edit.stepPage(-1);
+      case "page-add":
+        ui.setMode("design");
+        return edit.addNewPage();
+      case "page-duplicate":
+        ui.setMode("design");
+        return edit.duplicateCurrentPage(currentPage);
+      case "page-delete":
+        ui.setMode("design");
+        return pages.length > 1 ? ui.setDeletingPage(currentPage) : toast("A profile needs at least one page");
+      case "page-rename":
+        ui.setMode("design");
+        return ui.setRenamingPage(currentPage);
+      case "move-to-page":
+        return edit.moveSelectionToPage(action.id);
       case "apply-appearance": {
         const preset = appearancePresets.presets.find((p) => p.id === action.id);
         return preset && appearancePresets.apply(preset, "all");
@@ -254,6 +280,8 @@ export function useStudioCommands({
     ? buildCommands({
         insertables: insertables(config.panelPresets),
         profiles: config.profiles,
+        pages,
+        currentPage,
         placements: profile.placements,
         selected,
         selection: sel.selection,

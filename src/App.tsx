@@ -5,16 +5,19 @@ import { Badge } from "@/components/ui/badge";
 import { PlacementFrame } from "@/components/studio/placement-frame";
 import { LivePlacement } from "@/components/studio/placement-content";
 import { PageBackground } from "@/components/page-background";
+import { PageDots, PAGE_DOTS_STRIP_PX } from "@/components/page-dots";
 import { resolveBackground } from "@/lib/appearance";
 import { appearanceOf } from "@/lib/style-resolve";
 import { applyTheme, resolveTheme } from "@/lib/theme";
 import { fontStack, formatClock, resolveGeneral } from "@/lib/general";
 import { profileGap, profilePadding } from "@/lib/profile-grid";
 import { GeneralProvider, useGeneral } from "@/hooks/use-general";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { setApiBase } from "@/lib/data-api";
 import {
   CONFIG_EVENTS_URL,
   fetchConfig,
+  NewerConfigError,
   pushConfig,
 } from "@/lib/dashboard-server";
 import {
@@ -25,6 +28,16 @@ import {
   SCROLL_ROW_H,
   type DashboardConfig,
 } from "@/lib/layout";
+import { profileWithPage } from "@/lib/pages";
+import {
+  kioskPageId,
+  kioskProfileId,
+  neighbourPage,
+  postControl,
+  useControl,
+  withControlPage,
+} from "@/lib/control";
+import { swipeDirection } from "@/lib/swipe";
 import { cn } from "@/lib/utils";
 
 /** ?profile=<id> pins a profile (kiosk shortcuts, testing). */
@@ -34,6 +47,15 @@ function withPinnedProfile(config: DashboardConfig): DashboardConfig {
     ? { ...config, activeProfile: pinned }
     : config;
 }
+
+/** ?page=<id> pins a page of the shown profile (the first page without it). */
+const pagePin = new URLSearchParams(window.location.search).get("page") ?? undefined;
+
+/** The ?profile= pin, if any: it wins over the control channel's profile. */
+const profilePin = new URLSearchParams(window.location.search).get("profile");
+
+/** A touch tells the server to hold auto-rotation (it holds 30 s); at most this often. */
+const TOUCH_THROTTLE_MS = 5000;
 
 // The studio is an editing tool; kiosk pages never download it.
 const StudioView = lazy(() =>
@@ -63,11 +85,78 @@ export default function App() {
     h: window.innerHeight,
   }));
 
-  const profile = resolveProfile(config, windowSize.w, windowSize.h);
+  // The page the studio edits (view state); the kiosk shows the pinned one.
+  const [studioPage, setStudioPage] = useState(pagePin);
+  // Kiosk: the control channel decides the profile (unless ?profile= pins one)
+  // and the page. The stream also tells the server which profile this kiosk shows.
+  const [shownId, setShownId] = useState<string>();
+  const control = useControl(shownId, kiosk && shownId !== undefined);
+  // A tap or swipe switches at once; the server's state takes over when it arrives.
+  const [optimistic, setOptimistic] = useState<{ profile: string; page: string } | null>(null);
+  useEffect(() => setOptimistic(null), [control]);
+  const forcedProfile = kiosk ? kioskProfileId({ pin: profilePin, control, config }) : undefined;
+  const stored = resolveProfile(
+    forcedProfile ? { ...config, activeProfile: forcedProfile } : config,
+    windowSize.w,
+    windowSize.h
+  );
+  useEffect(() => {
+    if (kiosk) setShownId(stored.id);
+  }, [kiosk, stored.id]);
+  const kioskPage = kiosk
+    ? kioskPageId({
+        pin: pagePin,
+        control: optimistic ? withControlPage(control, optimistic.profile, optimistic.page) : control,
+        profile: stored,
+      })
+    : pagePin;
+  const profile = useMemo(
+    () => profileWithPage(stored, studio ? studioPage : kioskPage),
+    [stored, studio, studioPage, kioskPage]
+  );
+  // The page can vanish (delete, undo, another profile): the view fell back to the first one.
+  useEffect(() => {
+    if (studio && profile.pageId !== studioPage) setStudioPage(profile.pageId);
+  }, [studio, profile.pageId, studioPage]);
   const fill = profile.fit === "fill";
   const background = resolveBackground(config, profile);
   const appearance = appearanceOf(config, profile);
   const general = useMemo(() => resolveGeneral({ general: config.general }), [config.general]);
+
+  // Page dots and swipe: only with the setting on, 2+ pages, and no ?page= pin.
+  const pageNav =
+    kiosk &&
+    general.kioskPageNav &&
+    stored.pages.length >= 2 &&
+    kioskPageId({ pin: pagePin, control: null, profile: stored }) === undefined;
+  const goToPage = (page: string) => {
+    setOptimistic({ profile: stored.id, page });
+    void postControl("page", { profile: stored.id, page });
+  };
+  const gesture = useRef<{ x: number; y: number; t: number } | null>(null);
+  const lastTouch = useRef(0);
+  const onKioskPointerDown = (e: React.PointerEvent) => {
+    if (!kiosk) return;
+    gesture.current = { x: e.clientX, y: e.clientY, t: e.timeStamp };
+    const now = Date.now();
+    if (control?.profiles[stored.id]?.rotating && now - lastTouch.current >= TOUCH_THROTTLE_MS) {
+      lastTouch.current = now;
+      void postControl("touch", { profile: stored.id });
+    }
+  };
+  const onKioskPointerUp = (e: React.PointerEvent) => {
+    const start = gesture.current;
+    gesture.current = null;
+    if (!pageNav || !start) return;
+    const dir = swipeDirection({ dx: e.clientX - start.x, dy: e.clientY - start.y, ms: e.timeStamp - start.t });
+    if (!dir) return;
+    const next = neighbourPage(
+      stored.pages.map((p) => p.id),
+      profile.pageId ?? stored.pages[0].id,
+      dir === "next" ? 1 : -1
+    );
+    if (next) goToPage(next);
+  };
 
   // Persist the config (layout, profiles, theme) on every change.
   useEffect(() => saveConfig(config), [config]);
@@ -104,6 +193,8 @@ export default function App() {
   // Save dot); a newer edit supersedes an older push still in flight.
   const [pushPending, setPushPending] = useState(false);
   // The newest config, to tell whether a finished push is still the latest state.
+  // A newer dashboard version saved the server copy: stop pushing until a reload.
+  const [refused, setRefused] = useState(false);
   const latestConfig = useRef(config);
   latestConfig.current = config;
   // Before the server copy is read nothing is pushed, but an edit is still unpushed.
@@ -112,21 +203,22 @@ export default function App() {
     if (!kiosk && !synced && config !== firstConfig.current) setPushPending(true);
   }, [config, kiosk, synced]);
   useEffect(() => {
-    if (kiosk || !synced) return; // kiosk pages only read; don't push from them
+    if (kiosk || !synced || refused) return; // kiosk pages only read; don't push from them
     let superseded = false;
     setPushPending(true);
     const t = window.setTimeout(() => {
       pushConfig(config)
         .then(() => !superseded && setPushPending(false))
-        .catch(() => {
-          // Server offline — kiosk pages keep their last copy.
+        .catch((err) => {
+          if (err instanceof NewerConfigError) setRefused(true);
+          // Otherwise the server is offline — kiosk pages keep their last copy.
         });
     }, 400);
     return () => {
       superseded = true;
       window.clearTimeout(t);
     };
-  }, [config, kiosk, synced]);
+  }, [config, kiosk, synced, refused]);
 
   // Kiosk: pull the shared config on load and again whenever the server
   // reports a newer version (a studio edit or Save), so the display updates
@@ -200,17 +292,36 @@ export default function App() {
         if (latestConfig.current === cfg) setPushPending(false);
         return true;
       })
-      .catch(() => false); // Server offline — kiosk pages keep their last copy; the dot stays.
+      .catch((err) => {
+        if (err instanceof NewerConfigError) setRefused(true);
+        return false;
+      }); // Server offline — kiosk pages keep their last copy; the dot stays.
   }, []);
 
   // The dedicated studio replaces the whole view.
   if (studio) {
     return (
       <GeneralProvider value={general}>
+        {refused && (
+          <div
+            role="alert"
+            className="fixed inset-x-0 top-0 z-50 flex items-center justify-center gap-3 border-b border-ui-menu bg-ui-raised px-4 py-2 font-ui text-[12px] text-ui-1"
+          >
+            A newer dashboard version saved this config. Reload to keep editing.
+            <button
+              type="button"
+              className="rounded-md border border-ui-default px-2 py-0.5 hover:bg-ui-hover"
+              onClick={() => window.location.reload()}
+            >
+              Reload
+            </button>
+          </div>
+        )}
         <Suspense fallback={null}>
           <StudioView
             config={config}
             profile={profile}
+            onPageChange={setStudioPage}
             setConfig={setConfig}
             windowWidth={windowSize.w}
             windowHeight={windowSize.h}
@@ -239,7 +350,17 @@ export default function App() {
               : "h-screen overflow-hidden gap-3"
             : "min-h-screen gap-4"
         )}
-        style={{ padding: profilePadding(profile, kiosk), fontFamily: fontStack(general.font) }}
+        style={{
+          padding: profilePadding(profile, kiosk),
+          // The dots' strip: they sit in the bottom padding, so no zone is under them.
+          ...(pageNav && { paddingBottom: Math.max(profilePadding(profile, kiosk), PAGE_DOTS_STRIP_PX) }),
+          // Vertical scrolling stays with the browser; horizontal moves reach the swipe.
+          ...(pageNav && { touchAction: "pan-y" }),
+          fontFamily: fontStack(general.font),
+        }}
+        onPointerDown={onKioskPointerDown}
+        onPointerUp={onKioskPointerUp}
+        onPointerCancel={() => (gesture.current = null)}
       >
         {background && <PageBackground background={background} className="fixed inset-0 -z-10" />}
 
@@ -266,7 +387,8 @@ export default function App() {
         )}
 
         {/* Kiosk grid of zones (read-only) */}
-        <div
+        <PageGrid
+          key={profile.pageId}
           className={cn("grid", fill && "min-h-0 flex-1")}
           style={{
             gap: profileGap(profile),
@@ -295,7 +417,16 @@ export default function App() {
                 )}
               </LivePlacement>
             ))}
-        </div>
+        </PageGrid>
+
+        <PageDots
+          enabled={pageNav}
+          pages={stored.pages}
+          current={profile.pageId ?? stored.pages[0].id}
+          paused={stored.rotate?.enabled === true && control?.profiles[stored.id]?.rotating === false}
+          onSelect={goToPage}
+          onToggleRotate={() => void postControl("rotate", { profile: stored.id, state: "toggle" })}
+        />
 
         {/* Floating entry to the studio (not on display-only kiosk pages) */}
         {!kiosk && (
@@ -309,6 +440,16 @@ export default function App() {
         )}
       </div>
     </GeneralProvider>
+  );
+}
+
+/** The zone grid; a new page (the caller keys it by page id) fades in, instantly with reduced motion. */
+function PageGrid({ className, style, children }: { className: string; style: React.CSSProperties; children: React.ReactNode }) {
+  const reduced = useReducedMotion();
+  return (
+    <div className={cn(className, !reduced && "page-fade-in")} style={style}>
+      {children}
+    </div>
   );
 }
 

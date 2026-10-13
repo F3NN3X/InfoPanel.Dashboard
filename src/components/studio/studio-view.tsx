@@ -7,7 +7,7 @@ import {
   defaultConfig,
   resolveProfile,
   type DashboardConfig,
-  type MonitorProfile,
+  type ProfileView,
 } from "@/lib/layout";
 import { resolveBackground } from "@/lib/appearance";
 import { useSensorCatalog } from "@/lib/catalog";
@@ -32,12 +32,16 @@ import { SelectionChip } from "./selection-chip";
 import { StudioContextMenu, useContextMenu } from "./zone-context-menu";
 import { widgetName } from "./widget-kinds";
 import { WidgetPickerDialog } from "./widget-picker-dialog";
+import { postControl, useControl } from "@/lib/control";
+import { PageTabs } from "./page-tabs";
 import { ZoomToolbar } from "./zoom-toolbar";
 
 interface StudioViewProps {
   config: DashboardConfig;
-  /** The resolved (active) grid profile being edited. */
-  profile: MonitorProfile;
+  /** The resolved (active) grid profile being edited, on the page the studio shows. */
+  profile: ProfileView;
+  /** Show another page of the profile on the canvas (view state, not undoable). */
+  onPageChange: (pageId: string) => void;
   setConfig: Dispatch<SetStateAction<DashboardConfig>>;
   windowWidth: number;
   windowHeight: number;
@@ -71,6 +75,7 @@ export function StudioView(props: StudioViewProps) {
 function StudioViewBody({
   config,
   profile,
+  onPageChange,
   setConfig: setConfigState,
   windowWidth,
   windowHeight,
@@ -79,7 +84,11 @@ function StudioViewBody({
   pushPending,
 }: StudioViewProps) {
   const history = useConfigHistory(config, setConfigState);
+  // Runtime state of the kiosks (page shown, rotating): not config, never in the undo history.
+  const control = useControl();
   const setConfig = history.set;
+  // The stored profile behind the page on the canvas (profile list, summary, JSON copy).
+  const storedProfile = config.profiles.find((p) => p.id === profile.id) ?? config.profiles[0];
   const ui = useStudioUi(config, profile, onSave);
   const sel = useStudioSelection(profile);
   const { selected, selectedWidget, selectedWidgetId } = sel;
@@ -91,6 +100,7 @@ function StudioViewBody({
     sel,
     onPresetSaved: () => ui.setPresetNaming(false),
     windowSize: { width: windowWidth, height: windowHeight },
+    onPageChange,
   });
   const { props: documentProps, setScopeStyle, appearancePresets } = useDocumentProps(
     config,
@@ -112,6 +122,7 @@ function StudioViewBody({
     appearance,
     appearancePresets,
     setScopeStyle,
+    onPageChange,
   });
   /** Sensor names for widget names (toolbar crumb, palette). */
   const catalog = useSensorCatalog();
@@ -183,7 +194,7 @@ function StudioViewBody({
       profiles={{
         profiles: config.profiles,
         activeProfile: config.activeProfile,
-        profile,
+        profile: storedProfile,
         autoProfileId: resolveProfile({ ...config, activeProfile: "auto" }, windowWidth, windowHeight).id,
         onActivate: activateProfile,
         onAddProfile: edit.addProfile,
@@ -195,7 +206,7 @@ function StudioViewBody({
     />
   );
 
-  const mainEl = showSources ? (
+  const canvasEl = showSources ? (
     <div className="min-h-0 flex-1 overflow-hidden bg-background/40">
       <SourcesPanel
         config={config}
@@ -259,6 +270,38 @@ function StudioViewBody({
     />
   );
 
+  // The page tabs sit above the canvas in Design mode.
+  const mainEl = showSources ? (
+    canvasEl
+  ) : (
+    <>
+      <PageTabs
+        pages={storedProfile.pages}
+        current={profile.pageId ?? storedProfile.pages[0].id}
+        onSelect={onPageChange}
+        onAdd={edit.addNewPage}
+        onRename={edit.renamePageTo}
+        onMove={edit.movePageTo}
+        onDuplicate={edit.duplicateCurrentPage}
+        onDelete={edit.deletePage}
+        onIcon={edit.setIconOfPage}
+        renamingId={ui.renamingPage}
+        onRenamingChange={ui.setRenamingPage}
+        deletingId={ui.deletingPage}
+        onDeletingChange={ui.setDeletingPage}
+        kioskPage={control?.profiles[storedProfile.id]?.page}
+        onShowOnKiosk={(page) => void postControl("page", { profile: storedProfile.id, page })}
+        rotate={{
+          entry: control?.profiles[storedProfile.id],
+          saved: storedProfile.rotate?.enabled === true,
+          onToggle: () => void postControl("rotate", { profile: storedProfile.id, state: "toggle" }),
+          onSaved: () => void postControl("rotate", { profile: storedProfile.id, state: "saved" }),
+        }}
+      />
+      {canvasEl}
+    </>
+  );
+
   const bar = showSources ? null : (
     <ZoomToolbar
       zoom={ui.zoom}
@@ -283,7 +326,7 @@ function StudioViewBody({
       <StudioTopBar
         profiles={config.profiles}
         activeProfile={config.activeProfile}
-        profile={profile}
+        profile={storedProfile}
         onActivate={activateProfile}
         onOpenProfiles={() => {
           ui.setMode("design");
@@ -347,6 +390,7 @@ function StudioViewBody({
             selected !== null &&
             edit.resizeSelected({ cols: selected.colSpan + cols, rows: selected.rowSpan + rows }) !== null
           }
+          otherPages={storedProfile.pages.filter((p) => p.id !== profile.pageId)}
           onRun={runCommand}
           onClose={menus.close}
         />
