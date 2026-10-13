@@ -25,6 +25,7 @@ export default defineConfig({
     proxy: {
       "/api": "http://127.0.0.1:3922",
       "/events/config": "http://127.0.0.1:3922",
+      "/events/control": "http://127.0.0.1:3922",
     },
   },
 });

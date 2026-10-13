@@ -90,3 +90,14 @@ export function configWriteRefusal(headers) {
   if (headers["x-dashboard-config"] !== "1") return { status: 403, message: "missing X-Dashboard-Config header" };
   return null;
 }
+
+/**
+ * The reason a POST /api/control/* is refused, or null. The custom header keeps a cross-site form from
+ * switching pages (a simple request can't set it); the Stream Deck plugin sends it.
+ */
+export function controlWriteRefusal(headers) {
+  const type = String(headers["content-type"] ?? "").split(";")[0].trim().toLowerCase();
+  if (type !== "application/json") return { status: 415, message: "expected application/json" };
+  if (headers["x-dashboard-control"] !== "1") return { status: 403, message: "missing X-Dashboard-Control header" };
+  return null;
+}
