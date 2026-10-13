@@ -13,7 +13,7 @@ import {
 import { PageBackground } from "@/components/page-background";
 import type { PageBackground as Background } from "@/lib/appearance";
 import type { Appearance } from "@/lib/style-resolve";
-import { SCROLL_ROW_H, type MonitorProfile, type Placement } from "@/lib/layout";
+import { SCROLL_ROW_H, type ProfileView, type Placement } from "@/lib/layout";
 import { fontStack } from "@/lib/general";
 import {
   cellAt as gridCellAt,
@@ -49,7 +49,7 @@ const GHOST_OK = { line: "var(--ui-accent)", fill: "oklch(0.72 0.15 255 / 0.12)"
 const GHOST_DENIED = { line: "oklch(0.70 0.17 25)", fill: "oklch(0.70 0.17 25 / 0.10)" };
 
 interface StudioCanvasProps {
-  profile: MonitorProfile;
+  profile: ProfileView;
   /** The profile's resolved page background, drawn behind its grid. */
   background?: Background;
   /** The global style the zones render under (see `resolveStyle`). */

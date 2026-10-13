@@ -1,5 +1,6 @@
 import type { DataModel } from "@/lib/data-points";
-import { PANEL_ID, type DashboardConfig, type MonitorProfile, type Placement } from "@/lib/layout";
+import { PANEL_ID, type DashboardConfig, type MonitorProfile, type Placement, type ProfileView } from "@/lib/layout";
+import { allPlacements, mapPlacements } from "@/lib/pages";
 import type { Widget } from "@/lib/panel-model";
 import type { DashboardModule, ModuleSetting } from "@/modules/types";
 
@@ -65,11 +66,12 @@ export function claimedPrefixes(pl: Placement, mod: ModuleInfo): string[] {
 const widgetLabel = (w: Widget): string => w.label?.trim() || w.kind;
 
 /**
- * Index the profile's zones by the keys they use. Only keys in `keys` (the
+ * Index the profile's zones (every page of a stored profile, or the one page
+ * of a view) by the keys they use. Only keys in `keys` (the
  * explorer's points) are indexed; a zone hidden in the profile still counts.
  */
 export function computeUsage(
-  profile: MonitorProfile,
+  profile: MonitorProfile | ProfileView,
   keys: readonly string[],
   mods: readonly ModuleInfo[]
 ): UsageIndex {
@@ -83,7 +85,7 @@ export function computeUsage(
   };
   const keySet = new Set(keys);
 
-  for (const pl of profile.placements) {
+  for (const pl of "pages" in profile ? allPlacements(profile) : profile.placements) {
     if (pl.module === PANEL_ID && pl.panel) {
       for (const w of pl.panel.widgets) {
         const label = `${pl.panel.title} › ${widgetLabel(w)}`;
@@ -113,12 +115,9 @@ function updateZone(
 ): DashboardConfig {
   let changed = false;
   const profiles = config.profiles.map((profile) => {
-    const idx = profile.placements.findIndex((p) => p.id === zoneId);
-    if (idx < 0) return profile;
-    const next = fn(profile.placements[idx]);
-    if (next === profile.placements[idx]) return profile;
-    changed = true;
-    return { ...profile, placements: profile.placements.map((p, i) => (i === idx ? next : p)) };
+    const next = mapPlacements(profile, (pl) => (pl.id === zoneId ? fn(pl) : pl));
+    if (next !== profile) changed = true;
+    return next;
   });
   return changed ? { ...config, profiles } : config;
 }

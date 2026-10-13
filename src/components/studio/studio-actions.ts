@@ -4,8 +4,10 @@ import {
   PANEL_ID,
   clonePlacement,
   type MonitorProfile,
+  type ProfileView,
   type Placement,
 } from "@/lib/layout";
+import { pageOf } from "@/lib/pages";
 import { normalizePanelPlacement } from "@/lib/panel-model";
 import { modules } from "@/modules";
 import { PROFILE_STYLE_KEYS, CARD_SETTINGS, PANEL_SETTINGS, replaceStyle } from "@/modules/standard-settings";
@@ -26,10 +28,10 @@ type Size = { cols: number; rows: number };
 
 /** Apply `fn` to one placement. */
 export function updatePlacement(
-  profile: MonitorProfile,
+  profile: ProfileView,
   id: string,
   fn: (p: Placement) => Placement
-): MonitorProfile {
+): ProfileView {
   return {
     ...profile,
     placements: profile.placements.map((x) => (x.id === id ? fn(x) : x)),
@@ -38,10 +40,10 @@ export function updatePlacement(
 
 /** Append a placement at the first free slot of `size` (top-left if full). */
 function appendAtFreeSlot(
-  profile: MonitorProfile,
+  profile: ProfileView,
   size: Size,
   make: (pos: ZoneRect) => Placement
-): MonitorProfile {
+): ProfileView {
   const clamped = {
     cols: Math.max(1, Math.min(size.cols, profile.cols)),
     rows: Math.max(1, Math.min(size.rows, profile.rows)),
@@ -70,11 +72,11 @@ function zoneAt(id: string, module: string, rect: ZoneRect): Placement {
 
 /** Add a module widget at its minimum size in the first free slot. */
 export function addModulePlacement(
-  profile: MonitorProfile,
+  profile: ProfileView,
   id: string,
   module: string,
   minSize: Size
-): MonitorProfile {
+): ProfileView {
   return appendAtFreeSlot(profile, minSize, (pos) => zoneAt(id, module, pos));
 }
 
@@ -94,10 +96,10 @@ function withPreset(p: Placement, preset: PanelPreset): Placement {
 
 /** Add a pre-designed panel (a group of widgets) from a preset. */
 export function addPresetPlacement(
-  profile: MonitorProfile,
+  profile: ProfileView,
   id: string,
   preset: PanelPreset
-): MonitorProfile {
+): ProfileView {
   return appendAtFreeSlot(
     profile,
     { cols: preset.colSpan, rows: preset.rowSpan },
@@ -107,21 +109,21 @@ export function addPresetPlacement(
 
 /** Add a module widget in an explicit box (a library drop; the caller checked it fits). */
 export function addModuleAt(
-  profile: MonitorProfile,
+  profile: ProfileView,
   id: string,
   module: string,
   rect: ZoneRect
-): MonitorProfile {
+): ProfileView {
   return { ...profile, placements: [...profile.placements, zoneAt(id, module, rect)] };
 }
 
 /** Add a panel preset in an explicit box (a library drop; the caller checked it fits). */
 export function addPresetAt(
-  profile: MonitorProfile,
+  profile: ProfileView,
   id: string,
   preset: PanelPreset,
   rect: ZoneRect
-): MonitorProfile {
+): ProfileView {
   return {
     ...profile,
     placements: [...profile.placements, withPreset(zoneAt(id, PANEL_ID, rect), preset)],
@@ -130,10 +132,10 @@ export function addPresetAt(
 
 /** Add a blank zone with an explicit (already clamped) box. */
 export function addBlankZone(
-  profile: MonitorProfile,
+  profile: ProfileView,
   id: string,
   rect: ZoneRect
-): MonitorProfile {
+): ProfileView {
   return {
     ...profile,
     placements: [...profile.placements, zoneAt(id, BLANK_MODULE, rect)],
@@ -145,10 +147,10 @@ const hasRect = (p: Placement, r: ZoneRect) =>
 
 /** Set a zone's box (the caller clamps it first); the same profile back when it is already there. */
 export function setZoneRect(
-  profile: MonitorProfile,
+  profile: ProfileView,
   id: string,
   rect: ZoneRect
-): MonitorProfile {
+): ProfileView {
   const zone = profile.placements.find((p) => p.id === id);
   if (!zone || hasRect(zone, rect)) return profile;
   return updatePlacement(profile, id, (p) => ({
@@ -161,32 +163,32 @@ export function setZoneRect(
 }
 
 export function setSpan(
-  profile: MonitorProfile,
+  profile: ProfileView,
   id: string,
   span: number
-): MonitorProfile {
+): ProfileView {
   return updatePlacement(profile, id, (x) => ({ ...x, colSpan: span }));
 }
 
 export function setRowSpan(
-  profile: MonitorProfile,
+  profile: ProfileView,
   id: string,
   span: number
-): MonitorProfile {
+): ProfileView {
   return updatePlacement(profile, id, (x) => ({ ...x, rowSpan: span }));
 }
 
 export function toggleVisible(
-  profile: MonitorProfile,
+  profile: ProfileView,
   id: string
-): MonitorProfile {
+): ProfileView {
   return updatePlacement(profile, id, (x) => ({ ...x, visible: !x.visible }));
 }
 
 export function removePlacement(
-  profile: MonitorProfile,
+  profile: ProfileView,
   id: string
-): MonitorProfile {
+): ProfileView {
   return {
     ...profile,
     placements: profile.placements.filter((x) => x.id !== id),
@@ -195,9 +197,9 @@ export function removePlacement(
 
 /** Insert a copy (new id) right after the original. */
 export function duplicatePlacement(
-  profile: MonitorProfile,
+  profile: ProfileView,
   id: string
-): MonitorProfile {
+): ProfileView {
   const i = profile.placements.findIndex((x) => x.id === id);
   if (i === -1) return profile;
   const next = [...profile.placements];
@@ -207,9 +209,9 @@ export function duplicatePlacement(
 
 /** Set several zones' boxes at once (the caller checks them first); the same profile back when none moves. */
 export function setZoneRects(
-  profile: MonitorProfile,
+  profile: ProfileView,
   rects: Record<string, ZoneRect>
-): MonitorProfile {
+): ProfileView {
   if (!profile.placements.some((p) => rects[p.id] && !hasRect(p, rects[p.id]))) return profile;
   return {
     ...profile,
@@ -221,18 +223,18 @@ export function setZoneRects(
 }
 
 export function removeZones(
-  profile: MonitorProfile,
+  profile: ProfileView,
   ids: readonly string[]
-): MonitorProfile {
+): ProfileView {
   const set = new Set(ids);
   return { ...profile, placements: profile.placements.filter((x) => !set.has(x.id)) };
 }
 
 /** Hide every zone of the set while any of them shows; else show them all. */
 export function toggleZonesVisible(
-  profile: MonitorProfile,
+  profile: ProfileView,
   ids: readonly string[]
-): MonitorProfile {
+): ProfileView {
   const set = new Set(ids);
   const anyVisible = profile.placements.some((x) => set.has(x.id) && x.visible);
   return {
@@ -246,7 +248,7 @@ export function toggleZonesVisible(
  * not when a shown zone would land on another visible one (the room it
  * left was handed out while it was hidden).
  */
-export function canToggleZonesVisible(profile: MonitorProfile, ids: readonly string[]): boolean {
+export function canToggleZonesVisible(profile: ProfileView, ids: readonly string[]): boolean {
   const next = toggleZonesVisible(profile, ids);
   const set = new Set(ids);
   return next.placements
@@ -268,9 +270,9 @@ export function canToggleZonesVisible(profile: MonitorProfile, ids: readonly str
  * copied. `copies` are the new ids, for selecting them.
  */
 export function duplicateZones(
-  profile: MonitorProfile,
+  profile: ProfileView,
   ids: readonly string[]
-): { profile: MonitorProfile; copies: string[] } {
+): { profile: ProfileView; copies: string[] } {
   let placements = profile.placements;
   const copies: string[] = [];
   for (const id of ids) {
@@ -293,9 +295,9 @@ export function zoneMinSize(p: Placement): Size {
 
 /** Make a zone blank: drop its widget, panel and settings. */
 export function clearWidget(
-  profile: MonitorProfile,
+  profile: ProfileView,
   id: string
-): MonitorProfile {
+): ProfileView {
   return updatePlacement(profile, id, (p) => ({
     ...p,
     module: BLANK_MODULE,
@@ -305,7 +307,7 @@ export function clearWidget(
 }
 
 /** The zone's box grown to at least `min` cells, kept inside the grid. */
-function grownRect(profile: MonitorProfile, p: Placement, min: Size): ZoneRect {
+function grownRect(profile: ProfileView, p: Placement, min: Size): ZoneRect {
   const cols = Math.min(Math.max(p.colSpan, min.cols), profile.cols);
   const rows = Math.min(Math.max(p.rowSpan, min.rows), profile.rows);
   return {
@@ -317,7 +319,7 @@ function grownRect(profile: MonitorProfile, p: Placement, min: Size): ZoneRect {
 }
 
 /** Whether the zone can grow to at least `min` cells without covering another zone. */
-export function canGrowTo(profile: MonitorProfile, id: string, min: Size): boolean {
+export function canGrowTo(profile: ProfileView, id: string, min: Size): boolean {
   const p = profile.placements.find((x) => x.id === id);
   return (
     p !== undefined &&
@@ -329,7 +331,7 @@ export function canGrowTo(profile: MonitorProfile, id: string, min: Size): boole
  * Grow a zone to at least `min` cells, kept inside the grid. When the
  * grown box would cover another zone, the zone keeps its current box.
  */
-function growTo(profile: MonitorProfile, p: Placement, min: Size) {
+function growTo(profile: ProfileView, p: Placement, min: Size) {
   const grown = grownRect(profile, p, min);
   const r = zoneFits(grown, profile.placements, profile.cols, profile.rows, p.id)
     ? grown
@@ -339,11 +341,11 @@ function growTo(profile: MonitorProfile, p: Placement, min: Size) {
 
 /** Assign a module to a zone, growing it to the module's minimum size. */
 export function assignModule(
-  profile: MonitorProfile,
+  profile: ProfileView,
   id: string,
   module: string,
   minSize: Size
-): MonitorProfile {
+): ProfileView {
   return updatePlacement(profile, id, (p) => ({
     ...p,
     module,
@@ -355,10 +357,10 @@ export function assignModule(
 
 /** Assign a preset panel to a zone, growing it to the preset's size. */
 export function assignPreset(
-  profile: MonitorProfile,
+  profile: ProfileView,
   id: string,
   preset: PanelPreset
-): MonitorProfile {
+): ProfileView {
   return updatePlacement(profile, id, (p) =>
     withPreset({ ...p, ...growTo(profile, p, { cols: preset.colSpan, rows: preset.rowSpan }) }, preset)
   );
@@ -366,9 +368,9 @@ export function assignPreset(
 
 /** Change the column count (2–24), keeping every zone inside the grid. */
 export function changeCols(
-  profile: MonitorProfile,
+  profile: ProfileView,
   delta: number
-): MonitorProfile {
+): ProfileView {
   const cols = Math.max(2, Math.min(24, profile.cols + delta));
   return {
     ...profile,
@@ -383,9 +385,9 @@ export function changeCols(
 
 /** Change the row count (1–24), keeping every zone inside the grid. */
 export function changeRows(
-  profile: MonitorProfile,
+  profile: ProfileView,
   delta: number
-): MonitorProfile {
+): ProfileView {
   const rows = Math.max(1, Math.min(24, profile.rows + delta));
   return {
     ...profile,
@@ -399,10 +401,10 @@ export function changeRows(
 }
 
 /** Update the profile style; an empty style is stored as undefined. */
-export function setProfileStyle(
-  profile: MonitorProfile,
+export function setProfileStyle<P extends Pick<ProfileView, "style">>(
+  profile: P,
   fn: (style: ModuleSettings) => ModuleSettings
-): MonitorProfile {
+): P {
   const style = fn(profile.style ?? {});
   return { ...profile, style: Object.keys(style).length > 0 ? style : undefined };
 }
@@ -423,10 +425,10 @@ export function zoneStyleKeys(p: Placement): ReadonlySet<string> {
  * zones have no look and are skipped.
  */
 export function pasteStyleToZones(
-  profile: MonitorProfile,
+  profile: ProfileView,
   ids: readonly string[],
   style: ModuleSettings
-): MonitorProfile {
+): ProfileView {
   const set = new Set(ids);
   return {
     ...profile,
@@ -443,7 +445,7 @@ export function pasteStyleToZones(
 }
 
 /** The zones follow the global style, and their own look overrides are cleared. */
-export function followGlobalStyle(profile: MonitorProfile, ids: readonly string[]): MonitorProfile {
+export function followGlobalStyle(profile: ProfileView, ids: readonly string[]): ProfileView {
   const set = new Set(ids);
   return {
     ...profile,
@@ -457,11 +459,11 @@ export function followGlobalStyle(profile: MonitorProfile, ids: readonly string[
  * The profile with the sample layout's grid and fresh copies of its zones
  * (the empty-layout card's "Use sample layout").
  */
-export function withSampleZones(profile: MonitorProfile, sample: MonitorProfile): MonitorProfile {
+export function withSampleZones(profile: ProfileView, sample: MonitorProfile): ProfileView {
   return {
     ...profile,
     cols: sample.cols,
     rows: sample.rows,
-    placements: sample.placements.map(clonePlacement),
+    placements: pageOf(sample).placements.map(clonePlacement),
   };
 }

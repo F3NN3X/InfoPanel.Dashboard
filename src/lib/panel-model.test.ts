@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { PANEL_ID, arcv2Profile, mergeConfig, sampleProfile, type Placement } from "./layout";
+import { allPlacements } from "./pages";
 import {
   convertKind,
   duplicateWidget,
@@ -190,8 +191,8 @@ describe("shipped panels", () => {
   ])("%s: every panel loads normalized, its look a render-time layer", (_, make) => {
     const raw = make();
     const loaded = mergeConfig({ profiles: [raw] }).profiles.find((p) => p.id === raw.id)!;
-    const before = panels(raw.placements);
-    const after = panels(loaded.placements);
+    const before = panels(allPlacements(raw));
+    const after = panels(allPlacements(loaded));
     expect(after).toHaveLength(before.length);
     after.forEach((pl, i) => {
       const src = before[i].panel!;

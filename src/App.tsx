@@ -15,6 +15,7 @@ import { setApiBase } from "@/lib/data-api";
 import {
   CONFIG_EVENTS_URL,
   fetchConfig,
+  NewerConfigError,
   pushConfig,
 } from "@/lib/dashboard-server";
 import {
@@ -25,6 +26,7 @@ import {
   SCROLL_ROW_H,
   type DashboardConfig,
 } from "@/lib/layout";
+import { profileWithPage } from "@/lib/pages";
 import { cn } from "@/lib/utils";
 
 /** ?profile=<id> pins a profile (kiosk shortcuts, testing). */
@@ -34,6 +36,9 @@ function withPinnedProfile(config: DashboardConfig): DashboardConfig {
     ? { ...config, activeProfile: pinned }
     : config;
 }
+
+/** ?page=<id> pins a page of the shown profile (the first page without it). */
+const pagePin = new URLSearchParams(window.location.search).get("page") ?? undefined;
 
 // The studio is an editing tool; kiosk pages never download it.
 const StudioView = lazy(() =>
@@ -63,7 +68,8 @@ export default function App() {
     h: window.innerHeight,
   }));
 
-  const profile = resolveProfile(config, windowSize.w, windowSize.h);
+  const stored = resolveProfile(config, windowSize.w, windowSize.h);
+  const profile = useMemo(() => profileWithPage(stored, pagePin), [stored]);
   const fill = profile.fit === "fill";
   const background = resolveBackground(config, profile);
   const appearance = appearanceOf(config, profile);
@@ -104,6 +110,8 @@ export default function App() {
   // Save dot); a newer edit supersedes an older push still in flight.
   const [pushPending, setPushPending] = useState(false);
   // The newest config, to tell whether a finished push is still the latest state.
+  // A newer dashboard version saved the server copy: stop pushing until a reload.
+  const [refused, setRefused] = useState(false);
   const latestConfig = useRef(config);
   latestConfig.current = config;
   // Before the server copy is read nothing is pushed, but an edit is still unpushed.
@@ -112,21 +120,22 @@ export default function App() {
     if (!kiosk && !synced && config !== firstConfig.current) setPushPending(true);
   }, [config, kiosk, synced]);
   useEffect(() => {
-    if (kiosk || !synced) return; // kiosk pages only read; don't push from them
+    if (kiosk || !synced || refused) return; // kiosk pages only read; don't push from them
     let superseded = false;
     setPushPending(true);
     const t = window.setTimeout(() => {
       pushConfig(config)
         .then(() => !superseded && setPushPending(false))
-        .catch(() => {
-          // Server offline — kiosk pages keep their last copy.
+        .catch((err) => {
+          if (err instanceof NewerConfigError) setRefused(true);
+          // Otherwise the server is offline — kiosk pages keep their last copy.
         });
     }, 400);
     return () => {
       superseded = true;
       window.clearTimeout(t);
     };
-  }, [config, kiosk, synced]);
+  }, [config, kiosk, synced, refused]);
 
   // Kiosk: pull the shared config on load and again whenever the server
   // reports a newer version (a studio edit or Save), so the display updates
@@ -200,13 +209,31 @@ export default function App() {
         if (latestConfig.current === cfg) setPushPending(false);
         return true;
       })
-      .catch(() => false); // Server offline — kiosk pages keep their last copy; the dot stays.
+      .catch((err) => {
+        if (err instanceof NewerConfigError) setRefused(true);
+        return false;
+      }); // Server offline — kiosk pages keep their last copy; the dot stays.
   }, []);
 
   // The dedicated studio replaces the whole view.
   if (studio) {
     return (
       <GeneralProvider value={general}>
+        {refused && (
+          <div
+            role="alert"
+            className="fixed inset-x-0 top-0 z-50 flex items-center justify-center gap-3 border-b border-ui-menu bg-ui-raised px-4 py-2 font-ui text-[12px] text-ui-1"
+          >
+            A newer dashboard version saved this config. Reload to keep editing.
+            <button
+              type="button"
+              className="rounded-md border border-ui-default px-2 py-0.5 hover:bg-ui-hover"
+              onClick={() => window.location.reload()}
+            >
+              Reload
+            </button>
+          </div>
+        )}
         <Suspense fallback={null}>
           <StudioView
             config={config}

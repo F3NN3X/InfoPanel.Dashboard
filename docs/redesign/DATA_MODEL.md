@@ -8,10 +8,18 @@ This document comes from `design-overview.md`, which describes how the current a
 Dashboard config  → theme, global (dashboard) style, page background, fonts, presets
   └ Profile       → one per display size: size, grid cols × rows, Fill/Scroll, gap, padding,
                     own theme / style / background (each Inherit or Custom)
-      └ Zone      → a box on the grid (col, row, w, h in cells). Holds ONE of:
-          ├ Widget  (16 kinds, sensors claimed by key prefix)
-          ├ Panel   (Stack / Grid / Overlay of 10 panel-widget kinds)
-          └ Blank   (waits for "Pick a widget")
+      └ Page      → one canvas of zones on the profile's grid (at least one; a profile
+                    migrated from v2 has one page, "Main"). Optional auto-rotate.
+          └ Zone      → a box on the grid (col, row, w, h in cells). Holds ONE of:
+              ├ Widget  (16 kinds, sensors claimed by key prefix)
+              ├ Panel   (Stack / Grid / Overlay of 10 panel-widget kinds)
+              └ Blank   (waits for "Pick a widget")
+
+Config `version` 3 added the Page level: a profile's `placements` became `pages[].placements`.
+`mergeConfig` wraps a legacy profile's zones into one page (`id: "main"`). Until the page tabs
+ship, the studio and kiosk work on the current page (the first, or `?page=<id>`). The server
+refuses a save from a build older than the stored config (409), so an old build cannot overwrite
+pages it cannot read.
 ```
 
 **In the UI:**

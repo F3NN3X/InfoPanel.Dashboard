@@ -2,7 +2,7 @@ import { modules } from "@/modules";
 import { BLANK_MODULE } from "@/lib/layout";
 import { useToast } from "@/components/ui/toast";
 import { styleOf } from "@/modules/standard-settings";
-import type { DashboardConfig, MonitorProfile } from "@/lib/layout";
+import type { DashboardConfig, ProfileView } from "@/lib/layout";
 import type { HistorySetter } from "@/hooks/use-config-history";
 import type { Appearance } from "@/lib/style-resolve";
 import { followAll, toggleEnforce } from "./appearance-actions";
@@ -21,7 +21,7 @@ import type { StudioUi } from "./use-studio-ui";
 
 interface CommandDeps {
   config: DashboardConfig;
-  profile: MonitorProfile;
+  profile: ProfileView;
   setConfig: HistorySetter;
   history: { undo: () => void; redo: () => void; dragging: () => boolean; canUndo: boolean; canRedo: boolean };
   ui: StudioUi;
@@ -135,7 +135,7 @@ export function useStudioCommands({
       case "import":
         return ui.importRef.current?.click();
       case "copy-profile":
-        copyProfileJson(profile).catch(() => {});
+        copyProfileJson(config.profiles.find((p) => p.id === profile.id) ?? config.profiles[0]).catch(() => {});
         return;
       case "undo":
         return history.undo();

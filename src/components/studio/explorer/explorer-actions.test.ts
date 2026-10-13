@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { defaultConfig, PANEL_ID } from "@/lib/layout";
 import type { DataPoint } from "@/lib/data-points";
+import { pageOf } from "@/lib/pages";
 import { addStatZone } from "./explorer-actions";
 import { parseEndpoints, KNOWN_ENDPOINTS } from "./explorer-endpoints";
 
@@ -24,16 +25,16 @@ describe("addStatZone", () => {
     const config = defaultConfig();
     const profile = config.profiles[0];
     const next = addStatZone(config, profile.id, point, "z1");
-    const zone = next.profiles[0].placements.find((p) => p.id === "z1");
+    const zone = pageOf(next.profiles[0]).placements.find((p) => p.id === "z1");
     expect(zone?.module).toBe(PANEL_ID);
     expect(zone?.panel?.widgets).toHaveLength(1);
     expect(zone?.panel?.widgets[0]).toMatchObject({ kind: "stat", sensor: "system.cpu.load", label: "CPU Load" });
-    expect(next.profiles[0].placements).toHaveLength(profile.placements.length + 1);
+    expect(pageOf(next.profiles[0]).placements).toHaveLength(pageOf(profile).placements.length + 1);
   });
 
   it("makes the zone two rows tall for a number and one for anything else", () => {
     const zoneOf = (p: DataPoint) =>
-      addStatZone(defaultConfig(), defaultConfig().profiles[0].id, p, "z1").profiles[0].placements.find((pl) => pl.id === "z1");
+      addStatZone(defaultConfig(), defaultConfig().profiles[0].id, p, "z1").profiles[0].pages[0].placements.find((pl) => pl.id === "z1");
     expect(zoneOf(point)?.rowSpan).toBe(2);
     expect(zoneOf({ ...point, type: "text", num: null, unit: "" })?.rowSpan).toBe(1);
   });

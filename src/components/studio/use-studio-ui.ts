@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { DashboardConfig, MonitorProfile, Widget } from "@/lib/layout";
+import type { DashboardConfig, ProfileView, Widget } from "@/lib/layout";
 import type { InspectorTab, ModuleSettings } from "@/modules/types";
 import { useToast } from "@/components/ui/toast";
 import { useStoredDrawer, type Drawer, type RailItem } from "./left-rail";
@@ -15,7 +15,7 @@ import { DRAWER_WIDTH, RAIL_WIDTH, pageSize, useStudioLayout } from "./use-studi
  * remembered), open dialogs, the
  * inspector's search and jump target, and the session clipboards.
  */
-export function useStudioUi(config: DashboardConfig, profile: MonitorProfile, onSave: (config: DashboardConfig) => Promise<boolean>) {
+export function useStudioUi(config: DashboardConfig, profile: ProfileView, onSave: (config: DashboardConfig) => Promise<boolean>) {
   const toast = useToast();
   const [mode, setMode] = useState<StudioMode>("design");
   const showSources = mode === "sources";

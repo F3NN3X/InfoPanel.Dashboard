@@ -1,4 +1,4 @@
-import type { MonitorProfile } from "@/lib/layout";
+import type { ProfileView } from "@/lib/layout";
 import { changeCols, changeRows } from "../studio-actions";
 
 /** The toast when a smaller grid would cut a zone off. */
@@ -10,7 +10,7 @@ export const GRID_REFUSED = "Some zones would fall outside the grid — move or 
  * instead of squeezing the zone; the same profile comes back when the
  * limit leaves nothing to change.
  */
-export function stepGrid(profile: MonitorProfile, axis: "cols" | "rows", delta: number): MonitorProfile | null {
+export function stepGrid(profile: ProfileView, axis: "cols" | "rows", delta: number): ProfileView | null {
   const next = axis === "cols" ? changeCols(profile, delta) : changeRows(profile, delta);
   if (next[axis] === profile[axis]) return profile;
   if (next[axis] > profile[axis]) return next;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { MonitorProfile, Placement } from "@/lib/layout";
+import type { ProfileView, Placement } from "@/lib/layout";
 import { parseSize, sizeChoice, sizeOfChoice, stepGrid } from "./profile-grid";
 
 const zone = (id: string, extra: Partial<Placement>): Placement => ({
@@ -13,7 +13,7 @@ const zone = (id: string, extra: Partial<Placement>): Placement => ({
   ...extra,
 });
 
-const profile = (placements: Placement[], extra: Partial<MonitorProfile> = {}): MonitorProfile => ({
+const profile = (placements: Placement[], extra: Partial<ProfileView> = {}): ProfileView => ({
   id: "p",
   name: "p",
   width: 1920,

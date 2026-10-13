@@ -7,7 +7,7 @@ import {
   defaultConfig,
   resolveProfile,
   type DashboardConfig,
-  type MonitorProfile,
+  type ProfileView,
 } from "@/lib/layout";
 import { resolveBackground } from "@/lib/appearance";
 import { useSensorCatalog } from "@/lib/catalog";
@@ -37,7 +37,7 @@ import { ZoomToolbar } from "./zoom-toolbar";
 interface StudioViewProps {
   config: DashboardConfig;
   /** The resolved (active) grid profile being edited. */
-  profile: MonitorProfile;
+  profile: ProfileView;
   setConfig: Dispatch<SetStateAction<DashboardConfig>>;
   windowWidth: number;
   windowHeight: number;
@@ -80,6 +80,8 @@ function StudioViewBody({
 }: StudioViewProps) {
   const history = useConfigHistory(config, setConfigState);
   const setConfig = history.set;
+  // The stored profile behind the page on the canvas (profile list, summary, JSON copy).
+  const storedProfile = config.profiles.find((p) => p.id === profile.id) ?? config.profiles[0];
   const ui = useStudioUi(config, profile, onSave);
   const sel = useStudioSelection(profile);
   const { selected, selectedWidget, selectedWidgetId } = sel;
@@ -183,7 +185,7 @@ function StudioViewBody({
       profiles={{
         profiles: config.profiles,
         activeProfile: config.activeProfile,
-        profile,
+        profile: storedProfile,
         autoProfileId: resolveProfile({ ...config, activeProfile: "auto" }, windowWidth, windowHeight).id,
         onActivate: activateProfile,
         onAddProfile: edit.addProfile,
@@ -283,7 +285,7 @@ function StudioViewBody({
       <StudioTopBar
         profiles={config.profiles}
         activeProfile={config.activeProfile}
-        profile={profile}
+        profile={storedProfile}
         onActivate={activateProfile}
         onOpenProfiles={() => {
           ui.setMode("design");

@@ -1,6 +1,6 @@
 import { Grid3x3, Minus, PanelBottom, PanelLeftClose, PanelRight, Plus, RulerDimensionLine } from "lucide-react";
 import { IconButton } from "@/components/ui/icon-button";
-import type { MonitorProfile } from "@/lib/layout";
+import type { ProfileView } from "@/lib/layout";
 import { cn } from "@/lib/utils";
 import type { LayoutMode, Placement } from "./studio-layout";
 import { KEYS } from "./use-studio-shortcuts";
@@ -17,7 +17,7 @@ interface ZoomToolbarProps {
   onZoomStep: (dir: 1 | -1) => void;
   onFit: () => void;
   /** The profile shown on the canvas (resolution button). */
-  profile: MonitorProfile;
+  profile: ProfileView;
   /** Open Dashboard › Profile. */
   onOpenProfile: () => void;
   /** The inspector position setting; the button cycles it. */

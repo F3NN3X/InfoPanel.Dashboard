@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { MonitorProfile, Placement } from "@/lib/layout";
+import type { ProfileView, Placement } from "@/lib/layout";
 import { nextSelection, type SelectMode } from "./selection";
 
 /**
@@ -9,7 +9,7 @@ import { nextSelection, type SelectMode } from "./selection";
  * zone and still holds it: changing the zone selection, an undo or a
  * delete drops it.
  */
-export function useStudioSelection(profile: MonitorProfile) {
+export function useStudioSelection(profile: ProfileView) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [widgetSel, setWidgetSel] = useState<{ zoneId: string; widgetId: string } | null>(null);
 

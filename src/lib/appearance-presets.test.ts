@@ -20,6 +20,7 @@ import {
 } from "./appearance-presets";
 import { normalizeBackground } from "./appearance";
 import type { DashboardConfig, MonitorProfile, Placement } from "./layout";
+import { allPlacements, mainPage } from "./pages";
 import { DEFAULT_THEME, THEME_PRESETS } from "./theme";
 
 const zone = (id: string, extra: Partial<Placement> = {}): Placement => ({
@@ -41,17 +42,17 @@ const profile = (id: string, extra: Partial<MonitorProfile> = {}): MonitorProfil
   cols: 12,
   rows: 6,
   fit: "scroll",
-  placements: [
+  pages: [mainPage([
     zone("plain"),
     zone("content-only", { settings: { label: "CPU", sensor: "x" } }),
     zone("own-look", { settings: { accent: "#ff0000", label: "Net" } }),
     zone("follows", { styleMode: "follow", settings: { accent: "#ff0000" } }),
-  ],
+  ])],
   ...extra,
 });
 
 const config = (extra: Partial<DashboardConfig> = {}): DashboardConfig => ({
-  version: 2,
+  version: 3,
   activeProfile: "auto",
   profiles: [profile("p1"), profile("p2")],
   theme: DEFAULT_THEME,
@@ -154,7 +155,7 @@ describe("applyAppearancePreset — This profile", () => {
     expect(next.profiles[0].radius).toBe(glass.radius);
     expect(next.profiles[0].style).toEqual(glass.style);
     expect(next.profiles[0].background).toEqual(glass.background);
-    expect(next.profiles[0].placements).toBe(before.profiles[0].placements);
+    expect(next.profiles[0].pages).toBe(before.profiles[0].pages);
     expect(next.profiles[1]).toBe(before.profiles[1]);
   });
 
@@ -213,10 +214,10 @@ describe("overrides", () => {
     expect(countOverrides(one, P1)).toBe(0);
     expect(one.profiles[0].style).toEqual({ font: "mono" });
     expect(one.profiles[1]).toBe(c.profiles[1]);
-    const own = one.profiles[0].placements.find((p) => p.id === "own-look")!;
+    const own = allPlacements(one.profiles[0]).find((p) => p.id === "own-look")!;
     expect(own.styleMode).toBe("follow");
     expect(own.settings).toEqual({ accent: "#ff0000", label: "Net" });
-    expect(one.profiles[0].placements.find((p) => p.id === "content-only")?.styleMode).toBeUndefined();
+    expect(allPlacements(one.profiles[0]).find((p) => p.id === "content-only")?.styleMode).toBeUndefined();
 
     const all = clearOverrides(c, ALL);
     expect(countOverrides(all, ALL)).toBe(0);

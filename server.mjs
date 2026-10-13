@@ -23,6 +23,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import os from "node:os";
 import { createAssets } from "./server/assets.mjs";
+import { versionRefusal } from "./server/config-guard.mjs";
 import { configWriteRefusal, createRequestGuard, parseAllowedHosts } from "./server/request-guard.mjs";
 
 const PORT = Number(process.env.PORT) || 3922;
@@ -121,12 +122,18 @@ async function handleConfig(req, res) {
   } catch {
     return send(res, 413);
   }
+  let parsed;
   try {
     // Must be the config object itself, so a stray client can't clobber it.
-    const parsed = JSON.parse(body);
+    parsed = JSON.parse(body);
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error();
   } catch {
     return send(res, 400, "expected a config object");
+  }
+  // An older build must not overwrite a config a newer one saved.
+  if (fs.existsSync(CONFIG_FILE)) {
+    const stale = versionRefusal(fs.readFileSync(CONFIG_FILE, "utf8"), parsed);
+    if (stale) return send(res, stale.status, stale.message);
   }
   saveConfig(body);
   send(res, 200, JSON.stringify({ ok: true, version: configVersion }), TYPES[".json"]);

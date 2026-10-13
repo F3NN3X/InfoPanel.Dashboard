@@ -3,6 +3,7 @@ import { settingKeys, type ModuleSettings } from "@/modules/types";
 import type { BackgroundScope, PageBackground } from "./appearance";
 import { presetTokens, type AppearancePreset } from "./appearance-presets";
 import type { DashboardConfig, MonitorProfile, Placement } from "./layout";
+import { allPlacements, mapPlacements } from "./pages";
 import { followsGlobal, isEnforced } from "./style-resolve";
 import { resolveTheme } from "./theme";
 
@@ -111,7 +112,7 @@ function hidesGlobal(p: Placement, enforced: boolean): boolean {
 export function countOverrides(config: DashboardConfig, scope: PresetScope): number {
   return inScope(config, scope).reduce((n, profile) => {
     const enforced = isEnforced(config, profile);
-    return n + profile.placements.filter((p) => hidesGlobal(p, enforced)).length;
+    return n + allPlacements(profile).filter((p) => hidesGlobal(p, enforced)).length;
   }, 0);
 }
 
@@ -137,12 +138,12 @@ export function clearOverrides(config: DashboardConfig, scope: PresetScope): Das
     profiles: config.profiles.map((profile) => {
       if (!ids.has(profile.id)) return profile;
       const enforced = isEnforced(config, profile);
-      const placements = profile.placements.map((p) =>
+      const followed = mapPlacements(profile, (p) =>
         hidesGlobal(p, enforced) ? { ...p, styleMode: "follow" as const } : p
       );
       return scope.kind === "all"
-        ? { ...profile, placements, style: undefined, theme: undefined, radius: undefined }
-        : { ...profile, placements };
+        ? { ...followed, style: undefined, theme: undefined, radius: undefined }
+        : followed;
     }),
   };
 }

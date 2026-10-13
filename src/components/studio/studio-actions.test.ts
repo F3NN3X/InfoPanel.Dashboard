@@ -2,10 +2,11 @@ import { describe, expect, it } from "vitest";
 import {
   BLANK_MODULE,
   PANEL_ID,
-  type MonitorProfile,
+  type ProfileView,
   type PanelDef,
   type Placement,
 } from "@/lib/layout";
+import { mainPage } from "@/lib/pages";
 import { userPanelPreset, type PanelPreset } from "@/lib/panelPresets";
 import {
   addBlankZone,
@@ -57,7 +58,7 @@ const zone = (
   ...extra,
 });
 
-const profile = (placements: Placement[], cols = 12, rows = 6): MonitorProfile => ({
+const profile = (placements: Placement[], cols = 12, rows = 6): ProfileView => ({
   id: "prof",
   name: "Test",
   width: 1920,
@@ -478,7 +479,8 @@ describe("followGlobalStyle", () => {
 describe("withSampleZones", () => {
   it("takes the sample's grid and fresh copies of its zones", () => {
     const sample = profile([zone("s1", 1, 1, 2, 1), zone("s2", 3, 1, 2, 1)], 8, 3);
-    const out = withSampleZones(profile([]), sample);
+    const { placements, ...rest } = sample;
+    const out = withSampleZones(profile([]), { ...rest, pages: [mainPage(placements)] });
     expect(out).toMatchObject({ id: "prof", cols: 8, rows: 3 });
     expect(out.placements).toHaveLength(2);
     expect(out.placements.map((p) => p.id)).not.toContain("s1");

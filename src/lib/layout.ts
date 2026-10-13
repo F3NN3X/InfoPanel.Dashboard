@@ -7,6 +7,7 @@ import { normalizeApiBase } from "./data-api";
 import { normalizeGeneral, type GeneralSettings } from "./general";
 import { normalizeSpacing } from "./profile-grid";
 import { YR_FORECAST_KEY } from "./sensors";
+import { mainPage, normalizeRotate } from "./pages";
 import {
   normalizePanelPlacement,
   normalizePanelPresets,
@@ -89,6 +90,22 @@ export interface Placement {
   styleMode?: StyleMode;
 }
 
+export interface ProfilePage {
+  id: string;
+  name: string;
+  /** lucide icon name (page switcher, Stream Deck keys); unset = none. */
+  icon?: string;
+  placements: Placement[];
+}
+
+/** Auto-rotate through pages; `enabled: false` keeps the interval and list stored. */
+export interface PageRotate {
+  enabled: boolean;
+  seconds: number;
+  /** Page ids to rotate through; unset/empty = every page. */
+  pages?: string[];
+}
+
 export interface MonitorProfile {
   id: string;
   name: string;
@@ -109,7 +126,10 @@ export interface MonitorProfile {
    * (kiosk strips).
    */
   fit: "scroll" | "fill";
-  placements: Placement[];
+  /** The profile's pages (at least one); each has its own zones. */
+  pages: ProfilePage[];
+  /** Auto-rotate through the pages; unset = off. */
+  rotate?: PageRotate;
   /**
    * Style defaults for every widget in the profile (the look-only keys of
    * the standard settings, see `PROFILE_STYLE_KEYS`). A widget's own
@@ -144,8 +164,17 @@ export interface MonitorProfile {
   sampleVersion?: number;
 }
 
+/**
+ * One page of a profile as the studio and kiosk edit and draw it: the
+ * profile's fields plus that page's zones.
+ */
+export type ProfileView = Omit<MonitorProfile, "pages"> & {
+  placements: Placement[];
+  pageId?: string;
+};
+
 export interface DashboardConfig {
-  version: 2;
+  version: 3;
   /** Profile id to show, or "auto" to match the window size. */
   activeProfile: string;
   /**
@@ -238,7 +267,7 @@ function defaultProfiles(): MonitorProfile[] {
       cols: 12,
       rows: 10,
       fit: "scroll",
-      placements: [
+      pages: [mainPage([
         placement("systemmodern", 1, 1, 12),
         placement("spotifymodern", 1, 2, 6),
         placement("mediamodern", 7, 2, 6),
@@ -252,7 +281,7 @@ function defaultProfiles(): MonitorProfile[] {
         placement("textfile", 1, 8, 6),
         placement("streamdeck", 1, 9, 12),
         placement(CARDS_ID, 1, 10, 12),
-      ],
+      ])],
     },
     {
       id: "strip-1920x550",
@@ -262,14 +291,14 @@ function defaultProfiles(): MonitorProfile[] {
       cols: 12,
       rows: 2,
       fit: "fill",
-      placements: [
+      pages: [mainPage([
         placement("systemmodern", 1, 1, 2, 2),
         placement("spotifymodern", 3, 1, 2, 2),
         placement("mediamodern", 5, 1, 2, 2),
         placement("steammodern", 7, 1, 2, 2),
         placement("weathermodern", 9, 1, 2, 2),
         placement("fpsmodern", 11, 1, 2, 2),
-      ],
+      ])],
     },
     {
       id: "small-1024x600",
@@ -279,7 +308,7 @@ function defaultProfiles(): MonitorProfile[] {
       cols: 6,
       rows: 4,
       fit: "scroll",
-      placements: [
+      pages: [mainPage([
         placement("systemmodern", 1, 1, 2),
         placement("spotifymodern", 3, 1, 2),
         placement("weathermodern", 5, 1, 2),
@@ -288,20 +317,24 @@ function defaultProfiles(): MonitorProfile[] {
         placement("fpsmodern", 1, 3, 3),
         placement("audiomodern", 4, 3, 3),
         placement(CARDS_ID, 1, 4, 6),
-      ],
+      ])],
     },
   ];
 }
 
 export function defaultConfig(): DashboardConfig {
   return {
-    version: 2,
+    version: 3,
     activeProfile: "auto",
     profiles: defaultProfiles(),
     theme: { ...DEFAULT_THEME },
     radius: 0.5,
   };
 }
+
+/** A profile as stored: v3 (`pages`) or legacy (`placements`). */
+export type StoredProfile = Partial<Pick<MonitorProfile, "pages">> &
+  Omit<MonitorProfile, "pages"> & { placements?: Placement[] };
 
 /**
  * v1→v2 profile normalization: legacy profiles auto-flowed their
@@ -310,10 +343,12 @@ export function defaultConfig(): DashboardConfig {
  * count, and clamp everything into the grid. Shipped profiles (already
  * explicit) pass through untouched.
  */
-function normalizeProfile(p: MonitorProfile): MonitorProfile {
-  const cols = Math.max(2, p.cols ?? 12);
-  const rows = Math.max(1, p.rows ?? (p.height <= 700 ? 4 : 6));
-  const placements = p.placements.map((pl) => ({
+function normalizePlacements(
+  list: Placement[],
+  cols: number,
+  rows: number
+): Placement[] {
+  const placements = list.map((pl) => ({
     ...normalizePanelPlacement(pl),
     colSpan: Math.max(1, Math.min(cols, pl.colSpan ?? 1)),
   }));
@@ -326,7 +361,7 @@ function normalizeProfile(p: MonitorProfile): MonitorProfile {
       pl.rowSpan = Math.min(pl.rowSpan, rows - pl.rowStart + 1);
       pl.colSpan = Math.min(pl.colSpan, cols - pl.colStart + 1);
     }
-    return { ...p, cols, rows, placements, ...profileExtras(p) };
+    return placements;
   }
   // Auto-flow: explicit rowStarts pin their row; auto items advance a
   // left-to-right flow pointer that wraps at the grid edge.
@@ -354,11 +389,47 @@ function normalizeProfile(p: MonitorProfile): MonitorProfile {
     pl.rowSpan = Math.min(pl.rowSpan, rows - pl.rowStart + 1);
     pl.colSpan = Math.min(pl.colSpan, cols - pl.colStart + 1);
   }
-  return { ...p, cols, rows, placements, ...profileExtras(p) };
+  return placements;
+}
+
+/**
+ * v2→v3: a profile's `placements` become its first page; stored pages get
+ * unique ids and names. The output never carries a `placements` key.
+ */
+function normalizePages(p: StoredProfile, cols: number, rows: number): ProfilePage[] {
+  if (!Array.isArray(p.pages) || p.pages.length === 0)
+    return [mainPage(normalizePlacements(p.placements ?? [], cols, rows))];
+  const seen = new Set<string>();
+  return p.pages.map((page, i) => {
+    const id =
+      typeof page.id === "string" && page.id && !seen.has(page.id) ? page.id : uid("page");
+    seen.add(id);
+    return {
+      ...page,
+      id,
+      name: typeof page.name === "string" && page.name ? page.name : `Page ${i + 1}`,
+      placements: normalizePlacements(page.placements ?? [], cols, rows),
+    };
+  });
+}
+
+function normalizeProfile(input: StoredProfile): MonitorProfile {
+  const { placements: _legacy, ...p } = input;
+  const cols = Math.max(2, p.cols ?? 12);
+  const rows = Math.max(1, p.rows ?? (p.height <= 700 ? 4 : 6));
+  const pages = normalizePages(input, cols, rows);
+  return {
+    ...p,
+    cols,
+    rows,
+    pages,
+    rotate: normalizeRotate(p.rotate, pages.map((pg) => pg.id)),
+    ...profileExtras(p),
+  };
 }
 
 /** A profile's appearance fields, guarded (bad values dropped). */
-function profileExtras(p: MonitorProfile): Partial<MonitorProfile> {
+function profileExtras(p: StoredProfile): Partial<MonitorProfile> {
   return {
     background: normalizeBackground(p.background),
     theme: normalizeThemePatch(p.theme),
@@ -393,9 +464,13 @@ const LEGACY_FORECAST_KEYS = [
   "plugins.data-bridge.weather.forecast",
 ];
 
-function migrateAssetUrls(
-  config: Partial<DashboardConfig>
-): Partial<DashboardConfig> {
+/** A config as stored: any version, its profiles v3 or legacy. */
+export type StoredConfig = Omit<Partial<DashboardConfig>, "version" | "profiles"> & {
+  version?: number;
+  profiles?: StoredProfile[];
+};
+
+function migrateAssetUrls(config: StoredConfig): StoredConfig {
   const json = JSON.stringify(config);
   const needsFix =
     json.includes(LEGACY_ASSET_PREFIX) ||
@@ -410,7 +485,7 @@ function migrateAssetUrls(
 const isSettings = (v: unknown): v is ModuleSettings =>
   typeof v === "object" && v !== null && !Array.isArray(v);
 
-export function mergeConfig(input: Partial<DashboardConfig>): DashboardConfig {
+export function mergeConfig(input: StoredConfig): DashboardConfig {
   const parsed = migrateAssetUrls(input);
   const defaults = defaultConfig();
   const profiles = (
@@ -442,7 +517,7 @@ export function mergeConfig(input: Partial<DashboardConfig>): DashboardConfig {
   if (activeProfile !== "auto" && !byId.has(activeProfile))
     activeProfile = "auto";
   return {
-    version: 2,
+    version: 3,
     activeProfile,
     sourcePrefs: parsed.sourcePrefs,
     profiles,
@@ -464,7 +539,7 @@ export function loadConfig(): DashboardConfig {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return defaultConfig();
-    return mergeConfig(JSON.parse(raw) as Partial<DashboardConfig>);
+    return mergeConfig(JSON.parse(raw) as StoredConfig);
   } catch {
     return defaultConfig();
   }
@@ -520,7 +595,7 @@ export function newProfile(
     rows: height <= 700 ? 4 : 6,
     fit: height <= 700 && width >= 1600 ? "fill" : "scroll",
     // A blank canvas — the user draws zones, then fills them with widgets.
-    placements: [],
+    pages: [mainPage()],
   };
 }
 
@@ -801,7 +876,7 @@ export function sampleProfile(): MonitorProfile {
     cols: 12,
     rows: 6,
     fit: "fill",
-    placements: [
+    pages: [mainPage([
       sampleModulePlacement("spotifymodern", 3, {
         colStart: 1,
         rowStart: 1,
@@ -835,7 +910,7 @@ export function sampleProfile(): MonitorProfile {
         rowStart: 4,
         rowSpan: 3,
       }),
-    ],
+    ])],
   };
 }
 
@@ -1103,7 +1178,7 @@ export function arcv2Profile(): MonitorProfile {
     cols: 12,
     rows: 6,
     fit: "fill",
-    placements: [
+    pages: [mainPage([
       // Left column (C1–4): spotify, fps rings, network, weather.
       apPlacement(spotify, 4, { colStart: 1, rowStart: 1, rowSpan: 2 }),
       apPlacement(fpsRings, 4, { colStart: 1, rowStart: 3, rowSpan: 1 }),
@@ -1117,7 +1192,7 @@ export function arcv2Profile(): MonitorProfile {
       apPlacement(steamTop, 4, { colStart: 9, rowStart: 1, rowSpan: 2 }),
       apPlacement(friends, 4, { colStart: 9, rowStart: 3, rowSpan: 2 }),
       apPlacement(news, 4, { colStart: 9, rowStart: 5, rowSpan: 2 }),
-    ],
+    ])],
   };
 }
 

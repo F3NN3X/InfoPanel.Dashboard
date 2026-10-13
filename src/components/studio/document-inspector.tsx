@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { PageBackground } from "@/lib/appearance";
 import type { GeneralSettings } from "@/lib/general";
-import type { MonitorProfile } from "@/lib/layout";
+import type { ProfileView } from "@/lib/layout";
 import { THEME_PRESETS, resolveTheme, type ThemeTokens } from "@/lib/theme";
 import type { ModuleSettings } from "@/modules/types";
 import { AppearanceGallery, type CurrentLook } from "./appearance-gallery";
@@ -84,8 +84,8 @@ export interface DocumentInspectorProps {
 /** What the Profile and General tabs edit besides the document props. */
 export interface DashboardStudioProps {
   /** The active profile, whole (Profile tab). */
-  activeProfile: MonitorProfile;
-  updateProfile: (fn: (p: MonitorProfile) => MonitorProfile, key?: string) => void;
+  activeProfile: ProfileView;
+  updateProfile: (fn: (p: ProfileView) => ProfileView, key?: string) => void;
   canRemoveProfile: boolean;
   onRemoveProfile: () => void;
   /** The config picks the profile by window size ("auto"). */

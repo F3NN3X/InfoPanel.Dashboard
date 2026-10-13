@@ -36,7 +36,7 @@ kioskPageNav?: boolean;  // page dots + swipe in the kiosk; default false
 - `DashboardConfig.version` 2 → 3. `mergeConfig` wraps `placements` into `pages: [{ id: "main",
   name: "Main", placements }]`; a profile with neither gets one empty Main page. The same path covers
   local storage, the server copy, file import (`config-file.ts`) and the shipped samples, whose builders
-  emit pages (their `sampleVersion` bumps).
+  emit pages (their `sampleVersion` stays, so saved copies are migrated, not replaced).
 - **Downgrade guard:** an older build that loads a v3 config sees no `placements` and could push back a
   page-less copy. `server.mjs` refuses a `POST /api/config` whose `version` is below the stored one (409),
   and the studio says "a newer dashboard version saved this config; reload" and stops auto-pushing.

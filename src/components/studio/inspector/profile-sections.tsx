@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Trash2 } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { BACKGROUND_DEFAULTS, type PageBackground } from "@/lib/appearance";
-import type { MonitorProfile } from "@/lib/layout";
+import type { ProfileView } from "@/lib/layout";
 import { MAX_SPACING, normalizeSpacing, profileGap, profilePadding } from "@/lib/profile-grid";
 import type { ThemeTokens } from "@/lib/theme";
 import { cn } from "@/lib/utils";
@@ -17,7 +17,7 @@ import { GRID_REFUSED, SIZE_OPTIONS, parseSize, sizeChoice, sizeOfChoice, stepGr
  * style and background; and Auto-pick by window size.
  */
 
-type UpdateProfile = (fn: (p: MonitorProfile) => MonitorProfile, key?: string) => void;
+type UpdateProfile = (fn: (p: ProfileView) => ProfileView, key?: string) => void;
 
 const INPUT = cn(FIELD, "h-[30px] w-full");
 
@@ -83,13 +83,13 @@ export function ProfileFields({
   canRemove,
   onRemove,
 }: {
-  profile: MonitorProfile;
+  profile: ProfileView;
   updateProfile: UpdateProfile;
   canRemove: boolean;
   onRemove: () => void;
 }) {
   const toast = useToast();
-  const patch = (p: Partial<MonitorProfile>) =>
+  const patch = (p: Partial<ProfileView>) =>
     updateProfile((cur) => ({ ...cur, ...p }), `profile:${Object.keys(p).join()}`);
   // The refusal is decided on the profile as rendered; the update then applies the same step.
   const setGrid = (axis: "cols" | "rows", value: number) => {
@@ -126,7 +126,7 @@ export function ProfileFields({
           { value: "scroll", label: "Scroll" },
         ]}
         value={profile.fit}
-        onChange={(fit) => patch({ fit: fit as MonitorProfile["fit"] })}
+        onChange={(fit) => patch({ fit: fit as ProfileView["fit"] })}
       />
       <SpacingField
         label="Gap"
@@ -175,7 +175,7 @@ export function ProfileInherit({
   onBackground,
   updateProfile,
 }: {
-  profile: MonitorProfile;
+  profile: ProfileView;
   dashboardTheme: { theme: ThemeTokens; radius: number };
   dashboardBackground: PageBackground | undefined;
   onProfileTheme: (next: ProfileTheme) => void;

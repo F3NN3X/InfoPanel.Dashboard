@@ -351,7 +351,7 @@ least one widget is visible.
 
 ### Types (`src/lib/layout.ts`)
 
-- `DashboardConfig` - `version: 2`, `activeProfile` (a profile id or `"auto"`),
+- `DashboardConfig` - `version: 3`, `activeProfile` (a profile id or `"auto"`),
   `profiles`, `theme`, `radius`, `dataApiUrl?`, `stylePresets?`,
   `panelPresets?`, `sourcePrefs?`, `background?` (the page background),
   `style?` (the dashboard style, every profile), `styleEnforce?`
@@ -359,12 +359,18 @@ least one widget is visible.
   user's saved appearance presets) and `general?` (see below).
 - `MonitorProfile` - `id`, `name`, design `width`/`height`, `cols`, `rows`,
   `fit` (`"scroll"` with fixed `SCROLL_ROW_H` = 120 px rows, or `"fill"` to
-  fill the viewport), `placements`, optional `style` (profile style, over
+  fill the viewport), `pages` (at least one `ProfilePage`: `id`, `name`,
+  `icon?`, `placements`), `rotate?` (`PageRotate`, auto-rotate), optional `style` (profile style, over
   the dashboard's), `styleEnforce` (overrides the dashboard's when set),
   `background` (replaces the dashboard's; `{ type: "none" }` turns it off
   for the profile), `theme` (a partial `ThemeTokens` over the dashboard's
   theme) and `radius` (rem), `gap` and `padding` (px, see `profile-grid.ts`)
   and `sampleVersion`.
+- `ProfileView` - one page of a profile as the studio and kiosk edit and draw it:
+  the profile minus `pages`, plus that page's `placements` and `pageId`.
+  `src/lib/pages.ts` converts (`profileWithPage`, `applyView`, `onPage`) and
+  holds the whole-profile walkers (`allPlacements`, `mapPlacements`) and the
+  page operations.
 - `Placement` - `module` (a registry id, `cards`, `blank` or `panel`), the zone
   box (`colStart`, `rowStart`, `colSpan`, `rowSpan`), `visible`, `settings`,
   `design`, `panel`, `styleMode?` (`"follow"` / `"custom"`, see [Style
@@ -447,6 +453,10 @@ for both the local copy and the server copy:
 - re-adds the shipped profiles `sample-1920x1080` and `arcv2` when missing,
   and replaces a saved copy whose `sampleVersion` differs from the shipped
   `SAMPLE_PROFILE_VERSION` / `ARCV2_PROFILE_VERSION`;
+- v2 to v3: a profile with `placements` and no `pages` gets
+  `pages: [{ id: "main", name: "Main", placements }]` (none of either: one
+  empty Main page); stored pages get unique ids and names, and `rotate` is
+  clamped (`normalizeRotate`). The output has no `placements` key;
 - falls back to `activeProfile: "auto"` when the pinned id no longer exists;
 - merges `theme` over the default theme, and keeps `dataApiUrl` only when it
   is a valid http(s) URL;
@@ -594,6 +604,11 @@ history, counts as unused.
   subscribers of `GET /events/config` (server-sent events). A new subscriber
   gets the current version straight away; a 15 s keep-alive comment keeps the
   stream open.
+- **Downgrade guard.** `POST /api/config` is refused with 409
+  (`versionRefusal`, `server/config-guard.mjs`) when the stored config's
+  `version` is above the posted one, so an older build cannot overwrite a
+  config with pages it cannot read. The studio then stops auto-pushing and
+  shows a banner asking for a reload.
 - **Pull.** A kiosk page opens `/events/config`; every message, including
   the first, makes it fetch `/api/config`, run `mergeConfig`, store the result
   in its own `localStorage` (the offline fallback) and re-render. If the server

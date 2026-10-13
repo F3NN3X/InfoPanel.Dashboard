@@ -1,6 +1,6 @@
 import type { BackgroundScope } from "@/lib/appearance";
 import { presetTokens, type AppearancePreset } from "@/lib/appearance-presets";
-import type { DashboardConfig, MonitorProfile, Placement } from "@/lib/layout";
+import type { DashboardConfig, MonitorProfile, ProfileView, Placement } from "@/lib/layout";
 import type { StyleMode } from "@/lib/style-resolve";
 import type { ThemeTokens } from "@/lib/theme";
 import type { ModuleSettings } from "@/modules/types";
@@ -71,7 +71,7 @@ export function withStyleEnforce(
 export const withStyleMode = (p: Placement, mode: StyleMode): Placement => ({ ...p, styleMode: mode });
 
 /** Every widget of a profile follows the global style (their own looks stay stored). */
-export function followAll(profile: MonitorProfile): MonitorProfile {
+export function followAll(profile: ProfileView): ProfileView {
   if (profile.placements.every((p) => p.styleMode === "follow")) return profile;
   return { ...profile, placements: profile.placements.map((p) => withStyleMode(p, "follow")) };
 }
@@ -80,7 +80,7 @@ export function followAll(profile: MonitorProfile): MonitorProfile {
  * The palette's force toggle: the profile's switch when it has its own,
  * else the dashboard's.
  */
-export function toggleEnforce(config: DashboardConfig, profile: MonitorProfile): DashboardConfig {
+export function toggleEnforce(config: DashboardConfig, profile: Pick<ProfileView, "id" | "styleEnforce">): DashboardConfig {
   if (profile.styleEnforce !== undefined)
     return withStyleEnforce(config, { kind: "profile", profileId: profile.id }, !profile.styleEnforce);
   return withStyleEnforce(config, { kind: "all" }, !config.styleEnforce);

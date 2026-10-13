@@ -1,7 +1,8 @@
 import type { SensorValue } from "@/hooks/useSensors";
 import { formatReading, searchPoints, type DataModel, type DataPoint } from "@/lib/data-points";
 import type { UsageIndex } from "@/lib/data-usage";
-import type { DashboardConfig, MonitorProfile, Placement } from "@/lib/layout";
+import type { DashboardConfig, MonitorProfile, ProfileView, Placement } from "@/lib/layout";
+import { MAIN_PAGE_ID, profileWithPage } from "@/lib/pages";
 
 /**
  * The Data tab's "Bound data" block and its picker (README §4.9), as data:
@@ -80,6 +81,12 @@ export const resultsLabel = (shown: number): string => `${shown}${shown === PICK
 export function inProfile(
   config: DashboardConfig,
   fn: (config: DashboardConfig) => DashboardConfig
-): (profile: MonitorProfile) => MonitorProfile {
-  return (profile) => fn({ ...config, profiles: [profile] }).profiles[0] ?? profile;
+): (profile: ProfileView) => ProfileView {
+  return (view) => {
+    const { placements, pageId, ...rest } = view;
+    const id = pageId ?? MAIN_PAGE_ID;
+    const stored: MonitorProfile = { ...rest, pages: [{ id, name: "", placements }] };
+    const next = fn({ ...config, profiles: [stored] }).profiles[0];
+    return !next || next === stored ? view : profileWithPage(next, id);
+  };
 }

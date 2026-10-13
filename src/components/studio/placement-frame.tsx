@@ -6,7 +6,7 @@ import {
   type ReactNode,
 } from "react";
 import { Plus } from "lucide-react";
-import { BLANK_MODULE, type MonitorProfile, type Placement } from "@/lib/layout";
+import { BLANK_MODULE, type ProfileView, type Placement } from "@/lib/layout";
 import { profileGap, trackPitch } from "@/lib/profile-grid";
 import { hexToHsl } from "@/lib/theme";
 import { cn } from "@/lib/utils";
@@ -36,7 +36,7 @@ const HANDLES: { id: Handle; cursor: string; pos: string }[] = [
 
 interface PlacementFrameProps {
   placement: Placement;
-  profile: MonitorProfile;
+  profile: ProfileView;
   studio: boolean;
   /** Whether the module currently has live data (kiosk hides empties). */
   hasData: boolean;

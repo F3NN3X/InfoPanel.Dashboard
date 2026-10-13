@@ -1,4 +1,4 @@
-import type { MonitorProfile, Placement } from "@/lib/layout";
+import type { ProfileView, Placement } from "@/lib/layout";
 import type { Appearance, StyleMode } from "@/lib/style-resolve";
 import type { ModuleSettings } from "@/modules/types";
 import { withStyleMode } from "../appearance-actions";
@@ -16,7 +16,7 @@ interface MultiInspectorProps {
   zones: Placement[];
   appearance: Appearance;
   /** Edit the active profile (one undo step per `key`). */
-  updateProfile: (fn: (p: MonitorProfile) => MonitorProfile, key?: string) => void;
+  updateProfile: (fn: (p: ProfileView) => ProfileView, key?: string) => void;
   onDeselect: (id: string) => void;
   onToggleVisible: () => void;
   onDuplicate: () => void;

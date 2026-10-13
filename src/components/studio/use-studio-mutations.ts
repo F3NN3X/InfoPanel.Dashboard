@@ -1,5 +1,6 @@
 import type { HistorySetter } from "@/hooks/use-config-history";
 import { useToast } from "@/components/ui/toast";
+import { onPage } from "@/lib/pages";
 import {
   BLANK_MODULE,
   PANEL_ID,
@@ -7,7 +8,7 @@ import {
   sampleProfile,
   uid,
   type DashboardConfig,
-  type MonitorProfile,
+  type ProfileView,
   type Placement,
 } from "@/lib/layout";
 import { findPanelPreset, type PanelPreset } from "@/lib/panelPresets";
@@ -29,7 +30,7 @@ import {
 interface MutationDeps {
   config: DashboardConfig;
   /** The resolved (active) grid profile being edited. */
-  profile: MonitorProfile;
+  profile: ProfileView;
   setConfig: HistorySetter;
   sel: StudioSelection;
   /** Close the panel inspector's preset name input. */
@@ -47,10 +48,10 @@ export function useStudioMutations({ config, profile, setConfig, sel, onPresetSa
   const toast = useToast();
 
   /** Mutate the active profile; same-`key` changes coalesce in undo. */
-  const updateProfile = (fn: (p: MonitorProfile) => MonitorProfile, key?: string) => {
+  const updateProfile = (fn: (p: ProfileView) => ProfileView, key?: string) => {
     // The same config back when `fn` changes nothing: the history records no step.
     setConfig((c) => {
-      const profiles = c.profiles.map((p) => (p.id === profile.id ? fn(p) : p));
+      const profiles = c.profiles.map((p) => (p.id === profile.id ? onPage(profile.pageId, fn)(p) : p));
       return profiles.every((p, i) => p === c.profiles[i]) ? c : { ...c, profiles };
     }, key);
   };
