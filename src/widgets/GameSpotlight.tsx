@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
-import { Widget, GlassPill, shell, get, num, fmt, has, Img, Icon, Bar, Ring, Dot, MediaProgress, KenBurns, Logo, type MiniVizProps, type ShellProps, type WidgetMeta } from "./kit";
+import { Widget, GlassPill, shell, get, num, fmt, has, Img, Icon, Bar, Ring, Dot, MediaProgress, KenBurns, Logo, type ShellProps, type WidgetMeta } from "./kit";
 import type { ModuleSettings } from "@/modules/types";
+import type { VizStyle } from "./core/viz/types";
 import { widgetImage } from "./data-adapter";
 import { CompositeView } from "./GameSpotlightComposite";
 
@@ -35,7 +36,7 @@ export interface GameSpotlightProps extends ShellProps {
   music?: "media" | "spotify";
   /** Progress of the combo music card. */
   progress?: "wave" | "visualizer";
-  vizMode?: MiniVizProps["mode"];
+  vizMode?: VizStyle;
   /** Composite: the achievements / library / friends column; default on. */
   showStats?: boolean;
   /** Composite: the news line; default on. */
@@ -227,9 +228,8 @@ export default function GameSpotlight(p: GameSpotlightProps) {
                       <MediaProgress
                         mode={p.progress === "visualizer" ? "visualizer" : "wave"}
                         pct={prog > 1 ? prog : prog * 100}
-                        l={num(get(d, "plugins.audio-level-meter.default-audio.left-channel")) || 0}
-                        r={num(get(d, "plugins.audio-level-meter.default-audio.right-channel")) || 0}
-                        level={num(get(d, "plugins.audio-level-meter.default-audio.audio-level")) || 0}
+                        data={d}
+                        device="default-audio"
                         vizMode={p.vizMode}
                         className="h-6"
                         barClassName="h-2"

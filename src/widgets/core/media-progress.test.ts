@@ -17,7 +17,7 @@ describe("MediaProgress", () => {
   });
 
   it("draws the inline visualiser at the given height", () => {
-    const html = renderToString(h(MediaProgress, { mode: "visualizer", pct: 42, level: 60, className: "h-9" }));
+    const html = renderToString(h(MediaProgress, { mode: "visualizer", pct: 42, data: { "plugins.audio-level-meter.default-audio.audio-level": "60" }, className: "h-9" }));
     expect(html).toContain("<canvas");
     expect(html).toContain("h-9");
   });

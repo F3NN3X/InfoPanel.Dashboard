@@ -3,10 +3,11 @@ import { makeSurfacePalette, type ModernStyle } from "@/components/surfaces";
 import { surfaceBox } from "@/components/widget-style";
 import { chromeOf } from "@/modules/standard-settings";
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, has, Img, Chip, MediaProgress, LIVE_TUNING_KEYS, type LiveTuning, type MediaProgressMode, type VizEngine, type ShellProps, type WidgetMeta, type Data } from "./kit";
+import { Widget, shell, get, num, has, Img, Chip, MediaProgress, type MediaProgressMode, type ShellProps, type WidgetMeta, type Data } from "./kit";
+import type { VizLook, VizStyle } from "./core/viz/types";
 import { widgetImage } from "./data-adapter";
 import { useArtTint } from "./NowPlaying/art-tint";
-import { AUDIO, levelDevice, spectrumOf } from "./audio-device";
+import { AUDIO, levelDevice } from "./audio-device";
 import { useFastSensors } from "@/hooks/useSensors";
 
 export { levelDevice };
@@ -79,14 +80,14 @@ function Vinyl({ art, playing, className = "" }: { art?: string; playing: boolea
 
 // The surfaces the cover-art tint recolours (the app's fixed-palette materials; theme takes no tint).
 const TINTABLE: readonly string[] = ["glass", "matte-light", "matte-dark"];
-export interface NowPlayingProps extends ShellProps, Partial<LiveTuning> {
+export interface NowPlayingProps extends ShellProps {
   look?: ModuleSettings;
   source?: "auto" | "media" | "spotify" | "pushed";
   showArt?: boolean;
   /** Stored as `playerLayout` (the standard `layout` keeps its meaning). */
   layout?: "card" | "vinyl" | "backdrop" | "wave";
   progress?: "bar" | "wave" | "visualizer";
-  vizMode?: "bars" | "mirror" | "wave" | "dots" | "line";
+  vizMode?: VizStyle;
   /** audio-level-meter container; "" = the loudest live device */
   vizDevice?: string;
   vizRamp?: string;
@@ -100,8 +101,8 @@ export interface NowPlayingProps extends ShellProps, Partial<LiveTuning> {
   tint?: boolean;
   /** blurred, darkened cover art behind the content, default false */
   artBackground?: boolean;
-  /** what draws the visualiser, default `mini` */
-  vizEngine?: VizEngine;
+  /** the visualiser's look: colours, shape, motion and dynamics (`vizRamp` is its colour 1) */
+  vizLook?: Partial<VizLook>;
   /** Web Audio capture devices, one live row each in place of the sensor row */
   captureDevices?: string[];
 }
@@ -117,24 +118,17 @@ export default function NowPlaying(p: NowPlayingProps) {
   const viz = showProgress && p.progress === "visualizer";
   useFastSensors(viz ? AUDIO : null);
   const device = levelDevice(d, p.vizDevice, p.names);
-  const A = (s: string) => num(get(d, `${AUDIO}${device}.${s}`)) || 0;
-  const spectrum = spectrumOf(d, device);
-  const tuning = Object.fromEntries(LIVE_TUNING_KEYS.filter((k) => p[k] !== undefined).map((k) => [k, p[k]])) as Partial<LiveTuning>;
+  const vizLook = { ...p.vizLook, color1: p.vizRamp };
   const media = (mode: MediaProgressMode, h = "", barClassName?: string) =>
     showProgress && (
       <MediaProgress
         mode={mode}
         pct={pct}
-        l={A("left-channel")}
-        r={A("right-channel")}
-        level={A("audio-level")}
+        data={d}
+        device={device}
         vizMode={p.vizMode}
-        ramp={p.vizRamp}
+        vizLook={vizLook}
         playing={m.playing}
-        sens={1.5 * (p.waveformSensitivity ?? 1)}
-        engine={p.vizEngine}
-        tuning={tuning}
-        spectrum={spectrum}
         captureDevices={p.captureDevices}
         className={h}
         barClassName={barClassName}
