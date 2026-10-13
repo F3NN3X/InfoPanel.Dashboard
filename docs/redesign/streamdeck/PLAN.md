@@ -1,6 +1,6 @@
 # Stream Deck plugin: InfoPanel.StreamDeckDashboard (plan)
 
-Status: **approved 2026-10-13** (repo created: github.com/F3NN3X/InfoPanel.StreamDeckDashboard). Context: `../ROADMAP.md` §S; the control channel it drives is
+Status: **done 2026-10-13**: SD1–SD5 shipped as v0.1.0 (github.com/F3NN3X/InfoPanel.StreamDeckDashboard/releases/tag/v0.1.0), tested on the device by the user. Context: `../ROADMAP.md` §S; the control channel it drives is
 in `../pages/PLAN.md` (P3). SDK notes: Elgato `@elgato/streamdeck` 3.0.2, `@elgato/cli` 1.10.2,
 Stream Deck 7.6 installed (v3 SDK needs 7.1+).
 
