@@ -7,7 +7,7 @@ import { Widget, shell, get, num, has, Img, Chip, MediaProgress, type MediaProgr
 import type { VizLook, VizStyle } from "./core/viz/types";
 import { widgetImage } from "./data-adapter";
 import { useArtTint } from "./NowPlaying/art-tint";
-import { AUDIO, levelDevice } from "./audio-device";
+import { AUDIO, levelDevice, useLevelDevice } from "./audio-device";
 import { useFastSensors } from "@/hooks/useSensors";
 
 export { levelDevice };
@@ -117,7 +117,7 @@ export default function NowPlaying(p: NowPlayingProps) {
   const showProgress = p.showProgress !== false;
   const viz = showProgress && p.progress === "visualizer";
   useFastSensors(viz ? AUDIO : null);
-  const device = levelDevice(d, p.vizDevice, p.names);
+  const device = useLevelDevice(d, p.vizDevice, p.names);
   const vizLook = { ...p.vizLook, color1: p.vizRamp };
   const media = (mode: MediaProgressMode, h = "", barClassName?: string) =>
     showProgress && (

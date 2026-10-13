@@ -4,7 +4,7 @@ import { Widget, shell, get, num, fmt, type ShellProps, type WidgetMeta } from "
 import { AudioViz } from "./core/viz/AudioViz";
 import { resolveLook, type VizLook } from "./core/viz/types";
 import { useVizInput } from "./core/viz/use-viz-input";
-import { AUDIO, levelDevice } from "./audio-device";
+import { AUDIO, useLevelDevice } from "./audio-device";
 
 export const meta: WidgetMeta = {
   id: "Visualizer",
@@ -41,7 +41,7 @@ export default function Visualizer(p: VisualizerProps) {
   useFastSensors(AUDIO);
   const d = p.data;
   // Auto ("" or unset) follows the loudest live device, like the media widget
-  const dev = levelDevice(d, p.device ?? "", p.names);
+  const dev = useLevelDevice(d, p.device ?? "", p.names);
   const k = (s: string) => num(get(d, `plugins.audio-level-meter.${dev}.${s}`));
   const name = String(get(d, `plugins.audio-level-meter.${dev}.device-name`) || "Audio").replace(/\s*\(.+\)$/, "");
   const look = resolveLook({ ...p.vizLook, count: p.bands, color1: p.ramp, peaks: p.peaks !== false, gain: (p.sensitivity ?? NEUTRAL_SENS) / NEUTRAL_SENS });
