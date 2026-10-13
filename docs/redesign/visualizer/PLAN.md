@@ -1,6 +1,6 @@
-# Audio visualiser: real input + Waviz presets (plan)
+# Audio visualiser: real input (plan)
 
-Status: **draft, awaiting approval**. Research: `waviz-port-spec.md` (the renderer and all 29 presets),
+Status: **approved 2026-10-13** (scope revised the same day: no Waviz presets, see §2). Research: `waviz-port-spec.md` (reference only),
 `webview2-mic.md` (capture inside the InfoPanel web view).
 
 ## 1. Where we are
@@ -15,15 +15,17 @@ Status: **draft, awaiting approval**. Research: `waviz-port-spec.md` (the render
   so it never sees samples. It updates every 50 ms.
 - Waviz (npm `waviz` 1.0.0, MIT) only analyses audio it owns (an element, a MediaStream, the microphone,
   tab audio). It cannot take pushed data. It is dormant, about 180 downloads a week, and has lifecycle
-  bugs (no destroy, orphan rAF loops, closes a passed AudioContext, no DPR scaling). **We port its
-  layer model and presets; no dependency.**
+  bugs (no destroy, orphan rAF loops, closes a passed AudioContext, no DPR scaling). **Not used.**
 
 ## 2. Decisions (user, 2026-10-13)
 
-1. **Source: both, capture first.** Browser capture when it is available (60 fps, a real waveform and
-   spectrum); the plugin's bands everywhere else (10 Hz, interpolated); plain levels last.
-2. **Waviz: port its design.** Our own renderer with its layer model and all 29 gallery presets, fed by
-   our data and coloured by theme, skin or custom colours. Attribution: MIT, "Copyright (c) 2025 Waviz Team".
+1. **Source: the plugin first, so it works with no setup.** The plugin captures what each output device
+   plays (WASAPI loopback) and publishes bands: no permission, no virtual cable. Browser capture stays
+   an opt-in extra for a 60 fps spectrum and a true waveform (profile set to Interactive once, then
+   Allow in the web view's prompt, plus a loopback input). Plain levels come last.
+2. **No Waviz presets.** Keep today's visualiser styles and make them fully customisable: colours,
+   gradients, shape, motion. By default they follow the theme and skin. The Waviz porting spec stays as
+   reference only.
 3. **No spectrum: real level only.** Without bands, the bars move together with the true level, and
    the studio shows a "no spectrum source" hint. Nothing invented. `trackPeaks`, `stepBands` and the
    sine wobble go.
@@ -67,49 +69,43 @@ interface AudioFrame {
 - Existing entries and keys stay unchanged. Version 1.3.0, CHANGELOG, README, and the test console
   prints the spectrum.
 
-### 3.3 Renderer (`src/widgets/core/viz/`, ported from Waviz)
+### 3.3 Renderer (`src/widgets/core/viz/`)
 
-- The layer model:
-  - `domain` (`time` or `freq`, amplitude, range, window: hann, hamming or exponential)
-  - `coord` (`rect` or `polar`, with radius, rotation and spin)
-  - `viz` (line, bars, dots, particles)
-  - `colour` (solid, linear or radial gradient, palette)
-  - `stroke` / `fill`
-
-  Pure functions with unit tests, as in `waviz-port-spec.md` §A.
-- Without capture, `time` layers read the spectrum as their curve (real data, a different picture).
-  The studio says so beside the preset.
-- One engine per canvas:
-  - DPR-aware, sized by ResizeObserver
+- One engine draws every style:
+  - canvas 2D, DPR-aware, sized by ResizeObserver
   - driven by the shared frame loop
   - paused off-screen and when the page is hidden
   - honours reduced motion
-  - fully disposed on unmount
+  - disposed on unmount
+- **Styles** (today's, merged from the `mini` engine, the Visualizer widget and the bar visualizer):
+  bars, mirror, wave, line, dots, radial, blob, plus a segmented (LED) bar shape.
+- `wave` / `line` draw the true waveform with capture, else a smooth curve through the bands.
 - Colours resolve CSS variables at draw time (accent, theme tokens, skin), so a theme or skin change
   repaints live without re-creating anything.
-- Waviz's bugs are not reproduced (spec §D): the shared particle pool, dashes leaking between layers,
-  inert colour props (Bar6, Dots3/4, Mixed1/5), the `randomPalette` hole, and the frozen spawn loop.
 
-### 3.4 Presets
+### 3.4 Look: follow the theme and skin, or customise
 
-- **All 29 gallery presets:** Bars 1–6, Waves 1–7, Dots 1–4, Particles 1, Mixed 1–11. Each is a layer
-  stack (spec §C) whose colour slots map to "Follow" (accent / skin) or custom colours.
-- **The existing modes become presets** (bars, mirror, wave, dots, line, radial, blob, LED, the bar
-  visualizer styles), so stored configs keep their look.
+- **Follow** (default): the accent and the skin's tokens decide the look. The skin's `meter` style picks
+  the bar shape (segments, blocks, pill, …) and its `glow` adds a glow. A light surface darkens the
+  colours as the rest of the widget does.
+- **Custom:**
+  - colour mode: solid, a gradient (vertical, horizontal or radial) or a per-band ramp, with colours 1–3
+  - peak-cap colour
+  - opacity and glow
+- **Shape and motion:** bar count, gap, roundness, mirror, orientation and alignment, sensitivity,
+  smoothing (attack/release), minimum level, peak caps and hold.
 
 ### 3.5 Settings (studio)
 
-- New keys (Content › Visualizer):
-  - `vizPreset`
-  - `vizColors` (Follow / Custom) with `vizColor1..3` (Style, advanced)
-  - `vizCount`, `vizSensitivity`, `vizSmoothing`, `vizRadius`, `vizRotation`, `vizSpin`, `vizStroke`
+- New keys only where no existing key covers it: the colour source (Follow / Custom), gradient mode,
+  colours 2–3, peak colour, opacity, glow, gap, roundness and bar shape. Colours go in Style
+  (advanced); shape and motion go in Content › Visualizer.
 - Data tab: the device (existing `liveSource` / `device`) and capture (existing `liveCapture` /
   `liveSources`).
-- **No renames.** Existing keys keep their meaning and map onto the new props:
+- **No renames.** Existing keys keep their meaning and map onto the engine's props:
   `waveformVariant`, `visualizerBarCount`, `visualizerMinLevel`, `visualizerAlign`,
   `visualizerOrientation`, `waveformSensitivity`, `vizRamp`, the Visualizer widget's `mode` / `bands` /
-  `sensitivity` / `peaks` / `ramp`, and `LIVE_TUNING`. An unset `vizPreset` is derived from them, so
-  existing configs render as before, now with real data.
+  `sensitivity` / `peaks` / `ramp`, and `LIVE_TUNING`. Existing configs render as before, now with real data.
 - Applies everywhere a visualiser renders, through one `<AudioViz>`: NowPlaying (`progress=visualizer`,
   all engines), the Visualizer widget, GameSpotlight, the legacy bar visualizer.
 
@@ -120,10 +116,9 @@ interface AudioFrame {
 | V0 | Contracts + capture check | `spectrum` entry format frozen. The fast stream proven against the Data API. Capture verified in the kiosk web view (§6). |
 | V1 | Plugin spectrum | `InfoPanel.AudioMeter` `feat/spectrum`: loopback, FFT, `spectrum` entry, config, test console, 1.3.0. Verified with a 1 kHz tone, which must peak in the right band. |
 | V2 | Audio frame | Fast stream in `sensor-store`, `useAudioFrame` (capture → plugin → level), fabrication removed. Tests: spectrum parsing, interpolation, source selection, ref counting. |
-| V3 | Renderer | `core/viz/` layer engine and math, with tests. Attribution header. |
-| V4 | Presets | 29 Waviz presets + existing modes as presets. A `?viz-gallery` dev page renders every preset from a deterministic test signal. |
-| V5 | Integration + settings | `<AudioViz>` in NowPlaying, Visualizer, GameSpotlight, bar visualizer. Inspector settings, migration from the legacy keys, FEATURE_MAP rows, docs. |
-| V6 | Verification | Real-signal checks (tone and sweep through plugin and capture). The overflow sweep (cells 110/150, skins, variants). Performance (12 visualisers at 60 fps in the kiosk). Review ledger. |
+| V3 | Renderer + look | `core/viz/` engine drawing every style, the Follow / Custom look, with tests. A `?viz-gallery` dev page renders every style and skin from a deterministic test signal. |
+| V4 | Integration + settings | `<AudioViz>` in NowPlaying, Visualizer, GameSpotlight, bar visualizer. Inspector settings, migration from the legacy keys, FEATURE_MAP rows, docs. |
+| V5 | Verification | Real-signal checks (tone and sweep through plugin and capture). The overflow sweep (cells 110/150, skins, variants). Performance (12 visualisers at 60 fps in the kiosk). Review ledger. |
 
 ## 5. Verification that it reacts to real audio
 
@@ -134,18 +129,16 @@ interface AudioFrame {
 - **No fabrication:** a test asserts that frames are built only from the frame inputs. For constant
   input, consecutive frames are identical once smoothing settles.
 
-## 6. Open item for the user
+## 6. Capture in the kiosk (decided)
 
-- **Capture in the kiosk.** Either patch the InfoPanel fork to auto-grant the microphone
-  (`DisplayWindow.WebView.cs`: allow `PermissionKind.Microphone` in `PermissionRequested`, 3 lines), or
-  set the profile to Interactive once and click Allow in the web view's prompt. A loopback input device
-  is needed for system audio either way.
+The InfoPanel fork stays unchanged. To use capture, set the profile to Interactive once and click
+Allow in the web view's prompt. The studio's capture setting explains this in its help text.
 
 ## 7. Risks
 
 - 10 Hz plugin frames soften transients. Mitigation: interpolation, and capture where available.
 - FFT cost for several devices. Mitigation: skip silent devices and cap the band count.
-- Time-domain presets look different on spectrum data. Mitigation: the studio labels it, and capture
+- Wave / line styles show a band curve without capture. Mitigation: the studio labels it, and capture
   restores the true waveform.
 - The plugin must be rebuilt and redeployed into InfoPanel before the dashboard can use bands. Until
   then the visualiser falls back to real levels.
