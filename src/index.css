@@ -255,3 +255,30 @@
   --wave-unplayed: hsl(var(--muted-foreground));
   --wave-cursor: hsl(var(--foreground));
 }
+
+/* Alerts (src/components/alerts): enter / exit slides (not applied with reduced motion). */
+@keyframes alert-in-top { from { opacity: 0; transform: translateY(-24px); } }
+@keyframes alert-in-bottom { from { opacity: 0; transform: translateY(24px); } }
+@keyframes alert-in-left { from { opacity: 0; transform: translateX(-24px); } }
+@keyframes alert-in-right { from { opacity: 0; transform: translateX(24px); } }
+@keyframes alert-in-none { from { opacity: 0; transform: scale(0.96); } }
+@keyframes alert-out { to { opacity: 0; transform: scale(0.97); } }
+.alert-in-top { animation: alert-in-top 220ms ease-out; }
+.alert-in-bottom { animation: alert-in-bottom 220ms ease-out; }
+.alert-in-left { animation: alert-in-left 220ms ease-out; }
+.alert-in-right { animation: alert-in-right 220ms ease-out; }
+.alert-in-none { animation: alert-in-none 220ms ease-out; }
+.alert-out { animation: alert-out 220ms ease-in forwards; }
+
+/* A zone an alert points at: severity ring plus a soft glow (--alert-ring); the pulse only with motion. */
+.alert-ring {
+  outline: 3px solid var(--alert-ring);
+  outline-offset: -1px;
+  box-shadow: 0 0 22px 2px var(--alert-ring);
+}
+@keyframes alert-ring-pulse {
+  50% { opacity: 0.45; }
+}
+.alert-ring-pulse {
+  animation: alert-ring-pulse 1.6s ease-in-out infinite;
+}

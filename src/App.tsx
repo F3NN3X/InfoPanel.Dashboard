@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { PlacementFrame } from "@/components/studio/placement-frame";
 import { LivePlacement } from "@/components/studio/placement-content";
 import { PageBackground } from "@/components/page-background";
+import { AlertLayer, useShownAlerts, ZoneHighlights } from "@/components/alerts/alert-layer";
 import { PageDots, PAGE_DOTS_STRIP_PX } from "@/components/page-dots";
 import { resolveBackground } from "@/lib/appearance";
 import { appearanceOf } from "@/lib/style-resolve";
@@ -118,6 +119,7 @@ export default function App() {
   useEffect(() => {
     if (studio && profile.pageId !== studioPage) setStudioPage(profile.pageId);
   }, [studio, profile.pageId, studioPage]);
+  const { shown: shownAlerts, ack: ackAlert } = useShownAlerts(control, stored.id);
   const fill = profile.fit === "fill";
   const background = resolveBackground(config, profile);
   const appearance = appearanceOf(config, profile);
@@ -417,7 +419,10 @@ export default function App() {
                 )}
               </LivePlacement>
             ))}
+          {kiosk && <ZoneHighlights alerts={shownAlerts} profile={profile} />}
         </PageGrid>
+
+        {kiosk && <AlertLayer alerts={shownAlerts} onAck={ackAlert} />}
 
         <PageDots
           enabled={pageNav}
