@@ -98,6 +98,12 @@ function drawSegments(ctx: CanvasRenderingContext2D, r: Rect, fill: (v: number) 
   for (let j = 0, n = segmentCount(len); j < n; j++) cell(align === "end" ? s0 + len - j * 4 - 3 : s0 + j * 4, (j * 4 + 1.5) / along);
 }
 
+/**
+ * Bars never centre (that is Mirror): "start" hangs them from the top / left, "end" and "center" grow
+ * them from the baseline. "center" is the old bar visualizer's stored default, so it must not turn Bars into Mirror.
+ */
+export const barsAlign = (align: VizLook["align"]): VizLook["align"] => (align === "start" ? "start" : "end");
+
 function drawBarsWith(align: VizLook["align"]): Drawer {
   return (ctx, w, h, _input, pal, look, { bars, peaks }) => {
     const vertical = look.orientation === "vertical";
@@ -296,7 +302,7 @@ const drawScroll: Drawer = (ctx, w, h, input, pal, look, { bars }) => {
 };
 
 export const DRAW: Record<VizStyle, Drawer> = {
-  bars: (ctx, w, h, input, pal, look, frame) => drawBarsWith(look.align)(ctx, w, h, input, pal, look, frame),
+  bars: (ctx, w, h, input, pal, look, frame) => drawBarsWith(barsAlign(look.align))(ctx, w, h, input, pal, look, frame),
   mirror: drawBarsWith("center"),
   dots: drawDots,
   wave: drawTrace(LAYERS),

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bandRects, barCount, historyTail, segmentCount, type BarGeometry } from "./draw";
+import { bandRects, barCount, barsAlign, historyTail, segmentCount, type BarGeometry } from "./draw";
 import { stepPeaks } from "./engine";
 import { DEFAULT_LOOK } from "./types";
 
@@ -70,5 +70,17 @@ describe("stepPeaks", () => {
     const pk = new Float32Array([0.9]);
     stepPeaks(pk, new Float64Array(1), [0.3], 0, 16, true);
     expect(pk[0]).toBeCloseTo(0.3, 6);
+  });
+});
+
+describe("barsAlign", () => {
+  it("never centres Bars: the stored 'center' grows from the baseline, unlike Mirror", () => {
+    expect(barsAlign("center")).toBe("end");
+    expect(barsAlign("end")).toBe("end");
+    expect(barsAlign("start")).toBe("start");
+    const bars = bandRects([0.5], 10, 40, g({ align: barsAlign("center") }))[0];
+    const mirror = bandRects([0.5], 10, 40, g({ align: "center" }))[0];
+    expect(bars).toMatchObject({ y: 20, h: 20 });
+    expect(mirror).toMatchObject({ y: 10, h: 20 });
   });
 });
