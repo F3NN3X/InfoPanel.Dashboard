@@ -1,6 +1,6 @@
 # Audio visualiser: real input (plan)
 
-Status: **approved 2026-10-13** (scope revised the same day: no Waviz presets, see §2). Research: `waviz-port-spec.md` (reference only),
+Status: **done 2026-10-13** (V0–V5, results in §8); approved 2026-10-13 (scope revised the same day: no Waviz presets, see §2). Research: `waviz-port-spec.md` (reference only),
 `webview2-mic.md` (capture inside the InfoPanel web view).
 
 ## 1. Where we are
@@ -142,3 +142,18 @@ Allow in the web view's prompt. The studio's capture setting explains this in it
   restores the true waveform.
 - The plugin must be rebuilt and redeployed into InfoPanel before the dashboard can use bands. Until
   then the visualiser falls back to real levels.
+
+## 8. Results (V5, 2026-10-13)
+
+- **Tones** (-20 dBFS, played on the default output): plugin `spectrum` and the dashboard's raw and
+  shaped peaks put 200 Hz in band 9, 1 kHz in 17, 5 kHz in 26. Capture (Stream Mix input) first put
+  1 kHz in band 18 (mean power per band, edge bins counted twice, FFT 1024); after aligning with the
+  plugin's rule it gives 9 / 17 / 26 too.
+- **Performance**: 12 live visualisers (`?widget-qa&module=Visualizer,NowPlaying`, six spans, cell
+  110, plugin source): 227 fps, frame p50 4.2 ms, p95 4.3 ms, worst 25.1 ms, 1 frame over 20 ms.
+- **Overflow**: 960 zones (cells 110/150, skins, variants), 0 overflowing rows.
+- **Fixes from use**: Bars drew like Mirror (stored Center alignment), Auto flickered between two
+  playing devices (now sticky), capture sat at "loading" until a gesture (now "blocked" with a hint).
+- **Deviations from §3**: the shared defaults changed the look slightly (Bars at the baseline, 8 %
+  resting level, 24 px edge fade); `scroll` lost the old centre-out mirroring; GameSpotlight's style
+  list was not extended to the new styles.

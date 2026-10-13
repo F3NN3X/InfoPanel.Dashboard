@@ -294,6 +294,11 @@ GameSpotlight's music card, the Visualizer widget); it replaces `MiniViz`, `BarV
   level history.
 - `?viz-gallery` (a lazy dev page, `viz-gallery.tsx`) draws every style under four skins and three
   Custom looks from a deterministic test signal.
+- Capture: `getSharedAudioContext` starts suspended until a user gesture; `resumeOnGesture` resumes it
+  on the first pointerdown / keydown / touchstart, and `useMediaVisualSource` reports `"blocked"`
+  (with `GESTURE_HINT`) until then instead of waiting on `resume()`.
+- In dev, `window.__vizInputs()` lists every live input (device, source, raw and shaped peak band,
+  bands), for checking a test tone against the bands.
 
 ### The render pipeline of a panel zone
 

@@ -360,7 +360,17 @@ attack and release. Reduced motion jumps instead of easing, and the peak caps do
 **Styles** (`waveformVariant` on NowPlaying, `mode` on the Visualizer widget): bars, mirror,
 wave, line, dots, radial, blob, scroll (the level history, newest on the right). Without capture,
 wave and line draw a smooth curve through the bands (wave mirrored with layered strokes); with
-capture they draw the true waveform.
+capture they draw the true waveform. **Bars** always grow from the baseline (or the top with
+alignment Start); a stored Center alignment applies only to **Mirror**, which grows from the middle.
+
+**Auto device** (`liveSource` / `source` empty): the loudest audio device, held for 1.5 s before
+switching and only to a device at least 10 points louder, so two devices playing at once don't
+flicker the visualiser between them (`stickyDevice`, `src/widgets/audio-device.ts`).
+
+**Capture and plugin agree on bands**: capture uses the plugin's FFT size (2048) and band rule, so
+each bin belongs to one band and a band takes its loudest bin (`bandsFromSpectrum`,
+`src/lib/audio/bands.ts`). A tone lands in the same band from either source (200 Hz → 9,
+1 kHz → 17, 5 kHz → 26 of 32).
 
 **Look** (NowPlaying template and Visualizer widget; the legacy aliases render with the defaults,
 which follow the theme and skin):
@@ -421,7 +431,10 @@ source with its own spectrum, so several can be shown at once.
 - `liveCapture` (boolean, off) — switch the visualizers from the sensor stream
   to Web Audio capture. In the kiosk this needs the profile set to Interactive
   once, then Allow in the prompt; it captures an input device (a loopback such
-  as a Wave Link output), not the render device the plugin meters.
+  as a Wave Link output), not the render device the plugin meters. The browser
+  then holds audio until a user gesture (autoplay policy): the capture row says
+  "Click or tap the dashboard once to start capture" until the first click,
+  tap or key press anywhere on the page.
 - `liveSources` (multi-select, `optionsFrom: "media"`) — the capture devices
   to pin, **one labeled visualizer row each** (stacked). With `liveCapture` on
   and no devices pinned, it falls back to the single sensor row; with
