@@ -1,0 +1,3 @@
+# The schema tests parse these specs with 
+-only patterns.
+docs/redesign/widgets/**/*.md text eol=lf
