@@ -43,7 +43,6 @@ describe("normalizeAlerts", () => {
       rules: [
         null,
         rule({ id: "" }),
-        rule({ id: "nokey", source: { kind: "sensor", key: " " } }),
         rule({ id: "nokind", source: { kind: "magic" } }),
         rule({ id: "dup" }),
         rule({ id: "dup", name: "second" }),
@@ -51,6 +50,11 @@ describe("normalizeAlerts", () => {
     });
     expect(out?.rules.map((r) => r.id)).toEqual(["dup"]);
     expect(out?.rules[0].name).toBe("GPU hot");
+  });
+
+  it("keeps a sensor rule whose sensor is not picked yet", () => {
+    const out = normalizeAlerts({ rules: [rule({ id: "nokey", source: { kind: "sensor", key: "" } })] });
+    expect(out?.rules.map((r) => r.id)).toEqual(["nokey"]);
   });
 
   it("defaults unknown enums and clamps numbers", () => {

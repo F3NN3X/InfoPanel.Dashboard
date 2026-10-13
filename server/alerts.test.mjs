@@ -254,7 +254,7 @@ describe("act", () => {
     });
     const r = act(emptyAlertsState(), { ruleId: "r1", action: "test" }, off, temp(66), T0);
     expect(r.state.active).toHaveLength(1);
-    expect(r.state.active[0].alert).toMatchObject({ test: true, value: 66, text: "GPU temp: 66°C" });
+    expect(r.state.active[0].alert).toMatchObject({ test: true, value: 66, text: "66°C" });
     expect(r.state.active[0].alert.quiet).toBeUndefined();
     expect(r.state.history[0].test).toBe(true);
     // The test alert expires on its own even though the rule is disabled.
@@ -294,8 +294,8 @@ describe("alert shape and text", () => {
   });
   it("formats the default sensor text to one decimal", () => {
     const text = (v) => fired(run(cfg([sensor()]), [[T0, temp(v)]]).events)[0].alert.text;
-    expect(text(91.26)).toBe("GPU temp: 91.3°C");
-    expect(text(90)).toBe("GPU temp: 90°C");
+    expect(text(91.26)).toBe("91.3°C");
+    expect(text(90)).toBe("90°C");
   });
   it("fills a custom template", () => {
     const rule = notif({ outputs: { display: { text: "{name} {app} / {title} / {body} {value}{unit}" } } });
@@ -360,6 +360,13 @@ describe("helpers", () => {
     expect(keysOf(alerts).sort()).toEqual(["gpu.temp", "notifications.latest"]);
     expect(keysOf(cfg([sensor()], { enabled: false }))).toEqual([]);
     expect(keysOf(undefined)).toEqual([]);
+  });
+
+  it("subscribes to nothing for a rule without a sensor, and never fires it", () => {
+    const alerts = cfg([sensor({}, { key: "" })]);
+    expect(keysOf(alerts)).toEqual([]);
+    const r = evaluate(emptyAlertsState(), alerts, temp(99), 0);
+    expect(activeAlerts(r.state)).toEqual([]);
   });
   it("takes the stream prefix up to the last dot", () => {
     expect(prefixOf("gpu.temp")).toBe("gpu.");

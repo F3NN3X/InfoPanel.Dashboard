@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties, type Dispatch, type SetStateAction } from "react";
+import { useEffect, useMemo, useState, type CSSProperties, type Dispatch, type SetStateAction } from "react";
 import { useConfigHistory } from "@/hooks/use-config-history";
 import { ToastProvider } from "@/components/ui/toast";
 import { SourcesPanel } from "./sources-panel";
@@ -11,6 +11,7 @@ import {
 } from "@/lib/layout";
 import { resolveBackground } from "@/lib/appearance";
 import { useSensorCatalog } from "@/lib/catalog";
+import { buildDataModel } from "@/lib/data-points";
 import { appearanceOf } from "@/lib/style-resolve";
 import { resolveTheme, themeVars } from "@/lib/theme";
 import { CommandPalette } from "./command-palette";
@@ -126,6 +127,7 @@ function StudioViewBody({
   });
   /** Sensor names for widget names (toolbar crumb, palette). */
   const catalog = useSensorCatalog();
+  const dataPoints = useMemo(() => buildDataModel(catalog.sources, catalog.sensors).points, [catalog.sources, catalog.sensors]);
   const { studioLayout, showSources, drawer } = ui;
   /** The data point the inspector's Bound data row opened in Sources mode. */
   const [focusPointKey, setFocusPointKey] = useState<string>();
@@ -202,6 +204,17 @@ function StudioViewBody({
         onProfileChange: (patch) =>
           edit.updateProfile((p) => ({ ...p, ...patch }), `profile:${Object.keys(patch).join()}`),
         onOpenSettings: openProfileSettings,
+      }}
+      alerts={{
+        config,
+        setConfig,
+        active: control?.alerts ?? [],
+        points: dataPoints,
+        current: { profile: storedProfile.id, page: profile.pageId ?? storedProfile.pages[0].id },
+        pushPending,
+        editingId: ui.alertRule,
+        onEdit: ui.setAlertRule,
+        onOpenSources: () => ui.setMode("sources"),
       }}
     />
   );

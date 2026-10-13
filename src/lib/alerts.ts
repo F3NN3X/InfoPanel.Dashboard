@@ -163,7 +163,8 @@ const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
 function normalizeSource(raw: unknown): AlertSource | undefined {
   if (!isObject(raw)) return undefined;
   if (raw.kind === "sensor") {
-    if (typeof raw.key !== "string" || raw.key.trim() === "") return undefined;
+    // An empty key is kept: a new rule waits in the studio until a sensor is picked (it never fires).
+    if (typeof raw.key !== "string") return undefined;
     const op = raw.op === "≠" ? "!=" : (oneOf(SENSOR_OPS, raw.op) ?? ">");
     const value =
       typeof raw.value === "string" || (typeof raw.value === "number" && Number.isFinite(raw.value)) ? raw.value : 0;

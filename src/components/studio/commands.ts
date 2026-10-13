@@ -15,6 +15,8 @@ export type CommandAction =
   | { type: "add-preset"; id: string }
   | { type: "profile"; id: string }
   | { type: "drawer"; drawer: Drawer }
+  | { type: "alerts-open" }
+  | { type: "alert-new" }
   | { type: "sources" }
   | { type: "toggle-grid" }
   | { type: "layout"; mode: LayoutMode }
@@ -113,6 +115,7 @@ const DRAWERS: { drawer: Drawer; label: string }[] = [
   { drawer: "add", label: "Add" },
   { drawer: "layers", label: "Layers" },
   { drawer: "profiles", label: "Profiles" },
+  { drawer: "alerts", label: "Alerts" },
 ];
 
 const LAYOUT_MODES: { mode: LayoutMode; label: string }[] = [
@@ -140,6 +143,8 @@ function generalCommands(s: CommandState): Command[] {
     ...DRAWERS.map(({ drawer, label }) =>
       general(`drawer:${drawer}`, `Open drawer: ${label}`, { type: "drawer", drawer })
     ),
+    general("alerts-open", "Open alerts", { type: "alerts-open" }),
+    general("alert-new", "New alert rule", { type: "alert-new" }),
     general("background", "Background…", { type: "document-tab", tab: "background" }),
     general("appearance", "Appearance…", { type: "document-tab", tab: "appearance" }),
     general("general", "General settings…", { type: "document-tab", tab: "general" }, "font, clock, motion"),

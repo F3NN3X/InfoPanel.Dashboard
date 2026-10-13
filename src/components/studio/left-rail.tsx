@@ -1,16 +1,17 @@
 import { useState, type ReactNode } from "react";
 import { Tooltip } from "@base-ui/react/tooltip";
-import { Database, Keyboard, Layers, SquarePlus, Monitor, type LucideIcon } from "lucide-react";
+import { Bell, Database, Keyboard, Layers, SquarePlus, Monitor, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /** The left panels; Sources is a canvas mode, not a panel. */
-export type Drawer = "add" | "layers" | "profiles";
+export type Drawer = "add" | "layers" | "profiles" | "alerts";
 export type RailItem = Drawer | "sources";
 
 const RAIL: { id: RailItem; label: string; icon: LucideIcon }[] = [
   { id: "layers", label: "Layers", icon: Layers },
   { id: "add", label: "Add", icon: SquarePlus },
   { id: "profiles", label: "Profiles", icon: Monitor },
+  { id: "alerts", label: "Alerts", icon: Bell },
   { id: "sources", label: "Data sources", icon: Database },
 ];
 
@@ -20,7 +21,7 @@ const STORAGE_KEY = "studio.drawer";
 /** The stored drawer; null = collapsed, anything unknown = Add. */
 export function parseDrawer(raw: string | null): Drawer | null {
   if (raw === "none") return null;
-  return raw === "layers" || raw === "profiles" ? raw : "add";
+  return raw === "layers" || raw === "profiles" || raw === "alerts" ? raw : "add";
 }
 
 /** The open drawer, remembered across reloads (localStorage `studio.drawer`). */

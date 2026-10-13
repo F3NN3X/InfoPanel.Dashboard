@@ -1016,6 +1016,25 @@ Ctrl+PageUp / PageDown step through the pages (wrapping) and the palette has the
 profile inspector's Auto-rotate section writes `rotate` through `updateStored`; rotation itself runs
 on the kiosk (a later phase).
 
+### Alerts
+
+Rules are config (`config.alerts`, types and `normalizeAlerts` in `src/lib/alerts.ts`); active alerts and
+the history are server state. The engine (`server/alerts.mjs`, started from `server.mjs`) subscribes to
+the Data API keys the rules use, evaluates thresholds (duration, hysteresis, cooldown), `changes`,
+`contains` and notification filters, and publishes the active list as `alerts` in the control state
+(`/events/control`, `src/lib/control.ts`). Acknowledge, dismiss and test go through
+`POST /api/control/alert`; `GET /api/alerts/history` returns the last 200. Nothing here enters undo.
+
+The studio's Alerts panel (rail item "Alerts", `src/components/studio/alerts-panel.tsx`) shows the
+master switch, the live active list (`alerts-live.tsx`, history refetched when the list changes), the
+rules and the global defaults (`alerts-defaults.tsx`). A rule opens in `alerts-rule-editor.tsx` with the
+outputs in `alerts-outputs.tsx`. Edits are pure functions on the config (`alerts-model.ts`) run through
+`setConfig` with a key per rule and field, so a burst of typing is one undo step; add, delete, duplicate
+and preset each are one step. New rules come from `src/lib/alert-presets.ts`: a preset's regex picks the
+first live numeric point of the catalogue, and leaves the key empty when none matches. Test fires the
+rule through the real path and waits while edits are not pushed yet. The palette has "Open alerts" and
+"New alert rule".
+
 ### Adding a setting to a module
 
 Settings are plain `ModuleSetting` entries in a module's `settings` array

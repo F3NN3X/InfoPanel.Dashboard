@@ -70,6 +70,8 @@ export function useStudioUi(config: DashboardConfig, profile: ProfileView, onSav
   const [deletingPage, setDeletingPage] = useState<string | null>(null);
   /** The panel inspector's "Save as panel preset" name input is open. */
   const [presetNaming, setPresetNaming] = useState(false);
+  /** The alert rule open in the Alerts drawer's editor (null = the rules list). */
+  const [alertRule, setAlertRule] = useState<string | null>(null);
 
   /** The style copied with "Copy" in the inspector (session only). */
   const [styleClipboard, setStyleClipboard] = useState<ModuleSettings | null>(null);
@@ -170,6 +172,8 @@ export function useStudioUi(config: DashboardConfig, profile: ProfileView, onSav
     setDeletingPage,
     presetNaming,
     setPresetNaming,
+    alertRule,
+    setAlertRule,
     styleClipboard,
     setStyleClipboard,
     widgetClipboard,

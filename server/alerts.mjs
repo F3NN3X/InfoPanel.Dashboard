@@ -47,6 +47,8 @@ export function keysOf(alerts) {
   const keys = new Set();
   for (const r of rulesOf(alerts)) {
     if (r.enabled === false) continue;
+    // A rule without a sensor yet subscribes to nothing (an empty prefix would be the whole stream).
+    if (sensorRule(r) && r.source.key.trim() === "") continue;
     keys.add(sensorRule(r) ? r.source.key : NOTIFICATION_KEY);
   }
   return [...keys];
@@ -187,7 +189,7 @@ function start(s, events, { rule, alerts, now, reading, notification, oneShot, t
     typeof rule.outputs?.display?.text === "string" && rule.outputs.display.text !== ""
       ? rule.outputs.display.text
       : isSensor
-        ? "{name}: {value}{unit}"
+        ? "{value}{unit}" // the rule name is the alert's title; the body is the reading
         : "{app}: {title}";
   const quiet = !test && isQuiet(alerts?.quietHours, rule.severity, now);
 
