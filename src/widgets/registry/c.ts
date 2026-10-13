@@ -8,7 +8,7 @@ import AudioMeter, { meta as audioMeter, type AudioMeterProps } from "../AudioMe
 import MeterBridge, { meta as meterBridge, type MeterBridgeProps } from "../MeterBridge";
 import NowPlaying, { meta as nowPlaying, type NowPlayingProps } from "../NowPlaying";
 import { MEDIA_SETTINGS, NOW_PLAYING_OWN, PLAYER_LAYOUT, sharedPropsOf, vizStyleOf } from "../NowPlaying/settings";
-import { VIZ_SHAPE_GROUP, vizColorSettings, vizDynamicsSettings, vizLookOf, vizShapeSettings } from "./viz-settings";
+import { VIZ_SHAPE_GROUP, colorModeOf, vizColorSettings, vizDynamicsSettings, vizLookOf, vizShapeSettings } from "./viz-settings";
 import Visualizer, { meta as visualizer, type VisualizerProps } from "../Visualizer";
 import VolumeMixer, { meta as volumeMixer, type VolumeMixerProps } from "../VolumeMixer";
 import WaveLink, { meta as waveLink } from "../WaveLink";
@@ -90,7 +90,7 @@ export const GROUP_C: DashboardModule[] = [
       return {
       ...pick<NowPlayingProps>(["source", "showArt", "progress", "showTimeline"])(s),
       ...shared,
-      vizLook: { ...shared.vizLook, peaks: boolOf(s.vizPeaks) },
+      vizLook: { ...shared.vizLook, colorMode: colorModeOf(s, saved), peaks: boolOf(s.vizPeaks) },
       vizMode: vizStyleOf(hidden),
       // unset / Auto = "" (the loudest live device), as the legacy media modules; undefined would pin default-audio
       vizDevice: String(s.liveSource ?? ""),
@@ -174,9 +174,9 @@ export const GROUP_C: DashboardModule[] = [
       ...vizColorSettings(colorSetting("ramp", "Color")),
       ...vizDynamicsSettings(),
     ],
-    toProps: (s) => ({
+    toProps: (s, saved) => ({
       ...pick<VisualizerProps>(["peaks"])(s),
-      vizLook: vizLookOf(s),
+      vizLook: vizLookOf(s, saved),
       mode: oneOf(s.mode, VIZ_MODES),
       device: stringOf(s.device),
       bands: autoCount(s.bands),

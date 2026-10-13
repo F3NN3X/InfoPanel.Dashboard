@@ -45,12 +45,23 @@ export const vizDynamicsSettings = (): ModuleSetting[] => [
   numberSetting("vizRelease", "Release (ms)", 300, { ...dynamics, min: 50, max: 2000, step: 50 }),
 ];
 
+/**
+ * The colour mode: the saved choice; else Ramp when colour 1 (`vizRamp` / `ramp`) is set, which is how
+ * the renderers before the look settings drew that colour, so a saved colour keeps showing; else unset
+ * (Follow). `saved` holds the raw stored values, since the resolved look fills the default in.
+ */
+export function colorModeOf(s: ModuleSettings, saved?: ModuleSettings): VizLook["colorMode"] | undefined {
+  const chosen = oneOf((saved ?? s).vizColorMode, COLOR_MODES);
+  if (chosen) return chosen;
+  return stringOf(s.vizRamp) || stringOf(s.ramp) ? "ramp" : undefined;
+}
+
 /** The look from the shared keys; unset keys stay unset (the renderer's defaults apply). */
-export function vizLookOf(s: ModuleSettings): Partial<VizLook> {
+export function vizLookOf(s: ModuleSettings, saved?: ModuleSettings): Partial<VizLook> {
   const opacity = numberOf(s.vizOpacity);
   const gap = numberOf(s.vizGap);
   return {
-    colorMode: oneOf(s.vizColorMode, COLOR_MODES),
+    colorMode: colorModeOf(s, saved),
     gradient: oneOf(s.vizGradient, GRADIENTS),
     color2: stringOf(s.vizColor2),
     color3: stringOf(s.vizColor3),

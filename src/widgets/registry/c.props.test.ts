@@ -39,3 +39,15 @@ describe("NowPlaying visualiser device", () => {
     expect(levelDevice(d, "audio-meter-b")).toBe("audio-meter-b");
   });
 });
+
+describe("NowPlaying visualiser colour", () => {
+  it("keeps a saved colour showing when no colour mode was ever chosen", () => {
+    expect(propsFor({ vizRamp: "#d10a0a" }).vizLook?.colorMode).toBe("ramp");
+  });
+  it("honours an explicit colour mode over the saved colour", () => {
+    expect(propsFor({ vizRamp: "#d10a0a", vizColorMode: "follow" }).vizLook?.colorMode).toBe("follow");
+  });
+  it("follows the theme when nothing is saved", () => {
+    expect(propsFor({}).vizLook?.colorMode).toBeUndefined();
+  });
+});
