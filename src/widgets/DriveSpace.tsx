@@ -37,8 +37,8 @@ export default function DriveSpace(p: DriveSpaceProps) {
     crit = p.crit ?? 92;
   const list = (one ? [one] : [...drives]).sort((a, b) => (p.sort === "name" ? a.id.localeCompare(b.id) : b.pct - a.pct));
   const neutral = p.neutral !== false;
-  const tn = (pct: number): Tone | "muted" => (pct >= (p.crit ?? 90) ? "crit" : pct >= (p.warn ?? 80) ? "warn" : neutral ? "muted" : "ok");
-  const critN = drives.filter((x) => x.pct >= (p.crit ?? 90)).length;
+  const tn = (pct: number): Tone | "muted" => (pct >= crit ? "crit" : pct >= warn ? "warn" : neutral ? "muted" : "ok");
+  const critN = drives.filter((x) => x.pct >= crit).length;
   const first = one ?? drives[0];
   return (
     <Widget

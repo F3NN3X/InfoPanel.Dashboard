@@ -1,5 +1,6 @@
+import { readSystemFlat } from "@/lib/system-metrics";
 import type { ModuleSettings } from "@/modules/types";
-import { useFitRows, Widget, shell, get, num, fmt, Spark, useHistory, useSkin, numFont, hw, type ShellProps, type WidgetMeta } from "./kit";
+import { useFitRows, Widget, shell, get, num, fmt, pretty, Spark, useHistory, useSkin, numFont, hw, type ShellProps, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "KpiTiles",
@@ -34,10 +35,11 @@ export default function KpiTiles(p: KpiTilesProps) {
   const sk = useSkin();
   const cpu = hw(d).cpu,
     gpu = hw(d).gpu;
+  const sys = readSystemFlat(d ?? {}, p.names);
   const L = (k: string) => num(get(d, `libre.${k}`));
   const ALL: Record<Metric, Kpi> = {
-    cpu: { l: "CPU", v: L(`${cpu}_cpu_total`), u: "%", sub: "Ryzen 9 9950X3D", max: 100 },
-    gpu: { l: "GPU", v: L(`${gpu}_gpu_core_load`), u: "%", sub: "RTX 5090", max: 100 },
+    cpu: { l: "CPU", v: L(`${cpu}_cpu_total`), u: "%", sub: (sys.cpu.name ?? pretty(cpu ?? "")).replace(/^AMD Ryzen/, "Ryzen"), max: 100 },
+    gpu: { l: "GPU", v: L(`${gpu}_gpu_core_load`), u: "%", sub: (sys.gpu.name ?? pretty(gpu ?? "")).replace(/^NVIDIA /, ""), max: 100 },
     ram: { l: "Memory", v: L("total_memory_memory_used"), u: "GB", d: 1, sub: `of ${fmt(L("total_memory_memory_used") + L("total_memory_memory_available"), 0)} GB` },
     net: { l: "Download", v: L("ethernet_download_speed") / 1024, u: "MB/s", sub: "Ethernet" },
     vram: { l: "VRAM", v: L(`${gpu}_gpu_memory_used`) / 1024, u: "GB", d: 1, sub: `of ${fmt(L(`${gpu}_gpu_memory_total`) / 1024, 0)} GB` },
@@ -88,7 +90,7 @@ export default function KpiTiles(p: KpiTilesProps) {
                     {fmt(m.v, m.d ?? 0)}
                     <span className="ml-0.5 text-[0.5em] font-semibold text-[color:var(--w-muted)]">{m.u}</span>
                   </span>
-                  {tileH > 126 && <span className="truncate text-xs text-[color:var(--w-faint)]">{m.sub}</span>}
+                  {tileH > 126 && m.sub && <span className="truncate text-xs text-[color:var(--w-faint)]">{m.sub}</span>}
                   {tileH > 100 && (
                     <div className="relative mt-auto h-[38%] min-h-[18px] max-h-10">
                       <Spark values={hist} min={0} max={m.max} className="absolute inset-0 h-full" />

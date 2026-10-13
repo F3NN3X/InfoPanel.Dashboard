@@ -1,6 +1,5 @@
-import type { MouseEvent } from "react";
 import type { ModuleSettings } from "@/modules/types";
-import { useFitRows, Widget, shell, get, num, fmt, Num, Ring, Icon, Dot, Chip, STATE, type ShellProps, type WidgetMeta } from "./kit";
+import { bodyGap, useFitRows, Widget, shell, get, num, fmt, Num, Ring, Icon, Dot, Chip, STATE, type ShellProps, type WidgetMeta } from "./kit";
 import { guidOf } from "./audio-data";
 
 export const meta: WidgetMeta = {
@@ -20,13 +19,10 @@ export interface VolumeMixerProps extends ShellProps {
   device?: string;
   /** Device names; default on. */
   showDevice?: boolean;
-  /** Mute buttons and muted state; default on. */
+  /** The muted state (icon and dimmed bar); read-only, the plugin has no write path. Default on. */
   showMute?: boolean;
   /** Fader fill colour, default the accent. */
   levelColor?: string;
-  /** Without the callbacks the faders are read-only. */
-  onSetVolume?: (containerKey: string, value: number) => void;
-  onToggleMute?: (containerKey: string) => void;
 }
 
 export default function VolumeMixer(p: VolumeMixerProps) {
@@ -43,12 +39,6 @@ export default function VolumeMixer(p: VolumeMixerProps) {
   const list = p.device === "default-audio" ? (def ? [def] : []) : ch.filter((c) => c.id !== "default" && (!p.device || (guid ? c.id.includes(guid) : c.id === p.device)));
   const fill = p.levelColor || "var(--accent)";
   const wl = get(d, "plugins.wavelink-plugin.wavelink.status") === "up";
-  const live = !!p.onSetVolume;
-  const setFrom = (id: string) => (e: MouseEvent<HTMLDivElement>) => {
-    if (!p.onSetVolume) return;
-    const r = e.currentTarget.getBoundingClientRect();
-    p.onSetVolume(id, Math.round(((e.clientX - r.left) / r.width) * 100));
-  };
   return (
     <Widget
       {...shell(p)}
@@ -80,14 +70,17 @@ export default function VolumeMixer(p: VolumeMixerProps) {
               </div>
             </div>
           );
-        const n = useFitRows(h, size === "lg" ? 34 : 30, 10);
+        // The look's gap spaces the rows; a placed or spread list (or a custom gap) moves rows to the edges, so leave it a little room.
+        const g = bodyGap(p.look, 10, h),
+          placed = p.look?.alignX === "between" || (!!p.look?.alignY && p.look.alignY !== "auto") || g !== 10,
+          n = useFitRows(h - (placed ? 6 : 0), size === "lg" ? 34 : 30, g);
         return (
           <ul className="flex h-full flex-col gap-2.5 overflow-hidden">
             {list.slice(0, n).map((c) => (
               <li key={c.id} className="grid grid-cols-[18px_minmax(0,1fr)_36px] items-center gap-x-2.5" title={c.full}>
-                <button type="button" onClick={() => showMute && p.onToggleMute?.(c.id)} className="flex items-center justify-center" style={{ color: c.mute ? STATE.crit : "var(--w-muted)" }}>
+                <span className="flex items-center justify-center" style={{ color: c.mute ? STATE.crit : "var(--w-muted)" }}>
                   <Icon name={c.mute ? "volume_off" : c.vol < 35 ? "volume_down" : "volume_up"} className="text-[17px]" />
-                </button>
+                </span>
                 <div className="flex min-w-0 flex-col gap-1">
                   {showDevice && (
                     <span className="truncate text-xs text-[color:var(--w-fg)]">
@@ -95,7 +88,7 @@ export default function VolumeMixer(p: VolumeMixerProps) {
                       {size === "lg" && <span className="text-[color:var(--w-faint)]"> · {c.dev}</span>}
                     </span>
                   )}
-                  <div onClick={setFrom(c.id)} className={`relative h-1.5 rounded-full bg-[color:var(--w-track)] ${live ? "cursor-pointer" : ""}`}>
+                  <div className="relative h-1.5 rounded-full bg-[color:var(--w-track)]">
                     <div className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${c.vol}%`, background: c.mute ? "var(--w-faint)" : fill }} />
                     <div className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[color:var(--w-fg)] shadow" style={{ left: `${c.vol}%` }} />
                   </div>

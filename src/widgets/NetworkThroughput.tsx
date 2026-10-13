@@ -21,7 +21,7 @@ export interface NetworkThroughputProps extends ShellProps {
   view?: "speeds" | "totals";
   /** The session totals + utilisation row (default on). */
   showTotals?: boolean;
-  /** The rolling download / upload trend (default on). */
+  /** The rolling download / upload trend (default off, as the setting). */
   sparkline?: boolean;
   /** Download / upload colours; empty = accent / violet. */
   downloadColor?: string;
@@ -60,7 +60,7 @@ export default function NetworkThroughput(p: NetworkThroughputProps) {
   const dlColor = p.downloadColor || "var(--accent)";
   const ulColor = p.uploadColor || UP;
   const showTotals = p.showTotals !== false;
-  const showChart = p.sparkline !== false;
+  const showChart = p.sparkline === true;
   const name = p.title ?? pretty(id).replace(/  +/g, " ");
   return (
     <Widget

@@ -1,5 +1,6 @@
 // Primitives: icons, numerals, meters, rings, graphs, chips, images and the inline visualiser.
-// Text and track colours come from the shell's --w-* variables (decision 5).
+// Text and track colours come from the shell's --w-* variables (decision 5); labels, alignment and gaps follow
+// the standard look's --wp-* variables, with the primitive's own value as the fallback.
 import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { has, clamp, fmt } from "./data";
 import { mix } from "./tokens";
@@ -7,6 +8,7 @@ import { useSkin, STATE, TONES, tone } from "./theme";
 import { iconFor } from "./icons";
 import type { Tone } from "./types";
 import { cn } from "@/lib/utils";
+import { labelStyle, ws } from "@/components/widget-style";
 
 /* ───────── primitives ───────── */
 // Material Symbols names rendered as lucide icons (see icons.ts); sized by the font size like the glyphs were.
@@ -36,13 +38,13 @@ export function Metric({ label, value, unit, d = 0, scale = "md", sub, t = "ok",
   const big = { sm: "text-lg", md: "text-2xl", lg: "text-4xl", xl: "text-5xl", "2xl": "text-7xl" }[sc];
   const shown = typeof value === "number" ? fmt(value, d) : value;
   return (
-    <div className={`flex min-w-0 flex-col ${align === "center" ? "items-center text-center" : ""} ${className}`}>
-      {label && <span className="truncate text-[11px] font-medium text-[color:var(--w-muted)]">{label}</span>}
+    <div className={`flex min-w-0 flex-col ${align === "center" ? "items-center text-center" : ""} ${className}`} style={align === "center" ? { alignItems: "var(--wp-x-cross, center)", textAlign: "var(--wp-text-align, center)" as CSSProperties["textAlign"] } : { alignItems: "var(--wp-x-cross, stretch)" }}>
+      {label && <span className="max-w-full truncate text-[11px] font-medium text-[color:var(--w-muted)]" style={labelStyle("none")}>{label}</span>}
       <span className={`${big} font-semibold leading-none tracking-tight tabular-nums`} style={{ fontFamily: sk.num, fontWeight: sk.numWeight, fontStretch: sk.numStretch, ...(sk.numGlow ? NUM_GLOW : null), ...(t !== "ok" ? { color: TONES[t] } : null) }}>
         {shown}
         {unit && <span className="ml-0.5 inline-block align-top leading-none text-[0.45em] font-medium text-[color:var(--w-muted)]">{unit}</span>}
       </span>
-      {sub && <span className="mt-1 truncate text-[11px] text-[color:var(--w-faint)]">{sub}</span>}
+      {sub && <span className="mt-1 max-w-full truncate text-[11px] text-[color:var(--w-faint)]">{sub}</span>}
     </div>
   );
 }
@@ -122,7 +124,7 @@ export function BarRow({ label, value, max = 100, display, hint, t, warn, crit }
   return (
     <div className="flex min-w-0 flex-col gap-1">
       <div className="flex items-baseline gap-2 text-xs">
-        <span className="truncate text-[color:var(--w-fg)]">{label}</span>
+        <span className="truncate text-[color:var(--w-fg)]" style={labelStyle("none")}>{label}</span>
         {hint && <span className="truncate text-[11px] text-[color:var(--w-faint)]">{hint}</span>}
         <span className="ml-auto shrink-0 font-medium tabular-nums">{display ?? `${fmt(value, 0)}%`}</span>
       </div>
@@ -330,15 +332,15 @@ export const Chip = ({ children, className = "" }: { children?: ReactNode; class
   <span className={`inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-md bg-[color:var(--w-track)] px-1.5 py-0.5 text-[10.5px] font-medium text-[color:var(--w-fg)] ${className}`}>{children}</span>
 );
 export const Stat = ({ label, value, className = "" }: { label?: ReactNode; value?: ReactNode; className?: string }) => (
-  <div className={`flex min-w-0 flex-col gap-0.5 ${className}`}>
-    <span className="truncate text-[10.5px] text-[color:var(--w-faint)]">{label}</span>
-    <span className="truncate text-[13px] font-medium tabular-nums text-[color:var(--w-fg)]">{value}</span>
+  <div className={`flex min-w-0 flex-col gap-0.5 ${className}`} style={{ alignItems: "var(--wp-x-cross, stretch)" }}>
+    <span className="max-w-full truncate text-[10.5px] text-[color:var(--w-faint)]" style={labelStyle("none")}>{label}</span>
+    <span className="max-w-full truncate text-[13px] font-medium tabular-nums text-[color:var(--w-fg)]">{value}</span>
   </div>
 );
 /** A footer row of label/value stats under a rule, `cols` per row (3 or 4). */
 export function StatGrid({ items, cols = 4 }: { items: { label: ReactNode; value: ReactNode }[]; cols?: 3 | 4 }) {
   return (
-    <div className={`grid ${cols === 3 ? "grid-cols-3" : "grid-cols-4"} gap-3 border-t border-[color:var(--w-track)] pt-3`}>
+    <div className={`grid ${cols === 3 ? "grid-cols-3" : "grid-cols-4"} border-t border-[color:var(--w-track)] pt-3`} style={{ gap: ws.gap("0.75rem") }}>
       {items.map((x, i) => (
         <Stat key={i} label={x.label} value={x.value} />
       ))}
@@ -350,7 +352,7 @@ export function LegendRow({ color, label, value, className = "text-[12.5px]" }: 
   return (
     <div className={`grid min-w-0 grid-cols-[10px_minmax(0,1fr)_auto] items-center gap-2 ${className}`}>
       <i className={`h-2.5 w-2.5 rounded-[3px] ${color ? "ring-1 ring-inset ring-[color:var(--w-fg)]/15" : ""}`} style={{ background: color ?? "transparent" }} />
-      <span className="truncate text-[color:var(--w-muted)]">{label}</span>
+      <span className="truncate text-[color:var(--w-muted)]" style={labelStyle("none")}>{label}</span>
       <span className="font-medium tabular-nums">{value}</span>
     </div>
   );
@@ -443,11 +445,11 @@ export function KenBurns({ src, className = "", on = true }: { src?: string; cla
     </div>
   );
 }
-// Logo image that falls back to a typeset title when the URL can't load
+// Logo image that falls back to a typeset title when the URL can't load (uppercase inline: a name, not a label, so the label case leaves it)
 export function Logo({ src, name, className = "", size = "text-3xl" }: { src?: string; name?: string; className?: string; size?: string }) {
   const [bad, setBad] = useState(false);
   useEffect(() => setBad(false), [src]);
-  if (!has(src) || bad) return <span className={`block font-black uppercase leading-[0.9] tracking-tight drop-shadow-[0_2px_12px_rgba(0,0,0,.8)] ${size} ${className}`}>{name}</span>;
+  if (!has(src) || bad) return <span style={{ textTransform: "uppercase" }} className={`block font-black leading-[0.9] tracking-tight drop-shadow-[0_2px_12px_rgba(0,0,0,.8)] ${size} ${className}`}>{name}</span>;
   return <img src={src} alt={name} onError={() => setBad(true)} className={`object-contain object-left drop-shadow-[0_4px_18px_rgba(0,0,0,.7)] ${className}`} />;
 }
 

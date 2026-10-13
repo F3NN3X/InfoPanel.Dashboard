@@ -63,6 +63,8 @@ interface GaugeViewProps {
   ft: number;
   hz: number;
   maxFps: number;
+  /** maxFps is the FPS target, not the refresh rate. */
+  targeted?: boolean;
   tone: Tone;
   ringColor?: string;
   sparkColor: string;
@@ -75,7 +77,7 @@ interface GaugeViewProps {
 }
 
 /** The FPS ring against the refresh rate, with 1% low, frame time, metrics and the display facts around it. */
-export function GaugeView({ idle, size, w, h, fps, low, low01, ft, hz, maxFps, tone, ringColor, sparkColor, hist, source, gpu, resolution, title, extras }: GaugeViewProps) {
+export function GaugeView({ idle, size, w, h, fps, low, low01, ft, hz, maxFps, targeted, tone, ringColor, sparkColor, hist, source, gpu, resolution, title, extras }: GaugeViewProps) {
   const color = ringColor || undefined;
   const tall = h >= w * 0.72;
   const ringSize = Math.max(40, tall ? Math.min(w * 0.7, h * 0.45, 150) : Math.min(h - (size === "xs" ? 4 : 24), w * 0.34, 140));
@@ -130,7 +132,7 @@ export function GaugeView({ idle, size, w, h, fps, low, low01, ft, hz, maxFps, t
   const spark = hist && <Spark values={hist} min={0} color={sparkColor} className="h-6 w-full" />;
   const sourceLine = (
     <span className="text-[10.5px] font-medium text-[color:var(--w-muted)]">
-      {source} · {fmt(maxFps)} Hz
+      {source} · {fmt(maxFps)} {targeted ? "fps target" : "Hz"}
     </span>
   );
   const side = size !== "sm" && w > 440;
@@ -194,7 +196,9 @@ export default function FpsMonitor(p: FpsMonitorProps) {
   const t: Tone = pct >= 0.9 ? "ok" : pct >= 0.5 ? "warn" : "crit";
   const gauge = p.view === "gauge" || p.view === "trend";
   const spark = p.sparkline || p.view === "trend";
-  const maxFps = hz > 0 ? hz : 144;
+  // the gauge's full scale and tone: the fps target when set, else the refresh rate
+  const targeted = p.target !== undefined && p.target > 0;
+  const maxFps = targeted ? p.target! : hz > 0 ? hz : 144;
   const ratio = fps / maxFps;
   const gt: Tone = ratio >= 0.9 ? "ok" : ratio >= 0.6 ? "warn" : "crit";
   const source = num(get(d, RTSS + "fps")) > 0 ? "RTSS" : has(get(d, PRESENTMON + "gpu utilization")) ? "PresentMon" : "FPS";
@@ -220,7 +224,7 @@ export default function FpsMonitor(p: FpsMonitorProps) {
     >
       {({ size, w, h }) =>
         gauge ? (
-          <GaugeView idle={idle} size={size} w={w} h={h} fps={fps} low={low} low01={low01} ft={ft} hz={hz} maxFps={maxFps} tone={gt} ringColor={p.ringColor} sparkColor={p.sparkColor || hue(120)} hist={spark ? fpsH : undefined} source={source} gpu={k("gpu-name")} resolution={k("resolution")} title={title} extras={p.showMetrics === false ? [] : extraMetrics(k, live)} />
+          <GaugeView idle={idle} size={size} w={w} h={h} fps={fps} low={low} low01={low01} ft={ft} hz={hz} maxFps={maxFps} targeted={targeted} tone={gt} ringColor={p.ringColor} sparkColor={p.sparkColor || hue(120)} hist={spark ? fpsH : undefined} source={source} gpu={k("gpu-name")} resolution={k("resolution")} title={title} extras={p.showMetrics === false ? [] : extraMetrics(k, live)} />
         ) : idle && size !== "xs" ? (
           <div className="flex h-full flex-col items-center justify-center gap-1 text-center">
             <Icon name="sports_esports" className="text-3xl text-[color:var(--w-faint)]" />

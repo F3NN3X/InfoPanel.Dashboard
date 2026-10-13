@@ -80,3 +80,67 @@ export function colorsOf(s: ModuleSettings, entries: readonly ColorEntry[]): Rec
   });
   return set.length ? Object.fromEntries(set) : undefined;
 }
+
+/* ───────── per-sensor overrides ───────── */
+
+/** What one bound sensor overrides over the shared values of its widget (blank = the shared value). */
+export interface ItemOverride {
+  label?: string;
+  max?: number;
+  warn?: number;
+  crit?: number;
+  decimals?: number;
+}
+export type ItemField = keyof ItemOverride;
+
+const finite = (v: unknown): number | undefined => (typeof v === "number" && Number.isFinite(v) ? v : undefined);
+
+/** One stored override narrowed field by field; bad fields are dropped. */
+function overrideOf(raw: unknown): ItemOverride {
+  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) return {};
+  const r = raw as Record<string, unknown>;
+  const label = typeof r.label === "string" && r.label.trim() ? r.label : undefined;
+  const max = finite(r.max);
+  const decimals = finite(r.decimals);
+  const out: ItemOverride = {
+    label,
+    max: max !== undefined && max > 0 ? max : undefined,
+    warn: finite(r.warn),
+    crit: finite(r.crit),
+    decimals: decimals !== undefined && Number.isInteger(decimals) && decimals >= 0 && decimals <= 4 ? decimals : undefined,
+  };
+  return Object.fromEntries(Object.entries(out).filter(([, v]) => v !== undefined));
+}
+
+/** The per-sensor overrides stored as a JSON object string (`{ [sensorKey]: ItemOverride }`); anything malformed is dropped, "" = none. */
+export function itemsOf(v: unknown): Record<string, ItemOverride> {
+  if (typeof v !== "string" || !v) return {};
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(v);
+  } catch {
+    return {};
+  }
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return {};
+  const entries = Object.entries(parsed).map(([key, raw]) => [key, overrideOf(raw)] as const).filter(([, o]) => Object.keys(o).length > 0);
+  return Object.fromEntries(entries);
+}
+
+const encode = (items: Record<string, ItemOverride>): string => (Object.keys(items).length ? JSON.stringify(items) : "");
+
+/** The stored string with one field of one sensor set (undefined = cleared); the other keys, even of unbound sensors, are kept. */
+export function setItemField(stored: unknown, key: string, field: ItemField, value: string | number | undefined): string {
+  const items = itemsOf(stored);
+  const next = overrideOf({ ...items[key], [field]: value });
+  const { [key]: _old, ...rest } = items;
+  return encode(Object.keys(next).length ? { ...rest, [key]: next } : rest);
+}
+
+/** The stored string without one sensor's overrides. */
+export function clearItem(stored: unknown, key: string): string {
+  const { [key]: _old, ...rest } = itemsOf(stored);
+  return encode(rest);
+}
+
+/** Per-sensor rows for the multi-sensor setting `of`, stored as a JSON string ("" = none). */
+export const itemsSetting = (key: string, label: string, of: string, extra: Extra = {}): ModuleSetting => ({ key, label, type: "sensorItems", default: "", of, ...extra });

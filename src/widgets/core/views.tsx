@@ -295,11 +295,15 @@ function useTuiRightFits(on: boolean) {
   return { leftRef, rightRef, fits };
 }
 
+/** The most space under a section header the look's gap may add. */
+export const HEADER_GAP_MAX = 12;
+
 export function SkinHeader({ kind, title, icon, right, bleed, bg = "#0b0b0d" }: SkinHeaderProps) {
   const sk = useSkin();
   const tuiRight = useTuiRightFits(kind === "tui" && !!right);
-  // The look's gap replaces the space under the header; its label case applies to every header.
-  const st = (def: "uppercase" | "none"): CSSProperties => ({ ...labelStyle(def), ...(sk.gap !== undefined ? { marginBottom: sk.gap } : null) });
+  // The look's gap replaces the space under the header (capped: a wide gap is for the items, and the body's
+  // own rows are counted without it); its label case applies to every header.
+  const st = (def: "uppercase" | "none"): CSSProperties => ({ ...labelStyle(def), ...(sk.gap !== undefined ? { marginBottom: Math.min(sk.gap, HEADER_GAP_MAX) } : null) });
   const r = right && <span className="ml-auto flex shrink-0 items-center gap-1.5 normal-case tracking-normal">{right}</span>;
   if (kind === "tui")
     return (

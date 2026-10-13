@@ -1,6 +1,6 @@
 import type { ModuleSettings } from "@/modules/types";
 import { fitFontPx } from "./fit-font";
-import { Widget, shell, get, num, fmt, fmtRate, detect, Spark, useHistory, useSkin, tone, TONES, hw, type ShellProps, type WidgetMeta } from "./kit";
+import { bodyGap, Widget, shell, get, num, fmt, fmtRate, detect, Spark, useHistory, useSkin, tone, TONES, hw, type ShellProps, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "Vitals",
@@ -48,7 +48,7 @@ function VitalCard({ m, hist, w, h, tui }: { m: Vital; hist: number[]; w: number
         {w > (tui ? 170 : 110) && <span className="truncate text-[10.5px] text-[color:var(--w-faint)]">{m.sub}</span>}
       </div>
       {graphRows && <Spark values={hist} min={0} max={m.max} className="mt-1 min-h-0 flex-1 opacity-80" />}
-      <span className="relative mt-auto block max-w-full overflow-hidden whitespace-nowrap pb-1 font-semibold leading-none tabular-nums" style={{ fontSize: fs, ...(t !== "ok" ? { color: TONES[t] } : null) }}>
+      <span className="relative mt-auto block max-w-full overflow-hidden text-ellipsis whitespace-nowrap pb-1 font-semibold leading-none tabular-nums" style={{ fontSize: fs, ...(t !== "ok" ? { color: TONES[t] } : null) }}>
         {text}
         <span className="ml-0.5 text-[0.5em] font-medium text-[color:var(--w-muted)]">{m.unit}</span>
       </span>
@@ -81,9 +81,9 @@ export default function Vitals(p: VitalsProps) {
     >
       {({ w, h }) => {
         const cols = w / h > 2.4 ? keys.length : w / h < 0.7 ? 1 : 2;
-        const cardW = (w - (cols - 1) * 8) / cols;
+        const cardW = (w - (cols - 1) * bodyGap(p.look, 8, w)) / cols;
         const rows = Math.ceil(keys.length / cols);
-        const cardH = (h - (rows - 1) * 8) / rows;
+        const cardH = (h - (rows - 1) * bodyGap(p.look, 8, h)) / rows;
         return (
           <div className="grid h-full gap-2" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))`, gridAutoRows: "minmax(0,1fr)" }}>
             {keys.map((k) => (

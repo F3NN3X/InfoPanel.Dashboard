@@ -1,7 +1,8 @@
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { STANDARD_SETTINGS } from "@/modules/standard-settings";
-import { effectiveSettings, type SensorMap } from "@/modules/types";
+import { isVisible } from "@/components/studio/inspector-model";
+import { effectiveSettings, type ModuleSettings, type SensorMap } from "@/modules/types";
 import snapshot from "../__fixtures__/snapshot.json";
 import { GROUP_D } from "./d";
 
@@ -26,8 +27,9 @@ const MANIFEST: Record<string, Record<string, string[]>> = {
 };
 // Props the template has that its spec block does not list.
 const BEYOND_SPEC: Record<string, Record<string, string[]>> = {
-  FpsMonitor: { view: ["view"], showMetrics: ["showMetrics"], sparkline: ["sparkline"], ringColor: ["ringColor"], sparkColor: ["sparkColor"] },
-  GameSpotlight: { showStats: ["showStats"], showNews: ["showNews"] },
+  FpsMonitor: { view: ["view"], showMetrics: ["showMetrics"], sparkline: ["sparkline"], ringColor: ["ringColor"], sparkColor: ["sparkColor"], hideWhenIdle: ["hideWhenIdle"] },
+  GameSpotlight: { showStats: ["showStats"], showNews: ["showNews"], hideWhenIdle: ["hideWhenIdle"] },
+  SteamGame: { hideWhenIdle: ["hideWhenIdle"] },
   Achievements: { display: ["display"] },
 };
 
@@ -70,4 +72,43 @@ describe("group D inspector schema", () => {
       });
     });
   }
+});
+
+describe("group D dependent settings", () => {
+  const shown = (id: string, values: ModuleSettings) => {
+    const mod = GROUP_D.find((m) => m.id === id)!;
+    return (mod.settings ?? []).filter((d) => isVisible(d, { ...effectiveSettings(mod, {}), ...values })).map((d) => d.key);
+  };
+
+  it("hides the gauge-only FpsMonitor settings in the frame-time graph", () => {
+    const hidden = ["showMetrics", "sparkline", "ringColor", "sparkColor"];
+    for (const k of hidden) expect(shown("FpsMonitor", {})).not.toContain(k);
+    for (const view of ["gauge", "trend"]) for (const k of hidden) expect(shown("FpsMonitor", { view })).toContain(k);
+    expect(shown("FpsMonitor", {})).toContain("target");
+  });
+
+  it("gates the GameSpotlight scrim, motion, music card and composite toggles on the layout", () => {
+    const layouts: Record<string, string[]> = {
+      hero: ["motion", "scrim"],
+      ticker: ["motion"],
+      poster: [],
+      logo: ["motion", "scrim"],
+      combo: ["motion", "scrim", "music", "progress"],
+      composite: ["motion", "scrim", "showStats", "showNews"],
+    };
+    const gated = ["motion", "scrim", "music", "progress", "vizMode", "showStats", "showNews"];
+    for (const [spotlightLayout, expected] of Object.entries(layouts)) {
+      const keys = shown("GameSpotlight", { spotlightLayout });
+      expect(gated.filter((k) => keys.includes(k)), spotlightLayout).toEqual(gated.filter((k) => expected.includes(k)));
+    }
+    expect(shown("GameSpotlight", { spotlightLayout: "combo", progress: "visualizer" })).toContain("vizMode");
+  });
+
+  it("offers Hide when idle on FpsMonitor, GameSpotlight and SteamGame, and each has an idle rule", () => {
+    for (const id of ["FpsMonitor", "GameSpotlight", "SteamGame"]) {
+      const mod = GROUP_D.find((m) => m.id === id)!;
+      expect((mod.settings ?? []).map((d) => d.key)).toContain("hideWhenIdle");
+      expect(mod.isIdle?.({}, {}), id).toBe(true);
+    }
+  });
 });

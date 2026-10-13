@@ -44,7 +44,7 @@ export interface MeterBridgeProps extends ShellProps {
   /** dB, default -60 */
   floor?: number;
   segments?: number;
-  /** default 1500 */
+  /** Peak-hold time; set, it replaces the preset's own hold. Unset without ballistics: 1500 (the setting shows the peak preset's 1200, which zones always pass). */
   holdMs?: number;
   /** default -18 */
   warnDb?: number;
@@ -61,7 +61,7 @@ export interface MeterBridgeProps extends ShellProps {
   showDetails?: boolean;
   /** Muted marker (from the volume plugin); default on. */
   showMute?: boolean;
-  /** Meter response; unset keeps the level as it is and the peak hold of `holdMs`. */
+  /** Meter response; unset keeps the level as it is and the peak hold of `holdMs` (default 1500). */
   ballistics?: BallisticsPreset;
   /** Colour of the safe zone, default the accent. */
   levelColor?: string;
@@ -91,10 +91,10 @@ export default function MeterBridge(p: MeterBridgeProps) {
     if (!hv || cur >= hv.v || now - hv.t > holdMs) hold.current[key] = { v: cur, t: now };
     return hold.current[key].v;
   };
-  // with ballistics the smoothed level and the preset's own hold replace the raw level and `holdMs`
+  // with ballistics the smoothed level and the preset's own hold replace the raw level and `holdMs`, unless `holdMs` is set
   const side = (id: string, key: "l" | "r", pct: number) => {
     const sm = step(id + key, pct);
-    return { db: dbOf(sm.v), held: p.ballistics ? (sm.hold !== undefined ? dbOf(sm.hold) : -Infinity) : undefined };
+    return { db: dbOf(sm.v), held: p.ballistics && p.holdMs === undefined ? (sm.hold !== undefined ? dbOf(sm.hold) : -Infinity) : undefined };
   };
   const ch: Channel[] = picked.map(({ pl, pr, ...c }) => {
     const l = side(c.id, "l", pl),

@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import type { ModuleSettings } from "@/modules/types";
-import { useFitRows, Widget, shell, get, num, fmt, STATE, hw, Pill, type ShellProps, type WidgetMeta } from "./kit";
+import { bodyGap, useFitRows, Widget, shell, get, num, fmt, STATE, hw, Pill, type ShellProps, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "StatusTracker",
@@ -81,8 +81,11 @@ export default function StatusTracker(p: StatusTrackerProps) {
       }}
     >
       {({ w, h }) => {
-        const labelW = w > 360 ? 112 : 76,
-          rowsFit = useFitRows(h - (h > 130 ? 46 : 0), 24, 10);
+        // the look's gap spaces the rows and the two legend lines; with it set, budget the legend's
+        // full height (the axis line and up to two lines of pills)
+        const g = bodyGap(p.look, 10, h),
+          labelW = w > 360 ? 112 : 76,
+          rowsFit = useFitRows(h - (h > 130 ? (g === 10 ? 46 : 64 + 2 * g) : 0), 24, g);
         return (
           <div className="flex h-full min-w-0 flex-col gap-2.5">
             {tracks.slice(0, rowsFit).map((t) => (

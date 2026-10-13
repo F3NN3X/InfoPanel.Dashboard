@@ -132,8 +132,8 @@ export const vitalsProps = (s: ModuleSettings): Partial<VitalsProps> => ({ metri
 export const CPUMONITOR_SETTINGS: ModuleSetting[] = [
   deviceSetting("cpu", "Processor", "cpu", { group: "CPU monitor" }),
   enumSetting("coreView", "Threads view", "bars", opts(["bars", "Bars"], ["heatmap", "Heatmap"], ["off", "Off"]), { group: "CPU monitor" }),
-  enumSetting("coreMetric", "Thread metric", "load", opts(["load", "Load"], ["clock", "Clock"]), { group: "CPU monitor" }),
-  enumSetting("heatRamp", "Heatmap ramp", "accent", opts(["accent", "Accent"], ["thermal", "Thermal"]), { tab: "style", advanced: true, group: "CPU monitor" }),
+  enumSetting("coreMetric", "Thread metric", "load", opts(["load", "Load"], ["clock", "Clock"]), { group: "CPU monitor", visibleIf: (v) => v.coreView !== "off" }),
+  enumSetting("heatRamp", "Heatmap ramp", "accent", opts(["accent", "Accent"], ["thermal", "Thermal"]), { tab: "style", advanced: true, group: "CPU monitor", visibleIf: (v) => v.coreView === "heatmap" }),
   ...warnCrit("warn", "crit", 75, 90, "%"),
 ];
 export const cpuMonitorProps = (s: ModuleSettings): Partial<CpuMonitorProps> => ({
@@ -150,9 +150,9 @@ export const COREHEATMAP_SETTINGS: ModuleSetting[] = [
   deviceSetting("cpu", "Processor", "cpu", { group: "Core heatmap" }),
   enumSetting("shape", "Shape", "grid", opts(["grid", "Grid"], ["hex", "Hexagons"], ["radial", "Radial"], ["waterfall", "Waterfall"]), { group: "Core heatmap" }),
   enumSetting("metric", "Metric", "load", opts(["load", "Load"], ["clock", "Clock"], ["power", "Power"], ["vid", "Voltage (VID)"]), { group: "Core heatmap" }),
-  enumSetting("showValues", "Values in cells", "auto", opts(["auto", "Auto"], ["on", "Show"], ["off", "Hide"]), { group: "Core heatmap" }),
+  enumSetting("showValues", "Values in cells", "auto", opts(["auto", "Auto"], ["on", "Show"], ["off", "Hide"]), { group: "Core heatmap", visibleIf: (v) => v.shape === "grid" || v.shape === "hex" }),
   numberSetting("history", "Waterfall columns", 60, { min: 10, max: 240, step: 10, group: "Core heatmap", visibleIf: (v) => v.shape === "waterfall" }),
-  numberSetting("hotOutline", "Outline cells above load (%)", 80, { min: 0, max: 100, step: 5, group: "Core heatmap" }),
+  numberSetting("hotOutline", "Outline cells above (%)", 80, { min: 0, max: 100, step: 5, group: "Core heatmap", hint: "Share of the metric's highest value (load: percent)", visibleIf: (v) => v.shape === "grid" }),
   enumSetting("ramp", "Color ramp", "accent", RAMPS.map((v) => ({ value: v, label: v[0].toUpperCase() + v.slice(1) })), { tab: "style", advanced: true, group: "Core heatmap" }),
 ];
 export const coreHeatmapProps = (s: ModuleSettings): Partial<CoreHeatmapProps> => ({

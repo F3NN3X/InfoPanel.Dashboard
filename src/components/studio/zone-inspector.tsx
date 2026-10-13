@@ -211,7 +211,7 @@ export function ZoneInspector({
   const fields: FieldsApi = {
     values,
     shown: (key, def) => shownValue(values, key, def),
-    onChange: (key, v) => update((p) => withSettings(p, { [key]: v }, enforce), `setting:${key}`),
+    onChange: (key, v, editKey) => update((p) => withSettings(p, { [key]: v }, enforce), `setting:${editKey ?? key}`),
     onPatch: (patch) => update((p) => withSettings(p, patch, enforce), `setting:${Object.keys(patch).join()}`),
     onClear: (keys) => update((p) => withoutSettings(p, keys)),
     onOpenExplorer,

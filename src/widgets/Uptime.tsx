@@ -1,6 +1,6 @@
 import { Fragment } from "react";
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, Num, type ShellProps, type WidgetMeta } from "./kit";
+import { bodyGap, Widget, shell, get, num, Num, type ShellProps, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "Uptime",
@@ -31,7 +31,7 @@ export default function Uptime(p: UptimeProps) {
   const pad = (v: number) => String(Number.isFinite(v) ? v : 0).padStart(2, "0");
   return (
     <Widget {...shell(p)} title={p.title ?? "Uptime"} icon="timer" compact={{ label: "Uptime", value: `${k("days")}d ${k("hours")}h`, sub: `${pad(k("minutes"))}m ${pad(k("seconds"))}s`, kind: "value" }}>
-      {({ size }) =>
+      {({ size, w }) =>
         size === "xs" ? (
           <div className="flex h-full flex-col justify-center">
             <span className="text-[11px] text-[color:var(--w-muted)]">Uptime</span>
@@ -40,7 +40,8 @@ export default function Uptime(p: UptimeProps) {
             </Num>
           </div>
         ) : (
-          <div className="flex h-full items-center justify-between gap-2">
+          // the look's gap is the space between two numbers, split around the colon
+          <div className="flex h-full items-center justify-between gap-2" style={{ columnGap: bodyGap(p.look, 16, w) / 2 }}>
             {shown.map(([u, v, l], i) => (
               <Fragment key={u}>
                 {i > 0 && <span className="pb-4 text-2xl font-light text-[color:var(--w-faint)]">:</span>}

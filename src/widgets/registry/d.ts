@@ -1,5 +1,8 @@
 // Template widgets, group D: gaming (see docs/redesign/phase9/brief-9.3c-templates.md).
-import type { DashboardModule, ModuleSettings } from "@/modules/types";
+import { fpsModernModule } from "@/modules/fps-modern";
+import { steamModernModule } from "@/modules/steam-modern";
+import { IDLE_SETTING } from "@/modules/standard-settings";
+import type { DashboardModule, ModuleSetting, ModuleSettings } from "@/modules/types";
 import { templateModule } from "../module";
 import { boolSetting, colorSettings, enumSetting, listOf, numberOf, numberSetting, oneOf, splitKeys, textSetting, type ColorEntry } from "./settings-kit";
 import Achievements, { meta as achievementsMeta, type AchievementsProps } from "../Achievements";
@@ -24,6 +27,12 @@ const targetOf = (v: unknown): number | undefined => {
 };
 const targetSetting = (group: string) => numberSetting("target", "FPS target (0 = refresh rate)", 0, { min: 0, max: 360, step: 5, group });
 
+/** The gauge and trend views read the metrics, sparkline and colours; the frame-time graph reads none of them. */
+const gaugeOnly = (d: ModuleSetting): ModuleSetting => ({ ...d, visibleIf: (v) => v.view !== "frametime" });
+/** GameSpotlight layouts that draw their own fixed gradient instead of the scrim. */
+const FIXED_SCRIM = ["ticker", "poster"];
+const layoutIs = (...layouts: string[]) => (v: ModuleSettings) => layouts.includes(String(v.spotlightLayout));
+
 const PLAYTIME_COLORS: ColorEntry[] = PALETTE.map((_, i) => ({ entry: String(i), key: `color${i + 1}`, label: `Slice ${i + 1} color` }));
 /** The slice colours: a stored `colors` list, else the per-slice colours (an unset slice keeps its default). */
 function playtimeColors(s: ModuleSettings): string[] | undefined {
@@ -43,7 +52,9 @@ export const GROUP_D: DashboardModule[] = [
   templateModule<Pick<FpsMonitorProps, "target" | "view" | "showMetrics" | "sparkline" | "ringColor" | "sparkColor">>({
     meta: fpsMonitorMeta,
     Component: FpsMonitor,
+    isIdle: fpsModernModule.isIdle,
     settings: [
+      IDLE_SETTING,
       {
         key: "view",
         label: "View",
@@ -57,21 +68,23 @@ export const GROUP_D: DashboardModule[] = [
         group: "Content",
       },
       targetSetting("Content"),
-      ...FPS_LOOK_SETTINGS,
+      ...FPS_LOOK_SETTINGS.map(gaugeOnly),
     ],
     toProps: (s: ModuleSettings) => ({ target: targetOf(s.target), ...fpsLookProps(s) }),
   }),
   templateModule<Pick<GameSpotlightProps, "layout" | "motion" | "scrim" | "music" | "progress" | "vizMode" | "showStats" | "showNews">>({
     meta: gameSpotlightMeta,
     Component: GameSpotlight,
+    isIdle: steamModernModule.isIdle,
     settings: [
+      IDLE_SETTING,
       SPOTLIGHT_LAYOUT_SETTING,
-      boolSetting("motion", "Ken Burns motion", true, { group: "Content" }),
-      numberSetting("scrim", "Scrim darkness", 0.6, { min: 0, max: 1, step: 0.05, group: "Content" }),
-      ...SPOTLIGHT_COMPOSITE_SETTINGS,
-      enumSetting("music", "Music source", "media", [{ value: "media", label: "Media" }, { value: "spotify", label: "Spotify" }], { group: "Music card" }),
-      enumSetting("progress", "Music progress", "wave", [{ value: "wave", label: "Wave" }, { value: "visualizer", label: "Visualizer" }], { group: "Music card" }),
-      enumSetting("vizMode", "Visualizer mode", "bars", ["bars", "mirror", "wave", "dots", "line"].map((v) => ({ value: v, label: v[0].toUpperCase() + v.slice(1) })), { group: "Music card" }),
+      boolSetting("motion", "Ken Burns motion", true, { group: "Content", visibleIf: (v) => v.spotlightLayout !== "poster" }),
+      numberSetting("scrim", "Scrim darkness", 0.6, { min: 0, max: 1, step: 0.05, group: "Content", visibleIf: (v) => !FIXED_SCRIM.includes(String(v.spotlightLayout)) }),
+      ...SPOTLIGHT_COMPOSITE_SETTINGS.map((d) => ({ ...d, visibleIf: layoutIs("composite") })),
+      enumSetting("music", "Music source", "media", [{ value: "media", label: "Media" }, { value: "spotify", label: "Spotify" }], { group: "Music card", visibleIf: layoutIs("combo") }),
+      enumSetting("progress", "Music progress", "wave", [{ value: "wave", label: "Wave" }, { value: "visualizer", label: "Visualizer" }], { group: "Music card", visibleIf: layoutIs("combo") }),
+      enumSetting("vizMode", "Visualizer mode", "bars", ["bars", "mirror", "wave", "dots", "line"].map((v) => ({ value: v, label: v[0].toUpperCase() + v.slice(1) })), { group: "Music card", visibleIf: (v) => layoutIs("combo")(v) && v.progress === "visualizer" }),
     ],
     toProps: (s) => ({
       // The standard `layout` keeps its meaning; the template's own layout is stored as `spotlightLayout`.
@@ -130,7 +143,9 @@ export const GROUP_D: DashboardModule[] = [
   templateModule<Pick<SteamGameProps, "art" | "scrim">>({
     meta: steamGameMeta,
     Component: SteamGame,
+    isIdle: steamModernModule.isIdle,
     settings: [
+      IDLE_SETTING,
       enumSetting("art", "Artwork", "banner", [{ value: "banner", label: "Banner" }, { value: "grid", label: "Grid" }, { value: "none", label: "None" }], { group: "Steam game" }),
       numberSetting("scrim", "Scrim darkness", 0.55, { min: 0, max: 1, step: 0.05, group: "Steam game" }),
     ],

@@ -23,6 +23,7 @@ their `group` (`categorize`); values are stored **per placement**
 |---|---|---|---|
 | `text` | text input | string | — |
 | `number` | slider (when `min`/`max` set), else number field | number | `min`, `max`, `step` |
+| `sensorItems` | one row per sensor of the multi-sensor setting named in `of`: label, max, warn, crit, decimals, reset | JSON string `{ [sensorKey]: { label?, max?, warn?, crit?, decimals? } }`, `""` = none; overrides of unbound keys are kept and ignored | `of` |
 | `select` | segmented (≤ 4 options) else dropdown; `multiple: true` renders a checkbox list (value stored comma-separated) | string option value | `options[]`, `optionsFrom: "sources"` + `sourcePlugin` (live sensor device list — see below), or `optionsFrom: "media"` (the browser's audio-capture devices) |
 | `boolean` | toggle | boolean | — |
 | `color` | native color picker | `#rrggbb` (empty = auto) | — |
@@ -523,6 +524,17 @@ font sizes come from the room that is really there. `ModernChrome`
   the theme surface, a panel's widgets — follows the widget's colors, and
   so the global style. `placementContent` returns the same tokens as
   `scope` for the zone frame.
+- **Template bodies** — library templates honour alignment, label case and
+  gap in their body as well as their header. The shell marks the body with
+  `data-wp-body` plus `data-wp-x` / `data-wp-y` / `data-wp-gap` only for
+  values other than `auto`, and rules in `src/index.css` place the body's
+  root flex / grid and its items. The primitives (`Metric`, `Stat`,
+  `BarRow`, `LegendRow`, `StatGrid`) read the variables inline. A look gap
+  is capped at 6 % of the body per gap. A template that counts its own
+  rows uses `bodyGap(look, def, room)`. The space under a section header
+  follows the gap up to 12 px. With every option on `auto`, a template
+  renders exactly as before. Graphic-only bodies (Visualizer, art-backed
+  Game Spotlight and Steam Game) align only their text.
 - **Surface box** — `surfaceBox(sv, chrome)` builds the widget's surface
   (background, text color, edge) with the border, glow, opacity and blur
   options applied. The glow sits inside the edge: an outer one would be
