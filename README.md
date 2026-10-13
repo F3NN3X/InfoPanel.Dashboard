@@ -12,7 +12,7 @@ Dashboard server (127.0.0.1:3922) ──page, config──▶ browser / InfoPane
 
 - Node.js 20 or newer
 - InfoPanel with its Data API enabled (it provides `/api/sensors` and `/events`, by default on `http://127.0.0.1:3921`)
-- Optional: the `wavelink-plugin` for the Wave Link widget and the `yr-weather-plugin` for the weather forecast
+- Optional: the `wavelink-plugin` for the Wave Link widget, the `yr-weather-plugin` for the weather forecast, and `InfoPanel.Notifications` 2.0+ for alerts on Windows notifications
 
 ## Run it
 
