@@ -1,9 +1,10 @@
 // The legacy media widgets' settings (spotifymodern / mediamodern), shared with the NowPlaying
 // template module, and the mapping from those stored keys to NowPlaying props.
 import type { ModuleSetting, ModuleSettings } from "@/modules/types";
-import { LIVE_TUNING_DEFAULTS, LIVE_TUNING_KEYS, type LiveTuning, type VizEngine } from "../core/media-progress";
+import { VIZ_STYLES, type VizLook, type VizStyle } from "../core/viz/types";
 import type { NowPlayingProps } from "../NowPlaying";
-import { boolSetting, colorSetting, deviceSetting, enumSetting, oneOf } from "../registry/settings-kit";
+import { boolSetting, deviceSetting, enumSetting, numberOf, oneOf } from "../registry/settings-kit";
+import { vizLookOf } from "../registry/viz-settings";
 
 /** The audio-level-meter plugin, which drives the visualizers' live level. */
 export const AUDIO_LEVEL = "plugins.audio-level-meter.";
@@ -280,19 +281,8 @@ export const PLAYER_LAYOUT: ModuleSetting = {
   group: "Now playing",
 };
 
-/** What draws the visualiser in the template (the legacy modules pick it from `waveform` / `visualizer`). */
-export const VIZ_ENGINE: ModuleSetting = {
-  key: "vizEngine",
-  label: "Visualizer engine",
-  type: "select",
-  default: "mini",
-  options: [
-    { value: "mini", label: "Inline canvas" },
-    { value: "waveform", label: "Live waveform" },
-    { value: "bars", label: "Bar visualizer" },
-  ],
-  group: "Visualizer",
-};
+/** The template's styles, one picker; choosing one clears a stored legacy `vizEngine` (read by `vizStyleOf`). */
+const STYLE_OPTIONS = VIZ_STYLES.map((v) => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1), applies: { vizEngine: "mini" } }));
 
 /**
  * The template's own props: `vizMode` and `vizDevice` are stored under the legacy keys `waveformVariant` and
@@ -301,18 +291,62 @@ export const VIZ_ENGINE: ModuleSetting = {
 export const NOW_PLAYING_OWN: ModuleSetting[] = [
   enumSetting("source", "Source", "auto", [{ value: "auto", label: "Auto" }, { value: "media", label: "Windows Media" }, { value: "spotify", label: "Spotify" }, { value: "pushed", label: "Pushed" }], { group: "Now playing" }),
   boolSetting("showArt", "Cover art", true, { group: "Now playing" }),
-  enumSetting("progress", "Progress row", "bar", [{ value: "bar", label: "Bar" }, { value: "wave", label: "Wave" }, { value: "visualizer", label: "Visualizer" }], { group: "Now playing" }),
-  enumSetting(
-    "waveformVariant",
-    "Visualizer mode",
-    "bars",
-    [{ value: "bars", label: "Bars" }, { value: "mirror", label: "Mirror" }, { value: "wave", label: "Wave" }, { value: "dots", label: "Dots" }, { value: "line", label: "Line" }],
-    { group: "Visualizer" },
-  ),
+  enumSetting("progress", "Progress row", "bar", [{ value: "bar", label: "Bar" }, { value: "wave", label: "Wavy progress bar" }, { value: "visualizer", label: "Visualizer" }], { group: "Now playing" }),
+  enumSetting("waveformVariant", "Visualizer style", "bars", STYLE_OPTIONS, { group: "Visualizer" }),
   deviceSetting("liveSource", "Visualizer device", "audio", { group: "Visualizer" }),
   boolSetting("showTimeline", "Timeline under the visualizer", true, { group: "Visualizer" }),
-  colorSetting("vizRamp", "Visualizer color", { group: "Visualizer" }),
 ];
+
+/** What drew the visualiser before one renderer: the template's stored `vizEngine`, or the legacy modules' switches. */
+export type LegacyEngine = "mini" | "waveform" | "bars";
+
+/**
+ * The style from the stored keys. `waveform` (live waveform): scrolling (its default) = `scroll`,
+ * static = bars, or line / mirror per `waveformVariant`; `bars` (bar visualizer): bars, or mirror when
+ * `waveformVariant` or `visualizerMirrored` says so; `mini` (or none): `waveformVariant` as saved.
+ */
+export function vizStyleOf(s: ModuleSettings, engine: LegacyEngine = oneOf(s.vizEngine, ["mini", "waveform", "bars"]) ?? "mini"): VizStyle {
+  const v = s.waveformVariant;
+  if (engine === "waveform") return (s.waveformMode ?? "scrolling") !== "static" ? "scroll" : v === "line" || v === "mirror" ? v : "bars";
+  if (engine === "bars") return v === "mirror" || s.visualizerMirrored ? "mirror" : "bars";
+  return oneOf(v, VIZ_STYLES) ?? "bars";
+}
+
+/** The legacy shape keys' defaults: a value equal to one is not a choice, so the skin keeps the shape. */
+const SHAPE_DEFAULTS = { waveformBarWidth: 3, waveformBarGap: 1, waveformBarRadius: 1.5, waveformMinBarHeight: 4 };
+const chosenNum = (s: ModuleSettings, key: keyof typeof SHAPE_DEFAULTS): number | undefined => {
+  const n = numberOf(s[key]);
+  return n === undefined || n === SHAPE_DEFAULTS[key] ? undefined : n;
+};
+
+/**
+ * The look from the old engines' keys, at their defaults when unset: bar count, alignment, orientation,
+ * resting level, line width, edge fade and sensitivity. The hidden shape keys count only when saved
+ * away from their default: bar width + gap give the gap (unless `vizGap` is set), radius 0 a square
+ * bar (unless `vizShape` is chosen), the minimum bar height a floor in px.
+ */
+export function tuningLookOf(s: ModuleSettings): Partial<VizLook> {
+  const n = (key: string, def: number) => numberOf(s[key]) ?? def;
+  const width = chosenNum(s, "waveformBarWidth");
+  const gapPx = chosenNum(s, "waveformBarGap");
+  const radius = chosenNum(s, "waveformBarRadius");
+  const minPx = chosenNum(s, "waveformMinBarHeight");
+  const gapSet = numberOf(s.vizGap) !== undefined;
+  const shapeSet = s.vizShape !== undefined && s.vizShape !== "" && s.vizShape !== "auto";
+  return {
+    count: n("visualizerBarCount", 24),
+    align: oneOf(s.visualizerAlign, ["start", "center", "end"]) ?? "center",
+    orientation: oneOf(s.visualizerOrientation, ["horizontal", "vertical"]) ?? "horizontal",
+    minLevel: n("visualizerMinLevel", 0.08),
+    lineWidth: n("waveformLineWidth", 1.5),
+    fade: s.waveformFadeEdges === undefined || Boolean(s.waveformFadeEdges) ? n("waveformFadeWidth", 24) : 0,
+    gain: n("waveformSensitivity", 1),
+    scrollAs: s.waveformVariant === "line" ? "line" : "bars",
+    ...(!gapSet && (width !== undefined || gapPx !== undefined) ? { gap: (gapPx ?? 1) / ((width ?? 3) + (gapPx ?? 1)) } : null),
+    ...(!shapeSet && radius !== undefined ? { shape: radius === 0 ? ("square" as const) : ("round" as const) } : null),
+    ...(minPx !== undefined ? { minPx } : null),
+  };
+}
 
 /**
  * The pinned Web Audio capture devices (one visualizer row each). Only active while `liveCapture`
@@ -328,20 +362,8 @@ export function captureDeviceIdsOf(s: ModuleSettings): string[] | undefined {
   return ids.length > 0 ? ids : undefined;
 }
 
-/** The live engines' options from their stored keys (unset keys keep the engine default). */
-export function liveTuningOf(s: ModuleSettings): Partial<LiveTuning> {
-  const out: Record<string, unknown> = {};
-  for (const key of LIVE_TUNING_KEYS) {
-    const v = s[key];
-    if (v === undefined || v === "") continue;
-    const def = LIVE_TUNING_DEFAULTS[key];
-    out[key] = typeof def === "number" ? Number(v) : typeof def === "boolean" ? Boolean(v) : String(v);
-  }
-  return out as Partial<LiveTuning>;
-}
-
-/** The props both the legacy modules and the template module read from the shared keys. */
-export function sharedPropsOf(s: ModuleSettings): Partial<NowPlayingProps> {
+/** The props both the legacy modules and the template module read from the shared keys; `tuning` = where the old engines' keys are read (`tuningLookOf`). */
+export function sharedPropsOf(s: ModuleSettings, tuning: ModuleSettings = s): Partial<NowPlayingProps> {
   return {
     layout: oneOf(s.playerLayout, ["card", "vinyl", "backdrop", "wave"]),
     showTimes: s.showTimes === undefined ? undefined : Boolean(s.showTimes),
@@ -349,23 +371,22 @@ export function sharedPropsOf(s: ModuleSettings): Partial<NowPlayingProps> {
     tint: s.tint === undefined ? undefined : Boolean(s.tint),
     artBackground: s.artBackground === undefined ? undefined : Boolean(s.artBackground),
     captureDevices: captureDeviceIdsOf(s),
-    ...liveTuningOf(s),
+    vizLook: { ...vizLookOf(s), ...tuningLookOf(tuning) },
   };
 }
 
 /**
  * The legacy modules' props: `visualizer` (bar visualizer, wins) or `waveform` (live waveform)
- * replace the progress bar; `visualizerMirrored` / `waveformVariant` become the engine's `vizMode`;
- * `liveSource` "" = the loudest live device.
+ * replace the progress bar and pick the style as `vizStyleOf` does; `liveSource` "" = the loudest
+ * live device.
  */
 export function legacyPropsOf(s: ModuleSettings, source: "spotify" | "media"): Partial<NowPlayingProps> {
-  const engine: VizEngine | undefined = s.visualizer ? "bars" : s.waveform ? "waveform" : undefined;
+  const engine: LegacyEngine | undefined = s.visualizer ? "bars" : s.waveform ? "waveform" : undefined;
   return {
     ...sharedPropsOf(s),
     source,
     progress: engine ? "visualizer" : "bar",
-    vizEngine: engine ?? "mini",
-    vizMode: s.visualizer ? (s.visualizerMirrored ? "mirror" : "bars") : oneOf(s.waveformVariant, ["bars", "line", "mirror"]),
+    vizMode: vizStyleOf(s, engine ?? "mini"),
     vizDevice: String(s.liveSource ?? ""),
   };
 }

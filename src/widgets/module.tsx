@@ -31,7 +31,8 @@ export interface TemplateOptions<P extends object> {
   /** The template's own settings, after the standard block. */
   settings: ModuleSetting[];
   /** The template's props from its resolved settings. */
-  toProps: (settings: ModuleSettings) => P;
+  /** `saved` is the zone's own stored values, for keys the schema no longer lists (read, not offered). */
+  toProps: (settings: ModuleSettings, saved?: ModuleSettings) => P;
   isIdle?: DashboardModule["isIdle"];
   /** Further prefixes the template reads without owning them (`DashboardModule.reads`). */
   prefixes?: string[];
@@ -124,7 +125,7 @@ export function templateModule<P extends object>({ meta, Component, settings, to
     const data = useMemo(() => toFlat(sensors), [sensors]);
     const names = useMemo(() => toNames(sensors), [sensors]);
     const look = useZoneLook(all, saved, surfaceDefault);
-    return <Component data={data} names={names} {...shellProps(look)} {...toProps(look)} look={look} />;
+    return <Component data={data} names={names} {...shellProps(look)} {...toProps(look, saved)} look={look} />;
   }
   return mod;
 }
