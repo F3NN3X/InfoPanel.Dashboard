@@ -37,12 +37,15 @@ export const GROUP_C: DashboardModule[] = [
     meta: nowPlaying,
     Component: NowPlaying,
     settings: NOW_PLAYING_SETTINGS,
+    // the visualiser's levels: read, not owned (the legacy media modules do the same)
+    prefixes: ["plugins.audio-level-meter."],
     // vizMode / vizDevice are stored under the legacy keys waveformVariant / liveSource (PHASE9_PLAN §3.2)
     toProps: (s) => ({
       ...pick<NowPlayingProps>(["source", "showArt", "progress", "showTimeline", "vizEngine"])(s),
       ...sharedPropsOf(s),
       vizMode: oneOf(s.waveformVariant, MODES),
-      vizDevice: stringOf(s.liveSource),
+      // unset / Auto = "" (the loudest live device), as the legacy media modules; undefined would pin default-audio
+      vizDevice: String(s.liveSource ?? ""),
       vizRamp: stringOf(s.vizRamp),
     }),
   }),

@@ -109,6 +109,8 @@ export const GROUP_B: DashboardModule[] = [
   templateModule({
     meta: Calendar.meta,
     Component: Calendar.default,
+    // the date comes from the clock plugin, owned by Clock
+    prefixes: ["plugins.clock-plugin."],
     settings: [enumSetting("weekStart", "Week starts on", "1", [{ value: "1", label: "Monday" }, { value: "0", label: "Sunday" }], { group: "Calendar" })],
     toProps: (s): Partial<Calendar.CalendarProps> => ({ weekStart: numberOf(oneOf(String(s.weekStart), ["0", "1"])) }),
   }),

@@ -110,7 +110,7 @@ A zone only re-renders when one of the keys it reads changes.
   (a bound sensor, discovered hardware: System overview, Vitals, Thermals,
   Sensor value, …) is marked `readsAll` by `templateModule` and gets `null`, so
   it subscribes to every stream. A module with no prefixes and no data need
-  (Web Page, Calendar; Wave Link, which reads its own stream)
+  (Web Page; Wave Link, which reads its own stream)
   subscribes to nothing and opens no sensor stream.
 - `LivePlacement` calls `useSensors(prefixes)` (`src/hooks/useSensors.ts`).
   That retains the namespaces for the lifetime of the component and wraps the

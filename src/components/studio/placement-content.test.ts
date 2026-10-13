@@ -46,7 +46,13 @@ describe("placementPrefixes", () => {
 
   it("subscribes a template that reads unnamed keys to every stream, but not a sensorless one", () => {
     for (const id of ["SystemOverview", "SensorValue", "Thermals", "GameSpotlight"]) expect(placementPrefixes(place({ module: id }))).toBeNull();
-    for (const id of ["WaveLink", "WebPage", "Calendar", "webpage"]) expect(placementPrefixes(place({ module: id }))).toEqual([]);
+    for (const id of ["WaveLink", "WebPage", "webpage"]) expect(placementPrefixes(place({ module: id }))).toEqual([]);
+  });
+
+  it("subscribes a template to the streams it reads but does not own", () => {
+    // the visualiser's levels (it read them only when another zone on the profile opened that stream)
+    expect(placementPrefixes(place({ module: "NowPlaying" }))).toContain("plugins.audio-level-meter.");
+    expect(placementPrefixes(place({ module: "Calendar" }))).toEqual(["plugins.clock-plugin."]);
   });
 });
 
