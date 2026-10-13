@@ -53,7 +53,7 @@ function CaptureRow({ deviceId, data, device, style, look, className }: RowProps
       <span className="w-24 shrink-0 truncate text-[10px] font-medium tracking-wide text-[color:var(--w-muted)]" title={name}>
         {name}
       </span>
-      {capture.status === "error" ? (
+      {capture.status === "error" || capture.status === "blocked" ? (
         <span className="min-w-0 flex-1 truncate text-[10px] text-[color:var(--w-faint)]" title={capture.error}>
           {capture.error ?? "capture unavailable"}
         </span>

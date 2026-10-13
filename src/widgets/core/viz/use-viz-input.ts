@@ -16,6 +16,27 @@ const CAPTURE_OPTIONS = { bandCount: BAND_COUNT, minHz: 30, maxHz: 16000, minDb:
 /** The update stops once no engine has read the input for this long, and restarts on the next read. */
 const IDLE_MS = 1000;
 
+/** Dev only: every mounted input, read by `window.__vizInputs()` (tone / sweep checks, `docs/redesign/visualizer`). */
+const PROBES = new Set<{ device: () => string; raw: () => RawInput; get: () => VizInput }>();
+const peakOf = (a: ArrayLike<number> | null) => {
+  if (!a?.length) return -1;
+  let best = 0;
+  for (let i = 1; i < a.length; i++) if (a[i] > a[best]) best = i;
+  return best;
+};
+declare global {
+  interface Window {
+    __vizInputs?: () => { device: string; source: VizInput["source"]; peakBand: number; rawPeakBand: number; bands: number[] }[];
+  }
+}
+if (import.meta.env.DEV && typeof window !== "undefined") {
+  window.__vizInputs = () =>
+    [...PROBES].map((p) => {
+      const input = p.get();
+      return { device: p.device(), source: input.source, peakBand: peakOf(input.bands), rawPeakBand: peakOf(p.raw().spectrum), bands: [...input.bands].map((v) => +v.toFixed(2)) };
+    });
+}
+
 /** The plugin's level for a device (0..1): the loudest of level, left and right; null when it reports none. */
 export function levelOf(d: Data, device: string): number | null {
   const k = (s: string) => get(d, `${AUDIO}${device}.${s}`);
@@ -89,5 +110,13 @@ export function useVizInput({ data, device, captureDeviceId, look, muted }: VizI
     };
   }
   useEffect(() => handle.current!.stop, []);
+  const deviceRef = useRef(device);
+  deviceRef.current = device;
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    const probe = { device: () => deviceRef.current, raw: () => raw.current, get: handle.current!.get };
+    PROBES.add(probe);
+    return () => void PROBES.delete(probe);
+  }, []);
   return { get: handle.current.get, capture };
 }

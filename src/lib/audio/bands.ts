@@ -5,7 +5,6 @@ export const SPECTRUM_MIN_DB = -100;
 /** `AnalyserNode.maxDecibels` default. */
 export const SPECTRUM_MAX_DB = -30;
 
-const POWER_DB_FACTOR = 10;
 
 /** `count + 1` band edges in Hz, spaced evenly on a log scale. */
 export const logBandEdges = (
@@ -27,8 +26,10 @@ export interface BandsFromSpectrumOptions {
 }
 
 /**
- * Reduces analyser frequency data (dB per bin) to 0..1 bands between the given
- * edges. Writes into `out` and returns it.
+ * Reduces analyser frequency data (dB per bin) to 0..1 bands between the given edges, the way the
+ * AudioMeter plugin builds its `spectrum`, so capture and plugin agree on which band a tone lands in:
+ * each bin belongs to the one band its centre frequency falls in, a band takes its loudest bin, and a
+ * band narrower than a bin takes the bin nearest its centre. Writes into `out` and returns it.
  */
 export const bandsFromSpectrum = (
   spectrumDb: Float32Array,
@@ -43,21 +44,23 @@ export const bandsFromSpectrum = (
   const binCount = spectrumDb.length;
   const hzPerBin = sampleRate / 2 / binCount;
   const bandCount = Math.min(out.length, edges.length - 1);
-
   for (let band = 0; band < bandCount; band += 1) {
-    const low = Math.floor((edges[band] ?? 0) / hzPerBin);
-    const high = Math.max(
-      low + 1,
-      Math.ceil((edges[band + 1] ?? 0) / hzPerBin)
-    );
-    const first = clamp(low, 0, binCount - 1);
-    const last = clamp(high, first + 1, binCount);
-    let power = 0;
-    for (let bin = first; bin < last; bin += 1) {
-      power += 10 ** ((spectrumDb[bin] ?? minDb) / POWER_DB_FACTOR);
+    const lowHz = edges[band] ?? 0;
+    const highHz = edges[band + 1] ?? 0;
+    // bins whose centre (bin * hzPerBin) lies in [lowHz, highHz)
+    let first = Math.ceil(lowHz / hzPerBin);
+    let last = Math.ceil(highHz / hzPerBin);
+    if (last <= first) {
+      first = Math.round(Math.sqrt(lowHz * highHz) / hzPerBin);
+      last = first + 1;
     }
-    const meanDb = POWER_DB_FACTOR * Math.log10(power / (last - first));
-    out[band] = clamp((meanDb - minDb) / (maxDb - minDb), 0, 1);
+    first = clamp(first, 0, binCount - 1);
+    last = clamp(last, first + 1, binCount);
+    let loudest = -Infinity;
+    for (let bin = first; bin < last; bin += 1) {
+      loudest = Math.max(loudest, spectrumDb[bin] ?? minDb);
+    }
+    out[band] = clamp((loudest - minDb) / (maxDb - minDb), 0, 1);
   }
   return out;
 };
