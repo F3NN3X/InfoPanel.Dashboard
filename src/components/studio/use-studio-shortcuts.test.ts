@@ -197,3 +197,23 @@ describe("shortcutAction guards", () => {
   });
 });
 
+
+describe("page shortcuts", () => {
+  it("steps pages with Ctrl+PageDown / PageUp (cmd too)", () => {
+    expect(shortcutAction(key("PageDown", { ctrlKey: true }), IDLE)).toEqual({ type: "page-next" });
+    expect(shortcutAction(key("PageUp", { ctrlKey: true }), IDLE)).toEqual({ type: "page-prev" });
+    expect(shortcutAction(key("PageDown", { metaKey: true }), IDLE)).toEqual({ type: "page-next" });
+  });
+
+  it("ignores a bare PageUp / PageDown, and the chord while typing or with a dialog open", () => {
+    expect(shortcutAction(key("PageDown"), IDLE)).toBeNull();
+    expect(shortcutAction(key("PageUp", { ctrlKey: true }), TYPING)).toBeNull();
+    expect(shortcutAction(key("PageDown", { ctrlKey: true }), DIALOG)).toBeNull();
+  });
+
+  it("lists them in the cheat sheet", () => {
+    const keys = SHORTCUT_GROUPS.flatMap((g) => g.items.map((i) => i.keys));
+    expect(keys).toContain("Ctrl+PageDown");
+    expect(keys).toContain("Ctrl+PageUp");
+  });
+});

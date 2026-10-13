@@ -287,6 +287,43 @@ export function duplicateZones(
   return { profile: copies.length > 0 ? { ...profile, placements } : profile, copies };
 }
 
+/**
+ * Move zones from one page of the profile to another (ids kept). A zone
+ * keeps its box when that is free on the target page, else takes the first
+ * free spot for its size (never below `minSizeOf`). Null when any zone has
+ * no room, so nothing moves.
+ */
+export function moveZonesToPage(
+  profile: MonitorProfile,
+  ids: readonly string[],
+  from: string,
+  to: string,
+  minSizeOf: (p: Placement) => Size
+): MonitorProfile | null {
+  const src = profile.pages.find((p) => p.id === from);
+  const dst = profile.pages.find((p) => p.id === to);
+  const moving = src?.placements.filter((p) => ids.includes(p.id)) ?? [];
+  if (!src || !dst || from === to || moving.length === 0) return profile;
+  let landed = dst.placements;
+  for (const zone of moving) {
+    const box: ZoneRect = { col: zone.colStart, row: zone.rowStart, cols: zone.colSpan, rows: zone.rowSpan };
+    const min = minSizeOf(zone);
+    const size = { cols: Math.max(zone.colSpan, min.cols), rows: Math.max(zone.rowSpan, min.rows) };
+    const rect = zoneFits(box, landed, profile.cols, profile.rows)
+      ? box
+      : firstFreeRect(profile.cols, profile.rows, size, landed);
+    if (!rect) return null;
+    landed = [...landed, { ...zone, colStart: rect.col, rowStart: rect.row, colSpan: rect.cols, rowSpan: rect.rows }];
+  }
+  const gone = new Set(moving.map((p) => p.id));
+  return {
+    ...profile,
+    pages: profile.pages.map((p) =>
+      p.id === from ? { ...p, placements: p.placements.filter((x) => !gone.has(x.id)) } : p.id === to ? { ...p, placements: landed } : p
+    ),
+  };
+}
+
 /** A zone's minimum size: its widget's; blank zones and panels 1×1. */
 export function zoneMinSize(p: Placement): Size {
   const meta = ALL_MODULES.find((m) => m.id === p.module);

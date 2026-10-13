@@ -1,4 +1,5 @@
-import { useEffect, useRef, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
+import { ChevronRight } from "lucide-react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import { clampMenuPosition, menuHeight, MENU_WIDTH } from "./context-menu-position";
@@ -13,7 +14,9 @@ export type ContextMenuEntry =
       /** Red row (delete). */
       danger?: boolean;
       disabled?: boolean;
-      onSelect: () => void;
+      /** Rows of a flyout opened beside this one (then the row itself picks nothing). */
+      submenu?: ContextMenuEntry[];
+      onSelect?: () => void;
     }
   | "separator";
 
@@ -33,6 +36,8 @@ interface ContextMenuProps {
  */
 export function ContextMenu({ x, y, entries, onClose }: ContextMenuProps) {
   const ref = useRef<HTMLDivElement>(null);
+  /** The row whose flyout is open. */
+  const [openSub, setOpenSub] = useState<string | null>(null);
 
   // Focus in on open, back out on close.
   useEffect(() => {
@@ -47,6 +52,15 @@ export function ContextMenu({ x, y, entries, onClose }: ContextMenuProps) {
   /** Arrow / Home / End between the enabled items (wrapping); Tab leaves the menu. */
   const onMenuKey = (e: ReactKeyboardEvent<HTMLDivElement>) => {
     if (e.key === "Tab") return onClose();
+    if (e.key === "ArrowLeft" && openSub !== null) {
+      e.preventDefault();
+      ref.current?.querySelector<HTMLElement>(`[data-sub-trigger="${CSS.escape(openSub)}"]`)?.focus();
+      return setOpenSub(null);
+    }
+    if (e.key === "ArrowRight" && e.target instanceof HTMLElement && e.target.dataset.subTrigger !== undefined) {
+      e.preventDefault();
+      return e.target.click();
+    }
     const items = [...e.currentTarget.querySelectorAll<HTMLElement>('[role="menuitem"]:not(:disabled)')];
     if (items.length === 0) return;
     const at = items.indexOf(document.activeElement as HTMLElement);
@@ -84,27 +98,30 @@ export function ContextMenu({ x, y, entries, onClose }: ContextMenuProps) {
     { width: window.innerWidth, height: window.innerHeight }
   );
 
-  return createPortal(
-    <div
-      ref={ref}
-      role="menu"
-      style={{ left, top, width: MENU_WIDTH }}
-      onContextMenu={(e) => e.preventDefault()}
-      onKeyDown={onMenuKey}
-      className="fixed z-[90] rounded-[9px] border border-ui-menu bg-ui-raised p-1 font-ui shadow-ui-menu"
-    >
-      {entries.map((e, i) =>
-        e === "separator" ? (
-          <div key={i} role="separator" className="mx-0.5 my-1 h-px bg-[#26262c]" />
-        ) : (
+  /** The rows of one level; a row with a flyout opens it beside itself. */
+  const rows = (list: ContextMenuEntry[], level: number) =>
+    list.map((e, i) =>
+      e === "separator" ? (
+        <div key={i} role="separator" className="mx-0.5 my-1 h-px bg-[#26262c]" />
+      ) : (
+        <div key={e.id} className="relative" onMouseEnter={() => level === 0 && setOpenSub(e.submenu && !e.disabled ? e.id : null)}>
           <button
-            key={e.id}
             type="button"
             role="menuitem"
             disabled={e.disabled}
+            data-sub-trigger={e.submenu ? e.id : undefined}
+            aria-haspopup={e.submenu ? "menu" : undefined}
+            aria-expanded={e.submenu ? openSub === e.id : undefined}
             onClick={() => {
+              if (e.submenu) {
+                setOpenSub(e.id);
+                // The flyout mounts first; then focus lands on its first row.
+                return void requestAnimationFrame(() =>
+                  ref.current?.querySelector<HTMLElement>(`[data-sub="${CSS.escape(e.id)}"] [role="menuitem"]:not(:disabled)`)?.focus()
+                );
+              }
               onClose();
-              e.onSelect();
+              e.onSelect?.();
             }}
             className={cn(
               "flex h-[29px] w-full items-center gap-2 rounded-md px-2 text-left text-[12.5px] outline-none focus-visible:bg-[#24242a] disabled:text-[#55555e]",
@@ -116,9 +133,36 @@ export function ContextMenu({ x, y, entries, onClose }: ContextMenuProps) {
             </span>
             <span className="min-w-0 flex-1 truncate">{e.label}</span>
             {e.hint && <span className="font-ui-mono text-[10.5px] text-ui-5">{e.hint}</span>}
+            {e.submenu && <ChevronRight className="h-3 w-3 shrink-0 text-ui-4" />}
           </button>
-        )
-      )}
+          {e.submenu && openSub === e.id && (
+            <div
+              role="menu"
+              data-sub={e.id}
+              style={{ width: MENU_WIDTH }}
+              className={cn(
+                "absolute top-0 z-10 rounded-[9px] border border-ui-menu bg-ui-raised p-1 shadow-ui-menu",
+                // Flip to the left when the flyout would leave the viewport.
+                left + MENU_WIDTH * 2 + 8 > window.innerWidth ? "right-full mr-1" : "left-full ml-1"
+              )}
+            >
+              {rows(e.submenu, level + 1)}
+            </div>
+          )}
+        </div>
+      )
+    );
+
+  return createPortal(
+    <div
+      ref={ref}
+      role="menu"
+      style={{ left, top, width: MENU_WIDTH }}
+      onContextMenu={(e) => e.preventDefault()}
+      onKeyDown={onMenuKey}
+      className="fixed z-[90] rounded-[9px] border border-ui-menu bg-ui-raised p-1 font-ui shadow-ui-menu"
+    >
+      {rows(entries, 0)}
     </div>,
     document.body
   );

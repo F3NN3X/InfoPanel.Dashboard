@@ -20,6 +20,8 @@ export type ShortcutAction =
   | { type: "palette" }
   | { type: "toggle-dock" }
   | { type: "cheatsheet" }
+  | { type: "page-next" }
+  | { type: "page-prev" }
   | { type: "widget-remove" }
   | { type: "widget-duplicate" }
   | { type: "widget-copy" }
@@ -63,6 +65,8 @@ const ARROWS: Record<string, { cols: number; rows: number }> = {
 /** Ctrl/cmd shortcuts (meta counts as ctrl). */
 function commandAction(e: KeyInput): ShortcutAction | null {
   const key = e.key.toLowerCase();
+  if (key === "pagedown") return { type: "page-next" };
+  if (key === "pageup") return { type: "page-prev" };
   if (key === "s") return { type: "save" };
   if (key === "z") return e.shiftKey ? { type: "redo" } : { type: "undo" };
   if (key === "y") return { type: "redo" };
@@ -169,6 +173,8 @@ export const KEYS = {
   zoomOut: "-",
   dock: "Ctrl+\\",
   cheatsheet: "?",
+  nextPage: "Ctrl+PageDown",
+  prevPage: "Ctrl+PageUp",
 } as const;
 
 /** Every shortcut, grouped, for the cheat-sheet dialog. */
@@ -220,6 +226,15 @@ export const SHORTCUT_GROUPS: { title: string; items: { keys: string; label: str
       { keys: `${KEYS.zoomOut} / Ctrl+-`, label: "Zoom out" },
       { keys: "Ctrl+wheel", label: "Zoom" },
       { keys: KEYS.dock, label: "Collapse / expand the inspector" },
+    ],
+  },
+  {
+    title: "Pages",
+    items: [
+      { keys: KEYS.nextPage, label: "Next page (wraps)" },
+      { keys: KEYS.prevPage, label: "Previous page (wraps)" },
+      { keys: "Double-click a tab", label: "Rename the page" },
+      { keys: "Drag a tab", label: "Reorder the pages" },
     ],
   },
 ];

@@ -68,8 +68,17 @@ export default function App() {
     h: window.innerHeight,
   }));
 
+  // The page the studio edits (view state); the kiosk shows the pinned one.
+  const [studioPage, setStudioPage] = useState(pagePin);
   const stored = resolveProfile(config, windowSize.w, windowSize.h);
-  const profile = useMemo(() => profileWithPage(stored, pagePin), [stored]);
+  const profile = useMemo(
+    () => profileWithPage(stored, studio ? studioPage : pagePin),
+    [stored, studio, studioPage]
+  );
+  // The page can vanish (delete, undo, another profile): the view fell back to the first one.
+  useEffect(() => {
+    if (studio && profile.pageId !== studioPage) setStudioPage(profile.pageId);
+  }, [studio, profile.pageId, studioPage]);
   const fill = profile.fit === "fill";
   const background = resolveBackground(config, profile);
   const appearance = appearanceOf(config, profile);
@@ -238,6 +247,7 @@ export default function App() {
           <StudioView
             config={config}
             profile={profile}
+            onPageChange={setStudioPage}
             setConfig={setConfig}
             windowWidth={windowSize.w}
             windowHeight={windowSize.h}

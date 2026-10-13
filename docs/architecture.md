@@ -969,6 +969,20 @@ out widget > zone > nothing. Widget names in the layers, crumbs and palette
 come from `widgetName` (`widget-kinds.ts`): the label, else the sensor's name
 from the Data API catalog, else the key's last segment.
 
+**Pages in the studio** (`page-tabs.tsx`, `use-studio-mutations.ts`, `src/lib/pages.ts`). The studio
+edits one page of the profile at a time: `App.tsx` holds `studioPage` (view state, not in the undo
+history, and it falls back to the first page when the page vanishes) and resolves the `ProfileView`
+with `profileWithPage`, so every existing reader keeps working on that page. The `PageTabs` strip above
+the canvas switches, adds, renames (double-click), reorders (pointer drag, one `movePage` per drop),
+duplicates, deletes (confirmed, never the last) and sets the icon (`page-icons.ts`). Page edits go
+through `updateStored` (the whole stored profile, same no-op identity rule as `updateProfile`); each is
+one undo step. A page switch clears the selection, which never spans pages. "Move to page" in the zone
+menu is `moveZonesToPage` (`studio-actions.ts`): a zone keeps its box when free on the target page,
+else takes the first free spot at its size, and the whole move is refused when any zone has no room.
+Ctrl+PageUp / PageDown step through the pages (wrapping) and the palette has the page commands. The
+profile inspector's Auto-rotate section writes `rotate` through `updateStored`; rotation itself runs
+on the kiosk (a later phase).
+
 ### Adding a setting to a module
 
 Settings are plain `ModuleSetting` entries in a module's `settings` array

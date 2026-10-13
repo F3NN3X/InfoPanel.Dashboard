@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { PageBackground } from "@/lib/appearance";
 import type { GeneralSettings } from "@/lib/general";
-import type { ProfileView } from "@/lib/layout";
+import type { PageRotate, ProfileView } from "@/lib/layout";
 import { THEME_PRESETS, resolveTheme, type ThemeTokens } from "@/lib/theme";
 import type { ModuleSettings } from "@/modules/types";
 import { AppearanceGallery, type CurrentLook } from "./appearance-gallery";
@@ -10,7 +10,7 @@ import { BackgroundPanel, type BackgroundTarget } from "./background-panel";
 import { DataApiPanel } from "./data-api-panel";
 import { generalCards } from "./general-panel";
 import { InspectorNote, InspectorView, type SectionParts } from "./inspector/inspector-view";
-import { AutoPick, ProfileFields, ProfileInherit } from "./inspector/profile-sections";
+import { AutoPick, AutoRotate, ProfileFields, ProfileInherit } from "./inspector/profile-sections";
 import { HeaderSlot } from "./inspector-layout";
 import {
   globalStyleValues,
@@ -91,6 +91,9 @@ export interface DashboardStudioProps {
   /** The config picks the profile by window size ("auto"). */
   autoPick: boolean;
   onAutoPick: (auto: boolean) => void;
+  /** The active profile's pages (Auto-rotate's checklist) and the write of its `rotate` option. */
+  pages: { id: string; name: string }[];
+  onRotate: (patch: Partial<PageRotate>) => void;
   /** General › Studio: the inspector position. */
   layoutMode: LayoutMode;
   onLayoutMode: (mode: LayoutMode) => void;
@@ -142,6 +145,8 @@ function DocumentSheet({
   onRemoveProfile,
   autoPick,
   onAutoPick,
+  pages,
+  onRotate,
   layoutMode,
   onLayoutMode,
 }: DocumentInspectorProps & DashboardStudioProps) {
@@ -198,6 +203,8 @@ function DocumentSheet({
         };
       case "profileSelection":
         return { body: <AutoPick auto={autoPick} onAuto={onAutoPick} /> };
+      case "profileRotate":
+        return { body: <AutoRotate rotate={activeProfile.rotate} pages={pages} onChange={onRotate} /> };
       case "scope":
         return {
           body: (

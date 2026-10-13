@@ -28,6 +28,8 @@ const base: CommandState = {
     { kind: "panel", id: "cpu", title: "CPU" },
   ],
   profiles: [{ id: "p1", name: "Desk", width: 1920, height: 1080 }],
+  pages: [{ id: "main", name: "Main" }],
+  currentPage: "main",
   placements: [zone("b", 3, 2), zone("a", 1, 1)],
   selected: null,
   context: null,
@@ -287,5 +289,36 @@ describe("buildCommands style commands", () => {
         .map((c) => c.action.type);
     expect(ids(null)).toEqual([]);
     expect(ids(zone("a", 1, 1))).toEqual(["copy-style", "paste-style", "follow-global", "use-global", "use-global"]);
+  });
+});
+
+describe("buildCommands page commands", () => {
+  const two = { ...base, pages: [{ id: "main", name: "Main" }, { id: "g", name: "Games" }] };
+  const pageIds = (state: CommandState) => ids(state).filter((id) => id.startsWith("page:"));
+
+  it("offers going to each page, adding, duplicating and renaming; no stepping or deleting with one page", () => {
+    expect(pageIds(base)).toEqual(["page:go:main", "page:add", "page:duplicate", "page:rename"]);
+  });
+
+  it("adds next, previous and delete with several pages", () => {
+    expect(pageIds(two)).toEqual([
+      "page:go:main",
+      "page:go:g",
+      "page:add",
+      "page:next",
+      "page:prev",
+      "page:duplicate",
+      "page:rename",
+      "page:delete",
+    ]);
+  });
+
+  it("labels the go commands, marks the current page, and carries the actions and shortcuts", () => {
+    const by = (id: string) => buildCommands(two).find((c) => c.id === id);
+    expect(by("page:go:g")).toMatchObject({ label: "Go to page: Games", action: { type: "page-go", id: "g" } });
+    expect(by("page:go:main")?.hint).toBe("current");
+    expect(by("page:next")).toMatchObject({ hint: "Ctrl+PageDown", action: { type: "page-next" } });
+    expect(by("page:prev")).toMatchObject({ hint: "Ctrl+PageUp", action: { type: "page-prev" } });
+    expect(by("page:delete")?.action).toEqual({ type: "page-delete" });
   });
 });

@@ -27,6 +27,13 @@ describe("zoneMenu", () => {
     ]);
   });
 
+  it("offers Move to page, with the other pages, only when there are any", () => {
+    expect(ids(zoneMenu(base))).not.toContain("move-to-page");
+    expect(ids(zoneMenu({ ...base, otherPages: [] }))).not.toContain("move-to-page");
+    const spec = zoneMenu({ ...base, count: 3, otherPages: [{ id: "b", name: "Games" }] });
+    expect(item(spec, "move-to-page")).toMatchObject({ pages: [{ id: "b", name: "Games" }] });
+  });
+
   it("offers Save to My panels for panels only", () => {
     expect(ids(zoneMenu(base))).not.toContain("save-panel");
     expect(ids(zoneMenu({ ...base, panel: true }))).toContain("save-panel");
@@ -74,7 +81,7 @@ describe("canvasMenu", () => {
 describe("menuAction", () => {
   it("maps every row of both menus to a command", () => {
     const all = [...zoneMenu({ ...base, panel: true }), ...canvasMenu()];
-    for (const id of ids(all)) expect(menuAction(id).type).toBeTruthy();
+    for (const id of ids(all)) if (id !== "move-to-page") expect(menuAction(id).type).toBeTruthy();
   });
 
   it("maps the size steps to resize-step deltas", () => {

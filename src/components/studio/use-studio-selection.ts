@@ -13,8 +13,8 @@ export function useStudioSelection(profile: ProfileView) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [widgetSel, setWidgetSel] = useState<{ zoneId: string; widgetId: string } | null>(null);
 
-  // Deselect when switching profiles.
-  useEffect(() => setSelectedIds([]), [profile.id]);
+  // Deselect when switching profiles or pages (a selection never spans pages).
+  useEffect(() => setSelectedIds([]), [profile.id, profile.pageId]);
 
   /** The selected zones that still exist, the primary last. */
   const selection = selectedIds

@@ -126,6 +126,8 @@ export function StudioInspector({
         onRemoveProfile={edit.removeProfile}
         autoPick={config.activeProfile === "auto"}
         onAutoPick={(auto) => edit.activateProfile(auto ? "auto" : profile.id)}
+        pages={(config.profiles.find((p) => p.id === profile.id) ?? config.profiles[0]).pages}
+        onRotate={edit.setRotate}
         layoutMode={ui.studioLayout.mode}
         onLayoutMode={ui.studioLayout.setMode}
       />

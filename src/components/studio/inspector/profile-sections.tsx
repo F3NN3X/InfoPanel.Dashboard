@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { Trash2 } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { BACKGROUND_DEFAULTS, type PageBackground } from "@/lib/appearance";
-import type { ProfileView } from "@/lib/layout";
+import { DeviceChecklist } from "@/components/ui/device-checklist";
+import type { PageRotate, ProfileView } from "@/lib/layout";
 import { MAX_SPACING, normalizeSpacing, profileGap, profilePadding } from "@/lib/profile-grid";
 import type { ThemeTokens } from "@/lib/theme";
 import { cn } from "@/lib/utils";
@@ -231,5 +232,78 @@ export function ProfileInherit({
 export function AutoPick({ auto, onAuto }: { auto: boolean; onAuto: (auto: boolean) => void }) {
   return (
     <ToggleRow label="Auto-pick profile" hint="Picks the profile closest to the window size" value={auto} onChange={onAuto} />
+  );
+}
+
+const ROTATE_DEFAULT_SECONDS = 15;
+const ROTATE_MIN_SECONDS = 3;
+const ROTATE_MAX_SECONDS = 3600;
+
+/** Seconds per page: a draft that commits on Enter or blur, clamped to 3–3600. */
+function SecondsInput({ value, onCommit }: { value: number; onCommit: (value: number) => void }) {
+  const [draft, setDraft] = useState(String(value));
+  useEffect(() => setDraft(String(value)), [value]);
+  const commit = () => {
+    const n = Math.round(Number(draft));
+    if (draft.trim() === "" || !Number.isFinite(n)) return setDraft(String(value));
+    const clamped = Math.max(ROTATE_MIN_SECONDS, Math.min(ROTATE_MAX_SECONDS, n));
+    setDraft(String(clamped));
+    if (clamped !== value) onCommit(clamped);
+  };
+  return (
+    <input
+      type="number"
+      min={ROTATE_MIN_SECONDS}
+      max={ROTATE_MAX_SECONDS}
+      step={1}
+      value={draft}
+      aria-label="Seconds per page"
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+      className={cn(FIELD, "h-[26px] w-[64px] shrink-0 px-1.5 text-right font-ui-mono text-[11.5px]")}
+    />
+  );
+}
+
+/**
+ * Auto-rotate: the kiosk steps through the pages on a timer. Off keeps the
+ * interval and list stored; with no page ticked it uses every page.
+ */
+export function AutoRotate({
+  rotate,
+  pages,
+  onChange,
+}: {
+  rotate: PageRotate | undefined;
+  pages: { id: string; name: string }[];
+  onChange: (patch: Partial<PageRotate>) => void;
+}) {
+  const ticked = (rotate?.pages ?? []).filter((id) => pages.some((p) => p.id === id));
+  return (
+    <div className="space-y-3">
+      <ToggleRow
+        label="Auto-rotate pages"
+        hint="Step through the profile's pages on the kiosk"
+        value={rotate?.enabled ?? false}
+        onChange={(enabled) => onChange({ enabled })}
+      />
+      <InlineRow label="Seconds per page" hint="3 to 3600">
+        <SecondsInput value={rotate?.seconds ?? ROTATE_DEFAULT_SECONDS} onCommit={(seconds) => onChange({ seconds })} />
+      </InlineRow>
+      {pages.length > 1 && (
+        <StackRow label="Pages" hint="None ticked rotates through every page">
+          <DeviceChecklist
+            label="Pages to rotate"
+            devices={pages.map((p) => ({ id: p.id, label: p.name }))}
+            value={ticked}
+            onChange={(ids) => onChange({ pages: ids.length > 0 ? ids : undefined })}
+          />
+        </StackRow>
+      )}
+      <p className="text-[11px] leading-snug text-ui-5">
+        Rotation runs on the kiosk; a touch or a remote page switch pauses it for 30 s.
+      </p>
+    </div>
   );
 }

@@ -21,6 +21,11 @@ describe("profileMeta", () => {
     expect(profileMeta(profile({}))).toBe("1920×550 · 12×6 · Fill");
     expect(profileMeta(profile({ fit: "scroll" }))).toBe("1920×550 · 12×6 · Scroll");
   });
+
+  it("adds the page count when there are several", () => {
+    const pages = [mainPage(), { ...mainPage(), id: "b", name: "B" }];
+    expect(profileMeta(profile({ pages }))).toBe("1920×550 · 12×6 · Fill · 2 pages");
+  });
 });
 
 describe("profileSummary", () => {
@@ -28,5 +33,8 @@ describe("profileSummary", () => {
     const zone = { id: "z", module: "blank", colStart: 1, rowStart: 1, colSpan: 1, rowSpan: 1, visible: true };
     expect(profileSummary(profile({}))).toBe("1920 × 550 · 12 × 6 · Fill · 0 zones");
     expect(profileSummary(profile({ pages: [mainPage([zone])] }))).toContain("· 1 zone");
+    expect(profileSummary(profile({ pages: [mainPage([zone]), { ...mainPage(), id: "b", name: "B" }] }))).toMatch(
+      /· 1 zone · 2 pages$/
+    );
   });
 });

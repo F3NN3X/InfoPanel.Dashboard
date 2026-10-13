@@ -65,6 +65,9 @@ export function useStudioUi(config: DashboardConfig, profile: ProfileView, onSav
   const [pickerFor, setPickerFor] = useState<string | null>(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  /** The page tab being renamed inline, and the page its delete confirm is open for. */
+  const [renamingPage, setRenamingPage] = useState<string | null>(null);
+  const [deletingPage, setDeletingPage] = useState<string | null>(null);
   /** The panel inspector's "Save as panel preset" name input is open. */
   const [presetNaming, setPresetNaming] = useState(false);
 
@@ -161,6 +164,10 @@ export function useStudioUi(config: DashboardConfig, profile: ProfileView, onSav
     setPaletteOpen,
     shortcutsOpen,
     setShortcutsOpen,
+    renamingPage,
+    setRenamingPage,
+    deletingPage,
+    setDeletingPage,
     presetNaming,
     setPresetNaming,
     styleClipboard,

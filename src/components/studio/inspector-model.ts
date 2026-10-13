@@ -96,6 +96,7 @@ export type SpecialSection =
   | "profileFields"
   | "profileInherit"
   | "profileSelection"
+  | "profileRotate"
   | "scope"
   | "presets"
   | "theme"
@@ -321,6 +322,9 @@ function dashboardSections(): InspectorSection[] {
     ]),
     dashboardMarker("profile", "profile-selection", "Profile selection", "profileSelection", [
       "Auto-pick profile", "Window size",
+    ]),
+    dashboardMarker("profile", "profile-rotate", "Auto-rotate", "profileRotate", [
+      "Auto-rotate pages", "Seconds per page", "Pages", "Rotation", "Kiosk",
     ]),
     dashboardMarker(
       "appearance", "ap-scope", "Scope", "scope",

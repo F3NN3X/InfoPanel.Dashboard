@@ -1,6 +1,15 @@
 import type { HistorySetter } from "@/hooks/use-config-history";
 import { useToast } from "@/components/ui/toast";
-import { onPage } from "@/lib/pages";
+import {
+  addPage,
+  duplicatePage,
+  movePage,
+  onPage,
+  pageOf,
+  removePage,
+  renamePage,
+  setPageIcon,
+} from "@/lib/pages";
 import {
   BLANK_MODULE,
   PANEL_ID,
@@ -8,6 +17,8 @@ import {
   sampleProfile,
   uid,
   type DashboardConfig,
+  type MonitorProfile,
+  type PageRotate,
   type ProfileView,
   type Placement,
 } from "@/lib/layout";
@@ -37,13 +48,15 @@ interface MutationDeps {
   onPresetSaved: () => void;
   /** The window size a new profile starts with. */
   windowSize: { width: number; height: number };
+  /** Show another page of the profile on the canvas (view state). */
+  onPageChange: (pageId: string) => void;
 }
 
 /**
  * Every edit the studio makes to the config, through the undo history.
  * Same-`key` changes coalesce into one undo step (a drag, a key repeat).
  */
-export function useStudioMutations({ config, profile, setConfig, sel, onPresetSaved, windowSize }: MutationDeps) {
+export function useStudioMutations({ config, profile, setConfig, sel, onPresetSaved, windowSize, onPageChange }: MutationDeps) {
   const { selected } = sel;
   const toast = useToast();
 
@@ -52,6 +65,14 @@ export function useStudioMutations({ config, profile, setConfig, sel, onPresetSa
     // The same config back when `fn` changes nothing: the history records no step.
     setConfig((c) => {
       const profiles = c.profiles.map((p) => (p.id === profile.id ? onPage(profile.pageId, fn)(p) : p));
+      return profiles.every((p, i) => p === c.profiles[i]) ? c : { ...c, profiles };
+    }, key);
+  };
+
+  /** Mutate the whole stored profile (pages, rotate); same no-op identity rule as `updateProfile`. */
+  const updateStored = (fn: (p: MonitorProfile) => MonitorProfile, key?: string) => {
+    setConfig((c) => {
+      const profiles = c.profiles.map((p) => (p.id === profile.id ? fn(p) : p));
       return profiles.every((p, i) => p === c.profiles[i]) ? c : { ...c, profiles };
     }, key);
   };
@@ -276,6 +297,69 @@ export function useStudioMutations({ config, profile, setConfig, sel, onPresetSa
     }
   };
 
+  /** The stored profile behind the page on the canvas. */
+  const stored = () => config.profiles.find((p) => p.id === profile.id) ?? config.profiles[0];
+  const currentPageId = () => pageOf(stored(), profile.pageId).id;
+
+  /** Page actions: each one undo step. Add and duplicate switch to the new page. */
+  const addNewPage = () => {
+    let pageId: string | undefined;
+    updateStored((p) => {
+      const result = addPage(p);
+      pageId = result.pageId;
+      return result.profile;
+    });
+    // The history setter runs the update synchronously.
+    if (pageId) onPageChange(pageId);
+  };
+  const duplicateCurrentPage = (id: string) => {
+    let pageId: string | undefined;
+    updateStored((p) => {
+      const result = duplicatePage(p, id);
+      pageId = result.pageId;
+      return result.profile;
+    });
+    if (pageId && pageId !== id) onPageChange(pageId);
+  };
+  /** Delete a page (never the last); when it is the one shown, the neighbour takes over. */
+  const deletePage = (id: string) => {
+    const pages = stored().pages;
+    const at = pages.findIndex((p) => p.id === id);
+    if (pages.length <= 1 || at < 0) return;
+    if (id === currentPageId()) onPageChange((pages[at + 1] ?? pages[at - 1]).id);
+    updateStored((p) => removePage(p, id));
+  };
+  const movePageTo = (id: string, toIndex: number) => updateStored((p) => movePage(p, id, toIndex));
+  const renamePageTo = (id: string, name: string) => updateStored((p) => renamePage(p, id, name));
+  const setIconOfPage = (id: string, icon: string | undefined) => updateStored((p) => setPageIcon(p, id, icon));
+
+  /** Show the page `delta` steps from this one (wraps). */
+  const stepPage = (delta: 1 | -1) => {
+    const pages = stored().pages;
+    const at = pages.findIndex((p) => p.id === currentPageId());
+    onPageChange(pages[(at + delta + pages.length) % pages.length].id);
+  };
+
+  /** Move the selected zones to another page of the profile (one undo step). */
+  const moveSelectionToPage = (to: string) => {
+    const ids = sel.selectedIds;
+    const target = stored().pages.find((p) => p.id === to);
+    if (ids.length === 0 || !target) return;
+    const from = currentPageId();
+    let refused = false;
+    updateStored((p) => {
+      const next = actions.moveZonesToPage(p, ids, from, to, actions.zoneMinSize);
+      refused = next === null;
+      return next ?? p;
+    });
+    if (refused) return void toast(`No room on ${target.name}`);
+    toast(`Moved ${ids.length} ${ids.length === 1 ? "widget" : "widgets"} to ${target.name}`);
+  };
+
+  /** Write the profile's auto-rotate option (created on the first change). */
+  const setRotate = (patch: Partial<PageRotate>) =>
+    updateStored((p) => ({ ...p, rotate: { enabled: false, seconds: 15, ...p.rotate, ...patch } }), "profile:rotate");
+
   const addProfile = () => {
     const np = newProfile(`${windowSize.width}×${windowSize.height}`, windowSize.width, windowSize.height);
     setConfig((c) => ({
@@ -310,6 +394,7 @@ export function useStudioMutations({ config, profile, setConfig, sel, onPresetSa
 
   return {
     updateProfile,
+    updateStored,
     updatePlacement,
     updateSelected,
     addPlacement,
@@ -341,6 +426,15 @@ export function useStudioMutations({ config, profile, setConfig, sel, onPresetSa
     addProfile,
     removeProfile,
     activateProfile,
+    addNewPage,
+    duplicateCurrentPage,
+    deletePage,
+    movePageTo,
+    renamePageTo,
+    setIconOfPage,
+    stepPage,
+    moveSelectionToPage,
+    setRotate,
     saveStylePreset,
     deleteStylePreset,
   };

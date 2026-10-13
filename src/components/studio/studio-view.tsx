@@ -32,12 +32,15 @@ import { SelectionChip } from "./selection-chip";
 import { StudioContextMenu, useContextMenu } from "./zone-context-menu";
 import { widgetName } from "./widget-kinds";
 import { WidgetPickerDialog } from "./widget-picker-dialog";
+import { PageTabs } from "./page-tabs";
 import { ZoomToolbar } from "./zoom-toolbar";
 
 interface StudioViewProps {
   config: DashboardConfig;
-  /** The resolved (active) grid profile being edited. */
+  /** The resolved (active) grid profile being edited, on the page the studio shows. */
   profile: ProfileView;
+  /** Show another page of the profile on the canvas (view state, not undoable). */
+  onPageChange: (pageId: string) => void;
   setConfig: Dispatch<SetStateAction<DashboardConfig>>;
   windowWidth: number;
   windowHeight: number;
@@ -71,6 +74,7 @@ export function StudioView(props: StudioViewProps) {
 function StudioViewBody({
   config,
   profile,
+  onPageChange,
   setConfig: setConfigState,
   windowWidth,
   windowHeight,
@@ -93,6 +97,7 @@ function StudioViewBody({
     sel,
     onPresetSaved: () => ui.setPresetNaming(false),
     windowSize: { width: windowWidth, height: windowHeight },
+    onPageChange,
   });
   const { props: documentProps, setScopeStyle, appearancePresets } = useDocumentProps(
     config,
@@ -114,6 +119,7 @@ function StudioViewBody({
     appearance,
     appearancePresets,
     setScopeStyle,
+    onPageChange,
   });
   /** Sensor names for widget names (toolbar crumb, palette). */
   const catalog = useSensorCatalog();
@@ -197,7 +203,7 @@ function StudioViewBody({
     />
   );
 
-  const mainEl = showSources ? (
+  const canvasEl = showSources ? (
     <div className="min-h-0 flex-1 overflow-hidden bg-background/40">
       <SourcesPanel
         config={config}
@@ -259,6 +265,30 @@ function StudioViewBody({
         )
       }
     />
+  );
+
+  // The page tabs sit above the canvas in Design mode.
+  const mainEl = showSources ? (
+    canvasEl
+  ) : (
+    <>
+      <PageTabs
+        pages={storedProfile.pages}
+        current={profile.pageId ?? storedProfile.pages[0].id}
+        onSelect={onPageChange}
+        onAdd={edit.addNewPage}
+        onRename={edit.renamePageTo}
+        onMove={edit.movePageTo}
+        onDuplicate={edit.duplicateCurrentPage}
+        onDelete={edit.deletePage}
+        onIcon={edit.setIconOfPage}
+        renamingId={ui.renamingPage}
+        onRenamingChange={ui.setRenamingPage}
+        deletingId={ui.deletingPage}
+        onDeletingChange={ui.setDeletingPage}
+      />
+      {canvasEl}
+    </>
   );
 
   const bar = showSources ? null : (
@@ -349,6 +379,7 @@ function StudioViewBody({
             selected !== null &&
             edit.resizeSelected({ cols: selected.colSpan + cols, rows: selected.rowSpan + rows }) !== null
           }
+          otherPages={storedProfile.pages.filter((p) => p.id !== profile.pageId)}
           onRun={runCommand}
           onClose={menus.close}
         />
