@@ -19,6 +19,7 @@ import {
 } from "./setting-rows";
 import { DevicePicker, MediaDevicePicker, MultiSelect, WavelinkMeterPicker } from "./setting-pickers";
 import { SensorField } from "./widget-editor/sensor-field";
+import { SensorItemsField } from "./widget-editor/sensor-items-field";
 import { SensorListField } from "./widget-editor/sensor-list-field";
 
 /** The icon grid's cells: "none" first, then every widget icon. */
@@ -40,6 +41,7 @@ export function SettingRow({
   def,
   value,
   valueY,
+  refValue,
   onChange,
   onApply,
   onPatch,
@@ -52,7 +54,10 @@ export function SettingRow({
   value: ModuleSettingValue;
   /** Type "align": the value of `def.keyY`. */
   valueY?: ModuleSettingValue;
-  onChange: (value: ModuleSettingValue) => void;
+  /** `editKey` names the field edited, so the undo step coalesces per field (type "sensorItems"). */
+  onChange: (value: ModuleSettingValue, editKey?: string) => void;
+  /** Type "sensorItems": the value of the sensor setting `def.of`. */
+  refValue?: ModuleSettingValue;
   /** Preset bundles: apply extra key/values alongside the selected one. */
   onApply?: (bundle: ModuleSettings) => void;
   /** Type "align": write both keys as one change. */
@@ -80,6 +85,9 @@ export function SettingRow({
         </StackRow>
       );
     }
+
+    case "sensorItems":
+      return <SensorItemsField {...label} value={String(value)} keys={String(refValue ?? "")} onChange={onChange} />;
 
     case "sensor": {
       const explorer = onOpenExplorer ?? (() => {});

@@ -4,7 +4,7 @@ import { SENSOR_GROUP_SETTINGS } from "@/modules/hardware-modern";
 import { NETWORK_SETTINGS } from "@/modules/network-modern";
 import { WEATHER_SETTINGS, weatherToProps } from "@/modules/weather-modern";
 import { templateModule } from "../module";
-import { boolOf, boolSetting, deviceSetting, enumSetting, numberOf, numberSetting, oneOf, pass, sensorSetting, splitKeys, textSetting } from "./settings-kit";
+import { boolOf, boolSetting, colorSetting, deviceSetting, enumSetting, itemsOf, itemsSetting, numberOf, numberSetting, oneOf, pass, sensorSetting, splitKeys, textSetting } from "./settings-kit";
 import * as DriveSpace from "../DriveSpace";
 import * as StorageHealth from "../StorageHealth";
 import * as DiskIO from "../DiskIO";
@@ -29,38 +29,48 @@ const DRIVE_SETTINGS: ModuleSetting[] = [
   deviceSetting("drive", "Drive", "drive", { group: "Drive space", hint: "Pin one volume; Auto lists all" }),
   enumSetting("sort", "Sort", "usage", [{ value: "usage", label: "By usage" }, { value: "name", label: "By name" }], { group: "Drive space" }),
   boolSetting("neutral", "Neutral below thresholds", true, { group: "Drive space" }),
-  optional("warn", "Warn at %", THRESHOLDS, "Blank = 80"),
-  optional("crit", "Critical at %", THRESHOLDS, "Blank = 92"),
+  numberSetting("warn", "Warn at %", 80, { min: 0, max: 100, step: 5, group: THRESHOLDS }),
+  numberSetting("crit", "Critical at %", 92, { min: 0, max: 100, step: 5, group: THRESHOLDS }),
 ];
+
+/** A stored number where 0 (and blank) = off / automatic. */
+const positiveOf = (v: unknown): number | undefined => numberOf(v) || undefined;
+const DECIMALS = ["", "0", "1", "2", "3", "4"].map((value) => ({ value, label: value || "Auto" }));
+const ranged = (v: ModuleSettings): boolean => v.display === "gauge" || v.display === "bar";
 
 const SENSOR_VALUE_SETTINGS: ModuleSetting[] = [
   sensorSetting("sensor", "Sensor", { group: "Sensor value" }),
   enumSetting("display", "Display", "value", [{ value: "value", label: "Value" }, { value: "gauge", label: "Gauge" }, { value: "bar", label: "Bar" }, { value: "spark", label: "Spark" }], { group: "Sensor value" }),
   optional("unit", "Unit override", "Sensor value", "Blank = the unit read from the value"),
-  optional("decimals", "Decimals", "Sensor value", "Blank = automatic"),
-  optional("min", "Minimum", "Sensor value", "Blank = 0"),
-  optional("max", "Maximum", "Sensor value", "Blank = automatic"),
-  optional("warn", "Warn at", THRESHOLDS),
-  optional("crit", "Critical at", THRESHOLDS),
+  enumSetting("decimals", "Decimals", "", DECIMALS, { group: "Sensor value" }),
+  numberSetting("min", "Minimum", 0, { group: "Sensor value", visibleIf: ranged }),
+  numberSetting("max", "Maximum", 0, { group: "Sensor value", hint: "0 = automatic", visibleIf: ranged }),
+  optional("warn", "Warn at", THRESHOLDS, "Blank = off"),
+  optional("crit", "Critical at", THRESHOLDS, "Blank = off"),
 ];
 
-// SensorGroup's `sensors` are stored as ordered keys (labelled from the sensor display name); the bar range, decimals and thresholds are shared by every item.
+// SensorGroup's `sensors` are stored as ordered keys (labelled from the sensor display name); the bar range, decimals and thresholds are shared by every item, and `items` overrides them (and the label) per sensor.
 const GROUP_SHARED = { groupMax: "max", groupDecimals: "decimals", groupWarn: "warn", groupCrit: "crit" } as const;
+/** The reading list is the Auto-discover mode's alternative. */
+const listed = (v: ModuleSettings): boolean => !v.auto;
 const SENSOR_GROUP_OWN: ModuleSetting[] = [
-  sensorSetting("sensors", "Sensors", { group: "Sensor group", multiple: true, hint: "Empty = the sample list" }),
-  enumSetting("groupLayout", "Layout", "auto", [{ value: "auto", label: "Auto" }, { value: "rows", label: "Rows" }, { value: "grid", label: "Grid" }], { group: "Sensor group" }),
-  boolSetting("bars", "Bar per item", true, { group: "Sensor group" }),
-  optional("groupMax", "Bar maximum", "Sensor group", "Every item; blank = no bar"),
-  optional("groupDecimals", "Decimals", "Sensor group"),
-  optional("groupWarn", "Warn at", THRESHOLDS),
-  optional("groupCrit", "Critical at", THRESHOLDS),
+  sensorSetting("sensors", "Sensors", { group: "Sensor group", multiple: true, hint: "Empty = CPU, GPU, memory and volume", visibleIf: listed }),
+  itemsSetting("items", "Per-sensor overrides", "sensors", { group: "Sensor group", hint: "Blank = the shared value; an override of an unbound sensor is kept but ignored", visibleIf: listed }),
+  enumSetting("groupLayout", "Layout", "auto", [{ value: "auto", label: "Auto" }, { value: "rows", label: "Rows" }, { value: "grid", label: "Grid" }], { group: "Sensor group", visibleIf: listed }),
+  boolSetting("bars", "Bar per item", true, { group: "Sensor group", visibleIf: listed }),
+  numberSetting("groupMax", "Bar maximum", 0, { group: "Sensor group", hint: "Every item; 0 = automatic (100 for % and °, else no bar)", visibleIf: listed }),
+  textSetting("groupDecimals", "Decimals", "", { group: "Sensor group", hint: "Blank = automatic", visibleIf: listed }),
+  textSetting("groupWarn", "Warn at", "", { group: THRESHOLDS, visibleIf: listed }),
+  textSetting("groupCrit", "Critical at", "", { group: THRESHOLDS, visibleIf: listed }),
 ];
 
 function sensorItems(s: ModuleSettings): SensorGroup.SensorGroupProps["sensors"] {
   const keys = splitKeys(s.sensors);
   if (!keys.length) return undefined;
-  const shared = Object.fromEntries(Object.entries(GROUP_SHARED).flatMap(([k, prop]) => (numberOf(s[k]) === undefined ? [] : [[prop, numberOf(s[k])]])));
-  return keys.map((key) => ({ key, ...shared }));
+  // 0 / blank bar maximum = automatic (SensorGroup derives it from the unit)
+  const shared = Object.fromEntries(Object.entries(GROUP_SHARED).flatMap(([k, prop]) => (numberOf(s[k]) === undefined || (prop === "max" && !numberOf(s[k])) ? [] : [[prop, numberOf(s[k])]])));
+  const items = itemsOf(s.items);
+  return keys.map((key) => ({ key, ...shared, ...items[key] }));
 }
 
 const units = (group: string): ModuleSetting => enumSetting("units", "Units", "C", [{ value: "C", label: "°C" }, { value: "F", label: "°F" }], { group });
@@ -73,15 +83,26 @@ export const GROUP_B: DashboardModule[] = [
     settings: DRIVE_SETTINGS,
     toProps: (s): Partial<DriveSpace.DriveSpaceProps> => ({ ...pass<Partial<DriveSpace.DriveSpaceProps>>("drive")(s), sort: oneOf(s.sort, ["usage", "name"]), ...numbersOf(s, ["warn", "crit"]), neutral: boolOf(s.neutral) }),
   }),
-  templateModule({ meta: StorageHealth.meta, Component: StorageHealth.default, settings: [deviceSetting("disk", "Disk", "disk", { group: "Storage health", hint: "Auto = the first detected drive" })], toProps: pass<Partial<StorageHealth.StorageHealthProps>>("disk") }),
-  templateModule({ meta: DiskIO.meta, Component: DiskIO.default, settings: [], toProps: () => ({}) }),
+  // any vendor's drive: the keys are read, not owned (the fallback grid keeps the rest of `libre.`)
+  templateModule({ meta: StorageHealth.meta, Component: StorageHealth.default, prefixes: ["libre."], settings: [deviceSetting("disk", "Disk", "disk", { group: "Storage health", hint: "Auto = the first detected drive" })], toProps: pass<Partial<StorageHealth.StorageHealthProps>>("disk") }),
+  templateModule({
+    meta: DiskIO.meta,
+    Component: DiskIO.default,
+    settings: [
+      deviceSetting("disk", "Disk", "disk", { group: "Disk I/O", hint: "Auto = every detected drive" }),
+      boolSetting("showHistory", "Combined history", true, { group: "Disk I/O" }),
+      colorSetting("readColor", "Read color", { group: "Disk I/O" }),
+      colorSetting("writeColor", "Write color", { group: "Disk I/O" }),
+    ],
+    toProps: (s): Partial<DiskIO.DiskIOProps> => ({ ...pass<Partial<DiskIO.DiskIOProps>>("disk", "readColor", "writeColor")(s), showHistory: boolOf(s.showHistory) }),
+  }),
   templateModule({
     meta: NetworkThroughput.meta,
     Component: NetworkThroughput.default,
     settings: [
       ...NETWORK_SETTINGS,
       deviceSetting("adapter", "Adapter", "adapter", { group: "Content", hint: "Auto = the busiest adapter" }),
-      enumSetting("chart", "Chart", "overlay", [{ value: "overlay", label: "Overlay" }, { value: "mirrored", label: "Mirrored" }], { group: "Content" }),
+      enumSetting("chart", "Chart", "overlay", [{ value: "overlay", label: "Overlay" }, { value: "mirrored", label: "Mirrored" }], { group: "Content", visibleIf: (v) => Boolean(v.sparkline) }),
     ],
     toProps: pass<Partial<NetworkThroughput.NetworkThroughputProps>>("adapter", "chart", "view", "showTotals", "sparkline", "downloadColor", "uploadColor"),
   }),
@@ -120,7 +141,7 @@ export const GROUP_B: DashboardModule[] = [
     settings: [
       ...WEATHER_SETTINGS,
       enumSetting("provider", "Provider", "auto", [{ value: "auto", label: "Auto" }, { value: "yr", label: "Yr" }, { value: "owm", label: "OpenWeatherMap" }], { group: "Source", tab: "data" }),
-      yrLocation("Source"),
+      { ...yrLocation("Source"), visibleIf: (v) => v.provider !== "owm" },
       units("Display"),
     ],
     toProps: (s) => ({ ...pass<Partial<Weather.WeatherProps>>("location", "units")(s), provider: oneOf(s.provider, ["yr", "owm"]), ...weatherToProps(s) }),
@@ -135,7 +156,7 @@ export const GROUP_B: DashboardModule[] = [
     meta: SensorValue.meta,
     Component: SensorValue.default,
     settings: SENSOR_VALUE_SETTINGS,
-    toProps: (s): Partial<SensorValue.SensorValueProps> => ({ ...pass<Partial<SensorValue.SensorValueProps>>("sensor", "label", "display", "unit")(s), ...numbersOf(s, ["min", "max", "warn", "crit", "decimals"]) }),
+    toProps: (s): Partial<SensorValue.SensorValueProps> => ({ ...pass<Partial<SensorValue.SensorValueProps>>("sensor", "label", "display", "unit")(s), ...numbersOf(s, ["min", "decimals", "warn", "crit"]), max: positiveOf(s.max) }),
   }),
   templateModule({
     meta: SensorGroup.meta,

@@ -14,16 +14,26 @@ export const meta: WidgetMeta = {
 
 export interface DiskIOProps extends ShellProps {
   look?: ModuleSettings;
+  /** Pin one disk (a sensor slug, e.g. "kingston_sfyrd2000g"); omit to list all. */
+  disk?: string;
+  /** Read / write colours; empty = accent / violet. */
+  readColor?: string;
+  writeColor?: string;
+  /** The combined history under the disks (default true). */
+  showHistory?: boolean;
 }
 
 export default function DiskIO(p: DiskIOProps) {
   const d = p.data;
-  const disks = detect(d, /^libre\.(.+)_power_on_hours$/).map((id) => {
+  const disks = detect(d, /^libre\.(.+)_power_on_hours$/).filter((id) => !p.disk || id === p.disk).map((id) => {
     const k = (s: string) => num(get(d, `libre.${id}_${s}`));
     return { id, name: pretty(id).split(" ")[0], r: k("read_rate"), w: k("write_rate"), act: k("total_activity") };
   });
   const total = disks.reduce((a, x) => a + (x.r || 0) + (x.w || 0), 0);
   const hist = useHistory(total);
+  const rc = p.readColor || "var(--accent)",
+    wc = p.writeColor || "#a78bfa";
+  const showHistory = p.showHistory !== false;
   const max = Math.max(1, ...disks.flatMap((x) => [x.r, x.w]));
   return (
     <Widget
@@ -41,19 +51,19 @@ export default function DiskIO(p: DiskIOProps) {
                 <div className="flex justify-between gap-2">
                   <span className="shrink-0 font-medium text-[color:var(--w-fg)]">{x.name}</span>
                   <span className="min-w-0 truncate tabular-nums text-[color:var(--w-muted)]">
-                    <span style={{ color: "color-mix(in oklab, var(--accent) 60%, var(--w-fg))" }}>R</span> {fmtRate(x.r)} · <span style={{ color: "color-mix(in oklab, #a78bfa 60%, var(--w-fg))" }}>W</span> {fmtRate(x.w)}
+                    <span style={{ color: `color-mix(in oklab, ${rc} 60%, var(--w-fg))` }}>R</span> {fmtRate(x.r)} Â· <span style={{ color: `color-mix(in oklab, ${wc} 60%, var(--w-fg))` }}>W</span> {fmtRate(x.w)}
                   </span>
                 </div>
                 <div className="flex h-1.5 overflow-hidden rounded-full bg-[color:var(--w-track)]">
-                  <div className="h-full transition-[width] duration-700" style={{ width: `${Math.sqrt((x.r || 0) / max) * 50}%`, background: "var(--accent)" }} />
-                  <div className="h-full bg-violet-400 transition-[width] duration-700" style={{ width: `${Math.sqrt((x.w || 0) / max) * 50}%` }} />
+                  <div className="h-full transition-[width] duration-700" style={{ width: `${Math.sqrt((x.r || 0) / max) * 50}%`, background: rc }} />
+                  <div className="h-full transition-[width] duration-700" style={{ width: `${Math.sqrt((x.w || 0) / max) * 50}%`, background: wc }} />
                 </div>
               </li>
             ))}
           </ul>
         ) : (
           <div className="flex h-full flex-col gap-3">
-            {disks.map((x) => (
+            {disks.slice(0, useFitRows(h - (showHistory && size !== "sm" ? 40 : 0), 78, 12)).map((x) => (
               <div key={x.id} className="flex flex-col gap-1.5">
                 <div className="flex items-baseline gap-2 text-xs">
                   <span className="font-medium text-[color:var(--w-fg)]">{x.name}</span>
@@ -61,8 +71,8 @@ export default function DiskIO(p: DiskIOProps) {
                 </div>
                 {(
                   [
-                    ["R", x.r, "var(--accent)"],
-                    ["W", x.w, "#a78bfa"],
+                    ["R", x.r, rc],
+                    ["W", x.w, wc],
                   ] as const
                 ).map(([l, v, c]) => (
                   <div key={l} className="grid grid-cols-[12px_minmax(0,1fr)_76px] items-center gap-2 text-[11px]">
@@ -75,7 +85,7 @@ export default function DiskIO(p: DiskIOProps) {
                 ))}
               </div>
             ))}
-            {size !== "sm" && <Spark values={hist} min={0} className="mt-auto min-h-[28px] flex-1" />}
+            {showHistory && size !== "sm" && <Spark values={hist} min={0} color={rc} className="mt-auto min-h-[28px] flex-1" />}
           </div>
         )
       }

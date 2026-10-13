@@ -1,14 +1,16 @@
 // Template widgets, group C: media / audio (see docs/redesign/phase9/brief-9.3c-templates.md).
 import { audioSettings, ballisticsOf } from "@/modules/audio-modern";
+import { BALLISTICS } from "@/lib/audio/ballistics";
 import { WAVELINK_SETTINGS, wavelinkToProps } from "@/modules/wavelink-modern";
 import type { DashboardModule, ModuleSetting, ModuleSettings } from "@/modules/types";
 import { templateModule } from "../module";
 import { boolOf, boolSetting, colorSetting, deviceSetting, enumSetting, numberOf, numberSetting, oneOf, pick, splitKeys, stringOf } from "./settings-kit";
+import { IDLE_SETTING } from "@/modules/standard-settings";
 import AudioMeter, { meta as audioMeter, type AudioMeterProps } from "../AudioMeter";
 import MeterBridge, { meta as meterBridge, type MeterBridgeProps } from "../MeterBridge";
-import NowPlaying, { meta as nowPlaying, type NowPlayingProps } from "../NowPlaying";
+import NowPlaying, { meta as nowPlaying, nowPlayingIdle, type NowPlayingProps } from "../NowPlaying";
 import { MEDIA_SETTINGS, NOW_PLAYING_OWN, PLAYER_LAYOUT, sharedPropsOf, vizStyleOf } from "../NowPlaying/settings";
-import { VIZ_SHAPE_GROUP, colorModeOf, vizColorSettings, vizDynamicsSettings, vizLookOf, vizShapeSettings } from "./viz-settings";
+import { VIZ_COLORS_GROUP, VIZ_DYNAMICS_GROUP, VIZ_SHAPE_GROUP, colorModeOf, vizColorSettings, vizDynamicsSettings, vizLookOf, vizShapeSettings } from "./viz-settings";
 import Visualizer, { meta as visualizer, type VisualizerProps } from "../Visualizer";
 import VolumeMixer, { meta as volumeMixer, type VolumeMixerProps } from "../VolumeMixer";
 import WaveLink, { meta as waveLink } from "../WaveLink";
@@ -43,6 +45,8 @@ const TEMPLATE_GROUPS: Record<string, Partial<ModuleSetting>> = {
   tint: { default: false },
   liveCapture: { hint: "Needs the profile set to Interactive once, then Allow in the prompt; captures an input device (a loopback such as a Wave Link output)." },
 };
+/** The single-device meter: the bridge draws its own LED ladders and reads no device or style. */
+const single = (v: ModuleSettings) => v.mode !== "bridge";
 const METER_STYLES = ["led", "bar", "solid", "vu", "ring", "mirror", "wave"] as const;
 const VIZ_MODES = ["bars", "mirror", "radial", "wave", "blob", "dots", "line", "scroll"] as const;
 const opts = (values: readonly string[]) => values.map((v) => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) }));
@@ -65,21 +69,36 @@ function hiddenOf(s: ModuleSettings, saved: ModuleSettings | undefined): ModuleS
   return out;
 }
 
+/** The groups whose settings only a visualiser Progress row reads. */
+const VIZ_ONLY_GROUPS = ["Visualizer", "Audio source", VIZ_SHAPE_GROUP, VIZ_COLORS_GROUP, VIZ_DYNAMICS_GROUP];
+/** Cover art is drawn by the card and wave layouts only. */
+const ART_LAYOUTS = ["card", "wave"];
+
+/** Gates the visualiser settings on the Progress row, and the capture devices on Live capture (both rules also keep a setting's own `visibleIf`). */
+const gateNowPlaying = (d: ModuleSetting): ModuleSetting => {
+  const own = d.visibleIf;
+  if (d.key === "showArt") return { ...d, visibleIf: (v) => ART_LAYOUTS.includes(String(v.playerLayout)) };
+  if (!VIZ_ONLY_GROUPS.includes(d.group ?? "")) return d;
+  const live = d.key === "liveSources" ? (v: ModuleSettings) => Boolean(v.liveCapture) : () => true;
+  return { ...d, visibleIf: (v) => v.progress === "visualizer" && live(v) && (own?.(v) ?? true) };
+};
+
 const NOW_PLAYING_SETTINGS: ModuleSetting[] = [
   PLAYER_LAYOUT,
   ...NOW_PLAYING_OWN,
   ...MEDIA_SETTINGS.filter((d) => !LEGACY_ONLY.includes(d.key)).map((d) => ({ ...d, ...TEMPLATE_GROUPS[d.key] })),
-  ...vizShapeSettings(),
+  ...vizShapeSettings("waveformVariant"),
   boolSetting("vizPeaks", "Peak caps", false, { group: VIZ_SHAPE_GROUP }),
   ...vizColorSettings(colorSetting("vizRamp", "Visualizer color")),
   ...vizDynamicsSettings(),
-];
+].map(gateNowPlaying);
 
 export const GROUP_C: DashboardModule[] = [
   templateModule({
     meta: nowPlaying,
     Component: NowPlaying,
-    settings: NOW_PLAYING_SETTINGS,
+    settings: [IDLE_SETTING, ...NOW_PLAYING_SETTINGS],
+    isIdle: (sensors, s) => nowPlayingIdle(sensors, oneOf(s.source, ["auto", "media", "spotify", "pushed"])),
     // the visualiser's levels: read, not owned (the legacy media modules do the same)
     prefixes: ["plugins.audio-level-meter."],
     // vizMode / vizDevice are stored under the legacy keys waveformVariant / liveSource (PHASE9_PLAN §3.2);
@@ -102,10 +121,10 @@ export const GROUP_C: DashboardModule[] = [
     meta: audioMeter,
     Component: AudioMeter,
     settings: [
-      deviceSetting("device", "Device", "audio", { group: "Audio meter" }),
+      deviceSetting("device", "Device", "audio", { group: "Audio meter", visibleIf: single }),
       enumSetting("mode", "Mode", "single", [{ value: "single", label: "Single device" }, { value: "bridge", label: "Bridge (all devices)" }], { group: "Audio meter" }),
-      enumSetting("meterStyle", "Meter style", "led", opts(METER_STYLES), { group: "Audio meter" }),
-      numberSetting("segments", "Segments (0 = auto)", 0, { min: 0, max: 64, step: 1, group: "Audio meter" }),
+      enumSetting("meterStyle", "Meter style", "led", opts(METER_STYLES), { group: "Audio meter", visibleIf: single }),
+      numberSetting("segments", "Segments (0 = auto)", 0, { min: 0, max: 64, step: 1, group: "Audio meter", visibleIf: (v) => single(v) && v.meterStyle === "led" }),
       enumSetting("orientation", "Bridge layout", "vertical", [{ value: "vertical", label: "Columns" }, { value: "horizontal", label: "Rows" }], { group: "Audio meter", visibleIf: (v) => v.mode === "bridge" }),
       ...audioSettings("showDevice", "showDetails", "showVolume", "showMute", "meterBallistics", "levelColor", "hotColor"),
     ],
@@ -125,9 +144,9 @@ export const GROUP_C: DashboardModule[] = [
     // a lone colour would be a one-setting category: it sits in Content with the toggles
     settings: [
       deviceSetting("device", "Device (Auto = all)", "audio", { group: "Volume mixer" }),
-      ...audioSettings("showDevice", "showMute", "levelColor").map((d) => (d.key === "levelColor" ? { ...d, group: "Content" } : d)),
+      ...audioSettings("showDevice", "showMute", "levelColor").map((d) => (d.key === "levelColor" ? { ...d, group: "Content" } : d.key === "showMute" ? { ...d, label: "Show mute state" } : d)),
     ],
-    // onSetVolume / onToggleMute are wired by the shell, not stored
+    // read-only: the volume plugin has no write path
     toProps: (s) => ({ ...pick<VolumeMixerProps>(["showDevice", "showMute", "levelColor"])(s), device: stringOf(s.device) }),
   }),
   templateModule({
@@ -141,19 +160,20 @@ export const GROUP_C: DashboardModule[] = [
       numberSetting("segments", "Segments (0 = auto)", 0, { min: 0, max: 64, step: 1, group: "Meter bridge" }),
       boolSetting("showScale", "dB scale", true, { group: "Meter bridge" }),
       boolSetting("showVolume", "Volume", true, { group: "Meter bridge" }),
-      numberSetting("holdMs", "Peak hold (ms)", 1500, { min: 0, max: 5000, step: 100, group: "Thresholds" }),
+      numberSetting("holdMs", "Peak hold (ms)", BALLISTICS.peak.peakHoldMs, { min: 0, max: 5000, step: 100, group: "Meter", visibleIf: (v) => ballisticsOf(v) === "peak" }),
       numberSetting("floor", "Floor (dB)", -60, { min: -120, max: -20, step: 1, group: "Thresholds" }),
       numberSetting("warnDb", "Warn above (dB)", -18, { min: -60, max: 0, step: 1, group: "Thresholds" }),
       numberSetting("clipDb", "Clip above (dB)", -6, { min: -60, max: 0, step: 1, group: "Thresholds" }),
       ...audioSettings("showDevice", "showDetails", "showMute", "meterBallistics", "levelColor", "hotColor"),
     ],
-    toProps: (s) => ({
+    toProps: (s, saved) => ({
       ...pick<MeterBridgeProps>(["includeDefault", "showScale", "showVolume", "showDetails", "showMute", "levelColor", "hotColor"])(s),
       channels: splitKeys(s.channels).length ? splitKeys(s.channels) : undefined,
       orientation: oneOf(s.orientation, ["vertical", "horizontal"]),
       ladder: oneOf(s.ladder, ["led", "smooth"]),
       segments: autoCount(s.segments),
-      holdMs: numberOf(s.holdMs),
+      // only a stored hold overrides the preset's own, and only the Peak response keeps one
+      holdMs: ballisticsOf(s) === "peak" ? numberOf(saved?.holdMs) : undefined,
       floor: numberOf(s.floor),
       warnDb: numberOf(s.warnDb),
       clipDb: numberOf(s.clipDb),
@@ -170,7 +190,7 @@ export const GROUP_C: DashboardModule[] = [
       numberSetting("bands", "Bands (0 = auto)", 0, { min: 0, max: 64, step: 1, group: "Visualizer" }),
       numberSetting("sensitivity", "Sensitivity", 1.4, { min: 0.2, max: 4, step: 0.1, group: "Visualizer" }),
       boolSetting("peaks", "Peak caps", true, { group: "Visualizer" }),
-      ...vizShapeSettings(),
+      ...vizShapeSettings("mode"),
       ...vizColorSettings(colorSetting("ramp", "Color")),
       ...vizDynamicsSettings(),
     ],

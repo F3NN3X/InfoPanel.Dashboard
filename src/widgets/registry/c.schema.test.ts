@@ -1,8 +1,9 @@
 import { createElement } from "react";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
+import { isVisible } from "@/components/studio/inspector-model";
 import { IDLE_SETTING, STANDARD_SETTINGS } from "@/modules/standard-settings";
-import type { ModuleSettings, SensorMap } from "@/modules/types";
+import { effectiveSettings, type ModuleSettings, type SensorMap } from "@/modules/types";
 import { fixtureSensors } from "../__fixtures__";
 import { GROUP_C } from "./c";
 
@@ -58,5 +59,55 @@ describe.each(Object.entries(MANIFEST))("%s schema", (id, props) => {
     const defaults: ModuleSettings = Object.fromEntries(settings.map((d) => [d.key, d.default]));
     const html = renderToString(mod.render(SENSORS, defaults) ?? createElement("i"));
     expect(html.length).toBeGreaterThan(0);
+  });
+});
+
+describe("group C dependent settings", () => {
+  const shown = (id: string, values: ModuleSettings) => {
+    const mod = GROUP_C.find((m) => m.id === id)!;
+    return (mod.settings ?? []).filter((d) => isVisible(d, { ...effectiveSettings(mod, {}), ...values })).map((d) => d.key);
+  };
+  const VIZ_KEYS = ["waveformVariant", "liveSource", "showTimeline", "vizShape", "vizGap", "vizPeaks", "vizColorMode", "vizFloorDb", "liveCapture"];
+
+  it("shows the NowPlaying visualiser settings only for the Visualizer progress row", () => {
+    for (const k of VIZ_KEYS) expect(shown("NowPlaying", { progress: "bar" }), k).not.toContain(k);
+    for (const k of VIZ_KEYS) expect(shown("NowPlaying", { progress: "visualizer" }), k).toContain(k);
+  });
+
+  it("shows the capture devices only with Live capture, and the cover switch only where it is drawn", () => {
+    expect(shown("NowPlaying", { progress: "visualizer" })).not.toContain("liveSources");
+    expect(shown("NowPlaying", { progress: "visualizer", liveCapture: true })).toContain("liveSources");
+    for (const playerLayout of ["card", "wave"]) expect(shown("NowPlaying", { playerLayout })).toContain("showArt");
+    for (const playerLayout of ["vinyl", "backdrop"]) expect(shown("NowPlaying", { playerLayout })).not.toContain("showArt");
+  });
+
+  it("hides the AudioMeter device, style and segments in bridge mode, and segments outside LED", () => {
+    expect(shown("AudioMeter", { mode: "single", meterStyle: "led" })).toEqual(expect.arrayContaining(["device", "meterStyle", "segments"]));
+    expect(shown("AudioMeter", { mode: "single", meterStyle: "bar" })).not.toContain("segments");
+    for (const k of ["device", "meterStyle", "segments"]) expect(shown("AudioMeter", { mode: "bridge" })).not.toContain(k);
+  });
+
+  it("shows the Visualizer colour 1 only in a colour mode (or with a saved colour), and bar shape only for bar styles", () => {
+    expect(shown("Visualizer", { vizColorMode: "follow" })).not.toContain("ramp");
+    expect(shown("Visualizer", { vizColorMode: "follow", ramp: "#fff" })).toContain("ramp");
+    for (const vizColorMode of ["solid", "gradient", "ramp"]) expect(shown("Visualizer", { vizColorMode })).toContain("ramp");
+    for (const mode of ["bars", "mirror", "scroll"]) expect(shown("Visualizer", { mode })).toEqual(expect.arrayContaining(["vizShape", "vizGap"]));
+    for (const mode of ["wave", "dots", "radial", "line", "blob"]) for (const k of ["vizShape", "vizGap"]) expect(shown("Visualizer", { mode })).not.toContain(k);
+  });
+
+  it("shows MeterBridge Peak hold in the Meter group, for the Peak response only", () => {
+    const hold = GROUP_C.find((m) => m.id === "MeterBridge")!.settings!.find((d) => d.key === "holdMs")!;
+    expect(hold.group).toBe("Meter");
+    expect(shown("MeterBridge", { meterBallistics: "peak" })).toContain("holdMs");
+    for (const meterBallistics of ["vu", "instant"]) expect(shown("MeterBridge", { meterBallistics })).not.toContain("holdMs");
+  });
+
+  it("offers Hide when idle on NowPlaying, idle once the chosen source stops playing", () => {
+    const mod = GROUP_C.find((m) => m.id === "NowPlaying")!;
+    expect(mod.settings!.map((d) => d.key)).toContain("hideWhenIdle");
+    expect(mod.isIdle!({}, {})).toBe(true);
+    const media = (state: number): SensorMap => ({ "plugins.media-plugin.media.playback-state": { value: state, unit: "" } });
+    expect(mod.isIdle!(media(4), { source: "media" })).toBe(false);
+    expect(mod.isIdle!(media(5), { source: "media" })).toBe(true);
   });
 });

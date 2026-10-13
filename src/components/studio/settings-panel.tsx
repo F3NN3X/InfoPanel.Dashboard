@@ -15,7 +15,8 @@ export interface FieldsApi {
   values: LookValues;
   /** The value a row shows for one key. */
   shown: (key: string, def: ModuleSetting) => ModuleSettingValue;
-  onChange: (key: string, value: ModuleSettingValue) => void;
+  /** `editKey` (a field of a composite control) replaces the setting key in the undo coalescing. */
+  onChange: (key: string, value: ModuleSettingValue, editKey?: string) => void;
   /** Set several keys as one change (an "align" picker's two axes). */
   onPatch: (patch: ModuleSettings) => void;
   /** Drop settings' own values (back to the inherited / default ones) as one change. */
@@ -45,7 +46,8 @@ export function SettingField({
         def={def}
         value={fields.shown(def.key, def)}
         valueY={def.keyY ? fields.shown(def.keyY, def) : undefined}
-        onChange={(v) => fields.onChange(def.key, v)}
+        refValue={def.of ? fields.shown(def.of, { ...def, key: def.of, default: "" }) : undefined}
+        onChange={(v, editKey) => fields.onChange(def.key, v, editKey)}
         onPatch={fields.onPatch}
         onApply={fields.onPatch}
         onOpenExplorer={fields.onOpenExplorer}

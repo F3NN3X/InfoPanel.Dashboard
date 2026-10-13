@@ -15,7 +15,6 @@ export const meta: WidgetMeta = {
   description: "L/R level, peak, RMS and peak-hold for one device, or a meter bridge for all devices.",
 };
 
-const db2pct = (db: number) => Math.min(100, Math.max(0, ((db + 60) / 60) * 100));
 const P = (a: number, r: number, cx = 50, cy = 56): [number, number] => [cx + r * Math.sin((a * Math.PI) / 180), cy - r * Math.cos((a * Math.PI) / 180)];
 // Analog VU: needle springs with a slight overshoot
 function Vu({ v, label, color, hot }: { v: number; label: string; color: string; hot: string }) {
@@ -59,7 +58,7 @@ export interface AudioMeterProps extends ShellProps {
   showMute?: boolean;
   /** Device volume; default off. */
   showVolume?: boolean;
-  /** Meter response; unset draws the sensor value as it is. */
+  /** Meter response; unset = peak (the template always sends one). */
   ballistics?: BallisticsPreset;
   /** Colour of the level, default the accent. */
   levelColor?: string;
@@ -75,7 +74,7 @@ export default function AudioMeter(p: AudioMeterProps) {
   const one = readDevice(d, p.device ?? (all.includes("default-audio") ? "default-audio" : all[0] ?? ""));
   const lH = useHistory(one.l, 72, 0.6);
   const rH = useHistory(one.r, 72, 0.6);
-  const step = useMeterBallistics(p.ballistics);
+  const step = useMeterBallistics(p.ballistics ?? "peak");
   const st = p.meterStyle ?? "led";
   const lc = p.levelColor || "var(--accent)";
   const hc = p.hotColor || STATE.crit;
@@ -84,7 +83,7 @@ export default function AudioMeter(p: AudioMeterProps) {
     showMute = p.showMute !== false;
   const ls = step("l", one.l),
     rs = step("r", one.r);
-  const holdPct = p.ballistics ? (ls.hold !== undefined || rs.hold !== undefined ? Math.max(ls.hold ?? 0, rs.hold ?? 0) : undefined) : db2pct(one.hold);
+  const holdPct = ls.hold !== undefined || rs.hold !== undefined ? Math.max(ls.hold ?? 0, rs.hold ?? 0) : undefined;
   const channels: [string, number, number | undefined][] = [
     ["L", ls.v, ls.hold],
     ["R", rs.v, rs.hold],
@@ -261,9 +260,8 @@ export default function AudioMeter(p: AudioMeterProps) {
                 <div className="absolute inset-x-0 top-1/2 h-px bg-[color:var(--w-track)]" />
               </div>
             ) : (
-              channels.map(([c, v, hold]) => {
-                const marker = p.ballistics ? hold : holdPct;
-                return (
+              channels.map(([c, v, marker]) => {
+                                return (
                   <div key={c} className={`flex items-center gap-2 ${size === "lg" ? "h-5" : "h-3"}`}>
                     <span className="w-3 text-[10px] font-semibold text-[color:var(--w-faint)]">{c}</span>
                     {st === "bar" || st === "solid" ? (
@@ -280,7 +278,7 @@ export default function AudioMeter(p: AudioMeterProps) {
                       </div>
                     ) : (
                       <div className="flex h-full flex-1">
-                        <LedLadder value={v} n={p.segments ?? (size === "sm" ? 20 : 32)} color={lc} hotColor={hc} hold={p.ballistics ? hold : undefined} />
+                        <LedLadder value={v} n={p.segments ?? (size === "sm" ? 20 : 32)} color={lc} hotColor={hc} hold={marker} />
                       </div>
                     )}
                   </div>

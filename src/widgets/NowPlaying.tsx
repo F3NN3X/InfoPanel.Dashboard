@@ -2,10 +2,10 @@ import type { CSSProperties } from "react";
 import { makeSurfacePalette, type ModernStyle } from "@/components/surfaces";
 import { surfaceBox } from "@/components/widget-style";
 import { chromeOf } from "@/modules/standard-settings";
-import type { ModuleSettings } from "@/modules/types";
+import type { ModuleSettings, SensorMap } from "@/modules/types";
 import { Widget, shell, get, num, has, Img, Chip, MediaProgress, type MediaProgressMode, type ShellProps, type WidgetMeta, type Data } from "./kit";
 import type { VizLook, VizStyle } from "./core/viz/types";
-import { widgetImage } from "./data-adapter";
+import { toFlat, widgetImage } from "./data-adapter";
 import { useArtTint } from "./NowPlaying/art-tint";
 import { AUDIO, levelDevice, useLevelDevice } from "./audio-device";
 import { useFastSensors } from "@/hooks/useSensors";
@@ -107,10 +107,18 @@ export interface NowPlayingProps extends ShellProps {
   captureDevices?: string[];
 }
 
+/** The track of the chosen source; Auto takes Spotify unless its plugin reports idle. */
+const trackOf = (d: Data, source: NowPlayingProps["source"]): Track => {
+  const src = source && source !== "auto" ? source : /idle/i.test(get(d, "plugins.spotify-plugin.spotify.current-track")) ? "media" : "spotify";
+  return (SOURCES[src] ?? SOURCES.media)(d);
+};
+
+/** Idle = the chosen source is not playing (the template's own reading of "playing", per source). */
+export const nowPlayingIdle = (sensors: SensorMap, source: NowPlayingProps["source"]): boolean => !trackOf(toFlat(sensors), source).playing;
+
 export default function NowPlaying(p: NowPlayingProps) {
   const d = p.data;
-  const src = p.source && p.source !== "auto" ? p.source : /idle/i.test(get(d, "plugins.spotify-plugin.spotify.current-track")) ? "media" : "spotify";
-  const m = (SOURCES[src] ?? SOURCES.media)(d);
+  const m = trackOf(d, p.source);
   const pct = m.progress > 1 ? m.progress : m.progress * 100;
   const cover = widgetImage(m.art);
   const art = p.showArt !== false;

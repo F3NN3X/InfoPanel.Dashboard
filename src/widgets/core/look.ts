@@ -5,6 +5,8 @@ import type { ModernChrome } from "@/components/modern-chrome";
 import { SCRIM } from "@/components/modern-chrome";
 import { fadeColors, surfaceBox } from "@/components/widget-style";
 import { FONT_STACKS } from "@/lib/general";
+import { chromeOf } from "@/modules/standard-settings";
+import type { ModuleSettings } from "@/modules/types";
 import type { Box } from "./layout";
 import { pickBy } from "./layout";
 import type { SurfaceDef, SurfaceTone } from "./surfaces";
@@ -130,4 +132,30 @@ export function lookBox(surf: SurfaceDef, chrome: ModernChrome | undefined): CSS
     ...(chrome.borderWidth !== undefined && !ringBorder ? { borderWidth: 0 } : null),
     ...(chrome.blur !== undefined ? { backdropFilter: box.backdropFilter, WebkitBackdropFilter: box.WebkitBackdropFilter } : null),
   };
+}
+
+/**
+ * The body's flags for the standard alignment and gap (the `[data-wp-body]` rules in
+ * `src/index.css`): each is set only while its option is not "Auto", so those rules — which reach
+ * into the template's own layout, where no `var()` fallback can know the template's value — never
+ * match by default. `data-wp-x` carries the choice, as "Spread" also distributes column layouts.
+ */
+export function bodyFlags(chrome: ModernChrome | undefined): Record<string, string> {
+  const f: Record<string, string> = {};
+  if (chrome?.alignX && chrome.alignX !== "auto") f["data-wp-x"] = chrome.alignX;
+  if (chrome?.alignY && chrome.alignY !== "auto") f["data-wp-y"] = chrome.alignY;
+  if (chrome?.gap !== undefined) f["data-wp-gap"] = "";
+  return f;
+}
+
+/** The share of the body one look gap may take at most (the `[data-wp-gap]` rule's `min(…, 6%)`). */
+export const GAP_CAP = 0.06;
+
+/**
+ * The gap a template that sizes or counts its own items must use: the look's gap, capped at
+ * `GAP_CAP` of the room along that axis like the CSS rule, else the template's own `def`.
+ */
+export function bodyGap(look: ModuleSettings | undefined, def: number, room: number): number {
+  const gap = look ? chromeOf(look).gap : undefined;
+  return gap === undefined ? def : Math.min(gap, room * GAP_CAP);
 }

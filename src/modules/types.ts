@@ -22,13 +22,18 @@ export const isDeviceKind = (v: string | undefined): v is DeviceKind =>
 export interface ModuleSetting {
   key: string;
   label: string;
-  type: "text" | "number" | "select" | "boolean" | "color" | "icon" | "image" | "align" | "sensor";
+  type: "text" | "number" | "select" | "boolean" | "color" | "icon" | "image" | "align" | "sensor" | "sensorItems";
   default: ModuleSettingValue;
   /**
    * For type "align": the vertical key, written together with `key` (the
    * horizontal one) by a 3×3 alignment picker. Both default to `default`.
    */
   keyY?: string;
+  /**
+   * For type "sensorItems": the key of the multi-sensor setting whose sensors get one
+   * override row each. The overrides are stored as a JSON object string under `key`.
+   */
+  of?: string;
   /** Extra search terms (the settings search also matches label, key and options). */
   keywords?: string[];
   /** Options for type "select". */

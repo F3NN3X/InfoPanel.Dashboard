@@ -282,3 +282,54 @@
 .alert-ring-pulse {
   animation: alert-ring-pulse 1.6s ease-in-out infinite;
 }
+
+/* The standard alignment, gap and label case on a widget template's body (src/widgets/core/Widget.tsx).
+   Labels written as `uppercase` follow the label case. The alignment and gap rules reach the body's
+   root layout and its direct items; the shell sets their data-wp-* flags only while the option is
+   not "Auto" (`bodyFlags`), so a template keeps its own layout by default. The primitives (Metric,
+   Stat, ...) read the same variables themselves. */
+[data-wp-body] .uppercase {
+  text-transform: var(--wp-label-case, uppercase);
+}
+[data-wp-body][data-wp-x] {
+  text-align: var(--wp-text-align);
+}
+[data-wp-body][data-wp-x] > .flex:not(.flex-col) {
+  justify-content: var(--wp-x);
+}
+[data-wp-body][data-wp-x] > .flex:not(.flex-col) > .flex-1 {
+  flex: var(--wp-flex);
+}
+/* A column keeps its items full width (bars, grids, graphs); its rows and text follow ("Spread"
+   distributes the column itself, below). */
+[data-wp-body][data-wp-x]:not([data-wp-x="between"]) > .flex-col > .flex:not(.flex-col) {
+  justify-content: var(--wp-x);
+}
+[data-wp-body][data-wp-y] > .flex:not(.flex-col) {
+  align-items: var(--wp-y-cross);
+}
+/* An item no longer stretched to the row's height still fits in it (layered below the utilities,
+   so an item's own max-h-* stays). */
+@layer components {
+  [data-wp-body][data-wp-y] > .flex:not(.flex-col) > * {
+    max-height: 100%;
+  }
+}
+[data-wp-body][data-wp-y] > .flex-col {
+  justify-content: var(--wp-y);
+}
+[data-wp-body][data-wp-y] > .grid {
+  align-content: var(--wp-y);
+}
+/* "Spread" distributes a column's items too. */
+[data-wp-body][data-wp-x="between"] > .flex-col {
+  justify-content: space-between;
+}
+[data-wp-body]:is([data-wp-y], [data-wp-x="between"]) > .flex-col > .mt-auto {
+  margin-top: 0;
+}
+/* The gap replaces a root layout's own gap (one spaced by margins keeps them) and gives way in a
+   small zone: at most 6% of the body per gap (`bodyGap` in core/look.ts counts the same). */
+[data-wp-body][data-wp-gap] > :is(.flex, .grid)[class*="gap-"] {
+  gap: min(var(--wp-gap), 6%);
+}

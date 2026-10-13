@@ -6,7 +6,7 @@ export const meta: WidgetMeta = {
   name: "SSD Health",
   category: "Storage",
   icon: "health_metrics",
-  prefixes: ["libre.kingston_", "libre.wdc_", "libre.samsung_", "libre.crucial_", "libre.wd_"],
+  prefixes: [],
   defaultSize: [3, 2],
   minSize: [1, 1],
   description: "SMART life, temperature, read/write rate, activity, TBW, spare and power-on hours.",
