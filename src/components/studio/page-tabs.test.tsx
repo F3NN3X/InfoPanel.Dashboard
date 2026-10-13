@@ -1,3 +1,4 @@
+import type { ComponentProps } from "react";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import type { ProfilePage } from "@/lib/layout";
@@ -11,7 +12,12 @@ const page = (id: string, name: string, extra: Partial<ProfilePage> = {}): Profi
 });
 
 const noop = () => {};
-const html = (pages: ProfilePage[], current: string, extra: { renamingId?: string } = {}) =>
+const html = (
+  pages: ProfilePage[],
+  current: string,
+  extra: { renamingId?: string } = {},
+  props: Partial<ComponentProps<typeof PageTabs>> = {}
+) =>
   renderToString(
     <PageTabs
       pages={pages}
@@ -27,6 +33,7 @@ const html = (pages: ProfilePage[], current: string, extra: { renamingId?: strin
       onRenamingChange={noop}
       deletingId={null}
       onDeletingChange={noop}
+      {...props}
     />
   );
 
@@ -47,6 +54,19 @@ describe("PageTabs", () => {
     const out = html([page("a", "Main")], "a");
     expect(out).toContain('role="tablist"');
     expect(out).toContain('aria-label="Add page"');
+  });
+
+  it("marks the page the kiosk shows", () => {
+    const out = html([page("a", "Main"), page("b", "Games")], "a", {}, { kioskPage: "b" });
+    expect(out.match(/aria-label="Shown on the kiosk"/g)).toHaveLength(1);
+    expect(out.indexOf("Shown on the kiosk")).toBeGreaterThan(out.indexOf("Games"));
+    expect(html([page("a", "Main")], "a")).not.toContain("Shown on the kiosk");
+  });
+
+  it("shows the rotate toggle only with 2+ pages", () => {
+    const rotate = { entry: undefined, saved: false, onToggle: noop, onSaved: noop };
+    expect(html([page("a", "Main"), page("b", "Games")], "a", {}, { rotate })).toContain("lucide-play");
+    expect(html([page("a", "Main")], "a", {}, { rotate })).not.toContain("lucide-play");
   });
 
   it("swaps the name for an input on the page being renamed", () => {
@@ -70,6 +90,14 @@ describe("pageMenuEntries", () => {
       "duplicate",
       "delete",
     ]);
+  });
+
+  it("adds Show on kiosk when the studio can send the kiosk there", () => {
+    const showOnKiosk = vi.fn();
+    const entries = pageMenuEntries([page("a", "A")], { ...actions, showOnKiosk });
+    (byId(entries, "kiosk") as { onSelect: () => void }).onSelect();
+    expect(showOnKiosk).toHaveBeenCalledOnce();
+    expect(byId(entries, "kiosk")).toMatchObject({ label: "Show on kiosk" });
   });
 
   it("disables Delete on the only page, and runs the actions", () => {

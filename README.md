@@ -42,7 +42,7 @@ Create a desktop profile in InfoPanel, turn on **Web Page** mode, and set the UR
 http://127.0.0.1:3922/?kiosk=1&profile=<profile id>
 ```
 
-`?kiosk=1` shows the dashboard without the header or studio button. `?profile=` picks one of the studio's profiles; without it, the profile pinned in the studio is shown, or — when that is "auto" — the one matching the window size.
+`?kiosk=1` shows the dashboard without the header or studio button. `?page=<page id>` pins one page of the profile (without it the kiosk follows the page the server is showing, or the first). `?profile=` picks one of the studio's profiles; without it, the profile pinned in the studio is shown, or — when that is "auto" — the one matching the window size.
 
 ## The studio
 

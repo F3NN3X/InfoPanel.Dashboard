@@ -22,6 +22,15 @@ describe("resolveGeneral", () => {
   });
 });
 
+describe("kioskPageNav", () => {
+  it("defaults off and is kept only as a boolean", () => {
+    expect(GENERAL_DEFAULTS.kioskPageNav).toBe(false);
+    expect(resolveGeneral({ general: { kioskPageNav: true } }).kioskPageNav).toBe(true);
+    expect(normalizeGeneral({ kioskPageNav: true })).toEqual({ kioskPageNav: true });
+    expect(normalizeGeneral({ kioskPageNav: "yes" })).toBeUndefined();
+  });
+});
+
 describe("normalizeGeneral", () => {
   it("drops non-objects and empty results", () => {
     expect(normalizeGeneral(undefined)).toBeUndefined();

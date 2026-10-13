@@ -32,6 +32,7 @@ import { SelectionChip } from "./selection-chip";
 import { StudioContextMenu, useContextMenu } from "./zone-context-menu";
 import { widgetName } from "./widget-kinds";
 import { WidgetPickerDialog } from "./widget-picker-dialog";
+import { postControl, useControl } from "@/lib/control";
 import { PageTabs } from "./page-tabs";
 import { ZoomToolbar } from "./zoom-toolbar";
 
@@ -83,6 +84,8 @@ function StudioViewBody({
   pushPending,
 }: StudioViewProps) {
   const history = useConfigHistory(config, setConfigState);
+  // Runtime state of the kiosks (page shown, rotating): not config, never in the undo history.
+  const control = useControl();
   const setConfig = history.set;
   // The stored profile behind the page on the canvas (profile list, summary, JSON copy).
   const storedProfile = config.profiles.find((p) => p.id === profile.id) ?? config.profiles[0];
@@ -286,6 +289,14 @@ function StudioViewBody({
         onRenamingChange={ui.setRenamingPage}
         deletingId={ui.deletingPage}
         onDeletingChange={ui.setDeletingPage}
+        kioskPage={control?.profiles[storedProfile.id]?.page}
+        onShowOnKiosk={(page) => void postControl("page", { profile: storedProfile.id, page })}
+        rotate={{
+          entry: control?.profiles[storedProfile.id],
+          saved: storedProfile.rotate?.enabled === true,
+          onToggle: () => void postControl("rotate", { profile: storedProfile.id, state: "toggle" }),
+          onSaved: () => void postControl("rotate", { profile: storedProfile.id, state: "saved" }),
+        }}
       />
       {canvasEl}
     </>

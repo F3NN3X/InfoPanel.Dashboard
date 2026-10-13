@@ -1,7 +1,7 @@
-import { Fragment, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { Fragment, useEffect, useRef, useState, type ComponentProps, type PointerEvent as ReactPointerEvent } from "react";
 import { AlertDialog } from "@base-ui/react/alert-dialog";
 import { Dialog } from "@base-ui/react/dialog";
-import { Ban, Copy, MoreHorizontal, Pencil, Plus, Shapes, Trash2, X } from "lucide-react";
+import { Ban, Copy, MoreHorizontal, Monitor, MonitorPlay, Pencil, Plus, Shapes, Trash2, X } from "lucide-react";
 import { ContextMenu, type ContextMenuEntry } from "@/components/ui/context-menu";
 import { IconButton } from "@/components/ui/icon-button";
 import { IconGrid } from "@/components/ui/icon-grid";
@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { PAGE_ICONS, pageIcon } from "./page-icons";
 import { pastDragThreshold, trackPointer } from "./pointer-drag";
 import { RenameInput } from "./profiles-panel";
+import { RotateToggle } from "./rotate-toggle";
 
 interface PageTabsProps {
   pages: ProfilePage[];
@@ -30,6 +31,12 @@ interface PageTabsProps {
   /** The page the delete confirm is open for. */
   deletingId: string | null;
   onDeletingChange: (id: string | null) => void;
+  /** The page the kiosk shows for this profile (the control channel); unset while offline. */
+  kioskPage?: string | null;
+  /** Send the kiosk to a page. */
+  onShowOnKiosk?: (id: string) => void;
+  /** The auto-rotate toggle, shown with 2+ pages. */
+  rotate?: { entry: ComponentProps<typeof RotateToggle>["entry"]; saved: boolean; onToggle: () => void; onSaved: () => void };
 }
 
 /**
@@ -43,12 +50,13 @@ export function dropIndex(rects: { left: number; width: number }[], from: number
 /** The rows of a page's menu; Delete is off on the only page. */
 export function pageMenuEntries(
   pages: ProfilePage[],
-  actions: { rename: () => void; icon: () => void; duplicate: () => void; remove: () => void }
+  actions: { rename: () => void; icon: () => void; duplicate: () => void; remove: () => void; showOnKiosk?: () => void }
 ): ContextMenuEntry[] {
   return [
     { id: "rename", label: "Rename", icon: <Pencil />, onSelect: actions.rename },
     { id: "icon", label: "Icon…", icon: <Shapes />, onSelect: actions.icon },
     { id: "duplicate", label: "Duplicate", icon: <Copy />, onSelect: actions.duplicate },
+    ...(actions.showOnKiosk ? [{ id: "kiosk", label: "Show on kiosk", icon: <MonitorPlay />, onSelect: actions.showOnKiosk }] : []),
     "separator",
     { id: "delete", label: "Delete", icon: <Trash2 />, danger: true, disabled: pages.length <= 1, onSelect: actions.remove },
   ];
@@ -172,6 +180,9 @@ export function PageTabs({
   onRenamingChange,
   deletingId,
   onDeletingChange,
+  kioskPage,
+  onShowOnKiosk,
+  rotate,
 }: PageTabsProps) {
   const rowRef = useRef<HTMLDivElement>(null);
   const [menu, setMenu] = useState<{ id: string; x: number; y: number } | null>(null);
@@ -213,6 +224,7 @@ export function PageTabs({
       icon: () => setIconFor(id),
       duplicate: () => onDuplicate(id),
       remove: () => onDeletingChange(id),
+      showOnKiosk: onShowOnKiosk && (() => onShowOnKiosk(id)),
     });
 
   // The slot the dragged tab would drop into, among the tabs without it.
@@ -265,6 +277,11 @@ export function PageTabs({
                     >
                       {Icon && <Icon className="h-3.5 w-3.5 shrink-0" />}
                       <span className="truncate">{page.name}</span>
+                      {kioskPage === page.id && (
+                        <Monitor aria-label="Shown on the kiosk" className="h-3 w-3 shrink-0 text-ui-accent-text">
+                          <title>Shown on the kiosk</title>
+                        </Monitor>
+                      )}
                     </button>
                     <button
                       type="button"
@@ -290,6 +307,11 @@ export function PageTabs({
       <IconButton label="Add page" className="h-7 w-7" onClick={onAdd}>
         <Plus className="h-4 w-4" />
       </IconButton>
+      {rotate && pages.length >= 2 && (
+        <div className="ml-auto">
+          <RotateToggle {...rotate} />
+        </div>
+      )}
       {menu && <ContextMenu x={menu.x} y={menu.y} entries={menuEntries(menu.id)} onClose={() => setMenu(null)} />}
       <IconDialog
         page={pages.find((p) => p.id === iconFor)}

@@ -23,6 +23,8 @@ export interface GeneralSettings {
   motion?: MotionChoice;
   /** Hide the mouse cursor on kiosk pages. */
   hideCursor?: boolean;
+  /** Kiosk page dots and swipe between a profile's pages (default off). */
+  kioskPageNav?: boolean;
 }
 
 /** GeneralSettings with every default filled (`hour12` stays optional). */
@@ -33,6 +35,7 @@ export interface ResolvedGeneral {
   locale: string;
   motion: MotionChoice;
   hideCursor: boolean;
+  kioskPageNav: boolean;
 }
 
 export const GENERAL_DEFAULTS: ResolvedGeneral = {
@@ -42,6 +45,7 @@ export const GENERAL_DEFAULTS: ResolvedGeneral = {
   locale: "",
   motion: "system",
   hideCursor: false,
+  kioskPageNav: false,
 };
 
 /** CSS font stacks for the font choices (also the widget style's Font option). */
@@ -90,6 +94,7 @@ export function normalizeGeneral(input: unknown): GeneralSettings | undefined {
   if (typeof v.locale === "string" && isSupportedLocale(v.locale.trim())) out.locale = v.locale.trim();
   if (MOTIONS.includes(v.motion as MotionChoice)) out.motion = v.motion as MotionChoice;
   if (typeof v.hideCursor === "boolean") out.hideCursor = v.hideCursor;
+  if (typeof v.kioskPageNav === "boolean") out.kioskPageNav = v.kioskPageNav;
   return Object.keys(out).length > 0 ? out : undefined;
 }
 

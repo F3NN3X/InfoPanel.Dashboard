@@ -342,7 +342,7 @@ function dashboardSections(): InspectorSection[] {
     ...sectionsOfCategories(look, styleContext, "gs-").map((s) => ({ ...s, tab: "gstyle" as const })),
     dashboardMarker("general", "g-type", "Type", "type", ["Font", "Sans", "Serif", "Mono", "Rounded"], "doc:type"),
     dashboardMarker("general", "g-clock", "Clock & date", "clock", ["Clock", "Time", "Locale", "Show seconds"], "doc:clock"),
-    dashboardMarker("general", "g-display", "Display", "display", ["Motion", "Reduce", "Hide cursor", "Kiosk"], "doc:display"),
+    dashboardMarker("general", "g-display", "Display", "display", ["Motion", "Reduce", "Hide cursor", "Kiosk", "Pages", "Page dots", "Swipe"], "doc:display"),
     dashboardMarker("general", "g-studio", "Studio", "studio", ["Inspector position", "Side", "Bottom", "Auto", "Dock"]),
     dashboardMarker("general", "g-conn", "Connection", "connection", ["Data API", "URL", "Test connection"], "doc:connection"),
   ];

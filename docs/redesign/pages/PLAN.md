@@ -1,6 +1,6 @@
 # Profile pages (plan)
 
-Status: **awaiting approval 2026-10-13**. Context: `../ROADMAP.md` §P and §C. Each phase ends with `npm run build`
+Status: **done 2026-10-13** (P1–P4; results in §Verification). Context: `../ROADMAP.md` §P and §C. Each phase ends with `npm run build`
 and `npm test` green, and existing configs load and render unchanged.
 
 ## Decisions (user, 2026-10-13)
@@ -56,10 +56,10 @@ makes the compiler list every one; each either takes the page view or goes throu
 
 | # | Phase | Output |
 |---|---|---|
-| P1 | Model + migration | Types, `pages.ts`, v3 migration in `mergeConfig`, samples emit pages, the downgrade guard in `server.mjs`. Every reader moved to the current page (the first one; no UI yet). Tests: migration (v1, v2, v3, missing, empty), helpers, guard, a v2 config round trip renders the same zones. |
-| P2 | Studio pages | Page tabs above the canvas: switch, add, rename (double-click), reorder (drag), duplicate, delete (confirm, not the last), icon. Layers and explorer follow the current page; "Move to page" in the zone menu; Ctrl+PageUp / PageDown (not in inputs). Undo: one step per page add / delete / reorder / rename / duplicate / zone move; the page being edited is view state. Profile inspector: Auto-rotate group (on/off toggle, seconds, page checklist). |
-| P3 | Control channel + kiosk | `server.mjs`: runtime state (active page per profile, active profile override) persisted to `control.json`; `GET /api/control`, `POST /api/control/page` `{ profile?, page \| "next" \| "prev" }`, `POST /api/control/profile`, `POST /api/control/rotate` `{ profile?, state: "on" \| "off" \| "toggle" \| "saved" }`; SSE `/events/control`. The kiosk shows the active page (`?page=` pins one), cross-fades on switch (instant with reduced motion). The studio shows which page the kiosk is on and can send it there. Tests: state transitions, next/prev wrap, unknown ids, rotate override and its reset, persistence, SSE payload. |
-| P4 | Kiosk navigation | Page dots (bottom, theme-coloured, tap to switch) and swipe when `kioskPageNav` is on; auto-rotate per profile (pauses for 30 s after a touch or a remote switch; long-press the dots toggles it, with a pause icon while off; the studio top bar shows a rotate toggle while a kiosk is rotating). Both go through the control channel, so every kiosk and the Stream Deck stay in step. QA: dots never cover zones at cell 110/150 in any skin. |
+| P1 | Model + migration | Types, `pages.ts`, v3 migration in `mergeConfig`, samples emit pages, the downgrade guard in `server.mjs`. Every reader moved to the current page (the first one; no UI yet). Tests: migration (v1, v2, v3, missing, empty), helpers, guard, a v2 config round trip renders the same zones. **Result:** done: v3 model, `pages.ts`, migration, downgrade guard. |
+| P2 | Studio pages | Page tabs above the canvas: switch, add, rename (double-click), reorder (drag), duplicate, delete (confirm, not the last), icon. Layers and explorer follow the current page; "Move to page" in the zone menu; Ctrl+PageUp / PageDown (not in inputs). Undo: one step per page add / delete / reorder / rename / duplicate / zone move; the page being edited is view state. Profile inspector: Auto-rotate group (on/off toggle, seconds, page checklist). **Result:** done: page tabs, page commands, Auto-rotate group in the profile inspector. |
+| P3 | Control channel + kiosk | `server.mjs`: runtime state (active page per profile, active profile override) persisted to `control.json`; `GET /api/control`, `POST /api/control/page` `{ profile?, page \| "next" \| "prev" }`, `POST /api/control/profile`, `POST /api/control/rotate` `{ profile?, state: "on" \| "off" \| "toggle" \| "saved" }`; SSE `/events/control`. The kiosk shows the active page (`?page=` pins one), cross-fades on switch (instant with reduced motion). The studio shows which page the kiosk is on and can send it there. Tests: state transitions, next/prev wrap, unknown ids, rotate override and its reset, persistence, SSE payload. **Result:** done: `server/control.mjs` and its routes; `src/lib/control.ts` (`useControl`, `postControl`, `kioskPageId`, `kioskProfileId`); the kiosk follows the control page and profile and cross-fades; the studio marks the kiosk's tab and has "Show on kiosk". |
+| P4 | Kiosk navigation | Page dots (bottom, theme-coloured, tap to switch) and swipe when `kioskPageNav` is on; auto-rotate per profile (pauses for 30 s after a touch or a remote switch; long-press the dots toggles it, with a pause icon while off; the studio top bar shows a rotate toggle while a kiosk is rotating). Both go through the control channel, so every kiosk and the Stream Deck stay in step. QA: dots never cover zones at cell 110/150 in any skin. **Result:** done: `page-dots.tsx`, `swipe.ts`, `general.kioskPageNav`, touch hold, the studio rotate toggle in the page-tab strip. |
 
 After P4: the Stream Deck plugin plan (`InfoPanel.StreamDeckDashboard`), then alerts (`../ROADMAP.md` §A).
 
@@ -75,3 +75,20 @@ kiosk active page, page dots and swipe, auto-rotate and its toggle, control API,
   in `server.mjs`, `__fixtures__`, `widget-qa.tsx` and the docs in P1.
 - **Selection across pages** — clear or keep the selection per page on switch; multi-select never spans
   pages.
+
+## Verification (2026-10-13)
+
+- `npm run typecheck`, `npm test` (158 files, 3609 passed, 1 skipped) and `npm run build` exit 0.
+- Production build on the new server (port 3933, a copy of the live config in a throwaway data dir):
+  - Migration: the v2 MyDefault profile loads as one Main page with its 7 zones, unchanged; the server
+    copy is saved as v3 with no `placements` key. An old-version push is refused with 409.
+  - Studio: add page (blank canvas), rename by double-click, Move to page from the zone menu,
+    Ctrl+PageDown, undo of the move (one step), delete with confirm (switches to the remaining page).
+  - Control API: next page, a write without the header refused (403), rotate toggle, `control.json`
+    persisted, the SSE stream reports the shown profile.
+  - Kiosk: rotation every 5 s (`rotate.seconds: 5`) followed live; rotate off stops it and shows the
+    pause glyph; a remote page switch and a tap on a dot both switch the kiosk; the dots sit in their own
+    bottom strip, clear of the zones.
+  - Studio: "Shown on the kiosk" marker on the right tab; the rotate toggle sets the runtime override
+    and "Back to the saved setting" appears with it.
+- Not tested: swipe and long-press on a real touch screen (covered by the unit tests only).
