@@ -348,12 +348,13 @@ fed by a small frame source (`lib/audio/sensor-visual-source.ts` +
 `hooks/use-sensor-visual-source.ts`):
 
 - the **level** is live data — the AudioLevelMeter plugin's `audio-level`
-  (VU %) for the device chosen in `liveSource`, smoothed at 20 fps with
-  VU-style ballistics (fast attack, slow release) so the bars move
-  between the ~1 Hz sensor pushes;
-- the band **shape** is a stable, decorative per-track shape
-  (`lib/waveform-peaks.ts` — seeded from the track/artist text), scaled by
-  the live level;
+  (VU %) for the device chosen in `liveSource`, on a 100 ms stream while a
+  visualiser is mounted, smoothed at 20 fps with VU-style ballistics (fast
+  attack, slow release);
+- the **bands** are the plugin's real spectrum (`spectrum`, v1.3.0+: 32
+  log-spaced FFT bands of what the device plays, captured by WASAPI
+  loopback), each eased on its own. Without it (an older plugin, spectrum
+  off) every band follows the level; nothing is synthesised;
 - `scrolling` mode scrolls the smoothed level history (each history entry
   is one 50 ms sample, so the scroll speed is real-time);
 - when the audio plugin is absent (or the level settles at silence) the

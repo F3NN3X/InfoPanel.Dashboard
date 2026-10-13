@@ -1,6 +1,8 @@
 import { useEffect, useRef } from "react";
+import { useFastSensors } from "@/hooks/useSensors";
 import type { ModuleSettings } from "@/modules/types";
 import { Widget, shell, get, num, fmt, rampColor, accentOf, stepBands, type BandState, type ShellProps, type WidgetMeta } from "./kit";
+import { AUDIO, levelDevice, spectrumOf } from "./audio-device";
 
 export const meta: WidgetMeta = {
   id: "Visualizer",
@@ -16,6 +18,7 @@ export const meta: WidgetMeta = {
 type Mode = "bars" | "mirror" | "radial" | "wave" | "blob" | "dots";
 
 interface Live {
+  spectrum: Float32Array | null;
   l: number;
   r: number;
   lv: number;
@@ -39,14 +42,16 @@ export interface VisualizerProps extends ShellProps {
   peaks?: boolean;
 }
 
-// The Data API has no FFT, so bands are synthesised from the live level with smooth per-band motion.
+// Bands are the AudioMeter plugin's spectrum (v1.3.0+); without it every band follows the live level.
 export default function Visualizer(p: VisualizerProps) {
+  useFastSensors(AUDIO);
   const d = p.data;
-  const dev = p.device ?? "default-audio";
+  // Auto ("" or unset) follows the loudest live device, like the media widget
+  const dev = levelDevice(d, p.device ?? "", p.names);
   const k = (s: string) => num(get(d, `plugins.audio-level-meter.${dev}.${s}`));
   // the one rAF loop reads this ref; props never restart it
-  const live = useRef<Live>({ l: 0, r: 0, lv: 0, mode: "bars", ramp: "accent", sens: 1.4, peaks: true });
-  live.current = { l: (k("left-channel") || 0) / 100, r: (k("right-channel") || 0) / 100, lv: (k("audio-level") || 0) / 100, mode: p.mode ?? "bars", ramp: p.ramp ?? "accent", bands: p.bands, sens: p.sensitivity ?? 1.4, peaks: p.peaks !== false, skin: p.skin };
+  const live = useRef<Live>({ spectrum: null, l: 0, r: 0, lv: 0, mode: "bars", ramp: "accent", sens: 1.4, peaks: true });
+  live.current = { spectrum: spectrumOf(d, dev), l: (k("left-channel") || 0) / 100, r: (k("right-channel") || 0) / 100, lv: (k("audio-level") || 0) / 100, mode: p.mode ?? "bars", ramp: p.ramp ?? "accent", bands: p.bands, sens: p.sensitivity ?? 1.4, peaks: p.peaks !== false, skin: p.skin };
   const name = String(get(d, `plugins.audio-level-meter.${dev}.device-name`) || "Audio").replace(/\s*\(.+\)$/, "");
   const cv = useRef<HTMLCanvasElement | null>(null);
   useEffect(() => {
@@ -84,7 +89,7 @@ export default function Visualizer(p: VisualizerProps) {
       }
       const mode = L.mode,
         B = L.bands ?? Math.max(8, Math.min(64, Math.round((mode === "radial" || mode === "blob" ? Math.min(w, h) * 2.4 : w) / (mode === "dots" ? 12 : 9))));
-      stepBands(st, { l: L.l, r: L.r, lv: L.lv, sens: L.sens }, t, B);
+      stepBands(st, { spectrum: L.spectrum, l: L.l, r: L.r, lv: L.lv, sens: L.sens }, B);
       const col = (v: number, a = 1) => {
         const s = L.ramp === "accent" ? rampColor(0.35 + v * 0.65, "accent", acc) : rampColor(v, L.ramp);
         return a === 1 ? s : s.replace("rgb(", "rgba(").replace(")", `,${a})`);

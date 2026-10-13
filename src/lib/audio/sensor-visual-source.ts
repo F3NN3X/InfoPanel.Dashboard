@@ -1,5 +1,5 @@
 import { gainToDb } from "@/lib/audio/decibels";
-import { resampleLevels } from "@/lib/audio/bands";
+import { resampleBands } from "@/lib/audio/spectrum";
 import type { FrameSource, VisualFrame } from "@/lib/audio/types";
 
 export interface SensorVisualSourceOptions {
@@ -21,33 +21,24 @@ export interface SensorVisualSource {
   /** Set the current broadband level, 0..1. */
   setLevel: (level: number) => void;
   /**
-   * Set the decorative per-track band shape (0..1 per band, resampled to the
-   * band count). `null` restores a gentle default arch.
+   * Set the real spectrum (the AudioMeter plugin's bands, 0..1, resampled to
+   * the band count). `null` (no spectrum) makes every band follow the level.
    */
-  setShape: (shape: ArrayLike<number> | null) => void;
+  setSpectrum: (spectrum: ArrayLike<number> | null) => void;
   /** Stop the timer and drop all listeners. */
   dispose: () => void;
 }
 
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 
-const defaultShape = (bandCount: number): Float32Array => {
-  // A gentle arch: 0.3 at the edges, 1.0 in the middle.
-  const out = new Float32Array(bandCount);
-  for (let i = 0; i < bandCount; i += 1) {
-    out[i] = 0.3 + 0.7 * Math.sin((Math.PI * i) / (bandCount - 1));
-  }
-  return out;
-};
-
 /**
- * A `FrameSource<VisualFrame>` for the live audiocn visualizers, fed from a
- * polled level (the audio-level sensors push ~1 Hz, far too slow to
- * animate). A 20 fps timer smooths the level with VU-style ballistics (fast
- * attack, slow release) and pushes a frame per tick:
+ * A `FrameSource<VisualFrame>` for the live audiocn visualizers, fed from the
+ * AudioMeter plugin's sensors (10 Hz on the fast stream). A 20 fps timer
+ * smooths them with VU-style ballistics (fast attack, slow release) and pushes
+ * a frame per tick. Nothing is synthesised:
  *
- * - `bands` — a decorative per-track shape scaled by the smoothed level, so
- *   the static variant / bar visualizer read as a live spectrum of the track;
+ * - `bands` — the plugin's spectrum, each band eased on its own; without a
+ *   spectrum (plugin before v1.3.0, spectrum off) every band is the level;
  * - `history` — a ring of the smoothed broadband level, so the scrolling
  *   variant scrolls smoothly (each entry is one 50 ms sample, with
  *   `historyIntervalMs` + `historyUpdatedAt` for the playback delay).
@@ -69,7 +60,7 @@ export function createSensorVisualSource(
 
   const listeners = new Set<(frame: VisualFrame) => void>();
 
-  let shape = defaultShape(bandCount);
+  let spectrum: Float32Array | null = null;
   const bands = new Float32Array(bandCount);
   const history = new Float32Array(historyLength);
   let historyStart = 0;
@@ -84,14 +75,7 @@ export function createSensorVisualSource(
   let timer: ReturnType<typeof setInterval> | null = null;
   let lastFrame: VisualFrame | null = null;
 
-  const scaleBands = () => {
-    for (let i = 0; i < bandCount; i += 1) {
-      bands[i] = (shape[i] ?? 0) * smooth;
-    }
-  };
-
   const emit = () => {
-    scaleBands();
     lastFrame = {
       bands,
       history,
@@ -121,11 +105,17 @@ export function createSensorVisualSource(
     lastTickMs = now;
 
     // Ballistics: fast toward a rising target, slow toward a falling one.
-    const tau = smooth < target ? attackMs : releaseMs;
-    const alpha = 1 - Math.exp(-dt / tau);
-    smooth += (target - smooth) * alpha;
-    if (Math.abs(target - smooth) < 0.001) {
-      smooth = target;
+    const ease = (from: number, to: number) => {
+      const alpha = 1 - Math.exp(-dt / (from < to ? attackMs : releaseMs));
+      const next = from + (to - from) * alpha;
+      return Math.abs(to - next) < 0.001 ? to : next;
+    };
+    smooth = ease(smooth, target);
+    let bandsMoving = false;
+    for (let i = 0; i < bandCount; i += 1) {
+      const next = ease(bands[i], spectrum ? spectrum[i] : smooth);
+      if (next !== bands[i]) bandsMoving = true;
+      bands[i] = next;
     }
 
     // Push one history sample per tick.
@@ -146,7 +136,8 @@ export function createSensorVisualSource(
     const changed =
       Math.abs(smooth - lastEmit) > 0.0005 ||
       historyFilled < historyLength ||
-      playing;
+      playing ||
+      bandsMoving;
     if (changed || dirty) {
       lastEmit = smooth;
       dirty = false;
@@ -154,7 +145,7 @@ export function createSensorVisualSource(
       // Settled and silent and the ring is full: sleep until the next level
       // change. While audio plays the timer keeps running so the scroll stays
       // smooth.
-      if (smooth === target && historyFilled >= historyLength && !playing) {
+      if (smooth === target && !bandsMoving && historyFilled >= historyLength && !playing) {
         stopTimer();
       }
     }
@@ -169,15 +160,11 @@ export function createSensorVisualSource(
     }
   };
 
-  const setShape = (next: ArrayLike<number> | null) => {
-    shape = next && next.length > 0
-      ? resampleLevels(next, 0, next.length, new Float32Array(bandCount))
-      : defaultShape(bandCount);
-    if (listeners.size > 0) {
-      dirty = true;
-      if (timer === null && (smooth > 0 || lastFrame)) {
-        timer = setInterval(tick, intervalMs);
-      }
+  const setSpectrum = (next: ArrayLike<number> | null) => {
+    spectrum = next && next.length > 0 ? resampleBands(next, bandCount, spectrum ?? new Float32Array(bandCount)) : null;
+    dirty = true;
+    if (timer === null) {
+      timer = setInterval(tick, intervalMs);
       tick();
     }
   };
@@ -197,7 +184,7 @@ export function createSensorVisualSource(
   return {
     source,
     setLevel,
-    setShape,
+    setSpectrum,
     dispose: () => {
       stopTimer();
       listeners.clear();

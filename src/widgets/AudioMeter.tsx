@@ -1,4 +1,6 @@
 import type { ModuleSettings } from "@/modules/types";
+import { useFastSensors } from "@/hooks/useSensors";
+import { AUDIO } from "./audio-device";
 import { Widget, useFitRows, shell, fmt, Num, Spark, LedLadder, STATE, hue, useHistory, useMeterBallistics, clamp, type BallisticsPreset, type ShellProps, type WidgetMeta } from "./kit";
 import { audioIds, readDevice, type AudioDevice } from "./audio-data";
 
@@ -66,6 +68,7 @@ export interface AudioMeterProps extends ShellProps {
 }
 
 export default function AudioMeter(p: AudioMeterProps) {
+  useFastSensors(AUDIO);
   const d = p.data;
   const all = audioIds(d);
   const bridge = p.mode === "bridge";

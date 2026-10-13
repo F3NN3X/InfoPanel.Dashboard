@@ -20,7 +20,12 @@ import {
 
 /** Change-stream cadence; the plugins themselves update about once a second. */
 export const STREAM_INTERVAL_MS = 1000;
-/** Sensor streams per page; Wave Link holds one more of the six per origin. */
+/** Fast-stream cadence: the audio meter updates every 50 ms; the Data API's minimum is 100 ms. */
+export const FAST_INTERVAL_MS = 100;
+/**
+ * Sensor streams per page; Wave Link holds one more of the six per origin. A fast stream takes one of
+ * these, so a connection always stays free for `/api/sensors`.
+ */
 export const MAX_STREAMS = 4;
 /** A released namespace stays open this long, so a re-mount reuses it. */
 const CLOSE_DELAY_MS = 2000;
@@ -30,6 +35,10 @@ const RETRY_MS = 5000;
 const REDISCOVER_MS = 30_000;
 /** Namespaces "every sensor" opens before `/api/sensors` lists the rest. */
 const BASE_NAMESPACES = ["plugins.", "libre.", "system."];
+
+/** Map-key marker of a fast stream (a prefix never starts with it). */
+const FAST = "fast:";
+const fastKey = (prefix: string) => FAST + prefix;
 
 const OPEN = 1;
 const CLOSED = 2;
@@ -48,6 +57,7 @@ export type ChangeListener = (changed: readonly string[]) => void;
 
 interface Stream {
   prefix: string;
+  interval: number;
   source: StreamLike;
   /** The next message is the full set under `prefix`. */
   fresh: boolean;
@@ -60,6 +70,8 @@ export class SensorStore {
   /** True while every wanted stream is open (vacuously so with none). */
   private connected = true;
   private readonly refs = new Map<string, number>();
+  /** Prefixes streamed at `FAST_INTERVAL_MS` (the visualiser's audio levels and spectrum). */
+  private readonly fastRefs = new Map<string, number>();
   private allRefs = 0;
   private discovered: string[] = [];
   private readonly streams = new Map<string, Stream>();
@@ -134,6 +146,24 @@ export class SensorStore {
     };
   }
 
+  /**
+   * Keep a dedicated `FAST_INTERVAL_MS` stream open for this prefix until the returned release is
+   * called. Its values land in the same map, so `useSensors` readers see them at the faster rate.
+   */
+  retainFast(prefix: string): () => void {
+    this.fastRefs.set(prefix, (this.fastRefs.get(prefix) ?? 0) + 1);
+    this.queueSync();
+    let released = false;
+    return () => {
+      if (released) return;
+      released = true;
+      const n = (this.fastRefs.get(prefix) ?? 0) - 1;
+      if (n > 0) this.fastRefs.set(prefix, n);
+      else this.fastRefs.delete(prefix);
+      this.queueSync();
+    };
+  }
+
   /** Point every stream at a new Data API base, dropping the old values. */
   setBase(base: string): void {
     if (base === this.base) return;
@@ -151,13 +181,17 @@ export class SensorStore {
     this.sync();
   }
 
+  /** Stream keys: a planned prefix as is, a fast one as `fastKey(prefix)`. */
   private wantedPlan(): string[] {
     const wanted = new Set(this.refs.keys());
     if (this.allRefs > 0) {
       for (const ns of BASE_NAMESPACES) wanted.add(ns);
       for (const ns of this.discovered) wanted.add(ns);
     }
-    return planStreams(wanted, MAX_STREAMS);
+    const fast = [...this.fastRefs.keys()];
+    // a namespace the fast stream already covers needs no slow stream
+    for (const prefix of fast) wanted.delete(prefix);
+    return [...planStreams(wanted, Math.max(1, MAX_STREAMS - fast.length)), ...fast.map(fastKey)];
   }
 
   /**
@@ -176,8 +210,8 @@ export class SensorStore {
   /** Open newly wanted streams now; close unwanted ones after a grace delay. */
   private sync(): void {
     const plan = this.wantedPlan();
-    for (const prefix of plan) {
-      if (!this.streams.has(prefix)) this.open(prefix);
+    for (const key of plan) {
+      if (!this.streams.has(key)) this.open(key);
     }
     if (plan.length < this.streams.size) {
       // Every release gets the full grace period.
@@ -192,15 +226,15 @@ export class SensorStore {
   private closeUnwanted(): void {
     const plan = new Set(this.wantedPlan());
     const closed: string[] = [];
-    for (const [prefix, stream] of this.streams) {
-      if (plan.has(prefix)) continue;
+    for (const [key, stream] of this.streams) {
+      if (plan.has(key)) continue;
       this.dispose(stream);
-      this.streams.delete(prefix);
-      closed.push(prefix);
+      this.streams.delete(key);
+      closed.push(stream.prefix);
     }
     if (closed.length === 0) return;
     // Drop the values only the closed streams were keeping current.
-    const open = [...this.streams.keys()];
+    const open = [...this.streams.values()].map((s) => s.prefix);
     const stale = Object.keys(this.values).filter(
       (key) => closed.some((p) => key.startsWith(p)) && !open.some((p) => key.startsWith(p))
     );
@@ -213,15 +247,18 @@ export class SensorStore {
     this.updateStatus();
   }
 
-  private open(prefix: string): void {
+  private open(key: string): void {
+    const fast = key.startsWith(FAST);
+    const prefix = fast ? key.slice(FAST.length) : key;
+    const interval = fast ? FAST_INTERVAL_MS : STREAM_INTERVAL_MS;
     // "" is the unfiltered stream: a full snapshot every second.
     const unfiltered = prefix === "";
     const url = unfiltered
       ? `${this.base}/events`
-      : `${this.base}/events?prefix=${encodeURIComponent(prefix)}&interval=${STREAM_INTERVAL_MS}`;
+      : `${this.base}/events?prefix=${encodeURIComponent(prefix)}&interval=${interval}`;
     const source = this.connect(url);
-    const stream: Stream = { prefix, source, fresh: true };
-    this.streams.set(prefix, stream);
+    const stream: Stream = { prefix, interval, source, fresh: true };
+    this.streams.set(key, stream);
 
     // EventSource reconnects on its own after a dropped connection; the
     // first message after each (re)connect is the full set again.
@@ -253,10 +290,10 @@ export class SensorStore {
       if (source.readyState !== CLOSED || stream.retry !== undefined) return;
       stream.retry = setTimeout(() => {
         stream.retry = undefined;
-        if (this.streams.get(prefix) !== stream) return;
-        this.streams.delete(prefix);
+        if (this.streams.get(key) !== stream) return;
+        this.streams.delete(key);
         this.dispose(stream);
-        this.open(prefix);
+        this.open(key);
       }, RETRY_MS);
     };
     this.updateStatus();

@@ -7,6 +7,7 @@ import { rampColor, accentOf, useSkin, STATE, TONES, tone } from "./theme";
 import { iconFor } from "./icons";
 import type { Tone } from "./types";
 import { cn } from "@/lib/utils";
+import { resampleBands } from "@/lib/audio/spectrum";
 
 /* ───────── primitives ───────── */
 // Material Symbols names rendered as lucide icons (see icons.ts); sized by the font size like the glyphs were.
@@ -451,21 +452,33 @@ export function Logo({ src, name, className = "", size = "text-3xl" }: { src?: s
   return <img src={src} alt={name} onError={() => setBad(true)} className={`object-contain object-left drop-shadow-[0_4px_18px_rgba(0,0,0,.7)] ${className}`} />;
 }
 
-/* Band engine shared by <MiniViz> and the Visualizer widget. The API has no FFT, so bands are
-   synthesised from the live L/R/level with a spectral envelope + per-band motion, then eased (fast attack, slow release).
+/* Band engine shared by <MiniViz> and the Visualizer widget. Bands come from the AudioMeter plugin's
+   `spectrum` (real FFT bands, resampled to B); without one, every band follows the real level. Nothing
+   is synthesised. Values are eased per frame (fast attack, slow release).
    st = { v: [], pk: [], lv: 0 } is mutated in place; levels are 0–1. */
 export interface BandState {
   v: number[];
   pk: number[];
   lv: number;
+  /** Resampled spectrum scratch (allocated once per band count). */
+  tgt?: Float32Array;
 }
-export function stepBands(st: BandState, { l = 0, r = 0, lv = 0, sens = 1.4 }: { l?: number; r?: number; lv?: number; sens?: number }, t: number, B: number): BandState {
-  st.lv += (Math.max(lv, l, r) * sens - st.lv) * 0.12;
+/** The sensitivity at which spectrum bands pass through unchanged. */
+export const NEUTRAL_SENS = 1.4;
+export function stepBands(
+  st: BandState,
+  { spectrum, l = 0, r = 0, lv = 0, sens = NEUTRAL_SENS }: { spectrum?: ArrayLike<number> | null; l?: number; r?: number; lv?: number; sens?: number },
+  B: number
+): BandState {
+  const level = Math.max(lv, l, r);
+  st.lv += (level * sens - st.lv) * 0.12;
+  if (spectrum && spectrum.length) {
+    if (st.tgt?.length !== B) st.tgt = new Float32Array(B);
+    resampleBands(spectrum, B, st.tgt);
+  }
+  const gain = sens / NEUTRAL_SENS;
   for (let i = 0; i < B; i++) {
-    const x = i / Math.max(1, B - 1);
-    const env = 0.35 + 0.65 * Math.exp(-((x - 0.28) ** 2) / 0.09) + 0.25 * Math.exp(-((x - 0.7) ** 2) / 0.02);
-    const wob = 0.55 + 0.45 * Math.sin(t * (2.1 + (i % 7) * 0.53) + i * 1.7) * Math.sin(t * 1.3 + i * 0.37);
-    const target = Math.min(1, 0.03 + st.lv * env * wob * (0.7 + (x < 0.5 ? l : r) * 0.6));
+    const target = Math.min(1, spectrum && spectrum.length ? st.tgt![i] * gain : level * sens);
     const cur = st.v[i] ?? 0;
     st.v[i] = cur + (target - cur) * (target > cur ? 0.45 : 0.12);
     st.pk[i] = Math.max(st.v[i], (st.pk?.[i] ?? 0) - 0.006);
@@ -481,6 +494,8 @@ const canvasColor = (ctx: CanvasRenderingContext2D, css: string, fb: string): st
 };
 
 export interface MiniVizProps {
+  /** The plugin's spectrum bands (0..1); without them every bar follows the level. */
+  spectrum?: Float32Array | null;
   l?: number;
   r?: number;
   level?: number;
@@ -494,11 +509,11 @@ export interface MiniVizProps {
 /* Inline canvas visualiser for media cards (replaces a progress bar). Driven by the level meter:
    l / r / level are 0–100. One rAF loop, fed through a ref; it stops while off-screen or while the
    page is hidden and restarts when it is visible again. */
-export function MiniViz({ l = 0, r = 0, level = 0, mode = "bars", bands, ramp = "accent", playing = true, sens = 1.5, className = "" }: MiniVizProps) {
+export function MiniViz({ spectrum, l = 0, r = 0, level = 0, mode = "bars", bands, ramp = "accent", playing = true, sens = 1.5, className = "" }: MiniVizProps) {
   const cv = useRef<HTMLCanvasElement | null>(null);
-  const live = useRef({ l: 0, r: 0, lv: 0, mode, bands, ramp, playing, sens });
+  const live = useRef({ spectrum, l: 0, r: 0, lv: 0, mode, bands, ramp, playing, sens });
   useEffect(() => {
-    live.current = { l: l / 100, r: r / 100, lv: level / 100, mode, bands, ramp, playing, sens };
+    live.current = { spectrum, l: l / 100, r: r / 100, lv: level / 100, mode, bands, ramp, playing, sens };
   });
   useEffect(() => {
     let raf = 0,
@@ -542,7 +557,7 @@ export function MiniViz({ l = 0, r = 0, level = 0, mode = "bars", bands, ramp = 
       const L = live.current,
         t = (now - t0) / 1000;
       const B = L.bands ?? Math.max(10, Math.min(72, Math.round(w / (L.mode === "dots" ? 7 : 5))));
-      stepBands(st, { l: L.l, r: L.r, lv: L.playing ? L.lv : 0, sens: L.sens }, t, B);
+      stepBands(st, { spectrum: L.playing ? L.spectrum : null, l: L.l, r: L.r, lv: L.playing ? L.lv : 0, sens: L.sens }, B);
       const col = (v: number, a = 1) => {
         const s = L.ramp === "accent" ? rampColor(0.4 + v * 0.6, "accent", acc) : rampColor(v, L.ramp);
         return a === 1 ? s : s.replace("rgb(", "rgba(").replace(")", `,${a})`);

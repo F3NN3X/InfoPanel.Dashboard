@@ -80,8 +80,8 @@ export interface MediaProgressProps {
   /** Default `mini`. The live engines take `vizMode` bars / line / mirror (waveform) or mirror (bars). */
   engine?: VizEngine;
   tuning?: Partial<LiveTuning>;
-  /** Decorative per-track band shape for the live engines (`trackPeaks`). */
-  shape?: number[];
+  /** The AudioMeter plugin's spectrum bands (0..1); without them every bar follows the level. */
+  spectrum?: Float32Array | null;
   /** Pinned Web Audio capture devices: one labelled live row each, in place of the sensor row (live engines). */
   captureDevices?: string[];
 }
@@ -136,9 +136,9 @@ function LiveEngine({ engine, vizMode, t, className, label, source, active }: Li
   );
 }
 
-/** The sensor row: the level smoothed at 20 fps (fast attack, slow release) between the ~1 Hz pushes. */
-function SensorRow({ level, shape, ...rest }: Omit<LiveProps, "label"> & { level: number; shape?: number[] }) {
-  const source = useSensorVisualSource({ level, shape });
+/** The sensor row: the plugin's spectrum and level, smoothed at 20 fps (fast attack, slow release) between the 10 Hz pushes. */
+function SensorRow({ level, spectrum, ...rest }: Omit<LiveProps, "label"> & { level: number; spectrum?: Float32Array | null }) {
+  const source = useSensorVisualSource({ level, spectrum });
   return (
     <div className="flex w-full items-center">
       <LiveEngine {...rest} source={source} label="Live audio level" />
@@ -166,9 +166,9 @@ function CaptureRow({ deviceId, ...rest }: Omit<LiveProps, "label"> & { deviceId
   );
 }
 
-export function MediaProgress({ mode = "bar", pct, l, r, level = 0, vizMode = "bars", ramp, playing, sens, className = "h-6", barClassName, engine = "mini", tuning, shape, captureDevices }: MediaProgressProps) {
+export function MediaProgress({ mode = "bar", pct, l, r, level = 0, vizMode = "bars", ramp, playing, sens, className = "h-6", barClassName, engine = "mini", tuning, spectrum, captureDevices }: MediaProgressProps) {
   if (mode === "visualizer") {
-    if (engine === "mini") return <MiniViz l={l} r={r} level={level} mode={vizMode} ramp={ramp} playing={playing} sens={sens} className={className} />;
+    if (engine === "mini") return <MiniViz spectrum={spectrum} l={l} r={r} level={level} mode={vizMode} ramp={ramp} playing={playing} sens={sens} className={className} />;
     const t = { ...LIVE_TUNING_DEFAULTS, ...tuning };
     if (captureDevices?.length)
       return (
@@ -178,7 +178,7 @@ export function MediaProgress({ mode = "bar", pct, l, r, level = 0, vizMode = "b
           ))}
         </div>
       );
-    return <SensorRow engine={engine} vizMode={vizMode} t={t} className={className} level={clamp(level) / 100} shape={shape} />;
+    return <SensorRow engine={engine} vizMode={vizMode} t={t} className={className} level={clamp(level) / 100} spectrum={spectrum} />;
   }
   const wave = mode === "wave";
   return <Bar value={pct} style={wave ? "wave" : undefined} className={barClassName ?? (wave ? "h-2.5" : "h-1")} />;

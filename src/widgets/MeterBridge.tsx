@@ -1,4 +1,6 @@
 import { useRef } from "react";
+import { useFastSensors } from "@/hooks/useSensors";
+import { AUDIO } from "./audio-device";
 import type { ModuleSettings } from "@/modules/types";
 import { useFitRows, Widget, shell, fmt, Dot, LedLadder, STATE, useMeterBallistics, type BallisticsPreset, type ShellProps, type WidgetMeta } from "./kit";
 import { audioIds, readDevice } from "./audio-data";
@@ -68,6 +70,7 @@ export interface MeterBridgeProps extends ShellProps {
 }
 
 export default function MeterBridge(p: MeterBridgeProps) {
+  useFastSensors(AUDIO);
   const d = p.data;
   const floor = p.floor ?? -60,
     warnDb = p.warnDb ?? -18,

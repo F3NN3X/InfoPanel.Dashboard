@@ -10,11 +10,11 @@ import {
 import type { FrameSource, VisualFrame } from "@/lib/audio/types";
 
 export interface UseSensorVisualSourceOptions
-  extends Omit<SensorVisualSourceOptions, "shape"> {
+  extends SensorVisualSourceOptions {
   /** Current broadband level, 0..1 (a sensor's % value / 100). */
   level: number;
-  /** Decorative per-track band shape (0..1 per band). */
-  shape?: ArrayLike<number> | null;
+  /** The plugin's spectrum bands (0..1); null or absent = every band follows the level. */
+  spectrum?: ArrayLike<number> | null;
   /**
    * When false no frames are pushed (the visualizer shows its idle state).
    * Default true.
@@ -25,13 +25,13 @@ export interface UseSensorVisualSourceOptions
 /**
  * A stable `FrameSource<VisualFrame>` fed from a polled level, for the
  * audiocn live visualizers. The source instance lives for the component's
- * whole life; `level` / `shape` updates are pushed into it, so re-renders
+ * whole life; `level` / `spectrum` updates are pushed into it, so re-renders
  * never re-subscribe the painter.
  */
 export function useSensorVisualSource(
   options: UseSensorVisualSourceOptions
 ): FrameSource<VisualFrame> {
-  const { level, shape, enabled = true, ...tuning } = options;
+  const { level, spectrum, enabled = true, ...tuning } = options;
   const instanceRef = useRef<SensorVisualSource | null>(null);
   if (instanceRef.current === null) {
     instanceRef.current = createSensorVisualSource(tuning);
@@ -45,8 +45,8 @@ export function useSensorVisualSource(
   }, [instance, level, enabled]);
 
   useEffect(() => {
-    instance.setShape(shape ?? null);
-  }, [instance, shape]);
+    if (enabled) instance.setSpectrum(spectrum ?? null);
+  }, [instance, spectrum, enabled]);
 
   useEffect(() => {
     return () => {
