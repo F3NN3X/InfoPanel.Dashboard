@@ -27,7 +27,7 @@ read 8 live notifications with app name and text. The `NotificationChanged` even
 ```
 Windows notification centre ─poll─► InfoPanel.Notifications plugin ─► Data API entries
 Data API (sensors + notification entries) ─SSE─► dashboard server: alert engine (rules from config)
-alert engine ─► control state `alerts` ─SSE /events/control─► kiosks (toast, highlight, page, sound)
+alert engine ─► control state `alerts` ─SSE /events/control─► kiosks (display, highlight, page)
                                                             └► studio (live list, history, ack)
 ```
 
