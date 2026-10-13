@@ -8,6 +8,7 @@ import { normalizeGeneral, type GeneralSettings } from "./general";
 import { normalizeSpacing } from "./profile-grid";
 import { YR_FORECAST_KEY } from "./sensors";
 import { mainPage, normalizeRotate } from "./pages";
+import { normalizeAlerts, type AlertsConfig } from "./alerts";
 import {
   normalizePanelPlacement,
   normalizePanelPresets,
@@ -207,6 +208,8 @@ export interface DashboardConfig {
   appearancePresets?: AppearancePreset[];
   /** Font, clock format, locale, motion and kiosk cursor (see general.ts). */
   general?: GeneralSettings;
+  /** Alert rules (see alerts.ts); absent = none. */
+  alerts?: AlertsConfig;
 }
 
 /** A named set of style values (the keys in `PROFILE_STYLE_KEYS`). */
@@ -531,6 +534,7 @@ export function mergeConfig(input: StoredConfig): DashboardConfig {
     styleEnforce: typeof parsed.styleEnforce === "boolean" ? parsed.styleEnforce : undefined,
     appearancePresets: normalizeAppearancePresets(parsed.appearancePresets),
     general: normalizeGeneral(parsed.general),
+    alerts: normalizeAlerts(parsed.alerts),
   };
 }
 

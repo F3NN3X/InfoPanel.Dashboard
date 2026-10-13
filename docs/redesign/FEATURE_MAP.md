@@ -357,3 +357,21 @@ Plan: `docs/redesign/pages/PLAN.md`. The studio edits one page of the active pro
 | Rotate toggle in the studio (Play / Pause, "Back to the saved setting", tooltip names runtime and saved) | Page-tab strip, right end, with 2+ pages | ✅ `src/components/studio/rotate-toggle.tsx`; mounted in `page-tabs.tsx` |
 | Marker on the tab the kiosk shows; "Show on kiosk" in the tab menu | Page tabs | ✅ `page-tabs.tsx` (`kioskPage`, `pageMenuEntries`); wired in `studio-view.tsx` |
 | Control API: `GET /api/control`, `POST /api/control/{page,profile,rotate,touch}`, SSE `/events/control`; a touch holds rotation 30 s | Server; Stream Deck plugin | ✅ `server/control.mjs`, `server.mjs`; client `src/lib/control.ts` (`postControl`, `useControl`) |
+
+## 18. Alerts (A3)
+
+| Capability | Where | Status |
+|---|---|---|
+| Alerts rail item and drawer | Left rail (bell) | done: `alerts-panel.tsx`; `left-rail.tsx`, `studio-drawers.tsx` |
+| Master switch, live "Active now" list with Acknowledge / Dismiss | Alerts drawer top | done: `alerts-live.tsx` (`useControl().alerts`, `postControl("alert")`) |
+| History (last 50; test / quiet / dismissed tags) | Alerts drawer disclosure | done: `useAlertHistory` in `alerts-live.tsx` (`GET /api/alerts/history`) |
+| Rules list: on/off, severity dot, source summary, last fired, duplicate, delete with confirm | Alerts drawer | done: `alerts-panel.tsx`, `summarizeRule` / `lastFired` in `alerts-model.ts` |
+| Add rule: blank sensor, blank notification, 11 presets that pick a sensor from the live catalogue | Alerts drawer "+" | done: `src/lib/alert-presets.ts` |
+| Rule editor: sensor picker with live value, operator, value, for (s), clears below / above, live "would fire now" line | Alerts drawer sub-view | done: `alerts-rule-editor.tsx`, `previewSensor` |
+| Notification source: apps (with suggestions), exclude, text contains | Rule editor | done: `alerts-rule-editor.tsx` |
+| Cooldown, profiles (All / checklist) | Rule editor | done: `alerts-rule-editor.tsx` |
+| Outputs: display (style, 3x3 position, backdrop, size, seconds, text), switch to page, highlight widget | Rule editor | done: `alerts-outputs.tsx` |
+| Test button (disabled while edits are not pushed) | Rule editor | done: `postControl("alert", { ruleId, action: "test" })` |
+| Global defaults and quiet hours | Alerts drawer, collapsed | done: `alerts-defaults.tsx` |
+| One undo step per field burst, add / delete / duplicate / preset | Studio history | done: `ruleKey` / `alertsKey` in `alerts-model.ts` |
+| Palette: Open alerts, New alert rule | Command palette | done: `commands.ts`, `use-studio-commands.ts` |

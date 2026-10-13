@@ -1,10 +1,12 @@
 import { modules } from "@/modules";
 import { BLANK_MODULE } from "@/lib/layout";
+import { blankSensorRule } from "@/lib/alert-presets";
 import { useToast } from "@/components/ui/toast";
 import { styleOf } from "@/modules/standard-settings";
 import type { DashboardConfig, ProfileView } from "@/lib/layout";
 import type { HistorySetter } from "@/hooks/use-config-history";
 import type { Appearance } from "@/lib/style-resolve";
+import { addRule, alertsKey } from "./alerts-model";
 import { followAll, toggleEnforce } from "./appearance-actions";
 import { buildCommands, type CommandAction } from "./commands";
 import { copyProfileJson, exportConfigFile } from "./config-file";
@@ -113,6 +115,17 @@ export function useStudioCommands({
       case "add-preset":
         ui.setMode("design");
         return edit.addPanelPresetById(action.id);
+      case "alerts-open":
+        ui.setMode("design");
+        ui.setAlertRule(null);
+        return ui.setDrawer("alerts");
+      case "alert-new": {
+        const rule = blankSensorRule();
+        ui.setMode("design");
+        ui.setDrawer("alerts");
+        ui.setAlertRule(rule.id);
+        return setConfig((c) => addRule(c, rule), alertsKey(`add:${rule.id}`));
+      }
       case "profile":
         return edit.activateProfile(action.id);
       case "drawer":

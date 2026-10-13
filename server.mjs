@@ -9,7 +9,9 @@
 // Sensor data does not pass through here: pages read it straight from the
 // InfoPanel Data API (http://127.0.0.1:3921 by default), which allows CORS.
 // It also holds the runtime control state (active page per profile, page
-// rotation; server/control.mjs) for kiosks, the studio and the Stream Deck.
+// rotation; server/control.mjs) for kiosks, the studio and the Stream Deck,
+// and the alert engine (server/alerts.mjs) that watches the Data API for the
+// rules in config.alerts and publishes the active alerts through that state.
 //
 // Node built-ins only. Environment:
 //   PORT  listen port (default 3922)
@@ -24,6 +26,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import os from "node:os";
+import { createAlerts } from "./server/alerts.mjs";
 import { createAssets } from "./server/assets.mjs";
 import { versionRefusal } from "./server/config-guard.mjs";
 import { createControl } from "./server/control.mjs";
@@ -38,6 +41,7 @@ const DATA_DIR = path.join(LOCAL, "InfoPanel", "Dashboard");
 const CONFIG_FILE = path.join(DATA_DIR, "config.json");
 const ASSETS_DIR = path.join(DATA_DIR, "assets");
 const CONTROL_FILE = path.join(DATA_DIR, "control.json");
+const ALERTS_FILE = path.join(DATA_DIR, "alerts.json");
 
 const MAX_CONFIG_BYTES = 5 * 1024 * 1024;
 const MAX_PROXY_BYTES = 25 * 1024 * 1024;
@@ -80,6 +84,7 @@ function saveConfig(json) {
   const event = `data: ${JSON.stringify({ version: configVersion })}\n\n`;
   for (const res of configListeners) res.write(event);
   control.configChanged();
+  alerts.configChanged();
 }
 
 function readConfigFile() {
@@ -94,9 +99,13 @@ function readConfigFile() {
 
 const control = createControl({ file: CONTROL_FILE, readConfig: readConfigFile });
 const MAX_CONTROL_BYTES = 4096;
-const CONTROL_ACTIONS = new Set(["page", "profile", "rotate", "touch"]);
+const CONTROL_ACTIONS = new Set(["page", "profile", "rotate", "touch", "alert"]);
+const alerts = createAlerts({ file: ALERTS_FILE, readConfig: readConfigFile, control });
 
-/** GET /api/control → the state; POST /api/control/<action> with a JSON body → the new state. */
+/**
+ * GET /api/control → the state; POST /api/control/<action> with a JSON body → the new state.
+ * POST /api/control/alert takes { id, action: "ack" | "dismiss" } or { ruleId, action: "test" } → { alerts }.
+ */
 async function handleControl(req, res, pathname) {
   if (pathname === "/api/control") {
     if (req.method !== "GET") return send(res, 405);
@@ -114,9 +123,20 @@ async function handleControl(req, res, pathname) {
   } catch {
     return send(res, 400, "expected a JSON object");
   }
+  if (type === "alert") {
+    const done = alerts.act(body);
+    if (done.error) return send(res, 400, done.error);
+    return send(res, 200, JSON.stringify({ alerts: done.alerts }), TYPES[".json"]);
+  }
   const result = control.dispatch({ ...body, type });
   if (result.error) return send(res, 400, result.error);
   send(res, 200, JSON.stringify(result.state), TYPES[".json"]);
+}
+
+/** GET /api/alerts/history → the alert history, newest first. */
+function handleAlertHistory(req, res) {
+  if (req.method !== "GET") return send(res, 405);
+  send(res, 200, JSON.stringify(alerts.history()), TYPES[".json"]);
 }
 
 /** SSE of the control state; `?profile=<id>` reports the profile this kiosk shows. */
@@ -298,6 +318,7 @@ const server = http.createServer(async (req, res) => {
     if (pathname === "/api/config") return await handleConfig(req, res);
     if (pathname === "/events/config") return handleConfigEvents(req, res);
     if (pathname === "/api/control" || pathname.startsWith("/api/control/")) return await handleControl(req, res, pathname);
+    if (pathname === "/api/alerts/history") return handleAlertHistory(req, res);
     if (pathname === "/events/control") return handleControlEvents(req, res, searchParams);
     if (pathname === "/api/image-proxy") return await handleImageProxy(req, res, searchParams);
     if (pathname === "/api/assets" || pathname.startsWith("/api/assets/")) {
