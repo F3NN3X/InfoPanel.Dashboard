@@ -40,6 +40,13 @@ describe("stepGrid", () => {
     expect(stepGrid(p, "cols", 1)?.cols).toBe(13);
   });
 
+  it("refuses to shrink under a zone on another page (the grid is shared)", () => {
+    const p = profile([zone("a", { colStart: 1, colSpan: 2 })]);
+    const other = [zone("b", { rowStart: 4, rowSpan: 3 })];
+    expect(stepGrid(p, "rows", -1, other)).toBeNull();
+    expect(stepGrid(p, "rows", -1)?.rows).toBe(5);
+  });
+
   it("allows shrinking to exactly the zone edge", () => {
     const p = profile([zone("a", { colStart: 10, colSpan: 2 })]);
     expect(stepGrid(p, "cols", -1)?.cols).toBe(11);

@@ -492,15 +492,32 @@ export function followGlobalStyle(profile: ProfileView, ids: readonly string[]):
   };
 }
 
+/** One axis of a box mapped from a `from`-cell grid to a `to`-cell grid (edges floored, at least one cell). */
+function scaleSpan(start: number, span: number, from: number, to: number): [number, number] {
+  const k = to / from;
+  const first = Math.min(to, Math.floor((start - 1) * k) + 1);
+  const last = Math.max(first, Math.min(to, Math.floor((start - 1 + span) * k)));
+  return [first, last - first + 1];
+}
+
 /**
- * The profile with the sample layout's grid and fresh copies of its zones
- * (the empty-layout card's "Use sample layout").
+ * The page with fresh copies of the sample layout's zones (the empty-layout card's "Use sample layout").
+ * The grid is shared by every page, so with `keepGrid` (another page has zones) the sample's zones are
+ * scaled onto this profile's grid instead of the profile taking the sample's grid; a zone that then
+ * collides moves to the first free spot of its size, or is left out when none is left.
  */
-export function withSampleZones(profile: ProfileView, sample: MonitorProfile): ProfileView {
-  return {
-    ...profile,
-    cols: sample.cols,
-    rows: sample.rows,
-    placements: pageOf(sample).placements.map(clonePlacement),
-  };
+export function withSampleZones(profile: ProfileView, sample: MonitorProfile, keepGrid = false): ProfileView {
+  const zones = pageOf(sample).placements.map(clonePlacement);
+  if (!keepGrid) return { ...profile, cols: sample.cols, rows: sample.rows, placements: zones };
+  const placed: Placement[] = [];
+  for (const z of zones) {
+    const [colStart, colSpan] = scaleSpan(z.colStart, z.colSpan, sample.cols, profile.cols);
+    const [rowStart, rowSpan] = scaleSpan(z.rowStart, z.rowSpan, sample.rows, profile.rows);
+    const rect: ZoneRect = { col: colStart, row: rowStart, cols: colSpan, rows: rowSpan };
+    const spot = zoneFits(rect, placed, profile.cols, profile.rows)
+      ? rect
+      : firstFreeRect(profile.cols, profile.rows, { cols: colSpan, rows: rowSpan }, placed);
+    if (spot) placed.push({ ...z, colStart: spot.col, rowStart: spot.row, colSpan: spot.cols, rowSpan: spot.rows });
+  }
+  return { ...profile, placements: placed };
 }

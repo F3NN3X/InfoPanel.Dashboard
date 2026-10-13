@@ -3,7 +3,7 @@ import { Trash2 } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { BACKGROUND_DEFAULTS, type PageBackground } from "@/lib/appearance";
 import { DeviceChecklist } from "@/components/ui/device-checklist";
-import type { PageRotate, ProfileView } from "@/lib/layout";
+import type { PageRotate, Placement, ProfileView } from "@/lib/layout";
 import { MAX_SPACING, normalizeSpacing, profileGap, profilePadding } from "@/lib/profile-grid";
 import type { ThemeTokens } from "@/lib/theme";
 import { cn } from "@/lib/utils";
@@ -83,11 +83,14 @@ export function ProfileFields({
   updateProfile,
   canRemove,
   onRemove,
+  otherZones = [],
 }: {
   profile: ProfileView;
   updateProfile: UpdateProfile;
   canRemove: boolean;
   onRemove: () => void;
+  /** The zones of the profile's other pages, which share the grid. */
+  otherZones?: readonly Placement[];
 }) {
   const toast = useToast();
   const patch = (p: Partial<ProfileView>) =>
@@ -96,8 +99,8 @@ export function ProfileFields({
   const setGrid = (axis: "cols" | "rows", value: number) => {
     const delta = value - profile[axis];
     if (delta === 0) return;
-    if (stepGrid(profile, axis, delta) === null) toast(GRID_REFUSED);
-    else updateProfile((p) => stepGrid(p, axis, value - p[axis]) ?? p);
+    if (stepGrid(profile, axis, delta, otherZones) === null) toast(GRID_REFUSED);
+    else updateProfile((p) => stepGrid(p, axis, value - p[axis], otherZones) ?? p);
   };
   return (
     <div className="space-y-3">

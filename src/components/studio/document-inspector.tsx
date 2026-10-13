@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { PageBackground } from "@/lib/appearance";
 import type { GeneralSettings } from "@/lib/general";
-import type { PageRotate, ProfileView } from "@/lib/layout";
+import type { PageRotate, ProfilePage, ProfileView } from "@/lib/layout";
 import { THEME_PRESETS, resolveTheme, type ThemeTokens } from "@/lib/theme";
 import type { ModuleSettings } from "@/modules/types";
 import { AppearanceGallery, type CurrentLook } from "./appearance-gallery";
@@ -92,7 +92,7 @@ export interface DashboardStudioProps {
   autoPick: boolean;
   onAutoPick: (auto: boolean) => void;
   /** The active profile's pages (Auto-rotate's checklist) and the write of its `rotate` option. */
-  pages: { id: string; name: string }[];
+  pages: ProfilePage[];
   onRotate: (patch: Partial<PageRotate>) => void;
   /** General › Studio: the inspector position. */
   layoutMode: LayoutMode;
@@ -185,6 +185,7 @@ function DocumentSheet({
               updateProfile={updateProfile}
               canRemove={canRemoveProfile}
               onRemove={onRemoveProfile}
+              otherZones={pages.filter((pg) => pg.id !== activeProfile.pageId).flatMap((pg) => pg.placements)}
             />
           ),
         };

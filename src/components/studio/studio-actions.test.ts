@@ -487,6 +487,31 @@ describe("withSampleZones", () => {
     expect(out.placements).toHaveLength(2);
     expect(out.placements.map((p) => p.id)).not.toContain("s1");
   });
+
+  it("keeps the shared grid and scales the sample onto it when another page has zones", () => {
+    const sample = profile([zone("s1", 1, 1, 6, 3), zone("s2", 7, 4, 6, 3)], 12, 6);
+    const { placements, ...rest } = sample;
+    const target = { ...profile([]), cols: 12, rows: 12 };
+    const out = withSampleZones(target, { ...rest, pages: [mainPage(placements)] }, true);
+    expect(out).toMatchObject({ cols: 12, rows: 12 });
+    expect(out.placements.map((p) => [p.colStart, p.rowStart, p.colSpan, p.rowSpan])).toEqual([
+      [1, 1, 6, 6],
+      [7, 7, 6, 6],
+    ]);
+  });
+
+  it("moves a zone that collides after shrinking, and leaves out one with no room", () => {
+    const sample = profile([zone("a", 1, 1, 1, 1), zone("b", 2, 1, 1, 1), zone("c", 1, 2, 2, 1)], 2, 2);
+    const { placements, ...rest } = sample;
+    const target = { ...profile([]), cols: 1, rows: 2 };
+    const out = withSampleZones(target, { ...rest, pages: [mainPage(placements)] }, true);
+    expect(out).toMatchObject({ cols: 1, rows: 2 });
+    // a and b both shrink onto column 1, row 1: b moves to row 2; c then has no room.
+    expect(out.placements.map((p) => [p.colStart, p.rowStart])).toEqual([
+      [1, 1],
+      [1, 2],
+    ]);
+  });
 });
 
 describe("hidden zones and no-op box changes", () => {
