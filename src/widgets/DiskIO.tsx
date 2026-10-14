@@ -43,7 +43,7 @@ export default function DiskIO(p: DiskIOProps) {
       studio={{ label: "Disk I/O", value: fmtRate(total), hist, min: 0, rows: disks.map((x) => ({ n: x.name, v: `R ${fmtRate(x.r)} · W ${fmtRate(x.w)}`, pct: x.act })) }}
       compact={{ label: "Disk I/O", value: fmtRate(total), sub: `${disks.length} disks`, hist, min: 0 }}
     >
-      {({ size, h }) =>
+      {({ size, w, h }) =>
         h < 200 ? (
           <ul className="flex h-full flex-col justify-center gap-2.5 overflow-hidden">
             {disks.slice(0, useFitRows(h, 30, 10)).map((x) => (
@@ -65,9 +65,11 @@ export default function DiskIO(p: DiskIOProps) {
           <div className="flex h-full flex-col gap-3">
             {disks.slice(0, useFitRows(h - (showHistory && size !== "sm" ? 40 : 0), 78, 12)).map((x) => (
               <div key={x.id} className="flex flex-col gap-1.5">
-                <div className="flex items-baseline gap-2 text-xs">
-                  <span className="font-medium text-[color:var(--w-fg)]">{x.name}</span>
-                  <span className="text-[11px] text-[color:var(--w-faint)]">{fmt(x.act, 0)}% active</span>
+                <div className="flex min-w-0 items-baseline gap-2 text-xs">
+                  <span className="truncate font-medium text-[color:var(--w-fg)]">{x.name}</span>
+                  <span className="shrink-0 text-[11px] text-[color:var(--w-faint)]">
+                    {fmt(x.act, 0)}%{w >= 170 && " active"}
+                  </span>
                 </div>
                 {(
                   [
@@ -75,11 +77,13 @@ export default function DiskIO(p: DiskIOProps) {
                     ["W", x.w, wc],
                   ] as const
                 ).map(([l, v, c]) => (
-                  <div key={l} className="grid grid-cols-[12px_minmax(0,1fr)_76px] items-center gap-2 text-[11px]">
+                  <div key={l} className={`grid items-center gap-2 text-[11px] ${w < 170 ? "grid-cols-[12px_minmax(0,1fr)]" : "grid-cols-[12px_minmax(0,1fr)_76px]"}`}>
                     <span className="text-[color:var(--w-faint)]">{l}</span>
-                    <div className="h-1.5 overflow-hidden rounded-full bg-[color:var(--w-track)]">
-                      <div className="h-full rounded-full transition-[width] duration-700" style={{ width: `${Math.sqrt((v || 0) / max) * 100}%`, background: c }} />
-                    </div>
+                    {w >= 170 && (
+                      <div className="h-1.5 overflow-hidden rounded-full bg-[color:var(--w-track)]">
+                        <div className="h-full rounded-full transition-[width] duration-700" style={{ width: `${Math.sqrt((v || 0) / max) * 100}%`, background: c }} />
+                      </div>
+                    )}
                     <span className="text-right tabular-nums text-[color:var(--w-fg)]">{fmtRate(v)}</span>
                   </div>
                 ))}

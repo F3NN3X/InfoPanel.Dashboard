@@ -49,14 +49,14 @@ export const GENERAL_CATEGORIES: readonly GeneralCategory[] = [
     tab: "style",
     title: GROUP_LOOK,
     hint: "Skin, graph and meter style, graph updates",
-    keys: ["skin", "graph", "meter", "smoothing", "compactView"],
+    keys: ["skin", "graph", "meter", "smoothing"],
   },
   {
     id: "size",
     tab: "style",
     title: GROUP_SIZE,
-    hint: "Layout, dense summary, scale and alignment in the zone",
-    keys: ["layout", "variant", "autoScale", "scale", "alignX"],
+    hint: "Layout, dense summary, summary card, scale and alignment in the zone",
+    keys: ["layout", "variant", "compactView", "autoScale", "scale", "alignX"],
   },
   {
     id: "typography",

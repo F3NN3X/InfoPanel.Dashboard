@@ -386,11 +386,11 @@ describe("applyAdvanced", () => {
       "Colors & surface",
       "Border & effects",
     ]);
-    expect(find(shown, "Size & alignment").settings.map((d) => d.key)).toEqual(["layout", "variant", "scale", "alignX"]);
+    expect(find(shown, "Size & alignment").settings.map((d) => d.key)).toEqual(["layout", "variant", "compactView", "scale", "alignX"]);
     expect(find(shown, "Colors & surface").settings.map((d) => d.key)).not.toContain("background");
     expect(find(shown, "Border & effects").extras).toEqual([]);
-    // autoScale + background + backgroundOn + frame (3) + custom CSS + 3 device color options + graph, meter, compactView
-    expect(hiddenCount).toBe(1 + 2 + 3 + 1 + 3 + 3);
+    // autoScale + background + backgroundOn + frame (3) + custom CSS + 3 device color options + graph, meter
+    expect(hiddenCount).toBe(1 + 2 + 3 + 1 + 3 + 2);
     const total = sections.reduce((n, s) => n + sectionSize(s), 0);
     expect(shown.reduce((n, s) => n + sectionSize(s), 0) + hiddenCount).toBe(total);
   });

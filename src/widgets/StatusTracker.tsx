@@ -83,27 +83,33 @@ export default function StatusTracker(p: StatusTrackerProps) {
       {({ w, h }) => {
         // the look's gap spaces the rows and the two legend lines; with it set, budget the legend's
         // full height (the axis line and up to two lines of pills)
+        // the legend (axis line + pills) shows from 130px tall; its pills take one line from 330px wide, else two (none under 220px)
         const g = bodyGap(p.look, 10, h),
-          labelW = w > 360 ? 112 : 76,
-          rowsFit = useFitRows(h - (h > 130 ? (g === 10 ? 46 : 64 + 2 * g) : 0), 24, g);
+          labelW = w > 360 ? 112 : w > 200 ? 76 : 56,
+          legend = h > 130,
+          pillLines = !legend || w < 220 ? 0 : w >= 330 ? 1 : 2,
+          rowsFit = useFitRows(h - (legend ? g + 16 + (pillLines ? g + pillLines * 24 + (pillLines - 1) * 6 : 0) : 0), 24, g),
+          // each reading needs 2px plus a 2px gap: show the newest that fit
+          cells = Math.max(1, Math.min(N, Math.floor((w - labelW - 10 + 2) / 4)));
         return (
           <div className="flex h-full min-w-0 flex-col gap-2.5">
             {tracks.slice(0, rowsFit).map((t) => (
               <div key={t.label} className="grid items-center gap-2.5" style={{ gridTemplateColumns: `${labelW}px minmax(0,1fr)` }}>
                 <span className="truncate text-[13px]">{t.label}</span>
                 <div className="flex h-6 min-w-0 gap-[2px] overflow-hidden">
-                  {(hist.current[t.label] ?? []).map((c, i) => (
+                  {(hist.current[t.label] ?? []).slice(-cells).map((c, i) => (
                     <i key={i} title={`${t.label}: ${c.v}`} className="min-w-0 flex-1 rounded-[2px] transition-colors duration-300" style={{ background: c.st === "none" ? "var(--w-track)" : STATE[c.st] }} />
                   ))}
                 </div>
               </div>
             ))}
-            {h > 130 && (
+            {legend && (
               <>
                 <div className="flex justify-between text-[11px] text-[color:var(--w-faint)]" style={{ marginLeft: labelW + 10 }}>
                   <span>−{N}s</span>
                   <span>now</span>
                 </div>
+                {pillLines > 0 && (
                 <div className="flex flex-wrap gap-1.5">
                   {(
                     [
@@ -118,6 +124,7 @@ export default function StatusTracker(p: StatusTrackerProps) {
                     </Pill>
                   ))}
                 </div>
+                )}
               </>
             )}
           </div>

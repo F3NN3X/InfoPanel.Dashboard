@@ -4,7 +4,7 @@ import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSP
 import { chromeVars, scopedCss, zoomFor } from "@/components/widget-style";
 import { chromeOf } from "@/modules/standard-settings";
 import type { ModuleSettings } from "@/modules/types";
-import { useBox, type Box } from "./layout";
+import { summaryShape, useBox, type Box } from "./layout";
 import { mix } from "./tokens";
 import { SKINS, SkinCtx, resolveSurface, textVars } from "./theme";
 import { bodyFlags, forcedTier, lookBox, patchBackground, resolveAccent, scrimFor, shellPad, skinContext, untitled, withUserLook } from "./look";
@@ -34,7 +34,7 @@ export interface WidgetProps {
   children?: ReactNode | ((box: LayoutBox) => ReactNode);
   bleed?: boolean;
   compact?: Compact | ((box: Box) => Compact | undefined);
-  compactView?: "auto" | "off";
+  compactView?: "auto" | "off" | "on";
   skin?: string;
   graph?: string;
   meter?: string;
@@ -96,9 +96,10 @@ export function Widget({ title, icon, iconOverride, accent, surface, radius, siz
   const user = { icon: iconOverride || chrome?.icon, label: chrome?.label };
   const sRaw = isStudio ? ((typeof studio === "function" ? studio(box) : studio) ?? (typeof compact === "function" ? compact({ ...box, shape: "tile" }) : compact) ?? { label: heading, value: "" }) : null;
   const sObj = sRaw && untitled(withUserLook(sRaw, user), titled);
-  const cRaw = !isStudio ? (typeof compact === "function" ? compact(box) : compact) : undefined;
+  const form = isStudio ? null : summaryShape(compactView, box.shape, box.w, box.h);
+  const cRaw = form ? (typeof compact === "function" ? compact({ ...box, shape: form }) : compact) : undefined;
   const cObj = cRaw && untitled(withUserLook(cRaw, user), titled);
-  const useCompact = !!cObj && compactView !== "off" && box.shape !== "box";
+  const useCompact = !!cObj;
   const tui = skin === "tui";
   const pad = shellPad({ box, studio: isStudio, compact: useCompact, bleed, tui, padding: chrome?.padding !== undefined ? Math.round((chrome.padding / zoom) * 100) / 100 : undefined });
   const header = !isStudio && showHeader && titled && heading && (tui || (!useCompact && box.size !== "xs"));
@@ -118,7 +119,7 @@ export function Widget({ title, icon, iconOverride, accent, surface, radius, siz
   } as CSSProperties;
   return (
     <SkinCtx.Provider value={ctx}>
-      <div ref={ref} style={rootStyle} data-wp-scope={css ? scope : undefined} className={`relative flex h-full w-full min-w-0 flex-col overflow-hidden antialiased ${surf.c} ${className}`}>
+      <div ref={ref} style={rootStyle} data-wp-scope={css ? scope : undefined} data-wp-tier={box.size} data-wp-shape={box.shape} data-wp-view={isStudio ? "studio" : useCompact ? "compact" : "body"} className={`relative flex h-full w-full min-w-0 flex-col overflow-hidden antialiased ${surf.c} ${className}`}>
         {css && <style>{css}</style>}
         {background && (
           <>
@@ -135,7 +136,7 @@ export function Widget({ title, icon, iconOverride, accent, surface, radius, siz
             {isStudio ? (
               <StudioView c={sObj!} w={box.w} h={box.h} icon={headIcon} />
             ) : useCompact ? (
-              <CompactView c={cObj!} shape={box.shape} w={box.w} h={box.h} icon={headIcon} />
+              <CompactView c={cObj!} shape={form ?? box.shape} w={box.w} h={box.h} icon={headIcon} />
             ) : typeof children === "function" ? (
               children({ ...box, w: inner.w || box.w, h: inner.h || box.h, outerW: box.w, outerH: box.h })
             ) : (

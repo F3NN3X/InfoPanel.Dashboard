@@ -17,7 +17,7 @@ import { settingKeys, type ModuleSetting, type ModuleSettings } from "./types";
  *
  * - `preset` / `layout` / `surface` — style preset, layout variant, surface
  * - Widget: `label`, `icon`
- * - Look: `skin`, `variant`, `graph`, `meter`, `compactView` (the template widgets' shell)
+ * - Look: `skin`, `variant`, `graph`, `meter`, `compactView` (the template widgets' shell; `compactView` files under Size)
  * - Size & alignment: `autoScale`, `scale`, `alignX`, `alignY`
  * - Typography: `textColor`, `mutedColor`, `font`, `fontWeight`, `labelCase`
  * - Spacing & shape: `padding`, `gap`, `radius`, `stroke`
@@ -131,18 +131,19 @@ export const STYLE_SETTINGS: ModuleSetting[] = [
     group: GROUP_LOOK,
   },
   {
+    // Key and values kept (auto / off) for saved configs; `on` (Always) is new.
     key: "compactView",
-    label: "Compact view",
+    label: "Summary card",
     type: "select",
     default: "auto",
     options: [
-      { value: "auto", label: "Auto" },
-      { value: "off", label: "Off" },
+      { value: "auto", label: "Auto (small zones)" },
+      { value: "off", label: "Never" },
+      { value: "on", label: "Always" },
     ],
-    hint: "Small zones swap to a compact summary; Off keeps the full layout",
-    keywords: ["small", "summary", "tile"],
-    advanced: true,
-    group: GROUP_LOOK,
+    hint: "Auto swaps 1×1, one-row and one-column zones to a summary card; Never keeps the full layout; Always shows the card at any size",
+    keywords: ["small", "summary", "tile", "compact", "card"],
+    group: GROUP_SIZE,
   },
   {
     key: "autoScale",

@@ -38,7 +38,7 @@ export function shellProps(s: ModuleSettings): Partial<ShellProps> {
     variant: s.variant === "studio" ? "studio" : s.variant === "default" ? "default" : undefined,
     graph: chosen(s.graph),
     meter: chosen(s.meter),
-    compactView: s.compactView === "off" ? "off" : undefined,
+    compactView: s.compactView === "off" || s.compactView === "on" ? s.compactView : undefined,
     title: chosen(s.label),
   };
 }

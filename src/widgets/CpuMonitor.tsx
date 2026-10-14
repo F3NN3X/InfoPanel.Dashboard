@@ -75,7 +75,7 @@ export default function CpuMonitor(p: CpuMonitorProps) {
       {({ size, h }) =>
         size === "xs" ? (
           <div className="flex h-full items-center justify-between gap-2">
-            <Metric label="CPU" value={total} unit="%" scale="lg" t={tone(total, warn, crit)} />
+            <Metric label={h >= 72 ? "CPU" : undefined} value={total} unit="%" scale={h >= 100 ? "lg" : h >= 60 ? "md" : "sm"} t={tone(total, warn, crit)} />
             <Spark values={hist} min={0} max={100} className="h-8 w-1/2" />
           </div>
         ) : size === "sm" ? (
@@ -106,7 +106,8 @@ export default function CpuMonitor(p: CpuMonitorProps) {
             </div>
             {size === "md" && <Spark values={hist} min={0} max={100} className="min-h-0 flex-1" />}
             {cores.length > 0 && view === "heatmap" && (
-              <div className={`grid gap-1 ${size === "lg" ? "min-h-0 flex-1" : ""}`} style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))`, gridAutoRows: size === "lg" ? "minmax(0,1fr)" : "20px" }}>
+              // rows share the height left over (20px at most below large), so a short box squeezes them instead of overflowing
+              <div className="grid min-h-0 flex-1 gap-1" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))`, gridAutoRows: "minmax(0,1fr)", maxHeight: size === "lg" ? undefined : Math.ceil(cores.length / cols) * 24 - 4 }}>
                 {cores.map((c) => {
                   const v = cv(c);
                   return (
@@ -123,11 +124,11 @@ export default function CpuMonitor(p: CpuMonitorProps) {
               </div>
             )}
             {cores.length > 0 && view === "bars" && (
-              <div className={`grid gap-1 ${size === "lg" ? "min-h-0 flex-1" : ""}`} style={{ gridTemplateColumns: `repeat(${size === "lg" ? cores.length : cols}, minmax(0,1fr))` }}>
+              <div className="grid min-h-0 flex-1 gap-1" style={{ gridTemplateColumns: `repeat(${size === "lg" ? cores.length : cols}, minmax(0,1fr))`, gridAutoRows: "minmax(0,1fr)", maxHeight: size === "lg" ? undefined : Math.ceil(cores.length / cols) * 24 - 4 }}>
                 {cores.map((c) => {
                   const v = cv(c);
                   return (
-                    <div key={c.i} title={`Core ${c.i} · ${fmt(c.load, 0)}% · ${fmt(c.mhz, 0)} MHz · ${fmt(c.vid, 2)} V`} className={`relative flex min-h-[18px] flex-col justify-end overflow-hidden ${sq} bg-[color:var(--w-track)] ${size === "lg" ? "" : "h-5"}`}>
+                    <div key={c.i} title={`Core ${c.i} · ${fmt(c.load, 0)}% · ${fmt(c.mhz, 0)} MHz · ${fmt(c.vid, 2)} V`} className={`relative flex h-full flex-col justify-end overflow-hidden ${sq} bg-[color:var(--w-track)]`}>
                       <div className={`w-full ${sq} transition-[height] duration-700 ease-out`} style={{ height: `${Math.max(4, v)}%`, background: "var(--accent)", opacity: 0.4 + v / 170 }} />
                       {size === "lg" && <span className="absolute inset-x-0 bottom-0.5 text-center text-[9px] tabular-nums text-[color:var(--w-fg)]/80">{c.i}</span>}
                     </div>

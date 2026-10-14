@@ -63,7 +63,7 @@ Accepted by every widget and passed through `shell(p)`:
 ## Sizing
 - `useBox` measures the **outer** border-box with ResizeObserver, so changes to padding never feed back into the tier.
   - Tier: `xs` is under 220×140; `sm` under 340×210; `md` under 500×320; `lg` is anything larger.
-  - Shape: `tile` (under 240×240) · `strip` (ratio ≥ 2.6, h < 240) · `column` (ratio ≤ 0.62, w < 260) · `box`.
+  - Shape: `tile` (under 240×240) · `strip` (ratio ≥ 2.6, h < 160) · `column` (ratio ≤ 0.62, w < 260) · `box`.
 - The layout callback receives the **inner** content size (`w`, `h`, after padding and header) plus `outerW` / `outerH`. Row counts and font fitting use the inner size.
 - Fit text to width rather than letting it overflow. Use `whitespace-nowrap` plus a computed `fontSize`: CompactView `Val` and StudioView `Big` both use `avail / (chars × 0.6)`.
 

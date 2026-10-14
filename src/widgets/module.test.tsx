@@ -5,6 +5,7 @@ import { STANDARD_SETTINGS } from "@/modules/standard-settings";
 import { effectiveSettings, type ModuleSetting, type ModuleSettings } from "@/modules/types";
 import type { ShellProps, WidgetMeta } from "./core/types";
 import { shellProps, templateModule, withSkinSurface } from "./module";
+import { fixtureSensors } from "./__fixtures__";
 import { TEMPLATE_MODULES } from "./registry";
 
 const meta: WidgetMeta = {
@@ -128,6 +129,24 @@ describe("shellProps", () => {
       compactView: "off",
       title: "CPU",
     });
+  });
+
+  it("passes the summary card's Always through", () => {
+    expect(shellProps({ compactView: "on" }).compactView).toBe("on");
+  });
+});
+
+describe("Summary card", () => {
+  const power = TEMPLATE_MODULES.find((m) => m.id === "PowerDraw")!;
+  const view = (s: ModuleSettings) => /data-wp-view="(\w+)"/.exec(renderToStaticMarkup(power.render(fixtureSensors(), s) as never))?.[1];
+
+  it("Always shows the summary card where Auto shows the full layout", () => {
+    expect(view({})).toBe("body");
+    expect(view({ compactView: "on" })).toBe("compact");
+  });
+
+  it("is ignored by the Studio variant", () => {
+    expect(view({ compactView: "on", variant: "studio" })).toBe("studio");
   });
 });
 

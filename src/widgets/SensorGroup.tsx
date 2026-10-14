@@ -80,10 +80,10 @@ function Listed(p: SensorGroupProps) {
       {({ w, h }) => {
         const grid = p.layout === "grid" || (p.layout !== "rows" && w / h > 1.6 && w > 400);
         if (grid) {
-          const cols = Math.max(2, Math.min(items.length, Math.floor(w / 120)));
+          const cols = Math.max(1, Math.min(items.length, Math.floor((w + 8) / 128)));
           return (
             <div className="grid h-full gap-2" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))`, gridAutoRows: "minmax(0,1fr)" }}>
-              {items.slice(0, cols * useFitRows(h, 64, 8)).map((x) => (
+              {items.slice(0, cols * useFitRows(h, p.bars !== false ? 76 : 68, 8)).map((x) => (
                 <div key={x.key} className="flex min-w-0 flex-col justify-between gap-1 rounded-xl bg-[color:var(--w-track)] p-2.5">
                   <span className="truncate text-[11px] text-[color:var(--w-muted)]">{x.label}</span>
                   <Num className="text-xl font-semibold" style={x.t !== "ok" ? { color: TONES[x.t] } : undefined}>
@@ -98,7 +98,7 @@ function Listed(p: SensorGroupProps) {
         }
         return (
           <ul className="flex h-full flex-col justify-center gap-2.5 overflow-hidden">
-            {items.slice(0, Math.max(1, Math.floor(h / (p.bars !== false ? 32 : 22)))).map((x) => (
+            {items.slice(0, useFitRows(h, p.bars !== false ? 28 : 20, 10)).map((x) => (
               <li key={x.key} className="flex flex-col gap-1">
                 <div className="flex items-baseline gap-2 text-xs">
                   <span className="truncate text-[color:var(--w-fg)]">{x.label}</span>

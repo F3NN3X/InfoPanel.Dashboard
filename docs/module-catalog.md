@@ -27,7 +27,7 @@ Every template widget is a component in `src/widgets/` drawn inside the shared
 shell and registered through `templateModule` (`src/widgets/registry/a.ts` –
 `e.ts`, one group per category family). The id is the template's name; the
 minimum footprint comes from its `meta.minSize`. All of them take the standard
-block and the Look keys (skin, variant, graph, meter, compact view), listed
+block and the Look keys (skin, variant, graph, meter, summary card), listed
 in [widget-settings.md](widget-settings.md); the options of each are in the
 inspector's Content tab.
 
@@ -93,9 +93,11 @@ The whole library shares one design system, in `src/widgets/core/`:
   widget lays itself out from the tier, the shape and its inner size.
   (`layout = auto` is the default; forcing card / standard / compact / simple
   fixes the tier to `lg` / `md` / `sm` / `xs`, and the shape stays measured.)
-- **Compact views.** Most widgets supply a compact summary for a tile, strip or
-  column, so a 1×1 zone shows one headline value, not a squeezed layout. The
-  `compactView: off` look key keeps the full layout. The **studio** variant is
+- **Summary cards (compact views).** Most widgets supply a compact summary for
+  a tile, strip or column, so a 1×1 zone shows one headline value, not a
+  squeezed layout. **Summary card** (`compactView`, Size & alignment): Auto
+  (small zones), Never (`off`, the full layout) or Always (`on`, the card at
+  any size; `summaryShape` picks strip, column or tile from the box). The **studio** variant is
   a second, denser summary of the same data.
 - **Skins and surfaces.** 14 skins and a surface registry. `glass`
   (default, translucent blur), `matte-light`, `matte-dark` and `theme` are the
@@ -189,6 +191,22 @@ The whole library shares one design system, in `src/widgets/core/`:
   `pressure`, `wind_speed`, `wind_gust`, `wind_deg`, `rain`, `snow`,
   `last_refreshed`, `weather_icon`; forecast from the yr
   plugin's `forecast` (multi-day lines, starting tomorrow).
+- **GameSpotlight** — the chosen **Spotlight layout** draws while the box
+  holds it (`fitLayout`, minimums in `LAYOUT_MIN`: hero 250×110, logo
+  160×110, combo 260×180, poster 340×200, ticker 320 wide), else the hero,
+  else the ticker, else the mini card (art, logo, session time); a narrow tall
+  box gets the tall poster. So a 4x4 zone on a grid of short rows keeps the
+  hero instead of the ticker.
+- **Fit by content, not tier alone.** Fans (tiles while each gets ~64×80 px,
+  else one line per fan), Power Draw (CPU / GPU split stacks under 260 px,
+  short boxes drop the graph), Thermals (no bar under 180 px), Disk I/O (no
+  bar under 170 px), Volume Mixer (ring over number under 170 px), Vitals and
+  KPI Tiles (cards that keep a readable width), Status Tracker (as many
+  readings as the bar width holds, legend only with room), Uptime (numerals
+  sized to the width), Achievements (ring sized to the box), Forecast (one line
+  per day under 100 px tall), Calendar (the current week under 120 px tall),
+  Playtime Share (one line under 110 px tall), Sensor Group (rows counted
+  with their gaps).
 - **GameSpotlight** (composite mode) — `plugins.InfoPanel.SteamAPI.`:
   Profile (`player-name`, `online-status`, `steam-level`,
   `profile_image_url`, `current_game_banner_url`, `game_logo_url`,

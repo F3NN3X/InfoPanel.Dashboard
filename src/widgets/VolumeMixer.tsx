@@ -53,20 +53,22 @@ export default function VolumeMixer(p: VolumeMixerProps) {
         </Chip>
       }
     >
-      {({ size, h }) => {
+      {({ size, w, h }) => {
         if (!def) return null;
         if (size === "xs" || size === "sm")
           return (
-            <div className="flex h-full items-center gap-3">
-              <Ring value={def.mute ? 0 : def.vol} thickness={10} className="h-full max-h-24">
-                <Icon name={def.mute ? "volume_off" : "volume_up"} className="text-xl" />
-              </Ring>
-              <div className="flex min-w-0 flex-col">
-                <Num className="text-2xl font-semibold">
+            <div className={`flex h-full min-w-0 items-center ${w < 170 ? "flex-col justify-center gap-1" : "gap-3"}`}>
+              <div className="shrink-0" style={{ width: Math.max(28, Math.min(96, w < 170 ? Math.min(w, h - 34) : h)) }}>
+                <Ring value={def.mute ? 0 : def.vol} thickness={10}>
+                  <Icon name={def.mute ? "volume_off" : "volume_up"} className="text-xl" />
+                </Ring>
+              </div>
+              <div className={`flex min-w-0 flex-col ${w < 170 ? "items-center" : ""}`}>
+                <Num className={`${w < 170 ? "text-lg" : "text-2xl"} font-semibold leading-tight`}>
                   {fmt(def.vol)}
                   <span className="text-sm font-normal text-[color:var(--w-muted)]">%</span>
                 </Num>
-                {showDevice && <span className="truncate text-[11px] text-[color:var(--w-muted)]">{def.name}</span>}
+                {showDevice && w >= 170 && <span className="truncate text-[11px] text-[color:var(--w-muted)]">{def.name}</span>}
               </div>
             </div>
           );

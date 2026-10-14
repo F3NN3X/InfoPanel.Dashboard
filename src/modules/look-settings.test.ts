@@ -26,7 +26,8 @@ describe("look settings", () => {
     expect(values(STYLE_SETTINGS, "graph")).toEqual(["auto", "area", "line", "step", "bars", "dots", "braille"]);
     expect(values(STYLE_SETTINGS, "meter")).toEqual(["auto", "bar", "pill", "segments", "blocks", "hair", "wave", "square"]);
     expect(values(STYLE_SETTINGS, "variant")).toEqual(["default", "studio"]);
-    expect(values(STYLE_SETTINGS, "compactView")).toEqual(["auto", "off"]);
+    expect(values(STYLE_SETTINGS, "compactView")).toEqual(["auto", "off", "on"]);
+    expect(find(STYLE_SETTINGS, "compactView").label).toBe("Summary card");
   });
 
   it("reach widgets, cards and (skin, graph, meter only) panels", () => {
@@ -40,13 +41,13 @@ describe("look settings", () => {
     expect(panel).not.toContain("compactView");
   });
 
-  it("file under a Look category in Style, with graph, meter and compact view advanced", () => {
+  it("file under a Look category in Style, with graph and meter advanced", () => {
     const look = categorize(STANDARD_SETTINGS).find((c) => c.title === "Look")!;
     expect(look.general).toBe(true);
-    expect(look.defs.map((d) => d.key)).toEqual(["skin", "graph", "meter", "smoothing", "compactView"]);
+    expect(look.defs.map((d) => d.key)).toEqual(["skin", "graph", "meter", "smoothing"]);
     expect(categoryTab(look)).toBe("style");
     expect(categoryAdvanced(look)).toBe(false);
-    expect(look.defs.filter((d) => isAdvanced(d, look)).map((d) => d.key)).toEqual(["graph", "meter", "compactView"]);
+    expect(look.defs.filter((d) => isAdvanced(d, look)).map((d) => d.key)).toEqual(["graph", "meter"]);
   });
 
   it("resolve dashboard, then profile, then the widget, with source dots", () => {

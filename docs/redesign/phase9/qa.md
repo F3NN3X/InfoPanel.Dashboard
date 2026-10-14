@@ -105,7 +105,20 @@ async (page) => {
 }
 ```
 
-The last full run (end of 9.8) was clean: 0 rows, 0 error tiles. Findings and decisions are in
+The last full run (end of 9.8) was clean: 0 rows, 0 error tiles.
+
+### Short rows and the Summary card
+
+Since the fit pass after #9 the sweep also covers a grid of short rows (a 1920×550 strip
+profile: `cell=42&gap=4`, spans 4x2 … 17x4, where a 4-wide zone is ~180px wide and a 14-wide
+~640px) and the **Summary card** modes through `settings=`: Auto (no setting), Never
+(`{"compactView":"off"}`) and Always (`{"compactView":"on"}`, default variant only; the studio
+variant ignores it). Every template, three grids (cell 110 spans 1x1 … 4x3, cell 150 1x1 … 2x3,
+the short grid), 14 skins.
+
+Last run (Oct 2026): Auto + Never 78,624 frames, Always 26,208 frames, 0 error tiles. One row
+left, SteamLibrary short 14x2 Never, a 3px overlap in 7 skins that does not reproduce when the
+frame loads alone (image load timing in the full page). Findings and decisions are in
 `review-ledger.md` and `qa-findings.md`.
 
 Widgets only show images given as http(s) URLs or root-relative paths with an image extension,

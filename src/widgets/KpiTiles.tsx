@@ -68,6 +68,7 @@ export default function KpiTiles(p: KpiTilesProps) {
         const cols = Math.max(1, Math.min(keys.length, Math.floor((w + 12) / 160)));
         const shown = keys.slice(0, cols * useFitRows(h, 88, 12));
         const tileH = (h - (Math.ceil(shown.length / cols) - 1) * 12) / Math.ceil(shown.length / cols);
+        const tileW = (w - (cols - 1) * 20) / cols - 8;
         return (
           <div className="grid h-full gap-x-5 gap-y-3" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))`, gridAutoRows: "minmax(0,1fr)" }}>
             {shown.map((key) => {
@@ -76,15 +77,16 @@ export default function KpiTiles(p: KpiTilesProps) {
                 prev = hist[Math.max(0, hist.length - 1 - back)],
                 delta = m.v - prev,
                 pct = prev ? (delta / Math.abs(prev)) * 100 : 0;
-              const big = Math.max(20, Math.min(36, tileH * 0.32, tileH - 62));
+              const len = fmt(m.v, m.d ?? 0).length + m.u.length * 0.5;
+              const big = Math.max(14, Math.min(36, Math.max(20, Math.min(tileH * 0.32, tileH - 62)), tileW / (Math.max(2.5, len) * 0.66)));
               const last = hist[hist.length - 1] ?? 0;
               return (
                 <div key={key} className="relative flex min-h-0 min-w-0 flex-col gap-1 overflow-hidden pr-2">
                   <div className="flex items-baseline justify-between gap-2">
                     <span className="truncate text-[11px] font-medium uppercase tracking-[0.06em] text-[color:var(--w-muted)]">{m.l}</span>
-                    <span className="whitespace-nowrap text-xs tabular-nums" style={{ color: Math.abs(pct) < 1 ? "var(--w-muted)" : delta > 0 ? "#EDB232" : "#3CC97F" }}>
+                    {tileW >= 112 && <span className="whitespace-nowrap text-xs tabular-nums" style={{ color: Math.abs(pct) < 1 ? "var(--w-muted)" : delta > 0 ? "#EDB232" : "#3CC97F" }}>
                       {Math.abs(pct) < 1 ? "→ 0%" : `${delta > 0 ? "▲" : "▼"} ${fmt(Math.abs(pct), 0)}%`}
-                    </span>
+                    </span>}
                   </div>
                   <span className="whitespace-nowrap font-bold leading-none tracking-[-0.01em] tabular-nums" style={{ fontSize: big, ...numFont(sk) }}>
                     {fmt(m.v, m.d ?? 0)}
