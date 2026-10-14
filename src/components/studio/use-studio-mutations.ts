@@ -14,7 +14,6 @@ import {
   BLANK_MODULE,
   PANEL_ID,
   newProfile,
-  sampleProfile,
   uid,
   type DashboardConfig,
   type MonitorProfile,
@@ -23,9 +22,11 @@ import {
   type Placement,
 } from "@/lib/layout";
 import { findPanelPreset, type PanelPreset } from "@/lib/panelPresets";
+import { sampleLayout } from "@/lib/sample-layout";
 import type { ModuleSettings } from "@/modules/types";
 import * as actions from "./studio-actions";
 import { deletePanelPreset, renamePanelPreset, savePanelPreset } from "./panel-preset-actions";
+import { withoutProfile } from "./profile-actions";
 import { moduleDropSize, type LibraryItem } from "./drop-ghost";
 import { ALL_MODULES, moduleMinSize } from "./studio-modules";
 import type { StudioSelection } from "./use-studio-selection";
@@ -227,12 +228,12 @@ export function useStudioMutations({ config, profile, setConfig, sel, onPresetSa
     if (sel.selectedIds.length > 0) updateProfile((p) => actions.followGlobalStyle(p, sel.selectedIds));
   };
 
-  /** The empty-layout card: the shipped sample's grid and zones, one undo step. */
+  /** The empty-layout card: the sample layout's grid and zones, one undo step. */
   const loadSampleLayout = () => {
     // Other pages share the grid: keep it when any of them holds zones.
     const page = currentPageId();
     const keepGrid = stored().pages.some((pg) => pg.id !== page && pg.placements.length > 0);
-    updateProfile((p) => actions.withSampleZones(p, sampleProfile(), keepGrid));
+    updateProfile((p) => actions.withSampleZones(p, sampleLayout(), keepGrid));
     sel.select(null);
   };
 
@@ -372,13 +373,10 @@ export function useStudioMutations({ config, profile, setConfig, sel, onPresetSa
     }));
   };
 
-  const removeProfile = () => {
+  /** Delete a profile (never the last; one undo step); see `withoutProfile` for the pick afterwards. */
+  const removeProfile = (id: string) => {
     if (config.profiles.length <= 1) return;
-    setConfig((c) => ({
-      ...c,
-      profiles: c.profiles.filter((p) => p.id !== profile.id),
-      activeProfile: "auto",
-    }));
+    setConfig((c) => withoutProfile(c, id, profile.id));
   };
 
   const activateProfile = (id: string) => setConfig((c) => ({ ...c, activeProfile: id }));

@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { PANEL_ID, arcv2Profile, mergeConfig, sampleProfile, type Placement } from "./layout";
+import { PANEL_ID, mergeConfig, type Placement } from "./layout";
+import { arcv2Profile } from "./__fixtures__/arcv2-profile";
+import { sampleProfile } from "./__fixtures__/sample-profile";
 import { allPlacements } from "./pages";
 import {
   convertKind,
@@ -141,7 +143,7 @@ describe("panelSettings / normalizePanelPlacement", () => {
   });
 
   it("passes other placements through", () => {
-    const module: Placement = { ...placement(panel()), module: "systemmodern", panel: undefined };
+    const module: Placement = { ...placement(panel()), module: "SystemOverview", panel: undefined };
     expect(normalizePanelPlacement(module)).toBe(module);
   });
 });

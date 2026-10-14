@@ -36,7 +36,6 @@ describe("registry group E", () => {
     describe(meta.id, () => {
       it("mirrors its meta in the module", () => {
         expect(GROUP_E[i]).toMatchObject({ id: meta.id, minCols: meta.minSize[0], minRows: meta.minSize[1], category });
-        expect(GROUP_E[i].libraryHidden).toBeUndefined();
       });
 
       for (const size of SIZES)

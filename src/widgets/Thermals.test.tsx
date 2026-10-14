@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { renderModule } from "@/modules/port-helpers";
+import { renderModule } from "@/widgets/test-render";
 import type { SensorMap } from "@/modules/types";
 import { TEMPLATE_MODULES } from "./registry";
 

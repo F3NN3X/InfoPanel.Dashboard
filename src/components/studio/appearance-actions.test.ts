@@ -16,7 +16,7 @@ import {
 
 const zone = (id: string, extra: Partial<Placement> = {}): Placement => ({
   id,
-  module: "systemmodern",
+  module: "SystemOverview",
   colStart: 1,
   rowStart: 1,
   colSpan: 1,

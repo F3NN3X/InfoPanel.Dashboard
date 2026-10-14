@@ -7,7 +7,7 @@ import {
   type ProfileView,
   type Placement,
 } from "@/lib/layout";
-import { pageOf } from "@/lib/pages";
+import type { LayoutTemplate } from "@/lib/sample-layout";
 import { normalizePanelPlacement } from "@/lib/panel-model";
 import { modules } from "@/modules";
 import { PROFILE_STYLE_KEYS, CARD_SETTINGS, PANEL_SETTINGS, replaceStyle } from "@/modules/standard-settings";
@@ -506,8 +506,8 @@ function scaleSpan(start: number, span: number, from: number, to: number): [numb
  * scaled onto this profile's grid instead of the profile taking the sample's grid; a zone that then
  * collides moves to the first free spot of its size, or is left out when none is left.
  */
-export function withSampleZones(profile: ProfileView, sample: MonitorProfile, keepGrid = false): ProfileView {
-  const zones = pageOf(sample).placements.map(clonePlacement);
+export function withSampleZones(profile: ProfileView, sample: LayoutTemplate, keepGrid = false): ProfileView {
+  const zones = sample.placements.map(clonePlacement);
   if (!keepGrid) return { ...profile, cols: sample.cols, rows: sample.rows, placements: zones };
   const placed: Placement[] = [];
   for (const z of zones) {

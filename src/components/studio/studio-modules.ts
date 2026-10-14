@@ -11,7 +11,6 @@ export interface ModuleMeta {
   icon?: string;
   description?: string;
   defaultSize?: [number, number];
-  libraryHidden?: boolean;
 }
 
 /** Every widget the studio can place, with its minimum zone footprint. */
@@ -25,7 +24,6 @@ export const ALL_MODULES: ModuleMeta[] = [
     icon: m.icon,
     description: m.description,
     defaultSize: m.defaultSize,
-    libraryHidden: m.libraryHidden,
   })),
   { id: CARDS_ID, title: "Other sensors", minCols: 4, minRows: 2 },
 ];

@@ -1,5 +1,5 @@
 // Template widgets, group E: the plain plugin cards that had no template (see docs/redesign/phase9/gaps.md).
-// Each module's options are exported so its legacy id can alias the same template (`src/modules/*.tsx`).
+// Each module's options are exported for the schema tests (`e.schema.test.ts`).
 import { findEntry } from "@/lib/sensors";
 import { CARD_SETTINGS, IDLE_SETTING, STYLE_SETTINGS, SURFACE_SETTINGS } from "@/modules/standard-settings";
 import type { DashboardModule, ModuleSetting } from "@/modules/types";

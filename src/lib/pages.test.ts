@@ -21,7 +21,7 @@ import {
 
 const zone = (id: string, extra: Partial<Placement> = {}): Placement => ({
   id,
-  module: "systemmodern",
+  module: "SystemOverview",
   colStart: 1,
   rowStart: 1,
   colSpan: 2,
@@ -169,7 +169,7 @@ describe("page operations", () => {
     expect(copy.placements.map((z) => z.id)).not.toContain("a1");
     expect(copy.placements.map((z) => z.id)).not.toContain("a2");
     expect(new Set(allPlacements(next).map((z) => z.id)).size).toBe(5);
-    expect(copy.placements[0]).toMatchObject({ module: "systemmodern", colSpan: 2 });
+    expect(copy.placements[0]).toMatchObject({ module: "SystemOverview", colSpan: 2 });
     expect(next.pages[0]).toBe(p.pages[0]);
   });
 });

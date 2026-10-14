@@ -55,12 +55,11 @@ Which block each zone type spreads (the inspector builds the general cards from 
 
 | Zone type | Settings it gets |
 |---|---|
-| 11 "modern" widgets (System, Spotify, Media, Steam, Hardware, Weather, FPS, Audio, Wave Link, Bluetooth, Network) | `STANDARD_SETTINGS` (all of §1.1–1.4) |
-| Departures (`vbz`), Notifications, Text File, Stream Deck, and **Other sensors** (`cards`) | `CARD_SETTINGS`: `surface` (default **Theme**), `accent`, all of `STYLE_SETTINGS`, all of `SURFACE_SETTINGS`. No `label`, `icon`, `preset`, `layout`, `background`, `backgroundOn` |
-| Web Page | only `scale`, `radius`, `accent`, `borderWidth`, `borderColor`, `glow`, `glowColor` (see §2.15) |
+| Template widgets | `STANDARD_SETTINGS` (all of §1.1–1.4) |
+| **Other sensors** (`cards`) | `CARD_SETTINGS`: `surface` (default **Theme**), `accent`, all of `STYLE_SETTINGS`, all of `SURFACE_SETTINGS`. No `label`, `icon`, `preset`, `layout`, `background`, `backgroundOn` |
 | Custom panel | `PANEL_SETTINGS` (§1.6) |
 | Blank zone | none (no settings; the Widget card has only the type picker and Visible) |
-| `hideWhenIdle` (`IDLE_SETTING`) | Spotify, Media, Steam, FPS, Notifications only |
+| `hideWhenIdle` (`IDLE_SETTING`) | the templates that declare an idle state |
 
 ### 1.1 Widget identity (`STANDARD_SETTINGS`, not look keys)
 
@@ -163,225 +162,27 @@ Reset per card. Target: Colors & surface, plus the context menu (FEATURE_MAP §9
 
 ## 2. Widget-own settings
 
-The following tables list only each module's own keys, after the blocks in §1. `Cond.` = visibility
-beyond "the module declares it". Min size is the module's `minCols×minRows`.
+Each widget's own keys are declared by its template and listed in `widget-settings.md` and
+`module-catalog.md`; the schema tests in `src/widgets/registry/` guard them. The zone types that
+used to carry their own keys were retired in config v4. A stored zone with one of those ids is
+rewritten on load to its template (`src/lib/legacy-zones.ts`, `LEGACY_MODULE_IDS`), keeping the
+keys the template reads:
 
-### 2.1 System (`systemmodern`, min 2×1, claims `system.cpu.`, `system.ram.`; reads `libre.`)
+| Retired id | Template |
+|---|---|
+| `systemmodern` | `SystemOverview` |
+| `spotifymodern`, `mediamodern` | `NowPlaying` (`source` = spotify / media) |
+| `steammodern` | `GameSpotlight` (composite) |
+| `hardwaremodern` | `SensorGroup` (auto), or `Thermals` for the temps view |
+| `weathermodern` | `Weather` |
+| `fpsmodern` | `FpsMonitor` |
+| `audiomodern` | `AudioMeter`, `MeterBridge` or `VolumeMixer`, by `view` |
+| `wavelinkmodern` | `WaveLink` |
+| `bluetoothmodern` | `Bluetooth` |
+| `networkmodern` | `NetworkThroughput` |
+| `vbz`, `notifications`, `textfile`, `streamdeck`, `webpage` | `Departures`, `Notifications`, `TextFile`, `StreamDeck`, `WebPage` |
 
-| Key | Label | Control | Options | Default | Section (module group) | Target |
-|---|---|---|---|---|---|---|
-| `devices` | Devices | checkbox list | cpu CPU, gpu GPU, ram RAM, disk Disks | `cpu,gpu,ram` | Devices | C › Devices |
-| `showNames` | Hardware names | toggle | | `false` | Devices | C › Devices |
-| `showTemps` | Temperatures | toggle | | `true` | Devices | C › Devices |
-| `showPower` | Power draw | toggle | | `true` | Devices | C › Devices |
-| `showCores` | CPU threads | toggle | | `false` | CPU | C › CPU |
-| `coreStyle` | Thread style | segmented | heatmap, bars | `heatmap` | CPU | C › CPU |
-| `showVram` | GPU memory (VRAM) | toggle | | `true` | GPU | C › GPU |
-| `showClock` | GPU clock | toggle | | `false` | GPU | C › GPU |
-| `showHotspot` | GPU hotspot (memory junction) | toggle | | `false` | GPU | C › GPU |
-| `showFans` | GPU fans | toggle | | `false` | GPU | C › GPU |
-| `showMemClock` | GPU memory clock | toggle | | `false` | GPU | C › GPU |
-| `showPowerLimit` | GPU power (% of limit) | toggle | | `false` | GPU | C › GPU |
-| `showMemory` | Memory used / total | toggle | | `true` | Memory | C › Memory |
-| `showPageFile` | RAM page file | toggle | | `false` | Memory | C › Memory |
-| `showDiskTemp` | Drive temperature | toggle | | `true` | Drives | C › Drives |
-| `showDiskIo` | Drive read / write rate | toggle | | `true` | Drives | C › Drives |
-| `showDiskLife` | Drive life remaining | toggle | | `false` | Drives | C › Drives |
-| `diskFilter` | Drives to show (names, comma-separated; empty = all) | text | | `""` | Drives | C › Drives |
-| `sparkline` | Trend sparklines | toggle | | `false` | Trends | C › Trends |
-| `historyLength` | Sparkline length (samples) | slider 12–120 step 12 | | `48` | Trends | C › Trends |
-| `tempWarn` | Temperature warning (°C) | slider 50–100 step 5 | | `80` | Thresholds | C › Thresholds |
-| `tempCrit` | Temperature critical (°C) | slider 50–110 step 5 | | `90` | Thresholds | C › Thresholds |
-| `loadWarn` | Load warning (%) | slider 10–100 step 5 | | `80` | Thresholds | C › Thresholds |
-| `loadCrit` | Load critical (%) | slider 10–100 step 5 | | `95` | Thresholds | C › Thresholds |
-| `vramWarn` | VRAM / drive full warning (%) | slider 10–100 step 5 | | `90` | Thresholds | C › Thresholds |
-| `tempUnit` | Temperature unit | segmented | c Celsius (°C), f Fahrenheit (°F) | `c` | Units & labels | C › Units & labels |
-| `decimals` | Decimals | segmented | 0 None, 1 One | `0` | Units & labels | C › Units & labels |
-| `cpuLabel` | CPU label | text | | `""` | Units & labels | C › Units & labels |
-| `gpuLabel` | GPU label | text | | `""` | Units & labels | C › Units & labels |
-| `ramLabel` | RAM label | text | | `""` | Units & labels | C › Units & labels |
-| `diskLabel` | Disks label | text | | `""` | Units & labels | C › Units & labels |
-| `cpuColor` | CPU color | color | | `""` | Device colors | S › Device colors (Adv) |
-| `gpuColor` | GPU color | color | | `""` | Device colors | S › Device colors (Adv) |
-| `ramColor` | RAM color | color | | `""` | Device colors | S › Device colors (Adv) |
-| `diskColor` | Disks color | color | | `""` | Device colors | S › Device colors (Adv) |
-| `vramColor` | VRAM color | color | | `""` | Device colors | S › Device colors (Adv) |
-
-### 2.2 Spotify (`spotifymodern`) and Media (`mediamodern`), identical settings
-
-Spotify: min 2×1, claims `spotify.`, `plugins.spotify-plugin.`, reads `plugins.audio-level-meter.`.
-Media: min 2×1, claims `plugins.media-plugin.`, reads the same. Both: `STANDARD_SETTINGS` + `hideWhenIdle`
-(idle = nothing playing).
-
-| Key | Label | Control | Options | Default | Group | Target |
-|---|---|---|---|---|---|---|
-| `showTimes` | Times | toggle | | `true` | Now playing | C › Now playing |
-| `showProgress` | Progress | toggle | | `true` | Now playing | C › Now playing |
-| `tint` | Tint from cover art | toggle | | `true` | Cover art | C › Cover art |
-| `artBackground` | Cover art background (blurred) | toggle | | `false` | Cover art | C › Cover art |
-| `waveform` | Live waveform (audiocn) | toggle | | `false` | Waveform | C › Waveform |
-| `waveformVariant` | Waveform style | segmented | bars, line, mirror | `bars` | Waveform | C › Waveform |
-| `waveformMode` | Waveform mode | segmented | scrolling (Scrolling, level history), static (Static, current bands) | `scrolling` | Waveform | C › Waveform |
-| `waveformSensitivity` | Waveform sensitivity (gain) | slider 0.1–4 step 0.1 | | `1` | Waveform | C › Waveform |
-| `waveformActive` | Waveform active (off = idle dotted line) | toggle | | `true` | Waveform | C › Waveform |
-| `visualizer` | Bar visualizer (audiocn) | toggle | | `false` | Visualizer | C › Visualizer |
-| `visualizerBarCount` | Visualizer bar count | slider 4–64 step 2 | | `24` | Visualizer | C › Visualizer |
-| `visualizerAlign` | Visualizer alignment | segmented | center, start, end | `center` | Visualizer | C › Visualizer |
-| `visualizerMirrored` | Visualizer mirrored | toggle | | `false` | Visualizer | C › Visualizer (Adv) |
-| `visualizerMinLevel` | Visualizer resting bar size | slider 0–0.5 step 0.02 | | `0.08` | Visualizer | C › Visualizer (Adv) |
-| `visualizerIdle` | Visualizer idle behavior | segmented | static, pulse, wave | `static` | Visualizer | C › Visualizer |
-| `visualizerLoading` | Visualizer loading sweep | toggle | | `false` | Visualizer | C › Visualizer (Adv) |
-| `visualizerOrientation` | Visualizer orientation | segmented | horizontal, vertical | `horizontal` | Visualizer | C › Visualizer (Adv) |
-| `waveformBarWidth` | Waveform bar width (px) | slider 1–12 step 1 | | `3` | Waveform shape | C › Waveform shape (Adv) |
-| `waveformBarGap` | Waveform bar gap (px) | slider 0–8 step 1 | | `1` | Waveform shape | C › Waveform shape (Adv) |
-| `waveformBarRadius` | Waveform bar radius (px) | slider 0–8 step 0.5 | | `1.5` | Waveform shape | C › Waveform shape (Adv) |
-| `waveformMinBarHeight` | Waveform min bar height (px) | slider 0–40 step 1 | | `4` | Waveform shape | C › Waveform shape (Adv) |
-| `waveformLineWidth` | Waveform line width (px) | slider 0.5–6 step 0.5 | | `1.5` | Waveform shape | C › Waveform shape (Adv) |
-| `waveformFadeEdges` | Waveform edge fade | toggle | | `true` | Waveform shape | C › Waveform shape (Adv) |
-| `waveformFadeWidth` | Waveform fade width (px) | slider 0–200 step 4 | | `24` | Waveform shape | C › Waveform shape (Adv) |
-| `liveSource` | Live level source (audio device) | select, options from `/api/sources` of `plugins.audio-level-meter.` | live | `""` | Audio source | D › Audio source |
-| `liveCapture` | Live capture (Web Audio, real-time) | toggle | | `false` | Audio source | D › Audio source |
-| `liveSources` | Capture devices (one visualizer row each) | checkbox list from `enumerateDevices()` (audio inputs; microphone-access prompt) | live | `""` | Audio source | D › Audio source |
-
-### 2.3 Steam (`steammodern`, min 2×1, claims `plugins.InfoPanel.SteamAPI.`; has `hideWhenIdle`: no game running)
-
-| Key | Label | Control | Default | Group | Target |
-|---|---|---|---|---|---|
-| `dimBanner` | Dim banner for text | toggle | `true` | Content | C › Content |
-| `showStats` | Stats | toggle | `true` | Content | C › Content |
-| `showNews` | News line | toggle | `true` | Content | C › Content |
-
-### 2.4 Hardware (`hardwaremodern`, min 2×1, claims `libre.`, `hwinfo.`)
-
-| Key | Label | Control | Options | Default | Group | Target |
-|---|---|---|---|---|---|---|
-| `view` | View | segmented | list (Reading list), temps (Temp gauges) | `list` | Content | C › Content |
-| `maxRows` | Max rows (0 = all) | slider 0–100 step 2 | | `12` | Content | C › Content |
-| `showFans` | Fan readings | toggle | | `true` | Content | C › Content |
-| `tempColor` | Temperature dot color | color | | `""` | Dot colors | S › Dot colors (Adv) |
-| `fanColor` | Fan dot color | color | | `""` | Dot colors | S › Dot colors (Adv) |
-| `powerColor` | Power dot color | color | | `""` | Dot colors | S › Dot colors (Adv) |
-
-### 2.5 Weather (`weathermodern`, min 3×1, claims `plugins.yr-weather-plugin.`)
-
-| Key | Label | Control | Options | Default | Group | Target |
-|---|---|---|---|---|---|---|
-| `view` | View | segmented | full, now, forecast, minimal | `full` | Display | C › Display |
-| `tint` | Tint from conditions | toggle | | `true` | Display | C › Display |
-| `showStats` | Stats row | toggle | | `true` | Current conditions | C › Current conditions |
-| `showFeels` | Feels-like | toggle | | `true` | Current conditions | C › Current conditions |
-| `showForecast` | Forecast strip | toggle | | `true` | Forecast | C › Forecast |
-| `forecastDays` | Forecast days | slider 1–7 step 1 | | `5` | Forecast | C › Forecast |
-
-### 2.6 FPS (`fpsmodern`, min 2×1, claims `plugins.InfoPanel.RTSS.`, `plugins.fps-plugin.`; has `hideWhenIdle`: no frames counted, no game running)
-
-| Key | Label | Control | Options | Default | Group | Target |
-|---|---|---|---|---|---|---|
-| `view` | View | segmented | gauge, trend | `gauge` | Content | C › Content |
-| `showMetrics` | Extra metrics | toggle | | `true` | Content | C › Content |
-| `sparkline` | Trend sparkline | toggle | | `false` | Content | C › Content |
-| `ringColor` | Ring color | color | | `""` | Gauge colors | S › Gauge colors (Adv) |
-| `sparkColor` | Trend sparkline color | color | | `""` | Gauge colors | S › Gauge colors (Adv) |
-
-### 2.7 Audio (`audiomodern`, min 2×1, claims `plugins.audio-level-meter.`)
-
-| Key | Label | Control | Options | Default | Group | Target |
-|---|---|---|---|---|---|---|
-| `source` | Source (device) | select, options from `/api/sources` of `plugins.audio-level-meter.` | live | `""` (all) | Content | C › Content (proposed, also the target of Sources-mode Bind/Unbind) |
-| `view` | View | segmented | meter (Level meter), audiometer (Pro level meter, dB), volume (Volume control) | `meter` | Content | C › Content |
-| `showDevice` | Device name | toggle | | `true` | Content | C › Content |
-| `showDetails` | Peak / RMS & L/R/volume details | toggle | | `true` | Content | C › Content |
-| `showVolume` | Volume bar | toggle | | `false` | Content | C › Content |
-| `showMute` | Mute indicator | toggle | | `true` | Content | C › Content |
-| `meterVariant` | Meter style | segmented | solid, segmented, gradient | `solid` | Meter | C › Meter |
-| `meterOrientation` | Meter orientation | segmented | horizontal, vertical | `horizontal` | Meter | C › Meter |
-| `meterBallistics` | Meter response | select (3) | peak (Peak, fast attack, peak-hold), vu (VU, slow), instant | `peak` | Meter | C › Meter |
-| `levelColor` | Level bar color | color | | `""` | Meter | C › Meter (Adv) per FEATURE_MAP; S (Adv) per DATA_MODEL rule |
-| `hotColor` | Hot level color | color | | `""` | Meter | same |
-
-### 2.8 Wave Link (`wavelinkmodern`, min 2×1, no claimed prefixes; reads meters via `src/lib/wavelink.ts`)
-
-| Key | Label | Control | Options | Default | Group | Target |
-|---|---|---|---|---|---|---|
-| `source` | Meters to show | dedicated multi meter picker over the Wave Link inventory (channels + output devices) | live; `""` = all | `""` | Content | C › Content |
-| `showReadout` | dB readouts & scale | toggle | | `true` | Content | C › Content |
-| `showFader` | Fader level | toggle | | `true` | Content | C › Content |
-| `showMixes` | Mixes (routes & output mixers) | toggle | | `true` | Content | C › Content |
-| `meterVariant` | Meter style | segmented | solid, segmented, gradient | `solid` | Meter | C › Meter |
-| `meterOrientation` | Meter orientation | segmented | vertical, horizontal | `vertical` | Meter | C › Meter |
-| `meterBallistics` | Meter response | select | peak, vu, instant | `peak` | Meter | C › Meter |
-| `liveColor` | Live indicator color | color | | `""` | Meter | C › Meter (Adv) / S (Adv) |
-| `muteColor` | Muted / offline color | color | | `""` | Meter | same |
-
-### 2.9 Departures (`vbz`, min 2×1, claims `plugins.InfoPanel.VBZ.`)
-
-Block: `CARD_SETTINGS` (surface default `theme`).
-
-| Key | Label | Control | Default | Group | Target |
-|---|---|---|---|---|---|
-| `showStatus` | Status line | toggle | `true` | Content | C › Content |
-
-### 2.10 Bluetooth (`bluetoothmodern`, min 2×1, claims `plugins.bluetooth-battery-plugin.`)
-
-| Key | Label | Control | Options | Default | Group | Target |
-|---|---|---|---|---|---|---|
-| `view` | View | select (3) | full (Status + devices), devices (Devices + battery), status (Status only) | `full` | Content | C › Content |
-| `showStatus` | Bluetooth status | toggle | | `true` | Content | C › Content |
-| `showDevices` | Paired devices | toggle | | `true` | Content | C › Content |
-| `showBattery` | Battery levels | toggle | | `true` | Content | C › Content |
-| `batteryMidColor` | Battery medium color | color | | `""` | Battery colors | S › Battery colors (Adv) |
-| `batteryLowColor` | Battery low color | color | | `""` | Battery colors | S › Battery colors (Adv) |
-
-### 2.11 Network (`networkmodern`, min 2×1, claims `libre.ethernet_`)
-
-| Key | Label | Control | Options | Default | Group | Target |
-|---|---|---|---|---|---|---|
-| `view` | View | segmented | speeds, totals | `speeds` | Content | C › Content |
-| `showTotals` | Session totals | toggle | | `true` | Content | C › Content |
-| `sparkline` | Trend sparkline | toggle | | `false` | Content | C › Content |
-| `downloadColor` | Download color | color | | `""` | Speed colors | S › Speed colors (Adv) |
-| `uploadColor` | Upload color | color | | `""` | Speed colors | S › Speed colors (Adv) |
-
-### 2.12 Notifications (`notifications`, min 2×1, claims `plugins.InfoPanel.Notifications.`)
-
-Block: `CARD_SETTINGS` + `hideWhenIdle` (idle = notification count is 0).
-
-| Key | Label | Control | Default | Group | Target |
-|---|---|---|---|---|---|
-| `showHistory` | History list | toggle | `true` | Content | C › Content |
-| `maxLines` | Max history lines | slider 1–200 step 5 | `50` | Content | C › Content |
-
-### 2.13 Text File (`textfile`, min 2×1, claims `plugins.InfoPanel.TextFile.`)
-
-Block: `CARD_SETTINGS`.
-
-| Key | Label | Control | Default | Group | Target |
-|---|---|---|---|---|---|
-| `showMeta` | Size / lines / status header | toggle | `true` | Content | C › Content |
-
-### 2.14 Stream Deck (`streamdeck`, min 3×2, claims `plugins.InfoPanel.StreamDeck.`)
-
-Block: `CARD_SETTINGS`.
-
-| Key | Label | Control | Default | Group | Target |
-|---|---|---|---|---|---|
-| `showProfile` | Active profile | toggle | `true` | Content | C › Content |
-| `showLabels` | Button labels | toggle | `true` | Content | C › Content |
-
-### 2.15 Web Page (`webpage`, min 4×2, no claimed prefixes)
-
-| Key | Label | Control | Options | Default | Group | Target |
-|---|---|---|---|---|---|---|
-| `url` | URL | text | YouTube watch / share / shorts / live links are rewritten to `/embed/` | `""` | Page | C › Page |
-| `scale` | Size (%) | slider 50–200 step 5 | | `100` | (Size & alignment) | S › Size & alignment |
-| `radius` | Corner radius | select | as §1.2 | `auto` | (Spacing & shape) | S › Spacing & shape |
-| `accent` | Accent color | color | | `""` | (Colors & surface) | S › Colors & surface |
-| `borderWidth`, `borderColor`, `glow`, `glowColor` | as §1.3 | | | | (Border & effects) | S › Border & effects |
-
-Web Page declares none of the other STYLE keys, no `surface`, no `customCss`, no `label`/`icon`.
-Because the edge keys are the only effects, `surfaceOpacity` and `blur` are absent.
-
-### 2.16 Other sensors (`cards`, no module settings)
+### 2.1 Other sensors (`cards`, no module settings)
 
 Zone type for every sensor no module claims. Block: `CARD_SETTINGS` (surface default `theme`,
 `accent`, all of §1.2, all of §1.3). No own keys. No `label`, `icon`, `hideWhenIdle`.
@@ -499,7 +300,7 @@ Color.
 | `styleEnforce` | Force global style | Inherit / On / Off | | unset (= the dashboard's) | Profile | Dash › Appearance › Scope |
 | `background` | Background | Inherit / Custom / None + editor (§5.5) | | unset (inherit) | Profile | Dash › Profile › This profile; editor in Dash › Appearance › Page background |
 | `theme`, `radius` | Theme colors, corner radius | Inherit / Custom + theme editor (§5.4) | | unset (inherit) | Profile | Dash › Profile › This profile; editor in Dash › Appearance › Theme |
-| `id`, `sampleVersion`, `placements` | identity, shipped-profile version, zones | not editable fields | | | Profile | none |
+| `id`, `sampleVersion`, `placements` | identity, sample-layout version (old configs only), zones | not editable fields | | | Profile | none |
 
 Profile actions: New profile, Delete active profile (disabled with one profile left), switch to a
 pinned profile or **Auto (match window)**; `DashboardConfig.activeProfile` holds the pinned id or
@@ -513,9 +314,9 @@ pinned profile or **Auto (match window)**; `DashboardConfig.activeProfile` holds
 
 | Field | What | Default | Target |
 |---|---|---|---|
-| `version` | config schema, always `2` | `2` | none |
+| `version` | config schema, currently `4` (older clients are refused) | `4` | none |
 | `activeProfile` | pinned profile id or `auto` | `auto` | see §4 |
-| `profiles` | see §4 | shipped five (Sample 1920×550, ARCv2, Main display, Kiosk strip 1920×550, Small 1024×600) | Profiles panel |
+| `profiles` | see §4 | one blank profile on a fresh install | Profiles panel |
 | `theme`, `radius` | dashboard theme (§5.4) | `DEFAULT_THEME`, `0.5` rem | Dash › Appearance › Theme |
 | `style`, `styleEnforce` | dashboard style (§5.2) | unset, unset (off) | Dash › Global style, Appearance › Scope |
 | `background` | page background (§5.5) | unset (the theme background shows) | Dash › Appearance › Page background |

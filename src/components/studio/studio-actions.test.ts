@@ -7,7 +7,6 @@ import {
   type PanelDef,
   type Placement,
 } from "@/lib/layout";
-import { mainPage } from "@/lib/pages";
 import { userPanelPreset, type PanelPreset } from "@/lib/panelPresets";
 import {
   addBlankZone,
@@ -448,9 +447,9 @@ describe("canGrowTo", () => {
 describe("pasteStyleToZones", () => {
   it("replaces the look of the set, skipping blanks and other zones", () => {
     const p = profile([
-      zone("a", 1, 1, 2, 1, { module: "fpsmodern", settings: { accent: "#f00" } }),
+      zone("a", 1, 1, 2, 1, { module: "FpsMonitor", settings: { accent: "#f00" } }),
       zone("b", 3, 1, 2, 1, { module: BLANK_MODULE }),
-      zone("c", 5, 1, 2, 1, { module: "fpsmodern", settings: { accent: "#0f0" } }),
+      zone("c", 5, 1, 2, 1, { module: "FpsMonitor", settings: { accent: "#0f0" } }),
     ]);
     const out = pasteStyleToZones(p, ["a", "b"], { accent: "#00f" });
     expect(out.placements[0].settings?.accent).toBe("#00f");
@@ -459,7 +458,7 @@ describe("pasteStyleToZones", () => {
   });
 
   it("switches a following zone to custom", () => {
-    const p = profile([zone("a", 1, 1, 2, 1, { module: "fpsmodern", styleMode: "follow" })]);
+    const p = profile([zone("a", 1, 1, 2, 1, { module: "FpsMonitor", styleMode: "follow" })]);
     expect(pasteStyleToZones(p, ["a"], { accent: "#00f" }).placements[0].styleMode).toBe("custom");
   });
 });
@@ -481,8 +480,7 @@ describe("followGlobalStyle", () => {
 describe("withSampleZones", () => {
   it("takes the sample's grid and fresh copies of its zones", () => {
     const sample = profile([zone("s1", 1, 1, 2, 1), zone("s2", 3, 1, 2, 1)], 8, 3);
-    const { placements, ...rest } = sample;
-    const out = withSampleZones(profile([]), { ...rest, pages: [mainPage(placements)] });
+    const out = withSampleZones(profile([]), sample);
     expect(out).toMatchObject({ id: "prof", cols: 8, rows: 3 });
     expect(out.placements).toHaveLength(2);
     expect(out.placements.map((p) => p.id)).not.toContain("s1");
@@ -490,9 +488,8 @@ describe("withSampleZones", () => {
 
   it("keeps the shared grid and scales the sample onto it when another page has zones", () => {
     const sample = profile([zone("s1", 1, 1, 6, 3), zone("s2", 7, 4, 6, 3)], 12, 6);
-    const { placements, ...rest } = sample;
     const target = { ...profile([]), cols: 12, rows: 12 };
-    const out = withSampleZones(target, { ...rest, pages: [mainPage(placements)] }, true);
+    const out = withSampleZones(target, sample, true);
     expect(out).toMatchObject({ cols: 12, rows: 12 });
     expect(out.placements.map((p) => [p.colStart, p.rowStart, p.colSpan, p.rowSpan])).toEqual([
       [1, 1, 6, 6],
@@ -502,9 +499,8 @@ describe("withSampleZones", () => {
 
   it("moves a zone that collides after shrinking, and leaves out one with no room", () => {
     const sample = profile([zone("a", 1, 1, 1, 1), zone("b", 2, 1, 1, 1), zone("c", 1, 2, 2, 1)], 2, 2);
-    const { placements, ...rest } = sample;
     const target = { ...profile([]), cols: 1, rows: 2 };
-    const out = withSampleZones(target, { ...rest, pages: [mainPage(placements)] }, true);
+    const out = withSampleZones(target, sample, true);
     expect(out).toMatchObject({ cols: 1, rows: 2 });
     // a and b both shrink onto column 1, row 1: b moves to row 2; c then has no room.
     expect(out.placements.map((p) => [p.colStart, p.rowStart])).toEqual([
@@ -595,9 +591,9 @@ describe("moveZonesToPage", () => {
   });
 
   it("keeps ids and every other field, and leaves other zones alone", () => {
-    const p = stored([zone("z", 1, 1, 2, 2, { module: "systemmodern" }), zone("stay", 5, 1, 2, 2)], []);
+    const p = stored([zone("z", 1, 1, 2, 2, { module: "SystemOverview" }), zone("stay", 5, 1, 2, 2)], []);
     const out = moveZonesToPage(p, ["z"], "a", "b", min1);
-    expect(out?.pages[1].placements[0]).toMatchObject({ id: "z", module: "systemmodern" });
+    expect(out?.pages[1].placements[0]).toMatchObject({ id: "z", module: "SystemOverview" });
     expect(out?.pages[0].placements.map((x) => x.id)).toEqual(["stay"]);
   });
 

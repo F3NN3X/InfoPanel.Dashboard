@@ -12,9 +12,8 @@ picker shows and what the kiosk can render. The design decisions live in
   System, Hardware, Storage, Network, Media, Audio, Info, Gaming or Generic
   (plus Layouts and My panels for panels). The **`id`** is what the config
   stores (`Placement.module`), and what tools like `swap-*.ps1` use.
-- The Library lists the 50 **template widgets** below. The legacy ids in "All
-  modules" keep loading and rendering, but each is hidden from the Library
-  (`libraryHidden`): the template that draws it is what a new zone gets.
+- The Library lists the 50 **template widgets** below; they are the whole
+  registry (`TEMPLATE_MODULES`, `src/widgets/registry.ts`).
 - Every module claims a set of sensor keys via `matches(key)`; keys no
   module claims fall through to the **Other sensors** catch-all (the `CARDS`
   panel).
@@ -53,47 +52,39 @@ through the data adapter (below). `Clock`, `Calendar`, `WebPage` and
 their prefixes exists (the kiosk then hides the zone) and show their own
 empty state when only some readings are missing.
 
-## Legacy modules (saved zones)
+## Retired ids (saved zones)
 
-Each id below is a stored widget type from before the library. It keeps its
-id, title, minimum size, its own settings array (key for key) and its
-defaults, and renders through the template in the last column.
+The pre-template widget ids are gone from the registry. A zone that still
+stores one is rewritten to its template when the config loads (config v4,
+`src/lib/legacy-zones.ts`, `LEGACY_MODULE_IDS`), keeping the keys the template
+reads.
 
-| id | Picker name | Min | Data source (sensor key prefix) | Options | Template |
-|---|---|---|---|---|---|
-| `systemmodern` | [System (modern)](system-widget.md) | 2×1 | `system.cpu.*`, `system.ram.*`, `libre.*` | standard block + Devices (CPU/GPU/RAM/Disks) · VRAM · Temperatures · Power · GPU clock · Memory used/total · Hardware names · GPU hotspot · GPU fans · GPU memory clock · GPU power % of limit · RAM page file · CPU threads (heatmap/bars) · Drive temperature / read-write / life · Drive filter · Trend sparklines · Sparkline length · Thresholds (temperature warn/critical, load warn/critical, VRAM/drive-full warn) · Units & labels (°C/°F, decimals, per-device labels) · per-device colors |
-| `spotifymodern` | Spotify (modern) | 2×1 | `spotify.*`, `plugins.spotify-plugin.*` | standard block + Tint · Times · Progress |
-| `mediamodern` | Media (modern) | 2×1 | `plugins.media-plugin.*` | standard block + Tint · Times · Progress |
-| `steammodern` | Steam (modern) | 2×1 | `plugins.InfoPanel.SteamAPI.*` | standard block + Dim banner · Stats · News line |
-| `weathermodern` | Weather (modern) | 3×1 | `plugins.yr-weather-plugin.*` | standard block + Tint · Stats · Forecast · Feels-like · Forecast days · View (full/now/forecast/minimal) |
-| `fpsmodern` | FPS (modern) | 2×1 | `plugins.InfoPanel.RTSS.*`, `plugins.fps-plugin.*` | standard block + Extra metrics · Trend sparkline · View (gauge/trend) |
-| `hardwaremodern` | Hardware (modern) | 2×1 | `libre.*`, `hwinfo.*` | standard block + Max rows (0 = all) · View (list/temps) · Fan readings |
-| `audiomodern` | Audio (modern) | 2×1 | `plugins.audio-level-meter.*` | standard block + Details · Source (device) · Volume · Mute · View (meter/audiometer/volume) |
-| `wavelinkmodern` | Wave Link (modern) | 2×1 | none (reads `plugins.wavelink-plugin.wavelink.*` through the shared `wavelink` client) | standard block + Meters to show · Meter style · Meter orientation · Meter response · dB readouts & scale · Fader level · Mixes · Live / muted colors |
-| `bluetoothmodern` | Bluetooth (modern) | 2×1 | `plugins.bluetooth-battery-plugin.*` | standard block + Status · Devices · Battery · View (full/devices/status) |
-| `networkmodern` | Network (modern) | 2×1 | `libre.ethernet_*` | standard block + Session totals · Trend sparkline · View (speeds/totals) |
-| `vbz` | Departures | 2×1 | `plugins.InfoPanel.VBZ.*` | Status line |
-| `notifications` | Notifications | 2×1 | `plugins.InfoPanel.Notifications.*` | History list · Max history lines |
-| `textfile` | Text File | 2×1 | `plugins.InfoPanel.TextFile.*` | Size / lines / status header |
-| `streamdeck` | Stream Deck | 3×2 | `plugins.InfoPanel.StreamDeck.*` | Active profile · Button labels |
-| `webpage` | Web Page | 4×2 | none (config only) | URL (embedded in an iframe) |
-| (catch-all) | Other sensors | 4×2 | any key no module claims | — (generic cards) | SensorValue per key |
+| Stored id | Template |
+|---|---|
+| `systemmodern` | `SystemOverview` ([system-widget.md](system-widget.md)) |
+| `spotifymodern`, `mediamodern` | `NowPlaying` (`source`) |
+| `steammodern` | `GameSpotlight` (composite) |
+| `hardwaremodern` | `SensorGroup` (auto), or `Thermals` for the temps view |
+| `weathermodern` | `Weather` |
+| `fpsmodern` | `FpsMonitor` |
+| `audiomodern` | `AudioMeter`, `MeterBridge` or `VolumeMixer`, by `view` |
+| `wavelinkmodern` | `WaveLink` |
+| `bluetoothmodern` | `Bluetooth` |
+| `networkmodern` | `NetworkThroughput` |
+| `vbz`, `notifications`, `textfile`, `streamdeck`, `webpage` | `Departures`, `Notifications`, `TextFile`, `StreamDeck`, `WebPage` |
 
-"standard block" = what every widget adopts (preset / layout / surface /
+The catch-all **Other sensors** (4×2, any key no module claims) is not a
+registry entry: `src/modules/other-sensors.tsx` draws a `SensorValue` card per
+key.
+
+"Standard block" = what every widget adopts (preset / layout / surface /
 custom title / icon / accent / background image + use-as-background, size,
 spacing, type, border and effects, and the Look keys — see
-`widget-settings.md`), plus the widget's own options. The Template column is
-read from the code: `hardwaremodern` shows `Thermals` in its temps view and
-`SensorGroup` in the list view.
+`widget-settings.md`), plus the widget's own options.
 
 ## The widget shell
 
-Eleven of the legacy ids are the adaptive "modern" widgets: `spotifymodern`,
-`mediamodern`, `weathermodern`, `steammodern`, `systemmodern`, `fpsmodern`,
-`hardwaremodern`, `audiomodern`, `bluetoothmodern`, `networkmodern`,
-`wavelinkmodern` — each is the sole version of its widget (the classic
-counterparts were retired in the 2026-10-09 cleanup) and now a thin alias of a
-template. The whole library shares one design system, in `src/widgets/core/`:
+The whole library shares one design system, in `src/widgets/core/`:
 
 - **Adaptive layout.** The `<Widget>` shell measures its zone (ResizeObserver)
   and gives the widget a size tier — `xs` under 220×140 px, `sm` under 340×210,
@@ -125,15 +116,14 @@ template. The whole library shares one design system, in `src/widgets/core/`:
   Each template's own options sit after `STANDARD_SETTINGS` (preset / layout /
   surface / custom title / icon / accent / background image, size, spacing,
   type, border and effects, Look); full reference in `widget-settings.md`.
-  A template's stored keys are the legacy ones where a legacy widget had them.
 - **No-data behavior.** A template whose sensors are all missing renders
   nothing (`templateModule` checks the prefixes), so the kiosk hides the zone
   and the studio says there is no live data yet; once a key exists the widget
   draws its own empty state.
 
-### Data keys read by each legacy widget
+### Data keys read by each widget
 
-- **systemmodern** (`SystemOverview` template) — loads from `system.cpu.load` and
+- **SystemOverview** — loads from `system.cpu.load` and
   `system.ram.load`; the rest from LibreHardwareMonitor, found by key suffix
   and unit because the keys carry the hardware name
   (`src/lib/system-metrics.ts`): GPU `_gpu_core_load`, `_gpu_core` (°C),
@@ -149,22 +139,22 @@ template. The whole library shares one design system, in `src/widgets/core/`:
   `_total_space` / `_free_space` (GB); the doubled `_load` / `_data` variants
   are ignored. Temperatures and power that read 0 count as unreadable and are
   hidden; the first GPU wins.
-- **fpsmodern** (`FpsMonitor` template) — RTSS: `fps`, `1% low fps`, `current frame
+- **FpsMonitor** — RTSS: `fps`, `1% low fps`, `current frame
   time`, `gpu-name`, `resolution`, `refreshrate`, `windowtitle`,
   `graphics-api`, `display-mode`, `benchmark-mode`; fps-plugin: `fps`,
   `1% low fps` / `1% low`, `0.1% low`, `current frame time` / `frame time`,
   `gpu-name`, `gpu utilization`, `gpu busy`, `cpu busy`, `display latency`,
   `refreshrate`, `resolution`, `windowtitle`.
-- **hardwaremodern** (`SensorGroup` auto / `Thermals` templates) — every live `libre.*` / `hwinfo.*`
+- **SensorGroup** (auto) and **Thermals** — every live `libre.*` / `hwinfo.*`
   entry (LibreHardwareMonitor / HWiNFO exports); rows are kind-dotted
   (temp / fan / power first), capped by the `maxRows` option. The "temps"
   view is the `Thermals` template: the top four temperature readings as arc
   gauges plus a fan-reading chip row.
-- **networkmodern** (`NetworkThroughput` template) — `libre.ethernet_*`
+- **NetworkThroughput** — `libre.ethernet_*`
   (LibreHardwareMonitor): `download_speed` / `upload_speed` (bytes/s →
   formatted rate), `data_downloaded` / `data_uploaded` (session totals),
   `network_utilization` (0–100). Optional rolling speed sparklines.
-- **audiomodern** (`AudioModern`: AudioMeter / MeterBridge / VolumeMixer by `view`) — `plugins.audio-level-meter.*`,
+- **AudioMeter**, **MeterBridge**, **VolumeMixer** — `plugins.audio-level-meter.*`,
   grouped by container (device). Entries are resolved by **stable key
   suffix** — `audio-level`, `peak-level`, `rms-level`, `left-channel`,
   `right-channel`, `device-name` — because the plugin decorates its display
@@ -172,25 +162,25 @@ template. The whole library shares one design system, in `src/widgets/core/`:
   (`Level`, `Peak`, …) are the fallback. `Level` is a bar (red > 85%),
   peak/RMS are dB. The `default-audio` container (the active default
   device) is labelled "Default device" so it doesn't read as a duplicate of
-  that device's own container. The optional `source` setting binds the
-  widget to one device (`""` = show all).
-- **bluetoothmodern** (`Bluetooth` template, `src/widgets/Bluetooth.tsx`) —
+  that device's own container. AudioMeter binds to one device
+  with `device`, MeterBridge picks devices with `channels` (`""` = all).
+- **Bluetooth** (`src/widgets/Bluetooth.tsx`) —
   `plugins.bluetooth-battery-plugin.*`: the status container (the one with
   a `.bt_status` key) gives the status line; every other container is a
   paired device (`Name`, `Status`, `Battery Level` → green/amber/red bar).
-- **spotifymodern** (`NowPlaying` template) — `spotify.track` /
+- **NowPlaying**, Spotify source — `spotify.track` /
   `spotify.artist` / `spotify.art` / `spotify.progress` /
   `spotify.playing`, falling back to `plugins.spotify-plugin.spotify.*`
   equivalents.
-- **mediamodern** (`NowPlaying` template) — `plugins.media-plugin.media.*`:
+- **NowPlaying**, Media source — `plugins.media-plugin.media.*`:
   `current-track`, `artist`, `cover-art`, `track-progress`,
   `elapsed-time`, `remaining-time`, `playback-state` (= 2 → playing).
-- **weathermodern** (`Weather` template) — `plugins.yr-weather-plugin.*`:
+- **Weather** — `plugins.yr-weather-plugin.*`:
   `name`, `temp`, `feels_like`, `weather_desc`/`weather`, `humidity`,
   `pressure`, `wind_speed`, `wind_gust`, `wind_deg`, `rain`, `snow`,
   `last_refreshed`, `weather_icon`; forecast from the yr
   plugin's `forecast` (multi-day lines, starting tomorrow).
-- **steammodern** (`GameSpotlight` template, composite mode) — `plugins.InfoPanel.SteamAPI.`:
+- **GameSpotlight** (composite mode) — `plugins.InfoPanel.SteamAPI.`:
   Profile (`player-name`, `online-status`, `steam-level`,
   `profile_image_url`, `current_game_banner_url`, `game_logo_url`,
   `game_icon_url`), Session (`current-game`, `current-game-playtime`,
@@ -204,11 +194,6 @@ template. The whole library shares one design system, in `src/widgets/core/`:
 
 - Template widgets: the id is the PascalCase template name (`CpuMonitor`), the
   picker title its `meta.name` ("CPU Monitor").
-- Legacy modules keep `<name>modern` ids and the picker title "**Name
-  (modern)**"; they are hidden from the Library.
-- Exception: `fpsmodern` is titled **"FPS (modern)"** (was
-  "Performance (modern)") so the FPS widget is findable in the picker —
-  picker search is by title (2026-10-08, commit `49084f8`).
 - New data-source widgets are built as templates: a component over flat data
   plus a `templateModule` registration (see below).
 

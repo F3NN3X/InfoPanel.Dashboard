@@ -34,7 +34,7 @@ const GENERAL_TITLES = new Set(GENERAL_CATEGORIES.map((c) => c.title));
  * Module categories that deliberately hold one setting: the plain card
  * widgets and the template widgets whose spec has a single option of their own.
  */
-const SINGLE_SETTING_OK = new Set(["vbz:Content", "textfile:Content", "webpage:Page", "WebPage:Page", "TextFile:Content", "Departures:Content", "Calendar:Calendar", "StorageHealth:Storage health", "Achievements:Achievements", "PowerDraw:Power", "ServiceHealth:Service health", "SteamLibrary:Steam library", "SteamNews:Steam news", "Uptime:Uptime", "Vitals:Vitals", "VolumeMixer:Volume mixer"]);
+const SINGLE_SETTING_OK = new Set(["WebPage:Page", "TextFile:Content", "Departures:Content", "Calendar:Calendar", "StorageHealth:Storage health", "Achievements:Achievements", "PowerDraw:Power", "ServiceHealth:Service health", "SteamLibrary:Steam library", "SteamNews:Steam news", "Uptime:Uptime", "Vitals:Vitals", "VolumeMixer:Volume mixer"]);
 
 const sheets: [string, ModuleSetting[]][] = [
   ...modules.map((m): [string, ModuleSetting[]] => [m.id, m.settings ?? []]),

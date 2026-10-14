@@ -1,3 +1,5 @@
+> The legacy module ids this plan names were retired in config v4 (`src/lib/legacy-zones.ts`).
+
 # Phase 9: widget library (plan)
 
 Source handoff: `G:\win_user-folders\Downloads\Widget Studio UI Redesign (1)\widgets` (44 templates,

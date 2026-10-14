@@ -33,9 +33,9 @@ const titles = (sections: InspectorSection[]) => sections.map((s) => s.title);
 const keysOf = (sections: InspectorSection[]) => sections.flatMap((s) => s.settings.map((d) => d.key));
 const find = (sections: InspectorSection[], title: string) => sections.find((s) => s.title === title)!;
 
-const spotify = widgetContext(mod("spotifymodern"));
-const system = widgetContext(mod("systemmodern"));
-const webpage = widgetContext(mod("webpage"));
+const spotify = widgetContext(mod("NowPlaying"));
+const system = widgetContext(mod("SystemOverview"));
+const webpage = widgetContext(mod("WebPage"));
 const panel: InspectorContext = { kind: "panel", defs: PANEL_SETTINGS };
 
 describe("every setting is in exactly one section of exactly one tab", () => {
@@ -103,10 +103,10 @@ describe("widget sections", () => {
     expect(titles(sectionsFor(spotify, "content"))).toEqual([
       "Widget",
       "Now playing",
-      "Cover art",
-      "Waveform",
       "Visualizer",
-      "Waveform shape",
+      "Cover art",
+      "Visualizer shape",
+      "Visualizer dynamics",
     ]);
     expect(find(sectionsFor(spotify, "content"), "Widget").extras.map((e) => e.kind)).toEqual([
       "widgetPicker",
@@ -133,10 +133,10 @@ describe("widget sections", () => {
 
   it("files the other color-picker categories in Style too", () => {
     for (const [id, title] of [
-      ["hardwaremodern", "Dot colors"],
-      ["fpsmodern", "Gauge colors"],
-      ["bluetoothmodern", "Battery colors"],
-      ["networkmodern", "Speed colors"],
+      ["SensorGroup", "Dot colors"],
+      ["FpsMonitor", "Gauge colors"],
+      ["Bluetooth", "Battery colors"],
+      ["NetworkThroughput", "Speed colors"],
     ]) {
       const context = widgetContext(mod(id));
       expect(titles(sectionsFor(context, "content")), id).not.toContain(title);
@@ -146,14 +146,14 @@ describe("widget sections", () => {
   });
 
   it("keeps the meter's colors in Content, flagged advanced one by one", () => {
-    const meter = find(sectionsFor(widgetContext(mod("audiomodern")), "content"), "Meter");
+    const meter = find(sectionsFor(widgetContext(mod("AudioMeter")), "content"), "Meter");
     expect(meter.advanced).toBe(false);
     expect(meter.settings.filter((d) => d.advanced).map((d) => d.key)).toEqual(["levelColor", "hotColor"]);
   });
 
-  it("files Audio source in Data, after the bound data", () => {
+  it("files the device and Audio source in Data, after the bound data", () => {
     const data = sectionsFor(spotify, "data");
-    expect(titles(data)).toEqual(["Bound data", "Audio source"]);
+    expect(titles(data)).toEqual(["Bound data", "Visualizer", "Audio source"]);
     expect(data[0]).toMatchObject({ special: "boundData" });
     expect(keysOf(data)).toEqual(["liveSource", "liveCapture", "liveSources"]);
     expect(titles(sectionsFor(spotify, "content"))).not.toContain("Audio source");
@@ -171,9 +171,8 @@ describe("widget sections", () => {
       expect(keys.includes("layout"), `${m.id} layout`).toBe(adaptive);
     }
     const adaptive = modules.filter((m) => (m.settings ?? []).some((d) => d.key === "layout")).map((m) => m.id);
-    expect(adaptive).toContain("spotifymodern");
-    expect(adaptive).not.toContain("vbz");
-    expect(adaptive).not.toContain("webpage");
+    expect(adaptive).toContain("NowPlaying");
+    expect(adaptive).not.toContain("WebPage");
   });
 
   it("still has a Widget card when the schema has no setting in it (the picker lives there)", () => {
@@ -325,7 +324,7 @@ describe("dashboard sections", () => {
 
 describe("source states and changed counts", () => {
   const accent = CARD_SETTINGS.find((d) => d.key === "accent")!;
-  const url = mod("webpage").settings!.find((d) => d.key === "url")!;
+  const url = mod("WebPage").settings!.find((d) => d.key === "url")!;
   const own = { accent: "#ff0000", glow: "soft", url: "https://example.com" };
 
   it("reads here, overriding and the inherited layers", () => {
@@ -393,22 +392,24 @@ describe("applyAdvanced", () => {
     expect(find(shown, "Size & alignment").settings.map((d) => d.key)).toEqual(["layout", "scale", "alignX"]);
     expect(find(shown, "Colors & surface").settings.map((d) => d.key)).not.toContain("background");
     expect(find(shown, "Border & effects").extras).toEqual([]);
-    // autoScale + background + backgroundOn + frame (3) + custom CSS + 5 device colors + graph, meter, compactView
-    expect(hiddenCount).toBe(1 + 2 + 3 + 1 + 5 + 3);
+    // autoScale + background + backgroundOn + frame (3) + custom CSS + 3 device color options + graph, meter, compactView
+    expect(hiddenCount).toBe(1 + 2 + 3 + 1 + 3 + 3);
     const total = sections.reduce((n, s) => n + sectionSize(s), 0);
     expect(shown.reduce((n, s) => n + sectionSize(s), 0) + hiddenCount).toBe(total);
   });
 
-  it("hides the waveform shape and the advanced visualizer fields in Content", () => {
+  it("hides the visualizer dynamics and the advanced visualizer fields in Content", () => {
     const { sections, hiddenCount } = applyAdvanced(sectionsFor(spotify, "content"), false);
-    expect(titles(sections)).not.toContain("Waveform shape");
+    expect(titles(sections)).not.toContain("Visualizer dynamics");
     expect(find(sections, "Visualizer").settings.map((d) => d.key)).toEqual([
-      "visualizer",
+      "waveformVariant",
+      "showTimeline",
+      "waveformSensitivity",
       "visualizerBarCount",
       "visualizerAlign",
-      "visualizerIdle",
     ]);
-    expect(hiddenCount).toBe(4 + 7);
+    expect(find(sections, "Visualizer shape").settings.map((d) => d.key)).toEqual(["vizShape", "vizGap", "vizPeaks"]);
+    expect(hiddenCount).toBe(2 + 3 + 6);
   });
 
   it("drops a section left with nothing but keeps custom-only ones", () => {
@@ -420,13 +421,14 @@ describe("applyAdvanced", () => {
 describe("searchAll", () => {
   it("searches every tab and labels each result with its tab", () => {
     const { groups, total } = searchAll(spotify, "mirror");
-    // "Waveform style" matches by its Mirror option, "Visualizer mirrored" by its label.
-    expect(groups.map((g) => [g.tabLabel, g.section.title])).toEqual([
-      ["Content", "Waveform"],
-      ["Content", "Visualizer"],
-    ]);
+    // "Visualizer style" matches by its Mirror option; "peak" by the labels in Content and Style.
+    expect(groups.map((g) => [g.tabLabel, g.section.title])).toEqual([["Content", "Visualizer"]]);
     expect(total).toBe(groups.reduce((n, g) => n + g.section.settings.length, 0));
-    expect(keysOf(groups.map((g) => g.section))).toEqual(["waveformVariant", "visualizerMirrored"]);
+    expect(keysOf(groups.map((g) => g.section))).toEqual(["waveformVariant"]);
+    expect(searchAll(spotify, "peak").groups.map((g) => [g.tabLabel, g.section.title])).toEqual([
+      ["Content", "Visualizer shape"],
+      ["Style", "Visualizer colors"],
+    ]);
   });
 
   it("finds settings in Style and Data in the same pass", () => {
@@ -437,7 +439,7 @@ describe("searchAll", () => {
   });
 
   it("includes advanced settings whatever the Advanced toggle says", () => {
-    expect(keysOf(searchAll(spotify, "bar radius").groups.map((g) => g.section))).toEqual(["waveformBarRadius"]);
+    expect(keysOf(searchAll(spotify, "fade").groups.map((g) => g.section))).toEqual(["waveformFadeEdges", "waveformFadeWidth"]);
   });
 
   it("lists matching rows only, not their whole category", () => {

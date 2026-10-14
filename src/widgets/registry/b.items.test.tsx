@@ -2,7 +2,7 @@ import { createElement } from "react";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { SensorItemsField } from "@/components/studio/widget-editor/sensor-items-field";
-import { renderModule } from "@/modules/port-helpers";
+import { renderModule } from "@/widgets/test-render";
 import { effectiveSettings } from "@/modules/types";
 import { GROUP_B } from "./b";
 import { clearItem, itemsOf, setItemField } from "./settings-kit";

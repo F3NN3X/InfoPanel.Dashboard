@@ -1,9 +1,7 @@
 // Template widgets, group B: storage, network, info, generic (see docs/redesign/phase9/brief-9.3c-templates.md).
 import type { DashboardModule, ModuleSetting, ModuleSettings } from "@/modules/types";
-import { SENSOR_GROUP_SETTINGS } from "@/modules/hardware-modern";
-import { NETWORK_SETTINGS } from "@/modules/network-modern";
-import { WEATHER_SETTINGS, weatherToProps } from "@/modules/weather-modern";
 import { templateModule } from "../module";
+import { SENSOR_GROUP_SETTINGS } from "./hardware-settings";
 import { boolOf, boolSetting, colorSetting, deviceSetting, enumSetting, itemsOf, itemsSetting, numberOf, numberSetting, oneOf, pass, sensorSetting, splitKeys, textSetting } from "./settings-kit";
 import * as DriveSpace from "../DriveSpace";
 import * as StorageHealth from "../StorageHealth";
@@ -72,6 +70,82 @@ function sensorItems(s: ModuleSettings): SensorGroup.SensorGroupProps["sensors"]
   const items = itemsOf(s.items);
   return keys.map((key) => ({ key, ...shared, ...items[key] }));
 }
+
+/** NetworkThroughput's view and toggles, under the old Network widget's keys. */
+const NETWORK_SETTINGS: ModuleSetting[] = [
+  {
+    key: "view",
+    label: "View",
+    type: "select",
+    default: "speeds",
+    options: [
+      { value: "speeds", label: "Speeds" },
+      {
+        value: "totals",
+        label: "Totals",
+        applies: { showTotals: true, sparkline: true },
+      },
+    ],
+    group: "Content",
+  },
+  { key: "showTotals", label: "Session totals", type: "boolean", default: true, group: "Content" },
+  { key: "sparkline", label: "Trend sparkline", type: "boolean", default: false, group: "Content" },
+  { key: "downloadColor", label: "Download color", type: "color", default: "", group: "Speed colors" },
+  { key: "uploadColor", label: "Upload color", type: "color", default: "", group: "Speed colors" },
+];
+
+/** Weather's view and toggles, under the old Weather widget's keys. */
+const WEATHER_SETTINGS: ModuleSetting[] = [
+  {
+    key: "view",
+    label: "View",
+    type: "select",
+    default: "full",
+    options: [
+      { value: "full", label: "Full" },
+      {
+        value: "now",
+        label: "Now",
+        applies: { showForecast: false, showStats: true, showFeels: true },
+      },
+      {
+        value: "forecast",
+        label: "Forecast",
+        applies: { showForecast: true, showStats: false, forecastDays: 7 },
+      },
+      {
+        value: "minimal",
+        label: "Minimal",
+        applies: { showStats: false, showForecast: false, showFeels: false },
+      },
+    ],
+    group: "Display",
+  },
+  { key: "tint", label: "Tint from conditions", type: "boolean", default: true, group: "Display" },
+  { key: "showStats", label: "Stats row", type: "boolean", default: true, group: "Current conditions" },
+  { key: "showFeels", label: "Feels-like", type: "boolean", default: true, group: "Current conditions" },
+  { key: "showForecast", label: "Forecast strip", type: "boolean", default: true, group: "Forecast" },
+  {
+    key: "forecastDays",
+    label: "Forecast days",
+    type: "number",
+    default: 5,
+    min: 1,
+    max: 7,
+    step: 1,
+    group: "Forecast",
+  },
+];
+
+/** The stored settings as the Weather template's props (`forecastDays` is its `days`). */
+const weatherToProps = (s: ModuleSettings): Partial<Weather.WeatherProps> => ({
+  view: s.view as Weather.WeatherProps["view"],
+  tint: Boolean(s.tint),
+  showStats: Boolean(s.showStats),
+  showFeels: Boolean(s.showFeels),
+  showForecast: Boolean(s.showForecast),
+  days: Math.max(1, Math.min(7, Math.round(Number(s.forecastDays) || 5))),
+});
 
 const units = (group: string): ModuleSetting => enumSetting("units", "Units", "C", [{ value: "C", label: "°C" }, { value: "F", label: "°F" }], { group });
 const yrLocation = (group: string): ModuleSetting => ({ key: "location", label: "Location", type: "select", default: "", optionsFrom: "sources", sourcePlugin: "plugins.yr-weather-plugin.", group, tab: "data", hint: "Blank = the first Yr location" });

@@ -9,6 +9,7 @@ import { normalizeSpacing } from "./profile-grid";
 import { YR_FORECAST_KEY } from "./sensors";
 import { mainPage, normalizeRotate } from "./pages";
 import { normalizeAlerts, type AlertsConfig } from "./alerts";
+import { migrateLegacyZones } from "./legacy-zones";
 import {
   normalizePanelPlacement,
   normalizePanelPresets,
@@ -158,10 +159,7 @@ export interface MonitorProfile {
   gap?: number;
   /** Space around the grid in px (unset = the page's default per mode, see `profilePadding`). */
   padding?: number;
-  /**
-   * Set on shipped (non-user) profiles; when the app ships an updated copy
-   * of a profile with a higher version, the saved copy is replaced.
-   */
+  /** Set on the profiles earlier versions shipped (Sample, ARCv2); kept, no longer read. */
   sampleVersion?: number;
 }
 
@@ -174,8 +172,11 @@ export type ProfileView = Omit<MonitorProfile, "pages"> & {
   pageId?: string;
 };
 
+/** v4: the legacy module ids are migrated to their templates on load (`legacy-zones.ts`). */
+export const CONFIG_VERSION = 4;
+
 export interface DashboardConfig {
-  version: 3;
+  version: typeof CONFIG_VERSION;
   /** Profile id to show, or "auto" to match the window size. */
   activeProfile: string;
   /**
@@ -240,96 +241,25 @@ export function uid(prefix = "p"): string {
   return `${prefix}-${Date.now().toString(36)}-${counter}`;
 }
 
-function placement(
-  module: string,
-  colStart: number,
-  rowStart: number,
-  colSpan: number,
-  rowSpan = 1
-): Placement {
+/** A fresh install's one profile: blank, so the studio offers its empty-layout card (Browse / Use sample layout). */
+function firstProfile(): MonitorProfile {
   return {
-    id: uid(module),
-    module,
-    colStart,
-    rowStart,
-    colSpan,
-    rowSpan,
-    visible: true,
+    id: "main",
+    name: "Main display",
+    width: 1920,
+    height: 1080,
+    cols: 12,
+    rows: 6,
+    fit: "scroll",
+    pages: [mainPage()],
   };
-}
-
-function defaultProfiles(): MonitorProfile[] {
-  return [
-    sampleProfile(),
-    arcv2Profile(),
-    {
-      id: "main",
-      name: "Main display",
-      width: 1920,
-      height: 1080,
-      cols: 12,
-      rows: 10,
-      fit: "scroll",
-      pages: [mainPage([
-        placement("systemmodern", 1, 1, 12),
-        placement("spotifymodern", 1, 2, 6),
-        placement("mediamodern", 7, 2, 6),
-        placement("steammodern", 1, 3, 12),
-        placement("weathermodern", 1, 4, 12),
-        placement("fpsmodern", 1, 5, 12),
-        placement("audiomodern", 1, 6, 6),
-        placement("vbz", 7, 6, 6),
-        placement("bluetoothmodern", 1, 7, 6),
-        placement("notifications", 7, 7, 6),
-        placement("textfile", 1, 8, 6),
-        placement("streamdeck", 1, 9, 12),
-        placement(CARDS_ID, 1, 10, 12),
-      ])],
-    },
-    {
-      id: "strip-1920x550",
-      name: "Kiosk strip 1920×550",
-      width: 1920,
-      height: 550,
-      cols: 12,
-      rows: 2,
-      fit: "fill",
-      pages: [mainPage([
-        placement("systemmodern", 1, 1, 2, 2),
-        placement("spotifymodern", 3, 1, 2, 2),
-        placement("mediamodern", 5, 1, 2, 2),
-        placement("steammodern", 7, 1, 2, 2),
-        placement("weathermodern", 9, 1, 2, 2),
-        placement("fpsmodern", 11, 1, 2, 2),
-      ])],
-    },
-    {
-      id: "small-1024x600",
-      name: "Small 1024×600",
-      width: 1024,
-      height: 600,
-      cols: 6,
-      rows: 4,
-      fit: "scroll",
-      pages: [mainPage([
-        placement("systemmodern", 1, 1, 2),
-        placement("spotifymodern", 3, 1, 2),
-        placement("weathermodern", 5, 1, 2),
-        placement("mediamodern", 1, 2, 3),
-        placement("steammodern", 4, 2, 3),
-        placement("fpsmodern", 1, 3, 3),
-        placement("audiomodern", 4, 3, 3),
-        placement(CARDS_ID, 1, 4, 6),
-      ])],
-    },
-  ];
 }
 
 export function defaultConfig(): DashboardConfig {
   return {
-    version: 3,
+    version: CONFIG_VERSION,
     activeProfile: "auto",
-    profiles: defaultProfiles(),
+    profiles: [firstProfile()],
     theme: { ...DEFAULT_THEME },
     radius: 0.5,
   };
@@ -443,19 +373,13 @@ function profileExtras(p: StoredProfile): Partial<MonitorProfile> {
 }
 
 /**
- * Merge a stored/partial config over the defaults (tolerates missing
- * fields). Used by the local load and by the server-synced copy (the
- * kiosk pages pull the studio's latest state this way). Also runs the
- * v1→v2 migration: fills explicit zone boxes + rows on legacy profiles,
- * drops the retired free-canvas profiles, and repoints pins that
- * referenced them.
- */
-/**
  * Image paths saved while the DataBridge plugin served the dashboard point
  * at http://127.0.0.1:3921/assets/<file>; those files now ship in the
  * build under /assets/ip/arcv2/ (see ASSET). Rewrites any saved copy.
  */
 const LEGACY_ASSET_PREFIX = "http://127.0.0.1:3921/assets/";
+/** InfoPanel export assets, shipped in public/assets/ip/arcv2/. */
+const ASSET = (f: string) => `/assets/ip/arcv2/${f}`;
 
 /**
  * The DataBridge's open-meteo forecast is gone; bindings to it move to the
@@ -488,6 +412,29 @@ function migrateAssetUrls(config: StoredConfig): StoredConfig {
 const isSettings = (v: unknown): v is ModuleSettings =>
   typeof v === "object" && v !== null && !Array.isArray(v);
 
+/** A style that picks a surface ("auto" / empty leave the widget's own). */
+const hasSurface = (style: ModuleSettings | undefined): boolean =>
+  style?.surface !== undefined && style.surface !== "" && style.surface !== "auto";
+
+/** v3→v4: every page's legacy zones become their templates' (see `migrateLegacyZones`). */
+function migrateProfileZones(p: MonitorProfile, dashboardSurface: boolean): MonitorProfile {
+  const ctx = { styledSurface: dashboardSurface || hasSurface(p.style) };
+  const pages = p.pages.map((pg) => {
+    const placements = migrateLegacyZones(pg.placements, ctx);
+    return placements === pg.placements ? pg : { ...pg, placements };
+  });
+  return pages.every((pg, i) => pg === p.pages[i]) ? p : { ...p, pages };
+}
+
+/**
+ * Merge a stored/partial config over the defaults (tolerates missing
+ * fields). Used by the local load and by the server-synced copy (the
+ * kiosk pages pull the studio's latest state this way). Also runs the
+ * migrations: v1→v2 fills explicit zone boxes + rows on legacy profiles,
+ * v2→v3 moves a profile's zones onto its first page, v3→v4 rewrites the
+ * legacy module ids to their templates; a pin to a missing profile
+ * falls back to Auto.
+ */
 export function mergeConfig(input: StoredConfig): DashboardConfig {
   const parsed = migrateAssetUrls(input);
   const defaults = defaultConfig();
@@ -495,32 +442,16 @@ export function mergeConfig(input: StoredConfig): DashboardConfig {
     parsed.profiles && parsed.profiles.length > 0
       ? parsed.profiles
       : defaults.profiles
-  ).map(normalizeProfile);
-  // Re-inject the sample profile if a stored config is missing it, and
-  // replace it when the app ships a newer version of the shipped layout.
-  const existingSample = profiles.find((p) => p.id === SAMPLE_PROFILE_ID);
-  if (!existingSample) {
-    profiles.push(normalizeProfile(sampleProfile()));
-  } else if (existingSample.sampleVersion !== SAMPLE_PROFILE_VERSION) {
-    profiles[profiles.indexOf(existingSample)] = normalizeProfile(
-      sampleProfile()
-    );
-  }
-  // Same treatment for the shipped arcv2 recreation.
-  const existingArc = profiles.find((p) => p.id === ARCV2_PROFILE_ID);
-  if (!existingArc) {
-    profiles.push(normalizeProfile(arcv2Profile()));
-  } else if (existingArc.sampleVersion !== ARCV2_PROFILE_VERSION) {
-    profiles[profiles.indexOf(existingArc)] = normalizeProfile(arcv2Profile());
-  }
-  // Pins pointing at dropped free-canvas profiles land on the grid
-  // arcv2 (the 1:1 look is already covered by it).
+  )
+    .map(normalizeProfile)
+    .map((p) => migrateProfileZones(p, isSettings(parsed.style) && hasSurface(parsed.style)));
+  // A pin to a profile that is gone falls back to Auto.
   const byId = new Set(profiles.map((p) => p.id));
   let activeProfile = parsed.activeProfile ?? defaults.activeProfile;
   if (activeProfile !== "auto" && !byId.has(activeProfile))
     activeProfile = "auto";
   return {
-    version: 3,
+    version: CONFIG_VERSION,
     activeProfile,
     sourcePrefs: parsed.sourcePrefs,
     profiles,
@@ -640,563 +571,3 @@ export function newPanel(title: string): PanelDef {
     widgets: [],
   };
 }
-
-/* ---------------------------------------------------------------- *
- * Sample profile — a from-scratch recreation of the reference
- * kiosk layout (FPS rings, big clock block, last-played-game panel,
- * weather, GPU/RAM readouts, network + steam news cards).
- *
- * It is a *profile*, not a preset: it ships as one of the default
- * profiles, and `loadConfig` re-injects it if a saved config is
- * missing it, so existing installs pick it up on the next load.
- * Every widget is bound to a real live sensor and stays editable.
- * ---------------------------------------------------------------- */
-
-export const SAMPLE_PROFILE_ID = "sample-1920x1080";
-/**
- * Bump whenever the shipped sample layout changes so saved copies in
- * localStorage (kiosk machines) are upgraded on the next load.
- */
-export const SAMPLE_PROFILE_VERSION = 7;
-
-/** The yellow accent the sample layout is built around. */
-const SAMPLE_ACCENT = "#f5c518";
-
-const RTSS = (n: string) => `plugins.InfoPanel.RTSS.rtss.${n}`;
-const STEAM = (n: string) => `plugins.InfoPanel.SteamAPI.${n}`;
-const NVIDIA = (n: string) => `libre.nvidia_geforce_rtx_5090_${n}`;
-const WEATHER = (n: string) => `plugins.yr-weather-plugin.brevik-norway.${n}`;
-
-/** Shorthand for building sample widgets with fresh ids. */
-function sw(fields: Partial<Widget> & { kind: WidgetKind }): Widget {
-  return { id: uid("w"), visible: true, ...fields };
-}
-
-/** An accent-yellow vertical bar (the sample's decorative dividers). */
-function vbar(extra?: Partial<Widget>): Widget {
-  return sw({
-    kind: "shape",
-    shape: "vbar",
-    thickness: 8,
-    color: SAMPLE_ACCENT,
-    ...extra,
-  });
-}
-
-/** Shorthand for building sample panels with fresh ids. */
-function sp(
-  fields: Partial<Omit<PanelDef, "widgets" | "title">> & {
-    title: string;
-    widgets: Widget[];
-  }
-): PanelDef {
-  return {
-    id: uid("panel"),
-    titleVisible: false,
-    visible: true,
-    background: "none",
-    ...fields,
-  };
-}
-
-interface SamplePlacementOpts {
-  colStart?: number;
-  rowStart?: number;
-  rowSpan?: number;
-}
-
-function sampleModulePlacement(
-  module: string,
-  colSpan: number,
-  opts: SamplePlacementOpts & {
-    settings?: Placement["settings"];
-    design?: Placement["design"];
-  } = {}
-): Placement {
-  return {
-    id: uid(module),
-    module,
-    colStart: opts.colStart ?? 1,
-    colSpan,
-    visible: true,
-    rowStart: opts.rowStart ?? 1,
-    rowSpan: opts.rowSpan ?? 1,
-    settings: opts.settings,
-    design: opts.design,
-  };
-}
-
-function samplePanelPlacement(
-  panel: PanelDef,
-  colSpan: number,
-  opts: SamplePlacementOpts = {}
-): Placement {
-  return {
-    id: uid(PANEL_ID),
-    module: PANEL_ID,
-    colStart: opts.colStart ?? 1,
-    colSpan,
-    visible: true,
-    rowStart: opts.rowStart ?? 1,
-    rowSpan: opts.rowSpan ?? 1,
-    panel,
-  };
-}
-
-/**
- * Macro layout of the sample (12 cols × 6 equal rows, "fill"):
- *
- *   row 1  spotify (3)   │ clock block (5, rows 1–3) │ last played (4, rows 1–3)
- *   row 2  fps rings (3) │                            │
- *   row 3  network (3)   │                            │
- *   rows 4–6 weather (4) │ gpu (4)                    │ session (4)
- */
-export function sampleProfile(): MonitorProfile {
-  // — Left column, row 2: FPS rings — six gauges in a single row. A gauge's
-  //   fontSize is its ring diameter: 56px fills the ~64px-tall strip row.
-  const fpsRings = sp({
-    title: "FPS rings",
-    accent: SAMPLE_ACCENT,
-    layout: "grid",
-    columns: 6,
-    widgets: [
-      sw({ kind: "gauge", sensor: RTSS("fps"), max: 240, fontSize: 56 }),
-      sw({ kind: "gauge", sensor: RTSS("avg-fps"), max: 240, fontSize: 56 }),
-      sw({ kind: "gauge", sensor: RTSS("1% low fps"), max: 240, fontSize: 56 }),
-      sw({ kind: "gauge", sensor: RTSS("refreshrate"), max: 240, fontSize: 56 }),
-      sw({ kind: "gauge", sensor: NVIDIA("gpu_core"), max: 100, fontSize: 56 }),
-      sw({ kind: "gauge", sensor: NVIDIA("gpu_memory_junction"), max: 100, fontSize: 56 }),
-    ],
-  });
-
-  // — Center block (rows 1–3): dividers, "capturing" line, the big FPS
-  //   readout (frame time stacked below) with GPU stat tiles, and the clock.
-  const clockBlock = sp({
-    title: "Clock block",
-    accent: SAMPLE_ACCENT,
-    layout: "grid",
-    columns: 6,
-    widgets: [
-      vbar({ rowSpan: 4 }),
-      sw({ kind: "text", label: "Capturing", text: "No games to capture", span: 4, fontSize: 12 }),
-      vbar(),
-      sw({ kind: "value", sensor: RTSS("fps"), subSensor: RTSS("current frame time"), fontSize: 26 }),
-      sw({ kind: "stat", label: "Power W", sensor: NVIDIA("gpu_board_power"), fontSize: 14 }),
-      sw({ kind: "stat", label: "Mem °", sensor: NVIDIA("gpu_memory_junction"), fontSize: 14 }),
-      sw({ kind: "stat", label: "Core °", sensor: NVIDIA("gpu_core"), fontSize: 14 }),
-      sw({ kind: "stat", label: "Load", sensor: NVIDIA("d3d_3d"), unit: "%", fontSize: 14 }),
-      sw({ kind: "clock", span: 5, rowSpan: 2, fontSize: 46, color: SAMPLE_ACCENT }),
-    ],
-  });
-
-  // — Right block (rows 1–3): last played game — the banner is the panel's
-  //   background with the game icon, name, session timer, start time,
-  //   total hours and the friends table layered on top.
-  const lastPlayed = sp({
-    title: "Last played game",
-    accent: SAMPLE_ACCENT,
-    background: "panel",
-    titleVisible: true,
-    layout: "overlay",
-    widgets: [
-      sw({ kind: "image", sensor: STEAM("SteamAPI-Profile.current_game_banner_url"), asBackground: true }),
-      sw({ kind: "image", sensor: STEAM("SteamAPI-Profile.game_icon_url"), height: 30, overlayZone: "top" }),
-      sw({ kind: "text", sensor: STEAM("SteamAPI-Session.current-game"), fontSize: 15, overlayZone: "top" }),
-      sw({ kind: "value", sensor: STEAM("SteamAPI-Session.current-session-time"), color: SAMPLE_ACCENT, fontSize: 26, overlayZone: "middle" }),
-      sw({ kind: "text", label: "Started", sensor: STEAM("SteamAPI-Session.session-start-time"), overlayZone: "bottom" }),
-      sw({ kind: "value", label: "Total hours", sensor: STEAM("SteamAPI-Library.recent-playtime"), overlayZone: "bottom" }),
-      sw({ kind: "table", label: "Friends", sensor: STEAM("SteamAPI-Social.friends-activity"), rows: 3, columns: 4, header: "Friend, Status, Playing, Last Online", overlayZone: "bottom" }),
-    ],
-  });
-
-  // — Left column, row 3: network upload/download cards.
-  const network = sp({
-    title: "Network",
-    background: "panel",
-    layout: "grid",
-    columns: 2,
-    widgets: [
-      sw({ kind: "stat", label: "Data Upload", sensor: "libre.ethernet_data_uploaded", color: SAMPLE_ACCENT }),
-      sw({ kind: "stat", label: "Data Download", sensor: "libre.ethernet_data_downloaded", color: SAMPLE_ACCENT }),
-    ],
-  });
-
-  // — Bottom row, left: current conditions + 7-day forecast table.
-  // The forecast lines come from the yr plugin's multi-day forecast.
-  const weather = sp({
-    title: "Weather",
-    background: "panel",
-    layout: "grid",
-    columns: 4,
-    widgets: [
-      sw({ kind: "text", text: "Current surface data", span: 4, fontSize: 10, color: "#94a3b8" }),
-      sw({ kind: "value", sensor: WEATHER("weather_desc"), fontSize: 13 }),
-      sw({ kind: "stat", sensor: WEATHER("temp"), span: 2, color: SAMPLE_ACCENT, fontSize: 18 }),
-      sw({ kind: "value", sensor: WEATHER("wind_speed"), label: "wind", decimals: 1 }),
-      sw({ kind: "table", sensor: YR_FORECAST_KEY, rows: 7, span: 4, columns: 5, header: "Date, Weather, Temp, Precip, Wind" }),
-    ],
-  });
-
-  // — Bottom row, center: GPU sparkline + RAM bars + 2×2 stats,
-  //   bracketed by full-height bars.
-  const gpuBlock = sp({
-    title: "GPU / RAM",
-    accent: SAMPLE_ACCENT,
-    layout: "grid",
-    columns: 7,
-    widgets: [
-      vbar({ rowSpan: 3 }),
-      sw({ kind: "sparkline", label: "GPU power (W)", sensor: NVIDIA("gpu_board_power"), history: 80, span: 5, color: SAMPLE_ACCENT }),
-      vbar({ rowSpan: 3 }),
-      sw({ kind: "bar", label: "RAM USED", sensor: "libre.total_memory_memory_used", max: 64, span: 3 }),
-      sw({ kind: "stat", label: "Load", sensor: NVIDIA("d3d_3d"), unit: "%", fontSize: 13 }),
-      sw({ kind: "stat", label: "Power W", sensor: NVIDIA("gpu_board_power"), fontSize: 13 }),
-      sw({ kind: "bar", label: "RAM FREE", sensor: "libre.total_memory_memory_available", max: 64, span: 3 }),
-      sw({ kind: "stat", label: "Mem °", sensor: NVIDIA("gpu_memory_junction"), fontSize: 13 }),
-      sw({ kind: "stat", label: "Core °", sensor: NVIDIA("gpu_core"), fontSize: 13 }),
-    ],
-  });
-
-  // — Bottom row, right: session summary — game, most played, news, dates.
-  const sessionBlock = sp({
-    title: "Session",
-    background: "panel",
-    layout: "grid",
-    columns: 3,
-    widgets: [
-      sw({ kind: "text", label: "Game", sensor: STEAM("SteamAPI-Session.current-game") }),
-      sw({ kind: "text", label: "News", sensor: STEAM("SteamAPI-News.library-news"), rowSpan: 2 }),
-      sw({ kind: "text", label: "Date", text: "Oct 07\nOct 06", align: "right", rowSpan: 2 }),
-      sw({ kind: "text", sensor: STEAM("SteamAPI-Library.most-played-recent") }),
-    ],
-  });
-
-  return {
-    id: SAMPLE_PROFILE_ID,
-    name: "Sample 1920×550",
-    sampleVersion: SAMPLE_PROFILE_VERSION,
-    width: 1920,
-    height: 550,
-    cols: 12,
-    rows: 6,
-    fit: "fill",
-    pages: [mainPage([
-      sampleModulePlacement("spotifymodern", 3, {
-        colStart: 1,
-        rowStart: 1,
-        settings: { layout: "compact" },
-        design: { accent: SAMPLE_ACCENT },
-      }),
-      samplePanelPlacement(fpsRings, 3, { colStart: 1, rowStart: 2 }),
-      samplePanelPlacement(network, 3, { colStart: 1, rowStart: 3 }),
-      samplePanelPlacement(clockBlock, 5, {
-        colStart: 4,
-        rowStart: 1,
-        rowSpan: 3,
-      }),
-      samplePanelPlacement(lastPlayed, 4, {
-        colStart: 9,
-        rowStart: 1,
-        rowSpan: 3,
-      }),
-      samplePanelPlacement(weather, 4, {
-        colStart: 1,
-        rowStart: 4,
-        rowSpan: 3,
-      }),
-      samplePanelPlacement(gpuBlock, 4, {
-        colStart: 5,
-        rowStart: 4,
-        rowSpan: 3,
-      }),
-      samplePanelPlacement(sessionBlock, 4, {
-        colStart: 9,
-        rowStart: 4,
-        rowSpan: 3,
-      }),
-    ])],
-  };
-}
-
-/* ---------------------------------------------------------------- *
- * arcv2 — a faithful recreation of the "ARCv2 WIDE" InfoPanel export
- * (1920×550) as a 3×3 grid of 4-wide panels:
- *
- *   Left   (C1–4)  : spotify (rows 1–2) · network (3–4) · weather (5–6)
- *   Center (C5–8)  : gpu readout (1–2) · big clock (3–4) · cpu strip (5–6)
- *   Right  (C9–12) : steam hero (1–2) · friends (3–4) · news (5–6)
- *
- * Colors, fonts, background art and sensor bindings come from the
- * export's Profile/DisplayItems.xml.
- *
- * Shipped like the sample profile: `loadConfig` re-injects it when a
- * saved config is missing it, and upgrades it when the version bumps.
- * ---------------------------------------------------------------- */
-
-/** Shipped grid arcv2 recreation (the 1:1 InfoPanel look, grid model). */
-export const ARCV2_PROFILE_ID = "arcv2";
-export const ARCV2_PROFILE_VERSION = 5;
-
-/** The export's yellow accent (#FFFFBC13 in Profile/DisplayItems.xml). */
-const ARCV2_ACCENT = "#ffbc13";
-/** Cream value text on the export's light panels. */
-const ARCV2_DARK = "#3b3b3b";
-/** Dark-navy text on the yellow SPOTIFY card. */
-const ARCV2_NAVY = "#090d19";
-/** Teal network bars from the export. */
-const ARCV2_TEAL = "#3d94a8";
-/** Warm off-white used for the export's secondary text. */
-const ARCV2_CREAM = "#ebe6d7";
-const ARCV2_FAINT = "#ffffffe0";
-
-/**
- * RTSS / STEAM / NVIDIA / WEATHER (yr-weather) key helpers are shared with
- * the sample profile above; the extras live here.
- */
-const AMD = (n: string) => `libre.amd_ryzen_9_9950x3d_${n}`;
-const SPOTIFY = (n: string) => `plugins.spotify-plugin.spotify.${n}`;
-/** InfoPanel export assets, shipped in public/assets/ip/arcv2/. */
-const ASSET = (f: string) => `/assets/ip/arcv2/${f}`;
-
-/** Shorthand for arcv2 panels (title hidden, no card background). */
-function ap(
-  fields: Partial<Omit<PanelDef, "widgets" | "title">> & {
-    title: string;
-    widgets: Widget[];
-  }
-): PanelDef {
-  return {
-    id: uid("panel"),
-    titleVisible: false,
-    visible: true,
-    background: "none",
-    ...fields,
-  };
-}
-
-interface ArcPlacementOpts {
-  colStart: number;
-  rowStart: number;
-  rowSpan?: number;
-}
-
-function apPlacement(panel: PanelDef, colSpan: number, opts: ArcPlacementOpts): Placement {
-  return {
-    id: uid(PANEL_ID),
-    module: PANEL_ID,
-    colSpan,
-    colStart: opts.colStart,
-    rowStart: opts.rowStart,
-    rowSpan: opts.rowSpan ?? 1,
-    visible: true,
-    panel,
-  };
-}
-
-export function arcv2Profile(): MonitorProfile {
-  // — Right column, rows 1–2: the steam hero. Banner + dark scrim with
-  //   status, session timer, start time and total hours (the export's
-  //   "Current Game" title is hidden in the source, kept faithful).
-  const steamTop = ap({
-    title: "Steam hero",
-    accent: ARCV2_ACCENT,
-    layout: "overlay",
-    widgets: [
-      sw({ kind: "image", sensor: STEAM("SteamAPI-Profile.current_game_banner_url"), asBackground: true }),
-      sw({ kind: "image", sensor: STEAM("SteamAPI-Profile.game_icon_url"), height: 30, overlayZone: "top" }),
-      sw({ kind: "text", label: "Status", sensor: STEAM("SteamAPI-Profile.status"), fontSize: 13, color: ARCV2_FAINT, overlayZone: "top" }),
-      sw({ kind: "text", sensor: STEAM("SteamAPI-Session.current-game"), fontSize: 24, color: ARCV2_FAINT, overlayZone: "top", visible: false }),
-      sw({ kind: "value", sensor: STEAM("SteamAPI-Session.current-session-time"), label: "in game", fontSize: 20, color: "#ffffff", overlayZone: "middle" }),
-      sw({ kind: "text", label: "Started", sensor: STEAM("SteamAPI-Session.session-start-time"), fontSize: 14, color: ARCV2_FAINT, overlayZone: "bottom" }),
-      sw({ kind: "value", label: "hrs total", sensor: STEAM("SteamAPI-Library.recent-playtime"), fontSize: 14, color: ARCV2_FAINT, align: "right", overlayZone: "bottom" }),
-    ],
-  });
-
-  // — Center column, rows 1–2: the GPU block. The export's cream GPU-bg
-  //   panel (no scrim) with the big yellow FPS readout, 1% low + frame
-  //   time, and the four stat columns the background art pre-prints.
-  const gpu = ap({
-    title: "GPU",
-    accent: ARCV2_ACCENT,
-    layout: "overlay",
-    scrim: false,
-    bottomGridCols: 5,
-    widgets: [
-      sw({ kind: "image", text: ASSET("GPU-bg.png"), asBackground: true }),
-      sw({ kind: "text", label: "Capturing:", sensor: RTSS("windowtitle"), fontSize: 16, color: ARCV2_DARK, overlayZone: "top" }),
-      // Middle: the big yellow FPS headline + frame time (the "1%/MS" pair).
-      sw({ kind: "value", sensor: RTSS("fps"), fontSize: 49, color: ARCV2_ACCENT, overlayZone: "middle" }),
-      sw({ kind: "value", sensor: RTSS("current frame time"), unit: "ms", fontSize: 14, color: ARCV2_DARK, overlayZone: "middle" }),
-      // Bottom: five value cells sitting under the art's pre-printed columns
-      // (1%/MS · POWER W · MEM ° · CORE ° · LOAD) — value-only, the labels
-      // are already baked into GPU-bg.png.
-      sw({ kind: "value", sensor: RTSS("1% low fps"), fontSize: 18, color: ARCV2_DARK, overlayZone: "bottom" }),
-      sw({ kind: "value", sensor: NVIDIA("gpu_package"), unit: "W", fontSize: 18, color: ARCV2_DARK, overlayZone: "bottom" }),
-      sw({ kind: "value", sensor: NVIDIA("gpu_memory_junction"), unit: "°C", fontSize: 18, color: ARCV2_DARK, overlayZone: "bottom" }),
-      sw({ kind: "value", sensor: NVIDIA("gpu_core"), unit: "MHz", fontSize: 18, color: ARCV2_DARK, overlayZone: "bottom" }),
-      sw({ kind: "value", sensor: NVIDIA("d3d_3d"), unit: "%", fontSize: 18, color: ARCV2_DARK, overlayZone: "bottom" }),
-    ],
-  });
-
-  // — Right column, rows 3–4: the friends table (the export's "Friends"
-  //   group: name, status, current game, last-seen).
-  const friends = ap({
-    title: "Friends",
-    accent: ARCV2_ACCENT,
-    layout: "grid",
-    columns: 1,
-    widgets: [
-      sw({ kind: "text", label: "Friends", fontSize: 13, color: ARCV2_FAINT }),
-      sw({ kind: "table", sensor: STEAM("SteamAPI-Social.friends-activity"), rows: 4, columns: 4, header: "Friend, Status, Playing, Last Online" }),
-    ],
-  });
-
-  // — Right column, rows 5–6: game news (the export's bottom-right news
-  //   group: the current game's headline + the library feed).
-  const news = ap({
-    title: "News",
-    accent: ARCV2_ACCENT,
-    layout: "grid",
-    columns: 2,
-    widgets: [
-      sw({ kind: "text", label: "News", sensor: STEAM("SteamAPI-News.current_game_news_title"), fontSize: 16, color: "#ffffff", span: 2 }),
-      sw({ kind: "text", label: "Library", sensor: STEAM("SteamAPI-News.library-news"), fontSize: 12, color: ARCV2_FAINT, span: 2 }),
-    ],
-  });
-
-  // — Center column, rows 5–6: the CPU strip (the export's CPU group):
-  //   rolling load sparkline, RAM used/free bars and the stat columns
-  //   pre-printed on the CPU-bg art.
-  const cpuStrip = ap({
-    title: "CPU",
-    accent: ARCV2_ACCENT,
-    layout: "overlay",
-    scrim: false,
-    bottomGridCols: 4,
-    widgets: [
-      sw({ kind: "image", text: ASSET("CPU-bg.png"), asBackground: true }),
-      // Top: the rolling CPU-load sparkline across the panel.
-      sw({ kind: "sparkline", sensor: AMD("cpu_total"), label: "", history: 60, color: ARCV2_ACCENT, overlayZone: "top" }),
-      // Middle: the RAM used / free bars.
-      sw({ kind: "bar", label: "RAM USED", sensor: "system.ram.load", max: 100, color: ARCV2_ACCENT, overlayZone: "middle" }),
-      sw({ kind: "bar", label: "RAM FREE", sensor: "system.ram.free", max: 100, color: ARCV2_TEAL, overlayZone: "middle" }),
-      // Bottom: four value cells under the art's pre-printed columns
-      // (LOAD · POWER W · MEM ° · CORE °) — value-only, labels are baked
-      // into CPU-bg.png.
-      sw({ kind: "value", sensor: AMD("cpu_total"), unit: "%", fontSize: 18, color: ARCV2_DARK, overlayZone: "bottom" }),
-      sw({ kind: "value", sensor: AMD("package"), unit: "W", fontSize: 18, color: ARCV2_DARK, overlayZone: "bottom" }),
-      sw({ kind: "value", sensor: "libre.kingston___kf560c36_32___1__dimm__1", unit: "°C", fontSize: 18, color: ARCV2_DARK, overlayZone: "bottom" }),
-      sw({ kind: "value", sensor: AMD("core__tctl_tdie"), unit: "°C", fontSize: 18, color: ARCV2_DARK, overlayZone: "bottom" }),
-    ],
-  });
-
-  // — Center column, rows 3–4: the big yellow clock with the date below
-  //   (the export's Clock 63px + Calendar 23px), centered across the
-  //   column between two thin accent bars.
-  const clockPanel = ap({
-    title: "Clock",
-    accent: ARCV2_ACCENT,
-    layout: "grid",
-    columns: 3,
-    gridCols: "14px 1fr 14px",
-    widgets: [
-      sw({ kind: "shape", shape: "vbar", thickness: 5, color: ARCV2_ACCENT }),
-      sw({ kind: "clock", clock: "both", fontSize: 52, color: ARCV2_ACCENT, align: "center" }),
-      sw({ kind: "shape", shape: "vbar", thickness: 5, color: ARCV2_ACCENT }),
-    ],
-  });
-
-  // — Left column, row 3: the FPS ring row (the export's six gauges:
-  //   frame-rate readouts plus GPU core clock and memory temperature).
-  const fpsRings = ap({
-    title: "FPS rings",
-    accent: ARCV2_ACCENT,
-    layout: "grid",
-    columns: 6,
-    widgets: [
-      sw({ kind: "gauge", sensor: RTSS("fps"), max: 240, fontSize: 56 }),
-      sw({ kind: "gauge", sensor: RTSS("avg-fps"), max: 240, fontSize: 56 }),
-      sw({ kind: "gauge", sensor: RTSS("1% low fps"), max: 240, fontSize: 56 }),
-      sw({ kind: "gauge", sensor: RTSS("refreshrate"), max: 240, fontSize: 56 }),
-      sw({ kind: "gauge", sensor: NVIDIA("gpu_core"), max: 3500, fontSize: 56 }),
-      sw({ kind: "gauge", sensor: NVIDIA("gpu_memory_junction"), max: 100, fontSize: 56 }),
-    ],
-  });
-
-  // — Left column, rows 1–2: the SPOTIFY card (yellow panel art from the
-  //   export, dark-navy text, cover art in the white slot).
-  const spotify = ap({
-    title: "Spotify",
-    accent: ARCV2_ACCENT,
-    layout: "overlay",
-    scrim: false,
-    widgets: [
-      sw({ kind: "image", text: ASSET("SPOTIFY.png"), asBackground: true }),
-      sw({ kind: "text", label: "Artist", sensor: SPOTIFY("artist"), fontSize: 19, color: ARCV2_NAVY, overlayZone: "top" }),
-      sw({ kind: "text", sensor: SPOTIFY("current-track"), fontSize: 22, color: ARCV2_NAVY, overlayZone: "top" }),
-      sw({ kind: "image", sensor: SPOTIFY("cover-art"), height: 90, overlayZone: "top" }),
-      sw({ kind: "bar", sensor: SPOTIFY("track-progress"), max: 100, color: ARCV2_NAVY, overlayZone: "middle" }),
-      sw({ kind: "value", sensor: SPOTIFY("elapsed-time"), fontSize: 15, color: ARCV2_NAVY, overlayZone: "bottom" }),
-      sw({ kind: "value", sensor: SPOTIFY("remaining-time"), fontSize: 15, color: ARCV2_NAVY, visible: false, overlayZone: "bottom" }),
-    ],
-  });
-
-  // — Left column, row 4: network (the export's NETWORK panel: dark
-  //   art with pre-printed labels, teal speed bars, GB/s values).
-  const network = ap({
-    title: "Network",
-    accent: ARCV2_ACCENT,
-    layout: "overlay",
-    scrim: false,
-    widgets: [
-      sw({ kind: "image", text: ASSET("NETWORK-bg.png"), asBackground: true }),
-      sw({ kind: "bar", sensor: "libre.ethernet_upload_speed", max: 10_000_000, color: ARCV2_TEAL, scale: 1e-9, decimals: 3, unit: "GB/s", overlayZone: "top" }),
-      sw({ kind: "bar", sensor: "libre.ethernet_download_speed", max: 10_000_000, color: ARCV2_TEAL, scale: 1e-9, decimals: 3, unit: "GB/s", overlayZone: "top" }),
-      sw({ kind: "value", sensor: "libre.ethernet_upload_speed", fontSize: 12, color: ARCV2_ACCENT, scale: 1e-9, decimals: 3, unit: "GB/s", overlayZone: "bottom" }),
-      sw({ kind: "value", sensor: "libre.ethernet_download_speed", fontSize: 12, color: ARCV2_ACCENT, scale: 1e-9, decimals: 3, unit: "GB/s", overlayZone: "bottom" }),
-    ],
-  });
-
-  // — Left column, rows 5–6: weather (current conditions + 7-day
-  //   forecast from the bridge's own fetch).
-  const weather = ap({
-    title: "Weather",
-    accent: ARCV2_ACCENT,
-    layout: "grid",
-    columns: 4,
-    widgets: [
-      sw({ kind: "image", sensor: WEATHER("weather_icon_url"), height: 36 }),
-      sw({ kind: "text", sensor: WEATHER("weather_desc"), fontSize: 14, color: ARCV2_CREAM }),
-      sw({ kind: "stat", sensor: WEATHER("temp"), unit: "°C", fontSize: 14, color: ARCV2_CREAM }),
-      sw({ kind: "value", sensor: WEATHER("wind_speed"), label: "Wind", unit: "m/s", fontSize: 11, color: ARCV2_CREAM }),
-      sw({ kind: "table", sensor: YR_FORECAST_KEY, rows: 7, columns: 5, fontSize: 14, header: "Date, Weather, Temp, Precip, Wind", span: 4 }),
-    ],
-  });
-
-  return {
-    id: ARCV2_PROFILE_ID,
-    name: "ARCv2",
-    sampleVersion: ARCV2_PROFILE_VERSION,
-    width: 1920,
-    height: 550,
-    cols: 12,
-    rows: 6,
-    fit: "fill",
-    pages: [mainPage([
-      // Left column (C1–4): spotify, fps rings, network, weather.
-      apPlacement(spotify, 4, { colStart: 1, rowStart: 1, rowSpan: 2 }),
-      apPlacement(fpsRings, 4, { colStart: 1, rowStart: 3, rowSpan: 1 }),
-      apPlacement(network, 4, { colStart: 1, rowStart: 4, rowSpan: 1 }),
-      apPlacement(weather, 4, { colStart: 1, rowStart: 5, rowSpan: 2 }),
-      // Center column (C5–8): gpu readout, big clock, cpu strip.
-      apPlacement(gpu, 4, { colStart: 5, rowStart: 1, rowSpan: 2 }),
-      apPlacement(clockPanel, 4, { colStart: 5, rowStart: 3, rowSpan: 2 }),
-      apPlacement(cpuStrip, 4, { colStart: 5, rowStart: 5, rowSpan: 2 }),
-      // Right column (C9–12): steam hero, friends, news.
-      apPlacement(steamTop, 4, { colStart: 9, rowStart: 1, rowSpan: 2 }),
-      apPlacement(friends, 4, { colStart: 9, rowStart: 3, rowSpan: 2 }),
-      apPlacement(news, 4, { colStart: 9, rowStart: 5, rowSpan: 2 }),
-    ])],
-  };
-}
-

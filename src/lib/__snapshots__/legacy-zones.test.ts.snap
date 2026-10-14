@@ -1,0 +1,461 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`migrateLegacyZone > audiomodern defaults 1`] = `
+{
+  "module": "AudioMeter",
+  "settings": {
+    "meterStyle": "solid",
+    "mode": "bridge",
+    "orientation": "horizontal",
+  },
+}
+`;
+
+exports[`migrateLegacyZone > audiomodern one device, segmented, vertical 1`] = `
+{
+  "module": "AudioMeter",
+  "settings": {
+    "device": "speakers",
+    "meterBallistics": "vu",
+    "meterStyle": "led",
+    "mode": "single",
+    "orientation": "vertical",
+  },
+}
+`;
+
+exports[`migrateLegacyZone > audiomodern pro meter 1`] = `
+{
+  "module": "MeterBridge",
+  "settings": {
+    "hotColor": "#ff0000",
+    "includeDefault": true,
+    "ladder": "smooth",
+    "orientation": "horizontal",
+    "showDetails": true,
+    "showDevice": true,
+    "showVolume": true,
+  },
+}
+`;
+
+exports[`migrateLegacyZone > audiomodern pro meter, one device, no details 1`] = `
+{
+  "module": "MeterBridge",
+  "settings": {
+    "channels": "speakers",
+    "includeDefault": true,
+    "ladder": "led",
+    "orientation": "horizontal",
+    "showDetails": false,
+    "showVolume": false,
+  },
+}
+`;
+
+exports[`migrateLegacyZone > audiomodern volume 1`] = `
+{
+  "module": "VolumeMixer",
+  "settings": {
+    "showDevice": true,
+    "showMute": true,
+  },
+}
+`;
+
+exports[`migrateLegacyZone > audiomodern volume, one device 1`] = `
+{
+  "module": "VolumeMixer",
+  "settings": {
+    "device": "speakers",
+    "levelColor": "#00ff00",
+  },
+}
+`;
+
+exports[`migrateLegacyZone > bluetoothmodern defaults 1`] = `
+{
+  "module": "Bluetooth",
+  "settings": undefined,
+}
+`;
+
+exports[`migrateLegacyZone > bluetoothmodern devices 1`] = `
+{
+  "module": "Bluetooth",
+  "settings": {
+    "batteryLowColor": "#ff0000",
+    "showStatus": false,
+    "view": "devices",
+  },
+}
+`;
+
+exports[`migrateLegacyZone > fpsmodern defaults 1`] = `
+{
+  "module": "FpsMonitor",
+  "settings": {
+    "view": "gauge",
+  },
+}
+`;
+
+exports[`migrateLegacyZone > fpsmodern trend 1`] = `
+{
+  "module": "FpsMonitor",
+  "settings": {
+    "ringColor": "#00ff00",
+    "sparkline": true,
+    "view": "gauge",
+  },
+}
+`;
+
+exports[`migrateLegacyZone > hardwaremodern defaults 1`] = `
+{
+  "module": "SensorGroup",
+  "settings": {
+    "auto": true,
+  },
+}
+`;
+
+exports[`migrateLegacyZone > hardwaremodern list 1`] = `
+{
+  "module": "SensorGroup",
+  "settings": {
+    "auto": true,
+    "maxRows": 4,
+    "tempColor": "#ff8800",
+  },
+}
+`;
+
+exports[`migrateLegacyZone > hardwaremodern temp gauges 1`] = `
+{
+  "module": "Thermals",
+  "settings": {
+    "discover": true,
+    "fanColor": "#00ffff",
+    "showFans": true,
+    "view": "gauges",
+  },
+}
+`;
+
+exports[`migrateLegacyZone > mediamodern defaults 1`] = `
+{
+  "module": "NowPlaying",
+  "settings": {
+    "progress": "bar",
+    "source": "media",
+    "tint": true,
+  },
+}
+`;
+
+exports[`migrateLegacyZone > mediamodern live waveform 1`] = `
+{
+  "module": "NowPlaying",
+  "settings": {
+    "progress": "visualizer",
+    "source": "media",
+    "tint": true,
+    "vizEngine": "waveform",
+    "waveformMode": "static",
+    "waveformVariant": "line",
+  },
+}
+`;
+
+exports[`migrateLegacyZone > networkmodern defaults 1`] = `
+{
+  "module": "NetworkThroughput",
+  "settings": {
+    "downloadColor": "#34d399",
+    "uploadColor": "#60a5fa",
+  },
+}
+`;
+
+exports[`migrateLegacyZone > networkmodern totals 1`] = `
+{
+  "module": "NetworkThroughput",
+  "settings": {
+    "downloadColor": "#34d399",
+    "sparkline": true,
+    "uploadColor": "#ffffff",
+    "view": "totals",
+  },
+}
+`;
+
+exports[`migrateLegacyZone > notifications defaults 1`] = `
+{
+  "module": "Notifications",
+  "settings": {
+    "surface": "theme",
+  },
+}
+`;
+
+exports[`migrateLegacyZone > notifications short history 1`] = `
+{
+  "module": "Notifications",
+  "settings": {
+    "accent": "#ff00ff",
+    "maxLines": 5,
+    "surface": "theme",
+  },
+}
+`;
+
+exports[`migrateLegacyZone > spotifymodern (Sample profile) 1`] = `
+{
+  "module": "NowPlaying",
+  "settings": {
+    "layout": "compact",
+    "progress": "bar",
+    "source": "spotify",
+    "tint": true,
+  },
+}
+`;
+
+exports[`migrateLegacyZone > spotifymodern bar visualizer 1`] = `
+{
+  "module": "NowPlaying",
+  "settings": {
+    "progress": "visualizer",
+    "source": "spotify",
+    "tint": false,
+    "visualizerMirrored": true,
+    "vizEngine": "bars",
+  },
+}
+`;
+
+exports[`migrateLegacyZone > spotifymodern defaults 1`] = `
+{
+  "module": "NowPlaying",
+  "settings": {
+    "progress": "bar",
+    "source": "spotify",
+    "tint": true,
+  },
+}
+`;
+
+exports[`migrateLegacyZone > steammodern defaults 1`] = `
+{
+  "module": "GameSpotlight",
+  "settings": {
+    "motion": false,
+    "spotlightLayout": "composite",
+  },
+}
+`;
+
+exports[`migrateLegacyZone > steammodern no dim 1`] = `
+{
+  "module": "GameSpotlight",
+  "settings": {
+    "motion": false,
+    "scrim": 0,
+    "showNews": false,
+    "spotlightLayout": "composite",
+  },
+}
+`;
+
+exports[`migrateLegacyZone > streamdeck defaults 1`] = `
+{
+  "module": "StreamDeck",
+  "settings": {
+    "surface": "theme",
+  },
+}
+`;
+
+exports[`migrateLegacyZone > streamdeck no labels 1`] = `
+{
+  "module": "StreamDeck",
+  "settings": {
+    "showLabels": false,
+    "surface": "theme",
+  },
+}
+`;
+
+exports[`migrateLegacyZone > systemmodern GPU only, thread heatmap 1`] = `
+{
+  "module": "SystemOverview",
+  "settings": {
+    "coreView": "heatmap",
+    "cpuColor": "#38bdf8",
+    "diskColor": "#fb7185",
+    "gpuColor": "#a78bfa",
+    "historyLength": 48,
+    "layout": "compact",
+    "loadCrit": 95,
+    "ramColor": "#4ade80",
+    "sections": "gpu,vram",
+    "showClock": false,
+    "showDiskLife": false,
+    "showFans": false,
+    "showHotspot": false,
+    "showMemClock": false,
+    "showNames": true,
+    "showPageFile": false,
+    "showPowerLimit": false,
+    "sparkline": false,
+    "vramColor": "#fbbf24",
+  },
+}
+`;
+
+exports[`migrateLegacyZone > systemmodern defaults 1`] = `
+{
+  "module": "SystemOverview",
+  "settings": {
+    "coreView": "off",
+    "cpuColor": "#38bdf8",
+    "diskColor": "#fb7185",
+    "gpuColor": "#a78bfa",
+    "historyLength": 48,
+    "loadCrit": 95,
+    "ramColor": "#4ade80",
+    "sections": "cpu,gpu,vram,ram",
+    "showClock": false,
+    "showDiskLife": false,
+    "showFans": false,
+    "showHotspot": false,
+    "showMemClock": false,
+    "showNames": false,
+    "showPageFile": false,
+    "showPowerLimit": false,
+    "sparkline": false,
+    "vramColor": "#fbbf24",
+  },
+}
+`;
+
+exports[`migrateLegacyZone > systemmodern with disks, threads and no VRAM 1`] = `
+{
+  "module": "SystemOverview",
+  "settings": {
+    "coreView": "bars",
+    "cpuColor": "#ff0000",
+    "decimals": "1",
+    "diskColor": "#fb7185",
+    "gpuColor": "#a78bfa",
+    "historyLength": 48,
+    "loadCrit": 90,
+    "ramColor": "#4ade80",
+    "sections": "cpu,ram,disk",
+    "showClock": false,
+    "showDiskLife": false,
+    "showFans": false,
+    "showHotspot": false,
+    "showMemClock": false,
+    "showNames": false,
+    "showPageFile": false,
+    "showPowerLimit": false,
+    "sparkline": true,
+    "vramColor": "#fbbf24",
+  },
+}
+`;
+
+exports[`migrateLegacyZone > textfile defaults 1`] = `
+{
+  "module": "TextFile",
+  "settings": {
+    "surface": "theme",
+  },
+}
+`;
+
+exports[`migrateLegacyZone > textfile no header 1`] = `
+{
+  "module": "TextFile",
+  "settings": {
+    "showMeta": false,
+    "surface": "theme",
+  },
+}
+`;
+
+exports[`migrateLegacyZone > vbz defaults 1`] = `
+{
+  "module": "Departures",
+  "settings": {
+    "surface": "theme",
+  },
+}
+`;
+
+exports[`migrateLegacyZone > vbz own surface 1`] = `
+{
+  "module": "Departures",
+  "settings": {
+    "showStatus": false,
+    "surface": "glass",
+  },
+}
+`;
+
+exports[`migrateLegacyZone > wavelinkmodern defaults 1`] = `
+{
+  "module": "WaveLink",
+  "settings": {
+    "levelColor": "oklch(0.72 0.12 200)",
+  },
+}
+`;
+
+exports[`migrateLegacyZone > wavelinkmodern horizontal 1`] = `
+{
+  "module": "WaveLink",
+  "settings": {
+    "levelColor": "oklch(0.72 0.12 200)",
+    "meterOrientation": "horizontal",
+    "showMixes": false,
+  },
+}
+`;
+
+exports[`migrateLegacyZone > weathermodern defaults 1`] = `
+{
+  "module": "Weather",
+  "settings": undefined,
+}
+`;
+
+exports[`migrateLegacyZone > weathermodern now 1`] = `
+{
+  "module": "Weather",
+  "settings": {
+    "forecastDays": 3,
+    "showForecast": false,
+    "view": "now",
+  },
+}
+`;
+
+exports[`migrateLegacyZone > webpage defaults 1`] = `
+{
+  "module": "WebPage",
+  "settings": undefined,
+}
+`;
+
+exports[`migrateLegacyZone > webpage url 1`] = `
+{
+  "module": "WebPage",
+  "settings": {
+    "radius": "8",
+    "url": "https://example.com",
+  },
+}
+`;

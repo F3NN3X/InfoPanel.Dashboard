@@ -1,22 +1,19 @@
-# System widget (`systemmodern`)
+# System widget (`SystemOverview`)
 
-Picker name **System (modern)**, minimum footprint 2 x 1 cells. It shows
-CPU, GPU, RAM and Disks as device blocks: a load ring each (drives get
+Library name **System Overview**, minimum footprint 1 x 1 cells. It shows
+CPU, GPU, RAM, Disks and Net as blocks: a load ring each (drives get
 used-space bars), with temperature, power, memory and other details beside it.
 This page is the full reference; the one-line entry is in
 [module-catalog.md](module-catalog.md), and the standard options shared with
 every widget are in [widget-settings.md](widget-settings.md).
 
-`systemmodern` is an alias of the **System Overview** template: the id, the
-keys and today's defaults are unchanged, the zone draws through the shared
-widget shell, and the Library lists System Overview instead. A System
-Overview zone reads the same keys but chooses its blocks with `sections`
-(CPU, GPU, RAM, VRAM, Disks, Net) and `coreView` instead of `devices`,
-`showVram` and `showCores`, and starts with every detail and its graphs on.
+Zones saved as `systemmodern` migrate to `SystemOverview` when the config
+loads (config v4, `src/lib/legacy-zones.ts`): `devices` and `showVram` become
+`sections`, `showCores` and `coreStyle` become `coreView`, and the old
+defaults are written into the zone so it looks as before.
 
-Code: `src/modules/system-modern.tsx` (alias and wiring),
-`src/widgets/registry/system-overview.ts` (the stored keys and how they map
-to template props), `src/widgets/SystemOverview.tsx` (layout),
+Code: `src/widgets/registry/system-overview.ts` (the stored keys and how they
+map to template props), `src/widgets/SystemOverview.tsx` (layout),
 `src/lib/system-metrics.ts` (reading the sensors).
 
 ## Where the data comes from
@@ -65,30 +62,28 @@ widget has these keys, each in a category card of the studio inspector
 
 | Key | Type | Default | Effect | Category |
 |---|---|---|---|---|
-| `devices` | multi-select: `cpu`, `gpu`, `ram`, `disk` | `cpu,gpu,ram` | Which device blocks to show. They always appear in the order CPU, GPU, RAM, Disks. With none selected the widget renders nothing. | Devices |
-| `showVram` | boolean | on | GPU memory bar under the GPU | GPU |
+| `sections` | multi-select: `cpu`, `gpu`, `ram`, `vram`, `disk`, `net` | `cpu,gpu,ram` | Which blocks to show. They always appear in the order CPU, GPU, RAM, VRAM, Disks, Net. `vram` is the GPU memory bar under the GPU. With none selected the widget renders nothing. | System Overview |
 | `showTemps` | boolean | on | CPU and GPU temperature | Devices |
 | `showPower` | boolean | on | CPU and GPU power draw, in W | Devices |
-| `showClock` | boolean | off | GPU core clock, in MHz | GPU |
+| `showClock` | boolean | on | GPU core clock, in MHz | GPU |
 | `showMemory` | boolean | on | Used / total GB for RAM and VRAM (otherwise VRAM shows a percentage) | Memory |
-| `showNames` | boolean | off | Hardware model under the device label (CPU and GPU) | Devices |
-| `showHotspot` | boolean | off | GPU memory junction temperature ("Hotspot") | GPU |
-| `showFans` | boolean | off | GPU fan speed: average RPM and duty % | GPU |
-| `showMemClock` | boolean | off | GPU memory clock ("Mem … MHz") | GPU |
-| `showPowerLimit` | boolean | off | GPU power as % of its limit ("… % limit") | GPU |
-| `showPageFile` | boolean | off | RAM page file, used / total GB (else a percentage) | Memory |
-| `showCores` | boolean | off | One block per CPU thread under the CPU | CPU |
-| `coreStyle` | `heatmap` / `bars` | `heatmap` | Thread block style | CPU |
+| `showNames` | boolean | on | Hardware model under the device label (CPU and GPU) | Devices |
+| `showHotspot` | boolean | on | GPU memory junction temperature ("Hotspot") | GPU |
+| `showFans` | boolean | on | GPU fan speed: average RPM and duty % | GPU |
+| `showMemClock` | boolean | on | GPU memory clock ("Mem … MHz") | GPU |
+| `showPowerLimit` | boolean | on | GPU power as % of its limit ("… % limit") | GPU |
+| `showPageFile` | boolean | on | RAM page file, used / total GB (else a percentage) | Memory |
+| `coreView` | `heatmap` / `bars` / `off` | `heatmap` | One block per CPU thread under the CPU, and its style | System Overview |
 | `showDiskTemp` | boolean | on | Per-drive temperature | Drives |
 | `showDiskIo` | boolean | on | Per-drive read and write rate (`R …`, `W …`) | Drives |
-| `showDiskLife` | boolean | off | Per-drive remaining life ("Life …%") | Drives |
+| `showDiskLife` | boolean | on | Per-drive remaining life ("Life …%") | Drives |
 | `diskFilter` | text | empty | Comma-separated drive names to show; empty = all | Drives |
-| `sparkline` | boolean | off | Rolling trend line per load (CPU, GPU, RAM) and for VRAM | Trends |
-| `historyLength` | number 12-120, step 12 | 48 | Samples kept for the sparklines | Trends |
+| `sparkline` | boolean | on | Rolling trend line per load (CPU, GPU, RAM) and for VRAM | Trends |
+| `historyLength` | number 12-120, step 12 | 60 | Samples kept for the sparklines | Trends |
 | `tempWarn` | number 50-100, step 5 | 80 | Temperature warning, °C | Thresholds |
 | `tempCrit` | number 50-110, step 5 | 90 | Temperature critical, °C | Thresholds |
 | `loadWarn` | number 10-100, step 5 | 80 | Load warning, % | Thresholds |
-| `loadCrit` | number 10-100, step 5 | 95 | Load critical, % | Thresholds |
+| `loadCrit` | number 10-100, step 5 | 92 | Load critical, % | Thresholds |
 | `vramWarn` | number 10-100, step 5 | 90 | VRAM and drive "full" warning, % | Thresholds |
 | `tempUnit` | `c` / `f` | `c` | Temperature unit for display | Units & labels |
 | `decimals` | `0` / `1` | `0` | Decimals on percentages and temperatures | Units & labels |
@@ -182,11 +177,11 @@ uses the drive rule.
 
 ## The thread grid
 
-`showCores` adds one small block per CPU thread under the CPU once the block
+`coreView` (unless `off`) adds one small block per CPU thread under the CPU once the block
 is tall enough (see Layouts). The loads come from `…_cpu_core__N` keys (unit %), sorted by
 N. Up to 16 threads the grid has up to 8 columns; beyond that it has a quarter
 of the thread count in columns, at most 16 (so 32 threads make four rows of 8).
-`coreStyle` picks the look:
+`coreView` picks the look:
 
 - `heatmap` - 10 px blocks in the CPU color, whose opacity follows the load
   (12% idle to 100% at full load);

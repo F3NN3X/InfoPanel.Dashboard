@@ -1,7 +1,12 @@
-// GameSpotlight's composite-layout settings, shared by the template module and the legacy
-// `steammodern` alias (same keys, defaults and groups as the old Steam widget).
-import type { ModuleSetting, ModuleSettings } from "@/modules/types";
+// GameSpotlight's composite-layout settings (same keys, defaults and groups as the old Steam widget) and
+// the Steam idle rule.
+import { entry, liveText } from "@/lib/sensors";
+import type { DashboardModule, ModuleSetting, ModuleSettings } from "@/modules/types";
 import type { GameSpotlightProps } from "./GameSpotlight";
+
+/** Idle = not in a game. */
+export const steamIdle: NonNullable<DashboardModule["isIdle"]> = (sensors) =>
+  !liveText(entry(sensors, "plugins.InfoPanel.SteamAPI.", "SteamAPI-Session", "current-game"));
 
 export const SPOTLIGHT_COMPOSITE_SETTINGS: ModuleSetting[] = [
   { key: "showStats", label: "Stats", type: "boolean", default: true, group: "Content" },

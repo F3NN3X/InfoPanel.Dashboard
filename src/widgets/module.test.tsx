@@ -66,47 +66,26 @@ describe("templateModule", () => {
   });
 });
 
-describe("templateModule alias", () => {
-  const alias = { id: "demomodern", title: "Demo (modern)", minCols: 2, minRows: 1, prefixes: ["old."] };
-  const isIdle = () => true;
-  const aliased = (over: Partial<Parameters<typeof templateModule>[0]["alias"]> = {}) =>
-    templateModule({ meta, Component: Demo, settings: [own], toProps: (s) => ({ unit: String(s.unit) }), isIdle, prefixes: ["extra."], alias: { ...alias, ...over } });
-
-  it("serves the legacy id, title, size and prefixes, hidden from the Library without the template's Library fields", () => {
-    const mod = aliased();
-    expect(mod).toMatchObject({ id: "demomodern", title: "Demo (modern)", minCols: 2, minRows: 1, prefixes: ["old."], reads: ["extra."], libraryHidden: true, isIdle });
-    expect(mod).toMatchObject({ category: undefined, icon: undefined, description: undefined, defaultSize: undefined });
+describe("templateModule settings block", () => {
+  it("keeps the standard block + own settings by default, or the block given as `base`", () => {
+    expect(templateModule({ meta, Component: Demo, settings: [own], toProps: () => ({}) }).settings).toEqual([...STANDARD_SETTINGS, own]);
+    expect(templateModule({ meta, Component: Demo, base: [], settings: [own], toProps: () => ({}) }).settings).toEqual([own]);
   });
 
-  it("keeps the standard block + own settings by default, or the legacy array as given", () => {
-    expect(aliased().settings).toEqual([...STANDARD_SETTINGS, own]);
-    expect(aliased({ settings: [own] }).settings).toEqual([own]);
-  });
-
-  it("takes the surface default from the legacy settings", () => {
+  it("takes the surface default from the settings block", () => {
     const surface: ModuleSetting = { key: "surface", label: "Surface", type: "select", default: "theme" };
-    renderToStaticMarkup(aliased({ settings: [surface, own] }).render({ "old.a": { value: 1, unit: "" } }) as never);
+    renderToStaticMarkup(templateModule({ meta, Component: Demo, base: [surface], settings: [own], toProps: () => ({}) }).render({ "demo.a": { value: 1, unit: "" } }) as never);
     expect(seen().look?.surface).toBe("theme");
-  });
-
-  it("renders nothing while the hidden rule holds, judged on the resolved settings", () => {
-    const mod = aliased({ hidden: (sensors, s) => !sensors["old.a"] && s.unit === "x" });
-    expect(mod.render({ "old.b": { value: 1, unit: "" } })).toBeNull();
-    expect(mod.render({ "old.b": { value: 1, unit: "" } }, { unit: "y" })).not.toBeNull();
-    expect(mod.render({ "old.a": { value: 1, unit: "" } })).not.toBeNull();
   });
 });
 
 describe("templateModule with no data", () => {
-  it("renders nothing until a key under its prefixes or reads exists, aliases included", () => {
+  it("renders nothing until a key under its prefixes or reads exists", () => {
     const mod = build();
     expect(mod.render({})).toBeNull();
     expect(mod.render({ "other.a": { value: 1, unit: "" } })).toBeNull();
     expect(mod.render({ "demo.a": { value: 1, unit: "" } })).not.toBeNull();
     expect(mod.render({ "extra.a": { value: 1, unit: "" } })).not.toBeNull();
-    const aliased = templateModule({ meta, Component: Demo, settings: [], toProps: () => ({}), alias: { id: "d", title: "D", minCols: 1, minRows: 1, prefixes: ["old."] } });
-    expect(aliased.render({})).toBeNull();
-    expect(aliased.render({ "old.a": { value: 1, unit: "" } })).not.toBeNull();
   });
 
   it("reads any key when the module has no prefixes, and always renders the sensorless ids", () => {
@@ -153,18 +132,14 @@ describe("shellProps", () => {
 });
 
 describe("registry", () => {
-  const legacy = modules.slice(0, modules.length - TEMPLATE_MODULES.length);
-
-  it("appends the template modules to the legacy ones", () => {
-    expect(modules.slice(legacy.length)).toEqual(TEMPLATE_MODULES);
+  it("is the template modules", () => {
+    expect(modules).toEqual(TEMPLATE_MODULES);
   });
 
-  it("leaves the catch-all claiming only the legacy prefixes", () => {
-    const legacyPrefixes = legacy.flatMap((m) => m.prefixes);
-    for (const p of TEMPLATE_MODULES.flatMap((m) => m.prefixes).filter((p) => !legacyPrefixes.some((l) => p.startsWith(l))))
-      expect(isClaimed(`${p}x`), p).toBe(false);
-    expect(isClaimed("system.cpu.load")).toBe(true);
-    expect(isClaimed("nothing.claims.this")).toBe(false);
+  it("keeps the covered plugins' keys out of the catch-all, and only those", () => {
+    for (const key of ["system.cpu.load", "libre.cpu_load", "plugins.spotify-plugin.spotify.title", "plugins.InfoPanel.StreamDeck.x"]) expect(isClaimed(key), key).toBe(true);
+    // the template-only sources (Clock, Weather's OpenWeatherMap, the volume plugin) stay unclaimed
+    for (const key of ["plugins.clock-plugin.time", "plugins.weather-plugin.temp", "plugins.volume-plugin.volume", "nothing.claims.this"]) expect(isClaimed(key), key).toBe(false);
   });
 });
 

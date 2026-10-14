@@ -1,7 +1,7 @@
 // Template widgets, group A: system and hardware (see docs/redesign/phase9/brief-9.3c-templates.md).
 import type { DashboardModule } from "@/modules/types";
-import { THERMALS_SETTINGS } from "@/modules/hardware-modern";
 import { templateModule } from "../module";
+import { THERMALS_SETTINGS } from "./hardware-settings";
 import * as S from "./a-settings";
 import * as SystemOverview from "../SystemOverview";
 import * as MenuBar from "../MenuBar";

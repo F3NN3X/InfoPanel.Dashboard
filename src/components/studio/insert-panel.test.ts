@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { DashboardModule } from "@/modules/types";
 import { CARDS_ID } from "@/lib/layout";
+import { LEGACY_MODULE_IDS } from "@/lib/legacy-zones";
 import { INSERT_CATEGORIES, filterInsertables, insertDropSize, insertGroups, insertables, type Insertable } from "./insert-panel";
 
 const item = (
@@ -11,9 +12,9 @@ const item = (
 ): Insertable => ({ kind: "module", id, title, description, cols: 2, rows: 1, category });
 
 const items = [
-  item("systemmodern", "System", "System"),
-  item("spotifymodern", "Spotify", "Media"),
-  item("networkmodern", "Network", "Network"),
+  item("SystemOverview", "System Overview", "System"),
+  item("NowPlaying", "Now Playing", "Media"),
+  item("NetworkThroughput", "Network", "Network"),
   item("clock", "Clock", "Info", "Time and date with a system clock"),
 ];
 
@@ -26,17 +27,17 @@ describe("filterInsertables", () => {
   });
 
   it("matches title, id and description case-insensitively", () => {
-    expect(ids(filterInsertables(items, "SYS", "All"))).toEqual(["systemmodern", "clock"]);
-    expect(ids(filterInsertables(items, "spotifymod", "All"))).toEqual(["spotifymodern"]);
+    expect(ids(filterInsertables(items, "SYS", "All"))).toEqual(["SystemOverview", "clock"]);
+    expect(ids(filterInsertables(items, "nowplay", "All"))).toEqual(["NowPlaying"]);
   });
 
   it("requires every word of the query", () => {
     expect(ids(filterInsertables(items, "clock time", "All"))).toEqual(["clock"]);
-    expect(ids(filterInsertables(items, "clock spotify", "All"))).toEqual([]);
+    expect(ids(filterInsertables(items, "clock playing", "All"))).toEqual([]);
   });
 
   it("filters by category, combined with the query", () => {
-    expect(ids(filterInsertables(items, "", "Media"))).toEqual(["spotifymodern"]);
+    expect(ids(filterInsertables(items, "", "Media"))).toEqual(["NowPlaying"]);
     expect(ids(filterInsertables(items, "sys", "Info"))).toEqual(["clock"]);
     expect(ids(filterInsertables(items, "", "Gaming"))).toEqual([]);
   });
@@ -51,31 +52,21 @@ describe("insertables", () => {
     expect(INSERTABLES.some((i) => i.kind === "panel")).toBe(true);
   });
 
-  it("files the legacy modules under the new chips", () => {
+  it("files the widgets under their chips", () => {
     const category = (id: string) => INSERTABLES.find((i) => i.kind === "module" && i.id === id)?.category;
-    // Superseded by SystemOverview in the Library (phase 9.4); existing zones still load.
-    expect(category("systemmodern")).toBeUndefined();
     expect(category("SystemOverview")).toBe("System");
-    expect(category("hardwaremodern")).toBeUndefined();
     expect(category("Thermals")).toBe("Hardware");
-    // Ported onto a template: the template's own entry stays, the legacy id is hidden from the Library.
-    expect(category("networkmodern")).toBeUndefined();
     expect(category("NetworkThroughput")).toBe("Network");
-    // superseded by the NowPlaying template (libraryHidden), which sits under Media
-    for (const id of ["spotifymodern", "mediamodern"]) expect(category(id), id).toBeUndefined();
     expect(category("NowPlaying")).toBe("Media");
-    expect(category("audiomodern")).toBeUndefined();
-    expect(category("wavelinkmodern")).toBeUndefined();
     for (const id of ["AudioMeter", "MeterBridge", "VolumeMixer", "WaveLink"]) expect(category(id), id).toBe("Audio");
-    expect(category("weathermodern")).toBeUndefined();
     for (const id of ["Weather", "Departures", "Notifications", "TextFile"]) expect(category(id), id).toBe("Info");
-    // fpsmodern and steammodern are aliases of templates: hidden from the Library, the templates stay.
-    for (const [alias, template] of [["fpsmodern", "FpsMonitor"], ["steammodern", "GameSpotlight"]]) {
-      expect(INSERTABLES.some((i) => i.kind === "module" && i.id === alias), alias).toBe(false);
-      expect(category(template), template).toBe("Gaming");
-    }
-    for (const id of ["vbz", "notifications", "textfile", "bluetoothmodern", "streamdeck", "webpage"]) expect(category(id), id).toBeUndefined();
+    for (const id of ["FpsMonitor", "GameSpotlight"]) expect(category(id), id).toBe("Gaming");
     for (const id of ["Bluetooth", "StreamDeck", "WebPage", CARDS_ID]) expect(category(id), id).toBe("Generic");
+    expect(INSERTABLES.find((i) => i.id === CARDS_ID)?.description).toBe("Every other sensor");
+  });
+
+  it("offers no retired legacy id", () => {
+    for (const id of LEGACY_MODULE_IDS) expect(INSERTABLES.some((i) => i.kind === "module" && i.id === id), id).toBe(false);
   });
 
   it("has no Other chip", () => {
@@ -161,7 +152,7 @@ describe("insertDropSize", () => {
   const grid = { cols: 12, rows: 6 };
 
   it("drops a small widget at 3×2, not its 2×1 minimum", () => {
-    expect(insertDropSize(item("systemmodern", "System", "System"), grid)).toEqual({ cols: 3, rows: 2 });
+    expect(insertDropSize(item("SystemOverview", "System Overview", "System"), grid)).toEqual({ cols: 3, rows: 2 });
   });
 
   it("keeps a larger minimum and stays inside a small grid", () => {
@@ -197,7 +188,6 @@ describe("template modules in the Library", () => {
     description: "A template widget",
     defaultSize: [5, 3],
   };
-  const hidden: DashboardModule = { ...template, id: "tpl-hidden", libraryHidden: true };
   const unknown: DashboardModule = { ...template, id: "tpl-unknown", category: "Whatever" };
 
   async function libraryWith(mods: DashboardModule[]) {
@@ -222,12 +212,5 @@ describe("template modules in the Library", () => {
     });
     expect(lib.insertDropSize(item, { cols: 12, rows: 6 })).toEqual({ cols: 5, rows: 3 });
     expect(list.find((i) => i.id === "tpl-unknown")?.category).toBe("Generic");
-  });
-
-  it("skips libraryHidden modules", async () => {
-    const lib = await libraryWith([template, hidden]);
-    const found = lib.insertables().map((i) => i.id);
-    expect(found).toContain("tpl-test");
-    expect(found).not.toContain("tpl-hidden");
   });
 });

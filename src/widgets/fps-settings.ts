@@ -1,14 +1,13 @@
-// FpsMonitor's own settings and their mapping to props, shared by the template module and the
-// legacy `fpsmodern` alias (same keys, defaults and groups as the old FPS widget).
-import type { ModuleSetting, ModuleSettings } from "@/modules/types";
+// FpsMonitor's look settings, their mapping to props and its idle rule (same keys, defaults and groups
+// as the old FPS widget).
+import { entry, liveValue } from "@/lib/sensors";
+import type { DashboardModule, ModuleSetting, ModuleSettings } from "@/modules/types";
 import type { FpsMonitorProps } from "./FpsMonitor";
 
-export const FPS_VIEW_OPTIONS = [
-  { value: "gauge", label: "Gauge" },
-  { value: "trend", label: "Trend", applies: { sparkline: true } },
-];
+const RTSS = "plugins.InfoPanel.RTSS.";
+const FPS = "plugins.fps-plugin.";
 
-/** showMetrics, sparkline and the two colours: identical in both modules. */
+/** showMetrics, sparkline and the two colours. */
 export const FPS_LOOK_SETTINGS: ModuleSetting[] = [
   { key: "showMetrics", label: "Extra metrics", type: "boolean", default: true, group: "Content" },
   { key: "sparkline", label: "Trend sparkline", type: "boolean", default: false, group: "Content" },
@@ -28,3 +27,9 @@ export function fpsLookProps(s: ModuleSettings): FpsLookProps {
     sparkColor: String(s.sparkColor ?? ""),
   };
 }
+
+/** Idle = no frames counted (no game running), from RTSS or PresentMon. */
+export const fpsIdle: NonNullable<DashboardModule["isIdle"]> = (sensors) => {
+  const fps = liveValue(entry(sensors, RTSS, "rtss", "fps")) ?? liveValue(entry(sensors, FPS, "fps", "fps"));
+  return fps === undefined || fps <= 0;
+};

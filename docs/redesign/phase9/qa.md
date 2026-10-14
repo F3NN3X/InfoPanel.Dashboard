@@ -1,24 +1,45 @@
 # Widget QA harness
 
-The oracle page for 9.4 and 9.8: every module (legacy and template) at a set of spans, rendered
-through the kiosk's `placementContent` from fixture sensors (`src/widgets/__fixtures__/snapshot.json`
-plus `extra.json`, extra wins).
+The oracle page for 9.4 and 9.8: the template widgets at a set of spans, rendered through the
+kiosk's `placementContent` from fixture sensors (`src/widgets/__fixtures__/snapshot.json` plus
+`extra.json`, extra wins). The code is in `src/widgets/widget-qa/`.
 
 ## Open it
 
-`npm run dev`, then `http://localhost:5173/?widget-qa` (use the port Vite prints). Params, all optional:
+`npm run dev`, then `http://localhost:5173/?widget-qa` (use the port Vite prints). The page has a
+sticky toolbar (skin, variant, surface, graph, meter, accent, radius, cell, gap, spans, page theme,
+data, a filter box, Reset), a category nav with counts, and one section per widget: an info column
+(title, id, category, min size, description, data prefixes, a collapsible settings list) and the span
+frames, each captioned `CxR` plus its pixel size. A span below the widget's minimum is a dimmed
+"below min" placeholder. Widgets are grouped by category in the studio Library's order, sorted by title.
+Every control applies live and mirrors itself to the URL, so a loaded URL reproduces the view.
+
+Two collapsed galleries at the top show one widget under every skin (CpuMonitor 3x2) and every
+surface (SystemStatus 2x2). Gallery figures carry `data-qa-gallery`, not `data-qa-module`, so
+`__qaOverflow` and the sweeps never see them.
+
+By default only the template widgets show. `module=<ids>` renders exactly those ids.
+
+Params, all optional:
 
 | param | meaning |
 | --- | --- |
-| `module=a,b` | legacy and template ids (default: all registered) |
-| `spans=1x1,2x1,3x1,1x2,2x2,4x2` | spans below a module's minimum are skipped and listed as "below min" |
+| `module=a,b` | exactly these ids (default: all template widgets) |
+| `spans=1x1,2x1,3x1,1x2,2x2,4x2` | spans below a widget's minimum render as a "below min" placeholder |
 | `cell=110\|150`, `gap=8` | grid cell size and gap in px |
-| `skin`, `variant=default\|studio`, `surface` | merged into every placement's settings |
+| `skin`, `variant=default\|studio`, `surface`, `graph`, `meter`, `accent`, `radius` | merged into every placement's settings |
 | `theme=paper` | a theme preset's tokens on the page (the light check) |
-| `settings=<url-encoded JSON>` | merged into every placement's settings |
-| `data=live` | the real sensor store instead of fixtures |
+| `settings=<url-encoded JSON>` | merged into every placement's settings, over the keys above |
+| `data=fixtures` | the fixture snapshot instead of the live sensor store (the default is live data from the Data API, so every widget shows the real data points; sweeps pass `data=fixtures` for repeatable results) |
+| `q=cpu` | the filter box: widgets whose id or title contains it |
+| `eager=1` | mount every frame at once (see below) |
 
-Examples: `?widget-qa&module=systemmodern,vbz&cell=150`, `?widget-qa&theme=paper&skin=<name>`,
+Frames mount as they scroll into view. With `module=` or `eager=1` they all mount at once. On the
+default page, `await window.__qaMountAll()` mounts the rest and waits for them to settle; call it
+before `__qaOverflow()` (which also mounts anything left, but cannot wait for the widgets' own
+measuring). The full-sweep script below loads with `module=`, so it needs neither.
+
+Examples: `?widget-qa&module=CpuMonitor,Clock&cell=150`, `?widget-qa&theme=paper&skin=<name>`,
 `?widget-qa&settings=%7B%22variant%22%3A%22studio%22%7D`.
 
 ## Screenshots
@@ -63,18 +84,18 @@ The geometry is in `src/widgets/qa-geometry.ts`.
 ## Full sweep
 
 The acceptance check: every module at every span, cells 110 and 150, all 14 skins, both variants
-(56 page loads per id list, about 18,600 zones, 2–4 minutes). Run through `browser_run_code_unsafe`;
+(56 page loads, 2–4 minutes). Run through `browser_run_code_unsafe`;
 it returns one line per failing `module|kind` and the count of error tiles (`[role=alert]`), which must
 both be zero.
 
 ```js
 async (page) => {
-  const ids = ["<template ids, comma-separated>", "<legacy ids, comma-separated>"];
-  const spans = ["1x1,2x1,3x1,1x2,2x2,4x2", "2x1,3x2,4x2,6x3"];
+  const ids = "<template ids, comma-separated>";
+  const spans = "1x1,2x1,3x1,1x2,2x2,4x2";
   const skins = ["default", "instrument", "tui", "ink", "android", "macos", "hud", "retro", "synth", "brutal", "cyber", "nixie", "fluent", "ios"];
   const rows = {}; let errs = 0;
-  for (const cell of [110, 150]) for (const skin of skins) for (const variant of ["default", "studio"]) for (const i of [0, 1]) {
-    await page.goto(`${new URL(page.url()).origin}/?widget-qa&module=${ids[i]}&spans=${spans[i]}&cell=${cell}&skin=${skin}&variant=${variant}`);
+  for (const cell of [110, 150]) for (const skin of skins) for (const variant of ["default", "studio"]) {
+    await page.goto(`${new URL(page.url()).origin}/?widget-qa&module=${ids}&spans=${spans}&cell=${cell}&skin=${skin}&variant=${variant}&data=fixtures`);
     await page.waitForTimeout(1800);
     errs += await page.evaluate(() => document.querySelectorAll("[role=alert]").length);
     for (const f of await page.evaluate(() => window.__qaOverflow()))
@@ -87,5 +108,5 @@ async (page) => {
 The last full run (end of 9.8) was clean: 0 rows, 0 error tiles. Findings and decisions are in
 `review-ledger.md` and `qa-findings.md`.
 
-Legacy modules only show images given as http(s) URLs or root-relative paths with an image extension,
+Widgets only show images given as http(s) URLs or root-relative paths with an image extension,
 so the fixtures use `/assets/qa/*.svg` (in `public/`), not data URLs.
