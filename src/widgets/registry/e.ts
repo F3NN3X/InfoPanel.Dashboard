@@ -1,7 +1,6 @@
 // Template widgets, group E: the plain plugin cards that had no template (see docs/redesign/phase9/gaps.md).
 // Each module's options are exported for the schema tests (`e.schema.test.ts`).
-import { findEntry } from "@/lib/sensors";
-import { CARD_SETTINGS, IDLE_SETTING, STYLE_SETTINGS, SURFACE_SETTINGS } from "@/modules/standard-settings";
+import { CARD_SETTINGS, STYLE_SETTINGS, SURFACE_SETTINGS } from "@/modules/standard-settings";
 import type { DashboardModule, ModuleSetting } from "@/modules/types";
 import { templateModule, type TemplateOptions } from "../module";
 import { boolOf, boolSetting, enumSetting, numberOf, numberSetting, stringOf, textSetting } from "./settings-kit";
@@ -46,18 +45,13 @@ export const textFileOptions: TemplateOptions<Pick<TextFileProps, "showMeta">> =
 export const NOTIFICATIONS_SETTINGS: ModuleSetting[] = [
   boolSetting("showHistory", "History list", true, { group: "Content" }),
   numberSetting("maxLines", "Max history lines", 50, { min: 1, max: 200, step: 5, group: "Content" }),
-  IDLE_SETTING,
 ];
-
-/** Idle = nothing unread. */
-export const notificationsIdle: NonNullable<DashboardModule["isIdle"]> = (sensors) => !(Number(findEntry(sensors, "plugins.InfoPanel.Notifications.", "notification-count")?.sensor.value) > 0);
 
 export const notificationsOptions: TemplateOptions<Pick<NotificationsProps, "showHistory" | "maxLines">> = {
   meta: notificationsMeta,
   Component: Notifications,
   settings: NOTIFICATIONS_SETTINGS,
   toProps: (s) => ({ showHistory: boolOf(s.showHistory), maxLines: numberOf(s.maxLines) }),
-  isIdle: notificationsIdle,
 };
 
 export const DEPARTURES_SETTINGS: ModuleSetting[] = [boolSetting("showStatus", "Status line", true, { group: "Content" })];
@@ -69,16 +63,16 @@ export const departuresOptions: TemplateOptions<Pick<DeparturesProps, "showStatu
   toProps: (s) => ({ showStatus: boolOf(s.showStatus) }),
 };
 
-/** `view` bundles the three toggles through `applies`, as the legacy widget did; the toggles carry the behaviour. */
+/** `view` bundles the three toggles through `applies` (each view sets all three), as the legacy widget did; the toggles carry the behaviour. */
 export const BLUETOOTH_SETTINGS: ModuleSetting[] = [
   enumSetting(
     "view",
     "View",
     "full",
     [
-      { value: "full", label: "Status + devices" },
-      { value: "devices", label: "Devices + battery", applies: { showDevices: true, showBattery: true } },
-      { value: "status", label: "Status only", applies: { showDevices: false, showBattery: false } },
+      { value: "full", label: "Status + devices", applies: { showStatus: true, showDevices: true, showBattery: true } },
+      { value: "devices", label: "Devices + battery", applies: { showStatus: false, showDevices: true, showBattery: true } },
+      { value: "status", label: "Status only", applies: { showStatus: true, showDevices: false, showBattery: false } },
     ],
     { group: "Content" },
   ),

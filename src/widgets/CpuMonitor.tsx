@@ -56,8 +56,9 @@ export default function CpuMonitor(p: CpuMonitorProps) {
     );
   const view = p.coreView ?? "bars",
     metric = p.coreMetric ?? "load";
-  const maxMhz = Math.max(1, ...cores.map((c) => c.mhz));
-  const cv = (c: Core) => (metric === "clock" ? (c.mhz / maxMhz) * 100 : c.load);
+  // a core without a clock reading (NaN) must not poison the scale, nor draw a NaN bar
+  const maxMhz = Math.max(1, ...cores.map((c) => c.mhz).filter(Number.isFinite));
+  const cv = (c: Core) => (metric === "clock" ? (Number.isFinite(c.mhz) ? (c.mhz / maxMhz) * 100 : 0) : c.load);
   const cols = cores.length > 8 ? 8 : cores.length;
   const sq = ["tui", "hud", "retro"].includes(p.skin ?? "") ? "rounded-none" : "rounded-[5px]";
   const warn = p.warn ?? 75,

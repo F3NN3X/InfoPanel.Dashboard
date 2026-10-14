@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import type { ModuleSettings } from "@/modules/types";
-import { filterDisks, formatRate, formatTemp, readSystemFlat, type DiskReading } from "@/lib/system-metrics";
+import { filterDisks, formatTemp, readSystemFlat, type DiskReading } from "@/lib/system-metrics";
 import { useFitRows, Widget, shell, get, num, fmt, fmtRate, detect, pretty, Ring, RingStack, Spark, Bar, Empty, heat, useHistory, tone, TONES, hw, Num, useSkin, type ShellProps, type Tone, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
@@ -187,8 +187,8 @@ export default function SystemOverview(p: SystemOverviewProps) {
     t: tone(x.used ?? NaN, capWarn, crit),
     details: [
       ...(on("diskTemp") ? temp("Temp", x.temp, true) : []),
-      ...stat(on("diskIo"), x.read, (v) => ({ l: "R", v: formatRate(v) })),
-      ...stat(on("diskIo"), x.write, (v) => ({ l: "W", v: formatRate(v) })),
+      ...stat(on("diskIo"), x.read, (v) => ({ l: "R", v: fmtRate(v) })),
+      ...stat(on("diskIo"), x.write, (v) => ({ l: "W", v: fmtRate(v) })),
       ...stat(on("diskLife"), x.life, (v) => ({ l: "Life", v: `${fmt(v, 0)}%` })),
     ],
   }));
@@ -239,7 +239,7 @@ export default function SystemOverview(p: SystemOverviewProps) {
       present: vr.load !== undefined,
     },
     disk: { v: fullest?.used ?? NaN, name: fullest?.name ?? "", stats: [], capacity: true, present: drives.length > 0 },
-    net: { v: (L(`${net}_download_speed`) / (2500 * 128)) * 100, name: pretty(net ?? ""), big: fmtRate(L(`${net}_download_speed`)), stats: [{ l: "Down", v: fmtRate(L(`${net}_download_speed`)) }, { l: "Up", v: fmtRate(L(`${net}_upload_speed`)) }, { l: "Total ↓", v: `${fmt(L(`${net}_data_downloaded`), 1)} GB` }], present: !!net },
+    net: { v: Number.isFinite(L(`${net}_network_utilization`)) ? L(`${net}_network_utilization`) : (L(`${net}_download_speed`) / 312.5e6) * 100, name: pretty(net ?? ""), big: fmtRate(L(`${net}_download_speed`)), stats: [{ l: "Down", v: fmtRate(L(`${net}_download_speed`)) }, { l: "Up", v: fmtRate(L(`${net}_upload_speed`)) }, { l: "Total ↓", v: `${fmt(L(`${net}_data_downloaded`), 1)} GB` }], present: !!net },
   };
   const len = Math.max(12, Math.round(p.historyLength ?? 60));
   const H: Record<Section, number[]> = { cpu: useHistory(ALL.cpu.v, len), gpu: useHistory(ALL.gpu.v, len), ram: useHistory(ALL.ram.v, len), vram: useHistory(ALL.vram.v, len), disk: useHistory(ALL.disk.v, len), net: useHistory(ALL.net.v, len) };

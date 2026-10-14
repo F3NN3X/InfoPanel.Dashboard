@@ -16,7 +16,6 @@ export interface TemplateOptions<P extends object> {
   /** The template's props from its resolved settings. */
   /** `saved` is the zone's own stored values, for keys the schema no longer lists (read, not offered). */
   toProps: (settings: ModuleSettings, saved?: ModuleSettings) => P;
-  isIdle?: DashboardModule["isIdle"];
   /** Further prefixes the template reads without owning them (`DashboardModule.reads`). */
   prefixes?: string[];
   /** Overrides `meta.name` as the module title. */
@@ -78,7 +77,7 @@ export function useZoneLook(defs: ModuleSetting[], saved: ModuleSettings | undef
   return look;
 }
 
-export function templateModule<P extends object>({ meta, Component, settings, toProps, isIdle, prefixes, title, base }: TemplateOptions<P>): DashboardModule {
+export function templateModule<P extends object>({ meta, Component, settings, toProps, prefixes, title, base }: TemplateOptions<P>): DashboardModule {
   const all = [...(base ?? STANDARD_SETTINGS), ...settings];
   const surfaceDefault = String(all.find((d) => d.key === "surface")?.default ?? "glass");
   const mod: DashboardModule = {
@@ -90,7 +89,6 @@ export function templateModule<P extends object>({ meta, Component, settings, to
     reads: prefixes,
     readsAll: !SENSORLESS.has(meta.id) && meta.prefixes.length === 0 && !prefixes?.length ? true : undefined,
     settings: all,
-    isIdle,
     category: meta.category,
     icon: meta.icon,
     description: meta.description,

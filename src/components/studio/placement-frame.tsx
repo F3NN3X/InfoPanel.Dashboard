@@ -40,8 +40,6 @@ interface PlacementFrameProps {
   studio: boolean;
   /** Whether the module currently has live data (kiosk hides empties). */
   hasData: boolean;
-  /** Idle and set to hide: the studio badges it (the kiosk hides it). */
-  idle?: boolean;
   title: string;
   /**
    * The theme tokens re-scoped to the zone's resolved colors
@@ -111,7 +109,6 @@ export function PlacementFrame({
   profile,
   studio,
   hasData,
-  idle,
   title,
   scope,
   gridWidth = 0,
@@ -335,11 +332,6 @@ export function PlacementFrame({
       {/* The zone box is the truth: the widget content fills it (fluid),
           never its natural size, so the widget area always matches the zone. */}
       <div className="h-full min-w-0 w-full overflow-hidden">
-        {studio && idle && (
-          <div className="pointer-events-none absolute bottom-1.5 right-1.5 z-30 rounded-full bg-black/60 px-2 py-0.5 text-[10px] text-muted-foreground">
-            idle · hidden in kiosk
-          </div>
-        )}
         <div className="flex h-full w-full flex-col">
           {studio && blank ? (
             <div className="flex h-full min-h-16 flex-col items-center justify-center rounded-lg border border-dashed border-[#3a3a44] p-3">

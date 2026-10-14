@@ -228,12 +228,6 @@ export function formatTemp(celsius: number, unit: TempUnit, decimals = 0): strin
 }
 
 /** KB/s as a short rate: "512 KB/s", "3.2 MB/s", "1.4 GB/s". */
-export function formatRate(kbPerSec: number): string {
-  if (kbPerSec >= 1024 * 1024) return `${(kbPerSec / 1024 / 1024).toFixed(1)} GB/s`;
-  if (kbPerSec >= 1024) return `${(kbPerSec / 1024).toFixed(kbPerSec >= 10240 ? 0 : 1)} MB/s`;
-  return `${Math.round(kbPerSec)} KB/s`;
-}
-
 export function readSystem(sensors: SensorMap): SystemReadings {
   const f = findAll(sensors);
   const keys = Object.keys(sensors)

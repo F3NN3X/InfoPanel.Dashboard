@@ -1,6 +1,6 @@
 import type { ModuleSettings } from "@/modules/types";
 import { fitFontPx } from "./fit-font";
-import { bodyGap, Widget, shell, get, num, fmt, fmtRate, detect, Spark, useHistory, useSkin, tone, TONES, hw, type ShellProps, type WidgetMeta } from "./kit";
+import { bodyGap, Widget, shell, get, num, fmt, fmtRate, toMBps, detect, Spark, useHistory, useSkin, tone, TONES, hw, type ShellProps, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "Vitals",
@@ -66,7 +66,7 @@ export default function Vitals(p: VitalsProps) {
     cpu: { label: "CPU", v: L(`${cpu}_cpu_total`), unit: "%", max: 100, sub: `${fmt(L(`${cpu}_core__tctl_tdie`), 0)}°C` },
     gpu: { label: "GPU", v: L(`${gpu}_gpu_core_load`), unit: "%", max: 100, sub: `${fmt(L(`${gpu}_gpu_core`), 0)}°C` },
     ram: { label: "RAM", v: L("total_memory_memory"), unit: "%", max: 100, sub: `${fmt(L("total_memory_memory_used"), 1)} GB` },
-    net: { label: "Net ↓", v: net / 1024, unit: "MB/s", sub: fmtRate(net) },
+    net: { label: "Net ↓", v: toMBps(net), unit: "MB/s", sub: fmtRate(net) },
     vram: { label: "VRAM", v: (L(`${gpu}_gpu_memory_used`) / L(`${gpu}_gpu_memory_total`)) * 100, unit: "%", max: 100, sub: `${fmt(L(`${gpu}_gpu_memory_used`) / 1024, 1)} GB` },
     fps: { label: "FPS", v: num(get(d, "plugins.InfoPanel.RTSS.rtss.fps")), unit: "", sub: get(d, "plugins.InfoPanel.RTSS.rtss.resolution") },
   };

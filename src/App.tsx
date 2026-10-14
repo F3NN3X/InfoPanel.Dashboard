@@ -405,12 +405,12 @@ export default function App() {
             .filter((p) => p.visible)
             .map((p) => (
               <LivePlacement key={p.id} placement={p} appearance={appearance}>
-                {({ content, hasData, title, idle, scope }) => (
+                {({ content, hasData, title, scope }) => (
                   <PlacementFrame
                     placement={p}
                     profile={profile}
                     studio={false}
-                    hasData={hasData && !idle}
+                    hasData={hasData}
                     title={title}
                     scope={scope}
                   >

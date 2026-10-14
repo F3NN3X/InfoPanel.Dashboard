@@ -60,7 +60,7 @@ describe("general categories", () => {
   it("holds every standard setting exactly once, in the category its group names", () => {
     const keys = GENERAL_CATEGORIES.flatMap((c) => c.keys);
     expect(new Set(keys).size).toBe(keys.length);
-    for (const d of [...STANDARD_SETTINGS, { key: "hideWhenIdle", group: undefined } as ModuleSetting]) {
+    for (const d of STANDARD_SETTINGS) {
       const cat = GENERAL_CATEGORIES.find((c) => c.keys.includes(d.key));
       expect(cat, d.key).toBeDefined();
       if (d.group) expect(cat?.title, d.key).toBe(d.group);

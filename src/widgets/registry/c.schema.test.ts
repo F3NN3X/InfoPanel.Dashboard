@@ -2,7 +2,7 @@ import { createElement } from "react";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { isVisible } from "@/components/studio/inspector-model";
-import { IDLE_SETTING, STANDARD_SETTINGS } from "@/modules/standard-settings";
+import { STANDARD_SETTINGS } from "@/modules/standard-settings";
 import { effectiveSettings, type ModuleSettings, type SensorMap } from "@/modules/types";
 import { fixtureSensors } from "../__fixtures__";
 import { GROUP_C } from "./c";
@@ -48,7 +48,6 @@ describe.each(Object.entries(MANIFEST))("%s schema", (id, props) => {
     const keys = settings.map((d) => d.key);
     expect(new Set(keys).size).toBe(keys.length);
     for (const key of Object.values(props)) if (key) expect(STANDARD_KEYS.has(key)).toBe(false);
-    expect(STANDARD_KEYS.has(IDLE_SETTING.key)).toBe(false);
   });
 
   it("keeps every enum default inside its options", () => {
@@ -102,12 +101,7 @@ describe("group C dependent settings", () => {
     for (const meterBallistics of ["vu", "instant"]) expect(shown("MeterBridge", { meterBallistics })).not.toContain("holdMs");
   });
 
-  it("offers Hide when idle on NowPlaying, idle once the chosen source stops playing", () => {
-    const mod = GROUP_C.find((m) => m.id === "NowPlaying")!;
-    expect(mod.settings!.map((d) => d.key)).toContain("hideWhenIdle");
-    expect(mod.isIdle!({}, {})).toBe(true);
-    const media = (state: number): SensorMap => ({ "plugins.media-plugin.media.playback-state": { value: state, unit: "" } });
-    expect(mod.isIdle!(media(4), { source: "media" })).toBe(false);
-    expect(mod.isIdle!(media(5), { source: "media" })).toBe(true);
+  it("offers no Hide when idle (removed)", () => {
+    for (const mod of GROUP_C) expect((mod.settings ?? []).map((d) => d.key), mod.id).not.toContain("hideWhenIdle");
   });
 });

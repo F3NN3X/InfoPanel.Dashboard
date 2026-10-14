@@ -26,7 +26,7 @@ export function CompactView({ c, shape, w, h, icon }: { c: Compact; shape: Shape
       {c.unit && <span className="ml-0.5 text-[0.45em] font-medium text-[color:var(--w-muted)]">{c.unit}</span>}
     </span>
   );
-  const label = (
+  const label = c.label && (
     <div className="flex min-w-0 items-center gap-1.5 text-[10.5px] font-medium uppercase tracking-[0.08em] text-[color:var(--w-muted)]" style={labelStyle()}>
       <Icon name={c.icon ?? icon} className="text-[14px] text-[color:var(--accent)]" />
       <span className="truncate">{c.label}</span>
@@ -121,10 +121,10 @@ export function StudioView({ c, w, h, icon }: { c: Studio; w: number; h: number;
   const mono = sk.font ? { fontFamily: sk.font } : undefined;
   const glow = sk.numGlow ? { textShadow: "0 0 4px var(--accent), 0 0 14px var(--accent)" } : null;
   const toneC = c.t && c.t !== "ok" ? TONES[c.t] : undefined;
-  const label = (className = "") => (
+  const label = (className = "") => (c.label || c.right || c.live != null) && (
     <div className={`flex min-w-0 shrink-0 items-center gap-1.5 text-[9.5px] uppercase tracking-[0.06em] text-[color:var(--w-muted)] ${className}`} style={{ ...mono, ...labelStyle() }}>
       {c.live != null && <span className="h-[5px] w-[5px] shrink-0 rounded-full" style={{ background: c.live ? "oklch(0.75 0.15 150)" : "#52525b" }} />}
-      <span className="truncate">{c.label}</span>
+      {c.label && <span className="truncate">{c.label}</span>}
       {c.right && <span className="ml-auto shrink-0 normal-case tracking-normal text-[color:var(--w-muted)]">{c.right}</span>}
     </div>
   );

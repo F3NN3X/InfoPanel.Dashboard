@@ -160,8 +160,8 @@ const LEGACY_METER_OK = "oklch(0.72 0.12 200)";
 
 const network: Rule = (stored) => ({
   module: "NetworkThroughput",
-  // the legacy widget's speed colours
-  settings: { ...stored, downloadColor: colorOf(stored, "downloadColor", "#34d399"), uploadColor: colorOf(stored, "uploadColor", "#60a5fa") },
+  // the legacy widget's speed colours; its `view` only bundled `showTotals` (on by default) and the sparkline
+  settings: { ...omit(stored, ["view"]), downloadColor: colorOf(stored, "downloadColor", "#34d399"), uploadColor: colorOf(stored, "uploadColor", "#60a5fa") },
 });
 
 const same =

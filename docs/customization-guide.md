@@ -282,8 +282,8 @@ them.
 **What each context shows:**
 
 - **Widget zone** -
-  - *Content*: **Widget** (type, custom title, icon, **Hide when idle** for
-    the five widgets that have an idle state, **Visible**), then the
+  - *Content*: **Widget** (type, **Show title** (off hides the title
+    everywhere the widget shows it), custom title, icon, **Visible**), then the
     widget's own categories (for example Media: *Now playing*, *Cover art*,
     *Waveform*, *Visualizer*, *Audio source*; System: *Devices*, *CPU*,
     *GPU*, *Memory*, *Drives*, *Trends*, *Thresholds*, *Units & labels*;
@@ -712,9 +712,10 @@ dashboard or a profile (Global style) and let widgets follow it.
 - **Dense summary** (under *Size & alignment*) - Off, or On: a dense summary
   of the same data (a headline value, a trend and a few rows). Its labels use
   the widget's font.
-- **Graph updates** - Stepped (the default) or Smooth. Smooth scrolls each new
-  reading into line, area and step graphs over the measured sample interval,
-  with an eased axis, and lets bars and rings glide (about 1 s). Reduced motion
+- **Graph updates** - Stepped (the default) or Smooth. Smooth scrolls line,
+  area and step graphs at a constant speed, about two readings behind the
+  feed, so each new reading slides in without the line jumping or pausing;
+  the axis eases, and bars and rings glide (about 1 s). Reduced motion
   (**General > Motion** or the system setting) keeps graphs stepped. Braille,
   bars and dots graphs and numbers are unchanged. It can be set globally too.
 - **Graph style** (advanced) - Auto, area, line, step, bars, dots or braille:
@@ -1196,20 +1197,23 @@ widget's look-only options:
   one. Presets are saved in the config and are shared by all profiles.
   (For a whole dashboard look, see [Skins and saved looks](#skins-and-saved-looks).)
 
-## Hide when idle
+## Network speeds
 
-Some widgets have a **Hide when idle** option. When it is on, the kiosk hides
-the zone while the widget is idle, and the zone's space is left empty. In the
-studio the zone stays visible with an "idle - hidden in kiosk" badge so you can
-still edit it.
+The network readings arrive as bytes per second (the source labels them
+"KB/s"). **Network Traffic** and the **Menu Bar** show them in the unit you
+pick under **Speed units**: Auto (B/s up to GB/s), MB/s, Mb/s, KB/s, Kb/s or
+Mbps (megabits, the way internet providers write it). Prefixes are decimal,
+like Task Manager. Both read the same adapter: the busiest one, unless you
+pick one under **Adapter** / **Network adapter**.
 
-| Widget | Idle means |
-|---|---|
-| Spotify (modern) | not playing (paused or stopped) |
-| Media (modern) | not playing (paused or stopped) |
-| Steam (modern) | no game running (no current game) |
-| FPS (modern) | no frames counted (no FPS value, or 0) |
-| Notifications | no notifications (the notification count is not above 0) |
+On a screen nobody touches, the Menu Bar's **Active item** shows one tab
+selected, with its detail panel when the zone is tall enough (about two rows
+at cell 110). Clicking another tab still works.
 
-Other widgets have no idle state. A widget with no data at all is hidden in
-the kiosk regardless of this option.
+Where each widget setting takes effect, by zone size, is in
+[widget-settings-coverage.md](widget-settings-coverage.md).
+
+## Widgets with no data
+
+A widget with no data at all is hidden in the kiosk. (The old **Hide when idle**
+option was removed; a stored value is ignored and the widget stays shown.)

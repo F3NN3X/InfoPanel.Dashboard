@@ -91,7 +91,7 @@ describe("views", () => {
 
   it("glides line graphs with Graph updates: Smooth, and keeps them static when Stepped", () => {
     const spark = (smoothing: string) =>
-      renderToString(h(SkinCtx.Provider, { value: skinContext("default", { chrome: chromeOf({ smoothing }) }) }, h(Spark, { values: [1, 5, 3, 8], graph: "line" })));
+      renderToString(h(SkinCtx.Provider, { value: skinContext("default", { chrome: chromeOf({ smoothing }) }) }, h(Spark, { values: [1, 5, 3, 8, 6, 4], graph: "line" })));
     expect(spark("smooth")).toContain("overflow-hidden");
     expect(spark("stepped")).toContain("overflow-visible");
   });

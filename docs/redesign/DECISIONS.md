@@ -18,7 +18,7 @@ it where the spec says.
 | 10 | Follow vs edit | Spec wins: editing a look field while on Follow switches the widget to Custom; the Follow banner warns. Rows are no longer locked. |
 | 11 | `glowColor` visibility | Visible only when glow ≠ none. |
 | 12 | `sourcePrefs` | Kept in Sources mode with today's behaviour. |
-| 13 | Hide when idle | Only the five idle-capable widgets. |
+| 13 | Hide when idle | Only the five idle-capable widgets. **Superseded:** removed from every widget; a stored value is ignored. |
 | 14 | Magic wand | Not built. The only wand today is the Auto dock-mode icon; the zoom bar's dock button covers Auto. |
 | 15 | Inspector position | Stays a browser preference (`studio.layout`), shown in Dashboard › General › Studio and the zoom-bar dock button. |
 | — | Save | Auto-push stays; Save flushes; its dot means "edits not pushed yet". |

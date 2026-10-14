@@ -18,12 +18,33 @@ export const has = (v: unknown): boolean => v != null && v !== "" && v !== "-" &
 export const clamp = (v: number, a = 0, b = 100): number => Math.min(b, Math.max(a, Number.isFinite(v) ? v : a));
 export const fmt = (v: number, d = 0): string =>
   Number.isFinite(v) ? v.toLocaleString("en-US", { maximumFractionDigits: d, minimumFractionDigits: d }) : "–";
-export const fmtRate = (kbs: number): string => {
-  if (!Number.isFinite(kbs)) return "–";
-  if (kbs >= 1024 * 1024) return `${fmt(kbs / 1048576, 2)} GB/s`;
-  if (kbs >= 1024) return `${fmt(kbs / 1024, 1)} MB/s`;
-  return `${fmt(kbs, 0)} KB/s`;
+/** The units a throughput can show in; `auto` scales bytes per second to the reading. */
+export const RATE_UNITS = ["auto", "MB/s", "Mb/s", "KB/s", "Kb/s", "Mbps"] as const;
+export type RateUnit = (typeof RATE_UNITS)[number];
+
+/** Bytes per second → the unit's number, with decimal prefixes (1 KB = 1000 bytes, 1 Kb = 1000 bits). */
+const RATE_DIVISOR: Record<Exclude<RateUnit, "auto">, number> = { "MB/s": 1e6, "Mb/s": 1e6 / 8, "KB/s": 1e3, "Kb/s": 1e3 / 8, Mbps: 1e6 / 8 };
+
+/** Decimals for a scaled reading: more for small numbers, none from 100 up. */
+const rateDecimals = (v: number): number => (v >= 100 ? 0 : v >= 10 ? 1 : 2);
+
+/**
+ * A throughput as text. The rate sensors (`libre.*_download_speed`, `_upload_speed`, `_read_rate`,
+ * `_write_rate`) carry **bytes per second**: the source labels them "KB/s", but an Ethernet max of
+ * 107,450,768 would then be 102 GB/s, and the reading matches the adapter's utilisation of its link
+ * only as bytes. Prefixes are decimal, like Task Manager.
+ */
+export const fmtRate = (bytesPerSec: number, unit: RateUnit = "auto"): string => {
+  if (!Number.isFinite(bytesPerSec)) return "–";
+  if (unit !== "auto") {
+    const v = bytesPerSec / RATE_DIVISOR[unit];
+    return `${fmt(v, rateDecimals(v))} ${unit}`;
+  }
+  const [v, u] = bytesPerSec >= 1e9 ? [bytesPerSec / 1e9, "GB/s"] : bytesPerSec >= 1e6 ? [bytesPerSec / 1e6, "MB/s"] : bytesPerSec >= 1e3 ? [bytesPerSec / 1e3, "KB/s"] : [bytesPerSec, "B/s"];
+  return `${fmt(v, u === "B/s" ? 0 : rateDecimals(v))} ${u}`;
 };
+/** Bytes per second as megabytes per second (decimal), for widgets that print the number and unit apart. */
+export const toMBps = (bytesPerSec: number): number => bytesPerSec / 1e6;
 export const fmtMB = (mb: number): string => {
   if (!Number.isFinite(mb)) return "–";
   if (mb >= 1024 * 1024) return `${fmt(mb / 1048576, 2)} TB`;
@@ -47,6 +68,14 @@ export const detect = (data: Data | undefined, re: RegExp): string[] => {
   }
   return out;
 };
+
+/** A network adapter id (`libre.<id>_download_speed`): the chosen one, else the busiest right now. */
+export const adapterOf = (data: Data | undefined, chosen?: string): string | undefined => {
+  if (chosen) return chosen;
+  const load = (a: string) => num(get(data, `libre.${a}_download_speed`)) + num(get(data, `libre.${a}_upload_speed`));
+  return [...detect(data, /^libre\.(.+)_download_speed$/)].sort((a, b) => load(b) - load(a))[0];
+};
+
 export const pretty = (slug: string): string =>
   String(slug)
     .split("_")

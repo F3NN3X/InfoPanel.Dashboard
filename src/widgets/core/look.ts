@@ -40,6 +40,11 @@ export function withUserLook<T extends Compact | Studio>(c: T, user: { icon?: st
   return user.icon || user.label ? { ...c, ...(user.icon ? { icon: user.icon } : null), ...(user.label ? { label: user.label } : null) } : c;
 }
 
+/** A summary view without its title line when the look's Show title is off (the views skip an empty label). */
+export function untitled<T extends Compact | Studio>(c: T, titled: boolean): T {
+  return titled ? c : { ...c, label: "" };
+}
+
 /** The standard `layout` choices that force a tier; `auto` (or anything else) = measured. */
 export const LAYOUT_TIERS: Record<string, Tier> = { card: "lg", standard: "md", compact: "sm", simple: "xs" };
 

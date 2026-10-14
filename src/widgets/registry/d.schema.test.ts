@@ -27,9 +27,8 @@ const MANIFEST: Record<string, Record<string, string[]>> = {
 };
 // Props the template has that its spec block does not list.
 const BEYOND_SPEC: Record<string, Record<string, string[]>> = {
-  FpsMonitor: { view: ["view"], showMetrics: ["showMetrics"], sparkline: ["sparkline"], ringColor: ["ringColor"], sparkColor: ["sparkColor"], hideWhenIdle: ["hideWhenIdle"] },
-  GameSpotlight: { showStats: ["showStats"], showNews: ["showNews"], hideWhenIdle: ["hideWhenIdle"] },
-  SteamGame: { hideWhenIdle: ["hideWhenIdle"] },
+  FpsMonitor: { view: ["view"], showMetrics: ["showMetrics"], sparkline: ["sparkline"], ringColor: ["ringColor"], sparkColor: ["sparkColor"] },
+  GameSpotlight: { showStats: ["showStats"], showNews: ["showNews"] },
   Achievements: { display: ["display"] },
 };
 
@@ -104,11 +103,7 @@ describe("group D dependent settings", () => {
     expect(shown("GameSpotlight", { spotlightLayout: "combo", progress: "visualizer" })).toContain("vizMode");
   });
 
-  it("offers Hide when idle on FpsMonitor, GameSpotlight and SteamGame, and each has an idle rule", () => {
-    for (const id of ["FpsMonitor", "GameSpotlight", "SteamGame"]) {
-      const mod = GROUP_D.find((m) => m.id === id)!;
-      expect((mod.settings ?? []).map((d) => d.key)).toContain("hideWhenIdle");
-      expect(mod.isIdle?.({}, {}), id).toBe(true);
-    }
+  it("offers no Hide when idle (removed)", () => {
+    for (const mod of GROUP_D) expect((mod.settings ?? []).map((d) => d.key), mod.id).not.toContain("hideWhenIdle");
   });
 });

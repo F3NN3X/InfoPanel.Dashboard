@@ -1,6 +1,7 @@
-// Smoothing for live graphs (the `smoothing` look key), ported from the widget sampler's
-// smoothing.ts: draw one interval behind the feed and glide from the previous reading to the
-// newest, on a clock measured from real arrivals so network jitter does not stutter.
+// Smoothing for live graphs (the `smoothing` look key), after the widget sampler's smoothing.ts:
+// draw behind the feed and glide into the newest reading. Unlike the sampler's per-sample glide,
+// graphs scroll by time (each sample at its arrival time, at a constant speed), so a reading that
+// arrives early or late never makes the line jump back or stop.
 import { useEffect, useRef } from "react";
 
 const lerp = (a: number, b: number, t: number): number => a + (b - a) * t;
@@ -11,25 +12,42 @@ const lerp = (a: number, b: number, t: number): number => a + (b - a) * t;
  * the last reading instead of guessing ahead.
  */
 export class FeedClock {
-  private last = 0;
+  private last: number | null = null;
   private dt: number;
+  private measured = false;
 
   constructor(initialIntervalMs = 1000, private readonly adapt = 0.3) {
     this.dt = initialIntervalMs;
   }
 
   arrive(now = performance.now()): void {
-    if (this.last) this.dt = lerp(this.dt, now - this.last, this.adapt);
+    if (this.last === null) {
+      this.last = now;
+      return;
+    }
+    const gap = now - this.last;
+    if (!this.measured) {
+      // The first measured gap replaces the guess outright (a 2.5 s feed is not learned from 1 s).
+      if (gap < 10_000) [this.dt, this.measured] = [gap, true];
+    } else if (gap < this.dt * 4) {
+      // A gap of several intervals is a pause (hidden tab, stalled feed), not a new rate.
+      this.dt = lerp(this.dt, gap, this.adapt);
+    }
     this.last = now;
   }
 
   progress(now = performance.now()): number {
-    if (!this.last) return 1;
+    if (this.last === null) return 1;
     return Math.min(1, Math.max(0, (now - this.last) / this.dt));
   }
 
   get intervalMs(): number {
     return this.dt;
+  }
+
+  /** Whether a real gap has been measured (until then `intervalMs` is the initial guess). */
+  get measuredInterval(): boolean {
+    return this.measured;
   }
 }
 
@@ -37,21 +55,97 @@ export class FeedClock {
 export type ScrollPoint = [x: number, value: number];
 
 /**
- * Points for a scrolling chart: the newest sample slides in from the right edge as `t` goes 0 → 1.
- * `visible` samples span the width; points left of 0 are clipped by the caller.
+ * The arrival times of a history after it changed: one more sample appended (`n` = one longer),
+ * or the oldest dropped and one appended (same length). Anything else (the first render, a
+ * reset) spaces the samples one `intervalMs` apart, ending now.
  */
-export function scrollPoints(history: readonly number[], visible: number, t: number): ScrollPoint[] {
-  const n = history.length;
-  if (n === 0) return [];
-  if (n === 1) return [[0, history[0]], [100, history[0]]];
-  const p = Math.max(0, n - 2 + t); // fractional sample index on the right edge
-  const dx = 100 / Math.max(1, visible - 1);
-  const fl = Math.floor(p);
-  const pts: ScrollPoint[] = [];
-  for (let j = Math.max(0, fl - visible); j <= fl; j++) pts.push([100 - (p - j) * dx, history[j]]);
-  const fr = p - fl;
-  if (fr > 1e-6 && fl + 1 < n) pts.push([100, lerp(history[fl], history[fl + 1], fr)]);
-  return pts;
+export function nextStamps(prev: readonly number[], n: number, now: number, intervalMs: number): number[] {
+  if (prev.length === n - 1) return [...prev, now];
+  if (prev.length === n && n > 0) return [...prev.slice(1), now];
+  return Array.from({ length: n }, (_, i) => now - (n - 1 - i) * intervalMs);
+}
+
+/**
+ * Points for a chart that scrolls by time: each sample sits where its arrival time falls in a
+ * window of `windowMs` ending at `right`. Points right of 100 (not yet reached) and left of 0 are
+ * clipped by the caller, which draws the segment into the newest sample as it scrolls in.
+ */
+export function timePoints(values: readonly number[], stamps: readonly number[], right: number, windowMs: number): ScrollPoint[] {
+  return values.map((v, i) => [100 - ((right - stamps[i]) / windowMs) * 100, v]);
+}
+
+/** Two cascaded first-order filters: the output's rate of change is continuous when the input steps. */
+class DoubleEase {
+  private a: number | null = null;
+  value: number | null = null;
+
+  next(target: number, dtMs: number, tauMs: number): number {
+    const k = 1 - Math.exp(-dtMs / (tauMs / 2));
+    this.a = this.a === null ? target : lerp(this.a, target, k);
+    this.value = this.value === null ? target : lerp(this.value, this.a, k);
+    return this.value;
+  }
+}
+
+/** How far the right edge's speed may drift from real time to keep its lag (0.05 = ±5 %). */
+const MAX_DRIFT = 0.05;
+
+/**
+ * The scroll state of one smooth graph. The right edge trails the newest reading by about `lag`
+ * sample intervals (riding out readings up to an interval late, or a repeated reading that adds no
+ * sample), moves at real-time speed (drifting at most `MAX_DRIFT` to keep that lag), and holds at
+ * the newest sample when the feed stalls. The window is
+ * `lag + 2` intervals short of a full history (`capacity`), so the left edge stays covered while
+ * the oldest sample scrolls out, and it keeps that width while the history fills.
+ *
+ * Feeds arrive unevenly (every 2–3 s is common), so the measured interval moves with every reading.
+ * The lag follows it through two cascaded filters (`tauMs`), and only bends the edge's speed by
+ * up to `MAX_DRIFT`. The width follows it far more slowly (`widthTauMs`): rescaling the window
+ * moves every point sideways, and on a window of ~45 intervals even a 1 % change shows as a jolt.
+ */
+export class SmoothScroll {
+  private readonly clock = new FeedClock(1000, 0.3);
+  private stamps: number[] = [];
+  private readonly lagIvl = new DoubleEase();
+  private readonly widthIvl = new DoubleEase();
+  private right = -Infinity;
+
+  constructor(
+    private readonly capacity: number,
+    private readonly tauMs = 4000,
+    private readonly widthTauMs = 30_000,
+    private readonly lag = 2
+  ) {}
+
+  /** Record a new history of `n` samples (call once per sample, when the array changes). */
+  arrive(n: number, now: number): void {
+    this.clock.arrive(now);
+    this.stamps = nextStamps(this.stamps, n, now, this.clock.intervalMs);
+  }
+
+  /** The interval the frame uses (eased toward the measured one). */
+  get intervalMs(): number {
+    return this.lagIvl.value ?? this.clock.intervalMs;
+  }
+
+  /**
+   * The points to draw at `now`, `dtMs` after the last frame; null until the history is recorded
+   * and the feed's interval measured (the lag is set from it, so the graph keeps its first paint).
+   */
+  frame(values: readonly number[], now: number, dtMs: number): ScrollPoint[] | null {
+    const st = this.stamps;
+    if (st.length !== values.length || st.length < 2 || !this.clock.measuredInterval) return null;
+    const target = this.clock.intervalMs;
+    const lagIvl = this.lagIvl.next(target, dtMs, this.tauMs);
+    const widthIvl = this.widthIvl.next(target, dtMs, this.widthTauMs);
+    // The right edge moves at real-time speed, drifting at most ±5 % (smoothly) toward its target
+    // `lag` intervals behind: the speed never steps, whatever the readings' timing.
+    const goal = now - lagIvl * this.lag;
+    this.right = this.right === -Infinity ? goal : this.right + dtMs * (1 + MAX_DRIFT * Math.tanh((goal - this.right) / 1000));
+    // held at the newest sample when the feed stalls
+    this.right = Math.min(this.right, st[st.length - 1]);
+    return timePoints(values, st, this.right, (Math.max(this.capacity, values.length) - 2 - this.lag) * widthIvl);
+  }
 }
 
 /** Eases an axis range toward its target so the whole line never jumps when the scale changes. */
@@ -90,14 +184,4 @@ export function useAnimationFrame(cb: (now: number, dtMs: number) => void, activ
     id = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(id);
   }, [active]);
-}
-
-/** A FeedClock that registers an arrival whenever `token` changes (a history array, once per sample). */
-export function useFeedClock(token: unknown): FeedClock {
-  const ref = useRef<FeedClock | null>(null);
-  if (!ref.current) ref.current = new FeedClock();
-  useEffect(() => {
-    ref.current!.arrive();
-  }, [token]);
-  return ref.current;
 }

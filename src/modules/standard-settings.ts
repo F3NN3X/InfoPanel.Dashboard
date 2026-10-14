@@ -31,8 +31,6 @@ import { settingKeys, type ModuleSetting, type ModuleSettings } from "./types";
  * `STYLE_SETTINGS` only. Module-specific options come after these and keep
  * their own keys and their own `group` (the inspector category, see
  * `inspector-categories.ts`).
- * Modules that can be idle (see `DashboardModule.isIdle`) add
- * `IDLE_SETTING`.
  *
  * The keys in `PROFILE_STYLE_KEYS` can also be set once per profile
  * (`MonitorProfile.style`); a widget's own value overrides the profile's.
@@ -311,15 +309,6 @@ export const SURFACE_SETTINGS: ModuleSetting[] = [
   },
 ];
 
-/** Opt-in for modules with an `isIdle` rule. */
-export const IDLE_SETTING: ModuleSetting = {
-  key: "hideWhenIdle",
-  label: "Hide when idle",
-  hint: "Hides the widget while its source has nothing to show",
-  type: "boolean",
-  default: false,
-};
-
 export const STANDARD_SETTINGS: ModuleSetting[] = [
   {
     key: "preset",
@@ -364,7 +353,8 @@ export const STANDARD_SETTINGS: ModuleSetting[] = [
       ...Object.keys(BASE_SURFACES).map((v) => ({ value: v, label: v[0].toUpperCase() + v.slice(1) })),
     ],
   },
-  { key: "label", label: "Custom title", type: "text", default: "", group: GROUP_WIDGET },
+  { key: "showTitle", label: "Show title", type: "boolean", default: true, group: GROUP_WIDGET },
+  { key: "label", label: "Custom title", type: "text", default: "", group: GROUP_WIDGET, visibleIf: (values) => values.showTitle !== false },
   { key: "icon", label: "Icon", type: "icon", default: "", group: GROUP_WIDGET },
   { key: "accent", label: "Accent color", type: "color", default: "", group: GROUP_COLORS },
   { key: "background", label: "Background image", type: "image", default: "", group: GROUP_COLORS, advanced: true },
@@ -380,8 +370,8 @@ export const STANDARD_SETTINGS: ModuleSetting[] = [
   ...SURFACE_SETTINGS,
 ];
 
-/** Standard keys a panel has no use for (no layout variants, design size or rings of its own). */
-const NOT_FOR_PANELS: ReadonlySet<string> = new Set(["preset", "layout", "autoScale", "stroke", "variant", "compactView"]);
+/** Standard keys a panel has no use for (no layout variants, design size or rings of its own; an empty title hides a panel's). */
+const NOT_FOR_PANELS: ReadonlySet<string> = new Set(["preset", "layout", "autoScale", "stroke", "variant", "compactView", "showTitle"]);
 
 /**
  * A custom panel's look (its placement's settings): the standard block
@@ -497,6 +487,7 @@ const fraction = (value: unknown): number => {
 export function chromeOf(cfg: ModuleSettings): ModernChrome {
   return {
     label: String(cfg.label ?? ""),
+    showTitle: cfg.showTitle !== false,
     icon: String(cfg.icon ?? ""),
     accent: String(cfg.accent ?? ""),
     background: String(cfg.background ?? ""),

@@ -1,7 +1,7 @@
 import { createElement } from "react";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { IDLE_SETTING, STANDARD_SETTINGS } from "@/modules/standard-settings";
+import { STANDARD_SETTINGS } from "@/modules/standard-settings";
 import type { ModuleSetting, ModuleSettings } from "@/modules/types";
 import { toFlat } from "../data-adapter";
 import { fixtureSensors } from "../__fixtures__";
@@ -35,7 +35,7 @@ describe.each(MANIFEST)("$id schema", ({ options, props }) => {
   });
 
   it("maps every widget-specific setting to a prop", () => {
-    const own = settings.filter((d) => !STANDARD_KEYS.has(d.key) && d.key !== "view" && d.key !== IDLE_SETTING.key);
+    const own = settings.filter((d) => !STANDARD_KEYS.has(d.key) && d.key !== "view");
     for (const d of own) expect(Object.values(props)).toContain(d.key);
   });
 

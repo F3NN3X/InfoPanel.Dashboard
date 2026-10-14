@@ -1,6 +1,7 @@
 // Shared helpers of the registry groups: narrowing stored settings into widget props, and builders for
 // the inspector schema (docs/redesign/phase9/brief-9.5-inspector.md).
 import type { DeviceKind, ModuleSetting, ModuleSettings } from "@/modules/types";
+import { RATE_UNITS, type RateUnit } from "../core/data";
 
 /* ───────── stored settings → props ───────── */
 
@@ -58,6 +59,27 @@ export const colorSetting = (key: string, label: string, extra: Extra = {}): Mod
 export const sensorSetting = (key: string, label: string, extra: Extra = {}): ModuleSetting => ({ key, label, type: "sensor", default: "", ...extra });
 
 /** A device found in the live keys ("" = Auto). On the Data tab. */
+/** A throughput's unit (Network Traffic, Menu Bar): the readings are bytes per second (`fmtRate`). */
+export const rateUnitSetting = (group: string, extra: Extra = {}): ModuleSetting => ({
+  key: "rateUnit",
+  label: "Speed units",
+  type: "select",
+  default: "auto",
+  options: [
+    { value: "auto", label: "Auto" },
+    { value: "MB/s", label: "MB/s (megabytes)" },
+    { value: "Mb/s", label: "Mb/s (megabits)" },
+    { value: "KB/s", label: "KB/s (kilobytes)" },
+    { value: "Kb/s", label: "Kb/s (kilobits)" },
+    { value: "Mbps", label: "Mbps (megabits)" },
+  ],
+  hint: "From the raw bytes per second; decimal prefixes (1 MB = 1,000,000 bytes)",
+  keywords: ["unit", "mbps", "megabit", "megabyte", "bits", "bytes", "speed"],
+  group,
+  ...extra,
+});
+export const rateUnitOf = (v: unknown): RateUnit | undefined => oneOf(v, RATE_UNITS);
+
 export const deviceSetting = (key: string, label: string, from: DeviceKind, extra: Extra = {}): ModuleSetting => ({ key, label, type: "select", default: "", optionsFrom: from, ...extra });
 
 /* ───────── flattened colour objects ───────── */

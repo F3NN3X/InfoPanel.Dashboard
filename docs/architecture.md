@@ -195,11 +195,6 @@ Placement.settings
   nothing when `hasData` is false or the zone is blank). A template renders
   nothing only while no key under its prefixes exists; `SENSORLESS` ids
   (Clock, Calendar, Web Page, Wave Link) always render.
-- **Idle.** A module may define `isIdle(sensors, settings)`. When the
-  placement's `hideWhenIdle` setting is on and `isIdle` is true,
-  `placementContent` reports `idle: true`. The kiosk passes
-  `hasData && !idle` to `PlacementFrame`, which then renders nothing; the
-  studio keeps the zone and badges it "idle - hidden in kiosk".
 - `Placement.design` (accent, background, title header) is applied by
   `PlacementFrame` around the content, separately from the widget settings.
 - **Errors.** `PlacementFrame` wraps each zone in a boundary
@@ -260,9 +255,24 @@ dashboard `radius`), like panels;
 the skins' `radius` token no longer reaches the shell. Appearance › Theme &
 surface also sets the global `surfaceOpacity` and `blur` (Background opacity
 and blur), which let a page image or video show through the cards. `smoothing` (Graph updates: Stepped / Smooth) sets `SkinCtx.smooth`; `Spark` then
-draws line / area / step graphs through `SmoothGraph`, which slides each new sample in over the
-interval a `FeedClock` measures and eases the auto range (`core/smoothing.ts`, ported from the
-widget sampler), and `Bar` / `Ring` glide linearly; reduced motion keeps graphs stepped.
+draws line / area / step graphs through `SmoothGraph`, which scrolls them by time: each sample
+sits at its arrival time and the right edge moves at real-time speed about two measured intervals
+(`FeedClock`) behind the feed (`SmoothScroll`), drifting at most ±5 % to keep that lag, so readings
+that arrive early, late or repeated never jump it back or stop it; the lag's interval is eased
+twice (~4 s) and the window width's far slower (~30 s), because uneven feeds (2–3 s apart) move the
+measured interval on every reading and a width that followed it would shift every point; the window keeps the full history's width (`HISTORY_LEN`) while a
+history fills, so the graph fills in from the right instead of rescaling per sample; React writes
+the path only on mount (the loop owns it after), so a new sample never flashes the static layout;
+the auto range eases (`core/smoothing.ts`, after the widget
+sampler, whose per-sample glide stalled on jitter). `Bar` / `Ring` glide linearly; reduced
+motion keeps graphs stepped.
+
+Throughput sensors (`libre.*_download_speed`, `_upload_speed`, `_read_rate`, `_write_rate`) are
+**bytes per second**, although the source labels them "KB/s" (an Ethernet max of 107,450,768
+would be 102 GB/s; as bytes it is 860 Mb/s, and only bytes match the adapter's
+`network_utilization` of its link). `fmtRate` (`core/data.ts`) formats them with decimal prefixes,
+`auto` or a fixed `RateUnit` (MB/s, Mb/s, KB/s, Kb/s, Mbps; Network Traffic's `rateUnit`), and `toMBps`
+gives the number for widgets that print the unit apart.
 `variant` (Dense summary) is a layout mode
 under Size & alignment, not a style. In the studio, Appearance › Skins draws
 every skin live (`skin-gallery.tsx`) above the user's saved looks, and Theme &

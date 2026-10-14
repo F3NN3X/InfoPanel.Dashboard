@@ -121,12 +121,6 @@ export interface DashboardModule {
   render: (sensors: SensorMap, settings?: ModuleSettings) => ReactNode;
   /** Inspector-editable options; omit for modules with no settings. */
   settings?: ModuleSetting[];
-  /**
-   * Whether the module has data but nothing worth showing right now
-   * (nothing playing, no game running, …). With its `hideWhenIdle`
-   * setting on, the kiosk hides the zone while this holds.
-   */
-  isIdle?: (sensors: SensorMap, settings: ModuleSettings) => boolean;
   /** Library chip (`INSERT_CATEGORIES`); unset: "Generic". */
   category?: string;
   /** Library card icon: a Material Symbols or widget-icon name (`widgets/core/icons.ts`). */

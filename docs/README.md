@@ -5,12 +5,13 @@ The project overview, install steps and server endpoints are in the
 
 ## Using the dashboard
 
-- [Customization guide](customization-guide.md) - the studio layout (top bar, icon rail and left panel, canvas with a floating zoom bar, inspector Side 340 / Bottom 320 / Auto, sticky fit zoom), selecting zones, context menus, undo, keyboard shortcuts and the command palette, the tabbed inspector (sections, source dots, Advanced, search), the Data Explorer and binding, panels (layout starters, saved panels, stack / grid / overlay layouts, alignment, the widget editor, canvas selection, the Code view and panel CSS hooks), and making a widget look the way you want: scaling, alignment, colors, borders, custom CSS, presets, hiding idle widgets; and the dashboard-wide settings (the Dashboard inspector): appearance presets, the global style, theme colours (per profile too), the page background (image or video, uploads), the font catalog, general settings (font, clock and locale, motion, kiosk cursor) and the grid gap and padding.
+- [Customization guide](customization-guide.md) - the studio layout (top bar, icon rail and left panel, canvas with a floating zoom bar, inspector Side 340 / Bottom 320 / Auto, sticky fit zoom), selecting zones, context menus, undo, keyboard shortcuts and the command palette, the tabbed inspector (sections, source dots, Advanced, search), the Data Explorer and binding, panels (layout starters, saved panels, stack / grid / overlay layouts, alignment, the widget editor, canvas selection, the Code view and panel CSS hooks), and making a widget look the way you want: scaling, alignment, colors, borders, custom CSS, presets, network speed units; and the dashboard-wide settings (the Dashboard inspector): appearance presets, the global style, theme colours (per profile too), the page background (image or video, uploads), the font catalog, general settings (font, clock and locale, motion, kiosk cursor) and the grid gap and padding.
 
 ## Widgets
 
 - [Widget catalog](module-catalog.md) - every widget, its picker name, size, data keys and options.
 - [Widget settings](widget-settings.md) - the setting schema, the standard block every modern widget shares, view presets, profile style, the panel settings and the audio views.
+- [Widget settings coverage](widget-settings-coverage.md) - where each widget's own settings take effect: the grid spans, and the setting or data each one needs.
 - [System widget](system-widget.md) - full reference for the System (modern) widget: settings, layouts, thresholds, drives and known limits.
 
 ## Internals

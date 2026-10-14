@@ -10,7 +10,8 @@ import type { Tone } from "./types";
 import { cn } from "@/lib/utils";
 import { labelStyle, ws } from "@/components/widget-style";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
-import { RangeEaser, scrollPoints, useAnimationFrame, useFeedClock, type ScrollPoint } from "./smoothing";
+import { RangeEaser, SmoothScroll, useAnimationFrame, type ScrollPoint } from "./smoothing";
+import { HISTORY_LEN } from "./layout";
 
 /* ───────── primitives ───────── */
 // Material Symbols names rendered as lucide icons (see icons.ts); sized by the font size like the glyphs were.
@@ -275,16 +276,6 @@ function Braille({ values, lo, hi, className }: { values: number[]; lo: number; 
   );
 }
 
-export interface SparkProps {
-  values?: number[];
-  min?: number;
-  max?: number;
-  className?: string;
-  fill?: boolean;
-  color?: string;
-  width?: number;
-  graph?: string;
-}
 /** The line and area paths of a line / area / step graph over [lo, hi]; the points' x runs 0–100. */
 function sparkPaths(pts: readonly ScrollPoint[], lo: number, hi: number, step: boolean): { line: string; area: string } {
   const span = hi - lo || 1;
@@ -327,27 +318,31 @@ function GraphPaths({ line, area, step, fill, fillId, color, strokeWidth, refs }
 }
 
 /**
- * A line / area / step graph that glides between samples (`smoothing: smooth`): the newest sample
- * slides in from the right over one measured interval and the auto range eases. React renders it
- * once per sample; the animation loop writes the paths through refs.
+ * A line / area / step graph that scrolls smoothly (`smoothing: smooth`): every sample sits at its
+ * arrival time and the graph moves at a steady speed, two (eased) intervals behind the feed (`SmoothScroll`), so
+ * the segment into the newest reading slides in and uneven arrivals neither jump nor stop it; the
+ * auto range eases. React renders once per sample; the animation loop writes the paths.
  */
 function SmoothGraph({ values, min, max, step, fill, fillId, color, strokeWidth, className, style }: GraphPathsProps & { className: string; style?: CSSProperties }) {
   const line = useRef<SVGPathElement>(null);
   const area = useRef<SVGPathElement>(null);
-  const clock = useFeedClock(values);
+  const scroll = useRef(new SmoothScroll(HISTORY_LEN));
   const easer = useRef(new RangeEaser(300));
   const fixed = min !== undefined && max !== undefined;
-  // visible = n - 1: the oldest sample sits just left of the edge, so the left side never gaps while it scrolls
-  const at = (t: number, range: [number, number]) => sparkPaths(scrollPoints(values, values.length - 1, t), range[0], range[1], step);
+  // before paint: a frame drawn between the new history and its arrival time would be skipped (a hitch)
+  useLayoutEffect(() => scroll.current.arrive(values.length, performance.now()), [values]);
   useAnimationFrame((now, dt) => {
-    if (!line.current) return;
-    const pts = scrollPoints(values, values.length - 1, clock.progress(now));
-    const target = sparkRange(pts.map((p) => p[1]), min, max);
+    const pts = line.current && scroll.current.frame(values, now, dt);
+    if (!pts) return;
+    const shown = pts.filter(([x]) => x >= -5 && x <= 105).map((p) => p[1]);
+    const target = sparkRange(shown.length > 1 ? shown : values, min, max);
     const d = sparkPaths(pts, ...(fixed ? target : easer.current.next(target, dt)), step);
-    line.current.setAttribute("d", d.line);
+    line.current!.setAttribute("d", d.line);
     area.current?.setAttribute("d", d.area);
   });
-  const first = at(1, sparkRange(values, min, max));
+  // The first paint only: after mount the loop owns `d`. A path recomputed per render would make
+  // React write the static layout on every new sample, flashing it for a frame.
+  const [first] = useState(() => sparkPaths(values.map((v, i) => [(i / (values.length - 1)) * 100, v]), ...sparkRange(values, min, max), step));
   return (
     <svg viewBox="0 0 100 100" preserveAspectRatio="none" className={`block w-full overflow-hidden ${className}`} style={style}>
       <GraphPaths line={first.line} area={first.area} step={step} fill={fill} fillId={fillId} color={color} strokeWidth={strokeWidth} refs={{ line, area }} />
@@ -378,7 +373,7 @@ export function Spark({ values = [], min, max, className = "h-10", fill = true, 
   const step = mode === "step";
   const strokeWidth = (sk.skin === "ink" ? 1 : width) * sk.stroke;
   const showFill = fill && (mode === "area" || step);
-  if (sk.smooth && !reduced && (mode === "area" || mode === "line" || step) && values.length >= 3)
+  if (sk.smooth && !reduced && (mode === "area" || mode === "line" || step) && values.length >= 6)
     return <SmoothGraph values={values} min={min} max={max} step={step} fill={showFill} fillId={id} color={color} strokeWidth={strokeWidth} className={className} style={glow} />;
   const span = hi - lo || 1;
   const Y = (v: number) => Math.min(98, Math.max(2, 100 - ((v - lo) / span) * 94 - 3));

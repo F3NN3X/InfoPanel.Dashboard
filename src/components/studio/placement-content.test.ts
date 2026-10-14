@@ -60,12 +60,13 @@ describe("placementContent", () => {
   const paused = { "plugins.media-plugin.media.playback-state": { value: 1 } } as never;
   const playing = { "plugins.media-plugin.media.playback-state": { value: 2 } } as never;
 
-  it("flags an idle widget only when it is set to hide when idle", () => {
-    const media = place({ module: "NowPlaying", settings: { source: "media" } });
-    expect(placementContent(media, paused, []).idle).toBe(false);
+  it("shows a widget with a stored Hide when idle (removed) while its source is idle", () => {
     const hiding = place({ module: "NowPlaying", settings: { source: "media", hideWhenIdle: true } });
-    expect(placementContent(hiding, paused, []).idle).toBe(true);
-    expect(placementContent(hiding, playing, []).idle).toBe(false);
+    for (const sensors of [paused, playing]) {
+      const r = placementContent(hiding, sensors, []);
+      expect(r.hasData).toBe(true);
+      expect("idle" in r).toBe(false);
+    }
   });
 
   it("resolves the look under the global style (frame tokens follow it)", () => {
@@ -80,8 +81,6 @@ describe("placementContent", () => {
     expect(accent(own, global)).toBe("240 100% 50%");
     expect(accent({ ...own, styleMode: "follow" }, global)).toBe("120 100% 50%");
     expect(accent(own, { ...global, enforce: true })).toBe("120 100% 50%");
-    // Content keys stay the widget's, followed or not.
-    expect(placementContent({ ...own, styleMode: "follow" }, paused, [], global).idle).toBe(true);
   });
 });
 

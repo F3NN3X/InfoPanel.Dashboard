@@ -2,7 +2,7 @@
 import type { DashboardModule, ModuleSetting, ModuleSettings } from "@/modules/types";
 import { templateModule } from "../module";
 import { SENSOR_GROUP_SETTINGS } from "./hardware-settings";
-import { boolOf, boolSetting, colorSetting, deviceSetting, enumSetting, itemsOf, itemsSetting, numberOf, numberSetting, oneOf, pass, sensorSetting, splitKeys, textSetting } from "./settings-kit";
+import { boolOf, boolSetting, colorSetting, deviceSetting, enumSetting, itemsOf, itemsSetting, numberOf, numberSetting, oneOf, pass, rateUnitOf, rateUnitSetting, sensorSetting, splitKeys, textSetting } from "./settings-kit";
 import * as DriveSpace from "../DriveSpace";
 import * as StorageHealth from "../StorageHealth";
 import * as DiskIO from "../DiskIO";
@@ -72,24 +72,11 @@ function sensorItems(s: ModuleSettings): SensorGroup.SensorGroupProps["sensors"]
 }
 
 /** NetworkThroughput's view and toggles, under the old Network widget's keys. */
+// The old `view` select (speeds / totals) only bundled these two switches; a stored `view` is ignored.
 const NETWORK_SETTINGS: ModuleSetting[] = [
-  {
-    key: "view",
-    label: "View",
-    type: "select",
-    default: "speeds",
-    options: [
-      { value: "speeds", label: "Speeds" },
-      {
-        value: "totals",
-        label: "Totals",
-        applies: { showTotals: true, sparkline: true },
-      },
-    ],
-    group: "Content",
-  },
   { key: "showTotals", label: "Session totals", type: "boolean", default: true, group: "Content" },
   { key: "sparkline", label: "Trend sparkline", type: "boolean", default: false, group: "Content" },
+  rateUnitSetting("Content"),
   { key: "downloadColor", label: "Download color", type: "color", default: "", group: "Speed colors" },
   { key: "uploadColor", label: "Upload color", type: "color", default: "", group: "Speed colors" },
 ];
@@ -102,7 +89,8 @@ const WEATHER_SETTINGS: ModuleSetting[] = [
     type: "select",
     default: "full",
     options: [
-      { value: "full", label: "Full" },
+      // Each view sets every switch it bundles, so picking one always shows it (Full used to set none).
+      { value: "full", label: "Full", applies: { showForecast: true, showStats: true, showFeels: true } },
       {
         value: "now",
         label: "Now",
@@ -178,7 +166,10 @@ export const GROUP_B: DashboardModule[] = [
       deviceSetting("adapter", "Adapter", "adapter", { group: "Content", hint: "Auto = the busiest adapter" }),
       enumSetting("chart", "Chart", "overlay", [{ value: "overlay", label: "Overlay" }, { value: "mirrored", label: "Mirrored" }], { group: "Content", visibleIf: (v) => Boolean(v.sparkline) }),
     ],
-    toProps: pass<Partial<NetworkThroughput.NetworkThroughputProps>>("adapter", "chart", "view", "showTotals", "sparkline", "downloadColor", "uploadColor"),
+    toProps: (s) => ({
+      ...pass<Partial<NetworkThroughput.NetworkThroughputProps>>("adapter", "chart", "showTotals", "sparkline", "downloadColor", "uploadColor")(s),
+      rateUnit: rateUnitOf(s.rateUnit),
+    }),
   }),
   templateModule({
     meta: NetworkAdapters.meta,

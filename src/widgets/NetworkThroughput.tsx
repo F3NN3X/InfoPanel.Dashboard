@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, fmt, fmtGB, fmtRate, detect, pretty, hue, Spark, Stat, Icon, Num, useHistory, Empty, type ShellProps, type WidgetMeta } from "./kit";
+import { Widget, shell, get, num, fmt, fmtGB, fmtRate, adapterOf, pretty, hue, Spark, Stat, Icon, Num, useHistory, Empty, type RateUnit, type ShellProps, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "NetworkThroughput",
@@ -17,8 +17,6 @@ export interface NetworkThroughputProps extends ShellProps {
   /** Adapter slug, e.g. "ethernet", "wifi", "tailscale"; default = busiest adapter. */
   adapter?: string;
   chart?: "overlay" | "mirrored";
-  /** `totals` leads with the session totals row (kept at every tier above xs). */
-  view?: "speeds" | "totals";
   /** The session totals + utilisation row (default on). */
   showTotals?: boolean;
   /** The rolling download / upload trend (default off, as the setting). */
@@ -26,26 +24,26 @@ export interface NetworkThroughputProps extends ShellProps {
   /** Download / upload colours; empty = accent / violet. */
   downloadColor?: string;
   uploadColor?: string;
+  /** The speeds' unit; `auto` scales bytes per second to the reading. */
+  rateUnit?: RateUnit;
 }
 
 // A rate readout; called as a function so nothing is defined during render.
 const UP = "#a78bfa";
-const rate = (dir: "down" | "up", v: number, big: string, color: string, custom: boolean, label?: string) => (
+const rate = (dir: "down" | "up", v: number, unit: RateUnit | undefined, big: string, color: string, custom: boolean, label?: string) => (
   <div className="flex min-w-0 flex-col" style={{ color }}>
     <div className="flex items-center gap-1.5">
       <Icon name={dir === "down" ? "south" : "north"} className="text-[15px]" />
       {label && <span className="text-[10.5px] font-medium uppercase tracking-[0.08em] text-[color:var(--w-muted)]">{label}</span>}
-      {!label && <Num className={`${big} truncate font-semibold`} style={custom ? undefined : { color: "var(--w-fg)" }}>{fmtRate(v)}</Num>}
+      {!label && <Num className={`${big} truncate font-semibold`} style={custom ? undefined : { color: "var(--w-fg)" }}>{fmtRate(v, unit)}</Num>}
     </div>
-    {label && <Num className={`${big} truncate font-semibold`} style={custom ? undefined : { color: "var(--w-fg)" }}>{fmtRate(v)}</Num>}
+    {label && <Num className={`${big} truncate font-semibold`} style={custom ? undefined : { color: "var(--w-fg)" }}>{fmtRate(v, unit)}</Num>}
   </div>
 );
 
 export default function NetworkThroughput(p: NetworkThroughputProps) {
   const d = p.data;
-  const all = detect(d, /^libre\.(.+)_download_speed$/);
-  const sum = (a: string) => num(get(d, `libre.${a}_download_speed`)) + num(get(d, `libre.${a}_upload_speed`));
-  const id = p.adapter ?? [...all].sort((a, b) => sum(b) - sum(a))[0];
+  const id = adapterOf(d, p.adapter);
   const k = (s: string) => num(get(d, `libre.${id}_${s}`));
   const dn = k("download_speed"),
     up = k("upload_speed");
@@ -69,21 +67,21 @@ export default function NetworkThroughput(p: NetworkThroughputProps) {
       icon="swap_vert"
       compact={(box) =>
         // a 2x1 tile has no room for the sub line: lay both speeds out instead of dropping the upload
-        box.shape === "tile" && box.w >= 200 ? undefined : { label: name, value: fmtRate(dn), sub: `↑ ${fmtRate(up)}`, hist: dH, min: 0, icon: "south" }
+        box.shape === "tile" && box.w >= 200 ? undefined : { label: name, value: fmtRate(dn, p.rateUnit), sub: `↑ ${fmtRate(up, p.rateUnit)}`, hist: dH, min: 0, icon: "south" }
       }
       right={<span className="tabular-nums text-[color:var(--w-muted)]">{fmt(k("network_utilization"), 1)}%</span>}
     >
       {({ size }) =>
         size === "xs" ? (
           <div className="flex h-full flex-col justify-center gap-1">
-            {rate("down", dn, "text-base", dlColor, !!p.downloadColor)}
-            {rate("up", up, "text-base", ulColor, !!p.uploadColor)}
+            {rate("down", dn, p.rateUnit, "text-base", dlColor, !!p.downloadColor)}
+            {rate("up", up, p.rateUnit, "text-base", ulColor, !!p.uploadColor)}
           </div>
         ) : (
           <div className={`flex h-full flex-col gap-2 ${showChart ? "" : "justify-center gap-4"}`}>
             <div className="flex flex-wrap gap-x-8 gap-y-1">
-              {rate("down", dn, size === "lg" ? "text-3xl" : "text-xl", dlColor, !!p.downloadColor, "Download")}
-              {rate("up", up, size === "lg" ? "text-3xl" : "text-xl", ulColor, !!p.uploadColor, "Upload")}
+              {rate("down", dn, p.rateUnit, size === "lg" ? "text-3xl" : "text-xl", dlColor, !!p.downloadColor, "Download")}
+              {rate("up", up, p.rateUnit, size === "lg" ? "text-3xl" : "text-xl", ulColor, !!p.uploadColor, "Upload")}
             </div>
             {!showChart ? null : p.chart === "mirrored" ? (
               <div className="relative min-h-[24px] flex-1">
@@ -97,7 +95,8 @@ export default function NetworkThroughput(p: NetworkThroughputProps) {
                 <Spark values={uH} min={0} fill={false} color={ulColor} className="absolute inset-0 h-full" />
               </div>
             )}
-            {showTotals && (size !== "sm" || p.view === "totals") && (
+            {/* at the small tier the totals give way to the chart (there is room for one) */}
+            {showTotals && (size !== "sm" || !showChart) && (
               <div className="grid grid-cols-3 gap-3 border-t border-[color:var(--w-track)] pt-2.5">
                 <Stat label="Downloaded" value={fmtGB(k("data_downloaded"))} />
                 <Stat label="Uploaded" value={fmtGB(k("data_uploaded"))} />

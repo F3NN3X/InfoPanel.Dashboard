@@ -58,7 +58,7 @@ pages it cannot read.
 **Rules:**
 - Minimum sizes are enforced on resize (drag handle, ⇧arrows, the W/H fields) and on type change. A type change grows the zone if it can, and otherwise shows a toast: "X needs at least W×H cells".
 - "Layout" (Auto/Card/Standard/Compact/Simple) appears only for adaptive widgets.
-- "Hide when idle" appears only for the five idle-capable widgets.
+- "Hide when idle" was removed from every widget (the column above is historical; a stored value is ignored).
 - Own categories with colour pickers (e.g. "Device colors") go in the **Style** tab and are **Advanced**. All other own categories go in **Content**. Audio source goes in **Data**.
 
 ## 3. General cards (every zone) → tabs

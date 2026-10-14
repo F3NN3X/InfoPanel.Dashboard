@@ -47,7 +47,7 @@ There are 16 widgets (modules). Each claims sensor keys from InfoPanel's Data AP
 | Other sensors | 4×2 | any key no widget claims | none; one generic card per sensor |
 
 - **Adaptive layout:** the modern media, audio, Bluetooth and hardware widgets pick compact, simple, card or standard from their measured size; the Layout setting can force one.
-- **Hide when idle:** offered by Spotify, Media, Steam, FPS and Notifications.
+- **Hide when idle:** removed; a widget with no data at all is still hidden in the kiosk.
 - **Tint:** Spotify, Media and Weather can tint their surface from the cover art or the conditions; Steam uses its banner.
 - **Add drawer chips:** All, Layouts, My panels, System, Media, Network, Info, Other.
 
@@ -164,7 +164,7 @@ Selecting a zone opens one sheet: a fixed header, then the seven general cards e
 
 | General card | Holds |
 | --- | --- |
-| Widget | Widget type (Change), custom title, icon, hide when idle, visible |
+| Widget | Widget type (Change), show title, custom title, icon, visible |
 | Size & alignment | Layout (auto/card/standard/compact/simple), scale with the zone, size %, 3×3 alignment |
 | Typography | Text and secondary colors, font, value weight, label case |
 | Spacing & shape | Inner padding, gap, corner radius, ring/bar thickness |
