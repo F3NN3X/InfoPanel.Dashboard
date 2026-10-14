@@ -593,6 +593,19 @@ Tested spans: 1x1, 2x1, 3x1, 4x1, 6x1, 1x2, 2x2, 3x2, 4x2, 6x2, 2x3, 3x3, 3x4, 4
 |---|---|---|
 | News list (`showNews`) | 2x2, 2x3 | — |
 
+## SteamFriends
+
+Not generated: written by hand from the widget's layout rules and checked against the QA page (cell 110 and 150), not by the HTML comparison.
+
+| Setting | Takes effect at | Needs |
+|---|---|---|
+| View (`view`) | every size with 44px of body height | friends online |
+| Sort (`sort`) | every size | two or more friends |
+| In-game only (`ingameOnly`) | every size | a friend not in a game |
+| Last online (`showTime`) | list 160px wide, table 220px wide | — |
+| Counts row (`showCounts`) | every size | — |
+| Status colors (`ingameColor` … `offlineColor`) | every size | a friend with that status |
+
 ## SteamNews
 
 Tested spans: 1x1, 2x1, 3x1, 4x1, 6x1, 1x2, 2x2, 3x2, 4x2, 6x2, 2x3, 3x3, 3x4, 4x4, 6x4.

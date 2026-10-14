@@ -15,6 +15,7 @@ import SteamGame, { meta as game } from "../SteamGame";
 import SteamLibrary, { meta as library } from "../SteamLibrary";
 import SteamNews, { meta as news } from "../SteamNews";
 import SteamProfile, { meta as profile } from "../SteamProfile";
+import SteamFriends, { meta as friends } from "../SteamFriends";
 import { GROUP_D } from "./d";
 
 const WIDGETS: [typeof fps, ComponentType<ShellProps>][] = [
@@ -24,6 +25,7 @@ const WIDGETS: [typeof fps, ComponentType<ShellProps>][] = [
   [pacing, FramePacing],
   [playtime, PlaytimeShare],
   [profile, SteamProfile],
+  [friends, SteamFriends],
   [game, SteamGame],
   [achievements, Achievements],
   [library, SteamLibrary],
@@ -38,7 +40,7 @@ const DATA = toFlat((snapshot as unknown as { sensors: SensorMap }).sensors);
 const ABSENT_FROM_SNAPSHOT: string[] = [];
 
 describe("registry group D", () => {
-  it("lists the ten gaming widgets in order", () => {
+  it("lists the eleven gaming widgets in order", () => {
     expect(GROUP_D.map((m) => m.id)).toEqual(WIDGETS.map(([m]) => m.id));
   });
 
