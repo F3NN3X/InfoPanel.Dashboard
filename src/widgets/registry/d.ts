@@ -1,7 +1,7 @@
 // Template widgets, group D: gaming (see docs/redesign/phase9/brief-9.3c-templates.md).
 import type { DashboardModule, ModuleSetting, ModuleSettings } from "@/modules/types";
 import { templateModule } from "../module";
-import { boolSetting, colorSettings, enumSetting, listOf, numberOf, numberSetting, oneOf, splitKeys, textSetting, type ColorEntry } from "./settings-kit";
+import { boolOf, boolSetting, colorSettings, colorsOf, enumSetting, listOf, numberOf, numberSetting, oneOf, splitKeys, textSetting, type ColorEntry } from "./settings-kit";
 import Achievements, { meta as achievementsMeta, type AchievementsProps } from "../Achievements";
 import FpsMonitor, { meta as fpsMonitorMeta, type FpsMonitorProps } from "../FpsMonitor";
 import FramePacing, { meta as framePacingMeta, type FramePacingProps } from "../FramePacing";
@@ -14,6 +14,7 @@ import SteamGame, { meta as steamGameMeta, type SteamGameProps } from "../SteamG
 import SteamLibrary, { meta as steamLibraryMeta, type SteamLibraryProps } from "../SteamLibrary";
 import SteamNews, { meta as steamNewsMeta, type SteamNewsProps } from "../SteamNews";
 import SteamProfile, { meta as steamProfileMeta, type SteamProfileProps } from "../SteamProfile";
+import SteamFriends, { meta as steamFriendsMeta, type FriendStatus, type SteamFriendsProps } from "../SteamFriends";
 
 const OSD_CELLS = ["fps", "low", "ft", "gpu", "cpu", "vram", "display"] as const satisfies readonly OsdCell[];
 
@@ -29,6 +30,16 @@ const gaugeOnly = (d: ModuleSetting): ModuleSetting => ({ ...d, visibleIf: (v) =
 /** GameSpotlight layouts that draw their own fixed gradient instead of the scrim. */
 const FIXED_SCRIM = ["ticker", "poster"];
 const layoutIs = (...layouts: string[]) => (v: ModuleSettings) => layouts.includes(String(v.spotlightLayout));
+
+const FRIEND_COLOR_ENTRIES: ColorEntry[] = (
+  [
+    ["ingame", "In-game color"],
+    ["online", "Online color"],
+    ["away", "Away color"],
+    ["busy", "Busy color"],
+    ["offline", "Offline color"],
+  ] satisfies [FriendStatus, string][]
+).map(([entry, label]) => ({ entry, key: `${entry}Color`, label }));
 
 const PLAYTIME_COLORS: ColorEntry[] = PALETTE.map((_, i) => ({ entry: String(i), key: `color${i + 1}`, label: `Slice ${i + 1} color` }));
 /** The slice colours: a stored `colors` list, else the per-slice colours (an unset slice keeps its default). */
@@ -133,6 +144,26 @@ export const GROUP_D: DashboardModule[] = [
     toProps: (s) => ({ colors: playtimeColors(s) }),
   }),
   templateModule<Pick<SteamProfileProps, never>>({ meta: steamProfileMeta, Component: SteamProfile, settings: [], toProps: () => ({}) }),
+  templateModule<Pick<SteamFriendsProps, "view" | "sort" | "showCounts" | "ingameOnly" | "showTime" | "colors">>({
+    meta: steamFriendsMeta,
+    Component: SteamFriends,
+    settings: [
+      enumSetting("view", "View", "list", [{ value: "list", label: "List" }, { value: "table", label: "Table" }], { group: "Steam friends" }),
+      enumSetting("sort", "Sort", "status", [{ value: "status", label: "Status (in-game first)" }, { value: "name", label: "Name" }, { value: "plugin", label: "Plugin order" }], { group: "Steam friends" }),
+      boolSetting("ingameOnly", "In-game only", false, { group: "Steam friends" }),
+      boolSetting("showTime", "Last online", true, { group: "Steam friends" }),
+      boolSetting("showCounts", "Counts row", false, { group: "Steam friends" }),
+      ...colorSettings(FRIEND_COLOR_ENTRIES, { group: "Status colors" }),
+    ],
+    toProps: (s) => ({
+      view: oneOf(s.view, ["list", "table"]),
+      sort: oneOf(s.sort, ["status", "name", "plugin"]),
+      ingameOnly: boolOf(s.ingameOnly),
+      showTime: boolOf(s.showTime),
+      showCounts: boolOf(s.showCounts),
+      colors: colorsOf(s, FRIEND_COLOR_ENTRIES),
+    }),
+  }),
   templateModule<Pick<SteamGameProps, "art" | "scrim">>({
     meta: steamGameMeta,
     Component: SteamGame,

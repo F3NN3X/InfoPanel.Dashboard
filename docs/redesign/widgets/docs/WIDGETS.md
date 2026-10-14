@@ -71,6 +71,7 @@
 | [Frame Pacing](widgets/FramePacing.md) | `FramePacing` | 4×2 | A frame-time graph with budget lines for your refresh rate and for 60 Hz. |
 | [Playtime Share](widgets/PlaytimeShare.md) | `PlaytimeShare` | 3×2 | How the last two weeks of play split between games, as one bar with a segment per game sized by its share.. |
 | [Steam Profile](widgets/SteamProfile.md) | `SteamProfile` | 2×2 | Avatar, persona, status, level and friends online or in-game, with recent activity.. |
+| [Steam Friends](widgets/SteamFriends.md) | `SteamFriends` | 2×2 | Friends as a list or a table, colour-coded by status. |
 | [Current Game](widgets/SteamGame.md) | `SteamGame` | 4×2 | Hero art, session time, playtime, average session and achievement progress.. |
 | [Achievements](widgets/Achievements.md) | `Achievements` | 2×1 | Completion ring for the current game, unlocked/total and the latest unlock.. |
 | [Steam Library](widgets/SteamLibrary.md) | `SteamLibrary` | 3×2 | Games owned, total and recent playtime, recent games and game news.. |

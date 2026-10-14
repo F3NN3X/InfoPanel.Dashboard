@@ -20,6 +20,7 @@ const MANIFEST: Record<string, Record<string, string[]>> = {
   FramePacing: { budgets: ["budgets"], window: ["window"] },
   PlaytimeShare: { colors: ["color1", "color2", "color3", "color4", "color5", "color6"] },
   SteamProfile: {},
+  SteamFriends: { view: ["view"], sort: ["sort"], showCounts: ["showCounts"], ingameOnly: ["ingameOnly"], showTime: ["showTime"], colors: ["ingameColor", "onlineColor", "awayColor", "busyColor", "offlineColor"] },
   SteamGame: { art: ["art"], scrim: ["scrim"] },
   Achievements: {},
   SteamLibrary: { showNews: ["showNews"] },

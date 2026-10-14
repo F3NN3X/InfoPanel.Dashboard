@@ -40,7 +40,7 @@ inspector's Content tab.
 | Media | `NowPlaying` 1×1 |
 | Audio | `AudioMeter`, `MeterBridge`, `VolumeMixer`, `Visualizer`, `WaveLink` (all 1×1) |
 | Info | `Clock`, `Calendar`, `Weather`, `Forecast` (all 1×1); `Departures`, `Notifications`, `TextFile` (all 2×1) |
-| Gaming | `FpsMonitor`, `GameSpotlight`, `PlaytimeShare`, `SteamProfile`, `Achievements`, `SteamLibrary`, `SteamNews` (all 1×1); `FramePacing`, `OsdStrip`, `SteamGame` (all 2×1) |
+| Gaming | `FpsMonitor`, `GameSpotlight`, `PlaytimeShare`, `SteamProfile`, `SteamFriends`, `Achievements`, `SteamLibrary`, `SteamNews` (all 1×1); `FramePacing`, `OsdStrip`, `SteamGame` (all 2×1) |
 | Generic | `SensorValue`, `SensorGroup` (both 1×1), `Bluetooth` 2×1, `StreamDeck` 3×2, `WebPage` 4×2 |
 
 44 of these came from the widget handoff (`docs/redesign/widgets/`);
