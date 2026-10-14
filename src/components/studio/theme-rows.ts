@@ -27,7 +27,6 @@ export interface ThemeRows {
   /** A search names at least one row: list just those (advanced ones included). */
   filtering: boolean;
   preset: boolean;
-  radius: boolean;
   visible: TokenRow[];
   advanced: TokenRow[];
 }
@@ -39,14 +38,13 @@ export interface ThemeRows {
 export function themeRows(query: string): ThemeRows {
   const matched = {
     preset: matchesQuery(["Theme", ...THEME_PRESETS.map((p) => p.label)], query),
-    radius: matchesQuery(["Corner radius", "Radius"], query),
     visible: VISIBLE_TOKENS.filter(([, label]) => matchesQuery([label], query)),
     advanced: ADVANCED_TOKENS.filter(([, label]) => matchesQuery([label], query)),
   };
   const filtering =
     query.trim() !== "" &&
-    (matched.preset || matched.radius || matched.visible.length + matched.advanced.length > 0);
+    (matched.preset || matched.visible.length + matched.advanced.length > 0);
   return filtering
     ? { filtering, ...matched }
-    : { filtering, preset: true, radius: true, visible: VISIBLE_TOKENS, advanced: ADVANCED_TOKENS };
+    : { filtering, preset: true, visible: VISIBLE_TOKENS, advanced: ADVANCED_TOKENS };
 }

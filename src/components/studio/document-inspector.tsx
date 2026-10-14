@@ -20,6 +20,8 @@ import {
   type InspectorSection,
 } from "./inspector-model";
 import { ProfileThemePanel, type ProfileTheme } from "./profile-theme-panel";
+import { SkinGallery } from "./skin-gallery";
+import { CardEffects, SurfacePicker } from "./surface-picker";
 import type { FieldsApi } from "./settings-panel";
 import { SegmentedRow } from "./setting-rows";
 import { dropKeys } from "./settings-model";
@@ -50,7 +52,6 @@ export interface DocumentInspectorProps {
   theme: ThemeTokens;
   radius: number;
   onToken: (key: keyof ThemeTokens, value: string) => void;
-  onRadius: (radius: number) => void;
   onThemePreset: (name: string) => void;
   /** The dashboard style (defaults for every widget of every profile). */
   dashboardStyle: ModuleSettings | undefined;
@@ -124,7 +125,6 @@ function DocumentSheet({
   theme,
   radius,
   onToken,
-  onRadius,
   onThemePreset,
   dashboardStyle,
   dashboardEnforce,
@@ -151,7 +151,8 @@ function DocumentSheet({
   onLayoutMode,
 }: DocumentInspectorProps & DashboardStudioProps) {
   const [target, setTarget] = useState<AppearanceTarget>(
-    profile.style || profile.styleEnforce !== undefined ? "profile" : "all"
+    // A profile with its own look or background opens on it: editing "All profiles" would not show there.
+    profile.style || profile.styleEnforce !== undefined || profile.background ? "profile" : "all"
   );
   const all = target === "all";
   const context: InspectorContext = { kind: "dashboard", scope: target, profileName: profile.name };
@@ -173,7 +174,29 @@ function DocumentSheet({
     style: all ? dashboardStyle : { ...dashboardStyle, ...profile.style },
   };
   const effective = shownValues(values, PROFILE_STYLE_SETTINGS);
+  // The scope's stored look, no defaults: an unset surface is not glass when a skin is chosen.
+  const scoped: ModuleSettings = { ...values.inherited, ...values.own };
   const generalById = new Map(generalCards(general, onGeneral).map((c) => [c.id, c] as const));
+
+  const themeEditor = all ? (
+    <ThemePanel
+      tokens={theme}
+      presetName={
+        THEME_PRESETS.find((p) => JSON.stringify(p.tokens) === JSON.stringify(theme))?.name ?? "custom"
+      }
+      onToken={onToken}
+      onPreset={onThemePreset}
+      query={query}
+    />
+  ) : (
+    <ProfileThemePanel
+      dashboard={{ theme, radius }}
+      profile={{ theme: profile.theme, radius: profile.radius }}
+      profileName={profile.name}
+      onChange={onProfileTheme}
+      query={query}
+    />
+  );
 
   const parts = (s: InspectorSection): SectionParts => {
     switch (s.special) {
@@ -185,6 +208,7 @@ function DocumentSheet({
               updateProfile={updateProfile}
               canRemove={canRemoveProfile}
               onRemove={onRemoveProfile}
+              dashboardRadius={radius}
               otherZones={pages.filter((pg) => pg.id !== activeProfile.pageId).flatMap((pg) => pg.placements)}
             />
           ),
@@ -221,29 +245,32 @@ function DocumentSheet({
           ),
         };
       case "presets":
-        return { body: <AppearanceGallery api={presets} target={target} look={currentLook} /> };
+        return {
+          body: (
+            <div className="space-y-4">
+              <SkinGallery value={scoped.skin as string | undefined} onPick={(skin) => change((st) => ({ ...st, skin, surface: "auto" }))} />
+              <AppearanceGallery api={presets} target={target} look={currentLook} />
+            </div>
+          ),
+        };
       case "theme":
         return {
-          body: all ? (
-            <ThemePanel
-              tokens={theme}
-              radius={radius}
-              presetName={
-                THEME_PRESETS.find((p) => JSON.stringify(p.tokens) === JSON.stringify(theme))?.name ?? "custom"
-              }
-              onToken={onToken}
-              onRadius={onRadius}
-              onPreset={onThemePreset}
-              query={query}
-            />
-          ) : (
-            <ProfileThemePanel
-              dashboard={{ theme, radius }}
-              profile={{ theme: profile.theme, radius: profile.radius }}
-              profileName={profile.name}
-              onChange={onProfileTheme}
-              query={query}
-            />
+          body: (
+            <div className="space-y-4">
+              <SurfacePicker
+                surface={scoped.surface}
+                skin={scoped.skin}
+                accent={typeof scoped.accent === "string" ? scoped.accent : undefined}
+                onPick={(surface) => change((st) => ({ ...st, surface }))}
+              />
+              <CardEffects
+                opacity={scoped.surfaceOpacity}
+                blur={scoped.blur}
+                onOpacity={(surfaceOpacity) => change((st) => ({ ...st, surfaceOpacity }))}
+                onBlur={(blur) => change((st) => ({ ...st, blur }))}
+              />
+              {themeEditor}
+            </div>
           ),
         };
       case "pageBackground":

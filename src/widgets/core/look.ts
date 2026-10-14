@@ -69,6 +69,7 @@ export function skinContext(skin: string, opts: { graph?: string; meter?: string
     ...(font ? { font, num: font } : null),
     ...(weight ? { numWeight: weight } : null),
     ...(chrome?.gap !== undefined ? { gap: chrome.gap } : null),
+    ...(chrome?.smoothing === "smooth" ? { smooth: true } : null),
   };
 }
 

@@ -1,5 +1,6 @@
 import type { ModernChrome } from "@/components/modern-chrome";
 import { FONT_CATALOG } from "@/lib/fonts";
+import { BASE_SURFACES } from "@/widgets/core/surfaces";
 import { SKIN_PACKS } from "@/widgets/core/theme";
 import { settingKeys, type ModuleSetting, type ModuleSettings } from "./types";
 
@@ -62,29 +63,40 @@ const autoOptions = (values: readonly string[]) => [
   ...values.map((v) => ({ value: v, label: v[0].toUpperCase() + v.slice(1) })),
 ];
 
+/** The app's four materials: every surfaced widget kind (templates, panels, plain cards) draws them. */
+const APP_SURFACE_OPTIONS = [
+  { value: "glass", label: "Glass" },
+  { value: "matte-light", label: "Matte (light)" },
+  { value: "matte-dark", label: "Matte (dark)" },
+  { value: "theme", label: "Theme" },
+];
+
 /** Size, alignment, spacing, colors and type — every widget gets these. */
 export const STYLE_SETTINGS: ModuleSetting[] = [
   {
     // "auto" is the default skin; a template widget's shell reads these (see `widgets/module.tsx`).
+    // Picking a skin sets the surface to Auto, so the skin shows with its own card.
     key: "skin",
     label: "Skin",
     type: "select",
     default: "auto",
-    options: autoOptions(SKIN_PACKS.map((p) => p.name)),
+    options: autoOptions(SKIN_PACKS.map((p) => p.name)).map((o) => ({ ...o, applies: { surface: "auto" } })),
     keywords: ["theme", "style", "look", ...SKIN_PACKS.map((p) => p.name)],
     group: GROUP_LOOK,
   },
   {
+    // A layout mode, not a style: "studio" swaps the layout for the dense summary (`StudioView`).
     key: "variant",
-    label: "Variant",
+    label: "Dense summary",
     type: "select",
     default: "default",
     options: [
-      { value: "default", label: "Default" },
-      { value: "studio", label: "Studio" },
+      { value: "default", label: "Off" },
+      { value: "studio", label: "On" },
     ],
-    keywords: ["skin", "style", "studio"],
-    group: GROUP_LOOK,
+    hint: "Swaps the layout for a dense, uniform summary",
+    keywords: ["variant", "studio", "dense", "summary"],
+    group: GROUP_SIZE,
   },
   {
     key: "graph",
@@ -104,6 +116,20 @@ export const STYLE_SETTINGS: ModuleSetting[] = [
     options: autoOptions(["bar", "pill", "segments", "blocks", "hair", "wave", "square"]),
     keywords: ["gauge", "progress", "skin"],
     advanced: true,
+    group: GROUP_LOOK,
+  },
+  {
+    // New key (default stepped = how graphs always drew); smooth glides between samples.
+    key: "smoothing",
+    label: "Graph updates",
+    type: "select",
+    default: "stepped",
+    options: [
+      { value: "stepped", label: "Stepped" },
+      { value: "smooth", label: "Smooth" },
+    ],
+    hint: "Smooth glides graphs, bars and rings between readings; reduced motion keeps them stepped",
+    keywords: ["smooth", "smoothing", "animation", "glide", "interpolate", "stepped", "motion"],
     group: GROUP_LOOK,
   },
   {
@@ -327,15 +353,15 @@ export const STANDARD_SETTINGS: ModuleSetting[] = [
     ],
   },
   {
+    // Unset stays glass (stored configs unchanged); Auto = the skin's own card, glass without a skin.
     key: "surface",
     label: "Surface",
     type: "select",
     default: "glass",
     options: [
-      { value: "glass", label: "Glass" },
-      { value: "matte-light", label: "Matte (light)" },
-      { value: "matte-dark", label: "Matte (dark)" },
-      { value: "theme", label: "Theme" },
+      { value: "auto", label: "Auto (skin's card)" },
+      ...APP_SURFACE_OPTIONS,
+      ...Object.keys(BASE_SURFACES).map((v) => ({ value: v, label: v[0].toUpperCase() + v.slice(1) })),
     ],
   },
   { key: "label", label: "Custom title", type: "text", default: "", group: GROUP_WIDGET },
@@ -374,7 +400,8 @@ export const PANEL_SETTINGS: ModuleSetting[] = STANDARD_SETTINGS.filter(
       { value: "none", label: "None" },
       { value: "panel", label: "Card" },
       { value: "bordered", label: "Bordered card" },
-      ...(s.options ?? []),
+      // Panels draw the app's materials only (no skin cards).
+      ...APP_SURFACE_OPTIONS,
     ],
   };
 });
@@ -387,7 +414,7 @@ const standard = (key: string): ModuleSetting => STANDARD_SETTINGS.find((s) => s
  * accent, and the style and surface options (the Other sensors cards draw them).
  */
 export const CARD_SETTINGS: ModuleSetting[] = [
-  { ...standard("surface"), default: "theme" },
+  { ...standard("surface"), default: "theme", options: APP_SURFACE_OPTIONS },
   standard("accent"),
   ...STYLE_SETTINGS,
   ...SURFACE_SETTINGS,
@@ -494,5 +521,6 @@ export function chromeOf(cfg: ModuleSettings): ModernChrome {
     surfaceOpacity: fraction(cfg.surfaceOpacity),
     blur: px(cfg.blur),
     customCss: String(cfg.customCss ?? ""),
+    smoothing: pick(cfg.smoothing, ["smooth", "stepped"] as const, "stepped"),
   };
 }

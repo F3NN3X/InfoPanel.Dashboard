@@ -47,7 +47,10 @@ function SizeInput({ label, value, onCommit }: { label: string; value: number; o
   );
 }
 
-/** A px field for the grid spacing: empty = the default (shown as the placeholder). */
+/** The spacing sliders' range; the box takes up to `MAX_SPACING`. */
+const SPACING_SLIDER_MAX = 64;
+
+/** A px field and slider for the grid spacing: an empty field = the default (the placeholder, where the slider rests). */
 function SpacingField({
   label,
   hint,
@@ -62,18 +65,29 @@ function SpacingField({
   onChange: (value: number | undefined) => void;
 }) {
   return (
-    <InlineRow label={label} hint={hint}>
+    <div className="space-y-2">
+      <InlineRow label={label} hint={hint}>
+        <input
+          type="number"
+          min={0}
+          max={MAX_SPACING}
+          value={value ?? ""}
+          placeholder={`${placeholder}`}
+          aria-label={`${label} (px)`}
+          onChange={(e) => onChange(e.target.value === "" ? undefined : normalizeSpacing(Number(e.target.value)))}
+          className={cn(FIELD, "h-[26px] w-[64px] shrink-0 px-1.5 text-right font-ui-mono text-[11.5px]")}
+        />
+      </InlineRow>
       <input
-        type="number"
+        type="range"
+        aria-label={label}
         min={0}
-        max={MAX_SPACING}
-        value={value ?? ""}
-        placeholder={`${placeholder}`}
-        aria-label={`${label} (px)`}
-        onChange={(e) => onChange(e.target.value === "" ? undefined : normalizeSpacing(Number(e.target.value)))}
-        className={cn(FIELD, "h-[26px] w-[64px] shrink-0 px-1.5 text-right font-ui-mono text-[11.5px]")}
+        max={Math.max(SPACING_SLIDER_MAX, value ?? 0)}
+        value={value ?? placeholder}
+        onChange={(e) => onChange(normalizeSpacing(e.currentTarget.valueAsNumber))}
+        className="m-0 block h-4 w-full cursor-pointer accent-[var(--ui-accent)]"
       />
-    </InlineRow>
+    </div>
   );
 }
 
@@ -84,11 +98,14 @@ export function ProfileFields({
   canRemove,
   onRemove,
   otherZones = [],
+  dashboardRadius,
 }: {
   profile: ProfileView;
   updateProfile: UpdateProfile;
   canRemove: boolean;
   onRemove: () => void;
+  /** The dashboard's corner radius (rem): what a profile without its own shows. */
+  dashboardRadius: number;
   /** The zones of the profile's other pages, which share the grid. */
   otherZones?: readonly Placement[];
 }) {
@@ -146,6 +163,17 @@ export function ProfileFields({
         placeholder={profilePadding({ fit: profile.fit }, true)}
         onChange={(padding) => patch({ padding })}
       />
+      <SliderRow
+        label="Corner radius"
+        hint="Every widget's corners on this profile; a widget's own Corner radius wins"
+        unit="rem"
+        value={profile.radius ?? dashboardRadius}
+        min={0}
+        max={1.5}
+        step={0.05}
+        fallback={dashboardRadius}
+        onChange={(radius) => patch({ radius })}
+      />
       <button
         type="button"
         disabled={!canRemove}
@@ -186,7 +214,7 @@ export function ProfileInherit({
   onBackground: (target: BackgroundTarget, bg: PageBackground | undefined) => void;
   updateProfile: UpdateProfile;
 }) {
-  const ownTheme = profile.theme !== undefined || profile.radius !== undefined;
+  const ownTheme = profile.theme !== undefined;
   const background = !profile.background ? "inherit" : profile.background.type === "none" ? "none" : "custom";
   return (
     <div className="space-y-3">
@@ -195,7 +223,7 @@ export function ProfileInherit({
         options={INHERIT_CUSTOM}
         value={ownTheme ? "custom" : "inherit"}
         onChange={(mode) =>
-          onProfileTheme(mode === "inherit" ? {} : { theme: { ...dashboardTheme.theme }, radius: dashboardTheme.radius })
+          onProfileTheme({ theme: mode === "inherit" ? undefined : { ...dashboardTheme.theme }, radius: profile.radius })
         }
       />
       <SegmentedRow
@@ -225,7 +253,8 @@ export function ProfileInherit({
         }}
       />
       <p className="text-[11px] leading-snug text-ui-5">
-        Edit the custom theme and background under Appearance (This profile), the style under Global style.
+        Edit the custom theme and background under Appearance (This profile), the style under Global style. The
+        corner radius is in the Profile section above.
       </p>
     </div>
   );

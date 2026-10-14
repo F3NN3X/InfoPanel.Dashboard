@@ -276,7 +276,7 @@ describe("dashboard sections", () => {
 
   it("maps onto the existing cards", () => {
     expect(titles(sectionsFor(dash, "profile"))).toEqual(["Profile", "This profile", "Profile selection", "Auto-rotate"]);
-    expect(titles(sectionsFor(dash, "appearance"))).toEqual(["Scope", "Appearance presets", "Theme", "Page background"]);
+    expect(titles(sectionsFor(dash, "appearance"))).toEqual(["Scope", "Skins", "Theme & surface", "Page background"]);
     expect(titles(sectionsFor(dash, "general"))).toEqual(["Type", "Clock & date", "Display", "Studio", "Connection"]);
     expect(sectionsFor(dash, "appearance").map((s) => s.cardId)).toEqual([
       "doc:appearance",
@@ -389,7 +389,7 @@ describe("applyAdvanced", () => {
       "Colors & surface",
       "Border & effects",
     ]);
-    expect(find(shown, "Size & alignment").settings.map((d) => d.key)).toEqual(["layout", "scale", "alignX"]);
+    expect(find(shown, "Size & alignment").settings.map((d) => d.key)).toEqual(["layout", "variant", "scale", "alignX"]);
     expect(find(shown, "Colors & surface").settings.map((d) => d.key)).not.toContain("background");
     expect(find(shown, "Border & effects").extras).toEqual([]);
     // autoScale + background + backgroundOn + frame (3) + custom CSS + 3 device color options + graph, meter, compactView

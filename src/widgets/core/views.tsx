@@ -117,7 +117,8 @@ export function CompactView({ c, shape, w, h, icon }: { c: Compact; shape: Shape
 export function StudioView({ c, w, h, icon }: { c: Studio; w: number; h: number; icon?: string }) {
   const sk = useSkin();
   const val = typeof c.value === "number" ? fmt(c.value, c.d ?? 0) : c.value;
-  const mono = { fontFamily: sk.font ?? "'Geist Mono',ui-monospace,monospace" };
+  // The skin's UI face, else the shell's (the look's Font or the page font): no fixed mono, so the summary follows the styling.
+  const mono = sk.font ? { fontFamily: sk.font } : undefined;
   const glow = sk.numGlow ? { textShadow: "0 0 4px var(--accent), 0 0 14px var(--accent)" } : null;
   const toneC = c.t && c.t !== "ok" ? TONES[c.t] : undefined;
   const label = (className = "") => (

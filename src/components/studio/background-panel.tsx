@@ -77,6 +77,19 @@ export function BackgroundPanel({
         <p className="text-[11px] leading-snug text-ui-4">
           Behind the grid of every profile that has no background of its own.
         </p>
+        {profileBackground && (
+          <div className="rounded-lg border border-ui-warning/40 bg-ui-warning/10 px-2.5 py-2 text-[11.5px] leading-snug text-ui-2">
+            <span className="text-ui-1">{profileName}</span> has its own background (
+            {TYPE_NAMES[profileBackground.type]}), so this one doesn&apos;t show there.{" "}
+            <button type="button" className="font-medium text-ui-1 underline-offset-2 hover:underline" onClick={() => onChange("profile", undefined)}>
+              Use this one
+            </button>
+            {" · "}
+            <button type="button" className="font-medium text-ui-1 underline-offset-2 hover:underline" onClick={() => onTarget("profile")}>
+              Edit {profileName}&apos;s
+            </button>
+          </div>
+        )}
         <BackgroundEditor value={dashboardBg} types={ALL_TYPES} onChange={(bg) => onChange("all", bg)} />
       </div>
     );

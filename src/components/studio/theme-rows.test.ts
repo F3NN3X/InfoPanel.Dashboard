@@ -5,14 +5,13 @@ describe("themeRows", () => {
   it("lists every row without a query", () => {
     const rows = themeRows("  ");
     expect(rows.filtering).toBe(false);
-    expect(rows.preset && rows.radius).toBe(true);
+    expect(rows.preset).toBe(true);
     expect(rows.visible).toEqual(VISIBLE_TOKENS);
     expect(rows.advanced).toEqual(ADVANCED_TOKENS);
   });
 
-  it("lists only the corner radius for 'radius'", () => {
-    const rows = themeRows("radius");
-    expect(rows).toMatchObject({ filtering: true, preset: false, radius: true, visible: [], advanced: [] });
+  it("names no row for 'radius' (the corner radius is in the Profile tab)", () => {
+    expect(themeRows("radius").filtering).toBe(false);
   });
 
   it("lists matching tokens, advanced ones included", () => {

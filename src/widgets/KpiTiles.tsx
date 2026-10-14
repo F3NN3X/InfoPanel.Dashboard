@@ -69,7 +69,7 @@ export default function KpiTiles(p: KpiTilesProps) {
         const shown = keys.slice(0, cols * useFitRows(h, 88, 12));
         const tileH = (h - (Math.ceil(shown.length / cols) - 1) * 12) / Math.ceil(shown.length / cols);
         return (
-          <div className="grid h-full gap-3" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))`, gridAutoRows: "minmax(0,1fr)" }}>
+          <div className="grid h-full gap-x-5 gap-y-3" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))`, gridAutoRows: "minmax(0,1fr)" }}>
             {shown.map((key) => {
               const m = ALL[key],
                 hist = H[key],
@@ -79,7 +79,7 @@ export default function KpiTiles(p: KpiTilesProps) {
               const big = Math.max(20, Math.min(36, tileH * 0.32, tileH - 62));
               const last = hist[hist.length - 1] ?? 0;
               return (
-                <div key={key} className="relative flex min-h-0 min-w-0 flex-col gap-1 overflow-hidden rounded-lg border border-[color:var(--w-track)] px-3 pb-2.5 pt-3">
+                <div key={key} className="relative flex min-h-0 min-w-0 flex-col gap-1 overflow-hidden pr-2">
                   <div className="flex items-baseline justify-between gap-2">
                     <span className="truncate text-[11px] font-medium uppercase tracking-[0.06em] text-[color:var(--w-muted)]">{m.l}</span>
                     <span className="whitespace-nowrap text-xs tabular-nums" style={{ color: Math.abs(pct) < 1 ? "var(--w-muted)" : delta > 0 ? "#EDB232" : "#3CC97F" }}>

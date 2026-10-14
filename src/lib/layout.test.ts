@@ -140,7 +140,7 @@ describe("mergeConfig", () => {
     const c = mergeConfig({
       appearancePresets: [
         good,
-        { id: "b", name: "Bad bits", theme: { card: "0 0% 50%", bogus: "x" }, radius: 9, style: { surface: "neon", padding: "8", label: "x" }, background: { type: "image", src: "javascript:alert(1)" } },
+        { id: "b", name: "Bad bits", theme: { card: "0 0% 50%", bogus: "x" }, radius: 9, style: { surface: "lava", padding: "8", label: "x" }, background: { type: "image", src: "javascript:alert(1)" } },
         { id: "builtin:dark", name: "Fake builtin", theme: "zinc", radius: 0.5, style: {} },
         { id: "c", name: "", theme: "zinc" },
         { id: "d", name: "No theme", theme: "sepia" },

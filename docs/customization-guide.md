@@ -288,10 +288,10 @@ them.
     *Waveform*, *Visualizer*, *Audio source*; System: *Devices*, *CPU*,
     *GPU*, *Memory*, *Drives*, *Trends*, *Thresholds*, *Units & labels*;
     Weather: *Display*, *Current conditions*, *Forecast*).
-  - *Style*: **Look** (**Skin**, **Variant**; **Graph style**, **Meter
+  - *Style*: **Look** (**Skin**, **Graph updates**; **Graph style**, **Meter
     style** and **Compact view** are advanced - see [Skins and
-    variants](#skins-and-variants)), **Size & alignment** (**Layout**,
-    **Scale with the zone**, **Size %**, the 3×3 **Alignment**),
+    variants](#skins-and-variants)), **Size & alignment** (**Layout**, **Dense
+    summary**, **Scale with the zone**, **Size %**, the 3×3 **Alignment**),
     **Typography** (**Text color**, **Secondary text color**, **Font**,
     **Value weight**, **Label case**), **Spacing & shape** (**Inner
     padding**, **Gap between items**, **Corner radius**, **Ring / bar
@@ -321,14 +321,15 @@ them.
 - **Several zones** - only the shared Style sections.
 - **Nothing selected: the Dashboard inspector.** Click empty canvas or press
   Esc. Its tabs:
-  - **Profile** - the profile's name, design size, grid, fit, gap and
-    padding; **This profile** (Theme / Style / Background: **Inherit** or
+  - **Profile** - the profile's name, design size, grid, fit, gap,
+    padding and corner radius; **This profile** (Theme / Style / Background: **Inherit** or
     custom); and **Profile selection** (**Auto-pick by window size**).
   - **Appearance** - **Scope** (**All profiles | This profile**, plus **Force
     global style**, see [Appearance (global style)](#appearance-global-style)),
-    the [appearance presets](#appearance-presets) gallery, **Theme** (theme
-    colors, corner radius, see [Theme colours per
-    profile](#theme-colours-per-profile)) and **Page background** (see
+    **Skins** (a gallery of the fourteen skins, then your saved looks, see
+    [Skins and saved looks](#skins-and-saved-looks)), **Theme & surface**
+    (surface, background opacity and blur, theme colors, see [Theme colours
+    per profile](#theme-colours-per-profile)) and **Page background** (see
     [Page background](#page-background)).
   - **Global style** - the look itself, in the same sections as a widget's
     Style tab, written at the dashboard or profile level by the Scope.
@@ -704,18 +705,30 @@ dashboard or a profile (Global style) and let widgets follow it.
   `ink` (monochrome editorial), `retro` (CRT terminal), `ios`, `android`
   (Material You), `synth` (synthwave), `cyber` (cyberpunk), `nixie`, `brutal`
   (neo-brutalist) and `instrument` (instrument rack). A skin brings its own
-  surface unless you pick one under *Colors & surface*, and its own accent
-  unless you set an accent. Its fonts load on first use; offline, the widget
+  card (see below) unless you pick a surface under *Colors & surface*,
+  and its own accent unless you set an accent. Its fonts load on first use; offline, the widget
   falls back to the standard stack. **Font** under *Typography* overrides the
   skin's fonts.
-- **Variant** - Default, or Studio: a dense summary of the same data (a
-  headline value, a trend and a few rows).
+- **Dense summary** (under *Size & alignment*) - Off, or On: a dense summary
+  of the same data (a headline value, a trend and a few rows). Its labels use
+  the widget's font.
+- **Graph updates** - Stepped (the default) or Smooth. Smooth scrolls each new
+  reading into line, area and step graphs over the measured sample interval,
+  with an eased axis, and lets bars and rings glide (about 1 s). Reduced motion
+  (**General > Motion** or the system setting) keeps graphs stepped. Braille,
+  bars and dots graphs and numbers are unchanged. It can be set globally too.
 - **Graph style** (advanced) - Auto, area, line, step, bars, dots or braille:
   how trends are drawn.
 - **Meter style** (advanced) - Auto, bar, pill, segments, blocks, hair, wave
   or square: how bars and level meters are drawn.
 - **Compact view** (advanced) - Auto, or Off. In a small zone most widgets
   swap to a compact summary; Off keeps the full layout.
+
+A skin is more than a card: type, numerals, graph and meter style, header and
+decorations, and it brings its own card. The **Surface** setting is only the
+card. Picking a skin (the **Skin** select or the gallery) sets that level's
+surface to Auto, so the skin shows whole; choosing a surface afterwards
+replaces only the card.
 
 Auto and Default leave a widget as it was. Skin, Graph style and Meter style
 also reach panels: with a skin set, a panel's bars, sparklines, gauges and
@@ -727,7 +740,9 @@ numbers use the skin's drawing. Without a skin they render as before.
 - **Gap between items**.
 - **Corner radius**, up to a pill shape.
 
-Each is a pixel step, or Auto for the widget's own value.
+Each is a pixel step, or Auto for the widget's own value. A profile's corner
+radius (Profile tab) rounds every widget's outer card; a widget's own Corner
+radius wins.
 
 ## Colors and type
 
@@ -741,7 +756,11 @@ Each is a pixel step, or Auto for the widget's own value.
 - **Ring / bar thickness (%)** (50-250) scales rings and bars.
 - Widgets with several parts add their own colors here (the System widget has
   a color per device).
-- The **Surface** (glass, matte light, matte dark, theme) and the **Preset**
+- The **Surface** (Auto, glass, matte light, matte dark, theme, or one of
+  twelve generic cards: Solid, Outline, Flat, Tinted, Aurora, Neon, Holo, Mesh,
+  Carbon, Inset, Studio, Terminal; panels and plain cards offer only the four
+  materials. Auto is the skin's card, the same as unset; a stored config
+  without a surface still renders glass) and the **Preset**
   (a one-click bundle of surface and accent) are at the top of the list.
   **Theme** builds the surface from the theme's colours (card, text, muted,
   border, primary), so it follows the theme preset: with *Paper (light)* a
@@ -854,6 +873,11 @@ At the top, choose what you edit:
   a copy of the dashboard's), and **None** shows no background on this
   profile even when the dashboard has one.
 
+With **All profiles** selected, when the active profile has its own
+background the editor warns "<profile> has its own background (a video), so
+this one doesn't show there". **Use this one** makes the profile inherit it;
+**Edit <profile>'s** switches to that profile's scope.
+
 Then pick the type:
 
 - **Color** - one color.
@@ -934,69 +958,76 @@ looks at the config saved on the server (the studio saves a moment after
 each change), so a file that only the undo history still refers to counts as
 unused.
 
-## Appearance presets
+## Skins and saved looks
 
-An appearance preset is a whole look in one click: theme colours and corner
-radius, the global style and, for some, a page background. The gallery at
-the top of the Dashboard inspector's **Appearance** tab shows each one as a small drawing of the
-look (its page background and two mini widgets with its surface, accent,
-corners and glow), with its name and a one-line description. Click a card to
-apply it. The built-ins:
+The Dashboard inspector's **Appearance** tab has these sections: **Scope**,
+**Skins**, **Theme & surface** and **Page background**. The tab opens on
+*This profile* when the active profile has its own style, force setting or
+background.
 
-| Preset | Look |
-| --- | --- |
-| Dark | Zinc theme, solid dark cards (Matte dark) |
-| Light | Paper theme, Theme surface - every widget kind turns light |
-| Glass | Zinc, see-through Glass cards (60 % opacity, 16 px blur, thin light border) over a bundled colour-wash background |
-| Frosted | Glass with 40 % opacity, 24 px blur and a soft edge glow, same background |
-| Matte | Neutral theme, Matte dark cards with 12 px corners |
-| Neon | Slate theme, cyan accent and border, strong glow, Mono type |
-| Minimal | No visible card (Theme surface at 0 % opacity), no border, 8 px padding |
-| Ocean, Forest | The Ocean / Forest theme colours on the Theme surface |
+**Skins** is a gallery of the fourteen skins, each drawn live. Click one to
+apply it to the scope (**All profiles | This profile**) and set the surface to
+Auto; that is one undo step. The nine built-in appearance presets (Dark, Light,
+Glass, Frosted, Matte, Neon, Minimal, Ocean, Forest) are gone: their parts now
+live in the skin gallery, the surface swatches, the theme swatches, **Background
+opacity** and **Background blur**, and the page background.
 
-What a preset changes depends on the **All profiles | This profile** switch
-above it:
+**Theme & surface** has, in order:
+
+- **Surface** - swatches with live previews: Auto and the sixteen surfaces
+  (see [Colors and type](#colors-and-type)).
+- **Background opacity** (0-100 %) and **Background blur (px)** (Off, 4, 8, 16,
+  24, 40). Blur needs an opacity under 100 % and frosts a page image or video
+  behind the cards.
+- **Theme** - six swatches (Zinc, Neutral, Slate, Ocean, Forest, Paper) with a
+  *Custom (edited)* note when the colours match none, then the editable token
+  colours.
+
+All of them write the scope's global style, so a widget can still set its own.
+The corner radius is no longer here: it is on the Profile tab (see [Grid
+spacing](#grid-spacing-gap-and-padding)).
+
+Below the gallery, **Saved looks** are your own presets. What a saved look
+changes depends on the **All profiles | This profile** switch above it:
 
 - **All profiles** - the dashboard's theme colours, corner radius and style
   (replaced as a whole, so nothing of the previous look is left over).
   Profiles with their own theme colours or style keep them (see the banner
   below).
 - **This profile** - this profile's own theme colours, corner radius and
-  style; the other profiles keep theirs. *This profile: Light* turns the
-  profile fully light - page, cards and text - while the others stay as
-  they are. Options the dashboard style sets but the preset leaves alone are
-  set back to their defaults in the profile, so the profile shows the
-  preset's look rather than a mix. **Inherit** under *Theme colours* hands
-  the colours back to the dashboard.
+  style; the other profiles keep theirs. Options the dashboard style sets but
+  the look leaves alone are set back to their defaults in the profile, so the
+  profile shows the saved look rather than a mix. **Inherit** under *Theme
+  colours* hands the colours back to the dashboard.
 
-A preset's background (Glass and Frosted have one; the card shows a picture
-icon) goes to the same scope, but only where none is set yet - turn on
-**Replace the page background** under the gallery to replace an existing
-one. A preset without a background never removes yours. Widget content
-(sensors, layout, titles, ...) is never touched, and applying a preset is
-one undo step: **Ctrl+Z** puts the whole previous look back.
+A saved look's background (the card shows a picture icon) goes to the same
+scope, but only where none is set yet - turn on **Replace the page
+background** under the gallery to replace an existing one. A look without a
+background never removes yours. Widget content (sensors, layout, titles, ...)
+is never touched, and applying a look is one undo step: **Ctrl+Z** puts the
+whole previous look back.
 
-Widgets with their own look still win over the preset. After you apply one,
-a banner counts them - for example *3 widgets keep their own style* (and,
-for All profiles, *1 profile has its own look*: its own style or theme
-colours) - with **Make them follow**: those widgets switch to [Follow
+Widgets with their own look still win over a skin or a saved look. After you
+apply a saved look, a banner counts them - for example *3 widgets keep their
+own style* (and, for All profiles, *1 profile has its own look*: its own style
+or theme colours) - with **Make them follow**: those widgets switch to [Follow
 global](#follow-global-or-custom) (their own values stay saved) and, for
 All profiles, the profiles' own styles, theme colours and corner radius are
 cleared. That is one undo step too.
 
-**Save current as preset...** under the gallery asks for a name and saves
-the current theme colours, corner radius, style (for This profile: the
-profile's own over the dashboard's) and background as a preset of your
-own; it appears after the built-ins. Its **...** menu has **Rename...** and
-**Delete**. Saved presets are stored in the config (`appearancePresets`)
-and shared by all profiles. The command palette has **Apply appearance:
-<name>** for every preset (applied to all profiles).
+**Save current look as preset...** under the saved looks asks for a name and
+saves the current theme colours, corner radius, style (for This profile: the
+profile's own over the dashboard's) and background as a preset of your own.
+Its **...** menu has **Rename...** and **Delete**. Saved presets are stored in
+the config (`appearancePresets`) and shared by all profiles. The command
+palette has **Apply appearance: <name>** for every preset (applied to all
+profiles).
 
-Appearance presets are not the same as a widget's style presets (see
+Saved looks are not the same as a widget's style presets (see
 [Copy, Paste, Use as global and presets](#copy-paste-use-as-global-and-presets)):
-an appearance preset sets the whole dashboard's (or profile's) look; a style
-preset restyles the one widget you apply it to. The theme swatches under
-**Theme colours** are a third, smaller step: they change the colours only.
+a saved look sets the whole dashboard's (or profile's) look; a style preset
+restyles the one widget you apply it to. The theme swatches are a third, smaller
+step: they change the colours only.
 
 ## Appearance (global style)
 
@@ -1070,21 +1101,22 @@ choice are separate undo steps.
 
 ### Theme colours per profile
 
-The theme colours and corner radius belong to the dashboard, unless a
-profile has its own. Under **This profile**, the *Theme colours* section
+The theme colours belong to the dashboard, unless a profile has its own.
+The corner radius is separate: it is set per profile in Dashboard › Profile
+(see [Grid spacing](#grid-spacing-gap-and-padding)). Under **This profile**, the *Theme colours* section
 starts with **Inherit | Custom**:
 
-- **Inherit** - the profile uses the dashboard's theme colours and radius.
+- **Inherit** - the profile uses the dashboard's theme colours.
 - **Custom** - the profile gets its own, starting as a copy of the
-  dashboard's; the swatches, the radius slider and *Custom colours* below
+  dashboard's; the swatches and the editable colours below
   then edit the profile's copy only.
 
 The kiosk shows a profile with its own colours in them (page, cards, text,
 the Theme surface). In the studio the canvas previews them while the
 studio's own panels and bars keep the dashboard's colours, so a light
 profile shows as a light page on the canvas. Applying a preset to **This
-profile** sets the profile's colours too (see [Appearance
-presets](#appearance-presets)). Each colour edit, the radius and the
+profile** sets the profile's colours too (see [Skins and saved
+looks](#skins-and-saved-looks)). Each colour edit and the
 Inherit / Custom switch are undo steps like any other.
 
 ## General settings
@@ -1134,12 +1166,17 @@ Each profile has its own spacing, in Dashboard › Profile:
   keeps the page's defaults: none on a *Fill viewport* kiosk page, 12 px on
   the normal dashboard page of a *Fill viewport* profile (next to the
   header) and 24 px for *Scroll* profiles.
+- **Corner radius** - a 0-1.5 rem slider, after Gap and Padding, for the
+  profile's widgets. A profile that has not set one uses the dashboard's
+  radius. It rounds every widget's outer card (panels use it too); a widget's
+  own Corner radius (px) still wins.
 
-Both take 0 to 200 px. The studio canvas draws the profile at its design
+Both take 0 to 200 px in the box; a 0-64 px slider beside each box rests on
+the default while the box is empty. The studio canvas draws the profile at its design
 size with the same gap and padding (as the kiosk page shows it), and
 drawing, moving and resizing zones, the column guides and the selection chip
 all follow the gap. A gap of 0 makes the zones touch; with no card surface
-(for example the *Minimal* preset) that turns the grid into one seamless
+(for example a transparent surface) that turns the grid into one seamless
 page.
 
 ## Copy, Paste, Use as global and presets
@@ -1157,7 +1194,7 @@ widget's look-only options:
   stores the widget's style as a named preset; **Apply preset** applies one
   to the widget (same replace rules as Paste) and **Delete preset** removes
   one. Presets are saved in the config and are shared by all profiles.
-  (For a whole dashboard look, see [Appearance presets](#appearance-presets).)
+  (For a whole dashboard look, see [Skins and saved looks](#skins-and-saved-looks).)
 
 ## Hide when idle
 

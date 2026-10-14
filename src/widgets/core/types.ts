@@ -108,4 +108,6 @@ export interface SkinContext extends Partial<SkinTokens> {
   stroke: number;
   /** Layout gap override in px from the `gap` look key. */
   gap?: number;
+  /** The `smoothing` look key is Smooth: graphs, bars and rings glide between samples. */
+  smooth?: boolean;
 }
