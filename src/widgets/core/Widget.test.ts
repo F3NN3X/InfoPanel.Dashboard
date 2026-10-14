@@ -5,6 +5,8 @@ import { STANDARD_DEFAULTS } from "@/modules/standard-settings";
 import { SKIN_NAMES, SkinCtx } from "./theme";
 import { skinContext } from "./look";
 import { CompactView, StudioView } from "./views";
+import { Spark } from "./primitives";
+import { chromeOf } from "@/modules/standard-settings";
 import { Widget, type LayoutBox } from "./Widget";
 import type { Compact, Shape, Studio, Tier } from "./types";
 
@@ -26,6 +28,17 @@ describe("Widget smoke render", () => {
 describe("Widget look", () => {
   const render = (look: Record<string, string | number | boolean>, extra: Record<string, unknown> = {}) =>
     renderToString(h(Widget, { title: "Template title", icon: "memory", size: "lg", children: body, look: { ...STANDARD_DEFAULTS, ...look }, ...extra }));
+
+  it("takes the theme corner radius unless the look sets one, whatever the skin", () => {
+    expect(render({}, { skin: "brutal" })).toContain("border-radius:var(--radius, 1rem)");
+    expect(render({ radius: "12" }, { skin: "macos" })).toContain("border-radius:12px");
+  });
+
+  it("fades the card and blurs behind it from the look's opacity and blur", () => {
+    const html = render({ surface: "glass", surfaceOpacity: 40, blur: "16" });
+    expect(html).toContain("backdrop-filter:blur(16px)");
+    expect(render({ surface: "solid", surfaceOpacity: 40, blur: "8" })).toContain("blur(8px)");
+  });
 
   it("renders the default glass surface and the forced layout tier", () => {
     const html = render({ layout: "simple" }, { size: undefined });
@@ -74,6 +87,19 @@ describe("views", () => {
         expect(html).toContain("CPU");
       }
     expect(inCtx(h(CompactView, { c: { ...compact, img: "/a.png" }, shape: "tile", w: 150, h: 150 }))).toContain("/a.png");
+  });
+
+  it("glides line graphs with Graph updates: Smooth, and keeps them static when Stepped", () => {
+    const spark = (smoothing: string) =>
+      renderToString(h(SkinCtx.Provider, { value: skinContext("default", { chrome: chromeOf({ smoothing }) }) }, h(Spark, { values: [1, 5, 3, 8], graph: "line" })));
+    expect(spark("smooth")).toContain("overflow-hidden");
+    expect(spark("stepped")).toContain("overflow-visible");
+  });
+
+  it("draws StudioView labels in the shell's font unless the skin has its own", () => {
+    expect(inCtx(h(StudioView, { c: studio, w: 300, h: 80 }))).not.toContain("Geist Mono");
+    const own = renderToString(h(SkinCtx.Provider, { value: skinContext("instrument") }, h(StudioView, { c: studio, w: 300, h: 80 })));
+    expect(own).toContain("IBM Plex Sans");
   });
 
   it("renders every StudioView layout", () => {

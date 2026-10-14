@@ -67,7 +67,6 @@ export function useDocumentProps(
     radius: config.radius,
     onToken: (key, value) =>
       setConfig((c) => ({ ...c, theme: { ...c.theme, [key]: value } as ThemeTokens }), `theme:${key}`),
-    onRadius: (radius) => setConfig((c) => ({ ...c, radius }), "radius"),
     onThemePreset: applyPreset,
     dashboardStyle: config.style,
     dashboardEnforce: config.styleEnforce,

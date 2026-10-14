@@ -9,13 +9,13 @@ import {
   saveAppearancePreset,
   type PresetScope,
 } from "@/lib/appearance-preset-apply";
-import { allAppearancePresets, type AppearancePreset } from "@/lib/appearance-presets";
+import type { AppearancePreset } from "@/lib/appearance-presets";
 import { uid, type DashboardConfig } from "@/lib/layout";
 import type { AppearanceTarget } from "./appearance-panel";
 
 /** The Appearance gallery's data and actions (see `useAppearancePresets`). */
 export interface AppearancePresetsApi {
-  /** Built-ins, then the user's. */
+  /** The user's saved looks. */
   presets: AppearancePreset[];
   /** What hides the global style of a target: own-look widgets and (all profiles) profile styles. */
   overrides: (target: AppearanceTarget) => { widgets: number; profiles: number };
@@ -42,7 +42,7 @@ export function useAppearancePresets(
   const scope = (target: AppearanceTarget): PresetScope =>
     target === "all" ? { kind: "all" } : { kind: "profile", profileId };
   return {
-    presets: allAppearancePresets(config.appearancePresets),
+    presets: config.appearancePresets ?? [],
     overrides: (target) => ({
       widgets: countOverrides(config, scope(target)),
       profiles: countProfileOverrides(config, scope(target)),

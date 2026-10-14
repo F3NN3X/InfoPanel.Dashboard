@@ -104,7 +104,8 @@ export function Widget({ title, icon, iconOverride, accent, surface, radius, siz
   const background = chrome?.backgroundOn && chrome.background ? chrome.background : "";
   const surfBox = lookBox(surf, chrome);
   const rootStyle = {
-    borderRadius: chrome?.radius ?? radius ?? sk.radius ?? 16,
+    // The look's Corner radius, else the theme's (Appearance › Corner radius, `--radius`), like panels.
+    borderRadius: chrome?.radius ?? radius ?? "var(--radius, 1rem)",
     fontFamily: ctx.font,
     ...surfBox,
     ...textVars(surf.tone, chrome),

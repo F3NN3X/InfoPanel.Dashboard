@@ -246,6 +246,28 @@ draws the same data in every skin. `resolveSurface` picks the surface:
 the `surface` setting, else the skin's, else `glass`. The app's four
 materials (`glass`, `matte-light`, `matte-dark`, `theme`) are registered in the
 same table beside the skins' own, so a stored surface keeps its meaning.
+
+Skin and surface overlap only in the card: the skin owns type, numerals,
+graphs, meters, header and decorations and brings a card; the surface replaces
+just the card. The `surface` setting offers `auto` (the skin's card; same as
+unset), the four materials and the generic cards of `BASE_SURFACES`; panels and
+plain cards keep the four. Picking a skin sets `surface: "auto"` (the skin
+option's `applies`), so a skin shows whole until a surface is chosen again.
+The other look keys that override a skin token when set: accent, font,
+value weight, graph, meter, stroke. The card's corner is the look's `radius`,
+else the profile's (`var(--radius)`, Profile › Corner radius, falling back to the
+dashboard `radius`), like panels;
+the skins' `radius` token no longer reaches the shell. Appearance › Theme &
+surface also sets the global `surfaceOpacity` and `blur` (Background opacity
+and blur), which let a page image or video show through the cards. `smoothing` (Graph updates: Stepped / Smooth) sets `SkinCtx.smooth`; `Spark` then
+draws line / area / step graphs through `SmoothGraph`, which slides each new sample in over the
+interval a `FeedClock` measures and eases the auto range (`core/smoothing.ts`, ported from the
+widget sampler), and `Bar` / `Ring` glide linearly; reduced motion keeps graphs stepped.
+`variant` (Dense summary) is a layout mode
+under Size & alignment, not a style. In the studio, Appearance › Skins draws
+every skin live (`skin-gallery.tsx`) above the user's saved looks, and Theme &
+surface shows surface and theme swatches (`surface-picker.tsx`,
+`theme-panel.tsx`) over the editable theme colours.
 A skin's accent applies only when no accent is set and the surface is not
 light. Skin fonts load lazily (`ensureSkinFonts`). Custom panels use the skin
 through `components/widgets/panel-skin.tsx` when a skin is set; with `auto`
@@ -404,8 +426,9 @@ least one widget is visible.
   `theme` is a `ThemeTokens` object or a theme preset name (`"paper"`, …),
   `radius` the theme radius in rem, `style` look keys only
   (`PROFILE_STYLE_KEYS`) and `background` a complete `PageBackground`. The
-  built-ins (`BUILTIN_APPEARANCE_PRESETS`, ids `builtin:*`) are code; the
-  user's live in `config.appearancePresets`. Not to be confused with
+  presets are the user's saved looks, in `config.appearancePresets` (the
+  former built-ins are gone, replaced by the skin gallery; the `builtin:`
+  id prefix stays reserved, `isBuiltinPreset`). Not to be confused with
   `StylePreset`, which restyles one widget.
 
 ### Appearance presets (`src/lib/appearance-preset-apply.ts`)

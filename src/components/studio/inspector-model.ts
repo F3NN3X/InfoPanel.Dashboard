@@ -1,4 +1,5 @@
 import { PROFILE_STYLE_KEYS, PROFILE_STYLE_SETTINGS } from "@/modules/standard-settings";
+import { SKIN_PACKS } from "@/widgets/core/theme";
 import {
   settingKeys,
   type DashboardModule,
@@ -315,7 +316,7 @@ function dashboardSections(): InspectorSection[] {
   const styleContext: InspectorContext = { kind: "dashboard", scope: "all" };
   return [
     dashboardMarker("profile", "profile", "Profile", "profileFields", [
-      "Name", "Design size", "Grid", "Columns", "Rows", "Fit", "Fill", "Scroll", "Gap", "Padding",
+      "Name", "Design size", "Grid", "Columns", "Rows", "Fit", "Fill", "Scroll", "Gap", "Padding", "Corner radius", "Radius",
     ]),
     dashboardMarker("profile", "profile-inherit", "This profile", "profileInherit", [
       "Theme", "Style", "Background", "Inherit", "Custom",
@@ -331,10 +332,14 @@ function dashboardSections(): InspectorSection[] {
       ["Global style", "All profiles", "This profile", "Force global style"], "doc:appearance"
     ),
     dashboardMarker(
-      "appearance", "ap-presets", "Appearance presets", "presets",
-      ["Presets", "Look", "Save current look as preset", "Replace the page background"], "doc:presets"
+      "appearance", "ap-presets", "Skins", "presets",
+      ["Skin", "Presets", "Saved looks", "Look", "Save current look as preset", "Replace the page background", ...SKIN_PACKS.map((p) => p.name)],
+      "doc:presets"
     ),
-    dashboardMarker("appearance", "ap-theme", "Theme", "theme", ["Theme colors", "Colors", "Radius", "Primary"], "doc:theme"),
+    dashboardMarker(
+      "appearance", "ap-theme", "Theme & surface", "theme",
+      ["Theme colors", "Colors", "Primary", "Surface", "Card", "Glass", "Matte"], "doc:theme"
+    ),
     dashboardMarker(
       "appearance", "ap-bg", "Page background", "pageBackground",
       ["Background", "Color", "Gradient", "Image", "Video"], "doc:background"

@@ -68,8 +68,8 @@ Rows marked **(+)** were added by the Phase 0 code inventory (`docs/settings-inv
 | (+) Profile name | Dash › Profile › Profile (editable name) | ✅ `inspector/profile-sections.tsx:93` (Name); Rename… `profiles-panel.tsx:57` |
 | (+) Design size W / H (free number fields) | Dash › Profile › Profile; the zoom-bar resolution button jumps here | ✅ `inspector/profile-sections.tsx:93`; zoom-bar jump `zoom-toolbar.tsx:118` → `studio-view.tsx` openProfileSettings |
 | (+) Grid Cols (2–24) and Rows (1–24) −/+ steppers; zones are clamped into the grid | Dash › Profile › Profile | ✅ `inspector/profile-grid.ts:13` (README §5: a shrink that would cut a zone is refused with a toast, instead of the old clamp) |
-| (+) Gap and padding empty = default (placeholder shows it; padding default is 0 in a fill kiosk, 24 in scroll) | Dash › Profile › Profile; keep "empty = default" | ✅ `inspector/profile-sections.tsx:64` (placeholder "N (default)") |
-| (+) Profile theme (Inherit / Custom colours + radius), profile Force global style (Inherit / On / Off) | Dash › Profile › This profile; editors in Dash › Appearance when the scope is This profile | ✅ `inspector/profile-sections.tsx:212`; Force Inherit / On / Off `appearance-panel.tsx:14`; colours `profile-theme-panel.tsx:31` |
+| (+) Gap and padding empty = default (placeholder shows it; padding default is 0 in a fill kiosk, 24 in scroll) | Dash › Profile › Profile; keep "empty = default"; a 0–64 px slider beside each box rests on the default while unset (the box still takes up to 200) | ✅ `inspector/profile-sections.tsx:64` (placeholder "N (default)") |
+| (+) Profile theme (Inherit / Custom colours), profile corner radius (0–1.5 rem slider in Dash › Profile › Profile after Gap and Padding; unset shows the dashboard radius; rounds every widget's outer card, a widget's own Corner radius wins), profile Force global style (Inherit / On / Off) | Dash › Profile › This profile; editors in Dash › Appearance when the scope is This profile | ✅ `inspector/profile-sections.tsx:212`; Force Inherit / On / Off `appearance-panel.tsx:14`; colours `profile-theme-panel.tsx:31` |
 
 ## 4. Canvas
 | Current | New | Status |
@@ -170,11 +170,11 @@ Rows marked **(+)** were added by the Phase 0 code inventory (`docs/settings-inv
 | Text color, secondary color | S › Typography | | ✅ `standard-settings.ts:110` |
 | Font, value weight | S › Typography | | ✅ `standard-settings.ts:113,124` (catalog `src/lib/fonts.ts` keeps sans / rounded / serif / mono) |
 | Label case: Auto / UPPERCASE / As written / Capitalized | S › Typography | | ✅ `standard-settings.ts:139` |
-| Inner padding, gap, corner radius (Auto + values) | S › Spacing & shape | | ✅ `standard-settings.ts:87` |
+| Inner padding, gap, corner radius (Auto + values) | S › Spacing & shape | | ✅ `standard-settings.ts:87` (a profile's Corner radius, `MonitorProfile.radius`, rounds the outer card; the widget's own value wins) |
 | Ring / bar thickness | S › Spacing & shape | | ✅ `standard-settings.ts:152` |
 | Follow global / Custom | S › Colors & surface › Look | | ✅ `zone-inspector.tsx:244` → `style-mode-bar.tsx` |
 | Style preset | S › Colors & surface | | ✅ `style-tools.tsx:63` (Apply preset) |
-| Surface: Glass / Matte (light) / Matte (dark) / Theme | S › Colors & surface | | ✅ `standard-settings.ts:263` |
+| Surface: Auto (the skin's card; same as unset), Glass / Matte (light) / Matte (dark) / Theme, plus 12 generic cards (Solid, Outline, Flat, Tinted, Aurora, Neon, Holo, Mesh, Carbon, Inset, Studio, Terminal). Panels and plain cards keep the four materials. A skin pick sets Auto | S › Colors & surface | | ✅ `standard-settings.ts` (`surface`); swatches `surface-picker.tsx` |
 | Accent | S › Colors & surface | | ✅ `standard-settings.ts:276` |
 | Background image (upload / URL / drop), use as background | S › Colors & surface | Adv | ✅ `standard-settings.ts:277` (Adv) → `setting-control.tsx:141` → `media-field.tsx:30` (upload / URL / drop) |
 | Surface opacity, background blur | S › Colors & surface | | ✅ `standard-settings.ts:203,213` |
@@ -247,24 +247,25 @@ Enter each widget's **exact** current fields from its settings component. The pr
 |---|---|---|
 | Appearance: scope All profiles / This profile | Dash › Appearance › Scope | ✅ `appearance-panel.tsx:41` (`document-inspector.tsx:198`) |
 | Force global style (Inherit / On / Off; dashboard or per profile) | Dash › Appearance › Scope | ✅ `appearance-panel.tsx:14,41` |
-| Presets gallery (9 appearance presets, one undo step; background only where none is set unless "Replace the page background") | Dash › Appearance › Appearance presets | ✅ `appearance-gallery.tsx:187` (9 built-ins `src/lib/appearance-presets.ts`; one undo step `use-appearance-presets.ts`) |
+| Presets gallery (saved looks, one undo step; background only where none is set unless "Replace the page background"). The 9 built-ins are replaced by the skin gallery (14 live skins, a pick sets surface Auto) and the surface / theme swatches | Dash › Appearance › Skins; Theme & surface | ✅ `skin-gallery.tsx`, `appearance-gallery.tsx` (saved looks), `surface-picker.tsx`, `theme-panel.tsx` (theme swatches) |
 | Save the current look as a preset | Same section | ✅ `appearance-gallery.tsx:267` |
 | Global style (general cards at dashboard or profile level) | Dash › Global style (scope-aware note) | ✅ Global style tab `inspector-model.ts:305`, note `:548` |
-| Page › Theme colors (19 tokens, 6 presets, radius) | Dash › Appearance › Theme (rarely used tokens = Adv) | ✅ `theme-panel.tsx:6,72` (13 editable tokens; decisions #7, #8) |
+| Page › Theme colors (19 tokens, 6 presets; corner radius moved to Dash › Profile › Profile) | Dash › Appearance › Theme & surface › Theme (6 swatches, then the editable tokens; Surface, Background opacity and Background blur sit above) | ✅ `theme-panel.tsx:6,72` (13 editable tokens; decisions #7, #8) |
 | Page › Background (none/color/gradient/image/video, fit, position, dim, tint, blur; video rules) | Dash › Appearance › Page background | ✅ `background-panel.tsx:51`, `background-editor.tsx:40` |
 | General › Type (font) | Dash › General › Type | ✅ `general-panel.tsx:67` |
 | General › Clock & date (12/24 h, seconds, locale) | Dash › General › Clock & date | ✅ `general-panel.tsx` (doc:clock) |
 | General › Display (motion, hide cursor in kiosk) | Dash › General › Display | ✅ `general-panel.tsx:119` |
 | Connection (Data API URL) | Dash › General › Connection | ✅ `data-api-panel.tsx:15` |
 | (+) Connection: Test connection (testing / connected / not reachable) and the "Open API index" link | Dash › General › Connection | ✅ `data-api-panel.tsx:60,73` |
-| (+) Appearance gallery: Rename… / Delete on saved looks; image badge on looks that bring a background | Dash › Appearance › Appearance presets | ✅ `appearance-gallery.tsx:59` (Rename… / Delete), image badge on the card |
-| (+) After applying a preset: banner "N widgets keep their own style · N profiles have their own look" with **Make them follow** and Dismiss | Dash › Appearance › Appearance presets | ✅ `appearance-gallery.tsx:150` |
+| (+) Appearance gallery: Rename… / Delete on saved looks; image badge on looks that bring a background | Dash › Appearance › Skins › Saved looks | ✅ `appearance-gallery.tsx:59` (Rename… / Delete), image badge on the card |
+| (+) After applying a preset: banner "N widgets keep their own style · N profiles have their own look" with **Make them follow** and Dismiss | Dash › Appearance › Skins › Saved looks | ✅ `appearance-gallery.tsx:150` |
 | (+) Commands "Make all widgets follow global style", "Force global style…" and "Apply appearance: …" | Palette entries; also an action row in Dash › Appearance | ✅ palette entries `commands.ts` → `use-studio-commands.ts`; action row "Make all widgets follow" in Dash › Appearance › Scope `appearance-panel.tsx:90` (`presets.clearOverrides`, `document-inspector.tsx`) |
 | (+) Page background media: Upload… (drop a file on the field too), typed URL (Enter or blur), Library popover (delete a file, clean up unused files after a confirm), live preview, poster image | Dash › Appearance › Page background | ✅ `media-field.tsx:30` (Upload, drop, typed URL), library `media-library.tsx:36` (delete, clean up `:121`), preview, poster `background-video.tsx:13` |
 | (+) Video options: Loop, Muted, Speed (0.5×–2×), Poster, performance hint | Dash › Appearance › Page background | ✅ `background-video.tsx:13` |
 | (+) Background Effects: Dim, Tint colour + opacity, Blur (0–40 px) | Dash › Appearance › Page background | ✅ `background-editor.tsx:120` |
+| (+) Page background, All profiles scope: when the active profile has its own background the editor warns, with **Use this one** (profile inherits) and **Edit <profile>'s** (switch scope); Appearance opens on This profile when the profile has its own style, force setting or background | Dash › Appearance › Page background | ✅ `background-panel.tsx` (`background-panel.test.tsx`), `document-inspector.tsx` |
 | (+) Per-profile background modes Inherit / Custom / None; Custom starts from the dashboard background | Dash › Profile › This profile | ✅ `inspector/profile-sections.tsx:212`, `background-panel.tsx:51` |
-| (+) Theme: six colour-only swatches that leave the radius alone; "edited" tag when tokens match no preset; Custom starts from the dashboard theme for a profile | Dash › Appearance › Theme | ✅ `theme-panel.tsx:72`, `profile-theme-panel.tsx:31` |
+| (+) Theme: six colour-only swatches that leave the radius alone; "edited" tag when tokens match no preset; Custom starts from the dashboard theme for a profile | Dash › Appearance › Theme & surface | ✅ `theme-panel.tsx`, `profile-theme-panel.tsx` |
 | (+) Six theme tokens (`popover`, `popover-foreground`, `secondary-foreground`, `accent-foreground`, `destructive-foreground`, `input`) are in the config and presets but not editable | Keep unreachable, or Adv (`settings-inventory.md` question 7) | ✅ (decision #7) no row |
 | (+) General › Clock & date locale list (14 locales plus System; an unknown saved locale is kept as an option) | Dash › General › Clock & date | ✅ `general-panel.tsx:35` |
 
@@ -326,7 +327,9 @@ Rows from `docs/redesign/widgets/docs/CLAUDE_CODE.md` §3, plus the six template
 | Other sensors on the shell (one Sensor card per unclaimed key) | Library › Generic; Style (card look, Surface default Theme) | ✅ `src/modules/other-sensors.tsx`, `src/widgets/SensorValue.tsx` |
 | Sensor Group (auto-discovered rows) | Library › Generic; Content and Data per its options | ✅ `src/widgets/SensorGroup.tsx`, `registry/b.ts:69` |
 | Skin (14) | Style › Look › Skin, Follow / Custom, source dot | ✅ `standard-settings.ts:69` (in `STYLE_SETTINGS`, so dashboard / profile / widget resolution, dots and presets apply); category `inspector-categories.ts:48`; skins `src/widgets/core/skins/*.ts` |
-| Variant (default / studio) | Style › Look › Variant | ✅ `standard-settings.ts:78`; drawn by `StudioView` in `core/views.tsx` |
+| Variant (default / studio) | Style › Size & alignment › Dense summary | ✅ `standard-settings.ts` (`variant`, key unchanged); drawn by `StudioView` in `core/views.tsx` |
+| Graph updates: Stepped / Smooth (look key `smoothing`; also Global style; reduced motion keeps graphs stepped) | Style › Look | ✅ `standard-settings.ts` (`smoothing`), `src/widgets/core/smoothing.ts`, `core/primitives.tsx` |
+| System Overview has no dividers between columns; KPI Tiles tiles have no borders | Widget look | ✅ `src/widgets/SystemOverview.tsx`, `src/widgets/KpiTiles.tsx` |
 | Graph style (6), Meter style (7) | Style › Look (Adv) | ✅ `standard-settings.ts:90,100`; resolved in `core/look.ts` `skinContext` |
 | Per-widget layout options (e.g. Now Playing layout and visualizer) | Content tab, per the widget's own sections; the standard Layout stays in Style › Size & alignment | ✅ Now Playing `src/widgets/NowPlaying/settings.ts:269` (`playerLayout`) and visualizer group `:71`; other widgets' options in `src/widgets/registry/a-settings.ts`, `registry/settings-kit.ts` and `registry/a.ts`–`e.ts` (a template prop named like a standard key is stored under another key, `PHASE9_PLAN.md` §3 rule 3) |
 | Shape-aware compact views (tile / strip / column) | Automatic by zone shape; Style › Look › Compact view = Off (Adv) keeps the full layout | ✅ shape `src/widgets/core/layout.ts:12`; switch `core/Widget.tsx:99`; setting `standard-settings.ts:110` |

@@ -180,8 +180,8 @@ function OverridesBanner({
 }
 
 /**
- * Appearance › Appearance presets: a 3-column gallery of whole looks
- * (built-ins, then the user's saved ones), applied to the scope of the
+ * Appearance › Skins › Saved looks: a 3-column gallery of the user's
+ * saved whole looks, applied to the scope of the
  * Scope section. One apply is one undo step.
  */
 export function AppearanceGallery({
@@ -207,6 +207,10 @@ export function AppearanceGallery({
 
   return (
     <div className="space-y-3">
+      <div className="text-[12.5px] text-ui-1">Saved looks</div>
+      {api.presets.length === 0 && (
+        <p className="text-[11px] leading-snug text-ui-4">Save the current theme, skin, style and background to reuse them.</p>
+      )}
       <div className="grid grid-cols-3 gap-2">
         {api.presets.map((preset) => (
           <PresetCard

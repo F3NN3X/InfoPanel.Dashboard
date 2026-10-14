@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { DashboardConfig, MonitorProfile, Placement } from "@/lib/layout";
 import { mainPage, profileWithPage } from "@/lib/pages";
-import { BUILTIN_APPEARANCE_PRESETS, presetTokens } from "@/lib/appearance-presets";
+import { presetTokens, type AppearancePreset } from "@/lib/appearance-presets";
 import {
   activePresetId,
   appliedMessage,
@@ -108,20 +108,21 @@ describe("appliedMessage", () => {
 });
 
 describe("activePresetId", () => {
-  const glass = BUILTIN_APPEARANCE_PRESETS.find((p) => p.id === "builtin:glass")!;
-  const dark = BUILTIN_APPEARANCE_PRESETS.find((p) => p.id === "builtin:dark")!;
+  const glass: AppearancePreset = { id: "look-glass", name: "Glass", description: "", theme: "zinc", radius: 0.75, style: { surface: "glass", blur: "16" } };
+  const dark: AppearancePreset = { id: "look-dark", name: "Dark", description: "", theme: "zinc", radius: 0.5, style: { surface: "matte-dark" } };
+  const looks = [dark, glass];
 
   it("finds the preset whose theme, radius and style the look has", () => {
     const look = { tokens: presetTokens(glass), radius: glass.radius, style: { ...glass.style, accent: "#fff" } };
-    expect(activePresetId(BUILTIN_APPEARANCE_PRESETS, look)).toBe("builtin:glass");
-    expect(activePresetId(BUILTIN_APPEARANCE_PRESETS, { ...look, style: dark.style, radius: dark.radius })).toBe(
-      "builtin:dark"
+    expect(activePresetId(looks, look)).toBe("look-glass");
+    expect(activePresetId(looks, { ...look, style: dark.style, radius: dark.radius })).toBe(
+      "look-dark"
     );
   });
 
   it("is undefined for a look matching none", () => {
     expect(
-      activePresetId(BUILTIN_APPEARANCE_PRESETS, { tokens: presetTokens(dark), radius: 0.1, style: dark.style })
+      activePresetId(looks, { tokens: presetTokens(dark), radius: 0.1, style: dark.style })
     ).toBeUndefined();
   });
 });

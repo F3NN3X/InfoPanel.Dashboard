@@ -11,8 +11,6 @@ import {
   saveAppearancePreset,
 } from "./appearance-preset-apply";
 import {
-  BUILTIN_APPEARANCE_PRESETS,
-  allAppearancePresets,
   invalidStyleKeys,
   isValidStyleValue,
   presetTokens,
@@ -62,34 +60,31 @@ const config = (extra: Partial<DashboardConfig> = {}): DashboardConfig => ({
 
 const ALL = { kind: "all" } as const;
 const P1 = { kind: "profile", profileId: "p1" } as const;
-const byName = (name: string) => BUILTIN_APPEARANCE_PRESETS.find((p) => p.name === name)!;
-const glass = byName("Glass");
-const light = byName("Light");
+// Saved looks as the user would store them (the former Glass and Light built-ins).
+const glass: AppearancePreset = {
+  id: "look-glass",
+  name: "Glass",
+  description: "See-through blurred cards over a colour wash",
+  theme: "zinc",
+  radius: 0.75,
+  style: { surface: "glass", surfaceOpacity: 60, blur: "16", borderWidth: "1", borderColor: "#ffffff26" },
+  background: { type: "image", src: "/assets/bg/aurora.png", fit: "cover", dim: 20 },
+};
+const light: AppearancePreset = {
+  id: "look-light",
+  name: "Light",
+  description: "Paper theme, light cards everywhere",
+  theme: "paper",
+  radius: 0.75,
+  style: { surface: "theme" },
+};
 
-describe("built-in appearance presets", () => {
-  it("are the planned set with unique ids", () => {
-    expect(BUILTIN_APPEARANCE_PRESETS.map((p) => p.name)).toEqual([
-      "Dark", "Light", "Glass", "Frosted", "Matte", "Neon", "Minimal", "Ocean", "Forest",
-    ]);
-    expect(new Set(BUILTIN_APPEARANCE_PRESETS.map((p) => p.id)).size).toBe(BUILTIN_APPEARANCE_PRESETS.length);
-  });
-
-  it.each(BUILTIN_APPEARANCE_PRESETS.map((p) => [p.name, p] as const))(
-    "%s uses valid look keys, options, theme and background",
-    (_, preset) => {
-      expect(Object.keys(preset.style).every((k) => PROFILE_STYLE_KEYS.has(k))).toBe(true);
-      expect(invalidStyleKeys(preset.style)).toEqual([]);
-      expect(THEME_PRESETS.some((t) => t.tokens === presetTokens(preset))).toBe(true);
-      expect(preset.radius).toBeGreaterThanOrEqual(0);
-      expect(preset.radius).toBeLessThanOrEqual(1.25);
-      if (preset.background) expect(normalizeBackground(preset.background)).toEqual(preset.background);
-    }
-  );
-
-  it("lists the user's presets after the built-ins", () => {
-    const mine = { ...light, id: "mine", name: "Mine" };
-    expect(allAppearancePresets([mine]).at(-1)).toBe(mine);
-    expect(allAppearancePresets(undefined)).toHaveLength(BUILTIN_APPEARANCE_PRESETS.length);
+describe("look fixtures", () => {
+  it.each([glass, light].map((p) => [p.name, p] as const))("%s uses valid look keys, options, theme and background", (_, preset) => {
+    expect(Object.keys(preset.style).every((k) => PROFILE_STYLE_KEYS.has(k))).toBe(true);
+    expect(invalidStyleKeys(preset.style)).toEqual([]);
+    expect(THEME_PRESETS.some((t) => t.tokens === presetTokens(preset))).toBe(true);
+    if (preset.background) expect(normalizeBackground(preset.background)).toEqual(preset.background);
   });
 });
 

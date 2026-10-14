@@ -1,7 +1,7 @@
 // Primitives: icons, numerals, meters, rings, graphs, chips, images and the inline visualiser.
 // Text and track colours come from the shell's --w-* variables (decision 5); labels, alignment and gaps follow
 // the standard look's --wp-* variables, with the primitive's own value as the fallback.
-import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from "react";
 import { has, clamp, fmt } from "./data";
 import { mix } from "./tokens";
 import { useSkin, STATE, TONES, tone } from "./theme";
@@ -9,6 +9,8 @@ import { iconFor } from "./icons";
 import type { Tone } from "./types";
 import { cn } from "@/lib/utils";
 import { labelStyle, ws } from "@/components/widget-style";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
+import { RangeEaser, scrollPoints, useAnimationFrame, useFeedClock, type ScrollPoint } from "./smoothing";
 
 /* ───────── primitives ───────── */
 // Material Symbols names rendered as lucide icons (see icons.ts); sized by the font size like the glyphs were.
@@ -59,10 +61,15 @@ export interface BarProps {
   track?: string;
   style?: string;
 }
+/** How long a smooth bar or ring glides to a new reading: about one sample interval of the feed. */
+const GLIDE_MS = 1000;
+
 export function Bar({ value, max = 100, t = "ok", className = "h-1.5", track = "bg-[color:var(--w-track)]", style: meterStyle }: BarProps) {
   const sk = useSkin();
   const m = meterStyle ?? sk.meter ?? "bar";
   const pct = clamp((value / max) * 100);
+  // Smooth graph updates: glide linearly over about one sample interval instead of easing.
+  const glide = sk.smooth ? { transition: `width ${GLIDE_MS}ms linear` } : null;
   if (m === "segments" || m === "blocks") {
     const n = m === "blocks" ? 14 : 24,
       lit = Math.round((pct / 100) * n);
@@ -92,19 +99,19 @@ export function Bar({ value, max = 100, t = "ok", className = "h-1.5", track = "
   if (m === "square")
     return (
       <div className={cn("w-full border border-[color:var(--w-fg)]/70 bg-transparent p-[1px] min-h-[8px]", className)}>
-        <div className="h-full transition-[width] duration-500" style={{ width: `${pct}%`, background: TONES[t] }} />
+        <div className="h-full transition-[width] duration-500" style={{ width: `${pct}%`, background: TONES[t], ...glide }} />
       </div>
     );
   if (m === "hair")
     return (
       <div className={cn("relative w-full", className)}>
         <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-[color:var(--w-track)]" />
-        <div className="absolute left-0 top-1/2 h-[2px] -translate-y-1/2 transition-[width] duration-500" style={{ width: `${pct}%`, background: TONES[t] }} />
+        <div className="absolute left-0 top-1/2 h-[2px] -translate-y-1/2 transition-[width] duration-500" style={{ width: `${pct}%`, background: TONES[t], ...glide }} />
       </div>
     );
   return (
     <div className={cn("w-full overflow-hidden rounded-full", m === "pill" ? "bg-[color:var(--w-track)] min-h-[6px]" : track, className)}>
-      <div className="h-full rounded-full transition-[width] duration-500 ease-out" style={{ width: `${pct}%`, background: m === "pill" && t === "ok" ? `linear-gradient(90deg, ${mix(70, "#fff")}, var(--accent))` : TONES[t] }} />
+      <div className="h-full rounded-full transition-[width] duration-500 ease-out" style={{ width: `${pct}%`, background: m === "pill" && t === "ok" ? `linear-gradient(90deg, ${mix(70, "#fff")}, var(--accent))` : TONES[t], ...glide }} />
     </div>
   );
 }
@@ -154,7 +161,7 @@ export function Ring({ value, max = 100, thickness: th0 = 8, t = "ok", color, ch
       <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
         <circle cx="50" cy="50" r={r} fill="none" stroke="var(--w-track)" strokeWidth={thickness} />
         <circle cx="50" cy="50" r={r} fill="none" stroke={color ?? TONES[t]} strokeWidth={thickness} strokeLinecap={sk.skin === "hud" || sk.skin === "tui" ? "butt" : "round"}
-          strokeDasharray={c} strokeDashoffset={c * (1 - pct)} style={{ transition: "stroke-dashoffset .6s ease-out" }} />
+          strokeDasharray={c} strokeDashoffset={c * (1 - pct)} style={{ transition: sk.smooth ? `stroke-dashoffset ${GLIDE_MS}ms linear` : "stroke-dashoffset .6s ease-out" }} />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">{children}</div>
     </div>
@@ -191,7 +198,7 @@ export function RingStack({ rings, thickness: th0 = 9, gap = 3, children, classN
               <g key={i}>
                 <circle cx="50" cy="50" r={r} fill="none" stroke={track ?? "var(--w-track)"} strokeWidth={thickness} />
                 <circle cx="50" cy="50" r={r} fill="none" stroke={color} strokeWidth={thickness} strokeLinecap={cap}
-                  strokeDasharray={c} strokeDashoffset={c * (1 - clamp(v || 0) / 100)} style={{ transition: "stroke-dashoffset .7s ease-out" }} />
+                  strokeDasharray={c} strokeDashoffset={c * (1 - clamp(v || 0) / 100)} style={{ transition: sk.smooth ? `stroke-dashoffset ${GLIDE_MS}ms linear` : "stroke-dashoffset .7s ease-out" }} />
               </g>
             );
           })}
@@ -278,20 +285,105 @@ export interface SparkProps {
   width?: number;
   graph?: string;
 }
+/** The line and area paths of a line / area / step graph over [lo, hi]; the points' x runs 0–100. */
+function sparkPaths(pts: readonly ScrollPoint[], lo: number, hi: number, step: boolean): { line: string; area: string } {
+  const span = hi - lo || 1;
+  const P: Pt[] = pts.map(([x, v]) => [x, Math.min(98, Math.max(2, 100 - ((v - lo) / span) * 94 - 3))]);
+  const line = step ? P.reduce((a, p, i) => (i ? `${a}H${p[0].toFixed(2)}V${p[1].toFixed(2)}` : `M${p[0].toFixed(2)},${p[1]}`), "") : smoothPath(P);
+  const x0 = P[0][0].toFixed(2);
+  return { line, area: step ? `${line}V100H${x0}Z` : `${line}L100,100L${x0},100Z` };
+}
+
+/** The auto range of a graph: the given bounds, else the data's (headroom on top). */
+const sparkRange = (values: readonly number[], min?: number, max?: number): [number, number] => [min ?? Math.min(...values), max ?? Math.max(...values) * 1.08];
+
+interface GraphPathsProps {
+  values: number[];
+  min?: number;
+  max?: number;
+  step: boolean;
+  /** Draw the area (or the step fill) under the line. */
+  fill: boolean;
+  fillId: string;
+  color: string;
+  strokeWidth: number;
+}
+
+/** The fill gradient, fill and line of a line / area / step graph. */
+function GraphPaths({ line, area, step, fill, fillId, color, strokeWidth, refs }: { line: string; area: string; step: boolean; fill: boolean; fillId: string; color: string; strokeWidth: number; refs?: { line: RefObject<SVGPathElement | null>; area: RefObject<SVGPathElement | null> } }) {
+  return (
+    <>
+      <defs>
+        <linearGradient id={fillId} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0" stopColor={color} stopOpacity=".32" />
+          <stop offset=".7" stopColor={color} stopOpacity=".06" />
+          <stop offset="1" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      {fill && <path ref={refs?.area} d={area} fill={step ? color : `url(#${fillId})`} opacity={step ? 0.08 : undefined} />}
+      <path ref={refs?.line} d={line} fill="none" stroke={color} strokeWidth={strokeWidth} vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />
+    </>
+  );
+}
+
+/**
+ * A line / area / step graph that glides between samples (`smoothing: smooth`): the newest sample
+ * slides in from the right over one measured interval and the auto range eases. React renders it
+ * once per sample; the animation loop writes the paths through refs.
+ */
+function SmoothGraph({ values, min, max, step, fill, fillId, color, strokeWidth, className, style }: GraphPathsProps & { className: string; style?: CSSProperties }) {
+  const line = useRef<SVGPathElement>(null);
+  const area = useRef<SVGPathElement>(null);
+  const clock = useFeedClock(values);
+  const easer = useRef(new RangeEaser(300));
+  const fixed = min !== undefined && max !== undefined;
+  // visible = n - 1: the oldest sample sits just left of the edge, so the left side never gaps while it scrolls
+  const at = (t: number, range: [number, number]) => sparkPaths(scrollPoints(values, values.length - 1, t), range[0], range[1], step);
+  useAnimationFrame((now, dt) => {
+    if (!line.current) return;
+    const pts = scrollPoints(values, values.length - 1, clock.progress(now));
+    const target = sparkRange(pts.map((p) => p[1]), min, max);
+    const d = sparkPaths(pts, ...(fixed ? target : easer.current.next(target, dt)), step);
+    line.current.setAttribute("d", d.line);
+    area.current?.setAttribute("d", d.area);
+  });
+  const first = at(1, sparkRange(values, min, max));
+  return (
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none" className={`block w-full overflow-hidden ${className}`} style={style}>
+      <GraphPaths line={first.line} area={first.area} step={step} fill={fill} fillId={fillId} color={color} strokeWidth={strokeWidth} refs={{ line, area }} />
+    </svg>
+  );
+}
+
+export interface SparkProps {
+  values?: number[];
+  min?: number;
+  max?: number;
+  className?: string;
+  fill?: boolean;
+  color?: string;
+  width?: number;
+  graph?: string;
+}
 // Graph styles: area · line · step · bars · dots · braille (from the skin, or pass graph=)
 export function Spark({ values = [], min, max, className = "h-10", fill = true, color = "var(--accent)", width = 1.75, graph }: SparkProps) {
   const id = `sp${useId().replace(/:/g, "")}`;
   const sk = useSkin();
+  const reduced = useReducedMotion();
   const mode = graph ?? sk.graph ?? "area";
   if (values.length < 2) return <div className={className} />;
-  const lo = min ?? Math.min(...values),
-    hi = max ?? Math.max(...values) * 1.08,
-    span = hi - lo || 1;
+  const [lo, hi] = sparkRange(values, min, max);
   if (mode === "braille") return <Braille values={values} lo={lo} hi={hi} className={className} />;
+  const glow = sk.glow ? { filter: "drop-shadow(0 0 4px var(--accent))" } : undefined;
+  const step = mode === "step";
+  const strokeWidth = (sk.skin === "ink" ? 1 : width) * sk.stroke;
+  const showFill = fill && (mode === "area" || step);
+  if (sk.smooth && !reduced && (mode === "area" || mode === "line" || step) && values.length >= 3)
+    return <SmoothGraph values={values} min={min} max={max} step={step} fill={showFill} fillId={id} color={color} strokeWidth={strokeWidth} className={className} style={glow} />;
+  const span = hi - lo || 1;
   const Y = (v: number) => Math.min(98, Math.max(2, 100 - ((v - lo) / span) * 94 - 3));
-  const pts: Pt[] = values.map((v, i) => [(i / (values.length - 1)) * 100, Y(v)]);
   const svg = (kids: ReactNode) => (
-    <svg viewBox="0 0 100 100" preserveAspectRatio="none" className={`block w-full overflow-visible ${className}`} style={sk.glow ? { filter: "drop-shadow(0 0 4px var(--accent))" } : undefined}>
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none" className={`block w-full overflow-visible ${className}`} style={glow}>
       {kids}
     </svg>
   );
@@ -307,22 +399,8 @@ export function Spark({ values = [], min, max, className = "h-10", fill = true, 
       )
     );
   }
-  const line = mode === "step" ? pts.reduce((a, p, i) => (i ? `${a}H${p[0].toFixed(2)}V${p[1].toFixed(2)}` : `M${p[0]},${p[1]}`), "") : smoothPath(pts);
-  const showFill = fill && mode === "area";
-  return svg(
-    <>
-      <defs>
-        <linearGradient id={id} x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0" stopColor={color} stopOpacity=".32" />
-          <stop offset=".7" stopColor={color} stopOpacity=".06" />
-          <stop offset="1" stopColor={color} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      {showFill && <path d={`${line}L100,100L0,100Z`} fill={`url(#${id})`} />}
-      {mode === "step" && fill && <path d={`${line}V100H0Z`} fill={color} opacity=".08" />}
-      <path d={line} fill="none" stroke={color} strokeWidth={(sk.skin === "ink" ? 1 : width) * sk.stroke} vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />
-    </>
-  );
+  const d = sparkPaths(values.map((v, i) => [(i / (values.length - 1)) * 100, v]), lo, hi, step);
+  return svg(<GraphPaths line={d.line} area={d.area} step={step} fill={showFill} fillId={id} color={color} strokeWidth={strokeWidth} />);
 }
 
 export const Dot = ({ ok, className = "" }: { ok?: boolean; className?: string }) => (

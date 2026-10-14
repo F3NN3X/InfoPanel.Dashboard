@@ -32,8 +32,8 @@ const MODES = [
  * dashboard's). Custom starts from the dashboard's current theme.
  */
 export function ProfileThemePanel({ dashboard, profile, profileName, onChange, query = "" }: ProfileThemePanelProps) {
-  const custom = profile.theme !== undefined || profile.radius !== undefined;
-  const { tokens, radius } = resolveTheme(dashboard, profile);
+  const custom = profile.theme !== undefined;
+  const { tokens } = resolveTheme(dashboard, profile);
   const presetName = THEME_PRESETS.find((p) => JSON.stringify(p.tokens) === JSON.stringify(tokens))?.name ?? "custom";
 
   // While searching the mode switch only lists when it is what matches.
@@ -46,18 +46,16 @@ export function ProfileThemePanel({ dashboard, profile, profileName, onChange, q
           options={MODES}
           value={custom ? "custom" : "inherit"}
           onChange={(mode) =>
-            onChange(mode === "inherit" ? {} : { theme: { ...dashboard.theme }, radius: dashboard.radius })
+            onChange({ theme: mode === "inherit" ? undefined : { ...dashboard.theme }, radius: profile.radius })
           }
         />
       )}
       {custom ? (
         <ThemePanel
           tokens={tokens}
-          radius={radius}
           presetName={presetName}
           query={query}
           onToken={(key, value) => onChange({ ...profile, theme: { ...tokens, [key]: value } }, `profile-theme:${key}`)}
-          onRadius={(r) => onChange({ ...profile, radius: r }, "profile-radius")}
           onPreset={(name) => {
             const preset = THEME_PRESETS.find((p) => p.name === name);
             if (preset) onChange({ ...profile, theme: { ...preset.tokens } });
@@ -65,8 +63,7 @@ export function ProfileThemePanel({ dashboard, profile, profileName, onChange, q
         />
       ) : (
         <p className="text-[11px] leading-snug text-ui-4">
-          <span className="text-ui-2">{profileName}</span> uses the dashboard&apos;s theme colours and corner radius
-          (All profiles).
+          <span className="text-ui-2">{profileName}</span> uses the dashboard&apos;s theme colours (All profiles).
         </p>
       )}
     </div>

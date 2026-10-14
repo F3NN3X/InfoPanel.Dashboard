@@ -6,8 +6,8 @@ import { DEFAULT_THEME, THEME_PRESETS, type ThemePresetName, type ThemeTokens } 
 /**
  * Appearance presets — a whole dashboard look in one click: theme colours
  * and corner radius (dashboard-wide), the global widget style (the look
- * keys, `PROFILE_STYLE_KEYS`) and optionally a page background. Built-ins
- * ship here; the user's own live in `config.appearancePresets`. Applying
+ * keys, `PROFILE_STYLE_KEYS`) and optionally a page background. They are
+ * the user's saved looks, in `config.appearancePresets`. Applying
  * one is `applyAppearancePreset` (appearance-preset-apply.ts).
  *
  * Not to be confused with a widget's style presets (`config.stylePresets`,
@@ -29,99 +29,10 @@ export interface AppearancePreset {
   background?: PageBackground;
 }
 
-/** The bundled background of the Glass / Frosted presets (tools/gen-bg.mjs). */
-export const AURORA_BACKGROUND = "/assets/bg/aurora.png";
-
-export const BUILTIN_APPEARANCE_PRESETS: readonly AppearancePreset[] = [
-  {
-    id: "builtin:dark",
-    name: "Dark",
-    description: "Zinc theme, solid dark cards",
-    theme: "zinc",
-    radius: 0.5,
-    style: { surface: "matte-dark" },
-  },
-  {
-    id: "builtin:light",
-    name: "Light",
-    description: "Paper theme, light cards everywhere",
-    theme: "paper",
-    radius: 0.75,
-    style: { surface: "theme" },
-  },
-  {
-    id: "builtin:glass",
-    name: "Glass",
-    description: "See-through blurred cards over a colour wash",
-    theme: "zinc",
-    radius: 0.75,
-    style: { surface: "glass", surfaceOpacity: 60, blur: "16", borderWidth: "1", borderColor: "#ffffff26" },
-    background: { type: "image", src: AURORA_BACKGROUND, fit: "cover", dim: 20 },
-  },
-  {
-    id: "builtin:frosted",
-    name: "Frosted",
-    description: "Heavier frost, softly glowing edges",
-    theme: "zinc",
-    radius: 1,
-    style: { surface: "glass", surfaceOpacity: 40, blur: "24", glow: "soft", borderWidth: "1", borderColor: "#ffffff1f" },
-    background: { type: "image", src: AURORA_BACKGROUND, fit: "cover", dim: 35 },
-  },
-  {
-    id: "builtin:matte",
-    name: "Matte",
-    description: "Neutral greys, rounder solid cards",
-    theme: "neutral",
-    radius: 0.75,
-    style: { surface: "matte-dark", radius: "12" },
-  },
-  {
-    id: "builtin:neon",
-    name: "Neon",
-    description: "Slate, cyan accents, glowing mono type",
-    theme: "slate",
-    radius: 0.5,
-    style: {
-      surface: "matte-dark",
-      accent: "#22d3ee",
-      glow: "strong",
-      borderWidth: "1",
-      borderColor: "#22d3ee",
-      font: "mono",
-    },
-  },
-  {
-    id: "builtin:minimal",
-    name: "Minimal",
-    description: "No cards or borders, content only",
-    theme: "zinc",
-    radius: 0.5,
-    // No surface: a transparent theme card (every widget kind has one).
-    style: { surface: "theme", surfaceOpacity: 0, borderWidth: "0", padding: "8" },
-  },
-  {
-    id: "builtin:ocean",
-    name: "Ocean",
-    description: "Deep blue theme cards",
-    theme: "ocean",
-    radius: 0.75,
-    style: { surface: "theme" },
-  },
-  {
-    id: "builtin:forest",
-    name: "Forest",
-    description: "Deep green theme cards",
-    theme: "forest",
-    radius: 0.75,
-    style: { surface: "theme" },
-  },
-];
-
-/** Built-ins first, then the user's own. */
-export function allAppearancePresets(user: AppearancePreset[] | undefined): AppearancePreset[] {
-  return [...BUILTIN_APPEARANCE_PRESETS, ...(user ?? [])];
-}
-
+/**
+ * The `builtin:` id prefix is reserved: the built-in looks were replaced by the
+ * skin gallery, and stored presets may never take one of their ids.
+ */
 export const isBuiltinPreset = (id: string): boolean => id.startsWith("builtin:");
 
 /** A preset's theme tokens (a named theme resolved). */

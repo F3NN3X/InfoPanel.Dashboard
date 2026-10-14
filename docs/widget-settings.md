@@ -92,7 +92,8 @@ Every widget spreads
 | `background` | image | `""` | background image URL |
 | `backgroundOn` | boolean | `false` | use that image behind the surface |
 | `skin` | select | `auto` | auto / one of the 14 skins (see Look below) |
-| `variant` | select | `default` | default / studio (see Look below) |
+| `smoothing` | select | `stepped` | Graph updates: stepped (jump to each reading) / smooth (line, area and step graphs scroll in over the measured sample interval with an eased range; bars and rings glide linearly). Reduced motion keeps it stepped (`core/smoothing.ts`) |
+| `variant` | select | `default` | Dense summary: default (Off) / studio (On); under Size & alignment |
 | `graph` | select | `auto` | graph style: auto / area / line / step / bars / dots / braille (Advanced) |
 | `meter` | select | `auto` | meter style: auto / bar / pill / segments / blocks / hair / wave / square (Advanced) |
 | `compactView` | select | `auto` | auto / off: off keeps the full layout in small zones (Advanced) |
@@ -129,7 +130,7 @@ keys are listed in `GENERAL_CATEGORIES`):
 | Category | Keys |
 |---|---|
 | Widget | `label`, `icon`, `hideWhenIdle` (plus the type picker and *Visible*, added by the zone) |
-| Look | `skin`, `variant`, `graph`, `meter`, `compactView` (the last three are Advanced) |
+| Look | `skin`, `graph`, `meter`, `compactView` (the last three are Advanced); `variant` sits in Size & alignment |
 | Size & alignment | `layout`, `autoScale`, `scale`, `alignX` / `alignY` |
 | Typography | `textColor`, `mutedColor`, `font`, `fontWeight`, `labelCase` |
 | Spacing & shape | `padding`, `gap`, `radius`, `stroke` |

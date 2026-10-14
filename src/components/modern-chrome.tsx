@@ -83,6 +83,8 @@ export interface ModernChrome {
   blur?: number;
   /** User CSS, scoped to this widget (`:scope` = the root). */
   customCss?: string;
+  /** Graph updates: glide between samples (`smooth`) or jump to each (`stepped`, the default). */
+  smoothing?: "smooth" | "stepped";
 }
 
 export function ModernChrome({

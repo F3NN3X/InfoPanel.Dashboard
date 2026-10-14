@@ -43,7 +43,7 @@ describe("look settings", () => {
   it("file under a Look category in Style, with graph, meter and compact view advanced", () => {
     const look = categorize(STANDARD_SETTINGS).find((c) => c.title === "Look")!;
     expect(look.general).toBe(true);
-    expect(look.defs.map((d) => d.key)).toEqual(["skin", "variant", "graph", "meter", "compactView"]);
+    expect(look.defs.map((d) => d.key)).toEqual(["skin", "graph", "meter", "smoothing", "compactView"]);
     expect(categoryTab(look)).toBe("style");
     expect(categoryAdvanced(look)).toBe(false);
     expect(look.defs.filter((d) => isAdvanced(d, look)).map((d) => d.key)).toEqual(["graph", "meter", "compactView"]);
