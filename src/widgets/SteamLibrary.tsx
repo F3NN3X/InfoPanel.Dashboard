@@ -26,7 +26,17 @@ export default function SteamLibrary(p: SteamLibraryProps) {
   return (
     <Widget {...shell(p)} title={p.title ?? "Library"} icon="library_books" compact={{ label: "Steam library", value: num(L("total-games")), unit: "games", sub: `${fmt(num(L("total-playtime")))} hrs played`, kind: "value" }}>
       {({ size, h }) => {
-        if (size === "xs") return <Metric value={num(L("total-games"))} scale="lg" sub={`${fmt(num(L("total-playtime")))} hrs played`} label="Games" className="h-full justify-center" />;
+        // xs: the numerals by height (the big-numeral skins step them up a size); the sub line from 80px, the label from 48px
+        if (size === "xs")
+          return (
+            <Metric
+              value={num(L("total-games"))}
+              scale={h === 0 || h >= 100 ? "lg" : h >= 60 ? "md" : "sm"}
+              sub={h === 0 || h >= 80 ? `${fmt(num(L("total-playtime")))} hrs played` : undefined}
+              label={h === 0 || h >= 48 ? "Games" : undefined}
+              className="h-full justify-center"
+            />
+          );
         // The recent-games rows and then the news rows take what the metrics leave of the height.
         const recentN = size === "sm" ? 0 : Math.max(1, Math.floor((h - 110) / 34));
         const newsN = (p.showNews ?? size === "lg") ? Math.max(0, Math.floor((h - 110 - recentN * 34 - 50) / 32)) : 0;
