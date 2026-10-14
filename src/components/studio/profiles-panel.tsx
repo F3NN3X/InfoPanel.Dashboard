@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { AlertDialog } from "@base-ui/react/alert-dialog";
 import { Menu } from "@base-ui/react/menu";
 import { Check, MoreHorizontal, Plus } from "lucide-react";
 import { IconButton } from "@/components/ui/icon-button";
@@ -19,8 +20,8 @@ interface ProfilesPanelProps {
   /** Switch to a profile id, or "auto" to match the window size. */
   onActivate: (id: string) => void;
   onAddProfile: () => void;
-  /** Delete the active profile. */
-  onRemoveProfile: () => void;
+  /** Delete a profile (after the confirm dialog). */
+  onRemoveProfile: (id: string) => void;
   /** Patch the active profile's own fields (name). */
   onProfileChange: (patch: Partial<MonitorProfile>) => void;
   /** Open Dashboard › Profile (size, grid, spacing, theme, style, background). */
@@ -63,7 +64,7 @@ function RowMenu({
   onDelete,
 }: {
   profile: MonitorProfile;
-  /** Only the active profile can be deleted (and never the last one). */
+  /** Any profile but the last one can be deleted. */
   canDelete: boolean;
   onRename: () => void;
   onSettings: () => void;
@@ -109,6 +110,48 @@ function RowMenu({
         </Menu.Positioner>
       </Menu.Portal>
     </Menu.Root>
+  );
+}
+
+const DIALOG_BUTTON =
+  "inline-flex h-8 items-center rounded-[7px] border border-ui-strong bg-ui-raised px-3 text-[12.5px] font-medium text-ui-2 transition-colors hover:bg-ui-hover hover:text-ui-1";
+
+/** Confirm deleting a profile with its pages and zones. */
+function DeleteDialog({
+  profile,
+  onConfirm,
+  onClose,
+}: {
+  profile: MonitorProfile | undefined;
+  onConfirm: () => void;
+  onClose: () => void;
+}) {
+  const n = profile?.pages.length ?? 0;
+  return (
+    <AlertDialog.Root open={profile !== undefined} onOpenChange={(open) => !open && onClose()}>
+      <AlertDialog.Portal>
+        <AlertDialog.Backdrop className="fixed inset-0 z-50 bg-black/50" />
+        <AlertDialog.Popup className="fixed left-1/2 top-1/2 z-50 w-[24rem] -translate-x-1/2 -translate-y-1/2 space-y-3 rounded-xl border border-ui-strong bg-ui-raised p-4 font-ui text-ui-1 shadow-ui-modal outline-none">
+          <AlertDialog.Title className="text-sm font-semibold text-ui-1">Delete {profile?.name}?</AlertDialog.Title>
+          <AlertDialog.Description className="text-xs leading-relaxed text-ui-3">
+            This removes the profile and its {n === 1 ? "page" : `${n} pages`}. Undo (Ctrl+Z) brings it back.
+          </AlertDialog.Description>
+          <div className="flex items-center justify-end gap-2 pt-1">
+            <AlertDialog.Close render={<button type="button" className={DIALOG_BUTTON} />}>Cancel</AlertDialog.Close>
+            <button
+              type="button"
+              className="inline-flex h-8 items-center rounded-[7px] bg-ui-danger px-3 text-[12.5px] font-semibold text-ui-inverse-fg transition-opacity hover:opacity-90"
+              onClick={() => {
+                onConfirm();
+                onClose();
+              }}
+            >
+              Delete profile
+            </button>
+          </div>
+        </AlertDialog.Popup>
+      </AlertDialog.Portal>
+    </AlertDialog.Root>
   );
 }
 
@@ -166,6 +209,7 @@ export function ProfilesPanel({
 }: ProfilesPanelProps) {
   const toast = useToast();
   const [renaming, setRenaming] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const auto = activeProfile === "auto";
   const autoName = profiles.find((p) => p.id === autoProfileId)?.name ?? "—";
   return (
@@ -222,7 +266,7 @@ export function ProfilesPanel({
               {active && <Check className="h-[17px] w-[17px] shrink-0 text-[oklch(0.80_0.12_255)]" aria-label="Active" />}
               <RowMenu
                 profile={p}
-                canDelete={active && profiles.length > 1}
+                canDelete={profiles.length > 1}
                 onRename={() => {
                   if (!active) onActivate(p.id);
                   setRenaming(true);
@@ -231,7 +275,7 @@ export function ProfilesPanel({
                   if (!active) onActivate(p.id);
                   onOpenSettings();
                 }}
-                onDelete={onRemoveProfile}
+                onDelete={() => setDeletingId(p.id)}
               />
             </div>
           );
@@ -251,6 +295,11 @@ export function ProfilesPanel({
           background.
         </p>
       </div>
+      <DeleteDialog
+        profile={profiles.find((p) => p.id === deletingId)}
+        onConfirm={() => deletingId && onRemoveProfile(deletingId)}
+        onClose={() => setDeletingId(null)}
+      />
     </>
   );
 }

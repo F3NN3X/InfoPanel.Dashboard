@@ -25,7 +25,7 @@ import { DEFAULT_THEME, THEME_PRESETS } from "./theme";
 
 const zone = (id: string, extra: Partial<Placement> = {}): Placement => ({
   id,
-  module: "systemmodern",
+  module: "SystemOverview",
   colStart: 1,
   rowStart: 1,
   colSpan: 1,
@@ -52,7 +52,7 @@ const profile = (id: string, extra: Partial<MonitorProfile> = {}): MonitorProfil
 });
 
 const config = (extra: Partial<DashboardConfig> = {}): DashboardConfig => ({
-  version: 3,
+  version: 4,
   activeProfile: "auto",
   profiles: [profile("p1"), profile("p2")],
   theme: DEFAULT_THEME,

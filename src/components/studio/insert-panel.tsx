@@ -29,47 +29,8 @@ export type InsertCategory = (typeof INSERT_CATEGORIES)[number];
 const isInsertCategory = (c: string | undefined): c is InsertCategory =>
   INSERT_CATEGORIES.includes(c as InsertCategory);
 
-/** Category of the legacy widget module ids; a module's own `category` wins, anything else is "Generic". */
-const MODULE_CATEGORIES: Record<string, InsertCategory> = {
-  systemmodern: "System",
-  hardwaremodern: "Hardware",
-  networkmodern: "Network",
-  spotifymodern: "Media",
-  mediamodern: "Media",
-  audiomodern: "Audio",
-  wavelinkmodern: "Audio",
-  weathermodern: "Info",
-  vbz: "Info",
-  notifications: "Info",
-  textfile: "Info",
-  steammodern: "Gaming",
-  fpsmodern: "Gaming",
-  bluetoothmodern: "Generic",
-  streamdeck: "Generic",
-  webpage: "Generic",
-  [CARDS_ID]: "Generic",
-};
-
-/** The first half of each widget card's description (the card appends "· min W×H"). */
-const MODULE_DESCRIPTIONS: Record<string, string> = {
-  systemmodern: "CPU, RAM and GPU load",
-  hardwaremodern: "Temperatures, fans and power",
-  fpsmodern: "Frame rate and frame times",
-  spotifymodern: "Now playing on Spotify",
-  mediamodern: "Whatever media is playing",
-  audiomodern: "Audio devices and levels",
-  wavelinkmodern: "Wave Link mixer",
-  steammodern: "Steam profile and game",
-  networkmodern: "Throughput and totals",
-  bluetoothmodern: "Connected devices",
-  weathermodern: "Conditions and forecast",
-  vbz: "Public transport departures",
-  notifications: "Recent notifications",
-  textfile: "Show a text file",
-  webpage: "Embed a web page",
-  streamdeck: "Stream Deck keys",
-  [CARDS_ID]: "Every other sensor",
-};
+/** The "Other sensors" card's description (the card appends "· min W×H"); a module brings its own. */
+const CARDS_DESCRIPTION = "Every other sensor";
 
 /** Category per built-in panel preset id; anything not listed is "Generic". */
 const PRESET_CATEGORIES: Record<string, InsertCategory> = {
@@ -126,15 +87,15 @@ export const isBlankZone = (i: Insertable): boolean => i.kind === "module" && i.
 /** Every widget, the blank zone, layout starter, panel preset and saved panel, categorised. */
 export function insertables(saved?: UserPanelPreset[]): Insertable[] {
   return [
-    ...ALL_MODULES.filter((m) => !m.libraryHidden).map(
+    ...ALL_MODULES.map(
       (m): Insertable => ({
         kind: "module",
         id: m.id,
         title: m.title,
-        description: m.description ?? MODULE_DESCRIPTIONS[m.id],
+        description: m.description ?? (m.id === CARDS_ID ? CARDS_DESCRIPTION : undefined),
         cols: m.minCols,
         rows: m.minRows,
-        category: isInsertCategory(m.category) ? m.category : (MODULE_CATEGORIES[m.id] ?? "Generic"),
+        category: isInsertCategory(m.category) ? m.category : "Generic",
         icon: m.icon,
         defaultSize: m.defaultSize,
       })

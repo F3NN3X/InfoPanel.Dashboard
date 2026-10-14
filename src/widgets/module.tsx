@@ -8,23 +8,6 @@ import { SKINS } from "./core/theme";
 import type { ShellProps, WidgetMeta } from "./core/types";
 import { toFlat, toNames } from "./data-adapter";
 
-/**
- * A legacy module id that renders through a template: its own identity, footprint and full
- * settings, hidden from the Library. Its category, icon, description and drop size come from the
- * Library's legacy tables, as before the port.
- */
-export interface AliasOptions {
-  id: string;
-  title: string;
-  minCols: number;
-  minRows: number;
-  prefixes: string[];
-  /** The legacy settings array, kept key for key; default the settings block + the template's own. */
-  settings?: ModuleSetting[];
-  /** The legacy "nothing to show" rule over the resolved settings: the zone renders nothing while it holds. */
-  hidden?: (sensors: SensorMap, settings: ModuleSettings) => boolean;
-}
-
 export interface TemplateOptions<P extends object> {
   meta: WidgetMeta;
   Component: ComponentType<ShellProps & { look?: ModuleSettings } & P>;
@@ -40,8 +23,6 @@ export interface TemplateOptions<P extends object> {
   title?: string;
   /** The settings block before the template's own; default `STANDARD_SETTINGS`. */
   base?: ModuleSetting[];
-  /** Makes this a Library-hidden alias of the template under a legacy id. */
-  alias?: AliasOptions;
 }
 
 /** A select value that means "unset": `auto` or empty. */
@@ -97,27 +78,26 @@ export function useZoneLook(defs: ModuleSetting[], saved: ModuleSettings | undef
   return look;
 }
 
-export function templateModule<P extends object>({ meta, Component, settings, toProps, isIdle, prefixes, title, base, alias }: TemplateOptions<P>): DashboardModule {
-  const all = alias?.settings ?? [...(base ?? STANDARD_SETTINGS), ...settings];
+export function templateModule<P extends object>({ meta, Component, settings, toProps, isIdle, prefixes, title, base }: TemplateOptions<P>): DashboardModule {
+  const all = [...(base ?? STANDARD_SETTINGS), ...settings];
   const surfaceDefault = String(all.find((d) => d.key === "surface")?.default ?? "glass");
   const mod: DashboardModule = {
-    id: alias?.id ?? meta.id,
-    title: alias?.title ?? title ?? meta.name,
-    minCols: alias?.minCols ?? meta.minSize[0],
-    minRows: alias?.minRows ?? meta.minSize[1],
-    prefixes: alias?.prefixes ?? meta.prefixes,
+    id: meta.id,
+    title: title ?? meta.name,
+    minCols: meta.minSize[0],
+    minRows: meta.minSize[1],
+    prefixes: meta.prefixes,
     reads: prefixes,
-    readsAll: !SENSORLESS.has(meta.id) && (alias?.prefixes ?? meta.prefixes).length === 0 && !prefixes?.length ? true : undefined,
+    readsAll: !SENSORLESS.has(meta.id) && meta.prefixes.length === 0 && !prefixes?.length ? true : undefined,
     settings: all,
-    libraryHidden: alias ? true : undefined,
     isIdle,
-    category: alias ? undefined : meta.category,
-    icon: alias ? undefined : meta.icon,
-    description: alias ? undefined : meta.description,
-    defaultSize: alias ? undefined : meta.defaultSize,
+    category: meta.category,
+    icon: meta.icon,
+    description: meta.description,
+    defaultSize: meta.defaultSize,
     // No data renders nothing, so the kiosk hides the zone and the studio says "no live data yet".
     render: (sensors, saved) =>
-      (!SENSORLESS.has(meta.id) && !hasKeys(sensors, [...mod.prefixes, ...(mod.reads ?? [])])) || alias?.hidden?.(sensors, effectiveSettings(mod, saved)) ? null : (
+      !SENSORLESS.has(meta.id) && !hasKeys(sensors, [...mod.prefixes, ...(mod.reads ?? [])]) ? null : (
         <TemplateZone sensors={sensors} saved={saved} />
       ),
   };

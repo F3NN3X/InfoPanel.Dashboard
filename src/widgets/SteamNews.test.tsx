@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { renderModule } from "@/modules/port-helpers";
+import { renderModule } from "@/widgets/test-render";
 import { TEMPLATE_MODULES } from "./registry";
 
 describe("SteamNews studio variant", () => {

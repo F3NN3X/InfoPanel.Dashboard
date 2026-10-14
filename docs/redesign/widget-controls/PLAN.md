@@ -15,7 +15,7 @@ Wave 1 changes some rendering on purpose. DriveSpace row bars and the critical p
 documented critical value, instead of 90. KpiTiles and SensorGroup no longer show the author's
 hardware.
 
-### Wave 1 status (done, uncommitted)
+### Wave 1 status (done, merged in PR #6)
 
 All items are in except one. B3.1 DiskIO got a single-disk pin, not a multi-select, because
 `DevicePicker` has no multiple mode.
@@ -34,7 +34,7 @@ Checks: typecheck, test (168 files, 3815 passed) and build all pass. A `?widget-
 changed templates (14 skins × 2 variants × cells 110 / 150, 5,264 zones) gave 0 overflow and 0 error
 tiles. FpsMonitor gauge and trend with a target set are clean as well.
 
-## Wave 2 (decided 2026-10-13, done, uncommitted)
+## Wave 2 (decided 2026-10-13, done, merged in PR #6)
 
 - **X1, wired in:** alignment, label case and gap now reach template bodies (see "Template bodies" in
   `docs/widget-settings.md`). Default renders were pixel-compared: 544 shots, and the only differences

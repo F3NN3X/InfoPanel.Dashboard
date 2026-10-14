@@ -16,6 +16,8 @@ The spec is in `docs/redesign/`. Read `README.md` → `DATA_MODEL.md` → `FEATU
   component, list in the commit message where each of its features now lives.
 - **Backward compatibility.** Existing configs (dashboard, profiles, zones, panels, presets)
   load and render unchanged. Never rename a setting key or change a default without a migration.
+  The old legacy module ids are gone; zones that still carry one are migrated to their template on
+  load (config v4, `src/lib/legacy-zones.ts`).
 - **Model:** dashboard → profile → zone (widget / panel / blank). Widget minimum sizes are
   enforced everywhere.
 - **Styling:** effective value = widget value (only when Custom and Force global is off) ??
@@ -36,8 +38,8 @@ The spec is in `docs/redesign/`. Read `README.md` → `DATA_MODEL.md` → `FEATU
 
 Every widget is a template in `src/widgets/<Id>.tsx` rendered inside the `<Widget>` shell
 (`src/widgets/core/`), registered through `templateModule` (`src/widgets/module.tsx`, registry in
-`src/widgets/registry/`). The legacy module ids in `src/modules/` are aliases of templates with their
-old settings arrays; never change those arrays. The plan and decisions are in
+`src/widgets/registry/`). `src/modules/` holds the shared module types, the standard settings and Other sensors. The
+plan and decisions are in
 `docs/redesign/PHASE9_PLAN.md`; the rendering path, skins and data adapter in `docs/architecture.md`.
 
 - **Settings:** build them with `src/widgets/registry/settings-kit.ts`; every setting reaches the template

@@ -2,15 +2,14 @@ import { describe, expect, it } from "vitest";
 import { mainPage, pageOf } from "./pages";
 import { panelLegacyLook } from "./panel-model";
 import {
-  ARCV2_PROFILE_ID,
-  ARCV2_PROFILE_VERSION,
+  CONFIG_VERSION,
   PANEL_ID,
-  SAMPLE_PROFILE_ID,
-  arcv2Profile,
+  defaultConfig,
   mergeConfig,
   type PanelDef,
   type StoredProfile,
 } from "./layout";
+import { arcv2Profile } from "./__fixtures__/arcv2-profile";
 
 const legacyPanel: PanelDef = {
   id: "p",
@@ -33,26 +32,70 @@ const userProfile = (extra: Partial<StoredProfile> = {}): StoredProfile => ({
   fit: "fill",
   placements: [
     { id: "a", module: PANEL_ID, colStart: 1, rowStart: 1, colSpan: 4, rowSpan: 1, visible: true, panel: legacyPanel },
-    { id: "b", module: "systemmodern", colStart: 5, rowStart: 1, colSpan: 4, rowSpan: 1, visible: true },
+    { id: "b", module: "SystemOverview", colStart: 5, rowStart: 1, colSpan: 4, rowSpan: 1, visible: true },
   ],
   ...extra,
 });
 
 describe("mergeConfig", () => {
-  it("fills a missing config with the defaults (shipped profiles included)", () => {
+  it("fills a missing config with the defaults: one blank profile", () => {
     const c = mergeConfig({});
-    expect(c.version).toBe(3);
+    expect(c.version).toBe(4);
     expect(c.activeProfile).toBe("auto");
-    const ids = c.profiles.map((p) => p.id);
-    expect(ids).toContain(SAMPLE_PROFILE_ID);
-    expect(ids).toContain(ARCV2_PROFILE_ID);
+    expect(c.profiles).toHaveLength(1);
+    expect(c.profiles[0]).toMatchObject({ id: "main", width: 1920, height: 1080 });
+    expect(c.profiles[0].pages).toHaveLength(1);
+    expect(pageOf(c.profiles[0]).placements).toEqual([]);
     expect(c.stylePresets).toBeUndefined();
     expect(c.panelPresets).toBeUndefined();
   });
 
-  it("keeps user profiles and re-injects the shipped ones", () => {
+  it("gives a fresh install the same one blank profile", () => {
+    const c = defaultConfig();
+    expect(c.version).toBe(CONFIG_VERSION);
+    expect(c.profiles.map((p) => p.id)).toEqual(["main"]);
+    expect(pageOf(c.profiles[0]).placements).toEqual([]);
+  });
+
+  it("keeps user profiles and injects no sample profile", () => {
     const ids = mergeConfig({ profiles: [userProfile()] }).profiles.map((p) => p.id);
-    expect(ids).toEqual(["mine", SAMPLE_PROFILE_ID, ARCV2_PROFILE_ID]);
+    expect(ids).toEqual(["mine"]);
+  });
+
+  it("keeps a stored copy of a formerly shipped profile as it is", () => {
+    const old = { ...arcv2Profile(), sampleVersion: 4, pages: [mainPage()] };
+    const arc = mergeConfig({ profiles: [userProfile(), old] }).profiles.find((p) => p.id === "arcv2")!;
+    expect(arc.sampleVersion).toBe(4);
+    expect(pageOf(arc).placements).toEqual([]);
+  });
+
+  it("moves a v3 config to v4, rewriting legacy zones on every page and leaving others alone", () => {
+    const legacy = (id: string, module: string, settings?: Record<string, string | boolean>) => ({ id, module, colStart: 1, rowStart: 1, colSpan: 2, rowSpan: 1, visible: true, settings });
+    const stored = {
+      ...userProfile(),
+      placements: undefined,
+      pages: [
+        { id: "one", name: "One", placements: [legacy("s", "systemmodern", { showCores: true }), legacy("u", "someplugin", { x: "1" })] },
+        { id: "two", name: "Two", placements: [legacy("t", "textfile")] },
+      ],
+    };
+    const c = mergeConfig({ version: 3, profiles: [stored] });
+    expect(c.version).toBe(4);
+    const [one, two] = c.profiles[0].pages;
+    expect(one.placements[0]).toMatchObject({ id: "s", module: "SystemOverview", settings: { coreView: "heatmap", sections: "cpu,gpu,vram,ram" } });
+    expect(one.placements[0].settings).not.toHaveProperty("showCores");
+    expect(one.placements[1]).toEqual(legacy("u", "someplugin", { x: "1" }));
+    expect(two.placements[0]).toMatchObject({ id: "t", module: "TextFile", settings: { surface: "theme" } });
+    // Already migrated: merging again changes nothing.
+    expect(mergeConfig(JSON.parse(JSON.stringify(c)))).toEqual(JSON.parse(JSON.stringify(c)));
+  });
+
+  it("leaves a card's surface to a dashboard or profile style that picks one", () => {
+    const textfile = { id: "t", module: "textfile", colStart: 1, rowStart: 1, colSpan: 2, rowSpan: 1, visible: true };
+    const surfaceOf = (c: ReturnType<typeof mergeConfig>) => pageOf(c.profiles[0]).placements[0].settings?.surface;
+    expect(surfaceOf(mergeConfig({ profiles: [userProfile({ placements: [textfile] })], style: { surface: "glass" } }))).toBeUndefined();
+    expect(surfaceOf(mergeConfig({ profiles: [userProfile({ placements: [textfile], style: { surface: "matte-dark" } })] }))).toBeUndefined();
+    expect(surfaceOf(mergeConfig({ profiles: [userProfile({ placements: [textfile], style: { surface: "auto" } })] }))).toBe("theme");
   });
 
   it("normalizes panel placements and leaves module placements alone", () => {
@@ -71,12 +114,6 @@ describe("mergeConfig", () => {
     expect(mergeConfig(JSON.parse(JSON.stringify(once)))).toEqual(JSON.parse(JSON.stringify(once)));
   });
 
-  it("replaces an outdated shipped profile with the current version", () => {
-    const old = { ...arcv2Profile(), sampleVersion: ARCV2_PROFILE_VERSION - 1, pages: [mainPage()] };
-    const arc = mergeConfig({ profiles: [old] }).profiles.find((p) => p.id === ARCV2_PROFILE_ID)!;
-    expect(arc.sampleVersion).toBe(ARCV2_PROFILE_VERSION);
-    expect(pageOf(arc).placements.length).toBeGreaterThan(0);
-  });
 
   it("keeps the dashboard style and its force switch, dropping malformed ones", () => {
     const merged = mergeConfig({ profiles: [userProfile()], style: { accent: "#ff0000" }, styleEnforce: true });

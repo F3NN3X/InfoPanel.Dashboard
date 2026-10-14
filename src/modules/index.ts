@@ -1,57 +1,37 @@
-import {
-  spotifyModernModule,
-  mediaModernModule,
-} from "./modern-media";
-import { weatherModernModule } from "./weather-modern";
-import { steamModernModule } from "./steam-modern";
-import { systemModernModule } from "./system-modern";
-import { fpsModernModule } from "./fps-modern";
-import { hardwareModernModule } from "./hardware-modern";
-import { audioModernModule } from "./audio-modern";
-import { wavelinkModernModule } from "./wavelink-modern";
-import { bluetoothModernModule } from "./bluetooth-modern";
-import { networkModernModule } from "./network-modern";
-import { vbzModule } from "./vbz";
-import { notificationsModule } from "./notifications";
-import { textfileModule } from "./textfile";
-import { streamdeckModule } from "./streamdeck";
-import { webpageModule } from "./webpage";
 import { TEMPLATE_MODULES } from "@/widgets/registry";
 import type { DashboardModule } from "./types";
 
 /**
- * Dashboard module registry. Each InfoPanel plugin (or value source) is a
- * self-contained module: it claims its own sensor keys and renders its own
- * section. Add a new plugin by adding a module here — the App renders
- * everything registered and feeds unclaimed keys to the generic fallback.
+ * Dashboard module registry: the template widgets (`src/widgets/registry.ts`). The App renders
+ * everything registered and feeds unclaimed keys to the generic fallback ("Other sensors").
  */
-const legacyModules: DashboardModule[] = [
-  systemModernModule,
-  spotifyModernModule,
-  mediaModernModule,
-  steamModernModule,
-  hardwareModernModule,
-  weatherModernModule,
-  fpsModernModule,
-  audioModernModule,
-  wavelinkModernModule,
-  vbzModule,
-  bluetoothModernModule,
-  networkModernModule,
-  notificationsModule,
-  textfileModule,
-  streamdeckModule,
-  webpageModule,
+export const modules: DashboardModule[] = TEMPLATE_MODULES;
+
+/**
+ * The plugins a built-in widget covers (the keys the retired legacy modules claimed): their keys stay
+ * out of the "Other sensors" catch-all whether or not such a widget is placed.
+ */
+const claimedPrefixes = [
+  "system.cpu.",
+  "system.ram.",
+  "spotify.",
+  "plugins.spotify-plugin.",
+  "plugins.media-plugin.",
+  "plugins.InfoPanel.SteamAPI.",
+  "libre.",
+  "hwinfo.",
+  "plugins.yr-weather-plugin.",
+  "plugins.InfoPanel.RTSS.",
+  "plugins.fps-plugin.",
+  "plugins.audio-level-meter.",
+  "plugins.InfoPanel.VBZ.",
+  "plugins.bluetooth-battery-plugin.",
+  "plugins.InfoPanel.Notifications.",
+  "plugins.InfoPanel.TextFile.",
+  "plugins.InfoPanel.StreamDeck.",
 ];
 
-/** The legacy modules, then the template widgets (`src/widgets/registry.ts`). */
-export const modules: DashboardModule[] = [...legacyModules, ...TEMPLATE_MODULES];
-
-// Only the legacy modules claim keys for the "Other sensors" catch-all: a template's prefixes count
-// as claimed only while it is placed, so listing it in the registry must not empty the catch-all.
-const claimedPrefixes = legacyModules.flatMap((m) => m.prefixes);
-
-/** True when a registered module owns the key. */
+/** True when a built-in widget covers the key. */
 export function isClaimed(key: string): boolean {
   return claimedPrefixes.some((p) => key.startsWith(p));
 }

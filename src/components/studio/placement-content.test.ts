@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import { placementContent, placementPrefixes } from "./placement-content";
 import { BLANK_MODULE, CARDS_ID, type Placement } from "@/lib/layout";
 import { YR_FORECAST_KEY } from "@/lib/sensors";
-import { modules } from "@/modules";
 import { SENSORLESS } from "@/widgets/module";
 import { TEMPLATE_MODULES } from "@/widgets/registry";
 import { fixtureSensors } from "@/widgets/__fixtures__";
@@ -13,9 +12,11 @@ const place = (extra: Partial<Placement>): Placement =>
 
 describe("placementPrefixes", () => {
   it("reads a module's owned and read prefixes", () => {
-    expect(placementPrefixes(place({ module: "systemmodern" }))).toEqual(["system.cpu.", "system.ram.", "libre."]);
-    expect(placementPrefixes(place({ module: "mediamodern" }))).toEqual([
+    expect(placementPrefixes(place({ module: "Departures" }))).toEqual(["plugins.InfoPanel.VBZ."]);
+    expect(placementPrefixes(place({ module: "NowPlaying" }))).toEqual([
       "plugins.media-plugin.",
+      "plugins.spotify-plugin.",
+      "spotify.",
       "plugins.audio-level-meter.",
     ]);
   });
@@ -40,13 +41,12 @@ describe("placementPrefixes", () => {
   it("needs everything for the cards grid and nothing for blank or sensorless zones", () => {
     expect(placementPrefixes(place({ module: CARDS_ID }))).toBeNull();
     expect(placementPrefixes(place({ module: BLANK_MODULE }))).toEqual([]);
-    expect(placementPrefixes(place({ module: "wavelinkmodern" }))).toEqual([]);
     expect(placementPrefixes(place({ module: "unknown" }))).toEqual([]);
   });
 
   it("subscribes a template that reads unnamed keys to every stream, but not a sensorless one", () => {
     for (const id of ["SystemOverview", "SensorValue", "Thermals", "GameSpotlight"]) expect(placementPrefixes(place({ module: id }))).toBeNull();
-    for (const id of ["WaveLink", "WebPage", "webpage"]) expect(placementPrefixes(place({ module: id }))).toEqual([]);
+    for (const id of ["WaveLink", "WebPage"]) expect(placementPrefixes(place({ module: id }))).toEqual([]);
   });
 
   it("subscribes a template to the streams it reads but does not own", () => {
@@ -57,22 +57,13 @@ describe("placementPrefixes", () => {
 });
 
 describe("placementContent", () => {
-  it("shows a System widget set to Disks only when just drive data exists", () => {
-    const drives = {
-      "libre.x_nvme_used_space": { value: 10, unit: "%", name: "X NVMe Used Space" },
-    } as never;
-    const disksOnly = place({ module: "systemmodern", settings: { devices: "disk" } });
-    expect(placementContent(disksOnly, drives, []).hasData).toBe(true);
-    expect(placementContent(place({ module: "systemmodern" }), drives, []).hasData).toBe(false);
-  });
-
   const paused = { "plugins.media-plugin.media.playback-state": { value: 1 } } as never;
   const playing = { "plugins.media-plugin.media.playback-state": { value: 2 } } as never;
 
   it("flags an idle widget only when it is set to hide when idle", () => {
-    const media = place({ module: "mediamodern" });
+    const media = place({ module: "NowPlaying", settings: { source: "media" } });
     expect(placementContent(media, paused, []).idle).toBe(false);
-    const hiding = place({ module: "mediamodern", settings: { hideWhenIdle: true } });
+    const hiding = place({ module: "NowPlaying", settings: { source: "media", hideWhenIdle: true } });
     expect(placementContent(hiding, paused, []).idle).toBe(true);
     expect(placementContent(hiding, playing, []).idle).toBe(false);
   });
@@ -81,11 +72,11 @@ describe("placementContent", () => {
     const accent = (p: Placement, a: Parameters<typeof placementContent>[3]) =>
       (placementContent(p, paused, [], a).scope as Record<string, string> | undefined)?.["--accent"];
     const global = { dashboard: { accent: "#ff0000" }, profile: { accent: "#00ff00" }, enforce: false };
-    const media = place({ module: "mediamodern" });
+    const media = place({ module: "NowPlaying" });
     expect(accent(media, undefined)).toBeUndefined();
     expect(accent(media, { dashboard: { accent: "#ff0000" }, enforce: false })).toBe("0 100% 50%");
     expect(accent(media, global)).toBe("120 100% 50%");
-    const own = place({ module: "mediamodern", settings: { accent: "#0000ff", hideWhenIdle: true } });
+    const own = place({ module: "NowPlaying", settings: { source: "media", accent: "#0000ff", hideWhenIdle: true } });
     expect(accent(own, global)).toBe("240 100% 50%");
     expect(accent({ ...own, styleMode: "follow" }, global)).toBe("120 100% 50%");
     expect(accent(own, { ...global, enforce: true })).toBe("120 100% 50%");
@@ -106,11 +97,6 @@ describe("template zones with no data", () => {
       expect(placementContent(p, {}, []).hasData, `${mod.id} empty`).toBe(SENSORLESS.has(mod.id));
       expect(placementContent(p, sensors, []).hasData, `${mod.id} fixture`).toBe(true);
     }
-  });
-
-  it("hides the legacy ids that alias a template like the template itself", () => {
-    const alias = modules.find((m) => m.id === "fpsmodern")!;
-    expect(placementContent(place({ module: alias.id }), {}, []).hasData).toBe(false);
   });
 });
 

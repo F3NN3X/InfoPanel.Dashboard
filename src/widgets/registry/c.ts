@@ -1,9 +1,8 @@
 // Template widgets, group C: media / audio (see docs/redesign/phase9/brief-9.3c-templates.md).
-import { audioSettings, ballisticsOf } from "@/modules/audio-modern";
 import { BALLISTICS } from "@/lib/audio/ballistics";
-import { WAVELINK_SETTINGS, wavelinkToProps } from "@/modules/wavelink-modern";
 import type { DashboardModule, ModuleSetting, ModuleSettings } from "@/modules/types";
 import { templateModule } from "../module";
+import { audioSettings, ballisticsOf, WAVELINK_SETTINGS, wavelinkToProps } from "./audio-settings";
 import { boolOf, boolSetting, colorSetting, deviceSetting, enumSetting, numberOf, numberSetting, oneOf, pick, splitKeys, stringOf } from "./settings-kit";
 import { IDLE_SETTING } from "@/modules/standard-settings";
 import AudioMeter, { meta as audioMeter, type AudioMeterProps } from "../AudioMeter";
@@ -99,7 +98,7 @@ export const GROUP_C: DashboardModule[] = [
     Component: NowPlaying,
     settings: [IDLE_SETTING, ...NOW_PLAYING_SETTINGS],
     isIdle: (sensors, s) => nowPlayingIdle(sensors, oneOf(s.source, ["auto", "media", "spotify", "pushed"])),
-    // the visualiser's levels: read, not owned (the legacy media modules do the same)
+    // the visualiser's levels: read, not owned
     prefixes: ["plugins.audio-level-meter."],
     // vizMode / vizDevice are stored under the legacy keys waveformVariant / liveSource (PHASE9_PLAN §3.2);
     // the keys the template no longer offers (vizEngine, the old shape keys) are read from the saved values
@@ -111,7 +110,7 @@ export const GROUP_C: DashboardModule[] = [
       ...shared,
       vizLook: { ...shared.vizLook, colorMode: colorModeOf(s, saved), peaks: boolOf(s.vizPeaks) },
       vizMode: vizStyleOf(hidden),
-      // unset / Auto = "" (the loudest live device), as the legacy media modules; undefined would pin default-audio
+      // unset / Auto = "" (the loudest live device); undefined would pin default-audio
       vizDevice: String(s.liveSource ?? ""),
       vizRamp: stringOf(s.vizRamp),
       };
@@ -204,5 +203,11 @@ export const GROUP_C: DashboardModule[] = [
       sensitivity: numberOf(s.sensitivity),
     }),
   }),
-  templateModule({ meta: waveLink, Component: WaveLink, settings: WAVELINK_SETTINGS, toProps: wavelinkToProps }),
+  templateModule({
+    meta: waveLink,
+    Component: WaveLink,
+    // the level colour also carries the old Wave Link widget's teal (config v4, `legacy-zones.ts`)
+    settings: [...WAVELINK_SETTINGS, colorSetting("levelColor", "Level color", { group: "Meter" })],
+    toProps: (s) => ({ ...wavelinkToProps(s), levelColor: stringOf(s.levelColor) }),
+  }),
 ];

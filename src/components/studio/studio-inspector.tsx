@@ -123,7 +123,7 @@ export function StudioInspector({
         activeProfile={profile}
         updateProfile={edit.updateProfile}
         canRemoveProfile={config.profiles.length > 1}
-        onRemoveProfile={edit.removeProfile}
+        onRemoveProfile={() => edit.removeProfile(profile.id)}
         autoPick={config.activeProfile === "auto"}
         onAutoPick={(auto) => edit.activateProfile(auto ? "auto" : profile.id)}
         pages={(config.profiles.find((p) => p.id === profile.id) ?? config.profiles[0]).pages}

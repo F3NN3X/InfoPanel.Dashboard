@@ -4,7 +4,7 @@ import { mainPage, pageOf } from "./pages";
 
 const zone = (id: string, extra: Partial<Placement> = {}): Placement => ({
   id,
-  module: "systemmodern",
+  module: "SystemOverview",
   colStart: 1,
   rowStart: 1,
   colSpan: 4,
@@ -34,9 +34,9 @@ describe("mergeConfig pages migration", () => {
     const merged = mergeOne({
       ...noRows,
       placements: [
-        { id: "a", module: "systemmodern", colSpan: 6, visible: true },
-        { id: "b", module: "systemmodern", colSpan: 6, visible: true },
-        { id: "c", module: "systemmodern", colSpan: 6, visible: true },
+        { id: "a", module: "SystemOverview", colSpan: 6, visible: true },
+        { id: "b", module: "SystemOverview", colSpan: 6, visible: true },
+        { id: "c", module: "SystemOverview", colSpan: 6, visible: true },
       ],
     } as unknown as StoredProfile);
     const [a, b, c] = merged.pages[0].placements;
@@ -97,19 +97,19 @@ describe("mergeConfig pages migration", () => {
     expect(mergeOne({ ...base }).rotate).toBeUndefined();
   });
 
-  it("stamps version 3 and is stable when merged again", () => {
+  it("stamps the current version and is stable when merged again", () => {
     const once = mergeConfig({ version: 2, profiles: [{ ...base, placements: [zone("a")] }] });
-    expect(once.version).toBe(3);
+    expect(once.version).toBe(4);
     expect(mergeConfig(JSON.parse(JSON.stringify(once)))).toEqual(JSON.parse(JSON.stringify(once)));
   });
 
-  it("emits pages from the shipped builders and new profiles", () => {
+  it("emits pages from the default profile and new profiles", () => {
     const config = mergeConfig({});
     for (const p of config.profiles) {
       expect(p.pages.length).toBeGreaterThan(0);
       expect(p).not.toHaveProperty("placements");
     }
-    expect(pageOf(config.profiles[0]).placements.length).toBeGreaterThan(0);
+    expect(pageOf(config.profiles[0]).placements).toEqual([]);
     expect(newProfile("n", 1920, 1080).pages).toEqual([mainPage()]);
   });
 });

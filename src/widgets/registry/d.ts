@@ -1,6 +1,4 @@
 // Template widgets, group D: gaming (see docs/redesign/phase9/brief-9.3c-templates.md).
-import { fpsModernModule } from "@/modules/fps-modern";
-import { steamModernModule } from "@/modules/steam-modern";
 import { IDLE_SETTING } from "@/modules/standard-settings";
 import type { DashboardModule, ModuleSetting, ModuleSettings } from "@/modules/types";
 import { templateModule } from "../module";
@@ -8,9 +6,9 @@ import { boolSetting, colorSettings, enumSetting, listOf, numberOf, numberSettin
 import Achievements, { meta as achievementsMeta, type AchievementsProps } from "../Achievements";
 import FpsMonitor, { meta as fpsMonitorMeta, type FpsMonitorProps } from "../FpsMonitor";
 import FramePacing, { meta as framePacingMeta, type FramePacingProps } from "../FramePacing";
-import { FPS_LOOK_SETTINGS, fpsLookProps } from "../fps-settings";
+import { FPS_LOOK_SETTINGS, fpsIdle, fpsLookProps } from "../fps-settings";
 import GameSpotlight, { meta as gameSpotlightMeta, type GameSpotlightProps } from "../GameSpotlight";
-import { SPOTLIGHT_COMPOSITE_SETTINGS, SPOTLIGHT_LAYOUT_SETTING, compositeProps } from "../spotlight-settings";
+import { SPOTLIGHT_COMPOSITE_SETTINGS, SPOTLIGHT_LAYOUT_SETTING, compositeProps, steamIdle } from "../spotlight-settings";
 import OsdStrip, { meta as osdStripMeta, type OsdCell, type OsdStripProps } from "../OsdStrip";
 import PlaytimeShare, { PALETTE, meta as playtimeShareMeta, type PlaytimeShareProps } from "../PlaytimeShare";
 import SteamGame, { meta as steamGameMeta, type SteamGameProps } from "../SteamGame";
@@ -52,7 +50,7 @@ export const GROUP_D: DashboardModule[] = [
   templateModule<Pick<FpsMonitorProps, "target" | "view" | "showMetrics" | "sparkline" | "ringColor" | "sparkColor">>({
     meta: fpsMonitorMeta,
     Component: FpsMonitor,
-    isIdle: fpsModernModule.isIdle,
+    isIdle: fpsIdle,
     settings: [
       IDLE_SETTING,
       {
@@ -75,7 +73,7 @@ export const GROUP_D: DashboardModule[] = [
   templateModule<Pick<GameSpotlightProps, "layout" | "motion" | "scrim" | "music" | "progress" | "vizMode" | "showStats" | "showNews">>({
     meta: gameSpotlightMeta,
     Component: GameSpotlight,
-    isIdle: steamModernModule.isIdle,
+    isIdle: steamIdle,
     settings: [
       IDLE_SETTING,
       SPOTLIGHT_LAYOUT_SETTING,
@@ -143,7 +141,7 @@ export const GROUP_D: DashboardModule[] = [
   templateModule<Pick<SteamGameProps, "art" | "scrim">>({
     meta: steamGameMeta,
     Component: SteamGame,
-    isIdle: steamModernModule.isIdle,
+    isIdle: steamIdle,
     settings: [
       IDLE_SETTING,
       enumSetting("art", "Artwork", "banner", [{ value: "banner", label: "Banner" }, { value: "grid", label: "Grid" }, { value: "none", label: "None" }], { group: "Steam game" }),

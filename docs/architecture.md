@@ -99,9 +99,10 @@ images, which it loads directly.
 
 A zone only re-renders when one of the keys it reads changes.
 
-- A module declares `prefixes` (keys it owns; the catch-all skips them, see
-  `isClaimed`) and optionally `reads` (further prefixes it reads without
-  owning). `moduleReads(mod)` is both (`src/modules/index.ts`).
+- A module declares `prefixes` (keys it owns) and optionally `reads` (further
+  prefixes it reads without owning). `moduleReads(mod)` is both
+  (`src/modules/index.ts`). The "Other sensors" catch-all skips the keys of
+  the plugins a built-in widget covers (`isClaimed`, a fixed prefix list).
 - `placementPrefixes(placement)` returns what a placement subscribes to
   (`src/components/studio/placement-content.tsx`): `[]` for a blank zone,
   the bound sensor keys of the visible widgets for a custom panel,
@@ -184,8 +185,7 @@ Placement.settings
   shared materials (`makeSurface`, the theme surface, `surfaceColors` /
   `surfaceTokens`) in `src/components/surfaces.ts`. The keys and their effects
   are in [widget-settings.md](widget-settings.md).
-- Every zone type that is a module goes this way: the 50 library templates, the
-  legacy ids (aliases of a template, `alias` in `templateModule`) and the
+- Every zone type that is a module goes this way: the library templates and the
   "Other sensors" catch-all (`src/modules/other-sensors.tsx`, one `SensorValue`
   per unclaimed key). Only custom panels take the other pipeline (below).
 - `ModernChrome` (`src/components/modern-chrome.tsx`) is now the root of
@@ -277,7 +277,7 @@ development tool only.
 
 ### Audio visualiser (`src/widgets/core/viz/`)
 
-One engine draws every visualiser (NowPlaying and the legacy media widgets through `MediaProgress`,
+One engine draws every visualiser (NowPlaying through `MediaProgress`,
 GameSpotlight's music card, the Visualizer widget); it replaces `MiniViz`, `BarVisualizer` and
 `LiveWaveform` and their sources (`sensor-visual-source`, `bar-levels`, `history-playback`).
 
@@ -351,7 +351,7 @@ least one widget is visible.
 
 ### Types (`src/lib/layout.ts`)
 
-- `DashboardConfig` - `version: 3`, `activeProfile` (a profile id or `"auto"`),
+- `DashboardConfig` - `version: 4` (`CONFIG_VERSION`), `activeProfile` (a profile id or `"auto"`),
   `profiles`, `theme`, `radius`, `dataApiUrl?`, `stylePresets?`,
   `panelPresets?`, `sourcePrefs?`, `background?` (the page background),
   `style?` (the dashboard style, every profile), `styleEnforce?`
@@ -365,7 +365,8 @@ least one widget is visible.
   `background` (replaces the dashboard's; `{ type: "none" }` turns it off
   for the profile), `theme` (a partial `ThemeTokens` over the dashboard's
   theme) and `radius` (rem), `gap` and `padding` (px, see `profile-grid.ts`)
-  and `sampleVersion`.
+  and `sampleVersion` (set on the profiles earlier versions shipped; kept, no
+  longer read).
 - `ProfileView` - one page of a profile as the studio and kiosk edit and draw it:
   the profile minus `pages`, plus that page's `placements` and `pageId`.
   `src/lib/pages.ts` converts (`profileWithPage`, `applyView`, `onPage`) and
@@ -450,13 +451,23 @@ for both the local copy and the server copy:
   to the retired DataBridge forecast keys to the yr plugin's forecast key;
 - fills explicit zone boxes and row counts on old auto-flow profiles and
   clamps every zone into its grid;
-- re-adds the shipped profiles `sample-1920x1080` and `arcv2` when missing,
-  and replaces a saved copy whose `sampleVersion` differs from the shipped
-  `SAMPLE_PROFILE_VERSION` / `ARCV2_PROFILE_VERSION`;
 - v2 to v3: a profile with `placements` and no `pages` gets
   `pages: [{ id: "main", name: "Main", placements }]` (none of either: one
   empty Main page); stored pages get unique ids and names, and `rotate` is
   clamped (`normalizeRotate`). The output has no `placements` key;
+- v3 to v4 (`src/lib/legacy-zones.ts`): every zone with a retired legacy
+  module id (`systemmodern`, `spotifymodern`, `textfile`, … `LEGACY_MODULE_IDS`)
+  becomes a zone of the template that rendered it, its settings rewritten so
+  it renders the same: stored keys the template reads carry over, the old
+  widget's defaults are written where the template's differ, its own keys
+  are turned into the template's, the rest is dropped. The plain cards
+  (`vbz`, `notifications`, `textfile`, `streamdeck`) get `surface: "theme"`
+  unless the dashboard or the zone's profile style picks a surface. Unknown
+  ids pass through. The server refuses a save from an older version
+  (`server/config-guard.mjs`), so a v3 build cannot write back over v4;
+- no shipped profile is added: a fresh install (`defaultConfig`) has one
+  blank profile, `main`. Stored copies of the formerly shipped Sample and
+  ARCv2 profiles stay as they are;
 - falls back to `activeProfile: "auto"` when the pinned id no longer exists;
 - merges `theme` over the default theme, and keeps `dataApiUrl` only when it
   is a valid http(s) URL;
@@ -795,7 +806,8 @@ menus come from `zone-menu.ts` (pure specs: `zoneMenu`, `canvasMenu`,
 `menuAction`) rendered by `zone-context-menu.tsx`. A library drag from Add
 shows the ghost from `drop-ghost.ts` (`dropSize`, `zoneFits`: a dashed
 "Drop here" or a red "No room"). `canvas-cards.tsx` holds the empty-layout
-card and the first-run quick tips (`quick-tips.ts`, flag `studio.tipDismissed`).
+card (Browse, or Use sample layout: the `sampleLayout()` template in
+`src/lib/sample-layout.ts`, copied by `withSampleZones`) and the first-run quick tips (`quick-tips.ts`, flag `studio.tipDismissed`).
 `trackPointer` (`pointer-drag.ts`) follows every drag: pointer move, release,
 Esc or window blur cancel it.
 

@@ -282,12 +282,12 @@ Widgets that offer more than one *layout* get a separate module-specific
 preset that sets the module's own option keys:
 
 ```ts
-// hardware-modern.tsx — "Temp gauges" flips the widget to arc gauges
+// registry/b.ts — NetworkThroughput's "Totals" view also turns on the totals row and the sparkline
 {
-  key: "view", label: "View", type: "select", default: "list",
+  key: "view", label: "View", type: "select", default: "speeds",
   options: [
-    { value: "list", label: "Reading list" },
-    { value: "temps", label: "Temp gauges", applies: { showFans: true } },
+    { value: "speeds", label: "Speeds" },
+    { value: "totals", label: "Totals", applies: { showTotals: true, sparkline: true } },
   ],
 },
 ```
@@ -302,12 +302,10 @@ Current `view` families:
 
 | widget | `view` options |
 |---|---|
-| `hardwaremodern` | `list` / `temps` (→ `showFans`) |
-| `fpsmodern` | `gauge` / `trend` (→ `sparkline`) |
-| `audiomodern` | `meter` / `audiometer` (pro dB meter) / `volume` |
-| `bluetoothmodern` | `full` / `devices` / `status` |
-| `weathermodern` | `full` / `now` / `forecast` / `minimal` |
-| `networkmodern` | `speeds` / `totals` (→ `showTotals`, `sparkline`) |
+| `FpsMonitor` | `frametime` / `gauge` / `trend` (→ `sparkline`) |
+| `Bluetooth` | `full` / `devices` / `status` |
+| `Weather` | `full` / `now` / `forecast` / `minimal` |
+| `NetworkThroughput` | `speeds` / `totals` (→ `showTotals`, `sparkline`) |
 
 ## The audiocn views
 
@@ -320,25 +318,25 @@ each wrapped in `hsl(var(--token))` so the runtime theme engine keeps
 working. The audio visualiser is not audiocn any more: one engine
 (`src/widgets/core/viz/`, below) draws it everywhere.
 
-### Pro level meter — `audiomodern`, `view: "audiometer"`
+### Pro level meter — `MeterBridge`
 
-Real level metering off the plugin's dB sensors: `LevelMeter` is fed
-declaratively from `peak-level` / `rms-level` (`minDb −60`, `maxDb 0`;
-silence, −96 dB, reads **−∞** on the `DbReadout`). The percentage
-readout stays the VU-curve value; the dB values are the plugin's raw
-measurements. Options:
+One LED ladder per device off the plugin's dB sensors, with dB scale,
+volume and peak readouts. Options (besides the shared `showDevice`,
+`showDetails`, `showMute`, `levelColor`, `hotColor`):
 
 | key | options | default |
 |---|---|---|
-| `meterVariant` | solid / segmented / gradient | `solid` |
-| `meterOrientation` | horizontal / vertical | `horizontal` |
+| `channels` | devices (none = all) | `""` |
+| `includeDefault` | include the default device | off |
+| `orientation` | vertical (columns) / horizontal (rows) | `vertical` |
+| `ladder` | led / smooth | `led` |
 | `meterBallistics` | peak (fast attack + peak-hold) / vu (slow) / instant | `peak` |
 
-In stacked layouts a vertical meter renders *inline* (short meter +
-readout on one line per device) so many devices fit; the standard layout
-keeps full-height columns.
+The old Audio widget's pro meter (`audiomodern`, `view: "audiometer"`) loads
+as a MeterBridge zone (config v4): `meterVariant` segmented → `ladder: led`,
+else `smooth`; `meterOrientation` → `orientation`; its source → `channels`.
 
-### Audio visualiser — NowPlaying `progress: "visualizer"`, the Visualizer widget, the legacy media widgets
+### Audio visualiser — NowPlaying `progress: "visualizer"`, the Visualizer widget
 
 One renderer (`<AudioViz>`, `src/widgets/core/viz/`) draws every visualiser. It replaces the
 inline `MiniViz`, the audiocn `LiveWaveform` and `BarVisualizer`, and the Visualizer widget's own
@@ -373,8 +371,7 @@ each bin belongs to one band and a band takes its loudest bin (`bandsFromSpectru
 `src/lib/audio/bands.ts`). A tone lands in the same band from either source (200 Hz → 9,
 1 kHz → 17, 5 kHz → 26 of 32).
 
-**Look** (NowPlaying template and Visualizer widget; the legacy aliases render with the defaults,
-which follow the theme and skin):
+**Look** (NowPlaying template and Visualizer widget; the defaults follow the theme and skin):
 
 | key | group | options | default |
 |---|---|---|---|
@@ -399,13 +396,13 @@ which follow the theme and skin):
 skin. A ramp name saved in colour 1 keeps working in Follow and Ramp. **Custom** is solid (colour
 1), a gradient (colours 1 → 2 → 3) or a per-band ramp by value.
 
-**The old engines' keys** (NowPlaying and the legacy media widgets; no key renamed, no default
-changed). The NowPlaying template no longer offers an engine picker: one style picker covers
+**The old engines' keys** (NowPlaying, including the zones migrated from the old Spotify / Media
+widgets; no key renamed, no default changed). The NowPlaying template no longer offers an engine picker: one style picker covers
 everything, and picking a style clears a stored `vizEngine`.
 
 | key | now |
 |---|---|
-| `vizEngine` (template, hidden) / `waveform`, `visualizer` (legacy) | read to pick the style (`vizStyleOf`): live waveform scrolling (its default) → scroll; static → bars, or line / mirror per `waveformVariant`; bar visualizer → bars, or mirror when `waveformVariant` / `visualizerMirrored` says so; the inline canvas keeps `waveformVariant` |
+| `vizEngine` (hidden; the config v4 migration writes it from the old `waveform` / `visualizer` switches) | read to pick the style (`vizStyleOf`): live waveform scrolling (its default) → scroll; static → bars, or line / mirror per `waveformVariant`; bar visualizer → bars, or mirror when `waveformVariant` / `visualizerMirrored` says so; the inline canvas keeps `waveformVariant` |
 | `waveformMode` (hidden in the template) | scrolling / static, read by `vizStyleOf` |
 | `visualizerBarCount` | bar count, every style (4–64, default 24) |
 | `visualizerAlign`, `visualizerOrientation`, `visualizerMinLevel` | where bars grow from, row or column, resting bar size |
@@ -417,7 +414,7 @@ everything, and picking a style clears a stored `vizEngine`.
 | `waveformMinBarHeight` (hidden) | the smallest bar in px, when saved away from 4 |
 | `visualizerIdle`, `visualizerLoading`, `waveformActive` (hidden in the template) | no longer drawn (pulse / wave idle, the loading sweep and the idle dotted line were synthesised); saved values are ignored |
 
-The legacy media widgets' settings lists are unchanged. The NowPlaying template's progress row
+The NowPlaying template's progress row
 option `wave` is labelled "Wavy progress bar": it is the track progress, not audio.
 
 ### Live capture (Web Audio) — `liveCapture: true`, `liveSources`
@@ -625,8 +622,8 @@ templateModule({
   font size fitted to their width, and anything that cannot fit is dropped,
   not clipped. `?widget-qa` (see [architecture.md](architecture.md#qa-harness))
   checks this at six spans.
-- A legacy module id that should keep loading passes `alias: { id, title, … }`;
-  it is hidden from the Library and keeps its own settings array key for key.
+- A retired module id is not kept as an alias: `src/lib/legacy-zones.ts`
+  rewrites its zones to a template on load (config v4).
 
 ## Extending
 

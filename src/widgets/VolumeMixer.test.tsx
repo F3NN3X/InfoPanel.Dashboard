@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { renderModule } from "@/modules/port-helpers";
+import { renderModule } from "@/widgets/test-render";
 import { GROUP_C } from "./registry/c";
 
 const mod = GROUP_C.find((m) => m.id === "VolumeMixer")!;

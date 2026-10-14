@@ -14,6 +14,11 @@ describe("versionRefusal", () => {
     expect(versionRefusal(text(3), {})?.status).toBe(409);
     expect(versionRefusal(text(1), { profiles: [] })?.status).toBe(409);
   });
+  it("refuses a v3 client once a v4 build saved (legacy module ids migrated)", () => {
+    expect(versionRefusal(text(4), { version: 3 })?.status).toBe(409);
+    expect(versionRefusal(text(4), { version: 4 })).toBeNull();
+    expect(versionRefusal(text(3), { version: 4 })).toBeNull();
+  });
   it("accepts an equal or newer save", () => {
     expect(versionRefusal(text(3), { version: 3 })).toBeNull();
     expect(versionRefusal(text(2), { version: 3 })).toBeNull();

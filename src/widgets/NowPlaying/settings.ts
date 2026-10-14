@@ -1,5 +1,5 @@
-// The legacy media widgets' settings (spotifymodern / mediamodern), shared with the NowPlaying
-// template module, and the mapping from those stored keys to NowPlaying props.
+// NowPlaying's settings (the old Spotify / Media widgets' keys, which the template keeps) and the
+// mapping from those stored keys to NowPlaying props.
 import type { ModuleSetting, ModuleSettings } from "@/modules/types";
 import { VIZ_STYLES, type VizLook, type VizStyle } from "../core/viz/types";
 import type { NowPlayingProps } from "../NowPlaying";
@@ -9,7 +9,7 @@ import { vizLookOf } from "../registry/viz-settings";
 /** The audio-level-meter plugin, which drives the visualizers' live level. */
 export const AUDIO_LEVEL = "plugins.audio-level-meter.";
 
-/** The legacy modules' own settings, after the standard block and the idle switch (keys and defaults unchanged). */
+/** The old media widgets' own settings (keys and defaults unchanged); the template module offers a subset (`registry/c.ts`). */
 export const MEDIA_SETTINGS: ModuleSetting[] = [
   { key: "showTimes", label: "Times", type: "boolean", default: true, group: "Now playing" },
   { key: "showProgress", label: "Progress", type: "boolean", default: true, group: "Now playing" },
@@ -297,7 +297,7 @@ export const NOW_PLAYING_OWN: ModuleSetting[] = [
   boolSetting("showTimeline", "Timeline under the visualizer", true, { group: "Visualizer" }),
 ];
 
-/** What drew the visualiser before one renderer: the template's stored `vizEngine`, or the legacy modules' switches. */
+/** What drew the visualiser before one renderer: the stored `vizEngine` (the config v4 migration writes the old media widgets' pick). */
 export type LegacyEngine = "mini" | "waveform" | "bars";
 
 /**
@@ -362,7 +362,7 @@ export function captureDeviceIdsOf(s: ModuleSettings): string[] | undefined {
   return ids.length > 0 ? ids : undefined;
 }
 
-/** The props both the legacy modules and the template module read from the shared keys; `tuning` = where the old engines' keys are read (`tuningLookOf`). */
+/** The props the template reads from the shared keys; `tuning` = where the old engines' keys are read (`tuningLookOf`). */
 export function sharedPropsOf(s: ModuleSettings, tuning: ModuleSettings = s): Partial<NowPlayingProps> {
   return {
     layout: oneOf(s.playerLayout, ["card", "vinyl", "backdrop", "wave"]),
@@ -372,21 +372,5 @@ export function sharedPropsOf(s: ModuleSettings, tuning: ModuleSettings = s): Pa
     artBackground: s.artBackground === undefined ? undefined : Boolean(s.artBackground),
     captureDevices: captureDeviceIdsOf(s),
     vizLook: { ...vizLookOf(s), ...tuningLookOf(tuning) },
-  };
-}
-
-/**
- * The legacy modules' props: `visualizer` (bar visualizer, wins) or `waveform` (live waveform)
- * replace the progress bar and pick the style as `vizStyleOf` does; `liveSource` "" = the loudest
- * live device.
- */
-export function legacyPropsOf(s: ModuleSettings, source: "spotify" | "media"): Partial<NowPlayingProps> {
-  const engine: LegacyEngine | undefined = s.visualizer ? "bars" : s.waveform ? "waveform" : undefined;
-  return {
-    ...sharedPropsOf(s),
-    source,
-    progress: engine ? "visualizer" : "bar",
-    vizMode: vizStyleOf(s, engine ?? "mini"),
-    vizDevice: String(s.liveSource ?? ""),
   };
 }

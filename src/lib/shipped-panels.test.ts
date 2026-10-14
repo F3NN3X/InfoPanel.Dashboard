@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { arcv2Profile, mergeConfig, sampleProfile } from "./layout";
+import { mergeConfig } from "./layout";
+import { arcv2Profile } from "./__fixtures__/arcv2-profile";
+import { sampleProfile } from "./__fixtures__/sample-profile";
 import { allPlacements } from "./pages";
 import { normalizePanel } from "./panel-model";
 
 /**
  * The panel editor moved into the inspector without touching the model: the
- * shipped profiles' panels must come out of the loader exactly as authored
+ * sample layout's and the ARCv2 fixture's panels must come out of the loader exactly as authored
  * (so the CSS hooks, ids, class names and widget CSS they render with hold).
  */
 describe.each([

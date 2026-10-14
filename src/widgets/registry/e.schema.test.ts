@@ -52,7 +52,7 @@ describe.each(MANIFEST)("$id schema", ({ options, props }) => {
   it("renders from its defaults", () => {
     const toProps = options.toProps as (s: ModuleSettings) => object;
     const p = toProps(defaultsOf(settings));
-    const html = renderToString(createElement(options.Component as never, { data: DATA, ...p, ...(options.meta.id === "webpage" ? { url: "https://example.com" } : {}) }));
+    const html = renderToString(createElement(options.Component as never, { data: DATA, ...p, ...(options.meta.id === "WebPage" ? { url: "https://example.com" } : {}) }));
     expect(html.length).toBeGreaterThan(0);
   });
 });

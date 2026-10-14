@@ -46,7 +46,7 @@ const DASHBOARD_TABS: readonly TabId[] = ["profile", "appearance", "gstyle", "ge
  * The modules with reduced style options: their schema simply offers fewer
  * look settings (the note says so); every one it has keeps its normal section.
  */
-const REDUCED_STYLE_MODULES: ReadonlySet<string> = new Set(["webpage", "WebPage"]);
+const REDUCED_STYLE_MODULES: ReadonlySet<string> = new Set(["WebPage"]);
 
 export type PanelLayoutKind = "stack" | "grid" | "overlay";
 

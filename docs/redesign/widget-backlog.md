@@ -6,14 +6,12 @@ Date: 2026-10-13. Scope: the 50 template widgets registered in `src/widgets/regi
 
 A static read of every template (`src/widgets/<Id>.tsx`), its settings and `toProps` adapter
 (`src/widgets/registry/*.ts`, `NowPlaying/settings.ts`, `fps-settings.ts`, `spotlight-settings.ts`,
-`viz-settings.ts`), the legacy settings arrays it reuses (`src/modules/{hardware,network,weather,audio,wavelink}-modern`),
-and the shell (`module.tsx`, `core/Widget.tsx`, `core/look.ts`, `modules/standard-settings.ts`). Each setting was
+`viz-settings.ts`, `hardware-settings.ts`, `audio-settings.ts`), and the shell (`module.tsx`, `core/Widget.tsx`, `core/look.ts`, `modules/standard-settings.ts`). Each setting was
 traced from its definition to the render, and each template prop back to a setting. Nothing was run: no app, no tests,
 no `?widget-qa` sweep, so overflow/fit claims are code reading only. No source file was changed.
 
 Conventions: `file:line` are in the file named in the row (a registry file is named in full the first time).
-Legacy alias arrays are never edited; where a problem lives in one, the fix is proposed on the template side
-(for example a template-only override in the registry). Kinds: dead, gap, control, default, unfinished.
+Kinds: dead, gap, control, default, unfinished.
 Effort: S under an hour, M a few hours, L a day or more.
 
 Common shorthand: "a-settings" = `src/widgets/registry/a-settings.ts`; "b.ts", "c.ts", "d.ts", "e.ts" = `src/widgets/registry/`.

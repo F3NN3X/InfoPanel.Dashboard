@@ -24,7 +24,7 @@ const setting = (key: string, label: string, group?: string): ModuleSetting => (
 
 const base: CommandState = {
   insertables: [
-    { kind: "module", id: "systemmodern", title: "System (modern)" },
+    { kind: "module", id: "SystemOverview", title: "System Overview" },
     { kind: "panel", id: "cpu", title: "CPU" },
   ],
   profiles: [{ id: "p1", name: "Desk", width: 1920, height: 1080 }],
@@ -49,7 +49,7 @@ const ids = (state: CommandState) => buildCommands(state).map((c) => c.id);
 describe("buildCommands", () => {
   it("offers adding every widget and panel, profiles with Auto, and zones in reading order", () => {
     const list = ids(base);
-    expect(list).toContain("add:module:systemmodern");
+    expect(list).toContain("add:module:SystemOverview");
     expect(list).toContain("add:panel:cpu");
     expect(list).toContain("profile:auto");
     expect(list).toContain("profile:p1");
@@ -238,7 +238,7 @@ describe("matchScore / rankCommands", () => {
   it("filters and orders commands, keeping the original order for ties", () => {
     const commands = buildCommands(base);
     const ranked = rankCommands(commands, "sys");
-    expect(ranked[0].id).toBe("add:module:systemmodern");
+    expect(ranked[0].id).toBe("add:module:SystemOverview");
     expect(ranked.every((c) => matchScore(c.label, "sys") > 0)).toBe(true);
     expect(rankCommands(commands, "  ")).toEqual(commands);
     expect(rankCommands(commands, "zoom").map((c) => c.id)).toEqual(["zoom-fit", "zoom-in", "zoom-out"]);

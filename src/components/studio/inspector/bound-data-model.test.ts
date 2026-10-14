@@ -28,7 +28,7 @@ const modelOf = (points: DataPoint[]): DataModel => ({
 
 const zone = (patch: Partial<Placement>): Placement => ({
   id: "z1",
-  module: "systemmodern",
+  module: "SystemOverview",
   colStart: 1,
   rowStart: 1,
   colSpan: 2,
