@@ -293,8 +293,11 @@ they render as before.
 
 Templates read `Record<string, string>`, the app has `SensorMap`
 (`{ value, text, unit, name }` per key). `toFlat(map)` turns a reading into its
-text, else the number plus its unit, and leaves out keys with neither;
-`toNames(map)` carries the sensors' display names for auto-discovered rows. Both
+text, else the number plus its unit, and leaves out keys with neither. It
+also leaves out a power, temperature or clock (W, °C, MHz) that has read 0
+with min and max 0 (`neverReported`): the source has never read it (for
+example no low-level CPU access), so widgets show "–" instead of a real-looking
+0. `toNames(map)` carries the sensors' display names for auto-discovered rows. Both
 are memoised per map identity. The data is the page's shared stream (the zone's
 `useSensors`); the adapter never opens another connection. Image URLs go
 through `resolveImageUrl`. Plugins whose containers are dynamic (files, device

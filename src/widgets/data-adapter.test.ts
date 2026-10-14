@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { SensorMap } from "@/modules/types";
 import { get, hw, num } from "./core/data";
 import snapshot from "./__fixtures__/snapshot.json";
-import { toFlat, toNames, widgetImage } from "./data-adapter";
+import { neverReported, toFlat, toNames, widgetImage } from "./data-adapter";
 
 describe("toFlat", () => {
   it("joins a value and its unit with a space", () => {
@@ -65,5 +65,26 @@ describe("toNames", () => {
     const map: SensorMap = { a: { value: 1, unit: "", name: "A" } };
     expect(toNames(map)).toBe(toNames(map));
     expect(toNames({ ...map })).not.toBe(toNames(map));
+  });
+});
+
+describe("a reading that has never reported", () => {
+  const dead = { value: 0, unit: "W", min: 0, max: 0 };
+
+  it("is left out, so widgets show – instead of 0", () => {
+    const flat = toFlat({ "libre.cpu_package": dead, "libre.cpu_tctl": { value: 0, unit: "°C", min: 0, max: 0 } });
+    expect(flat).toEqual({});
+    expect(neverReported("libre.cpu_package", dead)).toBe(true);
+  });
+
+  it("keeps a 0 that has read something, and a 0 in units where 0 is real", () => {
+    const flat = toFlat({
+      "libre.cpu_package": { value: 0, unit: "W", min: 0, max: 45 },
+      "libre.fan": { value: 0, unit: "RPM", min: 0, max: 0 },
+      "libre.load": { value: 0, unit: "%", min: 0, max: 0 },
+      "libre.no_range": { value: 0, unit: "W" },
+      "plugins.weather.temp": { value: 0, unit: "°C", min: 0, max: 0 },
+    });
+    expect(Object.keys(flat).sort()).toEqual(["libre.cpu_package", "libre.fan", "libre.load", "libre.no_range", "plugins.weather.temp"]);
   });
 });

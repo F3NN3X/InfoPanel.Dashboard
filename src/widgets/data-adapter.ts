@@ -8,10 +8,19 @@ export type FlatData = Record<string, string>;
 
 const cache = new WeakMap<SensorMap, FlatData>();
 
+// A hardware power, temperature or clock that has read 0 since the source started (min and max 0 too)
+// has never reported: the source cannot read it (no hardware access), so it shows as "–", not a real 0.
+// Hardware keys only: a plugin's 0 °C (the weather) is real, and plugins report 0 as their range too.
+const NEVER_ZERO_UNITS = new Set(["W", "°C", "MHz"]);
+/** True for a hardware reading that has never reported (see `NEVER_ZERO_UNITS`). */
+export const neverReported = (key: string, s: SensorMap[string]): boolean =>
+  /^(libre|hwinfo)\./.test(key) && s.value === 0 && s.max === 0 && (s.min ?? 0) === 0 && NEVER_ZERO_UNITS.has(s.unit ?? "");
+
 /**
  * The map as flat strings: `text` when present and non-empty, else the number followed by a space
  * and its unit (the number alone for an empty unit). A key with neither text nor a finite value is
- * left out, so `get()` falls back and `num()` is NaN. Memoised per map identity.
+ * left out, so `get()` falls back and `num()` is NaN; so is a reading that has never reported
+ * (`neverReported`). Memoised per map identity.
  */
 export function toFlat(map: SensorMap): FlatData {
   const hit = cache.get(map);
@@ -19,7 +28,7 @@ export function toFlat(map: SensorMap): FlatData {
   const flat: FlatData = {};
   for (const [key, s] of Object.entries(map)) {
     if (s.text != null && s.text !== "") flat[key] = s.text;
-    else if (typeof s.value === "number" && Number.isFinite(s.value)) flat[key] = s.unit ? `${s.value} ${s.unit}` : String(s.value);
+    else if (typeof s.value === "number" && Number.isFinite(s.value) && !neverReported(key, s)) flat[key] = s.unit ? `${s.value} ${s.unit}` : String(s.value);
   }
   cache.set(map, flat);
   return flat;
