@@ -45,6 +45,35 @@ export interface GameSpotlightProps extends ShellProps {
   look?: ModuleSettings;
 }
 
+/**
+ * The smallest content box (px) each layout fits without overflow, measured with `?widget-qa` across the
+ * skins: the hero drops its stats below 150px and fits from 110px high (its pills need ~250px wide in the padded skins); the
+ * combo's music card and the poster's stats need more height; the ticker's pills need width.
+ */
+export const LAYOUT_MIN: Record<string, { w: number; h: number }> = {
+  hero: { w: 250, h: 110 },
+  logo: { w: 160, h: 110 },
+  combo: { w: 260, h: 180 },
+  poster: { w: 340, h: 200 },
+  ticker: { w: 320, h: 0 },
+};
+/** The tall poster (art above the title) takes over from a poster that is too narrow, from this height. */
+const POSTER_TALL_H = 260;
+
+/**
+ * The layout to draw: the chosen one while the box can hold it (`LAYOUT_MIN`), else the hero, else the
+ * ticker (one row: icon, logo, pills), else the mini card (art, logo, session time); a narrow box gets the tall poster. Decided by what the content
+ * needs, not the box's aspect ratio, so a wide short zone on a grid of short rows keeps its layout.
+ */
+export function fitLayout(chosen: NonNullable<GameSpotlightProps["layout"]>, w: number, h: number, shape: string): string {
+  if (!w || !h) return chosen; // not measured yet (first paint, server render)
+  const fits = (lay: string) => w >= LAYOUT_MIN[lay].w && h >= LAYOUT_MIN[lay].h;
+  if (shape === "column" || (w < LAYOUT_MIN.hero.w && h >= LAYOUT_MIN.poster.h)) return "poster-tall";
+  if (chosen in LAYOUT_MIN && fits(chosen)) return chosen;
+  if (chosen === "poster" && h >= POSTER_TALL_H) return "poster-tall";
+  return fits("hero") ? "hero" : fits("ticker") ? "ticker" : "mini";
+}
+
 export default function GameSpotlight(p: GameSpotlightProps) {
   const d = p.data;
   const P = (s: string) => get(d, `plugins.InfoPanel.SteamAPI.SteamAPI-Profile.${s}`);
@@ -111,7 +140,7 @@ export default function GameSpotlight(p: GameSpotlightProps) {
             />
           );
         }
-        const lay = shape === "strip" ? "ticker" : shape === "column" ? "poster-tall" : (p.layout ?? "hero");
+        const lay = fitLayout(p.layout ?? "hero", w, h, shape);
         const big = h > 260 ? "text-5xl" : h > 180 ? "text-4xl" : "text-2xl";
         if (lay === "ticker")
           return (
@@ -184,6 +213,20 @@ export default function GameSpotlight(p: GameSpotlightProps) {
             </div>
           );
         }
+        if (lay === "mini")
+          return (
+            <div className="relative flex h-full min-w-0 flex-col items-center justify-center gap-1.5 overflow-hidden p-2 text-center" style={ON_ART}>
+              <KenBurns src={banner} on={motion} className="opacity-60" />
+              <div className="absolute inset-0 bg-black/55" />
+              <Logo src={logo} name={game} size="text-sm" className="relative mx-auto max-h-[55%] max-w-full !object-center text-center" />
+              {h >= 56 && (
+                <span className="relative flex max-w-full items-center gap-1.5 text-[11px] text-[color:var(--w-fg)]">
+                  <Dot ok />
+                  <span className="truncate tabular-nums">{S("current-session-time")}</span>
+                </span>
+              )}
+            </div>
+          );
         if (lay === "logo")
           return (
             <div className="relative flex h-full flex-col items-center justify-center gap-3 overflow-hidden p-5 text-center" style={ON_ART}>

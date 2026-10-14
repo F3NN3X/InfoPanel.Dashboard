@@ -83,6 +83,26 @@ export const pretty = (slug: string): string =>
     .map((w) => (/^(amd|nvidia|rtx|gtx|wdc|ssd|nvme)$/i.test(w) || /\d/.test(w) ? w.toUpperCase() : w[0].toUpperCase() + w.slice(1)))
     .join(" ");
 
+// Identical drives (three of one NVMe model) are told apart by the Data API with "#2", "#3" after the
+// device name, which slugs to "__2": `kingston_sfyrd2000g__2`.
+const instanceOf = (id: string) => /__(\d+)$/.exec(id)?.[1];
+/** A drive's name from its slug, with its instance: `kingston_sfyrd2000g__2` → "Kingston SFYRD2000G #2". */
+export const diskName = (id: string): string => {
+  const n = instanceOf(id);
+  return pretty(id.replace(/__\d+$/, "")) + (n ? ` #${n}` : "");
+};
+/** The default drive: the first by key, preferring a model's first drive over its "#2", "#3". */
+export const firstDisk = (disks: string[]): string | undefined => disks.find((x) => !instanceOf(x)) ?? disks[0];
+/**
+ * A drive's short label: its volumes when the Data API lists them (`{id}_volumes`, "C: Windows"), else the
+ * first word of its name plus its instance: "Kingston", "Kingston #2".
+ */
+export const diskShort = (id: string, volumes?: string): string => {
+  if (volumes && has(volumes)) return volumes;
+  const n = instanceOf(id);
+  return pretty(id.replace(/__\d+$/, "")).split(" ")[0] + (n ? ` #${n}` : "");
+};
+
 // Hardware ids present in the snapshot (LibreHardwareMonitor sensor slugs), shared by every hardware widget
 export const hw = (data: Data | undefined): { cpu?: string; gpu?: string; disks: string[]; adapters: string[] } => ({
   cpu: detect(data, /^libre\.(.+)_cpu_total$/)[0],

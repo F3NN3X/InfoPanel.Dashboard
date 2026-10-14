@@ -1,6 +1,6 @@
 import type { ModuleSettings } from "@/modules/types";
 import { fitFontPx } from "./fit-font";
-import { bodyGap, Widget, shell, get, num, fmt, fmtRate, toMBps, detect, Spark, useHistory, useSkin, tone, TONES, hw, type ShellProps, type WidgetMeta } from "./kit";
+import { bodyGap, fitRows, Widget, shell, get, num, fmt, fmtRate, toMBps, detect, Spark, useHistory, useSkin, tone, TONES, hw, type ShellProps, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "Vitals",
@@ -44,7 +44,7 @@ function VitalCard({ m, hist, w, h, tui }: { m: Vital; hist: number[]; w: number
     <div className="relative flex min-w-0 flex-col overflow-hidden rounded-xl bg-[color:var(--w-track)] px-3" style={{ paddingTop: padY, paddingBottom: padY }}>
       {!braille && <Spark values={hist} min={0} max={m.max} className="absolute inset-x-0 bottom-0 h-1/2 opacity-80" />}
       <div className="relative flex items-baseline justify-between gap-2 leading-[13px]">
-        <span className={`shrink-0 whitespace-nowrap text-[10.5px] font-medium uppercase ${tui ? "" : "tracking-[0.08em]"} text-[color:var(--w-muted)]`}>{m.label}</span>
+        <span className={`min-w-0 truncate text-[10.5px] font-medium uppercase ${tui ? "" : "tracking-[0.08em]"} text-[color:var(--w-muted)]`}>{m.label}</span>
         {w > (tui ? 170 : 110) && <span className="truncate text-[10.5px] text-[color:var(--w-faint)]">{m.sub}</span>}
       </div>
       {graphRows && <Spark values={hist} min={0} max={m.max} className="mt-1 min-h-0 flex-1 opacity-80" />}
@@ -80,13 +80,16 @@ export default function Vitals(p: VitalsProps) {
       compact={(box) => (box.shape === "tile" ? { label: "CPU · GPU", value: all.cpu.v, unit: "%", sub: `GPU ${fmt(all.gpu.v, 0)}% · RAM ${fmt(all.ram.v, 0)}%`, hist: H.cpu, min: 0, max: 100, icon: "vital_signs" } : undefined)}
     >
       {({ w, h }) => {
-        const cols = w / h > 2.4 ? keys.length : w / h < 0.7 ? 1 : 2;
-        const cardW = (w - (cols - 1) * bodyGap(p.look, 8, w)) / cols;
-        const rows = Math.ceil(keys.length / cols);
-        const cardH = (h - (rows - 1) * bodyGap(p.look, 8, h)) / rows;
+        const gx = bodyGap(p.look, 8, w),
+          gy = bodyGap(p.look, 8, h);
+        const cols = Math.max(1, Math.min(w / h > 2.4 ? keys.length : w / h < 0.7 ? 1 : 2, Math.floor((w + gx) / (60 + gx))));
+        const shown = keys.slice(0, cols * fitRows(h, 34, gy));
+        const cardW = (w - (cols - 1) * gx) / cols;
+        const rows = Math.ceil(shown.length / cols);
+        const cardH = (h - (rows - 1) * gy) / rows;
         return (
           <div className="grid h-full gap-2" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))`, gridAutoRows: "minmax(0,1fr)" }}>
-            {keys.map((k) => (
+            {shown.map((k) => (
               <VitalCard key={k} m={all[k]} hist={H[k]} w={cardW} h={cardH} tui={p.skin === "tui"} />
             ))}
           </div>

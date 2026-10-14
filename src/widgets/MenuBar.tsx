@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, fmt, fmtGB, fmtRate, adapterOf, detect, Spark, useHistory, tone, TONES, useSkin, numFont, hw, type RateUnit, type ShellProps, type WidgetMeta } from "./kit";
+import { Widget, shell, get, num, fmt, fmtGB, fmtRate, adapterOf, firstDisk, Spark, useHistory, tone, TONES, useSkin, numFont, hw, type RateUnit, type ShellProps, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "MenuBar",
@@ -52,7 +52,7 @@ export default function MenuBar(p: MenuBarProps) {
   const sk = useSkin();
   const cpu = hw(d).cpu,
     gpu = hw(d).gpu;
-  const disk = detect(d, /^libre\.(.+)_power_on_hours$/)[0];
+  const disk = firstDisk(hw(d).disks);
   const L = (k: string) => num(get(d, `libre.${k}`));
   // the same adapter, readings (bytes per second) and units as Network Traffic
   const net = adapterOf(d, p.adapter);

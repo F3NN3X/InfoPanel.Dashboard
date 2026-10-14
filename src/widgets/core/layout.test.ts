@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { boxOf, easeHistory, pickBy, shapeOf, tierOf } from "./layout";
+import { boxOf, easeHistory, pickBy, shapeOf, summaryShape, tierOf } from "./layout";
 
 describe("tierOf", () => {
   it("splits at 220×140, 340×210 and 500×320", () => {
@@ -20,10 +20,13 @@ describe("shapeOf", () => {
     expect(shapeOf(0, 100)).toBe("box");
     expect(shapeOf(100, 0)).toBe("box");
   });
-  it("detects strips (ratio ≥ 2.6 and under 240 tall)", () => {
+  it("detects strips (ratio ≥ 2.6 and under 160 tall: one row of a square grid)", () => {
     expect(shapeOf(260, 100)).toBe("strip");
     expect(shapeOf(259, 100)).toBe("box");
-    expect(shapeOf(780, 240)).toBe("box");
+    expect(shapeOf(624, 150)).toBe("strip"); // 4x1 at cell 150
+    expect(shapeOf(780, 160)).toBe("box");
+    // 4x4 on a 1920×550 profile of 12×12 cells (~156×42 each): wide but four rows tall, not a strip
+    expect(shapeOf(635, 178)).toBe("box");
   });
   it("detects columns (ratio ≤ 0.62 and under 260 wide)", () => {
     expect(shapeOf(124, 200)).toBe("column");
@@ -33,6 +36,27 @@ describe("shapeOf", () => {
   it("detects tiles under 240×240", () => {
     expect(shapeOf(239, 239)).toBe("tile");
     expect(shapeOf(240, 239)).toBe("box");
+  });
+});
+
+describe("summaryShape", () => {
+  it("auto shows the summary card in tile, strip and column zones only", () => {
+    expect(summaryShape("auto", "tile", 110, 110)).toBe("tile");
+    expect(summaryShape(undefined, "strip", 400, 110)).toBe("strip");
+    expect(summaryShape("auto", "column", 110, 300)).toBe("column");
+    expect(summaryShape("auto", "box", 400, 300)).toBeNull();
+  });
+
+  it("never keeps the full layout", () => {
+    expect(summaryShape("off", "tile", 110, 110)).toBeNull();
+  });
+
+  it("always picks a form for a box from its aspect", () => {
+    expect(summaryShape("on", "box", 635, 178)).toBe("strip");
+    expect(summaryShape("on", "box", 240, 420)).toBe("column");
+    expect(summaryShape("on", "box", 400, 300)).toBe("tile");
+    expect(summaryShape("on", "box", 0, 0)).toBe("tile");
+    expect(summaryShape("on", "strip", 400, 110)).toBe("strip");
   });
 });
 

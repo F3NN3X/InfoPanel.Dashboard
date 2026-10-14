@@ -209,14 +209,20 @@ string data, drawn inside one `<Widget>` (`src/widgets/core/Widget.tsx`).
 
 - **Measuring.** `useBox` observes the shell's outer size and returns a
   `Box`: `w`, `h`, a size tier (`xs` < 220×140 ≤ `sm` < 340×210 ≤ `md` <
-  500×320 ≤ `lg`) and a shape from the zone's aspect (`tile`, `strip`,
-  `column`, `box`). The standard `layout` option forces the tier. The
+  500×320 ≤ `lg`) and a shape from the zone's aspect (`tile` under
+  240×240, `strip` at ratio ≥ 2.6 and under 160px tall — one row of a square
+  grid — `column` at ratio ≤ 0.62 and under 260px wide, else `box`). On a
+  grid of short rows (a 1920×550 strip profile, ~156×42px cells) a wide zone
+  of several rows is therefore a `box` and shows the widget, not the
+  one-line summary. The standard `layout` option forces the tier. The
   content callback receives the *inner* size (after padding and header) too,
   so a widget counts its rows from the room that exists.
 - **Views.** Besides its normal layout a widget gives the shell a `compact`
-  descriptor (a tile, strip or column summary, used when the shape is not
-  `box` and `compactView` is not `off`) and a `studio` descriptor (the dense
-  variant). `CompactView` and `StudioView` (`core/views.tsx`) draw them.
+  descriptor (a tile, strip or column summary, the **Summary card**) and a
+  `studio` descriptor (the dense variant). `summaryShape` (`core/layout.ts`)
+  picks the card's form from `compactView`: `auto` for a tile, strip or column
+  zone, `off` never, `on` always (a box becomes a strip when wide, a column
+  when tall, else a tile). `CompactView` and `StudioView` (`core/views.tsx`) draw them.
 - **The look.** The shell maps the standard look keys onto the zone
   (`core/look.ts`): `chromeVars`, the surface box with border, glow, opacity and
   blur (`lookBox`), text colors, font and weight (replacing the skin's), label
@@ -287,8 +293,11 @@ they render as before.
 
 Templates read `Record<string, string>`, the app has `SensorMap`
 (`{ value, text, unit, name }` per key). `toFlat(map)` turns a reading into its
-text, else the number plus its unit, and leaves out keys with neither;
-`toNames(map)` carries the sensors' display names for auto-discovered rows. Both
+text, else the number plus its unit, and leaves out keys with neither. It
+also leaves out a power, temperature or clock (W, °C, MHz) that has read 0
+with min and max 0 (`neverReported`): the source has never read it (for
+example no low-level CPU access), so widgets show "–" instead of a real-looking
+0. `toNames(map)` carries the sensors' display names for auto-discovered rows. Both
 are memoised per map identity. The data is the page's shared stream (the zone's
 `useSensors`); the adapter never opens another connection. Image URLs go
 through `resolveImageUrl`. Plugins whose containers are dynamic (files, device

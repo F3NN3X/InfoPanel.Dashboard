@@ -240,7 +240,8 @@ function Braille({ values, lo, hi, className }: { values: number[]; lo: number; 
       el.appendChild(probe);
       const charW = probe.getBoundingClientRect().width / 40 / (el.getBoundingClientRect().width / (el.clientWidth || 1) || 1);
       el.removeChild(probe);
-      setDim({ c: brailleCols(el.clientWidth, charW), r: Math.max(1, Math.floor(el.clientHeight / 10)) });
+      // no row under 10px: a squeezed graph draws nothing rather than a clipped row
+      setDim({ c: brailleCols(el.clientWidth, charW), r: Math.floor(el.clientHeight / 10) });
     });
     ro.observe(el);
     return () => ro.disconnect();

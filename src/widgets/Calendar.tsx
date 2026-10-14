@@ -24,6 +24,12 @@ export interface CalendarProps extends ShellProps {
 // Today's pill: near-black text on a light accent, white on a dark one (the class's dark text stays where relative colours are unsupported).
 const TODAY = { background: "var(--accent)", color: "oklch(from var(--accent) clamp(0, (0.7 - l) * 1000, 1) 0 0)" };
 
+/** The seven days of the week holding `date`, the week starting on `weekStart` (0 = Sunday). */
+export const weekOf = (date: Date, weekStart: number): Date[] => {
+  const back = (date.getDay() - weekStart + 7) % 7;
+  return Array.from({ length: 7 }, (_, i) => new Date(date.getFullYear(), date.getMonth(), date.getDate() - back + i));
+};
+
 export default function Calendar(p: CalendarProps) {
   const d = p.data;
   const k = (s: string) => num(get(d, `plugins.clock-plugin.clock.${s}`));
@@ -38,7 +44,33 @@ export default function Calendar(p: CalendarProps) {
   const week = Math.ceil((date.getTime() - new Date(yr, 0, 1).getTime()) / 864e5 / 7);
   return (
     <Widget {...shell(p)} title={p.title} showHeader={false} compact={{ label: W[date.getDay()], value: day, sub: `${M[mon - 1]} ${yr}`, kind: "value", icon: "calendar_today" }}>
-      {({ size, w }) => (
+      {({ size, w, h }) =>
+        h > 0 && h < 120 ? (
+          <div className="flex h-full min-w-0 items-center gap-4">
+            {w > 300 && (
+              <div className="flex shrink-0 flex-col leading-none">
+                <span className="text-[11px] font-medium" style={{ color: "color-mix(in oklab, var(--accent) 60%, var(--w-fg))" }}>{W[date.getDay()]}</span>
+                <Num className="text-3xl font-semibold leading-none tracking-tight">{day}</Num>
+                <span className="mt-0.5 whitespace-nowrap text-[11px] text-[color:var(--w-muted)]">
+                  {M[mon - 1]} · W{week}
+                </span>
+              </div>
+            )}
+            <div className="grid min-w-0 flex-1 grid-cols-7 gap-0.5 text-center">
+              {weekOf(date, ws).map((x) => (
+                <div key={x.getTime()} className="flex min-w-0 flex-col items-center gap-0.5">
+                  {h >= 40 && <span className="text-[10px] font-medium leading-3 text-[color:var(--w-faint)]">{W[x.getDay()][0]}</span>}
+                  <span
+                    className={`flex h-6 w-full max-w-8 items-center justify-center rounded-md text-[11px] tabular-nums ${x.getDate() === day ? "font-semibold text-[#0c0c0e]" : "text-[color:var(--w-fg)]"}`}
+                    style={x.getDate() === day ? TODAY : undefined}
+                  >
+                    {x.getDate()}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
         <div className="flex h-full gap-5">
           {(size === "lg" || w > 420) && (
             <div className="flex shrink-0 flex-col justify-between">
@@ -69,7 +101,8 @@ export default function Calendar(p: CalendarProps) {
             </div>
           </div>
         </div>
-      )}
+        )
+      }
     </Widget>
   );
 }

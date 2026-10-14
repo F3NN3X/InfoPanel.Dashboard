@@ -472,16 +472,16 @@
   "libre.wdc_wds100t2b0a_00sm50_write_activity_load": {
    "value": 0.016729703173041344,
    "unit": "%",
-   "min": 0.0000011593604085646803,
+   "min": 1.1593604085646803e-06,
    "max": 1.7996160984039307,
    "name": "WDC WDS100T2B0A-00SM50 Write Activity",
    "source": "infopanel"
   },
   "libre.amd_ryzen_9_9950x3d_core__12__effective": {
-   "value": 0,
+   "value": 2567,
    "unit": "MHz",
    "min": 0,
-   "max": 0,
+   "max": 4690,
    "name": "AMD Ryzen 9 9950X3D Core #12 (Effective)",
    "source": "infopanel"
   },
@@ -518,10 +518,10 @@
    "source": "infopanel"
   },
   "libre.amd_ryzen_9_9950x3d_core__10__effective": {
-   "value": 0,
+   "value": 2919,
    "unit": "MHz",
    "min": 0,
-   "max": 0,
+   "max": 4844,
    "name": "AMD Ryzen 9 9950X3D Core #10 (Effective)",
    "source": "infopanel"
   },
@@ -606,10 +606,10 @@
    "source": "infopanel"
   },
   "libre.amd_ryzen_9_9950x3d_package": {
-   "value": 0,
+   "value": 136.421,
    "unit": "W",
-   "min": 0,
-   "max": 0,
+   "min": 115.089,
+   "max": 194.207,
    "name": "AMD Ryzen 9 9950X3D Package",
    "source": "infopanel"
   },
@@ -1038,10 +1038,10 @@
    "source": "infopanel"
   },
   "libre.amd_ryzen_9_9950x3d_core__11__smu": {
-   "value": 0,
+   "value": 7.975,
    "unit": "W",
-   "min": 0,
-   "max": 0,
+   "min": 6.802,
+   "max": 9.935,
    "name": "AMD Ryzen 9 9950X3D Core #11 (SMU)",
    "source": "infopanel"
   },
@@ -1086,10 +1086,10 @@
    "source": "infopanel"
   },
   "libre.amd_ryzen_9_9950x3d_core__15__smu": {
-   "value": 0,
+   "value": 5.573,
    "unit": "W",
-   "min": 0,
-   "max": 0,
+   "min": 3.523,
+   "max": 8.379,
    "name": "AMD Ryzen 9 9950X3D Core #15 (SMU)",
    "source": "infopanel"
   },
@@ -1216,10 +1216,10 @@
    "source": "infopanel"
   },
   "libre.amd_ryzen_9_9950x3d_cores__average": {
-   "value": 0,
+   "value": 5459,
    "unit": "MHz",
    "min": 0,
-   "max": 0,
+   "max": 5572,
    "name": "AMD Ryzen 9 9950X3D Cores (Average)",
    "source": "infopanel"
   },
@@ -1242,42 +1242,42 @@
    "source": "infopanel"
   },
   "libre.amd_ryzen_9_9950x3d_core__1__effective": {
-   "value": 0,
+   "value": 1266,
    "unit": "MHz",
    "min": 0,
-   "max": 0,
+   "max": 4038.5,
    "name": "AMD Ryzen 9 9950X3D Core #1 (Effective)",
    "source": "infopanel"
   },
   "libre.amd_ryzen_9_9950x3d_core__15__effective": {
-   "value": 0,
+   "value": 1539.5,
    "unit": "MHz",
    "min": 0,
-   "max": 0,
+   "max": 4542.5,
    "name": "AMD Ryzen 9 9950X3D Core #15 (Effective)",
    "source": "infopanel"
   },
   "libre.amd_ryzen_9_9950x3d_cores__average_effective": {
-   "value": 0,
+   "value": 1455,
    "unit": "MHz",
    "min": 0,
-   "max": 0,
+   "max": 4288,
    "name": "AMD Ryzen 9 9950X3D Cores (Average Effective)",
    "source": "infopanel"
   },
   "libre.amd_ryzen_9_9950x3d_core__3__effective": {
-   "value": 0,
+   "value": 334,
    "unit": "MHz",
    "min": 0,
-   "max": 0,
+   "max": 3788.5,
    "name": "AMD Ryzen 9 9950X3D Core #3 (Effective)",
    "source": "infopanel"
   },
   "libre.amd_ryzen_9_9950x3d_core__6__effective": {
-   "value": 0,
+   "value": 250,
    "unit": "MHz",
    "min": 0,
-   "max": 0,
+   "max": 3929,
    "name": "AMD Ryzen 9 9950X3D Core #6 (Effective)",
    "source": "infopanel"
   },
@@ -1290,18 +1290,18 @@
    "source": "infopanel"
   },
   "libre.amd_ryzen_9_9950x3d_core__1__smu": {
-   "value": 0,
+   "value": 4.49,
    "unit": "W",
-   "min": 0,
-   "max": 0,
+   "min": 3.326,
+   "max": 7.637,
    "name": "AMD Ryzen 9 9950X3D Core #1 (SMU)",
    "source": "infopanel"
   },
   "libre.amd_ryzen_9_9950x3d_core__4__effective": {
-   "value": 0,
+   "value": 593.5,
    "unit": "MHz",
    "min": 0,
-   "max": 0,
+   "max": 3816.5,
    "name": "AMD Ryzen 9 9950X3D Core #4 (Effective)",
    "source": "infopanel"
   },
@@ -1322,10 +1322,10 @@
    "source": "infopanel"
   },
   "libre.amd_ryzen_9_9950x3d_core__6__smu": {
-   "value": 0,
+   "value": 2.05,
    "unit": "W",
-   "min": 0,
-   "max": 0,
+   "min": 0.309,
+   "max": 7.515,
    "name": "AMD Ryzen 9 9950X3D Core #6 (SMU)",
    "source": "infopanel"
   },
@@ -1338,10 +1338,10 @@
    "source": "infopanel"
   },
   "libre.amd_ryzen_9_9950x3d_core__8__smu": {
-   "value": 0,
+   "value": 6.798,
    "unit": "W",
-   "min": 0,
-   "max": 0,
+   "min": 2.011,
+   "max": 11.661,
    "name": "AMD Ryzen 9 9950X3D Core #8 (SMU)",
    "source": "infopanel"
   },
@@ -1362,10 +1362,10 @@
    "source": "infopanel"
   },
   "libre.amd_ryzen_9_9950x3d_core__10__smu": {
-   "value": 0,
+   "value": 8.306,
    "unit": "W",
-   "min": 0,
-   "max": 0,
+   "min": 7.208,
+   "max": 9.643,
    "name": "AMD Ryzen 9 9950X3D Core #10 (SMU)",
    "source": "infopanel"
   },
@@ -1748,26 +1748,26 @@
    "source": "infopanel"
   },
   "libre.amd_ryzen_9_9950x3d_core__11__effective": {
-   "value": 0,
+   "value": 2586.5,
    "unit": "MHz",
    "min": 0,
-   "max": 0,
+   "max": 4772.5,
    "name": "AMD Ryzen 9 9950X3D Core #11 (Effective)",
    "source": "infopanel"
   },
   "libre.amd_ryzen_9_9950x3d_core__8__effective": {
-   "value": 0,
+   "value": 2116.5,
    "unit": "MHz",
    "min": 0,
-   "max": 0,
+   "max": 4637,
    "name": "AMD Ryzen 9 9950X3D Core #8 (Effective)",
    "source": "infopanel"
   },
   "libre.amd_ryzen_9_9950x3d_core__9__effective": {
-   "value": 0,
+   "value": 1935.5,
    "unit": "MHz",
    "min": 0,
-   "max": 0,
+   "max": 4471,
    "name": "AMD Ryzen 9 9950X3D Core #9 (Effective)",
    "source": "infopanel"
   },
@@ -1804,42 +1804,42 @@
    "source": "infopanel"
   },
   "libre.amd_ryzen_9_9950x3d_core__16__effective": {
-   "value": 0,
+   "value": 1239.5,
    "unit": "MHz",
    "min": 0,
-   "max": 0,
+   "max": 4601,
    "name": "AMD Ryzen 9 9950X3D Core #16 (Effective)",
    "source": "infopanel"
   },
   "libre.amd_ryzen_9_9950x3d_core__13__effective": {
-   "value": 0,
+   "value": 1800,
    "unit": "MHz",
    "min": 0,
-   "max": 0,
+   "max": 4481.5,
    "name": "AMD Ryzen 9 9950X3D Core #13 (Effective)",
    "source": "infopanel"
   },
   "libre.amd_ryzen_9_9950x3d_core__7__smu": {
-   "value": 0,
+   "value": 1.326,
    "unit": "W",
-   "min": 0,
-   "max": 0,
+   "min": 0.29,
+   "max": 6.964,
    "name": "AMD Ryzen 9 9950X3D Core #7 (SMU)",
    "source": "infopanel"
   },
   "libre.amd_ryzen_9_9950x3d_core__14__smu": {
-   "value": 0,
+   "value": 7.213,
    "unit": "W",
-   "min": 0,
-   "max": 0,
+   "min": 5.415,
+   "max": 8.979,
    "name": "AMD Ryzen 9 9950X3D Core #14 (SMU)",
    "source": "infopanel"
   },
   "libre.amd_ryzen_9_9950x3d_core__9__smu": {
-   "value": 0,
+   "value": 6.642,
    "unit": "W",
-   "min": 0,
-   "max": 0,
+   "min": 4.56,
+   "max": 8.397,
    "name": "AMD Ryzen 9 9950X3D Core #9 (SMU)",
    "source": "infopanel"
   },
@@ -1932,18 +1932,18 @@
    "source": "infopanel"
   },
   "libre.embedded_controller_vrm": {
-   "value": 0,
+   "value": 55,
    "unit": "°C",
-   "min": 0,
-   "max": 0,
+   "min": 54,
+   "max": 56,
    "name": "Embedded Controller VRM",
    "source": "infopanel"
   },
   "libre.amd_ryzen_9_9950x3d_core__tctl_tdie": {
-   "value": 0,
+   "value": 61.625,
    "unit": "°C",
-   "min": 0,
-   "max": 0,
+   "min": 58.875,
+   "max": 71.5,
    "name": "AMD Ryzen 9 9950X3D Core (Tctl/Tdie)",
    "source": "infopanel"
   },
@@ -2052,10 +2052,10 @@
    "source": "infopanel"
   },
   "libre.amd_ryzen_9_9950x3d_core__13__smu": {
-   "value": 0,
+   "value": 6.245,
    "unit": "W",
-   "min": 0,
-   "max": 0,
+   "min": 4.219,
+   "max": 8.616,
    "name": "AMD Ryzen 9 9950X3D Core #13 (SMU)",
    "source": "infopanel"
   },
@@ -2132,18 +2132,18 @@
    "source": "infopanel"
   },
   "libre.amd_ryzen_9_9950x3d_core__2__effective": {
-   "value": 0,
+   "value": 1333.5,
    "unit": "MHz",
    "min": 0,
-   "max": 0,
+   "max": 4177,
    "name": "AMD Ryzen 9 9950X3D Core #2 (Effective)",
    "source": "infopanel"
   },
   "libre.amd_ryzen_9_9950x3d_core__14__effective": {
-   "value": 0,
+   "value": 2352,
    "unit": "MHz",
    "min": 0,
-   "max": 0,
+   "max": 4633.5,
    "name": "AMD Ryzen 9 9950X3D Core #14 (Effective)",
    "source": "infopanel"
   },
@@ -2156,34 +2156,34 @@
    "source": "infopanel"
   },
   "libre.amd_ryzen_9_9950x3d_core__7__effective": {
-   "value": 0,
+   "value": 184.5,
    "unit": "MHz",
    "min": 0,
-   "max": 0,
+   "max": 3512.5,
    "name": "AMD Ryzen 9 9950X3D Core #7 (Effective)",
    "source": "infopanel"
   },
   "libre.amd_ryzen_9_9950x3d_core__2__smu": {
-   "value": 0,
+   "value": 4.599,
    "unit": "W",
-   "min": 0,
-   "max": 0,
+   "min": 2.942,
+   "max": 7.87,
    "name": "AMD Ryzen 9 9950X3D Core #2 (SMU)",
    "source": "infopanel"
   },
   "libre.amd_ryzen_9_9950x3d_core__4__smu": {
-   "value": 0,
+   "value": 3.341,
    "unit": "W",
-   "min": 0,
-   "max": 0,
+   "min": 1.116,
+   "max": 8.055,
    "name": "AMD Ryzen 9 9950X3D Core #4 (SMU)",
    "source": "infopanel"
   },
   "libre.amd_ryzen_9_9950x3d_core__5__effective": {
-   "value": 0,
+   "value": 266.5,
    "unit": "MHz",
    "min": 0,
-   "max": 0,
+   "max": 3863,
    "name": "AMD Ryzen 9 9950X3D Core #5 (Effective)",
    "source": "infopanel"
   },
@@ -2212,18 +2212,18 @@
    "source": "infopanel"
   },
   "libre.amd_ryzen_9_9950x3d_core__3__smu": {
-   "value": 0,
+   "value": 2.702,
    "unit": "W",
-   "min": 0,
-   "max": 0,
+   "min": 0.627,
+   "max": 7.657,
    "name": "AMD Ryzen 9 9950X3D Core #3 (SMU)",
    "source": "infopanel"
   },
   "libre.amd_ryzen_9_9950x3d_core__5__smu": {
-   "value": 0,
+   "value": 2.209,
    "unit": "W",
-   "min": 0,
-   "max": 0,
+   "min": 0.457,
+   "max": 7.446,
    "name": "AMD Ryzen 9 9950X3D Core #5 (SMU)",
    "source": "infopanel"
   },
@@ -2244,10 +2244,10 @@
    "source": "infopanel"
   },
   "libre.amd_ryzen_9_9950x3d_core__12__smu": {
-   "value": 0,
+   "value": 7.678,
    "unit": "W",
-   "min": 0,
-   "max": 0,
+   "min": 5.908,
+   "max": 9.1,
    "name": "AMD Ryzen 9 9950X3D Core #12 (SMU)",
    "source": "infopanel"
   },
@@ -2284,10 +2284,10 @@
    "source": "infopanel"
   },
   "libre.amd_ryzen_9_9950x3d_core__16__smu": {
-   "value": 0,
+   "value": 4.846,
    "unit": "W",
-   "min": 0,
-   "max": 0,
+   "min": 3.121,
+   "max": 8.139,
    "name": "AMD Ryzen 9 9950X3D Core #16 (SMU)",
    "source": "infopanel"
   },

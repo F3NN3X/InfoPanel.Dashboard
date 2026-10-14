@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import { meterKey, useWavelinkState, type WlChannel, type WlDevice, type WlMix, type WlState } from "@/lib/wavelink";
 import type { ModuleSettings } from "@/modules/types";
+import { useElementSize } from "@/hooks/use-element-size";
 import { useFitRows, Widget, shell, Icon, Chip, Empty, STATE, type BallisticsPreset, type ShellProps, type Tier, type WidgetMeta } from "./kit";
 import { MeterPair, dbPos, fmtDb, useWlLevels, type MeterVariant } from "./WaveLink/meters";
 
@@ -59,11 +60,12 @@ function MixChips({ channel, state }: { channel: WlChannel; state: WlState }) {
   if (!channel.mixes.length) return null;
   const name = (id: string) => state.mixes.find((m) => m.id === id)?.name ?? id;
   return (
-    <div className="flex flex-wrap gap-1">
+    // one line (rows are counted at one chip line): chips shrink and their names truncate in a narrow row
+    <div className="flex min-w-0 gap-1">
       {channel.mixes.map((m) => (
-        <span key={m.id} className="inline-flex items-center gap-1 rounded-full bg-[color:var(--w-track)] px-1.5 py-0.5 text-[10px] text-[color:var(--w-muted)]" title={m.isMuted ? `${name(m.id)} (muted)` : name(m.id)}>
+        <span key={m.id} className="inline-flex min-w-0 items-center gap-1 rounded-full bg-[color:var(--w-track)] px-1.5 py-0.5 text-[10px] text-[color:var(--w-muted)]" title={m.isMuted ? `${name(m.id)} (muted)` : name(m.id)}>
           <Pip muted={m.isMuted} />
-          {name(m.id)}
+          <span className="truncate">{name(m.id)}</span>
         </span>
       ))}
     </div>
@@ -85,9 +87,25 @@ function MixFooter({ mixes }: { mixes: WlMix[] }) {
   );
 }
 
+const SCALE_DB = [0, -12, -24, -48];
+/** The scale labels that fit a meter `h` px tall: top down, each at least one label height (14px, the larger skin fonts) below the last. */
+export function scaleTicks(h: number): number[] {
+  const kept: number[] = [];
+  let last = -Infinity;
+  for (const db of SCALE_DB) {
+    const y = ((100 - dbPos(10 ** (db / 20) * 100)) / 100) * h;
+    if (y - last >= 14) {
+      kept.push(db);
+      last = y;
+    }
+  }
+  return kept;
+}
+
 /** A mixer column: name, fader, scale + vertical L/R meters, readouts, mix routes. */
 function MixColumn({ channel, state, o }: { channel: WlChannel; state: WlState; o: Opts }) {
   const levels = useWlLevels(meterKey.channel(channel.id), o.preset);
+  const scale = useElementSize();
   return (
     <div className="flex min-w-0 flex-1 flex-col gap-1 overflow-hidden">
       <div className="flex min-w-0 items-center gap-1.5">
@@ -99,8 +117,8 @@ function MixColumn({ channel, state, o }: { channel: WlChannel; state: WlState; 
       </div>
       <div className="flex min-h-0 flex-1 items-stretch gap-1 py-1.5">
         {o.readout && (
-          <div className="relative w-5 shrink-0 font-mono text-[9px] tabular-nums text-[color:var(--w-faint)]">
-            {[0, -12, -24, -48].map((db) => (
+          <div ref={scale.ref} className="relative w-5 shrink-0 font-mono text-[9px] tabular-nums text-[color:var(--w-faint)]">
+            {scaleTicks(scale.h).map((db) => (
               <span key={db} className="absolute right-0 -translate-y-1/2" style={{ top: `${100 - dbPos(10 ** (db / 20) * 100)}%` }}>
                 {db === 0 ? "0" : `−${-db}`}
               </span>

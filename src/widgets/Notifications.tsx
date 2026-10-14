@@ -67,8 +67,8 @@ export default function Notifications(p: NotificationsProps) {
         if (size === "xs")
           return (
             <div className="flex h-full min-w-0 flex-col justify-center gap-0.5">
-              <Metric label="Notifications" value={hasCount ? Math.round(count) : "–"} scale="lg" sub={last} />
-              {status && <div className="truncate text-[10px] text-[color:var(--w-faint)]">{status}</div>}
+              <Metric label={h === 0 || h >= 56 ? "Notifications" : undefined} value={hasCount ? Math.round(count) : "–"} scale={h === 0 || h >= 56 ? "lg" : "md"} sub={h === 0 || h >= 72 ? last : undefined} />
+              {status && (h === 0 || h >= 88) && <div className="truncate text-[10px] text-[color:var(--w-faint)]">{status}</div>}
             </div>
           );
         // the history shows the lines that fit (no scroll container); before the first measurement (h = 0) all of them

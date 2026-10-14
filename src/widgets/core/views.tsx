@@ -87,13 +87,16 @@ export function CompactView({ c, shape, w, h, icon }: { c: Compact; shape: Shape
     <div className="flex h-full min-w-0 flex-col">
       {label}
       {kind === "ring" ? (
-        <div className="flex min-h-0 flex-1 items-center justify-center pt-1.5">
-          <Ring value={c.pct!} t={c.t} color={c.color} thickness={10} className="h-full max-h-full">
-            <span className="font-semibold tabular-nums" style={{ fontSize: Math.max(12, Math.min(18, (w * 0.45) / Math.max(2.5, String(val).length * 0.62))) }}>
-              {val}
-              <span className="text-[10px] text-[color:var(--w-muted)]">{c.unit}</span>
-            </span>
-          </Ring>
+        // a size container: the ring takes the smaller side, so a tall box (Summary card: Always) cannot push it past the width
+        <div className="flex min-h-0 flex-1 items-center justify-center pt-1.5" style={{ containerType: "size" }}>
+          <div className="shrink-0" style={{ width: "100cqmin" }}>
+            <Ring value={c.pct!} t={c.t} color={c.color} thickness={10}>
+              <span className="font-semibold tabular-nums" style={{ fontSize: Math.max(12, Math.min(18, (w * 0.45) / Math.max(2.5, String(val).length * 0.62))) }}>
+                {val}
+                <span className="text-[10px] text-[color:var(--w-muted)]">{c.unit}</span>
+              </span>
+            </Ring>
+          </div>
         </div>
       ) : (
         <>
@@ -134,7 +137,7 @@ export function StudioView({ c, w, h, icon }: { c: Studio; w: number; h: number;
     </div>
   );
   const len = String(val ?? "–").length + (c.unit ? String(c.unit).length * 0.5 : 0);
-  const fitPx = (max: number) => Math.round(Math.max(11, Math.min(max, (w - 26) / (Math.max(2.5, len) * 0.6 * (sk.numWide ?? 1)))));
+  const fitPx = (max: number) => Math.round(Math.max(11, Math.min(max, (w - 26) / (Math.max(2.5, len) * 0.68 * (sk.numWide ?? 1)))));
   const big = (max: number): ReactNode =>
     c.kind === "text" ? (
       <span className="line-clamp-2 text-[15px] font-semibold leading-snug">{val ?? "—"}</span>

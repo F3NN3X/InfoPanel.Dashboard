@@ -18,7 +18,7 @@ export interface ShellProps {
   meter?: string;
   variant?: "default" | "studio";
   size?: Tier | "auto";
-  compactView?: "auto" | "off";
+  compactView?: "auto" | "off" | "on";
   title?: string;
   showHeader?: boolean;
   className?: string;

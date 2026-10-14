@@ -9,13 +9,30 @@ import type { Shape, Tier } from "./types";
 export const tierOf = (w: number, h: number): Tier =>
   w < 220 || h < 140 ? "xs" : w < 340 || h < 210 ? "sm" : w < 500 || h < 320 ? "md" : "lg";
 // Shape follows the zone's grid span: 1×1 → tile, 3×1 / 4×1 → strip, 1×2 / 1×3 → column, everything else → box.
+// A strip is one row of a square grid (under 160px tall): on a grid of short rows (a 1920×550 strip
+// profile) a wide zone several rows tall is a box, so it shows the widget, not the one-line summary.
 export const shapeOf = (w: number, h: number): Shape => {
   if (!w || !h) return "box";
   const r = w / h;
-  if (r >= 2.6 && h < 240) return "strip";
+  if (r >= 2.6 && h < 160) return "strip";
   if (r <= 0.62 && w < 260) return "column";
   if (w < 240 && h < 240) return "tile";
   return "box";
+};
+
+/** The Summary card setting: `auto` in small zones (the default), `off` never, `on` at any size. */
+export type SummaryMode = "auto" | "off" | "on";
+
+/**
+ * The form the summary card takes, or null for the full layout. Auto shows it for tile, strip and
+ * column zones; Always also turns a box into a strip (wide), a column (tall) or a tile.
+ */
+export const summaryShape = (mode: SummaryMode | undefined, shape: Shape, w: number, h: number): Shape | null => {
+  if (mode === "off") return null;
+  if (shape !== "box") return shape;
+  if (mode !== "on") return null;
+  if (!w || !h) return "tile";
+  return w >= h * 2.2 ? "strip" : h >= w * 1.6 ? "column" : "tile";
 };
 
 export interface Box {

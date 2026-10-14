@@ -19,3 +19,14 @@ describe("WaveLink in a tile", () => {
     expect(layout(200, WL_LIVE.channels.slice(0, 1))).toMatch(/grid-template-columns:64px minmax\(0,1fr\) 40px/);
   });
 });
+
+describe("scaleTicks", () => {
+  it("keeps every dB label on a tall meter and drops the crowded ones on a short one", async () => {
+    const { scaleTicks } = await import("./WaveLink");
+    expect(scaleTicks(300)).toEqual([0, -12, -24, -48]);
+    const short = scaleTicks(60);
+    expect(short[0]).toBe(0);
+    expect(short.length).toBeLessThan(4);
+    expect(scaleTicks(0)).toEqual([0]);
+  });
+});

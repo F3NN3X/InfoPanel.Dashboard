@@ -289,9 +289,9 @@ them.
     *GPU*, *Memory*, *Drives*, *Trends*, *Thresholds*, *Units & labels*;
     Weather: *Display*, *Current conditions*, *Forecast*).
   - *Style*: **Look** (**Skin**, **Graph updates**; **Graph style**, **Meter
-    style** and **Compact view** are advanced - see [Skins and
+    style** are advanced - see [Skins and
     variants](#skins-and-variants)), **Size & alignment** (**Layout**, **Dense
-    summary**, **Scale with the zone**, **Size %**, the 3×3 **Alignment**),
+    summary**, **Summary card**, **Scale with the zone**, **Size %**, the 3×3 **Alignment**),
     **Typography** (**Text color**, **Secondary text color**, **Font**,
     **Value weight**, **Label case**), **Spacing & shape** (**Inner
     padding**, **Gap between items**, **Corner radius**, **Ring / bar
@@ -722,8 +722,10 @@ dashboard or a profile (Global style) and let widgets follow it.
   how trends are drawn.
 - **Meter style** (advanced) - Auto, bar, pill, segments, blocks, hair, wave
   or square: how bars and level meters are drawn.
-- **Compact view** (advanced) - Auto, or Off. In a small zone most widgets
-  swap to a compact summary; Off keeps the full layout.
+- **Summary card** (Size & alignment) - Auto, Never or Always. Auto swaps a
+  small zone (1 x 1, a one-row strip or a one-column zone) to a summary card;
+  Never keeps the full layout at any size; Always shows the summary card even
+  in a large zone.
 
 A skin is more than a card: type, numerals, graph and meter style, header and
 decorations, and it brings its own card. The **Surface** setting is only the

@@ -51,17 +51,21 @@ export default function Achievements(p: AchievementsProps) {
             )}
           </div>
         ) : (
-          <div className="flex h-full items-center gap-4">
-            <Ring value={pct} thickness={9} className="h-full max-h-[150px] shrink-0">
-              <span className={`${size === "lg" ? "text-3xl" : "text-xl"} font-semibold tabular-nums`}>
+          <div className={`flex h-full min-w-0 items-center gap-4 ${w < 230 ? "justify-center" : ""}`}>
+            <div className="shrink-0" style={{ width: Math.max(40, Math.min(h, 150, w < 230 ? w : w * 0.45)) }}>
+            <Ring value={pct} thickness={9}>
+              <span className={`${size === "lg" ? "text-3xl" : Math.min(h, w) < 76 ? "text-base" : "text-xl"} font-semibold tabular-nums`}>
                 {fmt(pct, 0)}
                 <span className="text-xs text-[color:var(--w-muted)]">%</span>
               </span>
-              <span className="text-[10.5px] text-[color:var(--w-faint)]">
-                {fmt(un)}/{fmt(tot)}
-              </span>
+              {Math.min(h, w) >= 76 && (
+                <span className="text-[10.5px] text-[color:var(--w-faint)]">
+                  {fmt(un)}/{fmt(tot)}
+                </span>
+              )}
             </Ring>
-            {has(A("latest-achievement")) && (
+            </div>
+            {w >= 230 && has(A("latest-achievement")) && (
               <div className="flex min-w-0 flex-1 flex-col gap-2">
                 <span className="text-[10.5px] uppercase tracking-[0.08em] text-[color:var(--w-faint)]">Latest unlock</span>
                 <div className="flex min-w-0 items-center gap-2.5">

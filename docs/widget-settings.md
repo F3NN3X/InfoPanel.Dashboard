@@ -97,7 +97,7 @@ Every widget spreads
 | `variant` | select | `default` | Dense summary: default (Off) / studio (On); under Size & alignment |
 | `graph` | select | `auto` | graph style: auto / area / line / step / bars / dots / braille (Advanced) |
 | `meter` | select | `auto` | meter style: auto / bar / pill / segments / blocks / hair / wave / square (Advanced) |
-| `compactView` | select | `auto` | auto / off: off keeps the full layout in small zones (Advanced) |
+| `compactView` | select | `auto` | Summary card: auto (small zones) / off (never) / on (always), in Size & alignment |
 | `autoScale` | boolean | `true` | kept for older configs; see Scaling |
 | `scale` | number | `100` | size %, 50–200, on top of auto-scale |
 | `alignX` + `alignY` | align | `auto` | one picker: left / center / right / spread × top / middle / bottom |
@@ -131,7 +131,7 @@ keys are listed in `GENERAL_CATEGORIES`):
 | Category | Keys |
 |---|---|
 | Widget | `showTitle`, `label`, `icon` (plus the type picker and *Visible*, added by the zone) |
-| Look | `skin`, `graph`, `meter`, `compactView` (the last three are Advanced); `variant` sits in Size & alignment |
+| Look | `skin`, `graph`, `meter` (the last two are Advanced); `variant` and `compactView` sit in Size & alignment |
 | Size & alignment | `layout`, `autoScale`, `scale`, `alignX` / `alignY` |
 | Typography | `textColor`, `mutedColor`, `font`, `fontWeight`, `labelCase` |
 | Spacing & shape | `padding`, `gap`, `radius`, `stroke` |
@@ -168,9 +168,11 @@ leave a widget looking as it always did.
 - **Graph style** and **Meter style** — override the skin's choice for every
   sparkline-type graph and for bars and meters in the widget (`auto` = the
   skin's).
-- **Compact view** — zones of 1 x 1, strip or column shape swap to a compact
-  summary of tile, strip or column form (`auto`); `off` keeps the full layout.
-  Widgets without a compact descriptor ignore it.
+- **Summary card** (`compactView`, Size & alignment) — **Auto**: zones of 1 x 1,
+  strip or column shape swap to a summary card of tile, strip or column form;
+  **Never** (`off`) keeps the full layout; **Always** (`on`) shows the summary
+  card at any size (a wide zone gets the strip form, otherwise the tile form).
+  Widgets without a compact descriptor ignore it; the Studio variant ignores it.
 
 Skin, variant, graph, meter and compact view are drawn by the shared widget
 shell (below). They have no effect on custom panel zones, which hide
