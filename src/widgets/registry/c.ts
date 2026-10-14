@@ -4,10 +4,9 @@ import type { DashboardModule, ModuleSetting, ModuleSettings } from "@/modules/t
 import { templateModule } from "../module";
 import { audioSettings, ballisticsOf, WAVELINK_SETTINGS, wavelinkToProps } from "./audio-settings";
 import { boolOf, boolSetting, colorSetting, deviceSetting, enumSetting, numberOf, numberSetting, oneOf, pick, splitKeys, stringOf } from "./settings-kit";
-import { IDLE_SETTING } from "@/modules/standard-settings";
 import AudioMeter, { meta as audioMeter, type AudioMeterProps } from "../AudioMeter";
 import MeterBridge, { meta as meterBridge, type MeterBridgeProps } from "../MeterBridge";
-import NowPlaying, { meta as nowPlaying, nowPlayingIdle, type NowPlayingProps } from "../NowPlaying";
+import NowPlaying, { meta as nowPlaying, type NowPlayingProps } from "../NowPlaying";
 import { MEDIA_SETTINGS, NOW_PLAYING_OWN, PLAYER_LAYOUT, sharedPropsOf, vizStyleOf } from "../NowPlaying/settings";
 import { VIZ_COLORS_GROUP, VIZ_DYNAMICS_GROUP, VIZ_SHAPE_GROUP, colorModeOf, vizColorSettings, vizDynamicsSettings, vizLookOf, vizShapeSettings } from "./viz-settings";
 import Visualizer, { meta as visualizer, type VisualizerProps } from "../Visualizer";
@@ -96,8 +95,7 @@ export const GROUP_C: DashboardModule[] = [
   templateModule({
     meta: nowPlaying,
     Component: NowPlaying,
-    settings: [IDLE_SETTING, ...NOW_PLAYING_SETTINGS],
-    isIdle: (sensors, s) => nowPlayingIdle(sensors, oneOf(s.source, ["auto", "media", "spotify", "pushed"])),
+    settings: NOW_PLAYING_SETTINGS,
     // the visualiser's levels: read, not owned
     prefixes: ["plugins.audio-level-meter."],
     // vizMode / vizDevice are stored under the legacy keys waveformVariant / liveSource (PHASE9_PLAN §3.2);

@@ -2,10 +2,10 @@ import type { CSSProperties } from "react";
 import { makeSurfacePalette, type ModernStyle } from "@/components/surfaces";
 import { surfaceBox } from "@/components/widget-style";
 import { chromeOf } from "@/modules/standard-settings";
-import type { ModuleSettings, SensorMap } from "@/modules/types";
+import type { ModuleSettings } from "@/modules/types";
 import { Widget, shell, get, num, has, Img, Chip, MediaProgress, type MediaProgressMode, type ShellProps, type WidgetMeta, type Data } from "./kit";
 import type { VizLook, VizStyle } from "./core/viz/types";
-import { toFlat, widgetImage } from "./data-adapter";
+import { widgetImage } from "./data-adapter";
 import { useArtTint } from "./NowPlaying/art-tint";
 import { AUDIO, levelDevice, useLevelDevice } from "./audio-device";
 import { useFastSensors } from "@/hooks/useSensors";
@@ -113,8 +113,6 @@ const trackOf = (d: Data, source: NowPlayingProps["source"]): Track => {
   return (SOURCES[src] ?? SOURCES.media)(d);
 };
 
-/** Idle = the chosen source is not playing (the template's own reading of "playing", per source). */
-export const nowPlayingIdle = (sensors: SensorMap, source: NowPlayingProps["source"]): boolean => !trackOf(toFlat(sensors), source).playing;
 
 export default function NowPlaying(p: NowPlayingProps) {
   const d = p.data;

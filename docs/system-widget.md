@@ -157,7 +157,7 @@ text beside it, to temperatures and to drive percentages.
 | Clocks | whole MHz, `2850 MHz`, `Mem 1750 MHz` |
 | Fans | `Fans 1200 RPM`, plus ` · 45%` when the duty is known |
 | Memory | GB with one decimal, none from 100 GB up: `12.4 / 31.2 GB` |
-| Drive rates | KB/s, MB/s from 1024 KB/s, GB/s from 1 GB/s: `512 KB/s`, `3.2 MB/s` (whole MB/s from 10 MB/s) |
+| Drive rates | bytes/s (labelled KB/s by the source) as B/s, KB/s, MB/s, GB/s with decimal prefixes (`fmtRate`): `512 B/s`, `218 KB/s`, `3.28 MB/s`, `21.9 MB/s`, `107 MB/s` |
 
 ## Thresholds and colors
 
@@ -204,7 +204,7 @@ For each drive the widget reads, by suffix on that identifier:
 | Name | the sensor's name without a trailing "Used Space", else the identifier |
 | Used | `_used_space` (%) |
 | Temperature | the first `_temperature__N` key of that drive, else `_composite_temperature`; 0 counts as unreadable |
-| Read / write | `_read_rate` / `_write_rate` (KB/s) |
+| Read / write | `_read_rate` / `_write_rate` (bytes/s; labelled KB/s) |
 | Life | `_life` (%) |
 
 `_total_space` and `_free_space` are read but not displayed.

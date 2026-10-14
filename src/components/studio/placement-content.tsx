@@ -21,11 +21,6 @@ export interface PlacementRender {
   hasData: boolean;
   title: string;
   /**
-   * Has data but nothing to show right now, and the widget is set to hide
-   * when idle: the kiosk hides it, the studio marks it.
-   */
-  idle?: boolean;
-  /**
    * The theme tokens re-scoped to the zone's resolved colors, for the zone
    * frame around the content (its header and card read them too).
    */
@@ -125,7 +120,6 @@ export function placementContent(
     content: content ?? null,
     hasData: content != null,
     title: mod.title,
-    idle: Boolean(cfg.hideWhenIdle && mod.isIdle?.(sensors, cfg)),
     scope: frameScope(cfg),
   };
 }

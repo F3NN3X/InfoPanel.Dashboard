@@ -1,6 +1,6 @@
 import { readSystemFlat } from "@/lib/system-metrics";
 import type { ModuleSettings } from "@/modules/types";
-import { useFitRows, Widget, shell, get, num, fmt, pretty, Spark, useHistory, useSkin, numFont, hw, type ShellProps, type WidgetMeta } from "./kit";
+import { useFitRows, Widget, shell, get, num, fmt, toMBps, pretty, Spark, useHistory, useSkin, numFont, hw, type ShellProps, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "KpiTiles",
@@ -41,7 +41,7 @@ export default function KpiTiles(p: KpiTilesProps) {
     cpu: { l: "CPU", v: L(`${cpu}_cpu_total`), u: "%", sub: (sys.cpu.name ?? pretty(cpu ?? "")).replace(/^AMD Ryzen/, "Ryzen"), max: 100 },
     gpu: { l: "GPU", v: L(`${gpu}_gpu_core_load`), u: "%", sub: (sys.gpu.name ?? pretty(gpu ?? "")).replace(/^NVIDIA /, ""), max: 100 },
     ram: { l: "Memory", v: L("total_memory_memory_used"), u: "GB", d: 1, sub: `of ${fmt(L("total_memory_memory_used") + L("total_memory_memory_available"), 0)} GB` },
-    net: { l: "Download", v: L("ethernet_download_speed") / 1024, u: "MB/s", sub: "Ethernet" },
+    net: { l: "Download", v: toMBps(L("ethernet_download_speed")), u: "MB/s", sub: "Ethernet" },
     vram: { l: "VRAM", v: L(`${gpu}_gpu_memory_used`) / 1024, u: "GB", d: 1, sub: `of ${fmt(L(`${gpu}_gpu_memory_total`) / 1024, 0)} GB` },
     power: { l: "Power", v: L(`${cpu}_package`) + L(`${gpu}_gpu_package`), u: "W", sub: "CPU + GPU" },
   };

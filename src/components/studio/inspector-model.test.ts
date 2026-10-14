@@ -159,14 +159,11 @@ describe("widget sections", () => {
     expect(titles(sectionsFor(spotify, "content"))).not.toContain("Audio source");
   });
 
-  it("offers Hide when idle only to the widgets that can be idle, and Layout only to adaptive ones", () => {
+  it("offers no Hide when idle (removed), and Layout only to adaptive ones", () => {
     for (const m of modules) {
       const sections = allSections(widgetContext(m));
       const keys = keysOf(sections);
-      expect(keys.includes("hideWhenIdle"), `${m.id} idle`).toBe(m.isIdle !== undefined);
-      if (keys.includes("hideWhenIdle")) {
-        expect(find(sections, "Widget").settings.map((d) => d.key)).toContain("hideWhenIdle");
-      }
+      expect(keys.includes("hideWhenIdle"), `${m.id} idle`).toBe(false);
       const adaptive = (m.settings ?? []).some((d) => d.key === "layout");
       expect(keys.includes("layout"), `${m.id} layout`).toBe(adaptive);
     }

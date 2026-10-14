@@ -43,6 +43,8 @@ export type GlowChoice = "none" | "soft" | "strong";
 export interface ModernChrome {
   /** Custom title line ("" = no header text). */
   label?: string;
+  /** Widgets: false hides the title header (unset = shown). */
+  showTitle?: boolean;
   /** A key from `lib/widget-icons.ts` ("" = no icon). */
   icon?: string;
   /** Accent color for fills / the header icon ("" = auto). */

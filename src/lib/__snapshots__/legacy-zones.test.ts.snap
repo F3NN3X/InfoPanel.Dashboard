@@ -185,7 +185,6 @@ exports[`migrateLegacyZone > networkmodern totals 1`] = `
     "downloadColor": "#34d399",
     "sparkline": true,
     "uploadColor": "#ffffff",
-    "view": "totals",
   },
 }
 `;

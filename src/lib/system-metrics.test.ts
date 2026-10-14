@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { SensorMap } from "@/modules/types";
 import { toFlat } from "@/widgets/data-adapter";
-import { filterDisks, formatRate, formatTemp, readSystem, readSystemFlat } from "./system-metrics";
+import { filterDisks, formatTemp, readSystem, readSystemFlat } from "./system-metrics";
 
 const s = (value: number, unit: string, name: string) => ({ value, unit, name });
 const GPU = "libre.nvidia_geforce_rtx_5090";
@@ -262,15 +262,5 @@ describe("formatTemp", () => {
     expect(formatTemp(0, "f")).toBe("32°F");
     expect(formatTemp(100, "f")).toBe("212°F");
     expect(formatTemp(40.2, "f", 1)).toBe("104.4°F");
-  });
-});
-
-describe("formatRate", () => {
-  it("scales KB/s up to MB/s and GB/s", () => {
-    expect(formatRate(0)).toBe("0 KB/s");
-    expect(formatRate(512)).toBe("512 KB/s");
-    expect(formatRate(3276)).toBe("3.2 MB/s");
-    expect(formatRate(429543)).toBe("419 MB/s");
-    expect(formatRate(3334294)).toBe("3.2 GB/s");
   });
 });

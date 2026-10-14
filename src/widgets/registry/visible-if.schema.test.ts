@@ -29,6 +29,14 @@ const GATED: [id: string, key: string, shows: ModuleSettings, hides: ModuleSetti
   ["SensorValue", "max", { display: "bar" }, { display: "spark" }],
   ...["sensors", "groupLayout", "bars", "groupMax", "groupDecimals", "groupWarn", "groupCrit"].map((k): [string, string, ModuleSettings, ModuleSettings] => ["SensorGroup", k, { auto: false }, { auto: true }]),
   ["SensorGroup", "maxRows", { auto: true }, { auto: false }],
+  ["SystemOverview", "showDiskIo", { sections: "cpu,disk" }, { sections: "cpu,gpu,ram" }],
+  ["SystemOverview", "vramWarn", { sections: "disk" }, { sections: "cpu" }],
+  ["SystemOverview", "vramWarn", { sections: "vram" }, { sections: "net" }],
+  ["SystemOverview", "netColor", { sections: "net" }, { sections: "cpu,gpu,ram,vram,disk" }],
+  ["SystemOverview", "gpuLabel", { sections: "gpu" }, { sections: "cpu,ram" }],
+  ["SystemOverview", "heatRamp", { sections: "cpu", coreView: "heatmap" }, { sections: "cpu", coreView: "bars" }],
+  ["SystemOverview", "heatRamp", { sections: "cpu", coreView: "heatmap" }, { sections: "gpu", coreView: "heatmap" }],
+  ["SystemOverview", "historyLength", { sparkline: true }, { sparkline: false }],
 ];
 
 describe("dependent settings are gated", () => {
@@ -44,7 +52,12 @@ describe("dependent settings are gated", () => {
     const variants: ModuleSettings[] = [
       base,
       ...settings.flatMap((d) =>
-        d.type === "boolean" ? [{ ...base, [d.key]: !d.default }] : d.type === "select" && d.options && !d.multiple ? d.options.map((o) => ({ ...base, [d.key]: o.value })) : [],
+        d.type === "boolean"
+          ? [{ ...base, [d.key]: !d.default }]
+          : d.type === "select" && d.options
+            ? // a multiple select: each option alone, and none (SystemOverview's sections gate their settings)
+              [...d.options.map((o) => ({ ...base, [d.key]: o.value })), ...(d.multiple ? [{ ...base, [d.key]: "" }] : [])]
+            : [],
       ),
     ];
     it.each(settings.filter((d) => d.visibleIf).map((d) => [d.key, d] as const))("%s is shown in some mode and hidden in another", (_key, def) => {

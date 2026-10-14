@@ -135,7 +135,7 @@ The whole library shares one design system, in `src/widgets/core/`:
   `_gpu_fan_N_control` (%), `_gpu_memory_clock`, `_gpu_power` (% of limit), page
   file `virtual_memory_memory_used` / `_available` / `virtual_memory_memory`.
   Drives, one per `<drive>_used_space` (%): `_temperature__N` (else
-  `_composite_temperature`), `_read_rate` / `_write_rate` (KB/s), `_life`,
+  `_composite_temperature`), `_read_rate` / `_write_rate` (bytes/s; the source labels them KB/s), `_life`,
   `_total_space` / `_free_space` (GB); the doubled `_load` / `_data` variants
   are ignored. Temperatures and power that read 0 count as unreadable and are
   hidden; the first GPU wins.
@@ -151,9 +151,18 @@ The whole library shares one design system, in `src/widgets/core/`:
   view is the `Thermals` template: the top four temperature readings as arc
   gauges plus a fan-reading chip row.
 - **NetworkThroughput** — `libre.ethernet_*`
-  (LibreHardwareMonitor): `download_speed` / `upload_speed` (bytes/s →
-  formatted rate), `data_downloaded` / `data_uploaded` (session totals),
-  `network_utilization` (0–100). Optional rolling speed sparklines.
+  (LibreHardwareMonitor): `download_speed` / `upload_speed` (bytes/s, though
+  the source labels them KB/s → `fmtRate`; **Speed units** Auto / MB/s / Mb/s /
+  KB/s / Kb/s / Mbps, decimal), `data_downloaded` / `data_uploaded` (session totals),
+  `network_utilization` (0–100). Optional rolling speed sparklines. **Session
+  totals** shows the totals row at every size (at the small tier it gives way
+  to the sparkline when both are on); the old Speeds / Totals view was removed.
+- **MenuBar** — CPU, GPU, temperature, memory, Down / Up and NVMe tabs. Down /
+  Up read the same adapter as NetworkThroughput (`adapterOf`: the chosen
+  **Network adapter**, else the busiest) in its **Speed units**
+  (`rateUnitSetting`, shared). **Active item** shows one tab selected, with
+  its detail once the zone has about 160px of content height, for screens
+  nobody clicks; a click overrides it.
 - **AudioMeter**, **MeterBridge**, **VolumeMixer** — `plugins.audio-level-meter.*`,
   grouped by container (device). Entries are resolved by **stable key
   suffix** — `audio-level`, `peak-level`, `rms-level`, `left-channel`,

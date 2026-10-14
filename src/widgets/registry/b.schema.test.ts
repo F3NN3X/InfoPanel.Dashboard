@@ -53,7 +53,7 @@ describe("registry group B schema", () => {
 
   describe.each(GROUP_B.map((m) => [m.id, m] as const))("%s", (id, mod) => {
     const props = MANIFEST[id];
-    const own = (mod.settings ?? []).filter((d) => !STANDARD_KEYS.has(d.key) && d.key !== "hideWhenIdle");
+    const own = (mod.settings ?? []).filter((d) => !STANDARD_KEYS.has(d.key));
 
     it("lists exactly the spec's widget-specific props in the manifest", () => {
       expect(specProps(id).sort()).toEqual(Object.keys(props).sort());

@@ -525,13 +525,12 @@ export function StudioCanvas({
                       studio
                       selection={primaryId === p.id && p.panel ? { selectedWidgetId } : undefined}
                     >
-                      {({ content, hasData, title, idle, scope }) => (
+                      {({ content, hasData, title, scope }) => (
                         <PlacementFrame
                           placement={p}
                           profile={profile}
                           studio
                           hasData={hasData}
-                          idle={idle}
                           title={title}
                           scope={scope}
                           gridWidth={gridWidth}

@@ -1,7 +1,7 @@
 // Inspector settings of the group A templates: every widget-specific prop of the spec as a setting,
 // with the adapters back to props (docs/redesign/phase9/brief-9.5-inspector.md). SystemOverview's are in system-overview.ts.
 import type { ModuleSetting, ModuleSettings } from "@/modules/types";
-import { boolOf, boolSetting, colorSetting, colorsOf, deviceSetting, enumSetting, numberOf, numberSetting, oneOf, sensorSetting, splitKeys, stringOf, textSetting, type ColorEntry } from "./settings-kit";
+import { boolOf, boolSetting, colorSetting, colorsOf, deviceSetting, enumSetting, numberOf, numberSetting, oneOf, rateUnitOf, rateUnitSetting, sensorSetting, splitKeys, stringOf, textSetting, type ColorEntry } from "./settings-kit";
 import type { CoreHeatmapProps } from "../CoreHeatmap";
 import type { CpuMonitorProps } from "../CpuMonitor";
 import type { FansProps } from "../Fans";
@@ -30,15 +30,24 @@ const listPick = <T extends string>(v: unknown, allowed: readonly T[]): T[] | un
 
 /* ───────── MenuBar ───────── */
 const MENU_ITEMS = ["cpu", "gpu", "temp", "mem", "down", "up", "nvme"] as const;
+const MENU_LABELS: [string, string][] = [["cpu", "CPU"], ["gpu", "GPU"], ["temp", "Temperature"], ["mem", "Memory"], ["down", "Download"], ["up", "Upload"], ["nvme", "NVMe"]];
+/** Download or Upload is in the bar: the network settings apply. */
+const showsNet = (v: ModuleSettings): boolean => splitKeys(v.items ?? MENU_ITEMS.join(",")).some((k) => k === "down" || k === "up");
 export const MENUBAR_SETTINGS: ModuleSetting[] = [
-  enumSetting("items", "Items", MENU_ITEMS.join(","), opts(["cpu", "CPU"], ["gpu", "GPU"], ["temp", "Temperature"], ["mem", "Memory"], ["down", "Download"], ["up", "Upload"], ["nvme", "NVMe"]), { multiple: true, group: "Menu bar" }),
+  enumSetting("items", "Items", MENU_ITEMS.join(","), opts(...MENU_LABELS), { multiple: true, group: "Menu bar" }),
+  enumSetting("active", "Active item", "", opts(["", "None"], ...MENU_LABELS), { group: "Menu bar", hint: "Shown selected, with its detail when the zone is tall enough: for screens nobody clicks" }),
   enumSetting("stacked", "Label placement", "auto", opts(["auto", "Auto"], ["stacked", "Stacked"], ["inline", "Inline"]), { group: "Menu bar" }),
   boolSetting("dropdown", "Detail dropdown on click", true, { group: "Menu bar" }),
+  deviceSetting("adapter", "Network adapter", "adapter", { group: "Menu bar", hint: "Auto = the busiest adapter", visibleIf: showsNet }),
+  rateUnitSetting("Menu bar", { visibleIf: showsNet }),
 ];
 export const menuBarProps = (s: ModuleSettings): Partial<MenuBarProps> => ({
   items: listPick(s.items, MENU_ITEMS),
+  active: oneOf(s.active, MENU_ITEMS),
   stacked: s.stacked === "stacked" ? true : s.stacked === "inline" ? false : undefined,
   dropdown: boolOf(s.dropdown),
+  adapter: stringOf(s.adapter) || undefined,
+  rateUnit: rateUnitOf(s.rateUnit),
 });
 
 /* ───────── KpiTiles ───────── */

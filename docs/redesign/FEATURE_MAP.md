@@ -159,9 +159,10 @@ Rows marked **(+)** were added by the Phase 0 code inventory (`docs/settings-inv
 | Current field | Tab › Section | Notes | Status |
 |---|---|---|---|
 | Widget type + Change | C › Widget | select of the registered types | ✅ `zone-inspector.tsx:240` → `zone-inspector-parts.tsx:324` (the list is the 50 templates and the catch-all) |
-| Custom title | C › Widget | | ✅ `standard-settings.ts:274` |
+| Custom title | C › Widget | | ✅ `standard-settings.ts:368` |
+| Show title (on / off) | C › Widget | switch | ✅ `standard-settings.ts:367`, `Widget.tsx` (header + summary title line) |
 | Icon (grid of about 20, including none) | C › Widget | icon grid | ✅ `standard-settings.ts:275`, `setting-control.tsx:134` (20 icons + none) |
-| Hide when idle | C › Widget | only Spotify, Media, Steam, FPS, Notifications | ✅ `standard-settings.ts:223` (IDLE_SETTING on Spotify, Media, Steam, FPS, Notifications) (decision #13) |
+| Hide when idle | C › Widget | only Spotify, Media, Steam, FPS, Notifications | ✅ (decision #13) removed from every widget at the user's request; a stored `hideWhenIdle` is ignored and the widget stays shown |
 | Visible | C › Widget, plus header eye | | ✅ `zone-inspector.tsx:242` + header eye `zone-inspector-parts.tsx:35` |
 | Layout auto/card/standard/compact/simple | S › Size & alignment | adaptive widgets only | ✅ `standard-settings.ts:249` (decision #2: all 11 modern widgets; now every template widget: the value forces the shell's size tier, `core/look.ts` `LAYOUT_TIERS`) |
 | Scale with the zone | S › Size & alignment | Adv | ✅ `standard-settings.ts:59` (Adv) |
@@ -203,7 +204,7 @@ Rows marked **(+)** were added by the Phase 0 code inventory (`docs/settings-inv
 | Audio | Content (device, meter/volume) → C; Meter (style, orientation, ballistics; colours Adv) → C | ✅ the AudioMeter, MeterBridge and VolumeMixer templates (`registry/c.ts`, shared keys `registry/audio-settings.ts`, decisions #3, #4: meter colours Adv); zones with the legacy id load as it (config v4, `src/lib/legacy-zones.ts`): the view picks the template, the meter style / orientation / source map onto its keys |
 | Wave Link | Content (meters to show, dB readout, fader, mixes) → C; Meter (incl. level colour, Adv) → C | ✅ the WaveLink template (`src/widgets/WaveLink.tsx`, keys `registry/audio-settings.ts`); zones with the legacy id load as it (config v4, `src/lib/legacy-zones.ts`) with the old teal as `levelColor` |
 | Bluetooth | Content (full/devices/status) → C; Battery colors → S (Adv) | ✅ the Bluetooth template (Battery colors Adv; `src/widgets/Bluetooth.tsx`, options `src/widgets/registry/e.ts:73`); zones with the legacy id load as it (config v4, `src/lib/legacy-zones.ts`) |
-| Network | Content (speeds/totals, sparkline) → C; Speed colors → S (Adv) | ✅ the NetworkThroughput template (Speed colors Adv; `src/widgets/NetworkThroughput.tsx`, settings `registry/b.ts`); zones with the legacy id load as it (config v4, `src/lib/legacy-zones.ts`) with the old speed colours written out |
+| Network | Content (session totals, sparkline; the speeds/totals view was only a preset for them and was removed) → C; Speed colors → S (Adv) | ✅ the NetworkThroughput template (Speed colors Adv; `src/widgets/NetworkThroughput.tsx`, settings `registry/b.ts`); zones with the legacy id load as it (config v4, `src/lib/legacy-zones.ts`) with the old speed colours written out |
 | Departures | Content (status) → C | ✅ the Departures template (`src/widgets/Departures.tsx`, options `src/widgets/registry/e.ts:63`); zones with the legacy id load as it (config v4, `src/lib/legacy-zones.ts`) (`vbz`, on the Theme surface) |
 | Notifications | Content (history, max lines) → C | ✅ the Notifications template (`src/widgets/Notifications.tsx`, options `src/widgets/registry/e.ts:46`); zones with the legacy id load as it (config v4, `src/lib/legacy-zones.ts`) (on the Theme surface) |
 | Text File | Content (meta) → C | ✅ the TextFile template (`src/widgets/TextFile.tsx`, options `src/widgets/registry/e.ts:37`); zones with the legacy id load as it (config v4, `src/lib/legacy-zones.ts`) (on the Theme surface) |

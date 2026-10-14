@@ -1,11 +1,7 @@
-// FpsMonitor's look settings, their mapping to props and its idle rule (same keys, defaults and groups
-// as the old FPS widget).
-import { entry, liveValue } from "@/lib/sensors";
-import type { DashboardModule, ModuleSetting, ModuleSettings } from "@/modules/types";
+// FpsMonitor's look settings and their mapping to props (same keys, defaults and groups as the old FPS
+// widget).
+import type { ModuleSetting, ModuleSettings } from "@/modules/types";
 import type { FpsMonitorProps } from "./FpsMonitor";
-
-const RTSS = "plugins.InfoPanel.RTSS.";
-const FPS = "plugins.fps-plugin.";
 
 /** showMetrics, sparkline and the two colours. */
 export const FPS_LOOK_SETTINGS: ModuleSetting[] = [
@@ -28,8 +24,3 @@ export function fpsLookProps(s: ModuleSettings): FpsLookProps {
   };
 }
 
-/** Idle = no frames counted (no game running), from RTSS or PresentMon. */
-export const fpsIdle: NonNullable<DashboardModule["isIdle"]> = (sensors) => {
-  const fps = liveValue(entry(sensors, RTSS, "rtss", "fps")) ?? liveValue(entry(sensors, FPS, "fps", "fps"));
-  return fps === undefined || fps <= 0;
-};

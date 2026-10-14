@@ -140,8 +140,30 @@ const OVERVIEW_ONLY: ModuleSetting[] = [
   colorSetting("netColor", "Network color", { group: "Device colors" }),
 ];
 
-/** The SystemOverview zone's settings: the details, then its own. */
-export const SYSTEM_OVERVIEW_SETTINGS: ModuleSetting[] = [...DETAIL_SETTINGS, ...OVERVIEW_ONLY];
+/** The sections a setting draws in: it is offered only while one of them is shown (unlisted = always). */
+const SECTION_OF: Record<string, readonly Section[]> = {
+  ...Object.fromEntries(["cpuLabel", "cpuColor", "coreView"].map((k) => [k, ["cpu"]])),
+  ...Object.fromEntries(["showClock", "showHotspot", "showFans", "showMemClock", "showPowerLimit", "gpuLabel", "gpuColor"].map((k) => [k, ["gpu"]])),
+  ...Object.fromEntries(["showMemory", "showPageFile", "ramLabel", "ramColor"].map((k) => [k, ["ram"]])),
+  ...Object.fromEntries(["showDiskTemp", "showDiskIo", "showDiskLife", "diskFilter", "diskLabel", "diskColor"].map((k) => [k, ["disk"]])),
+  ...Object.fromEntries(["netLabel", "netColor"].map((k) => [k, ["net"]])),
+  vramColor: ["vram"],
+  vramWarn: ["vram", "disk"],
+};
+/** Further conditions: the thread ramp colours the heatmap, the length sizes the sparklines. */
+const ALSO: Record<string, (v: ModuleSettings) => boolean> = {
+  heatRamp: (v) => splitKeys(v.sections ?? "cpu,gpu,ram").includes("cpu") && (v.coreView ?? "heatmap") === "heatmap",
+  historyLength: (v) => v.sparkline !== false,
+};
+const offered = (d: ModuleSetting): ModuleSetting => {
+  const secs = SECTION_OF[d.key];
+  const also = ALSO[d.key];
+  if (!secs && !also) return d;
+  return { ...d, visibleIf: (v) => (!secs || secs.some((x) => splitKeys(v.sections ?? "cpu,gpu,ram").includes(x))) && (!also || also(v)) };
+};
+
+/** The SystemOverview zone's settings: the details, then its own; each offered only while it can show. */
+export const SYSTEM_OVERVIEW_SETTINGS: ModuleSetting[] = [...DETAIL_SETTINGS, ...OVERVIEW_ONLY].map(offered);
 
 const text = (v: unknown) => String(v ?? "").trim();
 const has = (s: ModuleSettings, key: string) => s[key] !== undefined && s[key] !== "";

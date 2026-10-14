@@ -65,7 +65,7 @@ export default function SensorValue(p: SensorValueProps) {
       {({ size }) =>
         !numeric ? (
           <div className="flex h-full flex-col justify-center">
-            {size === "xs" && <span className="text-[11px] text-[color:var(--w-muted)]">{label}</span>}
+            {size === "xs" && p.look?.showTitle !== false && <span className="text-[11px] text-[color:var(--w-muted)]">{label}</span>}
             {has(raw) && isImageUrl(raw, p.sensor) ? (
               <img src={widgetImage(raw)} alt="" loading="lazy" className="max-h-full min-h-0 w-auto self-center rounded-md object-contain" onError={(e) => ((e.target as HTMLImageElement).style.display = "none")} />
             ) : (

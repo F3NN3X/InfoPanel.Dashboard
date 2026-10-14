@@ -23,8 +23,8 @@ interface GeneralCategory {
   advanced?: boolean;
   /**
    * The standard setting keys it holds (an "align" picker counts once, by
-   * its horizontal key). Ungrouped keys (`preset`, `layout`, `surface`,
-   * `hideWhenIdle`) are filed by this list; the others agree with their `group`.
+   * its horizontal key). Ungrouped keys (`preset`, `layout`, `surface`)
+   * are filed by this list; the others agree with their `group`.
    *
    * Judgement calls: `layout` is a size decision (card / compact / ...), so
    * it sits in Size & alignment; `preset` and `surface` are the surface
@@ -42,7 +42,7 @@ export const GENERAL_CATEGORIES: readonly GeneralCategory[] = [
     tab: "content",
     title: GROUP_WIDGET,
     hint: "Title, icon and visibility",
-    keys: ["label", "icon", "hideWhenIdle"],
+    keys: ["showTitle", "label", "icon"],
   },
   {
     id: "look",

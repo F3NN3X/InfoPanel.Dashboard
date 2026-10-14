@@ -59,7 +59,6 @@ Which block each zone type spreads (the inspector builds the general cards from 
 | **Other sensors** (`cards`) | `CARD_SETTINGS`: `surface` (default **Theme**), `accent`, all of `STYLE_SETTINGS`, all of `SURFACE_SETTINGS`. No `label`, `icon`, `preset`, `layout`, `background`, `backgroundOn` |
 | Custom panel | `PANEL_SETTINGS` (§1.6) |
 | Blank zone | none (no settings; the Widget card has only the type picker and Visible) |
-| `hideWhenIdle` (`IDLE_SETTING`) | the templates that declare an idle state |
 
 ### 1.1 Widget identity (`STANDARD_SETTINGS`, not look keys)
 
@@ -67,7 +66,6 @@ Which block each zone type spreads (the inspector builds the general cards from 
 |---|---|---|---|---|---|---|---|
 | `label` | Custom title | text | | `""` | modern widgets (not CARD widgets, not Web Page) | Zone | C › Widget |
 | `icon` | Icon | icon grid | none + 18 icons: activity, bluetooth, brain, cpu, gauge, gamepad, headphones, heart, leaf, monitor, moon, music, radio, snowflake, sun, thermometer, wifi, zap | `""` | modern widgets | Zone | C › Widget |
-| `hideWhenIdle` | Hide when idle | toggle | | `false` | the 5 idle-capable widgets | Zone | C › Widget |
 | *(zone field)* `visible` | Visible | toggle | | `true` | every zone | Zone field | C › Widget, plus header eye / `H` |
 | *(zone field)* `module` | Type (Change / Pick a widget) | picker button (opens the widget picker) | the 16 modules + Other sensors + Custom panel | n/a | every zone; blank shows "Pick" | Zone field | C › Widget › Widget type |
 
@@ -121,7 +119,7 @@ Which block each zone type spreads (the inspector builds the general cards from 
 `labelCase`, `stroke`, `customCss`, `borderWidth`, `borderColor`, `glow`, `glowColor`,
 `surfaceOpacity`, `blur` (22 keys). Exactly these are copied by Copy style, saved in style presets
 and appearance presets, and editable at dashboard / profile level (Dash › Global style). `preset`,
-`layout`, `label`, `icon`, `background`, `backgroundOn`, `hideWhenIdle` and all content keys are
+`layout`, `label`, `icon`, `background`, `backgroundOn` and all content keys are
 per zone only.
 
 ### 1.6 Custom panel look (`PANEL_SETTINGS`)
@@ -135,7 +133,7 @@ panel zone's `settings` like any widget.
 | `surface` | Default `panel`; options none (None), panel (Card), bordered (Bordered card), then glass, matte-light, matte-dark, theme (7 options, so a Select) | S › Colors & surface |
 
 All other keys (`icon`, `accent`, `background`, `backgroundOn`, §1.2 and §1.3 minus the removed
-ones) behave as in §1.2 to §1.4. A panel has no `hideWhenIdle`. Legacy fallback: `PanelDef.title`,
+ones) behave as in §1.2 to §1.4. Legacy fallback: `PanelDef.title`,
 `titleVisible`, `accent` and `background` are read when the matching setting is absent
 (`panelSettings`, `panelLegacyLook`), never written by the new UI.
 
@@ -185,7 +183,7 @@ keys the template reads:
 ### 2.1 Other sensors (`cards`, no module settings)
 
 Zone type for every sensor no module claims. Block: `CARD_SETTINGS` (surface default `theme`,
-`accent`, all of §1.2, all of §1.3). No own keys. No `label`, `icon`, `hideWhenIdle`.
+`accent`, all of §1.2, all of §1.3). No own keys. No `label`, `icon`.
 
 ---
 
@@ -534,8 +532,7 @@ overlay, Gauge row, Clock + date, Label / value list.
 12. **`sourcePrefs`.** `enabled` ("Show in dashboard") and `displayName` are stored but nothing outside
     the Sources panel reads them today (no kiosk or widget consumer). The redesign keeps them in
     Sources mode; confirm whether they should start to take effect.
-13. **Hide when idle for panels and CARD widgets.** Only five widgets have it. No other zone type can
-    gain it without a new `isIdle` rule.
+13. **Hide when idle.** Removed from every widget (a stored `hideWhenIdle` is ignored).
 14. **Magic wand.** FEATURE_MAP §5 lists a zoom-bar "Magic wand" with "same action". The only wand in
     the code is the **Auto** layout-mode icon (and the Auto profile entry); there is no canvas
     auto-arrange action. Confirm the intended action before building it.

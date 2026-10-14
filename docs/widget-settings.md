@@ -86,13 +86,14 @@ Every widget spreads
 | `preset` | select | `default` | one-click bundle — see presets below |
 | `layout` | select | `auto` | auto / card / standard / compact / simple |
 | `surface` | select | `glass` | glass / matte-light / matte-dark / theme (from the theme tokens) |
-| `label` | text | `""` | custom title line (empty = the widget's own header) |
+| `showTitle` | boolean | `true` | Show title: off hides the header and the title line of the studio and compact cards (not offered on panels, whose empty title hides it) |
+| `label` | text | `""` | custom title line (empty = the widget's own header; hidden while Show title is off) |
 | `icon` | icon | `""` | header icon (empty = none) |
 | `accent` | color | `""` | accent for fills / header icon (empty = auto) |
 | `background` | image | `""` | background image URL |
 | `backgroundOn` | boolean | `false` | use that image behind the surface |
 | `skin` | select | `auto` | auto / one of the 14 skins (see Look below) |
-| `smoothing` | select | `stepped` | Graph updates: stepped (jump to each reading) / smooth (line, area and step graphs scroll in over the measured sample interval with an eased range; bars and rings glide linearly). Reduced motion keeps it stepped (`core/smoothing.ts`) |
+| `smoothing` | select | `stepped` | Graph updates: stepped (jump to each reading) / smooth (line, area and step graphs scroll by time at a constant speed two measured intervals behind the feed, with an eased range; bars and rings glide linearly). Reduced motion keeps it stepped (`core/smoothing.ts`) |
 | `variant` | select | `default` | Dense summary: default (Off) / studio (On); under Size & alignment |
 | `graph` | select | `auto` | graph style: auto / area / line / step / bars / dots / braille (Advanced) |
 | `meter` | select | `auto` | meter style: auto / bar / pill / segments / blocks / hair / wave / square (Advanced) |
@@ -129,7 +130,7 @@ keys are listed in `GENERAL_CATEGORIES`):
 
 | Category | Keys |
 |---|---|
-| Widget | `label`, `icon`, `hideWhenIdle` (plus the type picker and *Visible*, added by the zone) |
+| Widget | `showTitle`, `label`, `icon` (plus the type picker and *Visible*, added by the zone) |
 | Look | `skin`, `graph`, `meter`, `compactView` (the last three are Advanced); `variant` sits in Size & alignment |
 | Size & alignment | `layout`, `autoScale`, `scale`, `alignX` / `alignY` |
 | Typography | `textColor`, `mutedColor`, `font`, `fontWeight`, `labelCase` |
@@ -138,15 +139,13 @@ keys are listed in `GENERAL_CATEGORIES`):
 | Border & effects | `borderWidth`, `borderColor`, `glow`, `glowColor` (plus the zone frame) |
 | Advanced | `customCss` |
 
-`preset`, `layout`, `surface` and `hideWhenIdle` carry no `group` and are
+`preset`, `layout` and `surface` carry no `group` and are
 filed by key. "Auto" / empty always means the widget's own look. The
 constants are `GROUP_WIDGET`, `GROUP_SIZE`, `GROUP_TYPOGRAPHY`,
 `GROUP_SPACING`, `GROUP_COLORS`, `GROUP_EFFECTS` and `GROUP_ADVANCED`.
 
-Modules with an idle rule (`DashboardModule.isIdle`: media / Spotify not
-playing, FPS without frames, Steam not in a game, notifications with none
-unread) add `IDLE_SETTING` (`hideWhenIdle`): the kiosk then hides the zone
-while idle, and the studio badges it "idle · hidden in kiosk".
+There is no idle hiding: `hideWhenIdle` (and `DashboardModule.isIdle`) was
+removed; a stored value is ignored.
 
 ### Look: skin, variant, graph and meter
 
@@ -283,15 +282,18 @@ Widgets that offer more than one *layout* get a separate module-specific
 preset that sets the module's own option keys:
 
 ```ts
-// registry/b.ts — NetworkThroughput's "Totals" view also turns on the totals row and the sparkline
-{
-  key: "view", label: "View", type: "select", default: "speeds",
-  options: [
-    { value: "speeds", label: "Speeds" },
-    { value: "totals", label: "Totals", applies: { showTotals: true, sparkline: true } },
-  ],
-},
+// registry/e.ts — Bluetooth's views each set all three switches
+enumSetting("view", "View", "full", [
+  { value: "full", label: "Status + devices", applies: { showStatus: true, showDevices: true, showBattery: true } },
+  { value: "devices", label: "Devices + battery", applies: { showStatus: false, showDevices: true, showBattery: true } },
+  { value: "status", label: "Status only", applies: { showStatus: true, showDevices: false, showBattery: false } },
+]),
 ```
+
+A view that is only a preset sets **every** switch it bundles, in every
+option: an option that set none (Weather's Full, Bluetooth's Status + devices
+before the settings audit) picked nothing, so choosing it did nothing.
+`settings-audit.test.tsx` guards this.
 
 Picking a `view` option persists both the option's own value **and** the
 `applies` bundle, so the studio stores a complete, editable state. The
@@ -304,9 +306,16 @@ Current `view` families:
 | widget | `view` options |
 |---|---|
 | `FpsMonitor` | `frametime` / `gauge` / `trend` (→ `sparkline`) |
-| `Bluetooth` | `full` / `devices` / `status` |
-| `Weather` | `full` / `now` / `forecast` / `minimal` |
-| `NetworkThroughput` | `speeds` / `totals` (→ `showTotals`, `sparkline`) |
+| `Bluetooth` | `full` / `devices` / `status` (→ `showStatus`, `showDevices`, `showBattery`) |
+| `Weather` | `full` / `now` / `forecast` / `minimal` (→ `showForecast`, `showStats`, `showFeels`; `forecast` also swaps in the forecast layout) |
+
+`NetworkThroughput` had `speeds` / `totals`; it only bundled Session totals and
+the sparkline, so it was removed: **Session totals** decides at every size (at
+the small tier the totals give way to the sparkline when both are on), and a
+stored `view` is ignored.
+
+Where each widget's own settings take effect (spans, and what they need) is
+in [widget-settings-coverage.md](widget-settings-coverage.md).
 
 ## The audiocn views
 

@@ -73,8 +73,11 @@ export const fitRows = (h: number, rowH: number, gap = 0): number => Math.max(1,
 /** `fitRows` for use in a widget body; stateless, so safe to call from any render branch. */
 export const useFitRows = (h: number, rowH: number, gap = 0): number => fitRows(h, rowH, gap);
 
+/** The default rolling history length (samples); a smooth graph keeps this width while a history fills. */
+export const HISTORY_LEN = 48;
+
 // Rolling history, eased (EMA) so graphs glide instead of jitter. ease 1 = raw.
-export function useHistory(value: number, len = 48, ease = 0.45): number[] {
+export function useHistory(value: number, len = HISTORY_LEN, ease = 0.45): number[] {
   const ref = useRef<number[]>([]);
   const last = useRef<number | undefined>(undefined);
   if (Number.isFinite(value) && value !== last.current) {
