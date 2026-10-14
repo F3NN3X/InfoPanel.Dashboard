@@ -140,7 +140,15 @@ The whole library shares one design system, in `src/widgets/core/`:
   `_composite_temperature`), `_read_rate` / `_write_rate` (bytes/s; the source labels them KB/s), `_life`,
   `_total_space` / `_free_space` (GB); the doubled `_load` / `_data` variants
   are ignored. Temperatures and power that read 0 count as unreadable and are
-  hidden; the first GPU wins.
+  hidden; the first GPU wins. Identical drives (three of one NVMe model) are
+  numbered by the Data API: the first keeps `kingston_sfyrd2000g_…`, the others
+  get `#2`, `#3` in their name and `__2`, `__3` in the key
+  (`kingston_sfyrd2000g__2_…`). Each drive also carries its volumes:
+  `<drive>_volumes` (text, "C: Windows, D: Games": letter plus label when set)
+  and `<drive>_drive_letters` ("C:, D:"). Widgets label a drive by its volumes
+  (`diskShort`, else "Kingston #2"), the drive picker lists "C: Windows ·
+  Kingston SFYRD2000G" (`diskName`), and Auto picks a model's first drive
+  (`firstDisk`).
 - **FpsMonitor** — RTSS: `fps`, `1% low fps`, `current frame
   time`, `gpu-name`, `resolution`, `refreshrate`, `windowtitle`,
   `graphics-api`, `display-mode`, `benchmark-mode`; fps-plugin: `fps`,

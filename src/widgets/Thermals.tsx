@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { useFitRows, Widget, shell, get, num, fmt, detect, pretty, tone, TONES, useHistory, Empty, Ring, Num, hw, type Tone, type ShellProps, type WidgetMeta } from "./kit";
+import { useFitRows, Widget, shell, get, num, fmt, detect, diskShort, tone, TONES, useHistory, Empty, Ring, Num, hw, type Tone, type ShellProps, type WidgetMeta } from "./kit";
 import { readings } from "./hardware-readings";
 
 export const meta: WidgetMeta = {
@@ -52,7 +52,7 @@ export default function Thermals(p: ThermalsProps) {
     raw.push({ id: "hot", label: "GPU memory", v: L(`${gpu}_gpu_memory_junction`), warn: 90, crit: 100 });
   }
   for (const s of p.discover ? [] : detect(d, /^libre\.(.+)_power_on_hours$/))
-    raw.push({ id: s, label: pretty(s).split(" ")[0], v: [`${s}_composite_temperature`, `${s}_temperature`, `${s}_temperature__2`].map(L).find(Number.isFinite) ?? NaN, warn: L(`${s}_warning_temperature`) || 70, crit: L(`${s}_critical_temperature`) || 85 });
+    raw.push({ id: s, label: diskShort(s, get(d, `libre.${s}_volumes`)), v: [`${s}_composite_temperature`, `${s}_temperature`, `${s}_temperature__2`].map(L).find(Number.isFinite) ?? NaN, warn: L(`${s}_warning_temperature`) || 70, crit: L(`${s}_critical_temperature`) || 85 });
   if (!p.discover) raw.push({ id: "vrm", label: "VRM", v: L("embedded_controller_vrm"), warn: 90, crit: 105 });
   const list: Sensor[] = raw.filter((x) => Number.isFinite(x.v) && x.v > 0).map((x) => ({ ...x, t: tone(x.v, p.warn ?? x.warn, p.crit ?? x.crit) }));
   if (p.sortBy !== "fixed") list.sort((a, b) => b.v - a.v);

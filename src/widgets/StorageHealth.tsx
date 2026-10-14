@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { StatGrid, Widget, shell, get, num, fmt, fmtGB, fmtRate, detect, pretty, Metric, Ring, Spark, Stat, Bar, Num, useHistory, useSkin, tone, Empty, LegendRow, type ShellProps, type WidgetMeta } from "./kit";
+import { StatGrid, Widget, shell, get, num, fmt, fmtGB, fmtRate, detect, diskShort, firstDisk, Metric, Ring, Spark, Stat, Bar, Num, useHistory, useSkin, tone, Empty, LegendRow, type ShellProps, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "StorageHealth",
@@ -46,7 +46,7 @@ function RateGraph({ rH, wH, rd, wr }: { rH: number[]; wH: number[]; rd: number;
 export default function StorageHealth(p: StorageHealthProps) {
   const d = p.data;
   const disks = detect(d, /^libre\.(.+)_power_on_hours$/);
-  const id = p.disk ?? disks[0];
+  const id = p.disk ?? firstDisk(disks);
   const k = (s: string) => num(get(d, `libre.${id}_${s}`));
   const pick = (...ks: string[]) => ks.map(k).find(Number.isFinite);
   const life = k("life"),
@@ -64,7 +64,7 @@ export default function StorageHealth(p: StorageHealthProps) {
       </Widget>
     );
   const lifeT = life < 20 ? "crit" : life < 50 ? "warn" : "ok";
-  const name = p.title ?? pretty(id).split(" ")[0];
+  const name = p.title ?? diskShort(id, get(d, `libre.${id}_volumes`));
   return (
     <Widget
       {...shell(p)}

@@ -1,5 +1,5 @@
 import { audioIds, deviceLabel } from "@/widgets/audio-data";
-import { detect, hw, pretty } from "@/widgets/core/data";
+import { detect, diskName, hw, pretty } from "@/widgets/core/data";
 import type { DeviceKind, SensorMap } from "@/modules/types";
 
 export interface DeviceOption {
@@ -31,7 +31,14 @@ export function deviceOptions(kind: DeviceKind, sensors: SensorMap): DeviceOptio
     case "gpu":
       return [auto, ...slugs(detect(data, /^libre\.(.+)_gpu_core_load$/))];
     case "disk":
-      return [auto, ...slugs(hw(data).disks)];
+      // the drive's volumes first ("C: Windows · Kingston SFYRD2000G"), so a drive is picked by its letter
+      return [
+        auto,
+        ...hw(data).disks.map((id) => {
+          const volumes = sensors[`libre.${id}_volumes`]?.text;
+          return { value: id, label: volumes ? `${volumes} · ${diskName(id)}` : diskName(id) };
+        }),
+      ];
     case "adapter":
       return [auto, ...slugs(hw(data).adapters)];
     case "audio":

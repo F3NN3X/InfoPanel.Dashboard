@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { useFitRows, Widget, shell, get, num, fmt, fmtRate, detect, pretty, Spark, useHistory, type ShellProps, type WidgetMeta } from "./kit";
+import { useFitRows, Widget, shell, get, num, fmt, fmtRate, detect, diskShort, Spark, useHistory, type ShellProps, type WidgetMeta } from "./kit";
 
 export const meta: WidgetMeta = {
   id: "DiskIO",
@@ -27,7 +27,7 @@ export default function DiskIO(p: DiskIOProps) {
   const d = p.data;
   const disks = detect(d, /^libre\.(.+)_power_on_hours$/).filter((id) => !p.disk || id === p.disk).map((id) => {
     const k = (s: string) => num(get(d, `libre.${id}_${s}`));
-    return { id, name: pretty(id).split(" ")[0], r: k("read_rate"), w: k("write_rate"), act: k("total_activity") };
+    return { id, name: diskShort(id, get(d, `libre.${id}_volumes`)), r: k("read_rate"), w: k("write_rate"), act: k("total_activity") };
   });
   const total = disks.reduce((a, x) => a + (x.r || 0) + (x.w || 0), 0);
   const hist = useHistory(total);

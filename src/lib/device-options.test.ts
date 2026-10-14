@@ -7,6 +7,8 @@ const sensors: SensorMap = {
   "libre.amd_ryzen_9_9950x3d_cpu_total": { value: 3, unit: "%" },
   "libre.nvidia_rtx_4090_gpu_core_load": { value: 5, unit: "%" },
   "libre.samsung_ssd_980_power_on_hours": { value: 5, unit: "h" },
+  "libre.samsung_ssd_980__2_power_on_hours": { value: 5, unit: "h" },
+  "libre.samsung_ssd_980__2_volumes": t("D: Games"),
   "libre.ethernet_download_speed": { value: 5, unit: "KB/s" },
   "plugins.audio-level-meter.default-audio.device-name": t("Speakers (Realtek)"),
   "plugins.audio-level-meter.dev-1.device-name": t("Headset (USB)"),
@@ -21,7 +23,8 @@ describe("deviceOptions", () => {
       { value: "amd_ryzen_9_9950x3d", label: "AMD Ryzen 9 9950X3D" },
     ]);
     expect(deviceOptions("gpu", sensors).map((o) => o.value)).toEqual(["", "nvidia_rtx_4090"]);
-    expect(deviceOptions("disk", sensors).map((o) => o.value)).toEqual(["", "samsung_ssd_980"]);
+    expect(deviceOptions("disk", sensors).map((o) => o.value)).toEqual(["", "samsung_ssd_980", "samsung_ssd_980__2"]);
+    expect(deviceOptions("disk", sensors).map((o) => o.label)).toEqual(["Auto", "Samsung SSD 980", "D: Games · Samsung SSD 980 #2"]);
     expect(deviceOptions("adapter", sensors).map((o) => o.value)).toEqual(["", "ethernet"]);
   });
 
