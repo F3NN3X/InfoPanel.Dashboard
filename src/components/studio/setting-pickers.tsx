@@ -95,15 +95,16 @@ export function MediaDevicePicker({ def, value, onChange, lead, hint }: PickerPr
 }
 
 /**
- * Picker for the Wave Link meter inventory (the plugin's live
- * channels + output devices). Handles both single-select and multi-select
+ * Picker for the Wave Link widget's rows (the plugin's live channels +
+ * input devices). Input devices keep their stored `device:{id}` value; the
+ * widget meters them per input. Handles both single-select and multi-select
  * (`def.multiple`); "" means all meters.
  */
 export function WavelinkMeterPicker({ def, value, onChange, lead, hint }: PickerProps) {
   const state = useWavelinkState();
   const options = [
     ...state.channels.map((c) => ({ value: meterKey.channel(c.id), label: `Channel · ${c.name}` })),
-    ...state.devices.map((d) => ({ value: meterKey.device(d.id), label: `Device · ${d.name}` })),
+    ...state.devices.map((d) => ({ value: meterKey.device(d.id), label: `Input · ${d.name}` })),
   ];
   return (
     <StackRow label={def.label} lead={lead} hint={hint}>

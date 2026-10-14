@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
-import { meterKey, useWavelinkState, type WlChannel, type WlDevice, type WlMix, type WlState } from "@/lib/wavelink";
+import { SILENCE_DB, formatDb } from "@/lib/audio/decibels";
+import { meterKey, useWavelinkState, type WlChannel, type WlDevice, type WlGain, type WlMix, type WlState } from "@/lib/wavelink";
 import type { ModuleSettings } from "@/modules/types";
 import { useElementSize } from "@/hooks/use-element-size";
 import { useFitRows, Widget, shell, Icon, Chip, Empty, STATE, type BallisticsPreset, type ShellProps, type Tier, type WidgetMeta } from "./kit";
@@ -48,8 +49,25 @@ export interface Opts {
   color?: string;
 }
 
-const fader = (level: number | null): string => (level === null ? "—" : `${Math.round(level * 100)}%`);
-const MuteMark = ({ title = "Muted" }: { title?: string }) => (
+/**
+ * A fader as Wave Link's calibrated gain in dB (plugin 1.2+: `levelDb`, null = −∞), or its
+ * position in % from older plugins.
+ */
+export const fader = (level: number | null, levelDb?: number | null): string => {
+  if (levelDb !== undefined) return formatDb(levelDb ?? SILENCE_DB, { decimals: 1 });
+  return level === null ? "—" : `${Math.round(level * 100)}%`;
+};
+/**
+ * Input gain in dB as Wave Link shows it, or % for a gain without a dB scale (plugin 1.2+ sends
+ * `valueDb: null` for those). Older plugins send no `valueDb`: a Wave mic's `value × max` is its dB.
+ */
+export const gainLabel = (gain: WlGain): string => {
+  const legacyDb = gain.value !== null && gain.max !== null && gain.max > 1 ? gain.value * gain.max : null;
+  const db = gain.valueDb !== undefined ? gain.valueDb : legacyDb;
+  if (db !== null) return formatDb(db, { decimals: 1 });
+  return gain.value === null ? "—" : `${Math.round(gain.value * 100)}%`;
+};
+const MuteMark =({ title = "Muted" }: { title?: string }) => (
   <span className="shrink-0 text-[10px] font-semibold" style={{ color: "var(--wl-mute)" }} title={title}>
     M
   </span>
@@ -80,7 +98,7 @@ function MixFooter({ mixes }: { mixes: WlMix[] }) {
         <span key={m.id} className="flex items-center gap-1.5 text-xs">
           <Pip muted={m.isMuted} />
           <span className="text-[color:var(--w-muted)]">{m.name}</span>
-          <span className="tabular-nums">{fader(m.level)}</span>
+          <span className="tabular-nums">{fader(m.level, m.levelDb)}</span>
         </span>
       ))}
     </div>
@@ -113,7 +131,7 @@ function MixColumn({ channel, state, o }: { channel: WlChannel; state: WlState; 
           {channel.name}
         </span>
         {channel.isMuted && <MuteMark />}
-        {o.fader && <span className="ml-auto shrink-0 text-xs font-bold tabular-nums">{fader(channel.level)}</span>}
+        {o.fader && <span className="ml-auto shrink-0 text-xs font-bold tabular-nums">{fader(channel.level, channel.levelDb)}</span>}
       </div>
       <div className="flex min-h-0 flex-1 items-stretch gap-1 py-1.5">
         {o.readout && (
@@ -160,7 +178,7 @@ function ChannelRow({ channel, state, o, wide, w }: { channel: WlChannel; state:
             </span>
             {channel.isMuted && <MuteMark />}
           </span>
-          {o.fader && <span className="text-[10.5px] tabular-nums text-[color:var(--w-faint)]">{fader(channel.level)}</span>}
+          {o.fader && <span className="text-[10.5px] tabular-nums text-[color:var(--w-faint)]">{fader(channel.level, channel.levelDb)}</span>}
         </div>
         <MeterPair levels={levels} variant={o.variant} color={o.color ?? "var(--accent)"} hot={STATE.crit} thickness={wide ? 8 : 6} />
         {readout && (
@@ -195,7 +213,7 @@ function DenseRow({ channel, o, w }: { channel: WlChannel; o: Opts; w: number })
         </span>
         {channel.isMuted && <MuteMark />}
       </span>
-      {o.fader && !narrow && <span className="w-9 shrink-0 text-right text-[11px] tabular-nums text-[color:var(--w-muted)]">{fader(channel.level)}</span>}
+      {o.fader && !narrow && <span className="w-9 shrink-0 text-right text-[11px] tabular-nums text-[color:var(--w-muted)]">{fader(channel.level, channel.levelDb)}</span>}
       <MeterPair levels={levels} variant={o.variant} color={o.color ?? "var(--accent)"} hot={STATE.crit} thickness={5} className="min-w-0 flex-1" />
       {o.readout && w >= 280 && (
         <span className="w-[60px] shrink-0 text-right font-mono text-[10px] tabular-nums text-[color:var(--w-muted)]">
@@ -206,10 +224,11 @@ function DenseRow({ channel, o, w }: { channel: WlChannel; o: Opts; w: number })
   );
 }
 
-/** An output device: name, input mute, thin L/R meters, gain. */
+/** An input device (a Wave mic): name, input mute, thin L/R meters, gain. */
 function DeviceRow({ device, o }: { device: WlDevice; o: Opts }) {
-  const levels = useWlLevels(meterKey.device(device.id), o.preset);
-  const gain = device.inputs.map((i) => i.gain?.value).find((v) => v !== undefined && v !== null);
+  // Wave Link meters an input device per input (`input:{inputId}`), never as `device:`
+  const levels = useWlLevels(meterKey.input(device.inputs[0]?.id ?? device.id), o.preset);
+  const input = device.inputs.find((i) => i.gain?.value !== undefined && i.gain?.value !== null);
   return (
     <div className="flex min-w-0 items-center gap-2">
       <Icon name="mic" className="shrink-0 text-sm text-[color:var(--w-faint)]" />
@@ -218,7 +237,7 @@ function DeviceRow({ device, o }: { device: WlDevice; o: Opts }) {
       </span>
       {device.inputs.some((i) => i.isMuted) && <MuteMark />}
       <MeterPair levels={levels} variant={o.variant} color={o.color ?? "var(--accent)"} hot={STATE.crit} thickness={4} className="min-w-0 flex-1" />
-      {o.fader && gain !== undefined && gain !== null && <span className="shrink-0 text-[11px] tabular-nums text-[color:var(--w-muted)]">{Math.round(gain * 100)}%</span>}
+      {o.fader && input?.gain && <span className="shrink-0 text-[11px] tabular-nums text-[color:var(--w-muted)]">{gainLabel(input.gain)}</span>}
     </div>
   );
 }
@@ -308,7 +327,7 @@ export default function WaveLink(p: WaveLinkProps) {
         </Chip>
       }
       studio={{ label: "Wave Link", live: up, value: first ? (first.isMuted ? "Muted" : "Live") : up ? "Up" : "Off", sub: first?.name, meters: channels.map((c) => ({ n: c.name, v: c.isMuted ? 0 : (c.level ?? 0) * 100 })) }}
-      compact={channels.length > 1 ? undefined : first ? { label: first.name, value: first.isMuted ? "Muted" : "Live", sub: o.fader ? `Fader ${fader(first.level)}` : undefined, icon: first.isMuted ? "mic_off" : "mic", kind: "value", t: first.isMuted ? "crit" : "ok" } : { label: "Wave Link", value: up ? "Up" : "Off", kind: "value" }}
+      compact={channels.length > 1 ? undefined : first ? { label: first.name, value: first.isMuted ? "Muted" : "Live", sub: o.fader ? `Fader ${fader(first.level, first.levelDb)}` : undefined, icon: first.isMuted ? "mic_off" : "mic", kind: "value", t: first.isMuted ? "crit" : "ok" } : { label: "Wave Link", value: up ? "Up" : "Off", kind: "value" }}
     >
       {({ size, w, h }) => <WaveLinkLayout size={size} w={w} h={h} up={up} state={state} channels={channels} devices={devices} o={o} vertical={p.meterOrientation !== "horizontal"} />}
     </Widget>

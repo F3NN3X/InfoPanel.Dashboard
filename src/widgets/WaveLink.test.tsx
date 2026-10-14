@@ -20,6 +20,27 @@ describe("WaveLink in a tile", () => {
   });
 });
 
+describe("fader and gain labels", () => {
+  it("shows the calibrated dB when the plugin sends it, else the position in %", async () => {
+    const { fader } = await import("./WaveLink");
+    expect(fader(0.5, -13.12)).toBe("−13.1 dB");
+    expect(fader(1, 0)).toBe("0.0 dB");
+    expect(fader(0, null)).toBe("−∞ dB");
+    expect(fader(0.19)).toBe("19%");
+    expect(fader(null)).toBe("—");
+  });
+
+  it("shows input gain as value × max dB, as Wave Link does", async () => {
+    const { gainLabel } = await import("./WaveLink");
+    expect(gainLabel({ value: 0.45, min: 0, max: 40, valueDb: 18 })).toBe("+18.0 dB");
+    expect(gainLabel({ value: 0.45, min: 0, max: 40 })).toBe("+18.0 dB");
+    expect(gainLabel({ value: 0.45, min: null, max: null })).toBe("45%");
+    // a third-party interface: no dB scale (empty lookup table in Wave Link)
+    expect(gainLabel({ value: 1, min: 0, max: 1, valueDb: null })).toBe("100%");
+    expect(gainLabel({ value: 1, min: 0, max: 1 })).toBe("100%");
+  });
+});
+
 describe("scaleTicks", () => {
   it("keeps every dB label on a tall meter and drops the crowded ones on a short one", async () => {
     const { scaleTicks } = await import("./WaveLink");
