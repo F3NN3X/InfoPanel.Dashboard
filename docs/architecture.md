@@ -806,8 +806,8 @@ top bar over the studio body, which `studio-shell.tsx` assembles: the icon
 rail (`left-rail.tsx`), the open left panel (`studio-drawers.tsx`: Layers,
 Add or Profiles in a 256 px column), the canvas (`studio-canvas.tsx`, or the
 Data Explorer in Sources mode) with the floating zoom bar over it
-(`zoom-toolbar.tsx`) and the inspector, beside the canvas (Side) or in a
-bottom dock (Bottom), see Studio layout below. `studio-view.tsx` only
+(`zoom-toolbar.tsx`) and the inspector, docked, floating or in a bottom
+sheet by the studio width, see Studio layout below. `studio-view.tsx` only
 composes; the state lives in hooks beside it: `use-studio-selection.ts` (the
 zone selection and the selected panel widget), `use-studio-ui.ts` (mode, open
 panel, grid and ruler flags, zoom, dialogs, inspector search and jump
@@ -873,11 +873,29 @@ Colors & surface, Border & effects, Advanced) own the standard keys,
 `categorize(defs)` returns them in that order and then the module's own
 categories in first-appearance order, and `categoryTab` / `ModuleSetting.tab`
 decide the tab (see [Adding a setting](#adding-a-setting-to-a-module)).
-`inspector/inspector-view.tsx` renders the result (header, search, tabs, the
-sections, the Advanced footer with the dot legend) for both placements;
-`source-dot.tsx` draws the dots; `inspector-prefs.ts` keeps the Advanced flag
-and the open tab per context in localStorage (`studio.inspectorAdvanced`,
-`studio.inspectorTabs`), open sections live in `studio.sections`.
+`inspector/inspector-view.tsx` renders the result as one column (header,
+search with the "Changed" toggle, the tabs pill, the sections as an accordion
+with sticky headers, the Advanced footer with the dot legend) in the docked
+and floating placements; `inspector/sheet-view.tsx` is the bottom sheet's
+peek / half body (a tool strip of Quick plus one tile per section, then that
+section's fields). Search runs across every tab and hides the tabs; "Changed"
+lists only the values set here, across every tab. `source-dot.tsx` draws the
+dots; `inspector-prefs.ts` keeps the Advanced flag and the open tab per
+context in localStorage (`studio.inspectorAdvanced`, `studio.inspectorTabs`)
+and the accordion mode (`studio.accordion`, one open or many open, default
+one). The open section is plain component state; there is no scroll-spy.
+
+*Quick bar* (`quick-bar.tsx`, `quick-sets.ts`). A floating pill centred at the
+top of the canvas (docked and floating placements; Dashboard › General ›
+Studio › "Quick bar", `studio.quickBar`, default on): identity, the pinned
+settings as compact controls, visibility and, floating, "All settings". Pins
+are set from the pin button on each inspector row, are kept per widget type (all
+panels share one set), at most 6, in `studio.quickPins`. `quick-sets.ts` is
+pure: before any pin a type gets the default set (Layout and Accent when
+present, then its first two own compact settings, max 4), and a multi
+selection shows only the pins every selected type shares and writes to all of
+them. The canvas keeps its top room reserved while the bar is on
+(`QUICK_BAR_INSET`), so selecting never refits the page.
 
 *Source dots.* `settings-model.ts`'s `settingStateOf` classifies a row as
 `default`, `dashboard`, `profile`, `here`, `overriding` (set here over a global
@@ -912,7 +930,7 @@ Force switch, the presets gallery `appearance-gallery.tsx`, `theme-panel.tsx` /
 `withBackground`, undo-keyed per scope by `backgroundKey`), Global style (the
 look sections over `PROFILE_STYLE_SETTINGS`, written at the dashboard or
 profile level) and General (`general-panel.tsx`: Type, Clock & date, Display,
-Studio = the inspector position, Connection = the Data API URL). See the
+Studio = the Quick bar and Inspector sections switches, Connection = the Data API URL). See the
 [customization guide](customization-guide.md).
 
 **Data Explorer and binding** (`sources-panel.tsx`, `explorer/`,
@@ -941,31 +959,38 @@ components are `source-tree.tsx`, `point-table.tsx`, `point-inspector.tsx`,
 `group-summary.tsx` (which also keeps `sourcePrefs`, the show / display-name
 preferences) and `explorer-header.tsx`.
 
-**Studio layout** (`studio-layout.ts`, `use-studio-layout.ts`). The pure
-`computeLayout({ body, page, rail, drawer, design, inspector, mode,
-dockHeight, collapsed })` returns `{ placement, dockHeight, canvasWidth,
-canvasHeight, fitZoom }`. `body` is the studio below the top bar; `page` the
-profile's design size (`height` 0 for a scroll profile, then `naturalHeight`
-from its grid). The left panel (`drawer`) is a column beside the canvas in both
-placements. `side` subtracts rail, left panel, inspector (`INSPECTOR_WIDTH`,
-340 px), the vertical ruler (28 px) and the horizontal ruler (24 px). `auto`
-decides by the profile alone (`autoPlacement`): Bottom when the design size's
-width / height is above `AUTO_BOTTOM_ASPECT` (2.5), else Side - the window and
-the free space no longer matter. The dock height (its 28 px toggle row
-included) is 320 px (`DEFAULT_DOCK`) or the user's dragged value, clamped to
-`MIN_DOCK` (200 px) .. `MAX_DOCK_SHARE` (70%) of the body; collapsed it is
-`BAR_H`. `nextLayoutMode` is the zoom bar's dock button (Auto → Side →
-Bottom). `fitZoomFor` is the largest zoom (floored to 1%, within 0.25 .. 2) at
-which the page plus 32 design px of padding fit a box; a page without a height
-is fitted to the width only. `useStudioLayout` measures the body with a
-ResizeObserver (`bodyRef`) and keeps the mode, the dragged dock height and the
-collapsed flag in localStorage (`studio.layout`, `studio.dockHeight`,
-`studio.dockCollapsed`, each in try/catch); `pageSize(profile)` gives the page
-as the canvas draws it. `studio-shell.tsx` renders the placement: a row (rail,
-left panel, canvas with the zoom bar floating over it, inspector) for Side, or
-rail, left panel and canvas over a `dock-splitter.tsx` (pointer capture, a
-guide line while dragging, commit on release, double-click reset) and the dock
-(a top row with `dock-toggle.tsx`, then the inspector).
+**Studio layout** (`studio-layout.ts`, `use-studio-layout.ts`). The inspector's
+placement is picked from the studio's width (`inspectorMode`), there is no
+setting: **docked** from `DOCKED_MIN_WIDTH` (1100 px), **floating** from
+`FLOATING_MIN_WIDTH` (640 px), else a **sheet**. Docked is a 320 px column
+(`INSPECTOR_WIDTH`) that Ctrl+\ collapses to a slim strip
+(`dock-toggle.tsx`; `studio.dockCollapsed`). Floating is a 320 px card with
+12 px margins over the right of the canvas, closed by default; "All settings"
+in the quick bar, a double-click on a zone or Ctrl+\ opens it, its X, Ctrl+\ or
+clearing the selection closes it. The sheet (`bottom-sheet.tsx`) has three
+snaps (`sheetHeight`): peek (150 px, 96 with nothing selected), half
+(max(320, 56% of the canvas height)) and full (height - 8); a handle drag
+snaps to the nearest (`nearestSnap`), a tap toggles peek / half. The pure
+`computeLayout({ body, page, rail, drawer, inspector, collapsed, floatOpen,
+quickBar, sheet })` returns `{ mode, canvasWidth, canvasHeight, inset,
+fitZoom }`. `body` is the studio below the top bar; `page` the profile's
+design size (`height` 0 for a scroll profile, then `naturalHeight` from its
+grid). The left panel (`drawer`) is a column beside the canvas in every mode
+(`leftPanelFits` lays it over the canvas when it would squeeze the canvas
+below `MIN_CANVAS`). The `inset` is what the page keeps clear of inside the
+canvas box: the open floating card (`FLOAT_INSET`), the quick bar's top room
+(`QUICK_BAR_INSET`, reserved whenever the bar is on) and, in sheet mode, the
+sheet up to its half snap plus the zoom bar. `fitZoomFor` is the largest zoom
+(floored to 1%, within 0.25 .. 2) at which the page plus 32 design px of
+padding fit a box minus the inset; a page without a height is fitted to the
+width only. `useStudioLayout` measures the body with a ResizeObserver
+(`bodyRef`) and keeps the collapsed flag in localStorage
+(`studio.dockCollapsed`, in try/catch); `pageSize(profile)` gives the page as
+the canvas draws it. `studio-shell.tsx` renders the mode: a row (rail, left
+panel, canvas with the zoom bar floating over it, inspector column) when
+docked, the same row with the card over the canvas when floating, and the
+sheet over the canvas bottom on a phone, where the top bar also hides the
+summary, the Kiosk view label and Undo / Redo (they move into the "..." menu).
 
 **Sticky fit** (`use-canvas-zoom.ts`, `zoom-pref.ts`). `useCanvasZoom(page)`
 measures the canvas scroll container with a ResizeObserver; while `fitting`
@@ -975,13 +1000,14 @@ and the profile. Any manual zoom (`setZoom`, steps, Ctrl + wheel) turns
 `studio-canvas.tsx` centers the page (flex with `m-auto`) and offsets the
 rulers by the page's origin.
 
-**Inspector in the dock** (`inspector-layout.tsx`, `inspector-scroll.ts`).
-`InspectorLayout` (`"side" | "dock"`) is a React context that the inspector
-parts read (`useInspectorLayout`); `InspectorHeader`, `HeaderSlot` and
-`InspectorBody` switch their wrapper classes, so Side stacks the sections and
-the dock gets a one-row header and a body of CSS columns (about 300 px,
-`break-inside-avoid` on sections). `inspector-scroll.ts` finds the scrolling
-element for scroll-to-top and the widget-editor reveal.
+**Inspector chrome** (`inspector-layout.tsx`, `inspector-scroll.ts`).
+`InspectorChrome` is a React context that the inspector parts read
+(`useInspectorChrome`): the placement (docked, floating or sheet), the
+header's close (floating) or collapse (sheet) button and the sheet's snap
+and tool strip state; `useInInspector` switches a row to its inline slider
+and value box (left panels keep the stacked slider).
+`inspector-scroll.ts` finds the scrolling element for scroll-to-top and the
+widget-editor reveal.
 
 **Studio left rail and panels** (`left-rail.tsx`). A 52 px icon rail opens
 one panel at a time, remembered in localStorage (`studio.drawer`): **Add**

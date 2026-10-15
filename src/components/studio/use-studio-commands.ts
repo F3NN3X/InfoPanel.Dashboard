@@ -131,11 +131,9 @@ export function useStudioCommands({
       case "drawer":
         ui.setMode("design");
         return ui.setDrawer(action.drawer);
-      case "layout":
-        return ui.studioLayout.setMode(action.mode);
       case "toggle-dock":
-        // The inspector, in either placement (Sources has none).
-        return !ui.showSources && ui.studioLayout.toggleCollapsed();
+        // Collapse the docked inspector, or open / close the floating one (Sources has none).
+        return !ui.showSources && ui.studioLayout.toggleInspector();
       case "sources":
         return ui.toggleSources();
       case "toggle-grid":
@@ -305,7 +303,6 @@ export function useStudioCommands({
         canRedo: history.canRedo,
         showGrid: ui.showGrid,
         showSources: ui.showSources,
-        layoutMode: ui.studioLayout.mode,
         enforced: appearance.enforce,
         appearancePresets: appearancePresets.presets,
       })

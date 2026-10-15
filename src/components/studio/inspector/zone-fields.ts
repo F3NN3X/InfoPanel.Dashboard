@@ -1,4 +1,4 @@
-import { CARDS_ID, type Placement } from "@/lib/layout";
+import { CARDS_ID, type Placement, type ProfileView } from "@/lib/layout";
 import { panelLegacyLook, panelOwnSettings } from "@/lib/panel-model";
 import type { Appearance } from "@/lib/style-resolve";
 import { modules } from "@/modules";
@@ -52,4 +52,28 @@ export function withSettings(zone: Placement, patch: ModuleSettings, enforce: bo
 /** A zone without some own settings. */
 export function withoutSettings(zone: Placement, keys: readonly string[]): Placement {
   return { ...zone, settings: dropKeys(zone.settings, new Set(keys)) };
+}
+
+/**
+ * The fields of a selection (one zone or several): the rows show the primary
+ * zone's values (the last one), and every edit applies to each zone in one
+ * undo step. The quick bar edits through it.
+ */
+export function selectionFields(
+  zones: readonly Placement[],
+  appearance: Appearance,
+  updateProfile: (fn: (p: ProfileView) => ProfileView, key?: string) => void
+) {
+  const ids = new Set(zones.map((z) => z.id));
+  const values = zoneLookValues(zones[zones.length - 1], appearance);
+  const each = (fn: (z: Placement) => Placement, key?: string) =>
+    updateProfile((p) => ({ ...p, placements: p.placements.map((z) => (ids.has(z.id) ? fn(z) : z)) }), key);
+  return {
+    values,
+    shown: (key: string, def: ModuleSetting) => shownValue(values, key, def),
+    onChange: (key: string, v: ModuleSettingValue) => each((z) => withSettings(z, { [key]: v }, appearance.enforce), `setting:${key}`),
+    onPatch: (patch: ModuleSettings) =>
+      each((z) => withSettings(z, patch, appearance.enforce), `setting:${Object.keys(patch).join()}`),
+    onClear: (keys: string[]) => each((z) => withoutSettings(z, keys)),
+  };
 }

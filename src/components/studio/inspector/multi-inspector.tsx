@@ -1,12 +1,14 @@
+import { BoxSelect } from "lucide-react";
 import type { ProfileView, Placement } from "@/lib/layout";
 import type { Appearance, StyleMode } from "@/lib/style-resolve";
 import type { ModuleSettings } from "@/modules/types";
 import { withStyleMode } from "../appearance-actions";
-import { HeaderSlot } from "../inspector-layout";
 import { isVisible, sharedDefs, type InspectorContext, type InspectorSection } from "../inspector-model";
 import type { FieldsApi } from "../settings-panel";
 import { StyleModeBar } from "../style-mode-bar";
 import { MultiHeader } from "../zone-inspector-parts";
+import { quickDefsFor } from "../quick-sets";
+import { useQuickPins } from "./inspector-prefs";
 import { InspectorView, type SectionParts } from "./inspector-view";
 import { shownValue, shownValues, withoutSettings, withSettings, zoneDefs, zoneLookValues } from "./zone-fields";
 import { zoneName } from "./zone-meta";
@@ -23,6 +25,9 @@ interface MultiInspectorProps {
   onRemove: () => void;
   query: string;
   onQuery: (query: string) => void;
+  /** The Changed filter (only values set here, across every tab). */
+  changedOnly: boolean;
+  onChangedOnly: (on: boolean) => void;
   jumpTo?: { id: string; key?: string; seq: number };
 }
 
@@ -42,9 +47,12 @@ export function MultiInspector({
   onRemove,
   query,
   onQuery,
+  changedOnly,
+  onChangedOnly,
   jumpTo,
 }: MultiInspectorProps) {
   const primary = zones[zones.length - 1];
+  const pins = useQuickPins();
   const ids = new Set(zones.map((z) => z.id));
   const defs = sharedDefs(zones.map(zoneDefs));
   const context: InspectorContext = { kind: "multi", defs };
@@ -82,7 +90,6 @@ export function MultiInspector({
       context={context}
       contextKey="multi"
       header={
-        <HeaderSlot className="w-80 shrink-0">
         <MultiHeader
           zones={zones.map((z) => ({ id: z.id, name: zoneName(z), visible: z.visible }))}
           onDeselect={onDeselect}
@@ -90,14 +97,23 @@ export function MultiInspector({
           onDuplicate={onDuplicate}
           onRemove={onRemove}
         />
-        </HeaderSlot>
       }
       fields={fields}
       visible={(def) => isVisible(def, effective)}
       parts={parts}
       query={query}
       onQuery={onQuery}
+      changedOnly={changedOnly}
+      onChangedOnly={onChangedOnly}
       jumpTo={jumpTo}
+      identity={{
+        icon: <BoxSelect />,
+        name: `${zones.length} widgets`,
+        meta: () => "Edits apply to all of them",
+        hidden: zones.every((z) => !z.visible),
+        onToggleVisible,
+      }}
+      quickKeys={quickDefsFor(zones, pins, zoneDefs).map((d) => d.key)}
     />
   );
 }

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { fitZoomFor, stepZoom } from "./studio-layout";
+import { fitZoomFor, stepZoom, type CanvasInset } from "./studio-layout";
 import { loadZoomPref, saveZoomPref } from "./zoom-pref";
 
 /**
@@ -10,9 +10,10 @@ import { loadZoomPref, saveZoomPref } from "./zoom-pref";
  * `fitZoom` turns it back on. Attach the scroll container with
  * `attachScroll` (a callback ref: the canvas remounts after a Sources
  * round-trip and the wheel listener must follow it); read it through
- * `scrollRef`.
+ * `scrollRef`. The fit keeps the page clear of `inset` (the open floating
+ * inspector).
  */
-export function useCanvasZoom(page: { width: number; height: number }) {
+export function useCanvasZoom(page: { width: number; height: number }, inset: CanvasInset = {}) {
   // The zoom mode (fit, or a manual zoom) is remembered across reloads.
   const [initial] = useState(loadZoomPref);
   const [manual, setManual] = useState(initial.manual);
@@ -37,7 +38,7 @@ export function useCanvasZoom(page: { width: number; height: number }) {
     return () => observer.disconnect();
   }, [scrollEl]);
 
-  const fitted = fitZoomFor(box, page);
+  const fitted = fitZoomFor(box, page, inset);
   // Before the first measurement there is nothing to fit to yet.
   const zoom = fitting && box.width > 0 ? fitted : manual;
 

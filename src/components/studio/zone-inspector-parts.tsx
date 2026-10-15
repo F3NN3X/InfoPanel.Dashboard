@@ -7,6 +7,7 @@ import {
   Eye,
   EyeOff,
   LayoutDashboard,
+  Minimize2,
   Search,
   Trash2,
   X,
@@ -14,6 +15,7 @@ import {
 import { IconButton } from "@/components/ui/icon-button";
 import { BLANK_MODULE, type Placement } from "@/lib/layout";
 import { cn } from "@/lib/utils";
+import { useInspectorChrome } from "./inspector-layout";
 import { FIELD, InlineRow, SELECT } from "./setting-rows";
 import { placementTitle } from "./studio-modules";
 import { KEYS } from "./use-studio-shortcuts";
@@ -29,6 +31,23 @@ export function HeaderIcon({ children }: { children: ReactNode }) {
 }
 
 const META = "truncate text-[11px] text-[#8a8a94]";
+
+/** The sub line's count: "3 changed", or "defaults" when nothing is set here. */
+export const changedLabel = (changed: number) => (changed > 0 ? `${changed} changed` : "defaults");
+
+/** Close the floating inspector, or collapse the phone sheet to half; nothing when docked. */
+function CloseButton() {
+  const { mode, onClose } = useInspectorChrome();
+  if (!onClose || mode === "docked") return null;
+  const sheet = mode === "sheet";
+  return (
+    <IconButton label={sheet ? "Collapse" : "Close"} onClick={onClose} className={sheet ? TOUCH : undefined}>
+      {sheet ? <Minimize2 className="h-4 w-4" /> : <X className="h-[18px] w-[18px]" />}
+    </IconButton>
+  );
+}
+/** The phone sheet's 44 px touch targets. */
+const TOUCH = "h-11 w-11";
 const TITLE = "truncate text-[14px] font-semibold leading-4 text-ui-1";
 
 /** Hide / Duplicate / Delete (28×28; delete turns red on hover). */
@@ -50,17 +69,19 @@ function ZoneActions({
   /** Ctrl+D / Del act on the zone (not on a selected panel widget). */
   zoneKeys?: boolean;
 }) {
+  const touch = useInspectorChrome().mode === "sheet" ? TOUCH : undefined;
   return (
     <span className="flex shrink-0 items-center">
-      <IconButton label={`${hidden ? "Show" : "Hide"} (${KEYS.hide})`} onClick={onToggleVisible}>
+      <IconButton label={`${hidden ? "Show" : "Hide"} (${KEYS.hide})`} onClick={onToggleVisible} className={touch}>
         {hidden && stateIcon ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
       </IconButton>
-      <IconButton label={zoneKeys ? `Duplicate (${KEYS.duplicate})` : "Duplicate zone"} onClick={onDuplicate}>
+      <IconButton label={zoneKeys ? `Duplicate (${KEYS.duplicate})` : "Duplicate zone"} onClick={onDuplicate} className={touch}>
         <Copy className="h-4 w-4" />
       </IconButton>
-      <IconButton label={zoneKeys ? `Delete (${KEYS.remove})` : "Delete zone"} danger onClick={onRemove}>
+      <IconButton label={zoneKeys ? `Delete (${KEYS.remove})` : "Delete zone"} danger onClick={onRemove} className={touch}>
         <Trash2 className="h-4 w-4" />
       </IconButton>
+      <CloseButton />
     </span>
   );
 }
@@ -106,6 +127,7 @@ export function ZoneHeader({
   placeholder,
   onName,
   meta,
+  details,
   visible,
   widget,
   onZoneCrumb,
@@ -120,7 +142,10 @@ export function ZoneHeader({
   placeholder?: string;
   /** Rename; omitted when the zone has no name of its own (a blank zone). */
   onName?: (name: string) => void;
+  /** The sub line: the widget type and its count of values set here. */
   meta: string;
+  /** Shown on hover over the sub line (size, minimum, data points). */
+  details?: string;
   visible: boolean;
   /** The selected panel widget's name (a breadcrumb under the header). */
   widget?: string;
@@ -150,7 +175,9 @@ export function ZoneHeader({
           ) : (
             <div className={TITLE}>{name}</div>
           )}
-          <div className={META}>{meta}</div>
+          <div className={META} title={details}>
+            {meta}
+          </div>
         </div>
         <ZoneActions
           hidden={!visible}
@@ -230,6 +257,7 @@ export function DashboardHeader({ profileName }: { profileName: string }) {
         <div className={TITLE}>Dashboard</div>
         <div className={META}>{profileName} · nothing selected</div>
       </div>
+      <CloseButton />
     </div>
   );
 }
@@ -361,9 +389,9 @@ export function SettingsSearch({ query, onQuery }: { query: string; onQuery: (qu
           e.stopPropagation();
           onQuery("");
         }}
-        placeholder="Search settings"
+        placeholder="Search all settings"
         aria-label="Search settings"
-        className={cn(FIELD, "h-[30px] w-full rounded-[7px] pl-[30px] pr-7")}
+        className={cn(FIELD, "h-8 w-full rounded-[7px] pl-[30px] pr-7")}
       />
       {query !== "" && (
         <button

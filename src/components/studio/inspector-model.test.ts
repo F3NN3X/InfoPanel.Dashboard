@@ -281,7 +281,7 @@ describe("dashboard sections", () => {
       "doc:theme",
       "doc:background",
     ]);
-    expect(find(sectionsFor(dash, "general"), "Studio").terms).toContain("Inspector position");
+    expect(find(sectionsFor(dash, "general"), "Studio").terms).toContain("Quick bar");
   });
 
   it("has the look categories as the global style, without Follow, Preset or the Widget card", () => {
@@ -452,7 +452,7 @@ describe("searchAll", () => {
   });
 
   it("finds custom cards by title and terms, and the Look extra by name", () => {
-    const dash = searchAll({ kind: "dashboard", scope: "all" }, "inspector position");
+    const dash = searchAll({ kind: "dashboard", scope: "all" }, "quick bar");
     expect(dash.groups.map((g) => [g.tabLabel, g.section.title])).toEqual([["General", "Studio"]]);
     expect(dash.total).toBe(1);
     const follow = searchAll(spotify, "follow global");

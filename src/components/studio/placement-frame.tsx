@@ -5,7 +5,7 @@ import {
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from "react";
-import { Plus } from "lucide-react";
+import { EyeOff, Plus } from "lucide-react";
 import { BLANK_MODULE, type ProfileView, type Placement } from "@/lib/layout";
 import { profileGap, trackPitch } from "@/lib/profile-grid";
 import { hexToHsl } from "@/lib/theme";
@@ -86,6 +86,8 @@ interface PlacementFrameProps {
    * selects it alone (`only`), Shift / Ctrl / ⌘ toggles it (`toggle`).
    */
   onSelect?: (mode: SelectMode) => void;
+  /** A double-click: show all the zone's settings. */
+  onOpenSettings?: () => void;
   /**
    * Panel zones: a click (no drag) inside the already primary zone picks
    * the widget under the pointer, or the panel itself (null) on empty
@@ -125,6 +127,7 @@ export function PlacementFrame({
   primary,
   canResize,
   onSelect,
+  onOpenSettings,
   onSelectWidget,
   children,
 }: PlacementFrameProps) {
@@ -255,7 +258,7 @@ export function PlacementFrame({
   return (
     <div
       className={cn(
-        "group relative min-w-0 transition-opacity",
+        "group/zone group relative min-w-0 transition-opacity",
         studio && (ghost ? "cursor-grabbing" : "cursor-grab"),
         // Hidden zones stay editable but show faded (the kiosk drops them).
         studio && !placement.visible && "opacity-35"
@@ -276,6 +279,7 @@ export function PlacementFrame({
         if (!selected && !isToggleClick(e)) onSelect?.("only");
       }}
       onPointerDown={studio ? startMove : undefined}
+      onDoubleClick={studio && onOpenSettings ? onOpenSettings : undefined}
       onContextMenu={
         studio
           ? (e) => {
@@ -288,21 +292,44 @@ export function PlacementFrame({
     >
       {studio && (
         <>
-          {/* Selection: a 1px accent border plus a 1px ring; lifted while dragged */}
+          {/* Selection: a 2px accent outline 5px outside the zone (screen px at any zoom); lifted while dragged */}
           {(selected || ghost) && (
             <div
               aria-hidden
               className={cn(
-                "pointer-events-none absolute inset-0 z-[15] rounded-lg border transition-[box-shadow,border-color] duration-150",
+                "pointer-events-none absolute z-[15] rounded-[10px] border-solid transition-[box-shadow,border-color] duration-150",
                 selected ? "border-ui-accent" : "border-transparent"
               )}
               style={{
-                boxShadow:
-                  [selected && "0 0 0 1px var(--ui-accent)", ghost && "0 14px 36px rgba(0,0,0,.55)"]
-                    .filter(Boolean)
-                    .join(", ") || undefined,
+                inset: -5 / zoom,
+                borderWidth: 2 / zoom,
+                boxShadow: ghost ? "0 14px 36px rgba(0,0,0,.55)" : undefined,
               }}
             />
+          )}
+          {/* Hover: a 1px outline (screen px) on a zone that is not selected */}
+          {!selected && !ghost && (
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 z-[15] hidden rounded-lg border-solid border-[#3a3a42] group-hover/zone:block"
+              style={{ borderWidth: 1 / zoom }}
+            />
+          )}
+          {/* Hidden: still editable, faded with a dashed border and a badge */}
+          {!placement.visible && (
+            <div
+              aria-hidden
+              data-hidden-zone
+              className="pointer-events-none absolute inset-0 z-[14] rounded-lg border-dashed border-[#8a8a94]"
+              style={{ borderWidth: 1.5 / zoom }}
+            >
+              <span
+                className="absolute right-1.5 top-1.5 flex h-6 w-6 origin-top-right items-center justify-center rounded-md bg-[#17171b] text-[#c8c8d0]"
+                style={{ scale: String(1 / zoom) }}
+              >
+                <EyeOff className="h-3.5 w-3.5" />
+              </span>
+            </div>
           )}
 
           {/* Resize (the studio clamps to the grid + no overlap): invisible edges, the knob at the corner */}

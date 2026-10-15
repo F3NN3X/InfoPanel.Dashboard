@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import { DockSplitter } from "./dock-splitter";
-import { CollapseTab, DockToggle, ExpandStrip } from "./dock-toggle";
+import { BottomSheet } from "./bottom-sheet";
+import { CollapseTab, ExpandStrip } from "./dock-toggle";
 import type { useStudioLayout } from "./use-studio-layout";
 
 interface StudioShellProps {
@@ -16,20 +16,19 @@ interface StudioShellProps {
   bar: ReactNode;
   /** The inspector `<aside>` (null in the Sources view). */
   inspector: ReactNode;
-  /** What the collapsed inspector holds (the bottom dock's bar says it). */
-  summary: string;
 }
 
 /**
- * The studio body below the top bar: rail, left panel, then the canvas
- * (the zoom bar floats over it) with the inspector beside it or, in the
- * bottom placement, in a dock under a splitter. Collapsed (Ctrl+\), the side
- * inspector leaves a slim strip and the dock only its bar; either way the
- * inspector stays mounted behind it.
+ * The studio body below the top bar: rail, left panel, then the canvas (the
+ * zoom bar floats over it) and the inspector. Docked (a wide studio) the
+ * inspector is a column beside the canvas that Ctrl+\ collapses to a slim
+ * strip; on a narrower studio it is a card floating over the canvas's right
+ * side, closed until asked for; on a phone it is a bottom sheet. It stays
+ * mounted while hidden, so its tab, scroll and search survive.
  */
-export function StudioShell({ layout, rail, drawer, main, bar, inspector, summary }: StudioShellProps) {
-  const { layout: l, collapsed } = layout;
-  const docked = l.placement === "bottom" && inspector !== null;
+export function StudioShell({ layout, rail, drawer, main, bar, inspector }: StudioShellProps) {
+  const { mode, collapsed, floatOpen } = layout;
+  const docked = mode === "docked";
   return (
     <div ref={layout.bodyRef} className="relative flex min-h-0 flex-1 overflow-x-auto">
       {rail}
@@ -39,50 +38,42 @@ export function StudioShell({ layout, rail, drawer, main, bar, inspector, summar
       ) : (
         drawer
       )}
-      <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex min-h-0 flex-1">
-          <main className="relative flex min-w-[420px] flex-1 flex-col">
-            {main}
-            {bar}
-          </main>
-          {inspector !== null && !docked && (
-            <>
-              <div className={collapsed ? "hidden" : "relative flex shrink-0"}>
-                {inspector}
-                <CollapseTab placement="side" onToggle={layout.toggleCollapsed} className="absolute -left-4 top-1/2 z-30 -translate-y-1/2" />
-              </div>
-              {collapsed && <ExpandStrip onToggle={layout.toggleCollapsed} />}
-            </>
-          )}
-        </div>
-        {docked && (
-          <>
-            {!collapsed && (
-              <DockSplitter
-                dockHeight={l.dockHeight}
-                bodyHeight={layout.body.height}
-                autoHeight={layout.autoDockHeight}
-                onCommit={layout.setDockHeight}
-              />
-            )}
-            <div
-              // The inspector's own top border is the dock's edge; the bar needs one of its own.
-              className={cn("relative flex shrink-0 flex-col bg-ui-panel", collapsed && "border-t border-ui-subtle")}
-              style={{ height: l.dockHeight }}
-            >
-              {collapsed ? (
-                <div className="flex h-7 shrink-0 items-center px-1.5">
-                  <DockToggle onToggle={layout.toggleCollapsed} summary={summary} />
-                </div>
-              ) : (
-                <CollapseTab placement="bottom" onToggle={layout.toggleCollapsed} className="absolute -top-4 right-4 z-30" />
-              )}
-              {/* Collapsed, the inspector stays mounted (its tab, scroll and search survive) but out of sight and focus. */}
-              <div className={collapsed ? "invisible h-0 overflow-hidden" : "flex min-h-0 flex-1"}>{inspector}</div>
-            </div>
-          </>
+      <main className={cn("relative flex flex-1 flex-col", mode === "sheet" ? "min-w-0" : "min-w-[420px]")}>
+        {main}
+        {bar}
+        {inspector !== null && mode === "sheet" && (
+          <BottomSheet
+            snap={layout.sheet.snap}
+            onSnap={layout.sheet.setSnap}
+            height={layout.sheet.height}
+            area={layout.sheet.area}
+            selected={layout.sheet.hasSelection}
+            drag={layout.sheet.drag}
+            onDrag={layout.sheet.setDrag}
+          >
+            {inspector}
+          </BottomSheet>
         )}
-      </div>
+        {inspector !== null && mode === "floating" && (
+          <div
+            className={cn(
+              "absolute bottom-3 right-3 top-3 z-40 flex w-[320px] overflow-hidden rounded-xl border border-ui-strong shadow-[0_16px_40px_rgba(0,0,0,.5)]",
+              !floatOpen && "hidden"
+            )}
+          >
+            {inspector}
+          </div>
+        )}
+      </main>
+      {inspector !== null && docked && (
+        <>
+          <div className={collapsed ? "hidden" : "relative flex shrink-0"}>
+            {inspector}
+            <CollapseTab onToggle={layout.toggleInspector} className="absolute -left-4 top-1/2 z-30 -translate-y-1/2" />
+          </div>
+          {collapsed && <ExpandStrip onToggle={layout.toggleInspector} />}
+        </>
+      )}
     </div>
   );
 }

@@ -49,7 +49,7 @@ Rows marked **(+)** were added by the Phase 0 code inventory (`docs/settings-inv
 ## 2. Rail and drawers
 | Current | New | Status |
 |---|---|---|
-| Add / Layers / Profiles drawer (in the dock, it becomes the first column) | Rail `add_box` / `layers` / `devices` → left panel | ✅ `left-rail.tsx:10`, `studio-drawers.tsx:15` (decision: the left panel stays separate in the Bottom dock) |
+| Add / Layers / Profiles drawer (was the first column of the bottom dock) | Rail `add_box` / `layers` / `devices` → left panel | ✅ `left-rail.tsx`, `studio-drawers.tsx` (the left panel stays beside the canvas in every inspector placement; the bottom dock is gone) |
 | Grid/apps rail icon | Check what it opens today; keep it (layouts/templates → Add › Layouts) | ✅ The old grid icon was only the brand glyph (no action). Layouts live in Add › Layout starters `insert-panel.tsx:173` |
 | Monitor rail icon | Check what it opens today; keep it (kiosk/display settings → `⋯` or Dash › General › Display) | ✅ The old monitor icon was Profiles `left-rail.tsx:13`; display settings are Dash › General › Display `inspector-model.ts:333` |
 | Database rail icon | Rail `database` → Sources mode | ✅ `left-rail.tsx:14` → `use-studio-ui.ts:onRail` → `SourcesPanel` in `studio-view.tsx` |
@@ -101,13 +101,13 @@ Rows marked **(+)** were added by the Phase 0 code inventory (`docs/settings-inv
 | Zoom − / % / + / fit | Zoom bar (Fit = ⌘0) | ✅ `zoom-toolbar.tsx:93-110`, Ctrl+0 / Ctrl+= / Ctrl+- `use-studio-shortcuts.ts:64` |
 | "1920 × 550" | Zoom bar resolution button → Dash › Profile | ✅ `zoom-toolbar.tsx:118` → `studio-view.tsx` openProfileSettings |
 | Magic wand | Zoom bar; same action | ✅ (decision #14) not built |
-| Panel layout toggles (Side / Bottom / Auto) | Zoom bar dock button (cycles); Dash › General › Studio | ✅ `zoom-toolbar.tsx:126` cycles Auto / Side / Bottom; Dash › General › Studio `document-inspector.tsx:255` |
-| Dock splitter | Keep it on the Bottom dock | ✅ `dock-splitter.tsx:24` in `studio-shell.tsx` (bottom dock) |
-| Ctrl+\\ collapse | Same | ✅ `use-studio-shortcuts.ts:64` → `use-studio-commands.ts:115` (bottom dock only), `dock-toggle.tsx` |
+| Panel layout toggles (Side / Bottom / Auto) | Removed: the placement is automatic from the studio width (docked from 1100 px, floating from 640 px, bottom sheet below); no setting, no zoom-bar button, no "cycle inspector layout" command | ✅ `studio-layout.ts` (`inspectorMode`), `studio-shell.tsx`; `studio.layout` removed (`widget-editing/SPEC.md` §5) |
+| Dock splitter | Removed with the bottom dock (`studio.dockHeight` is gone); the docked column is a fixed 320 px | ✅ `dock-splitter.tsx` deleted; `studio-shell.tsx` |
+| Ctrl+\\ collapse | Ctrl+\\ "Show / hide the inspector": collapses the docked column to a slim strip, opens / closes the floating card, toggles the sheet between peek and half | ✅ `use-studio-shortcuts.ts` → `use-studio-commands.ts`, `dock-toggle.tsx`, `studio.dockCollapsed` |
 | (+) Click the zoom % to reset to 100%; Ctrl+wheel zooms; Fit is "sticky" (stays fitted on resize) | Zoom bar % button and canvas; keep | ✅ reset `zoom-toolbar.tsx:99`; Ctrl+wheel `use-canvas-zoom.ts:60`; sticky fit `:80` |
 | (+) Rulers are always on today (no toggle) | The Rulers toggle in the row above is new; default on | ✅ `zoom-toolbar.tsx:89`; default on, remembered `use-studio-ui.ts:23` |
-| (+) The "Magic wand" in the table above is today the **Auto** inspector-position icon (no canvas auto-arrange action exists) | Zoom bar dock button (cycles Auto / Side / Bottom); confirm before building a separate auto-arrange action | ✅ (decision #14) the dock button covers Auto |
-| (+) Dock collapse button at the left end of the zoom strip (bottom dock) | Keep | ✅ moved: the bottom dock's top row `dock-toggle.tsx:11` in `studio-shell.tsx` (the zoom bar's left end is now the left-panel toggle `zoom-toolbar.tsx:83`) |
+| (+) The "Magic wand" in the table above was the **Auto** inspector-position icon (no canvas auto-arrange action exists) | Auto is gone with the inspector position setting; confirm before building a separate auto-arrange action | ✅ (decision #14) nothing left to cover |
+| (+) Dock collapse button at the left end of the zoom strip (bottom dock) | Keep as the docked inspector's collapse strip | ✅ `dock-toggle.tsx` in `studio-shell.tsx` (the zoom bar's left end is the left-panel toggle `zoom-toolbar.tsx`) |
 
 ## 6. Layers
 | Current | New | Status |
@@ -147,10 +147,15 @@ Rows marked **(+)** were added by the Phase 0 code inventory (`docs/settings-inv
 | Category list that jumps to a card | Tabs plus collapsible sections plus search | ✅ tabs `inspector/inspector-view.tsx:87`, sections `setting-card.tsx:44` |
 | "N changed" per card; reset of only that card | "N changed" plus Reset on every section; changed-count badge on each tab | ✅ `setting-card.tsx:93` (+ Reset), tab pills `inspector/inspector-view.tsx:117` |
 | Setting dots (default / set here / dashboard / profile / overriding; hover a set dot to reset) | Source dots (README §5.6), legend behind `help` in the footer; click a set-here dot to reset | ✅ `inspector/source-dot.tsx:28` (click to reset), legend `:45` in the footer `inspector/inspector-view.tsx:129` |
-| Inspector side / bottom dock, 300 px columns | Side 340 / Bottom 320 with 300 px columns / Auto | ✅ `studio-inspector.tsx:138` (340), `studio-layout.ts:22` (320), 300 px columns `inspector/inspector-view.tsx:225` |
+| Inspector side / bottom dock, 300 px columns | One column: docked 320 px / floating 320 px card / bottom sheet (peek, half, full), chosen by the studio width | ✅ `studio-inspector.tsx`, `studio-layout.ts`, `bottom-sheet.tsx`, `inspector/sheet-view.tsx`, `inspector/inspector-view.tsx` |
 | (+) Esc clears the search first, then steps out (panel widget → zone → none), then closes the left drawer | Keep this order | ✅ `use-studio-commands.ts:61` |
 | (+) Palette entries "Go to setting: …" and "Go to Widget settings / Colors & surface" scroll to and flash the card | Keep: the registry feeds the palette; the jump now switches tab and opens the section | ✅ `commands.ts:227` (`settingCommands`, from `allSections` of the current context: widget, panel, Dashboard) → `use-studio-commands.ts:155` (`jumpInspector(section, key)` switches the tab, opens, flashes and focuses the field, `inspector/inspector-view.tsx:218`) |
-| (+) Section open/closed state is remembered (`studio.sections`); beside the canvas sections collapse, in the dock all show | Keep as a persisted UI preference | ✅ `use-section-state.ts:57` (`studio.sections`); collapse also applies in the dock (harmless) |
+| (+) Section open/closed state is remembered (`studio.sections`) | Accordion: one open or many open (Dashboard › General › Studio › Inspector sections, `studio.accordion`, default one); the open section itself is not remembered | ✅ `inspector/inspector-prefs.ts`, `inspector/inspector-view.tsx`, `setting-card.tsx`; `use-section-state.ts` deleted, scroll-spy removed |
+| (+) Quick bar: a floating pill at the top of the canvas with identity, pinned settings, visibility and (floating) "All settings" | New: Dashboard › General › Studio › Quick bar (`studio.quickBar`, default on) | ✅ `quick-bar.tsx`, `quick-sets.ts` |
+| (+) Pin a setting to the quick bar (per widget type, max 6) | New: pin button on each inspector row; before any pin a rule-based default set applies; multi-select shows the shared pins | ✅ `quick-sets.ts`, `setting-rows.tsx`, `studio.quickPins` |
+| (+) Changed filter: lists only the values set here across every tab, with Reset all | New: "Changed N" toggle beside the search | ✅ `inspector/inspector-view.tsx`, `inspector-model.ts` |
+| (+) Colour swatches (Auto, Blue, Violet, Teal, Green, Amber, Rose, White, custom) | New on colour rows and in the quick bar | ✅ `inspector/color-swatches.tsx` |
+| (+) Hidden zones show at 35% with a dashed border and an eye-off badge; double-click a zone opens all settings | New on the canvas | ✅ `placement-frame.tsx`, `studio-canvas.tsx` |
 | (+) Changed count, Reset and the info-tooltip hint on every card | Already listed; keep the hint tooltip too | ✅ `setting-card.tsx:93`, info icon on the section header |
 | (+) Rows are locked (read-only) while the zone follows the global style or Force is on | Keep; shown as the amber "ignored" dot plus the Customize link | ✅ (decision #10) rows stay editable; Follow banner + "Edit global theme" `inspector-model.ts:548`, `zone-inspector.tsx` |
 | (+) Zone-header breadcrumb "Panel › Widget" (crumbs select the panel / show the widget editor) | Keep above the tabs when a panel widget is selected | ✅ `zone-inspector-parts.tsx:69` |
@@ -291,7 +296,7 @@ Enter each widget's **exact** current fields from its settings component. The pr
 | (+) Copy style / Paste style clipboards and the copied panel widget are session-only | Keep session-only | ✅ `use-studio-ui.ts:58-60` |
 | (+) Autosave: the studio pushes the config to the server 400 ms after a change; Save flushes; the kiosk reloads from `/events/config` | Keep (CLAUDE.md "Save") | ✅ `App.tsx:124` (400 ms), kiosk reload unchanged |
 | (+) Undo history: whole-config snapshots, limit 100, edits to one field within 500 ms coalesce | Keep; one drag / panel JSON apply / appearance preset = one step | ✅ `src/hooks/config-history.ts:7,10` |
-| (+) Studio UI preferences in `localStorage`: `studio.layout`, `studio.dockHeight`, `studio.dockCollapsed`, `studio.drawer`, `studio.sections` | Keep; README §5.9 | ✅ `left-rail.tsx:18`, `use-studio-layout.ts:13-15`, `use-section-state.ts:4`, `use-studio-ui.ts:22-23` (+ `inspector/inspector-prefs.ts`) |
+| (+) Studio UI preferences in `localStorage`: `studio.dockCollapsed`, `studio.drawer`, `studio.quickBar`, `studio.accordion`, `studio.quickPins` (`studio.layout`, `studio.dockHeight` and `studio.sections` are removed) | Keep; README §5.9 | ✅ `left-rail.tsx`, `use-studio-layout.ts`, `use-studio-ui.ts`, `inspector/inspector-prefs.ts` |
 | (+) Import config… runs the v1→v2 migration; invalid files are logged and ignored | Keep | ✅ `config-file.ts:22` (`mergeConfig`; errors logged and ignored) |
 
 ## 15. Found in the old studio code (`135d84f`), no row before

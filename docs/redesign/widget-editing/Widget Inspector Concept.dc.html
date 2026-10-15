@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..24,300..500,0..1,0&display=block" rel="stylesheet">
+<style>
+html,body{margin:0;height:100%;background:#070708}
+*{box-sizing:border-box;scrollbar-width:thin;scrollbar-color:#2a2a31 transparent}
+a{color:oklch(0.74 0.14 255)}a:hover{color:oklch(0.82 0.12 255)}
+select option{background:#17171b;color:#ededf0}
+input,select,textarea,button{font-family:inherit}
+input[type=range]{accent-color:oklch(0.72 0.15 255)}
+</style>
+</helmet>
+<div style="height:100vh; display:flex; flex-direction:column; background:#070708; color:#ededf0; font-family:'Geist',system-ui,sans-serif; font-size:13px; overflow:hidden">
+
+  <div style="flex:none; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px 16px; padding:8px 14px; border-bottom:1px solid #1a1a1f">
+    <div style="display:flex; align-items:baseline; gap:10px; min-width:0">
+      <span style="font-size:13px; font-weight:600; white-space:nowrap">Widget editing concept</span>
+      <span style="font-family:'Geist Mono',monospace; font-size:11.5px; color:#8a8a94; white-space:nowrap">{{ frameLabel }}</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap">
+      <div style="display:flex; gap:2px; padding:2px; background:#0c0c0e; border:1px solid #24242a; border-radius:8px">
+        <sc-for list="{{ vpOpts }}" as="o" hint-placeholder-count="5">
+          <button onClick="{{ o.pick }}" style="border:none; border-radius:6px; padding:5px 10px; font-size:12px; font-weight:500; cursor:pointer; white-space:nowrap; background:{{ o.bg }}; color:{{ o.fg }}">{{ o.label }}</button>
+        </sc-for>
+      </div>
+      <div style="display:flex; gap:2px; padding:2px; background:#0c0c0e; border:1px solid #24242a; border-radius:8px">
+        <sc-for list="{{ profOpts }}" as="o" hint-placeholder-count="2">
+          <button onClick="{{ o.pick }}" style="border:none; border-radius:6px; padding:5px 10px; font-size:12px; font-weight:500; cursor:pointer; white-space:nowrap; background:{{ o.bg }}; color:{{ o.fg }}">{{ o.label }}</button>
+        </sc-for>
+      </div>
+      <button onClick="{{ togglePrinciples }}" style="display:flex; align-items:center; gap:6px; height:30px; padding:0 11px; border:1px solid #2a2a31; background:{{ prBg }}; border-radius:8px; color:#ededf0; font-size:12px; font-weight:500; cursor:pointer"><span style="font-family:'Material Symbols Rounded'; font-size:16px">lightbulb</span>How it works</button>
+    </div>
+  </div>
+
+  <div ref="{{ stageRef }}" style="flex:1; position:relative; overflow:hidden; min-height:0">
+    <div style="position:absolute; left:{{ fx }}; top:{{ fy }}; width:{{ fw }}; height:{{ fh }}; transform:scale({{ fs }}); transform-origin:0 0; background:#0c0c0e; border:{{ frameBorder }}; border-radius:{{ frameRadius }}; overflow:hidden; display:flex; flex-direction:column; user-select:none">
+
+      <header style="height:48px; flex:none; display:flex; align-items:center; gap:10px; padding:0 12px; border-bottom:1px solid #1f1f24; background:#0f0f12">
+        <div style="width:24px; height:24px; border-radius:7px; background:oklch(0.72 0.15 255); flex:none"></div>
+        <span style="font-size:13px; font-weight:600; white-space:nowrap">Widget Studio</span>
+        <span style="font-size:12px; color:#8a8a94; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">{{ profName }}</span>
+        <span style="flex:1"></span>
+        <button title="Preview" style="width:32px; height:32px; display:grid; place-items:center; border:none; background:none; border-radius:7px; cursor:pointer; color:#9696a0; font-family:'Material Symbols Rounded'; font-size:20px" style-hover="background:#1e1e23; color:#ededf0">play_arrow</button>
+        <button style="height:30px; padding:0 14px; border:none; background:oklch(0.72 0.15 255); color:#0c0c0e; border-radius:7px; font-size:12.5px; font-weight:600; cursor:pointer">Save</button>
+      </header>
+
+      <div style="flex:1; display:flex; min-height:0; position:relative">
+        <div ref="{{ canvasRef }}" onClick="{{ canvasClick }}" style="flex:1; min-width:0; position:relative; overflow:hidden; background-image:radial-gradient(#1c1c21 1px, transparent 1px); background-size:20px 20px">
+
+          <div style="position:absolute; left:{{ ab.left }}; top:{{ ab.top }}; width:{{ ab.w }}; height:{{ ab.h }}; transform:scale({{ ab.s }}); transform-origin:0 0; background:#050507; border:1px solid #1f1f24; border-radius:10px">
+            <sc-for list="{{ tiles }}" as="t" hint-placeholder-count="5">
+              <div onClick="{{ t.pick }}" onDoubleClick="{{ t.open }}" style="position:absolute; left:{{ t.x }}; top:{{ t.y }}; width:{{ t.w }}; height:{{ t.h }}; cursor:pointer; border-radius:{{ t.radius }}" style-hover="outline:{{ t.hoverLine }}; outline-offset:4px">
+                <div style="position:absolute; inset:0; overflow:hidden; display:flex; flex-direction:column; justify-content:{{ t.justify }}; align-items:{{ t.alignItems }}; text-align:{{ t.textAlign }}; gap:{{ t.gap }}; padding:{{ t.pad }}; background:{{ t.bg }}; border:{{ t.border }}; border-radius:{{ t.radius }}; box-shadow:{{ t.shadow }}; opacity:{{ t.op }}; font-family:{{ t.font }}; color:{{ t.fg }}">
+                  <sc-if value="{{ t.card }}"><div style="position:absolute; left:0; top:0; right:0; height:4px; background:{{ t.accent }}"></div></sc-if>
+                  <sc-if value="{{ t.showLabel }}"><span style="font-size:{{ t.labelSize }}; letter-spacing:0.06em; text-transform:{{ t.kase }}; color:{{ t.fg2 }}; font-weight:500; white-space:nowrap">{{ t.label }}</span></sc-if>
+                  <sc-if value="{{ t.hasBig }}"><span style="font-size:{{ t.bigSize }}; font-weight:{{ t.weight }}; line-height:1.1; letter-spacing:-0.01em; white-space:nowrap">{{ t.big }}</span></sc-if>
+                  <sc-if value="{{ t.hasSub }}"><span style="font-size:{{ t.subSize }}; color:{{ t.fg2 }}; white-space:nowrap">{{ t.sub }}</span></sc-if>
+                  <sc-if value="{{ t.hasWave }}">
+                    <div style="display:flex; align-items:{{ t.waveAlign }}; justify-content:{{ t.alignItems }}; gap:4px; height:{{ t.waveH }}; width:100%">
+                      <sc-for list="{{ t.wave }}" as="b"><span style="flex:none; width:{{ b.w }}; height:{{ b.h }}; border-radius:2px; background:{{ t.accent }}; opacity:{{ b.o }}"></span></sc-for>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ t.hasProg }}">
+                    <div style="width:100%; display:flex; flex-direction:column; gap:6px">
+                      <div style="height:5px; border-radius:3px; background:rgba(255,255,255,0.1); overflow:hidden"><div style="width:42%; height:100%; background:{{ t.accent }}"></div></div>
+                      <sc-if value="{{ t.hasTimes }}"><div style="display:flex; justify-content:space-between; font-family:'Geist Mono',monospace; font-size:{{ t.subSize }}; color:{{ t.fg2 }}"><span>1:12</span><span>2:48</span></div></sc-if>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ t.hasMeters }}">
+                    <div style="display:grid; grid-template-columns:repeat({{ t.mCols }}, minmax(0,1fr)); gap:28px; width:100%; flex:1; align-items:center">
+                      <sc-for list="{{ t.meters }}" as="m">
+                        <div style="display:flex; flex-direction:column; gap:10px; align-items:{{ t.alignItems }}; min-width:0">
+                          <sc-if value="{{ m.gauge }}"><div style="width:{{ m.gs }}; height:{{ m.gs }}; border-radius:50%; background:conic-gradient({{ m.col }} {{ m.deg }}, rgba(255,255,255,0.08) 0); display:grid; place-items:center"><div style="width:78%; height:78%; border-radius:50%; background:#0a0a0d; display:grid; place-items:center; font-size:{{ t.mValSize }}; font-weight:{{ t.weight }}">{{ m.v }}</div></div></sc-if>
+                          <sc-if value="{{ m.number }}"><span style="font-size:{{ t.bigSize }}; font-weight:{{ t.weight }}; color:{{ m.col }}; line-height:1">{{ m.v }}</span></sc-if>
+                          <div style="display:flex; justify-content:space-between; gap:8px; width:100%; font-size:{{ t.subSize }}">
+                            <span style="text-transform:{{ t.kase }}; letter-spacing:0.04em; color:{{ t.fg2 }}">{{ m.n }}</span>
+                            <sc-if value="{{ m.bar }}"><span style="font-family:'Geist Mono',monospace">{{ m.v }}</span></sc-if>
+                            <sc-if value="{{ m.hasTemp }}"><span style="font-family:'Geist Mono',monospace; color:{{ t.fg2 }}">{{ m.temp }}</span></sc-if>
+                          </div>
+                          <sc-if value="{{ m.bar }}"><div style="width:100%; height:10px; border-radius:5px; background:rgba(255,255,255,0.08); overflow:hidden"><div style="width:{{ m.pct }}; height:100%; background:{{ m.col }}; border-radius:5px"></div></div></sc-if>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ t.hasRows }}">
+                    <div style="display:flex; flex-direction:column; gap:14px; width:100%">
+                      <sc-for list="{{ t.rows }}" as="fr">
+                        <div style="display:flex; align-items:center; gap:12px; min-width:0">
+                          <span style="width:34px; height:34px; border-radius:50%; background:{{ fr.av }}; flex:none"></span>
+                          <div style="display:flex; flex-direction:column; min-width:0; text-align:left">
+                            <span style="font-size:{{ t.rowSize }}; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">{{ fr.n }}</span>
+                            <span style="font-size:{{ t.subSize }}; color:{{ fr.sc }}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">{{ fr.s }}</span>
+                          </div>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+                <sc-if value="{{ t.hidden }}"><span style="position:absolute; top:10px; right:12px; font-family:'Material Symbols Rounded'; font-size:24px; color:#8a8a94">visibility_off</span></sc-if>
+                <sc-if value="{{ t.sel }}"><div style="position:absolute; inset:{{ t.selInset }}; border:{{ t.selBorder }}; border-radius:{{ t.selRadius }}; pointer-events:none"></div></sc-if>
+              </div>
+            </sc-for>
+          </div>
+
+          <sc-if value="{{ showQuick }}" hint-placeholder-val="{{ false }}">
+            <div style="position:absolute; top:12px; left:12px; right:{{ qRight }}; display:flex; justify-content:center; pointer-events:none; z-index:5">
+              <div onClick="{{ stop }}" style="pointer-events:auto; max-width:100%; display:flex; align-items:center; gap:2px; height:46px; padding:0 6px; background:#17171b; border:1px solid #2a2a31; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,0.45); overflow:hidden">
+                <div style="display:flex; align-items:center; gap:8px; padding:0 10px 0 4px; flex:none">
+                  <span style="width:28px; height:28px; border-radius:7px; background:#1f1f25; display:grid; place-items:center; font-family:'Material Symbols Rounded'; font-size:17px; color:oklch(0.80 0.12 255)">{{ selIcon }}</span>
+                  <span style="font-size:12.5px; font-weight:600; white-space:nowrap">{{ selName }}</span>
+                </div>
+                <span style="width:1px; height:22px; background:#2a2a31; flex:none"></span>
+                <div style="flex:0 1 auto; min-width:0; display:flex; align-items:center; gap:2px; overflow-x:auto; overflow-y:hidden; height:100%">
+                <sc-for list="{{ quickFields }}" as="q" hint-placeholder-count="4">
+                  <div style="display:flex; align-items:center; gap:7px; height:36px; padding:0 9px; border-radius:8px; flex:none" style-hover="background:#1e1e24">
+                    <sc-if value="{{ q.own }}"><span style="width:5px; height:5px; border-radius:50%; background:oklch(0.72 0.15 255); flex:none"></span></sc-if>
+                    <span style="font-size:11.5px; color:#9696a0; white-space:nowrap">{{ q.label }}</span>
+                    <sc-if value="{{ q.isToggle }}"><button onClick="{{ q.toggle }}" role="switch" style="width:30px; height:18px; flex:none; border:none; border-radius:9px; padding:0; position:relative; cursor:pointer; background:{{ q.trackBg }}; transition:background 0.15s"><span style="position:absolute; top:2px; left:0; width:14px; height:14px; border-radius:50%; background:#ededf0; transform:translateX({{ q.knobX }}); transition:transform 0.15s"></span></button></sc-if>
+                    <sc-if value="{{ q.isSeg }}"><div style="display:flex; gap:2px; padding:2px; background:#0c0c0e; border:1px solid #24242a; border-radius:7px"><sc-for list="{{ q.opts }}" as="o"><button onClick="{{ o.pick }}" style="border:none; border-radius:5px; padding:4px 8px; font-size:11.5px; font-weight:500; cursor:pointer; white-space:nowrap; background:{{ o.bg }}; color:{{ o.fg }}">{{ o.label }}</button></sc-for></div></sc-if>
+                    <sc-if value="{{ q.isSlider }}"><input type="range" min="{{ q.min }}" max="{{ q.max }}" step="{{ q.step }}" value="{{ q.value }}" onChange="{{ q.onSlide }}" style="width:80px; margin:0; cursor:pointer"><span style="font-family:'Geist Mono',monospace; font-size:11px; color:#c9c9cf; min-width:36px">{{ q.display }}</span></sc-if>
+                    <sc-if value="{{ q.isSelect }}"><select value="{{ q.value }}" onChange="{{ q.onSelect }}" style="height:26px; background:#1a1a1f; border:1px solid #2a2a31; border-radius:6px; padding:0 4px; color:#ededf0; font-size:12px; outline:none; cursor:pointer"><sc-for list="{{ q.selOpts }}" as="o"><option value="{{ o.value }}">{{ o.label }}</option></sc-for></select></sc-if>
+                    <sc-if value="{{ q.isColor }}"><button onClick="{{ q.toggleColor }}" title="{{ q.colorText }}" style="width:22px; height:22px; flex:none; border-radius:50%; border:1px solid #3a3a42; padding:0; cursor:pointer; background:{{ q.swBg }}"></button></sc-if>
+                    <sc-if value="{{ q.isText }}"><input value="{{ q.value }}" onChange="{{ q.onText }}" placeholder="{{ q.ph }}" style="width:120px; height:26px; background:#0c0c0e; border:1px solid #24242a; border-radius:6px; padding:0 8px; color:#ededf0; font-size:12px; outline:none"></sc-if>
+                  </div>
+                </sc-for>
+                <sc-if value="{{ noQuick }}"><span style="padding:0 10px; font-size:11.5px; color:#8a8a94; white-space:nowrap">Pin settings from the panel to show them here</span></sc-if>
+                </div>
+                <span style="width:1px; height:22px; background:#2a2a31; flex:none; margin:0 2px"></span>
+                <button onClick="{{ toggleVis }}" title="Hide / show" style="width:32px; height:32px; flex:none; display:grid; place-items:center; border:none; background:none; border-radius:7px; cursor:pointer; color:#9696a0; font-family:'Material Symbols Rounded'; font-size:18px" style-hover="background:#1e1e23; color:#ededf0">{{ visIcon }}</button>
+                <sc-if value="{{ isFloat }}"><button onClick="{{ toggleFloat }}" style="flex:none; display:flex; align-items:center; gap:6px; height:32px; padding:0 11px 0 9px; border:none; background:{{ allBg }}; border-radius:8px; color:#ededf0; font-size:12px; font-weight:500; cursor:pointer; white-space:nowrap" style-hover="background:#2a2a31"><span style="font-family:'Material Symbols Rounded'; font-size:17px">tune</span>All settings</button></sc-if>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ hasQPop }}" hint-placeholder-val="{{ false }}">
+            <div style="position:absolute; top:66px; left:12px; right:{{ qRight }}; display:flex; justify-content:center; pointer-events:none; z-index:6">
+              <div onClick="{{ stop }}" style="pointer-events:auto; display:flex; align-items:center; gap:9px; padding:9px 12px; background:#17171b; border:1px solid #2a2a31; border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,0.45)">
+                <span style="font-size:11.5px; color:#9696a0; white-space:nowrap">{{ qPopLabel }}</span>
+                <sc-for list="{{ qPopSw }}" as="sw"><button onClick="{{ sw.pick }}" title="{{ sw.title }}" style="width:22px; height:22px; flex:none; border-radius:50%; border:none; padding:0; cursor:pointer; background:{{ sw.bg }}; box-shadow:{{ sw.ring }}"></button></sc-for>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+
+        <sc-if value="{{ showIns }}" hint-placeholder-val="{{ true }}">
+          <aside onClick="{{ stop }}" style="position:{{ ins.pos }}; left:{{ ins.left }}; right:{{ ins.right }}; top:{{ ins.top }}; bottom:{{ ins.bottom }}; width:{{ ins.w }}; height:{{ ins.h }}; flex:none; display:flex; flex-direction:column; min-height:0; background:#111114; border:{{ ins.border }}; border-left:{{ ins.bl }}; border-radius:{{ ins.radius }}; box-shadow:{{ ins.shadow }}; transition:{{ ins.trans }}; z-index:8; overflow:hidden">
+
+            <sc-if value="{{ isSheet }}" hint-placeholder-val="{{ false }}">
+              <div onPointerDown="{{ handleDown }}" title="Drag or tap" style="flex:none; height:24px; display:grid; place-items:center; cursor:grab; touch-action:none"><span style="width:40px; height:5px; border-radius:3px; background:#3a3a42"></span></div>
+            </sc-if>
+
+            <sc-if value="{{ noSelIns }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:14px 16px; display:flex; align-items:center; gap:12px">
+                <span style="width:34px; height:34px; flex:none; border-radius:9px; background:#1c1c21; display:grid; place-items:center; font-family:'Material Symbols Rounded'; font-size:19px; color:#8a8a94">space_dashboard</span>
+                <div style="display:flex; flex-direction:column; gap:2px; min-width:0">
+                  <span style="font-size:14px; font-weight:600">Dashboard</span>
+                  <span style="font-size:12px; color:#8a8a94; text-wrap:pretty">{{ noSelText }}</span>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ fullHead }}" hint-placeholder-val="{{ true }}">
+              <div style="flex:none; display:flex; align-items:center; gap:10px; padding:12px 12px 10px 16px">
+                <span style="width:32px; height:32px; flex:none; border-radius:8px; background:#1c1c21; display:grid; place-items:center; font-family:'Material Symbols Rounded'; font-size:19px; color:oklch(0.80 0.12 255)">{{ selIcon }}</span>
+                <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:1px">
+                  <span style="font-size:14px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">{{ selName }}</span>
+                  <span style="font-size:11px; color:#8a8a94; white-space:nowrap">{{ selSub }}</span>
+                </div>
+                <button onClick="{{ toggleVis }}" title="Hide / show" style="width:30px; height:30px; flex:none; display:grid; place-items:center; border:none; background:none; border-radius:7px; cursor:pointer; color:#9696a0; font-family:'Material Symbols Rounded'; font-size:18px" style-hover="background:#1e1e23; color:#ededf0">{{ visIcon }}</button>
+                <sc-if value="{{ canClose }}"><button onClick="{{ closeIns }}" title="{{ closeTitle }}" style="width:30px; height:30px; flex:none; display:grid; place-items:center; border:none; background:none; border-radius:7px; cursor:pointer; color:#9696a0; font-family:'Material Symbols Rounded'; font-size:19px" style-hover="background:#1e1e23; color:#ededf0">{{ closeIcon }}</button></sc-if>
+              </div>
+              <div style="flex:none; display:flex; gap:6px; padding:0 12px 10px 16px">
+                <div style="flex:1; min-width:0; display:flex; align-items:center; gap:6px; background:#0c0c0e; border:1px solid #24242a; border-radius:7px; padding:0 8px; height:32px">
+                  <span style="font-family:'Material Symbols Rounded'; font-size:16px; color:#7c7c86">search</span>
+                  <input value="{{ q }}" onChange="{{ onSearch }}" placeholder="Search all settings" style="flex:1; min-width:0; background:none; border:none; outline:none; color:#ededf0; font-size:12.5px">
+                  <sc-if value="{{ searching }}"><button onClick="{{ clearSearch }}" style="border:none; background:none; color:#9696a0; cursor:pointer; font-family:'Material Symbols Rounded'; font-size:16px; padding:0">close</button></sc-if>
+                </div>
+                <button onClick="{{ toggleChanged }}" title="Show only what you changed" style="flex:none; display:flex; align-items:center; gap:5px; height:32px; padding:0 9px; border:1px solid {{ chBd }}; background:{{ chBg }}; border-radius:7px; color:{{ chFg }}; font-size:12px; font-weight:500; cursor:pointer; white-space:nowrap"><span style="font-family:'Material Symbols Rounded'; font-size:16px">history</span>Changed<span style="font-family:'Geist Mono',monospace; font-size:11px">{{ ownAll }}</span></button>
+              </div>
+              <sc-if value="{{ showTabs }}" hint-placeholder-val="{{ true }}">
+                <div style="flex:none; padding:0 12px 10px 16px">
+                  <div style="display:flex; gap:2px; padding:2px; background:#0c0c0e; border:1px solid #24242a; border-radius:8px">
+                    <sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="3">
+                      <button onClick="{{ tb.pick }}" style="flex:1; display:flex; align-items:center; justify-content:center; gap:6px; border:none; border-radius:6px; padding:6px 4px; font-size:12px; font-weight:500; cursor:pointer; background:{{ tb.bg }}; color:{{ tb.fg }}">{{ tb.label }}<sc-if value="{{ tb.hasCount }}"><span style="font-family:'Geist Mono',monospace; font-size:10px; padding:1px 5px; border-radius:8px; background:oklch(0.72 0.15 255 / 0.18); color:oklch(0.84 0.12 255)">{{ tb.count }}</span></sc-if></button>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ filtering }}" hint-placeholder-val="{{ false }}">
+                <div style="flex:none; display:flex; align-items:center; gap:8px; padding:0 12px 8px 16px; font-size:11.5px; color:#8a8a94">
+                  <span style="flex:1">{{ filterLabel }}</span>
+                  <sc-if value="{{ canResetAll }}"><button onClick="{{ resetAll }}" style="border:none; background:none; padding:0; color:oklch(0.80 0.12 255); font-size:11.5px; font-weight:500; cursor:pointer">Reset all</button></sc-if>
+                </div>
+              </sc-if>
+              <div style="flex:none; height:1px; background:#1f1f24"></div>
+            </sc-if>
+
+            <sc-if value="{{ compactHead }}" hint-placeholder-val="{{ false }}">
+              <div style="flex:none; display:flex; align-items:center; gap:10px; padding:2px 10px 10px 16px">
+                <span style="width:32px; height:32px; flex:none; border-radius:8px; background:#1c1c21; display:grid; place-items:center; font-family:'Material Symbols Rounded'; font-size:19px; color:oklch(0.80 0.12 255)">{{ selIcon }}</span>
+                <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:1px">
+                  <span style="font-size:14px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">{{ selName }}</span>
+                  <span style="font-size:11px; color:#8a8a94; white-space:nowrap">{{ selSub }}</span>
+                </div>
+                <button onClick="{{ toggleVis }}" title="Hide / show" style="width:44px; height:44px; flex:none; display:grid; place-items:center; border:none; background:none; border-radius:10px; cursor:pointer; color:#9696a0; font-family:'Material Symbols Rounded'; font-size:20px">{{ visIcon }}</button>
+                <button onClick="{{ openFull }}" title="All settings" style="width:44px; height:44px; flex:none; display:grid; place-items:center; border:none; background:#1c1c21; border-radius:10px; cursor:pointer; color:#ededf0; font-family:'Material Symbols Rounded'; font-size:20px">tune</button>
+              </div>
+              <div style="flex:none; display:flex; gap:6px; overflow-x:auto; padding:0 12px 10px">
+                <sc-for list="{{ sheetTiles }}" as="st" hint-placeholder-count="6">
+                  <button onClick="{{ st.pick }}" style="flex:none; width:72px; height:60px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; border:1px solid {{ st.bd }}; background:{{ st.bg }}; border-radius:10px; color:{{ st.fg }}; cursor:pointer; position:relative; padding:0">
+                    <span style="font-family:'Material Symbols Rounded'; font-size:20px">{{ st.icon }}</span>
+                    <span style="font-size:10.5px; font-weight:500; white-space:nowrap">{{ st.short }}</span>
+                    <sc-if value="{{ st.hasOwn }}"><span style="position:absolute; top:6px; right:7px; width:6px; height:6px; border-radius:50%; background:oklch(0.72 0.15 255)"></span></sc-if>
+                  </button>
+                </sc-for>
+              </div>
+              <sc-if value="{{ showBody }}"><div style="flex:none; height:1px; background:#1f1f24"></div></sc-if>
+            </sc-if>
+
+            <sc-if value="{{ showBody }}" hint-placeholder-val="{{ true }}">
+              <div style="flex:1; overflow-y:auto; min-height:0; padding-bottom:12px">
+                <sc-if value="{{ hasEmpty }}"><div style="padding:24px 16px; font-size:12.5px; color:#8a8a94; text-wrap:pretty">{{ emptyMsg }}</div></sc-if>
+                <sc-for list="{{ bodySecs }}" as="sec" hint-placeholder-count="4">
+                  <div style="border-bottom:{{ sec.bb }}">
+                    <sc-if value="{{ sec.showHd }}">
+                      <div style="display:flex; align-items:center; gap:2px; padding:0 8px 0 8px; position:sticky; top:0; background:#111114; z-index:1">
+                        <button onClick="{{ sec.toggle }}" style="flex:1; min-width:0; display:flex; align-items:center; gap:8px; background:none; border:none; color:#ededf0; padding:0 8px; height:{{ sec.hdH }}; cursor:pointer; text-align:left; border-radius:7px" style-hover="background:#16161a">
+                          <span style="font-family:'Material Symbols Rounded'; font-size:17px; color:#7c7c86; flex:none">{{ sec.icon }}</span>
+                          <span style="font-size:12.5px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">{{ sec.title }}</span>
+                          <sc-if value="{{ sec.showTab }}"><span style="font-size:11px; color:#6f6f79; white-space:nowrap">{{ sec.tabLabel }}</span></sc-if>
+                          <sc-if value="{{ sec.hasOwn }}"><span style="font-family:'Geist Mono',monospace; font-size:10px; padding:1px 5px; border-radius:8px; background:oklch(0.72 0.15 255 / 0.18); color:oklch(0.84 0.12 255)">{{ sec.own }}</span></sc-if>
+                          <span style="margin-left:auto; font-family:'Material Symbols Rounded'; font-size:18px; color:#6f6f79; flex:none">{{ sec.chev }}</span>
+                        </button>
+                        <sc-if value="{{ sec.hasOwn }}"><button onClick="{{ sec.reset }}" title="Reset this section" style="width:30px; height:30px; flex:none; display:grid; place-items:center; border:none; background:none; border-radius:7px; cursor:pointer; color:#9696a0; font-family:'Material Symbols Rounded'; font-size:17px" style-hover="background:#1e1e23; color:#ededf0">restart_alt</button></sc-if>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{ sec.open }}" hint-placeholder-val="{{ true }}">
+                      <div style="padding:{{ sec.bodyPad }}">
+                        <sc-for list="{{ sec.fields }}" as="f" hint-placeholder-count="3">
+                          <div style="padding:3px 10px 3px 16px; display:flex; flex-direction:column; gap:7px">
+                            <div style="display:flex; align-items:center; gap:8px; min-height:{{ f.rowH }}">
+                              <button onClick="{{ f.reset }}" title="{{ f.dotTitle }}" style="width:7px; height:7px; padding:0; border:1px solid {{ f.dotBorder }}; border-radius:50%; background:{{ f.dotBg }}; cursor:{{ f.dotCursor }}; flex:none"></button>
+                              <span style="flex:1; min-width:0; font-size:12.5px; color:{{ f.labelFg }}; text-wrap:pretty">{{ f.label }}</span>
+                              <sc-if value="{{ f.isToggle }}"><button onClick="{{ f.toggle }}" role="switch" style="width:30px; height:18px; flex:none; border:none; border-radius:9px; padding:0; position:relative; cursor:pointer; background:{{ f.trackBg }}; transition:background 0.15s"><span style="position:absolute; top:2px; left:0; width:14px; height:14px; border-radius:50%; background:#ededf0; transform:translateX({{ f.knobX }}); transition:transform 0.15s"></span></button></sc-if>
+                              <sc-if value="{{ f.isSelect }}"><select value="{{ f.value }}" onChange="{{ f.onSelect }}" style="max-width:150px; height:28px; background:#1a1a1f; border:1px solid #2a2a31; border-radius:6px; padding:0 6px; color:#ededf0; font-size:12px; outline:none; cursor:pointer"><sc-for list="{{ f.selOpts }}" as="o"><option value="{{ o.value }}">{{ o.label }}</option></sc-for></select></sc-if>
+                              <sc-if value="{{ f.isSlider }}"><input type="range" min="{{ f.min }}" max="{{ f.max }}" step="{{ f.step }}" value="{{ f.value }}" onChange="{{ f.onSlide }}" style="width:90px; flex:none; margin:0; cursor:pointer"><span style="font-family:'Geist Mono',monospace; font-size:11px; min-width:44px; text-align:right; padding:4px 6px; background:#0c0c0e; border:1px solid #24242a; border-radius:5px; flex:none">{{ f.display }}</span></sc-if>
+                              <sc-if value="{{ f.isColor }}"><button onClick="{{ f.toggleColor }}" style="flex:none; display:flex; align-items:center; gap:7px; height:28px; padding:0 4px 0 9px; background:#1a1a1f; border:1px solid #2a2a31; border-radius:6px; cursor:pointer; color:#c9c9cf; font-size:11.5px"><span>{{ f.colorText }}</span><span style="width:18px; height:18px; border-radius:50%; background:{{ f.swBg }}"></span></button></sc-if>
+                              <sc-if value="{{ f.inlineSeg }}"><div style="flex:none; display:flex; gap:2px; padding:2px; background:#0c0c0e; border:1px solid #24242a; border-radius:7px"><sc-for list="{{ f.opts }}" as="o"><button onClick="{{ o.pick }}" style="border:none; border-radius:5px; padding:4px 8px; font-size:11.5px; font-weight:500; cursor:pointer; white-space:nowrap; background:{{ o.bg }}; color:{{ o.fg }}">{{ o.label }}</button></sc-for></div></sc-if>
+                              <button onClick="{{ f.pin }}" title="{{ f.pinTitle }}" style="width:24px; height:24px; flex:none; display:grid; place-items:center; border:none; background:none; border-radius:6px; padding:0; cursor:pointer; font-family:'Material Symbols Rounded'; font-size:15px; color:{{ f.pinFg }}; font-variation-settings:'FILL' {{ f.pinFill }}" style-hover="background:#1e1e24; color:#c9c9cf">keep</button>
+                            </div>
+                            <sc-if value="{{ f.belowSeg }}"><div style="display:flex; flex-wrap:nowrap; overflow-x:auto; gap:2px; padding:2px; margin:0 6px 4px 15px; background:#0c0c0e; border:1px solid #24242a; border-radius:7px"><sc-for list="{{ f.opts }}" as="o"><button onClick="{{ o.pick }}" style="flex:1 1 auto; border:none; border-radius:5px; padding:5px 6px; font-size:11.5px; font-weight:500; cursor:pointer; white-space:nowrap; background:{{ o.bg }}; color:{{ o.fg }}">{{ o.label }}</button></sc-for></div></sc-if>
+                            <sc-if value="{{ f.isText }}"><input value="{{ f.value }}" onChange="{{ f.onText }}" placeholder="{{ f.ph }}" style="margin:0 32px 4px 15px; height:30px; background:#0c0c0e; border:1px solid #24242a; border-radius:6px; padding:0 9px; color:#ededf0; font-size:12.5px; outline:none"></sc-if>
+                            <sc-if value="{{ f.colorOpen }}"><div style="display:flex; flex-wrap:wrap; gap:9px; margin:0 32px 6px 15px; padding:9px 10px; background:#0c0c0e; border:1px solid #24242a; border-radius:8px"><sc-for list="{{ f.swatches }}" as="sw"><button onClick="{{ sw.pick }}" title="{{ sw.title }}" style="width:22px; height:22px; border-radius:50%; border:none; padding:0; cursor:pointer; background:{{ sw.bg }}; box-shadow:{{ sw.ring }}"></button></sc-for></div></sc-if>
+                          </div>
+                        </sc-for>
+                      </div>
+                    </sc-if>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+          </aside>
+        </sc-if>
+      </div>
+    </div>
+
+    <sc-if value="{{ showPrinciples }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute; top:12px; right:12px; width:min(360px, calc(100% - 24px)); max-height:calc(100% - 24px); overflow:auto; z-index:50; background:#141418; border:1px solid #2a2a31; border-radius:12px; box-shadow:0 20px 50px rgba(0,0,0,0.6); padding:16px 18px; display:flex; flex-direction:column; gap:14px">
+        <div style="display:flex; align-items:center; justify-content:space-between"><span style="font-size:14px; font-weight:600">One model, three placements</span><button onClick="{{ togglePrinciples }}" style="border:none; background:none; color:#9696a0; cursor:pointer; font-family:'Material Symbols Rounded'; font-size:18px">close</button></div>
+        <div style="display:flex; gap:10px"><span style="font-family:'Geist Mono',monospace; font-size:11px; color:oklch(0.80 0.12 255); padding-top:2px">01</span><div style="display:flex; flex-direction:column; gap:3px"><span style="font-size:12.5px; font-weight:600">Quick bar</span><span style="font-size:12px; color:#b4b4bc; line-height:1.5; text-wrap:pretty">The settings people change most sit right above the canvas. Pin any setting with the pin icon to add it. Inspired by Canva and Google Slides.</span></div></div>
+        <div style="display:flex; gap:10px"><span style="font-family:'Geist Mono',monospace; font-size:11px; color:oklch(0.80 0.12 255); padding-top:2px">02</span><div style="display:flex; flex-direction:column; gap:3px"><span style="font-size:12.5px; font-weight:600">One-column inspector</span><span style="font-size:12px; color:#b4b4bc; line-height:1.5; text-wrap:pretty">Content, Style and Data tabs with accordion sections. Everything reads top to bottom and never reflows sideways. Inspired by Figma and Elementor.</span></div></div>
+        <div style="display:flex; gap:10px"><span style="font-family:'Geist Mono',monospace; font-size:11px; color:oklch(0.80 0.12 255); padding-top:2px">03</span><div style="display:flex; flex-direction:column; gap:3px"><span style="font-size:12.5px; font-weight:600">Changed and search</span><span style="font-size:12px; color:#b4b4bc; line-height:1.5; text-wrap:pretty">Search runs across all tabs. Changed shows only what you customised. A dot resets one setting, the section icon resets a group.</span></div></div>
+        <div style="display:flex; gap:10px"><span style="font-family:'Geist Mono',monospace; font-size:11px; color:oklch(0.80 0.12 255); padding-top:2px">04</span><div style="display:flex; flex-direction:column; gap:3px"><span style="font-size:12.5px; font-weight:600">Placement follows space</span><span style="font-size:12px; color:#b4b4bc; line-height:1.5; text-wrap:pretty">At 1100px and up, the inspector docks to the side. Below that it becomes a floating panel you open when needed, which also replaces the bottom dock for bar displays. On phones it becomes a bottom sheet with a tool strip, like CapCut or Lightroom.</span></div></div>
+        <span style="font-size:11.5px; color:#8a8a94; line-height:1.5">Try it: switch viewports above, double-click a widget, and drag the sheet handle on Phone.</span>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;layout&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Auto&quot;,&quot;Docked&quot;,&quot;Floating&quot;,&quot;Bottom sheet&quot;],&quot;default&quot;:&quot;Auto&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;accordion&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;One open&quot;,&quot;Many open&quot;],&quot;default&quot;:&quot;One open&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;quickBar&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+const ACC = 'oklch(0.72 0.15 255)';
+const AMBER = 'oklch(0.78 0.15 75)';
+const hc = h => `oklch(0.72 0.15 ${h})`;
+const SW = [{ v:'auto', n:'Auto' }, ...[['Blue',255],['Violet',295],['Teal',190],['Green',150],['Amber',75],['Rose',15]].map(([n, h]) => ({ v:hc(h), n })), { v:'#ededf0', n:'White' }];
+const AUTO_BG = `linear-gradient(135deg, #3a3a42 0 50%, ${ACC} 50% 100%)`;
+const T = (k, l, d, x) => ({ k, l, t:'toggle', d:d === undefined ? true : d, ...(x || {}) });
+const SG = (k, l, o, d) => ({ k, l, t:'seg', o, d:d === undefined ? o[0] : d });
+const SL = (k, l, min, max, d, u, step) => ({ k, l, t:'slider', min, max, d, u:u || '', step:step || 1 });
+const SE = (k, l, o, d) => ({ k, l, t:'select', o, d:d === undefined ? o[0] : d });
+const CO = (k, l) => ({ k, l, t:'color', d:'auto' });
+const TX = (k, l, ph) => ({ k, l, t:'text', d:'', ph });
+const TABS = [['content','Content'],['style','Style'],['data','Data']];
+const TABL = { content:'Content', style:'Style', data:'Data' };
+const BASE = [
+  { id:'widget', tab:'content', title:'Widget', short:'Widget', icon:'widgets', fields:[TX('title', 'Custom title', 'Uses the widget name'), T('hideIdle', 'Hide when idle', false), T('visible', 'Visible')] },
+  { id:'size', tab:'style', title:'Size & layout', short:'Size', icon:'aspect_ratio', fields:[SG('layout', 'Layout', ['Auto','Card','Compact','Simple']), SL('size', 'Text size', 60, 160, 100, '%', 5), SG('align', 'Alignment', ['Start','Center','End'])] },
+  { id:'surface', tab:'style', title:'Colors & surface', short:'Colors', icon:'palette', fields:[CO('accent', 'Accent color'), CO('textColor', 'Text color'), SG('material', 'Surface', ['Glass','Matte','Solid']), SL('opacity', 'Surface opacity', 0, 100, 100, '%', 5)] },
+  { id:'typo', tab:'style', title:'Typography', short:'Type', icon:'text_fields', fields:[SE('font', 'Font', ['Theme','Sans','Rounded','Serif','Mono']), SE('weight', 'Value weight', ['Auto','Regular','Medium','Semibold','Bold']), SG('case', 'Label case', ['Auto','UPPERCASE','As written'])] },
+  { id:'shape', tab:'style', title:'Spacing & shape', short:'Shape', icon:'rounded_corner', fields:[SE('pad', 'Inner padding', ['Auto','8','12','16','24']), SL('radius', 'Corner radius', 0, 28, 12, ' px'), SE('bw', 'Border width', ['Auto','0','1','2']), SG('glow', 'Edge glow', ['None','Soft','Strong'])] },
+  { id:'refresh', tab:'data', title:'Refresh', short:'Refresh', icon:'sync', fields:[SE('rate', 'Update every', ['1 s','2 s','5 s','10 s'], '2 s'), T('smooth', 'Smooth value changes')] },
+];
+const WT = {
+  media:{ name:'Now playing', icon:'queue_music', quick:['layout','accent','wStyle','progress'], secs:[
+    { id:'now', tab:'content', title:'Playback', short:'Playback', icon:'play_circle', fields:[T('artist', 'Artist line'), T('progress', 'Progress bar'), T('times', 'Times')] },
+    { id:'wave', tab:'content', title:'Waveform', short:'Wave', icon:'graphic_eq', fields:[T('wOn', 'Show waveform'), SG('wStyle', 'Style', ['Bars','Line','Mirror']), SL('wGain', 'Sensitivity', 0.2, 2, 1, '×', 0.1)] },
+    { id:'asrc', tab:'data', title:'Audio source', short:'Audio', icon:'mic', fields:[SE('aSrc', 'Level source', ['Browser','System','Music','Default output']), T('aLive', 'Live capture')] }] },
+  steam:{ name:'Steam game', icon:'sports_esports', quick:['period','accent','size'], secs:[
+    { id:'game', tab:'content', title:'Game stats', short:'Game', icon:'timer', fields:[SG('period', 'Playtime', ['Total','Session','2 weeks']), T('level', 'Player level')] }] },
+  clock:{ name:'Clock', icon:'schedule', quick:['fmt','secs','accent'], secs:[
+    { id:'clk', tab:'content', title:'Clock & date', short:'Clock', icon:'schedule', fields:[SG('fmt', 'Format', ['12 h','24 h'], '24 h'), T('secs', 'Seconds', false), T('date', 'Date line')] }] },
+  system:{ name:'System', icon:'monitor_heart', quick:['mStyle','layout','accent','dTemps'], secs:[
+    { id:'dev', tab:'content', title:'Devices', short:'Devices', icon:'memory', fields:[T('dCpu', 'CPU'), T('dGpu', 'GPU'), T('dRam', 'RAM'), T('dDisk', 'Disk', false), T('dTemps', 'Temperatures')] },
+    { id:'meter', tab:'content', title:'Meters', short:'Meters', icon:'speed', fields:[SG('mStyle', 'Meter style', ['Bars','Gauge','Number']), SL('warn', 'Warn above', 50, 100, 85, '%', 5)] }] },
+  friends:{ name:'Steam friends', icon:'group', quick:['rows','offline','accent'], secs:[
+    { id:'list', tab:'content', title:'Friends list', short:'List', icon:'list', fields:[T('offline', 'Show offline', false), SL('rows', 'Max rows', 2, 6, 4, ''), T('games', 'Current game')] }] },
+};
+const SECS = {}, FMAP = {};
+Object.keys(WT).forEach(t => {
+  const all = [BASE[0], ...WT[t].secs, ...BASE.slice(1)];
+  SECS[t] = TABS.flatMap(([id]) => all.filter(s => s.tab === id));
+  FMAP[t] = {}; SECS[t].forEach(s => s.fields.forEach(f => { FMAP[t][f.k] = f; }));
+});
+const W0 = [
+  { id:'media', type:'media', c:1, r:1, w:4, h:2 }, { id:'steam', type:'steam', c:5, r:1, w:4, h:2 }, { id:'clock', type:'clock', c:9, r:1, w:4, h:2 },
+  { id:'system', type:'system', c:1, r:3, w:8, h:4 }, { id:'friends', type:'friends', c:9, r:3, w:4, h:4 },
+];
+const VP = { '1440':[1440,900], '1024':[1024,720], '768':[768,1024], '390':[390,844] };
+const VPO = [['fit','Fit'],['1440','Desktop'],['1024','Laptop'],['768','Tablet'],['390','Phone']];
+const PROF = { std:{ w:1280, h:600, name:'Desk display · 1280×600', label:'Desk 1280×600' }, bar:{ w:1920, h:480, name:'Bar display · 1920×480', label:'Bar 1920×480' } };
+const WAVE = [.3,.5,.8,.6,.9,.4,.7,1,.6,.5,.8,.35,.6,.9,.7,.45,.3,.6,.85,.5,.4,.7,.55,.3];
+const FRIENDS = [{ n:'T3AMRR', s:'Online', g:'Arma Reforger' }, { n:'Mar10nK', s:'Snooze', g:'Euro Truck Simulator 2' }, { n:'Kestrel', s:'Online', g:'ARC Raiders' }, { n:'Noobulf', s:'Offline' }, { n:'Pixl', s:'Online', g:'Factorio' }, { n:'d4wn', s:'Offline' }];
+const STC = { Online:'oklch(0.78 0.14 150)', Snooze:'#9696a0', Offline:'#6f6f79' };
+const own = (o, k) => Object.prototype.hasOwnProperty.call(o || {}, k);
+
+class Component extends DCLogic {
+  state = { vp:'1440', prof:'std', sel:'media', vals:{ media:{ accent:hc(295), layout:'Card' }, system:{ dDisk:true } }, pins:{}, tab:'style', open:{}, q:'', changedOnly:false, cOpen:null, floatOpen:false, snap:'peek', tool:'quick', dragH:null, stageW:1200, stageH:800, canvasW:900, canvasH:600, principles:false };
+  stageRef = React.createRef(); canvasRef = React.createRef();
+  componentDidMount() { this.ro = new ResizeObserver(() => this.measure()); this.obs(); this.measure(); }
+  componentDidUpdate() { this.obs(); }
+  componentWillUnmount() { this.ro && this.ro.disconnect(); this.endDrag && this.endDrag(); }
+  obs() {
+    const s = this.stageRef.current, c = this.canvasRef.current;
+    if (s && s !== this._s) { this._s = s; this.ro.observe(s); this.measure(); }
+    if (c && c !== this._c) { if (this._c) this.ro.unobserve(this._c); this._c = c; this.ro.observe(c); this.measure(); }
+  }
+  measure() {
+    const n = {};
+    if (this._s) { n.stageW = this._s.clientWidth; n.stageH = this._s.clientHeight; }
+    if (this._c) { n.canvasW = this._c.clientWidth; n.canvasH = this._c.clientHeight; }
+    if (Object.keys(n).some(k => n[k] !== this.state[k])) this.setState(n);
+  }
+  isOwn(w, k) { return own(this.state.vals[w.id], k); }
+  val(w, k) { const v = this.state.vals[w.id] || {}; return own(v, k) ? v[k] : (FMAP[w.type][k] || {}).d; }
+  setVal(w, k, nv) {
+    const f = FMAP[w.type][k];
+    this.setState(s => { const cur = { ...(s.vals[w.id] || {}) }; if (nv === f.d) delete cur[k]; else cur[k] = nv; return { vals:{ ...s.vals, [w.id]:cur } }; });
+  }
+  resetKey(w, k) { this.setState(s => { const cur = { ...(s.vals[w.id] || {}) }; delete cur[k]; return { vals:{ ...s.vals, [w.id]:cur } }; }); }
+  resetSec(w, sec) { this.setState(s => { const cur = { ...(s.vals[w.id] || {}) }; sec.fields.forEach(f => delete cur[f.k]); return { vals:{ ...s.vals, [w.id]:cur } }; }); }
+  pins(type) { return this.state.pins[type] || WT[type].quick; }
+  togglePin(type, k) { const p = this.pins(type); this.setState(s => ({ pins:{ ...s.pins, [type]:p.includes(k) ? p.filter(x => x !== k) : [...p, k].slice(-6) } })); }
+  toggleSec(id, tabSecs, mode) {
+    const S = this.state, cur = S.open[id] ?? (id === tabSecs[0].id), o = { ...S.open };
+    if (mode === 'One open') tabSecs.forEach(s => { o[s.id] = false; });
+    o[id] = !cur; this.setState({ open:o });
+  }
+  handleDown = e => {
+    const y0 = e.clientY, h0 = this.snapH[this.state.snap]; let moved = false;
+    const mv = ev => { const dy = (ev.clientY - y0) / this.fsc; if (Math.abs(dy) > 4) moved = true; if (moved) this.setState({ dragH:Math.max(70, Math.min(this.snapH.full, h0 - dy)) }); };
+    const up = () => {
+      window.removeEventListener('pointermove', mv); window.removeEventListener('pointerup', up); this.endDrag = null;
+      if (!moved) { this.setState(s => ({ snap:s.snap === 'peek' ? 'half' : 'peek', dragH:null })); return; }
+      const h = this.state.dragH; let best = 'peek', bd = 1e9;
+      ['peek','half','full'].forEach(o => { const d = Math.abs(this.snapH[o] - h); if (d < bd) { bd = d; best = o; } });
+      this.setState({ snap:best, dragH:null });
+    };
+    window.addEventListener('pointermove', mv); window.addEventListener('pointerup', up); this.endDrag = up;
+  };
+
+  fv(f, w, ctx) {
+    const S = this.state, o = this.isOwn(w, f.k), v = this.val(w, f.k), set = nv => this.setVal(w, f.k, nv);
+    const pinned = this.pins(w.type).includes(f.k), ck = ctx + ':' + f.k;
+    const r = { k:f.k, label:f.l, own:o, labelFg:o ? '#ededf0' : '#c9c9cf', dotBg:o ? ACC : 'transparent', dotBorder:o ? ACC : '#34343b', dotCursor:o ? 'pointer' : 'default',
+      dotTitle:o ? 'Changed. Click to reset' : 'Default value', reset:() => { if (o) this.resetKey(w, f.k); },
+      pinFg:pinned ? 'oklch(0.84 0.12 255)' : '#4a4a52', pinFill:pinned ? 1 : 0, pin:() => this.togglePin(w.type, f.k), pinTitle:pinned ? 'Unpin from quick bar' : 'Pin to quick bar',
+      rowH:ctx === 's' ? '44px' : '30px', isToggle:f.t === 'toggle', isSeg:f.t === 'seg', isSelect:f.t === 'select', isSlider:f.t === 'slider', isColor:f.t === 'color', isText:f.t === 'text', inlineSeg:false, belowSeg:false, colorOpen:false };
+    if (f.t === 'toggle') Object.assign(r, { trackBg:v ? ACC : '#2a2a31', knobX:v ? '14px' : '2px', toggle:() => set(!v) });
+    if (f.t === 'seg') { const inl = f.o.length <= 3 && f.o.every(x => x.length <= 9); Object.assign(r, { inlineSeg:inl, belowSeg:!inl, opts:f.o.map(x => ({ label:x, bg:x === v ? '#2a2a31' : 'transparent', fg:x === v ? '#ededf0' : '#8a8a94', pick:() => set(x) })) }); }
+    if (f.t === 'slider') Object.assign(r, { min:f.min, max:f.max, step:f.step, value:v, display:(f.step < 1 ? Number(v).toFixed(1) : v) + f.u, onSlide:e => set(Number(e.target.value)) });
+    if (f.t === 'select') Object.assign(r, { value:v, selOpts:f.o.map(x => ({ value:x, label:x })), onSelect:e => set(e.target.value) });
+    if (f.t === 'text') Object.assign(r, { value:v, ph:f.ph || '', onText:e => set(e.target.value) });
+    if (f.t === 'color') {
+      const sw = SW.find(s => s.v === v), open = S.cOpen === ck;
+      Object.assign(r, { swBg:v === 'auto' ? AUTO_BG : v, colorText:sw ? sw.n : 'Custom', colorOpen:open && ctx !== 'q',
+        toggleColor:e => { if (e && e.stopPropagation) e.stopPropagation(); this.setState({ cOpen:open ? null : ck }); },
+        swatches:SW.map(s => ({ bg:s.v === 'auto' ? AUTO_BG : s.v, title:s.n, ring:s.v === v ? '0 0 0 2px #111114, 0 0 0 4px #ededf0' : 'none', pick:() => set(s.v) })) });
+    }
+    return r;
+  }
+  secVM(sc, w, o) {
+    const n = sc.fields.filter(f => this.isOwn(w, f.k)).length, open = !!o.open;
+    return { id:sc.id, title:sc.title, icon:sc.icon || 'bolt', showHd:!!o.showHd, showTab:!!o.showTab, tabLabel:TABL[sc.tab] || '', own:n, hasOwn:n > 0 && sc.id !== 'quick',
+      open, chev:o.filter ? '' : open ? 'expand_less' : 'expand_more', toggle:o.onToggle || (() => {}), reset:() => this.resetSec(w, sc),
+      bb:o.showHd ? '1px solid #1c1c21' : 'none', hdH:o.ctx === 's' ? '48px' : '42px', bodyPad:o.showHd ? '0 0 10px' : '8px 0 4px', fields:(o.fields || sc.fields).map(f => this.fv(f, w, o.ctx)) };
+  }
+  tileVM(w, ab) {
+    const S = this.state, g = k => this.val(w, k);
+    const s = g('size') / 100, lay = g('layout'), comp = lay === 'Compact' ? 0.82 : 1;
+    const accent = g('accent') === 'auto' ? ACC : g('accent'), fg = g('textColor') === 'auto' ? '#ededf0' : g('textColor');
+    const op = g('opacity') / 100, glow = g('glow');
+    const bg = { Glass:`rgba(255,255,255,${(0.05 * op).toFixed(3)})`, Matte:`rgba(20,20,24,${op})`, Solid:`rgba(34,34,41,${op})` }[g('material')];
+    const bw = g('bw') === 'Auto' ? 1 : Number(g('bw'));
+    const ai = { Start:'flex-start', Center:'center', End:'flex-end' }[g('align')];
+    const pad = ({ Auto:22, '8':8, '12':12, '16':16, '24':24 })[g('pad')] * comp;
+    const vis = g('visible'), sel = S.sel === w.id;
+    const x = 12 + (w.c - 1) * (ab.cw + 12), y = 12 + (w.r - 1) * (ab.ch + 12);
+    const r = { id:w.id, x:x + 'px', y:y + 'px', w:(w.w * ab.cw + (w.w - 1) * 12) + 'px', h:(w.h * ab.ch + (w.h - 1) * 12) + 'px',
+      pick:e => { e.stopPropagation(); this.setState({ sel:w.id, cOpen:null, tool:WT[w.type].secs.concat(BASE).some(sc => sc.id === S.tool) ? S.tool : 'quick' }); },
+      open:e => { e.stopPropagation(); this.setState({ sel:w.id, floatOpen:true, snap:S.snap === 'peek' ? 'half' : S.snap }); },
+      bg, accent, fg, fg2:`color-mix(in oklch, ${fg} 62%, transparent)`, radius:g('radius') + 'px', op:vis ? 1 : 0.35,
+      border:bw ? `${bw}px ${vis ? 'solid' : 'dashed'} ${glow === 'Strong' ? accent : 'rgba(255,255,255,0.1)'}` : 'none',
+      shadow:glow === 'None' ? 'none' : `0 0 ${glow === 'Soft' ? 22 : 40}px color-mix(in oklch, ${accent} ${glow === 'Soft' ? 35 : 60}%, transparent)`,
+      pad:pad + 'px', gap:(12 * comp) + 'px', alignItems:ai, textAlign:g('align').toLowerCase().replace('start', 'left').replace('end', 'right'), justify:'center',
+      font:{ Theme:"'Geist',sans-serif", Sans:"'Geist',sans-serif", Rounded:"ui-rounded,'Geist',sans-serif", Serif:"Georgia,serif", Mono:"'Geist Mono',monospace" }[g('font')],
+      weight:{ Auto:600, Regular:400, Medium:500, Semibold:600, Bold:700 }[g('weight')], kase:g('case') === 'As written' ? 'none' : 'uppercase',
+      card:lay === 'Card', showLabel:lay !== 'Simple', labelSize:(13 * s) + 'px', bigSize:(34 * s * comp) + 'px', subSize:(14 * s * comp) + 'px', rowSize:(16 * s * comp) + 'px', mValSize:(22 * s) + 'px',
+      hidden:!vis, sel, selInset:-(5 / ab.s) + 'px', selBorder:`${2 / ab.s}px solid ${ACC}`, selRadius:(g('radius') + 5 / ab.s) + 'px', hoverLine:sel ? 'none' : `${1 / ab.s}px solid #3a3a42`,
+      hasBig:false, hasSub:false, hasWave:false, hasProg:false, hasTimes:false, hasMeters:false, hasRows:false, label:'', big:'', sub:'' };
+    const title = g('title');
+    if (w.type === 'media') {
+      const ws = g('wStyle'), gain = g('wGain');
+      const th = w.h * ab.ch + (w.h - 1) * 12, gp = 12 * comp;
+      const items = [lay !== 'Simple' ? 13 * s * 1.3 : 0, 34 * s * comp * 1.1, g('artist') ? 14 * s * comp * 1.3 : 0, g('progress') ? 5 + (g('times') ? 6 + 14 * s * comp * 1.3 : 0) : 0].filter(Boolean);
+      const room = th - pad * 2 - items.reduce((a, b) => a + b, 0) - gp * items.length;
+      const wh = Math.min(44, room);
+      if (room < 0) Object.assign(r, { justify:'flex-start', gap:(6 * comp) + 'px' });
+      Object.assign(r, { waveH:Math.max(0, wh) + 'px', label:title || 'Now playing · Spotify', big:'WARDOGS Season 2', hasBig:true, sub:'Stodeh', hasSub:g('artist'), hasProg:g('progress'), hasTimes:g('times') && room > -30, hasWave:g('wOn') && wh >= 14,
+        waveAlign:ws === 'Bars' ? 'flex-end' : 'center', wave:WAVE.map((h, i) => ({ w:ws === 'Line' ? '2px' : '6px', h:Math.max(3, Math.min(wh, h * wh * gain)) + 'px', o:ws === 'Line' ? 0.9 : 0.55 + h * 0.45 })) });
+    } else if (w.type === 'steam') {
+      const p = g('period');
+      Object.assign(r, { label:title || 'ARC Raiders · ' + p, big:{ Total:'263h', Session:'1h 52m', '2 weeks':'14h 20m' }[p], hasBig:true, sub:g('level') ? 'F3NN3X · Level 29' : 'F3NN3X', hasSub:true });
+    } else if (w.type === 'clock') {
+      const t24 = g('fmt') === '24 h', sec = g('secs');
+      Object.assign(r, { label:title || 'Local time', big:(t24 ? '21:47' : '9:47') + (sec ? ':08' : '') + (t24 ? '' : ' PM'), hasBig:true, bigSize:(48 * s * comp) + 'px', sub:'Thursday 15 October', hasSub:g('date') });
+    } else if (w.type === 'system') {
+      const ms = g('mStyle'), warn = g('warn');
+      const list = [['CPU',30,'61°','dCpu'],['GPU',22,'54°','dGpu'],['RAM',72,'','dRam'],['Disk',91,'38°','dDisk']].filter(m => g(m[3]));
+      Object.assign(r, { label:title || 'System · Ryzen 9 9950X3D', justify:'flex-start', hasMeters:true, mCols:Math.max(1, list.length),
+        meters:list.map(([n, v, temp]) => ({ n, v:v + '%', pct:v + '%', deg:(v * 3.6) + 'deg', col:v >= warn ? AMBER : accent, temp, hasTemp:!!temp && g('dTemps'), gauge:ms === 'Gauge', number:ms === 'Number', bar:ms === 'Bars', gs:(150 * s * comp) + 'px' })) });
+    } else if (w.type === 'friends') {
+      const list = FRIENDS.filter(f => g('offline') || f.s !== 'Offline').slice(0, g('rows'));
+      Object.assign(r, { label:title || 'Friends · ' + list.filter(f => f.s === 'Online').length + ' online', justify:'flex-start', hasRows:true,
+        rows:list.map((f, i) => ({ n:f.n, s:g('games') && f.g ? f.g : f.s, sc:STC[f.s], av:`oklch(0.55 0.12 ${(i * 67 + 200) % 360})` })) });
+    }
+    return r;
+  }
+
+  renderVals() {
+    const S = this.state, P = this.props;
+    const accMode = P.accordion ?? 'One open', quickOn = P.quickBar ?? true, ov = P.layout ?? 'Auto';
+    const fit = S.vp === 'fit';
+    const [W, H] = fit ? [S.stageW, S.stageH] : VP[S.vp];
+    const fs = fit ? 1 : Math.min(1, (S.stageW - 48) / W, (S.stageH - 48) / H);
+    this.fsc = fs;
+    const mode = ov === 'Docked' ? 'dock' : ov === 'Floating' ? 'float' : ov === 'Bottom sheet' ? 'sheet' : W >= 1100 ? 'dock' : W >= 640 ? 'float' : 'sheet';
+    const isDock = mode === 'dock', isFloat = mode === 'float', isSheet = mode === 'sheet';
+    const sel = W0.find(w => w.id === S.sel) || null;
+    const cW = S.canvasW, cH = S.canvasH;
+    const snapH = { peek:sel ? 150 : 96, half:Math.max(320, Math.round(cH * 0.56)), full:cH - 8 };
+    this.snapH = snapH;
+    const sheetH = S.dragH ?? snapH[S.snap];
+    const floatOpen = isFloat && S.floatOpen && !!sel;
+    const showQuick = !!sel && quickOn && !isSheet;
+
+    const prof = PROF[S.prof], AW = prof.w, AH = prof.h;
+    const topPad = isSheet ? 14 : showQuick ? 72 : 16, rightPad = floatOpen ? 348 : 16;
+    const botPad = isSheet ? Math.min(sheetH, snapH.half) + 14 : 16;
+    const aw = Math.max(40, cW - 16 - rightPad), ah = Math.max(40, cH - topPad - botPad);
+    const cs = Math.max(0.05, Math.min(aw / AW, ah / AH));
+    const ab = { left:(16 + (aw - AW * cs) / 2) + 'px', top:(topPad + (ah - AH * cs) / 2) + 'px', w:AW + 'px', h:AH + 'px', s:cs, cw:(AW - 24 - 132) / 12, ch:(AH - 24 - 60) / 6 };
+    const tiles = W0.map(w => this.tileVM(w, ab));
+
+    const ins = isDock ? { pos:'relative', left:'auto', right:'auto', top:'auto', bottom:'auto', w:'320px', h:'auto', border:'none', bl:'1px solid #1f1f24', radius:'0', shadow:'none', trans:'none' }
+      : isFloat ? { pos:'absolute', left:'auto', right:'12px', top:'12px', bottom:'12px', w:'320px', h:'auto', border:'1px solid #2a2a31', bl:'1px solid #2a2a31', radius:'12px', shadow:'0 16px 40px rgba(0,0,0,0.5)', trans:'none' }
+      : { pos:'absolute', left:'0', right:'0', top:'auto', bottom:'0', w:'auto', h:sheetH + 'px', border:'1px solid #2a2a31', bl:'1px solid #2a2a31', radius:'16px 16px 0 0', shadow:'0 -12px 32px rgba(0,0,0,0.5)', trans:S.dragH == null ? 'height 0.28s cubic-bezier(.2,.8,.2,1)' : 'none' };
+
+    const ctx = isSheet ? 's' : 'i';
+    const all = sel ? SECS[sel.type] : [];
+    const q = S.q.trim().toLowerCase(), filtering = !!sel && (!!q || S.changedOnly);
+    const sheetCompact = isSheet && S.snap !== 'full';
+    const quickF = sel ? this.pins(sel.type).map(k => FMAP[sel.type][k]).filter(Boolean) : [];
+    let bodySecs = [];
+    if (sel) {
+      if (sheetCompact) {
+        const sc = S.tool === 'quick' ? { id:'quick', title:'Quick', fields:quickF } : (all.find(s => s.id === S.tool) || all[0]);
+        bodySecs = [this.secVM(sc, sel, { open:true, showHd:false, ctx })];
+      } else if (filtering) {
+        all.forEach(sc => {
+          const tm = q && sc.title.toLowerCase().includes(q);
+          const fl = sc.fields.filter(f => (!q || tm || f.l.toLowerCase().includes(q)) && (!S.changedOnly || this.isOwn(sel, f.k)));
+          if (fl.length) bodySecs.push(this.secVM(sc, sel, { fields:fl, open:true, showHd:true, showTab:true, filter:true, ctx }));
+        });
+      } else {
+        const ts = all.filter(sc => sc.tab === S.tab);
+        bodySecs = ts.map((sc, i) => this.secVM(sc, sel, { open:S.open[sc.id] ?? i === 0, showHd:true, ctx, onToggle:() => this.toggleSec(sc.id, ts, accMode) }));
+      }
+    }
+    const vals = sel ? (S.vals[sel.id] || {}) : {};
+    const ownKeys = sel ? Object.keys(vals).filter(k => FMAP[sel.type][k]) : [];
+    const ownAll = ownKeys.length;
+    const nFields = bodySecs.reduce((a, s) => a + s.fields.length, 0);
+    const qpKey = S.cOpen && S.cOpen.startsWith('q:') ? S.cOpen.slice(2) : null;
+    const qpF = sel && qpKey && FMAP[sel.type][qpKey] ? this.fv(FMAP[sel.type][qpKey], sel, 'q') : null;
+    const vis = sel ? this.val(sel, 'visible') : true;
+    const modeName = { dock:'Docked panel', float:'Floating panel', sheet:'Bottom sheet' }[mode];
+
+    return {
+      stageRef:this.stageRef, canvasRef:this.canvasRef,
+      frameLabel:`${Math.round(W)} × ${Math.round(H)} · ${modeName}`,
+      vpOpts:VPO.map(([id, l]) => ({ label:l, bg:S.vp === id ? '#2a2a31' : 'transparent', fg:S.vp === id ? '#ededf0' : '#8a8a94', pick:() => this.setState({ vp:id }) })),
+      profOpts:Object.keys(PROF).map(id => ({ label:PROF[id].label, bg:S.prof === id ? '#2a2a31' : 'transparent', fg:S.prof === id ? '#ededf0' : '#8a8a94', pick:() => this.setState({ prof:id }) })),
+      togglePrinciples:() => this.setState(s => ({ principles:!s.principles })), showPrinciples:S.principles, prBg:S.principles ? '#2a2a31' : '#17171b',
+      fx:fx(), fy:fy(), fw:W + 'px', fh:H + 'px', fs, frameBorder:fit ? 'none' : '1px solid #2a2a31', frameRadius:fit ? '0' : (isSheet ? '28px' : '12px'),
+      profName:prof.name, ab, tiles,
+      canvasClick:() => { if (S.cOpen) this.setState({ cOpen:null }); else this.setState({ sel:null, floatOpen:false, snap:'peek', q:'', changedOnly:false }); },
+      stop:e => e.stopPropagation(),
+      showQuick, isFloat, qRight:floatOpen ? '344px' : '12px',
+      quickFields:sel ? quickF.map(f => this.fv(f, sel, 'q')) : [], noQuick:!quickF.length,
+      hasQPop:!!qpF && showQuick, qPopLabel:qpF ? qpF.label : '', qPopSw:qpF ? qpF.swatches : [],
+      toggleFloat:() => this.setState(s => ({ floatOpen:!s.floatOpen })), allBg:floatOpen ? '#2a2a31' : '#1e1e24',
+      selIcon:sel ? WT[sel.type].icon : 'space_dashboard', selName:sel ? (this.val(sel, 'title') || WT[sel.type].name) : 'Dashboard',
+      selSub:sel ? (ownAll ? `${WT[sel.type].name} · ${ownAll} changed` : `${WT[sel.type].name} · defaults`) : '',
+      visIcon:vis ? 'visibility' : 'visibility_off', toggleVis:e => { if (e && e.stopPropagation) e.stopPropagation(); if (sel) this.setVal(sel, 'visible', !vis); },
+      showIns:isDock || floatOpen || isSheet, ins, isSheet, handleDown:this.handleDown,
+      noSelIns:!sel, noSelText:isSheet ? 'Tap a widget to edit it.' : 'Select a widget to edit it. Double-click opens all settings.',
+      fullHead:!!sel && !sheetCompact, compactHead:!!sel && sheetCompact,
+      canClose:isFloat || isSheet, closeIcon:isSheet ? 'close_fullscreen' : 'close', closeTitle:isSheet ? 'Collapse' : 'Close',
+      closeIns:() => this.setState(isSheet ? { snap:'half' } : { floatOpen:false }),
+      openFull:() => this.setState({ snap:'full' }),
+      q:S.q, onSearch:e => this.setState({ q:e.target.value }), searching:!!S.q, clearSearch:() => this.setState({ q:'' }),
+      toggleChanged:() => this.setState(s => ({ changedOnly:!s.changedOnly })), ownAll,
+      chBg:S.changedOnly ? 'oklch(0.72 0.15 255 / 0.16)' : '#17171b', chBd:S.changedOnly ? 'oklch(0.72 0.15 255 / 0.5)' : '#2a2a31', chFg:S.changedOnly ? 'oklch(0.86 0.10 255)' : '#c9c9cf',
+      showTabs:!filtering,
+      tabs:TABS.map(([id, l]) => { const n = sel ? ownKeys.filter(k => SECS[sel.type].some(sc => sc.tab === id && sc.fields.some(f => f.k === k))).length : 0;
+        return { label:l, count:n, hasCount:n > 0, bg:S.tab === id ? '#2a2a31' : 'transparent', fg:S.tab === id ? '#ededf0' : '#8a8a94', pick:() => this.setState({ tab:id }) }; }),
+      filtering, filterLabel:q ? `${nFields} matching setting${nFields === 1 ? '' : 's'}${S.changedOnly ? ' (changed only)' : ''}` : `${nFields} changed setting${nFields === 1 ? '' : 's'}`,
+      canResetAll:S.changedOnly && ownAll > 0, resetAll:() => sel && this.setState(s => ({ vals:{ ...s.vals, [sel.id]:{} } })),
+      sheetTiles:sel ? [{ id:'quick', icon:'bolt', short:'Quick' }, ...all.map(sc => ({ id:sc.id, icon:sc.icon, short:sc.short || sc.title }))].map(t => {
+        const act = S.tool === t.id || (t.id === 'quick' && !all.some(sc => sc.id === S.tool));
+        const sc = all.find(x => x.id === t.id);
+        return { ...t, bd:act ? 'oklch(0.72 0.15 255 / 0.6)' : '#24242a', bg:act ? 'oklch(0.72 0.15 255 / 0.14)' : '#17171b', fg:act ? '#ededf0' : '#b4b4bc', hasOwn:!!sc && sc.fields.some(f => this.isOwn(sel, f.k)),
+          pick:() => this.setState(s => ({ tool:t.id, snap:s.snap === 'peek' ? 'half' : s.snap })) };
+      }) : [],
+      showBody:!!sel && !(isSheet && S.snap === 'peek' && S.dragH == null),
+      bodySecs, hasEmpty:!!sel && !bodySecs.length || (bodySecs.length === 1 && !bodySecs[0].fields.length),
+      emptyMsg:q ? `No settings match “${S.q}”.` : S.changedOnly ? 'Nothing changed yet. Everything uses its default.' : 'Pin settings with the pin icon to build your quick set.',
+    };
+    function fx() { return fit ? '0px' : ((S.stageW - W * fs) / 2) + 'px'; }
+    function fy() { return fit ? '0px' : ((S.stageH - H * fs) / 2) + 'px'; }
+  }
+}
+</script>
+</body>
+</html>

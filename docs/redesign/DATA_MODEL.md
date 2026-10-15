@@ -203,13 +203,15 @@ The tabs are **Profile · Appearance · Global style · General**. They use the 
   - Type (System / Sans / Rounded / Serif / Mono)
   - Clock & date (12/24 h, seconds, locale)
   - Display (motion System/Reduce/Full, hide cursor in kiosk mode)
-  - Studio (inspector position)
+  - Studio (Quick bar, Inspector sections)
   - Connection (Data API URL)
 
 ## 8. Studio layout
 
-- **Inspector position:** Side / Bottom / Auto. Auto docks at the bottom for wide, short profiles (aspect ratio above 2.5, e.g. 1920×550). The control is in the zoom bar and under General › Studio.
-- **Bottom dock:** 320 px high. Sections flow into **300 px columns** and scroll sideways.
-  - **Keep** the splitter that resizes the dock.
-  - In the current app the Add / Layers / Profiles drawer becomes the first column of the dock. In the redesign the left panel stays separate; if users depend on the drawer being inside the dock, add it back as an option.
-- **Ctrl+\\** collapses the inspector, in either position.
+- **Inspector placement:** automatic, from the studio width (no setting; the old Side / Bottom / Auto preference `studio.layout`, the bottom dock, its splitter and `studio.dockHeight` are gone).
+  - **Docked** (1100 px and wider): a 320 px right column.
+  - **Floating** (640 to 1099 px): a 320 px card over the canvas, closed by default.
+  - **Bottom sheet** (under 640 px): peek / half / full snaps.
+  - The left panel stays separate in every mode.
+- **Ctrl+\\** shows or hides the inspector: collapses the docked column (`studio.dockCollapsed`), opens or closes the floating card, toggles the sheet between peek and half.
+- **Studio preferences (Browser, General › Studio):** Quick bar on / off (`studio.quickBar`, default on) and Inspector sections One open / Many open (`studio.accordion`, default one). The pinned quick settings are kept per widget type in `studio.quickPins` (max 6). None of them are in the config.

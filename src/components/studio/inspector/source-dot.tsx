@@ -1,9 +1,9 @@
 import { cn } from "@/lib/utils";
 import { SET_HERE, type SettingState } from "../settings-model";
 
-/** The dot of each source state (README §5.6); `default` draws none. */
+/** The dot of each source state (README §5.6); `default` is an empty outline. */
 const DOT: Record<SettingState, string> = {
-  default: "",
+  default: "border border-[#34343b]",
   dashboard: "bg-ui-dot-dashboard",
   profile: "bg-ui-dot-profile",
   here: "bg-ui-accent",
@@ -47,7 +47,7 @@ export function DotLegend() {
     <ul className="space-y-1.5 text-[12px] text-ui-2">
       {DOT_LEGEND.map((state) => (
         <li key={state} className="flex items-center gap-2">
-          <span className={cn("block h-[7px] w-[7px] shrink-0 rounded-full", DOT[state], state === "default" && "border border-ui-strong")} />
+          <span className={cn("block h-[7px] w-[7px] shrink-0 rounded-full", DOT[state])} />
           {state === "default" ? "None — the default" : DOT_MEANING[state]}
         </li>
       ))}

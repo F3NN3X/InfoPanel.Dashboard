@@ -180,4 +180,4 @@ Selecting a zone opens one sheet: a fixed header, then the seven general cards e
 
 **Nothing selected:** the same sheet shows Appearance (scope All profiles / This profile, Force global style, Presets gallery), Global style (the general cards at dashboard or profile level), Page (Theme colors, Background), General (Type, Clock & date, Display) and Connection (Data API URL).
 
-**Studio layout:** the inspector sits beside the canvas or in a bottom dock (Side / Bottom / Auto; Auto picks Bottom for wide, short profiles such as 1920×550). In the dock, cards flow in 300 px columns and the Add / Layers / Profiles drawer becomes the first column; the dock resizes with a splitter and collapses with Ctrl+\.
+**Studio layout:** the inspector's placement follows the studio width: docked (a 320 px column, collapses with Ctrl+\) from 1100 px, a floating card over the canvas from 640 px, a bottom sheet below that. A quick bar over the canvas holds the pinned settings of the selection.

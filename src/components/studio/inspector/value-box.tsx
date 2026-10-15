@@ -14,6 +14,7 @@ export function ValueBox({
   unit,
   label,
   onChange,
+  compact = false,
 }: {
   value: number;
   min: number;
@@ -22,6 +23,8 @@ export function ValueBox({
   unit?: string;
   label: string;
   onChange: (value: number) => void;
+  /** Beside an inline slider: 54 px instead of 64. */
+  compact?: boolean;
 }) {
   const [draft, setDraft] = useState<string | null>(null);
   const cancelled = useRef(false);
@@ -52,7 +55,8 @@ export function ValueBox({
         }
       }}
       className={cn(
-        "h-[26px] w-[64px] min-w-12 shrink-0 rounded-[5px] border border-ui-default bg-ui-app px-[7px] py-1 text-right",
+        "h-[26px] min-w-11 shrink-0 rounded-[5px] border border-ui-default bg-ui-app px-1.5 py-1 text-right",
+        compact ? "w-[54px]" : "w-[64px]",
         "font-ui-mono text-[11.5px] text-ui-1 outline-none focus:border-ui-accent"
       )}
     />

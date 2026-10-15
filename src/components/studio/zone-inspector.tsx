@@ -17,7 +17,6 @@ import { cardsBySection, panelState } from "./inspector/panel-cards";
 import { useZoneData } from "./inspector/use-zone-data";
 import { shownValue, shownValues, withoutSettings, withSettings, zoneDefs, zoneLookValues } from "./inspector/zone-fields";
 import { zoneMeta, zoneName } from "./inspector/zone-meta";
-import { HeaderSlot } from "./inspector-layout";
 import {
   inspectorNotes,
   isVisible,
@@ -37,7 +36,9 @@ import { widgetName } from "./widget-kinds";
 import { ZoneFrameFields, zoneFrameSet } from "./zone-design-section";
 import type { ZoneRect } from "./zone-geometry";
 import { moduleIcon } from "./zone-icons";
-import { WidgetPicker, ZoneBoxFields, ZoneHeader } from "./zone-inspector-parts";
+import { WidgetPicker, ZoneBoxFields, ZoneHeader, changedLabel } from "./zone-inspector-parts";
+import { pinsOf, setPin, useQuickPins } from "./inspector/inspector-prefs";
+import { defaultQuickKeys } from "./quick-sets";
 
 interface ZoneInspectorProps {
   placement: Placement;
@@ -63,6 +64,9 @@ interface ZoneInspectorProps {
   /** The settings search (kept by the studio: "Go to setting" fills it). */
   query: string;
   onQuery: (query: string) => void;
+  /** The Changed filter (only values set here, across every tab). */
+  changedOnly: boolean;
+  onChangedOnly: (on: boolean) => void;
   /** Mutate the placement; changes with the same `key` coalesce in undo. */
   update: (fn: (p: Placement) => Placement, key?: string) => void;
   /** Mutate the active profile (bindings). */
@@ -92,7 +96,7 @@ interface ZoneInspectorProps {
 }
 
 /** The custom cards of a special section as one body (a caption over each when several share it). */
-function cardParts(cards: SheetCard[], editor: boolean, wide: boolean): SectionParts {
+function cardParts(cards: SheetCard[], editor: boolean): SectionParts {
   return {
     body: cards.map((c) => (
       <div key={c.id} className="space-y-2">
@@ -104,7 +108,6 @@ function cardParts(cards: SheetCard[], editor: boolean, wide: boolean): SectionP
     changed: cards.reduce((n, c) => n + (c.changed ?? 0), 0),
     onReset: () => cards.forEach((c) => c.onReset?.()),
     editor,
-    wide: wide || cards.some((c) => c.wide),
   };
 }
 
@@ -132,6 +135,8 @@ export function ZoneInspector({
   onShowWidget,
   query,
   onQuery,
+  changedOnly,
+  onChangedOnly,
   update,
   updateProfile,
   onZoneBox,
@@ -207,6 +212,12 @@ export function ZoneInspector({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [request?.seq]);
 
+  // The quick bar's pins of this widget type (a panel's are shared by every panel).
+  const allPins = useQuickPins();
+  const pinType = zone.panel ? "panel" : zone.module;
+  const quickDefaults = defaultQuickKeys(defs);
+  const pinned = pinsOf(allPins, pinType, quickDefaults);
+
   const values = zoneLookValues(zone, appearance);
   const fields: FieldsApi = {
     values,
@@ -215,6 +226,9 @@ export function ZoneInspector({
     onPatch: (patch) => update((p) => withSettings(p, patch, enforce), `setting:${Object.keys(patch).join()}`),
     onClear: (keys) => update((p) => withoutSettings(p, keys)),
     onOpenExplorer,
+    pins: blank
+      ? undefined
+      : { has: (key) => pinned.includes(key), toggle: (key) => setPin(pinType, quickDefaults, key) },
   };
   const effective = shownValues(values, defs);
 
@@ -296,7 +310,7 @@ export function ZoneInspector({
       case undefined:
         break;
       default:
-        return cardParts(cards.get(s.special) ?? [], s.special === "widgetKind", s.special === "panelJson");
+        return cardParts(cards.get(s.special) ?? [], s.special === "widgetKind");
     }
     const placed = s.extras.map(extraNode);
     const at = (where: "top" | "bottom" | "actions") => {
@@ -341,15 +355,16 @@ export function ZoneInspector({
   const selectedWidget = zone.panel?.widgets.find((w) => w.id === selectedWidgetId);
   const Icon = moduleIcon(zone.module);
 
-  const header = (
+  const typeName = blank ? "Blank zone" : zone.panel ? "Panel" : (mod?.title ?? zone.module);
+  const header = (changed: number) => (
     <>
-      <HeaderSlot className="w-80 shrink-0">
-        <ZoneHeader
+      <ZoneHeader
           icon={<Icon />}
           name={zone.panel ? zoneName(zone) : hasLabel ? String(zone.settings?.label ?? "") : zoneName(zone)}
           placeholder={mod?.title}
           onName={onName}
-          meta={zoneMeta(zone, { dataPoints: data.usage.byZone.get(zone.id)?.length ?? 0, min: zoneMinSize(zone) })}
+          meta={`${typeName} · ${changedLabel(changed)}`}
+          details={zoneMeta(zone, { dataPoints: data.usage.byZone.get(zone.id)?.length ?? 0, min: zoneMinSize(zone) })}
           visible={zone.visible}
           widget={selectedWidget && widgetName(selectedWidget, catalog)}
           onZoneCrumb={() => onSelectWidget(null)}
@@ -358,10 +373,7 @@ export function ZoneInspector({
           onDuplicate={onDuplicate}
           onRemove={onRemove}
         />
-      </HeaderSlot>
-      <HeaderSlot className="w-72 shrink-0">
-        <ZoneBoxFields placement={zone} cols={profile.cols} rows={profile.rows} onZoneBox={onZoneBox} />
-      </HeaderSlot>
+      <ZoneBoxFields placement={zone} cols={profile.cols} rows={profile.rows} onZoneBox={onZoneBox} />
     </>
   );
 
@@ -377,7 +389,17 @@ export function ZoneInspector({
       notes={notes}
       query={query}
       onQuery={onQuery}
+      changedOnly={changedOnly}
+      onChangedOnly={onChangedOnly}
       jumpTo={jumpTo}
+      identity={{
+        icon: <Icon />,
+        name: zoneName(zone),
+        meta: (changed) => `${typeName} · ${changedLabel(changed)}`,
+        hidden: !zone.visible,
+        onToggleVisible,
+      }}
+      quickKeys={blank ? [] : pinned}
     />
   );
 }

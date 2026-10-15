@@ -23,8 +23,8 @@ import { LeftRail } from "./left-rail";
 import { StudioDrawer } from "./studio-drawers";
 import { StudioInspector } from "./studio-inspector";
 import { StudioShell } from "./studio-shell";
+import { QuickBar } from "./quick-bar";
 import { ShortcutsDialog } from "./shortcuts-dialog";
-import { placementTitle } from "./studio-modules";
 import { useStudioCommands } from "./use-studio-commands";
 import { useStudioMutations } from "./use-studio-mutations";
 import { useStudioSelection } from "./use-studio-selection";
@@ -41,6 +41,7 @@ import { islandSectionId } from "./island-panel-model";
 import { ISLAND_SETTING } from "@/lib/island/sources";
 import { modules } from "@/modules";
 import { ZoomToolbar } from "./zoom-toolbar";
+import { sheetHeight } from "./studio-layout";
 
 interface StudioViewProps {
   config: DashboardConfig;
@@ -288,7 +289,17 @@ function StudioViewBody({
       scrollRef={ui.scrollRef}
       attachScroll={ui.attachScroll}
       selectedIds={sel.selectedIds}
-      onSelect={sel.select}
+      onSelect={(id, how) => {
+        // An empty-canvas click also puts the inspector away when nothing was selected (the dashboard's).
+        if (id === null) {
+          studioLayout.dismissInspector();
+          ui.setInspectorQuery("");
+          ui.setInspectorChanged(false);
+        }
+        sel.select(id, how);
+      }}
+      onOpenSettings={studioLayout.showInspector}
+      inset={studioLayout.layout.inset}
       selectedWidgetId={selectedWidgetId}
       onSelectWidget={sel.selectWidget}
       onDrawZone={edit.addDrawnZone}
@@ -356,7 +367,22 @@ function StudioViewBody({
     </>
   );
 
+  const { mode: inspectorMode, floatOpen } = studioLayout;
+  // The quick bar: the selection's pinned settings; with nothing selected (floating) the dashboard's "All settings".
+  const quickBar = !showSources && ui.quickBar && inspectorMode !== "sheet" && (sel.selection.length > 0 || inspectorMode === "floating") && (
+    <QuickBar
+      zones={sel.selection}
+      appearance={appearance}
+      updateProfile={edit.updateProfile}
+      onToggleVisible={() => (sel.selection.length === 1 ? edit.toggleVisible(sel.selection[0].id) : edit.toggleSelectionVisible())}
+      allSettings={inspectorMode === "floating" ? { open: floatOpen, onToggle: () => studioLayout.setFloatOpen(!floatOpen) } : undefined}
+      insetRight={inspectorMode === "floating" && floatOpen ? 344 : 0}
+    />
+  );
+
   const bar = showSources ? null : (
+    <>
+    {quickBar}
     <ZoomToolbar
       zoom={ui.zoom}
       fitting={ui.fitting}
@@ -369,10 +395,13 @@ function StudioViewBody({
       onFit={ui.fitZoom}
       profile={profile}
       onOpenProfile={openProfileSettings}
-      layoutMode={studioLayout.mode}
-      placement={studioLayout.layout.placement}
-      onCycleLayout={studioLayout.cycleMode}
+      bottom={
+        inspectorMode === "sheet"
+          ? Math.min(studioLayout.sheet.height, sheetHeight("half", studioLayout.sheet.area, true)) + 8
+          : undefined
+      }
     />
+    </>
   );
 
   return (
@@ -415,7 +444,6 @@ function StudioViewBody({
         main={mainEl}
         bar={bar}
         inspector={showSources ? null : inspectorAside}
-        summary={selected ? placementTitle(selected) : "Appearance · Background · General · Connection"}
       />
 
       <WidgetPickerDialog

@@ -1,39 +1,46 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Info } from "lucide-react";
 import { Segmented } from "@/components/ui/segmented";
 import { Toggle } from "@/components/ui/toggle";
 import { cn } from "@/lib/utils";
-import { ColorPill } from "./inspector/color-pill";
+import { ColorButton, ColorSwatches } from "./inspector/color-swatches";
 import { ValueBox } from "./inspector/value-box";
+import { useInInspector, useInspectorChrome } from "./inspector-layout";
 
 /**
- * The inspector's field rows (README §4.6): the label (12.5, optional info
- * hint) with the control on its right when it is small (toggle, select,
- * colour, number), or under it when it needs the width (segmented, slider,
- * text, code, grids). `lead` is what sits before the label: the source dot.
+ * The inspector's field rows: `[lead] [label ……] [control] [trail]`, one
+ * column. Small controls sit on the label's line (toggle, select, colour, a
+ * slider with its value, a short segmented set); the rest go under it at full
+ * width (a longer segmented set on one scrolling line, text, code, grids).
+ * `lead` is the source dot, `trail` the quick-bar pin. Rows are 30 px high,
+ * 44 in the phone sheet.
  */
 
 export const FIELD =
   "rounded-md border border-ui-default bg-ui-app px-[9px] text-[12.5px] text-ui-1 outline-none placeholder:text-ui-4 focus:border-ui-accent";
 
-/** A select (README §4.6): h28, #1a1a1f, up to 170 wide. */
+/** A select: h28, #1a1a1f, up to 150 wide. */
 export const SELECT =
-  "h-7 max-w-[170px] cursor-pointer rounded-md border border-ui-strong bg-ui-hover px-1.5 text-[12px] text-ui-1 outline-none focus:border-ui-accent";
+  "h-7 max-w-[150px] cursor-pointer rounded-md border border-ui-strong bg-ui-hover px-1.5 text-[12px] text-ui-1 outline-none focus:border-ui-accent";
 
 export interface RowLabelProps {
   label: string;
   /** Before the label (the source dot). */
   lead?: ReactNode;
+  /** After the control, at the line's end (the quick-bar pin). */
+  trail?: ReactNode;
   /** One-line explanation behind an info icon. */
   hint?: string;
+  /** The value is set here: the label reads brighter. */
+  changed?: boolean;
 }
 
 /** The label of a row (truncated to one line, full text on hover). */
-function Label({ label, lead, hint, className }: RowLabelProps & { className?: string }) {
+function Label({ label, lead, hint, changed, className }: RowLabelProps & { className?: string }) {
   return (
-    <span className={cn("flex min-w-0 items-center gap-1.5", className)}>
+    <span className={cn("flex min-w-0 items-center gap-2", className)}>
       {lead}
-      <span title={label} className="min-w-0 truncate text-[12.5px] text-ui-2">
+      <span title={label} className={cn("min-w-0 truncate text-[12.5px]", changed ? "text-ui-1" : "text-ui-2")}>
         {label}
       </span>
       {hint && (
@@ -45,12 +52,19 @@ function Label({ label, lead, hint, className }: RowLabelProps & { className?: s
   );
 }
 
-/** Label over a full-width control (segmented, text, lists, pickers). */
-export function StackRow({ children, ...label }: RowLabelProps & { children: ReactNode }) {
+/** The label's line: 30 px high (44 in the phone sheet). */
+function useRowHeight() {
+  return useInspectorChrome().mode === "sheet" ? "min-h-11" : "min-h-[30px]";
+}
+
+/** Label over a full-width control (segmented, text, lists, pickers); the trail stays on the label's line. */
+export function StackRow({ children, trail, ...label }: RowLabelProps & { children: ReactNode }) {
+  const height = useRowHeight();
   return (
-    <div className="space-y-2">
-      <div className="flex min-h-[26px] items-center">
-        <Label {...label} />
+    <div className="space-y-1.5">
+      <div className={cn("flex items-center gap-2", height)}>
+        <Label {...label} className="flex-1" />
+        {trail}
       </div>
       {children}
     </div>
@@ -58,11 +72,13 @@ export function StackRow({ children, ...label }: RowLabelProps & { children: Rea
 }
 
 /** Label left, control right, one line. */
-export function InlineRow({ children, ...label }: RowLabelProps & { children: ReactNode }) {
+export function InlineRow({ children, trail, ...label }: RowLabelProps & { children: ReactNode }) {
+  const height = useRowHeight();
   return (
-    <div className="flex min-h-[26px] items-center justify-between gap-2.5">
+    <div className={cn("flex items-center gap-2", height)}>
       <Label {...label} className="flex-1" />
       {children}
+      {trail}
     </div>
   );
 }
@@ -80,8 +96,9 @@ export function ToggleRow({
 }
 
 /**
- * A number: the label with its value box (and unit) on one row and a
- * full-width slider under it when bounded, else an inline value box.
+ * A number: in the inspector a bounded one is a 90 px slider and its value
+ * box on the label's line (in the narrower left panels the slider goes under
+ * the label at full width); an unbounded one is just the value box.
  */
 export function SliderRow({
   value,
@@ -103,23 +120,37 @@ export function SliderRow({
   fallback: number;
   onChange: (value: number) => void;
 }) {
+  const inline = useInInspector();
   if (min !== undefined && max !== undefined) {
+    const range = (
+      <input
+        type="range"
+        aria-label={label.label}
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(e.currentTarget.valueAsNumber)}
+        className={cn("m-0 block h-4 cursor-pointer accent-[var(--ui-accent)]", inline ? "w-[90px] shrink-0" : "w-full")}
+      />
+    );
+    const box = (
+      <ValueBox value={value} min={min} max={max} step={step} unit={unit} label={label.label} onChange={onChange} compact={inline} />
+    );
+    if (!inline)
+      return (
+        <div className="space-y-2">
+          <InlineRow {...label}>{box}</InlineRow>
+          {range}
+        </div>
+      );
     return (
-      <div className="space-y-2">
-        <InlineRow {...label}>
-          <ValueBox value={value} min={min} max={max} step={step} unit={unit} label={label.label} onChange={onChange} />
-        </InlineRow>
-        <input
-          type="range"
-          aria-label={label.label}
-          min={min}
-          max={max}
-          step={step}
-          value={value}
-          onChange={(e) => onChange(e.currentTarget.valueAsNumber)}
-          className="m-0 block h-4 w-full cursor-pointer accent-[var(--ui-accent)]"
-        />
-      </div>
+      <InlineRow {...label}>
+        <span className="flex shrink-0 items-center gap-2">
+          {range}
+          {box}
+        </span>
+      </InlineRow>
     );
   }
   return (
@@ -138,9 +169,26 @@ export function SliderRow({
   );
 }
 
-/** Buttons share the row: one line each, ellipsis when tight (README §4.6). */
-export const SEGMENTED_CLASS =
-  "w-full flex-nowrap gap-0.5 rounded-[7px] [&>button]:min-w-0 [&>button]:flex-1 [&>button]:truncate [&>button]:px-1 [&>button]:py-[5px] [&>button]:text-[11.5px] [&>button]:font-medium [&>button:not([aria-checked=true])]:text-[#8f8f99]";
+const SEGMENT_BUTTONS =
+  "gap-0.5 rounded-[7px] [&>button]:whitespace-nowrap [&>button]:text-[11.5px] [&>button]:font-medium [&>button:not([aria-checked=true])]:text-[#8f8f99]";
+
+/**
+ * A segmented control at full width: one line that scrolls sideways if it
+ * must, buttons sharing the width. Never truncated, never wrapped.
+ */
+export const SEGMENTED_CLASS = cn(
+  SEGMENT_BUTTONS,
+  "w-full flex-nowrap overflow-x-auto [scrollbar-width:none] [&>button]:flex-[1_1_auto] [&>button]:px-1.5 [&>button]:py-[5px]"
+);
+/** A short segmented set beside its label. */
+const SEGMENTED_INLINE = cn(SEGMENT_BUTTONS, "shrink-0 flex-nowrap [&>button]:px-2 [&>button]:py-1");
+
+/** Longest option label that still sits beside the field's label. */
+const INLINE_LABEL = 9;
+
+/** A segmented set sits inline when it is short: at most three options of at most nine characters. */
+export const segmentedInline = (labels: readonly string[]): boolean =>
+  labels.length <= 3 && labels.every((l) => l.length <= INLINE_LABEL);
 
 export function SegmentedRow({
   options,
@@ -152,11 +200,17 @@ export function SegmentedRow({
   value: string;
   onChange: (value: string) => void;
 }) {
-  return (
-    <StackRow {...label}>
-      <Segmented options={options} value={value} onChange={onChange} label={label.label} className={SEGMENTED_CLASS} />
-    </StackRow>
+  const control = (inline: boolean) => (
+    <Segmented
+      options={options}
+      value={value}
+      onChange={onChange}
+      label={label.label}
+      className={inline ? SEGMENTED_INLINE : SEGMENTED_CLASS}
+    />
   );
+  if (segmentedInline(options.map((o) => o.label))) return <InlineRow {...label}>{control(true)}</InlineRow>;
+  return <StackRow {...label}>{control(false)}</StackRow>;
 }
 
 export function SelectRow({
@@ -187,7 +241,11 @@ export function SelectRow({
   );
 }
 
-/** "" means Auto (the widget's own theme color). */
+/**
+ * A colour: the button on the label's line shows "Auto", the swatch's name or
+ * the hex; clicking it opens a row of swatches under the field (Auto, the six
+ * accent hues, White, then the custom picker). "" means Auto.
+ */
 export function ColorRow({
   value,
   onChange,
@@ -196,13 +254,17 @@ export function ColorRow({
 }: RowLabelProps & {
   value: string;
   onChange: (value: string) => void;
-  /** A reset beside the pill, for rows without a source dot. */
+  /** Back to Auto, for rows without a source dot. */
   onReset?: () => void;
 }) {
+  const [open, setOpen] = useState(false);
   return (
-    <InlineRow {...label}>
-      <ColorPill value={value} onChange={onChange} label={label.label} onReset={onReset} />
-    </InlineRow>
+    <div className="space-y-1.5">
+      <InlineRow {...label}>
+        <ColorButton value={value} open={open} label={label.label} onClick={() => setOpen((o) => !o)} />
+      </InlineRow>
+      {open && <ColorSwatches value={value} label={label.label} onChange={(v) => (v === "" && onReset ? onReset() : onChange(v))} />}
+    </div>
   );
 }
 

@@ -2,7 +2,6 @@ import type { MonitorProfile, Placement, Widget } from "@/lib/layout";
 import type { AppearanceTarget } from "./appearance-panel";
 import type { DocumentTab } from "./document-inspector";
 import type { Drawer } from "./left-rail";
-import type { LayoutMode } from "./studio-layout";
 import { allSections, type InspectorContext } from "./inspector-model";
 import { placementTitle } from "./studio-modules";
 import { KEYS } from "./use-studio-shortcuts";
@@ -19,7 +18,6 @@ export type CommandAction =
   | { type: "alert-new" }
   | { type: "sources" }
   | { type: "toggle-grid" }
-  | { type: "layout"; mode: LayoutMode }
   | { type: "toggle-dock" }
   | { type: "zoom-fit" }
   | { type: "zoom-in" }
@@ -103,8 +101,6 @@ export interface CommandState {
   canRedo: boolean;
   showGrid: boolean;
   showSources: boolean;
-  /** The studio layout mode (the current one is marked in the palette). */
-  layoutMode: LayoutMode;
   /** The global style is forced on every widget of the profile. */
   enforced: boolean;
   /** Built-in and saved appearance presets (applied to all profiles). */
@@ -117,12 +113,6 @@ const DRAWERS: { drawer: Drawer; label: string }[] = [
   { drawer: "profiles", label: "Profiles" },
   { drawer: "island", label: "Dynamic Island" },
   { drawer: "alerts", label: "Alerts" },
-];
-
-const LAYOUT_MODES: { mode: LayoutMode; label: string }[] = [
-  { mode: "auto", label: "Auto" },
-  { mode: "side", label: "Side" },
-  { mode: "bottom", label: "Bottom" },
 ];
 
 function generalCommands(s: CommandState): Command[] {
@@ -158,9 +148,6 @@ function generalCommands(s: CommandState): Command[] {
     ),
     general("sources", s.showSources ? "Back to Design" : "Open Sources", { type: "sources" }),
     general("grid", s.showGrid ? "Hide grid" : "Show grid", { type: "toggle-grid" }),
-    ...LAYOUT_MODES.map(({ mode, label }) =>
-      general(`layout:${mode}`, `Layout: ${label}`, { type: "layout", mode }, s.layoutMode === mode ? "current" : undefined)
-    ),
     general("toggle-dock", "Toggle inspector", { type: "toggle-dock" }, KEYS.dock),
     general("zoom-fit", "Zoom to fit", { type: "zoom-fit" }, KEYS.fit),
     general("zoom-in", "Zoom in", { type: "zoom-in" }, KEYS.zoomIn),

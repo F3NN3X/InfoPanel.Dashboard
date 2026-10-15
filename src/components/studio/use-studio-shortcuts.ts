@@ -225,7 +225,7 @@ export const SHORTCUT_GROUPS: { title: string; items: { keys: string; label: str
       { keys: `${KEYS.zoomIn} / Ctrl+=`, label: "Zoom in" },
       { keys: `${KEYS.zoomOut} / Ctrl+-`, label: "Zoom out" },
       { keys: "Ctrl+wheel", label: "Zoom" },
-      { keys: KEYS.dock, label: "Collapse / expand the inspector" },
+      { keys: KEYS.dock, label: "Show / hide the inspector" },
     ],
   },
   {

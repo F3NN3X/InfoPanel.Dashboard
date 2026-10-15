@@ -48,6 +48,8 @@ export function SettingRow({
   onOpenExplorer,
   sources,
   lead,
+  trail,
+  changed,
   hint,
 }: {
   def: ModuleSetting;
@@ -67,9 +69,13 @@ export function SettingRow({
   sources: ApiSources | null;
   /** Before the label (the source dot). */
   lead?: RowLabelProps["lead"];
+  /** At the label line's end (the quick-bar pin). */
+  trail?: RowLabelProps["trail"];
+  /** The value is set here (a brighter label). */
+  changed?: boolean;
   hint?: string;
 }) {
-  const label: RowLabelProps = { label: def.label, lead, hint };
+  const label: RowLabelProps = { label: def.label, lead, trail, changed, hint };
   switch (def.type) {
     case "align": {
       const auto = String(def.default);
