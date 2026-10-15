@@ -172,14 +172,10 @@ function handleExtrasEvents(req, res) {
     "Cache-Control": "no-store",
     Connection: "keep-alive",
   });
-  const write = (state) => res.write(`data: ${JSON.stringify(state)}
-
-`);
+  const write = (state) => res.write(`data: ${JSON.stringify(state)}\n\n`);
   write(extras.state());
   const unsubscribe = extras.subscribe(write);
-  const keepAlive = setInterval(() => res.write(": keep-alive
-
-"), 15_000);
+  const keepAlive = setInterval(() => res.write(": keep-alive\n\n"), 15_000);
   req.on("close", () => {
     clearInterval(keepAlive);
     unsubscribe();
