@@ -1215,6 +1215,55 @@ at cell 110). Clicking another tab still works.
 Where each widget setting takes effect, by zone size, is in
 [widget-settings-coverage.md](widget-settings-coverage.md).
 
+## Dynamic Island
+
+A pill at the top centre of a profile, like the macOS notch. When idle it shows the
+time; on kiosk pages (`?kiosk=1`) it springs open for alerts and notices, then shrinks
+to a badge while an alert lasts. The plain dashboard page shows the idle pill only.
+
+Turn it on per profile: with nothing selected, **Dashboard → Profile → Dynamic Island**.
+
+- **When idle** - *Time*, *+ Date*, *+ Sensor* (the time plus one live value: pick it
+  with the sensor field and give it a label of up to 12 characters, such as *GPU*) or
+  *Hidden* (the pill shows only when there is something to show).
+- **Size** - S, M or L. A short profile or a small screen gets a smaller size
+  automatically: the open island never takes more than 40% of the page height.
+- **Color** - *Black*, or *Theme* (the theme's card colour and text).
+- **Offset from top** - 0 to 64 px.
+- **Reserve space** - the zones start below the pill instead of under it.
+- **Collapse alerts after** - for screens without touch: an alert that stays until
+  tapped shrinks to the badge after this many seconds (0 = stays open until tapped).
+- **Preview an alert** - plays an info, a warning and a critical sample on the canvas.
+
+**What opens it.**
+
+- **Alerts** whose display style is **Island** (in the rule's Outputs, or the alert
+  defaults). On a profile without an island they show as a toast, so none is lost.
+  The **Plugin stopped reporting** preset uses the condition *stops reporting*: it fires
+  when a sensor that has reported goes missing for 30 s.
+- **The Data API connection** - *Data API disconnected* after 5 s down (it stays as a
+  badge), then *Data API reconnected*.
+- **Widgets with Send to island on** (off by default, in the widget's own group on the
+  Content tab):
+  - **Now Playing** - the playing track sits beside the time with its cover and
+    progress; a new track opens the island for 4 s.
+  - **Steam Friends** - *Ann is online*, *Bo is playing Doom*; each friend at most
+    once every 10 minutes.
+  - **Wave Link** - an input, channel or mix muted (warning) or live again (info).
+
+  The widget only has to be on one of the profile's pages, visible or not. Two zones of
+  the same widget raise each notice once. Nothing fires when the page loads.
+
+**Taps.** A tap on an open alert acknowledges it; a tap on any other notice dismisses
+it. A tap on the badge reopens the held notices one per tap, strongest first. A tap on
+the activity (the playing track) opens it.
+
+**Quiet hours.** The alerts' quiet hours also hold back the island's own notices below
+the minimum severity.
+
+The design, the internals and how to make another widget send to the island are in
+[redesign/island/PLAN.md](redesign/island/PLAN.md).
+
 ## Widgets with no data
 
 A widget with no data at all is hidden in the kiosk. (The old **Hide when idle**

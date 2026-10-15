@@ -2,6 +2,7 @@
 // DashboardModule: standard look settings, shell props from the resolved settings, Library fields.
 import { useEffect, useMemo, type ComponentType } from "react";
 import { STANDARD_SETTINGS } from "@/modules/standard-settings";
+import { islandSetting, type IslandSourceDef } from "@/lib/island/sources";
 import { effectiveSettings, type DashboardModule, type ModuleSetting, type ModuleSettings, type SensorMap } from "@/modules/types";
 import { ensureSkinFonts } from "./core/fonts";
 import { SKINS } from "./core/theme";
@@ -22,6 +23,8 @@ export interface TemplateOptions<P extends object> {
   title?: string;
   /** The settings block before the template's own; default `STANDARD_SETTINGS`. */
   base?: ModuleSetting[];
+  /** What it sends to the Dynamic Island; adds the "Send to island" setting after its own. */
+  island?: IslandSourceDef;
 }
 
 /** A select value that means "unset": `auto` or empty. */
@@ -77,8 +80,8 @@ export function useZoneLook(defs: ModuleSetting[], saved: ModuleSettings | undef
   return look;
 }
 
-export function templateModule<P extends object>({ meta, Component, settings, toProps, prefixes, title, base }: TemplateOptions<P>): DashboardModule {
-  const all = [...(base ?? STANDARD_SETTINGS), ...settings];
+export function templateModule<P extends object>({ meta, Component, settings, toProps, prefixes, title, base, island }: TemplateOptions<P>): DashboardModule {
+  const all = [...(base ?? STANDARD_SETTINGS), ...settings, ...(island ? [islandSetting(island)] : [])];
   const surfaceDefault = String(all.find((d) => d.key === "surface")?.default ?? "glass");
   const mod: DashboardModule = {
     id: meta.id,
@@ -93,6 +96,7 @@ export function templateModule<P extends object>({ meta, Component, settings, to
     icon: meta.icon,
     description: meta.description,
     defaultSize: meta.defaultSize,
+    ...(island ? { island } : {}),
     // No data renders nothing, so the kiosk hides the zone and the studio says "no live data yet".
     render: (sensors, saved) =>
       !SENSORLESS.has(meta.id) && !hasKeys(sensors, [...mod.prefixes, ...(mod.reads ?? [])]) ? null : (

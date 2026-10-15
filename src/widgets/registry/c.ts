@@ -12,6 +12,7 @@ import { VIZ_COLORS_GROUP, VIZ_DYNAMICS_GROUP, VIZ_SHAPE_GROUP, colorModeOf, viz
 import Visualizer, { meta as visualizer, type VisualizerProps } from "../Visualizer";
 import VolumeMixer, { meta as volumeMixer, type VolumeMixerProps } from "../VolumeMixer";
 import WaveLink, { meta as waveLink } from "../WaveLink";
+import { nowPlayingIsland, waveLinkIsland } from "../island-sources";
 
 /**
  * The legacy media keys a new NowPlaying zone does not offer: the engine-picking and mapped keys, the
@@ -96,6 +97,7 @@ export const GROUP_C: DashboardModule[] = [
     meta: nowPlaying,
     Component: NowPlaying,
     settings: NOW_PLAYING_SETTINGS,
+    island: nowPlayingIsland,
     // the visualiser's levels: read, not owned
     prefixes: ["plugins.audio-level-meter."],
     // vizMode / vizDevice are stored under the legacy keys waveformVariant / liveSource (PHASE9_PLAN §3.2);
@@ -206,6 +208,7 @@ export const GROUP_C: DashboardModule[] = [
     Component: WaveLink,
     // the level colour also carries the old Wave Link widget's teal (config v4, `legacy-zones.ts`)
     settings: [...WAVELINK_SETTINGS, colorSetting("levelColor", "Level color", { group: "Meter" })],
+    island: waveLinkIsland,
     toProps: (s) => ({ ...wavelinkToProps(s), levelColor: stringOf(s.levelColor) }),
   }),
 ];

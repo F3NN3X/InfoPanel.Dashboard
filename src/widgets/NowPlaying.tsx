@@ -23,7 +23,7 @@ export const meta: WidgetMeta = {
   description: "Track, artist, album, cover art and progress from Windows Media, Spotify or a pushed source.",
 };
 
-interface Track {
+export interface Track {
   track: string;
   artist: string;
   album: string;
@@ -108,7 +108,7 @@ export interface NowPlayingProps extends ShellProps {
 }
 
 /** The track of the chosen source; Auto takes Spotify unless its plugin reports idle. */
-const trackOf = (d: Data, source: NowPlayingProps["source"]): Track => {
+export const trackOf = (d: Data, source: NowPlayingProps["source"]): Track => {
   const src = source && source !== "auto" ? source : /idle/i.test(get(d, "plugins.spotify-plugin.spotify.current-track")) ? "media" : "spotify";
   return (SOURCES[src] ?? SOURCES.media)(d);
 };

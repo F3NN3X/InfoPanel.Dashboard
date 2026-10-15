@@ -36,6 +36,13 @@ describe("alert presets", () => {
     expect(keyOf("network-down")).toBe("network.eth.status");
   });
 
+  it("watches a plugin's sensor for going missing, shown on the island", () => {
+    const rule = presetRule(preset("plugin-missing"), [...CATALOGUE, pt("plugins.InfoPanel.FPS.fps", "FPS")]);
+    expect(rule.source).toMatchObject({ kind: "sensor", key: "plugins.InfoPanel.FPS.fps", op: "missing", forSeconds: 30 });
+    expect(rule.outputs.display).toMatchObject({ style: "island", seconds: 0 });
+    expect(normalizeAlerts({ rules: [rule] })!.rules[0].source).toMatchObject({ op: "missing" });
+  });
+
   it("leaves the key empty when nothing matches", () => {
     expect(matchSensor(preset("gpu-temp"), [pt("a.b", "Unrelated")])).toBeUndefined();
     const rule = presetRule(preset("fps-drop"), []);
@@ -61,7 +68,8 @@ describe("alert presets", () => {
   });
 
   it("offers every preset the plan lists", () => {
-    expect(ALERT_PRESETS).toHaveLength(11);
+    // The alerts plan lists 11; the island plan adds "Plugin stopped reporting".
+    expect(ALERT_PRESETS).toHaveLength(12);
     expect(preset("notification").rule.source).toEqual({ kind: "notification" });
   });
 });

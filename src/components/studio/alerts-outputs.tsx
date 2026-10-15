@@ -11,7 +11,7 @@ import {
 } from "@/lib/alerts";
 import type { DashboardConfig } from "@/lib/layout";
 import { cn } from "@/lib/utils";
-import { Field, Group, NumField, PositionGrid, TextField } from "./alerts-fields";
+import { Field, Group, ISLAND_HINT, NumField, PositionGrid, TextField } from "./alerts-fields";
 import { SELECT } from "./setting-rows";
 import { placementTitle } from "./studio-modules";
 
@@ -53,6 +53,7 @@ export function AlertOutputs({ rule, config, defaults, current, edit }: AlertOut
   // The zones offered for highlighting: the page it switches to, else the one on the canvas.
   const zonePage = pageProfile.pages.find((p) => p.id === (page?.page ?? current.page)) ?? pageProfile.pages[0];
   const zones = out.highlight?.zones ?? [];
+  const island = (display.style ?? defaults.style) === "island";
 
   return (
     <>
@@ -65,10 +66,13 @@ export function AlertOutputs({ rule, config, defaults, current, edit }: AlertOut
             options={ALERT_STYLES.map((s) => ({ value: s, label: cap(s) }))}
           />
         </Field>
+        {island && <p className="text-[11px] leading-snug text-ui-5">{ISLAND_HINT}</p>}
         <div className="flex items-end justify-between gap-3">
-          <Field label="Position">
-            <PositionGrid value={display.position ?? defaults.position} onChange={(position) => setDisplay("position", { position })} />
-          </Field>
+          {!island && (
+            <Field label="Position">
+              <PositionGrid value={display.position ?? defaults.position} onChange={(position) => setDisplay("position", { position })} />
+            </Field>
+          )}
           <Field label="Size">
             <Segmented
               label="Size"
@@ -78,14 +82,16 @@ export function AlertOutputs({ rule, config, defaults, current, edit }: AlertOut
             />
           </Field>
         </div>
-        <Field label="Backdrop">
-          <Segmented
-            label="Backdrop"
-            value={display.backdrop ?? defaults.backdrop}
-            onChange={(backdrop) => setDisplay("backdrop", { backdrop })}
-            options={ALERT_BACKDROPS.map((b) => ({ value: b, label: cap(b) }))}
-          />
-        </Field>
+        {!island && (
+          <Field label="Backdrop">
+            <Segmented
+              label="Backdrop"
+              value={display.backdrop ?? defaults.backdrop}
+              onChange={(backdrop) => setDisplay("backdrop", { backdrop })}
+              options={ALERT_BACKDROPS.map((b) => ({ value: b, label: cap(b) }))}
+            />
+          </Field>
+        )}
         <Field label="Seconds" hint="0 = stays until acknowledged.">
           <NumField
             label="Display seconds"

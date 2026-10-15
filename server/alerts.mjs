@@ -190,7 +190,9 @@ function start(s, events, { rule, alerts, now, reading, notification, oneShot, t
     typeof rule.outputs?.display?.text === "string" && rule.outputs.display.text !== ""
       ? rule.outputs.display.text
       : isSensor
-        ? "{value}{unit}" // the rule name is the alert's title; the body is the reading
+        ? rule.source.op === "missing"
+          ? "Stopped reporting"
+          : "{value}{unit}" // the rule name is the alert's title; the body is the reading
         : "{app}: {title}";
   const quiet = !test && isQuiet(alerts?.quietHours, rule.severity, now);
 
@@ -301,6 +303,10 @@ export function evaluate(state, alerts, readings, now) {
     if (sensorRule(rule)) {
       const src = rule.source;
       const reading = readings?.[src.key];
+      if (src.op === "missing") {
+        missing(s, events, ctx, rs, reading !== undefined);
+        continue;
+      }
       if (src.op === "changes") {
         const current = changeKey(reading);
         if (current === undefined) continue;
@@ -342,6 +348,31 @@ export function evaluate(state, alerts, readings, now) {
     }
   }
   return { state: s, events };
+}
+
+/**
+ * A `missing` rule ("plugin stopped reporting"): fires once its key has been absent for `forSeconds`,
+ * but only after the rule has seen the key, so a sensor that never reported (or a stream still
+ * connecting) stays quiet. The Data API drops a plugin's keys when it stops (`removed`). Clears when
+ * the key is back; a dismissed one waits for the key to return before it can fire again.
+ */
+function missing(s, events, ctx, rs, present) {
+  const { rule, now } = ctx;
+  const activeId = rs.active && s.active.some((e) => e.alert.id === rs.active) ? rs.active : undefined;
+  if (present) {
+    if (activeId) end(s, events, activeId, now);
+    if (!rs.seen || rs.missingSince !== undefined || rs.dismissed) patchRule(s, rule.id, { seen: true, missingSince: undefined, dismissed: false });
+    return;
+  }
+  if (!rs.seen || activeId || rs.dismissed) return;
+  const missingSince = rs.missingSince ?? now;
+  const forMs = (Number.isFinite(rule.source.forSeconds) ? rule.source.forSeconds : 0) * 1000;
+  if (now - missingSince >= forMs && !blocked(s, rule, now)) {
+    const id = start(s, events, { ...ctx, reading: undefined, oneShot: false });
+    patchRule(s, rule.id, { missingSince, active: id });
+  } else if (rs.missingSince === undefined) {
+    patchRule(s, rule.id, { missingSince });
+  }
 }
 
 /**

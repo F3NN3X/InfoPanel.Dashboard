@@ -11,6 +11,9 @@ import {
   type RefObject,
 } from "react";
 import { PageBackground } from "@/components/page-background";
+import { DynamicIsland } from "@/components/island/dynamic-island";
+import { islandReserve } from "@/components/island/island-model";
+import type { ActiveAlert } from "@/lib/alerts";
 import type { PageBackground as Background } from "@/lib/appearance";
 import type { Appearance } from "@/lib/style-resolve";
 import { SCROLL_ROW_H, type ProfileView, type Placement } from "@/lib/layout";
@@ -47,6 +50,8 @@ const GRID_LINES =
 /** The drop ghost's colours: free (the accent) and "No room". */
 const GHOST_OK = { line: "var(--ui-accent)", fill: "oklch(0.72 0.15 255 / 0.12)" };
 const GHOST_DENIED = { line: "oklch(0.70 0.17 25)", fill: "oklch(0.70 0.17 25 / 0.10)" };
+
+const NO_ALERTS: readonly ActiveAlert[] = [];
 
 interface StudioCanvasProps {
   profile: ProfileView;
@@ -106,6 +111,8 @@ interface StudioCanvasProps {
   onUseSample: () => void;
   /** The selected zone's chip, kept above its frame. */
   selectionChip?: ReactNode;
+  /** Alerts the profile's island shows (test alerts: the canvas is not a kiosk). */
+  islandAlerts?: readonly ActiveAlert[];
 }
 
 /**
@@ -141,6 +148,7 @@ export function StudioCanvas({
   onOpenAdd,
   onUseSample,
   selectionChip,
+  islandAlerts = NO_ALERTS,
 }: StudioCanvasProps) {
   const [zoneDrag, setZoneDrag] = useState<{
     id: string;
@@ -346,6 +354,9 @@ export function StudioCanvas({
   // zones and the padding around the grid, inside the profile's size.
   const gap = profileGap(profile);
   const padding = profilePadding(profile, true);
+  const islandPage = { width: profile.width, height: profile.height };
+  /** "Reserve space": the zones start under the island, as on the kiosk. */
+  const reserve = islandReserve(profile.island, islandPage);
   const fill = profile.fit === "fill" && profile.height > 0;
   /** Gap in display px. */
   const g = gap * zoom;
@@ -356,7 +367,7 @@ export function StudioCanvas({
   // Row geometry: fill mode → uniform rows over the profile height;
   // scroll mode → fixed SCROLL_ROW_H rows (the canvas scrolls).
   const rowH = fill
-    ? Math.max(24, trackSize(profile.height - 2 * padding, profile.rows, gap))
+    ? Math.max(24, trackSize(profile.height - 2 * padding - reserve, profile.rows, gap))
     : SCROLL_ROW_H;
   const getGridRect = () => gridEl?.getBoundingClientRect() ?? null;
 
@@ -373,7 +384,7 @@ export function StudioCanvas({
     // The ghost sits inside the zoomed page, so its box is in design px
     // (CSS zoom scales it); display px here would apply the zoom twice.
     const rowHd = fill
-      ? trackSize(profile.height - 2 * padding, profile.rows, gap)
+      ? trackSize(profile.height - 2 * padding - reserve, profile.rows, gap)
       : SCROLL_ROW_H;
     return zoneBox(r, { width: colW, height: rowHd }, gap);
   };
@@ -439,6 +450,8 @@ export function StudioCanvas({
                   "--radius-sm": "calc(var(--radius) - 4px)",
                   ...themeScope,
                   padding,
+                  // Always set: React warns when a longhand is removed from under the shorthand.
+                  paddingTop: padding + reserve,
                   fontFamily: font,
                   // The board's dashed outline, 6px off the page.
                   outline: "1px dashed #2a2a31",
@@ -452,6 +465,9 @@ export function StudioCanvas({
               }}
             >
               {showRulers && <RulerLabels width={canvas.w} height={canvas.h} />}
+              {profile.island?.enabled && (
+                <DynamicIsland config={profile.island} alerts={islandAlerts} placement="absolute" page={islandPage} />
+              )}
                 {/* Page background (as in the kiosk) behind the tiles */}
                 {background && <PageBackground background={background} className="absolute inset-0 -z-20" />}
                 <div
@@ -577,6 +593,7 @@ export function StudioCanvas({
                 profile.height,
                 gap,
                 padding,
+                reserve,
                 gridWidth,
               ].join("|")}
             >

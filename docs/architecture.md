@@ -1089,6 +1089,30 @@ first live numeric point of the catalogue, and leaves the key empty when none ma
 rule through the real path and waits while edits are not pushed yet. The palette has "Open alerts" and
 "New alert rule".
 
+The `missing` condition ("stops reporting") fires once a key the rule has seen has been absent for
+`forSeconds`; the Data API drops a stopped plugin's keys, so this is "plugin stopped reporting".
+
+### Dynamic Island
+
+A per-profile pill at the top centre (`MonitorProfile.island`, `src/lib/island/`, the view in
+`src/components/island/`; full description in `docs/redesign/island/PLAN.md`). Everything it shows goes
+through one notice bus (`islandBus`, a pure queue in `queue.ts` driven by one timer):
+
+- **Server alerts** whose display style is Island: `App.tsx` splits the shown alerts with
+  `splitIslandAlerts` (to the island, or to the alert layer; a profile without an island shows them as a
+  top toast) and the island syncs them in as the `alerts` source.
+- **The dashboard's own notices** (kiosk only, mounted by `LiveSources`): the Data API disconnect
+  warning (`system.ts`), and the widgets whose "Send to island" is on (`sources.ts`,
+  `use-island-sources.ts`). A template opts in with `island` on `templateModule`; its pure
+  `derive(prev, next, settings)` runs on one shared `useSensors` over the union of the sources'
+  prefixes (Wave Link: the shared `wavelink` client). The first data is a baseline. Quiet hours gate
+  these notices (`quiet.ts`).
+- **Live activities** (the playing track) show beside the time while nothing is open.
+
+The studio canvas mounts the island inside the page box and plays only test alerts and the Preview
+button's samples. "Reserve space" adds `islandReserve` to the page's top padding on the kiosk and the
+canvas (whose row maths subtracts it).
+
 ### Adding a setting to a module
 
 Settings are plain `ModuleSetting` entries in a module's `settings` array

@@ -104,6 +104,7 @@ describe("normalizeAlerts", () => {
     expect(normalizeAlerts({ quietHours: { from: "22:00", to: "06:30", minSeverity: "x" } })?.quietHours?.minSeverity).toBe(
       "critical",
     );
+    expect(normalizeAlerts({ defaults: { style: "island" } })?.defaults.style).toBe("island");
     expect(normalizeAlerts({ defaults: { style: "banner", seconds: -3, size: "q" } })?.defaults).toEqual({
       ...DEFAULT_ALERT_DISPLAY,
       style: "banner",

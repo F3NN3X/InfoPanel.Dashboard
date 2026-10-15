@@ -8,8 +8,9 @@
 export type Severity = "info" | "warning" | "critical";
 export const SEVERITIES: readonly Severity[] = ["info", "warning", "critical"];
 
-export type AlertStyle = "toast" | "banner" | "overlay";
-export const ALERT_STYLES: readonly AlertStyle[] = ["toast", "banner", "overlay"];
+/** "island": the profile's Dynamic Island (`src/lib/island`); a profile without one shows a top toast. */
+export type AlertStyle = "toast" | "banner" | "overlay" | "island";
+export const ALERT_STYLES: readonly AlertStyle[] = ["toast", "banner", "overlay", "island"];
 export type AlertPosition =
   | "top-left" | "top" | "top-right"
   | "left" | "center" | "right"
@@ -32,8 +33,9 @@ export interface AlertDisplay {
 /** A display plus how long it stays: seconds, 0 = until acknowledged. */
 export type AlertDisplayFull = AlertDisplay & { seconds: number };
 
-export type SensorOp = ">" | ">=" | "<" | "<=" | "=" | "!=" | "changes" | "contains";
-export const SENSOR_OPS: readonly SensorOp[] = [">", ">=", "<", "<=", "=", "!=", "changes", "contains"];
+/** "missing": the key has been absent for `forSeconds` after the rule saw it (a plugin stopped reporting). */
+export type SensorOp = ">" | ">=" | "<" | "<=" | "=" | "!=" | "changes" | "contains" | "missing";
+export const SENSOR_OPS: readonly SensorOp[] = [">", ">=", "<", "<=", "=", "!=", "changes", "contains", "missing"];
 
 export type AlertSource =
   | {

@@ -130,6 +130,7 @@ export function StudioInspector({
         onRotate={edit.setRotate}
         layoutMode={ui.studioLayout.mode}
         onLayoutMode={ui.studioLayout.setMode}
+        onOpenExplorer={openExplorer}
       />
     );
 

@@ -86,6 +86,12 @@ describe("evaluate: thresholds", () => {
     expect(state.active).toHaveLength(1);
   });
 
+  it("passes the island display style through to the active alert", () => {
+    const rule = sensor({ outputs: { display: { style: "island", seconds: 0 } } });
+    const { state } = run(cfg([rule]), [[T0, temp(90)]]);
+    expect(state.active[0].alert.display).toMatchObject({ style: "island", seconds: 0 });
+  });
+
   it("clears when the condition stops holding", () => {
     const { events, state } = run(cfg([sensor()]), [[T0, temp(90)], [T0 + 1000, temp(70)]]);
     expect(cleared(events)).toHaveLength(1);
@@ -161,6 +167,37 @@ describe("evaluate: changes", () => {
   it("respects the cooldown", () => {
     const withCooldown = cfg([sensor({ cooldownSeconds: 60, outputs: { display: { seconds: 5 } } }, { op: "changes", key: "media.track" })]);
     const r = run(withCooldown, [[T0, track("a")], [T0 + 1000, track("b")], [T0 + 10_000, track("c")]]);
+    expect(fired(r.events)).toHaveLength(1);
+  });
+});
+
+describe("evaluate: missing", () => {
+  const alerts = cfg([sensor({ cooldownSeconds: 0 }, { op: "missing", key: "plugins.x.fps", forSeconds: 30 })]);
+  const fps = { "plugins.x.fps": { value: 60 } };
+  it("stays quiet for a key it has never seen", () => {
+    expect(fired(run(alerts, [[T0, {}], [T0 + 60_000, {}]]).events)).toHaveLength(0);
+  });
+  it("fires once the seen key has been gone for forSeconds, and clears when it is back", () => {
+    let r = run(alerts, [[T0, fps], [T0 + 1000, {}], [T0 + 30_999, {}]]);
+    expect(fired(r.events)).toHaveLength(0);
+    r = run(alerts, [[T0 + 31_000, {}], [T0 + 32_000, {}]], r.state);
+    expect(fired(r.events)).toHaveLength(1);
+    expect(fired(r.events)[0].alert.text).toBe("Stopped reporting");
+    r = run(alerts, [[T0 + 40_000, fps]], r.state);
+    expect(cleared(r.events)).toHaveLength(1);
+    expect(r.state.active).toEqual([]);
+  });
+  it("restarts the wait when the key comes back in between", () => {
+    const r = run(alerts, [[T0, fps], [T0 + 1000, {}], [T0 + 20_000, fps], [T0 + 21_000, {}], [T0 + 40_000, {}]]);
+    expect(fired(r.events)).toHaveLength(0);
+  });
+  it("does not refire a dismissed one until the key returns", () => {
+    let r = run(alerts, [[T0, fps], [T0 + 1000, {}], [T0 + 31_000, {}]]);
+    const id = r.state.active[0].alert.id;
+    r = { state: act(r.state, { id, action: "dismiss" }, alerts, {}, T0 + 32_000).state };
+    r = run(alerts, [[T0 + 33_000, {}], [T0 + 90_000, {}]], r.state);
+    expect(fired(r.events)).toHaveLength(0);
+    r = run(alerts, [[T0 + 91_000, fps], [T0 + 92_000, {}], [T0 + 122_000, {}]], r.state);
     expect(fired(r.events)).toHaveLength(1);
   });
 });

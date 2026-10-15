@@ -50,6 +50,7 @@ const OP_LABEL: Record<SensorOp, string> = {
   "!=": "is not",
   changes: "changes",
   contains: "contains",
+  missing: "stops reporting",
 };
 
 const NUMERIC_OPS: readonly SensorOp[] = [">", ">=", "<", "<="];
@@ -190,6 +191,7 @@ export function AlertRuleEditor({
                 </select>
               </Field>
               {source.op !== "changes" &&
+                source.op !== "missing" &&
                 (NUMERIC_OPS.includes(source.op) ? (
                   <NumField
                     label="Threshold"
@@ -209,7 +211,14 @@ export function AlertRuleEditor({
                   />
                 ))}
               {source.op !== "changes" && (
-                <Field label="For (s)" hint="The condition must hold this long before the alert fires.">
+                <Field
+                  label="For (s)"
+                  hint={
+                    source.op === "missing"
+                      ? "The sensor must be gone this long (after it has reported once) before the alert fires."
+                      : "The condition must hold this long before the alert fires."
+                  }
+                >
                   <NumField
                     label="For seconds"
                     min={0}

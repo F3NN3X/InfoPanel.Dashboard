@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mainPage, pageOf } from "./pages";
+import { applyView, mainPage, pageOf, profileWithPage } from "./pages";
 import { panelLegacyLook } from "./panel-model";
 import {
   CONFIG_VERSION,
@@ -107,6 +107,18 @@ describe("mergeConfig", () => {
     expect(panelLegacyLook(panel)).toEqual({ surface: "panel" });
     expect(module.settings).toBeUndefined();
     expect(module.panel).toBeUndefined();
+  });
+
+  it("keeps a profile's island, guarded, and adds none to a profile without one", () => {
+    const [plain] = mergeConfig({ profiles: [userProfile()] }).profiles;
+    expect(plain.island).toBeUndefined();
+    expect(JSON.parse(JSON.stringify(plain))).not.toHaveProperty("island");
+    // Stored before the sensor, reserve and tint options existed: those take their defaults.
+    const island = { enabled: true, idle: "time-date", size: "l", offsetY: 99, collapseAfter: 30 };
+    const [mine] = mergeConfig({ profiles: [userProfile({ island } as never)] }).profiles;
+    expect(mine.island).toEqual({ ...island, offsetY: 64, sensorKey: "", sensorLabel: "", reserve: false, tint: "black" });
+    // It is a profile field, so it survives the page view round trip.
+    expect(applyView(mine, profileWithPage(mine)).island).toEqual(mine.island);
   });
 
   it("is stable when a loaded config is merged again", () => {

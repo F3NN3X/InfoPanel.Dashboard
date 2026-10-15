@@ -98,6 +98,7 @@ export function summarizeRule(rule: AlertRule, sensor: SensorLabel = {}): string
   const unit = sensor.unit ? ` ${sensor.unit}` : "";
   const hold = s.forSeconds > 0 ? ` for ${s.forSeconds} s` : "";
   if (s.op === "changes") return `${name} changes`;
+  if (s.op === "missing") return `${name} stops reporting${hold}`;
   if (s.op === "contains") return `${name} contains “${s.value}”${hold}`;
   return `${name} ${s.op} ${s.value}${typeof s.value === "number" ? unit : ""}${hold}`;
 }
@@ -171,6 +172,7 @@ export function previewSensor(source: AlertSource, reading: SensorValue | undefi
       : (reading.text?.trim() || null)
     : null;
   if (source.op === "changes") return { value, state: "event" };
+  if (source.op === "missing") return { value, state: reading ? "ok" : "nodata" };
   const fires = reading ? holds(source, reading) : null;
   return { value, state: fires === null ? "nodata" : fires ? "fires" : "ok" };
 }

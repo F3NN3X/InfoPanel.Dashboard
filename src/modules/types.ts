@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { SensorValue } from "@/hooks/useSensors";
+import type { IslandSourceDef } from "@/lib/island/sources";
 
 export type SensorMap = Record<string, SensorValue>;
 
@@ -129,6 +130,8 @@ export interface DashboardModule {
   description?: string;
   /** Footprint (cols, rows) a drop gets when larger than the minimum; unset: 3×2 or the minimum. */
   defaultSize?: [number, number];
+  /** What the widget sends to the Dynamic Island when its "Send to island" is on (`src/lib/island/sources.ts`). */
+  island?: IslandSourceDef;
 }
 
 /** The keys a setting stores (two for an "align" picker). */

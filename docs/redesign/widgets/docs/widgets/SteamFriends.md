@@ -40,5 +40,8 @@ Playing a game wins over away, as in Steam: a friend who is snoozing in a game s
 - Table: Friend, Status, Playing, Last online. Columns drop as the box narrows: Status below 300px, Last online below 220px, Playing below 160px.
 - Rows that do not fit are left out.
 
+## Dynamic Island
+Setting `island` (**Send to island**, off by default, in the Steam friends group). With it on, a kiosk's Dynamic Island opens for 4 s when a friend comes online ("Ann is online") or starts a game ("Bo is playing", with the game), each friend at most once every 10 minutes. A friend going offline raises nothing. The rules are in `src/widgets/island-sources.ts` (`steamFriendsIsland`); see [the island plan](../../../island/PLAN.md#what-shows-and-when).
+
 ## Core building blocks used
 `Widget` · `shell` · `get` · `rows` · `has` · `fitRows` · `Empty`

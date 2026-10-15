@@ -11,7 +11,7 @@ import {
   type Severity,
 } from "@/lib/alerts";
 import { cn } from "@/lib/utils";
-import { Field, Group, NumField, PositionGrid } from "./alerts-fields";
+import { Field, Group, ISLAND_HINT, NumField, PositionGrid } from "./alerts-fields";
 import { alertsKey, patchDefaults, setQuietHours } from "./alerts-model";
 import { FIELD, SELECT } from "./setting-rows";
 
@@ -39,10 +39,13 @@ export function AlertDefaults({ alerts, setConfig }: { alerts: AlertsConfig; set
           options={ALERT_STYLES.map((s) => ({ value: s, label: cap(s) }))}
         />
       </Field>
+      {d.style === "island" && <p className="text-[11px] leading-snug text-ui-5">{ISLAND_HINT}</p>}
       <div className="flex items-end justify-between gap-3">
-        <Field label="Position">
-          <PositionGrid value={d.position} onChange={(position) => setDefaults("position", { position })} />
-        </Field>
+        {d.style !== "island" && (
+          <Field label="Position">
+            <PositionGrid value={d.position} onChange={(position) => setDefaults("position", { position })} />
+          </Field>
+        )}
         <Field label="Size">
           <Segmented
             label="Default size"
@@ -52,14 +55,16 @@ export function AlertDefaults({ alerts, setConfig }: { alerts: AlertsConfig; set
           />
         </Field>
       </div>
-      <Field label="Backdrop">
-        <Segmented
-          label="Default backdrop"
-          value={d.backdrop}
-          onChange={(backdrop) => setDefaults("backdrop", { backdrop })}
-          options={ALERT_BACKDROPS.map((b) => ({ value: b, label: cap(b) }))}
-        />
-      </Field>
+      {d.style !== "island" && (
+        <Field label="Backdrop">
+          <Segmented
+            label="Default backdrop"
+            value={d.backdrop}
+            onChange={(backdrop) => setDefaults("backdrop", { backdrop })}
+            options={ALERT_BACKDROPS.map((b) => ({ value: b, label: cap(b) }))}
+          />
+        </Field>
+      )}
       <Field label="Seconds" hint="0 = stays until acknowledged.">
         <NumField
           label="Default seconds"
