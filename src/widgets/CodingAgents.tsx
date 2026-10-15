@@ -1,20 +1,12 @@
 import { useSyncExternalStore } from "react";
-import {
-  AGENT_COLORS,
-  AGENT_IDS,
-  AGENT_NAMES,
-  bySalience,
-  sessionStatus,
-  shortTokens,
-  type AgentId,
-  type AgentPlan,
-  type AgentSession,
-  type Agents,
-  type PlanWindow,
-} from "@/lib/agents";
+import { AGENT_COLORS, AGENT_IDS, AGENT_NAMES, bySalience, sessionStatus, shortTokens, type AgentId, type AgentSession, type Agents } from "@/lib/agents";
 import { extras } from "@/lib/extras";
 import { useNow } from "@/components/widgets/hooks";
-import { Bar, Empty, Spark, Widget, fitRows, shell, type ShellProps, type WidgetMeta } from "./kit";
+import { Empty, Widget, fitRows, shell, type ShellProps, type WidgetMeta } from "./kit";
+import { BarLimits, RingLimits, barDensity, densityH, ringLayout, type Density, type LimitStyle, type Percent, type PlanEntry, type RingLayout } from "./CodingAgents/limits";
+import { BARS_H, DailyBars, HEADER_H, Heatmap, HistoryHeader, dayKey, heatmapFit, heatmapWeeks, type HeatFit, type HistoryStyle } from "./CodingAgents/history";
+
+export { resetText } from "./CodingAgents/limits";
 
 export const meta: WidgetMeta = {
   id: "CodingAgents",
@@ -39,6 +31,12 @@ export interface CodingAgentsProps extends ShellProps {
   showSessions?: boolean;
   /** Tokens today and the daily graph; default on. */
   showUsage?: boolean;
+  /** The limits as bars (default) or rings. */
+  limitStyle?: LimitStyle;
+  /** The limits as used (default) or left. */
+  percent?: Percent;
+  /** Tokens per day as bars (default) or a weekday heatmap. */
+  history?: HistoryStyle;
 }
 
 /** The state's dot colour: the agent's own while it works or is done, amber while it waits, red on an error. */
@@ -51,43 +49,6 @@ const useAgents = (): Agents => useSyncExternalStore(extras.subscribe, () => ext
 export function shownAgents(a: Agents, filter: AgentFilter): AgentId[] {
   const ids = filter === "both" ? AGENT_IDS : [filter];
   return ids.filter((id) => a.plan[id] || a.usage[id] || a.sessions.some((s) => s.agent === id));
-}
-
-/** "15:00" for a reset later today, "Fri 15:00" further out. */
-export function resetText(at: number, now: number): string {
-  const d = new Date(at);
-  const time = d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
-  return at - now < 20 * 3_600_000 ? time : `${d.toLocaleDateString(undefined, { weekday: "short" })} ${time}`;
-}
-
-/** A plan window's tone: amber past 80 %, red past 95 %. */
-const toneOf = (w: PlanWindow) => (w.used >= 95 ? "crit" : w.used >= 80 ? "warn" : "ok");
-
-function PlanRow({ id, plan, now, wide }: { id: AgentId; plan: AgentPlan; now: number; wide: boolean }) {
-  const windows = [
-    ["5h", plan.fiveHour],
-    ["7d", plan.sevenDay],
-  ] as const;
-  return (
-    <div className="flex min-w-0 items-center gap-2 text-xs">
-      <span className="shrink-0 font-semibold" style={{ color: AGENT_COLORS[id] }}>
-        {AGENT_NAMES[id]}
-      </span>
-      {windows.map(([label, w]) =>
-        w ? (
-          <div key={label} className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <div className="flex min-w-0 items-baseline justify-between gap-1 text-[10.5px] text-[color:var(--w-muted)]">
-              <span className="truncate">
-                {label} <span className="tabular-nums text-[color:var(--w-fg)]">{Math.round(w.used)}%</span>
-              </span>
-              {wide && w.resetsAt !== undefined && <span className="shrink-0 truncate tabular-nums text-[color:var(--w-faint)]">{resetText(w.resetsAt, now)}</span>}
-            </div>
-            <Bar value={w.used} t={toneOf(w)} className="h-1" />
-          </div>
-        ) : null
-      )}
-    </div>
-  );
 }
 
 function SessionRow({ s, now, wide }: { s: AgentSession; now: number; wide: boolean }) {
@@ -108,6 +69,19 @@ function SessionRow({ s, now, wide }: { s: AgentSession; now: number; wide: bool
   );
 }
 
+const GAP = 12;
+const SESSION_H = 18;
+
+type LimitsFit = { kind: "rings"; layout: RingLayout } | { kind: "bars"; density: Density; h: number };
+/** The limits in `w` × `room`: rings when asked and big enough, else the roomiest bars. */
+function fitLimits(style: LimitStyle, n: number, w: number, room: number): LimitsFit | null {
+  const rings = style === "rings" ? ringLayout(n, w, room) : null;
+  if (rings) return { kind: "rings", layout: rings };
+  const density = barDensity(n, room);
+  return density ? { kind: "bars", density, h: densityH(density, n) } : null;
+}
+const limitsH = (f: LimitsFit) => (f.kind === "rings" ? f.layout.h : f.h);
+
 export default function CodingAgents(p: CodingAgentsProps) {
   return <CodingAgentsView {...p} all={useAgents()} />;
 }
@@ -121,16 +95,24 @@ export function CodingAgentsView({ all, ...p }: CodingAgentsProps & { all: Agent
   const showPlan = p.showPlan ?? true;
   const showSessions = p.showSessions ?? true;
   const showUsage = p.showUsage ?? true;
-  const plans = ids.flatMap((id) => (all.plan[id] ? [[id, all.plan[id]] as const] : []));
+  const limitStyle = p.limitStyle ?? "bars";
+  const percent = p.percent ?? "used";
+  const history = p.history ?? "bars";
+  const plans: PlanEntry[] = ids.flatMap((id) => (all.plan[id] ? [[id, all.plan[id]] as const] : []));
   const active = sessions.filter((s) => s.state === "working" || s.state === "waiting");
   const today = ids.reduce((sum, id) => sum + (all.usage[id]?.today ?? 0), 0);
   // The daily totals of the shown agents, added up by day.
   const byDay = new Map<string, number>();
   for (const id of ids) for (const d of all.usage[id]?.days ?? []) byDay.set(d.day, (byDay.get(d.day) ?? 0) + d.total);
   const daily = [...byDay.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([, v]) => v);
+  const weeks = heatmapWeeks(byDay, new Date(now));
+  const week = weeks[weeks.length - 1].reduce((sum, c) => sum + c.v, 0);
+  const todayKey = dayKey(new Date(now));
+  const color = AGENT_COLORS[ids[0] ?? "claude"];
   const waiting = sessions.filter((s) => s.state === "waiting").length;
   const headline = waiting ? `${waiting} waiting` : active.length ? `${active.length} working` : "idle";
   const top = plans[0]?.[1].fiveHour;
+  const shownPct = (used: number) => Math.round(percent === "left" ? 100 - used : used);
 
   return (
     <Widget
@@ -138,52 +120,111 @@ export function CodingAgentsView({ all, ...p }: CodingAgentsProps & { all: Agent
       title={p.title ?? "Coding agents"}
       icon="smart_toy"
       studio={{ label: "Agents", value: String(active.length), unit: "active", sub: `${shortTokens(today)} tokens today`, rows: sessions.slice(0, 4).map((s) => ({ n: s.project, v: sessionStatus(s, now), dot: true })) }}
-      compact={{ label: "Agents", value: top ? `${Math.round(top.used)}%` : String(active.length), unit: top ? "5h" : "active", sub: headline, icon: "smart_toy" }}
+      compact={{ label: "Agents", value: top ? `${shownPct(top.used)}%` : String(active.length), unit: top ? `5h ${percent}` : "active", sub: headline, icon: "smart_toy" }}
     >
       {({ w: w0, h: h0 }) => {
         // An unmeasured box (0, server render) lays out as a roomy one.
         const w = w0 || 400;
         const h = h0 || 300;
         if (ids.length === 0) return <Empty icon="smart_toy" label="No agent connected yet" />;
-        const wide = w >= 220;
-        let room = h;
-        const planH = showPlan ? plans.length * 30 + Math.max(0, plans.length - 1) * 8 : 0;
-        const plansShown = showPlan && room >= planH ? plans : [];
-        room -= plansShown.length ? planH + 12 : 0;
-        const usageShown = showUsage && daily.length > 0 && room >= 52;
-        room -= usageShown ? 52 + 12 : 0;
-        const rows = showSessions && room >= 18 ? Math.min(sessions.length, fitRows(room, 18, 8)) : 0;
-        return (
-          <div className="flex h-full min-h-0 flex-col gap-3">
-            {plansShown.length > 0 && (
-              <div className="flex shrink-0 flex-col gap-2">
-                {plansShown.map(([id, plan]) => (
-                  <PlanRow key={id} id={id} plan={plan} now={now} wide={wide} />
-                ))}
-              </div>
-            )}
-            {showSessions &&
-              (rows > 0 && sessions.length > 0 ? (
-                <ul className="flex min-h-0 flex-col gap-2 overflow-hidden">
-                  {sessions.slice(0, rows).map((s) => (
-                    <SessionRow key={s.key} s={s} now={now} wide={wide} />
-                  ))}
-                </ul>
-              ) : (
-                sessions.length === 0 && room >= 18 && <div className="truncate text-xs text-[color:var(--w-faint)]">No sessions running</div>
+        const hasHistory = showUsage && byDay.size > 0;
+        const n = showPlan ? plans.length : 0;
+
+        // A wide box puts the heatmap in a column of its own on the right.
+        let side: HeatFit | null = null;
+        if (hasHistory && history === "heatmap" && w >= 400 && w >= h * 1.4) {
+          const fit = heatmapFit(weeks.length, w * 0.45, h - 2 * HEADER_H - 12, 22);
+          if (fit && w - Math.max(fit.w, 150) - 2 * GAP >= 200) side = fit;
+        }
+        const mainW = side ? w - Math.max(side.w, 150) - 2 * GAP : w;
+        const wide = mainW >= 220;
+        // A wide, short box lists the sessions beside the limits instead of under them.
+        const split = n > 0 && showSessions && sessions.length > 0 && mainW >= 460 && mainW >= h * 1.8;
+        const limitsW = split ? Math.round(Math.min(mainW * 0.5, 420)) : mainW;
+
+        // Under the rest: the heatmap when it fits in half the height, else the daily bars.
+        let bottom: { fit: HeatFit | null; h: number } | null = null;
+        if (hasHistory && !side) {
+          const fit = history === "heatmap" ? heatmapFit(weeks.length, w, Math.min(h / 2 - HEADER_H - 6, 7 * 12 + 12), 12) : null;
+          bottom = fit ? { fit, h: HEADER_H + 6 + fit.h } : { fit: null, h: BARS_H };
+        }
+
+        // The limits come first: they drop the history, then the sessions' reserve, before they drop themselves.
+        const sessionsMin = showSessions && !split ? SESSION_H : 0;
+        let limits: LimitsFit | null = null;
+        if (n > 0) {
+          for (const [hist, sess] of [
+            [bottom, sessionsMin],
+            [bottom, 0],
+            [null, 0],
+          ] as const) {
+            let room = h - (hist ? hist.h + GAP : 0) - (sess ? sess + GAP : 0);
+            // Rings stop at 60 % of the height while there are sessions to list.
+            if (limitStyle === "rings" && sess) room = Math.min(room, h * 0.6);
+            limits = fitLimits(limitStyle, n, limitsW, room);
+            if (limits) {
+              bottom = hist;
+              break;
+            }
+          }
+        }
+        if (bottom && h - (limits ? limitsH(limits) + GAP : 0) < bottom.h) bottom = null;
+        const room = h - (limits && !split ? limitsH(limits) + GAP : 0) - (bottom ? bottom.h + GAP : 0);
+        const rows = showSessions && room >= SESSION_H ? Math.min(sessions.length, fitRows(room, SESSION_H, 8)) : 0;
+        const sessionsW = split ? mainW - limitsW - 2 * GAP : mainW;
+
+        const limitsEl =
+          limits?.kind === "rings" ? (
+            <RingLimits plans={plans} layout={limits.layout} percent={percent} now={now} />
+          ) : limits?.kind === "bars" ? (
+            <BarLimits plans={plans} density={limits.density} percent={percent} now={now} wide={limitsW >= 220} />
+          ) : null;
+        const sessionsEl =
+          showSessions &&
+          (rows > 0 && sessions.length > 0 ? (
+            <ul className="flex min-h-0 min-w-0 flex-col gap-2 overflow-hidden" style={split ? { flex: 1 } : undefined}>
+              {sessions.slice(0, rows).map((s) => (
+                <SessionRow key={s.key} s={s} now={now} wide={sessionsW >= 220} />
               ))}
-            {usageShown && (
-              <div className="mt-auto flex shrink-0 flex-col gap-1">
-                <div className="flex items-baseline justify-between gap-2 text-[11px] text-[color:var(--w-muted)]">
-                  <span className="truncate">
-                    Today <span className="tabular-nums text-[color:var(--w-fg)]">{shortTokens(today)}</span> tokens
-                  </span>
-                  {wide && <span className="shrink-0 tabular-nums text-[color:var(--w-faint)]">{daily.length} d</span>}
+            </ul>
+          ) : (
+            sessions.length === 0 && room >= SESSION_H && <div className="truncate text-xs text-[color:var(--w-faint)]">No sessions running</div>
+          ));
+
+        const main = (
+          <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col" style={{ gap: GAP }}>
+            {split ? (
+              <div className="flex min-h-0 min-w-0 items-start" style={{ gap: 2 * GAP }}>
+                <div className="shrink-0" style={{ width: limitsW }}>
+                  {limitsEl}
                 </div>
-                {/* One bar per day: a count, not a stream (the smooth graph eases in like a live one). */}
-                <Spark values={daily} min={0} graph="bars" className="h-8" color={AGENT_COLORS[ids[0]]} />
+                {sessionsEl}
+              </div>
+            ) : (
+              <>
+                {limitsEl}
+                {sessionsEl}
+              </>
+            )}
+            {bottom && (
+              <div className="mt-auto flex shrink-0 flex-col gap-1.5">
+                <HistoryHeader today={today} week={week} wide={wide} />
+                {bottom.fit ? <Heatmap weeks={weeks} fit={bottom.fit} color={color} todayKey={todayKey} /> : <DailyBars values={daily} color={color} />}
               </div>
             )}
+          </div>
+        );
+        if (!side) return main;
+        return (
+          <div className="flex h-full min-h-0" style={{ gap: 2 * GAP }}>
+            {main}
+            <div className="flex shrink-0 flex-col gap-1.5" style={{ width: Math.max(side.w, 150) }}>
+              <HistoryHeader today={today} week={week} wide={false} />
+              <Heatmap weeks={weeks} fit={side} color={color} todayKey={todayKey} />
+              <span className="truncate text-[10.5px] tabular-nums text-[color:var(--w-faint)]" style={{ height: HEADER_H }}>
+                <span className="text-[color:var(--w-muted)]">{shortTokens(week)}</span> this week
+              </span>
+            </div>
           </div>
         );
       }}

@@ -15,7 +15,7 @@ import os from "node:os";
 import path from "node:path";
 
 /** Days of history kept (the widget's graph). */
-export const HISTORY_DAYS = 14;
+export const HISTORY_DAYS = 35;
 const SCAN_MS = 60_000;
 /** Bytes read at a time; a long file is read in steps, letting the server answer in between. */
 const CHUNK = 8 * 1024 * 1024;
