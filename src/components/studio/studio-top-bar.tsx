@@ -23,6 +23,7 @@ import { zoneCount } from "@/lib/pages";
 import { cn } from "@/lib/utils";
 import { copyProfileJson } from "./config-file";
 import { ResetConfigDialog } from "./reset-config-dialog";
+import { StudioLogo } from "./studio-logo";
 import { KEYS } from "./use-studio-shortcuts";
 
 export type StudioMode = "design" | "sources";
@@ -275,7 +276,7 @@ export function StudioTopBar(props: StudioTopBarProps) {
   return (
     <header className="grid h-12 shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-3 border-b border-ui-subtle bg-ui-chrome px-3 font-ui max-sm:flex max-sm:gap-1.5 max-sm:px-2">
       <div className="flex min-w-0 items-center gap-2.5 max-sm:flex-1">
-        <span className="h-[26px] w-[26px] shrink-0 rounded-[7px] bg-ui-accent max-sm:hidden" aria-hidden />
+        <StudioLogo className="h-[26px] w-[26px] shrink-0 max-sm:hidden" />
         <ProfileSwitcher {...props} />
         <span className="min-w-0 truncate font-ui-mono text-[11px] text-ui-4 max-sm:hidden">
           {profileSummary(profile)}
