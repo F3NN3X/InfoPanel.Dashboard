@@ -52,4 +52,5 @@ server.
 
 ## Still open
 
-- `dist/` and the live server on 3922 were not rebuilt from this branch.
+- The final `npm run build` rewrote `dist/`, so the live server on 3922 served this branch before it
+  was merged.
