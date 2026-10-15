@@ -23,6 +23,9 @@ const str = (v, max = 80) => (typeof v === "string" ? v.slice(0, max) : "");
 /** The project folder's name from a cwd (both slash kinds), never the path. */
 export const projectOf = (cwd) => str(cwd, 1000).replace(/[\\/]+$/, "").split(/[\\/]/).pop()?.slice(0, 60) ?? "";
 
+/** A tool's display name: an MCP tool (`mcp__<server>__<tool>`) keeps only its own name. */
+export const toolOf = (v) => str(str(v, 200).replace(/^mcp__.*__/, ""), 60);
+
 /** The hook events that put a session into a state; anything else only refreshes it. */
 const NEEDS_YOU = new Set(["permission_prompt", "idle_prompt", "elicitation_dialog", "agent_needs_input"]);
 
@@ -60,7 +63,7 @@ export function reduceAgents(state, agent, event, now) {
     case "PreToolUse":
       to("working");
       next.turnStart ??= now;
-      next.tool = str(event.tool_name, 60);
+      next.tool = toolOf(event.tool_name);
       break;
     case "PostToolUse":
     case "PostToolUseFailure":
@@ -69,7 +72,7 @@ export function reduceAgents(state, agent, event, now) {
       break;
     case "PermissionRequest":
       to("waiting");
-      next.tool = str(event.tool_name, 60) || next.tool;
+      next.tool = toolOf(event.tool_name) || next.tool;
       break;
     case "Notification":
       if (NEEDS_YOU.has(str(event.notification_type, 40))) to("waiting");

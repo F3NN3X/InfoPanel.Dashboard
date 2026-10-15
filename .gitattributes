@@ -1,3 +1,5 @@
 # The schema tests parse these specs with 
 -only patterns.
 docs/redesign/widgets/**/*.md text eol=lf
+# Vitest cannot parse a shebang line that ends in CR.
+tools/*.mjs text eol=lf
