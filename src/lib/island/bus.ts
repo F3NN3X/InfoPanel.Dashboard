@@ -16,6 +16,8 @@ export interface IslandBus {
   peek(source: string, id: string, ms: number): void;
   /** Open time for notices that stay until tapped, ms (Infinity = until tapped). */
   setSticky(ms: number): void;
+  /** Stack notices of one group into one with a count (`IslandNotice.group`). */
+  setGrouping(on: boolean): void;
   /** Notices `gate` refuses are dropped (quiet hours); null lets every notice through. */
   setGate(gate: ((n: IslandNotice) => boolean) | null): void;
   /** Show an activity, or update the one with the same `(source, id)`. */
@@ -88,6 +90,7 @@ export function createIslandBus(clock: BusClock = realClock): IslandBus {
     syncSource: (source, notices) => commit(Q.syncSource(state, source, notices, clock.now())),
     peek: (source, id, ms) => commit(Q.peek(state, source, id, ms, clock.now())),
     setSticky: (ms) => commit(Q.setSticky(state, ms, clock.now())),
+    setGrouping: (on) => commit(Q.setGrouping(state, on)),
     setGate: (g) => {
       gate = g;
     },

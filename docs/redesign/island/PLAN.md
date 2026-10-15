@@ -297,6 +297,11 @@ source's key arrived counted as its baseline.
 | I7 | Server extras: integrations file and routes, obs-websocket client, iCalendar reader and calendar refresh; the studio's OBS and calendar card | done |
 | I8 | Timer widget and its island source | done |
 | I9 | Docs and browser QA | done |
+| I10 | Motion: open / close / morph springs from L4 NotchBar (open 0.42 s bounce 0.24, close 0.32 s / 0.04, morph 0.36 s / 0.14) written as CSS `linear()` (`spring.ts`); content never scales, it enters with blur 6 px and a 6 px lift after 50 ms and leaves faster (120 ms) on its own layer; Lively / Smooth / Off; `?slow=N` | done |
+| I11 | Look: Pill or Notch (concave corners from radial gradients, on the top edge), scale 80-150 %, Black / Theme / Custom colours, opacity with backdrop blur, border, shadow, font and weight, seconds and 12/24 h over General (`island-look.ts`) | done |
+| I12 | Glanceable extras: up to three idle values with orange / red levels (one stored `sensorKey` migrates), idle rotation of the date, the values and the next event, the hairline idle (`line`), grouped notices with a count (`group`, `count`) | done |
+| I13 | Claude Code / Codex on the island: hooks and the statusline post to the server through `tools/agent-status.mjs` (loopback, JSON, `X-Agent-Event: 1`), installed by `tools/agent-install.mjs`; `server/agents.mjs` reduces them to sessions (working, waiting, done, error) with only a hashed key and the folder's name; the island shows the most urgent session as an activity, a badge while one waits, "finished" after a turn of 20 s or more, an error, and the plan passing 80 / 95 % | done |
+| I14 | The Coding Agents widget: plan 5 h / 7 d with reset times, sessions with tool, time and context, tokens today and per day for 14 days (`server/agent-usage.mjs` reads `~/.claude/projects` and `~/.codex/sessions` incrementally) | done |
 
 **Deploying the extras:** the server must be restarted for `/api/extras`, `/events/extras` and `/api/integrations` to exist; until then On air and Calendar stay quiet and the studio card shows its load error.
 

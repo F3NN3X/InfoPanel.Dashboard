@@ -30,7 +30,7 @@ function specKeys(md: string): string[] {
 
 describe("widget spec keys resolve against the snapshot", () => {
   const specs = Object.entries(SPECS);
-  it("finds all 46 specs", () => expect(specs).toHaveLength(46));
+  it("finds all 47 specs", () => expect(specs).toHaveLength(47));
   for (const [path, md] of specs) {
     it(path.split("/").pop() ?? path, () => {
       const missing = specKeys(md)

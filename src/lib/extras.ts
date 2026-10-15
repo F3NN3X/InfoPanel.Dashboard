@@ -4,6 +4,8 @@
  * the server (`/api/integrations`). One shared EventSource, opened on the first subscriber.
  */
 
+import { EMPTY_AGENTS, parseAgents, type Agents } from "./agents";
+
 export interface ObsState {
   /** An OBS connection is set up (host and port saved). */
   configured: boolean;
@@ -34,11 +36,14 @@ export interface CalendarState {
 export interface Extras {
   obs: ObsState;
   calendar: CalendarState;
+  /** The coding agents' sessions, plan use and token history (`src/lib/agents.ts`). */
+  agents: Agents;
 }
 
 export const EMPTY_EXTRAS: Extras = {
   obs: { configured: false, connected: false, streaming: false, recording: false },
   calendar: { configured: false, events: [] },
+  agents: EMPTY_AGENTS,
 };
 
 export const EXTRAS_EVENTS_URL = "/events/extras";
@@ -66,6 +71,7 @@ export function parseExtras(raw: unknown): Extras {
   return {
     obs: { configured: o.configured === true, connected: o.connected === true, streaming: o.streaming === true, recording: o.recording === true },
     calendar: { configured: c.configured === true, events, ...(typeof c.error === "string" && c.error ? { error: c.error } : {}) },
+    agents: parseAgents(raw.agents),
   };
 }
 

@@ -20,6 +20,11 @@ export interface IslandNotice {
   /** A repeat while it is still held restarts its open time (a volume slider moving). */
   refresh?: boolean;
   /**
+   * Notices of one kind from a source (one app's notifications, one game's achievements). With the
+   * island's grouping on, a new one takes the place of the held one of its group and counts up.
+   */
+  group?: string;
+  /**
    * How long the island stays open for it, ms; 0 = until tapped (or the profile's collapse
    * timer). Defaults by severity: `DEFAULT_TTL`.
    */
@@ -46,6 +51,9 @@ export interface IslandItem {
   body?: string;
   image?: string;
   progress?: number;
+  group?: string;
+  /** How many notices of its group it stands for (1 without grouping). */
+  count: number;
   onTap: "dismiss" | "ack";
   alertId?: string;
   cooldownMs: number;
@@ -72,6 +80,8 @@ export interface IslandActivity {
   color?: string;
   /** 0..1 */
   progress?: number;
+  /** The dot pulses (something is running: a coding agent's turn). */
+  pulse?: boolean;
   priority?: number;
 }
 

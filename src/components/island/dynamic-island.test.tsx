@@ -29,7 +29,7 @@ describe("DynamicIsland", () => {
   });
 
   it("shows a sensor's label beside the time, a dash before it reports", () => {
-    const html = render(createIslandBus(), { idle: "sensor", sensorKey: "test.none", sensorLabel: "GPU" });
+    const html = render(createIslandBus(), { idle: "sensor", stats: [{ key: "test.none", label: "GPU" }] });
     expect(html).toContain("GPU");
     expect(html).toContain("–");
   });
@@ -77,18 +77,69 @@ describe("DynamicIsland", () => {
     const reduced = render(bus, {}, "reduce");
     expect(reduced).not.toContain("island-critical");
     expect(reduced).not.toContain("island-motion");
-    expect(reduced).not.toContain("island-fade");
+    expect(reduced).not.toContain("island-enter");
   });
 
-  it("takes the theme's card colour when tinted", () => {
-    expect(render(createIslandBus(), { tint: "theme" })).toContain("bg-card");
-    expect(render()).toContain("bg-black");
+  it("takes the theme's card colour when tinted, else black or the custom colours", () => {
+    expect(render(createIslandBus(), { tint: "theme" })).toContain("background:hsl(var(--card))");
+    expect(render()).toContain("background:#000000");
+    const custom = render(createIslandBus(), { tint: "custom", bgColor: "#123456", fgColor: "#abcdef", opacity: 50 });
+    expect(custom).toContain("color-mix(in srgb, #123456 50%, transparent)");
+    expect(custom).toContain("color:#abcdef");
+    expect(custom).toContain("blur(14px)");
+  });
+});
+
+const look = (idle: IslandConfig["idle"], more: Partial<IslandConfig> = {}): IslandConfig => ({ ...ISLAND_DEFAULTS, idle, ...more });
+
+describe("DynamicIsland look", () => {
+  it("sits on the top edge as a notch with curved corners", () => {
+    const html = render(createIslandBus(), { shape: "notch", offsetY: 30 });
+    expect(html).toContain('style="top:0"');
+    expect(html).toContain('data-shape="notch"');
+    expect(html).toContain("border-radius:0 0 10px 10px");
+    expect(html).toContain("radial-gradient(circle farthest-side at 0% 100%");
+  });
+
+  it("shows only a hairline when idle is Line, and the island when something comes", () => {
+    expect(render(createIslandBus(), { idle: "line" })).toContain('data-island="line"');
+    expect(render(createIslandBus(), { idle: "line" })).not.toMatch(/\d{2}:\d{2}/);
+    const bus = createIslandBus();
+    bus.notify({ source: "t", id: "a", severity: "info", title: "Hello" });
+    expect(render(bus, { idle: "line" })).toContain('data-island="expanded"');
+  });
+
+  it("shows each value with its label, a dash before it reports", () => {
+    const html = render(createIslandBus(), { idle: "sensor", stats: [{ key: "x.a", label: "CPU" }, { key: "x.b", label: "GPU" }] });
+    expect(html).toContain("CPU");
+    expect(html).toContain("GPU");
+  });
+
+  it("shows a group's count on the open notice", () => {
+    const bus = createIslandBus();
+    bus.setGrouping(true);
+    bus.notify({ source: "Notifications", id: "1", group: "Discord", severity: "info", title: "Ann" });
+    bus.notify({ source: "Notifications", id: "2", group: "Discord", severity: "info", title: "Bo" });
+    expect(render(bus)).toContain('aria-label="2 notices"');
+  });
+
+  it("forces seconds off and applies the font weight", () => {
+    const html = render(createIslandBus(), { seconds: "hide", weight: "bold", font: "mono" });
+    expect(html).toMatch(/>\d{2}:\d{2}</);
+    expect(html).toContain("--island-weight:700");
+    expect(html).toContain("monospace");
+  });
+
+  it("does not animate with motion off", () => {
+    const html = render(createIslandBus(), { motion: "off" });
+    expect(html).not.toContain("island-motion");
+    expect(html).not.toContain("transition:");
   });
 });
 
 describe("island model", () => {
   const empty = { expanded: null, pending: [], activity: null };
-  const item: IslandItem = { key: "t:a", source: "t", id: "a", severity: "info", title: "A", onTap: "dismiss", cooldownMs: 0, badge: true, firstAt: 0, updatedAt: 0, remaining: 0 };
+  const item: IslandItem = { key: "t:a", source: "t", id: "a", severity: "info", title: "A", onTap: "dismiss", cooldownMs: 0, badge: true, count: 1, firstAt: 0, updatedAt: 0, remaining: 0 };
 
   it("picks the mode from the snapshot and the idle setting", () => {
     expect(islandMode(empty, "time")).toBe("idle");
@@ -102,15 +153,15 @@ describe("island model", () => {
   });
 
   it("grows from idle to compact to expanded", () => {
-    const idle = islandBox("idle", "m", "time");
-    const compact = islandBox("compact", "m", "time");
-    const expanded = islandBox("expanded", "m", "time");
+    const idle = islandBox("idle", "m", look("time"));
+    const compact = islandBox("compact", "m", look("time"));
+    const expanded = islandBox("expanded", "m", look("time"));
     expect(compact.width).toBeGreaterThan(idle.width);
     expect(expanded.width).toBeGreaterThan(compact.width);
     expect(expanded.height).toBeGreaterThan(compact.height);
-    expect(islandBox("idle", "m", "time-date").width).toBeGreaterThan(idle.width);
-    expect(islandBox("idle", "m", "sensor").width).toBe(islandBox("idle", "m", "time-date").width);
-    expect(islandBox("activity", "m", "time").height).toBe(idle.height);
+    expect(islandBox("idle", "m", look("time-date")).width).toBeGreaterThan(idle.width);
+    expect(islandBox("idle", "m", look("sensor")).width).toBe(islandBox("idle", "m", look("time-date")).width);
+    expect(islandBox("activity", "m", look("time")).height).toBe(idle.height);
   });
 
   it("fits the size to the page: the open island stays within its share of the height", () => {
@@ -120,7 +171,7 @@ describe("island model", () => {
     expect(fitIslandSize("l", { width: 320, height: 1080 })).toBe("s");
     expect(fitIslandSize("m", { width: 0, height: 0 })).toBe("m");
     for (const page of [{ width: 1920, height: 550 }, { width: 1024, height: 600 }]) {
-      const box = islandBox("expanded", fitIslandSize("l", page), "time");
+      const box = islandBox("expanded", fitIslandSize("l", page), look("time"));
       expect(box.height).toBeLessThanOrEqual(page.height * EXPANDED_MAX_SHARE);
       expect(box.width).toBeLessThan(page.width);
     }

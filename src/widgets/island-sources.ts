@@ -63,6 +63,7 @@ export const steamFriendsIsland: DataSourceDef = {
       if (!started && !online) continue;
       notices.push({
         id: `friend:${f.name}`,
+        group: "friends",
         severity: "info",
         title: started ? `${f.name} is playing` : `${f.name} is online`,
         ...(started ? { body: f.game } : {}),

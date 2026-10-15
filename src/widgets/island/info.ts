@@ -84,7 +84,7 @@ export const notificationsIsland: DataSourceDef = {
     if (!apps.includes(now.app.toLowerCase())) return {};
     const body = settings.islandBody === false ? "" : now.body;
     return {
-      notices: [{ id: `toast:${now.id}`, severity: "info", title: now.title ? `${now.app}: ${now.title}` : now.app, ...(body ? { body } : {}), ttl: 6000 }],
+      notices: [{ id: `toast:${now.id}`, group: now.app, severity: "info", title: now.title ? `${now.app}: ${now.title}` : now.app, ...(body ? { body } : {}), ttl: 6000 }],
     };
   },
 };

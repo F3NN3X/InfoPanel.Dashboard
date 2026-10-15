@@ -114,10 +114,10 @@ describe("mergeConfig", () => {
     const [plain] = mergeConfig({ profiles: [userProfile()] }).profiles;
     expect(plain.island).toBeUndefined();
     expect(JSON.parse(JSON.stringify(plain))).not.toHaveProperty("island");
-    // Stored before the sensor, reserve and tint options existed: those take their defaults.
+    // Stored before the later options existed (values, reserve, look, motion...): those take their defaults.
     const island = { enabled: true, idle: "time-date", size: "l", offsetY: 99, collapseAfter: 30 };
     const [mine] = mergeConfig({ profiles: [userProfile({ island } as never)] }).profiles;
-    expect(mine.island).toEqual({ ...island, offsetY: 64, sensorKey: "", sensorLabel: "", reserve: false, tint: "black", notices: ISLAND_DEFAULTS.notices, calendarLead: 10 });
+    expect(mine.island).toEqual({ ...ISLAND_DEFAULTS, ...island, offsetY: 64 });
     // It is a profile field, so it survives the page view round trip.
     expect(applyView(mine, profileWithPage(mine)).island).toEqual(mine.island);
   });

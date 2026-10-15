@@ -37,6 +37,7 @@ const MANIFEST: Record<string, Record<string, string>> = {
   NetworkAdapters: { showDown: "showDown", showIpv6: "showIpv6", hideIp: "hideIp" },
   Clock: { format: "format", showSeconds: "showSeconds", showDate: "showDate", face: "face" },
   Timer: { presets: "presets", pomodoro: "pomodoro", focusMin: "focusMin", breakMin: "breakMin" },
+  CodingAgents: { agents: "agents", showPlan: "showPlan", showSessions: "showSessions", showUsage: "showUsage" },
   Calendar: { weekStart: "weekStart" },
   Weather: { provider: "provider", location: "location", units: "units" },
   Forecast: { location: "location", days: "days", units: "units" },

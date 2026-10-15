@@ -101,3 +101,18 @@ export function controlWriteRefusal(headers) {
   if (headers["x-dashboard-control"] !== "1") return { status: 403, message: "missing X-Dashboard-Control header" };
   return null;
 }
+
+/** Whether a socket address is this machine (IPv4, IPv6, or IPv4 inside IPv6). */
+export const isLoopback = (address) => /^(127\.|::1$|::ffff:127\.)/.test(String(address ?? ""));
+
+/**
+ * The reason a POST /api/agents/* is refused, or null. Only this machine's agents post (their hooks
+ * run here), and the custom header keeps a web page from faking a session (a simple request can't set it).
+ */
+export function agentWriteRefusal(headers, remoteAddress) {
+  if (!isLoopback(remoteAddress)) return { status: 403, message: "agent status is accepted from this machine only" };
+  const type = String(headers["content-type"] ?? "").split(";")[0].trim().toLowerCase();
+  if (type !== "application/json") return { status: 415, message: "expected application/json" };
+  if (headers["x-agent-event"] !== "1") return { status: 403, message: "missing X-Agent-Event header" };
+  return null;
+}

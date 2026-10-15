@@ -33,7 +33,7 @@ inspector's Content tab.
 
 | Category | Widgets (id · minimum) |
 |---|---|
-| System | `SystemOverview` 1×1, `SystemStatus` 1×1, `Vitals` 1×1, `KpiTiles` 1×1, `Uptime` 1×1, `ProcessList` 1×1, `ServiceHealth` 1×1, `MenuBar` 2×1, `StatusTracker` 2×1 |
+| System | `SystemOverview` 1×1, `SystemStatus` 1×1, `Vitals` 1×1, `KpiTiles` 1×1, `Uptime` 1×1, `ProcessList` 1×1, `ServiceHealth` 1×1, `MenuBar` 2×1, `StatusTracker` 2×1, `CodingAgents` 1×1 |
 | Hardware | `CpuMonitor`, `CoreHeatmap`, `GpuMonitor`, `GpuRings`, `MemoryUsage`, `Thermals`, `PowerDraw`, `Fans` (all 1×1) |
 | Storage | `DriveSpace`, `StorageHealth`, `DiskIO` (all 1×1) |
 | Network | `NetworkThroughput`, `NetworkAdapters` (both 1×1) |
@@ -44,10 +44,10 @@ inspector's Content tab.
 | Generic | `SensorValue`, `SensorGroup` (both 1×1), `Bluetooth` 2×1, `StreamDeck` 3×2, `WebPage` 4×2 |
 
 44 of these came from the widget handoff (`docs/redesign/widgets/`);
-`Departures`, `Notifications`, `TextFile`, `Bluetooth`, `StreamDeck`, `Timer` and
-`WebPage` were written for the plugin cards that had no template, in the same
+`Departures`, `Notifications`, `TextFile`, `Bluetooth`, `StreamDeck`, `Timer`,
+`CodingAgents` and `WebPage` were written for the plugin cards that had no template, in the same
 style. The Other sensors zone (below) draws one `SensorValue` card per unclaimed key. A template reads its sensors
-through the data adapter (below). `Clock`, `Calendar`, `Timer`, `WebPage` and
+through the data adapter (below). `Clock`, `Calendar`, `Timer`, `CodingAgents`, `WebPage` and
 `WaveLink` need no sensor key; the others render nothing until a key under
 their prefixes exists (the kiosk then hides the zone) and show their own
 empty state when only some readings are missing.

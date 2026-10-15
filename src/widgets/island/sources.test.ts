@@ -61,7 +61,7 @@ describe("Steam News on the island", () => {
     const before: Data = { [NEWS]: "Doom, Patch 1, Oct 10" };
     const after: Data = { [NEWS]: "Doom, Patch 2, with commas, Oct 12\nDoom, Patch 1, Oct 10\nPortal, Update, Oct 12" };
     expect(derive(steamNewsIsland, before, after).notices).toEqual([
-      { id: "news:Doom|Patch 2, with commas", severity: "info", title: "Doom", body: "Patch 2, with commas", ttl: 6000, cooldownMs: 86_400_000 },
+      { id: "news:Doom|Patch 2, with commas", group: "news", severity: "info", title: "Doom", body: "Patch 2, with commas", ttl: 6000, cooldownMs: 86_400_000 },
     ]);
     expect(derive(steamNewsIsland, null, after).notices).toBeUndefined();
     expect(derive(steamNewsIsland, {}, after).notices).toBeUndefined();
@@ -167,7 +167,7 @@ describe("Notifications on the island", () => {
 
   it("raises a new notification from a listed app, case-insensitively, with the message unless hidden", () => {
     expect(derive(notificationsIsland, toast("1"), toast("2"), { islandApps: "discord, Teams" }).notices).toEqual([
-      { id: "toast:2", severity: "info", title: "Discord: Ann", body: "hi", ttl: 6000 },
+      { id: "toast:2", group: "Discord", severity: "info", title: "Discord: Ann", body: "hi", ttl: 6000 },
     ]);
     expect(derive(notificationsIsland, toast("1"), toast("2"), { islandApps: "Discord", islandBody: false }).notices?.[0].body).toBeUndefined();
     expect(derive(notificationsIsland, toast("1"), toast("2", "Steam"), { islandApps: "Discord" }).notices).toBeUndefined();

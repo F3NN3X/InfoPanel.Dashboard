@@ -55,8 +55,8 @@ describe("Steam Friends on the island", () => {
       friends("Ann, Online, , now", "Bo, Online, Dota 2, now", "Cy, Online, Portal, now")
     );
     expect(u.notices).toEqual([
-      { id: "friend:Ann", severity: "info", title: "Ann is online", ttl: 4000, cooldownMs: FRIEND_COOLDOWN_MS },
-      { id: "friend:Bo", severity: "info", title: "Bo is playing", body: "Dota 2", ttl: 4000, cooldownMs: FRIEND_COOLDOWN_MS },
+      { id: "friend:Ann", group: "friends", severity: "info", title: "Ann is online", ttl: 4000, cooldownMs: FRIEND_COOLDOWN_MS },
+      { id: "friend:Bo", group: "friends", severity: "info", title: "Bo is playing", body: "Dota 2", ttl: 4000, cooldownMs: FRIEND_COOLDOWN_MS },
     ]);
   });
 

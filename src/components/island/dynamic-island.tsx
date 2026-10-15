@@ -1,14 +1,17 @@
-import { useEffect, useMemo, useRef, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
 import { Info, OctagonAlert, TriangleAlert, type LucideIcon } from "lucide-react";
 import type { ActiveAlert, QuietHours, Severity } from "@/lib/alerts";
-import type { IslandConfig, IslandSize } from "@/lib/island/config";
+import { statLevel, type IslandConfig, type IslandSize, type IslandStat } from "@/lib/island/config";
 import { islandBus, useIsland, type IslandBus } from "@/lib/island/bus";
 import { ALERTS_SOURCE, noticeFromAlert } from "@/lib/island/from-alerts";
+import { startsIn } from "@/lib/island/dashboard-notices";
 import { quietGate } from "@/lib/island/quiet";
+import { motionScale } from "@/lib/island/spring";
 import type { IslandFeed } from "@/lib/island/sources";
 import type { IslandActivity, IslandItem, IslandSnapshot } from "@/lib/island/types";
 import { useDashboardNotices } from "@/lib/island/use-dashboard-notices";
 import { useConnectionNotice, useIslandSources } from "@/lib/island/use-island-sources";
+import { extras, type CalendarEvent } from "@/lib/extras";
 import { formatReading } from "@/lib/data-points";
 import { formatClock } from "@/lib/general";
 import { sensorAt } from "@/lib/sensors";
@@ -18,7 +21,8 @@ import { useSensors } from "@/hooks/useSensors";
 import { useNow } from "@/components/widgets/hooks";
 import { severityColor } from "@/components/alerts/alert-model";
 import { cn } from "@/lib/utils";
-import { ISLAND_FONT_PX, fitIslandSize, islandBox, islandMode, type IslandMode } from "./island-model";
+import { islandClock, islandSkin, motionVars, shadowTransition, shapeSpring, springTransition, type IslandSkin } from "./island-look";
+import { fitIslandSize, idleViews, islandBox, islandFontPx, islandMode, islandTop, type IdleView, type IslandMode } from "./island-model";
 
 const ICONS: Record<Severity, LucideIcon> = { info: Info, warning: TriangleAlert, critical: OctagonAlert };
 /** How long a tap on the badge or the activity opens the island, ms. */
@@ -26,6 +30,11 @@ export const PEEK_MS = 6000;
 /** The bus source a tapped activity opens as. */
 const ACTIVITY_PEEK = "activity";
 const NO_KEYS: readonly string[] = [];
+/** The colours a value turns past its thresholds. */
+const LEVEL_COLOR = { warn: severityColor("warning"), crit: "#ef4444" } as const;
+/** The notch's concave corners, px at scale 100: small closed, larger open (L4 NotchBar). */
+const EAR = { closed: 6, open: 14 } as const;
+const SLOW = typeof location === "undefined" ? 1 : motionScale(location.search);
 
 interface DynamicIslandProps {
   config: IslandConfig;
@@ -48,18 +57,20 @@ interface DynamicIslandProps {
 }
 
 /**
- * The Dynamic Island: a pill at the top centre of the page. Idle it shows the time (and the date or
- * one sensor value); a live activity (the playing track) sits beside the time; it springs open for
- * the strongest notice on the bus, then shrinks to the time with a severity badge while notices
- * remain. Width, height and radius animate between fixed boxes (`islandBox`); reduced motion swaps
- * them at once. On the kiosk a tap acknowledges the open alert, opens the next held notice again
- * (the badge), or opens the activity.
+ * The Dynamic Island: a pill (or a notch on the top edge) at the top centre of the page. Idle it
+ * shows the time (and the date, live values or the next event, side by side or in turn); a live
+ * activity sits beside the time; it springs open for the strongest notice on the bus, then shrinks
+ * to the time with a severity badge while notices remain. Width, height and radius spring between
+ * fixed boxes (`islandBox`, `shapeTransition`) while the content cross-fades; reduced motion or
+ * motion off swaps them at once. On the kiosk a tap acknowledges the open alert, opens the next held
+ * notice again (the badge), or opens the activity.
  */
 export function DynamicIsland({ config, alerts, onAck, placement, page, live, bus = islandBus }: DynamicIslandProps) {
   const snap = useIsland(bus);
-  const size = fitIslandSize(config.size, page);
+  const size = fitIslandSize(config.size, page, config.scale);
 
   useEffect(() => bus.setSticky(config.collapseAfter > 0 ? config.collapseAfter * 1000 : Infinity), [bus, config.collapseAfter]);
+  useEffect(() => bus.setGrouping(config.group), [bus, config.group]);
   useEffect(() => bus.syncSource(ALERTS_SOURCE, alerts.map(noticeFromAlert)), [bus, alerts]);
   useEffect(() => () => bus.syncSource(ALERTS_SOURCE, []), [bus]);
 
@@ -85,15 +96,49 @@ interface IslandPillProps {
   bus: IslandBus;
 }
 
+/** The mode before the last change, for the spring that change takes (open, close or morph). */
+function usePreviousMode(mode: string): string | null {
+  const ref = useRef<{ mode: string; from: string | null }>({ mode, from: null });
+  if (ref.current.mode !== mode) ref.current = { mode, from: ref.current.mode };
+  return ref.current.from;
+}
+
+/**
+ * The content that was showing before the last change, kept for its exit (fade, blur, lift) while the
+ * new content enters. Null when nothing is leaving.
+ */
+function useExiting(key: string, node: ReactNode, width: number, animate: boolean) {
+  const shown = useRef<{ key: string; node: ReactNode; width: number } | null>(null);
+  const [lastKey, setLastKey] = useState(key);
+  const [exiting, setExiting] = useState<{ key: string; node: ReactNode; width: number } | null>(null);
+  if (key !== lastKey) {
+    setLastKey(key);
+    setExiting(animate ? shown.current : null);
+  }
+  shown.current = { key, node, width };
+  useEffect(() => {
+    if (!exiting) return;
+    const t = setTimeout(() => setExiting(null), Math.round(140 * SLOW));
+    return () => clearTimeout(t);
+  }, [exiting]);
+  return exiting;
+}
+
 function IslandPill({ mode, snap, config, size, placement, onAck, bus }: IslandPillProps) {
   const reduced = useReducedMotion();
   const peekAt = useRef(0);
-  const box = islandBox(mode, size, config.idle);
+  const box = islandBox(mode, size, config);
   const item = snap.expanded;
   const strongest = item ?? snap.pending[0];
   const accent = strongest ? severityColor(strongest.severity) : undefined;
   const interactive = onAck !== undefined;
-  const tinted = config.tint === "theme";
+  const tappable = interactive && mode !== "idle" && mode !== "line";
+  const skin = islandSkin(config);
+  const notch = config.shape === "notch";
+  const animate = config.motion !== "off" && !reduced;
+  const spring = shapeSpring(usePreviousMode(mode), mode, config.motion, reduced, SLOW);
+  const shape = springTransition(spring, ["width", "height", "border-radius"]);
+  const k = config.scale / 100;
 
   const tap = () => {
     if (item) {
@@ -109,43 +154,105 @@ function IslandPill({ mode, snap, config, size, placement, onAck, bus }: IslandP
     }
   };
 
+  const key = item ? `x:${item.key}` : mode === "activity" && snap.activity ? `a:${snap.activity.source}:${snap.activity.id}` : mode;
+  const content =
+    mode === "line" ? null : item ? (
+      <Expanded item={item} />
+    ) : mode === "activity" && snap.activity ? (
+      <Activity activity={snap.activity} config={config} />
+    ) : (
+      <Idle config={config} pending={snap.pending.length} accent={accent} animate={animate} />
+    );
+  const exiting = useExiting(key, content, box.width, animate);
+
+  const radius = mode === "expanded" ? Math.round(box.height * 0.42) : box.height / 2;
+  const notchRadius = mode === "expanded" ? Math.round(30 * k) : Math.round((mode === "line" ? 2.5 : 10) * k);
+  const ear = Math.round((mode === "expanded" ? EAR.open : EAR.closed) * k);
+
   return (
     <div
       className={cn(placement, "pointer-events-none inset-x-0 z-[55] flex justify-center px-2")}
-      style={{ top: config.offsetY }}
+      style={{ top: islandTop(config) }}
       data-island={mode}
     >
-      <div
-        role={item ? (item.severity === "info" ? "status" : "alert") : undefined}
-        onClick={interactive && mode !== "idle" ? tap : undefined}
-        className={cn(
-          "island relative flex max-w-full items-center overflow-hidden",
-          tinted ? "border border-border bg-card text-card-foreground" : "bg-black text-white",
-          interactive && mode !== "idle" && "pointer-events-auto cursor-pointer select-none",
-          !reduced && "island-motion",
-          !reduced && item?.severity === "critical" && "island-critical"
-        )}
-        style={
-          {
-            width: box.width,
-            height: box.height,
-            borderRadius: mode === "expanded" ? Math.round(box.height * 0.42) : box.height / 2,
-            fontSize: ISLAND_FONT_PX[size],
-            "--island-accent": accent,
-          } as CSSProperties
-        }
-      >
-        <div key={item ? `x:${item.key}` : mode} className={cn("flex h-full w-full min-w-0 items-center", !reduced && "island-fade")}>
-          {item ? (
-            <Expanded item={item} />
-          ) : mode === "activity" && snap.activity ? (
-            <Activity activity={snap.activity} />
-          ) : (
-            <Idle config={config} pending={snap.pending.length} accent={accent} />
+      <div className="relative max-w-full">
+        <div
+          role={item ? (item.severity === "info" ? "status" : "alert") : undefined}
+          onClick={tappable ? tap : undefined}
+          className={cn(
+            "island relative flex max-w-full items-center overflow-hidden",
+            tappable && "pointer-events-auto cursor-pointer select-none",
+            animate && "island-motion",
+            animate && item?.severity === "critical" && "island-critical"
+          )}
+          style={
+            {
+              width: box.width,
+              height: box.height,
+              borderRadius: notch ? `0 0 ${notchRadius}px ${notchRadius}px` : radius,
+              fontSize: islandFontPx(size, config.scale),
+              transition: shape && `${shape}, ${shadowTransition(SLOW)}`,
+              ...skinStyle(skin, notch),
+              ...(animate ? motionVars(SLOW) : {}),
+              "--island-accent": accent,
+            } as CSSProperties
+          }
+          data-shape={config.shape}
+        >
+          {exiting && (
+            <div
+              key={`exit:${exiting.key}`}
+              aria-hidden
+              className="island-exit pointer-events-none absolute inset-y-0 left-1/2 flex -translate-x-1/2 items-center"
+              style={{ width: exiting.width }}
+            >
+              {exiting.node}
+            </div>
+          )}
+          {content && (
+            <div key={key} className={cn("flex h-full w-full min-w-0 items-center", animate && "island-enter")}>
+              {content}
+            </div>
           )}
         </div>
+        {/* After the pill, so its shadow does not darken them. */}
+        {notch && mode !== "line" && <Ears size={ear} color={skin.background} transition={springTransition(spring, ["width", "height", "left", "right"])} />}
       </div>
     </div>
+  );
+}
+
+/** The fill, text, border, shadow and type; the notch has no top border (it sits on the edge). */
+function skinStyle(skin: IslandSkin, notch: boolean): CSSProperties {
+  return {
+    background: skin.background,
+    color: skin.color,
+    border: skin.border,
+    borderTop: notch && skin.border ? "none" : undefined,
+    boxShadow: skin.boxShadow,
+    backdropFilter: skin.backdropFilter,
+    WebkitBackdropFilter: skin.backdropFilter,
+    fontFamily: skin.fontFamily,
+    "--island-weight": skin.fontWeight,
+  } as CSSProperties;
+}
+
+/** The notch's concave top corners: the fill curving into the page edge on each side. */
+function Ears({ size, color, transition }: { size: number; color: string; transition?: string }) {
+  const ear = (side: "left" | "right"): CSSProperties => ({
+    position: "absolute",
+    top: 0,
+    [side]: -size,
+    width: size,
+    height: size,
+    background: `radial-gradient(circle farthest-side at ${side === "left" ? "0%" : "100%"} 100%, transparent calc(100% - 0.75px), ${color} 100%)`,
+    transition,
+  });
+  return (
+    <>
+      <span aria-hidden style={ear("left")} />
+      <span aria-hidden style={ear("right")} />
+    </>
   );
 }
 
@@ -166,11 +273,33 @@ function LiveSources({ bus, config, live }: { bus: IslandBus; config: IslandConf
   return null;
 }
 
-function Idle({ config, pending, accent }: { config: IslandConfig; pending: number; accent?: string }) {
+const subscribeExtras = (fn: () => void) => extras.subscribe(fn);
+const noExtras = () => () => {};
+
+/** The next calendar event still to start, while the calendar notice is on (no stream opens otherwise). */
+function useNextEvent(on: boolean): CalendarEvent | null {
+  const state = useSyncExternalStore(on ? subscribeExtras : noExtras, extras.getState, extras.getState);
+  const now = useNow(30_000).getTime();
+  if (!on) return null;
+  return state.calendar.events.find((e) => !e.allDay && e.start > now) ?? null;
+}
+
+function Idle({ config, pending, accent, animate }: { config: IslandConfig; pending: number; accent?: string; animate: boolean }) {
+  const event = useNextEvent(config.notices.calendar && config.rotate > 0);
+  const views = idleViews(config, event !== null);
+  const rotating = config.rotate > 0 && views.length > 0;
+  const now = useNow(rotating ? config.rotate * 1000 : 3_600_000);
+  const view = rotating ? views[Math.floor(now.getTime() / (config.rotate * 1000)) % views.length] : null;
   return (
     <div className="flex w-full min-w-0 items-center justify-center gap-[0.7em] px-[1em]">
-      <IslandClock date={config.idle === "time-date"} />
-      {config.idle === "sensor" && <IslandSensor sensorKey={config.sensorKey} label={config.sensorLabel} />}
+      <IslandClock config={config} date={!rotating && config.idle === "time-date"} />
+      {rotating && view ? (
+        <span key={viewKey(view)} className={cn("flex min-w-0 items-center", animate && "island-enter")}>
+          <IdleSlot view={view} config={config} event={event} />
+        </span>
+      ) : (
+        config.idle === "sensor" && <IslandStats stats={config.stats} />
+      )}
       {pending > 0 && (
         <span className="flex shrink-0 items-center gap-[0.35em] font-semibold tabular-nums" aria-label={`${pending} active alerts`}>
           <span className="h-[0.6em] w-[0.6em] rounded-full" style={{ background: accent }} />
@@ -181,48 +310,89 @@ function Idle({ config, pending, accent }: { config: IslandConfig; pending: numb
   );
 }
 
+const viewKey = (v: IdleView) => (v.kind === "stat" ? `stat:${v.index}` : v.kind);
+
+function IdleSlot({ view, config, event }: { view: IdleView; config: IslandConfig; event: CalendarEvent | null }) {
+  if (view.kind === "stat") return <IslandStats stats={config.stats.slice(view.index, view.index + 1)} />;
+  if (view.kind === "event" && event) return <NextEvent event={event} />;
+  return <IslandDate />;
+}
+
 /** The time (and date), its own component so the once-a-second tick re-renders only it. */
-function IslandClock({ date }: { date: boolean }) {
-  const general = useGeneral();
+function IslandClock({ config, date }: { config: IslandConfig; date: boolean }) {
+  const general = islandClock(useGeneral(), config);
   const now = formatClock(useNow(1000), general);
   return (
-    <span className="min-w-0 truncate font-semibold tabular-nums">
+    <span className="min-w-0 truncate tabular-nums [font-weight:var(--island-weight)]">
       {now.time}
       {date && <span className="ml-[0.6em] font-normal opacity-60">{now.date}</span>}
     </span>
   );
 }
 
-/** One live value beside the time, from the shared streams ("–" before it reports). */
-function IslandSensor({ sensorKey, label }: { sensorKey: string; label: string }) {
-  const keys = useMemo(() => (sensorKey ? [sensorKey] : NO_KEYS), [sensorKey]);
-  const live = useSensors(keys);
-  const reading = sensorKey ? sensorAt(live, sensorKey) : undefined;
-  const text =
-    reading && typeof reading.value === "number" && Number.isFinite(reading.value)
-      ? formatReading(reading.value, reading.unit)
-      : reading?.text?.trim() || "–";
+function IslandDate() {
+  const now = formatClock(useNow(60_000), useGeneral());
+  return <span className="min-w-0 truncate opacity-60">{now.date}</span>;
+}
+
+function NextEvent({ event }: { event: CalendarEvent }) {
+  const now = useNow(30_000).getTime();
   return (
-    <span className="min-w-0 truncate tabular-nums opacity-80">
-      {label && <span className="mr-[0.35em] opacity-60">{label}</span>}
-      {text}
+    <span className="min-w-0 truncate">
+      <span className="mr-[0.35em] inline-block h-[0.5em] w-[0.5em] rounded-full bg-[#3b82f6]" aria-hidden />
+      <span className="opacity-80">{event.title}</span>
+      <span className="ml-[0.35em] opacity-60">{startsIn(event.start - now)}</span>
     </span>
   );
 }
 
-function Activity({ activity }: { activity: IslandActivity }) {
+/** Live values beside the time from the shared streams ("–" before they report), coloured past their thresholds. */
+function IslandStats({ stats }: { stats: readonly IslandStat[] }) {
+  const keys = useMemo(() => {
+    const k = stats.map((s) => s.key).filter(Boolean);
+    return k.length > 0 ? k : NO_KEYS;
+  }, [stats.map((s) => s.key).join()]);
+  const live = useSensors(keys);
+  const shown = stats.length > 0 ? stats : [{ key: "", label: "" }];
+  return (
+    <>
+      {shown.map((stat, i) => {
+        const reading = stat.key ? sensorAt(live, stat.key) : undefined;
+        const value = reading && typeof reading.value === "number" && Number.isFinite(reading.value) ? reading.value : undefined;
+        const text = value !== undefined ? formatReading(value, reading?.unit) : reading?.text?.trim() || "–";
+        const level = statLevel(stat, value);
+        return (
+          <span
+            key={i}
+            className={cn("min-w-0 truncate tabular-nums", !level && "opacity-80")}
+            style={level ? { color: LEVEL_COLOR[level], transition: "color 300ms" } : { transition: "color 300ms" }}
+            data-level={level ?? undefined}
+          >
+            {stat.label && <span className="mr-[0.35em] opacity-60">{stat.label}</span>}
+            {text}
+          </span>
+        );
+      })}
+    </>
+  );
+}
+
+function Activity({ activity, config }: { activity: IslandActivity; config: IslandConfig }) {
   return (
     <div className="flex w-full min-w-0 items-center gap-[0.7em] pl-[1em] pr-[0.45em]">
-      <IslandClock date={false} />
+      <IslandClock config={config} date={false} />
       <div className="flex min-w-0 flex-1 items-center justify-end gap-[0.5em]">
         <span className="min-w-0 truncate text-right">
-          <span className="font-semibold">{activity.title}</span>
+          <span className="[font-weight:var(--island-weight)]">{activity.title}</span>
           {activity.subtitle && <span className="ml-[0.4em] opacity-60">{activity.subtitle}</span>}
         </span>
         {activity.image ? (
           <img src={activity.image} alt="" className="h-[1.9em] w-[1.9em] shrink-0 rounded-[0.45em] object-cover" />
         ) : (
-          <span className="mr-[0.5em] h-[0.6em] w-[0.6em] shrink-0 rounded-full" style={{ background: activity.color ?? "currentColor" }} />
+          <span
+            className={cn("mr-[0.5em] h-[0.6em] w-[0.6em] shrink-0 rounded-full", activity.pulse && "island-pulse")}
+            style={{ background: activity.color ?? "currentColor", "--island-dot": activity.color ?? "currentColor" } as CSSProperties}
+          />
         )}
       </div>
       {activity.progress !== undefined && (
@@ -250,7 +420,14 @@ function Expanded({ item }: { item: IslandItem }) {
         </span>
       )}
       <div className="min-w-0 flex-1 leading-tight">
-        <div className="truncate font-semibold">{item.title}</div>
+        <div className="flex min-w-0 items-baseline gap-[0.4em]">
+          <span className="truncate [font-weight:var(--island-weight)]">{item.title}</span>
+          {item.count > 1 && (
+            <span className="shrink-0 rounded-full bg-current/15 px-[0.45em] text-[0.78em] tabular-nums" aria-label={`${item.count} notices`}>
+              ×{item.count}
+            </span>
+          )}
+        </div>
         {item.body && <div className="truncate text-[0.86em] opacity-65">{item.body}</div>}
         {item.progress !== undefined && (
           <div className="mt-[0.35em] h-[0.3em] overflow-hidden rounded-full bg-current/20" role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(item.progress * 100)}>

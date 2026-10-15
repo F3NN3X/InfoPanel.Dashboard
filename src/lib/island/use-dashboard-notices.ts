@@ -1,13 +1,17 @@
 import { useEffect, useRef } from "react";
 import { getApiBase } from "@/lib/data-api";
+import type { Agents } from "@/lib/agents";
 import { extras, type ObsState } from "@/lib/extras";
 import type { IslandNotices } from "./config";
 import type { IslandBus } from "./bus";
 import {
+  AGENTS_SOURCE,
+  AGENTS_WAITING_SOURCE,
   CALENDAR_SOURCE,
   DASHBOARD_SOURCE,
   LAYOUT_NOTICE,
   ON_AIR_SOURCE,
+  agentsUpdate,
   calendarUpdate,
   onAirUpdate,
   pageNotice,
@@ -47,6 +51,7 @@ export function useDashboardNotices(bus: IslandBus, { notices, page, layoutVersi
   usePluginNotices(bus, notices.plugins);
   useOnAir(bus, notices.onAir);
   useCalendar(bus, notices.calendar, calendarLead);
+  useAgents(bus, notices.agents);
 }
 
 /** The plugins `/api/sources` lists, by id, with their names. */
@@ -121,4 +126,30 @@ function useCalendar(bus: IslandBus, on: boolean, leadMin: number): void {
       bus.clearActivity(CALENDAR_SOURCE);
     };
   }, [bus, on, leadMin]);
+}
+
+/** How often a working session's elapsed time beside the clock is brought up to date, ms. */
+const AGENTS_TICK_MS = 15_000;
+
+function useAgents(bus: IslandBus, on: boolean): void {
+  useEffect(() => {
+    if (!on) return;
+    let before: Agents | null = null;
+    const run = () => {
+      const next = extras.getState().agents;
+      const update = agentsUpdate(before, next, Date.now());
+      before = next;
+      applyUpdate(bus, AGENTS_SOURCE, update);
+      bus.syncSource(AGENTS_WAITING_SOURCE, update.waiting.map((n) => ({ ...n, source: AGENTS_WAITING_SOURCE })));
+    };
+    const stop = extras.subscribe(run);
+    run();
+    const timer = setInterval(run, AGENTS_TICK_MS);
+    return () => {
+      stop();
+      clearInterval(timer);
+      bus.clearActivity(AGENTS_SOURCE);
+      bus.syncSource(AGENTS_WAITING_SOURCE, []);
+    };
+  }, [bus, on]);
 }

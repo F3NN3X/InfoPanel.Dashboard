@@ -75,7 +75,7 @@ export const achievementsIsland: DataSourceDef = {
     const image = widgetImage(get(next, `${ACH}latest-achievement-icon`));
     const game = get(next, STEAM_GAME);
     return {
-      notices: [{ id: `ach:${name}`, severity: "info", title: "Achievement unlocked", body: has(game) ? `${name} · ${game}` : name, ...(image ? { image } : {}), ttl: 6000 }],
+      notices: [{ id: `ach:${name}`, group: has(game) ? game : "achievements", severity: "info", title: "Achievement unlocked", body: has(game) ? `${name} · ${game}` : name, ...(image ? { image } : {}), ttl: 6000 }],
     };
   },
 };
@@ -95,6 +95,6 @@ export const steamNewsIsland: DataSourceDef = {
     if (!prev || !has(get(prev, NEWS))) return {};
     const seen = new Set(newsOf(prev).map((n) => `${n.game}|${n.title}`));
     const fresh = newsOf(next).find((n) => n.title !== "" && !seen.has(`${n.game}|${n.title}`));
-    return fresh ? { notices: [{ id: `news:${fresh.game}|${fresh.title}`, severity: "info", title: fresh.game, body: fresh.title, ttl: 6000, cooldownMs: 86_400_000 }] } : {};
+    return fresh ? { notices: [{ id: `news:${fresh.game}|${fresh.title}`, group: "news", severity: "info", title: fresh.game, body: fresh.title, ttl: 6000, cooldownMs: 86_400_000 }] } : {};
   },
 };

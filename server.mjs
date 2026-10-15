@@ -33,8 +33,9 @@ import { createAlerts } from "./server/alerts.mjs";
 import { createAssets } from "./server/assets.mjs";
 import { versionRefusal } from "./server/config-guard.mjs";
 import { createControl } from "./server/control.mjs";
+import { createAgentUsage } from "./server/agent-usage.mjs";
 import { createExtras } from "./server/extras.mjs";
-import { configWriteRefusal, controlWriteRefusal, createRequestGuard, parseAllowedHosts } from "./server/request-guard.mjs";
+import { agentWriteRefusal, configWriteRefusal, controlWriteRefusal, createRequestGuard, parseAllowedHosts } from "./server/request-guard.mjs";
 
 const PORT = Number(process.env.PORT) || 3922;
 const HOST = process.env.HOST || "127.0.0.1";
@@ -106,8 +107,13 @@ const control = createControl({ file: CONTROL_FILE, readConfig: readConfigFile }
 const MAX_CONTROL_BYTES = 4096;
 const CONTROL_ACTIONS = new Set(["page", "profile", "rotate", "touch", "alert"]);
 const alerts = createAlerts({ file: ALERTS_FILE, readConfig: readConfigFile, control });
-const extras = createExtras({ file: INTEGRATIONS_FILE, log: (m) => console.log(m) });
+// The coding agents' token use, read from their own session files under the user's home.
+const agentUsage = createAgentUsage();
+agentUsage.start();
+const extras = createExtras({ file: INTEGRATIONS_FILE, log: (m) => console.log(m), agentUsage });
 const MAX_INTEGRATIONS_BYTES = 16 * 1024;
+/** A hook's or statusline's JSON (a tool's input can be large; only metadata is kept). */
+const MAX_AGENT_BYTES = 512 * 1024;
 
 /**
  * GET /api/control → the state; POST /api/control/<action> with a JSON body → the new state.
@@ -200,6 +206,25 @@ async function handleIntegrations(req, res) {
   const result = extras.integrations.apply(body);
   if (result.error) return send(res, 400, result.error);
   send(res, 200, JSON.stringify(extras.integrations.public()), TYPES[".json"]);
+}
+
+/**
+ * POST /api/agents/event?agent=claude|codex (a hook's JSON) and POST /api/agents/statusline (Claude
+ * Code's statusline JSON), from tools/agent-status.mjs on this machine. Answers 204 at once.
+ */
+async function handleAgentPost(req, res, pathname, searchParams) {
+  if (req.method !== "POST") return send(res, 405);
+  const refusal = agentWriteRefusal(req.headers, req.socket.remoteAddress);
+  if (refusal) return send(res, refusal.status, refusal.message);
+  let payload;
+  try {
+    payload = JSON.parse(await readBody(req, MAX_AGENT_BYTES));
+  } catch {
+    return send(res, 400, "invalid JSON");
+  }
+  if (pathname === "/api/agents/statusline") extras.agents.statusline(payload);
+  else extras.agents.event(searchParams.get("agent") ?? "", payload);
+  send(res, 204);
 }
 
 /* ---------------- helpers ---------------- */
@@ -367,6 +392,7 @@ const server = http.createServer(async (req, res) => {
     if (pathname === "/api/extras") return req.method === "GET" ? send(res, 200, JSON.stringify(extras.state()), TYPES[".json"]) : send(res, 405);
     if (pathname === "/events/extras") return handleExtrasEvents(req, res);
     if (pathname === "/api/integrations") return await handleIntegrations(req, res);
+    if (pathname === "/api/agents/event" || pathname === "/api/agents/statusline") return await handleAgentPost(req, res, pathname, searchParams);
     if (pathname === "/api/image-proxy") return await handleImageProxy(req, res, searchParams);
     if (pathname === "/api/assets" || pathname.startsWith("/api/assets/")) {
       return await handleAssets(req, res, pathname, searchParams);
