@@ -37,6 +37,9 @@ import { postControl, useControl } from "@/lib/control";
 import { isIslandAlert } from "@/lib/island/from-alerts";
 import { visibleAlerts } from "@/components/alerts/alert-model";
 import { PageTabs } from "./page-tabs";
+import { islandSectionId } from "./island-panel-model";
+import { ISLAND_SETTING } from "@/lib/island/sources";
+import { modules } from "@/modules";
 import { ZoomToolbar } from "./zoom-toolbar";
 
 interface StudioViewProps {
@@ -153,6 +156,23 @@ function StudioViewBody({
     sel.select(null);
     ui.openDocumentTab("profile");
   };
+  /**
+   * The island drawer's widget rows: select the zone and scroll the inspector to "Send to island". A zone
+   * on another page waits for the page switch (it clears the selection) before it is selected.
+   */
+  const [pendingZone, setPendingZone] = useState<string | null>(null);
+  const openZone = (pageId: string, zoneId: string) => {
+    if (pageId !== (profile.pageId ?? storedProfile.pages[0].id)) onPageChange(pageId);
+    setPendingZone(zoneId);
+  };
+  useEffect(() => {
+    if (!pendingZone || !profile.placements.some((p) => p.id === pendingZone)) return;
+    setPendingZone(null);
+    focusZone(pendingZone);
+    const zone = profile.placements.find((p) => p.id === pendingZone);
+    const section = islandSectionId(modules.find((m) => m.id === zone?.module));
+    if (section) requestAnimationFrame(() => ui.jumpInspector(section, ISLAND_SETTING));
+  }, [pendingZone, profile.placements]);
   /** The one selected zone, when it is blank: the Add panel's click fills it. */
   const blankZoneId = selected && sel.selection.length === 1 && selected.module === BLANK_MODULE ? selected.id : undefined;
 
@@ -222,6 +242,17 @@ function StudioViewBody({
         editingId: ui.alertRule,
         onEdit: ui.setAlertRule,
         onOpenSources: () => ui.setMode("sources"),
+      }}
+      island={{
+        config,
+        setConfig,
+        profile: storedProfile,
+        onOpenZone: openZone,
+        onOpenRule: (id) => {
+          ui.setAlertRule(id);
+          ui.setDrawer("alerts");
+        },
+        onOpenExplorer: () => ui.setMode("sources"),
       }}
     />
   );

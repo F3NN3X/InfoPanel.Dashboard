@@ -1,10 +1,13 @@
 import { Square, SquareCheck } from "lucide-react";
 import { useAudioDevices } from "@/hooks/use-audio-devices";
+import { useSensors } from "@/hooks/useSensors";
 import { useSensorCatalog } from "@/lib/catalog";
+import { parseNameList } from "@/lib/name-list";
 import { deviceOptions } from "@/lib/device-options";
 import { cn } from "@/lib/utils";
 import { meterKey, useWavelinkState } from "@/lib/wavelink";
 import type { DeviceKind, ModuleSetting, ModuleSettingValue } from "@/modules/types";
+import { ChipsField } from "./alerts-fields";
 import { SELECT as SELECT_BASE, SelectRow, StackRow, type RowLabelProps } from "./setting-rows";
 
 /** A comma-separated list ("" = none) as its items. */
@@ -138,4 +141,17 @@ export function DevicePicker({ def, kind, value, onChange, lead, hint }: PickerP
   const live = deviceOptions(kind, sensors);
   const options = live.some((o) => o.value === value) ? live : [...live, { value, label: `${value} (not live)` }];
   return <SelectRow label={def.label} lead={lead} hint={hint} options={options} value={value} onChange={onChange} />;
+}
+
+/** A list of names as chips (stored comma-separated), suggested from the names at `def.suggestKey`. */
+export function NameListField({ def, value, onChange, ...label }: RowLabelProps & { def: ModuleSetting; value: string; onChange: (v: ModuleSettingValue) => void }) {
+  const live = useSensors(def.suggestKey ? [def.suggestKey] : []);
+  const raw = def.suggestKey ? live[def.suggestKey] : undefined;
+  const suggestions = raw ? parseNameList(String(raw.text ?? raw.value ?? "")) : [];
+  const values = value.split(",").map((s) => s.trim()).filter(Boolean);
+  return (
+    <StackRow {...label}>
+      <ChipsField label={def.label} values={values} suggestions={suggestions} placeholder="App name" onChange={(list) => onChange(list.join(","))} />
+    </StackRow>
+  );
 }

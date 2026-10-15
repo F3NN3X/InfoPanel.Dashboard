@@ -2,7 +2,7 @@
 // DashboardModule: standard look settings, shell props from the resolved settings, Library fields.
 import { useEffect, useMemo, type ComponentType } from "react";
 import { STANDARD_SETTINGS } from "@/modules/standard-settings";
-import { islandSetting, type IslandSourceDef } from "@/lib/island/sources";
+import { islandSettings, type IslandSourceDef } from "@/lib/island/sources";
 import { effectiveSettings, type DashboardModule, type ModuleSetting, type ModuleSettings, type SensorMap } from "@/modules/types";
 import { ensureSkinFonts } from "./core/fonts";
 import { SKINS } from "./core/theme";
@@ -23,7 +23,7 @@ export interface TemplateOptions<P extends object> {
   title?: string;
   /** The settings block before the template's own; default `STANDARD_SETTINGS`. */
   base?: ModuleSetting[];
-  /** What it sends to the Dynamic Island; adds the "Send to island" setting after its own. */
+  /** What it sends to the Dynamic Island; adds "Send to island" and the source's options after its own settings. */
   island?: IslandSourceDef;
 }
 
@@ -59,10 +59,10 @@ export function withSkinSurface(look: ModuleSettings, saved: ModuleSettings | un
 }
 
 /**
- * Template ids whose data is not a sensor key (the browser clock, the Wave Link socket, a URL), so
+ * Template ids whose data is not a sensor key (the browser clock, the Wave Link socket, a URL, the timer), so
  * they render with an empty sensor map; every other template renders nothing until a key shows up.
  */
-export const SENSORLESS: ReadonlySet<string> = new Set(["Clock", "Calendar", "WebPage", "WaveLink"]);
+export const SENSORLESS: ReadonlySet<string> = new Set(["Clock", "Calendar", "WebPage", "WaveLink", "Timer"]);
 
 /** Whether the map holds a key under any prefix (a module with no prefixes reads any key). */
 function hasKeys(sensors: SensorMap, prefixes: readonly string[]): boolean {
@@ -81,7 +81,7 @@ export function useZoneLook(defs: ModuleSetting[], saved: ModuleSettings | undef
 }
 
 export function templateModule<P extends object>({ meta, Component, settings, toProps, prefixes, title, base, island }: TemplateOptions<P>): DashboardModule {
-  const all = [...(base ?? STANDARD_SETTINGS), ...settings, ...(island ? [islandSetting(island)] : [])];
+  const all = [...(base ?? STANDARD_SETTINGS), ...settings, ...(island ? islandSettings(island) : [])];
   const surfaceDefault = String(all.find((d) => d.key === "surface")?.default ?? "glass");
   const mod: DashboardModule = {
     id: meta.id,

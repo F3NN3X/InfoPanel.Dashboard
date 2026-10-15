@@ -33,6 +33,9 @@ Keys read (literal parts; `${…}` segments are resolved at runtime by detection
 - Shapes handled explicitly: via CompactView
 - Inner content size (after padding + header) is passed to the layout as `{ w, h }`; tier/shape come from the outer size. See [../ARCHITECTURE.md](../ARCHITECTURE.md#sizing).
 
+## Dynamic Island
+Setting `island` (**Send to island**, off by default, in the Volume mixer group). With it on, a kiosk's Dynamic Island shows a level bar with the Windows default device's volume (or "Muted") while it changes, kept open while it moves. Option `islandDevice` (*Output switched*, on): the new default output device. The rules are in `src/widgets/island/audio.ts` (`volumeMixerIsland`); see [the island plan](../../../island/PLAN.md#what-shows-and-when).
+
 ## Core building blocks used
 `Widget` · `shell` · `get` · `num` · `fmt` · `Ring` · `Icon` · `Dot` · `Chip`
 

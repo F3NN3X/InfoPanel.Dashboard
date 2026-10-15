@@ -36,6 +36,9 @@ Keys read (literal parts; `${…}` segments are resolved at runtime by detection
 - Shapes handled explicitly: via CompactView
 - Inner content size (after padding + header) is passed to the layout as `{ w, h }`; tier/shape come from the outer size. See [../ARCHITECTURE.md](../ARCHITECTURE.md#sizing).
 
+## Dynamic Island
+Setting `island` (**Send to island**, off by default, in the Content group). With it on, a kiosk's Dynamic Island shows the download rate of the widget's adapter beside the time while it is faster than `islandMinRate` (*Show above*, 5 MB/s). The rules are in `src/widgets/island/hardware.ts` (`networkThroughputIsland`); see [the island plan](../../../island/PLAN.md#what-shows-and-when).
+
 ## Core building blocks used
 `Widget` · `shell` · `get` · `num` · `fmt` · `fmtGB` · `fmtRate` · `detect` · `pretty` · `Spark` · `Stat` · `Icon` · `useHistory` · `Empty`
 

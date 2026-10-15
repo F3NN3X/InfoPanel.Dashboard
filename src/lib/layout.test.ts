@@ -10,6 +10,7 @@ import {
   type StoredProfile,
 } from "./layout";
 import { arcv2Profile } from "./__fixtures__/arcv2-profile";
+import { ISLAND_DEFAULTS } from "./island/config";
 
 const legacyPanel: PanelDef = {
   id: "p",
@@ -116,7 +117,7 @@ describe("mergeConfig", () => {
     // Stored before the sensor, reserve and tint options existed: those take their defaults.
     const island = { enabled: true, idle: "time-date", size: "l", offsetY: 99, collapseAfter: 30 };
     const [mine] = mergeConfig({ profiles: [userProfile({ island } as never)] }).profiles;
-    expect(mine.island).toEqual({ ...island, offsetY: 64, sensorKey: "", sensorLabel: "", reserve: false, tint: "black" });
+    expect(mine.island).toEqual({ ...island, offsetY: 64, sensorKey: "", sensorLabel: "", reserve: false, tint: "black", notices: ISLAND_DEFAULTS.notices, calendarLead: 10 });
     // It is a profile field, so it survives the page view round trip.
     expect(applyView(mine, profileWithPage(mine)).island).toEqual(mine.island);
   });

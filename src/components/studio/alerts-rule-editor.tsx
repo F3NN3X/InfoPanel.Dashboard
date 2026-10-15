@@ -15,6 +15,7 @@ import {
 } from "@/lib/alerts";
 import { postControl } from "@/lib/control";
 import type { DataPoint } from "@/lib/data-points";
+import { parseNameList } from "@/lib/name-list";
 import type { DashboardConfig } from "@/lib/layout";
 import { sensorAt } from "@/lib/sensors";
 import { cn } from "@/lib/utils";
@@ -60,14 +61,7 @@ export const NOTIFICATION_APPS_KEY = "plugins.InfoPanel.Notifications.windows.ap
 
 export function notificationApps(points: readonly DataPoint[]): string[] {
   const p = points.find((x) => x.key === NOTIFICATION_APPS_KEY);
-  if (!p) return [];
-  try {
-    const list: unknown = JSON.parse(p.raw);
-    if (Array.isArray(list)) return list.filter((s): s is string => typeof s === "string");
-  } catch {
-    // Not JSON: a plain list.
-  }
-  return p.raw.split(",").map((s) => s.trim()).filter(Boolean);
+  return p ? parseNameList(p.raw) : [];
 }
 
 /** The live line under the sensor: the current value and whether the rule would fire on it now. */

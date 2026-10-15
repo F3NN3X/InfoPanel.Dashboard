@@ -101,6 +101,8 @@ export default function App() {
   const control = useControl(shownId, kiosk && shownId !== undefined);
   // A tap or swipe switches at once; the server's state takes over when it arrives.
   const [optimistic, setOptimistic] = useState<{ profile: string; page: string } | null>(null);
+  // Kiosk: studio saves pulled since load (the island's "Layout updated").
+  const [layoutVersion, setLayoutVersion] = useState(0);
   useEffect(() => setOptimistic(null), [control]);
   const forcedProfile = kiosk ? kioskProfileId({ pin: profilePin, control, config }) : undefined;
   const stored = resolveProfile(
@@ -132,12 +134,13 @@ export default function App() {
   const splitAlerts = useMemo(() => splitIslandAlerts(shownAlerts, island !== undefined), [shownAlerts, island]);
   // On the kiosk the island also gets the Data API warning and the widgets sent to it (every page).
   const quietHours = config.alerts?.quietHours;
+  const pageName = stored.pages.find((p) => p.id === profile.pageId)?.name ?? "";
   const islandLive = useMemo(
     () =>
       kiosk && island
-        ? { feeds: islandFeeds(stored.pages.flatMap((p) => p.placements), modules), quietHours }
+        ? { feeds: islandFeeds(stored.pages.flatMap((p) => p.placements), modules), quietHours, page: pageName, layoutVersion }
         : undefined,
-    [kiosk, island, stored.pages, quietHours]
+    [kiosk, island, stored.pages, quietHours, pageName, layoutVersion]
   );
   const islandPage = useMemo(() => ({ width: profile.width, height: profile.height }), [profile.width, profile.height]);
   const reserve = islandReserve(island, islandPage);
@@ -249,10 +252,15 @@ export default function App() {
   useEffect(() => {
     if (!kiosk) return;
     let alive = true;
+    // The last config pulled, so a reconnect (the same version again) is not counted as an update.
+    let last: string | null = null;
     const pull = async () => {
       try {
         const parsed = await fetchConfig();
         if (!alive || !parsed) return; // nothing saved yet — the local copy stands
+        const text = JSON.stringify(parsed);
+        if (last !== null && text !== last) setLayoutVersion((v) => v + 1);
+        last = text;
         const merged = withPinnedProfile(mergeConfig(parsed));
         saveConfig(merged); // also seed the local copy (offline fallback)
         setConfig(merged);

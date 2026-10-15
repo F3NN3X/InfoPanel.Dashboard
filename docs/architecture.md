@@ -1103,11 +1103,23 @@ through one notice bus (`islandBus`, a pure queue in `queue.ts` driven by one ti
   top toast) and the island syncs them in as the `alerts` source.
 - **The dashboard's own notices** (kiosk only, mounted by `LiveSources`): the Data API disconnect
   warning (`system.ts`), and the widgets whose "Send to island" is on (`sources.ts`,
-  `use-island-sources.ts`). A template opts in with `island` on `templateModule`; its pure
-  `derive(prev, next, settings)` runs on one shared `useSensors` over the union of the sources'
-  prefixes (Wave Link: the shared `wavelink` client). The first data is a baseline. Quiet hours gate
-  these notices (`quiet.ts`).
-- **Live activities** (the playing track) show beside the time while nothing is open.
+  `use-island-sources.ts`). A template opts in with `island` on `templateModule`, which adds the toggle
+  and the source's own options. A data source's pure `derive(prev, next, settings)` runs once per new
+  reading on one shared `useSensors` over the union of the sources' prefixes; a store source (Wave
+  Link, the Timer) watches its client store (`storeSource`). The first data is a baseline. The
+  definitions are in `src/widgets/island-sources.ts` and `src/widgets/island/`.
+- **Dashboard notices** switched on per profile (`IslandConfig.notices`, `use-dashboard-notices.ts`): the
+  page name, "Layout updated" (a config pull that changed something), a plugin back (`/api/sources`
+  polled), OBS on air and the calendar countdown. The last two come from the server's extras
+  (`src/lib/extras.ts`, SSE `/events/extras`). Quiet hours gate all of these notices (`quiet.ts`).
+- **Live activities** (the playing track, the game and its FPS, a download, the timer, the next event,
+  the OBS Live dot) show beside the time while nothing is open; the highest priority, then the newest,
+  shows.
+
+The server's extras (`server/extras.mjs`) hold one OBS connection (`obs.mjs`, obs-websocket 5 over
+Node's WebSocket) and fetch the calendar links (`calendar.mjs`, parsed by `ical.mjs`) for every kiosk.
+Their settings are in `integrations.json` beside the config, never in `config.json`: the studio writes
+them with `PUT /api/integrations` and reads them back without the password or the links' URLs.
 
 The studio canvas mounts the island inside the page box and plays only test alerts and the Preview
 button's samples. "Reserve space" adds `islandReserve` to the page's top padding on the kiosk and the

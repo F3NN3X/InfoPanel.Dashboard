@@ -244,6 +244,7 @@ Tested spans: 1x1, 2x1, 3x1, 4x1, 6x1, 1x2, 2x2, 3x2, 4x2, 6x2, 2x3, 3x3, 3x4, 4
 | Neutral below thresholds (`neutral`) | 2x2, 3x2, 4x2, 6x2, 2x3, 3x3, 3x4, 4x4, 6x4 | — |
 | Warn at % (`warn`) | every size | — |
 | Critical at % (`crit`) | every size | — |
+| Send to island (`island`) | *kiosk Dynamic Island* | the profile's island on |
 
 ## StorageHealth
 
@@ -277,6 +278,8 @@ Tested spans: 1x1, 2x1, 3x1, 4x1, 6x1, 1x2, 2x2, 3x2, 4x2, 6x2, 2x3, 3x3, 3x4, 4
 | Upload color (`uploadColor`) | all but 1x1, 3x1, 4x1, 6x1, 1x2 | — |
 | Adapter (`adapter`) | every size | the device or source list of the live data |
 | Chart (`chart`) | all but 1x1, 3x1, 4x1, 6x1, 1x2 | when sparkline=true |
+| Send to island (`island`) | *kiosk Dynamic Island* | the profile's island on |
+| Show above (MB/s) (`islandMinRate`) | *kiosk Dynamic Island* | Send to island on |
 
 ## NetworkAdapters
 
@@ -287,6 +290,8 @@ Tested spans: 1x1, 2x1, 3x1, 4x1, 6x1, 1x2, 2x2, 3x2, 4x2, 6x2, 2x3, 3x3, 3x4, 4
 | Show adapters that are down (`showDown`) | all but 1x1, 3x1, 4x1, 6x1, 1x2 | — |
 | IPv6 count (`showIpv6`) | all but 1x1, 3x1, 4x1, 6x1, 1x2 | — |
 | Blur addresses (`hideIp`) | all but 1x1, 3x1, 4x1, 6x1, 1x2 | — |
+| Send to island (`island`) | *kiosk Dynamic Island* | the profile's island on |
+| Public IP changes (`islandPublicIp`) | *kiosk Dynamic Island* | Send to island on |
 
 ## Clock
 
@@ -298,6 +303,18 @@ Tested spans: 1x1, 2x1, 3x1, 4x1, 6x1, 1x2, 2x2, 3x2, 4x2, 6x2, 2x3, 3x3, 3x4, 4
 | Hours (`format`) | every size | — |
 | Seconds (`showSeconds`) | all but 1x1, 1x2 | — |
 | Date (`showDate`) | every size | — |
+
+## Timer
+
+Not generated: written by hand (the widget reads no sensor; its countdown is the page's own timer).
+
+| Setting | Takes effect at | Needs |
+|---|---|---|
+| Presets (minutes) (`presets`) | every size | the timer idle; as many whole rows of buttons as fit |
+| Pomodoro button (`pomodoro`) | every size | the timer idle |
+| Focus (min) (`focusMin`) | every size | Pomodoro button on |
+| Break (min) (`breakMin`) | every size | Pomodoro button on |
+| Send to island (`island`) | *kiosk Dynamic Island* | the profile's island on |
 
 ## Calendar
 
@@ -322,6 +339,7 @@ Tested spans: 1x1, 2x1, 3x1, 4x1, 6x1, 1x2, 2x2, 3x2, 4x2, 6x2, 2x3, 3x3, 3x4, 4
 | Provider (`provider`) | every size | — |
 | Location (`location`) | every size | the device or source list of the live data |
 | Units (`units`) | every size | — |
+| Send to island (`island`) | *kiosk Dynamic Island* | the profile's island on |
 
 ## Forecast
 
@@ -440,6 +458,8 @@ Tested spans: 1x1, 2x1, 3x1, 4x1, 6x1, 1x2, 2x2, 3x2, 4x2, 6x2, 2x3, 3x3, 3x4, 4
 | Device name (`showDevice`) | every size | — |
 | Show mute state (`showMute`) | — | when a session is muted |
 | Level bar color (`levelColor`) | 3x2, 4x2, 6x2, 3x3, 3x4, 4x4, 6x4 | — |
+| Send to island (`island`) | *kiosk Dynamic Island* | the profile's island on |
+| Output switched (`islandDevice`) | *kiosk Dynamic Island* | Send to island on |
 
 ## MeterBridge
 
@@ -510,6 +530,7 @@ Tested spans: 1x1, 2x1, 3x1, 4x1, 6x1, 1x2, 2x2, 3x2, 4x2, 6x2, 2x3, 3x3, 3x4, 4
 | Muted / offline color (`muteColor`) | every size | — |
 | Level color (`levelColor`) | every size | — |
 | Send to island (`island`) | *kiosk Dynamic Island* | the profile's island on |
+| Fader moves (`islandFaders`) | *kiosk Dynamic Island* | Send to island on |
 
 ## FpsMonitor
 
@@ -523,6 +544,9 @@ Tested spans: 1x1, 2x1, 3x1, 4x1, 6x1, 1x2, 2x2, 3x2, 4x2, 6x2, 2x3, 3x3, 3x4, 4
 | Trend sparkline (`sparkline`) | every size | when view=gauge or view=trend |
 | Ring color (`ringColor`) | every size | when view=gauge or view=trend |
 | Trend sparkline color (`sparkColor`) | all but 1x1, 3x1, 4x1, 6x1, 1x2 | when view=gauge or view=trend |
+| Send to island (`island`) | *kiosk Dynamic Island* | the profile's island on |
+| Game started notice (`islandStart`) | *kiosk Dynamic Island* | Send to island on |
+| Low FPS warning below (`islandFloor`) | *kiosk Dynamic Island* | Send to island on |
 
 ## GameSpotlight
 
@@ -586,6 +610,7 @@ Tested spans: 1x1, 2x1, 3x1, 4x1, 6x1, 1x2, 2x2, 3x2, 4x2, 6x2, 2x3, 3x3, 3x4, 4
 | Setting | Takes effect at | Needs |
 |---|---|---|
 | Progress display (`display`) | all but 1x1, 3x1, 4x1, 6x1, 1x2 | — |
+| Send to island (`island`) | *kiosk Dynamic Island* | the profile's island on |
 
 ## SteamLibrary
 
@@ -616,6 +641,7 @@ Tested spans: 1x1, 2x1, 3x1, 4x1, 6x1, 1x2, 2x2, 3x2, 4x2, 6x2, 2x3, 3x3, 3x4, 4
 | Setting | Takes effect at | Needs |
 |---|---|---|
 | Title lines (`lines`) | all but 1x1, 3x1, 4x1, 6x1, 1x2 | — |
+| Send to island (`island`) | *kiosk Dynamic Island* | the profile's island on |
 
 ## WebPage
 
@@ -641,6 +667,9 @@ Tested spans: 2x1, 3x1, 4x1, 6x1, 2x2, 3x2, 4x2, 6x2, 2x3, 3x3, 3x4, 4x4, 6x4.
 |---|---|---|
 | History list (`showHistory`) | all but 3x1, 4x1, 6x1 | — |
 | Max history lines (`maxLines`) | all but 2x1 | — |
+| Send to island (`island`) | *kiosk Dynamic Island* | the profile's island on |
+| Apps (`islandApps`) | *kiosk Dynamic Island* | Send to island on |
+| Show the message (`islandBody`) | *kiosk Dynamic Island* | Send to island on |
 
 ## Departures
 

@@ -51,6 +51,15 @@ describe("DynamicIsland", () => {
     expect(render(bus)).toContain('src="https://example.test/art.png"');
   });
 
+  it("shows a notice's level as a meter", () => {
+    const bus = createIslandBus();
+    bus.notify({ source: "VolumeMixer", id: "volume", severity: "info", title: "Volume 45%", progress: 0.45 });
+    const html = render(bus);
+    expect(html).toContain('role="meter"');
+    expect(html).toContain('aria-valuenow="45"');
+    expect(html).toContain("width:45%");
+  });
+
   it("shows a live activity beside the time", () => {
     const bus = createIslandBus();
     bus.setActivity({ source: "NowPlaying", id: "track", title: "Song", subtitle: "Artist", progress: 0.5 });

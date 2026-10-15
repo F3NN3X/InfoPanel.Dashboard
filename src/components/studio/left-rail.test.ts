@@ -7,6 +7,7 @@ describe("parseDrawer", () => {
     expect(parseDrawer("profiles")).toBe("profiles");
     expect(parseDrawer("add")).toBe("add");
     expect(parseDrawer("alerts")).toBe("alerts");
+    expect(parseDrawer("island")).toBe("island");
   });
 
   it("reads 'none' as collapsed", () => {

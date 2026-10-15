@@ -16,6 +16,7 @@ import SteamNews, { meta as steamNewsMeta, type SteamNewsProps } from "../SteamN
 import SteamProfile, { meta as steamProfileMeta, type SteamProfileProps } from "../SteamProfile";
 import SteamFriends, { meta as steamFriendsMeta, type FriendStatus, type SteamFriendsProps } from "../SteamFriends";
 import { steamFriendsIsland } from "../island-sources";
+import { achievementsIsland, fpsIsland, steamNewsIsland } from "../island/gaming";
 
 const OSD_CELLS = ["fps", "low", "ft", "gpu", "cpu", "vram", "display"] as const satisfies readonly OsdCell[];
 
@@ -78,6 +79,7 @@ export const GROUP_D: DashboardModule[] = [
       ...FPS_LOOK_SETTINGS.map(gaugeOnly),
     ],
     toProps: (s: ModuleSettings) => ({ target: targetOf(s.target), ...fpsLookProps(s) }),
+    island: fpsIsland,
   }),
   templateModule<Pick<GameSpotlightProps, "layout" | "motion" | "scrim" | "music" | "progress" | "vizMode" | "showStats" | "showNews">>({
     meta: gameSpotlightMeta,
@@ -180,6 +182,7 @@ export const GROUP_D: DashboardModule[] = [
     Component: Achievements,
     settings: [enumSetting("display", "Progress display", "ring", [{ value: "ring", label: "Ring" }, { value: "pips", label: "Pips" }], { group: "Achievements" })],
     toProps: (s) => ({ display: oneOf(s.display, ["ring", "pips"]) }),
+    island: achievementsIsland,
   }),
   templateModule<Pick<SteamLibraryProps, "showNews">>({
     meta: steamLibraryMeta,
@@ -194,5 +197,6 @@ export const GROUP_D: DashboardModule[] = [
     Component: SteamNews,
     settings: [numberSetting("lines", "Title lines", 2, { min: 1, max: 4, step: 1, group: "Steam news" })],
     toProps: (s) => ({ lines: numberOf(s.lines) }),
+    island: steamNewsIsland,
   }),
 ];

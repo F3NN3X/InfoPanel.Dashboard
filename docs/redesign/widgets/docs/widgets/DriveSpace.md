@@ -31,6 +31,9 @@ Keys read (literal parts; `${…}` segments are resolved at runtime by detection
 - Shapes handled explicitly: via CompactView
 - Inner content size (after padding + header) is passed to the layout as `{ w, h }`; tier/shape come from the outer size. See [../ARCHITECTURE.md](../ARCHITECTURE.md#sizing).
 
+## Dynamic Island
+Setting `island` (**Send to island**, off by default, in the Drive space group). With it on, a kiosk's Dynamic Island opens when a drive passes the widget's Warn (warning) or Critical (critical) threshold upwards, with the free space; the pinned Drive only, when set; every 6 h at most per drive. The rules are in `src/widgets/island/hardware.ts` (`driveSpaceIsland`); see [the island plan](../../../island/PLAN.md#what-shows-and-when).
+
 ## Core building blocks used
 `Widget` · `shell` · `get` · `num` · `fmt` · `fmtMB` · `Metric` · `Bar` · `BarRow` · `Ring` · `tone` · `Pill`
 

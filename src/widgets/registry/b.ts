@@ -3,6 +3,9 @@ import type { DashboardModule, ModuleSetting, ModuleSettings } from "@/modules/t
 import { templateModule } from "../module";
 import { SENSOR_GROUP_SETTINGS } from "./hardware-settings";
 import { boolOf, boolSetting, colorSetting, deviceSetting, enumSetting, itemsOf, itemsSetting, numberOf, numberSetting, oneOf, pass, rateUnitOf, rateUnitSetting, sensorSetting, splitKeys, textSetting } from "./settings-kit";
+import { driveSpaceIsland, networkAdaptersIsland, networkThroughputIsland } from "../island/hardware";
+import { weatherIsland } from "../island/info";
+import { timerIsland } from "../island/timer";
 import * as DriveSpace from "../DriveSpace";
 import * as StorageHealth from "../StorageHealth";
 import * as DiskIO from "../DiskIO";
@@ -10,12 +13,23 @@ import * as NetworkThroughput from "../NetworkThroughput";
 import * as NetworkAdapters from "../NetworkAdapters";
 import * as Clock from "../Clock";
 import * as Calendar from "../Calendar";
+import * as Timer from "../Timer";
 import * as Weather from "../Weather";
 import * as Forecast from "../Forecast";
 import * as SensorValue from "../SensorValue";
 import * as SensorGroup from "../SensorGroup";
 
 const THRESHOLDS = "Thresholds";
+
+/** "5, 15, 25" → [5, 15, 25]: whole minutes 1-1440, at most eight. */
+export const presetsOf = (v: unknown): number[] | undefined => {
+  const list = String(v ?? "")
+    .split(",")
+    .map((x) => Math.round(Number(x.trim())))
+    .filter((n) => Number.isFinite(n) && n >= 1 && n <= 1440)
+    .slice(0, 8);
+  return list.length ? list : undefined;
+};
 /** A number where blank = the widget's own default. */
 const optional = (key: string, label: string, group: string, hint?: string): ModuleSetting => textSetting(key, label, "", { group, hint });
 
@@ -144,6 +158,7 @@ export const GROUP_B: DashboardModule[] = [
     Component: DriveSpace.default,
     settings: DRIVE_SETTINGS,
     toProps: (s): Partial<DriveSpace.DriveSpaceProps> => ({ ...pass<Partial<DriveSpace.DriveSpaceProps>>("drive")(s), sort: oneOf(s.sort, ["usage", "name"]), ...numbersOf(s, ["warn", "crit"]), neutral: boolOf(s.neutral) }),
+    island: driveSpaceIsland,
   }),
   // any vendor's drive: the keys are read, not owned (the fallback grid keeps the rest of `libre.`)
   templateModule({ meta: StorageHealth.meta, Component: StorageHealth.default, prefixes: ["libre."], settings: [deviceSetting("disk", "Disk", "disk", { group: "Storage health", hint: "Auto = the first detected drive" })], toProps: pass<Partial<StorageHealth.StorageHealthProps>>("disk") }),
@@ -170,6 +185,7 @@ export const GROUP_B: DashboardModule[] = [
       ...pass<Partial<NetworkThroughput.NetworkThroughputProps>>("adapter", "chart", "showTotals", "sparkline", "downloadColor", "uploadColor")(s),
       rateUnit: rateUnitOf(s.rateUnit),
     }),
+    island: networkThroughputIsland,
   }),
   templateModule({
     meta: NetworkAdapters.meta,
@@ -180,6 +196,7 @@ export const GROUP_B: DashboardModule[] = [
       boolSetting("hideIp", "Blur addresses", false, { group: "Network adapters", hint: "Privacy: addresses stay blurred" }),
     ],
     toProps: (s): Partial<NetworkAdapters.NetworkAdaptersProps> => ({ ...pass<Partial<NetworkAdapters.NetworkAdaptersProps>>("showDown", "hideIp")(s), showIpv6: s.showIpv6 === "show" ? true : s.showIpv6 === "hide" ? false : undefined }),
+    island: networkAdaptersIsland,
   }),
   templateModule({
     meta: Clock.meta,
@@ -191,6 +208,23 @@ export const GROUP_B: DashboardModule[] = [
       boolSetting("showDate", "Date", true, { group: "Clock" }),
     ],
     toProps: pass<Partial<Clock.ClockProps>>("format", "showSeconds", "showDate", "face"),
+  }),
+  templateModule({
+    meta: Timer.meta,
+    Component: Timer.default,
+    settings: [
+      textSetting("presets", "Presets (minutes)", "5, 15, 25", { group: "Timer", hint: "The buttons, comma separated" }),
+      boolSetting("pomodoro", "Pomodoro button", false, { group: "Timer", hint: "Focus and break rounds until stopped" }),
+      numberSetting("focusMin", "Focus (min)", 25, { min: 5, max: 90, step: 5, group: "Timer", visibleIf: (v) => v.pomodoro === true }),
+      numberSetting("breakMin", "Break (min)", 5, { min: 1, max: 30, step: 1, group: "Timer", visibleIf: (v) => v.pomodoro === true }),
+    ],
+    toProps: (s): Partial<Timer.TimerProps> => ({
+      presets: presetsOf(s.presets),
+      pomodoro: boolOf(s.pomodoro),
+      focusMin: numberOf(s.focusMin),
+      breakMin: numberOf(s.breakMin),
+    }),
+    island: timerIsland,
   }),
   templateModule({
     meta: Calendar.meta,
@@ -210,6 +244,7 @@ export const GROUP_B: DashboardModule[] = [
       units("Display"),
     ],
     toProps: (s) => ({ ...pass<Partial<Weather.WeatherProps>>("location", "units")(s), provider: oneOf(s.provider, ["yr", "owm"]), ...weatherToProps(s) }),
+    island: weatherIsland,
   }),
   templateModule({
     meta: Forecast.meta,

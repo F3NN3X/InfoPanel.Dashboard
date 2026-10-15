@@ -33,6 +33,9 @@ Keys read (literal parts; `${…}` segments are resolved at runtime by detection
 - Shapes handled explicitly: via CompactView
 - Inner content size (after padding + header) is passed to the layout as `{ w, h }`; tier/shape come from the outer size. See [../ARCHITECTURE.md](../ARCHITECTURE.md#sizing).
 
+## Dynamic Island
+Setting `island` (**Send to island**, off by default, in the Network adapters group). With it on, a kiosk's Dynamic Island opens when an adapter connects (info) or drops (warning). Option `islandPublicIp` (*Public IP changes*, off). The rules are in `src/widgets/island/hardware.ts` (`networkAdaptersIsland`); see [the island plan](../../../island/PLAN.md#what-shows-and-when).
+
 ## Core building blocks used
 `Widget` · `shell` · `get` · `num` · `fmt` · `has` · `Dot` · `Chip` · `Icon`
 

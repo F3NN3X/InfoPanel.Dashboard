@@ -12,6 +12,9 @@
 // rotation; server/control.mjs) for kiosks, the studio and the Stream Deck,
 // and the alert engine (server/alerts.mjs) that watches the Data API for the
 // rules in config.alerts and publishes the active alerts through that state.
+// The extras (server/extras.mjs) connect to OBS and fetch the calendar links
+// for the Dynamic Island; their secrets live in integrations.json, which no
+// page ever downloads.
 //
 // Node built-ins only. Environment:
 //   PORT  listen port (default 3922)
@@ -30,6 +33,7 @@ import { createAlerts } from "./server/alerts.mjs";
 import { createAssets } from "./server/assets.mjs";
 import { versionRefusal } from "./server/config-guard.mjs";
 import { createControl } from "./server/control.mjs";
+import { createExtras } from "./server/extras.mjs";
 import { configWriteRefusal, controlWriteRefusal, createRequestGuard, parseAllowedHosts } from "./server/request-guard.mjs";
 
 const PORT = Number(process.env.PORT) || 3922;
@@ -42,6 +46,7 @@ const CONFIG_FILE = path.join(DATA_DIR, "config.json");
 const ASSETS_DIR = path.join(DATA_DIR, "assets");
 const CONTROL_FILE = path.join(DATA_DIR, "control.json");
 const ALERTS_FILE = path.join(DATA_DIR, "alerts.json");
+const INTEGRATIONS_FILE = path.join(DATA_DIR, "integrations.json");
 
 const MAX_CONFIG_BYTES = 5 * 1024 * 1024;
 const MAX_PROXY_BYTES = 25 * 1024 * 1024;
@@ -101,6 +106,8 @@ const control = createControl({ file: CONTROL_FILE, readConfig: readConfigFile }
 const MAX_CONTROL_BYTES = 4096;
 const CONTROL_ACTIONS = new Set(["page", "profile", "rotate", "touch", "alert"]);
 const alerts = createAlerts({ file: ALERTS_FILE, readConfig: readConfigFile, control });
+const extras = createExtras({ file: INTEGRATIONS_FILE, log: (m) => console.log(m) });
+const MAX_INTEGRATIONS_BYTES = 16 * 1024;
 
 /**
  * GET /api/control → the state; POST /api/control/<action> with a JSON body → the new state.
@@ -156,6 +163,47 @@ function handleControlEvents(req, res, query) {
     clearInterval(keepAlive);
     unsubscribe();
   });
+}
+
+/** SSE of the extras (OBS on air, upcoming calendar events): the state now, then each change. */
+function handleExtrasEvents(req, res) {
+  res.writeHead(200, {
+    "Content-Type": "text/event-stream",
+    "Cache-Control": "no-store",
+    Connection: "keep-alive",
+  });
+  const write = (state) => res.write(`data: ${JSON.stringify(state)}
+
+`);
+  write(extras.state());
+  const unsubscribe = extras.subscribe(write);
+  const keepAlive = setInterval(() => res.write(": keep-alive
+
+"), 15_000);
+  req.on("close", () => {
+    clearInterval(keepAlive);
+    unsubscribe();
+  });
+}
+
+/**
+ * GET /api/integrations → the OBS and calendar settings without their secrets; PUT with a patch
+ * (server/integrations.mjs `applyIntegrations`) → the same. Writes need the config write header.
+ */
+async function handleIntegrations(req, res) {
+  if (req.method === "GET") return send(res, 200, JSON.stringify(extras.integrations.public()), TYPES[".json"]);
+  if (req.method !== "PUT") return send(res, 405);
+  const refusal = configWriteRefusal(req.headers);
+  if (refusal) return send(res, refusal.status, refusal.message);
+  let body;
+  try {
+    body = JSON.parse((await readBody(req, MAX_INTEGRATIONS_BYTES)) || "{}");
+  } catch {
+    return send(res, 400, "expected a JSON object");
+  }
+  const result = extras.integrations.apply(body);
+  if (result.error) return send(res, 400, result.error);
+  send(res, 200, JSON.stringify(extras.integrations.public()), TYPES[".json"]);
 }
 
 /* ---------------- helpers ---------------- */
@@ -320,6 +368,9 @@ const server = http.createServer(async (req, res) => {
     if (pathname === "/api/control" || pathname.startsWith("/api/control/")) return await handleControl(req, res, pathname);
     if (pathname === "/api/alerts/history") return handleAlertHistory(req, res);
     if (pathname === "/events/control") return handleControlEvents(req, res, searchParams);
+    if (pathname === "/api/extras") return req.method === "GET" ? send(res, 200, JSON.stringify(extras.state()), TYPES[".json"]) : send(res, 405);
+    if (pathname === "/events/extras") return handleExtrasEvents(req, res);
+    if (pathname === "/api/integrations") return await handleIntegrations(req, res);
     if (pathname === "/api/image-proxy") return await handleImageProxy(req, res, searchParams);
     if (pathname === "/api/assets" || pathname.startsWith("/api/assets/")) {
       return await handleAssets(req, res, pathname, searchParams);

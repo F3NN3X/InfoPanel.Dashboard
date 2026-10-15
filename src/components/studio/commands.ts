@@ -115,6 +115,7 @@ const DRAWERS: { drawer: Drawer; label: string }[] = [
   { drawer: "add", label: "Add" },
   { drawer: "layers", label: "Layers" },
   { drawer: "profiles", label: "Profiles" },
+  { drawer: "island", label: "Dynamic Island" },
   { drawer: "alerts", label: "Alerts" },
 ];
 
