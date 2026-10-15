@@ -128,8 +128,10 @@ export function createIntegrations({ file }) {
       state = result.state;
       fs.mkdirSync(path.dirname(file), { recursive: true });
       const tmp = `${file}.tmp`;
-      fs.writeFileSync(tmp, JSON.stringify(state, null, 2));
+      // Owner-only: it holds the OBS password and the secret calendar links (POSIX; Windows keeps the folder's ACL).
+      fs.writeFileSync(tmp, JSON.stringify(state, null, 2), { mode: 0o600 });
       fs.renameSync(tmp, file);
+      fs.chmodSync(file, 0o600);
       for (const l of listeners) l(state, prev);
       return { state };
     },
