@@ -18,9 +18,8 @@ const COLLAPSED_KEY = "studio.dockCollapsed";
 
 /** Width of the side inspector. */
 export const INSPECTOR_WIDTH = 340;
-/** Width of the icon rail and of the open left panel (`w-64`). */
+/** Width of the icon rail (the left panel's width is the viewer's, see `useStoredDrawerWidth`). */
 export const RAIL_WIDTH = 52;
-export const DRAWER_WIDTH = 256;
 
 /** The stored layout mode; anything unknown = auto. */
 export function parseMode(raw: string | null): LayoutMode {

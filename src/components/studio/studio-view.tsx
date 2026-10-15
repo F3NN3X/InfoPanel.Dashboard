@@ -201,6 +201,8 @@ function StudioViewBody({
   const drawerEl = drawer && (
     <StudioDrawer
       drawer={drawer}
+      width={ui.drawerWidth}
+      onResize={ui.setDrawerWidth}
       insert={{
         grid: profile,
         savedPanels: config.panelPresets,

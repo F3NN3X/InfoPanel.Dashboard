@@ -8,6 +8,9 @@ import { IslandPanel } from "./island-panel";
 
 interface StudioDrawerProps {
   drawer: Drawer;
+  /** The panel's width, and the commit of a dragged one. */
+  width: number;
+  onResize: (width: number) => void;
   insert: ComponentProps<typeof InsertPanel>;
   layers: ComponentProps<typeof LayersPanel>;
   profiles: ComponentProps<typeof ProfilesPanel>;
@@ -16,9 +19,9 @@ interface StudioDrawerProps {
 }
 
 /** The open left panel (Layers, Add, Profiles, Dynamic Island or Alerts), a column beside the rail in either dock position. */
-export function StudioDrawer({ drawer, insert, layers, profiles, alerts, island }: StudioDrawerProps) {
+export function StudioDrawer({ drawer, width, onResize, insert, layers, profiles, alerts, island }: StudioDrawerProps) {
   return (
-    <LeftDrawer>
+    <LeftDrawer width={width} onResize={onResize}>
       {drawer === "add" && <InsertPanel {...insert} />}
       {drawer === "layers" && <LayersPanel {...layers} />}
       {drawer === "profiles" && <ProfilesPanel {...profiles} />}

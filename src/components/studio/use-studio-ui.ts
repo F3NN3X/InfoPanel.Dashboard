@@ -2,12 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import type { DashboardConfig, ProfileView, Widget } from "@/lib/layout";
 import type { InspectorTab, ModuleSettings } from "@/modules/types";
 import { useToast } from "@/components/ui/toast";
-import { useStoredDrawer, type Drawer, type RailItem } from "./left-rail";
+import { useStoredDrawer, useStoredDrawerWidth, type Drawer, type RailItem } from "./left-rail";
 import { revealWidgetEditor, scrollInspectorToTop } from "./inspector-scroll";
 import { useCanvasZoom } from "./use-canvas-zoom";
 import { useStoredFlag } from "./use-stored-flag";
 import type { StudioMode } from "./studio-top-bar";
-import { DRAWER_WIDTH, RAIL_WIDTH, pageSize, useStudioLayout } from "./use-studio-layout";
+import { RAIL_WIDTH, pageSize, useStudioLayout } from "./use-studio-layout";
 
 /**
  * The studio's view state, apart from the selection: Design | Sources,
@@ -21,6 +21,7 @@ export function useStudioUi(config: DashboardConfig, profile: ProfileView, onSav
   const showSources = mode === "sources";
   const toggleSources = () => setMode((m) => (m === "sources" ? "design" : "sources"));
   const [drawer, setDrawer] = useStoredDrawer();
+  const [drawerWidth, setDrawerWidth] = useStoredDrawerWidth();
   const [showGrid, setShowGrid] = useStoredFlag("studio.grid", true);
   const [showRulers, setShowRulers] = useStoredFlag("studio.rulers", true);
   /** The panel the rail last had open, for the zoom bar's left-panel toggle. */
@@ -83,7 +84,7 @@ export function useStudioUi(config: DashboardConfig, profile: ProfileView, onSav
   const studioLayout = useStudioLayout({
     page,
     rail: RAIL_WIDTH,
-    drawer: !showSources && drawer ? DRAWER_WIDTH : 0,
+    drawer: !showSources && drawer ? drawerWidth : 0,
     design: { width: profile.width, height: profile.height },
     forceSide: showSources,
   });
@@ -143,6 +144,8 @@ export function useStudioUi(config: DashboardConfig, profile: ProfileView, onSav
     toggleSources,
     drawer,
     setDrawer,
+    drawerWidth,
+    setDrawerWidth,
     onRail,
     toggleLeft,
     showGrid,

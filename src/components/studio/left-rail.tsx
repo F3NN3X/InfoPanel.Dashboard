@@ -1,7 +1,47 @@
-import { useState, type ReactNode } from "react";
+import { useCallback, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { Tooltip } from "@base-ui/react/tooltip";
 import { Bell, Database, Keyboard, Layers, PanelTop, SquarePlus, Monitor, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+/** The left panel's width: the original 256px is the least, a drag widens it up to the most. */
+export const DRAWER_MIN_WIDTH = 256;
+export const DRAWER_MAX_WIDTH = 440;
+
+/** A width inside the left panel's range, rounded. */
+export function clampDrawerWidth(width: number): number {
+  return Math.round(Math.min(DRAWER_MAX_WIDTH, Math.max(DRAWER_MIN_WIDTH, width)));
+}
+
+/** The stored left panel width; anything but a number = the least. */
+export function parseDrawerWidth(raw: string | null): number {
+  const n = raw === null ? NaN : Number(raw);
+  return Number.isFinite(n) ? clampDrawerWidth(n) : DRAWER_MIN_WIDTH;
+}
+
+/** localStorage key holding the dragged left panel width. */
+const WIDTH_KEY = "studio.drawerWidth";
+
+/** The left panel's width, remembered across reloads (localStorage `studio.drawerWidth`). */
+export function useStoredDrawerWidth() {
+  const [width, setWidth] = useState(() => {
+    try {
+      return parseDrawerWidth(localStorage.getItem(WIDTH_KEY));
+    } catch {
+      return DRAWER_MIN_WIDTH;
+    }
+  });
+  const set = useCallback((next: number) => {
+    const clamped = clampDrawerWidth(next);
+    setWidth(clamped);
+    try {
+      if (clamped === DRAWER_MIN_WIDTH) localStorage.removeItem(WIDTH_KEY);
+      else localStorage.setItem(WIDTH_KEY, String(clamped));
+    } catch {
+      // Storage unavailable (private mode, quota): keep the session state.
+    }
+  }, []);
+  return [width, set] as const;
+}
 
 /** The left panels; Sources is a canvas mode, not a panel. */
 export type Drawer = "add" | "layers" | "profiles" | "island" | "alerts";
@@ -111,11 +151,84 @@ export function LeftRail({ active, onSelect, onShortcuts }: LeftRailProps) {
   );
 }
 
-/** The 256px left panel next to the rail; the panels bring their own header and scrolling. */
-export function LeftDrawer({ children }: { children: ReactNode }) {
+interface DrawerSplitterProps {
+  /** The left panel's current width. */
+  width: number;
+  /** Commit a dragged width. */
+  onCommit: (width: number) => void;
+}
+
+/**
+ * The grab area on the left panel's right edge. Like the dock's splitter, a
+ * drag only moves a guide line and the width is committed on release (the
+ * canvas does not re-lay out on every pointer move). Double-click resets to
+ * the narrowest width.
+ */
+function DrawerSplitter({ width, onCommit }: DrawerSplitterProps) {
+  /** The pointer's offset from where the drag started (px, right = positive). */
+  const [drag, setDrag] = useState<number | null>(null);
+
+  const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    const el = e.currentTarget;
+    el.setPointerCapture(e.pointerId);
+    const startX = e.clientX;
+    const target = (x: number) => clampDrawerWidth(width + x - startX);
+    const move = (ev: PointerEvent) => setDrag(target(ev.clientX) - width);
+    const up = (ev: PointerEvent) => {
+      el.removeEventListener("pointermove", move);
+      el.removeEventListener("pointerup", up);
+      el.removeEventListener("pointercancel", up);
+      setDrag(null);
+      if (ev.type === "pointercancel") return;
+      const next = target(ev.clientX);
+      if (next !== width) onCommit(next);
+    };
+    el.addEventListener("pointermove", move);
+    el.addEventListener("pointerup", up);
+    el.addEventListener("pointercancel", up);
+  };
+
   return (
-    <aside className="flex w-64 shrink-0 flex-col border-r border-ui-subtle bg-ui-panel font-ui">
+    <div
+      role="separator"
+      aria-orientation="vertical"
+      aria-label="Resize the left panel"
+      title="Drag to resize the panel (double-click for the narrowest)"
+      onPointerDown={onPointerDown}
+      onDoubleClick={() => onCommit(DRAWER_MIN_WIDTH)}
+      // Sits on the panel's right border: the border is the line, this is its grab area.
+      className="group absolute inset-y-0 -right-1.5 z-20 w-3 cursor-col-resize touch-none"
+    >
+      <div
+        className={cn(
+          "pointer-events-none absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2 bg-ui-accent/0 transition-colors group-hover:bg-ui-accent/60",
+          drag !== null && "bg-ui-accent"
+        )}
+        style={drag !== null ? { transform: `translateX(calc(-50% + ${drag}px))` } : undefined}
+      />
+    </div>
+  );
+}
+
+interface LeftDrawerProps {
+  /** The panel's width (px). */
+  width: number;
+  /** Commit a dragged width. */
+  onResize: (width: number) => void;
+  children: ReactNode;
+}
+
+/**
+ * The left panel next to the rail, widened by dragging its right edge; the
+ * panels bring their own header and scrolling.
+ */
+export function LeftDrawer({ width, onResize, children }: LeftDrawerProps) {
+  return (
+    <aside className="relative flex shrink-0 flex-col border-r border-ui-subtle bg-ui-panel font-ui" style={{ width }}>
       {children}
+      <DrawerSplitter width={width} onCommit={onResize} />
     </aside>
   );
 }
