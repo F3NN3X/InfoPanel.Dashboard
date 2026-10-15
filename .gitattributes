@@ -3,3 +3,5 @@
 docs/redesign/widgets/**/*.md text eol=lf
 # Vitest cannot parse a shebang line that ends in CR.
 tools/*.mjs text eol=lf
+# Vitest writes snapshots with LF; a CRLF checkout shows them modified after every run.
+*.snap text eol=lf
