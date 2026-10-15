@@ -1,4 +1,5 @@
 import type { CalendarEvent, ObsState } from "@/lib/extras";
+import { AGENT_COLORS, AGENT_IDS, AGENT_NAMES, bySalience, sessionStatus, shortDuration, type Agents } from "@/lib/agents";
 import type { IslandUpdate, SourceNotice } from "./sources";
 
 /**
@@ -98,4 +99,79 @@ export function calendarUpdate(
   else once(`${next.id}:now`, { id: `cal:${next.id}`, severity: "warning", title: next.title, body: `Starting now${where}`, ttl: 8000 });
   const progress = left > 0 ? Math.max(0, Math.min(1, 1 - left / lead)) : 1;
   return { activity: { id: "next", title: next.title, subtitle: startsIn(left), progress, color: "#3b82f6", priority: 1 }, notices, announced: done };
+}
+
+/** The coding agents raise as their own sources: the activity and finished turns, and the sessions waiting for you. */
+export const AGENTS_SOURCE = "agents";
+export const AGENTS_WAITING_SOURCE = "agents-waiting";
+/** A finished turn opens the island only when it ran at least this long, ms (short replies would flicker). */
+export const AGENT_DONE_MIN_MS = 20_000;
+/** Plan use that opens the island once per window when crossed, percent. */
+const PLAN_LEVELS = [80, 95] as const;
+
+const clockTime = (ms: number) => new Date(ms).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+
+/**
+ * The coding agents (`src/lib/agents.ts`): the most urgent session beside the time (waiting, then
+ * working) with its plan use as the progress bar; a notice when a long turn finishes or fails, and
+ * when a plan window passes 80 % or 95 %; and `waiting`, the complete set of sessions that need you
+ * (synced as their own source, so each stays as a badge until answered).
+ */
+export function agentsUpdate(prev: Agents | null, next: Agents, now: number): IslandUpdate & { waiting: SourceNotice[] } {
+  const active = next.sessions.filter((s) => s.state === "working" || s.state === "waiting").sort(bySalience);
+  const top = active[0];
+  const plan = top ? next.plan[top.agent]?.fiveHour : undefined;
+  const activity = top
+    ? {
+        id: "agent",
+        title: `${AGENT_NAMES[top.agent]}${top.project ? ` · ${top.project}` : ""}${active.length > 1 ? ` +${active.length - 1}` : ""}`,
+        subtitle: sessionStatus(top, now),
+        color: AGENT_COLORS[top.agent],
+        pulse: top.state === "working",
+        priority: top.state === "waiting" ? 3 : 1,
+        ...(plan ? { progress: plan.used / 100 } : {}),
+      }
+    : null;
+  const waiting: SourceNotice[] = next.sessions
+    .filter((s) => s.state === "waiting")
+    .map((s) => ({
+      id: s.key,
+      severity: "warning" as const,
+      title: `${AGENT_NAMES[s.agent]} needs you`,
+      body: [s.project, s.tool].filter(Boolean).join(" · ") || undefined,
+      badge: true,
+      ttl: 10_000,
+    }));
+  if (!prev) return { activity, notices: [], waiting };
+
+  const notices: SourceNotice[] = [];
+  const before = new Map(prev.sessions.map((s) => [s.key, s]));
+  for (const s of next.sessions) {
+    const was = before.get(s.key);
+    if (!was || was.state === s.state) continue;
+    const name = AGENT_NAMES[s.agent];
+    if (s.state === "done" && (s.lastTurnMs ?? 0) >= AGENT_DONE_MIN_MS) {
+      notices.push({ id: `done:${s.key}:${s.since}`, severity: "info", title: `${name} finished`, body: `${s.project ? `${s.project} · ` : ""}in ${shortDuration(s.lastTurnMs ?? 0)}`, ttl: 5000 });
+    } else if (s.state === "error") {
+      notices.push({ id: `error:${s.key}:${s.since}`, severity: "warning", title: `${name} stopped with an error`, ...(s.project ? { body: s.project } : {}), ttl: 8000 });
+    }
+  }
+  for (const agent of AGENT_IDS) {
+    for (const [label, key] of [["5-hour", "fiveHour"], ["weekly", "sevenDay"]] as const) {
+      const was = prev.plan[agent]?.[key]?.used;
+      const w = next.plan[agent]?.[key];
+      if (was === undefined || !w) continue;
+      const crossed = PLAN_LEVELS.filter((l) => was < l && w.used >= l).at(-1);
+      if (crossed === undefined) continue;
+      notices.push({
+        id: `plan:${agent}:${key}:${crossed}:${w.resetsAt ?? ""}`,
+        severity: "warning",
+        title: `${AGENT_NAMES[agent]} plan at ${Math.round(w.used)}%`,
+        body: `${label} limit${w.resetsAt ? ` · resets ${clockTime(w.resetsAt)}` : ""}`,
+        ttl: 8000,
+        cooldownMs: 3_600_000,
+      });
+    }
+  }
+  return { activity, notices, waiting };
 }

@@ -24,9 +24,11 @@ export interface QueueState {
   ended: Readonly<Record<string, number>>;
   /** Open time for notices that stay until tapped, ms (Infinity = until tapped). */
   stickyMs: number;
+  /** A notice with a `group` replaces the held one of its source and group, counting up. */
+  grouping: boolean;
 }
 
-export const emptyQueue = (stickyMs = Infinity): QueueState => ({ items: [], open: null, ended: {}, stickyMs });
+export const emptyQueue = (stickyMs = Infinity): QueueState => ({ items: [], open: null, ended: {}, stickyMs, grouping: false });
 
 export const keyOf = (source: string, id: string) => `${source}:${id}`;
 
@@ -93,6 +95,7 @@ function upsert(s: QueueState, n: IslandNotice, now: number): QueueState {
     body: n.body,
     image: n.image,
     progress: n.progress,
+    group: n.group,
     onTap: n.onTap ?? "dismiss",
     alertId: n.alertId,
     cooldownMs: n.cooldownMs ?? 0,
@@ -104,7 +107,12 @@ function upsert(s: QueueState, n: IslandNotice, now: number): QueueState {
     const item = { ...prev, ...fields, updatedAt: now, remaining: rose ? openTime(n, s.stickyMs) : prev.remaining };
     return { ...s, items: s.items.map((i) => (i.key === key ? item : i)) };
   }
-  const item: IslandItem = { key, source: n.source, id: n.id, ...fields, firstAt: now, updatedAt: now, remaining: openTime(n, s.stickyMs) };
+  // Grouping: the new notice takes the held one of its group's place (whose cooldown still counts) and counts it.
+  const same = s.grouping && n.group !== undefined ? s.items.find((i) => i.source === n.source && i.group === n.group) : undefined;
+  const base = same ? remove(s, new Set([same.key]), now) : s;
+  const count = same ? same.count + 1 : 1;
+  const item: IslandItem = { key, source: n.source, id: n.id, ...fields, count, firstAt: now, updatedAt: now, remaining: openTime(n, s.stickyMs) };
+  s = base;
   const items = [...s.items, item];
   if (items.length <= MAX_ITEMS) return { ...s, items };
   const weakest = items.filter((i) => i.key !== s.open?.key).sort(stronger).at(-1);
@@ -143,6 +151,9 @@ export function setSticky(s: QueueState, stickyMs: number, now: number): QueueSt
     items: t.items.map((i) => (i.remaining === t.stickyMs ? { ...i, remaining: stickyMs } : i)),
   }));
 }
+
+/** Switch grouping (the profile's "Group notices"); notices already held stay as they are. */
+export const setGrouping = (s: QueueState, grouping: boolean): QueueState => (s.grouping === grouping ? s : { ...s, grouping });
 
 /** Open a held notice again for `ms` (a tap on the badge); the open one, if any, keeps its time. */
 export const peek = (s: QueueState, source: string, id: string, ms: number, now: number): QueueState =>

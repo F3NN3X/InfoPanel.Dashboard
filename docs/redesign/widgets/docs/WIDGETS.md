@@ -14,6 +14,7 @@
 | [Service Health](widgets/ServiceHealth.md) | `ServiceHealth` | 2×2 | Status board for every data source: Data API, LibreHW, RTSS, Wave Link, Spotify, Steam, weather and network.. |
 | [Processes](widgets/ProcessList.md) | `ProcessList` | 2×2 | Top processes by CPU or memory plus process, thread and handle counts.. |
 | [Uptime](widgets/Uptime.md) | `Uptime` | 2×1 | Time since boot, split into days, hours, minutes and seconds.. |
+| [Coding Agents](widgets/CodingAgents.md) | `CodingAgents` | 3×3 | Claude Code and Codex: each session working, waiting or done, the plan's 5-hour and weekly use, and tokens per day. |
 
 ### Hardware
 | Widget | Component | Default span | Summary |

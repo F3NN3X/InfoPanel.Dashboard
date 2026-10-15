@@ -14,6 +14,7 @@ import * as NetworkAdapters from "../NetworkAdapters";
 import * as Clock from "../Clock";
 import * as Calendar from "../Calendar";
 import * as Timer from "../Timer";
+import * as CodingAgents from "../CodingAgents";
 import * as Weather from "../Weather";
 import * as Forecast from "../Forecast";
 import * as SensorValue from "../SensorValue";
@@ -225,6 +226,32 @@ export const GROUP_B: DashboardModule[] = [
       breakMin: numberOf(s.breakMin),
     }),
     island: timerIsland,
+  }),
+  templateModule({
+    meta: CodingAgents.meta,
+    Component: CodingAgents.default,
+    settings: [
+      enumSetting(
+        "agents",
+        "Agents",
+        "both",
+        [
+          { value: "both", label: "Claude and Codex" },
+          { value: "claude", label: "Claude Code" },
+          { value: "codex", label: "Codex" },
+        ],
+        { group: "Agents" }
+      ),
+      boolSetting("showPlan", "Plan use", true, { group: "Agents", hint: "The 5-hour and weekly windows, from the statusline (Claude) and the session files (Codex)" }),
+      boolSetting("showSessions", "Sessions", true, { group: "Agents", hint: "Each session: working with its tool, waiting for you, done" }),
+      boolSetting("showUsage", "Tokens per day", true, { group: "Agents", hint: "Today's tokens and the last 14 days, read from the transcripts" }),
+    ],
+    toProps: (s): Partial<CodingAgents.CodingAgentsProps> => ({
+      agents: oneOf(String(s.agents), ["both", "claude", "codex"] as const),
+      showPlan: boolOf(s.showPlan),
+      showSessions: boolOf(s.showSessions),
+      showUsage: boolOf(s.showUsage),
+    }),
   }),
   templateModule({
     meta: Calendar.meta,

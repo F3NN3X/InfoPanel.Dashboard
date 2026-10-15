@@ -86,7 +86,7 @@ describe("placementContent", () => {
 
 describe("template zones with no data", () => {
   it("keeps an explicit allow-list of the templates that render without sensor keys", () => {
-    expect([...SENSORLESS].sort()).toEqual(["Calendar", "Clock", "Timer", "WaveLink", "WebPage"]);
+    expect([...SENSORLESS].sort()).toEqual(["Calendar", "Clock", "CodingAgents", "Timer", "WaveLink", "WebPage"]);
   });
 
   it("hides every other template on an empty map and shows it with data", () => {

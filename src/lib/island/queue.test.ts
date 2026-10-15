@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { IslandNotice } from "./types";
-import { DEFAULT_TTL, dismiss, emptyQueue, MAX_ITEMS, nextDue, notify, peek, setSticky, snapshotOf, syncSource, tick, type QueueState } from "./queue";
+import { DEFAULT_TTL, dismiss, emptyQueue, MAX_ITEMS, nextDue, notify, peek, setGrouping, setSticky, snapshotOf, syncSource, tick, type QueueState } from "./queue";
 
 /** A notice that stays as a badge after its open time (as server alerts do), unless `over` says otherwise. */
 const n = (id: string, over: Partial<IslandNotice> = {}): IslandNotice => ({ source: "t", id, severity: "info", title: id, badge: true, ...over });
@@ -121,5 +121,37 @@ describe("island queue", () => {
     let s = notify(emptyQueue(), n("x", { badge: false, ttl: 1500 }), 0);
     s = notify(s, n("x", { badge: false, ttl: 1500 }), 1000);
     expect(open(tick(s, 1600))).toBeNull();
+  });
+});
+
+describe("grouping", () => {
+  const toast = (id: string, app: string) => n(id, { source: "Notifications", group: app, title: `${app} ${id}`, badge: false });
+
+  it("stacks a group's notices into the newest one with a count, while grouping is on", () => {
+    let s = setGrouping(emptyQueue(), true);
+    s = notify(s, toast("1", "Discord"), 0);
+    s = notify(s, toast("2", "Discord"), 500);
+    s = notify(s, toast("3", "Slack"), 600);
+    const snap = snapshotOf(s);
+    expect(s.items.map((i) => [i.id, i.count])).toEqual([
+      ["2", 2],
+      ["3", 1],
+    ]);
+    // The newest of the group took the open place (it reopens for its full time).
+    expect(snap.expanded?.id).toBe("2");
+    expect(nextDue(s, 600)).toBe(DEFAULT_TTL.info - 100);
+  });
+
+  it("queues them one by one with grouping off, and ignores notices without a group", () => {
+    let s = notify(notify(emptyQueue(), toast("1", "Discord"), 0), toast("2", "Discord"), 10);
+    expect(s.items.map((i) => i.count)).toEqual([1, 1]);
+    s = setGrouping(emptyQueue(), true);
+    s = notify(notify(s, n("a"), 0), n("b"), 10);
+    expect(s.items).toHaveLength(2);
+  });
+
+  it("keeps the same state when grouping does not change", () => {
+    const s = emptyQueue();
+    expect(setGrouping(s, false)).toBe(s);
   });
 });

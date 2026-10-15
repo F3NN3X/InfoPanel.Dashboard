@@ -1232,16 +1232,50 @@ same settings. The panel also gathers what sends to the island:
 - **Alert rules** - the rules that show on this profile's island (display style *Island*).
   Click one to edit it in Alerts.
 
-- **When idle** - *Time*, *+ Date*, *+ Sensor* (the time plus one live value: pick it
-  with the sensor field and give it a label of up to 12 characters, such as *GPU*) or
-  *Hidden* (the pill shows only when there is something to show).
-- **Size** - S, M or L. A short profile or a small screen gets a smaller size
-  automatically: the open island never takes more than 40% of the page height.
-- **Color** - *Black*, or *Theme* (the theme's card colour and text).
-- **Offset from top** - 0 to 64 px.
-- **Reserve space** - the zones start below the pill instead of under it.
+**Shape**
+
+- **Style** - *Pill* floats below the top edge; *Notch* sits on the top edge with curved
+  corners, like a laptop notch.
+- **Size** - S, M or L, and **Scale** (80-150%) for anything in between. A short profile or a
+  small screen gets a smaller size automatically: the open island never takes more than 40%
+  of the page height.
+- **Offset from top** (the pill only) - 0 to 64 px.
+- **Reserve space** - the zones start below the island instead of under it.
+
+**Idle**
+
+- **When idle** - *Time*; *Time and date*; *Time and values* (up to three live values, each
+  with a sensor, a label of up to 12 characters such as *GPU*, and optional *Orange at* and
+  *Red at* levels the value turns that colour at); *Line* (a hairline at the top that grows
+  into the island when something shows); or *Hidden* (only shows when there is something to
+  show).
+- **Rotate every** - instead of side by side, the date, each value and (with *Calendar
+  countdown* on) the next event take turns beside the time, this many seconds each. 0 = side
+  by side.
+
+**Look**
+
+- **Color** - *Black*, *Theme* (the theme's card colour, text and border) or *Custom* (pick
+  the background and the text).
+- **Opacity** - below 100% the page shows through, blurred.
+- **Border** - none, subtle (the text colour, faint) or the theme's accent.
+- **Shadow**, **Font** (any dashboard font; *Page font* follows General) and **Weight**.
+
+**Clock** - **Seconds** and **Hours** (24 h or 12 h) follow *Dashboard › General* unless
+set here.
+
+**Motion** - **Animation**: *Lively* springs open with a little overshoot and closes flat,
+*Smooth* without overshoot, *Off* changes at once. The content cross-fades with a short lift
+and blur. Reduced motion (General, or the system setting) turns it off. On a kiosk, add
+`&slow=4` to the address to watch the animation four times slower.
+
+**Alerts**
+
 - **Collapse alerts after** - for screens without touch: an alert that stays until
   tapped shrinks to the badge after this many seconds (0 = stays open until tapped).
+- **Group notices** - a new notification from the same app (an achievement from the same
+  game, a friend, a news post) replaces the one shown and counts up (*×3*) instead of
+  queueing behind it.
 - **Preview an alert** - plays an info, a warning and a critical sample on the canvas.
 
 **What opens it.**
@@ -1289,6 +1323,27 @@ same settings. The panel also gathers what sends to the island:
 - **Calendar countdown** - the next event counts down beside the time from *Count down
   from* minutes before (10), opening the island then and when it begins. All-day events
   are left out.
+- **Coding agents** - Claude Code and Codex sessions: the most urgent beside the time
+  (*Claude · project*, pulsing while it works), a badge while one waits for you, *finished*
+  after a turn of 20 seconds or more, an error, and the plan's 5-hour or weekly use
+  passing 80 % and 95 %. Needs the agents connected (below).
+
+**Connecting Claude Code and Codex.** The *Coding agents* notice and the Coding Agents
+widget read what the agents report through their hooks and Claude's statusline, plus the
+token counts in their session files. Nothing is sent but the state, the tool's name, the
+project folder's name and the plan percentages; prompts, paths and session ids stay on
+the PC. Once, in a terminal in the dashboard folder:
+
+1. `node tools/agent-install.mjs` shows what it would add to `~/.claude/settings.json` and
+   `~/.codex/hooks.json`, and changes nothing.
+2. `node tools/agent-install.mjs --apply` adds them, keeping a dated backup of each file.
+   Your own hooks stay; your statusline keeps printing, wrapped by the forwarder.
+3. In Codex, run `/hooks` and approve the new hooks.
+
+`node tools/agent-install.mjs --remove --apply` takes them out again (`--remove` alone
+shows what it would take out). The hooks post to
+`http://127.0.0.1:3922` (set `DASHBOARD_URL` for another port) and never slow an agent
+down: with the dashboard closed they give up after a second.
 
 With On air or Calendar countdown on, a card below sets them up. Both run on the
 dashboard server, so every kiosk shares one OBS connection and one calendar fetch:

@@ -1110,15 +1110,23 @@ through one notice bus (`islandBus`, a pure queue in `queue.ts` driven by one ti
   definitions are in `src/widgets/island-sources.ts` and `src/widgets/island/`.
 - **Dashboard notices** switched on per profile (`IslandConfig.notices`, `use-dashboard-notices.ts`): the
   page name, "Layout updated" (a config pull that changed something), a plugin back (`/api/sources`
-  polled), OBS on air and the calendar countdown. The last two come from the server's extras
-  (`src/lib/extras.ts`, SSE `/events/extras`). Quiet hours gate all of these notices (`quiet.ts`).
+  polled), OBS on air, the calendar countdown and the coding agents. The last three come from the
+  server's extras (`src/lib/extras.ts`, SSE `/events/extras`). Quiet hours gate all of these notices (`quiet.ts`).
 - **Live activities** (the playing track, the game and its FPS, a download, the timer, the next event,
   the OBS Live dot) show beside the time while nothing is open; the highest priority, then the newest,
   shows.
 
 The server's extras (`server/extras.mjs`) hold one OBS connection (`obs.mjs`, obs-websocket 5 over
 Node's WebSocket) and fetch the calendar links (`calendar.mjs`, parsed by `ical.mjs`) for every kiosk.
-Their settings are in `integrations.json` beside the config, never in `config.json`: the studio writes
+It also holds the coding agents (`agents.mjs`): `tools/agent-status.mjs`, run by Claude Code's and
+Codex's hooks and Claude's statusline (installed by `tools/agent-install.mjs`), posts each event to
+`POST /api/agents/event` or `/api/agents/statusline`. Only loopback requests with a JSON body and the
+`X-Agent-Event: 1` header are taken (`agentWriteRefusal`, so a web page cannot forge one). The reducer
+keeps a session per hashed id and publishes only the state, tool, folder name, context and plan
+percentages. `agent-usage.mjs` adds tokens per day from the transcripts, read incrementally in 8 MB steps.
+The Coding Agents widget and the island's *Coding agents* notice read the same state.
+
+The OBS and calendar settings are in `integrations.json` beside the config, never in `config.json`: the studio writes
 them with `PUT /api/integrations` and reads them back without the password or the links' URLs.
 
 The studio canvas mounts the island inside the page box and plays only test alerts and the Preview

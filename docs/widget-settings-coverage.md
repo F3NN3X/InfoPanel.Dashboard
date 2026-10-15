@@ -143,6 +143,17 @@ Tested spans: 1x1, 2x1, 3x1, 4x1, 6x1, 1x2, 2x2, 3x2, 4x2, 6x2, 2x3, 3x3, 3x4, 4
 |---|---|---|
 | Show seconds (`showSeconds`) | all but 1x1, 3x1, 4x1, 6x1, 1x2 | — |
 
+## CodingAgents
+
+Not generated: written by hand (the widget reads no sensor; its data is the server's agents state).
+
+| Setting | Takes effect at | Needs |
+|---|---|---|
+| Agents (`agents`) | every size | — |
+| Plan use (`showPlan`) | every size with room for its rows (30 px each) | a statusline or Codex session reported |
+| Sessions (`showSessions`) | every size with room for a row (18 px) | — |
+| Tokens per day (`showUsage`) | every size with 52 px left | transcripts on this PC |
+
 ## CpuMonitor
 
 Tested spans: 1x1, 2x1, 3x1, 4x1, 6x1, 1x2, 2x2, 3x2, 4x2, 6x2, 2x3, 3x3, 3x4, 4x4, 6x4.

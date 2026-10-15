@@ -1,24 +1,26 @@
-// The server's extras for kiosks: OBS's on-air state and the upcoming calendar events
-// (server/obs.mjs, server/calendar.mjs), from the integrations in their own file
-// (server/integrations.mjs). GET /api/extras and the SSE /events/extras carry only that state;
+// The server's extras for kiosks: OBS's on-air state, the upcoming calendar events and the coding
+// agents' sessions (server/obs.mjs, server/calendar.mjs, server/agents.mjs), from the integrations in
+// their own file (server/integrations.mjs). GET /api/extras and the SSE /events/extras carry only that state;
 // GET/PUT /api/integrations is the studio's view of the settings, with secrets write-only.
 //
 // Node built-ins only.
 
+import { createAgents } from "./agents.mjs";
 import { createCalendar } from "./calendar.mjs";
 import { createIntegrations } from "./integrations.mjs";
 import { createObs } from "./obs.mjs";
 
-export function createExtras({ file, log = () => {} }) {
+export function createExtras({ file, log = () => {}, agentUsage }) {
   const integrations = createIntegrations({ file });
   const listeners = new Set();
-  const state = () => ({ obs: obs.state(), calendar: calendar.state() });
+  const state = () => ({ obs: obs.state(), calendar: calendar.state(), agents: agents.state() });
   const publish = () => {
     const s = state();
     for (const l of listeners) l(s);
   };
   const obs = createObs({ settings: () => integrations.get().obs, onChange: publish, log });
   const calendar = createCalendar({ links: () => integrations.get().calendar.links, onChange: publish, log });
+  const agents = createAgents({ onChange: publish, usage: agentUsage?.totals, codexLimits: agentUsage?.codexLimits });
 
   obs.reconfigure();
   void calendar.reconfigure();
@@ -30,6 +32,7 @@ export function createExtras({ file, log = () => {} }) {
   return {
     state,
     integrations,
+    agents,
     subscribe(fn) {
       listeners.add(fn);
       return () => listeners.delete(fn);
