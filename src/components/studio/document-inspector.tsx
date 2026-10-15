@@ -11,6 +11,8 @@ import { DataApiPanel } from "./data-api-panel";
 import { generalCards } from "./general-panel";
 import { InspectorNote, InspectorView, type SectionParts } from "./inspector/inspector-view";
 import { AutoPick, AutoRotate, ProfileFields, ProfileInherit } from "./inspector/profile-sections";
+import { IslandSection } from "./inspector/island-section";
+import { withIsland } from "@/lib/island/config";
 import { HeaderSlot } from "./inspector-layout";
 import {
   globalStyleValues,
@@ -98,6 +100,8 @@ export interface DashboardStudioProps {
   /** General › Studio: the inspector position. */
   layoutMode: LayoutMode;
   onLayoutMode: (mode: LayoutMode) => void;
+  /** The sensor pickers' "Open data explorer" (the island's sensor). */
+  onOpenExplorer: () => void;
 }
 
 const INSPECTOR_POSITIONS = [
@@ -149,6 +153,7 @@ function DocumentSheet({
   onRotate,
   layoutMode,
   onLayoutMode,
+  onOpenExplorer,
 }: DocumentInspectorProps & DashboardStudioProps) {
   const [target, setTarget] = useState<AppearanceTarget>(
     // A profile with its own look or background opens on it: editing "All profiles" would not show there.
@@ -230,6 +235,16 @@ function DocumentSheet({
         return { body: <AutoPick auto={autoPick} onAuto={onAutoPick} /> };
       case "profileRotate":
         return { body: <AutoRotate rotate={activeProfile.rotate} pages={pages} onChange={onRotate} /> };
+      case "profileIsland":
+        return {
+          body: (
+            <IslandSection
+              island={activeProfile.island}
+              onChange={(patch) => updateProfile((p) => withIsland(p, patch), "profile:island")}
+              onOpenExplorer={onOpenExplorer}
+            />
+          ),
+        };
       case "scope":
         return {
           body: (

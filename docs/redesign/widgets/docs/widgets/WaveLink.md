@@ -32,6 +32,9 @@ Keys read (literal parts; `${…}` segments are resolved at runtime by detection
 - Shapes handled explicitly: via CompactView
 - Inner content size (after padding + header) is passed to the layout as `{ w, h }`; tier/shape come from the outer size. See [../ARCHITECTURE.md](../ARCHITECTURE.md#sizing).
 
+## Dynamic Island
+Setting `island` (**Send to island**, off by default, in the Content group). With it on, a kiosk's Dynamic Island opens for 2.5 s when an input, channel or mix is muted ("Microphone muted", warning) or unmuted ("Microphone live", info). The rules are in `src/widgets/island-sources.ts` (`waveLinkIsland`); see [the island plan](../../../island/PLAN.md#what-shows-and-when).
+
 ## Core building blocks used
 `Widget` · `shell` · `get` · `fmt` · `Icon` · `Dot` · `Chip` · `Empty`
 

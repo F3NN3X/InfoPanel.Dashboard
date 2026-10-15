@@ -10,6 +10,7 @@ import { YR_FORECAST_KEY } from "./sensors";
 import { mainPage, normalizeRotate } from "./pages";
 import { normalizeAlerts, type AlertsConfig } from "./alerts";
 import { migrateLegacyZones } from "./legacy-zones";
+import { normalizeIsland, type IslandConfig } from "./island/config";
 import {
   normalizePanelPlacement,
   normalizePanelPresets,
@@ -159,6 +160,8 @@ export interface MonitorProfile {
   gap?: number;
   /** Space around the grid in px (unset = the page's default per mode, see `profilePadding`). */
   padding?: number;
+  /** The Dynamic Island over the page (`src/lib/island`); unset = none. */
+  island?: IslandConfig;
   /** Set on the profiles earlier versions shipped (Sample, ARCv2); kept, no longer read. */
   sampleVersion?: number;
 }
@@ -369,6 +372,7 @@ function profileExtras(p: StoredProfile): Partial<MonitorProfile> {
     radius: typeof p.radius === "number" && Number.isFinite(p.radius) ? p.radius : undefined,
     gap: normalizeSpacing(p.gap),
     padding: normalizeSpacing(p.padding),
+    island: normalizeIsland(p.island),
   };
 }
 

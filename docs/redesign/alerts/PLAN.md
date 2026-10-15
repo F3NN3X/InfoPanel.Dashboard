@@ -49,7 +49,7 @@ interface AlertsConfig {
 interface AlertRule {
   id; name; enabled; severity: "info" | "warning" | "critical";
   source:
-    | { kind: "sensor"; key: string; op: ">" | ">=" | "<" | "<=" | "=" | "≠" | "changes" | "contains";
+    | { kind: "sensor"; key: string; op: ">" | ">=" | "<" | "<=" | "=" | "≠" | "changes" | "contains" | "missing";
         value: number | string; forSeconds: number; clearBelow?: number /* hysteresis */ }
     | { kind: "notification"; apps?: string[]; exclude?: string[]; match?: string /* text contains */ };
   cooldownSeconds: number;          // no refire within this after it clears
@@ -62,7 +62,7 @@ interface AlertRule {
   profiles?: string[];              // where it shows; default every profile
 }
 interface AlertDisplay {
-  style: "toast" | "banner" | "overlay";   // card / full-width strip / centred panel over the dashboard
+  style: "toast" | "banner" | "overlay" | "island";   // card / full-width strip / centred panel / the profile's Dynamic Island
   position: "top-left" | "top" | "top-right" | "left" | "center" | "right" | "bottom-left" | "bottom" | "bottom-right";
   backdrop: "none" | "dim" | "blur";       // behind an overlay (or any style): dim and/or blur the dashboard
   size: "s" | "m" | "l";
@@ -71,7 +71,9 @@ interface AlertDisplay {
 
 Presets: GPU temperature high, GPU hotspot high, GPU power near limit, CPU temperature high, CPU
 usage sustained, RAM almost full, VRAM almost full, drive almost full, FPS drop, network down, "any
-Discord message", "any notification from …".
+Discord message", "any notification from …". Added with the Dynamic Island (`docs/redesign/island/PLAN.md`): "Plugin
+stopped reporting" (`missing`: the key has been gone for `forSeconds` after the rule saw it; default 30 s, shown on the
+island).
 
 ## Phases (build + tests green at each end)
 

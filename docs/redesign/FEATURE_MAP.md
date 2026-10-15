@@ -379,3 +379,21 @@ Plan: `docs/redesign/pages/PLAN.md`. The studio edits one page of the active pro
 | Global defaults and quiet hours | Alerts drawer, collapsed | done: `alerts-defaults.tsx` |
 | One undo step per field burst, add / delete / duplicate / preset | Studio history | done: `ruleKey` / `alertsKey` in `alerts-model.ts` |
 | Palette: Open alerts, New alert rule | Command palette | done: `commands.ts`, `use-studio-commands.ts` |
+
+## 19. Dynamic Island
+
+See `docs/redesign/island/PLAN.md`.
+
+| Capability | Where | Status |
+|---|---|---|
+| Per-profile island: on/off, idle (time, + date, + sensor with label, hidden), size, colour (black / theme), offset, reserve space, collapse timer, Preview button | Dashboard › Profile › Dynamic Island | done: `inspector/island-section.tsx`; `MonitorProfile.island`, `src/lib/island/config.ts` |
+| Island on the kiosk and the plain page (idle pill; alerts on the kiosk only) | Kiosk, top centre | done: `src/components/island/dynamic-island.tsx`, mounted in `App.tsx` |
+| Island on the studio canvas, playing only test alerts | Canvas page box | done: `studio-canvas.tsx`, `islandTestAlerts` in `studio-view.tsx` |
+| "Island" alert display style; a profile without an island shows it as a top toast | Rule editor, global defaults | done: `alerts.ts` (`ALERT_STYLES`), `splitIslandAlerts` in `src/lib/island/from-alerts.ts` |
+| Notice bus: severity order, stronger preempts, sticky critical, de-duplication, cooldown, badge or end after the open time, tap to acknowledge, tap the badge to peek | Island | done: `src/lib/island/queue.ts`, `bus.ts` (`notify`, `useIsland`) |
+| Data API disconnect warning (after 5 s) and reconnect notice | Kiosk island | done: `src/lib/island/system.ts`, `useConnectionNotice` |
+| "Stops reporting" condition (server op `missing`) and the "Plugin stopped reporting" preset | Rule editor › Condition, + menu | done: `server/alerts.mjs` (`missing`), `src/lib/alert-presets.ts` |
+| Widgets send to the island: "Send to island" on Now Playing (track activity, new track), Steam Friends (online, playing), Wave Link (mutes) | Widget inspector › Content | done: `island` on `templateModule`, `src/lib/island/sources.ts`, `src/widgets/island-sources.ts` |
+| Live activity beside the time (the playing track, with cover and progress); tap opens it | Kiosk island | done: `IslandActivity`, `Activity` in `dynamic-island.tsx` |
+| Quiet hours apply to the dashboard's own notices | Kiosk island | done: `src/lib/island/quiet.ts` (`quietGate`) |
+| Island size fits the profile (open island ≤ 40 % of the height) | Kiosk, canvas | done: `fitIslandSize` in `island-model.ts` |

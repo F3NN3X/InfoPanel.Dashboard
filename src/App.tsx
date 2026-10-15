@@ -6,6 +6,11 @@ import { PlacementFrame } from "@/components/studio/placement-frame";
 import { LivePlacement } from "@/components/studio/placement-content";
 import { PageBackground } from "@/components/page-background";
 import { AlertLayer, useShownAlerts, ZoneHighlights } from "@/components/alerts/alert-layer";
+import { DynamicIsland } from "@/components/island/dynamic-island";
+import { islandReserve } from "@/components/island/island-model";
+import { splitIslandAlerts } from "@/lib/island/from-alerts";
+import { islandFeeds } from "@/lib/island/sources";
+import { modules } from "@/modules";
 import { PageDots, PAGE_DOTS_STRIP_PX } from "@/components/page-dots";
 import { resolveBackground } from "@/lib/appearance";
 import { appearanceOf } from "@/lib/style-resolve";
@@ -54,6 +59,8 @@ const pagePin = new URLSearchParams(window.location.search).get("page") ?? undef
 
 /** The ?profile= pin, if any: it wins over the control channel's profile. */
 const profilePin = new URLSearchParams(window.location.search).get("profile");
+
+const NO_ALERTS: readonly never[] = [];
 
 /** A touch tells the server to hold auto-rotation (it holds 30 s); at most this often. */
 const TOUCH_THROTTLE_MS = 5000;
@@ -120,6 +127,20 @@ export default function App() {
     if (studio && profile.pageId !== studioPage) setStudioPage(profile.pageId);
   }, [studio, profile.pageId, studioPage]);
   const { shown: shownAlerts, ack: ackAlert } = useShownAlerts(control, stored.id);
+  // Island-style alerts go to the profile's island; without one they show as a top toast.
+  const island = profile.island?.enabled ? profile.island : undefined;
+  const splitAlerts = useMemo(() => splitIslandAlerts(shownAlerts, island !== undefined), [shownAlerts, island]);
+  // On the kiosk the island also gets the Data API warning and the widgets sent to it (every page).
+  const quietHours = config.alerts?.quietHours;
+  const islandLive = useMemo(
+    () =>
+      kiosk && island
+        ? { feeds: islandFeeds(stored.pages.flatMap((p) => p.placements), modules), quietHours }
+        : undefined,
+    [kiosk, island, stored.pages, quietHours]
+  );
+  const islandPage = useMemo(() => ({ width: profile.width, height: profile.height }), [profile.width, profile.height]);
+  const reserve = islandReserve(island, islandPage);
   const fill = profile.fit === "fill";
   const background = resolveBackground(config, profile);
   const appearance = appearanceOf(config, profile);
@@ -354,6 +375,9 @@ export default function App() {
         )}
         style={{
           padding: profilePadding(profile, kiosk),
+          // "Reserve space": the zones start under the island instead of beneath it. Always set, so
+          // React never removes it from under the `padding` shorthand.
+          paddingTop: profilePadding(profile, kiosk) + reserve,
           // The dots' strip: they sit in the bottom padding, so no zone is under them.
           ...(pageNav && { paddingBottom: Math.max(profilePadding(profile, kiosk), PAGE_DOTS_STRIP_PX) }),
           // Vertical scrolling stays with the browser; horizontal moves reach the swipe.
@@ -422,7 +446,19 @@ export default function App() {
           {kiosk && <ZoneHighlights alerts={shownAlerts} profile={profile} />}
         </PageGrid>
 
-        {kiosk && <AlertLayer alerts={shownAlerts} onAck={ackAlert} />}
+        {kiosk && <AlertLayer alerts={splitAlerts.layer} onAck={ackAlert} />}
+
+        {/* Alerts reach the island on the kiosk only; the plain page shows its idle pill. */}
+        {island && (
+          <DynamicIsland
+            config={island}
+            alerts={kiosk ? splitAlerts.island : NO_ALERTS}
+            onAck={kiosk ? ackAlert : undefined}
+            placement="fixed"
+            page={islandPage}
+            live={islandLive}
+          />
+        )}
 
         <PageDots
           enabled={pageNav}

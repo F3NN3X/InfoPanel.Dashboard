@@ -15,6 +15,7 @@ import SteamLibrary, { meta as steamLibraryMeta, type SteamLibraryProps } from "
 import SteamNews, { meta as steamNewsMeta, type SteamNewsProps } from "../SteamNews";
 import SteamProfile, { meta as steamProfileMeta, type SteamProfileProps } from "../SteamProfile";
 import SteamFriends, { meta as steamFriendsMeta, type FriendStatus, type SteamFriendsProps } from "../SteamFriends";
+import { steamFriendsIsland } from "../island-sources";
 
 const OSD_CELLS = ["fps", "low", "ft", "gpu", "cpu", "vram", "display"] as const satisfies readonly OsdCell[];
 
@@ -155,6 +156,7 @@ export const GROUP_D: DashboardModule[] = [
       boolSetting("showCounts", "Counts row", false, { group: "Steam friends" }),
       ...colorSettings(FRIEND_COLOR_ENTRIES, { group: "Status colors" }),
     ],
+    island: steamFriendsIsland,
     toProps: (s) => ({
       view: oneOf(s.view, ["list", "table"]),
       sort: oneOf(s.sort, ["status", "name", "plugin"]),

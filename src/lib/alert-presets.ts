@@ -153,6 +153,18 @@ export const ALERT_PRESETS: readonly AlertPreset[] = [
     ),
   },
   {
+    id: "plugin-missing",
+    label: "Plugin stopped reporting",
+    hint: "A plugin's sensor gone for 30 s (pick one of the plugin's sensors)",
+    match: /^plugins\./i,
+    rule: sensorRule(
+      "Plugin stopped reporting",
+      "warning",
+      { op: "missing", value: 0, forSeconds: 30 },
+      { cooldown: 300, display: { style: "island", seconds: 0, text: "Stopped reporting" } }
+    ),
+  },
+  {
     id: "notification",
     label: "Any notification from an app",
     hint: "Windows notifications; pick the apps",

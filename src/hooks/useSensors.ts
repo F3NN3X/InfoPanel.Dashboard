@@ -45,7 +45,8 @@ export function useSensors(prefixes: readonly string[] | null): SensorMap {
     };
     // `signature` captures `prefixes` by value.
   }, [signature]);
-  return useSyncExternalStore(view.subscribe, view.getSnapshot);
+  // The server snapshot is the same map (a static render, e.g. a test, reads the current values).
+  return useSyncExternalStore(view.subscribe, view.getSnapshot, view.getSnapshot);
 }
 
 /** Timestamp of the last sensor message (0 before the first). */

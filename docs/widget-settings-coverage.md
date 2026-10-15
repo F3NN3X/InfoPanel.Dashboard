@@ -383,6 +383,7 @@ Tested spans: 1x1, 2x1, 3x1, 4x1, 6x1, 1x2, 2x2, 3x2, 4x2, 6x2, 2x3, 3x3, 3x4, 4
 | Tint from cover art (`tint`) | every size | — |
 | Cover art background (blurred) (`artBackground`) | every size | — |
 | Sensitivity (gain) (`waveformSensitivity`) | *canvas* | when progress=visualizer |
+| Send to island (`island`) | *kiosk Dynamic Island* | the profile's island on |
 | Visualizer bar count (`visualizerBarCount`) | *canvas* | when progress=visualizer |
 | Visualizer alignment (`visualizerAlign`) | *canvas* | when progress=visualizer |
 | Visualizer resting bar size (`visualizerMinLevel`) | *canvas* | when progress=visualizer |
@@ -508,6 +509,7 @@ Tested spans: 1x1, 2x1, 3x1, 4x1, 6x1, 1x2, 2x2, 3x2, 4x2, 6x2, 2x3, 3x3, 3x4, 4
 | Live indicator color (`liveColor`) | every size | — |
 | Muted / offline color (`muteColor`) | every size | — |
 | Level color (`levelColor`) | every size | — |
+| Send to island (`island`) | *kiosk Dynamic Island* | the profile's island on |
 
 ## FpsMonitor
 
@@ -605,6 +607,7 @@ Not generated: written by hand from the widget's layout rules and checked agains
 | Last online (`showTime`) | list 160px wide, table 220px wide | — |
 | Counts row (`showCounts`) | every size | — |
 | Status colors (`ingameColor` … `offlineColor`) | every size | a friend with that status |
+| Send to island (`island`) | *kiosk Dynamic Island* | the profile's island on |
 
 ## SteamNews
 

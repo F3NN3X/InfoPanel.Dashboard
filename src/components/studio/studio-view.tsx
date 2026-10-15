@@ -34,6 +34,8 @@ import { StudioContextMenu, useContextMenu } from "./zone-context-menu";
 import { widgetName } from "./widget-kinds";
 import { WidgetPickerDialog } from "./widget-picker-dialog";
 import { postControl, useControl } from "@/lib/control";
+import { isIslandAlert } from "@/lib/island/from-alerts";
+import { visibleAlerts } from "@/components/alerts/alert-model";
 import { PageTabs } from "./page-tabs";
 import { ZoomToolbar } from "./zoom-toolbar";
 
@@ -87,6 +89,11 @@ function StudioViewBody({
   const history = useConfigHistory(config, setConfigState);
   // Runtime state of the kiosks (page shown, rotating): not config, never in the undo history.
   const control = useControl();
+  // The canvas island plays only test alerts (Test in the rule editor); live ones show on kiosks.
+  const islandTestAlerts = useMemo(
+    () => visibleAlerts(control?.alerts ?? [], profile.id).filter((a) => a.test && isIslandAlert(a)),
+    [control?.alerts, profile.id]
+  );
   const setConfig = history.set;
   // The stored profile behind the page on the canvas (profile list, summary, JSON copy).
   const storedProfile = config.profiles.find((p) => p.id === profile.id) ?? config.profiles[0];
@@ -266,6 +273,7 @@ function StudioViewBody({
       onContextMenu={menus.open}
       onOpenAdd={() => ui.setDrawer("add")}
       onUseSample={() => runCommand({ type: "sample-layout" })}
+      islandAlerts={islandTestAlerts}
       selectionChip={
         selected && (
           <SelectionChip
