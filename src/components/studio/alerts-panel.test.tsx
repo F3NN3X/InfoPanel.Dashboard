@@ -82,7 +82,6 @@ describe("alert commands", () => {
     canRedo: false,
     showGrid: true,
     showSources: false,
-    layoutMode: "auto",
     enforced: false,
     appearancePresets: [],
   };

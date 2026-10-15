@@ -414,7 +414,7 @@ Only changed keys are stored; each card counts what it sets and resets only its 
 | `hideCursor` | Hide cursor in kiosk | toggle | | `false` | General | Dash › General › Display |
 | `kioskPageNav` | Page dots and swipe | toggle | | `false` | General | Dash › General › Display |
 
-The "Studio" section of the spec (inspector position) has no stored setting in the config: see §7.
+The "Studio" section (Quick bar, Inspector sections) has no stored setting in the config: see §7.
 
 ### 5.7 Connection (`dataApiUrl`; `data-api-panel.tsx`)
 
@@ -480,11 +480,11 @@ overlay, Gauge row, Clock + date, Label / value list.
 
 | Key | What | Values | Default | Target |
 |---|---|---|---|---|
-| `studio.layout` | Inspector position | auto, side, bottom | `auto` | Zoom bar dock button; Dash › General › Studio |
-| `studio.dockHeight` | Dock height set by the splitter | px | unset | Dock splitter |
-| `studio.dockCollapsed` | Bottom dock collapsed (Ctrl+\) | boolean | `false` | Same |
+| `studio.dockCollapsed` | Docked inspector collapsed (Ctrl+\) | boolean | `false` | Dock strip; Ctrl+\ |
+| `studio.quickBar` | Quick bar shown | boolean | `true` | Dash › General › Studio |
+| `studio.accordion` | Inspector sections: one open or many | one, many | `one` | Dash › General › Studio |
+| `studio.quickPins` | Pinned quick-bar settings per widget type (max 6) | map | unset (a default set applies) | Pin button on each inspector row |
 | `studio.drawer` | Open left drawer | add, layers, profiles, none | `add` | Rail |
-| `studio.sections` | Which inspector cards are open | map | closed except defaults | Section state |
 | session only | Style clipboard (Copy style), widget clipboard (Copy widget), settings search text | | | Not persisted |
 
 ---
@@ -536,5 +536,6 @@ overlay, Gauge row, Clock + date, Label / value list.
 14. **Magic wand.** FEATURE_MAP §5 lists a zoom-bar "Magic wand" with "same action". The only wand in
     the code is the **Auto** layout-mode icon (and the Auto profile entry); there is no canvas
     auto-arrange action. Confirm the intended action before building it.
-15. **Dock "Studio" setting.** DATA_MODEL §7 puts "Studio (inspector position)" under General. It
-    is a `localStorage` preference (`studio.layout`), not a config field: keep it Browser-level.
+15. **"Studio" settings.** DATA_MODEL §7 puts "Studio" under General. Its switches (Quick bar,
+    Inspector sections) are `localStorage` preferences (`studio.quickBar`, `studio.accordion`), not
+    config fields: keep them Browser-level. The old inspector position (`studio.layout`) is gone.

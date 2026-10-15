@@ -5,6 +5,7 @@ import { useToast } from "@/components/ui/toast";
 import { useStoredDrawer, useStoredDrawerWidth, type Drawer, type RailItem } from "./left-rail";
 import { revealWidgetEditor, scrollInspectorToTop } from "./inspector-scroll";
 import { useCanvasZoom } from "./use-canvas-zoom";
+import { useQuickBarPref } from "./inspector/inspector-prefs";
 import { useStoredFlag } from "./use-stored-flag";
 import type { StudioMode } from "./studio-top-bar";
 import { RAIL_WIDTH, pageSize, useStudioLayout } from "./use-studio-layout";
@@ -55,10 +56,12 @@ export function useStudioUi(config: DashboardConfig, profile: ProfileView, onSav
   };
   /** A request for an inspector tab or section brings a collapsed inspector (dock or side column) back first. */
   function expandDock() {
-    if (studioLayout.collapsed) studioLayout.setCollapsed(false);
+    studioLayout.showInspector();
   }
   /** The zone inspector's settings search ("Go to setting" fills it). */
   const [inspectorQuery, setInspectorQuery] = useState("");
+  /** The inspector's Changed filter (only values set here). */
+  const [inspectorChanged, setInspectorChanged] = useState(false);
   const inspectorRef = useRef<HTMLElement>(null);
   const importRef = useRef<HTMLInputElement>(null);
 
@@ -80,15 +83,14 @@ export function useStudioUi(config: DashboardConfig, profile: ProfileView, onSav
   const [widgetClipboard, setWidgetClipboard] = useState<Widget | null>(null);
 
   const page = pageSize(profile);
-  const zoom = useCanvasZoom(page);
+  const [quickBar] = useQuickBarPref();
   const studioLayout = useStudioLayout({
     page,
     rail: RAIL_WIDTH,
     drawer: !showSources && drawer ? drawerWidth : 0,
-    design: { width: profile.width, height: profile.height },
-    forceSide: showSources,
+    quickBar: quickBar && !showSources,
   });
-  const docked = studioLayout.layout.placement === "bottom";
+  const zoom = useCanvasZoom(page, studioLayout.layout.inset);
 
   const [saved, setSaved] = useState(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -160,6 +162,8 @@ export function useStudioUi(config: DashboardConfig, profile: ProfileView, onSav
     requestInspectorTab,
     inspectorQuery,
     setInspectorQuery,
+    inspectorChanged,
+    setInspectorChanged,
     inspectorRef,
     importRef,
     revealEditor,
@@ -183,7 +187,7 @@ export function useStudioUi(config: DashboardConfig, profile: ProfileView, onSav
     setWidgetClipboard,
     ...zoom,
     studioLayout,
-    docked,
+    quickBar,
     saved,
     handleSave,
   };
@@ -193,7 +197,8 @@ export type StudioUi = ReturnType<typeof useStudioUi>;
 
 /**
  * The inspector follows the selection: a new primary zone starts it at
- * the top (no preset name input) and brings a collapsed dock back; a
+ * the top (no preset name input) and brings a collapsed docked inspector back
+ * (clearing it closes the floating one); a
  * newly selected panel widget brings its editor into view.
  */
 export function useInspectorFollowsSelection(
@@ -206,8 +211,18 @@ export function useInspectorFollowsSelection(
     ui.setPresetNaming(false);
   }, [primaryId]);
 
+  // A selection brings a collapsed docked inspector back; clearing it puts the floating one or the sheet away.
+  const lastPrimary = useRef(primaryId);
   useEffect(() => {
-    if (primaryId !== null && ui.studioLayout.collapsed) ui.studioLayout.setCollapsed(false);
+    ui.studioLayout.setHasSelection(primaryId !== null);
+    if (primaryId !== null && ui.studioLayout.mode === "docked") ui.studioLayout.showInspector();
+    // Clearing the selection closes the floating inspector, returns the sheet to its peek and drops the search and the Changed filter.
+    if (primaryId === null && lastPrimary.current !== null) {
+      ui.studioLayout.dismissInspector();
+      ui.setInspectorQuery("");
+      ui.setInspectorChanged(false);
+    }
+    lastPrimary.current = primaryId;
   }, [primaryId]);
 
   useEffect(() => {

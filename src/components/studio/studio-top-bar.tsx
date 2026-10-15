@@ -96,7 +96,7 @@ function ModeSwitch({ mode, onMode }: Pick<StudioTopBarProps, "mode" | "onMode">
           title={m.title}
           onClick={() => onMode(m.value)}
           className={cn(
-            "rounded-md px-3.5 py-[5px] text-[12.5px] font-medium transition-colors",
+            "rounded-md px-3.5 py-[5px] text-[12.5px] font-medium transition-colors max-sm:px-2.5",
             m.value === mode ? "bg-ui-active text-ui-1" : "text-[#8f8f99] hover:text-ui-1"
           )}
         >
@@ -182,7 +182,14 @@ function MoreMenu({
   onReset,
   onPalette,
   onShortcuts,
-}: Pick<StudioTopBarProps, "profile" | "onExport" | "onImport" | "onReset" | "onPalette" | "onShortcuts">) {
+  canUndo,
+  canRedo,
+  onUndo,
+  onRedo,
+}: Pick<
+  StudioTopBarProps,
+  "profile" | "onExport" | "onImport" | "onReset" | "onPalette" | "onShortcuts" | "canUndo" | "canRedo" | "onUndo" | "onRedo"
+>) {
   const [copied, setCopied] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
 
@@ -208,6 +215,16 @@ function MoreMenu({
         <Menu.Portal>
           <Menu.Positioner className="z-[80]" sideOffset={4} align="end">
             <Menu.Popup className={POPUP}>
+              {/* On a phone the bar has no room for Undo / Redo: they move in here. */}
+              <div className="sm:hidden">
+                <Menu.Item className={ITEM} disabled={!canUndo} onClick={onUndo}>
+                  <Undo2 className="h-3.5 w-3.5" /> Undo
+                </Menu.Item>
+                <Menu.Item className={ITEM} disabled={!canRedo} onClick={onRedo}>
+                  <Redo2 className="h-3.5 w-3.5" /> Redo
+                </Menu.Item>
+                <Menu.Separator className={SEPARATOR} />
+              </div>
               <Menu.Item className={ITEM} onClick={onExport}>
                 <Download className="h-3.5 w-3.5" /> Export config
               </Menu.Item>
@@ -256,22 +273,22 @@ const HISTORY_BUTTON = "text-[#c9c9cf] disabled:text-[#4a4a52] disabled:opacity-
 export function StudioTopBar(props: StudioTopBarProps) {
   const { profile, mode, onMode, saved, unsaved, onSave, onExitStudio, canUndo, canRedo, onUndo, onRedo } = props;
   return (
-    <header className="grid h-12 shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-3 border-b border-ui-subtle bg-ui-chrome px-3 font-ui">
-      <div className="flex min-w-0 items-center gap-2.5">
-        <span className="h-[26px] w-[26px] shrink-0 rounded-[7px] bg-ui-accent" aria-hidden />
+    <header className="grid h-12 shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-3 border-b border-ui-subtle bg-ui-chrome px-3 font-ui max-sm:flex max-sm:gap-1.5 max-sm:px-2">
+      <div className="flex min-w-0 items-center gap-2.5 max-sm:flex-1">
+        <span className="h-[26px] w-[26px] shrink-0 rounded-[7px] bg-ui-accent max-sm:hidden" aria-hidden />
         <ProfileSwitcher {...props} />
-        <span className="min-w-0 truncate font-ui-mono text-[11px] text-ui-4">
+        <span className="min-w-0 truncate font-ui-mono text-[11px] text-ui-4 max-sm:hidden">
           {profileSummary(profile)}
         </span>
       </div>
 
       <ModeSwitch mode={mode} onMode={onMode} />
 
-      <div className="flex items-center justify-end gap-1.5">
+      <div className="flex items-center justify-end gap-1.5 max-sm:gap-1">
         <IconButton
           label={`Undo (${KEYS.undo})`}
           size={32}
-          className={HISTORY_BUTTON}
+          className={cn(HISTORY_BUTTON, "max-sm:hidden")}
           disabled={!canUndo}
           onClick={onUndo}
         >
@@ -280,19 +297,20 @@ export function StudioTopBar(props: StudioTopBarProps) {
         <IconButton
           label={`Redo (${KEYS.redo})`}
           size={32}
-          className={HISTORY_BUTTON}
+          className={cn(HISTORY_BUTTON, "max-sm:hidden")}
           disabled={!canRedo}
           onClick={onRedo}
         >
           <Redo2 className="h-[19px] w-[19px]" strokeWidth={1.75} />
         </IconButton>
-        <div className="mx-1 h-5 w-px bg-ui-default" />
+        <div className="mx-1 h-5 w-px bg-ui-default max-sm:hidden" />
         <button
           type="button"
           onClick={onExitStudio}
-          className="flex h-8 items-center gap-1.5 whitespace-nowrap rounded-[7px] border border-ui-strong bg-ui-raised px-3 text-[12.5px] font-medium text-ui-2 transition-colors hover:bg-ui-hover hover:text-ui-1"
+          title="Kiosk view"
+          className="flex h-8 items-center gap-1.5 whitespace-nowrap rounded-[7px] border border-ui-strong bg-ui-raised px-3 text-[12.5px] font-medium text-ui-2 transition-colors hover:bg-ui-hover hover:text-ui-1 max-sm:px-2"
         >
-          <Maximize className="h-[17px] w-[17px]" strokeWidth={1.75} /> Kiosk view
+          <Maximize className="h-[17px] w-[17px]" strokeWidth={1.75} /> <span className="max-sm:sr-only">Kiosk view</span>
         </button>
         <button
           type="button"

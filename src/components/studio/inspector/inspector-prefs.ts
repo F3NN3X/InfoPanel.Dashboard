@@ -67,7 +67,7 @@ const tabsStore = storedValue(TABS_KEY, parseTabs, JSON.stringify);
 
 /** "Advanced settings" (off by default, remembered). */
 export function useInspectorAdvanced(): [boolean, (on: boolean) => void] {
-  return [useSyncExternalStore(advancedStore.subscribe, advancedStore.read), advancedStore.write];
+  return [useSyncExternalStore(advancedStore.subscribe, advancedStore.read, advancedStore.read), advancedStore.write];
 }
 
 /** Remember a context's tab (also from outside it: "Edit global theme" opens the dashboard's Appearance). */
@@ -77,6 +77,72 @@ export function setInspectorTab(contextKey: string, tab: string) {
 
 /** A context's remembered tab (undefined until one was picked). */
 export function useInspectorTab(contextKey: string): [string | undefined, (tab: string) => void] {
-  const tabs = useSyncExternalStore(tabsStore.subscribe, tabsStore.read);
+  const tabs = useSyncExternalStore(tabsStore.subscribe, tabsStore.read, tabsStore.read);
   return [tabs[contextKey], (tab) => setInspectorTab(contextKey, tab)];
+}
+
+// -- studio preferences (per viewer, not per dashboard) ------------------------
+
+const QUICK_BAR_KEY = "studio.quickBar";
+const ACCORDION_KEY = "studio.accordion";
+const PINS_KEY = "studio.quickPins";
+
+/** How many settings the quick bar holds. */
+export const MAX_PINS = 6;
+
+/** Sections of a tab: one open at a time (opening one closes the others), or each on its own. */
+export type AccordionMode = "one" | "many";
+
+/** The quick bar is on unless it was turned off. */
+export const parseQuickBar = (raw: string | null): boolean => raw !== "false";
+export const parseAccordion = (raw: string | null): AccordionMode => (raw === "many" ? "many" : "one");
+
+/** The stored pins per widget type; anything malformed reads as empty. */
+export function parsePins(raw: string | null): Record<string, string[]> {
+  if (!raw) return {};
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+    return Object.fromEntries(
+      Object.entries(parsed)
+        .filter((entry): entry is [string, unknown[]] => Array.isArray(entry[1]))
+        .map(([type, keys]) => [type, keys.filter((k): k is string => typeof k === "string").slice(-MAX_PINS)])
+    );
+  } catch {
+    return {};
+  }
+}
+
+/** Pin or unpin `key`: pins keep their order, a new one goes last, and only the last six stay. */
+export function togglePin(pins: readonly string[], key: string): string[] {
+  return pins.includes(key) ? pins.filter((k) => k !== key) : [...pins, key].slice(-MAX_PINS);
+}
+
+const quickBarStore = storedValue(QUICK_BAR_KEY, parseQuickBar, String);
+const accordionStore = storedValue(ACCORDION_KEY, parseAccordion, String);
+const pinsStore = storedValue(PINS_KEY, parsePins, JSON.stringify);
+
+/** The quick bar over the canvas (on by default). */
+export function useQuickBarPref(): [boolean, (on: boolean) => void] {
+  return [useSyncExternalStore(quickBarStore.subscribe, quickBarStore.read, quickBarStore.read), quickBarStore.write];
+}
+
+/** One section open per tab, or many (one by default). */
+export function useAccordionPref(): [AccordionMode, (mode: AccordionMode) => void] {
+  return [useSyncExternalStore(accordionStore.subscribe, accordionStore.read, accordionStore.read), accordionStore.write];
+}
+
+/** Every widget type's own pins (a type without any uses its default quick set). */
+export function useQuickPins(): Record<string, string[]> {
+  return useSyncExternalStore(pinsStore.subscribe, pinsStore.read, pinsStore.read);
+}
+
+/** A widget type's pinned keys: its own pins, or its default quick set. */
+export const pinsOf = (all: Record<string, string[]>, type: string, defaults: readonly string[]): string[] =>
+  all[type] ?? [...defaults];
+
+/** Pin or unpin a setting for a widget type (starting from its default set the first time). */
+export function setPin(type: string, defaults: readonly string[], key: string) {
+  const all = pinsStore.read();
+  pinsStore.write({ ...all, [type]: togglePin(pinsOf(all, type, defaults), key) });
 }

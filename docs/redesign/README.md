@@ -28,7 +28,7 @@ The current UI has every feature, but its layout makes them hard to use:
 
 The redesign keeps every capability and changes the layout, information architecture and interactions:
 
-1. **Classic 3-pane studio:** an icon rail plus left panel (Layers / Add / Profiles), then the canvas, then the inspector. The inspector docks **Side, Bottom or Auto**, as the current app's dock does.
+1. **Classic 3-pane studio:** an icon rail plus left panel (Layers / Add / Profiles), then the canvas, then the inspector. The inspector's placement follows the studio width (docked, floating or a bottom sheet; see §4.6 and `widget-editing/SPEC.md`).
 2. **Schema-driven inspector:** tabs (**Content / Style / Data**) and collapsible sections. It adds search across tabs, an Advanced toggle, and **source dots** that show where each value comes from, with per-field and per-section reset.
 3. **Dashboard inspector** when nothing is selected, with the tabs Profile / Appearance / Global style / General.
 4. **Direct manipulation:** drag to move, resize, drag in from the library, multi-select, context menus, keyboard shortcuts, undo/redo.
@@ -84,7 +84,7 @@ The prototype simplifies these things. Do not copy them:
 │52│ (closable) │                                      │                   │
 └──┴────────────┴──────────────────────────────────────┴───────────────────┘
 ```
-When the inspector is docked at the **Bottom**, canvas and inspector stack vertically. The inspector is then 320 high, and its sections flow into 300 px columns that scroll horizontally. **Sources** mode replaces everything right of the rail with the Data Explorer (§4.8).
+The inspector's placement is picked from the studio width (§4.6): docked (the layout above) from 1100 px, a floating card over the canvas from 640 px, a bottom sheet below that. There is no bottom dock any more. **Sources** mode replaces everything right of the rail with the Data Explorer (§4.8).
 
 ### 4.2 Top bar (height 48, bg `#0f0f12`, bottom border `#1f1f24`, grid `1fr auto 1fr`, padding `0 12px`)
 - **Left:**
@@ -162,17 +162,18 @@ Clicking the active icon again collapses the left panel.
 - **Zoom bar:** floating, 16 px from the bottom, centred. 36 high, bg `#17171b`, border `#2a2a31`, radius 10, shadow `0 8px 24px rgba(0,0,0,.4)`. Contents:
   - Left-panel toggle · Grid · Rulers
   - | − · zoom % · + · **Fit**
-  - | resolution button (`1920 × 550`, which opens Dashboard › Profile) · Magic wand (**keep the current action**) · Dock button (icon plus Side / Bottom / Auto; it cycles).
+  - | resolution button (`1920 × 550`, which opens Dashboard › Profile) · Magic wand (**keep the current action**). The dock button is gone: the inspector's placement is automatic.
 - **Quick tips card:** shown on first run, bottom-left at bottom 64, width 250, dismissible. The dismissal persists.
 - **Toast:** top centre, bg `#ededf0`, about 1.8 s.
 - **Empty state:** a card with `dashboard_customize`, "This layout is empty", and the buttons [Browse widgets] [Use sample layout].
 
 ### 4.6 Inspector
-- **Dock:**
-  - **Side:** 340 wide, left border.
-  - **Bottom:** 320 high, top border, sections in 300 px columns. **Keep** the splitter that resizes it.
-  - **Auto:** Bottom when the profile's aspect ratio is above 2.5, otherwise Side.
-  - **Ctrl+\\** collapses or expands it.
+- **Placement** (automatic from the studio width; there is no setting, see `widget-editing/SPEC.md`):
+  - **Docked** (1100 px and wider): a 320 px column on the right. **Ctrl+\\** collapses it to a slim strip (`studio.dockCollapsed`).
+  - **Floating** (640 to 1099 px): a 320 px card over the right of the canvas, 12 px margins, closed by default. Opened by "All settings" in the quick bar, a double-click on a zone or **Ctrl+\\**; closed by its X, **Ctrl+\\**, or clearing the selection.
+  - **Bottom sheet** (under 640 px): peek (150 px, 96 with nothing selected), half (max(320, 56% of the canvas height)) and full (height − 8). Peek and half show a compact header and a tool strip (Quick plus one tile per section); full shows the whole inspector.
+- **Quick bar** (docked and floating): a floating pill at the top centre of the canvas with the identity, the pinned settings (pin button on each inspector row, per widget type, max 6, `studio.quickPins`), visibility and, floating, "All settings". Dashboard › General › Studio › Quick bar (`studio.quickBar`) turns it off.
+- **One column:** header, then "Search all settings" and a "Changed N" toggle on one row, then the tabs pill, then the sections as an accordion (`studio.accordion`: One open / Many open).
 - **Headers:**
   - **Single zone:** an icon box (32, radius 8, bg `#1c1c21`); an editable name (14/600, border on hover, accent border on focus); a meta line (11 `#8a8a94`); and Hide / Duplicate / Delete buttons (28×28; delete turns red on hover). The meta line depends on the zone:
     - widget: `3×2 · min 2×1 · N data points`
@@ -181,7 +182,7 @@ Clicking the active icon again collapses the left panel.
   - **Multiple zones:** "N zones selected", the subline "Style changes apply to all of them", removable chips, and Hide / Duplicate / Delete.
   - **Nothing selected:** a `space_dashboard` icon, "**Dashboard**", and `<profile> · nothing selected`.
 - **Placement row** (single zone only): COL / ROW / W / H. Each field is 30 high with a mono label. Values are validated against collisions and minimum sizes.
-- **Search:** "Search settings". While a query is entered, the tabs are hidden and results come from **all** tabs, each section labelled with its tab, plus a count "N settings across all tabs".
+- **Search:** "Search all settings". While a query is entered, the tabs are hidden and results come from **all** tabs, each section labelled with its tab, plus a count "N matching settings". The "Changed N" toggle lists only the values set here, across every tab.
 - **Tabs** (underline style, 12.5/500, a 2 px `#ededf0` line under the active tab, and a changed-count accent pill on each tab):
   - Widget and panel zones: **Content · Style · Data**.
   - Nothing selected: **Profile · Appearance · Global style · General**.
@@ -195,8 +196,7 @@ Clicking the active icon again collapses the left panel.
     - Force global style on: "Force global style is on — this widget's own look values are ignored."
 - **Bound data block** (Data tab): §4.9.
 - **Sections:**
-  - The header has a chevron that rotates −90° when collapsed (150 ms), the title (12.5/600), "N changed" in mono 10 accent, and **Reset**, which resets only that section.
-  - Sections never split across dock columns (`break-inside: avoid`).
+  - Accordion with sticky headers: icon, title (12.5/600; the tab name while filtering), "N changed" in mono 10 accent, a chevron and **Reset**, which resets only that section. The open state is not remembered.
 - **Field rows** (padding `6px 16px`):
   - **Label:** 12.5 `#c9c9cf`, optionally followed by an `info` (14) icon with a tooltip.
   - **Source dot:** 7 px, placed before the label. Its colours are in §5.6. Clicking a dot whose value is set here resets it.
@@ -237,7 +237,7 @@ The full list is in `DATA_MODEL.md` §2–4 and §7. Summary:
   - **Profile:** profile fields; This profile (Theme / Style / Background inherit); Auto-pick.
   - **Appearance:** Scope plus Force global style; Presets; Theme; Page background.
   - **Global style:** the look cards, written at dashboard or profile level depending on the scope.
-  - **General:** Type; Clock & date; Display; Studio (inspector position); Connection (Data API URL).
+  - **General:** Type; Clock & date; Display; Studio (Quick bar, Inspector sections); Connection (Data API URL).
 
 ### 4.8 Sources mode (Data Explorer)
 - **Header** (bg `#0f0f12`):
@@ -377,7 +377,7 @@ These persist for each user:
 - tip dismissed;
 - zoom mode;
 - grid and ruler toggles;
-- inspector dock position, collapsed state and splitter size;
+- the docked inspector's collapsed state, the quick bar switch and pins, the accordion mode;
 - Auto-pick profile.
 
 ---
@@ -402,7 +402,7 @@ Zone: { id, name, c, r, w, h, hidden, look: { follow: 'global'|'custom', ...Look
 PanelWidget: { id, kind: 'stat'|'value'|'bar'|'gauge'|'sparkline'|'table'|'text'|'image'|'clock'|'shape',
   label, sensor, unit, color, placement, className, css, ...kindFields }
 ui: { mode: 'design'|'sources', rail: 'layers'|'add'|'profiles', leftOpen, selection: string[], panelItemSel,
-  inspectorTab, dashboardTab, openSections, settingsQuery, showAdvanced, dock: 'side'|'bottom'|'auto', dockOpen, dockSize,
+  inspectorTab, dashboardTab, openSection, settingsQuery, showAdvanced, inspectorMode (derived from the studio width), dockOpen, sheetSnap,
   zoom: number|'fit', grid, rulers, contextMenu, dropGhost, dragging, picker: { open, target: 'widget'|'item', query },
   toast, shortcutsOpen, tipDismissed, styleClipboard, libraryChip, librarySearch, explorer: {...} }
 history: { past, future }    // per profile; production also records settings / theme / preset changes

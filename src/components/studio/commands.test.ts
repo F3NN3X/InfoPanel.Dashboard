@@ -39,7 +39,6 @@ const base: CommandState = {
   canRedo: false,
   showGrid: true,
   showSources: false,
-  layoutMode: "auto",
   enforced: false,
   appearancePresets: [],
 };
@@ -68,14 +67,10 @@ describe("buildCommands", () => {
     expect(ids({ ...base, selected: zone("a", 1, 1) })).toContain("background");
   });
 
-  it("offers the three layouts (marking the current one) and the dock toggle", () => {
-    const list = buildCommands({ ...base, layoutMode: "side" });
-    const find = (id: string) => list.find((c) => c.id === id);
-    expect(find("layout:auto")).toMatchObject({ label: "Layout: Auto", action: { type: "layout", mode: "auto" } });
-    expect(find("layout:bottom")?.action).toEqual({ type: "layout", mode: "bottom" });
-    expect(find("layout:side")?.hint).toBe("current");
-    expect(find("layout:auto")?.hint).toBeUndefined();
-    expect(find("toggle-dock")).toMatchObject({ label: "Toggle inspector", hint: "Ctrl+\\", action: { type: "toggle-dock" } });
+  it("offers the inspector toggle and no layout choice (the studio's width picks it)", () => {
+    const list = buildCommands(base);
+    expect(list.find((c) => c.id === "toggle-dock")).toMatchObject({ label: "Toggle inspector", hint: "Ctrl+\\", action: { type: "toggle-dock" } });
+    expect(list.some((c) => c.id.startsWith("layout:"))).toBe(false);
   });
 
   it("offers the General and Connection tabs", () => {

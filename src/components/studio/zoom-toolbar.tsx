@@ -1,8 +1,7 @@
-import { Grid3x3, Minus, PanelBottom, PanelLeftClose, PanelRight, Plus, RulerDimensionLine } from "lucide-react";
+import { Grid3x3, Minus, PanelLeftClose, Plus, RulerDimensionLine } from "lucide-react";
 import { IconButton } from "@/components/ui/icon-button";
 import type { ProfileView } from "@/lib/layout";
 import { cn } from "@/lib/utils";
-import type { LayoutMode, Placement } from "./studio-layout";
 import { KEYS } from "./use-studio-shortcuts";
 
 interface ZoomToolbarProps {
@@ -20,14 +19,9 @@ interface ZoomToolbarProps {
   profile: ProfileView;
   /** Open Dashboard › Profile. */
   onOpenProfile: () => void;
-  /** The inspector position setting; the button cycles it. */
-  layoutMode: LayoutMode;
-  /** Where the inspector actually is (Auto resolves to one of these). */
-  placement: Placement;
-  onCycleLayout: () => void;
+  /** Distance from the canvas bottom (above the phone's sheet); 16 px by default. */
+  bottom?: number;
 }
-
-const DOCK_LABEL: Record<LayoutMode, string> = { side: "Side", bottom: "Bottom", auto: "Auto" };
 
 const BAR_BUTTON = "h-7 w-7 rounded-md hover:bg-[#24242a]";
 const TOGGLE_BUTTON = cn(BAR_BUTTON, "text-[#c9c9cf]");
@@ -39,8 +33,7 @@ function Divider() {
 
 /**
  * The floating bar over the canvas (16 px from the bottom, centred): left
- * panel, grid and ruler toggles, zoom, Fit, the resolution button and the
- * inspector position.
+ * panel, grid and ruler toggles, zoom, Fit and the resolution button.
  */
 export function ZoomToolbar({
   zoom,
@@ -54,16 +47,14 @@ export function ZoomToolbar({
   onFit,
   profile,
   onOpenProfile,
-  layoutMode,
-  placement,
-  onCycleLayout,
+  bottom,
 }: ZoomToolbarProps) {
-  const DockIcon = placement === "bottom" ? PanelBottom : PanelRight;
-  const dockLabel = DOCK_LABEL[layoutMode];
   return (
     <div
+      style={bottom === undefined ? undefined : { bottom }}
       className={cn(
-        "absolute bottom-4 left-1/2 z-30 flex h-9 -translate-x-1/2 items-center gap-0.5 whitespace-nowrap px-1",
+        // Narrower than the canvas (a phone), it scrolls sideways rather than widening the studio.
+        "absolute bottom-4 left-1/2 z-30 flex h-9 max-w-[calc(100%-16px)] -translate-x-1/2 items-center gap-0.5 overflow-x-auto whitespace-nowrap px-1 [scrollbar-width:none] [&>*]:shrink-0",
         "rounded-[10px] border border-ui-strong bg-ui-raised font-ui shadow-ui-float"
       )}
     >
@@ -104,14 +95,6 @@ export function ZoomToolbar({
         className={cn(TEXT_BUTTON, "font-ui-mono text-[11px]")}
       >
         {profile.width} × {profile.height}
-      </button>
-      <button
-        type="button"
-        onClick={onCycleLayout}
-        title={`Inspector position: ${dockLabel} (click to change; ${KEYS.dock} collapses)`}
-        className={cn(TEXT_BUTTON, "pl-1.5")}
-      >
-        <DockIcon className="h-[17px] w-[17px]" /> {dockLabel}
       </button>
     </div>
   );

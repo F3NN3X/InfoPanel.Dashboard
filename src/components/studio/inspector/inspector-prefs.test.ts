@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { parseAdvanced, parseTabs, pickTab } from "./inspector-prefs";
+import {
+  MAX_PINS,
+  parseAccordion,
+  parseAdvanced,
+  parsePins,
+  parseQuickBar,
+  parseTabs,
+  pickTab,
+  pinsOf,
+  togglePin,
+} from "./inspector-prefs";
 
 describe("parseAdvanced", () => {
   it("is off unless stored as on", () => {
@@ -32,5 +42,44 @@ describe("pickTab", () => {
     expect(pickTab("appearance", ["content", "style", "data"])).toBe("content");
     expect(pickTab(undefined, ["profile", "general"])).toBe("profile");
     expect(pickTab("style", [])).toBeUndefined();
+  });
+});
+
+describe("studio preferences", () => {
+  it("keeps the quick bar on unless it was turned off", () => {
+    expect(parseQuickBar(null)).toBe(true);
+    expect(parseQuickBar("true")).toBe(true);
+    expect(parseQuickBar("false")).toBe(false);
+  });
+
+  it("opens one section at a time unless many was picked", () => {
+    expect(parseAccordion(null)).toBe("one");
+    expect(parseAccordion("junk")).toBe("one");
+    expect(parseAccordion("many")).toBe("many");
+  });
+});
+
+describe("pins", () => {
+  it("reads the pins per widget type, dropping anything malformed", () => {
+    expect(parsePins('{"Clock":["fmt","secs"],"bad":3,"mixed":["a",1]}')).toEqual({ Clock: ["fmt", "secs"], mixed: ["a"] });
+    expect(parsePins("[]")).toEqual({});
+    expect(parsePins("{")).toEqual({});
+    expect(parsePins(null)).toEqual({});
+  });
+
+  it("adds a pin last and removes one in place", () => {
+    expect(togglePin(["a", "b"], "c")).toEqual(["a", "b", "c"]);
+    expect(togglePin(["a", "b", "c"], "b")).toEqual(["a", "c"]);
+  });
+
+  it("keeps only the last six", () => {
+    const six = ["a", "b", "c", "d", "e", "f"];
+    expect(togglePin(six, "g")).toEqual(["b", "c", "d", "e", "f", "g"]);
+    expect(togglePin(six, "g")).toHaveLength(MAX_PINS);
+  });
+
+  it("uses a type's default set until it has pins of its own", () => {
+    expect(pinsOf({}, "Clock", ["fmt"])).toEqual(["fmt"]);
+    expect(pinsOf({ Clock: [] }, "Clock", ["fmt"])).toEqual([]);
   });
 });

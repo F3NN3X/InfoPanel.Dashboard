@@ -3,34 +3,21 @@ import { SCROLL_ROW_H, type ProfileView } from "@/lib/layout";
 import { profileGap, profilePadding } from "@/lib/profile-grid";
 import {
   computeLayout,
-  nextLayoutMode,
+  inspectorMode,
   leftPanelFits,
-  placementFor,
-  type LayoutMode,
+  sheetHeight,
   type PageSize,
+  type SheetSnap,
   type StudioLayout,
 } from "./studio-layout";
 
-/** localStorage keys: the layout mode, the dragged dock height and whether the dock is collapsed. */
-const MODE_KEY = "studio.layout";
-const DOCK_KEY = "studio.dockHeight";
+/** localStorage key: whether the docked inspector is collapsed (the key predates the floating mode). */
 const COLLAPSED_KEY = "studio.dockCollapsed";
 
-/** Width of the side inspector. */
-export const INSPECTOR_WIDTH = 340;
+/** Width of the inspector, docked or floating. */
+export const INSPECTOR_WIDTH = 320;
 /** Width of the icon rail (the left panel's width is the viewer's, see `useStoredDrawerWidth`). */
 export const RAIL_WIDTH = 52;
-
-/** The stored layout mode; anything unknown = auto. */
-export function parseMode(raw: string | null): LayoutMode {
-  return raw === "side" || raw === "bottom" ? raw : "auto";
-}
-
-/** The stored dock height; anything but a positive number = none. */
-export function parseDock(raw: string | null): number | null {
-  const n = raw === null ? NaN : Number(raw);
-  return Number.isFinite(n) && n > 0 ? n : null;
-}
 
 /**
  * The profile's page as the canvas draws it: a "fill" page has its design
@@ -48,20 +35,11 @@ export function pageSize(profile: ProfileView): PageSize {
   };
 }
 
-function load<T>(key: string, parse: (raw: string | null) => T): T {
+function loadCollapsed(): boolean {
   try {
-    return parse(localStorage.getItem(key));
+    return localStorage.getItem(COLLAPSED_KEY) === "1";
   } catch {
-    return parse(null);
-  }
-}
-
-function store(key: string, value: string | null) {
-  try {
-    if (value === null) localStorage.removeItem(key);
-    else localStorage.setItem(key, value);
-  } catch {
-    // Storage unavailable (private mode, quota): keep the session state.
+    return false;
   }
 }
 
@@ -71,21 +49,25 @@ interface StudioLayoutOptions {
   rail: number;
   /** Width of the open left panel. */
   drawer: number;
-  /** The profile's design size (Auto picks Bottom for a wide strip). */
-  design: { width: number; height: number };
-  /** The inspector stays beside the canvas (Sources view). */
-  forceSide?: boolean;
+  /** The quick bar preference is on. */
+  quickBar: boolean;
 }
 
 /**
  * The studio's layout: measures the body (below the top bar) through the
- * `bodyRef` callback ref and works out where the inspector goes. The mode
- * and a dragged dock height are remembered per viewer.
+ * `bodyRef` callback ref; its width picks the inspector's mode (docked,
+ * floating or a sheet). The docked inspector can be collapsed (remembered
+ * per viewer); the floating one opens on demand and starts closed.
  */
-export function useStudioLayout({ page, rail, drawer, design, forceSide }: StudioLayoutOptions) {
-  const [mode, setModeState] = useState<LayoutMode>(() => load(MODE_KEY, parseMode));
-  const [dock, setDockState] = useState<number | null>(() => load(DOCK_KEY, parseDock));
-  const [collapsed, setCollapsedState] = useState(() => load(COLLAPSED_KEY, (raw) => raw === "1"));
+export function useStudioLayout({ page, rail, drawer, quickBar }: StudioLayoutOptions) {
+  const [collapsed, setCollapsedState] = useState(loadCollapsed);
+  const [floatOpen, setFloatOpen] = useState(false);
+  /** The bottom sheet: its snap, its height while the handle is dragged, the tool its strip shows. */
+  const [sheetSnap, setSheetSnap] = useState<SheetSnap>("peek");
+  const [sheetDrag, setSheetDrag] = useState<number | null>(null);
+  const [sheetTool, setSheetTool] = useState("quick");
+  /** Something is selected (the sheet's peek is taller then); set by the selection effect. */
+  const [hasSelection, setHasSelection] = useState(false);
   const [bodyEl, setBodyEl] = useState<HTMLDivElement | null>(null);
   const [body, setBody] = useState({ width: 0, height: 0 });
 
@@ -98,67 +80,90 @@ export function useStudioLayout({ page, rail, drawer, design, forceSide }: Studi
     return () => observer.disconnect();
   }, [bodyEl]);
 
-  const setMode = useCallback((next: LayoutMode) => {
-    setModeState(next);
-    store(MODE_KEY, next === "auto" ? null : next);
-  }, []);
-
-  /** Cycle the inspector position: Auto → Side → Bottom → Auto. */
-  const cycleMode = useCallback(() => setMode(nextLayoutMode(mode)), [mode, setMode]);
-
-  /** Set the dock height; null returns to the automatic one. */
-  const setDockHeight = useCallback((next: number | null) => {
-    setDockState(next);
-    store(DOCK_KEY, next === null ? null : String(Math.round(next)));
-  }, []);
-
   const setCollapsed = useCallback((next: boolean) => {
     setCollapsedState(next);
-    store(COLLAPSED_KEY, next ? "1" : null);
+    try {
+      if (next) localStorage.setItem(COLLAPSED_KEY, "1");
+      else localStorage.removeItem(COLLAPSED_KEY);
+    } catch {
+      // Storage unavailable (private mode, quota): keep the session state.
+    }
   }, []);
-  const toggleCollapsed = useCallback(() => setCollapsed(!collapsed), [setCollapsed, collapsed]);
 
-  const { width: pageW, height: pageH, naturalHeight } = page;
-  const { width: designW, height: designH } = design;
-  const leftOverlay = !leftPanelFits(body.width, placementFor(mode, design, forceSide), {
+  const mode = inspectorMode(body.width);
+  const leftOverlay = !leftPanelFits(body.width, mode, {
     rail,
     drawer,
-    // A collapsed side inspector leaves its column to the canvas.
+    // A collapsed docked inspector leaves its column to the canvas.
     inspector: collapsed ? 0 : INSPECTOR_WIDTH,
   });
-  const layouts = useMemo(() => {
-    const input = {
-      body,
-      page: { width: pageW, height: pageH, naturalHeight },
-      rail,
-      // An overlaid left panel takes no width from the canvas.
-      drawer: leftOverlay ? 0 : drawer,
-      design: { width: designW, height: designH },
-      inspector: INSPECTOR_WIDTH,
-      mode: forceSide ? ("side" as const) : mode,
-    };
-    return {
-      layout: computeLayout({ ...input, dockHeight: dock, collapsed }),
-      auto: computeLayout(input),
-    };
-  }, [body, pageW, pageH, naturalHeight, designW, designH, rail, drawer, leftOverlay, forceSide, mode, dock, collapsed]);
+  const { width: pageW, height: pageH, naturalHeight } = page;
+  const sheet = sheetDrag ?? sheetHeight(sheetSnap, body.height, hasSelection);
+  const layout: StudioLayout = useMemo(
+    () =>
+      computeLayout({
+        body,
+        page: { width: pageW, height: pageH, naturalHeight },
+        rail,
+        // An overlaid left panel takes no width from the canvas.
+        drawer: leftOverlay ? 0 : drawer,
+        inspector: INSPECTOR_WIDTH,
+        collapsed,
+        floatOpen,
+        quickBar,
+        sheet,
+      }),
+    [body, pageW, pageH, naturalHeight, rail, drawer, leftOverlay, collapsed, floatOpen, quickBar, sheet]
+  );
 
-  const layout: StudioLayout = layouts.layout;
+  /** The inspector is out of sight: a collapsed docked column, a closed floating card, a sheet at its peek. */
+  const hidden = mode === "docked" ? collapsed : mode === "floating" ? !floatOpen : sheetSnap === "peek";
+  /** Show the inspector (a request for a tab or a section, a double-click on a zone): the sheet goes to half. */
+  const showInspector = useCallback(() => {
+    if (mode === "docked") setCollapsed(false);
+    else if (mode === "floating") setFloatOpen(true);
+    else setSheetSnap((snap) => (snap === "peek" ? "half" : snap));
+  }, [mode, setCollapsed]);
+  /** Ctrl+\: collapse / expand the docked inspector, close / open the floating one, peek / half the sheet. */
+  const toggleInspector = useCallback(() => {
+    if (mode === "docked") setCollapsed(!collapsed);
+    else if (mode === "floating") setFloatOpen((open) => !open);
+    else setSheetSnap((snap) => (snap === "peek" ? "half" : "peek"));
+  }, [mode, collapsed, setCollapsed]);
+  /** Put the inspector away (an empty-canvas click): close the floating card, the sheet back to its peek. */
+  const dismissInspector = useCallback(() => {
+    setFloatOpen(false);
+    setSheetSnap("peek");
+  }, []);
+
   return {
     bodyRef: setBodyEl,
     body,
     layout,
+    mode: layout.mode,
     /** The left panel does not fit beside the canvas: the shell lays it over the canvas. */
     leftOverlay,
-    /** The dock height without the user's override (the splitter snaps to it). */
-    autoDockHeight: layouts.auto.dockHeight,
-    mode,
-    setMode,
-    cycleMode,
-    setDockHeight,
-    /** The inspector is collapsed: the dock shows only its bar (bottom), the side column is hidden. */
+    /** The docked inspector is collapsed to a strip at the window's edge. */
     collapsed,
-    setCollapsed,
-    toggleCollapsed,
+    floatOpen,
+    setFloatOpen,
+    hidden,
+    showInspector,
+    toggleInspector,
+    dismissInspector,
+    sheet: {
+      snap: sheetSnap,
+      setSnap: setSheetSnap,
+      /** The sheet's height now (the dragged one while the handle moves). */
+      height: sheet,
+      /** The canvas area's height (the snaps are relative to it). */
+      area: body.height,
+      drag: sheetDrag,
+      setDrag: setSheetDrag,
+      tool: sheetTool,
+      setTool: setSheetTool,
+      hasSelection,
+    },
+    setHasSelection,
   };
 }

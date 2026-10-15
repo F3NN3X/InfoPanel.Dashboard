@@ -1,11 +1,23 @@
 /**
- * The studio's responsive layout: where the inspector lives (beside the
- * canvas or in a dock under it) and the zoom that fits the page. Pure, so
- * the shell only measures and renders.
+ * The studio's responsive layout: where the inspector lives, picked from the
+ * studio's width (docked beside the canvas, floating over it, or a bottom
+ * sheet on a phone), and the zoom that fits the page. Pure, so the shell
+ * only measures and renders.
  */
 
-export type LayoutMode = "auto" | "side" | "bottom";
-export type Placement = "side" | "bottom";
+/** Docked: a right column. Floating: a card over the canvas, opened on demand. Sheet: a bottom sheet. */
+export type InspectorMode = "docked" | "floating" | "sheet";
+
+/** The studio width from which the inspector docks beside the canvas. */
+export const DOCKED_MIN_WIDTH = 1100;
+/** The studio width from which it floats over the canvas (a bottom sheet below). */
+export const FLOATING_MIN_WIDTH = 640;
+
+/** The inspector's mode for the studio's width; an unmeasured studio (0) docks. */
+export function inspectorMode(width: number): InspectorMode {
+  if (width <= 0 || width >= DOCKED_MIN_WIDTH) return "docked";
+  return width >= FLOATING_MIN_WIDTH ? "floating" : "sheet";
+}
 
 export const ZOOM_MIN = 0.25;
 export const ZOOM_MAX = 2;
@@ -29,17 +41,11 @@ export function stepZoom(zoom: number, dir: 1 | -1): number {
  */
 export const CANVAS_PAD_X = 80;
 export const CANVAS_PAD_Y = 160;
-/** The bottom dock's top row (collapse toggle): all that shows while it is collapsed. */
-export const BAR_H = 28;
 
-/** The bottom dock's height until the user drags the splitter. */
-export const DEFAULT_DOCK = 320;
-/** The dock never gets smaller than this (it holds the inspector). */
-export const MIN_DOCK = 200;
-/** ... nor larger than this share of the studio body. */
-export const MAX_DOCK_SHARE = 0.7;
-/** Auto puts the inspector below the canvas for a profile wider than this width / height ratio. */
-export const AUTO_BOTTOM_ASPECT = 2.5;
+/** The width the open floating inspector takes from the canvas (320 + its 12 px margins and a gap). */
+export const FLOAT_INSET = 348;
+/** Extra room over the page for the quick bar (12 + 46 px) and the selection chip under it. */
+export const QUICK_BAR_INSET = 36;
 
 interface Size {
   width: number;
@@ -52,45 +58,74 @@ export interface PageSize extends Size {
   naturalHeight?: number;
 }
 
+/** Extra room over the canvas the page keeps clear of (px, on top of the scroll padding). */
+export interface CanvasInset {
+  top?: number;
+  right?: number;
+  bottom?: number;
+}
+
+/** The bottom sheet's resting heights. */
+export type SheetSnap = "peek" | "half" | "full";
+export const SHEET_SNAPS: readonly SheetSnap[] = ["peek", "half", "full"];
+/** The lowest a dragged sheet goes. */
+export const SHEET_MIN = 70;
+
+/** A snap's height for a canvas area `h` px tall; the peek is shorter with nothing selected. */
+export function sheetHeight(snap: SheetSnap, h: number, selected: boolean): number {
+  if (snap === "peek") return selected ? 150 : 96;
+  if (snap === "half") return Math.min(h - 8, Math.max(320, Math.round(h * 0.56)));
+  return Math.max(0, h - 8);
+}
+
+/** The snap nearest a dragged height. */
+export function nearestSnap(height: number, h: number, selected: boolean): SheetSnap {
+  return SHEET_SNAPS.reduce((best, snap) =>
+    Math.abs(sheetHeight(snap, h, selected) - height) < Math.abs(sheetHeight(best, h, selected) - height) ? snap : best
+  );
+}
+
 export interface LayoutInput {
   /** The studio body (below the top bar). */
   body: Size;
   page: PageSize;
   /** Width of the rail. */
   rail: number;
-  /** Width of the open left panel (beside the canvas in both placements). */
+  /** Width of the open left panel (beside the canvas). */
   drawer?: number;
-  /** The profile's design size, for Auto: a wide strip goes below the canvas. */
-  design?: Size;
-  /** Width of the side inspector. */
+  /** Width of the docked inspector. */
   inspector: number;
-  mode: LayoutMode;
-  /** The user's dock height (dragged splitter), if any. */
-  dockHeight?: number | null;
-  /** The inspector is collapsed: the dock shows only its bar (bottom), or the side column is gone. */
+  /** The docked inspector is collapsed (its column is gone). */
   collapsed?: boolean;
+  /** The floating inspector is open over the canvas. */
+  floatOpen?: boolean;
+  /** The quick bar is on (docked or floating): the page keeps clear of it. */
+  quickBar?: boolean;
+  /** The bottom sheet's height (sheet mode): the page keeps clear of it up to the half snap. */
+  sheet?: number;
 }
 
 export interface StudioLayout {
-  placement: Placement;
-  /** Height of the bottom dock (0 in the side placement). */
-  dockHeight: number;
+  mode: InspectorMode;
   /** The canvas scroll box. */
   canvasWidth: number;
   canvasHeight: number;
+  /** What the page keeps clear of inside that box. */
+  inset: CanvasInset;
   fitZoom: number;
 }
 
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
 
 /**
- * The largest zoom at which the page and its padding fit a canvas box.
- * A page without a height (scroll profile) is fitted to the width only.
+ * The largest zoom at which the page and its padding fit a canvas box, kept
+ * clear of `inset`. A page without a height (scroll profile) is fitted to
+ * the width only.
  */
-export function fitZoomFor(box: Size, page: Size): number {
+export function fitZoomFor(box: Size, page: Size, inset: CanvasInset = {}): number {
   const limits: number[] = [];
-  if (page.width > 0) limits.push((box.width - CANVAS_PAD_X) / page.width);
-  if (page.height > 0) limits.push((box.height - CANVAS_PAD_Y) / page.height);
+  if (page.width > 0) limits.push((box.width - CANVAS_PAD_X - (inset.right ?? 0)) / page.width);
+  if (page.height > 0) limits.push((box.height - CANVAS_PAD_Y - (inset.top ?? 0) - (inset.bottom ?? 0)) / page.height);
   if (limits.length === 0) return 1;
   const z = Math.min(...limits);
   if (!(z > 0)) return ZOOM_MIN;
@@ -98,70 +133,45 @@ export function fitZoomFor(box: Size, page: Size): number {
   return clamp(Math.floor(z * 100) / 100, ZOOM_MIN, ZOOM_MAX);
 }
 
-/** The dock height clamped to [MIN_DOCK, MAX_DOCK_SHARE of the body]. */
-export function clampDock(height: number, bodyHeight: number): number {
-  return Math.round(clamp(height, MIN_DOCK, Math.max(MIN_DOCK, bodyHeight * MAX_DOCK_SHARE)));
-}
-
-/** The mode after `mode` in the zoom bar's dock button: Auto → Side → Bottom → Auto. */
-export function nextLayoutMode(mode: LayoutMode): LayoutMode {
-  return mode === "auto" ? "side" : mode === "side" ? "bottom" : "auto";
-}
-
-/** Where Auto puts the inspector: Bottom for a profile wider than 2.5 : 1, else Side. */
-export function autoPlacement(design?: Size): Placement {
-  return design && design.height > 0 && design.width / design.height > AUTO_BOTTOM_ASPECT ? "bottom" : "side";
-}
+/** The scroll padding under the page (the zoom bar's room), already part of `CANVAS_PAD_Y`. */
+const PAD_BOTTOM = 96;
+/** The zoom bar and its gap, which sit on top of the sheet. */
+const ZOOM_BAR_ROOM = 48;
 
 /** The narrowest canvas the studio keeps (the shell's `main` min width). */
 export const MIN_CANVAS = 420;
 
-/** Where the inspector goes for a mode, before any measuring. */
-export function placementFor(mode: LayoutMode, design?: Size, forceSide = false): Placement {
-  if (forceSide || mode === "side") return "side";
-  return mode === "bottom" ? "bottom" : autoPlacement(design);
-}
-
 /**
- * Whether the open left panel fits beside the canvas (and a side inspector).
- * When it does not, the shell lays it over the canvas instead of squeezing
- * the canvas below its minimum and scrolling the studio sideways. An
- * unmeasured body (width 0) counts as fitting. `widths.inspector` is 0 while
- * the side inspector is collapsed.
+ * Whether the open left panel fits beside the canvas (and a docked
+ * inspector). When it does not, the shell lays it over the canvas instead of
+ * squeezing the canvas below its minimum and scrolling the studio sideways.
+ * An unmeasured body (width 0) counts as fitting. `widths.inspector` is 0
+ * while the docked inspector is collapsed.
  */
-export function leftPanelFits(bodyWidth: number, placement: Placement, widths: { rail: number; drawer: number; inspector: number }): boolean {
+export function leftPanelFits(
+  bodyWidth: number,
+  mode: InspectorMode,
+  widths: { rail: number; drawer: number; inspector: number }
+): boolean {
   if (bodyWidth <= 0 || widths.drawer <= 0) return true;
-  const need = widths.rail + widths.drawer + MIN_CANVAS + (placement === "side" ? widths.inspector : 0);
+  const need = widths.rail + widths.drawer + MIN_CANVAS + (mode === "docked" ? widths.inspector : 0);
   return bodyWidth >= need;
 }
 
-/** Compute the placement, dock and canvas boxes, and the fit zoom. */
+/** The inspector's mode, the canvas box, what the page keeps clear of, and the fit zoom. */
 export function computeLayout(input: LayoutInput): StudioLayout {
-  const { body, page, rail, drawer = 0, inspector, mode, design, dockHeight, collapsed } = input;
-  const side = (): StudioLayout => {
-    const box = {
-      width: Math.max(0, body.width - rail - drawer - (collapsed ? 0 : inspector)),
-      height: Math.max(0, body.height),
-    };
-    return {
-      placement: "side",
-      dockHeight: 0,
-      canvasWidth: box.width,
-      canvasHeight: box.height,
-      fitZoom: fitZoomFor(box, page),
-    };
+  const { body, page, rail, drawer = 0, inspector, collapsed, floatOpen, quickBar, sheet = 0 } = input;
+  const mode = inspectorMode(body.width);
+  const column = mode === "docked" && !collapsed ? inspector : 0;
+  const box = { width: Math.max(0, body.width - rail - drawer - column), height: Math.max(0, body.height) };
+  const inset: CanvasInset = {
+    ...(mode === "floating" && floatOpen ? { right: FLOAT_INSET } : {}),
+    // Reserved whenever the bar is on, not only while something is selected: selecting must not refit the page.
+    ...(quickBar && mode !== "sheet" ? { top: QUICK_BAR_INSET } : {}),
+    // The preview stays above the sheet (and the zoom bar on it) at peek and half; a full sheet covers it anyway.
+    ...(mode === "sheet"
+      ? { bottom: Math.max(0, Math.min(sheet, sheetHeight("half", body.height, true)) + 14 + ZOOM_BAR_ROOM - PAD_BOTTOM) }
+      : {}),
   };
-  if (body.width <= 0 || body.height <= 0 || mode === "side") return side();
-  if (mode === "auto" && autoPlacement(design) === "side") return side();
-
-  const width = Math.max(0, body.width - rail - drawer);
-  const dock = collapsed ? BAR_H : clampDock(dockHeight != null && dockHeight > 0 ? dockHeight : DEFAULT_DOCK, body.height);
-  const box = { width, height: Math.max(0, body.height - dock) };
-  return {
-    placement: "bottom",
-    dockHeight: dock,
-    canvasWidth: box.width,
-    canvasHeight: box.height,
-    fitZoom: fitZoomFor(box, page),
-  };
+  return { mode, canvasWidth: box.width, canvasHeight: box.height, inset, fitZoom: fitZoomFor(box, page, inset) };
 }

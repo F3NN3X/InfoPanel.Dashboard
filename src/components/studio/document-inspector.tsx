@@ -12,8 +12,8 @@ import { generalCards } from "./general-panel";
 import { InspectorNote, InspectorView, type SectionParts } from "./inspector/inspector-view";
 import { AutoPick, AutoRotate, ProfileFields, ProfileInherit } from "./inspector/profile-sections";
 import { IslandSection } from "./inspector/island-section";
+import { useAccordionPref, useQuickBarPref, type AccordionMode } from "./inspector/inspector-prefs";
 import { withIsland } from "@/lib/island/config";
-import { HeaderSlot } from "./inspector-layout";
 import {
   globalStyleValues,
   inspectorNotes,
@@ -25,12 +25,12 @@ import { ProfileThemePanel, type ProfileTheme } from "./profile-theme-panel";
 import { SkinGallery } from "./skin-gallery";
 import { CardEffects, SurfacePicker } from "./surface-picker";
 import type { FieldsApi } from "./settings-panel";
-import { SegmentedRow } from "./setting-rows";
+import { SegmentedRow, ToggleRow } from "./setting-rows";
 import { dropKeys } from "./settings-model";
-import type { LayoutMode } from "./studio-layout";
 import { ThemePanel } from "./theme-panel";
 import type { AppearancePresetsApi } from "./use-appearance-presets";
-import { DashboardHeader } from "./zone-inspector-parts";
+import { LayoutDashboard } from "lucide-react";
+import { DashboardHeader, changedLabel } from "./zone-inspector-parts";
 import { shownValue, shownValues } from "./inspector/zone-fields";
 import { PROFILE_STYLE_SETTINGS } from "@/modules/standard-settings";
 
@@ -51,6 +51,9 @@ export interface DocumentInspectorProps {
   /** The settings search (the studio's Esc clears it). */
   query: string;
   onQuery: (query: string) => void;
+  /** The Changed filter (only values set here, across every tab). */
+  changedOnly: boolean;
+  onChangedOnly: (on: boolean) => void;
   theme: ThemeTokens;
   radius: number;
   onToken: (key: keyof ThemeTokens, value: string) => void;
@@ -97,17 +100,13 @@ export interface DashboardStudioProps {
   /** The active profile's pages (Auto-rotate's checklist) and the write of its `rotate` option. */
   pages: ProfilePage[];
   onRotate: (patch: Partial<PageRotate>) => void;
-  /** General › Studio: the inspector position. */
-  layoutMode: LayoutMode;
-  onLayoutMode: (mode: LayoutMode) => void;
   /** The sensor pickers' "Open data explorer" (the island's sensor). */
   onOpenExplorer: () => void;
 }
 
-const INSPECTOR_POSITIONS = [
-  { value: "side" as const, label: "Side" },
-  { value: "bottom" as const, label: "Bottom" },
-  { value: "auto" as const, label: "Auto", title: "Bottom for wide, short profiles; else beside the canvas" },
+const ACCORDION_MODES = [
+  { value: "one" as const, label: "One open" },
+  { value: "many" as const, label: "Many open" },
 ];
 
 /**
@@ -126,6 +125,8 @@ function DocumentSheet({
   jumpTo,
   query,
   onQuery,
+  changedOnly,
+  onChangedOnly,
   theme,
   radius,
   onToken,
@@ -151,10 +152,10 @@ function DocumentSheet({
   onAutoPick,
   pages,
   onRotate,
-  layoutMode,
-  onLayoutMode,
   onOpenExplorer,
 }: DocumentInspectorProps & DashboardStudioProps) {
+  const [quickBar, setQuickBar] = useQuickBarPref();
+  const [accordion, setAccordion] = useAccordionPref();
   const [target, setTarget] = useState<AppearanceTarget>(
     // A profile with its own look or background opens on it: editing "All profiles" would not show there.
     profile.style || profile.styleEnforce !== undefined || profile.background ? "profile" : "all"
@@ -310,13 +311,21 @@ function DocumentSheet({
       case "studio":
         return {
           body: (
-            <SegmentedRow
-              label="Inspector position"
-              hint="A browser preference; the zoom bar's dock button changes it too"
-              options={INSPECTOR_POSITIONS}
-              value={layoutMode}
-              onChange={(m) => onLayoutMode(m as LayoutMode)}
-            />
+            <div className="space-y-2">
+              <ToggleRow
+                label="Quick bar"
+                hint="The pinned settings of the selected widget, over the canvas. A browser preference"
+                value={quickBar}
+                onChange={setQuickBar}
+              />
+              <SegmentedRow
+                label="Inspector sections"
+                hint="One open: opening a section closes the others in its tab. A browser preference"
+                options={ACCORDION_MODES}
+                value={accordion}
+                onChange={(m) => setAccordion(m as AccordionMode)}
+              />
+            </div>
           ),
         };
       case "connection":
@@ -334,9 +343,7 @@ function DocumentSheet({
       context={context}
       contextKey="dashboard"
       header={
-        <HeaderSlot className="w-80 shrink-0">
-          <DashboardHeader profileName={profile.name} />
-        </HeaderSlot>
+        <DashboardHeader profileName={profile.name} />
       }
       fields={fields}
       visible={(def) => isVisible(def, effective)}
@@ -344,7 +351,15 @@ function DocumentSheet({
       notes={notes}
       query={query}
       onQuery={onQuery}
+      changedOnly={changedOnly}
+      onChangedOnly={onChangedOnly}
       jumpTo={jumpTo}
+      identity={{
+        icon: <LayoutDashboard />,
+        name: "Dashboard",
+        meta: (changed) => `${profile.name} · ${changedLabel(changed)}`,
+        peekNote: "Tap a widget to edit it.",
+      }}
     />
   );
 }

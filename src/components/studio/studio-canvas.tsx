@@ -37,13 +37,15 @@ import { DND_MIME, DND_MIME_PANEL, placementTitle } from "./studio-modules";
 import type { SelectMode } from "./selection";
 import { SelectionChipLayer } from "./selection-chip";
 import { zoneMinSize } from "./studio-actions";
+import type { CanvasInset } from "./studio-layout";
 import { enforceMinSize, fitZoneRect, moveZoneSet, type ZoneRect } from "./zone-geometry";
 
 /** The canvas' dot grid, at a fixed pitch on the scroll area (not scaled by the zoom). */
 const DOTS = "radial-gradient(#1f1f25 1px, transparent 1px)";
 const DOT_PITCH = "18px 18px";
-/** The scroll area's padding around the page (see `CANVAS_PAD_X/Y`): room for the chip, ruler labels and zoom bar. */
-const SCROLL_PAD = "64px 40px 96px";
+/** The scroll area's padding around the page (see `CANVAS_PAD_X/Y`): room for the chip, ruler labels and zoom bar, plus `inset`. */
+const scrollPad = (inset: CanvasInset) =>
+  `${64 + (inset.top ?? 0)}px ${40 + (inset.right ?? 0)}px ${96 + (inset.bottom ?? 0)}px 40px`;
 /** The optional grid: a line at the left / top edge of every cell, drawn over the tiles. */
 const GRID_LINES =
   "linear-gradient(to right, rgba(255,255,255,0.07) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.07) 1px, transparent 1px)";
@@ -78,6 +80,10 @@ interface StudioCanvasProps {
   selectedIds: string[];
   /** Select a zone (see `SelectMode`); null clears the selection. */
   onSelect: (id: string | null, mode?: SelectMode) => void;
+  /** A double-click on a zone: show all its settings (the floating inspector opens). */
+  onOpenSettings?: (id: string) => void;
+  /** Room the page keeps clear of (the open floating inspector). */
+  inset?: CanvasInset;
   /** The primary panel zone's selected widget (outlined on the canvas). */
   selectedWidgetId: string | null;
   /** Select a panel zone's widget (null = the panel itself). */
@@ -133,6 +139,8 @@ export function StudioCanvas({
   attachScroll,
   selectedIds,
   onSelect,
+  onOpenSettings,
+  inset = {},
   selectedWidgetId,
   onSelectWidget,
   onDrawZone,
@@ -426,7 +434,7 @@ export function StudioCanvas({
               if (e.target === e.currentTarget) onSelect(null);
             }}
             className="flex min-h-full w-fit min-w-full"
-            style={{ padding: SCROLL_PAD }}
+            style={{ padding: scrollPad(inset) }}
           >
             {/* The page: exactly the profile's design size (the kiosk
                 window renders the same profile 1:1), its padding around
@@ -561,6 +569,7 @@ export function StudioCanvas({
                           primary={primaryId === p.id}
                           canResize={primaryId === p.id && selectedIds.length === 1}
                           onSelect={(mode) => onSelect(p.id, mode)}
+                          onOpenSettings={onOpenSettings && (() => onOpenSettings(p.id))}
                           onSelectWidget={p.panel ? (widgetId) => onSelectWidget(p.id, widgetId) : undefined}
                           onPickWidget={() => onPickWidget(p.id)}
                           onContextMenu={(x, y) => onContextMenu(p.id, x, y)}

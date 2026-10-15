@@ -13,14 +13,17 @@ saves immediately, and open kiosk pages update within about a second.
 ```
 ┌──────────────────────────── top bar ────────────────────────────┐
 ├──┬────────────┬───────────────────────────────┬─────────────────┤
-│  │ left panel │ canvas                        │ inspector       │
-│R │ Layers /   │                               │ (Side: 340 px)  │
-│a │ Add /      │      [ floating zoom bar ]    │                 │
-│i │ Profiles   │                               │                 │
-│l │ (256 px)   ├───────────────────────────────┴─────────────────┤
-│  │            │ inspector (Bottom: 320 px high)                 │
-└──┴────────────┴─────────────────────────────────────────────────┘
+│  │ left panel │      [ quick bar ]            │ inspector       │
+│R │ Layers /   │ canvas                        │ (docked: 320 px)│
+│a │ Add /      │                               │                 │
+│i │ Profiles   │      [ floating zoom bar ]    │                 │
+│l │ (256 px)   │                               │                 │
+└──┴────────────┴───────────────────────────────┴─────────────────┘
 ```
+
+Shown docked (studio 1100 px or wider). Narrower, the inspector floats over
+the canvas or becomes a bottom sheet, see [Inspector
+placement](#inspector-placement-docked-floating-bottom-sheet).
 
 The bar along the top holds, from left to right:
 
@@ -52,8 +55,7 @@ A **floating zoom bar** sits over the bottom of the canvas, centred. It
 toggles the left panel, the grid and the rulers, zooms out and in (or
 **Ctrl + wheel** over the canvas, **Ctrl + =** / **Ctrl + -**), fits the page
 (**Fit**, **Ctrl + 0**), shows the design size (click it to open Dashboard ›
-Profile) and holds the [inspector position
-button](#inspector-placement-side-bottom-auto). The page is centered in the
+Profile). The page is centered in the
 canvas whenever it is smaller than the view. The grid and ruler toggles are
 remembered.
 
@@ -69,30 +71,50 @@ that resets to 100%) stops that; **Fit** (the button, **Ctrl + 0** or the
 palette) turns it back on. A scroll profile (not *Fill viewport*) is fitted to
 the width only. The zoom mode is remembered.
 
-### Inspector placement: Side, Bottom, Auto
+### Inspector placement: docked, floating, bottom sheet
 
-The inspector sits **beside** the canvas (**Side**: a 340 px column on the
-right) or **below** it (**Bottom**: a dock 320 px high). Wide, short side
-displays such as 1920 x 550 leave most of a normal window empty under the
-page, so the dock puts the inspector there and lets the page use the full
-width. The dock button at the right of the zoom bar cycles **Auto → Side →
-Bottom** (the palette has **Layout: Auto / Side / Bottom**, and the same
-choice is under Dashboard › General › Studio); it is remembered per browser.
+Where the inspector sits follows the width of the studio; there is no setting
+for it.
 
-- **Auto** (the default) picks Bottom when the profile's design size is wider
-  than 2.5 : 1 (width / height), otherwise Side. Only the profile's aspect
-  ratio counts, not the window.
-- **Side** and **Bottom** force the placement.
+- **1100 px and wider: docked.** A 320 px column on the right.
+  `Ctrl + \` collapses it to a slim strip and expands it again; the
+  collapsed state is remembered.
+- **640 to 1099 px: floating.** A 320 px card over the right side of the
+  canvas, closed by default. **All settings** in the quick bar, a
+  **double-click** on a zone or `Ctrl + \` opens it; its **X**,
+  `Ctrl + \`, clearing the selection or clicking empty canvas closes it.
+  While it is open the page fits the space left of it.
+- **Under 640 px: bottom sheet.** A sheet at the bottom of the canvas with
+  three heights: **peek** (a compact header and a tool strip; with nothing
+  selected only "Tap a widget to edit it."), **half** and **full**. Drag the
+  handle to snap to the nearest height; a tap on it toggles peek and half.
+  The tool strip has **Quick** (the pinned settings) and one tile per section
+  across all tabs, with a dot on the sections that have changes; tapping a tile
+  shows that section's fields (44 px rows). The header's eye and **All
+  settings** buttons are 44 px; **All settings** (or a double-click on a zone)
+  goes to half, and at full height the header's **Collapse** goes back to half.
+  The zoom bar sits above the sheet. On a phone the top bar hides the summary,
+  the *Kiosk view* label and Undo / Redo (Undo / Redo move into the **...** menu).
 
-In the dock the inspector's sections flow into columns about 300 px wide that
-scroll horizontally; sections are never split between columns.
+### The quick bar
 
-- **Resize** the dock by dragging the splitter above it; the height is
-  applied when you release. **Double-click** the splitter to reset it. The
-  dock is never smaller than 200 px nor larger than 70% of the studio.
-- **Collapse and expand** it with `Ctrl + \` (or the chevron in its top row).
-  Collapsed, the dock is just that row and the canvas takes the full height.
-  The collapsed state and the dragged height are remembered too.
+In the docked and floating placements a **quick bar** floats at the top centre
+of the canvas. It shows the selection (icon and name, "N widgets" for several
+zones, "Dashboard" with nothing selected in the floating placement), the
+**pinned settings** as compact controls (a switch, buttons or a select, a
+slider with its value, a colour swatch that opens a swatch row under the bar,
+or a text field), then the visibility eye and, when floating, **All settings**.
+Only the middle scrolls.
+
+- **Pin** a setting with the pin button on its inspector row. Pins are kept per
+  widget type (all panels share one set), at most 6, and are remembered per
+  browser. A type with no pins shows a default set: *Layout* and *Accent* when
+  it has them, then its first two own compact settings (at most 4).
+- With several zones selected it shows only the pins every selected type
+  shares, and an edit applies to all of them.
+- With nothing pinned it says "Pin settings from the panel to show them here".
+- Switch it off or on with Dashboard › General › Studio › **Quick bar** (on by
+  default).
 
 ### The left panel
 
@@ -128,7 +150,13 @@ scroll horizontally; sections are never split between columns.
 
 Drag across empty grid cells to draw a new, blank zone; its **Pick a widget**
 button opens the widget picker. Hovering a zone shows its size in grid cells.
-Clicking selects it. **Shift / Ctrl-click** (on the canvas or in Layers) adds
+Clicking selects it (a 2 px accent outline, drawn 5 px outside the zone and
+the same size at any zoom; hovering shows a 1 px one). **Double-click** opens
+all settings: the floating card opens, the bottom sheet goes to half. Clicking
+empty canvas first closes an open colour swatch row, otherwise it clears the
+selection, closes the floating card, sends the sheet to peek and clears the
+search and **Changed**. A hidden zone shows at 35% with a dashed border and an
+eye-off badge, and stays editable. **Shift / Ctrl-click** (on the canvas or in Layers) adds
 or removes a zone from the selection; **Ctrl + A** selects all. The last zone
 you picked is the *primary* one: it shows the handles, the keyboard resize
 and the inspector. With several zones selected the inspector shows only the
@@ -224,7 +252,7 @@ Keyboard shortcuts (**?** lists them in the studio):
 | Ctrl + 0 | Fit the page to the canvas and keep it fitted |
 | Ctrl + = / Ctrl + - | Zoom in / out (stops the sticky fit) |
 | Ctrl + wheel | Zoom |
-| Ctrl + \ | Collapse / expand the bottom dock |
+| Ctrl + \ | Show / hide the inspector (collapse the docked one, open / close the floating card, peek / half for the sheet) |
 
 While you type in a field (a setting, the search box, the zone name), the
 plain keys go to the field; Ctrl + S and Ctrl + K still work, and so does
@@ -242,24 +270,38 @@ with a `tab`, `advanced`, `hint` and `visibleIf`), the general look settings
 every widget shares, the panel and panel-widget fields, and the dashboard
 settings. It never hard-codes a panel per widget.
 
-**Header.** A selected zone shows its icon, an editable name, a meta line
-(`3×2 · min 2×1 · N data points`, `Panel · Stack · 3 widgets` or `Blank zone
-· 2×1`), and **Hide**, **Duplicate** and **Delete**. Under it is the
-**placement row** (column, row, width, height in grid cells; values are
-checked against neighbours and minimum sizes) and a **Search settings** box.
+**Header.** A selected zone shows a 32 px icon, an editable name, a sub line
+(`Type · N changed`, or `Type · defaults`), and **Hide**, **Duplicate** and
+**Delete**. Under it is the **placement row** (column, row, width, height in
+grid cells; values are checked against neighbours and minimum sizes). A
+**Search all settings** box and a **Changed N** toggle share one row below it.
 
 **Tabs.** A widget or panel zone has **Content**, **Style** and **Data**; a
 small pill on a tab counts the options set on this zone. The open tab is
 remembered per kind of selection. A blank zone and a multi-selection have no
-tabs. **Search settings** looks through all tabs at once: the tabs give way
-to the matching options, each section labelled with its tab, and a line says
-"N settings across all tabs". It covers labels, keys and option names, and
-the custom cards by title and keywords; **Esc** clears it, and a message says
-when nothing matches.
+tabs. **Search** looks through all tabs at once: the tabs give way to the
+matching options, each section labelled with its tab, and a line says "N
+matching settings". It covers labels, keys and option names, and the custom
+cards by title and keywords; **Esc** clears it, and `No settings match "q".`
+says when nothing matches. **Changed** lists only the values set on this zone,
+across every tab ("N changed settings", with **Reset all**); when there are
+none it says "Nothing changed yet. Everything uses its default."
 
-**Sections.** Each section is collapsible (the studio remembers which are
-open), shows "N changed" and has its own **Reset**, which restores just that
-section's options. A short hint sits behind an **i** icon on a row.
+**Sections.** The sections are an accordion with sticky headers: icon, title
+(and the tab name while filtering), the number changed, a chevron and a reset
+button that restores just that section's options. Dashboard › General ›
+Studio › **Inspector sections** chooses **One open** (the default) or **Many
+open**. The style tools (copy, paste, preset) sit in the header of the section
+that has them, while it is open. A short hint sits behind an **i** icon on a
+row.
+
+**Rows.** A label and its control share one line; sliders sit inline with their
+value box (the left panels keep the stacked slider). Segmented controls never
+truncate: more than three options, or long labels, move to their own line.
+Colour rows offer swatches (*Auto*, Blue, Violet, Teal, Green, Amber, Rose,
+White) plus a custom colour. Setting a value equal to the inherited or default
+value removes the override, so it shows no "changed" dot. The pin button on a
+row adds it to the [quick bar](#the-quick-bar).
 
 **Source dots.** A 7 px dot before a label says where its value comes from
 (hover it for the explanation; the **?** in the footer lists them):
@@ -333,8 +375,8 @@ them.
     [Page background](#page-background)).
   - **Global style** - the look itself, in the same sections as a widget's
     Style tab, written at the dashboard or profile level by the Scope.
-  - **General** - *Type*, *Clock & date*, *Display*, *Studio* (the inspector
-    position: Side, Bottom or Auto) and *Connection* (the Data API URL and
+  - **General** - *Type*, *Clock & date*, *Display*, *Studio* (the **Quick bar**
+    switch and **Inspector sections**: One open / Many open) and *Connection* (the Data API URL and
     its test); see [General settings](#general-settings).
 
 "Auto" or an empty value always means the widget's own look.
@@ -1143,6 +1185,9 @@ a look. They apply to every profile, in the kiosk and in the studio.
   waveforms repaint less often.
 - **Hide cursor in kiosk** - no mouse pointer on kiosk pages
   (`?kiosk=1`); the studio and the normal dashboard page keep it.
+- **Studio** - **Quick bar** shows or hides the [quick bar](#the-quick-bar)
+  (on by default); **Inspector sections** is **One open** (default) or **Many
+  open**. Both are kept per browser, not in the config.
 
 Each change is one undo step (the same option changed in quick succession is
 merged).

@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { DocumentInspector } from "./document-inspector";
 import { setInspectorTab } from "./inspector/inspector-prefs";
 import { MultiInspector } from "./inspector/multi-inspector";
-import { InspectorLayoutProvider } from "./inspector-layout";
+import { InspectorChromeProvider, type InspectorChrome } from "./inspector-layout";
 import type { useDocumentProps } from "./use-document-props";
 import type { StudioMutations } from "./use-studio-mutations";
 import type { StudioSelection } from "./use-studio-selection";
@@ -44,7 +44,17 @@ export function StudioInspector({
   onOpenPoint,
 }: StudioInspectorProps) {
   const { selected, selectedWidgetId, selection } = sel;
-  const { docked } = ui;
+  const { mode, sheet, setFloatOpen } = ui.studioLayout;
+  const floating = mode !== "docked";
+  /** Floating closes; the sheet's header collapses it to half and its strip picks a tool. */
+  const chrome: InspectorChrome =
+    mode === "sheet"
+      ? {
+          mode,
+          onClose: () => sheet.setSnap("half"),
+          sheet: { snap: sheet.snap, setSnap: sheet.setSnap, tool: sheet.tool, setTool: sheet.setTool },
+        }
+      : { mode, onClose: mode === "floating" ? () => setFloatOpen(false) : undefined };
 
   // The zoom bar's resolution button and a profile's settings ask for a Dashboard tab.
   const tabRequest = ui.documentTabRequest;
@@ -74,6 +84,8 @@ export function StudioInspector({
         onRemove={edit.removeSelection}
         query={ui.inspectorQuery}
         onQuery={ui.setInspectorQuery}
+        changedOnly={ui.inspectorChanged}
+        onChangedOnly={ui.setInspectorChanged}
         jumpTo={ui.inspectorJump}
       />
     ) : selected ? (
@@ -97,6 +109,8 @@ export function StudioInspector({
         }}
         query={ui.inspectorQuery}
         onQuery={ui.setInspectorQuery}
+        changedOnly={ui.inspectorChanged}
+        onChangedOnly={ui.setInspectorChanged}
         update={edit.updateSelected}
         updateProfile={edit.updateProfile}
         onZoneBox={edit.setZoneBox}
@@ -119,6 +133,8 @@ export function StudioInspector({
         jumpTo={ui.inspectorJump}
         query={ui.inspectorQuery}
         onQuery={ui.setInspectorQuery}
+        changedOnly={ui.inspectorChanged}
+        onChangedOnly={ui.setInspectorChanged}
         {...documentProps}
         activeProfile={profile}
         updateProfile={edit.updateProfile}
@@ -128,8 +144,6 @@ export function StudioInspector({
         onAutoPick={(auto) => edit.activateProfile(auto ? "auto" : profile.id)}
         pages={(config.profiles.find((p) => p.id === profile.id) ?? config.profiles[0]).pages}
         onRotate={edit.setRotate}
-        layoutMode={ui.studioLayout.mode}
-        onLayoutMode={ui.studioLayout.setMode}
         onOpenExplorer={openExplorer}
       />
     );
@@ -140,10 +154,13 @@ export function StudioInspector({
       aria-label="Inspector"
       className={cn(
         "flex flex-col overflow-hidden bg-ui-panel font-ui text-ui-2",
-        docked ? "h-full min-w-0 flex-1 border-t border-ui-subtle" : "w-[340px] shrink-0 border-l border-ui-subtle"
+        // Floating, the shell's card gives it its size, border and shadow.
+        floating ? "h-full w-full" : "w-[320px] shrink-0 border-l border-ui-subtle"
       )}
     >
-      <InspectorLayoutProvider value={docked ? "dock" : "side"}>{body}</InspectorLayoutProvider>
+      <InspectorChromeProvider value={chrome}>
+        {body}
+      </InspectorChromeProvider>
     </aside>
   );
 }
