@@ -54,7 +54,7 @@ export interface UsageDay {
 
 export interface AgentUsage {
   today: number;
-  /** Over the history the server keeps (14 days). */
+  /** Over the history the server keeps (35 days). */
   history: number;
   days: UsageDay[];
 }

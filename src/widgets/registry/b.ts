@@ -244,13 +244,27 @@ export const GROUP_B: DashboardModule[] = [
       ),
       boolSetting("showPlan", "Plan use", true, { group: "Agents", hint: "The 5-hour and weekly windows, from the statusline (Claude) and the session files (Codex)" }),
       boolSetting("showSessions", "Sessions", true, { group: "Agents", hint: "Each session: working with its tool, waiting for you, done" }),
-      boolSetting("showUsage", "Tokens per day", true, { group: "Agents", hint: "Today's tokens and the last 14 days, read from the transcripts" }),
+      boolSetting("showUsage", "Tokens per day", true, { group: "Agents", hint: "Today's tokens and the last five weeks, read from the transcripts" }),
+      enumSetting("limitStyle", "Limit style", "bars", [{ value: "bars", label: "Bars" }, { value: "rings", label: "Rings" }], {
+        group: "Agents",
+        hint: "Rings fall back to bars when the cell is too small for them",
+        visibleIf: (v) => v.showPlan !== false,
+      }),
+      enumSetting("percent", "Show limits as", "used", [{ value: "used", label: "Used" }, { value: "left", label: "Left" }], { group: "Agents", visibleIf: (v) => v.showPlan !== false }),
+      enumSetting("history", "History", "bars", [{ value: "bars", label: "Daily bars" }, { value: "heatmap", label: "Heatmap" }], {
+        group: "Agents",
+        hint: "The heatmap moves beside the rest in a wide cell, and falls back to bars when it does not fit",
+        visibleIf: (v) => v.showUsage !== false,
+      }),
     ],
     toProps: (s): Partial<CodingAgents.CodingAgentsProps> => ({
       agents: oneOf(String(s.agents), ["both", "claude", "codex"] as const),
       showPlan: boolOf(s.showPlan),
       showSessions: boolOf(s.showSessions),
       showUsage: boolOf(s.showUsage),
+      limitStyle: oneOf(s.limitStyle, ["bars", "rings"] as const),
+      percent: oneOf(s.percent, ["used", "left"] as const),
+      history: oneOf(s.history, ["bars", "heatmap"] as const),
     }),
   }),
   templateModule({

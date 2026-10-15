@@ -45,6 +45,12 @@ describe("agent sessions", () => {
     expect(reduceAgents(s, "claude", { hook_event_name: "Stop" }, 2)).toBe(s);
   });
 
+  it("shows an MCP tool by its own name, not its server prefix", () => {
+    const s = run([[ev("PreToolUse", { tool_name: "mcp__plugin_playwright_playwright__browser_run_code_unsafe" }), 0]]);
+    expect(only(s).tool).toBe("browser_run_code_unsafe");
+    expect(only(reduceAgents(s, "claude", ev("PermissionRequest", { tool_name: "mcp__codegraph__codegraph_explore" }), 1)).tool).toBe("codegraph_explore");
+  });
+
   it("sends the kiosks no prompt, reply, tool input, path or session id", () => {
     const s = run([[ev("UserPromptSubmit"), 0], [ev("PreToolUse", { tool_name: "Bash", tool_input: { command: "cat ~/.ssh/id_rsa" } }), 1], [ev("Stop", { last_assistant_message: "secret reply" }), 2]]);
     const out = JSON.stringify(publicAgents(s));
