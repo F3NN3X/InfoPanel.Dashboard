@@ -59,6 +59,7 @@
 |---|---|---|---|
 | [Clock](widgets/Clock.md) | `Clock` | 2×1 | Digital or analog clock with date, 12/24 h and seconds.. |
 | [Calendar](widgets/Calendar.md) | `Calendar` | 2×2 | Today’s date plus a month grid, taken from the clock plugin.. |
+| [Timer](widgets/Timer.md) | `Timer` | 2×2 | A countdown with preset buttons and a pomodoro, for screens you can touch; sends to the Dynamic Island. |
 | [Weather](widgets/Weather.md) | `Weather` | 3×2 | Conditions, feels-like, wind, humidity, pressure, rain or snow, and a 7-day forecast.. |
 | [Forecast](widgets/Forecast.md) | `Forecast` | 4×1 | Daily forecast with hi/lo range bars. |
 

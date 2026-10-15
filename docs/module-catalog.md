@@ -39,15 +39,15 @@ inspector's Content tab.
 | Network | `NetworkThroughput`, `NetworkAdapters` (both 1×1) |
 | Media | `NowPlaying` 1×1 |
 | Audio | `AudioMeter`, `MeterBridge`, `VolumeMixer`, `Visualizer`, `WaveLink` (all 1×1) |
-| Info | `Clock`, `Calendar`, `Weather`, `Forecast` (all 1×1); `Departures`, `Notifications`, `TextFile` (all 2×1) |
+| Info | `Clock`, `Calendar`, `Timer`, `Weather`, `Forecast` (all 1×1); `Departures`, `Notifications`, `TextFile` (all 2×1) |
 | Gaming | `FpsMonitor`, `GameSpotlight`, `PlaytimeShare`, `SteamProfile`, `SteamFriends`, `Achievements`, `SteamLibrary`, `SteamNews` (all 1×1); `FramePacing`, `OsdStrip`, `SteamGame` (all 2×1) |
 | Generic | `SensorValue`, `SensorGroup` (both 1×1), `Bluetooth` 2×1, `StreamDeck` 3×2, `WebPage` 4×2 |
 
 44 of these came from the widget handoff (`docs/redesign/widgets/`);
-`Departures`, `Notifications`, `TextFile`, `Bluetooth`, `StreamDeck` and
+`Departures`, `Notifications`, `TextFile`, `Bluetooth`, `StreamDeck`, `Timer` and
 `WebPage` were written for the plugin cards that had no template, in the same
 style. The Other sensors zone (below) draws one `SensorValue` card per unclaimed key. A template reads its sensors
-through the data adapter (below). `Clock`, `Calendar`, `WebPage` and
+through the data adapter (below). `Clock`, `Calendar`, `Timer`, `WebPage` and
 `WaveLink` need no sensor key; the others render nothing until a key under
 their prefixes exists (the kiosk then hides the zone) and show their own
 empty state when only some readings are missing.

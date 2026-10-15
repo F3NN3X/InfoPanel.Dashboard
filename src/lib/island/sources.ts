@@ -1,4 +1,3 @@
-import type { WlState } from "@/lib/wavelink";
 import type { DashboardModule, ModuleSetting, ModuleSettings } from "@/modules/types";
 import { effectiveSettings } from "@/modules/types";
 import type { Placement } from "@/lib/layout";
@@ -8,10 +7,10 @@ import type { IslandActivity, IslandNotice } from "./types";
 
 /**
  * Widgets as island sources. A template opts in with `island` (`TemplateOptions`): it gets a "Send
- * to island" setting, and while a zone of it has that on, the kiosk runs its `derive` on the data the
- * widget reads. `derive` is pure: the previous and the new data in, the notices to raise and the
- * current activity out. The first data is a baseline (`prev` null): it may set the activity but
- * raises no notice, so nothing fires on load.
+ * to island" setting (and its own island options), and while a zone of it has that on, the kiosk
+ * runs its `derive` on what the widget reads. `derive` is pure: the previous and the new state in,
+ * the notices to raise and the current activity out. The first state is a baseline (`prev` null):
+ * it may set the activity but raises no notice, so nothing fires on load.
  */
 
 export type SourceNotice = Omit<IslandNotice, "source">;
@@ -23,40 +22,91 @@ export interface IslandUpdate {
   activity?: SourceActivity | null;
 }
 
-interface SourceBase {
+export interface SourceBase {
   /** The setting's hint: what reaches the island. */
   hint: string;
   defaultOn: boolean;
   /** The widget's own settings group the "Send to island" toggle joins. */
   group: string;
+  /**
+   * The source's own options (which notices, a threshold), shown under "Send to island" while it is
+   * on. Their keys start with "island" (`isIslandKey`); `derive` reads them from `settings`.
+   */
+  options?: ModuleSetting[];
 }
 
 /** From the sensor map, flattened as the template gets it (`toFlat`). */
 export interface DataSourceDef extends SourceBase {
   from: "data";
+  /** The key prefixes it reads, when the widget names none of its own (it reads every stream). */
+  reads?: string[];
   derive(prev: Data | null, next: Data, settings: ModuleSettings): IslandUpdate;
 }
 
-/** From the shared Wave Link client's state (`wavelink.subscribeState`). */
-export interface WavelinkSourceDef extends SourceBase {
-  from: "wavelink";
-  derive(prev: WlState | null, next: WlState, settings: ModuleSettings): IslandUpdate;
+/** A client-side state the source watches (the Wave Link client, the timer, the server extras). */
+export interface IslandStore<T> {
+  getState(): T;
+  /** Calls `fn` with each new state; returns the unsubscribe. */
+  subscribe(fn: (state: T) => void): () => void;
 }
 
-export type IslandSourceDef = DataSourceDef | WavelinkSourceDef;
+/** From a client-side store; `watch` runs `derive` over its states (`storeSource`). */
+export interface StoreSourceDef extends SourceBase {
+  from: "store";
+  /** Feeds each update to `emit` until the returned stop is called; `settings` reads the zone's current ones. */
+  watch(settings: () => ModuleSettings, emit: (update: IslandUpdate) => void): () => void;
+}
+
+export type IslandSourceDef = DataSourceDef | StoreSourceDef;
+
+/** A store source with its `derive` kept (the tests call it). */
+export interface StoreSourceOf<T> extends StoreSourceDef {
+  derive(prev: T | null, next: T, settings: ModuleSettings): IslandUpdate;
+}
+
+/** A store source: `derive` over the store's states, the current one first (the baseline). */
+export function storeSource<T>(def: SourceBase & { store: IslandStore<T>; derive(prev: T | null, next: T, settings: ModuleSettings): IslandUpdate }): StoreSourceOf<T> {
+  const { store, derive, ...base } = def;
+  return {
+    ...base,
+    derive,
+    from: "store",
+    watch(settings, emit) {
+      let before: T | null = null;
+      const run = (state: T) => {
+        emit(derive(before, state, settings()));
+        before = state;
+      };
+      const stop = store.subscribe(run);
+      run(store.getState());
+      return stop;
+    },
+  };
+}
 
 /** The zone setting that sends a widget to the island. */
 export const ISLAND_SETTING = "island";
 
-export const islandSetting = (def: IslandSourceDef): ModuleSetting => ({
-  key: ISLAND_SETTING,
-  label: "Send to island",
-  type: "boolean",
-  default: def.defaultOn,
-  hint: def.hint,
-  group: def.group,
-  keywords: ["island", "notch", "notify", "notification"],
-});
+/** Whether a setting key is the island toggle or one of a source's options ("islandApps"). */
+export const isIslandKey = (key: string): boolean => key === ISLAND_SETTING || /^island[A-Z]/.test(key);
+
+/** "Send to island" and the source's options, which show only while it is on. */
+export function islandSettings(def: IslandSourceDef): ModuleSetting[] {
+  const toggle: ModuleSetting = {
+    key: ISLAND_SETTING,
+    label: "Send to island",
+    type: "boolean",
+    default: def.defaultOn,
+    hint: def.hint,
+    group: def.group,
+    keywords: ["island", "notch", "notify", "notification"],
+  };
+  const options = (def.options ?? []).map((o): ModuleSetting => {
+    const own = o.visibleIf;
+    return { ...o, group: def.group, visibleIf: (v) => v[ISLAND_SETTING] === true && (own?.(v) ?? true) };
+  });
+  return [toggle, ...options];
+}
 
 /** A widget feeding the island: its module (with `island`) and the zone's resolved settings. */
 export interface IslandFeed {
@@ -92,6 +142,9 @@ export function applyUpdate(bus: IslandBus, source: string, update: IslandUpdate
 /** Every prefix a widget reads (`moduleReads`; not imported, the registry imports this file). */
 export const readsOf = (mod: DashboardModule): string[] => [...mod.prefixes, ...(mod.reads ?? [])];
 
+/** The prefixes a feed's source reads: its own `reads`, else its widget's. */
+export const feedReads = (f: IslandFeed): string[] => (f.module.island.from === "data" && f.module.island.reads?.length ? f.module.island.reads : readsOf(f.module));
+
 /** Whether the data holds a key under any of the prefixes (no prefixes: any key). */
 export function hasData(data: Data, prefixes: readonly string[]): boolean {
   const keys = Object.keys(data);
@@ -106,7 +159,7 @@ export function hasData(data: Data, prefixes: readonly string[]): boolean {
 export function runDataFeeds(bus: IslandBus, feeds: readonly IslandFeed[], flat: Data, prev: Map<string, Data>): void {
   for (const f of feeds) {
     const def = f.module.island;
-    if (def.from !== "data" || !hasData(flat, readsOf(f.module))) continue;
+    if (def.from !== "data" || !hasData(flat, feedReads(f))) continue;
     applyUpdate(bus, f.module.id, def.derive(prev.get(f.module.id) ?? null, flat, f.settings));
     prev.set(f.module.id, flat);
   }

@@ -32,6 +32,9 @@ Keys read (literal parts; `${…}` segments are resolved at runtime by detection
 - Shapes handled explicitly: via CompactView
 - Inner content size (after padding + header) is passed to the layout as `{ w, h }`; tier/shape come from the outer size. See [../ARCHITECTURE.md](../ARCHITECTURE.md#sizing).
 
+## Dynamic Island
+Setting `island` (**Send to island**, off by default, in the Content group). With it on, a kiosk's Dynamic Island shows the running game and its FPS beside the time (RTSS, else the PresentMon plugin; the name from the window title, else Steam's current game). Options: `islandStart` (*Game started notice*, off) and `islandFloor` (*Low FPS warning below*, 0 = off; two readings in a row under it raise a warning, every 2 min at most). The rules are in `src/widgets/island/gaming.ts` (`fpsIsland`); see [the island plan](../../../island/PLAN.md#what-shows-and-when).
+
 ## Core building blocks used
 `Widget` · `shell` · `get` · `num` · `fmt` · `has` · `Metric` · `Spark` · `Stat` · `Chip` · `useHistory` · `Icon`
 

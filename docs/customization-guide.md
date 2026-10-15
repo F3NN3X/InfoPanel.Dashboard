@@ -42,7 +42,7 @@ The bar along the top holds, from left to right:
   leave the studio, so export first). The menu also shows the build id.
 
 The **icon rail** (52 px) at the left opens one **left panel** at a time -
-**Layers**, **Add** and **Profiles** - or switches to **Sources**; the
+**Layers**, **Add**, **Profiles**, **Dynamic Island** and **Alerts** - or switches to **Sources**; the
 keyboard icon at its bottom opens the shortcut list. Click the open panel's
 icon again to collapse it and give the canvas the full width. The studio
 remembers the open panel, also after a reload. The left panel stays beside
@@ -1221,7 +1221,16 @@ A pill at the top centre of a profile, like the macOS notch. When idle it shows 
 time; on kiosk pages (`?kiosk=1`) it springs open for alerts and notices, then shrinks
 to a badge while an alert lasts. The plain dashboard page shows the idle pill only.
 
-Turn it on per profile: with nothing selected, **Dashboard → Profile → Dynamic Island**.
+Turn it on per profile in the **Dynamic Island** panel (the notch icon on the studio's left
+rail), or with nothing selected under **Dashboard → Profile → Dynamic Island**; both edit the
+same settings. The panel also gathers what sends to the island:
+
+- **Widgets** - every widget on any page of the profile that can send to the island, with its
+  *Send to island* switch. Click a name to show the widget on the canvas (switching page) with
+  its settings open. A hidden widget sends nothing, and when two zones hold the same widget only
+  the first sends. Below the list, the island widgets the profile does not have yet.
+- **Alert rules** - the rules that show on this profile's island (display style *Island*).
+  Click one to edit it in Alerts.
 
 - **When idle** - *Time*, *+ Date*, *+ Sensor* (the time plus one live value: pick it
   with the sensor field and give it a label of up to 12 characters, such as *GPU*) or
@@ -1244,15 +1253,56 @@ Turn it on per profile: with nothing selected, **Dashboard → Profile → Dynam
 - **The Data API connection** - *Data API disconnected* after 5 s down (it stays as a
   badge), then *Data API reconnected*.
 - **Widgets with Send to island on** (off by default, in the widget's own group on the
-  Content tab):
+  Content tab; the widget's island options show under it while it is on):
   - **Now Playing** - the playing track sits beside the time with its cover and
     progress; a new track opens the island for 4 s.
   - **Steam Friends** - *Ann is online*, *Bo is playing Doom*; each friend at most
     once every 10 minutes.
   - **Wave Link** - an input, channel or mix muted (warning) or live again (info).
+    *Fader moves* adds a level bar while a fader moves.
+  - **FPS Monitor** - the running game and its FPS beside the time. *Game started
+    notice*; *Low FPS warning below* (0 = off).
+  - **Achievements** - an achievement unlocked, with its icon.
+  - **Steam News** - a new post for a game in your library.
+  - **Drive Space** - a drive passing the widget's Warn or Critical threshold.
+  - **Network** (adapters) - an adapter connecting or dropping. *Public IP changes*.
+  - **Network Throughput** - the download rate beside the time while it is faster than
+    *Show above* (5 MB/s).
+  - **Volume Mixer** - a level bar when the Windows volume changes or mutes, like the
+    macOS volume pop-up. *Output switched* names the new default output.
+  - **Weather** - rain or snow starting at the widget's location.
+  - **Notifications** - Windows notifications, only from the apps you add in *Apps*
+    (the apps the plugin has seen are offered while you type); *Show the message*.
+  - **Timer** - the countdown beside the time, and a notice when it runs out.
 
   The widget only has to be on one of the profile's pages, visible or not. Two zones of
   the same widget raise each notice once. Nothing fires when the page loads.
+
+**Dashboard notices.** Under the island's settings, each is off until you switch it on:
+
+- **Page name** - the page's name when the kiosk switches pages.
+- **Layout updated** - when a studio save reaches the kiosk.
+- **Plugin back** - when a plugin that stopped reports again (the *Plugin stopped
+  reporting* alert raises the stop).
+- **On air (OBS)** - a red *Live* or *Recording* dot while OBS streams or records, and a
+  notice when either starts or stops.
+- **Calendar countdown** - the next event counts down beside the time from *Count down
+  from* minutes before (10), opening the island then and when it begins. All-day events
+  are left out.
+
+With On air or Calendar countdown on, a card below sets them up. Both run on the
+dashboard server, so every kiosk shares one OBS connection and one calendar fetch:
+
+- **OBS WebSocket** - in OBS, *Tools › WebSocket Server Settings*: enable it and copy the
+  port and password. Enter the host (127.0.0.1 when OBS runs on this PC), port and
+  password, then **Save OBS**. The status shows *Connected* once OBS answers.
+- **Calendar links** - paste an ICS link and press **Add**: Google Calendar's *Secret
+  address in iCal format*, Outlook's published ICS link, or an iCloud public calendar
+  (webcal:// works). The server fetches each every 10 minutes.
+
+The password and the links are kept by the server in their own file, not in the
+dashboard config that every kiosk downloads; the studio shows only *Saved* and the
+link's host. Remove a link with its bin icon; **Disconnect** forgets the OBS settings.
 
 **Taps.** A tap on an open alert acknowledges it; a tap on any other notice dismisses
 it. A tap on the badge reopens the held notices one per tap, strongest first. A tap on

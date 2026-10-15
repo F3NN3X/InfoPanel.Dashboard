@@ -72,6 +72,11 @@ export interface ModuleSetting {
   multiple?: boolean;
   /** For type "text": a multi-line editor (e.g. custom CSS). */
   multiline?: boolean;
+  /**
+   * For type "text": a list of names (stored comma-separated) edited as chips, with the names
+   * listed at this sensor key (a JSON array or a comma list) offered while typing.
+   */
+  suggestKey?: string;
   /** Bounds/step for type "number" (rendered as a slider when set). */
   min?: number;
   max?: number;

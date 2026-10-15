@@ -33,6 +33,9 @@ Keys read (literal parts; `${…}` segments are resolved at runtime by detection
 - Shapes handled explicitly: via CompactView
 - Inner content size (after padding + header) is passed to the layout as `{ w, h }`; tier/shape come from the outer size. See [../ARCHITECTURE.md](../ARCHITECTURE.md#sizing).
 
+## Dynamic Island
+Setting `island` (**Send to island**, off by default, in the Current conditions group). With it on, a kiosk's Dynamic Island opens with "Rain starting" or "Snow starting" when the Yr location's next-hour amount turns above 0; every hour at most. The rules are in `src/widgets/island/info.ts` (`weatherIsland`); see [the island plan](../../../island/PLAN.md#what-shows-and-when).
+
 ## Core building blocks used
 `Widget` · `shell` · `get` · `num` · `fmt` · `has` · `rows` · `Icon` · `Stat` · `weatherIcon`
 

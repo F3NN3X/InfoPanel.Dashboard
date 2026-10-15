@@ -302,6 +302,8 @@
   50% { box-shadow: 0 0 0 2px var(--island-accent), 0 0 26px 4px var(--island-accent); }
 }
 .island-critical { animation: island-critical 1.6s ease-in-out infinite; }
+/* A notice's level bar (a volume) glides between readings. */
+.island-motion .island-level { transition: width 160ms ease-out; }
 
 /* The standard alignment, gap and label case on a widget template's body (src/widgets/core/Widget.tsx).
    Labels written as `uppercase` follow the label case. The alignment and gap rules reach the body's

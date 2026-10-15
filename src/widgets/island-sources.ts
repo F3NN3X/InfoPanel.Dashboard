@@ -1,12 +1,14 @@
 // What the Now Playing, Steam Friends and Wave Link templates send to the Dynamic Island when their
 // "Send to island" is on (`src/lib/island/sources.ts`). Each `derive` is pure: previous and new data
 // in, notices and the current activity out; `prev` null is the baseline and raises nothing.
-import type { DataSourceDef, SourceNotice, WavelinkSourceDef } from "@/lib/island/sources";
-import type { WlState } from "@/lib/wavelink";
+import { storeSource, type DataSourceDef, type SourceNotice } from "@/lib/island/sources";
+import { wavelink, type WlState } from "@/lib/wavelink";
 import { get } from "./kit";
 import { trackOf, type NowPlayingProps } from "./NowPlaying";
 import { friendsOf } from "./SteamFriends";
 import { widgetImage } from "./data-adapter";
+import { boolSetting } from "./registry/settings-kit";
+import { fader } from "./WaveLink";
 
 const NP_SOURCES = ["auto", "media", "spotify", "pushed"] as const;
 const npSource = (v: unknown): NowPlayingProps["source"] => NP_SOURCES.find((s) => s === v);
@@ -81,13 +83,22 @@ function mutes(s: WlState): Map<string, { name: string; muted: boolean }> {
   return out;
 }
 
-/** A mute switched in Wave Link: "Microphone muted" / "Microphone live". */
-export const waveLinkIsland: WavelinkSourceDef = {
-  from: "wavelink",
+/** Every fader Wave Link has: channels and mixes, by a stable id. */
+function faders(s: WlState): Map<string, { name: string; level: number | null; levelDb?: number | null }> {
+  const out = new Map<string, { name: string; level: number | null; levelDb?: number | null }>();
+  for (const c of s.channels) out.set(`channel:${c.id}`, c);
+  for (const m of s.mixes) out.set(`mix:${m.id}`, m);
+  return out;
+}
+
+/** A mute switched in Wave Link ("Microphone muted" / "Microphone live"); optionally a fader moved. */
+export const waveLinkIsland = storeSource<WlState>({
+  store: { getState: wavelink.getState, subscribe: wavelink.subscribeState },
   hint: "A mic, channel or mix muted or unmuted",
   defaultOn: false,
   group: "Content",
-  derive(prev, next) {
+  options: [boolSetting("islandFaders", "Fader moves", false, { hint: "A level bar while a channel or mix fader moves" })],
+  derive(prev, next, settings) {
     if (!prev || prev.status !== "up" || next.status !== "up") return {};
     const before = mutes(prev);
     const notices: SourceNotice[] = [];
@@ -96,6 +107,15 @@ export const waveLinkIsland: WavelinkSourceDef = {
       if (!was || was.muted === now.muted) continue;
       notices.push({ id: `mute:${id}`, severity: now.muted ? "warning" : "info", title: `${now.name} ${now.muted ? "muted" : "live"}`, ttl: 2500 });
     }
+    if (settings.islandFaders === true) {
+      const was = faders(prev);
+      for (const [id, now] of faders(next)) {
+        const old = was.get(id);
+        if (!old || now.level === null || old.level === now.level) continue;
+        // One notice per fader, kept open while it moves.
+        notices.push({ id: `level:${id}`, severity: "info", title: now.name, body: fader(now.level, now.levelDb), progress: Math.max(0, Math.min(1, now.level)), ttl: 1500, refresh: true });
+      }
+    }
     return { notices };
   },
-};
+});

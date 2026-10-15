@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useSensors, useSensorsConnected } from "@/hooks/useSensors";
-import { wavelink, type WlState } from "@/lib/wavelink";
 import { toFlat } from "@/widgets/data-adapter";
 import type { Data } from "@/widgets/core/types";
 import type { BusClock, IslandBus } from "./bus";
-import { applyUpdate, readsOf, runDataFeeds, type IslandFeed } from "./sources";
+import { applyUpdate, feedReads, runDataFeeds, type IslandFeed } from "./sources";
 import { createConnectionWatch } from "./system";
 
 const realClock: BusClock = {
@@ -17,23 +16,27 @@ const NO_PREFIXES: readonly string[] = [];
 
 /**
  * Runs the widgets' island sources on the kiosk: one `useSensors` over the prefixes of every data
- * source (the shared streams; no stream per widget) and the shared Wave Link client for the Wave
- * Link source. `feeds` empty or `enabled` false runs nothing and opens nothing.
+ * source (the shared streams; no stream per widget) and a watch per store source. `feeds` empty or
+ * `enabled` false runs nothing and opens nothing.
  */
 export function useIslandSources(bus: IslandBus, feeds: readonly IslandFeed[], enabled: boolean): void {
   const data = enabled ? feeds.filter((f) => f.module.island.from === "data") : [];
+  // A source naming no prefixes reads every stream; else only the union of theirs.
   const prefixes = useMemo(
-    () => [...new Set(data.flatMap((f) => readsOf(f.module)))].sort(),
+    () => (data.some((f) => feedReads(f).length === 0) ? null : [...new Set(data.flatMap(feedReads))].sort()),
     // Keyed by the widget ids: a new feeds array with the same widgets keeps the subscription.
     [data.map((f) => f.module.id).join()]
   );
-  const sensors = useSensors(prefixes.length > 0 ? prefixes : NO_PREFIXES);
+  const sensors = useSensors(prefixes === null ? null : prefixes.length > 0 ? prefixes : NO_PREFIXES);
   const prev = useRef(new Map<string, Data>());
 
-  // Every render with new data: derive is transition-based, so a pass over unchanged data raises nothing.
-  useEffect(() => runDataFeeds(bus, data, toFlat(sensors), prev.current));
-
+  // Once per new reading, not per render: a source that repeats a notice while a condition holds (low
+  // FPS) would otherwise re-render the island, and so run itself again, without end.
+  const dataFeeds = useRef(data);
+  dataFeeds.current = data;
   const ids = data.map((f) => f.module.id).join();
+  useEffect(() => runDataFeeds(bus, dataFeeds.current, toFlat(sensors), prev.current), [bus, sensors, ids]);
+
   useEffect(() => {
     const seen = prev.current;
     return () => {
@@ -44,25 +47,32 @@ export function useIslandSources(bus: IslandBus, feeds: readonly IslandFeed[], e
     };
   }, [bus, ids]);
 
-  const wl = enabled ? feeds.find((f) => f.module.island.from === "wavelink") : undefined;
-  const wlSettings = useRef(wl?.settings);
-  wlSettings.current = wl?.settings;
-  const wlId = wl?.module.id;
-  const wlDerive = wl?.module.island.from === "wavelink" ? wl.module.island.derive : undefined;
+  // Store sources (Wave Link, the timer, the server extras): one watch each, restarted only when the
+  // set of widgets changes; their settings are read through the ref so an edit needs no restart.
+  const stores = enabled ? feeds.filter((f) => f.module.island.from === "store") : [];
+  const storeSettings = useRef(new Map<string, IslandFeed["settings"]>());
+  storeSettings.current = new Map(stores.map((f) => [f.module.id, f.settings]));
+  const storeIds = stores.map((f) => f.module.id).join();
+  const storeFeeds = useRef(stores);
+  storeFeeds.current = stores;
   useEffect(() => {
-    if (!wlId || !wlDerive) return;
-    let before: WlState | null = null;
-    const run = (state: WlState) => {
-      applyUpdate(bus, wlId, wlDerive(before, state, wlSettings.current ?? {}));
-      before = state;
-    };
-    const unsubscribe = wavelink.subscribeState(run);
-    run(wavelink.getState());
-    return () => {
-      unsubscribe();
-      bus.clearActivity(wlId);
-    };
-  }, [bus, wlId, wlDerive]);
+    const stops = storeFeeds.current.flatMap((f) => {
+      const def = f.module.island;
+      if (def.from !== "store") return [];
+      const id = f.module.id;
+      const stop = def.watch(
+        () => storeSettings.current.get(id) ?? {},
+        (update) => applyUpdate(bus, id, update)
+      );
+      return [
+        () => {
+          stop();
+          bus.clearActivity(id);
+        },
+      ];
+    });
+    return () => stops.forEach((stop) => stop());
+  }, [bus, storeIds]);
 }
 
 /** The Data API disconnect warning on the island (`system.ts`), while `enabled`. */

@@ -1,7 +1,7 @@
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { STANDARD_SETTINGS } from "@/modules/standard-settings";
-import { ISLAND_SETTING } from "@/lib/island/sources";
+import { isIslandKey } from "@/lib/island/sources";
 import { isVisible } from "@/components/studio/inspector-model";
 import { effectiveSettings, type ModuleSettings, type SensorMap } from "@/modules/types";
 import snapshot from "../__fixtures__/snapshot.json";
@@ -36,9 +36,9 @@ const BEYOND_SPEC: Record<string, Record<string, string[]>> = {
 
 const SENSORS = (snapshot as unknown as { sensors: SensorMap }).sensors;
 const STANDARD_KEYS = new Set(STANDARD_SETTINGS.map((s) => s.key));
-// The island's "Send to island" toggle is shared like the standard block: it reaches no widget prop.
+// The island's "Send to island" toggle and its options are shared like the standard block: they reach no widget prop.
 const OWN_KEYS = (id: string): string[] =>
-  (GROUP_D.find((m) => m.id === id)!.settings ?? []).filter((s) => !STANDARD_SETTINGS.includes(s) && s.key !== ISLAND_SETTING).map((s) => s.key);
+  (GROUP_D.find((m) => m.id === id)!.settings ?? []).filter((s) => !STANDARD_SETTINGS.includes(s) && !isIslandKey(s.key)).map((s) => s.key);
 
 describe("group D inspector schema", () => {
   for (const [id, props] of Object.entries(MANIFEST)) {

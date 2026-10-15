@@ -21,7 +21,7 @@ their `group` (`categorize`); values are stored **per placement**
 
 | `type` | Control | `value` | Extra fields |
 |---|---|---|---|
-| `text` | text input | string | — |
+| `text` | text input; with `suggestKey`, a list of names as chips | string (with `suggestKey`: names, comma-separated) | `multiline`; `suggestKey` (a sensor key holding a JSON array or comma list of names, offered while typing) |
 | `number` | slider (when `min`/`max` set), else number field | number | `min`, `max`, `step` |
 | `sensorItems` | one row per sensor of the multi-sensor setting named in `of`: label, max, warn, crit, decimals, reset | JSON string `{ [sensorKey]: { label?, max?, warn?, crit?, decimals? } }`, `""` = none; overrides of unbound keys are kept and ignored | `of` |
 | `select` | segmented (≤ 4 options) else dropdown; `multiple: true` renders a checkbox list (value stored comma-separated) | string option value | `options[]`, `optionsFrom: "sources"` + `sourcePlugin` (live sensor device list — see below), or `optionsFrom: "media"` (the browser's audio-capture devices) |
@@ -33,6 +33,10 @@ their `group` (`categorize`); values are stored **per placement**
 
 Any setting can also list `keywords`: extra terms the settings search
 matches besides the label, key and option names.
+
+A widget that sends to the Dynamic Island gets **Send to island** (`island`) and its source's
+own options (keys starting with `island`, shown only while it is on) after its own settings, in its
+own group (`islandSettings`, `src/lib/island/sources.ts`; see `docs/redesign/island/PLAN.md`).
 
 ### Presets (select options with `applies`)
 

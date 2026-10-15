@@ -3,7 +3,7 @@ import type { Placement } from "@/lib/layout";
 import type { DashboardModule } from "@/modules/types";
 import { TEMPLATE_MODULES } from "@/widgets/registry";
 import { createIslandBus } from "./bus";
-import { applyUpdate, ISLAND_SETTING, islandFeeds, runDataFeeds, type IslandSourceDef } from "./sources";
+import { applyUpdate, feedReads, ISLAND_SETTING, isIslandKey, islandFeeds, islandSettings, runDataFeeds, storeSource, type IslandSourceDef } from "./sources";
 import { fakeClock } from "./test-clock";
 
 const zone = (id: string, module: string, settings: Placement["settings"] = {}, visible = true): Placement => ({
@@ -18,9 +18,23 @@ const zone = (id: string, module: string, settings: Placement["settings"] = {}, 
 });
 
 describe("widgets as island sources", () => {
-  it("gives Now Playing, Steam Friends and Wave Link a Send to island setting, off by default", () => {
+  it("gives the source widgets a Send to island setting, off by default", () => {
     const withIsland = TEMPLATE_MODULES.filter((m) => m.island).map((m) => m.id).sort();
-    expect(withIsland).toEqual(["NowPlaying", "SteamFriends", "WaveLink"]);
+    expect(withIsland).toEqual([
+      "Achievements",
+      "DriveSpace",
+      "FpsMonitor",
+      "NetworkAdapters",
+      "NetworkThroughput",
+      "Notifications",
+      "NowPlaying",
+      "SteamFriends",
+      "SteamNews",
+      "Timer",
+      "VolumeMixer",
+      "WaveLink",
+      "Weather",
+    ]);
     for (const m of TEMPLATE_MODULES.filter((m) => m.island)) {
       expect(m.settings?.find((s) => s.key === ISLAND_SETTING)).toMatchObject({ type: "boolean", default: false, group: m.island!.group });
     }
@@ -73,5 +87,51 @@ describe("the data feed pass", () => {
     applyUpdate(bus, "W", { activity: { id: "a", title: "x" } });
     applyUpdate(bus, "W", {});
     expect(bus.getSnapshot().activity).toBeNull();
+  });
+});
+
+describe("island options and store sources", () => {
+  it("subscribes a source to its own prefixes when its widget names none", () => {
+    const feed = (id: string) => islandFeeds([zone("z", id, { island: true })], TEMPLATE_MODULES)[0];
+    expect(feedReads(feed("Achievements"))).toEqual(["plugins.InfoPanel.SteamAPI.SteamAPI-Achievements.", "plugins.InfoPanel.SteamAPI.SteamAPI-Session.current-game"]);
+    expect(feedReads(feed("DriveSpace"))).toEqual(["plugins.drive-info-plugin."]);
+  });
+
+  it("tells the island's keys from a widget's own", () => {
+    expect(["island", "islandApps", "islandMinRate"].every(isIslandKey)).toBe(true);
+    expect(["islands", "isLand", "drive"].some(isIslandKey)).toBe(false);
+  });
+
+  it("puts a source's options in its group, shown only while Send to island is on", () => {
+    const [toggle, option] = islandSettings({
+      from: "data",
+      hint: "h",
+      defaultOn: false,
+      group: "G",
+      options: [{ key: "islandX", label: "X", type: "boolean", default: false, visibleIf: (v) => v.mode === "a" }],
+      derive: () => ({}),
+    });
+    expect(toggle).toMatchObject({ key: "island", group: "G" });
+    expect(option.group).toBe("G");
+    expect(option.visibleIf?.({ island: false, mode: "a" })).toBe(false);
+    expect(option.visibleIf?.({ island: true, mode: "b" })).toBe(false);
+    expect(option.visibleIf?.({ island: true, mode: "a" })).toBe(true);
+  });
+
+  it("runs a store source over the current state first, then each new one, with the zone's settings", () => {
+    let listener: ((n: number) => void) | null = null;
+    const store = { getState: () => 1, subscribe: (fn: (n: number) => void) => ((listener = fn), () => (listener = null)) };
+    const seen: [number | null, number, unknown][] = [];
+    const def = storeSource<number>({ store, hint: "", defaultOn: false, group: "G", derive: (prev, next, settings) => (seen.push([prev, next, settings.k]), {}) });
+    const updates: unknown[] = [];
+    const stop = def.watch(() => ({ k: "v" }), (u) => updates.push(u));
+    listener!(2);
+    stop();
+    expect(seen).toEqual([
+      [null, 1, "v"],
+      [1, 2, "v"],
+    ]);
+    expect(updates).toHaveLength(2);
+    expect(listener).toBeNull();
   });
 });

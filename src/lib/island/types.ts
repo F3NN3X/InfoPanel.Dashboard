@@ -15,6 +15,10 @@ export interface IslandNotice {
   body?: string;
   /** Image URL shown in place of the severity icon (cover art). */
   image?: string;
+  /** 0..1: a level bar under the title (a volume change). */
+  progress?: number;
+  /** A repeat while it is still held restarts its open time (a volume slider moving). */
+  refresh?: boolean;
   /**
    * How long the island stays open for it, ms; 0 = until tapped (or the profile's collapse
    * timer). Defaults by severity: `DEFAULT_TTL`.
@@ -41,6 +45,7 @@ export interface IslandItem {
   title: string;
   body?: string;
   image?: string;
+  progress?: number;
   onTap: "dismiss" | "ack";
   alertId?: string;
   cooldownMs: number;

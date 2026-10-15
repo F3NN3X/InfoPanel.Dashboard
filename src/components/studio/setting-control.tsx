@@ -17,7 +17,7 @@ import {
   ToggleRow,
   type RowLabelProps,
 } from "./setting-rows";
-import { DevicePicker, MediaDevicePicker, MultiSelect, WavelinkMeterPicker } from "./setting-pickers";
+import { DevicePicker, MediaDevicePicker, MultiSelect, NameListField, WavelinkMeterPicker } from "./setting-pickers";
 import { SensorField } from "./widget-editor/sensor-field";
 import { SensorItemsField } from "./widget-editor/sensor-items-field";
 import { SensorListField } from "./widget-editor/sensor-list-field";
@@ -211,6 +211,7 @@ export function SettingRow({
     }
 
     default:
+      if (def.suggestKey) return <NameListField {...label} def={def} value={String(value)} onChange={onChange} />;
       return (
         <TextRow
           {...label}

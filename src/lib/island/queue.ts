@@ -92,14 +92,15 @@ function upsert(s: QueueState, n: IslandNotice, now: number): QueueState {
     title: n.title,
     body: n.body,
     image: n.image,
+    progress: n.progress,
     onTap: n.onTap ?? "dismiss",
     alertId: n.alertId,
     cooldownMs: n.cooldownMs ?? 0,
     badge: n.badge ?? false,
   };
   if (prev) {
-    // A repeat updates in place; only a rise in severity opens it again.
-    const rose = RANK[n.severity] > RANK[prev.severity];
+    // A repeat updates in place; only a rise in severity, or a refreshing notice (a moving volume), opens it again.
+    const rose = RANK[n.severity] > RANK[prev.severity] || n.refresh === true;
     const item = { ...prev, ...fields, updatedAt: now, remaining: rose ? openTime(n, s.stickyMs) : prev.remaining };
     return { ...s, items: s.items.map((i) => (i.key === key ? item : i)) };
   }

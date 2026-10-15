@@ -107,4 +107,19 @@ describe("island queue", () => {
     expect(s.items.some((i) => i.id === "i0")).toBe(false);
     expect(open(s)).toBe("crit");
   });
+
+  it("keeps a refreshing notice open while it repeats, with its level", () => {
+    let s = notify(emptyQueue(), n("vol", { badge: false, ttl: 1500, refresh: true, progress: 0.4 }), 0);
+    s = notify(s, n("vol", { badge: false, ttl: 1500, refresh: true, progress: 0.5 }), 1000);
+    s = tick(s, 2000);
+    expect(open(s)).toBe("vol");
+    expect(snapshotOf(s).expanded?.progress).toBe(0.5);
+    expect(open(tick(s, 2600))).toBeNull();
+  });
+
+  it("keeps a plain repeat on its first open time", () => {
+    let s = notify(emptyQueue(), n("x", { badge: false, ttl: 1500 }), 0);
+    s = notify(s, n("x", { badge: false, ttl: 1500 }), 1000);
+    expect(open(tick(s, 1600))).toBeNull();
+  });
 });

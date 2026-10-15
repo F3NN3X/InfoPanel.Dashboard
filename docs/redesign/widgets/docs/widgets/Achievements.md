@@ -30,6 +30,9 @@ Keys read (literal parts; `${…}` segments are resolved at runtime by detection
 - Shapes handled explicitly: via CompactView
 - Inner content size (after padding + header) is passed to the layout as `{ w, h }`; tier/shape come from the outer size. See [../ARCHITECTURE.md](../ARCHITECTURE.md#sizing).
 
+## Dynamic Island
+Setting `island` (**Send to island**, off by default, in the Achievements group). With it on, a kiosk's Dynamic Island opens for 6 s with "Achievement unlocked", the achievement and game, and its icon, when `latest-achievement` changes. The rules are in `src/widgets/island/gaming.ts` (`achievementsIsland`); see [the island plan](../../../island/PLAN.md#what-shows-and-when).
+
 ## Core building blocks used
 `Widget` · `shell` · `get` · `num` · `fmt` · `has` · `Ring` · `Img` · `Icon` · `useSkin` · `numFont` · `hue` · `STATE`
 

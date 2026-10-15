@@ -13,6 +13,7 @@ import Visualizer, { meta as visualizer, type VisualizerProps } from "../Visuali
 import VolumeMixer, { meta as volumeMixer, type VolumeMixerProps } from "../VolumeMixer";
 import WaveLink, { meta as waveLink } from "../WaveLink";
 import { nowPlayingIsland, waveLinkIsland } from "../island-sources";
+import { volumeMixerIsland } from "../island/audio";
 
 /**
  * The legacy media keys a new NowPlaying zone does not offer: the engine-picking and mapped keys, the
@@ -147,6 +148,7 @@ export const GROUP_C: DashboardModule[] = [
     ],
     // read-only: the volume plugin has no write path
     toProps: (s) => ({ ...pick<VolumeMixerProps>(["showDevice", "showMute", "levelColor"])(s), device: stringOf(s.device) }),
+    island: volumeMixerIsland,
   }),
   templateModule({
     meta: meterBridge,

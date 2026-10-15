@@ -1,5 +1,6 @@
 // Template widgets, group E: the plain plugin cards that had no template (see docs/redesign/phase9/gaps.md).
 // Each module's options are exported for the schema tests (`e.schema.test.ts`).
+import { notificationsIsland } from "../island/info";
 import { CARD_SETTINGS, STYLE_SETTINGS, SURFACE_SETTINGS } from "@/modules/standard-settings";
 import type { DashboardModule, ModuleSetting } from "@/modules/types";
 import { templateModule, type TemplateOptions } from "../module";
@@ -52,6 +53,7 @@ export const notificationsOptions: TemplateOptions<Pick<NotificationsProps, "sho
   Component: Notifications,
   settings: NOTIFICATIONS_SETTINGS,
   toProps: (s) => ({ showHistory: boolOf(s.showHistory), maxLines: numberOf(s.maxLines) }),
+  island: notificationsIsland,
 };
 
 export const DEPARTURES_SETTINGS: ModuleSetting[] = [boolSetting("showStatus", "Status line", true, { group: "Content" })];

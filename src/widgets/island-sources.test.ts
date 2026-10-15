@@ -86,3 +86,15 @@ describe("Wave Link on the island", () => {
     expect(derive(waveLinkIsland, wl(true), wl(true)).notices).toEqual([]);
   });
 });
+
+describe("Wave Link fader moves on the island", () => {
+  const fader = (level: number): WlState => ({ ...wl(false), channels: [{ id: "c", name: "Music", type: "sw", level, levelDb: -12, isMuted: false, mixes: [], apps: [] }] });
+
+  it("shows a refreshing level bar for a moving fader, only when switched on", () => {
+    expect(waveLinkIsland.derive(fader(0.5), fader(0.6), {}).notices).toEqual([]);
+    expect(waveLinkIsland.derive(fader(0.5), fader(0.6), { islandFaders: true }).notices).toEqual([
+      { id: "level:channel:c", severity: "info", title: "Music", body: "−12.0 dB", progress: 0.6, ttl: 1500, refresh: true },
+    ]);
+  });
+});
+

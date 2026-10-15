@@ -7,6 +7,7 @@ import { ALERTS_SOURCE, noticeFromAlert } from "@/lib/island/from-alerts";
 import { quietGate } from "@/lib/island/quiet";
 import type { IslandFeed } from "@/lib/island/sources";
 import type { IslandActivity, IslandItem, IslandSnapshot } from "@/lib/island/types";
+import { useDashboardNotices } from "@/lib/island/use-dashboard-notices";
 import { useConnectionNotice, useIslandSources } from "@/lib/island/use-island-sources";
 import { formatReading } from "@/lib/data-points";
 import { formatClock } from "@/lib/general";
@@ -37,10 +38,12 @@ interface DynamicIslandProps {
   /** The profile's design size: a short strip or a small screen gets a smaller island. */
   page: { width: number; height: number };
   /**
-   * The kiosk's own notices: the Data API warning, the widgets that send to the island, and the
-   * alerts' quiet hours for both. Unset = server alerts only.
+   * The kiosk's own notices: the Data API warning, the widgets that send to the island, the
+   * dashboard notices switched on (`config.notices`: the shown page's name, a layout update counted
+   * by `layoutVersion`, plugins, OBS, the calendar), and the alerts' quiet hours for all of them.
+   * Unset = server alerts only.
    */
-  live?: { feeds: readonly IslandFeed[]; quietHours?: QuietHours };
+  live?: { feeds: readonly IslandFeed[]; quietHours?: QuietHours; page: string; layoutVersion: number };
   bus?: IslandBus;
 }
 
@@ -64,7 +67,7 @@ export function DynamicIsland({ config, alerts, onAck, placement, page, live, bu
   return (
     <>
       {/* The sources stay mounted in one place whatever the mode, so their baseline survives. */}
-      {live && <LiveSources bus={bus} feeds={live.feeds} quietHours={live.quietHours} />}
+      {live && <LiveSources bus={bus} config={config} live={live} />}
       {mode !== "none" && (
         <IslandPill mode={mode} snap={snap} config={config} size={size} placement={placement} onAck={onAck} bus={bus} />
       )}
@@ -150,7 +153,8 @@ function IslandPill({ mode, snap, config, size, placement, onAck, bus }: IslandP
  * The kiosk's own notices, mounted only there (no stream opens on the canvas): the Data API warning,
  * the widgets' sources, and quiet hours for both.
  */
-function LiveSources({ bus, feeds, quietHours }: { bus: IslandBus; feeds: readonly IslandFeed[]; quietHours?: QuietHours }) {
+function LiveSources({ bus, config, live }: { bus: IslandBus; config: IslandConfig; live: NonNullable<DynamicIslandProps["live"]> }) {
+  const { feeds, quietHours } = live;
   useEffect(() => {
     // Server alerts were filtered on the server; a tapped activity was asked for.
     bus.setGate(quietGate(quietHours, [ALERTS_SOURCE, ACTIVITY_PEEK]));
@@ -158,6 +162,7 @@ function LiveSources({ bus, feeds, quietHours }: { bus: IslandBus; feeds: readon
   }, [bus, quietHours]);
   useConnectionNotice(bus, true);
   useIslandSources(bus, feeds, true);
+  useDashboardNotices(bus, { notices: config.notices, page: live.page, layoutVersion: live.layoutVersion, calendarLead: config.calendarLead });
   return null;
 }
 
@@ -247,6 +252,11 @@ function Expanded({ item }: { item: IslandItem }) {
       <div className="min-w-0 flex-1 leading-tight">
         <div className="truncate font-semibold">{item.title}</div>
         {item.body && <div className="truncate text-[0.86em] opacity-65">{item.body}</div>}
+        {item.progress !== undefined && (
+          <div className="mt-[0.35em] h-[0.3em] overflow-hidden rounded-full bg-current/20" role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(item.progress * 100)}>
+            <div className="island-level h-full rounded-full" style={{ width: `${Math.round(item.progress * 100)}%`, background: color }} />
+          </div>
+        )}
       </div>
     </div>
   );

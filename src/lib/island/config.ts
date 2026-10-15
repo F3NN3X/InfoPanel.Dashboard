@@ -13,6 +13,21 @@ export const ISLAND_SIZES: readonly IslandSize[] = ["s", "m", "l"];
 export type IslandTint = "black" | "theme";
 export const ISLAND_TINTS: readonly IslandTint[] = ["black", "theme"];
 
+/** The dashboard's own notices, each off until switched on. */
+export interface IslandNotices {
+  /** The page's name when the kiosk switches pages. */
+  page: boolean;
+  /** "Layout updated" when a studio save reaches the kiosk. */
+  layout: boolean;
+  /** "<plugin> is back" when a plugin that stopped reports again. */
+  plugins: boolean;
+  /** A live dot while OBS streams or records (the server's OBS connection). */
+  onAir: boolean;
+  /** The next calendar event counting down (the server's calendar links). */
+  calendar: boolean;
+}
+export const ISLAND_NOTICE_KEYS: readonly (keyof IslandNotices)[] = ["page", "layout", "plugins", "onAir", "calendar"];
+
 export interface IslandConfig {
   enabled: boolean;
   /** What the pill shows with nothing to report ("hidden": only alerts show). */
@@ -31,6 +46,9 @@ export interface IslandConfig {
   /** Push the zones down by the pill's height instead of overlaying the top row. */
   reserve: boolean;
   tint: IslandTint;
+  notices: IslandNotices;
+  /** Minutes before a calendar event the countdown starts and the island opens. */
+  calendarLead: number;
 }
 
 export const ISLAND_DEFAULTS: IslandConfig = {
@@ -43,16 +61,24 @@ export const ISLAND_DEFAULTS: IslandConfig = {
   collapseAfter: 0,
   reserve: false,
   tint: "black",
+  notices: { page: false, layout: false, plugins: false, onAir: false, calendar: false },
+  calendarLead: 10,
 };
 /** The label before the sensor value stays short: it shares the pill with the time. */
 export const ISLAND_LABEL_MAX = 12;
 export const ISLAND_OFFSET_MAX = 64;
 export const ISLAND_COLLAPSE_MAX = 600;
+export const ISLAND_LEAD_MAX = 120;
 
 const oneOf = <T extends string>(list: readonly T[], v: unknown): T | undefined =>
   typeof v === "string" && (list as readonly string[]).includes(v) ? (v as T) : undefined;
 const clamp = (v: unknown, lo: number, hi: number, fallback: number): number =>
   typeof v === "number" && Number.isFinite(v) ? Math.max(lo, Math.min(hi, Math.round(v))) : fallback;
+
+const noticesOf = (raw: unknown): IslandNotices => {
+  const r = typeof raw === "object" && raw !== null ? (raw as Record<string, unknown>) : {};
+  return { page: r.page === true, layout: r.layout === true, plugins: r.plugins === true, onAir: r.onAir === true, calendar: r.calendar === true };
+};
 
 /** Tolerant read of a stored `island`: bad enums fall back to the defaults, numbers are clamped. */
 export function normalizeIsland(raw: unknown): IslandConfig | undefined {
@@ -68,6 +94,8 @@ export function normalizeIsland(raw: unknown): IslandConfig | undefined {
     collapseAfter: clamp(r.collapseAfter, 0, ISLAND_COLLAPSE_MAX, ISLAND_DEFAULTS.collapseAfter),
     reserve: r.reserve === true,
     tint: oneOf(ISLAND_TINTS, r.tint) ?? ISLAND_DEFAULTS.tint,
+    notices: noticesOf(r.notices),
+    calendarLead: clamp(r.calendarLead, 1, ISLAND_LEAD_MAX, ISLAND_DEFAULTS.calendarLead),
   };
 }
 
