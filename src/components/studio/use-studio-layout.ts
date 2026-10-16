@@ -20,15 +20,16 @@ export const INSPECTOR_WIDTH = 320;
 export const RAIL_WIDTH = 52;
 
 /**
- * The profile's page as the canvas draws it: a "fill" page has its design
- * height, a scroll page the height of its grid at the natural row size.
+ * The profile's page for fitting the canvas: its design size, the screen, in
+ * both fit modes. A scroll page also reports the height of its grid at the
+ * natural row size; the part past the screen is drawn below a fold.
  */
 export function pageSize(profile: ProfileView): PageSize {
   const fill = profile.fit === "fill" && profile.height > 0;
   const gap = profileGap(profile);
   return {
     width: profile.width,
-    height: fill ? profile.height : 0,
+    height: profile.height > 0 ? profile.height : 0,
     naturalHeight: fill
       ? undefined
       : 2 * profilePadding(profile, true) + profile.rows * SCROLL_ROW_H + (profile.rows - 1) * gap,

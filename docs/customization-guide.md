@@ -56,7 +56,11 @@ toggles the left panel, the grid and the rulers, zooms out and in (or
 **Ctrl + wheel** over the canvas, **Ctrl + =** / **Ctrl + -**), fits the page
 (**Fit**, **Ctrl + 0**), shows the design size (click it to open Dashboard ›
 Profile). The page is centered in the
-canvas whenever it is smaller than the view. The grid and ruler toggles are
+canvas whenever it is smaller than the view. The design size is the screen and
+**Fit** frames it in both fit modes, so changing the grid's columns or rows never
+rescales the page. A **Scroll** profile whose rows run past the screen shows a
+dashed **Screen ends at … px · the kiosk scrolls** line; the rows below it are
+dimmed but stay editable. The grid and ruler toggles are
 remembered.
 
 On first run a **quick tips** card sits at the bottom left of the canvas;

@@ -403,7 +403,9 @@ least one widget is visible.
   user's saved appearance presets) and `general?` (see below).
 - `MonitorProfile` - `id`, `name`, design `width`/`height`, `cols`, `rows`,
   `fit` (`"scroll"` with fixed `SCROLL_ROW_H` = 120 px rows, or `"fill"` to
-  fill the viewport), `pages` (at least one `ProfilePage`: `id`, `name`,
+  fill the viewport; the studio fits its zoom to the design size in both modes
+  (`pageSize`, `use-studio-layout.ts`) and marks where a scroll page's screen ends
+  with `ScreenFold`), `pages` (at least one `ProfilePage`: `id`, `name`,
   `icon?`, `placements`), `rotate?` (`PageRotate`, auto-rotate), optional `style` (profile style, over
   the dashboard's), `styleEnforce` (overrides the dashboard's when set),
   `background` (replaces the dashboard's; `{ type: "none" }` turns it off

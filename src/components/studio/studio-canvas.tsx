@@ -31,6 +31,7 @@ import { PlacementFrame } from "./placement-frame";
 import { pastDragThreshold, trackPointer } from "./pointer-drag";
 import { LivePlacement } from "./placement-content";
 import { RulerLabels } from "./rulers";
+import { ScreenFold } from "./screen-fold";
 import { EmptyLayoutCard, QuickTipsCard } from "./canvas-cards";
 import { dropGhost, dropSize, libraryItemOf, type LibraryItem } from "./drop-ghost";
 import { DND_MIME, DND_MIME_PANEL, placementTitle } from "./studio-modules";
@@ -38,6 +39,7 @@ import type { SelectMode } from "./selection";
 import { SelectionChipLayer } from "./selection-chip";
 import { zoneMinSize } from "./studio-actions";
 import type { CanvasInset } from "./studio-layout";
+import { pageSize } from "./use-studio-layout";
 import { enforceMinSize, fitZoneRect, moveZoneSet, type ZoneRect } from "./zone-geometry";
 
 /** The canvas' dot grid, at a fixed pitch on the scroll area (not scaled by the zoom). */
@@ -478,6 +480,10 @@ export function StudioCanvas({
               )}
                 {/* Page background (as in the kiosk) behind the tiles */}
                 {background && <PageBackground background={background} className="absolute inset-0 -z-20" />}
+                {/* A scroll page longer than its screen: the design size stays the frame. */}
+                {!fill && profile.height > 0 && (pageSize(profile).naturalHeight ?? 0) > profile.height && (
+                  <ScreenFold height={profile.height} zoom={zoom} />
+                )}
                 <div
                   ref={setGridEl}
                   className={cn("relative isolate grid", fill && "h-full")}

@@ -52,7 +52,7 @@ interface Size {
   height: number;
 }
 
-/** The profile's page: `height` is 0 for a scroll profile. */
+/** The profile's page (its design size, the screen): `height` is 0 only when the profile has none. */
 export interface PageSize extends Size {
   /** A scroll profile's grid height at its natural size, when known. */
   naturalHeight?: number;

@@ -59,6 +59,12 @@ Built from `docs/desktop/TAURI_PLAN.md`; how to build and use it is in `docs/des
   bar. The window-state plugin no longer restores the saved frame flag, which had brought the native
   bar back.
 
+- Design size on Scroll profiles: the canvas drew a scroll page as tall as its rows (11 × 120 px for a
+  1024×600 profile) and fitted the zoom to the width only, so the size looked wrong and changing rows
+  rescaled it. `pageSize` now reports the design size in both modes, and `ScreenFold` dims the rows past
+  the screen under a dashed "Screen ends at … px" line (the user's choice). Checked in the app with a
+  copy of the live config.
+
 ## Not covered
 
 - Tray menu clicks and autostart registration (not driven; autostart was kept off on this machine).
