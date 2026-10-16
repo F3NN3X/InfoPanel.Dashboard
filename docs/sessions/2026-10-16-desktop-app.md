@@ -1,76 +1,71 @@
 ---
 title: InfoPanel Studio desktop app (Tauri 2)
-status: built, tested and committed on feat/desktop-app, not merged
+status: built, tested and committed on feat/desktop-app, not pushed
 created: 2026-10-16
 updated: 2026-10-16
-tags: [desktop, tauri, server, agents, debug]
+tags: [desktop, tauri, server, agents, debug, studio]
 ---
 
-Built from `docs/desktop/TAURI_PLAN.md`; how to build and use it is in `docs/desktop/README.md`.
+Same session also merged PR #24 (widget editing, `bf51627`) and PR #25 (studio logo, `9ae4f5b`).
+Then `feat/desktop-app` got three commits on main: `ea83353` (plan), `8a87b8b` (app), `b3a8e55`
+(design-size fix); 111 files. Green at the end: `npx vitest run` 3,496 passed / 1 skipped,
+`npx tsc -b`, and in `src-tauri/` `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`,
+`cargo test` (50). `npm run desktop:build` produces the NSIS installer.
+
+Plan: `docs/desktop/TAURI_PLAN.md`. Build, settings and debug mode: `docs/desktop/README.md`.
 
 ## What shipped
 
-- `src-tauri/`: the app (single instance, window state, tray, autostart, start and settings pages,
-  bundled Node server with crash restarts and logs, runtime studio capability, navigation guard,
-  coding agent toggle, debug sampling). NSIS per-user installer, unsigned.
-- Server: `/api/health`, image proxy limited to raster images with nosniff, `DASHBOARD_DIST`,
-  `DASHBOARD_DATA_DIR`, `DASHBOARD_DEBUG` request/SSE log and `/api/debug/stats`.
-- Agents: `agent-install.mjs --node --url --json`, `agent-status.mjs --url`.
-- Studio: native export/import in the app, flush before hide/quit, "Desktop app settings" in the ⋯
-  menu, error forwarding and 30 s samples in debug mode.
-- `npm run desktop:build` builds the studio into `.cache/desktop/dist`, never `dist/`.
+- **Self-contained app.** `src-tauri/` ships Node 24.22.0 (pinned and checksummed by
+  `tools/desktop-prepare.mjs`), `server.mjs` and the studio, starts the server and loads the studio
+  from it. Closing the window keeps the server in the tray; start at login is on by default. A
+  kill-on-close job object ties every server to the app.
+- **Port takeover.** On startup the app closes a dashboard server it didn't start that holds the
+  port: a `node.exe` that answers `/api/health` as the dashboard or runs `server.mjs`. Any other
+  program is left alone and the start page says the port is in use.
+- **Settings page.** Host/IP, port, allowed hosts, startup, close to tray, the coding-agent hooks
+  (installed with the bundled Node, rewritten after a port change or update, removed on uninstall)
+  and debug mode. Debug mode gives request logs, `/api/debug/stats`, studio error forwarding and
+  30 s memory samples with a "growing" flag.
+- **Frameless windows.** The studio's top bar with the logo is the title bar, with the window
+  controls on it (`window-controls.tsx`). The start and settings pages have a matching bar.
+- **Server and tools.** `/api/health`, image proxy limited to raster images, `DASHBOARD_DIST`,
+  `DASHBOARD_DATA_DIR`, `DASHBOARD_DEBUG`; `agent-install --node/--url/--json`, `agent-status --url`.
+- **Studio fixes.** The quick bar floats over the canvas only, below the page tabs. On Scroll
+  profiles the canvas frames the design size (`pageSize`) and `ScreenFold` dims the rows past the
+  screen, so changing rows no longer rescales the page.
 
-## Checked (release build, isolated config/data folders, port 3942/3943)
+## What broke, and what it taught
 
-- Start: probe, own server, studio loads; health and debug stats answer; samples from the app, server
-  and studio reach `metrics.csv` and the Diagnostics table.
-- Settings: port change restarts the server and reloads the studio on the new port; debug off makes
-  `/api/debug/stats` 404.
-- Agents (with `USERPROFILE` pointed at a temp folder): on writes hooks for both agents with the
-  bundled Node and the current URL and a backup; a hook command posts to the server (204); off
-  removes them and the marker.
-- Close to tray after the studio's flush; the server keeps answering. A second launch focuses the
-  first window.
-- A separate `node server.mjs` on the port: the start page names it, asks for confirmation, stops it
-  and starts the app's own server.
-- No server left behind after a forced kill of the app (job object), including after a restart.
-- Installer: silent install, the installed app's own `node.exe` serves the port, silent uninstall
-  leaves no files and no uninstall entry.
+- **`npm run build` rewrites the `dist/` the live 3922 server serves.** It happened twice: through the
+  widget-editing build and through the first `desktop:build`. Main's build was restored from a
+  temporary worktree. `desktop:build` now builds into `.cache/desktop/dist`, and CLAUDE.md says so.
+- **A restarted server outlived a killed app.** No job object. The first server only died because
+  its debug logging hit a broken pipe, which hid the bug until a restart with debug off.
+- **The takeover first missed the real case.** The live server is an older build without
+  `/api/health`, so it was classed as "another program". It is now also recognised by its command
+  line.
+- **The window-state plugin brought the native frame back.** It restores the saved decorations flag
+  by default; `StateFlags::DECORATIONS` is now excluded.
+- **WebView2's CDP port never opened** on this machine, even with the flag on the command line.
+  Windows UI Automation (`uia.ps1`-style scripts) drove the UI instead; `SendKeys` without a
+  verified foreground window can type into the wrong app.
+- **Security review** (one medium, six low fixed): `http://tauri.localhost:<port>` counted as a local
+  page, because Tauri's own check ignores the port.
 
-## Found and fixed while testing
+## Decisions
 
-- `desktop:build` ran `npm run build`, which rewrote the `dist/` the live 3922 server serves. Main's
-  build was restored from a temporary worktree and the desktop build now uses its own folder.
-- A server restarted by the app outlived a killed app (no job object; the first one only died
-  because its debug logging hit a broken pipe). Fixed with a kill-on-close job object.
-- Security review fixes: `http://tauri.localhost:<port>` no longer counts as a local page; Save As
-  only writes `.json`; probe reads are capped; external opens are throttled; studio log messages
-  can't forge log lines; the PID is re-checked before a stop; the CDP port only in debug mode.
+- Load the studio from the server, not a bundled SPA: stored `/api/assets` links stay same-origin and
+  the request guard needs no CORS exception.
+- Close an old dashboard server automatically (user's call), but never a non-node or non-dashboard
+  process.
+- Scroll profiles: the frame is the design size, and the rows below the fold are dimmed but editable
+  (user's choice over changing Scroll's row model or forcing Fill).
+- Unsigned NSIS, per-user install; signing and the updater come later (#29).
 
-## Follow-up after the user's test
+## Still open
 
-- The stop flow did nothing against the live 3922 server: it is an older build with no
-  `/api/health`, so it was classed as "another program". The app now closes any `node.exe` holding
-  the port that answers as the dashboard or runs `server.mjs`, automatically on startup. Checked
-  against main's `server.mjs` on 3943 (stopped, own server started) and Python's `http.server`
-  (left alone, start page shown).
-- Frameless windows: the studio's top bar is the title bar (drag, double-click to maximize, minimize /
-  maximize-restore / close, close hides to the tray); the start and settings pages have a matching
-  bar. The window-state plugin no longer restores the saved frame flag, which had brought the native
-  bar back.
-
-- Design size on Scroll profiles: the canvas drew a scroll page as tall as its rows (11 × 120 px for a
-  1024×600 profile) and fitted the zoom to the width only, so the size looked wrong and changing rows
-  rescaled it. `pageSize` now reports the design size in both modes, and `ScreenFold` dims the rows past
-  the screen under a dashed "Screen ends at … px" line (the user's choice). Checked in the app with a
-  copy of the live config.
-
-## Not covered
-
-- Tray menu clicks and autostart registration (not driven; autostart was kept off on this machine).
-- The native export and import dialogs (not driven).
-- The studio UI inside the installed copy (its server was checked; the same files loaded the studio
-  in the release build).
-- The WebView2 remote-debugging port never opened on this machine; Windows UI Automation drove the UI.
-- Not addressed from the security review: the image proxy follows redirects (pre-existing; blind
-  requests only), "use this server" trusts any listener that answers as the dashboard.
+- Push `feat/desktop-app` and open the PR (the user asked to wait until this point).
+- #26 image proxy follows redirects; #27 "Use it for this session" trusts any dashboard answer;
+  #28 manual QA of the tray, autostart, native dialogs and the installed studio UI; #29 signing,
+  updater and CI.
