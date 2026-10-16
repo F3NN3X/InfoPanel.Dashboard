@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { trackEventSource } from "@/lib/sensor-store";
 import type { ActiveAlert, AlertAction } from "./alerts";
 import type { DashboardConfig, MonitorProfile } from "./layout";
 
@@ -57,7 +58,7 @@ export function useControl(shownProfile?: string, enabled = true): ControlState 
   useEffect(() => {
     if (!enabled || typeof EventSource === "undefined") return;
     const url = shownProfile ? `${CONTROL_EVENTS_URL}?profile=${encodeURIComponent(shownProfile)}` : CONTROL_EVENTS_URL;
-    const events = new EventSource(url);
+    const events = trackEventSource(new EventSource(url));
     events.onmessage = (e) => {
       try {
         setState(JSON.parse(e.data) as ControlState);

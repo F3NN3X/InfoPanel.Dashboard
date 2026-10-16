@@ -18,6 +18,26 @@ import {
  * closes shortly after its last one goes.
  */
 
+let openSources = 0;
+
+/** Count an EventSource until it is closed (the studio's leak check reads the total). */
+export function trackEventSource<T extends { close(): void }>(source: T): T {
+  openSources += 1;
+  const close = source.close.bind(source);
+  let closed = false;
+  source.close = () => {
+    if (!closed) {
+      closed = true;
+      openSources -= 1;
+    }
+    close();
+  };
+  return source;
+}
+
+/** EventSources currently open across the sensor, config, control and extras streams. */
+export const openEventSourceCount = (): number => openSources;
+
 /** Change-stream cadence; the plugins themselves update about once a second. */
 export const STREAM_INTERVAL_MS = 1000;
 /** Fast-stream cadence: the audio meter updates every 50 ms; the Data API's minimum is 100 ms. */
@@ -84,7 +104,7 @@ export class SensorStore {
 
   constructor(
     private base: string,
-    private readonly connect: StreamFactory = (url) => new EventSource(url),
+    private readonly connect: StreamFactory = (url) => trackEventSource(new EventSource(url)),
     private readonly load: typeof fetch = (...args) => fetch(...args)
   ) {}
 

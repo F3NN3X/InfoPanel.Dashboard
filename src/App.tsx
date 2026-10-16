@@ -20,6 +20,8 @@ import { profileGap, profilePadding } from "@/lib/profile-grid";
 import { GeneralProvider, useGeneral } from "@/hooks/use-general";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { setApiBase } from "@/lib/data-api";
+import { flushDone, onStudioFlush } from "@/lib/desktop";
+import { trackEventSource } from "@/lib/sensor-store";
 import {
   CONFIG_EVENTS_URL,
   fetchConfig,
@@ -270,7 +272,7 @@ export default function App() {
     };
     // The stream sends the current version on connect (and on every
     // reconnect), then one event per save — each one triggers a pull.
-    const events = new EventSource(CONFIG_EVENTS_URL);
+    const events = trackEventSource(new EventSource(CONFIG_EVENTS_URL));
     events.onmessage = () => void pull();
     return () => {
       alive = false;
@@ -328,6 +330,23 @@ export default function App() {
         return false;
       }); // Server offline — kiosk pages keep their last copy; the dot stays.
   }, []);
+
+  // Desktop shell: before it hides or quits it asks for the same flush as Save, and waits for flush_done.
+  useEffect(() => {
+    if (kiosk) return;
+    let off: (() => void) | undefined;
+    let gone = false;
+    void onStudioFlush(() => {
+      const timeout = new Promise<void>((resolve) => window.setTimeout(resolve, 1200));
+      void Promise.race([handleStudioSave(latestConfig.current), timeout])
+        .catch(() => {})
+        .finally(() => void flushDone().catch(() => {}));
+    }).then((unlisten) => (gone ? unlisten() : (off = unlisten)));
+    return () => {
+      gone = true;
+      off?.();
+    };
+  }, [kiosk, handleStudioSave]);
 
   // The dedicated studio replaces the whole view.
   if (studio) {

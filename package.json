@@ -9,7 +9,11 @@
     "typecheck": "tsc -b",
     "test": "vitest run",
     "start": "node server.mjs",
-    "serve": "npm run build && node server.mjs"
+    "serve": "npm run build && node server.mjs",
+    "desktop:prepare": "node tools/desktop-prepare.mjs",
+    "desktop:web": "tsc -b && vite build --outDir .cache/desktop/dist --emptyOutDir",
+    "desktop:dev": "npm run desktop:web && npm run desktop:prepare && tauri dev",
+    "desktop:build": "npm run desktop:web && npm run desktop:prepare && tauri build"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

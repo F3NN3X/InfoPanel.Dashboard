@@ -1,0 +1,36 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "The app's own pages (start.html, settings.html): settings, server control and agents. The studio's origin gets its smaller set at runtime (src/control.rs).",
+  "windows": [
+    "main",
+    "settings"
+  ],
+  "local": true,
+  "permissions": [
+    "core:default",
+    "allow-get-settings",
+    "allow-save-settings",
+    "allow-server-status",
+    "allow-restart-server",
+    "allow-use-foreign-server",
+    "allow-stop-foreign-server",
+    "allow-foreign-server-info",
+    "allow-open-studio",
+    "allow-open-logs-folder",
+    "allow-read-log-tail",
+    "allow-get-diagnostics",
+    "allow-set-agents",
+    "allow-open-devtools",
+    "allow-list-local-addresses",
+    "allow-quit-app",
+    "allow-open-settings",
+    "allow-get-debug",
+    "core:window:allow-minimize",
+    "core:window:allow-toggle-maximize",
+    "core:window:allow-internal-toggle-maximize",
+    "core:window:allow-close",
+    "core:window:allow-start-dragging",
+    "core:window:allow-is-maximized"
+  ]
+}

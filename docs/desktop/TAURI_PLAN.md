@@ -11,7 +11,10 @@ Status: confirmed 2026-10-16; in progress on `feat/desktop-app`.
   in the app settings.
 - **Start at login** is on by default.
 - **A running `start-dashboard.bat` server:** the app offers to stop it (after a confirmation), then
-  starts its own.
+  starts its own. Revised after testing: the app closes it automatically on startup (a `node.exe`
+  answering as the dashboard or running `server.mjs`), since older servers have no `/api/health`.
+- **Title bar (added later):** no native frame; the studio's top bar with the logo carries the window
+  controls.
 - **Name:** "InfoPanel Studio", identifier `dev.f3nn3x.infopanel-studio`.
 - **Debug mode** with logging, to find errors and leaks (section below).
 

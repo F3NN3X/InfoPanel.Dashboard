@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-list-local-addresses"
+description = "Enables the list_local_addresses command without any pre-configured scope."
+commands.allow = ["list_local_addresses"]
+
+[[permission]]
+identifier = "deny-list-local-addresses"
+description = "Denies the list_local_addresses command without any pre-configured scope."
+commands.deny = ["list_local_addresses"]

@@ -93,7 +93,10 @@ API image path). `resolveImageUrl` resolves a root-relative
 server. To sample colors from cover art, the Now Playing widget fetches it
 (`src/widgets/NowPlaying/art-tint.ts`) through `/api/image-proxy?url=` on the
 dashboard server (https anywhere, http only on loopback), except same-origin
-images, which it loads directly.
+images, which it loads directly. The proxy relays only images (`server/proxy.mjs`):
+`image/*` except SVG, or `application/octet-stream` / no type when the bytes are
+png, jpeg, gif, webp or avif (served with the sniffed type); anything else is 406.
+Responses carry `X-Content-Type-Options: nosniff`.
 
 ## 2. Per-zone rendering
 
@@ -560,6 +563,18 @@ set it uses `$HOME/.local/share/InfoPanel/Dashboard` (`./.local/share/…` when
 `HOME` is unset too). It writes a temp file and renames it. A body must be a
 JSON object and at most 5 MB, otherwise the server answers 400 or 413.
 `GET /api/config` answers 404 until a config has been saved.
+`DASHBOARD_DATA_DIR` replaces that directory and `DASHBOARD_DIST` the folder
+served (default `dist/` beside `server.mjs`).
+
+Two small routes beside the config: `GET /api/health` answers
+`{ app: "infopanel-dashboard", version, configVersion }` (`version` is
+`package.json`'s, "0.0.0" when that file is missing), so a client can tell this
+server from another one on the port. With `DASHBOARD_DEBUG=1` the server logs
+each request (method, path, status, ms) and every SSE connect and disconnect
+per channel (`config`, `control`, `extras`) with the current count, and
+`GET /api/debug/stats` (404 otherwise, 403 from other machines;
+`server/debug.mjs`) returns the memory use, uptime, SSE clients per channel,
+active resources by type and the event-loop delay (p50, p99, max in ms).
 
 ### Uploaded media (`server/assets.mjs`, `src/lib/assets.ts`)
 
@@ -886,7 +901,7 @@ and the accordion mode (`studio.accordion`, one open or many open, default
 one). The open section is plain component state; there is no scroll-spy.
 
 *Quick bar* (`quick-bar.tsx`, `quick-sets.ts`). A floating pill centred at the
-top of the canvas (docked and floating placements; Dashboard › General ›
+top of the canvas, below the page tabs and over the canvas only (docked and floating placements; Dashboard › General ›
 Studio › "Quick bar", `studio.quickBar`, default on): identity, the pinned
 settings as compact controls, visibility and, floating, "All settings". Pins
 are set from the pin button on each inspector row, are kept per widget type (all
@@ -1024,7 +1039,10 @@ for the Data Explorer. The keyboard icon opens `shortcuts-dialog.tsx`.
 menu), the Design | Sources switch, Undo / Redo, Kiosk view, Save (a dot while
 edits are not pushed yet) and a "..." menu: Export / Import
 (`config-file.ts`), Copy profile JSON, Command palette, Keyboard shortcuts,
-Reset everything (behind `reset-config-dialog.tsx`) and the build id.
+Reset everything (behind `reset-config-dialog.tsx`), "Desktop app settings" (only
+in the desktop app) and the build id. In the desktop app the bar is also the
+window's title bar: its empty space carries `data-tauri-drag-region` and
+`window-controls.tsx` adds minimize, maximize and close at the right end.
 `widget-picker-dialog.tsx` reuses `InsertFilters` and `InsertList` to assign a
 widget (`assignModule` / `assignPreset` / `clearWidget` in `studio-actions.ts`).
 
@@ -1182,3 +1200,51 @@ the usual `key`, `label`, `type` and `default`:
 category. Keys that are look settings (`PROFILE_STYLE_KEYS`) take part in the
 dashboard / profile / own layering and get source dots; never rename a key or
 change a default without a migration, since saved configs hold them.
+
+## 5. Desktop app (InfoPanel Studio)
+
+Full reference: [desktop/README.md](desktop/README.md); design, decisions and the
+IPC contract: [desktop/TAURI_PLAN.md](desktop/TAURI_PLAN.md).
+
+`src-tauri/` is a Tauri 2 shell around the same server and the same studio. The
+shell starts a bundled `node.exe` running `server.mjs` (the sidecar, `sidecar.rs`)
+with `PORT`, `HOST`, `ALLOWED_HOSTS` and `DASHBOARD_DIST` set, waits for
+`/api/health`, then loads the studio from the server origin
+(`http://127.0.0.1:<port>/?studio=1`), so stored `/api/assets/<id>` links and the
+same-origin request guard keep working. The server joins a kill-on-close job
+object (no server outlives a killed app), is restarted after a crash (3 times a
+minute) and writes `server.log`; the app writes `app.log`.
+
+- **Takeover.** If the port is held by an older `node server.mjs` or
+  `start-dashboard.bat` (a `node.exe` that answers `/api/health` as the dashboard or
+  runs `server.mjs`), the app stops it and starts its own. Anything else on the port
+  is left alone and the local start page offers the settings.
+- **Local pages** (`src-tauri/pages/`: start, settings) are served by Tauri, so they
+  work when the server can't start. They use the capability `default.json` (app
+  settings, server control, agents, window controls).
+- **Studio IPC.** The studio origin gets a smaller capability, added at runtime
+  once the server answers (`control.rs`, `add_studio_capability`; remote URL
+  `<origin>/*`, window `main`): `open_settings`, `save_text_file`, `open_text_file`,
+  `log_frontend`, `report_metrics`, `get_debug`, `flush_done`, event listen and
+  unlisten, and the window minimize, maximize and close commands. Hence the image
+  proxy's images-only rule: a same-origin HTML response must not reach IPC.
+- **Navigation guard** (`nav.rs`). Only the server origin (not `/api/*`) and the
+  local pages load in the window; everything else, including `target="_blank"`,
+  opens in the system browser.
+- **Window.** No native frame: the studio top bar is the title bar (see above), and
+  closing hides to the tray while the server keeps serving the kiosk.
+- **Studio bridge** `src/lib/desktop.ts`. `isTauri()` gates everything and
+  `@tauri-apps/api` is imported lazily, so the browser and kiosk bundles carry no
+  Tauri code and every call is a no-op outside the app. `config-file.ts` uses the
+  native Save and Open dialogs there, and the `⋯` menu gains "Desktop app settings".
+- **Flush on hide and quit.** Before the window hides or the app quits, Rust emits
+  `studio://flush`; `App.tsx` pushes the pending config (the push is otherwise
+  debounced 400 ms; the studio gives up after 1200 ms) and calls `flush_done`. Rust
+  waits at most 1500 ms.
+- **Debug mode** (the setting, `--debug` or `INFOPANEL_STUDIO_DEBUG=1`). The sidecar
+  gets `DASHBOARD_DEBUG=1` (request and SSE log, `/api/debug/stats`).
+  `src/lib/desktop-debug.ts` forwards the studio's errors, warnings and unhandled
+  rejections (rate limited) with `log_frontend` and, every 30 s, sends the JS heap,
+  DOM node count and open EventSources with `report_metrics`. Rust adds the memory
+  of the app, the server and WebView2 plus the server stats and writes one
+  `metrics.csv` line per sample; the settings page flags growing series.

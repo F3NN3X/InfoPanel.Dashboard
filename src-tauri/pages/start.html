@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>InfoPanel Studio</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="start.css" />
+  </head>
+  <body>
+    <main class="card start">
+      <div class="row heading">
+        <div id="spinner" class="spinner"></div>
+        <h1 id="title">Starting the dashboard server…</h1>
+      </div>
+      <p id="message" class="muted"></p>
+
+      <section id="failed" class="hidden">
+        <p>The last lines of the server log:</p>
+        <pre id="log" class="log"></pre>
+        <div class="row actions">
+          <button id="retry" class="primary">Retry</button>
+          <button class="open-settings">Open settings</button>
+        </div>
+      </section>
+
+      <section id="foreign" class="hidden">
+        <p>
+          It was not started by InfoPanel Studio, for example by <code>start-dashboard.bat</code>.
+          InfoPanel Studio runs its own server, so you can remove the .bat from Windows startup.
+        </p>
+        <p id="foreign-version" class="notice warn hidden"></p>
+        <p id="foreign-process" class="muted"></p>
+        <div id="confirm" class="notice warn hidden">
+          <p id="confirm-text"></p>
+          <div class="row">
+            <button id="confirm-stop" class="danger">Stop it</button>
+            <button id="confirm-cancel">Cancel</button>
+          </div>
+        </div>
+        <p id="stop-result" class="notice error hidden"></p>
+        <div class="row actions">
+          <button id="stop" class="primary hidden">Stop it and start InfoPanel Studio's server</button>
+          <button id="use">Use it for this session</button>
+          <button class="open-settings">Open settings</button>
+        </div>
+      </section>
+
+      <section id="in-use" class="hidden">
+        <p>Pick another port in the settings, or close the program that uses this one.</p>
+        <div class="row actions">
+          <button class="open-settings primary">Open settings</button>
+          <button class="retry-port">Retry</button>
+        </div>
+      </section>
+
+      <section id="running" class="hidden">
+        <div class="row actions">
+          <button id="open-studio" class="primary">Open the studio</button>
+        </div>
+      </section>
+    </main>
+    <script src="common.js"></script>
+    <script src="start.js"></script>
+  </body>
+</html>

@@ -489,6 +489,29 @@ overlay, Gauge row, Clock + date, Label / value list.
 
 ---
 
+## 7a. Desktop app settings (InfoPanel Studio; `settings.json`, not in the config)
+
+Kept by the desktop app, not by the studio: `%APPDATA%\dev.f3nn3x.infopanel-studio\settings.json`
+(see [desktop/README.md](desktop/README.md); edited in the app's settings page, `src-tauri/src/settings.rs`).
+Missing or invalid keys fall back to their default.
+
+| Key | What | Values | Default | Target |
+|---|---|---|---|---|
+| `host` | Address the server listens on (becomes `HOST`) | `127.0.0.1`, `0.0.0.0` or a local IP | `127.0.0.1` | Settings page › Server |
+| `port` | Server port (becomes `PORT`) | 1024-65535 | `3922` | Settings page › Server |
+| `allowedHosts` | Extra host names for the request guard (`ALLOWED_HOSTS`) | list, or a comma-separated string | empty | Settings page › Server (when not loopback) |
+| `startAtLogin` | Start at login, hidden in the tray | boolean | `true` | Settings page › Startup |
+| `openStudioOnLaunch` | A manual launch opens the window | boolean | `true` | Settings page › Startup |
+| `closeToTray` | Closing the window hides it; off quits and stops the server | boolean | `true` | Settings page › Startup |
+| `agents.enabled` | Claude Code and Codex hooks installed by the app | boolean | `false` | Settings page › Coding agents |
+| `debug` | Debug logging and leak sampling (also `--debug`, `INFOPANEL_STUDIO_DEBUG=1`) | boolean | `false` | Settings page › Debug mode |
+| `version`, `agents.installed`, `closeWarningShown` | Bookkeeping: file layout, what the hooks were last written for, the one-time close warning | | | Not edited by hand |
+
+The server's own environment variables (`PORT`, `HOST`, `ALLOWED_HOSTS`, `DASHBOARD_DIST`,
+`DASHBOARD_DATA_DIR`, `DASHBOARD_DEBUG`) are in [development.md](development.md).
+
+---
+
 ## 8. Open placement questions
 
 1. **`preset` (Default / Dark / Light / Vivid / Mono).** A per-widget quick look that bundles

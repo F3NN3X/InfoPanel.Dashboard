@@ -18,3 +18,9 @@ Thumbs.db
 
 # Widget QA screenshots
 docs/redesign/phase9/shots/
+
+# Desktop app (InfoPanel Studio) build outputs and the cached Node download
+src-tauri/target/
+src-tauri/gen/
+src-tauri/resources/
+.cache/

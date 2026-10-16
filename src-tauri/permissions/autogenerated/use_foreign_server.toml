@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-use-foreign-server"
+description = "Enables the use_foreign_server command without any pre-configured scope."
+commands.allow = ["use_foreign_server"]
+
+[[permission]]
+identifier = "deny-use-foreign-server"
+description = "Denies the use_foreign_server command without any pre-configured scope."
+commands.deny = ["use_foreign_server"]

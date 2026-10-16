@@ -34,6 +34,10 @@ On Windows you can double-click `start-dashboard.bat` instead. On the first run 
 
 The server listens on `127.0.0.1:3922`; set `PORT` or `HOST` to change it.
 
+## Desktop app
+
+**InfoPanel Studio** is a Windows installer that needs no Node, repo or `start-dashboard.bat`: it ships its own Node and this server, runs it, and opens the studio in its own window. The server keeps running from the tray, so the page InfoPanel shows keeps updating with the window closed, and it can start at login. It replaces `start-dashboard.bat`, which still works. Your config in `%LOCALAPPDATA%\InfoPanel\Dashboard` is picked up as it is. Building the installer, its settings and its debug mode are in [docs/desktop/README.md](docs/desktop/README.md).
+
 ## Show it in InfoPanel
 
 Create a desktop profile in InfoPanel, turn on **Web Page** mode, and set the URL to:
@@ -76,7 +80,9 @@ The weather forecast comes from the yr plugin (`plugins.yr-weather-plugin.<locat
 | GET | `/` | The dashboard (any unknown path also returns it) |
 | GET / POST | `/api/config` | Read or save the studio config |
 | GET | `/events/config` | Server-sent events: the config version on connect and after each save |
-| GET | `/api/image-proxy?url=` | Fetches an image so the page can sample its colours (https anywhere, http only on loopback) |
+| GET | `/api/image-proxy?url=` | Fetches an image so the page can sample its colours (https anywhere, http only on loopback; images only, anything else is 406) |
+| GET | `/api/health` | `{ app, version, configVersion }`, so a client can tell this server from another one on the port |
+| GET | `/api/debug/stats` | Memory, SSE clients and event-loop numbers; only with `DASHBOARD_DEBUG=1`, this machine only |
 | GET / POST | `/api/assets` | List uploaded images and videos (`?unused=1`: those the saved config doesn't use), or upload one (header `X-Dashboard-Asset: 1`, loopback only unless `ALLOW_REMOTE_UPLOAD=1`) |
 | GET / DELETE | `/api/assets/<id>` | Serve an uploaded file (immutable cache, `Range` support) or delete it |
 
@@ -88,6 +94,7 @@ The [docs index](docs/README.md) lists everything; the main entries:
 - [Widget catalog](docs/module-catalog.md) and [widget settings](docs/widget-settings.md)
 - [System widget](docs/system-widget.md)
 - [Architecture](docs/architecture.md) and [development](docs/development.md)
+- [Desktop app](docs/desktop/README.md) (InfoPanel Studio) and its [design](docs/desktop/TAURI_PLAN.md)
 - [Studio design](docs/redesign/README.md) (the redesign spec) and [zones and widgets](docs/studio-redesign-zones-widgets.md) (the grid model)
 - `tools/ip-import.cjs` imports an InfoPanel profile as a dashboard layout.
 - `tools/gen-bg.mjs` regenerates the background image of the Glass and Frosted presets.
