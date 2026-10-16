@@ -21,6 +21,27 @@ From `package.json`:
 | `npm start` | `node server.mjs` | Serves `dist/` and the config endpoints |
 | `npm run serve` | `npm run build && node server.mjs` | Build, then start |
 
+## Desktop app scripts
+
+| Script | What it does |
+|---|---|
+| `npm run desktop:web` | `tsc -b`, then builds the studio into `.cache/desktop/dist` |
+| `npm run desktop:prepare` | Downloads the pinned Node (SHA-256 checked, cached in `.cache/desktop/`) and fills `src-tauri/resources/` |
+| `npm run desktop:build` | `desktop:web`, `desktop:prepare`, then `tauri build` (NSIS installer in `src-tauri/target/release/bundle/nsis/`) |
+| `npm run desktop:dev` | The same two steps, then `tauri dev` |
+
+`desktop:build` never writes `dist/`. `npm run build` does, and a running
+dashboard server serves `dist/`, so don't run it while the live server is up
+unless you mean to update it.
+
+The app needs Rust stable (MSVC), Visual Studio 2022 Build Tools with
+"Desktop development with C++" and the Windows SDK. Checks, run in `src-tauri/`:
+`cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test`.
+To run the app without touching the live setup set `INFOPANEL_STUDIO_CONFIG_DIR`
+(settings and logs), `INFOPANEL_STUDIO_DATA_DIR` (the server's `DASHBOARD_DATA_DIR`),
+`INFOPANEL_STUDIO_DEBUG=1` and a spare port in `settings.json`; never stop
+the servers on 3921 or 3922. See [desktop/README.md](desktop/README.md).
+
 ## Dev server vs the standalone server
 
 **Standalone server (`server.mjs`).** Serves the built `dist/`, stores the
@@ -36,6 +57,9 @@ in `server/assets.mjs`. Environment variables it reads:
 | `ALLOW_REMOTE_UPLOAD` | unset | `1` accepts media uploads and deletes from other machines; otherwise only from loopback (the server answers 403) |
 | `ALLOWED_HOSTS` | unset | Extra `Host` names to serve, comma separated (e.g. `kiosk.lan,panel.example`). Without it only `localhost`, `127.0.0.1`, `[::1]` and `HOST` are served (421 otherwise); with `HOST=0.0.0.0` any IP address and the machine name work too |
 | `ASSETS_MAX_BYTES` | `2147483648` | Cap on the total size of the uploaded media; an upload that would pass it gets 507 |
+| `DASHBOARD_DIST` | `dist` beside `server.mjs` | The built app to serve (the desktop app points it at its bundled copy) |
+| `DASHBOARD_DATA_DIR` | `%LOCALAPPDATA%\InfoPanel\Dashboard` | Where `config.json`, `assets` and the other state files live; takes precedence over `LOCALAPPDATA` (use a temp folder for tests) |
+| `DASHBOARD_DEBUG` | unset | `1` logs every request (method, path, status, ms) and SSE connect/disconnect per channel, and serves `GET /api/debug/stats` (memory, uptime, SSE clients, active resources, event-loop delay) to this machine only |
 
 Uploaded images and videos go to an `assets` folder next to `config.json`
 (`%LOCALAPPDATA%\InfoPanel\Dashboard\assets`), created on the first upload.

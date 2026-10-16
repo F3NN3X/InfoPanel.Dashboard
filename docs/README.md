@@ -23,6 +23,7 @@ The project overview, install steps and server endpoints are in the
 
 ## Development
 
+- [Desktop app](desktop/README.md) - InfoPanel Studio, the Tauri installer that runs the server itself: building it, where its settings and logs live, taking over an old server, the window, debug mode and testing without touching the live setup. [TAURI_PLAN.md](desktop/TAURI_PLAN.md) holds the design, decisions and IPC contract.
 - [Development](development.md) - scripts, running dev and the standalone server, tests, typecheck, adding a widget, and a verification checklist.
 - `tools/ip-import.cjs` imports an InfoPanel profile as a dashboard layout (see the header of the file for usage).
 - `tools/gen-bg.mjs` regenerates `public/assets/bg/aurora.png`, the page background of the Glass and Frosted appearance presets (`node tools/gen-bg.mjs`).

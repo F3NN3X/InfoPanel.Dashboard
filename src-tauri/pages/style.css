@@ -1,0 +1,257 @@
+/* Shared look of the app's local pages; colours follow the studio's --ui-* chrome tokens. */
+:root {
+  color-scheme: dark;
+  --bg: #0c0c0e;
+  --panel: #111114;
+  --raised: #17171b;
+  --hover: #1a1a1f;
+  --border: #24242a;
+  --border-strong: #2e2e35;
+  --text-1: #ededf0;
+  --text-2: #c9c9cf;
+  --text-3: #9696a0;
+  --accent: oklch(0.72 0.15 255);
+  --accent-soft: oklch(0.72 0.15 255 / 0.14);
+  --success: oklch(0.75 0.15 150);
+  --warning: oklch(0.8 0.15 75);
+  --danger: oklch(0.72 0.17 25);
+  font-family: "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  font-size: 14px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text-2);
+  line-height: 1.45;
+}
+
+h1,
+h2,
+h3 {
+  color: var(--text-1);
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+h1 {
+  font-size: 20px;
+}
+
+h2 {
+  font-size: 15px;
+}
+
+p {
+  margin: 0 0 10px;
+}
+
+a {
+  color: var(--accent);
+}
+
+code {
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 12px;
+  color: var(--text-1);
+}
+
+.muted {
+  color: var(--text-3);
+}
+
+.hidden {
+  display: none !important;
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px 20px;
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+button {
+  font: inherit;
+  color: var(--text-1);
+  background: var(--raised);
+  border: 1px solid var(--border-strong);
+  border-radius: 7px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  background: var(--hover);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+button.primary {
+  background: var(--accent);
+  border-color: transparent;
+  color: #0c0c0e;
+  font-weight: 600;
+}
+
+button.danger {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+input[type="text"],
+input[type="number"],
+select,
+textarea {
+  font: inherit;
+  color: var(--text-1);
+  background: var(--bg);
+  border: 1px solid var(--border-strong);
+  border-radius: 7px;
+  padding: 6px 8px;
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+pre.log {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 10px;
+  margin: 0;
+  max-height: 320px;
+  overflow: auto;
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  color: var(--text-2);
+}
+
+.notice {
+  border-radius: 7px;
+  padding: 8px 10px;
+  margin: 8px 0;
+  font-size: 13px;
+}
+
+.notice.warn {
+  background: oklch(0.8 0.15 75 / 0.12);
+  color: var(--warning);
+}
+
+.notice.error {
+  background: oklch(0.72 0.17 25 / 0.12);
+  color: var(--danger);
+}
+
+.notice.ok {
+  background: oklch(0.75 0.15 150 / 0.12);
+  color: var(--success);
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--border-strong);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* The window's own title bar (no native frame). Keep in step with the studio top bar. */
+.titlebar {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 10;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-left: 12px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  user-select: none;
+}
+
+.titlebar-logo {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.titlebar-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-2);
+}
+
+.captions {
+  display: flex;
+  align-self: stretch;
+}
+
+button.caption {
+  width: 46px;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+button.caption:hover {
+  background: var(--hover);
+  color: var(--text-1);
+}
+
+button.caption.close:hover {
+  background: #c42b1c;
+  color: #fff;
+}
+
+/* The page scrolls under the title bar, so its scrollbar never runs over the caption buttons. */
+html {
+  overflow: hidden;
+}
+
+body {
+  margin-top: 40px;
+  height: calc(100vh - 40px);
+  overflow-y: auto;
+}

@@ -23,6 +23,9 @@
 //   ALLOWED_HOSTS  extra Host names to accept, comma separated (see
 //                  server/request-guard.mjs)
 //   ASSETS_MAX_BYTES  total size cap of the uploaded media (default 2 GB)
+//   DASHBOARD_DIST  folder to serve instead of ./dist
+//   DASHBOARD_DATA_DIR  folder for config.json, assets and the other state files
+//   DASHBOARD_DEBUG=1  log each request and SSE connection; GET /api/debug/stats (this machine only)
 
 import http from "node:http";
 import fs from "node:fs";
@@ -34,15 +37,21 @@ import { createAssets } from "./server/assets.mjs";
 import { versionRefusal } from "./server/config-guard.mjs";
 import { createControl } from "./server/control.mjs";
 import { createAgentUsage } from "./server/agent-usage.mjs";
+import { createDebug } from "./server/debug.mjs";
+import { readVersion, resolveDataDir, resolveDist } from "./server/env.mjs";
 import { createExtras } from "./server/extras.mjs";
-import { agentWriteRefusal, configWriteRefusal, controlWriteRefusal, createRequestGuard, parseAllowedHosts } from "./server/request-guard.mjs";
+import { resolveProxyType } from "./server/proxy.mjs";
+import { agentWriteRefusal, configWriteRefusal, controlWriteRefusal, createRequestGuard, isLoopback, parseAllowedHosts } from "./server/request-guard.mjs";
 
 const PORT = Number(process.env.PORT) || 3922;
 const HOST = process.env.HOST || "127.0.0.1";
 
-const DIST = path.join(path.dirname(fileURLToPath(import.meta.url)), "dist");
+const ROOT = path.dirname(fileURLToPath(import.meta.url));
+const DIST = resolveDist(process.env, path.join(ROOT, "dist"));
+const VERSION = readVersion(path.join(ROOT, "package.json"));
+const debug = createDebug({ enabled: process.env.DASHBOARD_DEBUG === "1" });
 const LOCAL = process.env.LOCALAPPDATA || path.join(process.env.HOME || ".", ".local", "share");
-const DATA_DIR = path.join(LOCAL, "InfoPanel", "Dashboard");
+const DATA_DIR = resolveDataDir(process.env, path.join(LOCAL, "InfoPanel", "Dashboard"));
 const CONFIG_FILE = path.join(DATA_DIR, "config.json");
 const ASSETS_DIR = path.join(DATA_DIR, "assets");
 const CONTROL_FILE = path.join(DATA_DIR, "control.json");
@@ -165,9 +174,11 @@ function handleControlEvents(req, res, query) {
   write(control.get());
   const unsubscribe = control.subscribe(write);
   const keepAlive = setInterval(() => res.write(": keep-alive\n\n"), 15_000);
+  const untrack = debug.sseOpen("control");
   req.on("close", () => {
     clearInterval(keepAlive);
     unsubscribe();
+    untrack();
   });
 }
 
@@ -182,9 +193,11 @@ function handleExtrasEvents(req, res) {
   write(extras.state());
   const unsubscribe = extras.subscribe(write);
   const keepAlive = setInterval(() => res.write(": keep-alive\n\n"), 15_000);
+  const untrack = debug.sseOpen("extras");
   req.on("close", () => {
     clearInterval(keepAlive);
     unsubscribe();
+    untrack();
   });
 }
 
@@ -298,9 +311,11 @@ function handleConfigEvents(req, res) {
   res.write(`data: ${JSON.stringify({ version: configVersion })}\n\n`);
   configListeners.add(res);
   const keepAlive = setInterval(() => res.write(": keep-alive\n\n"), 15_000);
+  const untrack = debug.sseOpen("config");
   req.on("close", () => {
     clearInterval(keepAlive);
     configListeners.delete(res);
+    untrack();
   });
 }
 
@@ -341,9 +356,25 @@ async function handleImageProxy(req, res, query) {
   } catch {
     return send(res, 502);
   }
-  const type = (upstream.headers.get("content-type") ?? "application/octet-stream").split(";")[0];
-  res.writeHead(200, { "Content-Type": type, "Cache-Control": "no-store" });
-  res.end(Buffer.concat(chunks));
+  const body = Buffer.concat(chunks);
+  const type = resolveProxyType(upstream.headers.get("content-type"), body);
+  if (!type) return send(res, 406, "not an image");
+  res.writeHead(200, { "Content-Type": type, "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" });
+  res.end(body);
+}
+
+/** GET /api/health → what is running here; the desktop app uses it to recognise its own server. */
+function handleHealth(req, res) {
+  if (req.method !== "GET") return send(res, 405);
+  send(res, 200, JSON.stringify({ app: "infopanel-dashboard", version: VERSION, configVersion }), TYPES[".json"]);
+}
+
+/** GET /api/debug/stats → process and SSE numbers; only with DASHBOARD_DEBUG=1, only from this machine. */
+function handleDebugStats(req, res) {
+  if (!debug.enabled) return send(res, 404);
+  if (req.method !== "GET") return send(res, 405);
+  if (!isLoopback(req.socket.remoteAddress)) return send(res, 403, "debug stats are served to this machine only");
+  send(res, 200, JSON.stringify(debug.stats()), TYPES[".json"]);
 }
 
 function serveStatic(req, res, pathname) {
@@ -383,7 +414,11 @@ const server = http.createServer(async (req, res) => {
     return send(res, refused.status, refused.message);
   }
   const { pathname, searchParams } = new URL(req.url ?? "/", "http://localhost");
+  const done = debug.request(req);
+  res.on("close", () => done(res.statusCode));
   try {
+    if (pathname === "/api/health") return handleHealth(req, res);
+    if (pathname === "/api/debug/stats") return handleDebugStats(req, res);
     if (pathname === "/api/config") return await handleConfig(req, res);
     if (pathname === "/events/config") return handleConfigEvents(req, res);
     if (pathname === "/api/control" || pathname.startsWith("/api/control/")) return await handleControl(req, res, pathname);
@@ -408,4 +443,5 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, HOST, () => {
   console.log(`InfoPanel dashboard on http://${HOST}:${PORT} (config: ${CONFIG_FILE})`);
+  if (debug.enabled) console.log("[debug] DASHBOARD_DEBUG=1: logging requests and SSE clients; stats at /api/debug/stats");
 });

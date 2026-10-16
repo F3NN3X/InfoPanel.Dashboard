@@ -44,7 +44,7 @@ export const CANVAS_PAD_Y = 160;
 
 /** The width the open floating inspector takes from the canvas (320 + its 12 px margins and a gap). */
 export const FLOAT_INSET = 348;
-/** Extra room over the page for the quick bar (12 + 46 px) and the selection chip under it. */
+/** Extra room over the page for the quick bar (12 + 46 px at the top of the canvas, below the page tabs) and the selection chip under it: about 16 px between them at a height-filling fit. */
 export const QUICK_BAR_INSET = 36;
 
 interface Size {
@@ -52,7 +52,7 @@ interface Size {
   height: number;
 }
 
-/** The profile's page: `height` is 0 for a scroll profile. */
+/** The profile's page (its design size, the screen): `height` is 0 only when the profile has none. */
 export interface PageSize extends Size {
   /** A scroll profile's grid height at its natural size, when known. */
   naturalHeight?: number;

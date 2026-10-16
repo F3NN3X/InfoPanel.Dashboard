@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-foreign-server-info"
+description = "Enables the foreign_server_info command without any pre-configured scope."
+commands.allow = ["foreign_server_info"]
+
+[[permission]]
+identifier = "deny-foreign-server-info"
+description = "Denies the foreign_server_info command without any pre-configured scope."
+commands.deny = ["foreign_server_info"]

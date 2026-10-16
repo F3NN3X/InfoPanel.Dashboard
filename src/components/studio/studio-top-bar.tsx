@@ -12,18 +12,21 @@ import {
   Redo2,
   RotateCcw,
   Search,
+  Settings,
   Undo2,
   Upload,
   Wand2,
 } from "lucide-react";
 import { IconButton } from "@/components/ui/icon-button";
 import { BUILD_ID } from "@/lib/buildInfo";
+import { isTauri, openSettings } from "@/lib/desktop";
 import type { MonitorProfile } from "@/lib/layout";
 import { zoneCount } from "@/lib/pages";
 import { cn } from "@/lib/utils";
 import { copyProfileJson } from "./config-file";
 import { ResetConfigDialog } from "./reset-config-dialog";
 import { StudioLogo } from "./studio-logo";
+import { WindowControls } from "./window-controls";
 import { KEYS } from "./use-studio-shortcuts";
 
 export type StudioMode = "design" | "sources";
@@ -251,6 +254,11 @@ function MoreMenu({
                 <RotateCcw className="h-3.5 w-3.5" /> Reset everything…
               </Menu.Item>
               <Menu.Separator className={SEPARATOR} />
+              {isTauri() && (
+                <Menu.Item className={ITEM} onClick={() => void openSettings().catch(() => {})}>
+                  <Settings className="h-3.5 w-3.5" /> Desktop app settings
+                </Menu.Item>
+              )}
               <Menu.Item className={ITEM} disabled>
                 <Info className="h-3.5 w-3.5" />
                 <span className="font-ui-mono text-[10.5px]">build {BUILD_ID}</span>
@@ -274,18 +282,26 @@ const HISTORY_BUTTON = "text-[#c9c9cf] disabled:text-[#4a4a52] disabled:opacity-
 export function StudioTopBar(props: StudioTopBarProps) {
   const { profile, mode, onMode, saved, unsaved, onSave, onExitStudio, canUndo, canRedo, onUndo, onRedo } = props;
   return (
-    <header className="grid h-12 shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-3 border-b border-ui-subtle bg-ui-chrome px-3 font-ui max-sm:flex max-sm:gap-1.5 max-sm:px-2">
-      <div className="flex min-w-0 items-center gap-2.5 max-sm:flex-1">
+    // In the desktop app this bar is the window's title bar: its empty space drags the window
+    // (data-tauri-drag-region only acts on the element itself) and the caption buttons sit at the end.
+    <header
+      data-tauri-drag-region
+      className={cn(
+        "grid h-12 shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-3 border-b border-ui-subtle bg-ui-chrome px-3 font-ui max-sm:flex max-sm:gap-1.5 max-sm:px-2",
+        isTauri() && "pr-0"
+      )}
+    >
+      <div data-tauri-drag-region className="flex min-w-0 items-center gap-2.5 max-sm:flex-1">
         <StudioLogo className="h-[26px] w-[26px] shrink-0 max-sm:hidden" />
         <ProfileSwitcher {...props} />
-        <span className="min-w-0 truncate font-ui-mono text-[11px] text-ui-4 max-sm:hidden">
+        <span data-tauri-drag-region className="min-w-0 truncate font-ui-mono text-[11px] text-ui-4 max-sm:hidden">
           {profileSummary(profile)}
         </span>
       </div>
 
       <ModeSwitch mode={mode} onMode={onMode} />
 
-      <div className="flex items-center justify-end gap-1.5 max-sm:gap-1">
+      <div data-tauri-drag-region className="flex items-center justify-end gap-1.5 self-stretch max-sm:gap-1">
         <IconButton
           label={`Undo (${KEYS.undo})`}
           size={32}
@@ -325,6 +341,7 @@ export function StudioTopBar(props: StudioTopBarProps) {
           {saved ? "Saved" : "Save"}
         </button>
         <MoreMenu {...props} />
+        <WindowControls />
       </div>
     </header>
   );

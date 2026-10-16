@@ -4,6 +4,7 @@
  * the server (`/api/integrations`). One shared EventSource, opened on the first subscriber.
  */
 
+import { trackEventSource } from "@/lib/sensor-store";
 import { EMPTY_AGENTS, parseAgents, type Agents } from "./agents";
 
 export interface ObsState {
@@ -84,7 +85,7 @@ function createExtrasClient(url: string) {
   const listeners = new Set<Listener>();
   const open = () => {
     if (source || typeof EventSource === "undefined") return;
-    source = new EventSource(url);
+    source = trackEventSource(new EventSource(url));
     source.onmessage = (e) => {
       try {
         state = parseExtras(JSON.parse(String(e.data)));

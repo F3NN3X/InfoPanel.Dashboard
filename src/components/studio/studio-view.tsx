@@ -15,7 +15,7 @@ import { buildDataModel } from "@/lib/data-points";
 import { appearanceOf } from "@/lib/style-resolve";
 import { resolveTheme, themeVars } from "@/lib/theme";
 import { CommandPalette } from "./command-palette";
-import { exportConfigFile, importConfigFile } from "./config-file";
+import { exportConfigFile, importConfigFile, startConfigImport } from "./config-file";
 import { useDocumentProps } from "./use-document-props";
 import { StudioCanvas } from "./studio-canvas";
 import { StudioTopBar } from "./studio-top-bar";
@@ -335,6 +335,19 @@ function StudioViewBody({
     />
   );
 
+  const { mode: inspectorMode, floatOpen } = studioLayout;
+  // The quick bar: the selection's pinned settings; with nothing selected (floating) the dashboard's "All settings".
+  const quickBar = !showSources && ui.quickBar && inspectorMode !== "sheet" && (sel.selection.length > 0 || inspectorMode === "floating") && (
+    <QuickBar
+      zones={sel.selection}
+      appearance={appearance}
+      updateProfile={edit.updateProfile}
+      onToggleVisible={() => (sel.selection.length === 1 ? edit.toggleVisible(sel.selection[0].id) : edit.toggleSelectionVisible())}
+      allSettings={inspectorMode === "floating" ? { open: floatOpen, onToggle: () => studioLayout.setFloatOpen(!floatOpen) } : undefined}
+      insetRight={inspectorMode === "floating" && floatOpen ? 344 : 0}
+    />
+  );
+
   // The page tabs sit above the canvas in Design mode.
   const mainEl = showSources ? (
     canvasEl
@@ -363,26 +376,16 @@ function StudioViewBody({
           onSaved: () => void postControl("rotate", { profile: storedProfile.id, state: "saved" }),
         }}
       />
-      {canvasEl}
+      {/* The quick bar floats over the canvas only, below the page tabs. */}
+      <div className="relative flex min-h-0 flex-1 flex-col">
+        {canvasEl}
+        {quickBar}
+      </div>
     </>
-  );
-
-  const { mode: inspectorMode, floatOpen } = studioLayout;
-  // The quick bar: the selection's pinned settings; with nothing selected (floating) the dashboard's "All settings".
-  const quickBar = !showSources && ui.quickBar && inspectorMode !== "sheet" && (sel.selection.length > 0 || inspectorMode === "floating") && (
-    <QuickBar
-      zones={sel.selection}
-      appearance={appearance}
-      updateProfile={edit.updateProfile}
-      onToggleVisible={() => (sel.selection.length === 1 ? edit.toggleVisible(sel.selection[0].id) : edit.toggleSelectionVisible())}
-      allSettings={inspectorMode === "floating" ? { open: floatOpen, onToggle: () => studioLayout.setFloatOpen(!floatOpen) } : undefined}
-      insetRight={inspectorMode === "floating" && floatOpen ? 344 : 0}
-    />
   );
 
   const bar = showSources ? null : (
     <>
-    {quickBar}
     <ZoomToolbar
       zoom={ui.zoom}
       fitting={ui.fitting}
@@ -422,7 +425,7 @@ function StudioViewBody({
         onSave={ui.handleSave}
         onExitStudio={onExitStudio}
         onExport={() => exportConfigFile(config)}
-        onImport={() => ui.importRef.current?.click()}
+        onImport={() => startConfigImport(ui.importRef.current, setConfig)}
         onReset={() => setConfig(defaultConfig())}
         canUndo={history.canUndo}
         canRedo={history.canRedo}

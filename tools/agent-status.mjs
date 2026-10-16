@@ -3,20 +3,23 @@
 //
 //   node tools/agent-status.mjs hook claude          a hook: posts its stdin JSON, prints nothing
 //   node tools/agent-status.mjs hook codex
+//   (either mode also takes --url=<base> anywhere after it)
 //   node tools/agent-status.mjs statusline [--wrap=<base64url of your statusline command>]
 //                                                     posts the statusline JSON, then runs your own
 //                                                     statusline with the same input and prints its line
 //                                                     (base64 keeps its quotes intact through the shell)
 //
 // It never fails the agent: every error is swallowed, it exits 0, and the post gives up after a
-// second. A hook prints nothing (some hook output is shown to the model). DASHBOARD_URL overrides
-// http://127.0.0.1:3922. Installed by tools/agent-install.mjs.
+// second. A hook prints nothing (some hook output is shown to the model). The dashboard is at
+// http://127.0.0.1:3922 unless --url=<base> or, failing that, DASHBOARD_URL says otherwise.
+// Installed by tools/agent-install.mjs.
 //
 // Node built-ins only.
 
 import { spawn } from "node:child_process";
 
-const BASE = (process.env.DASHBOARD_URL || "http://127.0.0.1:3922").replace(/\/+$/, "");
+const urlArg = process.argv.slice(2).find((a) => a.startsWith("--url="))?.slice(6);
+const BASE = (urlArg || process.env.DASHBOARD_URL || "http://127.0.0.1:3922").replace(/\/+$/, "");
 const TIMEOUT_MS = 1000;
 
 /** All of stdin as a string ("" when none comes within the timeout). */

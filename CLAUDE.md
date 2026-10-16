@@ -34,6 +34,19 @@ The spec is in `docs/redesign/`. Read `README.md` → `DATA_MODEL.md` → `FEATU
   "edits not pushed yet".
 - Work phase by phase; the app builds and tests pass at the end of each phase.
 
+## Desktop app
+
+InfoPanel Studio is a Tauri 2 shell in `src-tauri/` that runs the bundled Node and `server.mjs` and loads the
+studio from the server. Docs: `docs/desktop/README.md` (build, settings, debug) and `TAURI_PLAN.md` (decisions,
+IPC contract). The studio side is `src/lib/desktop.ts` (lazy Tauri imports, no-op in the browser); keep the
+kiosk and browser bundles free of Tauri code.
+
+- `npm run desktop:build` builds the studio into `.cache/desktop/dist` and never touches `dist/`, which a running
+  server serves; `npm run build` does touch it.
+- Rust checks, in `src-tauri/`: `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test`.
+- Never stop the servers on 3921 (InfoPanel) or 3922 when testing. Use `INFOPANEL_STUDIO_CONFIG_DIR`,
+  `INFOPANEL_STUDIO_DATA_DIR` and a spare port; for the agent toggle also point `USERPROFILE` at a temp folder.
+
 ## Widget library
 
 Every widget is a template in `src/widgets/<Id>.tsx` rendered inside the `<Widget>` shell

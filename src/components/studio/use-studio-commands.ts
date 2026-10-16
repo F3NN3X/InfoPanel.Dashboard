@@ -9,7 +9,7 @@ import type { Appearance } from "@/lib/style-resolve";
 import { addRule, alertsKey } from "./alerts-model";
 import { followAll, toggleEnforce } from "./appearance-actions";
 import { buildCommands, type CommandAction } from "./commands";
-import { copyProfileJson, exportConfigFile } from "./config-file";
+import { copyProfileJson, exportConfigFile, startConfigImport } from "./config-file";
 import { DOCUMENT_CARD } from "./document-inspector";
 import { insertables } from "./insert-panel";
 import { widgetContext, type InspectorContext } from "./inspector-model";
@@ -149,7 +149,7 @@ export function useStudioCommands({
       case "export":
         return exportConfigFile(config);
       case "import":
-        return ui.importRef.current?.click();
+        return startConfigImport(ui.importRef.current, setConfig);
       case "copy-profile":
         copyProfileJson(config.profiles.find((p) => p.id === profile.id) ?? config.profiles[0]).catch(() => {});
         return;

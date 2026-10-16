@@ -1,0 +1,22 @@
+body {
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.start {
+  width: min(640px, 100%);
+}
+
+.heading {
+  margin-bottom: 6px;
+}
+
+.heading h1 {
+  margin: 0;
+}
+
+.actions {
+  margin-top: 14px;
+}
