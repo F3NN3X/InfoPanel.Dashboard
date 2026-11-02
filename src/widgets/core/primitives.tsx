@@ -794,12 +794,13 @@ export const GlassPill = ({ children, className = "" }: { children?: ReactNode; 
 /** Set by the QA page (`widget-qa/Frame.tsx`): `Empty` then marks itself `data-wp-empty`, so its parity check can tell an empty state from content. Elsewhere the markup stays as it is. */
 export const MarkEmptyCtx = createContext(false);
 
-export function Empty({ icon = "sensors_off", label = "No data" }: { icon?: string; label?: ReactNode }) {
+export function Empty({ icon = "sensors_off", label = "No data", hint, large }: { icon?: string; label?: ReactNode; /** The action line under the label. */ hint?: ReactNode; /** The 28px icon and 13px label of a widget whose whole body is the empty state. */ large?: boolean }) {
   const mark = useContext(MarkEmptyCtx);
   return (
-    <div data-wp-empty={mark ? "" : undefined} className="flex h-full flex-col items-center justify-center gap-1 text-[color:var(--w-faint)]">
-      <Icon name={icon} className="text-xl" />
-      <span className="text-xs">{label}</span>
+    <div data-wp-empty={mark ? "" : undefined} className="flex h-full flex-col items-center justify-center gap-1 text-center text-[color:var(--w-faint)]">
+      <Icon name={icon} className={large ? "text-[28px]" : "text-xl"} />
+      <span className={large ? "text-body" : "text-xs"}>{label}</span>
+      {hint && <span className="text-micro">{hint}</span>}
     </div>
   );
 }

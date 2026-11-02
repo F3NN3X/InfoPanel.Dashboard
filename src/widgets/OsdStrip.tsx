@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
-import { Widget, shell, get, num, fmt, has, useSkin, useIpTag, ToneCue, hw, type IpTagExtra, type ShellProps } from "./kit";
+import { Widget, shell, get, num, fmt, has, stacksIn, useSkin, useIpTag, ToneCue, hw, type IpTagExtra, type ShellProps } from "./kit";
 import { fpsSubLine } from "./fps-line";
 import { meta } from "./meta/OsdStrip";
 
@@ -21,6 +21,11 @@ const INLINE_H = 52;
 const DROP_CRIT = "#F2665E";
 const DROP_WARN = "#EDB232";
 
+/** A stacked cell's height (px) at its value size, for how many rows fit. */
+const STACK_CELL_H = { 28: 66, 32: 70 } as const;
+
+/** The strip's dark panel colour. */
+const OSD_BG = "bg-[#17171b]";
 const OSD_TEXT = { color: "#f4f4f5", "--w-fg": "#f4f4f5", "--w-muted": "#d4d4d8", "--w-faint": "#a1a1aa", "--w-track": "rgba(255,255,255,0.1)" } as CSSProperties;
 
 export default function OsdStrip(p: OsdStripProps) {
@@ -82,12 +87,42 @@ export default function OsdStrip(p: OsdStripProps) {
       studio={{ label: "OSD", live: !idle, value: idle ? "—" : fps, unit: idle ? "" : "fps", rows: keys.map((k) => ({ n: ALL[k][0], v: ALL[k][1] })) }}
     >
       {({ w, h }) => {
+        // not a strip (a square-ish zone): two columns of cells, label over a big value, as many rows as fit
+        if (stacksIn(w, h)) {
+          const big = h >= 340 ? 32 : 28;
+          const shown = keys.slice(0, 2 * Math.max(1, Math.floor((h - 28) / (STACK_CELL_H[big] + 1))));
+          return (
+            <div className="flex h-full flex-col justify-center gap-1.5">
+              <div className="grid min-w-0 grid-cols-2 gap-px overflow-hidden rounded-md bg-white/10 ring-1 ring-white/10" style={OSD_TEXT}>
+                {shown.map((k, i) => {
+                  const [l, v, c] = ALL[k];
+                  return (
+                    <div key={k} className={`flex min-w-0 flex-col gap-1 ${OSD_BG} px-3 py-3 ${i === shown.length - 1 && i % 2 === 0 ? "col-span-2" : ""}`}>
+                      <span className="truncate text-micro font-semibold uppercase tracking-[0.08em] text-[color:var(--w-muted)]">{l}</span>
+                      <span
+                        className="truncate font-medium leading-none tabular-nums text-[color:var(--w-fg)]"
+                        style={{ fontSize: big, fontFamily: sk.skin === "retro" || sk.skin === "tui" ? sk.num : "'IBM Plex Mono','JetBrains Mono',ui-monospace,monospace", color: c ?? (k === "fps" && !idle ? "var(--accent)" : undefined) }}
+                      >
+                        {c && <ToneCue t={c === DROP_CRIT ? "crit" : "warn"} size="0.75em" />}
+                        {shownAs(k, v)}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+              <span className="truncate text-micro text-[color:var(--w-faint)]">
+                RTSS: {has(R("windowtitle")) ? R("windowtitle") : "—"}
+                {/✓|enabled/i.test(R("benchmark-mode")) ? " · benchmark mode on" : ""}
+              </span>
+            </div>
+          );
+        }
         // Under INLINE_H the label and the value share one line, so the strip still fits.
         const inline = h > 0 && h < INLINE_H;
         const n = Math.max(1, Math.min(keys.length, Math.floor(w / (inline ? 128 : 92))));
         return (
           <div className="flex h-full flex-col justify-center gap-1.5">
-            <div className="grid min-w-0 overflow-hidden rounded-md bg-[#17171b] ring-1 ring-white/10" style={{ ...OSD_TEXT, gridTemplateColumns: `repeat(${n}, minmax(0,1fr))` }}>
+            <div className={`grid min-w-0 overflow-hidden rounded-md ${OSD_BG} ring-1 ring-white/10`} style={{ ...OSD_TEXT, gridTemplateColumns: `repeat(${n}, minmax(0,1fr))` }}>
               {keys.slice(0, n).map((k, i) => {
                 const [l, v, c] = ALL[k];
                 return (

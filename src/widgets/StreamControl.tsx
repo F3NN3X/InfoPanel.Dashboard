@@ -153,8 +153,12 @@ export default function StreamControl(p: StreamControlProps) {
                       {live ? clock(uptime) : "0:00:00"}
                     </Num>
                     {tileH > 100 && (
-                      <div className="mt-2 min-h-0 flex-1">
-                        <Spark values={vHist} graph="bars" fill={false} min={0} className="h-full" />
+                      <div className="mt-2 flex min-h-0 flex-1 flex-col gap-1">
+                        <div className="flex justify-between text-micro text-zinc-400">
+                          <span>Viewers</span>
+                          <span className="tabular-nums text-zinc-200">{fmt(total)}</span>
+                        </div>
+                        <Spark values={vHist} min={0} className="min-h-0 flex-1" />
                       </div>
                     )}
                   </Tile>

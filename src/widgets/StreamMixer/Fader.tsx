@@ -44,7 +44,7 @@ export function MixFader({ value, color, segs, mode, vertical = false, onChange 
     <div
       ref={ref}
       data-fader=""
-      className={`relative h-full w-full ${live ? "cursor-pointer" : ""}`}
+      className={`relative h-full w-full ${live ? `cursor-pointer before:absolute before:content-[''] ${vertical ? "before:-inset-x-3 before:inset-y-0" : "before:-inset-y-3 before:inset-x-0"}` : ""}`}
       style={{ touchAction: "none" }}
       onPointerDown={
         live
@@ -81,10 +81,12 @@ export function MixFader({ value, color, segs, mode, vertical = false, onChange 
           })}
         </div>
       )}
+      {live && (
       <div
         className={`pointer-events-none absolute rounded-full bg-white shadow-[0_0_0_2px_rgba(0,0,0,.5)] ${vertical ? "-left-1 -right-1 h-[3px] -translate-y-1/2" : "-bottom-1 -top-1 w-[3px] -translate-x-1/2"}`}
         style={vertical ? { bottom: `${shown}%`, transform: "translateY(50%)" } : { left: `${shown}%` }}
       />
+      )}
     </div>
   );
 }

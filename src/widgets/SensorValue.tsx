@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import type { ModuleSettings } from "@/modules/types";
 import { isImageUrl } from "@/lib/image";
 import { widgetImage } from "./data-adapter";
-import { UNIT_CLASS, IpTagCtx, Widget, shell, get, num, fmt, has, Metric, Ring, Spark, Bar, Num, useHistory, useIpTag, tone, TONES, type ShellProps } from "./kit";
+import { UNIT_CLASS, IpTagCtx, Widget, Empty, shell, get, num, fmt, has, Metric, Ring, Spark, Bar, Num, useHistory, useIpTag, tone, TONES, type ShellProps } from "./kit";
 import { fitFont, ringFont, textEm, valueFont } from "./core/fit";
 import { meta } from "./meta/SensorValue";
 
@@ -175,7 +175,7 @@ export default function SensorValue(p: SensorValueProps) {
         ) : disp === "figure" ? (
           <Figure label={label} text={numeric ? (p.smallUnit ? fmt(sv, p.decimals ?? (Math.abs(sv) < 10 || up ? 1 : 0)) : (readingText(v, unit) ?? "")) : has(raw) ? String(raw) : "–"} unit={numeric && p.smallUnit ? su : undefined} w={w} h={h} />
         ) : !p.sensor ? (
-          onCanvas ? <div className="flex h-full items-center text-xs text-[color:var(--w-faint)]">Pick a sensor</div> : <div className="flex h-full items-center text-xs text-[color:var(--w-faint)]">No sensor</div>
+          <Empty icon="sensors_off" label="No sensor" hint={onCanvas ? "Pick a sensor" : undefined} large />
         ) : !numeric ? (
           <div className="flex h-full flex-col justify-center">
             {size === "xs" && p.look?.showTitle !== false && <span className="text-micro text-[color:var(--w-muted)]">{label}</span>}

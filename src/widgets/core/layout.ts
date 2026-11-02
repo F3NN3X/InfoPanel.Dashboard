@@ -84,6 +84,9 @@ export function useBox(forced: Tier | "auto" | undefined, zoom: number | ((w: nu
 /** The 4x4 box: roomy enough that a widget adds its second row, summary or trend (a 2x2 and smaller keep their layout). */
 export const roomy = (w: number, h: number): boolean => w >= 360 && h >= 340;
 
+/** A bar-type widget's box that is not a strip (taller than 0.4 of its width, 120px or more of content): it stacks its items as tiles (4x2 and up; the box is measured inside its padding, so a 4x2 is about 0.43). */
+export const stacksIn = (w: number, h: number): boolean => w > 0 && h >= 120 && h / w > 0.4;
+
 /** True inside a widget whose box is roomy (set by the shell): graphs there draw gridlines and centre a flat series. */
 export const RoomyCtx = createContext(false);
 

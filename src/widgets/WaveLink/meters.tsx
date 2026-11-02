@@ -17,9 +17,10 @@ const pctOf = (f: MeterFrame | undefined, ch: number): number => dbToGain(f?.cha
 
 /** Position on the −60…0 dB scale, 0..100. */
 export const dbPos = (pct: number): number => clamp(((gainToDb(pct / 100) + 60) / 60) * 100);
-export const fmtDb = (pct: number): string => {
+/** A level in dB; silence reads "-∞", or "silent" where `word` (a tile with no dB caption to explain the glyph). */
+export const fmtDb = (pct: number, word = false): string => {
   const db = gainToDb(pct / 100);
-  return Number.isFinite(db) ? fmt(Math.max(-60, db), db > -10 ? 1 : 0) : "-∞";
+  return Number.isFinite(db) ? fmt(Math.max(-60, db), db > -10 ? 1 : 0) : word ? "silent" : "-∞";
 };
 
 /** The smoothed L/R levels of one meter key (`meterKey.channel(id)` / `.device(id)`), in % of full scale. */

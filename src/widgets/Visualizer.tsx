@@ -3,7 +3,7 @@ import type { ModuleSettings } from "@/modules/types";
 import { Widget, shell, get, num, fmt, type ShellProps } from "./kit";
 import { AudioViz } from "./core/viz/AudioViz";
 import { resolveLook, type VizLook } from "./core/viz/types";
-import { useVizInput } from "./core/viz/use-viz-input";
+import { levelOf, useVizInput } from "./core/viz/use-viz-input";
 import { AUDIO, useLevelDevice } from "./audio-device";
 import { audioIdsIn, pickedIds, type FlowFilter } from "./audio-data";
 import { meta } from "./meta/Visualizer";
@@ -39,8 +39,8 @@ export default function Visualizer(p: VisualizerProps) {
   const dev = useLevelDevice(d, "", p.names, pickedIds(d, audioIdsIn(d, p.flow ?? "all"), p.devices));
   const k = (s: string) => num(get(d, `plugins.audio-level-meter.${dev}.${s}`));
   const name = String(get(d, `plugins.audio-level-meter.${dev}.device-name`) || "Audio").replace(/\s*\(.+\)$/, "");
-  // a 2px baseline keeps a silent widget from reading as broken; vizLook can override it
-  const look = resolveLook({ minPx: 2, ...p.vizLook, count: p.bands, color1: p.ramp, peaks: p.peaks !== false, gain: (p.sensitivity ?? NEUTRAL_SENS) / NEUTRAL_SENS });
+  // a silent widget keeps its bars at a 6% idle height (and says so) so it does not read as broken; vizLook can override it
+  const look = resolveLook({ minPx: 2, minLevel: 0.06, ...p.vizLook, count: p.bands, color1: p.ramp, peaks: p.peaks !== false, gain: (p.sensitivity ?? NEUTRAL_SENS) / NEUTRAL_SENS });
   const { get: input } = useVizInput({ data: d, device: dev, look });
   return (
     <Widget
@@ -51,6 +51,7 @@ export default function Visualizer(p: VisualizerProps) {
       right={<span className="font-mono text-micro tabular-nums text-[color:var(--w-muted)]">{fmt(k("peak-level"), 1)} dB</span>}
     >
       <AudioViz style={p.mode ?? "bars"} look={look} input={input} className="absolute inset-0 h-full" aria-label={`${name} visualizer`} />
+      {!((levelOf(d, dev) ?? 0) > 0) && <span className="pointer-events-none absolute left-2 top-1 text-micro text-[color:var(--w-faint)]">No audio</span>}
     </Widget>
   );
 }

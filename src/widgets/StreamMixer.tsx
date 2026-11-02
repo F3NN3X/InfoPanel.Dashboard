@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { audioAct, audioRefusal, useAudio, type AudioState } from "@/lib/audio-control";
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, num, fmt, clamp, Icon, Num, Empty, hue, type ShellProps } from "./kit";
+import { Widget, shell, num, fmt, clamp, Icon, ChannelRow, CHANNEL_TRACK, Empty, hue, type ShellProps } from "./kit";
 import { allChannels, iconOf, pickChannels, type AudioSource } from "./StreamMixer/channels";
 import { setVolume, toggleMute } from "./StreamMixer/control";
 import { MixFader, type FaderMode } from "./StreamMixer/Fader";
@@ -82,47 +82,44 @@ export default function StreamMixer(p: StreamMixerProps) {
         const showName = w >= 240,
           showSub = rowH >= 44 && w > 300;
         const nameW = showName ? Math.round(clamp(w * 0.26, 72, 210)) : 0;
-        const valW = w > 300 ? 42 : 30;
+        const valW = w > 300 ? 42 : 34;
         const faderW = w - tile - nameW - valW - (showName ? 3 : 2) * 14;
         const segs = Math.round(clamp(faderW / 5.5, 10, 64));
-        const fh = clamp(rowH * 0.42, 10, 28),
-          big = rowH > 50;
         // The tile's corner follows the shell's.
         const corner = p.radius === undefined ? "calc(var(--radius, 1rem) * 0.62)" : `${p.radius * 0.62}px`;
         return (
           <ReadOnly on={readOnly}>
           <ul className="flex h-full flex-col" style={{ gap }}>
             {rows.slice(0, n).map(({ c, color, icon }) => (
-              <li
+              <ChannelRow
                 key={c.id}
                 title={c.name}
-                className="grid min-h-0 flex-1 items-center gap-x-3.5"
-                style={{ gridTemplateColumns: showName ? `${tile}px ${nameW}px minmax(0,1fr) ${valW}px` : `${tile}px minmax(0,1fr) ${valW}px` }}
-              >
-                <button
-                  type="button"
-                  onClick={() => toggleMute(c)}
-                  aria-label={c.mute ? `Unmute ${c.name}` : `Mute ${c.name}`}
-                  className="flex items-center justify-center bg-white/[0.05] transition hover:bg-white/[0.09] active:scale-95"
-                  style={{ width: tile, height: tile, color, borderRadius: corner }}
-                >
-                  <Icon name={icon} className={tile >= 40 ? "text-[22px]" : "text-[17px]"} />
-                </button>
-                {showName && (
-                  <div className="min-w-0">
-                    <div className={`truncate font-semibold leading-tight ${c.mute ? "text-zinc-500" : ""}`} style={{ fontSize: big ? 16 : 13.5 }}>
-                      {c.name}
-                    </div>
-                    {showSub && (c.mute || c.sub) && <div className="mt-0.5 truncate text-micro text-zinc-500">{c.mute ? "Muted" : c.sub}</div>}
+                className="min-h-0 flex-1 !gap-x-3.5"
+                muted={c.mute}
+                big={rowH > 50}
+                lead={
+                  <button
+                    type="button"
+                    onClick={() => toggleMute(c)}
+                    aria-label={c.mute ? `Unmute ${c.name}` : `Mute ${c.name}`}
+                    className="flex items-center justify-center bg-white/[0.05] transition hover:bg-white/[0.09] active:scale-95"
+                    style={{ width: tile, height: tile, color, borderRadius: corner }}
+                  >
+                    <Icon name={icon} className={tile >= 40 ? "text-[22px]" : "text-[17px]"} />
+                  </button>
+                }
+                leadW={tile}
+                name={c.name}
+                sub={showSub && (c.mute || c.sub) ? (c.mute ? "Muted" : c.sub) : undefined}
+                nameW={nameW}
+                bar={
+                  <div style={{ height: p.fader === "bar" ? CHANNEL_TRACK : clamp(rowH * 0.42, 10, 28) }}>
+                    <MixFader value={clamp(num(c.vol))} color={color} segs={segs} mode={p.fader === "bar" ? "bar" : "leds"} onChange={readOnly ? undefined : (v) => setVolume(c, v)} />
                   </div>
-                )}
-                <div style={{ height: fh }}>
-                  <MixFader value={clamp(num(c.vol))} color={color} segs={segs} mode={p.fader === "bar" ? "bar" : "leds"} onChange={(v) => setVolume(c, v)} />
-                </div>
-                <Num className={`text-right leading-none ${c.mute ? "text-zinc-500" : ""}`} style={{ fontSize: big ? 20 : 15 }}>
-                  {fmt(c.vol)}
-                </Num>
-              </li>
+                }
+                value={fmt(c.vol)}
+                valueW={valW}
+              />
             ))}
           </ul>
           </ReadOnly>

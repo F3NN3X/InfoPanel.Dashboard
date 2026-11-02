@@ -78,8 +78,8 @@ export default function StreamChat(p: StreamChatProps) {
                 <Empty icon="forum" label={signedIn ? "No messages yet" : `Sign in to ${source === "youtube" ? "YouTube" : "Twitch"} in Settings › Connections`} />
               </div>
             ) : (
-              // Newest at the bottom; older lines clip off the top instead of overflowing.
-              <div className="flex min-h-0 flex-1 flex-col justify-end gap-[3px] overflow-hidden">
+              // Newest at the bottom; older lines fade out at the top instead of being sliced mid-line.
+              <div className="flex min-h-0 flex-1 flex-col justify-end gap-[3px] overflow-hidden" style={{ maskImage: "linear-gradient(to bottom, transparent 0, #000 18px)", WebkitMaskImage: "linear-gradient(to bottom, transparent 0, #000 18px)" }}>
                 {msgs.map((m) => (
                   <div
                     key={m.id}

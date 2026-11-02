@@ -78,25 +78,25 @@ Prototypes (W1–W8 and some A-/B- IDs) were built on throwaway `proto/<id>` bra
 | C-25 | 2a |  | med | S | BottleneckLens 4x4: the empty verdict history bar | fixed |
 | D-01 | 1 | W1 | high | M | Grow body type with the span (a shared scale variable) | partial |
 | D-02 | 1 | W1 | high | M | Hero value scales with the box on 2x2 and fills the dead top half | partial |
-| D-03 | 1 | W6 | high | M | One "rows fill the height" rule for list widgets at 4x4 | partial |
-| D-04 | 2b |  | high | M | 4x4 gets a summary hero on top of the detail (ServiceHealth, StatusTracker, Thermals, SteamNews) | open |
-| D-05 | 2b | W7 | high | M | Bar-type widgets in square frames: stack instead of a tiny strip | open |
+| D-03 | 1 | W6 | high | M | One "rows fill the height" rule for list widgets at 4x4 | fixed |
+| D-04 | 2b |  | high | M | 4x4 gets a summary hero on top of the detail (ServiceHealth, StatusTracker, Thermals, SteamNews) | fixed |
+| D-05 | 2b | W7 | high | M | Bar-type widgets in square frames: stack instead of a tiny strip | fixed |
 | D-06 | 1 | W3 | high | M | Area sparks: scale, gridlines and a height cap | fixed |
 | D-07 | 1 |  | med | S | Sparkline sits behind the value text in Vitals 4x2 (and compact Vitals tiles) | partial |
 | D-08 | 1 | W2 | high | M | A single ring spec for every gauge | fixed |
-| D-09 | 2b | W8 | high | M | Colour means status OR series, never both (SystemOverview) | open |
-| D-10 | 2b |  | med | S | Empty/idle states: use the kit `Empty` everywhere, with an action line | open |
-| D-11 | 2b |  | med | S | Truncated and duplicate sensor names in Session Stats and ThresholdTimeline | open |
-| D-12 | 2b |  | med | S | SessionStats 4x2 table: header row and columns at 9-10 px | open |
+| D-09 | 2b | W8 | high | M | Colour means status OR series, never both (SystemOverview) | fixed |
+| D-10 | 2b |  | med | S | Empty/idle states: use the kit `Empty` everywhere, with an action line | fixed |
+| D-11 | 2b |  | med | S | Truncated and duplicate sensor names in Session Stats and ThresholdTimeline | fixed |
+| D-12 | 2b |  | med | S | SessionStats 4x2 table: header row and columns at 9-10 px | fixed |
 | D-13 | 1 |  | med | S | One unit style (size, gap, colour) for hero numbers | fixed |
 | D-14 | 2a | W5 | med | S | Text over art needs a scrim (SteamGame) | fixed |
-| D-15 | 2b |  | low | S | StreamChat clips a message mid-line at the top | open |
-| D-16 | 2b |  | med | S | Timer idle state: show the time, not three small chips in blank space | open |
-| D-17 | 2b |  | med | M | Weather 4x4 and 2x2 now-block is small beside the 4x4 forecast | open |
-| D-18 | 2b |  | med | M | StatusTracker and ThresholdTimeline lanes carry little when history is short | open |
-| D-19 | 2b |  | low | S | StreamControl 4x2 chart tile is unlabelled | open |
-| D-20 | 2b |  | low | S | WaveLink meters: 4 px stubs and "-∞" | open |
-| D-21 | 2b |  | med | M | Mixer family: three looks for the same job | open |
-| D-22 | 2b |  | med | M | StreamDeck 2x2: 15 blank 30 px buttons | open |
-| D-23 | 2b |  | low | S | SteamProfile 2x2: no avatar, hero is a 15 px name | open |
-| D-24 | 2b |  | low | S | Uptime: days are accent, other units white | open |
+| D-15 | 2b |  | low | S | StreamChat clips a message mid-line at the top | partial |
+| D-16 | 2b |  | med | S | Timer idle state: show the time, not three small chips in blank space | fixed |
+| D-17 | 2b |  | med | M | Weather 4x4 and 2x2 now-block is small beside the 4x4 forecast | fixed |
+| D-18 | 2b |  | med | M | StatusTracker and ThresholdTimeline lanes carry little when history is short | fixed |
+| D-19 | 2b |  | low | S | StreamControl 4x2 chart tile is unlabelled | fixed |
+| D-20 | 2b |  | low | S | WaveLink meters: 4 px stubs and "-∞" | fixed |
+| D-21 | 2b |  | med | M | Mixer family: three looks for the same job | partial |
+| D-22 | 2b |  | med | M | StreamDeck 2x2: 15 blank 30 px buttons | fixed |
+| D-23 | 2b |  | low | S | SteamProfile 2x2: no avatar, hero is a 15 px name | fixed |
+| D-24 | 2b |  | low | S | Uptime: days are accent, other units white | fixed |

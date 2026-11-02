@@ -7,7 +7,7 @@ import { Widget, shell, Icon, Empty, usePane, type ShellProps } from "./kit";
 import { ReadOnly } from "./ReadOnly";
 import { resolveAccent, skinContext } from "./core/look";
 import type { SkinContext } from "./core/types";
-import { fitKeys, HOLD_MS, PAGE_ROW, pageText, SLOP_PX, swipeOf, titlePx } from "./StreamDeck/layout";
+import { fitKeys, HOLD_MS, keyWindows, MIN_TOUCH_KEY, PAGE_ROW, pageText, SLOP_PX, swipeOf, titlePx, WINDOW_COLS, WINDOW_MIN_KEY, WINDOW_ROWS } from "./StreamDeck/layout";
 import { frameSurface, keyLook, keyRadius, pressedOf, type IconOverlay, type KeyFrame, type KeyStyle, type PressedEffect } from "./StreamDeck/look";
 import { meta } from "./meta/StreamDeck";
 
@@ -55,6 +55,8 @@ interface KeyProps {
   size: number;
   /** The title's font size, px; 0 hides it. */
   titles: number;
+  /** The title wraps to two lines instead of being cut at the key's edge (the small window's keys). */
+  wrap?: boolean;
   look: Pick<StreamDeckProps, "keyStyle" | "keyFrame" | "iconOverlay" | "overlayStrength" | "pressedEffect" | "keyRadius" | "radius">;
   /** The skin the keys are drawn in (the widget's frame is not). */
   skin: SkinContext;
@@ -67,7 +69,7 @@ interface KeyProps {
 }
 
 /** One key, drawn in the skin (its own component, so it reads the surface of the widget it is in). */
-function Key({ index, title, icon, on, size, titles, look, skin, accent, onPointerDown, onPointerMove, onPointerUp, onRelease }: KeyProps) {
+function Key({ index, title, icon, on, size, titles, wrap, look, skin, accent, onPointerDown, onPointerMove, onPointerUp, onRelease }: KeyProps) {
   const pane = usePane();
   const style = look.keyStyle || "auto";
   const face = keyLook({ style, frame: look.keyFrame ?? "thin", overlay: look.iconOverlay ?? "skin", strength: look.overlayStrength ?? 100, size, skin, pane });
@@ -115,9 +117,10 @@ function Key({ index, title, icon, on, size, titles, look, skin, accent, onPoint
       {face.overlay && <div aria-hidden className={`pointer-events-none absolute inset-0 ${face.overlay.className}`} style={{ ...face.overlay.style, borderRadius: radius }} />}
       {titles > 0 && title && (
         <span
-          className="pointer-events-none relative max-w-full truncate px-1 text-center font-semibold leading-tight"
+          className={`pointer-events-none relative max-w-full text-center font-semibold leading-tight ${wrap ? "line-clamp-2 overflow-hidden px-0.5 leading-[1.1]" : "truncate px-1"}`}
           style={{
-            fontSize: titles,
+            // a wrapped title never splits a word: the longest one sets the size (down to 8px)
+            fontSize: wrap ? Math.max(8, Math.min(titles, Math.floor((size - 4) / (Math.max(...title.split(/\s+/).map((x) => x.length)) * 0.62)))) : titles,
             // Over an icon the title is white with a shadow, as the app draws it; on a bare key it takes the surface's text colour.
             color: shown ? "#fff" : "var(--w-fg)",
             textShadow: shown ? "0 1px 3px rgba(0,0,0,.85)" : undefined,
@@ -161,6 +164,7 @@ export default function StreamDeck(p: StreamDeckProps) {
   const deck = state.devices.find((d) => d.id === p.device);
   const readOnly = streamDeckRefusal.use();
   const [down, setDown] = useState<ReadonlySet<number>>(new Set());
+  const [win, setWin] = useState(0);
   // Keys held by a pointer (pointer id → key). Where a swipe can turn pages the press waits (HOLD_MS, or the pointer
   // lifting) so a swipe that starts on a key never presses it; a sent press gets its release, once, however the contact ends.
   const held = useRef(new Map<number, { device: string; index: number; x: number; y: number; sent: boolean; timer?: ReturnType<typeof setTimeout> }>());
@@ -248,8 +252,14 @@ export default function StreamDeck(p: StreamDeckProps) {
             />
           );
         const pages = deck.page.total > 1 && p.showPages !== false;
-        const fit = fitKeys(w, h - (pages ? PAGE_ROW + gap : 0), deck.cols, deck.rows, gap);
-        const titles = p.showTitles !== false ? titlePx(fit.size, p.titleSize ?? "md") : 0;
+        const whole = fitKeys(w, h - (pages ? PAGE_ROW + gap : 0), deck.cols, deck.rows, gap);
+        // keys under a touch target's size: a window of 3 x 3 at a time (when its keys are big enough), the dots sharing the page row
+        const winGap = Math.min(gap, 4);
+        const win3 = fitKeys(w, h - PAGE_ROW - winGap, WINDOW_COLS, WINDOW_ROWS, winGap);
+        const windows = w > 0 && whole.size > 0 && whole.size < MIN_TOUCH_KEY && win3.size >= WINDOW_MIN_KEY && deck.cols * deck.rows > WINDOW_COLS * WINDOW_ROWS ? keyWindows(deck.cols, deck.rows) : null;
+        const shownWin = windows?.[Math.min(win, windows.length - 1)];
+        const fit = windows ? win3 : whole;
+        const titles = p.showTitles !== false ? (windows ? 11 : titlePx(fit.size, p.titleSize ?? "md")) : 0;
         const byIndex = new Map(deck.keys.map((k) => [k.index, k]));
         const turn = (to: "next" | "prev") => void deckAct({ op: "page", device: deck.id, to });
         const swipes = deck.page.total > 1 && p.swipe !== false;
@@ -290,12 +300,12 @@ export default function StreamDeck(p: StreamDeckProps) {
               <div
                 data-testid="streamdeck-grid"
                 className="grid select-none"
-                style={{ touchAction: "none", gap, width: fit.width, height: fit.height, gridTemplateColumns: `repeat(${deck.cols}, ${fit.size}px)`, gridAutoRows: `${fit.size}px` }}
+                style={{ touchAction: "none", gap: windows ? winGap : gap, width: windows ? undefined : fit.width, height: windows ? undefined : fit.height, gridTemplateColumns: `repeat(${shownWin?.cols ?? deck.cols}, ${fit.size}px)`, gridAutoRows: `${fit.size}px` }}
                 onPointerDown={(e) => swiping.current.set(e.pointerId, { x: e.clientX, y: e.clientY })}
                 onPointerUp={onGridUp}
                 onPointerCancel={(e) => swiping.current.delete(e.pointerId)}
               >
-                {Array.from({ length: deck.cols * deck.rows }, (_, index) => {
+                {(shownWin?.indexes ?? Array.from({ length: deck.cols * deck.rows }, (_, i) => i)).map((index) => {
                   const key = byIndex.get(index);
                   return (
                     <Key
@@ -306,6 +316,7 @@ export default function StreamDeck(p: StreamDeckProps) {
                       on={down.has(index)}
                       size={fit.size}
                       titles={titles}
+                      wrap={windows !== null}
                       look={p}
                       skin={keySkin}
                       accent={chrome?.accent || p.accent}
@@ -317,15 +328,28 @@ export default function StreamDeck(p: StreamDeckProps) {
                   );
                 })}
               </div>
-              {pages && (
+              {(pages || windows) && (
                 <div className="flex shrink-0 items-center gap-3 text-caption tabular-nums text-[color:var(--w-muted)]" style={{ height: PAGE_ROW }}>
-                  <button type="button" aria-label="Previous page" onClick={() => turn("prev")} className="flex h-7 w-7 items-center justify-center rounded-md hover:bg-white/[0.07]">
-                    <Icon name="chevron_left" className="text-[18px]" />
-                  </button>
-                  <span>{pageText(deck.page.current, deck.page.total)}</span>
-                  <button type="button" aria-label="Next page" onClick={() => turn("next")} className="flex h-7 w-7 items-center justify-center rounded-md hover:bg-white/[0.07]">
-                    <Icon name="chevron_right" className="text-[18px]" />
-                  </button>
+                  {pages && (
+                    <>
+                      <button type="button" aria-label="Previous page" onClick={() => turn("prev")} className="flex h-7 w-7 items-center justify-center rounded-md hover:bg-white/[0.07]">
+                        <Icon name="chevron_left" className="text-[18px]" />
+                      </button>
+                      <span>{pageText(deck.page.current, deck.page.total)}</span>
+                      <button type="button" aria-label="Next page" onClick={() => turn("next")} className="flex h-7 w-7 items-center justify-center rounded-md hover:bg-white/[0.07]">
+                        <Icon name="chevron_right" className="text-[18px]" />
+                      </button>
+                    </>
+                  )}
+                  {windows && (
+                    <span className="flex items-center">
+                      {windows.map((_, i) => (
+                        <button key={i} type="button" aria-label={`Keys ${i + 1} of ${windows.length}`} aria-current={shownWin === windows[i]} onClick={() => setWin(i)} className="flex h-7 w-6 items-center justify-center">
+                          <span className="h-1.5 w-1.5 rounded-full" style={{ background: shownWin === windows[i] ? "var(--w-fg)" : "var(--w-faint)" }} />
+                        </button>
+                      ))}
+                    </span>
+                  )}
                 </div>
               )}
             </div>

@@ -5,8 +5,9 @@ import { useTick } from "@/hooks/use-tick";
 import { islandIdleWidth } from "@/components/island/island-model";
 import { chromeOf } from "@/modules/standard-settings";
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, usePane, type RateUnit, type ShellProps, type WeatherIconProps } from "./kit";
+import { Widget, shell, stacksIn, usePane, type RateUnit, type ShellProps, type WeatherIconProps } from "./kit";
 import { Bar, barPad, isPreset, type StatusBarView } from "./StatusBar/Bar";
+import { StackView, stackTiles } from "./StatusBar/Stack";
 import { cardWidth } from "./StatusBar/card-model";
 import { PRIORITY, readingOf, shownOf, type Display, type ItemKey, type Reading } from "./StatusBar/items";
 import { barSize, fitAroundGap, fitByRank, fitSlots, gapWidth, needAroundGap, type IslandGapMode, type Slots } from "./StatusBar/layout";
@@ -93,6 +94,10 @@ export default function StatusBar(p: StatusBarProps) {
   return (
     <Widget {...shell(p)} title={p.title ?? "Status Bar"} icon="panel_top" showHeader={false} bleed compactView="off" design={null} style={{ ...p.style, ...style }} studio={{ label: "Status Bar", value: "" }}>
       {({ w, h }) => {
+        // not a strip (a square-ish zone): the items stack as labelled tiles
+        // (a bar of cards only has no tiles to stack: it stays a bar)
+        const tiles = stacksIn(w, h) ? stackTiles(keys, readings) : [];
+        if (tiles.length) return <StackView tiles={tiles} w={w} h={h} icons={{ set: p.iconSet, style: p.iconStyle, animated: p.iconAnimated }} />;
         // a capsule keeps 4px off the zone's edges
         const bw = capsule ? w - 8 : w,
           bh = capsule ? h - 8 : h;

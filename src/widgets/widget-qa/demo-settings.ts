@@ -2,7 +2,7 @@ import type { ModuleSettings } from "@/modules/types";
 
 /**
  * Settings a widget needs before it draws anything but its empty state, for the fixture data: the Stream Deck picks the
- * demo deck (`demo-streams.ts`), the countdown a date six weeks out. Merged under the page's own settings, so the
+ * demo deck (`demo-streams.ts`), the countdown a date six weeks out, the sensor and web page value a sensor and a (blank) page. Merged under the page's own settings, so the
  * toolbar and `settings=` still win; `data=live` leaves them out.
  */
 export function demoSettings(now = new Date()): Readonly<Record<string, ModuleSettings>> {
@@ -10,6 +10,8 @@ export function demoSettings(now = new Date()): Readonly<Record<string, ModuleSe
   return {
     StreamDeck: { device: "demo" },
     Countdown: { date },
+    SensorValue: { sensor: "libre.amd_ryzen_9_9950x3d_cpu_total" },
+    WebPage: { url: "about:blank" },
   };
 }
 

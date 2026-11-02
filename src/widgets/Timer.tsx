@@ -25,6 +25,15 @@ const TILE =
 /** A preset button's width with its gap, px (a "25m" chip). */
 const CHIP_W = 52;
 const ROW_H = 46;
+/** The idle hero's size, px, and the room it takes with the gap under it. */
+const IDLE_HERO_PX = 48;
+const IDLE_HERO_H = IDLE_HERO_PX + 8;
+
+/** The idle hero's size, px: 48, less where the clock text (5 characters, 8 for an hour or more) would not fit `w`. */
+export const idleHeroPx = (text: string, w: number): number => (w > 0 ? Math.max(18, Math.min(IDLE_HERO_PX, Math.floor((w - 16) / (text.length * 0.62)))) : IDLE_HERO_PX);
+
+/** "05:00": a duration as the idle hero reads it. */
+const heroClock = (ms: number): string => clockOf(ms).replace(/^(\d):/, "0$1:");
 
 /** "14:32": the clock time `minutes` from the minute `at` (minutes since the epoch). */
 const endsAt = (at: number, minutes: number): string => new Date((at + minutes) * 60_000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -89,15 +98,28 @@ export default function Timer(p: TimerProps) {
             );
           }
           // The pomodoro chip is about two presets wide.
-          const fit = presetsThatFit(buttons.length + (p.pomodoro ? 1 : 0), w, h) - (p.pomodoro ? 1 : 0);
-          return (
-            <div className="flex h-full flex-wrap content-center items-center justify-center gap-1.5">
+          // 2x2 and 4x2: the duration the chips will start leads, muted, so the card reads from a distance
+          const hero = h >= 140 && w >= 200;
+          const heroText = heroClock(t.durationMs > 0 ? t.durationMs : presets[0] * 60_000);
+          const fit = presetsThatFit(buttons.length + (p.pomodoro ? 1 : 0), w, hero ? h - IDLE_HERO_H : h) - (p.pomodoro ? 1 : 0);
+          const chips = (
+            <div className="flex flex-wrap content-center items-center justify-center gap-1.5">
               {buttons.slice(0, Math.max(1, fit)).map((b) => (
                 <button key={b.key} type="button" aria-label={b.key === "pomo" ? "Start pomodoro" : `Start ${b.key.slice(1)} minute timer`} className={BTN} onClick={b.run}>
                   {b.label}
                 </button>
               ))}
             </div>
+          );
+          return hero ? (
+            <div className="flex h-full flex-col items-center justify-center gap-2">
+              <Num className="leading-none text-[color:var(--w-muted)]" style={{ fontSize: idleHeroPx(heroText, w) }}>
+                {heroText}
+              </Num>
+              {chips}
+            </div>
+          ) : (
+            <div className="flex h-full flex-col justify-center">{chips}</div>
           );
         }
         const tiny = size === "xs" || h < 70;

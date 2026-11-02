@@ -1310,7 +1310,7 @@
   "options": null,
   "why": "Waza \"whitespace: generous column spacing, not generous row height\" (so grow the columns/tier, not blank space); ui-ux-pro-max ux \"empty states: Don't blank screens\".",
   "note": null,
-  "status": "partial"
+  "status": "fixed"
  },
  {
   "id": "D-04",
@@ -1328,7 +1328,7 @@
   "options": null,
   "why": "Waza \"status summary at top, detail below\"; ui-ux-pro-max (status colours, dense but scannable).",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "D-05",
@@ -1346,7 +1346,7 @@
   "options": null,
   "why": "Waza data-viz density; across-the-room reading.",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "D-06",
@@ -1418,7 +1418,7 @@
   "options": null,
   "why": "Waza \"status colours are semantic\"; ui-ux-pro-max colour (do not rely on colour alone, consistent encoding).",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "D-10",
@@ -1436,7 +1436,7 @@
   "options": null,
   "why": "ui-ux-pro-max ux \"Empty States: show helpful message; Don't blank empty screens\"; ui-ux-pro-max checklist: live/stale labelling.",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "D-11",
@@ -1454,7 +1454,7 @@
   "options": null,
   "why": "Waza data-viz \"left-align labels\"; unique row identity.",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "D-12",
@@ -1472,7 +1472,7 @@
   "options": null,
   "why": "Waza data-viz number-dense rules (right-align, 16 px between columns); the brief's 11 px floor.",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "D-13",
@@ -1526,7 +1526,7 @@
   "options": null,
   "why": "Waza \"if visible in a screenshot it is real\"; polish.",
   "note": null,
-  "status": "open"
+  "status": "partial"
  },
  {
   "id": "D-16",
@@ -1544,7 +1544,7 @@
   "options": null,
   "why": "Waza hierarchy; ui-ux-pro-max empty-state guidance.",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "D-17",
@@ -1562,7 +1562,7 @@
   "options": null,
   "why": "Waza hierarchy; the brief's Weather tint decision is respected.",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "D-18",
@@ -1580,7 +1580,7 @@
   "options": null,
   "why": "ui-ux-pro-max checklist (live/stale labelling); Waza data-viz legend rules.",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "D-19",
@@ -1598,7 +1598,7 @@
   "options": null,
   "why": "Waza data-viz chart consistency.",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "D-20",
@@ -1616,7 +1616,7 @@
   "options": null,
   "why": "Waza chart consistency; ui-ux-pro-max a11y (labels, not glyphs).",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "D-21",
@@ -1634,7 +1634,7 @@
   "options": null,
   "why": "Waza consistency; kiosk read-only affordances.",
   "note": null,
-  "status": "open"
+  "status": "partial"
  },
  {
   "id": "D-22",
@@ -1652,7 +1652,7 @@
   "options": null,
   "why": "ui-ux-pro-max ux touch target 44 px; Waza hierarchy.",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "D-23",
@@ -1670,7 +1670,7 @@
   "options": null,
   "why": "Waza hierarchy; recognisable at a distance.",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "D-24",
@@ -1688,6 +1688,6 @@
   "options": null,
   "why": "Waza \"one accent, semantic status colours\".",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  }
 ]

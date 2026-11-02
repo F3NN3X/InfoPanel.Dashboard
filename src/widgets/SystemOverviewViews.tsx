@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { fitGrid, fitRows, Num, Ring, Spark, TONES, type Tone } from "./kit";
+import { fitGrid, fitRows, Num, Ring, Spark, ToneCue, TONES, type Tone } from "./kit";
 
 /** One metric of the Graphs / Gauges views, already read, formatted and coloured. */
 export interface MetricRow {
@@ -53,8 +53,9 @@ export function MetricGauges({ rows, w, h }: { rows: MetricRow[]; w: number; h: 
         <div key={i} className="flex justify-center" style={{ gap }}>
           {line.map((m) => (
             <div key={m.key} style={{ ...m.style, width: cell }} className="flex min-w-0 flex-col items-center gap-1">
-              <Ring value={Math.min(m.value, m.top)} max={m.top} t={m.tone} sweep={270} track="color-mix(in oklab, var(--accent) 22%, transparent)" className="w-full">
+              <Ring value={Math.min(m.value, m.top)} max={m.top} color="var(--accent)" sweep={270} track="color-mix(in oklab, var(--accent) 22%, transparent)" className="w-full">
                 <Num className="leading-none" style={{ fontSize: Math.max(10, Math.min(cell * 0.27, (cell * 0.62) / (Math.max(2, m.num.length) * 0.62))), color: m.tone === "ok" ? "var(--w-fg)" : TONES[m.tone] }}>
+                  <ToneCue t={m.tone} />
                   {m.num}
                 </Num>
                 {m.unit && <span className="leading-none text-[color:var(--w-faint)]" style={{ fontSize: Math.max(8, cell * 0.095) }}>{m.unit}</span>}

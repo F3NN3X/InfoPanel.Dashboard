@@ -18,22 +18,24 @@ export default function SteamProfile(p: SteamProfileProps) {
       {...shell(p)}
       title={p.title ?? "Steam"}
       icon="sports_esports"
-      compact={{ label: "Steam", value: P("player-name"), kind: "text", sub: `${P("online-status")} · Lv ${P("steam-level")}`, img: avatar, icon: "person" }}
+      // a 2x2 or 2x1 draws the avatar and the name itself; only a 1x1 is the summary
+      compact={(box) => (box.shape === "tile" && box.w >= 200 ? undefined : { label: "Steam", value: P("player-name"), kind: "text", sub: `${P("online-status")} · Lv ${P("steam-level")}`, img: avatar, icon: "person" })}
       right={<Chip>Lv {P("steam-level")}</Chip>}
     >
       {({ size, w, h }) => {
         const head = (
           <div className="flex min-w-0 items-center gap-3">
             <div className="relative shrink-0">
-              <Img src={avatar} icon="person" className={`${size === "xs" ? "h-10 w-10" : size === "lg" ? "h-16 w-16" : "h-12 w-12"} rounded-xl`} />
+              <Img src={avatar} icon="person" className={`${size === "xs" ? "h-10 w-10" : size === "lg" ? "h-16 w-16" : "h-14 w-14"} shrink-0 rounded-xl`} />
               <span className="absolute -bottom-0.5 -right-0.5 rounded-full bg-[#141418] p-[3px]">
                 <Dot ok={online} className="!h-2 !w-2" />
               </span>
             </div>
             <div className="flex min-w-0 flex-col">
-              <span className={`${size === "lg" ? "text-xl" : "text-base"} truncate font-semibold`}>{P("player-name")}</span>
-              <span className="truncate text-xs" style={{ color: online ? "#4ade80" : "var(--w-muted)" }}>
+              <span className={`${size === "lg" || size === "sm" ? "text-[22px] leading-tight" : "text-base"} truncate font-semibold`}>{P("player-name")}</span>
+              <span className="truncate text-caption" style={{ color: online ? "#4ade80" : "var(--w-muted)" }}>
                 {P("online-status")}
+                {size === "sm" && ` · Lv ${P("steam-level")}`}
               </span>
             </div>
           </div>

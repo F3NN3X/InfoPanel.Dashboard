@@ -3,7 +3,7 @@ import { weatherKind, type WeatherKind } from "@/lib/weather-icons";
 import { windValue } from "./weather-fx/config";
 import { WeatherFx, type WeatherFxOpts } from "./weather-fx/WeatherFx";
 import Forecast from "./Forecast";
-import { Widget, shell, get, num, fmt, has, rows, Stat, Num, WeatherGlyph, weatherIcon, useIpTag, type ShellProps, type WeatherIconProps } from "./kit";
+import { Widget, shell, get, num, fmt, has, rows, roomy, Stat, Num, WeatherGlyph, weatherIcon, useIpTag, type ShellProps, type WeatherIconProps } from "./kit";
 import { WeatherGlance, WeatherWeek, weekDays } from "./WeatherViews";
 import { meta } from "./meta/Weather";
 
@@ -118,15 +118,17 @@ function Current(p: WeatherProps) {
           const days = weekDays(fc.map((f) => ({ date: f.date, cond: weatherKind("", f.cond), hi: f.hi, lo: f.lo })), { cond, temp }, new Date()).slice(0, shown);
           return <WeatherWeek days={days} place={place} w={w} h={h} icons={icons} fmtTemp={(c) => `${fmt(T(c), 0)}°`} />;
         }
+        // roomy (4x4): the glance view's proportions, and the stats move to a row of their own under the now block
+        const big = roomy(w, h) && size !== "xs" && size !== "sm";
         const now = (
-          <div className="flex min-w-0 items-center gap-3">
-            <WeatherGlyph {...cond} {...icons} fill className={`${{ xs: "text-3xl", sm: "text-5xl", md: "text-6xl", lg: "text-7xl" }[size]} text-[color:var(--accent)]`} />
+          <div className={`flex min-w-0 items-center ${big ? "gap-5" : "gap-3"}`}>
+            <WeatherGlyph {...cond} {...icons} fill size={big ? 96 : undefined} className={`${big ? "text-[96px]" : { xs: "text-3xl", sm: "text-5xl", md: "text-6xl", lg: "text-7xl" }[size]} shrink-0 text-[color:var(--accent)]`} />
             <div className="flex min-w-0 flex-col">
-              <Num ip={at("temp", { unit: "°", decimals: 0 })} className={`${{ xs: "text-2xl", sm: "text-4xl", md: "text-5xl", lg: "text-6xl" }[size]} font-semibold leading-none tracking-tight`}>{fmt(T(temp), 0)}°</Num>
+              <Num ip={at("temp", { unit: "°", decimals: 0 })} className={`${big ? "text-[88px]" : { xs: "text-2xl", sm: "text-4xl", md: "text-5xl", lg: "text-6xl" }[size]} font-semibold leading-none tracking-tight`}>{fmt(T(temp), 0)}°</Num>
               {size !== "xs" && (
                 <>
-                  <span {...at("weather_desc")} className="mt-1 truncate text-xs text-[color:var(--w-muted)]">{k("weather_desc")}</span>
-                  {feelsLine && <span className="truncate text-xs text-[color:var(--w-muted)] first-letter:uppercase">{feelsLine}</span>}
+                  <span {...at("weather_desc")} className={`mt-1 truncate ${big ? "text-[16px]" : "text-xs"} text-[color:var(--w-muted)]`}>{k("weather_desc")}</span>
+                  {feelsLine && <span className={`truncate ${big ? "text-[16px]" : "text-xs"} text-[color:var(--w-muted)] first-letter:uppercase`}>{feelsLine}</span>}
                 </>
               )}
             </div>
@@ -136,7 +138,7 @@ function Current(p: WeatherProps) {
         const snow = num(k("snow")) > 0;
         // the forecast cells shed their rows (rain, bar, low) to the height left under the current block and the stats:
         // the temperature (48 / 60px) + description (20) + feels line (16), or the stats grid (one row 38, three rows 128)
-        const topH = Math.max(size === "lg" ? 72 : 60, (size === "lg" ? 60 : 48) + 20 + (feelsLine ? 16 : 0), showStats ? (size === "lg" ? 128 : 38) : 0);
+        const topH = big ? 96 + 16 + (showStats ? 46 : 0) : Math.max(size === "lg" ? 72 : 60, (size === "lg" ? 60 : 48) + 20 + (feelsLine ? 16 : 0), showStats ? (size === "lg" ? 128 : 38) : 0);
         const budget = h > 0 ? h - topH - 16 : Infinity;
         // a cell is 78px (rule + padding, day, icon, high); the low adds 22, the bar 46, the rain 21.
         // Just short of that, the gaps close up (16 -> 12 above, 6 -> 4 inside) to keep the forecast row.
@@ -148,7 +150,7 @@ function Current(p: WeatherProps) {
           <div className={`flex h-full flex-col ${tight ? "gap-3" : "gap-4"}`}>
             <div className="flex items-start justify-between gap-4">
               {now}
-              {showStats && <div className="grid shrink-0 grid-cols-2 gap-x-4 gap-y-2">
+              {showStats && !big && <div className="grid shrink-0 grid-cols-2 gap-x-4 gap-y-2">
                 <Stat label="Wind" value={`${fmt(num(k("wind_speed")), 1)} m/s ${compass(num(k("wind_deg")))}`} />
                 <Stat label="Humidity" value={`${fmt(num(k("humidity")))}%`} tag={at("humidity")} />
                 {size === "lg" && (
@@ -161,6 +163,14 @@ function Current(p: WeatherProps) {
                 )}
               </div>}
             </div>
+            {showStats && big && (
+              <div className="flex justify-between gap-x-4">
+                <div className="shrink-0"><Stat label="Wind" value={`${fmt(num(k("wind_speed")), 1)} m/s ${compass(num(k("wind_deg")))}`} /></div>
+                <div className="shrink-0"><Stat label="Humidity" value={`${fmt(num(k("humidity")))}%`} tag={at("humidity")} /></div>
+                <div className="shrink-0"><Stat label="Pressure" value={`${fmt(num(k("pressure")))} hPa`} tag={at("pressure")} /></div>
+                <div className="shrink-0"><Stat label={snow ? "Snow" : "Rain"} value={`${fmt(num(k(snow ? "snow" : "rain")), 1)} mm/h`} /></div>
+              </div>
+            )}
             {showForecast && fc.length > 0 && (budget >= 78 || tight) && (
               <div className="mt-auto grid gap-1.5 border-t border-[color:var(--w-track)] pt-3" style={{ gridTemplateColumns: `repeat(${Math.min(fc.length, shown)}, minmax(0,1fr))` }}>
                 {fc.slice(0, shown).map((f, i) => (

@@ -48,7 +48,7 @@ export default function Uptime(p: UptimeProps) {
             <div className="grid grid-cols-2 gap-y-3" style={{ columnGap: bodyGap(p.look, 16, w) }}>
               {shown.map(([u, v, l, entry]) => (
                 <div key={u} className="flex min-w-0 flex-col items-center">
-                  <Num ip={tag(key(entry))} className="font-semibold leading-none tracking-tight" style={{ fontSize: Math.min(numPx(size, w, h, 2, bodyGap(p.look, 16, w), 110), Math.floor((h - 70) / 2 - 24)), ...(u === "d" ? { color: "var(--accent)" } : null) }}>
+                  <Num ip={tag(key(entry))} className="font-semibold leading-none tracking-tight" style={{ fontSize: Math.min(numPx(size, w, h, 2, bodyGap(p.look, 16, w), 110), Math.floor((h - 70) / 2 - 24)) }}>
                     {pad(v)}
                   </Num>
                   <span className="mt-1.5 text-micro uppercase tracking-wider text-[color:var(--w-faint)]">{l}</span>
@@ -66,7 +66,7 @@ export default function Uptime(p: UptimeProps) {
               <Fragment key={u}>
                 {i > 0 && <span className="pb-4 text-2xl font-light text-[color:var(--w-faint)]">:</span>}
                 <div className="flex min-w-0 flex-1 flex-col items-center">
-                  <Num ip={tag(key(entry))} className="font-semibold leading-none tracking-tight" style={{ fontSize: numPx(size, w, h, shown.length, bodyGap(p.look, 16, w)), ...(u === "d" ? { color: "var(--accent)" } : null) }}>
+                  <Num ip={tag(key(entry))} className="font-semibold leading-none tracking-tight" style={{ fontSize: numPx(size, w, h, shown.length, bodyGap(p.look, 16, w)) }}>
                     {pad(v)}
                   </Num>
                   <span className="mt-1.5 text-micro uppercase tracking-wider text-[color:var(--w-faint)]">{l}</span>

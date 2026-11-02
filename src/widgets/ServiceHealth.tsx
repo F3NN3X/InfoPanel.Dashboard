@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { bodyGap, fillRows, roomy, useFitRows, Widget, shell, get, num, has, Dot, Pill, type ShellProps } from "./kit";
+import { bodyGap, fillRows, roomy, SummaryHero, SUMMARY_H, useFitRows, Widget, shell, get, num, has, Dot, Pill, type ShellProps } from "./kit";
 import { meta } from "./meta/ServiceHealth";
 
 export { meta };
@@ -49,13 +49,15 @@ export default function ServiceHealth(p: ServiceHealthProps) {
       {({ h, w }) => {
         // a 16px row plus the 8px row gap, or the look's gap
         const g = bodyGap(p.look, 8, h);
-        // roomy: one column that fills the height; the two-column list is for a wide, short box
+        // roomy: the summary on top and one column that fills the height under it; the two-column list is for a wide, short box
         const big = roomy(w, h),
           cols = w > 420 && !big ? 2 : 1,
           rowMin = big ? 20 : 16,
-          shown = Math.min(list.length, cols * useFitRows(h - 8 + g, rowMin + g)),
-          fill = fillRows(h, shown, rowMin, g, big);
-        return p.layout === "pills" ? (
+          listH = big ? h - SUMMARY_H : h,
+          shown = Math.min(list.length, cols * useFitRows(listH - 8 + g, rowMin + g)),
+          fill = fillRows(listH, shown, rowMin, g, big);
+        const down = list.filter((x) => !x.ok);
+        const body = p.layout === "pills" ? (
           <div className="flex h-full flex-wrap content-start gap-1.5 overflow-hidden">
             {list.map((x) => (
               <Pill key={x.label} state={x.ok ? "ok" : "off"}>
@@ -74,6 +76,14 @@ export default function ServiceHealth(p: ServiceHealthProps) {
               </li>
             ))}
           </ul>
+        );
+        return big ? (
+          <div className="flex h-full flex-col gap-3">
+            <SummaryHero value={`${okN}/${list.length}`} t={down.length ? "warn" : "ok"} label={down.length ? "Sources online" : "All sources online"} sub={down.length ? `${down.map((x) => x.label).slice(0, 2).join(", ")}${down.length > 2 ? ` +${down.length - 2}` : ""} off` : undefined} />
+            <div className="min-h-0 flex-1">{body}</div>
+          </div>
+        ) : (
+          body
         );
       }}
     </Widget>

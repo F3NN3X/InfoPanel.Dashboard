@@ -1,11 +1,13 @@
 import { useRef } from "react";
 import type { ModuleSettings } from "@/modules/types";
-import { bodyGap, fillRows, roomy, useFitRows, Widget, shell, get, num, fmt, STATE, hw, Chip, Pill, type ShellProps } from "./kit";
+import { bodyGap, fillRows, roomy, SummaryHero, SUMMARY_H, useFitRows, Widget, shell, get, num, fmt, STATE, hw, Chip, type ShellProps } from "./kit";
 import { meta } from "./meta/StatusTracker";
 
 export { meta };
 
 type St = "ok" | "warn" | "crit" | "none";
+/** Fewer real readings than this and a track draws a tick for each, not the hairline row. */
+const FEW = 8;
 interface Cell {
   st: St;
   v: string;
@@ -76,31 +78,42 @@ export default function StatusTracker(p: StatusTrackerProps) {
         }),
       }}
     >
-      {({ w, h }) => {
+      {({ w, h: boxH }) => {
+        // roomy: the summary takes the top and the rows and legend share the rest
+        const big = roomy(w, boxH),
+          h = big ? boxH - SUMMARY_H : boxH;
         // the look's gap spaces the rows and the two legend lines; with it set, budget the legend's
         // full height (the axis line and up to two lines of pills)
         // the legend (axis line + pills) shows from 130px tall; its pills take one line from 330px wide, else two (none under 220px)
         const g = bodyGap(p.look, 10, h),
           labelW = w > 360 ? 112 : w > 200 ? 76 : 56,
           legend = h > 130,
-          pillLines = !legend || w < 220 ? 0 : w >= 330 ? 1 : 2,
-          rowsFit = useFitRows(h - (legend ? g + 16 + (pillLines ? g + pillLines * 24 + (pillLines - 1) * 6 : 0) : 0), 24, g),
+          pillLines = !legend || w < 220 ? 0 : 1,
+          rowsFit = useFitRows(h - (legend ? g + 16 + (pillLines ? g + 16 : 0) : 0), 24, g),
           // each reading needs 2px plus a 2px gap: show the newest that fit
           cells = Math.max(1, Math.min(N, Math.floor((w - labelW - 10 + 2) / 4)));
-        const rowsH = h - (legend ? g + 16 + (pillLines ? g + pillLines * 24 + (pillLines - 1) * 6 : 0) : 0),
-          fill = fillRows(rowsH, Math.min(tracks.length, rowsFit), 24, g, roomy(w, h));
-        const rows = tracks.slice(0, rowsFit).map((t) => (
+        const rowsH = h - (legend ? g + 16 + (pillLines ? g + 16 : 0) : 0),
+          fill = fillRows(rowsH, Math.min(tracks.length, rowsFit), 24, g, big);
+        const rows = tracks.slice(0, rowsFit).map((t) => {
+          const all = hist.current[t.label] ?? [];
+          const real = all.filter((c) => c.st !== "none");
+          // until FEW readings exist, a 6px tick for each and a note, not a row of hairlines
+          const few = real.length < FEW;
+          return (
           <div key={t.label} className="grid items-center gap-2.5" style={{ gridTemplateColumns: `${labelW}px minmax(0,1fr)`, minHeight: fill.rowH }}>
             <span className="truncate text-body">{t.label}</span>
             <div className="flex h-6 min-w-0 gap-[2px] overflow-hidden" style={fill.rowH ? { height: fill.rowH - 4 } : undefined}>
-              {(hist.current[t.label] ?? []).slice(-cells).map((c, i) => (
-                <i key={i} title={`${t.label}: ${c.v}`} className="min-w-0 flex-1 self-end rounded-[2px]" style={{ background: c.st === "none" ? "var(--w-track)" : STATE[c.st], height: c.st === "warn" ? "66%" : c.st === "crit" ? "33%" : "100%" }} />
+              {few && <span className="flex min-w-0 flex-1 items-center truncate text-micro text-[color:var(--w-faint)]">collecting · {real.length} / {N}</span>}
+              {(few ? real : all.slice(-cells)).map((c, i) => (
+                <i key={i} title={`${t.label}: ${c.v}`} className={`self-end rounded-[2px] ${few ? "w-1.5 shrink-0" : "min-w-0 flex-1"}`} style={{ background: c.st === "none" ? "var(--w-track)" : STATE[c.st], height: c.st === "warn" ? "66%" : c.st === "crit" ? "33%" : "100%" }} />
               ))}
             </div>
           </div>
-        ));
+          );
+        });
         return (
           <div className="flex h-full min-w-0 flex-col gap-2.5">
+            {big && <SummaryHero value={okNow} t={failing.length ? "warn" : "ok"} label="OK now" sub={okSub} />}
             {/* roomy: the rows share the height the legend leaves */}
             {fill.spread ? <div className="flex min-h-0 flex-1 flex-col justify-evenly">{rows}</div> : rows}
             {legend && (
@@ -110,7 +123,7 @@ export default function StatusTracker(p: StatusTrackerProps) {
                   <span>now</span>
                 </div>
                 {pillLines > 0 && (
-                <div className="flex flex-wrap gap-1.5">
+                <div className="mt-auto flex flex-wrap gap-x-3 gap-y-1">
                   {(
                     [
                       ["ok", "OK"],
@@ -119,9 +132,10 @@ export default function StatusTracker(p: StatusTrackerProps) {
                       ["none", "No data"],
                     ] as const
                   ).map(([s, l]) => (
-                    <Pill key={s} state={s === "none" ? "off" : s}>
+                    <span key={s} className="flex items-center gap-1.5 text-micro text-[color:var(--w-muted)]">
+                      <i className="h-1.5 w-1.5 rounded-full" style={{ background: s === "none" ? "var(--w-track)" : STATE[s] }} />
                       {l}
-                    </Pill>
+                    </span>
                   ))}
                 </div>
                 )}

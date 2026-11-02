@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fitKeys, pageText, swipeOf, titlePx } from "@/widgets/StreamDeck/layout";
+import { fitKeys, keyWindows, pageText, swipeOf, titlePx } from "@/widgets/StreamDeck/layout";
 
 describe("fitKeys", () => {
   it("fits square keys by the tighter side and reports the grid's size", () => {
@@ -30,5 +30,15 @@ describe("titlePx and pageText", () => {
   it("counts pages from 1 and holds the number within the total", () => {
     expect(pageText(0, 3)).toBe("1 / 3");
     expect(pageText(5, 3)).toBe("3 / 3");
+  });
+});
+
+describe("keyWindows", () => {
+  it("cuts a 5x3 deck into a 3x3 window and a 2x3 one, every key once, in deck indexes", () => {
+    const w = keyWindows(5, 3);
+    expect(w.map((x) => [x.cols, x.rows])).toEqual([[3, 3], [2, 3]]);
+    expect(w[0].indexes).toEqual([0, 1, 2, 5, 6, 7, 10, 11, 12]);
+    expect(w[1].indexes).toEqual([3, 4, 8, 9, 13, 14]);
+    expect(w.flatMap((x) => x.indexes).sort((a, b) => a - b)).toEqual(Array.from({ length: 15 }, (_, i) => i));
   });
 });

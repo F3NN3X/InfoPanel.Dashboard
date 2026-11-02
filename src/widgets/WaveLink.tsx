@@ -108,7 +108,7 @@ export function scaleTicks(h: number): number[] {
 }
 
 /** A mixer column: name, fader, scale + vertical L/R meters, readouts, mix routes. */
-function MixColumn({ channel, state, o }: { channel: WlChannel; state: WlState; o: Opts }) {
+function MixColumn({ channel, state, o, thickness }: { channel: WlChannel; state: WlState; o: Opts; thickness: number }) {
   const levels = useWlLevels(meterKey.channel(channel.id), o.preset);
   const scale = useElementSize();
   return (
@@ -122,7 +122,7 @@ function MixColumn({ channel, state, o }: { channel: WlChannel; state: WlState; 
       </div>
       <div className="flex min-h-0 flex-1 items-stretch gap-1 py-1.5">
         {o.readout && (
-          <div ref={scale.ref} className="relative w-5 shrink-0 font-mono text-micro tabular-nums text-[color:var(--w-faint)]">
+          <div ref={scale.ref} className="relative w-5 shrink-0 font-mono text-micro tabular-nums text-[color:var(--w-muted)]">
             {scaleTicks(scale.h).map((db) => (
               <span key={db} className="absolute right-0 -translate-y-1/2" style={{ top: `${100 - dbPos(10 ** (db / 20) * 100)}%` }}>
                 {db === 0 ? "0" : `−${-db}`}
@@ -130,7 +130,7 @@ function MixColumn({ channel, state, o }: { channel: WlChannel; state: WlState; 
             ))}
           </div>
         )}
-        <MeterPair levels={levels} vertical variant={o.variant} color={o.color ?? "var(--accent)"} hot={STATE.crit} />
+        <MeterPair levels={levels} vertical variant={o.variant} color={o.color ?? "var(--accent)"} hot={STATE.crit} thickness={thickness} />
       </div>
       {o.readout && (
         <div className="flex items-center justify-between gap-2 font-mono text-micro tabular-nums">
@@ -161,17 +161,17 @@ function ChannelRow({ channel, state, o, wide, w }: { channel: WlChannel; state:
       <div className="grid items-center gap-x-3" style={{ gridTemplateColumns: `${wide ? 96 : narrow ? 40 : 64}px minmax(0,1fr)${readout ? ` ${wide ? 72 : 40}px` : ""}` }}>
         <div className="flex min-w-0 flex-col leading-tight">
           <span className="flex items-center gap-1 text-xs font-semibold">
-            <span className="truncate" title={channel.name}>
+            <span className={narrow ? "line-clamp-2 break-all" : "truncate"} title={channel.name}>
               {channel.name}
             </span>
             {channel.isMuted && <MuteMark />}
           </span>
           {o.fader && <span className="text-micro tabular-nums text-[color:var(--w-faint)]">{fader(channel.level, channel.levelDb)}</span>}
         </div>
-        <MeterPair levels={levels} variant={o.variant} color={o.color ?? "var(--accent)"} hot={STATE.crit} thickness={wide ? 8 : 6} />
+        <MeterPair levels={levels} variant={o.variant} color={o.color ?? "var(--accent)"} hot={STATE.crit} thickness={10} />
         {readout && (
           <div className="flex flex-col text-right font-mono text-micro leading-tight tabular-nums text-[color:var(--w-muted)]">
-            <span>{fmtDb(levels.l.v)}</span>
+            <span>{fmtDb(levels.l.v, !wide)}</span>
             {wide && <span>{fmtDb(levels.r.v)}</span>}
           </div>
         )}
@@ -202,7 +202,7 @@ function DenseRow({ channel, o, w }: { channel: WlChannel; o: Opts; w: number })
         {channel.isMuted && <MuteMark />}
       </span>
       {o.fader && !narrow && <span className="w-[54px] shrink-0 whitespace-nowrap text-right text-micro tabular-nums text-[color:var(--w-muted)]">{fader(channel.level, channel.levelDb)}</span>}
-      <MeterPair levels={levels} variant={o.variant} color={o.color ?? "var(--accent)"} hot={STATE.crit} thickness={5} className="min-w-0 flex-1" />
+      <MeterPair levels={levels} variant={o.variant} color={o.color ?? "var(--accent)"} hot={STATE.crit} thickness={6} className="min-w-0 flex-1" />
       {o.readout && w >= 280 && (
         <span className="w-[60px] shrink-0 text-right font-mono text-micro tabular-nums text-[color:var(--w-muted)]">
           {fmtDb(levels.l.v)} {fmtDb(levels.r.v)}
@@ -259,7 +259,7 @@ export function WaveLinkLayout({ size, w, h, up, state, channels, devices, mixes
       <div className={`flex h-full flex-col gap-2 ${dim}`}>
         <div className="flex min-h-0 flex-1 items-stretch gap-3">
           {channels.slice(0, n).map((c) => (
-            <MixColumn key={c.id} channel={c} state={state} o={o} />
+            <MixColumn key={c.id} channel={c} state={state} o={o} thickness={size === "lg" ? 14 : 10} />
           ))}
           {side && (
             <div className="flex w-52 shrink-0 flex-col justify-center gap-1.5 overflow-hidden">

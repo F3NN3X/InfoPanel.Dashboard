@@ -11,6 +11,38 @@ export const get = (data: Data | undefined, key: string, fb = ""): string => {
 };
 /** A sensor's display name, or `fallback` (a label derived from the key) when it has none. */
 export const sensorLabel = (key: string, names: Record<string, string> | undefined, fallback: string): string => names?.[key] || fallback;
+/** The words that name nothing beyond "the CPU" or "the GPU" itself, so the unit says what is measured. */
+const GENERIC = /^(Total|Core|Package)?$/i;
+
+/** A sensor's name as its metric first and its device second: "AMD Ryzen 9 9950X3D CPU Total" (a %) → "CPU load" and "Ryzen 9 9950X3D". A name with no CPU or GPU in it is its own metric. `name` is the full name, kept. */
+export function shortLabel(name: string, unit = ""): { metric: string; model: string; name: string } {
+  const bare = name
+    .replace(/\((R|TM)\)/gi, "")
+    .replace(/\b(AMD|NVIDIA|GeForce|Intel)\b/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  const m = /^(.*?)\s*\b(CPU|GPU)\b\s*(.*)$/i.exec(bare);
+  // a model name with no CPU or GPU word ("Ryzen 9 9950X3D Core (Tctl/Tdie)"): the family says which
+  const family = m ? null : /\b(Ryzen|Core i\d|Core Ultra|Xeon|Threadripper|EPYC)\b/i.test(bare) ? "CPU" : /\b(RTX|GTX|Radeon|Arc)\b/i.test(bare) ? "GPU" : null;
+  if (!m && !family) return { metric: bare || name, model: "", name };
+  const domain = (m ? m[2] : family)!.toUpperCase();
+  const model = m ? m[1].trim() : bare.replace(/\s*(Core\s*)?\(.*\)$|\s+(Core|Package|Total)$/i, "").trim();
+  const rest = (m?.[3] ?? "").trim();
+  // only a bare "CPU Total" or "GPU Core" is a load or a temperature by its unit; any other name keeps its own words
+  const what = GENERIC.test(rest) ? (unit === "%" ? "load" : unit.includes("°") ? "temp" : "") : rest.toLowerCase();
+  return { metric: what ? `${domain} ${what}` : domain, model, name };
+}
+
+type Short = { metric: string; model: string; name: string };
+const withModel = (s: Short): string => (s.model ? `${s.metric} · ${s.model}` : s.metric);
+
+/** The row label of `s` among `all`: its metric; with the device after it where two rows share a metric; the full name where they still collide. */
+export function rowLabel(s: Short, all: readonly Short[]): string {
+  if (all.filter((x) => x.metric === s.metric).length <= 1) return s.metric;
+  const text = withModel(s);
+  return all.filter((x) => withModel(x) === text).length > 1 ? s.name : text;
+}
+
 export const num = (v: unknown): number => {
   const m = String(v ?? "").replace(",", ".").match(/-?\d+(\.\d+)?/);
   return m ? parseFloat(m[0]) : NaN;

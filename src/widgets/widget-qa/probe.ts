@@ -45,6 +45,8 @@ export function probeBox(root: Element): Issue[] {
     if (dx || dy) issues.push({ selector: selectorOf(el, root), kind: "exceeds", dx, dy });
     if (el.children.length === 0 && el.textContent?.trim()) leaves.push({ el, box });
     const cs = getComputedStyle(el);
+    // screen-reader-only text (a tone cue's "warning: ") is a 1px clip by design
+    if (el.classList.contains("sr-only")) continue;
     const cut = clippedContent({
       tag: el.tagName,
       overflowX: cs.overflowX,
