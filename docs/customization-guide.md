@@ -1284,7 +1284,8 @@ Each screen has its own spacing, in Screens › Grid:
 - **Gap** - the space between zones. Empty means 12 px, the spacing
   every screen had before.
 - **Edge padding** - the space between the page edge and the grid. Empty
-  keeps the page's defaults: none on a *Fill* kiosk page, 12 px on
+  keeps the page's defaults: an 8 px inset on a *Fill* kiosk page (none
+  with *Touch the display edges* on), 12 px on
   the normal dashboard page of a *Fill* screen (next to the
   header) and 24 px for *Scroll* screens.
 - **Corners** - a 0-1.5 rem slider in Theme › Shape & spacing, for the

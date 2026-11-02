@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  KIOSK_EDGE_INSET,
+  barRowTemplate,
   DEFAULT_GRID_GAP,
   cellAt,
   normalizeSpacing,
@@ -11,10 +13,21 @@ import {
 } from "@/lib/profile-grid";
 
 describe("profileGap / profilePadding", () => {
+  it("keeps a small inset off a fill kiosk page's edges unless the screen touches them", () => {
+    expect(KIOSK_EDGE_INSET).toBe(8);
+    expect(profilePadding({ fit: "fill", edges: "inset" }, true)).toBe(8);
+    expect(profilePadding({ fit: "fill", edges: "touch" }, true)).toBe(0);
+    // a padding the screen sets wins over both, and the other pages do not read the option
+    expect(profilePadding({ fit: "fill", edges: "touch", padding: 16 }, true)).toBe(16);
+    expect(profilePadding({ fit: "fill", padding: 0 }, true)).toBe(0);
+    expect(profilePadding({ fit: "fill", edges: "touch" }, false)).toBe(12);
+    expect(profilePadding({ fit: "scroll", edges: "touch" }, true)).toBe(24);
+  });
+
   it("defaults to today's spacing per mode", () => {
     expect(profileGap({ fit: "fill" })).toBe(DEFAULT_GRID_GAP);
     expect(DEFAULT_GRID_GAP).toBe(12);
-    expect(profilePadding({ fit: "fill" }, true)).toBe(0);
+    expect(profilePadding({ fit: "fill" }, true)).toBe(KIOSK_EDGE_INSET);
     expect(profilePadding({ fit: "fill" }, false)).toBe(12);
     expect(profilePadding({ fit: "scroll" }, true)).toBe(24);
     expect(profilePadding({ fit: "scroll" }, false)).toBe(24);
@@ -75,4 +88,33 @@ describe("zoneBox", () => {
     });
   });
 
+});
+
+describe("barRowTemplate", () => {
+  const bar = { module: "StatusBar", colStart: 1, rowStart: 1, colSpan: 12, rowSpan: 1, visible: true };
+  const panel = { module: "SystemOverview", colStart: 1, rowStart: 2, colSpan: 6, rowSpan: 5, visible: true };
+  const profile = { fit: "fill" as const, cols: 12, rows: 6 };
+  const tall = (zones: (typeof bar)[]) => barRowTemplate(profile, zones, 1064, 1080);
+
+  it("caps a lone full-width bar's row at 8vh within 56..96px and shares the rest", () => {
+    expect(tall([bar, panel])).toBe("clamp(56px, 8vh, 96px) repeat(5, minmax(0, 1fr))");
+  });
+
+  it("leaves rows even when the even row is no taller than the cap", () => {
+    // 380px shared by six rows and five gaps: 53px each, under the 56px floor
+    expect(barRowTemplate(profile, [bar, panel], 380, 400)).toBeUndefined();
+  });
+
+  it("only applies to the default layout: a bar alone in the first row, full width, on a fill page", () => {
+    expect(tall([bar, { ...panel, rowStart: 1, rowSpan: 6, colSpan: 4, colStart: 9 }])).toBeUndefined();
+    expect(tall([{ ...bar, colSpan: 6 }, panel])).toBeUndefined();
+    expect(tall([{ ...bar, rowSpan: 2 }, panel])).toBeUndefined();
+    expect(tall([panel])).toBeUndefined();
+    expect(barRowTemplate({ ...profile, fit: "scroll" }, [bar, panel], 1064, 1080)).toBeUndefined();
+    expect(barRowTemplate({ ...profile, rows: 2 }, [bar, panel], 1064, 1080)).toBeUndefined();
+  });
+
+  it("ignores a hidden zone", () => {
+    expect(tall([bar, { ...panel, rowStart: 1, visible: false }])).toBeDefined();
+  });
 });

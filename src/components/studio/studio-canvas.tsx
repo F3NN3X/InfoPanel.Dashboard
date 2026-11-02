@@ -17,6 +17,7 @@ import {
 import { SquareDashedMousePointer } from "lucide-react";
 import { PageBackground } from "@/components/page-background";
 import { DynamicIsland } from "@/components/island/dynamic-island";
+import { pageSkinOf } from "@/components/island/island-look";
 import { islandReserve } from "@/components/island/island-model";
 import type { ActiveAlert } from "@/lib/alerts";
 import type { PageBackground as Background } from "@/lib/appearance";
@@ -638,7 +639,7 @@ export function StudioCanvas({
             >
               {showRulers && <RulerLabels width={canvas.w} height={canvas.h} scale={zoom} />}
               {profile.island?.enabled && (
-                <DynamicIsland config={profile.island} alerts={islandAlerts} placement="absolute" page={islandPage} />
+                <DynamicIsland config={profile.island} alerts={islandAlerts} placement="absolute" page={islandPage} skin={pageSkinOf(appearance)} />
               )}
                 {/* Page background (as in the kiosk) behind the tiles */}
                 {background && <PageBackground background={background} className="absolute inset-0 -z-20" />}

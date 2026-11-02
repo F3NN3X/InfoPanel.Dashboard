@@ -1,4 +1,5 @@
 import type { HistorySetter } from "@/hooks/use-config-history";
+import { newBarSettings } from "./new-bar-settings";
 import { useToast } from "@/components/ui/toast";
 import {
   addPage,
@@ -150,7 +151,7 @@ export function useStudioMutations({ config, profile, setConfig, sel, onPresetSa
     if (item.kind === "panel" && !preset) return null;
     const id = uid(item.kind === "panel" ? PANEL_ID : item.id);
     updateProfile((p) =>
-      preset ? actions.addPresetAt(p, id, preset, rect) : actions.addModuleAt(p, id, item.id, rect, item.settings)
+      preset ? actions.addPresetAt(p, id, preset, rect) : actions.addModuleAt(p, id, item.id, rect, newBarSettings(item.id, item.settings, p.island))
     );
     sel.select(id);
     return id;
@@ -187,7 +188,7 @@ export function useStudioMutations({ config, profile, setConfig, sel, onPresetSa
       const preset = item.drop.kind === "panel" ? findPanelPreset(item.id, config.panelPresets) : undefined;
       if (item.drop.kind === "panel" && !preset) return null;
       updateProfile((p) =>
-        preset ? actions.fillWithPreset(p, zone.id, preset) : actions.assignModule(p, zone.id, item.drop.id, { cols: item.mw, rows: item.mh }, item.drop.settings)
+        preset ? actions.fillWithPreset(p, zone.id, preset) : actions.assignModule(p, zone.id, item.drop.id, { cols: item.mw, rows: item.mh }, newBarSettings(item.drop.id, item.drop.settings, p.island))
       );
       sel.select(zone.id);
       return { added: true, zoneId: zone.id, message: `${item.name} fills the blank zone · ${sizeText(zone.colSpan, zone.rowSpan)}` };

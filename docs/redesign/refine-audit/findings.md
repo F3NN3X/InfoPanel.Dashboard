@@ -27,12 +27,12 @@ Prototypes (W1–W8 and some A-/B- IDs) were built on throwaway `proto/<id>` bra
 | A-19 | 5 |  | med | M | Home: a screen detail that is quieter, and a hover on the card | open |
 | A-20 | 5 |  | med | L | Direction: live canvas mini-map and page strip on Screens | open |
 | B-01 | 0 |  | high | M | Status bar readouts truncate at 1920x1080, 1280x800 and 1024x600 (Confirmed bug: with the island gap on, need() compared all items against the whole bar instead of the wider half (prototype proto/B-01).) | fixed |
-| B-02 | 3 | B-02 | high | M | The island is a fixed black pill that ignores the skin and the panel size (Default tint follows the skin as a new value; islands stored as black stay black.) | open |
-| B-03 | 3 | B-02 | med | S | The island and the bar both show the time (and the same CPU/GPU) (Default tint follows the skin as a new value; islands stored as black stay black.) | open |
-| B-04 | 3 |  | med | S | The outer frames touch the display edge (User: as suggested, plus a per-screen option to touch the edges as today.) | open |
-| B-05 | 3 |  | med | M | The bar is 16% of a 1080p screen and 25% of a 480p one | open |
-| B-06 | 3 |  | med | M | Tall cells pin their content to one edge | open |
-| B-07 | 3 |  | med | M | At 800x480 labels truncate to meaningless stubs | open |
+| B-02 | 3 | B-02 | high | M | The island is a fixed black pill that ignores the skin and the panel size (Default tint follows the skin as a new value; islands stored as black stay black.) | fixed |
+| B-03 | 3 | B-02 | med | S | The island and the bar both show the time (and the same CPU/GPU) (Default tint follows the skin as a new value; islands stored as black stay black.) | fixed |
+| B-04 | 3 |  | med | S | The outer frames touch the display edge (User: as suggested, plus a per-screen option to touch the edges as today.) | fixed |
+| B-05 | 3 |  | med | M | The bar is 16% of a 1080p screen and 25% of a 480p one | fixed |
+| B-06 | 3 |  | med | M | Tall cells pin their content to one edge | fixed |
+| B-07 | 3 |  | med | M | At 800x480 labels truncate to meaningless stubs | fixed |
 | B-08 | 4 |  | high | S | Settings pages jump: the title moves 130px between pages | open |
 | B-09 | 4 | B-10 | high | S | Group headings come in two styles (Reopens the first audit's recorded 'two Settings row styles'; the user chose to build it from the prototype.) | open |
 | B-10 | 4 | B-10 | high | M | Dashboard and Studio pages should use the card layout (Reopens the first audit's recorded 'two Settings row styles'; the user chose to build it from the prototype.) | open |
@@ -50,7 +50,7 @@ Prototypes (W1–W8 and some A-/B- IDs) were built on throwaway `proto/<id>` bra
 | B-22 | 4 |  | low | S | Logs: INFO is accent blue | open |
 | B-23 | 4 |  | low | S | Settings text sizes sit off the shared scale | open |
 | B-24 | 4 |  | med | M | Help home as task paths | open |
-| B-25 | 3 |  | med | L | Island that follows the skin (User: optional, island either part of the skin or an overlay. Existing islands stay overlay.) | open |
+| B-25 | 3 |  | med | L | Island that follows the skin (User: optional, island either part of the skin or an overlay. Existing islands stay overlay.) | fixed |
 | C-01 | 1 | W1 | high | M | Hero number scales with the box in 4x4 | fixed |
 | C-02 | 1 | W1 | high | M | 2x2 frames: lift the hero to the optical centre, cut the empty top | partial |
 | C-03 | 2a | W4 | high | S | One button-tile primitive that scales (AudioButton, ObsButton) | fixed |

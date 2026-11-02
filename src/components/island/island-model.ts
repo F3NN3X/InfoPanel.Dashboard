@@ -39,6 +39,8 @@ const SIZES_DOWN: readonly IslandSize[] = ["l", "m", "s"];
 export const EXPANDED_MAX_SHARE = 0.4;
 /** Space kept between the pill and the page edges, px. */
 const SIDE_ROOM = 16;
+/** A page narrower than this, px, shows the island one size smaller than chosen. */
+export const NARROW_PAGE = 1100;
 
 const scaled = (b: Box, k: number): Box => ({ width: Math.round(b.width * k), height: Math.round(b.height * k) });
 
@@ -76,7 +78,7 @@ export const islandFontPx = (size: IslandSize, scale: number): number => Math.ro
 /**
  * The size that fits the page: the chosen one, or the largest smaller one whose open island (at
  * `scale`) stays within `EXPANDED_MAX_SHARE` of the height and inside the width (a short strip or a
- * small screen). The smallest size is the floor.
+ * small screen). A page narrower than `NARROW_PAGE` starts one size down. The smallest size is the floor.
  */
 export function fitIslandSize(size: IslandSize, page: { width: number; height: number }, scale = 100): IslandSize {
   if (!(page.width > 0 && page.height > 0)) return size;
@@ -84,7 +86,8 @@ export function fitIslandSize(size: IslandSize, page: { width: number; height: n
     const b = scaled(EXPANDED[s], scale / 100);
     return b.height <= page.height * EXPANDED_MAX_SHARE && b.width + SIDE_ROOM <= page.width;
   };
-  return SIZES_DOWN.slice(SIZES_DOWN.indexOf(size)).find(fits) ?? "s";
+  const from = Math.min(SIZES_DOWN.length - 1, SIZES_DOWN.indexOf(size) + (page.width < NARROW_PAGE ? 1 : 0));
+  return SIZES_DOWN.slice(from).find(fits) ?? "s";
 }
 
 /** Where the pill's top sits: the notch on the page edge, the pill at its offset. */

@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import type { HistorySetter } from "@/hooks/use-config-history";
 import { resolveFont, resolveGeneral } from "@/lib/general";
+import { pageSkinOf } from "@/components/island/island-look";
+import { appearanceOf } from "@/lib/style-resolve";
 import { createIslandBus } from "@/lib/island/bus";
 import { withIsland, type IslandConfig } from "@/lib/island/config";
 import { withIslandLook } from "@/lib/island/looks";
@@ -128,7 +130,7 @@ export function IslandTab({ config, setConfig, current, onOpenZone, onOpenExplor
               </button>
             ))}
           </div>
-          <IslandPreview island={island} page={{ width: profile.width, height: profile.height }} bus={previewBus} />
+          <IslandPreview island={island} page={{ width: profile.width, height: profile.height }} skin={pageSkinOf(appearanceOf(config, profile))} bus={previewBus} />
         </>
       }
       aside={

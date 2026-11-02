@@ -33,7 +33,7 @@ function desk(): MonitorProfile {
       item("glow", "Accent glow", { x: 20, y: 20, w: 400, h: 200 }, { groupId: "g-overlay", item: { kind: "Image", Name: "Accent glow", X: 20, Y: 20, $: { element: { type: "glow" } as never }, unknown: {} } }),
     ],
   };
-  return { id: "desk", name: "Desk panel", width: 1024, height: 600, cols: 4, rows: 3, fit: "fill", pages: [page] };
+  return { id: "desk", name: "Desk panel", width: 1024, height: 600, cols: 4, rows: 3, fit: "fill", padding: 0, pages: [page] };
 }
 
 describe("reading a screen page", () => {
@@ -59,7 +59,10 @@ describe("reading a screen page", () => {
 
   it("has the screen's grid: the kiosk's padding and gap, a scrolling page's rows fixed", () => {
     expect(model.grid).toEqual({ cols: 4, rows: 3, gap: 12, padding: 0, width: 1024, height: 600 });
-    expect(screenGrid({ ...profile, fit: "scroll", gap: 10 })).toEqual({ cols: 4, rows: 3, gap: 10, padding: 24, width: 1024, height: 24 * 2 + 3 * 120 + 2 * 10 });
+    // no padding set: the kiosk's inset, or none when the screen touches the edges
+    expect(screenGrid({ ...profile, padding: undefined }).padding).toBe(8);
+    expect(screenGrid({ ...profile, padding: undefined, edges: "touch" }).padding).toBe(0);
+    expect(screenGrid({ ...profile, padding: undefined, fit: "scroll", gap: 10 })).toEqual({ cols: 4, rows: 3, gap: 10, padding: 24, width: 1024, height: 24 * 2 + 3 * 120 + 2 * 10 });
     // A cell's box is where the kiosk draws it.
     expect(cellRect(model.grid, { col: 2, row: 1, cols: 1, rows: 2 })).toEqual({ x: (1024 - 36) / 4 + 12, y: 0, w: (1024 - 36) / 4, h: 2 * ((600 - 24) / 3) + 12 });
   });

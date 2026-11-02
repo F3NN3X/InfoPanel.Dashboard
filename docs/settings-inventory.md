@@ -390,7 +390,8 @@ Island › Island, both reached from the LINKED group.
 | `cols` | Columns | stepper −/+ | 2 to 24; a smaller grid is refused while a zone, on any page, would fall outside | first profile 12; new: 6 when width ≤ 1280, else 12 | Profile | Screens › Grid |
 | `rows` | Rows | stepper −/+ | 1 to 24 (same refusal) | first profile 6; new: 4 when height ≤ 700, else 6 | Profile | Screens › Grid |
 | `gap` | Gap (px field + slider) | number, empty = default | 0 to 200 | `12` (`DEFAULT_GRID_GAP`) | Profile | Screens › Grid |
-| `padding` | Edge padding (px field + slider) | number, empty = default | 0 to 200 | 0 for a fill kiosk page, 12 for fill in the studio, 24 for scroll | Profile | Screens › Grid |
+| `padding` | Edge padding (px field + slider) | number, empty = default | 0 to 200 | 8 for a fill kiosk page (0 when `edges` is `touch`), 12 for fill in the studio, 24 for scroll | Profile | Screens › Grid |
+| `edges` | Touch the display edges (fill screens) | toggle | `inset`, `touch` | unset = `inset` | Profile | Screens › Grid |
 | `widgetTheme.values` | the screen's widget style: skins, surface, opacity, blur and every other themed row (§5.2) | Theme cards at the screen scope | themed keys | unset (inherits `DashboardConfig.style`) | Profile | Theme › the screen |
 | `widgetTheme.locks` | a lock per Theme card (all 11 sections), Lock all / Unlock all | toggle / button | per section of the 11 | none locked | Profile | Theme › the screen |
 | `theme`, `radius` | Color tokens and Corners (§5.4) | Theme › Colors, Shape & spacing | | unset (inherits) | Profile | Theme › the screen |
@@ -849,7 +850,7 @@ shows; Theme's scope is the scope bar (All screens, a screen, a page).
 | Screens › card click | Browser `studio.pinnedProfile` | `pinned-profile.ts:30` |
 | Screens › card ⋯ › Rename | `MonitorProfile.name` | `rename` (`screens-view.tsx`) |
 | Screens › Size & fit (Size preset, Width, Height, When it doesn't fit) | `MonitorProfile` `width`, `height`, `fit` | `SizeFitSection` (`screen-layout.tsx`) |
-| Screens › Grid (Columns, Rows, Gap, Edge padding) | `MonitorProfile.cols`, `rows`, `gap`, `padding` | `GridSection` (`screen-layout.tsx`) |
+| Screens › Grid (Columns, Rows, Gap, Edge padding) | `MonitorProfile.cols`, `rows`, `gap`, `padding`, `edges` | `GridSection` (`screen-layout.tsx`) |
 | Screens › Rotation (Rotate pages, Every), the pages' in-rotation switches | `MonitorProfile.rotate` | `setRotate` (`use-studio-mutations.ts:374`) |
 | Screens › Performance (Frame-rate cap, Animations) | `MonitorProfile.performance` | `withScreenPerformance` (`screens-model.ts:39`) |
 | Screens › Pages · order & rotation (drag, + Add page); the page tab strip | `MonitorProfile.pages` | `movePageTo`, `addNewPage` (`use-studio-mutations.ts`) |

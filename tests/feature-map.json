@@ -465,6 +465,7 @@
         "tests/components/*.test.*",
         "tests/components/widgets/**",
         "tests/components/ui/**",
+        "tests/components/island/**",
         "tests/lib/island/**",
         "tests/lib/panel-*.test.ts",
         "tests/lib/roving.test.ts",

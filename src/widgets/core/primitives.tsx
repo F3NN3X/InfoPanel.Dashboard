@@ -777,12 +777,27 @@ export function StatGrid({ items, cols = 4 }: { items: { label: ReactNode; value
     </div>
   );
 }
-/** One legend line: colour swatch, label, trailing value. A null colour keeps the column but draws no swatch. */
+/**
+ * One legend line: colour swatch, label, trailing value. A null colour keeps the column but draws no swatch. A label
+ * is never cut with an ellipsis: when it does not fit beside the value it is hidden (the swatch and value stay).
+ */
 export function LegendRow({ color, label, value, className = "text-[12.5px]", tag }: { color?: string | null; label: ReactNode; value?: ReactNode; className?: string; tag?: Record<string, string | number> }) {
+  const word = useRef<HTMLSpanElement>(null);
+  const [cut, setCut] = useState(false);
+  useLayoutEffect(() => {
+    const el = word.current;
+    if (!el) return;
+    // a hidden word keeps its box and its place in the accessibility tree (opacity, not visibility), so the measure holds
+    const measure = () => setCut(el.scrollWidth > el.clientWidth);
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    measure();
+    return () => ro.disconnect();
+  }, [label, value]);
   return (
     <div className={`grid min-w-0 grid-cols-[10px_minmax(0,1fr)_auto] items-center gap-2 ${className}`}>
       <i className={`h-2.5 w-2.5 rounded-[3px] ${color ? "ring-1 ring-inset ring-[color:var(--w-fg)]/15" : ""}`} style={{ background: color ?? "transparent" }} />
-      <span className="truncate text-[color:var(--w-muted)]" style={labelStyle("none")}>{label}</span>
+      <span ref={word} className={`truncate text-[color:var(--w-muted)]${cut ? " opacity-0" : ""}`} style={labelStyle("none")} title={cut && typeof label === "string" ? label : undefined}>{label}</span>
       <span {...tag} className="font-medium tabular-nums">{value}</span>
     </div>
   );

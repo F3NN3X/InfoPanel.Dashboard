@@ -37,7 +37,7 @@ const zone = (id: string, module: string, col: number, row: number, cols: number
 
 /** A 1024×600 kiosk screen, 4×3, its widgets, a hidden one, a panel, a blank zone and a free area drawn 1:1. */
 function screen(page: Partial<ProfilePage> = {}, extra: Partial<MonitorProfile> = {}): MonitorProfile {
-  const base = { id: "s1", name: "Desk", width: 1024, height: 600, cols: 4, rows: 3, fit: "fill" as const, ...extra };
+  const base = { id: "s1", name: "Desk", width: 1024, height: 600, cols: 4, rows: 3, fit: "fill" as const, padding: 0, ...extra };
   const probe = { ...base, pages: [] };
   const areaBox = cellBox(probe, zone("x", CANVAS_ID, 3, 2, 2, 2));
   const placements: Placement[] = [

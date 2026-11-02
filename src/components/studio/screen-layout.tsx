@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { Minus, Plus, ScanLine } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { SCROLL_ROW_H, type Placement, type ProfileView } from "@/lib/layout";
-import { MAX_SPACING, normalizeSpacing, profileGap, profilePadding } from "@/lib/profile-grid";
+import { KIOSK_EDGE_INSET, MAX_SPACING, normalizeSpacing, profileGap, profilePadding } from "@/lib/profile-grid";
 import { cn } from "@/lib/utils";
-import { FIELD, InlineRow, SegmentedRow, SelectRow } from "./setting-rows";
+import { FIELD, InlineRow, SegmentedRow, SelectRow, ToggleRow } from "./setting-rows";
 import { GRID_PREVIEW_BOX, GRID_REFUSED, gridPreview, parseSize, sizeChoice, sizeOfChoice, sizeOptions, stepGrid } from "./inspector/profile-grid";
 
 /** Screens › detail: the screen's size and fit, and its grid (cells and spacing). */
@@ -236,11 +236,19 @@ export function GridSection({
       />
       <SpacingField
         label="Edge padding"
-        hint="Space around the grid, in px (empty: 0 for a fill kiosk page, 24 for scroll)"
+        hint={`Space around the grid, in px (empty: ${KIOSK_EDGE_INSET} for a fill kiosk page, 0 if it touches the edges, 24 for scroll)`}
         value={profile.padding}
-        placeholder={profilePadding({ fit: profile.fit }, true)}
+        placeholder={profilePadding({ fit: profile.fit, edges: profile.edges }, true)}
         onChange={(padding) => patch({ padding })}
       />
+      {profile.fit === "fill" && (
+        <ToggleRow
+          label="Touch the display edges"
+          hint="The grid runs to the display edge, as before the inset. Edge padding, when set, wins."
+          value={profile.edges === "touch"}
+          onChange={(touch) => patch({ edges: touch ? "touch" : undefined })}
+        />
+      )}
     </div>
   );
 }

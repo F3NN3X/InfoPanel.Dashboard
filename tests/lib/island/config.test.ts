@@ -9,12 +9,14 @@ describe("normalizeIsland", () => {
   });
 
   it("falls back to the defaults for bad values and clamps numbers", () => {
-    expect(normalizeIsland({})).toEqual(ISLAND_DEFAULTS);
+    // an empty stored island is the look before "skin" existed: black, an overlay
+    expect(normalizeIsland({})).toEqual({ ...ISLAND_DEFAULTS, tint: "black", placement: "overlay" });
     expect(
       normalizeIsland({ enabled: false, idle: "clock", size: "xl", offsetY: 500, collapseAfter: -3, sensorKey: 4, sensorLabel: "A very long label", reserve: "yes", tint: "red" })
     ).toEqual({
       ...ISLAND_DEFAULTS,
       enabled: false,
+      tint: "black",
       offsetY: 64,
       collapseAfter: 0,
       // An island saved before `stats` keeps its one value as the first.
@@ -41,6 +43,7 @@ describe("normalizeIsland", () => {
       offsetY: 12,
       collapseAfter: 30,
       reserve: true,
+      placement: "skin",
       tint: "custom",
       bgColor: "#102030",
       fgColor: "#f0e0d0",
@@ -57,6 +60,33 @@ describe("normalizeIsland", () => {
       calendarLead: 15,
     };
     expect(normalizeIsland(JSON.parse(JSON.stringify(island)))).toEqual(island);
+  });
+});
+
+describe("island placement and tint", () => {
+  it("starts a new island as an overlay that follows the skin", () => {
+    expect(ISLAND_DEFAULTS).toMatchObject({ placement: "overlay", tint: "skin" });
+  });
+
+  it("keeps an island saved as black black, and one saved without a placement an overlay", () => {
+    const saved = { enabled: true, idle: "time", size: "m", tint: "black", bgColor: "#000000", fgColor: "#ffffff" };
+    const island = normalizeIsland(JSON.parse(JSON.stringify(saved)));
+    expect(island).toMatchObject({ tint: "black", placement: "overlay" });
+    expect(normalizeIsland({ ...saved, tint: "theme" })?.tint).toBe("theme");
+  });
+
+  it("reads a missing or invalid tint as black, a missing placement as overlay, and a new island saves skin", () => {
+    expect(normalizeIsland({ enabled: true, idle: "time" })).toMatchObject({ tint: "black", placement: "overlay" });
+    expect(normalizeIsland({ tint: "red" })?.tint).toBe("black");
+    expect(normalizeIsland({ tint: 3 })?.tint).toBe("black");
+    const made = withIsland({} as { island?: IslandConfig }, { enabled: true }).island;
+    expect(JSON.parse(JSON.stringify(normalizeIsland(JSON.parse(JSON.stringify(made)))))).toMatchObject({ tint: "skin", placement: "overlay" });
+  });
+
+  it("reads the skin tint and the skin placement, and falls back for any other value", () => {
+    expect(normalizeIsland({ tint: "skin", placement: "skin" })).toMatchObject({ tint: "skin", placement: "skin" });
+    expect(normalizeIsland({ placement: "inline" })?.placement).toBe("overlay");
+    expect(normalizeIsland({ placement: 1 })?.placement).toBe("overlay");
   });
 });
 

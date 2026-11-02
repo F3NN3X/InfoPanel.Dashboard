@@ -42,13 +42,15 @@ export function CompactView({ c, shape, w, h, icon }: { c: Compact; shape: Shape
   const caption = word && !none && <span className="truncate text-micro text-[color:var(--w-muted)]">{c.unit}</span>;
   // a 1x1 whose label would be cut ("ACHIEVEM…") shows the icon alone, faint, and keeps the label as its title
   const iconOnly = shape === "tile" && w < 140 && typeof c.label === "string" && c.label.length * 7.6 > w - 46;
+  // a narrow card sets a caption it would cut tighter, and drops the icon when the text still would not fit beside it
+  const { tight: narrow, bare: bareLabel } = captionFit(c.label, w, w - 46);
   const label = c.label && (iconOnly ? (
     <div role="img" aria-label={String(c.label)} title={String(c.label)} className="flex min-w-0 items-center">
       <Icon name={c.icon ?? icon} className="text-[14px] text-[color:var(--w-faint)]" />
     </div>
   ) : (
-    <div className="flex min-w-0 items-center gap-1.5 text-micro font-medium uppercase tracking-[0.08em] text-[color:var(--w-muted)]" style={labelStyle()}>
-      <Icon name={c.icon ?? icon} className="text-[14px] text-[color:var(--accent)]" />
+    <div className={`flex min-w-0 items-center gap-1.5 text-micro font-medium uppercase ${narrow ? "tracking-[0.04em]" : "tracking-[0.08em]"} text-[color:var(--w-muted)]`} style={labelStyle()}>
+      {!bareLabel && <Icon name={c.icon ?? icon} className="text-[14px] text-[color:var(--accent)]" />}
       <span className="truncate">{c.label}</span>
     </div>
   ));
@@ -296,6 +298,18 @@ export function StudioView({ c, w, h, icon }: { c: Studio; w: number; h: number;
   );
 }
 
+/**
+ * A card narrower than this, px, whose caption would be cut at the normal 0.08em tracking sets it at 0.04em, and
+ * drops the icon before the text when it would still be cut. Estimates of ~7.6 / 7px a character; other nodes fit.
+ */
+export const NARROW_CARD = 160;
+const captionFits = (text: ReactNode, room: number, px: number): boolean => typeof text !== "string" || text.length * px <= room;
+/** The caption's tracking and whether its icon goes, for a card `w` wide with `room` px for the icon and text. */
+function captionFit(text: ReactNode, w: number, room: number): { tight: boolean; bare: boolean } {
+  const tight = w > 0 && w < NARROW_CARD && !captionFits(text, room, 7.6);
+  return { tight, bare: tight && !captionFits(text, room, 7) };
+}
+
 export interface SkinHeaderProps {
   kind?: string;
   title: ReactNode;
@@ -304,6 +318,8 @@ export interface SkinHeaderProps {
   bleed?: boolean;
   /** What the tui header patches paint over the box edge: the surface background. */
   bg?: string;
+  /** The card's width, px: a narrow one (`NARROW_CARD`) sets its caption tighter. */
+  w?: number;
 }
 /** Whether the tui header's right slot fits on the box edge beside the title; it is dropped when it does not. */
 function useTuiRightFits(on: boolean) {
@@ -334,7 +350,7 @@ function useTuiRightFits(on: boolean) {
 /** The most space under a section header the look's gap may add. */
 export const HEADER_GAP_MAX = 12;
 
-export function SkinHeader({ kind, title, icon, right, bleed, bg = "#0b0b0d" }: SkinHeaderProps) {
+export function SkinHeader({ kind, title, icon, right, bleed, bg = "#0b0b0d", w }: SkinHeaderProps) {
   const sk = useSkin();
   const tuiRight = useTuiRightFits(kind === "tui" && !!right);
   // The look's gap replaces the space under the header (capped: a wide gap is for the items, and the body's
@@ -449,9 +465,11 @@ export function SkinHeader({ kind, title, icon, right, bleed, bg = "#0b0b0d" }: 
         {r}
       </header>
     );
+  // the card's padding and the icon with its gap (24 and 21px) come off the room; the icon goes first
+  const { tight: narrow, bare } = captionFit(title, w ?? 0, (w ?? 0) - 24 - 21);
   return (
-    <header className={`${base} mb-2 gap-1.5 text-[11px] font-medium uppercase tracking-[0.08em] text-[color:var(--w-muted)] ${bleed ? "px-4 pt-3" : ""}`} style={st("uppercase")}>
-      {icon && <Icon name={icon} className="text-[15px] text-[color:var(--accent)]" />}
+    <header className={`${base} mb-2 gap-1.5 text-[11px] font-medium uppercase ${narrow ? "tracking-[0.04em]" : "tracking-[0.08em]"} text-[color:var(--w-muted)] ${bleed ? "px-4 pt-3" : ""}`} style={st("uppercase")}>
+      {icon && !bare && <Icon name={icon} className="text-[15px] text-[color:var(--accent)]" />}
       <span className="truncate">{title}</span>
       {r}
     </header>

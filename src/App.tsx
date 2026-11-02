@@ -11,6 +11,7 @@ import { KioskOfflinePill } from "@/components/ui/kiosk-offline";
 import { KioskWaitingForData } from "@/components/ui/kiosk-waiting";
 import { AlertLayer, useShownAlerts, ZoneHighlights } from "@/components/alerts/alert-layer";
 import { DynamicIsland } from "@/components/island/dynamic-island";
+import { pageSkinOf } from "@/components/island/island-look";
 import { islandReserve } from "@/components/island/island-model";
 import { splitIslandAlerts } from "@/lib/island/from-alerts";
 import { ISLAND_DEFAULTS } from "@/lib/island/config";
@@ -23,7 +24,7 @@ import { appearanceOf, zoneResolver } from "@/lib/style-resolve";
 import { applyTheme, resolveTheme } from "@/lib/theme";
 import { msUntilNextRefresh, REFRESH_JITTER_MS } from "@/lib/kiosk-refresh";
 import { fontStack, formatClock, resolveFont, resolveGeneral } from "@/lib/general";
-import { profileGap, profilePadding } from "@/lib/profile-grid";
+import { barRowTemplate, profileGap, profilePadding } from "@/lib/profile-grid";
 import { GeneralProvider, useGeneral } from "@/hooks/use-general";
 import { PageIslandProvider } from "@/hooks/use-page-island";
 import { PerformanceProvider } from "@/hooks/use-performance";
@@ -210,7 +211,7 @@ export default function App({ fixture }: AppProps = {}) {
   const islandShown = kiosk ? islandEffective(control, profile) : savedIsland;
   const islandConfig = useMemo(
     () =>
-      islandShown || savedIsland ? { ...(profile.island ?? ISLAND_DEFAULTS), enabled: true } : undefined,
+      islandShown || savedIsland ? { ...(profile.island ?? { ...ISLAND_DEFAULTS, tint: "black" as const }), enabled: true } : undefined,
     [profile.island, islandShown, savedIsland]
   );
   const island = islandShown ? islandConfig : undefined;
@@ -226,12 +227,18 @@ export default function App({ fixture }: AppProps = {}) {
         : undefined,
     [kiosk, island, stored, config, quietHours, pageName, layoutVersion]
   );
-  const islandPage = useMemo(() => ({ width: profile.width, height: profile.height }), [profile.width, profile.height]);
+  // The kiosk sizes the island by the window it is in; the studio by the screen's design size.
+  const islandPage = useMemo(
+    () => (kiosk ? { width: windowSize.w, height: windowSize.h } : { width: profile.width, height: profile.height }),
+    [kiosk, windowSize.w, windowSize.h, profile.width, profile.height]
+  );
   const reserve = islandReserve(islandConfig, islandPage);
   const pageIsland = useMemo(() => ({ island, page: islandPage }), [island, islandPage]);
   const fill = profile.fit === "fill";
   const background = resolveBackground(profile);
   const appearance = appearanceOf(config, profile);
+  // The skin the widgets of this screen wear, for an island that is part of it.
+  const pageSkin = useMemo(() => pageSkinOf(appearanceOf(config, profile)), [config, profile]);
   // The app settings under the shown screen's page font and performance.
   const general = useMemo(() => resolveGeneral(config, stored), [config, stored]);
   // Max FPS and motion: the ?fps= / ?animations= / ?motion= overrides (kiosk pages) over the shown profile's.
@@ -765,7 +772,8 @@ export default function App({ fixture }: AppProps = {}) {
             gridTemplateColumns: `repeat(${profile.cols}, minmax(0, 1fr))`,
             // Explicit uniform rows, mirroring the studio canvas.
             gridTemplateRows: fill
-              ? `repeat(${profile.rows}, minmax(0, 1fr))`
+              ? (kiosk && barRowTemplate(profile, drawn, windowSize.h - profilePadding(profile, kiosk) - (pageNav ? Math.max(profilePadding(profile, kiosk), pageDotsStripPx()) : profilePadding(profile, kiosk)) - reserve, windowSize.h)) ||
+                `repeat(${profile.rows}, minmax(0, 1fr))`
               : `repeat(${profile.rows}, ${SCROLL_ROW_H}px)`,
           }}
         >
@@ -806,6 +814,7 @@ export default function App({ fixture }: AppProps = {}) {
             onAck={kiosk ? ackAlert : undefined}
             placement="fixed"
             page={islandPage}
+            skin={pageSkin}
             live={islandLive}
           />
         )}

@@ -134,7 +134,11 @@ function Current(p: WeatherProps) {
             </div>
           </div>
         );
-        if (size === "xs" || size === "sm" || (!showStats && !showForecast)) return <div className="flex h-full items-center">{now}</div>;
+        if (size === "xs" || size === "sm" || (!showStats && !showForecast)) {
+          // a portrait card (taller than 1.4 of its width): the reading sits in the top third, not mid-card
+          const portrait = w > 0 && h >= 240 && h > w * 1.4;
+          return portrait ? <div className="flex h-full flex-col"><div className="flex items-center" style={{ height: Math.round(h / 3) }}>{now}</div></div> : <div className="flex h-full items-center">{now}</div>;
+        }
         const snow = num(k("snow")) > 0;
         // the forecast cells shed their rows (rain, bar, low) to the height left under the current block and the stats:
         // the temperature (48 / 60px) + description (20) + feels line (16), or the stats grid (one row 38, three rows 128)

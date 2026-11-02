@@ -393,7 +393,7 @@
   "options": "A) skin-tinted surface (recommended); B) keep black but add a 1px `--w-faint` ring so it reads as an object, not a hole; C) leave black, only shrink.",
   "why": "Waza \"surfaces stepped by background\"; ui-ux-pro-max `consistency`, `effects-match-style`.",
   "note": "Default tint follows the skin as a new value; islands stored as black stay black.",
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "B-03",
@@ -411,7 +411,7 @@
   "options": null,
   "why": "Waza \"one job per element\"; ui-ux-pro-max `data-density`.",
   "note": "Default tint follows the skin as a new value; islands stored as black stay black.",
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "B-04",
@@ -429,7 +429,7 @@
   "options": "A) 8px padding by default; B) padding 0 but drop the frame on edge-touching sides; C) leave and document.",
   "why": "ui-ux-pro-max `safe-area-awareness`, `fixed-element-offset`; Waza \"no clipped frames\".",
   "note": "User: as suggested, plus a per-screen option to touch the edges as today.",
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "B-05",
@@ -447,7 +447,7 @@
   "options": null,
   "why": "Waza dashboard rule (data first, chrome small); ui-ux-pro-max `visual-hierarchy`.",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "B-06",
@@ -465,7 +465,7 @@
   "options": null,
   "why": "Waza `design-data-viz` (\"fill the cell\"); ui-ux-pro-max `whitespace-balance`.",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "B-07",
@@ -483,7 +483,7 @@
   "options": null,
   "why": "Waza Gotchas; ui-ux-pro-max `compact-label-overflow`, `truncation-strategy`.",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "B-08",
@@ -806,7 +806,7 @@
   "options": null,
   "why": "ui-ux-pro-max `style-match`, `dark-mode-pairing`; Waza \"skins set their own surface, frame and accent\".",
   "note": "User: optional, island either part of the skin or an overlay. Existing islands stay overlay.",
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "C-01",

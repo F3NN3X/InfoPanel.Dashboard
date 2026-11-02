@@ -212,6 +212,8 @@ export default function AudioMeter(p: AudioMeterProps) {
           );
         // 4x4: the peak is the hero above the meters (the stat row drops its Peak); 4x2 and up gets a dB scale under the LED row
         const big = roomy(outerW, outerH);
+        // a portrait card (taller than 1.4 of its width) lets the channel rows grow into its height, 48 to 160px each
+        const portrait = outerW > 0 && outerH >= 200 && outerH > outerW * 1.4;
         const rows = st === "led" || st === "bar" || st === "solid";
         return (
           <div className="flex h-full flex-col justify-center gap-2">
@@ -280,7 +282,7 @@ export default function AudioMeter(p: AudioMeterProps) {
             ) : (
               channels.map(([c, v, marker]) => {
                                 return (
-                  <div key={c} className={`flex items-center gap-2 ${size === "lg" ? "h-5" : "h-3"}`}>
+                  <div key={c} className={`flex items-center gap-2 ${portrait ? "max-h-40 min-h-12 flex-1" : size === "lg" ? "h-5" : "h-3"}`}>
                     <span className="w-3 text-micro font-semibold text-[color:var(--w-faint)]">{c}</span>
                     {st === "bar" || st === "solid" ? (
                       <div className="relative h-full flex-1 overflow-hidden rounded-full bg-[color:var(--w-track)]">

@@ -113,7 +113,7 @@ describe("upgradeConfig", () => {
     // Stored before the later options existed (values, reserve, look, motion...): those take their defaults.
     const island = { enabled: true, idle: "time-date", size: "l", offsetY: 99, collapseAfter: 30 };
     const [mine] = upgradeConfig({ profiles: [userProfile({ island } as never)] }).profiles;
-    expect(mine.island).toEqual({ ...ISLAND_DEFAULTS, ...island, offsetY: 64 });
+    expect(mine.island).toEqual({ ...ISLAND_DEFAULTS, ...island, tint: "black", offsetY: 64 });
     // It is a profile field, so it survives the page view round trip.
     expect(applyView(mine, profileWithPage(mine)).island).toEqual(mine.island);
   });
@@ -219,6 +219,25 @@ describe("upgradeConfig", () => {
     // v16: the page font is the screen's.
     expect(c.profiles[0].font).toBe("serif");
     expect(c.profiles[0].performance).toBeUndefined();
+  });
+
+  it("keeps a screen's edges option, drops a bad one, and leaves a screen without one unset", () => {
+    const read = (edges: unknown) => upgradeConfig({ version: CONFIG_VERSION, profiles: [userProfile({ edges } as never)] }).profiles[0].edges;
+    expect(read("touch")).toBe("touch");
+    expect(read("inset")).toBe("inset");
+    expect(read("flush")).toBeUndefined();
+    expect(read(undefined)).toBeUndefined();
+    const [plain] = upgradeConfig({ version: CONFIG_VERSION, profiles: [userProfile()] }).profiles;
+    expect(JSON.parse(JSON.stringify(plain))).not.toHaveProperty("edges");
+  });
+
+  it("loads an island saved before placement and the skin tint as it was: an overlay, black stays black", () => {
+    const stored = { enabled: true, idle: "time-date", tint: "black", size: "l" };
+    const [mine] = upgradeConfig({ version: CONFIG_VERSION, profiles: [userProfile({ island: stored } as never)] }).profiles;
+    expect(mine.island).toMatchObject({ enabled: true, idle: "time-date", size: "l", tint: "black", placement: "overlay" });
+    expect(JSON.parse(JSON.stringify(mine.island))).toMatchObject({ tint: "black", placement: "overlay" });
+    const [bare] = upgradeConfig({ version: CONFIG_VERSION, profiles: [userProfile({ island: { enabled: true } } as never)] }).profiles;
+    expect(bare.island).toMatchObject({ tint: "black", placement: "overlay" });
   });
 
   it("guards a profile's gap, padding, theme and radius", () => {
