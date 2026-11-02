@@ -1,10 +1,13 @@
 import { useState } from "react";
+import { meterKey, useWavelinkMeter } from "@/lib/wavelink";
 import { audioAct, audioRefusal, useAudio, type AudioState } from "@/lib/audio-control";
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, num, fmt, clamp, Icon, ChannelRow, CHANNEL_TRACK, Empty, LedLadder, hue, type ShellProps } from "./kit";
+import { Widget, shell, num, fmt, clamp, Icon, ChannelRow, CHANNEL_TRACK, Empty, hue, type ShellProps } from "./kit";
 import type { MixerLook } from "./core/mixer-look";
+import { useDeviceLevel } from "./core/level-source";
 import { MixerViewBody, PERCENT, fitMixer, toneOf, type StripChannel } from "./core/mixer-views";
-import { allChannels, iconOf, pickChannels, type AudioSource } from "./StreamMixer/channels";
+import { audioIds } from "./audio-data";
+import { allChannels, iconOf, pickChannels, type AudioSource, type MixChannel } from "./StreamMixer/channels";
 import { setVolume, toggleMute } from "./StreamMixer/control";
 import { MixFader, type FaderMode } from "./StreamMixer/Fader";
 import { OutputPicker } from "./StreamMixer/OutputPicker";
@@ -55,7 +58,17 @@ export default function StreamMixer(p: StreamMixerProps) {
     return { c: { ...c, name: p.labels?.[c.id] ?? c.name, sub: p.subs?.[c.id] ?? c.sub }, color: c.mute ? MUTED_COLOR : base, icon: iconOf({ icon, mute: c.mute }) };
   });
   const first = rows.find((r) => r.c.master) ?? rows[0];
-  // The audiocn views: masters first (after the separator), the level as an LED ladder, the fader writes as the rows' does.
+  // The audiocn views: masters first (after the separator), the fader writes as the rows' does. The meter is the channel's own level:
+  // a Wave Link channel's or mix's meter, or the level-meter plugin's for the default output and input; an app has none (its meter
+  // stays at silence).
+  const look = p.mixerLook;
+  const deviceOf = (container: string) => () => useDeviceLevel((d) => (audioIds(d).includes(container) ? container : undefined));
+  const useLevelOf = (c: MixChannel): StripChannel["useLevel"] => {
+    const r = c.route;
+    if (r.t === "wl-channel") return () => useWavelinkMeter(meterKey.channel(r.id));
+    if (r.t === "wl-mix") return () => useWavelinkMeter(meterKey.mix(r.id));
+    return c.id === "master" ? deviceOf("default-audio") : c.id === "mic" ? deviceOf("default-input") : undefined;
+  };
   const strips: StripChannel[] = [...rows.filter((r) => r.c.master), ...rows.filter((r) => !r.c.master)].map(({ c, color, icon }) => ({
     id: c.id,
     name: c.name,
@@ -66,11 +79,7 @@ export default function StreamMixer(p: StreamMixerProps) {
     master: c.master,
     value: clamp(num(c.vol)),
     readout: `${fmt(c.vol)}%`,
-    meter: (vertical) => (
-      <div className={`flex ${vertical ? "h-full w-2" : "h-2 w-full"}`}>
-        <LedLadder value={c.mute ? 0 : clamp(num(c.vol))} n={vertical ? 16 : 24} vertical={vertical} color={color} />
-      </div>
-    ),
+    useLevel: useLevelOf(c),
     onChange: readOnly ? undefined : (v) => setVolume(c, Math.round(v)),
     onMute: () => toggleMute(c),
     locked: readOnly,
@@ -98,8 +107,7 @@ export default function StreamMixer(p: StreamMixerProps) {
     >
       {({ w, h, size }) => {
         if (!rows.length) return <Empty icon="volume_off" label={emptyLabel(source, audio)} />;
-        const look = p.mixerLook;
-        const fit = look && fitMixer(look, w, h, strips, 8);
+        const fit = look && fitMixer(look, w, h, strips);
         if (look && fit && fit.view !== "rows")
           return (
             <ReadOnly on={readOnly}>

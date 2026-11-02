@@ -108,3 +108,4 @@ Prototypes (W1–W8 and some A-/B- IDs) were built on throwaway `proto/<id>` bra
 - C-18: The unlock list: won't fix, the plugin reports only the latest unlock.
 - C-19: "Updated" stays in the footer: won't fix, the `Widget` header has no right slot and adding one isn't worth it.
 - D-21: Mixer family: fixed in batch 8. The rows (batch 2b) stay the default; the user asked for audiocn views on all three mixers, so Strips and LCD views (vertical or horizontal) came with them, and read-only faders draw no knob. See batch-8-notes.md.
+- D-21 (batch 8b): the Strips view draws audiocn's `LevelMeter` (variant, range, response, scale, zones, peak hold, dB readout and clip light are settings), fed by each channel's own levels; Wave Link's input devices are a group of their own in Strips and LCD. See batch-8b-notes.md.

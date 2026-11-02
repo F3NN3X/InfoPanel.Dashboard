@@ -12,6 +12,9 @@ vi.mock("@/lib/audio-control", async (original) => ({
   audioActThrottled: mocks.throttled,
 }));
 
+// the strips' meters keep the level-meter plugin's fast stream open; the real store would open an EventSource
+vi.mock("@/hooks/useSensors", async (original) => ({ ...(await original<typeof import("@/hooks/useSensors")>()), useFastSensors: () => {} }));
+
 import { audioRefusal } from "@/lib/audio-control";
 import { READ_ONLY_HINT } from "@/lib/write-refusal";
 import AudioButton from "@/widgets/AudioButton";

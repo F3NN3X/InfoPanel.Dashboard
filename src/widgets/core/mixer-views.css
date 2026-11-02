@@ -29,6 +29,9 @@
   --meter-ok: var(--wl-live, var(--accent));
   --meter-ok-foreground: var(--wl-live, var(--accent));
   --meter-warn: var(--w-warn, #edb232);
+  /* the LevelMeter's red zone and its clip light */
+  --meter-clip: var(--w-crit, #f2665e);
+  --meter-clip-foreground: var(--w-crit, #f2665e);
   --channel-mute: var(--wl-mute, var(--w-crit, #f2665e));
   --channel-mute-foreground: var(--wl-mute, var(--w-crit, #f2665e));
   /* The text colour with its lightness turned over: a line drawn on a knob of the text colour. */

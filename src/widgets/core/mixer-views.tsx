@@ -1,15 +1,20 @@
 // The audiocn views of the mixer widgets (StreamMixer, VolumeMixer, WaveLink): console strips of a fader on its track
 // and dB scale, a meter and an LCD readout (`strips`), or one LCD screen with a line per channel (`lcd`). Each widget
 // hands over its channels; this file draws them. Imported by the widgets only, so the audiocn code loads with them.
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { ChannelStrip, ChannelStripControls, ChannelStripDescription, ChannelStripFader, ChannelStripHeader, ChannelStripIcon, ChannelStripMeter, ChannelStripStatus, ChannelStripText, ChannelStripTitle, ChannelStripValue } from "@/components/ui/audiocn/channel-strip";
+import { ClipIndicator } from "@/components/ui/audiocn/clip-indicator";
+import { DbReadout } from "@/components/ui/audiocn/db-readout";
 import { Fader, FaderRange, FaderScale, FaderThumb, FaderTrack } from "@/components/ui/audiocn/fader";
 import { LcdDisplay, LcdDisplayLabel, LcdDisplayRow, LcdDisplaySeparator, LcdDisplayStatus, LcdDisplayValue, type LcdDisplayAppearance } from "@/components/ui/audiocn/lcd-display";
+import { LevelMeter, LevelMeterBar, LevelMeterChannel, LevelMeterChannels, LevelMeterHold, LevelMeterTrack } from "@/components/ui/audiocn/level-meter";
 import { Mixer, MixerChannels, MixerMaster, MixerSeparator } from "@/components/ui/audiocn/mixer";
 import { useElementSize } from "@/hooks/use-element-size";
 import { resolveTaper } from "@/lib/audio/taper";
+import type { FrameSource, MeterFrame } from "@/lib/audio/types";
 import { cn } from "@/lib/utils";
 import type { ModuleSettings } from "@/modules/types";
+import { meterZones } from "./level-source";
 import { Icon } from "./primitives";
 import { MIXER_GAP, mixerFit, thinTicks, type MixerFit } from "./mixer-fit";
 import type { MixerLook } from "./mixer-look";
@@ -43,12 +48,16 @@ export interface StripChannel {
   color: string;
   /** Drawn after the separator, as a master strip. */
   master?: boolean;
+  /** An input device: a group of its own between the channels and the masters, read-only. */
+  input?: boolean;
   /** The fader's value in the unit; none = no fader. */
   value?: number;
   /** The readout (the LCD's text). */
   readout: string;
-  /** The level meter for an orientation (a component: it may hold its own meter state). */
-  meter?: (vertical: boolean) => ReactNode;
+  /** The channel's level frames (an L/R pair), read in the strip's meter (it may call hooks; it must call the same ones on every render); none = a meter at silence. */
+  useLevel?: () => FrameSource<MeterFrame> | undefined;
+  /** The meter's safe-zone colour; default the channel's. */
+  meterColor?: string;
   /** Beside the mute control: route pips and the like. */
   extra?: ReactNode;
   /** A writable fader: called with the new value while it moves. */
@@ -157,6 +166,45 @@ function Lcd({ look, tone, live, className, font, children }: { look: MixerLook;
   );
 }
 
+/** Tracks in a strip's meter: the L/R pair every level source gives. */
+const METER_TRACKS = [0, 1];
+
+/** A strip's level meter: audiocn's `LevelMeter` painting from the channel's frames (its range, zones and response come from the `Mixer`), with the optional clip light and dB readout. */
+function StripMeter({ useLevel, color, look, vertical }: { useLevel?: StripChannel["useLevel"]; color: string; look: MixerLook; vertical: boolean }) {
+  // a component of its own: its hooks (the source's) are counted with the meter, which mounts and unmounts with it
+  const source = useLevel?.();
+  const zones = useMemo(() => meterZones(look.meterWarnDb, look.meterClipDb), [look.meterWarnDb, look.meterClipDb]);
+  return (
+    <div className={cn("flex min-h-0 min-w-0 items-center", vertical ? "h-full flex-col gap-0.5" : "w-full gap-1.5")}>
+      {look.meterClip && <ClipIndicator source={source} />}
+      <LevelMeter
+        source={source}
+        channelCount={METER_TRACKS.length}
+        variant={look.meterVariant}
+        segments={look.meterSegments}
+        taper={look.meterTaper}
+        orientation={vertical ? "vertical" : "horizontal"}
+        // audiocn's vertical meter keeps 8rem; a strip's takes the fader's height. Thin tracks, the safe zone in the channel's colour.
+        className={cn("min-h-0", vertical ? "h-full flex-1" : "flex-1")}
+        style={{ "--meter-thickness": vertical ? "6px" : "3px", "--meter-gap": vertical ? "3px" : "2px", "--meter-ok": color } as CSSProperties}
+      >
+        <LevelMeterChannels>
+          {METER_TRACKS.map((i) => (
+            <LevelMeterChannel key={i} index={i}>
+              {/* the bar slides out of its track to show the level: a clip on purpose, as art that bleeds (the overflow probe skips it) */}
+              <LevelMeterTrack data-qa-bleed>
+                <LevelMeterBar />
+                {look.meterHold && <LevelMeterHold />}
+              </LevelMeterTrack>
+            </LevelMeterChannel>
+          ))}
+        </LevelMeterChannels>
+      </LevelMeter>
+      {look.meterValue && <DbReadout source={source} decimals={0} unit={!vertical} floorDb={look.meterMinDb} zones={zones} className="text-micro text-muted-foreground" />}
+    </div>
+  );
+}
+
 function MuteControl({ c }: { c: StripChannel }) {
   const icon = c.muted ? "volume_off" : "volume_up";
   if (!c.onMute)
@@ -180,7 +228,7 @@ function MuteControl({ c }: { c: StripChannel }) {
   );
 }
 
-function Strip({ c, look, fit, unit, tone, live }: { c: StripChannel; look: MixerLook; fit: MixerFit; unit: FaderUnit; tone: SurfaceTone; live: boolean }) {
+function Strip({ c, look, fit, unit, tone, live, meter }: { c: StripChannel; look: MixerLook; fit: MixerFit; unit: FaderUnit; tone: SurfaceTone; live: boolean; meter: boolean }) {
   const vertical = look.vertical;
   return (
     <ChannelStrip
@@ -211,7 +259,11 @@ function Strip({ c, look, fit, unit, tone, live }: { c: StripChannel; look: Mixe
         </ChannelStripText>
         {look.status && !vertical && !fit.bare && <ChannelStripStatus tone={c.muted ? "muted" : "live"}>{c.muted ? "Muted" : "Live"}</ChannelStripStatus>}
       </ChannelStripHeader>
-      {look.meter && c.meter && <ChannelStripMeter className={vertical ? "py-0" : "h-2"}>{c.meter(vertical)}</ChannelStripMeter>}
+      {meter && (
+        <ChannelStripMeter className={vertical ? "py-0" : look.meterClip || look.meterValue ? "min-h-5" : "h-2"}>
+          <StripMeter useLevel={c.useLevel} color={c.meterColor ?? c.color} look={look} vertical={vertical} />
+        </ChannelStripMeter>
+      )}
       {c.value !== undefined && (
         <ChannelStripFader>
           <StripFader c={c} unit={unit} look={look} label={`${c.name} level`} dense={fit.dense} bare={fit.bare} />
@@ -247,34 +299,48 @@ function More({ n, vertical }: { n: number; vertical: boolean }) {
   );
 }
 
+/** The grid of a mixer's groups: the channels, then (each after a separator) the inputs and the masters. */
+export function mixerGrid(vertical: boolean, inputs: boolean, masters: boolean): { areas: string; tracks: string } {
+  const cells = ["channels", ...(inputs ? ["separator-in", "inputs"] : []), ...(masters ? ["separator", "master"] : [])];
+  const tracks = cells.map((c) => (c === "channels" ? "minmax(0,1fr)" : "auto")).join(" ");
+  return vertical ? { areas: `'${cells.join(" ")}'`, tracks } : { areas: cells.map((c) => `'${c}'`).join(" "), tracks };
+}
+
 function StripsView({ look, fit, channels, unit, tone, live }: MixerViewProps) {
   const shown = channels.slice(0, fit.n);
   const masters = shown.filter((c) => c.master),
-    rest = shown.filter((c) => !c.master);
-  const strip = (c: StripChannel) => <Strip key={c.id} c={c} look={look} fit={fit} unit={unit} tone={tone} live={live} />;
+    inputs = shown.filter((c) => c.input),
+    rest = shown.filter((c) => !c.master && !c.input);
+  // a channel with no level data draws its meter at silence, so the strips stay level; none has any, no meter
+  const meter = look.meter && channels.some((c) => c.useLevel);
+  const strip = (c: StripChannel) => <Strip key={c.id} c={c} look={look} fit={fit} unit={unit} tone={tone} live={live} meter={meter} />;
+  const zones = useMemo(() => meterZones(look.meterWarnDb, look.meterClipDb), [look.meterWarnDb, look.meterClipDb]);
+  const grid = mixerGrid(look.vertical, inputs.length > 0, masters.length > 0);
   return (
     <Mixer
       orientation={look.vertical ? "vertical" : "horizontal"}
       size={fit.size}
+      // the meters' range, zones and response, shared by every strip's LevelMeter
+      minDb={look.meterMinDb}
+      maxDb={look.meterMaxDb}
+      zones={zones}
+      ballistics={look.meterBallistics}
       // no header: the widget's own; the channels take the zone and scroll never (the fit counts what's left out)
-      // (a template with no master has one track: an empty one would still take its gap)
-      className={cn(
-        "h-full",
-        look.vertical
-          ? masters.length
-            ? "grid-rows-[minmax(0,1fr)] [grid-template-areas:'channels_separator_master']"
-            : "grid-cols-[minmax(0,1fr)] grid-rows-[minmax(0,1fr)] [grid-template-areas:'channels']"
-          : masters.length
-            ? "grid-rows-[minmax(0,1fr)_auto_auto] [grid-template-areas:'channels'_'separator'_'master']"
-            : "grid-rows-[minmax(0,1fr)] [grid-template-areas:'channels']"
-      )}
-      style={{ gap: fit.gap, "--mixer-gap": `${fit.gap}px` } as CSSProperties}
+      // (a template with a group fewer has a track fewer: an empty one would still take its gap)
+      className="h-full"
+      style={{ gap: fit.gap, "--mixer-gap": `${fit.gap}px`, gridTemplateAreas: grid.areas, [look.vertical ? "gridTemplateColumns" : "gridTemplateRows"]: grid.tracks, [look.vertical ? "gridTemplateRows" : "gridTemplateColumns"]: "minmax(0,1fr)" } as CSSProperties}
     >
       {/* a row strip's fader keeps a touch area past its edge (audiocn's `before:` inset): the padding holds it */}
       <MixerChannels scrollable={false} className={cn("overflow-hidden", !look.vertical && "pb-1")}>
         {rest.map(strip)}
         {fit.more > 0 && <More n={fit.more} vertical={look.vertical} />}
       </MixerChannels>
+      {inputs.length > 0 && (
+        <>
+          <MixerSeparator className="[grid-area:separator-in]" />
+          <MixerMaster className="gap-(--mixer-gap) [grid-area:inputs]">{inputs.map(strip)}</MixerMaster>
+        </>
+      )}
       {masters.length > 0 && (
         <>
           <MixerSeparator />
@@ -284,6 +350,9 @@ function StripsView({ look, fit, channels, unit, tone, live }: MixerViewProps) {
     </Mixer>
   );
 }
+
+/** Which group a channel is drawn in: the channels, then the inputs, then the masters. */
+const groupOf = (c: StripChannel): number => (c.master ? 2 : c.input ? 1 : 0);
 
 function LcdView({ look, fit, channels, tone, live }: MixerViewProps) {
   const shown = channels.slice(0, fit.n);
@@ -296,7 +365,7 @@ function LcdView({ look, fit, channels, tone, live }: MixerViewProps) {
         <div className="flex min-h-0 flex-1 flex-col justify-evenly">
           {shown.map((c, i) => (
             <div key={c.id} className="min-w-0">
-              {i > 0 && c.master !== shown[i - 1].master && <LcdDisplaySeparator />}
+              {i > 0 && groupOf(c) !== groupOf(shown[i - 1]) && <LcdDisplaySeparator />}
               <LcdDisplayRow className="min-w-0 gap-[1em] py-[0.25em]">
                 <LcdDisplayLabel className="min-w-0 truncate" title={c.name}>
                   {c.name}
@@ -337,8 +406,11 @@ export function MixerViewBody(p: MixerViewProps) {
   );
 }
 
-/** How `channels` (in the order they give way: the last left out first) fit w×h in the look's view; `meterW` is a vertical strip's meter width, px. */
-export function fitMixer(look: MixerLook, w: number, h: number, channels: StripChannel[], meterW: number): MixerFit {
+/** A vertical strip's meter: two 6px tracks, 3px apart. */
+const STRIP_METER_W = 15;
+
+/** How `channels` (in the order they give way: the last left out first) fit w×h in the look's view. */
+export function fitMixer(look: MixerLook, w: number, h: number, channels: StripChannel[]): MixerFit {
   return mixerFit({
     view: look.view,
     vertical: look.vertical,
@@ -346,9 +418,12 @@ export function fitMixer(look: MixerLook, w: number, h: number, channels: StripC
     h,
     count: channels.length,
     masters: channels.filter((c) => c.master).length,
+    inputs: channels.filter((c) => c.input).length,
     size: look.stripSize,
-    meter: look.meter && channels.some((c) => c.meter),
-    meterW,
+    meter: look.meter && channels.some((c) => c.useLevel),
+    meterW: STRIP_METER_W,
+    meterClip: look.meterClip,
+    meterValue: look.meterValue,
     fader: channels.some((c) => c.value !== undefined),
     writable: channels.some((c) => c.onChange),
     // a mute button, else a mute mark on a muted channel, else route dots

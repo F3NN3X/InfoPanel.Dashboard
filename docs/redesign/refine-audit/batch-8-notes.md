@@ -13,11 +13,7 @@ D-21 is `fixed`. The rows view from batch 2b stays the default. All three mixers
 - `lib/audio`:
   - Nothing was added. The components need only `decibels`, `taper`, `types` and `ballistics` (type only), which are identical to upstream apart from line endings.
   - `bands.ts` and `frame-loop.ts` are untouched.
-- `level-meter.tsx` is not vendored. `ChannelStrip.Meter` holds our meters instead:
-  - WaveLink: its `MeterPair`, through `useWlLevels`, with Meter type and Meter response;
-  - StreamMixer and VolumeMixer: an `LedLadder` of the volume, because neither has level data.
-
-  So the ballistics and peak-hold behave exactly as before.
+- `level-meter.tsx` was not vendored in this batch; **batch 8b vendors it** (with `db-readout`, `clip-indicator`, `use-visibility`) and draws it in `ChannelStrip.Meter`, so the meter options below are exposed. See `batch-8b-notes.md`. In this batch `ChannelStrip.Meter` held our own meters (Wave Link's `MeterPair`; an `LedLadder` of the volume for the other two).
 
 ## Theming (`src/widgets/core/mixer-views.css`)
 - The components use shadcn token classes (`bg-muted/40`, `bg-primary`, `text-muted-foreground`, `bg-input`, …). Tailwind compiles these to `hsl(var(--x))` (`@theme inline`, `src/index.css:18`).
@@ -64,7 +60,7 @@ D-21 is `fixed`. The rows view from batch 2b stays the default. All three mixers
   - WaveLink's mix routes become live/muted dots under each channel.
   - The mixes become master strips.
   - Faders are in dB from −60 to 0 when the plugin sends `levelDb` (1.2+), otherwise in %.
-  - Input devices are not drawn in the audiocn views. Only the rows view draws them, at lg.
+  - Input devices were not drawn in the audiocn views in this batch (only the rows view, at lg). Batch 8b draws them in Strips and LCD, as a group of their own.
 
 ## Settings (`src/widgets/registry/audio-settings.ts:109` `mixerViewSettings`, `:158` `mixerLookOf`)
 - **Keys added to all three mixers:**
@@ -88,7 +84,7 @@ D-21 is `fixed`. The rows view from batch 2b stays the default. All three mixers
 **Mixer**
 - `orientation`: exposed as `orientation` (WaveLink `meterOrientation`).
 - `size`: exposed as `stripSize`.
-- `minDb`, `maxDb`, `zones`, `ballistics`: not exposed. They configure audiocn's `LevelMeter`, which is not vendored; WaveLink's meters take `meterBallistics`.
+- `minDb`, `maxDb`, `zones`, `ballistics`: exposed in batch 8b as `meterMinDb`, `meterMaxDb`, `meterWarnDb` + `meterClipDb`, and `meterBallistics` (passed on the `Mixer`, which hands them to every strip's `LevelMeter`).
 - `disabled`: not exposed. It follows the widget's write state.
 - Parts:
   - `MixerChannels.scrollable`: not exposed. It is fixed off, because a kiosk can't scroll and the fit counts the rest.
@@ -110,7 +106,7 @@ D-21 is `fixed`. The rows view from batch 2b stays the default. All three mixers
   - `ChannelStripIcon`: exposed as `stripIcon` (horizontal strips; vertical strips leave it out for height).
   - `ChannelStripDescription`: exposed as `stripSub`.
   - `ChannelStripStatus`: exposed as `stripStatus` (horizontal strips).
-  - `ChannelStripMeter`: exposed as `stripMeter`.
+  - `ChannelStripMeter`: exposed as `stripMeter`; its `LevelMeter` options are exposed in batch 8b.
   - `ChannelStripValue`: exposed as `stripLcd` (LCD or plain text).
   - `ChannelStripActions`: not used. Controls holds mute.
   - `ChannelStripNotice`: not exposed. `ReadOnly` and the widgets' own states cover it.

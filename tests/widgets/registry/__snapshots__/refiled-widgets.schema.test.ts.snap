@@ -4452,6 +4452,7 @@ exports[`VolumeMixer > files its rows by the rules 1`] = `
     {
       "Motion": [
         "smoothing",
+        "meterBallistics",
       ],
     },
     {
@@ -4502,6 +4503,20 @@ exports[`VolumeMixer > files its rows by the rules 1`] = `
         "stripMeter",
         "stripLcd",
         "stripStatus · more",
+      ],
+    },
+    {
+      "Meter": [
+        "meterVariant",
+        "meterSegments · more",
+        "meterMinDb · more",
+        "meterMaxDb · more",
+        "meterTaper · more",
+        "meterWarnDb · more",
+        "meterClipDb · more",
+        "meterHold · more",
+        "meterValue",
+        "meterClip",
       ],
     },
     {
@@ -4638,6 +4653,15 @@ exports[`WaveLink > files its rows by the rules 1`] = `
       "Meter": [
         "meterVariant",
         "meterOrientation",
+        "meterSegments · more",
+        "meterMinDb · more",
+        "meterMaxDb · more",
+        "meterTaper · more",
+        "meterWarnDb · more",
+        "meterClipDb · more",
+        "meterHold · more",
+        "meterValue",
+        "meterClip",
       ],
     },
     {

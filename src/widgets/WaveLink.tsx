@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import { SILENCE_DB, formatDb } from "@/lib/audio/decibels";
-import { meterKey, useWavelinkState, type WlChannel, type WlDevice, type WlGain, type WlMix, type WlState } from "@/lib/wavelink";
+import { meterKey, useWavelinkMeter, useWavelinkState, type WlChannel, type WlDevice, type WlGain, type WlMix, type WlState } from "@/lib/wavelink";
 import type { ModuleSettings } from "@/modules/types";
 import { useElementSize } from "@/hooks/use-element-size";
 import { useFitRows, Widget, shell, Icon, Chip, Empty, STATE, type BallisticsPreset, type ShellProps, type Tier } from "./kit";
@@ -234,14 +234,6 @@ function DeviceRow({ device, o }: { device: WlDevice; o: Opts }) {
   );
 }
 
-/** A strip's L/R meter: the rows' `MeterPair`, with their ballistics and variant. */
-function StripMeter({ meter, o, vertical }: { meter: string; o: Opts; vertical: boolean }) {
-  const levels = useWlLevels(meter, o.preset);
-  return <MeterPair levels={levels} vertical={vertical} variant={o.variant} color={o.color ?? "var(--accent)"} hot={STATE.crit} thickness={vertical ? 5 : 3} className={vertical ? "h-full" : "w-full"} />;
-}
-/** A vertical strip's L/R pair: two 5px bars, 5px apart. */
-const STRIP_METER_W = 15;
-
 /** Wave Link's calibrated faders (plugin 1.2+) as dB, from −60 to 0; older plugins send a position, shown in %. */
 const DB_UNIT: FaderUnit = { min: -60, max: 0, ticks: [0, -12, -24, -36, -48, -60], tick: (v) => formatDb(v, { decimals: 0, unit: false }), format: (v) => formatDb(v, { decimals: 1 }), db: true };
 
@@ -253,8 +245,8 @@ interface Level {
 const valueOf = (x: Level, db: boolean): number | undefined => (db ? (x.levelDb ?? SILENCE_DB) : x.level === null ? undefined : x.level * 100);
 const readoutOf = (x: Level, db: boolean): string => (db ? formatDb(x.levelDb ?? SILENCE_DB, { decimals: 1, unit: false }) : fader(x.level));
 
-/** The channels and (with Mixes) the mixes as strips: read-only, as the rows (the widget writes nothing). */
-function stripsOf(channels: WlChannel[], mixes: WlMix[], state: WlState, o: Opts, db: boolean): StripChannel[] {
+/** The channels, the input devices (their own group, with the gain the rows show) and (with Mixes) the mixes as strips: read-only, as the rows (the widget writes nothing). */
+function stripsOf(channels: WlChannel[], devices: WlDevice[], mixes: WlMix[], state: WlState, o: Opts, db: boolean): StripChannel[] {
   const color = o.color ?? "var(--accent)";
   const name = (id: string) => state.mixes.find((m) => m.id === id)?.name ?? id;
   const text = (x: Level, muted: boolean) => (o.fader ? readoutOf(x, db) : muted ? "Mute" : "Live");
@@ -269,8 +261,26 @@ function stripsOf(channels: WlChannel[], mixes: WlMix[], state: WlState, o: Opts
       master: true,
       value: o.fader ? valueOf(m, db) : undefined,
       readout: text(m, m.isMuted),
-      meter: (vertical: boolean) => <StripMeter meter={meterKey.mix(m.id)} o={o} vertical={vertical} />,
+      meterColor: color,
+      useLevel: () => useWavelinkMeter(meterKey.mix(m.id)),
     }));
+  // an input has its gain, not a fader: its position isn't on the channels' scale
+  const inputs = devices.map((d) => {
+    const muted = d.inputs.some((i) => i.isMuted);
+    const gain = d.inputs.find((i) => i.gain?.value !== undefined && i.gain?.value !== null)?.gain;
+    return {
+      id: `input:${d.id}`,
+      name: d.name,
+      sub: "Input",
+      icon: "mic",
+      muted,
+      color,
+      input: true,
+      readout: o.fader && gain ? gainLabel(gain).replace(/ dB$/, "") : muted ? "Mute" : "Live",
+      // Wave Link meters an input device per input (`input:{inputId}`), never as `device:`
+      useLevel: () => useWavelinkMeter(meterKey.input(d.inputs[0]?.id ?? d.id)),
+    };
+  });
   return [
     ...channels.map((c) => ({
       id: c.id,
@@ -280,7 +290,7 @@ function stripsOf(channels: WlChannel[], mixes: WlMix[], state: WlState, o: Opts
       color,
       value: o.fader ? valueOf(c, db) : undefined,
       readout: text(c, c.isMuted),
-      meter: (vertical: boolean) => <StripMeter meter={meterKey.channel(c.id)} o={o} vertical={vertical} />,
+      useLevel: () => useWavelinkMeter(meterKey.channel(c.id)),
       extra: o.mixes && c.mixes.length > 0 && (
         <span className="flex min-w-0 items-center gap-1">
           {c.mixes.map((m) => (
@@ -291,6 +301,7 @@ function stripsOf(channels: WlChannel[], mixes: WlMix[], state: WlState, o: Opts
         </span>
       ),
     })),
+    ...inputs,
     ...masters,
   ];
 }
@@ -399,8 +410,8 @@ export default function WaveLink(p: WaveLinkProps) {
         const look = p.mixerLook;
         if (look && look.view !== "rows") {
           const db = [...channels, ...mixes].some((x) => x.levelDb !== undefined);
-          const strips = stripsOf(channels, mixes, state, o, db);
-          const fit = fitMixer(look, w, h, strips, STRIP_METER_W);
+          const strips = stripsOf(channels, devices, mixes, state, o, db);
+          const fit = fitMixer(look, w, h, strips);
           if (fit.view !== "rows")
             return (
               <div className={`h-full ${up ? "" : "opacity-60"}`}>

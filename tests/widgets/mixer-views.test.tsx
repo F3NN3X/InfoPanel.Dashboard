@@ -1,12 +1,13 @@
 // @vitest-environment happy-dom
-import { cleanup, render, within } from "@testing-library/react";
+import { act, cleanup, render, within } from "@testing-library/react";
 import type { ComponentType } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { AudioState } from "@/lib/audio-control";
-import type { SensorMap } from "@/modules/types";
+import type { ModuleSettings, SensorMap } from "@/modules/types";
 import snapshot from "@/widgets/__fixtures__/snapshot.json";
 import { lcdAppearanceFor } from "@/widgets/core/mixer-views";
 import { toFlat } from "@/widgets/data-adapter";
+import { sensorStore } from "@/lib/sensor-store";
 import type { ShellProps } from "@/widgets/kit";
 import { mixerLookOf } from "@/widgets/registry/audio-settings";
 import StreamMixer from "@/widgets/StreamMixer";
@@ -14,15 +15,33 @@ import VolumeMixer from "@/widgets/VolumeMixer";
 import WaveLink from "@/widgets/WaveLink";
 
 vi.mock("@/lib/wavelink", async (orig) => ({ ...(await orig<typeof import("@/lib/wavelink")>()), ...(await import("@/widgets/__fixtures__/wavelink")).wavelinkMock() }));
-const AUDIO: AudioState = {
+let AUDIO: AudioState = {
   windows: { available: true, outputs: [{ id: "o1", name: "Speakers", volume: 30, muted: false, default: true }], inputs: [{ id: "i1", name: "Mic", volume: 60, muted: true, default: true }], apps: ["Spotify", "Discord", "Game", "Chrome"].map((name, i) => ({ id: `${name.toLowerCase()}.exe`, name, volume: 20 + i * 15, muted: false, deviceId: "o1" })) },
   wavelink: { status: "absent", channels: [], mixes: [] },
 };
+const AUDIO_SAVED = AUDIO;
+const mocksWavelink = () => {
+  AUDIO = { ...AUDIO, wavelink: { status: "up", channels: [{ id: "c1", name: "Music", type: "Channel", level: 40, muted: false, mixes: [] }, { id: "c2", name: "Game", type: "Channel", level: 60, muted: false, mixes: [] }], mixes: [{ id: "m1", name: "Stream", level: 80, muted: false }] } };
+};
+// The level-meter plugin's containers, as the meters of VolumeMixer and StreamMixer read them from the store (none when
+// `LEVELS` is empty). The fast stream is a spy: the real store would open an EventSource.
+let LEVELS: SensorMap = {};
+const sensorListeners: ((changed: readonly string[]) => void)[] = [];
+const fast = vi.hoisted(() => vi.fn());
+vi.mock("@/hooks/useSensors", async (orig) => ({ ...(await orig<typeof import("@/hooks/useSensors")>()), useFastSensors: fast }));
 vi.mock("@/lib/audio-control", async (orig) => ({ ...(await orig<typeof import("@/lib/audio-control")>()), useAudio: () => AUDIO }));
 
 // happy-dom lays nothing out: each widget box reports this size.
 let size = { w: 640, h: 300 };
 beforeEach(() => {
+  LEVELS = METERED;
+  sensorListeners.length = 0;
+  fast.mockClear();
+  vi.spyOn(sensorStore, "getValues").mockImplementation(() => LEVELS);
+  vi.spyOn(sensorStore, "subscribe").mockImplementation((l) => {
+    sensorListeners.push(l);
+    return () => {};
+  });
   vi.stubGlobal(
     "ResizeObserver",
     class {
@@ -35,11 +54,15 @@ beforeEach(() => {
   );
 });
 afterEach(() => {
+  AUDIO = AUDIO_SAVED;
+  LEVELS = {};
+  vi.restoreAllMocks();
   cleanup();
   vi.unstubAllGlobals();
 });
 
 const data = toFlat(snapshot.sensors as SensorMap);
+const METERED = Object.fromEntries(Object.entries(snapshot.sensors as SensorMap).filter(([k]) => k.startsWith("plugins.audio-level-meter.")));
 const WIDGETS: [string, ComponentType<ShellProps & { mixerLook?: ReturnType<typeof mixerLookOf> }>, string][] = [
   ["StreamMixer", StreamMixer, "orientation"],
   ["VolumeMixer", VolumeMixer, "orientation"],
@@ -97,5 +120,129 @@ describe("lcdAppearanceFor", () => {
     expect(lcdAppearanceFor("auto", "dark")).toBe("dark");
     expect(lcdAppearanceFor("auto", "theme")).toBe("dark");
     expect(lcdAppearanceFor("light", "dark")).toBe("light");
+  });
+});
+
+describe.each(WIDGETS)("%s meters", (id, Component, key) => {
+  const look = (extra: ModuleSettings = {}) => mixerLookOf({ view: "strips", [key]: "vertical", ...extra }, key);
+  const draw = (extra?: ModuleSettings) => {
+    size = { w: 900, h: 400 };
+    return render(<Component data={data} mixerLook={look(extra)} />).container;
+  };
+
+  it("draws an audiocn LevelMeter of two tracks in each strip, and none in the rows view", () => {
+    const c = draw();
+    const strips = c.querySelectorAll("[data-slot=channel-strip]").length;
+    expect(strips).toBeGreaterThan(0);
+    expect(c.querySelectorAll("[data-slot=level-meter]").length).toBe(strips);
+    expect(c.querySelectorAll("[data-slot=level-meter-channel]").length).toBe(strips * 2);
+    cleanup();
+    size = { w: 900, h: 400 };
+    expect(render(<Component data={data} />).container.querySelector("[data-slot=level-meter]")).toBeNull();
+  });
+
+  it("draws no meter with the strip's Meter off", () => {
+    expect(draw({ stripMeter: false }).querySelector("[data-slot=level-meter]")).toBeNull();
+  });
+
+  it("follows the meter options: variant, hold, the dB readout and the clip light", () => {
+    const base = draw();
+    expect(base.querySelector("[data-slot=level-meter]")?.getAttribute("data-variant")).toBe("solid");
+    expect(base.querySelector("[data-slot=level-meter-hold]")).not.toBeNull();
+    expect(base.querySelector("[data-slot=db-readout]")).toBeNull();
+    expect(base.querySelector("[data-slot=clip-indicator-light]")).toBeNull();
+    cleanup();
+    const c = draw({ meterVariant: "segmented", meterHold: false, meterValue: true, meterClip: true });
+    expect(c.querySelector("[data-slot=level-meter]")?.getAttribute("data-variant")).toBe("segmented");
+    expect(c.querySelector("[data-slot=level-meter-hold]")).toBeNull();
+    const strips = c.querySelectorAll("[data-slot=channel-strip]").length;
+    expect(c.querySelectorAll("[data-slot=db-readout]").length).toBe(strips);
+    expect(c.querySelectorAll("[data-slot=clip-indicator-light]").length).toBe(strips);
+  });
+
+  if (id !== "WaveLink")
+    it("draws the meters at silence where the plugin reports nothing", () => {
+      LEVELS = {};
+      const c = draw();
+      const strips = c.querySelectorAll("[data-slot=channel-strip]").length;
+      expect(strips).toBeGreaterThan(0);
+      expect(c.querySelectorAll("[data-slot=level-meter]").length).toBe(strips);
+    });
+});
+
+describe("the meters' data", () => {
+  const look = (extra: ModuleSettings = {}) => mixerLookOf({ view: "strips", orientation: "vertical", ...extra }, "orientation");
+
+  it("keeps the fast level stream open only while strips with a meter are drawn", () => {
+    size = { w: 900, h: 400 };
+    render(<StreamMixer data={data} mixerLook={look({ stripMeter: false })} />);
+    expect(fast).not.toHaveBeenCalledWith("plugins.audio-level-meter.");
+    cleanup();
+    render(<StreamMixer data={data} />);
+    expect(fast).not.toHaveBeenCalledWith("plugins.audio-level-meter.");
+    cleanup();
+    render(<StreamMixer data={data} mixerLook={look()} />);
+    expect(fast).toHaveBeenCalledWith("plugins.audio-level-meter.");
+  });
+
+  it("paints a sensor change into the strip's meter", () => {
+    vi.useFakeTimers();
+    try {
+      LEVELS = {};
+      size = { w: 900, h: 400 };
+      const { container } = render(<StreamMixer data={data} mixerLook={look({ meterValue: true })} />);
+      const readouts = () => [...container.querySelectorAll("[data-slot=db-readout]")].map((n) => n.textContent);
+      expect(readouts().every((t) => t?.includes("∞"))).toBe(true);
+      LEVELS = METERED;
+      act(() => sensorListeners.forEach((l) => l(["plugins.audio-level-meter.default-audio.left-channel"])));
+      // one readout tick (250 ms): it falls back to −∞ on the next, with no hold
+      act(() => {
+        vi.advanceTimersByTime(260);
+      });
+      expect(readouts().some((t) => t && !t.includes("∞"))).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("survives Meter being turned off and on again in a Wave Link-sourced StreamMixer (a strip's hooks stay the same)", () => {
+    mocksWavelink();
+    size = { w: 900, h: 400 };
+    const { container, rerender } = render(<StreamMixer data={data} source="wavelink" mixerLook={look()} />);
+    expect(container.querySelectorAll("[data-slot=level-meter]").length).toBeGreaterThan(0);
+    rerender(<StreamMixer data={data} source="wavelink" mixerLook={look({ stripMeter: false })} />);
+    expect(container.querySelector("[data-slot=level-meter]")).toBeNull();
+    rerender(<StreamMixer data={data} source="wavelink" mixerLook={look()} />);
+    expect(container.querySelectorAll("[data-slot=level-meter]").length).toBeGreaterThan(0);
+    // and the view going away and back
+    rerender(<StreamMixer data={data} source="wavelink" mixerLook={look({ view: "rows" })} />);
+    rerender(<StreamMixer data={data} source="wavelink" mixerLook={look()} />);
+    expect(container.querySelectorAll("[data-slot=level-meter]").length).toBeGreaterThan(0);
+  });
+});
+
+describe("Wave Link's input devices", () => {
+  const look = (extra: ModuleSettings) => mixerLookOf({ view: "strips", meterOrientation: "vertical", ...extra }, "meterOrientation");
+  const names = (c: HTMLElement) => [...c.querySelectorAll("[data-slot=channel-strip-title]")].map((n) => n.textContent);
+
+  it.each(["vertical", "horizontal"])("draws them as read-only strips in a group of their own, %s", (orientation) => {
+    size = { w: 900, h: 600 };
+    const { container } = render(<WaveLink data={data} mixerLook={look({ meterOrientation: orientation })} />);
+    // the channels, the input device, then the mixes
+    expect(names(container)).toEqual(["Music", "Game", "Wave:3", "Stream Mix", "Monitor Mix"]);
+    expect(container.querySelectorAll("[data-slot=mixer-separator]").length).toBe(2);
+    const input = [...container.querySelectorAll("[data-slot=channel-strip]")][2];
+    expect(input.querySelector("[role=slider]")).toBeNull();
+    expect(input.querySelector("[data-slot=level-meter]")).not.toBeNull();
+    // Wave Link meters an input device per input
+    expect(input.textContent).toContain("Wave:3");
+  });
+
+  it("draws them in the LCD view between the channels and the mixes", () => {
+    size = { w: 900, h: 600 };
+    const { container } = render(<WaveLink data={data} mixerLook={look({ view: "lcd" })} />);
+    const labels = [...container.querySelectorAll("[data-slot=lcd-display-label]")].map((n) => n.textContent);
+    expect(labels.slice(0, 5)).toEqual(["Music", "Game", "Wave:3", "Stream Mix", "Monitor Mix"]);
+    expect(container.querySelectorAll("[data-slot=lcd-display-separator]").length).toBe(2);
   });
 });

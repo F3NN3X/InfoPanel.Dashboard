@@ -42,6 +42,8 @@
   --color-meter-ok: var(--meter-ok);
   --color-meter-ok-foreground: var(--meter-ok-foreground);
   --color-meter-warn: var(--meter-warn);
+  --color-meter-clip: var(--meter-clip);
+  --color-meter-clip-foreground: var(--meter-clip-foreground);
   --color-channel-mute: var(--channel-mute);
   --color-channel-mute-foreground: var(--channel-mute-foreground);
 }

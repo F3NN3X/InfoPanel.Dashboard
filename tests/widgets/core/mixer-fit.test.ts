@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { lcdBox, mixerFit, rowHeight, stepsFrom, stripWidth, thinTicks, type MixerFitInput, type MixerSize, type Step } from "@/widgets/core/mixer-fit";
+import { lcdBox, mixerFit, rowHeight, separatorsOf, stepsFrom, stripWidth, thinTicks, type MixerFitInput, type MixerSize, type Step } from "@/widgets/core/mixer-fit";
 
-const BASE: MixerFitInput = { view: "strips", vertical: true, w: 640, h: 300, count: 4, masters: 0, size: "default", meter: true, meterW: 8, fader: true, writable: true, controls: 28, scale: true, console: false, lcd: true, lcdSize: "sm", chars: 4, nameChars: 7 };
+const BASE: MixerFitInput = { view: "strips", vertical: true, w: 640, h: 300, count: 4, masters: 0, inputs: 0, size: "default", meter: true, meterW: 8, meterClip: false, meterValue: false, fader: true, writable: true, controls: 28, scale: true, console: false, lcd: true, lcdSize: "sm", chars: 4, nameChars: 7 };
 const fit = (over: Partial<MixerFitInput>) => mixerFit({ ...BASE, ...over });
 const at = (size: MixerSize, dense = false, bare = false): Step => ({ size, dense, bare });
 const name = (s: Step) => `${s.size}${s.bare ? "-bare" : s.dense ? "-dense" : ""}`;
@@ -52,6 +52,41 @@ describe("mixerFit", () => {
     expect(fit({ size: "sm", lcd: false, w, masters: 4 }).n).toBe(4);
   });
 
+  it("counts a separator between each pair of groups: the channels, the inputs and the masters", () => {
+    expect(separatorsOf({ count: 4, masters: 0, inputs: 0 })).toBe(0);
+    expect(separatorsOf({ count: 4, masters: 1, inputs: 0 })).toBe(1);
+    expect(separatorsOf({ count: 4, masters: 0, inputs: 1 })).toBe(1);
+    expect(separatorsOf({ count: 4, masters: 1, inputs: 1 })).toBe(2);
+    // no channels left but the groups: still one fewer separator than groups
+    expect(separatorsOf({ count: 3, masters: 1, inputs: 2 })).toBe(1);
+    expect(separatorsOf({ count: 2, masters: 2, inputs: 0 })).toBe(0);
+  });
+
+  it("leaves room for the inputs' separator in the strips, vertical and horizontal", () => {
+    const w = 4 * stripWidth({ ...BASE, lcd: false }, at("sm", true, true)) + 3 * 4 + 1 + 2 * 4;
+    // room for the masters' one separator, not for a second
+    expect(fit({ size: "sm", lcd: false, w, masters: 1 }).n).toBe(4);
+    expect(fit({ size: "sm", lcd: false, w, masters: 1, inputs: 1 }).n).toBeLessThan(4);
+    const rows = { vertical: false, w: 400, count: 4 } as const;
+    const h = [0, 1, 2].map((sep) => fit({ ...rows, h: 600, masters: sep > 0 ? 1 : 0, inputs: sep > 1 ? 1 : 0 }));
+    expect(h.every((f) => f.n === 4)).toBe(true);
+    const bareH = 4 * rowHeight({ ...BASE, w: 400, lcd: false }, at("sm", true, true)) + 3 * 4 + 4;
+    expect(fit({ ...rows, h: bareH + 1 + 2 * 4, masters: 1 }).more).toBe(0);
+    expect(fit({ ...rows, h: bareH + 1 + 2 * 4, masters: 1, inputs: 1 }).more).toBeGreaterThan(0);
+  });
+
+  it("makes room for a meter's clip light and dB readout: wider and taller vertical strips, a taller meter line", () => {
+    const step = at("default");
+    expect(stripWidth({ ...BASE, meterValue: true, lcd: false }, step)).toBeGreaterThan(stripWidth({ ...BASE, lcd: false }, step));
+    expect(rowHeight({ ...BASE, w: 400, meterClip: true, lcd: false }, step)).toBeGreaterThan(rowHeight({ ...BASE, w: 400, lcd: false }, step));
+    // a vertical zone, 124 px tall, that holds the plain strips drops to the rows with the extras on
+    const h = fit({ h: 124 });
+    expect(h.view).toBe("strips");
+    expect(fit({ h: 124, meterClip: true, meterValue: true }).view).toBe("rows");
+    // and a meter that is off costs nothing
+    expect(fit({ h: 124, meter: false, meterClip: true, meterValue: true }).view).toBe("strips");
+  });
+
   it("stacks row strips, stepping down before it leaves any out, and leaves room for the masters' separator", () => {
     const rows = { vertical: false, w: 400, count: 4 } as const;
     // the strips, their gaps and the 4px below them
@@ -82,6 +117,13 @@ describe("mixerFit", () => {
     const h = 16 + 4 * Math.ceil(14 * 1.5);
     expect(fit({ view: "lcd", w: 120, h, count: 4, nameChars: 40 }).n).toBe(4);
     expect(fit({ view: "lcd", w: 120, h, count: 4, nameChars: 40, masters: 1 }).n).toBeLessThan(4);
+  });
+
+  it("reserves an LCD separator for each group boundary", () => {
+    const h = 16 + 4 * Math.ceil(14 * 1.5);
+    const args = { view: "lcd", w: 120, h: h + 4, count: 4, nameChars: 40 } as const;
+    expect(fit({ ...args, masters: 1 }).n).toBe(4);
+    expect(fit({ ...args, masters: 1, inputs: 1 }).n).toBeLessThan(4);
   });
 
   it("gives LCD columns room for their names, on two rows where one row is too narrow", () => {

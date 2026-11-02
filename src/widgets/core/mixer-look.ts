@@ -1,6 +1,7 @@
 // A mixer widget's view options (the audiocn views, `core/mixer-views.tsx`), apart from the view so the registry can read
 // them without loading audiocn.
 import type { LcdDisplayAppearance, LcdDisplayVariant } from "@/components/ui/audiocn/lcd-display";
+import type { BallisticsPreset } from "@/lib/audio/ballistics";
 import type { MixerSize, MixerView } from "./mixer-fit";
 import type { WidgetView } from "./types";
 
@@ -17,6 +18,24 @@ export interface MixerLook {
   /** A Live / Muted badge in the header. */
   status: boolean;
   meter: boolean;
+  /** The meter's options (audiocn's `LevelMeter`); a strip's meter only. */
+  meterVariant: "solid" | "segmented" | "gradient";
+  /** The `segmented` variant's LEDs. */
+  meterSegments: number;
+  /** The bottom and top of the meter's range, dBFS. */
+  meterMinDb: number;
+  meterMaxDb: number;
+  meterBallistics: BallisticsPreset;
+  meterTaper: "linear" | "audio";
+  /** Where the amber and red zones start, dBFS. */
+  meterWarnDb: number;
+  meterClipDb: number;
+  /** The peak-hold marker (it holds for the response's own time). */
+  meterHold: boolean;
+  /** A dB readout of the level under the meter. */
+  meterValue: boolean;
+  /** A clip light above the meter. */
+  meterClip: boolean;
   faderVariant: "default" | "console";
   /** The fill from the bottom of the track to the value. */
   range: boolean;
@@ -53,6 +72,17 @@ export const MIXER_LOOK: MixerLook = {
   sub: true,
   status: false,
   meter: true,
+  meterVariant: "solid",
+  meterSegments: 24,
+  meterMinDb: -60,
+  meterMaxDb: 0,
+  meterBallistics: "peak",
+  meterTaper: "linear",
+  meterWarnDb: -20,
+  meterClipDb: -9,
+  meterHold: true,
+  meterValue: false,
+  meterClip: false,
   faderVariant: "default",
   range: true,
   scale: true,

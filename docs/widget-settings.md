@@ -404,7 +404,7 @@ else `smooth`; `meterOrientation` → `orientation`; its source → `channels`.
 The three mixers share a `view` (D-21): **Rows** (`rows`, the default) is each widget's own layout, unchanged, and
 what a widget saved before the views draws. **Strips** (`strips`) is an audiocn `Mixer` of `ChannelStrip`s: the name
 and status line, a meter, a `Fader` on its track with a `DbScale`, an `LcdDisplay` readout and the mute control;
-masters (Stream Mixer's Master, Wave Link's mixes) sit after a `MixerSeparator`. **LCD** (`lcd`) is one `LcdDisplay`
+Wave Link's input devices (its Show filter and Meters to show decide which) are a group of their own, read-only, after a separator, and masters (Stream Mixer's Master, Wave Link's mixes) sit after another `MixerSeparator`. **LCD** (`lcd`) is one `LcdDisplay`
 with a line per channel (name and level, or MUTE). The components are vendored in `src/components/ui/audiocn/`
 (MIT, its `LICENSE`); `src/widgets/core/mixer-views.tsx` draws them, and loads with the three widgets only.
 
@@ -415,9 +415,11 @@ with a line per channel (name and level, or MUTE). The components are vendored i
   Up / Down by ten steps, Home / End) through Base UI's slider (`role="slider"`), and its mute buttons as well. Volume
   Mixer and Wave Link write nothing: their faders are a track and fill with no knob and no slider role, and their
   mute is a mark.
-- **Meters**: Wave Link's are its live L/R `MeterPair` (Meter type and Meter response apply); Stream Mixer and
-  Volume Mixer have no level data, so theirs is the volume as an `LedLadder`. audiocn's own `LevelMeter` is not
-  vendored.
+- **Meters**: audiocn's `LevelMeter` (two tracks, L and R) paints each strip from the channel's frames, without
+  React re-renders; the rows view keeps the widgets' own meters. Wave Link's frames are its meter emitters (channel,
+  input device and mix); Volume Mixer's and Stream Mixer's Master and Mic are the level-meter plugin's
+  `left-channel` / `right-channel` of the device (`core/level-source.ts`); an app's level is not reported, so its
+  meter stays at silence, as does any device the plugin does not report. Nothing is made up.
 - **Colours**: inside a view the audiocn tokens follow the widget (`core/mixer-views.css`): text from `--w-fg` /
   `--w-muted`, fills from the text colour at a low share, the fader fill and the LCD's Channel ink from the
   channel's colour. LCD screen Auto is a backlit screen on a light surface and glowing ink on the others.
@@ -432,6 +434,15 @@ with a line per channel (name and level, or MUTE). The components are vendored i
 | `stripIcon` | the channel icon (horizontal strips) | on | Strips |
 | `stripSub` | the status line | on | Strips |
 | `stripMeter` | the meter | on | Strips |
+| `meterVariant` (Wave Link's existing row, also in Rows) | solid / segmented / gradient | `solid` | Strips with the meter |
+| `meterSegments` | LEDs of the segmented meter, 4 to 64 | `24` | segmented, More |
+| `meterMinDb`, `meterMaxDb` | the meter's range (floor −120 to −12, top −6 to 6, at least 6 dB apart) | `-60`, `0` | Strips with the meter, More |
+| `meterBallistics` (Wave Link's existing row, also in Rows) | peak / vu / instant | `peak` | Strips with the meter |
+| `meterTaper` | linear / audio (the meter's scale) | `linear` | Strips with the meter, More |
+| `meterWarnDb`, `meterClipDb` | where the amber and red zones start (dBFS) | `-20`, `-9` | Strips with the meter, More |
+| `meterHold` | the peak-hold marker | on | Strips with the meter, More |
+| `meterValue` | a dB readout of the level | off | Strips with the meter |
+| `meterClip` | a clip light | off | Strips with the meter |
 | `stripLcd` | the LCD readout (else plain text) | on | Strips |
 | `stripStatus` | a Live / Muted badge (horizontal strips) | off | Strips, More |
 | `faderVariant` | default (Round) / console | `default` | Strips |

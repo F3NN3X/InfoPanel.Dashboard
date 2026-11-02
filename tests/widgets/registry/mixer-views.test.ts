@@ -35,6 +35,17 @@ describe.each(MIXERS)("%s view settings", (id, orientationKey) => {
       stripSub: false,
       stripStatus: true,
       stripMeter: false,
+      meterVariant: "segmented",
+      meterSegments: 12,
+      meterMinDb: -48,
+      meterMaxDb: 3,
+      meterBallistics: "vu",
+      meterTaper: "audio",
+      meterWarnDb: -12,
+      meterClipDb: -3,
+      meterHold: false,
+      meterValue: true,
+      meterClip: true,
       faderVariant: "console",
       faderRange: false,
       faderScale: false,
@@ -53,9 +64,14 @@ describe.each(MIXERS)("%s view settings", (id, orientationKey) => {
       lcdStatus: false,
     };
     const look = mixerLookOf(JSON.parse(JSON.stringify(saved)), orientationKey);
-    expect(look).toEqual({ view: "strips", vertical: false, stripVariant: "ghost", stripSize: "lg", accent: false, icon: false, sub: false, status: true, meter: false, faderVariant: "console", range: false, scale: false, scaleLabels: false, scaleSide: "end", ticks: [0, -6, -20], taper: "audio", step: 5, wheel: true, lcd: false, lcdVariant: "amber", lcdAppearance: "light", lcdSize: "lg", lcdMatrix: false, lcdScanlines: false, lcdStatus: false });
+    expect(look).toEqual({ view: "strips", vertical: false, stripVariant: "ghost", stripSize: "lg", accent: false, icon: false, sub: false, status: true, meter: false, meterVariant: "segmented", meterSegments: 12, meterMinDb: -48, meterMaxDb: 3, meterBallistics: "vu", meterTaper: "audio", meterWarnDb: -12, meterClipDb: -3, meterHold: false, meterValue: true, meterClip: true, faderVariant: "console", range: false, scale: false, scaleLabels: false, scaleSide: "end", ticks: [0, -6, -20], taper: "audio", step: 5, wheel: true, lcd: false, lcdVariant: "amber", lcdAppearance: "light", lcdSize: "lg", lcdMatrix: false, lcdScanlines: false, lcdStatus: false });
     const odd = mixerLookOf({ view: "knobs", stripSize: "xl", lcdVariant: "pink", faderStep: 99, scaleTicks: "a, b" }, orientationKey);
     expect(odd).toMatchObject({ view: "rows", stripSize: "default", lcdVariant: "primary", step: 10, ticks: undefined });
+    // the meter range is clamped, keeps 6 dB, and the red zone never starts below the amber one
+    // the zones start inside the range: a floor above the default amber, a top below a saved one
+    expect(mixerLookOf({ meterMinDb: -12 }, orientationKey)).toMatchObject({ meterWarnDb: -12, meterClipDb: -9 });
+    expect(mixerLookOf({ meterMaxDb: -6, meterWarnDb: 0, meterClipDb: 0 }, orientationKey)).toMatchObject({ meterWarnDb: -6, meterClipDb: -6 });
+    expect(mixerLookOf({ meterVariant: "dots", meterSegments: 999, meterMinDb: -999, meterMaxDb: -50, meterWarnDb: -10, meterClipDb: -30, meterBallistics: "slow" }, orientationKey)).toMatchObject({ meterVariant: "solid", meterSegments: 64, meterMinDb: -120, meterMaxDb: -6, meterWarnDb: -10, meterClipDb: -10, meterBallistics: "peak" });
   });
 
   it("shows the strip and fader rows in Strips only, and the LCD rows in LCD and in Strips with the readout", () => {
@@ -64,6 +80,11 @@ describe.each(MIXERS)("%s view settings", (id, orientationKey) => {
     expect(shown({ view: "strips" })).toEqual(expect.arrayContaining(["stripVariant", "faderVariant", "faderScale", "lcdVariant"]));
     expect(shown({ view: "strips", stripLcd: false })).not.toContain("lcdVariant");
     expect(shown({ view: "strips", faderScale: false })).not.toContain("scaleSide");
+    expect(shown({})).not.toContain("meterTaper");
+    expect(shown({ view: "strips" })).toEqual(expect.arrayContaining(["meterVariant", "meterMinDb", "meterTaper", "meterWarnDb", "meterHold", "meterValue", "meterClip"]));
+    expect(shown({ view: "strips", stripMeter: false })).not.toContain("meterValue");
+    expect(shown({ view: "strips" })).not.toContain("meterSegments");
+    expect(shown({ view: "strips", meterVariant: "segmented" })).toContain("meterSegments");
     expect(shown({ view: "lcd" })).toContain("lcdVariant");
     expect(shown({ view: "lcd" })).not.toContain("faderVariant");
   });

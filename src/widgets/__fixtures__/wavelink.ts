@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { createFrameEmitter } from "@/lib/audio/frame-source";
 import type { MeterFrame } from "@/lib/audio/types";
 import type { WlState } from "@/lib/wavelink";
@@ -26,5 +27,6 @@ export const WL_FRAME: MeterFrame = { channels: [{ peakDb: -12 }, { peakDb: -6 }
 export function wavelinkMock(state: WlState = WL_LIVE) {
   const emitter = createFrameEmitter<MeterFrame>();
   emitter.emit(WL_FRAME);
-  return { useWavelinkState: () => state, useWavelinkMeter: () => emitter };
+  return { useWavelinkState: () => state, // a hook, as the real one is (it memoises the key's emitter): a caller must call it the same on every render
+    useWavelinkMeter: () => useMemo(() => emitter, []) };
 }

@@ -16,12 +16,17 @@ export interface MixerFitInput {
   count: number;
   /** How many of them are masters (drawn after a separator). */
   masters: number;
+  /** How many are input devices (a group of their own, after a separator). */
+  inputs: number;
   /** The strips' size the user picked (the fader's thumb and track): the largest the fit uses. */
   size: MixerSize;
   /** What a strip draws besides its name and fader. */
   meter: boolean;
   /** Width of the meter in a vertical strip, px (an L/R pair is wider than one ladder). */
   meterW: number;
+  /** A clip light above the meter, and a dB readout under it (a horizontal strip: beside it). */
+  meterClip: boolean;
+  meterValue: boolean;
   fader: boolean;
   /** The faders take input (a thumb); a read-only one is only its track. */
   writable: boolean;
@@ -100,6 +105,12 @@ const ROW_MIN_W = 200;
 const ROWS_PAD = 4;
 /** What a roomy row strip's parts add past their sizes (the badge's border, the scale's margins); a dense one measures exact. */
 const ROW_SLACK = 8;
+/** The meter's clip light and dB readout, and the least a vertical meter keeps of its travel. */
+const CLIP_H = 20;
+const CLIP_W = 20;
+const VALUE_H = 16;
+const VALUE_W = 36;
+const METER_MIN_H = 24;
 /** The "+n" mark. */
 const MORE_W = 28;
 const MORE_H = 18;
@@ -124,8 +135,10 @@ const TIGHTEST: Step = { size: "sm", dense: true, bare: true };
 const TITLE_H = 18;
 const TEXT_H = 16;
 
-/** The separator before the masters: a line between two gaps. */
-const sepOf = (f: MixerFitInput, gap: number) => (f.masters > 0 && f.masters < f.count ? 1 + 2 * gap : 0);
+/** The groups a mixer draws (channels, inputs, masters) and the separators between them. */
+export const separatorsOf = (f: Pick<MixerFitInput, "count" | "masters" | "inputs">): number => Math.max(0, [f.count - f.masters - f.inputs, f.inputs, f.masters].filter((n) => n > 0).length - 1);
+/** The separators between the groups: each a line between two gaps. */
+const sepOf = (f: MixerFitInput, gap: number) => separatorsOf(f) * (1 + 2 * gap);
 
 /** The LCD's outer size for `chars` characters at a text size. */
 export const lcdBox = (size: MixerSize, chars: number): { w: number; h: number } => ({ w: Math.ceil(chars * LCD_TEXT[size] * LCD_CHAR) + LCD_FRAME_W, h: LCD_TEXT[size] + LCD_FRAME_H });
@@ -138,29 +151,35 @@ function fitCount(room: number, item: number, gap: number, count: number, more: 
   return { n, more: count - n };
 }
 
-type Parts = Pick<MixerFitInput, "meter" | "meterW" | "fader" | "writable" | "controls" | "scale" | "console" | "lcd" | "lcdSize" | "chars">;
+type Parts = Pick<MixerFitInput, "meter" | "meterW" | "meterClip" | "meterValue" | "fader" | "writable" | "controls" | "scale" | "console" | "lcd" | "lcdSize" | "chars">;
 
 /** The fader across its travel: the thumb (a console cap is wider), or a read-only fader's track. */
 const knob = (f: Parts, step: Step, vertical: boolean) => (!f.writable ? TRACK[step.size] : f.console && vertical ? Math.round(THUMB[step.size] * 1.8) : THUMB[step.size]);
+
+/** A vertical meter's width (its readout and clip light may be wider than its bars), and what they add to its height. */
+const meterWidth = (f: Parts) => Math.max(f.meterW, f.meterValue ? VALUE_W : 0, f.meterClip ? CLIP_W : 0);
+const meterColumnExtra = (f: Parts) => (f.meterClip ? CLIP_H : 0) + (f.meterValue ? VALUE_H : 0);
+/** A horizontal strip's meter line: its bars (two thin tracks) with the clip light and readout beside them. */
+const meterLine = (f: Parts) => Math.max(8, f.meterClip ? CLIP_H : 0, f.meterValue ? VALUE_H : 0);
 
 /** A vertical strip's least width at a density: the meter, the fader and its scale side by side, or the LCD if wider. */
 export function stripWidth(f: Parts, step: Step): number {
   const pad = step.dense ? DENSE_PAD : PAD,
     gap = step.dense ? GAP_X / 2 : GAP_X;
-  const parts = (f.meter ? f.meterW + gap : 0) + (f.fader ? knob(f, step, true) + (f.scale && !step.bare ? SCALE_LABELS_W + gap : 0) : 0);
+  const parts = (f.meter ? meterWidth(f) + gap : 0) + (f.fader ? knob(f, step, true) + (f.scale && !step.bare ? SCALE_LABELS_W + gap : 0) : 0);
   return Math.max(pad + parts + 2 * gap, f.lcd ? pad + lcdBox(f.lcdSize, f.chars).w : 0, 56);
 }
 
 /** A row strip's least height at a density (`lcd`: its readout is the LCD, else text). */
 export function rowHeight(f: Parts & Pick<MixerFitInput, "w">, step: Step): number {
-  const line = (f.meter ? 8 + GAP_Y : 0) + (f.fader ? knob(f, step, false) + (f.scale && !step.bare ? SCALE_H : 0) : 0);
+  const line = (f.meter ? meterLine(f) + GAP_Y : 0) + (f.fader ? knob(f, step, false) + (f.scale && !step.bare ? SCALE_H : 0) : 0);
   const body = Math.max(line, f.lcd ? lcdBox(f.lcdSize, f.chars).h : TEXT_H, f.controls);
   const header = step.bare ? TITLE_H : HEADER_H;
   return (step.dense ? DENSE_PAD : PAD + ROW_SLACK) + (f.w >= ROW_WIDE ? Math.max(body, header) : header + GAP_Y + body);
 }
 
 /** A vertical strip's least height at a density, without and with its LCD. */
-const columnHeight = (f: Parts, step: Step) => (step.dense ? DENSE_PAD : PAD) + (step.bare ? TITLE_H : HEADER_H) + GAP_Y + FADER_MIN_H + (f.controls ? GAP_Y + f.controls : 0);
+const columnHeight = (f: Parts, step: Step) => (step.dense ? DENSE_PAD : PAD) + (step.bare ? TITLE_H : HEADER_H) + GAP_Y + Math.max(FADER_MIN_H, f.meter ? meterColumnExtra(f) + METER_MIN_H : 0) + (f.controls ? GAP_Y + f.controls : 0);
 
 function fitStrips(f: MixerFitInput): MixerFit {
   const steps = stepsFrom(f.size);
@@ -205,7 +224,7 @@ const lcdFont = (base: number, ...limits: number[]): number => {
 
 function fitLcd(f: MixerFitInput): MixerFit {
   const base = LCD_TEXT[f.lcdSize];
-  const sep = f.masters > 0 && f.masters < f.count ? LCD_SEP : 0;
+  const sep = separatorsOf(f) * LCD_SEP;
   const roomW = f.w - LCD_FRAME_W,
     roomH = f.h - LCD_FRAME_H - sep;
   if (f.vertical) {
