@@ -1,4 +1,4 @@
-import { useFitRows, Widget, shell, get, rows, has, type ShellProps } from "./kit";
+import { roomy, useFitRows, Widget, shell, get, rows, has, type ShellProps } from "./kit";
 import { meta } from "./meta/SteamNews";
 
 export { meta };
@@ -30,7 +30,8 @@ export default function SteamNews(p: SteamNewsProps) {
       studio={{ label: first.game ?? "News", value: items.length, unit: items.length === 1 ? "headline" : "headlines", sub: first.title, rows: items.map((n) => ({ n: n.title ?? "", v: n.date ?? "" })) }}
       compact={{ label: first.game ?? "News", value: first.title, sub: first.date, kind: "text", icon: "newspaper" }}
     >
-      {({ size, h }) => (
+      {({ size, w, h }) => (
+        // roomy: a few headlines are not spread over the height; they grow instead, bigger type and a line more
         <ul className="flex h-full flex-col gap-3 overflow-hidden">
           {items.slice(0, useFitRows(h, 18 + 22 * lines, 12)).map((n, i) => (
             <li key={i} className="flex min-w-0 gap-3">
@@ -40,7 +41,7 @@ export default function SteamNews(p: SteamNewsProps) {
                   {n.game}
                   {n.date ? ` · ${n.date}` : ""}
                 </span>
-                <span className={`${size === "lg" ? "text-base" : "text-[13px]"} leading-snug text-[color:var(--w-fg)]`} style={{ display: "-webkit-box", WebkitLineClamp: lines, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                <span className={`${roomy(w, h) ? "text-title" : size === "lg" ? "text-base" : "text-body"} leading-snug text-[color:var(--w-fg)]`} style={{ display: "-webkit-box", WebkitLineClamp: roomy(w, h) ? lines + 1 : lines, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
                   {n.title}
                 </span>
               </div>

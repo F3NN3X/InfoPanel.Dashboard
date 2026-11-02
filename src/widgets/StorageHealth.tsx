@@ -81,7 +81,7 @@ export default function StorageHealth(p: StorageHealthProps) {
           <Metric label="Health" value={life} unit="%" scale="lg" t={lifeT} sub={`${fmt(temp, 0)} °C`} className="h-full justify-center" />
         ) : size === "sm" ? (
           <div className="flex h-full items-center gap-3">
-            <Ring value={life} t={lifeT} thickness={9} className="h-full max-h-28">
+            <Ring value={life} t={lifeT} className="h-full max-h-28">
               <Num className="text-xl font-semibold">
                 {fmt(life, 0)}
                 <span className="text-xs text-[color:var(--w-muted)]">%</span>
@@ -106,7 +106,7 @@ export default function StorageHealth(p: StorageHealthProps) {
             <RateGraph rH={rH} wH={wH} rd={rd} wr={wr} capped={room} />
             {room && Number.isFinite(temp) && (
               <div className="flex flex-col gap-1">
-                <div className="flex justify-between text-[11px] text-[color:var(--w-muted)]">
+                <div className="flex justify-between text-micro text-[color:var(--w-muted)]">
                   <span>Temperature {fmt(temp, 0)} °C</span>
                   <span className="tabular-nums">warn {fmt(warnT, 0)} · crit {fmt(critT, 0)}</span>
                 </div>
@@ -114,7 +114,7 @@ export default function StorageHealth(p: StorageHealthProps) {
               </div>
             )}
             <div className="flex flex-col gap-1">
-              <div className="flex justify-between text-[11px] text-[color:var(--w-muted)]">
+              <div className="flex justify-between text-micro text-[color:var(--w-muted)]">
                 <span>{fmtGB(k("free_space"))} free</span>
                 <span className="tabular-nums">{fmt(k("used_space"), 0)}% used</span>
               </div>

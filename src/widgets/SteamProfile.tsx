@@ -1,4 +1,4 @@
-import { Widget, shell, get, rows, has, Img, Dot, Stat, Chip, type ShellProps } from "./kit";
+import { roomy, Widget, shell, get, rows, has, Img, Dot, Stat, Chip, type ShellProps } from "./kit";
 import { widgetImage } from "./data-adapter";
 import { meta } from "./meta/SteamProfile";
 
@@ -21,7 +21,7 @@ export default function SteamProfile(p: SteamProfileProps) {
       compact={{ label: "Steam", value: P("player-name"), kind: "text", sub: `${P("online-status")} · Lv ${P("steam-level")}`, img: avatar, icon: "person" }}
       right={<Chip>Lv {P("steam-level")}</Chip>}
     >
-      {({ size, h }) => {
+      {({ size, w, h }) => {
         const head = (
           <div className="flex min-w-0 items-center gap-3">
             <div className="relative shrink-0">
@@ -50,7 +50,9 @@ export default function SteamProfile(p: SteamProfileProps) {
             </div>
           );
         // the head, the stats box and the gaps (16px) first; then friend rows of 33px, 10px apart
-        const n = Math.max(0, Math.floor((h - ((size === "lg" ? 64 : 48) + 61 + 32) + 10) / 43));
+        // (a roomy box grows the type 1.25x: the stats box is 77px and a friend row 38px)
+        const big = roomy(w, h);
+        const n = Math.max(0, Math.floor((h - ((size === "lg" ? 64 : 48) + (big ? 77 : 64) + 32) + 10) / (big ? 48 : 43)));
         return (
           <div className="flex h-full flex-col gap-4">
             {head}
@@ -66,7 +68,7 @@ export default function SteamProfile(p: SteamProfileProps) {
                     <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-[color:var(--w-track)] text-micro font-semibold text-[color:var(--w-fg)]">{f.name?.[0]}</span>
                     <div className="flex min-w-0 flex-col">
                       <span className="truncate text-[color:var(--w-fg)]">{f.name}</span>
-                      <span className="truncate text-[11px] text-[color:var(--w-faint)]">{has(f.game) ? f.game : f.state}</span>
+                      <span className="truncate text-micro text-[color:var(--w-faint)]">{has(f.game) ? f.game : f.state}</span>
                     </div>
                     <span className="ml-auto shrink-0 text-micro text-[color:var(--w-faint)]">{f.when}</span>
                   </li>

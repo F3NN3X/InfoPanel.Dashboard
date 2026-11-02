@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import type { ModuleSettings } from "@/modules/types";
-import { bodyGap, useFitRows, Widget, shell, get, num, fmt, STATE, hw, Chip, Pill, type ShellProps } from "./kit";
+import { bodyGap, fillRows, roomy, useFitRows, Widget, shell, get, num, fmt, STATE, hw, Chip, Pill, type ShellProps } from "./kit";
 import { meta } from "./meta/StatusTracker";
 
 export { meta };
@@ -87,21 +87,25 @@ export default function StatusTracker(p: StatusTrackerProps) {
           rowsFit = useFitRows(h - (legend ? g + 16 + (pillLines ? g + pillLines * 24 + (pillLines - 1) * 6 : 0) : 0), 24, g),
           // each reading needs 2px plus a 2px gap: show the newest that fit
           cells = Math.max(1, Math.min(N, Math.floor((w - labelW - 10 + 2) / 4)));
+        const rowsH = h - (legend ? g + 16 + (pillLines ? g + pillLines * 24 + (pillLines - 1) * 6 : 0) : 0),
+          fill = fillRows(rowsH, Math.min(tracks.length, rowsFit), 24, g, roomy(w, h));
+        const rows = tracks.slice(0, rowsFit).map((t) => (
+          <div key={t.label} className="grid items-center gap-2.5" style={{ gridTemplateColumns: `${labelW}px minmax(0,1fr)`, minHeight: fill.rowH }}>
+            <span className="truncate text-body">{t.label}</span>
+            <div className="flex h-6 min-w-0 gap-[2px] overflow-hidden" style={fill.rowH ? { height: fill.rowH - 4 } : undefined}>
+              {(hist.current[t.label] ?? []).slice(-cells).map((c, i) => (
+                <i key={i} title={`${t.label}: ${c.v}`} className="min-w-0 flex-1 self-end rounded-[2px]" style={{ background: c.st === "none" ? "var(--w-track)" : STATE[c.st], height: c.st === "warn" ? "66%" : c.st === "crit" ? "33%" : "100%" }} />
+              ))}
+            </div>
+          </div>
+        ));
         return (
           <div className="flex h-full min-w-0 flex-col gap-2.5">
-            {tracks.slice(0, rowsFit).map((t) => (
-              <div key={t.label} className="grid items-center gap-2.5" style={{ gridTemplateColumns: `${labelW}px minmax(0,1fr)` }}>
-                <span className="truncate text-[13px]">{t.label}</span>
-                <div className="flex h-6 min-w-0 gap-[2px] overflow-hidden">
-                  {(hist.current[t.label] ?? []).slice(-cells).map((c, i) => (
-                    <i key={i} title={`${t.label}: ${c.v}`} className="min-w-0 flex-1 self-end rounded-[2px]" style={{ background: c.st === "none" ? "var(--w-track)" : STATE[c.st], height: c.st === "warn" ? "66%" : c.st === "crit" ? "33%" : "100%" }} />
-                  ))}
-                </div>
-              </div>
-            ))}
+            {/* roomy: the rows share the height the legend leaves */}
+            {fill.spread ? <div className="flex min-h-0 flex-1 flex-col justify-evenly">{rows}</div> : rows}
             {legend && (
               <>
-                <div className="flex justify-between text-[11px] text-[color:var(--w-faint)]" style={{ marginLeft: labelW + 10 }}>
+                <div className="flex justify-between text-micro text-[color:var(--w-faint)]" style={{ marginLeft: labelW + 10 }}>
                   <span>−{N}s</span>
                   <span>now</span>
                 </div>

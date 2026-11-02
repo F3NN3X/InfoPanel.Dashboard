@@ -70,7 +70,7 @@ export function SessionRow({ s, now, width }: { s: AgentSession; now: number; wi
     <li className="flex min-w-0 items-center gap-2 text-xs">
       <PulseDot color={color} pulse={s.state === "working"} label={s.state} className="h-2 w-2 shrink-0 rounded-full" />
       <span className="max-w-[45%] shrink-0 truncate text-[color:var(--w-fg)]">{s.project || AGENT_NAMES[s.agent]}</span>
-      <span className="min-w-0 flex-1 truncate text-[11px]" style={{ color: s.state === "waiting" ? STATE_COLOR.waiting : "var(--w-muted)" }}>
+      <span className="min-w-0 flex-1 truncate text-micro" style={{ color: s.state === "waiting" ? STATE_COLOR.waiting : "var(--w-muted)" }}>
         {sessionStatus(s, now)}
       </span>
       {wide && s.context !== undefined && <span className="shrink-0 tabular-nums text-micro text-[color:var(--w-faint)]">{Math.round(s.context)}% ctx</span>}

@@ -18,10 +18,10 @@ export interface TimerProps extends ShellProps {
 }
 
 const BTN =
-  "flex h-10 max-h-full min-w-0 shrink-0 items-center justify-center gap-1 rounded-full border border-[color:var(--w-track)] px-2.5 text-[12px] font-semibold tabular-nums hover:bg-[color:var(--w-track)] active:scale-95";
+  "flex h-10 max-h-full min-w-0 shrink-0 items-center justify-center gap-1 rounded-full border border-[color:var(--w-track)] px-2.5 text-caption font-semibold tabular-nums hover:bg-[color:var(--w-track)] active:scale-95";
 /** A preset tile at 4x4: a touch target, not a chip. */
 const TILE =
-  "flex h-[100px] min-w-0 flex-col items-center justify-center gap-1 rounded-2xl border border-[color:var(--w-track)] px-2 tabular-nums hover:bg-[color:var(--w-track)] active:scale-95";
+  "flex h-full min-h-[100px] min-w-0 flex-col items-center justify-center gap-1 rounded-2xl border border-[color:var(--w-track)] px-2 tabular-nums hover:bg-[color:var(--w-track)] active:scale-95";
 /** A preset button's width with its gap, px (a "25m" chip). */
 const CHIP_W = 52;
 const ROW_H = 46;
@@ -65,7 +65,7 @@ export default function Timer(p: TimerProps) {
             const tiles = buttons.slice(0, 2 * Math.max(1, Math.floor((h + 8) / 108)));
             return (
               <div className="flex h-full flex-col justify-center gap-3">
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2" style={{ gridAutoRows: `${Math.min(152, Math.max(100, Math.floor((h - 8) / Math.ceil(tiles.length / 2) - 8)))}px` }}>
                   {tiles.map((b, i) => (
                     <button key={b.key} type="button" aria-label={b.key === "pomo" ? "Start pomodoro" : `Start ${b.key.slice(1)} minute timer`} className={i === tiles.length - 1 && tiles.length % 2 ? `${TILE} col-span-2` : TILE} onClick={b.run}>
                       {b.key === "pomo" ? (
@@ -105,7 +105,7 @@ export default function Timer(p: TimerProps) {
         const big = !tiny && roomy(w, h);
         return (
           <div className="flex h-full min-w-0 flex-col items-center justify-center gap-1.5">
-            {!tiny && <span className="max-w-full truncate text-[11px] text-[color:var(--w-muted)]">{caption}</span>}
+            {!tiny && <span className="max-w-full truncate text-micro text-[color:var(--w-muted)]">{caption}</span>}
             <Num className="leading-none" style={{ fontSize: px }}>
               {clockOf(left)}
             </Num>

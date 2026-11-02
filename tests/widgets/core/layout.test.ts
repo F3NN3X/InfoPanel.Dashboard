@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { boxOf, easeHistory, fitGrid, pickBy, roomy, rowsFor, shapeOf, summaryShape, tierOf } from "@/widgets/core/layout";
+import { boxOf, easeHistory, fillRows, fitGrid, heroPx, pickBy, roomy, rowsFor, shapeOf, summaryShape, tierOf } from "@/widgets/core/layout";
 
 describe("tierOf", () => {
   it("splits at 220×140, 340×210 and 500×320", () => {
@@ -101,5 +101,26 @@ describe("roomy", () => {
     expect(roomy(432, 400)).toBe(true);
     expect(roomy(216, 216)).toBe(false);
     expect(roomy(900, 200)).toBe(false);
+  });
+});
+
+describe("fillRows", () => {
+  it("leaves a box below roomy as it is: no row height, no spread", () => {
+    expect(fillRows(300, 5, 20, 10, false)).toEqual({ rowH: undefined, spread: false });
+  });
+  it("grows the rows to fill the height, up to 1.6x the minimum", () => {
+    expect(fillRows(300, 11, 20, 10, true)).toEqual({ rowH: 20, spread: true });
+    expect(fillRows(300, 4, 20, 10, true)).toEqual({ rowH: 32, spread: true });
+  });
+  it("caps a row at 52px, and never below the minimum", () => {
+    expect(fillRows(900, 3, 40, 10, true).rowH).toBe(52);
+    expect(fillRows(900, 3, 60, 10, true).rowH).toBe(60);
+  });
+});
+
+describe("heroPx", () => {
+  it("is a share of the width held under a share of the height", () => {
+    expect(heroPx(432, 400)).toBe(80);
+    expect(heroPx(1000, 300)).toBe(60);
   });
 });

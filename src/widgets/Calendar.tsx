@@ -49,9 +49,9 @@ export default function Calendar(p: CalendarProps) {
           <div className="flex h-full min-w-0 items-center gap-4">
             {w > 300 && (
               <div className="flex shrink-0 flex-col leading-none">
-                <span className="text-[11px] font-medium" style={{ color: "color-mix(in oklab, var(--accent) 60%, var(--w-fg))" }}>{W[date.getDay()]}</span>
+                <span className="text-micro font-medium" style={{ color: "color-mix(in oklab, var(--accent) 60%, var(--w-fg))" }}>{W[date.getDay()]}</span>
                 <Num className="text-3xl font-semibold leading-none tracking-tight">{day}</Num>
-                <span className="mt-0.5 whitespace-nowrap text-[11px] text-[color:var(--w-muted)]">
+                <span className="mt-0.5 whitespace-nowrap text-micro text-[color:var(--w-muted)]">
                   {M[mon - 1]} · W{week}
                 </span>
               </div>
@@ -61,7 +61,7 @@ export default function Calendar(p: CalendarProps) {
                 <div key={x.getTime()} className="flex min-w-0 flex-col items-center gap-0.5">
                   {h >= 40 && <span className="text-micro font-medium leading-3 text-[color:var(--w-faint)]">{W[x.getDay()][0]}</span>}
                   <span
-                    className={`flex h-6 w-full max-w-8 items-center justify-center rounded-md text-[11px] tabular-nums ${x.getDate() === day ? "font-semibold text-[#0c0c0e]" : "text-[color:var(--w-fg)]"}`}
+                    className={`flex h-6 w-full max-w-8 items-center justify-center rounded-md text-micro tabular-nums ${x.getDate() === day ? "font-semibold text-[#0c0c0e]" : "text-[color:var(--w-fg)]"}`}
                     style={x.getDate() === day ? TODAY : undefined}
                   >
                     {x.getDate()}
@@ -83,7 +83,7 @@ export default function Calendar(p: CalendarProps) {
           )}
           <div className="flex min-w-0 flex-1 flex-col gap-1.5">
             <span {...tag("date", { kind: "clock", format: "MMMM" })} className="text-xs font-semibold text-[color:var(--w-fg)]">{M[mon - 1]}</span>
-            <div className={room ? "grid min-h-0 grid-cols-7 gap-0.5 text-center text-[11px]" : "grid min-h-0 flex-1 grid-cols-7 gap-0.5 text-center text-[11px]"} style={room ? { gridTemplateRows: `${HEAD_H}px repeat(${weeks}, ${rowH}px)`, alignContent: "start" } : { gridAutoRows: "minmax(0,1fr)", maxHeight: "21rem" }}>
+            <div className={room ? "grid min-h-0 grid-cols-7 gap-0.5 text-center text-micro" : "grid min-h-0 flex-1 grid-cols-7 gap-0.5 text-center text-micro"} style={room ? { gridTemplateRows: `${HEAD_H}px repeat(${weeks}, ${rowH}px)`, alignContent: "start" } : { gridAutoRows: "minmax(0,1fr)", maxHeight: "21rem" }}>
               {Array.from({ length: 7 }, (_, i) => (
                 <span key={`h${i}`} className="text-micro font-medium text-[color:var(--w-faint)]">
                   {W[(i + ws) % 7][0]}

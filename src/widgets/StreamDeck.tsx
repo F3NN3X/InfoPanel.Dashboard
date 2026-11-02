@@ -318,7 +318,7 @@ export default function StreamDeck(p: StreamDeckProps) {
                 })}
               </div>
               {pages && (
-                <div className="flex shrink-0 items-center gap-3 text-[12px] tabular-nums text-[color:var(--w-muted)]" style={{ height: PAGE_ROW }}>
+                <div className="flex shrink-0 items-center gap-3 text-caption tabular-nums text-[color:var(--w-muted)]" style={{ height: PAGE_ROW }}>
                   <button type="button" aria-label="Previous page" onClick={() => turn("prev")} className="flex h-7 w-7 items-center justify-center rounded-md hover:bg-white/[0.07]">
                     <Icon name="chevron_left" className="text-[18px]" />
                   </button>

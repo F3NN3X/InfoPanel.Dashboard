@@ -1,4 +1,4 @@
-import { Widget, shell, get, num, fmt, useHistory, frameSample, frameBudgets, frameTimeTop, sparkY, Spark, Num, type ShellProps } from "./kit";
+import { Widget, shell, get, num, fmt, useHistory, frameSample, frameBudgets, frameTimeTop, sparkY, Spark, ChartAxis, Num, type ShellProps } from "./kit";
 import { meta } from "./meta/FramePacing";
 
 export { meta };
@@ -33,7 +33,7 @@ export default function FramePacing(p: FramePacingProps) {
   ];
   const cell = ([l, v, u]: string[]) => (
     <div key={l} className="flex min-w-0 flex-col gap-1">
-      <span className="truncate text-[11px] font-medium uppercase tracking-[0.06em] text-[color:var(--w-muted)]">{l}</span>
+      <span className="truncate text-micro font-medium uppercase tracking-[0.06em] text-[color:var(--w-muted)]">{l}</span>
       <span className="whitespace-nowrap text-[22px]">
         <Num>{v}</Num>
         {u && <span className="ml-1 text-xs text-[color:var(--w-muted)]">{u}</span>}
@@ -74,9 +74,9 @@ export default function FramePacing(p: FramePacingProps) {
               </svg>
             )}
             <b className="text-sm font-semibold">No game running</b>
-            {h > 140 && <p className="m-0 max-w-[34ch] text-[13px] text-[color:var(--w-muted)]">RivaTuner has nothing to capture. FPS and frame time show here when a game starts.</p>}
+            {h > 140 && <p className="m-0 max-w-[34ch] text-body text-[color:var(--w-muted)]">RivaTuner has nothing to capture. FPS and frame time show here when a game starts.</p>}
             {h > 180 && (
-              <span className="text-[11px] text-[color:var(--w-faint)]">
+              <span className="text-micro text-[color:var(--w-faint)]">
                 {R("gpu-name")} · {R("resolution")} · {fmt(hz)} Hz
               </span>
             )}
@@ -103,10 +103,7 @@ export default function FramePacing(p: FramePacingProps) {
               {w > 260 && <div className="relative w-12 shrink-0">{labels()}</div>}
             </div>
             {h > 200 && (
-              <div className={`flex justify-between text-[11px] text-[color:var(--w-faint)] ${w > 260 ? "mr-14" : ""}`}>
-                <span>{span}</span>
-                <span>now</span>
-              </div>
+              <ChartAxis ticks={[{ at: 0, label: span }, { at: 100, label: "now" }]} className={w > 260 ? "mr-14" : ""} />
             )}
           </div>
         )

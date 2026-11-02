@@ -94,7 +94,7 @@ export default function OsdStrip(p: OsdStripProps) {
                   <div key={k} className={`flex min-w-0 ${inline ? "items-baseline gap-1.5 px-2 py-1" : "flex-col gap-0.5 px-2.5 py-1.5"} ${i ? "border-l border-white/10" : ""}`}>
                     <span className={`${inline ? "shrink-0 " : ""}truncate text-micro font-semibold uppercase tracking-[0.08em] text-[color:var(--w-muted)]`}>{l}</span>
                     <span
-                      className={`truncate ${inline && h < 30 ? "text-[13px]" : "text-[15px]"} font-medium tabular-nums text-[color:var(--w-fg)]`}
+                      className={`truncate ${inline && h < 30 ? "text-body" : "text-title"} font-medium tabular-nums text-[color:var(--w-fg)]`}
                       style={{ fontFamily: sk.skin === "retro" || sk.skin === "tui" ? sk.num : "'IBM Plex Mono','JetBrains Mono',ui-monospace,monospace", color: c ?? (k === "fps" && !idle ? "var(--accent)" : undefined) }}
                     >
                       {c && <ToneCue t={c === DROP_CRIT ? "crit" : "warn"} size="0.75em" />}
@@ -105,7 +105,7 @@ export default function OsdStrip(p: OsdStripProps) {
               })}
             </div>
             {h > 90 && (
-              <span className="truncate text-[11px] text-[color:var(--w-faint)]">
+              <span className="truncate text-micro text-[color:var(--w-faint)]">
                 RTSS: {has(R("windowtitle")) ? R("windowtitle") : "—"}
                 {/✓|enabled/i.test(R("benchmark-mode")) ? " · benchmark mode on" : ""}
               </span>

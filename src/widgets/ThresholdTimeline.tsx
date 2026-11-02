@@ -70,16 +70,16 @@ export default function ThresholdTimeline(p: ThresholdTimelineProps) {
               {shown.map((l) => (
                 <div key={l.key} className={`flex min-w-0 flex-1 gap-2 ${stacked ? "flex-col justify-center gap-0.5" : "min-h-[14px] items-center"}`} style={{ maxHeight: stacked ? 38 : 34 }}>
                   {!stacked && (
-                    <span className="truncate text-[12px] text-[color:var(--w-muted)]" style={{ width: labelW }} title={l.label}>
+                    <span className="truncate text-caption text-[color:var(--w-muted)]" style={{ width: labelW }} title={l.label}>
                       {l.label}
                     </span>
                   )}
-                  {stacked && <span className="truncate text-[11px] leading-tight text-[color:var(--w-muted)]" title={l.label}>{l.label}</span>}
+                  {stacked && <span className="truncate text-micro leading-tight text-[color:var(--w-muted)]" title={l.label}>{l.label}</span>}
                   <svg viewBox={`0 0 ${COLUMNS} 1`} preserveAspectRatio="none" shapeRendering="crispEdges" className={`min-w-0 rounded-[3px] bg-[color:var(--w-track)] ${stacked ? "h-3.5 w-full shrink-0" : "h-full flex-1"}`} aria-hidden>
                     {l.runs.map((r) => (r.tone ? <rect key={r.from} x={r.from} y={0} width={r.to - r.from} height={1} fill={LANE_COLOR[r.tone]} /> : null))}
                   </svg>
                   {w >= 340 && (
-                    <span className="w-[4.5em] shrink-0 whitespace-nowrap text-right text-[13px]">
+                    <span className="w-[4.5em] shrink-0 whitespace-nowrap text-right text-body">
                       <Num weight={600}>{fmt(l.v, Math.abs(l.v) >= 100 ? 0 : 1)}</Num>
                       <span className="ml-0.5 text-micro text-[color:var(--w-faint)]">{l.unit}</span>
                     </span>
@@ -118,7 +118,7 @@ function RoomyLanes({ lanes, store, w, h, warn, crit, minutes, span }: { lanes: 
           const st = laneStats(store.read(l.key), warn);
           return (
             <div key={l.key} className="flex min-w-0 items-start gap-2" style={{ height: rowH }}>
-              <span className="truncate pt-0.5 text-[12px] text-[color:var(--w-muted)]" style={{ width: labelW }} title={l.label}>{l.label}</span>
+              <span className="truncate pt-0.5 text-caption text-[color:var(--w-muted)]" style={{ width: labelW }} title={l.label}>{l.label}</span>
               <div className="flex h-full min-w-0 flex-1 flex-col gap-1">
                 <svg viewBox={`0 0 ${COLUMNS} 1`} preserveAspectRatio="none" shapeRendering="crispEdges" className="min-h-0 w-full flex-1 rounded-[3px] bg-[color:var(--w-track)]" aria-hidden>
                   {l.runs.map((r) => (r.tone ? <rect key={r.from} x={r.from} y={0} width={r.to - r.from} height={1} fill={LANE_COLOR[r.tone]} /> : null))}
@@ -127,7 +127,7 @@ function RoomyLanes({ lanes, store, w, h, warn, crit, minutes, span }: { lanes: 
                   {Number.isFinite(st.peak) ? `peak ${fmt(st.peak, Math.abs(st.peak) >= 100 ? 0 : 1)} ${l.unit} · above ${fmt(warn, 0)}: ${fmt(st.pctAbove, 0)} %` : "no readings yet"}
                 </span>
               </div>
-              <span className="w-[4.5em] shrink-0 whitespace-nowrap pt-0.5 text-right text-[13px]">
+              <span className="w-[4.5em] shrink-0 whitespace-nowrap pt-0.5 text-right text-body">
                 <Num weight={600}>{fmt(l.v, Math.abs(l.v) >= 100 ? 0 : 1)}</Num>
                 <span className="ml-0.5 text-micro text-[color:var(--w-faint)]">{l.unit}</span>
               </span>

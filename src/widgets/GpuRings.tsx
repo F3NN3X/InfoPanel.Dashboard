@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, fmt, pretty, useSkin, numFont, hue, hw, RingStack, LegendRow, useIpTag, type ShellProps } from "./kit";
+import { Widget, shell, get, num, fmt, roomy, pretty, useSkin, numFont, hue, hw, RingStack, RING_TEXT, LegendRow, useIpTag, type ShellProps } from "./kit";
 import { meta } from "./meta/GpuRings";
 
 export { meta };
@@ -45,11 +45,11 @@ export default function GpuRings(p: GpuRingsProps) {
   ];
   const name = (get(d, "plugins.InfoPanel.RTSS.rtss.gpu-name") || pretty(gpu ?? "")).replace(/^NVIDIA GeForce /, "");
   const rings = (size: number) => (
-    <RingStack rings={[{ v: outer.v, color: cO, ipKey: outer.k }, { v: inner.v, color: cI, ipKey: inner.k }]} thickness={size < 110 ? 6 : 9} gap={3} className="shrink-0" style={{ width: size, height: size }}>
-      <b {...tag(key("gpu_core"))} className="font-bold leading-none tabular-nums" style={{ fontSize: size * 0.19, ...numFont(sk) }}>
+    <RingStack rings={[{ v: outer.v, color: cO, ipKey: outer.k }, { v: inner.v, color: cI, ipKey: inner.k }]} className="shrink-0" style={{ width: size, height: size }}>
+      <b {...tag(key("gpu_core"))} className="font-bold leading-none tabular-nums" style={{ fontSize: "19cqw", ...numFont(sk) }}>
         {fmt(G("gpu_core"), 0)}°C
       </b>
-      {size > 100 && <span className="text-[11px] text-[color:var(--w-muted)]">Core</span>}
+      {size > 100 && <span className="text-[color:var(--w-muted)]" style={RING_TEXT.sub}>Core</span>}
     </RingStack>
   );
   return (
@@ -61,13 +61,17 @@ export default function GpuRings(p: GpuRingsProps) {
     >
       {({ w, h }) => {
         const side = w > h * 1.35;
-        const size = Math.max(60, Math.min(side ? h : h * 0.55, side ? w * 0.45 : w, 150));
+        // roomy: the ring grows to most of the width and the legend sits under it at full width, bigger rows
+        const big = roomy(w, h) && !side;
+        const size = big ? Math.min(w - 32, h * 0.46) : Math.max(60, Math.min(side ? h : h * 0.55, side ? w * 0.45 : w, 150));
+        const glyph = big ? 16.25 : 12.5,
+          line = big ? 24 : 19;
         // a narrow legend wraps long values onto a second 19px line: count rows by the lines they take (12.5px glyphs, 26px for swatch and gaps)
         const avail = side ? h : h - size - 16,
           legendW = (side ? w - size - 16 : w) - 26;
         let rows = 0;
         for (let used = -6; rows < legend.length; rows++) {
-          used += Math.max(1, Math.ceil((legend[rows][2].length * 12.5 * 0.62) / Math.max(1, legendW))) * 19 + 6;
+          used += Math.max(1, Math.ceil((legend[rows][2].length * glyph * 0.62) / Math.max(1, legendW))) * line + 6;
           if (used > avail) break;
         }
         rows = Math.max(1, rows);
@@ -78,7 +82,7 @@ export default function GpuRings(p: GpuRingsProps) {
               <div className="grid min-w-0 flex-1 gap-1.5 self-stretch content-center">
                 {/* by position: both rings may show the same metric */}
                 {legend.slice(0, rows).map(([c, l, v, k], i) => (
-                  <LegendRow key={i} color={c} label={l} value={legendW < 110 ? v.replace(/ \/ [\d.,]+/, "") : v} tag={tag(k)} />
+                  <LegendRow key={i} color={c} label={l} value={legendW < 110 ? v.replace(/ \/ [\d.,]+/, "") : v} tag={tag(k)} className={big ? "text-body" : undefined} />
                 ))}
               </div>
             )}

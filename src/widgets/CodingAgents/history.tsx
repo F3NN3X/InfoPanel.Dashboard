@@ -103,7 +103,7 @@ export function Heatmap({ weeks, fit, color, todayKey }: { weeks: HeatCell[][]; 
 /** "Today 169M tokens", and this week's total when there is room. */
 export function HistoryHeader({ today, week, wide }: { today: number; week: number; wide: boolean }) {
   return (
-    <div className="flex items-baseline justify-between gap-2 text-[11px] text-[color:var(--w-muted)]" style={{ height: HEADER_H }}>
+    <div className="flex items-baseline justify-between gap-2 text-micro text-[color:var(--w-muted)]" style={{ height: HEADER_H }}>
       <span className="truncate">
         Today <span className="tabular-nums text-[color:var(--w-fg)]">{shortTokens(today)}</span> tokens
       </span>

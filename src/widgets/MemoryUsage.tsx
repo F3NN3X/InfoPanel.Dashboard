@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, fmt, Metric, Ring, Spark, Stat, Bar, useHistory, tone, Num, type ShellProps } from "./kit";
+import { Widget, shell, get, num, fmt, roomy, Metric, Ring, RING_TEXT, Spark, Stat, Bar, useHistory, tone, Num, type ShellProps } from "./kit";
 import { meta } from "./meta/MemoryUsage";
 
 export { meta };
@@ -29,13 +29,22 @@ export default function MemoryUsage(p: MemoryUsageProps) {
     <div className="flex flex-col gap-1.5">
       <div className="flex items-baseline gap-2 text-xs">
         <span className="text-[color:var(--w-fg)]">{l}</span>
-        <span className="text-[11px] tabular-nums text-[color:var(--w-faint)]">
+        <span className="text-micro tabular-nums text-[color:var(--w-faint)]">
           {fmt(v.used, 1)} / {fmt(v.used + v.free, 0)} GB
         </span>
         <span className="ml-auto font-medium tabular-nums">{fmt(v.pct, 0)}%</span>
       </div>
       <Bar ipKey={key} value={v.pct} t={tone(v.pct, warn, crit)} className="h-2" />
     </div>
+  );
+  const ring = (className: string) => (
+    <Ring ipKey={pctKey} value={phys.pct} t={tone(phys.pct, warn, crit)} className={className}>
+      <Num ipKey={pctKey} ipUnit="%" className="font-semibold" style={RING_TEXT.value}>
+        {fmt(phys.pct, 0)}
+        <span className="text-[color:var(--w-muted)]" style={RING_TEXT.unit}>%</span>
+      </Num>
+      <span className="text-[color:var(--w-muted)]" style={RING_TEXT.sub}>{fmt(phys.used, 1)} GB</span>
+    </Ring>
   );
   return (
     <Widget
@@ -44,7 +53,7 @@ export default function MemoryUsage(p: MemoryUsageProps) {
       icon="memory_alt"
       compact={{ label: "RAM", value: phys.pct, unit: "%", sub: `${fmt(phys.used, 1)} / ${fmt(phys.used + phys.free, 0)} GB`, pct: phys.pct, kind: "ring", t: tone(phys.pct, warn, crit) }}
     >
-      {({ size }) =>
+      {({ size, w, h }) =>
         size === "xs" ? (
           <Metric ipKey={pctKey} label="RAM" value={phys.pct} unit="%" scale="lg" sub={`${fmt(phys.used, 1)} GB used`} t={tone(phys.pct, warn, crit)} className="h-full justify-center" />
         ) : size === "sm" ? (
@@ -53,21 +62,24 @@ export default function MemoryUsage(p: MemoryUsageProps) {
             {row("Virtual", virt, "libre.virtual_memory_memory")}
           </div>
         ) : (
-          <div className="flex h-full gap-5">
-            <Ring ipKey={pctKey} value={phys.pct} t={tone(phys.pct, warn, crit)} thickness={8} className="h-full max-h-[180px] shrink-0">
-              <Num ipKey={pctKey} ipUnit="%" className={`${size === "lg" ? "text-4xl" : "text-2xl"} font-semibold`}>
-                {fmt(phys.pct, 0)}
-                <span className="text-sm text-[color:var(--w-muted)]">%</span>
-              </Num>
-              <span className="text-[11px] text-[color:var(--w-muted)]">{fmt(phys.used, 1)} GB</span>
-            </Ring>
-            <div className="flex min-w-0 flex-1 flex-col justify-center gap-3">
+          <div className={`flex h-full ${roomy(w, h) ? "flex-col gap-3" : "gap-5"}`}>
+            {roomy(w, h) ? <div className="shrink-0 self-center" style={{ width: Math.min(w - 32, h * 0.46) }}>{ring("w-full")}</div> : ring("h-full max-h-[180px] shrink-0")}
+            <div className={`flex min-w-0 flex-1 flex-col gap-3 ${roomy(w, h) ? "min-h-0" : "justify-center"}`}>
               <div className="grid grid-cols-2 gap-3">
                 <Stat label="Available" value={`${fmt(phys.free, 1)} GB`} />
                 <Stat label="Total" value={`${fmt(phys.used + phys.free, 0)} GB`} />
               </div>
-              {row("Virtual", virt, "libre.virtual_memory_memory")}
-              {size === "lg" && <Spark ipKey={pctKey} values={hist} className="min-h-0 flex-1" />}
+              {roomy(w, h) ? (
+                <>
+                  <Spark ipKey={pctKey} values={hist} className="min-h-0 flex-1" />
+                  <div className="mt-auto">{row("Virtual", virt, "libre.virtual_memory_memory")}</div>
+                </>
+              ) : (
+                <>
+                  {row("Virtual", virt, "libre.virtual_memory_memory")}
+                  {size === "lg" && <Spark ipKey={pctKey} values={hist} className="min-h-0 flex-1" />}
+                </>
+              )}
             </div>
           </div>
         )

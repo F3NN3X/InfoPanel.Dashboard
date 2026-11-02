@@ -1,7 +1,7 @@
 import { readSystemFlat } from "@/lib/system-metrics";
 import { inUnit } from "@/modules/setting-readers";
 import type { ModuleSettings } from "@/modules/types";
-import { useFitRows, Widget, shell, get, num, fmt, diskShort, tone, TONES, useHistory, Empty, Ring, Num, ToneCue, slideX, hw, type Tone, type ShellProps } from "./kit";
+import { fillRows, roomy, useFitRows, Widget, shell, get, num, fmt, diskShort, tone, TONES, useHistory, Empty, Ring, Num, ToneCue, slideX, hw, type Tone, type ShellProps } from "./kit";
 import { readings } from "./hardware-readings";
 import { meta } from "./meta/Thermals";
 
@@ -83,11 +83,11 @@ export default function Thermals(p: ThermalsProps) {
                 {list.slice(0, 4).map((x) => (
                   <div key={x.id} className="flex flex-col items-center gap-1">
                     <div style={{ width: ring }}>
-                      <Ring value={x.v} max={max} thickness={9} t={x.t}>
+                      <Ring value={x.v} max={max} t={x.t}>
                         <Num className="text-sm font-semibold">{T(x.v)}°</Num>
                       </Ring>
                     </div>
-                    <span className="max-w-[96px] truncate text-[11px] text-[color:var(--w-muted)]" title={x.label}>
+                    <span className="max-w-[96px] truncate text-micro text-[color:var(--w-muted)]" title={x.label}>
                       {x.label}
                     </span>
                   </div>
@@ -96,7 +96,7 @@ export default function Thermals(p: ThermalsProps) {
               {fans.length > 0 && (
                 <div className="flex flex-wrap justify-center gap-2">
                   {fans.map((r) => (
-                    <span key={r.key} className="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--w-track)] px-2.5 py-1 text-[11px]" title={r.label}>
+                    <span key={r.key} className="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--w-track)] px-2.5 py-1 text-micro" title={r.label}>
                       <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: p.fanColor || "#38bdf8" }} />
                       <span className="max-w-[120px] truncate text-[color:var(--w-muted)]">{r.label}</span>
                       <span className="font-semibold tabular-nums">{r.text}</span>
@@ -108,12 +108,13 @@ export default function Thermals(p: ThermalsProps) {
           );
         }
         // Rows of a 16px line (20px large) 10px apart; under 180px wide the bar drops and a row is name + value.
-        const n = useFitRows(h, size === "lg" ? 20 : 16, 10);
+        const n = useFitRows(h, size === "lg" || roomy(w, h) ? 20 : 16, 10);
         const narrow = w > 0 && w < 180;
+        const fill = fillRows(h, Math.min(list.length, n), 20, 10, roomy(w, h));
         return (
-          <ul className="flex h-full flex-col justify-center gap-2.5 overflow-hidden">
+          <ul className={`flex h-full flex-col gap-2.5 overflow-hidden ${fill.spread ? "justify-evenly" : "justify-center"}`}>
             {list.slice(0, n).map((x) => (
-              <li key={x.id} className={`grid items-center text-xs ${narrow ? "grid-cols-[minmax(0,1fr)_auto] gap-2" : "grid-cols-[minmax(40px,90px)_minmax(0,1fr)_48px] gap-3"}`}>
+              <li key={x.id} style={{ minHeight: fill.rowH }} className={`grid items-center text-caption leading-[1.333] ${narrow ? "grid-cols-[minmax(0,1fr)_auto] gap-2" : "grid-cols-[minmax(40px,90px)_minmax(0,1fr)_48px] gap-3"}`}>
                 <span className="truncate text-[color:var(--w-fg)]">{x.label}</span>
                 {!narrow && (
                   <div className="relative h-2 overflow-hidden rounded-full bg-[color:var(--w-track)]">

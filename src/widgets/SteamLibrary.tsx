@@ -35,19 +35,19 @@ export default function SteamLibrary(p: SteamLibraryProps) {
         return (
           <div className="flex h-full flex-col gap-4">
             <div className="grid grid-cols-3 gap-3">
-              <Metric label="Games" value={num(L("total-games"))} scale={size === "sm" ? "md" : "lg"} />
-              <Metric label="Total hrs" value={num(L("total-playtime"))} scale={size === "sm" ? "md" : "lg"} />
-              <Metric label="2 weeks" value={num(L("recent-playtime"))} unit="h" scale={size === "sm" ? "md" : "lg"} />
+              <Metric label="Games" value={num(L("total-games"))} scale={size === "sm" ? "md" : "lg"} hero={false} />
+              <Metric label="Total hrs" value={num(L("total-playtime"))} scale={size === "sm" ? "md" : "lg"} hero={false} />
+              <Metric label="2 weeks" value={num(L("recent-playtime"))} unit="h" scale={size === "sm" ? "md" : "lg"} hero={false} />
             </div>
             {size !== "sm" && (
               <div className="flex flex-col gap-2.5">
-                <div className="flex justify-between text-[11px] text-[color:var(--w-faint)]">
+                <div className="flex justify-between text-micro text-[color:var(--w-faint)]">
                   <span>Recently played · {L("recent-sessions")}</span>
                   <span>2 wk / total</span>
                 </div>
                 {recent.slice(0, recentN).map((r) => (
                   <div key={r.name} className="flex flex-col gap-1">
-                    <div className="flex justify-between gap-2 text-xs">
+                    <div className="flex justify-between gap-2 text-caption leading-[1.333]">
                       <span className="truncate text-[color:var(--w-fg)]">{r.name}</span>
                       <span className="shrink-0 tabular-nums text-[color:var(--w-muted)]">
                         {fmt(r.two, 1)}h / {fmt(r.total, 1)}h
@@ -60,13 +60,13 @@ export default function SteamLibrary(p: SteamLibraryProps) {
             )}
             {newsN > 0 && news.length > 0 && (
               <div className="flex min-h-0 flex-col gap-2 overflow-hidden border-t border-[color:var(--w-track)] pt-3">
-                <span className="flex items-center gap-1 text-[11px] text-[color:var(--w-faint)]">
+                <span className="flex items-center gap-1 text-micro text-[color:var(--w-faint)]">
                   <Icon name="newspaper" className="text-sm" />
                   News
                 </span>
                 {news.slice(0, newsN).map((n, i) => (
                   <div key={i} className="flex min-w-0 flex-col">
-                    <span className="line-clamp-1 text-xs text-[color:var(--w-fg)]">{n.title}</span>
+                    <span className="line-clamp-1 text-caption leading-[1.333] text-[color:var(--w-fg)]">{n.title}</span>
                     <span className="text-micro text-[color:var(--w-faint)]">
                       {n.game} · {n.date}
                     </span>

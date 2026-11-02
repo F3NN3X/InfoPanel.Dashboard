@@ -15,7 +15,7 @@ import { AMBIENT_FPS } from "@/lib/ticker";
 import { alternate } from "@/lib/curves";
 import { appIconName, weatherKind } from "@/lib/weather-icons";
 import { RangeEaser, SmoothScroll, scrollWaitMs, useAnimationFrame, type ScrollPoint } from "./smoothing";
-import { HISTORY_LEN } from "./layout";
+import { HISTORY_LEN, RoomyCtx } from "./layout";
 import { scaleX, slideX } from "./motion";
 
 /* ───────── primitives ───────── */
@@ -45,6 +45,11 @@ export function ToneCue({ t, size = "max(8px, 0.45em)" }: { t?: Tone; size?: str
   );
 }
 
+/** A hero number's unit, one style everywhere: 0.4em, medium, muted, a small gap. */
+export const UNIT_CLASS = "ml-[0.18em] text-[0.4em] font-medium tracking-normal text-[color:var(--w-muted)]";
+/** A unit that is a word ("games", "online"): it sits under the number as a caption, not beside it. */
+export const isWordUnit = (u: unknown): u is string => typeof u === "string" && /^[a-z]{4,}$/.test(u);
+
 export interface MetricProps {
   label?: ReactNode;
   value: ReactNode;
@@ -59,22 +64,26 @@ export interface MetricProps {
   ipKey?: string;
   /** The number's size in px, fitted by the caller; replaces `scale`. */
   px?: number;
+  /** false: a roomy box does not grow this number to the hero size (one of several metrics side by side). */
+  hero?: boolean;
 }
-export function Metric({ label, value, unit, d = 0, scale = "md", sub, t = "ok", align = "left", className = "", ipKey: key, px }: MetricProps) {
+export function Metric({ label, value, unit, d = 0, scale = "md", sub, t = "ok", align = "left", className = "", ipKey: key, px, hero = true }: MetricProps) {
   const ipKey = useContext(IpTagCtx) ? key : undefined;
   const sk = useSkin();
   const sc = sk.numUp ? SCALES[Math.min(4, SCALES.indexOf(scale) + 1)] : scale;
   const big = { sm: "text-lg", md: "text-2xl", lg: "text-4xl", xl: "text-5xl", "2xl": "text-7xl" }[sc];
   const shown = typeof value === "number" ? fmt(value, d) : value;
+  const word = isWordUnit(unit) && shown !== "–";
   return (
     <div className={`flex min-w-0 flex-col ${align === "center" ? "items-center text-center" : ""} ${className}`} style={align === "center" ? { alignItems: "var(--wp-x-cross, center)", textAlign: "var(--wp-text-align, center)" as CSSProperties["textAlign"] } : { alignItems: "var(--wp-x-cross, stretch)" }}>
-      {label && <span className="max-w-full truncate text-[11px] font-medium text-[color:var(--w-muted)]" style={labelStyle("none")}>{label}</span>}
-      <span data-ip-key={ipKey} data-ip-kind={ipKey ? "value" : undefined} data-ip-unit={ipKey && typeof unit === "string" ? unit : undefined} data-ip-decimals={ipKey ? d : undefined} className={`${px ? "" : big} font-semibold leading-none tracking-tight tabular-nums`} style={{ ...(px ? { fontSize: px } : null), fontFamily: sk.num, fontWeight: sk.numWeight, fontStretch: sk.numStretch, ...(sk.numGlow ? { ...NUM_TINT, ...numGlowStyle(sk, NUM_HALO) } : null), ...(t !== "ok" ? { color: TONES[t] } : null) }}>
+      {label && <span className="max-w-full truncate text-micro font-medium text-[color:var(--w-muted)]" style={labelStyle("none")}>{label}</span>}
+      <span data-ip-key={ipKey} data-ip-kind={ipKey ? "value" : undefined} data-ip-unit={ipKey && typeof unit === "string" ? unit : undefined} data-ip-decimals={ipKey ? d : undefined} className={`${px ? "" : big} ${px || !hero || sc === "sm" || sc === "md" ? "" : "[[data-wp-roomy]_&]:!text-[length:var(--w-hero)]"} font-semibold leading-none tracking-tight tabular-nums`} style={{ ...(px ? { fontSize: px } : null), fontFamily: sk.num, fontWeight: sk.numWeight, fontStretch: sk.numStretch, ...(sk.numGlow ? { ...NUM_TINT, ...numGlowStyle(sk, NUM_HALO) } : null), ...(t !== "ok" ? { color: TONES[t] } : null) }}>
         <ToneCue t={t} />
         {shown}
-        {unit && <span className="ml-0.5 inline-block align-top leading-none text-[0.45em] font-medium text-[color:var(--w-muted)]" style={sk.numStroke ? SMALL_GLOW : undefined}>{unit}</span>}
+        {unit && !word && <span className={`inline-block align-top leading-none ${UNIT_CLASS}`} style={sk.numStroke ? SMALL_GLOW : undefined}>{unit}</span>}
       </span>
-      {sub && <span className="mt-1 max-w-full truncate text-[11px] text-[color:var(--w-faint)]">{sub}</span>}
+      {word && <span className="mt-1 max-w-full truncate text-micro text-[color:var(--w-muted)]">{unit}</span>}
+      {sub && <span className="mt-1 max-w-full truncate text-micro text-[color:var(--w-faint)]">{sub}</span>}
     </div>
   );
 }
@@ -93,6 +102,36 @@ export interface BarProps {
 }
 /** How long a smooth bar or ring glides to a new reading: about one sample interval of the feed. */
 const GLIDE_MS = 1000;
+/** The one ring spec, in % of the diameter (the svg is 100 wide): stroke 7.5, gap between stacked rings 2, an empty track that reads on every surface. */
+const RING_T = 7.5;
+const RING_GAP = 2;
+const RING_TRACK = "color-mix(in oklab, var(--w-fg) 12%, transparent)";
+/** A ring's stroke never draws thinner than this on screen, so a small ring keeps a line you can see. */
+const RING_MIN_PX = 6;
+/** The ring stroke in viewBox units for a ring `diameter` px across: the spec, or more where that would be under `RING_MIN_PX`. */
+export const ringStroke = (diameter: number): number => (diameter > 0 ? Math.min(30, Math.max(RING_T, (RING_MIN_PX * 100) / diameter)) : RING_T);
+/** A round cap reaches past the end of its dash: the arc stops short by that, so it ends on the value and a near-full ring keeps its gap. */
+export const ringDashOffset = (c: number, pct: number, thickness: number, round: boolean): number =>
+  c * (1 - pct) + (round && pct > 0 && pct < 1 ? Math.min(thickness / 2, (c * pct) / 2) : 0);
+/** A ring's centre text as a share of its diameter (the centre is a size container): the value, its unit, a line under it. */
+export const RING_TEXT: Record<"value" | "unit" | "sub", CSSProperties> = {
+  value: { fontSize: "24cqw" },
+  unit: { fontSize: "max(11px, 11cqw)" },
+  sub: { fontSize: "max(11px, 9cqw)" },
+};
+/** The side of a square box, px: 0 until it is measured. */
+function useSide(): [RefObject<HTMLDivElement | null>, number] {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const [side, setSide] = useState(0);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(([e]) => setSide(Math.round(Math.min(e.contentRect.width, e.contentRect.height))));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  return [ref, side];
+}
 /** A ring glide is a main-thread repaint every frame, so it is kept short. */
 const RING_GLIDE_MS = 300;
 
@@ -225,7 +264,7 @@ export function BarRow({ label, value, max = 100, display, hint, t, warn, crit }
     <div className="flex min-w-0 flex-col gap-1">
       <div className="flex items-baseline gap-2 text-xs">
         <span className="truncate text-[color:var(--w-fg)]" style={labelStyle("none")}>{label}</span>
-        {hint && <span className="truncate text-[11px] text-[color:var(--w-faint)]">{hint}</span>}
+        {hint && <span className="truncate text-micro text-[color:var(--w-faint)]">{hint}</span>}
         <span className="ml-auto shrink-0 font-medium tabular-nums">{display ?? `${fmt(value, 0)}%`}</span>
       </div>
       <Bar value={value} max={max} t={tt} />
@@ -236,25 +275,27 @@ export function BarRow({ label, value, max = 100, display, hint, t, warn, crit }
 export interface RingProps {
   value: number;
   max?: number;
+  /** Stroke in % of the diameter; unset takes the one ring spec (7.5%, at least 6px). */
   thickness?: number;
   t?: Tone;
   /** Stroke colour; replaces the tone's. */
   color?: string;
   /** The Data API key the ring shows: tags it for the InfoPanel conversion (`data-ip-key`). */
   ipKey?: string;
-  /** Track colour (default `--w-track`). */
+  /** Track colour (default a 12% tint of the text colour). */
   track?: string;
   /** Degrees of the arc (default 360, a full ring); less leaves the gap at the bottom. */
   sweep?: number;
   children?: ReactNode;
   className?: string;
 }
-export function Ring({ value, max = 100, thickness: th0 = 8, t = "ok", color, track, sweep = 360, children, className = "", ipKey: key }: RingProps) {
+export function Ring({ value, max = 100, thickness: th0, t = "ok", color, track, sweep = 360, children, className = "", ipKey: key }: RingProps) {
+  const [box, side] = useSide();
   const ipKey = useContext(IpTagCtx) ? key : undefined;
   // On the value arc itself, so the track stays in the picture the conversion takes of the rest.
   const tag = ipKey ? { "data-ip-key": ipKey, "data-ip-kind": "ring", "data-ip-max": max, "data-ip-start": sweep < 360 ? -sweep / 2 : 0, "data-ip-sweep": Math.min(360, sweep) } : undefined;
   const sk = useSkin();
-  const thickness = Math.max(1.5, th0 * (sk.ring ?? 1));
+  const thickness = Math.max(1.5, (th0 ?? ringStroke(side)) * (sk.ring ?? 1));
   const r = 50 - thickness / 2,
     c = 2 * Math.PI * r,
     pct = clamp(value / max, 0, 1);
@@ -264,26 +305,26 @@ export function Ring({ value, max = 100, thickness: th0 = 8, t = "ok", color, tr
     // an open arc centred on the top: it starts `sweep / 2` before 12 o'clock (the svg is already turned to start there)
     const arc = (c * clamp(sweep, 1, 360)) / 360;
     return (
-      <div className={`relative aspect-square ${className}`}>
+      <div ref={box} className={`relative aspect-square ${className}`}>
         <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
           <g transform={`rotate(${-sweep / 2} 50 50)`}>
-            <circle cx="50" cy="50" r={r} fill="none" stroke={track ?? "var(--w-track)"} strokeWidth={thickness} strokeLinecap={cap} strokeDasharray={`${arc} ${c}`} />
+            <circle cx="50" cy="50" r={r} fill="none" stroke={track ?? RING_TRACK} strokeWidth={thickness} strokeLinecap={cap} strokeDasharray={`${arc} ${c}`} />
             <circle cx="50" cy="50" r={r} fill="none" stroke={color ?? TONES[t]} strokeWidth={thickness} strokeLinecap={cap}
               strokeDasharray={`${arc * pct} ${c}`} style={sk.smooth ? { transition: `stroke-dasharray ${RING_GLIDE_MS}ms linear` } : undefined} data-wp-ring="" {...tag} />
           </g>
         </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">{children}</div>
+        <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ containerType: "inline-size" }}>{children}</div>
       </div>
     );
   }
   return (
-    <div className={`relative aspect-square ${className}`}>
+    <div ref={box} className={`relative aspect-square ${className}`}>
       <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
-        <circle cx="50" cy="50" r={r} fill="none" stroke={track ?? "var(--w-track)"} strokeWidth={thickness} />
+        <circle cx="50" cy="50" r={r} fill="none" stroke={track ?? RING_TRACK} strokeWidth={thickness} />
         <circle cx="50" cy="50" r={r} fill="none" stroke={color ?? TONES[t]} strokeWidth={thickness} strokeLinecap={cap}
-          strokeDasharray={c} strokeDashoffset={c * (1 - pct)} style={glide} data-wp-ring="" {...tag} />
+          strokeDasharray={c} strokeDashoffset={ringDashOffset(c, pct, thickness, cap === "round")} style={glide} data-wp-ring="" {...tag} />
       </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">{children}</div>
+      <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ containerType: "inline-size" }}>{children}</div>
     </div>
   );
 }
@@ -298,19 +339,21 @@ export interface RingStackRing {
 }
 export interface RingStackProps {
   rings: RingStackRing[];
+  /** Stroke and gap in % of the diameter; unset takes the one ring spec (7.5% at least 6px, 2%). */
   thickness?: number;
   gap?: number;
   children?: ReactNode;
   className?: string;
   style?: CSSProperties;
 }
-export function RingStack({ rings, thickness: th0 = 9, gap = 3, children, className = "", style }: RingStackProps) {
+export function RingStack({ rings, thickness: th0, gap = RING_GAP, children, className = "", style }: RingStackProps) {
+  const [box, side] = useSide();
   const sk = useSkin();
   const tagging = useContext(IpTagCtx);
-  const thickness = Math.max(1.5, th0 * (sk.ring ?? 1));
+  const thickness = Math.max(1.5, (th0 ?? ringStroke(side)) * (sk.ring ?? 1));
   const cap = sk.skin === "hud" || sk.skin === "tui" ? "butt" : "round";
   return (
-    <div className={`relative ${className}`} style={style}>
+    <div ref={box} className={`relative ${className}`} style={style}>
       {/* rotate the drawing, not the svg: a rotated non-square svg's box pokes out of its zone */}
       <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" className="h-full w-full">
         <g transform="rotate(-90 50 50)">
@@ -319,16 +362,16 @@ export function RingStack({ rings, thickness: th0 = 9, gap = 3, children, classN
               c = 2 * Math.PI * r;
             return (
               <g key={i}>
-                <circle cx="50" cy="50" r={r} fill="none" stroke={track ?? "var(--w-track)"} strokeWidth={thickness} />
+                <circle cx="50" cy="50" r={r} fill="none" stroke={track ?? RING_TRACK} strokeWidth={thickness} />
                 <circle cx="50" cy="50" r={r} fill="none" stroke={color} strokeWidth={thickness} strokeLinecap={cap}
-                  strokeDasharray={c} strokeDashoffset={c * (1 - clamp(v || 0) / 100)} style={sk.smooth ? { transition: `stroke-dashoffset ${RING_GLIDE_MS}ms linear` } : undefined} data-wp-ring=""
+                  strokeDasharray={c} strokeDashoffset={ringDashOffset(c, clamp(v || 0) / 100, thickness, cap === "round")} style={sk.smooth ? { transition: `stroke-dashoffset ${RING_GLIDE_MS}ms linear` } : undefined} data-wp-ring=""
                   {...(tagging && ipKey ? { "data-ip-key": ipKey, "data-ip-kind": "ring", "data-ip-max": 100 } : null)} />
               </g>
             );
           })}
         </g>
       </svg>
-      {children != null && <div className="absolute inset-0 flex flex-col items-center justify-center text-center">{children}</div>}
+      {children != null && <div className="absolute inset-0 flex flex-col items-center justify-center text-center" style={{ containerType: "inline-size" }}>{children}</div>}
     </div>
   );
 }
@@ -445,8 +488,29 @@ function sparkPaths(pts: readonly ScrollPoint[], lo: number, hi: number, step: b
   return { line, area: step ? `${line}V100H${x0}Z` : `${line}L100,100L${x0},100Z` };
 }
 
-/** The auto range of a graph: the given bounds, else the data's (headroom on top). */
-const sparkRange = (values: readonly number[], min?: number, max?: number): [number, number] => [min ?? Math.min(...values), max ?? Math.max(...values) * 1.08];
+/**
+ * The auto range of a graph: the given bounds, else the data's (headroom on top). `flat` (a roomy box): a constant series with
+ * no fixed top reads mid-chart, the value +/- 10%, not as a slab filled to the top edge.
+ */
+export const sparkRange = (values: readonly number[], min?: number, max?: number, flat = false): [number, number] => {
+  const lo = Math.min(...values),
+    hi = Math.max(...values);
+  if (flat && max === undefined && hi - lo < 1e-9) {
+    // a series at its floor stays on the baseline (an idle graph is not 50% busy)
+    if (min !== undefined && hi <= min) return [min, min + 1];
+    return hi === 0 ? [-1, 1] : [hi - Math.abs(hi) * 0.1, hi + Math.abs(hi) * 0.1];
+  }
+  return [min ?? lo, max ?? hi * 1.08];
+};
+
+/** Three hairlines at 25 / 50 / 75 % behind a graph, drawn in a roomy box (the one grid weight for every chart). */
+const GRID = (
+  <g aria-hidden>
+    {[25, 50, 75].map((y) => (
+      <line key={y} x1="0" x2="100" y1={y} y2={y} stroke="var(--w-faint)" strokeOpacity=".22" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+    ))}
+  </g>
+);
 
 interface GraphPathsProps {
   values: number[];
@@ -488,7 +552,7 @@ function GraphPaths({ line, area, step, fill, fillId, color, strokeWidth, glow, 
  * the segment into the newest reading slides in and uneven arrivals neither jump nor stop it; the
  * auto range eases. React renders once per sample; the animation loop writes the paths.
  */
-function SmoothGraph({ values, min, max, step, fill, fillId, color, strokeWidth, glow, curve = true, className }: GraphPathsProps & { className: string }) {
+function SmoothGraph({ values, min, max, step, fill, fillId, color, strokeWidth, glow, curve = true, flat = false, grid = false, className }: GraphPathsProps & { className: string; flat?: boolean; grid?: boolean }) {
   const line = useRef<SVGPathElement>(null);
   const glowLine = useRef<SVGPathElement>(null);
   const area = useRef<SVGPathElement>(null);
@@ -523,7 +587,7 @@ function SmoothGraph({ values, min, max, step, fill, fillId, color, strokeWidth,
     const pts = line.current && scroll.current.frame(values, now, dt);
     if (!pts) return;
     const shown = pts.filter(([x]) => x >= -5 && x <= 105).map((p) => p[1]);
-    const target = sparkRange(shown.length > 1 ? shown : values, min, max);
+    const target = sparkRange(shown.length > 1 ? shown : values, min, max, flat);
     const d = sparkPaths(pts, ...(fixed ? target : easer.current.next(target, dt)), step, curve);
     pc.easing = !fixed && easer.current.moving(target);
     line.current!.setAttribute("d", d.line);
@@ -536,9 +600,10 @@ function SmoothGraph({ values, min, max, step, fill, fillId, color, strokeWidth,
   }, !settled, "graph:smooth");
   // The first paint only: after mount the loop owns `d`. A path recomputed per render would make
   // React write the static layout on every new sample, flashing it for a frame.
-  const [first] = useState(() => sparkPaths(values.map((v, i) => [(i / (values.length - 1)) * 100, v]), ...sparkRange(values, min, max), step, curve));
+  const [first] = useState(() => sparkPaths(values.map((v, i) => [(i / (values.length - 1)) * 100, v]), ...sparkRange(values, min, max, flat), step, curve));
   return (
     <svg ref={svg} viewBox="0 0 100 100" preserveAspectRatio="none" className={`block w-full overflow-hidden ${className}`} data-wp-glow={glow ? "" : undefined}>
+      {grid && GRID}
       <GraphPaths line={first.line} area={first.area} step={step} fill={fill} fillId={fillId} color={color} strokeWidth={strokeWidth} glow={glow} refs={{ line, area, glow: glowLine }} />
     </svg>
   );
@@ -562,6 +627,10 @@ export interface SparkProps {
   marks?: boolean | "last";
   /** The text of a mark's value; default the reading to one decimal, none from 100. */
   format?: (v: number) => string;
+  /** Prints the top and bottom of the graph's range at its right edge (with `marks`; the last-sample dot is kept). */
+  axis?: boolean;
+  /** false: no gridlines in a roomy box (a graph that sits behind text). */
+  grid?: boolean;
 }
 // Graph styles: area · line · step · bars · dots · braille (from the skin, or pass graph=)
 export function Spark(p: SparkProps & { ipKey?: string }) {
@@ -584,25 +653,27 @@ function SparkBase(p: SparkProps) {
   const reduced = useReducedMotion();
   const mode = p.graph ?? sk.graph ?? "area";
   const values = p.values ?? [];
-  if (!p.marks || values.length < 2 || mode === "braille" || scrollsSmooth(sk.smooth, reduced, mode, values.length)) return <SparkGraph {...p} />;
+  const flat = useContext(RoomyCtx);
+  if (!(p.marks || p.axis) || values.length < 2 || mode === "braille" || scrollsSmooth(sk.smooth, reduced, mode, values.length)) return <SparkGraph {...p} />;
   return (
     <div className={/\b(?:absolute|relative)\b/.test(p.className ?? "") ? p.className : `relative ${p.className ?? "h-10"}`}>
       <SparkGraph {...p} className="h-full" />
-      <SparkMarks values={values} min={p.min} max={p.max} last={p.marks === "last"} bars={mode === "bars" || mode === "dots"} color={p.color || "var(--accent)"} format={p.format} glow={!!sk.numGlow} />
+      <SparkMarks values={values} min={p.min} max={p.max} flat={flat} axis={!!p.axis} last={p.marks === "last"} bars={mode === "bars" || mode === "dots"} color={p.color || "var(--accent)"} format={p.format} glow={!!sk.numGlow} />
     </div>
   );
 }
 
 /** The last-sample dot, the lowest and highest values (or, over a fixed range, its scale), over a graph's box. Decoration: the reading is in the widget's text. */
-function SparkMarks({ values, min, max, last: lastOnly, bars, color, format, glow }: { values: number[]; min?: number; max?: number; last: boolean; bars: boolean; color: string; format?: (v: number) => string; glow: boolean }) {
-  const [lo, hi] = sparkRange(values, min, max);
+function SparkMarks({ values, min, max, flat, axis, last: lastOnly, bars, color, format, glow }: { values: number[]; min?: number; max?: number; flat: boolean; axis: boolean; last: boolean; bars: boolean; color: string; format?: (v: number) => string; glow: boolean }) {
+  const [lo, hi] = sparkRange(values, min, max, flat);
   const m = sparkMarks(values, lo, hi);
   const text = format ?? ((v: number) => fmt(v, Math.abs(v) >= 100 ? 0 : 1));
-  const label = "absolute whitespace-nowrap text-micro leading-none tabular-nums text-[color:var(--w-faint)]";
+  const label = "absolute whitespace-nowrap font-mono text-micro leading-none tabular-nums text-[color:var(--w-faint)]";
   // a label hangs off its point toward the middle: right-aligned near the right edge, left-aligned near the left
   const side = (x: number): CSSProperties => (x > 85 ? { right: `${100 - x}%` } : x < 15 ? { left: `${x}%` } : { left: `${x}%`, transform: "translateX(-50%)" });
   const crowded = !!m.min && !!m.max && Math.abs(m.min.x - m.max.x) < 14 && m.min.y - m.max.y < 45;
-  const fixed = min !== undefined && max !== undefined;
+  // a fixed range, or an axis asked for, prints the scale; otherwise the lowest and highest samples are named
+  const fixed = (min !== undefined && max !== undefined) || axis;
   return (
     <>
       {m.last && (
@@ -624,25 +695,27 @@ function SparkMarks({ values, min, max, last: lastOnly, bars, color, format, glo
   );
 }
 
-function SparkGraph({ values = [], min, max, className = "h-10", fill = true, color: own, width = 1.75, graph, curve = true }: SparkProps) {
+function SparkGraph({ values = [], min, max, className = "h-10", fill = true, color: own, width = 1.75, graph, curve = true, grid: gridOn = true }: SparkProps) {
   // An unset color setting arrives as "": the accent, as when none is passed.
   const color = own || "var(--accent)";
   const id = `sp${useId().replace(/:/g, "")}`;
   const sk = useSkin();
   const reduced = useReducedMotion();
+  const roomyBox = useContext(RoomyCtx);
   const mode = graph ?? sk.graph ?? "area";
   if (values.length < 2) return <div className={className} />;
-  const [lo, hi] = sparkRange(values, min, max);
+  const [lo, hi] = sparkRange(values, min, max, roomyBox);
   if (mode === "braille") return <Braille values={values} lo={lo} hi={hi} className={className} />;
   const glow = !!sk.glow;
   const step = mode === "step";
   const strokeWidth = (sk.skin === "ink" ? 1 : width) * sk.stroke;
   const showFill = fill && (mode === "area" || step);
   if (scrollsSmooth(sk.smooth, reduced, mode, values.length))
-    return <SmoothGraph values={values} min={min} max={max} step={step} fill={showFill} fillId={id} color={color} strokeWidth={strokeWidth} glow={glow} curve={curve} className={className} />;
+    return <SmoothGraph values={values} min={min} max={max} step={step} fill={showFill} fillId={id} color={color} strokeWidth={strokeWidth} glow={glow} curve={curve} flat={roomyBox} grid={gridOn && roomyBox} className={className} />;
   const Y = (v: number) => sparkY(v, lo, hi);
   const svg = (kids: ReactNode) => (
     <svg viewBox="0 0 100 100" preserveAspectRatio="none" className={`block w-full overflow-visible ${className}`} data-wp-glow={glow ? "" : undefined}>
+      {gridOn && roomyBox && GRID}
       {kids}
     </svg>
   );
@@ -662,6 +735,24 @@ function SparkGraph({ values = [], min, max, className = "h-10", fill = true, co
   return svg(<GraphPaths line={d.line} area={d.area} step={step} fill={showFill} fillId={id} color={color} strokeWidth={strokeWidth} glow={glow} />);
 }
 
+export interface AxisTick {
+  /** Where the label sits, in % of the chart's width. */
+  at: number;
+  label: ReactNode;
+  title?: string;
+}
+/** The x axis under a chart, one grammar for every chart: faint mono micro labels, the first flush left, the last flush right, the rest centred on their position. */
+export function ChartAxis({ ticks, className = "" }: { ticks: AxisTick[]; className?: string }) {
+  return (
+    <div className={`relative h-3.5 font-mono text-micro leading-none tabular-nums text-[color:var(--w-faint)] ${className}`}>
+      {ticks.map((t, i) => (
+        <span key={i} title={t.title} className="absolute whitespace-nowrap" style={i === 0 ? { left: 0 } : i === ticks.length - 1 ? { right: 0 } : { left: `${t.at}%`, transform: "translateX(-50%)" }}>
+          {t.label}
+        </span>
+      ))}
+    </div>
+  );
+}
 export const Dot = ({ ok, className = "" }: { ok?: boolean; className?: string }) => (
   <span className={`inline-block h-1.5 w-1.5 shrink-0 rounded-full ${className}`} style={{ background: ok ? "#4ade80" : "#52525b", boxShadow: ok ? "0 0 6px #4ade80" : "none" }} />
 );
@@ -670,8 +761,8 @@ export const Chip = ({ children, className = "" }: { children?: ReactNode; class
 );
 export const Stat = ({ label, value, className = "", tag }: { label?: ReactNode; value?: ReactNode; className?: string; tag?: Record<string, string | number> }) => (
   <div className={`flex min-w-0 flex-col gap-0.5 ${className}`} style={{ alignItems: "var(--wp-x-cross, stretch)" }}>
-    <span className="max-w-full truncate text-micro text-[color:var(--w-faint)]" style={labelStyle("none")}>{label}</span>
-    <span {...tag} className="max-w-full truncate text-[13px] font-medium tabular-nums text-[color:var(--w-fg)]">{value}</span>
+    <span className="max-w-full truncate text-micro uppercase tracking-[0.06em] text-[color:var(--w-faint)]" style={labelStyle("none")}>{label}</span>
+    <span {...tag} className="max-w-full truncate text-title font-semibold tabular-nums text-[color:var(--w-fg)]">{value}</span>
   </div>
 );
 /** A footer row of label/value stats under a rule, `cols` per row (3 or 4). */
@@ -696,7 +787,7 @@ export function LegendRow({ color, label, value, className = "text-[12.5px]", ta
 }
 /** A dark frosted pill for overlays on artwork. */
 export const GlassPill = ({ children, className = "" }: { children?: ReactNode; className?: string }) => (
-  <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full bg-black/45 px-2.5 py-1 text-[11px] font-medium text-zinc-100 ring-1 ring-white/10 backdrop-blur-md ${className}`} data-wp-inner-blur="">{children}</span>
+  <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full bg-black/45 px-2.5 py-1 text-micro font-medium text-zinc-100 ring-1 ring-white/10 backdrop-blur-md ${className}`} data-wp-inner-blur="">{children}</span>
 );
 /** Set by the QA page (`widget-qa/Frame.tsx`): `Empty` then marks itself `data-wp-empty`, so its parity check can tell an empty state from content. Elsewhere the markup stays as it is. */
 export const MarkEmptyCtx = createContext(false);

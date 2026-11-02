@@ -84,7 +84,7 @@ export default function BottleneckLens(p: BottleneckLensProps) {
               <b className="whitespace-nowrap font-semibold leading-none" style={{ fontSize: size, color: idle ? "var(--w-muted)" : color }}>
                 {label}
               </b>
-              <span className={`min-w-0 text-[color:var(--w-muted)] ${strip ? "truncate" : "line-clamp-2"} ${h > 160 ? "text-[13px]" : "text-[11.5px]"}`}>{reason}</span>
+              <span className={`min-w-0 text-[color:var(--w-muted)] ${strip ? "truncate" : "line-clamp-2"} ${h > 160 ? "text-body" : "text-[11.5px]"}`}>{reason}</span>
             </div>
             {bars && room && (
               <div className="mt-3 flex flex-col gap-3">

@@ -824,7 +824,7 @@
   "options": null,
   "why": "Waza data-viz \"main question answerable without expansion\"; ui-ux-pro-max \"dense-but-scannable\" (one dominant figure, supporting figures smaller).",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "C-02",
@@ -842,7 +842,7 @@
   "options": null,
   "why": "Waza \"tighter than marketing; use density not height\"; blank quarter-frames waste the strongest span for a side monitor.",
   "note": null,
-  "status": "open"
+  "status": "partial"
  },
  {
   "id": "C-03",
@@ -950,7 +950,7 @@
   "options": null,
   "why": "Waza chart rules (\"axis label size and colour exact, one grid weight\"); ui-ux-pro-max chart domain (labels at consistent positions).",
   "note": null,
-  "status": "open"
+  "status": "partial"
  },
  {
   "id": "C-09",
@@ -968,7 +968,7 @@
   "options": "A uppercase mono (current in 5 widgets), B sentence 11px muted (current in 4). Recommend A: aligns with headers and reads as a label at a distance.",
   "why": "Waza number-dense rules (labels left-aligned, numbers consistent); design-system consistency.",
   "note": null,
-  "status": "open"
+  "status": "partial"
  },
  {
   "id": "C-10",
@@ -1112,7 +1112,7 @@
   "options": null,
   "why": "Waza hierarchy + alignment; consistency with Achievements and CustomGauge, which already fill their frames.",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "C-18",
@@ -1166,7 +1166,7 @@
   "options": null,
   "why": "ui-ux-pro-max chart \"track visible against surface\"; label every gauge.",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "C-21",
@@ -1274,7 +1274,7 @@
   "options": null,
   "why": "Waza data-viz \"number density: crowding without alignment is the problem\", not size; ui-ux-pro-max readability (large-display legibility); the brief's 4x4-only roomy rule means smaller spans are untouched.",
   "note": null,
-  "status": "open"
+  "status": "partial"
  },
  {
   "id": "D-02",
@@ -1292,7 +1292,7 @@
   "options": null,
   "why": "Waza \"main question answerable at a glance\"; one hero per card at room distance.",
   "note": null,
-  "status": "open"
+  "status": "partial"
  },
  {
   "id": "D-03",
@@ -1310,7 +1310,7 @@
   "options": null,
   "why": "Waza \"whitespace: generous column spacing, not generous row height\" (so grow the columns/tier, not blank space); ui-ux-pro-max ux \"empty states: Don't blank screens\".",
   "note": null,
-  "status": "open"
+  "status": "partial"
  },
  {
   "id": "D-04",
@@ -1364,7 +1364,7 @@
   "options": null,
   "why": "ui-ux-pro-max chart domain: axis labels and gridlines needed for any non-sparkline chart; Waza data-viz \"axis label size and colour, grid weight and opacity\".",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "D-07",
@@ -1382,7 +1382,7 @@
   "options": null,
   "why": "Waza \"if a problem is visible in a screenshot, it is real\"; contrast of overlaid text.",
   "note": null,
-  "status": "open"
+  "status": "partial"
  },
  {
   "id": "D-08",
@@ -1400,7 +1400,7 @@
   "options": null,
   "why": "Waza data-viz \"consistent chart styles\"; ui-ux-pro-max chart/gauge rows (label the value in the centre, high contrast).",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "D-09",
@@ -1490,7 +1490,7 @@
   "options": null,
   "why": "Waza typography hierarchy (hero vs supporting).",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "D-14",

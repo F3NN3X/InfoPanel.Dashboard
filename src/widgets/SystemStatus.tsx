@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, fmt, Metric, BarRow, Ring, Spark, Dot, useHistory, tone, TONES, Num, type ShellProps } from "./kit";
+import { UNIT_CLASS, roomy, Widget, shell, get, num, fmt, Metric, BarRow, Ring, RING_TEXT, Spark, Dot, useHistory, tone, TONES, Num, type ShellProps } from "./kit";
 import { meta } from "./meta/SystemStatus";
 
 export { meta };
@@ -36,7 +36,7 @@ export default function SystemStatus(p: SystemStatusProps) {
         </span>
       }
     >
-      {({ size, h }) => {
+      {({ size, w, h }) => {
         // Too low for a label over the number: CPU and RAM on one line.
         if (h > 0 && h < ONE_LINE_H)
           return (
@@ -46,10 +46,10 @@ export default function SystemStatus(p: SystemStatusProps) {
                 { l: "RAM", v: ram },
               ].map(({ l, v }) => (
                 <span key={l} className="flex min-w-0 items-baseline gap-1.5">
-                  <span className="text-[11px] font-medium text-[color:var(--w-muted)]">{l}</span>
+                  <span className="text-micro font-medium text-[color:var(--w-muted)]">{l}</span>
                   <Num className="text-xl font-semibold" style={tone(v, warn, crit) !== "ok" ? { color: TONES[tone(v, warn, crit)] } : undefined}>
                     {fmt(v, 0)}
-                    <span className="ml-0.5 text-[0.6em] font-medium text-[color:var(--w-muted)]">%</span>
+                    <span className={UNIT_CLASS}>%</span>
                   </Num>
                 </span>
               ))}
@@ -69,7 +69,8 @@ export default function SystemStatus(p: SystemStatusProps) {
               <BarRow label="RAM" value={ram} hint={`${fmt(free, 0)}% free`} warn={warn} crit={crit} />
             </div>
           );
-        if (size === "md")
+        if (size === "md") {
+          const big = roomy(w, h);
           return (
             <div className="grid h-full min-h-0 grid-cols-2 gap-4" style={{ gridTemplateRows: "minmax(0,1fr)" }}>
               {[
@@ -78,16 +79,23 @@ export default function SystemStatus(p: SystemStatusProps) {
               ].map(({ l, v, h }) => (
                 <div key={l} className="flex min-h-0 min-w-0 flex-col">
                   {/* the unit sits on the baseline here: a superscript unit rides up into the label above in the wide skins */}
-                  <span className="truncate text-[11px] font-medium text-[color:var(--w-muted)]">{l}</span>
+                  <span className="truncate text-micro font-medium text-[color:var(--w-muted)]">{l}</span>
                   <Num className="shrink-0 whitespace-nowrap text-4xl font-semibold leading-none" style={tone(v, warn, crit) !== "ok" ? { color: TONES[tone(v, warn, crit)] } : undefined}>
                     {fmt(v, 0)}
                     <span className="ml-0.5 text-base font-medium text-[color:var(--w-muted)]">%</span>
                   </Num>
-                  <Spark values={h} min={0} max={100} className="mt-2 min-h-0 flex-1" />
+                  <Spark values={h} min={0} max={100} marks={big ? "last" : false} axis={big} format={(x) => fmt(x, 0)} className={`mt-2 min-h-0 flex-1 ${big ? "max-h-[55%]" : ""}`} />
+                  {big && h.length > 0 && (
+                    <span className="mt-2 flex gap-4 text-micro text-[color:var(--w-faint)]">
+                      <span>Peak <b className="tabular-nums text-[color:var(--w-fg)]">{fmt(Math.max(...h), 0)}%</b></span>
+                      <span>Avg <b className="tabular-nums text-[color:var(--w-fg)]">{fmt(h.reduce((a, b) => a + b, 0) / h.length, 0)}%</b></span>
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
           );
+        }
         return (
           <div className="grid h-full min-h-0 grid-cols-2 gap-5">
             {[
@@ -95,15 +103,15 @@ export default function SystemStatus(p: SystemStatusProps) {
               { l: "RAM load", v: ram, h: ramH, sub: `${fmt(free, 1)}% free` },
             ].map(({ l, v, h, sub }) => (
               <div key={l} className="flex min-h-0 min-w-0 flex-col items-center gap-2">
-                <Ring value={v} t={tone(v, warn, crit)} thickness={7} className="min-h-0 max-w-full flex-1">
-                  <Num className="text-4xl font-semibold">
+                <Ring value={v} t={tone(v, warn, crit)} className="min-h-0 max-w-full flex-1">
+                  <Num className="font-semibold" style={RING_TEXT.value}>
                     {fmt(v, 0)}
-                    <span className="text-base text-[color:var(--w-muted)]">%</span>
+                    <span className="text-[color:var(--w-muted)]" style={RING_TEXT.unit}>%</span>
                   </Num>
-                  <span className="text-[11px] text-[color:var(--w-muted)]">{l}</span>
+                  <span className="text-[color:var(--w-muted)]" style={RING_TEXT.sub}>{l}</span>
                 </Ring>
                 <Spark values={h} min={0} max={100} className="h-10 shrink-0" />
-                <span className="shrink-0 text-[11px] text-[color:var(--w-faint)]">{sub}</span>
+                <span className="shrink-0 text-micro text-[color:var(--w-faint)]">{sub}</span>
               </div>
             ))}
           </div>

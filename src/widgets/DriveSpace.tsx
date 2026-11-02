@@ -46,7 +46,7 @@ export default function DriveSpace(p: DriveSpaceProps) {
         (one || critN > 0) && (
           <>
             {one && <Chip>{`${one.name} ${one.label}`.trim()}</Chip>}
-            {critN > 0 && <Pill state="crit" className="text-[11px]">{critN} critical</Pill>}
+            {critN > 0 && <Pill state="crit" className="text-micro">{critN} critical</Pill>}
           </>
         )
       }
@@ -60,7 +60,7 @@ export default function DriveSpace(p: DriveSpaceProps) {
             <div className="flex h-full flex-col justify-center gap-1.5">
               <div className="flex items-baseline justify-between">
                 <span className="text-sm font-semibold">{first.name}</span>
-                <span className="text-[11px] text-[color:var(--w-muted)]">{fmtMB(first.free)} free</span>
+                <span className="text-micro text-[color:var(--w-muted)]">{fmtMB(first.free)} free</span>
               </div>
               <Bar value={first.pct} t={tone(first.pct, warn, crit)} className="h-2" />
             </div>
@@ -77,7 +77,7 @@ export default function DriveSpace(p: DriveSpaceProps) {
                   {fmt(one.pct, 0)}
                   <span className="text-sm text-[color:var(--w-muted)]">%</span>
                 </Num>
-                <span className="text-[11px] text-[color:var(--w-muted)]">used</span>
+                <span className="text-micro text-[color:var(--w-muted)]">used</span>
               </Ring>
               <div className="grid flex-1 gap-2 text-xs">
                 {[["Free", fmtMB(one.free)], ["Used", fmtMB(one.used)], ["Total", fmtMB(one.total)], ["Type", `${one.type} · ${one.format}`]].map(([l, v]) => (

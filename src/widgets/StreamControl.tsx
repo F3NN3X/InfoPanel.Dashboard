@@ -100,6 +100,7 @@ export default function StreamControl(p: StreamControlProps) {
   return (
     <Widget
       {...shell(p)}
+      fixedType
       title={p.title ?? "OBS Studio"}
       icon="videocam"
       right={
@@ -146,7 +147,7 @@ export default function StreamControl(p: StreamControlProps) {
                       <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: live ? STATE.crit : "#52525b", boxShadow: live ? `0 0 6px ${STATE.crit}` : "none" }} />
                       {live ? "Live" : up ? "Offline" : "Not connected"}
                       {obs.recording && <span className="text-zinc-500">· Rec</span>}
-                      {viewers && colW * cell.span > 200 && <span className="ml-auto truncate text-[11px] normal-case tracking-normal tabular-nums text-zinc-200">{viewers}</span>}
+                      {viewers && colW * cell.span > 200 && <span className="ml-auto truncate text-micro normal-case tracking-normal tabular-nums text-zinc-200">{viewers}</span>}
                     </div>
                     <Num className="mt-1.5 block leading-none tracking-tight" style={{ fontSize: fs }}>
                       {live ? clock(uptime) : "0:00:00"}

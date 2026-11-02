@@ -1,4 +1,4 @@
-import { Widget, shell, get, num, fmt, has, Ring, Img, Icon, useSkin, numFont, type ShellProps } from "./kit";
+import { Widget, shell, get, num, fmt, has, Ring, RING_TEXT, Img, Icon, useSkin, numFont, type ShellProps } from "./kit";
 import { widgetImage } from "./data-adapter";
 import { meta } from "./meta/Achievements";
 
@@ -45,13 +45,13 @@ export default function Achievements(p: AchievementsProps) {
         ) : (
           <div className={`flex h-full min-w-0 items-center gap-4 ${w < 230 ? "justify-center" : ""}`}>
             <div className="shrink-0" style={{ width: Math.max(40, Math.min(h, 150, w < 230 ? w : w * 0.45)) }}>
-            <Ring value={pct} thickness={9}>
-              <span className={`${size === "lg" ? "text-3xl" : Math.min(h, w) < 76 ? "text-base" : "text-xl"} font-semibold tabular-nums`}>
+            <Ring value={pct}>
+              <span className="font-semibold tabular-nums" style={RING_TEXT.value}>
                 {fmt(pct, 0)}
-                <span className="text-xs text-[color:var(--w-muted)]">%</span>
+                <span className="text-[color:var(--w-muted)]" style={RING_TEXT.unit}>%</span>
               </span>
               {Math.min(h, w) >= 76 && (
-                <span className="text-micro text-[color:var(--w-faint)]">
+                <span className="text-[color:var(--w-faint)]" style={RING_TEXT.sub}>
                   {fmt(un)}/{fmt(tot)}
                 </span>
               )}

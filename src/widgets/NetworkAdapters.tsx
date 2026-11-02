@@ -51,7 +51,7 @@ export default function NetworkAdapters(p: NetworkAdaptersProps) {
               <span className="text-micro text-[color:var(--w-faint)]">Public IP</span>
               <span className={`${size === "xs" ? "text-sm" : "text-base"} truncate font-semibold`}>{ip(pub4)}</span>
             </div>
-            {size === "lg" && has(pub6) && <span className="ml-auto truncate text-[11px] text-[color:var(--w-faint)]">{ip(pub6)}</span>}
+            {size === "lg" && has(pub6) && <span className="ml-auto truncate text-micro text-[color:var(--w-faint)]">{ip(pub6)}</span>}
           </div>
         );
         if (size === "xs") return <div className="flex h-full items-center">{pub}</div>;
@@ -70,7 +70,7 @@ export default function NetworkAdapters(p: NetworkAdaptersProps) {
                     <span className="truncate font-medium text-[color:var(--w-fg)]">{a.name}</span>
                     <span className="ml-auto shrink-0 tabular-nums text-[color:var(--w-muted)]">{a.up ? speedLabel(a.speed) : "Down"}</span>
                   </div>
-                  <div className="flex min-w-0 gap-2 pl-3.5 text-[11px] text-[color:var(--w-faint)]">
+                  <div className="flex min-w-0 gap-2 pl-3.5 text-micro text-[color:var(--w-faint)]">
                     {ip(a.v4)}
                     {size === "lg" && <span className="truncate">{a.desc}</span>}
                     {(p.showIpv6 ?? size === "lg") && a.v6.length > 0 && <span className="ml-auto shrink-0">+{a.v6.length} IPv6</span>}

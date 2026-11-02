@@ -39,7 +39,7 @@ export default function SteamGame(p: SteamGameProps) {
           <div className={`relative flex h-full flex-col ${size === "xs" ? "p-2.5" : "p-4"}`}>
             <div className="flex items-center gap-2">
               {size !== "xs" && <Img src={widgetImage(P("game_icon_url"))} icon="stadia_controller" className="h-6 w-6 shrink-0 rounded-md" />}
-              <span className="truncate text-[11px] font-medium uppercase tracking-[0.08em] text-[color:var(--w-muted)]">{P("game-status-text") || "Now playing"}</span>
+              <span className="truncate text-micro font-medium uppercase tracking-[0.08em] text-[color:var(--w-muted)]">{P("game-status-text") || "Now playing"}</span>
               {size !== "xs" && <GlassPill className="ml-auto">⏱ {S("current-session-time")}</GlassPill>}
             </div>
             <div className="mt-auto flex flex-col gap-2">

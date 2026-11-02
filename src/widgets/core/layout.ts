@@ -1,5 +1,5 @@
 // Sizing: size tiers, grid-span shapes, element measurement and eased value history.
-import { useLayoutEffect, useRef, useState, type RefObject } from "react";
+import { createContext, useLayoutEffect, useRef, useState, type RefObject } from "react";
 import type { Shape, Tier } from "./types";
 
 /* ───────── sizing ─────────
@@ -84,6 +84,15 @@ export function useBox(forced: Tier | "auto" | undefined, zoom: number | ((w: nu
 /** The 4x4 box: roomy enough that a widget adds its second row, summary or trend (a 2x2 and smaller keep their layout). */
 export const roomy = (w: number, h: number): boolean => w >= 360 && h >= 340;
 
+/** True inside a widget whose box is roomy (set by the shell): graphs there draw gridlines and centre a flat series. */
+export const RoomyCtx = createContext(false);
+
+/** How much a roomy box grows the widget's body type (the type tokens); smaller boxes keep 1. */
+export const ROOMY_SCALE = 1.25;
+
+/** The hero numeral's size in px in a roomy box: a share of the width, held under a share of the height. */
+export const heroPx = (w: number, h: number): number => Math.round(Math.min(w * 0.22, h * 0.2));
+
 export const pickBy = <T,>(size: Tier, map: Partial<Record<Tier, T>> & { md: T }): T => map[size] ?? map.md;
 
 /**
@@ -99,6 +108,15 @@ export function easeHistory(hist: number[], value: number, len = 48, ease = 0.45
 
 /** How many rows of height `rowH` (separated by `gap`) fit in `h`; always at least one. */
 export const fitRows = (h: number, rowH: number, gap = 0): number => Math.max(1, Math.floor((h + gap) / (rowH + gap)));
+
+/**
+ * The roomy (4x4) rule for `shown` rows of at least `min` tall in `h`: they grow up to 1.6x `min` (52px at most) to fill it, and the
+ * list spreads the rest evenly. Off (below the roomy box) it keeps today's pitch: no height, no spread.
+ */
+export function fillRows(h: number, shown: number, min: number, gap: number, on: boolean): { rowH: number | undefined; spread: boolean } {
+  if (!on) return { rowH: undefined, spread: false };
+  return { rowH: Math.max(min, Math.min(Math.round(Math.min(52, min * 1.6)), Math.floor((h + gap) / Math.max(1, shown) - gap))), spread: true };
+}
 
 /** How many of `count` rows fit `h` at `min` tall (always one) and how tall each is: they grow from `min` up to `max` before a gap does. */
 export function rowsFor(h: number, count: number, min: number, max: number, gap = 0): { n: number; rowH: number } {

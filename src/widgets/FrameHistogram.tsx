@@ -1,4 +1,4 @@
-import { Widget, shell, fmt, frameSample, Num, TONES, type ShellProps } from "./kit";
+import { Widget, shell, fmt, frameSample, ChartAxis, Num, TONES, type ShellProps } from "./kit";
 import { frameHistogram, frameLows } from "./core/histogram";
 import { useSeries, type SeriesLimits } from "./core/history";
 import { roleData, roleValue } from "./role-data";
@@ -37,11 +37,11 @@ export default function FrameHistogram(p: FrameHistogramProps) {
   const x = (ms: number) => (ms / hist.top) * 100;
   const cell = ([l, v, u, ms]: string[]) => (
     <div key={l} className="flex min-w-0 flex-col gap-1">
-      <span className="truncate text-[11px] font-medium uppercase tracking-[0.06em] text-[color:var(--w-muted)]">{l}</span>
+      <span className="truncate text-micro font-medium uppercase tracking-[0.06em] text-[color:var(--w-muted)]">{l}</span>
       <span className="whitespace-nowrap text-[22px]">
         <Num>{v}</Num>
         <span className="ml-1 text-xs text-[color:var(--w-muted)]">{u}</span>
-        <span className="ml-2 text-[11px] text-[color:var(--w-faint)]">{ms}</span>
+        <span className="ml-2 text-micro text-[color:var(--w-faint)]">{ms}</span>
       </span>
     </div>
   );
@@ -63,6 +63,7 @@ export default function FrameHistogram(p: FrameHistogramProps) {
       {...shell(p)}
       title={p.title ?? "Frame histogram"}
       icon="equalizer"
+      right={idle ? undefined : <span className="font-mono text-micro text-[color:var(--w-faint)]">{span}</span>}
       compact={(box) =>
         box.shape === "tile" || box.shape === "column"
           ? { label: "1% low", value: idle || !frames.length ? "—" : lows.low1Fps, d: 0, unit: idle || !frames.length ? "" : "fps", sub: idle ? "No game running" : `0.1% ${fmt(lows.low01Fps)} fps`, idle: idle ? "No game running" : undefined, kind: "value" }
@@ -79,7 +80,7 @@ export default function FrameHistogram(p: FrameHistogramProps) {
               </svg>
             )}
             <b className="text-sm font-semibold">No game running</b>
-            {h > 140 && <p className="m-0 max-w-[34ch] text-[13px] text-[color:var(--w-muted)]">Frame times collect here when a game starts.</p>}
+            {h > 140 && <p className="m-0 max-w-[34ch] text-body text-[color:var(--w-muted)]">Frame times collect here when a game starts.</p>}
           </div>
         ) : h < 106 ? (
           <div className="flex h-full min-w-0 items-center gap-4">
@@ -93,15 +94,13 @@ export default function FrameHistogram(p: FrameHistogramProps) {
             </div>
             <div className="relative min-h-[40px] flex-1">{chart}</div>
             {h > 170 && (
-              <div className="relative h-3.5 text-micro leading-none text-[color:var(--w-muted)]">
-                <span className="absolute left-0">{w > 300 ? `0 ms · ${span}` : "0 ms"}</span>
-                {GUIDES.filter((g) => x(g.ms) > (w > 300 ? 30 : 14) && x(g.ms) < 80).map((g) => (
-                  <span key={g.label} className="absolute -translate-x-1/2 whitespace-nowrap" style={{ left: `${x(g.ms)}%` }}>
-                    {g.label}
-                  </span>
-                ))}
-                <span className="absolute right-0">{hist.top} ms</span>
-              </div>
+              <ChartAxis
+                ticks={[
+                  { at: 0, label: "0 ms" },
+                  ...GUIDES.filter((g) => x(g.ms) > (w > 300 ? 30 : 14) && x(g.ms) < 80).map((g) => ({ at: x(g.ms), label: Math.round(g.ms), title: g.label })),
+                  { at: 100, label: `${hist.top}+ ms` },
+                ]}
+              />
             )}
           </div>
         )

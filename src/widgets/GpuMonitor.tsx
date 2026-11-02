@@ -54,14 +54,14 @@ export default function GpuMonitor(p: GpuMonitorProps) {
         size === "xs" ? (
           <div className="flex h-full items-center justify-between gap-2">
             <Metric ipKey={loadKey} label="GPU" value={load} unit="%" scale="lg" />
-            <div className="text-right text-[11px] leading-tight text-[color:var(--w-muted)]">
+            <div className="text-right text-micro leading-tight text-[color:var(--w-muted)]">
               <div className="tabular-nums text-[color:var(--w-fg)]">{fmt(watts, 0)} W</div>
               {fmt(temp, 0)}°C
             </div>
           </div>
         ) : size === "sm" ? (
           <div className="flex h-full items-center gap-3">
-            <Ring ipKey={loadKey} value={load} thickness={9} className="h-full max-h-28">
+            <Ring ipKey={loadKey} value={load} className="h-full max-h-28">
               <Num ipKey={loadKey} ipUnit="%" className="text-xl font-semibold">
                 {fmt(load, 0)}
                 <span className="text-xs text-[color:var(--w-muted)]">%</span>
@@ -77,9 +77,9 @@ export default function GpuMonitor(p: GpuMonitorProps) {
           </div>
         ) : (
           <div className="flex h-full flex-col gap-3">
-            <div className="flex items-end gap-5">
+            <div className="flex items-end gap-5 [[data-wp-roomy]_&]:flex-col [[data-wp-roomy]_&]:items-start [[data-wp-roomy]_&]:gap-3">
               <Metric ipKey={loadKey} value={load} unit="%" scale={size === "lg" ? "xl" : "lg"} sub="Core load" />
-              <div className="grid flex-1 grid-cols-3 gap-3">
+              <div className="grid flex-1 grid-cols-3 gap-3 [[data-wp-roomy]_&]:w-full [[data-wp-roomy]_&]:flex-none">
                 <Stat label="Power" value={`${fmt(watts, 1)} W`} />
                 <Stat label="Core" value={`${fmt(k("gpu_core_clock"), 0)} MHz`} />
                 <Stat label={hasHotSpot ? "Hotspot" : "Memory"} value={`${fmt(hot, 0)} °C`} />

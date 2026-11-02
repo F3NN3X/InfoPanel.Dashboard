@@ -1,6 +1,6 @@
 import { readSystemFlat } from "@/lib/system-metrics";
 import type { ModuleSettings } from "@/modules/types";
-import { roomy, StatGrid, Widget, shell, get, num, fmt, Spark, useHistory, hue, hw, Num, stackX, type ShellProps } from "./kit";
+import { UNIT_CLASS, roomy, StatGrid, Widget, shell, get, num, fmt, Spark, useHistory, hue, hw, Num, stackX, type ShellProps } from "./kit";
 import { meta } from "./meta/PowerDraw";
 
 export { meta };
@@ -26,13 +26,14 @@ export default function PowerDraw(p: PowerDrawProps) {
       {({ size, w, h }) => {
         // Under 260px wide the CPU / GPU split stacks under the total (one per line under 150px); under 96px tall the number shrinks and the graph goes.
         const narrow = w > 0 && w < 260,
-          short = h > 0 && h < 96;
+          short = h > 0 && h < 96,
+          big = roomy(w, h);
         return (
           <div className={`flex h-full min-w-0 flex-col ${short ? "justify-center gap-1.5" : "gap-3"}`}>
             <div className={`flex min-w-0 ${narrow ? "flex-col items-start gap-1" : "items-end justify-between gap-3"}`}>
               <Num className={`${short ? "text-2xl" : size === "lg" ? "text-6xl" : size === "md" ? "text-5xl" : "text-3xl"} font-semibold leading-none tracking-tight`}>
                 {fmt(total, 0)}
-                <span className="ml-1 text-[0.4em] text-[color:var(--w-muted)]">W</span>
+                <span className={UNIT_CLASS}>W</span>
               </Num>
               <div className={`flex min-w-0 text-xs ${w > 0 && w < 150 ? "flex-col gap-0.5" : narrow ? "gap-3" : "gap-4"}`}>
                 <span className="flex items-center gap-1.5">
@@ -49,7 +50,8 @@ export default function PowerDraw(p: PowerDrawProps) {
               <div className="absolute inset-0 transition-transform duration-700" style={{ ...stackX(0, (cw / budget) * 100), background: "var(--accent)" }} />
               <div className="absolute inset-0 transition-transform duration-700" style={{ ...stackX((cw / budget) * 100, (gw / budget) * 100), background: gpuColor }} />
             </div>
-            {size !== "sm" && !short && <Spark values={hist} min={0} marks={roomy(w, h)} format={(v) => `${fmt(v, 0)} W`} className="min-h-0 flex-1" />}
+            {size !== "sm" && !short && <Spark values={hist} min={0} marks={big ? "last" : false} axis={big} format={(v) => fmt(v, 0)} className={`min-h-0 flex-1 ${big ? "max-h-[55%]" : ""}`} />}
+            {big && !short && hist.length > 1 && <StatGrid cols={3} items={[{ label: "Peak", value: `${fmt(Math.max(...hist), 0)} W` }, { label: "Avg", value: `${fmt(hist.reduce((a, b) => a + b, 0) / hist.length, 0)} W` }, { label: "Min", value: `${fmt(Math.min(...hist), 0)} W` }]} />}
             {size === "lg" && !short && (
               <StatGrid
                 cols={3}

@@ -66,7 +66,7 @@ export default function SessionStats(p: SessionStatsProps) {
       studio={{ label: first?.label ?? "Session stats", live: !!first?.stat, value: first?.stat ? first.stat.max : "—", d: first?.stat ? decimals(first.stat.max) : 0, unit: first?.unit, sub: first?.stat ? `peak · ${rows.length} sensors` : "Pick sensors" }}
       right={
         onCanvas ? (
-          <button type="button" onClick={reset} className="rounded px-1.5 py-0.5 text-[11px] text-[color:var(--w-muted)] hover:text-[color:var(--w-fg)]">
+          <button type="button" onClick={reset} className="rounded px-1.5 py-0.5 text-micro text-[color:var(--w-muted)] hover:text-[color:var(--w-fg)]">
             Reset
           </button>
         ) : undefined
@@ -94,9 +94,9 @@ export default function SessionStats(p: SessionStatsProps) {
             )}
             {rows.slice(0, fit).map((r) => (
               <div key={r.key} className="grid items-baseline gap-2 py-1" style={{ ...grid, minHeight: rowH }}>
-                <span className="truncate text-[13px] text-[color:var(--w-muted)]" title={r.label}>{r.label}</span>
+                <span className="truncate text-body text-[color:var(--w-muted)]" title={r.label}>{r.label}</span>
                 {shown.map((c) => (
-                  <span key={c.id} className="truncate whitespace-nowrap text-right text-[15px]">
+                  <span key={c.id} className="truncate whitespace-nowrap text-right text-title">
                     {r.stat ? <Num weight={600}>{c.text(r.stat)}</Num> : "–"}
                     {c.id !== "above" && r.unit && <span className="ml-0.5 text-micro text-[color:var(--w-faint)]">{r.unit}</span>}
                   </span>
@@ -129,8 +129,8 @@ function RangeBlocks({ rows, above, h }: { rows: { key: string; label: string; u
         return (
           <div key={r.key} className="flex min-w-0 flex-col gap-1.5">
             <div className="flex min-w-0 items-baseline justify-between gap-2">
-              <span className="truncate text-[13px] text-[color:var(--w-muted)]" title={r.label}>{r.label}</span>
-              <span className="shrink-0 whitespace-nowrap text-[15px]">
+              <span className="truncate text-body text-[color:var(--w-muted)]" title={r.label}>{r.label}</span>
+              <span className="shrink-0 whitespace-nowrap text-title">
                 <Num weight={600}>{dec(r.v)}</Num>
                 <span className="ml-0.5 text-micro text-[color:var(--w-faint)]">{r.unit} now</span>
               </span>

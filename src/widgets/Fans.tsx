@@ -45,7 +45,7 @@ export default function Fans(p: FansProps) {
               {fans.slice(0, fitRows(h, 22, 4)).map((f) => (
                 <li key={f.id} className="flex min-w-0 items-center gap-2 text-sm">
                   <Icon name="mode_fan" className={`shrink-0 text-base ${f.rpm > 0 ? "text-[color:var(--accent)]" : "text-[color:var(--w-faint)]"}`} />
-                  <span className="min-w-0 flex-1 truncate text-[11px] text-[color:var(--w-faint)]">{f.label}</span>
+                  <span className="min-w-0 flex-1 truncate text-micro text-[color:var(--w-faint)]">{f.label}</span>
                   <Num className="shrink-0 font-semibold">{f.rpm > 0 ? fmt(f.rpm) : "Off"}</Num>
                 </li>
               ))}

@@ -70,7 +70,7 @@ export function LimitsView({ plans, percent, now, h }: { plans: PlanEntry[]; per
         <div key={r.key} className="flex min-w-0 flex-col gap-2" style={{ opacity: r.stale && !r.reset ? 0.55 : undefined }}>
           <div className="flex min-w-0 items-baseline gap-2">
             <span className="truncate text-[14px] font-semibold text-[color:var(--w-fg)]">{r.label}</span>
-            <span className="ml-auto shrink-0 font-mono text-[11px] tabular-nums text-[color:var(--w-muted)]">{rightText(r, percent, now)}</span>
+            <span className="ml-auto shrink-0 font-mono text-micro tabular-nums text-[color:var(--w-muted)]">{rightText(r, percent, now)}</span>
           </div>
           <Bar value={r.w.used} t={toneOf(r.w)} className="h-4" />
         </div>
@@ -123,7 +123,7 @@ export function SummaryView({ plans, ids, usage, sessions, percent, now, todayKe
             <div key={r.key} className="flex min-w-0 flex-col gap-1.5" style={{ opacity: r.stale && !r.reset ? 0.55 : undefined }}>
               <div className="flex min-w-0 items-baseline gap-2 text-xs">
                 <span className="truncate font-semibold text-[color:var(--w-fg)]">{r.label}</span>
-                <span className="ml-auto shrink-0 font-mono text-[11px] tabular-nums text-[color:var(--w-muted)]">{rightText(r, percent, now)}</span>
+                <span className="ml-auto shrink-0 font-mono text-micro tabular-nums text-[color:var(--w-muted)]">{rightText(r, percent, now)}</span>
               </div>
               <Bar value={r.w.used} t={toneOf(r.w)} className="h-1.5" />
             </div>
@@ -135,7 +135,7 @@ export function SummaryView({ plans, ids, usage, sessions, percent, now, todayKe
           <Heading>Today</Heading>
           <div className="flex min-w-0 items-baseline gap-2 text-xs">
             <span className="truncate text-[color:var(--w-fg)]">{topModel ? modelLabel(topModel.name) : "Tokens"}</span>
-            <span className="ml-auto shrink-0 font-mono text-[11px] tabular-nums text-[color:var(--w-muted)]">
+            <span className="ml-auto shrink-0 font-mono text-micro tabular-nums text-[color:var(--w-muted)]">
               {shortTokens(output)} out · {shortTokens(input)} in
             </span>
           </div>
@@ -149,14 +149,14 @@ export function SummaryView({ plans, ids, usage, sessions, percent, now, todayKe
               <li key={s.key} className="flex min-w-0 items-center gap-2 text-xs" style={{ height: ROW_H }}>
                 <PulseDot color={dot(s)} pulse={s.state === "working"} label={s.state} className="h-2 w-2 shrink-0 rounded-full" />
                 <span className="truncate text-[color:var(--w-fg)]">{s.project || AGENT_NAMES[s.agent]}</span>
-                <span className="ml-auto shrink-0 text-[11px] text-[color:var(--w-muted)]">{statusWord(s)}</span>
+                <span className="ml-auto shrink-0 text-micro text-[color:var(--w-muted)]">{statusWord(s)}</span>
               </li>
             ))}
           </ul>
         </div>
       )}
       {age && (
-        <div className="mt-auto flex min-w-0 shrink-0 items-baseline gap-2 text-[11px] text-[color:var(--w-muted)]" style={{ height: FOOT_H }}>
+        <div className="mt-auto flex min-w-0 shrink-0 items-baseline gap-2 text-micro text-[color:var(--w-muted)]" style={{ height: FOOT_H }}>
           <span className="truncate">
             {age.stale ? "stale" : "live"}
             {age.age > 0 ? ` · ${shortDuration(age.age)} ago` : ""}

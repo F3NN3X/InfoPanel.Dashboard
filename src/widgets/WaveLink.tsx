@@ -55,7 +55,7 @@ export const gainLabel = (gain: WlGain): string => {
   return gain.value === null ? "—" : `${Math.round(gain.value * 100)}%`;
 };
 const MuteMark = ({ title = "Muted" }: { title?: string }) => (
-  <span role="img" aria-label={title} className="shrink-0 text-[13px]" style={{ color: "var(--wl-mute)" }} title={title}>
+  <span role="img" aria-label={title} className="shrink-0 text-body" style={{ color: "var(--wl-mute)" }} title={title}>
     <Icon name="volume_off" />
   </span>
 );
@@ -133,7 +133,7 @@ function MixColumn({ channel, state, o }: { channel: WlChannel; state: WlState; 
         <MeterPair levels={levels} vertical variant={o.variant} color={o.color ?? "var(--accent)"} hot={STATE.crit} />
       </div>
       {o.readout && (
-        <div className="flex items-center justify-between gap-2 font-mono text-[11px] tabular-nums">
+        <div className="flex items-center justify-between gap-2 font-mono text-micro tabular-nums">
           <span>
             <span className="mr-1 font-sans text-micro text-[color:var(--w-faint)]">L</span>
             {fmtDb(levels.l.v)}
@@ -201,7 +201,7 @@ function DenseRow({ channel, o, w }: { channel: WlChannel; o: Opts; w: number })
         </span>
         {channel.isMuted && <MuteMark />}
       </span>
-      {o.fader && !narrow && <span className="w-[54px] shrink-0 whitespace-nowrap text-right text-[11px] tabular-nums text-[color:var(--w-muted)]">{fader(channel.level, channel.levelDb)}</span>}
+      {o.fader && !narrow && <span className="w-[54px] shrink-0 whitespace-nowrap text-right text-micro tabular-nums text-[color:var(--w-muted)]">{fader(channel.level, channel.levelDb)}</span>}
       <MeterPair levels={levels} variant={o.variant} color={o.color ?? "var(--accent)"} hot={STATE.crit} thickness={5} className="min-w-0 flex-1" />
       {o.readout && w >= 280 && (
         <span className="w-[60px] shrink-0 text-right font-mono text-micro tabular-nums text-[color:var(--w-muted)]">
@@ -225,7 +225,7 @@ function DeviceRow({ device, o }: { device: WlDevice; o: Opts }) {
       </span>
       {device.inputs.some((i) => i.isMuted) && <MuteMark />}
       <MeterPair levels={levels} variant={o.variant} color={o.color ?? "var(--accent)"} hot={STATE.crit} thickness={4} className="min-w-0 flex-1" />
-      {o.fader && input?.gain && <span className="shrink-0 text-[11px] tabular-nums text-[color:var(--w-muted)]">{gainLabel(input.gain)}</span>}
+      {o.fader && input?.gain && <span className="shrink-0 text-micro tabular-nums text-[color:var(--w-muted)]">{gainLabel(input.gain)}</span>}
     </div>
   );
 }
@@ -319,6 +319,7 @@ export default function WaveLink(p: WaveLinkProps) {
       title={p.title ?? "Wave Link"}
       icon="mic"
       design={DESIGN}
+      fixedType
       style={{ ...vars, ...p.style }}
       right={
         <Chip>

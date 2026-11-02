@@ -37,7 +37,7 @@ export default function Uptime(p: UptimeProps) {
       {({ size, w, h }) =>
         size === "xs" ? (
           <div className="flex h-full flex-col justify-center">
-            <span className="text-[11px] text-[color:var(--w-muted)]">Uptime</span>
+            <span className="text-micro text-[color:var(--w-muted)]">Uptime</span>
             <Num ip={tag(key("formatted"))} className="text-2xl font-semibold">
               {k("days")}d {k("hours")}h {pad(k("minutes"))}m
             </Num>

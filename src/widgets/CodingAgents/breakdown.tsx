@@ -78,7 +78,7 @@ export function Breakdown({ data, rows, tokens }: { data: BreakdownData; rows: n
   const projects = data.projects.slice(0, rows);
   return (
     <div className="flex shrink-0 flex-col" style={{ height: breakdownH(rows, !!tokens, data.models.length > 0) }}>
-      <div className="flex items-baseline justify-between gap-2 text-[11px] text-[color:var(--w-muted)]" style={{ height: HEADER_H }}>
+      <div className="flex items-baseline justify-between gap-2 text-micro text-[color:var(--w-muted)]" style={{ height: HEADER_H }}>
         <span className="truncate">This week</span>
         <span className="shrink-0 tabular-nums text-[color:var(--w-fg)]">{shortTokens(data.total)}</span>
       </div>
@@ -101,7 +101,7 @@ export function Breakdown({ data, rows, tokens }: { data: BreakdownData; rows: n
       )}
       {projects.map((p) => (
         <div key={p.name} className="flex min-w-0 flex-col justify-end gap-[3px]" style={{ height: ROW_H, marginTop: ROW_GAP }}>
-          <div className="flex min-w-0 items-baseline justify-between gap-2 text-[11px] leading-[12px]">
+          <div className="flex min-w-0 items-baseline justify-between gap-2 text-micro leading-[12px]">
             <span className="truncate text-[color:var(--w-fg)]">{p.name}</span>
             <span className="shrink-0 tabular-nums text-[color:var(--w-muted)]">{pct(p.share)}</span>
           </div>

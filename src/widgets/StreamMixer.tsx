@@ -113,7 +113,7 @@ export default function StreamMixer(p: StreamMixerProps) {
                     <div className={`truncate font-semibold leading-tight ${c.mute ? "text-zinc-500" : ""}`} style={{ fontSize: big ? 16 : 13.5 }}>
                       {c.name}
                     </div>
-                    {showSub && (c.mute || c.sub) && <div className="mt-0.5 truncate text-[11px] text-zinc-500">{c.mute ? "Muted" : c.sub}</div>}
+                    {showSub && (c.mute || c.sub) && <div className="mt-0.5 truncate text-micro text-zinc-500">{c.mute ? "Muted" : c.sub}</div>}
                   </div>
                 )}
                 <div style={{ height: fh }}>

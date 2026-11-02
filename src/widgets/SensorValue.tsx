@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import type { ModuleSettings } from "@/modules/types";
 import { isImageUrl } from "@/lib/image";
 import { widgetImage } from "./data-adapter";
-import { IpTagCtx, Widget, shell, get, num, fmt, has, Metric, Ring, Spark, Bar, Num, useHistory, useIpTag, tone, TONES, type ShellProps } from "./kit";
+import { UNIT_CLASS, IpTagCtx, Widget, shell, get, num, fmt, has, Metric, Ring, Spark, Bar, Num, useHistory, useIpTag, tone, TONES, type ShellProps } from "./kit";
 import { fitFont, ringFont, textEm, valueFont } from "./core/fit";
 import { meta } from "./meta/SensorValue";
 
@@ -154,7 +154,7 @@ export default function SensorValue(p: SensorValueProps) {
   // The unit is the value's own only where it is drawn inside it (label inside); otherwise it stays in the picture.
   const ipValue = tag(ipKey, { unit: p.labelInside ? su : "", decimals: p.decimals ?? (up ? 1 : 0) });
   const source = p.source ? (
-    <span className="mt-1 shrink-0 truncate text-center text-[11px] text-[color:var(--w-faint)]" title={p.source}>
+    <span className="mt-1 shrink-0 truncate text-center text-micro text-[color:var(--w-faint)]" title={p.source}>
       {p.source}
     </span>
   ) : null;
@@ -178,7 +178,7 @@ export default function SensorValue(p: SensorValueProps) {
           onCanvas ? <div className="flex h-full items-center text-xs text-[color:var(--w-faint)]">Pick a sensor</div> : <div className="flex h-full items-center text-xs text-[color:var(--w-faint)]">No sensor</div>
         ) : !numeric ? (
           <div className="flex h-full flex-col justify-center">
-            {size === "xs" && p.look?.showTitle !== false && <span className="text-[11px] text-[color:var(--w-muted)]">{label}</span>}
+            {size === "xs" && p.look?.showTitle !== false && <span className="text-micro text-[color:var(--w-muted)]">{label}</span>}
             {has(raw) && isImageUrl(raw, p.sensor) ? (
               <img src={widgetImage(raw)} alt="" loading="lazy" className="max-h-full min-h-0 w-auto self-center rounded-md object-contain" onError={(e) => ((e.target as HTMLImageElement).style.display = "none")} />
             ) : (
@@ -188,13 +188,13 @@ export default function SensorValue(p: SensorValueProps) {
           </div>
         ) : disp === "gauge" ? (
           <div className="flex h-full items-center justify-center">
-            <Ring value={v - min} max={max - min} t={t} thickness={size === "xs" ? 10 : 8} className="h-full max-w-full" ipKey={ipKey}>
+            <Ring value={v - min} max={max - min} t={t} className="h-full max-w-full" ipKey={ipKey}>
               {p.labelInside ? (
                 <div className="flex flex-col items-center leading-none" style={{ fontSize: ringFont(fmt(sv, p.decimals ?? (up ? 1 : 0)), su, 0.45, Math.min(w, h)) }}>
                   {Math.min(w, h) >= RING_LABEL_MIN && <span className="text-[0.4em] text-[color:var(--w-muted)]" style={{ textTransform: "var(--wp-label-case, none)" as CSSProperties["textTransform"] }}>{label}</span>}
                   <Num ip={ipValue} className="mt-[0.15em] font-semibold">
                     {fmt(sv, p.decimals ?? (up ? 1 : 0))}
-                    <span className="ml-[0.1em] text-[0.45em] font-medium text-[color:var(--w-muted)]">{su}</span>
+                    <span className={UNIT_CLASS}>{su}</span>
                   </Num>
                 </div>
               ) : (

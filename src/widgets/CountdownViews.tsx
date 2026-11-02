@@ -40,7 +40,7 @@ const lineMeta = (size: string) => (size === "xs" ? 0 : 20);
 
 function Name({ name, size }: { name: string; size: string }) {
   if (!name || size === "xs") return null;
-  return <span className="max-w-full truncate text-[11px] font-medium uppercase tracking-[0.14em] text-[color:var(--w-muted)]">{name}</span>;
+  return <span className="max-w-full truncate text-micro font-medium uppercase tracking-[0.14em] text-[color:var(--w-muted)]">{name}</span>;
 }
 
 function DateLine({ text, size }: { text: string; size: string }) {

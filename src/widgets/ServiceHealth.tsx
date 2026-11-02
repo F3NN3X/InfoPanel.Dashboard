@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { bodyGap, useFitRows, Widget, shell, get, num, has, Dot, Pill, type ShellProps } from "./kit";
+import { bodyGap, fillRows, roomy, useFitRows, Widget, shell, get, num, has, Dot, Pill, type ShellProps } from "./kit";
 import { meta } from "./meta/ServiceHealth";
 
 export { meta };
@@ -49,6 +49,12 @@ export default function ServiceHealth(p: ServiceHealthProps) {
       {({ h, w }) => {
         // a 16px row plus the 8px row gap, or the look's gap
         const g = bodyGap(p.look, 8, h);
+        // roomy: one column that fills the height; the two-column list is for a wide, short box
+        const big = roomy(w, h),
+          cols = w > 420 && !big ? 2 : 1,
+          rowMin = big ? 20 : 16,
+          shown = Math.min(list.length, cols * useFitRows(h - 8 + g, rowMin + g)),
+          fill = fillRows(h, shown, rowMin, g, big);
         return p.layout === "pills" ? (
           <div className="flex h-full flex-wrap content-start gap-1.5 overflow-hidden">
             {list.map((x) => (
@@ -59,12 +65,12 @@ export default function ServiceHealth(p: ServiceHealthProps) {
             ))}
           </div>
         ) : (
-          <ul className="grid h-full content-start gap-x-4 gap-y-2" style={{ gridTemplateColumns: w > 420 ? "repeat(2, minmax(0,1fr))" : "minmax(0,1fr)" }}>
-            {list.slice(0, (w > 420 ? 2 : 1) * useFitRows(h - 8 + g, 16 + g)).map((x) => (
-              <li key={x.label} className="flex min-w-0 items-center gap-2 text-xs">
+          <ul className={`grid h-full gap-x-4 gap-y-2 ${fill.spread ? "content-evenly" : "content-start"}`} style={{ gridTemplateColumns: cols === 2 ? "repeat(2, minmax(0,1fr))" : "minmax(0,1fr)" }}>
+            {list.slice(0, shown).map((x) => (
+              <li key={x.label} className="flex min-w-0 items-center gap-2 text-caption leading-[1.333]" style={{ minHeight: fill.rowH }}>
                 <Dot ok={x.ok} className={!x.ok && x.idle ? "!bg-amber-400" : ""} />
                 <span className="truncate text-[color:var(--w-fg)]">{x.label}</span>
-                <span className="ml-auto shrink-0 text-[11px] text-[color:var(--w-faint)]">{x.note}</span>
+                <span className="ml-auto shrink-0 text-micro text-[color:var(--w-faint)]">{x.note}</span>
               </li>
             ))}
           </ul>

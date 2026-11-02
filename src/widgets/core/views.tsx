@@ -6,7 +6,7 @@ import { clamp, fmt } from "./data";
 import { fitRows } from "./layout";
 import { mix } from "./tokens";
 import { useSkin, TONES, numGlowStyle } from "./theme";
-import { Icon, Bar, Ring, Spark, Img } from "./primitives";
+import { Icon, Bar, Ring, Spark, Img, UNIT_CLASS, RING_TEXT, isWordUnit } from "./primitives";
 import { scaleX, scaleY, slideY } from "./motion";
 import type { Compact, Shape, Studio } from "./types";
 
@@ -28,14 +28,18 @@ export function CompactView({ c, shape, w, h, icon }: { c: Compact; shape: Shape
   const val = typeof c.value === "number" ? fmt(c.value, c.d ?? 0) : c.value;
   const none = isNoValue(val);
   // numbers shrink to fit the available width instead of overflowing (text values clamp instead)
-  const textLen = String(val ?? "–").length + (c.unit ? String(c.unit).length * 0.45 : 0);
+  // a word unit ("games") is not drawn beside the number: it is a caption under it
+  const word = isWordUnit(c.unit);
+  const inlineUnit = word ? undefined : c.unit;
+  const textLen = String(val ?? "–").length + (inlineUnit ? String(inlineUnit).length * 0.4 : 0);
   const fit = (base: number, avail: number) => ({ fontSize: Math.round(Math.max(13, Math.min(base, avail / (Math.max(2.5, textLen) * 0.62 * (sk.numWide ?? 1))))) });
   const value = (cls: string, base?: number, avail = 0) => (
     <span {...c.ip} className={`${cls} block max-w-full overflow-x-clip whitespace-nowrap font-semibold leading-none tracking-tight tabular-nums`} style={{ ...(base ? fit(base, avail) : null), fontFamily: sk.num, fontWeight: sk.numWeight, ...(sk.numGlow ? { ...NUM_TINT, ...numGlowStyle(sk) } : null), ...(c.t && c.t !== "ok" ? { color: TONES[c.t] } : null), ...(none ? NO_VALUE : null) }}>
       {val ?? "–"}
-      {c.unit && !none && <span className="ml-0.5 text-[0.45em] font-medium text-[color:var(--w-muted)]">{c.unit}</span>}
+      {inlineUnit && !none && <span className={UNIT_CLASS}>{inlineUnit}</span>}
     </span>
   );
+  const caption = word && !none && <span className="truncate text-micro text-[color:var(--w-muted)]">{c.unit}</span>;
   const label = c.label && (
     <div className="flex min-w-0 items-center gap-1.5 text-micro font-medium uppercase tracking-[0.08em] text-[color:var(--w-muted)]" style={labelStyle()}>
       <Icon name={c.icon ?? icon} className="text-[14px] text-[color:var(--accent)]" />
@@ -51,7 +55,7 @@ export function CompactView({ c, shape, w, h, icon }: { c: Compact; shape: Shape
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 flex flex-col gap-0.5 p-3">
           <span {...c.ip} className="line-clamp-2 text-sm font-semibold leading-tight">{val}</span>
-          {c.sub && <span className="truncate text-[11px] text-zinc-300">{c.sub}</span>}
+          {c.sub && <span className="truncate text-micro text-zinc-300">{c.sub}</span>}
           {c.viz ? <div className="mt-1.5">{c.viz("h-6")}</div> : Number.isFinite(c.pct) && <Bar value={c.pct!} className="mt-1.5 h-1" track="bg-white/20" />}
         </div>
       </div>
@@ -70,7 +74,8 @@ export function CompactView({ c, shape, w, h, icon }: { c: Compact; shape: Shape
         <div className={`flex min-w-0 flex-col gap-1.5 ${textVal || c.img ? "flex-1" : "shrink-0"}`}>
           {label}
           {textVal ? value("truncate text-base") : value("", h < 130 ? 24 : 30, w * 0.38)}
-          {c.sub && <span className="truncate text-[11px] text-[color:var(--w-faint)]">{c.sub}</span>}
+          {caption}
+          {c.sub && <span className="truncate text-micro text-[color:var(--w-faint)]">{c.sub}</span>}
         </div>
         {kind === "spark" && <Spark values={c.hist} min={c.min} max={c.max} color={c.color} className="h-[70%] min-w-0 flex-1" />}
         {kind === "bar" && (
@@ -78,7 +83,7 @@ export function CompactView({ c, shape, w, h, icon }: { c: Compact; shape: Shape
             <Bar value={c.pct!} t={c.t} className="h-2" />
           </div>
         )}
-        {kind === "ring" && <Ring value={c.pct!} t={c.t} color={c.color} thickness={11} className="h-[78%] shrink-0" />}
+        {kind === "ring" && <Ring value={c.pct!} t={c.t} color={c.color} className="h-[78%] shrink-0" />}
         {c.viz ? <div className="min-w-0 flex-1">{c.viz("h-[56%] max-h-14")}</div> : textVal && Number.isFinite(c.pct) && <Bar value={c.pct!} className="h-1 w-1/4 shrink-0" />}
       </div>
     );
@@ -87,7 +92,8 @@ export function CompactView({ c, shape, w, h, icon }: { c: Compact; shape: Shape
       <div className="flex h-full min-w-0 flex-col gap-2">
         {label}
         {textVal ? <span {...c.ip} className="line-clamp-3 text-base font-semibold leading-tight" style={tokenFit(val, w - 26, 16)}>{val}</span> : value("", w < 150 ? 24 : 36, w - 26)}
-        {c.sub && <span className="line-clamp-2 text-[11px] text-[color:var(--w-faint)]">{c.sub}</span>}
+        {caption}
+        {c.sub && <span className="line-clamp-2 text-micro text-[color:var(--w-faint)]">{c.sub}</span>}
         <div className="relative mt-auto min-h-0 flex-1">
           {kind === "spark" && <Spark values={c.hist} min={c.min} max={c.max} color={c.color} className="absolute inset-0 h-full" />}
           {(kind === "bar" || kind === "ring") && (
@@ -100,6 +106,8 @@ export function CompactView({ c, shape, w, h, icon }: { c: Compact; shape: Shape
     );
   // tile (1×1) — w/h are the outer size; below ~130px drop the sub line so value + graph always fit
   const tiny = h < 132 || w < 132;
+  // a 2x2 centres a hero of about a quarter of the height between the label and the graph, not at the bottom edge
+  const hero = w >= 200 && h >= 200 && w < 340;
   return (
     <div className="flex h-full min-w-0 flex-col">
       {label}
@@ -107,19 +115,20 @@ export function CompactView({ c, shape, w, h, icon }: { c: Compact; shape: Shape
         // a size container: the ring takes the smaller side, so a tall box (Summary card: Always) cannot push it past the width
         <div className="flex min-h-0 flex-1 items-center justify-center pt-1.5" style={{ containerType: "size" }}>
           <div className="shrink-0" style={{ width: "100cqmin" }}>
-            <Ring value={c.pct!} t={c.t} color={c.color} thickness={10}>
-              <span {...c.ip} className="font-semibold tabular-nums" style={{ fontSize: Math.max(12, Math.min(18, (w * 0.45) / Math.max(2.5, String(val).length * 0.62))), ...(none ? NO_VALUE : null) }}>
+            <Ring value={c.pct!} t={c.t} color={c.color}>
+              <span {...c.ip} className="font-semibold tabular-nums" style={{ ...RING_TEXT.value, ...(none ? NO_VALUE : null) }}>
                 {val}
-                {!none && <span className="text-micro text-[color:var(--w-muted)]">{c.unit}</span>}
+                {!none && <span className="text-[color:var(--w-muted)]" style={RING_TEXT.unit}>{c.unit}</span>}
               </span>
             </Ring>
           </div>
         </div>
       ) : (
         <>
-          <div className="mt-auto flex flex-col gap-1">
-            {textVal ? <span {...c.ip} className={`${tiny ? "text-[13px]" : "text-sm"} line-clamp-2 font-semibold leading-tight`}>{val}</span> : value("", tiny ? 22 : w < 160 || h < 160 ? 24 : 34, w - 26)}
-            {c.sub && !(tiny && (kind === "spark" || kind === "bar" || textVal)) && <span className="truncate text-[11px] text-[color:var(--w-faint)]">{c.sub}</span>}
+          <div className={`${hero ? "my-auto" : "mt-auto"} flex flex-col gap-1`}>
+            {textVal ? <span {...c.ip} className={`${tiny ? "text-body" : "text-sm"} line-clamp-2 font-semibold leading-tight`}>{val}</span> : value("", tiny ? 22 : hero ? Math.round(h * 0.26) : w < 160 || h < 160 ? 24 : 34, w - 26)}
+            {caption}
+            {c.sub && !(tiny && (kind === "spark" || kind === "bar" || textVal)) && <span className="truncate text-micro text-[color:var(--w-faint)]">{c.sub}</span>}
           </div>
           {kind === "spark" && <Spark values={c.hist} min={c.min} max={c.max} color={c.color} className={`${tiny ? "mt-1.5 h-[22%]" : "mt-2 h-[28%]"} shrink-0`} />}
           {kind === "bar" && <Bar value={c.pct!} t={c.t} className={`${tiny ? "mt-2" : "mt-2.5"} h-1.5 shrink-0`} />}
@@ -157,11 +166,11 @@ export function StudioView({ c, w, h, icon }: { c: Studio; w: number; h: number;
   const fitPx = (max: number) => Math.round(Math.max(11, Math.min(max, (w - 26) / (Math.max(2.5, len) * 0.68 * (sk.numWide ?? 1)))));
   const big = (max: number): ReactNode =>
     c.kind === "text" ? (
-      <span {...c.ip} className="line-clamp-2 text-[15px] font-semibold leading-snug">{val ?? "—"}</span>
+      <span {...c.ip} className="line-clamp-2 text-title font-semibold leading-snug">{val ?? "—"}</span>
     ) : (
       <span {...c.ip} className="block max-w-full overflow-x-clip whitespace-nowrap font-semibold leading-[1.05] tracking-[-0.02em] tabular-nums" style={{ fontSize: fitPx(max), fontFamily: sk.num, fontWeight: sk.numWeight ?? 600, color: toneC, ...glow, ...(isNoValue(val) ? NO_VALUE : null) }}>
         {val ?? "–"}
-        {c.unit && !isNoValue(val) && <span className="ml-0.5 text-[0.5em] font-medium text-[color:var(--w-muted)]">{c.unit}</span>}
+        {c.unit && !isNoValue(val) && <span className={UNIT_CLASS}>{c.unit}</span>}
       </span>
     );
   // single-row zones: label ← → value
@@ -173,7 +182,7 @@ export function StudioView({ c, w, h, icon }: { c: Studio; w: number; h: number;
           {c.sub && w > 260 && <span className="truncate text-micro text-[color:var(--w-muted)]">{c.sub}</span>}
         </div>
         {c.hist && w > 300 ? <Spark values={c.hist} min={c.min} max={c.max} graph="line" fill={false} className="h-[46%] min-w-0 flex-1 opacity-80" /> : Number.isFinite(c.pct) && w > 300 ? thin(c.pct!, "min-w-0 flex-1") : <span className="flex-1" />}
-        <span {...c.ip} className="shrink-0 whitespace-nowrap text-[15px] font-semibold tracking-[-0.01em] tabular-nums" style={{ fontFamily: sk.num, color: toneC, ...glow }}>
+        <span {...c.ip} className="shrink-0 whitespace-nowrap text-title font-semibold tracking-[-0.01em] tabular-nums" style={{ fontFamily: sk.num, color: toneC, ...glow }}>
           {val ?? "–"}
           {c.unit && <span className="ml-0.5 text-micro font-medium text-[color:var(--w-muted)]">{c.unit}</span>}
         </span>
@@ -190,7 +199,7 @@ export function StudioView({ c, w, h, icon }: { c: Studio; w: number; h: number;
           </div>
           <div className="flex min-w-0 flex-col gap-[3px]">
             <span {...c.ip} className={`${h > 200 ? "text-[17px]" : "text-sm"} line-clamp-2 font-semibold leading-tight`}>{val}</span>
-            {c.sub && <span className="truncate text-[11px] text-[color:var(--w-muted)]">{c.sub}</span>}
+            {c.sub && <span className="truncate text-micro text-[color:var(--w-muted)]">{c.sub}</span>}
           </div>
         </div>
         {c.viz && <div className="mt-2 shrink-0">{c.viz("h-7")}</div>}

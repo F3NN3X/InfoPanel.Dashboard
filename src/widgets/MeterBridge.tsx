@@ -100,7 +100,7 @@ export default function MeterBridge(p: MeterBridgeProps) {
   const showName = p.showName !== false,
     showDetails = p.showDetails !== false,
     showMute = p.showMute !== false;
-  const mute = (c: Channel) => showMute && c.muted && <span role="img" aria-label="Muted" className="shrink-0 text-[13px]" style={{ color: STATE.crit }} title="Muted"><Icon name="volume_off" /></span>;
+  const mute = (c: Channel) => showMute && c.muted && <span role="img" aria-label="Muted" className="shrink-0 text-body" style={{ color: STATE.crit }} title="Muted"><Icon name="volume_off" /></span>;
   const pos = (db: number) => Math.min(100, Math.max(0, ((Math.max(floor, db) - floor) / -floor) * 100));
   const vertical = p.orientation !== "horizontal";
   const anyLive = ch.some((c) => c.l > floor || c.r > floor);
@@ -184,11 +184,11 @@ export default function MeterBridge(p: MeterBridgeProps) {
               <div key={c.id} className="flex min-h-0 min-w-0 flex-col gap-2" title={c.full}>
                 <div className="flex flex-col gap-1">
                   <div className="flex items-baseline justify-between gap-2">
-                    <span className="flex min-w-0 items-center gap-1 text-[13px] font-semibold">
+                    <span className="flex min-w-0 items-center gap-1 text-body font-semibold">
                       {showName && <span className="truncate">{c.name}</span>}
                       {mute(c)}
                     </span>
-                    {p.showVolume !== false && Number.isFinite(c.vol) && <span className="shrink-0 text-[13px] font-semibold tabular-nums">{fmt(c.vol)}%</span>}
+                    {p.showVolume !== false && Number.isFinite(c.vol) && <span className="shrink-0 text-body font-semibold tabular-nums">{fmt(c.vol)}%</span>}
                   </div>
                   {p.showVolume !== false && Number.isFinite(c.vol) && (
                     <div className="h-[3px] overflow-hidden rounded-full bg-[color:var(--w-track)]">

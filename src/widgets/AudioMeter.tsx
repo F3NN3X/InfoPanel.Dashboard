@@ -1,7 +1,7 @@
 import type { ModuleSettings } from "@/modules/types";
 import { useFastSensors } from "@/hooks/useSensors";
 import { AUDIO } from "./audio-device";
-import { Widget, useFitRows, shell, fmt, Num, Spark, LedLadder, slideX, STATE, hue, useHistory, useMeterBallistics, clamp, type BallisticsPreset, type ShellProps } from "./kit";
+import { Stat, Widget, useFitRows, shell, fmt, Num, Spark, LedLadder, slideX, STATE, hue, useHistory, useMeterBallistics, clamp, type BallisticsPreset, type ShellProps } from "./kit";
 import { audioIdsIn, pickedIds, readDevice, type AudioDevice, type FlowFilter } from "./audio-data";
 import { meta, AUDIO_WARN_DB, AUDIO_HOT_DB } from "./meta/AudioMeter";
 
@@ -106,6 +106,7 @@ export default function AudioMeter(p: AudioMeterProps) {
   return (
     <Widget
       {...shell(p)}
+      fixedType
       title={p.title ?? (bridge ? "Audio levels" : name)}
       icon="graphic_eq"
       studio={
@@ -176,7 +177,7 @@ export default function AudioMeter(p: AudioMeterProps) {
                   r = step(m.id + "r", m.r);
                 return (
                   <div key={m.id} className="flex min-w-0 flex-1 flex-col items-center gap-1.5">
-                    <span className="text-[11px] font-semibold tabular-nums">{fmt(m.level)}%</span>
+                    <span className="text-micro font-semibold tabular-nums">{fmt(m.level)}%</span>
                     <div className="flex min-h-0 w-full flex-1 justify-center gap-[3px]">
                       <div className="flex w-2">
                         <LedLadder zones={zones} value={l.v} vertical n={size === "lg" ? 28 : 16} color={lc} hotColor={hc} hold={l.hold} />
@@ -312,17 +313,14 @@ export default function AudioMeter(p: AudioMeterProps) {
               </div>
             )}
             {showDetails && size !== "sm" && (
-              <div className="mt-1 grid grid-cols-4 gap-3 font-mono text-[11px]">
+              <div className="mt-1 grid grid-cols-4 gap-3">
                 {[
                   ["Peak", `${fmt(one.peak, 1)} dB`],
                   ["RMS", `${fmt(one.rms, 1)} dB`],
                   ["Hold", `${fmt(one.hold, 1)} dB`],
                   ["Level", `${fmt(one.level, 1)}%`],
                 ].map(([l, v]) => (
-                  <div key={l} className="flex min-w-0 flex-col">
-                    <span className="font-sans text-micro text-[color:var(--w-faint)]">{l}</span>
-                    <span className="truncate text-[color:var(--w-fg)]">{v}</span>
-                  </div>
+                  <Stat key={l} label={l} value={v} />
                 ))}
               </div>
             )}

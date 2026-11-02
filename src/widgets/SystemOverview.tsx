@@ -319,8 +319,6 @@ export default function SystemOverview(p: SystemOverviewProps) {
                   const c = toneOf(k) === "ok" ? col(k) ?? "var(--accent)" : TONES[toneOf(k)];
                   return { v: Math.min(100, ALL[k].v), color: c, track: `color-mix(in oklab, ${c} 16%, transparent)` };
                 })}
-                thickness={10}
-                gap={3}
                 className="h-full min-w-0 flex-1"
               >
                 {/* below the legend gate the lead ring is named in the hole (identity is not colour alone) when the hole is big enough to hold it */}
@@ -377,7 +375,7 @@ export default function SystemOverview(p: SystemOverviewProps) {
                   <div className="flex min-w-0 items-center gap-3">
                     {ring && (
                       <div className="shrink-0" style={{ width: rpx, height: rpx }}>
-                        <Ring ipKey={s.key} value={s.v} t={t} thickness={9} className="h-full w-full">
+                        <Ring ipKey={s.key} value={s.v} t={t} className="h-full w-full">
                           <Num ipKey={s.key} ipUnit="" style={{ fontSize: rpx * 0.3 }}>{fmt(s.v, 0)}</Num>
                         </Ring>
                       </div>

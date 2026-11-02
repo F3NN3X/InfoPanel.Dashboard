@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { ModuleSettings } from "@/modules/types";
-import { useFitRows, Widget, shell, get, num, fmt, fmtMB, rows, Metric, Stat, Bar, Segmented, type ShellProps } from "./kit";
+import { roomy, useFitRows, Widget, shell, get, num, fmt, fmtMB, rows, Metric, Stat, Bar, Segmented, type ShellProps } from "./kit";
 import { meta } from "./meta/ProcessList";
 
 export { meta };
@@ -10,7 +10,9 @@ type Sort = "cpu" | "utility" | "memory";
 /** A row's height and the gap between rows, px (`h-5`, `gap-1.5`); the stats row's and the footer's heights. */
 const ROW_H = 20;
 const ROW_GAP = 6;
-const STATS_H = 46;
+// The stat row: 41px at 1x (15px value over a micro label), 51px when a roomy box grows the type.
+const STATS_H = 49;
+const STATS_H_ROOMY = 59;
 const FOOTER_H = 60;
 
 export interface ProcessListProps extends ShellProps {
@@ -48,10 +50,10 @@ export default function ProcessList(p: ProcessListProps) {
         />
       }
     >
-      {({ size, h }) => {
+      {({ size, w, h }) => {
         if (size === "xs") return <Metric label="Processes" value={num(k("process-count"))} scale="lg" sub={`${fmt(num(k("thread-count")))} threads`} className="h-full justify-center" />;
         // Whole rows only: the room left by the stats above (md, lg) and the footer (lg), each with the 12px gap.
-        const n = p.rows ?? useFitRows(h - (size === "sm" ? 0 : STATS_H + 12) - (size === "lg" ? FOOTER_H + 12 : 0), ROW_H, ROW_GAP);
+        const n = p.rows ?? useFitRows(h - (size === "sm" ? 0 : (roomy(w, h) ? STATS_H_ROOMY : STATS_H) + 12) - (size === "lg" ? FOOTER_H + 12 : 0), ROW_H, ROW_GAP);
         return (
           <div className="flex h-full flex-col gap-3">
             {size !== "sm" && (
@@ -66,7 +68,7 @@ export default function ProcessList(p: ProcessListProps) {
               {list.slice(0, n).map((r, i) => {
                 const v = sort === "memory" ? r.mem : sort === "utility" ? r.util : r.cpu;
                 return (
-                  <li key={r.name + i} className="grid h-5 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 text-xs">
+                  <li key={r.name + i} className="grid h-5 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 text-caption leading-[1.333]">
                     <span className="truncate text-[color:var(--w-fg)]">{r.name}</span>
                     <span className="tabular-nums text-[color:var(--w-muted)]">{sort === "memory" ? fmtMB(r.mem) : `${fmt(v, 1)}%`}</span>
                     <Bar value={v} max={maxV} className="col-span-2 h-[3px]" />

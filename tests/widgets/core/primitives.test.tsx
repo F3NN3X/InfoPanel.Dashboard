@@ -1,6 +1,6 @@
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { Bar, Ring, Spark, sparkMarks, sparkY } from "@/widgets/core/primitives";
+import { Bar, Ring, Spark, UNIT_CLASS, isWordUnit, ringDashOffset, ringStroke, sparkMarks, sparkRange, sparkY } from "@/widgets/core/primitives";
 
 describe("Ring sweep", () => {
   const dash = (html: string) => [...html.matchAll(/stroke-dasharray="([^"]+)"/g)].map((m) => m[1]);
@@ -65,5 +65,58 @@ describe("Spark marks", () => {
     const html = renderToString(<Spark values={[1, 4, 2, 6]} marks className="absolute inset-0 h-full" />);
     expect(html).not.toContain("relative absolute");
     expect(html).toContain('class="absolute inset-0 h-full"');
+  });
+});
+
+describe("ringStroke", () => {
+  it("is 7.5% of the diameter, and never under 6px on screen", () => {
+    expect(ringStroke(200)).toBe(7.5);
+    expect(ringStroke(60)).toBeCloseTo(10);
+    expect(ringStroke(0)).toBe(7.5);
+  });
+});
+
+describe("ringDashOffset", () => {
+  const c = 100;
+  it("stops a round cap short by its radius so the arc ends on the value", () => {
+    expect(ringDashOffset(c, 0.5, 8, false)).toBe(50);
+    expect(ringDashOffset(c, 0.5, 8, true)).toBe(54);
+  });
+  it("keeps an empty and a full ring as they are", () => {
+    expect(ringDashOffset(c, 0, 8, true)).toBe(100);
+    expect(ringDashOffset(c, 1, 8, true)).toBe(0);
+  });
+  it("never shortens a short arc past half its length", () => {
+    expect(ringDashOffset(c, 0.02, 8, true)).toBeCloseTo(98 + 1);
+  });
+});
+
+describe("sparkRange", () => {
+  it("keeps the data's range with headroom on top", () => {
+    expect(sparkRange([2, 4], undefined, undefined)).toEqual([2, 4 * 1.08]);
+    expect(sparkRange([2, 4], 0, 10)).toEqual([0, 10]);
+  });
+  it("centres a flat series (value +/- 10%) only when asked and no top is fixed", () => {
+    expect(sparkRange([5, 5], 0, undefined)).toEqual([0, 5 * 1.08]);
+    expect(sparkRange([5, 5], 0, undefined, true)).toEqual([4.5, 5.5]);
+    expect(sparkRange([5, 5], 0, 100, true)).toEqual([0, 100]);
+    expect(sparkRange([0, 0], undefined, undefined, true)).toEqual([-1, 1]);
+  });
+  it("keeps a flat series at its floor on the baseline", () => {
+    expect(sparkRange([0, 0], 0, undefined, true)).toEqual([0, 1]);
+  });
+  it("leaves a moving series alone in a roomy box", () => {
+    expect(sparkRange([1, 3], undefined, undefined, true)).toEqual([1, 3 * 1.08]);
+  });
+});
+
+describe("units", () => {
+  it("moves a word unit under the number and keeps symbols beside it", () => {
+    expect(isWordUnit("games")).toBe(true);
+    expect(isWordUnit("online")).toBe(true);
+    for (const u of ["%", "°C", "h", "W", "MB/s", "GHz", "min", undefined]) expect(isWordUnit(u)).toBe(false);
+  });
+  it("is one style: small, medium, muted", () => {
+    expect(UNIT_CLASS).toContain("text-[0.4em]");
   });
 });

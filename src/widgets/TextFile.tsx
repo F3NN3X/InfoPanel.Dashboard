@@ -62,11 +62,11 @@ export default function TextFile(p: TextFileProps) {
               {p.look?.showTitle !== false && <span className="shrink-0 font-medium uppercase tracking-[0.08em]">{p.title ?? "Text File"}</span>}
               {showMeta && <span className="truncate">{bits.join(" · ")}</span>}
             </div>
-            <pre className="min-h-0 flex-1 overflow-hidden whitespace-pre-wrap break-words font-mono text-xs text-[color:var(--w-fg)]/85" style={{ display: "-webkit-box", WebkitBoxOrient: "vertical", WebkitLineClamp: Math.max(1, Math.floor((h - 18) / XS_LINE)), lineHeight: `${XS_LINE}px` }}>{content ?? "No content"}</pre>
+            <pre className="min-h-0 flex-1 overflow-hidden whitespace-pre-wrap break-words font-mono text-caption text-[color:var(--w-fg)]/85" style={{ display: "-webkit-box", WebkitBoxOrient: "vertical", WebkitLineClamp: Math.max(1, Math.floor((h - 18) / XS_LINE)), lineHeight: `${XS_LINE}px` }}>{content ?? "No content"}</pre>
           </div>
         ) : (
           <div className="flex h-full min-w-0 flex-col gap-1.5">
-            <pre className="min-h-0 flex-1 overflow-y-auto whitespace-pre-wrap break-words font-mono text-xs leading-relaxed text-[color:var(--w-fg)]/85">{content ?? "No content"}</pre>
+            <pre className="min-h-0 flex-1 overflow-y-auto whitespace-pre-wrap break-words font-mono text-caption leading-relaxed text-[color:var(--w-fg)]/85">{content ?? "No content"}</pre>
             {showMeta && bits.length > 0 && <span className="shrink-0 truncate text-micro text-[color:var(--w-muted)]">{bits.join(" · ")}</span>}
           </div>
         )

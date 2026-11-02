@@ -59,7 +59,7 @@ export default function DiskIO(p: DiskIOProps) {
               <div key={x.id} className="flex flex-col gap-1.5">
                 <div className="flex min-w-0 items-baseline gap-2 text-xs">
                   <span className="truncate font-medium text-[color:var(--w-fg)]">{x.name}</span>
-                  <span className="shrink-0 text-[11px] text-[color:var(--w-faint)]">
+                  <span className="shrink-0 text-micro text-[color:var(--w-faint)]">
                     {fmt(x.act, 0)}%{w >= 170 && " active"}
                   </span>
                 </div>
@@ -69,7 +69,7 @@ export default function DiskIO(p: DiskIOProps) {
                     ["W", x.w, wc],
                   ] as const
                 ).map(([l, v, c]) => (
-                  <div key={l} className={`grid items-center gap-2 text-[11px] ${w < 170 ? "grid-cols-[12px_minmax(0,1fr)]" : "grid-cols-[12px_minmax(0,1fr)_76px]"}`}>
+                  <div key={l} className={`grid items-center gap-2 text-micro ${w < 170 ? "grid-cols-[12px_minmax(0,1fr)]" : "grid-cols-[12px_minmax(0,1fr)_76px]"}`}>
                     <span className="text-[color:var(--w-faint)]">{l}</span>
                     {w >= 170 && (
                       <div className="h-1.5 overflow-hidden rounded-full bg-[color:var(--w-track)]">

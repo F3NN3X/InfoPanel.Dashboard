@@ -79,7 +79,7 @@ export function GaugeView({ idle, size, w, h, fps, low, low01, ft, hz, maxFps, t
   const numColor = color ?? (tone !== "ok" ? TONES[tone] : undefined);
   const ring = (
     <div className="shrink-0" style={{ width: ringSize, height: ringSize }}>
-      <Ring value={idle ? 0 : fps} max={maxFps} t={tone} color={color} thickness={10} className="h-full w-full">
+      <Ring value={idle ? 0 : fps} max={maxFps} t={tone} color={color} className="h-full w-full">
         <Num className="leading-none" style={{ fontSize: Math.max(12, ringSize * 0.26), color: numColor }}>
           {!idle && <ToneCue t={tone} />}
           {idle ? "–" : fmt(fps)}
@@ -94,7 +94,7 @@ export function GaugeView({ idle, size, w, h, fps, low, low01, ft, hz, maxFps, t
         <div className="flex min-w-0 flex-col gap-1">
           <span className="text-sm text-[color:var(--w-fg)]">No game running</span>
           {size !== "sm" && (
-            <span className="truncate text-[11px] text-[color:var(--w-faint)]">
+            <span className="truncate text-micro text-[color:var(--w-faint)]">
               {gpu} · {resolution} @ {fmt(hz)} Hz
             </span>
           )}
@@ -117,7 +117,7 @@ export function GaugeView({ idle, size, w, h, fps, low, low01, ft, hz, maxFps, t
   );
   const shown = size === "sm" ? [] : extras.slice(0, 4);
   const metrics = shown.length > 0 && (
-    <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-[color:var(--w-faint)]">
+    <div className="flex flex-wrap gap-x-3 gap-y-1 text-micro text-[color:var(--w-faint)]">
       {shown.map(([l, v]) => (
         <span key={l}>
           {l} <span className="font-semibold tabular-nums text-[color:var(--w-fg)]">{v}</span>
@@ -134,7 +134,7 @@ export function GaugeView({ idle, size, w, h, fps, low, low01, ft, hz, maxFps, t
   const side = size !== "sm" && w > 440;
   // narrower than the side column's width: the GPU and display facts sit under the metrics, when there is room
   const facts = size !== "sm" && !side && (gpu || resolution) && (!metrics || h >= 190) && (
-    <div className="min-w-0 text-[11px] text-[color:var(--w-faint)]">
+    <div className="min-w-0 text-micro text-[color:var(--w-faint)]">
       {gpu && <div className="truncate font-medium text-[color:var(--w-muted)]">{gpu}</div>}
       <div className="truncate">{[resolution, hz > 0 ? `${fmt(hz)} Hz` : ""].filter(Boolean).join(" · ")}</div>
     </div>
@@ -147,7 +147,7 @@ export function GaugeView({ idle, size, w, h, fps, low, low01, ft, hz, maxFps, t
         {stats}
         {spark && <div className="w-[80%]">{spark}</div>}
         {metrics}
-        {title && <span className="max-w-full truncate text-[11px] text-[color:var(--w-faint)]">{[title, resolution].filter(Boolean).join(" · ")}</span>}
+        {title && <span className="max-w-full truncate text-micro text-[color:var(--w-faint)]">{[title, resolution].filter(Boolean).join(" · ")}</span>}
       </div>
     );
   return (
@@ -165,8 +165,8 @@ export function GaugeView({ idle, size, w, h, fps, low, low01, ft, hz, maxFps, t
       {side && (
         <div className="w-[26%] max-w-[220px] shrink-0 text-right">
           <div className="truncate text-sm font-medium text-[color:var(--w-fg)]">{gpu || "–"}</div>
-          <div className="truncate text-[11px] text-[color:var(--w-faint)]">{[resolution, hz > 0 ? `${fmt(hz)} Hz` : ""].filter(Boolean).join(" · ")}</div>
-          {title && <div className="mt-1 truncate text-[11px] text-[color:var(--w-faint)]">{title}</div>}
+          <div className="truncate text-micro text-[color:var(--w-faint)]">{[resolution, hz > 0 ? `${fmt(hz)} Hz` : ""].filter(Boolean).join(" · ")}</div>
+          {title && <div className="mt-1 truncate text-micro text-[color:var(--w-faint)]">{title}</div>}
         </div>
       )}
     </div>
@@ -238,7 +238,7 @@ export default function FpsMonitor(p: FpsMonitorProps) {
             <Icon name="sports_esports" className="text-3xl text-[color:var(--w-faint)]" />
             <span className="text-sm text-[color:var(--w-fg)]">No game running</span>
             {size !== "sm" && (
-              <span className="text-[11px] text-[color:var(--w-faint)]">
+              <span className="text-micro text-[color:var(--w-faint)]">
                 {k("gpu-name")} · {k("resolution")} @ {fmt(hz)} Hz
               </span>
             )}
@@ -264,7 +264,6 @@ export default function FpsMonitor(p: FpsMonitorProps) {
               </div>
             </div>
             <div className="flex min-h-0 flex-1 flex-col">
-              <span className="shrink-0 self-end text-micro text-[color:var(--w-faint)]">frame time</span>
               <div className="relative min-h-0 flex-1">
                 <Spark values={hist} min={0} max={ftTop} curve={false} className="absolute inset-0 h-full" />
               </div>

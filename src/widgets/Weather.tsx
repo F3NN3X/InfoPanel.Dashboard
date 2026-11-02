@@ -165,7 +165,7 @@ function Current(p: WeatherProps) {
               <div className="mt-auto grid gap-1.5 border-t border-[color:var(--w-track)] pt-3" style={{ gridTemplateColumns: `repeat(${Math.min(fc.length, shown)}, minmax(0,1fr))` }}>
                 {fc.slice(0, shown).map((f, i) => (
                   <div key={i} className={`flex flex-col items-center ${tight ? "gap-1" : "gap-1.5"}`} title={`${f.cond} · ${f.rain} mm · ${f.wind}`}>
-                    <span className="whitespace-nowrap text-[11px] text-[color:var(--w-muted)]">{f.date}</span>
+                    <span className="whitespace-nowrap text-micro text-[color:var(--w-muted)]">{f.date}</span>
                     <WeatherGlyph {...weatherKind("", f.cond)} {...icons} className="text-xl text-[color:var(--w-fg)]" />
                     <span className="text-xs font-semibold tabular-nums">{fmt(T(f.hi), 0)}°</span>
                     {bar && (
@@ -173,7 +173,7 @@ function Current(p: WeatherProps) {
                         <div className="absolute inset-x-0 rounded-full" style={{ background: "var(--accent)", bottom: `${((f.lo - lo) / (hi - lo || 1)) * 100}%`, top: `${100 - ((f.hi - lo) / (hi - lo || 1)) * 100}%` }} />
                       </div>
                     )}
-                    {showLo && <span className="text-[11px] tabular-nums text-[color:var(--w-muted)]">{fmt(T(f.lo), 0)}°</span>}
+                    {showLo && <span className="text-micro tabular-nums text-[color:var(--w-muted)]">{fmt(T(f.lo), 0)}°</span>}
                     {showRain && f.rain > 0 && <span className="whitespace-nowrap text-micro tabular-nums text-sky-300">{`${f.rain} mm`}</span>}
                   </div>
                 ))}

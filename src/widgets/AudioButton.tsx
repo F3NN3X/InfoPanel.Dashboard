@@ -61,8 +61,8 @@ export default function AudioButton(p: AudioButtonProps) {
             }}
           >
             <Icon name={icon} className={small ? "text-[26px]" : "text-[34px]"} />
-            <span className="max-w-full truncate px-1 text-[12px] font-semibold leading-tight">{name}</span>
-            {!small && ready && <span className="text-[11px] text-[color:var(--w-muted)]">{output ? (active ? "Active" : "Switch") : active ? "Muted" : "Live"}</span>}
+            <span className="max-w-full truncate px-1 text-caption font-semibold leading-tight">{name}</span>
+            {!small && ready && <span className="text-micro text-[color:var(--w-muted)]">{output ? (active ? "Active" : "Switch") : active ? "Muted" : "Live"}</span>}
           </button>
           </ReadOnly>
         );

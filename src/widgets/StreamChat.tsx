@@ -105,7 +105,7 @@ export default function StreamChat(p: StreamChatProps) {
                   aria-label="Chat message"
                   onChange={(e) => setDraft(e.target.value)}
                   placeholder={error || (source === "both" ? `Send to ${target === "youtube" ? "YouTube" : "Twitch"}` : "Send a message")}
-                  className="min-w-0 flex-1 bg-transparent text-[13px] text-zinc-100 outline-none placeholder:text-zinc-500"
+                  className="min-w-0 flex-1 bg-transparent text-body text-zinc-100 outline-none placeholder:text-zinc-500"
                 />
                 <button type="submit" aria-label="Send" disabled={!draft.trim()} className="flex h-7 w-7 items-center justify-center rounded-md disabled:opacity-40" style={{ color: "var(--accent)" }}>
                   <Icon name="send" className="text-[18px]" />

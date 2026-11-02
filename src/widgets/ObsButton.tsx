@@ -57,8 +57,8 @@ export default function ObsButton(p: ObsButtonProps) {
             }}
           >
             <Icon name={icon} className={small ? "text-[26px]" : "text-[34px]"} />
-            <span className="max-w-full truncate px-1 text-[12px] font-semibold leading-tight">{name}</span>
-            {!small && ready && action === "scene" && active && <span className="text-[11px] text-[color:var(--w-muted)]">On air</span>}
+            <span className="max-w-full truncate px-1 text-caption font-semibold leading-tight">{name}</span>
+            {!small && ready && action === "scene" && active && <span className="text-micro text-[color:var(--w-muted)]">On air</span>}
           </button>
           </ReadOnly>
         );

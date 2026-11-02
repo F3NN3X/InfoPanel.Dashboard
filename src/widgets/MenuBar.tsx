@@ -82,6 +82,7 @@ export default function MenuBar(p: MenuBarProps) {
   return (
     <Widget
       {...shell(p)}
+      fixedType
       showHeader={false}
       compact={(box) => (box.shape === "strip" ? undefined : { label: "CPU · GPU", value: ALL.cpu.v, unit: "%", sub: `GPU ${fmt(ALL.gpu.v, 0)}% · Mem ${fmt(ALL.mem.v, 0)}%`, hist: H.cpu, min: 0, max: 100 })}
       studio={{ label: "Glance", value: ALL.cpu.v, unit: "%", sub: "CPU", hist: H.cpu, min: 0, max: 100, rows: keys.map((key) => ({ n: ALL[key].k, v: shown(ALL[key]).join(ALL[key].text ? " " : ""), pct: ALL[key].max ? (ALL[key].v / ALL[key].max!) * 100 : undefined })) }}
@@ -114,7 +115,7 @@ export default function MenuBar(p: MenuBarProps) {
                       <span className={`truncate text-micro font-semibold uppercase tracking-[0.08em] ${on ? "opacity-80" : "text-[color:var(--w-muted)]"}`}>{m.k}</span>
                       <span className="whitespace-nowrap text-[14px] font-semibold tabular-nums" style={{ ...numFont(sk), color: !on && t !== "ok" ? TONES[t] : undefined }}>
                         {shown(m)[0]}
-                        <small className={`text-[11px] font-medium ${m.text ? "ml-0.5" : ""}`}>{shown(m)[1]}</small>
+                        <small className={`text-micro font-medium ${m.text ? "ml-0.5" : ""}`}>{shown(m)[1]}</small>
                       </span>
                     </span>
                     {w / n > 120 && (

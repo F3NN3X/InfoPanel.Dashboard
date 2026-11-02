@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useId, useLayoutEffect, useMemo, 
 import { chromeVars, numGlowAttr, scopedCss, zoomFor, type DesignSizeSpec } from "@/components/widget-style";
 import { chromeOf } from "@/modules/standard-settings";
 import type { ModuleSettings } from "@/modules/types";
-import { DESIGN_SIZE, summaryShape, useBox, type Box } from "./layout";
+import { DESIGN_SIZE, ROOMY_SCALE, RoomyCtx, heroPx, roomy, summaryShape, useBox, type Box } from "./layout";
 import { mix } from "./tokens";
 import { SKINS, SkinCtx, resolveSurface, textVars } from "./theme";
 import { bodyFlags, forcedTier, lookBox, patchBackground, resolveAccent, scrimFor, shellPad, skinContext, untitled, withUserLook } from "./look";
@@ -51,6 +51,8 @@ export interface WidgetProps {
    * null for a widget that sizes itself to its zone (a bar, a web page).
    */
   design?: DesignSizeSpec | null;
+  /** For a widget whose text sits in fixed-size controls (buttons, tiles, meters): a roomy box does not grow its type. */
+  fixedType?: boolean;
 }
 
 type ShellInput = Partial<ShellProps> & { look?: ModuleSettings; iconOverride?: string };
@@ -77,9 +79,13 @@ export const shell = (p: ShellInput): Partial<WidgetProps> => ({
   iconOverride: p.iconOverride,
 });
 
+/** The theme's four type tokens at `scale` times their size. */
+const typeVars = (scale: number): CSSProperties =>
+  ({ "--text-micro": `calc(0.6875rem * ${scale})`, "--text-caption": `calc(0.75rem * ${scale})`, "--text-body": `calc(0.8125rem * ${scale})`, "--text-title": `calc(0.9375rem * ${scale})` }) as CSSProperties;
+
 const HUD_CORNERS = ["left-1.5 top-1.5 border-l border-t", "right-1.5 top-1.5 border-r border-t", "left-1.5 bottom-1.5 border-l border-b", "right-1.5 bottom-1.5 border-r border-b"];
 
-export function Widget({ title, icon, iconOverride, accent, surface, radius, size, showHeader = true, right, className = "", style, children, bleed, compact, compactView, skin = "default", graph, meter, variant, studio, look, backdrop, design = DESIGN_SIZE }: WidgetProps) {
+export function Widget({ title, icon, iconOverride, accent, surface, radius, size, showHeader = true, right, className = "", style, children, bleed, compact, compactView, skin = "default", graph, meter, variant, studio, look, backdrop, design = DESIGN_SIZE, fixedType }: WidgetProps) {
   const chrome = useMemo(() => (look ? chromeOf(look) : undefined), [look]);
   // A zone past the design size zooms the content with it, and Size % on top; the tier and shape are taken from the zoomed size.
   const [ref, box, zoom] = useBox(forcedTier(look, size), (w, h) => zoomFor({ w, h }, design ?? undefined, chrome));
@@ -119,6 +125,7 @@ export function Widget({ title, icon, iconOverride, accent, surface, radius, siz
   const css = chrome?.customCss ? scopedCss(scope, chrome.customCss) : "";
   const background = chrome?.backgroundOn && chrome.background ? chrome.background : "";
   const surfBox = lookBox(surf, chrome);
+  const big = roomy(box.w, box.h);
   const rootStyle = {
     // The look's Corner radius, else the theme's (Theme › Shape & spacing, `--radius`), like panels.
     borderRadius: chrome?.radius ?? radius ?? "var(--radius, 1rem)",
@@ -128,12 +135,15 @@ export function Widget({ title, icon, iconOverride, accent, surface, radius, siz
     ...chromeVars(chrome),
     "--accent": resolveAccent(chrome?.accent || accent, sk, surf.tone),
     color: "var(--w-fg)",
+    // A roomy box (4x4) grows the body type: the theme's type tokens, so every text-micro / caption / body / title follows; and sets the hero size `Metric` reads.
+    ...(big ? { ...(fixedType ? null : typeVars(ROOMY_SCALE)), "--w-hero": `${heroPx(box.w, box.h)}px` } : null),
     ...style,
   } as CSSProperties;
   return (
     <SkinCtx.Provider value={ctx}>
+      <RoomyCtx.Provider value={big}>
       <PaneCtx.Provider value={{ className: surf.c, style: surfBox }}>
-      <div ref={ref} style={rootStyle} data-wp-scope={css ? scope : undefined} {...numGlowAttr(chrome)} data-wp-tier={box.size} data-wp-shape={box.shape} data-wp-view={isStudio ? "studio" : useCompact ? "compact" : "body"} className={`relative flex h-full w-full min-w-0 flex-col overflow-hidden antialiased ${surf.c} ${className}`}>
+      <div ref={ref} style={rootStyle} data-wp-scope={css ? scope : undefined} {...numGlowAttr(chrome)} data-wp-tier={box.size} data-wp-roomy={big ? "" : undefined} data-wp-shape={box.shape} data-wp-view={isStudio ? "studio" : useCompact ? "compact" : "body"} className={`relative flex h-full w-full min-w-0 flex-col overflow-hidden antialiased ${surf.c} ${className}`}>
         {css && <style>{css}</style>}
         {background && (
           <>
@@ -160,6 +170,7 @@ export function Widget({ title, icon, iconOverride, accent, surface, radius, siz
         </div>
       </div>
       </PaneCtx.Provider>
+      </RoomyCtx.Provider>
     </SkinCtx.Provider>
   );
 }
