@@ -41,6 +41,11 @@ export default function Notifications(p: NotificationsProps) {
       return { time, type: type ?? "", message: rest.join(", ") };
     });
   const showHistory = (p.showHistory ?? true) && lines.length > 0;
+  const tally = (type: string, noun: string) => {
+    const n = lines.filter((l) => l.type === type).length;
+    return n > 0 ? `${n} ${noun}${n === 1 ? "" : "s"}` : "";
+  };
+  const summary = [tally("Error", "error"), tally("Warning", "warning")].filter(Boolean).join(" · ") || `${lines.length} recent`;
   const worst = lines.some((l) => l.type === "Error") ? "crit" : lines.some((l) => l.type === "Warning") ? "warn" : "ok";
   return (
     <Widget
@@ -72,7 +77,12 @@ export default function Notifications(p: NotificationsProps) {
         const text = size === "lg" ? "text-sm" : "text-xs";
         return (
           <div className="flex h-full min-h-0 flex-col">
-            {last && <div title={last} className={`font-medium text-[color:var(--w-fg)] ${size === "lg" ? "line-clamp-2 break-words text-base" : "truncate text-sm"}`}>{last}</div>}
+            {/* with the history shown, its first line is the latest notification: the headline is the summary instead of a copy of it */}
+            {showHistory ? (
+              <div title={summary} className={`truncate font-medium ${size === "lg" ? "text-base" : "text-sm"}`} style={{ color: typeColor(worst === "crit" ? "Error" : worst === "warn" ? "Warning" : "") ?? "var(--w-fg)" }}>{summary}</div>
+            ) : (
+              last && <div title={last} className={`font-medium text-[color:var(--w-fg)] ${size === "lg" ? "line-clamp-2 break-words text-base" : "truncate text-sm"}`}>{last}</div>
+            )}
             {status && <div className="mt-1 truncate text-xs text-[color:var(--w-faint)]">{status}</div>}
             {counts.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1.5">

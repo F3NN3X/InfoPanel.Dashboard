@@ -73,6 +73,9 @@ export default function BottleneckLens(p: BottleneckLensProps) {
         const size = fitFontPx(w, label.length, 14, strip ? 26 : Math.min(room ? 60 : 48, h * 0.34), 0.58);
         const bars = !strip && h >= 120 && meters.length > 0;
         const now = Date.now();
+        // a log holding one fresh verdict has no width to draw yet: that reads as empty
+        const runs = verdictRuns(log.current, now, HISTORY_MS);
+        const drawn = runs.some((r) => r.to - r.from >= 0.005);
         const stats = [
           Number.isFinite(input.fps) && input.fps > 0 ? `${fmt(input.fps, 0)} fps` : null,
           Number.isFinite(input.gpuTemp) ? `${fmt(input.gpuTemp, 0)} °C GPU` : null,
@@ -108,11 +111,12 @@ export default function BottleneckLens(p: BottleneckLensProps) {
                 ))}
               </div>
             )}
-            {room && log.current.length > 0 && (
+            {room && !drawn && <span className="mt-3 text-micro text-[color:var(--w-faint)]">Collecting verdicts</span>}
+            {room && drawn && (
               <div className="mt-3 flex flex-col gap-1.5">
                 <span className="text-micro font-medium uppercase tracking-[0.06em] text-[color:var(--w-faint)]">Verdict, last 5 min</span>
-                <svg viewBox="0 0 1000 1" preserveAspectRatio="none" shapeRendering="crispEdges" className="h-3 w-full rounded-[3px] bg-[color:var(--w-track)]" role="img" aria-label={`Verdict over the last 5 minutes, now ${label}`}>
-                  {verdictRuns(log.current, now, HISTORY_MS).map((r) => (
+                <svg viewBox="0 0 1000 1" preserveAspectRatio="none" shapeRendering="crispEdges" className="h-9 w-full rounded-[3px] bg-[color:var(--w-track)]" role="img" aria-label={`Verdict over the last 5 minutes, now ${label}`}>
+                  {runs.map((r) => (
                     <rect key={r.from} x={r.from * 1000} y={0} width={(r.to - r.from) * 1000} height={1} fill={TONES[VERDICT_TONE[r.v]]} opacity={r.v === "idle" ? 0.4 : 1} />
                   ))}
                 </svg>

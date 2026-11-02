@@ -32,14 +32,14 @@ const SMALL_GLOW: CSSProperties = { WebkitTextStroke: "0", textShadow: "0 0 4px 
 const NUM_TINT: CSSProperties = { color: "color-mix(in oklab, var(--accent) 55%, var(--w-fg))" };
 const NUM_HALO = "0 0 30px color-mix(in oklab, var(--accent) 50%, transparent)";
 
-/** A small glyph and screen-reader word beside a number whose colour says warn or crit, so the state is not colour alone. Nothing for ok. */
-export function ToneCue({ t, size = "max(8px, 0.45em)" }: { t?: Tone; size?: string }) {
+/** A small glyph (`glyph={false}`: only the word) and screen-reader word beside a number whose colour says warn or crit, so the state is not colour alone. Nothing for ok. */
+export function ToneCue({ t, size = "max(8px, 0.45em)", glyph = true }: { t?: Tone; size?: string; glyph?: boolean }) {
   const sk = useSkin();
   const skip = useContext(IpTagCtx) ? { "data-ip-skip": "" } : undefined;
   if (!t || t === "ok") return null;
   return (
     <>
-      <span {...skip} aria-hidden className="mr-[0.2em] inline-block align-middle leading-none" style={{ fontSize: size, ...(sk.numStroke ? SMALL_GLOW : null) }}>{t === "warn" ? "▲" : "✕"}</span>
+      {glyph && <span {...skip} aria-hidden className="mr-[0.2em] inline-block align-middle leading-none" style={{ fontSize: size, ...(sk.numStroke ? SMALL_GLOW : null) }}>{t === "warn" ? "▲" : "✕"}</span>}
       <span {...skip} className="sr-only">{t === "warn" ? "warning: " : "critical: "}</span>
     </>
   );
@@ -66,8 +66,10 @@ export interface MetricProps {
   px?: number;
   /** false: a roomy box does not grow this number to the hero size (one of several metrics side by side). */
   hero?: boolean;
+  /** false: a warn or crit tone colours the number but draws no glyph before it (screen readers still hear it). */
+  cue?: boolean;
 }
-export function Metric({ label, value, unit, d = 0, scale = "md", sub, t = "ok", align = "left", className = "", ipKey: key, px, hero = true }: MetricProps) {
+export function Metric({ label, value, unit, d = 0, scale = "md", sub, t = "ok", align = "left", className = "", ipKey: key, px, hero = true, cue = true }: MetricProps) {
   const ipKey = useContext(IpTagCtx) ? key : undefined;
   const sk = useSkin();
   const sc = sk.numUp ? SCALES[Math.min(4, SCALES.indexOf(scale) + 1)] : scale;
@@ -78,7 +80,7 @@ export function Metric({ label, value, unit, d = 0, scale = "md", sub, t = "ok",
     <div className={`flex min-w-0 flex-col ${align === "center" ? "items-center text-center" : ""} ${className}`} style={align === "center" ? { alignItems: "var(--wp-x-cross, center)", textAlign: "var(--wp-text-align, center)" as CSSProperties["textAlign"] } : { alignItems: "var(--wp-x-cross, stretch)" }}>
       {label && <span className="max-w-full truncate text-micro font-medium text-[color:var(--w-muted)]" style={labelStyle("none")}>{label}</span>}
       <span data-ip-key={ipKey} data-ip-kind={ipKey ? "value" : undefined} data-ip-unit={ipKey && typeof unit === "string" ? unit : undefined} data-ip-decimals={ipKey ? d : undefined} className={`${px ? "" : big} ${px || !hero || sc === "sm" || sc === "md" ? "" : "[[data-wp-roomy]_&]:!text-[length:var(--w-hero)]"} font-semibold leading-none tracking-tight tabular-nums`} style={{ ...(px ? { fontSize: px } : null), fontFamily: sk.num, fontWeight: sk.numWeight, fontStretch: sk.numStretch, ...(sk.numGlow ? { ...NUM_TINT, ...numGlowStyle(sk, NUM_HALO) } : null), ...(t !== "ok" ? { color: TONES[t] } : null) }}>
-        <ToneCue t={t} />
+        <ToneCue t={t} glyph={cue} />
         {shown}
         {unit && !word && <span className={`inline-block align-top leading-none ${UNIT_CLASS}`} style={sk.numStroke ? SMALL_GLOW : undefined}>{unit}</span>}
       </span>

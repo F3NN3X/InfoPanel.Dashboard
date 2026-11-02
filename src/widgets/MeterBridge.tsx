@@ -177,7 +177,7 @@ export default function MeterBridge(p: MeterBridgeProps) {
           n = Math.max(1, Math.min(ch.length, Math.floor((w + 14) / (colMin + 14))));
         const colW = (w - (n - 1) * 14) / n,
           scale = p.showScale !== false && colW > 92;
-        const segs = p.segments ?? Math.max(10, Math.min(36, Math.floor((h - 52) / 7.5)));
+        const segs = p.segments ?? Math.max(10, Math.min(36, Math.floor((h - 72) / 7.5)));
         return (
           <div className="grid h-full gap-x-3.5" style={{ gridTemplateColumns: `repeat(${n}, minmax(0,1fr))` }}>
             {ch.slice(0, n).map((c) => (
@@ -185,10 +185,9 @@ export default function MeterBridge(p: MeterBridgeProps) {
                 <div className="flex flex-col gap-1">
                   <div className="flex items-baseline justify-between gap-2">
                     <span className="flex min-w-0 items-center gap-1 text-body font-semibold">
-                      {showName && <span className="truncate">{c.name}</span>}
+                      {showName && <span className="line-clamp-2 text-micro leading-tight">{c.name}</span>}
                       {mute(c)}
                     </span>
-                    {p.showVolume !== false && Number.isFinite(c.vol) && <span className="shrink-0 text-body font-semibold tabular-nums">{fmt(c.vol)}%</span>}
                   </div>
                   {p.showVolume !== false && Number.isFinite(c.vol) && (
                     <div className="h-[3px] overflow-hidden rounded-full bg-[color:var(--w-track)]">
@@ -212,6 +211,7 @@ export default function MeterBridge(p: MeterBridgeProps) {
                     <div className="flex w-[7px]">{ladder(c.r, c.rh, segs)}</div>
                   </div>
                 </div>
+                {p.showVolume !== false && Number.isFinite(c.vol) && <span className="text-center text-body font-semibold tabular-nums">{fmt(c.vol)}%</span>}
                 {showDetails && (
                 <div title="Level in dB, left and right" className="grid grid-cols-2 gap-1 font-mono text-micro tabular-nums text-[color:var(--w-faint)]">
                   <span className="flex justify-between gap-1">

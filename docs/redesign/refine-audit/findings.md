@@ -53,29 +53,29 @@ Prototypes (W1–W8 and some A-/B- IDs) were built on throwaway `proto/<id>` bra
 | B-25 | 3 |  | med | L | Island that follows the skin (User: optional, island either part of the skin or an overlay. Existing islands stay overlay.) | open |
 | C-01 | 1 | W1 | high | M | Hero number scales with the box in 4x4 | fixed |
 | C-02 | 1 | W1 | high | M | 2x2 frames: lift the hero to the optical centre, cut the empty top | partial |
-| C-03 | 2a | W4 | high | S | One button-tile primitive that scales (AudioButton, ObsButton) | open |
-| C-04 | 2a |  | high | M | Fill the large span with the data that was dropped (NetworkThroughput, DiskIO 4x2, NetworkAdapters) | open |
-| C-05 | 2a |  | med | S | Hide the title at 1x1 (or show icon only) instead of truncating | open |
-| C-06 | 2a | W5 | high | M | Legibility scrim on art-backed widgets at small spans | open |
-| C-07 | 2a |  | high | M | NowPlaying 4x4: cover art as the hero | open |
+| C-03 | 2a | W4 | high | S | One button-tile primitive that scales (AudioButton, ObsButton) | fixed |
+| C-04 | 2a |  | high | M | Fill the large span with the data that was dropped (NetworkThroughput, DiskIO 4x2, NetworkAdapters) | partial |
+| C-05 | 2a |  | med | S | Hide the title at 1x1 (or show icon only) instead of truncating | fixed |
+| C-06 | 2a | W5 | high | M | Legibility scrim on art-backed widgets at small spans | fixed |
+| C-07 | 2a |  | high | M | NowPlaying 4x4: cover art as the hero | fixed |
 | C-08 | 1 |  | med | M | Shared axis and stat-label grammar for charts | partial |
 | C-09 | 1 |  | med | M | Per-stat label style unified (mono uppercase micro vs sentence-case) | partial |
-| C-10 | 2a |  | med | S | DriveSpace: one bar colour logic and use the 4x4 height | open |
-| C-11 | 2a |  | med | M | Fans 4x4: use the tall cards | open |
-| C-12 | 2a |  | med | S | MeterBridge: stop truncating channel names in 4x4 and 4x2 | open |
-| C-13 | 2a |  | high | M | AudioMeter / AudioFader: use the width and height at 4x2 and 4x4 | open |
-| C-14 | 2a |  | med | S | Redundant header chip and sub-title (Bluetooth, Notifications) | open |
-| C-15 | 2a |  | med | S | CoreHeatmap: label contrast and left-aligned grid | open |
-| C-16 | 2a |  | med | M | DayPlanner: no calendar at 2x2, clipped hour labels, weather fills the plot | open |
+| C-10 | 2a |  | med | S | DriveSpace: one bar colour logic and use the 4x4 height | partial |
+| C-11 | 2a |  | med | M | Fans 4x4: use the tall cards | fixed |
+| C-12 | 2a |  | med | S | MeterBridge: stop truncating channel names in 4x4 and 4x2 | partial |
+| C-13 | 2a |  | high | M | AudioMeter / AudioFader: use the width and height at 4x2 and 4x4 | fixed |
+| C-14 | 2a |  | med | S | Redundant header chip and sub-title (Bluetooth, Notifications) | fixed |
+| C-15 | 2a |  | med | S | CoreHeatmap: label contrast and left-aligned grid | fixed |
+| C-16 | 2a |  | med | M | DayPlanner: no calendar at 2x2, clipped hour labels, weather fills the plot | fixed |
 | C-17 | 1 | W2 | med | M | GpuRings 4x4 and MemoryUsage 4x4: ring scales and the legend sits beside it | fixed |
-| C-18 | 2a |  | med | M | Achievements 4x4 and 4x2: compose around the ring | open |
-| C-19 | 2a |  | med | S | Departures 4x4/2x2: row pitch and truncation | open |
+| C-18 | 2a |  | med | M | Achievements 4x4 and 4x2: compose around the ring | partial |
+| C-19 | 2a |  | med | S | Departures 4x4/2x2: row pitch and truncation | partial |
 | C-20 | 1 | W2 | low | S | CustomGauge / ring tracks: stronger empty track and a label | fixed |
-| C-21 | 2a |  | med | S | FpsMonitor hero: the red "×78" reads as an error | open |
-| C-22 | 2a |  | med | S | KpiTiles: remove a no-information delta, add sparklines at 4x2 | open |
-| C-23 | 2a |  | low | S | Calendar 4x4: use the lower half | open |
-| C-24 | 2a |  | med | S | Clock 4x4: big time uses the frame | open |
-| C-25 | 2a |  | med | S | BottleneckLens 4x4: the empty verdict history bar | open |
+| C-21 | 2a |  | med | S | FpsMonitor hero: the red "×78" reads as an error | fixed |
+| C-22 | 2a |  | med | S | KpiTiles: remove a no-information delta, add sparklines at 4x2 | fixed |
+| C-23 | 2a |  | low | S | Calendar 4x4: use the lower half | fixed |
+| C-24 | 2a |  | med | S | Clock 4x4: big time uses the frame | fixed |
+| C-25 | 2a |  | med | S | BottleneckLens 4x4: the empty verdict history bar | fixed |
 | D-01 | 1 | W1 | high | M | Grow body type with the span (a shared scale variable) | partial |
 | D-02 | 1 | W1 | high | M | Hero value scales with the box on 2x2 and fills the dead top half | partial |
 | D-03 | 1 | W6 | high | M | One "rows fill the height" rule for list widgets at 4x4 | partial |
@@ -89,7 +89,7 @@ Prototypes (W1–W8 and some A-/B- IDs) were built on throwaway `proto/<id>` bra
 | D-11 | 2b |  | med | S | Truncated and duplicate sensor names in Session Stats and ThresholdTimeline | open |
 | D-12 | 2b |  | med | S | SessionStats 4x2 table: header row and columns at 9-10 px | open |
 | D-13 | 1 |  | med | S | One unit style (size, gap, colour) for hero numbers | fixed |
-| D-14 | 2a | W5 | med | S | Text over art needs a scrim (SteamGame) | open |
+| D-14 | 2a | W5 | med | S | Text over art needs a scrim (SteamGame) | fixed |
 | D-15 | 2b |  | low | S | StreamChat clips a message mid-line at the top | open |
 | D-16 | 2b |  | med | S | Timer idle state: show the time, not three small chips in blank space | open |
 | D-17 | 2b |  | med | M | Weather 4x4 and 2x2 now-block is small beside the 4x4 forecast | open |

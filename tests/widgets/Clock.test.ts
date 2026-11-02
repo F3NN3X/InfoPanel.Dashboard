@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DATE_EM, datePx, timePx } from "@/widgets/Clock";
+import { DATE_EM, datePx, roomyTimePx, timePx } from "@/widgets/Clock";
 
 describe("timePx", () => {
   it("holds a tier's size below lg", () => {
@@ -22,5 +22,14 @@ describe("timePx", () => {
   it("keeps the date readable under a small time", () => {
     expect(datePx("xs", 30)).toBe(11);
     expect(datePx("lg", 300)).toBe(51);
+  });
+});
+
+describe("roomyTimePx", () => {
+  it("takes the width the seconds allow, under the height", () => {
+    // 432 wide: the time and its 0.35em seconds share the width; a tall box leaves the width in charge
+    expect(roomyTimePx(432, 432, true, false, true)).toBe(Math.round(432 / (3.2 + 0.35 * 1.6 + 0.06)));
+    // a short box: the height (with the date line) is the cap
+    expect(roomyTimePx(2000, 200, false, false, true)).toBe(Math.round((200 / (1.08 + DATE_EM * 1.3)) * 0.62));
   });
 });

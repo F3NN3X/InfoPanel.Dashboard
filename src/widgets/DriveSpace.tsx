@@ -1,6 +1,6 @@
 import type { ModuleSettings } from "@/modules/types";
 import { DriveIcon, DriveRows, type DriveRow } from "./DriveSpaceViews";
-import { useFitRows, Widget, shell, get, num, fmt, fmtMB, Bar, BarRow, Ring, Num, tone, Chip, Pill, type ShellProps, type Tone } from "./kit";
+import { fillRows, roomy, useFitRows, Widget, shell, get, num, fmt, fmtMB, Bar, BarRow, Ring, Num, tone, Chip, Pill, type ShellProps, type Tone } from "./kit";
 import { meta } from "./meta/DriveSpace";
 
 export { meta };
@@ -19,6 +19,9 @@ export interface DriveSpaceProps extends ShellProps {
   /** Your own icon per drive, by drive letter (else by name): the setting's JSON, read when a drive has one. */
   icons?: string;
 }
+
+/** A 4x4 row: the name line, the 6px bar and the used / total line with their gaps. */
+export const ROW_H = 58;
 
 export default function DriveSpace(p: DriveSpaceProps) {
   const d = p.data;
@@ -53,7 +56,7 @@ export default function DriveSpace(p: DriveSpaceProps) {
       studio={first && { label: "Drives", value: first.pct, unit: "%", sub: `${first.name} · ${fmtMB(first.free)} free`, pct: first.pct, rows: list.map((x) => ({ n: `${x.name} ${x.label}`, v: `${fmtMB(x.free)} free`, pct: x.pct })) }}
       compact={first && { label: `${first.name} ${first.label}`, value: first.pct, unit: "%", sub: `${fmtMB(first.free)} free`, pct: first.pct, t: tone(first.pct, warn, crit) }}
     >
-      {({ size, h }) => {
+      {({ size, h, outerW, outerH }) => {
         if (!first) return null;
         if (size === "xs")
           return (
@@ -90,6 +93,26 @@ export default function DriveSpace(p: DriveSpaceProps) {
             </div>
           );
         const n = useFitRows(h, size === "lg" ? 46 : 38);
+        // 4x4: two-line rows (name and free, used / total and format) with a 6px bar, spread over the height
+        if (roomy(outerW, outerH)) {
+          const shown = list.slice(0, useFitRows(h, ROW_H, 12));
+          const { rowH } = fillRows(h, shown.length, ROW_H, 12, true);
+          return (
+            <div className="flex h-full flex-col overflow-hidden" style={{ gap: 12 }}>
+              {shown.map((x) => (
+                <div key={x.id} className="flex min-w-0 flex-col justify-center gap-1.5" style={{ minHeight: rowH }}>
+                  <div className="flex min-w-0 items-baseline gap-2 text-body">
+                    {p.icons && <span className="inline-flex shrink-0 self-center"><DriveIcon icons={p.icons} id={x.id} name={x.name} px={16} fallback={null} /></span>}
+                    <span className="truncate"><span className="font-semibold">{x.name}</span> <span className="text-[color:var(--w-faint)]">{x.label}</span></span>
+                    <span className="ml-auto shrink-0 text-title font-semibold tabular-nums">{fmtMB(x.free)} free</span>
+                  </div>
+                  <Bar value={x.pct} t={tn(x.pct) as Tone} className="h-1.5" />
+                  <span className="truncate font-mono text-micro tabular-nums text-[color:var(--w-faint)]">{fmtMB(x.used)} / {fmtMB(x.total)} · {x.format}</span>
+                </div>
+              ))}
+            </div>
+          );
+        }
         return (
           <div className="flex h-full flex-col gap-3 overflow-hidden">
             {list.slice(0, n).map((x) => (

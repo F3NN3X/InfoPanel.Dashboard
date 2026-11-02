@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { roomy, useFitRows, Widget, shell, hue, get, num, fmt, fmtRate, diskShort, Spark, useHistory, slideX, stackX, hw, type ShellProps } from "./kit";
+import { roomy, useFitRows, Widget, shell, hue, get, num, fmt, fmtRate, diskShort, Spark, Metric, useHistory, slideX, stackX, hw, type ShellProps } from "./kit";
 import { meta } from "./meta/DiskIO";
 
 export { meta };
@@ -37,7 +37,10 @@ export default function DiskIO(p: DiskIOProps) {
     >
       {({ size, w, h }) =>
         h < 200 ? (
-          <ul className="flex h-full flex-col justify-center gap-2.5 overflow-hidden">
+          <div className="flex h-full items-center gap-6">
+            {/* a wide short box (4x2) keeps the total at the left and the disks at the right */}
+            {w >= 360 && <Metric label="Total" value={fmtRate(total)} px={48} className="shrink-0" />}
+          <ul className="flex h-full min-w-0 flex-1 flex-col justify-center gap-2.5 overflow-hidden">
             {disks.slice(0, useFitRows(h, 30, 10)).map((x) => (
               <li key={x.id} className="flex flex-col gap-1 text-xs">
                 <div className="flex justify-between gap-2">
@@ -53,6 +56,7 @@ export default function DiskIO(p: DiskIOProps) {
               </li>
             ))}
           </ul>
+          </div>
         ) : (
           <div className="flex h-full flex-col gap-3">
             {disks.slice(0, useFitRows(h - (showHistory && size !== "sm" ? 40 : 0), 78, 12)).map((x) => (

@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { useFitRows, Widget, shell, get, num, fmt, has, Dot, Chip, Icon, type ShellProps } from "./kit";
+import { fillRows, roomy, useFitRows, Widget, shell, get, num, fmt, has, Dot, Chip, Icon, type ShellProps } from "./kit";
 import { meta } from "./meta/NetworkAdapters";
 
 export { meta };
@@ -43,7 +43,7 @@ export default function NetworkAdapters(p: NetworkAdaptersProps) {
       compact={{ label: "Public IP", value: pub4, kind: "text", sub: `${ads.filter((a) => a.up).length} adapters up`, icon: "public" }}
       right={<Chip>{ads.filter((a) => a.up).length} up</Chip>}
     >
-      {({ size, h }) => {
+      {({ size, h, outerW, outerH }) => {
         const pub = (
           <div className="flex min-w-0 items-center gap-2">
             <Icon name="public" className="text-lg text-[color:var(--accent)]" />
@@ -59,18 +59,21 @@ export default function NetworkAdapters(p: NetworkAdaptersProps) {
         const room = h - 58,
           rowH = size === "lg" ? 46 : 35;
         const n = room >= rowH ? useFitRows(room, rowH, 8) : 0;
+        // 4x4: the rows grow to fill the list, with the address a step larger (the plugin has no per-adapter rates to add)
+        const big = roomy(outerW, outerH);
+        const fill = fillRows(room, Math.min(n, ads.length), rowH, 8, big);
         return (
           <div className="flex h-full flex-col gap-2">
             {pub}
             {n > 0 && <ul className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden border-t border-[color:var(--w-track)] pt-2">
               {ads.slice(0, n).map((a) => (
-                <li key={a.id} className="flex min-w-0 flex-col gap-0.5">
+                <li key={a.id} className={`flex min-w-0 flex-col gap-0.5 ${fill.rowH ? "justify-center" : ""}`} style={fill.rowH ? { height: fill.rowH } : undefined}>
                   <div className="flex min-w-0 items-center gap-2 text-xs">
                     <Dot ok={a.up} />
                     <span className="truncate font-medium text-[color:var(--w-fg)]">{a.name}</span>
                     <span className="ml-auto shrink-0 tabular-nums text-[color:var(--w-muted)]">{a.up ? speedLabel(a.speed) : "Down"}</span>
                   </div>
-                  <div className="flex min-w-0 gap-2 pl-3.5 text-micro text-[color:var(--w-faint)]">
+                  <div className={`flex min-w-0 gap-2 pl-3.5 text-[color:var(--w-faint)] ${big ? "text-caption" : "text-micro"}`}>
                     {ip(a.v4)}
                     {size === "lg" && <span className="truncate">{a.desc}</span>}
                     {(p.showIpv6 ?? size === "lg") && a.v6.length > 0 && <span className="ml-auto shrink-0">+{a.v6.length} IPv6</span>}

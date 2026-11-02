@@ -40,19 +40,25 @@ export function CompactView({ c, shape, w, h, icon }: { c: Compact; shape: Shape
     </span>
   );
   const caption = word && !none && <span className="truncate text-micro text-[color:var(--w-muted)]">{c.unit}</span>;
-  const label = c.label && (
+  // a 1x1 whose label would be cut ("ACHIEVEM…") shows the icon alone, faint, and keeps the label as its title
+  const iconOnly = shape === "tile" && w < 140 && typeof c.label === "string" && c.label.length * 7.6 > w - 46;
+  const label = c.label && (iconOnly ? (
+    <div role="img" aria-label={String(c.label)} title={String(c.label)} className="flex min-w-0 items-center">
+      <Icon name={c.icon ?? icon} className="text-[14px] text-[color:var(--w-faint)]" />
+    </div>
+  ) : (
     <div className="flex min-w-0 items-center gap-1.5 text-micro font-medium uppercase tracking-[0.08em] text-[color:var(--w-muted)]" style={labelStyle()}>
       <Icon name={c.icon ?? icon} className="text-[14px] text-[color:var(--accent)]" />
       <span className="truncate">{c.label}</span>
     </div>
-  );
+  ));
   const textVal = kind === "text";
   // Over a cover image the text sits on a black scrim, so it stays light on every surface.
   if (c.img && shape !== "strip")
     return (
       <div className="absolute inset-0 text-zinc-100">
         <Img src={c.img} icon={c.icon ?? icon} className="absolute inset-0 h-full w-full" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
+        <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgb(0 0 0 / 0.78) 0, rgb(0 0 0 / 0.55) 45%, transparent 85%)" }} />
         <div className="absolute inset-x-0 bottom-0 flex flex-col gap-0.5 p-3">
           <span {...c.ip} className="line-clamp-2 text-sm font-semibold leading-tight">{val}</span>
           {c.sub && <span className="truncate text-micro text-zinc-300">{c.sub}</span>}

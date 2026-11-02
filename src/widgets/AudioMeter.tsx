@@ -1,7 +1,7 @@
 import type { ModuleSettings } from "@/modules/types";
 import { useFastSensors } from "@/hooks/useSensors";
 import { AUDIO } from "./audio-device";
-import { Stat, Widget, useFitRows, shell, fmt, Num, Spark, LedLadder, slideX, STATE, hue, useHistory, useMeterBallistics, clamp, type BallisticsPreset, type ShellProps } from "./kit";
+import { Metric, Stat, Widget, roomy, useFitRows, shell, fmt, Num, Spark, LedLadder, slideX, STATE, hue, useHistory, useMeterBallistics, clamp, type BallisticsPreset, type ShellProps } from "./kit";
 import { audioIdsIn, pickedIds, readDevice, type AudioDevice, type FlowFilter } from "./audio-data";
 import { meta, AUDIO_WARN_DB, AUDIO_HOT_DB } from "./meta/AudioMeter";
 
@@ -124,7 +124,7 @@ export default function AudioMeter(p: AudioMeterProps) {
         )
       }
     >
-      {({ size, h }) => {
+      {({ size, h, outerW, outerH }) => {
         if (bridge && p.orientation === "horizontal") {
           // every device (up to 6) gets a row: the row shrinks to fit, down to two thin ladders
           const gap = 4,
@@ -210,8 +210,12 @@ export default function AudioMeter(p: AudioMeterProps) {
               </div>
             </div>
           );
+        // 4x4: the peak is the hero above the meters (the stat row drops its Peak); 4x2 and up gets a dB scale under the LED row
+        const big = roomy(outerW, outerH);
+        const rows = st === "led" || st === "bar" || st === "solid";
         return (
           <div className="flex h-full flex-col justify-center gap-2">
+            {big && rows && showDetails && <Metric label="Peak" value={one.peak} d={1} unit="dB" px={56} className="mb-2" />}
             {st === "vu" ? (
               <div className="flex min-h-0 flex-1 gap-2">
                 {channels.map(([c, v]) => (
@@ -303,6 +307,13 @@ export default function AudioMeter(p: AudioMeterProps) {
                 );
               })
             )}
+            {rows && st !== "bar" && size !== "sm" && (
+              <div aria-hidden className="relative -mt-1 ml-5 h-3 font-mono text-micro tabular-nums text-[color:var(--w-faint)]">
+                {[0, -6, -12].map((db) => (
+                  <span key={db} className={`absolute ${db === 0 ? "-translate-x-full" : "-translate-x-1/2"}`} style={{ left: `${Math.min(100, pctOf(db))}%` }}>{db}</span>
+                ))}
+              </div>
+            )}
             {p.showVolume && Number.isFinite(one.vol) && (
               <div className="flex items-center gap-2 text-micro text-[color:var(--w-faint)]">
                 <span>Vol</span>
@@ -313,9 +324,9 @@ export default function AudioMeter(p: AudioMeterProps) {
               </div>
             )}
             {showDetails && size !== "sm" && (
-              <div className="mt-1 grid grid-cols-4 gap-3">
+              <div className={`mt-1 grid gap-3 ${big && rows && showDetails ? "grid-cols-3" : "grid-cols-4"}`}>
                 {[
-                  ["Peak", `${fmt(one.peak, 1)} dB`],
+                  ...(big && rows && showDetails ? [] : [["Peak", `${fmt(one.peak, 1)} dB`]]),
                   ["RMS", `${fmt(one.rms, 1)} dB`],
                   ["Hold", `${fmt(one.hold, 1)} dB`],
                   ["Level", `${fmt(one.level, 1)}%`],

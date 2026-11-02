@@ -201,16 +201,15 @@ export function CompositeView(p: CompositeProps) {
           <Num className="block leading-none" style={{ color: bigColor, fontSize: clamp(h * 0.2, 24, 40) }}>
             {total}
           </Num>
-          <Text className="mt-1 text-xs text-[color:var(--w-muted)]">{game ? `total in ${game}` : "Not playing"}</Text>
+          {/* narrow: three lines (the total and what it counts, the session, the achievements); the game's name is on the left */}
+          <Text className="mt-1 text-xs text-[color:var(--w-muted)]">{game ? "total hours" : "Not playing"}</Text>
+          {sessionTime && <Text className="text-xs text-[color:var(--w-muted)]">session {sessionTime}</Text>}
           {p.showStats && (
-            <>
-              <Text className="mt-1.5 text-xs tabular-nums text-[color:var(--w-muted)]">{[games, friends].filter(Boolean).join(" · ") || "—"}</Text>
-              <div className="flex items-center justify-end gap-1.5 text-sm font-semibold tabular-nums text-[color:var(--w-fg)]">
-                {achIcon}
-                {ach}
-              </div>
-              <Text className="text-xs text-[color:var(--w-muted)]">{latestAch ? `latest: ${latestAch}` : "achievements"}</Text>
-            </>
+            <div className="mt-1.5 flex items-center justify-end gap-1.5 text-sm font-semibold tabular-nums text-[color:var(--w-fg)]">
+              {achIcon}
+              {ach}
+              <span className="text-xs font-normal text-[color:var(--w-muted)]">achievements</span>
+            </div>
           )}
           {p.showNews && news && h >= 180 && <Text className="mt-1 text-micro text-[color:var(--w-muted)]">{news}</Text>}
         </div>
@@ -240,7 +239,7 @@ export function CompositeView(p: CompositeProps) {
               {achIcon}
               {ach}
             </div>
-            <Text className="text-xs text-[color:var(--w-muted)]">{latestAch ? `latest: ${latestAch}` : "achievements"}</Text>
+            <Text className="text-xs text-[color:var(--w-muted)]">{latestAch || "achievements"}</Text>
           </div>
         )}
       </div>

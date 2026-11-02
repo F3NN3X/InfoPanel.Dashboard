@@ -104,7 +104,7 @@ export default function GameSpotlight(p: GameSpotlightProps) {
       bleed
       showHeader={false}
       studio={{ label: statusText, live: true, value: game, sub: `${S("current-session-time")} session · ${hoursText(S("current-game-playtime"))}`, img: poster || banner, kind: "text", progress: { a: "Achievements", pct: ach, b: `${fmt(ach)}%` } }}
-      compact={(box) => (box.shape === "tile" && p.layout !== "composite" ? { label: statusText, value: game, kind: "text", sub: `${S("current-session-time")} session`, img: poster || banner, pct: ach, icon: "stadia_controller" } : undefined)}
+      compact={(box) => (box.shape === "tile" && p.layout !== "composite" ? { label: statusText, value: game, kind: "text", sub: `${S("current-session-time")} session`, img: box.w < 132 ? banner || poster : poster || banner, pct: ach, icon: "stadia_controller" } : undefined)}
     >
       {({ w, h, shape }) => {
         if (p.layout === "composite") {

@@ -860,7 +860,7 @@
   "options": null,
   "why": "ui-ux-pro-max touch targets/state (rule \"visible affordance\"); glanceable status across the room.",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "C-04",
@@ -878,7 +878,7 @@
   "options": null,
   "why": "Waza \"disclose supplementary records, not the answer\"; \"check sparse and typical data without padding gaps\".",
   "note": null,
-  "status": "open"
+  "status": "partial"
  },
  {
   "id": "C-05",
@@ -896,7 +896,7 @@
   "options": "A icon-only header at xs; B title ellipsis allowed but no icon; C drop header entirely and tint the hero with the icon at 12% opacity behind it.",
   "why": "ui-ux-pro-max \"truncation with purpose\"; clipped labels read as errors.",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "C-06",
@@ -914,7 +914,7 @@
   "options": null,
   "why": "Waza \"ban low-contrast text over imagery\"; ui-ux-pro-max color contrast over images.",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "C-07",
@@ -932,7 +932,7 @@
   "options": null,
   "why": "Waza hierarchy (cover is the recognisable thing from a distance).",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "C-08",
@@ -986,7 +986,7 @@
   "options": null,
   "why": "status colours semantic across views; ui-ux-pro-max \"do not use colour alone\" is met by the value text.",
   "note": null,
-  "status": "open"
+  "status": "partial"
  },
  {
   "id": "C-11",
@@ -1004,7 +1004,7 @@
   "options": null,
   "why": "Waza chart choice (comparing values across categories = bars); data-viz \"unused space needs data\".",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "C-12",
@@ -1022,7 +1022,7 @@
   "options": null,
   "why": "ui-ux-pro-max truncation rules; AudioMeter bridge view at 3x2 shows the same loss (\"Default…\", \"Headp…\").",
   "note": null,
-  "status": "open"
+  "status": "partial"
  },
  {
   "id": "C-13",
@@ -1040,7 +1040,7 @@
   "options": null,
   "why": "Waza \"main question answerable\" and consistency with MeterBridge ladders.",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "C-14",
@@ -1058,7 +1058,7 @@
   "options": null,
   "why": "Waza \"every element earns its place\".",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "C-15",
@@ -1076,7 +1076,7 @@
   "options": null,
   "why": "ui-ux-pro-max color-contrast (4.5:1 text); heatmap rule \"label contrast on every fill\".",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "C-16",
@@ -1094,7 +1094,7 @@
   "options": null,
   "why": "ui-ux-pro-max empty states; Waza empty/sparse frames.",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "C-17",
@@ -1130,7 +1130,7 @@
   "options": null,
   "why": "sparse frame check (Waza data-viz); fills with data the widget already has.",
   "note": null,
-  "status": "open"
+  "status": "partial"
  },
  {
   "id": "C-19",
@@ -1148,7 +1148,7 @@
   "options": null,
   "why": "ui-ux-pro-max truncation; Waza right-align numbers (minutes) with left labels.",
   "note": null,
-  "status": "open"
+  "status": "partial"
  },
  {
   "id": "C-20",
@@ -1184,7 +1184,7 @@
   "options": "A neutral `--w-fg` hero with a small tone dot (ToneCue, already in Metric); B tone-coloured hero (today, without ×).",
   "why": "ui-ux-pro-max \"status colours: red only for action\"; semantic colour.",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "C-22",
@@ -1202,7 +1202,7 @@
   "options": null,
   "why": "ui-ux-pro-max \"live/stale labelling\" and unlabeled deltas are noise.",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "C-23",
@@ -1220,7 +1220,7 @@
   "options": null,
   "why": "Waza sparse-frame check.",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "C-24",
@@ -1238,7 +1238,7 @@
   "options": "A centre fit; B a flip-less analog ring behind the time at 6% opacity; C leave left-aligned but at 120px.",
   "why": "Waza hierarchy; the Clock is the most read-from-across-the-room widget.",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "C-25",
@@ -1256,7 +1256,7 @@
   "options": null,
   "why": "Waza empty states (say what is happening); hierarchy.",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "D-01",
@@ -1508,7 +1508,7 @@
   "options": null,
   "why": "Waza contrast and readability over imagery.",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "D-15",

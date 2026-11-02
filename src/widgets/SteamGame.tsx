@@ -9,6 +9,9 @@ export { meta };
 // The text sits on artwork behind a dark scrim, so it stays light on every surface.
 const ON_ART = { color: "#f4f4f5", "--w-fg": "#f4f4f5", "--w-muted": "#d4d4d8", "--w-faint": "#a1a1aa", "--w-track": "rgba(255,255,255,0.15)" } as CSSProperties;
 
+// The playtime figures read over the art, so they are a step above the shared stat value.
+const BIG_VALUE = "[&>span:last-child]:text-[20px]";
+
 export interface SteamGameProps extends ShellProps {
   art?: "banner" | "grid" | "none";
   /** Scrim strength 0-1; default 0.55. */
@@ -35,7 +38,7 @@ export default function SteamGame(p: SteamGameProps) {
       {({ size }) => (
         <div className="relative h-full w-full" style={ON_ART}>
           {art !== "none" && <Img src={bg} icon="sports_esports" className="absolute inset-0 h-full w-full" />}
-          <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, rgba(10,10,12,${scrim * 0.3}) 0%, rgba(10,10,12,${Math.min(1, scrim + 0.35)}) 100%)` }} />
+          <div className="absolute inset-0" style={{ background: `linear-gradient(to bottom, rgb(0 0 0 / ${scrim}) 0, transparent 28%, transparent 55%, rgb(0 0 0 / ${Math.min(1, +(scrim + 0.2).toFixed(2))}) 100%)` }} />
           <div className={`relative flex h-full flex-col ${size === "xs" ? "p-2.5" : "p-4"}`}>
             <div className="flex items-center gap-2">
               {size !== "xs" && <Img src={widgetImage(P("game_icon_url"))} icon="stadia_controller" className="h-6 w-6 shrink-0 rounded-md" />}
@@ -48,8 +51,8 @@ export default function SteamGame(p: SteamGameProps) {
                 <span className="text-xs text-[color:var(--w-muted)]">{S("current-session-time")} session</span>
               ) : (
                 <div className="flex flex-wrap items-end gap-x-6 gap-y-2">
-                  <Stat label="Playtime" value={hoursText(S("current-game-playtime"))} />
-                  {size !== "sm" && <Stat label="Avg session" value={S("avg-session-time")} />}
+                  <Stat className={BIG_VALUE} label="Playtime" value={hoursText(S("current-game-playtime"))} />
+                  {size !== "sm" && <Stat className={BIG_VALUE} label="Avg session" value={S("avg-session-time")} />}
                   {size === "lg" && <Stat label="Started" value={S("session-start-time")} />}
                   {size !== "sm" && Number.isFinite(total) && (
                     <div className="flex min-w-[140px] flex-1 flex-col gap-1">

@@ -79,9 +79,9 @@ export function GaugeView({ idle, size, w, h, fps, low, low01, ft, hz, maxFps, t
   const numColor = color ?? (tone !== "ok" ? TONES[tone] : undefined);
   const ring = (
     <div className="shrink-0" style={{ width: ringSize, height: ringSize }}>
-      <Ring value={idle ? 0 : fps} max={maxFps} t={tone} color={color} className="h-full w-full">
+      <Ring value={idle ? 0 : fps} max={maxFps} t={tone === "crit" ? "crit" : "ok"} color={color} className="h-full w-full">
         <Num className="leading-none" style={{ fontSize: Math.max(12, ringSize * 0.26), color: numColor }}>
-          {!idle && <ToneCue t={tone} />}
+          {!idle && <ToneCue t={tone} glyph={false} />}
           {idle ? "–" : fmt(fps)}
         </Num>
       </Ring>
@@ -194,6 +194,11 @@ export default function FpsMonitor(p: FpsMonitorProps) {
   const fpsH = clampSpikes(useHistory(fps, 60));
   const pct = Number.isFinite(target) && target > 0 ? fps / target : 1;
   const t: Tone = pct >= 0.9 ? "ok" : pct >= 0.5 ? "warn" : "crit";
+  // the 1% low gets its own chip when it falls below warn (against the same target as the hero), so a bad low is not hidden behind a good average
+  const lowPct = Number.isFinite(target) && target > 0 ? low / target : 1;
+  const lowT: Tone = low > 0 ? (lowPct >= 0.9 ? "ok" : lowPct >= 0.5 ? "warn" : "crit") : "ok";
+  // the 1% low reads in its tone when under warn; a zero or missing one is a dash
+  const lowValue = low >= 1 ? <span style={lowT !== "ok" ? { color: TONES[lowT] } : undefined}>{fmt(low)}</span> : "–";
   const gauge = p.view === "gauge" || p.view === "trend";
   // The trend view stores `sparkline: true` (v8 migration), so the toggle alone decides.
   const spark = p.sparkline === true;
@@ -244,23 +249,23 @@ export default function FpsMonitor(p: FpsMonitorProps) {
             )}
           </div>
         ) : size === "xs" ? (
-          <Metric value={idle ? "–" : fps} unit="FPS" scale="lg" sub={idle ? "Idle" : fpsSubLine(low, 0)} t={idle ? "ok" : t} className="h-full justify-center" />
+          <Metric value={idle ? "–" : fps} unit="FPS" scale="lg" sub={idle ? "Idle" : fpsSubLine(low, 0)} t={idle ? "ok" : t} cue={false} className="h-full justify-center" />
         ) : size === "sm" ? (
           <div className="flex h-full items-end justify-between gap-3">
-            <Metric value={fps} unit="FPS" scale="xl" t={t} />
+            <Metric value={fps} unit="FPS" scale="xl" t={t} cue={false} />
             <div className="grid gap-1.5 text-right">
-              <Stat label="1% low" value={low > 0 ? fmt(low) : "–"} />
+              <Stat label="1% low" value={lowValue} />
               <Stat label="Frame" value={`${fmt(frame, 1)} ms`} />
             </div>
           </div>
         ) : (
           <div className="flex h-full flex-col gap-3">
             <div className="flex items-end gap-5">
-              <Metric value={fps} unit="FPS" scale={size === "lg" ? "2xl" : "xl"} t={t} />
+              <Metric value={fps} unit="FPS" scale={size === "lg" ? "2xl" : "xl"} t={t} cue={false} />
               <div className="grid flex-1 grid-cols-3 gap-3">
-                <Stat label="1% low" value={low > 0 ? fmt(low) : "–"} />
+                <Stat label="1% low" value={lowValue} />
                 <Stat label="Avg" value={fmt(num(k("avg-fps")))} />
-                <Stat label="Frame time" value={`${fmt(frame, 1)} ms`} />
+                <Stat label="Frame" value={`${fmt(frame, 1)} ms`} />
               </div>
             </div>
             <div className="flex min-h-0 flex-1 flex-col">

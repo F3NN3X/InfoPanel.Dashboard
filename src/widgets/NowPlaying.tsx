@@ -3,7 +3,7 @@ import { makeSurfacePalette, type ModernStyle } from "@/components/surfaces";
 import { surfaceBox } from "@/components/widget-style";
 import { chromeOf } from "@/modules/standard-settings";
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, has, Img, Chip, MediaProgress, scaleX, type MediaProgressMode, type ShellProps } from "./kit";
+import { Widget, shell, has, Img, Chip, MediaProgress, roomy, scaleX, type MediaProgressMode, type ShellProps } from "./kit";
 import type { VizLook, VizStyle } from "./core/viz/types";
 import { widgetImage } from "./data-adapter";
 import { useArtTint } from "./NowPlaying/art-tint";
@@ -167,7 +167,7 @@ export default function NowPlaying(p: NowPlayingProps) {
         </Chip>
       }
     >
-      {({ size, w, h }) => {
+      {({ size, w, h, outerW, outerH }) => {
         // The title takes two lines before it is cut short.
         const text = (big: string, onImage = false) => (
           <div className="flex min-w-0 flex-col">
@@ -237,6 +237,17 @@ export default function NowPlaying(p: NowPlayingProps) {
                 </div>
               </div>
               {media(viz ? "visualizer" : "bar", "h-4")}
+            </div>
+          );
+        // 4x4: the cover is the hero, then title, artist and progress under it
+        if (roomy(outerW, outerH) && art)
+          return (
+            <div className="flex h-full min-h-0 flex-col items-center gap-4">
+              <Img src={cover} icon="album" className="aspect-square shrink-0 rounded-xl shadow-2xl" style={{ height: Math.min(w, h * 0.64) }} />
+              <div className="flex w-full min-w-0 flex-1 flex-col justify-end gap-3">
+                {text("text-[22px]")}
+                {progress}
+              </div>
             </div>
           );
         if (size === "lg" && art)

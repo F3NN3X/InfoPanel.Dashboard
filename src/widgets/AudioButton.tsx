@@ -1,6 +1,6 @@
 import { audioAct, audioRefusal, useAudio } from "@/lib/audio-control";
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, Icon, STATE, type ShellProps } from "./kit";
+import { Widget, shell, ButtonTile, STATE, type ShellProps } from "./kit";
 import { findChannel, iconOf } from "./StreamMixer/channels";
 import { toggleMute } from "./StreamMixer/control";
 import { ReadOnly } from "./ReadOnly";
@@ -42,28 +42,10 @@ export default function AudioButton(p: AudioButtonProps) {
   return (
     <Widget {...shell(p)} title={p.title ?? name} icon="volume_up" showHeader={p.showHeader ?? false} bleed>
       {({ w, h }) => {
-        const small = Math.min(w, h) < 90;
         const corner = p.radius === undefined ? "calc(var(--radius, 1rem) * 0.62)" : `${p.radius * 0.62}px`;
         return (
           <ReadOnly on={readOnly}>
-          <button
-            type="button"
-            disabled={!ready}
-            onClick={press}
-            aria-pressed={active}
-            aria-label={name}
-            className="flex h-full w-full flex-col items-center justify-center gap-1 transition active:scale-[0.97] disabled:opacity-50"
-            style={{
-              borderRadius: corner,
-              color: active ? tint : "var(--w-fg)",
-              background: active ? `color-mix(in oklab, ${tint} 16%, transparent)` : "transparent",
-              boxShadow: output && active ? `inset 0 0 0 2px ${tint}` : undefined,
-            }}
-          >
-            <Icon name={icon} className={small ? "text-[26px]" : "text-[34px]"} />
-            <span className="max-w-full truncate px-1 text-caption font-semibold leading-tight">{name}</span>
-            {!small && ready && <span className="text-micro text-[color:var(--w-muted)]">{output ? (active ? "Active" : "Switch") : active ? "Muted" : "Live"}</span>}
-          </button>
+          <ButtonTile w={w} h={h} icon={icon} name={name} status={ready ? (output ? (active ? "Active" : "Switch") : active ? "Muted" : "Live") : undefined} tint={tint} active={active} outline={output && active ? tint : undefined} disabled={!ready} corner={corner} onPress={press} />
           </ReadOnly>
         );
       }}

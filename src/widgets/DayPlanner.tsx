@@ -61,7 +61,7 @@ export default function DayPlanner(p: DayPlannerProps) {
   const timeText = (ms: number) => new Date(ms).toLocaleTimeString(locale || undefined, { hour: "numeric", minute: "2-digit", hour12: h12 });
   const nowAt = nowFraction(now, win);
   const upcoming = events.filter((e) => !e.allDay && e.end > now).sort((a, b) => a.start - b.start)[0];
-  const summary = { label: "Next", value: upcoming ? timeText(upcoming.start) : "–", sub: upcoming ? upcoming.title : calendar.configured ? "Nothing planned" : "No calendar", icon: "timeline", kind: "text" as const };
+  const summary = { label: "Next", value: upcoming ? timeText(upcoming.start) : "–", sub: upcoming ? upcoming.title : calendar.configured ? "Nothing planned" : "No calendar", icon: "timeline", kind: "text" as const, idle: upcoming ? undefined : calendar.configured ? "No events today" : "No calendar" };
 
   const hints = studio
     ? [!calendar.configured && "No calendar yet. Add an ICS link under Settings › Connections.", p.showWeather !== false && !weather.present && "No weather: add the Yr weather plugin."].filter((x): x is string => !!x)
@@ -76,7 +76,8 @@ export default function DayPlanner(p: DayPlannerProps) {
       {({ w, h }) => {
         const horizontal = p.orientation === "horizontal" || ((p.orientation ?? "auto") === "auto" && w >= h * 1.5);
         const head = (allDay.length > 0 ? 20 : 0) + (hints.length > 0 && h >= 90 ? 30 : 0) + (weather.band && h >= 100 ? 18 : 0);
-        const railLen = horizontal ? w - 4 : h - head - 4;
+        // a vertical rail starts 8px down so the first hour label is not cut by the top edge
+        const railLen = horizontal ? w - 4 : h - head - 12;
         const marks = hourMarks(win, Math.max(2, Math.floor(railLen / (horizontal ? 34 : 24))), now);
         // The rail axis: `along` is the time (0-1), laid out down or across.
         const along = (f: number) => `${f * 100}%`;
@@ -100,8 +101,8 @@ export default function DayPlanner(p: DayPlannerProps) {
                 <span>rain</span>
               </div>
             )}
-            <div className={`flex min-h-0 flex-1 ${horizontal ? "flex-col" : "flex-row"}`}>
-              <div className={`relative shrink-0 text-micro tabular-nums text-[color:var(--w-faint)] ${horizontal ? "h-4" : "w-7"}`}>
+            <div className={`flex min-h-0 flex-1 ${horizontal ? "flex-col" : "flex-row pt-2"}`}>
+              <div className={`relative shrink-0 text-micro tabular-nums text-[color:var(--w-faint)] ${horizontal ? "h-4" : "w-7 text-right"}`}>
                 {marks.map((m) => (
                   <span key={m.at} className="absolute whitespace-nowrap leading-none" style={horizontal ? { left: along(m.fraction), transform: "translateX(-50%)" } : { top: along(m.fraction), transform: "translateY(-50%)" }}>
                     {m.hour === 0 && m.day >= 1 ? dayName(m.at) : hourLabel(m.hour, h12)}

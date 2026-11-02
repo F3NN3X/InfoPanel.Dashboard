@@ -104,7 +104,8 @@ export default function CoreHeatmap(p: CoreHeatmapProps) {
       })
     );
   });
-  const text = (v: number) => (v > 58 && ramp !== "magma" && ramp !== "viridis" ? "#0c0c0e" : "var(--w-fg)");
+  // Light text on every fill short of the brightest: dark text on a mid fill fell under 4.5:1; the light text gets a soft shadow for the mid fills.
+  const text = (v: number) => (v > 72 && ramp !== "magma" && ramp !== "viridis" ? "#0c0c0e" : "var(--w-fg)");
   return (
     <Widget
       {...shell(p)}
@@ -113,7 +114,7 @@ export default function CoreHeatmap(p: CoreHeatmapProps) {
       studio={{ label: `CPU · ${cores.length} cores`, value: total, unit: "%", cells: cores.map(norm), sub: metric }}
       right={
         <span className="tabular-nums text-[color:var(--w-muted)]" title={cores.length ? `Average ${fmt(total, 0)}%, hottest thread ${hot.i} at ${fmt(hot.load, 0)}%` : undefined}>
-          {fmt(total, 0)}%{cores.length ? ` · T${hot.i} ${fmt(hot.load, 0)}%` : ""}
+          {cores.length ? "avg " : ""}{fmt(total, 0)}%{cores.length ? ` · max ${fmt(hot.load, 0)}%` : ""}
         </span>
       }
     >
@@ -193,16 +194,18 @@ export default function CoreHeatmap(p: CoreHeatmapProps) {
           );
         }
         const cols = Math.max(1, Math.min(n, Math.round(Math.sqrt(n * (w / Math.max(1, h))))));
+        // double-width columns so a short last row can start half a cell in and sit centred
+        const lastRow = n % cols;
         return (
-          <div className="grid h-full gap-1" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))`, gridAutoRows: "minmax(0,1fr)" }}>
-            {cores.map((c) => {
+          <div className="grid h-full gap-1" style={{ gridTemplateColumns: `repeat(${cols * 2}, minmax(0,1fr))`, gridAutoRows: "minmax(0,1fr)" }}>
+            {cores.map((c, idx) => {
               const v = norm(c);
               return (
                 <div
                   key={c.i}
                   title={`Core ${c.i} · ${fmt(c.load, 0)}% · ${fmt(c.mhz, 0)} MHz · ${fmt(c.vid, 2)} V`}
                   className="flex min-h-0 items-center justify-center rounded-md text-micro font-semibold tabular-nums"
-                  style={{ background: `color-mix(in srgb, ${heat(v, ramp)} ${Math.round(18 + v * 0.82)}%, var(--w-track))`, color: text(v), outline: v > hotLine ? "2px solid #F2665E" : "none", outlineOffset: -2 }}
+                  style={{ background: `color-mix(in srgb, ${heat(v, ramp)} ${Math.round(18 + v * 0.82)}%, var(--w-track))`, color: text(v), gridColumn: `${lastRow > 0 && idx === n - lastRow ? `${cols - lastRow + 1} / ` : ""}span 2`, textShadow: v > 72 ? undefined : "0 0 2px rgb(0 0 0 / .45)", outline: v > hotLine ? "2px solid #F2665E" : "none", outlineOffset: -2 }}
                 >
                   {/* the load is tagged for the InfoPanel conversion; the other metrics are scaled, so they stay in its picture */}
                   {(p.showValues ?? size !== "xs") && (ip ? <span {...tag(c.key)}>{label(c)}</span> : label(c))}

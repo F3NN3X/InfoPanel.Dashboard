@@ -1,4 +1,4 @@
-import { Widget, shell, get, num, fmt, has, Ring, RING_TEXT, Img, Icon, useSkin, numFont, type ShellProps } from "./kit";
+import { Widget, shell, get, num, fmt, has, roomy, Ring, RING_TEXT, Img, Icon, useSkin, numFont, type ShellProps } from "./kit";
 import { widgetImage } from "./data-adapter";
 import { meta } from "./meta/Achievements";
 
@@ -20,7 +20,7 @@ export default function Achievements(p: AchievementsProps) {
   const latestIcon = widgetImage(A("latest-achievement-icon"));
   return (
     <Widget {...shell(p)} title={p.title ?? game} icon="trophy" compact={{ label: "Achievements", value: pct, unit: "%", sub: `${fmt(un)} / ${fmt(tot)}`, pct, kind: "ring", icon: "trophy" }}>
-      {({ size, w, h }) =>
+      {({ size, w, h, outerW, outerH }) =>
         p.display === "pips" ? (
           <div className="flex h-full min-w-0 flex-col gap-2.5">
             <div className="flex items-baseline gap-2">
@@ -39,6 +39,31 @@ export default function Achievements(p: AchievementsProps) {
                 <span className="text-micro uppercase tracking-[0.06em] text-[color:var(--w-faint)]">Latest unlock</span>
                 <span className="truncate font-medium">{A("latest-achievement")}</span>
                 <span className="text-[color:var(--w-faint)]">{fmt(tot - un)} left to 100%</span>
+              </div>
+            )}
+          </div>
+        ) : roomy(outerW, outerH) ? (
+          // 4x4: the ring up top, the latest unlock under it (the plugin reports only the latest)
+          <div className="flex h-full min-w-0 flex-col items-center gap-4">
+            <div className="shrink-0" style={{ width: Math.max(40, Math.min(w, h * 0.55)) }}>
+              <Ring value={pct}>
+                <span className="font-semibold tabular-nums" style={RING_TEXT.value}>
+                  {fmt(pct, 0)}
+                  <span className="text-[color:var(--w-muted)]" style={RING_TEXT.unit}>%</span>
+                </span>
+                <span className="text-[color:var(--w-faint)]" style={RING_TEXT.sub}>
+                  {fmt(un)}/{fmt(tot)}
+                </span>
+              </Ring>
+            </div>
+            {has(A("latest-achievement")) && (
+              <div className="mt-auto flex w-full min-w-0 flex-col gap-2 border-t border-[color:var(--w-track)] pt-3">
+                <span className="text-micro uppercase tracking-[0.08em] text-[color:var(--w-faint)]">Latest unlock</span>
+                <div className="flex min-w-0 items-center gap-3">
+                  <Img src={latestIcon} icon="trophy" className="h-8 w-8 shrink-0 rounded-lg" />
+                  <span className="line-clamp-2 min-w-0 flex-1 text-body font-medium leading-snug">{A("latest-achievement")}</span>
+                  <span className="shrink-0 text-caption text-[color:var(--w-muted)]">{fmt(tot - un)} locked</span>
+                </div>
               </div>
             )}
           </div>
