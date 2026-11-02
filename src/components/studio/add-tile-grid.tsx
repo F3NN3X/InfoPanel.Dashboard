@@ -105,7 +105,7 @@ function Tile({ tile, highlighted, added, dim, status, onAdd, onHover, onDragSta
       onClick={onAdd}
       onMouseEnter={(e) => onHover(e.currentTarget)}
       className={cn(
-        "relative flex h-16 cursor-pointer select-none flex-col items-center justify-center gap-[5px] rounded-ui-md border px-1",
+        "relative flex h-[76px] cursor-pointer select-none flex-col items-center justify-center gap-[5px] rounded-ui-md border px-1",
         added ? "border-ui-accent/60 bg-ui-accent/14" : highlighted ? "border-ui-edge bg-s-nav-on" : "border-s-seg-on bg-ui-tile hover:border-ui-edge hover:bg-s-nav-on",
         dim && "opacity-40",
       )}

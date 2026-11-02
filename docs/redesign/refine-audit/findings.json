@@ -285,7 +285,7 @@
   "options": null,
   "why": "Waza \"remove what repeats\"; uupm ux \"visual noise reduction\".",
   "note": null,
-  "status": "partial"
+  "status": "fixed"
  },
  {
   "id": "A-17",
@@ -591,7 +591,7 @@
   "options": null,
   "why": "ui-ux-pro-max `primary-action`, `submit-feedback`, `color-not-decorative-only`; Waza \"status colours are semantic\".",
   "note": null,
-  "status": "partial"
+  "status": "fixed"
  },
  {
   "id": "B-14",

@@ -64,6 +64,7 @@ export function ObsBlock({ stored, streaming, onSave }: ObsBlockProps) {
         <button
           type="button"
           className={dirty ? BUTTON_ACCENT : BUTTON}
+          disabled={!dirty}
           onClick={async () => {
             // The scenes OBS lists now keep their looks; a scene it no longer lists is dropped.
             const kept = Object.fromEntries(live.scenes.flatMap((s) => (looks[s.id] ? [[s.id, looks[s.id]]] : [])));

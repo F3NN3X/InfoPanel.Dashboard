@@ -21,7 +21,7 @@ Prototypes (W1–W8 and some A-/B- IDs) were built on throwaway `proto/<id>` bra
 | A-13 | 5 |  | med | S | Rail active state and label size | fixed |
 | A-14 | 5 |  | med | M | Segmented selected state | fixed |
 | A-15 | 5 |  | med | M | Command palette: group, recent and key hints | fixed |
-| A-16 | 5 |  | low | S | Layer rows: kind tag and drag handle noise | partial |
+| A-16 | 5 |  | low | S | Layer rows: kind tag and drag handle noise | fixed |
 | A-17 | 5 |  | low | S | Gauge cards: names clip and previews differ in scale | partial |
 | A-18 | 5 |  | low | M | Replace hard-coded greys with tokens | partial |
 | A-19 | 5 |  | med | M | Home: a screen detail that is quieter, and a hover on the card | fixed |
@@ -38,7 +38,7 @@ Prototypes (W1–W8 and some A-/B- IDs) were built on throwaway `proto/<id>` bra
 | B-10 | 4 | B-10 | high | M | Dashboard and Studio pages should use the card layout (Reopens the first audit's recorded 'two Settings row styles'; the user chose to build it from the prototype.) | fixed |
 | B-11 | 4 |  | med | S | Twelve `(i)` icons where General shows its hint as text | fixed |
 | B-12 | 4 |  | med | S | "Releases on GitHub" reads like a broken link in the nav | fixed |
-| B-13 | 4 |  | med | S | Connections: status as plain text, a quiet Save, a "None" password | partial |
+| B-13 | 4 |  | med | S | Connections: status as plain text, a quiet Save, a "None" password | fixed |
 | B-14 | 4 |  | low | S | Diagnostics: five equal buttons and an orphaned note | fixed |
 | B-15 | 4 |  | low | S | Server header repeats the tiles | partial |
 | B-16 | 4 |  | med | S | The restart bar wraps at 720 and is shouting | fixed |

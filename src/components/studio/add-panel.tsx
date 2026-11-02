@@ -1,7 +1,6 @@
 import { onRovingKeyDown } from "@/lib/roving";
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
-import { Segmented } from "@/components/ui/segmented";
-import { useAddChip, useAddFilter, type AddFilter } from "./add-prefs";
+import { useAddChip, type AddFilter } from "./add-prefs";
 import { FilePlus2, FileUp, Search, SquareDashedMousePointer, X, type LucideIcon } from "lucide-react";
 import type { Appearance } from "@/lib/style-resolve";
 import { cn } from "@/lib/utils";
@@ -28,11 +27,8 @@ const KINDS: { kind: AddKind; label: string; one: string }[] = [
   { kind: "layout", label: "Layouts", one: "layout" },
 ];
 
-const SEGMENTS: { value: AddFilter; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "widgets", label: "Widgets" },
-  { value: "items", label: "InfoPanel items" },
-];
+/** The chip that shows the InfoPanel items and elements only. */
+const INFOPANEL_CHIP = "InfoPanel";
 
 /** The leave delay before the card hides (another tile cancels it). */
 const HIDE_MS = 120;
@@ -173,7 +169,6 @@ export function AddPanel({
   start,
 }: AddPanelProps) {
   const [kind, setKind] = useState<AddKind>("widget");
-  const [segment, setSegment] = useAddFilter();
   const [storedChip, setChip] = useAddChip();
   const [query, setQuery] = useState("");
   const [hl, setHl] = useState<Highlight | null>(null);
@@ -196,12 +191,16 @@ export function AddPanel({
   );
   const compact = density === "compact";
   const tiles = kind === "widget";
-  const seg: AddFilter = onAddPart ? segment : "widgets";
 
   // The Widgets tab's tiles: widgets, and the InfoPanel items and elements where the page takes them.
   const widgetTiles = useMemo(() => catalog.widget.map(widgetTile), [catalog.widget]);
-  const chips = chipsFor(seg, catalog.widget);
+  // One chip row: All, then InfoPanel (items and elements, where the page takes them), then the widget categories.
+  const chips = useMemo(() => {
+    const [all, ...categories] = chipsFor("widgets", catalog.widget);
+    return onAddPart ? [all, INFOPANEL_CHIP, ...categories] : [all, ...categories];
+  }, [catalog.widget, onAddPart]);
   const chip = chips.includes(storedChip) ? storedChip : "All";
+  const seg: AddFilter = !onAddPart ? "widgets" : chip === INFOPANEL_CHIP ? "items" : chip === "All" ? "all" : "widgets";
   const sections = useMemo(
     () =>
       tiles
@@ -210,7 +209,7 @@ export function AddPanel({
             items: onAddPart ? ITEM_TILES : [],
             elements: onAddPart ? ELEMENT_TILES : [],
             segment: seg,
-            chip,
+            chip: chip === INFOPANEL_CHIP ? "All" : chip,
             query,
             recent,
             infoPanel,
@@ -325,13 +324,6 @@ export function AddPanel({
     if (listRef.current) listRef.current.scrollTop = 0;
   };
 
-  const pickSegment = (next: AddFilter) => {
-    setSegment(next);
-    setChip("All");
-    reset();
-    if (listRef.current) listRef.current.scrollTop = 0;
-  };
-
   const pickChip = (next: string) => {
     setChip(next);
     reset();
@@ -366,7 +358,7 @@ export function AddPanel({
 
   // A fixture's state: its segment, and the card of its tile, open.
   useEffect(() => {
-    if (start?.segment) setSegment(start.segment);
+    if (start?.segment === "items") setChip(INFOPANEL_CHIP);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   useEffect(() => {
@@ -487,12 +479,6 @@ export function AddPanel({
           );
         })}
       </div>
-
-      {tiles && onAddPart && (
-        <div className="shrink-0 px-2.5 pt-2">
-          <Segmented label="Show" className="h-7 w-full flex-nowrap items-stretch [&>button]:flex-1 [&>button]:py-0" value={seg} onChange={pickSegment} options={SEGMENTS} />
-        </div>
-      )}
 
       {tiles && !query.trim() && (
         <ChipRow chips={chips.join(" ")}>

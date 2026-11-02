@@ -345,7 +345,7 @@ export function LayersTree({ host }: { host: LayersHost }) {
               ) : (
                 <span className="w-[14px] shrink-0" />
               )}
-              <span className={cn("grid h-5 w-5 shrink-0 place-items-center rounded-[5px]", widget ? "bg-ui-accent/14 text-ui-accent" : "bg-ui-hover text-ui-3", node.hidden && "opacity-45")}>
+              <span title={group ? "group" : KIND_WORD[node.kind ?? "item"]} className={cn("grid h-5 w-5 shrink-0 place-items-center rounded-[5px]", widget ? "bg-ui-accent/14 text-ui-accent" : "bg-ui-hover text-ui-3", node.hidden && "opacity-45")}>
                 <Icon className="h-[13px] w-[13px]" strokeWidth={1.75} />
               </span>
               {renaming === node.id ? (
@@ -376,7 +376,11 @@ export function LayersTree({ host }: { host: LayersHost }) {
                 </span>
               )}
               {rowState(node) && <span className="sr-only">, {rowState(node)}</span>}
-              <span className={cn("shrink-0 font-ui-mono text-[10px] text-ui-hint", node.hidden && "opacity-45")}>{group ? `group · ${node.children?.length ?? 0}` : KIND_WORD[node.kind ?? "item"]}</span>
+              {/* The kind is the icon's tooltip and screen-reader text, not a column of mono words. */}
+              <span className="sr-only" data-testid="layers-row-kind">
+                {group ? "group" : KIND_WORD[node.kind ?? "item"]}
+              </span>
+              {group && <span className={cn("shrink-0 font-ui-mono text-[10px] text-ui-hint", node.hidden && "opacity-45")}>{node.children?.length ?? 0}</span>}
               {node.free && !widget && (
                 <span role="img" title="Placed freely (Alt)" aria-label="Placed freely (Alt)" className="inline-flex shrink-0 text-ui-4">
                   <Move className="h-3 w-3" aria-hidden="true" />

@@ -83,6 +83,10 @@ describe("Settings › Connections, OBS", () => {
     render(<ConnectionsSection />);
     const select = (await screen.findByLabelText("OBS mic input")) as HTMLSelectElement;
     expect(select.value).toBe("Old mic");
+    // A clean form has nothing to save; editing a look enables Save and keeps the saved mic.
+    expect((screen.getByText("Save OBS") as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.change(screen.getByLabelText("OBS host"), { target: { value: "192.168.1.5" } });
+    expect((screen.getByText("Save OBS") as HTMLButtonElement).disabled).toBe(false);
     fireEvent.click(screen.getByText("Save OBS"));
     await waitFor(() => expect(puts).toHaveLength(1));
     expect(puts[0].streaming).toEqual({ obs: { mic: "Old mic", scenes: { u9: { sub: "Kept", icon: "" } } } });

@@ -49,8 +49,12 @@ describe("Layers rows", () => {
     render(<LayersTree host={host({ selectedIds: ["overlay"], statusIcon: (id) => (id === "title" ? <span aria-label="Approximated" /> : null) })} />);
     const rows = screen.getAllByTestId("layers-row");
     expect(rows.map((r) => [r.dataset.kind, r.dataset.depth])).toEqual([["group", "0"], ["item", "1"], ["element", "1"], ["widget", "0"], ["widget", "0"]]);
-    expect(row("Overlay").textContent).toContain("group · 2");
-    expect(row("Weather").textContent).toContain("widget");
+    // The kind is screen-reader text (and the icon's tooltip), not a visible word; a group keeps its child count.
+    expect(within(row("Overlay")).getByTestId("layers-row-kind").textContent).toBe("group");
+    expect(row("Overlay").textContent).toContain("2");
+    expect(within(row("Weather")).getByTestId("layers-row-kind").className).toContain("sr-only");
+    expect(within(row("Weather")).getByTestId("layers-row-kind").textContent).toBe("widget");
+    expect(within(row("Title text")).getByTestId("layers-row-kind").textContent).toBe("item");
     // The placed-freely mark on the free item only; the status where the check has one.
     expect(within(row("Title text")).getByLabelText("Placed freely (Alt)")).toBeTruthy();
     expect(within(row("Accent glow")).queryByLabelText("Placed freely (Alt)")).toBeNull();

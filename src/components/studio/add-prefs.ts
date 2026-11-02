@@ -96,16 +96,10 @@ export function useAddListDensity() {
 
 /** The Add list's segment (Edit v3 SPEC §9.1): All, only Studio widgets, or only InfoPanel items and elements. */
 export type AddFilter = "all" | "widgets" | "items";
-export const FILTER_KEY = "studio.editor.addFilter";
 const FILTERS: readonly AddFilter[] = ["all", "widgets", "items"];
 
 export function parseAddFilter(raw: string | null): AddFilter {
   return FILTERS.includes(raw as AddFilter) ? (raw as AddFilter) : "all";
-}
-
-/** The Add list's segment: All (default), Widgets or InfoPanel items. */
-export function useAddFilter() {
-  return useStoredChoice<AddFilter>(FILTER_KEY, () => parseAddFilter(read(FILTER_KEY)), parseAddFilter);
 }
 
 export const CHIP_KEY = "studio.editor.addChip";
