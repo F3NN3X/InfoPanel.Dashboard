@@ -34,6 +34,8 @@ export interface ProfileCardProps {
   meta: string;
   aspect: number;
   thumb: ReactNode;
+  /** Under the thumbnail: a screen's page strip. */
+  strip?: ReactNode;
   /** A click on the card (the thumbnail button for the keyboard). */
   onClick: () => void;
   /** The thumbnail button's name: "Open Desk". */
@@ -51,7 +53,7 @@ export interface ProfileCardProps {
  * footer of actions. Shared by the Screens manager and the InfoPanel home, so both look and behave alike. A right-click
  * opens the same actions as the ⋯ menu.
  */
-export function ProfileCard({ name, nameField, badges, detail, meta, aspect, thumb, onClick, label, selected, actions, actionsLabel = "Actions", children }: ProfileCardProps) {
+export function ProfileCard({ name, nameField, badges, detail, meta, aspect, thumb, strip, onClick, label, selected, actions, actionsLabel = "Actions", children }: ProfileCardProps) {
   const [menuAt, setMenuAt] = useState<{ x: number; y: number } | null>(null);
   return (
     <li
@@ -72,11 +74,14 @@ export function ProfileCard({ name, nameField, badges, detail, meta, aspect, thu
         selected ? "border-ui-1 ring-1 ring-ui-1" : "border-ui-default hover:border-ui-strong"
       )}
     >
-      <button type="button" aria-label={label} className="block w-full outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ui-accent/60">
-        <div className="w-full bg-s-well" style={{ aspectRatio: aspect }}>
-          {thumb}
-        </div>
-      </button>
+      <div className="relative">
+        <button type="button" aria-label={label} className="block w-full outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ui-accent/60">
+          <div className="w-full bg-s-well" style={{ aspectRatio: aspect }}>
+            {thumb}
+          </div>
+        </button>
+        {strip}
+      </div>
       <div className="flex min-w-0 flex-col gap-1 px-3 pb-2 pt-2">
         <div className="flex min-w-0 items-center gap-1">
           <div className="min-w-0 flex-1 text-body font-medium text-ui-1">{nameField ?? <span className="block truncate">{name}</span>}</div>
@@ -87,8 +92,12 @@ export function ProfileCard({ name, nameField, badges, detail, meta, aspect, thu
           )}
         </div>
         {badges && <div className="flex flex-wrap gap-1">{badges}</div>}
-        {detail && <span className="truncate text-[11.5px] text-ui-4">{detail}</span>}
-        <span className="truncate font-ui-mono text-micro text-ui-3">{meta}</span>
+        {detail && <span className="truncate text-micro text-ui-4">{detail}</span>}
+        <span className="@container">
+          {/* One line always: the grid part goes first when the card is narrow. */}
+          <span className="block whitespace-nowrap font-ui-mono text-micro text-ui-3 @[260px]:hidden">{meta.split(" · ").slice(0, 2).join(" · ")}</span>
+          <span className="hidden whitespace-nowrap font-ui-mono text-micro text-ui-3 @[260px]:block">{meta}</span>
+        </span>
       </div>
       {children && (
         <div onClick={(e) => e.stopPropagation()} className="mt-auto flex items-center gap-0.5 border-t border-ui-subtle px-1.5 py-1">

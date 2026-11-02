@@ -89,10 +89,10 @@ export function DataPicker({ open, onOpenChange, title, points, mode, bound, onT
                     ) : null}
                     <TypeIcon type={p.type} />
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[12.5px] text-ui-1">{p.name}</span>
+                      <span className="block truncate text-body text-ui-1">{p.name}</span>
                       <span className="block truncate text-micro text-ui-4">{pointPlace(p)}</span>
                     </span>
-                    <span className="max-w-[150px] shrink-0 truncate font-ui-mono text-[11.5px] text-ui-2">{p.raw}</span>
+                    <span className="max-w-[150px] shrink-0 truncate font-ui-mono text-micro text-ui-2">{p.raw}</span>
                   </button>
                 </li>
               );
@@ -100,7 +100,7 @@ export function DataPicker({ open, onOpenChange, title, points, mode, bound, onT
             {shown.length === 0 && <li className="px-3 py-6 text-center text-caption text-ui-4">No data points match.</li>}
           </ul>
           <div className="flex shrink-0 items-center gap-2.5 border-t border-ui-subtle px-4 py-2.5">
-            <span className="text-[11.5px] text-ui-hint">
+            <span className="text-micro text-ui-hint">
               {resultsLabel(shown.length)} · {bound.size} bound
             </span>
             <button

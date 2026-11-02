@@ -256,7 +256,7 @@ export function MultiHeader({
             onClick={() => onDeselect(z.id)}
             aria-label={`Remove ${z.name} from the selection`}
             title="Remove from the selection"
-            className="inline-flex h-6 max-w-full items-center gap-1 rounded-xl border border-ui-strong bg-ui-raised pl-2 pr-1 text-[11.5px] text-[#d4d4da]"
+            className="inline-flex h-6 max-w-full items-center gap-1 rounded-xl border border-ui-strong bg-ui-raised pl-2 pr-1 text-micro text-ui-2"
           >
             <span className="truncate">{z.name}</span>
             <X className="h-3.5 w-3.5 shrink-0 text-ui-4" />

@@ -6,7 +6,7 @@ import { isRemoteEditRefusal, isUnreachable, pushConfig } from "@/lib/dashboard-
 import type { DashboardConfig } from "@/lib/layout";
 import { logFrontend } from "@/lib/desktop";
 
-const BUTTON = "h-8 rounded-[7px] border px-3.5 text-[12.5px] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent disabled:opacity-60";
+const BUTTON = "h-8 rounded-[7px] border px-3.5 text-body transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent disabled:opacity-60";
 const PRIMARY = cn(BUTTON, "border-ui-accent bg-ui-accent font-semibold text-ui-inverse-fg hover:opacity-90");
 const OUTLINE = cn(BUTTON, "border-ui-strong bg-ui-raised text-ui-1 hover:bg-ui-hover");
 
@@ -61,7 +61,7 @@ export function ConfigUpdateDialog({ from, config, onSaved, onFailed, onClose }:
         <AlertDialog.Backdrop className="fixed inset-0 z-[70] bg-black/60" />
         <AlertDialog.Popup className="fixed left-1/2 top-1/2 z-[70] flex w-[440px] max-w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 flex-col gap-3 rounded-ui-lg border border-ui-strong bg-ui-panel p-5 shadow-ui-modal outline-none">
           <AlertDialog.Title className="m-0 text-[14px] font-semibold text-ui-1">{title}</AlertDialog.Title>
-          <AlertDialog.Description className="m-0 break-words text-[12.5px] leading-[1.5] text-ui-2">{body}</AlertDialog.Description>
+          <AlertDialog.Description className="m-0 break-words text-body leading-[1.5] text-ui-2">{body}</AlertDialog.Description>
           <div className="flex justify-end gap-2">
             <button ref={button} type="button" disabled={update.state === "saving"} onClick={done ? onClose : save} className={done ? OUTLINE : PRIMARY}>
               {done ? "Continue" : update.state === "saving" ? "Updating…" : update.state === "failed" ? "Try again" : "Update now"}

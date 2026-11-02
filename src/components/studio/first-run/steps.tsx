@@ -21,7 +21,7 @@ export const Heading = ({ children, headRef, large }: { children: ReactNode; hea
     {children}
   </h1>
 );
-export const Sub = ({ children }: { children: ReactNode }) => <p className="m-0 mt-1 max-w-[600px] text-[12.5px] leading-[1.5] text-ui-3">{children}</p>;
+export const Sub = ({ children }: { children: ReactNode }) => <p className="m-0 mt-1 max-w-[600px] text-body leading-[1.5] text-ui-3">{children}</p>;
 
 const CLASS_NOTES: Record<ShapeClass, string> = {
   standard: "Landscape up to about 2.4:1: small panels and monitors",
@@ -85,11 +85,11 @@ export function WelcomeStep({ headRef, rerun, narrow, results, onSeeChecks }: We
               </span>
             )}
             <div className="flex flex-col gap-1.5 rounded-ui-menu border border-ui-subtle bg-ui-panel p-3">
-              <span className="flex items-center gap-2 text-[12.5px] font-medium text-ui-1">
+              <span className="flex items-center gap-2 text-body font-medium text-ui-1">
                 <c.icon className="h-4 w-4 text-ui-3" />
                 {c.title}
               </span>
-              <span className="text-[11.5px] leading-[1.45] text-ui-3">{c.text}</span>
+              <span className="text-micro leading-[1.45] text-ui-3">{c.text}</span>
               <span className="mt-auto font-ui-mono text-micro text-ui-4">{c.meta}</span>
             </div>
           </li>
@@ -102,8 +102,8 @@ export function WelcomeStep({ headRef, rerun, narrow, results, onSeeChecks }: We
           <StripIcon className={cn("h-[18px] w-[18px] shrink-0", strip.state === "ok" ? "text-ui-success" : strip.state === "warn" ? "text-ui-warning" : "text-ui-danger")} strokeWidth={1.75} />
         )}
         <span className="flex min-w-0 flex-1 flex-col">
-          <span className="text-[12.5px] font-medium text-ui-1">{strip.title}</span>
-          <span className="text-[11.5px] text-ui-3">{strip.note}</span>
+          <span className="text-body font-medium text-ui-1">{strip.title}</span>
+          <span className="text-micro text-ui-3">{strip.note}</span>
         </span>
         <button type="button" onClick={onSeeChecks} className="h-7 shrink-0 rounded-[7px] border border-ui-strong bg-ui-raised px-2.5 text-caption text-ui-1 hover:bg-ui-hover">
           See the checks
@@ -160,7 +160,7 @@ function Preview({ size, source }: { size: Size; source: SizeSource }) {
         <span className="font-ui-mono text-body text-ui-1">
           {size.width} × {size.height}
         </span>
-        <span className="text-[11.5px] text-ui-2">{sizeNote(size, source)}</span>
+        <span className="text-micro text-ui-2">{sizeNote(size, source)}</span>
         <span className="text-micro text-ui-4">
           {n} of {SCREEN_KIT.entries.length} templates are made for {cls.toLowerCase()} screens
         </span>
@@ -193,7 +193,7 @@ export function ScreenStep({ headRef, narrow, size, source, windowSize, custom, 
         <button type="button" role="radio" aria-checked={source === "window"} tabIndex={source === "window" ? 0 : -1} onClick={onWindow} className={cn(tile(source === "window"), "h-11")}>
           <AppWindow className="h-4 w-4 shrink-0 text-ui-3" />
           <span className="flex min-w-0 flex-col">
-            <span className="text-[12.5px] font-medium text-ui-1">This window</span>
+            <span className="text-body font-medium text-ui-1">This window</span>
             <span className="font-ui-mono text-micro text-ui-3">
               {windowSize.width} × {windowSize.height}
             </span>
@@ -209,7 +209,7 @@ export function ScreenStep({ headRef, narrow, size, source, windowSize, custom, 
             className="flex shrink-0 items-center gap-2.5 rounded-sm outline-none"
           >
             <Ratio className="h-4 w-4 text-ui-3" />
-            <span className="text-[12.5px] font-medium text-ui-1">Custom</span>
+            <span className="text-body font-medium text-ui-1">Custom</span>
           </button>
           <span className={cn("flex h-[26px] items-center rounded-ui-sm border bg-ui-app", touched && !typed ? "border-ui-danger" : "border-ui-default focus-within:border-ui-accent")}>
             {(["w", "h"] as const).map((k, i) => (
@@ -225,7 +225,7 @@ export function ScreenStep({ headRef, narrow, size, source, windowSize, custom, 
                   aria-invalid={touched && !typed}
                   value={custom[k]}
                   onChange={(e) => onCustom({ ...custom, [k]: e.target.value })}
-                  className="h-full w-[50px] bg-transparent text-center font-ui-mono text-[11.5px] text-ui-1 outline-none focus-visible:shadow-none"
+                  className="h-full w-[50px] bg-transparent text-center font-ui-mono text-micro text-ui-1 outline-none focus-visible:shadow-none"
                 />
               </span>
             ))}
@@ -256,7 +256,7 @@ export function ScreenStep({ headRef, narrow, size, source, windowSize, custom, 
                   onClick={() => onPreset(p)}
                   className={cn(tile(on), "flex-col items-start justify-center gap-0 py-1.5")}
                 >
-                  <span className="font-ui-mono text-[11.5px] text-ui-1">
+                  <span className="font-ui-mono text-micro text-ui-1">
                     {p.width} × {p.height}
                   </span>
                   <span className="w-full truncate text-micro text-ui-3">{hintOf(p) ?? `${(p.width / p.height).toFixed(2)}:1`}</span>
@@ -363,7 +363,7 @@ export function StartStep({ headRef, rerun, size, start, onStart, pick, onPick, 
               <c.icon className="h-4 w-4 text-ui-2" />
             </span>
             <span className="flex min-w-0 flex-1 flex-col">
-              <span className="truncate text-[12.5px] font-medium text-ui-1">{c.title}</span>
+              <span className="truncate text-body font-medium text-ui-1">{c.title}</span>
               <span className="truncate text-micro text-ui-3">{c.note}</span>
             </span>
             <span aria-hidden className={cn("grid h-3.5 w-3.5 shrink-0 place-items-center rounded-full border", start === c.value ? "border-ui-accent" : "border-ui-strong")}>
@@ -377,7 +377,7 @@ export function StartStep({ headRef, rerun, size, start, onStart, pick, onPick, 
         <section aria-label="Top picks" className="flex flex-col gap-2">
           {Host && <Host />}
           <div className="flex items-baseline gap-2">
-            <h2 className="m-0 text-[12.5px] font-medium text-ui-1">
+            <h2 className="m-0 text-body font-medium text-ui-1">
               {all ? `All ${SCREEN_KIT.entries.length} templates at` : "Top picks for"} {size.width} × {size.height}
             </h2>
             <span className="text-micro text-ui-4">{noData ? "Shown with placeholders: no live data yet" : "Shown with your readings"}</span>
@@ -422,7 +422,7 @@ export function StartStep({ headRef, rerun, size, start, onStart, pick, onPick, 
                 className="flex min-h-[120px] flex-col items-center justify-center gap-1.5 rounded-[10px] border border-dashed border-ui-strong p-3 text-center outline-none hover:bg-ui-hover focus-visible:border-ui-accent"
               >
                 <LayoutGrid className="h-4 w-4 text-ui-3" />
-                <span className="text-[12.5px] font-medium text-ui-1">Browse all {SCREEN_KIT.entries.length} templates</span>
+                <span className="text-body font-medium text-ui-1">Browse all {SCREEN_KIT.entries.length} templates</span>
                 <span className="text-micro text-ui-3">The ones made for this size come first</span>
               </button>
             )}
@@ -433,7 +433,7 @@ export function StartStep({ headRef, rerun, size, start, onStart, pick, onPick, 
       {start === "import" && (
         <section aria-label="InfoPanel profiles" className="flex flex-col gap-2">
           <div className="flex items-baseline gap-2">
-            <h2 className="m-0 text-[12.5px] font-medium text-ui-1">
+            <h2 className="m-0 text-body font-medium text-ui-1">
               {profiles && profiles.length > 0 ? `${profiles.length} InfoPanel ${profiles.length === 1 ? "profile" : "profiles"} on this PC` : "No InfoPanel profiles on this PC"}
             </h2>
             <span className="text-micro text-ui-4">{profiles ? "From %LOCALAPPDATA%\\InfoPanel\\profiles" : noProfiles}</span>
@@ -450,7 +450,7 @@ export function StartStep({ headRef, rerun, size, start, onStart, pick, onPick, 
               ))}
             </ul>
           )}
-          <p className="m-0 text-[11.5px] text-ui-3">
+          <p className="m-0 text-micro text-ui-3">
             {profiles && profiles.length > 0
               ? "After setup, the import opens on these: pick a profile, and it comes in at its own size. Your files in InfoPanel aren’t changed."
               : "After setup, choose a .infopanel file. It comes in as an InfoPanel profile at its own size."}
@@ -483,7 +483,7 @@ export function Switch({ label, note, checked, onChange }: { label: string; note
   return (
     <label className="flex cursor-pointer items-center gap-3 px-3 py-2.5">
       <span className="flex min-w-0 flex-1 flex-col">
-        <span className="text-[12.5px] text-ui-1">{label}</span>
+        <span className="text-body text-ui-1">{label}</span>
         <span className="text-micro text-ui-3">{note}</span>
       </span>
       <input type="checkbox" role="switch" aria-checked={checked} checked={checked} onChange={(e) => onChange(e.target.checked)} className="peer sr-only" />
@@ -522,7 +522,7 @@ export function FinishStep({ headRef, rerun, rows, onChange, options }: FinishSt
             <r.icon className={cn("mt-px h-4 w-4 shrink-0", r.tone === "ok" ? "text-ui-success" : r.tone === "warn" ? "text-ui-warning" : r.tone === "fail" ? "text-ui-danger" : "text-ui-3")} />
             <span className="w-24 shrink-0 text-caption text-ui-2">{r.label}</span>
             <span className="flex min-w-0 flex-1 flex-col">
-              <span className="break-words text-[12.5px] text-ui-1">{r.value}</span>
+              <span className="break-words text-body text-ui-1">{r.value}</span>
               <span className={cn("text-micro", r.tone === "warn" ? "text-ui-warning" : r.tone === "fail" ? "text-ui-danger" : "text-ui-3")}>
                 <Rich text={r.sub} />
               </span>

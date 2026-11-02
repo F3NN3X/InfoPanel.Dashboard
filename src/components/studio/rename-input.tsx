@@ -32,7 +32,7 @@ export function RenameInput({
       }}
       onBlur={commit}
       aria-label={label}
-      className="w-full rounded border border-ui-strong bg-ui-app px-1.5 py-0.5 text-[12.5px] text-ui-1 outline-none focus:border-ui-accent"
+      className="w-full rounded border border-ui-strong bg-ui-app px-1.5 py-0.5 text-body text-ui-1 outline-none focus:border-ui-accent"
     />
   );
 }

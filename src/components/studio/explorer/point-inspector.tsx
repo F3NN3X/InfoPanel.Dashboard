@@ -74,7 +74,7 @@ export function PointInspector({
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="break-words text-[14px] font-semibold leading-[1.3] text-ui-1">{point.name}</span>
-          <span className="text-[11.5px] text-ui-4">{crumb}</span>
+          <span className="text-micro text-ui-4">{crumb}</span>
         </div>
         <button
           type="button"
@@ -119,7 +119,7 @@ export function PointInspector({
       <CopyField label="Stream just this value" value={`${apiBase}${stream}`} display={stream} get onCopy={copy} />
 
       <div className="flex flex-col gap-2 border-t border-ui-subtle pt-3.5">
-        <span className="text-[12.5px] font-semibold text-ui-1">Used by</span>
+        <span className="text-body font-semibold text-ui-1">Used by</span>
         {usedBy.map((u) => {
           const Icon = u.panelWidgetId ? PanelTop : Monitor;
           return (
@@ -205,7 +205,7 @@ function History({ history, pointKey, unit, tick }: { history: SampleHistory; po
         ).map(([label, n]) => (
           <div key={label} className="flex flex-col gap-px">
             <span className="text-micro leading-[1.25] text-ui-4">{label}</span>
-            <span className="font-ui-mono text-[11.5px] leading-[1.25] text-ui-1">{n === undefined ? "—" : fmt(n)}</span>
+            <span className="font-ui-mono text-micro leading-[1.25] text-ui-1">{n === undefined ? "—" : fmt(n)}</span>
           </div>
         ))}
       </div>

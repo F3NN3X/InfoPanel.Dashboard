@@ -17,7 +17,7 @@ interface ExplorerHeaderProps {
 }
 
 const MENU_ITEM =
-  "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[12.5px] text-ui-2 hover:bg-ui-hover hover:text-ui-1";
+  "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-body text-ui-2 hover:bg-ui-hover hover:text-ui-1";
 
 /** The Data view's top bar: title and counts, Report, Endpoints and Add source (the connection is its own card). */
 export function ExplorerHeader({ pointCount, sourceCount, apiBase, config }: ExplorerHeaderProps) {
@@ -48,7 +48,7 @@ export function ExplorerHeader({ pointCount, sourceCount, apiBase, config }: Exp
     <div className="flex flex-wrap items-center gap-3 border-b border-ui-subtle bg-ui-chrome px-4 py-3 font-ui">
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <div className="text-[14px] font-semibold leading-[1.2] text-ui-1">Data</div>
-        <div className="text-[11.5px] leading-[1.2] text-ui-4">
+        <div className="text-micro leading-[1.2] text-ui-4">
           {pointCount} data points from {sourceCount} sources
         </div>
       </div>
@@ -65,7 +65,7 @@ export function ExplorerHeader({ pointCount, sourceCount, apiBase, config }: Exp
             </>
           }
         >
-          <div className="px-2 pb-1.5 pt-1.5 text-[11.5px] leading-[1.4] text-ui-4">
+          <div className="px-2 pb-1.5 pt-1.5 text-micro leading-[1.4] text-ui-4">
             A troubleshooting report to attach to a bug report: versions, the Data API's state and the hardware readings. It
             leaves out names, addresses, folders, plugin entries and text values.
           </div>
@@ -92,7 +92,7 @@ export function ExplorerHeader({ pointCount, sourceCount, apiBase, config }: Exp
           }
         >
           <div className="max-h-[70vh] overflow-y-auto">
-            <div className="px-2.5 pb-1.5 pt-2 text-[11.5px] text-ui-4">
+            <div className="px-2.5 pb-1.5 pt-2 text-micro text-ui-4">
               All data is served by the local Data API. Click a path to copy it.
             </div>
             {endpoints.map((e) => (
@@ -111,8 +111,8 @@ export function ExplorerHeader({ pointCount, sourceCount, apiBase, config }: Exp
                   {e.method}
                 </span>
                 <span className="flex min-w-0 flex-col gap-0.5">
-                  <span className="block break-all font-ui-mono text-[11.5px] text-ui-1">{e.path}</span>
-                  <span className="block text-[11.5px] text-ui-4">{e.description}</span>
+                  <span className="block break-all font-ui-mono text-micro text-ui-1">{e.path}</span>
+                  <span className="block text-micro text-ui-4">{e.description}</span>
                 </span>
               </button>
             ))}

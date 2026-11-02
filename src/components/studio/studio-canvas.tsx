@@ -43,7 +43,7 @@ import { LivePlacement } from "./placement-content";
 import { RulerLabels } from "./rulers";
 import { ScreenFold } from "./screen-fold";
 import { ItemParts, useAltHeld, type GroupMoves, type ItemGesture, type PressGrouped } from "./item-parts";
-import { EmptyLayoutCard, QuickTipsCard } from "./canvas-cards";
+import { EmptyLayoutCard } from "./canvas-cards";
 import { canvasPointAt, canvasTakesDrop, dropGhost, dropSize, libraryItemOf, myLibraryDropOf, type CanvasDrop, type CanvasPoint, type LibraryItem } from "./drop-ghost";
 import { addGhost, type Ghost } from "./add-place";
 import { sizeText, type AddItem } from "./add-catalog";
@@ -858,8 +858,6 @@ export function StudioCanvas({
           {profile.placements.length === 0 && !page?.placements.length && !drawing && (
             <EmptyLayoutCard onBrowse={onOpenAdd} onImport={onImport} onUseSample={onUseSample} />
           )}
-
-          <QuickTipsCard />
         </div>
 
       {/* Alt while dragging (SPEC §7.3): an item goes free, a widget stays on its cells. */}

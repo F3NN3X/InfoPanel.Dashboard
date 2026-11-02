@@ -197,7 +197,7 @@ function OverlayFields({ panel, setField }: PanelLayoutSectionProps) {
       <Field label="Band alignment">
         {BANDS.map(({ band, label }) => (
           <div key={band} className="mb-1 flex items-center gap-2">
-            <span className="w-12 shrink-0 text-[11.5px] text-ui-3">{label}</span>
+            <span className="w-12 shrink-0 text-micro text-ui-3">{label}</span>
             <Segmented
               options={JUSTIFY_OPTIONS}
               value={panel.overlayAlign?.[band] ?? "start"}
@@ -259,7 +259,7 @@ export function PanelMainFields({
           className={FULL}
         />
         {panel.fit === "hug" && (
-          <p className="mt-1 text-[11.5px] leading-snug text-ui-4">A hugging panel sits where Size &amp; alignment puts it.</p>
+          <p className="mt-1 text-micro leading-snug text-ui-4">A hugging panel sits where Size &amp; alignment puts it.</p>
         )}
       </Field>
       <InlineField label="Gap">

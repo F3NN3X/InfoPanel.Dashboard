@@ -44,7 +44,7 @@ function StageNote({ item, text }: { item: AddItem; text: string }) {
   return (
     <div className="flex flex-col items-center gap-2">
       <AddItemIcon item={item} size={40} />
-      <span className="text-[11.5px] text-ui-hint">{text}</span>
+      <span className="text-micro text-ui-hint">{text}</span>
     </div>
   );
 }
@@ -129,15 +129,15 @@ export function AddPreview({ item, left, top, via, target, appearance, pageStyle
       <div className="flex flex-col gap-2 px-3.5 pb-3.5 pt-3">
         <div className="flex items-baseline gap-2">
           <span className="truncate text-[14px] font-semibold text-ui-1">{item.name}</span>
-          <span className="shrink-0 text-[11.5px] text-ui-hint">{item.kind === "widget" ? item.category : KIND_NAME[item.kind]}</span>
+          <span className="shrink-0 text-micro text-ui-hint">{item.kind === "widget" ? item.category : KIND_NAME[item.kind]}</span>
         </div>
         <p className="text-pretty text-caption leading-[1.5] text-ui-soft">{item.description || item.blurb}</p>
-        <div className="flex items-center gap-2 text-[11.5px] text-ui-hint">
+        <div className="flex items-center gap-2 text-micro text-ui-hint">
           <span className="rounded-[4px] bg-ui-subtle px-1.5 py-0.5 font-ui-mono text-micro text-ui-2">{sizeText(item.w, item.h)}</span>
           {item.mw === 1 && item.mh === 1 ? "Adapts down to 1×1" : `Needs at least ${sizeText(item.mw, item.mh)}`}
         </div>
         <div
-          className="border-t border-ui-subtle pt-2 text-[11.5px]"
+          className="border-t border-ui-subtle pt-2 text-micro"
           style={{ color: !target ? "#8a8a94" : fits ? "oklch(0.85 0.10 255)" : "oklch(0.80 0.13 60)" }}
         >
           {action}

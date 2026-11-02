@@ -26,13 +26,16 @@ function LockToggle({ on, screen, onToggle }: { on: boolean; screen: string; onT
       aria-pressed={on}
       onClick={onToggle}
       title={`Lock forces this section on every page and widget of ${screen}`}
+      aria-label={on ? undefined : "Lock"}
       className={cn(
-        "flex h-5 shrink-0 items-center gap-[3px] rounded-full border px-2 text-micro font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent",
-        on ? LOCKED : "border-[#27272a] text-ui-hint hover:text-ui-1"
+        "flex shrink-0 items-center justify-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent",
+        on
+          ? cn("h-5 gap-[3px] rounded-full border px-2 text-micro font-medium", LOCKED)
+          : "h-6 w-6 rounded-md text-ui-hint opacity-60 hover:bg-ui-hover hover:text-ui-1 hover:opacity-100 focus-visible:opacity-100 group-hover/row:opacity-100"
       )}
     >
       <Icon className="h-3 w-3" strokeWidth={1.75} aria-hidden />
-      {on ? "Locked" : "Lock"}
+      {on && "Locked"}
     </button>
   );
 }
@@ -83,7 +86,7 @@ export function FineTuneRow({ card, chip, summary, parentText, open, onToggle, l
       }}
       className={cn("border-t border-ui-raised transition-shadow duration-500", flash && "shadow-[inset_0_0_0_1.5px_var(--ui-accent)]")}
     >
-      <header className="flex items-center gap-2 px-4 py-2.5">
+      <header className="group/row flex items-center gap-2 px-4 py-2.5">
         <button
           type="button"
           aria-expanded={open}

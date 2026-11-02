@@ -68,7 +68,7 @@ export function ToggleChip({ active, onClick, children }: ToggleChipProps) {
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        "inline-flex h-7 items-center gap-[5px] rounded-full border px-2.5 font-ui text-[11.5px] transition-colors",
+        "inline-flex h-7 items-center gap-[5px] rounded-full border px-2.5 font-ui text-micro transition-colors",
         active
           ? "border-ui-accent/50 bg-ui-accent-soft text-ui-1"
           : "border-ui-strong text-[#a4a4ad] hover:bg-ui-hover hover:text-ui-1"
@@ -83,7 +83,7 @@ export function ToggleChip({ active, onClick, children }: ToggleChipProps) {
 export const CAPTION = "font-ui text-micro font-medium uppercase tracking-[0.05em] text-ui-hint";
 
 /** The small label above an inspector field. */
-export const FIELD_LABEL = "font-ui text-[11.5px] leading-[1.25] text-ui-4";
+export const FIELD_LABEL = "font-ui text-micro leading-[1.25] text-ui-4";
 
 interface CopyFieldProps {
   label: string;

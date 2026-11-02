@@ -60,16 +60,16 @@ export function PanelCodeView({ panel, onApply }: PanelCodeViewProps) {
         spellCheck={false}
         aria-label="Panel JSON"
         aria-invalid={error !== null}
-        className={cn(FIELD, "block h-[260px] w-full resize-y py-1.5 font-ui-mono text-[11.5px] leading-relaxed aria-invalid:border-ui-danger")}
+        className={cn(FIELD, "block h-[260px] w-full resize-y py-1.5 font-ui-mono text-micro leading-relaxed aria-invalid:border-ui-danger")}
       />
-      {error && <div className="text-[11.5px] text-ui-danger">{error}</div>}
+      {error && <div className="text-micro text-ui-danger">{error}</div>}
       <div className="flex items-center justify-end gap-2">
         <span className="mr-auto text-micro text-ui-4">Ctrl+Enter to apply · one undo step</span>
         <button
           type="button"
           onClick={revert}
           disabled={draft === null}
-          className="text-[11.5px] text-ui-3 hover:text-ui-1 disabled:opacity-40"
+          className="text-micro text-ui-3 hover:text-ui-1 disabled:opacity-40"
         >
           Revert
         </button>

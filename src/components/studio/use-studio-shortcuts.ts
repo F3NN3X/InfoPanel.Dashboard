@@ -17,6 +17,7 @@ export type ShortcutAction =
   | { type: "undo" }
   | { type: "redo" }
   | { type: "zoom-fit" }
+  | { type: "zoom-selection" }
   | { type: "zoom-in" }
   | { type: "zoom-out" }
   | { type: "palette" }
@@ -166,6 +167,7 @@ function zoneAction(e: KeyInput, ctx: ShortcutContext): ShortcutAction | null {
   if (e.key === "h" || e.key === "H") return e.shiftKey ? null : { type: "toggle-visible" };
   if (e.key === "?") return { type: "cheatsheet" };
   if (e.key === "f" || e.key === "F") return e.shiftKey ? { type: "refresh-preview" } : { type: "toggle-preview" };
+  if (e.key === "2" && !e.shiftKey) return { type: "zoom-selection" };
   if (e.key === "+" || e.key === "=") return { type: "zoom-in" };
   if (e.key === "-") return { type: "zoom-out" };
   const arrow = ARROWS[e.key];
@@ -197,6 +199,7 @@ export const KEYS = {
   hide: "H",
   deselect: "Esc",
   fit: "Ctrl+0",
+  zoomSelection: "2",
   zoomIn: "+",
   zoomOut: "-",
   dock: "Ctrl+\\",
@@ -270,6 +273,7 @@ export const SHORTCUT_GROUPS: { title: string; items: { keys: string; label: str
     title: "Canvas",
     items: [
       { keys: KEYS.fit, label: "Fit to width" },
+      { keys: KEYS.zoomSelection, label: "Zoom to the selected widget" },
       { keys: KEYS.togglePreview, label: "Freeze the preview data / go live (this session)" },
       { keys: KEYS.refreshPreview, label: "Refresh the frozen snapshot" },
       { keys: `${KEYS.zoomIn} / Ctrl+=`, label: "Zoom in" },

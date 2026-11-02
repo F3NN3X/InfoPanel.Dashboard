@@ -60,7 +60,7 @@ export function NumField({ value, onChange, label, min, max, placeholder }: NumF
         const n = parse(e.target.value);
         if (n !== undefined || e.target.value.trim() === "") onChange(n);
       }}
-      className={cn(FIELD, "h-[26px] w-[64px] shrink-0 px-1.5 text-right font-ui-mono text-[11.5px]")}
+      className={cn(FIELD, "h-[26px] w-[64px] shrink-0 px-1.5 text-right font-ui-mono text-micro")}
     />
   );
 }
@@ -87,7 +87,7 @@ export function TextField({
       placeholder={placeholder}
       spellCheck={false}
       onChange={(e) => onChange(e.target.value)}
-      className={cn(FIELD, "h-[30px] w-full", mono && "font-ui-mono text-[11.5px]")}
+      className={cn(FIELD, "h-[30px] w-full", mono && "font-ui-mono text-micro")}
     />
   );
 }
@@ -115,7 +115,7 @@ export function ChipsField({ values, onChange, label, placeholder, suggestions =
       {values.length > 0 && (
         <div className="flex flex-wrap gap-1">
           {values.map((v) => (
-            <span key={v} className="flex items-center gap-1 rounded-md bg-ui-active px-1.5 py-0.5 text-[11.5px] text-ui-1">
+            <span key={v} className="flex items-center gap-1 rounded-md bg-ui-active px-1.5 py-0.5 text-micro text-ui-1">
               {v}
               <button
                 type="button"

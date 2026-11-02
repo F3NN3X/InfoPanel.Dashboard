@@ -101,7 +101,7 @@ export function PointTable({
   return (
     <div className="flex min-w-0 flex-1 flex-col bg-ui-app font-ui">
       <div className="space-y-2.5 border-b border-ui-subtle px-4 pb-2.5 pt-3">
-        <div className="flex flex-wrap items-center gap-1 text-[12.5px] leading-[1.25]">
+        <div className="flex flex-wrap items-center gap-1 text-body leading-[1.25]">
           {crumbs.map((c, i) => {
             const tone = i === crumbs.length - 1 ? "font-semibold text-ui-1" : "text-ui-4";
             return (
@@ -124,7 +124,7 @@ export function PointTable({
           <span className="ml-1.5 whitespace-nowrap font-ui-mono text-micro text-ui-4">
             {shown} of {total}
           </span>
-          <span className="ml-auto text-[11.5px] font-normal text-ui-4">Display names apply to every screen.</span>
+          <span className="ml-auto text-micro font-normal text-ui-4">Display names apply to every screen.</span>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <div className="relative min-w-[180px] max-w-[380px] flex-[1_1_220px]">
@@ -134,7 +134,7 @@ export function PointTable({
               onChange={(e) => onQuery(e.target.value)}
               placeholder="Search key, name or value"
               aria-label="Search key, name or value"
-              className="h-[30px] w-full rounded-[7px] border border-ui-default bg-ui-app pl-8 pr-2 text-[12.5px] text-ui-1 placeholder:text-ui-4 focus:border-ui-accent/60 focus:outline-none"
+              className="h-[30px] w-full rounded-[7px] border border-ui-default bg-ui-app pl-8 pr-2 text-body text-ui-1 placeholder:text-ui-4 focus:border-ui-accent/60 focus:outline-none"
             />
           </div>
           <Segmented label="Type" options={TYPE_OPTIONS} value={type} onChange={onType} />
@@ -151,14 +151,14 @@ export function PointTable({
 
       <div className={cn("grid gap-3 whitespace-nowrap border-b border-ui-subtle px-4 py-[7px]", CAPTION, cols)}>
         <span>Sensor</span>
-        <span>Now</span>
+        <span className="text-right">Now</span>
         <span>Display name</span>
         {showUsedIn && <span>Used in</span>}
         <span />
       </div>
 
       {rows.length === 0 ? (
-        <div className="p-8 text-center text-[12.5px] text-ui-4">No data points match these filters.</div>
+        <div className="p-8 text-center text-body text-ui-4">No data points match these filters.</div>
       ) : (
         <VirtualRows
           key={`${crumbs.map((c) => c.label).join(">")}|${query}|${type}|${hideEmpty}|${inUse}|${shown}`}
@@ -279,6 +279,18 @@ interface PointRowProps {
   onToggleBind: (point: DataPoint, bound: boolean) => void;
 }
 
+/** A number and its unit: the digits at full strength, the unit quiet at 11 px. */
+function NumberValue({ text }: { text: string }) {
+  const m = /^(-?[\d.,]+)\s+(\S.*)$/.exec(text);
+  return m ? (
+    <>
+      {m[1]} <span className="text-micro text-ui-3">{m[2]}</span>
+    </>
+  ) : (
+    text
+  );
+}
+
 const ROW_ACTION = "flex h-6 w-6 items-center justify-center rounded-[5px] hover:bg-ui-default";
 
 function PointRow({ point, cols, values, usage, selected, onSelect, screens, sources, sourcePrefs, onDisplayName, showUsedIn, target, onToggleBind }: PointRowProps) {
@@ -313,7 +325,7 @@ function PointRow({ point, cols, values, usage, selected, onSelect, screens, sou
         <TypeIcon type={point.type} />
         <div className="flex min-w-0 flex-col gap-0.5">
           <div className="flex min-w-0 items-center gap-1.5">
-            <span className="truncate text-[12.5px] text-ui-1">{point.name}</span>
+            <span className="truncate text-body text-ui-1">{point.name}</span>
             {point.kind && <Chip>{point.kind}</Chip>}
           </div>
           <div className="truncate font-ui-mono text-micro text-ui-hint">{point.key}</div>
@@ -322,13 +334,13 @@ function PointRow({ point, cols, values, usage, selected, onSelect, screens, sou
       <span
         title={cell.text}
         className={cn(
-          "truncate text-caption",
+          "truncate text-right text-caption tabular-nums",
           cell.tone === "number" && "font-ui-mono text-ui-1",
           cell.tone === "text" && "text-ui-2",
-          cell.tone === "empty" && "text-[#5f5f68]"
+          cell.tone === "empty" && "text-ui-disabled"
         )}
       >
-        {cell.text}
+        {cell.tone === "number" ? <NumberValue text={cell.text} /> : cell.text}
       </span>
       {display ? (
         <input
@@ -350,13 +362,17 @@ function PointRow({ point, cols, values, usage, selected, onSelect, screens, sou
               e.currentTarget.blur();
             }
           }}
-          className="h-6 min-w-0 rounded border border-ui-default bg-ui-app px-1.5 text-caption text-ui-1 placeholder:text-ui-4 focus:border-ui-accent/60 focus:outline-none"
+          // The default name is quiet text; the box shows on hover and focus, and stays once the name is overridden.
+          className={cn(
+            "h-6 min-w-0 rounded border px-1.5 text-caption focus:border-ui-accent/60 focus:bg-ui-app focus:outline-none",
+            display.value ? "border-ui-default bg-ui-app text-ui-1" : "border-transparent bg-transparent text-ui-3 placeholder:text-ui-3 hover:border-ui-default"
+          )}
         />
       ) : (
         <span className="truncate text-caption text-ui-hint">—</span>
       )}
       {showUsedIn && (
-        <span title={used.used ? (screens.get(point.key) ?? []).join(", ") : undefined} className={cn("truncate text-[11.5px]", used.used ? "text-ui-accent-text" : "text-ui-disabled")}>
+        <span title={used.used ? (screens.get(point.key) ?? []).join(", ") : undefined} className={cn("truncate text-micro", used.used ? "text-ui-accent-text" : "text-ui-disabled")}>
           {used.text}
         </span>
       )}

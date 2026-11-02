@@ -134,7 +134,7 @@ function LimitBox({ label, value, onChange }: { label: string; value: number | u
         placeholder="–"
         aria-label={label}
         onChange={(e) => onChange(e.target.value === "" ? undefined : Number(e.target.value))}
-        className={cn(FIELD, "h-[26px] min-w-0 flex-1 px-1.5 text-right font-ui-mono text-[11.5px]")}
+        className={cn(FIELD, "h-[26px] min-w-0 flex-1 px-1.5 text-right font-ui-mono text-micro")}
       />
     </label>
   );

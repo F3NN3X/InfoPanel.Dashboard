@@ -168,6 +168,8 @@ export function useStudioCommands({
         return ui.setShowGrid((s) => !s);
       case "zoom-fit":
         return ui.fitZoom();
+      case "zoom-selection":
+        return ui.zoomToElement(selected ? document.querySelector(`[data-zone-id="${selected.id}"]`) : null);
       case "zoom-in":
         return ui.zoomStep(1);
       case "zoom-out":

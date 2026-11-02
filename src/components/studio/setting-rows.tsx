@@ -19,7 +19,7 @@ import { useInInspector, useInspectorChrome } from "./inspector-layout";
  */
 
 export const FIELD =
-  "rounded-md border border-ui-control bg-ui-app px-[9px] text-[12.5px] text-ui-1 outline-none placeholder:text-ui-4 focus:border-ui-accent";
+  "rounded-md border border-ui-control bg-ui-app px-[9px] text-body text-ui-1 outline-none placeholder:text-ui-4 focus:border-ui-accent";
 
 /** A select: h28, #1a1a1f, up to 170 wide. */
 export const SELECT =
@@ -42,7 +42,7 @@ function Label({ label, lead, hint, changed, className }: RowLabelProps & { clas
   return (
     <span className={cn("flex min-w-0 items-center gap-2", className)}>
       {lead}
-      <span title={label} className={cn("min-w-0 truncate text-[12.5px]", changed ? "text-ui-1" : "text-ui-2")}>
+      <span title={label} className={cn("min-w-0 truncate text-body", changed ? "text-ui-1" : "text-ui-2")}>
         {label}
       </span>
       {hint && (
@@ -171,14 +171,14 @@ export function SliderRow({
         value={value}
         aria-label={label.label}
         onChange={(e) => onChange(e.target.value === "" ? fallback : Number(e.target.value))}
-        className={cn(FIELD, "h-[26px] w-[64px] shrink-0 px-1.5 text-right font-ui-mono text-[11.5px]")}
+        className={cn(FIELD, "h-[26px] w-[64px] shrink-0 px-1.5 text-right font-ui-mono text-micro")}
       />
     </InlineRow>
   );
 }
 
 const SEGMENT_BUTTONS =
-  "gap-0.5 rounded-[7px] [&>button]:whitespace-nowrap [&>button]:text-[11.5px] [&>button]:font-medium [&>button:not([aria-checked=true])]:text-ui-4";
+  "gap-0.5 rounded-[7px] [&>button]:whitespace-nowrap [&>button]:text-micro [&>button]:font-medium [&>button:not([aria-checked=true])]:text-ui-4";
 
 /**
  * A segmented control at full width: one line that scrolls sideways if it
@@ -308,7 +308,7 @@ export function TextRow({
           spellCheck={false}
           aria-label={label.label}
           placeholder={placeholder ?? ":scope { border-radius: 0 }"}
-          className={cn(FIELD, "block h-24 w-full resize-y py-2 font-ui-mono text-[11.5px] leading-relaxed")}
+          className={cn(FIELD, "block h-24 w-full resize-y py-2 font-ui-mono text-micro leading-relaxed")}
         />
       ) : (
         <input

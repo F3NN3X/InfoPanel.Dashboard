@@ -27,7 +27,7 @@ export function MadeForControl({ value = "studio", onChange }: MadeForControlPro
       <Menu.Trigger
         aria-label={`Made for: ${current.label}`}
         data-testid="made-for"
-        className="flex h-[26px] shrink-0 items-center gap-1.5 rounded-[7px] border border-ui-default bg-ui-raised pl-2.5 pr-1.5 text-[11.5px] text-ui-1 transition-colors hover:bg-ui-hover data-popup-open:bg-ui-hover"
+        className="flex h-[26px] shrink-0 items-center gap-1.5 rounded-[7px] border border-ui-default bg-ui-raised pl-2.5 pr-1.5 text-micro text-ui-1 transition-colors hover:bg-ui-hover data-popup-open:bg-ui-hover"
       >
         <span className="text-ui-4">Made for</span>
         <span>{current.label}</span>
@@ -49,7 +49,7 @@ export function MadeForControl({ value = "studio", onChange }: MadeForControlPro
                     {m.value === value && <Check className="h-3.5 w-3.5 text-ui-accent-text" />}
                   </span>
                   <span className="min-w-0">
-                    <span className="block text-[12.5px] text-ui-1">{m.label}</span>
+                    <span className="block text-body text-ui-1">{m.label}</span>
                     <span className="block text-micro leading-snug text-ui-4">{m.note}</span>
                   </span>
                 </Menu.Item>

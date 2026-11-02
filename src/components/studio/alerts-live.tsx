@@ -33,19 +33,19 @@ const BUTTON =
 
 /** "Active now": the alerts the server holds, each with Acknowledge and Dismiss. */
 export function ActiveList({ active, now }: { active: readonly ActiveAlert[]; now: number }) {
-  if (active.length === 0) return <p className="text-[11.5px] text-ui-4">Nothing active.</p>;
+  if (active.length === 0) return <p className="text-micro text-ui-4">Nothing active.</p>;
   return (
     <ul className="space-y-1.5">
       {active.map((a) => (
         <li key={a.id} className="rounded-lg border border-ui-default bg-ui-app p-2">
           <div className="flex items-center gap-1.5">
             <SeverityDot severity={a.severity} />
-            <span className="min-w-0 flex-1 truncate text-[12.5px] text-ui-1">{a.name}</span>
+            <span className="min-w-0 flex-1 truncate text-body text-ui-1">{a.name}</span>
             {a.test && <Tag>test</Tag>}
             {a.quiet && <Tag>quiet</Tag>}
             <span className="shrink-0 font-ui-mono text-micro text-ui-4">{ageText(a.startedAt, now)}</span>
           </div>
-          <div className="mt-0.5 truncate text-[11.5px] text-ui-3" title={a.text}>
+          <div className="mt-0.5 truncate text-micro text-ui-3" title={a.text}>
             {a.text}
           </div>
           <div className="mt-1.5 flex gap-1.5">
@@ -73,11 +73,11 @@ function Tag({ children }: { children: string }) {
 
 /** The last 50 history entries, with test / quiet / dismissed tags. */
 export function HistoryList({ history, now }: { history: readonly AlertHistoryEntry[]; now: number }) {
-  if (history.length === 0) return <p className="text-[11.5px] text-ui-4">No alerts yet.</p>;
+  if (history.length === 0) return <p className="text-micro text-ui-4">No alerts yet.</p>;
   return (
     <ul className="space-y-1.5">
       {history.slice(0, HISTORY_SHOWN).map((h) => (
-        <li key={h.id} className="flex items-center gap-1.5 text-[11.5px]">
+        <li key={h.id} className="flex items-center gap-1.5 text-micro">
           <SeverityDot severity={h.severity} />
           <span className="min-w-0 flex-1 truncate text-ui-2" title={h.text}>
             {h.name}

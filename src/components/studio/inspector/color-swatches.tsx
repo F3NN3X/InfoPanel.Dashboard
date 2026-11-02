@@ -56,7 +56,7 @@ export function ColorButton({
       aria-label={`${label}: ${name ?? colorName(value)}`}
       onClick={onClick}
       className={cn(
-        "flex h-7 shrink-0 items-center gap-[7px] rounded-md border bg-ui-hover pl-[9px] pr-1 text-[11.5px] text-ui-2",
+        "flex h-7 shrink-0 items-center gap-[7px] rounded-md border bg-ui-hover pl-[9px] pr-1 text-micro text-ui-2",
         open ? "border-ui-accent" : "border-ui-strong hover:border-ui-menu"
       )}
     >

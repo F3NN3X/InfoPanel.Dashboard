@@ -148,9 +148,9 @@ export function AddRow({ item, id, highlighted, compact, tag, onPick, onHover, o
             }}
           />
         ) : (
-          <span className="truncate text-[12.5px] font-medium leading-4 text-ui-1">{item.name}</span>
+          <span className="truncate text-body font-medium leading-4 text-ui-1">{item.name}</span>
         )}
-        {!compact && <span className="mt-0.5 truncate text-[11.5px] leading-[15px] text-ui-hint">{item.blurb}</span>}
+        {!compact && <span className="mt-0.5 truncate text-micro leading-[15px] text-ui-hint">{item.blurb}</span>}
         <span id={`${id}-desc`} className="sr-only">
           {item.description}
         </span>

@@ -15,7 +15,7 @@
   "options": null,
   "why": "Waza \"if visible in a screenshot it is real\"; uupm ux \"Empty States: don't blank empty screens\"; recognition over recall.",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "A-02",
@@ -33,7 +33,7 @@
   "options": null,
   "why": "Waza \"state is quieter than action\"; uupm \"dense-but-scannable\", visual-hierarchy.",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "A-03",
@@ -51,7 +51,7 @@
   "options": "A) move to the inspector empty state; B) one-line hint in the footer strip (\"Drag to move · Shift multi-select · ? shortcuts\"); C) keep card but auto-dismiss on first selection.",
   "why": "Waza app-shell: transient help must not cover the work surface; uupm ux \"progressive onboarding\".",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "A-04",
@@ -69,7 +69,7 @@
   "options": null,
   "why": "Waza \"no truncation of control labels\"; uupm ux touch/target and label clarity.",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "A-05",
@@ -87,7 +87,7 @@
   "options": null,
   "why": "Waza app-shell \"the work surface gets the space\"; uupm ux \"zoom controls for dense canvases\".",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "A-06",
@@ -105,7 +105,7 @@
   "options": "A) previews only on hover card; B) previews in tiles always (heavier); C) keep icons, fix names only.",
   "why": "Waza \"filters earn their row\"; uupm ux \"progressive disclosure, no label truncation\".",
   "note": null,
-  "status": "open"
+  "status": "partial"
  },
  {
   "id": "A-07",
@@ -123,7 +123,7 @@
   "options": null,
   "why": "Waza app-shell \"no overlapping controls at supported widths\".",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "A-08",
@@ -141,7 +141,7 @@
   "options": null,
   "why": "Waza app-shell alignment; uupm \"consistent spacing rhythm\".",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "A-09",
@@ -159,7 +159,7 @@
   "options": null,
   "why": "uupm ux \"Empty States: show helpful message and action\".",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "A-10",
@@ -177,7 +177,7 @@
   "options": null,
   "why": "Waza \"one primary per surface\"; uupm ux \"toast placement, do not occlude content\".",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "A-11",
@@ -195,7 +195,7 @@
   "options": null,
   "why": "Waza data-viz \"numbers right-aligned, units quiet\"; uupm \"dense-but-scannable\".",
   "note": null,
-  "status": "open"
+  "status": "partial"
  },
  {
   "id": "A-12",
@@ -213,7 +213,7 @@
   "options": null,
   "why": "Waza \"status is quiet until it needs action\"; uupm \"status colours semantic\".",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "A-13",
@@ -231,7 +231,7 @@
   "options": "A) accent edge bar; B) filled tile plus white icon; C) both.",
   "why": "Waza app-shell \"active nav state at 3:1 non-text contrast\"; uupm \"navigation state clarity\".",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "A-14",
@@ -249,7 +249,7 @@
   "options": null,
   "why": "Waza \"one selected-state treatment\"; uupm ux \"active state clarity\".",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "A-15",
@@ -267,7 +267,7 @@
   "options": null,
   "why": "uupm ux \"search: show recents, group, shortcuts\"; Waza \"palette is a launcher, not an index dump\".",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "A-16",
@@ -285,7 +285,7 @@
   "options": null,
   "why": "Waza \"remove what repeats\"; uupm ux \"visual noise reduction\".",
   "note": null,
-  "status": "open"
+  "status": "partial"
  },
  {
   "id": "A-17",
@@ -303,7 +303,7 @@
   "options": null,
   "why": "Waza gotchas \"metric and label footers must not tail-truncate\"; uupm ux consistency of preview scale.",
   "note": null,
-  "status": "open"
+  "status": "partial"
  },
  {
   "id": "A-18",
@@ -321,7 +321,7 @@
   "options": null,
   "why": "Waza \"one type scale\"; uupm \"token-only styling\".",
   "note": null,
-  "status": "open"
+  "status": "partial"
  },
  {
   "id": "A-19",
@@ -339,7 +339,7 @@
   "options": null,
   "why": "Waza \"one primary per context\"; uupm \"progressive disclosure\".",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "A-20",
@@ -357,7 +357,7 @@
   "options": null,
   "why": "uupm ux \"recognition over recall\".",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "B-01",

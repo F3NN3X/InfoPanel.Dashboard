@@ -425,7 +425,7 @@ export function AddPanel({
   return (
     <div ref={rootRef} className="flex min-h-0 flex-1 flex-col">
       <div className="shrink-0 px-2.5 pt-2.5">
-        <label className="flex h-8 items-center gap-2 rounded-ui-md border border-ui-default bg-ui-tile px-2.5 focus-within:border-[#3f3f48]">
+        <label className="flex h-8 items-center gap-2 rounded-ui-md border border-ui-default bg-ui-tile px-2.5 focus-within:border-ui-edge">
           <Search className="h-4 w-4 shrink-0 text-ui-hint" strokeWidth={1.75} aria-hidden />
           <input
             ref={inputRef}
@@ -439,7 +439,7 @@ export function AddPanel({
             onChange={(e) => changeQuery(e.target.value)}
             onKeyDown={onKeyDown}
             placeholder={placeholder}
-            className="min-w-0 flex-1 bg-transparent text-[12.5px] text-ui-1 outline-none placeholder:text-ui-hint"
+            className="min-w-0 flex-1 bg-transparent text-body text-ui-1 outline-none placeholder:text-ui-hint"
           />
           {query ? (
             <button
@@ -476,7 +476,7 @@ export function AddPanel({
               className={cn(
                 "-mb-px flex h-7 items-center gap-1.5 text-caption font-medium disabled:cursor-not-allowed disabled:opacity-40",
                 FOCUS,
-                kind === k.kind ? "text-ui-1 shadow-[inset_0_-2px_0_#ededf0]" : "text-ui-hint hover:text-ui-2"
+                kind === k.kind ? "text-ui-1 shadow-[inset_0_-2px_0_var(--ui-text-1)]" : "text-ui-hint hover:text-ui-2"
               )}
             >
               {k.label}
@@ -521,10 +521,10 @@ export function AddPanel({
         <div className="mx-2.5 mt-2.5 flex shrink-0 items-center gap-2.5 rounded-ui-md border border-[oklch(0.72_0.15_255/0.35)] bg-[oklch(0.72_0.15_255/0.10)] px-2.5 py-[9px]">
           <SquareDashedMousePointer className="h-[18px] w-[18px] shrink-0 text-ui-accent-text" strokeWidth={1.75} aria-hidden />
           <div className="min-w-0 flex-1">
-            <div className="truncate text-[12.5px] font-medium text-ui-1">
-              Filling blank space · <span className="font-ui-mono text-[11.5px]">{sizeText(target.cols, target.rows)}</span>
+            <div className="truncate text-body font-medium text-ui-1">
+              Filling blank space · <span className="font-ui-mono text-micro">{sizeText(target.cols, target.rows)}</span>
             </div>
-            <div className="truncate text-[11.5px] text-ui-soft">Click a widget to fill it.</div>
+            <div className="truncate text-micro text-ui-soft">Click a widget to fill it.</div>
           </div>
           <button
             type="button"
@@ -556,7 +556,7 @@ export function AddPanel({
       >
         {empty ? (
           <div className="flex flex-col items-start gap-2.5 px-2 py-5">
-            <div className="text-[12.5px] font-medium text-ui-1">Nothing matches “{query.trim()}”</div>
+            <div className="text-body font-medium text-ui-1">Nothing matches “{query.trim()}”</div>
             <p className="text-caption leading-[1.5] text-ui-hint">
               A Sensor shows any single value from your data sources, so it covers most things a dedicated widget doesn’t.
             </p>
@@ -657,8 +657,8 @@ function DoorRow({ compact, icon: Icon, title, note, onClick }: { compact: boole
         <Icon className="h-[18px] w-[18px]" strokeWidth={1.6} />
       </span>
       <span className="flex min-w-0 flex-col">
-        <span className="truncate text-[12.5px] font-medium text-ui-1">{title}</span>
-        {!compact && <span className="truncate text-[11.5px] text-ui-hint">{note}</span>}
+        <span className="truncate text-body font-medium text-ui-1">{title}</span>
+        {!compact && <span className="truncate text-micro text-ui-hint">{note}</span>}
       </span>
     </button>
   );

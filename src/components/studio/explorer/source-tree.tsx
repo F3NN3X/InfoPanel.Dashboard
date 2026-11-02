@@ -96,7 +96,7 @@ export function SourceTree({
             onChange={(e) => onQuery(e.target.value)}
             placeholder="Filter sources"
             aria-label="Filter sources"
-            className="h-[30px] w-full rounded-[7px] border border-ui-default bg-ui-app pl-8 pr-2 text-[12.5px] text-ui-1 placeholder:text-ui-4 focus:border-ui-accent/60 focus:outline-none"
+            className="h-[30px] w-full rounded-[7px] border border-ui-default bg-ui-app pl-8 pr-2 text-body text-ui-1 placeholder:text-ui-4 focus:border-ui-accent/60 focus:outline-none"
           />
         </div>
         <div className="flex flex-wrap gap-1">
@@ -229,7 +229,7 @@ function Row({
     : kind === "container"
       ? dimmed
         ? "text-ui-4"
-        : "text-[#b4b4bc]"
+        : "text-ui-soft"
       : kind === "all"
         ? "text-ui-1"
         : "text-ui-2";
@@ -295,7 +295,7 @@ function Row({
         <span
           className={cn(
             "min-w-0 flex-1 truncate",
-            kind === "container" ? "text-caption" : "text-[12.5px]",
+            kind === "container" ? "text-caption" : "text-body",
             kind === "all" && "font-medium",
             labelTone,
             muted && "line-through opacity-60"

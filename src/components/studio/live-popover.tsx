@@ -29,7 +29,7 @@ function KioskRow({ kiosk, profiles }: { kiosk: ControlKiosk; profiles: MonitorP
   return (
     <li className="flex items-center gap-2 py-1.5">
       <Cast className="h-4 w-4 shrink-0 text-ui-ok-text" strokeWidth={1.75} />
-      <span className="min-w-0 flex-1 truncate text-[12.5px] text-ui-1">
+      <span className="min-w-0 flex-1 truncate text-body text-ui-1">
         {profile?.name ?? "Unknown screen"}
         {page && <span className="text-ui-3"> · {page.name}</span>}
       </span>
@@ -43,11 +43,11 @@ function Control({ label, value, children, note }: { label: string; value?: Reac
   return (
     <div className="flex flex-col gap-1.5 border-t border-ui-subtle py-2.5">
       <div className="flex items-center gap-2">
-        <span className="min-w-0 flex-1 text-[12.5px] text-ui-1">{label}</span>
-        {value && <span className="font-ui-mono text-[11.5px] text-ui-3">{value}</span>}
+        <span className="min-w-0 flex-1 text-body text-ui-1">{label}</span>
+        {value && <span className="font-ui-mono text-micro text-ui-3">{value}</span>}
         {children && <span className="flex shrink-0 items-center">{children}</span>}
       </div>
-      {note && <p className="text-[11.5px] leading-snug text-ui-4">{note}</p>}
+      {note && <p className="text-micro leading-snug text-ui-4">{note}</p>}
     </div>
   );
 }
@@ -98,18 +98,18 @@ export function LiveControl({ open, onOpenChange, profiles, screen, control, kio
       <Popover.Trigger
         title="Live control"
         aria-label={`Live control, ${kiosks.length} ${kiosks.length === 1 ? "kiosk" : "kiosks"}`}
-        className="flex h-7 items-center gap-1.5 whitespace-nowrap rounded-[7px] max-sm:w-7 max-sm:justify-center max-sm:px-0 border border-[oklch(0.78_0.15_150/0.45)] bg-[oklch(0.78_0.15_150/0.12)] px-2.5 text-[12.5px] font-medium text-ui-ok-text transition-colors hover:bg-[oklch(0.78_0.15_150/0.2)]"
+        className="flex h-7 items-center gap-1.5 whitespace-nowrap rounded-[7px] max-sm:w-7 max-sm:justify-center max-sm:px-0 border border-[oklch(0.78_0.15_150/0.45)] bg-[oklch(0.78_0.15_150/0.12)] px-2.5 text-body font-medium text-ui-ok-text transition-colors hover:bg-[oklch(0.78_0.15_150/0.2)]"
       >
         <span aria-hidden className="h-[7px] w-[7px] rounded-full bg-[oklch(0.78_0.15_150)]" />
         <span className="max-sm:sr-only">Live · {kiosks.length}</span>
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Positioner side="bottom" align="end" sideOffset={6} className="z-[80]">
-          <Popover.Popup data-help-article="kiosk" className="w-[340px] rounded-[10px] border border-[oklch(0.78_0.15_150/0.45)] bg-ui-raised p-3 font-ui text-[12.5px] text-ui-2 shadow-ui-menu outline-none">
+          <Popover.Popup data-help-article="kiosk" className="w-[340px] rounded-[10px] border border-[oklch(0.78_0.15_150/0.45)] bg-ui-raised p-3 font-ui text-body text-ui-2 shadow-ui-menu outline-none">
             <div className="flex items-start gap-2">
               <div className="min-w-0 flex-1">
                 <Popover.Title className="text-body font-semibold text-ui-1">Live control</Popover.Title>
-                <p className="mt-0.5 text-[11.5px] leading-snug text-ui-3">
+                <p className="mt-0.5 text-micro leading-snug text-ui-3">
                   Acts on the kiosks right now. None of it is part of your design, so Save doesn't change it.
                 </p>
               </div>
@@ -135,9 +135,9 @@ export function LiveControl({ open, onOpenChange, profiles, screen, control, kio
               </ul>
             )}
             <div className="mt-2">
-              {offline && <p className="border-t border-ui-subtle pt-2.5 text-[11.5px] text-ui-warning">Not connected to the server: nothing here can reach a kiosk.</p>}
+              {offline && <p className="border-t border-ui-subtle pt-2.5 text-micro text-ui-warning">Not connected to the server: nothing here can reach a kiosk.</p>}
               <div className="flex flex-col gap-1.5 border-t border-ui-subtle py-2.5">
-                <span className="text-[12.5px] text-ui-1">Show on {screen.name} kiosks</span>
+                <span className="text-body text-ui-1">Show on {screen.name} kiosks</span>
                 <Segmented
                   label={`Show on ${screen.name} kiosks`}
                   value={shownPage ?? ""}
@@ -172,7 +172,7 @@ export function LiveControl({ open, onOpenChange, profiles, screen, control, kio
                   type="button"
                   disabled={offline}
                   onClick={() => void liveActions.reload()}
-                  className="flex h-8 w-full items-center justify-center gap-1.5 rounded-[7px] border border-ui-strong text-[12.5px] font-medium text-ui-2 hover:bg-ui-hover hover:text-ui-1 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="flex h-8 w-full items-center justify-center gap-1.5 rounded-[7px] border border-ui-strong text-body font-medium text-ui-2 hover:bg-ui-hover hover:text-ui-1 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   <RefreshCw className="h-3.5 w-3.5" strokeWidth={1.75} /> Reload all kiosks
                 </button>

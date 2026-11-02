@@ -9,7 +9,7 @@ const NUMBERS = [
   ["crit", "Crit"],
 ] as const;
 
-const cell = `${FIELD} h-[26px] w-full min-w-0 px-1.5 font-ui-mono text-[11.5px]`;
+const cell = `${FIELD} h-[26px] w-full min-w-0 px-1.5 font-ui-mono text-micro`;
 
 /**
  * One bound sensor's overrides (a sensor list's tune panel): a label and max / warn / crit /

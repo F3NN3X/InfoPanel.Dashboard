@@ -49,7 +49,7 @@ function StatusRow({ sources, prefix, ...label }: RowLabelProps & { sources: Api
   const text = sources === null ? "Checking the Data API…" : containers.length > 0 ? `Connected · ${containers.map((c) => c.label).join(", ")}` : "Not connected: no data from this plugin yet";
   return (
     <StackRow {...label}>
-      <span className="block text-[11.5px] text-ui-3">{text}</span>
+      <span className="block text-micro text-ui-3">{text}</span>
     </StackRow>
   );
 }

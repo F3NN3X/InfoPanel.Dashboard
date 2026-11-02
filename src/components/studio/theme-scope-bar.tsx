@@ -1,5 +1,6 @@
 import { Menu } from "@base-ui/react/menu";
 import { ChevronDown } from "lucide-react";
+import { SEGMENT_OFF, SEGMENT_ON } from "@/components/ui/segmented";
 import type { DashboardConfig, MonitorProfile, ProfilePage } from "@/lib/layout";
 import { cn } from "@/lib/utils";
 import { ITEM, POPUP } from "./menu-styles";
@@ -23,8 +24,8 @@ function Segment({ label, sub, active, onClick }: { label: string; sub: string; 
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        "flex h-7 min-w-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 text-[12.5px] font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent",
-        active ? "bg-[#27272a] text-[#fafafa]" : "text-ui-3 hover:text-ui-1"
+        "flex h-7 min-w-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 text-body font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent",
+        active ? SEGMENT_ON : SEGMENT_OFF
       )}
     >
       <span className="truncate">{label}</span>

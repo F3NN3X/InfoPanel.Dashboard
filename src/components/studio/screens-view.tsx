@@ -15,6 +15,7 @@ import { CARD_GRID, LIST_COLUMN, ListEmpty, ListSection, ListTitle } from "./scr
 import { aspectOf, Badge, CARD_BUTTON, ProfileCard } from "./screens/profile-card";
 import { SavedCard } from "./screens/saved-card";
 import { screenActions } from "./screens/screen-menu";
+import { PageStrip } from "./screens/page-strip";
 import { ScreenThumb } from "./screens/screen-thumb";
 import { ScreensToolbar } from "./screens/screens-toolbar";
 import { useCopyKioskLink } from "./screens/shown-on";
@@ -41,10 +42,13 @@ interface ScreensViewProps
     | "kiosks"
     | "displays"
     | "autoProfileId"
-    | "onOpenScreen"
   > {
   /** Open a screen, then its Convert to InfoPanel dialog once the screen is the edited one. */
   onConvertScreen: (id: string) => void;
+  /** Open the screen in Design, or in the InfoPanel editor when it is one InfoPanel profile. */
+  onOpenScreen: (id: string) => void;
+  /** Open a screen in Edit on one of its pages (a page strip's mini-map). */
+  onOpenScreenPage: (id: string, pageId: string) => void;
   /** Select a screen for editing (never changes what the app opens on). */
   onSelectProfile: (id: string) => void;
   onDuplicateProfile: (id: string) => void;
@@ -82,6 +86,8 @@ export function ScreensView({
   kiosks,
   displays,
   onSelectProfile,
+  onOpenScreen,
+  onOpenScreenPage,
   onDuplicateProfile,
   onRemoveProfile,
   onUndo,
@@ -101,7 +107,7 @@ export function ScreensView({
     if (filterRequest) setFilter(filterRequest.filter);
   }, [filterRequest?.seq]);
   const [sort, setSort] = useState<ListSort>("edited");
-  const { setConfig, onOpenScreen, onConvertScreen } = detail;
+  const { setConfig, onConvertScreen } = detail;
   const stored = config.profiles.find((p) => p.id === profile.id) ?? config.profiles[0];
 
   const screens = useMemo(
@@ -188,6 +194,7 @@ export function ScreensView({
                   meta={screenMeta(p)}
                   aspect={aspectOf(p.width, p.height)}
                   thumb={<ScreenThumb profile={p} />}
+                  strip={<PageStrip profile={p} onOpen={(pageId) => onOpenScreenPage(p.id, pageId)} />}
                   selected={p.id === stored.id}
                   onClick={() => onSelectProfile(p.id)}
                   label={`Select ${p.name}`}

@@ -267,7 +267,7 @@ export function InsertFilters({
             onQuery("");
           }}
           placeholder="Search widgets"
-          className="min-w-0 flex-1 bg-transparent text-[12.5px] text-ui-1 outline-none placeholder:text-ui-4"
+          className="min-w-0 flex-1 bg-transparent text-body text-ui-1 outline-none placeholder:text-ui-4"
         />
       </label>
       <div className="flex flex-wrap gap-1">

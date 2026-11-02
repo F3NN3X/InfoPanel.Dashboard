@@ -93,7 +93,7 @@ export function AlertsView({ tab, onTab, config, setConfig, active, points, scre
               tabIndex={tab === t.id ? 0 : -1}
               onClick={() => onTab(t.id)}
               className={cn(
-                "shrink-0 border-b-2 px-3 text-[12.5px] hover:text-ui-1 max-sm:py-2.5",
+                "shrink-0 border-b-2 px-3 text-body hover:text-ui-1 max-sm:py-2.5",
                 tab === t.id ? "border-ui-1 text-ui-1" : "border-transparent text-ui-3"
               )}
             >

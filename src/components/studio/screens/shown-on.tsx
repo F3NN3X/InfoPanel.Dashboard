@@ -47,12 +47,12 @@ export function ShownOn({ screenId, isDefault, isBestFit, kiosks, onChangeDefaul
   const showing = kiosks.filter((k) => k.profile === screenId);
   const onDisplays = displays.filter((d) => d.shows === screenId);
   return (
-    <div className="flex flex-col gap-2 text-[12.5px] text-ui-2">
+    <div className="flex flex-col gap-2 text-body text-ui-2">
       <div className="flex items-center justify-between gap-2">
         <span className="text-ui-3">Default</span>
         <span className="flex items-center gap-2">
           {isDefault ? "The app opens on it" : isBestFit ? "Best fit picks it now" : "No"}
-          <button type="button" onClick={onChangeDefault} className="rounded-sm text-[11.5px] text-ui-accent-text hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent">
+          <button type="button" onClick={onChangeDefault} className="rounded-sm text-micro text-ui-accent-text hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent">
             Settings ↗
           </button>
         </span>
@@ -64,7 +64,7 @@ export function ShownOn({ screenId, isDefault, isBestFit, kiosks, onChangeDefaul
         ) : (
           <ul className="flex flex-col items-end">
             {showing.map((k) => (
-              <li key={k.id} className="font-ui-mono text-[11.5px]">
+              <li key={k.id} className="font-ui-mono text-micro">
                 {k.address ?? "A kiosk"}
               </li>
             ))}
@@ -78,7 +78,7 @@ export function ShownOn({ screenId, isDefault, isBestFit, kiosks, onChangeDefaul
         ) : (
           <ul className="flex flex-col items-end">
             {onDisplays.map((d) => (
-              <li key={d.name} className="font-ui-mono text-[11.5px]">
+              <li key={d.name} className="font-ui-mono text-micro">
                 {d.name}
               </li>
             ))}
@@ -94,7 +94,7 @@ export function ShownOn({ screenId, isDefault, isBestFit, kiosks, onChangeDefaul
         onChange={(e) => setDisplay(e.target.value)}
         className="h-7 rounded-md border border-ui-strong bg-ui-hover px-2 text-caption text-ui-1 outline-none focus:border-ui-accent"
       />
-      {display !== "" && !named && <span className="text-[11.5px] text-ui-4">Use letters, digits, - and _ only.</span>}
+      {display !== "" && !named && <span className="text-micro text-ui-4">Use letters, digits, - and _ only.</span>}
       <button
         type="button"
         disabled={display !== "" && !named}
@@ -104,7 +104,7 @@ export function ShownOn({ screenId, isDefault, isBestFit, kiosks, onChangeDefaul
         <LinkIcon className="h-3.5 w-3.5" />
         Copy kiosk link
       </button>
-      <p className="text-pretty text-[11.5px] leading-[1.4] text-ui-4">
+      <p className="text-pretty text-micro leading-[1.4] text-ui-4">
         {named
           ? "Open the link on a kiosk. Choose its screen in the Displays list on this page."
           : "Open the link on a kiosk to pin it to this screen."}{" "}

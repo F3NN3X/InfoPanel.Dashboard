@@ -212,7 +212,7 @@ export function AlertRuleEditor({
           </InlineRow>
           <StackRow label="Screens">
             <div className="space-y-1">
-              <label className="flex items-center gap-2 text-[12.5px] text-ui-2">
+              <label className="flex items-center gap-2 text-body text-ui-2">
                 <input
                   type="checkbox"
                   checked={rule.profiles === undefined}
@@ -227,7 +227,7 @@ export function AlertRuleEditor({
               </label>
               {rule.profiles !== undefined &&
                 config.profiles.map((p) => (
-                  <label key={p.id} className="flex items-center gap-2 pl-4 text-[12.5px] text-ui-2">
+                  <label key={p.id} className="flex items-center gap-2 pl-4 text-body text-ui-2">
                     <input
                       type="checkbox"
                       checked={rule.profiles?.includes(p.id) ?? false}
@@ -260,7 +260,7 @@ export function AlertRuleEditor({
             type="button"
             onClick={test}
             disabled={testBlocked}
-            className="flex h-8 w-full items-center justify-center gap-1.5 rounded-md border border-ui-strong text-[12.5px] text-ui-1 hover:bg-ui-hover disabled:pointer-events-none disabled:opacity-40"
+            className="flex h-8 w-full items-center justify-center gap-1.5 rounded-md border border-ui-strong text-body text-ui-1 hover:bg-ui-hover disabled:pointer-events-none disabled:opacity-40"
           >
             <FlaskConical className="h-3.5 w-3.5" /> Test
           </button>

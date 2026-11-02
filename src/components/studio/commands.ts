@@ -22,6 +22,7 @@ export type CommandAction =
   | { type: "toggle-dock" }
   | { type: "toggle-advanced" }
   | { type: "zoom-fit" }
+  | { type: "zoom-selection" }
   | { type: "zoom-in" }
   | { type: "zoom-out" }
   | { type: "save" }
@@ -340,7 +341,7 @@ function themeSettingCommands(): Command[] {
     s.settings.map(
       (def): Command => ({
         id: `theme-setting:${s.id}:${def.key}`,
-        label: `Go to setting: ${def.label}`,
+        label: def.label,
         group: "Theme",
         hint: `Theme › ${s.title}`,
         action: { type: "goto-theme-setting", section: s.id, key: def.key },

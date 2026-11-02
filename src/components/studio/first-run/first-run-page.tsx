@@ -328,11 +328,11 @@ export default function FirstRunPage({ rerun, dataApiUrl, windowSize, onFinish, 
           <h1 ref={head} tabIndex={-1} className="m-0 text-[15px] font-semibold text-ui-1 outline-none">
             Check your data
           </h1>
-          <p className="m-0 mt-1 max-w-[560px] text-[12.5px] leading-[1.5] text-ui-3">
+          <p className="m-0 mt-1 max-w-[560px] text-body leading-[1.5] text-ui-3">
             Studio checks each link between InfoPanel and your screens, in order. Nothing here blocks you: you can carry on without live data.
           </p>
         </div>
-        <span aria-live="polite" className={cn("self-center text-[11.5px]", t.running ? "text-ui-3" : t.fails > 0 ? "text-ui-danger" : t.warns > 0 ? "text-ui-warning" : "text-ui-success")}>
+        <span aria-live="polite" className={cn("self-center text-micro", t.running ? "text-ui-3" : t.fails > 0 ? "text-ui-danger" : t.warns > 0 ? "text-ui-warning" : "text-ui-success")}>
           {progressLabel(results)}
         </span>
         <button type="button" title="Check again (F5)" onClick={() => checks.run("installed")} className={OUTLINE_BUTTON}>
@@ -437,10 +437,10 @@ export default function FirstRunPage({ rerun, dataApiUrl, windowSize, onFinish, 
     <div data-help-article="quickstart" className="fixed inset-0 z-50 flex flex-col bg-ui-app font-ui text-ui-1">
       <header data-tauri-drag-region className="flex h-10 shrink-0 items-center gap-2.5 border-b border-ui-subtle pl-3">
         <span aria-hidden className="h-5 w-5 rounded-ui-sm bg-ui-accent" />
-        <span data-tauri-drag-region className="text-[12.5px] font-semibold">
+        <span data-tauri-drag-region className="text-body font-semibold">
           {rerun ? "Run setup again" : "Set up InfoPanel Studio"}
         </span>
-        <span data-tauri-drag-region className="text-[11.5px] text-ui-4">
+        <span data-tauri-drag-region className="text-micro text-ui-4">
           Step {step + 1} of {STEPS.length}
         </span>
         <span data-tauri-drag-region className="flex-1 self-stretch" />
@@ -486,7 +486,7 @@ export default function FirstRunPage({ rerun, dataApiUrl, windowSize, onFinish, 
                   >
                     <StepNumber n={i} current={i === step} done={visited.has(i) && i !== step} />
                     <span className="flex min-w-0 flex-col">
-                      <span className={cn("text-[12.5px] font-medium", i === step ? "text-ui-1" : "text-ui-2")}>{label}</span>
+                      <span className={cn("text-body font-medium", i === step ? "text-ui-1" : "text-ui-2")}>{label}</span>
                       <span
                         className={cn(
                           "truncate text-micro",
@@ -510,7 +510,7 @@ export default function FirstRunPage({ rerun, dataApiUrl, windowSize, onFinish, 
         </main>
       </div>
       <footer className="flex h-[52px] shrink-0 items-center gap-3 border-t border-ui-subtle px-4">
-        <button type="button" onClick={() => setAskSkip(true)} className="rounded-sm px-1.5 text-[12.5px] text-ui-2 hover:text-ui-1">
+        <button type="button" onClick={() => setAskSkip(true)} className="rounded-sm px-1.5 text-body text-ui-2 hover:text-ui-1">
           {rerun ? "Close" : "Skip setup"}
         </button>
         {!narrow && (
@@ -522,11 +522,11 @@ export default function FirstRunPage({ rerun, dataApiUrl, windowSize, onFinish, 
         )}
         <span className="flex-1" />
         {step > 0 && (
-          <button type="button" onClick={() => go(step - 1)} className={cn(OUTLINE_BUTTON, "h-8 px-3.5 text-[12.5px]")}>
+          <button type="button" onClick={() => go(step - 1)} className={cn(OUTLINE_BUTTON, "h-8 px-3.5 text-body")}>
             Back
           </button>
         )}
-        <button type="button" onClick={primary} className={cn(PRIMARY_BUTTON, "h-8 rounded-ui-md px-4 text-[12.5px]")}>
+        <button type="button" onClick={primary} className={cn(PRIMARY_BUTTON, "h-8 rounded-ui-md px-4 text-body")}>
           {primaryLabel}
         </button>
       </footer>
@@ -548,16 +548,16 @@ export default function FirstRunPage({ rerun, dataApiUrl, windowSize, onFinish, 
             className="fixed left-1/2 top-1/2 z-(--z-dialog) flex w-[420px] max-w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 flex-col gap-3 rounded-ui-lg border border-ui-strong bg-ui-panel p-5 shadow-ui-modal outline-none"
           >
             <AlertDialog.Title className="m-0 text-[14px] font-semibold text-ui-1">{rerun ? "Close setup?" : "Skip setup?"}</AlertDialog.Title>
-            <AlertDialog.Description className="m-0 text-[12.5px] leading-[1.5] text-ui-2">
+            <AlertDialog.Description className="m-0 text-body leading-[1.5] text-ui-2">
               {rerun
                 ? "Nothing has changed. Your data address, screens and options stay as they were."
                 : `Studio opens with a blank screen${answered ? "" : " and no live data"}. You can run setup again from Settings → General → Run setup.`}
             </AlertDialog.Description>
             <div className="flex justify-end gap-2">
-              <button ref={keepButton} type="button" onClick={() => setAskSkip(false)} className={cn(OUTLINE_BUTTON, "h-8 px-3.5 text-[12.5px]")}>
+              <button ref={keepButton} type="button" onClick={() => setAskSkip(false)} className={cn(OUTLINE_BUTTON, "h-8 px-3.5 text-body")}>
                 {rerun ? "Keep going" : "Keep setting up"}
               </button>
-              <button type="button" onClick={skip} className={cn(PRIMARY_BUTTON, "h-8 px-3.5 text-[12.5px]")}>
+              <button type="button" onClick={skip} className={cn(PRIMARY_BUTTON, "h-8 px-3.5 text-body")}>
                 {rerun ? "Close" : "Skip setup"}
               </button>
             </div>

@@ -116,7 +116,7 @@ export function SettingField({
     <fieldset
       data-setting-key={def.key}
       disabled={readOnly}
-      className={cn("m-0 min-w-0 border-0 py-[3px] pl-4 pr-2.5", readOnly && "opacity-50")}
+      className={cn("m-0 min-w-0 border-0 py-[3px] px-4", readOnly && "opacity-50")}
     >
       <SettingRow
         def={def}

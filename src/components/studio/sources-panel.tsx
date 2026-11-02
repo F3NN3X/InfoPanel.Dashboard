@@ -233,7 +233,7 @@ export function SourcesPanel({ config, setConfig, profile, selectedZoneId, onOpe
         config={config}
       />
       {loading ? (
-        <div className="grid flex-1 place-items-center text-[12.5px] text-ui-4">Loading data points…</div>
+        <div className="grid flex-1 place-items-center text-body text-ui-4">Loading data points…</div>
       ) : (
       <div className="relative flex min-h-0 flex-1 max-sm:flex-col">
         {/* On a phone the connection and source tree sit above the table. */}

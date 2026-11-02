@@ -80,7 +80,7 @@ export function SettingSection({
           )}
         >
           <Icon className="h-[17px] w-[17px] shrink-0 text-ui-hint" strokeWidth={1.75} />
-          <span className="truncate text-[12.5px] font-semibold">{title}</span>
+          <span className="truncate text-body font-semibold">{title}</span>
           {filtering && tabLabel && <span className="shrink-0 whitespace-nowrap text-micro text-ui-hint">{tabLabel}</span>}
           {pill}
           {changed > 0 && <span className="min-w-0 shrink-[100] overflow-hidden whitespace-nowrap text-micro text-ui-hint">{changed} changed</span>}

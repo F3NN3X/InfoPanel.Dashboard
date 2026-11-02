@@ -144,7 +144,7 @@ export function IslandTab({ config, setConfig, current, onOpenZone, onOpenExplor
                 {widgets.map((w) => (
                   <li key={w.zoneId} className={cn("flex items-center gap-2", (!w.visible || w.shadowed) && "opacity-55")}>
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[12.5px] text-ui-1">{w.title}</span>
+                      <span className="block truncate text-body text-ui-1">{w.title}</span>
                       {(multiPage || !w.visible || w.shadowed) && (
                         <span className="block truncate text-micro text-ui-4">
                           {[multiPage && w.pageName, !w.visible && "Hidden, sends nothing", w.shadowed && "Another one sends first"].filter(Boolean).join(" · ")}
@@ -155,7 +155,7 @@ export function IslandTab({ config, setConfig, current, onOpenZone, onOpenExplor
                       type="button"
                       onClick={() => onOpenZone(profile.id, w.pageId, w.zoneId)}
                       title="Show it on the canvas and open its Behavior tab"
-                      className="shrink-0 rounded-sm text-[11.5px] text-ui-accent-text hover:underline"
+                      className="shrink-0 rounded-sm text-micro text-ui-accent-text hover:underline"
                     >
                       Open widget ↗
                     </button>

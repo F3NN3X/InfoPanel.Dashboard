@@ -6,26 +6,26 @@ Prototypes (W1–W8 and some A-/B- IDs) were built on throwaway `proto/<id>` bra
 
 | ID | Batch | Group | Impact | Effort | Title | Status |
 |---|---|---|---|---|---|---|
-| A-01 | 5 |  | high | M | Screens cards show the screen, not an icon | open |
-| A-02 | 5 |  | high | S | Collapse the repeated state pills | open |
-| A-03 | 5 |  | med | S | Quick tips should not live on the canvas | open |
-| A-04 | 5 |  | med | M | Contextual widget toolbar clips and floats away | open |
-| A-05 | 5 |  | high | M | Fit the board to the stage and drop dead air | open |
-| A-06 | 5 |  | high | M | Add panel: one filter row, one count, real previews | open |
-| A-07 | 5 |  | med | S | Theme header: Save as theme collides with the differences pill | open |
-| A-08 | 5 |  | low | S | Inspector gutters: one right edge | open |
-| A-09 | 5 |  | med | S | Alerts and Island: a real empty state | open |
-| A-10 | 5 |  | med | S | Library: toast on the grid, truncated search, shelf of chips | open |
-| A-11 | 5 |  | med | M | Data table: display-name column is a wall of inputs | open |
-| A-12 | 5 |  | med | S | Footer strip: three kinds of status in one line | open |
-| A-13 | 5 |  | med | S | Rail active state and label size | open |
-| A-14 | 5 |  | med | M | Segmented selected state | open |
-| A-15 | 5 |  | med | M | Command palette: group, recent and key hints | open |
-| A-16 | 5 |  | low | S | Layer rows: kind tag and drag handle noise | open |
-| A-17 | 5 |  | low | S | Gauge cards: names clip and previews differ in scale | open |
-| A-18 | 5 |  | low | M | Replace hard-coded greys with tokens | open |
-| A-19 | 5 |  | med | M | Home: a screen detail that is quieter, and a hover on the card | open |
-| A-20 | 5 |  | med | L | Direction: live canvas mini-map and page strip on Screens | open |
+| A-01 | 5 |  | high | M | Screens cards show the screen, not an icon | fixed |
+| A-02 | 5 |  | high | S | Collapse the repeated state pills | fixed |
+| A-03 | 5 |  | med | S | Quick tips should not live on the canvas | fixed |
+| A-04 | 5 |  | med | M | Contextual widget toolbar clips and floats away | fixed |
+| A-05 | 5 |  | high | M | Fit the board to the stage and drop dead air | fixed |
+| A-06 | 5 |  | high | M | Add panel: one filter row, one count, real previews | partial |
+| A-07 | 5 |  | med | S | Theme header: Save as theme collides with the differences pill | fixed |
+| A-08 | 5 |  | low | S | Inspector gutters: one right edge | fixed |
+| A-09 | 5 |  | med | S | Alerts and Island: a real empty state | fixed |
+| A-10 | 5 |  | med | S | Library: toast on the grid, truncated search, shelf of chips | fixed |
+| A-11 | 5 |  | med | M | Data table: display-name column is a wall of inputs | partial |
+| A-12 | 5 |  | med | S | Footer strip: three kinds of status in one line | fixed |
+| A-13 | 5 |  | med | S | Rail active state and label size | fixed |
+| A-14 | 5 |  | med | M | Segmented selected state | fixed |
+| A-15 | 5 |  | med | M | Command palette: group, recent and key hints | fixed |
+| A-16 | 5 |  | low | S | Layer rows: kind tag and drag handle noise | partial |
+| A-17 | 5 |  | low | S | Gauge cards: names clip and previews differ in scale | partial |
+| A-18 | 5 |  | low | M | Replace hard-coded greys with tokens | partial |
+| A-19 | 5 |  | med | M | Home: a screen detail that is quieter, and a hover on the card | fixed |
+| A-20 | 5 |  | med | L | Direction: live canvas mini-map and page strip on Screens | fixed |
 | B-01 | 0 |  | high | M | Status bar readouts truncate at 1920x1080, 1280x800 and 1024x600 (Confirmed bug: with the island gap on, need() compared all items against the whole bar instead of the wider half (prototype proto/B-01).) | fixed |
 | B-02 | 3 | B-02 | high | M | The island is a fixed black pill that ignores the skin and the panel size (Default tint follows the skin as a new value; islands stored as black stay black.) | fixed |
 | B-03 | 3 | B-02 | med | S | The island and the bar both show the time (and the same CPU/GPU) (Default tint follows the skin as a new value; islands stored as black stay black.) | fixed |

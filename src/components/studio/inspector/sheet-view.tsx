@@ -118,7 +118,7 @@ export function SheetView({ sheet, identity, sections, parts, inherit, changedOf
       return quick.length > 0 ? (
         quick.map((def) => <SettingField key={def.key} def={def} fields={fields} sources={sources} />)
       ) : (
-        <p className="px-4 py-4 text-[12.5px] text-ui-hint">Pin settings from the panel to show them here</p>
+        <p className="px-4 py-4 text-body text-ui-hint">Pin settings from the panel to show them here</p>
       );
     const p = parts(active);
     const inh = inherit?.(active);
@@ -130,7 +130,7 @@ export function SheetView({ sheet, identity, sections, parts, inherit, changedOf
       <>
         {inh && (
           <div className="flex min-h-11 items-center gap-2 pl-4 pr-2.5" onKeyDown={inh.onKeyDown}>
-            <span className="min-w-0 flex-1 truncate text-[12.5px] font-semibold text-ui-1">{active.title}</span>
+            <span className="min-w-0 flex-1 truncate text-body font-semibold text-ui-1">{active.title}</span>
             {inh.chip}
           </div>
         )}

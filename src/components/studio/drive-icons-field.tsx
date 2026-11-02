@@ -63,7 +63,7 @@ export function DriveIconsField({ def, value, onChange, ...label }: RowLabelProp
                 )}
               </div>
               {listFor === d.value && (
-                <Suspense fallback={<p className="text-[11.5px] text-ui-4">Loading icons…</p>}>
+                <Suspense fallback={<p className="text-micro text-ui-4">Loading icons…</p>}>
                   <IconPicker
                     value={own && "lucide" in own ? own.lucide : ""}
                     onPick={(name) => {

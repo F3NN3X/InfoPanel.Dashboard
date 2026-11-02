@@ -161,7 +161,7 @@ export function AlertOutputs({ rule, config, defaults, current, edit }: AlertOut
           <StackRow label="Only these zones" hint={`On “${zonePage.name}”. None ticked = the zones bound to the sensor.`}>
             <div className="max-h-32 space-y-1 overflow-y-auto">
               {zonePage.placements.map((p) => (
-                <label key={p.id} className="flex items-center gap-2 text-[12.5px] text-ui-2">
+                <label key={p.id} className="flex items-center gap-2 text-body text-ui-2">
                   <input
                     type="checkbox"
                     checked={zones.includes(p.id)}

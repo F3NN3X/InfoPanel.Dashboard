@@ -82,7 +82,7 @@ function QuickControl({
             value={n}
             step={def.step}
             onChange={(e) => write(e.target.value === "" ? Number(def.default) || 0 : Number(e.target.value))}
-            className="h-[26px] w-16 rounded-md border border-ui-control bg-ui-app px-1.5 text-right font-ui-mono text-[11.5px] text-ui-1 outline-none focus:border-ui-accent"
+            className="h-[26px] w-16 rounded-md border border-ui-control bg-ui-app px-1.5 text-right font-ui-mono text-micro text-ui-1 outline-none focus:border-ui-accent"
           />
         );
       return (
@@ -128,7 +128,7 @@ function QuickControl({
             value={String(value)}
             onChange={write}
             label={def.label}
-            className="shrink-0 flex-nowrap gap-0.5 [&>button]:whitespace-nowrap [&>button]:px-2 [&>button]:py-1"
+            className="shrink-0 flex-nowrap gap-0.5 [&>button]:whitespace-nowrap [&>button]:px-2.5 [&>button]:py-1"
           />
         );
       return (
@@ -173,7 +173,7 @@ function ThemeValue({ def, value }: { def: ModuleSetting; value: ModuleSettingVa
         : def.type === "number"
           ? `${value}${splitUnit(def.label).unit ?? ""}`
           : String(value) || "—";
-  return <span className="max-w-[120px] truncate font-ui-mono text-[11.5px]">{text}</span>;
+  return <span className="max-w-[120px] truncate font-ui-mono text-micro">{text}</span>;
 }
 
 function Divider() {
@@ -187,7 +187,7 @@ function Identity({ icon, name }: { icon: ReactNode; name: string }) {
       <span className="flex h-7 w-7 items-center justify-center rounded-[7px] bg-ui-subtle text-ui-accent-text [&>svg]:h-4 [&>svg]:w-4">
         {icon}
       </span>
-      <span className="max-w-[160px] truncate text-[12.5px] font-semibold text-ui-1">{name}</span>
+      <span className="max-w-[160px] truncate text-body font-semibold text-ui-1">{name}</span>
     </span>
   );
 }
@@ -250,15 +250,15 @@ export function QuickBar({ zones, appearance, updateProfile, onToggleVisible, al
       <div
         role="toolbar"
         aria-label="Quick settings"
-        className="pointer-events-auto flex h-[46px] max-w-full items-center gap-1 rounded-xl border border-ui-strong bg-ui-raised px-1.5 font-ui shadow-[0_8px_24px_rgba(0,0,0,.45)]"
+        className="pointer-events-auto flex min-h-[46px] max-w-full items-center py-0.5 gap-1 rounded-xl border border-ui-strong bg-ui-raised px-1.5 font-ui shadow-[0_8px_24px_rgba(0,0,0,.45)]"
       >
         {identity}
         {fields && (
           <>
             <Divider />
-            <div className="flex min-w-0 flex-[0_1_auto] items-center gap-0.5 overflow-x-auto px-2 [mask-image:linear-gradient(to_right,transparent,#000_8px,#000_calc(100%-8px),transparent)] [scrollbar-width:none]">
+            <div className="flex min-w-0 flex-[0_1_auto] flex-wrap items-center gap-0.5 px-2">
               {shown.length === 0 ? (
-                <span className="whitespace-nowrap px-2 text-[11.5px] text-ui-4">Pin settings from the panel to show them here</span>
+                <span className="whitespace-nowrap px-2 text-micro text-ui-4">Pin settings from the panel to show them here</span>
               ) : (
                 shown.map((def) => {
                   const changed = SET_HERE.has(sourceState(def, fields.values));
@@ -270,7 +270,7 @@ export function QuickBar({ zones, appearance, updateProfile, onToggleVisible, al
                       className="flex h-9 shrink-0 items-center gap-2 rounded-lg px-[9px] hover:bg-s-nav-on"
                     >
                       {changed && <span aria-hidden className="h-[5px] w-[5px] rounded-full bg-ui-accent" />}
-                      <span className="whitespace-nowrap text-[11.5px] text-ui-3">{splitUnit(def.label).label}</span>
+                      <span className="whitespace-nowrap text-micro text-ui-3">{splitUnit(def.label).label}</span>
                       {section ? (
                         <button
                           type="button"
@@ -329,7 +329,7 @@ export function QuickBar({ zones, appearance, updateProfile, onToggleVisible, al
       </div>
       {fields && colorDef && (
         <div className="pointer-events-auto flex items-center gap-3 rounded-xl border border-ui-strong bg-ui-raised py-1.5 pl-3 pr-1.5 shadow-[0_8px_24px_rgba(0,0,0,.45)]">
-          <span className="whitespace-nowrap text-[11.5px] text-ui-3">{colorDef.label}</span>
+          <span className="whitespace-nowrap text-micro text-ui-3">{colorDef.label}</span>
           <ColorSwatches
             value={String(fields.shown(colorDef.key, colorDef) ?? "")}
             label={colorDef.label}

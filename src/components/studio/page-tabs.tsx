@@ -84,7 +84,7 @@ export function pageMenuEntries(
 }
 
 const DIALOG_BUTTON =
-  "inline-flex h-8 items-center rounded-[7px] border border-ui-strong bg-ui-raised px-3 text-[12.5px] font-medium text-ui-2 transition-colors hover:bg-ui-hover hover:text-ui-1";
+  "inline-flex h-8 items-center rounded-[7px] border border-ui-strong bg-ui-raised px-3 text-body font-medium text-ui-2 transition-colors hover:bg-ui-hover hover:text-ui-1";
 
 /** Confirm deleting a page and its zones. */
 function DeleteDialog({
@@ -111,7 +111,7 @@ function DeleteDialog({
             <AlertDialog.Close render={<button type="button" className={DIALOG_BUTTON} />}>Cancel</AlertDialog.Close>
             <button
               type="button"
-              className="inline-flex h-8 items-center rounded-[7px] bg-ui-danger px-3 text-[12.5px] font-semibold text-ui-inverse-fg transition-opacity hover:opacity-90"
+              className="inline-flex h-8 items-center rounded-[7px] bg-ui-danger px-3 text-body font-semibold text-ui-inverse-fg transition-opacity hover:opacity-90"
               onClick={() => {
                 onConfirm();
                 onClose();

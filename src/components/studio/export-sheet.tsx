@@ -15,8 +15,8 @@ import { screenPayload } from "./profile-file";
 
 type Row = NonNullable<ExportRequest["row"]>;
 
-const PRIMARY = "h-7 shrink-0 rounded-[7px] bg-ui-inverse px-3 text-[12.5px] font-semibold text-ui-inverse-fg hover:opacity-90 disabled:cursor-not-allowed disabled:bg-ui-active disabled:text-ui-hint";
-const OUTLINE = "h-7 shrink-0 rounded-[7px] border border-ui-strong px-3 text-[12.5px] font-medium text-ui-2 hover:bg-ui-hover hover:text-ui-1 disabled:cursor-not-allowed disabled:opacity-40";
+const PRIMARY = "h-7 shrink-0 rounded-[7px] bg-ui-inverse px-3 text-body font-semibold text-ui-inverse-fg hover:opacity-90 disabled:cursor-not-allowed disabled:bg-ui-active disabled:text-ui-hint";
+const OUTLINE = "h-7 shrink-0 rounded-[7px] border border-ui-strong px-3 text-body font-medium text-ui-2 hover:bg-ui-hover hover:text-ui-1 disabled:cursor-not-allowed disabled:opacity-40";
 
 interface ExportRowProps {
   icon: LucideIcon;
@@ -49,13 +49,13 @@ function ExportRow({ icon: Icon, title, detail, picked, blocked, children, actio
         </div>
         <div className="flex shrink-0 items-center gap-2">{actions}</div>
       </div>
-      {blocked ? <p className="pl-[30px] text-[11.5px] text-ui-warning">{blocked}</p> : children}
+      {blocked ? <p className="pl-[30px] text-micro text-ui-warning">{blocked}</p> : children}
       <div className="pl-[30px]">
         <button
           type="button"
           disabled={!copy}
           onClick={() => copy && void copyPayload(copy).then(() => onCopied(id), () => toast("Couldn’t copy the JSON"))}
-          className="flex items-center gap-1 text-[11.5px] text-ui-accent-text hover:underline disabled:cursor-not-allowed disabled:text-ui-hint disabled:no-underline"
+          className="flex items-center gap-1 text-micro text-ui-accent-text hover:underline disabled:cursor-not-allowed disabled:text-ui-hint disabled:no-underline"
         >
           {copied ? (
             <>
@@ -99,7 +99,7 @@ function GaugeChooser({ onPick }: { onPick: (name: string, gauge: VectorGauge) =
       {items === null && <span className="p-2.5 text-caption text-ui-4">Reading…</span>}
       {items?.length === 0 && <span className="p-2.5 text-caption text-ui-4">{error ?? "No gauges in your library yet."}</span>}
       {items?.map((item) => (
-        <button key={item.id} type="button" onClick={() => pick(item)} className="flex items-center gap-2 border-b border-ui-subtle px-2.5 py-2 text-left text-[12.5px] text-ui-1 last:border-b-0 hover:bg-ui-hover">
+        <button key={item.id} type="button" onClick={() => pick(item)} className="flex items-center gap-2 border-b border-ui-subtle px-2.5 py-2 text-left text-body text-ui-1 last:border-b-0 hover:bg-ui-hover">
           <Gauge className="h-3.5 w-3.5 shrink-0 text-ui-3" />
           <span className="min-w-0 flex-1 truncate">{item.name}</span>
         </button>
@@ -165,7 +165,7 @@ export function ExportSheet({ open, request, config, screen, pageName, pageCanva
           <div className="flex items-start gap-3 border-b border-ui-subtle px-5 pb-3.5 pt-4">
             <div className="flex min-w-0 flex-1 flex-col gap-1">
               <Dialog.Title className="text-[16px] font-semibold text-ui-1">Export &amp; back up</Dialog.Title>
-              <Dialog.Description className="text-[12.5px] text-ui-3">Pick what to take out. Each one can also be copied as JSON.</Dialog.Description>
+              <Dialog.Description className="text-body text-ui-3">Pick what to take out. Each one can also be copied as JSON.</Dialog.Description>
             </div>
             <Dialog.Close title="Close" aria-label="Close" className="grid h-8 w-8 place-items-center rounded-md text-ui-4 hover:bg-ui-hover hover:text-ui-1">
               <X className="h-5 w-5" />
@@ -226,7 +226,7 @@ export function ExportSheet({ open, request, config, screen, pageName, pageCanva
                 </button>
               }
             >
-              <p className="pl-[30px] text-[11.5px] text-ui-4">Bake gauges and elements first · Leave unused assets out · Stored form or .infopanel: you choose them in the next step.</p>
+              <p className="pl-[30px] text-micro text-ui-4">Bake gauges and elements first · Leave unused assets out · Stored form or .infopanel: you choose them in the next step.</p>
             </ExportRow>
             <ExportRow
               {...common}

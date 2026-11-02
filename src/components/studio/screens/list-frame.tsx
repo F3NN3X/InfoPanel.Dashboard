@@ -27,5 +27,5 @@ export function ListSection({ title }: { title: string }) {
 
 /** What the page shows when no card is left: nothing matches the search, or nothing exists yet. */
 export function ListEmpty({ children }: { children: ReactNode }) {
-  return <p className="rounded-[10px] border border-dashed border-ui-default px-4 py-8 text-center text-[12.5px] text-ui-4">{children}</p>;
+  return <p className="rounded-[10px] border border-dashed border-ui-default px-4 py-8 text-center text-body text-ui-4">{children}</p>;
 }

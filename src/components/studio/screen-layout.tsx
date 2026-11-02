@@ -12,7 +12,7 @@ import { GRID_PREVIEW_BOX, GRID_REFUSED, gridPreview, parseSize, sizeChoice, siz
 type UpdateProfile = (fn: (p: ProfileView) => ProfileView, key?: string) => void;
 
 const INPUT = cn(FIELD, "h-[30px] w-full");
-const HELP = "text-pretty text-[11.5px] leading-[1.4] text-ui-4";
+const HELP = "text-pretty text-micro leading-[1.4] text-ui-4";
 
 /** A design-size pixel field: a draft that commits on Enter or blur, and only when it is a size. */
 function SizeInput({ label, value, onCommit }: { label: string; value: number; onCommit: (value: number) => void }) {
@@ -84,7 +84,7 @@ export function SizeFitSection({
           type="button"
           disabled={!differs}
           onClick={() => patch({ width: windowSize.width, height: windowSize.height })}
-          className="flex h-[26px] items-center gap-1.5 rounded-md border border-ui-strong bg-ui-raised px-2.5 text-[11.5px] text-ui-2 hover:bg-ui-hover hover:text-ui-1 disabled:pointer-events-none disabled:opacity-40"
+          className="flex h-[26px] items-center gap-1.5 rounded-md border border-ui-strong bg-ui-raised px-2.5 text-micro text-ui-2 hover:bg-ui-hover hover:text-ui-1 disabled:pointer-events-none disabled:opacity-40"
         >
           <ScanLine className="h-3.5 w-3.5" />
           Use {windowSize.width} × {windowSize.height}
@@ -147,7 +147,7 @@ function Stepper({ label, value, min, max, onChange }: { label: string; value: n
         <button type="button" aria-label={`Fewer ${label.toLowerCase()}`} disabled={value <= min} onClick={() => onChange(value - 1)} className={button}>
           <Minus className="h-3.5 w-3.5" />
         </button>
-        <span className="flex-1 text-center font-ui-mono text-[12.5px] text-ui-1">{value}</span>
+        <span className="flex-1 text-center font-ui-mono text-body text-ui-1">{value}</span>
         <button type="button" aria-label={`More ${label.toLowerCase()}`} disabled={value >= max} onClick={() => onChange(value + 1)} className={button}>
           <Plus className="h-3.5 w-3.5" />
         </button>
@@ -184,7 +184,7 @@ function SpacingField({
           placeholder={`${placeholder}`}
           aria-label={`${label} (px)`}
           onChange={(e) => onChange(e.target.value === "" ? undefined : normalizeSpacing(Number(e.target.value)))}
-          className={cn(FIELD, "h-[26px] w-[64px] shrink-0 px-1.5 text-right font-ui-mono text-[11.5px]")}
+          className={cn(FIELD, "h-[26px] w-[64px] shrink-0 px-1.5 text-right font-ui-mono text-micro")}
         />
       </InlineRow>
       <input

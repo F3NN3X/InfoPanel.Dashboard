@@ -54,7 +54,7 @@ function KindChips({ kind, onChange }: { kind: WidgetKind; onChange: (kind: Widg
               title={hint}
               onClick={() => !on && onChange(k)}
               className={cn(
-                "flex h-7 items-center gap-1.5 rounded-md border px-2 text-[11.5px] font-medium transition-colors",
+                "flex h-7 items-center gap-1.5 rounded-md border px-2 text-micro font-medium transition-colors",
                 on ? "border-ui-accent/50 bg-ui-accent/[.14] text-ui-accent-text" : "border-ui-default text-ui-3 hover:text-ui-1"
               )}
             >

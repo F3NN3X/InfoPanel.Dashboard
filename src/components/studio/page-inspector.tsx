@@ -2,6 +2,7 @@ import { useState, type ReactNode } from "react";
 import { Cast, Copy, Trash2 } from "lucide-react";
 import type { MonitorProfile, ProfilePage } from "@/lib/layout";
 import { profileGap } from "@/lib/profile-grid";
+import { QuickTipsCard } from "./canvas-cards";
 import { resolveTheme } from "@/lib/theme";
 import { themeState } from "@/lib/theme-state";
 import { SECTION_IDS, type SectionId } from "@/lib/theme-model";
@@ -39,7 +40,7 @@ interface PageInspectorProps {
 const SECTION_LABEL = "text-micro font-semibold uppercase tracking-[0.06em] text-ui-4";
 const SELECT = "h-7 max-w-[150px] rounded-md border border-ui-default bg-ui-app px-1.5 font-ui-mono text-caption text-ui-1 outline-none focus:border-ui-accent";
 const ACTION =
-  "flex h-8 items-center justify-center gap-1.5 rounded-[7px] border border-ui-strong bg-ui-raised px-3 text-[12.5px] font-medium text-ui-2 transition-colors hover:bg-ui-hover hover:text-ui-1 disabled:pointer-events-none disabled:opacity-40";
+  "flex h-8 items-center justify-center gap-1.5 rounded-[7px] border border-ui-strong bg-ui-raised px-3 text-body font-medium text-ui-2 transition-colors hover:bg-ui-hover hover:text-ui-1 disabled:pointer-events-none disabled:opacity-40";
 
 /** The rotation LinkRow's value: "Included · every 20 s", "Not included", "Rotation off". */
 function rotationText(profile: MonitorProfile, page: ProfilePage): string {
@@ -97,7 +98,7 @@ function LookCard({ section, profile, page, inherit }: { section: SectionId; pro
   return (
     <li className="flex h-9 items-center gap-2 rounded-lg border border-ui-default bg-ui-raised pl-2.5 pr-2">
       <Icon className="h-4 w-4 shrink-0 text-ui-hint" strokeWidth={1.75} />
-      <span className="min-w-0 flex-1 truncate text-[12.5px] font-medium text-ui-1">{sectionTitle(section)}</span>
+      <span className="min-w-0 flex-1 truncate text-body font-medium text-ui-1">{sectionTitle(section)}</span>
       {chip}
     </li>
   );
@@ -127,6 +128,7 @@ export function PageInspector({ profile, page, inherit, onRename, onIcon, onDupl
     <div className="flex h-full min-h-0 flex-col">
       <PageHeader name={page.name} />
       <div className="min-h-0 flex-1 overflow-y-auto pb-3">
+        <QuickTipsCard />
         <SnapSection snapItems={page.snapItems !== false} onSnapItems={onSnapItems} />
         <section className="flex flex-col gap-1.5 border-b border-s-divider px-3.5 py-3">
           <NameRow key={`${page.id}:${page.name}`} page={page} onRename={(name) => onRename(page.id, name)} />
@@ -193,10 +195,10 @@ export function PageInspector({ profile, page, inherit, onRename, onIcon, onDupl
               ))}
             </ul>
           )}
-          <p className="text-[11.5px] leading-snug text-ui-3">
+          <p className="text-micro leading-snug text-ui-3">
             {custom.length > 0 ? `Everything else follows ${profile.name}.` : `This page follows ${profile.name} completely.`}
           </p>
-          <p className="flex flex-wrap gap-x-3 gap-y-0.5 text-[11.5px]">
+          <p className="flex flex-wrap gap-x-3 gap-y-0.5 text-micro">
             <button
               type="button"
               onClick={() => inherit.navigateTo({ view: "theme", themeScope: pageScope, profileId: profile.id })}
@@ -218,7 +220,7 @@ export function PageInspector({ profile, page, inherit, onRename, onIcon, onDupl
           <button
             type="button"
             onClick={onShowOnKiosks}
-            className="flex h-8 w-full items-center justify-center gap-1.5 rounded-[7px] border border-[oklch(0.78_0.15_150/0.45)] bg-[oklch(0.78_0.15_150/0.12)] text-[12.5px] font-medium text-ui-ok-text transition-colors hover:bg-[oklch(0.78_0.15_150/0.2)]"
+            className="flex h-8 w-full items-center justify-center gap-1.5 rounded-[7px] border border-[oklch(0.78_0.15_150/0.45)] bg-[oklch(0.78_0.15_150/0.12)] text-body font-medium text-ui-ok-text transition-colors hover:bg-[oklch(0.78_0.15_150/0.2)]"
           >
             <Cast className="h-4 w-4" strokeWidth={1.75} /> Show on kiosks now
           </button>

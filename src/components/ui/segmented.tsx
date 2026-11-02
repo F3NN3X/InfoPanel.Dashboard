@@ -19,6 +19,10 @@ interface SegmentedProps<T extends string> {
   className?: string;
 }
 
+/** One selected-state treatment for every segmented row: the active segment is raised with an inner edge, the rest are plain text. */
+export const SEGMENT_ON = "bg-ui-active text-ui-1 ring-1 ring-inset ring-ui-edge";
+export const SEGMENT_OFF = "text-ui-soft hover:text-ui-1";
+
 /** Segmented control (Solid | Pattern style): a radiogroup on the chrome tokens, with a roving tab stop and arrow keys. */
 export function Segmented<T extends string>({
   options,
@@ -36,7 +40,7 @@ export function Segmented<T extends string>({
       aria-label={label}
       onKeyDown={(e) => onRovingKeyDown(e, '[role="radio"]')}
       className={cn(
-        "flex flex-wrap border border-ui-control p-0.5",
+        "flex flex-wrap border border-ui-strong p-0.5",
         bar ? "gap-0.5 rounded-lg bg-ui-raised" : "rounded-[7px] bg-ui-app",
         className
       )}
@@ -53,7 +57,7 @@ export function Segmented<T extends string>({
           className={cn(
             "font-medium transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ui-accent",
             bar ? "rounded-md px-3.5 py-[5px] text-[12.5px]" : "rounded-[5px] px-[9px] py-1 text-[11.5px]",
-            o.value === value ? "bg-ui-active text-ui-1 forced-colors:forced-color-adjust-none forced-colors:bg-[color:Highlight] forced-colors:text-[color:HighlightText]" : "text-ui-4 hover:text-ui-1"
+            o.value === value ? SEGMENT_ON + " forced-colors:forced-color-adjust-none forced-colors:bg-[color:Highlight] forced-colors:text-[color:HighlightText]" : SEGMENT_OFF
           )}
         >
           {o.label}

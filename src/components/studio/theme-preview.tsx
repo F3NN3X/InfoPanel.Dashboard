@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { Minus, Plus } from "lucide-react";
 import { IconButton } from "@/components/ui/icon-button";
+import { SEGMENT_OFF, SEGMENT_ON } from "@/components/ui/segmented";
 import { useElementSize } from "@/hooks/use-element-size";
 import type { DashboardConfig, MonitorProfile, ProfilePage as Page } from "@/lib/layout";
 import { cn } from "@/lib/utils";
@@ -15,7 +16,7 @@ import { previewFit } from "./theme-view-model";
 const BUTTON =
   "h-7 shrink-0 rounded-[7px] border border-ui-strong px-[11px] text-body text-ui-1 transition-colors hover:bg-ui-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent";
 const ZOOM_BUTTON = "h-7 w-7 rounded-md text-ui-2 hover:bg-ui-default";
-const ZOOM_TEXT = "h-[26px] rounded-md px-[9px] text-[11.5px] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent";
+const ZOOM_TEXT = "h-[26px] rounded-md px-[9px] text-micro font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent";
 const LINK = "shrink-0 rounded-sm text-body hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent";
 
 /** The share of the window's height the preview may take before it scrolls. */
@@ -103,7 +104,7 @@ export function ThemePreview({ config, at, profile, page, onPage, levelName, dif
 
   return (
     <section aria-label="Preview" className="flex w-full min-w-0 flex-col gap-3.5">
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <h2 className="text-body font-normal text-ui-soft">Preview</h2>
         <div role="group" aria-label="Page to preview" className="flex gap-0.5 rounded-[7px] border border-ui-strong bg-ui-panel p-0.5">
           {profile.pages.map((pg) => (
@@ -117,28 +118,30 @@ export function ThemePreview({ config, at, profile, page, onPage, levelName, dif
               }}
               className={cn(
                 "rounded-[5px] px-2.5 py-1 text-caption focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent",
-                pg.id === page.id ? "bg-[#27272a] text-[#fafafa]" : "text-ui-soft hover:text-ui-1"
+                pg.id === page.id ? SEGMENT_ON : SEGMENT_OFF
               )}
             >
               {pg.name}
             </button>
           ))}
         </div>
-        <div className="flex min-w-0 flex-1 justify-end">{bar}</div>
-        <button
-          type="button"
-          aria-pressed={tags}
-          onClick={() => setTags((t) => !t)}
-          className="flex items-center gap-1.5 rounded-full border border-[#1e3a8a] bg-[#0b1530] px-[9px] py-1 text-caption text-ui-accent-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent"
-        >
-          <span className="h-[7px] w-[7px] rounded-full bg-ui-blue" aria-hidden />
-          {foreign ? "Differences show on the page you edit" : differencesPill(diffs.size, tags)}
-        </button>
+        <div className="ml-auto flex shrink-0 justify-end">{bar}</div>
+        {(foreign || diffs.size > 0 || !tags) && (
+          <button
+            type="button"
+            aria-pressed={tags}
+            onClick={() => setTags((t) => !t)}
+            className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-ui-accent/40 bg-ui-accent-soft px-[9px] py-1 text-caption text-ui-accent-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent"
+          >
+            <span className="h-[7px] w-[7px] rounded-full bg-ui-blue" aria-hidden />
+            {foreign ? "Differences show on the page you edit" : differencesPill(diffs.size, tags)}
+          </button>
+        )}
         <div role="group" aria-label="Preview zoom" className="flex items-center gap-0.5">
           <IconButton label="Zoom out" className={ZOOM_BUTTON} onClick={() => setZoom(stepZoom(scale, -1))}>
             <Minus className="h-4 w-4" />
           </IconButton>
-          <span className="min-w-11 text-center font-ui-mono text-[11.5px] text-ui-1">{Math.round(scale * 100)}%</span>
+          <span className="min-w-11 text-center font-ui-mono text-micro text-ui-1">{Math.round(scale * 100)}%</span>
           <IconButton label="Zoom in" className={ZOOM_BUTTON} onClick={() => setZoom(stepZoom(scale, 1))}>
             <Plus className="h-4 w-4" />
           </IconButton>

@@ -57,7 +57,7 @@ export function ValueBox({
       className={cn(
         "h-[26px] min-w-11 shrink-0 rounded-[5px] border border-ui-default bg-ui-app px-1.5 py-1 text-right",
         compact ? "w-[54px]" : "w-[64px]",
-        "font-ui-mono text-[11.5px] text-ui-1 outline-none focus:border-ui-accent"
+        "font-ui-mono text-micro text-ui-1 outline-none focus:border-ui-accent"
       )}
     />
   );
