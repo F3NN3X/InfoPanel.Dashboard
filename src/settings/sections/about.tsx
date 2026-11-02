@@ -83,7 +83,7 @@ export function AboutSection() {
           {systemRows(info).map(([k, v]) => (
             <div key={k} className="flex gap-4 px-[18px] py-[11px] text-body">
               <span className="w-[140px] shrink-0 text-s-muted">{k}</span>
-              <span className="min-w-0 break-words font-mono text-[12.5px] text-[#d6d6db]">{v}</span>
+              <span className="min-w-0 break-words font-mono text-caption text-[#d6d6db]">{v}</span>
             </div>
           ))}
         </div>

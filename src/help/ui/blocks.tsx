@@ -30,7 +30,7 @@ const CALLOUTS: Record<CalloutKind, CalloutStyle> = {
 function Callout({ kind, text, onOpen }: { kind: CalloutKind; text: string; onOpen: BlockProps["onOpen"] }) {
   const { icon: Icon, label, fg, box } = CALLOUTS[kind];
   return (
-    <div className={cn("flex gap-3 rounded-[11px] border px-4 py-[13px]", box)}>
+    <div className={cn("flex max-w-[68ch] gap-3 rounded-[11px] border px-4 py-[13px]", box)}>
       <Icon className={cn("mt-px h-[19px] w-[19px] shrink-0", fg)} />
       <div className="flex flex-1 flex-col gap-[3px]">
         <span className={cn("text-xs font-semibold", fg)}>{label}</span>
@@ -44,7 +44,7 @@ function Callout({ kind, text, onOpen }: { kind: CalloutKind; text: string; onOp
 
 function List({ items, ordered, onOpen }: { items: string[]; ordered: boolean; onOpen: BlockProps["onOpen"] }) {
   return (
-    <ul className="m-0 flex list-none flex-col gap-2 p-0">
+    <ul className="m-0 flex max-w-[68ch] list-none flex-col gap-2 p-0">
       {items.map((item, i) => (
         <li key={i} className="flex items-start gap-3">
           {ordered ? (
@@ -167,7 +167,7 @@ export function BlockView({ block, onOpen }: BlockProps) {
       return null;
     case "p":
       return (
-        <p className="m-0 text-pretty text-sm leading-[1.7] text-[#d0d0d6]">
+        <p className="m-0 max-w-[68ch] text-pretty text-sm leading-[1.65] text-[#d0d0d6]">
           <InlineText text={block.text} onOpen={onOpen} />
         </p>
       );

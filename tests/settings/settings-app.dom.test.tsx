@@ -164,7 +164,7 @@ describe("the settings window", () => {
     expect(port.getAttribute("aria-invalid")).toBe("true");
     await act(async () => {});
     expect(setCalls()).toEqual([]);
-    expect(screen.queryByText(/Restart the server to apply/)).toBeNull();
+    expect(screen.queryByText(/Restart to apply/)).toBeNull();
   });
 
 

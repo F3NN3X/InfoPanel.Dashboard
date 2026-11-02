@@ -21,13 +21,13 @@ describe("restartItems", () => {
       ["allowRemoteEdit", false],
     ]);
     expect(restartText(items)).toBe(
-      "Restart the server to apply: port 3923, local network access, debug mode on, allowed host names, editing from other devices on."
+      "Restart to apply: port 3923, local network access, debug mode on, allowed host names, editing from other devices on."
     );
   });
 
   it("words listen and debug by the saved value", () => {
     const text = restartText(restartItems({ ...saved, listen: "local", debug: false }, { ...running, listen: "lan", debug: true }));
-    expect(text).toBe("Restart the server to apply: local-only access, debug mode off.");
+    expect(text).toBe("Restart to apply: local-only access, debug mode off.");
   });
 
   it("does not count a debug mode forced for the run as a change", () => {

@@ -3,6 +3,7 @@ import type { TwitchState } from "@/lib/extras";
 import { safeActivateUrl, type PendingSignin, type SigninResult } from "@/lib/twitch";
 import { cn } from "@/lib/utils";
 import { FIELD, StackRow } from "@/components/studio/setting-rows";
+import { ConnectionStatus, type StatusTone } from "./connection-status";
 
 const BUTTON = "flex h-(--ui-h-control) items-center gap-1.5 rounded-ui-sm border border-ui-default px-2.5 text-caption text-ui-2 hover:bg-ui-hover hover:text-ui-1 disabled:opacity-50";
 
@@ -45,13 +46,14 @@ export function TwitchBlock({ state, pending, channel, onSignin, onCancel, onSig
   }, [pending, now]);
   useEffect(() => setDraft(channel), [channel]);
   const status = state.signedIn ? (state.connected ? "Chat connected" : "Connecting chat") : pending || state.pending ? "Waiting for approval" : "Signed out";
+  const tone: StatusTone = state.signedIn && state.connected ? "ok" : state.signedIn || pending || state.pending ? "warn" : "idle";
   const shown = error || state.error;
   const url = safeActivateUrl(pending?.verificationUri ?? "");
   return (
     <div className="space-y-2">
-      <div className="flex items-baseline justify-between text-caption font-semibold text-ui-1">
+      <div className="flex items-center justify-between text-caption font-semibold text-ui-1">
         Twitch
-        <span className="text-micro font-normal text-ui-4">{status}</span>
+        <ConnectionStatus tone={tone}>{status}</ConnectionStatus>
       </div>
       {pending ? (
         <div className="space-y-1.5">

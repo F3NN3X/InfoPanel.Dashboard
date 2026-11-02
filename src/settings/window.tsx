@@ -68,7 +68,7 @@ function BrowserSettings() {
         focus={target.row ? { row: target.row, n: target.n } : null}
         top={
           appPage && (
-            <p role="status" className="m-0 border-b border-s-side-line bg-s-side px-8 py-2.5 text-[12.5px] text-s-t2 max-sm:px-4">
+            <p role="status" className="m-0 border-b border-s-side-line bg-s-side px-8 py-2.5 text-caption text-s-t2 max-sm:px-4">
               Change this in the InfoPanel Studio app's Settings ({appPage}).
             </p>
           )

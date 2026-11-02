@@ -3,6 +3,7 @@ import type { YoutubeState } from "@/lib/extras";
 import type { PendingYoutube, YoutubeSigninResult } from "@/lib/youtube";
 import { cn } from "@/lib/utils";
 import { FIELD, StackRow } from "@/components/studio/setting-rows";
+import { ConnectionStatus, type StatusTone } from "./connection-status";
 
 const BUTTON = "flex h-(--ui-h-control) items-center gap-1.5 rounded-ui-sm border border-ui-default px-2.5 text-caption text-ui-2 hover:bg-ui-hover hover:text-ui-1 disabled:opacity-50";
 
@@ -66,6 +67,7 @@ export function YoutubeBlock({ state, clientConfigured, chatInterval, pending, o
   }, [pending, now]);
   const waiting = pending !== null || state.pending;
   const status = state.signedIn ? (state.connected ? "Chat connected" : state.live ? "Live" : "Signed in, not live") : waiting ? "Waiting for approval" : clientConfigured ? "Signed out" : "Not set up";
+  const tone: StatusTone = state.signedIn ? (state.connected || state.live ? "ok" : "warn") : waiting ? "warn" : "idle";
   const shown = error || state.error;
   const link = (href: string, text: string) => (
     <a
@@ -84,9 +86,9 @@ export function YoutubeBlock({ state, clientConfigured, chatInterval, pending, o
   );
   return (
     <div className="space-y-2">
-      <div className="flex items-baseline justify-between text-caption font-semibold text-ui-1">
+      <div className="flex items-center justify-between text-caption font-semibold text-ui-1">
         YouTube
-        <span className="text-micro font-normal text-ui-4">{status}</span>
+        <ConnectionStatus tone={tone}>{status}</ConnectionStatus>
       </div>
       {!state.signedIn && (
         <>

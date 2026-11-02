@@ -52,7 +52,7 @@ export function UpdatesSection() {
         <div className="flex min-w-[140px] flex-1 flex-col gap-[3px]">
           <span role="status" className="flex flex-col gap-[3px]">
             <span className="text-base font-semibold">{card.title}</span>
-            <span className="text-[12.5px] text-s-muted">{card.detail}</span>
+            <span className="text-caption text-s-muted">{card.detail}</span>
           </span>
           {card.progress !== null && (
             <div role="progressbar" aria-label="Update progress" aria-valuetext={`${Math.round(card.progress * 100)} percent`} aria-valuenow={Math.round(card.progress * 100)} aria-valuemin={0} aria-valuemax={100} className="mt-1.5 h-1 max-w-[280px] overflow-hidden rounded-sm bg-s-track-line">
@@ -74,7 +74,7 @@ export function UpdatesSection() {
         <div id="beta-notice" className="flex flex-wrap items-center gap-3 rounded-xl border border-s-card-line px-[18px] py-3">
           <div className="flex min-w-[140px] flex-1 flex-col gap-[3px]">
             <span className="text-sm font-medium">A newer beta is available</span>
-            <span className="text-[12.5px] leading-[1.45] text-s-muted">Version {beta} is on the Beta channel. Stable stays as it is unless you switch.</span>
+            <span className="text-caption leading-[1.45] text-s-muted">Version {beta} is on the Beta channel. Stable stays as it is unless you switch.</span>
           </div>
           <Button onClick={() => void save("updateChannel", "beta")}>Switch to Beta and check</Button>
         </div>

@@ -33,23 +33,23 @@ Prototypes (W1–W8 and some A-/B- IDs) were built on throwaway `proto/<id>` bra
 | B-05 | 3 |  | med | M | The bar is 16% of a 1080p screen and 25% of a 480p one | fixed |
 | B-06 | 3 |  | med | M | Tall cells pin their content to one edge | fixed |
 | B-07 | 3 |  | med | M | At 800x480 labels truncate to meaningless stubs | fixed |
-| B-08 | 4 |  | high | S | Settings pages jump: the title moves 130px between pages | open |
-| B-09 | 4 | B-10 | high | S | Group headings come in two styles (Reopens the first audit's recorded 'two Settings row styles'; the user chose to build it from the prototype.) | open |
-| B-10 | 4 | B-10 | high | M | Dashboard and Studio pages should use the card layout (Reopens the first audit's recorded 'two Settings row styles'; the user chose to build it from the prototype.) | open |
-| B-11 | 4 |  | med | S | Twelve `(i)` icons where General shows its hint as text | open |
-| B-12 | 4 |  | med | S | "Releases on GitHub" reads like a broken link in the nav | open |
-| B-13 | 4 |  | med | S | Connections: status as plain text, a quiet Save, a "None" password | open |
-| B-14 | 4 |  | low | S | Diagnostics: five equal buttons and an orphaned note | open |
-| B-15 | 4 |  | low | S | Server header repeats the tiles | open |
-| B-16 | 4 |  | med | S | The restart bar wraps at 720 and is shouting | open |
-| B-17 | 4 |  | med | S | The sidebar takes a third of a 720px window | open |
-| B-18 | 4 |  | med | S | Help search shows two fields | open |
-| B-19 | 4 |  | med | M | Help home repeats the sidebar | open |
-| B-20 | 4 |  | med | S | Help articles run about 95 characters per line | open |
-| B-21 | 4 |  | low | S | Search snippets are flattened table text | open |
-| B-22 | 4 |  | low | S | Logs: INFO is accent blue | open |
-| B-23 | 4 |  | low | S | Settings text sizes sit off the shared scale | open |
-| B-24 | 4 |  | med | M | Help home as task paths | open |
+| B-08 | 4 |  | high | S | Settings pages jump: the title moves 130px between pages | fixed |
+| B-09 | 4 | B-10 | high | S | Group headings come in two styles (Reopens the first audit's recorded 'two Settings row styles'; the user chose to build it from the prototype.) | fixed |
+| B-10 | 4 | B-10 | high | M | Dashboard and Studio pages should use the card layout (Reopens the first audit's recorded 'two Settings row styles'; the user chose to build it from the prototype.) | fixed |
+| B-11 | 4 |  | med | S | Twelve `(i)` icons where General shows its hint as text | fixed |
+| B-12 | 4 |  | med | S | "Releases on GitHub" reads like a broken link in the nav | fixed |
+| B-13 | 4 |  | med | S | Connections: status as plain text, a quiet Save, a "None" password | partial |
+| B-14 | 4 |  | low | S | Diagnostics: five equal buttons and an orphaned note | fixed |
+| B-15 | 4 |  | low | S | Server header repeats the tiles | partial |
+| B-16 | 4 |  | med | S | The restart bar wraps at 720 and is shouting | fixed |
+| B-17 | 4 |  | med | S | The sidebar takes a third of a 720px window | fixed |
+| B-18 | 4 |  | med | S | Help search shows two fields | fixed |
+| B-19 | 4 |  | med | M | Help home repeats the sidebar | fixed |
+| B-20 | 4 |  | med | S | Help articles run about 95 characters per line | fixed |
+| B-21 | 4 |  | low | S | Search snippets are flattened table text | fixed |
+| B-22 | 4 |  | low | S | Logs: INFO is accent blue | fixed |
+| B-23 | 4 |  | low | S | Settings text sizes sit off the shared scale | fixed |
+| B-24 | 4 |  | med | M | Help home as task paths | fixed |
 | B-25 | 3 |  | med | L | Island that follows the skin (User: optional, island either part of the skin or an overlay. Existing islands stay overlay.) | fixed |
 | C-01 | 1 | W1 | high | M | Hero number scales with the box in 4x4 | fixed |
 | C-02 | 1 | W1 | high | M | 2x2 frames: lift the hero to the optical centre, cut the empty top | partial |

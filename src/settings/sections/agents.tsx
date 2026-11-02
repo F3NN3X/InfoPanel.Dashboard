@@ -88,7 +88,7 @@ export function AgentsSection() {
         </div>
         <div className="flex flex-1 flex-col gap-[3px]">
           <span className="text-sm font-medium">Connect coding agents</span>
-          <span className="text-[12.5px] leading-[1.45] text-s-muted">Shows Claude Code and Codex sessions on the dashboard.</span>
+          <span className="text-caption leading-[1.45] text-s-muted">Shows Claude Code and Codex sessions on the dashboard.</span>
         </div>
         <Switch checked={enabled} onChange={(v) => void toggle(v)} label="Connect coding agents" disabled={busy} />
       </div>
@@ -97,7 +97,7 @@ export function AgentsSection() {
         {files.map((f) => (
           <AgentFile key={f.agent} item={f} />
         ))}
-        <div className="text-pretty text-[12.5px] leading-normal text-s-muted">
+        <div className="text-pretty text-caption leading-normal text-s-muted">
           Adds hooks that run InfoPanel Studio's own small helper, and wraps your Claude Code statusline so it keeps printing as before. Each file is backed up first. Turning this off removes them.
         </div>
         <div className="flex flex-wrap gap-2">

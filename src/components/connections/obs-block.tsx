@@ -3,9 +3,13 @@ import { FIELD, StackRow } from "@/components/studio/setting-rows";
 import type { IntegrationsPatch, PublicIntegrations, SceneLooks } from "@/lib/integrations";
 import { cn } from "@/lib/utils";
 import { useExtras } from "@/widgets/time-hooks";
+import { ConnectionStatus, type StatusTone } from "./connection-status";
 import { ObsStreamingFields } from "./obs-streaming-fields";
 
 export const BUTTON = "flex h-(--ui-h-control) items-center gap-1.5 rounded-ui-sm border border-ui-default px-2.5 text-caption text-ui-2 hover:bg-ui-hover hover:text-ui-1 disabled:opacity-50";
+
+/** The Save button while the form holds a change: the page's one primary action. */
+const BUTTON_ACCENT = "flex h-(--ui-h-control) items-center gap-1.5 rounded-ui-sm border border-transparent bg-s-accent px-2.5 text-caption font-semibold text-s-win hover:brightness-110 disabled:opacity-50";
 
 export interface ObsBlockProps {
   stored: PublicIntegrations["obs"];
@@ -25,21 +29,24 @@ export function ObsBlock({ stored, streaming, onSave }: ObsBlockProps) {
   const [looks, setLooks] = useState<SceneLooks>(streaming?.scenes ?? {});
   const live = useExtras().obs;
   const status = !live.configured ? "Not set up" : live.connected ? (live.streaming ? "Connected · live" : live.recording ? "Connected · recording" : "Connected") : "Waiting for OBS";
+  const tone: StatusTone = !live.configured ? "idle" : live.connected ? "ok" : "warn";
+  // Nothing saved yet counts as a change, so the first Save connects with the defaults.
+  const dirty = !stored.host || host !== stored.host || port !== String(stored.port) || password !== "" || mic !== (streaming?.mic ?? "") || JSON.stringify(looks) !== JSON.stringify(streaming?.scenes ?? {});
   return (
     <div className="space-y-2">
-      <div className="flex items-baseline justify-between text-caption font-semibold text-ui-1">
+      <div className="flex items-center justify-between text-caption font-semibold text-ui-1">
         OBS WebSocket
-        <span className="text-micro font-normal text-ui-4">{status}</span>
+        <ConnectionStatus tone={tone}>{status}</ConnectionStatus>
       </div>
-      <div className="flex gap-2">
-        <StackRow label="Host">
+      <div className="grid grid-cols-[1fr_96px] gap-2">
+        <label className="flex flex-col gap-1.5 text-[12.5px] text-ui-2">
+          Host
           <input aria-label="OBS host" value={host} onChange={(e) => setHost(e.target.value)} className={cn(FIELD, "h-[30px] w-full")} />
-        </StackRow>
-        <div className="w-[76px] shrink-0">
-          <StackRow label="Port">
-            <input aria-label="OBS port" inputMode="numeric" value={port} onChange={(e) => setPort(e.target.value)} className={cn(FIELD, "h-[30px] w-full")} />
-          </StackRow>
-        </div>
+        </label>
+        <label className="flex flex-col gap-1.5 text-[12.5px] text-ui-2">
+          Port
+          <input aria-label="OBS port" inputMode="numeric" value={port} onChange={(e) => setPort(e.target.value)} className={cn(FIELD, "h-[30px] w-full")} />
+        </label>
       </div>
       <StackRow label="Password" hint="OBS › Tools › WebSocket Server Settings. Saved on the dashboard server only; leave blank to keep the saved one.">
         <input
@@ -47,7 +54,7 @@ export function ObsBlock({ stored, streaming, onSave }: ObsBlockProps) {
           type="password"
           autoComplete="off"
           value={password}
-          placeholder={stored.hasPassword ? "Saved" : "None"}
+          placeholder={stored.hasPassword ? "Saved" : "Not set"}
           onChange={(e) => setPassword(e.target.value)}
           className={cn(FIELD, "h-[30px] w-full")}
         />
@@ -56,7 +63,7 @@ export function ObsBlock({ stored, streaming, onSave }: ObsBlockProps) {
       <div className="flex gap-2">
         <button
           type="button"
-          className={BUTTON}
+          className={dirty ? BUTTON_ACCENT : BUTTON}
           onClick={async () => {
             // The scenes OBS lists now keep their looks; a scene it no longer lists is dropped.
             const kept = Object.fromEntries(live.scenes.flatMap((s) => (looks[s.id] ? [[s.id, looks[s.id]]] : [])));

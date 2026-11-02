@@ -29,7 +29,7 @@ export function PageState({ what, error, onRetry, fallback }: PageStateProps) {
       <div className="flex items-center gap-3">
         <Button onClick={onRetry}>Try again</Button>
         {fallback && (
-          <a href={fallback.href} data-external rel="noopener noreferrer" className="text-[12.5px] text-s-accent-text hover:text-s-t1">
+          <a href={fallback.href} data-external rel="noopener noreferrer" className="text-caption text-s-accent-text hover:text-s-t1">
             {fallback.label}
           </a>
         )}

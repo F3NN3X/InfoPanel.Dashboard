@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { FoundContext, type Found } from "./found";
 import { errorText, ipc, onEvent } from "./ipc";
 import { LoadState } from "./load-state";
 import { restartItems, type RestartItem } from "./model/restart";
@@ -15,11 +16,6 @@ interface Toast {
   id: number;
   message: string;
   error: boolean;
-}
-
-interface Found {
-  row: string;
-  n: number;
 }
 
 export interface Store {
@@ -52,21 +48,12 @@ export interface Store {
 
 const StoreContext = createContext<Store | null>(null);
 
+export { useFound } from "./found";
+
 export function useStore(): Store {
   const store = useContext(StoreContext);
   if (!store) throw new Error("useStore outside a StoreProvider");
   return store;
-}
-
-/** For a row search can jump to: scrolls it into view and outlines it for 1.5 s when it is the target. */
-export function useFound(id: string | undefined): { ref: (el: HTMLElement | null) => void; className: string } {
-  const { found } = useContext(StoreContext) ?? { found: null };
-  const el = useRef<HTMLElement | null>(null);
-  const hit = id !== undefined && found?.row === id;
-  useEffect(() => {
-    if (hit) el.current?.scrollIntoView?.({ block: "center" });
-  }, [hit, found?.n]);
-  return { ref: (node) => void (el.current = node), className: hit ? "row-found" : "" };
 }
 
 interface Loaded {
@@ -283,5 +270,9 @@ export function StoreProvider({ children, pages = SECTIONS }: { children: ReactN
     go,
     found,
   };
-  return <StoreContext.Provider value={store}>{children}</StoreContext.Provider>;
+  return (
+    <StoreContext.Provider value={store}>
+      <FoundContext.Provider value={found}>{children}</FoundContext.Provider>
+    </StoreContext.Provider>
+  );
 }

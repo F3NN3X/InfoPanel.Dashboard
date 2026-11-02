@@ -39,13 +39,16 @@ button {
   }
 }
 
-a {
-  color: var(--color-s-accent-text);
-  text-decoration: underline;
-}
+/* in the base layer too, so a link's own text-* and no-underline utilities win (the sidebar's Releases link) */
+@layer base {
+  a {
+    color: var(--color-s-accent-text);
+    text-decoration: underline;
+  }
 
-a:hover {
-  color: var(--color-s-t1);
+  a:hover {
+    color: var(--color-s-t1);
+  }
 }
 
 /* The studio's scrollbar (index.css): a thin thumb, no arrow buttons. */
@@ -103,7 +106,7 @@ a:hover {
 
 .notes li {
   overflow-wrap: anywhere;
-  font-size: 13.5px;
+  font-size: var(--text-body);
   line-height: 1.55;
   color: #d6d6db;
   text-wrap: pretty;

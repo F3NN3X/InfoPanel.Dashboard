@@ -20,7 +20,7 @@ const config = (activeProfile: string): DashboardConfig => {
 const show = (activeProfile: string) => {
   const onPatch = vi.fn();
   render(<SettingsDashboard config={config(activeProfile)} onPatch={onPatch} onExport={() => {}} onReset={() => {}} onOpenScreen={() => {}} />);
-  return { onPatch, select: screen.getByLabelText("When the app opens") as HTMLSelectElement };
+  return { onPatch, select: screen.getByRole("combobox", { name: "When the app opens" }) as HTMLSelectElement };
 };
 
 describe("Settings › Dashboard › Startup screen", () => {

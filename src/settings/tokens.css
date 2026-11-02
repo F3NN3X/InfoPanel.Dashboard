@@ -1,9 +1,9 @@
 /* The settings pages' color tokens (docs/redesign/app-settings/SPEC.md section 7). The settings window's own
    stylesheet (settings.css) and the studio's (index.css, for Settings › App) both take them from here. */
-/* The icon rail of the desktop Settings and Help sidebars (those with data-narrow): under 700px they show icons only,
+/* The icon rail of the desktop Settings and Help sidebars (those with data-narrow): under 820px they show icons only,
    and open again while the search field has focus. Other uses of NavItem (the browser Settings window) never match. */
 @custom-variant rail {
-  @media (width < 700px) {
+  @media (width < 820px) {
     &:where([data-narrow]:not(:has(input:focus)), [data-narrow]:not(:has(input:focus)) *) {
       @slot;
     }
@@ -57,8 +57,8 @@
   --color-s-amber: var(--ui-warn);
   --color-s-red: var(--ui-danger);
 
-  --color-s-bar-bg: oklch(0.25 0.05 75);
-  --color-s-bar-line: oklch(0.4 0.08 75);
+  --color-s-bar-bg: oklch(0.22 0.04 75);
+  --color-s-bar-line: oklch(0.34 0.06 75);
   --color-s-bar-text: oklch(0.94 0.04 80);
   --color-s-bar-button: oklch(0.86 0.13 80);
 }

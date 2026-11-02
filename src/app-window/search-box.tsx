@@ -28,10 +28,13 @@ interface SearchBoxProps {
   list?: { id: string; activeId?: string };
 }
 
-/** The 34px sidebar search field: a clear button once there is text, the `Ctrl K` hint before. */
+/**
+ * The 34px sidebar search field: a clear button once there is text, the `Ctrl K` hint before. In the icon rail the field
+ * is invisible over its icon: focusing it (a click, Tab or Ctrl K) opens the sidebar, as the rail variant says.
+ */
 export function SearchBox({ inputRef, value, onChange, onKeyDown, label, list }: SearchBoxProps) {
   return (
-    <div className="flex h-(--ui-h-field) items-center gap-2 rounded-ui-menu border border-s-track-line bg-[#141418] px-2.5 rail:justify-center rail:px-0">
+    <div className="relative flex h-(--ui-h-field) items-center gap-2 rounded-ui-menu border border-s-track-line bg-[#141418] px-2.5 focus-within:border-s-accent focus-within:ring-1 focus-within:ring-s-accent forced-colors:focus-within:outline forced-colors:focus-within:outline-2 rail:justify-center rail:px-0">
       <Search className="h-[17px] w-[17px] shrink-0 text-s-dim" />
       <input
         ref={inputRef}
@@ -47,7 +50,7 @@ export function SearchBox({ inputRef, value, onChange, onKeyDown, label, list }:
         })}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={onKeyDown}
-        className="min-w-0 flex-1 rail:hidden border-0 bg-transparent text-body text-s-t1 outline-none placeholder:text-s-dim"
+        className="min-w-0 flex-1 rail:absolute rail:inset-0 rail:w-full rail:cursor-pointer rail:opacity-0 border-0 bg-transparent text-body text-s-t1 outline-none! placeholder:text-s-dim"
       />
       {value ? (
         <button type="button" aria-label="Clear search" onClick={() => onChange("")} className="grid rail:hidden cursor-pointer border-0 bg-transparent p-0 text-s-dim hover:text-s-t1">

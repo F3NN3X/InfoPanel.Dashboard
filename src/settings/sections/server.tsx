@@ -80,6 +80,11 @@ function StatusCard() {
     }
   };
 
+  // The tiles below hold the address and the uptime; the line under the title says who the server is serving.
+  const clients = stats?.clients;
+  const detail = running
+    ? `${clients === undefined ? "The kiosk and studio load from it" : clients === 0 ? "No clients connected" : `Serving ${clients} client${clients === 1 ? "" : "s"}`}${status.owned ? "" : " · started by another program"}`
+    : card.detail;
   const cells = [
     { k: "Address", v: running ? displayAddress(status.host, status.port, lanIp) : "—" },
     { k: "Uptime", v: running && stats?.uptimeMs != null ? formatUptime(stats.uptimeMs) : "—" },
@@ -95,7 +100,7 @@ function StatusCard() {
         </StateTile>
         <div className="flex min-w-[140px] flex-1 flex-col gap-[3px]">
           <span className="text-base font-semibold">{card.title}</span>
-          <span className="text-[12.5px] text-s-muted">{card.detail}</span>
+          <span className="text-caption text-s-muted">{detail}</span>
         </div>
         <div className="flex gap-2">
           {card.canStop && (
@@ -119,7 +124,7 @@ function StatusCard() {
         </div>
       </div>
       {card.callout && (
-        <div role="alert" className="flex flex-wrap items-center gap-2.5 rounded-ui-menu border border-s-red/30 bg-s-red/10 px-3 py-2.5 text-[12.5px] text-[oklch(0.85_0.08_25)]">
+        <div role="alert" className="flex flex-wrap items-center gap-2.5 rounded-ui-menu border border-s-red/30 bg-s-red/10 px-3 py-2.5 text-caption text-[oklch(0.85_0.08_25)]">
           <CircleAlert className="h-[17px] w-[17px] shrink-0" />
           <span className="min-w-[140px] flex-1">{card.callout.message}</span>
           {card.callout.actions.map(act)}
@@ -164,8 +169,8 @@ function ListenRow() {
   return (
     <div ref={found.ref} className={cn("flex flex-col gap-2.5 px-[18px] py-3.5", found.className)}>
       <div className="flex flex-col gap-[3px]">
-        <span className="text-[13.5px] font-medium">Who can connect</span>
-        <span className="text-[12.5px] text-s-muted">Where the kiosk and studio are allowed to load from.</span>
+        <span className="text-body font-medium">Who can connect</span>
+        <span className="text-caption text-s-muted">Where the kiosk and studio are allowed to load from.</span>
       </div>
       <div role="radiogroup" aria-label="Who can connect" className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-2">
         {LISTEN_OPTIONS.map((o) => {
@@ -193,7 +198,7 @@ function ListenRow() {
         })}
       </div>
       {settings.listen === "lan" && (
-        <div className="flex items-start gap-2 text-[12.5px] leading-[1.45] text-[oklch(0.86_0.1_80)]">
+        <div className="flex items-start gap-2 text-caption leading-[1.45] text-[oklch(0.86_0.1_80)]">
           <Shield className="mt-px h-4 w-4 shrink-0" />
           Anyone on your network can open the kiosk and the studio. Windows may ask to allow it through the firewall.
         </div>
@@ -250,7 +255,7 @@ function PortRow() {
         onChange={(e) => setDraft(e.target.value.replace(/\D/g, "").slice(0, 5))}
         onBlur={commit}
         onKeyDown={(e) => e.key === "Enter" && commit()}
-        className={cn("h-(--ui-h-field) w-24 rounded-lg border bg-s-input px-2.5 text-right font-mono text-[13.5px] text-s-t1 outline-none", parsed === null ? "border-s-red" : "border-s-input-line")}
+        className={cn("h-(--ui-h-field) w-24 rounded-lg border bg-s-input px-2.5 text-right font-mono text-body text-s-t1 outline-none", parsed === null ? "border-s-red" : "border-s-input-line")}
       />
     </Row>
   );
@@ -311,7 +316,7 @@ function KioskCard() {
   return (
     <Group title="Kiosk">
       <div ref={found.ref} className={cn("flex flex-col gap-3 rounded-xl border border-s-card-line bg-s-card px-[18px] py-4", found.className)}>
-        <span className="text-[12.5px] leading-[1.45] text-s-muted">Paste this into InfoPanel. It has to use the same port as the server.</span>
+        <span className="text-caption leading-[1.45] text-s-muted">Paste this into InfoPanel. It has to use the same port as the server.</span>
         <div className="flex flex-wrap gap-2">
           <div className="flex h-9 min-w-0 basis-40 flex-1 items-center truncate rounded-lg border border-s-track-line bg-s-win px-3 font-mono text-body">{url}</div>
           <Button size="md" className="h-9" onClick={copy}>

@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import { useStorageKey, useStoredFlag } from "./use-stored-flag";
 
 /**
- * Settings › Studio › Editor's Add panel rows (handoff SPEC §10): the left panel's width, the widget list's
+ * Settings › Studio › Panels' Add panel rows (handoff SPEC §10): the left panel's width, the widget list's
  * density and the hover preview, and the Add list's segment and chip. Saved in this browser (localStorage), followed
  * across windows.
  */

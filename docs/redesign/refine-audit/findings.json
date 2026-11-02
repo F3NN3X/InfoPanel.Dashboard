@@ -501,7 +501,7 @@
   "options": null,
   "why": "ui-ux-pro-max `navigation-consistency`, `container-width`; Waza App shell rules (stable content origin).",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "B-09",
@@ -519,7 +519,7 @@
   "options": null,
   "why": "Waza \"one text style per role\"; ui-ux-pro-max `consistency`, `weight-hierarchy`.",
   "note": "Reopens the first audit's recorded 'two Settings row styles'; the user chose to build it from the prototype.",
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "B-10",
@@ -537,7 +537,7 @@
   "options": null,
   "why": "ui-ux-pro-max `field-grouping`, `progressive-disclosure`; Waza App shell rules.",
   "note": "Reopens the first audit's recorded 'two Settings row styles'; the user chose to build it from the prototype.",
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "B-11",
@@ -555,7 +555,7 @@
   "options": "A) visible hints (recommended); B) keep icons, add a \"Show hints\" switch; C) icons only for rows with an article link.",
   "why": "ui-ux-pro-max `input-helper-text`, `hover-vs-tap`.",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "B-12",
@@ -573,7 +573,7 @@
   "options": null,
   "why": "Waza \"one accent\"; ui-ux-pro-max `nav-state-active`, `nav-hierarchy`.",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "B-13",
@@ -591,7 +591,7 @@
   "options": null,
   "why": "ui-ux-pro-max `primary-action`, `submit-feedback`, `color-not-decorative-only`; Waza \"status colours are semantic\".",
   "note": null,
-  "status": "open"
+  "status": "partial"
  },
  {
   "id": "B-14",
@@ -609,7 +609,7 @@
   "options": null,
   "why": "ui-ux-pro-max `field-grouping`, `touch-spacing`; Waza \"one primary per area\".",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "B-15",
@@ -626,7 +626,7 @@
   "options": null,
   "why": "ui-ux-pro-max `data-density`; Waza \"say it once\".",
   "note": null,
-  "status": "open"
+  "status": "partial"
  },
  {
   "id": "B-16",
@@ -644,7 +644,7 @@
   "options": "A) shorter copy plus the same colour; B) A plus the calmer fill; C) turn the bar into a 32px strip with a text button.",
   "why": "ui-ux-pro-max `toast-dismiss`/`primary-action`; Waza \"one accent per screen\".",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "B-17",
@@ -662,7 +662,7 @@
   "options": null,
   "why": "ui-ux-pro-max `adaptive-navigation`, `breakpoint-consistency`.",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "B-18",
@@ -680,7 +680,7 @@
   "options": null,
   "why": "ui-ux-pro-max `focus-states`, `consistency`; Waza \"one input per job\".",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "B-19",
@@ -698,7 +698,7 @@
   "options": null,
   "why": "ui-ux-pro-max `content-priority`, `progressive-disclosure`.",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "B-20",
@@ -716,7 +716,7 @@
   "options": null,
   "why": "ui-ux-pro-max `line-length-control` (60-75 desktop), `line-height`.",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "B-21",
@@ -734,7 +734,7 @@
   "options": null,
   "why": "ui-ux-pro-max `empty-states`/`search-accessible`; Waza \"label what is a label\".",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "B-22",
@@ -752,7 +752,7 @@
   "options": null,
   "why": "ui-ux-pro-max `color-semantic`; Waza \"status colours are semantic\".",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "B-23",
@@ -770,7 +770,7 @@
   "options": null,
   "why": "ui-ux-pro-max `font-scale`; Waza typography (\"one scale\").",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "B-24",
@@ -788,7 +788,7 @@
   "options": null,
   "why": "ui-ux-pro-max `content-priority`; Waza \"utility mode: orient, show status, enable action\".",
   "note": null,
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "B-25",

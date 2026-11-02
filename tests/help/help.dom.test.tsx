@@ -77,6 +77,31 @@ describe("the help window", () => {
     expect((field as HTMLInputElement).value).toBe("pick port");
   });
 
+  it("opens a task card at its article's heading", async () => {
+    const user = userEvent.setup({ delay: null });
+    render(
+      <EnvProvider value={browserEnv}>
+        <HelpApp />
+      </EnvProvider>
+    );
+    await user.click(within(document.querySelector("main") as HTMLElement).getByRole("button", { name: /Connect OBS/ }));
+    expect(window.location.hash).toBe("#connections/obs");
+    expect(screen.getByRole("heading", { level: 1, name: "Connections" })).toBeTruthy();
+  });
+
+  it("lists every topic on Home under All topics, for a window where the sidebar is icons only", async () => {
+    const user = userEvent.setup({ delay: null });
+    render(
+      <EnvProvider value={browserEnv}>
+        <HelpApp content={content} />
+      </EnvProvider>
+    );
+    const pane = document.querySelector("main") as HTMLElement;
+    await user.click(within(pane).getByText("All topics"));
+    await user.click(within(pane).getByRole("button", { name: "Kiosk and server" }));
+    expect(screen.getByRole("heading", { level: 1, name: "Kiosk and server" })).toBeTruthy();
+  });
+
   it("keeps the search when a late hashchange names the page already shown", async () => {
     const user = userEvent.setup({ delay: null });
     render(

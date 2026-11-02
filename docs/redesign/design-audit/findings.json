@@ -2247,7 +2247,7 @@
       "src/components/studio/settings-studio.tsx vs src/settings/sections/*"
     ],
     "issue": "Studio and Dashboard pages use flat inspector rows; General and Updates use cards.",
-    "fix": "None: Studio and Dashboard reuse the studio's inspector row components, so unifying is a rewrite, not a small change.",
+    "fix": "None: Studio and Dashboard reuse the studio's inspector row components, so unifying is a rewrite, not a small change. Reversed by the refinement audit (B-09, B-10, batch 4): both pages are now cards of the App pages' rows.",
     "sources": [
       "walk"
     ],

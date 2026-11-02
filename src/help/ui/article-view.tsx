@@ -73,7 +73,7 @@ export function ArticleView({ article, content, showToc, active, onOpen, onHome,
           </h1>
         </div>
         {article.lede && (
-          <p className="m-0 mb-2 text-pretty text-[15.5px] leading-[1.6] text-[#b4b4bd]">
+          <p className="m-0 mb-2 max-w-[68ch] text-pretty text-[15.5px] leading-[1.6] text-[#b4b4bd]">
             <InlineText text={article.lede} onOpen={onOpen} />
           </p>
         )}

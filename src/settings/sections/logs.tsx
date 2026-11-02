@@ -20,11 +20,11 @@ const LEVEL_CHIPS: { value: LevelFilter; label: string; dot: string }[] = [
   { value: "all", label: "All", dot: "bg-s-muted" },
   { value: "error", label: "Errors", dot: "bg-s-red" },
   { value: "warn", label: "Warnings", dot: "bg-s-amber" },
-  { value: "info", label: "Info", dot: "bg-[#7fa7ff]" },
-  { value: "debug", label: "Debug", dot: "bg-s-dim" },
+  { value: "info", label: "Info", dot: "bg-s-dim" },
+  { value: "debug", label: "Debug", dot: "bg-s-faint" },
 ];
 
-const LEVEL_TEXT: Record<LogLevel, string> = { error: "text-s-red", warn: "text-s-amber", info: "text-[#7fa7ff]", debug: "text-s-dim" };
+const LEVEL_TEXT: Record<LogLevel, string> = { error: "text-s-red", warn: "text-s-amber", info: "text-s-dim", debug: "text-s-dim" };
 const MESSAGE_TEXT: Record<LogLevel, string> = { error: "text-[oklch(0.85_0.08_25)]", warn: "text-[#d6d6db]", info: "text-[#d6d6db]", debug: "text-s-dim" };
 
 /** What the page remembers of one log between polls. */
@@ -138,7 +138,7 @@ export function LogsSection() {
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Filter lines"
             aria-label="Filter lines"
-            className="min-w-0 flex-1 border-0 bg-transparent text-[12.5px] text-s-t1 outline-none placeholder:text-s-dim"
+            className="min-w-0 flex-1 border-0 bg-transparent text-caption text-s-t1 outline-none placeholder:text-s-dim"
           />
         </div>
       </div>
@@ -148,9 +148,9 @@ export function LogsSection() {
         <div ref={viewer} onScroll={onScroll} role="region" aria-label="Log lines" tabIndex={0} className="h-[420px] overflow-auto py-2.5 font-mono text-xs leading-[1.7]" data-testid="log-viewer">
           <div className="w-max min-w-full">
             {visible.map((l) => (
-              <div key={l.id} className="flex gap-3 whitespace-pre px-3.5 hover:bg-ui-panel">
+              <div key={l.id} className="flex items-baseline gap-3 whitespace-pre px-3.5 hover:bg-ui-panel">
                 <span className="w-[12ch] shrink-0 text-s-dim">{l.ts}</span>
-                <span className={cn("w-10 shrink-0", LEVEL_TEXT[l.level])}>{l.level.toUpperCase()}</span>
+                <span className={cn("w-11 shrink-0 text-micro", LEVEL_TEXT[l.level])}>{l.level.toUpperCase()}</span>
                 <span className={MESSAGE_TEXT[l.level]}>{l.msg}</span>
               </div>
             ))}
