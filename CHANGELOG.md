@@ -6,6 +6,24 @@ version as its notes, so move **Unreleased** under a new `## [X.Y.Z] - YYYY-MM-D
 
 ## [Unreleased]
 
+## [1.3.1-beta.7] - 2026-11-02
+
+### Changed
+
+- **Easier to read and to use without a mouse.** Faint and hint text across Studio, Settings, Help and the widgets now meets contrast guidelines, and control borders and focus rings are easier to see. Arrow keys move through radio, tab and segmented groups; dialogs keep focus inside and return it when they close; the layer list and the command palette work with screen readers; and Windows High Contrast mode shows switches and selected items. Reduce motion in Windows now stops animations everywhere, and a background video shows a still frame instead.
+- **One type scale.** Studio, Settings and Help share one set of text sizes, corners and control heights, widget text is never smaller than 11px, and Settings and Help fold to an icon rail in a narrow window.
+- **The kiosk tells you what it's waiting for.** It says when it's waiting for data or when the Data API is disconnected, instead of staying blank. Page dots can be tapped, and a Pause/Play button appears when you touch the screen or press a key.
+- **Bigger widgets use their room.** At 4x4, Calendar, Notifications, CPU and GPU Monitor, Disk I/O, Uptime and more show extra detail instead of empty space. Sparklines can mark their lowest and highest points, Calendar rows size to fit, and nixie numerals get a stroke and glow.
+- **Widget settings are easier to find.** A widget's own options, such as the Stream Deck's key look, Now Playing's blurred cover and the scrims, moved from **Style** › **Widget colors** to **Show**. Your saved settings don't change.
+- **Clearer messages.** Empty states say what to do next, and a failed update says whether checking, downloading or installing went wrong.
+
+### Fixed
+
+- Settings no longer turns black when it can't load its settings.
+- The import dialog asks before discarding unsaved changes.
+- FPS widgets show "–" instead of "0" while there's no 1% low reading yet.
+- When the dashboard server stops answering, the Stream Deck widget says it's reconnecting instead of showing stale keys, and lets go of a held key. Two fingers on one key no longer send it twice, and a refused action shows a plain message.
+
 ## [1.3.1-beta.6] - 2026-11-01
 
 ### Added
