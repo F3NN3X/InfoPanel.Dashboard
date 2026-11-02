@@ -14,7 +14,7 @@ export type LeftTab = "layers" | "add";
 interface DesignLeftPanelProps {
   tab: LeftTab;
   onTab: (tab: LeftTab) => void;
-  /** The panel's width (Settings › Studio › Editor › Left panel width). */
+  /** The panel's width (Settings › Studio › Panels › Left panel width). */
   width: number;
   layers: LayersHost;
   add: ComponentProps<typeof AddPanelView>;

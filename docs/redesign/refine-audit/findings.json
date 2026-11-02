@@ -104,7 +104,7 @@
   "suggest": "(1) drop the second segmented row into the category chips (add \"InfoPanel\" as a chip); (2) make the chip row `overflow-x-auto` with a right fade so \"Mi...\" is not guillotined; (3) tile names `line-clamp-2` at 12px with the variant suffix on a second line instead of \"...\", and show a 56px mini-render of the widget (from the QA fixture) instead of the generic category icon.",
   "options": "A) previews only on hover card; B) previews in tiles always (heavier); C) keep icons, fix names only.",
   "why": "Waza \"filters earn their row\"; uupm ux \"progressive disclosure, no label truncation\".",
-  "note": null,
+  "note": "Live previews in tiles: won't fix, the hover card already renders the widget live; the palette-group chips come back in batch 11.",
   "status": "partial"
  },
  {
@@ -877,8 +877,8 @@
   "suggest": "NetworkThroughput 2x2+ show the mirrored down/up Spark (flex-1, min 64px) between hero rows and the totals; 4x4 hero px as C-01. DiskIO 4x2: hero total at left (48px) + per-disk bars at right, matching CPU 4x2 pattern. NetworkAdapters 4x4: add per-adapter rx/tx rate in the right column (Mono 11px, right-aligned) and use row height `1fr` up to 64px.",
   "options": null,
   "why": "Waza \"disclose supplementary records, not the answer\"; \"check sparse and typical data without padding gaps\".",
-  "note": null,
-  "status": "partial"
+  "note": "Per-adapter rx/tx: won't fix, the plugin sends no such keys. The trend at 2x2 and 4x2 follows the user's `sparkline` setting by design.",
+  "status": "wont_fix"
  },
  {
   "id": "C-05",
@@ -1129,8 +1129,8 @@
   "suggest": "4x4: ring 220px with 56px hero, then a list of the last 3 unlocks (icon 32px, name 14px, date mono 11px right). 4x2 as today.",
   "options": null,
   "why": "sparse frame check (Waza data-viz); fills with data the widget already has.",
-  "note": null,
-  "status": "partial"
+  "note": "The unlock list: won't fix, the plugin reports only the latest unlock.",
+  "status": "wont_fix"
  },
  {
   "id": "C-19",
@@ -1147,8 +1147,8 @@
   "suggest": "2x2: put destination on a second 11px line under \"2 min [13]\" so it never truncates; 4x4: row pitch `h/(rows+1)` up to 56px, minutes 22px, destination 15px; wrap \"Updated 12:04\" into the header right slot (\"12:04\" in muted mono).",
   "options": null,
   "why": "ui-ux-pro-max truncation; Waza right-align numbers (minutes) with left labels.",
-  "note": null,
-  "status": "partial"
+  "note": "\"Updated\" stays in the footer: won't fix, the `Widget` header has no right slot and adding one isn't worth it.",
+  "status": "wont_fix"
  },
  {
   "id": "C-20",

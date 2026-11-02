@@ -679,17 +679,17 @@ overlay, Gauge row, Clock + date, Label / value list. Theme token presets: §5.4
 | Key | What | Values | Default | Target |
 |---|---|---|---|---|
 | `studio.dockCollapsed` | Docked inspector collapsed (Ctrl+\) (`use-studio-layout.ts:15`) | `1` / unset | expanded | the inspector's collapse tab; Ctrl+\ |
-| `studio.quickBar` | Quick bar shown (`inspector-prefs.ts`) | `true` / `false` | `true` | Settings › Studio › Editor › Quick bar |
-| `studio.accordion` | Inspector sections: one open or many (`inspector-prefs.ts`) | one, many | `one` | Settings › Studio › Editor › Inspector sections |
-| `studio.inspector.advanced` | Show every inspector setting, including ones the theme controls (`inspector-prefs.ts`) | `true` / `false` | `false` | Settings › Studio › Editor › Advanced settings |
+| `studio.quickBar` | Quick bar shown (`inspector-prefs.ts`) | `true` / `false` | `true` | Settings › Studio › Panels › Quick bar |
+| `studio.accordion` | Inspector sections: one open or many (`inspector-prefs.ts`) | one, many | `one` | Settings › Studio › Panels › Inspector sections |
+| `studio.inspector.advanced` | Show every inspector setting, including ones the theme controls (`inspector-prefs.ts`) | `true` / `false` | `false` | Settings › Studio › Panels › Advanced settings |
 | `studio.quickPins` | Pinned quick-bar settings per widget type, max 6 (`inspector-prefs.ts`) | map | unset (a default set applies) | Pin button on each inspector row |
 | `studio.inspectorTabs` | The open inspector tab per context (`inspector-prefs.ts`) | map | the first tab | the tab strip |
-| `studio.editor.leftPanelWidth` | Design's left panel width (`add-prefs.ts`; the old `studio.drawerWidth` px value moves to the nearest option) | `narrow` (300 px), `default` (340), `wide` (380) | `default` | Settings › Studio › Editor › Left panel width |
-| `studio.editor.addListDensity` | Add widget list (`add-prefs.ts`) | `comfortable`, `compact` | `comfortable` | Settings › Studio › Editor › Widget list |
-| `studio.editor.addPreviewOnHover` | Add widget preview while hovering (`add-prefs.ts`) | boolean | on | Settings › Studio › Editor › Preview on hover |
+| `studio.editor.leftPanelWidth` | Design's left panel width (`add-prefs.ts`; the old `studio.drawerWidth` px value moves to the nearest option) | `narrow` (300 px), `default` (340), `wide` (380) | `default` | Settings › Studio › Panels › Left panel width |
+| `studio.editor.addListDensity` | Add widget list (`add-prefs.ts`) | `comfortable`, `compact` | `comfortable` | Settings › Studio › Panels › Widget list density |
+| `studio.editor.addPreviewOnHover` | Add widget preview while hovering (`add-prefs.ts`) | boolean | on | Settings › Studio › Panels › Preview on hover |
 | `studio.pinnedProfile` | The profile the studio edits: the selected card (`pinned-profile.ts:7`) | profile id | the profile the window size picks | Screens (card click) |
-| `studio.grid`, `studio.rulers` | Canvas grid and rulers shown (`use-stored-flag.ts`) | `1` / `0` | `1` | zoom bar; Settings › Studio › Editor › Show grid, Show rulers |
-| `studio.zoom` | Canvas zoom: `fit` or a factor 0.25 to 2 (`zoom-pref.ts`) | | `fit` | zoom bar; Settings › Studio › Editor › Default zoom |
+| `studio.grid`, `studio.rulers` | Canvas grid and rulers shown (`use-stored-flag.ts`) | `1` / `0` | `1` | zoom bar; Settings › Studio › Canvas › Show grid, Show rulers |
+| `studio.zoom` | Canvas zoom: `fit` or a factor 0.25 to 2 (`zoom-pref.ts`) | | `fit` | zoom bar; Settings › Studio › Canvas › Default zoom |
 | `studio.tipDismissed` | First-run tips card dismissed (`quick-tips.ts`) | `1` | unset | the tips card |
 | `infopanel.studio.profile-shots` | Screen thumbnail cache (`src/lib/profile-shot-cache.ts:13`) | map | unset | Screens cards (automatic) |
 | `studio.addPanel.recent` | Recently placed widgets in Add (`add-recent.ts:4`) | list | unset | Add (automatic) |

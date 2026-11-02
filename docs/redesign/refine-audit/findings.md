@@ -2,7 +2,7 @@
 
 The second design pass (November 2026), run with the Waza `ui` skill and ui-ux-pro-max against the locked direction: dark, dense, Geist, a white primary and one blue accent. Per-surface audits: [A](A.md) Studio, [B](B.md) Settings, Help and kiosk, [C](C.md) and [D](D.md) widgets. 94 suggestions; the user chose to build all of them.
 
-Prototypes (W1–W8 and some A-/B- IDs) were built on throwaway `proto/<id>` branches to show before/after; a `group` names the prototype a row was merged into. Status: open, fixed, partial or no_change_needed, with the reason in the batch notes.
+Prototypes (W1–W8 and some A-/B- IDs) were built on throwaway `proto/<id>` branches to show before/after; a `group` names the prototype a row was merged into. Status: open, fixed, partial, wont_fix or no_change_needed, with the reason in the batch notes.
 
 | ID | Batch | Group | Impact | Effort | Title | Status |
 |---|---|---|---|---|---|---|
@@ -100,3 +100,10 @@ Prototypes (W1–W8 and some A-/B- IDs) were built on throwaway `proto/<id>` bra
 | D-22 | 2b |  | med | M | StreamDeck 2x2: 15 blank 30 px buttons | fixed |
 | D-23 | 2b |  | low | S | SteamProfile 2x2: no avatar, hero is a 15 px name | fixed |
 | D-24 | 2b |  | low | S | Uptime: days are accent, other units white | fixed |
+
+## Closing notes
+
+- A-06: Live previews in tiles: won't fix, the hover card already renders the widget live; the palette-group chips come back in batch 11.
+- C-04: Per-adapter rx/tx: won't fix, the plugin sends no such keys. The trend at 2x2 and 4x2 follows the user's `sparkline` setting by design.
+- C-18: The unlock list: won't fix, the plugin reports only the latest unlock.
+- C-19: "Updated" stays in the footer: won't fix, the `Widget` header has no right slot and adding one isn't worth it.

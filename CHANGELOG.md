@@ -6,6 +6,17 @@ version as its notes, so move **Unreleased** under a new `## [X.Y.Z] - YYYY-MM-D
 
 ## [Unreleased]
 
+### Changed
+
+- **A refinement pass over Studio, Settings, Help, the kiosk and the widgets.** Widget text grows with the frame: at 4x4 the main number and body text scale up, at 2x2 the main number fills the top half, and list rows fill the height. Rings, sparklines (with gridlines and a Peak/Avg/Min row) and units look the same across widgets. ServiceHealth, StatusTracker, Thermals and SteamNews lead with a summary number at 4x4, bar widgets in square frames stack into tiles, and the Audio and OBS buttons and the mixers share one design.
+- **The kiosk island fits the panel.** It sizes itself from the window, takes the skin's colour and can be placed as part of the skin or as an overlay. Frames sit a little in from the display edge, with a per-screen option to touch the edge. Saved islands and status bars stay as they were.
+- **Settings pages share one layout.** Every page uses cards with one heading style, Studio is split into **Canvas** and **Panels**, hints show as text, and the search box can be focused. Help opens on task paths; every article is still in the sidebar and in search.
+- **Studio is tidier.** Screens cards draw the screen's layout until a screenshot exists, and a screen with several pages shows a strip of page maps that opens Edit on that page. The command palette is grouped, with recent items and key hints. The Add panel puts InfoPanel items in a chip next to All, and the Layers list is quieter.
+
+### Fixed
+
+- The kiosk status bar no longer cuts its readings to "14..." when there is room for them.
+
 ## [1.3.1-beta.7] - 2026-11-02
 
 ### Changed
