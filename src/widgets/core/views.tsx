@@ -3,7 +3,7 @@
 import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { labelStyle } from "@/components/widget-style";
 import { clamp, fmt } from "./data";
-import { fitRows } from "./layout";
+import { fitRows, tileHero } from "./layout";
 import { mix } from "./tokens";
 import { useSkin, TONES, numGlowStyle } from "./theme";
 import { Icon, Bar, Ring, Spark, Img, UNIT_CLASS, RING_TEXT, isWordUnit } from "./primitives";
@@ -34,7 +34,7 @@ export function CompactView({ c, shape, w, h, icon }: { c: Compact; shape: Shape
   const textLen = String(val ?? "–").length + (inlineUnit ? String(inlineUnit).length * 0.4 : 0);
   const fit = (base: number, avail: number) => ({ fontSize: Math.round(Math.max(13, Math.min(base, avail / (Math.max(2.5, textLen) * 0.62 * (sk.numWide ?? 1))))) });
   const value = (cls: string, base?: number, avail = 0) => (
-    <span {...c.ip} className={`${cls} block max-w-full overflow-x-clip whitespace-nowrap font-semibold leading-none tracking-tight tabular-nums`} style={{ ...(base ? fit(base, avail) : null), fontFamily: sk.num, fontWeight: sk.numWeight, ...(sk.numGlow ? { ...NUM_TINT, ...numGlowStyle(sk) } : null), ...(c.t && c.t !== "ok" ? { color: TONES[c.t] } : null), ...(none ? NO_VALUE : null) }}>
+    <span {...c.ip} className={`${cls} ${c.blur ? "blur-[4px] hover:blur-0" : ""} block max-w-full overflow-x-clip whitespace-nowrap font-semibold leading-none tracking-tight tabular-nums`} style={{ ...(base ? fit(base, avail) : null), fontFamily: sk.num, fontWeight: sk.numWeight, ...(sk.numGlow ? { ...NUM_TINT, ...numGlowStyle(sk) } : null), ...(c.t && c.t !== "ok" ? { color: TONES[c.t] } : null), ...(none ? NO_VALUE : null) }}>
       {val ?? "–"}
       {inlineUnit && !none && <span className={UNIT_CLASS}>{inlineUnit}</span>}
     </span>
@@ -115,7 +115,7 @@ export function CompactView({ c, shape, w, h, icon }: { c: Compact; shape: Shape
   // tile (1×1) — w/h are the outer size; below ~130px drop the sub line so value + graph always fit
   const tiny = h < 132 || w < 132;
   // a 2x2 centres a hero of about a quarter of the height between the label and the graph, not at the bottom edge
-  const hero = w >= 200 && h >= 200 && w < 340;
+  const hero = tileHero(w, h);
   return (
     <div className="flex h-full min-w-0 flex-col">
       {label}
@@ -134,7 +134,7 @@ export function CompactView({ c, shape, w, h, icon }: { c: Compact; shape: Shape
       ) : (
         <>
           <div className={`${hero ? "my-auto" : "mt-auto"} flex flex-col gap-1`}>
-            {textVal ? <span {...c.ip} className={`${tiny ? "text-body" : "text-sm"} line-clamp-2 font-semibold leading-tight`}>{val}</span> : value("", tiny ? 22 : hero ? Math.round(h * 0.26) : w < 160 || h < 160 ? 24 : 34, w - 26)}
+            {textVal ? <span {...c.ip} className={`${tiny ? "text-body" : "text-sm"} ${c.blur ? "blur-[4px] hover:blur-0" : ""} line-clamp-2 font-semibold leading-tight`}>{val}</span> : (hero && c.lead ? <div className="flex min-w-0 items-center gap-3">{c.lead}{value("", Math.round(h * 0.26), w - 26 - 52)}</div> : value("", tiny ? 22 : hero ? Math.round(h * 0.26) : w < 160 || h < 160 ? 24 : 34, w - 26))}
             {caption}
             {c.sub && !(tiny && (kind === "spark" || kind === "bar" || textVal)) && <span className="truncate text-micro text-[color:var(--w-faint)]">{c.sub}</span>}
           </div>

@@ -1,8 +1,9 @@
-import { useState, type SubmitEvent } from "react";
+import { useRef, useState, type SubmitEvent } from "react";
 import { chatRefusal, chatSend, useChat, type ChatBadge, type ChatPlatform } from "@/lib/chat";
 import type { ModuleSettings } from "@/modules/types";
 import { Widget, shell, fmt, Icon, Chip, Dot, Empty, hue, STATE, type ShellProps } from "./kit";
 import { canSend, mentions, mergeChat, nameHue, platformsOf, sendTarget, type ChatSource } from "./StreamChat/merge";
+import { useWholeRows } from "./StreamChat/whole-rows";
 import { useExtras } from "./time-hooks";
 import { meta } from "./meta/StreamChat";
 
@@ -35,8 +36,10 @@ export default function StreamChat(p: StreamChatProps) {
   const readOnly = chatRefusal.use();
   const [draft, setDraft] = useState("");
   const [error, setError] = useState("");
+  const list = useRef<HTMLDivElement>(null);
   const source = p.source ?? "twitch";
   const msgs = mergeChat(chat.messages, source, p.maxMessages ?? 60);
+  useWholeRows(list, 3, msgs.length > 0);
   const from = platformsOf(source);
   const viewers = (from.includes("twitch") && twitch?.signedIn ? twitch.viewers : 0) + (from.includes("youtube") && youtube?.signedIn ? youtube.viewers : 0);
   const live = (from.includes("twitch") && twitch?.live === true) || (from.includes("youtube") && youtube?.live === true);
@@ -78,8 +81,8 @@ export default function StreamChat(p: StreamChatProps) {
                 <Empty icon="forum" label={signedIn ? "No messages yet" : `Sign in to ${source === "youtube" ? "YouTube" : "Twitch"} in Settings › Connections`} />
               </div>
             ) : (
-              // Newest at the bottom; older lines fade out at the top instead of being sliced mid-line.
-              <div className="flex min-h-0 flex-1 flex-col justify-end gap-[3px] overflow-hidden" style={{ maskImage: "linear-gradient(to bottom, transparent 0, #000 18px)", WebkitMaskImage: "linear-gradient(to bottom, transparent 0, #000 18px)" }}>
+              // Newest at the bottom; only whole messages show, and the top one fades out.
+              <div ref={list} className="flex min-h-0 flex-1 flex-col justify-end gap-[3px] overflow-hidden" style={{ maskImage: "linear-gradient(to bottom, transparent 0, #000 18px)", WebkitMaskImage: "linear-gradient(to bottom, transparent 0, #000 18px)" }}>
                 {msgs.map((m) => (
                   <div
                     key={m.id}

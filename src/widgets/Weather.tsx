@@ -3,7 +3,7 @@ import { weatherKind, type WeatherKind } from "@/lib/weather-icons";
 import { windValue } from "./weather-fx/config";
 import { WeatherFx, type WeatherFxOpts } from "./weather-fx/WeatherFx";
 import Forecast from "./Forecast";
-import { Widget, shell, get, num, fmt, has, rows, roomy, Stat, Num, WeatherGlyph, weatherIcon, useIpTag, type ShellProps, type WeatherIconProps } from "./kit";
+import { Widget, shell, get, num, fmt, has, rows, roomy, squareHero, Stat, Num, WeatherGlyph, weatherIcon, useIpTag, type ShellProps, type WeatherIconProps } from "./kit";
 import { WeatherGlance, WeatherWeek, weekDays } from "./WeatherViews";
 import { meta } from "./meta/Weather";
 
@@ -108,7 +108,15 @@ function Current(p: WeatherProps) {
       )}
       title={p.title ?? (has(k("name")) ? k("name") : "Weather")}
       icon="location_on"
-      compact={{ label: has(k("name")) ? k("name") : "Weather", value: `${fmt(T(temp), 0)}°`, sub: `${k("weather_desc")}${feelsText}`, icon, kind: "value" }}
+      compact={(box) => ({
+        label: has(k("name")) ? k("name") : "Weather",
+        value: `${fmt(T(temp), 0)}°`,
+        sub: `${k("weather_desc")}${feelsText}`,
+        icon,
+        kind: "value",
+        // a square-ish 2x2 has the room for the condition beside the temperature
+        ...(box.shape === "tile" && squareHero(box.w, box.h) ? { lead: <WeatherGlyph {...cond} {...icons} fill size={40} className="shrink-0 text-[40px] text-[color:var(--accent)]" /> } : null),
+      })}
       right={has(k("last_refreshed")) && <span className="font-mono text-micro text-[color:var(--w-muted)]">{String(k("last_refreshed")).slice(11)}</span>}
     >
       {({ size, w, h }) => {

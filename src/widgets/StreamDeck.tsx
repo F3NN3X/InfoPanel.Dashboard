@@ -117,10 +117,10 @@ function Key({ index, title, icon, on, size, titles, wrap, look, skin, accent, o
       {face.overlay && <div aria-hidden className={`pointer-events-none absolute inset-0 ${face.overlay.className}`} style={{ ...face.overlay.style, borderRadius: radius }} />}
       {titles > 0 && title && (
         <span
-          className={`pointer-events-none relative max-w-full text-center font-semibold leading-tight ${wrap ? "line-clamp-2 overflow-hidden px-0.5 leading-[1.1]" : "truncate px-1"}`}
+          className={`pointer-events-none relative max-w-full text-center font-semibold leading-tight ${wrap ? "line-clamp-2 overflow-hidden px-0.5 leading-[1.1] [overflow-wrap:anywhere]" : "truncate px-1"}`}
           style={{
-            // a wrapped title never splits a word: the longest one sets the size (down to 8px)
-            fontSize: wrap ? Math.max(8, Math.min(titles, Math.floor((size - 4) / (Math.max(...title.split(/\s+/).map((x) => x.length)) * 0.62)))) : titles,
+            // a wrapped (window) title stays at the 11px floor: a word wider than the key breaks and the two lines end in an ellipsis
+            fontSize: titles,
             // Over an icon the title is white with a shadow, as the app draws it; on a bare key it takes the surface's text colour.
             color: shown ? "#fff" : "var(--w-fg)",
             textShadow: shown ? "0 1px 3px rgba(0,0,0,.85)" : undefined,

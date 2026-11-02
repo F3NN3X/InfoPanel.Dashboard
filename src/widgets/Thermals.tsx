@@ -1,7 +1,7 @@
 import { readSystemFlat } from "@/lib/system-metrics";
 import { inUnit } from "@/modules/setting-readers";
 import type { ModuleSettings } from "@/modules/types";
-import { fillRows, roomy, SummaryHero, SUMMARY_H, useFitRows, Widget, shell, get, num, fmt, diskShort, tone, TONES, useHistory, Empty, Ring, Num, ToneCue, slideX, hw, type Tone, type ShellProps } from "./kit";
+import { afterHero, fillRows, roomy, SummaryHero, SUMMARY_H, useFitRows, Widget, shell, get, num, fmt, diskShort, tone, TONES, useHistory, Empty, Ring, Num, ToneCue, slideX, hw, type Tone, type ShellProps } from "./kit";
 import { readings } from "./hardware-readings";
 import { meta } from "./meta/Thermals";
 
@@ -111,12 +111,14 @@ export default function Thermals(p: ThermalsProps) {
         // roomy: the hottest reading on top as the summary, the bars under it
         const big = roomy(w, h),
           listH = big ? h - SUMMARY_H : h;
+        // the hero is the first reading, so the bars under it start at the second
+        const rows = afterHero(list, big);
         const n = useFitRows(listH, size === "lg" || big ? 20 : 16, 10);
         const narrow = w > 0 && w < 180;
-        const fill = fillRows(listH, Math.min(list.length, n), 20, 10, big);
+        const fill = fillRows(listH, Math.min(rows.length, n), 20, 10, big);
         const bars = (
           <ul className={`flex ${big ? "min-h-0 flex-1" : "h-full"} flex-col gap-2.5 overflow-hidden ${fill.spread ? "justify-evenly" : "justify-center"}`}>
-            {list.slice(0, n).map((x) => (
+            {rows.slice(0, n).map((x) => (
               <li key={x.id} style={{ minHeight: fill.rowH }} className={`grid items-center text-caption leading-[1.333] ${narrow ? "grid-cols-[minmax(0,1fr)_auto] gap-2" : "grid-cols-[minmax(40px,90px)_minmax(0,1fr)_48px] gap-3"}`}>
                 <span className="truncate text-[color:var(--w-fg)]">{x.label}</span>
                 {!narrow && (

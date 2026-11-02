@@ -95,6 +95,15 @@ describe("views", () => {
     expect(inCtx(h(CompactView, { c: { ...compact, img: "/a.png" }, shape: "tile", w: 150, h: 150 }))).toContain("/a.png");
   });
 
+  it("blurs the compact value when the card asks (Hide IP), as a text card and as a hero", () => {
+    for (const kind of ["text", "value"] as const) {
+      const quiet = inCtx(h(CompactView, { c: { ...compact, value: "192.0.2.1", kind }, shape: "tile", w: 228, h: 228 }));
+      const hidden = inCtx(h(CompactView, { c: { ...compact, value: "192.0.2.1", kind, blur: true }, shape: "tile", w: 228, h: 228 }));
+      expect(quiet).not.toContain("blur-[4px]");
+      expect(hidden).toContain("blur-[4px] hover:blur-0");
+    }
+  });
+
   it("glides line graphs with Graph updates: Smooth, and keeps them static when Stepped", () => {
     const spark = (smoothing: string) =>
       renderToString(h(SkinCtx.Provider, { value: skinContext("default", { chrome: chromeOf({ smoothing }) }) }, h(Spark, { values: [1, 5, 3, 8, 6, 4], graph: "line" })));

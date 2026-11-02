@@ -52,7 +52,7 @@ Prototypes (W1–W8 and some A-/B- IDs) were built on throwaway `proto/<id>` bra
 | B-24 | 4 |  | med | M | Help home as task paths | fixed |
 | B-25 | 3 |  | med | L | Island that follows the skin (User: optional, island either part of the skin or an overlay. Existing islands stay overlay.) | fixed |
 | C-01 | 1 | W1 | high | M | Hero number scales with the box in 4x4 | fixed |
-| C-02 | 1 | W1 | high | M | 2x2 frames: lift the hero to the optical centre, cut the empty top | partial |
+| C-02 | 1 | W1 | high | M | 2x2 frames: lift the hero to the optical centre, cut the empty top | fixed |
 | C-03 | 2a | W4 | high | S | One button-tile primitive that scales (AudioButton, ObsButton) | fixed |
 | C-04 | 2a |  | high | M | Fill the large span with the data that was dropped (NetworkThroughput, DiskIO 4x2, NetworkAdapters) | partial |
 | C-05 | 2a |  | med | S | Hide the title at 1x1 (or show icon only) instead of truncating | fixed |
@@ -62,7 +62,7 @@ Prototypes (W1–W8 and some A-/B- IDs) were built on throwaway `proto/<id>` bra
 | C-09 | 1 |  | med | M | Per-stat label style unified (mono uppercase micro vs sentence-case) | partial |
 | C-10 | 2a |  | med | S | DriveSpace: one bar colour logic and use the 4x4 height | partial |
 | C-11 | 2a |  | med | M | Fans 4x4: use the tall cards | fixed |
-| C-12 | 2a |  | med | S | MeterBridge: stop truncating channel names in 4x4 and 4x2 | partial |
+| C-12 | 2a |  | med | S | MeterBridge: stop truncating channel names in 4x4 and 4x2 | fixed |
 | C-13 | 2a |  | high | M | AudioMeter / AudioFader: use the width and height at 4x2 and 4x4 | fixed |
 | C-14 | 2a |  | med | S | Redundant header chip and sub-title (Bluetooth, Notifications) | fixed |
 | C-15 | 2a |  | med | S | CoreHeatmap: label contrast and left-aligned grid | fixed |
@@ -77,12 +77,12 @@ Prototypes (W1–W8 and some A-/B- IDs) were built on throwaway `proto/<id>` bra
 | C-24 | 2a |  | med | S | Clock 4x4: big time uses the frame | fixed |
 | C-25 | 2a |  | med | S | BottleneckLens 4x4: the empty verdict history bar | fixed |
 | D-01 | 1 | W1 | high | M | Grow body type with the span (a shared scale variable) | partial |
-| D-02 | 1 | W1 | high | M | Hero value scales with the box on 2x2 and fills the dead top half | partial |
+| D-02 | 1 | W1 | high | M | Hero value scales with the box on 2x2 and fills the dead top half | fixed |
 | D-03 | 1 | W6 | high | M | One "rows fill the height" rule for list widgets at 4x4 | fixed |
 | D-04 | 2b |  | high | M | 4x4 gets a summary hero on top of the detail (ServiceHealth, StatusTracker, Thermals, SteamNews) | fixed |
 | D-05 | 2b | W7 | high | M | Bar-type widgets in square frames: stack instead of a tiny strip | fixed |
 | D-06 | 1 | W3 | high | M | Area sparks: scale, gridlines and a height cap | fixed |
-| D-07 | 1 |  | med | S | Sparkline sits behind the value text in Vitals 4x2 (and compact Vitals tiles) | partial |
+| D-07 | 1 |  | med | S | Sparkline sits behind the value text in Vitals 4x2 (and compact Vitals tiles) | fixed |
 | D-08 | 1 | W2 | high | M | A single ring spec for every gauge | fixed |
 | D-09 | 2b | W8 | high | M | Colour means status OR series, never both (SystemOverview) | fixed |
 | D-10 | 2b |  | med | S | Empty/idle states: use the kit `Empty` everywhere, with an action line | fixed |
@@ -90,7 +90,7 @@ Prototypes (W1–W8 and some A-/B- IDs) were built on throwaway `proto/<id>` bra
 | D-12 | 2b |  | med | S | SessionStats 4x2 table: header row and columns at 9-10 px | fixed |
 | D-13 | 1 |  | med | S | One unit style (size, gap, colour) for hero numbers | fixed |
 | D-14 | 2a | W5 | med | S | Text over art needs a scrim (SteamGame) | fixed |
-| D-15 | 2b |  | low | S | StreamChat clips a message mid-line at the top | partial |
+| D-15 | 2b |  | low | S | StreamChat clips a message mid-line at the top | fixed |
 | D-16 | 2b |  | med | S | Timer idle state: show the time, not three small chips in blank space | fixed |
 | D-17 | 2b |  | med | M | Weather 4x4 and 2x2 now-block is small beside the 4x4 forecast | fixed |
 | D-18 | 2b |  | med | M | StatusTracker and ThresholdTimeline lanes carry little when history is short | fixed |

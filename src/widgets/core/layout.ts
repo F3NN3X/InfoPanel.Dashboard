@@ -96,6 +96,15 @@ export const ROOMY_SCALE = 1.25;
 /** The hero numeral's size in px in a roomy box: a share of the width, held under a share of the height. */
 export const heroPx = (w: number, h: number): number => Math.round(Math.min(w * 0.22, h * 0.2));
 
+/** A 2x2-sized card (about 200 to 340px): its compact view centres a hero between the label and the graph. */
+export const tileHero = (w: number, h: number): boolean => w >= 200 && h >= 200 && w < 340;
+
+/** A square-ish 2x2 card: `tileHero`, and the sides within a quarter of the width of each other. */
+export const squareHero = (w: number, h: number): boolean => tileHero(w, h) && Math.abs(w - h) <= w * 0.25;
+
+/** The bars under a roomy summary hero: the hero is the first reading, so they start at the second (a lone reading stays). */
+export const afterHero = <T,>(list: readonly T[], hero: boolean): readonly T[] => (hero && list.length > 1 ? list.slice(1) : list);
+
 export const pickBy = <T,>(size: Tier, map: Partial<Record<Tier, T>> & { md: T }): T => map[size] ?? map.md;
 
 /**

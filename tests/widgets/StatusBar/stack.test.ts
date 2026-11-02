@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
+import type { ItemKey } from "@/widgets/StatusBar/item-keys";
 import { stacksIn } from "@/widgets/core/layout";
-import { stackTiles } from "@/widgets/StatusBar/Stack";
+import { stackShown, stackTiles } from "@/widgets/StatusBar/Stack";
 
 describe("stacksIn", () => {
   it("stacks a zone that is not a strip and tall enough for tiles, and leaves strips and tiles alone", () => {
@@ -16,5 +17,14 @@ describe("stackTiles", () => {
   it("keeps each item once, in slot order, and skips the ones with no value (a logo, a card)", () => {
     const tiles = stackTiles(["logo", "time", "time", "network"], { logo: { icon: "monitor" }, time: { value: "14:05" }, network: { icon: "wifi", parts: ["a", "b"] } });
     expect(tiles.map((t) => [t.k, t.value])).toEqual([["time", "14:05"], ["network", "a b"]]);
+  });
+});
+
+describe("stackShown", () => {
+  it("drops the lowest priority first, the last on a tie, and keeps slot order", () => {
+    const tiles = ["fps", "time", "cpuRing", "network", "gpuRing", "volume"].map((k) => ({ k: k as ItemKey }));
+    expect(stackShown(tiles, 4, true).map((t) => t.k)).toEqual(["fps", "time", "cpuRing", "gpuRing"]);
+    expect(stackShown(tiles, 4, false).map((t) => t.k)).toEqual(["fps", "time", "cpuRing", "network"]);
+    expect(stackShown(tiles, 8, true)).toHaveLength(6);
   });
 });

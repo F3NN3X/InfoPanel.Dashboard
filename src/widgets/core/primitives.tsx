@@ -17,6 +17,7 @@ import { appIconName, weatherKind } from "@/lib/weather-icons";
 import { RangeEaser, SmoothScroll, scrollWaitMs, useAnimationFrame, type ScrollPoint } from "./smoothing";
 import { HISTORY_LEN, RoomyCtx } from "./layout";
 import { scaleX, slideX } from "./motion";
+import { HOLD_PX, holdPct } from "./hold";
 
 /* ───────── primitives ───────── */
 // Material Symbols names rendered as lucide icons (see icons.ts); sized by the font size like the glyphs were.
@@ -904,15 +905,20 @@ export function Logo({ src, name, className = "", size = "text-3xl", ip }: { src
   return <img src={src} alt={name} onError={() => setBad(true)} {...ip} className={`object-contain object-left drop-shadow-[0_4px_18px_rgba(0,0,0,.7)] ${className}`} />;
 }
 
-/** A peak-hold tick at `at` % along a meter. A full-size wrapper slides with transform (percent of itself = of the meter). */
+/**
+ * A peak-hold tick at `at` % along a meter, kept inside it: a clip box holds a wrapper that is the meter less the tick's thickness,
+ * slid with transform (percent of itself), so the tick ends flush with the meter at 100 %.
+ */
 export function HoldMark({ at, vertical }: { at: number; vertical?: boolean }) {
+  const pct = holdPct(at);
   return (
-    <span
-      aria-hidden
-      className="pointer-events-none absolute inset-0 transition-transform duration-150"
-      style={{ transform: vertical ? `translateY(${-at}%)` : `translateX(${at}%)` }}
-    >
-      <span className="absolute rounded-full bg-[color:var(--w-fg)]" style={vertical ? { bottom: -1, left: -1, right: -1, height: 2 } : { left: -1, top: -1, bottom: -1, width: 2 }} />
+    <span aria-hidden data-qa-bleed className="pointer-events-none absolute inset-0 overflow-hidden">
+      <span
+        className="absolute transition-transform duration-150"
+        style={vertical ? { inset: `${HOLD_PX}px 0 0 0`, transform: `translateY(${-pct}%)` } : { inset: `0 ${HOLD_PX}px 0 0`, transform: `translateX(${pct}%)` }}
+      >
+        <span className="absolute rounded-full bg-[color:var(--w-fg)]" style={vertical ? { bottom: 0, left: 0, right: 0, height: HOLD_PX } : { left: 0, top: 0, bottom: 0, width: HOLD_PX }} />
+      </span>
     </span>
   );
 }

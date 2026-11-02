@@ -842,7 +842,7 @@
   "options": null,
   "why": "Waza \"tighter than marketing; use density not height\"; blank quarter-frames waste the strongest span for a side monitor.",
   "note": null,
-  "status": "partial"
+  "status": "fixed"
  },
  {
   "id": "C-03",
@@ -1022,7 +1022,7 @@
   "options": null,
   "why": "ui-ux-pro-max truncation rules; AudioMeter bridge view at 3x2 shows the same loss (\"Default…\", \"Headp…\").",
   "note": null,
-  "status": "partial"
+  "status": "fixed"
  },
  {
   "id": "C-13",
@@ -1292,7 +1292,7 @@
   "options": null,
   "why": "Waza \"main question answerable at a glance\"; one hero per card at room distance.",
   "note": null,
-  "status": "partial"
+  "status": "fixed"
  },
  {
   "id": "D-03",
@@ -1382,7 +1382,7 @@
   "options": null,
   "why": "Waza \"if a problem is visible in a screenshot, it is real\"; contrast of overlaid text.",
   "note": null,
-  "status": "partial"
+  "status": "fixed"
  },
  {
   "id": "D-08",
@@ -1526,7 +1526,7 @@
   "options": null,
   "why": "Waza \"if visible in a screenshot it is real\"; polish.",
   "note": null,
-  "status": "partial"
+  "status": "fixed"
  },
  {
   "id": "D-16",

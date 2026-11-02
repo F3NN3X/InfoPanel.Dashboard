@@ -57,11 +57,10 @@ ServiceHealth (9/10, "Sources online", what is off; then one column of rows), St
 - StatusBar: a bar with no stackable tiles (cards only: Meters, Orbit, Ticker) stays a bar.
 - Timer idle hero scales by text length (`idleHeroPx`, tested), so "01:30:00" fits a 2x2.
 - StreamMixer rows keep their old proportions: `ChannelRow big` (16px name, 20px value), the LED ladder keeps its old height, the sub-line is one truncated line with a `title`. VolumeMixer unchanged (14/16).
-- StreamDeck window titles never split a word: the font scales down to the longest word (8px floor), two lines clamped; dot buttons 24px wide.
+- StreamDeck window titles never split a word: the font scales down to the longest word (11px floor since batch 9), two lines clamped; dot buttons 24px wide.
 - Nits done: aria-label on `ChannelRow`, "collecting" lane text no longer aria-hidden. Not done: fader slider role and keyboard, PRIORITY order in the stack, double `store.read`, Thermals hero repeating the first row.
 - v8-parity: VolumeMixer cases regenerated for the `aria-label`.
 
 ## Fix round 2
 - VolumeMixer rows have their fader knob back (12px, `--w-fg`, shadow, as before): `ChannelBar thumb`. StreamMixer (its own `MixFader` marker, shown only when it can write) and WaveLink (not on `ChannelRow`) are untouched.
-- Documented exception to the 11px floor: StreamDeck key titles in the 3 x 3 window shrink to 8px on about 40px keys. They are user-set titles on physical-size keys, and a word is never split.
 - Leftover: the fader has no `role="slider"`, `aria-valuenow` or keyboard path (StreamMixer `MixFader`, VolumeMixer bar).

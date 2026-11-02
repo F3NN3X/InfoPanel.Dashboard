@@ -42,6 +42,10 @@ export interface Compact {
   max?: number;
   img?: string;
   viz?: (heightClass: string) => ReactNode;
+  /** Blur the value until hovered (Hide IP). */
+  blur?: boolean;
+  /** A glyph drawn left of the value in a 2x2 card (about 40px; 52px of the width is kept for it). */
+  lead?: ReactNode;
   kind?: "spark" | "bar" | "ring" | "text" | "value";
   /** Nothing to show (no game running): in a tall zone, a centred icon and this text instead of a dash. */
   idle?: string;

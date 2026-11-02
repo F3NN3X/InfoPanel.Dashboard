@@ -97,7 +97,7 @@ export default function StatusBar(p: StatusBarProps) {
         // not a strip (a square-ish zone): the items stack as labelled tiles
         // (a bar of cards only has no tiles to stack: it stays a bar)
         const tiles = stacksIn(w, h) ? stackTiles(keys, readings) : [];
-        if (tiles.length) return <StackView tiles={tiles} w={w} h={h} icons={{ set: p.iconSet, style: p.iconStyle, animated: p.iconAnimated }} />;
+        if (tiles.length) return <StackView tiles={tiles} byPriority={isPreset(view)} w={w} h={h} icons={{ set: p.iconSet, style: p.iconStyle, animated: p.iconAnimated }} />;
         // a capsule keeps 4px off the zone's edges
         const bw = capsule ? w - 8 : w,
           bh = capsule ? h - 8 : h;

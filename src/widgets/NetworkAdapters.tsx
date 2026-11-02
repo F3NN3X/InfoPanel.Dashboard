@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { fillRows, roomy, useFitRows, Widget, shell, get, num, fmt, has, Dot, Chip, Icon, type ShellProps } from "./kit";
+import { fillRows, roomy, tileHero, useFitRows, Widget, shell, get, num, fmt, has, Dot, Chip, Icon, type ShellProps } from "./kit";
 import { meta } from "./meta/NetworkAdapters";
 
 export { meta };
@@ -40,7 +40,7 @@ export default function NetworkAdapters(p: NetworkAdaptersProps) {
       title={p.title ?? "Network"}
       icon="lan"
       studio={{ label: "Network", value: pub4, kind: "text", sub: "Public IP", rows: ads.map((a) => ({ n: a.name, v: a.v4, dot: a.up })) }}
-      compact={{ label: "Public IP", value: pub4, kind: "text", sub: `${ads.filter((a) => a.up).length} adapters up`, icon: "public" }}
+      compact={(box) => ({ label: "Public IP", value: pub4, kind: box.shape === "tile" && tileHero(box.w, box.h) ? "value" : "text", sub: `${ads.filter((a) => a.up).length} adapters up`, icon: "public", blur: p.hideIp })}
       right={<Chip>{ads.filter((a) => a.up).length} up</Chip>}
     >
       {({ size, h, outerW, outerH }) => {

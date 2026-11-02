@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { boxOf, easeHistory, fillRows, fitGrid, heroPx, pickBy, roomy, rowsFor, shapeOf, summaryShape, tierOf } from "@/widgets/core/layout";
+import { boxOf, easeHistory, fillRows, fitGrid, afterHero, heroPx, pickBy, roomy, rowsFor, shapeOf, squareHero, summaryShape, tileHero, tierOf } from "@/widgets/core/layout";
 
 describe("tierOf", () => {
   it("splits at 220×140, 340×210 and 500×320", () => {
@@ -122,5 +122,25 @@ describe("heroPx", () => {
   it("is a share of the width held under a share of the height", () => {
     expect(heroPx(432, 400)).toBe(80);
     expect(heroPx(1000, 300)).toBe(60);
+  });
+});
+
+describe("tileHero and squareHero", () => {
+  it("take a 2x2-sized card, and the Weather glyph only a square-ish one", () => {
+    expect(tileHero(199, 228)).toBe(false);
+    expect(tileHero(200, 200)).toBe(true);
+    expect(tileHero(339, 339)).toBe(true);
+    expect(tileHero(340, 340)).toBe(false);
+    expect(squareHero(228, 228)).toBe(true);
+    expect(squareHero(300, 200)).toBe(false); // 100 apart on 300 wide
+    expect(squareHero(300, 230)).toBe(true);
+  });
+});
+
+describe("afterHero", () => {
+  it("starts the bars under a hero at the second reading, and leaves a lone reading or a small box alone", () => {
+    expect(afterHero(["a", "b", "c"], true)).toEqual(["b", "c"]);
+    expect(afterHero(["a"], true)).toEqual(["a"]);
+    expect(afterHero(["a", "b"], false)).toEqual(["a", "b"]);
   });
 });

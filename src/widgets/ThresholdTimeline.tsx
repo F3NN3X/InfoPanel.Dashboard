@@ -1,5 +1,5 @@
 import { Widget, shell, get, num, fmt, pretty, sensorLabel, shortLabel, rowLabel, fitRows, rowsFor, roomy, tone, TONES, STATE, Num, type ShellProps, type Tone } from "./kit";
-import { useSeries, type SeriesLimits, type SeriesStore } from "./core/history";
+import { useSeries, type Sample, type SeriesLimits } from "./core/history";
 import { laneColumns, laneRuns, laneStats, type LaneRun } from "./core/lanes";
 import { roleData, unitOf } from "./role-data";
 import { meta, MAX_LANES } from "./meta/ThresholdTimeline";
@@ -65,14 +65,16 @@ export default function ThresholdTimeline(p: ThresholdTimelineProps) {
     const v = num(raw);
     const unit = unitOf(raw);
     const label = sensorLabel(key, p.names, pretty(key.split(".").pop() ?? key));
+    const samples = store.read(key);
     return {
       key,
       label,
       short: shortLabel(label, unit),
       v,
       unit,
-      runs: laneRuns(laneColumns(store.read(key), now, windowMs, COLUMNS), warn, crit),
-      ticks: store.read(key).map((s) => tone(s.v, warn, crit)),
+      runs: laneRuns(laneColumns(samples, now, windowMs, COLUMNS), warn, crit),
+      ticks: samples.map((s) => tone(s.v, warn, crit)),
+      samples,
     };
   });
   const first = lanes[0];
@@ -82,12 +84,12 @@ export default function ThresholdTimeline(p: ThresholdTimelineProps) {
       {...shell(p)}
       title={p.title ?? "Timeline"}
       icon="health_metrics"
-      compact={(box) => (box.shape !== "tile" && box.shape !== "column" ? undefined : first ? { label: first.short.metric, value: first.v, d: Math.abs(first.v) >= 100 ? 0 : 1, unit: first.unit, sub: `last ${minutes} min`, t: tone(first.v, warn, crit), hist: store.read(first.key).map((s) => s.v), kind: "spark" } : { label: "Timeline", value: "—" })}
+      compact={(box) => (box.shape !== "tile" && box.shape !== "column" ? undefined : first ? { label: first.short.metric, value: first.v, d: Math.abs(first.v) >= 100 ? 0 : 1, unit: first.unit, sub: `last ${minutes} min`, t: tone(first.v, warn, crit), hist: first.samples.map((s) => s.v), kind: "spark" } : { label: "Timeline", value: "—" })}
       studio={{ label: first?.label ?? "Timeline", live: !!first, value: first ? first.v : "—", d: first && Math.abs(first.v) >= 100 ? 0 : 1, unit: first?.unit, sub: first ? `${lanes.length} lanes · ${span}` : "Pick sensors", t: first ? tone(first.v, warn, crit) : undefined }}
     >
       {({ w, h }) => {
         if (!lanes.length) return <div className="grid h-full place-content-center text-xs text-[color:var(--w-faint)]">Pick sensors</div>;
-        if (roomy(w, h)) return <RoomyLanes lanes={lanes} store={store} w={w} h={h} warn={warn} crit={crit} minutes={minutes} span={span} />;
+        if (roomy(w, h)) return <RoomyLanes lanes={lanes} w={w} h={h} warn={warn} crit={crit} minutes={minutes} span={span} />;
         const axis = h >= 110;
         // Narrow zones put each label over its lane; wide ones set it beside.
         const stacked = w < 260;
@@ -135,7 +137,7 @@ const LEGEND_H = 16;
  * The 4x4 box: lanes top-aligned and as tall as the box allows (36 to 64px), each with a line under its strip that gives
  * the peak and the share of the window above `warn`, then a ticked axis and the colour legend.
  */
-function RoomyLanes({ lanes, store, w, h, warn, crit, minutes, span }: { lanes: { key: string; label: string; short: { metric: string; model: string; name: string }; ticks: Tone[]; v: number; unit: string; runs: LaneRun[] }[]; store: SeriesStore; w: number; h: number; warn: number; crit: number; minutes: number; span: string }) {
+function RoomyLanes({ lanes, w, h, warn, crit, minutes, span }: { lanes: { key: string; label: string; short: { metric: string; model: string; name: string }; ticks: Tone[]; samples: readonly Sample[]; v: number; unit: string; runs: LaneRun[] }[]; w: number; h: number; warn: number; crit: number; minutes: number; span: string }) {
   const { n, rowH } = rowsFor(h - AXIS_H - LEGEND_H - 16, lanes.length, 36, 64, 8);
   const labelW = Math.min(110, w * 0.26);
   const pad = { paddingLeft: labelW + 8, paddingRight: "calc(4.5em + 8px)" };
@@ -143,7 +145,7 @@ function RoomyLanes({ lanes, store, w, h, warn, crit, minutes, span }: { lanes: 
     <div className="flex h-full min-w-0 flex-col gap-2">
       <div className="flex flex-col gap-2">
         {lanes.slice(0, n).map((l) => {
-          const st = laneStats(store.read(l.key), warn);
+          const st = laneStats(l.samples, warn);
           return (
             <div key={l.key} className="flex min-w-0 items-start gap-2" style={{ height: rowH }}>
               <span className="truncate pt-0.5 text-caption text-[color:var(--w-muted)]" style={{ width: labelW }} title={l.label}>{rowLabel(l.short, lanes.map((x) => x.short))}</span>

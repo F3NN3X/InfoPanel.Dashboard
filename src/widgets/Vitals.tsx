@@ -33,6 +33,9 @@ function VitalCard({ m, hist, w, h, tui }: { m: Vital; hist: number[]; w: number
   // a card tall enough for it gives the graph its own bottom third, so the line never crosses the numerals
   const split = !braille && h >= 76 && h < 110;
   const sparkH = split ? Math.round(h * 0.34) : 0;
+  // a card too short to split keeps the graph behind its text, so the text gets a plate: a halo in the surface's colour (the text colour with its lightness flipped)
+  const halo = "oklch(from var(--w-fg) calc(1 - l) 0 0 / 0.9)";
+  const plate = !braille && h > 0 && h < 76 ? { textShadow: `0 0 5px ${halo}, 0 0 5px ${halo}, 0 0 2px ${halo}` } : null;
   const maxFs = Math.max(10, Math.min(24, Math.floor(h - sparkH - padY * 2 - 17)));
   // the tui skin sets everything in a wide monospace face: fit the numerals with wider glyphs and drop the sub line sooner
   const fs = fitFontPx(w - 24, text.length + m.unit.length * 0.5, 10, maxFs, tui ? 0.72 : 0.62);
@@ -41,12 +44,12 @@ function VitalCard({ m, hist, w, h, tui }: { m: Vital; hist: number[]; w: number
   return (
     <div className="relative flex min-w-0 flex-col overflow-hidden rounded-xl bg-[color:var(--w-track)] px-3" style={{ paddingTop: padY, paddingBottom: padY + sparkH }}>
       {!braille && <Spark values={hist} min={0} max={m.max} grid={false} className={`absolute inset-x-0 bottom-0 opacity-80 ${split ? "h-[34%]" : "h-1/2"}`} />}
-      <div className="relative flex items-baseline justify-between gap-2 leading-[13px]">
+      <div className="relative flex items-baseline justify-between gap-2 leading-[13px]" style={plate ?? undefined}>
         <span className={`min-w-0 truncate text-micro font-medium uppercase ${tui ? "" : "tracking-[0.08em]"} text-[color:var(--w-muted)]`}>{m.label}</span>
         {w > (tui ? 170 : 110) && <span className="truncate text-micro text-[color:var(--w-faint)]">{m.sub}</span>}
       </div>
       {graphRows && <Spark values={hist} min={0} max={m.max} grid={false} className="mt-1 min-h-0 flex-1 opacity-80" />}
-      <span className="relative mt-auto block max-w-full overflow-hidden text-ellipsis whitespace-nowrap pb-1 font-semibold leading-none tabular-nums" style={{ fontSize: fs, ...(t !== "ok" ? { color: TONES[t] } : null) }}>
+      <span className="relative mt-auto block max-w-full overflow-hidden text-ellipsis whitespace-nowrap pb-1 font-semibold leading-none tabular-nums" style={{ fontSize: fs, ...plate, ...(t !== "ok" ? { color: TONES[t] } : null) }}>
         {text}
         <span className={UNIT_CLASS}>{m.unit}</span>
       </span>
