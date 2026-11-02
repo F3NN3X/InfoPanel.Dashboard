@@ -9,7 +9,7 @@ import { Widget, shell, usePane, type RateUnit, type ShellProps, type WeatherIco
 import { Bar, barPad, isPreset, type StatusBarView } from "./StatusBar/Bar";
 import { cardWidth } from "./StatusBar/card-model";
 import { PRIORITY, readingOf, shownOf, type Display, type ItemKey, type Reading } from "./StatusBar/items";
-import { barSize, fitByRank, fitSlots, gapWidth, type IslandGapMode, type Slots } from "./StatusBar/layout";
+import { barSize, fitAroundGap, fitByRank, fitSlots, gapWidth, needAroundGap, type IslandGapMode, type Slots } from "./StatusBar/layout";
 import { useGap } from "./StatusBar/use-gap";
 import { meta } from "./meta/StatusBar";
 
@@ -106,13 +106,27 @@ export default function StatusBar(p: StatusBarProps) {
         };
         const roomAt = (fs: number, u: number) => bw - 2 * barPad(view, fs, u) - (gap ? gap.width : 0) - 24;
         const sum = (list: ItemKey[], fs: number, u: number) => list.reduce((s, k) => s + cost(k, fs, u), 0);
-        // The side slots share the width left of the centre equally (Meters and a gap lay out their own way).
-        const need = (fs: number, u: number) => (view === "meters" || gap ? sum([...have.left, ...have.center, ...have.right], fs, u) : sum(have.center, fs, u) + 2 * Math.max(sum(have.left, fs, u), sum(have.right, fs, u)));
+        // The side slots share the width left of the centre equally; around a gap each half holds one side, so the
+        // wider half sets the need (Meters lay out their own way).
+        const need = (fs: number, u: number) =>
+          view === "meters"
+            ? sum([...have.left, ...have.center, ...have.right], fs, u)
+            : gap
+              ? needAroundGap(have, (k) => cost(k, fs, u))
+              : sum(have.center, fs, u) + 2 * Math.max(sum(have.left, fs, u), sum(have.right, fs, u));
         // The text follows the bar's height and shrinks before any item is dropped.
         const { fs, u } = barSize(bh, Math.max(0, bh - 8), (fs, u) => need(fs, u) <= roomAt(fs, u));
         const room = roomAt(fs, u);
         const costAt = (k: ItemKey) => cost(k, fs, u);
-        const fit = w <= 0 ? have : isPreset(view) ? fitByRank(have, room, costAt, (k) => PRIORITY[k] ?? 0) : fitSlots(have, room, costAt);
+        const rankOf = (k: ItemKey) => PRIORITY[k] ?? 0;
+        const fit =
+          w <= 0
+            ? have
+            : gap && view !== "meters"
+              ? fitAroundGap(have, room, costAt, isPreset(view) ? rankOf : undefined)
+              : isPreset(view)
+                ? fitByRank(have, room, costAt, rankOf)
+                : fitSlots(have, room, costAt);
         const bar = <Bar view={view} u={u} slots={fit} readings={readings} display={display} separators={separators} spacing={spacing} fs={fs} gap={gap} barRef={barRef} icons={{ set: p.iconSet, style: p.iconStyle, animated: p.iconAnimated }} />;
         return capsule ? <Capsule height={Math.min(bh, Math.round(Math.max(u + 8, fs * 2.2)))}>{bar}</Capsule> : bar;
       }}

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ISLAND_DEFAULTS } from "@/lib/island/config";
 import { islandIdleWidth } from "@/components/island/island-model";
-import { barSize, fitSlots, gapPlacement, gapWidth, splitCenter } from "@/widgets/StatusBar/layout";
+import { barSize, fitAroundGap, fitSlots, gapPlacement, gapWidth, needAroundGap, splitCenter } from "@/widgets/StatusBar/layout";
 import { isWifi, shownOf } from "@/widgets/StatusBar/items";
 
 describe("island gap width", () => {
@@ -88,5 +88,31 @@ describe("item display", () => {
     expect(shownOf({ icon: "memory", value: "12%" }, "both")).toEqual({ icon: true, value: "12%" });
     expect(shownOf({ icon: "memory", value: "12%" }, "icon")).toEqual({ icon: true, value: undefined });
     expect(shownOf({ value: "14:05" }, "icon")).toEqual({ icon: false, value: "14:05" });
+  });
+});
+
+describe("items around the island's gap", () => {
+  const cost = (k: string) => Number(k.slice(1));
+  // the regression: date and time either side of the gap, four readings on the right; the total (300) is over the
+  // room (280) but each half fits in 140, so nothing may be dropped or ellipsised
+  const bar = { left: ["a40"], center: ["d60", "t40"], right: ["c25", "g25", "r25", "w25"] };
+  it("needs twice its wider half, not the sum of every item", () => {
+    expect(needAroundGap(bar, cost)).toBe(280);
+    expect(needAroundGap({ left: ["a100"], center: [], right: ["b10"] }, cost)).toBe(200);
+  });
+  it("keeps every item when each half fits", () => {
+    expect(fitAroundGap(bar, 280, cost)).toEqual(bar);
+  });
+  it("drops from the wider half only, its outer item first", () => {
+    expect(fitAroundGap(bar, 240, cost)).toEqual({ ...bar, right: ["c25", "g25", "r25"] });
+    expect(fitAroundGap({ left: ["a90", "b10"], center: [], right: ["c20"] }, 120, cost)).toEqual({ left: ["b10"], center: [], right: ["c20"] });
+  });
+  it("drops the lowest rank of the wider half when ranked", () => {
+    const rank = (k: string) => ({ c25: 3, g25: 1, r25: 2, w25: 4 })[k] ?? 9;
+    expect(fitAroundGap(bar, 240, cost, rank)).toEqual({ ...bar, right: ["c25", "r25", "w25"] });
+  });
+  it("keeps one item however narrow", () => {
+    const one = fitAroundGap(bar, 0, cost);
+    expect([...one.left, ...one.center, ...one.right]).toHaveLength(1);
   });
 });

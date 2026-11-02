@@ -26,7 +26,7 @@ Prototypes (W1–W8 and some A-/B- IDs) were built on throwaway `proto/<id>` bra
 | A-18 | 5 |  | low | M | Replace hard-coded greys with tokens | open |
 | A-19 | 5 |  | med | M | Home: a screen detail that is quieter, and a hover on the card | open |
 | A-20 | 5 |  | med | L | Direction: live canvas mini-map and page strip on Screens | open |
-| B-01 | 0 |  | high | M | Status bar readouts truncate at 1920x1080, 1280x800 and 1024x600 (Confirmed bug: with the island gap on, need() compared all items against the whole bar instead of the wider half (prototype proto/B-01).) | open |
+| B-01 | 0 |  | high | M | Status bar readouts truncate at 1920x1080, 1280x800 and 1024x600 (Confirmed bug: with the island gap on, need() compared all items against the whole bar instead of the wider half (prototype proto/B-01).) | fixed |
 | B-02 | 3 | B-02 | high | M | The island is a fixed black pill that ignores the skin and the panel size (Default tint follows the skin as a new value; islands stored as black stay black.) | open |
 | B-03 | 3 | B-02 | med | S | The island and the bar both show the time (and the same CPU/GPU) (Default tint follows the skin as a new value; islands stored as black stay black.) | open |
 | B-04 | 3 |  | med | S | The outer frames touch the display edge (User: as suggested, plus a per-screen option to touch the edges as today.) | open |

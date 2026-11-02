@@ -375,7 +375,7 @@
   "options": null,
   "why": "Waza Gotchas (\"must never tail-truncate into an ellipsis\"); ui-ux-pro-max `truncation-strategy`, `number-tabular`, `compact-label-overflow`.",
   "note": "Confirmed bug: with the island gap on, need() compared all items against the whole bar instead of the wider half (prototype proto/B-01).",
-  "status": "open"
+  "status": "fixed"
  },
  {
   "id": "B-02",
