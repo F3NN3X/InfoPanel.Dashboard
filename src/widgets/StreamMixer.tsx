@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { audioAct, audioRefusal, useAudio, type AudioState } from "@/lib/audio-control";
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, num, fmt, clamp, Icon, ChannelRow, CHANNEL_TRACK, Empty, hue, type ShellProps } from "./kit";
+import { Widget, shell, num, fmt, clamp, Icon, ChannelRow, CHANNEL_TRACK, Empty, LedLadder, hue, type ShellProps } from "./kit";
+import type { MixerLook } from "./core/mixer-look";
+import { MixerViewBody, PERCENT, fitMixer, toneOf, type StripChannel } from "./core/mixer-views";
 import { allChannels, iconOf, pickChannels, type AudioSource } from "./StreamMixer/channels";
 import { setVolume, toggleMute } from "./StreamMixer/control";
 import { MixFader, type FaderMode } from "./StreamMixer/Fader";
@@ -24,6 +26,8 @@ export interface StreamMixerProps extends ShellProps {
   subs?: Record<string, string>;
   icons?: Record<string, string>;
   fader?: FaderMode;
+  /** The view (rows, strips or LCD) and its options; unset = the rows view. */
+  mixerLook?: MixerLook;
 }
 
 /** The other channels' colours: the accent turned by these degrees, in order. */
@@ -51,6 +55,26 @@ export default function StreamMixer(p: StreamMixerProps) {
     return { c: { ...c, name: p.labels?.[c.id] ?? c.name, sub: p.subs?.[c.id] ?? c.sub }, color: c.mute ? MUTED_COLOR : base, icon: iconOf({ icon, mute: c.mute }) };
   });
   const first = rows.find((r) => r.c.master) ?? rows[0];
+  // The audiocn views: masters first (after the separator), the level as an LED ladder, the fader writes as the rows' does.
+  const strips: StripChannel[] = [...rows.filter((r) => r.c.master), ...rows.filter((r) => !r.c.master)].map(({ c, color, icon }) => ({
+    id: c.id,
+    name: c.name,
+    sub: c.mute ? "Muted" : c.sub,
+    icon,
+    muted: c.mute,
+    color,
+    master: c.master,
+    value: clamp(num(c.vol)),
+    readout: `${fmt(c.vol)}%`,
+    meter: (vertical) => (
+      <div className={`flex ${vertical ? "h-full w-2" : "h-2 w-full"}`}>
+        <LedLadder value={c.mute ? 0 : clamp(num(c.vol))} n={vertical ? 16 : 24} vertical={vertical} color={color} />
+      </div>
+    ),
+    onChange: readOnly ? undefined : (v) => setVolume(c, Math.round(v)),
+    onMute: () => toggleMute(c),
+    locked: readOnly,
+  }));
   const right =
     source === "windows" && audio.windows.available ? (
       <span className="relative flex items-center gap-0.5">
@@ -74,6 +98,14 @@ export default function StreamMixer(p: StreamMixerProps) {
     >
       {({ w, h, size }) => {
         if (!rows.length) return <Empty icon="volume_off" label={emptyLabel(source, audio)} />;
+        const look = p.mixerLook;
+        const fit = look && fitMixer(look, w, h, strips, 8);
+        if (look && fit && fit.view !== "rows")
+          return (
+            <ReadOnly on={readOnly}>
+              <MixerViewBody look={look} fit={fit} channels={strips} unit={PERCENT} tone={toneOf(p)} live={source === "wavelink" ? audio.wavelink.status === "up" : audio.windows.available} />
+            </ReadOnly>
+          );
         const gap = 8,
           minRow = size === "lg" ? 50 : 38;
         const n = Math.max(1, Math.min(rows.length, Math.floor((h + gap) / (minRow + gap))));
@@ -101,6 +133,7 @@ export default function StreamMixer(p: StreamMixerProps) {
                   <button
                     type="button"
                     onClick={() => toggleMute(c)}
+                    disabled={readOnly}
                     aria-label={c.mute ? `Unmute ${c.name}` : `Mute ${c.name}`}
                     className="flex items-center justify-center bg-white/[0.05] transition hover:bg-white/[0.09] active:scale-95"
                     style={{ width: tile, height: tile, color, borderRadius: corner }}

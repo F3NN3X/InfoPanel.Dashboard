@@ -17,7 +17,7 @@ Common shell props (every widget): `data`, `accent`, `surface`, `radius`, `skin`
 
 Widget-specific:
 ```
-—
+view 'rows'|'strips'|'lcd' (its options: mixerLook)
 ```
 
 ## Data
@@ -31,6 +31,9 @@ Keys read (literal parts; `${…}` segments are resolved at runtime by detection
 - Tiers handled explicitly: `sm`
 - Shapes handled explicitly: via CompactView
 - Inner content size (after padding + header) is passed to the layout as `{ w, h }`; tier/shape come from the outer size. See [../ARCHITECTURE.md](../ARCHITECTURE.md#sizing).
+
+## Views
+Setting `view`: **Rows** (`rows`, the default and what a widget saved before the views draws), **Strips** (`strips`, audiocn console strips: a fader on its track and scale, a meter and an LCD readout) or **LCD** (`lcd`, one LCD screen with a line per channel), vertical or horizontal (`meterOrientation`). The strip, fader and LCD options and the fit rules are in [widget-settings.md](../../../../widget-settings.md#mixer-views--streammixer-volumemixer-wavelink). Read-only as the rows: the strips' faders have no knob; the mixes are master strips and each channel's routes are dots.
 
 ## Dynamic Island
 Setting `island` (**Send to island**, off by default, in the Content group). With it on, a kiosk's Dynamic Island opens for 2.5 s when an input, channel or mix is muted ("Microphone muted", warning) or unmuted ("Microphone live", info). Option `islandFaders` (*Fader moves*, off): a level bar with the dB value while a channel or mix fader moves. The rules are in `src/widgets/island-sources.ts` (`waveLinkIsland`); see [the island plan](../../../island/PLAN.md#what-shows-and-when).

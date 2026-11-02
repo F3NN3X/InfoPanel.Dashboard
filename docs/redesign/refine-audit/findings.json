@@ -1633,8 +1633,8 @@
   "suggest": "share one row primitive: name left (14 px), bar (LED ladder in StreamMixer, 8 px solid bar elsewhere, the same track height), value right at 16 px tabular. Drop the white knob in read-only kiosk mode (the knob suggests it is draggable).",
   "options": null,
   "why": "Waza consistency; kiosk read-only affordances.",
-  "note": null,
-  "status": "partial"
+  "note": "User (batch 8): the three mixers get audiocn views. Rows (the shared ChannelRow, batch 2b) stays the default; Strips (Mixer + ChannelStrip + Fader with track and DbScale + LcdDisplay) and LCD views, vertical or horizontal, with the components' options as settings. Read-only faders (Volume Mixer, Wave Link, a refused Stream Mixer) draw no knob. See batch-8-notes.md.",
+  "status": "fixed"
  },
  {
   "id": "D-22",

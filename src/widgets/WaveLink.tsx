@@ -1,10 +1,12 @@
 import type { CSSProperties } from "react";
-import { formatDb } from "@/lib/audio/decibels";
+import { SILENCE_DB, formatDb } from "@/lib/audio/decibels";
 import { meterKey, useWavelinkState, type WlChannel, type WlDevice, type WlGain, type WlMix, type WlState } from "@/lib/wavelink";
 import type { ModuleSettings } from "@/modules/types";
 import { useElementSize } from "@/hooks/use-element-size";
 import { useFitRows, Widget, shell, Icon, Chip, Empty, STATE, type BallisticsPreset, type ShellProps, type Tier } from "./kit";
 import { MeterPair, dbPos, fmtDb, useWlLevels, type MeterVariant } from "./WaveLink/meters";
+import type { MixerLook } from "./core/mixer-look";
+import { MixerViewBody, PERCENT, fitMixer, toneOf, type FaderUnit, type StripChannel } from "./core/mixer-views";
 import { meta } from "./meta/WaveLink";
 import { fader } from "./WaveLink/fader";
 
@@ -32,6 +34,8 @@ export interface WaveLinkProps extends ShellProps {
   liveColor?: string;
   /** Colour of the muted markers and the not-running dot; default red. */
   muteColor?: string;
+  /** The view (rows, strips or LCD) and its options; unset = the rows view. */
+  mixerLook?: MixerLook;
 }
 
 export interface Opts {
@@ -230,6 +234,67 @@ function DeviceRow({ device, o }: { device: WlDevice; o: Opts }) {
   );
 }
 
+/** A strip's L/R meter: the rows' `MeterPair`, with their ballistics and variant. */
+function StripMeter({ meter, o, vertical }: { meter: string; o: Opts; vertical: boolean }) {
+  const levels = useWlLevels(meter, o.preset);
+  return <MeterPair levels={levels} vertical={vertical} variant={o.variant} color={o.color ?? "var(--accent)"} hot={STATE.crit} thickness={vertical ? 5 : 3} className={vertical ? "h-full" : "w-full"} />;
+}
+/** A vertical strip's L/R pair: two 5px bars, 5px apart. */
+const STRIP_METER_W = 15;
+
+/** Wave Link's calibrated faders (plugin 1.2+) as dB, from −60 to 0; older plugins send a position, shown in %. */
+const DB_UNIT: FaderUnit = { min: -60, max: 0, ticks: [0, -12, -24, -36, -48, -60], tick: (v) => formatDb(v, { decimals: 0, unit: false }), format: (v) => formatDb(v, { decimals: 1 }), db: true };
+
+interface Level {
+  level: number | null;
+  levelDb?: number | null;
+}
+/** A fader's value in the unit, and its readout without the unit (the LCD is narrow). */
+const valueOf = (x: Level, db: boolean): number | undefined => (db ? (x.levelDb ?? SILENCE_DB) : x.level === null ? undefined : x.level * 100);
+const readoutOf = (x: Level, db: boolean): string => (db ? formatDb(x.levelDb ?? SILENCE_DB, { decimals: 1, unit: false }) : fader(x.level));
+
+/** The channels and (with Mixes) the mixes as strips: read-only, as the rows (the widget writes nothing). */
+function stripsOf(channels: WlChannel[], mixes: WlMix[], state: WlState, o: Opts, db: boolean): StripChannel[] {
+  const color = o.color ?? "var(--accent)";
+  const name = (id: string) => state.mixes.find((m) => m.id === id)?.name ?? id;
+  const text = (x: Level, muted: boolean) => (o.fader ? readoutOf(x, db) : muted ? "Mute" : "Live");
+  // the channels first: a zone too small for every strip keeps them and counts the mixes
+  const masters = (o.mixes ? mixes : []).map((m) => ({
+      id: `mix:${m.id}`,
+      name: m.name,
+      sub: "Mix",
+      icon: "speaker",
+      muted: m.isMuted,
+      color: "var(--w-fg)",
+      master: true,
+      value: o.fader ? valueOf(m, db) : undefined,
+      readout: text(m, m.isMuted),
+      meter: (vertical: boolean) => <StripMeter meter={meterKey.mix(m.id)} o={o} vertical={vertical} />,
+    }));
+  return [
+    ...channels.map((c) => ({
+      id: c.id,
+      name: c.name,
+      icon: "graphic_eq",
+      muted: c.isMuted,
+      color,
+      value: o.fader ? valueOf(c, db) : undefined,
+      readout: text(c, c.isMuted),
+      meter: (vertical: boolean) => <StripMeter meter={meterKey.channel(c.id)} o={o} vertical={vertical} />,
+      extra: o.mixes && c.mixes.length > 0 && (
+        <span className="flex min-w-0 items-center gap-1">
+          {c.mixes.map((m) => (
+            <span key={m.id} title={m.isMuted ? `${name(m.id)} (muted)` : name(m.id)} className="flex">
+              <Pip muted={m.isMuted} />
+            </span>
+          ))}
+        </span>
+      ),
+    })),
+    ...masters,
+  ];
+}
+
 export interface WaveLinkLayoutProps {
   size: Tier;
   w: number;
@@ -330,7 +395,21 @@ export default function WaveLink(p: WaveLinkProps) {
       studio={{ label: "Wave Link", live: up, value: first ? (first.isMuted ? "Muted" : "Live") : up ? "Up" : "Off", sub: first?.name, meters: channels.map((c) => ({ n: c.name, v: c.isMuted ? 0 : (c.level ?? 0) * 100 })) }}
       compact={channels.length > 1 ? undefined : first ? { label: first.name, value: first.isMuted ? "Muted" : "Live", sub: o.fader ? `Fader ${fader(first.level, first.levelDb)}` : undefined, icon: first.isMuted ? "mic_off" : "mic", kind: "value", t: first.isMuted ? "crit" : "ok" } : { label: "Wave Link", value: up ? "Up" : "Off", kind: "value" }}
     >
-      {({ size, w, h }) => <WaveLinkLayout size={size} w={w} h={h} up={up} state={state} channels={channels} devices={devices} mixes={mixes} o={o} vertical={p.meterOrientation !== "horizontal"} />}
+      {({ size, w, h }) => {
+        const look = p.mixerLook;
+        if (look && look.view !== "rows") {
+          const db = [...channels, ...mixes].some((x) => x.levelDb !== undefined);
+          const strips = stripsOf(channels, mixes, state, o, db);
+          const fit = fitMixer(look, w, h, strips, STRIP_METER_W);
+          if (fit.view !== "rows")
+            return (
+              <div className={`h-full ${up ? "" : "opacity-60"}`}>
+                <MixerViewBody look={look} fit={fit} channels={strips} unit={db ? DB_UNIT : PERCENT} tone={toneOf(p)} live={up} />
+              </div>
+            );
+        }
+        return <WaveLinkLayout size={size} w={w} h={h} up={up} state={state} channels={channels} devices={devices} mixes={mixes} o={o} vertical={p.meterOrientation !== "horizontal"} />;
+      }}
     </Widget>
   );
 }

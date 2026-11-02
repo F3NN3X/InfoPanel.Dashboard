@@ -4487,6 +4487,44 @@ exports[`VolumeMixer > files its rows by the rules 1`] = `
       ],
     },
     {
+      "Layout": [
+        "view",
+        "orientation",
+      ],
+    },
+    {
+      "Strip": [
+        "stripVariant",
+        "stripSize",
+        "stripAccent",
+        "stripIcon",
+        "stripSub",
+        "stripMeter",
+        "stripLcd",
+        "stripStatus · more",
+      ],
+    },
+    {
+      "Fader": [
+        "faderVariant",
+        "faderRange",
+        "faderScale",
+        "scaleLabels · more",
+        "scaleSide · more",
+        "scaleTicks · more",
+      ],
+    },
+    {
+      "LCD": [
+        "lcdVariant",
+        "lcdAppearance",
+        "lcdSize",
+        "lcdMatrix · more",
+        "lcdScanlines · more",
+        "lcdStatus · more",
+      ],
+    },
+    {
       "Fit": [
         "compact",
         "sizeTier · more",
@@ -4600,6 +4638,44 @@ exports[`WaveLink > files its rows by the rules 1`] = `
       "Meter": [
         "meterVariant",
         "meterOrientation",
+      ],
+    },
+    {
+      "Layout": [
+        "view",
+      ],
+    },
+    {
+      "Strip": [
+        "stripVariant",
+        "stripSize",
+        "stripAccent",
+        "stripIcon",
+        "stripSub",
+        "stripMeter",
+        "stripLcd",
+        "stripStatus · more",
+      ],
+    },
+    {
+      "Fader": [
+        "faderVariant",
+        "faderRange",
+        "faderScale",
+        "scaleLabels · more",
+        "scaleSide · more",
+        "scaleTicks · more",
+        "faderTaper",
+      ],
+    },
+    {
+      "LCD": [
+        "lcdVariant",
+        "lcdAppearance",
+        "lcdSize",
+        "lcdMatrix · more",
+        "lcdScanlines · more",
+        "lcdStatus · more",
       ],
     },
     {

@@ -1,7 +1,9 @@
 import type { ModuleSettings } from "@/modules/types";
 import { alignOf } from "@/modules/setting-readers";
-import { bodyGap, fillRows, roomy, ChannelBar, ChannelRow, useFitRows, Widget, shell, get, num, fmt, Num, Ring, Icon, Dot, Chip, STATE, type ShellProps } from "./kit";
+import { bodyGap, fillRows, roomy, clamp, ChannelBar, ChannelRow, LedLadder, useFitRows, Widget, shell, get, num, fmt, Num, Ring, Icon, Dot, Chip, STATE, type ShellProps } from "./kit";
 import { inFlow, volumeFlowOf, volumePicked, type FlowFilter } from "./audio-data";
+import type { MixerLook } from "./core/mixer-look";
+import { MixerViewBody, PERCENT, fitMixer, toneOf, type StripChannel } from "./core/mixer-views";
 import { meta } from "./meta/VolumeMixer";
 
 export { meta };
@@ -18,6 +20,8 @@ export interface VolumeMixerProps extends ShellProps {
   showMute?: boolean;
   /** Fader fill colour, default the accent. */
   levelColor?: string;
+  /** The view (rows, strips or LCD) and its options; unset = the rows view. */
+  mixerLook?: MixerLook;
 }
 
 export default function VolumeMixer(p: VolumeMixerProps) {
@@ -34,6 +38,25 @@ export default function VolumeMixer(p: VolumeMixerProps) {
   const list = ch.filter((c) => (p.devices ? volumePicked(c.id, p.devices) : c.id !== "default") && inFlow(c.id === "default" ? "output" : volumeFlowOf(d, c.id), flow));
   const fill = p.levelColor || "var(--accent)";
   const wl = get(d, "plugins.wavelink-plugin.wavelink.status") === "up";
+  // The audiocn views: read-only (the plugin has no write path), the volume as an LED ladder beside a knobless fader.
+  const strips: StripChannel[] = list.map((c) => {
+    const color = c.mute ? "var(--w-faint)" : fill;
+    return {
+      id: c.id,
+      name: showDevice ? c.name : "",
+      sub: c.dev ? String(c.dev) : undefined,
+      icon: c.mute ? "volume_off" : c.vol < 35 ? "volume_down" : "volume_up",
+      muted: c.mute,
+      color,
+      value: clamp(c.vol),
+      readout: `${fmt(c.vol)}%`,
+      meter: (vertical) => (
+        <div className={`flex ${vertical ? "h-full w-2" : "h-2 w-full"}`}>
+          <LedLadder value={c.mute ? 0 : clamp(c.vol)} n={vertical ? 16 : 24} vertical={vertical} color={color} />
+        </div>
+      ),
+    };
+  });
   return (
     <Widget
       {...shell(p)}
@@ -50,6 +73,9 @@ export default function VolumeMixer(p: VolumeMixerProps) {
     >
       {({ size, w, h }) => {
         if (!def) return null;
+        const look = p.mixerLook;
+        const fit = look && fitMixer(look, w, h, strips, 8);
+        if (look && fit && fit.view !== "rows") return <MixerViewBody look={look} fit={fit} channels={strips} unit={PERCENT} tone={toneOf(p)} live />;
         if (size === "xs" || size === "sm")
           return (
             <div className={`flex h-full min-w-0 items-center ${w < 170 ? "flex-col justify-center gap-1" : "gap-3"}`}>

@@ -4,7 +4,7 @@ import { deviceOf, devicesOf, thresholdsOf } from "@/modules/setting-readers";
 import type { DashboardModule, ModuleSettings } from "@/modules/types";
 import { templateModule } from "../module";
 import { lazyWidget } from "../lazy-widget";
-import { audioFlowSetting, audioSettings, ballisticsOf, flowOfSettings, pickedDevicesOf, WAVELINK_SETTINGS, wavelinkToProps } from "./audio-settings";
+import { audioFlowSetting, audioSettings, ballisticsOf, flowOfSettings, mixerLookOf, mixerViewSettings, pickedDevicesOf, WAVELINK_SETTINGS, wavelinkToProps } from "./audio-settings";
 import { boolOf, boolSetting, colorSetting, deviceSetting, devicesSetting, enumSetting, numberOf, numberSetting, oneOf, pick, stringOf, thresholdSetting, viewOnly, viewSetting } from "./settings-kit";
 import type { AudioMeterProps } from "../AudioMeter";
 import { AUDIO_HOT_DB, AUDIO_WARN_DB, meta as audioMeter } from "../meta/AudioMeter";
@@ -139,9 +139,10 @@ export const GROUP_C: DashboardModule[] = [
       colorSetting("levelColor", "Level", { role: "ok", more: false }),
       devicesSetting("Devices (none = all)", "audio", { group: DEVICE }),
       audioFlowSetting(DEVICE),
+      ...mixerViewSettings(volumeMixer, { orientationKey: "orientation" }),
     ],
     // read-only: the volume plugin has no write path
-    toProps: (s) => ({ ...pick<VolumeMixerProps>(["showDevice", "showMute", "levelColor"])(s), devices: pickedDevicesOf(s, "devices"), flow: flowOfSettings(s) }),
+    toProps: (s) => ({ ...pick<VolumeMixerProps>(["showDevice", "showMute", "levelColor"])(s), devices: pickedDevicesOf(s, "devices"), flow: flowOfSettings(s), mixerLook: mixerLookOf(s, "orientation") }),
     island: volumeMixerIsland,
   }),
   templateModule({

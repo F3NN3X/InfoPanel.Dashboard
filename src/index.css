@@ -38,6 +38,12 @@
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
+  /* audiocn's status colours (src/components/ui/audiocn): set only inside a mixer view, by widgets/core/mixer-views.css. */
+  --color-meter-ok: var(--meter-ok);
+  --color-meter-ok-foreground: var(--meter-ok-foreground);
+  --color-meter-warn: var(--meter-warn);
+  --color-channel-mute: var(--channel-mute);
+  --color-channel-mute-foreground: var(--channel-mute-foreground);
 }
 
 /* Fallbacks before JS applies a theme preset (defaults match DEFAULT_THEME). */

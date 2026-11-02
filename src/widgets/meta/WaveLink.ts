@@ -1,5 +1,6 @@
 // WaveLink's catalog entry, apart from its component so the registry can list it without loading the widget.
 import type { WidgetMeta } from "../core/types";
+import { MIXER_VIEWS } from "../core/mixer-look";
 
 export const meta: WidgetMeta = {
   id: "WaveLink",
@@ -12,4 +13,6 @@ export const meta: WidgetMeta = {
   blurb: "Elgato Wave Link channels and gain",
   tags: "elgato microphone",
   description: "The Elgato Wave Link mixer: software channels with live L/R meters, fader, mute and mix routes, output devices and the app's mixes.",
+  // The audiocn views (core/mixer-views.tsx) and the rows they fall back to where the channels don't fit.
+  views: MIXER_VIEWS,
 };

@@ -709,7 +709,7 @@
    "prefixes": [
     "plugins.volume-plugin."
    ],
-   "props": "onSetVolume(id, v)\nonToggleMute(id)"
+   "props": "onSetVolume(id, v)\nonToggleMute(id)\nview 'rows'|'strips'|'lcd'"
   },
   {
    "id": "MeterBridge",
@@ -755,7 +755,7 @@
    "prefixes": [
     "plugins.wavelink-plugin."
    ],
-   "props": "—"
+   "props": "view 'rows'|'strips'|'lcd'"
   },
   {
    "id": "Clock",

@@ -1,5 +1,6 @@
 // VolumeMixer's catalog entry, apart from its component so the registry can list it without loading the widget.
 import type { WidgetMeta } from "../core/types";
+import { MIXER_VIEWS } from "../core/mixer-look";
 
 export const meta: WidgetMeta = {
   id: "VolumeMixer",
@@ -12,4 +13,6 @@ export const meta: WidgetMeta = {
   blurb: "Volume and mute per device",
   tags: "sound",
   description: "Per-device volume + mute, default device, and Wave Link status.",
+  // The audiocn views (core/mixer-views.tsx) and the rows they fall back to where the channels don't fit.
+  views: MIXER_VIEWS,
 };

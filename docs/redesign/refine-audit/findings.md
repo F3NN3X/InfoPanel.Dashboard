@@ -96,7 +96,7 @@ Prototypes (W1–W8 and some A-/B- IDs) were built on throwaway `proto/<id>` bra
 | D-18 | 2b |  | med | M | StatusTracker and ThresholdTimeline lanes carry little when history is short | fixed |
 | D-19 | 2b |  | low | S | StreamControl 4x2 chart tile is unlabelled | fixed |
 | D-20 | 2b |  | low | S | WaveLink meters: 4 px stubs and "-∞" | fixed |
-| D-21 | 2b |  | med | M | Mixer family: three looks for the same job | partial |
+| D-21 | 2b |  | med | M | Mixer family: three looks for the same job | fixed |
 | D-22 | 2b |  | med | M | StreamDeck 2x2: 15 blank 30 px buttons | fixed |
 | D-23 | 2b |  | low | S | SteamProfile 2x2: no avatar, hero is a 15 px name | fixed |
 | D-24 | 2b |  | low | S | Uptime: days are accent, other units white | fixed |
@@ -107,3 +107,4 @@ Prototypes (W1–W8 and some A-/B- IDs) were built on throwaway `proto/<id>` bra
 - C-04: Per-adapter rx/tx: won't fix, the plugin sends no such keys. The trend at 2x2 and 4x2 follows the user's `sparkline` setting by design.
 - C-18: The unlock list: won't fix, the plugin reports only the latest unlock.
 - C-19: "Updated" stays in the footer: won't fix, the `Widget` header has no right slot and adding one isn't worth it.
+- D-21: Mixer family: fixed in batch 8. The rows (batch 2b) stay the default; the user asked for audiocn views on all three mixers, so Strips and LCD views (vertical or horizontal) came with them, and read-only faders draw no knob. See batch-8-notes.md.
