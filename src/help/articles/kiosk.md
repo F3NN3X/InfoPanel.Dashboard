@@ -18,7 +18,7 @@ Copy it from Settings › App › Server with **Copy**, or open it with **Open**
 
 ## Starting and stopping
 
-Settings › App › Server shows the state (**Server running**, **Server stopped**, **Starting…**, **Restarting…** or **Server couldn't start**) with **Stop**, **Restart** and **Start server** buttons, plus address, uptime, clients and memory. The tray menu has Start server, Stop server and Restart server too. While stopped, the kiosk shows "can't connect".
+Settings › App › Server shows the state (**Server running**, **Server stopped**, **Starting…**, **Restarting…** or **Server couldn't start**) with **Stop**, **Restart** and **Start server** buttons, plus address, uptime and memory; the line under the state says how many clients it is serving. The tray menu has Start server, Stop server and Restart server too. While stopped, the kiosk shows "can't connect".
 
 ## Who can connect
 

@@ -320,9 +320,11 @@ export function isTyping(el: Element | null): boolean {
   );
 }
 
-/** A Layers row has the keys: its arrows (plain or with Shift) move between rows, not the selection on the canvas. */
+/** A Layers row has the keys: its arrows (plain or with Shift) move between rows, not the selection on the canvas; Ctrl+L and Ctrl+H on a row that is not selected act on that row (the tree), not on the selection. */
 export function treeKey(e: Pick<KeyboardEvent, "key" | "ctrlKey" | "metaKey" | "altKey">, el: Element | null): boolean {
-  return el instanceof HTMLElement && el.getAttribute("role") === "treeitem" && e.key.startsWith("Arrow") && !e.ctrlKey && !e.metaKey && !e.altKey;
+  if (!(el instanceof HTMLElement) || el.getAttribute("role") !== "treeitem") return false;
+  if (e.key.startsWith("Arrow")) return !e.ctrlKey && !e.metaKey && !e.altKey;
+  return (e.ctrlKey || e.metaKey) && !e.altKey && /^[lh]$/i.test(e.key) && el.getAttribute("aria-selected") !== "true";
 }
 
 /** Whether a dialog or menu is open over the studio. */

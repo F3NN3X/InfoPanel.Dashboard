@@ -101,6 +101,15 @@ export function HomeView({ content, query, onQuery, onOpen, searching = false, m
               ];
             })}
           </div>
+        </section>
+      )}
+
+      {!searching && (
+        // Its own section, so the topics' h3s sit under an h2 of their own, not under "Common tasks"; it keeps the tight gap the disclosure had.
+        <section className="-mt-7" aria-labelledby="help-all-topics">
+          <h2 id="help-all-topics" className="sr-only">
+            Browse every topic
+          </h2>
           {/* The sidebar lists every topic, but it is icons only in a narrow window: the whole list stays one click away here. */}
           <details className="group mt-2">
             <summary className="flex w-fit cursor-pointer list-none items-center gap-1 rounded-md py-1 text-caption text-s-muted hover:text-s-t1">

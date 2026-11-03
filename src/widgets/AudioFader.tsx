@@ -45,13 +45,13 @@ export default function AudioFader(p: AudioFaderProps) {
             {fmt(c.vol)}
           </Num>
         );
-        const fader = <MixFader value={c.vol} color={color} segs={vertical ? clamp(h / 8, 8, 40) : clamp(w / 8, 8, 40)} mode={mode} vertical={vertical} onChange={(v) => setVolume(c, v)} />;
+        const fader = <MixFader label={name} value={clamp(c.vol)} color={color} segs={vertical ? clamp(h / 8, 8, 40) : clamp(w / 8, 8, 40)} mode={mode} vertical={vertical} onChange={readOnly ? undefined : (v) => setVolume(c, v)} />;
         // 4x4: a tall fader (64px wide, 70% of the height) with the mute tile and a 56px value beside it
         const big = roomy(outerW, outerH);
         const body = big ? (
           <div className="flex h-full items-center justify-center gap-6">
             <div className="w-16" style={{ height: "70%" }}>
-              <MixFader value={c.vol} color={color} segs={clamp(h * 0.7 / 8, 8, 40)} mode={mode} vertical onChange={(v) => setVolume(c, v)} />
+              <MixFader label={name} value={clamp(c.vol)} color={color} segs={clamp(h * 0.7 / 8, 8, 40)} mode={mode} vertical onChange={readOnly ? undefined : (v) => setVolume(c, v)} />
             </div>
             <div className="flex flex-col items-center gap-4">
               <Num className={`leading-none ${c.mute ? "text-zinc-500" : ""}`} style={{ fontSize: 56 }}>

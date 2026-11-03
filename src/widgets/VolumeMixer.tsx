@@ -113,7 +113,7 @@ export default function VolumeMixer(p: VolumeMixerProps) {
                 name={showDevice ? c.name : ""}
                 sub={showDevice && size === "lg" ? c.dev : undefined}
                 nameW={showDevice ? (w >= 300 ? 110 : 76) : 0}
-                bar={<ChannelBar thumb value={c.vol} color={c.mute ? "var(--w-faint)" : fill} />}
+                bar={<ChannelBar thumb label={c.name} value={c.vol} color={c.mute ? "var(--w-faint)" : fill} />}
                 value={fmt(c.vol)}
                 valueW={36}
               />

@@ -40,7 +40,7 @@ Prototypes (W1–W8 and some A-/B- IDs) were built on throwaway `proto/<id>` bra
 | B-12 | 4 |  | med | S | "Releases on GitHub" reads like a broken link in the nav | fixed |
 | B-13 | 4 |  | med | S | Connections: status as plain text, a quiet Save, a "None" password | fixed |
 | B-14 | 4 |  | low | S | Diagnostics: five equal buttons and an orphaned note | fixed |
-| B-15 | 4 |  | low | S | Server header repeats the tiles | partial |
+| B-15 | 4 |  | low | S | Server header repeats the tiles | fixed |
 | B-16 | 4 |  | med | S | The restart bar wraps at 720 and is shouting | fixed |
 | B-17 | 4 |  | med | S | The sidebar takes a third of a 720px window | fixed |
 | B-18 | 4 |  | med | S | Help search shows two fields | fixed |

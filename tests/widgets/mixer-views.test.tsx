@@ -1,8 +1,8 @@
 // @vitest-environment happy-dom
-import { act, cleanup, render, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, within } from "@testing-library/react";
 import type { ComponentType } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { AudioState } from "@/lib/audio-control";
+import { audioRefusal, type AudioState } from "@/lib/audio-control";
 import type { ModuleSettings, SensorMap } from "@/modules/types";
 import snapshot from "@/widgets/__fixtures__/snapshot.json";
 import { lcdAppearanceFor } from "@/widgets/core/mixer-views";
@@ -29,6 +29,8 @@ let LEVELS: SensorMap = {};
 const sensorListeners: ((changed: readonly string[]) => void)[] = [];
 const fast = vi.hoisted(() => vi.fn());
 vi.mock("@/hooks/useSensors", async (orig) => ({ ...(await orig<typeof import("@/hooks/useSensors")>()), useFastSensors: fast }));
+const written = vi.hoisted(() => vi.fn());
+vi.mock("@/widgets/StreamMixer/control", async (orig) => ({ ...(await orig<typeof import("@/widgets/StreamMixer/control")>()), setVolume: written }));
 vi.mock("@/lib/audio-control", async (orig) => ({ ...(await orig<typeof import("@/lib/audio-control")>()), useAudio: () => AUDIO }));
 
 // happy-dom lays nothing out: each widget box reports this size.
@@ -244,5 +246,85 @@ describe("Wave Link's input devices", () => {
     const labels = [...container.querySelectorAll("[data-slot=lcd-display-label]")].map((n) => n.textContent);
     expect(labels.slice(0, 5)).toEqual(["Music", "Game", "Wave:3", "Stream Mix", "Monitor Mix"]);
     expect(container.querySelectorAll("[data-slot=lcd-display-separator]").length).toBe(2);
+  });
+});
+
+describe("the Rows view's faders", () => {
+  afterEach(() => audioRefusal.set(false));
+  const rows = () => {
+    size = { w: 640, h: 300 };
+    return render(<StreamMixer data={data} />).container;
+  };
+
+  it("are sliders named after the channel, and the keyboard writes through the pointer's path", () => {
+    written.mockClear();
+    const first = within(rows()).getAllByRole("slider")[0];
+    expect(first.getAttribute("aria-label")).toBeTruthy();
+    const now = Number(first.getAttribute("aria-valuenow"));
+    expect(first.getAttribute("aria-valuetext")).toBe(`${now}%`);
+    expect(first.tabIndex).toBe(0);
+    const press = (key: string) => fireEvent.keyDown(first, { key });
+    const last = () => written.mock.calls.at(-1)![1];
+    expect(written).not.toHaveBeenCalled();
+    press("ArrowRight");
+    expect(written).toHaveBeenCalledTimes(1);
+    expect(last()).toBe(Math.min(100, now + 1));
+    expect(written.mock.calls.at(-1)![0].name).toBe(first.getAttribute("aria-label"));
+    press("ArrowLeft");
+    expect(last()).toBe(now);
+    press("ArrowUp");
+    expect(last()).toBe(now + 1);
+    press("ArrowDown");
+    expect(last()).toBe(now);
+    press("Home");
+    expect(last()).toBe(0);
+    press("ArrowLeft");
+    expect(last()).toBe(0);
+    press("End");
+    expect(last()).toBe(100);
+    press("ArrowRight");
+    expect(last()).toBe(100);
+    press("PageDown");
+    expect(last()).toBe(90);
+    press("PageUp");
+    expect(last()).toBe(100);
+    // an unrelated key writes nothing
+    const calls = written.mock.calls.length;
+    press("a");
+    expect(written.mock.calls.length).toBe(calls);
+  });
+
+  it("announce a whole percent in range, whatever value the server holds", () => {
+    for (const [vol, text] of [[72.4, "72%"], [140, "100%"], [-5, "0%"]] as const) {
+      AUDIO = { ...AUDIO, windows: { ...AUDIO.windows, outputs: [{ id: "o1", name: "Speakers", volume: vol, muted: false, default: true }] } };
+      size = { w: 640, h: 300 };
+      const first = within(render(<StreamMixer data={data} />).container).getAllByRole("slider")[0];
+      expect(first.getAttribute("aria-valuetext")).toBe(text);
+      expect(first.getAttribute("aria-valuenow")).toBe(text.slice(0, -1));
+      cleanup();
+    }
+  });
+
+  it("gives VolumeMixer's bar as a read-only meter", () => {
+    size = { w: 640, h: 300 };
+    const meter = within(render(<VolumeMixer data={data} />).container).getAllByRole("meter")[0];
+    expect(meter.hasAttribute("tabindex")).toBe(false);
+    expect(meter.getAttribute("aria-valuetext")).toBe(`${meter.getAttribute("aria-valuenow")}%`);
+    expect(meter.getAttribute("aria-label")).toBeTruthy();
+  });
+
+  it("ignore the keys when the server has refused writes (the body is inert)", () => {
+    written.mockClear();
+    act(() => audioRefusal.set(true));
+    const c = rows();
+    expect(c.querySelector("[inert]")).not.toBeNull();
+    const sliders = [...c.querySelectorAll<HTMLElement>("[role=slider]")];
+    expect(sliders.length).toBeGreaterThan(0);
+    for (const s of sliders) {
+      expect(s.getAttribute("aria-readonly")).toBe("true");
+      expect(s.hasAttribute("tabindex")).toBe(false);
+      fireEvent.keyDown(s, { key: "ArrowRight" });
+    }
+    expect(written).not.toHaveBeenCalled();
   });
 });

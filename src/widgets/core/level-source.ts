@@ -9,7 +9,7 @@ import { sensorStore } from "@/lib/sensor-store";
 import type { FrameSource, MeterFrame, MeterZone } from "@/lib/audio/types";
 import { toFlat, type FlatData } from "../data-adapter";
 import { AUDIO } from "../audio-device";
-import { readDevice } from "../audio-data";
+import { get, num } from "../kit";
 
 /** A frame of one level per channel, each in % of full scale (linear amplitude); nothing readable = silence. */
 export const levelFrame = (...pcts: number[]): MeterFrame => ({ channels: pcts.map((p) => ({ peakDb: Number.isFinite(p) && p > 0 ? gainToDb(Math.min(p, 100) / 100) : SILENCE_DB })) });
@@ -31,8 +31,8 @@ export function useDeviceLevel(find: (d: FlatData) => string | undefined): Frame
     const read = () => {
       const d = toFlat(sensorStore.getValues());
       const id = findRef.current(d);
-      const m = id ? readDevice(d, id) : undefined;
-      const frame = levelFrame(m?.l ?? 0, m?.r ?? 0);
+      // Only the two channels, not `readDevice`'s whole row (it runs at the stream's 10 Hz, once per strip).
+      const frame = id ? levelFrame(num(get(d, `${AUDIO}${id}.left-channel`)), num(get(d, `${AUDIO}${id}.right-channel`))) : levelFrame(0, 0);
       if (!sameFrame(emitter.latest, frame)) emitter.emit(frame);
     };
     read();

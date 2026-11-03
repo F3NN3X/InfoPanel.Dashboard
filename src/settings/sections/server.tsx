@@ -88,7 +88,6 @@ function StatusCard() {
   const cells = [
     { k: "Address", v: running ? displayAddress(status.host, status.port, lanIp) : "—" },
     { k: "Uptime", v: running && stats?.uptimeMs != null ? formatUptime(stats.uptimeMs) : "—" },
-    { k: "Clients", v: running ? String(stats?.clients ?? 0) : "0" },
     { k: "Memory", v: running && stats?.rssBytes != null ? megabytes(stats.rssBytes) : "—" },
   ];
 

@@ -169,7 +169,7 @@ export function LayersTree({ host }: { host: LayersHost }) {
   const focusRow = (id: string | undefined) => {
     if (id !== undefined) listRef.current?.querySelector<HTMLElement>(`[data-row-id="${CSS.escape(id)}"]`)?.focus();
   };
-  /** Keys on a row (the tree's own, SPEC §14 keyboard use): Up and Down move between rows, Home and End go to the ends, Left and Right close and open a group, Shift extends the selection, Enter or Space selects, Ctrl+Space toggles. */
+  /** Keys on a row (the tree's own, SPEC §14 keyboard use): Up and Down move between rows, Home and End go to the ends, Left and Right close and open a group, Shift extends the selection, Enter or Space selects, Ctrl+Space toggles, Ctrl+L and Ctrl+H on an unselected row lock and hide it. */
   const onRowKey = (id: string, e: KeyboardEvent<HTMLDivElement>) => {
     if (e.target !== e.currentTarget) return;
     if ((e.key === "ArrowDown" || e.key === "ArrowUp") && !e.altKey && !e.ctrlKey && !e.metaKey) {
@@ -193,6 +193,13 @@ export function LayersTree({ host }: { host: LayersHost }) {
         else if (group) focusRow(visible[visible.indexOf(id) + 1]);
       } else if (open) host.setOpen([id], false);
       else if (row.parentId) focusRow(row.parentId);
+    } else if (!e.defaultPrevented && (e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && /^[lh]$/i.test(e.key) && !selected.includes(id)) {
+      // A focused row that is not selected: the page handler leaves these to the row (`treeKey`), so the key never acts on the old selection; a key it already took (its selection just changed) is not taken twice.
+      const node = rows.find((r) => r.node.id === id)?.node;
+      if (!node) return;
+      e.preventDefault();
+      if (e.key.toLowerCase() === "l") host.setLocked(id, !node.locked);
+      else host.setHidden(id, !node.hidden);
     } else if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       host.select(id, e.key === " " && (e.ctrlKey || e.metaKey) ? "toggle" : "only", visible);

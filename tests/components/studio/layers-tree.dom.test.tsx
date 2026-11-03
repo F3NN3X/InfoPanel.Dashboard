@@ -104,6 +104,26 @@ describe("Layers rows", () => {
     expect(vi.mocked(h.select).mock.calls).toEqual([["weather", "range", visible], ["weather", "only", visible], ["weather", "toggle", visible]]);
   });
 
+  it("locks and hides the focused row with Ctrl+L and Ctrl+H when it is not the selected one", () => {
+    const h = host({ selectedIds: ["title"] });
+    render(<LayersTree host={h} />);
+    row("Title text").focus();
+    fireEvent.keyDown(row("Title text"), { key: "ArrowDown" });
+    expect(document.activeElement).toBe(row("Accent glow"));
+    fireEvent.keyDown(row("Accent glow"), { key: "l", ctrlKey: true });
+    fireEvent.keyDown(row("Accent glow"), { key: "h", ctrlKey: true });
+    expect(vi.mocked(h.setLocked).mock.calls).toEqual([["glow", true]]);
+    expect(vi.mocked(h.setHidden).mock.calls).toEqual([["glow", true]]);
+    // a key the page already took is not taken twice
+    const taken = new KeyboardEvent("keydown", { key: "l", ctrlKey: true, bubbles: true, cancelable: true });
+    taken.preventDefault();
+    row("Accent glow").dispatchEvent(taken);
+    expect(vi.mocked(h.setLocked)).toHaveBeenCalledTimes(1);
+    // the selected row is left to the page's handler
+    fireEvent.keyDown(row("Title text"), { key: "l", ctrlKey: true });
+    expect(vi.mocked(h.setLocked)).toHaveBeenCalledTimes(1);
+  });
+
   it("keeps buttons out of the treeitem's accessibility tree (APG tree); the pointer icons still work", () => {
     render(<LayersTree host={host()} />);
     for (const r of screen.getAllByTestId("layers-row")) expect(within(r).queryAllByRole("button")).toHaveLength(0);

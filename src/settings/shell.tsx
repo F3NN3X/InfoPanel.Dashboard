@@ -180,8 +180,9 @@ export function RestartBar() {
         Undo
       </button>
       <button type="button" aria-label="Restart server" onClick={() => void restartServer()} className="h-[30px] cursor-pointer rounded-[7px] border-0 bg-s-bar-button px-3 text-caption font-semibold text-[#1a1405]">
-        <span className="max-[800px]:hidden">Restart server</span>
-        <span className="min-[801px]:hidden">Restart</span>
+        {/* Complementary ranges, so one label shows at any fractional width. */}
+        <span className="[@media(width<=800px)]:hidden">Restart server</span>
+        <span className="[@media(width>800px)]:hidden">Restart</span>
       </button>
     </div>
   );

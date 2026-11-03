@@ -155,7 +155,7 @@ export default function StreamMixer(p: StreamMixerProps) {
                 nameW={nameW}
                 bar={
                   <div style={{ height: p.fader === "bar" ? CHANNEL_TRACK : clamp(rowH * 0.42, 10, 28) }}>
-                    <MixFader value={clamp(num(c.vol))} color={color} segs={segs} mode={p.fader === "bar" ? "bar" : "leds"} onChange={readOnly ? undefined : (v) => setVolume(c, v)} />
+                    <MixFader label={c.name} value={clamp(num(c.vol))} color={color} segs={segs} mode={p.fader === "bar" ? "bar" : "leds"} onChange={readOnly ? undefined : (v) => setVolume(c, v)} />
                   </div>
                 }
                 value={fmt(c.vol)}

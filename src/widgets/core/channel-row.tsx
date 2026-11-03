@@ -46,12 +46,17 @@ export function ChannelRow({ lead, leadW = 18, name, sub, nameW = 96, bar, value
   );
 }
 
-/** A solid level bar on the shared track height; `thumb` adds the round knob of a slider. */
-export function ChannelBar({ value, color, thumb }: { value: number; color: string; thumb?: boolean }) {
+/** A solid level bar on the shared track height; `thumb` adds the round knob of a slider. `label` exposes it as a read-only meter (`role="meter"`, a value with no tab stop). */
+export function ChannelBar({ value, color, thumb, label }: { value: number; color: string; thumb?: boolean; label?: string }) {
+  const pct = Math.max(0, Math.min(100, value));
   return (
-    <div className="relative rounded-full bg-[color:var(--w-track)]" style={{ height: CHANNEL_TRACK }}>
-      <div className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${Math.max(0, Math.min(100, value))}%`, background: color }} />
-      {thumb && <div className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[color:var(--w-fg)] shadow" style={{ left: `${Math.max(0, Math.min(100, value))}%` }} />}
+    <div
+      className="relative rounded-full bg-[color:var(--w-track)]"
+      style={{ height: CHANNEL_TRACK }}
+      {...(label ? { role: "meter", "aria-label": label, "aria-valuemin": 0, "aria-valuemax": 100, "aria-valuenow": pct, "aria-valuetext": `${pct}%` } : {})}
+    >
+      <div className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${pct}%`, background: color }} />
+      {thumb && <div className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[color:var(--w-fg)] shadow" style={{ left: `${pct}%` }} />}
     </div>
   );
 }

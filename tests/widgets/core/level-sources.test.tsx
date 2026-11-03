@@ -19,12 +19,13 @@ describe("useDeviceLevel", () => {
     let values = levels(40, 25);
     let listener: (changed: readonly string[]) => void = () => {};
     vi.spyOn(sensorStore, "getValues").mockImplementation(() => values);
+    const unsubscribe = vi.fn();
     vi.spyOn(sensorStore, "subscribe").mockImplementation((l) => {
       listener = l;
-      return () => {};
+      return unsubscribe;
     });
     let renders = 0;
-    const { result } = renderHook(() => {
+    const { result, unmount } = renderHook(() => {
       renders++;
       return useDeviceLevel((d) => (Object.keys(d).some((k) => k.startsWith("plugins.audio-level-meter.default-audio.")) ? "default-audio" : undefined));
     });
@@ -41,6 +42,10 @@ describe("useDeviceLevel", () => {
     act(() => listener(["libre.cpu"]));
     expect(seen).toHaveLength(1);
     expect(renders).toBe(before);
+    // unmounting drops the store subscription
+    expect(unsubscribe).not.toHaveBeenCalled();
+    unmount();
+    expect(unsubscribe).toHaveBeenCalledTimes(1);
   });
 
   it("reads silence for a device the plugin doesn't meter", () => {

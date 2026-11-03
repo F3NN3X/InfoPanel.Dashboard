@@ -155,6 +155,16 @@ describe("the settings window", () => {
     expect(saved.openStudioOnLaunch).toBe(true);
   });
 
+  it("raises the restart bar, with its Restart button, when a saved port needs a restart", async () => {
+    const { user, port } = await openServerPage();
+    await user.clear(port);
+    await user.type(port, "3923");
+    await user.tab();
+    expect(await screen.findByText(/Restart to apply/)).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Restart server" })).toBeTruthy();
+    expect(setCalls()).toEqual([{ key: "port", value: 3923 }]);
+  });
+
   it("does not save an invalid port or raise the bar", async () => {
     const { user, port } = await openServerPage();
     await user.clear(port);
