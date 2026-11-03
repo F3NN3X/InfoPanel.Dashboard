@@ -114,7 +114,7 @@ export default function NowPlaying(p: NowPlayingProps) {
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
-        style={{ backgroundImage: `url(${cover})`, backgroundSize: "cover", backgroundPosition: "center", filter: "blur(28px) brightness(0.4) saturate(1.25)", transform: "scale(1.15)" }}
+        style={{ backgroundImage: `url(${cover})`, backgroundSize: "cover", backgroundPosition: "center", filter: "blur(var(--wp-art-blur, 28px)) brightness(0.4) saturate(1.25)", transform: "scale(1.15)" }}
       />
     ) : undefined;
   const showTimes = p.showTimes !== false;
@@ -190,7 +190,7 @@ export default function NowPlaying(p: NowPlayingProps) {
         if (lay === "backdrop" && size !== "xs")
           return (
             <div className="absolute -inset-5 overflow-hidden">
-              <Img src={cover} icon="album" className="absolute inset-0 h-full w-full scale-125 opacity-70 blur-2xl" />
+              <Img src={cover} icon="album" className="absolute inset-0 h-full w-full scale-125 opacity-70 blur-2xl [[data-lite-motion]_&]:blur-none" />
               <div className="absolute inset-0" style={{ background: "linear-gradient(160deg, color-mix(in oklab, var(--accent) 35%, transparent), rgba(0,0,0,.55) 55%, rgba(0,0,0,.8))" }} />
               <div className="relative flex h-full items-end gap-4 p-5">
                 <Img src={cover} icon="album" className={`aspect-square shrink-0 rounded-xl shadow-2xl ${size === "lg" ? "h-[62%]" : "h-[58%]"}`} />

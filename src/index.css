@@ -404,6 +404,8 @@
   transition: none !important;
   animation: none !important;
 }
+/* The Now Playing cover art is blurred by a filter (not capped by Limit blur: it is art, not a surface); lite mode draws it unblurred. */
+:root[data-lite-motion] { --wp-art-blur: 0px; }
 /* Ring glides off (the default): rings step to each reading instead of easing, which lets the page rest
    between readings. */
 [data-ring-step] [data-wp-ring] {
