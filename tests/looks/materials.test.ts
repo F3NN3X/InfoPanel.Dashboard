@@ -32,7 +32,7 @@ const VIBRANCY_BLUR = "blur(min(40px, var(--wp-blur-cap, 40px)))";
 // keeps its full box instead of shrinking 6px for an outside shadow.
 function brutal(box: Record<string, unknown>) {
   const { width: _w, height: _h, ...rest } = box;
-  return { ...rest, boxShadow: String(box.boxShadow).replace("5px 5px 0 0 var(--accent)", "inset -5px -5px 0 0 var(--accent)") };
+  return { ...rest, boxShadow: String(box.boxShadow).replace("5px 5px 0 0 var(--w-accent)", "inset -5px -5px 0 0 var(--w-accent)") };
 }
 const want = (name: string, box: Record<string, unknown>) =>
   name === "vibrancy" && !("backdropFilter" in box) ? { ...box, backdropFilter: VIBRANCY_BLUR, WebkitBackdropFilter: VIBRANCY_BLUR } : name === "brutal" ? brutal(box) : box;
@@ -102,8 +102,8 @@ describe("material registry", () => {
 describe("fadeBackground", () => {
   it("scales literal colours and mixes color-mix() with transparent", () => {
     expect(fadeBackground("rgba(20, 20, 24, 1)", 0.5)).toBe("rgba(20, 20, 24, 0.5)");
-    const f = fadeBackground("radial-gradient(color-mix(in oklab, var(--accent) 38%, transparent), transparent 55%), #0f0f13", 0.5);
-    expect(f).toContain("color-mix(in oklab, color-mix(in oklab, var(--accent) 38%, transparent) 50%, transparent)");
+    const f = fadeBackground("radial-gradient(color-mix(in oklab, var(--w-accent) 38%, transparent), transparent 55%), #0f0f13", 0.5);
+    expect(f).toContain("color-mix(in oklab, color-mix(in oklab, var(--w-accent) 38%, transparent) 50%, transparent)");
     expect(f).toContain("rgba(15, 15, 19, 0.5)");
   });
 });
@@ -173,7 +173,7 @@ describe("materialVars", () => {
     const fill = (id: string) => (materialVars(resolveMaterial(MATERIALS[id])) as Record<string, unknown>)["--w-fill"];
     expect(fill("glass")).toBe("#18181c");
     expect(fill("solid")).toBe("#141418");
-    expect(fill("tinted")).toBe("color-mix(in srgb, var(--accent) 5%, #131316)");
+    expect(fill("tinted")).toBe("color-mix(in srgb, var(--w-accent) 5%, #131316)");
     expect(fill("matte-light")).toBe("rgb(244, 244, 245)");
     // A see-through material starts ramps from the old colour, not transparent (a translucent ramp, a transparent heatmap).
     expect(fill("outline")).toBe("#18181c");

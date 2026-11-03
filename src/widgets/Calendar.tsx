@@ -14,7 +14,7 @@ export interface CalendarProps extends ShellProps {
 }
 
 // Today's pill: near-black text on a light accent, white on a dark one (the class's dark text stays where relative colours are unsupported).
-const TODAY = { background: "var(--accent)", color: "oklch(from var(--accent) clamp(0, (0.7 - l) * 1000, 1) 0 0)" };
+const TODAY = { background: "var(--w-accent)", color: "oklch(from var(--w-accent) clamp(0, (0.7 - l) * 1000, 1) 0 0)" };
 
 /** The weekday letters' row at 4x4, px. */
 const HEAD_H = 20;
@@ -71,7 +71,7 @@ export default function Calendar(p: CalendarProps) {
           return (
             <div className="flex h-full min-w-0 flex-col justify-between gap-2">
               <div className="flex flex-col gap-0.5">
-                <span className="text-sm font-medium" style={{ color: "color-mix(in oklab, var(--accent) 60%, var(--w-fg))" }}>{W[date.getDay()]}</span>
+                <span className="text-sm font-medium" style={{ color: "color-mix(in oklab, var(--w-accent) 60%, var(--w-fg))" }}>{W[date.getDay()]}</span>
                 <span className="text-xs text-[color:var(--w-muted)]">{M[mon - 1]} {yr} · W{week}</span>
               </div>
               <Num className="text-[56px] font-semibold leading-none tracking-tight">{day}</Num>
@@ -82,7 +82,7 @@ export default function Calendar(p: CalendarProps) {
           <div className="flex h-full min-w-0 items-center gap-4">
             {w > 300 && (
               <div className="flex shrink-0 flex-col leading-none">
-                <span className="text-micro font-medium" style={{ color: "color-mix(in oklab, var(--accent) 60%, var(--w-fg))" }}>{W[date.getDay()]}</span>
+                <span className="text-micro font-medium" style={{ color: "color-mix(in oklab, var(--w-accent) 60%, var(--w-fg))" }}>{W[date.getDay()]}</span>
                 <Num className="text-3xl font-semibold leading-none tracking-tight">{day}</Num>
                 <span className="mt-0.5 whitespace-nowrap text-micro text-[color:var(--w-muted)]">
                   {M[mon - 1]} · W{week}
@@ -96,7 +96,7 @@ export default function Calendar(p: CalendarProps) {
           {(size === "lg" || w > 420) && (
             <div className={`flex shrink-0 flex-col ${room ? "gap-4" : "justify-between"}`}>
               <div className="flex flex-col gap-0.5">
-                <span {...tag("date", { kind: "clock", format: "dddd" })} className="text-sm font-medium" style={{ color: "color-mix(in oklab, var(--accent) 60%, var(--w-fg))" }}>{W[date.getDay()]}</span>
+                <span {...tag("date", { kind: "clock", format: "dddd" })} className="text-sm font-medium" style={{ color: "color-mix(in oklab, var(--w-accent) 60%, var(--w-fg))" }}>{W[date.getDay()]}</span>
                 {room && <span className="text-sm text-[color:var(--w-muted)]">{M[mon - 1]} {yr} · W{week}</span>}
               </div>
               <Num ip={tag("date", { kind: "clock", format: "%d" })} className={`${room ? "text-[64px]" : "text-7xl"} font-semibold leading-none tracking-tight`}>{day}</Num>

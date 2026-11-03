@@ -20,6 +20,7 @@ import { labelStyle } from "@/components/widget-style";
 import { widgetPercent, widgetValue } from "./format";
 import { useNow } from "./hooks";
 import { PANEL_ACCENT, panelNum, usePanelSkin } from "./panel-skin";
+import { accentVars } from "@/widgets/core/tokens";
 
 /**
  * Resolve an image widget's source URL: a static URL wins when it looks
@@ -170,8 +171,8 @@ function Bar({ widget, sensor, text, unit }: Ctx) {
         </span>
       </div>
       {sk ? (
-        // The core meter in the skin's style; `pct` already carries `inverted`. Its fill reads `--accent` as a color.
-        <div className="wp-bar-track" style={{ "--accent": widget.color ?? PANEL_ACCENT } as CSSProperties}>
+        // The core meter in the skin's style; `pct` already carries `inverted`. Its fill reads `--w-accent` as a color.
+        <div className="wp-bar-track" style={accentVars(widget.color ?? PANEL_ACCENT) as CSSProperties}>
           <SkinBar value={pct} className="h-2" />
         </div>
       ) : (

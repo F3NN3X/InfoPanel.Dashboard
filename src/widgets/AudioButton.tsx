@@ -33,7 +33,7 @@ export default function AudioButton(p: AudioButtonProps) {
   const active = output ? !!device?.default : !!channel?.mute;
   const name = p.name || (output ? (device?.name ?? "Output") : (channel?.name ?? "Audio"));
   const icon = p.symbol || (output ? "volume_up" : channel ? iconOf(channel) : "volume_off");
-  const tint = output ? "var(--accent)" : STATE.crit;
+  const tint = output ? "var(--w-accent)" : STATE.crit;
   const ready = output ? !!device : !!channel;
   const press = () => {
     if (output && device) void audioAct({ target: "windows", op: "default", id: device.id });

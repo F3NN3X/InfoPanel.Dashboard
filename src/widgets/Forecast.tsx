@@ -49,8 +49,8 @@ export default function Forecast(p: ForecastProps) {
         className="absolute rounded-full"
         style={
           vertical
-            ? { background: "linear-gradient(90deg, #60a5fa, var(--accent), #fbbf24)", top: 0, bottom: 0, left: `${((f.lo - lo) / span) * 100}%`, right: `${100 - ((f.hi - lo) / span) * 100}%` }
-            : { background: "linear-gradient(0deg, #60a5fa, var(--accent), #fbbf24)", left: 0, right: 0, bottom: `${((f.lo - lo) / span) * 100}%`, top: `${100 - ((f.hi - lo) / span) * 100}%` }
+            ? { background: "linear-gradient(90deg, #60a5fa, var(--w-accent), #fbbf24)", top: 0, bottom: 0, left: `${((f.lo - lo) / span) * 100}%`, right: `${100 - ((f.hi - lo) / span) * 100}%` }
+            : { background: "linear-gradient(0deg, #60a5fa, var(--w-accent), #fbbf24)", left: 0, right: 0, bottom: `${((f.lo - lo) / span) * 100}%`, top: `${100 - ((f.hi - lo) / span) * 100}%` }
         }
       />
     </div>

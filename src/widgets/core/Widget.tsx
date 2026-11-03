@@ -6,7 +6,7 @@ import { materialVars, resolveMaterial } from "@/looks/materials";
 import { chromeOf } from "@/modules/standard-settings";
 import type { ModuleSettings } from "@/modules/types";
 import { DESIGN_SIZE, ROOMY_SCALE, RoomyCtx, heroPx, roomy, summaryShape, useBox, type Box } from "./layout";
-import { mix } from "./tokens";
+import { accentVars, mix } from "./tokens";
 import { SKINS, SkinCtx, resolveSurface, textVars } from "./theme";
 import { bodyFlags, forcedTier, resolveAccent, shellPad, skinContext, untitled, withUserLook } from "./look";
 import { ensureSkinFonts } from "./fonts";
@@ -135,7 +135,7 @@ export function Widget({ title, icon, iconOverride, accent, surface, radius, siz
     ...materialVars(mat),
     ...textVars(surf.tone, chrome),
     ...chromeVars(chrome),
-    "--accent": resolveAccent(chrome?.accent || accent, sk, surf.tone),
+    ...accentVars(resolveAccent(chrome?.accent || accent, sk, surf.tone)),
     color: "var(--w-fg)",
     // A roomy box (4x4) grows the body type: the theme's type tokens, so every text-micro / caption / body / title follows; and sets the hero size `Metric` reads.
     ...(big ? { ...(fixedType ? null : typeVars(ROOMY_SCALE)), "--w-hero": `${heroPx(box.w, box.h)}px` } : null),
@@ -155,7 +155,7 @@ export function Widget({ title, icon, iconOverride, accent, surface, radius, siz
         )}
         {backdrop}
         {tui && <div className="pointer-events-none absolute inset-[5px] rounded-[4px] border" style={{ borderColor: mix(45, "#3f3f46") }} />}
-        {skin === "hud" && HUD_CORNERS.map((c) => <span key={c} className={`pointer-events-none absolute h-2.5 w-2.5 ${c}`} style={{ borderColor: "var(--accent)" }} />)}
+        {skin === "hud" && HUD_CORNERS.map((c) => <span key={c} className={`pointer-events-none absolute h-2.5 w-2.5 ${c}`} style={{ borderColor: "var(--w-accent)" }} />)}
         <div className={`relative flex min-h-0 min-w-0 flex-1 flex-col ${pad.className}`} style={{ ...pad.style, ...(zoom !== 1 ? { zoom } : null) }}>
           {header && <SkinHeader kind={sk.header} title={heading} icon={headIcon} right={useCompact ? undefined : right} bleed={bleed} bg={mat.patch} w={box.w} />}
           <div ref={cref} data-wp-body="" {...bodyFlags(chrome)} className="relative min-h-0 flex-1">

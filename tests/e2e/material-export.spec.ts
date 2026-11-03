@@ -75,7 +75,7 @@ test("a faded tinted or material card still exports its colour", async ({ page }
       const root = fig.querySelector<HTMLElement>("[data-wp-tier]");
       // What `fadeBackground` writes at Surface opacity 50.
       const half = (c: string) => `color-mix(in oklab, ${c} 50%, transparent)`;
-      const base = name === "tinted" ? "color-mix(in srgb, var(--accent) 5%, #131316)" : "color-mix(in srgb, var(--accent) 15%, #1b1b1f)";
+      const base = name === "tinted" ? "color-mix(in srgb, var(--w-accent) 5%, #131316)" : "color-mix(in srgb, var(--w-accent) 15%, #1b1b1f)";
       root?.style.setProperty("--w-mat-bg", half(base));
       root?.style.setProperty("--w-mat-export", half(base));
       out[name] = (await window.__qaSurfaceOf?.(fig))?.color ?? null;

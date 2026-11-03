@@ -20,7 +20,7 @@ function Eq({ on }: { on: boolean }) {
   return (
     <span className="flex h-3 items-end gap-[2px]">
       {[0, 1, 2, 3].map((i) => (
-        <span key={i} className={`w-[3px] rounded-full bg-[var(--accent)] ${on ? "animate-pulse" : ""}`} style={{ height: on ? `${[60, 100, 45, 80][i]}%` : "25%", animationDelay: `${i * 0.18}s`, animationDuration: `${0.6 + i * 0.15}s` }} />
+        <span key={i} className={`w-[3px] rounded-full bg-[var(--w-accent)] ${on ? "animate-pulse" : ""}`} style={{ height: on ? `${[60, 100, 45, 80][i]}%` : "25%", animationDelay: `${i * 0.18}s`, animationDuration: `${0.6 + i * 0.15}s` }} />
       ))}
     </span>
   );
@@ -190,7 +190,7 @@ export default function NowPlaying(p: NowPlayingProps) {
           return (
             <div className="absolute -inset-5 overflow-hidden">
               <Img src={cover} icon="album" className="absolute inset-0 h-full w-full scale-125 opacity-70 blur-2xl [[data-lite-motion]_&]:blur-none" />
-              <div className="absolute inset-0" style={{ background: "linear-gradient(160deg, color-mix(in oklab, var(--accent) 35%, transparent), rgba(0,0,0,.55) 55%, rgba(0,0,0,.8))" }} />
+              <div className="absolute inset-0" style={{ background: "linear-gradient(160deg, color-mix(in oklab, var(--w-accent) 35%, transparent), rgba(0,0,0,.55) 55%, rgba(0,0,0,.8))" }} />
               <div className="relative flex h-full items-end gap-4 p-5">
                 <Img src={cover} icon="album" className={`aspect-square shrink-0 rounded-xl shadow-2xl ${size === "lg" ? "h-[62%]" : "h-[58%]"}`} />
                 <div className="flex min-w-0 flex-1 flex-col gap-2.5 pb-1">

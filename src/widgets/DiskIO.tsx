@@ -23,7 +23,7 @@ export default function DiskIO(p: DiskIOProps) {
   });
   const total = disks.reduce((a, x) => a + (x.r || 0) + (x.w || 0), 0);
   const hist = useHistory(total);
-  const rc = p.readColor || "var(--accent)",
+  const rc = p.readColor || "var(--w-accent)",
     wc = p.writeColor || hue(70);
   const showHistory = p.showHistory !== false;
   const max = Math.max(1, ...disks.flatMap((x) => [x.r, x.w]));

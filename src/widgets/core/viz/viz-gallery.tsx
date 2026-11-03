@@ -7,6 +7,7 @@ import { AudioViz } from "./AudioViz";
 import { bandCentreHz } from "./dynamics";
 import { BAND_COUNT, createInputState, stepInput } from "./input";
 import { DEFAULT_LOOK, VIZ_STYLES, type VizLook } from "./types";
+import { accentVars } from "../tokens";
 
 /**
  * Dev-only QA page for the visualiser (`?viz-gallery`): every style under Follow in four skins and
@@ -63,7 +64,7 @@ export default function VizGallery() {
           <h2 className="mb-2 font-mono text-xs opacity-60">cell {cell}</h2>
           {rows.map((row) => (
             <SkinCtx.Provider key={row.name} value={skinCtx(row.skin)}>
-              <div className="mb-3 flex items-start gap-3" style={{ "--accent": SKINS[row.skin]?.accent ?? DEFAULT_ACCENT, "--w-track": "rgba(255,255,255,.07)", "--w-fg": "#f4f4f5" } as CSSProperties}>
+              <div className="mb-3 flex items-start gap-3" style={{ ...accentVars(SKINS[row.skin]?.accent ?? DEFAULT_ACCENT), "--w-track": "rgba(255,255,255,.07)", "--w-fg": "#f4f4f5" } as CSSProperties}>
                 <span className="w-40 shrink-0 font-mono text-micro opacity-70">{row.name}</span>
                 {VIZ_STYLES.map((style) => (
                   <figure key={style} data-viz-tile={`${row.name}|${style}|${cell}`} className="m-0 flex flex-col gap-1">

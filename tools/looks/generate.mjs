@@ -86,7 +86,7 @@ export async function generate() {
       "",
       "/** The app's widget colours (src/widgets/core/theme.ts), with the dark-surface value used when baking. */",
       "export const THEME = {",
-      entry("accent", "Accent", "accent", DEFAULT_ACCENT),
+      entry("accent", "Accent", "w-accent", DEFAULT_ACCENT),
       entry("warn", "Warning", "w-warn", STATUS.warn),
       entry("crit", "Critical", "w-crit", STATUS.crit),
       entry("fg", "Text", "w-fg", DARK_TEXT.fg),

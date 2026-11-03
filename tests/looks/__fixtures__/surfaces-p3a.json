@@ -155,36 +155,36 @@
     "tinted": {
       "c": "border",
       "s": {
-        "background": "linear-gradient(155deg, color-mix(in oklab, var(--accent) 22%, #141418), #121215 65%)",
-        "borderColor": "color-mix(in oklab, var(--accent) 28%, transparent)"
+        "background": "linear-gradient(155deg, color-mix(in oklab, var(--w-accent) 22%, #141418), #121215 65%)",
+        "borderColor": "color-mix(in oklab, var(--w-accent) 28%, transparent)"
       },
       "tone": "dark",
       "colors": null,
       "boxes": {
         "none": {
-          "background": "linear-gradient(155deg, color-mix(in oklab, var(--accent) 22%, #141418), #121215 65%)",
-          "borderColor": "color-mix(in oklab, var(--accent) 28%, transparent)"
+          "background": "linear-gradient(155deg, color-mix(in oklab, var(--w-accent) 22%, #141418), #121215 65%)",
+          "borderColor": "color-mix(in oklab, var(--w-accent) 28%, transparent)"
         },
         "defaults": {
-          "background": "linear-gradient(155deg, color-mix(in oklab, var(--accent) 22%, #141418), #121215 65%)",
-          "borderColor": "color-mix(in oklab, var(--accent) 28%, transparent)"
+          "background": "linear-gradient(155deg, color-mix(in oklab, var(--w-accent) 22%, #141418), #121215 65%)",
+          "borderColor": "color-mix(in oklab, var(--w-accent) 28%, transparent)"
         },
         "edge": {
-          "background": "linear-gradient(155deg, color-mix(in oklab, color-mix(in oklab, var(--accent) 22%, #141418) 50%, transparent), rgba(18, 18, 21, 0.5) 65%)",
-          "borderColor": "color-mix(in oklab, var(--accent) 28%, transparent)",
-          "boxShadow": "inset 0 0 0 2px color-mix(in oklab, var(--accent) 28%, transparent), inset 0 0 14px rgba(255, 255, 255, 0.45)",
+          "background": "linear-gradient(155deg, color-mix(in oklab, color-mix(in oklab, var(--w-accent) 22%, #141418) 50%, transparent), rgba(18, 18, 21, 0.5) 65%)",
+          "borderColor": "color-mix(in oklab, var(--w-accent) 28%, transparent)",
+          "boxShadow": "inset 0 0 0 2px color-mix(in oklab, var(--w-accent) 28%, transparent), inset 0 0 14px rgba(255, 255, 255, 0.45)",
           "borderWidth": 0,
           "backdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))",
           "WebkitBackdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))"
         },
         "ring": {
-          "background": "linear-gradient(155deg, color-mix(in oklab, var(--accent) 22%, #141418), #121215 65%)",
-          "borderColor": "color-mix(in oklab, var(--accent) 28%, transparent)",
+          "background": "linear-gradient(155deg, color-mix(in oklab, var(--w-accent) 22%, #141418), #121215 65%)",
+          "borderColor": "color-mix(in oklab, var(--w-accent) 28%, transparent)",
           "boxShadow": "inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)"
         },
         "blur0": {
-          "background": "linear-gradient(155deg, color-mix(in oklab, var(--accent) 22%, #141418), #121215 65%)",
-          "borderColor": "color-mix(in oklab, var(--accent) 28%, transparent)",
+          "background": "linear-gradient(155deg, color-mix(in oklab, var(--w-accent) 22%, #141418), #121215 65%)",
+          "borderColor": "color-mix(in oklab, var(--w-accent) 28%, transparent)",
           "backdropFilter": "none",
           "WebkitBackdropFilter": "none"
         }
@@ -202,30 +202,30 @@
     "aurora": {
       "c": "border border-white/[0.07]",
       "s": {
-        "background": "radial-gradient(120% 90% at 0% 0%, color-mix(in oklab, var(--accent) 38%, transparent), transparent 55%), radial-gradient(90% 80% at 100% 100%, color-mix(in oklab, #a78bfa 26%, transparent), transparent 60%), #0f0f13"
+        "background": "radial-gradient(120% 90% at 0% 0%, color-mix(in oklab, var(--w-accent) 38%, transparent), transparent 55%), radial-gradient(90% 80% at 100% 100%, color-mix(in oklab, #a78bfa 26%, transparent), transparent 60%), #0f0f13"
       },
       "tone": "dark",
       "colors": null,
       "boxes": {
         "none": {
-          "background": "radial-gradient(120% 90% at 0% 0%, color-mix(in oklab, var(--accent) 38%, transparent), transparent 55%), radial-gradient(90% 80% at 100% 100%, color-mix(in oklab, #a78bfa 26%, transparent), transparent 60%), #0f0f13"
+          "background": "radial-gradient(120% 90% at 0% 0%, color-mix(in oklab, var(--w-accent) 38%, transparent), transparent 55%), radial-gradient(90% 80% at 100% 100%, color-mix(in oklab, #a78bfa 26%, transparent), transparent 60%), #0f0f13"
         },
         "defaults": {
-          "background": "radial-gradient(120% 90% at 0% 0%, color-mix(in oklab, var(--accent) 38%, transparent), transparent 55%), radial-gradient(90% 80% at 100% 100%, color-mix(in oklab, #a78bfa 26%, transparent), transparent 60%), #0f0f13"
+          "background": "radial-gradient(120% 90% at 0% 0%, color-mix(in oklab, var(--w-accent) 38%, transparent), transparent 55%), radial-gradient(90% 80% at 100% 100%, color-mix(in oklab, #a78bfa 26%, transparent), transparent 60%), #0f0f13"
         },
         "edge": {
-          "background": "radial-gradient(120% 90% at 0% 0%, color-mix(in oklab, color-mix(in oklab, var(--accent) 38%, transparent) 50%, transparent), transparent 55%), radial-gradient(90% 80% at 100% 100%, color-mix(in oklab, color-mix(in oklab, #a78bfa 26%, transparent) 50%, transparent), transparent 60%), rgba(15, 15, 19, 0.5)",
+          "background": "radial-gradient(120% 90% at 0% 0%, color-mix(in oklab, color-mix(in oklab, var(--w-accent) 38%, transparent) 50%, transparent), transparent 55%), radial-gradient(90% 80% at 100% 100%, color-mix(in oklab, color-mix(in oklab, #a78bfa 26%, transparent) 50%, transparent), transparent 60%), rgba(15, 15, 19, 0.5)",
           "boxShadow": "inset 0 0 0 2px rgba(255, 255, 255, 0.1), inset 0 0 14px rgba(255, 255, 255, 0.45)",
           "borderWidth": 0,
           "backdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))",
           "WebkitBackdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))"
         },
         "ring": {
-          "background": "radial-gradient(120% 90% at 0% 0%, color-mix(in oklab, var(--accent) 38%, transparent), transparent 55%), radial-gradient(90% 80% at 100% 100%, color-mix(in oklab, #a78bfa 26%, transparent), transparent 60%), #0f0f13",
+          "background": "radial-gradient(120% 90% at 0% 0%, color-mix(in oklab, var(--w-accent) 38%, transparent), transparent 55%), radial-gradient(90% 80% at 100% 100%, color-mix(in oklab, #a78bfa 26%, transparent), transparent 60%), #0f0f13",
           "boxShadow": "inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)"
         },
         "blur0": {
-          "background": "radial-gradient(120% 90% at 0% 0%, color-mix(in oklab, var(--accent) 38%, transparent), transparent 55%), radial-gradient(90% 80% at 100% 100%, color-mix(in oklab, #a78bfa 26%, transparent), transparent 60%), #0f0f13",
+          "background": "radial-gradient(120% 90% at 0% 0%, color-mix(in oklab, var(--w-accent) 38%, transparent), transparent 55%), radial-gradient(90% 80% at 100% 100%, color-mix(in oklab, #a78bfa 26%, transparent), transparent 60%), #0f0f13",
           "backdropFilter": "none",
           "WebkitBackdropFilter": "none"
         }
@@ -244,39 +244,39 @@
       "c": "border",
       "s": {
         "background": "#0a0a0d",
-        "borderColor": "color-mix(in oklab, var(--accent) 80%, transparent)",
-        "boxShadow": "0 0 22px -6px color-mix(in oklab, var(--accent) 70%, transparent), inset 0 0 22px -12px color-mix(in oklab, var(--accent) 80%, transparent)"
+        "borderColor": "color-mix(in oklab, var(--w-accent) 80%, transparent)",
+        "boxShadow": "0 0 22px -6px color-mix(in oklab, var(--w-accent) 70%, transparent), inset 0 0 22px -12px color-mix(in oklab, var(--w-accent) 80%, transparent)"
       },
       "tone": "dark",
       "colors": null,
       "boxes": {
         "none": {
           "background": "#0a0a0d",
-          "borderColor": "color-mix(in oklab, var(--accent) 80%, transparent)",
-          "boxShadow": "0 0 22px -6px color-mix(in oklab, var(--accent) 70%, transparent), inset 0 0 22px -12px color-mix(in oklab, var(--accent) 80%, transparent)"
+          "borderColor": "color-mix(in oklab, var(--w-accent) 80%, transparent)",
+          "boxShadow": "0 0 22px -6px color-mix(in oklab, var(--w-accent) 70%, transparent), inset 0 0 22px -12px color-mix(in oklab, var(--w-accent) 80%, transparent)"
         },
         "defaults": {
           "background": "#0a0a0d",
-          "borderColor": "color-mix(in oklab, var(--accent) 80%, transparent)",
-          "boxShadow": "0 0 22px -6px color-mix(in oklab, var(--accent) 70%, transparent), inset 0 0 22px -12px color-mix(in oklab, var(--accent) 80%, transparent)"
+          "borderColor": "color-mix(in oklab, var(--w-accent) 80%, transparent)",
+          "boxShadow": "0 0 22px -6px color-mix(in oklab, var(--w-accent) 70%, transparent), inset 0 0 22px -12px color-mix(in oklab, var(--w-accent) 80%, transparent)"
         },
         "edge": {
           "background": "rgba(10, 10, 13, 0.5)",
-          "borderColor": "color-mix(in oklab, var(--accent) 80%, transparent)",
-          "boxShadow": "0 0 22px -6px color-mix(in oklab, var(--accent) 70%, transparent), inset 0 0 22px -12px color-mix(in oklab, var(--accent) 80%, transparent), inset 0 0 0 2px color-mix(in oklab, var(--accent) 80%, transparent), inset 0 0 14px rgba(255, 255, 255, 0.45)",
+          "borderColor": "color-mix(in oklab, var(--w-accent) 80%, transparent)",
+          "boxShadow": "0 0 22px -6px color-mix(in oklab, var(--w-accent) 70%, transparent), inset 0 0 22px -12px color-mix(in oklab, var(--w-accent) 80%, transparent), inset 0 0 0 2px color-mix(in oklab, var(--w-accent) 80%, transparent), inset 0 0 14px rgba(255, 255, 255, 0.45)",
           "borderWidth": 0,
           "backdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))",
           "WebkitBackdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))"
         },
         "ring": {
           "background": "#0a0a0d",
-          "borderColor": "color-mix(in oklab, var(--accent) 80%, transparent)",
-          "boxShadow": "0 0 22px -6px color-mix(in oklab, var(--accent) 70%, transparent), inset 0 0 22px -12px color-mix(in oklab, var(--accent) 80%, transparent), inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)"
+          "borderColor": "color-mix(in oklab, var(--w-accent) 80%, transparent)",
+          "boxShadow": "0 0 22px -6px color-mix(in oklab, var(--w-accent) 70%, transparent), inset 0 0 22px -12px color-mix(in oklab, var(--w-accent) 80%, transparent), inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)"
         },
         "blur0": {
           "background": "#0a0a0d",
-          "borderColor": "color-mix(in oklab, var(--accent) 80%, transparent)",
-          "boxShadow": "0 0 22px -6px color-mix(in oklab, var(--accent) 70%, transparent), inset 0 0 22px -12px color-mix(in oklab, var(--accent) 80%, transparent)",
+          "borderColor": "color-mix(in oklab, var(--w-accent) 80%, transparent)",
+          "boxShadow": "0 0 22px -6px color-mix(in oklab, var(--w-accent) 70%, transparent), inset 0 0 22px -12px color-mix(in oklab, var(--w-accent) 80%, transparent)",
           "backdropFilter": "none",
           "WebkitBackdropFilter": "none"
         }
@@ -294,29 +294,29 @@
     "holo": {
       "c": "border border-transparent",
       "s": {
-        "background": "linear-gradient(#121215,#121215) padding-box, conic-gradient(from 210deg, var(--accent), #a78bfa, #f472b6, #fbbf24, var(--accent)) border-box"
+        "background": "linear-gradient(#121215,#121215) padding-box, conic-gradient(from 210deg, var(--w-accent), #a78bfa, #f472b6, #fbbf24, var(--w-accent)) border-box"
       },
       "tone": "dark",
       "colors": null,
       "boxes": {
         "none": {
-          "background": "linear-gradient(#121215,#121215) padding-box, conic-gradient(from 210deg, var(--accent), #a78bfa, #f472b6, #fbbf24, var(--accent)) border-box"
+          "background": "linear-gradient(#121215,#121215) padding-box, conic-gradient(from 210deg, var(--w-accent), #a78bfa, #f472b6, #fbbf24, var(--w-accent)) border-box"
         },
         "defaults": {
-          "background": "linear-gradient(#121215,#121215) padding-box, conic-gradient(from 210deg, var(--accent), #a78bfa, #f472b6, #fbbf24, var(--accent)) border-box"
+          "background": "linear-gradient(#121215,#121215) padding-box, conic-gradient(from 210deg, var(--w-accent), #a78bfa, #f472b6, #fbbf24, var(--w-accent)) border-box"
         },
         "edge": {
-          "background": "linear-gradient(rgba(18, 18, 21, 0.5),rgba(18, 18, 21, 0.5)) padding-box, conic-gradient(from 210deg, var(--accent), rgba(167, 139, 250, 0.5), rgba(244, 114, 182, 0.5), rgba(251, 191, 36, 0.5), var(--accent)) border-box",
+          "background": "linear-gradient(rgba(18, 18, 21, 0.5),rgba(18, 18, 21, 0.5)) padding-box, conic-gradient(from 210deg, var(--w-accent), rgba(167, 139, 250, 0.5), rgba(244, 114, 182, 0.5), rgba(251, 191, 36, 0.5), var(--w-accent)) border-box",
           "boxShadow": "inset 0 0 0 2px rgba(255, 255, 255, 0.1), inset 0 0 14px rgba(255, 255, 255, 0.45)",
           "backdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))",
           "WebkitBackdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))"
         },
         "ring": {
-          "background": "linear-gradient(#121215,#121215) padding-box, conic-gradient(from 210deg, var(--accent), #a78bfa, #f472b6, #fbbf24, var(--accent)) border-box",
+          "background": "linear-gradient(#121215,#121215) padding-box, conic-gradient(from 210deg, var(--w-accent), #a78bfa, #f472b6, #fbbf24, var(--w-accent)) border-box",
           "boxShadow": "inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)"
         },
         "blur0": {
-          "background": "linear-gradient(#121215,#121215) padding-box, conic-gradient(from 210deg, var(--accent), #a78bfa, #f472b6, #fbbf24, var(--accent)) border-box",
+          "background": "linear-gradient(#121215,#121215) padding-box, conic-gradient(from 210deg, var(--w-accent), #a78bfa, #f472b6, #fbbf24, var(--w-accent)) border-box",
           "backdropFilter": "none",
           "WebkitBackdropFilter": "none"
         }
@@ -509,8 +509,8 @@
       "c": "border font-mono",
       "s": {
         "background": "repeating-linear-gradient(0deg, rgba(255,255,255,.03) 0 1px, transparent 1px 3px), #060807",
-        "borderColor": "color-mix(in oklab, var(--accent) 30%, transparent)",
-        "textShadow": "0 0 8px color-mix(in oklab, var(--accent) 45%, transparent)",
+        "borderColor": "color-mix(in oklab, var(--w-accent) 30%, transparent)",
+        "textShadow": "0 0 8px color-mix(in oklab, var(--w-accent) 45%, transparent)",
         "fontSizeAdjust": 0.4
       },
       "tone": "dark",
@@ -518,37 +518,37 @@
       "boxes": {
         "none": {
           "background": "repeating-linear-gradient(0deg, rgba(255,255,255,.03) 0 1px, transparent 1px 3px), #060807",
-          "borderColor": "color-mix(in oklab, var(--accent) 30%, transparent)",
-          "textShadow": "0 0 8px color-mix(in oklab, var(--accent) 45%, transparent)",
+          "borderColor": "color-mix(in oklab, var(--w-accent) 30%, transparent)",
+          "textShadow": "0 0 8px color-mix(in oklab, var(--w-accent) 45%, transparent)",
           "fontSizeAdjust": 0.4
         },
         "defaults": {
           "background": "repeating-linear-gradient(0deg, rgba(255,255,255,.03) 0 1px, transparent 1px 3px), #060807",
-          "borderColor": "color-mix(in oklab, var(--accent) 30%, transparent)",
-          "textShadow": "0 0 8px color-mix(in oklab, var(--accent) 45%, transparent)",
+          "borderColor": "color-mix(in oklab, var(--w-accent) 30%, transparent)",
+          "textShadow": "0 0 8px color-mix(in oklab, var(--w-accent) 45%, transparent)",
           "fontSizeAdjust": 0.4
         },
         "edge": {
           "background": "repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.02) 0 1px, transparent 1px 3px), rgba(6, 8, 7, 0.5)",
-          "borderColor": "color-mix(in oklab, var(--accent) 30%, transparent)",
-          "textShadow": "0 0 8px color-mix(in oklab, var(--accent) 45%, transparent)",
+          "borderColor": "color-mix(in oklab, var(--w-accent) 30%, transparent)",
+          "textShadow": "0 0 8px color-mix(in oklab, var(--w-accent) 45%, transparent)",
           "fontSizeAdjust": 0.4,
-          "boxShadow": "inset 0 0 0 2px color-mix(in oklab, var(--accent) 30%, transparent), inset 0 0 14px rgba(255, 255, 255, 0.45)",
+          "boxShadow": "inset 0 0 0 2px color-mix(in oklab, var(--w-accent) 30%, transparent), inset 0 0 14px rgba(255, 255, 255, 0.45)",
           "borderWidth": 0,
           "backdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))",
           "WebkitBackdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))"
         },
         "ring": {
           "background": "repeating-linear-gradient(0deg, rgba(255,255,255,.03) 0 1px, transparent 1px 3px), #060807",
-          "borderColor": "color-mix(in oklab, var(--accent) 30%, transparent)",
-          "textShadow": "0 0 8px color-mix(in oklab, var(--accent) 45%, transparent)",
+          "borderColor": "color-mix(in oklab, var(--w-accent) 30%, transparent)",
+          "textShadow": "0 0 8px color-mix(in oklab, var(--w-accent) 45%, transparent)",
           "fontSizeAdjust": 0.4,
           "boxShadow": "inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)"
         },
         "blur0": {
           "background": "repeating-linear-gradient(0deg, rgba(255,255,255,.03) 0 1px, transparent 1px 3px), #060807",
-          "borderColor": "color-mix(in oklab, var(--accent) 30%, transparent)",
-          "textShadow": "0 0 8px color-mix(in oklab, var(--accent) 45%, transparent)",
+          "borderColor": "color-mix(in oklab, var(--w-accent) 30%, transparent)",
+          "textShadow": "0 0 8px color-mix(in oklab, var(--w-accent) 45%, transparent)",
           "fontSizeAdjust": 0.4,
           "backdropFilter": "none",
           "WebkitBackdropFilter": "none"
@@ -653,33 +653,33 @@
     "mica": {
       "c": "border border-white/[0.07]",
       "s": {
-        "background": "radial-gradient(140% 120% at 0% 0%, color-mix(in oklab, var(--accent) 11%, transparent), transparent 60%), #202023",
+        "background": "radial-gradient(140% 120% at 0% 0%, color-mix(in oklab, var(--w-accent) 11%, transparent), transparent 60%), #202023",
         "boxShadow": "inset 0 1px 0 rgba(255,255,255,.05)"
       },
       "tone": "dark",
       "colors": null,
       "boxes": {
         "none": {
-          "background": "radial-gradient(140% 120% at 0% 0%, color-mix(in oklab, var(--accent) 11%, transparent), transparent 60%), #202023",
+          "background": "radial-gradient(140% 120% at 0% 0%, color-mix(in oklab, var(--w-accent) 11%, transparent), transparent 60%), #202023",
           "boxShadow": "inset 0 1px 0 rgba(255,255,255,.05)"
         },
         "defaults": {
-          "background": "radial-gradient(140% 120% at 0% 0%, color-mix(in oklab, var(--accent) 11%, transparent), transparent 60%), #202023",
+          "background": "radial-gradient(140% 120% at 0% 0%, color-mix(in oklab, var(--w-accent) 11%, transparent), transparent 60%), #202023",
           "boxShadow": "inset 0 1px 0 rgba(255,255,255,.05)"
         },
         "edge": {
-          "background": "radial-gradient(140% 120% at 0% 0%, color-mix(in oklab, color-mix(in oklab, var(--accent) 11%, transparent) 50%, transparent), transparent 60%), rgba(32, 32, 35, 0.5)",
+          "background": "radial-gradient(140% 120% at 0% 0%, color-mix(in oklab, color-mix(in oklab, var(--w-accent) 11%, transparent) 50%, transparent), transparent 60%), rgba(32, 32, 35, 0.5)",
           "boxShadow": "inset 0 1px 0 rgba(255,255,255,.05), inset 0 0 0 2px rgba(255, 255, 255, 0.1), inset 0 0 14px rgba(255, 255, 255, 0.45)",
           "borderWidth": 0,
           "backdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))",
           "WebkitBackdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))"
         },
         "ring": {
-          "background": "radial-gradient(140% 120% at 0% 0%, color-mix(in oklab, var(--accent) 11%, transparent), transparent 60%), #202023",
+          "background": "radial-gradient(140% 120% at 0% 0%, color-mix(in oklab, var(--w-accent) 11%, transparent), transparent 60%), #202023",
           "boxShadow": "inset 0 1px 0 rgba(255,255,255,.05), inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)"
         },
         "blur0": {
-          "background": "radial-gradient(140% 120% at 0% 0%, color-mix(in oklab, var(--accent) 11%, transparent), transparent 60%), #202023",
+          "background": "radial-gradient(140% 120% at 0% 0%, color-mix(in oklab, var(--w-accent) 11%, transparent), transparent 60%), #202023",
           "boxShadow": "inset 0 1px 0 rgba(255,255,255,.05)",
           "backdropFilter": "none",
           "WebkitBackdropFilter": "none"
@@ -698,34 +698,34 @@
     "hud": {
       "c": "",
       "s": {
-        "background": "repeating-linear-gradient(90deg, color-mix(in oklab, var(--accent) 8%, transparent) 0 1px, transparent 1px 22px), repeating-linear-gradient(0deg, color-mix(in oklab, var(--accent) 8%, transparent) 0 1px, transparent 1px 22px), radial-gradient(120% 100% at 50% 0%, color-mix(in oklab, var(--accent) 10%, transparent), transparent 70%), #07090b",
-        "boxShadow": "inset 0 0 0 1px color-mix(in oklab, var(--accent) 20%, transparent)"
+        "background": "repeating-linear-gradient(90deg, color-mix(in oklab, var(--w-accent) 8%, transparent) 0 1px, transparent 1px 22px), repeating-linear-gradient(0deg, color-mix(in oklab, var(--w-accent) 8%, transparent) 0 1px, transparent 1px 22px), radial-gradient(120% 100% at 50% 0%, color-mix(in oklab, var(--w-accent) 10%, transparent), transparent 70%), #07090b",
+        "boxShadow": "inset 0 0 0 1px color-mix(in oklab, var(--w-accent) 20%, transparent)"
       },
       "tone": "dark",
       "colors": null,
       "boxes": {
         "none": {
-          "background": "repeating-linear-gradient(90deg, color-mix(in oklab, var(--accent) 8%, transparent) 0 1px, transparent 1px 22px), repeating-linear-gradient(0deg, color-mix(in oklab, var(--accent) 8%, transparent) 0 1px, transparent 1px 22px), radial-gradient(120% 100% at 50% 0%, color-mix(in oklab, var(--accent) 10%, transparent), transparent 70%), #07090b",
-          "boxShadow": "inset 0 0 0 1px color-mix(in oklab, var(--accent) 20%, transparent)"
+          "background": "repeating-linear-gradient(90deg, color-mix(in oklab, var(--w-accent) 8%, transparent) 0 1px, transparent 1px 22px), repeating-linear-gradient(0deg, color-mix(in oklab, var(--w-accent) 8%, transparent) 0 1px, transparent 1px 22px), radial-gradient(120% 100% at 50% 0%, color-mix(in oklab, var(--w-accent) 10%, transparent), transparent 70%), #07090b",
+          "boxShadow": "inset 0 0 0 1px color-mix(in oklab, var(--w-accent) 20%, transparent)"
         },
         "defaults": {
-          "background": "repeating-linear-gradient(90deg, color-mix(in oklab, var(--accent) 8%, transparent) 0 1px, transparent 1px 22px), repeating-linear-gradient(0deg, color-mix(in oklab, var(--accent) 8%, transparent) 0 1px, transparent 1px 22px), radial-gradient(120% 100% at 50% 0%, color-mix(in oklab, var(--accent) 10%, transparent), transparent 70%), #07090b",
-          "boxShadow": "inset 0 0 0 1px color-mix(in oklab, var(--accent) 20%, transparent)"
+          "background": "repeating-linear-gradient(90deg, color-mix(in oklab, var(--w-accent) 8%, transparent) 0 1px, transparent 1px 22px), repeating-linear-gradient(0deg, color-mix(in oklab, var(--w-accent) 8%, transparent) 0 1px, transparent 1px 22px), radial-gradient(120% 100% at 50% 0%, color-mix(in oklab, var(--w-accent) 10%, transparent), transparent 70%), #07090b",
+          "boxShadow": "inset 0 0 0 1px color-mix(in oklab, var(--w-accent) 20%, transparent)"
         },
         "edge": {
-          "background": "repeating-linear-gradient(90deg, color-mix(in oklab, color-mix(in oklab, var(--accent) 8%, transparent) 50%, transparent) 0 1px, transparent 1px 22px), repeating-linear-gradient(0deg, color-mix(in oklab, color-mix(in oklab, var(--accent) 8%, transparent) 50%, transparent) 0 1px, transparent 1px 22px), radial-gradient(120% 100% at 50% 0%, color-mix(in oklab, color-mix(in oklab, var(--accent) 10%, transparent) 50%, transparent), transparent 70%), rgba(7, 9, 11, 0.5)",
-          "boxShadow": "inset 0 0 0 1px color-mix(in oklab, var(--accent) 20%, transparent), inset 0 0 0 2px rgba(255, 255, 255, 0.1), inset 0 0 14px rgba(255, 255, 255, 0.45)",
+          "background": "repeating-linear-gradient(90deg, color-mix(in oklab, color-mix(in oklab, var(--w-accent) 8%, transparent) 50%, transparent) 0 1px, transparent 1px 22px), repeating-linear-gradient(0deg, color-mix(in oklab, color-mix(in oklab, var(--w-accent) 8%, transparent) 50%, transparent) 0 1px, transparent 1px 22px), radial-gradient(120% 100% at 50% 0%, color-mix(in oklab, color-mix(in oklab, var(--w-accent) 10%, transparent) 50%, transparent), transparent 70%), rgba(7, 9, 11, 0.5)",
+          "boxShadow": "inset 0 0 0 1px color-mix(in oklab, var(--w-accent) 20%, transparent), inset 0 0 0 2px rgba(255, 255, 255, 0.1), inset 0 0 14px rgba(255, 255, 255, 0.45)",
           "borderWidth": 0,
           "backdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))",
           "WebkitBackdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))"
         },
         "ring": {
-          "background": "repeating-linear-gradient(90deg, color-mix(in oklab, var(--accent) 8%, transparent) 0 1px, transparent 1px 22px), repeating-linear-gradient(0deg, color-mix(in oklab, var(--accent) 8%, transparent) 0 1px, transparent 1px 22px), radial-gradient(120% 100% at 50% 0%, color-mix(in oklab, var(--accent) 10%, transparent), transparent 70%), #07090b",
-          "boxShadow": "inset 0 0 0 1px color-mix(in oklab, var(--accent) 20%, transparent), inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)"
+          "background": "repeating-linear-gradient(90deg, color-mix(in oklab, var(--w-accent) 8%, transparent) 0 1px, transparent 1px 22px), repeating-linear-gradient(0deg, color-mix(in oklab, var(--w-accent) 8%, transparent) 0 1px, transparent 1px 22px), radial-gradient(120% 100% at 50% 0%, color-mix(in oklab, var(--w-accent) 10%, transparent), transparent 70%), #07090b",
+          "boxShadow": "inset 0 0 0 1px color-mix(in oklab, var(--w-accent) 20%, transparent), inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)"
         },
         "blur0": {
-          "background": "repeating-linear-gradient(90deg, color-mix(in oklab, var(--accent) 8%, transparent) 0 1px, transparent 1px 22px), repeating-linear-gradient(0deg, color-mix(in oklab, var(--accent) 8%, transparent) 0 1px, transparent 1px 22px), radial-gradient(120% 100% at 50% 0%, color-mix(in oklab, var(--accent) 10%, transparent), transparent 70%), #07090b",
-          "boxShadow": "inset 0 0 0 1px color-mix(in oklab, var(--accent) 20%, transparent)",
+          "background": "repeating-linear-gradient(90deg, color-mix(in oklab, var(--w-accent) 8%, transparent) 0 1px, transparent 1px 22px), repeating-linear-gradient(0deg, color-mix(in oklab, var(--w-accent) 8%, transparent) 0 1px, transparent 1px 22px), radial-gradient(120% 100% at 50% 0%, color-mix(in oklab, var(--w-accent) 10%, transparent), transparent 70%), #07090b",
+          "boxShadow": "inset 0 0 0 1px color-mix(in oklab, var(--w-accent) 20%, transparent)",
           "backdropFilter": "none",
           "WebkitBackdropFilter": "none"
         }
@@ -788,30 +788,30 @@
     "material": {
       "c": "",
       "s": {
-        "background": "linear-gradient(color-mix(in oklab, var(--accent) 15%, #1b1b1f), color-mix(in oklab, var(--accent) 15%, #1b1b1f))"
+        "background": "linear-gradient(color-mix(in oklab, var(--w-accent) 15%, #1b1b1f), color-mix(in oklab, var(--w-accent) 15%, #1b1b1f))"
       },
       "tone": "dark",
       "colors": null,
       "boxes": {
         "none": {
-          "background": "linear-gradient(color-mix(in oklab, var(--accent) 15%, #1b1b1f), color-mix(in oklab, var(--accent) 15%, #1b1b1f))"
+          "background": "linear-gradient(color-mix(in oklab, var(--w-accent) 15%, #1b1b1f), color-mix(in oklab, var(--w-accent) 15%, #1b1b1f))"
         },
         "defaults": {
-          "background": "linear-gradient(color-mix(in oklab, var(--accent) 15%, #1b1b1f), color-mix(in oklab, var(--accent) 15%, #1b1b1f))"
+          "background": "linear-gradient(color-mix(in oklab, var(--w-accent) 15%, #1b1b1f), color-mix(in oklab, var(--w-accent) 15%, #1b1b1f))"
         },
         "edge": {
-          "background": "linear-gradient(color-mix(in oklab, color-mix(in oklab, var(--accent) 15%, #1b1b1f) 50%, transparent), color-mix(in oklab, color-mix(in oklab, var(--accent) 15%, #1b1b1f) 50%, transparent))",
+          "background": "linear-gradient(color-mix(in oklab, color-mix(in oklab, var(--w-accent) 15%, #1b1b1f) 50%, transparent), color-mix(in oklab, color-mix(in oklab, var(--w-accent) 15%, #1b1b1f) 50%, transparent))",
           "boxShadow": "inset 0 0 0 2px rgba(255, 255, 255, 0.1), inset 0 0 14px rgba(255, 255, 255, 0.45)",
           "borderWidth": 0,
           "backdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))",
           "WebkitBackdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))"
         },
         "ring": {
-          "background": "linear-gradient(color-mix(in oklab, var(--accent) 15%, #1b1b1f), color-mix(in oklab, var(--accent) 15%, #1b1b1f))",
+          "background": "linear-gradient(color-mix(in oklab, var(--w-accent) 15%, #1b1b1f), color-mix(in oklab, var(--w-accent) 15%, #1b1b1f))",
           "boxShadow": "inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)"
         },
         "blur0": {
-          "background": "linear-gradient(color-mix(in oklab, var(--accent) 15%, #1b1b1f), color-mix(in oklab, var(--accent) 15%, #1b1b1f))",
+          "background": "linear-gradient(color-mix(in oklab, var(--w-accent) 15%, #1b1b1f), color-mix(in oklab, var(--w-accent) 15%, #1b1b1f))",
           "backdropFilter": "none",
           "WebkitBackdropFilter": "none"
         }
@@ -882,7 +882,7 @@
       "s": {
         "background": "#121212",
         "borderColor": "#f4f4f5",
-        "boxShadow": "5px 5px 0 0 var(--accent)",
+        "boxShadow": "5px 5px 0 0 var(--w-accent)",
         "width": "calc(100% - 6px)",
         "height": "calc(100% - 6px)"
       },
@@ -892,21 +892,21 @@
         "none": {
           "background": "#121212",
           "borderColor": "#f4f4f5",
-          "boxShadow": "5px 5px 0 0 var(--accent)",
+          "boxShadow": "5px 5px 0 0 var(--w-accent)",
           "width": "calc(100% - 6px)",
           "height": "calc(100% - 6px)"
         },
         "defaults": {
           "background": "#121212",
           "borderColor": "#f4f4f5",
-          "boxShadow": "5px 5px 0 0 var(--accent)",
+          "boxShadow": "5px 5px 0 0 var(--w-accent)",
           "width": "calc(100% - 6px)",
           "height": "calc(100% - 6px)"
         },
         "edge": {
           "background": "rgba(18, 18, 18, 0.5)",
           "borderColor": "#f4f4f5",
-          "boxShadow": "5px 5px 0 0 var(--accent), inset 0 0 0 2px #f4f4f5, inset 0 0 14px rgba(255, 255, 255, 0.45)",
+          "boxShadow": "5px 5px 0 0 var(--w-accent), inset 0 0 0 2px #f4f4f5, inset 0 0 14px rgba(255, 255, 255, 0.45)",
           "width": "calc(100% - 6px)",
           "height": "calc(100% - 6px)",
           "borderWidth": 0,
@@ -916,14 +916,14 @@
         "ring": {
           "background": "#121212",
           "borderColor": "#f4f4f5",
-          "boxShadow": "5px 5px 0 0 var(--accent), inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)",
+          "boxShadow": "5px 5px 0 0 var(--w-accent), inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)",
           "width": "calc(100% - 6px)",
           "height": "calc(100% - 6px)"
         },
         "blur0": {
           "background": "#121212",
           "borderColor": "#f4f4f5",
-          "boxShadow": "5px 5px 0 0 var(--accent)",
+          "boxShadow": "5px 5px 0 0 var(--w-accent)",
           "width": "calc(100% - 6px)",
           "height": "calc(100% - 6px)",
           "backdropFilter": "none",
@@ -943,40 +943,40 @@
     "cyber": {
       "c": "",
       "s": {
-        "background": "linear-gradient(135deg, color-mix(in oklab, var(--accent) 18%, transparent) 0 10%, transparent 10%), linear-gradient(#0e0e0b, #0e0e0b)",
+        "background": "linear-gradient(135deg, color-mix(in oklab, var(--w-accent) 18%, transparent) 0 10%, transparent 10%), linear-gradient(#0e0e0b, #0e0e0b)",
         "clipPath": "polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px))",
-        "boxShadow": "inset 0 0 0 1px color-mix(in oklab, var(--accent) 55%, transparent)"
+        "boxShadow": "inset 0 0 0 1px color-mix(in oklab, var(--w-accent) 55%, transparent)"
       },
       "tone": "dark",
       "colors": null,
       "boxes": {
         "none": {
-          "background": "linear-gradient(135deg, color-mix(in oklab, var(--accent) 18%, transparent) 0 10%, transparent 10%), linear-gradient(#0e0e0b, #0e0e0b)",
+          "background": "linear-gradient(135deg, color-mix(in oklab, var(--w-accent) 18%, transparent) 0 10%, transparent 10%), linear-gradient(#0e0e0b, #0e0e0b)",
           "clipPath": "polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px))",
-          "boxShadow": "inset 0 0 0 1px color-mix(in oklab, var(--accent) 55%, transparent)"
+          "boxShadow": "inset 0 0 0 1px color-mix(in oklab, var(--w-accent) 55%, transparent)"
         },
         "defaults": {
-          "background": "linear-gradient(135deg, color-mix(in oklab, var(--accent) 18%, transparent) 0 10%, transparent 10%), linear-gradient(#0e0e0b, #0e0e0b)",
+          "background": "linear-gradient(135deg, color-mix(in oklab, var(--w-accent) 18%, transparent) 0 10%, transparent 10%), linear-gradient(#0e0e0b, #0e0e0b)",
           "clipPath": "polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px))",
-          "boxShadow": "inset 0 0 0 1px color-mix(in oklab, var(--accent) 55%, transparent)"
+          "boxShadow": "inset 0 0 0 1px color-mix(in oklab, var(--w-accent) 55%, transparent)"
         },
         "edge": {
-          "background": "linear-gradient(135deg, color-mix(in oklab, color-mix(in oklab, var(--accent) 18%, transparent) 50%, transparent) 0 10%, transparent 10%), linear-gradient(rgba(14, 14, 11, 0.5), rgba(14, 14, 11, 0.5))",
+          "background": "linear-gradient(135deg, color-mix(in oklab, color-mix(in oklab, var(--w-accent) 18%, transparent) 50%, transparent) 0 10%, transparent 10%), linear-gradient(rgba(14, 14, 11, 0.5), rgba(14, 14, 11, 0.5))",
           "clipPath": "polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px))",
-          "boxShadow": "inset 0 0 0 1px color-mix(in oklab, var(--accent) 55%, transparent), inset 0 0 0 2px rgba(255, 255, 255, 0.1), inset 0 0 14px rgba(255, 255, 255, 0.45)",
+          "boxShadow": "inset 0 0 0 1px color-mix(in oklab, var(--w-accent) 55%, transparent), inset 0 0 0 2px rgba(255, 255, 255, 0.1), inset 0 0 14px rgba(255, 255, 255, 0.45)",
           "borderWidth": 0,
           "backdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))",
           "WebkitBackdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))"
         },
         "ring": {
-          "background": "linear-gradient(135deg, color-mix(in oklab, var(--accent) 18%, transparent) 0 10%, transparent 10%), linear-gradient(#0e0e0b, #0e0e0b)",
+          "background": "linear-gradient(135deg, color-mix(in oklab, var(--w-accent) 18%, transparent) 0 10%, transparent 10%), linear-gradient(#0e0e0b, #0e0e0b)",
           "clipPath": "polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px))",
-          "boxShadow": "inset 0 0 0 1px color-mix(in oklab, var(--accent) 55%, transparent), inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)"
+          "boxShadow": "inset 0 0 0 1px color-mix(in oklab, var(--w-accent) 55%, transparent), inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)"
         },
         "blur0": {
-          "background": "linear-gradient(135deg, color-mix(in oklab, var(--accent) 18%, transparent) 0 10%, transparent 10%), linear-gradient(#0e0e0b, #0e0e0b)",
+          "background": "linear-gradient(135deg, color-mix(in oklab, var(--w-accent) 18%, transparent) 0 10%, transparent 10%), linear-gradient(#0e0e0b, #0e0e0b)",
           "clipPath": "polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px))",
-          "boxShadow": "inset 0 0 0 1px color-mix(in oklab, var(--accent) 55%, transparent)",
+          "boxShadow": "inset 0 0 0 1px color-mix(in oklab, var(--w-accent) 55%, transparent)",
           "backdropFilter": "none",
           "WebkitBackdropFilter": "none"
         }

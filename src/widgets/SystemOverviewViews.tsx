@@ -31,7 +31,7 @@ export function MetricGraphs({ rows, w, h }: { rows: MetricRow[]; w: number; h: 
         <div key={m.key} style={m.style} className="flex min-h-0 flex-1 items-center gap-3">
           <span className="w-12 shrink-0 truncate text-[11px] font-semibold uppercase tracking-[0.12em] text-[color:var(--w-muted)]">{m.label}</span>
           {sparks && <Spark values={m.hist} min={0} max={m.top} className="h-full max-h-9 min-w-0 flex-1" />}
-          <Num className="ml-auto shrink-0 whitespace-nowrap text-right text-[13px]" weight={600} style={{ color: m.tone === "ok" ? "var(--accent)" : TONES[m.tone] }}>
+          <Num className="ml-auto shrink-0 whitespace-nowrap text-right text-[13px]" weight={600} style={{ color: m.tone === "ok" ? "var(--w-accent)" : TONES[m.tone] }}>
             {m.text}
           </Num>
         </div>
@@ -53,7 +53,7 @@ export function MetricGauges({ rows, w, h }: { rows: MetricRow[]; w: number; h: 
         <div key={i} className="flex justify-center" style={{ gap }}>
           {line.map((m) => (
             <div key={m.key} style={{ ...m.style, width: cell }} className="flex min-w-0 flex-col items-center gap-1">
-              <Ring value={Math.min(m.value, m.top)} max={m.top} color="var(--accent)" sweep={270} track="color-mix(in oklab, var(--accent) 22%, transparent)" className="w-full">
+              <Ring value={Math.min(m.value, m.top)} max={m.top} color="var(--w-accent)" sweep={270} track="color-mix(in oklab, var(--w-accent) 22%, transparent)" className="w-full">
                 <Num className="leading-none" style={{ fontSize: Math.max(10, Math.min(cell * 0.27, (cell * 0.62) / (Math.max(2, m.num.length) * 0.62))), color: m.tone === "ok" ? "var(--w-fg)" : TONES[m.tone] }}>
                   <ToneCue t={m.tone} />
                   {m.num}

@@ -96,7 +96,7 @@ export default function KpiTiles(p: KpiTilesProps) {
                   {tileH > 100 ? (
                     <div className="relative mt-auto h-[38%] min-h-[18px] max-h-10">
                       <Spark values={hist} min={0} max={m.max} className="absolute inset-0 h-full" />
-                      <span className="absolute right-0 h-[7px] w-[7px] -translate-y-1/2 translate-x-1/2 rounded-full bg-[var(--accent)]" style={{ top: `${100 - ((last - 0) / ((m.max ?? Math.max(...hist) * 1.08) || 1)) * 94 - 3}%`, boxShadow: "0 0 0 3px color-mix(in oklab, var(--accent) 22%, transparent)" }} />
+                      <span className="absolute right-0 h-[7px] w-[7px] -translate-y-1/2 translate-x-1/2 rounded-full bg-[var(--w-accent)]" style={{ top: `${100 - ((last - 0) / ((m.max ?? Math.max(...hist) * 1.08) || 1)) * 94 - 3}%`, boxShadow: "0 0 0 3px color-mix(in oklab, var(--w-accent) 22%, transparent)" }} />
                     </div>
                   ) : (
                     tileH >= 76 && <Spark values={hist} min={0} max={m.max} className="mt-auto h-6 w-full" />

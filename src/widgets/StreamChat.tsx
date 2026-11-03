@@ -26,7 +26,7 @@ export interface StreamChatProps extends ShellProps {
   nameColors?: "platform" | "accent";
 }
 
-const BADGE_COLOR: Record<Exclude<ChatBadge, "">, string> = { mod: STATE.ok, vip: STATE.warn, broadcaster: STATE.crit, sub: "var(--accent)" };
+const BADGE_COLOR: Record<Exclude<ChatBadge, "">, string> = { mod: STATE.ok, vip: STATE.warn, broadcaster: STATE.crit, sub: "var(--w-accent)" };
 const TAG: Record<ChatPlatform, string> = { twitch: "TW", youtube: "YT" };
 const TITLE: Record<ChatSource, string> = { twitch: "Twitch chat", youtube: "YouTube chat", both: "Stream chat" };
 
@@ -88,7 +88,7 @@ export default function StreamChat(p: StreamChatProps) {
                     key={m.id}
                     className="shrink-0 break-words rounded-md px-1.5 py-[1px] leading-snug"
                     data-mention={mentions(m.text, highlight) || undefined}
-                    style={{ fontSize: fs, background: mentions(m.text, highlight) ? "color-mix(in oklab, var(--accent) 14%, transparent)" : undefined }}
+                    style={{ fontSize: fs, background: mentions(m.text, highlight) ? "color-mix(in oklab, var(--w-accent) 14%, transparent)" : undefined }}
                   >
                     {m.badge && <span role="img" aria-label={m.badge} title={m.badge} className="mr-1.5 inline-block h-[0.8em] w-[0.8em] rounded-[3px] align-[-0.05em]" style={{ background: BADGE_COLOR[m.badge] }} />}
                     {source === "both" && <span className="mr-1.5 rounded bg-white/[0.08] px-1 align-[0.1em] text-[0.68em] font-semibold text-zinc-400">{TAG[m.platform]}</span>}
@@ -110,7 +110,7 @@ export default function StreamChat(p: StreamChatProps) {
                   placeholder={error || (source === "both" ? `Send to ${target === "youtube" ? "YouTube" : "Twitch"}` : "Send a message")}
                   className="min-w-0 flex-1 bg-transparent text-body text-zinc-100 outline-none placeholder:text-zinc-500"
                 />
-                <button type="submit" aria-label="Send" disabled={!draft.trim()} className="flex h-7 w-7 items-center justify-center rounded-md disabled:opacity-40" style={{ color: "var(--accent)" }}>
+                <button type="submit" aria-label="Send" disabled={!draft.trim()} className="flex h-7 w-7 items-center justify-center rounded-md disabled:opacity-40" style={{ color: "var(--w-accent)" }}>
                   <Icon name="send" className="text-[18px]" />
                 </button>
               </form>

@@ -144,7 +144,7 @@ function RangeBlocks({ rows, above, h }: { rows: { key: string; label: string; s
             <div className="relative h-2 rounded-full bg-[color:var(--w-track)]" aria-hidden>
               {s && (
                 <>
-                  <div className="absolute inset-y-0 rounded-full" style={{ left: `${lo}%`, width: `${Math.max(1.5, hi - lo)}%`, background: "color-mix(in oklab, var(--accent) 55%, transparent)" }} />
+                  <div className="absolute inset-y-0 rounded-full" style={{ left: `${lo}%`, width: `${Math.max(1.5, hi - lo)}%`, background: "color-mix(in oklab, var(--w-accent) 55%, transparent)" }} />
                   <i className="absolute -inset-y-[3px] w-0.5 -translate-x-1/2 rounded-full bg-[color:var(--w-fg)]" style={{ left: `${rangePct(average(s), r.unit, s.max)}%` }} />
                   {r.unit === "%" || above <= s.max * 1.1 ? <i className="absolute -inset-y-px w-px -translate-x-1/2 bg-[color:var(--w-faint)]" style={{ left: `${rangePct(above, r.unit, s.max)}%` }} /> : null}
                 </>

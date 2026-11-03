@@ -22,6 +22,7 @@ import { useSensors } from "@/hooks/useSensors";
 import { useNow } from "@/components/widgets/hooks";
 import { severityColor } from "@/components/alerts/alert-model";
 import { cn } from "@/lib/utils";
+import { accentVars } from "@/widgets/core/tokens";
 import { islandClock, islandSkin, motionVars, shadowTransition, shapeSpring, springTransition, type IslandSkin, type PageSkin, type WornSurface } from "./island-look";
 import { fitIslandSize, idleViews, islandBox, islandFontPx, islandMode, islandTop, type IdleView, type IslandMode } from "./island-model";
 
@@ -273,7 +274,7 @@ function skinStyle(skin: IslandSkin, notch: boolean): CSSProperties {
     color: skin.color,
     border: skin.border,
     ...worn?.style,
-    ...(worn ? { "--accent": worn.accent, "--island-skin-accent": worn.accent } : null),
+    ...(worn ? { ...accentVars(worn.accent), "--island-skin-accent": worn.accent } : null),
     borderTop: notch && (skin.border || worn) ? "none" : undefined,
     boxShadow: surfaceShadow && skin.boxShadow !== "none" ? `${surfaceShadow}, ${skin.boxShadow}` : surfaceShadow ?? skin.boxShadow,
     backdropFilter: skin.backdropFilter,

@@ -420,7 +420,7 @@
 /* Live graph glow off (the default): the glow is a static wide faint copy of the line, drawn under it,
    not a drop-shadow filter redrawn with the line. */
 [data-wp-glow] {
-  filter: drop-shadow(0 0 4px var(--accent));
+  filter: drop-shadow(0 0 4px var(--w-accent));
 }
 [data-wp-glow-line] {
   display: none;
@@ -436,12 +436,12 @@
   --color-w-badge: #141418;
 }
 [data-wp-numglow="soft"] {
-  --w-num-glow: 0 0 3px var(--w-num-c, var(--accent)), 0 0 12px var(--w-num-c, var(--accent));
-  --w-num-drop: drop-shadow(0 0 3px var(--w-num-c, var(--accent)));
+  --w-num-glow: 0 0 3px var(--w-num-c, var(--w-accent)), 0 0 12px var(--w-num-c, var(--w-accent));
+  --w-num-drop: drop-shadow(0 0 3px var(--w-num-c, var(--w-accent)));
 }
 [data-wp-numglow="strong"] {
-  --w-num-glow: 0 0 6px var(--w-num-c, var(--accent)), 0 0 24px var(--w-num-c, var(--accent));
-  --w-num-drop: drop-shadow(0 0 6px var(--w-num-c, var(--accent)));
+  --w-num-glow: 0 0 6px var(--w-num-c, var(--w-accent)), 0 0 24px var(--w-num-c, var(--w-accent));
+  --w-num-drop: drop-shadow(0 0 6px var(--w-num-c, var(--w-accent)));
 }
 [data-wp-numglow="off"] {
   --w-num-glow: none;

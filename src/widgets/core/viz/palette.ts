@@ -26,7 +26,7 @@ export interface Palette extends Omit<PaletteSpec, "stops" | "track" | "peak"> {
   peak: Rgba;
 }
 
-const ACCENT = "var(--accent)";
+const ACCENT = "var(--w-accent)";
 
 /** The skin's `meter` token as a bar shape: segments / blocks → segments, pill, square, else round. */
 export function shapeOf(shape: VizShape, meter: string | undefined): BarShape {

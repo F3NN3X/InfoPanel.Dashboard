@@ -110,10 +110,10 @@ export default function DayPlanner(p: DayPlannerProps) {
                   <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 h-full w-full" aria-hidden>
                     <polygon
                       points={`${point(frac(weather.band[0].at), 0)} ${weather.band.map((b) => point(frac(b.at), 20 + ((b.temp - lo) / span) * 55)).join(" ")} ${point(frac(weather.band[weather.band.length - 1].at), 0)}`}
-                      fill="var(--accent)"
+                      fill="var(--w-accent)"
                       opacity={0.14}
                     />
-                    <polyline points={weather.band.map((b) => point(frac(b.at), 20 + ((b.temp - lo) / span) * 55)).join(" ")} fill="none" stroke="var(--accent)" strokeWidth={1.5} opacity={0.55} vectorEffect="non-scaling-stroke" />
+                    <polyline points={weather.band.map((b) => point(frac(b.at), 20 + ((b.temp - lo) / span) * 55)).join(" ")} fill="none" stroke="var(--w-accent)" strokeWidth={1.5} opacity={0.55} vectorEffect="non-scaling-stroke" />
                     {weather.band.map((b) =>
                       b.rain > 0.02 ? (
                         <polygon key={b.at} points={`${point(frac(b.at) - 0.5 / (weather.band!.length - 1), 100)} ${point(frac(b.at) + 0.5 / (weather.band!.length - 1), 100)} ${point(frac(b.at) + 0.5 / (weather.band!.length - 1), 100 - b.rain * 22)} ${point(frac(b.at) - 0.5 / (weather.band!.length - 1), 100 - b.rain * 22)}`} fill={RAIN} opacity={0.45} shapeRendering="crispEdges" />
@@ -128,7 +128,7 @@ export default function DayPlanner(p: DayPlannerProps) {
                   const len = (to - from) * railLen;
                   return (
                     <div key={event.id} className="absolute p-px" style={box(from, to, lane, lanes)} title={`${event.title} · ${timeText(event.start)}`}>
-                      <div className="h-full w-full overflow-hidden rounded-[5px] px-1.5 text-micro leading-[14px]" style={{ background: mix(30, "var(--w-track)"), borderLeft: "3px solid var(--accent)", color: "var(--w-fg)" }}>
+                      <div className="h-full w-full overflow-hidden rounded-[5px] px-1.5 text-micro leading-[14px]" style={{ background: mix(30, "var(--w-track)"), borderLeft: "3px solid var(--w-accent)", color: "var(--w-fg)" }}>
                         {(!horizontal || len >= 44) && <div className={horizontal ? "truncate" : len >= 28 ? "line-clamp-2" : "truncate"}>{event.title}</div>}
                         {len >= (horizontal ? 70 : 40) && <div className="truncate text-micro text-[color:var(--w-muted)]">{timeText(event.start)}</div>}
                       </div>
@@ -136,7 +136,7 @@ export default function DayPlanner(p: DayPlannerProps) {
                   );
                 })}
                 {nowAt !== null && (
-                  <span className="absolute" style={{ ...(horizontal ? { left: along(nowAt), top: 0, bottom: 0, width: 2 } : { top: along(nowAt), left: 0, right: 0, height: 2 }), background: "var(--accent)", boxShadow: "0 0 6px var(--accent)" }} />
+                  <span className="absolute" style={{ ...(horizontal ? { left: along(nowAt), top: 0, bottom: 0, width: 2 } : { top: along(nowAt), left: 0, right: 0, height: 2 }), background: "var(--w-accent)", boxShadow: "0 0 6px var(--w-accent)" }} />
                 )}
                 {calendar.configured && placed.length === 0 && allDay.length === 0 && (
                   <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-xs text-[color:var(--w-muted)]">Nothing planned</div>

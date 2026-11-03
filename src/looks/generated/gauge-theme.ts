@@ -2,7 +2,7 @@
 
 /** The app's widget colours (src/widgets/core/theme.ts), with the dark-surface value used when baking. */
 export const THEME = {
-  accent: { label: "Accent", css: "var(--accent, #34D399)", hex: "#34D399" },
+  accent: { label: "Accent", css: "var(--w-accent, #34D399)", hex: "#34D399" },
   warn: { label: "Warning", css: "var(--w-warn, #EDB232)", hex: "#EDB232" },
   crit: { label: "Critical", css: "var(--w-crit, #F2665E)", hex: "#F2665E" },
   fg: { label: "Text", css: "var(--w-fg, #F4F4F5)", hex: "#F4F4F5" },

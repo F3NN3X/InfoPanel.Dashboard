@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { MATERIALS, makeSurface } from "@/looks/materials";
-import { mix, hue } from "@/widgets/core/tokens";
+import { accentVars, mix, hue } from "@/widgets/core/tokens";
 import { SKIN_PACKS, TEXT_VARS, resolveSurface, textVars, tone } from "@/widgets/core/theme";
 
 describe("colour helpers", () => {
   it("mixes and rotates the accent", () => {
-    expect(mix(30)).toBe("color-mix(in oklab, var(--accent) 30%, transparent)");
-    expect(mix(15, "#1b1b1f")).toBe("color-mix(in oklab, var(--accent) 15%, #1b1b1f)");
-    expect(hue(0)).toBe("var(--accent)");
-    expect(hue(70)).toBe("oklch(from var(--accent) l c calc(h + 70))");
+    expect(mix(30)).toBe("color-mix(in oklab, var(--w-accent) 30%, transparent)");
+    expect(mix(15, "#1b1b1f")).toBe("color-mix(in oklab, var(--w-accent) 15%, #1b1b1f)");
+    expect(hue(0)).toBe("var(--w-accent)");
+    expect(hue(70)).toBe("oklch(from var(--w-accent) l c calc(h + 70))");
   });
 
   it("grades a value against warn / crit", () => {
@@ -58,4 +58,10 @@ describe("textVars", () => {
     expect(TEXT_VARS.light["--w-fg"]).toBe("#18181b");
   });
 
+});
+
+describe("accentVars", () => {
+  it("sets the colour as --w-accent and, for one release, as --accent", () => {
+    expect(accentVars("#ff0000")).toEqual({ "--w-accent": "#ff0000", "--accent": "#ff0000" });
+  });
 });

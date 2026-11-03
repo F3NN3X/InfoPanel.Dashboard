@@ -49,6 +49,6 @@ export const CLASSIC_T3: Record<T3Token, T3Value> = {
 /** The CSS of a Classic value: an alias becomes the var a widget reads, with the dark-surface fallback. */
 export function cssOf(value: T3Value, fallbacks: Record<string, string> = { warn: STATUS.warn, crit: STATUS.crit }): string {
   return String(value).replace(/\{([\w.-]+)\}/g, (_, name: string) =>
-    name === "accent" ? "var(--accent)" : name === "mat.fill" ? RAMP_BASE : fallbacks[name] ? `var(--w-${name}, ${fallbacks[name]})` : `var(--w-${name})`,
+    name === "accent" ? "var(--w-accent)" : name === "mat.fill" ? RAMP_BASE : fallbacks[name] ? `var(--w-${name}, ${fallbacks[name]})` : `var(--w-${name})`,
   );
 }

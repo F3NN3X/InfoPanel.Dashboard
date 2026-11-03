@@ -30,9 +30,9 @@ export function Icon({ name, className = "", fill }: { name?: string; className?
 const SCALES = ["sm", "md", "lg", "xl", "2xl"] as const;
 type Scale = (typeof SCALES)[number];
 /** Back to a plain glow for text inside a stroked numeral (a unit, a tone glyph): the outline is sized for the numeral. */
-const SMALL_GLOW: CSSProperties = { WebkitTextStroke: "0", textShadow: "0 0 4px var(--accent)" };
-const NUM_TINT: CSSProperties = { color: "color-mix(in oklab, var(--accent) 55%, var(--w-fg))" };
-const NUM_HALO = "0 0 30px color-mix(in oklab, var(--accent) 50%, transparent)";
+const SMALL_GLOW: CSSProperties = { WebkitTextStroke: "0", textShadow: "0 0 4px var(--w-accent)" };
+const NUM_TINT: CSSProperties = { color: "color-mix(in oklab, var(--w-accent) 55%, var(--w-fg))" };
+const NUM_HALO = "0 0 30px color-mix(in oklab, var(--w-accent) 50%, transparent)";
 
 /** A small glyph (`glyph={false}`: only the word) and screen-reader word beside a number whose colour says warn or crit, so the state is not colour alone. Nothing for ok. */
 export function ToneCue({ t, size = "max(8px, 0.45em)", glyph = true }: { t?: Tone; size?: string; glyph?: boolean }) {
@@ -241,7 +241,7 @@ function BarBase({ value, max = 100, t = "ok", className = "h-1.5", track = "bg-
     );
   return (
     <div className={cn("w-full overflow-hidden rounded-full", m === "pill" ? "bg-[color:var(--w-track)] min-h-[6px]" : track, className)}>
-      <div className="h-full w-full rounded-full transition-transform duration-500 ease-out" style={{ ...slideX(pct), background: m === "pill" && t === "ok" ? `linear-gradient(90deg, ${mix(70, "#fff")}, var(--accent))` : TONES[t], ...glide }} />
+      <div className="h-full w-full rounded-full transition-transform duration-500 ease-out" style={{ ...slideX(pct), background: m === "pill" && t === "ok" ? `linear-gradient(90deg, ${mix(70, "#fff")}, var(--w-accent))` : TONES[t], ...glide }} />
     </div>
   );
 }
@@ -437,7 +437,7 @@ function Braille({ values, lo, hi, className }: { values: number[]; lo: number; 
   return (
     <div ref={ref} className={`overflow-hidden whitespace-pre font-mono text-[10px] leading-[10px] ${className}`} style={{ fontFamily: "'JetBrains Mono','Geist Mono',monospace" }}>
       {lines.map((l, i) => (
-        <div key={i} style={{ color: `color-mix(in oklab, var(--accent) ${Math.round(100 - (1 - i / Math.max(1, nRows - 1)) * 70)}%, ${STATE.crit})` }}>{l}</div>
+        <div key={i} style={{ color: `color-mix(in oklab, var(--w-accent) ${Math.round(100 - (1 - i / Math.max(1, nRows - 1)) * 70)}%, ${STATE.crit})` }}>{l}</div>
       ))}
     </div>
   );
@@ -656,7 +656,7 @@ function SparkBase(p: SparkProps) {
   return (
     <div className={/\b(?:absolute|relative)\b/.test(p.className ?? "") ? p.className : `relative ${p.className ?? "h-10"}`}>
       <SparkGraph {...p} className="h-full" />
-      <SparkMarks values={values} min={p.min} max={p.max} flat={flat} axis={!!p.axis} last={p.marks === "last"} bars={mode === "bars" || mode === "dots"} color={p.color || "var(--accent)"} format={p.format} glow={!!sk.numGlow} />
+      <SparkMarks values={values} min={p.min} max={p.max} flat={flat} axis={!!p.axis} last={p.marks === "last"} bars={mode === "bars" || mode === "dots"} color={p.color || "var(--w-accent)"} format={p.format} glow={!!sk.numGlow} />
     </div>
   );
 }
@@ -675,7 +675,7 @@ function SparkMarks({ values, min, max, flat, axis, last: lastOnly, bars, color,
   return (
     <>
       {m.last && (
-        <span aria-hidden className="absolute h-1.5 w-1.5 rounded-full" style={{ left: `${bars ? 100 - 50 / values.length : m.last.x}%`, top: `${m.last.y}%`, transform: "translate(-50%,-50%)", background: color, boxShadow: `0 0 0 2px rgba(0,0,0,.35)${glow ? ", 0 0 6px var(--accent)" : ""}` }} />
+        <span aria-hidden className="absolute h-1.5 w-1.5 rounded-full" style={{ left: `${bars ? 100 - 50 / values.length : m.last.x}%`, top: `${m.last.y}%`, transform: "translate(-50%,-50%)", background: color, boxShadow: `0 0 0 2px rgba(0,0,0,.35)${glow ? ", 0 0 6px var(--w-accent)" : ""}` }} />
       )}
       {!lastOnly && fixed && (
         <>
@@ -695,7 +695,7 @@ function SparkMarks({ values, min, max, flat, axis, last: lastOnly, bars, color,
 
 function SparkGraph({ values = [], min, max, className = "h-10", fill = true, color: own, width = 1.75, graph, curve = true, grid: gridOn = true }: SparkProps) {
   // An unset color setting arrives as "": the accent, as when none is passed.
-  const color = own || "var(--accent)";
+  const color = own || "var(--w-accent)";
   const id = `sp${useId().replace(/:/g, "")}`;
   const sk = useSkin();
   const reduced = useReducedMotion();
@@ -954,7 +954,7 @@ export interface LedLadderProps {
 }
 // Segmented level ladder, accent → amber → red; a segment is lit when its centre is at or below the value.
 const UNLIT = 12;
-export function LedLadder({ value, n = 24, vertical, reverse, zones = [72, 90], hold, color = "var(--accent)", hotColor = STATE.crit, ipKey }: LedLadderProps) {
+export function LedLadder({ value, n = 24, vertical, reverse, zones = [72, 90], hold, color = "var(--w-accent)", hotColor = STATE.crit, ipKey }: LedLadderProps) {
   const v = clamp(value);
   const tagging = useContext(IpTagCtx) && ipKey;
   // The zone colours as CSS (the conversion resolves them on the page), the unlit one last.

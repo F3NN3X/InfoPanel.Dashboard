@@ -27,7 +27,7 @@ describe("the Classic Look's T3 coverage", () => {
     expect(CLASSIC_T3["ring-track"]).toBe(RING_TRACK);
     expect(CLASSIC_T3["motion-data"]).toBe(`${GLIDE_MS}ms`);
     expect(CLASSIC_T3["axis-label"]).toBe("{faint}");
-    expect(TONES.ok).toBe("var(--accent)");
+    expect(TONES.ok).toBe("var(--w-accent)");
   });
 });
 

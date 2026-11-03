@@ -83,9 +83,9 @@ export const rampColor = (t: number, name = "accent", accentHex = DEFAULT_ACCENT
     b = hex(stops[i + 1]);
   return `rgb(${a.map((v, j) => Math.round(v + (b[j] - v) * f)).join(",")})`;
 };
-// resolve the live --accent of an element (for canvas drawing)
+// resolve the live --w-accent of an element (for canvas drawing)
 export const accentOf = (el: Element | null, fb = DEFAULT_ACCENT): string =>
-  (el && getComputedStyle(el).getPropertyValue("--accent").trim()) || fb;
+  (el && getComputedStyle(el).getPropertyValue("--w-accent").trim()) || fb;
 export const GRAPH_STYLES = ["area", "line", "step", "bars", "dots", "braille"];
 export const METER_STYLES = ["bar", "pill", "segments", "blocks", "hair", "wave", "square"];
 export const SkinCtx = createContext<SkinContext>({ skin: "default", graph: "area", meter: "bar", stroke: 1 });
@@ -100,11 +100,11 @@ const OVER_18PX = "calc((1em - 17.5px) * 1000)";
 export const numGlowStyle = (sk: Partial<SkinTokens>, extra?: string): CSSProperties | null => {
   if (!sk.numGlow) return null;
   const outer = extra ? `, ${extra}` : "";
-  if (!sk.numStroke) return { textShadow: `0 0 4px var(--accent), 0 0 14px var(--accent)${outer}` };
+  if (!sk.numStroke) return { textShadow: `0 0 4px var(--w-accent), 0 0 14px var(--w-accent)${outer}` };
   return {
     WebkitTextStroke: `clamp(0px, ${OVER_18PX}, ${sk.numStroke}) currentColor`,
     paintOrder: "stroke fill",
-    textShadow: `0 0 clamp(0px, ${OVER_18PX}, 2px) currentColor, 0 0 clamp(4px, calc(4px + ${OVER_18PX}), 6px) var(--accent), 0 0 clamp(14px, calc(14px + ${OVER_18PX}), 18px) var(--accent)${outer}`,
+    textShadow: `0 0 clamp(0px, ${OVER_18PX}, 2px) currentColor, 0 0 clamp(4px, calc(4px + ${OVER_18PX}), 6px) var(--w-accent), 0 0 clamp(14px, calc(14px + ${OVER_18PX}), 18px) var(--w-accent)${outer}`,
   };
 };
 export const numFont = (sk: Partial<SkinTokens>, weight = 700): CSSProperties => ({
@@ -117,11 +117,11 @@ export const numFont = (sk: Partial<SkinTokens>, weight = 700): CSSProperties =>
 export const STATE = STATUS;
 // Tone → colour: ok follows the accent; warn / crit are the semantic STATE colours.
 // On light / theme surfaces the shell's --w-warn / --w-crit darken them for contrast.
-export const TONES: Record<Tone | "muted", string> = { ok: "var(--accent)", warn: `var(--w-warn, ${STATE.warn})`, crit: `var(--w-crit, ${STATE.crit})`, muted: "var(--w-faint, #8a8a94)" };
+export const TONES: Record<Tone | "muted", string> = { ok: "var(--w-accent)", warn: `var(--w-warn, ${STATE.warn})`, crit: `var(--w-crit, ${STATE.crit})`, muted: "var(--w-faint, #8a8a94)" };
 // 0-100 → colour for heatmaps. ramp 'accent' (accent intensity) or 'thermal' (blue → green → amber → red)
 export const heat = (v: number, ramp = "accent"): string => {
   const t = clamp(v) / 100;
-  return ramp === "accent" || !RAMPS[ramp] ? `color-mix(in oklab, var(--accent) ${8 + t * 92}%, ${RAMP_BASE})` : rampColor(t, ramp);
+  return ramp === "accent" || !RAMPS[ramp] ? `color-mix(in oklab, var(--w-accent) ${8 + t * 92}%, ${RAMP_BASE})` : rampColor(t, ramp);
 };
 export const tone = (v: number, warn?: number, crit?: number): Tone =>
   Number.isFinite(v) && crit != null && v >= crit ? "crit" : Number.isFinite(v) && warn != null && v >= warn ? "warn" : "ok";

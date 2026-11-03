@@ -29,7 +29,7 @@ export default function ObsButton(p: ObsButtonProps) {
   const ready = obs.connected && (action === "scene" ? !!scene : action === "mic" ? obs.mic !== null : obs.replay !== null);
   const name = p.name || (action === "scene" ? (scene?.name ?? "Scene") : action === "mic" ? (muted ? "Mic off" : "Mic") : "Replay");
   const icon = p.symbol || (action === "scene" ? scene?.icon || "movie" : action === "mic" ? (muted ? "mic_off" : "mic") : "replay");
-  const tint = action === "mic" ? STATE.crit : "var(--accent)";
+  const tint = action === "mic" ? STATE.crit : "var(--w-accent)";
   const press = () => {
     if (action === "scene" && scene) void obsAct({ op: "scene", id: scene.id });
     else if (action === "mic") void obsAct({ op: "mic" });

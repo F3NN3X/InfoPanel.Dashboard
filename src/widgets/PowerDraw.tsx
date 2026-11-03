@@ -37,7 +37,7 @@ export default function PowerDraw(p: PowerDrawProps) {
               </Num>
               <div className={`flex min-w-0 text-xs ${w > 0 && w < 150 ? "flex-col gap-0.5" : narrow ? "gap-3" : "gap-4"}`}>
                 <span className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-sm" style={{ background: "var(--accent)" }} />
+                  <span className="h-2 w-2 rounded-sm" style={{ background: "var(--w-accent)" }} />
                   CPU <b className="tabular-nums">{fmt(cw, 0)}</b>
                 </span>
                 <span className="flex items-center gap-1.5">
@@ -47,7 +47,7 @@ export default function PowerDraw(p: PowerDrawProps) {
               </div>
             </div>
             <div className="relative h-2.5 overflow-hidden rounded-full bg-[color:var(--w-track)]">
-              <div className="absolute inset-0 transition-transform duration-700" style={{ ...stackX(0, (cw / budget) * 100), background: "var(--accent)" }} />
+              <div className="absolute inset-0 transition-transform duration-700" style={{ ...stackX(0, (cw / budget) * 100), background: "var(--w-accent)" }} />
               <div className="absolute inset-0 transition-transform duration-700" style={{ ...stackX((cw / budget) * 100, (gw / budget) * 100), background: gpuColor }} />
             </div>
             {size !== "sm" && !short && <Spark values={hist} min={0} marks={big ? "last" : false} axis={big} format={(v) => fmt(v, 0)} className={`min-h-0 flex-1 ${big ? "max-h-[55%]" : ""}`} />}

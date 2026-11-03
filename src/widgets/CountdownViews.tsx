@@ -51,7 +51,7 @@ function DateLine({ text, size }: { text: string; size: string }) {
 function HappeningNow({ body }: { body: CountdownBody }) {
   const px = Math.max(MIN_PX, Math.floor(Math.min(TIER_PX[body.size] ?? 40, body.w > 0 ? body.w / 7.4 : Infinity, body.h > 0 ? body.h - lineMeta(body.size) * 2 - 8 : Infinity)));
   return (
-    <Num className="max-w-full truncate leading-none text-[color:var(--accent)]" style={{ fontSize: px }}>
+    <Num className="max-w-full truncate leading-none text-[color:var(--w-accent)]" style={{ fontSize: px }}>
       Happening now
     </Num>
   );

@@ -6,6 +6,7 @@ import { resolveMaterial } from "@/looks/materials";
 import { cn } from "@/lib/utils";
 import { chromeOf } from "@/modules/standard-settings";
 import { resolveSurface, SKINS, textVars } from "@/widgets/core/theme";
+import { accentVars } from "@/widgets/core/tokens";
 import { withSkinSurface } from "@/widgets/module";
 
 /** The mini page: the preset's background (a video as its poster), else its theme's page color. */
@@ -36,7 +37,7 @@ function MiniTile({ preset, value, fill }: { preset: AppearancePreset; value: st
   return (
     <div
       className={cn("flex min-w-0 flex-1 flex-col justify-between p-1", mat.className)}
-      style={{ ...chromeVars(chrome), ...mat.box, ...textVars(mat.tone, chrome), "--accent": accent, color: "var(--w-fg)", borderRadius: radius } as CSSProperties}
+      style={{ ...chromeVars(chrome), ...mat.box, ...textVars(mat.tone, chrome), ...accentVars(accent), color: "var(--w-fg)", borderRadius: radius } as CSSProperties}
     >
       <div className="text-nano font-semibold leading-none tabular-nums">{value}</div>
       <div className="h-[2px] w-full rounded-full" style={{ background: "rgb(128 128 128 / 0.25)" }}>
