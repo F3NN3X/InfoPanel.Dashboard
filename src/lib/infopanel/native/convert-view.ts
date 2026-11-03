@@ -25,7 +25,10 @@ import { choiceFor, readChoices, rowsOf, type ExportRow } from "../export/native
 import { defaultItem, type DisplayItem } from "../schema.ts";
 import type { DataApiValue } from "../sensors.ts";
 import { withHwinfoAliases } from "../../hwinfo-aliases.ts";
-import { cssToArgb, decompose, hideTagged } from "./decompose.ts";
+import { decompose, hideTagged } from "./decompose.ts";
+import { surfaceOf } from "./surface-of.ts";
+
+export { surfaceOf };
 import { make, type ConvertContext, type Look, type Note, type Rect } from "./items.ts";
 import { CONVERTERS, type Converter } from "./modules/index.ts";
 import { notCompatible, type NativeChoice } from "./tiers.ts";
@@ -138,34 +141,6 @@ export async function backdrops(png: Uint8Array, items: readonly DisplayItem[], 
     const y = Math.min(bmp.height - 1, Math.max(0, Math.round(it.Y - zone.y + it.Height / 2)));
     return g.getImageData(x, y, 1, 1).data[3] < 230;
   });
-}
-
-/** A colour InfoPanel can draw: `#AARRGGBB` and not fully see-through. */
-const drawn = (color: string): boolean => /^#[0-9A-F]{8}$/.test(color) && !color.startsWith("#00");
-
-/** The material's export colour (`--w-mat-export`) as the browser resolves it, through a probe's `color`; "" when the root sets none. */
-function exportColor(root: HTMLElement): string {
-  if (!getComputedStyle(root).getPropertyValue("--w-mat-export").trim()) return "";
-  const probe = document.createElement("i");
-  probe.style.color = "var(--w-mat-export)";
-  root.append(probe);
-  const color = getComputedStyle(probe).color;
-  probe.remove();
-  return color;
-}
-
-/**
- * A widget's surface as InfoPanel draws a card: its colour (`#AARRGGBB`) and corner radius; null when it is see-through.
- * A card whose background is a gradient or a pattern has no background colour: it exports its material's flat colour.
- */
-export function surfaceOf(zone: HTMLElement, zoom = 1): { color: string; radius: number } | null {
-  const root = zone.querySelector<HTMLElement>("[data-wp-tier]");
-  if (!root) return null;
-  const style = getComputedStyle(root);
-  const own = cssToArgb(style.backgroundColor);
-  const color = drawn(own) ? own : cssToArgb(exportColor(root));
-  if (!drawn(color)) return null;
-  return { color, radius: Math.round((parseFloat(style.borderTopLeftRadius) || 0) / zoom) };
 }
 
 /**

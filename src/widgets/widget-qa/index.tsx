@@ -122,7 +122,7 @@ window.__qaMountAll = async () => {
   await document.fonts.ready;
   await new Promise((r) => setTimeout(r, 1500));
 };
-window.__qaSurfaceOf = async (frame) => (await import("@/lib/infopanel/native/convert-view")).surfaceOf(frame);
+window.__qaSurfaceOf = async (frame) => (await import("@/lib/infopanel/native/surface-of")).surfaceOf(frame);
 window.__qaOverflow = () => {
   flushSync(forceMountAll);
   return overflowReport();

@@ -17,6 +17,7 @@
  * right from where the widget's text starts; a graph without a fixed top scales to its readings, as the widget's does.
  */
 import { argb, bound, fontSizeOf, make, type ConvertContext, type Rect } from "./items.ts";
+import { rgbToArgb } from "./surface-of.ts";
 import type { DisplayItem } from "../schema.ts";
 import { DEFAULT_GAUGE, normalizeGauge } from "../gauges/vector.ts";
 
@@ -283,17 +284,8 @@ export function hideTagged(cloned: Node): void {
   else if (el.dataset?.ipCol !== undefined) el.style.visibility = "visible";
 }
 
-/** "rgb(r, g, b)" / "rgba(r, g, b, a)" / "color(srgb r g b / a)" as `#AARRGGBB`. */
-export function cssToArgb(css: string): string {
-  const hex = (n: number) => Math.round(Math.max(0, Math.min(255, n))).toString(16).padStart(2, "0");
-  const alpha = (a: string | undefined) => (a === undefined ? 1 : a.endsWith("%") ? parseFloat(a) / 100 : Number(a));
-  // A color-mix() in srgb computes to `color(srgb r g b / a)`, channels 0 to 1.
-  const s = /^color\(srgb\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)(?:\s*\/\s*([\d.]+%?))?\s*\)$/.exec(css.trim());
-  if (s) return `#${hex(alpha(s[4]) * 255)}${hex(Number(s[1]) * 255)}${hex(Number(s[2]) * 255)}${hex(Number(s[3]) * 255)}`.toUpperCase();
-  const m = /^rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)(?:[,\s/]+([\d.]+%?))?\s*\)$/.exec(css.trim());
-  if (!m) return argb(css);
-  return `#${hex(alpha(m[4]) * 255)}${hex(Number(m[1]))}${hex(Number(m[2]))}${hex(Number(m[3]))}`.toUpperCase();
-}
+/** A computed colour (`rgbToArgb`) or a hex colour (`argb`) as `#AARRGGBB`; anything else as is. */
+export const cssToArgb = (css: string): string => rgbToArgb(css) || argb(css);
 
 /** A CSS colour as InfoPanel's `#AARRGGBB`, or `fallback` when it isn't one (a "none" stroke, a gradient). */
 const ink = (css: string, fallback: string): string => {

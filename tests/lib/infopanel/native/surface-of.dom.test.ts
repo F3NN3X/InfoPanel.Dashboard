@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { describe, expect, it } from "vitest";
-import { surfaceOf } from "../../../../src/lib/infopanel/native/convert-view.ts";
+import { surfaceOf } from "../../../../src/lib/infopanel/native/surface-of.ts";
 import { MATERIALS, materialVars, resolveMaterial } from "../../../../src/looks/materials.ts";
 
 /** A zone whose widget root is drawn as the shell draws it: its material variables, painted as index.css's [data-mat] rule does. */
