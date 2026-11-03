@@ -12,6 +12,10 @@ version as its notes, so move **Unreleased** under a new `## [X.Y.Z] - YYYY-MM-D
 
 ### Changed
 
+- **Screens are saved in format 17.** Each screen and page now records which look it uses; a screen or page that
+  applied one of the sample themes records that theme. Nothing looks different. The first save after the update
+  keeps the old file as `config.backup-before-v17.json` beside `config.json`; an older version can't save over a
+  format 17 config, so to go back, restore that backup.
 - **The widget accent colour is now `--w-accent`.** Custom CSS can read or set `--w-accent` inside a widget; `--accent` is still set to the same colour inside widgets for this release, and `--wp-accent`, `--wp-fg`, `--wp-muted` and `--wp-radius` keep working. Nothing looks different.
 - **Lower CPU with an audio meter open.** Widgets that read every sensor no longer redraw on each of the audio meter's ten updates a second unless they show an audio value.
 - **Now Playing draws its cover backdrop unblurred in lite mode** (Max FPS below 60, or reduced motion), where the 28 px filter blur was redrawn for nothing. Limit blur still does not cap it.
