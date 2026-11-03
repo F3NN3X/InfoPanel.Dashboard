@@ -2,11 +2,29 @@ import type { CSSProperties } from "react";
 import type { IslandConfig, IslandWeight } from "@/lib/island/config";
 import type { ResolvedGeneral } from "@/lib/general";
 import { fontStack } from "@/lib/general";
+import { cappedBlur } from "@/components/widget-style";
 import type { FontId } from "@/lib/fonts";
+import { resolveStyle, type Appearance } from "@/lib/style-resolve";
 import { springCss, springFor, SPRINGS, type SpringKind } from "@/lib/island/spring";
 
+/** The screen's widget skin, as its widgets resolve it: what an island "part of the skin" is drawn with. */
+export interface PageSkin {
+  skin?: string;
+  surface?: string;
+  accent?: string;
+}
+
 const WEIGHTS: Record<IslandWeight, number> = { regular: 400, medium: 500, semibold: 600, bold: 700 };
+/** The "skin" tint: the screen's card colour, 92% over the page behind it. */
+const SKIN_FILL = "color-mix(in srgb, hsl(var(--card)) 92%, hsl(var(--background)))";
 const SHADOW = "0 6px 24px -6px rgb(0 0 0 / 0.55)";
+
+/** The skin a screen's widgets wear under `appearance` (a value left unset or "auto" stays unset). */
+export function pageSkinOf(appearance: Appearance | undefined): PageSkin {
+  const { skin, surface, accent } = resolveStyle({ levels: appearance }).settings;
+  const named = (v: unknown) => (typeof v === "string" && v !== "" && v !== "auto" ? v : undefined);
+  return { skin: named(skin), surface: named(surface), accent: named(accent) };
+}
 
 /** The pill's colours, border, shadow and type from the island's settings. */
 export interface IslandSkin {
@@ -18,27 +36,39 @@ export interface IslandSkin {
   backdropFilter?: string;
   fontFamily?: string;
   fontWeight: number;
+  /** Placement "skin": the widget surface the pill wears over the fill. */
+  surface?: WornSurface;
 }
 
-export function islandSkin(c: Pick<IslandConfig, "tint" | "bgColor" | "fgColor" | "opacity" | "border" | "shadow" | "font" | "weight">): IslandSkin {
-  const base = c.tint === "custom" ? c.bgColor : c.tint === "theme" ? "hsl(var(--card))" : "#000000";
-  const color = c.tint === "custom" ? c.fgColor : c.tint === "theme" ? "hsl(var(--card-foreground))" : "#ffffff";
+/** A widget surface worn by the island (placement "skin"): its classes (the edge) and style, the accent, and the notch corners' solid colour. */
+export interface WornSurface {
+  className: string;
+  style: CSSProperties;
+  accent: string;
+  ear: string;
+}
+
+export function islandSkin(c: Pick<IslandConfig, "placement" | "tint" | "bgColor" | "fgColor" | "opacity" | "border" | "shadow" | "font" | "weight">, worn?: WornSurface): IslandSkin {
+  const base = c.tint === "custom" ? c.bgColor : c.tint === "theme" ? "hsl(var(--card))" : c.tint === "skin" ? SKIN_FILL : "#000000";
+  const color = c.tint === "custom" ? c.fgColor : c.tint === "theme" || c.tint === "skin" ? "hsl(var(--card-foreground))" : "#ffffff";
   const see = c.opacity < 100;
-  // The theme tint always had the card's border; "none" keeps it so saved islands look the same.
+  // The theme and skin tints always have the card's border; "none" keeps it so saved islands look the same.
+  // Worn on the screen's skin, the surface draws the edge unless one is asked for.
   const border =
     c.border === "accent"
       ? "1px solid hsl(var(--primary))"
       : c.border === "subtle"
         ? `1px solid color-mix(in srgb, ${color} 16%, transparent)`
-        : c.tint === "theme"
+        : !(c.placement === "skin" && worn) && (c.tint === "theme" || c.tint === "skin")
           ? "1px solid hsl(var(--border))"
           : undefined;
   return {
+    surface: c.placement === "skin" ? worn : undefined,
     background: see ? `color-mix(in srgb, ${base} ${c.opacity}%, transparent)` : base,
     color,
     border,
     boxShadow: c.shadow ? SHADOW : "none",
-    backdropFilter: see ? "blur(14px) saturate(1.4)" : undefined,
+    backdropFilter: see ? `blur(${cappedBlur(14)}) saturate(1.4)` : undefined,
     fontFamily: c.font === "system" ? undefined : fontStack(c.font as FontId),
     fontWeight: WEIGHTS[c.weight],
   };

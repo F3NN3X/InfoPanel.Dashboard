@@ -79,9 +79,9 @@ export function GaugeView({ idle, size, w, h, fps, low, low01, ft, hz, maxFps, t
   const numColor = color ?? (tone !== "ok" ? TONES[tone] : undefined);
   const ring = (
     <div className="shrink-0" style={{ width: ringSize, height: ringSize }}>
-      <Ring value={idle ? 0 : fps} max={maxFps} t={tone} color={color} thickness={10} className="h-full w-full">
+      <Ring value={idle ? 0 : fps} max={maxFps} t={tone === "crit" ? "crit" : "ok"} color={color} className="h-full w-full">
         <Num className="leading-none" style={{ fontSize: Math.max(12, ringSize * 0.26), color: numColor }}>
-          {!idle && <ToneCue t={tone} />}
+          {!idle && <ToneCue t={tone} glyph={false} />}
           {idle ? "–" : fmt(fps)}
         </Num>
       </Ring>
@@ -94,7 +94,7 @@ export function GaugeView({ idle, size, w, h, fps, low, low01, ft, hz, maxFps, t
         <div className="flex min-w-0 flex-col gap-1">
           <span className="text-sm text-[color:var(--w-fg)]">No game running</span>
           {size !== "sm" && (
-            <span className="truncate text-[11px] text-[color:var(--w-faint)]">
+            <span className="truncate text-micro text-[color:var(--w-faint)]">
               {gpu} · {resolution} @ {fmt(hz)} Hz
             </span>
           )}
@@ -110,14 +110,14 @@ export function GaugeView({ idle, size, w, h, fps, low, low01, ft, hz, maxFps, t
     );
   const stats = (
     <div className="flex items-center gap-5">
-      {low > 0 && <Stat label="1% low" value={`${fmt(low)} fps`} />}
-      {low01 > 0 && <Stat label="0.1% low" value={`${fmt(low01)} fps`} />}
-      {ft > 0 && <Stat label="Frame time" value={`${fmt(ft, 1)} ms`} />}
+      {low > 0 && <Stat label="1% low" value={fmt(low)} unit="fps" />}
+      {low01 > 0 && <Stat label="0.1% low" value={fmt(low01)} unit="fps" />}
+      {ft > 0 && <Stat label="Frame time" value={fmt(ft, 1)} unit="ms" />}
     </div>
   );
   const shown = size === "sm" ? [] : extras.slice(0, 4);
   const metrics = shown.length > 0 && (
-    <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-[color:var(--w-faint)]">
+    <div className="flex flex-wrap gap-x-3 gap-y-1 text-micro text-[color:var(--w-faint)]">
       {shown.map(([l, v]) => (
         <span key={l}>
           {l} <span className="font-semibold tabular-nums text-[color:var(--w-fg)]">{v}</span>
@@ -134,7 +134,7 @@ export function GaugeView({ idle, size, w, h, fps, low, low01, ft, hz, maxFps, t
   const side = size !== "sm" && w > 440;
   // narrower than the side column's width: the GPU and display facts sit under the metrics, when there is room
   const facts = size !== "sm" && !side && (gpu || resolution) && (!metrics || h >= 190) && (
-    <div className="min-w-0 text-[11px] text-[color:var(--w-faint)]">
+    <div className="min-w-0 text-micro text-[color:var(--w-faint)]">
       {gpu && <div className="truncate font-medium text-[color:var(--w-muted)]">{gpu}</div>}
       <div className="truncate">{[resolution, hz > 0 ? `${fmt(hz)} Hz` : ""].filter(Boolean).join(" · ")}</div>
     </div>
@@ -147,7 +147,7 @@ export function GaugeView({ idle, size, w, h, fps, low, low01, ft, hz, maxFps, t
         {stats}
         {spark && <div className="w-[80%]">{spark}</div>}
         {metrics}
-        {title && <span className="max-w-full truncate text-[11px] text-[color:var(--w-faint)]">{[title, resolution].filter(Boolean).join(" · ")}</span>}
+        {title && <span className="max-w-full truncate text-micro text-[color:var(--w-faint)]">{[title, resolution].filter(Boolean).join(" · ")}</span>}
       </div>
     );
   return (
@@ -165,8 +165,8 @@ export function GaugeView({ idle, size, w, h, fps, low, low01, ft, hz, maxFps, t
       {side && (
         <div className="w-[26%] max-w-[220px] shrink-0 text-right">
           <div className="truncate text-sm font-medium text-[color:var(--w-fg)]">{gpu || "–"}</div>
-          <div className="truncate text-[11px] text-[color:var(--w-faint)]">{[resolution, hz > 0 ? `${fmt(hz)} Hz` : ""].filter(Boolean).join(" · ")}</div>
-          {title && <div className="mt-1 truncate text-[11px] text-[color:var(--w-faint)]">{title}</div>}
+          <div className="truncate text-micro text-[color:var(--w-faint)]">{[resolution, hz > 0 ? `${fmt(hz)} Hz` : ""].filter(Boolean).join(" · ")}</div>
+          {title && <div className="mt-1 truncate text-micro text-[color:var(--w-faint)]">{title}</div>}
         </div>
       )}
     </div>
@@ -194,6 +194,11 @@ export default function FpsMonitor(p: FpsMonitorProps) {
   const fpsH = clampSpikes(useHistory(fps, 60));
   const pct = Number.isFinite(target) && target > 0 ? fps / target : 1;
   const t: Tone = pct >= 0.9 ? "ok" : pct >= 0.5 ? "warn" : "crit";
+  // the 1% low gets its own chip when it falls below warn (against the same target as the hero), so a bad low is not hidden behind a good average
+  const lowPct = Number.isFinite(target) && target > 0 ? low / target : 1;
+  const lowT: Tone = low > 0 ? (lowPct >= 0.9 ? "ok" : lowPct >= 0.5 ? "warn" : "crit") : "ok";
+  // the 1% low reads in its tone when under warn; a zero or missing one is a dash
+  const lowValue = low >= 1 ? <span style={lowT !== "ok" ? { color: TONES[lowT] } : undefined}>{fmt(low)}</span> : "–";
   const gauge = p.view === "gauge" || p.view === "trend";
   // The trend view stores `sparkline: true` (v8 migration), so the toggle alone decides.
   const spark = p.sparkline === true;
@@ -238,33 +243,32 @@ export default function FpsMonitor(p: FpsMonitorProps) {
             <Icon name="sports_esports" className="text-3xl text-[color:var(--w-faint)]" />
             <span className="text-sm text-[color:var(--w-fg)]">No game running</span>
             {size !== "sm" && (
-              <span className="text-[11px] text-[color:var(--w-faint)]">
+              <span className="text-micro text-[color:var(--w-faint)]">
                 {k("gpu-name")} · {k("resolution")} @ {fmt(hz)} Hz
               </span>
             )}
           </div>
         ) : size === "xs" ? (
-          <Metric value={idle ? "–" : fps} unit="FPS" scale="lg" sub={idle ? "Idle" : fpsSubLine(low, 0)} t={idle ? "ok" : t} className="h-full justify-center" />
+          <Metric value={idle ? "–" : fps} unit="FPS" scale="lg" sub={idle ? "Idle" : fpsSubLine(low, 0)} t={idle ? "ok" : t} cue={false} className="h-full justify-center" />
         ) : size === "sm" ? (
           <div className="flex h-full items-end justify-between gap-3">
-            <Metric value={fps} unit="FPS" scale="xl" t={t} />
+            <Metric value={fps} unit="FPS" scale="xl" t={t} cue={false} />
             <div className="grid gap-1.5 text-right">
-              <Stat label="1% low" value={low > 0 ? fmt(low) : "–"} />
-              <Stat label="Frame" value={`${fmt(frame, 1)} ms`} />
+              <Stat label="1% low" value={lowValue} />
+              <Stat label="Frame" value={fmt(frame, 1)} unit="ms" />
             </div>
           </div>
         ) : (
           <div className="flex h-full flex-col gap-3">
             <div className="flex items-end gap-5">
-              <Metric value={fps} unit="FPS" scale={size === "lg" ? "2xl" : "xl"} t={t} />
+              <Metric value={fps} unit="FPS" scale={size === "lg" ? "2xl" : "xl"} t={t} cue={false} />
               <div className="grid flex-1 grid-cols-3 gap-3">
-                <Stat label="1% low" value={low > 0 ? fmt(low) : "–"} />
+                <Stat label="1% low" value={lowValue} />
                 <Stat label="Avg" value={fmt(num(k("avg-fps")))} />
-                <Stat label="Frame time" value={`${fmt(frame, 1)} ms`} />
+                <Stat label="Frame" value={fmt(frame, 1)} unit="ms" />
               </div>
             </div>
             <div className="flex min-h-0 flex-1 flex-col">
-              <span className="shrink-0 self-end text-micro text-[color:var(--w-faint)]">frame time</span>
               <div className="relative min-h-0 flex-1">
                 <Spark values={hist} min={0} max={ftTop} curve={false} className="absolute inset-0 h-full" />
               </div>
@@ -272,7 +276,7 @@ export default function FpsMonitor(p: FpsMonitorProps) {
             {size === "lg" && (
               <div className="grid grid-cols-4 gap-3 border-t border-[color:var(--w-track)] pt-3">
                 <Stat label="Min / Max" value={`${fmt(num(k("min-fps")))} / ${fmt(num(k("max-fps")))}`} />
-                <Stat label="Display" value={`${k("resolution")} · ${fmt(hz)} Hz`} />
+                <Stat label="Display" value={k("resolution")} unit={`· ${fmt(hz)} Hz`} />
                 <Stat label="Mode" value={has(k("display-mode")) ? k("display-mode") : "–"} />
                 <Stat label="Benchmark" value={k("benchmark-mode") || "–"} />
               </div>

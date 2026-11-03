@@ -123,7 +123,7 @@ const BUILT: Partial<Record<FixtureName, Record<string, (page: Page) => Promise<
       const layers = page.getByRole("region", { name: "Layers" });
       await expect(layers.locator("> div").first()).toHaveText(/^Layerstop first/);
     },
-    // Each row: a 14 px chevron slot, a 20 px icon tile (a widget's in the accent), name, kind word, lock and eye.
+    // Each row: a 14 px chevron slot, a 20 px icon tile (a widget's in the accent), name, kind (screen-reader text and tooltip), lock and eye.
     [CHECKS.screen[3].text]: async (page) => {
       const rows = page.getByTestId("layers-row");
       await expect(rows).toHaveCount(5);
@@ -132,7 +132,10 @@ const BUILT: Partial<Record<FixtureName, Record<string, (page: Page) => Promise<
         expect(slot.w).toBe(14);
         expect([tile.w, tile.h]).toEqual([20, 20]);
         expect(tile.cls).toContain("text-ui-accent");
-        await expect(row).toContainText("widget");
+        // The kind is screen-reader text (not a visible word) and the icon's tooltip.
+        await expect(row.getByTestId("layers-row-kind")).toHaveText("widget");
+        await expect(row.getByTestId("layers-row-kind")).toHaveClass(/sr-only/);
+        await expect(row.locator("> *").nth(1)).toHaveAttribute("title", "widget");
         // The lock and eye are there for the pointer; the treeitem holds no interactive descendant (APG tree).
         await expect(row.locator('[data-row-action="lock"]')).toHaveCount(1);
         await expect(row.locator('[data-row-action="hide"]')).toHaveCount(1);
@@ -189,7 +192,8 @@ const BUILT: Partial<Record<FixtureName, Record<string, (page: Page) => Promise<
       await expect(layersRow(page, "Temps")).toHaveAttribute("aria-expanded", "true");
       const cpu = layersRow(page, "CPU temp");
       await expect(cpu).toHaveAttribute("data-depth", "1");
-      await expect(cpu).toContainText("item");
+      await expect(cpu.getByTestId("layers-row-kind")).toHaveText("item");
+      await expect(cpu.getByTestId("layers-row-kind")).toHaveClass(/sr-only/);
       await expect(cpu.getByLabel("Placed freely (Alt)")).toBeVisible();
       await expect(cpu.getByTestId("layers-row-status")).toBeVisible();
     },
@@ -449,7 +453,8 @@ const BUILT: Partial<Record<FixtureName, Record<string, (page: Page) => Promise<
   layersG: {
     // Refused while the bottom row is full (a toast says so); with room, both gauges move one row down.
     [CHECKS.layersG[0].text]: async (page) => {
-      await expect(layersRow(page, "Gauges")).toContainText("group · 2");
+      await expect(layersRow(page, "Gauges").getByTestId("layers-row-kind")).toHaveText("group");
+      await expect(layersRow(page, "Gauges").locator("span.font-ui-mono")).toHaveText("2");
       await layersRow(page, "Gauges").click();
       const box = page.locator('[data-group-box="gauges"]');
       const cpu = page.locator('[data-zone-id="cpu"]');
@@ -509,11 +514,11 @@ const BUILT: Partial<Record<FixtureName, Record<string, (page: Page) => Promise<
     },
   },
   hover: {
-    // The fixture shows the Widgets segment: rows of three 64 px tiles, a widget's size top-left, its status top-right.
+    // The fixture shows the All chip: rows of three 76 px tiles, a widget's size top-left, its status top-right.
     [CHECKS.hover[0].text]: async (page) => {
       const grid = page.locator("[data-add-grid]").nth(1);
       const boxes = await grid.getByTestId("add-tile").evaluateAll((els) => els.map((e) => e.getBoundingClientRect()).map((r) => ({ top: Math.round(r.top), h: r.height })));
-      expect(boxes.every((b) => b.h === 64)).toBe(true);
+      expect(boxes.every((b) => b.h === 76)).toBe(true);
       expect(boxes.filter((b) => b.top === boxes[0].top)).toHaveLength(Math.min(3, boxes.length));
       const weather = page.getByTestId("add-tile").filter({ hasText: "Weather" }).first();
       await expect(weather.locator("span.font-ui-mono")).toHaveText(/^\d+×\d+$/);
@@ -574,8 +579,8 @@ const BUILT: Partial<Record<FixtureName, Record<string, (page: Page) => Promise<
       await expect(card).toContainText("Adapts down to 1×1");
       await expect(card).toContainText("On InfoPanel: becomes a picture");
       await shoot(page, "hover-card");
-      // An InfoPanel item and an element, on the InfoPanel items segment.
-      await page.getByRole("radio", { name: "InfoPanel items" }).click();
+      // An InfoPanel item and an element, on the InfoPanel chip.
+      await page.getByRole("button", { name: "InfoPanel", exact: true }).click();
       for (const [name, category, note] of [["Bar", "InfoPanel item · Data", "InfoPanel item"], ["Card", "Element", "Studio element"]]) {
         // Scrolling the list closes the card (§9.5): bring the tile into view first, then rest on it.
         const tile = page.getByTestId("add-tile").filter({ hasText: new RegExp(`^${name}$`) }).first();
@@ -662,7 +667,7 @@ test("one-editor/screen: Add puts InfoPanel items on the page as item placements
   const sections = () => page.getByRole("listbox").locator("> section").evaluateAll((els) => els.map((e) => e.getAttribute("aria-label")));
   // Add is its own chunk: wait for it to arrive.
   await expect.poll(sections).toEqual(["STUDIO WIDGETS", "INFOPANEL ITEMS", "ELEMENTS"]);
-  await page.getByRole("radio", { name: "InfoPanel items" }).click();
+  await page.getByRole("button", { name: "InfoPanel", exact: true }).click();
   await expect.poll(sections).toEqual(["INFOPANEL ITEMS", "ELEMENTS"]);
   const items = page.locator('[data-testid="canvas-part"][data-kind="item"]');
   await page.getByTestId("add-tile").filter({ hasText: /^Text$/ }).click();
@@ -673,7 +678,7 @@ test("one-editor/screen: Add puts InfoPanel items on the page as item placements
   await expect(page.locator('[data-testid="canvas-part"][data-kind="element"]')).toHaveCount(1);
   await expect(page.locator("[data-zone-id]")).toHaveCount(5);
   // Recently used now leads, with both.
-  await page.getByRole("radio", { name: "All" }).first().click();
+  await page.getByRole("button", { name: "All", exact: true }).click();
   expect((await sections())[0]).toBe("RECENTLY USED");
 });
 
@@ -754,7 +759,8 @@ test("one-editor/profile: keyboard only, from Add to Export", async ({ page, scr
   await expect(page.locator('[data-testid="layers-row"][data-selected]')).toHaveCount(2);
   await page.keyboard.press("Control+g");
   const group = page.locator('[data-testid="layers-row"][data-kind="group"]').first();
-  await expect(group).toContainText("group · 2");
+  await expect(group.getByTestId("layers-row-kind")).toHaveText("group");
+  await expect(group.locator("span.font-ui-mono")).toHaveText("2");
   // The Export check from the command palette, then Export .infopanel from its footer.
   await page.keyboard.press("Control+k");
   await page.keyboard.type("Export check");
@@ -872,8 +878,15 @@ test("one-editor/layersG: Edit's toasts sit at the top centre of the canvas", as
 // once scrolled; the wheel, a drag and a chip reached by keyboard scroll it, and a drag picks no chip.
 test("one-editor/addw: Add's category chips scroll sideways with a fade", async ({ page, scratch }) => {
   await openFixture(page, scratch.base, "addw");
-  await page.getByRole("radiogroup", { name: "Show" }).getByRole("radio", { name: "Widgets" }).click();
   const row = page.locator(".add-chips");
+  // The Show segmented row is gone: the InfoPanel chip comes right after All, inside the visible part of the row.
+  await expect(page.getByRole("radiogroup", { name: "Show" })).toHaveCount(0);
+  const chipNames = await row.getByRole("button").allTextContents();
+  expect(chipNames.slice(0, 2)).toEqual(["All", "InfoPanel"]);
+  const ip = (await row.getByRole("button", { name: "InfoPanel", exact: true }).boundingBox())!;
+  const rowBox = (await row.boundingBox())!;
+  expect(ip.x).toBeGreaterThanOrEqual(rowBox.x);
+  expect(ip.x + ip.width).toBeLessThanOrEqual(rowBox.x + rowBox.width);
   const left = () => row.evaluate((el) => el.scrollLeft);
   const reset = () => row.evaluate((el) => el.scrollTo({ left: 0 }));
   await expect(row).toHaveAttribute("data-fade", "end");

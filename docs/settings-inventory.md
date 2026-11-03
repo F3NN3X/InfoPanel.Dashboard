@@ -390,7 +390,8 @@ Island › Island, both reached from the LINKED group.
 | `cols` | Columns | stepper −/+ | 2 to 24; a smaller grid is refused while a zone, on any page, would fall outside | first profile 12; new: 6 when width ≤ 1280, else 12 | Profile | Screens › Grid |
 | `rows` | Rows | stepper −/+ | 1 to 24 (same refusal) | first profile 6; new: 4 when height ≤ 700, else 6 | Profile | Screens › Grid |
 | `gap` | Gap (px field + slider) | number, empty = default | 0 to 200 | `12` (`DEFAULT_GRID_GAP`) | Profile | Screens › Grid |
-| `padding` | Edge padding (px field + slider) | number, empty = default | 0 to 200 | 0 for a fill kiosk page, 12 for fill in the studio, 24 for scroll | Profile | Screens › Grid |
+| `padding` | Edge padding (px field + slider) | number, empty = default | 0 to 200 | 8 for a fill kiosk page (0 when `edges` is `touch`), 12 for fill in the studio, 24 for scroll | Profile | Screens › Grid |
+| `edges` | Touch the display edges (fill screens) | toggle | `inset`, `touch` | unset = `inset` | Profile | Screens › Grid |
 | `widgetTheme.values` | the screen's widget style: skins, surface, opacity, blur and every other themed row (§5.2) | Theme cards at the screen scope | themed keys | unset (inherits `DashboardConfig.style`) | Profile | Theme › the screen |
 | `widgetTheme.locks` | a lock per Theme card (all 11 sections), Lock all / Unlock all | toggle / button | per section of the 11 | none locked | Profile | Theme › the screen |
 | `theme`, `radius` | Color tokens and Corners (§5.4) | Theme › Colors, Shape & spacing | | unset (inherits) | Profile | Theme › the screen |
@@ -678,17 +679,17 @@ overlay, Gauge row, Clock + date, Label / value list. Theme token presets: §5.4
 | Key | What | Values | Default | Target |
 |---|---|---|---|---|
 | `studio.dockCollapsed` | Docked inspector collapsed (Ctrl+\) (`use-studio-layout.ts:15`) | `1` / unset | expanded | the inspector's collapse tab; Ctrl+\ |
-| `studio.quickBar` | Quick bar shown (`inspector-prefs.ts`) | `true` / `false` | `true` | Settings › Studio › Editor › Quick bar |
-| `studio.accordion` | Inspector sections: one open or many (`inspector-prefs.ts`) | one, many | `one` | Settings › Studio › Editor › Inspector sections |
-| `studio.inspector.advanced` | Show every inspector setting, including ones the theme controls (`inspector-prefs.ts`) | `true` / `false` | `false` | Settings › Studio › Editor › Advanced settings |
+| `studio.quickBar` | Quick bar shown (`inspector-prefs.ts`) | `true` / `false` | `true` | Settings › Studio › Panels › Quick bar |
+| `studio.accordion` | Inspector sections: one open or many (`inspector-prefs.ts`) | one, many | `one` | Settings › Studio › Panels › Inspector sections |
+| `studio.inspector.advanced` | Show every inspector setting, including ones the theme controls (`inspector-prefs.ts`) | `true` / `false` | `false` | Settings › Studio › Panels › Advanced settings |
 | `studio.quickPins` | Pinned quick-bar settings per widget type, max 6 (`inspector-prefs.ts`) | map | unset (a default set applies) | Pin button on each inspector row |
 | `studio.inspectorTabs` | The open inspector tab per context (`inspector-prefs.ts`) | map | the first tab | the tab strip |
-| `studio.editor.leftPanelWidth` | Design's left panel width (`add-prefs.ts`; the old `studio.drawerWidth` px value moves to the nearest option) | `narrow` (300 px), `default` (340), `wide` (380) | `default` | Settings › Studio › Editor › Left panel width |
-| `studio.editor.addListDensity` | Add widget list (`add-prefs.ts`) | `comfortable`, `compact` | `comfortable` | Settings › Studio › Editor › Widget list |
-| `studio.editor.addPreviewOnHover` | Add widget preview while hovering (`add-prefs.ts`) | boolean | on | Settings › Studio › Editor › Preview on hover |
+| `studio.editor.leftPanelWidth` | Design's left panel width (`add-prefs.ts`; the old `studio.drawerWidth` px value moves to the nearest option) | `narrow` (300 px), `default` (340), `wide` (380) | `default` | Settings › Studio › Panels › Left panel width |
+| `studio.editor.addListDensity` | Add widget list (`add-prefs.ts`) | `comfortable`, `compact` | `comfortable` | Settings › Studio › Panels › Widget list density |
+| `studio.editor.addPreviewOnHover` | Add widget preview while hovering (`add-prefs.ts`) | boolean | on | Settings › Studio › Panels › Preview on hover |
 | `studio.pinnedProfile` | The profile the studio edits: the selected card (`pinned-profile.ts:7`) | profile id | the profile the window size picks | Screens (card click) |
-| `studio.grid`, `studio.rulers` | Canvas grid and rulers shown (`use-stored-flag.ts`) | `1` / `0` | `1` | zoom bar; Settings › Studio › Editor › Show grid, Show rulers |
-| `studio.zoom` | Canvas zoom: `fit` or a factor 0.25 to 2 (`zoom-pref.ts`) | | `fit` | zoom bar; Settings › Studio › Editor › Default zoom |
+| `studio.grid`, `studio.rulers` | Canvas grid and rulers shown (`use-stored-flag.ts`) | `1` / `0` | `1` | zoom bar; Settings › Studio › Canvas › Show grid, Show rulers |
+| `studio.zoom` | Canvas zoom: `fit` or a factor 0.25 to 2 (`zoom-pref.ts`) | | `fit` | zoom bar; Settings › Studio › Canvas › Default zoom |
 | `studio.tipDismissed` | First-run tips card dismissed (`quick-tips.ts`) | `1` | unset | the tips card |
 | `infopanel.studio.profile-shots` | Screen thumbnail cache (`src/lib/profile-shot-cache.ts:13`) | map | unset | Screens cards (automatic) |
 | `studio.addPanel.recent` | Recently placed widgets in Add (`add-recent.ts:4`) | list | unset | Add (automatic) |
@@ -849,7 +850,7 @@ shows; Theme's scope is the scope bar (All screens, a screen, a page).
 | Screens › card click | Browser `studio.pinnedProfile` | `pinned-profile.ts:30` |
 | Screens › card ⋯ › Rename | `MonitorProfile.name` | `rename` (`screens-view.tsx`) |
 | Screens › Size & fit (Size preset, Width, Height, When it doesn't fit) | `MonitorProfile` `width`, `height`, `fit` | `SizeFitSection` (`screen-layout.tsx`) |
-| Screens › Grid (Columns, Rows, Gap, Edge padding) | `MonitorProfile.cols`, `rows`, `gap`, `padding` | `GridSection` (`screen-layout.tsx`) |
+| Screens › Grid (Columns, Rows, Gap, Edge padding) | `MonitorProfile.cols`, `rows`, `gap`, `padding`, `edges` | `GridSection` (`screen-layout.tsx`) |
 | Screens › Rotation (Rotate pages, Every), the pages' in-rotation switches | `MonitorProfile.rotate` | `setRotate` (`use-studio-mutations.ts:374`) |
 | Screens › Performance (Frame-rate cap, Animations) | `MonitorProfile.performance` | `withScreenPerformance` (`screens-model.ts:39`) |
 | Screens › Pages · order & rotation (drag, + Add page); the page tab strip | `MonitorProfile.pages` | `movePageTo`, `addNewPage` (`use-studio-mutations.ts`) |

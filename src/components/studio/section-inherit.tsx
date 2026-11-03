@@ -22,7 +22,7 @@ function lead(states: Inheritance[]): Inheritance {
 /** The action line under a section's rows: Reset to inherited / Change here, and Edit ‹level› ↗ where there is a home. */
 function ActionLine({ state, level, onReset, onCustomise, onJump }: { state: Inheritance["state"]; level: string; onReset: () => void; onCustomise: () => void; onJump?: () => void }) {
   return (
-    <p className="flex flex-wrap gap-x-3 gap-y-0.5 text-[11.5px] leading-snug">
+    <p className="flex flex-wrap gap-x-3 gap-y-0.5 text-micro leading-snug">
       {state === "custom" && (
         <button type="button" onClick={onReset} className={LINK}>
           Reset to inherited

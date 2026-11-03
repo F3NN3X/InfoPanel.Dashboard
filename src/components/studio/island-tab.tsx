@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import type { HistorySetter } from "@/hooks/use-config-history";
 import { resolveFont, resolveGeneral } from "@/lib/general";
+import { pageSkinOf } from "@/components/island/island-look";
+import { appearanceOf } from "@/lib/style-resolve";
 import { createIslandBus } from "@/lib/island/bus";
 import { withIsland, type IslandConfig } from "@/lib/island/config";
 import { withIslandLook } from "@/lib/island/looks";
@@ -128,13 +130,13 @@ export function IslandTab({ config, setConfig, current, onOpenZone, onOpenExplor
               </button>
             ))}
           </div>
-          <IslandPreview island={island} page={{ width: profile.width, height: profile.height }} bus={previewBus} />
+          <IslandPreview island={island} page={{ width: profile.width, height: profile.height }} skin={pageSkinOf(appearanceOf(config, profile))} bus={previewBus} />
         </>
       }
       aside={
         <>
           <div className="flex flex-col gap-2 rounded-[10px] border border-ui-default p-3.5">
-            <div className="font-ui-mono text-[10px] font-medium uppercase tracking-[.06em] text-ui-4">Widgets sent to the island</div>
+            <div className="font-ui-mono text-nano font-medium uppercase tracking-[.06em] text-ui-4">Widgets sent to the island</div>
             {widgets.length === 0 ? (
               <p className="text-pretty text-caption leading-[1.45] text-ui-4">No widget on this screen sends to the island yet.</p>
             ) : (
@@ -142,7 +144,7 @@ export function IslandTab({ config, setConfig, current, onOpenZone, onOpenExplor
                 {widgets.map((w) => (
                   <li key={w.zoneId} className={cn("flex items-center gap-2", (!w.visible || w.shadowed) && "opacity-55")}>
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[12.5px] text-ui-1">{w.title}</span>
+                      <span className="block truncate text-body text-ui-1">{w.title}</span>
                       {(multiPage || !w.visible || w.shadowed) && (
                         <span className="block truncate text-micro text-ui-4">
                           {[multiPage && w.pageName, !w.visible && "Hidden, sends nothing", w.shadowed && "Another one sends first"].filter(Boolean).join(" · ")}
@@ -153,7 +155,7 @@ export function IslandTab({ config, setConfig, current, onOpenZone, onOpenExplor
                       type="button"
                       onClick={() => onOpenZone(profile.id, w.pageId, w.zoneId)}
                       title="Show it on the canvas and open its Behavior tab"
-                      className="shrink-0 rounded-sm text-[11.5px] text-ui-accent-text hover:underline"
+                      className="shrink-0 rounded-sm text-micro text-ui-accent-text hover:underline"
                     >
                       Open widget ↗
                     </button>

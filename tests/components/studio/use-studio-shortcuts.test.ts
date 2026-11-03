@@ -36,6 +36,11 @@ describe("shortcutAction", () => {
     expect(shortcutAction(key("-", { ctrlKey: true }), IDLE)).toEqual({ type: "zoom-out" });
   });
 
+  it("zooms to the selection on 2, but not while typing", () => {
+    expect(shortcutAction(key("2"), IDLE)).toEqual({ type: "zoom-selection" });
+    expect(shortcutAction(key("2"), TYPING)).toBeNull();
+  });
+
   it("ignores plain keys while typing, but keeps save and the palette", () => {
     expect(shortcutAction(key("Delete"), TYPING)).toBeNull();
     expect(shortcutAction(key("Backspace"), TYPING)).toBeNull();

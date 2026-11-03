@@ -41,7 +41,7 @@ export default function PlaytimeShare(p: PlaytimeShareProps) {
             ) : (
             <div className="flex items-end gap-6">
               <div className="flex flex-col gap-1">
-                <span className="text-[11px] font-medium uppercase tracking-[0.06em] text-[color:var(--w-muted)]">Last 2 weeks</span>
+                <span className="text-micro font-medium uppercase tracking-[0.06em] text-[color:var(--w-muted)]">Last 2 weeks</span>
                 <span className="text-[28px]">
                   <Num ip={tag(lib("recent-playtime"), { decimals: 1, unit: "" })} className="leading-none">{fmt(num(Lb("recent-playtime")), 1)}</Num>
                   <span className="ml-1 text-sm text-[color:var(--w-muted)]">h</span>
@@ -49,7 +49,7 @@ export default function PlaytimeShare(p: PlaytimeShareProps) {
               </div>
               {w >= 240 && (
               <div className="flex flex-col gap-1">
-                <span className="text-[11px] font-medium uppercase tracking-[0.06em] text-[color:var(--w-muted)]">Sessions</span>
+                <span className="text-micro font-medium uppercase tracking-[0.06em] text-[color:var(--w-muted)]">Sessions</span>
                 <span className="text-[28px]">
                   <Num ip={tag(lib("recent-sessions"), { decimals: 0, unit: "" })} className="leading-none">{fmt(num(Lb("recent-sessions")))}</Num>
                 </span>
@@ -57,7 +57,7 @@ export default function PlaytimeShare(p: PlaytimeShareProps) {
               )}
               {room && sessions > 0 && (
               <div className="flex flex-col gap-1">
-                <span className="text-[11px] font-medium uppercase tracking-[0.06em] text-[color:var(--w-muted)]">Avg session</span>
+                <span className="text-micro font-medium uppercase tracking-[0.06em] text-[color:var(--w-muted)]">Avg session</span>
                 <span className="text-[28px]">
                   <Num className="leading-none">{fmt(num(Lb("recent-playtime")) / sessions, 1)}</Num>
                   <span className="ml-1 text-sm text-[color:var(--w-muted)]">h</span>
@@ -80,7 +80,7 @@ export default function PlaytimeShare(p: PlaytimeShareProps) {
                     <LegendRow
                       color={pal[i % pal.length]}
                       label={<span className="text-[color:var(--w-fg)]">{g.name}</span>}
-                      className="text-[13px]"
+                      className="text-body"
                       value={
                         <span className="whitespace-nowrap font-normal text-[color:var(--w-muted)]">
                           <b className="font-medium text-[color:var(--w-fg)]">

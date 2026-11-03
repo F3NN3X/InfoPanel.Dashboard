@@ -4452,6 +4452,7 @@ exports[`VolumeMixer > files its rows by the rules 1`] = `
     {
       "Motion": [
         "smoothing",
+        "meterBallistics",
       ],
     },
     {
@@ -4484,6 +4485,58 @@ exports[`VolumeMixer > files its rows by the rules 1`] = `
       "Details": [
         "showDevice",
         "showMute",
+      ],
+    },
+    {
+      "Layout": [
+        "view",
+        "orientation",
+      ],
+    },
+    {
+      "Strip": [
+        "stripVariant",
+        "stripSize",
+        "stripAccent",
+        "stripIcon",
+        "stripSub",
+        "stripMeter",
+        "stripLcd",
+        "stripStatus · more",
+      ],
+    },
+    {
+      "Meter": [
+        "meterVariant",
+        "meterSegments · more",
+        "meterMinDb · more",
+        "meterMaxDb · more",
+        "meterTaper · more",
+        "meterWarnDb · more",
+        "meterClipDb · more",
+        "meterHold · more",
+        "meterValue",
+        "meterClip",
+      ],
+    },
+    {
+      "Fader": [
+        "faderVariant",
+        "faderRange",
+        "faderScale",
+        "scaleLabels · more",
+        "scaleSide · more",
+        "scaleTicks · more",
+      ],
+    },
+    {
+      "LCD": [
+        "lcdVariant",
+        "lcdAppearance",
+        "lcdSize",
+        "lcdMatrix · more",
+        "lcdScanlines · more",
+        "lcdStatus · more",
       ],
     },
     {
@@ -4600,6 +4653,53 @@ exports[`WaveLink > files its rows by the rules 1`] = `
       "Meter": [
         "meterVariant",
         "meterOrientation",
+        "meterSegments · more",
+        "meterMinDb · more",
+        "meterMaxDb · more",
+        "meterTaper · more",
+        "meterWarnDb · more",
+        "meterClipDb · more",
+        "meterHold · more",
+        "meterValue",
+        "meterClip",
+      ],
+    },
+    {
+      "Layout": [
+        "view",
+      ],
+    },
+    {
+      "Strip": [
+        "stripVariant",
+        "stripSize",
+        "stripAccent",
+        "stripIcon",
+        "stripSub",
+        "stripMeter",
+        "stripLcd",
+        "stripStatus · more",
+      ],
+    },
+    {
+      "Fader": [
+        "faderVariant",
+        "faderRange",
+        "faderScale",
+        "scaleLabels · more",
+        "scaleSide · more",
+        "scaleTicks · more",
+        "faderTaper",
+      ],
+    },
+    {
+      "LCD": [
+        "lcdVariant",
+        "lcdAppearance",
+        "lcdSize",
+        "lcdMatrix · more",
+        "lcdScanlines · more",
+        "lcdStatus · more",
       ],
     },
     {

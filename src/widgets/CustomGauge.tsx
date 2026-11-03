@@ -27,12 +27,18 @@ export function parseGaugeSetting(raw: unknown): VectorGauge {
   }
 }
 
-/** The spec's shape scaled to fit a `w` × `h` body (before it is measured: its own size, clipped). */
-export function FittedVectorGauge({ gauge, p, id, width, height }: { gauge: VectorGauge; p: number; id: string; width: number; height: number }) {
-  const k = width > 0 && height > 0 ? Math.min(width / gauge.width, height / gauge.height) : 1;
+/** The label line under a gauge in a tall body, px (11px text and its gap). */
+const LABEL_H = 22;
+
+/** The spec's shape scaled to fit a `w` × `h` body (before it is measured: its own size, clipped); a `label` takes a line under it from 160px tall. */
+export function FittedVectorGauge({ gauge, p, id, width, height, label }: { gauge: VectorGauge; p: number; id: string; width: number; height: number; label?: string }) {
+  const named = !!label && height >= 160;
+  const room = named ? height - LABEL_H : height;
+  const k = width > 0 && height > 0 ? Math.min(width / gauge.width, room / gauge.height) : 1;
   return (
-    <div className="flex h-full w-full items-center justify-center overflow-hidden">
+    <div className="flex h-full w-full flex-col items-center justify-center overflow-hidden">
       <VectorGaugeSvg gauge={gauge} p={p} id={id} width={Math.floor(gauge.width * k)} height={Math.floor(gauge.height * k)} />
+      {named && <span className="mt-1.5 max-w-full shrink-0 truncate px-4 text-center text-micro text-[color:var(--w-muted)]">{label}</span>}
     </div>
   );
 }
@@ -45,7 +51,7 @@ export default function CustomGauge(p: CustomGaugeProps) {
   const label = p.label ?? p.title ?? String(p.sensor ?? "").split(".").pop()!.replace(/[_-]+/g, " ");
   return (
     <Widget {...shell(p)} title={label} icon="gauge">
-      {({ w, h }) => <FittedVectorGauge gauge={g} p={frac} id={id} width={w} height={h} />}
+      {({ w, h }) => <FittedVectorGauge gauge={g} p={frac} id={id} width={w} height={h} label={label} />}
     </Widget>
   );
 }

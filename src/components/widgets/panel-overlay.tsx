@@ -88,7 +88,7 @@ export function PanelOverlay({ panel, sensors, title, icon, edge, selection, stu
         <PanelTitle
           title={title}
           icon={icon}
-          className="absolute right-3 top-3 z-20 rounded-full bg-black/50 px-2.5 py-1 text-foreground/90 backdrop-blur-sm"
+          className="absolute right-3 top-3 z-20 rounded-full bg-black/50 px-2.5 py-1 text-foreground/90 backdrop-blur-[min(8px,var(--wp-blur-cap,8px))]"
         />
       )}
       <div

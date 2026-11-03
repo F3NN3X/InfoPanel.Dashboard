@@ -3,6 +3,7 @@ import { defineConfig, configDefaults } from "vitest/config";
 import type { Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import { readFileSync } from "node:fs";
 import path from "node:path";
 
 /**
@@ -19,10 +20,29 @@ const loadWidgetsInTests = (): Plugin => ({
   },
 });
 
+/**
+ * The Widget QA page's WebPage demo frames `/assets/qa/webpage.html` (src/widgets/widget-qa/demo-settings.ts). The page is
+ * served by the dev server and emitted by the fixtures and stats builds; a release build leaves it out.
+ */
+const QA_WEBPAGE = "assets/qa/webpage.html";
+const qaWebPage = (mode: string): Plugin => ({
+  name: "qa-webpage",
+  configureServer(server) {
+    server.middlewares.use(`/${QA_WEBPAGE}`, (_req, res) => {
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      res.end(readFileSync(path.resolve(__dirname, "src/dev/qa/webpage.html")));
+    });
+  },
+  generateBundle() {
+    if (mode !== "fixtures" && mode !== "stats") return;
+    this.emitFile({ type: "asset", fileName: QA_WEBPAGE, source: readFileSync(path.resolve(__dirname, "src/dev/qa/webpage.html")) });
+  },
+});
+
 // `vite build --mode stats` (npm run build:stats): an unminified build in .cache/dist-stats with the ticker's debug stats
 // (window.__tickerStats, src/lib/ticker.ts) for the perf specs; release builds leave them out.
 export default defineConfig(({ mode }) => ({
-  plugins: [react(), tailwindcss(), ...(mode === "test" ? [loadWidgetsInTests()] : [])],
+  plugins: [react(), tailwindcss(), qaWebPage(mode), ...(mode === "test" ? [loadWidgetsInTests()] : [])],
   // Relative asset base: the build works from any path it is served at.
   base: "./",
   resolve: {

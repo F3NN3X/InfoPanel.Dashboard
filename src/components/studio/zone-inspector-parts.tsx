@@ -23,7 +23,7 @@ import { KEYS } from "./use-studio-shortcuts";
 /** The 32 px icon box of a header (the glyph in the accent text colour). */
 export function HeaderIcon({ children }: { children: ReactNode }) {
   return (
-    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-s-divider text-[oklch(0.78_0.12_255)] [&>svg]:h-[19px] [&>svg]:w-[19px]">
+    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-s-divider text-ui-accent-icon [&>svg]:h-[19px] [&>svg]:w-[19px]">
       {children}
     </span>
   );
@@ -47,7 +47,7 @@ export function CloseButton() {
 }
 /** The phone sheet's 44 px touch targets. */
 const TOUCH = "h-11 w-11";
-const TITLE = "truncate text-[14px] font-semibold leading-4 text-ui-1";
+const TITLE = "truncate text-lead font-semibold leading-4 text-ui-1";
 
 /** Hide / Duplicate / Delete (28×28; delete turns red on hover). */
 function ZoneActions({
@@ -256,7 +256,7 @@ export function MultiHeader({
             onClick={() => onDeselect(z.id)}
             aria-label={`Remove ${z.name} from the selection`}
             title="Remove from the selection"
-            className="inline-flex h-6 max-w-full items-center gap-1 rounded-xl border border-ui-strong bg-ui-raised pl-2 pr-1 text-[11.5px] text-[#d4d4da]"
+            className="inline-flex h-6 max-w-full items-center gap-1 rounded-xl border border-ui-strong bg-ui-raised pl-2 pr-1 text-micro text-ui-2"
           >
             <span className="truncate">{z.name}</span>
             <X className="h-3.5 w-3.5 shrink-0 text-ui-4" />

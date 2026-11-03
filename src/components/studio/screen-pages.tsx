@@ -74,7 +74,7 @@ export function ScreenPages({ pages, rotate, onMove, onRotate, onOpen }: ScreenP
               rows.current[pages.findIndex((p) => p.id === page.id)] = el;
             }}
             className={cn(
-              "flex h-8 items-center gap-1.5 rounded-md border px-1.5 text-[12.5px]",
+              "flex h-8 items-center gap-1.5 rounded-md border px-1.5 text-body",
               drag?.id === page.id ? "border-ui-accent bg-ui-raised text-ui-1" : "border-transparent text-ui-2 hover:bg-ui-hover"
             )}
           >

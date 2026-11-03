@@ -111,7 +111,7 @@ export function ConnectionsSection() {
           <CalendarBlock stored={stored.calendar.links} onSave={(links) => save({ calendar: { links } })} />
         </ConnectionCard>
       </Group>
-      {error && <p role="alert" className="m-0 text-[12.5px] text-s-red">{error}</p>}
+      {error && <p role="alert" className="m-0 text-caption text-s-red">{error}</p>}
     </>
   );
 }

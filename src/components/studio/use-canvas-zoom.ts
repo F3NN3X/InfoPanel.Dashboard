@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { fitZoomFor, stepZoom, type CanvasInset } from "./studio-layout";
+import { FIT_MIN, ZOOM_MAX, fitZoomFor, stepZoom, type CanvasInset } from "./studio-layout";
 import { useHandPan } from "./use-hand-pan";
 import { useStorageKey } from "./use-stored-flag";
 import { loadZoomPref, parseZoomPref, saveZoomPref, ZOOM_KEY } from "./zoom-pref";
@@ -84,5 +84,19 @@ export function useCanvasZoom(page: { width: number; height: number }, inset: Ca
     resetPan();
   };
 
-  return { zoom, fitting, setZoom, zoomStep, fitZoom, pan, scrollRef, attachScroll };
+  /** Zoom so `el` (a box on the page) fills ~70% of the canvas, then scroll it to the middle. */
+  const zoomToElement = (el: Element | null) => {
+    if (!el || box.width <= 0 || box.height <= 0) return;
+    const r = el.getBoundingClientRect();
+    if (r.width <= 0 || r.height <= 0) return;
+    // The box in the page's own px, whatever the zoom now.
+    const [w, h] = [r.width / zoom, r.height / zoom];
+    const next = Math.min(ZOOM_MAX, Math.max(FIT_MIN, Math.floor(Math.min((box.width * 0.7) / w, (box.height * 0.7) / h) * 100) / 100));
+    resetPan();
+    setZoom(next);
+    // The page is laid out at the new zoom a frame later.
+    requestAnimationFrame(() => requestAnimationFrame(() => el.scrollIntoView({ block: "center", inline: "center" })));
+  };
+
+  return { zoom, fitting, setZoom, zoomStep, fitZoom, zoomToElement, pan, scrollRef, attachScroll };
 }

@@ -1,6 +1,6 @@
 // The factory that turns a template widget (a component over flat data, `kit.ts`) into a
 // DashboardModule: standard look settings, shell props from the resolved settings, Library fields.
-import { useEffect, useMemo, type ComponentType } from "react";
+import { useEffect, useMemo, useRef, type ComponentType } from "react";
 import { compactOf } from "@/modules/setting-readers";
 import { STANDARD_SETTINGS } from "@/modules/standard-settings";
 import { withHwinfoAliases } from "@/lib/hwinfo-aliases";
@@ -75,13 +75,23 @@ function hasKeys(sensors: SensorMap, prefixes: readonly string[]): boolean {
   return prefixes.length === 0 ? keys.length > 0 : keys.some((k) => prefixes.some((p) => k.startsWith(p)));
 }
 
+/** Whether two looks hold the same values (shallow: a stored array keeps its identity while the saved values do). */
+const same = (a: ModuleSettings, b: ModuleSettings): boolean => {
+  const keys = Object.keys(a);
+  return keys.length === Object.keys(b).length && keys.every((k) => a[k] === b[k]);
+};
+
 /** A zone's look: the defaults under `saved` with the surface decided (see `withSkinSurface`), the chosen skin's fonts loaded. */
 /** A lone old alignment axis v7 left in place (no 9-cell code says it): carried to the look for `alignOf` (until PR 8). */
 const LEGACY_ALIGN = ["alignX", "alignY"];
 
 export function useZoneLook(defs: ModuleSetting[], saved: ModuleSettings | undefined, surfaceDefault: string): ModuleSettings {
   const legacy = Object.fromEntries(LEGACY_ALIGN.flatMap((k) => (saved?.[k] !== undefined ? [[k, saved[k]]] : [])));
-  const look = withSkinSurface({ ...effectiveSettings({ settings: defs }, saved), ...legacy }, saved, surfaceDefault);
+  const next = withSkinSurface({ ...effectiveSettings({ settings: defs }, saved), ...legacy }, saved, surfaceDefault);
+  // A data tick re-renders the zone with the same values: keep the object, so the shell's skin context and chrome (memoised on it) hold.
+  const last = useRef(next);
+  const look = same(last.current, next) ? last.current : next;
+  last.current = look;
   const skin = chosen(look.skin);
   useEffect(() => {
     if (skin) ensureSkinFonts(skin);

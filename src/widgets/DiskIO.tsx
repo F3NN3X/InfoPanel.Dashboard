@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { roomy, useFitRows, Widget, shell, hue, get, num, fmt, fmtRate, diskShort, Spark, useHistory, slideX, stackX, hw, type ShellProps } from "./kit";
+import { roomy, useFitRows, Widget, shell, hue, get, num, fmt, fmtRate, diskShort, Spark, Metric, useHistory, slideX, stackX, hw, type ShellProps } from "./kit";
 import { meta } from "./meta/DiskIO";
 
 export { meta };
@@ -37,7 +37,10 @@ export default function DiskIO(p: DiskIOProps) {
     >
       {({ size, w, h }) =>
         h < 200 ? (
-          <ul className="flex h-full flex-col justify-center gap-2.5 overflow-hidden">
+          <div className="flex h-full items-center gap-6">
+            {/* a wide short box (4x2) keeps the total at the left and the disks at the right */}
+            {w >= 360 && <Metric label="Total" value={fmtRate(total)} px={48} className="shrink-0" />}
+          <ul className="flex h-full min-w-0 flex-1 flex-col justify-center gap-2.5 overflow-hidden">
             {disks.slice(0, useFitRows(h, 30, 10)).map((x) => (
               <li key={x.id} className="flex flex-col gap-1 text-xs">
                 <div className="flex justify-between gap-2">
@@ -46,20 +49,21 @@ export default function DiskIO(p: DiskIOProps) {
                     <span style={{ color: `color-mix(in oklab, ${rc} 60%, var(--w-fg))` }}>R</span> {fmtRate(x.r)} · <span style={{ color: `color-mix(in oklab, ${wc} 60%, var(--w-fg))` }}>W</span> {fmtRate(x.w)}
                   </span>
                 </div>
-                <div className="relative h-1.5 overflow-hidden rounded-full bg-[color:var(--w-track)]">
+                <div className="relative h-1.5 overflow-hidden rounded-full bg-[color:var(--w-track)]" data-qa-bleed>
                   <div className="absolute inset-0 transition-transform duration-700" style={{ ...stackX(0, Math.sqrt((x.r || 0) / max) * 100), background: rc }} />
                   <div className="absolute inset-0 transition-transform duration-700" style={{ ...stackX(Math.sqrt((x.r || 0) / max) * 100, Math.sqrt((x.w || 0) / max) * 100), background: wc }} />
                 </div>
               </li>
             ))}
           </ul>
+          </div>
         ) : (
           <div className="flex h-full flex-col gap-3">
             {disks.slice(0, useFitRows(h - (showHistory && size !== "sm" ? 40 : 0), 78, 12)).map((x) => (
               <div key={x.id} className="flex flex-col gap-1.5">
                 <div className="flex min-w-0 items-baseline gap-2 text-xs">
                   <span className="truncate font-medium text-[color:var(--w-fg)]">{x.name}</span>
-                  <span className="shrink-0 text-[11px] text-[color:var(--w-faint)]">
+                  <span className="shrink-0 text-micro text-[color:var(--w-faint)]">
                     {fmt(x.act, 0)}%{w >= 170 && " active"}
                   </span>
                 </div>
@@ -69,7 +73,7 @@ export default function DiskIO(p: DiskIOProps) {
                     ["W", x.w, wc],
                   ] as const
                 ).map(([l, v, c]) => (
-                  <div key={l} className={`grid items-center gap-2 text-[11px] ${w < 170 ? "grid-cols-[12px_minmax(0,1fr)]" : "grid-cols-[12px_minmax(0,1fr)_76px]"}`}>
+                  <div key={l} className={`grid items-center gap-2 text-micro ${w < 170 ? "grid-cols-[12px_minmax(0,1fr)]" : "grid-cols-[12px_minmax(0,1fr)_76px]"}`}>
                     <span className="text-[color:var(--w-faint)]">{l}</span>
                     {w >= 170 && (
                       <div className="h-1.5 overflow-hidden rounded-full bg-[color:var(--w-track)]">

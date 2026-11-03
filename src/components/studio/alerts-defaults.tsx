@@ -77,7 +77,7 @@ export function AlertDefaults({ alerts, setConfig }: { alerts: AlertsConfig; set
       />
       {quiet && (
         <>
-          <div className="flex items-center gap-2 text-[12.5px] text-ui-2">
+          <div className="flex items-center gap-2 text-body text-ui-2">
             <input
               type="time"
               aria-label="Quiet from"

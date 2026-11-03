@@ -49,7 +49,7 @@ const DRIVE_SETTINGS: ModuleSetting[] = [
   deviceSetting("Drive", "drive", { group: "Drive", hint: "Pin one volume; Auto lists all" }),
   enumSetting("sort", "Sort", "usage", [{ value: "usage", label: "By usage" }, { value: "name", label: "By name" }], { group: "Sorting", tab: "behaviour" }),
   // Segments and Bars always colour by fullness.
-  viewOnly(M.DriveSpace, "list")(boolSetting("neutral", "Neutral below thresholds", true, { tab: "style", perWidget: true })),
+  viewOnly(M.DriveSpace, "list")(boolSetting("neutral", "Neutral below thresholds", false, { tab: "style", perWidget: true })),
   thresholdSetting("full"),
   textSetting("icons", "Drive icons", "", { group: "Drive", driveIcons: true, keywords: ["emblem", "image", "logo"], hint: "Your own image or an icon for each drive" }),
 ];

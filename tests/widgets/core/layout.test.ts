@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { boxOf, easeHistory, fitGrid, pickBy, roomy, rowsFor, shapeOf, summaryShape, tierOf } from "@/widgets/core/layout";
+import { boxOf, easeHistory, fillRows, fitGrid, afterHero, heroPx, pickBy, roomy, rowPx, rowsFor, shapeOf, squareHero, summaryShape, tileHero, tierOf } from "@/widgets/core/layout";
 
 describe("tierOf", () => {
   it("splits at 220×140, 340×210 and 500×320", () => {
@@ -101,5 +101,58 @@ describe("roomy", () => {
     expect(roomy(432, 400)).toBe(true);
     expect(roomy(216, 216)).toBe(false);
     expect(roomy(900, 200)).toBe(false);
+  });
+});
+
+describe("rowPx", () => {
+  it("grows a row height by ROOMY_SCALE in a roomy box and rounds it", () => {
+    expect(rowPx(20, 432, 400)).toBe(25);
+    expect(rowPx(18, 432, 400)).toBe(23);
+  });
+  it("keeps the height in any smaller box, and before the box is measured", () => {
+    expect(rowPx(20, 216, 216)).toBe(20);
+    expect(rowPx(28, 900, 200)).toBe(28);
+    expect(rowPx(28, 0, 0)).toBe(28);
+  });
+});
+
+describe("fillRows", () => {
+  it("leaves a box below roomy as it is: no row height, no spread", () => {
+    expect(fillRows(300, 5, 20, 10, false)).toEqual({ rowH: undefined, spread: false });
+  });
+  it("grows the rows to fill the height, up to 1.6x the minimum", () => {
+    expect(fillRows(300, 11, 20, 10, true)).toEqual({ rowH: 20, spread: true });
+    expect(fillRows(300, 4, 20, 10, true)).toEqual({ rowH: 32, spread: true });
+  });
+  it("caps a row at 52px, and never below the minimum", () => {
+    expect(fillRows(900, 3, 40, 10, true).rowH).toBe(52);
+    expect(fillRows(900, 3, 60, 10, true).rowH).toBe(60);
+  });
+});
+
+describe("heroPx", () => {
+  it("is a share of the width held under a share of the height", () => {
+    expect(heroPx(432, 400)).toBe(80);
+    expect(heroPx(1000, 300)).toBe(60);
+  });
+});
+
+describe("tileHero and squareHero", () => {
+  it("take a 2x2-sized card, and the Weather glyph only a square-ish one", () => {
+    expect(tileHero(199, 228)).toBe(false);
+    expect(tileHero(200, 200)).toBe(true);
+    expect(tileHero(339, 339)).toBe(true);
+    expect(tileHero(340, 340)).toBe(false);
+    expect(squareHero(228, 228)).toBe(true);
+    expect(squareHero(300, 200)).toBe(false); // 100 apart on 300 wide
+    expect(squareHero(300, 230)).toBe(true);
+  });
+});
+
+describe("afterHero", () => {
+  it("starts the bars under a hero at the second reading, and leaves a lone reading or a small box alone", () => {
+    expect(afterHero(["a", "b", "c"], true)).toEqual(["b", "c"]);
+    expect(afterHero(["a"], true)).toEqual(["a"]);
+    expect(afterHero(["a", "b"], false)).toEqual(["a", "b"]);
   });
 });

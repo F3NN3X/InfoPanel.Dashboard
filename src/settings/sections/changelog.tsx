@@ -8,7 +8,7 @@ import { PageState } from "../page-state";
 import { useFound, useStore } from "../store";
 
 const TONE_CLASS: Record<SectionTone, string> = {
-  green: "bg-s-green/14 text-[oklch(0.84_0.14_150)]",
+  green: "bg-s-green/14 text-s-ok-text",
   blue: "bg-s-accent/14 text-s-accent-text",
   amber: "bg-s-amber/14 text-s-amber",
   neutral: "bg-s-seg-on text-s-t2",
@@ -132,9 +132,9 @@ export function ChangelogSection() {
                 >
                   <ChevronRight className={cn("h-4 w-4 shrink-0 self-center text-s-dim transition-transform", open && "rotate-90")} />
                   <span className="font-mono text-xl font-semibold tracking-[-0.01em]">{r.version}</span>
-                  {r.date && <span className="text-[12.5px] text-s-dim">{shortDate(r.date)}</span>}
-                  {r.version === status.appVersion && <span className="rounded-[10px] bg-s-green/14 px-2 py-0.5 text-micro font-medium text-[oklch(0.84_0.14_150)]">Installed</span>}
-                  {count > 0 && <span className="text-[12.5px] text-s-dim">{count === 1 ? "1 change" : `${count} changes`}</span>}
+                  {r.date && <span className="text-caption text-s-dim">{shortDate(r.date)}</span>}
+                  {r.version === status.appVersion && <span className="rounded-[10px] bg-s-green/14 px-2 py-0.5 text-micro font-medium text-s-ok-text">Installed</span>}
+                  {count > 0 && <span className="text-caption text-s-dim">{count === 1 ? "1 change" : `${count} changes`}</span>}
                 </button>
                 {/* biome-ignore lint/security/noDangerouslySetInnerHtml: renderMarkdown escapes raw HTML and keeps only safe links. */}
                 {open && r.intro && <div className="notes" dangerouslySetInnerHTML={{ __html: renderMarkdown(r.intro) }} />}
@@ -168,7 +168,7 @@ export function ChangelogSection() {
                               aria-expanded={expanded}
                               aria-label={expanded ? `Show fewer ${s.title} changes` : `Show all ${s.title} changes (${entries.length})`}
                               onClick={() => setAll((a) => toggle(a, key))}
-                              className="cursor-pointer border-0 bg-transparent p-0 text-[12.5px] text-s-accent-text hover:text-s-t1"
+                              className="cursor-pointer border-0 bg-transparent p-0 text-caption text-s-accent-text hover:text-s-t1"
                             >
                               {expanded ? "Show fewer" : `Show all (${entries.length})`}
                             </button>
@@ -181,7 +181,7 @@ export function ChangelogSection() {
             );
           })}
         </div>
-        <p className={cn("mt-5 text-[12.5px] text-s-dim", foundLink.className)} ref={foundLink.ref}>
+        <p className={cn("mt-5 text-caption text-s-dim", foundLink.className)} ref={foundLink.ref}>
           The last {RELEASES_SHOWN} releases are listed here.{" "}
           <a href={RELEASES_URL} data-external rel="noopener noreferrer" className="text-s-accent-text hover:text-s-t1">
             All releases are on GitHub

@@ -1,7 +1,7 @@
 import { inUnit } from "@/modules/setting-readers";
 import type { ModuleSettings } from "@/modules/types";
 import Discovered from "./SensorGroup/Discovered";
-import { Widget, shell, get, num, fmt, has, hw, sensorLabel, useFitRows, Bar, Num, tone, TONES, type ShellProps } from "./kit";
+import { roomy, Widget, shell, get, num, fmt, has, hw, sensorLabel, useFitRows, Bar, Num, tone, TONES, type ShellProps } from "./kit";
 import { meta } from "./meta/SensorGroup";
 
 export { meta };
@@ -76,17 +76,19 @@ function Listed(p: SensorGroupProps) {
       compact={first && { label: first.label, value: first.shown, unit: first.unit, sub: items.slice(1, 3).map((x) => `${x.label} ${fmt(x.shown, 0)}${x.unit}`).join(" · "), pct: first.max ? (first.v / first.max) * 100 : undefined, t: first.t }}
     >
       {({ w, h }) => {
-        const grid = p.layout === "grid" || (p.layout !== "rows" && w / h > 1.6 && w > 400);
+        const big = roomy(w, h);
+        // roomy: the tile grid (big values) instead of a few bars with blank space under them
+        const grid = p.layout === "grid" || (p.layout !== "rows" && ((w / h > 1.6 && w > 400) || big));
         if (grid) {
           const cols = Math.max(1, Math.min(items.length, Math.floor((w + 8) / 128)));
           return (
             <div className="grid h-full gap-2" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))`, gridAutoRows: "minmax(0,1fr)" }}>
               {items.slice(0, cols * useFitRows(h, p.bars !== false ? 76 : 68, 8)).map((x) => (
                 <div key={x.key} className="flex min-w-0 flex-col justify-between gap-1 rounded-xl bg-[color:var(--w-track)] p-2.5">
-                  <span className="truncate text-[11px] text-[color:var(--w-muted)]">{x.label}</span>
-                  <Num className="text-xl font-semibold" style={x.t !== "ok" ? { color: TONES[x.t] } : undefined}>
+                  <span className="truncate text-micro text-[color:var(--w-muted)]">{x.label}</span>
+                  <Num className={`${big ? "text-[40px] leading-none" : "text-xl"} font-semibold`} style={x.t !== "ok" ? { color: TONES[x.t] } : undefined}>
                     {Number.isFinite(x.v) ? fmt(x.shown, x.decimals) : x.raw}
-                    <span className="ml-0.5 text-[11px] text-[color:var(--w-faint)]">{x.unit}</span>
+                    <span className="ml-0.5 text-micro text-[color:var(--w-faint)]">{x.unit}</span>
                   </Num>
                   {p.bars !== false && x.max && <Bar value={x.v} max={x.max} t={x.t} className="h-1" />}
                 </div>

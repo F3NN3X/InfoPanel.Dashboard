@@ -420,7 +420,7 @@ export function PlacementFrame({
           ) : (
             <>
               {design?.header && (
-                <div className="mb-1.5 shrink-0 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                <div className="mb-1.5 shrink-0 text-nano font-semibold uppercase tracking-widest text-muted-foreground">
                   {title}
                 </div>
               )}

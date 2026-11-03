@@ -1,4 +1,5 @@
 import { FolderOpen, Plus, Search, Upload, X } from "lucide-react";
+import { SEGMENT_OFF, SEGMENT_ON } from "@/components/ui/segmented";
 import { SORTS, type ListFilter, type ListSort } from "@/lib/screens/list";
 import { cn } from "@/lib/utils";
 
@@ -51,7 +52,7 @@ export function ScreensToolbar<F extends string = ListFilter>({
           onChange={(e) => onQuery(e.target.value)}
           placeholder={placeholder}
           aria-label={`Search ${noun}`}
-          className="h-8 w-full rounded-[7px] border border-ui-default bg-ui-raised pl-8 pr-7 text-[12.5px] text-ui-1 outline-none placeholder:text-ui-4 focus:border-ui-accent [&::-webkit-search-cancel-button]:hidden"
+          className="h-8 w-full rounded-[7px] border border-ui-default bg-ui-raised pl-8 pr-7 text-body text-ui-1 outline-none placeholder:text-ui-4 focus:border-ui-accent [&::-webkit-search-cancel-button]:hidden"
         />
         {query && (
           <button
@@ -73,7 +74,7 @@ export function ScreensToolbar<F extends string = ListFilter>({
             onClick={() => onFilter(f.id)}
             className={cn(
               "h-full rounded-[5px] px-2.5 text-caption outline-none focus-visible:ring-2 focus-visible:ring-ui-accent/60",
-              filter === f.id ? "bg-ui-active text-ui-1" : "text-ui-3 hover:text-ui-1"
+              filter === f.id ? SEGMENT_ON : SEGMENT_OFF
             )}
           >
             {f.label}

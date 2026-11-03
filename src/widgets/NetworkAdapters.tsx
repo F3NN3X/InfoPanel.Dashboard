@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { useFitRows, Widget, shell, get, num, fmt, has, Dot, Chip, Icon, type ShellProps } from "./kit";
+import { fillRows, roomy, tileHero, useFitRows, Widget, shell, get, num, fmt, has, Dot, Chip, Icon, type ShellProps } from "./kit";
 import { meta } from "./meta/NetworkAdapters";
 
 export { meta };
@@ -40,10 +40,10 @@ export default function NetworkAdapters(p: NetworkAdaptersProps) {
       title={p.title ?? "Network"}
       icon="lan"
       studio={{ label: "Network", value: pub4, kind: "text", sub: "Public IP", rows: ads.map((a) => ({ n: a.name, v: a.v4, dot: a.up })) }}
-      compact={{ label: "Public IP", value: pub4, kind: "text", sub: `${ads.filter((a) => a.up).length} adapters up`, icon: "public" }}
+      compact={(box) => ({ label: "Public IP", value: pub4, kind: box.shape === "tile" && tileHero(box.w, box.h) ? "value" : "text", sub: `${ads.filter((a) => a.up).length} adapters up`, icon: "public", blur: p.hideIp })}
       right={<Chip>{ads.filter((a) => a.up).length} up</Chip>}
     >
-      {({ size, h }) => {
+      {({ size, h, outerW, outerH }) => {
         const pub = (
           <div className="flex min-w-0 items-center gap-2">
             <Icon name="public" className="text-lg text-[color:var(--accent)]" />
@@ -51,7 +51,7 @@ export default function NetworkAdapters(p: NetworkAdaptersProps) {
               <span className="text-micro text-[color:var(--w-faint)]">Public IP</span>
               <span className={`${size === "xs" ? "text-sm" : "text-base"} truncate font-semibold`}>{ip(pub4)}</span>
             </div>
-            {size === "lg" && has(pub6) && <span className="ml-auto truncate text-[11px] text-[color:var(--w-faint)]">{ip(pub6)}</span>}
+            {size === "lg" && has(pub6) && <span className="ml-auto truncate text-micro text-[color:var(--w-faint)]">{ip(pub6)}</span>}
           </div>
         );
         if (size === "xs") return <div className="flex h-full items-center">{pub}</div>;
@@ -59,18 +59,21 @@ export default function NetworkAdapters(p: NetworkAdaptersProps) {
         const room = h - 58,
           rowH = size === "lg" ? 46 : 35;
         const n = room >= rowH ? useFitRows(room, rowH, 8) : 0;
+        // 4x4: the rows grow to fill the list, with the address a step larger (the plugin has no per-adapter rates to add)
+        const big = roomy(outerW, outerH);
+        const fill = fillRows(room, Math.min(n, ads.length), rowH, 8, big);
         return (
           <div className="flex h-full flex-col gap-2">
             {pub}
             {n > 0 && <ul className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden border-t border-[color:var(--w-track)] pt-2">
               {ads.slice(0, n).map((a) => (
-                <li key={a.id} className="flex min-w-0 flex-col gap-0.5">
+                <li key={a.id} className={`flex min-w-0 flex-col gap-0.5 ${fill.rowH ? "justify-center" : ""}`} style={fill.rowH ? { height: fill.rowH } : undefined}>
                   <div className="flex min-w-0 items-center gap-2 text-xs">
                     <Dot ok={a.up} />
                     <span className="truncate font-medium text-[color:var(--w-fg)]">{a.name}</span>
                     <span className="ml-auto shrink-0 tabular-nums text-[color:var(--w-muted)]">{a.up ? speedLabel(a.speed) : "Down"}</span>
                   </div>
-                  <div className="flex min-w-0 gap-2 pl-3.5 text-[11px] text-[color:var(--w-faint)]">
+                  <div className={`flex min-w-0 gap-2 pl-3.5 text-[color:var(--w-faint)] ${big ? "text-caption" : "text-micro"}`}>
                     {ip(a.v4)}
                     {size === "lg" && <span className="truncate">{a.desc}</span>}
                     {(p.showIpv6 ?? size === "lg") && a.v6.length > 0 && <span className="ml-auto shrink-0">+{a.v6.length} IPv6</span>}

@@ -22,7 +22,7 @@ import { useSensors } from "@/hooks/useSensors";
 import { useNow } from "@/components/widgets/hooks";
 import { severityColor } from "@/components/alerts/alert-model";
 import { cn } from "@/lib/utils";
-import { islandClock, islandSkin, motionVars, shadowTransition, shapeSpring, springTransition, type IslandSkin } from "./island-look";
+import { islandClock, islandSkin, motionVars, shadowTransition, shapeSpring, springTransition, type IslandSkin, type PageSkin, type WornSurface } from "./island-look";
 import { fitIslandSize, idleViews, islandBox, islandFontPx, islandMode, islandTop, type IdleView, type IslandMode } from "./island-model";
 
 const ICONS: Record<Severity, LucideIcon> = { info: Info, warning: TriangleAlert, critical: OctagonAlert };
@@ -49,6 +49,8 @@ interface DynamicIslandProps {
   placement: "fixed" | "absolute";
   /** The profile's design size: a short strip or a small screen gets a smaller island. */
   page: { width: number; height: number };
+  /** The screen's widget skin (surface, accent): what an island with placement "skin" is drawn with. */
+  skin?: PageSkin;
   /**
    * The kiosk's own notices: the Data API warning, the widgets that send to the island, the
    * dashboard notices switched on (`config.notices`: the shown page's name, a layout update counted
@@ -68,7 +70,7 @@ interface DynamicIslandProps {
  * motion off swaps them at once. On the kiosk a tap acknowledges the open alert, opens the next held
  * notice again (the badge), or opens the activity.
  */
-export function DynamicIsland({ config, alerts, onAck, placement, page, live, bus = islandBus }: DynamicIslandProps) {
+export function DynamicIsland({ config, alerts, onAck, placement, page, skin, live, bus = islandBus }: DynamicIslandProps) {
   const snap = useIsland(bus);
   const size = fitIslandSize(config.size, page, config.scale);
 
@@ -83,7 +85,7 @@ export function DynamicIsland({ config, alerts, onAck, placement, page, live, bu
       {/* The sources stay mounted in one place whatever the mode, so their baseline survives. */}
       {live && <LiveSources bus={bus} config={config} live={live} />}
       {mode !== "none" && (
-        <IslandPill mode={mode} snap={snap} config={config} size={size} placement={placement} onAck={onAck} bus={bus} />
+        <IslandPill mode={mode} snap={snap} config={config} size={size} placement={placement} onAck={onAck} bus={bus} pageSkin={skin} />
       )}
     </>
   );
@@ -97,6 +99,8 @@ interface IslandPillProps {
   placement: "fixed" | "absolute";
   onAck?: (id: string) => void;
   bus: IslandBus;
+  /** The screen's widget skin, worn by an island with placement "skin". */
+  pageSkin?: PageSkin;
 }
 
 /** The mode before the last change, for the spring that change takes (open, close or morph). */
@@ -127,7 +131,22 @@ function useExiting(key: string, node: ReactNode, width: number, animate: boolea
   return exiting;
 }
 
-function IslandPill({ mode, snap, config, size, placement, onAck, bus }: IslandPillProps) {
+/** The screen's widget surface for an island part of the skin, once the skins have loaded; undefined meanwhile and for an overlay. */
+function useWornSurface(page: PageSkin | undefined): WornSurface | undefined {
+  const [worn, setWorn] = useState<WornSurface>();
+  const { skin, surface, accent } = page ?? {};
+  useEffect(() => {
+    if (!page) return setWorn(undefined);
+    let live = true;
+    void import("./island-page-skin").then((m) => live && setWorn(m.wornSurface({ skin, surface, accent })));
+    return () => {
+      live = false;
+    };
+  }, [page !== undefined, skin, surface, accent]);
+  return page ? worn : undefined;
+}
+
+function IslandPill({ mode, snap, config, size, placement, onAck, bus, pageSkin }: IslandPillProps) {
   const reduced = useReducedMotion();
   const peekAt = useRef(0);
   const box = islandBox(mode, size, config, mode === "compact" && snap.activity !== null);
@@ -136,7 +155,8 @@ function IslandPill({ mode, snap, config, size, placement, onAck, bus }: IslandP
   const accent = strongest ? severityColor(strongest.severity) : undefined;
   const interactive = onAck !== undefined;
   const tappable = interactive && mode !== "idle" && mode !== "line";
-  const skin = islandSkin(config);
+  const worn = useWornSurface(config.placement === "skin" ? pageSkin : undefined);
+  const skin = islandSkin(config, worn);
   const notch = config.shape === "notch";
   const animate = config.motion !== "off" && !reduced;
   const spring = shapeSpring(usePreviousMode(mode), mode, config.motion, reduced, SLOW);
@@ -201,6 +221,7 @@ function IslandPill({ mode, snap, config, size, placement, onAck, bus }: IslandP
           }
           className={cn(
             "island relative flex max-w-full items-center overflow-hidden",
+            skin.surface?.className,
             tappable && "pointer-events-auto cursor-pointer select-none kiosk-focus",
             animate && "island-motion"
           )}
@@ -212,6 +233,8 @@ function IslandPill({ mode, snap, config, size, placement, onAck, bus }: IslandP
               fontSize: islandFontPx(size, config.scale),
               transition: shape && `${shape}, ${shadowTransition(SLOW)}`,
               ...skinStyle(skin, notch),
+              // an island part of the skin waits for the skin before it draws, so it never flashes the plain pill
+              ...(config.placement === "skin" && pageSkin && !worn ? { visibility: "hidden" } : null),
               ...(animate ? motionVars(SLOW) : {}),
               "--island-accent": accent,
             } as CSSProperties
@@ -235,20 +258,24 @@ function IslandPill({ mode, snap, config, size, placement, onAck, bus }: IslandP
           )}
         </div>
         {/* After the pill, so its shadow does not darken them. */}
-        {notch && mode !== "line" && <Ears size={ear} color={skin.background} transition={springTransition(spring, ["width", "height", "left", "right"])} />}
+        {notch && mode !== "line" && <Ears size={ear} color={skin.surface?.ear ?? skin.background} transition={springTransition(spring, ["width", "height", "left", "right"])} />}
       </div>
     </div>
   );
 }
 
-/** The fill, text, border, shadow and type; the notch has no top border (it sits on the edge). */
+/** The fill, text, border, shadow and type; the notch has no top border (it sits on the edge). Worn on the screen's skin, its surface sets the fill, text and edge. */
 function skinStyle(skin: IslandSkin, notch: boolean): CSSProperties {
+  const worn = skin.surface;
+  const surfaceShadow = worn?.style.boxShadow;
   return {
     background: skin.background,
     color: skin.color,
     border: skin.border,
-    borderTop: notch && skin.border ? "none" : undefined,
-    boxShadow: skin.boxShadow,
+    ...worn?.style,
+    ...(worn ? { "--accent": worn.accent, "--island-skin-accent": worn.accent } : null),
+    borderTop: notch && (skin.border || worn) ? "none" : undefined,
+    boxShadow: surfaceShadow && skin.boxShadow !== "none" ? `${surfaceShadow}, ${skin.boxShadow}` : surfaceShadow ?? skin.boxShadow,
     backdropFilter: skin.backdropFilter,
     WebkitBackdropFilter: skin.backdropFilter,
     fontFamily: skin.fontFamily,
@@ -429,13 +456,13 @@ function Activity({ activity, config, pending = 0, accent }: { activity: IslandA
         {activity.image ? (
           <img src={activity.image} alt="" className="h-[1.9em] w-[1.9em] shrink-0 rounded-[0.45em] object-cover" />
         ) : (
-          <PulseDot color={activity.color ?? "currentColor"} pulse={activity.pulse} className="mr-[0.5em] h-[0.6em] w-[0.6em] shrink-0 rounded-full" />
+          <PulseDot color={activity.color ?? "var(--island-skin-accent, currentColor)"} pulse={activity.pulse} className="mr-[0.5em] h-[0.6em] w-[0.6em] shrink-0 rounded-full" />
         )}
       </div>
       <Badge pending={pending} accent={accent} />
       {activity.progress !== undefined && (
         <span className="absolute inset-x-[1.2em] bottom-[0.18em] h-[2px] overflow-hidden rounded-full bg-current/15" aria-hidden>
-          <span className="block h-full bg-current/70" style={{ width: `${Math.round(activity.progress * 100)}%` }} />
+          <span className="block h-full" style={{ width: `${Math.round(activity.progress * 100)}%`, background: "var(--island-skin-accent, color-mix(in srgb, currentColor 70%, transparent))" }} />
         </span>
       )}
     </div>
@@ -470,7 +497,7 @@ function Expanded({ item }: { item: IslandItem }) {
         {item.body && <div className="line-clamp-2 break-words text-[0.86em] opacity-75" title={item.body}>{item.body}</div>}
         {item.progress !== undefined && (
           <div className="mt-[0.35em] h-[0.3em] overflow-hidden rounded-full bg-current/20" role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(item.progress * 100)}>
-            <div className="island-level h-full rounded-full" style={{ width: `${Math.round(item.progress * 100)}%`, background: color }} />
+            <div className="island-level h-full w-full rounded-full" style={{ transform: `translateX(${Math.round(item.progress * 100) - 100}%)`, background: color }} />
           </div>
         )}
       </div>

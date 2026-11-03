@@ -3,7 +3,7 @@ import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { localeHour12 } from "@/lib/general";
 import type { ModuleSettings } from "@/modules/types";
 import { Figure } from "./SensorValue";
-import { Widget, shell, get, num, Num, useIpTag, type ShellProps } from "./kit";
+import { Widget, shell, roomy, get, num, Num, useIpTag, type ShellProps } from "./kit";
 import { meta } from "./meta/Clock";
 
 export { meta };
@@ -51,6 +51,16 @@ export function timePx(size: keyof typeof TIME_PX, w: number, h: number, secs: b
   return Math.round(Math.max(24, Math.min(cap, byH, byW)));
 }
 
+/** The roomy (4x4) box: the seconds are 0.35em in the muted colour. */
+export const ROOMY_SECS_EM = 0.35;
+
+/** The time's font size in a roomy box: as wide as the box allows with the seconds and the AM/PM beside it, held under the height. */
+export function roomyTimePx(w: number, h: number, secs: boolean, h12: boolean, date: boolean): number {
+  const byW = w / (3.2 + (secs ? ROOMY_SECS_EM * 1.6 + 0.06 : 0) + (h12 ? AMPM_EM * 1.6 + 0.06 : 0));
+  const byH = date ? h / (1.08 + DATE_EM * 1.3) : h;
+  return Math.round(Math.max(24, Math.min(byW, byH * 0.62)));
+}
+
 export interface ClockProps extends ShellProps {
   look?: ModuleSettings;
   /** `auto`: the date & time locale's choice (General › Date locale). */
@@ -84,8 +94,9 @@ export default function Clock(p: ClockProps) {
       showHeader={!!p.title}
       studio={{ label: `${DAYS[date.getDay()]} · ${day} ${MONTHS[mon - 1]}`, value: `${pad(hh)}:${pad(M)}`, unit: h12 ? (k("pm") ? "PM" : "AM") : secs ? pad(S) : "", kind: "value" }}
     >
-      {({ size, w, h }) => {
-        const px = timePx(size, w, h, secs && size !== "xs", h12, p.showDate !== false);
+      {({ size, w, h, outerW, outerH }) => {
+        const big = roomy(outerW, outerH);
+        const px = big ? roomyTimePx(w, h, secs, h12, p.showDate !== false) : timePx(size, w, h, secs && size !== "xs", h12, p.showDate !== false);
         return p.face === "figure" ? (
           <Figure label={p.showDate !== false ? "Date" : "Time"} text={p.showDate !== false ? `${day} ${MONTHS[mon - 1]}` : `${pad(hh)}:${pad(M)}${secs ? `:${pad(S)}` : ""}`} w={w} h={h} />
         ) : p.face === "line" ? (
@@ -111,18 +122,18 @@ export default function Clock(p: ClockProps) {
             )}
           </div>
         ) : (
-              <div className="flex h-full flex-col justify-center">
+              <div className={`flex h-full flex-col justify-center ${big ? "items-center" : ""}`}>
                 <div className="flex items-baseline gap-[0.06em] leading-none" style={{ fontSize: px }}>
                   <Num ip={tag("time", { kind: "clock", format: h12 ? "hh:mm" : "HH:mm" })} className="font-semibold tracking-tight">
                     {pad(hh)}
                     <span className="inline-block text-[color:var(--accent)]" style={{ opacity: !reduced && S % 2 === 1 ? 0.3 : 1 }}>:</span>
                     {pad(M)}
                   </Num>
-                  {secs && size !== "xs" && <span {...tag("time", { kind: "clock", format: "ss" })} className="font-mono tabular-nums text-[color:var(--w-faint)]" style={{ fontSize: `max(18px, ${SECS_EM}em)` }}>{pad(S)}</span>}
+                  {secs && size !== "xs" && <span {...tag("time", { kind: "clock", format: "ss" })} className={`font-mono tabular-nums ${big ? "text-[color:var(--w-muted)]" : "text-[color:var(--w-faint)]"}`} style={{ fontSize: `max(18px, ${big ? ROOMY_SECS_EM : SECS_EM}em)` }}>{pad(S)}</span>}
                   {h12 && <span {...tag("time", { kind: "clock", format: "tt" })} className="font-medium text-[color:var(--w-muted)]" style={{ fontSize: `max(14px, ${AMPM_EM}em)` }}>{k("pm") ? "PM" : "AM"}</span>}
                 </div>
                 {p.showDate !== false && (
-                  <span {...tag("date", { kind: "clock", format: size === "lg" ? "dddd, d MMM yyyy" : "dddd, d MMM" })} className="text-[color:var(--w-muted)]" style={{ fontSize: datePx(size, px), marginTop: Math.round(px * 0.08) }}>
+                  <span {...tag("date", { kind: "clock", format: size === "lg" ? "dddd, d MMM yyyy" : "dddd, d MMM" })} className="text-[color:var(--w-muted)]" style={{ fontSize: big ? Math.max(14, Math.min(Math.round(w * 0.05), Math.round(px * 0.2))) : datePx(size, px), marginTop: Math.round(px * 0.08) }}>
                     {DAYS[date.getDay()]}, {day} {MONTHS[mon - 1]}
                     {size === "lg" ? ` ${yr}` : ""}
                   </span>

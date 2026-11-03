@@ -16,8 +16,8 @@ export function LoadState({ error, onRetry }: LoadStateProps) {
         {error !== null && (
           <div role="alert" className="flex max-w-[420px] flex-col items-start gap-3">
             <h1 className="m-0 text-lg font-semibold">Couldn't load settings</h1>
-            <p className="m-0 text-pretty text-[13.5px] leading-normal text-s-muted">{error}</p>
-            <p className="m-0 text-pretty text-[13.5px] leading-normal text-s-muted">If Retry keeps failing, restart InfoPanel Studio.</p>
+            <p className="m-0 text-pretty text-body leading-normal text-s-muted">{error}</p>
+            <p className="m-0 text-pretty text-body leading-normal text-s-muted">If Retry keeps failing, restart InfoPanel Studio.</p>
             <Button kind="accent" size="md" onClick={onRetry}>
               Retry
             </Button>

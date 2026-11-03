@@ -29,7 +29,7 @@ function LiveLine({ condition }: { condition: SensorCondition }) {
   const note =
     state === "fires" ? "would fire now" : state === "ok" ? "not firing" : state === "event" ? "fires on each change" : "no reading";
   return (
-    <div className="flex items-center gap-2 rounded-md bg-ui-app px-2 py-1.5 text-[11.5px]" aria-live="polite">
+    <div className="flex items-center gap-2 rounded-md bg-ui-app px-2 py-1.5 text-micro" aria-live="polite">
       <span className="text-ui-4">Now</span>
       <span className="font-ui-mono text-ui-1">{value ?? "—"}</span>
       <span
@@ -67,7 +67,7 @@ export function AlertCondition({ condition, position, onEdit, onOpenSources }: A
     <div className={cn("space-y-2", position && "rounded-md border border-ui-default p-2.5")}>
       {position && (
         <div className="flex items-center justify-between">
-          <span className="text-[11.5px] font-medium text-ui-3">Sensor {position.index + 1}</span>
+          <span className="text-micro font-medium text-ui-3">Sensor {position.index + 1}</span>
           <button
             type="button"
             onClick={position.onRemove}

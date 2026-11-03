@@ -38,7 +38,7 @@ export const THEME = {
   crit: { label: "Critical", css: "var(--w-crit, #F2665E)", hex: "#F2665E" },
   fg: { label: "Text", css: "var(--w-fg, #F4F4F5)", hex: "#F4F4F5" },
   muted: { label: "Muted text", css: "var(--w-muted, #A1A1AA)", hex: "#A1A1AA" },
-  track: { label: "Track", css: "var(--w-track, rgba(255,255,255,.07))", hex: "rgba(255,255,255,.07)" },
+  track: { label: "Track", css: "color-mix(in oklab, var(--w-fg, #fff) 12%, transparent)", hex: "rgba(255,255,255,.12)" },
 } as const;
 export type ThemeColor = keyof typeof THEME;
 

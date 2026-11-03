@@ -2,13 +2,13 @@ import type { CSSProperties } from "react";
 import type { ModuleSettings } from "@/modules/types";
 import { diskMetric, filterDisks, formatTemp, netMetric, pickAdapter, pickDisk, rateTop, readAdaptersFlat, readSystemFlat, systemKeysFlat, type DiskReading, type DiskValue, type NetDirection } from "@/lib/system-metrics";
 import { MetricGauges, MetricGraphs, type MetricRow } from "./SystemOverviewViews";
-import { useFitRows, Widget, shell, get, num, fmt, fmtRate, pretty, Ring, RingStack, Spark, Bar, Empty, heat, useHistory, tone, TONES, hw, Num, scaleY, useSkin, useIpTag, type ShellProps, type Tone } from "./kit";
+import { useFitRows, Widget, shell, get, num, fmt, fmtRate, pretty, Ring, RingStack, Spark, Bar, Empty, heat, useHistory, tone, TONES, hw, Num, scaleY, useSkin, useIpTag, ToneCue, type ShellProps, type Tone } from "./kit";
 import { meta } from "./meta/SystemOverview";
 
 export { meta };
 
 export type Section = "cpu" | "gpu" | "ram" | "vram" | "disk" | "net";
-const DEF: Record<Section, string> = { cpu: "#38bdf8", gpu: "#a78bfa", ram: "#fbbf24", vram: "#facc15", disk: "#fb7185", net: "#34d399" };
+const DEF: Record<Section, string> = { cpu: "#38bdf8", gpu: "#a78bfa", ram: "#2dd4bf", vram: "#facc15", disk: "#fb7185", net: "#34d399" };
 // Under a non-default skin, sections derive from the skin's accent by hue rotation, so the palette follows the skin.
 const SHIFT: Record<Section, number> = { cpu: 0, gpu: 55, ram: -45, vram: -80, disk: 160, net: 120 };
 const sectionColor = (k: Section) => (SHIFT[k] ? `oklch(from var(--sys-base) l c calc(h + ${SHIFT[k]}))` : "var(--sys-base)");
@@ -316,27 +316,25 @@ export default function SystemOverview(p: SystemOverviewProps) {
             <div className="flex h-full items-center gap-2" role="img" aria-label={rings.map((k) => `${label(k)} ${fmt(ALL[k].v, dec)}%`).join(", ")} style={{ "--sys-base": "var(--accent)" } as CSSProperties}>
               <RingStack
                 rings={rings.map((k) => {
-                  const c = toneOf(k) === "ok" ? col(k) ?? "var(--accent)" : TONES[toneOf(k)];
+                  // the ring is always the series colour; the threshold state is the cue and the value colour in the legend
+                  const c = col(k) ?? "var(--accent)";
                   return { v: Math.min(100, ALL[k].v), color: c, track: `color-mix(in oklab, ${c} 16%, transparent)` };
                 })}
-                thickness={10}
-                gap={3}
                 className="h-full min-w-0 flex-1"
               >
-                {/* below the legend gate the lead ring is named in the hole (identity is not colour alone) when the hole is big enough to hold it */}
-                {w - h <= 60 && Math.min(w, h) >= 130 && rings[0] && (
-                  <>
-                    <span className="text-micro leading-none text-[color:var(--w-faint)]">{label(rings[0])}</span>
-                    <Num className="text-micro leading-none text-[color:var(--accent)]">{fmt(ALL[rings[0]].v, dec)}</Num>
-                  </>
-                )}
+                {/* from 2x2 up the hole holds only the lead number; the legend names every ring */}
+                {Math.min(w, h) >= 130 && rings[0] && <Num className="text-[28px] leading-none text-[color:var(--w-fg)]">{fmt(ALL[rings[0]].v, dec)}</Num>}
               </RingStack>
-              {w - h > 60 && (
-                <div className="flex shrink-0 flex-col gap-1">
+              {(w - h > 60 || Math.min(w, h) >= 130) && (
+                <div className="flex shrink-0 flex-col gap-1.5">
                   {rings.map((k) => (
-                    <span key={k} className="flex items-baseline gap-1.5 text-[11px]" style={vars(k)}>
+                    <span key={k} className="flex items-baseline gap-1.5 text-micro" style={vars(k)}>
+                      <span className="h-2 w-2 shrink-0 self-center rounded-full bg-[color:var(--accent)]" />
                       <span className="text-[color:var(--w-faint)]">{label(k)}</span>
-                      <Num className="text-[color:var(--accent)]">{fmt(ALL[k].v, dec)}%</Num>
+                      <Num className="text-[color:var(--accent)]" style={toneOf(k) !== "ok" ? { color: TONES[toneOf(k)] } : undefined}>
+                        <ToneCue t={toneOf(k)} />
+                        {fmt(ALL[k].v, dec)}%
+                      </Num>
                     </span>
                   ))}
                 </div>
@@ -377,7 +375,7 @@ export default function SystemOverview(p: SystemOverviewProps) {
                   <div className="flex min-w-0 items-center gap-3">
                     {ring && (
                       <div className="shrink-0" style={{ width: rpx, height: rpx }}>
-                        <Ring ipKey={s.key} value={s.v} t={t} thickness={9} className="h-full w-full">
+                        <Ring ipKey={s.key} value={s.v} color="var(--accent)" className="h-full w-full">
                           <Num ipKey={s.key} ipUnit="" style={{ fontSize: rpx * 0.3 }}>{fmt(s.v, 0)}</Num>
                         </Ring>
                       </div>
@@ -386,6 +384,7 @@ export default function SystemOverview(p: SystemOverviewProps) {
                       <div className={`flex min-w-0 gap-x-2 ${stacked ? "flex-col gap-y-1" : "items-baseline"}`}>
                         <span className="shrink-0 text-[11px] font-semibold uppercase tracking-[0.12em] text-[color:var(--w-muted)]">{label(k)}</span>
                         <Num ipKey={s.big ? undefined : s.key} className="whitespace-nowrap leading-none" style={{ fontSize: Math.max(12, Math.min(20, (cellW - (ring ? rpx + 12 : 0) - (stacked ? 0 : 44) - 2) / (big.length * 0.68 * (sk.numWide ?? 1)))), color: t === "ok" ? "var(--accent)" : TONES[t] }}>
+                          <ToneCue t={t} />
                           {big}
                         </Num>
                       </div>

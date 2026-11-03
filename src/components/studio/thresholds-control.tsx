@@ -87,7 +87,7 @@ function LevelLine({ name, level, spec, free, text, fallback, onChange }: LevelL
   const value = off ? fallback : level;
   return (
     <div className="flex min-h-[26px] items-center gap-2">
-      <span className="w-[58px] shrink-0 text-[11.5px] text-ui-3">{name}</span>
+      <span className="w-[58px] shrink-0 text-micro text-ui-3">{name}</span>
       {free ? (
         <input
           type="number"
@@ -95,7 +95,7 @@ function LevelLine({ name, level, spec, free, text, fallback, onChange }: LevelL
           disabled={off}
           value={value}
           onChange={(e) => e.target.value !== "" && onChange(Number(e.target.value))}
-          className={cn(FIELD, "h-[26px] min-w-0 flex-1 px-1.5 text-right font-ui-mono text-[11.5px] disabled:opacity-40")}
+          className={cn(FIELD, "h-[26px] min-w-0 flex-1 px-1.5 text-right font-ui-mono text-micro disabled:opacity-40")}
         />
       ) : (
         <input

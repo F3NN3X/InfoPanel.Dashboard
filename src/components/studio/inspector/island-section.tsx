@@ -41,7 +41,12 @@ const SIZE_OPTIONS: Options = [
   { value: "m", label: "M" },
   { value: "l", label: "L" },
 ];
+const PLACEMENT_OPTIONS: Options = [
+  { value: "overlay", label: "Overlay", title: "A pill of its own over the dashboard" },
+  { value: "skin", label: "Part of the skin", title: "Drawn with the screen's widget surface, edge and accent, like a widget" },
+];
 const TINT_OPTIONS: Options = [
+  { value: "skin", label: "Match skin", title: "The screen's card color over the page, with its edge" },
   { value: "black", label: "Black" },
   { value: "theme", label: "Match theme", title: "The theme's card color" },
   { value: "custom", label: "Custom" },
@@ -105,7 +110,7 @@ interface IslandSectionProps {
 }
 
 function Heading({ children }: { children: ReactNode }) {
-  return <div className="pt-1 font-ui-mono text-[10px] font-medium uppercase tracking-[.06em] text-ui-4">{children}</div>;
+  return <div className="pt-1 font-ui-mono text-nano font-medium uppercase tracking-[.06em] text-ui-4">{children}</div>;
 }
 
 /** A bordered card of the second column. */
@@ -129,7 +134,7 @@ function LimitBox({ label, value, onChange }: { label: string; value: number | u
         placeholder="–"
         aria-label={label}
         onChange={(e) => onChange(e.target.value === "" ? undefined : Number(e.target.value))}
-        className={cn(FIELD, "h-[26px] min-w-0 flex-1 px-1.5 text-right font-ui-mono text-[11.5px]")}
+        className={cn(FIELD, "h-[26px] min-w-0 flex-1 px-1.5 text-right font-ui-mono text-micro")}
       />
     </label>
   );
@@ -300,24 +305,35 @@ export function IslandSection({ island, previewBus, onChange, onLook, onOpenExpl
               </button>
             ))}
           </div>
-          <SegmentedRow label="Color" options={TINT_OPTIONS} value={v.tint} onChange={(tint) => onChange({ tint: tint as IslandConfig["tint"] })} />
-          {v.tint === "custom" && (
+          <SegmentedRow
+            label="Placement"
+            hint="Overlay: a pill of its own over the dashboard. Part of the skin: drawn with the screen's widget surface, edge and accent, so Color and Opacity come from the skin."
+            options={PLACEMENT_OPTIONS}
+            value={v.placement}
+            onChange={(placement) => onChange({ placement: placement as IslandConfig["placement"] })}
+          />
+          {v.placement === "overlay" && (
             <>
-              <ColorRow label="Background" value={v.bgColor} onChange={(bgColor) => onChange({ bgColor: bgColor || ISLAND_DEFAULTS.bgColor })} />
-              <ColorRow label="Text" value={v.fgColor} onChange={(fgColor) => onChange({ fgColor: fgColor || ISLAND_DEFAULTS.fgColor })} />
+              <SegmentedRow label="Color" options={TINT_OPTIONS} value={v.tint} onChange={(tint) => onChange({ tint: tint as IslandConfig["tint"] })} />
+              {v.tint === "custom" && (
+                <>
+                  <ColorRow label="Background" value={v.bgColor} onChange={(bgColor) => onChange({ bgColor: bgColor || ISLAND_DEFAULTS.bgColor })} />
+                  <ColorRow label="Text" value={v.fgColor} onChange={(fgColor) => onChange({ fgColor: fgColor || ISLAND_DEFAULTS.fgColor })} />
+                </>
+              )}
+              <SliderRow
+                label="Opacity"
+                hint="Below 100% the page shows through, blurred"
+                value={v.opacity}
+                min={ISLAND_OPACITY_MIN}
+                max={100}
+                step={5}
+                unit="%"
+                fallback={100}
+                onChange={(opacity) => onChange({ opacity })}
+              />
             </>
           )}
-          <SliderRow
-            label="Opacity"
-            hint="Below 100% the page shows through, blurred"
-            value={v.opacity}
-            min={ISLAND_OPACITY_MIN}
-            max={100}
-            step={5}
-            unit="%"
-            fallback={100}
-            onChange={(opacity) => onChange({ opacity })}
-          />
           <SegmentedRow label="Border" options={BORDER_OPTIONS} value={v.border} onChange={(border) => onChange({ border: border as IslandConfig["border"] })} />
           <ToggleRow label="Shadow" value={v.shadow} onChange={(shadow) => onChange({ shadow })} />
           {links.font}

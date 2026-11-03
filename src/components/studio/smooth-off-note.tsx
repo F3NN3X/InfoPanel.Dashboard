@@ -14,7 +14,7 @@ interface SmoothOffNoteProps {
 export function SmoothOffNote({ screens, onOpenScreen }: SmoothOffNoteProps) {
   if (screens.length === 0) return null;
   return (
-    <div role="note" className="mb-1 rounded-md border border-ui-default bg-ui-raised px-2.5 py-2 text-[11.5px] leading-[1.45] text-ui-3">
+    <div role="note" className="mb-1 rounded-md border border-ui-default bg-ui-raised px-2.5 py-2 text-micro leading-[1.45] text-ui-3">
       Smooth is off on:
       <ul className="m-0 mt-1 flex list-none flex-col gap-0.5 p-0">
         {screens.map((screen) => (

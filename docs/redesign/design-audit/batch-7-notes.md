@@ -10,7 +10,7 @@ Fixed 6, no change needed 4.
 - FND-098: `src/app-window/search-box.tsx` hides input, clear button and `Kbd` (new optional `className` in `src/app-window/kbd.tsx`) in the `rail:` variant and centres the icon.
 - FND-099: `src/app-window/title-bar.tsx`: caption buttons draw the focus ring inside (`focus-visible:-outline-offset-2!`; the unlayered global outline offset needs the important flag).
 - FND-100, 101: no change. The Add chips row and the quick bar are deliberate sideways-scrolling strips with an edge fade mask; the cut item is the scroll cue.
-- FND-102: no change. Studio and Dashboard pages reuse the studio inspector row components; unifying with the Settings cards is a rewrite.
+- FND-102: no change. Studio and Dashboard pages reuse the studio inspector row components; unifying with the Settings cards is a rewrite. Reversed later: the refinement audit's batch 4 (B-09, B-10) did that rewrite on the user's choice after seeing the prototype, so "two Settings row styles" is no longer the rule; see `docs/redesign/refine-audit/batch-4-notes.md`.
 - FND-103: no change. Status-bar ellipsis on the 1920x550 fixture at 1440 is the widget's designed behaviour.
 
 Look at in screenshots: forced-colors Settings General/Updates and studio inspector (switches, Stable/Beta, nav), Settings > Studio at 1440, Help search at 1440, Settings and Help at 640, title bar Tab focus.

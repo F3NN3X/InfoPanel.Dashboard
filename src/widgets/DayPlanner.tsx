@@ -3,7 +3,7 @@ import { useGeneral } from "@/hooks/use-general";
 import { localeHour12 } from "@/lib/general";
 import { hour12Of } from "@/modules/setting-readers";
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, rows, fmt, fmtDate, mix, type ShellProps } from "./kit";
+import { Widget, shell, get, num, rows, fmt, fmtDate, mix, ChartAxis, ChartYAxis, type ShellProps } from "./kit";
 import { allDayTitles, hourMarks, nowFraction, placeEvents, railWindow, type RailEvent, type RailWindow } from "./DayPlanner/layout";
 import { forecastDay, weatherBand, type BandPoint } from "./DayPlanner/weather-band";
 import { useExtras, useInStudio, useNow } from "./time-hooks";
@@ -61,7 +61,7 @@ export default function DayPlanner(p: DayPlannerProps) {
   const timeText = (ms: number) => new Date(ms).toLocaleTimeString(locale || undefined, { hour: "numeric", minute: "2-digit", hour12: h12 });
   const nowAt = nowFraction(now, win);
   const upcoming = events.filter((e) => !e.allDay && e.end > now).sort((a, b) => a.start - b.start)[0];
-  const summary = { label: "Next", value: upcoming ? timeText(upcoming.start) : "–", sub: upcoming ? upcoming.title : calendar.configured ? "Nothing planned" : "No calendar", icon: "timeline", kind: "text" as const };
+  const summary = { label: "Next", value: upcoming ? timeText(upcoming.start) : "–", sub: upcoming ? upcoming.title : calendar.configured ? "Nothing planned" : "No calendar", icon: "timeline", kind: "text" as const, idle: upcoming ? undefined : calendar.configured ? "No events today" : "No calendar" };
 
   const hints = studio
     ? [!calendar.configured && "No calendar yet. Add an ICS link under Settings › Connections.", p.showWeather !== false && !weather.present && "No weather: add the Yr weather plugin."].filter((x): x is string => !!x)
@@ -76,7 +76,8 @@ export default function DayPlanner(p: DayPlannerProps) {
       {({ w, h }) => {
         const horizontal = p.orientation === "horizontal" || ((p.orientation ?? "auto") === "auto" && w >= h * 1.5);
         const head = (allDay.length > 0 ? 20 : 0) + (hints.length > 0 && h >= 90 ? 30 : 0) + (weather.band && h >= 100 ? 18 : 0);
-        const railLen = horizontal ? w - 4 : h - head - 4;
+        // a vertical rail starts 8px down so the first hour label is not cut by the top edge
+        const railLen = horizontal ? w - 4 : h - head - 12;
         const marks = hourMarks(win, Math.max(2, Math.floor(railLen / (horizontal ? 34 : 24))), now);
         // The rail axis: `along` is the time (0-1), laid out down or across.
         const along = (f: number) => `${f * 100}%`;
@@ -86,13 +87,15 @@ export default function DayPlanner(p: DayPlannerProps) {
             : { top: along(from), height: along(to - from), left: `${(lane / lanes) * 100}%`, width: `${100 / lanes}%` };
         const point = (a: number, across: number) => (horizontal ? `${a * 100},${100 - across}` : `${across},${a * 100}`);
         const span = hi - lo || 1;
+        // The hour labels, one axis for both orientations: down the left of the plot, or along the bottom under it.
+        const axisTicks = marks.map((m) => ({ at: m.fraction * 100, label: m.hour === 0 && m.day >= 1 ? dayName(m.at) : hourLabel(m.hour, h12) }));
         const frac = (at: number) => (at - win.start) / (win.end - win.start);
         return (
           <div className="flex h-full min-h-0 min-w-0 flex-col gap-1">
-            {allDay.length > 0 && <div className="truncate text-[11px] leading-5 text-[color:var(--w-muted)]">All day · {allDay.join(", ")}</div>}
-            {hints.length > 0 && h >= 90 && <div className="line-clamp-2 text-[11px] leading-[14px] text-[color:var(--w-faint)]">{hints.join(" ")}</div>}
+            {allDay.length > 0 && <div className="truncate text-micro leading-5 text-[color:var(--w-muted)]">All day · {allDay.join(", ")}</div>}
+            {hints.length > 0 && h >= 90 && <div className="line-clamp-2 text-micro leading-[14px] text-[color:var(--w-faint)]">{hints.join(" ")}</div>}
             {weather.band && h >= 100 && (
-              <div className="flex items-center gap-2 text-[11px] leading-[18px] text-[color:var(--w-muted)]">
+              <div className="flex items-center gap-2 text-micro leading-[18px] text-[color:var(--w-muted)]">
                 <span className="tabular-nums">
                   {unit(lo)}° to {unit(hi)}°{p.units === "F" ? "F" : "C"}
                 </span>
@@ -100,14 +103,8 @@ export default function DayPlanner(p: DayPlannerProps) {
                 <span>rain</span>
               </div>
             )}
-            <div className={`flex min-h-0 flex-1 ${horizontal ? "flex-col" : "flex-row"}`}>
-              <div className={`relative shrink-0 text-micro tabular-nums text-[color:var(--w-faint)] ${horizontal ? "h-4" : "w-7"}`}>
-                {marks.map((m) => (
-                  <span key={m.at} className="absolute whitespace-nowrap leading-none" style={horizontal ? { left: along(m.fraction), transform: "translateX(-50%)" } : { top: along(m.fraction), transform: "translateY(-50%)" }}>
-                    {m.hour === 0 && m.day >= 1 ? dayName(m.at) : hourLabel(m.hour, h12)}
-                  </span>
-                ))}
-              </div>
+            <div className={`flex min-h-0 flex-1 ${horizontal ? "flex-col" : "flex-row pt-2"}`}>
+              {!horizontal && <ChartYAxis ticks={axisTicks} className="w-7" />}
               <div className="relative min-h-0 min-w-0 flex-1 overflow-hidden rounded-md" style={{ background: "var(--w-track)" }}>
                 {weather.band && (
                   <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 h-full w-full" aria-hidden>
@@ -131,7 +128,7 @@ export default function DayPlanner(p: DayPlannerProps) {
                   const len = (to - from) * railLen;
                   return (
                     <div key={event.id} className="absolute p-px" style={box(from, to, lane, lanes)} title={`${event.title} · ${timeText(event.start)}`}>
-                      <div className="h-full w-full overflow-hidden rounded-[5px] px-1.5 text-[11px] leading-[14px]" style={{ background: mix(30, "var(--w-track)"), borderLeft: "3px solid var(--accent)", color: "var(--w-fg)" }}>
+                      <div className="h-full w-full overflow-hidden rounded-[5px] px-1.5 text-micro leading-[14px]" style={{ background: mix(30, "var(--w-track)"), borderLeft: "3px solid var(--accent)", color: "var(--w-fg)" }}>
                         {(!horizontal || len >= 44) && <div className={horizontal ? "truncate" : len >= 28 ? "line-clamp-2" : "truncate"}>{event.title}</div>}
                         {len >= (horizontal ? 70 : 40) && <div className="truncate text-micro text-[color:var(--w-muted)]">{timeText(event.start)}</div>}
                       </div>
@@ -145,6 +142,7 @@ export default function DayPlanner(p: DayPlannerProps) {
                   <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-xs text-[color:var(--w-muted)]">Nothing planned</div>
                 )}
               </div>
+              {horizontal && <ChartAxis ticks={axisTicks} centred className="mt-1 shrink-0" />}
             </div>
           </div>
         );

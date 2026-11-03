@@ -18,7 +18,7 @@ function Caption({ label, onClick, danger, children }: { label: string; onClick:
       onClick={onClick}
       className={cn(
         "flex h-full w-[46px] items-center justify-center text-ui-2 transition-colors",
-        danger ? "hover:bg-[#c42b1c] hover:text-white" : "hover:bg-ui-hover hover:text-ui-1"
+        danger ? "hover:bg-s-close hover:text-white" : "hover:bg-ui-hover hover:text-ui-1"
       )}
     >
       <Glyph>{children}</Glyph>

@@ -1,7 +1,10 @@
 import type { ModuleSettings } from "@/modules/types";
 import { alignOf } from "@/modules/setting-readers";
-import { bodyGap, useFitRows, Widget, shell, get, num, fmt, Num, Ring, Icon, Dot, Chip, STATE, type ShellProps } from "./kit";
-import { inFlow, volumeFlowOf, volumePicked, type FlowFilter } from "./audio-data";
+import { bodyGap, fillRows, roomy, clamp, ChannelBar, ChannelRow, useFitRows, Widget, shell, get, num, fmt, Num, Ring, Icon, Dot, Chip, STATE, type ShellProps } from "./kit";
+import { inFlow, levelContainerOf, volumeFlowOf, volumePicked, type FlowFilter } from "./audio-data";
+import type { MixerLook } from "./core/mixer-look";
+import { useDeviceLevel } from "./core/level-source";
+import { MixerViewBody, PERCENT, fitMixer, toneOf, type StripChannel } from "./core/mixer-views";
 import { meta } from "./meta/VolumeMixer";
 
 export { meta };
@@ -18,6 +21,8 @@ export interface VolumeMixerProps extends ShellProps {
   showMute?: boolean;
   /** Fader fill colour, default the accent. */
   levelColor?: string;
+  /** The view (rows, strips or LCD) and its options; unset = the rows view. */
+  mixerLook?: MixerLook;
 }
 
 export default function VolumeMixer(p: VolumeMixerProps) {
@@ -34,6 +39,23 @@ export default function VolumeMixer(p: VolumeMixerProps) {
   const list = ch.filter((c) => (p.devices ? volumePicked(c.id, p.devices) : c.id !== "default") && inFlow(c.id === "default" ? "output" : volumeFlowOf(d, c.id), flow));
   const fill = p.levelColor || "var(--accent)";
   const wl = get(d, "plugins.wavelink-plugin.wavelink.status") === "up";
+  // The audiocn views: read-only (the plugin has no write path), a knobless fader beside the device's level meter. A device the
+  // level-meter plugin doesn't report draws its meter at silence.
+  const look = p.mixerLook;
+  const strips: StripChannel[] = list.map((c) => {
+    const color = c.mute ? "var(--w-faint)" : fill;
+    return {
+      id: c.id,
+      name: showDevice ? c.name : "",
+      sub: c.dev ? String(c.dev) : undefined,
+      icon: c.mute ? "volume_off" : c.vol < 35 ? "volume_down" : "volume_up",
+      muted: c.mute,
+      color,
+      value: clamp(c.vol),
+      readout: `${fmt(c.vol)}%`,
+      useLevel: () => useDeviceLevel((levels) => levelContainerOf(levels, c.id)),
+    };
+  });
   return (
     <Widget
       {...shell(p)}
@@ -50,11 +72,13 @@ export default function VolumeMixer(p: VolumeMixerProps) {
     >
       {({ size, w, h }) => {
         if (!def) return null;
+        const fit = look && fitMixer(look, w, h, strips);
+        if (look && fit && fit.view !== "rows") return <MixerViewBody look={look} fit={fit} channels={strips} unit={PERCENT} tone={toneOf(p)} live />;
         if (size === "xs" || size === "sm")
           return (
             <div className={`flex h-full min-w-0 items-center ${w < 170 ? "flex-col justify-center gap-1" : "gap-3"}`}>
               <div className="shrink-0" style={{ width: Math.max(28, Math.min(96, w < 170 ? Math.min(w, h - 34) : h)) }}>
-                <Ring value={def.mute ? 0 : def.vol} thickness={10}>
+                <Ring value={def.mute ? 0 : def.vol}>
                   <Icon name={def.mute ? "volume_off" : "volume_up"} className="text-xl" />
                 </Ring>
               </div>
@@ -63,7 +87,7 @@ export default function VolumeMixer(p: VolumeMixerProps) {
                   {fmt(def.vol)}
                   <span className="text-sm font-normal text-[color:var(--w-muted)]">%</span>
                 </Num>
-                {showDevice && w >= 170 && <span className="truncate text-[11px] text-[color:var(--w-muted)]">{def.name}</span>}
+                {showDevice && w >= 170 && <span className="truncate text-micro text-[color:var(--w-muted)]">{def.name}</span>}
               </div>
             </div>
           );
@@ -72,27 +96,27 @@ export default function VolumeMixer(p: VolumeMixerProps) {
           align = alignOf(p.look ?? {}),
           placed = align.alignX === "between" || align.alignY !== "auto" || g !== 10,
           n = useFitRows(h - (placed ? 6 : 0), size === "lg" ? 34 : 30, g);
+        const rowFill = fillRows(h, Math.min(list.length, n), 34, g, roomy(w, h) && !placed);
         return (
-          <ul className="flex h-full flex-col gap-2.5 overflow-hidden">
+          <ul className={`flex h-full flex-col gap-2.5 overflow-hidden ${rowFill.spread ? "justify-evenly" : ""}`}>
             {list.slice(0, n).map((c) => (
-              <li key={c.id} className="grid grid-cols-[18px_minmax(0,1fr)_36px] items-center gap-x-2.5" title={c.full}>
-                <span className="flex items-center justify-center" style={{ color: c.mute ? STATE.crit : "var(--w-muted)" }}>
-                  <Icon name={c.mute ? "volume_off" : c.vol < 35 ? "volume_down" : "volume_up"} className="text-[17px]" />
-                </span>
-                <div className="flex min-w-0 flex-col gap-1">
-                  {showDevice && (
-                    <span className="truncate text-xs text-[color:var(--w-fg)]">
-                      {c.name}
-                      {size === "lg" && <span className="text-[color:var(--w-faint)]"> · {c.dev}</span>}
-                    </span>
-                  )}
-                  <div className="relative h-1.5 rounded-full bg-[color:var(--w-track)]">
-                    <div className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${c.vol}%`, background: c.mute ? "var(--w-faint)" : fill }} />
-                    <div className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[color:var(--w-fg)] shadow" style={{ left: `${c.vol}%` }} />
-                  </div>
-                </div>
-                <span className="text-right text-xs tabular-nums text-[color:var(--w-muted)]">{fmt(c.vol)}</span>
-              </li>
+              <ChannelRow
+                key={c.id}
+                title={c.full}
+                minHeight={rowFill.rowH}
+                muted={c.mute}
+                lead={
+                  <span className="flex items-center justify-center" style={{ color: c.mute ? STATE.crit : "var(--w-muted)" }}>
+                    <Icon name={c.mute ? "volume_off" : c.vol < 35 ? "volume_down" : "volume_up"} className="text-[17px]" />
+                  </span>
+                }
+                name={showDevice ? c.name : ""}
+                sub={showDevice && size === "lg" ? c.dev : undefined}
+                nameW={showDevice ? (w >= 300 ? 110 : 76) : 0}
+                bar={<ChannelBar thumb label={c.name} value={c.vol} color={c.mute ? "var(--w-faint)" : fill} />}
+                value={fmt(c.vol)}
+                valueW={36}
+              />
             ))}
           </ul>
         );

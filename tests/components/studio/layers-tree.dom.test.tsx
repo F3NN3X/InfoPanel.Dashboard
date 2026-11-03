@@ -49,8 +49,12 @@ describe("Layers rows", () => {
     render(<LayersTree host={host({ selectedIds: ["overlay"], statusIcon: (id) => (id === "title" ? <span aria-label="Approximated" /> : null) })} />);
     const rows = screen.getAllByTestId("layers-row");
     expect(rows.map((r) => [r.dataset.kind, r.dataset.depth])).toEqual([["group", "0"], ["item", "1"], ["element", "1"], ["widget", "0"], ["widget", "0"]]);
-    expect(row("Overlay").textContent).toContain("group · 2");
-    expect(row("Weather").textContent).toContain("widget");
+    // The kind is screen-reader text (and the icon's tooltip), not a visible word; a group keeps its child count.
+    expect(within(row("Overlay")).getByTestId("layers-row-kind").textContent).toBe("group");
+    expect(row("Overlay").textContent).toContain("2");
+    expect(within(row("Weather")).getByTestId("layers-row-kind").className).toContain("sr-only");
+    expect(within(row("Weather")).getByTestId("layers-row-kind").textContent).toBe("widget");
+    expect(within(row("Title text")).getByTestId("layers-row-kind").textContent).toBe("item");
     // The placed-freely mark on the free item only; the status where the check has one.
     expect(within(row("Title text")).getByLabelText("Placed freely (Alt)")).toBeTruthy();
     expect(within(row("Accent glow")).queryByLabelText("Placed freely (Alt)")).toBeNull();
@@ -98,6 +102,26 @@ describe("Layers rows", () => {
     fireEvent.keyDown(row("Weather"), { key: " ", ctrlKey: true });
     const visible = ["overlay", "title", "glow", "weather", "clock"];
     expect(vi.mocked(h.select).mock.calls).toEqual([["weather", "range", visible], ["weather", "only", visible], ["weather", "toggle", visible]]);
+  });
+
+  it("locks and hides the focused row with Ctrl+L and Ctrl+H when it is not the selected one", () => {
+    const h = host({ selectedIds: ["title"] });
+    render(<LayersTree host={h} />);
+    row("Title text").focus();
+    fireEvent.keyDown(row("Title text"), { key: "ArrowDown" });
+    expect(document.activeElement).toBe(row("Accent glow"));
+    fireEvent.keyDown(row("Accent glow"), { key: "l", ctrlKey: true });
+    fireEvent.keyDown(row("Accent glow"), { key: "h", ctrlKey: true });
+    expect(vi.mocked(h.setLocked).mock.calls).toEqual([["glow", true]]);
+    expect(vi.mocked(h.setHidden).mock.calls).toEqual([["glow", true]]);
+    // a key the page already took is not taken twice
+    const taken = new KeyboardEvent("keydown", { key: "l", ctrlKey: true, bubbles: true, cancelable: true });
+    taken.preventDefault();
+    row("Accent glow").dispatchEvent(taken);
+    expect(vi.mocked(h.setLocked)).toHaveBeenCalledTimes(1);
+    // the selected row is left to the page's handler
+    fireEvent.keyDown(row("Title text"), { key: "l", ctrlKey: true });
+    expect(vi.mocked(h.setLocked)).toHaveBeenCalledTimes(1);
   });
 
   it("keeps buttons out of the treeitem's accessibility tree (APG tree); the pointer icons still work", () => {

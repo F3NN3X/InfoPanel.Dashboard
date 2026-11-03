@@ -1,7 +1,8 @@
 /**
  * The Dynamic Island: a per-profile pill at the top centre of the page that shows the time and
  * springs open for alerts (`MonitorProfile.island`). Absent = no island, so stored configs load
- * unchanged without a migration. Fields added later default to the look they replaced. See
+ * unchanged without a migration. Fields added later default to the look they replaced (a stored island without a
+ * tint is black, without a placement an overlay); `ISLAND_DEFAULTS` is only for an island made new. See
  * docs/redesign/island/PLAN.md.
  */
 import { FONT_IDS } from "@/lib/fonts";
@@ -14,9 +15,16 @@ export type IslandIdle = "time" | "time-date" | "sensor" | "line" | "hidden";
 export const ISLAND_IDLES: readonly IslandIdle[] = ["time", "time-date", "sensor", "line", "hidden"];
 export type IslandSize = "s" | "m" | "l";
 export const ISLAND_SIZES: readonly IslandSize[] = ["s", "m", "l"];
-/** "theme": the theme's card colour and text; "custom": `bgColor` and `fgColor`. */
-export type IslandTint = "black" | "theme" | "custom";
-export const ISLAND_TINTS: readonly IslandTint[] = ["black", "theme", "custom"];
+/**
+ * "skin": the screen's card colour mostly opaque over the page, with the frame's hairline (the default for a new
+ * island); "black": always black (what islands saved before "skin" are); "theme": the theme's card colour and text;
+ * "custom": `bgColor` and `fgColor`.
+ */
+export type IslandTint = "skin" | "black" | "theme" | "custom";
+export const ISLAND_TINTS: readonly IslandTint[] = ["skin", "black", "theme", "custom"];
+/** "overlay": a pill of its own over the dashboard; "skin": part of it, drawn with the screen's widget surface, edge and accent. */
+export type IslandPlacement = "overlay" | "skin";
+export const ISLAND_PLACEMENTS: readonly IslandPlacement[] = ["overlay", "skin"];
 /** "pill": floating below the top edge; "notch": glued to the top edge with concave corners. */
 export type IslandShape = "pill" | "notch";
 export const ISLAND_SHAPES: readonly IslandShape[] = ["pill", "notch"];
@@ -79,6 +87,8 @@ export interface IslandConfig {
   collapseAfter: number;
   /** Push the zones down by the pill's height instead of overlaying the top row. */
   reserve: boolean;
+  /** Overlay (as before the option) or part of the screen's skin; stored islands without it are overlays. */
+  placement: IslandPlacement;
   tint: IslandTint;
   /** The custom tint's background and text ("#rrggbb"). */
   bgColor: string;
@@ -111,7 +121,8 @@ export const ISLAND_DEFAULTS: IslandConfig = {
   offsetY: 8,
   collapseAfter: 0,
   reserve: false,
-  tint: "black",
+  placement: "overlay",
+  tint: "skin",
   bgColor: "#000000",
   fgColor: "#ffffff",
   opacity: 100,
@@ -183,7 +194,9 @@ export function normalizeIsland(raw: unknown): IslandConfig | undefined {
     offsetY: clamp(r.offsetY, 0, ISLAND_OFFSET_MAX, d.offsetY),
     collapseAfter: clamp(r.collapseAfter, 0, ISLAND_COLLAPSE_MAX, d.collapseAfter),
     reserve: r.reserve === true,
-    tint: oneOf(ISLAND_TINTS, r.tint) ?? d.tint,
+    placement: oneOf(ISLAND_PLACEMENTS, r.placement) ?? d.placement,
+    // a stored island without a (valid) tint is what it was before "skin" existed: black
+    tint: oneOf(ISLAND_TINTS, r.tint) ?? "black",
     bgColor: hex(r.bgColor, d.bgColor),
     fgColor: hex(r.fgColor, d.fgColor),
     opacity: clamp(r.opacity, ISLAND_OPACITY_MIN, 100, d.opacity),

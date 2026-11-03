@@ -80,12 +80,12 @@ export function BoundData({
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
-        <span className="text-[12.5px] font-semibold text-ui-1">Bound data</span>
+        <span className="text-body font-semibold text-ui-1">Bound data</span>
         <span className="font-ui-mono text-micro text-ui-4">{rows.length}</span>
         <button
           type="button"
           onClick={openPicker}
-          className="ml-auto flex h-[26px] items-center gap-1 rounded-md border border-ui-strong bg-ui-raised px-[9px] text-[11.5px] text-ui-1 hover:bg-ui-subtle"
+          className="ml-auto flex h-[26px] items-center gap-1 rounded-md border border-ui-strong bg-ui-raised px-[9px] text-micro text-ui-1 hover:bg-ui-subtle"
         >
           <Link2 className="h-[15px] w-[15px]" /> Bind
         </button>

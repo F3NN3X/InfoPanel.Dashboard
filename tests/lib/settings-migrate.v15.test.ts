@@ -38,7 +38,8 @@ function areaCanvas(w: number, h: number, opts: { file?: string; hash?: string; 
   return { ...stored, source: { name: opts.name ?? "Area", origin: "new", importedAt: "" }, assets: [{ name: opts.file ?? "logo.png", hash: opts.hash ?? HASH_A, type: "png", size: 10 }] };
 }
 
-const FILL = { width: 1024, height: 600, cols: 4, rows: 3, fit: "fill" as const };
+// edge to edge (padding 0): the geometry the pixel assertions below are worked out in
+const FILL = { width: 1024, height: 600, cols: 4, rows: 3, fit: "fill" as const, padding: 0 };
 const probe = { ...FILL, id: "probe", name: "probe", pages: [] } as MonitorProfile;
 
 /** A v14 config holding `profiles`. */
@@ -387,5 +388,18 @@ describe("v15: what a v15 config holds is kept, and checked", () => {
     const p = upgradeConfig(page({})).profiles[0];
     expect(migrateProfileV15(p, { legacy: false })).toBe(p);
     expect(migrateProfileV15({ ...p, pages: [] }, { legacy: true })).toEqual({ ...p, pages: [] });
+  });
+});
+
+describe("v15: a screen with no padding set was drawn edge to edge", () => {
+  // The kiosk now keeps an inset for such a screen, but the conversion places items for the page as it was drawn.
+  const area = areaCanvas(256, 200);
+  const unset = { id: "s", name: "Desk", width: 1024, height: 600, cols: 4, rows: 3, fit: "fill", pages: [{ id: "pg", name: "Main", placements: [zone("area", CANVAS_ID, [1, 1, 1, 1], { canvas: area })] }] };
+
+  it("converts the area's items at padding 0, and leaves the screen's own padding and edges unset", () => {
+    const [mine] = load(v14([unset])).profiles;
+    expect(named(mine.pages[0], "CPU").px).toMatchObject({ x: Math.round(10), y: Math.round(12) });
+    expect(mine.padding).toBeUndefined();
+    expect(mine.edges).toBeUndefined();
   });
 });

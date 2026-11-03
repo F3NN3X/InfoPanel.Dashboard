@@ -114,7 +114,7 @@ export function CheckRow({ id, result, address, fixed, elapsed, narrow, first, o
   const line = status === "checking" ? checkingLine(id, address, elapsed * 1000) : status === "waiting" ? "Waiting" : result.result;
   const again: CheckAction = { kind: "default", label: "Check again" };
   return (
-    <li className={cn("list-none", !first && "border-t border-s-divider", status === "fail" && "bg-[oklch(0.6_0.15_25/0.05)]")}>
+    <li className={cn("list-none", !first && "border-t border-s-divider", status === "fail" && "bg-ui-fail-row")}>
       <div
         className={cn("flex items-start gap-2.5 px-3 py-2.5", more && "cursor-pointer")}
         onClick={(e) => {
@@ -127,13 +127,13 @@ export function CheckRow({ id, result, address, fixed, elapsed, narrow, first, o
         </span>
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
           <div className="flex items-center gap-1.5">
-            <span className={cn("text-[12.5px] font-medium", status === "skip" || status === "waiting" ? "text-ui-3" : "text-ui-1")}>{title}</span>
-            {fixed && status === "ok" && <span className="rounded-[4px] bg-ui-success/15 px-[5px] py-px text-[10px] text-ui-success">Fixed</span>}
+            <span className={cn("text-body font-medium", status === "skip" || status === "waiting" ? "text-ui-3" : "text-ui-1")}>{title}</span>
+            {fixed && status === "ok" && <span className="rounded-[4px] bg-ui-success/15 px-[5px] py-px text-nano text-ui-success">Fixed</span>}
             {status === "checking" && elapsed >= 1 && <span className="font-ui-mono text-micro text-ui-4">{elapsed} s</span>}
           </div>
           <span
             className={cn(
-              "text-[11.5px]",
+              "text-micro",
               status === "fail" ? "text-ui-danger" : status === "warn" ? "text-ui-warning" : status === "ok" ? "text-ui-2" : status === "checking" ? "text-ui-3" : "text-ui-4",
             )}
           >
@@ -180,7 +180,7 @@ export function CheckRow({ id, result, address, fixed, elapsed, narrow, first, o
       {open && (
         <div className="flex flex-col gap-2.5 pb-3 pl-10 pr-3">
           {result.why && (
-            <p className="m-0 text-[11.5px] leading-[1.5] text-ui-2">
+            <p className="m-0 text-micro leading-[1.5] text-ui-2">
               <Rich text={result.why} />
             </p>
           )}
@@ -200,12 +200,12 @@ export function CheckRow({ id, result, address, fixed, elapsed, narrow, first, o
             </div>
           )}
           {result.tip && (
-            <p className="m-0 text-[11.5px] text-ui-3">
+            <p className="m-0 text-micro text-ui-3">
               <Rich text={result.tip} />
             </p>
           )}
           {result.details && (
-            <dl className="m-0 grid grid-cols-[140px_1fr] gap-x-3 gap-y-1 text-[11.5px] max-sm:grid-cols-[100px_1fr]">
+            <dl className="m-0 grid grid-cols-[140px_1fr] gap-x-3 gap-y-1 text-micro max-sm:grid-cols-[100px_1fr]">
               {result.details.map(([k, v]) => (
                 <div key={k} className="contents">
                   <dt className="text-ui-4">{k}</dt>
@@ -301,7 +301,7 @@ export function AddressBar({ mode, address, invalid, onMode, onAddress, onDefaul
         <label htmlFor="first-run-address" className="w-[118px] shrink-0 text-caption text-ui-2">
           Data API address
         </label>
-        <div className={cn("flex h-[30px] min-w-0 max-w-[380px] flex-1 items-center gap-2 rounded-[7px] border bg-ui-app px-2.5", invalid ? "border-[#b54848]" : "border-ui-default focus-within:border-ui-accent")}>
+        <div className={cn("flex h-[30px] min-w-0 max-w-[380px] flex-1 items-center gap-2 rounded-[7px] border bg-ui-app px-2.5", invalid ? "border-ui-error-edge" : "border-ui-default focus-within:border-ui-accent")}>
           <Network className="h-3.5 w-3.5 shrink-0 text-ui-4" />
           <input
             id="first-run-address"
@@ -338,12 +338,12 @@ export function KioskCard({ url, local, onCopy, onOpen }: KioskCardProps) {
         <QrCode text={url} size={80} />
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <span className="text-[12.5px] font-medium text-ui-1">Open your dashboard on a panel or another device</span>
-        <span className="text-[11.5px] leading-[1.45] text-ui-3">
+        <span className="text-body font-medium text-ui-1">Open your dashboard on a panel or another device</span>
+        <span className="text-micro leading-[1.45] text-ui-3">
           Point the panel’s browser, a tablet or a phone on the same network at this address, or scan the code. Panels plugged into this PC can use the local address.
         </span>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="flex h-7 min-w-0 max-w-full items-center truncate rounded-[7px] border border-ui-default bg-ui-app px-2.5 font-ui-mono text-[11.5px] text-ui-1">{url}</span>
+          <span className="flex h-7 min-w-0 max-w-full items-center truncate rounded-[7px] border border-ui-default bg-ui-app px-2.5 font-ui-mono text-micro text-ui-1">{url}</span>
           <button type="button" onClick={onCopy} className={OUTLINE_BUTTON}>
             <Copy className="h-3.5 w-3.5" />
             Copy

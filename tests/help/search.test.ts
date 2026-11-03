@@ -60,5 +60,9 @@ describe("searchHelp", () => {
     expect(hit.hit).toBe("port");
   });
 
+  it("joins a table's cells with a middle dot, so a snippet of it reads as cells", () => {
+    expect(index[2].text).toContain("Option · Address · Local · 127.0.0.1");
+  });
+
 });
 

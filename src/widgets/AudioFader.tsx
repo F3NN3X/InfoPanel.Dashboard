@@ -1,6 +1,6 @@
 import { audioRefusal, useAudio } from "@/lib/audio-control";
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, fmt, clamp, Icon, Num, Empty, hue, type ShellProps } from "./kit";
+import { Widget, shell, fmt, clamp, roomy, Icon, Num, Empty, hue, type ShellProps } from "./kit";
 import { findChannel, iconOf } from "./StreamMixer/channels";
 import { setVolume, toggleMute } from "./StreamMixer/control";
 import { MixFader, type FaderMode } from "./StreamMixer/Fader";
@@ -28,7 +28,7 @@ export default function AudioFader(p: AudioFaderProps) {
   const name = p.name || c?.name || "Audio";
   return (
     <Widget {...shell(p)} title={p.title ?? name} icon="tune" showHeader={p.showHeader ?? false}>
-      {({ w, h }) => {
+      {({ w, h, outerW, outerH }) => {
         if (!c) return <Empty icon="volume_off" label="Channel not found" />;
         const vertical = h > w * 1.15;
         const mode = p.fader === "bar" ? "bar" : "leds";
@@ -45,8 +45,22 @@ export default function AudioFader(p: AudioFaderProps) {
             {fmt(c.vol)}
           </Num>
         );
-        const fader = <MixFader value={c.vol} color={color} segs={vertical ? clamp(h / 8, 8, 40) : clamp(w / 8, 8, 40)} mode={mode} vertical={vertical} onChange={(v) => setVolume(c, v)} />;
-        const body = vertical ? (
+        const fader = <MixFader label={name} value={clamp(c.vol)} color={color} segs={vertical ? clamp(h / 8, 8, 40) : clamp(w / 8, 8, 40)} mode={mode} vertical={vertical} onChange={readOnly ? undefined : (v) => setVolume(c, v)} />;
+        // 4x4: a tall fader (64px wide, 70% of the height) with the mute tile and a 56px value beside it
+        const big = roomy(outerW, outerH);
+        const body = big ? (
+          <div className="flex h-full items-center justify-center gap-6">
+            <div className="w-16" style={{ height: "70%" }}>
+              <MixFader label={name} value={clamp(c.vol)} color={color} segs={clamp(h * 0.7 / 8, 8, 40)} mode={mode} vertical onChange={readOnly ? undefined : (v) => setVolume(c, v)} />
+            </div>
+            <div className="flex flex-col items-center gap-4">
+              <Num className={`leading-none ${c.mute ? "text-zinc-500" : ""}`} style={{ fontSize: 56 }}>
+                {fmt(c.vol)}
+              </Num>
+              {mute}
+            </div>
+          </div>
+        ) : vertical ? (
           <div className="flex h-full flex-col items-center gap-2">
             {mute}
             <div className="min-h-0 w-full flex-1 px-2">{fader}</div>

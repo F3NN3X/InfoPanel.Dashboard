@@ -17,9 +17,10 @@ const pctOf = (f: MeterFrame | undefined, ch: number): number => dbToGain(f?.cha
 
 /** Position on the −60…0 dB scale, 0..100. */
 export const dbPos = (pct: number): number => clamp(((gainToDb(pct / 100) + 60) / 60) * 100);
-export const fmtDb = (pct: number): string => {
+/** A level in dB; silence reads "-∞", or "silent" where `word` (a tile with no dB caption to explain the glyph). */
+export const fmtDb = (pct: number, word = false): string => {
   const db = gainToDb(pct / 100);
-  return Number.isFinite(db) ? fmt(Math.max(-60, db), db > -10 ? 1 : 0) : "-∞";
+  return Number.isFinite(db) ? fmt(Math.max(-60, db), db > -10 ? 1 : 0) : word ? "silent" : "-∞";
 };
 
 /** The smoothed L/R levels of one meter key (`meterKey.channel(id)` / `.device(id)`), in % of full scale. */
@@ -67,6 +68,11 @@ function Level({ value, hold, vertical, variant, n, color, hot }: LevelProps) {
   );
 }
 
+/** One level bar of a channel's meter: the L or R of `levels`, as `MeterPair` draws it (`vertical`: standing). */
+export const levelBar = (s: Smoothed, variant: MeterVariant, color: string, hot: string, vertical?: boolean) => (
+  <Level value={dbPos(s.v)} hold={s.hold !== undefined ? dbPos(s.hold) : undefined} vertical={vertical} variant={variant} n={vertical ? 24 : 28} color={color} hot={hot} />
+);
+
 export interface MeterPairProps {
   levels: Levels;
   vertical?: boolean;
@@ -79,7 +85,7 @@ export interface MeterPairProps {
 }
 /** Two bars, L and R: side by side when vertical, stacked when horizontal. */
 export function MeterPair({ levels, vertical, variant, color, hot, thickness = 7, className = "" }: MeterPairProps) {
-  const bar = (s: Smoothed) => <Level value={dbPos(s.v)} hold={s.hold !== undefined ? dbPos(s.hold) : undefined} vertical={vertical} variant={variant} n={vertical ? 24 : 28} color={color} hot={hot} />;
+  const bar = (s: Smoothed) => levelBar(s, variant, color, hot, vertical);
   return vertical ? (
     <div className={`flex min-h-0 flex-1 justify-center gap-[5px] ${className}`}>
       {[levels.l, levels.r].map((s, i) => (

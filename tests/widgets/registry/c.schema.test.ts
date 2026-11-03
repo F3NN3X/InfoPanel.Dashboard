@@ -23,10 +23,10 @@ function specProps(id: string): string[] {
 const MANIFEST: Record<string, Record<string, string | null>> = {
   NowPlaying: { source: "source", showArt: "showArt", layout: "playerLayout", progress: "progress", vizMode: "vizStyle", vizDevices: "vizDevices", vizFlow: "flow", vizRamp: "vizColor1", showTimeline: "showTimeline" },
   AudioMeter: { device: "device", devices: "devices", flow: "flow", mode: "mode", segments: "segments", meterStyle: "meterStyle" },
-  VolumeMixer: { onSetVolume: null, onToggleMute: null },
+  VolumeMixer: { onSetVolume: null, onToggleMute: null, view: "view" },
   MeterBridge: { channels: "devices", orientation: "orientation", floor: "floor", segments: "segments", holdMs: "holdMs", warnDb: "warn.db", clipDb: "crit.db", showScale: "showScale", showVolume: "showVolume", ladder: "ladder", flow: "flow" },
   Visualizer: { mode: "mode", devices: "devices", flow: "flow", bands: "bands", ramp: "ramp", sensitivity: "sensitivity", peaks: "peaks" },
-  WaveLink: {},
+  WaveLink: { view: "view" },
 };
 
 const STANDARD_KEYS = new Set(STANDARD_SETTINGS.map((d) => d.key));

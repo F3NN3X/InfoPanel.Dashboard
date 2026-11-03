@@ -58,7 +58,7 @@ export function CardView({ card, u, end }: { card: Card; u: number; end: boolean
       return (
         <div className="flex min-w-0 items-center" style={{ gap: z.gap, flexDirection: end ? "row-reverse" : "row" }}>
           <div className="shrink-0" style={{ width: z.ring, height: z.ring }}>
-            <Ring value={card.load} thickness={9} color={color} className="h-full w-full" ipKey={card.loadKey}>
+            <Ring value={card.load} color={color} className="h-full w-full" ipKey={card.loadKey}>
               <Num style={{ fontSize: z.ring * 0.3 }}>{fmt(card.load, 0)}</Num>
             </Ring>
           </div>
@@ -71,7 +71,7 @@ export function CardView({ card, u, end }: { card: Card; u: number; end: boolean
         <div className="flex w-full min-w-0 items-center" style={{ gap: z.gap * 1.5 }}>
           <div className="flex min-w-0 shrink-0 items-center" style={{ gap: z.gap }}>
             <div className="shrink-0" style={{ width: z.ring, height: z.ring }}>
-              <RingStack rings={[{ v: card.load, color, ipKey: card.loadKey }, { v: card.heat, color: heatOf(card.heat) }]} thickness={9} gap={3} className="h-full w-full">
+              <RingStack rings={[{ v: card.load, color, ipKey: card.loadKey }, { v: card.heat, color: heatOf(card.heat) }]} className="h-full w-full">
                 <Num style={{ fontSize: z.ring * 0.26 }}>{fmt(card.load, 0)}</Num>
               </RingStack>
             </div>

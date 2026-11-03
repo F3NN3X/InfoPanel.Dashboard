@@ -1,6 +1,6 @@
 import { obsAct, obsRefusal } from "@/lib/obs-control";
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, Icon, STATE, type ShellProps } from "./kit";
+import { Widget, shell, ButtonTile, STATE, type ShellProps } from "./kit";
 import { ReadOnly } from "./ReadOnly";
 import { useExtras } from "./time-hooks";
 import { meta } from "./meta/ObsButton";
@@ -38,28 +38,10 @@ export default function ObsButton(p: ObsButtonProps) {
   return (
     <Widget {...shell(p)} title={p.title ?? name} icon="videocam" showHeader={p.showHeader ?? false} bleed>
       {({ w, h }) => {
-        const small = Math.min(w, h) < 90;
         const corner = p.radius === undefined ? "calc(var(--radius, 1rem) * 0.62)" : `${p.radius * 0.62}px`;
         return (
           <ReadOnly on={readOnly}>
-          <button
-            type="button"
-            disabled={!ready}
-            onClick={press}
-            aria-pressed={active}
-            aria-label={name}
-            className="flex h-full w-full flex-col items-center justify-center gap-1 transition active:scale-[0.97] disabled:opacity-50"
-            style={{
-              borderRadius: corner,
-              color: muted ? tint : "var(--w-fg)",
-              background: muted ? `color-mix(in oklab, ${tint} 16%, transparent)` : "transparent",
-              boxShadow: action === "scene" && active ? "inset 0 0 0 2px rgba(255,255,255,.92)" : undefined,
-            }}
-          >
-            <Icon name={icon} className={small ? "text-[26px]" : "text-[34px]"} />
-            <span className="max-w-full truncate px-1 text-[12px] font-semibold leading-tight">{name}</span>
-            {!small && ready && action === "scene" && active && <span className="text-[11px] text-[color:var(--w-muted)]">On air</span>}
-          </button>
+          <ButtonTile w={w} h={h} icon={icon} name={name} status={ready && action === "scene" && active ? "On air" : undefined} tint={tint} active={active} outline={action === "scene" && active ? "rgba(255,255,255,.92)" : undefined} disabled={!ready} corner={corner} onPress={press} />
           </ReadOnly>
         );
       }}

@@ -11,7 +11,8 @@ import { cn } from "@/lib/utils";
 export type RailItem = "design" | "theme" | "screens" | "library" | "gauges" | "infopanel" | "data" | "alerts" | "settings";
 
 /** The rail's items in groups; a thin divider sits between groups. Nothing addresses a button by position. */
-const GROUPS: { id: RailItem; label: string; icon: LucideIcon }[][] = [
+/** `short` is the label drawn under the icon when the full name would wrap; the name stays the button's and its tooltip. */
+const GROUPS: { id: RailItem; label: string; short?: string; icon: LucideIcon }[][] = [
   [
     { id: "screens", label: "Screens", icon: Monitor },
     { id: "design", label: "Edit", icon: LayoutDashboard },
@@ -20,7 +21,7 @@ const GROUPS: { id: RailItem; label: string; icon: LucideIcon }[][] = [
     { id: "theme", label: "Theme", icon: Palette },
     { id: "library", label: "Library", icon: Images },
     { id: "gauges", label: "Gauges", icon: Gauge },
-    { id: "alerts", label: "Alerts & Island", icon: Bell },
+    { id: "alerts", label: "Alerts & Island", short: "Alerts", icon: Bell },
     { id: "data", label: "Data", icon: Database },
   ],
 ];
@@ -37,6 +38,7 @@ interface LeftRailProps {
 
 interface RailButtonProps {
   label: string;
+  short?: string;
   icon: LucideIcon;
   narrow: boolean;
   active?: boolean;
@@ -44,24 +46,26 @@ interface RailButtonProps {
 }
 
 /** One labelled rail item: a 20 px icon over a 10.5 px label (icon only when narrow, with a tooltip). */
-function RailButton({ label, icon: Icon, narrow, active, onClick }: RailButtonProps) {
+function RailButton({ label, short, icon: Icon, narrow, active, onClick }: RailButtonProps) {
   return (
     // Not hoverable: the popup sits over the view, and hovering it
     // must not keep it open once the pointer leaves the rail.
     <Tooltip.Root disableHoverablePopup>
       <Tooltip.Trigger
         aria-label={label}
+        title={short && !narrow ? label : undefined}
         aria-current={active ? "page" : undefined}
         onClick={onClick}
         className={cn(
-          "flex flex-col items-center gap-[3px] rounded-lg pb-[6px] pt-[7px] transition-colors",
+          "relative flex flex-col items-center gap-[3px] rounded-lg pb-[6px] pt-[7px] transition-colors",
           narrow ? "h-9 w-9 justify-center p-0" : "w-[62px] px-0.5",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ui-accent/60",
           active ? "bg-ui-active text-ui-1" : "text-ui-4 hover:bg-ui-hover hover:text-ui-2"
         )}
       >
-        <Icon className="h-5 w-5" strokeWidth={1.5} />
-        {!narrow && <span className="text-micro font-medium leading-tight">{label}</span>}
+        {active && <span aria-hidden className="absolute -left-[5px] bottom-2 top-2 w-0.5 rounded-full bg-ui-accent" />}
+        <Icon className="h-5 w-5" strokeWidth={1.75} />
+        {!narrow && <span className="text-micro font-medium leading-tight">{short ?? label}</span>}
       </Tooltip.Trigger>
       {narrow && (
         <Tooltip.Portal>
@@ -94,6 +98,7 @@ export function LeftRail({ active, onSelect, onHelp, narrow }: LeftRailProps) {
               <RailButton
                 key={item.id}
                 label={item.label}
+                short={item.short}
                 icon={item.icon}
                 narrow={narrow}
                 active={active === item.id}

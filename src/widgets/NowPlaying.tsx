@@ -3,7 +3,7 @@ import { makeSurfacePalette, type ModernStyle } from "@/components/surfaces";
 import { surfaceBox } from "@/components/widget-style";
 import { chromeOf } from "@/modules/standard-settings";
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, has, Img, Chip, MediaProgress, scaleX, type MediaProgressMode, type ShellProps } from "./kit";
+import { Widget, shell, has, Img, Chip, MediaProgress, roomy, scaleX, type MediaProgressMode, type ShellProps } from "./kit";
 import type { VizLook, VizStyle } from "./core/viz/types";
 import { widgetImage } from "./data-adapter";
 import { useArtTint } from "./NowPlaying/art-tint";
@@ -35,7 +35,7 @@ function Vinyl({ art, playing, className = "" }: { art?: string; playing: boolea
         <div className="absolute inset-[31%] overflow-hidden rounded-full ring-2 ring-black/60">
           <Img src={art} icon="album" className="h-full w-full" />
         </div>
-        <div className="absolute left-1/2 top-1/2 h-[5%] w-[5%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#0c0c0e]" />
+        <div className="absolute left-1/2 top-1/2 h-[5%] w-[5%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-w-hub" />
       </div>
       <div className="absolute -right-[4%] top-[2%] h-[62%] w-[3%] origin-top rounded-full bg-gradient-to-b from-zinc-300 to-zinc-500 transition-transform duration-700" style={{ transform: `rotate(${playing ? 24 : 8}deg)` }} />
     </div>
@@ -167,7 +167,7 @@ export default function NowPlaying(p: NowPlayingProps) {
         </Chip>
       }
     >
-      {({ size, w, h }) => {
+      {({ size, w, h, outerW, outerH }) => {
         // The title takes two lines before it is cut short.
         const text = (big: string, onImage = false) => (
           <div className="flex min-w-0 flex-col">
@@ -237,6 +237,17 @@ export default function NowPlaying(p: NowPlayingProps) {
                 </div>
               </div>
               {media(viz ? "visualizer" : "bar", "h-4")}
+            </div>
+          );
+        // 4x4: the cover is the hero, then title, artist and progress under it
+        if (roomy(outerW, outerH) && art)
+          return (
+            <div className="flex h-full min-h-0 flex-col items-center gap-4">
+              <Img src={cover} icon="album" className="aspect-square shrink-0 rounded-xl shadow-2xl" style={{ height: Math.min(w, h * 0.64) }} />
+              <div className="flex w-full min-w-0 flex-1 flex-col justify-end gap-3">
+                {text("text-[22px]")}
+                {progress}
+              </div>
             </div>
           );
         if (size === "lg" && art)

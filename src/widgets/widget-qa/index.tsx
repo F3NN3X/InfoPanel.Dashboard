@@ -56,7 +56,7 @@ export default function WidgetQa() {
   const solidBg = theme ? `hsl(${theme.tokens.background})` : "#16161a";
   const style = theme ? ({ ...themeVars(theme.tokens), background: `hsl(${theme.tokens.background})`, color: `hsl(${theme.tokens.foreground})` } as CSSProperties) : undefined;
   return (
-    <main className={`min-h-screen px-6 pb-10 ${theme ? "" : "bg-[#0c0c0e] text-zinc-100"}`} style={style}>
+    <main className={`min-h-screen px-6 pb-10 ${theme ? "" : "bg-ui-app text-zinc-100"}`} style={style}>
       <header className="sticky top-0 z-10 -mx-6 space-y-2 border-b border-current/15 px-6 py-3 backdrop-blur-xl backdrop-saturate-150" style={{ background: bg }}>
         <div className="flex items-center gap-3">
           <h1 className="text-sm font-semibold">Widget QA</h1>

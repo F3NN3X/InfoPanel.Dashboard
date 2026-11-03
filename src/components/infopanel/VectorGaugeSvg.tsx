@@ -47,5 +47,5 @@ export function VectorGaugeSvg({ gauge, p, width = gauge.width, height = gauge.h
  * shell). The lab has no shell, and the page's own `--accent` is a shadcn HSL triple, not a colour.
  */
 const WIDGET_SCOPE = Object.fromEntries(
-  (["accent", "warn", "crit", "fg", "muted", "track"] as const).map((k) => [THEME[k].css.slice(4, THEME[k].css.indexOf(",")), THEME[k].hex]),
+  (["accent", "warn", "crit", "fg", "muted"] as const).map((k) => [THEME[k].css.slice(4, THEME[k].css.indexOf(",")), THEME[k].hex]),
 ) as CSSProperties;

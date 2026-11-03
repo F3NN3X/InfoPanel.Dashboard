@@ -17,7 +17,7 @@ export interface SavedPanelActions {
 }
 
 const MENU_POPUP =
-  "min-w-36 rounded-ui-menu border border-ui-menu bg-ui-raised p-1 font-ui text-[12.5px] text-ui-2 shadow-ui-menu outline-none";
+  "min-w-36 rounded-ui-menu border border-ui-menu bg-ui-raised p-1 font-ui text-body text-ui-2 shadow-ui-menu outline-none";
 const MENU_ITEM =
   "flex h-[30px] cursor-default items-center gap-2 rounded-md px-2 outline-none select-none data-highlighted:bg-ui-active data-highlighted:text-ui-1 data-highlighted:shadow-[inset_2px_0_0_var(--ui-accent)]";
 
@@ -129,7 +129,7 @@ export function InsertRow({
     >
       <div className="flex items-center justify-between gap-1 text-ui-2">
         <Icon className="h-5 w-5 shrink-0" strokeWidth={1.5} />
-        <span className="flex items-center gap-1.5 font-ui-mono text-[10px] text-ui-hint">
+        <span className="flex items-center gap-1.5 font-ui-mono text-nano text-ui-hint">
           {size.cols}×{size.rows}
           {saved && <SavedPanelMenu onRename={() => setRenaming(true)} onDelete={saved.onDelete} />}
         </span>

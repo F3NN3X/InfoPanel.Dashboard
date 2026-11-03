@@ -77,6 +77,39 @@ export function splitCenter<K>(center: K[]): [K[], K[]] {
   return [center.slice(0, at), center.slice(at)];
 }
 
+/** Around the island's gap each half holds one side: the left and the centre's first half, then the rest. */
+export function gapHalves<K>(slots: Slots<K>, cost: (k: K) => number): [number, number] {
+  const [before, after] = splitCenter(slots.center);
+  const sum = (list: K[]) => list.reduce((s, k) => s + cost(k), 0);
+  return [sum(slots.left) + sum(before), sum(after) + sum(slots.right)];
+}
+
+/** The width a bar with a gap needs: both halves are as wide as the wider one, so twice that. */
+export const needAroundGap = <K>(slots: Slots<K>, cost: (k: K) => number): number => 2 * Math.max(...gapHalves(slots, cost));
+
+/**
+ * The items that fit `room` (px, the bar less the gap) when they sit either side of the island's gap: while the wider
+ * half is too wide, it gives up an item, the one with the lowest `rank` when given, else its outer one (the first of
+ * the left, the last of the right; a side with none gives up the centre item nearest the gap's far side).
+ */
+export function fitAroundGap<K>(slots: Slots<K>, room: number, cost: (k: K) => number, rank?: (k: K) => number): Slots<K> {
+  let kept = slots;
+  const count = () => kept.left.length + kept.center.length + kept.right.length;
+  while (needAroundGap(kept, cost) > room && count() > 1) {
+    const [l, r] = gapHalves(kept, cost);
+    const [before, after] = splitCenter(kept.center);
+    const leftHalf = l >= r;
+    if (rank) {
+      const side = leftHalf ? [...kept.left, ...before] : [...after, ...kept.right];
+      const lowest = side.reduce((at, k) => (rank(k) <= rank(at) ? k : at), side[0]);
+      const drop = (list: K[]) => list.filter((k) => k !== lowest);
+      kept = { left: drop(kept.left), center: drop(kept.center), right: drop(kept.right) };
+    } else if (leftHalf) kept = kept.left.length > 0 ? { ...kept, left: kept.left.slice(1) } : { ...kept, center: [...before.slice(0, -1), ...after] };
+    else kept = kept.right.length > 0 ? { ...kept, right: kept.right.slice(0, -1) } : { ...kept, center: [...before, ...after.slice(0, -1)] };
+  }
+  return kept;
+}
+
 /**
  * The items that fit `room` (px) in a bar that drops by priority: while the rest is too wide, the item with the
  * lowest `rank` goes (the last of them on a tie), from any slot; slots and the order of the rest are kept.

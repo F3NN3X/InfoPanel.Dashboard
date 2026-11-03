@@ -59,5 +59,5 @@ export function restartItems(saved: Saved, running: RunningConfig | null, debugF
 
 /** The restart bar's sentence. */
 export function restartText(items: RestartItem[]): string {
-  return `Restart the server to apply: ${items.map((i) => i.label).join(", ")}.`;
+  return `Restart to apply: ${items.map((i) => i.label).join(", ")}.`;
 }

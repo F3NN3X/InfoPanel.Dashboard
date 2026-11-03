@@ -20,12 +20,12 @@ const LEVEL_CHIPS: { value: LevelFilter; label: string; dot: string }[] = [
   { value: "all", label: "All", dot: "bg-s-muted" },
   { value: "error", label: "Errors", dot: "bg-s-red" },
   { value: "warn", label: "Warnings", dot: "bg-s-amber" },
-  { value: "info", label: "Info", dot: "bg-[#7fa7ff]" },
-  { value: "debug", label: "Debug", dot: "bg-s-dim" },
+  { value: "info", label: "Info", dot: "bg-s-dim" },
+  { value: "debug", label: "Debug", dot: "bg-s-faint" },
 ];
 
-const LEVEL_TEXT: Record<LogLevel, string> = { error: "text-s-red", warn: "text-s-amber", info: "text-[#7fa7ff]", debug: "text-s-dim" };
-const MESSAGE_TEXT: Record<LogLevel, string> = { error: "text-[oklch(0.85_0.08_25)]", warn: "text-[#d6d6db]", info: "text-[#d6d6db]", debug: "text-s-dim" };
+const LEVEL_TEXT: Record<LogLevel, string> = { error: "text-s-red", warn: "text-s-amber", info: "text-s-dim", debug: "text-s-dim" };
+const MESSAGE_TEXT: Record<LogLevel, string> = { error: "text-s-red-text", warn: "text-s-strong", info: "text-s-strong", debug: "text-s-dim" };
 
 /** What the page remembers of one log between polls. */
 interface Buffer {
@@ -131,14 +131,14 @@ export function LogsSection() {
             );
           })}
         </div>
-        <div className="flex h-8 min-w-40 flex-1 items-center gap-1.5 rounded-lg border border-s-track-line bg-ui-tile px-2.5">
+        <div className="flex h-8 min-w-40 flex-1 items-center gap-1.5 rounded-lg border border-s-track-line bg-s-tile px-2.5">
           <ListFilter className="h-4 w-4 shrink-0 text-s-dim" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Filter lines"
             aria-label="Filter lines"
-            className="min-w-0 flex-1 border-0 bg-transparent text-[12.5px] text-s-t1 outline-none placeholder:text-s-dim"
+            className="min-w-0 flex-1 border-0 bg-transparent text-caption text-s-t1 outline-none placeholder:text-s-dim"
           />
         </div>
       </div>
@@ -148,9 +148,9 @@ export function LogsSection() {
         <div ref={viewer} onScroll={onScroll} role="region" aria-label="Log lines" tabIndex={0} className="h-[420px] overflow-auto py-2.5 font-mono text-xs leading-[1.7]" data-testid="log-viewer">
           <div className="w-max min-w-full">
             {visible.map((l) => (
-              <div key={l.id} className="flex gap-3 whitespace-pre px-3.5 hover:bg-ui-panel">
+              <div key={l.id} className="flex items-baseline gap-3 whitespace-pre px-3.5 hover:bg-s-card">
                 <span className="w-[12ch] shrink-0 text-s-dim">{l.ts}</span>
-                <span className={cn("w-10 shrink-0", LEVEL_TEXT[l.level])}>{l.level.toUpperCase()}</span>
+                <span className={cn("w-11 shrink-0 text-micro", LEVEL_TEXT[l.level])}>{l.level.toUpperCase()}</span>
                 <span className={MESSAGE_TEXT[l.level]}>{l.msg}</span>
               </div>
             ))}
@@ -165,7 +165,7 @@ export function LogsSection() {
             onClick={() => setFollow(!follow)}
             className="flex h-7 cursor-pointer items-center gap-2 rounded-[7px] border-0 bg-transparent px-2.5 text-xs text-s-t2"
           >
-            <span className={cn("relative h-4 w-7 rounded-lg forced-colors:forced-color-adjust-none forced-colors:border forced-colors:border-[color:ButtonText] forced-colors:bg-[color:Canvas]", follow ? "bg-s-accent forced-colors:border-[color:Highlight] forced-colors:bg-[color:Highlight]" : "bg-ui-menu")}>
+            <span className={cn("relative h-4 w-7 rounded-lg forced-colors:forced-color-adjust-none forced-colors:border forced-colors:border-[color:ButtonText] forced-colors:bg-[color:Canvas]", follow ? "bg-s-accent forced-colors:border-[color:Highlight] forced-colors:bg-[color:Highlight]" : "bg-s-menu")}>
               <span className={cn("absolute left-0.5 top-0.5 h-3 w-3 rounded-full bg-white transition-transform forced-colors:bg-[color:ButtonText]", follow && "translate-x-3 forced-colors:bg-[color:HighlightText]")} />
             </span>
             Follow new lines

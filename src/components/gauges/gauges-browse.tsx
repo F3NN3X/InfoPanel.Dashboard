@@ -1,6 +1,6 @@
 /** The Gauges view's main area (spec §6): Presets, In <profile> and My library, each a grid of live square thumbnails. */
 import { cn } from "@/lib/utils";
-import type { GaugeEntry } from "@/lib/gauge-studio/model";
+import { previewScale, type GaugeEntry } from "@/lib/gauge-studio/model";
 import { draggableGauge } from "./gauge-drag";
 import { GaugeView } from "./gauge-view";
 
@@ -44,7 +44,7 @@ export function GaugesBrowse({ sections, selectedKey, p, scope, onSelect, onOpen
           </h2>
           {s.note && <p className="mb-3 text-caption text-ui-4">{s.note}</p>}
           {s.entries.length === 0 ? (
-            <p className="mt-2 text-caption text-ui-4">{s.empty}</p>
+            <p className="mt-3 rounded-[10px] border border-dashed border-ui-strong px-4 py-5 text-center text-caption text-ui-4">{s.empty}</p>
           ) : (
             <div className="mt-3 grid grid-cols-[repeat(auto-fill,minmax(132px,1fr))] gap-3">
               {s.entries.map((e) => (
@@ -104,7 +104,10 @@ function Thumb({ entry, selected, p, scope, renaming, onSelect, onOpen, onDragSt
       )}
     >
       <span className="flex aspect-square w-full items-center justify-center bg-ui-app">
-        <GaugeView gauge={entry.gauge} frames={entry.frames} p={p} size={96} scope={scope} />
+        {/* A fixed box; the transform (not the layout) evens out the gauges' optical size. */}
+        <span className="flex size-24 items-center justify-center" style={{ transform: `scale(${previewScale(entry.gauge)})` }}>
+          <GaugeView gauge={entry.gauge} frames={entry.frames} p={p} size={96} scope={scope} />
+        </span>
       </span>
       {renaming ? (
         <input
@@ -123,7 +126,7 @@ function Thumb({ entry, selected, p, scope, renaming, onSelect, onOpen, onDragSt
           className="mx-1.5 my-1.5 h-7 min-w-0 rounded-ui-sm border border-ui-accent bg-ui-app px-1.5 text-caption text-ui-1 outline-none"
         />
       ) : (
-        <span className="truncate px-2.5 py-2 text-caption text-ui-1">{entry.name}</span>
+        <span className="line-clamp-2 min-h-12 break-words px-2.5 py-2 text-caption text-ui-1">{entry.name}</span>
       )}
     </div>
   );

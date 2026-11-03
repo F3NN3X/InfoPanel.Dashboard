@@ -3,7 +3,8 @@ import { GENERATED_KEYS } from "./generated";
 import { parseInline } from "./inline";
 import { ArticleError, parseArticle } from "./parse";
 import { parseOpenTarget } from "./routes";
-import type { Article, Block, GroupDef } from "./types";
+import type { HelpTask } from "./tasks";
+import type { Article, Block, GroupDef, HelpContent } from "./types";
 
 /** Keys the app itself handles (not in the studio's cheat sheet), which an article may show. */
 export const APP_KEYS = ["F1", "Ctrl+K", "Ctrl+0", "Ctrl+=", "Ctrl+-", "Ctrl +", "Ctrl -", "Ctrl 0"];
@@ -96,4 +97,13 @@ export function checkContent(files: Record<string, string>, groups: GroupDef[]):
     }
   }
   return problems;
+}
+
+/** The problems in Help home's task cards: a task whose article or heading is not there. */
+export function checkTasks(tasks: HelpTask[], content: HelpContent): string[] {
+  return tasks.flatMap((t) => {
+    const article = content.articles[t.article];
+    if (!article) return [`task "${t.title}": links to the missing article "${t.article}"`];
+    return article.blocks.some((b) => b.type === "h" && b.id === t.heading) ? [] : [`task "${t.title}": "${t.article}" has no heading "#${t.heading}"`];
+  });
 }

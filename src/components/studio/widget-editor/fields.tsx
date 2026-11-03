@@ -44,7 +44,7 @@ export function TextInput({
       placeholder={placeholder}
       spellCheck={mono ? false : undefined}
       onChange={(e) => onChange(e.target.value || undefined)}
-      className={cn(INPUT, mono && "font-ui-mono text-[11.5px]")}
+      className={cn(INPUT, mono && "font-ui-mono text-micro")}
     />
   );
 }
@@ -92,7 +92,7 @@ export function NumberInput({
         const n = float ? parseFloat(e.target.value) : parseInt(e.target.value, 10);
         onChange(clamp(Number.isFinite(n) ? n : fallback));
       }}
-      className={cn(INPUT, "text-right font-ui-mono text-[11.5px]", className ?? "w-24")}
+      className={cn(INPUT, "text-right font-ui-mono text-micro", className ?? "w-24")}
     />
   );
 }

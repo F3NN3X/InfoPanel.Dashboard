@@ -28,7 +28,7 @@ export function DisplaysList({ displays, profiles }: DisplaysListProps) {
       <span className="text-body font-medium text-ui-1">Displays</span>
       <ul className="flex flex-col divide-y divide-ui-default">
         {displays.map((d) => (
-          <li key={d.name} className="flex flex-wrap items-center gap-x-3 gap-y-1.5 py-1.5 text-[12.5px] first:pt-0 last:pb-0">
+          <li key={d.name} className="flex flex-wrap items-center gap-x-3 gap-y-1.5 py-1.5 text-body first:pt-0 last:pb-0">
             <span className="flex min-w-[120px] items-center gap-1.5 font-medium text-ui-1">
               <span
                 role="img"
@@ -40,7 +40,7 @@ export function DisplaysList({ displays, profiles }: DisplaysListProps) {
             <span className="min-w-[110px] text-ui-3">
               {d.online ? "Online" : `Offline · seen ${seenAgo(d.lastSeen, now)}`}
             </span>
-            <span className="min-w-[90px] font-ui-mono text-[11.5px] text-ui-3">{d.online ? (d.address ?? "") : ""}</span>
+            <span className="min-w-[90px] font-ui-mono text-micro text-ui-3">{d.online ? (d.address ?? "") : ""}</span>
             <select
               aria-label={`Screen for ${d.name}`}
               value={d.screen}

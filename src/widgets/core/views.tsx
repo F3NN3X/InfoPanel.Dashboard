@@ -3,10 +3,10 @@
 import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { labelStyle } from "@/components/widget-style";
 import { clamp, fmt } from "./data";
-import { fitRows } from "./layout";
+import { fitRows, tileHero } from "./layout";
 import { mix } from "./tokens";
 import { useSkin, TONES, numGlowStyle } from "./theme";
-import { Icon, Bar, Ring, Spark, Img } from "./primitives";
+import { Icon, Bar, Ring, Spark, Img, UNIT_CLASS, RING_TEXT, isWordUnit } from "./primitives";
 import { scaleX, scaleY, slideY } from "./motion";
 import type { Compact, Shape, Studio } from "./types";
 
@@ -28,30 +28,42 @@ export function CompactView({ c, shape, w, h, icon }: { c: Compact; shape: Shape
   const val = typeof c.value === "number" ? fmt(c.value, c.d ?? 0) : c.value;
   const none = isNoValue(val);
   // numbers shrink to fit the available width instead of overflowing (text values clamp instead)
-  const textLen = String(val ?? "–").length + (c.unit ? String(c.unit).length * 0.45 : 0);
+  // a word unit ("games") is not drawn beside the number: it is a caption under it
+  const word = isWordUnit(c.unit);
+  const inlineUnit = word ? undefined : c.unit;
+  const textLen = String(val ?? "–").length + (inlineUnit ? String(inlineUnit).length * 0.4 : 0);
   const fit = (base: number, avail: number) => ({ fontSize: Math.round(Math.max(13, Math.min(base, avail / (Math.max(2.5, textLen) * 0.62 * (sk.numWide ?? 1))))) });
   const value = (cls: string, base?: number, avail = 0) => (
-    <span {...c.ip} className={`${cls} block max-w-full overflow-x-clip whitespace-nowrap font-semibold leading-none tracking-tight tabular-nums`} style={{ ...(base ? fit(base, avail) : null), fontFamily: sk.num, fontWeight: sk.numWeight, ...(sk.numGlow ? { ...NUM_TINT, ...numGlowStyle(sk) } : null), ...(c.t && c.t !== "ok" ? { color: TONES[c.t] } : null), ...(none ? NO_VALUE : null) }}>
+    <span {...c.ip} className={`${cls} ${c.blur ? "blur-[4px] hover:blur-0" : ""} block max-w-full overflow-x-clip whitespace-nowrap font-semibold leading-none tracking-tight tabular-nums`} style={{ ...(base ? fit(base, avail) : null), fontFamily: sk.num, fontWeight: sk.numWeight, ...(sk.numGlow ? { ...NUM_TINT, ...numGlowStyle(sk) } : null), ...(c.t && c.t !== "ok" ? { color: TONES[c.t] } : null), ...(none ? NO_VALUE : null) }}>
       {val ?? "–"}
-      {c.unit && !none && <span className="ml-0.5 text-[0.45em] font-medium text-[color:var(--w-muted)]">{c.unit}</span>}
+      {inlineUnit && !none && <span className={UNIT_CLASS}>{inlineUnit}</span>}
     </span>
   );
-  const label = c.label && (
-    <div className="flex min-w-0 items-center gap-1.5 text-micro font-medium uppercase tracking-[0.08em] text-[color:var(--w-muted)]" style={labelStyle()}>
-      <Icon name={c.icon ?? icon} className="text-[14px] text-[color:var(--accent)]" />
+  const caption = word && !none && <span className="truncate text-micro text-[color:var(--w-muted)]">{c.unit}</span>;
+  // a 1x1 whose label would be cut ("ACHIEVEM…") shows the icon alone, faint, and keeps the label as its title
+  const iconOnly = shape === "tile" && w < 140 && typeof c.label === "string" && c.label.length * 7.6 > w - 46;
+  // a narrow card sets a caption it would cut tighter, and drops the icon when the text still would not fit beside it
+  const { tight: narrow, bare: bareLabel } = captionFit(c.label, w, w - 46);
+  const label = c.label && (iconOnly ? (
+    <div role="img" aria-label={String(c.label)} title={String(c.label)} className="flex min-w-0 items-center">
+      <Icon name={c.icon ?? icon} className="text-[14px] text-[color:var(--w-faint)]" />
+    </div>
+  ) : (
+    <div className={`flex min-w-0 items-center gap-1.5 text-micro font-medium uppercase ${narrow ? "tracking-[0.04em]" : "tracking-[0.08em]"} text-[color:var(--w-muted)]`} style={labelStyle()}>
+      {!bareLabel && <Icon name={c.icon ?? icon} className="text-[14px] text-[color:var(--accent)]" />}
       <span className="truncate">{c.label}</span>
     </div>
-  );
+  ));
   const textVal = kind === "text";
   // Over a cover image the text sits on a black scrim, so it stays light on every surface.
   if (c.img && shape !== "strip")
     return (
       <div className="absolute inset-0 text-zinc-100">
         <Img src={c.img} icon={c.icon ?? icon} className="absolute inset-0 h-full w-full" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
+        <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgb(0 0 0 / 0.78) 0, rgb(0 0 0 / 0.55) 45%, transparent 85%)" }} />
         <div className="absolute inset-x-0 bottom-0 flex flex-col gap-0.5 p-3">
           <span {...c.ip} className="line-clamp-2 text-sm font-semibold leading-tight">{val}</span>
-          {c.sub && <span className="truncate text-[11px] text-zinc-300">{c.sub}</span>}
+          {c.sub && <span className="truncate text-micro text-zinc-300">{c.sub}</span>}
           {c.viz ? <div className="mt-1.5">{c.viz("h-6")}</div> : Number.isFinite(c.pct) && <Bar value={c.pct!} className="mt-1.5 h-1" track="bg-white/20" />}
         </div>
       </div>
@@ -70,7 +82,8 @@ export function CompactView({ c, shape, w, h, icon }: { c: Compact; shape: Shape
         <div className={`flex min-w-0 flex-col gap-1.5 ${textVal || c.img ? "flex-1" : "shrink-0"}`}>
           {label}
           {textVal ? value("truncate text-base") : value("", h < 130 ? 24 : 30, w * 0.38)}
-          {c.sub && <span className="truncate text-[11px] text-[color:var(--w-faint)]">{c.sub}</span>}
+          {caption}
+          {c.sub && <span className="truncate text-micro text-[color:var(--w-faint)]">{c.sub}</span>}
         </div>
         {kind === "spark" && <Spark values={c.hist} min={c.min} max={c.max} color={c.color} className="h-[70%] min-w-0 flex-1" />}
         {kind === "bar" && (
@@ -78,7 +91,7 @@ export function CompactView({ c, shape, w, h, icon }: { c: Compact; shape: Shape
             <Bar value={c.pct!} t={c.t} className="h-2" />
           </div>
         )}
-        {kind === "ring" && <Ring value={c.pct!} t={c.t} color={c.color} thickness={11} className="h-[78%] shrink-0" />}
+        {kind === "ring" && <Ring value={c.pct!} t={c.t} color={c.color} className="h-[78%] shrink-0" />}
         {c.viz ? <div className="min-w-0 flex-1">{c.viz("h-[56%] max-h-14")}</div> : textVal && Number.isFinite(c.pct) && <Bar value={c.pct!} className="h-1 w-1/4 shrink-0" />}
       </div>
     );
@@ -87,11 +100,13 @@ export function CompactView({ c, shape, w, h, icon }: { c: Compact; shape: Shape
       <div className="flex h-full min-w-0 flex-col gap-2">
         {label}
         {textVal ? <span {...c.ip} className="line-clamp-3 text-base font-semibold leading-tight" style={tokenFit(val, w - 26, 16)}>{val}</span> : value("", w < 150 ? 24 : 36, w - 26)}
-        {c.sub && <span className="line-clamp-2 text-[11px] text-[color:var(--w-faint)]">{c.sub}</span>}
+        {caption}
+        {c.sub && <span className="line-clamp-2 text-micro text-[color:var(--w-faint)]">{c.sub}</span>}
         <div className="relative mt-auto min-h-0 flex-1">
           {kind === "spark" && <Spark values={c.hist} min={c.min} max={c.max} color={c.color} className="absolute inset-0 h-full" />}
           {(kind === "bar" || kind === "ring") && (
-            <div className="absolute inset-y-0 left-0 right-0 mx-auto flex w-full max-w-[56px] flex-col justify-end overflow-hidden rounded-xl bg-[color:var(--w-track)]">
+            <div data-qa-bleed className="absolute inset-y-0 left-0 right-0 mx-auto flex w-full max-w-[56px] flex-col justify-end overflow-hidden rounded-xl bg-[color:var(--w-track)]">
+              {/* the fill slides by transform (no layout per tick); the track clips it on purpose, so the probe skips it */}
               <div className="h-full w-full rounded-xl transition-transform duration-700 ease-out" style={{ ...slideY(clamp(c.pct!)), background: TONES[c.t ?? "ok"] }} />
             </div>
           )}
@@ -100,6 +115,8 @@ export function CompactView({ c, shape, w, h, icon }: { c: Compact; shape: Shape
     );
   // tile (1×1) — w/h are the outer size; below ~130px drop the sub line so value + graph always fit
   const tiny = h < 132 || w < 132;
+  // a 2x2 centres a hero of about a quarter of the height between the label and the graph, not at the bottom edge
+  const hero = tileHero(w, h);
   return (
     <div className="flex h-full min-w-0 flex-col">
       {label}
@@ -107,19 +124,20 @@ export function CompactView({ c, shape, w, h, icon }: { c: Compact; shape: Shape
         // a size container: the ring takes the smaller side, so a tall box (Summary card: Always) cannot push it past the width
         <div className="flex min-h-0 flex-1 items-center justify-center pt-1.5" style={{ containerType: "size" }}>
           <div className="shrink-0" style={{ width: "100cqmin" }}>
-            <Ring value={c.pct!} t={c.t} color={c.color} thickness={10}>
-              <span {...c.ip} className="font-semibold tabular-nums" style={{ fontSize: Math.max(12, Math.min(18, (w * 0.45) / Math.max(2.5, String(val).length * 0.62))), ...(none ? NO_VALUE : null) }}>
+            <Ring value={c.pct!} t={c.t} color={c.color}>
+              <span {...c.ip} className="font-semibold tabular-nums" style={{ ...RING_TEXT.value, ...(none ? NO_VALUE : null) }}>
                 {val}
-                {!none && <span className="text-micro text-[color:var(--w-muted)]">{c.unit}</span>}
+                {!none && <span className="text-[color:var(--w-muted)]" style={RING_TEXT.unit}>{c.unit}</span>}
               </span>
             </Ring>
           </div>
         </div>
       ) : (
         <>
-          <div className="mt-auto flex flex-col gap-1">
-            {textVal ? <span {...c.ip} className={`${tiny ? "text-[13px]" : "text-sm"} line-clamp-2 font-semibold leading-tight`}>{val}</span> : value("", tiny ? 22 : w < 160 || h < 160 ? 24 : 34, w - 26)}
-            {c.sub && !(tiny && (kind === "spark" || kind === "bar" || textVal)) && <span className="truncate text-[11px] text-[color:var(--w-faint)]">{c.sub}</span>}
+          <div className={`${hero ? "my-auto" : "mt-auto"} flex flex-col gap-1`}>
+            {textVal ? <span {...c.ip} className={`${tiny ? "text-body" : "text-sm"} ${c.blur ? "blur-[4px] hover:blur-0" : ""} line-clamp-2 font-semibold leading-tight`}>{val}</span> : (hero && c.lead ? <div className="flex min-w-0 items-center gap-3">{c.lead}{value("", Math.round(h * 0.26), w - 26 - 52)}</div> : value("", tiny ? 22 : hero ? Math.round(h * 0.26) : w < 160 || h < 160 ? 24 : 34, w - 26))}
+            {caption}
+            {c.sub && !(tiny && (kind === "spark" || kind === "bar" || textVal)) && <span className="truncate text-micro text-[color:var(--w-faint)]">{c.sub}</span>}
           </div>
           {kind === "spark" && <Spark values={c.hist} min={c.min} max={c.max} color={c.color} className={`${tiny ? "mt-1.5 h-[22%]" : "mt-2 h-[28%]"} shrink-0`} />}
           {kind === "bar" && <Bar value={c.pct!} t={c.t} className={`${tiny ? "mt-2" : "mt-2.5"} h-1.5 shrink-0`} />}
@@ -157,11 +175,11 @@ export function StudioView({ c, w, h, icon }: { c: Studio; w: number; h: number;
   const fitPx = (max: number) => Math.round(Math.max(11, Math.min(max, (w - 26) / (Math.max(2.5, len) * 0.68 * (sk.numWide ?? 1)))));
   const big = (max: number): ReactNode =>
     c.kind === "text" ? (
-      <span {...c.ip} className="line-clamp-2 text-[15px] font-semibold leading-snug">{val ?? "—"}</span>
+      <span {...c.ip} className="line-clamp-2 text-title font-semibold leading-snug">{val ?? "—"}</span>
     ) : (
       <span {...c.ip} className="block max-w-full overflow-x-clip whitespace-nowrap font-semibold leading-[1.05] tracking-[-0.02em] tabular-nums" style={{ fontSize: fitPx(max), fontFamily: sk.num, fontWeight: sk.numWeight ?? 600, color: toneC, ...glow, ...(isNoValue(val) ? NO_VALUE : null) }}>
         {val ?? "–"}
-        {c.unit && !isNoValue(val) && <span className="ml-0.5 text-[0.5em] font-medium text-[color:var(--w-muted)]">{c.unit}</span>}
+        {c.unit && !isNoValue(val) && <span className={UNIT_CLASS}>{c.unit}</span>}
       </span>
     );
   // single-row zones: label ← → value
@@ -173,7 +191,7 @@ export function StudioView({ c, w, h, icon }: { c: Studio; w: number; h: number;
           {c.sub && w > 260 && <span className="truncate text-micro text-[color:var(--w-muted)]">{c.sub}</span>}
         </div>
         {c.hist && w > 300 ? <Spark values={c.hist} min={c.min} max={c.max} graph="line" fill={false} className="h-[46%] min-w-0 flex-1 opacity-80" /> : Number.isFinite(c.pct) && w > 300 ? thin(c.pct!, "min-w-0 flex-1") : <span className="flex-1" />}
-        <span {...c.ip} className="shrink-0 whitespace-nowrap text-[15px] font-semibold tracking-[-0.01em] tabular-nums" style={{ fontFamily: sk.num, color: toneC, ...glow }}>
+        <span {...c.ip} className="shrink-0 whitespace-nowrap text-title font-semibold tracking-[-0.01em] tabular-nums" style={{ fontFamily: sk.num, color: toneC, ...glow }}>
           {val ?? "–"}
           {c.unit && <span className="ml-0.5 text-micro font-medium text-[color:var(--w-muted)]">{c.unit}</span>}
         </span>
@@ -190,7 +208,7 @@ export function StudioView({ c, w, h, icon }: { c: Studio; w: number; h: number;
           </div>
           <div className="flex min-w-0 flex-col gap-[3px]">
             <span {...c.ip} className={`${h > 200 ? "text-[17px]" : "text-sm"} line-clamp-2 font-semibold leading-tight`}>{val}</span>
-            {c.sub && <span className="truncate text-[11px] text-[color:var(--w-muted)]">{c.sub}</span>}
+            {c.sub && <span className="truncate text-micro text-[color:var(--w-muted)]">{c.sub}</span>}
           </div>
         </div>
         {c.viz && <div className="mt-2 shrink-0">{c.viz("h-7")}</div>}
@@ -281,6 +299,18 @@ export function StudioView({ c, w, h, icon }: { c: Studio; w: number; h: number;
   );
 }
 
+/**
+ * A card narrower than this, px, whose caption would be cut at the normal 0.08em tracking sets it at 0.04em, and
+ * drops the icon before the text when it would still be cut. Estimates of ~7.6 / 7px a character; other nodes fit.
+ */
+export const NARROW_CARD = 160;
+const captionFits = (text: ReactNode, room: number, px: number): boolean => typeof text !== "string" || text.length * px <= room;
+/** The caption's tracking and whether its icon goes, for a card `w` wide with `room` px for the icon and text. */
+function captionFit(text: ReactNode, w: number, room: number): { tight: boolean; bare: boolean } {
+  const tight = w > 0 && w < NARROW_CARD && !captionFits(text, room, 7.6);
+  return { tight, bare: tight && !captionFits(text, room, 7) };
+}
+
 export interface SkinHeaderProps {
   kind?: string;
   title: ReactNode;
@@ -289,6 +319,8 @@ export interface SkinHeaderProps {
   bleed?: boolean;
   /** What the tui header patches paint over the box edge: the surface background. */
   bg?: string;
+  /** The card's width, px: a narrow one (`NARROW_CARD`) sets its caption tighter. */
+  w?: number;
 }
 /** Whether the tui header's right slot fits on the box edge beside the title; it is dropped when it does not. */
 function useTuiRightFits(on: boolean) {
@@ -319,7 +351,7 @@ function useTuiRightFits(on: boolean) {
 /** The most space under a section header the look's gap may add. */
 export const HEADER_GAP_MAX = 12;
 
-export function SkinHeader({ kind, title, icon, right, bleed, bg = "#0b0b0d" }: SkinHeaderProps) {
+export function SkinHeader({ kind, title, icon, right, bleed, bg = "#0b0b0d", w }: SkinHeaderProps) {
   const sk = useSkin();
   const tuiRight = useTuiRightFits(kind === "tui" && !!right);
   // The look's gap replaces the space under the header (capped: a wide gap is for the items, and the body's
@@ -434,9 +466,11 @@ export function SkinHeader({ kind, title, icon, right, bleed, bg = "#0b0b0d" }: 
         {r}
       </header>
     );
+  // the card's padding and the icon with its gap (24 and 21px) come off the room; the icon goes first
+  const { tight: narrow, bare } = captionFit(title, w ?? 0, (w ?? 0) - 24 - 21);
   return (
-    <header className={`${base} mb-2 gap-1.5 text-[11px] font-medium uppercase tracking-[0.08em] text-[color:var(--w-muted)] ${bleed ? "px-4 pt-3" : ""}`} style={st("uppercase")}>
-      {icon && <Icon name={icon} className="text-[15px] text-[color:var(--accent)]" />}
+    <header className={`${base} mb-2 gap-1.5 text-[11px] font-medium uppercase ${narrow ? "tracking-[0.04em]" : "tracking-[0.08em]"} text-[color:var(--w-muted)] ${bleed ? "px-4 pt-3" : ""}`} style={st("uppercase")}>
+      {icon && !bare && <Icon name={icon} className="text-[15px] text-[color:var(--accent)]" />}
       <span className="truncate">{title}</span>
       {r}
     </header>

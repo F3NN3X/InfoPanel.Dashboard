@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { Monitor } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import type { HistorySetter } from "@/hooks/use-config-history";
 import { Toggle } from "@/components/ui/toggle";
 import type { ControlDisplay, ControlKiosk } from "@/lib/control";
@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { FPS_OPTIONS, MOTION_OPTIONS, ROTATE_DEFAULT_SECONDS, ROTATE_MAX_SECONDS, ROTATE_MIN_SECONDS, clampSeconds } from "./inspector/behaviour-model";
 import { InheritChip } from "./inherit-chip";
 import { LinkRow } from "./link-row";
+import { ScreenThumb } from "./screens/screen-thumb";
 import { ShownOn } from "./screens/shown-on";
 import { GridSection, SizeFitSection } from "./screen-layout";
 import { ScreenPages } from "./screen-pages";
@@ -46,21 +47,30 @@ interface ScreenDetailProps {
   displays: readonly ControlDisplay[];
   /** The screen "Best fit" resolves to for the studio window. */
   autoProfileId: string;
-  /** Open the screen in Design, or in the InfoPanel editor when it is one InfoPanel profile. */
-  onOpenScreen: (id: string) => void;
 }
 
-const LABEL = "font-ui-mono text-[10px] tracking-[0.06em] text-ui-hint";
+const LABEL = "font-ui-mono text-nano tracking-[0.06em] text-ui-hint";
 
-/** A group of the detail panel: a mono caption (and what sits at its end), then its rows. */
-function Group({ id, label, end, children }: { id: string; label: string; end?: ReactNode; children: ReactNode }) {
+/**
+ * A group of the detail panel: a mono caption (and what sits at its end), then its rows. A `collapsible` group opens
+ * and closes from its caption (`open` is where it starts).
+ */
+function Group({ id, label, end, collapsible, open = true, children }: { id: string; label: string; end?: ReactNode; collapsible?: boolean; open?: boolean; children: ReactNode }) {
+  const [shown, setShown] = useState(open);
   return (
     <section data-nav-section={id} className="flex flex-col gap-2 border-b border-ui-subtle px-3.5 py-3">
       <div className="flex min-h-5 items-center gap-2">
-        <h3 className={cn(LABEL, "flex-1")}>{label}</h3>
+        {collapsible ? (
+          <button type="button" aria-expanded={shown} onClick={() => setShown(!shown)} className={cn(LABEL, "flex flex-1 items-center gap-1 rounded-sm text-left hover:text-ui-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent")}>
+            <ChevronRight className={cn("h-3 w-3 shrink-0 transition-transform", shown && "rotate-90")} aria-hidden />
+            {label}
+          </button>
+        ) : (
+          <h3 className={cn(LABEL, "flex-1")}>{label}</h3>
+        )}
         {end}
       </div>
-      {children}
+      {(!collapsible || shown) && children}
     </section>
   );
 }
@@ -86,7 +96,7 @@ function SecondsInput({ value, onCommit }: { value: number; onCommit: (value: nu
       onChange={(e) => setDraft(e.target.value)}
       onBlur={commit}
       onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
-      className={cn(FIELD, "h-[26px] w-[64px] shrink-0 px-1.5 text-right font-ui-mono text-[11.5px]")}
+      className={cn(FIELD, "h-[26px] w-[64px] shrink-0 px-1.5 text-right font-ui-mono text-micro")}
     />
   );
 }
@@ -113,7 +123,6 @@ export function ScreenDetail({
   kiosks,
   displays,
   autoProfileId,
-  onOpenScreen,
 }: ScreenDetailProps) {
   const rotate = stored.rotate;
   // The screen's performance with the defaults filled.
@@ -122,22 +131,17 @@ export function ScreenDetail({
   const look = ownCount(config, { level: "screen", profileId: stored.id });
   return (
     <aside aria-label="Screen details" className="flex w-[340px] shrink-0 flex-col overflow-y-auto border-l border-ui-subtle bg-ui-panel max-[899px]:w-full max-[899px]:overflow-visible max-[899px]:border-l-0 max-[899px]:border-t">
-      <div className="flex items-center gap-2 border-b border-ui-subtle p-3.5">
-        <Monitor className="h-[18px] w-[18px] shrink-0 text-ui-3" />
-        <div className="min-w-0 flex-1">
+      <div className="flex flex-col gap-2.5 border-b border-ui-subtle p-3.5">
+        <div className="aspect-video w-full overflow-hidden rounded-md border border-ui-default bg-s-well">
+          <ScreenThumb profile={stored} />
+        </div>
+        <div className="min-w-0">
           <div className="truncate text-body font-semibold text-ui-1">{stored.name}</div>
           <div className="truncate font-ui-mono text-micro text-ui-4">{screenMeta(stored)}</div>
         </div>
-        <button
-          type="button"
-          onClick={() => onOpenScreen(stored.id)}
-          className="inline-flex h-7 shrink-0 items-center rounded-[7px] bg-ui-1 px-3 text-caption font-semibold text-ui-inverse-fg hover:opacity-90"
-        >
-          Open
-        </button>
       </div>
 
-      <Group id="shown" label="SHOWN ON">
+      <Group id="shown" label="SHOWN ON" collapsible>
         <ShownOn
           screenId={stored.id}
           isDefault={config.activeProfile === stored.id}
@@ -148,7 +152,7 @@ export function ScreenDetail({
         />
       </Group>
 
-      <Group id="size" label="SIZE & FIT">
+      <Group id="size" label="SIZE & FIT" collapsible>
         <SizeFitSection
           profile={profile}
           updateProfile={updateProfile}
@@ -164,7 +168,7 @@ export function ScreenDetail({
         />
       </Group>
 
-      <Group id="grid" label="GRID">
+      <Group id="grid" label="GRID" collapsible open={false}>
         <GridSection
           profile={profile}
           updateProfile={updateProfile}
@@ -258,7 +262,7 @@ export function ScreenDetail({
         id="pages"
         label="PAGES · ORDER & ROTATION"
         end={
-          <button type="button" onClick={onAddPage} className="rounded-sm text-[11.5px] text-ui-accent-text hover:underline">
+          <button type="button" onClick={onAddPage} className="rounded-sm text-micro text-ui-accent-text hover:underline">
             + Add page
           </button>
         }

@@ -17,6 +17,7 @@ import {
 import { SquareDashedMousePointer } from "lucide-react";
 import { PageBackground } from "@/components/page-background";
 import { DynamicIsland } from "@/components/island/dynamic-island";
+import { pageSkinOf } from "@/components/island/island-look";
 import { islandReserve } from "@/components/island/island-model";
 import type { ActiveAlert } from "@/lib/alerts";
 import type { PageBackground as Background } from "@/lib/appearance";
@@ -42,7 +43,7 @@ import { LivePlacement } from "./placement-content";
 import { RulerLabels } from "./rulers";
 import { ScreenFold } from "./screen-fold";
 import { ItemParts, useAltHeld, type GroupMoves, type ItemGesture, type PressGrouped } from "./item-parts";
-import { EmptyLayoutCard, QuickTipsCard } from "./canvas-cards";
+import { EmptyLayoutCard } from "./canvas-cards";
 import { canvasPointAt, canvasTakesDrop, dropGhost, dropSize, libraryItemOf, myLibraryDropOf, type CanvasDrop, type CanvasPoint, type LibraryItem } from "./drop-ghost";
 import { addGhost, type Ghost } from "./add-place";
 import { sizeText, type AddItem } from "./add-catalog";
@@ -638,7 +639,7 @@ export function StudioCanvas({
             >
               {showRulers && <RulerLabels width={canvas.w} height={canvas.h} scale={zoom} />}
               {profile.island?.enabled && (
-                <DynamicIsland config={profile.island} alerts={islandAlerts} placement="absolute" page={islandPage} />
+                <DynamicIsland config={profile.island} alerts={islandAlerts} placement="absolute" page={islandPage} skin={pageSkinOf(appearance)} />
               )}
                 {/* Page background (as in the kiosk) behind the tiles */}
                 {background && <PageBackground background={background} className="absolute inset-0 -z-20" />}
@@ -691,7 +692,7 @@ export function StudioCanvas({
                           className="pointer-events-none absolute z-30 rounded-ui-md border-2 border-dashed border-ui-accent bg-ui-accent/10"
                           style={style}
                         >
-                          <span className="absolute left-1.5 top-0.5 font-ui-mono text-[10px] font-semibold tabular-nums text-ui-accent-text">
+                          <span className="absolute left-1.5 top-0.5 font-ui-mono text-nano font-semibold tabular-nums text-ui-accent-text">
                             C{r.col} · R{r.row} · {r.cols}×{r.rows}
                           </span>
                         </div>
@@ -857,8 +858,6 @@ export function StudioCanvas({
           {profile.placements.length === 0 && !page?.placements.length && !drawing && (
             <EmptyLayoutCard onBrowse={onOpenAdd} onImport={onImport} onUseSample={onUseSample} />
           )}
-
-          <QuickTipsCard />
         </div>
 
       {/* Alt while dragging (SPEC §7.3): an item goes free, a widget stays on its cells. */}

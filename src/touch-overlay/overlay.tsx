@@ -85,7 +85,7 @@ export function Overlay() {
   const [route] = useState(() => parseRoute(window.location.hash));
   const progress = useProgress();
   return (
-    <div className="relative h-full overflow-hidden bg-[#0c0c0e] font-sans">
+    <div className="relative h-full overflow-hidden bg-s-win font-sans">
       {route.kind === "setup" && (
         <>
           <Target left={(0.5 + route.radius) * 100} top={50} done={progress.bound !== undefined} />

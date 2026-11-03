@@ -18,7 +18,7 @@ export function EmptyLayoutCard({ onBrowse, onImport, onUseSample }: EmptyLayout
     <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
       <div className="flex max-w-[340px] flex-col items-center gap-2.5 rounded-xl border border-ui-default bg-ui-panel px-7 py-6 text-center font-ui">
         <LayoutDashboard className="h-7 w-7 text-ui-hint" strokeWidth={1.5} />
-        <div className="text-[14px] font-semibold text-ui-1">Drop widgets or InfoPanel items here</div>
+        <div className="text-lead font-semibold text-ui-1">Drop widgets or InfoPanel items here</div>
         <div className="pointer-events-auto mt-1.5 flex gap-2">
           <button
             type="button"
@@ -35,7 +35,7 @@ export function EmptyLayoutCard({ onBrowse, onImport, onUseSample }: EmptyLayout
             Import .infopanel
           </button>
         </div>
-        <button type="button" onClick={onUseSample} className="pointer-events-auto text-[11.5px] text-ui-4 underline-offset-2 hover:text-ui-2 hover:underline">
+        <button type="button" onClick={onUseSample} className="pointer-events-auto text-micro text-ui-4 underline-offset-2 hover:text-ui-2 hover:underline">
           Use sample layout
         </button>
       </div>
@@ -51,20 +51,20 @@ function TipLine({ text }: { text: string }) {
   ) : (
     <>
       {before}
-      <Kbd className="h-auto min-w-0 rounded-[4px] bg-transparent px-1 py-0 text-[11.5px] leading-[1.6] text-[#b4b4bc]">?</Kbd>
+      <Kbd className="h-auto min-w-0 rounded-[4px] bg-transparent px-1 py-0 text-micro leading-[1.6] text-ui-soft">?</Kbd>
       {after}
     </>
   );
 }
 
-/** The first-run tips card (bottom-left, 64 px up, 250 wide); dismissing it is remembered. */
+/** The first-run tips, in the inspector's nothing-selected body (never over the canvas); dismissing them is remembered. */
 export function QuickTipsCard() {
   const [open, setOpen] = useState(() => !tipsDismissed());
   if (!open) return null;
   return (
-    <div className="absolute bottom-16 left-4 z-20 flex w-[250px] flex-col gap-2 rounded-[10px] border border-ui-strong bg-ui-raised px-3.5 py-3 font-ui shadow-ui-float">
+    <div className="mx-3.5 my-3 flex flex-col gap-2 rounded-[10px] border border-ui-strong bg-ui-raised px-3.5 py-3 font-ui">
       <div className="flex items-center justify-between">
-        <span className="text-[12.5px] font-semibold text-ui-1">Quick tips</span>
+        <span className="text-body font-semibold text-ui-1">Quick tips</span>
         <button
           type="button"
           title="Dismiss"
@@ -78,7 +78,7 @@ export function QuickTipsCard() {
           <X className="h-4 w-4" />
         </button>
       </div>
-      <div className="text-[11.5px] leading-[1.6] text-[#b4b4bc]">
+      <div className="text-micro leading-[1.6] text-ui-soft">
         {TIPS.map((line) => (
           <div key={line}>
             <TipLine text={line} />

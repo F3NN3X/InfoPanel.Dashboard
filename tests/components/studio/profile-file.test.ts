@@ -28,6 +28,12 @@ const error = async (text: string): Promise<string> => {
 };
 
 describe("profile file", () => {
+  it("keeps a screen's edges option through export and import, and drops a bad one", async () => {
+    const touch = { ...profile(), edges: "touch" as const };
+    expect((await ok(profileFileText(touch))).edges).toBe("touch");
+    expect((await ok(profileFileText({ ...profile(), edges: "flush" } as never))).edges).toBeUndefined();
+  });
+
   it("round-trips a profile through export and import", async () => {
     const source = profile();
     expect(await ok(profileFileText(source))).toEqual(source);

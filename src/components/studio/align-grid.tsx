@@ -126,7 +126,7 @@ export function AlignGrid({ x, y, onChange, only, spread, stretch, label = "Alig
                   on ? "bg-ui-accent/[.22]" : "hover:bg-ui-hover"
                 )}
               >
-                <span className={cn("h-1.5 w-1.5 rounded-full", on ? "bg-ui-accent" : "bg-[#4a4a52]")} />
+                <span className={cn("h-1.5 w-1.5 rounded-full", on ? "bg-ui-accent" : "bg-ui-glyph-off")} />
               </button>
             );
           })
@@ -158,7 +158,7 @@ function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; chi
       aria-pressed={on}
       onClick={onClick}
       className={cn(
-        "h-6 rounded-md border px-2.5 text-[11.5px] transition-colors",
+        "h-6 rounded-md border px-2.5 text-micro transition-colors",
         on ? "border-ui-edge bg-ui-active text-ui-1" : "border-ui-strong text-ui-3 hover:text-ui-1"
       )}
     >

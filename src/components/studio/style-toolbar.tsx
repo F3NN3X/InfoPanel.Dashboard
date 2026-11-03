@@ -26,7 +26,7 @@ interface StyleToolbarProps {
 }
 
 const BUTTON =
-  "flex h-7 shrink-0 items-center gap-1 whitespace-nowrap rounded-[7px] border border-ui-strong bg-ui-raised px-2 text-[11.5px] font-medium text-ui-2 transition-colors hover:bg-ui-hover hover:text-ui-1 disabled:pointer-events-none disabled:opacity-40 data-popup-open:bg-ui-hover data-popup-open:text-ui-1";
+  "flex h-7 shrink-0 items-center gap-1 whitespace-nowrap rounded-[7px] border border-ui-strong bg-ui-raised px-2 text-micro font-medium text-ui-2 transition-colors hover:bg-ui-hover hover:text-ui-1 disabled:pointer-events-none disabled:opacity-40 data-popup-open:bg-ui-hover data-popup-open:text-ui-1";
 
 const MAKE_THEME: { target: MakeThemeTarget; label: string }[] = [
   { target: "screen", label: "This screen" },
@@ -127,7 +127,7 @@ export function StyleToolbar({ saved, hasStyle, canMakeTheme, onApply, onSave, m
               <div>
                 <p className="px-0.5 pb-1 text-micro text-ui-4">Saved</p>
                 {saved.length === 0 ? (
-                  <p className="px-0.5 pb-0.5 text-[11.5px] text-ui-4">Styles you save appear here and in Library.</p>
+                  <p className="px-0.5 pb-0.5 text-micro text-ui-4">Styles you save appear here and in Library.</p>
                 ) : (
                   <div className="grid grid-cols-2 gap-1.5">
                     {saved.map((s) => (

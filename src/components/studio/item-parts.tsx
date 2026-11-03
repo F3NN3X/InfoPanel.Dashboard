@@ -310,7 +310,7 @@ export function ItemParts({ profile, page, zoom, selectedIds, onSelect, onOps, o
       {drag?.free && (
         <div
           data-shot-skip
-          className="absolute rounded-[2px] border border-dashed border-[#ffffff40]"
+          className="absolute rounded-[2px] border border-dashed border-white/25"
           style={{ left: drag.from.x, top: drag.from.y, width: drag.from.w, height: drag.from.h }}
         />
       )}

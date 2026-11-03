@@ -1,10 +1,12 @@
 import type { CSSProperties } from "react";
-import { surfaceColors } from "@/components/surfaces";
-import { chromeVars, surfaceBox } from "@/components/widget-style";
+import { chromeVars } from "@/components/widget-style";
 import { backgroundLayers, posterBackground, type PageBackground } from "@/lib/appearance";
 import { presetTokens, type AppearancePreset } from "@/lib/appearance-presets";
 import { cn } from "@/lib/utils";
 import { chromeOf } from "@/modules/standard-settings";
+import { lookBox } from "@/widgets/core/look";
+import { resolveSurface, textVars } from "@/widgets/core/theme";
+import { withSkinSurface } from "@/widgets/module";
 
 /** The mini page: the preset's background (a video as its poster), else its theme's page color. */
 function MiniPage({ bg }: { bg: PageBackground | undefined }) {
@@ -24,15 +26,18 @@ function MiniPage({ bg }: { bg: PageBackground | undefined }) {
 function MiniTile({ preset, value, fill }: { preset: AppearancePreset; value: string; fill: number }) {
   const chrome = chromeOf(preset.style);
   // Glow sizes are page pixels too; the soft one reads right at this scale.
-  const box = surfaceBox(surfaceColors(preset.style.surface), { ...chrome, glow: chrome.glow === "none" ? "none" : "soft" });
+  // The surface a widget would resolve from this style: its own, else its skin's, else the theme's.
+  const { surface, skin } = withSkinSurface({ surface: preset.style.surface, skin: preset.style.skin }, preset.style, "theme");
+  const surf = resolveSurface(String(surface), skin === undefined ? undefined : String(skin));
+  const box = lookBox(surf, { ...chrome, glow: chrome.glow === "none" ? "none" : "soft" });
   const radius = (chrome.radius ?? preset.radius * 16) * 0.3;
   const accent = chrome.accent || "hsl(var(--primary))";
   return (
     <div
-      className="flex min-w-0 flex-1 flex-col justify-between p-1"
-      style={{ ...chromeVars(chrome), ...box, borderRadius: radius }}
+      className={cn("flex min-w-0 flex-1 flex-col justify-between p-1", surf.c)}
+      style={{ ...chromeVars(chrome), ...box, ...textVars(surf.tone, chrome), color: "var(--w-fg)", borderRadius: radius }}
     >
-      <div className="text-[10px] font-semibold leading-none tabular-nums">{value}</div>
+      <div className="text-nano font-semibold leading-none tabular-nums">{value}</div>
       <div className="h-[2px] w-full rounded-full" style={{ background: "rgb(128 128 128 / 0.25)" }}>
         <div className="h-full rounded-full" style={{ width: `${fill}%`, background: accent }} />
       </div>

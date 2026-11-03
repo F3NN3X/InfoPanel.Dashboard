@@ -2,7 +2,7 @@ import { useSyncExternalStore } from "react";
 import type { ModuleSettings } from "@/modules/types";
 import { clockOf, leftOf, timer, type TimerState } from "@/lib/timer";
 import { useNow } from "./time-hooks";
-import { Widget, shell, Num, Bar, Icon, roomy, type ShellProps } from "./kit";
+import { Widget, shell, Num, Bar, Icon, roomy, rowPx, type ShellProps } from "./kit";
 import { meta } from "./meta/Timer";
 
 export { meta };
@@ -18,13 +18,24 @@ export interface TimerProps extends ShellProps {
 }
 
 const BTN =
-  "flex h-10 max-h-full min-w-0 shrink-0 items-center justify-center gap-1 rounded-full border border-[color:var(--w-track)] px-2.5 text-[12px] font-semibold tabular-nums hover:bg-[color:var(--w-track)] active:scale-95";
+  "flex h-10 max-h-full min-w-0 shrink-0 items-center justify-center gap-1 rounded-full border border-[color:var(--w-track)] px-2.5 text-caption font-semibold tabular-nums hover:bg-[color:var(--w-track)] active:scale-95";
 /** A preset tile at 4x4: a touch target, not a chip. */
 const TILE =
-  "flex h-[100px] min-w-0 flex-col items-center justify-center gap-1 rounded-2xl border border-[color:var(--w-track)] px-2 tabular-nums hover:bg-[color:var(--w-track)] active:scale-95";
+  "flex h-full min-h-[100px] min-w-0 flex-col items-center justify-center gap-1 rounded-2xl border border-[color:var(--w-track)] px-2 tabular-nums hover:bg-[color:var(--w-track)] active:scale-95";
 /** A preset button's width with its gap, px (a "25m" chip). */
 const CHIP_W = 52;
+/** The Pause / Stop buttons' height (`h-10`), px; a button row and its gap are `ROW_H`. */
+const BTN_H = 40;
 const ROW_H = 46;
+/** The idle hero's size, px, and the room it takes with the gap under it. */
+const IDLE_HERO_PX = 48;
+const IDLE_HERO_H = IDLE_HERO_PX + 8;
+
+/** The idle hero's size, px: 48, less where the clock text (5 characters, 8 for an hour or more) would not fit `w`. */
+export const idleHeroPx = (text: string, w: number): number => (w > 0 ? Math.max(18, Math.min(IDLE_HERO_PX, Math.floor((w - 16) / (text.length * 0.62)))) : IDLE_HERO_PX);
+
+/** "05:00": a duration as the idle hero reads it. */
+const heroClock = (ms: number): string => clockOf(ms).replace(/^(\d):/, "0$1:");
 
 /** "14:32": the clock time `minutes` from the minute `at` (minutes since the epoch). */
 const endsAt = (at: number, minutes: number): string => new Date((at + minutes) * 60_000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -42,7 +53,7 @@ export function presetsThatFit(count: number, w: number, h: number): number {
 /** The running clock's font size, px: what the box leaves under the Pause / Stop row (a button row and its gap are `ROW_H`) and the caption and bar. */
 export function runningClockPx(size: string, w: number, h: number): number {
   const tiny = size === "xs" || h < 70;
-  return Math.max(18, Math.min(tiny ? 26 : size === "sm" ? 34 : roomy(w, h) ? 96 : 56, (w - 8) / 4.2, h - (tiny ? ROW_H : ROW_H + 30)));
+  return Math.max(18, Math.min(tiny ? 26 : size === "sm" ? 34 : roomy(w, h) ? 96 : 56, (w - 8) / 4.2, h - (tiny ? ROW_H : rowPx(ROW_H, w, h) + 30)));
 }
 
 export default function Timer(p: TimerProps) {
@@ -65,7 +76,7 @@ export default function Timer(p: TimerProps) {
             const tiles = buttons.slice(0, 2 * Math.max(1, Math.floor((h + 8) / 108)));
             return (
               <div className="flex h-full flex-col justify-center gap-3">
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2" style={{ gridAutoRows: `${Math.min(152, Math.max(100, Math.floor((h - 8) / Math.ceil(tiles.length / 2) - 8)))}px` }}>
                   {tiles.map((b, i) => (
                     <button key={b.key} type="button" aria-label={b.key === "pomo" ? "Start pomodoro" : `Start ${b.key.slice(1)} minute timer`} className={i === tiles.length - 1 && tiles.length % 2 ? `${TILE} col-span-2` : TILE} onClick={b.run}>
                       {b.key === "pomo" ? (
@@ -89,9 +100,12 @@ export default function Timer(p: TimerProps) {
             );
           }
           // The pomodoro chip is about two presets wide.
-          const fit = presetsThatFit(buttons.length + (p.pomodoro ? 1 : 0), w, h) - (p.pomodoro ? 1 : 0);
-          return (
-            <div className="flex h-full flex-wrap content-center items-center justify-center gap-1.5">
+          // 2x2 and 4x2: the duration the chips will start leads, muted, so the card reads from a distance
+          const hero = h >= 140 && w >= 200;
+          const heroText = heroClock(t.durationMs > 0 ? t.durationMs : presets[0] * 60_000);
+          const fit = presetsThatFit(buttons.length + (p.pomodoro ? 1 : 0), w, hero ? h - IDLE_HERO_H : h) - (p.pomodoro ? 1 : 0);
+          const chips = (
+            <div className="flex flex-wrap content-center items-center justify-center gap-1.5">
               {buttons.slice(0, Math.max(1, fit)).map((b) => (
                 <button key={b.key} type="button" aria-label={b.key === "pomo" ? "Start pomodoro" : `Start ${b.key.slice(1)} minute timer`} className={BTN} onClick={b.run}>
                   {b.label}
@@ -99,13 +113,23 @@ export default function Timer(p: TimerProps) {
               ))}
             </div>
           );
+          return hero ? (
+            <div className="flex h-full flex-col items-center justify-center gap-2">
+              <Num className="leading-none text-[color:var(--w-muted)]" style={{ fontSize: idleHeroPx(heroText, w) }}>
+                {heroText}
+              </Num>
+              {chips}
+            </div>
+          ) : (
+            <div className="flex h-full flex-col justify-center">{chips}</div>
+          );
         }
         const tiny = size === "xs" || h < 70;
         const px = runningClockPx(size, w, h);
         const big = !tiny && roomy(w, h);
         return (
           <div className="flex h-full min-w-0 flex-col items-center justify-center gap-1.5">
-            {!tiny && <span className="max-w-full truncate text-[11px] text-[color:var(--w-muted)]">{caption}</span>}
+            {!tiny && <span className="max-w-full truncate text-micro text-[color:var(--w-muted)]">{caption}</span>}
             <Num className="leading-none" style={{ fontSize: px }}>
               {clockOf(left)}
             </Num>
@@ -127,10 +151,10 @@ export default function Timer(p: TimerProps) {
               </div>
             )}
             <div className="flex gap-1.5">
-              <button type="button" aria-label={t.paused ? "Resume" : "Pause"} className={BTN} onClick={() => timer.dispatch({ type: t.paused ? "resume" : "pause" })}>
+              <button type="button" aria-label={t.paused ? "Resume" : "Pause"} className={BTN} style={big ? { height: rowPx(BTN_H, w, h) } : undefined} onClick={() => timer.dispatch({ type: t.paused ? "resume" : "pause" })}>
                 <Icon name={t.paused ? "play_arrow" : "pause"} />
               </button>
-              <button type="button" aria-label="Stop" className={BTN} onClick={() => timer.dispatch({ type: "stop" })}>
+              <button type="button" aria-label="Stop" className={BTN} style={big ? { height: rowPx(BTN_H, w, h) } : undefined} onClick={() => timer.dispatch({ type: "stop" })}>
                 <Icon name="stop" />
               </button>
             </div>

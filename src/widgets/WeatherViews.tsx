@@ -42,16 +42,16 @@ export function WeatherWeek({ days, place, w, h, icons, fmtTemp }: { days: Weath
       <div className="grid min-h-0 flex-1 items-center" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))` }}>
         {days.slice(0, cols).map((d, i) => (
           <div key={i} className="flex flex-col items-center gap-1">
-            <span className="whitespace-nowrap text-[11px] text-[color:var(--w-muted)]">{d.label}</span>
+            <span className="whitespace-nowrap text-micro text-[color:var(--w-muted)]">{d.label}</span>
             <WeatherGlyph {...d.cond} {...icons} className="text-[color:var(--w-fg)]" size={icon} />
             <Num className="text-sm leading-none" weight={700}>
               {fmtTemp(d.hi)}
             </Num>
-            <span className="text-[11px] tabular-nums leading-none text-[color:var(--w-muted)]">{d.lo === undefined ? " " : fmtTemp(d.lo)}</span>
+            <span className="text-micro tabular-nums leading-none text-[color:var(--w-muted)]">{d.lo === undefined ? " " : fmtTemp(d.lo)}</span>
           </div>
         ))}
       </div>
-      {place && <span className="truncate text-[11px] text-[color:var(--w-muted)]">{place}</span>}
+      {place && <span className="truncate text-micro text-[color:var(--w-muted)]">{place}</span>}
     </div>
   );
 }

@@ -168,6 +168,9 @@ export function useStudioCommands({
         return ui.setShowGrid((s) => !s);
       case "zoom-fit":
         return ui.fitZoom();
+      case "zoom-selection":
+        // The canvas's own frame; a hidden widget's box is only an outline.
+        return ui.zoomToElement(selected ? (ui.scrollRef.current?.querySelector(`[data-zone-id="${CSS.escape(selected.id)}"]:not([data-hidden])`) ?? null) : null);
       case "zoom-in":
         return ui.zoomStep(1);
       case "zoom-out":

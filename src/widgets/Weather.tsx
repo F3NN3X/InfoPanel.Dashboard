@@ -3,7 +3,7 @@ import { weatherKind, type WeatherKind } from "@/lib/weather-icons";
 import { windValue } from "./weather-fx/config";
 import { WeatherFx, type WeatherFxOpts } from "./weather-fx/WeatherFx";
 import Forecast from "./Forecast";
-import { Widget, shell, get, num, fmt, has, rows, Stat, Num, WeatherGlyph, weatherIcon, useIpTag, type ShellProps, type WeatherIconProps } from "./kit";
+import { Widget, shell, get, num, fmt, has, rows, roomy, squareHero, Stat, Num, WeatherGlyph, weatherIcon, useIpTag, type ShellProps, type WeatherIconProps } from "./kit";
 import { WeatherGlance, WeatherWeek, weekDays } from "./WeatherViews";
 import { meta } from "./meta/Weather";
 
@@ -108,7 +108,15 @@ function Current(p: WeatherProps) {
       )}
       title={p.title ?? (has(k("name")) ? k("name") : "Weather")}
       icon="location_on"
-      compact={{ label: has(k("name")) ? k("name") : "Weather", value: `${fmt(T(temp), 0)}°`, sub: `${k("weather_desc")}${feelsText}`, icon, kind: "value" }}
+      compact={(box) => ({
+        label: has(k("name")) ? k("name") : "Weather",
+        value: `${fmt(T(temp), 0)}°`,
+        sub: `${k("weather_desc")}${feelsText}`,
+        icon,
+        kind: "value",
+        // a square-ish 2x2 has the room for the condition beside the temperature
+        ...(box.shape === "tile" && squareHero(box.w, box.h) ? { lead: <WeatherGlyph {...cond} {...icons} fill size={40} className="shrink-0 text-[40px] text-[color:var(--accent)]" /> } : null),
+      })}
       right={has(k("last_refreshed")) && <span className="font-mono text-micro text-[color:var(--w-muted)]">{String(k("last_refreshed")).slice(11)}</span>}
     >
       {({ size, w, h }) => {
@@ -118,25 +126,31 @@ function Current(p: WeatherProps) {
           const days = weekDays(fc.map((f) => ({ date: f.date, cond: weatherKind("", f.cond), hi: f.hi, lo: f.lo })), { cond, temp }, new Date()).slice(0, shown);
           return <WeatherWeek days={days} place={place} w={w} h={h} icons={icons} fmtTemp={(c) => `${fmt(T(c), 0)}°`} />;
         }
+        // roomy (4x4): the glance view's proportions, and the stats move to a row of their own under the now block
+        const big = roomy(w, h) && size !== "xs" && size !== "sm";
         const now = (
-          <div className="flex min-w-0 items-center gap-3">
-            <WeatherGlyph {...cond} {...icons} fill className={`${{ xs: "text-3xl", sm: "text-5xl", md: "text-6xl", lg: "text-7xl" }[size]} text-[color:var(--accent)]`} />
+          <div className={`flex min-w-0 items-center ${big ? "gap-5" : "gap-3"}`}>
+            <WeatherGlyph {...cond} {...icons} fill size={big ? 96 : undefined} className={`${big ? "text-[96px]" : { xs: "text-3xl", sm: "text-5xl", md: "text-6xl", lg: "text-7xl" }[size]} shrink-0 text-[color:var(--accent)]`} />
             <div className="flex min-w-0 flex-col">
-              <Num ip={at("temp", { unit: "°", decimals: 0 })} className={`${{ xs: "text-2xl", sm: "text-4xl", md: "text-5xl", lg: "text-6xl" }[size]} font-semibold leading-none tracking-tight`}>{fmt(T(temp), 0)}°</Num>
+              <Num ip={at("temp", { unit: "°", decimals: 0 })} className={`${big ? "text-[88px]" : { xs: "text-2xl", sm: "text-4xl", md: "text-5xl", lg: "text-6xl" }[size]} font-semibold leading-none tracking-tight`}>{fmt(T(temp), 0)}°</Num>
               {size !== "xs" && (
                 <>
-                  <span {...at("weather_desc")} className="mt-1 truncate text-xs text-[color:var(--w-muted)]">{k("weather_desc")}</span>
-                  {feelsLine && <span className="truncate text-xs text-[color:var(--w-muted)] first-letter:uppercase">{feelsLine}</span>}
+                  <span {...at("weather_desc")} className={`mt-1 truncate ${big ? "text-[16px]" : "text-xs"} text-[color:var(--w-muted)]`}>{k("weather_desc")}</span>
+                  {feelsLine && <span className={`truncate ${big ? "text-[16px]" : "text-xs"} text-[color:var(--w-muted)] first-letter:uppercase`}>{feelsLine}</span>}
                 </>
               )}
             </div>
           </div>
         );
-        if (size === "xs" || size === "sm" || (!showStats && !showForecast)) return <div className="flex h-full items-center">{now}</div>;
+        if (size === "xs" || size === "sm" || (!showStats && !showForecast)) {
+          // a portrait card (taller than 1.4 of its width): the reading sits in the top third, not mid-card
+          const portrait = w > 0 && h >= 240 && h > w * 1.4;
+          return portrait ? <div className="flex h-full flex-col"><div className="flex items-center" style={{ height: Math.round(h / 3) }}>{now}</div></div> : <div className="flex h-full items-center">{now}</div>;
+        }
         const snow = num(k("snow")) > 0;
         // the forecast cells shed their rows (rain, bar, low) to the height left under the current block and the stats:
         // the temperature (48 / 60px) + description (20) + feels line (16), or the stats grid (one row 38, three rows 128)
-        const topH = Math.max(size === "lg" ? 72 : 60, (size === "lg" ? 60 : 48) + 20 + (feelsLine ? 16 : 0), showStats ? (size === "lg" ? 128 : 38) : 0);
+        const topH = big ? 96 + 16 + (showStats ? 46 : 0) : Math.max(size === "lg" ? 72 : 60, (size === "lg" ? 60 : 48) + 20 + (feelsLine ? 16 : 0), showStats ? (size === "lg" ? 128 : 38) : 0);
         const budget = h > 0 ? h - topH - 16 : Infinity;
         // a cell is 78px (rule + padding, day, icon, high); the low adds 22, the bar 46, the rain 21.
         // Just short of that, the gaps close up (16 -> 12 above, 6 -> 4 inside) to keep the forecast row.
@@ -148,7 +162,7 @@ function Current(p: WeatherProps) {
           <div className={`flex h-full flex-col ${tight ? "gap-3" : "gap-4"}`}>
             <div className="flex items-start justify-between gap-4">
               {now}
-              {showStats && <div className="grid shrink-0 grid-cols-2 gap-x-4 gap-y-2">
+              {showStats && !big && <div className="grid shrink-0 grid-cols-2 gap-x-4 gap-y-2">
                 <Stat label="Wind" value={`${fmt(num(k("wind_speed")), 1)} m/s ${compass(num(k("wind_deg")))}`} />
                 <Stat label="Humidity" value={`${fmt(num(k("humidity")))}%`} tag={at("humidity")} />
                 {size === "lg" && (
@@ -161,11 +175,19 @@ function Current(p: WeatherProps) {
                 )}
               </div>}
             </div>
+            {showStats && big && (
+              <div className="flex justify-between gap-x-4">
+                <div className="shrink-0"><Stat label="Wind" value={`${fmt(num(k("wind_speed")), 1)} m/s ${compass(num(k("wind_deg")))}`} /></div>
+                <div className="shrink-0"><Stat label="Humidity" value={`${fmt(num(k("humidity")))}%`} tag={at("humidity")} /></div>
+                <div className="shrink-0"><Stat label="Pressure" value={`${fmt(num(k("pressure")))} hPa`} tag={at("pressure")} /></div>
+                <div className="shrink-0"><Stat label={snow ? "Snow" : "Rain"} value={`${fmt(num(k(snow ? "snow" : "rain")), 1)} mm/h`} /></div>
+              </div>
+            )}
             {showForecast && fc.length > 0 && (budget >= 78 || tight) && (
               <div className="mt-auto grid gap-1.5 border-t border-[color:var(--w-track)] pt-3" style={{ gridTemplateColumns: `repeat(${Math.min(fc.length, shown)}, minmax(0,1fr))` }}>
                 {fc.slice(0, shown).map((f, i) => (
                   <div key={i} className={`flex flex-col items-center ${tight ? "gap-1" : "gap-1.5"}`} title={`${f.cond} · ${f.rain} mm · ${f.wind}`}>
-                    <span className="whitespace-nowrap text-[11px] text-[color:var(--w-muted)]">{f.date}</span>
+                    <span className="whitespace-nowrap text-micro text-[color:var(--w-muted)]">{f.date}</span>
                     <WeatherGlyph {...weatherKind("", f.cond)} {...icons} className="text-xl text-[color:var(--w-fg)]" />
                     <span className="text-xs font-semibold tabular-nums">{fmt(T(f.hi), 0)}°</span>
                     {bar && (
@@ -173,7 +195,7 @@ function Current(p: WeatherProps) {
                         <div className="absolute inset-x-0 rounded-full" style={{ background: "var(--accent)", bottom: `${((f.lo - lo) / (hi - lo || 1)) * 100}%`, top: `${100 - ((f.hi - lo) / (hi - lo || 1)) * 100}%` }} />
                       </div>
                     )}
-                    {showLo && <span className="text-[11px] tabular-nums text-[color:var(--w-muted)]">{fmt(T(f.lo), 0)}°</span>}
+                    {showLo && <span className="text-micro tabular-nums text-[color:var(--w-muted)]">{fmt(T(f.lo), 0)}°</span>}
                     {showRain && f.rain > 0 && <span className="whitespace-nowrap text-micro tabular-nums text-sky-300">{`${f.rain} mm`}</span>}
                   </div>
                 ))}

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { clamp } from "../kit";
 
 export type FaderMode = "leds" | "bar";
@@ -11,6 +11,8 @@ interface FaderProps {
   segs: number;
   mode: FaderMode;
   vertical?: boolean;
+  /** Names the fader for assistive tech (the channel). */
+  label?: string;
   /** Called with 0-100 while the fader is dragged; absent = read-only. */
   onChange?: (value: number) => void;
 }
@@ -18,14 +20,19 @@ interface FaderProps {
 /** How long the dragged value is kept after release, for the server's answer to arrive. */
 const HOLD_MS = 500;
 
+/** What each key does to the value: a step, or a jump to an end. */
+const KEY_STEPS: Record<string, number | "min" | "max"> = { ArrowUp: 1, ArrowRight: 1, ArrowDown: -1, ArrowLeft: -1, PageUp: 10, PageDown: -10, Home: "min", End: "max" };
+
 /** The Stream Mixer's fader: LED segments or a bar with a handle, dragged by pointer (a finger through the kiosk's touch bridge too). */
-export function MixFader({ value, color, segs, mode, vertical = false, onChange }: FaderProps) {
+export function MixFader({ value, color, segs, mode, vertical = false, label, onChange }: FaderProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [drag, setDrag] = useState<number | null>(null);
   const release = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => () => clearTimeout(release.current), []);
   const live = !!onChange;
   const shown = drag ?? value;
+  /** What assistive tech and the keys see: a whole percent in range, whatever the server sent. */
+  const now = Math.round(clamp(shown));
   const at = (e: ReactPointerEvent) => {
     const el = ref.current;
     if (!el || !onChange) return;
@@ -39,13 +46,32 @@ export function MixFader({ value, color, segs, mode, vertical = false, onChange 
     clearTimeout(release.current);
     release.current = setTimeout(() => setDrag(null), HOLD_MS);
   };
+  const key = (e: ReactKeyboardEvent) => {
+    const step = KEY_STEPS[e.key];
+    if (!onChange || step === undefined) return;
+    e.preventDefault();
+    const v = Math.round(clamp(typeof step === "number" ? now + step : step === "min" ? 0 : 100));
+    setDrag(v);
+    onChange(v);
+    end();
+  };
   const dim = `color-mix(in oklab, ${color} 13%, transparent)`;
   return (
     <div
       ref={ref}
       data-fader=""
-      className={`relative h-full w-full ${live ? "cursor-pointer" : ""}`}
+      className={`relative h-full w-full ${live ? `cursor-pointer outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/70 before:absolute before:content-[''] ${vertical ? "before:-inset-x-3 before:inset-y-0" : "before:-inset-y-3 before:inset-x-0"}` : ""}`}
       style={{ touchAction: "none" }}
+      role="slider"
+      aria-label={label}
+      aria-orientation={vertical ? "vertical" : "horizontal"}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={now}
+      aria-valuetext={`${now}%`}
+      aria-readonly={live ? undefined : true}
+      tabIndex={live ? 0 : undefined}
+      onKeyDown={live ? key : undefined}
       onPointerDown={
         live
           ? (e) => {
@@ -81,10 +107,12 @@ export function MixFader({ value, color, segs, mode, vertical = false, onChange 
           })}
         </div>
       )}
+      {live && (
       <div
         className={`pointer-events-none absolute rounded-full bg-white shadow-[0_0_0_2px_rgba(0,0,0,.5)] ${vertical ? "-left-1 -right-1 h-[3px] -translate-y-1/2" : "-bottom-1 -top-1 w-[3px] -translate-x-1/2"}`}
         style={vertical ? { bottom: `${shown}%`, transform: "translateY(50%)" } : { left: `${shown}%` }}
       />
+      )}
     </div>
   );
 }

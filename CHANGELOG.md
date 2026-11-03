@@ -6,6 +6,30 @@ version as its notes, so move **Unreleased** under a new `## [X.Y.Z] - YYYY-MM-D
 
 ## [Unreleased]
 
+### Added
+
+- **Mixer views for Stream Mixer, Volume Mixer and Wave Link.** Besides Rows, each can show **Strips** (channel strips with a fader on a dB scale, a level meter and an LCD readout) or **LCD** (one LCD screen, a line per channel), vertical or horizontal, with options for the strip, fader, scale, meter and LCD. Wave Link's inputs show in every view. Saved mixers keep the Rows look.
+- **Page maps on the Edit page tabs** on hover or focus, a live dot in the Data view, and InfoPanel's own groups as a second chip row in Add.
+
+### Changed
+
+- **A refinement pass over Studio, Settings, Help, the kiosk and the widgets.** Widget text grows with the frame: at 4x4 the main number and body text scale up, at 2x2 the main number fills the top half, and list rows fill the height. Rings, sparklines (with gridlines and a Peak/Avg/Min row) and units look the same across widgets. ServiceHealth, StatusTracker, Thermals and SteamNews lead with a summary number at 4x4, bar widgets in square frames stack into tiles, and the Audio and OBS buttons and the mixers share one design.
+- **The kiosk island fits the panel.** It sizes itself from the window, takes the skin's colour and can be placed as part of the skin or as an overlay. Frames sit a little in from the display edge, with a per-screen option to touch the edge. Saved islands and status bars stay as they were.
+- **Settings pages share one layout.** Every page uses cards with one heading style, Studio is split into **Canvas** and **Panels**, hints show as text, and the search box can be focused. Help opens on task paths; every article is still in the sidebar and in search.
+- **Studio is tidier.** Screens cards draw the screen's layout until a screenshot exists, and a screen with several pages shows a strip of page maps that opens Edit on that page. The command palette is grouped, with recent items and key hints. The Add panel puts InfoPanel items in a chip next to All, and the Layers list is quieter.
+
+### Fixed
+
+- The kiosk status bar no longer cuts its readings to "14..." when there is room for them.
+- Network Adapters' compact tile now blurs the IP when **Hide IP** is on.
+- Mixer faders work from the keyboard, and a mixer that can't write can't be reached by keyboard either. **Ctrl+L** and **Ctrl+H** in Layers act on the focused layer.
+- Drive Space draws healthy drives in the accent colour by default; **Neutral below thresholds** turns the grey back on.
+- Settings' Agents, Diagnostics, Logs and Touch pages, and the touch overlay, draw their tile, chip and hover backgrounds again.
+- **Limit blur** now caps every blur on the kiosk, including alerts, badges, panel titles and the island.
+- Units are drawn smaller than their values in every stat (CPU, GPU, FPS, Storage Health, Power Draw, Menu Bar and Audio Meter).
+- Studio's theme thumbnails show skins and skin surfaces, and a mixer's LCD set to Auto follows the widget's surface rather than the OS.
+- Widgets re-render less on each data update when their look hasn't changed.
+
 ## [1.3.1-beta.7] - 2026-11-02
 
 ### Changed

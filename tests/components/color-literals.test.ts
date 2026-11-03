@@ -8,8 +8,11 @@ import { describe, expect, it } from "vitest";
  */
 const LITERAL = /\[(?:#[0-9a-fA-F]{3,8}|(?:rgba?|hsla?|oklch|oklab|lab|lch)\(|[a-z-]+:#[0-9a-fA-F]{3,8})/g;
 
-// The count across src after the FND-030 sweep. Lower it when you remove a literal; never raise it: use a token instead.
-const MAX_LITERALS = 148;
+// The count across src after the A-18 sweep: the Synth and Nixie headers' colours in widgets/core/views.tsx (3) and the dev gallery's card backdrop (1). Lower it when you remove a literal; never raise it: use a token instead.
+const MAX_LITERALS = 4;
+
+// Arbitrary text sizes (`text-[13px]`) left in src/components/studio after the A-18 sweep: the tile size caption's 8.5 px.
+const MAX_ARBITRARY_TEXT = 1;
 
 // Files that hold literal palettes on purpose.
 const EXCLUDED = new Set([
@@ -29,5 +32,11 @@ describe("colour literals in the UI", () => {
   it("does not grow back in src", () => {
     const count = files("src").reduce((n, f) => n + (readFileSync(f, "utf8").match(LITERAL)?.length ?? 0), 0);
     expect(count).toBeLessThanOrEqual(MAX_LITERALS);
+  });
+
+  it("keeps the studio's type on the scale", () => {
+    // `text-nano` to `text-hero` (tokens.css) are the scale. Lower the cap as the rest moves; never raise it.
+    const count = files("src/components/studio").reduce((n, f) => n + (readFileSync(f, "utf8").match(/text-\[\d/g)?.length ?? 0), 0);
+    expect(count).toBeLessThanOrEqual(MAX_ARBITRARY_TEXT);
   });
 });

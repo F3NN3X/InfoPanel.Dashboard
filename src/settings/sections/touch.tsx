@@ -161,7 +161,7 @@ function PanelCard({ view, entry, index, setKey, steps, onRemove }: PanelCardPro
       <div className="flex flex-wrap items-center gap-3 px-[18px] py-3.5">
         <div className="flex min-w-40 flex-1 flex-col gap-[3px]">
           <span className="text-sm font-medium">{entry.name}</span>
-          <span className={cn("text-[12.5px]", line.className)}>{line.text}</span>
+          <span className={cn("text-caption", line.className)}>{line.text}</span>
         </div>
         {confirm ? (
           <>
@@ -175,7 +175,7 @@ function PanelCard({ view, entry, index, setKey, steps, onRemove }: PanelCardPro
         )}
       </div>
       <div className="flex flex-col gap-2.5 px-[18px] py-3.5">
-        <span className="text-[12.5px] leading-[1.45] text-s-muted">
+        <span className="text-caption leading-[1.45] text-s-muted">
           Open this in an InfoPanel web page profile shown full screen on this panel's display, with Interactive off. Add <span className="font-mono">&amp;profile=…</span> to pin a screen.
         </span>
         <div className="flex flex-wrap gap-2">
@@ -305,7 +305,7 @@ function PanelsGroup({ view, setKey, steps }: { view: TouchView; setKey: SetKey;
           )}
         </Row>
       </Card>
-      {panels.length === 0 && <div className="text-[12.5px] text-s-muted">No panels. Add one for each touch display.</div>}
+      {panels.length === 0 && <div className="text-caption text-s-muted">No panels. Add one for each touch display.</div>}
       {panels.map((p, i) => (
         <PanelCard key={`${i}-${p.id}`} view={view} entry={p} index={i} setKey={panelSet} steps={steps} onRemove={() => void setKey("panels", base().filter((_, j) => j !== i))} />
       ))}
@@ -322,7 +322,7 @@ function PanelsGroup({ view, setKey, steps }: { view: TouchView; setKey: SetKey;
 function ZadigSteps({ screen }: { screen: Touchscreen }) {
   const { toast } = useStore();
   return (
-    <ol className="m-0 flex list-decimal flex-col gap-2 pl-5 text-[12.5px] leading-[1.5] text-s-t2 marker:text-s-dim">
+    <ol className="m-0 flex list-decimal flex-col gap-2 pl-5 text-caption leading-[1.5] text-s-t2 marker:text-s-dim">
       <li>
         Download Zadig from its official site.{" "}
         <button type="button" className="cursor-pointer text-s-accent-text underline" onClick={() => void ipc.openExternal("https://zadig.akeo.ie").catch((e) => toast(errorText(e), true))}>
@@ -361,10 +361,10 @@ function ScreenRow({ screen }: { screen: Touchscreen }) {
     <div className="flex flex-col gap-3 px-[18px] py-3.5">
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex min-w-40 flex-1 flex-col gap-[3px]">
-          <span className="text-[13.5px] font-medium">
+          <span className="text-body font-medium">
             {screen.product ?? "Touchscreen"} <span className="font-mono text-xs text-s-dim">{hex(screen.vid)}:{hex(screen.pid)} · port {shortPort(screen.port)}</span>
           </span>
-          <span className={cn("text-[12.5px]", screen.ready ? "text-s-green" : "text-s-amber")}>
+          <span className={cn("text-caption", screen.ready ? "text-s-green" : "text-s-amber")}>
             {screen.ready ? "WinUSB · ready: Studio reads it, Windows doesn't" : `${screen.driver ?? "No driver"} · Windows owns it: it needs the WinUSB driver`}
           </span>
         </div>
@@ -381,7 +381,7 @@ function ScreenRow({ screen }: { screen: Touchscreen }) {
           ))}
       </div>
       {confirm && (
-        <span className="text-pretty text-[12.5px] leading-normal text-s-amber">
+        <span className="text-pretty text-caption leading-normal text-s-amber">
           Windows takes this touchscreen back: touches move the cursor on that screen again and the kiosk stops getting them. Windows asks for admin permission once, and the certificate Zadig added
           for it is removed too.
         </span>
@@ -412,11 +412,11 @@ function ScreensGroup() {
     <Group title="Touchscreens">
       <div ref={found.ref} className={cn("divide-y divide-s-divider overflow-hidden rounded-xl border border-s-card-line bg-s-card", found.className)}>
         {error ? (
-          <div className="px-[18px] py-3.5 text-[12.5px] text-s-red">Could not list USB devices: {error}</div>
+          <div className="px-[18px] py-3.5 text-caption text-s-red">Could not list USB devices: {error}</div>
         ) : !screens ? (
-          <div className="px-[18px] py-3.5 text-[12.5px] text-s-muted">Looking for touchscreens…</div>
+          <div className="px-[18px] py-3.5 text-caption text-s-muted">Looking for touchscreens…</div>
         ) : screens.length === 0 ? (
-          <div className="px-[18px] py-3.5 text-[12.5px] text-s-muted">No touchscreen found. Plug in the display's touch USB cable; it shows up here by itself, with the steps to set it up.</div>
+          <div className="px-[18px] py-3.5 text-caption text-s-muted">No touchscreen found. Plug in the display's touch USB cable; it shows up here by itself, with the steps to set it up.</div>
         ) : (
           screens.map((s) => <ScreenRow key={s.port} screen={s} />)
         )}
@@ -535,7 +535,7 @@ export function TouchSection() {
     <>
       <div className="overflow-hidden rounded-xl border border-s-card-line bg-s-card">
         <div ref={found.ref} className={cn("flex items-center gap-4 px-[18px] py-4", found.className)}>
-          <div className="grid h-9 w-9 place-items-center rounded-ui-menu bg-ui-hover text-s-t2">
+          <div className="grid h-9 w-9 place-items-center rounded-ui-menu bg-s-hover text-s-t2">
             <Hand className="h-5 w-5" />
           </div>
           <div className="flex flex-1 flex-col gap-[3px]">
@@ -543,7 +543,7 @@ export function TouchSection() {
               Touch panels
               <span className="rounded-[10px] bg-s-amber/14 px-2 py-0.5 text-micro font-normal text-s-amber">Experimental</span>
             </span>
-            <span className="text-[12.5px] leading-[1.45] text-s-muted">
+            <span className="text-caption leading-[1.45] text-s-muted">
               Studio reads USB touch displays itself, so touching one never moves the mouse or takes focus from what you're doing; the kiosk on that display gets the touches.
             </span>
           </div>
@@ -553,7 +553,7 @@ export function TouchSection() {
       {enabled && view && (
         <>
           {(view.file_error || view.issues.length > 0) && (
-            <div className="flex flex-col gap-1 rounded-xl border border-s-card-line bg-s-card px-[18px] py-3.5 text-[12.5px]">
+            <div className="flex flex-col gap-1 rounded-xl border border-s-card-line bg-s-card px-[18px] py-3.5 text-caption">
               {view.file_error && <span className="text-s-red">touch.json doesn't parse: {view.file_error}</span>}
               {view.issues.map((i) => (
                 <span key={i.message} className={i.level === "error" ? "text-s-red" : "text-s-amber"}>

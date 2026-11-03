@@ -1,7 +1,7 @@
 import { readCpuFlat, readSystemFlat } from "@/lib/system-metrics";
 import { inUnit } from "@/modules/setting-readers";
 import type { ModuleSettings } from "@/modules/types";
-import { fitRows, roomy, StatGrid, Widget, shell, get, num, fmt, pretty, Metric, Ring, Spark, Stat, useHistory, tone, Empty, heat, hw, Num, scaleY, type ShellProps } from "./kit";
+import { fitRows, roomy, StatGrid, Widget, shell, get, num, fmt, unitStat, pretty, Metric, Ring, Spark, Stat, useHistory, tone, Empty, heat, hw, Num, scaleY, type ShellProps } from "./kit";
 import { meta } from "./meta/CpuMonitor";
 
 export { meta };
@@ -68,7 +68,11 @@ export default function CpuMonitor(p: CpuMonitorProps) {
     crit = p.crit ?? 90;
   const name = p.title ?? pretty(id).replace(/^AMD Ryzen (\d) /, "Ryzen $1 ");
   /** A °C reading in the temperature unit, with the chosen decimals (else `auto`). */
-  const deg = (c: number, auto: number, space = "") => `${fmt(inUnit(c, p.tempUnit ?? "c"), p.decimals ?? auto)}${space}°${p.tempUnit === "f" ? "F" : "C"}`;
+  const degStat = (c: number, auto: number) => unitStat(inUnit(c, p.tempUnit ?? "c"), p.tempUnit === "f" ? "°F" : "°C", p.decimals ?? auto);
+  const deg = (c: number, auto: number) => {
+    const { value, unit } = degStat(c, auto);
+    return value + unit;
+  };
   return (
     <Widget
       {...shell(p)}
@@ -85,7 +89,7 @@ export default function CpuMonitor(p: CpuMonitorProps) {
           </div>
         ) : size === "sm" ? (
           <div className="flex h-full items-center gap-3">
-            <Ring ipKey={totalKey} value={total} t={tone(total, warn, crit)} thickness={9} className="h-full max-h-28">
+            <Ring ipKey={totalKey} value={total} t={tone(total, warn, crit)} className="h-full max-h-28">
               <Num ipKey={totalKey} ipUnit="%" className="text-xl font-semibold">
                 {fmt(total, 0)}
                 <span className="text-xs text-[color:var(--w-muted)]">%</span>
@@ -93,23 +97,23 @@ export default function CpuMonitor(p: CpuMonitorProps) {
             </Ring>
             <div className="grid min-w-0 flex-1 gap-1.5">
               {[
-                <Stat key="max" label="Max core" value={`${fmt(maxCore, 0)}%`} />,
-                <Stat key="pkg" label="Package" value={`${fmt(power, 1)} W`} />,
-                <Stat key="clk" label="Clock" value={`${fmt(clock / 1000, 2)} GHz`} />,
-              ].slice(0, h > 0 ? fitRows(h, 38, 6) : 3)}
+                <Stat key="max" label="Max core" value={fmt(maxCore, 0)} unit="%" />,
+                <Stat key="pkg" label="Package" value={fmt(power, 1)} unit="W" />,
+                <Stat key="clk" label="Clock" value={fmt(clock / 1000, 2)} unit="GHz" />,
+              ].slice(0, h > 0 ? fitRows(h, 41, 6) : 3)}
             </div>
           </div>
         ) : (
           <div className="flex h-full flex-col gap-3">
-            <div className="flex items-end gap-5">
+            <div className="flex items-end gap-5 [[data-wp-roomy]_&]:flex-col [[data-wp-roomy]_&]:items-start [[data-wp-roomy]_&]:gap-3">
               <Metric ipKey={totalKey} value={total} unit="%" scale={size === "lg" ? "xl" : "lg"} sub="Total load" t={tone(total, warn, crit)} />
-              <div className="grid flex-1 grid-cols-3 gap-3">
-                <Stat label="Max core" value={`${fmt(maxCore, 0)}%`} />
-                <Stat label="Package" value={`${fmt(power, 1)} W`} />
-                <Stat label="Avg clock" value={`${fmt(clock / 1000, 2)} GHz`} />
+              <div className="grid flex-1 grid-cols-3 gap-3 [[data-wp-roomy]_&]:w-full [[data-wp-roomy]_&]:flex-none">
+                <Stat label="Max core" value={fmt(maxCore, 0)} unit="%" />
+                <Stat label="Package" value={fmt(power, 1)} unit="W" />
+                <Stat label="Avg clock" value={fmt(clock / 1000, 2)} unit="GHz" />
               </div>
             </div>
-            {size === "md" && <Spark ipKey={totalKey} values={hist} min={0} max={100} marks={roomy(w, h)} format={(v) => `${fmt(v, 0)} %`} className="min-h-0 flex-1" />}
+            {size === "md" && <Spark ipKey={totalKey} values={hist} min={0} max={100} marks={roomy(w, h)} format={(v) => fmt(v, 0)} className="min-h-0 flex-1" />}
             {cores.length > 0 && view === "heatmap" && (
               // rows share the height left over (20px at most below large), so a short box squeezes them instead of overflowing
               <div className="grid min-h-0 flex-1 gap-1" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))`, gridAutoRows: "minmax(0,1fr)", maxHeight: size === "lg" ? undefined : Math.ceil(cores.length / cols) * 24 - 4 }}>
@@ -145,10 +149,10 @@ export default function CpuMonitor(p: CpuMonitorProps) {
               <StatGrid
                 cols={4}
                 items={[
-                  { label: /^amd/.test(id) ? "Tctl/Tdie" : "Package", value: deg(temp, 1, " ") },
-                  { label: "Core VID", value: `${fmt(cores[0]?.vid ?? NaN, 2)} V` },
-                  { label: "VRM", value: Number.isFinite(vrm) ? deg(vrm, 0, " ") : "–" },
-                  { label: "CPU fan", value: Number.isFinite(fan) ? `${fmt(fan, 0)} RPM` : "–" },
+                  { label: /^amd/.test(id) ? "Tctl/Tdie" : "Package", ...degStat(temp, 1) },
+                  { label: "Core VID", ...unitStat(cores[0]?.vid ?? NaN, "V", 2) },
+                  { label: "VRM", ...(Number.isFinite(vrm) ? degStat(vrm, 0) : { value: "–" }) },
+                  { label: "CPU fan", ...(Number.isFinite(fan) ? unitStat(fan, "RPM") : { value: "–" }) },
                 ]}
               />
             )}

@@ -1,6 +1,6 @@
 import { readSystemFlat } from "@/lib/system-metrics";
 import type { ModuleSettings } from "@/modules/types";
-import { useFitRows, Widget, shell, get, num, fmt, rateParts, toMBps, pretty, Spark, useHistory, useSkin, numFont, hw, adapterOf, type ShellProps } from "./kit";
+import { UNIT_CLASS, roomy, useFitRows, Widget, shell, get, num, fmt, rateParts, toMBps, pretty, Spark, useHistory, useSkin, numFont, hw, adapterOf, type ShellProps } from "./kit";
 import { meta } from "./meta/KpiTiles";
 
 export { meta };
@@ -62,7 +62,8 @@ export default function KpiTiles(p: KpiTilesProps) {
       studio={{ label: first.l, value: first.v, unit: first.u, hist: firstHist, min: 0, rows: keys.map((key) => ({ n: ALL[key].l, v: `${ALL[key].text ?? fmt(ALL[key].v, ALL[key].d ?? 0)} ${ALL[key].u}`, pct: ALL[key].max ? ALL[key].v : undefined })) }}
       compact={(box) => (box.shape === "tile" ? { label: first.l, value: first.v, unit: first.u, hist: firstHist, min: 0 } : undefined)}
     >
-      {({ w, h }) => {
+      {({ w, h, outerW, outerH }) => {
+        const bigBox = roomy(outerW, outerH);
         const cols = Math.max(1, Math.min(keys.length, Math.floor((w + 12) / 160)));
         const shown = keys.slice(0, cols * useFitRows(h, 88, 12));
         const tileH = (h - (Math.ceil(shown.length / cols) - 1) * 12) / Math.ceil(shown.length / cols);
@@ -77,26 +78,28 @@ export default function KpiTiles(p: KpiTilesProps) {
                 pct = prev ? (delta / Math.abs(prev)) * 100 : 0;
               const shown = m.text ?? fmt(m.v, m.d ?? 0);
               const len = shown.length + m.u.length * 0.5;
-              const big = Math.max(14, Math.min(36, Math.max(20, Math.min(tileH * 0.32, tileH - 62)), tileW / (Math.max(2.5, len) * 0.66)));
+              const big = Math.max(14, Math.min(bigBox ? 56 : 36, Math.max(20, Math.min(tileH * 0.32, tileH - 62)), tileW / (Math.max(2.5, len) * 0.66)));
               const last = hist[hist.length - 1] ?? 0;
               return (
                 <div key={key} className="relative flex min-h-0 min-w-0 flex-col gap-1 overflow-hidden pr-2">
                   <div className="flex items-baseline justify-between gap-2">
-                    <span className="truncate text-[11px] font-medium uppercase tracking-[0.06em] text-[color:var(--w-muted)]">{m.l}</span>
-                    {tileW >= 112 && <span className="whitespace-nowrap text-xs tabular-nums" style={{ color: Math.abs(pct) < 1 ? "var(--w-muted)" : delta > 0 ? "#EDB232" : "#3CC97F" }}>
-                      {Math.abs(pct) < 1 ? "→ 0%" : `${delta > 0 ? "▲" : "▼"} ${fmt(Math.abs(pct), 0)}%`}
+                    <span className="truncate text-micro font-medium uppercase tracking-[0.06em] text-[color:var(--w-muted)]">{m.l}</span>
+                    {tileW >= 112 && Math.abs(pct) >= 1 && <span title={`Change over the last ${back} readings`} className="whitespace-nowrap text-xs tabular-nums" style={{ color: delta > 0 ? "#EDB232" : "#3CC97F" }}>
+                      {`${delta > 0 ? "▲" : "▼"} ${fmt(Math.abs(pct), 0)}%`}
                     </span>}
                   </div>
                   <span className="whitespace-nowrap font-bold leading-none tracking-[-0.01em] tabular-nums" style={{ fontSize: big, ...numFont(sk) }}>
                     {shown}
-                    <span className="ml-0.5 text-[0.5em] font-semibold text-[color:var(--w-muted)]">{m.u}</span>
+                    <span className={UNIT_CLASS}>{m.u}</span>
                   </span>
                   {tileH > 126 && m.sub && <span className="truncate text-xs text-[color:var(--w-faint)]">{m.sub}</span>}
-                  {tileH > 100 && (
+                  {tileH > 100 ? (
                     <div className="relative mt-auto h-[38%] min-h-[18px] max-h-10">
                       <Spark values={hist} min={0} max={m.max} className="absolute inset-0 h-full" />
                       <span className="absolute right-0 h-[7px] w-[7px] -translate-y-1/2 translate-x-1/2 rounded-full bg-[var(--accent)]" style={{ top: `${100 - ((last - 0) / ((m.max ?? Math.max(...hist) * 1.08) || 1)) * 94 - 3}%`, boxShadow: "0 0 0 3px color-mix(in oklab, var(--accent) 22%, transparent)" }} />
                     </div>
+                  ) : (
+                    tileH >= 76 && <Spark values={hist} min={0} max={m.max} className="mt-auto h-6 w-full" />
                   )}
                 </div>
               );

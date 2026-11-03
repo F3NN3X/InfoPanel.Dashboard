@@ -9,6 +9,9 @@ export { meta };
 // The text sits on artwork behind a dark scrim, so it stays light on every surface.
 const ON_ART = { color: "#f4f4f5", "--w-fg": "#f4f4f5", "--w-muted": "#d4d4d8", "--w-faint": "#a1a1aa", "--w-track": "rgba(255,255,255,0.15)" } as CSSProperties;
 
+// The playtime figures read over the art, so they are a step above the shared stat value.
+const BIG_VALUE = "[&>span:last-child]:text-[20px]";
+
 export interface SteamGameProps extends ShellProps {
   art?: "banner" | "grid" | "none";
   /** Scrim strength 0-1; default 0.55. */
@@ -35,11 +38,11 @@ export default function SteamGame(p: SteamGameProps) {
       {({ size }) => (
         <div className="relative h-full w-full" style={ON_ART}>
           {art !== "none" && <Img src={bg} icon="sports_esports" className="absolute inset-0 h-full w-full" />}
-          <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, rgba(10,10,12,${scrim * 0.3}) 0%, rgba(10,10,12,${Math.min(1, scrim + 0.35)}) 100%)` }} />
+          <div className="absolute inset-0" style={{ background: `linear-gradient(to bottom, rgb(0 0 0 / ${scrim}) 0, transparent 28%, transparent 55%, rgb(0 0 0 / ${Math.min(1, +(scrim + 0.2).toFixed(2))}) 100%)` }} />
           <div className={`relative flex h-full flex-col ${size === "xs" ? "p-2.5" : "p-4"}`}>
             <div className="flex items-center gap-2">
               {size !== "xs" && <Img src={widgetImage(P("game_icon_url"))} icon="stadia_controller" className="h-6 w-6 shrink-0 rounded-md" />}
-              <span className="truncate text-[11px] font-medium uppercase tracking-[0.08em] text-[color:var(--w-muted)]">{P("game-status-text") || "Now playing"}</span>
+              <span className="truncate text-micro font-medium uppercase tracking-[0.08em] text-[color:var(--w-muted)]">{P("game-status-text") || "Now playing"}</span>
               {size !== "xs" && <GlassPill className="ml-auto">⏱ {S("current-session-time")}</GlassPill>}
             </div>
             <div className="mt-auto flex flex-col gap-2">
@@ -48,8 +51,8 @@ export default function SteamGame(p: SteamGameProps) {
                 <span className="text-xs text-[color:var(--w-muted)]">{S("current-session-time")} session</span>
               ) : (
                 <div className="flex flex-wrap items-end gap-x-6 gap-y-2">
-                  <Stat label="Playtime" value={hoursText(S("current-game-playtime"))} />
-                  {size !== "sm" && <Stat label="Avg session" value={S("avg-session-time")} />}
+                  <Stat className={BIG_VALUE} label="Playtime" value={hoursText(S("current-game-playtime"))} />
+                  {size !== "sm" && <Stat className={BIG_VALUE} label="Avg session" value={S("avg-session-time")} />}
                   {size === "lg" && <Stat label="Started" value={S("session-start-time")} />}
                   {size !== "sm" && Number.isFinite(total) && (
                     <div className="flex min-w-[140px] flex-1 flex-col gap-1">
@@ -65,7 +68,7 @@ export default function SteamGame(p: SteamGameProps) {
                 </div>
               )}
               {size === "lg" && has(A("latest-achievement")) && (
-                <div className="mt-1 flex items-center gap-2.5 rounded-lg bg-black/35 p-2 backdrop-blur" data-wp-inner-blur="">
+                <div className="mt-1 flex items-center gap-2.5 rounded-lg bg-black/35 p-2 backdrop-blur-[min(8px,var(--wp-blur-cap,8px))]" data-wp-inner-blur="">
                   <Img src={widgetImage(A("latest-achievement-icon"))} icon="trophy" className="h-8 w-8 rounded-md" />
                   <div className="flex min-w-0 flex-col">
                     <span className="text-micro text-[color:var(--w-faint)]">Latest achievement</span>

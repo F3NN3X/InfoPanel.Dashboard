@@ -21,20 +21,20 @@ interface CalloutStyle {
 }
 
 const CALLOUTS: Record<CalloutKind, CalloutStyle> = {
-  tip: { icon: Lightbulb, label: "Tip", fg: "text-[oklch(0.84_0.14_150)]", box: "border-[oklch(0.78_0.16_150/0.22)] bg-[oklch(0.78_0.16_150/0.07)]" },
-  note: { icon: Info, label: "Note", fg: "text-[oklch(0.84_0.12_255)]", box: "border-[oklch(0.72_0.15_255/0.22)] bg-[oklch(0.72_0.15_255/0.07)]" },
-  warn: { icon: TriangleAlert, label: "Heads up", fg: "text-[oklch(0.86_0.13_80)]", box: "border-[oklch(0.82_0.14_75/0.25)] bg-[oklch(0.82_0.14_75/0.07)]" },
-  soon: { icon: Clock, label: "Coming soon", fg: "text-[oklch(0.84_0.1_300)]", box: "border-[oklch(0.72_0.12_300/0.25)] bg-[oklch(0.72_0.12_300/0.07)]" },
+  tip: { icon: Lightbulb, label: "Tip", fg: "text-s-tip-text", box: "border-s-tip/22 bg-s-tip/7" },
+  note: { icon: Info, label: "Note", fg: "text-s-accent-text", box: "border-s-accent/22 bg-s-accent/7" },
+  warn: { icon: TriangleAlert, label: "Heads up", fg: "text-s-heads-text", box: "border-s-heads/25 bg-s-heads/7" },
+  soon: { icon: Clock, label: "Coming soon", fg: "text-s-soon-text", box: "border-s-soon/25 bg-s-soon/7" },
 };
 
 function Callout({ kind, text, onOpen }: { kind: CalloutKind; text: string; onOpen: BlockProps["onOpen"] }) {
   const { icon: Icon, label, fg, box } = CALLOUTS[kind];
   return (
-    <div className={cn("flex gap-3 rounded-[11px] border px-4 py-[13px]", box)}>
+    <div className={cn("flex max-w-[68ch] gap-3 rounded-[11px] border px-4 py-[13px]", box)}>
       <Icon className={cn("mt-px h-[19px] w-[19px] shrink-0", fg)} />
       <div className="flex flex-1 flex-col gap-[3px]">
         <span className={cn("text-xs font-semibold", fg)}>{label}</span>
-        <span className="text-pretty text-[13.5px] leading-[1.6] text-[#d6d6db]">
+        <span className="text-pretty text-[13.5px] leading-[1.6] text-s-strong">
           <InlineText text={text} onOpen={onOpen} />
         </span>
       </div>
@@ -44,7 +44,7 @@ function Callout({ kind, text, onOpen }: { kind: CalloutKind; text: string; onOp
 
 function List({ items, ordered, onOpen }: { items: string[]; ordered: boolean; onOpen: BlockProps["onOpen"] }) {
   return (
-    <ul className="m-0 flex list-none flex-col gap-2 p-0">
+    <ul className="m-0 flex max-w-[68ch] list-none flex-col gap-2 p-0">
       {items.map((item, i) => (
         <li key={i} className="flex items-start gap-3">
           {ordered ? (
@@ -52,7 +52,7 @@ function List({ items, ordered, onOpen }: { items: string[]; ordered: boolean; o
           ) : (
             <span className="ml-1 mr-1.5 mt-2.5 h-[5px] w-[5px] shrink-0 rounded-full bg-s-faint" />
           )}
-          <span className="flex-1 text-pretty text-sm leading-[1.65] text-[#d0d0d6]">
+          <span className="flex-1 text-pretty text-sm leading-[1.65] text-s-strong">
             <InlineText text={item} onOpen={onOpen} />
           </span>
         </li>
@@ -83,7 +83,7 @@ function Table({ head, rows, onOpen }: { head: string[]; rows: string[][]; onOpe
         {rows.map((row, r) => (
           <div key={r} role="row" className="contents">
             {row.map((cell, c) => (
-            <div key={c} role={c === 0 ? "rowheader" : "cell"} className={cn("px-3.5 py-2.5 text-body leading-[1.55]", c === 0 ? "text-s-t1" : "text-[#c2c2ca]", r > 0 && "border-t border-s-divider")}>
+            <div key={c} role={c === 0 ? "rowheader" : "cell"} className={cn("px-3.5 py-2.5 text-body leading-[1.55]", c === 0 ? "text-s-t1" : "text-s-prose", r > 0 && "border-t border-s-divider")}>
               <InlineText text={cell} onOpen={onOpen} small />
             </div>
             ))}
@@ -96,7 +96,7 @@ function Table({ head, rows, onOpen }: { head: string[]; rows: string[][]; onOpe
 
 function Cap({ children }: { children: string }) {
   return (
-    <kbd className="min-w-3 whitespace-nowrap rounded-[5px] border border-b-2 border-s-input-line bg-[#1a1a1f] px-[7px] py-0.5 text-center font-mono text-[11.5px] text-s-t1">{children}</kbd>
+    <kbd className="min-w-3 whitespace-nowrap rounded-[5px] border border-b-2 border-s-input-line bg-s-side-line px-[7px] py-0.5 text-center font-mono text-[11.5px] text-s-t1">{children}</kbd>
   );
 }
 
@@ -105,7 +105,7 @@ function Keys({ rows }: { rows: [string, string][] }) {
     <div className="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] rounded-[11px] border border-s-card-line bg-s-card">
       {rows.map(([combo, label], i) => (
         <div key={i} className="flex items-center gap-3 border-b border-s-side-line px-3.5 py-2.5">
-          <span className="flex-1 text-body text-[#d0d0d6]">{label}</span>
+          <span className="flex-1 text-body text-s-strong">{label}</span>
           <span className="flex flex-wrap items-center justify-end gap-1">
             {comboParts(combo).map((alt, a) => (
               <span key={a} className="flex items-center gap-1">
@@ -132,7 +132,7 @@ function Flow({ steps }: { steps: [string, string][] }) {
             <span className="text-[13.5px] font-semibold">{title}</span>
             <span className="text-xs leading-[1.45] text-s-muted">{description}</span>
           </div>
-          {i < steps.length - 1 && <ArrowRight className="h-4 w-4 shrink-0 text-[#44444c]" />}
+          {i < steps.length - 1 && <ArrowRight className="h-4 w-4 shrink-0 text-s-connector" />}
         </div>
       ))}
     </div>
@@ -152,7 +152,7 @@ function OpenButton({ target, label, onOpen }: { target: string; label: string; 
       title={route.kind === "settings" ? `Settings › ${SECTION_NAMES[route.section]}` : undefined}
       aria-description={route.kind === "settings" ? `Opens Settings › ${SECTION_NAMES[route.section]}` : undefined}
       onClick={go}
-      className="flex h-(--ui-h-field) cursor-pointer items-center gap-2 self-start rounded-lg border border-s-input-line bg-s-input px-3 text-[12.5px] text-s-t1 hover:border-[#3a3a44]"
+      className="flex h-(--ui-h-field) cursor-pointer items-center gap-2 self-start rounded-lg border border-s-input-line bg-s-input px-3 text-[12.5px] text-s-t1 hover:border-s-edge"
     >
       <Icon className="h-4 w-4 text-s-accent-text" />
       Open {label}
@@ -167,7 +167,7 @@ export function BlockView({ block, onOpen }: BlockProps) {
       return null;
     case "p":
       return (
-        <p className="m-0 text-pretty text-sm leading-[1.7] text-[#d0d0d6]">
+        <p className="m-0 max-w-[68ch] text-pretty text-sm leading-[1.65] text-s-strong">
           <InlineText text={block.text} onOpen={onOpen} />
         </p>
       );

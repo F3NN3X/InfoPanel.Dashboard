@@ -57,7 +57,7 @@ export function blockText(block: Block): string {
     case "ol":
       return block.items.map(stripInline).join(" ");
     case "table":
-      return [...block.head, ...block.rows.flat()].map(stripInline).join(" ");
+      return [...block.head, ...block.rows.flat()].map(stripInline).join(" · ");
     case "keys":
     case "flow":
       return (block.type === "keys" ? block.rows : block.steps).map((r) => r.map(stripInline).join(" ")).join(" ");

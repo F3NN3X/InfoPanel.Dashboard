@@ -104,7 +104,7 @@ export default function GameSpotlight(p: GameSpotlightProps) {
       bleed
       showHeader={false}
       studio={{ label: statusText, live: true, value: game, sub: `${S("current-session-time")} session · ${hoursText(S("current-game-playtime"))}`, img: poster || banner, kind: "text", progress: { a: "Achievements", pct: ach, b: `${fmt(ach)}%` } }}
-      compact={(box) => (box.shape === "tile" && p.layout !== "composite" ? { label: statusText, value: game, kind: "text", sub: `${S("current-session-time")} session`, img: poster || banner, pct: ach, icon: "stadia_controller" } : undefined)}
+      compact={(box) => (box.shape === "tile" && p.layout !== "composite" ? { label: statusText, value: game, kind: "text", sub: `${S("current-session-time")} session`, img: box.w < 132 ? banner || poster : poster || banner, pct: ach, icon: "stadia_controller" } : undefined)}
     >
       {({ w, h, shape }) => {
         if (p.layout === "composite") {
@@ -168,7 +168,7 @@ export default function GameSpotlight(p: GameSpotlightProps) {
                 </GlassPill>
                 {w > 420 && Number.isFinite(ach) && (
                   <div className="h-9 w-9">
-                    <Ring value={ach} thickness={12} className="h-full w-full">
+                    <Ring value={ach} className="h-full w-full">
                       <span className="text-micro font-semibold">{fmt(ach)}</span>
                     </Ring>
                   </div>
@@ -220,7 +220,7 @@ export default function GameSpotlight(p: GameSpotlightProps) {
               <div className="absolute inset-0 bg-black/55" />
               <Logo src={logo} name={game} size="text-sm" className="relative mx-auto max-h-[55%] max-w-full !object-center text-center" />
               {h >= 56 && (
-                <span className="relative flex max-w-full items-center gap-1.5 text-[11px] text-[color:var(--w-fg)]">
+                <span className="relative flex max-w-full items-center gap-1.5 text-micro text-[color:var(--w-fg)]">
                   <Dot ok />
                   <span className="truncate tabular-nums">{S("current-session-time")}</span>
                 </span>
@@ -263,11 +263,11 @@ export default function GameSpotlight(p: GameSpotlightProps) {
               <div className="mt-auto flex flex-col gap-3">
                 <Logo src={logo} name={game} size={big} ip={tag(logo ? steam("SteamAPI-Profile.game_logo_url") : undefined, { kind: "image" })} className={`${h > 220 ? "max-h-24" : "max-h-14"} max-w-[65%]`} />
                 {lay === "combo" && has(track) ? (
-                  <div className="flex max-w-md items-center gap-3 rounded-2xl bg-black/45 p-2.5 ring-1 ring-white/10 backdrop-blur-xl" data-wp-inner-blur="">
+                  <div className="flex max-w-md items-center gap-3 rounded-2xl bg-black/45 p-2.5 ring-1 ring-white/10 backdrop-blur-[min(24px,var(--wp-blur-cap,24px))]" data-wp-inner-blur="">
                     <Img src={widgetImage(get(d, `${ms}.cover-art`))} icon="music_note" className="h-10 w-10 shrink-0 rounded-lg" />
                     <div className="flex min-w-0 flex-1 flex-col gap-1">
                       <span className="truncate text-xs font-semibold">{track}</span>
-                      <span className="truncate text-[11px] text-[color:var(--w-faint)]">{has(artist) ? artist : "Now playing"}</span>
+                      <span className="truncate text-micro text-[color:var(--w-faint)]">{has(artist) ? artist : "Now playing"}</span>
                       <MediaProgress
                         mode={p.progress === "visualizer" ? "visualizer" : "wave"}
                         pct={prog > 1 ? prog : prog * 100}
@@ -285,7 +285,7 @@ export default function GameSpotlight(p: GameSpotlightProps) {
                       {stats.slice(0, w > 560 ? 4 : 2).map(([l, v, entry]) => (
                         <div key={l} className="flex flex-col">
                           <span className="text-micro uppercase tracking-[0.08em] text-[color:var(--w-faint)]">{l}</span>
-                          <span {...tag(steam(entry), entry.endsWith("playtime") ? { decimals: 1, unit: " h" } : undefined)} className="text-[15px] font-semibold tabular-nums">{v}</span>
+                          <span {...tag(steam(entry), entry.endsWith("playtime") ? { decimals: 1, unit: " h" } : undefined)} className="text-title font-semibold tabular-nums">{v}</span>
                         </div>
                       ))}
                       {Number.isFinite(ach) && w > 420 && (

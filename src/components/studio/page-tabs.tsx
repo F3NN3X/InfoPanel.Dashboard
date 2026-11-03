@@ -1,12 +1,13 @@
-import { Fragment, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
+import { Fragment, lazy, Suspense, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { AlertDialog } from "@base-ui/react/alert-dialog";
 import { ArrowLeft, ArrowRight, Cast, Copy, File, LayoutDashboard, MoreHorizontal, PanelLeftClose, PanelLeftOpen, Pencil, Plus, Settings2, Shapes, Trash2 } from "lucide-react";
 import { ContextMenu, type ContextMenuEntry } from "@/components/ui/context-menu";
 import { IconButton } from "@/components/ui/icon-button";
-import type { ProfilePage } from "@/lib/layout";
+import type { MonitorProfile, ProfilePage } from "@/lib/layout";
 import { onRovingKeyDown } from "@/lib/roving";
 import { cn } from "@/lib/utils";
 import { pageIcon } from "./page-icons";
+import { ThumbBoundary, usePageThumb } from "./page-thumb";
 import { pastDragThreshold, trackPointer } from "./pointer-drag";
 import { RenameInput } from "./rename-input";
 
@@ -41,6 +42,8 @@ interface PageTabsProps {
   kioskPage?: string | null;
   /** The screen was imported from InfoPanel: a page with no icon of its own shows File, not the grid (SPEC §6.2). */
   imported?: boolean;
+  /** The screen, to draw a page's thumbnail on hover or focus; unset: no thumbnails (an InfoPanel screen's pages are canvases). */
+  thumbProfile?: MonitorProfile;
 }
 
 /** An interval for the chip: `30 s`, then minutes from 60 s (`1 min`, `1.5 min`). */
@@ -83,8 +86,16 @@ export function pageMenuEntries(
   ];
 }
 
+// Loaded on the first hover: it draws a Screens schematic, which the studio entry does not otherwise carry.
+// A failed load is cached by lazy, so the boundary swaps in a fresh one and the next hover tries the import again.
+const loadThumb = () => import("./page-thumb-card");
+let PageThumb = lazy(loadThumb);
+const resetThumb = () => {
+  PageThumb = lazy(loadThumb);
+};
+
 const DIALOG_BUTTON =
-  "inline-flex h-8 items-center rounded-[7px] border border-ui-strong bg-ui-raised px-3 text-[12.5px] font-medium text-ui-2 transition-colors hover:bg-ui-hover hover:text-ui-1";
+  "inline-flex h-8 items-center rounded-[7px] border border-ui-strong bg-ui-raised px-3 text-body font-medium text-ui-2 transition-colors hover:bg-ui-hover hover:text-ui-1";
 
 /** Confirm deleting a page and its zones. */
 function DeleteDialog({
@@ -111,7 +122,7 @@ function DeleteDialog({
             <AlertDialog.Close render={<button type="button" className={DIALOG_BUTTON} />}>Cancel</AlertDialog.Close>
             <button
               type="button"
-              className="inline-flex h-8 items-center rounded-[7px] bg-ui-danger px-3 text-[12.5px] font-semibold text-ui-inverse-fg transition-opacity hover:opacity-90"
+              className="inline-flex h-8 items-center rounded-[7px] bg-ui-danger px-3 text-body font-semibold text-ui-inverse-fg transition-opacity hover:opacity-90"
               onClick={() => {
                 onConfirm();
                 onClose();
@@ -153,7 +164,10 @@ export function PageTabs({
   onDeletingChange,
   kioskPage,
   imported = false,
+  thumbProfile,
 }: PageTabsProps) {
+  const thumb = usePageThumb();
+  const thumbPage = thumbProfile && thumb.anchor ? pages.find((p) => p.id === thumb.anchor?.id) : undefined;
   const rowRef = useRef<HTMLDivElement>(null);
   const [menu, setMenu] = useState<{ id: string; x: number; y: number } | null>(null);
   const [drag, setDrag] = useState<{ id: string; to: number } | null>(null);
@@ -258,7 +272,18 @@ export function PageTabs({
                       role="tab"
                       aria-selected={active}
                       tabIndex={active ? 0 : -1}
+                      onPointerEnter={thumbProfile ? (e) => !drag && thumb.show(page.id, e.currentTarget) : undefined}
+                      onPointerLeave={thumbProfile ? thumb.hide : undefined}
+                      onPointerDown={thumbProfile ? thumb.hide : undefined}
+                      onFocus={thumbProfile ? (e) => e.currentTarget.matches(":focus-visible") && thumb.show(page.id, e.currentTarget) : undefined}
+                      onBlur={thumbProfile ? thumb.hide : undefined}
                       onKeyDown={(e) => {
+                        if (e.key === "Escape") {
+                          // Also cancels a thumbnail still waiting out its delay.
+                          const open = thumb.anchor !== null;
+                          thumb.hide();
+                          if (open) return e.stopPropagation();
+                        }
                         // Alt+Left / Alt+Right moves the page, the keyboard route to the drag.
                         const at = pages.findIndex((p) => p.id === page.id);
                         const to = e.key === "ArrowLeft" ? at - 1 : e.key === "ArrowRight" ? at + 1 : -1;
@@ -269,13 +294,14 @@ export function PageTabs({
                       }}
                       onClick={() => !dragged.current && onSelect(page.id)}
                       onDoubleClick={() => onRenamingChange(page.id)}
-                      title={`${page.name}: double-click to rename, drag to reorder`}
+                      title={thumbProfile ? undefined : `${page.name}: double-click to rename, drag to reorder`}
+                      aria-description={thumbProfile ? "Double-click to rename, drag to reorder" : undefined}
                       className="flex h-7 max-w-44 items-center gap-1.5 rounded-[7px] pl-2.5 pr-1 outline-none focus-visible:ring-2 focus-visible:ring-ui-accent/60"
                     >
                       <Icon className="h-[15px] w-[15px] shrink-0" />
                       <span className="truncate">{page.name}</span>
                       {kioskPage === page.id && (
-                        <Cast aria-label="Shown on the kiosk" className="h-3.5 w-3.5 shrink-0 text-[oklch(0.78_0.15_150)]">
+                        <Cast aria-label="Shown on the kiosk" className="h-3.5 w-3.5 shrink-0 text-ui-live">
                           <title>Shown on the kiosk</title>
                         </Cast>
                       )}
@@ -305,6 +331,13 @@ export function PageTabs({
         <Plus className="h-4 w-4" />
       </IconButton>
       {extra && <div className="ml-auto flex shrink-0 items-center gap-1.5 pl-2">{extra}</div>}
+      {thumbProfile && thumbPage && thumb.anchor && (
+        <ThumbBoundary key={thumb.anchor.id} onFail={resetThumb}>
+          <Suspense fallback={null}>
+            <PageThumb profile={thumbProfile} page={thumbPage} left={thumb.anchor.left} top={thumb.anchor.top} />
+          </Suspense>
+        </ThumbBoundary>
+      )}
       {menu && <ContextMenu x={menu.x} y={menu.y} entries={menuEntries(menu.id)} onClose={() => setMenu(null)} />}
       <DeleteDialog
         page={pages.find((p) => p.id === deletingId)}

@@ -41,6 +41,11 @@ export default function Notifications(p: NotificationsProps) {
       return { time, type: type ?? "", message: rest.join(", ") };
     });
   const showHistory = (p.showHistory ?? true) && lines.length > 0;
+  const tally = (type: string, noun: string) => {
+    const n = lines.filter((l) => l.type === type).length;
+    return n > 0 ? `${n} ${noun}${n === 1 ? "" : "s"}` : "";
+  };
+  const summary = [tally("Error", "error"), tally("Warning", "warning")].filter(Boolean).join(" · ") || `${lines.length} recent`;
   const worst = lines.some((l) => l.type === "Error") ? "crit" : lines.some((l) => l.type === "Warning") ? "warn" : "ok";
   return (
     <Widget
@@ -68,11 +73,18 @@ export default function Notifications(p: NotificationsProps) {
         const room = roomy(w, h);
         const rowH = room ? Math.min(30, Math.max(20, Math.floor((h - 120) / Math.max(lines.length, 5)))) : size === "lg" ? 26 : 20;
         const fit = h > 0 ? Math.max(1, Math.floor((h - (room ? 120 : 72)) / rowH)) : lines.length;
+        // The lines that show share the height the history has (up to 40px each), so a few lines don't crowd the top.
+        const pitch = room ? Math.min(40, Math.max(rowH, Math.floor((h - 120) / Math.max(1, Math.min(fit, lines.length))))) : rowH;
         const counts = room && showHistory ? [...lines.reduce((m, l) => m.set(l.type, (m.get(l.type) ?? 0) + 1), new Map<string, number>())] : [];
         const text = size === "lg" ? "text-sm" : "text-xs";
         return (
           <div className="flex h-full min-h-0 flex-col">
-            {last && <div title={last} className={`font-medium text-[color:var(--w-fg)] ${size === "lg" ? "line-clamp-2 break-words text-base" : "truncate text-sm"}`}>{last}</div>}
+            {/* with the history shown, its first line is the latest notification: the headline is the summary instead of a copy of it */}
+            {showHistory ? (
+              <div title={summary} className={`truncate font-medium ${size === "lg" ? "text-base" : "text-sm"}`} style={{ color: typeColor(worst === "crit" ? "Error" : worst === "warn" ? "Warning" : "") ?? "var(--w-fg)" }}>{summary}</div>
+            ) : (
+              last && <div title={last} className={`font-medium text-[color:var(--w-fg)] ${size === "lg" ? "line-clamp-2 break-words text-base" : "truncate text-sm"}`}>{last}</div>
+            )}
             {status && <div className="mt-1 truncate text-xs text-[color:var(--w-faint)]">{status}</div>}
             {counts.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1.5">
@@ -92,7 +104,7 @@ export default function Notifications(p: NotificationsProps) {
                 {lines.slice(0, fit).map((l, i) => {
                   const c = typeColor(l.type);
                   return (
-                    <div key={i} className={`flex ${room ? "items-center" : "items-baseline"} gap-2 ${text}`} style={room ? { minHeight: rowH - 4 } : undefined}>
+                    <div key={i} className={`flex ${room ? "items-center" : "items-baseline"} gap-2 ${text}`} style={room ? { minHeight: pitch - 4 } : undefined}>
                       <span className="shrink-0 font-mono tabular-nums text-[color:var(--w-muted)]">{l.time}</span>
                       <span
                         className="shrink-0 rounded px-1.5 py-px text-micro tracking-wider text-[color:var(--w-muted)]"

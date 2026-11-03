@@ -60,6 +60,13 @@ export function volumeFlowOf(d: Data, volumeId: string): Flow {
   return container ? flowOf(d, container) : "output";
 }
 
+/** The level-meter container of a volume-plugin entry (matched by device GUID; the entry `default` is `default-audio`), if the plugin reports one. */
+export function levelContainerOf(d: Data, volumeId: string): string | undefined {
+  if (volumeId === "default") return audioIds(d).includes("default-audio") ? "default-audio" : undefined;
+  const g = guidIn(volumeId);
+  return g ? audioIds(d).find((id) => guidOf(id) === g) : undefined;
+}
+
 /** Whether a volume-plugin entry is one of the picked devices (container ids; `default-audio` is the entry `default`). */
 export const volumePicked = (volumeId: string, picks: readonly string[]): boolean =>
   picks.some((x) => (x === "default-audio" ? volumeId === "default" : guidOf(x) ? guidIn(volumeId) === guidOf(x) : x === volumeId));

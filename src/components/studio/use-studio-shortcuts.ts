@@ -17,6 +17,7 @@ export type ShortcutAction =
   | { type: "undo" }
   | { type: "redo" }
   | { type: "zoom-fit" }
+  | { type: "zoom-selection" }
   | { type: "zoom-in" }
   | { type: "zoom-out" }
   | { type: "palette" }
@@ -166,6 +167,7 @@ function zoneAction(e: KeyInput, ctx: ShortcutContext): ShortcutAction | null {
   if (e.key === "h" || e.key === "H") return e.shiftKey ? null : { type: "toggle-visible" };
   if (e.key === "?") return { type: "cheatsheet" };
   if (e.key === "f" || e.key === "F") return e.shiftKey ? { type: "refresh-preview" } : { type: "toggle-preview" };
+  if (e.key === "2" && !e.shiftKey) return { type: "zoom-selection" };
   if (e.key === "+" || e.key === "=") return { type: "zoom-in" };
   if (e.key === "-") return { type: "zoom-out" };
   const arrow = ARROWS[e.key];
@@ -197,6 +199,7 @@ export const KEYS = {
   hide: "H",
   deselect: "Esc",
   fit: "Ctrl+0",
+  zoomSelection: "2",
   zoomIn: "+",
   zoomOut: "-",
   dock: "Ctrl+\\",
@@ -270,6 +273,7 @@ export const SHORTCUT_GROUPS: { title: string; items: { keys: string; label: str
     title: "Canvas",
     items: [
       { keys: KEYS.fit, label: "Fit to width" },
+      { keys: KEYS.zoomSelection, label: "Zoom to the selected widget" },
       { keys: KEYS.togglePreview, label: "Freeze the preview data / go live (this session)" },
       { keys: KEYS.refreshPreview, label: "Refresh the frozen snapshot" },
       { keys: `${KEYS.zoomIn} / Ctrl+=`, label: "Zoom in" },
@@ -316,9 +320,11 @@ export function isTyping(el: Element | null): boolean {
   );
 }
 
-/** A Layers row has the keys: its arrows (plain or with Shift) move between rows, not the selection on the canvas. */
+/** A Layers row has the keys: its arrows (plain or with Shift) move between rows, not the selection on the canvas; Ctrl+L and Ctrl+H on a row that is not selected act on that row (the tree), not on the selection. */
 export function treeKey(e: Pick<KeyboardEvent, "key" | "ctrlKey" | "metaKey" | "altKey">, el: Element | null): boolean {
-  return el instanceof HTMLElement && el.getAttribute("role") === "treeitem" && e.key.startsWith("Arrow") && !e.ctrlKey && !e.metaKey && !e.altKey;
+  if (!(el instanceof HTMLElement) || el.getAttribute("role") !== "treeitem") return false;
+  if (e.key.startsWith("Arrow")) return !e.ctrlKey && !e.metaKey && !e.altKey;
+  return (e.ctrlKey || e.metaKey) && !e.altKey && /^[lh]$/i.test(e.key) && el.getAttribute("aria-selected") !== "true";
 }
 
 /** Whether a dialog or menu is open over the studio. */

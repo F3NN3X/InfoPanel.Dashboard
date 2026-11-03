@@ -82,7 +82,7 @@ function Footprint({ item, on, compact }: { item: AddItem; on: boolean; compact:
           <span key={i} className="rounded-[1px]" style={{ width: cell, height: cell, background: on ? "#a1a1aa" : "#4a4a53" }} />
         ))}
       </span>
-      <span className="font-ui-mono text-[10px] leading-3 text-ui-hint">{sizeText(item.w, item.h)}</span>
+      <span className="font-ui-mono text-nano leading-3 text-ui-hint">{sizeText(item.w, item.h)}</span>
     </span>
   );
 }
@@ -148,9 +148,9 @@ export function AddRow({ item, id, highlighted, compact, tag, onPick, onHover, o
             }}
           />
         ) : (
-          <span className="truncate text-[12.5px] font-medium leading-4 text-ui-1">{item.name}</span>
+          <span className="truncate text-body font-medium leading-4 text-ui-1">{item.name}</span>
         )}
-        {!compact && <span className="mt-0.5 truncate text-[11.5px] leading-[15px] text-ui-hint">{item.blurb}</span>}
+        {!compact && <span className="mt-0.5 truncate text-micro leading-[15px] text-ui-hint">{item.blurb}</span>}
         <span id={`${id}-desc`} className="sr-only">
           {item.description}
         </span>
@@ -159,7 +159,7 @@ export function AddRow({ item, id, highlighted, compact, tag, onPick, onHover, o
         <span
           className={cn(
             "shrink-0 rounded-[4px] px-1.5 py-0.5 text-micro",
-            tag === "best" ? "bg-[oklch(0.72_0.15_255/0.16)] text-[oklch(0.85_0.10_255)]" : "bg-ui-subtle text-ui-hint"
+            tag === "best" ? "bg-ui-accent/16 text-ui-accent-tag-text" : "bg-ui-subtle text-ui-hint"
           )}
         >
           {tag === "best" ? "Best fit" : `Needs ${needs}`}

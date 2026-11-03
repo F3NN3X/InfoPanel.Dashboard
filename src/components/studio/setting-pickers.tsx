@@ -47,7 +47,7 @@ export function MultiSelect({
             role="checkbox"
             aria-checked={on}
             onClick={() => toggle(o.value)}
-            className="flex items-center gap-2 px-0.5 py-1 text-left text-caption text-[#d4d4da]"
+            className="flex items-center gap-2 px-0.5 py-1 text-left text-caption text-ui-strong-text"
           >
             <Box className={cn("h-[18px] w-[18px] shrink-0", on ? "text-ui-accent" : "text-ui-4")} />
             <span className="min-w-0 flex-1 truncate">{o.label}</span>
@@ -156,8 +156,8 @@ export function AudioControlPicker({ def, value, onChange, lead, hint }: PickerP
     blank = "Choose a device";
   } else {
     options = [
-      ...allChannels(audio, "windows").map((c) => ({ value: c.id, label: `Windows · ${c.name}` })),
-      ...allChannels(audio, "wavelink", "all").map((c) => ({ value: c.id, label: `Wave Link · ${c.name}` })),
+      ...allChannels(audio, "windows").map((c) => ({ value: c.id, label: `Windows Â· ${c.name}` })),
+      ...allChannels(audio, "wavelink", "all").map((c) => ({ value: c.id, label: `Wave Link Â· ${c.name}` })),
     ];
     blank = def.multiple ? "" : "Master";
   }
@@ -209,7 +209,7 @@ function DeviceRow({ on, multi, label, detail, onClick }: { on: boolean; multi: 
       role={multi ? "checkbox" : "radio"}
       aria-checked={on}
       onClick={onClick}
-      className="flex w-full items-center gap-2 rounded-md px-0.5 py-1 text-left text-caption text-[#d4d4da] hover:bg-ui-hover"
+      className="flex w-full items-center gap-2 rounded-md px-0.5 py-1 text-left text-caption text-ui-strong-text hover:bg-ui-hover"
     >
       <Mark className={cn("h-4 w-4 shrink-0", on ? "text-ui-accent" : "text-ui-4")} />
       <span className="min-w-0 flex-1 truncate">{label}</span>

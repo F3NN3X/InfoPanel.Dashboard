@@ -38,7 +38,7 @@ function areaCanvas(w: number, h: number): StoredCanvas {
   return { ...stored, source: { name: "Area", origin: "new", importedAt: "" }, assets: [{ name: "logo.png", hash: "a".repeat(64), type: "png", size: PNG.length }] };
 }
 
-const FILL = { width: 1024, height: 600, cols: 4, rows: 3, fit: "fill" as const };
+const FILL = { width: 1024, height: 600, cols: 4, rows: 3, fit: "fill" as const, padding: 0 };
 const probe = { ...FILL, id: "probe", name: "probe", pages: [] } as MonitorProfile;
 const AREA = zone("area", CANVAS_ID, [3, 2, 2, 2]);
 const box = cellBox(probe, AREA);

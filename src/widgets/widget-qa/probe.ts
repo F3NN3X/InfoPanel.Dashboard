@@ -33,7 +33,8 @@ function clipped(el: Element, root: Element, axis: "x" | "y"): boolean {
 export function probeBox(root: Element): Issue[] {
   const rootBox = toBox(root.getBoundingClientRect());
   const issues: Issue[] = [];
-  const leaves: { el: Element; box: Box }[] = [];
+  // A wrapped inline run paints on its line boxes, not in its bounding box (which spans the lines between them).
+  const leaves: { el: Element; boxes: Box[] }[] = [];
   for (const el of root.querySelectorAll("*")) {
     if (el.closest("svg") && el.tagName.toLowerCase() !== "svg") continue;
     const rect = el.getBoundingClientRect();
@@ -43,8 +44,10 @@ export function probeBox(root: Element): Issue[] {
     const dx = clipped(el, root, "x") ? 0 : out.dx;
     const dy = clipped(el, root, "y") ? 0 : out.dy;
     if (dx || dy) issues.push({ selector: selectorOf(el, root), kind: "exceeds", dx, dy });
-    if (el.children.length === 0 && el.textContent?.trim()) leaves.push({ el, box });
+    if (el.children.length === 0 && el.textContent?.trim()) leaves.push({ el, boxes: [...el.getClientRects()].map(toBox) });
     const cs = getComputedStyle(el);
+    // screen-reader-only text (a tone cue's "warning: ") is a 1px clip by design
+    if (el.classList.contains("sr-only")) continue;
     const cut = clippedContent({
       tag: el.tagName,
       overflowX: cs.overflowX,
@@ -62,7 +65,7 @@ export function probeBox(root: Element): Issue[] {
   }
   for (let i = 0; i < leaves.length; i++) {
     for (let j = i + 1; j < leaves.length; j++) {
-      const area = overlaps(leaves[i].box, leaves[j].box, 2);
+      const area = Math.max(0, ...leaves[i].boxes.flatMap((a) => leaves[j].boxes.map((b) => overlaps(a, b, 2))));
       if (area) issues.push({ selector: `${selectorOf(leaves[i].el, root)}  X  ${selectorOf(leaves[j].el, root)}`, kind: "overlaps", dx: area, dy: 0 });
     }
   }

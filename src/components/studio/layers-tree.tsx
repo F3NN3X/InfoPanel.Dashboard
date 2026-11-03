@@ -169,7 +169,7 @@ export function LayersTree({ host }: { host: LayersHost }) {
   const focusRow = (id: string | undefined) => {
     if (id !== undefined) listRef.current?.querySelector<HTMLElement>(`[data-row-id="${CSS.escape(id)}"]`)?.focus();
   };
-  /** Keys on a row (the tree's own, SPEC §14 keyboard use): Up and Down move between rows, Home and End go to the ends, Left and Right close and open a group, Shift extends the selection, Enter or Space selects, Ctrl+Space toggles. */
+  /** Keys on a row (the tree's own, SPEC §14 keyboard use): Up and Down move between rows, Home and End go to the ends, Left and Right close and open a group, Shift extends the selection, Enter or Space selects, Ctrl+Space toggles, Ctrl+L and Ctrl+H on an unselected row lock and hide it. */
   const onRowKey = (id: string, e: KeyboardEvent<HTMLDivElement>) => {
     if (e.target !== e.currentTarget) return;
     if ((e.key === "ArrowDown" || e.key === "ArrowUp") && !e.altKey && !e.ctrlKey && !e.metaKey) {
@@ -193,6 +193,13 @@ export function LayersTree({ host }: { host: LayersHost }) {
         else if (group) focusRow(visible[visible.indexOf(id) + 1]);
       } else if (open) host.setOpen([id], false);
       else if (row.parentId) focusRow(row.parentId);
+    } else if (!e.defaultPrevented && (e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && /^[lh]$/i.test(e.key) && !selected.includes(id)) {
+      // A focused row that is not selected: the page handler leaves these to the row (`treeKey`), so the key never acts on the old selection; a key it already took (its selection just changed) is not taken twice.
+      const node = rows.find((r) => r.node.id === id)?.node;
+      if (!node) return;
+      e.preventDefault();
+      if (e.key.toLowerCase() === "l") host.setLocked(id, !node.locked);
+      else host.setHidden(id, !node.hidden);
     } else if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       host.select(id, e.key === " " && (e.ctrlKey || e.metaKey) ? "toggle" : "only", visible);
@@ -345,7 +352,7 @@ export function LayersTree({ host }: { host: LayersHost }) {
               ) : (
                 <span className="w-[14px] shrink-0" />
               )}
-              <span className={cn("grid h-5 w-5 shrink-0 place-items-center rounded-[5px]", widget ? "bg-ui-accent/14 text-ui-accent" : "bg-ui-hover text-ui-3", node.hidden && "opacity-45")}>
+              <span title={group ? "group" : KIND_WORD[node.kind ?? "item"]} className={cn("grid h-5 w-5 shrink-0 place-items-center rounded-[5px]", widget ? "bg-ui-accent/14 text-ui-accent" : "bg-ui-hover text-ui-3", node.hidden && "opacity-45")}>
                 <Icon className="h-[13px] w-[13px]" strokeWidth={1.75} />
               </span>
               {renaming === node.id ? (
@@ -376,7 +383,11 @@ export function LayersTree({ host }: { host: LayersHost }) {
                 </span>
               )}
               {rowState(node) && <span className="sr-only">, {rowState(node)}</span>}
-              <span className={cn("shrink-0 font-ui-mono text-[10px] text-ui-hint", node.hidden && "opacity-45")}>{group ? `group · ${node.children?.length ?? 0}` : KIND_WORD[node.kind ?? "item"]}</span>
+              {/* The kind is the icon's tooltip and screen-reader text, not a column of mono words. */}
+              <span className="sr-only" data-testid="layers-row-kind">
+                {group ? "group" : KIND_WORD[node.kind ?? "item"]}
+              </span>
+              {group && <span className={cn("shrink-0 font-ui-mono text-nano text-ui-hint", node.hidden && "opacity-45")}>{node.children?.length ?? 0}</span>}
               {node.free && !widget && (
                 <span role="img" title="Placed freely (Alt)" aria-label="Placed freely (Alt)" className="inline-flex shrink-0 text-ui-4">
                   <Move className="h-3 w-3" aria-hidden="true" />
@@ -400,7 +411,7 @@ export function LayersTree({ host }: { host: LayersHost }) {
                 }}
                 className={cn(
                   "relative grid h-[18px] w-[16px] shrink-0 place-items-center after:absolute after:-inset-1 after:content-['']",
-                  node.locked ? "text-ui-2" : "text-ui-hint opacity-0 group-hover/row:opacity-100",
+                  node.locked ? "text-ui-2" : cn("text-ui-hint opacity-0 group-hover/row:opacity-100", isSelected && "opacity-100"),
                 )}
               >
                 <Lock className="h-[13px] w-[13px]" />
@@ -416,7 +427,10 @@ export function LayersTree({ host }: { host: LayersHost }) {
                   e.stopPropagation();
                   host.setHidden(node.id, !node.hidden);
                 }}
-                className={cn("relative grid h-[18px] w-[16px] shrink-0 place-items-center after:absolute after:-inset-1 after:content-['']", node.hidden ? "text-ui-2" : "text-ui-hint")}
+                className={cn(
+                  "relative grid h-[18px] w-[16px] shrink-0 place-items-center after:absolute after:-inset-1 after:content-['']",
+                  node.hidden ? "text-ui-2" : cn("text-ui-hint opacity-0 group-hover/row:opacity-100", isSelected && "opacity-100")
+                )}
               >
                 {node.hidden ? <EyeOff className="h-[13px] w-[13px]" /> : <Eye className="h-[13px] w-[13px]" />}
               </button>

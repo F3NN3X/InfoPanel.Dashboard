@@ -1,4 +1,3 @@
-import { Cast } from "lucide-react";
 import type { DataApiState } from "@/lib/data-api";
 import { cn } from "@/lib/utils";
 import type { Phase } from "@/settings/types";
@@ -26,6 +25,8 @@ export interface StatusBarData {
 export interface StatusBarProps extends StatusBarData {
   /** Edit: what the kiosks show ("Kiosks show Main · rotation paused"), a button that opens Live. */
   kioskChip?: string;
+  /** The kiosks' rotation is paused: the chip's dot is amber. */
+  paused?: boolean;
   onNavigate: (target: NavTarget) => void;
   onOpenLive: () => void;
 }
@@ -41,7 +42,7 @@ const DOT: Readonly<Record<Tone, string>> = {
 
 const TEXT: Readonly<Record<Tone, string>> = {
   ok: "text-ui-3",
-  warn: "text-[oklch(0.88_0.10_85)]",
+  warn: "text-ui-warn-text",
   bad: "text-ui-danger",
   idle: "text-ui-3",
 };
@@ -84,15 +85,8 @@ const SAVE_TEXT: Readonly<Record<SaveState, string>> = {
  * and a pending restart, each a button to its home; the save state at the
  * end. Narrow windows show the dots only. Pure: `useStatusBar` feeds it.
  */
-export function StatusBar({ dataApi, server, kiosks, update, restartNeeded, save, kioskChip, onNavigate, onOpenLive }: StatusBarProps) {
+export function StatusBar({ dataApi, server, kiosks, update, restartNeeded, save, kioskChip, paused, onNavigate, onOpenLive }: StatusBarProps) {
   const latency = typeof dataApi.latencyMs === "number" ? ` · ${dataApi.latencyMs} ms` : "";
-  const kioskItem: Item = {
-    id: "kiosks",
-    label: kiosks === 0 ? "No kiosks" : `${kiosks} kiosk${kiosks === 1 ? "" : "s"}`,
-    tone: kiosks === 0 ? "idle" : "ok",
-    tip: "Live control",
-    onClick: onOpenLive,
-  };
   const items: Item[] = [
     {
       id: "data-api",
@@ -102,7 +96,6 @@ export function StatusBar({ dataApi, server, kiosks, update, restartNeeded, save
       onClick: () => onNavigate({ view: "data", section: "connection", control: "url" }),
     },
     serverItem(server, onNavigate),
-    kioskItem,
     ...(update && server.kind === "desktop"
       ? [
           {
@@ -127,7 +120,7 @@ export function StatusBar({ dataApi, server, kiosks, update, restartNeeded, save
       : []),
   ];
   return (
-    <footer className="flex h-[26px] shrink-0 items-center gap-0.5 border-t border-ui-subtle bg-ui-chrome px-2 font-ui text-[11.5px] text-ui-3">
+    <footer className="flex h-[26px] shrink-0 items-center gap-0.5 border-t border-ui-subtle bg-ui-chrome px-2 font-ui text-micro text-ui-3">
       {items.map((item) => (
         <button
           key={item.id}
@@ -145,13 +138,17 @@ export function StatusBar({ dataApi, server, kiosks, update, restartNeeded, save
         </button>
       ))}
       {kioskChip && (
+        // Plain text with a dot like its neighbours: green while a kiosk is attached, amber when the rotation is paused, hollow with none.
         <button
           type="button"
           title="Open Live control"
           onClick={onOpenLive}
-          className="flex h-[20px] min-w-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-dashed border-[oklch(0.78_0.15_150/0.5)] px-2 text-micro text-ui-ok-text transition-colors hover:bg-[oklch(0.78_0.15_150/0.12)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent"
+          className={cn(
+            "flex h-[22px] min-w-0 items-center gap-1.5 whitespace-nowrap rounded-[5px] px-2 hover:bg-ui-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent",
+            TEXT[kiosks > 0 ? "ok" : "idle"]
+          )}
         >
-          <Cast aria-hidden className="h-3 w-3 shrink-0" />
+          <span aria-hidden className={cn("h-[7px] w-[7px] shrink-0", DOT[kiosks === 0 ? "idle" : paused ? "warn" : "ok"])} />
           <span className="truncate max-[959px]:sr-only">{kioskChip}</span>
         </button>
       )}

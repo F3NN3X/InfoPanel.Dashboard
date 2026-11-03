@@ -362,6 +362,7 @@ Current `view` families:
 | `FpsMonitor` | `frametime` / `gauge` / `trend` (→ `sparkline`) |
 | `Bluetooth` | `full` / `devices` / `status` (→ `showStatus`, `showDevices`, `showBattery`) |
 | `Weather` | `full` / `now` / `forecast` / `minimal` (→ `showForecast`, `showStats`, `showFeels`; `forecast` also swaps in the forecast layout) |
+| `StreamMixer`, `VolumeMixer`, `WaveLink` | `rows` / `strips` / `lcd` (no bundle; see [the mixer views](#mixer-views--streammixer-volumemixer-wavelink)) |
 
 `NetworkThroughput` had `speeds` / `totals`; it only bundled Session totals and
 the sparkline, so it was removed: **Session totals** decides at every size (at
@@ -397,6 +398,72 @@ volume and peak readouts. Options (besides the shared `showDevice`,
 The old Audio widget's pro meter (`audiomodern`, `view: "audiometer"`) loads
 as a MeterBridge zone (config v4): `meterVariant` segmented → `ladder: led`,
 else `smooth`; `meterOrientation` → `orientation`; its source → `channels`.
+
+### Mixer views — `StreamMixer`, `VolumeMixer`, `WaveLink`
+
+The three mixers share a `view` (D-21): **Rows** (`rows`, the default) is each widget's own layout, unchanged, and
+what a widget saved before the views draws. **Strips** (`strips`) is an audiocn `Mixer` of `ChannelStrip`s: the name
+and status line, a meter, a `Fader` on its track with a `DbScale`, an `LcdDisplay` readout and the mute control;
+Wave Link's input devices (its Show filter and Meters to show decide which) are a group of their own, read-only, after a separator, and masters (Stream Mixer's Master, Wave Link's mixes) sit after another `MixerSeparator`. **LCD** (`lcd`) is one `LcdDisplay`
+with a line per channel (name and level, or MUTE). The components are vendored in `src/components/ui/audiocn/`
+(MIT, its `LICENSE`); `src/widgets/core/mixer-views.tsx` draws them, and loads with the three widgets only.
+
+- **Fit** (`mixerFit`, `core/mixer-fit.ts`): a view that can't fit one strip or line draws the rows; one that can't
+  fit every channel shows fewer and a "+n" mark. A short zone drops a strip's LCD before it drops the view. A span where
+  the widget draws its summary (Stream Mixer and Volume Mixer up to 2x2, the 2x4 column) still draws it.
+- **Writes**: Stream Mixer's faders write as its rows do (pointer, and the keyboard: arrows by Arrow-key step, Page
+  Up / Down by ten steps, Home / End) through Base UI's slider (`role="slider"`), and its mute buttons as well. Volume
+  Mixer and Wave Link write nothing: their faders are a track and fill with no knob and no slider role, and their
+  mute is a mark.
+- **Meters**: audiocn's `LevelMeter` (two tracks, L and R) paints each strip from the channel's frames, without
+  React re-renders; the rows view keeps the widgets' own meters. Wave Link's frames are its meter emitters (channel,
+  input device and mix); Volume Mixer's and Stream Mixer's Master and Mic are the level-meter plugin's
+  `left-channel` / `right-channel` of the device (`core/level-source.ts`); an app's level is not reported, so its
+  meter stays at silence, as does any device the plugin does not report. Nothing is made up.
+- **Colours**: inside a view the audiocn tokens follow the widget (`core/mixer-views.css`): text from `--w-fg` /
+  `--w-muted`, fills from the text colour at a low share, the fader fill and the LCD's Channel ink from the
+  channel's colour. LCD screen Auto is a backlit screen on a light surface and glowing ink on the others.
+
+| key | options | default | shown |
+|---|---|---|---|
+| `view` | rows / strips / lcd | `rows` | always |
+| `orientation` (Wave Link: `meterOrientation`, in every view) | vertical / horizontal | `vertical` | Strips, LCD |
+| `stripVariant` | default (Filled) / card / ghost (Plain); masters are always `master` | `default` | Strips |
+| `stripSize` | sm / default / lg (the fader's thumb and track) | `default` | Strips |
+| `stripAccent` | the channel's colour tag | on | Strips |
+| `stripIcon` | the channel icon (horizontal strips) | on | Strips |
+| `stripSub` | the status line | on | Strips |
+| `stripMeter` | the meter | on | Strips |
+| `meterVariant` (Wave Link's existing row, also in Rows) | solid / segmented / gradient | `solid` | Strips with the meter |
+| `meterSegments` | LEDs of the segmented meter, 4 to 64 | `24` | segmented, More |
+| `meterMinDb`, `meterMaxDb` | the meter's range (floor −120 to −12, top −6 to 6, at least 6 dB apart) | `-60`, `0` | Strips with the meter, More |
+| `meterBallistics` (Wave Link's existing row, also in Rows) | peak / vu / instant | `peak` | Strips with the meter |
+| `meterTaper` | linear / audio (the meter's scale) | `linear` | Strips with the meter, More |
+| `meterWarnDb`, `meterClipDb` | where the amber and red zones start (dBFS) | `-20`, `-9` | Strips with the meter, More |
+| `meterHold` | the peak-hold marker | on | Strips with the meter, More |
+| `meterValue` | a dB readout of the level | off | Strips with the meter |
+| `meterClip` | a clip light | off | Strips with the meter |
+| `stripLcd` | the LCD readout (else plain text) | on | Strips |
+| `stripStatus` | a Live / Muted badge (horizontal strips) | off | Strips, More |
+| `faderVariant` | default (Round) / console | `default` | Strips |
+| `faderRange` | the level fill | on | Strips |
+| `faderScale` | the dB / % scale | on | Strips |
+| `scaleLabels` | the scale's labels | on | Strips with a scale, More |
+| `scaleSide` | start / end (before or after the track) | `start` | Strips with a scale, More |
+| `scaleTicks` | comma-separated marks; `""` = the fader's own | `""` | Strips with a scale, More |
+| `faderTaper` | linear / audio (Wave Link's dB faders) | `linear` | Wave Link, Strips |
+| `faderStep` | 1 to 10 % per arrow key | `1` | Stream Mixer, Strips, More |
+| `faderWheel` | the mouse wheel moves a focused fader | off | Stream Mixer, Strips, More |
+| `lcdVariant` | primary (Channel) / amber / green / cyan / red | `primary` | LCD, Strips with the LCD |
+| `lcdAppearance` | auto / light (Backlit) / dark (Glowing) | `auto` | LCD, Strips with the LCD |
+| `lcdSize` | sm / default / lg | `sm` | LCD, Strips with the LCD |
+| `lcdMatrix` | the dot matrix | on | as above, More |
+| `lcdScanlines` | the scanlines | on | as above, More |
+| `lcdStatus` | the status pixel (blinks while the source is live) | on | as above, More |
+
+Stream Mixer's own `fader` (LEDs / Bar) is the rows view's and shows only there. Wave Link draws its faders in dB
+from −60 to 0 with plugin 1.2+ (`levelDb`), else in %. No config version: a missing key is its default
+(`mixerLookOf`, `registry/audio-settings.ts`).
 
 ### Audio visualiser — NowPlaying `progress: "visualizer"`, the Visualizer widget
 
@@ -513,7 +580,8 @@ kiosk's WebView2 host auto-grants it via a `PermissionRequested` handler
 | `liveCapture` | on / off | `off` |
 | `liveSources` | capture devices (one labeled row each); `""` = fall back to the sensor row | `""` |
 
-The audiocn views are options of the Audio and Now Playing widgets only (the classic
+The audiocn audio views are options of the Audio and Now Playing widgets, and the mixer views of the three
+mixers (above; the classic
 `audio` / `spotify` / `media` modules were retired in the 2026-10-09
 cleanup). The static `Waveform` component remains vendored but is no longer
 used by the widgets (the `waveform` view is now live).

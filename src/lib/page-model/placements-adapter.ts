@@ -10,7 +10,7 @@ import type { StoredItem } from "../infopanel/import/stored.ts";
 import { atBox } from "./stored-items.ts";
 import { applyOps, boxOf, nearestCells, samePlace, type GroupNode, type LayerNode, type PageGrid, type PageModel, type PageOp, type PartKind, type PartNode, type PartPlace } from "./model.ts";
 
-type GridProfile = Pick<MonitorProfile, "width" | "height" | "cols" | "rows" | "fit" | "gap" | "padding">;
+type GridProfile = Pick<MonitorProfile, "width" | "height" | "cols" | "rows" | "fit" | "gap" | "padding" | "edges">;
 
 /** The screen's grid in its design px: the whole page, the cells inside the kiosk's padding (a scrolling page's rows fixed). */
 export function screenGrid(profile: GridProfile): PageGrid {

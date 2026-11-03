@@ -22,6 +22,7 @@ export type CommandAction =
   | { type: "toggle-dock" }
   | { type: "toggle-advanced" }
   | { type: "zoom-fit" }
+  | { type: "zoom-selection" }
   | { type: "zoom-in" }
   | { type: "zoom-out" }
   | { type: "save" }
@@ -137,9 +138,9 @@ const DESTINATIONS: { id: string; label: string; target: NavTarget; hint?: strin
   { id: "alerts:history", label: "Alerts & Island › History", target: { view: "alerts", tab: "history" } },
   { id: "settings:window", label: "Settings", target: { view: "settings" }, hint: KEYS.settings },
   { id: "settings:studio", label: "Settings › Studio", target: { view: "settings", tab: "studio" }, hint: "editor preferences" },
-  { id: "settings:left-width", label: "Left panel width", target: { view: "settings", tab: "studio", section: "editor" }, hint: "Settings › Studio › Editor" },
-  { id: "settings:add-density", label: "Widget list density", target: { view: "settings", tab: "studio", section: "editor" }, hint: "Settings › Studio › Editor" },
-  { id: "settings:add-preview", label: "Preview on hover", target: { view: "settings", tab: "studio", section: "editor" }, hint: "Settings › Studio › Editor" },
+  { id: "settings:left-width", label: "Left panel width", target: { view: "settings", tab: "studio", section: "panels" }, hint: "Settings › Studio › Panels" },
+  { id: "settings:add-density", label: "Widget list density", target: { view: "settings", tab: "studio", section: "panels" }, hint: "Settings › Studio › Panels" },
+  { id: "settings:add-preview", label: "Preview on hover", target: { view: "settings", tab: "studio", section: "panels" }, hint: "Settings › Studio › Panels" },
   { id: "settings:app", label: "Settings › App", target: { view: "settings", tab: "app" }, hint: "startup, server and updates" },
 ];
 
@@ -340,7 +341,7 @@ function themeSettingCommands(): Command[] {
     s.settings.map(
       (def): Command => ({
         id: `theme-setting:${s.id}:${def.key}`,
-        label: `Go to setting: ${def.label}`,
+        label: def.label,
         group: "Theme",
         hint: `Theme › ${s.title}`,
         action: { type: "goto-theme-setting", section: s.id, key: def.key },

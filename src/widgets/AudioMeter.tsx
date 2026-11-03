@@ -1,7 +1,7 @@
 import type { ModuleSettings } from "@/modules/types";
 import { useFastSensors } from "@/hooks/useSensors";
 import { AUDIO } from "./audio-device";
-import { Widget, useFitRows, shell, fmt, Num, Spark, LedLadder, slideX, STATE, hue, useHistory, useMeterBallistics, clamp, type BallisticsPreset, type ShellProps } from "./kit";
+import { Metric, Stat, Widget, roomy, useFitRows, shell, fmt, Num, Spark, LedLadder, slideX, STATE, hue, useHistory, useMeterBallistics, clamp, type BallisticsPreset, type ShellProps } from "./kit";
 import { audioIdsIn, pickedIds, readDevice, type AudioDevice, type FlowFilter } from "./audio-data";
 import { meta, AUDIO_WARN_DB, AUDIO_HOT_DB } from "./meta/AudioMeter";
 
@@ -106,6 +106,7 @@ export default function AudioMeter(p: AudioMeterProps) {
   return (
     <Widget
       {...shell(p)}
+      fixedType
       title={p.title ?? (bridge ? "Audio levels" : name)}
       icon="graphic_eq"
       studio={
@@ -123,7 +124,7 @@ export default function AudioMeter(p: AudioMeterProps) {
         )
       }
     >
-      {({ size, h }) => {
+      {({ size, h, outerW, outerH }) => {
         if (bridge && p.orientation === "horizontal") {
           // every device (up to 6) gets a row: the row shrinks to fit, down to two thin ladders
           const gap = 4,
@@ -176,7 +177,7 @@ export default function AudioMeter(p: AudioMeterProps) {
                   r = step(m.id + "r", m.r);
                 return (
                   <div key={m.id} className="flex min-w-0 flex-1 flex-col items-center gap-1.5">
-                    <span className="text-[11px] font-semibold tabular-nums">{fmt(m.level)}%</span>
+                    <span className="text-micro font-semibold tabular-nums">{fmt(m.level)}%</span>
                     <div className="flex min-h-0 w-full flex-1 justify-center gap-[3px]">
                       <div className="flex w-2">
                         <LedLadder zones={zones} value={l.v} vertical n={size === "lg" ? 28 : 16} color={lc} hotColor={hc} hold={l.hold} />
@@ -209,8 +210,14 @@ export default function AudioMeter(p: AudioMeterProps) {
               </div>
             </div>
           );
+        // 4x4: the peak is the hero above the meters (the stat row drops its Peak); 4x2 and up gets a dB scale under the LED row
+        const big = roomy(outerW, outerH);
+        // a portrait card (taller than 1.4 of its width) lets the channel rows grow into its height, 48 to 160px each
+        const portrait = outerW > 0 && outerH >= 200 && outerH > outerW * 1.4;
+        const rows = st === "led" || st === "bar" || st === "solid";
         return (
           <div className="flex h-full flex-col justify-center gap-2">
+            {big && rows && showDetails && <Metric label="Peak" value={one.peak} d={1} unit="dB" px={56} className="mb-2" />}
             {st === "vu" ? (
               <div className="flex min-h-0 flex-1 gap-2">
                 {channels.map(([c, v]) => (
@@ -275,7 +282,7 @@ export default function AudioMeter(p: AudioMeterProps) {
             ) : (
               channels.map(([c, v, marker]) => {
                                 return (
-                  <div key={c} className={`flex items-center gap-2 ${size === "lg" ? "h-5" : "h-3"}`}>
+                  <div key={c} className={`flex items-center gap-2 ${portrait ? "max-h-40 min-h-12 flex-1" : size === "lg" ? "h-5" : "h-3"}`}>
                     <span className="w-3 text-micro font-semibold text-[color:var(--w-faint)]">{c}</span>
                     {st === "bar" || st === "solid" ? (
                       <div className="relative h-full flex-1 overflow-hidden rounded-full bg-[color:var(--w-track)]">
@@ -302,6 +309,13 @@ export default function AudioMeter(p: AudioMeterProps) {
                 );
               })
             )}
+            {rows && st !== "bar" && size !== "sm" && (
+              <div aria-hidden className="relative -mt-1 ml-5 h-3 font-mono text-micro tabular-nums text-[color:var(--w-faint)]">
+                {[0, -6, -12].map((db) => (
+                  <span key={db} className={`absolute ${db === 0 ? "-translate-x-full" : "-translate-x-1/2"}`} style={{ left: `${Math.min(100, pctOf(db))}%` }}>{db}</span>
+                ))}
+              </div>
+            )}
             {p.showVolume && Number.isFinite(one.vol) && (
               <div className="flex items-center gap-2 text-micro text-[color:var(--w-faint)]">
                 <span>Vol</span>
@@ -312,17 +326,14 @@ export default function AudioMeter(p: AudioMeterProps) {
               </div>
             )}
             {showDetails && size !== "sm" && (
-              <div className="mt-1 grid grid-cols-4 gap-3 font-mono text-[11px]">
+              <div className={`mt-1 grid gap-3 ${big && rows && showDetails ? "grid-cols-3" : "grid-cols-4"}`}>
                 {[
-                  ["Peak", `${fmt(one.peak, 1)} dB`],
-                  ["RMS", `${fmt(one.rms, 1)} dB`],
-                  ["Hold", `${fmt(one.hold, 1)} dB`],
-                  ["Level", `${fmt(one.level, 1)}%`],
-                ].map(([l, v]) => (
-                  <div key={l} className="flex min-w-0 flex-col">
-                    <span className="font-sans text-micro text-[color:var(--w-faint)]">{l}</span>
-                    <span className="truncate text-[color:var(--w-fg)]">{v}</span>
-                  </div>
+                  ...(big && rows && showDetails ? [] : [["Peak", fmt(one.peak, 1), "dB"]]),
+                  ["RMS", fmt(one.rms, 1), "dB"],
+                  ["Hold", fmt(one.hold, 1), "dB"],
+                  ["Level", fmt(one.level, 1), "%"],
+                ].map(([l, v, u]) => (
+                  <Stat key={l} label={l} value={v} unit={u} />
                 ))}
               </div>
             )}

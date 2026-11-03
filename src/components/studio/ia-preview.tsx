@@ -20,7 +20,7 @@ import { useStatusBar } from "./use-status-bar";
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="space-y-3 border-b border-ui-subtle py-5">
-      <h2 className="text-[12.5px] font-semibold text-ui-1">{title}</h2>
+      <h2 className="text-body font-semibold text-ui-1">{title}</h2>
       {children}
     </section>
   );
@@ -138,7 +138,7 @@ function Gallery() {
   return (
     <div className="min-h-screen bg-ui-panel p-6 font-ui text-body text-ui-2">
       <div className="mx-auto max-w-[860px]">
-        <h1 className="text-[14px] font-semibold text-ui-1">Settings IA · shared pieces</h1>
+        <h1 className="text-lead font-semibold text-ui-1">Settings IA · shared pieces</h1>
         <p className="text-micro text-ui-4">Inheritance chips, LinkRow and the status bar (IMPLEMENTATION_PLAN phase 1).</p>
 
         <Section title="InheritChip: every state">
@@ -154,7 +154,7 @@ function Gallery() {
         </Section>
 
         <Section title="Resolved live over a sample config (click a chip; edits apply)">
-          <div className="flex items-center gap-3 text-[11.5px]">
+          <div className="flex items-center gap-3 text-micro">
             <button type="button" className="rounded-md border border-ui-strong px-2 py-1 hover:bg-ui-hover" onClick={() => setConfig((c) => withLock(c, "desk", "type", !locked))}>
               {locked ? "Unlock" : "Lock"} Typography on Desk bar
             </button>
@@ -162,7 +162,7 @@ function Gallery() {
               Reset sample
             </button>
           </div>
-          <table className="w-full border-separate border-spacing-y-2 text-left text-[11.5px]">
+          <table className="w-full border-separate border-spacing-y-2 text-left text-micro">
             <thead>
               <tr className="text-ui-4">
                 <th className="font-medium" />

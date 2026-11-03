@@ -440,7 +440,7 @@
         "tests/e2e/widget-qa-parity.spec.ts",
         "tests/e2e/visualiser-round-trip.spec.ts"
       ],
-      "checks": ["typecheck", "unit", "e2e"],
+      "checks": ["typecheck", "unit", "build", "budgets", "e2e"],
       "report": ["npm run audit:views", "npm run qa:shots"],
       "note": "The registry schema tests and key-audit read docs/redesign/widgets/docs/widgets/*.md and .facts.json: a change there is a test change."
     },
@@ -465,13 +465,14 @@
         "tests/components/*.test.*",
         "tests/components/widgets/**",
         "tests/components/ui/**",
+        "tests/components/island/**",
         "tests/lib/island/**",
         "tests/lib/panel-*.test.ts",
         "tests/lib/roving.test.ts",
         "tests/lib/roving-keys.dom.test.tsx",
         "tests/lib/shipped-panels.test.ts"
       ],
-      "checks": ["typecheck", "unit"]
+      "checks": ["typecheck", "unit", "build", "budgets"]
     },
     {
       "id": "styles-themes",
@@ -588,7 +589,7 @@
         "tests/e2e/frozen-preview.spec.ts",
         "tests/e2e/theme-switch.spec.ts"
       ],
-      "checks": ["typecheck", "unit", "e2e"]
+      "checks": ["typecheck", "unit", "build", "budgets", "e2e"]
     },
     {
       "id": "library",
@@ -608,7 +609,7 @@
         "tools/gen-gauge-icons.mjs"
       ],
       "tests": ["tests/components/gauges/**", "tests/lib/gauge-studio/**", "tests/lib/infopanel/gauges/**"],
-      "checks": ["typecheck", "unit"]
+      "checks": ["typecheck", "unit", "build", "budgets"]
     },
     {
       "id": "infopanel-import-export",

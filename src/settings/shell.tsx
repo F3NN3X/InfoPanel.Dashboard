@@ -173,14 +173,16 @@ export function RestartBar() {
   const { barVisible, pending, undoRestart, restartServer } = useStore();
   if (!barVisible) return null;
   return (
-    <div role="status" className="sticky top-0 z-[4] flex items-center gap-3 border-b border-s-bar-line bg-s-bar-bg px-7 py-2.5">
+    <div role="status" className="sticky top-0 z-[4] flex min-h-11 items-center gap-3 py-1.5 border-b border-s-bar-line bg-s-bar-bg px-7 max-sm:px-4">
       <RotateCcw className="h-[18px] w-[18px] shrink-0 text-s-bar-button" />
       <span className="flex-1 text-body text-s-bar-text">{restartText(pending)}</span>
-      <button type="button" onClick={() => void undoRestart()} className="h-[30px] cursor-pointer rounded-[7px] border border-[oklch(0.45_0.08_75)] bg-transparent px-3 text-[12.5px] text-s-bar-text">
+      <button type="button" onClick={() => void undoRestart()} className="h-[30px] cursor-pointer rounded-[7px] border border-s-bar-button-line bg-transparent px-3 text-caption text-s-bar-text">
         Undo
       </button>
-      <button type="button" onClick={() => void restartServer()} className="h-[30px] cursor-pointer rounded-[7px] border-0 bg-s-bar-button px-3 text-[12.5px] font-semibold text-[#1a1405]">
-        Restart server
+      <button type="button" aria-label="Restart server" onClick={() => void restartServer()} className="h-[30px] cursor-pointer rounded-[7px] border-0 bg-s-bar-button px-3 text-caption font-semibold text-s-bar-button-text">
+        {/* Complementary ranges, so one label shows at any fractional width. */}
+        <span className="[@media(width<=800px)]:hidden">Restart server</span>
+        <span className="[@media(width>800px)]:hidden">Restart</span>
       </button>
     </div>
   );
@@ -194,7 +196,7 @@ export function ToastView() {
     <div
       key={toastState.id}
       role="status"
-      className="fixed bottom-5 right-6 z-10 flex h-(--ui-h-field) items-center gap-2 rounded-ui-menu border border-s-input-line bg-s-divider px-3.5 text-[12.5px] text-s-t1 shadow-[0_8px_24px_rgba(0,0,0,0.4)]"
+      className="fixed bottom-5 right-6 z-10 flex h-(--ui-h-field) items-center gap-2 rounded-ui-menu border border-s-input-line bg-s-divider px-3.5 text-caption text-s-t1 shadow-[0_8px_24px_rgba(0,0,0,0.4)]"
     >
       {toastState.error ? <X className="h-4 w-4 text-s-red" /> : <CircleCheck className="h-4 w-4 text-s-green" />}
       {toastState.message}

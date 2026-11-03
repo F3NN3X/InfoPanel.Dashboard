@@ -23,6 +23,17 @@ describe("the status bar's kiosk chip", () => {
     expect(onOpenLive).toHaveBeenCalledTimes(1);
   });
 
+  it("takes the amber dot from the paused flag, not from the chip text", () => {
+    const dot = (paused: boolean) => {
+      const { container, unmount } = render(<StatusBar {...bar} kioskChip="Kiosks show Main" paused={paused} onOpenLive={vi.fn()} />);
+      const cls = container.querySelector('button[title="Open Live control"] > span')?.className ?? "";
+      unmount();
+      return cls;
+    };
+    expect(dot(true)).toContain("bg-ui-warning");
+    expect(dot(false)).toContain("bg-ui-success");
+  });
+
   it("is absent outside Edit", () => {
     render(<StatusBar {...bar} onOpenLive={vi.fn()} />);
     expect(screen.queryByText(/Kiosks show/)).toBeNull();

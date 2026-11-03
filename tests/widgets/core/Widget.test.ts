@@ -40,6 +40,15 @@ describe("Widget look", () => {
     expect(render({ radius: "12" }, { skin: "macos" })).toContain("border-radius:12px");
   });
 
+  it("carries the text colour override on a legacy surface: the shell's text variables and the --wp-* ones its surface colours read", () => {
+    const html = render({ surface: "matte-light", textColor: "#ff0000", mutedColor: "#00ff00" });
+    expect(html).toContain("--w-fg:#ff0000");
+    expect(html).toContain("--w-muted:#00ff00");
+    expect(html).toContain("--wp-fg:#ff0000");
+    expect(html).toContain("--wp-muted:#00ff00");
+    expect(html).toContain("color:var(--w-fg)");
+  });
+
   it("fades the card and blurs behind it from the look's opacity and blur", () => {
     const html = render({ surface: "glass", surfaceOpacity: 40, blur: "16" });
     expect(html).toContain("backdrop-filter:blur(min(16px, var(--wp-blur-cap, 16px)))");
@@ -93,6 +102,15 @@ describe("views", () => {
         expect(html).toContain("CPU");
       }
     expect(inCtx(h(CompactView, { c: { ...compact, img: "/a.png" }, shape: "tile", w: 150, h: 150 }))).toContain("/a.png");
+  });
+
+  it("blurs the compact value when the card asks (Hide IP), as a text card and as a hero", () => {
+    for (const kind of ["text", "value"] as const) {
+      const quiet = inCtx(h(CompactView, { c: { ...compact, value: "192.0.2.1", kind }, shape: "tile", w: 228, h: 228 }));
+      const hidden = inCtx(h(CompactView, { c: { ...compact, value: "192.0.2.1", kind, blur: true }, shape: "tile", w: 228, h: 228 }));
+      expect(quiet).not.toContain("blur-[4px]");
+      expect(hidden).toContain("blur-[4px] hover:blur-0");
+    }
   });
 
   it("glides line graphs with Graph updates: Smooth, and keeps them static when Stepped", () => {

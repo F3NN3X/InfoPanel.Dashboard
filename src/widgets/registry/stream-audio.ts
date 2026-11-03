@@ -10,7 +10,8 @@ import type { StreamMixerProps } from "../StreamMixer";
 import { meta as audioButton } from "../meta/AudioButton";
 import { meta as audioFader } from "../meta/AudioFader";
 import { meta as streamMixer } from "../meta/StreamMixer";
-import { enumSetting, oneOf, splitKeys, stringOf, textSetting } from "./settings-kit";
+import { mixerLookOf, mixerViewSettings } from "./audio-settings";
+import { enumSetting, oneOf, splitKeys, stringOf, textSetting, viewOnly } from "./settings-kit";
 
 const AudioButton = lazyWidget(() => import("../AudioButton"));
 const AudioFader = lazyWidget(() => import("../AudioFader"));
@@ -35,7 +36,9 @@ export const STREAM_MIXER_SETTINGS: ModuleSetting[] = [
   textSetting("labels", "Names", "", { group: "Channels", multiline: true, tab: "show", hint: `${LINES}, e.g. app:discord.exe = Discord` }),
   textSetting("subs", "Status lines", "", { group: "Channels", multiline: true, tab: "show", more: true, hint: LINES }),
   textSetting("icons", "Icons", "", { group: "Channels", multiline: true, tab: "show", more: true, hint: `${LINES}, with a Material Symbols name` }),
-  faderSetting(),
+  // the LED / bar fader is the rows view's; the audiocn views have their own fader rows
+  viewOnly(streamMixer, "rows")(faderSetting()),
+  ...mixerViewSettings(streamMixer, { orientationKey: "orientation", writable: true }),
 ];
 
 export const AUDIO_BUTTON_SETTINGS: ModuleSetting[] = [
@@ -62,7 +65,7 @@ export const GROUP_STREAM_AUDIO: DashboardModule[] = [
     meta: streamMixer,
     Component: StreamMixer,
     settings: STREAM_MIXER_SETTINGS,
-    toProps: (s): Pick<StreamMixerProps, "source" | "mix" | "channels" | "labels" | "subs" | "icons" | "fader"> => ({
+    toProps: (s): Pick<StreamMixerProps, "source" | "mix" | "channels" | "labels" | "subs" | "icons" | "fader" | "mixerLook"> => ({
       source: sourceOf(s.source),
       mix: stringOf(s.mix),
       channels: splitKeys(s.channels),
@@ -70,6 +73,7 @@ export const GROUP_STREAM_AUDIO: DashboardModule[] = [
       subs: overridesOf(s.subs),
       icons: overridesOf(s.icons),
       fader: faderOf(s.fader),
+      mixerLook: mixerLookOf(s, "orientation"),
     }),
   }),
   templateModule({

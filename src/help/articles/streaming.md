@@ -20,7 +20,7 @@ Twitch chat, YouTube chat or both merged by time. Names are tinted by platform o
 
 ## Stream Mixer
 
-Touch faders for Windows audio (Master, Mic and the apps playing) or for Elgato Wave Link. Drag a fader to set the level, tap the icon to mute. For Windows, the output picker switches the default playback device. Choose which channels show, and rename them, in the widget's settings.
+Touch faders for Windows audio (Master, Mic and the apps playing) or for Elgato Wave Link. Drag a fader to set the level, tap the icon to mute. For Windows, the output picker switches the default playback device. Choose which channels show, and rename them, in the widget's settings. **View** picks Rows (the default), Strips (console channel strips: a fader on its scale, a meter and an LCD readout, vertical or horizontal) or LCD (one screen, a line per channel); the Volume Mixer and Wave Link widgets offer the same views. A zone too small for a view's strips shows Rows instead.
 
 ## OBS Button, Audio Button and Audio Fader
 

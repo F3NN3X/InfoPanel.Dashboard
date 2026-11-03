@@ -267,7 +267,7 @@ export function InsertFilters({
             onQuery("");
           }}
           placeholder="Search widgets"
-          className="min-w-0 flex-1 bg-transparent text-[12.5px] text-ui-1 outline-none placeholder:text-ui-4"
+          className="min-w-0 flex-1 bg-transparent text-body text-ui-1 outline-none placeholder:text-ui-4"
         />
       </label>
       <div className="flex flex-wrap gap-1">
@@ -280,7 +280,7 @@ export function InsertFilters({
               "h-6 rounded-xl border px-[9px] text-micro transition-colors",
               c === category
                 ? "border-ui-edge bg-ui-active text-ui-1"
-                : "border-ui-default text-[#a4a4ad]"
+                : "border-ui-default text-ui-soft"
             )}
           >
             {c}

@@ -1,6 +1,6 @@
 import type { ModuleSettings } from "@/modules/types";
 import { DriveIcon, DriveRows, type DriveRow } from "./DriveSpaceViews";
-import { useFitRows, Widget, shell, get, num, fmt, fmtMB, Bar, BarRow, Ring, Num, tone, Chip, Pill, type ShellProps, type Tone } from "./kit";
+import { fillRows, roomy, useFitRows, Widget, shell, get, num, fmt, fmtMB, Bar, BarRow, Ring, Num, tone, Chip, Pill, type ShellProps, type Tone } from "./kit";
 import { meta } from "./meta/DriveSpace";
 
 export { meta };
@@ -20,6 +20,9 @@ export interface DriveSpaceProps extends ShellProps {
   icons?: string;
 }
 
+/** A 4x4 row: the name line, the 6px bar and the used / total line with their gaps. */
+export const ROW_H = 58;
+
 export default function DriveSpace(p: DriveSpaceProps) {
   const d = p.data;
   const ids = [...new Set(Object.keys(d || {}).map((k) => k.match(/^plugins\.drive-info-plugin\.([^.]+)\.name$/)?.[1]).filter((x): x is string => !!x))];
@@ -33,8 +36,8 @@ export default function DriveSpace(p: DriveSpaceProps) {
   const warn = p.warn ?? 80,
     crit = p.crit ?? 92;
   const list = (one ? [one] : [...drives]).sort((a, b) => (p.sort === "name" ? a.id.localeCompare(b.id) : b.pct - a.pct));
-  const neutral = p.neutral !== false;
-  const tn = (pct: number): Tone | "muted" => (pct >= crit ? "crit" : pct >= warn ? "warn" : neutral ? "muted" : "ok");
+  // "Neutral below thresholds" (off by default, like the other views): on draws an ok bar grey, off in the accent. A widget that saved it on keeps grey.
+  const tn = (pct: number): Tone | "muted" => (pct >= crit ? "crit" : pct >= warn ? "warn" : p.neutral === true ? "muted" : "ok");
   const critN = drives.filter((x) => x.pct >= crit).length;
   const first = one ?? drives[0];
   return (
@@ -46,28 +49,28 @@ export default function DriveSpace(p: DriveSpaceProps) {
         (one || critN > 0) && (
           <>
             {one && <Chip>{`${one.name} ${one.label}`.trim()}</Chip>}
-            {critN > 0 && <Pill state="crit" className="text-[11px]">{critN} critical</Pill>}
+            {critN > 0 && <Pill state="crit" className="text-micro">{critN} critical</Pill>}
           </>
         )
       }
       studio={first && { label: "Drives", value: first.pct, unit: "%", sub: `${first.name} · ${fmtMB(first.free)} free`, pct: first.pct, rows: list.map((x) => ({ n: `${x.name} ${x.label}`, v: `${fmtMB(x.free)} free`, pct: x.pct })) }}
       compact={first && { label: `${first.name} ${first.label}`, value: first.pct, unit: "%", sub: `${fmtMB(first.free)} free`, pct: first.pct, t: tone(first.pct, warn, crit) }}
     >
-      {({ size, h }) => {
+      {({ size, w, h, outerW, outerH }) => {
         if (!first) return null;
         if (size === "xs")
           return (
             <div className="flex h-full flex-col justify-center gap-1.5">
               <div className="flex items-baseline justify-between">
                 <span className="text-sm font-semibold">{first.name}</span>
-                <span className="text-[11px] text-[color:var(--w-muted)]">{fmtMB(first.free)} free</span>
+                <span className="text-micro text-[color:var(--w-muted)]">{fmtMB(first.free)} free</span>
               </div>
               <Bar value={first.pct} t={tone(first.pct, warn, crit)} className="h-2" />
             </div>
           );
         if (p.view === "segments" || p.view === "bars") {
           const rows: DriveRow[] = list.map((x) => ({ key: x.id, name: x.label ? `${x.label} (${x.name})` : x.name, text: `${fmtMB(x.used)} / ${fmtMB(x.total)}`, pct: x.pct, t: tone(x.pct, warn, crit), id: x.id }));
-          return <DriveRows rows={rows} view={p.view} size={size} h={h} icons={p.icons} />;
+          return <DriveRows rows={rows} view={p.view} size={size} w={w} h={h} icons={p.icons} />;
         }
         if (one && size !== "sm")
           return (
@@ -77,7 +80,7 @@ export default function DriveSpace(p: DriveSpaceProps) {
                   {fmt(one.pct, 0)}
                   <span className="text-sm text-[color:var(--w-muted)]">%</span>
                 </Num>
-                <span className="text-[11px] text-[color:var(--w-muted)]">used</span>
+                <span className="text-micro text-[color:var(--w-muted)]">used</span>
               </Ring>
               <div className="grid flex-1 gap-2 text-xs">
                 {[["Free", fmtMB(one.free)], ["Used", fmtMB(one.used)], ["Total", fmtMB(one.total)], ["Type", `${one.type} · ${one.format}`]].map(([l, v]) => (
@@ -90,6 +93,26 @@ export default function DriveSpace(p: DriveSpaceProps) {
             </div>
           );
         const n = useFitRows(h, size === "lg" ? 46 : 38);
+        // 4x4: two-line rows (name and free, used / total and format) with a 6px bar, spread over the height
+        if (roomy(outerW, outerH)) {
+          const shown = list.slice(0, useFitRows(h, ROW_H, 12));
+          const { rowH } = fillRows(h, shown.length, ROW_H, 12, true);
+          return (
+            <div className="flex h-full flex-col overflow-hidden" style={{ gap: 12 }}>
+              {shown.map((x) => (
+                <div key={x.id} className="flex min-w-0 flex-col justify-center gap-1.5" style={{ minHeight: rowH }}>
+                  <div className="flex min-w-0 items-baseline gap-2 text-body">
+                    {p.icons && <span className="inline-flex shrink-0 self-center"><DriveIcon icons={p.icons} id={x.id} name={x.name} px={16} fallback={null} /></span>}
+                    <span className="truncate"><span className="font-semibold">{x.name}</span> <span className="text-[color:var(--w-faint)]">{x.label}</span></span>
+                    <span className="ml-auto shrink-0 text-title font-semibold tabular-nums">{fmtMB(x.free)} free</span>
+                  </div>
+                  <Bar value={x.pct} t={tn(x.pct) as Tone} className="h-1.5" />
+                  <span className="truncate font-mono text-micro tabular-nums text-[color:var(--w-faint)]">{fmtMB(x.used)} / {fmtMB(x.total)} · {x.format}</span>
+                </div>
+              ))}
+            </div>
+          );
+        }
         return (
           <div className="flex h-full flex-col gap-3 overflow-hidden">
             {list.slice(0, n).map((x) => (

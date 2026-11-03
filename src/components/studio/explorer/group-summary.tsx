@@ -45,14 +45,14 @@ export function GroupSummary({
   return (
     <div className="flex h-full w-full flex-col gap-4 overflow-y-auto bg-ui-panel p-4 font-ui text-ui-2">
       <div className="flex flex-col gap-[3px]">
-        <span className="text-[14px] font-semibold text-ui-1">{title}</span>
-        <span className="text-[11.5px] text-ui-4">{sub}</span>
+        <span className="text-lead font-semibold text-ui-1">{title}</span>
+        <span className="text-micro text-ui-4">{sub}</span>
       </div>
 
       {note && noteLook && (
         <div className={cn("flex items-start gap-[9px] rounded-lg px-3 py-2.5", noteLook.bg)}>
           <noteLook.icon className={cn("h-[17px] w-[17px] shrink-0", noteLook.tone)} aria-hidden />
-          <span className="flex-1 text-caption leading-[1.45] text-[#d4d4da]">{note.text}</span>
+          <span className="flex-1 text-caption leading-[1.45] text-ui-strong-text">{note.text}</span>
         </div>
       )}
 
@@ -60,7 +60,7 @@ export function GroupSummary({
         {stats.map((s) => (
           <div
             key={s.label}
-            className="flex justify-between gap-3 whitespace-nowrap border-b border-s-divider py-2 text-[12.5px]"
+            className="flex justify-between gap-3 whitespace-nowrap border-b border-s-divider py-2 text-body"
           >
             <span className="text-ui-2">{s.label}</span>
             <span className="font-ui-mono text-caption text-ui-1">{s.value}</span>
@@ -72,7 +72,7 @@ export function GroupSummary({
 
       {prefPlugin && (
         <div className="flex flex-col gap-2">
-          <span className="text-[12.5px] font-semibold text-ui-1">Show in dashboard</span>
+          <span className="text-body font-semibold text-ui-1">Show in dashboard</span>
           {containers.map((c) => {
             const key = sourcePrefKey(prefPlugin, c.id.slice(prefPlugin.length + 1));
             const pref = sourcePrefs?.[key];

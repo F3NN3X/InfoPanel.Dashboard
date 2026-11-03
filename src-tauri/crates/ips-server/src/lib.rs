@@ -48,6 +48,8 @@ pub mod streaming;
 pub mod store;
 pub mod studio_prefs;
 pub mod supervisor;
+#[cfg(test)]
+mod test_net;
 pub mod touch_hub;
 pub mod twitch;
 pub mod youtube;

@@ -66,6 +66,11 @@ export const sourceKey = (s: GaugeSource): string => {
 
 export const kindOf = (g: VectorGauge | null): GaugeKind => (!g ? "frames" : g.shape === "svg" ? "svg" : "vector");
 
+/** How much a browse thumbnail is scaled up inside its fixed box, so a thin bar reads as large as a ring. */
+const PREVIEW_SCALE: Record<VectorGauge["shape"], number> = { arc: 1, bar: 1.3, svg: 1, liquid: 1, grid: 1.1 };
+
+export const previewScale = (g: VectorGauge | null): number => (g ? PREVIEW_SCALE[g.shape] : 1);
+
 export const KIND_LABEL: Record<GaugeKind, string> = { vector: "Vector", svg: "SVG template", frames: "Image sequence" };
 
 /* ---- presets ---- */

@@ -1,4 +1,4 @@
-import { Widget, shell, get, num, fmt, useHistory, frameSample, frameBudgets, frameTimeTop, sparkY, Spark, Num, type ShellProps } from "./kit";
+import { Widget, shell, get, num, fmt, useHistory, frameSample, frameBudgets, frameTimeTop, sparkY, Spark, ChartAxis, ChartYAxis, Num, type ShellProps } from "./kit";
 import { meta } from "./meta/FramePacing";
 
 export { meta };
@@ -33,7 +33,7 @@ export default function FramePacing(p: FramePacingProps) {
   ];
   const cell = ([l, v, u]: string[]) => (
     <div key={l} className="flex min-w-0 flex-col gap-1">
-      <span className="truncate text-[11px] font-medium uppercase tracking-[0.06em] text-[color:var(--w-muted)]">{l}</span>
+      <span className="truncate text-micro font-medium uppercase tracking-[0.06em] text-[color:var(--w-muted)]">{l}</span>
       <span className="whitespace-nowrap text-[22px]">
         <Num>{v}</Num>
         {u && <span className="ml-1 text-xs text-[color:var(--w-muted)]">{u}</span>}
@@ -43,15 +43,17 @@ export default function FramePacing(p: FramePacingProps) {
   // The dashed budget lines on the graph's own scale (`sparkY`): a frame above one missed that rate.
   const lines = () =>
     budgets.map((b) => <div key={b.hz} className="absolute inset-x-0 border-t border-dashed border-[color:var(--w-faint)]" style={{ top: `${sparkY(b.ms, 0, top)}%` }} />);
-  // Their labels in a column beside the graph, level with each line, so the line never runs through them.
-  const labels = () =>
-    budgets.map((b) => (
-      <span key={b.hz} className="absolute right-0 -translate-y-1/2 whitespace-nowrap text-right text-micro leading-tight tabular-nums text-[color:var(--w-muted)]" style={{ top: `${sparkY(b.ms, 0, top)}%` }}>
+  // Their labels on the y axis beside the graph, level with each line, so the line never runs through them.
+  const yTicks = budgets.map((b) => ({
+    at: sparkY(b.ms, 0, top),
+    label: (
+      <>
         {fmt(b.hz)} fps
         <br />
         {fmt(b.ms, 1)} ms
-      </span>
-    ));
+      </>
+    ),
+  }));
   const span = samples >= 60 ? `−${Math.round(samples / 60)} min` : `−${samples}s`;
   return (
     <Widget
@@ -74,9 +76,9 @@ export default function FramePacing(p: FramePacingProps) {
               </svg>
             )}
             <b className="text-sm font-semibold">No game running</b>
-            {h > 140 && <p className="m-0 max-w-[34ch] text-[13px] text-[color:var(--w-muted)]">RivaTuner has nothing to capture. FPS and frame time show here when a game starts.</p>}
+            {h > 140 && <p className="m-0 max-w-[34ch] text-body text-[color:var(--w-muted)]">RivaTuner has nothing to capture. FPS and frame time show here when a game starts.</p>}
             {h > 180 && (
-              <span className="text-[11px] text-[color:var(--w-faint)]">
+              <span className="text-micro text-[color:var(--w-faint)]">
                 {R("gpu-name")} · {R("resolution")} · {fmt(hz)} Hz
               </span>
             )}
@@ -100,13 +102,10 @@ export default function FramePacing(p: FramePacingProps) {
                 {lines()}
                 <Spark values={graph} min={0} max={top} graph="line" fill={false} curve={false} className="absolute inset-0 h-full" />
               </div>
-              {w > 260 && <div className="relative w-12 shrink-0">{labels()}</div>}
+              {w > 260 && <ChartYAxis ticks={yTicks} className="w-12" />}
             </div>
             {h > 200 && (
-              <div className={`flex justify-between text-[11px] text-[color:var(--w-faint)] ${w > 260 ? "mr-14" : ""}`}>
-                <span>{span}</span>
-                <span>now</span>
-              </div>
+              <ChartAxis ticks={[{ at: 0, label: span }, { at: 100, label: "now" }]} className={w > 260 ? "mr-14" : ""} />
             )}
           </div>
         )

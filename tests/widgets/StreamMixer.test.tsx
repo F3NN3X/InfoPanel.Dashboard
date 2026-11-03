@@ -12,10 +12,14 @@ vi.mock("@/lib/audio-control", async (original) => ({
   audioActThrottled: mocks.throttled,
 }));
 
+// the strips' meters keep the level-meter plugin's fast stream open; the real store would open an EventSource
+vi.mock("@/hooks/useSensors", async (original) => ({ ...(await original<typeof import("@/hooks/useSensors")>()), useFastSensors: () => {} }));
+
 import { audioRefusal } from "@/lib/audio-control";
 import { READ_ONLY_HINT } from "@/lib/write-refusal";
 import AudioButton from "@/widgets/AudioButton";
 import StreamMixer from "@/widgets/StreamMixer";
+import { mixerLookOf } from "@/widgets/registry/audio-settings";
 
 const SAMPLE: AudioState = {
   windows: {
@@ -130,5 +134,67 @@ describe("AudioButton", () => {
     render(<AudioButton data={{}} channel="app:gone.exe" />);
     const button = screen.getByLabelText("Audio") as HTMLButtonElement;
     expect(button.disabled).toBe(true);
+  });
+});
+
+describe("the strips view", () => {
+  // happy-dom lays nothing out: every widget box reports a 4x2-ish size, so the strips fit.
+  beforeEach(() => {
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        constructor(private cb: ResizeObserverCallback) {}
+        observe() {
+          this.cb([{ contentRect: { width: 640, height: 300 }, borderBoxSize: [{ inlineSize: 640, blockSize: 360 }] } as unknown as ResizeObserverEntry], this as unknown as ResizeObserver);
+        }
+        disconnect() {}
+      }
+    );
+  });
+  afterEach(() => vi.unstubAllGlobals());
+
+  const look = mixerLookOf({ view: "strips" }, "orientation");
+
+  it("moves a channel's volume by keyboard, through the throttled write", () => {
+    const { container } = render(<StreamMixer data={{}} mixerLook={look} />);
+    expect(container.querySelector("[data-mixer-view=strips]")).toBeTruthy();
+    const master = screen.getByRole("slider", { name: "Master level" });
+    fireEvent.keyDown(master, { key: "ArrowUp" });
+    expect(mocks.throttled).toHaveBeenLastCalledWith("w:output:o1", { target: "windows", op: "volume", kind: "output", id: "o1", value: 31 });
+    fireEvent.keyDown(screen.getByRole("slider", { name: "Mic level" }), { key: "PageDown" });
+    expect(mocks.throttled).toHaveBeenLastCalledWith("w:input:i1", { target: "windows", op: "volume", kind: "input", id: "i1", value: 50 });
+  });
+
+  it("has no knob or slider once the server refuses writes, and mutes from the strip's button", () => {
+    render(<StreamMixer data={{}} mixerLook={look} />);
+    fireEvent.click(screen.getByLabelText("Mute Mic"));
+    expect(mocks.act).toHaveBeenCalledWith({ target: "windows", op: "mute", kind: "input", id: "i1" });
+    cleanup();
+    audioRefusal.set(true);
+    const { container } = render(<StreamMixer data={{}} mixerLook={look} />);
+    expect(screen.queryAllByRole("slider")).toHaveLength(0);
+    expect(container.querySelector("[data-slot=fader-thumb]")).toBeNull();
+    expect(container.querySelectorAll("[data-slot=fader]").length).toBe(2);
+  });
+
+  it("can't be muted from the keyboard either once the server refuses writes, in the strips or the rows", () => {
+    audioRefusal.set(true);
+    for (const mixerLook of [look, undefined]) {
+      const { container, unmount } = render(<StreamMixer data={{}} mixerLook={mixerLook} />);
+      // the body is inert: out of the tab order and the pointer's reach
+      expect(container.querySelector("[inert]")).toBeTruthy();
+      const mute = screen.getByLabelText("Mute Mic") as HTMLButtonElement;
+      expect(mute.disabled).toBe(true);
+      fireEvent.keyDown(mute, { key: "Enter" });
+      fireEvent.click(mute);
+      unmount();
+    }
+    expect(mocks.act).not.toHaveBeenCalled();
+  });
+
+  it("keeps the rows view with no look, or where the strips don't fit", () => {
+    const { container } = render(<StreamMixer data={{}} />);
+    expect(container.querySelector("[data-mixer-view]")).toBeNull();
+    expect(container.querySelector("[data-fader]")).toBeTruthy();
   });
 });

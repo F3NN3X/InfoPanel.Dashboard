@@ -16,7 +16,7 @@ Open **Alerts & Island** on the rail, choose the **Island** tab and turn on **Sh
 |---|---|
 | Shape | Style (Pill or Notch), Size (S, M or L), Scale, Offset from top, Reserve space |
 | Idle | **When idle**: Time, Time and date, Time and values, Line or Hidden; Rotate every |
-| Look | The island looks (Frosted pill, Light pill, Match theme and more: one press sets the shape, color, opacity, border, shadow and weight for this screen), then Color (Black, Match theme or Custom), Opacity, Border, Shadow, Weight; the font is a link to **Theme › Text** |
+| Look | The island looks (Frosted pill, Light pill, Match theme and more: one press sets the shape, color, opacity, border, shadow and weight for this screen), then Placement (Overlay, or Part of the skin, which wears the screen's widget surface, edge and accent), Color (Match skin, Black, Match theme or Custom), Opacity (both for overlays), Border, Shadow, Weight; the font is a link to **Theme › Text** |
 | Clock | A link to **Settings › Dashboard › Clock & date** |
 | Motion | Animation: Lively, Smooth or Off |
 | Alerts | Collapse alerts after, Group notices |

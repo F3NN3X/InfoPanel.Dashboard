@@ -1,9 +1,9 @@
 /* The settings pages' color tokens (docs/redesign/app-settings/SPEC.md section 7). The settings window's own
    stylesheet (settings.css) and the studio's (index.css, for Settings › App) both take them from here. */
-/* The icon rail of the desktop Settings and Help sidebars (those with data-narrow): under 700px they show icons only,
+/* The icon rail of the desktop Settings and Help sidebars (those with data-narrow): under 820px they show icons only,
    and open again while the search field has focus. Other uses of NavItem (the browser Settings window) never match. */
 @custom-variant rail {
-  @media (width < 700px) {
+  @media (width < 820px) {
     &:where([data-narrow]:not(:has(input:focus)), [data-narrow]:not(:has(input:focus)) *) {
       @slot;
     }
@@ -13,10 +13,15 @@
 @theme {
   /* Type scale: use these instead of arbitrary px sizes. Kiosk and widget text never goes below micro; studio chrome never below 10px.
      Here, not in index.css, so the Settings and Help bundles (which import only this file) get them too. */
+  --text-nano: 0.625rem;
   --text-micro: 0.6875rem;
   --text-caption: 0.75rem;
   --text-body: 0.8125rem;
+  --text-lead: 0.875rem;
   --text-title: 0.9375rem;
+  --text-head: 1rem;
+  --text-display: 1.125rem;
+  --text-hero: 1.5rem;
   /* Control scale: radii, heights and stacking. */
   --radius-ui-sm: 6px;
   --radius-ui-md: 8px;
@@ -43,9 +48,23 @@
   --color-s-nav-on: #1c1c22;
   --color-s-nav-hover: #18181d;
   --color-s-well: #09090b;
+  --color-s-tile: #141418;
+  --color-s-hover: #1a1a1f;
+  --color-s-menu: #2e2e35;
+  --color-s-card-hover: #33333b;
+  --color-s-edge: #3a3a44;
+  --color-s-code-line: #26262c;
+  --color-s-connector: #44444c;
+  --color-s-grey: #6f6f79;
+  --color-s-close: #c42b1c;
 
   --color-s-t1: #ededf0;
   --color-s-t2: #c9c9cf;
+  --color-s-strong: #d4d4da;
+  --color-s-prose: #c2c2ca;
+  --color-s-body: #b4b4bd;
+  --color-s-soft: #a8a8b2;
+  --color-s-t3: #9696a0;
   --color-s-muted: #8a8a94;
   --color-s-dim: #8a8a94;
   /* Icons and decoration only; text is s-dim or brighter. */
@@ -57,10 +76,28 @@
   --color-s-amber: var(--ui-warn);
   --color-s-red: var(--ui-danger);
 
-  --color-s-bar-bg: oklch(0.25 0.05 75);
-  --color-s-bar-line: oklch(0.4 0.08 75);
+  --color-s-bar-bg: oklch(0.22 0.04 75);
+  --color-s-bar-line: oklch(0.34 0.06 75);
   --color-s-bar-text: oklch(0.94 0.04 80);
   --color-s-bar-button: oklch(0.86 0.13 80);
+  --color-s-bar-button-line: oklch(0.45 0.08 75);
+  --color-s-bar-button-text: #1a1405;
+  /* Ink on a filled accent or green button. */
+  --color-s-on-accent: #0b0d14;
+  --color-s-on-green: #07130c;
+  /* Help's callouts (tip, heads up, coming soon): the base hue sets the border and tint, the -text one the label. */
+  --color-s-tip: oklch(0.78 0.16 150);
+  --color-s-tip-text: var(--color-s-ok-text);
+  --color-s-heads: oklch(0.82 0.14 75);
+  --color-s-heads-text: oklch(0.86 0.13 80);
+  --color-s-soon: oklch(0.72 0.12 300);
+  --color-s-soon-text: oklch(0.84 0.1 300);
+  /* Status text on a dark card: a light green for good, light reds and amber for errors and warnings. */
+  --color-s-ok-text: oklch(0.84 0.14 150);
+  --color-s-good-text: #7fd1a4;
+  --color-s-red-text: oklch(0.85 0.08 25);
+  --color-s-red-text-strong: oklch(0.9 0.06 25);
+  --color-s-warn-text: oklch(0.86 0.1 80);
 }
 
 /* The one status set (Studio and Settings): ok, warn, danger, info. The Export check's statuses (Edit v3 SPEC §11.2):

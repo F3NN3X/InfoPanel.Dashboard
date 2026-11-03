@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { Dialog } from "@base-ui/react/dialog";
 import { Search } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { collapseNumbered, launcherCommands, parseRecentCommands, RECENT_COMMANDS_KEY, withRecentCommand } from "./command-launcher";
 import { rankCommands, type Command } from "./commands";
 
 interface CommandPaletteProps {
@@ -17,8 +18,18 @@ function PaletteBody({ commands, onRun }: Pick<CommandPaletteProps, "commands" |
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
   const listRef = useRef<HTMLDivElement>(null);
-  const results = rankCommands(commands, query);
   const searching = query.trim() !== "";
+  // Empty: Recent, Actions and Go to. Typing searches everything, settings included.
+  const [recent] = useState(() => {
+    try {
+      return parseRecentCommands(localStorage.getItem(RECENT_COMMANDS_KEY));
+    } catch {
+      return [];
+    }
+  });
+  const launcher = searching ? [] : launcherCommands(commands, recent);
+  // A command list with none of the launcher's entries (a bare one) shows whole.
+  const results = searching ? collapseNumbered(rankCommands(commands, query)) : launcher.length > 0 ? launcher : commands;
   const current = Math.min(active, results.length - 1);
 
   useEffect(() => {
@@ -67,7 +78,7 @@ function PaletteBody({ commands, onRun }: Pick<CommandPaletteProps, "commands" |
           </div>
         )}
         {results.map((command, i) => (
-          <div key={command.id}>
+          <div key={`${command.group}:${command.id}`}>
             {!searching && command.group !== results[i - 1]?.group && (
               <div className="px-2 pb-1 pt-2 text-micro font-medium uppercase tracking-wider text-ui-4">
                 {command.group}
@@ -93,6 +104,11 @@ function PaletteBody({ commands, onRun }: Pick<CommandPaletteProps, "commands" |
           </div>
         ))}
       </div>
+      <div className="flex shrink-0 items-center gap-3 border-t border-ui-subtle px-3 py-1.5 font-ui-mono text-micro text-ui-hint">
+        <span>Enter run</span>
+        <span>↑↓ move</span>
+        <span>Esc close</span>
+      </div>
     </>
   );
 }
@@ -117,6 +133,12 @@ export function CommandPalette({ open, onOpenChange, commands, onRun }: CommandP
             <PaletteBody
               commands={commands}
               onRun={(command) => {
+                try {
+                  const stored = parseRecentCommands(localStorage.getItem(RECENT_COMMANDS_KEY));
+                  localStorage.setItem(RECENT_COMMANDS_KEY, JSON.stringify(withRecentCommand(stored, command.id)));
+                } catch {
+                  // Storage unavailable: Recent just stays as it was.
+                }
                 onOpenChange(false);
                 onRun(command);
               }}

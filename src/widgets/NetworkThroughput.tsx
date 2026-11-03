@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, fmt, fmtGB, fmtRate, rateUnitOf, adapterOf, pretty, hue, Spark, Stat, Icon, Num, useHistory, useIpTag, Empty, type RateUnit, type ShellProps } from "./kit";
+import { Widget, shell, get, num, fmt, gbStat, fmtRate, rateUnitOf, adapterOf, pretty, hue, Spark, Stat, Icon, Num, roomy, useHistory, useIpTag, Empty, type RateUnit, type ShellProps } from "./kit";
 import { meta } from "./meta/NetworkThroughput";
 
 export { meta };
@@ -24,7 +24,7 @@ export interface NetworkThroughputProps extends ShellProps {
 const rate = (dir: "down" | "up", v: number, unit: RateUnit | undefined, big: string, color: string, custom: boolean, label?: string, ip?: Record<string, string | number>) => (
   <div className="flex min-w-0 flex-col" style={{ color }}>
     <div className="flex items-center gap-1.5">
-      <Icon name={dir === "down" ? "south" : "north"} className="text-[15px]" />
+      <Icon name={dir === "down" ? "south" : "north"} className="text-title" />
       {label && <span className="text-micro font-medium uppercase tracking-[0.08em] text-[color:var(--w-muted)]">{label}</span>}
       {!label && <Num ip={ip} className={`${big} truncate font-semibold`} style={custom ? undefined : { color: "var(--w-fg)" }}>{fmtRate(v, unit)}</Num>}
     </div>
@@ -68,20 +68,25 @@ export default function NetworkThroughput(p: NetworkThroughputProps) {
       }
       right={<span className="tabular-nums text-[color:var(--w-muted)]">{fmt(k("network_utilization"), 1)}%</span>}
     >
-      {({ size }) =>
-        size === "xs" ? (
+      {({ size, outerW, outerH }) => {
+        // 4x4: the trend is always drawn (the setting still decides the smaller spans), mirrored unless another chart is set, and the speeds are bigger
+        const big = roomy(outerW, outerH);
+        const chart = showChart || big;
+        const mirrored = p.chart === "mirrored" || (big && !p.chart);
+        const bigFig = big ? "[[data-wp-roomy]_&]:!text-[length:calc(var(--w-hero)*0.5)]" : "";
+        return size === "xs" ? (
           <div className="flex h-full flex-col justify-center gap-1">
             {rate("down", dn, p.rateUnit, "text-base", dlColor, !!p.downloadColor, undefined, rateTag("download_speed", dn))}
             {rate("up", up, p.rateUnit, "text-base", ulColor, !!p.uploadColor, undefined, rateTag("upload_speed", up))}
           </div>
         ) : (
-          <div className={`flex h-full flex-col gap-2 ${showChart ? "" : "justify-center gap-4"}`}>
-            <div className="flex flex-wrap gap-x-8 gap-y-1">
-              {rate("down", dn, p.rateUnit, size === "lg" ? "text-3xl" : "text-xl", dlColor, !!p.downloadColor, "Download", rateTag("download_speed", dn))}
-              {rate("up", up, p.rateUnit, size === "lg" ? "text-3xl" : "text-xl", ulColor, !!p.uploadColor, "Upload", rateTag("upload_speed", up))}
+          <div className={`flex h-full flex-col gap-2 ${chart ? "" : "justify-center gap-4"}`}>
+            <div className={`flex gap-x-8 gap-y-1 ${big ? "flex-col" : "flex-wrap"}`}>
+              {rate("down", dn, p.rateUnit, `${size === "lg" ? "text-3xl" : "text-xl"} ${bigFig}`, dlColor, !!p.downloadColor, "Download", rateTag("download_speed", dn))}
+              {rate("up", up, p.rateUnit, `${size === "lg" ? "text-3xl" : "text-xl"} ${bigFig}`, ulColor, !!p.uploadColor, "Upload", rateTag("upload_speed", up))}
             </div>
-            {!showChart ? null : p.chart === "mirrored" ? (
-              <div className="relative min-h-[24px] flex-1">
+            {!chart ? null : mirrored ? (
+              <div className={`relative flex-1 ${big ? "min-h-[64px]" : "min-h-[24px]"}`}>
                 <Spark values={dH} min={0} max={Math.max(1, ...dH, ...uH)} color={dlColor} className="absolute inset-x-0 top-0 h-1/2" />
                 <Spark values={uH} min={0} max={Math.max(1, ...dH, ...uH)} color={p.uploadColor || hue(70)} className="absolute inset-x-0 bottom-0 h-1/2 -scale-y-100" />
                 <div className="absolute inset-x-0 top-1/2 h-px bg-[color:var(--w-track)]" />
@@ -93,16 +98,16 @@ export default function NetworkThroughput(p: NetworkThroughputProps) {
               </div>
             )}
             {/* at the small tier the totals give way to the chart (there is room for one) */}
-            {showTotals && (size !== "sm" || !showChart) && (
+            {showTotals && (size !== "sm" || !chart) && (
               <div className="grid grid-cols-3 gap-3 border-t border-[color:var(--w-track)] pt-2.5">
-                <Stat label="Downloaded" value={fmtGB(k("data_downloaded"))} tag={tag(`libre.${id}_data_downloaded`)} />
-                <Stat label="Uploaded" value={fmtGB(k("data_uploaded"))} tag={tag(`libre.${id}_data_uploaded`)} />
-                <Stat label="Utilisation" value={`${fmt(k("network_utilization"), 2)}%`} tag={tag(`libre.${id}_network_utilization`)} />
+                <Stat label="Downloaded" {...gbStat(k("data_downloaded"))} tag={tag(`libre.${id}_data_downloaded`)} />
+                <Stat label="Uploaded" {...gbStat(k("data_uploaded"))} tag={tag(`libre.${id}_data_uploaded`)} />
+                <Stat label="Utilisation" value={fmt(k("network_utilization"), 2)} unit="%" tag={tag(`libre.${id}_network_utilization`)} />
               </div>
             )}
           </div>
-        )
-      }
+        );
+      }}
     </Widget>
   );
 }

@@ -54,7 +54,7 @@ export default function VizGallery() {
   const input = useTestSignal();
   const rows = [...SKIN_ROWS.map((skin) => ({ name: `follow · ${skin}`, skin, look: {} })), ...CUSTOM_ROWS.map((r) => ({ ...r, skin: "default" }))];
   return (
-    <main className="min-h-screen bg-[#0c0c0e] p-6 text-zinc-100">
+    <main className="min-h-screen bg-ui-app p-6 text-zinc-100">
       <h1 className="mb-1 text-sm font-semibold">Visualizer gallery</h1>
       <p className="mb-4 font-mono text-xs text-amber-300">TEST SIGNAL: a fixed pink-ish spectrum stepping through 4 frames (dev QA input, not audio)</p>
       {CELLS.map((cell) => (

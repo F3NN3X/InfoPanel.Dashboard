@@ -291,16 +291,18 @@ export function migrateProfileV15<P extends MonitorProfile>(p: P, opts: { legacy
   if (!opts.legacy) return stale ? { ...p, pages: unflagged } : p;
   const log = (line: string) => opts.log?.push(line);
   const base = { ...p, pages: unflagged };
+  // The conversions place items in px for the page as a config before v15 drew it, edge to edge.
+  const drawn = p.edges === undefined ? { ...base, edges: "touch" as const } : base;
   const ctx: Ctx = {
-    profile: base,
-    grid: screenGrid(base),
+    profile: drawn,
+    grid: screenGrid(drawn),
     taken: new Set(p.pages.flatMap((pg) => pg.placements.map((z) => z.id))),
     log,
   };
   const pages = base.pages.map((pg) => {
     const next = migratePage(ctx, pg);
     // In the order the page model keeps: each group's members together, where its topmost member is.
-    return next === pg ? pg : writePlacements(next, readPlacements(base, next));
+    return next === pg ? pg : writePlacements(next, readPlacements(drawn, next));
   });
   let out: MonitorProfile = pages.every((pg, i) => pg === p.pages[i]) ? p : { ...base, pages };
   // An InfoPanel profile (imported or made with New InfoPanel profile): every page one loaded canvas it keeps.

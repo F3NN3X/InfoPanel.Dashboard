@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { presetsThatFit, runningClockPx } from "@/widgets/Timer";
+import { idleHeroPx, presetsThatFit, runningClockPx } from "@/widgets/Timer";
 
 describe("presetsThatFit", () => {
   it("shows all before the box is measured", () => {
@@ -27,5 +27,14 @@ describe("runningClockPx", () => {
 
   it("is capped by the width", () => {
     expect(runningClockPx("md", 100, 400)).toBeCloseTo(92 / 4.2);
+  });
+});
+
+describe("idleHeroPx", () => {
+  it("is 48px for 05:00 and shrinks for an hour-long 01:30:00 so it fits a 2x2", () => {
+    expect(idleHeroPx("05:00", 196)).toBe(48);
+    expect(idleHeroPx("01:30:00", 196) * 8 * 0.62).toBeLessThanOrEqual(196 - 16);
+    expect(idleHeroPx("01:30:00", 196)).toBeLessThan(48);
+    expect(idleHeroPx("05:00", 0)).toBe(48);
   });
 });

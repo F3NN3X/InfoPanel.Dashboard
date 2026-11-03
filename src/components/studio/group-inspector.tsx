@@ -13,7 +13,7 @@ import { LayerSection } from "./layer-section";
 import { PlaceRow } from "./place-row";
 
 const ACTION =
-  "flex h-8 flex-1 items-center justify-center gap-1.5 rounded-[7px] border border-ui-strong bg-ui-raised px-3 text-[12.5px] font-medium text-ui-2 transition-colors hover:bg-ui-hover hover:text-ui-1 disabled:pointer-events-none disabled:opacity-40";
+  "flex h-8 flex-1 items-center justify-center gap-1.5 rounded-[7px] border border-ui-strong bg-ui-raised px-3 text-body font-medium text-ui-2 transition-colors hover:bg-ui-hover hover:text-ui-1 disabled:pointer-events-none disabled:opacity-40";
 
 /** "1 widget, 2 items, 1 element" from the counts, or "empty". */
 export function contentsLine(n: { widget: number; item: number; element: number }): string {

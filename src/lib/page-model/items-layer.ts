@@ -23,7 +23,7 @@ export const ITEMS_LAYER = "items-layer:";
 /** Whether a placement is one of these layers. */
 export const isItemsLayer = (p: Pick<Placement, "id">): boolean => p.id.startsWith(ITEMS_LAYER);
 
-export type Screen = Pick<MonitorProfile, "width" | "height" | "cols" | "rows" | "fit" | "gap" | "padding">;
+export type Screen = Pick<MonitorProfile, "width" | "height" | "cols" | "rows" | "fit" | "gap" | "padding" | "edges">;
 
 /**
  * An item placement's item where the part sits, in screen px: placed freely at its `px`, else at its cells' box, so

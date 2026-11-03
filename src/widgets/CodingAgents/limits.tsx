@@ -122,7 +122,7 @@ export function ringLayout(n: number, w: number, room: number): RingLayout | nul
 
 function AgentName({ id }: { id: AgentId }) {
   return (
-    <div className="flex h-[18px] min-w-0 items-center gap-1.5 text-[13px] font-semibold text-[color:var(--w-fg)]">
+    <div className="flex h-[18px] min-w-0 items-center gap-1.5 text-body font-semibold text-[color:var(--w-fg)]">
       <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: AGENT_COLORS[id] }} />
       <span className="truncate">{id === "claude" ? "Claude Code" : AGENT_NAMES[id]}</span>
     </div>
@@ -137,7 +137,7 @@ const Pct = ({ view, percent }: { view: WindowView; percent: Percent }) => (
 
 const ResetLine = ({ children }: { children: React.ReactNode }) => (
   <div className="flex min-w-0 items-center gap-1 text-micro text-[color:var(--w-faint)]">
-    <Icon name="schedule" className="!text-[11px] shrink-0" />
+    <Icon name="schedule" className="!text-micro shrink-0" />
     <span className="truncate tabular-nums">{children}</span>
   </div>
 );
@@ -237,7 +237,7 @@ function RingPair({ id, plan, percent, now, layout }: { id: AgentId; plan: Agent
         {wins.map(({ k, short, view }) => (
           <div key={k} className="shrink-0" style={{ width: d }}>
             <div className={dimmed(view) ? DIM_CLASS : ""} style={{ width: d, height: d }}>
-              <Ring value={shown(view.w, percent)} t={toneOf(view.w)} thickness={d >= 72 ? 9 : 11} className="h-full w-full">
+              <Ring value={shown(view.w, percent)} t={toneOf(view.w)} className="h-full w-full">
                 {d >= 56 && (
                   <span className="mb-1 leading-none text-[color:var(--w-muted)]" style={{ fontSize: small }}>
                     {short}
@@ -249,7 +249,7 @@ function RingPair({ id, plan, percent, now, layout }: { id: AgentId; plan: Agent
               </Ring>
             </div>
             {layout.below && (
-              <div className={`truncate text-center text-[11px] tabular-nums leading-[14px] text-[color:var(--w-faint)] ${dimmed(view) ? DIM_CLASS : ""}`} style={{ height: BELOW_H }}>
+              <div className={`truncate text-center text-micro tabular-nums leading-[14px] text-[color:var(--w-faint)] ${dimmed(view) ? DIM_CLASS : ""}`} style={{ height: BELOW_H }}>
                 {view.reset ? "New window" : view.w.resetsAt !== undefined ? resetIn(Math.max(0, view.w.resetsAt - now)) : ""}
               </div>
             )}

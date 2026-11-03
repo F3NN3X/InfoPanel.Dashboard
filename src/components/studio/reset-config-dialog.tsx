@@ -2,7 +2,7 @@ import { AlertDialog } from "@base-ui/react/alert-dialog";
 import { Download } from "lucide-react";
 
 const BUTTON =
-  "inline-flex h-8 items-center gap-1.5 rounded-[7px] border border-ui-strong bg-ui-raised px-3 text-[12.5px] font-medium text-ui-2 transition-colors hover:bg-ui-hover hover:text-ui-1";
+  "inline-flex h-8 items-center gap-1.5 rounded-[7px] border border-ui-strong bg-ui-raised px-3 text-body font-medium text-ui-2 transition-colors hover:bg-ui-hover hover:text-ui-1";
 
 interface ResetConfigDialogProps {
   open: boolean;
@@ -34,7 +34,7 @@ export function ResetConfigDialog({ open, onOpenChange, onExport, onReset }: Res
             </AlertDialog.Close>
             <button
               type="button"
-              className="inline-flex h-8 items-center rounded-[7px] bg-ui-danger px-3 text-[12.5px] font-semibold text-ui-inverse-fg transition-opacity hover:opacity-90"
+              className="inline-flex h-8 items-center rounded-[7px] bg-ui-danger px-3 text-body font-semibold text-ui-inverse-fg transition-opacity hover:opacity-90"
               onClick={() => {
                 onReset();
                 onOpenChange(false);

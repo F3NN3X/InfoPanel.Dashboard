@@ -67,7 +67,8 @@ import { LibraryDetail, type DetailAction } from "./library-detail";
 import { PresetDetail } from "./preset-detail";
 import { isPresetItem, presetPrimary, presetSecondary, renamePreset, type PresetContext } from "./preset-actions";
 import { GridView, LibrarySidebar, ShelvesView } from "./library-views";
-import { openImportDoor, openNewInfoPanel } from "@/components/studio/file-doors";
+import { openImportDoor } from "@/components/studio/file-doors";
+import { AddFilesButton } from "./add-files-button";
 import { optimiseItem } from "./optimise";
 import { FontsView } from "./fonts-view";
 import { ProfileAssets, type ProfileAssetsProps } from "./profile-assets";
@@ -514,7 +515,7 @@ export default function LibraryPage(p: LibraryPageProps) {
       <header className="flex h-14 shrink-0 items-center gap-3 border-b border-ui-subtle bg-ui-chrome px-4 max-sm:h-auto max-sm:flex-wrap max-sm:gap-2 max-sm:px-3 max-sm:py-2">
         <h1 className="text-[15px] font-semibold text-ui-1">Library</h1>
         <span className="hidden min-w-0 truncate text-caption text-ui-4 xl:block">Everything you’ve saved, beside the built-ins.</span>
-        <label className="flex h-(--ui-h-field) min-w-0 max-w-[520px] flex-1 items-center gap-2 rounded-ui-menu border border-ui-default bg-ui-panel px-3 focus-within:border-ui-accent">
+        <label className="flex h-(--ui-h-field) min-w-[200px] max-w-[520px] flex-1 items-center gap-2 rounded-ui-menu border border-ui-default bg-ui-panel px-3 focus-within:border-ui-accent">
           <Search className="h-4 w-4 shrink-0 text-ui-4" />
           <input
             type="search"
@@ -567,7 +568,7 @@ export default function LibraryPage(p: LibraryPageProps) {
             setUsedBy(e.target.value);
             setShowFiles(false);
           }}
-          className="h-(--ui-h-field) max-w-[200px] rounded-ui-menu border border-ui-default bg-ui-panel px-2.5 text-[12.5px] text-ui-2"
+          className="h-(--ui-h-field) min-w-0 max-w-[200px] shrink rounded-ui-menu border border-ui-default bg-ui-panel px-2.5 text-[12.5px] text-ui-2"
         >
           <option value="">Used by any screen</option>
           {p.bridge.config.profiles.map((s) => (
@@ -581,27 +582,13 @@ export default function LibraryPage(p: LibraryPageProps) {
           aria-pressed={showFiles}
           onClick={() => setShowFiles((on) => !on)}
           title="The files its canvases use: replace and optimize them"
-          className={cn("flex h-(--ui-h-field) max-w-[220px] items-center gap-1.5 rounded-ui-md border border-ui-default px-3 text-[12.5px] text-ui-1 hover:bg-ui-hover", showFiles && "bg-ui-active")}
+          className={cn("flex h-(--ui-h-field) min-w-[88px] max-w-[220px] shrink items-center gap-1.5 rounded-ui-md border border-ui-default px-3 text-[12.5px] text-ui-1 hover:bg-ui-hover", showFiles && "bg-ui-active")}
         >
           <FolderInput className="h-4 w-4 shrink-0" />
           <span className="truncate">Canvas files · {p.profileName}</span>
         </button>
         <span className="flex-1" />
-        <button
-          type="button"
-          onClick={() => openNewInfoPanel()}
-          title="An InfoPanel profile from scratch, as a new screen in Edit"
-          className="flex h-(--ui-h-field) items-center gap-1.5 rounded-ui-md border border-ui-default px-3 text-[12.5px] text-ui-1 hover:bg-ui-hover"
-        >
-          New InfoPanel profile…
-        </button>
-        <button
-          type="button"
-          onClick={() => openImportDoor()}
-          className="flex h-(--ui-h-field) items-center gap-1.5 rounded-ui-md bg-ui-inverse px-3 text-[12.5px] font-medium text-ui-inverse-fg hover:opacity-90"
-        >
-          Add files…
-        </button>
+        <AddFilesButton />
       </header>
       <div className="relative flex min-h-0 flex-1 max-sm:flex-col">
         {showFiles ? (

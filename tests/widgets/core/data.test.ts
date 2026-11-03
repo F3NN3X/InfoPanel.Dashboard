@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { detect, diskName, diskShort, firstDisk, fmtDate, fmtRate, rateParts } from "@/widgets/core/data";
+import { detect, diskName, rowLabel, shortLabel, diskShort, firstDisk, fmtDate, fmtGB, fmtRate, gbParts, gbStat, rateParts, unitStat } from "@/widgets/core/data";
 
 describe("fmtRate", () => {
   it("reads the rate sensors as bytes per second and scales them (decimal prefixes)", () => {
@@ -57,5 +57,81 @@ describe("fmtDate", () => {
   it("follows another locale and treats an empty one as the browser's", () => {
     expect(fmtDate(d, "weekday", "de-DE")).toBe("Mo");
     expect(fmtDate(d, "weekday", "")).toBe(fmtDate(d, "weekday"));
+  });
+});
+
+describe("shortLabel", () => {
+  it("drops the vendor and puts the metric first, the unit saying load or temperature", () => {
+    expect(shortLabel("AMD Ryzen 9 9950X3D CPU Total", "%")).toMatchObject({ metric: "CPU load", model: "Ryzen 9 9950X3D" });
+    expect(shortLabel("NVIDIA GeForce RTX 5090 GPU Core", "°C")).toMatchObject({ metric: "GPU temp", model: "RTX 5090" });
+    expect(shortLabel("Intel(R) Core i7-13700K CPU Package", "°C").model).toBe("Core i7-13700K");
+  });
+
+  it("takes the device from the model family when the name has no CPU or GPU word", () => {
+    expect(shortLabel("Ryzen 9 9950X3D Core (Tctl/Tdie)", "°C")).toMatchObject({ metric: "CPU temp", model: "Ryzen 9 9950X3D" });
+  });
+
+  it("keeps a name with no CPU or GPU in it as its own metric", () => {
+    expect(shortLabel("Memory Used", "%")).toMatchObject({ metric: "Memory Used", model: "" });
+  });
+
+  it("adds the device only where two rows share a metric", () => {
+    const a = shortLabel("AMD Ryzen 9 9950X3D CPU Total", "%"),
+      b = shortLabel("Intel Core i9 CPU Total", "%");
+    expect(rowLabel(a, [a, b])).toBe("CPU load · Ryzen 9 9950X3D");
+    expect(rowLabel(a, [a, shortLabel("NVIDIA GeForce RTX 5090 GPU Core", "%")])).toBe("CPU load");
+  });
+});
+
+describe("shortLabel on names that are not a bare load or temperature", () => {
+  it("keeps the remaining words so a memory or fan reading is not called load", () => {
+    expect(shortLabel("NVIDIA GeForce RTX 5090 GPU Memory Used", "%").metric).toBe("GPU memory used");
+    expect(shortLabel("NVIDIA GeForce RTX 5090 GPU Fan", "%").metric).toBe("GPU fan");
+    expect(shortLabel("AMD Ryzen 9 9950X3D CPU Package", "W").metric).toBe("CPU");
+  });
+
+  it("tells numbered cores apart", () => {
+    const a = shortLabel("AMD Ryzen 9 9950X3D CPU Core #1", "%"),
+      b = shortLabel("AMD Ryzen 9 9950X3D CPU Core #2", "%");
+    expect(a.metric).not.toBe(b.metric);
+  });
+
+  it("falls back to the full name when rows still collide after the device is added", () => {
+    const a = shortLabel("AMD Ryzen 9 9950X3D CPU Total", "%"),
+      b = shortLabel("AMD Ryzen 9 9950X3D CPU Core", "%");
+    expect(rowLabel(a, [a, b])).toBe("AMD Ryzen 9 9950X3D CPU Total");
+  });
+});
+
+describe("gbParts", () => {
+  it("splits a size into its number and unit, a TB from 1024 GB", () => {
+    expect(gbParts(12.34)).toEqual(["12.3", "GB"]);
+    expect(gbParts(193)).toEqual(["193", "GB"]);
+    expect(gbParts(2048)).toEqual(["2.0", "TB"]);
+  });
+  it("is what fmtGB joins", () => {
+    expect(fmtGB(12.34)).toBe("12.3 GB");
+  });
+});
+
+describe("gbStat", () => {
+  it("is gbParts as a Stat's value and unit, with the thresholds and a missing value", () => {
+    expect(gbStat(0)).toEqual({ value: "0.0", unit: "GB" });
+    expect(gbStat(99.96)).toEqual({ value: "100.0", unit: "GB" });
+    expect(gbStat(1023)).toEqual({ value: "1,023", unit: "GB" });
+    expect(gbStat(1024)).toEqual({ value: "1.0", unit: "TB" });
+    expect(gbStat(NaN)).toEqual({ value: "–", unit: "GB" });
+  });
+});
+
+describe("unitStat", () => {
+  it("splits a reading into its number to the given decimals and the unit", () => {
+    expect(unitStat(0, "W")).toEqual({ value: "0", unit: "W" });
+    expect(unitStat(1234.5, "RPM")).toEqual({ value: "1,235", unit: "RPM" });
+    expect(unitStat(1.2345, "V", 3)).toEqual({ value: "1.235", unit: "V" });
+    expect(unitStat(45, "°F", 1)).toEqual({ value: "45.0", unit: "°F" });
+  });
+  it("keeps the unit beside the dash when the reading is missing", () => {
+    expect(unitStat(NaN, "MHz")).toEqual({ value: "–", unit: "MHz" });
   });
 });

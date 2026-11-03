@@ -33,10 +33,10 @@ interface ChipLook {
   className: string;
 }
 
-/** The handoff's chip colors (SPEC §4.6): changed here, inherited (dashed), locked. */
-const CHANGED = "border-ui-blue bg-[#0b1530] text-ui-accent-text";
-const INHERITED = "border-dashed border-[#3f3f46] text-ui-soft";
-export const LOCKED = "border-[#b45309] bg-[#2a1d05] text-[#fcd34d]";
+/** The chip's looks (SPEC §4.6): changed here is the one that stands out (accent text and a dot), inherited is quiet text, locked keeps its amber pill. */
+const CHANGED = "text-ui-accent-text";
+const INHERITED = "text-ui-3";
+export const LOCKED = "border-ui-lock-line bg-ui-warn-tint text-ui-lock-text";
 
 /** Each state has its own icon, wording and border style, so color never carries it alone (SPEC §5). */
 const LOOK: Readonly<Record<ChipState, ChipLook>> = {
@@ -111,18 +111,20 @@ export function InheritChip({ state, from, fromName, parentText, onReset, onJump
   const shown = from === "screen" && fromName ? fromName : level;
   const source = levelWithName(level, from, fromName);
   const line = parentLine(state, parentText, source);
+  const changedHere = state === "custom" || state === "base";
   return (
     <Menu.Root>
       <Menu.Trigger
         title={look.tip(name)}
         aria-description={look.tip(name)}
         className={cn(
-          "inline-flex h-5 shrink-0 cursor-pointer items-center gap-1 whitespace-nowrap rounded-full border pl-1.5 pr-2 font-ui text-micro font-medium leading-none transition-[filter] hover:brightness-[1.18] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent",
+          "inline-flex h-5 shrink-0 cursor-pointer items-center gap-1 whitespace-nowrap rounded-full border border-transparent px-1 font-ui text-micro font-normal leading-none transition-[filter] hover:brightness-[1.3] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent",
           look.className,
+          state === "locked" && "px-2 font-medium",
           className
         )}
       >
-        <Icon className="h-[13px] w-[13px]" strokeWidth={1.75} aria-hidden />
+        {changedHere ? <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-ui-blue" aria-hidden /> : <Icon className="h-3 w-3" strokeWidth={1.5} aria-hidden />}
         {look.text(shown)}
       </Menu.Trigger>
       <Menu.Portal>
@@ -211,7 +213,7 @@ export const keptOverrideText = (holder: "widget" | "page", section: string): st
  */
 export function InheritLockNote({ holder, section }: { holder: "widget" | "page"; section: string }) {
   return (
-    <p className="rounded-md bg-ui-warning/10 px-2 py-1.5 text-[11.5px] leading-snug text-[oklch(0.88_0.10_85)]">
+    <p className="rounded-md bg-ui-warning/10 px-2 py-1.5 text-micro leading-snug text-ui-warn-text">
       {keptOverrideText(holder, section)}
     </p>
   );

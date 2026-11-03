@@ -44,7 +44,7 @@ export interface ConvertRequest {
    * The stored page the zones are on (a whole screen's conversion): its item placements export as the items they are,
    * at their box, between the zones in the page's z-order (SPEC §11.4).
    */
-  page?: { screen: Pick<MonitorProfile, "width" | "height" | "cols" | "rows" | "fit" | "gap" | "padding">; page: ProfilePage };
+  page?: { screen: Pick<MonitorProfile, "width" | "height" | "cols" | "rows" | "fit" | "gap" | "padding" | "edges">; page: ProfilePage };
   /** Where a zone is drawn; default: its `data-zone-id` element in `scope` (a Free page's widget items have their own). */
   find?: (zoneId: string) => HTMLElement | null;
 }

@@ -71,7 +71,7 @@ export function PalettePicker(p: PalettePickerProps) {
           </button>
           <button
             type="button"
-            className={cn(ACTION, "text-[#f87171]")}
+            className={cn(ACTION, "text-ui-danger-text")}
             onClick={() => {
               setMenuFor(undefined);
               p.onDelete(open.id);
@@ -100,7 +100,7 @@ export function PalettePicker(p: PalettePickerProps) {
           aria-expanded={menuFor === s.id}
           aria-label={`${s.name} actions`}
           onClick={() => setMenuFor(menuFor === s.id ? undefined : s.id)}
-          className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-md bg-black/50 text-[#d4d4d8] hover:bg-black/70 hover:text-ui-1"
+          className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-md bg-black/50 text-ui-strong-text hover:bg-black/70 hover:text-ui-1"
         >
           <MoreHorizontal className="h-4 w-4" />
         </button>

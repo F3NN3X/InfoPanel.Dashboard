@@ -23,7 +23,7 @@ function freePlacementOf(profile: Pick<MonitorProfile, "cols" | "rows">, page: P
 }
 
 /** The grid's area as the kiosk draws it, in design px: inside the padding, its rows fixed on a scrolling page. */
-export function gridArea(profile: Pick<MonitorProfile, "width" | "height" | "rows" | "fit" | "gap" | "padding">): { width: number; height: number } {
+export function gridArea(profile: Pick<MonitorProfile, "width" | "height" | "rows" | "fit" | "gap" | "padding" | "edges">): { width: number; height: number } {
   const pad = profilePadding(profile, true);
   const gap = profileGap(profile);
   const width = Math.max(1, profile.width - 2 * pad);
@@ -32,7 +32,7 @@ export function gridArea(profile: Pick<MonitorProfile, "width" | "height" | "row
 }
 
 /** One cell's track size: columns share the area's width, rows its height (or SCROLL_ROW_H on a scrolling page). */
-export function trackOf(profile: Pick<MonitorProfile, "width" | "height" | "cols" | "rows" | "fit" | "gap" | "padding">): { width: number; height: number } {
+export function trackOf(profile: Pick<MonitorProfile, "width" | "height" | "cols" | "rows" | "fit" | "gap" | "padding" | "edges">): { width: number; height: number } {
   const area = gridArea(profile);
   const gap = profileGap(profile);
   return { width: trackSize(area.width, profile.cols, gap), height: profile.fit === "fill" ? trackSize(area.height, profile.rows, gap) : SCROLL_ROW_H };
@@ -40,7 +40,7 @@ export function trackOf(profile: Pick<MonitorProfile, "width" | "height" | "cols
 
 /** A zone's box in the grid's area (design px). */
 export function cellBox(
-  profile: Pick<MonitorProfile, "width" | "height" | "cols" | "rows" | "fit" | "gap" | "padding">,
+  profile: Pick<MonitorProfile, "width" | "height" | "cols" | "rows" | "fit" | "gap" | "padding" | "edges">,
   zone: Pick<Placement, "colStart" | "rowStart" | "colSpan" | "rowSpan">,
 ): GridBox {
   return zoneBox({ col: zone.colStart, row: zone.rowStart, cols: zone.colSpan, rows: zone.rowSpan }, trackOf(profile), profileGap(profile));

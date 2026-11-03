@@ -17,6 +17,11 @@ interface ZoomToolbarProps {
   onToggleRulers: () => void;
   onZoomStep: (dir: 1 | -1) => void;
   onFit: () => void;
+  /** The 100% preset and Zoom to selection (the widget fills most of the canvas); unset outside the studio canvas. */
+  onActualSize?: () => void;
+  onZoomSelection?: () => void;
+  /** A widget is selected; Zoom to selection is disabled without one. */
+  hasSelection?: boolean;
   /** The profile shown on the canvas (resolution button). */
   profile: ProfileView;
   /** The size link: open Screens. */
@@ -44,7 +49,7 @@ export interface ExportView {
 
 const BAR_BUTTON = "h-7 w-7 rounded-md hover:bg-ui-default";
 const TOGGLE_BUTTON = cn(BAR_BUTTON, "text-ui-2");
-const TEXT_BUTTON = "flex h-[26px] items-center gap-1 rounded-md px-2 text-[11.5px] text-ui-2 transition-colors hover:bg-ui-default";
+const TEXT_BUTTON = "flex h-[26px] items-center gap-1 rounded-md px-2 text-micro text-ui-2 transition-colors hover:bg-ui-default";
 
 function Divider() {
   return <div className="mx-1 h-[18px] w-px shrink-0 bg-ui-strong" />;
@@ -63,6 +68,9 @@ export function ZoomToolbar({
   onToggleRulers,
   onZoomStep,
   onFit,
+  onActualSize,
+  onZoomSelection,
+  hasSelection = false,
   profile,
   onOpenProfile,
   sizeTitle = "Screen size, grid and spacing: open Screens",
@@ -92,7 +100,7 @@ export function ZoomToolbar({
       <IconButton label={`Zoom out (${KEYS.zoomOut})`} className={BAR_BUTTON} onClick={() => onZoomStep(-1)}>
         <Minus className="h-[18px] w-[18px]" />
       </IconButton>
-      <span className="min-w-11 text-center font-ui-mono text-[11.5px] text-ui-1">{Math.round(zoom * 100)}%</span>
+      <span className="min-w-11 text-center font-ui-mono text-micro text-ui-1">{Math.round(zoom * 100)}%</span>
       <IconButton label={`Zoom in (${KEYS.zoomIn})`} className={BAR_BUTTON} onClick={() => onZoomStep(1)}>
         <Plus className="h-[18px] w-[18px]" />
       </IconButton>
@@ -102,12 +110,34 @@ export function ZoomToolbar({
         aria-pressed={fitting}
         title={`Fit the page to the canvas and keep it fitted (${KEYS.fit})`}
         className={cn(
-          "h-[26px] rounded-md px-[9px] text-[11.5px] font-medium transition-colors",
+          "h-[26px] rounded-md px-[9px] text-micro font-medium transition-colors",
           fitting ? "bg-ui-active text-ui-1" : "text-ui-4 hover:bg-ui-default"
         )}
       >
         Fit
       </button>
+      {onActualSize && (
+        <button
+          type="button"
+          onClick={onActualSize}
+          aria-pressed={!fitting && Math.abs(zoom - 1) < 0.005}
+          title="Show the page at its real size"
+          className={cn("h-[26px] rounded-md px-[9px] text-micro font-medium transition-colors", !fitting && Math.abs(zoom - 1) < 0.005 ? "bg-ui-active text-ui-1" : "text-ui-4 hover:bg-ui-default")}
+        >
+          100%
+        </button>
+      )}
+      {onZoomSelection && (
+        <button
+          type="button"
+          onClick={onZoomSelection}
+          disabled={!hasSelection}
+          title={hasSelection ? `Zoom to the selected widget (${KEYS.zoomSelection})` : "Select a widget to zoom to it"}
+          className="h-[26px] rounded-md px-[9px] text-micro font-medium text-ui-4 transition-colors hover:bg-ui-default disabled:pointer-events-none disabled:opacity-40"
+        >
+          Selection
+        </button>
+      )}
       <Divider />
       <button
         type="button"
@@ -120,7 +150,7 @@ export function ZoomToolbar({
       {snapItems !== undefined && (
         <>
           <Divider />
-          <span data-testid="snap-label" className="px-2 text-[11.5px] text-ui-3">
+          <span data-testid="snap-label" className="px-2 text-micro text-ui-3">
             {snapItems ? "Snap: cells · Alt frees items" : "Items: free · widgets: cells"}
           </span>
         </>
@@ -145,7 +175,7 @@ function ExportViewSwitch({ view }: { view: ExportView }) {
       aria-checked={view.infoPanel === infoPanel}
       title={title}
       onClick={() => view.onChange(infoPanel)}
-      className={cn("h-[22px] rounded-[5px] px-2 text-[11.5px] transition-colors", view.infoPanel === infoPanel ? "bg-ui-active text-ui-1" : "text-ui-4 hover:text-ui-1")}
+      className={cn("h-[22px] rounded-[5px] px-2 text-micro transition-colors", view.infoPanel === infoPanel ? "bg-ui-active text-ui-1" : "text-ui-4 hover:text-ui-1")}
     >
       {label}
     </button>

@@ -118,7 +118,7 @@ export function SheetView({ sheet, identity, sections, parts, inherit, changedOf
       return quick.length > 0 ? (
         quick.map((def) => <SettingField key={def.key} def={def} fields={fields} sources={sources} />)
       ) : (
-        <p className="px-4 py-4 text-[12.5px] text-ui-hint">Pin settings from the panel to show them here</p>
+        <p className="px-4 py-4 text-body text-ui-hint">Pin settings from the panel to show them here</p>
       );
     const p = parts(active);
     const inh = inherit?.(active);
@@ -130,7 +130,7 @@ export function SheetView({ sheet, identity, sections, parts, inherit, changedOf
       <>
         {inh && (
           <div className="flex min-h-11 items-center gap-2 pl-4 pr-2.5" onKeyDown={inh.onKeyDown}>
-            <span className="min-w-0 flex-1 truncate text-[12.5px] font-semibold text-ui-1">{active.title}</span>
+            <span className="min-w-0 flex-1 truncate text-body font-semibold text-ui-1">{active.title}</span>
             {inh.chip}
           </div>
         )}
@@ -154,11 +154,11 @@ export function SheetView({ sheet, identity, sections, parts, inherit, changedOf
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex shrink-0 items-center gap-2.5 pl-4 pr-2">
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-s-divider text-[oklch(0.78_0.12_255)] [&>svg]:h-[19px] [&>svg]:w-[19px]">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-s-divider text-ui-accent-icon [&>svg]:h-[19px] [&>svg]:w-[19px]">
           {identity.icon}
         </span>
         <div className="min-w-0 flex-1">
-          <div className="truncate text-[14px] font-semibold leading-4 text-ui-1">{identity.name}</div>
+          <div className="truncate text-lead font-semibold leading-4 text-ui-1">{identity.name}</div>
           <div className="truncate text-micro text-ui-hint">{identity.meta(changed)}</div>
         </div>
         {identity.onToggleVisible && (

@@ -35,7 +35,7 @@ export function ScreenSwitcher({ profiles, profile, pageId, onSelect, onManage, 
     <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Trigger
         title="Switch screen or page"
-        className="flex h-7 min-w-0 shrink items-center gap-1.5 whitespace-nowrap rounded-[7px] border border-ui-default bg-ui-raised px-2 text-[12.5px] text-ui-1 transition-colors hover:bg-ui-hover"
+        className="flex h-7 min-w-0 shrink items-center gap-1.5 whitespace-nowrap rounded-[7px] border border-ui-default bg-ui-raised px-2 text-body text-ui-1 transition-colors hover:bg-ui-hover"
       >
         <Monitor className="h-[15px] w-[15px] shrink-0 text-ui-3" strokeWidth={1.75} />
         <span className="truncate font-semibold">{profile.name}</span>
@@ -50,7 +50,7 @@ export function ScreenSwitcher({ profiles, profile, pageId, onSelect, onManage, 
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Positioner side="bottom" align="start" sideOffset={6} className="z-[80]">
-          <Popover.Popup className="w-[300px] rounded-[10px] border border-ui-menu bg-ui-raised p-1 font-ui text-[12.5px] text-ui-2 shadow-ui-menu outline-none">
+          <Popover.Popup className="w-[300px] rounded-[10px] border border-ui-menu bg-ui-raised p-1 font-ui text-body text-ui-2 shadow-ui-menu outline-none">
             {profiles.map((p) => (
               <div key={p.id}>
                 <button type="button" className={cn(ROW, "h-8")} onClick={() => choose(p.id, p.id === profile.id ? page.id : p.pages[0].id)}>

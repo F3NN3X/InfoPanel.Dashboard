@@ -1,8 +1,13 @@
 import { useState } from "react";
+import { meterKey, useWavelinkMeter } from "@/lib/wavelink";
 import { audioAct, audioRefusal, useAudio, type AudioState } from "@/lib/audio-control";
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, num, fmt, clamp, Icon, Num, Empty, hue, type ShellProps } from "./kit";
-import { allChannels, iconOf, pickChannels, type AudioSource } from "./StreamMixer/channels";
+import { Widget, shell, num, fmt, clamp, Icon, ChannelRow, CHANNEL_TRACK, Empty, hue, type ShellProps } from "./kit";
+import type { MixerLook } from "./core/mixer-look";
+import { useDeviceLevel } from "./core/level-source";
+import { MixerViewBody, PERCENT, fitMixer, toneOf, type StripChannel } from "./core/mixer-views";
+import { audioIds } from "./audio-data";
+import { allChannels, iconOf, pickChannels, type AudioSource, type MixChannel } from "./StreamMixer/channels";
 import { setVolume, toggleMute } from "./StreamMixer/control";
 import { MixFader, type FaderMode } from "./StreamMixer/Fader";
 import { OutputPicker } from "./StreamMixer/OutputPicker";
@@ -24,6 +29,8 @@ export interface StreamMixerProps extends ShellProps {
   subs?: Record<string, string>;
   icons?: Record<string, string>;
   fader?: FaderMode;
+  /** The view (rows, strips or LCD) and its options; unset = the rows view. */
+  mixerLook?: MixerLook;
 }
 
 /** The other channels' colours: the accent turned by these degrees, in order. */
@@ -51,6 +58,32 @@ export default function StreamMixer(p: StreamMixerProps) {
     return { c: { ...c, name: p.labels?.[c.id] ?? c.name, sub: p.subs?.[c.id] ?? c.sub }, color: c.mute ? MUTED_COLOR : base, icon: iconOf({ icon, mute: c.mute }) };
   });
   const first = rows.find((r) => r.c.master) ?? rows[0];
+  // The audiocn views: masters first (after the separator), the fader writes as the rows' does. The meter is the channel's own level:
+  // a Wave Link channel's or mix's meter, or the level-meter plugin's for the default output and input; an app has none (its meter
+  // stays at silence).
+  const look = p.mixerLook;
+  const deviceOf = (container: string) => () => useDeviceLevel((d) => (audioIds(d).includes(container) ? container : undefined));
+  const useLevelOf = (c: MixChannel): StripChannel["useLevel"] => {
+    const r = c.route;
+    if (r.t === "wl-channel") return () => useWavelinkMeter(meterKey.channel(r.id));
+    if (r.t === "wl-mix") return () => useWavelinkMeter(meterKey.mix(r.id));
+    return c.id === "master" ? deviceOf("default-audio") : c.id === "mic" ? deviceOf("default-input") : undefined;
+  };
+  const strips: StripChannel[] = [...rows.filter((r) => r.c.master), ...rows.filter((r) => !r.c.master)].map(({ c, color, icon }) => ({
+    id: c.id,
+    name: c.name,
+    sub: c.mute ? "Muted" : c.sub,
+    icon,
+    muted: c.mute,
+    color,
+    master: c.master,
+    value: clamp(num(c.vol)),
+    readout: `${fmt(c.vol)}%`,
+    useLevel: useLevelOf(c),
+    onChange: readOnly ? undefined : (v) => setVolume(c, Math.round(v)),
+    onMute: () => toggleMute(c),
+    locked: readOnly,
+  }));
   const right =
     source === "windows" && audio.windows.available ? (
       <span className="relative flex items-center gap-0.5">
@@ -74,6 +107,13 @@ export default function StreamMixer(p: StreamMixerProps) {
     >
       {({ w, h, size }) => {
         if (!rows.length) return <Empty icon="volume_off" label={emptyLabel(source, audio)} />;
+        const fit = look && fitMixer(look, w, h, strips);
+        if (look && fit && fit.view !== "rows")
+          return (
+            <ReadOnly on={readOnly}>
+              <MixerViewBody look={look} fit={fit} channels={strips} unit={PERCENT} tone={toneOf(p)} live={source === "wavelink" ? audio.wavelink.status === "up" : audio.windows.available} />
+            </ReadOnly>
+          );
         const gap = 8,
           minRow = size === "lg" ? 50 : 38;
         const n = Math.max(1, Math.min(rows.length, Math.floor((h + gap) / (minRow + gap))));
@@ -82,47 +122,45 @@ export default function StreamMixer(p: StreamMixerProps) {
         const showName = w >= 240,
           showSub = rowH >= 44 && w > 300;
         const nameW = showName ? Math.round(clamp(w * 0.26, 72, 210)) : 0;
-        const valW = w > 300 ? 42 : 30;
+        const valW = w > 300 ? 42 : 34;
         const faderW = w - tile - nameW - valW - (showName ? 3 : 2) * 14;
         const segs = Math.round(clamp(faderW / 5.5, 10, 64));
-        const fh = clamp(rowH * 0.42, 10, 28),
-          big = rowH > 50;
         // The tile's corner follows the shell's.
         const corner = p.radius === undefined ? "calc(var(--radius, 1rem) * 0.62)" : `${p.radius * 0.62}px`;
         return (
           <ReadOnly on={readOnly}>
           <ul className="flex h-full flex-col" style={{ gap }}>
             {rows.slice(0, n).map(({ c, color, icon }) => (
-              <li
+              <ChannelRow
                 key={c.id}
                 title={c.name}
-                className="grid min-h-0 flex-1 items-center gap-x-3.5"
-                style={{ gridTemplateColumns: showName ? `${tile}px ${nameW}px minmax(0,1fr) ${valW}px` : `${tile}px minmax(0,1fr) ${valW}px` }}
-              >
-                <button
-                  type="button"
-                  onClick={() => toggleMute(c)}
-                  aria-label={c.mute ? `Unmute ${c.name}` : `Mute ${c.name}`}
-                  className="flex items-center justify-center bg-white/[0.05] transition hover:bg-white/[0.09] active:scale-95"
-                  style={{ width: tile, height: tile, color, borderRadius: corner }}
-                >
-                  <Icon name={icon} className={tile >= 40 ? "text-[22px]" : "text-[17px]"} />
-                </button>
-                {showName && (
-                  <div className="min-w-0">
-                    <div className={`truncate font-semibold leading-tight ${c.mute ? "text-zinc-500" : ""}`} style={{ fontSize: big ? 16 : 13.5 }}>
-                      {c.name}
-                    </div>
-                    {showSub && (c.mute || c.sub) && <div className="mt-0.5 truncate text-[11px] text-zinc-500">{c.mute ? "Muted" : c.sub}</div>}
+                className="min-h-0 flex-1 !gap-x-3.5"
+                muted={c.mute}
+                big={rowH > 50}
+                lead={
+                  <button
+                    type="button"
+                    onClick={() => toggleMute(c)}
+                    disabled={readOnly}
+                    aria-label={c.mute ? `Unmute ${c.name}` : `Mute ${c.name}`}
+                    className="flex items-center justify-center bg-white/[0.05] transition hover:bg-white/[0.09] active:scale-95"
+                    style={{ width: tile, height: tile, color, borderRadius: corner }}
+                  >
+                    <Icon name={icon} className={tile >= 40 ? "text-[22px]" : "text-[17px]"} />
+                  </button>
+                }
+                leadW={tile}
+                name={c.name}
+                sub={showSub && (c.mute || c.sub) ? (c.mute ? "Muted" : c.sub) : undefined}
+                nameW={nameW}
+                bar={
+                  <div style={{ height: p.fader === "bar" ? CHANNEL_TRACK : clamp(rowH * 0.42, 10, 28) }}>
+                    <MixFader label={c.name} value={clamp(num(c.vol))} color={color} segs={segs} mode={p.fader === "bar" ? "bar" : "leds"} onChange={readOnly ? undefined : (v) => setVolume(c, v)} />
                   </div>
-                )}
-                <div style={{ height: fh }}>
-                  <MixFader value={clamp(num(c.vol))} color={color} segs={segs} mode={p.fader === "bar" ? "bar" : "leds"} onChange={(v) => setVolume(c, v)} />
-                </div>
-                <Num className={`text-right leading-none ${c.mute ? "text-zinc-500" : ""}`} style={{ fontSize: big ? 20 : 15 }}>
-                  {fmt(c.vol)}
-                </Num>
-              </li>
+                }
+                value={fmt(c.vol)}
+                valueW={valW}
+              />
             ))}
           </ul>
           </ReadOnly>

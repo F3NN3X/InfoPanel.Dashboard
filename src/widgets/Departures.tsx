@@ -1,6 +1,6 @@
 import type { ModuleSettings } from "@/modules/types";
 import { entryText } from "./entries";
-import { Widget, shell, Chip, Empty, Metric, Num, type ShellProps } from "./kit";
+import { Widget, shell, fillRows, roomy, Chip, Empty, Metric, Num, type ShellProps } from "./kit";
 import { meta, P } from "./meta/Departures";
 
 export { meta };
@@ -52,7 +52,7 @@ export default function Departures(p: DeparturesProps) {
       }
       studio={{ label: station ?? "Departures", value: first?.time ?? "--:--", sub: next, rows: rows.map((r) => ({ n: `${r.line ?? "·"} ${r.dest ?? "—"}`, v: r.time ?? "--:--" })) }}
     >
-      {({ size, h }) => {
+      {({ size, h, outerW, outerH }) => {
         if (!station && rows.length === 0) return <Empty icon="departure_board" label="No upcoming departures" />;
         if (size === "xs")
           return (
@@ -62,18 +62,24 @@ export default function Departures(p: DeparturesProps) {
             </div>
           );
         // before the first measurement (h = 0) every row renders
-        const n = h > 0 ? Math.max(1, Math.floor((h - (showStatus ? 28 : 0)) / 46)) : rows.length;
+        // 2x2: the destination goes on a second line so it is never cut by the time and the line (a row is then 56px); 4x4: rows grow to the height, bigger type
+        const stacked = size === "sm";
+        const n = h > 0 ? Math.max(1, Math.floor((h - (showStatus ? 28 : 0)) / (stacked ? 56 : 46))) : rows.length;
+        const big = roomy(outerW, outerH);
+        const { rowH } = fillRows(h - (showStatus ? 28 : 0), Math.min(n, rows.length), 46, 0, big);
         return (
           <div className="flex h-full min-h-0 flex-col">
             {rows.length > 0 ? (
               <div className="min-h-0 flex-1 divide-y divide-[color:var(--w-track)] overflow-hidden">
                 {rows.slice(0, n).map((r) => (
-                  <div key={r.i} className="flex items-center gap-4 py-2">
-                    <Num className="min-w-14 shrink-0 whitespace-nowrap text-lg text-[color:var(--w-fg)]" weight={600}>
-                      {r.time ?? "--:--"}
-                    </Num>
-                    <Chip className="w-10 justify-center">{r.line ?? "·"}</Chip>
-                    <span className="min-w-0 flex-1 truncate text-sm text-[color:var(--w-fg)]" title={r.dest}>
+                  <div key={r.i} className={stacked ? "flex flex-col gap-0.5 py-1.5" : "flex items-center gap-4 py-2"} style={big ? { height: rowH } : undefined}>
+                    <div className={`flex items-center ${stacked ? "gap-3" : "gap-4"}`}>
+                      <Num className={`shrink-0 whitespace-nowrap text-[color:var(--w-fg)] ${big ? "min-w-20 text-[22px]" : "min-w-14 text-lg"}`} weight={600}>
+                        {r.time ?? "--:--"}
+                      </Num>
+                      <Chip className="w-10 justify-center">{r.line ?? "·"}</Chip>
+                    </div>
+                    <span className={`min-w-0 text-[color:var(--w-fg)] ${stacked ? "truncate text-micro" : "flex-1 truncate"} ${big ? "text-[15px]" : stacked ? "" : "text-sm"}`} title={r.dest}>
                       {r.dest ?? "—"}
                     </span>
                   </div>

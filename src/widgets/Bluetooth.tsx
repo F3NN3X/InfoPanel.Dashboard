@@ -1,6 +1,7 @@
 import type { ModuleSettings } from "@/modules/types";
+import { chromeOf } from "@/modules/standard-settings";
 import { containers } from "./entries";
-import { Widget, shell, has, num, clamp, Chip, Empty, Icon, Metric, Num, STATE, slideX, type ShellProps } from "./kit";
+import { Widget, shell, has, num, clamp, Chip, Empty, Icon, Metric, roomy, Num, STATE, slideX, type ShellProps } from "./kit";
 import { meta, P } from "./meta/Bluetooth";
 
 export { meta };
@@ -52,9 +53,11 @@ export default function Bluetooth(p: BluetoothProps) {
   const showDevices = p.showDevices ?? true;
   const showBattery = p.showBattery ?? true;
   const count = devices.length;
+  // the header chip carries the count only when the header is drawn (not with the title off)
+  const headerShown = p.showHeader !== false && (p.look ? chromeOf(p.look).showTitle !== false : true);
   const countLabel = `${count} device${count === 1 ? "" : "s"}`;
   const color = (pct: number) => (pct > 50 ? "var(--accent)" : pct > 20 ? p.batteryMidColor || STATE.warn : p.batteryLowColor || STATE.crit);
-  const row = (d: Device, small?: boolean) => (
+  const row = (d: Device, small?: boolean, big?: boolean) => (
     <div key={d.key} className="min-w-0">
       <div className="flex min-w-0 items-baseline gap-2">
         <span className={`truncate font-semibold text-[color:var(--w-fg)] ${small ? "text-xs" : "text-sm"}`} title={d.name}>
@@ -62,11 +65,11 @@ export default function Bluetooth(p: BluetoothProps) {
         </span>
         {d.status && !/^connected$/i.test(d.status) && <span className="truncate text-micro text-[color:var(--w-faint)]">{d.status}</span>}
         {showBattery && (
-          <Num className={`ml-auto shrink-0 ${small ? "text-sm" : "text-base"}`}>{d.battery !== undefined ? `${Math.round(d.battery)}%` : "—"}</Num>
+          <Num className={`ml-auto shrink-0 ${big ? "text-[22px]" : small ? "text-sm" : "text-base"}`}>{d.battery !== undefined ? `${Math.round(d.battery)}%` : "—"}</Num>
         )}
       </div>
       {showBattery && (
-        <div className="mt-1 h-[5px] overflow-hidden rounded-full bg-[color:var(--w-track)]" style={{ width: "100%", maxWidth: small ? 80 : undefined }}>
+        <div className={`mt-1 overflow-hidden rounded-full bg-[color:var(--w-track)] ${big ? "h-1.5" : "h-[5px]"}`} style={{ width: "100%", maxWidth: small ? 80 : undefined }}>
           {d.battery !== undefined && <div className="h-full w-full rounded-full transition-transform duration-300" style={{ ...slideX(Math.round(d.battery)), background: color(d.battery) }} />}
         </div>
       )}
@@ -90,15 +93,14 @@ export default function Bluetooth(p: BluetoothProps) {
         rows: devices.map((d) => ({ n: d.name, v: d.battery !== undefined ? `${Math.round(d.battery)}%` : (d.status ?? "—"), pct: d.battery })),
       }}
     >
-      {({ size, w, h }) => {
+      {({ size, w, h, outerW, outerH }) => {
         if (!status && devices.length === 0) return <Empty icon="bluetooth" label="No Bluetooth data" />;
         if (size === "xs") return <Metric label="Bluetooth" value={status ?? "—"} scale="sm" sub={countLabel} className="h-full justify-center" />;
         const tall = h >= w * 0.72;
-        const perRow = showBattery ? 46 : 28;
-        // the wide layout's device grid is what is left of the width after the head column and the gap: two columns only when each is 100px or more
-        const cols = tall || w <= 0 || w - Math.max(w * 0.3, 140) - 20 - 28 >= 216 ? 2 : 1;
+        const big = tall && roomy(outerW, outerH);
+        const perRow = big ? (showBattery ? 56 : 36) : showBattery ? (tall ? 46 : 38) : 28;
         // before the first measurement (h = 0) up to 6 devices render
-        const shown = showDevices ? devices.slice(0, h > 0 ? Math.min(6, Math.max(1, Math.floor((h - 36) / perRow) * (tall ? 1 : cols))) : 6) : [];
+        const shown = showDevices ? devices.slice(0, h > 0 ? Math.min(6, Math.max(1, Math.floor((h - 36) / perRow))) : 6) : [];
         // the wide layout's head column is narrow: the count sits under the status so the status is never cut
         const head = (
           <div className={`flex shrink-0 ${tall ? "items-center gap-2" : "flex-col gap-1"}`}>
@@ -106,18 +108,19 @@ export default function Bluetooth(p: BluetoothProps) {
               <Icon name="bluetooth" className="text-base text-[color:var(--w-muted)]" />
               {showStatus && status && <span className="truncate text-sm font-semibold text-[color:var(--w-fg)]">{status}</span>}
             </div>
-            <span className={`shrink-0 text-xs text-[color:var(--w-muted)] ${tall ? "ml-auto" : ""}`}>{countLabel}</span>
+            {/* the header chip already says it */}
+            {!(count > 0 && headerShown) && <span className={`shrink-0 text-xs text-[color:var(--w-muted)] ${tall ? "ml-auto" : ""}`}>{countLabel}</span>}
           </div>
         );
         return tall ? (
           <div className="flex h-full min-h-0 flex-col gap-3">
             {head}
-            <div className="flex min-h-0 flex-1 flex-col justify-center gap-2.5 overflow-hidden">{shown.map((d) => row(d))}</div>
+            <div className="flex min-h-0 flex-1 flex-col justify-center gap-2.5 overflow-hidden">{shown.map((d) => row(d, false, big))}</div>
           </div>
         ) : (
           <div className="flex h-full min-h-0 items-center gap-5">
             <div className="flex w-[30%] min-w-[140px] shrink-0 flex-col gap-1.5">{head}</div>
-            <div className="grid min-w-0 flex-1 auto-rows-min gap-x-4 gap-y-2 overflow-hidden" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))` }}>{shown.map((d) => row(d, true))}</div>
+            <div className="grid min-w-0 flex-1 auto-rows-min grid-cols-1 gap-y-2 overflow-hidden">{shown.map((d) => row(d, true))}</div>
           </div>
         );
       }}

@@ -9,7 +9,7 @@ import { toStored } from "@/lib/infopanel/import/stored";
 import { parseProfileXml } from "@/lib/infopanel/parse";
 import { defaultItem } from "@/lib/infopanel/schema";
 import {
-  CUSTOM_GAUGE_ID, gaugeDataOf, gaugeEntryOf, libraryGauges, presetGauges, profileGauges, sourceKey, widgetGauge, withGauge, withGaugeName, withGaugeSpeed,
+  CUSTOM_GAUGE_ID, gaugeDataOf, gaugeEntryOf, libraryGauges, presetGauges, previewScale, profileGauges, sourceKey, widgetGauge, withGauge, withGaugeName, withGaugeSpeed,
 } from "@/lib/gauge-studio/model";
 
 const profile = parseProfileXml("<Profile><Name>Rig</Name><Width>800</Width><Height>480</Height></Profile>").profile;
@@ -94,5 +94,11 @@ describe("gauge sources", () => {
     const scaled = { ...DEFAULT_GAUGE, scale: { min: 5, max: 50, unit: "", decimals: null } };
     expect(gaugeEntryOf({ kind: "library", itemId: "a" }, "Mine", scaled, "My library", { min: 0, max: 100, animationSpeed: 3 })).toMatchObject({ key: "library:a", min: 5, max: 50, animationSpeed: 3, kind: "vector" });
     expect(gaugeEntryOf({ kind: "preset", index: -1 }, "New", DEFAULT_GAUGE, "Preset")).toMatchObject({ min: 0, max: 100, animationSpeed: 0, where: "Preset" });
+  });
+
+  it("scales a thin bar's browse preview up and leaves a ring and an image sequence alone", () => {
+    expect(previewScale({ ...DEFAULT_GAUGE, shape: "bar" })).toBeGreaterThan(1);
+    expect(previewScale({ ...DEFAULT_GAUGE, shape: "arc" })).toBe(1);
+    expect(previewScale(null)).toBe(1);
   });
 });

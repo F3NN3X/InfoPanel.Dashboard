@@ -194,7 +194,7 @@ function GaugeWidget({ widget, sensor, text, unit }: Ctx) {
     const size = widget.size ?? 80;
     return (
       <div className="wp-gauge flex shrink-0 flex-col items-center gap-1.5" style={{ width: size }}>
-        <Ring value={pct} thickness={8} color={widget.color ?? PANEL_ACCENT} className="w-full">
+        <Ring value={pct} color={widget.color ?? PANEL_ACCENT} className="w-full">
           <span
             className="tabular-nums text-foreground"
             style={{ fontSize: widget.size ? Math.round(widget.size * 0.28) : 14, ...panelNum(sk, 600) }}

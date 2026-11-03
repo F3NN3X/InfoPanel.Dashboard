@@ -1,5 +1,5 @@
 import { SCROLL_ROW_H, type Placement, type ProfileView } from "@/lib/layout";
-import { profileGap, profilePadding } from "@/lib/profile-grid";
+import { profileGap, profilePadding, type ScreenEdges } from "@/lib/profile-grid";
 import { changeCols, changeRows } from "../studio-actions";
 
 /** The toast when a smaller grid would cut a zone off. */
@@ -69,6 +69,7 @@ export function gridPreview(profile: {
   fit: "scroll" | "fill";
   gap?: number;
   padding?: number;
+  edges?: ScreenEdges;
 }): { width: number; height: number; gap: number; padding: number } {
   const padding = profilePadding(profile, true);
   // Scroll: rows keep their real height (SCROLL_ROW_H) against the design width, so the screen is as tall as its rows.

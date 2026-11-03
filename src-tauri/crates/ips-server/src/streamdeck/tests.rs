@@ -583,9 +583,7 @@ async fn asks_to_pair_again_only_when_pair_is_pressed_after_a_refusal() {
 
 #[tokio::test]
 async fn reports_the_app_absent_when_nothing_listens() {
-    let closed = TcpListener::bind("127.0.0.1:0").await.unwrap();
-    let port = closed.local_addr().unwrap().port();
-    drop(closed);
+    let (port, _held) = crate::test_net::refusing_port();
     let d = deck_with(Endpoint::Fixed(port), one_device(""));
     until(&d.deck, status_is("absent")).await;
     let offline = deck_with(Endpoint::Offline, one_device(""));

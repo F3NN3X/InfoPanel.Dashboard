@@ -129,13 +129,15 @@ mod tests {
 
     #[test]
     fn refused_when_nothing_listens() {
-        // Bind then drop to find a port that is very likely free.
-        let port = std::net::TcpListener::bind("127.0.0.1:0")
-            .unwrap()
-            .local_addr()
-            .unwrap()
-            .port();
+        // Bound but never listening, held until the end: a port bound and dropped can be handed to another
+        // test's listener (the tests run in parallel) before the connection lands.
+        let socket = socket2::Socket::new(socket2::Domain::IPV4, socket2::Type::STREAM, None).unwrap();
+        socket
+            .bind(&std::net::SocketAddr::from(([127, 0, 0, 1], 0)).into())
+            .unwrap();
+        let port = socket.local_addr().unwrap().as_socket().unwrap().port();
         let r = get("127.0.0.1", port, "/", Duration::from_millis(500));
         assert_eq!(r, Err(HttpError::Refused));
+        drop(socket);
     }
 }

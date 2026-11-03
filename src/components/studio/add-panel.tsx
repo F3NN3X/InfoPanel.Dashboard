@@ -1,7 +1,6 @@
 import { onRovingKeyDown } from "@/lib/roving";
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
-import { Segmented } from "@/components/ui/segmented";
-import { useAddChip, useAddFilter, type AddFilter } from "./add-prefs";
+import { useAddChip, type AddFilter } from "./add-prefs";
 import { FilePlus2, FileUp, Search, SquareDashedMousePointer, X, type LucideIcon } from "lucide-react";
 import type { Appearance } from "@/lib/style-resolve";
 import { cn } from "@/lib/utils";
@@ -28,11 +27,8 @@ const KINDS: { kind: AddKind; label: string; one: string }[] = [
   { kind: "layout", label: "Layouts", one: "layout" },
 ];
 
-const SEGMENTS: { value: AddFilter; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "widgets", label: "Widgets" },
-  { value: "items", label: "InfoPanel items" },
-];
+/** The chip that shows the InfoPanel items and elements only. */
+const INFOPANEL_CHIP = "InfoPanel";
 
 /** The leave delay before the card hides (another tile cancels it). */
 const HIDE_MS = 120;
@@ -86,7 +82,7 @@ const DRAG_PX = 4;
  * The category chips: one row that scrolls sideways (the wheel, a drag, and a chip reached by Tab scroll it), fading at
  * an edge with more chips past it, so a cut-off chip reads as "more this way" (sign-off rounds 1 and 3).
  */
-function ChipRow({ chips, children }: { chips: string; children: ReactNode }) {
+function ChipRow({ chips, label, children }: { chips: string; label?: string; children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
   const [edge, setEdge] = useState({ start: false, end: false });
   // A mouse press: where it started, and whether it has become a drag (the click that ends it then picks no chip).
@@ -110,6 +106,8 @@ function ChipRow({ chips, children }: { chips: string; children: ReactNode }) {
   return (
     <div
       ref={ref}
+      role={label ? "group" : undefined}
+      aria-label={label}
       data-fade={[edge.start && "start", edge.end && "end"].filter(Boolean).join(" ") || undefined}
       onScroll={measure}
       onWheel={(e) => {
@@ -147,6 +145,23 @@ function ChipRow({ chips, children }: { chips: string; children: ReactNode }) {
   );
 }
 
+function ChipButton({ on, onClick, children }: { on: boolean; onClick: () => void; children: ReactNode }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={on}
+      onClick={onClick}
+      className={cn(
+        "flex h-6 shrink-0 items-center rounded-full border px-[9px] text-micro",
+        FOCUS,
+        on ? "border-ui-inverse bg-ui-inverse text-ui-inverse-fg" : "border-s-seg-on text-ui-3 hover:text-ui-1"
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
 interface Highlight {
   key: string;
   via: "mouse" | "key";
@@ -173,9 +188,10 @@ export function AddPanel({
   start,
 }: AddPanelProps) {
   const [kind, setKind] = useState<AddKind>("widget");
-  const [segment, setSegment] = useAddFilter();
   const [storedChip, setChip] = useAddChip();
   const [query, setQuery] = useState("");
+  /** The InfoPanel chip's second row: one palette group or Elements (none: all of them). */
+  const [group, setGroup] = useState<string | null>(null);
   const [hl, setHl] = useState<Highlight | null>(null);
   /** The card's place (viewport px), when shown. */
   const [card, setCard] = useState<{ left: number; top: number } | null>(null);
@@ -196,12 +212,18 @@ export function AddPanel({
   );
   const compact = density === "compact";
   const tiles = kind === "widget";
-  const seg: AddFilter = onAddPart ? segment : "widgets";
 
   // The Widgets tab's tiles: widgets, and the InfoPanel items and elements where the page takes them.
   const widgetTiles = useMemo(() => catalog.widget.map(widgetTile), [catalog.widget]);
-  const chips = chipsFor(seg, catalog.widget);
+  // One chip row: All, then InfoPanel (items and elements, where the page takes them), then the widget categories.
+  const chips = useMemo(() => {
+    const [all, ...categories] = chipsFor("widgets", catalog.widget);
+    return onAddPart ? [all, INFOPANEL_CHIP, ...categories] : [all, ...categories];
+  }, [catalog.widget, onAddPart]);
   const chip = chips.includes(storedChip) ? storedChip : "All";
+  const inInfoPanel = chip === INFOPANEL_CHIP;
+  const paletteGroups = useMemo(() => chipsFor("items", catalog.widget).slice(1), [catalog.widget]);
+  const seg: AddFilter = !onAddPart ? "widgets" : chip === INFOPANEL_CHIP ? "items" : chip === "All" ? "all" : "widgets";
   const sections = useMemo(
     () =>
       tiles
@@ -210,14 +232,14 @@ export function AddPanel({
             items: onAddPart ? ITEM_TILES : [],
             elements: onAddPart ? ELEMENT_TILES : [],
             segment: seg,
-            chip,
+            chip: inInfoPanel ? (group ?? "All") : chip,
             query,
             recent,
             infoPanel,
             status: status?.of,
           })
         : [],
-    [tiles, widgetTiles, onAddPart, seg, chip, query, recent, infoPanel, status],
+    [tiles, widgetTiles, onAddPart, seg, chip, inInfoPanel, group, query, recent, infoPanel, status],
   );
   /** The tiles in list order, and the rows the arrow keys move through (the grid's columns, measured). */
   const [cols, setCols] = useState(3);
@@ -325,15 +347,9 @@ export function AddPanel({
     if (listRef.current) listRef.current.scrollTop = 0;
   };
 
-  const pickSegment = (next: AddFilter) => {
-    setSegment(next);
-    setChip("All");
-    reset();
-    if (listRef.current) listRef.current.scrollTop = 0;
-  };
-
   const pickChip = (next: string) => {
     setChip(next);
+    setGroup(null);
     reset();
     if (listRef.current) listRef.current.scrollTop = 0;
   };
@@ -366,7 +382,7 @@ export function AddPanel({
 
   // A fixture's state: its segment, and the card of its tile, open.
   useEffect(() => {
-    if (start?.segment) setSegment(start.segment);
+    if (start?.segment === "items") setChip(INFOPANEL_CHIP);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   useEffect(() => {
@@ -425,7 +441,7 @@ export function AddPanel({
   return (
     <div ref={rootRef} className="flex min-h-0 flex-1 flex-col">
       <div className="shrink-0 px-2.5 pt-2.5">
-        <label className="flex h-8 items-center gap-2 rounded-ui-md border border-ui-default bg-ui-tile px-2.5 focus-within:border-[#3f3f48]">
+        <label className="flex h-8 items-center gap-2 rounded-ui-md border border-ui-default bg-ui-tile px-2.5 focus-within:border-ui-edge">
           <Search className="h-4 w-4 shrink-0 text-ui-hint" strokeWidth={1.75} aria-hidden />
           <input
             ref={inputRef}
@@ -439,7 +455,7 @@ export function AddPanel({
             onChange={(e) => changeQuery(e.target.value)}
             onKeyDown={onKeyDown}
             placeholder={placeholder}
-            className="min-w-0 flex-1 bg-transparent text-[12.5px] text-ui-1 outline-none placeholder:text-ui-hint"
+            className="min-w-0 flex-1 bg-transparent text-body text-ui-1 outline-none placeholder:text-ui-hint"
           />
           {query ? (
             <button
@@ -476,11 +492,11 @@ export function AddPanel({
               className={cn(
                 "-mb-px flex h-7 items-center gap-1.5 text-caption font-medium disabled:cursor-not-allowed disabled:opacity-40",
                 FOCUS,
-                kind === k.kind ? "text-ui-1 shadow-[inset_0_-2px_0_#ededf0]" : "text-ui-hint hover:text-ui-2"
+                kind === k.kind ? "text-ui-1 shadow-[inset_0_-2px_0_var(--ui-text-1)]" : "text-ui-hint hover:text-ui-2"
               )}
             >
               {k.label}
-              <span className="font-ui-mono text-[10px] font-normal text-ui-hint">
+              <span className="font-ui-mono text-nano font-normal text-ui-hint">
                 {onAddPart && k.kind === "widget" ? `${counts.widget} · ${ITEM_TILES.length} items` : counts[k.kind]}
               </span>
             </button>
@@ -488,43 +504,34 @@ export function AddPanel({
         })}
       </div>
 
-      {tiles && onAddPart && (
-        <div className="shrink-0 px-2.5 pt-2">
-          <Segmented label="Show" className="h-7 w-full flex-nowrap items-stretch [&>button]:flex-1 [&>button]:py-0" value={seg} onChange={pickSegment} options={SEGMENTS} />
-        </div>
-      )}
-
       {tiles && !query.trim() && (
         <ChipRow chips={chips.join(" ")}>
-          {chips.map((c) => {
-            const on = c === chip;
-            return (
-              <button
-                key={c}
-                type="button"
-                aria-pressed={on}
-                onClick={() => pickChip(c)}
-                className={cn(
-                  "flex h-6 shrink-0 items-center rounded-full border px-[9px] text-micro",
-                  FOCUS,
-                  on ? "border-ui-inverse bg-ui-inverse text-ui-inverse-fg" : "border-s-seg-on text-ui-3 hover:text-ui-1"
-                )}
-              >
-                {c}
-              </button>
-            );
-          })}
+          {chips.map((c) => (
+            <ChipButton key={c} on={c === chip} onClick={() => pickChip(c)}>
+              {c}
+            </ChipButton>
+          ))}
+        </ChipRow>
+      )}
+      {tiles && inInfoPanel && !query.trim() && (
+        // InfoPanel's palette groups (Text, Data, Media, Layout) and the studio's elements; pressing the one that is on shows them all again.
+        <ChipRow chips={paletteGroups.join(" ")} label="InfoPanel groups">
+          {paletteGroups.map((g) => (
+            <ChipButton key={g} on={g === group} onClick={() => setGroup(g === group ? null : g)}>
+              {g}
+            </ChipButton>
+          ))}
         </ChipRow>
       )}
 
       {target && (
-        <div className="mx-2.5 mt-2.5 flex shrink-0 items-center gap-2.5 rounded-ui-md border border-[oklch(0.72_0.15_255/0.35)] bg-[oklch(0.72_0.15_255/0.10)] px-2.5 py-[9px]">
+        <div className="mx-2.5 mt-2.5 flex shrink-0 items-center gap-2.5 rounded-ui-md border border-ui-accent/35 bg-ui-accent/10 px-2.5 py-[9px]">
           <SquareDashedMousePointer className="h-[18px] w-[18px] shrink-0 text-ui-accent-text" strokeWidth={1.75} aria-hidden />
           <div className="min-w-0 flex-1">
-            <div className="truncate text-[12.5px] font-medium text-ui-1">
-              Filling blank space · <span className="font-ui-mono text-[11.5px]">{sizeText(target.cols, target.rows)}</span>
+            <div className="truncate text-body font-medium text-ui-1">
+              Filling blank space · <span className="font-ui-mono text-micro">{sizeText(target.cols, target.rows)}</span>
             </div>
-            <div className="truncate text-[11.5px] text-ui-soft">Click a widget to fill it.</div>
+            <div className="truncate text-micro text-ui-soft">Click a widget to fill it.</div>
           </div>
           <button
             type="button"
@@ -556,7 +563,7 @@ export function AddPanel({
       >
         {empty ? (
           <div className="flex flex-col items-start gap-2.5 px-2 py-5">
-            <div className="text-[12.5px] font-medium text-ui-1">Nothing matches “{query.trim()}”</div>
+            <div className="text-body font-medium text-ui-1">Nothing matches “{query.trim()}”</div>
             <p className="text-caption leading-[1.5] text-ui-hint">
               A Sensor shows any single value from your data sources, so it covers most things a dedicated widget doesn’t.
             </p>
@@ -594,7 +601,7 @@ export function AddPanel({
         ) : (
           groups.map((g, gi) => (
             <section key={`${gi}:${g.title}`} aria-label={g.title}>
-              <div className="sticky top-0 z-10 flex items-baseline gap-1.5 bg-ui-panel px-1.5 pb-1.5 pt-2.5 font-ui-mono text-[10px] uppercase tracking-[0.06em]">
+              <div className="sticky top-0 z-10 flex items-baseline gap-1.5 bg-ui-panel px-1.5 pb-1.5 pt-2.5 font-ui-mono text-nano uppercase tracking-[0.06em]">
                 <span className="text-ui-hint">{g.title}</span>
                 <span className="text-ui-disabled">{g.items.length}</span>
               </div>
@@ -657,8 +664,8 @@ function DoorRow({ compact, icon: Icon, title, note, onClick }: { compact: boole
         <Icon className="h-[18px] w-[18px]" strokeWidth={1.6} />
       </span>
       <span className="flex min-w-0 flex-col">
-        <span className="truncate text-[12.5px] font-medium text-ui-1">{title}</span>
-        {!compact && <span className="truncate text-[11.5px] text-ui-hint">{note}</span>}
+        <span className="truncate text-body font-medium text-ui-1">{title}</span>
+        {!compact && <span className="truncate text-micro text-ui-hint">{note}</span>}
       </span>
     </button>
   );

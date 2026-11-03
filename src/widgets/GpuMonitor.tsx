@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { roomy, StatGrid, Widget, shell, get, num, fmt, pretty, Metric, Ring, Spark, Stat, BarRow, useHistory, tone, Empty, hw, STATE, Num, type ShellProps } from "./kit";
+import { roomy, StatGrid, Widget, shell, get, num, fmt, unitStat, pretty, Metric, Ring, Spark, Stat, BarRow, useHistory, tone, Empty, hw, STATE, Num, type ShellProps } from "./kit";
 import { meta } from "./meta/GpuMonitor";
 
 export { meta };
@@ -54,14 +54,14 @@ export default function GpuMonitor(p: GpuMonitorProps) {
         size === "xs" ? (
           <div className="flex h-full items-center justify-between gap-2">
             <Metric ipKey={loadKey} label="GPU" value={load} unit="%" scale="lg" />
-            <div className="text-right text-[11px] leading-tight text-[color:var(--w-muted)]">
+            <div className="text-right text-micro leading-tight text-[color:var(--w-muted)]">
               <div className="tabular-nums text-[color:var(--w-fg)]">{fmt(watts, 0)} W</div>
               {fmt(temp, 0)}°C
             </div>
           </div>
         ) : size === "sm" ? (
           <div className="flex h-full items-center gap-3">
-            <Ring ipKey={loadKey} value={load} thickness={9} className="h-full max-h-28">
+            <Ring ipKey={loadKey} value={load} className="h-full max-h-28">
               <Num ipKey={loadKey} ipUnit="%" className="text-xl font-semibold">
                 {fmt(load, 0)}
                 <span className="text-xs text-[color:var(--w-muted)]">%</span>
@@ -70,19 +70,19 @@ export default function GpuMonitor(p: GpuMonitorProps) {
             <div className="flex min-w-0 flex-1 flex-col gap-2">
               <BarRow label="VRAM" value={used} max={total} display={`${fmt(used / 1024, 1)} GB`} />
               <div className="grid grid-cols-2 gap-2">
-                <Stat label="Power" value={`${fmt(watts, 0)} W`} />
+                <Stat label="Power" value={fmt(watts, 0)} unit="W" />
                 <Stat label="Clock" value={`${fmt(k("gpu_core_clock"), 0)}`} />
               </div>
             </div>
           </div>
         ) : (
           <div className="flex h-full flex-col gap-3">
-            <div className="flex items-end gap-5">
+            <div className="flex items-end gap-5 [[data-wp-roomy]_&]:flex-col [[data-wp-roomy]_&]:items-start [[data-wp-roomy]_&]:gap-3">
               <Metric ipKey={loadKey} value={load} unit="%" scale={size === "lg" ? "xl" : "lg"} sub="Core load" />
-              <div className="grid flex-1 grid-cols-3 gap-3">
-                <Stat label="Power" value={`${fmt(watts, 1)} W`} />
-                <Stat label="Core" value={`${fmt(k("gpu_core_clock"), 0)} MHz`} />
-                <Stat label={hasHotSpot ? "Hotspot" : "Memory"} value={`${fmt(hot, 0)} °C`} />
+              <div className="grid flex-1 grid-cols-3 gap-3 [[data-wp-roomy]_&]:w-full [[data-wp-roomy]_&]:flex-none">
+                <Stat label="Power" value={fmt(watts, 1)} unit="W" />
+                <Stat label="Core" value={fmt(k("gpu_core_clock"), 0)} unit="MHz" />
+                <Stat label={hasHotSpot ? "Hotspot" : "Memory"} value={fmt(hot, 0)} unit="°C" />
               </div>
             </div>
             <BarRow label="VRAM" value={used} max={total} hint={`of ${fmt(total / 1024, 0)} GB`} display={`${fmt(used / 1024, 1)} GB`} />
@@ -99,10 +99,10 @@ export default function GpuMonitor(p: GpuMonitorProps) {
                 <StatGrid
                   cols={4}
                   items={[
-                    { label: "Mem clock", value: `${fmt(k("gpu_memory_clock"), 0)} MHz` },
-                    { label: "Voltage", value: `${fmt(k("gpu_core_voltage"), 3)} V` },
-                    { label: "Board power", value: `${fmt(k("gpu_board_power"), 1)}%` },
-                    { label: "Fans", value: fans.length ? `${fmt(fans.reduce((a, b) => a + b, 0) / fans.length, 0)} RPM` : "–" },
+                    { label: "Mem clock", ...unitStat(k("gpu_memory_clock"), "MHz") },
+                    { label: "Voltage", ...unitStat(k("gpu_core_voltage"), "V", 3) },
+                    { label: "Board power", ...unitStat(k("gpu_board_power"), "%", 1) },
+                    { label: "Fans", ...(fans.length ? unitStat(fans.reduce((a, b) => a + b, 0) / fans.length, "RPM") : { value: "–" }) },
                   ]}
                 />
               </>

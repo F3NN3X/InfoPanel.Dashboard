@@ -2,8 +2,8 @@ import { useLayoutEffect, useRef } from "react";
 import { useZoomKeys } from "@/app-window/zoom";
 import { useHelpKey } from "@/help/use-help-key";
 import { settingsHelpTarget } from "@/help/context";
-import { cn } from "@/lib/utils";
 import { isSectionId, SECTION_NAMES } from "./model/search";
+import { PageColumn } from "./kit";
 import { PAGES } from "./pages";
 import { errorText, ipc } from "./ipc";
 import { RestartBar, Sidebar, TitleBar, ToastView } from "./shell";
@@ -25,13 +25,9 @@ function Content() {
   return (
     <main ref={main} data-scroll-root className="relative min-w-0 flex-1 scroll-pt-16 overflow-auto">
       <RestartBar />
-      <div className={cn("mx-auto flex w-full min-w-0 flex-col gap-7 px-8 pb-20 pt-8", wide ? "max-w-[1040px]" : "max-w-[780px]")}>
-        <div className="flex flex-col gap-1.5">
-          <h1 className="m-0 text-2xl font-semibold tracking-[-0.015em]">{SECTION_NAMES[section]}</h1>
-          <p className="m-0 text-pretty text-[13.5px] leading-normal text-s-muted">{subtitle}</p>
-        </div>
+      <PageColumn title={SECTION_NAMES[section]} subtitle={subtitle} wide={wide}>
         <Section />
-      </div>
+      </PageColumn>
       <ToastView />
     </main>
   );

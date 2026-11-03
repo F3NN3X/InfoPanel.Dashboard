@@ -19,7 +19,7 @@ interface MakeThemeDialogProps {
 }
 
 const DIALOG_BUTTON =
-  "inline-flex h-8 items-center rounded-[7px] border border-ui-strong bg-ui-raised px-3 text-[12.5px] font-medium text-ui-2 transition-colors hover:bg-ui-hover hover:text-ui-1";
+  "inline-flex h-8 items-center rounded-[7px] border border-ui-strong bg-ui-raised px-3 text-body font-medium text-ui-2 transition-colors hover:bg-ui-hover hover:text-ui-1";
 
 /** Confirm moving a widget's custom sections into a scope's theme, listing them. */
 export function MakeThemeDialog({ pending, screenName, pageName, onConfirm, onClose }: MakeThemeDialogProps) {
@@ -35,7 +35,7 @@ export function MakeThemeDialog({ pending, screenName, pageName, onConfirm, onCl
           <AlertDialog.Description className="text-xs leading-relaxed text-ui-3">
             These sections of the widget move into the theme, and the widget follows it again. Undo (Ctrl+Z) brings them back.
           </AlertDialog.Description>
-          <ul className="list-disc space-y-0.5 pl-5 text-[12.5px] text-ui-2">
+          <ul className="list-disc space-y-0.5 pl-5 text-body text-ui-2">
             {titles.map((t) => (
               <li key={t}>{t}</li>
             ))}
@@ -44,7 +44,7 @@ export function MakeThemeDialog({ pending, screenName, pageName, onConfirm, onCl
             <AlertDialog.Close render={<button type="button" className={DIALOG_BUTTON} />}>Cancel</AlertDialog.Close>
             <button
               type="button"
-              className="inline-flex h-8 items-center rounded-[7px] bg-ui-accent px-3 text-[12.5px] font-semibold text-ui-inverse-fg transition-opacity hover:opacity-90"
+              className="inline-flex h-8 items-center rounded-[7px] bg-ui-accent px-3 text-body font-semibold text-ui-inverse-fg transition-opacity hover:opacity-90"
               onClick={() => {
                 if (pending) onConfirm(pending);
                 onClose();

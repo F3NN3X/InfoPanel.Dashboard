@@ -526,9 +526,9 @@ export function ThemeEditor({ config, scope: requested, profileId, pageId, onPic
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-ui-app font-ui">
       <div className="flex min-h-14 shrink-0 flex-wrap items-center gap-3.5 border-b border-ui-subtle px-4 py-2">
-        <h1 className="text-[16px] font-semibold text-ui-1">Theme</h1>
-        <span className="flex items-center gap-1.5 text-caption font-medium text-[#4ade80]">
-          <span className="h-[7px] w-[7px] rounded-full bg-[#4ade80] shadow-[0_0_0_3px_rgba(74,222,128,.18)]" aria-hidden />
+        <h1 className="text-head font-semibold text-ui-1">Theme</h1>
+        <span className="flex items-center gap-1.5 text-caption font-medium text-ui-saved">
+          <span className="h-[7px] w-[7px] rounded-full bg-ui-saved shadow-[0_0_0_3px_rgba(74,222,128,.18)]" aria-hidden />
           Live look of
         </span>
         <ThemeScopeBar config={config} at={at} profile={profile} page={page} onPick={pick} />

@@ -7,7 +7,7 @@ import type { SectionFlags, WidgetTheme } from "./theme-model";
 import type { LegacyProfileFields } from "./settings-migrate";
 import { normalizeApiBase } from "./data-api";
 import { normalizeFont, normalizeGeneral, type GeneralFont, type GeneralSettings } from "./general";
-import { normalizeSpacing } from "./profile-grid";
+import { normalizeSpacing, SCREEN_EDGES, type ScreenEdges } from "./profile-grid";
 import { mainPage, normalizeRotate } from "./pages";
 import { normalizeAlerts, type AlertsConfig } from "./alerts";
 import { storageCopy } from "./canvas-store";
@@ -239,6 +239,8 @@ export interface MonitorProfile {
   gap?: number;
   /** Space around the grid in px (unset = the page's default per mode, see `profilePadding`). */
   padding?: number;
+  /** Whether a kiosk page with no `padding` keeps an inset off the display edge; unset = "inset" (see `profilePadding`). */
+  edges?: ScreenEdges;
   /** The Dynamic Island over the page (`src/lib/island`); unset = none. */
   island?: IslandConfig;
   /** This profile's Max FPS, motion and rendering switches (`resolveGeneral`); unset = the defaults. */
@@ -569,6 +571,7 @@ function profileExtras(p: StoredProfile): Partial<MonitorProfile> {
     radius: typeof p.radius === "number" && Number.isFinite(p.radius) ? p.radius : undefined,
     gap: normalizeSpacing(p.gap),
     padding: normalizeSpacing(p.padding),
+    edges: SCREEN_EDGES.includes(p.edges as ScreenEdges) ? p.edges : undefined,
     island: normalizeIsland(p.island),
     performance: normalizePerformance(p.performance),
     font: normalizeFont(p.font),

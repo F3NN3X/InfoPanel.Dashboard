@@ -836,6 +836,14 @@ function StudioViewBody({
     selectProfile(id);
     ui.setMode("design");
   };
+  /** A Screens card's page strip: that screen, on that page, in Design. */
+  const openScreenPage = (id: string, pageId: string) => {
+    const target = config.profiles.find((p) => p.id === id);
+    if (target && screenKind(target) === "infopanel") return openScreen(id);
+    selectProfile(id);
+    onPageChange(pageId);
+    ui.setMode("design");
+  };
   // Convert from a Screens card: the dialog reads the zones where they are drawn, so it opens once that screen is shown.
   const [convertAfter, setConvertAfter] = useState<string | null>(null);
   useEffect(() => {
@@ -874,6 +882,7 @@ function StudioViewBody({
       kiosks={kiosksOf(control)}
       displays={control?.displays ?? NO_DISPLAYS}
       onOpenScreen={openScreen}
+      onOpenScreenPage={openScreenPage}
       onConvertScreen={(id) => {
         openScreen(id);
         setConvertAfter(id);
@@ -1092,10 +1101,11 @@ function StudioViewBody({
         onDeletingChange={ui.setDeletingPage}
         kioskPage={control?.profiles[storedProfile.id]?.page}
         imported={importedFromInfoPanel(storedProfile)}
+        thumbProfile={screenKind(storedProfile) === "infopanel" ? undefined : storedProfile}
         extra={
           <>
             <MadeForControl value={storedProfile.madeFor} onChange={setMadeFor} />
-            {checkOn ? pill : <span className="whitespace-nowrap text-[11.5px] text-ui-hint">Studio panels only · no export check</span>}
+            {checkOn ? pill : <span className="whitespace-nowrap text-micro text-ui-hint">Studio panels only · no export check</span>}
           </>
         }
       />
@@ -1335,6 +1345,9 @@ function StudioViewBody({
       onToggleRulers={() => ui.setShowRulers((s) => !s)}
       onZoomStep={ui.zoomStep}
       onFit={ui.fitZoom}
+      onActualSize={() => ui.setZoom(1)}
+      onZoomSelection={() => runCommand({ type: "zoom-selection" })}
+      hasSelection={sel.selected != null && sel.selected.visible}
       profile={profile}
       onOpenProfile={() => ui.navigateTo({ view: "screens", profileId: storedProfile.id })}
       preview={showSources ? undefined : preview}
@@ -1401,7 +1414,7 @@ function StudioViewBody({
           inspector={fullPage ? null : inspectorAside}
         />
       )}
-      <StatusBar {...statusBar} kioskChip={kioskChip} onNavigate={ui.navigateTo} onOpenLive={() => ui.setLiveOpen(true)} />
+      <StatusBar {...statusBar} kioskChip={kioskChip} paused={kioskPageId ? !rotating : false} onNavigate={ui.navigateTo} onOpenLive={() => ui.setLiveOpen(true)} />
       {phone && <PhoneTabBar active={railActive} onSelect={onRail} onHelp={openHelpWindow} />}
 
       <WidgetPickerDialog

@@ -19,7 +19,7 @@ const canvas = (name = "Arc") =>
   }) as unknown as StoredCanvas;
 
 function config(): DashboardConfig {
-  const main = { ...newProfile("Main", 1920, 1080), id: "main", cols: 12, rows: 6, fit: "fill" as const };
+  const main = { ...newProfile("Main", 1920, 1080), id: "main", cols: 12, rows: 6, fit: "fill" as const, padding: 0 };
   return { ...defaultConfig(), profiles: [main], activeProfile: "main" };
 }
 
