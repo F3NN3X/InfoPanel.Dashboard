@@ -22,6 +22,9 @@ import {
  *   page theme (only for a section the page made its own and the profile
  *   does not lock) → the widget's own
  *
+ * A Look the page names of its own sits over the profile theme instead, so
+ * the page draws the Look it picked; its own values still beat it.
+ *
  * A clock a level sets, "auto" (the locale's) included, beats the app's,
  * as the dashboard's clock was beaten before v16.
  *
@@ -105,14 +108,17 @@ export function resolveStyle(input: StyleInput): ResolvedStyle {
   const perWidget = new Set((input.defs ?? []).filter((d) => d.perWidget).map((d) => d.key));
   /** The strongest layer of a themed key, the widget's own value only where `ownApplies`. */
   let look: ModuleSettings | undefined;
+  /** Whether the Look is the page's own: it then draws over the screen's values, as the screen's Look under them. */
+  let pageLook = false;
   const layerOf = (key: string, ownValue: unknown, ownApplies: boolean): [StyleSource, unknown] | undefined => {
     const sec = sectionOfKey(key)!;
     const pageOwn = pageCustom(levels, sec);
     const layers: [StyleSource, unknown][] = [
       ["own", ownApplies ? ownValue : undefined],
       ["page", pageOwn ? levels.page?.values?.[key] : undefined],
+      ["look", pageLook ? look?.[key] : undefined],
       ["profile", levels.profile?.values?.[key]],
-      ["look", look?.[key]],
+      ["look", pageLook ? undefined : look?.[key]],
       ["app", levels.base?.[key]],
       ["default", input.moduleDefaults?.[key]],
     ];
@@ -122,6 +128,7 @@ export function resolveStyle(input: StyleInput): ResolvedStyle {
   const lookHit = layerOf("lookId", input.own?.lookId, perWidget.has("lookId") || !following(levels, input.follow, "skin"));
   const holders: Partial<Record<StyleSource, ModuleSettings | undefined>> = { own: input.own, page: levels.page?.values, profile: levels.profile?.values };
   look = lookHit && lookLayerOf(lookHit[1], holders[lookHit[0]]);
+  pageLook = lookHit?.[0] === "page";
   for (const [key, value] of Object.entries(input.own ?? {})) {
     if (!THEMED_KEYS.has(key)) settings[key] = value;
   }

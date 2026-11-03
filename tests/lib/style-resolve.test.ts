@@ -211,6 +211,25 @@ describe("the Look layer (L40)", () => {
   });
 });
 
+describe("a page's own Look", () => {
+  it("draws over the values its screen stores; the page's own values still beat it", async () => {
+    (await import("@/looks/sample-materials")).registerSampleCards();
+    const { lookLayers } = await import("@/looks/sample-cards");
+    const { themeVal } = await import("@/lib/theme-model");
+    const { scopeLookValues } = await import("@/components/studio/theme-editor-model");
+    const paper = lookLayers.paper;
+    const screen = { values: { lookId: "term", accent: "#123456", surface: "theme", font: "inter" } };
+    const page: ThemeLevels = { profile: screen, page: { values: { lookId: "paper" }, follow: { skin: false } } };
+    expect(resolveStyle({ levels: page }).settings).toMatchObject({ lookId: "paper", accent: paper.accent, surface: "look-paper", font: paper.font });
+    expect(themeVal(page, "accent")).toBe(paper.accent);
+    expect(scopeLookValues(page, "page").inherited).toMatchObject({ accent: paper.accent, surface: "look-paper" });
+    const own: ThemeLevels = { profile: screen, page: { values: { lookId: "paper", accent: "#abcdef" }, follow: { skin: false, colors: false } } };
+    expect(resolveStyle({ levels: own }).settings.accent).toBe("#abcdef");
+    // A page that follows its screen's Look keeps the screen's values over that Look.
+    expect(resolveStyle({ levels: { profile: screen, page: { values: {} } } }).settings.accent).toBe("#123456");
+  });
+});
+
 describe("the Look layer and levels saved before it", () => {
   it("gives nothing to a level that stores its Look's own card (applied before the layer: it holds every value it draws)", async () => {
     (await import("@/looks/sample-materials")).registerSampleCards();

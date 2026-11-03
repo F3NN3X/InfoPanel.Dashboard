@@ -219,7 +219,10 @@ export function themeSet(levels: ThemeLevels, key: string): ModuleSettingValue |
   const sec = sectionOfKey(key);
   if (!sec) return undefined;
   const page = pageCustom(levels, sec) ? levels.page?.values?.[key] : undefined;
-  return page ?? levels.profile?.values?.[key] ?? (key === "lookId" ? undefined : levelLook(levels)?.[key]) ?? levels.base?.[key];
+  const { layer, onPage } = levelLook(levels);
+  const look = key === "lookId" ? undefined : layer?.[key];
+  // A page's own Look draws over its screen's values; a screen's sits under them.
+  return page ?? (onPage ? look : undefined) ?? levels.profile?.values?.[key] ?? (onPage ? undefined : look) ?? levels.base?.[key];
 }
 
 /** The surface section's keys: a card comes with its opacity and blur. */
@@ -254,11 +257,12 @@ export function withoutOwnCard(values: ModuleSettings): ModuleSettings {
   return rest;
 }
 
-/** The Look layer of the levels: the page's Look where its Look section is its own, else the screen's. */
-function levelLook(levels: ThemeLevels): ModuleSettings | undefined {
+/** The Look layer of the levels: the page's Look where its Look section is its own (`onPage`), else the screen's. */
+export function levelLook(levels: ThemeLevels): { layer: ModuleSettings | undefined; onPage: boolean } {
   const page = pageCustom(levels, "skin") ? levels.page?.values : undefined;
-  const holder = page?.lookId !== undefined ? page : levels.profile?.values;
-  return lookLayerOf(holder?.lookId, holder);
+  const onPage = page?.lookId !== undefined;
+  const holder = onPage ? page : levels.profile?.values;
+  return { layer: lookLayerOf(holder?.lookId, holder), onPage };
 }
 
 /** The theme value of a key (§3.2 `themeVal`): what the levels set, else `THEME_DEFAULTS`. */
