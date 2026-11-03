@@ -158,17 +158,25 @@ describe("materialVars", () => {
     expect(resolveMaterial(MATERIALS.solid, look({ blur: "12" })).fallback).toBeUndefined();
   });
 
+  it("keeps a white-fill glass card translucent where its blur is off: only the tint layer is raised, never a highlight", () => {
+    const studio = resolveMaterial(MATERIALS.studio, look({ blur: "12" }));
+    expect(studio.fallback).toBeUndefined();
+    expect(materialVars(studio)).not.toHaveProperty("--w-mat-fallback");
+  });
+
   it("sets every variable, so a nested card never inherits its parent's", () => {
     const v = materialVars(resolveMaterial(MATERIALS.flat)) as Record<string, unknown>;
-    expect(v).toEqual({ "--w-mat-bg": "transparent", "--w-mat-shadow": "none", "--w-mat-blur": "none", "--w-mat-export": "transparent", "--w-fill": "transparent" });
+    expect(v).toEqual({ "--w-mat-bg": "transparent", "--w-mat-shadow": "none", "--w-mat-blur": "none", "--w-mat-export": "transparent", "--w-fill": "#18181c" });
   });
 
   it("starts ramps from every material's own fill (ledger L22)", () => {
     const fill = (id: string) => (materialVars(resolveMaterial(MATERIALS[id])) as Record<string, unknown>)["--w-fill"];
-    expect(fill("glass")).toBe("rgb(24, 24, 27)");
+    expect(fill("glass")).toBe("#18181c");
     expect(fill("solid")).toBe("#141418");
     expect(fill("tinted")).toBe("color-mix(in srgb, var(--accent) 5%, #131316)");
     expect(fill("matte-light")).toBe("rgb(244, 244, 245)");
-    expect(fill("outline")).toBe("transparent");
+    // A see-through material starts ramps from the old colour, not transparent (a translucent ramp, a transparent heatmap).
+    expect(fill("outline")).toBe("#18181c");
+    expect(fill("flat")).toBe("#18181c");
   });
 });

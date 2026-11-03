@@ -4,6 +4,7 @@ import type { CSSProperties } from "react";
 import { type ModernChrome, SCRIM } from "@/components/modern-chrome";
 import { cappedBlur, fadeColors, surfaceBox } from "@/components/widget-style";
 import { mix } from "@/widgets/core/tokens";
+import { RAMP_START } from "./data-viz";
 import { DEFAULT_ACCENT_RGB } from "./palette";
 
 /* ───────── the app's materials (glass, matte light and dark, theme), optionally tinted by cover art ───────── */
@@ -189,7 +190,7 @@ const app = (name: ModernStyle, kind: MaterialKind, tone: SurfaceTone, exp?: str
 /** The app's materials under their stored names; they render exactly as the modern widgets draw them. */
 const APP: Record<ModernStyle, Paint> = {
   // D10: Classic glass is a 0.85 to 0.55 tint of rgb(24 24 27) with no blur; its ramps start from that colour.
-  glass: app("glass", "glass", "dark", "rgba(24, 24, 27, 0.9)", "rgb(24, 24, 27)"),
+  glass: app("glass", "glass", "dark", "rgba(24, 24, 27, 0.9)", RAMP_START),
   "matte-light": app("matte-light", "solid", "light"),
   "matte-dark": app("matte-dark", "solid", "dark"),
   theme: app("theme", "solid", "theme"),
@@ -286,9 +287,11 @@ export interface ResolvedMaterial {
 /** A glass card's least fill alpha where its backdrop blur is off (D10: 0.85 fails muted text over white, 0.90 passes). */
 export const BLUR_FALLBACK_ALPHA = 0.9;
 
-/** `background` with every rgba() alpha below `alpha` raised to it. */
+/** `background` with the alpha of every rgba() tint layer below `alpha` raised to it; a white highlight layer (every channel 200 or more) keeps its own. */
 const opaquer = (background: string, alpha: number): string =>
-  background.replace(/rgba\(([^,()]+),([^,()]+),([^,()]+),\s*([\d.]+)\s*\)/g, (all, r, g, b, a) => (Number(a) < alpha ? `rgba(${r},${g},${b}, ${alpha})` : all));
+  background.replace(/rgba\(([^,()]+),([^,()]+),([^,()]+),\s*([\d.]+)\s*\)/g, (all, r, g, b, a) =>
+    Number(a) < alpha && Math.min(Number(r), Number(g), Number(b)) < 200 ? `rgba(${r},${g},${b}, ${alpha})` : all,
+  );
 
 /**
  * One card's material: `mat` with the look's border, glow, opacity and blur, and the colour set from the cover art
@@ -298,6 +301,7 @@ export function resolveMaterial(mat: Material, chrome?: ModernChrome, colors?: S
   const box = boxOf(mat, chrome, colors ?? mat.colors);
   const opacity = chrome?.surfaceOpacity ?? 1;
   const exp = exportOf(mat);
+  const raised = mat.kind === "glass" && opacity >= 1 && box.backdropFilter && box.backdropFilter !== "none" ? opaquer(String(box.background), BLUR_FALLBACK_ALPHA) : "";
   return {
     id: mat.id,
     kind: mat.kind,
@@ -307,9 +311,10 @@ export function resolveMaterial(mat: Material, chrome?: ModernChrome, colors?: S
     patch: patchOf(box.background, mat.tone),
     scrim: scrimOf(mat.tone),
     export: exp && opacity < 1 ? fadeBackground(exp, opacity) : exp,
-    fill: mat.fill ?? exp ?? "transparent",
-    // A faded card keeps the opacity the look asked for.
-    ...(mat.kind === "glass" && opacity >= 1 && box.backdropFilter && box.backdropFilter !== "none" ? { fallback: opaquer(String(box.background), BLUR_FALLBACK_ALPHA) } : null),
+    // A see-through material starts ramps from the old colour: a transparent start makes them translucent.
+    fill: mat.fill ?? exp ?? RAMP_START,
+    // A faded card keeps the opacity the look asked for; a card with no tint layer to raise has no fallback.
+    ...(raised && raised !== String(box.background) ? { fallback: raised } : null),
   };
 }
 
