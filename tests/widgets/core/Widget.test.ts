@@ -24,7 +24,7 @@ describe("Widget smoke render", () => {
       for (const size of ["xs", "lg"] as Tier[]) {
         // biome-ignore lint/correctness/noChildrenProp: the Widget takes a render function as children.
         const html = renderToString(h(Widget, { skin, variant, size, title: "System", icon: "dashboard", compact, studio, surface: "auto", children: body }));
-        expect(html).toContain("--accent");
+        expect(html).toContain("--w-accent");
         if (variant === "default" && size !== "xs") expect(html).toContain("System");
       }
   });
@@ -44,8 +44,8 @@ describe("Widget look", () => {
     const html = render({ surface: "matte-light", textColor: "#ff0000", mutedColor: "#00ff00" });
     expect(html).toContain("--w-fg:#ff0000");
     expect(html).toContain("--w-muted:#00ff00");
-    expect(html).toContain("--wp-fg:#ff0000");
-    expect(html).toContain("--wp-muted:#00ff00");
+    expect(html).toContain("--wp-fg:var(--w-fg)");
+    expect(html).toContain("--wp-muted:var(--w-muted)");
     expect(html).toContain("color:var(--w-fg)");
   });
 
@@ -66,7 +66,7 @@ describe("Widget look", () => {
     const html = render({ label: "My CPU", accent: "#ff0000", textColor: "#123456", scale: 150, padding: "8", customCss: ":scope { outline: 1px solid red }" }, { skin: "synth" });
     expect(html).toContain("My CPU");
     expect(html).not.toContain("Template title");
-    expect(html).toContain("--accent:#ff0000");
+    expect(html).toContain("--w-accent:#ff0000");
     expect(html).toContain("--w-fg:#123456");
     expect(html).toContain("zoom:1.5");
     expect(html).toContain("padding:5.33px");
@@ -77,7 +77,7 @@ describe("Widget look", () => {
   it("shows the background image and keeps the skin accent without an explicit one", () => {
     const html = render({ background: "/bg.png", backgroundOn: true }, { skin: "synth" });
     expect(html).toContain('src="/bg.png"');
-    expect(html).toContain("--accent:#ff4fd8");
+    expect(html).toContain("--w-accent:#ff4fd8");
   });
 
   it("treats an empty surface as unset", () => {

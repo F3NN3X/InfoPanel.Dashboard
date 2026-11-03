@@ -12,6 +12,7 @@ version as its notes, so move **Unreleased** under a new `## [X.Y.Z] - YYYY-MM-D
 
 ### Changed
 
+- **The widget accent colour is now `--w-accent`.** Custom CSS can read or set `--w-accent` inside a widget; `--accent` is still set to the same colour inside widgets for this release, and `--wp-accent`, `--wp-fg`, `--wp-muted` and `--wp-radius` keep working. Nothing looks different.
 - **Lower CPU with an audio meter open.** Widgets that read every sensor no longer redraw on each of the audio meter's ten updates a second unless they show an audio value.
 - **Now Playing draws its cover backdrop unblurred in lite mode** (Max FPS below 60, or reduced motion), where the 28 px filter blur was redrawn for nothing. Limit blur still does not cap it.
 - **The Brutal skin's accent offset sits inside the card.** Brutal widgets fill their whole frame again: the hard accent offset is drawn as a bar along the right and bottom inside the white rule, where it was a shadow outside a card shrunk by 6 px.
