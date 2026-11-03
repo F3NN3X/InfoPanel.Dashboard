@@ -33,10 +33,6 @@ const LIGHT_SCREEN =
 const DARK_SCREEN =
   "[--lcd-display-bezel-edge:oklch(0.24_0.004_250)] [--lcd-display-bezel-ring:rgb(0_0_0/0.7)] [--lcd-display-bezel-shadow:inset_0_1px_0_rgb(255_255_255/0.06),0_2px_6px_rgb(0_0_0/0.5)] [--lcd-display-bezel:oklch(0.33_0.004_250)] [--lcd-display-glass:oklch(0.15_0.004_200)] [--lcd-display-glow:color-mix(in_oklab,var(--lcd-display-lit)_60%,transparent)] [--lcd-display-lit:var(--lcd-display-ink)] [--lcd-display-recess:inset_0_2px_10px_rgb(0_0_0/0.9),inset_0_0_0_1px_rgb(0_0_0/0.8)] [--lcd-display-scanline:rgb(0_0_0/0.22)] [--lcd-display-sheen:rgb(255_255_255/0.05)]";
 
-/** The dark screen under the site's `.dark` class, written out for Tailwind. */
-const DARK_SCREEN_IN_DARK_THEME =
-  "dark:[--lcd-display-bezel-edge:oklch(0.24_0.004_250)] dark:[--lcd-display-bezel-ring:rgb(0_0_0/0.7)] dark:[--lcd-display-bezel-shadow:inset_0_1px_0_rgb(255_255_255/0.06),0_2px_6px_rgb(0_0_0/0.5)] dark:[--lcd-display-bezel:oklch(0.33_0.004_250)] dark:[--lcd-display-glass:oklch(0.15_0.004_200)] dark:[--lcd-display-glow:color-mix(in_oklab,var(--lcd-display-lit)_60%,transparent)] dark:[--lcd-display-lit:var(--lcd-display-ink)] dark:[--lcd-display-recess:inset_0_2px_10px_rgb(0_0_0/0.9),inset_0_0_0_1px_rgb(0_0_0/0.8)] dark:[--lcd-display-scanline:rgb(0_0_0/0.22)] dark:[--lcd-display-sheen:rgb(255_255_255/0.05)]";
-
 /**
  * The hardware colours, the ink and the dot grid. The lit, dim and unlit
  * pixels are mixed from `--lcd-display-ink`, so a custom colour needs only
@@ -52,7 +48,9 @@ const lcdDisplayVariants = cva(
     },
     variants: {
       appearance: {
-        auto: `${LIGHT_SCREEN} ${DARK_SCREEN_IN_DARK_THEME}`,
+        // local: upstream follows the `.dark` class through `dark:`, which in Tailwind v4 without a dark variant follows the OS.
+        // The app resolves `auto` to light or dark by the widget's surface (`lcdAppearanceFor`), so a bare `auto` stays light.
+        auto: LIGHT_SCREEN,
         dark: DARK_SCREEN,
         light: LIGHT_SCREEN,
       },
@@ -240,7 +238,7 @@ export interface LcdDisplayProps extends ComponentProps<"div"> {
   variant?: LcdDisplayVariant;
   /**
    * `light` is a backlit screen with dark pixels, `dark` an unlit screen with
-   * glowing ink, and `auto` follows the theme. Default `auto`.
+   * glowing ink, and `auto` stays light here (the app resolves it by the widget surface). Default `auto`.
    */
   appearance?: LcdDisplayAppearance;
   /** The text size; rows, separator and status follow it. Default `default`. */

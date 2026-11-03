@@ -104,7 +104,7 @@ export function AlertLayer({ alerts, onAck }: AlertLayerProps) {
         <div
           className={cn(
             "pointer-events-auto absolute inset-0",
-            backdrop === "dim" ? "bg-background/55" : "bg-background/25 backdrop-blur-[8px]"
+            backdrop === "dim" ? "bg-background/55" : "bg-background/25 backdrop-blur-[min(8px,var(--wp-blur-cap,8px))]"
           )}
         />
       )}

@@ -40,6 +40,15 @@ describe("Widget look", () => {
     expect(render({ radius: "12" }, { skin: "macos" })).toContain("border-radius:12px");
   });
 
+  it("carries the text colour override on a legacy surface: the shell's text variables and the --wp-* ones its surface colours read", () => {
+    const html = render({ surface: "matte-light", textColor: "#ff0000", mutedColor: "#00ff00" });
+    expect(html).toContain("--w-fg:#ff0000");
+    expect(html).toContain("--w-muted:#00ff00");
+    expect(html).toContain("--wp-fg:#ff0000");
+    expect(html).toContain("--wp-muted:#00ff00");
+    expect(html).toContain("color:var(--w-fg)");
+  });
+
   it("fades the card and blurs behind it from the look's opacity and blur", () => {
     const html = render({ surface: "glass", surfaceOpacity: 40, blur: "16" });
     expect(html).toContain("backdrop-filter:blur(min(16px, var(--wp-blur-cap, 16px)))");

@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 import type { IslandConfig, IslandWeight } from "@/lib/island/config";
 import type { ResolvedGeneral } from "@/lib/general";
 import { fontStack } from "@/lib/general";
+import { cappedBlur } from "@/components/widget-style";
 import type { FontId } from "@/lib/fonts";
 import { resolveStyle, type Appearance } from "@/lib/style-resolve";
 import { springCss, springFor, SPRINGS, type SpringKind } from "@/lib/island/spring";
@@ -67,7 +68,7 @@ export function islandSkin(c: Pick<IslandConfig, "placement" | "tint" | "bgColor
     color,
     border,
     boxShadow: c.shadow ? SHADOW : "none",
-    backdropFilter: see ? "blur(14px) saturate(1.4)" : undefined,
+    backdropFilter: see ? `blur(${cappedBlur(14)}) saturate(1.4)` : undefined,
     fontFamily: c.font === "system" ? undefined : fontStack(c.font as FontId),
     fontWeight: WEIGHTS[c.weight],
   };

@@ -263,7 +263,7 @@ export default function GameSpotlight(p: GameSpotlightProps) {
               <div className="mt-auto flex flex-col gap-3">
                 <Logo src={logo} name={game} size={big} ip={tag(logo ? steam("SteamAPI-Profile.game_logo_url") : undefined, { kind: "image" })} className={`${h > 220 ? "max-h-24" : "max-h-14"} max-w-[65%]`} />
                 {lay === "combo" && has(track) ? (
-                  <div className="flex max-w-md items-center gap-3 rounded-2xl bg-black/45 p-2.5 ring-1 ring-white/10 backdrop-blur-xl" data-wp-inner-blur="">
+                  <div className="flex max-w-md items-center gap-3 rounded-2xl bg-black/45 p-2.5 ring-1 ring-white/10 backdrop-blur-[min(24px,var(--wp-blur-cap,24px))]" data-wp-inner-blur="">
                     <Img src={widgetImage(get(d, `${ms}.cover-art`))} icon="music_note" className="h-10 w-10 shrink-0 rounded-lg" />
                     <div className="flex min-w-0 flex-1 flex-col gap-1">
                       <span className="truncate text-xs font-semibold">{track}</span>
