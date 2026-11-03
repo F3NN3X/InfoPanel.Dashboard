@@ -1,6 +1,6 @@
 import { upgradeConfig } from "@/lib/config-upgrade";
 import { describe, expect, it } from "vitest";
-import { CANVAS_ID, defaultConfig, type StoredConfig } from "@/lib/layout";
+import { CANVAS_ID, CONFIG_VERSION, defaultConfig, type StoredConfig } from "@/lib/layout";
 import { migrateProfileV14 } from "@/lib/settings-migrate";
 import { isFreePage } from "@/lib/free-pages";
 import { importAsProfile } from "@/components/studio/import-actions";
@@ -98,7 +98,7 @@ describe("a v13 config loaded now (v14, then v15)", () => {
 
   it("an old dashboard (v2, legacy placements) opens", () => {
     const old = upgradeConfig({ version: 2, profiles: [{ id: "o", name: "Old", width: 800, height: 480, cols: 2, rows: 1, fit: "fill", placements: [zone("c", CANVAS_ID, [1, 1, 2, 1], { canvas })] }] } as unknown as StoredConfig);
-    expect(old.version).toBe(16);
+    expect(old.version).toBe(CONFIG_VERSION);
     expect(isFreePage(old.profiles[0], old.profiles[0].pages[0])).toBe(true);
     expect(old.profiles[0].madeFor).toBe("infopanel");
   });

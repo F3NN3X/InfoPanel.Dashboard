@@ -7,8 +7,8 @@
  * width (`settings-migrate.ts`; the panels' own normalisation runs it), v9→v10 drops the widget `preset` key, v11→v12
  * turns the audio widgets' single `device` into a pick, v12→v13 only stamps the version, the old Stream Deck widget's mirror keys go (`migrateProfileStreamDeck`, no version of its own), v13→v14 marks Free pages and
  * the screens made for InfoPanel, v14→v15 makes every page one kind (`migrateProfileV15`, a line in `log` per change
- * it makes), v15→v16 gives each screen the look it inherited (`migrateScreensV16`). A config at this build's version
- * comes out as `mergeConfig` makes it.
+ * it makes), v15→v16 gives each screen the look it inherited (`migrateScreensV16`), v16→v17 gives the levels that
+ * applied a sample theme its Look (`migrateLooksV17`). A config at this build's version comes out as `mergeConfig` makes it.
  */
 import type { ModuleSettings } from "@/modules/types";
 import { normalizeAlerts } from "./alerts";
@@ -24,6 +24,7 @@ import { YR_FORECAST_KEY } from "./sensors";
 import {
   migrateBaseStyleV6,
   migrateGeneralV7,
+  migrateLooksV17,
   migrateProfileV6,
   migrateProfileV7,
   migrateProfileV8,
@@ -134,6 +135,8 @@ export function upgradeConfig(input: StoredConfig, log?: string[]): DashboardCon
     alerts: normalizeAlerts(parsed.alerts),
   };
   // v16: each screen gets the look it inherited from the dashboard, whose fields go.
-  return legacy ? migrateScreensV16(config, dashboardLook({ ...parsed, general: v7.general }, v7.style)) : config;
+  const v16 = legacy ? migrateScreensV16(config, dashboardLook({ ...parsed, general: v7.general }, v7.style)) : config;
+  // v17: the levels a sample theme was applied to name its Look.
+  return (parsed.version ?? 0) < 17 ? migrateLooksV17(v16) : v16;
 }
 

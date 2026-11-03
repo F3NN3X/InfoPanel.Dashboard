@@ -64,6 +64,15 @@ mod tests {
         assert!(version_refusal(r#"{"version":16}"#, &serde_json::json!({ "version": 16 })).is_none());
     }
 
+    // v17 (each level stores a Look id): a v16 build would drop `lookId` on its next save.
+    #[test]
+    fn refuses_a_v16_save_over_a_v17_config() {
+        assert!(version_refusal(r#"{"version":17}"#, &serde_json::json!({ "version": 16 })).is_some());
+        assert!(version_refusal(r#"{"version":16}"#, &serde_json::json!({ "version": 17 })).is_none());
+        assert!(version_refusal(r#"{"version":17}"#, &serde_json::json!({ "version": 17 })).is_none());
+        assert!(needs_update(r#"{"version":16,"profiles":[]}"#));
+    }
+
     #[test]
     fn a_saved_config_needs_an_update_below_this_builds_version_only() {
         let below = format!(r#"{{"version":{},"profiles":[]}}"#, crate::CONFIG_VERSION - 1);
@@ -86,5 +95,7 @@ mod tests {
         assert_eq!(version_backup_name("not json", &v16), None);
         assert_eq!(version_backup_name(r#"{"version":15}"#, &serde_json::json!({ "version": 15.5 })), None);
         assert_eq!(version_backup_name(r#"{"version":15}"#, &serde_json::json!({ "profiles": [] })), None);
+        let v17 = serde_json::json!({ "version": 17 });
+        assert_eq!(version_backup_name(r#"{"version":16}"#, &v17).as_deref(), Some("config.backup-before-v17.json"));
     }
 }

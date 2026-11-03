@@ -237,6 +237,21 @@ async fn keeps_the_older_config_before_a_save_raises_its_version() {
     s.stop().await;
 }
 
+// v17 (a Look per level): the first v17 save keeps the v16 file, as the v16 one kept the v15 file.
+#[tokio::test]
+async fn keeps_the_v16_config_before_the_first_v17_save() {
+    let s = start().await;
+    let backup = s.data().join("config.backup-before-v17.json");
+    let v16 = r#"{"version":16,"profiles":[{"id":"s","widgetTheme":{"values":{"skin":"hud","surface":"look-term"}},"appliedTheme":{"id":"builtin:look-term","name":"Term","values":{"surface":"look-term"}}}]}"#;
+    assert_eq!(post_config(s.port, v16, &[]).await.status, 200);
+    let raised = post_config(s.port, r#"{"version":17,"profiles":[]}"#, &[]).await;
+    assert_eq!(raised.status, 200);
+    assert_eq!(json(&raised)["backup"], backup.display().to_string());
+    assert_eq!(std::fs::read_to_string(&backup).unwrap(), v16);
+    assert_eq!(post_config(s.port, v16, &[]).await.status, 409);
+    s.stop().await;
+}
+
 #[tokio::test]
 async fn settings_patch_sets_the_startup_screen() {
     let s = start().await;

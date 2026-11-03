@@ -37,7 +37,7 @@ const userProfile = (extra: Partial<StoredProfile> = {}): StoredProfile => ({
 describe("upgradeConfig", () => {
   it("fills a missing config with the defaults: one blank profile", () => {
     const c = upgradeConfig({});
-    expect(c.version).toBe(16);
+    expect(c.version).toBe(CONFIG_VERSION);
     expect(c.activeProfile).toBe("auto");
     expect(c.profiles).toHaveLength(1);
     expect(c.profiles[0]).toMatchObject({ id: "main", width: 1920, height: 1080 });
@@ -77,7 +77,7 @@ describe("upgradeConfig", () => {
       ],
     };
     const c = upgradeConfig({ version: 3, profiles: [stored] });
-    expect(c.version).toBe(16);
+    expect(c.version).toBe(CONFIG_VERSION);
     const [one, two] = c.profiles[0].pages;
     expect(one.placements[0]).toMatchObject({ id: "s", module: "SystemOverview", settings: { coreView: "heatmap", sections: "cpu,gpu,vram,ram" } });
     expect(one.placements[0].settings).not.toHaveProperty("showCores");
