@@ -1,4 +1,4 @@
-import { Empty, fitRows, Widget, shell, get, has, useIpTag, type ShellProps } from "./kit";
+import { Empty, fillRows, fitRows, roomy, Widget, shell, get, has, useIpTag, type ShellProps } from "./kit";
 import { meta } from "./meta/SteamFriends";
 import { FRIEND_COLORS, friendsOf, friendStatus, type Friend, type FriendSort, type FriendStatus } from "./friends-data";
 
@@ -57,11 +57,13 @@ export default function SteamFriends(p: SteamFriendsProps) {
         const twoLine = !table && body >= 33 && size !== "xs";
         const n = table ? fitRows(body - 22, 22) : twoLine ? fitRows(body, 33, 10) : fitRows(body, 18, 6);
         const shown = friends.slice(0, n);
+        // A roomy box keeps the table's rows and shares the spare height between them and the header.
+        const rowH = table ? (fillRows(body, shown.length + 1, 22, 0, roomy(w0, h)).rowH ?? 22) : 22;
         return (
           <div className="flex h-full min-h-0 flex-col gap-3">
             {p.showCounts && <div className="shrink-0 truncate text-caption leading-4 text-[color:var(--w-muted)]">{counts}</div>}
             {table ? (
-              <FriendTable friends={shown} colorOf={colorOf} showTime={showTime} w={w} ip={tag("plugins.InfoPanel.SteamAPI.SteamAPI-Social.friends-activity", { kind: "table", rows: shown.length })} />
+              <FriendTable friends={shown} colorOf={colorOf} showTime={showTime} w={w} rowH={rowH} ip={tag("plugins.InfoPanel.SteamAPI.SteamAPI-Social.friends-activity", { kind: "table", rows: shown.length })} />
             ) : (
               <ul className={`flex min-h-0 flex-col overflow-hidden ${twoLine ? "gap-2.5" : "gap-1.5"}`}>
                 {shown.map((f, i) => (
@@ -95,7 +97,7 @@ export default function SteamFriends(p: SteamFriendsProps) {
   );
 }
 
-function FriendTable({ friends, colorOf, showTime, w, ip }: { friends: Friend[]; colorOf: (f: Friend) => string; showTime: boolean; w: number; ip: Record<string, string | number> }) {
+function FriendTable({ friends, colorOf, showTime, w, rowH, ip }: { friends: Friend[]; colorOf: (f: Friend) => string; showTime: boolean; w: number; rowH: number; ip: Record<string, string | number> }) {
   // columns drop from the right as the box narrows: status from 300px, time from 220px, game from 160px
   const status = w >= 300;
   const time = showTime && w >= 220;
@@ -105,7 +107,7 @@ function FriendTable({ friends, colorOf, showTime, w, ip }: { friends: Friend[];
   // Tagged for InfoPanel, each header names the plugin's column it heads.
   const col = (i: number) => (ip["data-ip-key"] ? { "data-ip-col": i } : {});
   return (
-    <div {...ip} className="grid min-h-0 content-start items-center gap-x-3 overflow-hidden text-caption leading-[1.333]" style={{ gridTemplateColumns: cols, gridAutoRows: "22px" }}>
+    <div {...ip} className="grid min-h-0 content-start items-center gap-x-3 overflow-hidden text-caption leading-[1.333]" style={{ gridTemplateColumns: cols, gridAutoRows: `${rowH}px` }}>
       <span />
       <span className={`${cell} text-micro font-medium uppercase tracking-[0.06em] text-[color:var(--w-faint)]`} {...col(0)}>Friend</span>
       {status && <span className={`${cell} text-micro font-medium uppercase tracking-[0.06em] text-[color:var(--w-faint)]`} {...col(1)}>Status</span>}

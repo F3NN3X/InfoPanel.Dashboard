@@ -3,7 +3,7 @@ import { useGeneral } from "@/hooks/use-general";
 import { localeHour12 } from "@/lib/general";
 import { hour12Of } from "@/modules/setting-readers";
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, rows, fmt, fmtDate, mix, type ShellProps } from "./kit";
+import { Widget, shell, get, num, rows, fmt, fmtDate, mix, ChartAxis, ChartYAxis, type ShellProps } from "./kit";
 import { allDayTitles, hourMarks, nowFraction, placeEvents, railWindow, type RailEvent, type RailWindow } from "./DayPlanner/layout";
 import { forecastDay, weatherBand, type BandPoint } from "./DayPlanner/weather-band";
 import { useExtras, useInStudio, useNow } from "./time-hooks";
@@ -87,6 +87,8 @@ export default function DayPlanner(p: DayPlannerProps) {
             : { top: along(from), height: along(to - from), left: `${(lane / lanes) * 100}%`, width: `${100 / lanes}%` };
         const point = (a: number, across: number) => (horizontal ? `${a * 100},${100 - across}` : `${across},${a * 100}`);
         const span = hi - lo || 1;
+        // The hour labels, one axis for both orientations: down the left of the plot, or along the bottom under it.
+        const axisTicks = marks.map((m) => ({ at: m.fraction * 100, label: m.hour === 0 && m.day >= 1 ? dayName(m.at) : hourLabel(m.hour, h12) }));
         const frac = (at: number) => (at - win.start) / (win.end - win.start);
         return (
           <div className="flex h-full min-h-0 min-w-0 flex-col gap-1">
@@ -102,13 +104,7 @@ export default function DayPlanner(p: DayPlannerProps) {
               </div>
             )}
             <div className={`flex min-h-0 flex-1 ${horizontal ? "flex-col" : "flex-row pt-2"}`}>
-              <div className={`relative shrink-0 text-micro tabular-nums text-[color:var(--w-faint)] ${horizontal ? "h-4" : "w-7 text-right"}`}>
-                {marks.map((m) => (
-                  <span key={m.at} className="absolute whitespace-nowrap leading-none" style={horizontal ? { left: along(m.fraction), transform: "translateX(-50%)" } : { top: along(m.fraction), transform: "translateY(-50%)" }}>
-                    {m.hour === 0 && m.day >= 1 ? dayName(m.at) : hourLabel(m.hour, h12)}
-                  </span>
-                ))}
-              </div>
+              {!horizontal && <ChartYAxis ticks={axisTicks} className="w-7" />}
               <div className="relative min-h-0 min-w-0 flex-1 overflow-hidden rounded-md" style={{ background: "var(--w-track)" }}>
                 {weather.band && (
                   <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 h-full w-full" aria-hidden>
@@ -146,6 +142,7 @@ export default function DayPlanner(p: DayPlannerProps) {
                   <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-xs text-[color:var(--w-muted)]">Nothing planned</div>
                 )}
               </div>
+              {horizontal && <ChartAxis ticks={axisTicks} centred className="mt-1 shrink-0" />}
             </div>
           </div>
         );

@@ -249,6 +249,37 @@ describe("Wave Link's input devices", () => {
   });
 });
 
+describe("Wave Link's rows", () => {
+  const rows = (w: number, h: number, extra: ModuleSettings = {}) => {
+    size = { w, h };
+    return render(<WaveLink data={data} meterOrientation="horizontal" {...extra} />).container;
+  };
+  const items = (c: HTMLElement) => [...c.querySelectorAll("li")];
+  const bars = (li: Element) => li.querySelectorAll('[style*="height: 3px"]').length;
+
+  it("keeps the mute mark, both level bars, the mix chips and the dB readout on a wide row", () => {
+    const [music, game] = items(rows(640, 300));
+    expect(bars(music)).toBe(2);
+    expect(within(game as HTMLElement).getByRole("img", { name: "Muted" })).toBeTruthy();
+    expect(music.textContent).toContain("Stream Mix");
+    expect(music.textContent).toContain("Monitor Mix");
+    expect(music.textContent).toContain("dB");
+    expect(music.textContent).toContain("80");
+  });
+
+  it("keeps the left dB readout on a medium row", () => {
+    const [music] = items(rows(220, 300));
+    expect(music.textContent).not.toContain("Stream Mix");
+    expect(music.querySelector(".font-mono")).not.toBeNull();
+    expect(music.textContent).toContain("80");
+  });
+
+  it("keeps the fader value in a tile", () => {
+    const [music] = items(rows(120, 300));
+    expect(music.textContent).toContain("80%");
+  });
+});
+
 describe("the Rows view's faders", () => {
   afterEach(() => audioRefusal.set(false));
   const rows = () => {
@@ -294,8 +325,8 @@ describe("the Rows view's faders", () => {
     expect(written.mock.calls.length).toBe(calls);
   });
 
-  it("announce a whole percent in range, whatever value the server holds", () => {
-    for (const [vol, text] of [[72.4, "72%"], [140, "100%"], [-5, "0%"]] as const) {
+  it("announce a whole percent in range, whatever value the server holds (NaN reads as 0)", () => {
+    for (const [vol, text] of [[72.4, "72%"], [140, "100%"], [-5, "0%"], [Number.NaN, "0%"]] as const) {
       AUDIO = { ...AUDIO, windows: { ...AUDIO.windows, outputs: [{ id: "o1", name: "Speakers", volume: vol, muted: false, default: true }] } };
       size = { w: 640, h: 300 };
       const first = within(render(<StreamMixer data={data} />).container).getAllByRole("slider")[0];

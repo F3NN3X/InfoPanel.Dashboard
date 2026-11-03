@@ -36,8 +36,8 @@ export default function DriveSpace(p: DriveSpaceProps) {
   const warn = p.warn ?? 80,
     crit = p.crit ?? 92;
   const list = (one ? [one] : [...drives]).sort((a, b) => (p.sort === "name" ? a.id.localeCompare(b.id) : b.pct - a.pct));
-  const neutral = p.neutral !== false;
-  const tn = (pct: number): Tone | "muted" => (pct >= crit ? "crit" : pct >= warn ? "warn" : neutral ? "muted" : "ok");
+  // "Neutral below thresholds" (off by default, like the other views): on draws an ok bar grey, off in the accent. A widget that saved it on keeps grey.
+  const tn = (pct: number): Tone | "muted" => (pct >= crit ? "crit" : pct >= warn ? "warn" : p.neutral === true ? "muted" : "ok");
   const critN = drives.filter((x) => x.pct >= crit).length;
   const first = one ?? drives[0];
   return (
@@ -56,7 +56,7 @@ export default function DriveSpace(p: DriveSpaceProps) {
       studio={first && { label: "Drives", value: first.pct, unit: "%", sub: `${first.name} · ${fmtMB(first.free)} free`, pct: first.pct, rows: list.map((x) => ({ n: `${x.name} ${x.label}`, v: `${fmtMB(x.free)} free`, pct: x.pct })) }}
       compact={first && { label: `${first.name} ${first.label}`, value: first.pct, unit: "%", sub: `${fmtMB(first.free)} free`, pct: first.pct, t: tone(first.pct, warn, crit) }}
     >
-      {({ size, h, outerW, outerH }) => {
+      {({ size, w, h, outerW, outerH }) => {
         if (!first) return null;
         if (size === "xs")
           return (
@@ -70,7 +70,7 @@ export default function DriveSpace(p: DriveSpaceProps) {
           );
         if (p.view === "segments" || p.view === "bars") {
           const rows: DriveRow[] = list.map((x) => ({ key: x.id, name: x.label ? `${x.label} (${x.name})` : x.name, text: `${fmtMB(x.used)} / ${fmtMB(x.total)}`, pct: x.pct, t: tone(x.pct, warn, crit), id: x.id }));
-          return <DriveRows rows={rows} view={p.view} size={size} h={h} icons={p.icons} />;
+          return <DriveRows rows={rows} view={p.view} size={size} w={w} h={h} icons={p.icons} />;
         }
         if (one && size !== "sm")
           return (

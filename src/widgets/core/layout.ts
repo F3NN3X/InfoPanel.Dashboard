@@ -93,6 +93,9 @@ export const RoomyCtx = createContext(false);
 /** How much a roomy box grows the widget's body type (the type tokens); smaller boxes keep 1. */
 export const ROOMY_SCALE = 1.25;
 
+/** A fixed row height in px for a w×h box: `px` grown by `ROOMY_SCALE` in a roomy box (so rows keep up with the scaled type), `px` itself in any smaller one. */
+export const rowPx = (px: number, w: number, h: number): number => (roomy(w, h) ? Math.round(px * ROOMY_SCALE) : px);
+
 /** The hero numeral's size in px in a roomy box: a share of the width, held under a share of the height. */
 export const heroPx = (w: number, h: number): number => Math.round(Math.min(w * 0.22, h * 0.2));
 

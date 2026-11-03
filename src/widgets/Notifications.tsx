@@ -73,6 +73,8 @@ export default function Notifications(p: NotificationsProps) {
         const room = roomy(w, h);
         const rowH = room ? Math.min(30, Math.max(20, Math.floor((h - 120) / Math.max(lines.length, 5)))) : size === "lg" ? 26 : 20;
         const fit = h > 0 ? Math.max(1, Math.floor((h - (room ? 120 : 72)) / rowH)) : lines.length;
+        // The lines that show share the height the history has (up to 40px each), so a few lines don't crowd the top.
+        const pitch = room ? Math.min(40, Math.max(rowH, Math.floor((h - 120) / Math.max(1, Math.min(fit, lines.length))))) : rowH;
         const counts = room && showHistory ? [...lines.reduce((m, l) => m.set(l.type, (m.get(l.type) ?? 0) + 1), new Map<string, number>())] : [];
         const text = size === "lg" ? "text-sm" : "text-xs";
         return (
@@ -102,7 +104,7 @@ export default function Notifications(p: NotificationsProps) {
                 {lines.slice(0, fit).map((l, i) => {
                   const c = typeColor(l.type);
                   return (
-                    <div key={i} className={`flex ${room ? "items-center" : "items-baseline"} gap-2 ${text}`} style={room ? { minHeight: rowH - 4 } : undefined}>
+                    <div key={i} className={`flex ${room ? "items-center" : "items-baseline"} gap-2 ${text}`} style={room ? { minHeight: pitch - 4 } : undefined}>
                       <span className="shrink-0 font-mono tabular-nums text-[color:var(--w-muted)]">{l.time}</span>
                       <span
                         className="shrink-0 rounded px-1.5 py-px text-micro tracking-wider text-[color:var(--w-muted)]"

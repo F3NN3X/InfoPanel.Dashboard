@@ -68,6 +68,11 @@ function Level({ value, hold, vertical, variant, n, color, hot }: LevelProps) {
   );
 }
 
+/** One level bar of a channel's meter: the L or R of `levels`, as `MeterPair` draws it (`vertical`: standing). */
+export const levelBar = (s: Smoothed, variant: MeterVariant, color: string, hot: string, vertical?: boolean) => (
+  <Level value={dbPos(s.v)} hold={s.hold !== undefined ? dbPos(s.hold) : undefined} vertical={vertical} variant={variant} n={vertical ? 24 : 28} color={color} hot={hot} />
+);
+
 export interface MeterPairProps {
   levels: Levels;
   vertical?: boolean;
@@ -80,7 +85,7 @@ export interface MeterPairProps {
 }
 /** Two bars, L and R: side by side when vertical, stacked when horizontal. */
 export function MeterPair({ levels, vertical, variant, color, hot, thickness = 7, className = "" }: MeterPairProps) {
-  const bar = (s: Smoothed) => <Level value={dbPos(s.v)} hold={s.hold !== undefined ? dbPos(s.hold) : undefined} vertical={vertical} variant={variant} n={vertical ? 24 : 28} color={color} hot={hot} />;
+  const bar = (s: Smoothed) => levelBar(s, variant, color, hot, vertical);
   return vertical ? (
     <div className={`flex min-h-0 flex-1 justify-center gap-[5px] ${className}`}>
       {[levels.l, levels.r].map((s, i) => (

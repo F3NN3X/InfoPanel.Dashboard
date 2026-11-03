@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { detect, diskName, rowLabel, shortLabel, diskShort, firstDisk, fmtDate, fmtRate, rateParts } from "@/widgets/core/data";
+import { detect, diskName, rowLabel, shortLabel, diskShort, firstDisk, fmtDate, fmtGB, fmtRate, gbParts, rateParts } from "@/widgets/core/data";
 
 describe("fmtRate", () => {
   it("reads the rate sensors as bytes per second and scales them (decimal prefixes)", () => {
@@ -100,5 +100,16 @@ describe("shortLabel on names that are not a bare load or temperature", () => {
     const a = shortLabel("AMD Ryzen 9 9950X3D CPU Total", "%"),
       b = shortLabel("AMD Ryzen 9 9950X3D CPU Core", "%");
     expect(rowLabel(a, [a, b])).toBe("AMD Ryzen 9 9950X3D CPU Total");
+  });
+});
+
+describe("gbParts", () => {
+  it("splits a size into its number and unit, a TB from 1024 GB", () => {
+    expect(gbParts(12.34)).toEqual(["12.3", "GB"]);
+    expect(gbParts(193)).toEqual(["193", "GB"]);
+    expect(gbParts(2048)).toEqual(["2.0", "TB"]);
+  });
+  it("is what fmtGB joins", () => {
+    expect(fmtGB(12.34)).toBe("12.3 GB");
   });
 });

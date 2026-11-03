@@ -58,9 +58,9 @@ Prototypes (W1–W8 and some A-/B- IDs) were built on throwaway `proto/<id>` bra
 | C-05 | 2a |  | med | S | Hide the title at 1x1 (or show icon only) instead of truncating | fixed |
 | C-06 | 2a | W5 | high | M | Legibility scrim on art-backed widgets at small spans | fixed |
 | C-07 | 2a |  | high | M | NowPlaying 4x4: cover art as the hero | fixed |
-| C-08 | 1 |  | med | M | Shared axis and stat-label grammar for charts | partial |
+| C-08 | 1 |  | med | M | Shared axis and stat-label grammar for charts | fixed |
 | C-09 | 1 |  | med | M | Per-stat label style unified (mono uppercase micro vs sentence-case) | partial |
-| C-10 | 2a |  | med | S | DriveSpace: one bar colour logic and use the 4x4 height | partial |
+| C-10 | 2a |  | med | S | DriveSpace: one bar colour logic and use the 4x4 height | fixed |
 | C-11 | 2a |  | med | M | Fans 4x4: use the tall cards | fixed |
 | C-12 | 2a |  | med | S | MeterBridge: stop truncating channel names in 4x4 and 4x2 | fixed |
 | C-13 | 2a |  | high | M | AudioMeter / AudioFader: use the width and height at 4x2 and 4x4 | fixed |
@@ -109,3 +109,4 @@ Prototypes (W1–W8 and some A-/B- IDs) were built on throwaway `proto/<id>` bra
 - C-19: "Updated" stays in the footer: won't fix, the `Widget` header has no right slot and adding one isn't worth it.
 - D-21: Mixer family: fixed in batch 8. The rows (batch 2b) stay the default; the user asked for audiocn views on all three mixers, so Strips and LCD views (vertical or horizontal) came with them, and read-only faders draw no knob. See batch-8-notes.md.
 - D-21 (batch 8b): the Strips view draws audiocn's `LevelMeter` (variant, range, response, scale, zones, peak hold, dB readout and clip light are settings), fed by each channel's own levels; Wave Link's input devices are a group of their own in Strips and LCD. See batch-8b-notes.md.
+- D-21 (batch 11): the Wave Link rows view is on the shared `ChannelRow` (a stereo slot of two thin L/R bars and a trailing slot for the mix chips and dB readouts), so name size, bar height and value placement match StreamMixer and VolumeMixer. See batch-11-notes.md.

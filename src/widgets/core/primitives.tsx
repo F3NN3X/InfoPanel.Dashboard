@@ -744,12 +744,24 @@ export interface AxisTick {
   label: ReactNode;
   title?: string;
 }
-/** The x axis under a chart, one grammar for every chart: faint mono micro labels, the first flush left, the last flush right, the rest centred on their position. */
-export function ChartAxis({ ticks, className = "" }: { ticks: AxisTick[]; className?: string }) {
+/** The x axis under a chart, one grammar for every chart: faint mono micro labels, the first flush left, the last flush right, the rest centred on their position (`centred`: all of them, for labels that sit on gridlines). */
+export function ChartAxis({ ticks, centred, className = "" }: { ticks: AxisTick[]; centred?: boolean; className?: string }) {
   return (
     <div className={`relative h-3.5 font-mono text-micro leading-none tabular-nums text-[color:var(--w-faint)] ${className}`}>
       {ticks.map((t, i) => (
-        <span key={i} title={t.title} className="absolute whitespace-nowrap" style={i === 0 ? { left: 0 } : i === ticks.length - 1 ? { right: 0 } : { left: `${t.at}%`, transform: "translateX(-50%)" }}>
+        <span key={i} title={t.title} className="absolute whitespace-nowrap" style={!centred && i === 0 ? { left: 0 } : !centred && i === ticks.length - 1 ? { right: 0 } : { left: `${t.at}%`, transform: "translateX(-50%)" }}>
+          {t.label}
+        </span>
+      ))}
+    </div>
+  );
+}
+/** The y axis beside a chart, the same grammar: faint mono micro labels, right-aligned, each centred on its `at` (% from the top), flush with the top edge at 0 and the bottom edge at 100. Sized by `className` (its width). */
+export function ChartYAxis({ ticks, className = "" }: { ticks: AxisTick[]; className?: string }) {
+  return (
+    <div className={`relative shrink-0 font-mono text-micro leading-tight tabular-nums text-[color:var(--w-faint)] ${className}`}>
+      {ticks.map((t, i) => (
+        <span key={i} className="absolute right-0 whitespace-nowrap text-right" style={{ top: `${t.at}%`, transform: `translateY(-${t.at <= 0 ? 0 : t.at >= 100 ? 100 : 50}%)` }}>
           {t.label}
         </span>
       ))}
@@ -762,10 +774,14 @@ export const Dot = ({ ok, className = "" }: { ok?: boolean; className?: string }
 export const Chip = ({ children, className = "" }: { children?: ReactNode; className?: string }) => (
   <span className={`inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-md bg-[color:var(--w-track)] px-1.5 py-0.5 text-micro font-medium text-[color:var(--w-fg)] ${className}`}>{children}</span>
 );
-export const Stat = ({ label, value, className = "", tag }: { label?: ReactNode; value?: ReactNode; className?: string; tag?: Record<string, string | number> }) => (
+/** A labelled reading. `unit` is drawn after the value at 0.7em in the muted unit style, so the value string stays the number alone. */
+export const Stat = ({ label, value, unit, className = "", tag }: { label?: ReactNode; value?: ReactNode; unit?: ReactNode; className?: string; tag?: Record<string, string | number> }) => (
   <div className={`flex min-w-0 flex-col gap-0.5 ${className}`} style={{ alignItems: "var(--wp-x-cross, stretch)" }}>
     <span className="max-w-full truncate text-micro uppercase tracking-[0.06em] text-[color:var(--w-faint)]" style={labelStyle("none")}>{label}</span>
-    <span {...tag} className="max-w-full truncate text-title font-semibold tabular-nums text-[color:var(--w-fg)]">{value}</span>
+    <span {...tag} className="max-w-full truncate text-title font-semibold tabular-nums text-[color:var(--w-fg)]">
+      {value}
+      {unit && <span className={`${UNIT_CLASS} !text-[0.7em]`}>{unit}</span>}
+    </span>
   </div>
 );
 /** A footer row of label/value stats under a rule, `cols` per row (3 or 4). */

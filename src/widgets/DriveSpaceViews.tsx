@@ -1,6 +1,6 @@
 import { lazy, Suspense } from "react";
 import type { ReactNode } from "react";
-import { Bar, fitRows, Icon, TONES, type Tone } from "./kit";
+import { Bar, fillRows, fitRows, Icon, roomy, TONES, type Tone } from "./kit";
 
 const DriveIconImpl = lazy(() => import("./DriveIcon"));
 
@@ -30,15 +30,17 @@ const SEGMENTS = 12;
 const GAP = 12;
 
 /** Segments / Bars: an icon with a status dot, the name and used / total, and the fill bar under them. */
-export function DriveRows({ rows, view, size, h, icons }: { rows: DriveRow[]; view: "segments" | "bars"; size: string; h: number; icons?: string }) {
+export function DriveRows({ rows, view, size, w, h, icons }: { rows: DriveRow[]; view: "segments" | "bars"; size: string; w: number; h: number; icons?: string }) {
   const rowH = size === "lg" ? 52 : size === "sm" ? 36 : 44;
   const icon = size === "lg" ? "text-[32px]" : size === "sm" ? "text-[22px]" : "text-[28px]";
   const iconPx = size === "lg" ? 32 : size === "sm" ? 22 : 28;
   const shown = rows.slice(0, h > 0 ? fitRows(h, rowH, GAP) : rows.length);
+  // A roomy box keeps the rows it fitted and gives each the spare height (up to 1.6x).
+  const grown = fillRows(h, shown.length, rowH, GAP, roomy(w, h)).rowH ?? rowH;
   return (
     <div className="flex h-full flex-col overflow-hidden" style={{ gap: GAP }}>
       {shown.map((r) => (
-        <div key={r.key} className="flex min-w-0 items-center gap-3" style={{ minHeight: rowH }}>
+        <div key={r.key} className="flex min-w-0 items-center gap-3" style={{ minHeight: grown }}>
           <span className="relative shrink-0 text-[color:var(--w-muted)]">
             <DriveIcon icons={icons} id={r.id} name={r.name} px={iconPx} fallback={<Icon name="hard_drive" className={icon} />} />
             <span className="absolute -bottom-0.5 -left-0.5 h-2 w-2 rounded-full" style={{ background: TONES[r.t] }} />

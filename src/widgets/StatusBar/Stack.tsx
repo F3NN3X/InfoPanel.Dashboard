@@ -27,7 +27,7 @@ export function stackShown<T extends { k: ItemKey }>(tiles: T[], max: number, by
 /** A square-ish zone's Status Bar: a two-column grid of tiles, the item's name over its value, so the numbers fill the box. */
 export function StackView({ tiles, w, h, icons, byPriority }: { tiles: ReturnType<typeof stackTiles>; w: number; h: number; icons: WeatherIconProps; byPriority: boolean }) {
   return (
-    <div className="grid h-full content-center gap-2 p-3" style={{ gridTemplateColumns: "repeat(2, minmax(0,1fr))" }}>
+    <div className="grid h-full content-start gap-2 p-3" style={{ gridTemplateColumns: "repeat(2, minmax(0,1fr))" }}>
       {stackShown(tiles, h < 260 ? 4 : 8, byPriority).map(({ k, r, value }) => (
         <div key={k} className="flex min-w-0 flex-col gap-1 rounded-lg bg-[color:var(--w-track)] px-3 py-2.5">
           <span className="flex items-center gap-1.5 text-micro font-medium uppercase tracking-[0.08em] text-[color:var(--w-muted)]">

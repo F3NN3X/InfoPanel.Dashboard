@@ -97,7 +97,9 @@ export const fmtMB = (mb: number): string => {
   if (mb >= 1024) return `${fmt(mb / 1024, mb >= 102400 ? 0 : 1)} GB`;
   return `${fmt(mb, 0)} MB`;
 };
-export const fmtGB = (gb: number): string => (gb >= 1024 ? `${fmt(gb / 1024, 1)} TB` : `${fmt(gb, gb >= 100 ? 0 : 1)} GB`);
+/** A size in GB as its number and unit ("12.3", "GB"); a TB from 1024. */
+export const gbParts = (gb: number): [string, string] => (gb >= 1024 ? [fmt(gb / 1024, 1), "TB"] : [fmt(gb, gb >= 100 ? 0 : 1), "GB"]);
+export const fmtGB = (gb: number): string => gbParts(gb).join(" ");
 // "a, b, c\nd, e, f" → [["a","b","c"],["d","e","f"]]
 export const rows = (v: unknown): string[][] =>
   String(v ?? "")

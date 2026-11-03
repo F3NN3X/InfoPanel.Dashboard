@@ -10,7 +10,7 @@ const text = (id: string) => renderModule(modules.find((m) => m.id === id)!, {},
 
 describe("hardware widgets on HWiNFO only", () => {
   it.each([
-    ["CpuMonitor", ["61°C", "121.6 W", "1.19 GHz", "Max core 55%"]],
+    ["CpuMonitor", ["61°C", "121.6 W", "1.19 GHz", "Max core 55 %"]],
     ["GpuMonitor", ["84.8 W", "1,717 MHz", "12 %"]],
     ["SystemOverview", ["CPU 19%", "GPU 12%", "43.8 / 63.7 GB"]],
     ["MemoryUsage", ["43.8 GB", "Available 19.9 GB"]],

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { boxOf, easeHistory, fillRows, fitGrid, afterHero, heroPx, pickBy, roomy, rowsFor, shapeOf, squareHero, summaryShape, tileHero, tierOf } from "@/widgets/core/layout";
+import { boxOf, easeHistory, fillRows, fitGrid, afterHero, heroPx, pickBy, roomy, rowPx, rowsFor, shapeOf, squareHero, summaryShape, tileHero, tierOf } from "@/widgets/core/layout";
 
 describe("tierOf", () => {
   it("splits at 220×140, 340×210 and 500×320", () => {
@@ -101,6 +101,18 @@ describe("roomy", () => {
     expect(roomy(432, 400)).toBe(true);
     expect(roomy(216, 216)).toBe(false);
     expect(roomy(900, 200)).toBe(false);
+  });
+});
+
+describe("rowPx", () => {
+  it("grows a row height by ROOMY_SCALE in a roomy box and rounds it", () => {
+    expect(rowPx(20, 432, 400)).toBe(25);
+    expect(rowPx(18, 432, 400)).toBe(23);
+  });
+  it("keeps the height in any smaller box, and before the box is measured", () => {
+    expect(rowPx(20, 216, 216)).toBe(20);
+    expect(rowPx(28, 900, 200)).toBe(28);
+    expect(rowPx(28, 0, 0)).toBe(28);
   });
 });
 

@@ -93,9 +93,9 @@ export default function CpuMonitor(p: CpuMonitorProps) {
             </Ring>
             <div className="grid min-w-0 flex-1 gap-1.5">
               {[
-                <Stat key="max" label="Max core" value={`${fmt(maxCore, 0)}%`} />,
-                <Stat key="pkg" label="Package" value={`${fmt(power, 1)} W`} />,
-                <Stat key="clk" label="Clock" value={`${fmt(clock / 1000, 2)} GHz`} />,
+                <Stat key="max" label="Max core" value={fmt(maxCore, 0)} unit="%" />,
+                <Stat key="pkg" label="Package" value={fmt(power, 1)} unit="W" />,
+                <Stat key="clk" label="Clock" value={fmt(clock / 1000, 2)} unit="GHz" />,
               ].slice(0, h > 0 ? fitRows(h, 41, 6) : 3)}
             </div>
           </div>
@@ -104,9 +104,9 @@ export default function CpuMonitor(p: CpuMonitorProps) {
             <div className="flex items-end gap-5 [[data-wp-roomy]_&]:flex-col [[data-wp-roomy]_&]:items-start [[data-wp-roomy]_&]:gap-3">
               <Metric ipKey={totalKey} value={total} unit="%" scale={size === "lg" ? "xl" : "lg"} sub="Total load" t={tone(total, warn, crit)} />
               <div className="grid flex-1 grid-cols-3 gap-3 [[data-wp-roomy]_&]:w-full [[data-wp-roomy]_&]:flex-none">
-                <Stat label="Max core" value={`${fmt(maxCore, 0)}%`} />
-                <Stat label="Package" value={`${fmt(power, 1)} W`} />
-                <Stat label="Avg clock" value={`${fmt(clock / 1000, 2)} GHz`} />
+                <Stat label="Max core" value={fmt(maxCore, 0)} unit="%" />
+                <Stat label="Package" value={fmt(power, 1)} unit="W" />
+                <Stat label="Avg clock" value={fmt(clock / 1000, 2)} unit="GHz" />
               </div>
             </div>
             {size === "md" && <Spark ipKey={totalKey} values={hist} min={0} max={100} marks={roomy(w, h)} format={(v) => fmt(v, 0)} className="min-h-0 flex-1" />}

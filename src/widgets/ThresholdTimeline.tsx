@@ -1,4 +1,4 @@
-import { Widget, shell, get, num, fmt, pretty, sensorLabel, shortLabel, rowLabel, fitRows, rowsFor, roomy, tone, TONES, STATE, Num, type ShellProps, type Tone } from "./kit";
+import { Widget, shell, get, num, fmt, pretty, sensorLabel, shortLabel, rowLabel, fitRows, rowsFor, roomy, ROOMY_SCALE, tone, TONES, STATE, Num, type ShellProps, type Tone } from "./kit";
 import { useSeries, type Sample, type SeriesLimits } from "./core/history";
 import { laneColumns, laneRuns, laneStats, type LaneRun } from "./core/lanes";
 import { roleData, unitOf } from "./role-data";
@@ -134,11 +134,11 @@ const AXIS_H = 14;
 const LEGEND_H = 16;
 
 /**
- * The 4x4 box: lanes top-aligned and as tall as the box allows (36 to 64px), each with a line under its strip that gives
+ * The 4x4 box: lanes top-aligned and as tall as the box allows (36 to 80px), each with a line under its strip that gives
  * the peak and the share of the window above `warn`, then a ticked axis and the colour legend.
  */
 function RoomyLanes({ lanes, w, h, warn, crit, minutes, span }: { lanes: { key: string; label: string; short: { metric: string; model: string; name: string }; ticks: Tone[]; samples: readonly Sample[]; v: number; unit: string; runs: LaneRun[] }[]; w: number; h: number; warn: number; crit: number; minutes: number; span: string }) {
-  const { n, rowH } = rowsFor(h - AXIS_H - LEGEND_H - 16, lanes.length, 36, 64, 8);
+  const { n, rowH } = rowsFor(h - AXIS_H - LEGEND_H - 16, lanes.length, 36, Math.round(64 * ROOMY_SCALE), 8);
   const labelW = Math.min(110, w * 0.26);
   const pad = { paddingLeft: labelW + 8, paddingRight: "calc(4.5em + 8px)" };
   return (

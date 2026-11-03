@@ -70,7 +70,7 @@ export default function GpuMonitor(p: GpuMonitorProps) {
             <div className="flex min-w-0 flex-1 flex-col gap-2">
               <BarRow label="VRAM" value={used} max={total} display={`${fmt(used / 1024, 1)} GB`} />
               <div className="grid grid-cols-2 gap-2">
-                <Stat label="Power" value={`${fmt(watts, 0)} W`} />
+                <Stat label="Power" value={fmt(watts, 0)} unit="W" />
                 <Stat label="Clock" value={`${fmt(k("gpu_core_clock"), 0)}`} />
               </div>
             </div>
@@ -80,9 +80,9 @@ export default function GpuMonitor(p: GpuMonitorProps) {
             <div className="flex items-end gap-5 [[data-wp-roomy]_&]:flex-col [[data-wp-roomy]_&]:items-start [[data-wp-roomy]_&]:gap-3">
               <Metric ipKey={loadKey} value={load} unit="%" scale={size === "lg" ? "xl" : "lg"} sub="Core load" />
               <div className="grid flex-1 grid-cols-3 gap-3 [[data-wp-roomy]_&]:w-full [[data-wp-roomy]_&]:flex-none">
-                <Stat label="Power" value={`${fmt(watts, 1)} W`} />
-                <Stat label="Core" value={`${fmt(k("gpu_core_clock"), 0)} MHz`} />
-                <Stat label={hasHotSpot ? "Hotspot" : "Memory"} value={`${fmt(hot, 0)} °C`} />
+                <Stat label="Power" value={fmt(watts, 1)} unit="W" />
+                <Stat label="Core" value={fmt(k("gpu_core_clock"), 0)} unit="MHz" />
+                <Stat label={hasHotSpot ? "Hotspot" : "Memory"} value={fmt(hot, 0)} unit="°C" />
               </div>
             </div>
             <BarRow label="VRAM" value={used} max={total} hint={`of ${fmt(total / 1024, 0)} GB`} display={`${fmt(used / 1024, 1)} GB`} />

@@ -1,5 +1,5 @@
 import { useContext, useRef, useState } from "react";
-import { Widget, shell, get, num, fmt, pretty, sensorLabel, shortLabel, rowLabel, fitRows, rowsFor, roomy, IpTagCtx, Num, type ShellProps } from "./kit";
+import { Widget, shell, get, num, fmt, pretty, sensorLabel, shortLabel, rowLabel, fitRows, rowsFor, roomy, ROOMY_SCALE, IpTagCtx, Num, type ShellProps } from "./kit";
 import { useOnData } from "./core/history";
 import { average, durationText, observe, type SessionStat } from "./core/session-stats";
 import { roleData, unitOf } from "./role-data";
@@ -117,11 +117,11 @@ export default function SessionStats(p: SessionStatsProps) {
 const rangePct = (v: number, unit: string, peak: number): number => Math.min(100, Math.max(0, (v / (unit === "%" ? 100 : peak * 1.1 || 1)) * 100));
 
 /**
- * The 4x4 box: a block per sensor (56 to 72px, top-aligned): its label and current reading, a bar with the session's
+ * The 4x4 box: a block per sensor (56 to 90px, top-aligned): its label and current reading, a bar with the session's
  * min-to-max span, the average and the level as ticks, and the numbers and the time above the level under it.
  */
 function RangeBlocks({ rows, above, h }: { rows: { key: string; label: string; short: { metric: string; model: string; name: string }; unit: string; v: number; stat: SessionStat | undefined }[]; above: number; h: number }) {
-  const { n } = rowsFor(h, rows.length, 56, 72, 6);
+  const { n } = rowsFor(h, rows.length, 56, Math.round(72 * ROOMY_SCALE), 6);
   return (
     <div className="flex h-full min-w-0 flex-col gap-3">
       {rows.slice(0, n).map((r) => {

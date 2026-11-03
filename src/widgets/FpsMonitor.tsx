@@ -110,9 +110,9 @@ export function GaugeView({ idle, size, w, h, fps, low, low01, ft, hz, maxFps, t
     );
   const stats = (
     <div className="flex items-center gap-5">
-      {low > 0 && <Stat label="1% low" value={`${fmt(low)} fps`} />}
-      {low01 > 0 && <Stat label="0.1% low" value={`${fmt(low01)} fps`} />}
-      {ft > 0 && <Stat label="Frame time" value={`${fmt(ft, 1)} ms`} />}
+      {low > 0 && <Stat label="1% low" value={fmt(low)} unit="fps" />}
+      {low01 > 0 && <Stat label="0.1% low" value={fmt(low01)} unit="fps" />}
+      {ft > 0 && <Stat label="Frame time" value={fmt(ft, 1)} unit="ms" />}
     </div>
   );
   const shown = size === "sm" ? [] : extras.slice(0, 4);
@@ -255,7 +255,7 @@ export default function FpsMonitor(p: FpsMonitorProps) {
             <Metric value={fps} unit="FPS" scale="xl" t={t} cue={false} />
             <div className="grid gap-1.5 text-right">
               <Stat label="1% low" value={lowValue} />
-              <Stat label="Frame" value={`${fmt(frame, 1)} ms`} />
+              <Stat label="Frame" value={fmt(frame, 1)} unit="ms" />
             </div>
           </div>
         ) : (
@@ -265,7 +265,7 @@ export default function FpsMonitor(p: FpsMonitorProps) {
               <div className="grid flex-1 grid-cols-3 gap-3">
                 <Stat label="1% low" value={lowValue} />
                 <Stat label="Avg" value={fmt(num(k("avg-fps")))} />
-                <Stat label="Frame" value={`${fmt(frame, 1)} ms`} />
+                <Stat label="Frame" value={fmt(frame, 1)} unit="ms" />
               </div>
             </div>
             <div className="flex min-h-0 flex-1 flex-col">

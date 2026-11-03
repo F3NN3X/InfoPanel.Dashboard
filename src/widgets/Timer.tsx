@@ -2,7 +2,7 @@ import { useSyncExternalStore } from "react";
 import type { ModuleSettings } from "@/modules/types";
 import { clockOf, leftOf, timer, type TimerState } from "@/lib/timer";
 import { useNow } from "./time-hooks";
-import { Widget, shell, Num, Bar, Icon, roomy, type ShellProps } from "./kit";
+import { Widget, shell, Num, Bar, Icon, roomy, rowPx, type ShellProps } from "./kit";
 import { meta } from "./meta/Timer";
 
 export { meta };
@@ -24,6 +24,8 @@ const TILE =
   "flex h-full min-h-[100px] min-w-0 flex-col items-center justify-center gap-1 rounded-2xl border border-[color:var(--w-track)] px-2 tabular-nums hover:bg-[color:var(--w-track)] active:scale-95";
 /** A preset button's width with its gap, px (a "25m" chip). */
 const CHIP_W = 52;
+/** The Pause / Stop buttons' height (`h-10`), px; a button row and its gap are `ROW_H`. */
+const BTN_H = 40;
 const ROW_H = 46;
 /** The idle hero's size, px, and the room it takes with the gap under it. */
 const IDLE_HERO_PX = 48;
@@ -51,7 +53,7 @@ export function presetsThatFit(count: number, w: number, h: number): number {
 /** The running clock's font size, px: what the box leaves under the Pause / Stop row (a button row and its gap are `ROW_H`) and the caption and bar. */
 export function runningClockPx(size: string, w: number, h: number): number {
   const tiny = size === "xs" || h < 70;
-  return Math.max(18, Math.min(tiny ? 26 : size === "sm" ? 34 : roomy(w, h) ? 96 : 56, (w - 8) / 4.2, h - (tiny ? ROW_H : ROW_H + 30)));
+  return Math.max(18, Math.min(tiny ? 26 : size === "sm" ? 34 : roomy(w, h) ? 96 : 56, (w - 8) / 4.2, h - (tiny ? ROW_H : rowPx(ROW_H, w, h) + 30)));
 }
 
 export default function Timer(p: TimerProps) {
@@ -149,10 +151,10 @@ export default function Timer(p: TimerProps) {
               </div>
             )}
             <div className="flex gap-1.5">
-              <button type="button" aria-label={t.paused ? "Resume" : "Pause"} className={BTN} onClick={() => timer.dispatch({ type: t.paused ? "resume" : "pause" })}>
+              <button type="button" aria-label={t.paused ? "Resume" : "Pause"} className={BTN} style={big ? { height: rowPx(BTN_H, w, h) } : undefined} onClick={() => timer.dispatch({ type: t.paused ? "resume" : "pause" })}>
                 <Icon name={t.paused ? "play_arrow" : "pause"} />
               </button>
-              <button type="button" aria-label="Stop" className={BTN} onClick={() => timer.dispatch({ type: "stop" })}>
+              <button type="button" aria-label="Stop" className={BTN} style={big ? { height: rowPx(BTN_H, w, h) } : undefined} onClick={() => timer.dispatch({ type: "stop" })}>
                 <Icon name="stop" />
               </button>
             </div>

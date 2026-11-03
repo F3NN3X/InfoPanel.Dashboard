@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, fmt, fmtGB, fmtRate, rateUnitOf, adapterOf, pretty, hue, Spark, Stat, Icon, Num, roomy, useHistory, useIpTag, Empty, type RateUnit, type ShellProps } from "./kit";
+import { Widget, shell, get, num, fmt, gbParts, fmtRate, rateUnitOf, adapterOf, pretty, hue, Spark, Stat, Icon, Num, roomy, useHistory, useIpTag, Empty, type RateUnit, type ShellProps } from "./kit";
 import { meta } from "./meta/NetworkThroughput";
 
 export { meta };
@@ -31,6 +31,12 @@ const rate = (dir: "down" | "up", v: number, unit: RateUnit | undefined, big: st
     {label && <Num ip={ip} className={`${big} truncate font-semibold`} style={custom ? undefined : { color: "var(--w-fg)" }}>{fmtRate(v, unit)}</Num>}
   </div>
 );
+
+/** A size in GB as a `Stat`'s value and unit. */
+const gbStat = (gb: number) => {
+  const [value, unit] = gbParts(gb);
+  return { value, unit };
+};
 
 export default function NetworkThroughput(p: NetworkThroughputProps) {
   const d = p.data;
@@ -100,9 +106,9 @@ export default function NetworkThroughput(p: NetworkThroughputProps) {
             {/* at the small tier the totals give way to the chart (there is room for one) */}
             {showTotals && (size !== "sm" || !chart) && (
               <div className="grid grid-cols-3 gap-3 border-t border-[color:var(--w-track)] pt-2.5">
-                <Stat label="Downloaded" value={fmtGB(k("data_downloaded"))} tag={tag(`libre.${id}_data_downloaded`)} />
-                <Stat label="Uploaded" value={fmtGB(k("data_uploaded"))} tag={tag(`libre.${id}_data_uploaded`)} />
-                <Stat label="Utilisation" value={`${fmt(k("network_utilization"), 2)}%`} tag={tag(`libre.${id}_network_utilization`)} />
+                <Stat label="Downloaded" {...gbStat(k("data_downloaded"))} tag={tag(`libre.${id}_data_downloaded`)} />
+                <Stat label="Uploaded" {...gbStat(k("data_uploaded"))} tag={tag(`libre.${id}_data_uploaded`)} />
+                <Stat label="Utilisation" value={fmt(k("network_utilization"), 2)} unit="%" tag={tag(`libre.${id}_network_utilization`)} />
               </div>
             )}
           </div>
