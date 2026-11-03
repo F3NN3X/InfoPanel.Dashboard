@@ -314,6 +314,46 @@ Look-related modules, each file minified alone (esbuild) and gzipped alone, so t
 `modern-chrome`, `standard-settings`) 22,473 / 9,180; theme model and apply (6) 24,684 / 9,657. A phase that adds bytes
 to the kiosk entry must pay for them or raise the budget with approval.
 
+### Look System P2, 2026-11-03
+
+What P2 changed: zones that read every key (`readsAll`) ignore sensor messages whose changed keys are all under
+`plugins.audio-level-meter.` unless a bound sensor is an audio key (`useSensors(prefixes, quiet)`, `quietPrefix` in
+`placement-content.tsx`); the InfoPanel canvas card backdrop goes through the blur cap; the Now Playing cover blur is off
+in lite mode. Same environment, fixture, data source and method as the P0 baseline above; before is commit `684208ba`,
+after is the P2 branch. Instrumented builds for the counts (render counters on `LivePlacement` and message counters in the
+sensor store, not committed), clean builds for the CPU numbers. Medians, range in brackets.
+
+**Render counts per 10 s window** (3 runs):
+
+| | Before | After |
+|---|---|---|
+| Widget renders, 20 zones | 1527 (1512..1602) | 282 (282..282) |
+| of which the zone's data changed | 200 (200..200) | 200 (200..200) |
+| of which audio-only | 1327 (1312..1402) | 82 (82..82) |
+
+The 82 left are the audio meter zone itself (92 renders, 10 of them data); the other 19 zones render 10 times, once per
+data tick (before: 93, the 15 that read every key; sensorless and prefix-scoped zones were already at 10).
+
+**Clean build CPU, same window** (5 runs; the before and after runs shared the machine):
+
+| | Before | After |
+|---|---|---|
+| `ScriptDuration` | 1.276 s (1.234..1.314) | 0.261 s (0.256..0.265) |
+| `TaskDuration` | 1.668 s (1.593..1.710) | 0.601 s (0.583..0.620) |
+| layouts / style recalcs | 95 / 260 | 97 / 188 |
+| `RecalcStyleDuration` | 0.110 s (0.102..0.114) | 0.093 s (0.087..0.099) |
+
+**Sensor-store messages per 10 s** (ledger L3; the store still opens every stream, a `readsAll` zone retains them all):
+
+| | Before | After |
+|---|---|---|
+| audio stream (`plugins.audio-level-meter.`) messages | 92 | 92 |
+| unfiltered stream messages | 10 | 10 |
+| changed keys, audio stream / unfiltered | 5638 / 3869 | 5766 / 3741 |
+
+The store traffic is the same by design (the audio meter zone still needs the stream); the saving is the re-render of
+widgets that never show it.
+
 ## The harness
 
 A committed, reproducible harness (Playwright, `playwright.config.ts`). It never touches the real data folder: every
