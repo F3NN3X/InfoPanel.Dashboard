@@ -8,10 +8,12 @@ version as its notes, so move **Unreleased** under a new `## [X.Y.Z] - YYYY-MM-D
 
 ### Added
 
+- **The Look view and its gallery.** **Theme** on the rail is now **Look**. Its column opens on the Look you use with four knobs, **Accent**, **Surface**, **Corners** and **Density**, each marked **Custom** with a reset once you change it, and **Choose a Look**: Classic, the 13 skins and the 12 sample Looks as cards drawn by the real widgets, with tag filters (minimal, technical, retro, neon, gaming, glass, light) and a search. One click applies a Look; the screen stores which Look and only what you change on top. A widget's Style tab starts with the same knobs. The old fine-tune cards are under **Advanced · Fine-tune**.
 - **Twelve sample themes in the Theme view.** Field Kit, Tape '86, Neon Stripe, Overdrive, Swiss Mono, Term, Holo, Night Glow, Paper, Classy Black, Liquid Glass and Black and Gold: each sets a card, an accent, text colours, a font and a page colour, following the look-system mockups as far as cards and colours go (frames, headers, art and effects come later). Classic stays the default.
 
 ### Changed
 
+- **New names for the look.** "Look" replaces "Theme" on the rail, in the view and the command palette, and "Skin" in the Style tab; the Default skin is **Classic**. **Switch theme** is **Saved and template looks**, **Save as theme** is **Save look**, the **Palette** picker is **Colors**, the card's **Corners** are **Base corners**, and a widget's Styles are **Widget looks** (**Start from a saved look**, **Save look**, **Make this the Look for…**, **Library › Widget looks**). The Skin picker is gone: the skins are in the gallery.
 - **Screens are saved in format 17.** The skins are now looks: each screen, page and widget records which look it
   uses in place of its skin (Default is the Classic look), and a screen or page that applied one of the sample themes
   records that theme. Nothing looks different, except a panel whose screen was saved with the old "default" skin
