@@ -9,7 +9,7 @@ Filled in during stage 2 (see `02-implementation-runbook.md`, section 4). Every 
 | P1 | look/p1-single-sources | done (2026-11-03) | none | |
 | P2 | look/p2-performance | done (2026-11-03) | none for widgets; InfoPanel canvas cards with blur above 12 px get 12 px with Limit blur on (intended) | |
 | P3a | look/p3a-data-viz-tokens | done (2026-11-03) | ramp start colour moves to the material fill (intended fix) | |
-| P3b | look/p3b-material-registry | not started | intended: `brutal` shadow moves inside the card edge; export draws the 12 dropped cards; Look thumbnails fixed; Classic otherwise none | |
+| P3b | look/p3b-material-registry | done, kiosk over its limit: owner call needed (2026-11-03) | intended: `brutal` offset inside the card edge; export draws 10 of the 12 dropped cards (outline and flat stay see-through); Look thumbnails fixed; blurred glass at 0.90 over a solid page; ramps start from every material; Classic otherwise none | |
 | P4 | look/p4-variable-families | not started | none | |
 | P5 | look/p5-look-contract-ui | not started | studio UI only; untouched widgets identical | |
 | P6 | look/p6-light-mode | not started | light materials only: `ok` and accent text darken (intended) | |
@@ -101,6 +101,31 @@ Filled in during stage 2 (see `02-implementation-runbook.md`, section 4). Every 
   - `motion-fast`, `motion-base`, `ease-standard`, `series-stroke` and similar have no consumer yet; their Classic values are the contract's, not measured from code.
   - `CoreHeatmap` waterfall resolves `--w-fill` through the canvas (`fillStyle` round trip) so it matches the CSS heat cells.
 
+## P3b: T2 material registry
+- Plan entry: [docs/investigations/look-system.md, section 11, P3b](../investigations/look-system.md) and the T2 contract (section 9.3, D10 as changed).
+- Checklist: done except the budget. verify:full --keep-going exit 1: 17 of 18 checks passed (incl. e2e, one-editor, overflow, look-visual, import-check, cargo-server, cargo-app), `budgets` failed (kiosk and studio over their limits, below); not run with `--allow-incomplete`. Pixel-identical refactor first (2 commits), then one commit per intended change (5); v8 parity regenerated twice on purpose and checked by script (below); `look-visual` and `overflow` unchanged; import-check passed; CHANGELOG (Changed: brutal, blurred glass; Fixed: export cards, thumbnails, ramp start); no decision change. No separate code review this phase.
+- Report:
+  - `src/looks/materials.ts`: the 27 stored surface names as one registry (`MATERIALS`: the generic set, the 11 skin cards, the app's four; each with `kind`, `tone`, `origin`, `export`, optional `fill`), the builders that were `components/surfaces.ts` (`makeSurface`, `makeSurfacePalette`), and one resolver (`resolveMaterial`: class, box, patch, scrim, export, fill, blur fallback) replacing `lookBox`, `patchBackground` and `scrimFor`. `BASE_SURFACES`, `LEGACY_SURFACES`, `SURFACES`, `SurfaceSpec` and the skins' `surfaces` blocks are gone; `resolveSurface` returns a registry entry. Kinds: 17 solid, 5 gradient, 3 glass (studio, vibrancy, glass), no lcd surface yet.
+  - Pinned by `tests/looks/materials.test.ts`: every name's class, box under five look variants, patch and scrim equal the strings the old code produced (dumped at e522341b into `tests/looks/__fixtures__/surfaces-p3a.json`), except the two on purpose: vibrancy's blur moved from a Tailwind class to the same capped inline filter, and brutal's redesign.
+  - Shell: writes `--w-mat-bg`, `--w-mat-shadow`, `--w-mat-blur`, `--w-mat-export`, `--w-fill` (and `--w-mat-fallback` on blurred glass) with `data-mat`, `data-tone` (`materialVars`); one static `[data-wp-tier][data-mat]` rule in `index.css` paints them. Panes (status bar capsule and pills, Stream Deck keys), the island (`wornSurface`), NowPlaying's art tint, the thumbnails and `panel-layout` take the box from the resolver.
+  - v8 parity, checked by script both times: (1) the variables turned back into the properties they paint, `data-mat`/`data-tone`/`--w-mat-export` dropped, style declarations compared as sets: 128 cases, 128 shells, 0 differences; (2) with `--w-fill` dropped from both: 0 differences, every root gains `--w-fill:rgb(24, 24, 27)` (all 128 cases are glass).
+  - Export (closes L2): `surfaceOf` falls back to `--w-mat-export` (resolved through a probe) when the background has no colour; `cssToArgb` reads `color(srgb …)`. Chromium colours for all 27 pinned by the new e2e spec `tests/e2e/material-export.spec.ts` (debug-only `__qaSurfaceOf` on the QA page), mapped on `looks` and `infopanel-import-export`. glass `#E618181B`, vibrancy `#E6323237`, studio `#0DFFFFFF`, tinted `#FF151D1D`, material `#FF1F3731` at the default accent; the 15 that exported before are unchanged. `import-check` (`npm run verify -- --feature infopanel-import-export`): 20 exports read by InfoPanel's XmlSerializer, passed.
+  - Thumbnails: `MiniTile` sets the colour `--accent` (the look's, else the skin's unless light, else `hsl(var(--primary))`), so accent-mixed materials draw.
+  - Blur fallback: a glass material with a real backdrop blur gets its background at alpha 0.90 (`BLUR_FALLBACK_ALPHA`) as `--w-mat-fallback`; over a solid page (where widget blur is already off) a rule paints it. Classic glass has no blur: unchanged.
+  - Brutal: `inset -5px -5px 0 0 var(--accent)` inside the 2px white rule, no `calc(100% - 6px)` box. Shots: [before](../investigations/look-system/shots/p3b-brutal-before.png), [after](../investigations/look-system/shots/p3b-brutal-after.png).
+  - Budgets (not edited): kiosk 277,447 B gzip (+584 B on P3a's 276,863; budget 276,847, limit 277,123: 324 B over); studio 617,808 B (+633 B on P3a's 617,175; limit 617,422: 386 B over).
+- Things to know:
+  - **Kiosk over its limit.** Measured by step: registry and resolver +410 B (the chunks stay as they were; the cost is the export strings, kinds and the resolver functions), the shell variables +96 B, blur fallback and ramp fill about +100 B. The plan's -0.2 to +0.3 KB assumed the per-widget inline style shrinking would pay; that saves render work, not bundle bytes. Per the owner's budget policy this needs an approved rise of the measured size, or the bytes back from somewhere else (L24).
+  - The QA page's export hook first imported `convert-view`, which split the font parser into its own kiosk chunk (35 requests against the budget of 34, `kiosk-budget.spec.ts`); `surfaceOf` now lives in the import-free `src/lib/infopanel/native/surface-of.ts`.
+  - Moving `SCRIM` out of `modern-chrome.tsx` into `src/looks` split `use-element-size` into its own kiosk chunk (+314 B): SCRIM stays in `modern-chrome` and the registry imports it from there.
+  - Not done: alerts (`alert-layer.tsx`) and `panel-overlay.tsx` still draw `bg-card` / `bg-card/60`. There is no page material to take until P5's cascade, and moving them onto a registry material now would change their pixels on Classic (L25).
+  - Not done: the resolver emits no `--w-mat-fg/-muted/-faint/-track/-border/-scrim` (text stays `--w-fg` etc., patch and scrim are resolver fields); materials keep their paint as CSS strings, not the contract's structured `fill-stops`, `spots`, `pattern`, `inset`, `tone: auto` (L26).
+  - Export colours of the accent-tinted materials are srgb mixes (`color-mix(in srgb, …)`), so `surfaceOf` can read Chromium's `color(srgb …)`; the paint mixes in oklab, so they are close, not exact.
+  - The blur fallback applies only where widget blur is switched off today (a solid page background); lite mode does not switch blur off (L27).
+  - The deleted `src/components/surfaces.ts` stays matched in the feature map through `src/components/{widget-style,surfaces}.ts`, because `verify` maps deleted paths too.
+  - Test pins changed on purpose: `surface-of.dom.test.ts` (P0's null rows flip; happy-dom still leaves theme, tinted and material null), `StreamDeck/look.test.ts` (vibrancy's blur is on the key's style, not its class), `Widget.test.ts` (`--w-mat-blur` instead of an inline `backdrop-filter`), the `lookBox`/`fadeBackground` cases moved from `look.test.ts` to `tests/looks/materials.test.ts`.
+  - `StreamDeck/look.ts` still strips a material's `width`/`height`; no material sets them since brutal's redesign (L28).
+
 ## Ledger: known issues and deferred work
 
 Open items carried between phases. Each phase adds what it finds or defers, and closes what it fixes (status `closed in P<N>`).
@@ -108,7 +133,7 @@ Open items carried between phases. Each phase adds what it finds or defers, and 
 | # | Found | Item | Owner phase | Status |
 |---|---|---|---|---|
 | L1 | P0 | Flaky `tests/settings/connections.dom.test.tsx` Twitch-channel case under full-suite load | outside the Look plan | open |
-| L2 | P0 | `surfaceOf` colours need a real-browser check when the 12 dropped cards are fixed | P3b | open |
+| L2 | P0 | `surfaceOf` colours need a real-browser check when the 12 dropped cards are fixed | P3b | closed in P3b (e2e `material-export.spec.ts`, Chromium colours for all 27) |
 | L3 | P0 | Sensor-store message counts not re-measured; re-measure with the audio fix | P2 | closed in P2 |
 | L4 | Stage 1 | Weather `weather_desc` text exports white on `matte-light` (§12 Q6) | owner call, not scheduled | open |
 | L5 | Stage 1 | Two "ok" colours: `TONES.ok` follows the accent, `STATE.ok` is `#3CC97F` (§12 Q1) | owner call before P3a | closed: owner kept both (`ok` in T1, fixed `status-ok` in T3), 2026-11-03 |
@@ -128,5 +153,10 @@ Open items carried between phases. Each phase adds what it finds or defers, and 
 | L19 | P3a | 10 skin-id branches still branch on skin id instead of reading T3 tokens | P8 | open |
 | L20 | P3a | The 9 D11 additions (`num-stretch`, `num-effect`, `graph-style`, `series-glow`, `cell-radius`, `label-glow`, `header-fill`, header `prompt` and `icon-badge`) are names only, no code | P8 | open |
 | L21 | P3a | T3 `--w-*` vars are not emitted per theme scope yet | P4 | open |
-| L22 | P3a | Dark materials other than the default keep `#18181c` as ramp start (`--w-fill` written for light and theme cards only) | P3b (`--w-mat-*`) | open |
+| L22 | P3a | Dark materials other than the default keep `#18181c` as ramp start (`--w-fill` written for light and theme cards only) | P3b (`--w-mat-*`) | closed in P3b (the shell writes `--w-fill` from every material) |
 | L23 | P3a | Classic T3 values without a consumer (`motion-fast`, `motion-base`, `ease-standard`, `series-fill-alpha`, `series-stroke`) are contract values, not measured | P8 | open |
+| L24 | P3b | Kiosk entry 277,447 B gzip is over its limit 277,123 (+584 B on P3a: registry and resolver +410, shell variables +96, blur fallback and ramp fill about +100); studio 617,808 B over its limit 617,422 | owner call: approve the measured rise, or a phase pays it back (P7, L12) | open |
+| L25 | P3b | Alerts (`alert-layer.tsx`) and `panel-overlay.tsx` still draw `bg-card`; no page material until the Look cascade | P5 | open |
+| L26 | P3b | Resolver emits no `--w-mat-fg/-muted/-faint/-track/-border/-scrim` vars; material paint stays CSS strings (no structured `fill-stops`, `spots`, `pattern`, `inset`, `tone: auto`) | P4 (vars), P9 (structured fields when packs author materials) | open |
+| L27 | P3b | Blur fallback alpha applies only over a solid page; lite mode does not switch widget blur off (section 8 G.6 cap "0 in lite mode") | P9 | open |
+| L28 | P3b | `StreamDeck/look.ts` strips a material `width`/`height` that no material sets since brutal's redesign; the feature map keeps `src/components/{widget-style,surfaces}.ts` for the deleted file | P7 | open |
