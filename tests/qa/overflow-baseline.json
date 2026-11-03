@@ -1,0 +1,4851 @@
+{
+ "version": 1,
+ "spans": "1x1,2x2,4x2,4x4",
+ "frames": {
+  "CodingAgents@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 15,
+   "text": "Agents38%",
+   "view": "compact"
+  },
+  "CodingAgents@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    36.5,
+    204,
+    179.5
+   ],
+   "n": 66,
+   "text": "Coding agentsClaude5h 38%1w 61%Codex5h 12%1w 27%ips-serverneeds you · BashToday 420k tokens",
+   "view": "body"
+  },
+  "CodingAgents@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    171.5
+   ],
+   "n": 73,
+   "text": "Coding agentsClaude5h 38%02:00 PM1w 61%Sun 12:00 PMCodex5h 12%04:00 PM1w 27%Tue 12:00 PMips-serverneeds you · Bashgpt-5Today 420k tokens2.5M this week",
+   "view": "body"
+  },
+  "CodingAgents@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    407.5
+   ],
+   "n": 116,
+   "text": "Coding agentsClaude Code5-hour38% usedResets in 2h · 02:00 PMWeekly61% usedFull at Sun 01:22 AM at this pace · resets Sun 12:00 PMCodex5-hour12% usedResets in 4h · 04:00 PMWeekly27% usedResets in 5d · Tue 12:00 PMips-serverneeds you · Bashgpt-5InfoPanel.StudioEdit · 1m42% ctxclaude-opus-5-5$3.12docsdone in 4m18% ctxclaude-sonnet-5-5$0.41Today 420k tokens2.5M this week",
+   "view": "body"
+  },
+  "KpiTiles@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 26,
+   "text": "CPU54%",
+   "view": "compact"
+  },
+  "KpiTiles@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 26,
+   "text": "CPU54%",
+   "view": "compact"
+  },
+  "KpiTiles@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    16,
+    432,
+    196
+   ],
+   "n": 56,
+   "text": "CPU54%GPU90%Memory41.7GBDownload920KB/s",
+   "view": "body"
+  },
+  "KpiTiles@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    16,
+    432,
+    432
+   ],
+   "n": 84,
+   "text": "CPU54%Ryzen 9 9950X3DGPU90%GeForce RTX 5090Memory41.7GBof 64 GBDownload920KB/sEthernet",
+   "view": "body"
+  },
+  "MenuBar@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 27,
+   "text": "CPU · GPU54%GPU 90% · Mem 66%",
+   "view": "compact"
+  },
+  "MenuBar@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    16,
+    432,
+    196
+   ],
+   "n": 56,
+   "text": "CPU54%GPU90%Temp59°Mem66%↓ Down920KB/sCPU54%Package136WMax core80%Clock1.46GHz",
+   "view": "body"
+  },
+  "MenuBar@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    16,
+    432,
+    432
+   ],
+   "n": 60,
+   "text": "CPU54%GPU90%Temp59°Mem66%↓ Down920KB/sCPU54%Package136WMax core80%Clock1.46GHz",
+   "view": "body"
+  },
+  "ProcessList@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 16,
+   "text": "500",
+   "view": "compact"
+  },
+  "ProcessList@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 18,
+   "text": "Processes500PioneerGame · 60.4% CPU",
+   "view": "compact"
+  },
+  "ProcessList@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    48.5,
+    432,
+    163.5
+   ],
+   "n": 51,
+   "text": "ProcessesCPUMemoryProcesses500Threads12,995CPU60.4%Memory26.3 GBPioneerGame29.3%chrome12.3%msedgewebview25.1%Elgato.WaveLink3.2%",
+   "view": "body"
+  },
+  "ProcessList@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    52.63,
+    432,
+    395.38
+   ],
+   "n": 91,
+   "text": "ProcessesCPUMemoryProcesses500Threads12,995CPU60.4%Memory26.3 GBPioneerGame29.3%chrome12.3%msedgewebview25.1%Elgato.WaveLink3.2%System1.1%claude1.1%WmiPrvSE1.1%vmmemWSL0.9%zen0.9%MsMpEng0.8%audiodg0.4%StreamDeck0.3%",
+   "view": "body"
+  },
+  "ServiceHealth@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 14,
+   "text": "Sources9/10",
+   "view": "compact"
+  },
+  "ServiceHealth@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 15,
+   "text": "Sources9/10Weather · OWM off",
+   "view": "compact"
+  },
+  "ServiceHealth@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    171.5
+   ],
+   "n": 52,
+   "text": "Sources9/10Data API20:49:27LibreHardwareMonitorsensorsRTSScapturingWave LinkupSpotifyplayingMedia sessionactiveSteamARC RaidersWeather · YrupdatedWeather · OWMno API keyPublic IPonline",
+   "view": "body"
+  },
+  "ServiceHealth@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    407.5
+   ],
+   "n": 62,
+   "text": "Sources9/10▲warning: 9/10Sources onlineWeather · OWM offData API20:49:27LibreHardwareMonitorsensorsRTSScapturingWave LinkupSpotifyplayingMedia sessionactiveSteamARC RaidersWeather · YrupdatedWeather · OWMno API keyPublic IPonline",
+   "view": "body"
+  },
+  "StatusBar@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "n": 29,
+   "text": "DateThu, Jan 15Time12:00 PMWeather5°CNetworkEthernet",
+   "view": "body"
+  },
+  "StatusBar@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "n": 37,
+   "text": "DateThu, Jan 15Time12:00 PMWeather5°CNetworkEthernetVolume40%",
+   "view": "body"
+  },
+  "StatusTracker@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 13,
+   "text": "Status4/5GPU load not OK",
+   "view": "compact"
+  },
+  "StatusTracker@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    44.5,
+    432,
+    167.5
+   ],
+   "n": 39,
+   "text": "Status trackerLast 60 readingsHottest threadcollecting · 1 / 60GPU loadcollecting · 1 / 60Memorycollecting · 1 / 60−60snowOK50–80%Above 80% / downNo data",
+   "view": "body"
+  },
+  "StatusTracker@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    48.63,
+    432,
+    399.38
+   ],
+   "n": 58,
+   "text": "Status trackerLast 60 readings▲warning: 4/5OK nowGPU load not OKHottest threadcollecting · 1 / 60GPU loadcollecting · 1 / 60Memorycollecting · 1 / 60Ethernetcollecting · 1 / 60Data APIcollecting · 1 / 60−60snowOK50–80%Above 80% / downNo data",
+   "view": "body"
+  },
+  "SystemOverview@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 17,
+   "text": "",
+   "view": "body"
+  },
+  "SystemOverview@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 33,
+   "text": "63CPU63%GPU▲warning: 90%RAM66%",
+   "view": "body"
+  },
+  "SystemOverview@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    16,
+    432,
+    196
+   ],
+   "n": 48,
+   "text": "63CPU63%Ryzen 9 9950X3D90GPU▲warning: 90%GeForce RTX 509066RAM66%41.7 / 63.7 GB",
+   "view": "body"
+  },
+  "SystemOverview@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    16,
+    432,
+    432
+   ],
+   "n": 156,
+   "text": "63CPU63%Ryzen 9 9950X3DTemp62°CPower136 WClock1.46 GHz90GPU▲warning: 90%GeForce RTX 5090Temp59°CMemory66°CPower361 W66RAM66%41.7 / 63.7 GBFree22.0 GBPage86.2 / 95.7 GBPage load90%",
+   "view": "body"
+  },
+  "SystemStatus@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 20,
+   "text": "CPU63%",
+   "view": "compact"
+  },
+  "SystemStatus@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 21,
+   "text": "CPU63%RAM 66%",
+   "view": "compact"
+  },
+  "SystemStatus@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    171.5
+   ],
+   "n": 36,
+   "text": "System20:49:27CPU63%RAM66%",
+   "view": "body"
+  },
+  "SystemStatus@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    44.63,
+    432,
+    403.38
+   ],
+   "n": 58,
+   "text": "System20:49:27CPU63%Peak 63%Avg 63%RAM66%Peak 66%Avg 66%",
+   "view": "body"
+  },
+  "Uptime@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 13,
+   "text": "Uptime5d 7h35m 38s",
+   "view": "compact"
+  },
+  "Uptime@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 13,
+   "text": "Uptime5d 7h35m 38s",
+   "view": "compact"
+  },
+  "Uptime@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    171.5
+   ],
+   "n": 25,
+   "text": "Uptime05days:07hours:35min:38sec",
+   "view": "body"
+  },
+  "Uptime@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    407.5
+   ],
+   "n": 25,
+   "text": "Uptime05days07hours35min38sec127 h 35 min total",
+   "view": "body"
+  },
+  "Vitals@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 18,
+   "text": "54%",
+   "view": "compact"
+  },
+  "Vitals@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 20,
+   "text": "CPU · GPU54%GPU 90% · RAM 66%",
+   "view": "compact"
+  },
+  "Vitals@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    16,
+    432,
+    196
+   ],
+   "n": 60,
+   "text": "CPU62°C54%GPU59°C90%RAM41.7 GB66%Net ↓↑ 27.6 KB/s920KB/s",
+   "view": "body"
+  },
+  "Vitals@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    16,
+    432,
+    432
+   ],
+   "n": 60,
+   "text": "CPU62°C54%GPU59°C90%RAM41.7 GB66%Net ↓↑ 27.6 KB/s920KB/s",
+   "view": "body"
+  },
+  "CoreHeatmap@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 36,
+   "text": "",
+   "view": "body"
+  },
+  "CoreHeatmap@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    36.5,
+    204,
+    179.5
+   ],
+   "n": 46,
+   "text": "Coresavg 54% · max 80%7980756365587072756966586057586039335851575070643335485325261618",
+   "view": "body"
+  },
+  "CoreHeatmap@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    171.5
+   ],
+   "n": 46,
+   "text": "Coresavg 54% · max 80%7980756365587072756966586057586039335851575070643335485325261618",
+   "view": "body"
+  },
+  "CoreHeatmap@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    407.5
+   ],
+   "n": 46,
+   "text": "Coresavg 54% · max 80%7980756365587072756966586057586039335851575070643335485325261618",
+   "view": "body"
+  },
+  "CpuMonitor@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 32,
+   "text": "CPU54%",
+   "view": "compact"
+  },
+  "CpuMonitor@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 33,
+   "text": "CPU54%62°C · 136 W",
+   "view": "compact"
+  },
+  "CpuMonitor@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    171.5
+   ],
+   "n": 114,
+   "text": "Ryzen 9 9950X3D62°C54%Total loadMax core80%Package136.4WAvg clock1.46GHz",
+   "view": "body"
+  },
+  "CpuMonitor@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    407.5
+   ],
+   "n": 122,
+   "text": "Ryzen 9 9950X3D62°C54%Total loadMax core80%Package136.4WAvg clock1.46GHz1000",
+   "view": "body"
+  },
+  "Fans@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 14,
+   "text": "Fans2,021RPM",
+   "view": "compact"
+  },
+  "Fans@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 15,
+   "text": "Fans2,021RPM3 spinning",
+   "view": "compact"
+  },
+  "Fans@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    171.5
+   ],
+   "n": 37,
+   "text": "Fans2,022GPU 1 · 56%2,025GPU 2 · 56%2,015GPU 3 · 56%OffCPU",
+   "view": "body"
+  },
+  "Fans@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    407.5
+   ],
+   "n": 41,
+   "text": "Fans2,022GPU 1 · 56%2,025GPU 2 · 56%2,015GPU 3 · 56%OffCPU",
+   "view": "body"
+  },
+  "GpuMonitor@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 23,
+   "text": "GPU90%",
+   "view": "compact"
+  },
+  "GpuMonitor@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 24,
+   "text": "GPU90%59°C · 361 W",
+   "view": "compact"
+  },
+  "GpuMonitor@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    171.5
+   ],
+   "n": 47,
+   "text": "RTX 509059°C90%Core loadPower361.3WCore2,505MHzMemory66°CVRAMof 32 GB11.4 GB",
+   "view": "body"
+  },
+  "GpuMonitor@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    407.5
+   ],
+   "n": 55,
+   "text": "RTX 509059°C90%Core loadPower361.3WCore2,505MHzMemory66°CVRAMof 32 GB11.4 GB100 %0 %",
+   "view": "body"
+  },
+  "GpuRings@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 15,
+   "text": "59°C",
+   "view": "body"
+  },
+  "GpuRings@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    36.5,
+    204,
+    179.5
+   ],
+   "n": 29,
+   "text": "RTX 509059°CVRAM11.4 / 31.8 GBCore load90%",
+   "view": "body"
+  },
+  "GpuRings@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    171.5
+   ],
+   "n": 46,
+   "text": "RTX 509059°CCoreVRAM11.4 / 31.8 GBCore load90%Clock2,505 MHzPower361.3 WFans2,021 RPM · 56%Mem junction66°C",
+   "view": "body"
+  },
+  "GpuRings@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    407.5
+   ],
+   "n": 46,
+   "text": "RTX 509059°CCoreVRAM11.4 / 31.8 GBCore load90%Clock2,505 MHzPower361.3 WFans2,021 RPM · 56%Mem junction66°C",
+   "view": "body"
+  },
+  "MemoryUsage@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 27,
+   "text": "RAM66%",
+   "view": "compact"
+  },
+  "MemoryUsage@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 27,
+   "text": "RAM66%",
+   "view": "compact"
+  },
+  "MemoryUsage@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    171.5
+   ],
+   "n": 41,
+   "text": "Memory66%41.7 GBAvailable22.0 GBTotal64 GBVirtual86.2 / 96 GB90%",
+   "view": "body"
+  },
+  "MemoryUsage@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    407.5
+   ],
+   "n": 55,
+   "text": "Memory66%41.7 GBAvailable22.0 GBTotal64 GBVirtual86.2 / 96 GB90%",
+   "view": "body"
+  },
+  "PowerDraw@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 19,
+   "text": "Power498W",
+   "view": "compact"
+  },
+  "PowerDraw@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 20,
+   "text": "Power498WCPU 136 · GPU 361",
+   "view": "compact"
+  },
+  "PowerDraw@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    171.5
+   ],
+   "n": 29,
+   "text": "Power498WCPU 136GPU 361",
+   "view": "body"
+  },
+  "PowerDraw@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    407.5
+   ],
+   "n": 48,
+   "text": "Power498WCPU 136GPU 361Peak498WAvg498WMin498W",
+   "view": "body"
+  },
+  "Thermals@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 18,
+   "text": "66°C",
+   "view": "compact"
+  },
+  "Thermals@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 20,
+   "text": "Hottest · GPU memory66°CCPU 62° · GPU 59°",
+   "view": "compact"
+  },
+  "Thermals@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    171.5
+   ],
+   "n": 44,
+   "text": "ThermalsGPU memory66°CCPU62°CGPU59°CVRM55°CKingston54°CWDC28°C",
+   "view": "body"
+  },
+  "Thermals@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    407.5
+   ],
+   "n": 46,
+   "text": "Thermals66°CGPU memoryHottestCPU62°CGPU59°CVRM55°CKingston54°CWDC28°C",
+   "view": "body"
+  },
+  "DiskIO@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 21,
+   "text": "Disk I/O24.4 MB/s",
+   "view": "compact"
+  },
+  "DiskIO@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 22,
+   "text": "Disk I/O24.4 MB/s2 disks",
+   "view": "compact"
+  },
+  "DiskIO@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    171.5
+   ],
+   "n": 33,
+   "text": "Disk I/OTotal24.4 MB/sWDCR 0 B/s · W 0 B/sKingstonR 2.37 MB/s · W 22.1 MB/s",
+   "view": "body"
+  },
+  "DiskIO@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    407.5
+   ],
+   "n": 53,
+   "text": "Disk I/OWDC0% activeR0 B/sW0 B/sKingston14% activeR2.37 MB/sW22.1 MB/s",
+   "view": "body"
+  },
+  "DriveSpace@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 16,
+   "text": "E: work58%",
+   "view": "compact"
+  },
+  "DriveSpace@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 17,
+   "text": "E: work58%790 GB free",
+   "view": "compact"
+  },
+  "DriveSpace@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    171.5
+   ],
+   "n": 43,
+   "text": "Drive spaceG: aitools65.9 GB freeF: resources172 GB freeD: games490 GB freeE: work790 GB free",
+   "view": "body"
+  },
+  "DriveSpace@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    407.5
+   ],
+   "n": 56,
+   "text": "Drive spaceG: aitools65.9 GB free866 GB / 932 GB · NTFSF: resources172 GB free760 GB / 932 GB · NTFSD: games490 GB free1.34 TB / 1.82 TB · NTFSE: work790 GB free1.05 TB / 1.82 TB · NTFSC: Windows989 GB free873 GB / 1.82 TB · NTFS",
+   "view": "body"
+  },
+  "StorageHealth@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 18,
+   "text": "WDC97%",
+   "view": "compact"
+  },
+  "StorageHealth@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 18,
+   "text": "WDC97%",
+   "view": "compact"
+  },
+  "StorageHealth@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    171.5
+   ],
+   "n": 59,
+   "text": "WDC · 1,000 GB28°C97%Drive lifeRead0 B/sWrite0 B/sActivity0%read0 B/swrite0 B/s184 GB free82% used",
+   "view": "body"
+  },
+  "StorageHealth@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    407.5
+   ],
+   "n": 96,
+   "text": "WDC · 1,000 GB28°C97%Drive lifeRead0 B/sWrite0 B/sActivity0%read0 B/swrite0 B/sTemperature 28 °Cwarn 70 · crit 85184 GB free82% usedWritten27.4TBRead total47.3TBPower-on45,455hPower cycles90",
+   "view": "body"
+  },
+  "NetworkAdapters@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 11,
+   "text": "192.0.2.1",
+   "view": "compact"
+  },
+  "NetworkAdapters@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 13,
+   "text": "Public IP192.0.2.14 adapters up",
+   "view": "compact"
+  },
+  "NetworkAdapters@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    44.5,
+    432,
+    167.5
+   ],
+   "n": 38,
+   "text": "Network4 upPublic IP192.0.2.1vEthernet (Default Switch)10 Gbps192.0.2.2vEthernet (WSL (Hyper-V firewall))10 Gbps192.0.2.3",
+   "view": "body"
+  },
+  "NetworkAdapters@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    48.63,
+    432,
+    399.38
+   ],
+   "n": 52,
+   "text": "Network4 upPublic IP192.0.2.1vEthernet (Default Switch)10 Gbps192.0.2.2vEthernet (WSL (Hyper-V firewall))10 Gbps192.0.2.3Tailscale100 Gbps192.0.2.8Ethernet2.5 Gbps192.0.2.9",
+   "view": "body"
+  },
+  "NetworkThroughput@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 19,
+   "text": "Ethernet920 KB/s",
+   "view": "compact"
+  },
+  "NetworkThroughput@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    36.5,
+    204,
+    179.5
+   ],
+   "n": 41,
+   "text": "Ethernet0.3%Download920 KB/sUpload27.6 KB/sDownloaded193GBUploaded13.0GBUtilisation0.30%",
+   "view": "body"
+  },
+  "NetworkThroughput@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    171.5
+   ],
+   "n": 41,
+   "text": "Ethernet0.3%Download920 KB/sUpload27.6 KB/sDownloaded193GBUploaded13.0GBUtilisation0.30%",
+   "view": "body"
+  },
+  "NetworkThroughput@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    407.5
+   ],
+   "n": 65,
+   "text": "Ethernet0.3%Download920 KB/sUpload27.6 KB/sDownloaded193GBUploaded13.0GBUtilisation0.30%",
+   "view": "body"
+  },
+  "NowPlaying@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 11,
+   "text": "Sample TrackSample Artist",
+   "view": "compact"
+  },
+  "NowPlaying@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    40.5,
+    204,
+    175.5
+   ],
+   "n": 24,
+   "text": "Now playing▶SpotifySample TrackSample Artist01:34-02:11",
+   "view": "body"
+  },
+  "NowPlaying@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    44.5,
+    432,
+    167.5
+   ],
+   "n": 24,
+   "text": "Now playing▶SpotifySample TrackSample Artist01:34-02:11",
+   "view": "body"
+  },
+  "NowPlaying@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    48.63,
+    432,
+    399.38
+   ],
+   "n": 24,
+   "text": "Now playing▶SpotifySample TrackSample Artist01:34-02:11",
+   "view": "body"
+  },
+  "AudioButton@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "n": 11,
+   "text": "MasterLive",
+   "view": "body"
+  },
+  "AudioButton@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "n": 11,
+   "text": "MasterLive",
+   "view": "body"
+  },
+  "AudioButton@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "n": 11,
+   "text": "MasterLive",
+   "view": "body"
+  },
+  "AudioButton@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "n": 11,
+   "text": "MasterLive",
+   "view": "body"
+  },
+  "AudioFader@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 26,
+   "text": "72",
+   "view": "body"
+  },
+  "AudioFader@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 40,
+   "text": "72",
+   "view": "body"
+  },
+  "AudioFader@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    16,
+    432,
+    196
+   ],
+   "n": 55,
+   "text": "72",
+   "view": "body"
+  },
+  "AudioFader@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    16,
+    432,
+    432
+   ],
+   "n": 52,
+   "text": "72",
+   "view": "body"
+  },
+  "AudioMeter@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 12,
+   "text": "-8.7dB",
+   "view": "compact"
+  },
+  "AudioMeter@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 14,
+   "text": "Default device-8.7dBL 97% · R 97%",
+   "view": "compact"
+  },
+  "AudioMeter@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    171.5
+   ],
+   "n": 109,
+   "text": "Default device-8.7 dBLR0-6-12Peak-8.7dBRMS-8.7dBHold-0.8dBLevel96.9%",
+   "view": "body"
+  },
+  "AudioMeter@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    407.5
+   ],
+   "n": 109,
+   "text": "Default device-8.7 dBPeak-8.7dBLR0-6-12RMS-8.7dBHold-0.8dBLevel96.9%",
+   "view": "body"
+  },
+  "MeterBridge@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 50,
+   "text": "Voice50%System40%",
+   "view": "body"
+  },
+  "MeterBridge@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    36.5,
+    204,
+    179.5
+   ],
+   "n": 145,
+   "text": "LevelsLiveVoice0−6−12−18−24−36−48−6050%L-∞R-∞System0−6−12−18−24−36−48−6040%L-0.3R-0.3",
+   "view": "body"
+  },
+  "MeterBridge@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    171.5
+   ],
+   "n": 254,
+   "text": "LevelsLiveVoice50%L-∞R-∞System40%L-0.3R-0.3Headphones43%L-8.2R-8.2Browser23%L-0.5R-0.5Speakers100%L-∞R-∞",
+   "view": "body"
+  },
+  "MeterBridge@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    407.5
+   ],
+   "n": 484,
+   "text": "LevelsLiveVoice50%L-∞R-∞System40%L-0.3R-0.3Headphones43%L-8.2R-8.2Browser23%L-0.5R-0.5Speakers100%L-∞R-∞",
+   "view": "body"
+  },
+  "StreamMixer@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 19,
+   "text": "Master72%",
+   "view": "compact"
+  },
+  "StreamMixer@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    52,
+    432,
+    160
+   ],
+   "n": 172,
+   "text": "MixerMasterHeadset (USB audio)72MicWave:3 microphone86GameHeadset (USB audio)64",
+   "view": "body"
+  },
+  "StreamMixer@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    52,
+    432,
+    396
+   ],
+   "n": 314,
+   "text": "MixerMasterHeadset (USB audio)72MicWave:3 microphone86GameHeadset (USB audio)64DiscordHeadset (USB audio)50SpotifyHeadset (USB audio)36ChromeHeadset (USB audio)28",
+   "view": "body"
+  },
+  "Visualizer@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 5,
+   "text": "",
+   "view": "body"
+  },
+  "Visualizer@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    36.5,
+    204,
+    179.5
+   ],
+   "n": 16,
+   "text": "System-8.7 dB",
+   "view": "body"
+  },
+  "Visualizer@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    171.5
+   ],
+   "n": 16,
+   "text": "System-8.7 dB",
+   "view": "body"
+  },
+  "Visualizer@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    44.63,
+    432,
+    403.38
+   ],
+   "n": 16,
+   "text": "System-8.7 dB",
+   "view": "body"
+  },
+  "VolumeMixer@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 19,
+   "text": "System40%",
+   "view": "compact"
+  },
+  "VolumeMixer@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 19,
+   "text": "System40%",
+   "view": "compact"
+  },
+  "VolumeMixer@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    44.5,
+    432,
+    167.5
+   ],
+   "n": 70,
+   "text": "VolumeWave LinkHeadphones100Browser 23System 40Speakers100",
+   "view": "body"
+  },
+  "VolumeMixer@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    48.63,
+    432,
+    399.38
+   ],
+   "n": 121,
+   "text": "VolumeWave LinkHeadphones100Browser 23System 40Speakers100Wave Mic 1 85Headphones43Voice 50Music 7",
+   "view": "body"
+  },
+  "WaveLink@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 29,
+   "text": "MusicGame",
+   "view": "body"
+  },
+  "WaveLink@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    40.5,
+    204,
+    175.5
+   ],
+   "n": 52,
+   "text": "Wave LinkLive · v2.0.1Music80%silentGame50%silent",
+   "view": "body"
+  },
+  "WaveLink@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    44.5,
+    432,
+    167.5
+   ],
+   "n": 76,
+   "text": "Wave LinkLive · v2.0.1Music80%0−12−24−48L-∞dBR-∞Stream MixMonitor MixGame50%0−12−24−48L-∞dBR-∞Monitor Mix",
+   "view": "body"
+  },
+  "WaveLink@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    44.5,
+    432,
+    403.5
+   ],
+   "n": 76,
+   "text": "Wave LinkLive · v2.0.1Music80%0−12−24−48L-∞dBR-∞Stream MixMonitor MixGame50%0−12−24−48L-∞dBR-∞Monitor Mix",
+   "view": "body"
+  },
+  "StreamDeck@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 13,
+   "text": "IPStudio5×3",
+   "view": "compact"
+  },
+  "StreamDeck@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    36.5,
+    204,
+    179.5
+   ],
+   "n": 66,
+   "text": "IPStudioScene 1Scene 2Mute micChatMusicLightsZoomDiscordMacro1 / 3",
+   "view": "body"
+  },
+  "StreamDeck@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    171.5
+   ],
+   "n": 66,
+   "text": "IPStudioScene 1Scene 2Mute micChatMusicLightsZoomDiscordMacro1 / 3",
+   "view": "body"
+  },
+  "StreamDeck@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    407.5
+   ],
+   "n": 78,
+   "text": "IPStudioScene 1Scene 2Mute micReplayGo liveChatMusicLightsBRBClipZoomDiscordMacroVolume1 / 3",
+   "view": "body"
+  },
+  "ObsButton@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "n": 15,
+   "text": "Scene",
+   "view": "body"
+  },
+  "ObsButton@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "n": 15,
+   "text": "Scene",
+   "view": "body"
+  },
+  "ObsButton@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "n": 15,
+   "text": "Scene",
+   "view": "body"
+  },
+  "ObsButton@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "n": 15,
+   "text": "Scene",
+   "view": "body"
+  },
+  "OnAirBeacon@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 10,
+   "text": "LIVEJust started",
+   "view": "body"
+  },
+  "OnAirBeacon@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    36.5,
+    204,
+    179.5
+   ],
+   "n": 20,
+   "text": "On airLIVEJust started",
+   "view": "body"
+  },
+  "OnAirBeacon@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    171.5
+   ],
+   "n": 20,
+   "text": "On airLIVEJust started",
+   "view": "body"
+  },
+  "OnAirBeacon@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    407.5
+   ],
+   "n": 20,
+   "text": "On airLIVEJust started",
+   "view": "body"
+  },
+  "StreamChat@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 11,
+   "text": "Twitch chat1,243yt_marta: hi from youtube!",
+   "view": "compact"
+  },
+  "StreamChat@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    44.5,
+    432,
+    167.5
+   ],
+   "n": 114,
+   "text": "Twitch chat1,243 watchingzed that replay was insane and a much longer message that has to wrap onto a second line of the chatmod_rock be nice in chat or the face gets youneonwolf LETS GOOOOpixelhuse what is that screen under your monitor??ola_b spacs are in the panels belowyt_marta hi from youtube! and a much longer message that has to wrap onto a second line of the chatmod_rock be nice in chat or the face gets youkairo GGpixelhuse what is that screen under your monitor??drift W streameryt_marta hi from youtube!zed that replay was insanekairo GGneonwolf LETS GOOOOdrift W streamer and a much longer message that has to wrap onto a second line of the chatola_b spacs are in the panels belowzed that replay was insanemod_rock be nice in chat or the face gets youneonwolf LETS GOOOOpixelhuse what is that screen under your monitor?? and a much longer message that has to wrap onto a second line of the chatola_b spacs are in the panels belowyt_marta hi from youtube!mod_rock be nice in chat or the face gets youkairo GGpixelhuse what is that screen under your monitor??drift W streameryt_marta hi from youtube!",
+   "view": "body"
+  },
+  "StreamChat@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    48.63,
+    432,
+    399.38
+   ],
+   "n": 114,
+   "text": "Twitch chat1,243 watchingzed that replay was insane and a much longer message that has to wrap onto a second line of the chatmod_rock be nice in chat or the face gets youneonwolf LETS GOOOOpixelhuse what is that screen under your monitor??ola_b spacs are in the panels belowyt_marta hi from youtube! and a much longer message that has to wrap onto a second line of the chatmod_rock be nice in chat or the face gets youkairo GGpixelhuse what is that screen under your monitor??drift W streameryt_marta hi from youtube!zed that replay was insanekairo GGneonwolf LETS GOOOOdrift W streamer and a much longer message that has to wrap onto a second line of the chatola_b spacs are in the panels belowzed that replay was insanemod_rock be nice in chat or the face gets youneonwolf LETS GOOOOpixelhuse what is that screen under your monitor?? and a much longer message that has to wrap onto a second line of the chatola_b spacs are in the panels belowyt_marta hi from youtube!mod_rock be nice in chat or the face gets youkairo GGpixelhuse what is that screen under your monitor??drift W streameryt_marta hi from youtube!",
+   "view": "body"
+  },
+  "StreamControl@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 20,
+   "text": "Live1:26:361,555 watching",
+   "view": "compact"
+  },
+  "StreamControl@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    44.5,
+    432,
+    167.5
+   ],
+   "n": 44,
+   "text": "OBS Studio6,000 kbps · 60 fpsLiveTW 1,243 · YT 3121:26:36Viewers1,555Mic",
+   "view": "body"
+  },
+  "StreamControl@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    44.5,
+    432,
+    403.5
+   ],
+   "n": 119,
+   "text": "OBS Studio6,000 kbps · 60 fpsGameplayOn airJust ChattingLiveTW 1,243 · YT 3121:26:36Starting SoonBe Right BackInterviewEndingMicReplay",
+   "view": "body"
+  },
+  "Calendar@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 14,
+   "text": "Monday12October 2026",
+   "view": "compact"
+  },
+  "Calendar@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 30,
+   "text": "MondayOctober 2026 · W4112M12T13W14T15F16S17S18",
+   "view": "body"
+  },
+  "Calendar@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    16,
+    432,
+    196
+   ],
+   "n": 53,
+   "text": "Monday12October 2026 · W41OctoberMTWTFSS12345678910111213141516171819202122232425262728293031",
+   "view": "body"
+  },
+  "Calendar@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    16,
+    432,
+    432
+   ],
+   "n": 53,
+   "text": "MondayOctober 2026 · W4112OctoberMTWTFSS12345678910111213141516171819202122232425262728293031",
+   "view": "body"
+  },
+  "Clock@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 8,
+   "text": "20:49Monday, 12 Oct",
+   "view": "body"
+  },
+  "Clock@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 9,
+   "text": "20:4926Monday, 12 Oct",
+   "view": "body"
+  },
+  "Clock@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    16,
+    432,
+    196
+   ],
+   "n": 9,
+   "text": "20:4926Monday, 12 Oct",
+   "view": "body"
+  },
+  "Clock@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    16,
+    432,
+    432
+   ],
+   "n": 9,
+   "text": "20:4926Monday, 12 Oct",
+   "view": "body"
+  },
+  "Countdown@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 18,
+   "text": "41daysuntil February 26, 2026",
+   "view": "compact"
+  },
+  "Countdown@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 19,
+   "text": "Countdown41daysuntil February 26, 2026",
+   "view": "compact"
+  },
+  "Countdown@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    171.5
+   ],
+   "n": 23,
+   "text": "Countdown41days12hoursuntil February 26, 2026",
+   "view": "body"
+  },
+  "Countdown@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    407.5
+   ],
+   "n": 23,
+   "text": "Countdown41days12hoursuntil February 26, 2026",
+   "view": "body"
+  },
+  "DayPlanner@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 9,
+   "text": "No calendar",
+   "view": "compact"
+  },
+  "DayPlanner@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    171.5
+   ],
+   "n": 35,
+   "text": "Day planner2° to 5°Crain11a1p3p5p7p9p11p",
+   "view": "body"
+  },
+  "DayPlanner@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    407.5
+   ],
+   "n": 47,
+   "text": "Day planner2° to 5°Crain11a12p1p2p3p4p5p6p7p8p9p10p11p",
+   "view": "body"
+  },
+  "Departures@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    40.5,
+    204,
+    175.5
+   ],
+   "n": 28,
+   "text": "Zürich, Bahnhofplatz52 min13Frankenstrasse5 min4BahnhofquaiUpdated 12:04",
+   "view": "body"
+  },
+  "Departures@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    44.5,
+    432,
+    167.5
+   ],
+   "n": 33,
+   "text": "Zürich, Bahnhofplatz52 min13Frankenstrasse5 min4Bahnhofquai8 min11AuzelgUpdated 12:04",
+   "view": "body"
+  },
+  "Departures@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    48.63,
+    432,
+    399.38
+   ],
+   "n": 43,
+   "text": "Zürich, Bahnhofplatz52 min13Frankenstrasse5 min4Bahnhofquai8 min11Auzelg12 min7Stettbach16 min15BucheggplatzUpdated 12:04",
+   "view": "body"
+  },
+  "Forecast@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 14,
+   "text": "Tomorrow8°Moderate Rain · 4°",
+   "view": "compact"
+  },
+  "Forecast@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 14,
+   "text": "Tomorrow8°Moderate Rain · 4°",
+   "view": "compact"
+  },
+  "Forecast@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    171.5
+   ],
+   "n": 98,
+   "text": "ForecastTue8°4°Wed14°7°Thu15°10°Fri14°11°Sat11°6°Sun10°2°",
+   "view": "body"
+  },
+  "Forecast@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    407.5
+   ],
+   "n": 101,
+   "text": "ForecastTue8°4°42.5 mmWed14°7°1.0 mmThu15°10°Fri14°11°5.7 mmSat11°6°Sun10°2°",
+   "view": "body"
+  },
+  "Notifications@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    40.5,
+    204,
+    175.5
+   ],
+   "n": 34,
+   "text": "Notifications31 error · 1 warningListening12:04InfoBuild finished11:58WarningDisk space is low on D:11:32ErrorBackup job failed11:10InfoUpdate downloaded10:47InfoSync complete",
+   "view": "body"
+  },
+  "Notifications@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    44.5,
+    432,
+    167.5
+   ],
+   "n": 30,
+   "text": "Notifications31 error · 1 warningListening12:04InfoBuild finished11:58WarningDisk space is low on D:11:32ErrorBackup job failed11:10InfoUpdate downloaded",
+   "view": "body"
+  },
+  "Notifications@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    48.63,
+    432,
+    399.38
+   ],
+   "n": 41,
+   "text": "Notifications31 error · 1 warningListening3Info1Warning1Error12:04InfoBuild finished11:58WarningDisk space is low on D:11:32ErrorBackup job failed11:10InfoUpdate downloaded10:47InfoSync complete",
+   "view": "body"
+  },
+  "RadialClockStack@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 18,
+   "text": "12:00 PM50%",
+   "view": "compact"
+  },
+  "RadialClockStack@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 18,
+   "text": "12:00 PM50%",
+   "view": "compact"
+  },
+  "RadialClockStack@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    171.5
+   ],
+   "n": 29,
+   "text": "Rings12:00 PMDay50%Year4%",
+   "view": "body"
+  },
+  "RadialClockStack@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    407.5
+   ],
+   "n": 20,
+   "text": "Rings12:00 PM",
+   "view": "body"
+  },
+  "TextFile@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    36.5,
+    204,
+    179.5
+   ],
+   "n": 14,
+   "text": "Text File# Release notes - Faster startup - New widget library - Fixed the clock drift - Minor polish2.0 KB · 5 lines",
+   "view": "body"
+  },
+  "TextFile@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    171.5
+   ],
+   "n": 14,
+   "text": "Text File# Release notes - Faster startup - New widget library - Fixed the clock drift - Minor polish2.0 KB · 5 lines",
+   "view": "body"
+  },
+  "TextFile@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    407.5
+   ],
+   "n": 14,
+   "text": "Text File# Release notes - Faster startup - New widget library - Fixed the clock drift - Minor polish2.0 KB · 5 lines",
+   "view": "body"
+  },
+  "Timer@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 7,
+   "text": "5m15m",
+   "view": "body"
+  },
+  "Timer@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    36.5,
+    204,
+    179.5
+   ],
+   "n": 15,
+   "text": "Timer05:005m15m25m",
+   "view": "body"
+  },
+  "Timer@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    171.5
+   ],
+   "n": 15,
+   "text": "Timer05:005m15m25m",
+   "view": "body"
+  },
+  "Timer@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    407.5
+   ],
+   "n": 23,
+   "text": "Timer5minends 12:05 PM15minends 12:15 PM25minends 12:25 PM",
+   "view": "body"
+  },
+  "Weather@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 11,
+   "text": "5°Clear Sky · feels 5°",
+   "view": "compact"
+  },
+  "Weather@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 16,
+   "text": "Brevik, Norway5°Clear Sky · feels 5°",
+   "view": "compact"
+  },
+  "Weather@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    171.5
+   ],
+   "n": 72,
+   "text": "Brevik, Norway20:045°Clear Skyfeels like 5°Wind1.2 m/s SWHumidity87%Tue 138°Wed 1414°Thu 1515°Fri 1614°Sat 1711°",
+   "view": "body"
+  },
+  "Weather@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    44.63,
+    432,
+    403.38
+   ],
+   "n": 91,
+   "text": "Brevik, Norway20:045°Clear Skyfeels like 5°Wind1.2 m/s SWHumidity87%Pressure1,023 hPaRain0.0 mm/hTue 138°4°42.5 mmWed 1414°7°1 mmThu 1515°10°Fri 1614°11°5.7 mmSat 1711°6°",
+   "view": "body"
+  },
+  "Achievements@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 21,
+   "text": "78%",
+   "view": "compact"
+  },
+  "Achievements@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 22,
+   "text": "Achievements78%",
+   "view": "compact"
+  },
+  "Achievements@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    171.5
+   ],
+   "n": 27,
+   "text": "ARC Raiders78%39/50Latest unlockToday You, Tomorrow Me",
+   "view": "body"
+  },
+  "Achievements@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    407.5
+   ],
+   "n": 28,
+   "text": "ARC Raiders78%39/50Latest unlockToday You, Tomorrow Me11 locked",
+   "view": "body"
+  },
+  "BottleneckLens@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 12,
+   "text": "BottleneckBalancedGPU 90 % · CPU busiest core 80 % · 78 fps",
+   "view": "compact"
+  },
+  "BottleneckLens@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    171.5
+   ],
+   "n": 25,
+   "text": "BottleneckBalancedGPU 90 % · CPU busiest core 80 % · 78 fpsGPUCPU coreVRAM",
+   "view": "body"
+  },
+  "BottleneckLens@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    407.5
+   ],
+   "n": 42,
+   "text": "BottleneckBalancedGPU 90 % · CPU busiest core 80 % · 78 fpsGPU90 %limit 93CPU core80 %limit 85VRAM36 %limit 95Collecting verdicts78 fps59 °C GPUNo throttle",
+   "view": "body"
+  },
+  "SteamGame@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 11,
+   "text": "ARC Raiders00:07 session · 263.4 h",
+   "view": "compact"
+  },
+  "SteamGame@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "n": 26,
+   "text": "Currently Playing⏱ 00:07ARC RaidersPlaytime263.4 hAvg session01:23Achievements39/50 · 78 %",
+   "view": "body"
+  },
+  "SteamGame@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "n": 26,
+   "text": "Currently Playing⏱ 00:07ARC RaidersPlaytime263.4 hAvg session01:23Achievements39/50 · 78 %",
+   "view": "body"
+  },
+  "FpsMonitor@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 22,
+   "text": "78FPS",
+   "view": "compact"
+  },
+  "FpsMonitor@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 24,
+   "text": "A​R​​​ C​ R​​a​ ​​​i d e​ rs78FPS1% low 0 · 12.6 ms",
+   "view": "compact"
+  },
+  "FpsMonitor@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    44.5,
+    432,
+    167.5
+   ],
+   "n": 38,
+   "text": "FPS A​R​​​ C​ R​​a​ ​​​i d e​ rsD3D12critical: 78FPS1% low–Avg75Frame12.6ms",
+   "view": "body"
+  },
+  "FpsMonitor@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    48.63,
+    432,
+    399.38
+   ],
+   "n": 42,
+   "text": "FPS A​R​​​ C​ R​​a​ ​​​i d e​ rsD3D12critical: 78FPS1% low–Avg75Frame12.6ms",
+   "view": "body"
+  },
+  "FrameHistogram@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 17,
+   "text": "1% low79fps0.1% 79 fps",
+   "view": "compact"
+  },
+  "FrameHistogram@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    171.5
+   ],
+   "n": 39,
+   "text": "Frame histogramlast 1 min1% low79fps12.6 ms0.1% low79fps12.6 ms0 ms820+ ms",
+   "view": "body"
+  },
+  "FrameHistogram@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    44.63,
+    432,
+    403.38
+   ],
+   "n": 39,
+   "text": "Frame histogramlast 1 min1% low79fps12.6 ms0.1% low79fps12.6 ms0 ms820+ ms",
+   "view": "body"
+  },
+  "FramePacing@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 22,
+   "text": "Frame time12.6ms78 fps",
+   "view": "compact"
+  },
+  "FramePacing@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    171.5
+   ],
+   "n": 46,
+   "text": "Frame pacingAverage75fps1% low0fpsMin / max0 / 141Frame time12.6ms240 fps4.2 ms60 fps16.7 ms",
+   "view": "body"
+  },
+  "FramePacing@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    407.5
+   ],
+   "n": 53,
+   "text": "Frame pacingAverage75fps1% low0fpsMin / max0 / 141Frame time12.6ms240 fps4.2 ms60 fps16.7 ms−2 minnow",
+   "view": "body"
+  },
+  "SteamNews@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 13,
+   "text": "WARDOGSВторой сезон WARDOGS стартует 15 октября - новое оружие, техника и экспериментальные ставки",
+   "view": "compact"
+  },
+  "SteamNews@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 14,
+   "text": "WARDOGSВторой сезон WARDOGS стартует 15 октября - новое оружие, техника и экспериментальные ставкиOct 10",
+   "view": "compact"
+  },
+  "SteamNews@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    171.5
+   ],
+   "n": 21,
+   "text": "NewsWARDOGS · Oct 10Второй сезон WARDOGS стартует 15 октября - новое оружие, техника и экспериментальные ставкиARC Raiders · Oct 09Решение сменить внешний вид Селесты в Arc Raiders вызвало неоднозначную реакцию игроков",
+   "view": "body"
+  },
+  "SteamNews@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    407.5
+   ],
+   "n": 28,
+   "text": "News2headlinesfrom 2 gamesWARDOGS · Oct 10Второй сезон WARDOGS стартует 15 октября - новое оружие, техника и экспериментальные ставкиARC Raiders · Oct 09Решение сменить внешний вид Селесты в Arc Raiders вызвало неоднозначную реакцию игроков",
+   "view": "body"
+  },
+  "GameSpotlight@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 11,
+   "text": "ARC Raiders00:07 session",
+   "view": "compact"
+  },
+  "GameSpotlight@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 11,
+   "text": "ARC Raiders00:07 session",
+   "view": "compact"
+  },
+  "GameSpotlight@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "n": 45,
+   "text": "Currently Playing4 friends in-game00:07Session00:07Playtime263.4 hToday You, Tomorrow Me78%",
+   "view": "body"
+  },
+  "GameSpotlight@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "n": 45,
+   "text": "Currently Playing4 friends in-game00:07Session00:07Playtime263.4 hToday You, Tomorrow Me78%",
+   "view": "body"
+  },
+  "OsdStrip@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 15,
+   "text": "FPS781% low 0 · 12.6 ms",
+   "view": "compact"
+  },
+  "OsdStrip@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    16,
+    432,
+    196
+   ],
+   "n": 22,
+   "text": "FPS✕critical: 781% low✕critical: 0Frame time12.6 msGPU90% · 59°RTSS: A​R​​​ C​ R​​a​ ​​​i d e​ rs · benchmark mode on",
+   "view": "body"
+  },
+  "OsdStrip@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    16,
+    432,
+    432
+   ],
+   "n": 31,
+   "text": "FPS✕critical: 781% low✕critical: 0Frame time12.6 msGPU90% · 59°CPU54%VRAM11.4 GBDisplay4K · 240 HzRTSS: A​R​​​ C​ R​​a​ ​​​i d e​ rs · benchmark mode on",
+   "view": "body"
+  },
+  "PlaytimeShare@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 16,
+   "text": "7.4h",
+   "view": "compact"
+  },
+  "PlaytimeShare@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 18,
+   "text": "Last 2 weeks7.4hARC Raiders",
+   "view": "compact"
+  },
+  "PlaytimeShare@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    171.5
+   ],
+   "n": 35,
+   "text": "PlaytimeLast 2 weeks7.4hSessions7ARC Raiders4.5 h · 263.4 h totalLibrary: 313 games · 4,489 h lifetime",
+   "view": "body"
+  },
+  "PlaytimeShare@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    407.5
+   ],
+   "n": 48,
+   "text": "PlaytimeLast 2 weeks7.4hSessions7Avg session1.1h60 %40 %ARC Raiders4.5 h · 60 % · 263.4 h totalWARDOGS3.0 h · 40 % · 23.7 h totalLibrary: 313 games · 4,489 h lifetime",
+   "view": "body"
+  },
+  "SteamFriends@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 15,
+   "text": "Friends8online4 in-game",
+   "view": "compact"
+  },
+  "SteamFriends@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 15,
+   "text": "Friends8online4 in-game",
+   "view": "compact"
+  },
+  "SteamFriends@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    171.5
+   ],
+   "n": 36,
+   "text": "FriendsFFriend AWARDOGS2 hours agoFFriend BARC Raiders22 hours agoFFriend CEuro Truck Simulator 22 days agoFFriend DFiveM22 hours ago",
+   "view": "body"
+  },
+  "SteamFriends@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    407.5
+   ],
+   "n": 60,
+   "text": "FriendsFFriend AWARDOGS2 hours agoFFriend BARC Raiders22 hours agoFFriend CEuro Truck Simulator 22 days agoFFriend DFiveM22 hours agoFFriend FOnline21 hours agoFFriend HOnline1 day agoFFriend ESnooze2 days agoFFriend GAway12 hours ago",
+   "view": "body"
+  },
+  "SteamLibrary@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 14,
+   "text": "313games4,489 hrs played",
+   "view": "compact"
+  },
+  "SteamLibrary@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 15,
+   "text": "Steam library313games4,489 hrs played",
+   "view": "compact"
+  },
+  "SteamLibrary@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    171.5
+   ],
+   "n": 32,
+   "text": "LibraryGames313Total hrs4,4892 weeks7hRecently played · 7 sessions2 wk / totalARC Raiders4.5h / 263.4h",
+   "view": "body"
+  },
+  "SteamLibrary@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    407.5
+   ],
+   "n": 38,
+   "text": "LibraryGames313Total hrs4,4892 weeks7hRecently played · 7 sessions2 wk / totalARC Raiders4.5h / 263.4hWARDOGS3.0h / 23.7h",
+   "view": "body"
+  },
+  "SteamProfile@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 11,
+   "text": "SteamPlayer One",
+   "view": "compact"
+  },
+  "SteamProfile@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    40.5,
+    204,
+    175.5
+   ],
+   "n": 27,
+   "text": "SteamLv 29Player OneARC Raiders · Lv 298 friends online · 4 in-game",
+   "view": "body"
+  },
+  "SteamProfile@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    44.5,
+    432,
+    167.5
+   ],
+   "n": 35,
+   "text": "SteamLv 29Player OneARC RaidersOnline8In-game4Friends26",
+   "view": "body"
+  },
+  "SteamProfile@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    48.63,
+    432,
+    399.38
+   ],
+   "n": 66,
+   "text": "SteamLv 29Player OneARC RaidersOnline8In-game4Friends26FFriend AWARDOGS2 hours agoFFriend BARC Raiders22 hours agoFFriend CEuro Truck Simulator 22 days agoFFriend DFiveM22 hours agoFFriend ESnooze2 days ago",
+   "view": "body"
+  },
+  "Bluetooth@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    40.5,
+    204,
+    175.5
+   ],
+   "n": 34,
+   "text": "Bluetooth3 devicesBluetooth OnHeadset Pro82%Keyboard K341%Mouse M214%",
+   "view": "body"
+  },
+  "Bluetooth@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    44.5,
+    432,
+    167.5
+   ],
+   "n": 35,
+   "text": "Bluetooth3 devicesBluetooth OnHeadset Pro82%Keyboard K341%Mouse M214%",
+   "view": "body"
+  },
+  "Bluetooth@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    48.63,
+    432,
+    399.38
+   ],
+   "n": 34,
+   "text": "Bluetooth3 devicesBluetooth OnHeadset Pro82%Keyboard K341%Mouse M214%",
+   "view": "body"
+  },
+  "CustomGauge@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 8,
+   "text": "0%",
+   "view": "body"
+  },
+  "CustomGauge@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 8,
+   "text": "0%",
+   "view": "body"
+  },
+  "CustomGauge@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    16,
+    432,
+    196
+   ],
+   "n": 8,
+   "text": "0%",
+   "view": "body"
+  },
+  "CustomGauge@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    16,
+    432,
+    432
+   ],
+   "n": 8,
+   "text": "0%",
+   "view": "body"
+  },
+  "SensorValue@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 16,
+   "text": "54%",
+   "view": "compact"
+  },
+  "SensorValue@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 17,
+   "text": "amd ryzen 9 9950x3d cpu total54%",
+   "view": "compact"
+  },
+  "SensorValue@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    171.5
+   ],
+   "n": 17,
+   "text": "amd ryzen 9 9950x3d cpu total54%",
+   "view": "body"
+  },
+  "SensorValue@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    407.5
+   ],
+   "n": 17,
+   "text": "amd ryzen 9 9950x3d cpu total54%",
+   "view": "body"
+  },
+  "SensorGroup@1x1": {
+   "span": "1x1",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    110,
+    110
+   ],
+   "body": [
+    10,
+    10,
+    90,
+    90
+   ],
+   "n": 18,
+   "text": "CPU63%",
+   "view": "compact"
+  },
+  "SensorGroup@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 19,
+   "text": "CPU63%GPU 90% · GPU temp 59°C",
+   "view": "compact"
+  },
+  "SensorGroup@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    171.5
+   ],
+   "n": 43,
+   "text": "SensorsCPU63%GPU90%GPU temp59°CRAM66%Volume40%",
+   "view": "body"
+  },
+  "SensorGroup@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    407.5
+   ],
+   "n": 43,
+   "text": "SensorsCPU63%GPU90%GPU temp59°CRAM66%Volume40%",
+   "view": "body"
+  },
+  "SessionStats@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 13,
+   "text": "CPU load54.4%min 54.4 · avg 54.4",
+   "view": "compact"
+  },
+  "SessionStats@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    171.5
+   ],
+   "n": 58,
+   "text": "Session statsMinAvgMaxCPU load54.4%54.4%54.4%GPU load90.0%90.0%90.0%CPU temp61.6°C61.6°C61.6°CGPU temp58.9°C58.9°C58.9°C",
+   "view": "body"
+  },
+  "SessionStats@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    407.5
+   ],
+   "n": 75,
+   "text": "Session statsCPU loadRyzen 9 9950X3D54.4% nowmin 54.4avg 54.4max 54.4above 80: 0 sGPU loadRTX 509090.0% nowmin 90.0avg 90.0max 90.0above 80: 0 sCPU tempRyzen 9 9950X3D61.6°C nowmin 61.6avg 61.6max 61.6above 80: 0 sGPU tempRTX 509058.9°C nowmin 58.9avg 58.9max 58.9above 80: 0 s",
+   "view": "body"
+  },
+  "ThresholdTimeline@2x2": {
+   "span": "2x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    228,
+    228
+   ],
+   "body": [
+    12,
+    12,
+    204,
+    204
+   ],
+   "n": 14,
+   "text": "CPU load54.4%last 5 min",
+   "view": "compact"
+  },
+  "ThresholdTimeline@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    171.5
+   ],
+   "n": 45,
+   "text": "TimelineCPU loadcollecting · 1 / 854.4%GPU loadcollecting · 1 / 890.0%CPU tempcollecting · 1 / 861.6°CGPU tempcollecting · 1 / 858.9°C−5 minnow",
+   "view": "body"
+  },
+  "ThresholdTimeline@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    16,
+    40.5,
+    432,
+    407.5
+   ],
+   "n": 67,
+   "text": "TimelineCPU loadcollecting · 1 / 8peak 54.4 % · above 70: 0 %54.4%GPU loadcollecting · 1 / 8peak 90.0 % · above 70: 100 %90.0%CPU tempcollecting · 1 / 8peak 61.6 °C · above 70: 0 %61.6°CGPU tempcollecting · 1 / 8peak 58.9 °C · above 70: 0 %58.9°C−5 min−2.5 minnowbelow 7070 to 9090 and up",
+   "view": "body"
+  },
+  "WebPage@4x2": {
+   "span": "4x2",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "body": [
+    0,
+    0,
+    464,
+    228
+   ],
+   "n": 6,
+   "text": "",
+   "view": "body"
+  },
+  "WebPage@4x4": {
+   "span": "4x4",
+   "issues": [],
+   "card": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "body": [
+    0,
+    0,
+    464,
+    464
+   ],
+   "n": 6,
+   "text": "",
+   "view": "body"
+  }
+ }
+}

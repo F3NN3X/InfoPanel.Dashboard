@@ -54,6 +54,11 @@
       "needs": ["server-bin"],
       "when": "the Edit v3 reference states (?fixture=one-editor/<name>, a fixtures build the project makes itself); their checklists run as the phases enable them"
     },
+    "overflow": {
+      "cmd": "node tools/qa/overflow.mjs --baseline tests/qa/overflow-baseline.json",
+      "needs": ["build", "server-bin"],
+      "when": "the Widget QA overflow probe at 1x1, 2x2, 4x2 and 4x4 on fixture data, diffed against tests/qa/overflow-baseline.json: a new issue or any change at a non-roomy span fails (refresh with --save when intended)"
+    },
     "cargo-server": {
       "cmd": "cargo test -p ips-server -p ips-agent && cargo clippy -p ips-server -p ips-agent --all-targets -- -D warnings",
       "cwd": "src-tauri",
@@ -416,7 +421,9 @@
         "src/assets/**",
         "src/lib/widget-icons.ts",
         "docs/redesign/widgets/docs/widgets/*.md",
-        "docs/redesign/widgets/docs/.facts.json"
+        "docs/redesign/widgets/docs/.facts.json",
+        "tools/qa/**",
+        "tests/qa/**"
       ],
       "exclude": ["src/widgets/CodingAgents/**", "src/widgets/CodingAgents.tsx"],
       "tests": [
@@ -432,6 +439,7 @@
         "tests/widgets/StreamControl/**",
         "tests/widgets/StreamDeck/**",
         "tests/widgets/widget-qa/**",
+        "tests/tools/qa/**",
         "tests/widgets/StreamChat/**",
         "tests/widgets/StatusBar/**",
         "tests/widgets/weather-fx/**",
@@ -440,7 +448,7 @@
         "tests/e2e/widget-qa-parity.spec.ts",
         "tests/e2e/visualiser-round-trip.spec.ts"
       ],
-      "checks": ["typecheck", "unit", "build", "budgets", "e2e"],
+      "checks": ["typecheck", "unit", "build", "budgets", "e2e", "overflow"],
       "report": ["npm run audit:views", "npm run qa:shots"],
       "note": "The registry schema tests and key-audit read docs/redesign/widgets/docs/widgets/*.md and .facts.json: a change there is a test change."
     },

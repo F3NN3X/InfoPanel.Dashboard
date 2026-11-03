@@ -57,6 +57,22 @@ extracted corpus profile. The differences it allows are InfoPanel's computed val
 - The corpus tests that need `lab/infopanel/corpus` (`order.test.ts`, `idempotent.test.ts`, `corpus.test.ts`) run in
   `npm run lab:test` and skip where it is absent.
 
+## The overflow runner
+
+`overflow` (`node tools/qa/overflow.mjs`) opens the Widget QA page (`?widget-qa`, a scratch server with `DASHBOARD_DEBUG=1` on
+the seeded demo data, clock and zone fixed) at 1x1, 2x2, 4x2 and 4x4 and records, per widget and span, the card and body
+rects, the descendant count, the text and the probe's issues (`window.__qaOverflow`, `src/widgets/widget-qa/probe.ts`).
+`--baseline <file>` diffs against an earlier run and exits 1 on a new issue anywhere, or on any other change at a span that
+is not roomy (4x4 is: its changes are listed, not failing). `--save <file>` writes a run.
+
+- The check diffs against `tests/qa/overflow-baseline.json`. A change that moves a widget on purpose fails until the baseline
+  is refreshed (`node tools/qa/overflow.mjs --save tests/qa/overflow-baseline.json`, after `npm run build`) in the same
+  change, and the diff it printed is what the change description explains.
+- It needs `npm run build` and the debug `ips-server` (the map's `needs`), and runs on every platform in `verify:full` and on
+  the widget features. `--module a,b` and `--spans` narrow a run for a look at one widget; with `--baseline` only those
+  frames are compared.
+- The probe walks elements, so it cannot see pseudo-elements (`::before`, `::after`).
+
 ## The feature map and `verify`
 
 `tests/feature-map.json` maps every tracked file to a feature, and each feature to the tests and checks that cover it.
