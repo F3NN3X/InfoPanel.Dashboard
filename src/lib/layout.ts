@@ -312,7 +312,7 @@ export type ProfileView = Omit<MonitorProfile, "pages"> & {
  *     the style's 12 / 24 h clock becomes `general.clock`. A v15 build would show every screen in the built-in look, so
  *     the server refuses its save; before the first v16 save it keeps the v15 file as `config.backup-before-v16.json`
  *     (`config_guard.rs`).
- * v17: Looks (`settings-migrate.ts` `migrateLooksV17`, D6): each level stores a `lookId` (the themed key of the skin
+ * v17: Looks (`look-migrate.ts` `migrateLooksV17`, D6): each level stores a `lookId` (the themed key of the skin
  *     section; unset is Classic) with its values as the overrides on top. A screen or page whose theme snapshot is a
  *     sample theme gets that Look in its values and snapshot, and a saved theme copied from one names it; skins and
  *     every other value stay, so nothing resolves differently. A v16 build would drop `lookId` on its next save, so the

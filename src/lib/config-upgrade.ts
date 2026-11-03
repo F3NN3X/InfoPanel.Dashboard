@@ -17,6 +17,7 @@ import { normalizeApiBase } from "./data-api";
 import { normalizeGeneral } from "./general";
 import { CONFIG_VERSION, defaultConfig, normalizePalettes, normalizeProfile, type DashboardConfig, type MonitorProfile, type StoredConfig } from "./layout";
 import { migrateLegacyZones } from "./legacy-zones";
+import { migrateLooksV17 } from "./look-migrate";
 import { migrateProfileV15 } from "./page-model/migrate";
 import { normalizePanelPresets } from "./panel-model";
 import { clockOfStyle, dashboardLook, migrateScreensV16 } from "./screen-look-migrate";
@@ -24,7 +25,6 @@ import { YR_FORECAST_KEY } from "./sensors";
 import {
   migrateBaseStyleV6,
   migrateGeneralV7,
-  migrateLooksV17,
   migrateProfileV6,
   migrateProfileV7,
   migrateProfileV8,
