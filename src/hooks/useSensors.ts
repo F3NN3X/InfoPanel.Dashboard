@@ -23,13 +23,13 @@ interface View {
 }
 
 /** The live store: retains the namespaces while subscribed and re-renders on a change under `list`. */
-function liveView(list: string[] | null): View {
+function liveView(list: string[] | null, quiet?: string): View {
   let snapshot = sensorStore.getValues();
   return {
     subscribe(onChange) {
       const release = list && list.length === 0 ? () => {} : sensorStore.retain(list);
       const unsubscribe = sensorStore.subscribe((changed) => {
-        if (!touches(changed, list)) return;
+        if (!touches(changed, list, quiet)) return;
         snapshot = sensorStore.getValues();
         onChange();
       });
@@ -57,19 +57,19 @@ function frozenView(frozen: PreviewSnapshot, list: string[] | null): View {
 
 /**
  * The live sensor map, re-rendering only when a key under one of
- * `prefixes` changes (`null` = any key, and every stream). Mounting it keeps
+ * `prefixes` changes (`null` = any key, and every stream; a message whose changed keys all sit under `quiet` is skipped). Mounting it keeps
  * those namespaces' streams open. The map holds every streamed key, so
  * callers read it exactly as before. On a frozen Design canvas (`PreviewDataProvider`) it is the snapshot instead,
  * and opens nothing.
  */
-export function useSensors(prefixes: readonly string[] | null): SensorMap {
+export function useSensors(prefixes: readonly string[] | null, quiet?: string): SensorMap {
   const signature = prefixes === null ? "*" : prefixes.join("\n");
   const frozen = useContext(FrozenSensorsContext);
   const view = useMemo(() => {
     const list = prefixes === null ? null : signature === "" ? [] : signature.split("\n");
-    return frozen ? frozenView(frozen, list) : liveView(list);
+    return frozen ? frozenView(frozen, list) : liveView(list, quiet);
     // `signature` captures `prefixes` by value.
-  }, [signature, frozen]);
+  }, [signature, frozen, quiet]);
   // The server snapshot is the same map (a static render, e.g. a test, reads the current values).
   return useSyncExternalStore(view.subscribe, view.getSnapshot, view.getSnapshot);
 }

@@ -6,6 +6,7 @@ import { effectiveSettings, type ModuleSettings, type SensorMap } from "@/module
 import { tokenScope } from "@/components/widget-style";
 import type { SensorValue } from "@/hooks/useSensors";
 import { useSensors } from "@/hooks/useSensors";
+import { AUDIO_PREFIX } from "@/lib/sensor-stream";
 import { PanelView } from "@/components/widgets/PanelView";
 import type { PanelSelection } from "@/components/widgets/panel-parts";
 import { YR_FORECAST_KEY, YR_FORECAST_PREFIX } from "@/lib/sensors";
@@ -60,9 +61,20 @@ export function placementPrefixes(p: Placement): string[] | null {
   if (p.module === CARDS_ID) return null;
   const mod = moduleById.get(p.module);
   if (mod?.readsAll) return null;
-  // The sensors a widget is bound to (a `sensor` setting) are read besides its own prefixes.
-  const bound = (mod?.settings ?? []).filter((d) => d.type === "sensor").flatMap((d) => String(p.settings?.[d.key] ?? "").split(",").filter(Boolean));
-  return mod ? [...moduleReads(mod), ...bound] : [];
+  return mod ? [...moduleReads(mod), ...boundKeys(p)] : [];
+}
+
+/** The sensors a widget is bound to (a `sensor` setting), read besides its own prefixes. */
+const boundKeys = (p: Placement): string[] =>
+  (moduleById.get(p.module)?.settings ?? []).filter((d) => d.type === "sensor").flatMap((d) => String(p.settings?.[d.key] ?? "").split(",").filter(Boolean));
+
+/**
+ * The prefix whose messages a placement ignores: a zone that reads every key skips the audio meter's 10 Hz
+ * stream unless one of its bound sensors is an audio key (or a prefix holding them).
+ */
+export function quietPrefix(p: Placement): string | undefined {
+  if (!moduleById.get(p.module)?.readsAll) return undefined;
+  return boundKeys(p).some((k) => k.startsWith(AUDIO_PREFIX) || AUDIO_PREFIX.startsWith(k)) ? undefined : AUDIO_PREFIX;
 }
 
 /** Several placements' prefixes as one subscription: `null` (every sensor) when any reads all. */
@@ -216,7 +228,7 @@ interface LivePlacementProps {
  */
 export function LivePlacement({ placement, appearance, studio, selection, children }: LivePlacementProps) {
   const prefixes = placementPrefixes(placement);
-  const sensors = useSensors(prefixes);
+  const sensors = useSensors(prefixes, quietPrefix(placement));
   const isCards = placement.module === CARDS_ID;
   const unclaimed = useMemo(
     () => (isCards ? Object.entries(sensors).filter(([key]) => !isClaimed(key)) : []),
