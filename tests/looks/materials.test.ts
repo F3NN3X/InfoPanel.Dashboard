@@ -28,8 +28,14 @@ const old = (name: string): Before => (before.surfaces as unknown as Record<stri
 
 // vibrancy's 40px blur was a Tailwind class; it is the material's `blur` now, the same filter as an inline style.
 const VIBRANCY_BLUR = "blur(min(40px, var(--wp-blur-cap, 40px)))";
+// brutal was redesigned on purpose (Gate 2 owner call 4): its accent offset is an inset bar inside the edge, so the card
+// keeps its full box instead of shrinking 6px for an outside shadow.
+function brutal(box: Record<string, unknown>) {
+  const { width: _w, height: _h, ...rest } = box;
+  return { ...rest, boxShadow: String(box.boxShadow).replace("5px 5px 0 0 var(--accent)", "inset -5px -5px 0 0 var(--accent)") };
+}
 const want = (name: string, box: Record<string, unknown>) =>
-  name === "vibrancy" && !("backdropFilter" in box) ? { ...box, backdropFilter: VIBRANCY_BLUR, WebkitBackdropFilter: VIBRANCY_BLUR } : box;
+  name === "vibrancy" && !("backdropFilter" in box) ? { ...box, backdropFilter: VIBRANCY_BLUR, WebkitBackdropFilter: VIBRANCY_BLUR } : name === "brutal" ? brutal(box) : box;
 const wantClass = (name: string, c: string) => (name === "vibrancy" ? c.replace("backdrop-blur-[min(40px,var(--wp-blur-cap,40px))] ", "") : c);
 
 describe("material registry", () => {

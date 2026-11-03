@@ -10,6 +10,7 @@ version as its notes, so move **Unreleased** under a new `## [X.Y.Z] - YYYY-MM-D
 
 - **Lower CPU with an audio meter open.** Widgets that read every sensor no longer redraw on each of the audio meter's ten updates a second unless they show an audio value.
 - **Now Playing draws its cover backdrop unblurred in lite mode** (Max FPS below 60, or reduced motion), where the 28 px filter blur was redrawn for nothing. Limit blur still does not cap it.
+- **The Brutal skin's accent offset sits inside the card.** Brutal widgets fill their whole frame again: the hard accent offset is drawn as a bar along the right and bottom inside the white rule, where it was a shadow outside a card shrunk by 6 px.
 - **Glass cards with a blur stay readable over a solid page background.** Where the blur is switched off (a solid colour page has nothing to blur), a blurred glass card (Vibrancy, or Glass with a Blur set) fills to 90 % instead of staying see-through, so its text keeps its contrast on a light page. The default Glass has no blur and is unchanged.
 - **Limit blur now caps InfoPanel canvas cards too.** A card with a backdrop blur above 12 px draws at 12 px while Limit blur is on (the default); the export keeps the full radius.
 

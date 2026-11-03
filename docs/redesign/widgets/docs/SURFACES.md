@@ -22,7 +22,7 @@ The card material behind a widget. Each entry is Tailwind classes plus an inline
 | `ios` | `—` | `{"background":"#1c1c1e","boxShadow":"0 1px 0 rgba(255,255,255,.04) inset, 0 18px 40px -18px rgba(0,0,0,.8)"}` |
 | `material` | `—` | `{"background":"linear-gradient(color-mix(in oklab, var(--accent) 15%, #1b1b1f), color-mix(in oklab, var(--accent) 15%, #1b1b1f))"}` |
 | `synth` | `border` | `{"background":"linear-gradient(to top, rgba(255,79,216,.22) 0 1px, transparent 1px) 0 100%/100% 14px repeat-y, linear-gradient(90deg, rgba(56,232,255,.10) 0 1px, transparent 1px) 0 0/22px 100%, linear-gradient(180deg, #12062a 0%, #2a0b3d 62%, #45104a 100%)","borderColor":"rgba(255,79,216,.35)","boxShadow":"0 0 24px -8px rgba(255,79,216,.55)"}` |
-| `brutal` | `border-2` | `{"background":"#121212","borderColor":"#f4f4f5","boxShadow":"5px 5px 0 0 var(--accent)","width":"calc(100% - 6px)","height":"calc(100% - 6px)"}` |
+| `brutal` | `border-2` | `{"background":"#121212","borderColor":"#f4f4f5","boxShadow":"inset -5px -5px 0 0 var(--accent)"}` |
 | `cyber` | `—` | `{"background":"linear-gradient(135deg, color-mix(in oklab, var(--accent) 18%, transparent) 0 10%, transparent 10%), linear-gradient(#0e0e0b, #0e0e0b)","clipPath":"polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px))","boxShadow":"inset 0 0 0 1px color-mix(in oklab, var(--accent) 55%, transparent)"}` |
 | `nixie` | `border border-black` | `{"background":"radial-gradient(120% 90% at 50% 0%, rgba(255,138,61,.10), transparent 60%), linear-gradient(180deg, #1a1210, #0c0907)","boxShadow":"inset 0 1px 0 rgba(255,255,255,.06), inset 0 -20px 40px -20px rgba(0,0,0,.9)"}` |
 | `instrument` | `border` | `{"background":"#161A20","borderColor":"#29303A"}` |
