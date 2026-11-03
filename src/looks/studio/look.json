@@ -1,0 +1,344 @@
+{
+  "$schema": "../look.schema.json",
+  "schema": 1,
+  "id": "studio",
+  "name": "Studio",
+  "description": "The built-in Look of the studio, Settings and Help chrome: zinc panels, a blue accent. Not editable; panel Looks never fill its studio block (D1).",
+  "tags": [
+    "studio",
+    "dark"
+  ],
+  "modes": {
+    "supported": [
+      "dark"
+    ],
+    "stance": "Dark only (D3): the studio, Settings and Help are dark."
+  },
+  "fonts": {
+    "body": "Geist",
+    "mono": "Geist Mono",
+    "display": "{body}"
+  },
+  "radius": "8px",
+  "t1": {
+    "dark": {
+      "bg": {
+        "value": "#0c0c0e",
+        "usage": "App window"
+      },
+      "surface": {
+        "value": "#111114",
+        "usage": "Panels and cards"
+      },
+      "surface-2": {
+        "value": "#141418",
+        "usage": "Tiles"
+      },
+      "fg": {
+        "value": "#ededf0",
+        "usage": "Primary text"
+      },
+      "fg-2": {
+        "value": "#c9c9cf",
+        "usage": "Secondary text"
+      },
+      "muted": {
+        "value": "#8a8a94",
+        "usage": "Hints, helpers, captions and placeholders (4.5:1 on panels and cards)"
+      },
+      "border": {
+        "value": "#1f1f24",
+        "usage": "Dividers"
+      },
+      "border-soft": {
+        "value": "{border}",
+        "usage": "Hairlines"
+      },
+      "accent": {
+        "value": "oklch(0.72 0.15 255)",
+        "usage": "The studio accent"
+      },
+      "accent-on": {
+        "value": "{bg}",
+        "usage": "Text on an accent fill"
+      },
+      "accent-hover": {
+        "value": "{accent}",
+        "usage": "Hover on an accent fill"
+      },
+      "focus-ring": {
+        "value": "{accent}",
+        "usage": "Focus outline"
+      },
+      "ok": {
+        "value": "oklch(0.78 0.14 155)",
+        "usage": "Status ok"
+      },
+      "warn": {
+        "value": "oklch(0.82 0.13 80)",
+        "usage": "Status warning"
+      },
+      "crit": {
+        "value": "oklch(0.72 0.17 25)",
+        "usage": "Status danger"
+      },
+      "info": {
+        "value": "oklch(0.78 0.09 205)",
+        "usage": "Status info, away from the accent hue (255)"
+      }
+    }
+  },
+  "studio": {
+    "shared": {
+      "bg-app": {
+        "value": "{bg}",
+        "s": [
+          "win"
+        ]
+      },
+      "bg-panel": {
+        "value": "{surface}",
+        "s": [
+          "card"
+        ]
+      },
+      "bg-tile": {
+        "value": "{surface-2}",
+        "s": [
+          "tile"
+        ]
+      },
+      "bg-hover": {
+        "value": "#1a1a1f",
+        "s": [
+          "hover",
+          "side-line"
+        ]
+      },
+      "border-subtle": {
+        "value": "{border}",
+        "s": [
+          "card-line"
+        ]
+      },
+      "border-menu": {
+        "value": "#2e2e35",
+        "s": [
+          "menu"
+        ]
+      },
+      "border-control": {
+        "value": "#66666f",
+        "s": [
+          "input-line",
+          "track-line"
+        ],
+        "usage": "Boundaries of controls (fields, checkboxes, segmented, switch tracks, drag handles): 3:1 on every panel. Dividers keep the subtle ones."
+      },
+      "border-edge": {
+        "value": "#3a3a44",
+        "s": [
+          "edge"
+        ]
+      },
+      "text-1": {
+        "value": "{fg}",
+        "s": [
+          "t1"
+        ]
+      },
+      "text-2": {
+        "value": "{fg-2}",
+        "s": [
+          "t2"
+        ]
+      },
+      "text-3": {
+        "value": "#9696a0",
+        "s": [
+          "t3"
+        ]
+      },
+      "text-hint": {
+        "value": "{muted}",
+        "s": [
+          "muted",
+          "dim"
+        ],
+        "usage": "Hints, helpers, captions and placeholders (4.5:1 on panels and cards); not for disabled text, that is text-disabled."
+      },
+      "text-disabled": {
+        "value": "#55555e",
+        "s": [
+          "faint"
+        ]
+      },
+      "text-strong": {
+        "value": "#d4d4da",
+        "s": [
+          "strong"
+        ]
+      },
+      "accent": {
+        "value": "{accent}",
+        "s": [
+          "accent"
+        ]
+      }
+    },
+    "status": {
+      "ok": {
+        "value": "{ok}"
+      },
+      "warn": {
+        "value": "{warn}"
+      },
+      "danger": {
+        "value": "{crit}"
+      },
+      "info": {
+        "value": "{info}"
+      },
+      "success": {
+        "value": "var(--ui-ok)"
+      },
+      "warning": {
+        "value": "var(--ui-warn)"
+      }
+    },
+    "chrome": {
+      "bg-chrome": {
+        "value": "#0f0f12"
+      },
+      "bg-raised": {
+        "value": "#17171b"
+      },
+      "bg-active": {
+        "value": "#2a2a31"
+      },
+      "border-default": {
+        "value": "#24242a"
+      },
+      "border-strong": {
+        "value": "#2a2a31"
+      },
+      "text-4": {
+        "value": "#8f8f99"
+      },
+      "text-soft": {
+        "value": "#a1a1aa",
+        "usage": "Secondary text and edges the studio used as hex literals (FND-030): one step each, not near-duplicates."
+      },
+      "glyph-off": {
+        "value": "#4a4a52",
+        "usage": "Greys the studio used as hex literals: strong text, a disabled glyph, a dot's edge and the hover and pop-up edges."
+      },
+      "border-popup": {
+        "value": "#3f3f46"
+      },
+      "border-hover": {
+        "value": "#52525b"
+      },
+      "border-source": {
+        "value": "#6e6e78"
+      },
+      "border-card": {
+        "value": "#27272a"
+      },
+      "accent-blue": {
+        "value": "#3b82f6"
+      },
+      "blue-hover": {
+        "value": "#2563eb"
+      },
+      "blue-bg": {
+        "value": "#0b1530",
+        "usage": "The blue chip on a selected filter or an update: fill, edge and text."
+      },
+      "blue-line": {
+        "value": "#1e3a8a"
+      },
+      "blue-text": {
+        "value": "#bfdbfe"
+      },
+      "bg-danger-tint": {
+        "value": "#1a1214",
+        "usage": "Tints for a failed thumbnail, an older-version flag and a failing check row."
+      },
+      "bg-warn-tint": {
+        "value": "#2a1d0a"
+      },
+      "fail-row": {
+        "value": "oklch(0.6 0.15 25 / 0.05)"
+      },
+      "border-error": {
+        "value": "#b54848"
+      },
+      "text-danger": {
+        "value": "#f87171"
+      },
+      "text-warn": {
+        "value": "oklch(0.88 0.1 85)"
+      },
+      "lock-line": {
+        "value": "#b45309",
+        "usage": "A locked (inherited) value's chip."
+      },
+      "lock-text": {
+        "value": "#fcd34d"
+      },
+      "live": {
+        "value": "oklch(0.78 0.15 150)",
+        "usage": "Kiosk-live green (the Live pill and the Shown-on-kiosk icon), saved and tuned dots."
+      },
+      "dot-saved": {
+        "value": "#4ade80"
+      },
+      "dot-tune": {
+        "value": "#2dd4bf"
+      },
+      "dot-unsaved": {
+        "value": "oklch(0.62 0.17 255)"
+      },
+      "text-ok": {
+        "value": "oklch(0.88 0.1 150)"
+      },
+      "accent-soft": {
+        "value": "oklch(0.72 0.15 255 / 0.14)"
+      },
+      "accent-text": {
+        "value": "oklch(0.82 0.12 255)"
+      },
+      "accent-icon": {
+        "value": "oklch(0.78 0.12 255)"
+      },
+      "accent-tag-text": {
+        "value": "oklch(0.85 0.1 255)"
+      },
+      "dot-profile": {
+        "value": "oklch(0.74 0.13 300)"
+      },
+      "dot-dashboard": {
+        "value": "oklch(0.76 0.11 190)"
+      },
+      "inverse-bg": {
+        "value": "#ededf0"
+      },
+      "inverse-fg": {
+        "value": "#0c0c0e"
+      },
+      "shadow-float": {
+        "value": "0 8px 24px rgba(0, 0, 0, 0.4)"
+      },
+      "shadow-menu": {
+        "value": "0 12px 32px rgba(0, 0, 0, 0.55)"
+      },
+      "shadow-modal": {
+        "value": "0 20px 60px rgba(0, 0, 0, 0.6)"
+      },
+      "shadow-drawer": {
+        "value": "-16px 0 40px rgba(0, 0, 0, 0.5)"
+      }
+    }
+  }
+}

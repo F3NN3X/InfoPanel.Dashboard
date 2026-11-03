@@ -1,9 +1,10 @@
 // Writes the values that used to be copied by hand from their one source (src/looks/, src/lib/theme.ts) into the files
-// that need them as literals: CSS that loads before any script, and the gauge export's theme table.
+// that need them as literals: CSS that loads before any script, the gauge export's theme table, the Studio Look's
+// `ui-*` chrome tokens (src/looks/studio/look.json, D1) and the Look registry (src/looks/index.ts, D5).
 //   node tools/looks/generate.mjs           write the generated blocks and files
 //   node tools/looks/generate.mjs --check   exit 1 and name the files that are out of date
 // Each generated block opens with a do-not-edit header; tests/looks/generated.test.ts fails when one is stale.
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -29,8 +30,13 @@ export async function generate() {
   const { STATUS } = await load("src/looks/status.ts");
   const { DEFAULT_ACCENT, DARK_TEXT } = await load("src/looks/palette.ts");
   const { CLASSIC_T3, cssOf } = await load("src/looks/t3.ts");
-  const { STUDIO_TWINS } = await load("src/looks/studio.ts");
+  const { resolveT1, studioValue } = await load("src/looks/look.ts");
+  const { SAMPLE_THEMES } = await load("src/looks/sample-themes.ts");
   const { DEFAULT_THEME } = await load("src/lib/theme.ts");
+  const studio = JSON.parse(read("src/looks/studio/look.json"));
+  const studioT1 = resolveT1(studio);
+  const ui = (group) => Object.entries(studio.studio[group]).map(([name, entry]) => ({ name, entry, value: studioValue(entry, studioT1) }));
+  const STUDIO = "the Studio Look (src/looks/studio/look.json)";
   const out = new Map();
 
   const css = "src/index.css";
@@ -42,19 +48,19 @@ export async function generate() {
       "}",
     ]),
   );
+  // The chrome tokens only the studio's bundle uses; the shared ones and the status set are in tokens.css.
+  out.set(css, replaceBlock(out.get(css), "studio-chrome", STUDIO, [":root {", ...ui("chrome").map((t) => `  --ui-${t.name}: ${t.value};`), "}"]));
 
   const tokens = "src/settings/tokens.css";
-  out.set(
-    tokens,
-    replaceBlock(read(tokens), "studio-twins", "STUDIO_TWINS (src/looks/studio.ts)", [
-      ":root {",
-      ...STUDIO_TWINS.map((t) => `  --ui-${t.ui}: ${t.value};`),
-      "}",
-      "@theme {",
-      ...STUDIO_TWINS.flatMap((t) => t.s.map((s) => `  --color-s-${s}: var(--ui-${t.ui});`)),
-      "}",
-    ]),
-  );
+  const shared = replaceBlock(read(tokens), "studio-twins", STUDIO, [
+    ":root {",
+    ...ui("shared").map((t) => `  --ui-${t.name}: ${t.value};`),
+    "}",
+    "@theme {",
+    ...ui("shared").flatMap((t) => (t.entry.s ?? []).map((s) => `  --color-s-${s}: var(--ui-${t.name});`)),
+    "}",
+  ]);
+  out.set(tokens, replaceBlock(shared, "studio-status", STUDIO, [":root {", ...ui("status").map((t) => `  --ui-${t.name}: ${t.value};`), "}"]));
 
   const mixer = "src/widgets/core/mixer-views.css";
   const t3 = (name) => cssOf(CLASSIC_T3[name]).toLowerCase();
@@ -93,6 +99,45 @@ export async function generate() {
       entry("muted", "Muted text", "w-muted", DARK_TEXT.muted),
       `  track: { label: "Track", css: "color-mix(in oklab, var(--w-fg, #fff) 12%, transparent)", hex: "rgba(255,255,255,.12)" },`,
       "} as const;",
+      "",
+    ].join("\n"),
+  );
+
+  // The registry: every folder with a look.json but the Studio Look's, then the sample Looks (one chunk, samples.ts).
+  const dirs = readdirSync(join(root, "src/looks"), { withFileTypes: true })
+    .filter((d) => d.isDirectory() && d.name !== "studio" && existsSync(join(root, "src/looks", d.name, "look.json")))
+    .map((d) => d.name)
+    .sort((a, b) => (a === "classic" ? -1 : b === "classic" ? 1 : a.localeCompare(b)));
+  const samples = SAMPLE_THEMES.map((t) => t.id);
+  const list = (ids) => ids.map((id) => `"${id}"`).join(", ");
+  out.set(
+    "src/looks/index.ts",
+    [
+      `// ${header("src/looks/*/look.json and SAMPLE_THEMES (src/looks/sample-themes.ts)")}`,
+      "// The Look registry (D5): Classic is in the bundle, every other Look loads with import().",
+      'import classic from "./classic/look.json";',
+      'import type { Look } from "./look";',
+      "",
+      "/** The Look a level that sets none shows (`lookId` unset). */",
+      'export const CLASSIC_LOOK = "classic";',
+      "",
+      "/** The sample Looks (the P3b sample themes), all in one chunk. */",
+      `export const SAMPLE_LOOK_IDS: readonly string[] = [${list(samples)}];`,
+      "",
+      "/** Every panel Look's id (the Studio Look is not one: only the studio chrome wears it). */",
+      `export const LOOK_IDS: readonly string[] = [${list(dirs)}, ...SAMPLE_LOOK_IDS];`,
+      "",
+      "/** Whether a value names a Look of the registry. */",
+      "export const isLookId = (v: unknown): v is string => typeof v === \"string\" && LOOK_IDS.includes(v);",
+      "",
+      "/** The Classic Look's data. */",
+      "export const CLASSIC = classic as Look;",
+      "",
+      "/** A Look by id (undefined: none); every Look but Classic is a chunk of its own. */",
+      "export async function loadLook(id: string): Promise<Look | undefined> {",
+      "  if (id === CLASSIC_LOOK) return CLASSIC;",
+      "  return SAMPLE_LOOK_IDS.includes(id) ? (await import(\"./samples\")).SAMPLE_LOOKS[id] : undefined;",
+      "}",
       "",
     ].join("\n"),
   );
