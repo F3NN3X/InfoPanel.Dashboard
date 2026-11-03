@@ -5,7 +5,7 @@ import { DEFAULT_THEME } from "../../src/lib/theme.ts";
 /** The `:root` block that follows the "Fallbacks before JS applies a theme preset" comment in index.css. */
 function cssFallbacks(): Record<string, string> {
   const css = readFileSync(new URL("../../src/index.css", import.meta.url), "utf8");
-  const block = /Fallbacks before JS applies a theme preset[^]*?:root\s*\{([^}]*)\}/.exec(css)?.[1] ?? "";
+  const block = /Fallbacks before JS applies a theme preset[\s\S]*?:root\s*\{([^}]*)\}/.exec(css)?.[1] ?? "";
   return Object.fromEntries([...block.matchAll(/--([\w-]+):\s*([^;]+);/g)].map((m) => [m[1], m[2].trim()]));
 }
 
