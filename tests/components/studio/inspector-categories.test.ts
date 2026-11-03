@@ -48,7 +48,7 @@ describe("shared sections", () => {
     expect(SHARED_SECTIONS.map((c) => [c.tab, c.title])).toEqual([
       ["show", "Header"],
       ["show", "Fit"],
-      ["style", "Skin"],
+      ["style", "Look"],
       ["style", "Colors"],
       ["style", "Widget colors"],
       ["style", "Typography"],
@@ -239,7 +239,7 @@ describe("tabs", () => {
     expect(tabs).toEqual({
       Header: "show",
       Fit: "show",
-      Skin: "style",
+      Look: "style",
       Colors: "style",
       "Surface & effects": "style",
       Typography: "style",

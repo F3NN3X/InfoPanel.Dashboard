@@ -171,9 +171,9 @@ function generalCommands(s: CommandState): Command[] {
     ...DESTINATIONS.map(({ id, label, target, hint }) => general(`go:${id}`, label, { type: "navigate", target }, hint)),
     general("help", "Help", { type: "help" }, "F1"),
     general("alert-new", "New alert rule", { type: "alert-new" }),
-    general("theme", "Theme", { type: "open-theme" }, "colors, skins, saved themes, locks"),
-    general("background", "Theme › Background", { type: "open-theme", section: "background" }),
-    general("font", "Theme › Text", { type: "open-theme", section: "type" }, "page font, type, typography"),
+    general("theme", "Look", { type: "open-theme" }, "Look gallery, colors, saved looks, theme, skins, locks"),
+    general("background", "Look › Background", { type: "open-theme", section: "background" }),
+    general("font", "Look › Text", { type: "open-theme", section: "type" }, "page font, type, typography"),
     general(
       "settings",
       "Settings › Dashboard",
@@ -342,8 +342,8 @@ function themeSettingCommands(): Command[] {
       (def): Command => ({
         id: `theme-setting:${s.id}:${def.key}`,
         label: def.label,
-        group: "Theme",
-        hint: `Theme › ${s.title}`,
+        group: "Look",
+        hint: `Look › ${s.title}`,
         action: { type: "goto-theme-setting", section: s.id, key: def.key },
       })
     )

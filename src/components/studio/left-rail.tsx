@@ -18,7 +18,7 @@ const GROUPS: { id: RailItem; label: string; short?: string; icon: LucideIcon }[
     { id: "design", label: "Edit", icon: LayoutDashboard },
   ],
   [
-    { id: "theme", label: "Theme", icon: Palette },
+    { id: "theme", label: "Look", icon: Palette },
     { id: "library", label: "Library", icon: Images },
     { id: "gauges", label: "Gauges", icon: Gauge },
     { id: "alerts", label: "Alerts & Island", short: "Alerts", icon: Bell },

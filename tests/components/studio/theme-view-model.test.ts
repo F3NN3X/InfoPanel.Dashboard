@@ -98,7 +98,7 @@ describe("the parts", () => {
   });
 
   it("name skins and palettes as the UI writes them", () => {
-    expect([skinLabel(undefined), skinLabel("auto"), skinLabel("default"), skinLabel("tui"), skinLabel("nixie")]).toEqual(["Default", "Default", "Default", "TUI", "Nixie"]);
+    expect([skinLabel(undefined), skinLabel("auto"), skinLabel("default"), skinLabel("tui"), skinLabel("nixie")]).toEqual(["Classic", "Classic", "Classic", "TUI", "Nixie"]);
     expect(paletteName(THEME_PRESETS[3].tokens)).toBe(THEME_PRESETS[3].label);
     expect(paletteName({ ...DEFAULT_THEME, primary: "1 2% 3%" })).toBe("Custom");
   });

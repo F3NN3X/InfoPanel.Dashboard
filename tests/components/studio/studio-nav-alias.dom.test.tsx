@@ -20,7 +20,7 @@ describe("the rail", () => {
   it("lists Screens and Edit, then the other views, with no InfoPanel item", () => {
     render(<LeftRail active="design" onSelect={vi.fn()} onHelp={vi.fn()} narrow={false} />);
     const labels = screen.getAllByRole("button").map((b) => b.getAttribute("aria-label"));
-    expect(labels).toEqual(["Screens", "Edit", "Theme", "Library", "Gauges", "Alerts & Island", "Data", "Help", "Settings"]);
+    expect(labels).toEqual(["Screens", "Edit", "Look", "Library", "Gauges", "Alerts & Island", "Data", "Help", "Settings"]);
   });
 
   it("has Edit on the phone's bar too", () => {

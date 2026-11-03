@@ -81,7 +81,7 @@ function Pick<T extends { id: string; name: string }>({
 export function ThemeScopeBar({ config, at, profile, page, onPick }: ThemeScopeBarProps) {
   const screens = config.profiles.length;
   return (
-    <div role="group" aria-label="Theme level" className="flex min-w-0 items-center gap-0.5 rounded-lg border border-ui-default bg-ui-tile p-0.5 max-sm:w-full max-sm:overflow-x-auto max-sm:[scrollbar-width:none]">
+    <div role="group" aria-label="Look level" className="flex min-w-0 items-center gap-0.5 rounded-lg border border-ui-default bg-ui-tile p-0.5 max-sm:w-full max-sm:overflow-x-auto max-sm:[scrollbar-width:none]">
       <Segment label={profile.name} sub={`${profile.width}×${profile.height}`} active={at.level === "screen"} onClick={() => onPick("screen", profile.id, page.id)} />
       {screens > 1 && (
         <Pick

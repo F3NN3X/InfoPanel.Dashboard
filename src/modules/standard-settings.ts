@@ -56,7 +56,7 @@ const autoOptions = (values: readonly string[]) => [
 ];
 
 /** The skins whose names aren't just capitalized (`skinLabel`, `lib/theme-skins.ts`, reads them from the Skin row). */
-const SKIN_LABELS: Readonly<Record<string, string>> = { auto: "Default", tui: "TUI", hud: "HUD" };
+const SKIN_LABELS: Readonly<Record<string, string>> = { auto: "Classic", tui: "TUI", hud: "HUD", macos: "macOS", ios: "iOS" };
 
 /** The app's four materials: every surfaced widget kind (templates, panels, plain cards) draws them. */
 const APP_SURFACE_OPTIONS = [
@@ -76,7 +76,7 @@ export const STYLE_SETTINGS: ModuleSetting[] = [
     // Classic. A template widget's shell draws the skin the Look names (`skinOfLook`, see `widgets/module.tsx`).
     // Picking a skin sets the surface to Auto, so the skin shows with its own card.
     key: "lookId",
-    label: "Skin",
+    label: "Look",
     type: "select",
     default: CLASSIC_LOOK,
     options: autoOptions(SKIN_PACKS.filter((p) => p.name !== "default").map((p) => p.name)).map((o) => ({ value: o.value === "auto" ? CLASSIC_LOOK : o.value, label: SKIN_LABELS[o.value] ?? o.label, applies: { surface: "auto" } })),

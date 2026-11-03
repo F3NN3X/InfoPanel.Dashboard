@@ -15,7 +15,7 @@ import type { ThemeScope } from "./theme-editor-model";
 export type ThemeLevel = ThemeAt["level"];
 
 /** The left column: Main, or one of the pickers drilled into. */
-export type ThemeDrill = "main" | "themes" | "palette" | "skin" | "background";
+export type ThemeDrill = "main" | "themes" | "palette" | "background";
 
 /** The level help beside the level control; a page adds where its parts come from. */
 export function levelHelp(level: ThemeLevel, screen: string, page: string): string {
@@ -144,7 +144,7 @@ export const remText = (rem: number): string => `${Number(rem.toFixed(2))} rem`;
 
 /** Where a link into Theme opens: a picker, or a fine-tune section (none: Main as it is). */
 export interface ThemeLink {
-  drill?: Exclude<ThemeDrill, "main">;
+  drill?: ThemeDrill;
   section?: ThemeCardId;
 }
 
@@ -157,7 +157,8 @@ export function themeLinkOf(id: string | undefined): ThemeLink | undefined {
   if (!id) return undefined;
   if (id === "start") return { drill: "themes" };
   if (id === "background") return { drill: "background" };
-  if (id === "skin") return { drill: "skin" };
+  // The Look (formerly the Skin picker) is chosen in the gallery on Main.
+  if (id === "skin") return { drill: "main" };
   if (id === "tokens") return { section: "colors" };
   // The page inspector's "Change a section…": the first section, each with its Change here.
   if (id === "customise") return { section: "colors" };

@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { useToast } from "@/components/ui/toast";
 import { VectorGaugeSvg } from "@/components/infopanel/VectorGaugeSvg";
 import { useSensorCatalog } from "@/lib/catalog";
@@ -111,6 +111,9 @@ interface ZoneInspectorProps {
   /** The LAYER section (Edit v3 SPEC §10.2): z-order and the group it sits in. */
   layer?: ReactNode;
 }
+
+// The Look knobs are the Theme view's chunk's, loaded with the Style tab.
+const WidgetLookKnobs = lazy(() => import("./look-knobs"));
 
 /** A Custom gauge zone's spec drawn small (at p = 0.6), with the way into its editor. */
 function GaugeNote({ zone, onEdit }: { zone: Placement; onEdit: () => void }) {
@@ -402,7 +405,15 @@ export function ZoneInspector({
       onMakeTheme={(target) => askMakeTheme(customSections, target)}
     />
   );
+  const knobs = (context.kind === "widget" || context.kind === "panel") && (
+    <Suspense key="look-knobs" fallback={null}>
+      <div className="pt-3">
+        <WidgetLookKnobs values={values} onSet={fields.onPatch} onClear={(keys) => fields.onClear([...keys])} />
+      </div>
+    </Suspense>
+  );
   const notes = (tab: Parameters<typeof inspectorNotes>[1]) => [
+    tab === "style" ? knobs : null,
     tab === "style" ? styleToolbar : null,
     tab === "show" || tab === undefined ? gaugeNote : null,
     ...inspectorNotes(context, tab).map((n) => <InspectorNote key={n.kind}>{n.text}</InspectorNote>),

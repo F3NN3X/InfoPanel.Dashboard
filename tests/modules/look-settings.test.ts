@@ -21,7 +21,7 @@ describe("look settings", () => {
 
   it("offer every skin pack once as its Look, the Default skin as Classic (SPEC §8 item 7)", () => {
     expect(values(STYLE_SETTINGS, "lookId")).toEqual(["classic", ...SKIN_PACKS.filter((p) => p.name !== "default").map((p) => p.name)]);
-    expect(find(STYLE_SETTINGS, "lookId").options!.map((o) => o.label).slice(0, 2)).toEqual(["Default", "TUI"]);
+    expect(find(STYLE_SETTINGS, "lookId").options!.map((o) => o.label).slice(0, 2)).toEqual(["Classic", "TUI"]);
     // Any Look id that is text is valid (a sample Look, the hidden `default`, a newer build's), and the picker offers only the above.
     expect(["classic", "hud", "term", "default", "nope", "", 3].map((v) => isValidStyleValue("lookId", v))).toEqual([true, true, true, true, true, false, false]);
   });
@@ -48,9 +48,9 @@ describe("look settings", () => {
     }
   });
 
-  it("file under Skin in Style, with graph and meter behind More, and graph updates in Motion", () => {
+  it("file under Look in Style, with graph and meter behind More, and graph updates in Motion", () => {
     const categories = categorize(STANDARD_SETTINGS);
-    const skin = categories.find((c) => c.title === "Skin")!;
+    const skin = categories.find((c) => c.title === "Look")!;
     expect(skin.general).toBe(true);
     expect(skin.defs.map((d) => d.key)).toEqual(["lookId", "graph", "meter", "stroke"]);
     expect(categoryTab(skin)).toBe("style");
