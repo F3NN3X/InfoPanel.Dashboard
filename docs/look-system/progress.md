@@ -1,6 +1,6 @@
 # Look System progress
 
-Filled in during stage 2 (see `02-implementation-runbook.md`, section 4). Plan: [docs/investigations/look-system.md](../investigations/look-system.md), section 11.
+Filled in during stage 2 (see `02-implementation-runbook.md`, section 4). Every phase ends with a report, a "Things to know" list and updates to the ledger at the bottom, and is committed when done. Plan: [docs/investigations/look-system.md](../investigations/look-system.md), section 11.
 
 | Phase | Branch | Status | Pixels | Report |
 |---|---|---|---|---|
@@ -39,3 +39,31 @@ Filled in during stage 2 (see `02-implementation-runbook.md`, section 4). Plan: 
   - New checks: `overflow` (`tools/qa/overflow.mjs`, every platform, verify:full and widget features) and `look-visual` (138 images, 4.9 MB, Windows only, verify:full only, not in CI; tied to this PC's text rendering).
   - Perf baseline recorded in `docs/performance.md` ("Look System P0 baseline"): 1587 renders per 10 s (87 % audio-only), ScriptDuration 1.286 s, theme recalc 14.7 ms on `:root` (stage 1: 9.2 ms, ranges overlap), bundle unchanged.
   - Mismatches with the plan: the STATE check is a real test (no copies differ), not report-only; the sensor-store message counts were not re-measured.
+- Things to know:
+  - `tests/settings/connections.dom.test.tsx` ("saves the Twitch chat channel as a streaming patch") failed once under `verify:full` load (`expected [] to have a length of 1`), passed 3/3 alone and on the rerun. Pre-existing flake, not P0 code. Ledger L1.
+  - The `surfaceOf` pin is a happy-dom reading (17 null rows, Chromium shows 12): it pins the code path, not the colours. Ledger L2.
+  - `look-visual` images carry this PC's text rendering; another machine may need `--update-snapshots` before it passes. It is out of CI on purpose.
+  - The overflow probe cannot see pseudo-elements; pack decorations are checked by the `--wp-pad` and 10 px rules (P9 test, P12 validator).
+  - Theme-change recalc baseline is 14.7 ms on `:root` (stage 1 said 9.2 ms on a busy machine); compare later phases with the P0 number.
+  - The sensor-store message counts (10 `*` and 92 audio messages per 10 s) were not re-measured in P0. Ledger L3.
+  - `feature-map.test.ts` only sees tracked files: stage or commit new files before the unit run.
+  - Agent worktrees start at `main`, not the phase branch: check out the phase commit first.
+
+
+## Ledger: known issues and deferred work
+
+Open items carried between phases. Each phase adds what it finds or defers, and closes what it fixes (status `closed in P<N>`).
+
+| # | Found | Item | Owner phase | Status |
+|---|---|---|---|---|
+| L1 | P0 | Flaky `tests/settings/connections.dom.test.tsx` Twitch-channel case under full-suite load | outside the Look plan | open |
+| L2 | P0 | `surfaceOf` colours need a real-browser check when the 12 dropped cards are fixed | P3b | open |
+| L3 | P0 | Sensor-store message counts not re-measured; re-measure with the audio fix | P2 | open |
+| L4 | Stage 1 | Weather `weather_desc` text exports white on `matte-light` (§12 Q6) | owner call, not scheduled | open |
+| L5 | Stage 1 | Two "ok" colours: `TONES.ok` follows the accent, `STATE.ok` is `#3CC97F` (§12 Q1) | owner call before P3a | open |
+| L6 | Stage 1 | "Material" vs "Surface" as the UI word (§12 Q2) | P5 | open |
+| L7 | Stage 1 | Where the widget decoration opt-out lives (§12 Q3; plan assumes a widget setting) | P9 | open |
+| L8 | Stage 1 | Studio entry headroom 474 B: P5 gallery stays lazy (§12 Q4) | P5 | open |
+| L9 | Stage 1 | Kiosk idle with no input device (§12 Q5; recommended input-only) | P9 | open |
+| L10 | Stage 1 | Mockup widget kinds that don't exist (hourly weather, ping, mixer solo, stream stats): candidates only | out of scope | open |
+| L11 | P0 | 9 icon names draw `CircleDashed` (known gaps in `icon-names.test.ts`) | P8 | open |
