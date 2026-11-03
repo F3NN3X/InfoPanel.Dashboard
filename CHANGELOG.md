@@ -6,6 +6,10 @@ version as its notes, so move **Unreleased** under a new `## [X.Y.Z] - YYYY-MM-D
 
 ## [Unreleased]
 
+### Added
+
+- **Twelve sample themes in the Theme view.** Field Kit, Tape '86, Neon Stripe, Overdrive, Swiss Mono, Term, Holo, Night Glow, Paper, Classy Black, Liquid Glass and Black and Gold: each sets a card, an accent, text colours, a font and a page colour, following the look-system mockups as far as cards and colours go (frames, headers, art and effects come later). Classic stays the default.
+
 ### Changed
 
 - **Lower CPU with an audio meter open.** Widgets that read every sensor no longer redraw on each of the audio meter's ten updates a second unless they show an audio value.
