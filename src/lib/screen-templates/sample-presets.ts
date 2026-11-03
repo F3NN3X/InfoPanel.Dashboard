@@ -1,7 +1,8 @@
 /**
  * The sample themes as built-in appearance presets, one group each, listed in the Theme view with the template looks
- * (`template-presets.ts`). A preset names its card by `look-<id>` and carries every colour itself, so the kiosk reads the
- * saved values; P5 turns them into Looks (docs/look-system/progress.md, ledger).
+ * (`template-presets.ts`). Each is a Look of the registry (`src/looks/samples.ts`): applying one sets the level's
+ * `lookId` and writes the Look's card (`look-<id>`) and colours as the level's values, so the kiosk reads saved values
+ * and never loads a Look.
  */
 import { registerSampleCards } from "@/looks/sample-materials";
 import { SAMPLE_THEMES, type SampleTheme } from "@/looks/sample-themes";
@@ -14,7 +15,7 @@ registerSampleCards();
 
 export const samplePresetId = (t: Pick<SampleTheme, "id">): string => `builtin:look-${t.id}`;
 
-/** The preset a sample theme is: its tokens and radius, and the widget style (card, accent, text, font) and page. */
+/** The preset a sample theme is: its tokens and radius, and the widget style (its Look, card, accent, text, font) and page. */
 export function samplePreset(t: SampleTheme): AppearancePreset {
   return {
     id: samplePresetId(t),
@@ -23,6 +24,7 @@ export function samplePreset(t: SampleTheme): AppearancePreset {
     theme: theme(t.colours),
     radius: t.radius,
     style: {
+      lookId: t.id,
       surface: `look-${t.id}`,
       accent: t.accent,
       textColor: t.text ?? t.colours.fg,

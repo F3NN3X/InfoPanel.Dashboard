@@ -122,10 +122,11 @@ export const ROLE_LABELS: Readonly<Record<string, string>> = {
  * `PROFILE_STYLE_KEYS` minus `autoScale`, `variant` and `compactView`;
  * `alignX` / `alignY` stay readable until PR 8, `align` + `alignSpread`
  * replace them), Units & format, the thresholds of every quantity, the
- * palette roles and the meters' response.
+ * palette roles and the meters' response. A level's Look (`lookId`, config v17, D6) belongs to the skin section, so it
+ * follows and locks with it; the other keys are the overrides on top of it.
  */
 export const SECTION_KEYS: Readonly<Record<SectionId, readonly string[]>> = {
-  skin: ["skin", "stroke", "graph", "meter"],
+  skin: ["skin", "stroke", "graph", "meter", "lookId"],
   colors: ["accent", "textColor", "mutedColor"],
   palette: PALETTE_ROLES,
   surface: ["surface", "surfaceOpacity", "blur"],
@@ -148,6 +149,9 @@ export const THEMED_KEYS: ReadonlySet<string> = new Set(SECTION_OF.keys());
 /** The section a themed key belongs to (undefined: not themed). */
 export const sectionOfKey = (key: string): SectionId | undefined => SECTION_OF.get(key);
 
+/** The Look a level that sets none shows (`src/looks/index.ts` names the same id; this module stays registry-free). */
+export const CLASSIC_LOOK_ID = "classic";
+
 /**
  * The value of each themed key when no level sets it: today's defaults
  * (owner decision Q2), so nothing repaints on upgrade; the thresholds take
@@ -161,6 +165,7 @@ export const THEME_DEFAULTS: Readonly<ModuleSettings> = {
   stroke: 100,
   graph: "auto",
   meter: "auto",
+  lookId: CLASSIC_LOOK_ID,
   accent: "",
   textColor: "",
   mutedColor: "",
@@ -225,6 +230,12 @@ export function themeSet(levels: ThemeLevels, key: string): ModuleSettingValue |
 /** The theme value of a key (§3.2 `themeVal`): what the levels set, else `THEME_DEFAULTS`. */
 export const themeVal = (levels: ThemeLevels, key: string): ModuleSettingValue | undefined =>
   themeSet(levels, key) ?? THEME_DEFAULTS[key];
+
+/** The Look the levels show (`lookId` unset = Classic, so nothing repaints on upgrade). */
+export function lookIdOf(levels: ThemeLevels): string {
+  const id = themeSet(levels, "lookId");
+  return typeof id === "string" && id ? id : CLASSIC_LOOK_ID;
+}
 
 /** Whether the profile locks a section. */
 export const isLocked = (levels: ThemeLevels, sec: SectionId): boolean => levels.profile?.locks?.[sec] === true;

@@ -9,6 +9,7 @@ import { SAMPLE_THEMES } from "@/looks/sample-themes";
 import { STATUS } from "@/looks/status";
 import { CLASSIC_T3 } from "@/looks/t3";
 import { DEFAULT_RADIUS } from "@/lib/theme";
+import { CLASSIC_LOOK_ID } from "@/lib/theme-model";
 import studio from "@/looks/studio/look.json";
 import schema from "@/looks/look.schema.json";
 import UI_TOKENS_P4 from "./__fixtures__/ui-tokens-p4.json";
@@ -71,6 +72,7 @@ describe("look.schema.json", () => {
 describe("the registry", () => {
   it("lists Classic first and every sample theme as a Look, Studio not among them", () => {
     expect(LOOK_IDS[0]).toBe(CLASSIC_LOOK);
+    expect(CLASSIC_LOOK).toBe(CLASSIC_LOOK_ID);
     expect(SAMPLE_LOOK_IDS).toEqual(SAMPLE_THEMES.map((t) => t.id));
     expect(LOOK_IDS).not.toContain("studio");
     expect(isLookId("field-kit")).toBe(true);

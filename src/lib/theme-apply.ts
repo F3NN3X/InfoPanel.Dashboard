@@ -36,8 +36,8 @@ export interface ApplyThemeOptions {
 /** A pick writes its parts; a refresh (Update) only where the level still shows what the theme wrote. */
 type Mode = "pick" | "refresh";
 
-/** Keys a pick always writes, whatever the level holds: the skin is a part of the theme. */
-const PART_KEYS: ReadonlySet<string> = new Set(["skin"]);
+/** Keys a pick always writes, whatever the level holds: the skin and the Look are parts of the theme (a theme without a Look sets Classic). */
+const PART_KEYS: ReadonlySet<string> = new Set(["skin", "lookId"]);
 const NONE: ReadonlySet<string> = new Set();
 
 const orNone = (values: ModuleSettings): ModuleSettings | undefined => (Object.keys(values).length > 0 ? values : undefined);

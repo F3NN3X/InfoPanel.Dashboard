@@ -102,6 +102,11 @@ describe("isValidStyleValue", () => {
     expect(isValidStyleValue("autoScale", "yes")).toBe(false);
     expect(isValidStyleValue("label", "x")).toBe(false);
   });
+
+  it("keeps any Look id (a newer build's too) and drops what can't be one", () => {
+    for (const id of ["classic", "field-kit", "tape-86", "a-newer-look"]) expect(isValidStyleValue("lookId", id), id).toBe(true);
+    for (const id of ["", "Classic", "look id", "../x", 3, undefined]) expect(isValidStyleValue("lookId", id), String(id)).toBe(false);
+  });
 });
 
 describe("applyAppearancePreset — This profile", () => {

@@ -5,6 +5,7 @@ import {
   allLocked,
   following,
   isLocked,
+  lookIdOf,
   normalizeWidgetTheme,
   ownApplies,
   SECTION_IDS,
@@ -27,8 +28,9 @@ describe("themed keys and sections", () => {
     const roles = ["s1", "s2", "s3", "s4", "s5", "s6", "ok", "warn", "crit"];
     // alignX / alignY stay readable until PR 8 (align + alignSpread replace them).
     const legacy = ["alignX", "alignY"];
+    // A level's Look (config v17, D6).
     expect([...THEMED_KEYS].sort()).toEqual(
-      [...PROFILE_STYLE_KEYS, ...legacy, "tempUnit", "rateUnit", "decimals", "clock", ...thresholds, ...roles, "meterBallistics"].sort()
+      [...PROFILE_STYLE_KEYS, ...legacy, "tempUnit", "rateUnit", "decimals", "clock", ...thresholds, ...roles, "meterBallistics", "lookId"].sort()
     );
     for (const key of ["autoScale", "variant", "compactView", "compact", "sizeTier", "layout"]) expect(THEMED_KEYS.has(key), key).toBe(false);
   });
@@ -49,6 +51,16 @@ describe("themed keys and sections", () => {
     for (const [key, value] of Object.entries(THEME_DEFAULTS)) if (key in STANDARD_DEFAULTS) expect(STANDARD_DEFAULTS[key], key).toBe(value);
     expect(THEME_DEFAULTS).toMatchObject({ "warn.load": 80, "crit.load": 92, "warn.temp": 80, "crit.temp": 90, "warn.full": 85, "crit.full": 95, "warn.db": -9, "crit.db": -2, "warn.value": 70, "crit.value": 90 });
     expect(THEME_DEFAULTS).toMatchObject({ tempUnit: "c", rateUnit: "auto", decimals: "auto", clock: "auto", meterBallistics: "peak", s1: "", ok: "", crit: "" });
+  });
+
+  it("show Classic where no level sets a Look (lookId unset = Classic), the strongest level's Look else", () => {
+    expect(THEME_DEFAULTS.lookId).toBe("classic");
+    expect(sectionOfKey("lookId")).toBe("skin");
+    expect(lookIdOf({})).toBe("classic");
+    expect(lookIdOf({ profile: { values: { skin: "hud", lookId: "" } } })).toBe("classic");
+    const levels: ThemeLevels = { profile: { values: { lookId: "paper" } }, page: { values: { lookId: "term" } } };
+    expect(lookIdOf(levels)).toBe("paper");
+    expect(lookIdOf({ ...levels, page: { ...levels.page, follow: { skin: false } } })).toBe("term");
   });
 
 });
