@@ -20,6 +20,8 @@
 4. Every measurement needs: method, environment (OS, webview or Playwright Chromium), number of runs, median, and spread.
 5. Do not change saved-data formats, migrations, guard caps, or `tools/perf/budgets.json`. Only propose changes to them.
 6. Recommendations must say what they cost: added files, added indirection, bundle bytes. The aim is fewer concepts and fewer decisions for the user, not more layers.
+7. **Data.** Never write to live data (`%LOCALAPPDATA%\InfoPanel\Dashboard`, the installed app's settings, `~/.claude`, `~/.codex`). Use real data where it exists: copy the live dashboard folder into a scratch folder and point `DASHBOARD_DATA_DIR` (and `INFOPANEL_STUDIO_CONFIG_DIR`) at the copy, and read live sensor readings from the running InfoPanel/HWiNFO Data API read-only. Where there is no live value, or a measurement must be repeatable (render counts, style recalc, budgets), use the demo data: `tools/perf/scratch.mjs` with `tools/perf/fake-data-api.mjs` (seeded). Say in each measurement which source it used.
+8. **Tests stay inside `docs/TESTING.md`.** The D13 coverage and contrast tests are one case per behaviour, data-driven over Looks only where rows hit different branches, and keep `npm test` near 10 s. Any new check or budget key (per-pack size budgets included) goes into `tests/feature-map.json` in the same change.
 
 ### Approval gates
 

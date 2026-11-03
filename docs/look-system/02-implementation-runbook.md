@@ -40,6 +40,9 @@ The investigation plan wins over the phase descriptions below wherever they diff
 - From P1: the generated-file sync tests. From P3a/P5: the coverage test (every Look defines or aliases every required token) and the contrast test (D13).
 - Saved data: `AppearancePreset`, `AppliedTheme`, follow and locks, and config round-trip tests pass; untouched widgets stay pixel-identical (defaults hazard).
 
+- Data: tests and measurements never write to live data; use scratch copies (`DASHBOARD_DATA_DIR`, `INFOPANEL_STUDIO_CONFIG_DIR`), live sensors read-only, and the seeded demo data (`tools/perf/scratch.mjs`) where a check must be repeatable (brief §0 rule 7).
+- New tests follow `docs/TESTING.md`; new checks and budget keys go into `tests/feature-map.json` in the same change (brief §0 rule 8). Never `--allow-incomplete`.
+
 **Coordination:** a footprint-reduction effort may be running on the same repo. Don't fight it: check `budgets.json` and recent commits before raising anything, and prefer lazy-loading over bundle growth.
 
 ---

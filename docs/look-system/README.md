@@ -15,12 +15,12 @@ Everything Claude Code needs to unify themes, skins and surfaces in InfoPanel.St
 | `05-display-compat-brief-LATER.md` | Widget sizing across screen sizes. **Don't start until stage 2 is done** (at least P9) | Later |
 | `mockups/` | 23 static HTML mockups (open `mockups/index.html`) | Visual target |
 | `progress.md` | Phase tracker, filled in during stage 2 | Stage 2 |
-| `../../.claude/commands/look-*.md` | Optional Claude Code slash commands for the same prompts | Optional |
+| `../../.claude/commands/look-*.md` | Optional Claude Code slash commands for the same prompts. Local only, never committed | Optional |
 
 ## Install
 
 1. Unzip at the **repo root** of `E:\GitHub\MyRepos\InfoPanel.Studio`. You get `docs/look-system/` and `.claude/commands/look-*.md`.
-2. Commit them on a branch (for example `look/package`), so every stage reads the same files.
+2. Commit `docs/look-system/` on a branch (for example `look/package`), so every stage reads the same files. **Don't commit `.claude/`**: the repo keeps agent files local (`.git/info/exclude`, see `AGENTS.md`). The slash commands are a convenience only; `00-PROMPTS.md` holds the same text, so nothing tracked depends on them.
 3. Optional: open `docs/look-system/mockups/index.html` in a browser. The mockups load Google Fonts, so they need internet to look right.
 
 ## Workflow
