@@ -12,6 +12,7 @@ import { mainPage, normalizeRotate } from "./pages";
 import { normalizeAlerts, type AlertsConfig } from "./alerts";
 import { storageCopy } from "./canvas-store";
 import { normalizeIsland, type IslandConfig } from "./island/config";
+import { usesSampleCards } from "@/looks/sample-cards";
 import { normalizePerformance, type ScreenPerformance } from "./performance";
 import type { LegacyDashboardFields } from "./screen-look-migrate";
 import {
@@ -626,9 +627,15 @@ export const isCurrentConfig = (c: Pick<StoredConfig, "version">): boolean => ty
  * makes.
  */
 export async function readConfig(input: StoredConfig, log?: string[]): Promise<DashboardConfig> {
+  await withSampleCards(input);
   if (isCurrentConfig(input)) return mergeConfig(input);
   const { upgradeConfig } = await import("./config-upgrade");
   return upgradeConfig(input, log);
+}
+
+/** Loads the sample themes' cards (a chunk of their own) before a config that picks one is drawn. */
+async function withSampleCards(input: unknown): Promise<void> {
+  if (usesSampleCards(input)) (await import("@/looks/sample-materials")).registerSampleCards();
 }
 
 /**
@@ -637,6 +644,7 @@ export async function readConfig(input: StoredConfig, log?: string[]): Promise<D
  * URLs) also fix a file an older build wrote and labelled current, or a bare screen that carries no version at all.
  */
 export async function readImportedConfig(input: StoredConfig): Promise<DashboardConfig> {
+  await withSampleCards(input);
   const { upgradeConfig } = await import("./config-upgrade");
   return upgradeConfig(input);
 }

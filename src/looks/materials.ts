@@ -126,8 +126,8 @@ export interface Material {
   id: string;
   kind: MaterialKind;
   tone: SurfaceTone;
-  /** Where the name comes from: the generic set, a skin's own card, or the app's materials. */
-  origin: "base" | "skin" | "app";
+  /** Where the name comes from: the generic set, a skin's own card, the app's materials, or a sample theme's card. */
+  origin: "base" | "skin" | "app" | "sample";
   /**
    * The flat colour a target that cannot draw the material uses (the InfoPanel export); null only when see-through.
    * Unset on a material whose background is one colour already: that is its export.
@@ -143,11 +143,11 @@ export interface Material {
   colors?: Surface;
 }
 
-type Paint = Omit<Material, "id" | "tone" | "origin"> & { tone?: SurfaceTone };
+export type Paint = Omit<Material, "id" | "tone" | "origin"> & { tone?: SurfaceTone };
 
 // The optional layers are in the paint as CSS: patterns (mesh dots, carbon stripes, terminal scanlines, hud and synth
 // grids) and radial spots (aurora, mica, hud, cyber, nixie). Kinds per section 8 G.2 of the investigation.
-const m = (kind: MaterialKind, c: string, s: CSSProperties, exp?: string): Paint => ({ kind, c, s, ...(exp ? { export: exp } : null) });
+export const m = (kind: MaterialKind, c: string, s: CSSProperties, exp?: string): Paint => ({ kind, c, s, ...(exp ? { export: exp } : null) });
 
 // The template's own `glass` is left out: the stored `glass` value is the app's material (below).
 const BASE: Record<string, Paint> = {

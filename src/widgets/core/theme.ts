@@ -4,6 +4,7 @@ import { RAMP_BASE, RAMP_START, RAMPS } from "@/looks/data-viz";
 import { DARK_TEXT, DEFAULT_ACCENT } from "@/looks/palette";
 import { STATUS, STATUS_LIGHT } from "@/looks/status";
 import { DEFAULT_MATERIAL, MATERIALS, type Material, type SurfaceTone } from "@/looks/materials";
+import { sampleCards } from "@/looks/sample-cards";
 import { clamp } from "./data";
 import { defaultSkin } from "./skins/default";
 import { tuiSkin } from "./skins/tui";
@@ -30,13 +31,13 @@ export const SKIN_NAMES = Object.keys(SKINS);
 
 /**
  * The surface a widget draws: a registry name, `auto` = the skin's own (or `studio` for the
- * studio variant, `solid` without one), unset = the app default (`glass`). Unknown names fall
+ * studio variant, `solid` without one), unset = the app default (`glass`); a `look-*` name is a sample theme's card. Unknown names fall
  * back to the default too.
  */
 export function resolveSurface(surface: string | undefined, skin: string | undefined, studio = false): Material {
   const sk = SKINS[skin ?? "default"] ?? SKINS.default;
   const name = !surface ? DEFAULT_MATERIAL : surface === "auto" ? sk.surface ?? (studio ? "studio" : "solid") : surface;
-  return MATERIALS[name] ?? MATERIALS[DEFAULT_MATERIAL];
+  return MATERIALS[name] ?? sampleCards[name] ?? MATERIALS[DEFAULT_MATERIAL];
 }
 
 /* ───────── text colours (decision 5) ─────────

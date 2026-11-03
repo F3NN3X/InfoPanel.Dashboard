@@ -160,7 +160,7 @@ export function ThemeEditor({ config, scope: requested, profileId, pageId, onPic
   // The template looks come in their own chunk (they pull in the whole template catalog).
   const [templates, setTemplates] = useState<readonly TemplatePresetGroup[]>();
   useEffect(() => {
-    void import("@/lib/screen-templates/template-presets").then((m) => setTemplates(m.TEMPLATE_PRESET_GROUPS));
+    void import("@/lib/screen-templates/template-presets").then((m) => setTemplates(m.THEME_LIST_GROUPS));
   }, []);
   const rows = useMemo(() => (templates ? templateThemeRows(templates) : undefined), [templates]);
   const templatePresets = useMemo(() => templates?.flatMap((g) => g.presets) ?? [], [templates]);

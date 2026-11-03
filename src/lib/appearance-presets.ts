@@ -81,10 +81,14 @@ const STYLE_DEFS = new Map<string, ModuleSetting>(
 );
 const ALIGN: readonly string[] = ["auto", ...ALIGN_CODES];
 
+/** A sample theme's card (`look-<theme>`, looks/sample-materials.ts): a theme may name it though the widget's Surface row does not list it. */
+const isSampleCard = (key: string, value: unknown): boolean => key === "surface" && typeof value === "string" && /^look-[a-z\d-]+$/.test(value);
+
 /** Whether a value is one the look setting `key` offers. */
 export function isValidStyleValue(key: string, value: unknown): boolean {
   const def = STYLE_DEFS.get(key);
   if (!def || !THEMED_KEYS.has(key)) return false;
+  if (isSampleCard(key, value)) return true;
   switch (def.type) {
     case "select":
       // The Default skin's other spelling (`default`) is valid too: it reads as `auto`.
