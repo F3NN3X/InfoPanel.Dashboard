@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { CLASSIC, CLASSIC_LOOK, isLookId, LOOK_IDS, loadLook, SAMPLE_LOOK_IDS } from "@/looks";
+import { CLASSIC, CLASSIC_LOOK, isLookId, LOOK_IDS, loadLook, SAMPLE_LOOK_IDS, SKIN_LOOK_IDS } from "@/looks";
 import { resolveT1, T1_NAMES, type Look } from "@/looks/look";
 import { MATERIALS } from "@/looks/materials";
 import { DEFAULT_ACCENT, DARK_TEXT } from "@/looks/palette";
@@ -8,6 +8,7 @@ import { SAMPLE_MATERIALS } from "@/looks/sample-materials";
 import { SAMPLE_THEMES } from "@/looks/sample-themes";
 import { STATUS } from "@/looks/status";
 import { CLASSIC_T3 } from "@/looks/t3";
+import { SKIN_PACKS } from "@/widgets/core/theme";
 import { DEFAULT_RADIUS } from "@/lib/theme";
 import { CLASSIC_LOOK_ID } from "@/lib/theme-model";
 import studio from "@/looks/studio/look.json";
@@ -61,6 +62,10 @@ describe("look.schema.json", () => {
     for (const id of SAMPLE_LOOK_IDS) expect(errors(await loadLook(id), schema as Schema), id).toEqual([]);
   });
 
+  it("every skin Look is valid", async () => {
+    for (const id of SKIN_LOOK_IDS) expect(errors(await loadLook(id), schema as Schema), id).toEqual([]);
+  });
+
   it("refuses a studio block on a panel Look, a missing T1 name and an unknown key", () => {
     expect(errors({ ...CLASSIC, studio: {} }, schema as Schema)).toContain("$: matches a schema it must not");
     const { info: _info, ...t1 } = CLASSIC.t1.dark!;
@@ -70,20 +75,39 @@ describe("look.schema.json", () => {
 });
 
 describe("the registry", () => {
-  it("lists Classic first and every sample theme as a Look, Studio not among them", () => {
+  it("lists Classic first, every skin but Default and every sample theme as a Look, Studio not among them", () => {
     expect(LOOK_IDS[0]).toBe(CLASSIC_LOOK);
     expect(CLASSIC_LOOK).toBe(CLASSIC_LOOK_ID);
+    expect(SKIN_LOOK_IDS).toEqual(SKIN_PACKS.map((p) => p.name).filter((name) => name !== "default"));
     expect(SAMPLE_LOOK_IDS).toEqual(SAMPLE_THEMES.map((t) => t.id));
+    expect(new Set(LOOK_IDS).size).toBe(LOOK_IDS.length);
     expect(LOOK_IDS).not.toContain("studio");
     expect(isLookId("field-kit")).toBe(true);
     expect(isLookId("studio")).toBe(false);
     expect(isLookId(undefined)).toBe(false);
   });
 
-  it("loads Classic as is, a sample Look from its chunk, nothing for an unknown id", async () => {
+  it("loads Classic as is, a skin or sample Look from its chunk, nothing for an unknown id", async () => {
     expect(await loadLook("classic")).toBe(CLASSIC);
     expect((await loadLook("term"))?.t2?.default).toBe("look-term");
-    expect(await loadLook("hud")).toBeUndefined();
+    expect((await loadLook("hud"))?.t2?.default).toBe("hud");
+    expect(await loadLook("default")).toBeUndefined();
+    expect(await loadLook("nope")).toBeUndefined();
+  });
+
+  it("a skin Look carries its skin's card, accent, fonts and corners, the rest Classic's", async () => {
+    for (const pack of SKIN_PACKS.filter((p) => p.name !== "default")) {
+      const look = (await loadLook(pack.name))!;
+      const t1 = resolveT1(look);
+      const s = pack.skin;
+      expect(look.ext?.skin, pack.name).toBe(pack.name);
+      expect(t1.accent).toBe(s.accent ?? DEFAULT_ACCENT);
+      expect([look.fonts.body, look.fonts.mono]).toEqual([s.font ?? CLASSIC.fonts.body, s.num ?? CLASSIC.fonts.mono]);
+      expect(look.radius).toBe(s.radius !== undefined ? `${s.radius}px` : CLASSIC.radius);
+      expect(look.t2?.default).toBe(s.surface ?? CLASSIC.t2?.default);
+      if (s.surface) expect(look.t2?.materials?.[s.surface]).toMatchObject({ kind: MATERIALS[s.surface].kind, tone: MATERIALS[s.surface].tone });
+      expect(look.t3).toEqual(CLASSIC_T3);
+    }
   });
 
   it("a sample Look carries its theme's card, accent, text, font and corners", async () => {

@@ -1,6 +1,6 @@
 // Writes the values that used to be copied by hand from their one source (src/looks/, src/lib/theme.ts) into the files
 // that need them as literals: CSS that loads before any script, the gauge export's theme table, the Studio Look's
-// `ui-*` chrome tokens (src/looks/studio/look.json, D1) and the Look registry (src/looks/index.ts, D5).
+// `ui-*` chrome tokens (src/looks/studio/look.json, D1) and the Look registry (src/looks/ids.ts and index.ts, D5).
 //   node tools/looks/generate.mjs           write the generated blocks and files
 //   node tools/looks/generate.mjs --check   exit 1 and name the files that are out of date
 // Each generated block opens with a do-not-edit header; tests/looks/generated.test.ts fails when one is stale.
@@ -103,39 +103,60 @@ export async function generate() {
     ].join("\n"),
   );
 
-  // The registry: every folder with a look.json but the Studio Look's, then the sample Looks (one chunk, samples.ts).
+  // The registry: every folder with a look.json but the Studio Look's, then the skins (one chunk, skins.ts) and the
+  // sample Looks (one chunk, samples.ts). The ids alone are a module of their own, so a module that only checks an id
+  // never pulls Classic's JSON into its bundle.
   const dirs = readdirSync(join(root, "src/looks"), { withFileTypes: true })
     .filter((d) => d.isDirectory() && d.name !== "studio" && existsSync(join(root, "src/looks", d.name, "look.json")))
     .map((d) => d.name)
     .sort((a, b) => (a === "classic" ? -1 : b === "classic" ? 1 : a.localeCompare(b)));
+  const packs = /SKIN_PACKS: SkinPack\[\] = \[([^\]]+)\]/.exec(read("src/widgets/core/theme.ts"))?.[1];
+  if (!packs) throw new Error("no SKIN_PACKS list in src/widgets/core/theme.ts");
+  const skins = packs.split(",").map((s) => s.trim().replace(/Skin$/, "")).filter((id) => id !== "default");
   const samples = SAMPLE_THEMES.map((t) => t.id);
   const list = (ids) => ids.map((id) => `"${id}"`).join(", ");
   out.set(
-    "src/looks/index.ts",
+    "src/looks/ids.ts",
     [
-      `// ${header("src/looks/*/look.json and SAMPLE_THEMES (src/looks/sample-themes.ts)")}`,
-      "// The Look registry (D5): Classic is in the bundle, every other Look loads with import().",
-      'import classic from "./classic/look.json";',
-      'import type { Look } from "./look";',
+      `// ${header("src/looks/*/look.json, SKIN_PACKS (src/widgets/core/theme.ts) and SAMPLE_THEMES (src/looks/sample-themes.ts)")}`,
+      "// The Look ids (D5, D6): no Look data, so the kiosk can check an id without carrying a Look.",
       "",
-      "/** The Look a level that sets none shows (`lookId` unset). */",
+      "/** The Look a level that sets none shows (`lookId` unset), and the one an unknown id falls back to. */",
       'export const CLASSIC_LOOK = "classic";',
+      "",
+      "/** The skins as Looks (config v17): a skin Look's id is the skin's name; the Default skin is Classic. */",
+      `export const SKIN_LOOK_IDS: readonly string[] = [${list(skins)}];`,
       "",
       "/** The sample Looks (the P3b sample themes), all in one chunk. */",
       `export const SAMPLE_LOOK_IDS: readonly string[] = [${list(samples)}];`,
       "",
       "/** Every panel Look's id (the Studio Look is not one: only the studio chrome wears it). */",
-      `export const LOOK_IDS: readonly string[] = [${list(dirs)}, ...SAMPLE_LOOK_IDS];`,
+      `export const LOOK_IDS: readonly string[] = [${list(dirs)}, ...SKIN_LOOK_IDS, ...SAMPLE_LOOK_IDS];`,
       "",
       "/** Whether a value names a Look of the registry. */",
       "export const isLookId = (v: unknown): v is string => typeof v === \"string\" && LOOK_IDS.includes(v);",
       "",
+    ].join("\n"),
+  );
+  out.set(
+    "src/looks/index.ts",
+    [
+      `// ${header("src/looks/*/look.json")}`,
+      "// The Look registry (D5): Classic is in the bundle, every other Look loads with import(). Importing this module",
+      "// carries Classic's JSON: a module that only checks an id imports ./ids.",
+      'import classic from "./classic/look.json";',
+      'import { CLASSIC_LOOK, SAMPLE_LOOK_IDS, SKIN_LOOK_IDS } from "./ids";',
+      'import type { Look } from "./look";',
+      "",
+      'export { CLASSIC_LOOK, isLookId, LOOK_IDS, SAMPLE_LOOK_IDS, SKIN_LOOK_IDS } from "./ids";',
+      "",
       "/** The Classic Look's data. */",
       "export const CLASSIC = classic as Look;",
       "",
-      "/** A Look by id (undefined: none); every Look but Classic is a chunk of its own. */",
+      "/** A Look by id (undefined: none); every Look but Classic is in a chunk of its own (the skins, the samples). */",
       "export async function loadLook(id: string): Promise<Look | undefined> {",
       "  if (id === CLASSIC_LOOK) return CLASSIC;",
+      "  if (SKIN_LOOK_IDS.includes(id)) return (await import(\"./skins\")).SKIN_LOOKS[id];",
       "  return SAMPLE_LOOK_IDS.includes(id) ? (await import(\"./samples\")).SAMPLE_LOOKS[id] : undefined;",
       "}",
       "",
