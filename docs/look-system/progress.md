@@ -9,7 +9,7 @@ Filled in during stage 2 (see `02-implementation-runbook.md`, section 4). Every 
 | P1 | look/p1-single-sources | done (2026-11-03) | none | |
 | P2 | look/p2-performance | done (2026-11-03) | none for widgets; InfoPanel canvas cards with blur above 12 px get 12 px with Limit blur on (intended) | |
 | P3a | look/p3a-data-viz-tokens | done (2026-11-03) | ramp start colour moves to the material fill (intended fix) | |
-| P3b | look/p3b-material-registry | done, kiosk over its limit: owner call needed (2026-11-03) | intended: `brutal` offset inside the card edge; export draws 10 of the 12 dropped cards (outline and flat stay see-through); Look thumbnails fixed; blurred glass at 0.90 over a solid page; ramps start from every material; Classic otherwise none | |
+| P3b | look/p3b-material-registry | done (2026-11-03; budgets raised with owner approval; 12 sample themes added) | intended: `brutal` offset inside the card edge; export draws 10 of the 12 dropped cards (outline and flat stay see-through); Look thumbnails fixed; blurred glass at 0.90 over a solid page; ramps start from every material; Classic otherwise none | |
 | P3b samples | look/p3b-material-registry | done (2026-11-03) | none for Classic; 12 new themes and cards, selectable in the Theme view | |
 | P4 | look/p4-variable-families | not started | none | |
 | P5 | look/p5-look-contract-ui | not started | studio UI only; untouched widgets identical | |
@@ -193,7 +193,7 @@ Open items carried between phases. Each phase adds what it finds or defers, and 
 | L21 | P3a | T3 `--w-*` vars are not emitted per theme scope yet | P4 | open |
 | L22 | P3a | Dark materials other than the default keep `#18181c` as ramp start (`--w-fill` written for light and theme cards only) | P3b (`--w-mat-*`) | closed in P3b (the shell writes `--w-fill` from every material) |
 | L23 | P3a | Classic T3 values without a consumer (`motion-fast`, `motion-base`, `ease-standard`, `series-fill-alpha`, `series-stroke`) are contract values, not measured | P8 | open |
-| L24 | P3b | Kiosk entry 277,447 B gzip is over its limit 277,123 (+584 B on P3a: registry and resolver +410, shell variables +96, blur fallback and ramp fill about +100); studio 617,808 B over its limit 617,422 | owner call: approve the measured rise, or a phase pays it back (P7, L12) | open |
+| L24 | P3b | Kiosk entry 277,447 B gzip is over its limit 277,123 (+584 B on P3a: registry and resolver +410, shell variables +96, blur fallback and ramp fill about +100); studio 617,808 B over its limit 617,422 | owner call: approve the measured rise, or a phase pays it back (P7, L12) | closed: owner approved; budgets raised to kiosk 277,474 and studio 617,794 B |
 | L25 | P3b | Alerts (`alert-layer.tsx`) and `panel-overlay.tsx` still draw `bg-card`; no page material until the Look cascade | P5 | open |
 | L26 | P3b | Resolver emits no `--w-mat-fg/-muted/-faint/-track/-border/-scrim` vars; material paint stays CSS strings (no structured `fill-stops`, `spots`, `pattern`, `inset`, `tone: auto`) | P4 (vars), P9 (structured fields when packs author materials) | open |
 | L27 | P3b | Blur fallback alpha applies only over a solid page; lite mode does not switch widget blur off (section 8 G.6 cap "0 in lite mode") | P9 | open |
@@ -205,3 +205,5 @@ Open items carried between phases. Each phase adds what it finds or defers, and 
 | L33 | P3b samples | A theme cannot set status colours: `ok`, `warn`, `crit` are palette roles that `isValidStyleValue` rejects, so a saved copy drops them, and the sample themes set none (`ok` follows the accent); the widget Surface row does not list the `look-*` cards | P5 (Look contract), P6 (light status) | open |
 | L34 | P3b samples | What the mockups show beyond level 1 (frames, headers, ornaments, page layers and art, effects, display fonts, segmented rings and bars, gradient numbers, icon sets, page templates), listed per theme in the P3b samples report | P8 (slots), P9 (pack loader), P10 (Field Kit, Tape '86, Term, Neon Stripe, Overdrive, Swiss Mono, Holo), P11 (Night Glow, Paper and the Looks) | open |
 | L35 | P3b samples | The sample themes' fonts load from Google Fonts at run time like the catalog's others; subset woff2 per pack | P10 | open |
+| L36 | P3b samples | To pass contrast, the Holo, Night Glow and Liquid Glass tints are darker than their mockups, and Field Kit's amber and Tape '86's orange accents are darker (so `ok`, which follows the accent, reaches 3:1 on cream). Revisit when per-mode status (L33) and gradient borders (P8) exist | P8 to P11 | open |
+| L37 | P3b samples | Sample-theme screenshots come from the Widget QA renderer, not the real kiosk; compare against the mockups with that in mind | P10 | open |
