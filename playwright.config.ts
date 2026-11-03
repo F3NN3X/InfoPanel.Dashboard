@@ -32,6 +32,18 @@ export default defineConfig({
       use: { browserName: "chromium", headless: true },
     },
     {
+      // The Classic look's pixels per widget kind and material (baselines/ beside the spec). Windows only: the images carry
+      // this platform's text rendering. Run by `verify:full` (the `look-visual` check), never in CI.
+      name: "look-visual",
+      testDir: "tests/visual/look",
+      testMatch: "*.spec.ts",
+      timeout: 180_000,
+      snapshotPathTemplate: "{testDir}/baselines/{arg}{ext}",
+      expect: { toHaveScreenshot: { maxDiffPixelRatio: 0.002, threshold: 0.2 } },
+      use: { browserName: "chromium", headless: true, timezoneId: "UTC", locale: "en-US", deviceScaleFactor: 1, reducedMotion: "reduce" },
+      ...(process.platform === "win32" ? {} : { testIgnore: "**" }),
+    },
+    {
       name: "perf-kiosk",
       testDir: "tests/perf",
       testMatch: ["kiosk-*.perf.ts", "server-*.perf.ts"],

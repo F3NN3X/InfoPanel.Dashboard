@@ -73,6 +73,20 @@ is not roomy (4x4 is: its changes are listed, not failing). `--save <file>` writ
   frames are compared.
 - The probe walks elements, so it cannot see pseudo-elements (`::before`, `::after`).
 
+## The look baselines
+
+`look-visual` (`tests/visual/look/classic.spec.ts`, Playwright project `look-visual`) renders the Classic look, today's default
+skin, for every widget kind on the Widget QA page at 1x1, 2x2, 4x2 and 4x4 on the `glass` and `matte-light` materials, and
+compares each with a committed image in `tests/visual/look/baselines/` (`<material>-<Widget>.png`, a kind's four frames side
+by side; 138 images, about 5 MB). Tolerance: `maxDiffPixelRatio` 0.002, `threshold` 0.2. The page runs with a fixed clock and
+zone and reduced motion, so a frame is the same on each run (checked over repeated runs).
+
+- Windows only, in `verify:full` only, never in CI: the images carry this machine's text rendering. On other platforms
+  `verify` reports it NOT RUN (exit 3), like `cargo-app`. It needs `npm run build` and the debug `ips-server`.
+- A diff is a real change on screen. An intended one refreshes the images in the same change
+  (`npx playwright test --project=look-visual --update-snapshots`), and the change description says why the new pixels are right.
+  The report, with expected, actual and diff images, is in `.cache/playwright/`.
+
 ## The feature map and `verify`
 
 `tests/feature-map.json` maps every tracked file to a feature, and each feature to the tests and checks that cover it.

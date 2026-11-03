@@ -59,6 +59,12 @@
       "needs": ["build", "server-bin"],
       "when": "the Widget QA overflow probe at 1x1, 2x2, 4x2 and 4x4 on fixture data, diffed against tests/qa/overflow-baseline.json: a new issue or any change at a non-roomy span fails (refresh with --save when intended)"
     },
+    "look-visual": {
+      "cmd": "npx playwright test --project=look-visual",
+      "platform": "win32",
+      "needs": ["build", "server-bin"],
+      "when": "verify:full only (on no feature), Windows only, never in CI: the Classic look per widget kind, span and material against the images in tests/visual/look/baselines (this platform's text rendering)"
+    },
     "cargo-server": {
       "cmd": "cargo test -p ips-server -p ips-agent && cargo clippy -p ips-server -p ips-agent --all-targets -- -D warnings",
       "cwd": "src-tauri",
@@ -440,6 +446,7 @@
         "tests/widgets/StreamDeck/**",
         "tests/widgets/widget-qa/**",
         "tests/tools/qa/**",
+        "tests/visual/look/**",
         "tests/widgets/StreamChat/**",
         "tests/widgets/StatusBar/**",
         "tests/widgets/weather-fx/**",
