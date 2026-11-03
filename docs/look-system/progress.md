@@ -11,7 +11,7 @@ Filled in during stage 2 (see `02-implementation-runbook.md`, section 4). Every 
 | P3a | look/p3a-data-viz-tokens | done (2026-11-03) | ramp start colour moves to the material fill (intended fix) | |
 | P3b | look/p3b-material-registry | done (2026-11-03; budgets raised with owner approval; 12 sample themes added) | intended: `brutal` offset inside the card edge; export draws 10 of the 12 dropped cards (outline and flat stay see-through); Look thumbnails fixed; blurred glass at 0.90 over a solid page; ramps start from every material; Classic otherwise none | |
 | P3b samples | look/p3b-material-registry | done (2026-11-03) | none for Classic; 12 new themes and cards, selectable in the Theme view | |
-| P4 | look/p4-variable-families | not started | none | |
+| P4 | look/p4-variable-families | done (2026-11-03) | none (variable renames and aliases only) | |
 | P5 | look/p5-look-contract-ui | not started | studio UI only; untouched widgets identical | |
 | P6 | look/p6-light-mode | not started | light materials only: `ok` and accent text darken (intended) | |
 | P7 | look/p7-clean-up | not started | minor: Settings accent text darker, 13 near-twin greys, native select border, alerts take the widget crit red | |
@@ -164,6 +164,21 @@ Filled in during stage 2 (see `02-implementation-runbook.md`, section 4). Every 
   - The Theme view's heading still reads "From screen templates"; the sample themes are 12 more rows there, one look each.
   - No existing test changed; the Classic `look-visual` baselines are unchanged.
 
+## P4: Variable families
+- Plan entry: [docs/investigations/look-system.md, section 11, P4](../investigations/look-system.md); decisions D4 and D2 as changed 2026-11-03.
+- Checklist: `--w-accent` everywhere the colour accent is read: done. Widget roots and sub-scopes also set `--accent` for one release: done (CHANGELOG says so). `--wp-fg`/`--wp-muted` aliases of `--w-fg`/`--w-muted`: done. `--wp-accent`/`--wp-radius` stay: done. Help `custom-css.md` documents both names: done. v8 parity regenerated once and proven rename-only: done. L21 and L26 vars: deferred (below). `s-*` aliases of `ui-*` (D2): not part of P4 (D2 changed to P7).
+- Report:
+  - `accentVars(color)` in `src/widgets/core/tokens.ts` returns `{ --w-accent, --accent }`; the shell (`Widget.tsx`), `StreamDeck`, `SystemOverview` sections, the panel meter (`WidgetView.tsx`), the appearance preview, the viz gallery, the gauge preview scope and the island's worn skin set it. Readers (48 widget and core files, `materials.ts`, `t3.ts` `cssOf`, `index.css` glow vars, `mixer-views.css`, `theme.ts` `accentOf`, `tokens.ts` `mix()`/`hue()`) read `var(--w-accent)`. The gauge theme (`generate.mjs`) emits `var(--w-accent, #34D399)`; gauges store theme keys, so saved gauges are unaffected.
+  - `--accent` stays the shadcn triplet in `index.css`, `tokenScope` and `placement-frame.tsx` (which scopes the triplet for non-widget children; every widget root inside sets its own colour). `panel-skin` keeps its test that no panel draws with `hsl(var(--accent))`.
+  - `chromeVars`: a text or secondary colour now sets `--w-fg` / `--w-muted` and `--wp-fg: var(--w-fg)` / `--wp-muted: var(--w-muted)`. Resolved values are the same as before.
+  - v8 parity: regenerated once (all 128 markups differ). Check, `scratchpad/look/parity-diff.mjs` (not committed): in each new markup collapse `--w-accent:X;--accent:X` to `--accent:X`, turn a lone `--w-accent:` and every `var(--w-accent` back into `--accent`, and require equality with the old file's markup and props: 128 of 128 equal, same case ids. look-visual, overflow and the sample-theme checks unchanged.
+  - Tests: `accentVars` case in `tests/widgets/core/theme.test.ts`; expectations renamed in the surfaces fixture, `materials`, `t3`, `Widget`, `widget-style`, appearance preview and material-export tests (strings only).
+  - Budgets (not edited): see the verify summary in the final message; measured sizes are in the P4 handoff.
+- Things to know:
+  - L21 (T3 `--w-*` per theme scope) and L26's `--w-mat-fg/-muted/-faint/-track/-border/-scrim` are deferred: nothing reads them yet, and emitting them writes dozens of extra declarations into every widget root's inline style, which is not a rename (the parity diff would stop being rename-only) and costs kiosk bytes with no pixel. They land with their first reader (P5 cascade, P8 slots).
+  - Custom CSS that sets `--accent` inside a widget no longer drives the widget's own accent; it should set `--w-accent` (Help says so). Reading `--accent` still gives the colour this release.
+  - `--accent` as a colour inside widgets is removed in a later release: L38.
+
 ## Ledger: known issues and deferred work
 
 Open items carried between phases. Each phase adds what it finds or defers, and closes what it fixes (status `closed in P<N>`).
@@ -190,12 +205,12 @@ Open items carried between phases. Each phase adds what it finds or defers, and 
 | L18 | P2 | Studio entry 617,147 B is over its 616,806 budget, inside the slack (limit 617,422) | P5 (gallery must stay lazy) | open |
 | L19 | P3a | 10 skin-id branches still branch on skin id instead of reading T3 tokens | P8 | open |
 | L20 | P3a | The 9 D11 additions (`num-stretch`, `num-effect`, `graph-style`, `series-glow`, `cell-radius`, `label-glow`, `header-fill`, header `prompt` and `icon-badge`) are names only, no code | P8 | open |
-| L21 | P3a | T3 `--w-*` vars are not emitted per theme scope yet | P4 | open |
+| L21 | P3a | T3 `--w-*` vars are not emitted per theme scope yet | P4 | open: deferred in P4 (no reader yet; would add declarations to every widget root, so not a rename); first reader P5/P8 |
 | L22 | P3a | Dark materials other than the default keep `#18181c` as ramp start (`--w-fill` written for light and theme cards only) | P3b (`--w-mat-*`) | closed in P3b (the shell writes `--w-fill` from every material) |
 | L23 | P3a | Classic T3 values without a consumer (`motion-fast`, `motion-base`, `ease-standard`, `series-fill-alpha`, `series-stroke`) are contract values, not measured | P8 | open |
 | L24 | P3b | Kiosk entry 277,447 B gzip is over its limit 277,123 (+584 B on P3a: registry and resolver +410, shell variables +96, blur fallback and ramp fill about +100); studio 617,808 B over its limit 617,422 | owner call: approve the measured rise, or a phase pays it back (P7, L12) | closed: owner approved; budgets raised to kiosk 277,474 and studio 617,794 B |
 | L25 | P3b | Alerts (`alert-layer.tsx`) and `panel-overlay.tsx` still draw `bg-card`; no page material until the Look cascade | P5 | open |
-| L26 | P3b | Resolver emits no `--w-mat-fg/-muted/-faint/-track/-border/-scrim` vars; material paint stays CSS strings (no structured `fill-stops`, `spots`, `pattern`, `inset`, `tone: auto`) | P4 (vars), P9 (structured fields when packs author materials) | open |
+| L26 | P3b | Resolver emits no `--w-mat-fg/-muted/-faint/-track/-border/-scrim` vars; material paint stays CSS strings (no structured `fill-stops`, `spots`, `pattern`, `inset`, `tone: auto`) | P5/P8 (vars, with their first reader; deferred in P4), P9 (structured fields when packs author materials) | open |
 | L27 | P3b | Blur fallback alpha applies only over a solid page; lite mode does not switch widget blur off (section 8 G.6 cap "0 in lite mode") | P9 | open |
 | L28 | P3b | `StreamDeck/look.ts` strips a material `width`/`height` that no material sets since brutal's redesign; the feature map keeps `src/components/{widget-style,surfaces}.ts` for the deleted file | P7 | open |
 | L29 | P3b | Custom CSS of specificity (0,2,0) or more now beats the card background (the static `[data-mat]` rule is (0,2,0); inline style used to win) | P8 | open |
@@ -207,3 +222,4 @@ Open items carried between phases. Each phase adds what it finds or defers, and 
 | L35 | P3b samples | The sample themes' fonts load from Google Fonts at run time like the catalog's others; subset woff2 per pack | P10 | open |
 | L36 | P3b samples | To pass contrast, the Holo, Night Glow and Liquid Glass tints are darker than their mockups, and Field Kit's amber and Tape '86's orange accents are darker (so `ok`, which follows the accent, reaches 3:1 on cream). Revisit when per-mode status (L33) and gradient borders (P8) exist | P8 to P11 | open |
 | L37 | P3b samples | Sample-theme screenshots come from the Widget QA renderer, not the real kiosk; compare against the mockups with that in mind | P10 | open |
+| L38 | P4 | `--accent` is still set as a colour inside widget roots and widget-like scopes (`accentVars`) for custom-CSS compatibility; remove it, and the `--wp-fg`/`--wp-muted` aliases when saved CSS allows | the release after P4 | open |
