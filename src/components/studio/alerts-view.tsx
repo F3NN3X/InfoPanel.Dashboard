@@ -81,7 +81,7 @@ export function AlertsView({ tab, onTab, config, setConfig, active, points, scre
   return (
     <section aria-label="Alerts & Island" className="flex min-h-0 min-w-0 flex-1 flex-col bg-ui-app font-ui">
       <div className="flex shrink-0 items-center gap-4 border-b border-ui-subtle px-6 max-sm:flex-wrap max-sm:gap-x-3 max-sm:px-3">
-        <h1 className="whitespace-nowrap py-3 text-[15px] font-semibold text-ui-1">Alerts &amp; Island</h1>
+        <h1 className="whitespace-nowrap py-3 text-title font-semibold text-ui-1">Alerts &amp; Island</h1>
         {/* On a phone the tabs take their own row under the title and the New rule button. */}
         <div role="tablist" aria-label="Alerts & Island" onKeyDown={(e) => onRovingKeyDown(e, '[role="tab"]')} className="flex gap-1 self-stretch max-sm:order-last max-sm:w-full max-sm:overflow-x-auto">
           {TABS.map((t) => (

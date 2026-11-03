@@ -1,6 +1,6 @@
 /** The Gauges view's main area (spec §6): Presets, In <profile> and My library, each a grid of live square thumbnails. */
 import { cn } from "@/lib/utils";
-import type { GaugeEntry } from "@/lib/gauge-studio/model";
+import { previewScale, type GaugeEntry } from "@/lib/gauge-studio/model";
 import { draggableGauge } from "./gauge-drag";
 import { GaugeView } from "./gauge-view";
 
@@ -104,7 +104,10 @@ function Thumb({ entry, selected, p, scope, renaming, onSelect, onOpen, onDragSt
       )}
     >
       <span className="flex aspect-square w-full items-center justify-center bg-ui-app">
-        <GaugeView gauge={entry.gauge} frames={entry.frames} p={p} size={96} scope={scope} />
+        {/* A fixed box; the transform (not the layout) evens out the gauges' optical size. */}
+        <span className="flex size-24 items-center justify-center" style={{ transform: `scale(${previewScale(entry.gauge)})` }}>
+          <GaugeView gauge={entry.gauge} frames={entry.frames} p={p} size={96} scope={scope} />
+        </span>
       </span>
       {renaming ? (
         <input

@@ -1101,6 +1101,7 @@ function StudioViewBody({
         onDeletingChange={ui.setDeletingPage}
         kioskPage={control?.profiles[storedProfile.id]?.page}
         imported={importedFromInfoPanel(storedProfile)}
+        thumbProfile={screenKind(storedProfile) === "infopanel" ? undefined : storedProfile}
         extra={
           <>
             <MadeForControl value={storedProfile.madeFor} onChange={setMadeFor} />
@@ -1346,6 +1347,7 @@ function StudioViewBody({
       onFit={ui.fitZoom}
       onActualSize={() => ui.setZoom(1)}
       onZoomSelection={() => runCommand({ type: "zoom-selection" })}
+      hasSelection={sel.selected != null && sel.selected.visible}
       profile={profile}
       onOpenProfile={() => ui.navigateTo({ view: "screens", profileId: storedProfile.id })}
       preview={showSources ? undefined : preview}
@@ -1412,7 +1414,7 @@ function StudioViewBody({
           inspector={fullPage ? null : inspectorAside}
         />
       )}
-      <StatusBar {...statusBar} kioskChip={kioskChip} onNavigate={ui.navigateTo} onOpenLive={() => ui.setLiveOpen(true)} />
+      <StatusBar {...statusBar} kioskChip={kioskChip} paused={kioskPageId ? !rotating : false} onNavigate={ui.navigateTo} onOpenLive={() => ui.setLiveOpen(true)} />
       {phone && <PhoneTabBar active={railActive} onSelect={onRail} onHelp={openHelpWindow} />}
 
       <WidgetPickerDialog

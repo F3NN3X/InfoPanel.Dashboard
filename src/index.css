@@ -415,8 +415,8 @@
   backdrop-filter: none !important;
 }
 /* An activity whose work is running: its dot breathes with a ring (PulseDot, on the shared ticker). */
-/* A notice's level bar (a volume) glides between readings. */
-.island-motion .island-level { transition: width 160ms ease-out; }
+/* A notice's level bar (a volume) glides between readings: a full-width pill slid left behind the track's clip (round end at every value, no layout work). */
+.island-motion .island-level { transition: transform 160ms ease-out; }
 
 /* The standard alignment, gap and label case on a widget template's body (src/widgets/core/Widget.tsx).
    Labels written as `uppercase` follow the label case. The alignment and gap rules reach the body's

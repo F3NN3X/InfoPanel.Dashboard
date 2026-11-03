@@ -325,7 +325,7 @@ export default function FirstRunPage({ rerun, dataApiUrl, windowSize, onFinish, 
     <div key="data" className="flex flex-col gap-4">
       <div className="flex flex-wrap items-start gap-3">
         <div className="min-w-0 flex-1">
-          <h1 ref={head} tabIndex={-1} className="m-0 text-[15px] font-semibold text-ui-1 outline-none">
+          <h1 ref={head} tabIndex={-1} className="m-0 text-title font-semibold text-ui-1 outline-none">
             Check your data
           </h1>
           <p className="m-0 mt-1 max-w-[560px] text-body leading-[1.5] text-ui-3">

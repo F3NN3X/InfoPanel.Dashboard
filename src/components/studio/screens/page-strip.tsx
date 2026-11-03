@@ -1,3 +1,4 @@
+import { memo } from "react";
 import type { MonitorProfile } from "@/lib/layout";
 import { screenKind } from "@/lib/screens/list";
 import { PageMap } from "./page-map";
@@ -7,7 +8,7 @@ import { aspectOf } from "./profile-card";
  * A screen's pages as a strip of mini-maps under its thumbnail: each is a button that opens Edit on that page. A
  * screen of one page has no strip, its thumbnail is the page. It lies along the thumbnail's bottom edge, so every card keeps its height.
  */
-export function PageStrip({ profile, onOpen }: { profile: MonitorProfile; onOpen: (pageId: string) => void }) {
+export const PageStrip = memo(function PageStrip({ profile, onOpen }: { profile: MonitorProfile; onOpen: (screenId: string, pageId: string) => void }) {
   // An InfoPanel screen opens in its own editor and its pages are canvases the schematic cannot draw: no strip.
   if (profile.pages.length < 2 || screenKind(profile) === "infopanel") return null;
   const aspect = aspectOf(profile.width, profile.height);
@@ -19,7 +20,7 @@ export function PageStrip({ profile, onOpen }: { profile: MonitorProfile; onOpen
             type="button"
             title={`Open ${page.name}`}
             aria-label={`Open ${profile.name}, ${page.name}`}
-            onClick={() => onOpen(page.id)}
+            onClick={() => onOpen(profile.id, page.id)}
             className="block w-full overflow-hidden rounded border border-ui-strong outline-none hover:border-ui-1 focus-visible:ring-2 focus-visible:ring-ui-accent/60"
           >
             <div style={{ aspectRatio: aspect }}>
@@ -30,4 +31,4 @@ export function PageStrip({ profile, onOpen }: { profile: MonitorProfile; onOpen
       ))}
     </div>
   );
-}
+});

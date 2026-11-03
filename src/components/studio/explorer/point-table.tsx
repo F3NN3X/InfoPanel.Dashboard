@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ChevronRight, Copy, EyeOff, Link2, Search } from "lucide-react";
+import { PulseDot } from "@/components/pulse-dot";
 import { Segmented } from "@/components/ui/segmented";
 import type { DataPoint, DataSource } from "@/lib/data-points";
 import type { SourcePref } from "@/lib/layout";
@@ -67,6 +68,8 @@ interface PointTableProps {
   onDisplayName: (key: string, displayName: string | undefined) => void;
   /** Show the "Used in" column (hidden on narrow windows). */
   showUsedIn: boolean;
+  /** The Data API is connected: the NOW header shows a pulsing dot (none otherwise). */
+  live: boolean;
 }
 
 /** The Data view's point table: breadcrumb, search, filters and the virtualised list (Sensor · Now · Display name · Used in). */
@@ -96,6 +99,7 @@ export function PointTable({
   sourcePrefs,
   onDisplayName,
   showUsedIn,
+  live,
 }: PointTableProps) {
   const cols = showUsedIn ? "grid-cols-[1.5fr_90px_1.2fr_1fr_56px]" : "grid-cols-[1.4fr_90px_1.2fr_56px]";
   return (
@@ -151,7 +155,10 @@ export function PointTable({
 
       <div className={cn("grid gap-3 whitespace-nowrap border-b border-ui-subtle px-4 py-[7px]", CAPTION, cols)}>
         <span>Sensor</span>
-        <span className="text-right">Now</span>
+        <span className="flex items-center justify-end gap-1.5">
+          {live && <PulseDot color="var(--ui-success)" pulse label="Live" className="h-1.5 w-1.5 shrink-0 rounded-full" />}
+          Now
+        </span>
         <span>Display name</span>
         {showUsedIn && <span>Used in</span>}
         <span />

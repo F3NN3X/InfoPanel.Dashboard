@@ -20,6 +20,8 @@ interface ZoomToolbarProps {
   /** The 100% preset and Zoom to selection (the widget fills most of the canvas); unset outside the studio canvas. */
   onActualSize?: () => void;
   onZoomSelection?: () => void;
+  /** A widget is selected; Zoom to selection is disabled without one. */
+  hasSelection?: boolean;
   /** The profile shown on the canvas (resolution button). */
   profile: ProfileView;
   /** The size link: open Screens. */
@@ -68,6 +70,7 @@ export function ZoomToolbar({
   onFit,
   onActualSize,
   onZoomSelection,
+  hasSelection = false,
   profile,
   onOpenProfile,
   sizeTitle = "Screen size, grid and spacing: open Screens",
@@ -128,8 +131,9 @@ export function ZoomToolbar({
         <button
           type="button"
           onClick={onZoomSelection}
-          title={`Zoom to the selected widget (${KEYS.zoomSelection})`}
-          className="h-[26px] rounded-md px-[9px] text-micro font-medium text-ui-4 transition-colors hover:bg-ui-default"
+          disabled={!hasSelection}
+          title={hasSelection ? `Zoom to the selected widget (${KEYS.zoomSelection})` : "Select a widget to zoom to it"}
+          className="h-[26px] rounded-md px-[9px] text-micro font-medium text-ui-4 transition-colors hover:bg-ui-default disabled:pointer-events-none disabled:opacity-40"
         >
           Selection
         </button>

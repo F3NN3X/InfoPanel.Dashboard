@@ -22,7 +22,7 @@ interface CalloutStyle {
 
 const CALLOUTS: Record<CalloutKind, CalloutStyle> = {
   tip: { icon: Lightbulb, label: "Tip", fg: "text-[oklch(0.84_0.14_150)]", box: "border-[oklch(0.78_0.16_150/0.22)] bg-[oklch(0.78_0.16_150/0.07)]" },
-  note: { icon: Info, label: "Note", fg: "text-[oklch(0.84_0.12_255)]", box: "border-[oklch(0.72_0.15_255/0.22)] bg-[oklch(0.72_0.15_255/0.07)]" },
+  note: { icon: Info, label: "Note", fg: "text-s-accent-text", box: "border-s-accent/22 bg-s-accent/7" },
   warn: { icon: TriangleAlert, label: "Heads up", fg: "text-[oklch(0.86_0.13_80)]", box: "border-[oklch(0.82_0.14_75/0.25)] bg-[oklch(0.82_0.14_75/0.07)]" },
   soon: { icon: Clock, label: "Coming soon", fg: "text-[oklch(0.84_0.1_300)]", box: "border-[oklch(0.72_0.12_300/0.25)] bg-[oklch(0.72_0.12_300/0.07)]" },
 };
@@ -96,7 +96,7 @@ function Table({ head, rows, onOpen }: { head: string[]; rows: string[][]; onOpe
 
 function Cap({ children }: { children: string }) {
   return (
-    <kbd className="min-w-3 whitespace-nowrap rounded-[5px] border border-b-2 border-s-input-line bg-[#1a1a1f] px-[7px] py-0.5 text-center font-mono text-[11.5px] text-s-t1">{children}</kbd>
+    <kbd className="min-w-3 whitespace-nowrap rounded-[5px] border border-b-2 border-s-input-line bg-s-side-line px-[7px] py-0.5 text-center font-mono text-[11.5px] text-s-t1">{children}</kbd>
   );
 }
 

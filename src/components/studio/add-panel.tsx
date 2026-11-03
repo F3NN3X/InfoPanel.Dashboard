@@ -82,7 +82,7 @@ const DRAG_PX = 4;
  * The category chips: one row that scrolls sideways (the wheel, a drag, and a chip reached by Tab scroll it), fading at
  * an edge with more chips past it, so a cut-off chip reads as "more this way" (sign-off rounds 1 and 3).
  */
-function ChipRow({ chips, children }: { chips: string; children: ReactNode }) {
+function ChipRow({ chips, label, children }: { chips: string; label?: string; children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
   const [edge, setEdge] = useState({ start: false, end: false });
   // A mouse press: where it started, and whether it has become a drag (the click that ends it then picks no chip).
@@ -106,6 +106,8 @@ function ChipRow({ chips, children }: { chips: string; children: ReactNode }) {
   return (
     <div
       ref={ref}
+      role={label ? "group" : undefined}
+      aria-label={label}
       data-fade={[edge.start && "start", edge.end && "end"].filter(Boolean).join(" ") || undefined}
       onScroll={measure}
       onWheel={(e) => {
@@ -143,6 +145,23 @@ function ChipRow({ chips, children }: { chips: string; children: ReactNode }) {
   );
 }
 
+function ChipButton({ on, onClick, children }: { on: boolean; onClick: () => void; children: ReactNode }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={on}
+      onClick={onClick}
+      className={cn(
+        "flex h-6 shrink-0 items-center rounded-full border px-[9px] text-micro",
+        FOCUS,
+        on ? "border-ui-inverse bg-ui-inverse text-ui-inverse-fg" : "border-s-seg-on text-ui-3 hover:text-ui-1"
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
 interface Highlight {
   key: string;
   via: "mouse" | "key";
@@ -171,6 +190,8 @@ export function AddPanel({
   const [kind, setKind] = useState<AddKind>("widget");
   const [storedChip, setChip] = useAddChip();
   const [query, setQuery] = useState("");
+  /** The InfoPanel chip's second row: one palette group or Elements (none: all of them). */
+  const [group, setGroup] = useState<string | null>(null);
   const [hl, setHl] = useState<Highlight | null>(null);
   /** The card's place (viewport px), when shown. */
   const [card, setCard] = useState<{ left: number; top: number } | null>(null);
@@ -200,6 +221,8 @@ export function AddPanel({
     return onAddPart ? [all, INFOPANEL_CHIP, ...categories] : [all, ...categories];
   }, [catalog.widget, onAddPart]);
   const chip = chips.includes(storedChip) ? storedChip : "All";
+  const inInfoPanel = chip === INFOPANEL_CHIP;
+  const paletteGroups = useMemo(() => chipsFor("items", catalog.widget).slice(1), [catalog.widget]);
   const seg: AddFilter = !onAddPart ? "widgets" : chip === INFOPANEL_CHIP ? "items" : chip === "All" ? "all" : "widgets";
   const sections = useMemo(
     () =>
@@ -209,14 +232,14 @@ export function AddPanel({
             items: onAddPart ? ITEM_TILES : [],
             elements: onAddPart ? ELEMENT_TILES : [],
             segment: seg,
-            chip: chip === INFOPANEL_CHIP ? "All" : chip,
+            chip: inInfoPanel ? (group ?? "All") : chip,
             query,
             recent,
             infoPanel,
             status: status?.of,
           })
         : [],
-    [tiles, widgetTiles, onAddPart, seg, chip, query, recent, infoPanel, status],
+    [tiles, widgetTiles, onAddPart, seg, chip, inInfoPanel, group, query, recent, infoPanel, status],
   );
   /** The tiles in list order, and the rows the arrow keys move through (the grid's columns, measured). */
   const [cols, setCols] = useState(3);
@@ -326,6 +349,7 @@ export function AddPanel({
 
   const pickChip = (next: string) => {
     setChip(next);
+    setGroup(null);
     reset();
     if (listRef.current) listRef.current.scrollTop = 0;
   };
@@ -482,29 +506,26 @@ export function AddPanel({
 
       {tiles && !query.trim() && (
         <ChipRow chips={chips.join(" ")}>
-          {chips.map((c) => {
-            const on = c === chip;
-            return (
-              <button
-                key={c}
-                type="button"
-                aria-pressed={on}
-                onClick={() => pickChip(c)}
-                className={cn(
-                  "flex h-6 shrink-0 items-center rounded-full border px-[9px] text-micro",
-                  FOCUS,
-                  on ? "border-ui-inverse bg-ui-inverse text-ui-inverse-fg" : "border-s-seg-on text-ui-3 hover:text-ui-1"
-                )}
-              >
-                {c}
-              </button>
-            );
-          })}
+          {chips.map((c) => (
+            <ChipButton key={c} on={c === chip} onClick={() => pickChip(c)}>
+              {c}
+            </ChipButton>
+          ))}
+        </ChipRow>
+      )}
+      {tiles && inInfoPanel && !query.trim() && (
+        // InfoPanel's palette groups (Text, Data, Media, Layout) and the studio's elements; pressing the one that is on shows them all again.
+        <ChipRow chips={paletteGroups.join(" ")} label="InfoPanel groups">
+          {paletteGroups.map((g) => (
+            <ChipButton key={g} on={g === group} onClick={() => setGroup(g === group ? null : g)}>
+              {g}
+            </ChipButton>
+          ))}
         </ChipRow>
       )}
 
       {target && (
-        <div className="mx-2.5 mt-2.5 flex shrink-0 items-center gap-2.5 rounded-ui-md border border-[oklch(0.72_0.15_255/0.35)] bg-[oklch(0.72_0.15_255/0.10)] px-2.5 py-[9px]">
+        <div className="mx-2.5 mt-2.5 flex shrink-0 items-center gap-2.5 rounded-ui-md border border-ui-accent/35 bg-ui-accent/10 px-2.5 py-[9px]">
           <SquareDashedMousePointer className="h-[18px] w-[18px] shrink-0 text-ui-accent-text" strokeWidth={1.75} aria-hidden />
           <div className="min-w-0 flex-1">
             <div className="truncate text-body font-medium text-ui-1">

@@ -16,13 +16,13 @@ Prototypes (W1–W8 and some A-/B- IDs) were built on throwaway `proto/<id>` bra
 | A-08 | 5 |  | low | S | Inspector gutters: one right edge | fixed |
 | A-09 | 5 |  | med | S | Alerts and Island: a real empty state | fixed |
 | A-10 | 5 |  | med | S | Library: toast on the grid, truncated search, shelf of chips | fixed |
-| A-11 | 5 |  | med | M | Data table: display-name column is a wall of inputs | partial |
+| A-11 | 5 |  | med | M | Data table: display-name column is a wall of inputs | fixed |
 | A-12 | 5 |  | med | S | Footer strip: three kinds of status in one line | fixed |
 | A-13 | 5 |  | med | S | Rail active state and label size | fixed |
 | A-14 | 5 |  | med | M | Segmented selected state | fixed |
 | A-15 | 5 |  | med | M | Command palette: group, recent and key hints | fixed |
 | A-16 | 5 |  | low | S | Layer rows: kind tag and drag handle noise | fixed |
-| A-17 | 5 |  | low | S | Gauge cards: names clip and previews differ in scale | partial |
+| A-17 | 5 |  | low | S | Gauge cards: names clip and previews differ in scale | fixed |
 | A-18 | 5 |  | low | M | Replace hard-coded greys with tokens | partial |
 | A-19 | 5 |  | med | M | Home: a screen detail that is quieter, and a hover on the card | fixed |
 | A-20 | 5 |  | med | L | Direction: live canvas mini-map and page strip on Screens | fixed |

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link as LinkIcon } from "lucide-react";
+import { ExternalLink, Link as LinkIcon } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { DEFAULT_SERVER_PORT } from "@/lib/dashboard-server";
 import { isTauri } from "@/lib/desktop";
@@ -52,8 +52,9 @@ export function ShownOn({ screenId, isDefault, isBestFit, kiosks, onChangeDefaul
         <span className="text-ui-3">Default</span>
         <span className="flex items-center gap-2">
           {isDefault ? "The app opens on it" : isBestFit ? "Best fit picks it now" : "No"}
-          <button type="button" onClick={onChangeDefault} className="rounded-sm text-micro text-ui-accent-text hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent">
-            Settings ↗
+          <button type="button" onClick={onChangeDefault} className="inline-flex items-center gap-1 rounded-sm text-micro text-ui-4 hover:text-ui-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent">
+            Settings
+            <ExternalLink className="h-3 w-3 shrink-0" aria-hidden />
           </button>
         </span>
       </div>

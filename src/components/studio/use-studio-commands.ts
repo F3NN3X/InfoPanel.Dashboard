@@ -169,7 +169,8 @@ export function useStudioCommands({
       case "zoom-fit":
         return ui.fitZoom();
       case "zoom-selection":
-        return ui.zoomToElement(selected ? document.querySelector(`[data-zone-id="${selected.id}"]`) : null);
+        // The canvas's own frame; a hidden widget's box is only an outline.
+        return ui.zoomToElement(selected ? (ui.scrollRef.current?.querySelector(`[data-zone-id="${CSS.escape(selected.id)}"]:not([data-hidden])`) ?? null) : null);
       case "zoom-in":
         return ui.zoomStep(1);
       case "zoom-out":

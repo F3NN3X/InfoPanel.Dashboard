@@ -283,6 +283,7 @@ export function SourcesPanel({ config, setConfig, profile, selectedZoneId, onOpe
           sourcePrefs={config.sourcePrefs}
           onDisplayName={(key, displayName) => onPrefsChange(key, { displayName })}
           showUsedIn={width >= HIDE_USED_IN_BELOW}
+          live={dataApi.state === "connected"}
         />
         {(!drawer || point) && (
           <div

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PanelsTopLeft, Pencil } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { deleteLines, deletePlan } from "@/lib/screens/delete-plan";
@@ -97,6 +97,12 @@ export function ScreensView({
   ...detail
 }: ScreensViewProps) {
   const toast = useToast();
+  // The strips are memoised: a callback that keeps its identity while the studio re-renders.
+  const openPageRef = useRef(onOpenScreenPage);
+  useEffect(() => {
+    openPageRef.current = onOpenScreenPage;
+  });
+  const openPage = useCallback((id: string, pageId: string) => openPageRef.current(id, pageId), []);
   const copyLink = useCopyKioskLink();
   const savedApi = useSavedProfiles(config);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -194,7 +200,7 @@ export function ScreensView({
                   meta={screenMeta(p)}
                   aspect={aspectOf(p.width, p.height)}
                   thumb={<ScreenThumb profile={p} />}
-                  strip={<PageStrip profile={p} onOpen={(pageId) => onOpenScreenPage(p.id, pageId)} />}
+                  strip={<PageStrip profile={p} onOpen={openPage} />}
                   selected={p.id === stored.id}
                   onClick={() => onSelectProfile(p.id)}
                   label={`Select ${p.name}`}

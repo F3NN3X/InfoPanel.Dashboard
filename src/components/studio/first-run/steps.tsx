@@ -17,7 +17,7 @@ import type { ProfileFile, Results } from "./checks";
 import { sensorsLine, tally } from "./checks";
 
 export const Heading = ({ children, headRef, large }: { children: ReactNode; headRef: Ref<HTMLHeadingElement>; large?: boolean }) => (
-  <h1 ref={headRef} tabIndex={-1} className={cn("m-0 font-semibold text-ui-1 outline-none", large ? "text-[18px]" : "text-[15px]")}>
+  <h1 ref={headRef} tabIndex={-1} className={cn("m-0 font-semibold text-ui-1 outline-none", large ? "text-[18px]" : "text-title")}>
     {children}
   </h1>
 );

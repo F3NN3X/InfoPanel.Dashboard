@@ -14,7 +14,7 @@ export const CARD_GRID = "grid grid-cols-[repeat(auto-fill,minmax(230px,1fr))] g
 export function ListTitle({ title, count }: { title: string; count: string }) {
   return (
     <div className="flex items-baseline gap-2">
-      <h1 className="m-0 text-[15px] font-semibold text-ui-1">{title}</h1>
+      <h1 className="m-0 text-title font-semibold text-ui-1">{title}</h1>
       <span className="text-caption text-ui-4">{count}</span>
     </div>
   );

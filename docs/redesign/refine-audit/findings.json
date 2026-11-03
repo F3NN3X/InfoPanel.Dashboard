@@ -104,7 +104,7 @@
   "suggest": "(1) drop the second segmented row into the category chips (add \"InfoPanel\" as a chip); (2) make the chip row `overflow-x-auto` with a right fade so \"Mi...\" is not guillotined; (3) tile names `line-clamp-2` at 12px with the variant suffix on a second line instead of \"...\", and show a 56px mini-render of the widget (from the QA fixture) instead of the generic category icon.",
   "options": "A) previews only on hover card; B) previews in tiles always (heavier); C) keep icons, fix names only.",
   "why": "Waza \"filters earn their row\"; uupm ux \"progressive disclosure, no label truncation\".",
-  "note": "Live previews in tiles: won't fix, the hover card already renders the widget live; the palette-group chips come back in batch 11.",
+  "note": "Live previews in tiles: won't fix by the user's decision, the hover card already renders the widget live. The palette-group chips are back (batch 12), so A-06 stays partial only for the previews.",
   "status": "partial"
  },
  {
@@ -195,7 +195,7 @@
   "options": null,
   "why": "Waza data-viz \"numbers right-aligned, units quiet\"; uupm \"dense-but-scannable\".",
   "note": null,
-  "status": "partial"
+  "status": "fixed"
  },
  {
   "id": "A-12",
@@ -303,7 +303,7 @@
   "options": null,
   "why": "Waza gotchas \"metric and label footers must not tail-truncate\"; uupm ux consistency of preview scale.",
   "note": null,
-  "status": "partial"
+  "status": "fixed"
  },
  {
   "id": "A-18",
@@ -320,7 +320,7 @@
   "suggest": "map 11.5 -> `text-micro`(11) or `text-caption`; 12.5/13 -> `text-body`; `#b4b4bc` -> `text-ui-soft`; `#27272a` -> `bg-ui-raised`; accent-pill colours -> `ui-accent-soft` bg/border tokens. A lint grep in verify (`text-\\[\\d`) keeps it from regrowing.",
   "options": null,
   "why": "Waza \"one type scale\"; uupm \"token-only styling\".",
-  "note": null,
+  "note": "Batch 12: 11 more literals and the four text-[15px] moved to tokens (131 to 120 literals, 58 to 54 sizes); what is left has no exact token.",
   "status": "partial"
  },
  {

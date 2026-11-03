@@ -25,6 +25,8 @@ export interface StatusBarData {
 export interface StatusBarProps extends StatusBarData {
   /** Edit: what the kiosks show ("Kiosks show Main · rotation paused"), a button that opens Live. */
   kioskChip?: string;
+  /** The kiosks' rotation is paused: the chip's dot is amber. */
+  paused?: boolean;
   onNavigate: (target: NavTarget) => void;
   onOpenLive: () => void;
 }
@@ -83,7 +85,7 @@ const SAVE_TEXT: Readonly<Record<SaveState, string>> = {
  * and a pending restart, each a button to its home; the save state at the
  * end. Narrow windows show the dots only. Pure: `useStatusBar` feeds it.
  */
-export function StatusBar({ dataApi, server, kiosks, update, restartNeeded, save, kioskChip, onNavigate, onOpenLive }: StatusBarProps) {
+export function StatusBar({ dataApi, server, kiosks, update, restartNeeded, save, kioskChip, paused, onNavigate, onOpenLive }: StatusBarProps) {
   const latency = typeof dataApi.latencyMs === "number" ? ` · ${dataApi.latencyMs} ms` : "";
   const items: Item[] = [
     {
@@ -146,7 +148,7 @@ export function StatusBar({ dataApi, server, kiosks, update, restartNeeded, save
             TEXT[kiosks > 0 ? "ok" : "idle"]
           )}
         >
-          <span aria-hidden className={cn("h-[7px] w-[7px] shrink-0", DOT[kiosks === 0 ? "idle" : /paused/.test(kioskChip) ? "warn" : "ok"])} />
+          <span aria-hidden className={cn("h-[7px] w-[7px] shrink-0", DOT[kiosks === 0 ? "idle" : paused ? "warn" : "ok"])} />
           <span className="truncate max-[959px]:sr-only">{kioskChip}</span>
         </button>
       )}

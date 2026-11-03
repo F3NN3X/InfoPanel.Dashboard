@@ -497,7 +497,7 @@ function Expanded({ item }: { item: IslandItem }) {
         {item.body && <div className="line-clamp-2 break-words text-[0.86em] opacity-75" title={item.body}>{item.body}</div>}
         {item.progress !== undefined && (
           <div className="mt-[0.35em] h-[0.3em] overflow-hidden rounded-full bg-current/20" role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(item.progress * 100)}>
-            <div className="island-level h-full rounded-full" style={{ width: `${Math.round(item.progress * 100)}%`, background: color }} />
+            <div className="island-level h-full w-full rounded-full" style={{ transform: `translateX(${Math.round(item.progress * 100) - 100}%)`, background: color }} />
           </div>
         )}
       </div>

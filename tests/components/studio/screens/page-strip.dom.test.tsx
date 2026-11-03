@@ -24,7 +24,7 @@ describe("PageStrip", () => {
     render(<PageStrip profile={profile(3)} onOpen={onOpen} />);
     expect(screen.getAllByRole("button")).toHaveLength(3);
     fireEvent.click(screen.getByRole("button", { name: "Open Desk, Page 2" }));
-    expect(onOpen).toHaveBeenCalledWith("pg1");
+    expect(onOpen).toHaveBeenCalledWith("p1", "pg1");
   });
 
   it("is absent for a one-page screen", () => {

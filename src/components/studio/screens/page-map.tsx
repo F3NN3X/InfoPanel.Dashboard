@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Monitor } from "lucide-react";
 import type { MonitorProfile, ProfilePage } from "@/lib/layout";
 import { resolveTheme } from "@/lib/theme";
@@ -8,7 +9,7 @@ import { cn } from "@/lib/utils";
  * grid's cells into the screen's size and letterboxed at its aspect. Synchronous, so a card has an identity before any
  * screenshot exists (Screens' cards and their page strip). A page with nothing visible keeps the monitor glyph.
  */
-export function PageMap({ profile, page, className }: { profile: MonitorProfile; page: ProfilePage | undefined; className?: string }) {
+export const PageMap = memo(function PageMap({ profile, page, className }: { profile: MonitorProfile; page: ProfilePage | undefined; className?: string }) {
   const placements = page?.placements.filter((z) => z.visible) ?? [];
   const cw = profile.width / profile.cols;
   const ch = profile.height / profile.rows;
@@ -35,4 +36,4 @@ export function PageMap({ profile, page, className }: { profile: MonitorProfile;
       )}
     </div>
   );
-}
+});
