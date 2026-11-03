@@ -13,6 +13,21 @@ export function rgbToArgb(css: string): string {
   return m ? `#${hex(alpha(m[4]) * 255)}${hex(Number(m[1]))}${hex(Number(m[2]))}${hex(Number(m[3]))}`.toUpperCase() : "";
 }
 
+/** Any colour the canvas accepts (an `oklab()` a faded color-mix() computes to) as `#AARRGGBB`; "" without a canvas. */
+function canvasArgb(css: string): string {
+  const g = document.createElement("canvas").getContext?.("2d", { willReadFrequently: true });
+  if (!g || !css) return "";
+  g.clearRect(0, 0, 1, 1);
+  g.fillStyle = css;
+  g.fillRect(0, 0, 1, 1);
+  const [r, gr, b, a] = g.getImageData(0, 0, 1, 1).data;
+  const hex = (n: number) => n.toString(16).padStart(2, "0");
+  return `#${hex(a)}${hex(r)}${hex(gr)}${hex(b)}`.toUpperCase();
+}
+
+/** A computed colour as `#AARRGGBB`: by pattern, else through the canvas. */
+const argbOf = (css: string): string => rgbToArgb(css) || canvasArgb(css);
+
 /** A colour InfoPanel can draw: `#AARRGGBB` and not fully see-through. */
 const drawn = (color: string): boolean => /^#[0-9A-F]{8}$/.test(color) && !color.startsWith("#00");
 
@@ -35,8 +50,8 @@ export function surfaceOf(zone: HTMLElement, zoom = 1): { color: string; radius:
   const root = zone.querySelector<HTMLElement>("[data-wp-tier]");
   if (!root) return null;
   const style = getComputedStyle(root);
-  const own = rgbToArgb(style.backgroundColor);
-  const color = drawn(own) ? own : rgbToArgb(exportColor(root));
+  const own = argbOf(style.backgroundColor);
+  const color = drawn(own) ? own : argbOf(exportColor(root));
   if (!drawn(color)) return null;
   return { color, radius: Math.round((parseFloat(style.borderTopLeftRadius) || 0) / zoom) };
 }
