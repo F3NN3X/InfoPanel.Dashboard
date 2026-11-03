@@ -6,6 +6,11 @@ version as its notes, so move **Unreleased** under a new `## [X.Y.Z] - YYYY-MM-D
 
 ## [Unreleased]
 
+### Added
+
+- **Mixer views for Stream Mixer, Volume Mixer and Wave Link.** Besides Rows, each can show **Strips** (channel strips with a fader on a dB scale, a level meter and an LCD readout) or **LCD** (one LCD screen, a line per channel), vertical or horizontal, with options for the strip, fader, scale, meter and LCD. Wave Link's inputs show in every view. Saved mixers keep the Rows look.
+- **Page maps on the Edit page tabs** on hover or focus, a live dot in the Data view, and InfoPanel's own groups as a second chip row in Add.
+
 ### Changed
 
 - **A refinement pass over Studio, Settings, Help, the kiosk and the widgets.** Widget text grows with the frame: at 4x4 the main number and body text scale up, at 2x2 the main number fills the top half, and list rows fill the height. Rings, sparklines (with gridlines and a Peak/Avg/Min row) and units look the same across widgets. ServiceHealth, StatusTracker, Thermals and SteamNews lead with a summary number at 4x4, bar widgets in square frames stack into tiles, and the Audio and OBS buttons and the mixers share one design.
@@ -16,6 +21,9 @@ version as its notes, so move **Unreleased** under a new `## [X.Y.Z] - YYYY-MM-D
 ### Fixed
 
 - The kiosk status bar no longer cuts its readings to "14..." when there is room for them.
+- Network Adapters' compact tile now blurs the IP when **Hide IP** is on.
+- Mixer faders work from the keyboard, and a mixer that can't write can't be reached by keyboard either. **Ctrl+L** and **Ctrl+H** in Layers act on the focused layer.
+- Drive Space draws healthy drives in the accent colour by default; **Neutral below thresholds** turns the grey back on.
 
 ## [1.3.1-beta.7] - 2026-11-02
 
