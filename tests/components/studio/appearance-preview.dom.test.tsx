@@ -23,6 +23,13 @@ describe("AppearancePreview surfaces", () => {
     expect(tileOf({ surface: "neon" }).style.background).toContain("#0a0a0d");
   });
 
+  it("sets the colour --accent the materials mix with (the theme's --accent is an HSL triplet)", () => {
+    expect(tileOf({ surface: "neon", accent: "#ff0000" }).style.getPropertyValue("--accent")).toBe("#ff0000");
+    expect(tileOf({ skin: "cyber", surface: "auto" }).style.getPropertyValue("--accent")).toBe("#f5e642");
+    expect(tileOf({ surface: "tinted" }).style.getPropertyValue("--accent")).toBe("hsl(var(--primary))");
+    expect(tileOf({ skin: "ink", surface: "matte-light" }).style.getPropertyValue("--accent")).toBe("hsl(var(--primary))");
+  });
+
   it("keeps the app's materials and their text tone", () => {
     expect(tileOf({ surface: "matte-light" }).style.getPropertyValue("--w-fg")).toBe("#18181b");
     expect(tileOf({ surface: "glass" }).style.getPropertyValue("--w-fg")).toBe("#f4f4f5");

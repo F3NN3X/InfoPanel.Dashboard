@@ -5,7 +5,7 @@ import { presetTokens, type AppearancePreset } from "@/lib/appearance-presets";
 import { resolveMaterial } from "@/looks/materials";
 import { cn } from "@/lib/utils";
 import { chromeOf } from "@/modules/standard-settings";
-import { resolveSurface, textVars } from "@/widgets/core/theme";
+import { resolveSurface, SKINS, textVars } from "@/widgets/core/theme";
 import { withSkinSurface } from "@/widgets/module";
 
 /** The mini page: the preset's background (a video as its poster), else its theme's page color. */
@@ -31,11 +31,12 @@ function MiniTile({ preset, value, fill }: { preset: AppearancePreset; value: st
   const surf = resolveSurface(String(surface), skin === undefined ? undefined : String(skin));
   const mat = resolveMaterial(surf, { ...chrome, glow: chrome.glow === "none" ? "none" : "soft" });
   const radius = (chrome.radius ?? preset.radius * 16) * 0.3;
-  const accent = chrome.accent || "hsl(var(--primary))";
+  // The colour `--accent` the materials mix with, as the shell sets it: the look's, else the skin's (not on a light card), else the theme's.
+  const accent = chrome.accent || (mat.tone === "light" ? undefined : SKINS[String(skin)]?.accent) || "hsl(var(--primary))";
   return (
     <div
       className={cn("flex min-w-0 flex-1 flex-col justify-between p-1", mat.className)}
-      style={{ ...chromeVars(chrome), ...mat.box, ...textVars(mat.tone, chrome), color: "var(--w-fg)", borderRadius: radius }}
+      style={{ ...chromeVars(chrome), ...mat.box, ...textVars(mat.tone, chrome), "--accent": accent, color: "var(--w-fg)", borderRadius: radius } as CSSProperties}
     >
       <div className="text-nano font-semibold leading-none tabular-nums">{value}</div>
       <div className="h-[2px] w-full rounded-full" style={{ background: "rgb(128 128 128 / 0.25)" }}>

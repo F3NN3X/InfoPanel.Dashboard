@@ -17,6 +17,7 @@ version as its notes, so move **Unreleased** under a new `## [X.Y.Z] - YYYY-MM-D
 - **Heat maps and visualisers start from the card colour.** The coldest colour of an accent ramp (Core Heatmap, CPU Monitor, System Overview, Follow in the visualisers) was always near-black; on a light or theme card it now starts from the card's own fill.
 - **InfoPanel export: warn and crit ring colours on the Theme surface.** They exported as the default blue; they now keep their colour.
 - **InfoPanel export: gradient and glass cards export their card.** A widget exported through its converter on Glass, Tinted, Holo, Carbon, Studio, Vibrancy, Material, Synth, Cyber or Nixie lost its card; it now exports as the material's flat colour (Outline and Flat stay see-through).
+- **Theme thumbnails draw skin and accent-tinted surfaces.** The mini widgets on a theme card lost their background and edge glow on surfaces mixed from the accent (the Cyber, HUD, Neon and Media themes read as plain cards); they now draw them, in the skin's accent where the theme sets none.
 
 ## [1.3.1-beta.8] - 2026-11-03
 
