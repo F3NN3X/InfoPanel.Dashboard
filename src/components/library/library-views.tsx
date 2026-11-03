@@ -103,7 +103,7 @@ export function LibrarySidebar({ active, counts, onPick, onOpenTheme }: { active
         className="flex min-h-[30px] w-full items-center gap-2.5 rounded-[7px] px-2 py-1 text-left text-[12.5px] text-ui-3 hover:bg-ui-hover hover:text-ui-1 max-sm:h-9 max-sm:w-auto max-sm:shrink-0 max-sm:whitespace-nowrap"
       >
         <Palette className="h-4 w-4 shrink-0 text-ui-4" strokeWidth={1.75} />
-        <span className="min-w-0 flex-1">Themes, palettes and skins are in Theme →</span>
+        <span className="min-w-0 flex-1">Looks, saved looks and colors are in Look →</span>
       </button>
     </nav>
   );

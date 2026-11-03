@@ -14,7 +14,7 @@ The editor window: a rail of views on the left, the work area in the middle, and
 |---|---|
 | **Screens** | Your screens: which one opens, sizes, pages, rotation and each screen's own frame rate. **New** opens the New page, where you start from Blank or a template. See [Screens and the grid](profiles). |
 | **Edit** | The canvas, the page tabs and the inspector, for a grid screen or an InfoPanel profile. The left panel switches between **Layers** (every part of the page in one tree, see [Layers](studio#layers)) and **Add** (see [Add](studio#add)), which has tabs for **Widgets** (the widgets, InfoPanel's items and elements, as tiles), **Panels** (yours and the presets) and **Layouts** (starters). See [InfoPanel profiles in Edit](infopanel-editor) for profiles. |
-| **Theme** | One editor for the look at every level, with your saved themes, palettes and skins. See [Themes](themes). |
+| **Look** | One editor for the look at every level: the Look gallery, its knobs, your saved looks and colors. See [Themes](themes). |
 | **Library** | Your Styles, Panels, gauges, media, fonts and canvases. See [Library](library). |
 | **Gauges** | Browse, edit and build gauges. See [Gauges](gauges). |
 | **Alerts & Island** | Alert rules, defaults and history, and the Dynamic Island. See [Dynamic Island and alerts](island-alerts). |
@@ -74,7 +74,7 @@ Every page works the same way. Widgets sit on the grid's cells, and InfoPanel it
 Click an empty part of the canvas, or choose **Page settings** in a tab's menu, and the inspector shows the page as **Page · {name}**:
 
 - **GRID** has **Snap items to grid**. With it on, items and elements snap to the cells and `Alt` places one freely. With it off they move to the pixel and `Alt` snaps one to the cells. Widgets always snap. Each change is one undo step.
-- **Name**, **Size** and **Columns × rows**, then **Gap**, **Theme** and **Rotation**. Columns × rows reflows everything on the cells; items placed freely keep their pixels. If a widget wouldn't fit in the new grid, the change is refused with a message naming it, for example *CPU gauge and Weather don't fit in 3 × 2. Make room first.* Past three widgets it counts the rest: *CPU gauge, GPU gauge, Clock and 15 more don't fit in 2 × 1.*
+- **Name**, **Size** and **Columns × rows**, then **Gap**, **Look** and **Rotation**. Columns × rows reflows everything on the cells; items placed freely keep their pixels. If a widget wouldn't fit in the new grid, the change is refused with a message naming it, for example *CPU gauge and Weather don't fit in 3 × 2. Make room first.* Past three widgets it counts the rest: *CPU gauge, GPU gauge, Clock and 15 more don't fit in 2 × 1.*
 - **Icon**, the sections this page sets apart from its screen's theme, **Show on kiosks now**, and **Duplicate page** and **Delete page**.
 
 The rest of the screen's settings (fit, padding, performance, the island and which displays show it) are under **Screen settings…** in the title bar's screen menu.

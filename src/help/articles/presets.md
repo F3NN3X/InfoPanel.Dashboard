@@ -13,9 +13,9 @@ Starting points you can drop in and adjust: whole pages, single panels, and look
 | Layout starters | One sensor-free panel; each widget asks for a sensor | **Add › Layouts** |
 | Panel presets | One panel already bound to sensors (samples) | **Add › Panels** |
 | Panels | Panels you saved | **Add › Panels** (under My panels), **Library › Panels** |
-| Styles | One widget's look | Style tab, **Start from a Style**, **Library › Styles** |
-| Saved themes and template themes | A whole look for a screen or a page | **Theme › Switch theme** |
-| Skins and palettes | One part of a theme | The **Skin** and **Palette** rows of the theme card in **Theme** |
+| Widget looks | One widget's look | Style tab, **Start from a saved look**, **Library › Widget looks** |
+| Looks, saved looks and template looks | A whole look for a screen or a page | **Look**: the gallery and **Saved and template looks** |
+| Colors | One part of a look | The **Colors** row of the look card in **Look** |
 
 ## Layout starters
 
@@ -37,6 +37,6 @@ A skin is how every widget is drawn. Pick one on the **Skin** row of the theme c
 
 ## Saved themes and palettes
 
-**Save as theme** on a custom look's card, or **+ Save current look as a theme** in **Switch theme**, keeps the level's palette, skin, corners, background and fine-tune. **Switch theme** applies a saved theme or a template's look to a screen or a page; it brings its background unless you tick **Keep my background**. On a page a theme brings its skin and fine-tune only. Rename, duplicate or delete a saved theme from its **⋯** there.
+**Save look** on a custom look's card, or **+ Save current look** in **Saved and template looks**, keeps the level's colors, Look, corners, background and fine-tune. The gallery and **Saved and template looks** apply a Look, a saved look or a template's look to a screen or a page; it brings its background unless you tick **Keep my background**. On a page a look brings its Look and fine-tune only. Rename, duplicate or delete a saved look from its **⋯** there.
 
-**+ Save current colors as a palette** in the Palette picker keeps the 19 color tokens as a palette of your own. See [Themes](themes).
+**+ Save current colors as a palette** in the Colors picker keeps the 19 color tokens as a palette of your own. See [Themes](themes).
