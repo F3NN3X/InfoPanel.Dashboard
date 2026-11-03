@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { PANEL_ID, type DashboardConfig, type Placement, type ProfileView } from "@/lib/layout";
 import type { LibraryItem } from "@/lib/library";
-import { imagePanel, useForSelectionBlocked, type StudioBridge } from "@/components/library/library-actions";
+import { imagePanel, presetOf, useForSelectionBlocked, type StudioBridge } from "@/components/library/library-actions";
 import { dropLibraryItem } from "@/components/library/library-drop";
 
 const grid = { cols: 6, rows: 4, width: 1200, height: 800 };
@@ -42,6 +42,18 @@ describe("library style drops (G16)", () => {
     expect(b.updateProfile).toHaveBeenCalledTimes(1);
     expect(b.addCopy).toHaveBeenCalledWith(preset, expect.objectContaining({ profileId: "p", zoneId: "a", label: "Neon style" }));
     expect(b.toast).toHaveBeenCalledWith("Applied Neon to the widget");
+  });
+
+  it("a style saved before v17 (a `skin`) applies as its Look", async () => {
+    const legacy = item({ kind: "style", name: "Hud", data: { id: "s2", name: "Hud", settings: { skin: "hud", accent: "#fff" } } });
+    const { b, zones } = bridge([zone("a")]);
+    await dropLibraryItem(b, { id: legacy.id, item: legacy }, null, { col: 1, row: 1 });
+    expect(zones()[0].settings).toEqual({ label: "keep", lookId: "hud", accent: "#fff" });
+  });
+
+  it("a panel saved before v17 places with its Look", async () => {
+    const saved = item({ kind: "panel", name: "Old", data: { id: "p1", name: "Old", panel, settings: { skin: "tui", accent: "#fff" } } });
+    expect((await presetOf(saved, grid))?.settings).toEqual({ lookId: "tui", accent: "#fff" });
   });
 
 });

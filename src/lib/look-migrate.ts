@@ -12,8 +12,8 @@ export const lookOfStoredSkin = (skin: unknown): string => (typeof skin === "str
 
 const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
 
-/** Every `skin` key under `value` as a `lookId` (a value that isn't text stays a `skin`, which nothing reads). */
-function renamed(value: unknown): unknown {
+/** Every `skin` key under `value` as a `lookId`, idempotent (also run on a legacy library item when it is read) (a value that isn't text stays a `skin`, which nothing reads). */
+export function renamed(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(renamed);
   if (!isRecord(value)) return value;
   return Object.fromEntries(
