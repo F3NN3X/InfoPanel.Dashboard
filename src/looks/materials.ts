@@ -132,6 +132,8 @@ export interface Material {
    * Unset on a material whose background is one colour already: that is its export.
    */
   export?: string | null;
+  /** The base colour data-viz ramps start from (`--w-fill`); unset = the export colour (see-through: transparent). */
+  fill?: string;
   /** Classes: the CSS border takes layout room, so the edge stays a class. */
   c: string;
   /** The paint. */
@@ -178,15 +180,16 @@ const SKIN: Record<string, Paint> = {
   instrument: m("solid", "border", { background: "#161A20", borderColor: "#29303A" }),
 };
 
-const app = (name: ModernStyle, kind: MaterialKind, tone: SurfaceTone, exp?: string): Paint => {
+const app = (name: ModernStyle, kind: MaterialKind, tone: SurfaceTone, exp?: string, fill?: string): Paint => {
   const colors = makeSurface(name, null);
   // surfaceBox with no look = today's box: background, text colour and the 1px edge.
-  return { ...m(kind, "", surfaceBox(colors, undefined), exp), tone, colors };
+  return { ...m(kind, "", surfaceBox(colors, undefined), exp), tone, colors, ...(fill ? { fill } : null) };
 };
 
 /** The app's materials under their stored names; they render exactly as the modern widgets draw them. */
 const APP: Record<ModernStyle, Paint> = {
-  glass: app("glass", "glass", "dark", "rgba(24, 24, 27, 0.9)"),
+  // D10: Classic glass is a 0.85 to 0.55 tint of rgb(24 24 27) with no blur; its ramps start from that colour.
+  glass: app("glass", "glass", "dark", "rgba(24, 24, 27, 0.9)", "rgb(24, 24, 27)"),
   "matte-light": app("matte-light", "solid", "light"),
   "matte-dark": app("matte-dark", "solid", "dark"),
   theme: app("theme", "solid", "theme"),
@@ -274,6 +277,8 @@ export interface ResolvedMaterial {
   scrim: string;
   /** The flat colour for export; null when see-through. */
   export: string | null;
+  /** The colour data-viz ramps start from. */
+  fill: string;
   /** A glass card with a backdrop blur: its background at `BLUR_FALLBACK_ALPHA`, drawn where the blur is off. */
   fallback?: string;
 }
@@ -302,6 +307,7 @@ export function resolveMaterial(mat: Material, chrome?: ModernChrome, colors?: S
     patch: patchOf(box.background, mat.tone),
     scrim: scrimOf(mat.tone),
     export: exp && opacity < 1 ? fadeBackground(exp, opacity) : exp,
+    fill: mat.fill ?? exp ?? "transparent",
     // A faded card keeps the opacity the look asked for.
     ...(mat.kind === "glass" && opacity >= 1 && box.backdropFilter && box.backdropFilter !== "none" ? { fallback: opaquer(String(box.background), BLUR_FALLBACK_ALPHA) } : null),
   };
@@ -320,6 +326,8 @@ export function materialVars(r: ResolvedMaterial): CSSProperties {
     "--w-mat-shadow": boxShadow ?? "none",
     "--w-mat-blur": backdropFilter ?? "none",
     "--w-mat-export": r.export ?? "transparent",
+    // The ramp start (looks/data-viz.ts RAMP_BASE). The light and theme text sets write their own after it.
+    "--w-fill": r.fill,
     ...(r.fallback ? { "--w-mat-fallback": r.fallback } : null),
   } as CSSProperties;
 }

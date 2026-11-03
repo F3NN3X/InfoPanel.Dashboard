@@ -1,9 +1,9 @@
 // The data-viz values widgets read at run time: colour ramps, rings, the glide time. The Classic Look's T3 table
 // (src/looks/t3.ts) is built from these, so a widget and the contract cannot drift apart.
 
-/** Where a ramp starts when the material gives it nothing: the shell sets `--w-fill` on a light or theme card. */
+/** Where a ramp starts outside a widget card: the shell sets `--w-fill` from every card's material (looks/materials.ts). */
 export const RAMP_START = "#18181c";
-/** The coldest colour of a ramp: the material's fill (`--w-fill`), `RAMP_START` on a dark card. */
+/** The coldest colour of a ramp: the material's fill (`--w-fill`), else `RAMP_START`. */
 export const RAMP_BASE = `var(--w-fill, ${RAMP_START})`;
 
 /** Colour ramps for heatmaps and visualisers: stop lists by name (`accent` is built from the accent and the material). */

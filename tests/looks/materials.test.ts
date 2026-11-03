@@ -160,6 +160,15 @@ describe("materialVars", () => {
 
   it("sets every variable, so a nested card never inherits its parent's", () => {
     const v = materialVars(resolveMaterial(MATERIALS.flat)) as Record<string, unknown>;
-    expect(v).toEqual({ "--w-mat-bg": "transparent", "--w-mat-shadow": "none", "--w-mat-blur": "none", "--w-mat-export": "transparent" });
+    expect(v).toEqual({ "--w-mat-bg": "transparent", "--w-mat-shadow": "none", "--w-mat-blur": "none", "--w-mat-export": "transparent", "--w-fill": "transparent" });
+  });
+
+  it("starts ramps from every material's own fill (ledger L22)", () => {
+    const fill = (id: string) => (materialVars(resolveMaterial(MATERIALS[id])) as Record<string, unknown>)["--w-fill"];
+    expect(fill("glass")).toBe("rgb(24, 24, 27)");
+    expect(fill("solid")).toBe("#141418");
+    expect(fill("tinted")).toBe("color-mix(in srgb, var(--accent) 5%, #131316)");
+    expect(fill("matte-light")).toBe("rgb(244, 244, 245)");
+    expect(fill("outline")).toBe("transparent");
   });
 });
