@@ -84,3 +84,7 @@ The owner approved all phases (investigation §11) and every proposed change abo
 6. Defaults that move on purpose are confirmed: Classic is pinned to today's values and new defaults apply to new Looks only, except two intended fixes on Classic (the ramp start colour in P3a, `ok` on light materials in P6). Axis-label stays `faint` on Classic and is `muted` for new Looks.
 7. Per-pack budgets are accepted as in investigation §11.1: each set to measured + 25 % when the pack is built, ceiling 500 KB, only down afterwards; layer budget 1 per card plus 3 per page.
 8. NowPlaying cover blur (`src/widgets/NowPlaying.tsx:117`) is allow-listed in the D9 blur lint as decorative art, but switched off in lite mode. Limit blur does not cap it.
+
+## Owner authorisation (2026-11-03, during P5a)
+
+The owner gave explicit authority to finish every phase (P5a to P12) as the plan recommends, without asking at each gate. Budget rises are approved at their measured size, each recorded with its reason in its own commit and in the phase record. Decisions taken under this authority follow the plan's recommendations and are written into this log and `progress.md` as they are made.
