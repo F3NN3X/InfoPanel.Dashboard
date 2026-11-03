@@ -579,7 +579,7 @@ export function ThemeEditor({ config, scope: requested, profileId, pageId, onPic
                 kind={kind}
                 update={updateText ? { text: updateText, onUpdate: saved ? () => presets.update(saved.id, at) : undefined } : undefined}
                 onSave={saveTheme}
-                saveName={kind === "template" ? `${name} copy` : ""}
+                saveName={kind === "template" ? `${name} copy` : `My ${lookName} look`}
               />
             }
             onFollow={(list) => setConfig((c) => followAll(c, list))}

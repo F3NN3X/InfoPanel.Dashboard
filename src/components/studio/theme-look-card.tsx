@@ -71,12 +71,14 @@ export interface ThemeUpdateBarProps {
 
 /**
  * The Update bar, in the preview's header beside the zoom: once a part of a theme changed, what Update changes, with
- * Update ‹name› (a saved theme) and Save as new; a custom or deleted look offers Save as theme. Nothing otherwise.
+ * Update ‹name› (a saved theme) and Save as new; any other look (custom, deleted, a Look or a template's) offers Save
+ * look. Nothing otherwise.
  */
 export function ThemeUpdateBar(p: ThemeUpdateBarProps) {
   const [saving, setSaving] = useState(false);
   const saved = p.kind === "saved";
-  if (!(saving || p.update !== undefined || p.kind === "custom" || p.kind === "deleted")) return null;
+  // A built-in Look or template look can always be kept as a saved look, with what was changed on top of it.
+  if (!(saving || p.update !== undefined || p.kind !== "saved")) return null;
   return (
     <div
       className={cn(
