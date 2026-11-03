@@ -116,19 +116,13 @@ export interface SkinTokens {
   ring: number;
 }
 
-/** A surface as a skin pack declares it: Tailwind classes + inline style. */
-export interface SurfaceSpec {
-  c: string;
-  s: CSSProperties;
-}
-
 export interface SkinPack {
   name: string;
   description: string;
   /** Font catalog ids (`lib/fonts.ts`), loaded by `ensureSkinFonts`. */
   fonts: string[];
+  /** The skin's own card is `skin.surface`, a material in `src/looks/materials.ts`. */
   skin: Partial<SkinTokens>;
-  surfaces: Record<string, SurfaceSpec>;
 }
 
 /** What `useSkin()` returns: the skin's tokens plus the resolved graph / meter and the look's factors. */

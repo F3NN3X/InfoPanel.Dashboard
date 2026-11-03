@@ -1,6 +1,5 @@
 import type { CSSProperties } from "react";
-import { makeSurfacePalette, type ModernStyle } from "@/components/surfaces";
-import { surfaceBox } from "@/components/widget-style";
+import { MATERIALS, makeSurfacePalette, resolveMaterial, type ModernStyle } from "@/looks/materials";
 import { chromeOf } from "@/modules/standard-settings";
 import type { ModuleSettings } from "@/modules/types";
 import { Widget, shell, has, Img, Chip, MediaProgress, roomy, scaleX, type MediaProgressMode, type ShellProps } from "./kit";
@@ -108,7 +107,7 @@ export default function NowPlaying(p: NowPlayingProps) {
   const surfaceName = String(p.look?.surface ?? p.surface ?? "glass");
   const palette = artTint && TINTABLE.includes(surfaceName) ? makeSurfacePalette(surfaceName as ModernStyle, artTint) : null;
   const sh = shell(p);
-  const style: CSSProperties | undefined = palette ? { ...sh.style, background: surfaceBox(palette, p.look ? chromeOf(p.look) : undefined).background } : sh.style;
+  const style: CSSProperties | undefined = palette ? { ...sh.style, background: resolveMaterial(MATERIALS[surfaceName], p.look ? chromeOf(p.look) : undefined, palette).box.background } : sh.style;
   const backdrop =
     p.artBackground && cover ? (
       <div

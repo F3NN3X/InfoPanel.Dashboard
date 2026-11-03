@@ -1,14 +1,14 @@
 // @vitest-environment happy-dom
 import { describe, expect, it } from "vitest";
 import { surfaceOf } from "../../../../src/lib/infopanel/native/convert-view.ts";
-import { SURFACES } from "../../../../src/widgets/core/theme.ts";
+import { MATERIALS } from "../../../../src/looks/materials.ts";
 
 /** A zone whose widget root is drawn with the surface's own inline style. */
 function zoneOf(name: string): HTMLElement {
   const el = document.createElement("div");
   const root = document.createElement("div");
   root.dataset.wpTier = "md";
-  for (const [k, v] of Object.entries(SURFACES[name].s)) (root.style as unknown as Record<string, unknown>)[k] = v;
+  for (const [k, v] of Object.entries(MATERIALS[name].s)) (root.style as unknown as Record<string, unknown>)[k] = v;
   el.append(root);
   document.body.append(el);
   return el;
@@ -20,11 +20,11 @@ function zoneOf(name: string): HTMLElement {
 // where Chromium measured 12 (docs/investigations/look-system.md section 5). It pins the code path, not Chromium's colours.
 describe("surfaceOf over every registered surface", () => {
   it("covers all 27 surfaces", () => {
-    expect(Object.keys(SURFACES)).toHaveLength(27);
+    expect(Object.keys(MATERIALS)).toHaveLength(27);
   });
 
   it("is today's table", () => {
-    const table = Object.fromEntries(Object.keys(SURFACES).map((n) => [n, surfaceOf(zoneOf(n))]));
+    const table = Object.fromEntries(Object.keys(MATERIALS).map((n) => [n, surfaceOf(zoneOf(n))]));
     expect(table).toMatchInlineSnapshot(`
       {
         "aurora": null,

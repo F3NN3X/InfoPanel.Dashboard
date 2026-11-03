@@ -3,8 +3,8 @@ import { createContext, useContext, type CSSProperties } from "react";
 import { RAMP_BASE, RAMP_START, RAMPS } from "@/looks/data-viz";
 import { DARK_TEXT, DEFAULT_ACCENT } from "@/looks/palette";
 import { STATUS, STATUS_LIGHT } from "@/looks/status";
+import { DEFAULT_MATERIAL, MATERIALS, type Material, type SurfaceTone } from "@/looks/materials";
 import { clamp } from "./data";
-import { BASE_SURFACES, DEFAULT_SURFACE, LEGACY_SURFACES, type SurfaceDef, type SurfaceTone } from "./surfaces";
 import { defaultSkin } from "./skins/default";
 import { tuiSkin } from "./skins/tui";
 import { macosSkin } from "./skins/macos";
@@ -24,12 +24,7 @@ import type { SkinContext, SkinPack, SkinTokens, Tone } from "./types";
 /* ───────── shell ───────── */
 // Skin packs: one file per skin in core/skins/. Order = picker order.
 export const SKIN_PACKS: SkinPack[] = [defaultSkin, tuiSkin, macosSkin, fluentSkin, hudSkin, inkSkin, retroSkin, iosSkin, androidSkin, synthSkin, brutalSkin, cyberSkin, nixieSkin, instrumentSkin];
-// Skin-native surfaces are all dark materials. The app's materials go last so their names always win.
-const SKIN_SURFACES: Record<string, SurfaceDef> = Object.fromEntries(
-  SKIN_PACKS.flatMap((p) => Object.entries(p.surfaces).map(([name, s]) => [name, { ...s, tone: "dark" as const }]))
-);
-export const SURFACES: Record<string, SurfaceDef> = { ...BASE_SURFACES, ...SKIN_SURFACES, ...LEGACY_SURFACES };
-export const SURFACE_NAMES = Object.keys(SURFACES);
+export const SURFACE_NAMES = Object.keys(MATERIALS);
 export const SKINS: Record<string, Partial<SkinTokens>> = Object.fromEntries(SKIN_PACKS.map((p) => [p.name, p.skin]));
 export const SKIN_NAMES = Object.keys(SKINS);
 
@@ -38,10 +33,10 @@ export const SKIN_NAMES = Object.keys(SKINS);
  * studio variant, `solid` without one), unset = the app default (`glass`). Unknown names fall
  * back to the default too.
  */
-export function resolveSurface(surface: string | undefined, skin: string | undefined, studio = false): SurfaceDef {
+export function resolveSurface(surface: string | undefined, skin: string | undefined, studio = false): Material {
   const sk = SKINS[skin ?? "default"] ?? SKINS.default;
-  const name = !surface ? DEFAULT_SURFACE : surface === "auto" ? sk.surface ?? (studio ? "studio" : "solid") : surface;
-  return SURFACES[name] ?? SURFACES[DEFAULT_SURFACE];
+  const name = !surface ? DEFAULT_MATERIAL : surface === "auto" ? sk.surface ?? (studio ? "studio" : "solid") : surface;
+  return MATERIALS[name] ?? MATERIALS[DEFAULT_MATERIAL];
 }
 
 /* ───────── text colours (decision 5) ─────────

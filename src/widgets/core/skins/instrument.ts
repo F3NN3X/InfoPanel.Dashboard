@@ -8,8 +8,4 @@ export const instrumentSkin: SkinPack = {
   fonts: ["ibm-plex-sans", "ibm-plex-mono", "archivo"],
   // tokens read by <Widget>, primitives and views via useSkin()
   skin: { surface: "instrument", radius: 10, accent: "#7D95FF", font: "'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif", num: "'Archivo','IBM Plex Sans',sans-serif", numWeight: 700, numStretch: "82%", graph: "area", meter: "bar", header: "instrument", ring: 1.1 },
-  // skin-native surfaces (registered into SURFACES)
-  surfaces: {
-    instrument: { c: "border", s: { background: "#161A20", borderColor: "#29303A" } },
-  },
 };

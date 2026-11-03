@@ -18,7 +18,7 @@ import { meterZones } from "./level-source";
 import { Icon } from "./primitives";
 import { MIXER_GAP, mixerFit, thinTicks, type MixerFit } from "./mixer-fit";
 import type { MixerLook } from "./mixer-look";
-import type { SurfaceTone } from "./surfaces";
+import type { SurfaceTone } from "@/looks/materials";
 import { resolveSurface } from "./theme";
 import "./mixer-views.css";
 

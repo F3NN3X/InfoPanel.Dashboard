@@ -8,8 +8,4 @@ export const tuiSkin: SkinPack = {
   fonts: ["jetbrains-mono"],
   // tokens read by <Widget>, primitives and views via useSkin()
   skin: { surface: "tui", radius: 6, font: "'JetBrains Mono','Geist Mono',ui-monospace,monospace", num: "'JetBrains Mono','Geist Mono',monospace", graph: "braille", meter: "blocks", header: "tui", ring: 0.8 },
-  // skin-native surfaces (registered into SURFACES)
-  surfaces: {
-    tui: { c: "", s: { background: "#0b0b0d" } },
-  },
 };

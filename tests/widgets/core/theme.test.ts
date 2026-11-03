@@ -1,8 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { makeSurface } from "@/components/surfaces";
+import { MATERIALS, makeSurface } from "@/looks/materials";
 import { mix, hue } from "@/widgets/core/tokens";
-import { LEGACY_SURFACES } from "@/widgets/core/surfaces";
-import { SKIN_PACKS, SURFACES, TEXT_VARS, resolveSurface, textVars, tone } from "@/widgets/core/theme";
+import { SKIN_PACKS, TEXT_VARS, resolveSurface, textVars, tone } from "@/widgets/core/theme";
 
 describe("colour helpers", () => {
   it("mixes and rotates the accent", () => {
@@ -24,9 +23,9 @@ describe("colour helpers", () => {
 describe("surface registry", () => {
   it("keeps the app's materials with today's output", () => {
     for (const name of ["glass", "matte-light", "matte-dark", "theme"] as const) {
-      const s = SURFACES[name];
+      const s = MATERIALS[name];
       const today = makeSurface(name, null);
-      expect(s).toBe(LEGACY_SURFACES[name]);
+      expect(s.origin).toBe("app");
       expect(s.colors).toEqual(today);
       expect(s.s.background).toBe(today.background);
       expect(s.s.boxShadow).toBe(`inset 0 0 0 1px ${today.ring}`);
@@ -36,19 +35,19 @@ describe("surface registry", () => {
   it("resolves every skin's own surface", () => {
     for (const pack of SKIN_PACKS) {
       const name = pack.skin.surface;
-      if (name) expect(SURFACES[name], `${pack.name} → ${name}`).toBeDefined();
-      expect(resolveSurface("auto", pack.name)).toBe(SURFACES[name ?? "solid"]);
+      if (name) expect(MATERIALS[name], `${pack.name} → ${name}`).toBeDefined();
+      expect(resolveSurface("auto", pack.name)).toBe(MATERIALS[name ?? "solid"]);
     }
   });
 
   it("defaults to glass, studio for an auto studio variant", () => {
-    expect(resolveSurface(undefined, "default")).toBe(SURFACES.glass);
-    expect(resolveSurface("", "ios")).toBe(SURFACES.glass);
-    expect(resolveSurface("nope", "default")).toBe(SURFACES.glass);
-    expect(resolveSurface("auto", "default", true)).toBe(SURFACES.studio);
-    expect(resolveSurface("auto", "ios", true)).toBe(SURFACES.ios);
-    expect(resolveSurface("auto", "unknown-skin")).toBe(SURFACES.solid);
-    expect(resolveSurface("neon", "default")).toBe(SURFACES.neon);
+    expect(resolveSurface(undefined, "default")).toBe(MATERIALS.glass);
+    expect(resolveSurface("", "ios")).toBe(MATERIALS.glass);
+    expect(resolveSurface("nope", "default")).toBe(MATERIALS.glass);
+    expect(resolveSurface("auto", "default", true)).toBe(MATERIALS.studio);
+    expect(resolveSurface("auto", "ios", true)).toBe(MATERIALS.ios);
+    expect(resolveSurface("auto", "unknown-skin")).toBe(MATERIALS.solid);
+    expect(resolveSurface("neon", "default")).toBe(MATERIALS.neon);
   });
 });
 

@@ -2,12 +2,13 @@
 // look, picks the view.
 import { createContext, useContext, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { chromeVars, numGlowAttr, scopedCss, zoomFor, type DesignSizeSpec } from "@/components/widget-style";
+import { resolveMaterial } from "@/looks/materials";
 import { chromeOf } from "@/modules/standard-settings";
 import type { ModuleSettings } from "@/modules/types";
 import { DESIGN_SIZE, ROOMY_SCALE, RoomyCtx, heroPx, roomy, summaryShape, useBox, type Box } from "./layout";
 import { mix } from "./tokens";
 import { SKINS, SkinCtx, resolveSurface, textVars } from "./theme";
-import { bodyFlags, forcedTier, lookBox, patchBackground, resolveAccent, scrimFor, shellPad, skinContext, untitled, withUserLook } from "./look";
+import { bodyFlags, forcedTier, resolveAccent, shellPad, skinContext, untitled, withUserLook } from "./look";
 import { ensureSkinFonts } from "./fonts";
 import { CompactView, StudioView, SkinHeader } from "./views";
 import type { Compact, ShellProps, Studio, Tier } from "./types";
@@ -124,7 +125,8 @@ export function Widget({ title, icon, iconOverride, accent, surface, radius, siz
   const header = !isStudio && showHeader && titled && heading && (tui || (!useCompact && box.size !== "xs"));
   const css = chrome?.customCss ? scopedCss(scope, chrome.customCss) : "";
   const background = chrome?.backgroundOn && chrome.background ? chrome.background : "";
-  const surfBox = lookBox(surf, chrome);
+  const mat = resolveMaterial(surf, chrome);
+  const surfBox = mat.box;
   const big = roomy(box.w, box.h);
   const rootStyle = {
     // The look's Corner radius, else the theme's (Theme › Shape & spacing, `--radius`), like panels.
@@ -142,20 +144,20 @@ export function Widget({ title, icon, iconOverride, accent, surface, radius, siz
   return (
     <SkinCtx.Provider value={ctx}>
       <RoomyCtx.Provider value={big}>
-      <PaneCtx.Provider value={{ className: surf.c, style: surfBox }}>
-      <div ref={ref} style={rootStyle} data-wp-scope={css ? scope : undefined} {...numGlowAttr(chrome)} data-wp-tier={box.size} data-wp-roomy={big ? "" : undefined} data-wp-shape={box.shape} data-wp-view={isStudio ? "studio" : useCompact ? "compact" : "body"} className={`relative flex h-full w-full min-w-0 flex-col overflow-hidden antialiased ${surf.c} ${className}`}>
+      <PaneCtx.Provider value={{ className: mat.className, style: surfBox }}>
+      <div ref={ref} style={rootStyle} data-wp-scope={css ? scope : undefined} {...numGlowAttr(chrome)} data-wp-tier={box.size} data-wp-roomy={big ? "" : undefined} data-wp-shape={box.shape} data-wp-view={isStudio ? "studio" : useCompact ? "compact" : "body"} className={`relative flex h-full w-full min-w-0 flex-col overflow-hidden antialiased ${mat.className} ${className}`}>
         {css && <style>{css}</style>}
         {background && (
           <>
             <img src={background} alt="" aria-hidden className="absolute inset-0 h-full w-full object-cover" />
-            <div className="absolute inset-0" style={{ background: scrimFor(surf.tone) }} />
+            <div className="absolute inset-0" style={{ background: mat.scrim }} />
           </>
         )}
         {backdrop}
         {tui && <div className="pointer-events-none absolute inset-[5px] rounded-[4px] border" style={{ borderColor: mix(45, "#3f3f46") }} />}
         {skin === "hud" && HUD_CORNERS.map((c) => <span key={c} className={`pointer-events-none absolute h-2.5 w-2.5 ${c}`} style={{ borderColor: "var(--accent)" }} />)}
         <div className={`relative flex min-h-0 min-w-0 flex-1 flex-col ${pad.className}`} style={{ ...pad.style, ...(zoom !== 1 ? { zoom } : null) }}>
-          {header && <SkinHeader kind={sk.header} title={heading} icon={headIcon} right={useCompact ? undefined : right} bleed={bleed} bg={patchBackground(surfBox.background, surf.tone)} w={box.w} />}
+          {header && <SkinHeader kind={sk.header} title={heading} icon={headIcon} right={useCompact ? undefined : right} bleed={bleed} bg={mat.patch} w={box.w} />}
           <div ref={cref} data-wp-body="" {...bodyFlags(chrome)} className="relative min-h-0 flex-1">
             {isStudio ? (
               <StudioView c={sObj!} w={box.w} h={box.h} icon={headIcon} />

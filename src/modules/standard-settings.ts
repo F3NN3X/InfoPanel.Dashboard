@@ -1,7 +1,7 @@
 import type { ModernChrome } from "@/components/modern-chrome";
 import { GLOW_LEVELS } from "@/lib/effects/glow";
 import { FONT_CATALOG } from "@/lib/fonts";
-import { BASE_SURFACES } from "@/widgets/core/surfaces";
+import { MATERIALS } from "@/looks/materials";
 import { SKIN_PACKS } from "@/widgets/core/theme";
 import { THEMED_KEYS } from "@/lib/theme-model";
 import { alignOf } from "./setting-readers";
@@ -66,7 +66,7 @@ const APP_SURFACE_OPTIONS = [
 ];
 
 /** Every surface a widget can pick by name: the app's materials, then the generic ones. */
-export const SURFACE_OPTIONS = [...APP_SURFACE_OPTIONS, ...Object.keys(BASE_SURFACES).map((v) => ({ value: v, label: v[0].toUpperCase() + v.slice(1) }))];
+export const SURFACE_OPTIONS = [...APP_SURFACE_OPTIONS, ...Object.keys(MATERIALS).filter((v) => MATERIALS[v].origin === "base").map((v) => ({ value: v, label: v[0].toUpperCase() + v.slice(1) }))];
 
 /** Size, alignment, spacing, colors and type — every widget gets these. */
 export const STYLE_SETTINGS: ModuleSetting[] = [
