@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { defaultPalette } from "../../../../src/lib/infopanel/elements/palette.ts";
 import { cssToArgb, decompose, hideTagged, readTagged, shownAs } from "../../../../src/lib/infopanel/native/decompose.ts";
 import { fontSizeOf, type ConvertContext } from "../../../../src/lib/infopanel/native/items.ts";
@@ -119,6 +119,27 @@ describe("a value's item and the picture under it", () => {
     // The arc's box grows by half the stroke each side (happy-dom has no svg layout: the stroke is read at scale 1).
     expect(gauge.X).toBe(5);
     expect(gauge.Width).toBe(100);
+  });
+});
+
+describe("a ring's colour", () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  /** Chromium serialises a `color-mix()` stroke (the Theme surface's warn and crit rings) as oklab(); only a canvas turns it into rgb. */
+  it("is resolved through the canvas when the stroke is an oklab() the export can't read", () => {
+    const oklab = "oklab(0.62 0.21 0.13)";
+    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockImplementation((() => ({
+      clearRect: () => {},
+      fillRect: () => {},
+      fillStyle: "",
+      getImageData: () => ({ data: [220, 38, 38, 255] }),
+    })) as never);
+    const root = document.createElement("div");
+    root.innerHTML = `<svg viewBox="0 0 100 100"><circle data-ip-key="libre.cpu_total" data-ip-kind="ring" r="45" stroke-width="10" style="stroke:${oklab}"></circle></svg>`;
+    document.body.append(root);
+    root.querySelector<SVGElement>("[data-ip-kind=ring]")!.getBoundingClientRect = () => ({ left: 0, top: 0, width: 90, height: 90 }) as DOMRect;
+    const [gauge] = decompose(root, { x: 0, y: 0, w: 100, h: 100 }, ctx()) as unknown as { vector: { fill: { color: string } } }[];
+    expect(gauge.vector.fill.color.toUpperCase()).toBe("#DC2626");
   });
 });
 

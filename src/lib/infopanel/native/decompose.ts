@@ -257,7 +257,8 @@ function readOne(el: HTMLElement, origin: DOMRect, zoom: number): Tagged | null 
       return {
         ...base,
         box: { x: box.x - grow, y: box.y - grow, w: box.w + thickness, h: box.h + thickness },
-        color: getComputedStyle(el).stroke || base.color,
+        // A color-mix() stroke is an oklab() in Chromium, which cssToArgb can't read: the canvas turns it into rgb.
+        color: ((css) => resolveColor(css, el) ?? css)(getComputedStyle(el).stroke || base.color),
         thickness,
         start: num(el.dataset.ipStart) ?? 0,
         sweep: num(el.dataset.ipSweep) ?? 360,
