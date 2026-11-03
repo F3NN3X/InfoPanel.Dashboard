@@ -6,6 +6,10 @@ version as its notes, so move **Unreleased** under a new `## [X.Y.Z] - YYYY-MM-D
 
 ## [Unreleased]
 
+### Changed
+
+- **Limit blur now caps InfoPanel canvas cards too.** A card with a backdrop blur above 12 px draws at 12 px while Limit blur is on (the default); the export keeps the full radius.
+
 ### Fixed
 
 - **InfoPanel export: warn and crit ring colours on the Theme surface.** They exported as the default blue; they now keep their colour.

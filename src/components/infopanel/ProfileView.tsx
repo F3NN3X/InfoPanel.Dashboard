@@ -4,7 +4,8 @@
  * (font-loader), images come from the export's assets or their URLs.
  */
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { backdropFilter } from "@/lib/effects/blur.ts";
+import { clampBlur } from "@/lib/effects/blur.ts";
+import { cappedBlur } from "@/components/widget-style";
 import type { CardSpec } from "@/lib/infopanel/elements/spec.ts";
 import type { ExportEntry } from "@/lib/infopanel/archive.ts";
 import { FontLoader, nameFont, type ResolvedFont } from "@/lib/infopanel/font-loader.ts";
@@ -136,7 +137,8 @@ function Placeholder({ width: w, height: h }: { width: number; height: number })
 /** A card's frosted glass: the blur of what is drawn before it, over the card's rounded box (the card's own image goes on top). */
 function Frosted({ spec, width, height }: { spec: CardSpec; width: number; height: number }) {
   const [w, h] = [Math.max(0, width - 2 * spec.pad), Math.max(0, height - 2 * spec.pad)];
-  const filter = backdropFilter(spec.blur ?? 0);
+  // the blur goes through the cap (Limit blur) like every backdrop blur on a kiosk page; the export bake keeps the full radius
+  const filter = `blur(${cappedBlur(clampBlur(spec.blur ?? 0))}) saturate(1.25)`;
   return (
     <div
       aria-hidden

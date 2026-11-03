@@ -33,6 +33,7 @@ describe("Limit blur", () => {
     "src/components/widgets/panel-overlay.tsx",
     "src/components/alerts/alert-layer.tsx",
     "src/components/island/island-look.ts",
+    "src/components/infopanel/ProfileView.tsx",
   ])("%s has no backdrop blur outside the cap", (file) => {
     expect(uncapped(readFileSync(file, "utf8"))).toEqual([]);
   });
