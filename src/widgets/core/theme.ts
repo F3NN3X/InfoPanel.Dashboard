@@ -1,5 +1,6 @@
 // Theme tokens: surfaces, skins, state colours, text colours, colour ramps, skin context and tone helpers.
 import { createContext, useContext, type CSSProperties } from "react";
+import { RAMP_BASE, RAMP_START, RAMPS } from "@/looks/data-viz";
 import { DARK_TEXT, DEFAULT_ACCENT } from "@/looks/palette";
 import { STATUS, STATUS_LIGHT } from "@/looks/status";
 import { clamp } from "./data";
@@ -46,16 +47,17 @@ export function resolveSurface(surface: string | undefined, skin: string | undef
 /* ───────── text colours (decision 5) ─────────
    The shell sets these on its root from the surface's tone; views and primitives read them, so
    text stays legible on light materials and follows the theme on the theme surface. */
-export type TextVars = Record<"--w-fg" | "--w-muted" | "--w-faint" | "--w-track", string> & Partial<Record<"--w-warn" | "--w-crit", string>>;
+export type TextVars = Record<"--w-fg" | "--w-muted" | "--w-faint" | "--w-track", string> & Partial<Record<"--w-warn" | "--w-crit" | "--w-fill", string>>;
 export const TEXT_VARS: Record<SurfaceTone, TextVars> = {
   dark: { "--w-fg": DARK_TEXT.fg, "--w-muted": DARK_TEXT.muted, "--w-faint": "#8a8a94", "--w-track": "rgba(255,255,255,.07)" },
   // light and theme surfaces darken the warn / crit text so it keeps contrast (dark surfaces use STATE as is)
-  light: { "--w-fg": "#18181b", "--w-muted": "#52525b", "--w-faint": "#636366", "--w-track": "rgba(24,24,27,.1)", "--w-warn": STATUS_LIGHT.warn, "--w-crit": STATUS_LIGHT.crit },
+  light: { "--w-fg": "#18181b", "--w-muted": "#52525b", "--w-faint": "#636366", "--w-track": "rgba(24,24,27,.1)", "--w-fill": "#f4f4f5", "--w-warn": STATUS_LIGHT.warn, "--w-crit": STATUS_LIGHT.crit },
   theme: {
     "--w-fg": "hsl(var(--card-foreground))",
     "--w-muted": "hsl(var(--muted-foreground))",
     "--w-faint": "hsl(var(--muted-foreground))",
     "--w-track": "color-mix(in oklab, hsl(var(--card-foreground)) 9%, transparent)",
+    "--w-fill": "hsl(var(--card))",
     "--w-warn": `color-mix(in oklab, ${STATUS.warn} 60%, hsl(var(--card-foreground)))`,
     "--w-crit": `color-mix(in oklab, ${STATUS.crit} 60%, hsl(var(--card-foreground)))`,
   },
@@ -68,24 +70,16 @@ export function textVars(tone: SurfaceTone, colors?: { textColor?: string; muted
   return v as CSSProperties;
 }
 
-/* Colour ramps for heatmaps & visualisers. rampColor(t 0-1, name, accentHex) → css rgb() */
-export const RAMPS: Record<string, string[] | null> = {
-  accent: null,
-  thermal: ["#1e3a8a", "#0ea5e9", "#22c55e", "#facc15", "#f97316", "#ef4444"],
-  viridis: ["#440154", "#3b528b", "#21918c", "#5ec962", "#fde725"],
-  magma: ["#000004", "#3b0f70", "#8c2981", "#de4968", "#fe9f6d", "#fcfdbf"],
-  ice: ["#0b1020", "#1e3a5f", "#2f7fb5", "#7dd3fc", "#f0f9ff"],
-  synth: ["#12062a", "#6b1ea8", "#ff4fd8", "#ff9e5e", "#ffe66d"],
-  mono: ["#18181b", "#52525b", "#a1a1aa", "#fafafa"],
-};
+/* Colour ramps for heatmaps & visualisers (stop lists in looks/data-viz.ts). rampColor(t 0-1, name, accentHex, base) → css rgb(); the accent ramp starts from `base`, the material fill */
+export { RAMPS };
 const hex = (h: string): number[] => {
   const s = String(h).replace("#", "");
   const f = s.length === 3 ? s.split("").map((c) => c + c).join("") : s;
   return [0, 2, 4].map((i) => parseInt(f.slice(i, i + 2), 16) || 0);
 };
-export const rampColor = (t: number, name = "accent", accentHex = DEFAULT_ACCENT): string => {
+export const rampColor = (t: number, name = "accent", accentHex = DEFAULT_ACCENT, base = RAMP_START): string => {
   t = Math.min(1, Math.max(0, t));
-  const stops = RAMPS[name] ?? ["#18181c", accentHex];
+  const stops = RAMPS[name] ?? [base, accentHex];
   const x = t * (stops.length - 1),
     i = Math.min(stops.length - 2, Math.floor(x)),
     f = x - i;
@@ -131,7 +125,7 @@ export const TONES: Record<Tone | "muted", string> = { ok: "var(--accent)", warn
 // 0-100 → colour for heatmaps. ramp 'accent' (accent intensity) or 'thermal' (blue → green → amber → red)
 export const heat = (v: number, ramp = "accent"): string => {
   const t = clamp(v) / 100;
-  return ramp === "accent" || !RAMPS[ramp] ? `color-mix(in oklab, var(--accent) ${8 + t * 92}%, #18181c)` : rampColor(t, ramp);
+  return ramp === "accent" || !RAMPS[ramp] ? `color-mix(in oklab, var(--accent) ${8 + t * 92}%, ${RAMP_BASE})` : rampColor(t, ramp);
 };
 export const tone = (v: number, warn?: number, crit?: number): Tone =>
   Number.isFinite(v) && crit != null && v >= crit ? "crit" : Number.isFinite(v) && warn != null && v >= warn ? "warn" : "ok";

@@ -14,6 +14,7 @@ version as its notes, so move **Unreleased** under a new `## [X.Y.Z] - YYYY-MM-D
 
 ### Fixed
 
+- **Heat maps and visualisers start from the card colour.** The coldest colour of an accent ramp (Core Heatmap, CPU Monitor, System Overview, Follow in the visualisers) was always near-black; on a light or theme card it now starts from the card's own fill.
 - **InfoPanel export: warn and crit ring colours on the Theme surface.** They exported as the default blue; they now keep their colour.
 
 ## [1.3.1-beta.8] - 2026-11-03

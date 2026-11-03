@@ -8,7 +8,7 @@ Filled in during stage 2 (see `02-implementation-runbook.md`, section 4). Every 
 | P0 | look/p0-guardrails | done, awaiting go (2026-11-03) | none on screen; export: warn and crit rings export amber and red instead of blue (intended fix) | |
 | P1 | look/p1-single-sources | done (2026-11-03) | none | |
 | P2 | look/p2-performance | done (2026-11-03) | none for widgets; InfoPanel canvas cards with blur above 12 px get 12 px with Limit blur on (intended) | |
-| P3a | look/p3a-data-viz-tokens | not started | ramp start colour moves to the material fill (intended fix) | |
+| P3a | look/p3a-data-viz-tokens | done (2026-11-03) | ramp start colour moves to the material fill (intended fix) | |
 | P3b | look/p3b-material-registry | not started | intended: `brutal` shadow moves inside the card edge; export draws the 12 dropped cards; Look thumbnails fixed; Classic otherwise none | |
 | P4 | look/p4-variable-families | not started | none | |
 | P5 | look/p5-look-contract-ui | not started | studio UI only; untouched widgets identical | |
@@ -86,6 +86,19 @@ Filled in during stage 2 (see `02-implementation-runbook.md`, section 4). Every 
   - Importing `AUDIO` from `widgets/audio-device` into the registry pulls that module into the kiosk entry (+700 B gzip); the registry uses string literals instead.
   - The studio entry is already above its budget (inside the slack); a phase that grows the studio will hit the limit. Ledger L18.
   - Any new readsAll widget that reads audio keys must declare them, or the scan test in `tests/components/studio/placement-content.test.ts` fails.
+
+## P3a: T3 data-viz tokens
+- Plan entry: [docs/investigations/look-system.md, section 11, P3a](../investigations/look-system.md)
+- Report:
+  - `src/looks/t3.ts`: the 78 T3 names (`T3_TOKENS`) and Classic's value for each (`CLASSIC_T3`; literals, numbers, `{alias}`); build-time only, in no bundle. `src/looks/data-viz.ts`: the run-time values (RAMPS, `RAMP_START`/`RAMP_BASE`, ring spec, `GLIDE_MS`), imported by `theme.ts`, `primitives.tsx`, `viz/palette.ts`. The audiocn meter and mute vars in `mixer-views.css` are now generated from `CLASSIC_T3`. `ok` (T1, accent) and `status-ok` (T3, `STATUS.ok`) both stay.
+  - Ramp start: accent ramps (`heat()`, `rampColor`, the visualiser Follow dim) start from `var(--w-fill, #18181c)`. The shell sets `--w-fill` only on light (`#f4f4f5`) and theme (`hsl(var(--card))`) cards, so dark cards and every non-heat markup are byte-identical (v8 parity changes only the 64 heat strings, checked by a replace-and-compare run). `look-visual` changes: `matte-light-CoreHeatmap.png` and `matte-light-SystemOverview.png` only (their coldest cells now start from the light card); glass images unchanged.
+  - Coverage test `tests/looks/t3.test.ts` (D13): Classic defines every required token and no other, aliases resolve, values match the code; ramp start pinned per tone.
+  - Kiosk 276,863 B gzip (+21 B; budget 276,847, limit 277,123), studio 617,175 B (+28 B, over its budget, inside slack). Budgets not edited.
+- Things to know:
+  - Not done: the 10 skin-id branches are still branches (no `ext` replacement), the 9 additions (`num-stretch`, ...) exist as contract names only, and T3 vars are not emitted per theme scope. Each costs kiosk bytes and has no pixel to show yet; they belong with P4 (variable families) and P8.
+  - Dark materials other than the default keep `#18181c` as the ramp start (`solid` is `#141418`, gradients have no single fill): `--w-fill` is written for light and theme only. P3b's `--w-mat-*` replaces it.
+  - `motion-fast`, `motion-base`, `ease-standard`, `series-stroke` and similar have no consumer yet; their Classic values are the contract's, not measured from code.
+  - `CoreHeatmap` waterfall resolves `--w-fill` through the canvas (`fillStyle` round trip) so it matches the CSS heat cells.
 
 ## Ledger: known issues and deferred work
 

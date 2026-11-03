@@ -28,6 +28,7 @@ const read = (rel) => lf(readFileSync(join(root, rel), "utf8"));
 export async function generate() {
   const { STATUS } = await load("src/looks/status.ts");
   const { DEFAULT_ACCENT, DARK_TEXT } = await load("src/looks/palette.ts");
+  const { CLASSIC_T3, cssOf } = await load("src/looks/t3.ts");
   const { STUDIO_TWINS } = await load("src/looks/studio.ts");
   const { DEFAULT_THEME } = await load("src/lib/theme.ts");
   const out = new Map();
@@ -56,21 +57,22 @@ export async function generate() {
   );
 
   const mixer = "src/widgets/core/mixer-views.css";
-  const warn = STATUS.warn.toLowerCase();
-  const crit = STATUS.crit.toLowerCase();
+  const t3 = (name) => cssOf(CLASSIC_T3[name]).toLowerCase();
   out.set(
     mixer,
     replaceBlock(
       read(mixer),
       "audiocn-status",
-      "STATUS (src/looks/status.ts)",
+      "CLASSIC_T3 (src/looks/t3.ts)",
       [
-        `--destructive: from var(--w-crit, ${crit}) h s l;`,
-        `--meter-warn: var(--w-warn, ${warn});`,
-        `--meter-clip: var(--w-crit, ${crit});`,
-        `--meter-clip-foreground: var(--w-crit, ${crit});`,
-        `--channel-mute: var(--wl-mute, var(--w-crit, ${crit}));`,
-        `--channel-mute-foreground: var(--wl-mute, var(--w-crit, ${crit}));`,
+        `--destructive: from ${t3("status-crit")} h s l;`,
+        `--meter-ok: var(--wl-live, ${t3("meter-ok")});`,
+        `--meter-ok-foreground: var(--wl-live, ${t3("meter-ok")});`,
+        `--meter-warn: ${t3("meter-warn")};`,
+        `--meter-clip: ${t3("meter-clip")};`,
+        `--meter-clip-foreground: ${t3("meter-clip")};`,
+        `--channel-mute: var(--wl-mute, ${t3("mute")});`,
+        `--channel-mute-foreground: var(--wl-mute, ${t3("mute")});`,
       ],
       "  ",
     ),

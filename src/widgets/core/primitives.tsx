@@ -2,6 +2,7 @@
 // Text and track colours come from the shell's --w-* variables (decision 5); labels, alignment and gaps follow
 // the standard look's --wp-* variables, with the primitive's own value as the fallback.
 import { createContext, useContext, useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from "react";
+import { GLIDE_MS, RING_GAP, RING_T, RING_TRACK } from "@/looks/data-viz";
 import { has, clamp, fmt } from "./data";
 import { mix } from "./tokens";
 import { useSkin, STATE, TONES, tone, numGlowStyle } from "./theme";
@@ -103,12 +104,6 @@ export interface BarProps {
   /** Cells of the segments / blocks styles (default 24 / 14). */
   segments?: number;
 }
-/** How long a smooth bar or ring glides to a new reading: about one sample interval of the feed. */
-const GLIDE_MS = 1000;
-/** The one ring spec, in % of the diameter (the svg is 100 wide): stroke 7.5, gap between stacked rings 2, an empty track that reads on every surface. */
-const RING_T = 7.5;
-const RING_GAP = 2;
-const RING_TRACK = "color-mix(in oklab, var(--w-fg) 12%, transparent)";
 /** A ring's stroke never draws thinner than this on screen, so a small ring keeps a line you can see. */
 const RING_MIN_PX = 6;
 /** The ring stroke in viewBox units for a ring `diameter` px across: the spec, or more where that would be under `RING_MIN_PX`. */

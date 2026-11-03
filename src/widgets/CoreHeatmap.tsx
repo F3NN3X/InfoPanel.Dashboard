@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { RAMP_START } from "@/looks/data-viz";
 import { readCpuFlat } from "@/lib/system-metrics";
 import type { ModuleSettings } from "@/modules/types";
 import { Widget, shell, get, num, fmt, heat, rampColor, accentOf, hw, Num, useIpTag, STATE, type ShellProps } from "./kit";
@@ -92,6 +93,9 @@ export default function CoreHeatmap(p: CoreHeatmapProps) {
     if (!ctx) return;
     ctx.scale(dpr, dpr);
     ctx.clearRect(0, 0, w, h);
+    // the material's fill as a hex: the canvas serialises any opaque colour it accepts that way
+    ctx.fillStyle = getComputedStyle(cv).getPropertyValue("--w-fill").trim() || RAMP_START;
+    const base = String(ctx.fillStyle);
     const acc = accentOf(cv),
       cols = p.history ?? 60,
       rows = cores.length || 1,
@@ -99,7 +103,7 @@ export default function CoreHeatmap(p: CoreHeatmapProps) {
       rh = h / rows;
     hist.current.forEach((col, x) =>
       col.forEach((v, y) => {
-        ctx.fillStyle = ramp === "accent" ? rampColor(v / 100, "accent", acc) : rampColor(v / 100, ramp);
+        ctx.fillStyle = ramp === "accent" ? rampColor(v / 100, "accent", acc, base) : rampColor(v / 100, ramp);
         ctx.fillRect((cols - hist.current.length + x) * cw, y * rh, Math.ceil(cw) + 0.5, Math.max(1, rh - 1));
       })
     );
