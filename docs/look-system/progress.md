@@ -12,7 +12,7 @@ Filled in during stage 2 (see `02-implementation-runbook.md`, section 4). Every 
 | P3b | look/p3b-material-registry | done (2026-11-03; budgets raised with owner approval; 12 sample themes added) | intended: `brutal` offset inside the card edge; export draws 10 of the 12 dropped cards (outline and flat stay see-through); Look thumbnails fixed; blurred glass at 0.90 over a solid page; ramps start from every material; Classic otherwise none | |
 | P3b samples | look/p3b-material-registry | done (2026-11-03) | none for Classic; 12 new themes and cards, selectable in the Theme view | |
 | P4 | look/p4-variable-families | done (2026-11-03) | none (variable renames and aliases only) | |
-| P5 | look/p5-look-contract-ui | not started | studio UI only; untouched widgets identical | |
+| P5 | look/p5a-look-contract, look/p5b-look-ui | not started (owner split it into P5a contract and migration, P5b gallery and knobs) | studio UI only; untouched widgets identical | |
 | P6 | look/p6-light-mode | not started | light materials only: `ok` and accent text darken (intended) | |
 | P7 | look/p7-clean-up | not started | minor: Settings accent text darker, 13 near-twin greys, native select border, alerts take the widget crit red | |
 | P8 | look/p8-slot-plumbing | not started | none with Classic, except 9 icons that draw `CircleDashed` today (intended fix) | |
@@ -190,7 +190,7 @@ Open items carried between phases. Each phase adds what it finds or defers, and 
 | L3 | P0 | Sensor-store message counts not re-measured; re-measure with the audio fix | P2 | closed in P2 |
 | L4 | Stage 1 | Weather `weather_desc` text exports white on `matte-light` (§12 Q6) | owner call, not scheduled | open |
 | L5 | Stage 1 | Two "ok" colours: `TONES.ok` follows the accent, `STATE.ok` is `#3CC97F` (§12 Q1) | owner call before P3a | closed: owner kept both (`ok` in T1, fixed `status-ok` in T3), 2026-11-03 |
-| L6 | Stage 1 | "Material" vs "Surface" as the UI word (§12 Q2) | P5 | open |
+| L6 | Stage 1 | "Material" vs "Surface" as the UI word (§12 Q2) | P5 | closed: owner chose "Surface" for the UI (code and contract keep material, `--w-mat-*`), 2026-11-03 |
 | L7 | Stage 1 | Where the widget decoration opt-out lives (§12 Q3; plan assumes a widget setting) | P9 | open |
 | L8 | Stage 1 | Studio entry headroom 474 B: P5 gallery stays lazy (§12 Q4) | P5 | open |
 | L9 | Stage 1 | Kiosk idle with no input device (§12 Q5; recommended input-only) | P9 | open |
