@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1280">
+<title>Field Kit gaming page</title>
+<!-- Static export of canvas board FieldKitGaming.dc.html (1280x720). Reference only: production packs bundle fonts locally. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&amp;family=Barlow:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Barlow',system-ui,sans-serif}
+a{color:#1A1C21}a:hover{color:#000}
+.fk-card{position:relative;background:#EFE8D8;border-radius:6px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 0 0 1px #2A2D33,0 10px 24px rgba(0,0,0,.45);min-height:0}
+.fk-tab{display:flex;justify-content:space-between;align-items:center;background:#1A1C21;color:#EFE8D8;padding:7px 14px;font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:15px;letter-spacing:.1em;text-transform:uppercase}
+.fk-tab span{color:#A8A296;font-weight:500}
+.fk-label{font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:#5E5A52}
+.fk-num{font-family:'Barlow Condensed',sans-serif;font-weight:700;color:#1A1C21;font-variant-numeric:tabular-nums;line-height:1}
+.fk-unit{font-size:.55em;font-weight:600;color:#5E5A52;margin-left:3px}
+.fk-seg{position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 9px,#EFE8D8 9px 12px)}
+.fk-track{position:relative;height:12px;background:#D3C9B3}
+.fk-track i{position:absolute;left:0;top:0;bottom:0;background:#1A1C21}
+.fk-corner{position:absolute;right:0;bottom:0;width:22px;height:22px}
+.fk-mute{min-width:44px;min-height:44px;border:0;border-radius:22px;background:#1A1C21;color:#EFE8D8;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:.06em;cursor:pointer}
+</style>
+<style>html,body{margin:0;background:#1e1e1e}</style>
+</head>
+<body>
+<div style="width:1280px;height:720px;position:relative;overflow:hidden;background:radial-gradient(120% 90% at 70% 40%,#22252B 0%,#121418 60%,#0B0C0E 100%);box-sizing:border-box">
+  <svg aria-hidden="true" width="1280" height="720" viewBox="0 0 1280 720" style="position:absolute;inset:0;opacity:.16">
+    <g fill="none" stroke="#C9B48A" stroke-width="1.2" transform="rotate(-14 900 360)">
+      <ellipse cx="900" cy="360" rx="190" ry="120"></ellipse><ellipse cx="910" cy="365" rx="270" ry="175"></ellipse><ellipse cx="920" cy="370" rx="360" ry="235"></ellipse><ellipse cx="930" cy="380" rx="460" ry="300"></ellipse><ellipse cx="945" cy="390" rx="570" ry="370"></ellipse>
+    </g>
+  </svg>
+  <div aria-hidden="true" style="position:absolute;left:0;top:0;bottom:0;width:12px;background:repeating-linear-gradient(-45deg,#F2C230 0 12px,#1A1C21 12px 24px)"></div>
+  <div style="position:absolute;inset:0;padding:20px 24px 24px 40px;box-sizing:border-box;display:flex;flex-direction:column;gap:16px">
+    <div style="display:flex;align-items:center;gap:20px;align-self:flex-start;background:rgba(18,20,24,.92);border:1px solid #2A2D33;border-radius:6px;padding:8px 16px;font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:16px;letter-spacing:.08em;text-transform:uppercase;color:#EFE8D8">
+      <span style="display:flex;align-items:center;gap:8px"><span style="width:12px;height:12px;background:#F2C230;display:inline-block"></span>Field Kit · Gaming</span>
+      <span style="color:#A8A296">In match</span><span>22:28</span><span><span style="color:#A8A296">FPS</span> 144</span><span><span style="color:#A8A296">Ping</span> 18 ms</span>
+    </div>
+    <div style="flex:1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:1fr 1fr .9fr;gap:16px;min-height:0">
+      <div class="fk-card" style="grid-row:span 2">
+        <div class="fk-tab">Framerate <span>Live</span></div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:14px;padding:18px 20px">
+          <div><div class="fk-num" style="font-size:132px;font-weight:800">144</div><div class="fk-label" style="font-size:15px;margin-top:4px">Frames per second · cap 144</div></div>
+          <svg viewBox="0 0 560 120" preserveAspectRatio="none" width="100%" height="70" role="img" aria-label="Frames per second over the last minute">
+            <polyline points="0.0,28.5 19.3,25.5 38.6,30.0 57.9,24.0 77.2,31.5 96.6,28.5 115.9,27.0 135.2,33.0 154.5,25.5 173.8,28.5 193.1,30.0 212.4,72.0 231.7,31.5 251.0,27.0 270.3,28.5 289.7,30.0 309.0,25.5 328.3,28.5 347.6,31.5 366.9,27.0 386.2,28.5 405.5,30.0 424.8,96.0 444.1,33.0 463.4,28.5 482.8,27.0 502.1,30.0 521.4,28.5 540.7,25.5 560.0,31.5" fill="none" stroke="#1A1C21" stroke-width="2.5" vector-effect="non-scaling-stroke"></polyline>
+          </svg>
+          <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:auto">
+            <div style="background:#1A1C21;padding:10px 12px;border-radius:4px"><div class="fk-label" style="color:#A8A296">Avg</div><div class="fk-num" style="font-size:30px;color:#EFE8D8">141</div></div>
+            <div style="background:#1A1C21;padding:10px 12px;border-radius:4px"><div class="fk-label" style="color:#A8A296">1% low</div><div class="fk-num" style="font-size:30px;color:#EFE8D8">112</div></div>
+            <div style="background:#1A1C21;padding:10px 12px;border-radius:4px"><div class="fk-label" style="color:#A8A296">0.1% low</div><div class="fk-num" style="font-size:30px;color:#F2C230">96</div></div>
+          </div>
+        </div>
+        <div class="fk-corner" style="background:linear-gradient(135deg,transparent 50%,#F2C230 50%)"></div>
+      </div>
+      <div class="fk-card" style="grid-column:span 2">
+        <div class="fk-tab">Frame time <span>Budget 6.9 ms · 144 Hz</span></div>
+        <div style="flex:1;display:flex;gap:20px;padding:14px 20px 12px;min-height:0">
+          <div style="display:flex;flex-direction:column;justify-content:space-between;flex:none">
+            <div><div class="fk-label">Now</div><div class="fk-num" style="font-size:44px">7.1<span class="fk-unit">ms</span></div></div>
+            <div><div class="fk-label">p99</div><div class="fk-num" style="font-size:24px">9.8<span class="fk-unit">ms</span></div></div>
+            <div><div class="fk-label" style="color:#A8340F">Spikes</div><div class="fk-num" style="font-size:24px;color:#A8340F">2</div></div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;min-width:0">
+            <svg viewBox="0 0 560 120" preserveAspectRatio="none" width="100%" height="100%" role="img" aria-label="Frame time over the last 40 frames, two spikes above budget" style="flex:1">
+              <line x1="0" y1="48" x2="560" y2="48" stroke="#CFC5AE" stroke-dasharray="3 4"></line>
+              <line x1="0" y1="85.2" x2="560" y2="85.2" stroke="#A8340F" stroke-width="1.5" stroke-dasharray="6 4" vector-effect="non-scaling-stroke"></line>
+              <polyline points="0.0,84.0 14.4,85.2 28.7,82.8 43.1,86.4 57.4,81.6 71.8,84.0 86.2,85.2 100.5,79.2 114.9,82.8 129.2,86.4 143.6,84.0 157.9,50.4 172.3,80.4 186.7,85.2 201.0,84.0 215.4,82.8 229.7,86.4 244.1,84.0 258.5,81.6 272.8,85.2 287.2,84.0 301.5,82.8 315.9,28.8 330.3,79.2 344.6,84.0 359.0,85.2 373.3,82.8 387.7,84.0 402.1,86.4 416.4,81.6 430.8,84.0 445.1,82.8 459.5,85.2 473.8,84.0 488.2,67.2 502.6,81.6 516.9,84.0 531.3,85.2 545.6,82.8 560.0,84.0" fill="none" stroke="#1A1C21" stroke-width="2" vector-effect="non-scaling-stroke"></polyline>
+              <circle cx="157.9" cy="50.4" r="5" fill="#A8340F"></circle><circle cx="315.9" cy="28.8" r="5" fill="#A8340F"></circle>
+            </svg>
+            <div style="display:flex;justify-content:space-between;font-family:ui-monospace,monospace;font-size:11px;color:#5E5A52"><span>−40 frames</span><span>10 ms grid · red line = budget</span><span>now</span></div>
+          </div>
+        </div>
+        <div class="fk-corner" style="background:linear-gradient(135deg,transparent 50%,#C2410C 50%)"></div>
+      </div>
+      <div class="fk-card">
+        <div class="fk-tab">Thermals <span>Power</span></div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:10px;padding:12px 18px">
+          <div><div style="display:flex;justify-content:space-between"><span class="fk-label" style="color:#1A1C21">GPU</span><span class="fk-num" style="font-size:18px;color:#A8340F">72°C</span></div><div class="fk-track"><i style="width:72%;background:#A8340F"></i><div class="fk-seg"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between"><span class="fk-label" style="color:#1A1C21">CPU</span><span class="fk-num" style="font-size:18px">61°C</span></div><div class="fk-track"><i style="width:61%"></i><div class="fk-seg"></div></div></div>
+          <div style="display:flex;justify-content:space-between"><span class="fk-label">Board power</span><span class="fk-num" style="font-size:18px">286<span class="fk-unit">W</span></span></div>
+          <div style="display:flex;justify-content:space-between"><span class="fk-label">Fans</span><span class="fk-num" style="font-size:18px">1,640<span class="fk-unit">rpm</span></span></div>
+        </div>
+      </div>
+      <div class="fk-card">
+        <div class="fk-tab">GPU <span>Load</span></div>
+        <div style="flex:1;display:flex;align-items:center;justify-content:center;gap:14px;padding:10px 14px">
+          <div style="position:relative;width:104px;height:104px;flex:none">
+            <svg viewBox="0 0 120 120" width="104" height="104" role="img" aria-label="GPU load 67 percent">
+              <defs><mask id="fgGpu"><circle cx="60" cy="60" r="50" fill="none" stroke="#fff" stroke-width="16" pathLength="100" stroke-dasharray="67 100" transform="rotate(-90 60 60)"></circle></mask></defs>
+              <circle cx="60" cy="60" r="50" fill="none" stroke="#D3C9B3" stroke-width="12" pathLength="100" stroke-dasharray="2.6 1.4" transform="rotate(-90 60 60)"></circle>
+              <circle cx="60" cy="60" r="50" fill="none" stroke="#1A1C21" stroke-width="12" pathLength="100" stroke-dasharray="2.6 1.4" transform="rotate(-90 60 60)" mask="url(#fgGpu)"></circle>
+            </svg>
+            <div class="fk-num" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:30px">67<span class="fk-unit">%</span></div>
+          </div>
+          <div><div class="fk-label">VRAM</div><div class="fk-num" style="font-size:22px">11.8<span class="fk-unit">/24 GB</span></div><div class="fk-label" style="margin-top:8px">Clock</div><div class="fk-num" style="font-size:22px">1,980<span class="fk-unit">MHz</span></div></div>
+        </div>
+      </div>
+      <div class="fk-card">
+        <div class="fk-tab">Network <span>EU-North</span></div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:8px;padding:10px 18px">
+          <div class="fk-num" style="font-size:60px">18<span class="fk-unit">ms</span></div>
+          <div style="display:flex;gap:18px"><div><div class="fk-label">Jitter</div><div class="fk-num" style="font-size:20px">2<span class="fk-unit">ms</span></div></div><div><div class="fk-label">Loss</div><div class="fk-num" style="font-size:20px">0.0<span class="fk-unit">%</span></div></div><div><div class="fk-label">▼</div><div class="fk-num" style="font-size:20px">84<span class="fk-unit">Mb/s</span></div></div></div>
+        </div>
+        <div class="fk-corner" style="background:linear-gradient(135deg,transparent 50%,#3E7D55 50%)"></div>
+      </div>
+      <div class="fk-card" style="grid-column:span 4">
+        <div class="fk-tab">Audio mixer <span>Output: Headset</span></div>
+        <div style="flex:1;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:22px;padding:14px 20px;align-items:center">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline"><span class="fk-label" style="color:#1A1C21;font-size:15px">Game</span><span class="fk-num" style="font-size:22px">78</span></div>
+            <div style="display:flex;align-items:center;gap:10px"><div class="fk-track" role="slider" aria-label="Game volume" aria-valuemin="0" aria-valuemax="100" aria-valuenow="78" tabindex="0" style="flex:1;height:10px"><i style="width:78%"></i><span style="position:absolute;left:78%;top:-6px;width:8px;height:22px;margin-left:-4px;background:#F2C230;box-shadow:0 0 0 2px #1A1C21"></span></div><button type="button" class="fk-mute" aria-label="Mute Game" aria-pressed="false">M</button></div>
+            <div role="meter" aria-label="Game level" aria-valuemin="-60" aria-valuemax="0" aria-valuenow="-12" class="fk-track" style="height:8px"><i style="width:80%;background:#3E7D55"></i><div class="fk-seg"></div></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline"><span class="fk-label" style="color:#1A1C21;font-size:15px">Chat</span><span class="fk-num" style="font-size:22px">62</span></div>
+            <div style="display:flex;align-items:center;gap:10px"><div class="fk-track" role="slider" aria-label="Chat volume" aria-valuemin="0" aria-valuemax="100" aria-valuenow="62" tabindex="0" style="flex:1;height:10px"><i style="width:62%"></i><span style="position:absolute;left:62%;top:-6px;width:8px;height:22px;margin-left:-4px;background:#F2C230;box-shadow:0 0 0 2px #1A1C21"></span></div><button type="button" class="fk-mute" aria-label="Mute Chat" aria-pressed="false">M</button></div>
+            <div role="meter" aria-label="Chat level" aria-valuemin="-60" aria-valuemax="0" aria-valuenow="-18" class="fk-track" style="height:8px"><i style="width:70%;background:#3E7D55"></i><div class="fk-seg"></div></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline"><span class="fk-label" style="color:#1A1C21;font-size:15px">Music</span><span class="fk-num" style="font-size:22px">35</span></div>
+            <div style="display:flex;align-items:center;gap:10px"><div class="fk-track" role="slider" aria-label="Music volume" aria-valuemin="0" aria-valuemax="100" aria-valuenow="35" tabindex="0" style="flex:1;height:10px"><i style="width:35%"></i><span style="position:absolute;left:35%;top:-6px;width:8px;height:22px;margin-left:-4px;background:#F2C230;box-shadow:0 0 0 2px #1A1C21"></span></div><button type="button" class="fk-mute" aria-label="Mute Music" aria-pressed="false">M</button></div>
+            <div role="meter" aria-label="Music level" aria-valuemin="-60" aria-valuemax="0" aria-valuenow="-24" class="fk-track" style="height:8px"><i style="width:60%;background:#3E7D55"></i><div class="fk-seg"></div></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline"><span class="fk-label" style="color:#1A1C21;font-size:15px">Mic <span style="background:#A8340F;color:#EFE8D8;padding:1px 6px;border-radius:2px;margin-left:4px">Live</span></span><span class="fk-num" style="font-size:22px">70</span></div>
+            <div style="display:flex;align-items:center;gap:10px"><div class="fk-track" role="slider" aria-label="Mic volume" aria-valuemin="0" aria-valuemax="100" aria-valuenow="70" tabindex="0" style="flex:1;height:10px"><i style="width:70%"></i><span style="position:absolute;left:70%;top:-6px;width:8px;height:22px;margin-left:-4px;background:#F2C230;box-shadow:0 0 0 2px #1A1C21"></span></div><button type="button" class="fk-mute" aria-label="Mute Mic" aria-pressed="false">M</button></div>
+            <div role="meter" aria-label="Mic level" aria-valuemin="-60" aria-valuemax="0" aria-valuenow="-9" class="fk-track" style="height:8px"><i style="width:85%;background:#C2410C"></i><div class="fk-seg"></div></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;opacity:.75">
+            <div style="display:flex;justify-content:space-between;align-items:baseline"><span class="fk-label" style="color:#1A1C21;font-size:15px">System</span><span class="fk-num" style="font-size:22px">50</span></div>
+            <div style="display:flex;align-items:center;gap:10px"><div class="fk-track" role="slider" aria-label="System volume" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" tabindex="0" style="flex:1;height:10px"><i style="width:50%;background:#8C8578"></i><span style="position:absolute;left:50%;top:-6px;width:8px;height:22px;margin-left:-4px;background:#8C8578;box-shadow:0 0 0 2px #1A1C21"></span></div><button type="button" class="fk-mute" aria-label="Unmute System" aria-pressed="true" style="background:#A8340F">M</button></div>
+            <div class="fk-label" style="color:#A8340F">Muted</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
