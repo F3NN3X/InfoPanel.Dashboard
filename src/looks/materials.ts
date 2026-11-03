@@ -273,7 +273,16 @@ export interface ResolvedMaterial {
   scrim: string;
   /** The flat colour for export; null when see-through. */
   export: string | null;
+  /** A glass card with a backdrop blur: its background at `BLUR_FALLBACK_ALPHA`, drawn where the blur is off. */
+  fallback?: string;
 }
+
+/** A glass card's least fill alpha where its backdrop blur is off (D10: 0.85 fails muted text over white, 0.90 passes). */
+export const BLUR_FALLBACK_ALPHA = 0.9;
+
+/** `background` with every rgba() alpha below `alpha` raised to it. */
+const opaquer = (background: string, alpha: number): string =>
+  background.replace(/rgba\(([^,()]+),([^,()]+),([^,()]+),\s*([\d.]+)\s*\)/g, (all, r, g, b, a) => (Number(a) < alpha ? `rgba(${r},${g},${b}, ${alpha})` : all));
 
 /**
  * One card's material: `mat` with the look's border, glow, opacity and blur, and the colour set from the cover art
@@ -292,6 +301,8 @@ export function resolveMaterial(mat: Material, chrome?: ModernChrome, colors?: S
     patch: patchOf(box.background, mat.tone),
     scrim: scrimOf(mat.tone),
     export: exp && opacity < 1 ? fadeBackground(exp, opacity) : exp,
+    // A faded card keeps the opacity the look asked for.
+    ...(mat.kind === "glass" && opacity >= 1 && box.backdropFilter && box.backdropFilter !== "none" ? { fallback: opaquer(String(box.background), BLUR_FALLBACK_ALPHA) } : null),
   };
 }
 
@@ -308,5 +319,6 @@ export function materialVars(r: ResolvedMaterial): CSSProperties {
     "--w-mat-shadow": boxShadow ?? "none",
     "--w-mat-blur": backdropFilter ?? "none",
     "--w-mat-export": r.export ?? "transparent",
+    ...(r.fallback ? { "--w-mat-fallback": r.fallback } : null),
   } as CSSProperties;
 }

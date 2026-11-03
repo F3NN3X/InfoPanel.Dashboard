@@ -139,6 +139,19 @@ describe("materialVars", () => {
     expect(v.boxShadow).toBeUndefined();
   });
 
+  it("gives a glass card with a blur its fill at the blur fallback alpha, for where the blur is off", () => {
+    const vibrancy = resolveMaterial(MATERIALS.vibrancy);
+    expect(vibrancy.fallback).toBe("linear-gradient(180deg, rgba(62,62,68, 0.9), rgba(38,38,42, 0.9))");
+    expect((materialVars(vibrancy) as Record<string, unknown>)["--w-mat-fallback"]).toBe(vibrancy.fallback);
+    // Classic glass has no blur, so nothing changes; with the look's blur its 0.85 to 0.55 gradient fills to 0.90.
+    expect(resolveMaterial(MATERIALS.glass).fallback).toBeUndefined();
+    expect(resolveMaterial(MATERIALS.glass, look({ blur: "12" })).fallback).toBe("linear-gradient(155deg, rgba(24, 24, 27, 0.9) 0%, rgba(24, 24, 27, 0.9) 100%)");
+    // Not with the blur off, not on a faded card (the look's opacity wins), not on a solid material.
+    expect(resolveMaterial(MATERIALS.vibrancy, look({ blur: "0" })).fallback).toBeUndefined();
+    expect(resolveMaterial(MATERIALS.glass, look({ blur: "12", surfaceOpacity: 50 })).fallback).toBeUndefined();
+    expect(resolveMaterial(MATERIALS.solid, look({ blur: "12" })).fallback).toBeUndefined();
+  });
+
   it("sets every variable, so a nested card never inherits its parent's", () => {
     const v = materialVars(resolveMaterial(MATERIALS.flat)) as Record<string, unknown>;
     expect(v).toEqual({ "--w-mat-bg": "transparent", "--w-mat-shadow": "none", "--w-mat-blur": "none", "--w-mat-export": "transparent" });

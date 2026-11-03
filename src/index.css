@@ -476,6 +476,11 @@
   -webkit-backdrop-filter: var(--w-mat-blur);
   backdrop-filter: var(--w-mat-blur);
 }
+/* A glass card with a blur, over a solid page where its blur is off (above): it fills to the blur fallback alpha
+   (0.90, --w-mat-fallback, src/looks/materials.ts), so its text keeps its contrast over a light page. */
+*:has(> [data-page-background="color"]) [data-wp-tier][data-mat-blur] {
+  background: var(--w-mat-fallback);
+}
 /* A notice's level bar (a volume) glides between readings: a full-width pill slid left behind the track's clip (round end at every value, no layout work). */
 .island-motion .island-level { transition: transform 160ms ease-out; }
 
