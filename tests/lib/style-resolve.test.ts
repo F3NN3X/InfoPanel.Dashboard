@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { appearanceOf, lockedIn, resolveStyle, resolveWith, zoneResolver } from "@/lib/style-resolve";
 import type { ThemeLevels } from "@/lib/theme-model";
+import type { ModuleSettings } from "@/modules/types";
 
 const base = { accent: "#ff0000", surface: "theme", radius: "8" };
 const profile = { values: { accent: "#00ff00", textColor: "#ffffff" } };
@@ -214,5 +215,23 @@ describe("the Look layer and levels saved before it", () => {
   it("gives nothing to a level that stores its Look's own card (applied before the layer: it holds every value it draws)", async () => {
     (await import("@/looks/sample-materials")).registerSampleCards();
     expect(resolveStyle({ levels: { profile: { values: { lookId: "paper", surface: "look-paper" } } } }).settings).toEqual({ lookId: "paper", surface: "look-paper" });
+  });
+
+  it("gives a level that applied its Look before the layer (every value stored) the Look's value back for one it clears", async () => {
+    (await import("@/looks/sample-materials")).registerSampleCards();
+    const { lookLayers } = await import("@/looks/sample-cards");
+    const term = lookLayers.term;
+    const copy: ModuleSettings = { lookId: "term", ...term };
+    for (const key of ["accent", "textColor", "mutedColor", "font"]) {
+      const { [key]: _cleared, ...rest } = copy;
+      expect(resolveStyle({ levels: { base: { accent: "#ff0000" }, profile: { values: rest } } }).settings[key], key).toBe(term[key]);
+    }
+  });
+
+  it("gives the layer to a level that stores the Look's card with values of its own", async () => {
+    (await import("@/looks/sample-materials")).registerSampleCards();
+    const { lookLayers } = await import("@/looks/sample-cards");
+    const r = resolveStyle({ levels: { profile: { values: { lookId: "term", surface: "look-term", accent: "#123456" } } } });
+    expect(r.settings).toMatchObject({ accent: "#123456", textColor: lookLayers.term.textColor, font: lookLayers.term.font });
   });
 });

@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { cornerStep, densityOf, knobCustom, knobValue } from "@/components/studio/look-knobs-model";
+import { scopeLookValues } from "@/components/studio/theme-editor-model";
+import { lookLayers } from "@/looks/sample-cards";
+import { registerSampleCards } from "@/looks/sample-materials";
 
 const term = { surface: "look-term", accent: "#8BE37A" };
 
@@ -10,6 +13,14 @@ describe("the Look knobs", () => {
     expect(knobCustom({ own: { accent: "#ff0000" }, inherited: term }, "accent", term)).toBe(true);
     // Surface moves the card with its opacity and blur: any of them makes it Custom.
     expect(knobCustom({ own: { blur: "8" } }, "surface", term)).toBe(true);
+  });
+
+  it("compare with what the level shows without its own value, as the renderer resolves it", () => {
+    registerSampleCards();
+    // A screen that applied Term before the Look layer stores every value of it: none of them is Custom.
+    const copy = { lookId: "term", ...lookLayers.term };
+    expect(knobCustom(scopeLookValues({ profile: { values: copy } }, "profile"), "accent")).toBe(false);
+    expect(knobCustom(scopeLookValues({ profile: { values: { ...copy, accent: "#ff0000" } } }, "profile"), "accent")).toBe(true);
   });
 
   it("ignore a widget's own value while its section follows", () => {

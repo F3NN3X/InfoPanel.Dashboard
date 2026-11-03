@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { lookLayerOf } from "@/lib/theme-model";
 import { Pipette, RotateCcw } from "lucide-react";
 import { onRovingKeyDown } from "@/lib/roving";
 import { cn } from "@/lib/utils";
@@ -20,10 +19,8 @@ import {
 } from "./look-knobs-model";
 
 export interface LookKnobsProps {
-  /** What the knobs show: the values where they edit over what that inherits (the Look's included). */
+  /** What the knobs show: the values where they edit over what that inherits (the Look's included, as the renderer resolves it). */
   values: LookValues;
-  /** The Look's own values (the Look layer), so a value equal to the Look's is not Custom. */
-  look?: ModuleSettings;
   /** What a knob that is not Custom follows ("the Look", "the page"). */
   from: string;
   /** Write values (the caller detaches what it must). */
@@ -76,8 +73,8 @@ function Knob({ label, custom, from, onReset, disabled, children }: { label: str
  * The knob row (D15): Accent, Surface, Corners and Density over the Look, each marked Custom while it differs from what
  * it follows, with a Reset back to it. Mode (light and dark) shows from P6, Variant with theme packs.
  */
-export function LookKnobs({ values, look, from, onSet, onClear, title, disabled }: LookKnobsProps) {
-  const custom = (id: KnobId) => knobCustom(values, id, look);
+export function LookKnobs({ values, from, onSet, onClear, title, disabled }: LookKnobsProps) {
+  const custom = (id: KnobId) => knobCustom(values, id);
   const reset = (id: KnobId) => () => onClear(KNOB_KEYS[id]);
   const accent = knobValue(values, "accent");
   const surface = values.own?.surface !== undefined && (!values.applies || values.applies("surface")) ? values.own.surface : "";
@@ -190,5 +187,5 @@ export function LookKnobs({ values, look, from, onSet, onClear, title, disabled 
 /** The knobs over a widget's Look (the inspector's Style tab, lazy): an edit detaches its section, Reset follows the page again. */
 export default function WidgetLookKnobs({ values, onSet, onClear, disabled }: Pick<LookKnobsProps, "values" | "onSet" | "onClear" | "disabled">) {
   const lookId = knobValue(values, "lookId");
-  return <LookKnobs title={`Look: ${lookName(lookId)}`} values={values} look={lookLayerOf(lookId)} from="the page" onSet={onSet} onClear={onClear} disabled={disabled} />;
+  return <LookKnobs title={`Look: ${lookName(lookId)}`} values={values} from="the page" onSet={onSet} onClear={onClear} disabled={disabled} />;
 }

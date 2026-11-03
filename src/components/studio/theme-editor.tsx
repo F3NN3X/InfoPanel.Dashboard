@@ -14,7 +14,7 @@ import { templateThemeRows } from "@/lib/screen-templates/template-rows";
 import { hexToHsl, hslToHex, resolveTheme } from "@/lib/theme";
 import { applyThemeToLevel, themeState, themeUses } from "@/lib/theme-apply";
 import { allLocked, isLocked, themedOf } from "@/lib/theme-model";
-import { lookLayerOf, lookIdOf } from "@/lib/theme-model";
+import { lookIdOf } from "@/lib/theme-model";
 import type { ModuleSettings } from "@/modules/types";
 import { ColorPill } from "./inspector/color-pill";
 import { MoreRows, moreKey } from "./inspector/more-rows";
@@ -510,7 +510,6 @@ export function ThemeEditor({ config, scope: requested, profileId, pageId, onPic
             <LookKnobs
               title={`Knobs on ${lookName}`}
               values={values}
-              look={lookLayerOf(lookId)}
               from="the Look"
               disabled={at.level === "page" && isLocked(appearance, "colors") && isLocked(appearance, "surface") && isLocked(appearance, "spacing")}
               onSet={(patch) => setConfig((c) => withLookAt(c, at, patch), key(`knob:${Object.keys(patch).join()}`))}

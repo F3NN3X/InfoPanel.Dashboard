@@ -222,15 +222,36 @@ export function themeSet(levels: ThemeLevels, key: string): ModuleSettingValue |
   return page ?? levels.profile?.values?.[key] ?? (key === "lookId" ? undefined : levelLook(levels)?.[key]) ?? levels.base?.[key];
 }
 
+/** The surface section's keys: a card comes with its opacity and blur. */
+const CARD_KEYS: ReadonlySet<string> = new Set(["surface", "surfaceOpacity", "blur"]);
+
+/**
+ * Whether a level stores its Look's own card and none of the Look's other values (L44): a page saved before the
+ * Look layer that applied a sample Look's card alone (the v16 shape v17 keeps). It drew that card over its screen's
+ * colours and font, and still does. A level that applied a sample Look before the layer stores every value the Look
+ * sets, so the layer under them changes nothing, and a value it clears returns to the Look's. The Look view never
+ * stores the Look's card as a level's own (`withoutOwnCard`), so no level saved since takes this shape.
+ */
+const cardOnly = (layer: ModuleSettings, holder: ModuleSettings | undefined): boolean =>
+  holder?.surface === layer.surface && Object.keys(layer).every((key) => CARD_KEYS.has(key) || holder[key] === undefined);
+
 /**
  * The Look layer (L40): the values a Look sets under the level that names it (`holder`, its stored values), so a level
  * stores its `lookId` and only what it changes. A sample Look's, once its chunk is loaded (`registerSampleCards`);
- * Classic and the skins set none (a skin's pack draws by its id). A level that stores the Look's own card applied it
- * before the layer existed and holds every value it draws, so it gets none either: saved levels resolve as before.
+ * Classic and the skins set none (a skin's pack draws by its id). A level saved with only the Look's card gets none
+ * (`cardOnly`, L44).
  */
 export function lookLayerOf(lookId: unknown, holder?: ModuleSettings): ModuleSettings | undefined {
   const layer = typeof lookId === "string" ? lookLayers[lookId] : undefined;
-  return layer && holder?.surface !== layer.surface ? layer : undefined;
+  return layer && !cardOnly(layer, holder) ? layer : undefined;
+}
+
+/** A level's values with its Look's own card left to the Look (picking it stores none, so the Look's other values stay on). */
+export function withoutOwnCard(values: ModuleSettings): ModuleSettings {
+  const layer = typeof values.lookId === "string" ? lookLayers[values.lookId] : undefined;
+  if (!layer || values.surface !== layer.surface) return values;
+  const { surface: _card, ...rest } = values;
+  return rest;
 }
 
 /** The Look layer of the levels: the page's Look where its Look section is its own, else the screen's. */

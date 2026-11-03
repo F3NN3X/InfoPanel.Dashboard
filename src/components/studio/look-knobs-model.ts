@@ -35,10 +35,10 @@ const ownValue = (values: LookValues, key: string): ModuleSettingValue | undefin
 export const knobValue = (values: LookValues, key: string): ModuleSettingValue | undefined => ownValue(values, key) ?? values.inherited?.[key];
 
 /**
- * Whether a knob is Custom: a key it moves holds an own value that is not the Look's (`look`: the Look's values; a
- * level that applied a theme before the Look layer stores them all, and those are not custom).
+ * Whether a knob is Custom: a key it moves holds an own value that is not what the level shows without it (`look`,
+ * by default what it inherits: the Look layer as the renderer resolves it for that level, so Reset shows that value).
  */
-export function knobCustom(values: LookValues, id: KnobId, look: ModuleSettings | undefined): boolean {
+export function knobCustom(values: LookValues, id: KnobId, look: ModuleSettings | undefined = values.inherited): boolean {
   return KNOB_KEYS[id].some((key) => {
     const own = ownValue(values, key);
     return own !== undefined && own !== look?.[key];

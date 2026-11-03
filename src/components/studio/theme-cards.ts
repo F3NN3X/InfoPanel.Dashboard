@@ -3,7 +3,7 @@ import type { GeneralFont } from "@/lib/general";
 import type { InheritLevel, InheritState } from "@/lib/inheritance";
 import type { DashboardConfig, MonitorProfile, ProfilePage } from "@/lib/layout";
 import { resolveTheme, type ThemeTokens } from "@/lib/theme";
-import { SECTION_KEYS, sectionsWithValues, withThemeValues, type SectionId } from "@/lib/theme-model";
+import { SECTION_KEYS, sectionsWithValues, withoutOwnCard, withThemeValues, type SectionId } from "@/lib/theme-model";
 import type { ModuleSettings } from "@/modules/types";
 import { resetInheritance } from "./inheritance-actions";
 import { withLock, withPageFollow, withScopeValues, type ThemeScope } from "./theme-editor-model";
@@ -164,7 +164,11 @@ export const withCardLock = (config: DashboardConfig, profileId: string, card: T
 
 /** Edit a level's widget-style values. */
 export const withValuesAt = (config: DashboardConfig, at: ThemeAt, fn: (values: ModuleSettings) => ModuleSettings): DashboardConfig =>
-  withScopeValues(config, at.profileId, scopeOfAt(at), fn);
+  withScopeValues(config, at.profileId, scopeOfAt(at), (values) => {
+    const next = fn(values);
+    // The level's own Look's card is the Look's (L44): picking it stores none.
+    return next.surface !== values.surface ? withoutOwnCard(next) : next;
+  });
 
 /**
  * Style values written at a level (a skin and its surface): merged into its values. A page uses its own values only

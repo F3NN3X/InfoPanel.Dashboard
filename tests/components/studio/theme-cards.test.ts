@@ -13,11 +13,13 @@ import {
   withPageFont,
   withToken,
   withTokens,
+  withValuesAt,
   type ThemeAt,
 } from "@/components/studio/theme-cards";
 import { withPageFollow, withScopeValues } from "@/components/studio/theme-editor-model";
 import { TEMPLATE_PRESETS } from "@/lib/screen-templates/template-presets";
 import { applyThemeToLevel, themeState } from "@/lib/theme-apply";
+import { registerSampleCards } from "@/looks/sample-materials";
 
 const zone = (id: string, extra: Partial<Placement> = {}): Placement => ({
   id,
@@ -122,6 +124,16 @@ describe("the screen's stores", () => {
   it("a token edit on a screen starts from what it shows", () => {
     const c = withToken(withToken(setup(), SCREEN, "accent", "9 9% 9%"), SCREEN, "primary", "1 2% 3%");
     expect(desk(c).theme).toEqual({ ...DEFAULT_THEME, accent: "9 9% 9%", primary: "1 2% 3%" });
+  });
+});
+
+describe("the Look's own card picked in Advanced", () => {
+  it("stores no card, so the Look's accent, text and font stay on; another card is the level's own", () => {
+    registerSampleCards();
+    const termed = withScopeValues(setup(), "desk", { kind: "profile" }, () => ({ lookId: "term" }));
+    const card = (surface: string) => desk(withValuesAt(termed, SCREEN, (v) => ({ ...v, surface }))).widgetTheme?.values;
+    expect(card("look-term")).toEqual({ lookId: "term" });
+    expect(card("look-paper")).toEqual({ lookId: "term", surface: "look-paper" });
   });
 });
 
