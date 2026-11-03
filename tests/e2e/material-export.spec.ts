@@ -1,5 +1,8 @@
 import { startScratch, type Scratch } from "../../tools/perf/scratch.mjs";
+import { SAMPLE_THEMES } from "../../src/looks/sample-themes";
 import { expect, test } from "./fixtures";
+
+const SAMPLE_IDS = SAMPLE_THEMES.map((t) => t.id);
 
 // The InfoPanel export's card colour for every material, as Chromium resolves it (happy-dom cannot resolve var() or
 // color-mix(), so tests/lib/infopanel/native/surface-of.dom.test.ts only pins the code path). The QA page's Surfaces
@@ -122,3 +125,30 @@ test("the static material rule paints background, shadow and blur, and the blur 
   expect(painted.glass.image).toContain("rgba(24, 24, 27, 0.9)");
 });
 
+
+// The twelve sample themes' cards (src/looks/sample-materials.ts, `surface=look-<theme>`) export a card colour too. A flat
+// card exports its own colour, a gradient or pattern its flat `--w-mat-export` colour, and a see-through background
+// (swiss-mono) that colour as well. Neon Stripe and Holo are one translucent tint, exported as drawn (alpha below FF).
+test("every sample theme's card exports a colour", async ({ page }) => {
+  const table: Record<string, string | null> = {};
+  for (const id of SAMPLE_IDS) {
+    await page.goto(`${qa.base}/?widget-qa&eager=1&module=SystemStatus&spans=2x2&surface=look-${id}`);
+    await page.waitForSelector(`figure[data-qa-module] [data-wp-tier][data-mat="look-${id}"]`);
+    await page.evaluate(() => window.__qaMountAll?.());
+    table[id] = await page.evaluate(async () => (await window.__qaSurfaceOf?.(document.querySelector<HTMLElement>("figure[data-qa-module]")!))?.color ?? null);
+  }
+  expect(table).toEqual({
+    "field-kit": "#FFEFE8D8",
+    "tape-86": "#FFF3EDDD",
+    "neon-stripe": "#D60D0B14",
+    overdrive: "#FF110F14",
+    "swiss-mono": "#FF141414",
+    term: "#FF0A0D0A",
+    holo: "#D1020A12",
+    "night-glow": "#FF080A28",
+    paper: "#FFFFFFFF",
+    "classy-black": "#FF050505",
+    "liquid-glass": "#FF0F0B1A",
+    "black-and-gold": "#FF12100A",
+  });
+});
