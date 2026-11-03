@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { upgradeConfig } from "@/lib/config-upgrade";
 import { applyTheme } from "@/lib/theme-apply";
@@ -157,5 +158,13 @@ describe("sample themes: presets", () => {
     expect(copy.style.surface).toBe(preset.style.surface);
     expect(copy.theme).toEqual(preset.theme);
     expect(upgradeConfig(JSON.parse(JSON.stringify(applied)))).toEqual(JSON.parse(JSON.stringify(applied)));
+  });
+});
+
+describe("sample themes: box identity (G2)", () => {
+  it("the overflow check runs every card against the default boxes", () => {
+    const map = JSON.parse(readFileSync("tests/feature-map.json", "utf8")) as { checks: Record<string, { cmd: string }> };
+    const named = /--same-boxes (\S+)/.exec(map.checks.overflow.cmd)?.[1].split(",");
+    expect(named).toEqual(Object.keys(SAMPLE_MATERIALS));
   });
 });

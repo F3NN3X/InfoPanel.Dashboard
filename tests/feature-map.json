@@ -55,9 +55,9 @@
       "when": "the Edit v3 reference states (?fixture=one-editor/<name>, a fixtures build the project makes itself); their checklists run as the phases enable them"
     },
     "overflow": {
-      "cmd": "node tools/qa/overflow.mjs --baseline tests/qa/overflow-baseline.json",
+      "cmd": "node tools/qa/overflow.mjs --baseline tests/qa/overflow-baseline.json --same-boxes look-field-kit,look-tape-86,look-neon-stripe,look-overdrive,look-swiss-mono,look-term,look-holo,look-night-glow,look-paper,look-classy-black,look-liquid-glass,look-black-and-gold",
       "needs": ["build", "server-bin"],
-      "when": "the Widget QA overflow probe at 1x1, 2x2, 4x2 and 4x4 on fixture data, diffed against tests/qa/overflow-baseline.json: a new issue or any change at a non-roomy span fails (refresh with --save when intended)"
+      "when": "the Widget QA overflow probe at 1x1, 2x2, 4x2 and 4x4 on fixture data, diffed against tests/qa/overflow-baseline.json: a new issue or any change at a non-roomy span fails (refresh with --save when intended); and once per sample theme card (looks/sample-materials.ts) the same frames must keep the default card and body rects (G2)"
     },
     "look-visual": {
       "cmd": "npx playwright test --project=look-visual",

@@ -3,6 +3,7 @@ import { flushSync } from "react-dom";
 import { modules } from "@/modules";
 import { INSERT_CATEGORIES } from "@/components/studio/insert-panel";
 import { THEME_PRESETS, themeVars } from "@/lib/theme";
+import { registerSampleCards } from "@/looks/sample-materials";
 import { SKIN_NAMES } from "@/widgets/core/theme";
 import { TEMPLATE_MODULES } from "@/widgets/registry";
 import { Gallery, galleriesFor } from "./Gallery";
@@ -28,6 +29,8 @@ import { installDemoStreams } from "./demo-streams";
 // `data=live` reads the server's own streams.
 const DATA_PARAM = new URLSearchParams(window.location.search).get("data");
 if (DATA_PARAM !== "live") installDemoStreams(DATA_PARAM === "stress");
+// The sample themes' cards (`surface=look-…`): a config would load them on read, this page has none.
+registerSampleCards();
 
 const CATEGORY_ORDER = INSERT_CATEGORIES.filter((c) => !["All", "Layouts", "My panels"].includes(c));
 
