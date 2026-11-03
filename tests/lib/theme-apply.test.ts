@@ -296,11 +296,11 @@ describe("dashboards saved before the snapshot", () => {
     expect(rest).toEqual(p1(exact));
   });
 
-  it("loads a stored snapshot guarded, and guesses on load", () => {
+  it("loads a stored snapshot guarded (a Look this build lacks is kept), and guesses on load", () => {
     expect(normalizeAppliedTheme({ id: "x", name: "X", values: { accent: "#ff0000", bogus: 1, lookId: "nope" }, zones: { z: { was: {}, now: { surfaceOpacity: 72 } }, bad: 3 } })).toEqual({
       id: "x",
       name: "X",
-      values: { accent: "#ff0000" },
+      values: { accent: "#ff0000", lookId: "nope" },
       zones: { z: { was: {}, now: { surfaceOpacity: 72 } } },
     });
     expect(normalizeAppliedTheme({ name: "X", values: {} })).toBeUndefined();

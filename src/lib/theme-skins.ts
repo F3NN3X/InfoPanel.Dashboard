@@ -1,4 +1,4 @@
-import { CLASSIC_LOOK, isLookId, SKIN_LOOK_IDS } from "@/looks/ids";
+import { CLASSIC_LOOK, DEFAULT_SKIN_LOOK, isLookId, SKIN_LOOK_IDS } from "@/looks/ids";
 import { STYLE_SETTINGS } from "@/modules/standard-settings";
 
 /**
@@ -6,8 +6,8 @@ import { STYLE_SETTINGS } from "@/modules/standard-settings";
  * writes them. Split from `theme-model` so the kiosk, which only stores Looks, doesn't carry them.
  */
 
-/** A stored Look id as one: unset and an id this build doesn't know are Classic. */
-export const lookOf = (lookId: unknown): string => (isLookId(lookId) ? lookId : CLASSIC_LOOK);
+/** A stored Look id as one the pickers show: unset, an id this build doesn't know and the hidden `default` Look (the Default skin) are Classic. */
+export const lookOf = (lookId: unknown): string => (isLookId(lookId) && lookId !== DEFAULT_SKIN_LOOK ? lookId : CLASSIC_LOOK);
 
 /** Whether two stored Look ids are the same Look. */
 export const sameLook = (a: unknown, b: unknown): boolean => lookOf(a) === lookOf(b);

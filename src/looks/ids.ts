@@ -4,6 +4,9 @@
 /** The Look a level that sets none shows (`lookId` unset), and the one an unknown id falls back to. */
 export const CLASSIC_LOOK = "classic";
 
+/** The hidden Look a panel stored under the v16 `default` skin has: it draws the core Default skin, which Classic does not on a panel. No picker lists it. */
+export const DEFAULT_SKIN_LOOK = "default";
+
 /** The skins as Looks (config v17): a skin Look's id is the skin's name; the Default skin is Classic. */
 export const SKIN_LOOK_IDS: readonly string[] = ["tui", "macos", "fluent", "hud", "ink", "retro", "ios", "android", "synth", "brutal", "cyber", "nixie", "instrument"];
 
@@ -11,7 +14,7 @@ export const SKIN_LOOK_IDS: readonly string[] = ["tui", "macos", "fluent", "hud"
 export const SAMPLE_LOOK_IDS: readonly string[] = ["field-kit", "tape-86", "neon-stripe", "overdrive", "swiss-mono", "term", "holo", "night-glow", "paper", "classy-black", "liquid-glass", "black-and-gold"];
 
 /** Every panel Look's id (the Studio Look is not one: only the studio chrome wears it). */
-export const LOOK_IDS: readonly string[] = ["classic", ...SKIN_LOOK_IDS, ...SAMPLE_LOOK_IDS];
+export const LOOK_IDS: readonly string[] = ["classic", DEFAULT_SKIN_LOOK, ...SKIN_LOOK_IDS, ...SAMPLE_LOOK_IDS];
 
 /** Whether a value names a Look of the registry. */
 export const isLookId = (v: unknown): v is string => typeof v === "string" && LOOK_IDS.includes(v);

@@ -333,10 +333,10 @@ const flagsOf = (v: unknown): SectionFlags | undefined => {
   return kept.length > 0 ? Object.fromEntries(kept) : undefined;
 };
 
-/** A stored widget theme with a Look this build doesn't know as Classic, the rest as stored (every load, `layout.ts`). */
+/** A stored widget theme with a Look id that is not text as Classic, the rest as stored: an id this build doesn't know is kept (a newer build's) and draws Classic (every load, `layout.ts`). */
 export function withKnownLook<T extends WidgetTheme | undefined>(theme: T): T {
   const id = theme?.values?.lookId;
-  return id === undefined || isLookId(id) ? theme : { ...theme, values: { ...theme?.values, lookId: CLASSIC_LOOK_ID } };
+  return id === undefined || typeof id === "string" ? theme : { ...theme, values: { ...theme?.values, lookId: CLASSIC_LOOK_ID } };
 }
 
 /** A stored widget theme, guarded: themed values only (an unknown Look is Classic), boolean flags per known section. */

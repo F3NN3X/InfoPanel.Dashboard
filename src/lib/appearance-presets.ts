@@ -1,4 +1,3 @@
-import { isLookId } from "@/looks/ids";
 import { THEME_SETTINGS } from "@/modules/standard-settings";
 import { ALIGN_CODES } from "@/modules/setting-readers";
 import { migrateStyleV7 } from "./settings-migrate";
@@ -92,8 +91,8 @@ export function isValidStyleValue(key: string, value: unknown): boolean {
   if (isSampleCard(key, value)) return true;
   switch (def.type) {
     case "select":
-      // A Look (`lookId`) is any of the registry's, though the Skin row offers only the skins'.
-      return typeof value === "string" && (key === "lookId" ? isLookId(value) : (def.options ?? []).some((o) => o.value === value));
+      // A Look (`lookId`) is any text: an id this build doesn't know is kept and draws Classic.
+      return typeof value === "string" && (key === "lookId" ? value !== "" : (def.options ?? []).some((o) => o.value === value));
     case "number":
       return (
         typeof value === "number" &&

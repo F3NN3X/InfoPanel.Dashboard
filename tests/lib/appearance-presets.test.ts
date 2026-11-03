@@ -103,9 +103,9 @@ describe("isValidStyleValue", () => {
     expect(isValidStyleValue("label", "x")).toBe(false);
   });
 
-  it("keeps a Look of the registry and refuses any other id (a saved theme loads without it: it names no Look, Classic)", () => {
-    for (const id of ["classic", "hud", "field-kit", "tape-86"]) expect(isValidStyleValue("lookId", id), id).toBe(true);
-    for (const id of ["a-newer-look", "default", "auto", "", "Classic", "look id", "../x", 3, undefined]) expect(isValidStyleValue("lookId", id), String(id)).toBe(false);
+  it("keeps any Look id that is text, a newer build's too (it draws Classic), and refuses what is not text", () => {
+    for (const id of ["classic", "hud", "field-kit", "tape-86", "default", "a-newer-look"]) expect(isValidStyleValue("lookId", id), id).toBe(true);
+    for (const id of ["", 3, undefined]) expect(isValidStyleValue("lookId", id), String(id)).toBe(false);
   });
 });
 

@@ -1,4 +1,4 @@
-import { CLASSIC_LOOK, SAMPLE_LOOK_IDS, SKIN_LOOK_IDS } from "@/looks/ids";
+import { CLASSIC_LOOK, DEFAULT_SKIN_LOOK, SAMPLE_LOOK_IDS, SKIN_LOOK_IDS } from "@/looks/ids";
 import type { ModuleSettings } from "@/modules/types";
 import type { AppliedTheme } from "./applied-theme";
 import type { DashboardConfig, StoredConfig } from "./layout";
@@ -7,8 +7,8 @@ import { withThemeValues } from "./theme-model";
 // The v17 step (config-upgrade.ts), in its own module so only an older config's load carries it. Config v17 folds the
 // skins into Looks (D6): a level stores one `lookId`, and its other values are the overrides on top of it.
 
-/** The Look a v16 skin value is: a skin's Look is named as the skin; the Default skin's spellings (`auto`, `default`, "") and an unknown skin are Classic. */
-export const lookOfStoredSkin = (skin: unknown): string => (typeof skin === "string" && SKIN_LOOK_IDS.includes(skin) ? skin : CLASSIC_LOOK);
+/** The Look a v16 skin value is: a skin's Look is named as the skin; `default` is the hidden Look that still draws the core Default skin (G1); `auto`, "" and an unknown skin are Classic. */
+export const lookOfStoredSkin = (skin: unknown): string => (typeof skin === "string" && (skin === DEFAULT_SKIN_LOOK || SKIN_LOOK_IDS.includes(skin)) ? skin : CLASSIC_LOOK);
 
 const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
 
@@ -28,8 +28,8 @@ const LOOK_HOLDERS = ["style", "stylePresets", "panelPresets", "appearancePreset
  * v17, first half, on the stored config before any other step (so the older steps, which move look values by the
  * themed keys, carry the Look): every stored skin becomes the level's Look, wherever a look value is kept (a screen's
  * or page's values and theme snapshot with the widget writes it made, a widget's own settings, a saved style, panel or
- * theme, the old dashboard style). `auto`, `default` and an unknown skin are Classic, which draws the Default skin, so
- * nothing repaints. The follow and lock flags stay: the skin section's flags govern the Look.
+ * theme, the old dashboard style). `auto` and an unknown skin are Classic, which draws the Default skin on a widget and the panel's
+ * own look on a panel, as they did; `default` is the hidden `default` Look, which still draws the core Default skin. The follow and lock flags stay: the skin section's flags govern the Look.
  */
 export function renameSkinsV17(config: StoredConfig): StoredConfig {
   const out: Record<string, unknown> = { ...config };

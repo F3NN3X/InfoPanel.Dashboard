@@ -19,7 +19,7 @@ export interface GalleryDef {
  */
 export function galleriesFor(mod: DashboardModule | undefined): GalleryDef[] {
   return [
-    { title: "Skins", module: mod?.id ?? "CpuMonitor", span: mod ? gallerySpan(mod, [3, 2]) : [3, 2], variants: SKIN_NAMES.map((skin) => ({ label: skin, settings: { skin } })) },
+    { title: "Skins", module: mod?.id ?? "CpuMonitor", span: mod ? gallerySpan(mod, [3, 2]) : [3, 2], variants: SKIN_NAMES.map((skin) => ({ label: skin, settings: { lookId: skin === "default" ? "classic" : skin } })) },
     { title: "Surfaces", module: mod?.id ?? "SystemStatus", span: mod ? gallerySpan(mod, [2, 2]) : [2, 2], variants: SURFACE_NAMES.map((surface) => ({ label: surface, settings: { surface } })) },
   ];
 }

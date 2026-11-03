@@ -91,7 +91,7 @@ describe("the registry", () => {
     expect(await loadLook("classic")).toBe(CLASSIC);
     expect((await loadLook("term"))?.t2?.default).toBe("look-term");
     expect((await loadLook("hud"))?.t2?.default).toBe("hud");
-    expect(await loadLook("default")).toBeUndefined();
+    expect(await loadLook("default")).toBe(CLASSIC);
     expect(await loadLook("nope")).toBeUndefined();
   });
 

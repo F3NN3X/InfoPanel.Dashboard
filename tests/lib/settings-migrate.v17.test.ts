@@ -60,14 +60,14 @@ const byId = (c: DashboardConfig, id: string): MonitorProfile => c.profiles.find
 
 type Raw = { widgetTheme?: { values?: ModuleSettings; follow?: Record<string, boolean>; locks?: Record<string, boolean> }; pages: (Raw & { id: string; placements: Placement[] })[] };
 
-/** The skin v16 drew a widget in, from the stored v16 config: the cascade of `skin` (SPEC §3.2), unknown and Default spellings as none. */
+/** The skin v16 drew a widget in, from the stored v16 config: the cascade of `skin` (SPEC §3.2), `auto` and unknown spellings as none (`default` is the core Default skin, drawn as such). */
 function v16Skin(screen: Raw, page: Raw, z: Placement): string | undefined {
   const locked = screen.widgetTheme?.locks?.skin === true;
   const pageCustom = page.widgetTheme?.follow?.skin === false && !locked;
   const theme = (pageCustom ? page.widgetTheme?.values?.skin : undefined) ?? screen.widgetTheme?.values?.skin;
   const own = !locked && z.follow?.skin === false ? z.settings?.skin : undefined;
   const skin = own ?? theme;
-  return typeof skin === "string" && SKIN_LOOK_IDS.includes(skin) ? skin : undefined;
+  return typeof skin === "string" && (skin === "default" || SKIN_LOOK_IDS.includes(skin)) ? skin : undefined;
 }
 
 /** Every widget's skin as drawn, and the rest of its resolved settings. */
@@ -116,9 +116,9 @@ describe("v17: the version", () => {
   it("a version that is a string below 17, or no number at all, takes the step; a newer one does not", async () => {
     for (const version of ["16", "x"]) expect(byId(load({ ...v16(screens()), version } as unknown as StoredConfig), "skin-5").widgetTheme?.values?.lookId, version).toBe("tui");
     const newer = { version: 18, activeProfile: "auto", profiles: [{ id: "s", name: "S", width: 800, height: 480, widgetTheme: { values: { lookId: "a-newer-look", skin: "hud" } }, pages: [{ id: "a", name: "A", placements: [] }] }] } as unknown as StoredConfig;
-    // Its Look is one this build doesn't know (Classic); a `skin` it holds is no Look and nothing reads it.
-    expect((await readConfig(newer)).profiles[0].widgetTheme?.values?.lookId).toBe("classic");
-    expect(load(newer).profiles[0].widgetTheme?.values?.lookId).toBe("classic");
+    // Its Look is one this build doesn't know: kept in storage (a newer build's), drawn as Classic; a `skin` it holds is no Look and nothing reads it.
+    expect((await readConfig(newer)).profiles[0].widgetTheme?.values?.lookId).toBe("a-newer-look");
+    expect(load(newer).profiles[0].widgetTheme?.values?.lookId).toBe("a-newer-look");
   });
 });
 
@@ -126,9 +126,9 @@ describe("v17: every stored skin is the level's Look", () => {
   const stored = v16(screens());
   const out = load(stored);
 
-  it("at every level: screens, pages, widgets and saved themes; Default spellings and unknown skins are Classic", () => {
+  it("at every level: screens, pages, widgets and saved themes; `auto` and unknown skins are Classic, `default` its own hidden Look", () => {
     expect(JSON.stringify(out)).not.toMatch(/"skin":"/);
-    expect([undefined, "auto", "default", "", "nope", "hud", 3].map(lookOfStoredSkin)).toEqual(["classic", "classic", "classic", "classic", "classic", "hud", "classic"]);
+    expect([undefined, "auto", "default", "", "nope", "hud", 3].map(lookOfStoredSkin)).toEqual(["classic", "classic", "default", "classic", "classic", "hud", "classic"]);
     const raw = stored.profiles as unknown as Raw[];
     for (const [i, screen] of raw.entries()) {
       const p = out.profiles[i];
@@ -162,7 +162,7 @@ describe("v17: every stored skin is the level's Look", () => {
     const same = { ...base, id: "same", theme: { primary: "1 2% 3%" }, radius: 1, widgetTheme: { values: { skin: "auto" } }, appliedTheme: snap({ skin: "default" }) };
     const changed = { ...same, id: "changed", widgetTheme: { values: { skin: "hud" } }, appliedTheme: snap({ skin: "tui" }) };
     const c = load(v16([same, changed]));
-    expect(byId(c, "same").appliedTheme?.values).toEqual({ lookId: "classic" });
+    expect(byId(c, "same").appliedTheme?.values).toEqual({ lookId: "default" });
     expect(byId(c, "same").appliedTheme?.zones).toEqual({ "skin-0-follow": { was: { lookId: "classic" }, now: { lookId: "hud", accent: "#fff" } } });
     expect(themeState(c, { kind: "profile", profileId: "same" }).changed).toEqual([]);
     expect(themeState(c, { kind: "profile", profileId: "changed" }).changed).toEqual(["skin"]);
@@ -250,15 +250,18 @@ describe("v17: a Look this build doesn't know", () => {
       profiles: [{ id: "s", name: "S", width: 800, height: 480, widgetTheme: { values: { lookId } }, pages: [{ id: "a", name: "A", widgetTheme: { values: { lookId }, follow: { skin: false } }, placements: [zone("own", { lookId: lookId as string }, { skin: false })] }] }],
     }) as unknown as StoredConfig;
 
-  it("loads as Classic at every level (a saved theme without it) and draws the Default skin", async () => {
-    for (const id of ["nope", "Term", "default", 5]) {
+  it("keeps the id in storage at every level (a newer build's) and draws Classic, the Default skin", async () => {
+    for (const id of ["nope", "Term"]) {
       const c = await readConfig(v17(id));
       const p = c.profiles[0];
-      // A saved theme drops it: it names no Look, so applying it sets Classic.
-      expect([p.widgetTheme?.values?.lookId, p.pages[0].widgetTheme?.values?.lookId, c.appearancePresets?.[0].style.lookId], String(id)).toEqual(["classic", "classic", undefined]);
-      expect(lookIdOf(appearanceOf(c, { ...p, pageId: "a", pageTheme: p.pages[0].widgetTheme })), String(id)).toBe("classic");
-      // A widget's own value is not normalised on load; it draws the Default skin.
-      expect(drawn(c).own.skin, String(id)).toBeUndefined();
+      expect([p.widgetTheme?.values?.lookId, p.pages[0].widgetTheme?.values?.lookId, c.appearancePresets?.[0].style.lookId, p.pages[0].placements[0].settings?.lookId], id).toEqual([id, id, id, id]);
+      expect(lookIdOf(appearanceOf(c, { ...p, pageId: "a", pageTheme: p.pages[0].widgetTheme })), id).toBe("classic");
+      expect(drawn(c).own.skin, id).toBeUndefined();
     }
+  });
+
+  it("a value that is not text is Classic", async () => {
+    const c = await readConfig(v17(5));
+    expect([c.profiles[0].widgetTheme?.values?.lookId, c.appearancePresets?.[0].style.lookId]).toEqual(["classic", undefined]);
   });
 });

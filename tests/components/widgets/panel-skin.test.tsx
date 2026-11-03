@@ -58,22 +58,28 @@ describe("panel widgets with a skin set", () => {
   });
   it("draws a bar with the core meter in the chosen style", () => {
     expect(draw("bar", { lookId: "fluent" })).toContain("rounded-full");
+    expect(draw("bar", { lookId: "default" })).toContain("rounded-full");
     expect(draw("bar", { lookId: "fluent", meter: "blocks" })).toContain("rounded-[1px]");
+    expect(draw("bar", { lookId: "default", meter: "blocks" })).toContain("rounded-[1px]");
     expect(draw("bar", { lookId: "tui" })).not.toBe(draw("bar", {}));
   });
   it("draws a gauge with the core ring", () => {
     expect(draw("gauge", {})).not.toContain("viewBox=\"0 0 100 100\"");
     expect(draw("gauge", { lookId: "fluent" })).toContain("viewBox=\"0 0 100 100\"");
+    expect(draw("gauge", { lookId: "default" })).toContain("viewBox=\"0 0 100 100\"");
   });
   it("draws a sparkline with the core graph", () => {
     expect(draw("sparkline", {})).toContain("wp-spark");
     expect(draw("sparkline", { lookId: "fluent" })).toContain("wp-spark h-12");
+    expect(draw("sparkline", { lookId: "default" })).toContain("wp-spark h-12");
   });
   it("sets the skin's numerals on stat, value and clock", () => {
     for (const kind of ["stat", "value", "clock"] as const) expect(draw(kind, { lookId: "tui" })).not.toBe(draw(kind, {}));
   });
   it("maps the core text and track variables onto the panel", () => {
     expect(draw("stat", { lookId: "fluent" })).toContain("--w-track");
+    // A panel stored under the v16 `default` skin keeps drawing the core Default skin (G1): the hidden `default` Look.
+    expect(draw("stat", { lookId: "default" })).toContain("--w-track");
     expect(draw("stat", {})).not.toContain("--w-track");
     // Classic is the panel's own look, as the v16 skin `auto` was (the v16 `default` spelling folds into it).
     expect(draw("stat", { lookId: "classic" })).not.toContain("--w-track");

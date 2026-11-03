@@ -63,11 +63,12 @@ describe("themed keys and sections", () => {
     expect(lookIdOf({ ...levels, page: { ...levels.page, follow: { skin: false } } })).toBe("hud");
   });
 
-  it("show Classic for a Look id this build doesn't know, a misspelt one or one that isn't text", () => {
-    for (const id of ["nope", "Term", "default", 5, true]) {
+  it("show Classic for a Look id this build doesn't know, a misspelt one or one that isn't text; text is kept in storage", () => {
+    for (const id of ["nope", "Term", 5, true]) {
       expect(lookIdOf({ profile: { values: { lookId: id } } }), String(id)).toBe("classic");
-      expect(normalizeWidgetTheme({ values: { lookId: id, accent: "#fff" } })?.values, String(id)).toEqual({ lookId: "classic", accent: "#fff" });
+      expect(normalizeWidgetTheme({ values: { lookId: id, accent: "#fff" } })?.values, String(id)).toEqual({ lookId: typeof id === "string" ? id : "classic", accent: "#fff" });
     }
+    expect(lookIdOf({ profile: { values: { lookId: "default" } } })).toBe("default");
     expect(normalizeWidgetTheme({ values: { lookId: "term" } })?.values).toEqual({ lookId: "term" });
   });
 
