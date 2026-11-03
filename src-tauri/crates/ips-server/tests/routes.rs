@@ -249,6 +249,14 @@ async fn keeps_the_v16_config_before_the_first_v17_save() {
     assert_eq!(json(&raised)["backup"], backup.display().to_string());
     assert_eq!(std::fs::read_to_string(&backup).unwrap(), v16);
     assert_eq!(post_config(s.port, v16, &[]).await.status, 409);
+    // A backup that exists already stays byte for byte on a second raise (first wins), and the answer still names it.
+    let restored = r#"{"version":16,"profiles":[],"restored":true}"#;
+    std::fs::write(s.data().join("config.json"), restored).unwrap();
+    let again = post_config(s.port, r#"{"version":17,"n":2}"#, &[]).await;
+    assert_eq!(again.status, 200);
+    assert_eq!(json(&again)["backup"], backup.display().to_string());
+    assert_eq!(std::fs::read_to_string(&backup).unwrap(), v16);
+    assert_eq!(std::fs::read_to_string(s.data().join("config.json")).unwrap(), r#"{"version":17,"n":2}"#);
     s.stop().await;
 }
 
