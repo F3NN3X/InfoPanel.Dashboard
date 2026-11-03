@@ -809,4 +809,3 @@ export function migrateProfileV14<P extends LayoutProfile>(p: P, ctx: { legacy: 
   if (!madeFor && pages.every((pg, i) => pg === p.pages[i])) return p;
   return { ...p, pages, ...(madeFor ? { madeFor: "infopanel" as const } : {}) };
 }
-
