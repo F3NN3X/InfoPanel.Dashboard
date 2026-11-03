@@ -10,7 +10,7 @@ export const WORK: ScreenTemplate = {
   look: {
     theme: "neutral",
     radius: 0.75,
-    style: { skin: "fluent", surface: "glass", accent: "#60a5fa", font: "inter" },
+    style: { lookId: "fluent", surface: "glass", accent: "#60a5fa", font: "inter" },
     background: { type: "gradient", gradient: { from: "#0f1d33", to: "#0a0d14", angle: 165 } },
     gap: 14,
     padding: 18,

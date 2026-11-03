@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { BACKGROUND_DEFAULTS, withBackgroundType, type BackgroundType, type PageBackground } from "@/lib/appearance";
 import type { ThemeTokens } from "@/lib/theme";
-import { skinLabel, skinOf } from "@/lib/theme-skins";
+import { lookOfSkin, skinLabel, skinOf } from "@/lib/theme-skins";
 import { cn } from "@/lib/utils";
 import { SKIN_PACKS } from "@/widgets/core/theme";
 import { BackgroundEditor } from "./background-editor";
@@ -28,8 +28,8 @@ export function Tile({ name, tag, title, selected, disabled, onPick, children }:
 
 export const GRID = "grid grid-cols-2 gap-3 px-4 pb-4 pt-1";
 
-/** The Skin picker (SPEC §4.3.3): all 14 skins in picker order, drawn live; Default picks `DEFAULT_SKIN`. */
-export function SkinPicker({ current, onPick, onBack }: { current: string; onPick: (skin: string) => void; onBack: () => void }) {
+/** The Skin picker (SPEC §4.3.3): all 14 skins in picker order, drawn live; a pick is the skin's Look (Default: Classic). */
+export function SkinPicker({ current, onPick, onBack }: { current: string; onPick: (lookId: string) => void; onBack: () => void }) {
   return (
     <PickerShell
       title="Skin"
@@ -38,7 +38,7 @@ export function SkinPicker({ current, onPick, onBack }: { current: string; onPic
     >
       <div className={GRID}>
         {SKIN_PACKS.map((p) => (
-          <Tile key={p.name} name={skinLabel(p.name)} title={p.description} selected={skinOf(current) === skinOf(p.name)} onPick={() => onPick(skinOf(p.name))}>
+          <Tile key={p.name} name={skinLabel(p.name)} title={p.description} selected={skinOf(current) === lookOfSkin(p.name)} onPick={() => onPick(lookOfSkin(p.name))}>
             <SkinSwatch skin={p.name} />
           </Tile>
         ))}

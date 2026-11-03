@@ -113,8 +113,10 @@ export async function parseProfileFile(
   }
   if (picked.placements !== undefined) picked.placements = keepable(picked.placements);
   try {
-    // A file goes through the upgrade, whatever version it says (readImportedConfig).
-    const [profile] = (await readImportedConfig({ version, profiles: [picked as unknown as StoredProfile] })).profiles;
+    // A file goes through the upgrade, whatever version it says (readImportedConfig). A bare profile says none: it may
+    // be an older build's, so it takes the v17 step too (skins to Looks), which changes nothing a v17 profile holds.
+    const steps = enveloped ? version : Math.min(version, 16);
+    const [profile] = (await readImportedConfig({ version: steps, profiles: [picked as unknown as StoredProfile] })).profiles;
     // One way only: an older file is upgraded, and the import says so.
     return { profile, skippedCanvases, ...(version < CONFIG_VERSION ? { upgradedFrom: version } : {}), ...(tookSharedLook(raw, version) ? { sharedLook: true } : {}) };
   } catch {

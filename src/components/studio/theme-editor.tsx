@@ -118,8 +118,8 @@ const HELP: Partial<Record<ThemeCard["id"], string>> = {
   surface: "The skin is part of the theme, in the card above.",
 };
 
-/** The skin row is the theme card's Skin; Surface & border shows the skin section's other rows. */
-const PART_KEYS = new Set(["skin"]);
+/** The Look row (Skin) is the theme card's Skin; Surface & border shows the skin section's other rows. */
+const PART_KEYS = new Set(["lookId"]);
 
 /** A row of the two-level data, inset like a setting row. */
 const DataRow = ({ children }: { children: ReactNode }) => <div className="py-[3px] pl-4 pr-2.5">{children}</div>;
@@ -460,12 +460,12 @@ export function ThemeEditor({ config, scope: requested, profileId, pageId, onPic
       case "skin":
         return (
           <SkinPicker
-            current={skinOf(effective.skin)}
+            current={skinOf(effective.lookId)}
             onBack={toMain}
-            onPick={(skin) => {
-              setConfig((c) => withLookAt(c, at, { skin, surface: "auto" }));
+            onPick={(lookId) => {
+              setConfig((c) => withLookAt(c, at, { lookId, surface: "auto" }));
               toMain();
-              show(skinToast(skinLabel(skin), at.level, profile.name));
+              show(skinToast(skinLabel(lookId), at.level, profile.name));
             }}
           />
         );
@@ -504,7 +504,7 @@ export function ThemeEditor({ config, scope: requested, profileId, pageId, onPic
               onDelete={saved ? () => presets.remove(saved.id) : undefined}
               tokens={theme.tokens}
               paletteName={palette}
-              skinName={skinLabel(effective.skin)}
+              skinName={skinLabel(effective.lookId)}
               radius={theme.radius}
               background={background}
               backgroundLabel={backgroundLabel(background)}

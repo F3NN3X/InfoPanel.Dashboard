@@ -7,7 +7,7 @@ import { levelApplied } from "./theme-state";
 import type { DashboardConfig, MonitorProfile, Placement, ProfilePage } from "./layout";
 import { swapColors } from "./screen-templates/looks";
 import { SECTION_IDS, SECTION_KEYS, themedOf, withSectionFlag, withThemeValues, type WidgetTheme } from "./theme-model";
-import { sameSkin } from "./theme-skins";
+import { sameLook } from "./theme-skins";
 
 export { levelApplied, themeState, type ThemePart, type ThemeState } from "./theme-state";
 
@@ -36,8 +36,8 @@ export interface ApplyThemeOptions {
 /** A pick writes its parts; a refresh (Update) only where the level still shows what the theme wrote. */
 type Mode = "pick" | "refresh";
 
-/** Keys a pick always writes, whatever the level holds: the skin and the Look are parts of the theme (a theme without a Look sets Classic). */
-const PART_KEYS: ReadonlySet<string> = new Set(["skin", "lookId"]);
+/** Keys a pick always writes, whatever the level holds: the Look (the skin) is a part of the theme; a theme without one sets none. */
+const PART_KEYS: ReadonlySet<string> = new Set(["lookId"]);
 const NONE: ReadonlySet<string> = new Set();
 
 const orNone = (values: ModuleSettings): ModuleSettings | undefined => (Object.keys(values).length > 0 ? values : undefined);
@@ -49,9 +49,9 @@ const omit = (values: ModuleSettings | undefined, keys: readonly string[]): Modu
   Object.fromEntries(Object.entries(values ?? {}).filter(([key]) => !keys.includes(key)));
 
 
-/** Whether a level's value is still the one the last theme wrote (the Default skin's two spellings are one). */
+/** Whether a level's value is still the one the last theme wrote (an unknown Look is Classic). */
 const theirs = (key: string, value: unknown, written: unknown): boolean =>
-  key === "skin" && value !== undefined && written !== undefined ? sameSkin(value, written) : value === written;
+  key === "lookId" && value !== undefined && written !== undefined ? sameLook(value, written) : value === written;
 
 /** What the last theme wrote at a level; with no snapshot, everything it holds (the first pick replaces it). */
 const writtenAt = (last: AppliedTheme | undefined, values: ModuleSettings): ModuleSettings => last?.values ?? values;

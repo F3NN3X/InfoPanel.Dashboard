@@ -148,7 +148,8 @@ describe("v16: the theme snapshot", () => {
 
   it("a dashboard saved before snapshots that shows a saved theme exactly: its guess goes to the screens that inherited", () => {
     const out = load(v15({ theme: OCEAN, radius: 1, style: desk.style, appearancePresets: [desk] }, [screen("plain"), screen("own", { background: { type: "none" } })]));
-    expect(byId(out, "plain").appliedTheme).toMatchObject({ id: "desk", values: desk.style });
+    // Config v17 stores the skin as the Look (`lookId`).
+    expect(byId(out, "plain").appliedTheme).toMatchObject({ id: "desk", values: { lookId: "tui", accent: "#38bdf8" } });
     expect(byId(out, "own").appliedTheme).toBeUndefined();
   });
 });

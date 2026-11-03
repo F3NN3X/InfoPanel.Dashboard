@@ -38,7 +38,7 @@ export const NEON: ScreenTemplate = {
   look: {
     theme: theme(COLOURS),
     radius: 0.375,
-    style: { skin: "cyber", surface: "neon", accent: "#00e5ff", glow: "soft", glowColor: "#00e5ff", meter: "segments", numGlow: "soft", font: "rajdhani" },
+    style: { lookId: "cyber", surface: "neon", accent: "#00e5ff", glow: "soft", glowColor: "#00e5ff", meter: "segments", numGlow: "soft", font: "rajdhani" },
     background: { type: "color", color: "#06040b" },
     gap: 14,
     padding: 14,

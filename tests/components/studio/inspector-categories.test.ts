@@ -81,7 +81,7 @@ describe("shared sections", () => {
     const keysOf = (id: string) => STANDARD_SETTINGS.filter((d) => d.section === id).map((d) => d.key);
     expect(keysOf("header")).toEqual(["showTitle", "label", "icon"]);
     expect(keysOf("fit")).toEqual(["compact", "sizeTier"]);
-    expect(keysOf("skin").sort()).toEqual(["graph", "meter", "skin", "stroke"]);
+    expect(keysOf("skin").sort()).toEqual(["graph", "lookId", "meter", "stroke"]);
     expect(keysOf("colors").sort()).toEqual(["accent", "mutedColor", "textColor"]);
     expect(keysOf("surface").sort()).toEqual(["background", "backgroundOn", "blur", "surface", "surfaceOpacity"]);
     expect(keysOf("type")).toEqual(["font", "fontWeight", "labelCase", "numGlow", "numGlowColor"]);

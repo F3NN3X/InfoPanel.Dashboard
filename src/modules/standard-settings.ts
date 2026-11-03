@@ -1,6 +1,7 @@
 import type { ModernChrome } from "@/components/modern-chrome";
 import { GLOW_LEVELS } from "@/lib/effects/glow";
 import { FONT_CATALOG } from "@/lib/fonts";
+import { CLASSIC_LOOK } from "@/looks/ids";
 import { MATERIALS } from "@/looks/materials";
 import { SKIN_PACKS } from "@/widgets/core/theme";
 import { THEMED_KEYS } from "@/lib/theme-model";
@@ -71,14 +72,14 @@ export const SURFACE_OPTIONS = [...APP_SURFACE_OPTIONS, ...Object.keys(MATERIALS
 /** Size, alignment, spacing, colors and type — every widget gets these. */
 export const STYLE_SETTINGS: ModuleSetting[] = [
   {
-    // "auto" is the Default skin (`DEFAULT_SKIN`); a stored "default" is valid and reads as it (the select shows Default).
-    // A template widget's shell reads these (see `widgets/module.tsx`).
+    // The level's Look (config v17, D6): the skins are Looks, a skin's Look is named as the skin and the Default skin is
+    // Classic. A template widget's shell draws the skin the Look names (`skinOfLook`, see `widgets/module.tsx`).
     // Picking a skin sets the surface to Auto, so the skin shows with its own card.
-    key: "skin",
+    key: "lookId",
     label: "Skin",
     type: "select",
-    default: "auto",
-    options: autoOptions(SKIN_PACKS.filter((p) => p.name !== "default").map((p) => p.name)).map((o) => ({ ...o, label: SKIN_LABELS[o.value] ?? o.label, applies: { surface: "auto" } })),
+    default: CLASSIC_LOOK,
+    options: autoOptions(SKIN_PACKS.filter((p) => p.name !== "default").map((p) => p.name)).map((o) => ({ value: o.value === "auto" ? CLASSIC_LOOK : o.value, label: SKIN_LABELS[o.value] ?? o.label, applies: { surface: "auto" } })),
     keywords: ["theme", "style", "look", ...SKIN_PACKS.map((p) => p.name)],
     section: "skin",
   },

@@ -135,15 +135,15 @@ function useExiting(key: string, node: ReactNode, width: number, animate: boolea
 /** The screen's widget surface for an island part of the skin, once the skins have loaded; undefined meanwhile and for an overlay. */
 function useWornSurface(page: PageSkin | undefined): WornSurface | undefined {
   const [worn, setWorn] = useState<WornSurface>();
-  const { skin, surface, accent } = page ?? {};
+  const { lookId, surface, accent } = page ?? {};
   useEffect(() => {
     if (!page) return setWorn(undefined);
     let live = true;
-    void import("./island-page-skin").then((m) => live && setWorn(m.wornSurface({ skin, surface, accent })));
+    void import("./island-page-skin").then((m) => live && setWorn(m.wornSurface({ lookId, surface, accent })));
     return () => {
       live = false;
     };
-  }, [page !== undefined, skin, surface, accent]);
+  }, [page !== undefined, lookId, surface, accent]);
   return page ? worn : undefined;
 }
 

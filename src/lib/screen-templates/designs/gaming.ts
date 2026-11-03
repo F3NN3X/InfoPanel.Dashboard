@@ -13,7 +13,7 @@ export const GAMING: ScreenTemplate = {
   look: {
     theme: "zinc",
     radius: 0.5,
-    style: { skin: "cyber", accent: "#22d3ee", numGlow: "strong", glow: "soft", glowColor: "#22d3ee" },
+    style: { lookId: "cyber", accent: "#22d3ee", numGlow: "strong", glow: "soft", glowColor: "#22d3ee" },
     background: { type: "gradient", gradient: { from: "#0b1023", to: "#05060a", angle: 160 } },
     gap: 14,
     padding: 16,

@@ -129,6 +129,7 @@ export function placementSettings(s: QaState): ModuleSettings {
       console.warn("widget-qa: settings is not valid JSON");
     }
   }
-  const look = Object.fromEntries(LOOK_KEYS.flatMap((k) => (s[k] ? [[k, s[k]]] : [])));
+  // The skin control picks a skin's Look (config v17: the stored key is `lookId`, a skin's Look is named as the skin).
+  const look = Object.fromEntries(LOOK_KEYS.flatMap((k) => (s[k] ? [[k === "skin" ? "lookId" : k, s[k]]] : [])));
   return { ...look, ...extra };
 }

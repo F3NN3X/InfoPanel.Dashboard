@@ -14,7 +14,7 @@ const tileOf = (style: AppearancePreset["style"]) => {
 
 describe("AppearancePreview surfaces", () => {
   it("draws a skin's own surface when the theme sets the skin and leaves the surface to auto", () => {
-    const el = tileOf({ skin: "synth", surface: "auto" });
+    const el = tileOf({ lookId: "synth", surface: "auto" });
     expect(el.style.boxShadow).toContain("255,79,216");
     expect(el.className).toContain("border");
   });
@@ -25,9 +25,9 @@ describe("AppearancePreview surfaces", () => {
 
   it("sets the colour --accent the materials mix with (the theme's --accent is an HSL triplet)", () => {
     expect(tileOf({ surface: "neon", accent: "#ff0000" }).style.getPropertyValue("--w-accent")).toBe("#ff0000");
-    expect(tileOf({ skin: "cyber", surface: "auto" }).style.getPropertyValue("--w-accent")).toBe("#f5e642");
+    expect(tileOf({ lookId: "cyber", surface: "auto" }).style.getPropertyValue("--w-accent")).toBe("#f5e642");
     expect(tileOf({ surface: "tinted" }).style.getPropertyValue("--w-accent")).toBe("hsl(var(--primary))");
-    expect(tileOf({ skin: "ink", surface: "matte-light" }).style.getPropertyValue("--w-accent")).toBe("hsl(var(--primary))");
+    expect(tileOf({ lookId: "ink", surface: "matte-light" }).style.getPropertyValue("--w-accent")).toBe("hsl(var(--primary))");
   });
 
   it("keeps the app's materials and their text tone", () => {

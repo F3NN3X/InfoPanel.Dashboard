@@ -13,7 +13,7 @@ export const HARDWARE: ScreenTemplate = {
   look: {
     theme: "zinc",
     radius: 0.25,
-    style: { skin: "hud", accent: "#38bdf8", numGlow: "soft" },
+    style: { lookId: "hud", accent: "#38bdf8", numGlow: "soft" },
     background: { type: "color", color: "#05080b" },
     gap: 12,
     padding: 14,

@@ -54,7 +54,7 @@ describe("templateModule", () => {
   });
 
   it("renders the component with flat data, the shell props and its own props", () => {
-    const saved = { skin: "tui", label: "Hi", unit: "y", compact: "full", radius: "12" };
+    const saved = { lookId: "tui", label: "Hi", unit: "y", compact: "full", radius: "12" };
     renderToStaticMarkup(mod.render({ "demo.a": { value: 5, unit: "W" } }, saved) as never);
     expect(seen().data).toEqual({ "demo.a": "5 W" });
     expect(seen()).toMatchObject({ skin: "tui", title: "Hi", unit: "y", compactView: "off", variant: "default", radius: 12 });
@@ -101,7 +101,7 @@ describe("templateModule with no data", () => {
 describe("shellProps", () => {
   it("turns auto and empty into undefined", () => {
     expect(
-      shellProps({ accent: "", surface: "auto", radius: "auto", skin: "auto", compact: "auto", graph: "auto", meter: "auto", label: "" })
+      shellProps({ accent: "", surface: "auto", radius: "auto", lookId: "classic", compact: "auto", graph: "auto", meter: "auto", label: "" })
     ).toEqual({
       accent: undefined,
       surface: undefined,
@@ -117,7 +117,7 @@ describe("shellProps", () => {
 
   it("passes chosen values through", () => {
     expect(
-      shellProps({ accent: "#fff", surface: "glass", radius: "999", skin: "ink", compact: "dense", graph: "braille", meter: "wave", label: "CPU" })
+      shellProps({ accent: "#fff", surface: "glass", radius: "999", lookId: "ink", compact: "dense", graph: "braille", meter: "wave", label: "CPU" })
     ).toEqual({
       accent: "#fff",
       surface: "glass",
@@ -170,13 +170,14 @@ describe("registry", () => {
 });
 
 describe("withSkinSurface", () => {
-  const look = (o: ModuleSettings): ModuleSettings => ({ surface: "glass", skin: "auto", ...o });
-  it("keeps glass for skin auto and brings the skin's surface otherwise", () => {
+  const look = (o: ModuleSettings): ModuleSettings => ({ surface: "glass", lookId: "classic", ...o });
+  it("keeps glass for Classic (and a sample or unknown Look) and brings the skin's surface otherwise", () => {
     expect(withSkinSurface(look({}), {}).surface).toBe("glass");
-    expect(withSkinSurface(look({ skin: "ink" }), undefined).surface).toBe("outline");
-    expect(withSkinSurface(look({ skin: "default" }), {}).surface).toBe("glass");
+    expect(withSkinSurface(look({ lookId: "ink" }), undefined).surface).toBe("outline");
+    expect(withSkinSurface(look({ lookId: "term" }), {}).surface).toBe("glass");
+    expect(withSkinSurface(look({ lookId: "nope" }), {}).surface).toBe("glass");
   });
   it("lets a surface set at any level win", () => {
-    expect(withSkinSurface(look({ skin: "ink", surface: "theme" }), { surface: "theme" }).surface).toBe("theme");
+    expect(withSkinSurface(look({ lookId: "ink", surface: "theme" }), { surface: "theme" }).surface).toBe("theme");
   });
 });

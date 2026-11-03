@@ -3,7 +3,7 @@ import { normalizeBackground, type PageBackground } from "./appearance";
 import { normalizeAppearancePresets, type AppearancePreset } from "./appearance-presets";
 import { normalizeAppliedTheme, type AppliedTheme } from "./applied-theme";
 import type { ModuleSettings } from "@/modules/types";
-import type { SectionFlags, WidgetTheme } from "./theme-model";
+import { withKnownLook, type SectionFlags, type WidgetTheme } from "./theme-model";
 import type { LegacyProfileFields } from "./settings-migrate";
 import { normalizeApiBase } from "./data-api";
 import { normalizeFont, normalizeGeneral, type GeneralFont, type GeneralSettings } from "./general";
@@ -312,11 +312,15 @@ export type ProfileView = Omit<MonitorProfile, "pages"> & {
  *     the style's 12 / 24 h clock becomes `general.clock`. A v15 build would show every screen in the built-in look, so
  *     the server refuses its save; before the first v16 save it keeps the v15 file as `config.backup-before-v16.json`
  *     (`config_guard.rs`).
- * v17: Looks (`look-migrate.ts` `migrateLooksV17`, D6): each level stores a `lookId` (the themed key of the skin
- *     section; unset is Classic) with its values as the overrides on top. A screen or page whose theme snapshot is a
- *     sample theme gets that Look in its values and snapshot, and a saved theme copied from one names it; skins and
- *     every other value stay, so nothing resolves differently. A v16 build would drop `lookId` on its next save, so the
- *     server refuses its save; before the first v17 save it keeps the v16 file as `config.backup-before-v17.json`.
+ * v17: Looks (`look-migrate.ts`, D6): the skins are Looks, and each level stores a `lookId` (the skin section's key,
+ *     in place of `skin`; unset is Classic) with its other values as the overrides on top; the Look decides the skin
+ *     the widgets are drawn in, and an id this build doesn't know is Classic. Every stored skin becomes the level's Look
+ *     (`renameSkinsV17`: screens, pages, widgets, snapshots and their widget writes, saved styles, panels and themes;
+ *     `auto`, `default` and an unknown skin are Classic); a level that applied a sample theme, or a saved copy of one,
+ *     and draws the Default skin names that Look, and so does the copy (`migrateLooksV17`). The follow and lock flags
+ *     stay. Nothing draws differently. A v16 build would drop every Look on its next save, so the server refuses its
+ *     save; before the first v17 save it keeps the v16 file as `config.backup-before-v17.json` (once: an existing
+ *     backup is never overwritten).
  */
 export const CONFIG_VERSION = 17;
 
@@ -480,7 +484,7 @@ function normalizePages(p: StoredProfile, cols: number, rows: number): ProfilePa
       typeof page.id === "string" && page.id && !seen.has(page.id) ? page.id : uid("page");
     seen.add(id);
     // v15 stores no page layout (it reads from the page's shape); a v14 flag goes.
-    const { layout: _layout, groups: rawGroups, snapItems, appliedTheme, ...rest } = page as ProfilePage & { layout?: unknown };
+    const { layout: _layout, groups: rawGroups, snapItems, appliedTheme, widgetTheme, ...rest } = page as ProfilePage & { layout?: unknown };
     const groups = normalizeGroups(rawGroups);
     const known = new Set(groups.map((g) => g.id));
     const placements = normalizePlacements(page.placements ?? [], cols, rows).map((pl) => {
@@ -495,6 +499,7 @@ function normalizePages(p: StoredProfile, cols: number, rows: number): ProfilePa
       placements,
       ...(groups.length ? { groups } : {}),
       ...(snapItems === false ? { snapItems } : {}),
+      ...(widgetTheme !== undefined ? { widgetTheme: withKnownLook(widgetTheme) } : {}),
       ...(normalizeAppliedTheme(appliedTheme) ? { appliedTheme: normalizeAppliedTheme(appliedTheme) } : {}),
     };
   });
@@ -583,6 +588,7 @@ function profileExtras(p: StoredProfile): Partial<MonitorProfile> {
     font: normalizeFont(p.font),
     madeFor: p.madeFor === "studio" || p.madeFor === "infopanel" ? p.madeFor : undefined,
     appliedTheme: normalizeAppliedTheme(p.appliedTheme),
+    widgetTheme: withKnownLook(p.widgetTheme),
     updatedAt: typeof p.updatedAt === "string" && !Number.isNaN(Date.parse(p.updatedAt)) ? p.updatedAt : undefined,
   };
 }

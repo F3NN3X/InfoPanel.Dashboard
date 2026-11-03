@@ -30,6 +30,13 @@ export const SKINS: Record<string, Partial<SkinTokens>> = Object.fromEntries(SKI
 export const SKIN_NAMES = Object.keys(SKINS);
 
 /**
+ * The skin a Look draws its widgets in (config v17, D6): a skin's Look is named as the skin; Classic, a sample Look and
+ * an id this build doesn't know draw the Default skin (undefined, the shell's own choice).
+ */
+export const skinOfLook = (lookId: unknown): string | undefined =>
+  lookId !== "default" && Object.hasOwn(SKINS, lookId as string) ? (lookId as string) : undefined;
+
+/**
  * The surface a widget draws: a registry name, `auto` = the skin's own (or `studio` for the
  * studio variant, `solid` without one), unset = the app default (`glass`); a `look-*` name is a sample theme's card. Unknown names fall
  * back to the default too.

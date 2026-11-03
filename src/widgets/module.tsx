@@ -7,7 +7,7 @@ import { withHwinfoAliases } from "@/lib/hwinfo-aliases";
 import { islandSettings, type IslandSourceDef } from "@/lib/island/sources";
 import { effectiveSettings, type DashboardModule, type ModuleSetting, type ModuleSettings, type SensorMap } from "@/modules/types";
 import { ensureSkinFonts } from "./core/fonts";
-import { SKINS } from "./core/theme";
+import { SKINS, skinOfLook } from "./core/theme";
 import type { ShellProps, WidgetMeta } from "./core/types";
 import { toFlat, toNames } from "./data-adapter";
 import { preloadOf } from "./lazy-widget";
@@ -42,7 +42,7 @@ export function shellProps(s: ModuleSettings): Partial<ShellProps> {
     accent: chosen(s.accent),
     surface: chosen(s.surface),
     radius: chosen(s.radius) !== undefined && Number.isFinite(radius) ? radius : undefined,
-    skin: chosen(s.skin),
+    skin: skinOfLook(s.lookId),
     variant: compact === "dense" ? "studio" : compact === "full" ? "default" : undefined,
     graph: chosen(s.graph),
     meter: chosen(s.meter),
@@ -52,14 +52,14 @@ export function shellProps(s: ModuleSettings): Partial<ShellProps> {
 }
 
 /**
- * The look with the surface decided: a value set at any style level wins, else a chosen skin
- * brings its own surface, else `glass` (the default, so skin `auto` configs are unchanged).
+ * The look with the surface decided: a value set at any style level wins, else the skin the Look draws in
+ * brings its own surface, else `glass` (the default, so Classic configs are unchanged).
  * `effectiveSettings` always fills `surface`, so `saved` (resolved, not defaulted) says if it was set.
  * `fallback` is the module's own surface default (`theme` for the plain card widgets).
  */
 export function withSkinSurface(look: ModuleSettings, saved: ModuleSettings | undefined, fallback = "glass"): ModuleSettings {
   if (chosen(saved?.surface)) return look;
-  const skin = chosen(look.skin);
+  const skin = skinOfLook(look.lookId);
   return { ...look, surface: (skin && SKINS[skin]?.surface) || fallback };
 }
 
@@ -92,7 +92,7 @@ export function useZoneLook(defs: ModuleSetting[], saved: ModuleSettings | undef
   const last = useRef(next);
   const look = same(last.current, next) ? last.current : next;
   last.current = look;
-  const skin = chosen(look.skin);
+  const skin = skinOfLook(look.lookId);
   useEffect(() => {
     if (skin) ensureSkinFonts(skin);
   }, [skin]);

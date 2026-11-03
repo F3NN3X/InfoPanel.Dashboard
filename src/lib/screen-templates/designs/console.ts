@@ -53,7 +53,7 @@ export const CONSOLE: ScreenTemplate = {
   look: {
     theme: theme(COLOURS),
     radius: 0.25,
-    style: { skin: "hud", surface: "theme", accent: "#3fa0ff", font: "sans", labelCase: "uppercase" },
+    style: { lookId: "hud", surface: "theme", accent: "#3fa0ff", font: "sans", labelCase: "uppercase" },
     background: { type: "color", color: "#07090d" },
     gap: 6,
     padding: 6,

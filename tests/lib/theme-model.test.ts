@@ -28,9 +28,9 @@ describe("themed keys and sections", () => {
     const roles = ["s1", "s2", "s3", "s4", "s5", "s6", "ok", "warn", "crit"];
     // alignX / alignY stay readable until PR 8 (align + alignSpread replace them).
     const legacy = ["alignX", "alignY"];
-    // A level's Look (config v17, D6).
+    // A level's Look (config v17, D6) is among the profile style keys: it is the Skin row's key.
     expect([...THEMED_KEYS].sort()).toEqual(
-      [...PROFILE_STYLE_KEYS, ...legacy, "tempUnit", "rateUnit", "decimals", "clock", ...thresholds, ...roles, "meterBallistics", "lookId"].sort()
+      [...PROFILE_STYLE_KEYS, ...legacy, "tempUnit", "rateUnit", "decimals", "clock", ...thresholds, ...roles, "meterBallistics"].sort()
     );
     for (const key of ["autoScale", "variant", "compactView", "compact", "sizeTier", "layout"]) expect(THEMED_KEYS.has(key), key).toBe(false);
   });
@@ -57,10 +57,18 @@ describe("themed keys and sections", () => {
     expect(THEME_DEFAULTS.lookId).toBe("classic");
     expect(sectionOfKey("lookId")).toBe("skin");
     expect(lookIdOf({})).toBe("classic");
-    expect(lookIdOf({ profile: { values: { skin: "hud", lookId: "" } } })).toBe("classic");
-    const levels: ThemeLevels = { profile: { values: { lookId: "paper" } }, page: { values: { lookId: "term" } } };
+    expect(lookIdOf({ profile: { values: { lookId: "" } } })).toBe("classic");
+    const levels: ThemeLevels = { profile: { values: { lookId: "paper" } }, page: { values: { lookId: "hud" } } };
     expect(lookIdOf(levels)).toBe("paper");
-    expect(lookIdOf({ ...levels, page: { ...levels.page, follow: { skin: false } } })).toBe("term");
+    expect(lookIdOf({ ...levels, page: { ...levels.page, follow: { skin: false } } })).toBe("hud");
+  });
+
+  it("show Classic for a Look id this build doesn't know, a misspelt one or one that isn't text", () => {
+    for (const id of ["nope", "Term", "default", 5, true]) {
+      expect(lookIdOf({ profile: { values: { lookId: id } } }), String(id)).toBe("classic");
+      expect(normalizeWidgetTheme({ values: { lookId: id, accent: "#fff" } })?.values, String(id)).toEqual({ lookId: "classic", accent: "#fff" });
+    }
+    expect(normalizeWidgetTheme({ values: { lookId: "term" } })?.values).toEqual({ lookId: "term" });
   });
 
 });

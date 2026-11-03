@@ -76,7 +76,8 @@ describe("a profile saved by an older build", () => {
       background: { type: "none" },
     });
     expect(p.theme).toMatchObject({ primary: "1 2% 3%" });
-    expect(p.widgetTheme?.values).toEqual({ skin: "glass" });
+    // Config v17: its skin is its Look; one this build has no skin of is Classic.
+    expect(p.widgetTheme?.values).toEqual({ lookId: "classic" });
     expect(p.background).toEqual({ type: "none" });
   });
 

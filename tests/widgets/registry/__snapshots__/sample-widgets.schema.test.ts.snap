@@ -61,7 +61,7 @@ exports[`AudioMeter > files its rows as drawn 1`] = `
   "Style": [
     {
       "Skin": [
-        "skin",
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -174,7 +174,7 @@ exports[`CpuMonitor > files its rows as drawn 1`] = `
   "Style": [
     {
       "Skin": [
-        "skin",
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -321,7 +321,7 @@ exports[`NowPlaying > files its rows as drawn 1`] = `
   "Style": [
     {
       "Skin": [
-        "skin",
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -446,7 +446,7 @@ exports[`SensorGroup > files its rows as drawn 1`] = `
   "Style": [
     {
       "Skin": [
-        "skin",
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -543,7 +543,7 @@ exports[`SteamProfile > files its rows as drawn 1`] = `
   "Style": [
     {
       "Skin": [
-        "skin",
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -711,7 +711,7 @@ exports[`SystemOverview > files its rows as drawn 1`] = `
   "Style": [
     {
       "Skin": [
-        "skin",
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -809,7 +809,7 @@ exports[`Uptime > files its rows as drawn 1`] = `
   "Style": [
     {
       "Skin": [
-        "skin",
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -943,7 +943,7 @@ exports[`Weather > files its rows as drawn 1`] = `
   "Style": [
     {
       "Skin": [
-        "skin",
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",

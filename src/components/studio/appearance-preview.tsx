@@ -5,7 +5,7 @@ import { presetTokens, type AppearancePreset } from "@/lib/appearance-presets";
 import { resolveMaterial } from "@/looks/materials";
 import { cn } from "@/lib/utils";
 import { chromeOf } from "@/modules/standard-settings";
-import { resolveSurface, SKINS, textVars } from "@/widgets/core/theme";
+import { resolveSurface, SKINS, skinOfLook, textVars } from "@/widgets/core/theme";
 import { accentVars } from "@/widgets/core/tokens";
 import { withSkinSurface } from "@/widgets/module";
 
@@ -28,8 +28,9 @@ function MiniTile({ preset, value, fill }: { preset: AppearancePreset; value: st
   const chrome = chromeOf(preset.style);
   // Glow sizes are page pixels too; the soft one reads right at this scale.
   // The surface a widget would resolve from this style: its own, else its skin's, else the theme's.
-  const { surface, skin } = withSkinSurface({ surface: preset.style.surface, skin: preset.style.skin }, preset.style, "theme");
-  const surf = resolveSurface(String(surface), skin === undefined ? undefined : String(skin));
+  const { surface } = withSkinSurface({ surface: preset.style.surface, lookId: preset.style.lookId }, preset.style, "theme");
+  const skin = skinOfLook(preset.style.lookId);
+  const surf = resolveSurface(String(surface), skin);
   const mat = resolveMaterial(surf, { ...chrome, glow: chrome.glow === "none" ? "none" : "soft" });
   const radius = (chrome.radius ?? preset.radius * 16) * 0.3;
   // The colour `--accent` the materials mix with, as the shell sets it: the look's, else the skin's (not on a light card), else the theme's.
