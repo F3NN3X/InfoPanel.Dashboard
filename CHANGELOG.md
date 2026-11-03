@@ -24,6 +24,11 @@ version as its notes, so move **Unreleased** under a new `## [X.Y.Z] - YYYY-MM-D
 - Network Adapters' compact tile now blurs the IP when **Hide IP** is on.
 - Mixer faders work from the keyboard, and a mixer that can't write can't be reached by keyboard either. **Ctrl+L** and **Ctrl+H** in Layers act on the focused layer.
 - Drive Space draws healthy drives in the accent colour by default; **Neutral below thresholds** turns the grey back on.
+- Settings' Agents, Diagnostics, Logs and Touch pages, and the touch overlay, draw their tile, chip and hover backgrounds again.
+- **Limit blur** now caps every blur on the kiosk, including alerts, badges, panel titles and the island.
+- Units are drawn smaller than their values in every stat (CPU, GPU, FPS, Storage Health, Power Draw, Menu Bar and Audio Meter).
+- Studio's theme thumbnails show skins and skin surfaces, and a mixer's LCD set to Auto follows the widget's surface rather than the OS.
+- Widgets re-render less on each data update when their look hasn't changed.
 
 ## [1.3.1-beta.7] - 2026-11-02
 
