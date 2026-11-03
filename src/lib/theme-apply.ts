@@ -223,7 +223,7 @@ function applyAt(config: DashboardConfig, preset: AppearancePreset, target: Them
 }
 
 /** Apply a theme at a level, adding to its look (see the module comment). */
-export const applyTheme = (config: DashboardConfig, preset: AppearancePreset, target: ThemeTarget, options: ApplyThemeOptions = {}): DashboardConfig =>
+export const applyThemeToLevel = (config: DashboardConfig, preset: AppearancePreset, target: ThemeTarget, options: ApplyThemeOptions = {}): DashboardConfig =>
   applyAt(config, preset, target, "pick", options.keepBackground === true);
 
 /** Apply a theme to several screens at once (one config, so one undo step); ids that name no screen are ignored. */
@@ -231,7 +231,7 @@ export function applyThemeToScreens(config: DashboardConfig, preset: AppearanceP
   const known = new Set(config.profiles.map((p) => p.id));
   return [...new Set(profileIds)]
     .filter((profileId) => known.has(profileId))
-    .reduce((c, profileId) => applyTheme(c, preset, { kind: "profile", profileId }, options), config);
+    .reduce((c, profileId) => applyThemeToLevel(c, preset, { kind: "profile", profileId }, options), config);
 }
 
 /** A snapshot reduced to its writes into the widgets (Reset clears the rest of the level). */
@@ -249,7 +249,7 @@ export function resetToTheme(config: DashboardConfig, preset: AppearancePreset, 
       const { background: _bg, ...rest } = p;
       return { ...rest, widgetTheme: withThemeValues(p.widgetTheme, undefined), ...writesOnly(p.appliedTheme) };
     });
-    return applyTheme(cleared, preset, target);
+    return applyThemeToLevel(cleared, preset, target);
   }
   const cleared = withProfile(config, target.profileId, (p) => {
     const locks = p.widgetTheme?.locks;
@@ -265,7 +265,7 @@ export function resetToTheme(config: DashboardConfig, preset: AppearancePreset, 
       }),
     };
   });
-  return applyTheme(cleared, preset, target);
+  return applyThemeToLevel(cleared, preset, target);
 }
 
 /* ---------------- where a theme is used, and what changed ---------------- */

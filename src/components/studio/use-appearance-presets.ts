@@ -45,7 +45,7 @@ const themeApply = () => import("@/lib/theme-apply");
 export function useAppearancePresets(config: DashboardConfig, setConfig: HistorySetter): AppearancePresetsApi {
   return {
     presets: config.appearancePresets ?? [],
-    apply: (preset, at, keepBackground) => void themeApply().then((m) => setConfig((c) => m.applyTheme(c, preset, themeTarget(at), { keepBackground }))),
+    apply: (preset, at, keepBackground) => void themeApply().then((m) => setConfig((c) => m.applyThemeToLevel(c, preset, themeTarget(at), { keepBackground }))),
     applyToScreens: (preset, profileIds, keepBackground) =>
       void themeApply().then((m) => setConfig((c) => m.applyThemeToScreens(c, preset, profileIds, { keepBackground }))),
     reset: (preset, at) => void themeApply().then((m) => setConfig((c) => m.resetToTheme(c, preset, themeTarget(at)))),

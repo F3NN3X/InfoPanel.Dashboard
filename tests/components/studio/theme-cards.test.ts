@@ -17,7 +17,7 @@ import {
 } from "@/components/studio/theme-cards";
 import { withPageFollow, withScopeValues } from "@/components/studio/theme-editor-model";
 import { TEMPLATE_PRESETS } from "@/lib/screen-templates/template-presets";
-import { applyTheme, themeState } from "@/lib/theme-apply";
+import { applyThemeToLevel, themeState } from "@/lib/theme-apply";
 
 const zone = (id: string, extra: Partial<Placement> = {}): Placement => ({
   id,
@@ -144,9 +144,9 @@ describe("withTokens (a palette picked)", () => {
   it("the palette's accent is the theme's, not a change of the screen's own: the next theme replaces it", () => {
     const preset = (name: string) => TEMPLATE_PRESETS.find((t) => t.name === name)!;
     const target = { kind: "profile" as const, profileId: "desk" };
-    const amber = withTokens(applyTheme(setup(), preset("Graphite · Teal"), target), SCREEN, blue, "#ffb000");
+    const amber = withTokens(applyThemeToLevel(setup(), preset("Graphite · Teal"), target), SCREEN, blue, "#ffb000");
     expect(themeState(amber, target, TEMPLATE_PRESETS).own).not.toContain("colors");
-    const gaming = applyTheme(amber, preset("Gaming"), target);
+    const gaming = applyThemeToLevel(amber, preset("Gaming"), target);
     expect(desk(gaming).widgetTheme?.values?.accent).toBe("#22d3ee");
   });
 

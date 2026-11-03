@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { AppearancePreset } from "@/lib/appearance-presets";
 import { defaultConfig, type DashboardConfig, type MonitorProfile } from "@/lib/layout";
-import { applyTheme, themeState } from "@/lib/theme-apply";
+import { applyThemeToLevel, themeState } from "@/lib/theme-apply";
 import { themeCard, withCardLock, withPageFont, type ThemeAt } from "@/components/studio/theme-cards";
 import { withPageFollow, withScopeValues } from "@/components/studio/theme-editor-model";
 import { fineTuneChip, fineTuneHeading, fineTuneSummary, resetFineTune } from "@/components/studio/theme-fine-tune-model";
@@ -22,7 +22,7 @@ const chip = (c: DashboardConfig, at: ThemeAt, id: Parameters<typeof themeCard>[
 describe("a fine-tune section's chip", () => {
   it("a screen: Built-in with nothing set, From theme for what a theme wrote, Changed here once changed", () => {
     expect(chip(setup(), SCREEN, "colors").state).toBe("builtin");
-    const applied = applyTheme(setup(), DESK, { kind: "profile", profileId: "desk" });
+    const applied = applyThemeToLevel(setup(), DESK, { kind: "profile", profileId: "desk" });
     expect(chip(applied, SCREEN, "colors").state).toBe("theme");
     expect(chip(applied, SCREEN, "surface").state).toBe("theme");
     expect(chip(applied, SCREEN, "motion").state).toBe("builtin");
@@ -37,13 +37,13 @@ describe("a fine-tune section's chip", () => {
     const custom = withPageFollow(setup(), "desk", "main", "format", false);
     expect(chip(custom, MAIN, "format").state).toBe("custom");
     expect(chip(withCardLock(custom, "desk", themeCard("format"), true), MAIN, "format").state).toBe("locked");
-    expect(chip(applyTheme(setup(), DESK, themeTarget(MAIN)), MAIN, "colors").state).toBe("theme");
+    expect(chip(applyThemeToLevel(setup(), DESK, themeTarget(MAIN)), MAIN, "colors").state).toBe("theme");
   });
 });
 
 describe("Reset to inherited", () => {
   it("puts back the theme's values where a theme is applied, else drops the level's", () => {
-    const applied = applyTheme(setup(), DESK, { kind: "profile", profileId: "desk" });
+    const applied = applyThemeToLevel(setup(), DESK, { kind: "profile", profileId: "desk" });
     const changed = withScopeValues(applied, "desk", { kind: "profile" }, (v) => ({ ...v, accent: "#ff0000", s1: "#00ff00" }));
     const reset = resetFineTune(changed, SCREEN, themeCard("colors"), themeState(changed, themeTarget(SCREEN)));
     expect(reset.profiles[0].widgetTheme?.values).toMatchObject({ accent: "#38bdf8" });

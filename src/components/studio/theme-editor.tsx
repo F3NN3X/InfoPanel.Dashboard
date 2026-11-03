@@ -12,7 +12,7 @@ import { deletePalette, duplicatePalette, paletteName, paletteUsers, renamePalet
 import type { TemplatePresetGroup } from "@/lib/screen-templates/template-presets";
 import { templateThemeRows } from "@/lib/screen-templates/template-rows";
 import { hexToHsl, hslToHex, resolveTheme } from "@/lib/theme";
-import { applyTheme, themeState, themeUses } from "@/lib/theme-apply";
+import { applyThemeToLevel, themeState, themeUses } from "@/lib/theme-apply";
 import { allLocked, themedOf } from "@/lib/theme-model";
 import { skinLabel, skinOf } from "@/lib/theme-skins";
 import type { ModuleSettings } from "@/modules/types";
@@ -258,7 +258,7 @@ export function ThemeEditor({ config, scope: requested, profileId, pageId, onPic
     // A level with no snapshot has nothing of its own: the pick replaces its look.
     const replaced = !state.applied;
     const kept = replaced ? 0 : state.own.length;
-    const widgets = widgetsKeepingAfter(applyTheme(config, p, target, { keepBackground }), at, p);
+    const widgets = widgetsKeepingAfter(applyThemeToLevel(config, p, target, { keepBackground }), at, p);
     presets.apply(p, at, keepBackground);
     setDrill("main");
     const background = at.level !== "page" && !keepBackground && p.background !== undefined;

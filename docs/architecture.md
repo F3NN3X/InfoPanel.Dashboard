@@ -935,7 +935,7 @@ least one widget is visible.
 
 ### Applying themes (`src/lib/theme-apply.ts`)
 
-`applyTheme(config, preset, target, { keepBackground })` is pure config → config, and the studio sets its result in
+`applyThemeToLevel(config, preset, target, { keepBackground })` is pure config → config, and the studio sets its result in
 one `setConfig` call, so one undo step reverts a whole pick. At a screen it writes the theme's tokens, radius, skin and
 (unless kept) background, merges the theme's style values over the level's, replacing only those that still equal
 what the last theme wrote (the level's snapshot, `appliedTheme`), and stores the new snapshot. A level with no

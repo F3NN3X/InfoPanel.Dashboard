@@ -650,7 +650,7 @@ background? }`. All are the user's; the `builtin:` id prefix is reserved (`isBui
 
 An apply is one undo step (`useAppearancePresets`, `src/components/studio/use-appearance-presets.ts`). A pick
 writes the level's palette, skin, corners and (unless kept) background, merges the theme's style values over what the
-last theme wrote, and stores what it wrote as the level's snapshot (`appliedTheme`); see `applyTheme`,
+last theme wrote, and stores what it wrote as the level's snapshot (`appliedTheme`); see `applyThemeToLevel`,
 `src/lib/theme-apply.ts`.
 
 ### 6.2 Style presets (Styles; `stylePresets`: `{ id, name, settings }`)
@@ -845,7 +845,7 @@ shows; Theme's scope is the scope bar (All screens, a screen, a page).
 | Theme › a widget-style row at a page; Customise here / Reset on a card | `ProfilePage.widgetTheme.values` and `follow` | `withScopeValues`, `withPageFollow` (`theme-editor-model.ts:125`), `customiseCard`, `resetCard` (`theme-cards.ts:232,226`) |
 | Theme › a card's lock (screen scope), Lock all / Unlock all | `MonitorProfile.widgetTheme.locks` | `withCardLock` (`theme-cards.ts:243`), `withLock`, `withLockAll` (`theme-editor-model.ts:117,121`) |
 | Theme › Exceptions › Follow, Follow all | `Placement.follow` (the zones follow again) | `makeFollow`, `makeAllFollow` (`theme-exceptions.ts:79,87`) |
-| Theme › Switch theme, Save as theme, Update ‹name› | applies palette, skin, corners and background to the level and stores its snapshot; saves `DashboardConfig.appearancePresets` | `useAppearancePresets` (`use-appearance-presets.ts`), `applyTheme` / `saveAsTheme` / `updateThemeEverywhere` (`theme-apply.ts`) |
+| Theme › Switch theme, Save as theme, Update ‹name› | applies palette, skin, corners and background to the level and stores its snapshot; saves `DashboardConfig.appearancePresets` | `useAppearancePresets` (`use-appearance-presets.ts`), `applyThemeToLevel` / `saveAsTheme` / `updateThemeEverywhere` (`theme-apply.ts`) |
 | Screens › When the app opens; card ⋯ › Always open this one | `DashboardConfig.activeProfile` | `withLaunch` (`screens-model.ts:19`) |
 | Screens › card click | Browser `studio.pinnedProfile` | `pinned-profile.ts:30` |
 | Screens › card ⋯ › Rename | `MonitorProfile.name` | `rename` (`screens-view.tsx`) |

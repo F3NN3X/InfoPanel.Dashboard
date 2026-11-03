@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { upgradeConfig } from "@/lib/config-upgrade";
-import { applyTheme } from "@/lib/theme-apply";
+import { applyThemeToLevel } from "@/lib/theme-apply";
 import { invalidStyleKeys, isBuiltinPreset, isValidStyleValue, normalizeAppearancePresets } from "@/lib/appearance-presets";
 import { saveCopyOfPreset } from "@/lib/appearance-preset-apply";
 import { defaultConfig } from "@/lib/layout";
@@ -58,7 +58,7 @@ describe("sample themes: the cards", () => {
   });
 
   it("loads with the config that names one, and only then", () => {
-    expect(usesSampleCards(JSON.parse(JSON.stringify(applyTheme(defaultConfig(), samplePreset(SAMPLE_THEMES[0]), { kind: "profile", profileId: defaultConfig().profiles[0].id }))))).toBe(true);
+    expect(usesSampleCards(JSON.parse(JSON.stringify(applyThemeToLevel(defaultConfig(), samplePreset(SAMPLE_THEMES[0]), { kind: "profile", profileId: defaultConfig().profiles[0].id }))))).toBe(true);
     expect(usesSampleCards(defaultConfig())).toBe(false);
   });
 
@@ -148,7 +148,7 @@ describe("sample themes: presets", () => {
   it.each(presets)("$name applies, saves and reloads as the same look", (preset) => {
     const config = defaultConfig();
     const profileId = config.profiles[0].id;
-    const applied = upgradeConfig(JSON.parse(JSON.stringify(applyTheme(config, preset, { kind: "profile", profileId }))));
+    const applied = upgradeConfig(JSON.parse(JSON.stringify(applyThemeToLevel(config, preset, { kind: "profile", profileId }))));
     const profile = applied.profiles.find((p) => p.id === profileId)!;
     expect(profile.widgetTheme?.values).toMatchObject(preset.style);
     expect(profile.appliedTheme?.id).toBe(preset.id);
