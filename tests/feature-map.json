@@ -615,10 +615,10 @@
     },
     {
       "id": "looks",
-      "summary": "The Look system's single sources (status colours, default accent, Studio twins) and the generator that writes the copies the CSS and the gauge export need.",
+      "summary": "The Look system's single sources (status colours, default accent, Studio twins, the material registry) and the generator that writes the copies the CSS and the gauge export need.",
       "paths": ["src/looks/**", "tools/looks/**"],
-      "tests": ["tests/looks/**", "tests/widgets/core/state-copies.test.ts", "tests/lib/theme-css-sync.test.ts", "tests/settings/theme-tokens.test.ts", "tests/components/color-literals.test.ts"],
-      "checks": ["typecheck", "unit", "build", "budgets", "settings-build", "import-check"],
+      "tests": ["tests/looks/**", "tests/widgets/core/state-copies.test.ts", "tests/lib/theme-css-sync.test.ts", "tests/settings/theme-tokens.test.ts", "tests/components/color-literals.test.ts", "tests/e2e/material-export.spec.ts"],
+      "checks": ["typecheck", "unit", "build", "budgets", "settings-build", "import-check", "e2e"],
       "report": ["npm run looks:scan"],
       "note": "Generated files: src/looks/generated/*, the @generated blocks in src/index.css, src/settings/tokens.css and src/widgets/core/mixer-views.css. Edit the source, run `npm run looks:gen`; tests/looks/generated.test.ts fails when one is stale. looks:scan is the D9 report (hex outside src/looks, blur outside the cap, ui-* in widgets); it never gates until P7. import-check because the gauge THEME is written into exports."
     },
@@ -640,8 +640,8 @@
       "summary": "InfoPanel profile parsing, conversion, canvas editing, fonts, archives, export, with the corpus round-trips.",
       "paths": ["src/lib/infopanel/**", "src/components/infopanel/**", "tools/ip-import.cjs", "tools/gen-element-icons.mjs", "tools/gen-element-icons.d.mts"],
       "exclude": ["src/lib/infopanel/gauges/**"],
-      "tests": ["tests/lib/infopanel/**", "tests/components/infopanel/**"],
-      "checks": ["typecheck", "unit", "lab", "import-check"],
+      "tests": ["tests/lib/infopanel/**", "tests/components/infopanel/**", "tests/e2e/material-export.spec.ts"],
+      "checks": ["typecheck", "unit", "lab", "import-check", "e2e"],
       "note": "The corpus round-trips live in the lab (lab/infopanel/src/corpus.test.ts, order.test.ts, idempotent.test.ts), outside npm test, and so does the profile templates' every-size export sweep (lab/infopanel/src/templates.test.ts). import-check needs Windows, .NET and an InfoPanel source folder (docs/TESTING.md)."
     },
     {

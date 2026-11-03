@@ -1,43 +1,63 @@
 // @vitest-environment happy-dom
 import { describe, expect, it } from "vitest";
 import { surfaceOf } from "../../../../src/lib/infopanel/native/convert-view.ts";
-import { MATERIALS } from "../../../../src/looks/materials.ts";
+import { MATERIALS, materialVars, resolveMaterial } from "../../../../src/looks/materials.ts";
 
-/** A zone whose widget root is drawn with the surface's own inline style. */
+/** A zone whose widget root is drawn as the shell draws it: its material variables, painted as index.css's [data-mat] rule does. */
 function zoneOf(name: string): HTMLElement {
   const el = document.createElement("div");
   const root = document.createElement("div");
   root.dataset.wpTier = "md";
-  for (const [k, v] of Object.entries(MATERIALS[name].s)) (root.style as unknown as Record<string, unknown>)[k] = v;
+  const mat = resolveMaterial(MATERIALS[name]);
+  for (const [k, v] of Object.entries(materialVars(mat))) root.style.setProperty(k.startsWith("--") ? k : k.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`), String(v));
+  root.style.background = String(mat.box.background);
   el.append(root);
   document.body.append(el);
   return el;
 }
 
-// Pins what the converter path exports per surface today, so a change shows up as a diff here.
-// The `null` rows (gradient, pattern and transparent surfaces export as no card) are flipped on purpose in P3b.
-// This is happy-dom's reading: it also leaves the var()/color-mix surfaces (glass, theme, ...) null, so 17 rows are null here
-// where Chromium measured 12 (docs/investigations/look-system.md section 5). It pins the code path, not Chromium's colours.
+// Pins what the converter path exports per surface, so a change shows up as a diff here. Since P3b a gradient or pattern
+// card exports its material's flat colour (`--w-mat-export`); only the see-through outline and flat export no card.
+// This is happy-dom's reading: it cannot resolve every var() or color-mix(), so materials whose colour needs one may stay
+// null here. tests/e2e/material-export.spec.ts checks Chromium's colours for all 27.
 describe("surfaceOf over every registered surface", () => {
   it("covers all 27 surfaces", () => {
     expect(Object.keys(MATERIALS)).toHaveLength(27);
   });
 
-  it("is today's table", () => {
+  it("is the export table", () => {
     const table = Object.fromEntries(Object.keys(MATERIALS).map((n) => [n, surfaceOf(zoneOf(n))]));
     expect(table).toMatchInlineSnapshot(`
       {
-        "aurora": null,
+        "aurora": {
+          "color": "#FF0F0F13",
+          "radius": 0,
+        },
         "brutal": {
           "color": "#FF121212",
           "radius": 0,
         },
-        "carbon": null,
-        "cyber": null,
+        "carbon": {
+          "color": "#FF151518",
+          "radius": 0,
+        },
+        "cyber": {
+          "color": "#FF0E0E0B",
+          "radius": 0,
+        },
         "flat": null,
-        "glass": null,
-        "holo": null,
-        "hud": null,
+        "glass": {
+          "color": "#E618181B",
+          "radius": 0,
+        },
+        "holo": {
+          "color": "#FF121215",
+          "radius": 0,
+        },
+        "hud": {
+          "color": "#FF07090B",
+          "radius": 0,
+        },
         "inset": {
           "color": "#FF0E0E11",
           "radius": 0,
@@ -59,20 +79,35 @@ describe("surfaceOf over every registered surface", () => {
           "color": "#FFF4F4F5",
           "radius": 0,
         },
-        "mesh": null,
-        "mica": null,
+        "mesh": {
+          "color": "#FF121215",
+          "radius": 0,
+        },
+        "mica": {
+          "color": "#FF202023",
+          "radius": 0,
+        },
         "neon": {
           "color": "#FF0A0A0D",
           "radius": 0,
         },
-        "nixie": null,
+        "nixie": {
+          "color": "#FF150E0B",
+          "radius": 0,
+        },
         "outline": null,
         "solid": {
           "color": "#FF141418",
           "radius": 0,
         },
-        "studio": null,
-        "synth": null,
+        "studio": {
+          "color": "#0DFFFFFF",
+          "radius": 0,
+        },
+        "synth": {
+          "color": "#FF2B0C3D",
+          "radius": 0,
+        },
         "terminal": {
           "color": "#FF060807",
           "radius": 0,
@@ -83,7 +118,10 @@ describe("surfaceOf over every registered surface", () => {
           "color": "#FF0B0B0D",
           "radius": 0,
         },
-        "vibrancy": null,
+        "vibrancy": {
+          "color": "#E6323237",
+          "radius": 0,
+        },
       }
     `);
   });

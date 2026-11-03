@@ -140,13 +140,31 @@ export async function backdrops(png: Uint8Array, items: readonly DisplayItem[], 
   });
 }
 
-/** A widget's surface as InfoPanel draws a card: its colour (`#AARRGGBB`) and corner radius; null when it is see-through. */
+/** A colour InfoPanel can draw: `#AARRGGBB` and not fully see-through. */
+const drawn = (color: string): boolean => /^#[0-9A-F]{8}$/.test(color) && !color.startsWith("#00");
+
+/** The material's export colour (`--w-mat-export`) as the browser resolves it, through a probe's `color`; "" when the root sets none. */
+function exportColor(root: HTMLElement): string {
+  if (!getComputedStyle(root).getPropertyValue("--w-mat-export").trim()) return "";
+  const probe = document.createElement("i");
+  probe.style.color = "var(--w-mat-export)";
+  root.append(probe);
+  const color = getComputedStyle(probe).color;
+  probe.remove();
+  return color;
+}
+
+/**
+ * A widget's surface as InfoPanel draws a card: its colour (`#AARRGGBB`) and corner radius; null when it is see-through.
+ * A card whose background is a gradient or a pattern has no background colour: it exports its material's flat colour.
+ */
 export function surfaceOf(zone: HTMLElement, zoom = 1): { color: string; radius: number } | null {
   const root = zone.querySelector<HTMLElement>("[data-wp-tier]");
   if (!root) return null;
   const style = getComputedStyle(root);
-  const color = cssToArgb(style.backgroundColor);
-  if (!/^#[0-9A-F]{8}$/.test(color) || color.startsWith("#00")) return null;
+  const own = cssToArgb(style.backgroundColor);
+  const color = drawn(own) ? own : cssToArgb(exportColor(root));
+  if (!drawn(color)) return null;
   return { color, radius: Math.round((parseFloat(style.borderTopLeftRadius) || 0) / zoom) };
 }
 

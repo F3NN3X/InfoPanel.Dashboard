@@ -174,6 +174,10 @@ describe("cssToArgb", () => {
     expect(cssToArgb("rgb(255, 0, 0)")).toBe("#FFFF0000");
     expect(cssToArgb("rgba(0, 0, 255, 0.5)")).toBe("#800000FF");
   });
+  it("reads the color(srgb …) a color-mix() in srgb computes to", () => {
+    expect(cssToArgb("color(srgb 1 0 0)")).toBe("#FFFF0000");
+    expect(cssToArgb("color(srgb 0 0 1 / 0.5)")).toBe("#800000FF");
+  });
 });
 
 describe("tagged widgets", () => {

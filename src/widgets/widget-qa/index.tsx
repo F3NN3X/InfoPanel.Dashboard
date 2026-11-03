@@ -110,6 +110,8 @@ declare global {
   interface Window {
     __qaOverflow?: () => { module: string; span: string; issues: Issue[] }[];
     __qaMountAll?: () => Promise<void>;
+    /** The InfoPanel export's card colour for a frame (`surfaceOf`), for the material export check (tests/e2e/material-export.spec.ts). */
+    __qaSurfaceOf?: (frame: HTMLElement) => Promise<{ color: string; radius: number } | null>;
   }
 }
 
@@ -120,6 +122,7 @@ window.__qaMountAll = async () => {
   await document.fonts.ready;
   await new Promise((r) => setTimeout(r, 1500));
 };
+window.__qaSurfaceOf = async (frame) => (await import("@/lib/infopanel/native/convert-view")).surfaceOf(frame);
 window.__qaOverflow = () => {
   flushSync(forceMountAll);
   return overflowReport();
