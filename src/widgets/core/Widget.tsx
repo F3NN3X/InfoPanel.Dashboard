@@ -2,7 +2,7 @@
 // look, picks the view.
 import { createContext, useContext, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { chromeVars, numGlowAttr, scopedCss, zoomFor, type DesignSizeSpec } from "@/components/widget-style";
-import { resolveMaterial } from "@/looks/materials";
+import { materialVars, resolveMaterial } from "@/looks/materials";
 import { chromeOf } from "@/modules/standard-settings";
 import type { ModuleSettings } from "@/modules/types";
 import { DESIGN_SIZE, ROOMY_SCALE, RoomyCtx, heroPx, roomy, summaryShape, useBox, type Box } from "./layout";
@@ -132,7 +132,7 @@ export function Widget({ title, icon, iconOverride, accent, surface, radius, siz
     // The look's Corner radius, else the theme's (Theme › Shape & spacing, `--radius`), like panels.
     borderRadius: chrome?.radius ?? radius ?? "var(--radius, 1rem)",
     fontFamily: ctx.font,
-    ...surfBox,
+    ...materialVars(mat),
     ...textVars(surf.tone, chrome),
     ...chromeVars(chrome),
     "--accent": resolveAccent(chrome?.accent || accent, sk, surf.tone),
@@ -145,7 +145,7 @@ export function Widget({ title, icon, iconOverride, accent, surface, radius, siz
     <SkinCtx.Provider value={ctx}>
       <RoomyCtx.Provider value={big}>
       <PaneCtx.Provider value={{ className: mat.className, style: surfBox }}>
-      <div ref={ref} style={rootStyle} data-wp-scope={css ? scope : undefined} {...numGlowAttr(chrome)} data-wp-tier={box.size} data-wp-roomy={big ? "" : undefined} data-wp-shape={box.shape} data-wp-view={isStudio ? "studio" : useCompact ? "compact" : "body"} className={`relative flex h-full w-full min-w-0 flex-col overflow-hidden antialiased ${mat.className} ${className}`}>
+      <div ref={ref} style={rootStyle} data-mat={mat.id} data-tone={mat.tone} data-wp-scope={css ? scope : undefined} {...numGlowAttr(chrome)} data-wp-tier={box.size} data-wp-roomy={big ? "" : undefined} data-wp-shape={box.shape} data-wp-view={isStudio ? "studio" : useCompact ? "compact" : "body"} className={`relative flex h-full w-full min-w-0 flex-col overflow-hidden antialiased ${mat.className} ${className}`}>
         {css && <style>{css}</style>}
         {background && (
           <>

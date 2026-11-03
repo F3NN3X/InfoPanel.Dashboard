@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { surfaceBox } from "@/components/widget-style";
-import { exportOf, fadeBackground, MATERIALS, makeSurface, makeSurfacePalette, resolveMaterial, type MaterialKind } from "@/looks/materials";
+import { exportOf, fadeBackground, MATERIALS, makeSurface, makeSurfacePalette, materialVars, resolveMaterial, type MaterialKind } from "@/looks/materials";
 import { chromeOf, STANDARD_DEFAULTS } from "@/modules/standard-settings";
 import { resolveSurface } from "@/widgets/core/theme";
 // What the 27 surfaces resolved to before the registry (BASE_SURFACES, the skins' surfaces, LEGACY_SURFACES, lookBox,
@@ -124,5 +124,23 @@ describe("resolveMaterial box", () => {
     expect(s.backdropFilter).toBe("blur(min(4px, var(--wp-blur-cap, 4px)))");
     const neon = resolveMaterial(MATERIALS.neon, look({ glow: "soft" })).box;
     expect(String(neon.boxShadow).startsWith(String(MATERIALS.neon.s.boxShadow))).toBe(true);
+  });
+});
+
+describe("materialVars", () => {
+  it("writes the paint as --w-mat-* variables and keeps the rest of the box inline", () => {
+    const v = materialVars(resolveMaterial(MATERIALS.neon)) as Record<string, unknown>;
+    expect(v["--w-mat-bg"]).toBe("#0a0a0d");
+    expect(v["--w-mat-shadow"]).toBe(MATERIALS.neon.s.boxShadow);
+    expect(v["--w-mat-blur"]).toBe("none");
+    expect(v["--w-mat-export"]).toBe("#0a0a0d");
+    expect(v.borderColor).toBe(MATERIALS.neon.s.borderColor);
+    expect(v.background).toBeUndefined();
+    expect(v.boxShadow).toBeUndefined();
+  });
+
+  it("sets every variable, so a nested card never inherits its parent's", () => {
+    const v = materialVars(resolveMaterial(MATERIALS.flat)) as Record<string, unknown>;
+    expect(v).toEqual({ "--w-mat-bg": "transparent", "--w-mat-shadow": "none", "--w-mat-blur": "none", "--w-mat-export": "transparent" });
   });
 });

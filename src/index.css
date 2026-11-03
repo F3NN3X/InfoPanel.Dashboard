@@ -467,6 +467,15 @@
 *:has(> [data-page-background="color"]) [data-wp-tier] {
   backdrop-filter: none !important;
 }
+/* The widget shell's card (src/widgets/core/Widget.tsx): its material as the --w-mat-* variables
+   (`materialVars`, src/looks/materials.ts), painted here once instead of inline on every render. Two attributes
+   outrank a saved custom CSS `:scope` rule, which could not override the inline style either. */
+[data-wp-tier][data-mat] {
+  background: var(--w-mat-bg);
+  box-shadow: var(--w-mat-shadow);
+  -webkit-backdrop-filter: var(--w-mat-blur);
+  backdrop-filter: var(--w-mat-blur);
+}
 /* A notice's level bar (a volume) glides between readings: a full-width pill slid left behind the track's clip (round end at every value, no layout work). */
 .island-motion .island-level { transition: transform 160ms ease-out; }
 

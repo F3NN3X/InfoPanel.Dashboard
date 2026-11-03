@@ -51,7 +51,8 @@ describe("Widget look", () => {
 
   it("fades the card and blurs behind it from the look's opacity and blur", () => {
     const html = render({ surface: "glass", surfaceOpacity: 40, blur: "16" });
-    expect(html).toContain("backdrop-filter:blur(min(16px, var(--wp-blur-cap, 16px)))");
+    // The shell writes its material as --w-mat-* variables; the [data-mat] rule in index.css paints them.
+    expect(html).toContain("--w-mat-blur:blur(min(16px, var(--wp-blur-cap, 16px)))");
     expect(render({ surface: "solid", surfaceOpacity: 40, blur: "8" })).toContain("blur(min(8px, var(--wp-blur-cap, 8px)))");
   });
 

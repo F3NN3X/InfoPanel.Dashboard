@@ -294,3 +294,19 @@ export function resolveMaterial(mat: Material, chrome?: ModernChrome, colors?: S
     export: exp && opacity < 1 ? fadeBackground(exp, opacity) : exp,
   };
 }
+
+/**
+ * The widget shell's style for a resolved material: the `--w-mat-*` variables the static `[data-mat]` rule in
+ * `src/index.css` paints the card with, plus what the box sets that has no variable (an edge colour, a clip, a size).
+ * Every variable is set, so a nested card never inherits its parent's.
+ */
+export function materialVars(r: ResolvedMaterial): CSSProperties {
+  const { background, boxShadow, backdropFilter, WebkitBackdropFilter: _webkit, ...rest } = r.box;
+  return {
+    ...rest,
+    "--w-mat-bg": background ?? "transparent",
+    "--w-mat-shadow": boxShadow ?? "none",
+    "--w-mat-blur": backdropFilter ?? "none",
+    "--w-mat-export": r.export ?? "transparent",
+  } as CSSProperties;
+}
