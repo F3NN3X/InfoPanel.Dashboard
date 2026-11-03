@@ -6,6 +6,8 @@ version as its notes, so move **Unreleased** under a new `## [X.Y.Z] - YYYY-MM-D
 
 ## [Unreleased]
 
+## [1.3.1-beta.8] - 2026-11-03
+
 ### Added
 
 - **Mixer views for Stream Mixer, Volume Mixer and Wave Link.** Besides Rows, each can show **Strips** (channel strips with a fader on a dB scale, a level meter and an LCD readout) or **LCD** (one LCD screen, a line per channel), vertical or horizontal, with options for the strip, fader, scale, meter and LCD. Wave Link's inputs show in every view. Saved mixers keep the Rows look.
