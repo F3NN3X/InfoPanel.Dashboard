@@ -785,11 +785,11 @@ export const Stat = ({ label, value, unit, className = "", tag }: { label?: Reac
   </div>
 );
 /** A footer row of label/value stats under a rule, `cols` per row (3 or 4). */
-export function StatGrid({ items, cols = 4 }: { items: { label: ReactNode; value: ReactNode }[]; cols?: 3 | 4 }) {
+export function StatGrid({ items, cols = 4 }: { items: { label: ReactNode; value: ReactNode; unit?: ReactNode }[]; cols?: 3 | 4 }) {
   return (
     <div className={`grid ${cols === 3 ? "grid-cols-3" : "grid-cols-4"} border-t border-[color:var(--w-track)] pt-3`} style={{ gap: ws.gap("0.75rem") }}>
       {items.map((x, i) => (
-        <Stat key={i} label={x.label} value={x.value} />
+        <Stat key={i} label={x.label} value={x.value} unit={x.unit} />
       ))}
     </div>
   );

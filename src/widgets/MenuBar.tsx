@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { readSystemFlat } from "@/lib/system-metrics";
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, fmt, fmtGB, fmtRate, adapterOf, firstDisk, Spark, useHistory, tone, TONES, useSkin, numFont, hw, type RateUnit, type ShellProps } from "./kit";
+import { Widget, shell, get, num, fmt, gbParts, fmtRate, adapterOf, firstDisk, Spark, useHistory, tone, TONES, useSkin, numFont, hw, type RateUnit, type ShellProps } from "./kit";
 import { meta } from "./meta/MenuBar";
 
 export { meta };
@@ -17,7 +17,8 @@ interface Item {
   max?: number;
   warn?: number;
   crit?: number;
-  more: [string, string][];
+  /** Detail readings: label, value, unit. */
+  more: [string, string, string?][];
 }
 
 export interface MenuBarProps extends ShellProps {
@@ -56,13 +57,13 @@ export default function MenuBar(p: MenuBarProps) {
   const dn = N("download_speed"),
     up = N("upload_speed");
   const ALL: Record<Key, Item> = {
-    cpu: { k: "CPU", v: L(`${cpu}_cpu_total`), u: "%", max: 100, more: [["Package", `${fmt(c.power ?? NaN, 0)} W`], ["Max core", `${fmt(L(`${cpu}_cpu_core_max`), 0)}%`], ["Clock", `${fmt((c.clock ?? NaN) / 1000, 2)} GHz`]] },
-    gpu: { k: "GPU", v: L(`${gpu}_gpu_core_load`), u: "%", max: 100, more: [["Power", `${fmt(L(`${gpu}_gpu_package`), 0)} W`], ["Clock", `${fmt(L(`${gpu}_gpu_core_clock`), 0)} MHz`], ["VRAM", `${fmt(L(`${gpu}_gpu_memory_used`) / 1024, 1)} GB`]] },
-    temp: { k: "Temp", v: L(`${gpu}_gpu_core`), u: "°", max: 100, warn: 75, crit: 85, more: [["CPU", `${fmt(c.temp ?? NaN, 0)}°C`], [c.hot === undefined ? "Memory" : "Hotspot", `${fmt(c.hot ?? L(`${gpu}_gpu_memory_junction`), 0)}°C`]] },
-    mem: { k: "Mem", v: L("total_memory_memory"), u: "%", max: 100, warn: 85, crit: 95, more: [["Used", `${fmt(L("total_memory_memory_used"), 1)} GB`], ["Free", `${fmt(L("total_memory_memory_available"), 1)} GB`]] },
-    down: { k: "↓ Down", v: dn, u: "", text: rateText(dn, p.rateUnit), more: [["Downloaded", fmtGB(N("data_downloaded"))], ["Utilisation", `${fmt(N("network_utilization"), 1)}%`]] },
-    up: { k: "↑ Up", v: up, u: "", text: rateText(up, p.rateUnit), more: [["Uploaded", fmtGB(N("data_uploaded"))], ["Utilisation", `${fmt(N("network_utilization"), 1)}%`]] },
-    nvme: { k: "NVMe", v: L(`${disk}_composite_temperature`) || L(`${disk}_temperature`), u: "°", max: 90, warn: 70, crit: 80, more: [["Life", `${fmt(L(`${disk}_life`), 0)}%`], ["Read", fmtRate(L(`${disk}_read_rate`))]] },
+    cpu: { k: "CPU", v: L(`${cpu}_cpu_total`), u: "%", max: 100, more: [["Package", fmt(c.power ?? NaN, 0), "W"], ["Max core", fmt(L(`${cpu}_cpu_core_max`), 0), "%"], ["Clock", fmt((c.clock ?? NaN) / 1000, 2), "GHz"]] },
+    gpu: { k: "GPU", v: L(`${gpu}_gpu_core_load`), u: "%", max: 100, more: [["Power", fmt(L(`${gpu}_gpu_package`), 0), "W"], ["Clock", fmt(L(`${gpu}_gpu_core_clock`), 0), "MHz"], ["VRAM", fmt(L(`${gpu}_gpu_memory_used`) / 1024, 1), "GB"]] },
+    temp: { k: "Temp", v: L(`${gpu}_gpu_core`), u: "°", max: 100, warn: 75, crit: 85, more: [["CPU", fmt(c.temp ?? NaN, 0), "°C"], [c.hot === undefined ? "Memory" : "Hotspot", fmt(c.hot ?? L(`${gpu}_gpu_memory_junction`), 0), "°C"]] },
+    mem: { k: "Mem", v: L("total_memory_memory"), u: "%", max: 100, warn: 85, crit: 95, more: [["Used", fmt(L("total_memory_memory_used"), 1), "GB"], ["Free", fmt(L("total_memory_memory_available"), 1), "GB"]] },
+    down: { k: "↓ Down", v: dn, u: "", text: rateText(dn, p.rateUnit), more: [["Downloaded", ...gbParts(N("data_downloaded"))], ["Utilisation", fmt(N("network_utilization"), 1), "%"]] },
+    up: { k: "↑ Up", v: up, u: "", text: rateText(up, p.rateUnit), more: [["Uploaded", ...gbParts(N("data_uploaded"))], ["Utilisation", fmt(N("network_utilization"), 1), "%"]] },
+    nvme: { k: "NVMe", v: L(`${disk}_composite_temperature`) || L(`${disk}_temperature`), u: "°", max: 90, warn: 70, crit: 80, more: [["Life", fmt(L(`${disk}_life`), 0), "%"], ["Read", ...rateText(L(`${disk}_read_rate`), undefined)]] },
   };
   const keys = p.items ?? (Object.keys(ALL) as Key[]);
   const H: Record<Key, number[]> = {
@@ -141,10 +142,13 @@ export default function MenuBar(p: MenuBarProps) {
                 </div>
                 <Spark values={H[detailKey]} min={0} max={it.max} className="min-h-[24px] flex-1" />
                 <div className="grid gap-x-4 gap-y-1 text-xs" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))" }}>
-                  {it.more.map(([a, b]) => (
+                  {it.more.map(([a, b, u]) => (
                     <div key={a} className="flex flex-col">
                       <span className="text-micro uppercase tracking-[0.06em] text-[color:var(--w-faint)]">{a}</span>
-                      <span className="font-medium tabular-nums">{b}</span>
+                      <span className="font-medium tabular-nums">
+                        {b}
+                        {u && <span className="ml-0.5 text-[color:var(--w-muted)]">{u}</span>}
+                      </span>
                     </div>
                   ))}
                 </div>

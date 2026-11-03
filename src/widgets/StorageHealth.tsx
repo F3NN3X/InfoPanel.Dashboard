@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { roomy, TickBar, StatGrid, Widget, hue, shell, get, num, fmt, fmtGB, fmtRate, diskShort, firstDisk, Metric, Ring, Spark, Stat, Bar, Num, useHistory, useSkin, tone, Empty, LegendRow, hw, type ShellProps } from "./kit";
+import { roomy, TickBar, StatGrid, Widget, hue, shell, get, num, fmt, fmtGB, gbStat, unitStat, fmtRate, diskShort, firstDisk, Metric, Ring, Spark, Stat, Bar, Num, useHistory, useSkin, tone, Empty, LegendRow, hw, type ShellProps } from "./kit";
 import { meta } from "./meta/StorageHealth";
 
 export { meta };
@@ -100,7 +100,7 @@ export default function StorageHealth(p: StorageHealthProps) {
               <div className="grid flex-1 grid-cols-3 gap-3">
                 <Stat label="Read" value={fmtRate(rd)} />
                 <Stat label="Write" value={fmtRate(wr)} />
-                <Stat label="Activity" value={`${fmt(k("total_activity"), 0)}%`} />
+                <Stat label="Activity" {...unitStat(k("total_activity"), "%")} />
               </div>
             </div>
             <RateGraph rH={rH} wH={wH} rd={rd} wr={wr} capped={room} />
@@ -124,10 +124,10 @@ export default function StorageHealth(p: StorageHealthProps) {
               <StatGrid
                 cols={4}
                 items={[
-                  { label: "Written", value: fmtGB(k("data_written")) },
-                  { label: "Read total", value: fmtGB(k("data_read")) },
-                  { label: "Power-on", value: `${fmt(k("power_on_hours"))} h` },
-                  { label: Number.isFinite(k("available_spare")) ? "Spare" : "Power cycles", value: Number.isFinite(k("available_spare")) ? `${fmt(k("available_spare"))}%` : fmt(k("power_on_count")) },
+                  { label: "Written", ...gbStat(k("data_written")) },
+                  { label: "Read total", ...gbStat(k("data_read")) },
+                  { label: "Power-on", ...unitStat(k("power_on_hours"), "h") },
+                  { label: Number.isFinite(k("available_spare")) ? "Spare" : "Power cycles", ...(Number.isFinite(k("available_spare")) ? unitStat(k("available_spare"), "%") : { value: fmt(k("power_on_count")) }) },
                 ]}
               />
             )}

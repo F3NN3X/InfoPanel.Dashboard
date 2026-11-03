@@ -170,13 +170,14 @@ function Lcd({ look, tone, live, className, font, children }: { look: MixerLook;
 const METER_TRACKS = [0, 1];
 
 /** A strip's level meter: audiocn's `LevelMeter` painting from the channel's frames (its range, zones and response come from the `Mixer`), with the optional clip light and dB readout. */
-function StripMeter({ useLevel, color, look, vertical }: { useLevel?: StripChannel["useLevel"]; color: string; look: MixerLook; vertical: boolean }) {
+function StripMeter({ useLevel, color, look, vertical, locked }: { useLevel?: StripChannel["useLevel"]; color: string; look: MixerLook; vertical: boolean; locked?: boolean }) {
   // a component of its own: its hooks (the source's) are counted with the meter, which mounts and unmounts with it
   const source = useLevel?.();
   const zones = useMemo(() => meterZones(look.meterWarnDb, look.meterClipDb), [look.meterWarnDb, look.meterClipDb]);
   return (
     <div className={cn("flex min-h-0 min-w-0 items-center", vertical ? "h-full flex-col gap-0.5" : "w-full gap-1.5")}>
-      {look.meterClip && <ClipIndicator source={source} />}
+      {/* a locked mixer keeps the light but not its reset: a disabled button is neither focusable nor clickable */}
+      {look.meterClip && <ClipIndicator source={source} disabled={locked} />}
       <LevelMeter
         source={source}
         channelCount={METER_TRACKS.length}
@@ -261,7 +262,7 @@ function Strip({ c, look, fit, unit, tone, live, meter }: { c: StripChannel; loo
       </ChannelStripHeader>
       {meter && (
         <ChannelStripMeter className={vertical ? "py-0" : look.meterClip || look.meterValue ? "min-h-5" : "h-2"}>
-          <StripMeter useLevel={c.useLevel} color={c.meterColor ?? c.color} look={look} vertical={vertical} />
+          <StripMeter useLevel={c.useLevel} color={c.meterColor ?? c.color} look={look} vertical={vertical} locked={c.locked} />
         </ChannelStripMeter>
       )}
       {c.value !== undefined && (

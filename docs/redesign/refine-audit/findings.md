@@ -59,7 +59,7 @@ Prototypes (W1–W8 and some A-/B- IDs) were built on throwaway `proto/<id>` bra
 | C-06 | 2a | W5 | high | M | Legibility scrim on art-backed widgets at small spans | fixed |
 | C-07 | 2a |  | high | M | NowPlaying 4x4: cover art as the hero | fixed |
 | C-08 | 1 |  | med | M | Shared axis and stat-label grammar for charts | fixed |
-| C-09 | 1 |  | med | M | Per-stat label style unified (mono uppercase micro vs sentence-case) | partial |
+| C-09 | 1 |  | med | M | Per-stat label style unified (mono uppercase micro vs sentence-case) | fixed |
 | C-10 | 2a |  | med | S | DriveSpace: one bar colour logic and use the 4x4 height | fixed |
 | C-11 | 2a |  | med | M | Fans 4x4: use the tall cards | fixed |
 | C-12 | 2a |  | med | S | MeterBridge: stop truncating channel names in 4x4 and 4x2 | fixed |

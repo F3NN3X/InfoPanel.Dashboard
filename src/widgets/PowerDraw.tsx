@@ -1,6 +1,6 @@
 import { readSystemFlat } from "@/lib/system-metrics";
 import type { ModuleSettings } from "@/modules/types";
-import { UNIT_CLASS, roomy, StatGrid, Widget, shell, get, num, fmt, Spark, useHistory, hue, hw, Num, stackX, type ShellProps } from "./kit";
+import { UNIT_CLASS, roomy, StatGrid, Widget, shell, get, num, fmt, unitStat, Spark, useHistory, hue, hw, Num, stackX, type ShellProps } from "./kit";
 import { meta } from "./meta/PowerDraw";
 
 export { meta };
@@ -51,14 +51,14 @@ export default function PowerDraw(p: PowerDrawProps) {
               <div className="absolute inset-0 transition-transform duration-700" style={{ ...stackX((cw / budget) * 100, (gw / budget) * 100), background: gpuColor }} />
             </div>
             {size !== "sm" && !short && <Spark values={hist} min={0} marks={big ? "last" : false} axis={big} format={(v) => fmt(v, 0)} className={`min-h-0 flex-1 ${big ? "max-h-[55%]" : ""}`} />}
-            {big && !short && hist.length > 1 && <StatGrid cols={3} items={[{ label: "Peak", value: `${fmt(Math.max(...hist), 0)} W` }, { label: "Avg", value: `${fmt(hist.reduce((a, b) => a + b, 0) / hist.length, 0)} W` }, { label: "Min", value: `${fmt(Math.min(...hist), 0)} W` }]} />}
+            {big && !short && hist.length > 1 && <StatGrid cols={3} items={[{ label: "Peak", ...unitStat(Math.max(...hist), "W") }, { label: "Avg", ...unitStat(hist.reduce((a, b) => a + b, 0) / hist.length, "W") }, { label: "Min", ...unitStat(Math.min(...hist), "W") }]} />}
             {size === "lg" && !short && (
               <StatGrid
                 cols={3}
                 items={[
-                  { label: "Budget", value: `${fmt(budget)} W` },
-                  { label: "Headroom", value: `${fmt(budget - total, 0)} W` },
-                  { label: "GPU board limit", value: `${fmt(board, 1)}%` },
+                  { label: "Budget", ...unitStat(budget, "W") },
+                  { label: "Headroom", ...unitStat(budget - total, "W") },
+                  { label: "GPU board limit", ...unitStat(board, "%", 1) },
                 ]}
               />
             )}

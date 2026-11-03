@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { roomy, StatGrid, Widget, shell, get, num, fmt, pretty, Metric, Ring, Spark, Stat, BarRow, useHistory, tone, Empty, hw, STATE, Num, type ShellProps } from "./kit";
+import { roomy, StatGrid, Widget, shell, get, num, fmt, unitStat, pretty, Metric, Ring, Spark, Stat, BarRow, useHistory, tone, Empty, hw, STATE, Num, type ShellProps } from "./kit";
 import { meta } from "./meta/GpuMonitor";
 
 export { meta };
@@ -99,10 +99,10 @@ export default function GpuMonitor(p: GpuMonitorProps) {
                 <StatGrid
                   cols={4}
                   items={[
-                    { label: "Mem clock", value: `${fmt(k("gpu_memory_clock"), 0)} MHz` },
-                    { label: "Voltage", value: `${fmt(k("gpu_core_voltage"), 3)} V` },
-                    { label: "Board power", value: `${fmt(k("gpu_board_power"), 1)}%` },
-                    { label: "Fans", value: fans.length ? `${fmt(fans.reduce((a, b) => a + b, 0) / fans.length, 0)} RPM` : "–" },
+                    { label: "Mem clock", ...unitStat(k("gpu_memory_clock"), "MHz") },
+                    { label: "Voltage", ...unitStat(k("gpu_core_voltage"), "V", 3) },
+                    { label: "Board power", ...unitStat(k("gpu_board_power"), "%", 1) },
+                    { label: "Fans", ...(fans.length ? unitStat(fans.reduce((a, b) => a + b, 0) / fans.length, "RPM") : { value: "–" }) },
                   ]}
                 />
               </>

@@ -31,3 +31,25 @@ No existing boundary fits (`ZoneErrorBoundary` draws an error tile), so `ThumbBo
 - **Same trap in Settings (found by grepping `ui-` colour utilities in `src/settings`, `src/help`, `src/app-window`, `src/touch-overlay`):** `agents.tsx`, `diagnostics.tsx`, `logs.tsx` and `touch.tsx` used `bg-ui-subtle/hover/tile/panel/menu` and `text-ui-3`; the Settings window loads only `tokens.css`, so all of these rendered nothing there (they worked only in the studio's Settings › App). Moved to the same values as `s-*`: `s-card-line` (#1f1f24), `s-t3` (#9696a0), `s-tile` (#141418), `s-card` (#111114), and two new tokens `s-hover` (#1a1a1f) and `s-menu` (#2e2e35). Visible effect in the settings window (shots in `shots/b13/before-s-*` and `after-s-*`): Coding agents gets its icon tile and the "Not connected" chip fill, Logs gets its row hover tint and filter-field fill, Touch its icon tile. Restoring those intended backgrounds is the fix. Help, the app window and `touch-overlay` have no other `ui-` colour utilities.
 - **Widget tokens (S2):** Calendar, MenuBar, NowPlaying, OsdStrip and SteamProfile take `w-ink`, `w-hub`, `w-osd`, `w-badge` (same `#0c0c0e`, `#0c0c0e`, `#17171b`, `#141418`) from an `@theme` block in `src/index.css` beside the widget glow vars, so studio chrome theming cannot recolour widgets. `v8-parity.json` changes class names on those lines again.
 - **ThumbBoundary:** `lazy` caches a rejected import, so `page-tabs.tsx` now keeps the lazy component in a module variable and the boundary's `onFail` swaps in a fresh `lazy`; the next hover retries the import. The test now also covers a rejected import followed by a successful one.
+
+## 13b (C-09 finished, refused clip light, StreamMixer spec, 2x4 compact summary)
+
+Shots: `scratchpad\refine\shots\b13\` (`sheet-b13b.png`, `before-b13b-*` is HEAD, `after-b13b-*` the working tree; only the shots that differ). Overflow probe (every widget at 1x1, 2x2, 4x2, 4x4, 2x4, HEAD against working tree): nothing NEW; DiskIO 4x2 and StreamChat 4x4 are in both runs.
+
+### C-09 fixed
+- `core/data.ts`: `unitStat(v, unit, d)` ({value, unit}) and `gbStat(gb)` (moved from NetworkThroughput, built on `gbParts`). Both tested in `tests/widgets/core/data.test.ts` (0, thresholds 100/1024 GB, missing value keeps the unit beside the dash as `fmtGB` did).
+- `core/primitives.tsx`: `StatGrid` items take `unit`; the joined-string form is gone from every caller (items with no unit, such as "Power cycles" or a "–", simply have none).
+- Converted: CpuMonitor (`degStat`, VID, RPM), GpuMonitor, PowerDraw (hero stats and footer), StorageHealth (`gbStat`, hours, spare, Activity), FpsMonitor `Display` (resolution, unit "· 144 Hz"), MenuBar detail card (`more` is now [label, value, unit]; the `studio` rows stay text), AudioMeter stat row (dB and %).
+- Not split, on purpose: AudioMeter's row/bridge readouts and SystemStatus Peak/Avg (run-in micro/xs text; 0.7em would be under 8px), FramePacing `cell` (already splits value and unit, sized for its 22px figure), KpiTiles/Vitals (already `UNIT_CLASS`), "Min / max".
+- MenuBar's detail units are a muted span at the text's own size (12px), not 0.7em, for the same reason.
+- Snapshot `v8-parity.json`, cases `am-default am-ring am-mirror am-solid am-vu am-colors cpu-lg gm-own stor-default` only: the value text `-8.7 dB` / `61.6 °C` / `14,001 MHz` / `0%` is now the number plus a unit span with the Stat unit classes (the unit moved into its own span; nothing else on those lines changes). The unit in `cpu-lg` loses the space before it (the span's margin is the gap).
+- Look at: AudioMeter 4x2/4x4, MenuBar 4x2/4x4, PowerDraw 4x4, StorageHealth 4x2/4x4 (sheet).
+
+### Refused clip light
+`mixer-views.tsx` `StripMeter` takes `locked` and passes `disabled` to `ClipIndicator`: still drawn with its state, but neither focusable nor clickable. Test: "show the clip light of a refused mixer but cannot be focused or clicked to reset it" in `tests/widgets/mixer-views.test.tsx`.
+
+### StreamMixer spec
+`docs/redesign/widgets/docs/widgets/StreamMixer.md`, and entries in `.facts.json` (`catalog` and `metas`; the facts are one file, not per widget). `tests/widgets/key-audit.test.ts` counts the specs: 47 to 48 (the only edit there).
+
+### 2x4 compact summary
+Cause: the column summary's bar/ring fill (`core/views.tsx`, the `max-w-[56px]` track) was a full-height block slid down with `translateY`, inside an `overflow-hidden` track, so the probe saw the hidden part as clipped content. Not real clipping. A first fix animated `height` instead; that was reverted in review, because it runs layout on every data tick, against the transform-only motion rule. The fill keeps its `translateY` slide and the track carries `data-qa-bleed` (a deliberate clip), so the probe skips it. This also cleared the same probe line on ProcessList, ServiceHealth, Fans, MemoryUsage, DriveSpace, StorageHealth, Achievements, PlaytimeShare, SensorGroup and AudioMeter at 2x4 (all use this column shape). It predates the branch: `main` has the identical translateY fill. Other spans are untouched (only the column shape draws this).

@@ -344,6 +344,25 @@ describe("the Rows view's faders", () => {
     expect(meter.getAttribute("aria-label")).toBeTruthy();
   });
 
+  it("show the clip light of a refused mixer but cannot be focused or clicked to reset it", () => {
+    const strips = () => {
+      size = { w: 900, h: 400 };
+      return render(<StreamMixer data={data} mixerLook={mixerLookOf({ view: "strips", orientation: "vertical", meterClip: true }, "orientation")} />).container;
+    };
+    const buttons = (c: HTMLElement) => [...c.querySelectorAll<HTMLButtonElement>("button:has([data-slot=clip-indicator-light])")];
+    const open = buttons(strips());
+    expect(open.length).toBeGreaterThan(0);
+    for (const b of open) expect(b.disabled).toBe(false);
+    cleanup();
+    act(() => audioRefusal.set(true));
+    const refused = buttons(strips());
+    expect(refused.length).toBe(open.length);
+    for (const b of refused) {
+      expect(b.querySelector("[data-slot=clip-indicator-light]")).not.toBeNull();
+      expect(b.disabled).toBe(true);
+    }
+  });
+
   it("ignore the keys when the server has refused writes (the body is inert)", () => {
     written.mockClear();
     act(() => audioRefusal.set(true));

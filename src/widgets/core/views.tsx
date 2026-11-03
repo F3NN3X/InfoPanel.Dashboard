@@ -105,7 +105,8 @@ export function CompactView({ c, shape, w, h, icon }: { c: Compact; shape: Shape
         <div className="relative mt-auto min-h-0 flex-1">
           {kind === "spark" && <Spark values={c.hist} min={c.min} max={c.max} color={c.color} className="absolute inset-0 h-full" />}
           {(kind === "bar" || kind === "ring") && (
-            <div className="absolute inset-y-0 left-0 right-0 mx-auto flex w-full max-w-[56px] flex-col justify-end overflow-hidden rounded-xl bg-[color:var(--w-track)]">
+            <div data-qa-bleed className="absolute inset-y-0 left-0 right-0 mx-auto flex w-full max-w-[56px] flex-col justify-end overflow-hidden rounded-xl bg-[color:var(--w-track)]">
+              {/* the fill slides by transform (no layout per tick); the track clips it on purpose, so the probe skips it */}
               <div className="h-full w-full rounded-xl transition-transform duration-700 ease-out" style={{ ...slideY(clamp(c.pct!)), background: TONES[c.t ?? "ok"] }} />
             </div>
           )}

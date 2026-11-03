@@ -99,6 +99,13 @@ export const fmtMB = (mb: number): string => {
 };
 /** A size in GB as its number and unit ("12.3", "GB"); a TB from 1024. */
 export const gbParts = (gb: number): [string, string] => (gb >= 1024 ? [fmt(gb / 1024, 1), "TB"] : [fmt(gb, gb >= 100 ? 0 : 1), "GB"]);
+/** A size in GB as a `Stat`'s value and unit. */
+export const gbStat = (gb: number): { value: string; unit: string } => {
+  const [value, unit] = gbParts(gb);
+  return { value, unit };
+};
+/** A reading as a `Stat`'s value (to `d` decimals) and the unit drawn beside it. */
+export const unitStat = (v: number, unit: string, d = 0): { value: string; unit: string } => ({ value: fmt(v, d), unit });
 export const fmtGB = (gb: number): string => gbParts(gb).join(" ");
 // "a, b, c\nd, e, f" → [["a","b","c"],["d","e","f"]]
 export const rows = (v: unknown): string[][] =>

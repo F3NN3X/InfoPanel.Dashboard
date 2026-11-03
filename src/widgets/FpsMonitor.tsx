@@ -276,7 +276,7 @@ export default function FpsMonitor(p: FpsMonitorProps) {
             {size === "lg" && (
               <div className="grid grid-cols-4 gap-3 border-t border-[color:var(--w-track)] pt-3">
                 <Stat label="Min / Max" value={`${fmt(num(k("min-fps")))} / ${fmt(num(k("max-fps")))}`} />
-                <Stat label="Display" value={`${k("resolution")} · ${fmt(hz)} Hz`} />
+                <Stat label="Display" value={k("resolution")} unit={`· ${fmt(hz)} Hz`} />
                 <Stat label="Mode" value={has(k("display-mode")) ? k("display-mode") : "–"} />
                 <Stat label="Benchmark" value={k("benchmark-mode") || "–"} />
               </div>

@@ -712,6 +712,15 @@
    "props": "onSetVolume(id, v)\nonToggleMute(id)\nview 'rows'|'strips'|'lcd'"
   },
   {
+   "id": "StreamMixer",
+   "name": "Stream Mixer",
+   "category": "Audio",
+   "icon": "headphones",
+   "description": "Large touch faders per device or app: icon, name, status line, LED fader and level, with tap-to-mute. Controls this PC's Windows audio or Elgato Wave Link.",
+   "prefixes": [],
+   "props": "source 'windows'|'wavelink', mix, channels [ids]\nlabels, subs, icons { id: text }\nfader 'leds'|'bar'\nview 'rows'|'strips'|'lcd'"
+  },
+  {
    "id": "MeterBridge",
    "name": "Meter Bridge",
    "category": "Audio",
@@ -1576,6 +1585,22 @@
     1
    ],
    "description": "SMART life, temperature, read/write rate, activity, TBW, spare and power-on hours."
+  },
+  "StreamMixer": {
+   "id": "StreamMixer",
+   "name": "Stream Mixer",
+   "category": "Audio",
+   "icon": "headphones",
+   "prefixes": [],
+   "defaultSize": [
+    4,
+    2
+   ],
+   "minSize": [
+    2,
+    1
+   ],
+   "description": "Large touch faders per device or app: icon, name, status line, LED fader and level, with tap-to-mute. Controls this PC's Windows audio or Elgato Wave Link."
   },
   "SystemOverview": {
    "id": "SystemOverview",

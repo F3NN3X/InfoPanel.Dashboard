@@ -967,8 +967,8 @@
   "suggest": "`Stat` becomes the only stat primitive: label `text-micro uppercase tracking-[0.06em] --w-faint` (as in KpiTiles), value 15px/600 tabular `--w-fg`, units 0.7em `--w-muted`; make Cpu/Gpu/FpsMonitor/NetworkThroughput/AudioMeter use `StatGrid`.",
   "options": "A uppercase mono (current in 5 widgets), B sentence 11px muted (current in 4). Recommend A: aligns with headers and reads as a label at a distance.",
   "why": "Waza number-dense rules (labels left-aligned, numbers consistent); design-system consistency.",
-  "note": "Stat takes a unit drawn at 0.7em beside the value; CpuMonitor, GpuMonitor, FpsMonitor and NetworkThroughput use it. Widgets that bake the unit into the value string (StorageHealth, PowerDraw, MenuBar, AudioMeter, SystemStatus, FramePacing) are not split yet.",
-  "status": "partial"
+  "note": "Stat and StatGrid take the unit apart from the value (0.7em, muted). Done in CpuMonitor, GpuMonitor, FpsMonitor (incl. Display), NetworkThroughput, StorageHealth, PowerDraw, MenuBar detail, AudioMeter stats. Left joined on purpose: run-in micro/xs text (AudioMeter row readouts, SystemStatus Peak/Avg), where 0.7em is under 8px; FramePacing cell already splits at its own size; KpiTiles/Vitals keep UNIT_CLASS.",
+  "status": "fixed"
  },
  {
   "id": "C-10",

@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, fmt, gbParts, fmtRate, rateUnitOf, adapterOf, pretty, hue, Spark, Stat, Icon, Num, roomy, useHistory, useIpTag, Empty, type RateUnit, type ShellProps } from "./kit";
+import { Widget, shell, get, num, fmt, gbStat, fmtRate, rateUnitOf, adapterOf, pretty, hue, Spark, Stat, Icon, Num, roomy, useHistory, useIpTag, Empty, type RateUnit, type ShellProps } from "./kit";
 import { meta } from "./meta/NetworkThroughput";
 
 export { meta };
@@ -31,12 +31,6 @@ const rate = (dir: "down" | "up", v: number, unit: RateUnit | undefined, big: st
     {label && <Num ip={ip} className={`${big} truncate font-semibold`} style={custom ? undefined : { color: "var(--w-fg)" }}>{fmtRate(v, unit)}</Num>}
   </div>
 );
-
-/** A size in GB as a `Stat`'s value and unit. */
-const gbStat = (gb: number) => {
-  const [value, unit] = gbParts(gb);
-  return { value, unit };
-};
 
 export default function NetworkThroughput(p: NetworkThroughputProps) {
   const d = p.data;

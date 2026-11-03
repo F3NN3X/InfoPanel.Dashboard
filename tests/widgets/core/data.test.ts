@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { detect, diskName, rowLabel, shortLabel, diskShort, firstDisk, fmtDate, fmtGB, fmtRate, gbParts, rateParts } from "@/widgets/core/data";
+import { detect, diskName, rowLabel, shortLabel, diskShort, firstDisk, fmtDate, fmtGB, fmtRate, gbParts, gbStat, rateParts, unitStat } from "@/widgets/core/data";
 
 describe("fmtRate", () => {
   it("reads the rate sensors as bytes per second and scales them (decimal prefixes)", () => {
@@ -111,5 +111,27 @@ describe("gbParts", () => {
   });
   it("is what fmtGB joins", () => {
     expect(fmtGB(12.34)).toBe("12.3 GB");
+  });
+});
+
+describe("gbStat", () => {
+  it("is gbParts as a Stat's value and unit, with the thresholds and a missing value", () => {
+    expect(gbStat(0)).toEqual({ value: "0.0", unit: "GB" });
+    expect(gbStat(99.96)).toEqual({ value: "100.0", unit: "GB" });
+    expect(gbStat(1023)).toEqual({ value: "1,023", unit: "GB" });
+    expect(gbStat(1024)).toEqual({ value: "1.0", unit: "TB" });
+    expect(gbStat(NaN)).toEqual({ value: "–", unit: "GB" });
+  });
+});
+
+describe("unitStat", () => {
+  it("splits a reading into its number to the given decimals and the unit", () => {
+    expect(unitStat(0, "W")).toEqual({ value: "0", unit: "W" });
+    expect(unitStat(1234.5, "RPM")).toEqual({ value: "1,235", unit: "RPM" });
+    expect(unitStat(1.2345, "V", 3)).toEqual({ value: "1.235", unit: "V" });
+    expect(unitStat(45, "°F", 1)).toEqual({ value: "45.0", unit: "°F" });
+  });
+  it("keeps the unit beside the dash when the reading is missing", () => {
+    expect(unitStat(NaN, "MHz")).toEqual({ value: "–", unit: "MHz" });
   });
 });

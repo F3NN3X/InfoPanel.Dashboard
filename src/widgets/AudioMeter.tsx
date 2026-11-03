@@ -328,12 +328,12 @@ export default function AudioMeter(p: AudioMeterProps) {
             {showDetails && size !== "sm" && (
               <div className={`mt-1 grid gap-3 ${big && rows && showDetails ? "grid-cols-3" : "grid-cols-4"}`}>
                 {[
-                  ...(big && rows && showDetails ? [] : [["Peak", `${fmt(one.peak, 1)} dB`]]),
-                  ["RMS", `${fmt(one.rms, 1)} dB`],
-                  ["Hold", `${fmt(one.hold, 1)} dB`],
-                  ["Level", `${fmt(one.level, 1)}%`],
-                ].map(([l, v]) => (
-                  <Stat key={l} label={l} value={v} />
+                  ...(big && rows && showDetails ? [] : [["Peak", fmt(one.peak, 1), "dB"]]),
+                  ["RMS", fmt(one.rms, 1), "dB"],
+                  ["Hold", fmt(one.hold, 1), "dB"],
+                  ["Level", fmt(one.level, 1), "%"],
+                ].map(([l, v, u]) => (
+                  <Stat key={l} label={l} value={v} unit={u} />
                 ))}
               </div>
             )}
