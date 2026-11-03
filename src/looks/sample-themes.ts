@@ -118,3 +118,13 @@ export const SAMPLE_THEMES: readonly SampleTheme[] = [
     mockup: "(no board: the Hyprtile reference in 03-theme-packs-spec.md)", missing: "gold gradient on the gauge arcs (a ring gradient fill)",
   },
 ];
+
+/** The widget-style values a sample Look sets under its level's own (L40): its card, accent, text colours, font and extras. */
+export const sampleStyle = (t: SampleTheme): Record<string, string | number | boolean> => ({
+  surface: `look-${t.id}`,
+  accent: t.accent,
+  textColor: t.text ?? t.colours.fg,
+  mutedColor: t.muted ?? t.colours.sub,
+  font: t.font,
+  ...t.extra,
+});

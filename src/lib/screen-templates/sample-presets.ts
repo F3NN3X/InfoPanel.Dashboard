@@ -5,7 +5,7 @@
  * and never loads a Look.
  */
 import { registerSampleCards } from "@/looks/sample-materials";
-import { SAMPLE_THEMES, type SampleTheme } from "@/looks/sample-themes";
+import { SAMPLE_THEMES, sampleStyle, type SampleTheme } from "@/looks/sample-themes";
 import type { AppearancePreset } from "../appearance-presets";
 import { theme } from "./designs/ports";
 import type { TemplatePresetGroup } from "./template-presets";
@@ -23,15 +23,7 @@ export function samplePreset(t: SampleTheme): AppearancePreset {
     description: t.blurb,
     theme: theme(t.colours),
     radius: t.radius,
-    style: {
-      lookId: t.id,
-      surface: `look-${t.id}`,
-      accent: t.accent,
-      textColor: t.text ?? t.colours.fg,
-      mutedColor: t.muted ?? t.colours.sub,
-      font: t.font,
-      ...t.extra,
-    },
+    style: { lookId: t.id, ...sampleStyle(t) },
     background: { ...t.page },
   };
 }

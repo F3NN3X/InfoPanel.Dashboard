@@ -60,6 +60,9 @@ describe("sample themes: the cards", () => {
   it("loads with the config that names one, and only then", () => {
     expect(usesSampleCards(JSON.parse(JSON.stringify(applyThemeToLevel(defaultConfig(), samplePreset(SAMPLE_THEMES[0]), { kind: "profile", profileId: defaultConfig().profiles[0].id }))))).toBe(true);
     expect(usesSampleCards(defaultConfig())).toBe(false);
+    // A level that names a sample Look and stores none of its values (L40) loads them too.
+    expect(usesSampleCards({ profiles: [{ widgetTheme: { values: { lookId: "paper" } } }] })).toBe(true);
+    expect(usesSampleCards({ profiles: [{ widgetTheme: { values: { lookId: "hud" } } }] })).toBe(false);
   });
 
   it("is a valid theme value, and the Surface row and its default stay as they were", () => {

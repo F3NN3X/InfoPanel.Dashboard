@@ -2,7 +2,8 @@
 // T2 material the registry's kinds already express. Frames, headers, ornaments and page layers are not here (P8 to P11).
 // Every edge is an inset shadow and no class adds a border, so a sample card keeps Classic's box (G2).
 import { cappedBlur } from "@/components/widget-style";
-import { sampleCards } from "./sample-cards";
+import { lookLayers, sampleCards } from "./sample-cards";
+import { SAMPLE_THEMES, sampleStyle } from "./sample-themes";
 import { m, type Material, type MaterialKind, type SurfaceTone } from "./materials";
 
 const ring = (color: string, px = 1) => `inset 0 0 0 ${px}px ${color}`;
@@ -28,5 +29,11 @@ export const SAMPLE_MATERIALS: Record<string, Material> = Object.fromEntries([
   sample("black-and-gold", "gradient", "dark", "#12100A", { background: "linear-gradient(160deg,#17130b,#0a0906)", boxShadow: `${ring("rgba(212,175,55,.5)")}, inset 0 0 12px -6px rgba(212,175,55,.5)` }),
 ]);
 
-/** Puts the cards where `resolveSurface` looks (it draws the default card for a name it does not know). */
-export const registerSampleCards = (): void => void Object.assign(sampleCards, SAMPLE_MATERIALS);
+/**
+ * Puts the cards where `resolveSurface` looks (it draws the default card for a name it does not know), and the sample
+ * Looks' values where the style resolution looks for a level's Look (`lookLayers`).
+ */
+export const registerSampleCards = (): void => {
+  Object.assign(sampleCards, SAMPLE_MATERIALS);
+  for (const t of SAMPLE_THEMES) lookLayers[t.id] = sampleStyle(t);
+};

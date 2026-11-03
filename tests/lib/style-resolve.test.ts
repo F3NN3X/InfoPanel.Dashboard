@@ -174,3 +174,45 @@ describe("resolveStyle: the schema's perWidget rows and palette roles", () => {
     expect(resolveWith(theme, own, { thresholds: false })?.["warn.load"]).toBe(70);
   });
 });
+
+describe("the Look layer (L40)", () => {
+  // A level stores its Look and only what it changes; the Look's values sit under it once its chunk is loaded.
+  const term = { values: { lookId: "term" } };
+
+  it("draws a sample Look's values under a level that names it, and nothing before its chunk is loaded", async () => {
+    const { lookLayers } = await import("@/looks/sample-cards");
+    for (const id of Object.keys(lookLayers)) delete lookLayers[id];
+    expect(resolveStyle({ levels: { profile: term } }).settings.surface).toBeUndefined();
+    (await import("@/looks/sample-materials")).registerSampleCards();
+    const r = resolveStyle({ levels: { profile: term } });
+    expect(r.settings).toMatchObject({ lookId: "term", surface: "look-term", accent: "#8BE37A", font: "ibm-plex-mono" });
+    expect(r.source.accent).toBe("look");
+  });
+
+  it("keeps a level's own value over its Look, and the app's under it", async () => {
+    (await import("@/looks/sample-materials")).registerSampleCards();
+    const r = resolveStyle({ levels: { base: { clock: "24h" }, profile: { values: { lookId: "term", accent: "#123456" } } } });
+    expect(r.settings.accent).toBe("#123456");
+    expect(r.source.accent).toBe("profile");
+    expect(r.settings.clock).toBe("24h");
+  });
+
+  it("sets nothing for Classic, a skin or an unknown Look", async () => {
+    (await import("@/looks/sample-materials")).registerSampleCards();
+    for (const lookId of ["classic", "hud", "nope"]) expect(resolveStyle({ levels: { profile: { values: { lookId } } } }).settings, lookId).toEqual({ lookId });
+  });
+
+  it("follows the Look a widget shows: its own where its Look section is custom", async () => {
+    (await import("@/looks/sample-materials")).registerSampleCards();
+    const r = resolveStyle({ levels: { profile: term }, own: { lookId: "paper" }, follow: { skin: false } });
+    expect(r.settings.surface).toBe("look-paper");
+    expect(resolveStyle({ levels: { profile: term }, own: { lookId: "paper" } }).settings.surface).toBe("look-term");
+  });
+});
+
+describe("the Look layer and levels saved before it", () => {
+  it("gives nothing to a level that stores its Look's own card (applied before the layer: it holds every value it draws)", async () => {
+    (await import("@/looks/sample-materials")).registerSampleCards();
+    expect(resolveStyle({ levels: { profile: { values: { lookId: "paper", surface: "look-paper" } } } }).settings).toEqual({ lookId: "paper", surface: "look-paper" });
+  });
+});

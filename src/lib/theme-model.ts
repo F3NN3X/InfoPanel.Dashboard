@@ -1,4 +1,5 @@
 import { CLASSIC_LOOK, isLookId } from "@/looks/ids";
+import { lookLayers } from "@/looks/sample-cards";
 import type { ModuleSetting, ModuleSettingValue, ModuleSettings, ThresholdQuantity } from "@/modules/types";
 
 /**
@@ -218,7 +219,25 @@ export function themeSet(levels: ThemeLevels, key: string): ModuleSettingValue |
   const sec = sectionOfKey(key);
   if (!sec) return undefined;
   const page = pageCustom(levels, sec) ? levels.page?.values?.[key] : undefined;
-  return page ?? levels.profile?.values?.[key] ?? levels.base?.[key];
+  return page ?? levels.profile?.values?.[key] ?? (key === "lookId" ? undefined : levelLook(levels)?.[key]) ?? levels.base?.[key];
+}
+
+/**
+ * The Look layer (L40): the values a Look sets under the level that names it (`holder`, its stored values), so a level
+ * stores its `lookId` and only what it changes. A sample Look's, once its chunk is loaded (`registerSampleCards`);
+ * Classic and the skins set none (a skin's pack draws by its id). A level that stores the Look's own card applied it
+ * before the layer existed and holds every value it draws, so it gets none either: saved levels resolve as before.
+ */
+export function lookLayerOf(lookId: unknown, holder?: ModuleSettings): ModuleSettings | undefined {
+  const layer = typeof lookId === "string" ? lookLayers[lookId] : undefined;
+  return layer && holder?.surface !== layer.surface ? layer : undefined;
+}
+
+/** The Look layer of the levels: the page's Look where its Look section is its own, else the screen's. */
+function levelLook(levels: ThemeLevels): ModuleSettings | undefined {
+  const page = pageCustom(levels, "skin") ? levels.page?.values : undefined;
+  const holder = page?.lookId !== undefined ? page : levels.profile?.values;
+  return lookLayerOf(holder?.lookId, holder);
 }
 
 /** The theme value of a key (§3.2 `themeVal`): what the levels set, else `THEME_DEFAULTS`. */
