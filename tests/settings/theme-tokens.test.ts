@@ -13,6 +13,9 @@ const files = (dir: string): string[] =>
     return e.isDirectory() ? files(path) : /\.(tsx?|css)$/.test(e.name) ? [path] : [];
   });
 
+/** A colour utility on an `s-*` or `ui-*` token (`bg-s-card`, `hover:text-ui-1`): it needs `--color-<token>`, or Tailwind emits nothing. */
+const COLOR_CLASS = /(?<![\w-])(?:[a-z-]+:)*(?:bg|text|border|ring|fill|stroke|from|to|via|divide|outline|decoration|accent|caret|shadow)-((?:s|ui)-[a-z0-9]+(?:-[a-z0-9]+)*)(?=[\s"'`/\])]|$)/g;
+
 const read = (f: string) => readFileSync(f, "utf8");
 const defined = new Set(
   ["src/settings/tokens.css", "src/settings/settings.css", "src/help/help.css"].flatMap((f) => [...read(f).matchAll(/(--[a-z0-9-]+)\s*:/g)].map((m) => m[1])),
@@ -25,12 +28,13 @@ const used = (): Map<string, string> => {
     for (const m of src.matchAll(/(?<![\w-])text-(micro|caption|body|title)(?![\w-])/g)) found.set(`--text-${m[1]}`, f);
     for (const m of src.matchAll(/rounded-(?:[a-z]+-)?ui-(sm|md|lg|menu)(?![\w-])/g)) found.set(`--radius-ui-${m[1]}`, f);
     for (const m of src.matchAll(/--(ui-h-[a-z]+|z-[a-z]+)(?![\w-])/g)) found.set(`--${m[1]}`, f);
+    for (const m of src.matchAll(COLOR_CLASS)) found.set(`--color-${m[1]}`, f);
   }
   return found;
 };
 
 describe("Settings and Help theme tokens", () => {
-  it("defines every scale token those entries use", () => {
+  it("defines every scale and colour token those entries use", () => {
     const missing = [...used()].filter(([name]) => !defined.has(name)).map(([name, file]) => `${name} (${file})`);
     expect(missing).toEqual([]);
   });

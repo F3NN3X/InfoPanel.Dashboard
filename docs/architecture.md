@@ -256,8 +256,8 @@ Placement.settings
 - `effectiveSettings` is in `src/modules/types.ts`,
   `chromeOf` in `src/modules/standard-settings.ts`, `surfaceBox`, `tokenScope`
   and the `--wp-*` helpers in `src/components/widget-style.ts`, and the
-  shared materials (`makeSurface`, the theme surface, `surfaceColors` /
-  `surfaceTokens`) in `src/components/surfaces.ts`. The keys and their effects
+  shared materials (`makeSurface`, the theme surface) in
+  `src/components/surfaces.ts`. The keys and their effects
   are in [widget-settings.md](widget-settings.md).
 - Every zone type that is a module goes this way: the library templates and the
   "Other sensors" catch-all (`src/modules/other-sensors.tsx`, one `SensorValue`

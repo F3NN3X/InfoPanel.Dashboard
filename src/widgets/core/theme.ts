@@ -1,5 +1,7 @@
 // Theme tokens: surfaces, skins, state colours, text colours, colour ramps, skin context and tone helpers.
 import { createContext, useContext, type CSSProperties } from "react";
+import { DARK_TEXT, DEFAULT_ACCENT } from "@/looks/palette";
+import { STATUS, STATUS_LIGHT } from "@/looks/status";
 import { clamp } from "./data";
 import { BASE_SURFACES, DEFAULT_SURFACE, LEGACY_SURFACES, type SurfaceDef, type SurfaceTone } from "./surfaces";
 import { defaultSkin } from "./skins/default";
@@ -46,16 +48,16 @@ export function resolveSurface(surface: string | undefined, skin: string | undef
    text stays legible on light materials and follows the theme on the theme surface. */
 export type TextVars = Record<"--w-fg" | "--w-muted" | "--w-faint" | "--w-track", string> & Partial<Record<"--w-warn" | "--w-crit", string>>;
 export const TEXT_VARS: Record<SurfaceTone, TextVars> = {
-  dark: { "--w-fg": "#f4f4f5", "--w-muted": "#a1a1aa", "--w-faint": "#8a8a94", "--w-track": "rgba(255,255,255,.07)" },
+  dark: { "--w-fg": DARK_TEXT.fg, "--w-muted": DARK_TEXT.muted, "--w-faint": "#8a8a94", "--w-track": "rgba(255,255,255,.07)" },
   // light and theme surfaces darken the warn / crit text so it keeps contrast (dark surfaces use STATE as is)
-  light: { "--w-fg": "#18181b", "--w-muted": "#52525b", "--w-faint": "#636366", "--w-track": "rgba(24,24,27,.1)", "--w-warn": "#a15c07", "--w-crit": "#c4261d" },
+  light: { "--w-fg": "#18181b", "--w-muted": "#52525b", "--w-faint": "#636366", "--w-track": "rgba(24,24,27,.1)", "--w-warn": STATUS_LIGHT.warn, "--w-crit": STATUS_LIGHT.crit },
   theme: {
     "--w-fg": "hsl(var(--card-foreground))",
     "--w-muted": "hsl(var(--muted-foreground))",
     "--w-faint": "hsl(var(--muted-foreground))",
     "--w-track": "color-mix(in oklab, hsl(var(--card-foreground)) 9%, transparent)",
-    "--w-warn": "color-mix(in oklab, #EDB232 60%, hsl(var(--card-foreground)))",
-    "--w-crit": "color-mix(in oklab, #F2665E 60%, hsl(var(--card-foreground)))",
+    "--w-warn": `color-mix(in oklab, ${STATUS.warn} 60%, hsl(var(--card-foreground)))`,
+    "--w-crit": `color-mix(in oklab, ${STATUS.crit} 60%, hsl(var(--card-foreground)))`,
   },
 };
 /** The text variables for a tone; the look's text / secondary text colours override fg / muted. */
@@ -66,8 +68,6 @@ export function textVars(tone: SurfaceTone, colors?: { textColor?: string; muted
   return v as CSSProperties;
 }
 
-// Instrument palette, usable by any widget: ok / warn / crit / muted fills
-export const INSTR = { card: "#161A20", muted: "#20252D", mutedFg: "#8D96A4", border: "#29303A", primary: "#7D95FF", chart2: "#3FC4D0", ok: "#3CC97F", warn: "#EDB232", crit: "#F2665E" };
 /* Colour ramps for heatmaps & visualisers. rampColor(t 0-1, name, accentHex) → css rgb() */
 export const RAMPS: Record<string, string[] | null> = {
   accent: null,
@@ -83,7 +83,7 @@ const hex = (h: string): number[] => {
   const f = s.length === 3 ? s.split("").map((c) => c + c).join("") : s;
   return [0, 2, 4].map((i) => parseInt(f.slice(i, i + 2), 16) || 0);
 };
-export const rampColor = (t: number, name = "accent", accentHex = "#34d399"): string => {
+export const rampColor = (t: number, name = "accent", accentHex = DEFAULT_ACCENT): string => {
   t = Math.min(1, Math.max(0, t));
   const stops = RAMPS[name] ?? ["#18181c", accentHex];
   const x = t * (stops.length - 1),
@@ -94,7 +94,7 @@ export const rampColor = (t: number, name = "accent", accentHex = "#34d399"): st
   return `rgb(${a.map((v, j) => Math.round(v + (b[j] - v) * f)).join(",")})`;
 };
 // resolve the live --accent of an element (for canvas drawing)
-export const accentOf = (el: Element | null, fb = "#34d399"): string =>
+export const accentOf = (el: Element | null, fb = DEFAULT_ACCENT): string =>
   (el && getComputedStyle(el).getPropertyValue("--accent").trim()) || fb;
 export const GRAPH_STYLES = ["area", "line", "step", "bars", "dots", "braille"];
 export const METER_STYLES = ["bar", "pill", "segments", "blocks", "hair", "wave", "square"];
@@ -124,7 +124,7 @@ export const numFont = (sk: Partial<SkinTokens>, weight = 700): CSSProperties =>
   ...numGlowStyle(sk),
 });
 // Semantic state colours (stay meaningful under every skin)
-export const STATE = { ok: "#3CC97F", warn: "#EDB232", crit: "#F2665E", none: "rgba(255,255,255,0.07)" } as const;
+export const STATE = STATUS;
 // Tone → colour: ok follows the accent; warn / crit are the semantic STATE colours.
 // On light / theme surfaces the shell's --w-warn / --w-crit darken them for contrast.
 export const TONES: Record<Tone | "muted", string> = { ok: "var(--accent)", warn: `var(--w-warn, ${STATE.warn})`, crit: `var(--w-crit, ${STATE.crit})`, muted: "var(--w-faint, #8a8a94)" };

@@ -14,18 +14,10 @@ const MAX_LITERALS = 4;
 // Arbitrary text sizes (`text-[13px]`) left in src/components/studio after the A-18 sweep: the tile size caption's 8.5 px.
 const MAX_ARBITRARY_TEXT = 1;
 
-// Files that hold literal palettes on purpose.
-const EXCLUDED = new Set([
-  // the widget theme: its values are mirrored as hex in the InfoPanel gauge export
-  "src/widgets/core/theme.ts",
-  // the mirror of that theme baked into exported gauge frames
-  "src/lib/infopanel/gauges/vector.ts",
-]);
-
 const files = (dir: string): string[] =>
   readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
     const path = `${dir}/${e.name}`;
-    return e.isDirectory() ? files(path) : /\.(tsx?|css)$/.test(e.name) && !EXCLUDED.has(path) ? [join(path)] : [];
+    return e.isDirectory() ? files(path) : /\.(tsx?|css)$/.test(e.name) ? [join(path)] : [];
   });
 
 describe("colour literals in the UI", () => {

@@ -1,6 +1,6 @@
 import { readSystemFlat } from "@/lib/system-metrics";
 import type { ModuleSettings } from "@/modules/types";
-import { UNIT_CLASS, roomy, useFitRows, Widget, shell, get, num, fmt, rateParts, toMBps, pretty, Spark, useHistory, useSkin, numFont, hw, adapterOf, type ShellProps } from "./kit";
+import { UNIT_CLASS, roomy, useFitRows, Widget, shell, get, num, fmt, rateParts, toMBps, pretty, Spark, useHistory, useSkin, numFont, hw, adapterOf, STATE, type ShellProps } from "./kit";
 import { meta } from "./meta/KpiTiles";
 
 export { meta };
@@ -84,7 +84,7 @@ export default function KpiTiles(p: KpiTilesProps) {
                 <div key={key} className="relative flex min-h-0 min-w-0 flex-col gap-1 overflow-hidden pr-2">
                   <div className="flex items-baseline justify-between gap-2">
                     <span className="truncate text-micro font-medium uppercase tracking-[0.06em] text-[color:var(--w-muted)]">{m.l}</span>
-                    {tileW >= 112 && Math.abs(pct) >= 1 && <span title={`Change over the last ${back} readings`} className="whitespace-nowrap text-xs tabular-nums" style={{ color: delta > 0 ? "#EDB232" : "#3CC97F" }}>
+                    {tileW >= 112 && Math.abs(pct) >= 1 && <span title={`Change over the last ${back} readings`} className="whitespace-nowrap text-xs tabular-nums" style={{ color: delta > 0 ? STATE.warn : STATE.ok }}>
                       {`${delta > 0 ? "▲" : "▼"} ${fmt(Math.abs(pct), 0)}%`}
                     </span>}
                   </div>

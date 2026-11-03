@@ -1,3 +1,5 @@
+import { DEFAULT_ACCENT_RGB } from "@/looks/palette";
+
 /**
  * The widget surfaces: the colors a widget's box, text, tracks and fills
  * are drawn with. "glass" / "matte-light" / "matte-dark" are fixed
@@ -94,7 +96,7 @@ function buildSurface(style: ModernStyle, tint: RGB | null): Surface {
     fg: "rgb(250, 250, 250)",
     muted: "rgba(250, 250, 250, 0.6)",
     track: "rgba(255, 255, 255, 0.14)",
-    fill: "rgb(52, 211, 153)",
+    fill: rgba(DEFAULT_ACCENT_RGB),
     ring: "rgba(255, 255, 255, 0.1)",
   };
 }
@@ -154,46 +156,4 @@ function buildSurfacePalette(style: ModernStyle, tint: ArtTint): Surface {
     fill: rgba(lighten(tint.vibrant, 0.3)),
     ring: "rgba(255, 255, 255, 0.12)",
   };
-}
-
-const CARD_SURFACES: readonly string[] = ["glass", "matte-light", "matte-dark", "theme"];
-
-/**
- * The surface of a plain card (the legacy modules, the catch-all cards):
- * one of the widget surfaces, the theme surface for anything else (a
- * panel-only card choice reaching it from the global style).
- */
-export function surfaceColors(surface: unknown): Surface {
-  return makeSurface(CARD_SURFACES.includes(surface as string) ? (surface as ModernStyle) : "theme", null);
-}
-
-/**
- * The tokens of a fixed-palette surface, as HSL triplets for the theme
- * variables: content that reads the theme (`text-foreground`, the
- * `bg-secondary` chips, …) stays legible on it. The theme surface needs none.
- */
-const SURFACE_TOKENS: Record<Exclude<ModernStyle, "theme">, { fg: string; muted: string; chip: string }> = {
-  glass: { fg: "0 0% 98%", muted: "0 0% 98% / 0.6", chip: "240 3.7% 15.9%" },
-  "matte-dark": { fg: "0 0% 98%", muted: "0 0% 98% / 0.6", chip: "240 3.7% 15.9%" },
-  "matte-light": { fg: "240 6% 10%", muted: "240 6% 10% / 0.72", chip: "240 5% 88%" },
-};
-
-/**
- * Theme tokens for a card on `surface`: its chip background, and its text
- * colors unless the user picked them (then the widget's re-scoped tokens
- * stand).
- */
-export function surfaceTokens(
-  surface: unknown,
-  chrome: { textColor?: string; mutedColor?: string } | undefined
-): Record<string, string> {
-  const tokens = SURFACE_TOKENS[surface as keyof typeof SURFACE_TOKENS];
-  if (!tokens) return {};
-  const v: Record<string, string> = { "--secondary": tokens.chip, "--muted": tokens.chip };
-  if (!chrome?.textColor) {
-    v["--foreground"] = tokens.fg;
-    v["--card-foreground"] = tokens.fg;
-  }
-  if (!chrome?.mutedColor) v["--muted-foreground"] = tokens.muted;
-  return v;
 }

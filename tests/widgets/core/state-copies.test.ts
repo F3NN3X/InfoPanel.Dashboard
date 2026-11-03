@@ -1,28 +1,32 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { INSTR, STATE } from "../../../src/widgets/core/theme.ts";
+import { STATUS, STATUS_LIGHT } from "../../../src/looks/status.ts";
+import { STATE } from "../../../src/widgets/core/theme.ts";
 
-// STATE is the one source of the status colours, but several files keep a hand copy of its hex (look-system.md A.6).
-// Each row reads one copy from its file and checks it still equals STATE, so editing STATE alone fails here
-// until the copies follow (or P1/P3a replace them with the symbol).
+// STATUS (src/looks/status.ts) is the one source of the status colours and STATE is built from it. The widgets that
+// used to keep a hex copy (OsdStrip, KpiTiles, CoreHeatmap, the theme-tone mixes, the instrument palette) read it now;
+// the copies below are generated (mixer-views.css, the gauge THEME) or in another format (the profile palette), and
+// each row checks one still equals STATE.
 const copies: [file: string, role: "ok" | "warn" | "crit", pattern: RegExp][] = [
   ["src/widgets/core/mixer-views.css", "warn", /--meter-warn: var\(--w-warn, (#[0-9a-f]{6})\)/i],
   ["src/widgets/core/mixer-views.css", "crit", /--meter-clip: var\(--w-crit, (#[0-9a-f]{6})\)/i],
   ["src/widgets/core/mixer-views.css", "crit", /--destructive: from var\(--w-crit, (#[0-9a-f]{6})\)/i],
   ["src/widgets/core/mixer-views.css", "crit", /--channel-mute: var\(--wl-mute, var\(--w-crit, (#[0-9a-f]{6})\)\)/i],
-  ["src/lib/infopanel/gauges/vector.ts", "warn", /warn: \{[^}]*hex: "(#[0-9A-F]{6})"/i],
-  ["src/lib/infopanel/gauges/vector.ts", "crit", /crit: \{[^}]*hex: "(#[0-9A-F]{6})"/i],
-  ["src/widgets/OsdStrip.tsx", "warn", /DROP_WARN = "(#[0-9A-F]{6})"/i],
-  ["src/widgets/OsdStrip.tsx", "crit", /DROP_CRIT = "(#[0-9A-F]{6})"/i],
-  ["src/widgets/KpiTiles.tsx", "warn", /delta > 0 \? "(#[0-9A-F]{6})"/i],
-  ["src/widgets/KpiTiles.tsx", "ok", /: "(#[0-9A-F]{6})" \}\}>/i],
-  ["src/widgets/CoreHeatmap.tsx", "crit", /2px solid (#[0-9A-F]{6})/i],
+  ["src/looks/generated/gauge-theme.ts", "warn", /warn: \{[^}]*hex: "(#[0-9A-F]{6})"/i],
+  ["src/looks/generated/gauge-theme.ts", "crit", /crit: \{[^}]*hex: "(#[0-9A-F]{6})"/i],
   // The profile palette is #AARRGGBB (opaque), so the alpha byte comes off.
   ["src/lib/infopanel/elements/palette.ts", "warn", /warn: "#FF([0-9A-F]{6})"/i],
   ["src/lib/infopanel/elements/palette.ts", "crit", /crit: "#FF([0-9A-F]{6})"/i],
 ];
 
 const read = (file: string): string => readFileSync(new URL(`../../../${file}`, import.meta.url), "utf8");
+
+const files = (dir: string): string[] =>
+  readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
+    const path = join(dir, e.name);
+    return e.isDirectory() ? files(path) : /\.(tsx?|css)$/.test(e.name) ? [path.replaceAll("\\", "/")] : [];
+  });
 
 describe("the hand copies of STATE", () => {
   it.each(copies)("%s's %s equals STATE", (file, role, pattern) => {
@@ -31,9 +35,15 @@ describe("the hand copies of STATE", () => {
     expect(`#${found!.replace("#", "")}`.toLowerCase()).toBe(STATE[role].toLowerCase());
   });
 
-  it("includes the instrument palette's ok, warn and crit", () => {
-    expect({ ok: INSTR.ok, warn: INSTR.warn, crit: INSTR.crit }).toEqual({ ok: STATE.ok, warn: STATE.warn, crit: STATE.crit });
+  it("builds STATE from STATUS", () => {
+    expect({ ok: STATE.ok, warn: STATE.warn, crit: STATE.crit, none: STATE.none }).toEqual({ ok: STATUS.ok, warn: STATUS.warn, crit: STATUS.crit, none: STATUS.none });
+  });
+
+  it("is typed as a literal nowhere else in src", () => {
+    // A new hex copy of a status colour fails here: import STATE (widgets) or STATUS (everything else) instead.
+    const status = new RegExp(`#(${[STATUS.ok, STATUS.warn, STATUS.crit, STATUS_LIGHT.warn, STATUS_LIGHT.crit].map((c) => c.slice(1)).join("|")})\\b`, "i");
+    const allowed = ["src/looks/", "src/widgets/core/mixer-views.css"];
+    const copies = files("src").filter((f) => !allowed.some((a) => f.startsWith(a)) && status.test(readFileSync(f, "utf8")));
+    expect(copies).toEqual([]);
   });
 });
-
-// Copies that differ from STATE today: none found (every copy above matches). Add any that drift here, with where, not as a skip.

@@ -2,6 +2,7 @@
 // shape, `glow` → glow); Custom takes colours 1–3 as a solid, a gradient or a per-band ramp. The spec
 // is CSS strings (pure, tested); the engine resolves them through a probe every 500 ms at most, so
 // a theme or skin change repaints live.
+import { DEFAULT_ACCENT, DEFAULT_ACCENT_RGB } from "@/looks/palette";
 import { RAMPS } from "../theme";
 import type { BarShape, VizColorMode, VizGradient, VizLook, VizShape, VizSkin } from "./types";
 
@@ -108,9 +109,9 @@ export function createCssResolver(host: Element): { resolve: (css: string) => Rg
     probe.style.color = "";
     probe.style.color = value;
     const computed = getComputedStyle(probe).color;
-    if (!ctx) return [52, 211, 153, 1];
+    if (!ctx) return [...DEFAULT_ACCENT_RGB, 1];
     ctx.clearRect(0, 0, 1, 1);
-    ctx.fillStyle = "#34d399";
+    ctx.fillStyle = DEFAULT_ACCENT;
     ctx.fillStyle = computed;
     ctx.fillRect(0, 0, 1, 1);
     const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;

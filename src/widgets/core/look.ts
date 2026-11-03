@@ -5,6 +5,7 @@ import type { ModernChrome } from "@/components/modern-chrome";
 import { SCRIM } from "@/components/modern-chrome";
 import { fadeColors, surfaceBox } from "@/components/widget-style";
 import { FONT_STACKS } from "@/lib/general";
+import { DEFAULT_ACCENT } from "@/looks/palette";
 import { sizeTierOf } from "@/modules/setting-readers";
 import { chromeOf } from "@/modules/standard-settings";
 import type { ModuleSettings } from "@/modules/types";
@@ -14,7 +15,7 @@ import type { SurfaceDef, SurfaceTone } from "./surfaces";
 import { SKINS } from "./theme";
 import type { Compact, SkinContext, SkinTokens, Studio, Tier } from "./types";
 
-export const DEFAULT_ACCENT = "#34d399";
+export { DEFAULT_ACCENT };
 
 /**
  * Decision 6: an explicit accent always wins; a skin's own accent applies only when none is set

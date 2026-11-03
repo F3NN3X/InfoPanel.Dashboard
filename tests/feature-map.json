@@ -615,6 +615,15 @@
       "checks": ["typecheck", "unit"]
     },
     {
+      "id": "looks",
+      "summary": "The Look system's single sources (status colours, default accent, Studio twins) and the generator that writes the copies the CSS and the gauge export need.",
+      "paths": ["src/looks/**", "tools/looks/**"],
+      "tests": ["tests/looks/**", "tests/widgets/core/state-copies.test.ts", "tests/lib/theme-css-sync.test.ts", "tests/settings/theme-tokens.test.ts", "tests/components/color-literals.test.ts"],
+      "checks": ["typecheck", "unit", "build", "budgets", "settings-build", "import-check"],
+      "report": ["npm run looks:scan"],
+      "note": "Generated files: src/looks/generated/*, the @generated blocks in src/index.css, src/settings/tokens.css and src/widgets/core/mixer-views.css. Edit the source, run `npm run looks:gen`; tests/looks/generated.test.ts fails when one is stale. looks:scan is the D9 report (hex outside src/looks, blur outside the cap, ui-* in widgets); it never gates until P7. import-check because the gauge THEME is written into exports."
+    },
+    {
       "id": "gauges",
       "summary": "Gauge studio, gauge frames and import, vector gauges and their icons.",
       "paths": [

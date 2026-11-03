@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
-import { Widget, shell, get, num, fmt, has, stacksIn, useSkin, useIpTag, ToneCue, hw, type IpTagExtra, type ShellProps } from "./kit";
+import { Widget, shell, get, num, fmt, has, stacksIn, useSkin, useIpTag, ToneCue, hw, STATE, type IpTagExtra, type ShellProps } from "./kit";
 import { fpsSubLine } from "./fps-line";
 import { meta } from "./meta/OsdStrip";
 
@@ -18,8 +18,8 @@ export interface OsdStripProps extends ShellProps {
 /** The content height (px) under which a cell's label and value go on one line. */
 const INLINE_H = 52;
 /** The colours a dropped frame rate takes: below half and below three quarters of the target. */
-const DROP_CRIT = "#F2665E";
-const DROP_WARN = "#EDB232";
+const DROP_CRIT = STATE.crit;
+const DROP_WARN = STATE.warn;
 
 /** A stacked cell's height (px) at its value size, for how many rows fit. */
 const STACK_CELL_H = { 28: 66, 32: 70 } as const;

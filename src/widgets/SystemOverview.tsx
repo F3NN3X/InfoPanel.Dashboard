@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { DEFAULT_ACCENT } from "@/looks/palette";
 import type { ModuleSettings } from "@/modules/types";
 import { diskMetric, filterDisks, formatTemp, netMetric, pickAdapter, pickDisk, rateTop, readAdaptersFlat, readSystemFlat, systemKeysFlat, type DiskReading, type DiskValue, type NetDirection } from "@/lib/system-metrics";
 import { MetricGauges, MetricGraphs, type MetricRow } from "./SystemOverviewViews";
@@ -8,7 +9,7 @@ import { meta } from "./meta/SystemOverview";
 export { meta };
 
 export type Section = "cpu" | "gpu" | "ram" | "vram" | "disk" | "net";
-const DEF: Record<Section, string> = { cpu: "#38bdf8", gpu: "#a78bfa", ram: "#2dd4bf", vram: "#facc15", disk: "#fb7185", net: "#34d399" };
+const DEF: Record<Section, string> = { cpu: "#38bdf8", gpu: "#a78bfa", ram: "#2dd4bf", vram: "#facc15", disk: "#fb7185", net: DEFAULT_ACCENT };
 // Under a non-default skin, sections derive from the skin's accent by hue rotation, so the palette follows the skin.
 const SHIFT: Record<Section, number> = { cpu: 0, gpu: 55, ram: -45, vram: -80, disk: 160, net: 120 };
 const sectionColor = (k: Section) => (SHIFT[k] ? `oklch(from var(--sys-base) l c calc(h + ${SHIFT[k]}))` : "var(--sys-base)");
