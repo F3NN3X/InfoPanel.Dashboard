@@ -125,6 +125,15 @@ Filled in during stage 2 (see `02-implementation-runbook.md`, section 4). Every 
   - The deleted `src/components/surfaces.ts` stays matched in the feature map through `src/components/{widget-style,surfaces}.ts`, because `verify` maps deleted paths too.
   - Test pins changed on purpose: `surface-of.dom.test.ts` (P0's null rows flip; happy-dom still leaves theme, tinted and material null), `StreamDeck/look.test.ts` (vibrancy's blur is on the key's style, not its class), `Widget.test.ts` (`--w-mat-blur` instead of an inline `backdrop-filter`), the `lookBox`/`fadeBackground` cases moved from `look.test.ts` to `tests/looks/materials.test.ts`.
   - `StreamDeck/look.ts` still strips a material's `width`/`height`; no material sets them since brutal's redesign (L28).
+  - Specificity (not changed, L29): the static `[data-wp-tier][data-mat]` rule is (0,2,0). A saved custom CSS `:scope` rule (0,1,0) lost to the old inline style and still loses; a selector of (0,2,0) or more (`:scope:hover { background }`) newly wins, which it could not before.
+  - NowPlaying's art tint is an inline `style`, so it beats the `[data-mat-blur]` fallback rule: a tinted glass card over a solid page never gets the 0.90 fill (L30).
+- Review (e522341b..21e398d4) and its fixes:
+  - HIGH, fixed: the 0.90 blur fallback raised every rgba alpha, so `studio` (white highlight fills) became an opaque white card under a solid page. `opaquer` now raises only tint layers (a channel under 200); a card with none has no fallback (`studio` has none).
+  - MEDIUM, fixed: at Surface opacity below 1 `tinted` and `material` compute to `oklab()` in Chromium, `rgbToArgb` returned "" and the card dropped from the export. `surfaceOf` reads such a colour through the canvas (as `decompose` does); e2e row added.
+  - MEDIUM, fixed: outline, flat and ink set `--w-fill: transparent`, so `dim()` ramps went translucent and the CoreHeatmap canvas filled transparent. A see-through material's fill is `RAMP_START` (#18181c) again.
+  - LOW, fixed: Classic glass starts ramps at exactly `#18181c` as before P3b (was `rgb(24, 24, 27)`); the frozen `v8-parity.json` `--w-fill` moves back to `#18181c` (it was refreshed in P3b for the old value; Classic is now strictly unchanged). Earlier note "every root gains `--w-fill:rgb(24, 24, 27)`" no longer holds.
+  - LOW, fixed: `material-export.spec.ts` asserts in Chromium that the static rule paints background, box-shadow and backdrop-filter (vibrancy, brutal) and the blur fallback over a solid page.
+  - LOW, fixed: stale brutal comment in `StreamDeck/look.ts`. The feature-map entry for the deleted `surfaces.ts` stays: `verify` reports the deletion unmapped while the branch is unmerged; drop it after the merge (L28).
 
 ## Ledger: known issues and deferred work
 
@@ -160,3 +169,5 @@ Open items carried between phases. Each phase adds what it finds or defers, and 
 | L26 | P3b | Resolver emits no `--w-mat-fg/-muted/-faint/-track/-border/-scrim` vars; material paint stays CSS strings (no structured `fill-stops`, `spots`, `pattern`, `inset`, `tone: auto`) | P4 (vars), P9 (structured fields when packs author materials) | open |
 | L27 | P3b | Blur fallback alpha applies only over a solid page; lite mode does not switch widget blur off (section 8 G.6 cap "0 in lite mode") | P9 | open |
 | L28 | P3b | `StreamDeck/look.ts` strips a material `width`/`height` that no material sets since brutal's redesign; the feature map keeps `src/components/{widget-style,surfaces}.ts` for the deleted file | P7 | open |
+| L29 | P3b | Custom CSS of specificity (0,2,0) or more now beats the card background (the static `[data-mat]` rule is (0,2,0); inline style used to win) | P8 | open |
+| L30 | P3b | NowPlaying's inline art tint bypasses the `[data-mat-blur]` fallback rule: a tinted glass card over a solid page keeps its own alpha | P12 | open |
