@@ -1,0 +1,76 @@
+diff --git a/src/components/studio/placement-content.tsx b/src/components/studio/placement-content.tsx
+index 12951857..fd3bbb93 100644
+--- a/src/components/studio/placement-content.tsx
++++ b/src/components/studio/placement-content.tsx
+@@ -16,6 +16,16 @@ import { lockedIn, resolveWith, type Appearance } from "@/lib/style-resolve";
+ import { safeRender } from "@/components/zone-error-boundary";
+ 
+ const moduleById = new Map(modules.map((m) => [m.id, m]));
++
++/** Last resolved settings per placement: the same values keep the same object, so a zone's look can be memoised on it. */
++const resolvedByPlacement = new WeakMap<Placement, ModuleSettings | undefined>();
++function stableSettings(p: Placement, next: ModuleSettings | undefined): ModuleSettings | undefined {
++  const prev = resolvedByPlacement.get(p);
++  const same = prev === next || (!!prev && !!next && Object.keys(prev).length === Object.keys(next).length && Object.keys(next).every((k) => prev[k] === next[k]));
++  if (same) return prev;
++  resolvedByPlacement.set(p, next);
++  return next;
++}
+ // The InfoPanel renderer loads only when a canvas zone is drawn.
+ const CanvasZone = lazy(() => import("@/components/infopanel/CanvasZone"));
+ 
+@@ -185,7 +195,7 @@ export function placementContent(
+   const mod = moduleById.get(p.module);
+   // A widget this build doesn't have (a newer or older one saved it): kept as it is, drawn as a grey box.
+   if (!mod) return { content: <UnavailableWidget />, hasData: true, title: p.module };
+-  const settings = resolveWith(appearance, p.settings, p.follow, undefined, mod.settings);
++  const settings = stableSettings(p, resolveWith(appearance, p.settings, p.follow, undefined, mod.settings));
+   const content = safeRender(mod.title, () => mod.render(sensors, settings));
+   // Only the module's own keys (a stored color it has no option for stays inert).
+   const cfg = effectiveSettings(mod, settings);
+diff --git a/src/widgets/core/Widget.tsx b/src/widgets/core/Widget.tsx
+index 6eb15c4a..fd79104d 100644
+--- a/src/widgets/core/Widget.tsx
++++ b/src/widgets/core/Widget.tsx
+@@ -124,9 +124,10 @@ export function Widget({ title, icon, iconOverride, accent, surface, radius, siz
+   const header = !isStudio && showHeader && titled && heading && (tui || (!useCompact && box.size !== "xs"));
+   const css = chrome?.customCss ? scopedCss(scope, chrome.customCss) : "";
+   const background = chrome?.backgroundOn && chrome.background ? chrome.background : "";
+-  const surfBox = lookBox(surf, chrome);
++  const surfBox = useMemo(() => lookBox(surf, chrome), [surf, chrome]);
+   const big = roomy(box.w, box.h);
+-  const rootStyle = {
++  const heroSize = big ? heroPx(box.w, box.h) : 0;
++  const rootStyle = useMemo(() => ({
+     // The look's Corner radius, else the theme's (Theme › Shape & spacing, `--radius`), like panels.
+     borderRadius: chrome?.radius ?? radius ?? "var(--radius, 1rem)",
+     fontFamily: ctx.font,
+@@ -136,9 +137,9 @@ export function Widget({ title, icon, iconOverride, accent, surface, radius, siz
+     "--accent": resolveAccent(chrome?.accent || accent, sk, surf.tone),
+     color: "var(--w-fg)",
+     // A roomy box (4x4) grows the body type: the theme's type tokens, so every text-micro / caption / body / title follows; and sets the hero size `Metric` reads.
+-    ...(big ? { ...(fixedType ? null : typeVars(ROOMY_SCALE)), "--w-hero": `${heroPx(box.w, box.h)}px` } : null),
++    ...(big ? { ...(fixedType ? null : typeVars(ROOMY_SCALE)), "--w-hero": `${heroSize}px` } : null),
+     ...style,
+-  } as CSSProperties;
++  } as CSSProperties), [chrome, radius, ctx.font, surfBox, surf.tone, accent, sk, big, heroSize, fixedType, style]);
+   return (
+     <SkinCtx.Provider value={ctx}>
+       <RoomyCtx.Provider value={big}>
+diff --git a/src/widgets/module.tsx b/src/widgets/module.tsx
+index 80a88abf..b71f8c38 100644
+--- a/src/widgets/module.tsx
++++ b/src/widgets/module.tsx
+@@ -86,8 +86,10 @@ const same = (a: ModuleSettings, b: ModuleSettings): boolean => {
+ const LEGACY_ALIGN = ["alignX", "alignY"];
+ 
+ export function useZoneLook(defs: ModuleSetting[], saved: ModuleSettings | undefined, surfaceDefault: string): ModuleSettings {
+-  const legacy = Object.fromEntries(LEGACY_ALIGN.flatMap((k) => (saved?.[k] !== undefined ? [[k, saved[k]]] : [])));
+-  const next = withSkinSurface({ ...effectiveSettings({ settings: defs }, saved), ...legacy }, saved, surfaceDefault);
++  const next = useMemo(() => {
++    const legacy = Object.fromEntries(LEGACY_ALIGN.flatMap((k) => (saved?.[k] !== undefined ? [[k, saved[k]]] : [])));
++    return withSkinSurface({ ...effectiveSettings({ settings: defs }, saved), ...legacy }, saved, surfaceDefault);
++  }, [defs, saved, surfaceDefault]);
+   // A data tick re-renders the zone with the same values: keep the object, so the shell's skin context and chrome (memoised on it) hold.
+   const last = useRef(next);
+   const look = same(last.current, next) ? last.current : next;

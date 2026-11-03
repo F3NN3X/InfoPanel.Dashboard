@@ -85,7 +85,7 @@ looks/field-kit/
 | `fallbacks` | What each effect becomes in lite mode, with Limit blur on, and on a solid page background |
 | `export` | Flat colours, optional pre-rendered background image, and the "not exported" list |
 | `burnIn` | `static-safe`, `needs-shift` or `needs-dim` (see Guardrails) |
-| `statusBar` | Style and default position; the user can change the position |
+| `statusBar` | Style (island and Status bar widget) and the island's default edge; the user can change the edge |
 | `templates` | Optional page templates the user can apply |
 | `minSizeClass` | Per decoration: hide page layers, ornaments and overlays below this size class |
 
@@ -108,17 +108,17 @@ A slot is a named place a pack can paint into. Each slot accepts either a varian
 
 Four page-level slots sit outside the stack:
 
-- **Status bar**: style `pill`, `bar`, `plain` or `line`, and a default position (top or bottom). The user can change the position.
+- **Status bar**: style `pill`, `bar`, `plain` or `line` (the island takes it too), and the island's default edge (top or bottom). The user can change the edge. The Status bar widget has no position of its own; it stays with the page or template.
 - **Connectors**: `none`, `line` or `elbow`, with an end-dot option. The app draws them between widgets; the pack only styles them.
 - **Page templates**: optional layouts a pack can offer (radial cluster, hero band, dense panes). The user opts in; applying a pack never moves widgets.
-- **Icon set**: `outline`, `filled`, `chunky`, `pixel` or `ascii` glyphs, one per pack, against a fixed icon name list (weather, transport, audio, status, devices). Missing icons fall back to the Classic set.
+- **Icon set**: `outline`, `filled`, `chunky`, `pixel` or `ascii` glyphs, one per pack, against a fixed icon name list of about 84 names (weather, transport, audio, status, devices), delivered as a JSON glyph map. Missing icons fall back to the Classic set per name.
 
 The values behind thresholds, meter zones and budget lines (a frame-time budget, a dB breakpoint) come from widget settings and data. The pack only decides how they look.
 
 Rules for every slot:
 
 - Decorations are absolutely positioned, `pointer-events: none`, `aria-hidden`, and never change layout or row fitting.
-- A card ornament stays inside the card's padding, or the card is marked `data-qa-bleed` on purpose.
+- A card ornament is at most 10 px and stays inside the card's padding, or the card is marked `data-qa-bleed` on purpose. Decorations reach the card edge only through `--wp-pad`; packs use no `!important` fills.
 - The island, status bar and alerts take the pack's material, frame and header, so chrome matches the widgets.
 - Each frame, edge and header variant is built once in the shell and covered by the overflow probe at 1x1, 2x2, 4x2 and 4x4.
 
@@ -135,8 +135,8 @@ Every guarantee the widget pipeline gives today must still hold with any pack ap
 | Readability | The brief's contrast test runs over every pack, variant and material: text, muted, ok, warn, crit, axis labels | Part G contrast test, extended to packs |
 | Layout | Slots never change size, rows or visibility. Overflow, roomy and privacy behave as without a pack | Overflow probe and parity run with each built-in pack |
 | Export | Background image and flat material colours export; frames, ornaments, overlays, masks and glow are listed as not exported | Export capability table per pack |
-| Size | Packs load lazily, outside the main bundle. Budget per pack, for example 500 KB including subset fonts | New `budgets.json` key per built-in pack |
-| Security | No JavaScript. No remote URLs: CSP limits pack assets to the pack folder. Pack CSS is scoped to `[data-look=id]` in `@layer look` and linted to paint properties only | Pack validator at import and in `npm run verify` |
+| Size | Packs load lazily, outside the main bundle. Budget per pack: measured + 25 %, ceiling 500 KB including subset fonts, only down afterwards; never counted against the kiosk entry | New `budgets.json` key per built-in pack |
+| Security | No JavaScript. No remote URLs: the pack loader and the validator refuse non-relative URLs and `@import` (the CSP does not enforce this). Pack CSS is scoped to `[data-look=id]` in `@layer look` and linted to paint properties only | Pack validator at import and in `npm run verify` |
 | IP | Packs may be inspired by a game or era: palette, type style, shapes. They never ship a game's logo, key art, characters, screenshots or licensed fonts | Review for built-in packs; a stated policy before user packs can be shared |
 | Small screens | Every decoration declares a `minSizeClass` and hides below it | Display compatibility work (`05-display-compat-brief-LATER.md`) |
 
@@ -200,7 +200,7 @@ All answered on 3 November 2026. Decision numbers refer to `04-decision-log.md`.
 | Page templates | Packs may ship optional templates; the user opts in; packs never move widgets (D20) |
 | Connector lines | Drawn by the app from a pack connector-style slot (D20) |
 | New variants | All of them go into the catalogue (D22) |
-| Status bar | Pack sets style and default position; the user can change the position (D21) |
+| Status bar | Pack sets the style and the island's default edge; the user can change the edge; the widget's position stays with the page (D21) |
 | Sample line-up | Build all samples: 7 packs and 6 Looks, in two waves (P10, P11) |
 | Naming and IP | Original names only, no game titles, logos, art or licensed fonts (D23) |
 | Fonts | Subset woff2 inside the pack, no runtime Google Fonts (D23) |

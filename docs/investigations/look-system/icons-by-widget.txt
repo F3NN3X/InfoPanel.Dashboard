@@ -1,0 +1,72 @@
+src/widgets/Achievements.tsx: lock_open trophy 
+src/widgets/AudioButton.tsx: volume_up 
+src/widgets/AudioFader.tsx: tune volume_off 
+src/widgets/AudioMeter.tsx: graphic_eq 
+src/widgets/Bluetooth.tsx: bluetooth 
+src/widgets/BottleneckLens.tsx: speed 
+src/widgets/Calendar.tsx: calendar_today 
+src/widgets/CodingAgents.tsx: smart_toy 
+src/widgets/CoreHeatmap.tsx: grid_on 
+src/widgets/Countdown.tsx: event 
+src/widgets/CpuMonitor.tsx: memory 
+src/widgets/CustomGauge.tsx: gauge 
+src/widgets/DayPlanner.tsx: timeline 
+src/widgets/Departures.tsx: departure_board 
+src/widgets/DiskIO.tsx: swap_horiz 
+src/widgets/DriveSpace.tsx: hard_drive 
+src/widgets/DriveSpaceViews.tsx: hard_drive 
+src/widgets/Fans.tsx: mode_fan 
+src/widgets/Forecast.tsx: calendar_month 
+src/widgets/FpsMonitor.tsx: speed sports_esports 
+src/widgets/FrameHistogram.tsx: equalizer 
+src/widgets/FramePacing.tsx: timeline 
+src/widgets/GameSpotlight.tsx: group image music_note speed stadia_controller timer trophy 
+src/widgets/GameSpotlightComposite.tsx: person stadia_controller 
+src/widgets/GpuMonitor.tsx: developer_board 
+src/widgets/GpuRings.tsx: donut_large 
+src/widgets/MemoryUsage.tsx: memory_alt 
+src/widgets/MeterBridge.tsx: graphic_eq volume_off 
+src/widgets/NetworkAdapters.tsx: lan public 
+src/widgets/NetworkThroughput.tsx: south swap_vert 
+src/widgets/Notifications.tsx: notifications 
+src/widgets/NowPlaying.tsx: album music_note 
+src/widgets/ObsButton.tsx: videocam 
+src/widgets/OnAirBeacon.tsx: sensors sensors_off 
+src/widgets/PlaytimeShare.tsx: stacked_bar_chart 
+src/widgets/PowerDraw.tsx: bolt 
+src/widgets/ProcessList.tsx: list_alt 
+src/widgets/RadialClockStack.tsx: donut_large 
+src/widgets/SensorGroup.tsx: view_list 
+src/widgets/SensorValue.tsx: sensors sensors_off 
+src/widgets/ServiceHealth.tsx: health_and_safety 
+src/widgets/SessionStats.tsx: query_stats 
+src/widgets/StatusBar.tsx: panel_top 
+src/widgets/StatusTracker.tsx: view_week 
+src/widgets/SteamFriends.tsx: group 
+src/widgets/SteamGame.tsx: sports_esports stadia_controller trophy 
+src/widgets/SteamLibrary.tsx: library_books newspaper 
+src/widgets/SteamNews.tsx: newspaper 
+src/widgets/SteamProfile.tsx: person sports_esports 
+src/widgets/StorageHealth.tsx: health_metrics 
+src/widgets/StreamChat.tsx: forum send 
+src/widgets/StreamControl.tsx: replay videocam videocam_off 
+src/widgets/StreamDeck.tsx: chevron_left chevron_right cloud_off error grid_view link power_settings_new sync 
+src/widgets/StreamMixer.tsx: expand_more headphones settings volume_off 
+src/widgets/SystemOverview.tsx: dashboard 
+src/widgets/SystemStatus.tsx: monitor_heart 
+src/widgets/TextFile.tsx: description 
+src/widgets/Thermals.tsx: device_thermostat 
+src/widgets/ThresholdTimeline.tsx: health_metrics 
+src/widgets/Timer.tsx: stop timer 
+src/widgets/Uptime.tsx: timer 
+src/widgets/Visualizer.tsx: equalizer 
+src/widgets/Vitals.tsx: vital_signs 
+src/widgets/VolumeMixer.tsx: tune 
+src/widgets/WaveLink.tsx: graphic_eq mic mic_off speaker volume_off 
+src/widgets/Weather.tsx: location_on 
+src/widgets/WebPage.tsx: language 
+src/widgets/CodingAgents/limits.tsx: schedule 
+src/widgets/core/primitives.tsx: sports_esports 
+src/widgets/SensorGroup/Discovered.tsx: view_list 
+src/widgets/StreamMixer/OutputPicker.tsx: volume_up 
+src/widgets/core/primitives.tsx: sports_esports 

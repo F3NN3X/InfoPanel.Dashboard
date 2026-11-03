@@ -63,7 +63,7 @@ Each phase lists its goal, the **expected changes** (verify every path against t
 
 ### P2. Performance (no pixel change, except blur with Limit blur on)
 - **Goal:** remove per-render waste and uncapped blur.
-- **Expected changes:** a stable `useZoneLook` (`src/widgets/module.tsx`); a memoised widget root style (`src/widgets/core/Widget.tsx`); scoped theme application instead of `:root` writes (`applyTheme` in `src/lib/theme.ts`, `App.tsx`) **if** the plan's measurements support it; every blur routed through the blur-cap helper (`primitives.tsx`, alert layer, panel overlay, island).
+- **Expected changes:** a stable `useZoneLook` (`src/widgets/module.tsx`); the audio re-render fix (owner call, Gate 2): `readsAll` zones skip messages whose changed keys are all under `plugins.audio-level-meter.` unless the zone's bound sensors include that prefix, pinned by a renders-per-audio-message test (effort M); the remaining blur bypasses routed through the blur-cap helper (the InfoPanel canvas card backdrop); the NowPlaying cover blur allow-listed in the D9 lint as decorative art and switched off in lite mode, not capped by Limit blur. The memoised root style and scoped theme application were dropped (no gain, per the plan).
 - **Done:** the plan's Part C measurements re-run with before/after numbers; parity diff empty; Limit blur now caps everything.
 
 ### P3a. T3 data-viz tokens (no pixel change, except ramp start colour)
@@ -73,13 +73,13 @@ Each phase lists its goal, the **expected changes** (verify every path against t
 
 ### P3b. T2 material registry (intended visual fixes)
 - **Goal:** one registry and one resolver for every card material (Section 3.1, D10).
-- **Expected changes:** base, skin-native and legacy surfaces merged into one registry; one resolver emitting the material CSS vars, with the blur cap and the `export` fallback built in; every consumer resolving through it: the shell, `AppearancePreview`, export `surfaceOf`, island, alerts, status bar, overlays, `primitives.tsx`, and the direct `surfaceColors` importers.
+- **Expected changes:** base, skin-native and legacy surfaces merged into one registry; one resolver emitting the material CSS vars, with the blur cap, the `export` fallback and `blur-fallback-alpha` 0.90 built in; the `brutal` skin redesigned to paint its hard offset shadow inside the card edge (inset bar on two sides, full box kept; an intended visible change for every brutal widget, owner call); every consumer resolving through it: the shell, `AppearancePreview`, export `surfaceOf`, island, alerts, status bar, overlays, `primitives.tsx`, and the direct `surfaceColors` importers.
 - **Done:** AppearancePreview matches ThemePreview for skins and all surfaces; gradient and glass no longer export as transparent; diffs listed and explained.
 
 ### P4. Variable families (no pixel change)
 - **Goal:** one family per scope (D4).
-- **Expected changes:** `--w-*` for panel content, `--ui-*` for chrome; colour accent renamed `--w-accent`; `--wp-fg` and `--wp-muted` aliased for one release; `s-*` as aliases of `ui-*` (D2).
-- **Done:** aliases in place with a removal note for P7; parity diff empty.
+- **Expected changes:** `--w-*` for panel content, `--ui-*` for chrome; colour accent renamed `--w-accent`; `--wp-accent`, `--wp-fg`, `--wp-muted` and `--wp-radius` stay aliased while saved custom CSS can use them (D4); `s-*` as aliases of `ui-*` (D2).
+- **Done:** aliases in place; only the one-release shims get a removal note for P7; parity diff empty.
 
 ### P5. Look contract, cascade and UI (studio UI changes)
 - **Goal:** the user-facing model: Looks, knobs, vocabulary (D6, D12, D14, D15).
@@ -88,23 +88,23 @@ Each phase lists its goal, the **expected changes** (verify every path against t
 
 ### P6. Light mode per Look (light Looks only)
 - **Goal:** D3.
-- **Expected changes:** `data-mode` on the theme scope; `@custom-variant dark (&:where([data-mode=dark], [data-mode=dark] *));`; per-mode status colours; the `audiocn` `dark:` fix; the Paper Look; studio, Settings and Help stated dark-only.
+- **Expected changes:** `data-mode` on the theme scope; `@custom-variant dark (&:where([data-mode=dark], [data-mode=dark] *));`; per-mode status colours including `ok`, plus `accent-ink` for accent text and thin lines on light materials (D27); the `audiocn` `dark:` fix; the Paper Look; studio, Settings and Help stated dark-only.
 - **Done:** contrast test passes for every light pair; dark Looks unchanged.
 
 ### P7. Clean-up (minor pixel change)
 - **Goal:** finish what earlier phases deferred.
-- **Expected changes:** shims and aliases from P4 removed; near twins unified to the `ui-*` value (D2); lint rules from D9 enforced (no hex outside `src/looks/`, no blur outside the helper, no `ui-*` in widgets); guard caps lowered.
+- **Expected changes:** one-release shims from P4 removed (not the custom-CSS `--wp-*` aliases, D4); near twins per the D2 table (13 take the `ui-*` value, 8 keep their own); the three reds folded (alerts take the widget crit red `#F2665E`; the studio danger stays its own `studio.*` role); lint rules from D9 enforced (no hex outside `src/looks/`, no blur outside the helper, no `ui-*` in widgets); guard caps lowered.
 - **Done:** diffs limited to near twins, explained.
 
 ### P8. Slot plumbing and hooks (no pixel change with Classic)
 - **Goal:** everything packs need, defaulting to Classic (theme packs spec; brief Appendix D).
-- **Expected changes:** slot attach points in the page background component, the shell, primitives, island, status bar and alert layer (from the plan's Part H); `data-part` hooks on card, header, label, num, unit, ring, bar, meter, spark, threshold, range, fader, icon, chip, button, status, alert; contract additions (gradient number fill, gradient border, ring 270°, segmented, ticks, `blocks` bars, meter zones and peak-hold styles, threshold lines, spike markers, range bars, fader knob shapes, display font, page layers); a shared icon component with the Classic icon set (D26).
+- **Expected changes:** slot attach points in the page background component, the shell, primitives, island, status bar and alert layer (from the plan's Part H); decorations reach the card edge only through `--wp-pad`, ornaments at most 10 px; the pack loader's URL check (no non-relative URLs, no `@import`; where G4 is enforced); the 9 widget icon names that fall to `CircleDashed` mapped (intended fix); kiosk budget paid where possible, one measured rise of about 1 KB gzip expected for approval (G7); `data-part` hooks on card, header, label, num, unit, ring, bar, meter, spark, threshold, range, fader, icon, chip, button, status, alert; contract additions (gradient number fill, gradient border, ring 270°, segmented, ticks, `blocks` bars, meter zones and peak-hold styles, threshold lines, spike markers, range bars, fader knob shapes, display font, page layers); a shared icon component with the Classic icon set (D26).
 - **Done:** every slot and variant renders with Classic pixel-identically; overflow probe passes for each new variant on a test widget.
 
 ### P9. Pack loader and effects (no pixel change with Classic)
 - **Goal:** load built-in packs safely.
-- **Expected changes:** lazy pack loading outside the main bundle; page background, layers (up to 3), overlay; effects with cost classes and fallbacks (lite mode, Limit blur, solid page background); burn-in setting (global shift and idle dim, D24); status bar style and default position with user override (D21); optional page templates (D20); app-drawn connectors; pack icon sets; `minSizeClass` per decoration (used later by display compatibility); CSP and Tauri asset config for pack fonts and images.
-- **Done:** a test pack exercising every slot loads and unloads cleanly; bundle unchanged for users without packs; `budgets.json` key per pack proposed.
+- **Expected changes:** lazy pack loading outside the main bundle; page background, layers (up to 3), overlay; effects with cost classes and fallbacks (lite mode, Limit blur, solid page background); burn-in setting (global shift and idle dim, D24); status bar and island style, island default edge with user override (`IslandConfig.edge`, D21); optional page templates (D20); app-drawn connectors; pack icon sets; `minSizeClass` per decoration (used later by display compatibility); Tauri asset config for pack fonts and images (the CSP allows remote images; the P8 loader's URL check is the enforcement).
+- **Done:** a test pack exercising every slot loads and unloads cleanly; bundle unchanged for users without packs; `budgets.json` `packs` block added (each pack measured + 25 %, ceiling 500 KB, only down; layer budget 1 per card plus 3 per page).
 
 ### P10. First wave of packs (new packs only)
 - **Goal:** prove the slot model with the three packs that cover the most slots.
@@ -117,7 +117,7 @@ Each phase lists its goal, the **expected changes** (verify every path against t
 
 ### P12. Validator and user packs (built last)
 - **Goal:** let users install packs safely (D17).
-- **Expected changes:** pack validator (schema, asset list, CSP, paint-only rule for any pack CSS, contrast and burn-in lint); user packs loaded from a folder in the app data directory; pack CSS (level 3) only if P10–P11 showed a need. Sharing (Themely) stays off until the IP policy exists.
+- **Expected changes:** pack validator (schema, asset list, URL check as in the P8 loader, paint-only rule for any pack CSS, contrast and burn-in lint); user packs loaded from a folder in the app data directory; pack CSS (level 3) only if P10–P11 showed a need. Sharing (Themely) stays off until the IP policy exists.
 - **Done:** validator rejects a set of bad test packs (remote URL, JavaScript, layout CSS, missing asset, low contrast) and accepts the built-ins.
 
 ---

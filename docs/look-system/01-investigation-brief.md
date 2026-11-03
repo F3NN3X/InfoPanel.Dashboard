@@ -95,7 +95,7 @@ A material is a card recipe. Every material has a `kind`, and each kind has a fi
 | `fill-2`, `fill-angle` | gradient | `{surface-2}`, `180deg` | Gradient end colour and direction. |
 | `blur` | glass | `12px` | Backdrop blur. **Always passes through the blur cap helper**: clamped by `--wp-blur-cap`, off on a solid page background, off in lite mode. |
 | `saturate` | glass | `1` | Backdrop saturate (the island uses 1.4 today). |
-| `blur-fallback-alpha` | glass | `0.85` | `fill-alpha` to use when blur is capped or off, so text stays readable. |
+| `blur-fallback-alpha` | glass | `0.90` | `fill-alpha` to use when blur is capped or off, so text stays readable. |
 | `border`, `border-width` | all | `{border}`, `1px` | Card edge. |
 | `highlight` | glass, lcd | `none` | Inner top-edge highlight (inset shadow). |
 | `shadow` | all | `{elev-flat}` | Elevation token from T1 (`elev-flat`, `elev-ring`, `elev-raised`). |
@@ -298,7 +298,7 @@ This part checks that the pack model in Appendix D fits the code, before any pac
 3. **Variant inventory.** For every frame, edge, header, data, control, icon-set and status-bar variant in Appendix D, say whether today's shell and primitives can express it with a variant prop, or what is missing. Flag any variant that would change size, padding or row fitting: that breaks the "packs never move widgets" rule and must be redesigned.
 4. **Prototype one pack.** In the scratch worktree, build **Field Kit** (Appendix D) as data only, with the minimum slot plumbing to render it on the ~20-widget fixture from Part C. Measure: layers (blur, glow, filter, mask), bundle delta, render cost per data tick, style-recalc cost of switching to it, and contrast results. Run the overflow probe at 1x1, 2x2, 4x2 and 4x4 for the fixture widgets. Remove the prototype with the worktree; put the numbers and the scratch diff summary in the doc.
 5. **Page templates and connectors.** Check how screen templates work today (`lib/screen-templates/`) and how a pack could offer optional templates (D20). Say how connector lines could be drawn by the app from widget positions, and what that costs per layout change.
-6. **Status bar position.** Find how the status bar and island are positioned today, and how a pack-default position with a user override (D21) would be stored in the cascade.
+6. **Status bar position.** Find how the status bar and island are positioned today, and how a pack-default island edge with a user override (D21, `IslandConfig.edge`) would be stored. The Status bar widget has no position of its own.
 7. **Fonts and assets.** Check the CSP and Tauri asset protocol: can pack fonts and images load from a pack folder inside the bundle (built-ins) and from the app data directory (later, user packs)? Name the config that has to change.
 8. **Burn-in.** Find any existing pixel-shift or idle-dim behaviour. Propose where a global shift and dim setting lives and how decorations opt in.
 9. **Icons.** Find how widgets draw icons today (an icon library, inline SVG, glyphs) and list every icon a widget uses, by widget. Propose the fixed icon name list for the icon set slot (D26), grouped as weather, transport and media, audio (mute, solo, mic, live), status, devices and navigation. Say how a pack supplies a set (an SVG sprite, or glyphs for text-based sets such as ASCII), how a missing icon falls back to the Classic set, and the bundle cost of one set.
@@ -318,17 +318,17 @@ Most direction is **decided** (2026-11-03). "Decided" means the default directio
 
 **Look system**
 
-- **D1, decided.** Studio chrome is a built-in, non-editable "Studio" Look in the same contract. `ui-*` is generated from it.
-- **D2, decided.** `s-*` becomes an alias set of `ui-*`. Near twins take the `ui-*` value, in the last phase (P7).
+- **D1, changed (2026-11-03).** Studio chrome is a built-in, non-editable "Studio" Look: T1 plus a fixed `studio.*` extension block only it may carry. `ui-*` is generated from it.
+- **D2, changed (2026-11-03).** `s-*` becomes an alias set of `ui-*`. Near twins follow a per-token table in the last phase (P7): 13 same-role pairs take the `ui-*` value, 8 different-role pairs keep their own.
 - **D3, decided.** The studio app, Settings and Help are **dark-only, stated explicitly** in code and docs. **Panel Looks** may declare `modes: ["dark"]` or `["dark","light"]`, switched by a `data-mode` attribute on the theme scope, with `@custom-variant dark (&:where([data-mode=dark], [data-mode=dark] *));`. Fix the `audiocn` `dark:` use.
-- **D4, decided.** `--w-*` is the one family for panel content and `--ui-*` the one for app chrome. The colour accent is renamed `--w-accent`. `--wp-fg` and `--wp-muted` become aliases for one release, then are removed.
+- **D4, changed (2026-11-03).** `--w-*` is the one family for panel content and `--ui-*` the one for app chrome. The colour accent is renamed `--w-accent`. `--wp-accent`, `--wp-fg`, `--wp-muted` and `--wp-radius` stay aliased as long as saved custom CSS can use them; the alignment `--wp-*` set stays.
 - **D5, decided.** Looks and packs are JSON with a schema. Built-ins are generated at build time (Vite plugin or script); user packs are loaded at runtime. The doc gives the bundle and HMR cost and the generator design.
 - **D6, decided.** The cascade stores `lookId` plus overrides. Config bumps to **v17** with a migration. The doc shows how `AppearancePreset`, `AppliedTheme`, follow and locks round-trip.
 - **D7, decided.** Alerts, the island and the status bar follow the Look: material, frame and header.
 - **D8, decided.** The export `THEME` table is generated, and every Look and pack has a "not exported" list. Art-heavy packs may also ship an optional pre-rendered background image for the export (Appendix D, `export`).
 - **D9, decided.** Lint: no hex literals outside `src/looks/`, no blur outside the blur helper, no `ui-*` inside widgets. **No** accent budget. Enforced by extending the colour-literals guard; the doc names the files.
-- **D10, open.** The final T2 material contract: kinds, required fields per kind, defaults, and the CSS var names the resolver emits. Base it on Part G and include the materials the sample packs need (Appendix D).
-- **D11, decided in principle.** Thresholds, format and css stay outside the Look; the Look only decides what warn and crit look like. *Open:* the final T3 token list, which tokens a Look may set and which are fixed rules. Base it on Part G.
+- **D10, changed (2026-11-03).** The final T2 material contract is the one in the investigation (section 9.3): 4 kinds, `blur-fallback-alpha` 0.90, `export` required, `--w-mat-*` vars.
+- **D11, changed (2026-11-03).** Thresholds, format and css stay outside the Look; the Look only decides what warn and crit look like. The T3 list is the investigation's (section 9.4): 78 Look-settable tokens plus a fixed list.
 - **D12, decided.** Today's default is pinned as a named Look, **"Classic"**, which existing configs keep. Untouched widgets stay pixel-identical. No snapshot of resolved values.
 - **D13, decided.** The coverage test (every Look defines or aliases every required token) and the contrast test run in `npm run verify`. Per-pack overflow and parity run in `npm run verify:full`.
 - **D14, decided.** Vocabulary: **Look** (settings-only), **Theme pack** (Look plus assets and slots), **Colours** (T1 overrides), **Saved look** (an `AppearancePreset`). List every UI string that changes.
@@ -341,13 +341,13 @@ Most direction is **decided** (2026-11-03). "Decided" means the default directio
 - **D18, decided.** Animated backgrounds are allowed, transform and opacity only, and off in lite mode.
 - **D19, decided.** Packs apply per screen. A widget may opt out of decorations but can't wear a different pack.
 - **D20, decided.** Packs never move widgets. A pack may ship **optional page templates** the user can choose to apply (for example a radial cluster or a hero band). Connector lines between widgets are drawn by the app from a pack's connector-style slot; packs never position them.
-- **D21, decided.** A pack sets the **status bar style and its default position** (for example top pill or bottom bar). The user can override the position.
+- **D21, changed (2026-11-03).** A pack sets the **island's default edge** (top or bottom) and the style of the island and the Status bar widget. The widget's position stays with the page or template. The user can override the edge (`IslandConfig.edge`, stored only when set).
 - **D22, decided.** Every slot variant in Appendix D goes into the catalogue, including the variants the newest samples need.
 - **D23, decided.** Original names only: no game titles, logos, key art or licensed fonts in any pack, even personal builds. Fonts ship as subset woff2 inside the pack; no runtime Google Fonts.
 - **D24, decided.** Burn-in protection (slow pixel shift of decorations, idle dimming) is a global setting. Packs declare their risk level (`static-safe`, `needs-shift`, `needs-dim`).
-- **D25, open.** Where each slot attaches in the shell, primitives and chrome, and the cost of `data-part` hooks. Base it on Part H.
-- **D26, decided.** An **icon set** slot. Each pack supplies one icon set (for example outline in Holo, chunky in Tape '86, ASCII glyphs in Term) against a fixed icon name list. Missing icons fall back to the Classic set. Icons are coloured by the `icon-*` tokens. *Open:* the name list and the delivery format, from Part H item 9.
-- **D27, decided.** The T3 contract includes threshold lines and markers, min–max ranges, fader and toggle controls, meter zones and peak-hold style, and icon tokens (Section 3.2). Their values and breakpoints come from widget settings and data; the Look only paints them (D11).
+- **D25, changed (2026-11-03).** Slot attach points and hook rules are the investigation's (section 8a H1-H4). Decorations reach the card edge only through `--wp-pad`; ornaments are at most 10 px; no `!important` pack fills.
+- **D26, changed (2026-11-03).** An **icon set** slot. Each pack supplies one icon set (for example outline in Holo, chunky in Tape '86, ASCII glyphs in Term) against a fixed icon name list. Missing icons fall back to the Classic set. Icons are coloured by the `icon-*` tokens. About 84 names (the Material Symbols ids widgets use), a JSON glyph map per set, per-name Classic fallback.
+- **D27, changed (2026-11-03).** The T3 contract includes threshold lines and markers, min–max ranges, fader and toggle controls, meter zones and peak-hold style, and icon tokens (Section 3.2). Their values and breakpoints come from widget settings and data; the Look only paints them (D11). Status is per mode including `ok`, with an `accent-ink` for accent text on light materials.
 
 ---
 
@@ -383,15 +383,15 @@ Pixel-identical phases come first. Treat this as a starting skeleton to reorder 
 | P2 | Perf: stable `useZoneLook`, memoised widget root style, scoped theme application (if Part C supports it), every blur routed through the cap | No (blur cap: only with Limit blur on) |
 | P3a | T3 data-viz tokens: status, series, meters, ramps, rings and numbers get contract names and one source; `STATE`/`INSTR`/`RAMPS`/meter vars become generated or aliased. Ramps stop using fixed `#18181c`. | No, except ramp start colour (intended) |
 | P3b | T2 material registry: one registry, one resolver, blur cap and `export` fallback built in; every consumer resolves through it, including AppearancePreview, export `surfaceOf`, island, alerts, overlays and primitives | Yes, intended fixes |
-| P4 | CSS variable family cleanup with alias shims for one release; accent rename | No |
+| P4 | CSS variable family cleanup with alias shims (the custom-CSS `--wp-*` aliases stay, D4); accent rename | No |
 | P5 | Look contract, `lookId` plus overrides, config migration, UI vocabulary, Look gallery and knobs | Studio UI only |
 | P6 | Per-Look light mode (D3): `data-mode` on the theme scope, the `@custom-variant`, per-mode status colours, the `audiocn` `dark:` fix, and the Paper Look as the first light Look | Yes, light Looks only |
-| P7 | Remove shims, unify near twins, lower guard caps | Minor |
+| P7 | Remove the one-release shims, unify near twins per the D2 table, fold the three reds, lower guard caps | Minor |
 | P8 | Slot plumbing and `data-part` hooks in the shell, primitives, island, status bar and alerts; every slot defaults to Classic. Contract additions from Appendix D and D27 (gradient number fill, gradient border, ring, bar and meter variants, threshold lines and markers, ranges, fader and toggle tokens, display font, page layers). Shared icon component with the Classic icon set (D26) | No with Classic |
-| P9 | Pack loader for built-in packs (lazy, outside the main bundle), page background, layers, overlay, effects with fallbacks, burn-in setting, status-bar style and position, optional page templates, connector slot, pack icon sets | No with Classic |
+| P9 | Pack loader for built-in packs (lazy, outside the main bundle), page background, layers, overlay, effects with fallbacks, burn-in setting, status-bar style, island edge, optional page templates, connector slot, pack icon sets | No with Classic |
 | P10 | Built-in packs, first wave: Field Kit, Tape '86, Term. These prove the slot model; fix the catalogue before the second wave | New packs only |
 | P11 | Built-in packs, second wave: Neon Stripe, Overdrive, Swiss Mono, Holo; Looks: Night Glow, Paper, Classy Black, Liquid Glass, Black and Gold | New packs only |
-| P12 | Pack validator (schema, asset list, CSP, paint-only rules, contrast and burn-in lint), then user packs from a folder. **Built last, once everything above works.** Pack CSS (level 3) only if P10–P11 showed a need | No |
+| P12 | Pack validator (schema, asset list, URL check, paint-only rules, contrast and burn-in lint), then user packs from a folder. **Built last, once everything above works.** Pack CSS (level 3) only if P10–P11 showed a need | No |
 
 The phase plan must give P8–P12 the same fields as the others (risk, effort, bundle, budgets, tests, rollback, checks), plus a size budget per pack in `budgets.json`.
 
@@ -683,12 +683,12 @@ looks/<id>/
 | 8 | Data variants | ring `arc` (full or 270°), `segmented`, `ticks`; bar and meter `solid`, `segmented`, `led`, `blocks` (text block characters); meter zones `hard` or `blend`, peak hold `line`, `dot` or `block`; threshold line `dashed`, `solid` or `dotted`, spike marker `dot`, `tick` or `bar`; range bars; fader knob `pill`, `bar`, `square` or `notch`; number fill `solid`, `gradient`; number effect `none`, `glow`, `chromatic`; hero and display font |
 | 9 | Content | widget body; app-owned; tokens only |
 | 10 | Page overlay | grain, scanlines, vignette, each with an opacity; never blocks input |
-| — | Status bar | style `pill`, `bar`, `plain`, `line`; default position top or bottom; user can override the position |
+| — | Status bar | style `pill`, `bar`, `plain`, `line` (the island takes it too); the island's default edge top or bottom, user can override the edge; the widget's position stays with the page |
 | — | Connectors | `none`, `line`, `elbow`, with an end-dot option; drawn by the app between widgets, never positioned by the pack |
 | — | Page templates | optional layouts the user can apply; applying a pack never moves widgets |
 | — | Icon set | `outline`, `filled`, `chunky`, `pixel`, `ascii` (glyphs); one set per pack against a fixed icon name list; fallback to the Classic set (D26) |
 
-Slot rules: decorations are absolutely positioned, `pointer-events: none`, `aria-hidden`, and never change size, padding or row fitting. A card ornament stays inside the padding or the card is marked `data-qa-bleed`. The island, status bar and alerts take the pack's material, frame and header. Every variant is built once in the shell or primitives and covered by the overflow probe at 1x1, 2x2, 4x2 and 4x4.
+Slot rules: decorations are absolutely positioned, `pointer-events: none`, `aria-hidden`, and never change size, padding or row fitting. A card ornament is at most 10 px and stays inside the padding (decorations reach the card edge only through `--wp-pad`), or the card is marked `data-qa-bleed`; no `!important` pack fills. The island, status bar and alerts take the pack's material, frame and header. Every variant is built once in the shell or primitives and covered by the overflow probe at 1x1, 2x2, 4x2 and 4x4.
 
 `data-part` hooks: `card`, `header`, `label`, `num`, `unit`, `ring`, `bar`, `meter`, `spark`, `threshold`, `range`, `fader`, `icon`, `chip`, `button`, `status`, `alert`.
 
@@ -702,7 +702,7 @@ Slot rules: decorations are absolutely positioned, `pointer-events: none`, `aria
 | Layout | Overflow probe and parity run with each built-in pack. |
 | Export | Background image and flat material colours export; optional pre-rendered background for art-heavy packs; frames, ornaments, overlays, masks and glow are listed as not exported. |
 | Size | Packs load lazily outside the main bundle; a `budgets.json` key per built-in pack. |
-| Security | No JavaScript, no remote URLs (CSP limits assets to the pack folder), pack CSS scoped and paint-only. |
+| Security | No JavaScript, no remote URLs (the pack loader and validator refuse non-relative URLs and `@import`; the CSP does not enforce it), pack CSS scoped and paint-only. |
 | IP | Original names only. No game titles, logos, key art, characters, screenshots or licensed fonts, even in personal builds. |
 | Sharing | User packs, and sharing (Themely is the intended channel), wait for the validator (P12) and the IP policy. |
 | Small screens | Decorations declare `minSizeClass` and hide below it. Full screen-size handling is in the Display Compatibility brief. |
