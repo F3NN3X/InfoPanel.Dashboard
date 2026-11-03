@@ -97,7 +97,7 @@ Open items carried between phases. Each phase adds what it finds or defers, and 
 | L2 | P0 | `surfaceOf` colours need a real-browser check when the 12 dropped cards are fixed | P3b | open |
 | L3 | P0 | Sensor-store message counts not re-measured; re-measure with the audio fix | P2 | closed in P2 |
 | L4 | Stage 1 | Weather `weather_desc` text exports white on `matte-light` (§12 Q6) | owner call, not scheduled | open |
-| L5 | Stage 1 | Two "ok" colours: `TONES.ok` follows the accent, `STATE.ok` is `#3CC97F` (§12 Q1) | owner call before P3a | open |
+| L5 | Stage 1 | Two "ok" colours: `TONES.ok` follows the accent, `STATE.ok` is `#3CC97F` (§12 Q1) | owner call before P3a | closed: owner kept both (`ok` in T1, fixed `status-ok` in T3), 2026-11-03 |
 | L6 | Stage 1 | "Material" vs "Surface" as the UI word (§12 Q2) | P5 | open |
 | L7 | Stage 1 | Where the widget decoration opt-out lives (§12 Q3; plan assumes a widget setting) | P9 | open |
 | L8 | Stage 1 | Studio entry headroom 474 B: P5 gallery stays lazy (§12 Q4) | P5 | open |
