@@ -342,9 +342,7 @@ async fn relays_a_loopback_server_through_the_real_clients() {
     assert_eq!((status, body.as_slice()), (200, &PNG[..]));
     assert_eq!(headers["content-type"], "image/png");
     // Nothing listens: a network failure is a 504.
-    let closed = TcpListener::bind("127.0.0.1:0").await.unwrap();
-    let dead = closed.local_addr().unwrap().port();
-    drop(closed);
+    let (dead, _held) = crate::test_net::refusing_port();
     assert_eq!(proxy(&fetch, &format!("http://127.0.0.1:{dead}/a")).await.0, 504);
     // Fetch's bad ports are refused without a connection, as Node's fetch does.
     for bad in ["http://127.0.0.1:6000/a", "http://localhost:10080/a", "http://[::1]:1/a"] {

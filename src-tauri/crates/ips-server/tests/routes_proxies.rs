@@ -166,6 +166,15 @@ async fn upstream() -> u16 {
     port
 }
 
+/// A loopback port that refuses connections, and the socket that keeps it so. It is bound but never listens: a port
+/// bound and dropped can be handed to another test's listener (these tests run in parallel) before the request lands.
+fn refusing_port() -> (u16, socket2::Socket) {
+    let socket = socket2::Socket::new(socket2::Domain::IPV4, socket2::Type::STREAM, None).unwrap();
+    socket.bind(&std::net::SocketAddr::from(([127, 0, 0, 1], 0)).into()).unwrap();
+    let port = socket.local_addr().unwrap().as_socket().unwrap().port();
+    (port, socket)
+}
+
 fn encode(url: &str) -> String {
     url::form_urlencoded::byte_serialize(url.as_bytes()).collect()
 }
@@ -215,9 +224,7 @@ async fn maps_oversize_cut_and_unreachable_upstreams_to_node_statuses() {
     let origin = format!("http://127.0.0.1:{}", upstream().await);
     assert_eq!(image(s.port, &format!("{origin}/huge")).await.status, 413);
     assert_eq!(image(s.port, &format!("{origin}/cut")).await.status, 502);
-    let closed = TcpListener::bind("127.0.0.1:0").await.unwrap();
-    let dead = closed.local_addr().unwrap().port();
-    drop(closed);
+    let (dead, _held) = refusing_port();
     assert_eq!(image(s.port, &format!("http://127.0.0.1:{dead}/a")).await.status, 504);
     // This machine over https, as a literal, an IPv4-mapped literal or a name: refused before any connection.
     for url in ["https://127.0.0.1:1/a.png", "https://[::ffff:127.0.0.1]:1/a.png", "https://localhost:1/a.png", "https://169.254.169.254/latest"] {

@@ -68,6 +68,9 @@ windows-core = "0.62"
 # The body of a framed page handed back to WebView2 (src/unframe.rs).
 base64 = { workspace = true }
 
+[dev-dependencies]
+socket2 = { workspace = true }
+
 [profile.release]
 codegen-units = 1
 lto = true
