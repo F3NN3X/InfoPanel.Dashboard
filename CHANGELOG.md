@@ -12,8 +12,10 @@ version as its notes, so move **Unreleased** under a new `## [X.Y.Z] - YYYY-MM-D
 
 ### Changed
 
-- **Screens are saved in format 17.** Each screen and page now records which look it uses; a screen or page that
-  applied one of the sample themes records that theme. Nothing looks different. The first save after the update
+- **Screens are saved in format 17.** The skins are now looks: each screen, page and widget records which look it
+  uses in place of its skin (Default is the Classic look), and a screen or page that applied one of the sample themes
+  records that theme. Nothing looks different, except a panel whose screen was saved with the old "default" skin
+  spelling: it now shows its own panel look, as with Default. The first save after the update
   keeps the old file as `config.backup-before-v17.json` beside `config.json`; an older version can't save over a
   format 17 config, so to go back, restore that backup.
 - **The widget accent colour is now `--w-accent`.** Custom CSS can read or set `--w-accent` inside a widget; `--accent` is still set to the same colour inside widgets for this release, and `--wp-accent`, `--wp-fg`, `--wp-muted` and `--wp-radius` keep working. Nothing looks different.
