@@ -6,7 +6,6 @@
 import type { HistorySetter } from "@/hooks/use-config-history";
 import { withBackground, type PageBackground } from "@/lib/appearance";
 import type { DashboardConfig, Placement, ProfileView, StylePreset } from "@/lib/layout";
-import { renamed } from "@/lib/look-migrate";
 import type { LibraryCopy, LibraryItem } from "@/lib/library";
 import { getLibraryItem } from "@/lib/library";
 import type { PanelDef, UserPanelPreset } from "@/lib/panel-model";
@@ -108,12 +107,15 @@ function placePreset(b: StudioBridge, item: LibraryItem, preset: PanelPreset, re
   return id;
 }
 
+/** A legacy item's settings with the v17 skin-to-Look rename (read when needed: only an older item carries a `skin`). */
+const legacyLooks = async (settings: ModuleSettings): Promise<ModuleSettings> => (await import("@/lib/look-migrate")).renamed(settings) as ModuleSettings;
+
 /** A library item as a panel preset: a built-in or saved panel, or an image widget; null for other kinds. */
 export async function presetOf(item: LibraryItem, grid: { cols: number; rows: number; width: number; height: number }): Promise<PanelPreset | null> {
   if (item.id.startsWith(BUILTIN_PANEL)) return item.data as PanelPreset;
   if (item.kind === "panel") {
     const data = await dataOf<UserPanelPreset>(item);
-    return data?.panel ? userPanelPreset({ ...data, name: item.name, ...(data.settings ? { settings: renamed(data.settings) as ModuleSettings } : {}) }) : null;
+    return data?.panel ? userPanelPreset({ ...data, name: item.name, ...(data.settings ? { settings: await legacyLooks(data.settings) } : {}) }) : null;
   }
   if (item.kind === "image" || item.kind === "svg") {
     const src = fileUrl(item);
@@ -159,7 +161,7 @@ export async function applyStyle(b: StudioBridge, item: LibraryItem, zoneIds?: s
   if (ids.length === 0) return b.toast("Select a widget first");
   const data = await dataOf<StylePreset | { settings: ModuleSettings }>(item);
   if (!data?.settings) return b.toast("This style has no settings");
-  const settings = renamed(data.settings) as ModuleSettings;
+  const settings = await legacyLooks(data.settings);
   b.updateProfile((p) => studio.pasteStyleToZones(p, ids, settings));
   ids.forEach((id) => b.addCopy(item, copyHere(b, `${item.name} style`, id)));
   b.toast(`Applied ${item.name} to ${ids.length === 1 ? "the widget" : `${ids.length} widgets`}`);

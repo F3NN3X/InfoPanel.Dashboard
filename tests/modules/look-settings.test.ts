@@ -22,8 +22,8 @@ describe("look settings", () => {
   it("offer every skin pack once as its Look, the Default skin as Classic (SPEC §8 item 7)", () => {
     expect(values(STYLE_SETTINGS, "lookId")).toEqual(["classic", ...SKIN_PACKS.filter((p) => p.name !== "default").map((p) => p.name)]);
     expect(find(STYLE_SETTINGS, "lookId").options!.map((o) => o.label).slice(0, 2)).toEqual(["Default", "TUI"]);
-    // Any Look of the registry is valid (a sample Look too); the v16 skin spellings and an unknown id are not.
-    expect(["classic", "hud", "term", "default", "auto", "nope"].map((v) => isValidStyleValue("lookId", v))).toEqual([true, true, true, false, false, false]);
+    // Any Look id that is text is valid (a sample Look, the hidden `default`, a newer build's), and the picker offers only the above.
+    expect(["classic", "hud", "term", "default", "nope", "", 3].map((v) => isValidStyleValue("lookId", v))).toEqual([true, true, true, true, true, false, false]);
   });
 
   it("offer the graph and meter choices; Small zones and Density are the template widgets' own (no look keys)", () => {
