@@ -89,6 +89,7 @@ Filled in during stage 2 (see `02-implementation-runbook.md`, section 4). Every 
 
 ## P3a: T3 data-viz tokens
 - Plan entry: [docs/investigations/look-system.md, section 11, P3a](../investigations/look-system.md)
+- Checklist: all done. verify:full exit 0 (18 checks, rerun by the controller on the merged branch), check-fresh `fresh-pass`; intended diffs only (2 look-visual images, 64 heat strings in v8 parity); overflow unchanged; CHANGELOG (Fixed: ramp start); no decision change. No separate code review this phase (refactor with intended diffs pinned by parity and look-visual).
 - Report:
   - `src/looks/t3.ts`: the 78 T3 names (`T3_TOKENS`) and Classic's value for each (`CLASSIC_T3`; literals, numbers, `{alias}`); build-time only, in no bundle. `src/looks/data-viz.ts`: the run-time values (RAMPS, `RAMP_START`/`RAMP_BASE`, ring spec, `GLIDE_MS`), imported by `theme.ts`, `primitives.tsx`, `viz/palette.ts`. The audiocn meter and mute vars in `mixer-views.css` are now generated from `CLASSIC_T3`. `ok` (T1, accent) and `status-ok` (T3, `STATUS.ok`) both stay.
   - Ramp start: accent ramps (`heat()`, `rampColor`, the visualiser Follow dim) start from `var(--w-fill, #18181c)`. The shell sets `--w-fill` only on light (`#f4f4f5`) and theme (`hsl(var(--card))`) cards, so dark cards and every non-heat markup are byte-identical (v8 parity changes only the 64 heat strings, checked by a replace-and-compare run). `look-visual` changes: `matte-light-CoreHeatmap.png` and `matte-light-SystemOverview.png` only (their coldest cells now start from the light card); glass images unchanged.
@@ -124,3 +125,8 @@ Open items carried between phases. Each phase adds what it finds or defers, and 
 | L16 | P1 | `generated.test.ts` would pass a duplicate hand-written `--color-s-*` after the generated block | P7 | open |
 | L17 | P2 | Visualizer and MeterBridge render nothing without audio data (AudioMeter's contract); no render-on-audio-message test for them, only the scan test | P8 (when the audio widgets get hooks) | open |
 | L18 | P2 | Studio entry 617,147 B is over its 616,806 budget, inside the slack (limit 617,422) | P5 (gallery must stay lazy) | open |
+| L19 | P3a | 10 skin-id branches still branch on skin id instead of reading T3 tokens | P8 | open |
+| L20 | P3a | The 9 D11 additions (`num-stretch`, `num-effect`, `graph-style`, `series-glow`, `cell-radius`, `label-glow`, `header-fill`, header `prompt` and `icon-badge`) are names only, no code | P8 | open |
+| L21 | P3a | T3 `--w-*` vars are not emitted per theme scope yet | P4 | open |
+| L22 | P3a | Dark materials other than the default keep `#18181c` as ramp start (`--w-fill` written for light and theme cards only) | P3b (`--w-mat-*`) | open |
+| L23 | P3a | Classic T3 values without a consumer (`motion-fast`, `motion-base`, `ease-standard`, `series-fill-alpha`, `series-stroke`) are contract values, not measured | P8 | open |
