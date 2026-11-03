@@ -7,7 +7,7 @@ Filled in during stage 2 (see `02-implementation-runbook.md`, section 4). Every 
 | Stage 1 | look/package | done (Gate 2 approved 2026-11-03) | none (investigation only) | [docs/investigations/look-system.md](../investigations/look-system.md) |
 | P0 | look/p0-guardrails | done, awaiting go (2026-11-03) | none on screen; export: warn and crit rings export amber and red instead of blue (intended fix) | |
 | P1 | look/p1-single-sources | done (2026-11-03) | none | |
-| P2 | look/p2-performance | not started | none for widgets; InfoPanel canvas cards with blur above 12 px get 12 px with Limit blur on (intended) | |
+| P2 | look/p2-performance | done (2026-11-03) | none for widgets; InfoPanel canvas cards with blur above 12 px get 12 px with Limit blur on (intended) | |
 | P3a | look/p3a-data-viz-tokens | not started | ramp start colour moves to the material fill (intended fix) | |
 | P3b | look/p3b-material-registry | not started | intended: `brutal` shadow moves inside the card edge; export draws the 12 dropped cards; Look thumbnails fixed; Classic otherwise none | |
 | P4 | look/p4-variable-families | not started | none | |
@@ -70,6 +70,23 @@ Filled in during stage 2 (see `02-implementation-runbook.md`, section 4). Every 
   - `src/lib/infopanel/elements/palette.ts` keeps `#FF…` copies of warn and crit (guarded by the state-copies test).
   - Review lows, deferred: L12 to L16.
 
+## P2: Performance remainder
+- Plan entry: [docs/investigations/look-system.md, section 11, P2](../investigations/look-system.md)
+- Checklist: all done. verify:full exit 0 (18 checks) after the review fix, check-fresh `fresh-pass`; v8 parity, `look-visual` and `overflow` unchanged; CHANGELOG (Changed: canvas blur cap, NowPlaying blur off in lite mode, lower CPU with audio meters); decision log: kiosk budget raised with owner approval.
+- Report:
+  - Limit blur caps the InfoPanel canvas card backdrop (`ProfileView.tsx` via `cappedBlur`); the export keeps the full radius. Intended visible change for canvas cards above 12 px.
+  - NowPlaying cover blur reads `--wp-art-blur` and is 0 under `[data-lite-motion]`; still allow-listed in `looks:scan`.
+  - Zones that read every key skip audio-only messages (`touches(changed, prefixes, quiet)` in `sensor-stream.ts`, `useSensors(prefixes, quiet)`, `quietPrefix` in `placement-content.tsx`); a widget bound to an audio key still updates every message.
+  - Measured (seeded demo page, 10 s; `docs/performance.md`, Look System P2): renders 1527 to 282 (audio-only 1327 to 82, the audio meter itself); clean ScriptDuration 1.276 s to 0.261 s (-80 %); TaskDuration 1.668 s to 0.601 s; store messages unchanged (92 audio, 10 full per 10 s), which closes L3.
+  - Review (sonnet) found one HIGH: Visualizer and MeterBridge read audio keys without declaring them, so they would have updated at about 1 Hz. Fixed in `460f26ee`: they declare their reads (`registry/c.ts`), and a test fails if any widget using `useFastSensors` gets audio messages skipped.
+  - Budgets: owner approved raising `kioskEntryGzipBytes` 276,492 to 276,847 (P2 adds 106 B). After the fix the kiosk is 276,842 B (limit 277,124); studio 617,147 B (budget 616,806, limit 617,422, inside slack).
+- Things to know:
+  - Not done from the plan: "canvas blur off on a solid page". A canvas card blurs the canvas items drawn before it, not the page, so the plan's evidence does not hold.
+  - Visualizer and MeterBridge now render nothing when no key under their prefixes exists (same contract as AudioMeter); the fixtures did not change. Ledger L17.
+  - Importing `AUDIO` from `widgets/audio-device` into the registry pulls that module into the kiosk entry (+700 B gzip); the registry uses string literals instead.
+  - The studio entry is already above its budget (inside the slack); a phase that grows the studio will hit the limit. Ledger L18.
+  - Any new readsAll widget that reads audio keys must declare them, or the scan test in `tests/components/studio/placement-content.test.ts` fails.
+
 ## Ledger: known issues and deferred work
 
 Open items carried between phases. Each phase adds what it finds or defers, and closes what it fixes (status `closed in P<N>`).
@@ -78,7 +95,7 @@ Open items carried between phases. Each phase adds what it finds or defers, and 
 |---|---|---|---|---|
 | L1 | P0 | Flaky `tests/settings/connections.dom.test.tsx` Twitch-channel case under full-suite load | outside the Look plan | open |
 | L2 | P0 | `surfaceOf` colours need a real-browser check when the 12 dropped cards are fixed | P3b | open |
-| L3 | P0 | Sensor-store message counts not re-measured; re-measure with the audio fix | P2 | open |
+| L3 | P0 | Sensor-store message counts not re-measured; re-measure with the audio fix | P2 | closed in P2 |
 | L4 | Stage 1 | Weather `weather_desc` text exports white on `matte-light` (§12 Q6) | owner call, not scheduled | open |
 | L5 | Stage 1 | Two "ok" colours: `TONES.ok` follows the accent, `STATE.ok` is `#3CC97F` (§12 Q1) | owner call before P3a | open |
 | L6 | Stage 1 | "Material" vs "Surface" as the UI word (§12 Q2) | P5 | open |
@@ -92,3 +109,5 @@ Open items carried between phases. Each phase adds what it finds or defers, and 
 | L14 | P1 | `bg-s-accent/N` non-color-mix fallback is now opaque `var(--color-s-accent)` instead of an alpha hex; only engines without color-mix see it | P7 | open |
 | L15 | P1 | `looks:scan` hex rule matches only `#RRGGBB` (undercounts); state-copies scan is cwd-dependent and exempts all of `mixer-views.css` | P7 (when D9 scans become gates) | open |
 | L16 | P1 | `generated.test.ts` would pass a duplicate hand-written `--color-s-*` after the generated block | P7 | open |
+| L17 | P2 | Visualizer and MeterBridge render nothing without audio data (AudioMeter's contract); no render-on-audio-message test for them, only the scan test | P8 (when the audio widgets get hooks) | open |
+| L18 | P2 | Studio entry 617,147 B is over its 616,806 budget, inside the slack (limit 617,422) | P5 (gallery must stay lazy) | open |
