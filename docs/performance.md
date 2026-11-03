@@ -246,6 +246,74 @@ The requests rise because each kind and the code its kinds share are chunks of t
 the local server; first paint and the first zone didn't move. Six of them are small shared chunks Rollup splits off
 the entry because the Help page also reaches the registry (`help/generated.ts` → `studio-modules.ts`).
 
+### Look System P0 baseline, 2026-11-03, commit ec6f0e03
+
+The reference the Look System phases (P2 and later) compare against. Re-recorded on an idle machine, replacing the
+softer numbers of the stage-1 investigation (`docs/investigations/look-system.md` §4).
+
+- **Environment:** Windows 11 Pro 10.0.26300, Playwright Chromium (headless, 1920x1080), a production `vite build`
+  served by the debug `ips-server`. **Not WebView2**: the same Blink engine, but its own process model, GPU settings
+  and font stack, so absolute times differ.
+- **Data source:** seeded demo data (`tools/perf/scratch.mjs` and `fake-data-api.mjs`, `SEED=1`, `RATE_HZ=1`,
+  `AUDIO_HZ=10`) on a 20-widget fixture (`look-mix`: StatusBar, four 3x3 monitors, eleven 2x2, four 1x1 tiles, a
+  `hud` widget theme). Never the installed app's data.
+- **Method:** a fresh browser and server per run, 5 s warm-up, then the window. Medians, with the range in brackets.
+  The scripts were throwaway (a worktree at the same commit; render counters added to `LivePlacement`, not committed).
+
+**Render counts per 10 s window** (instrumented production build, 3 runs). A render is "audio-only" when every sensor key that
+changed since the zone's previous render is under `plugins.audio-level-meter.`.
+
+| | Median (range) |
+|---|---|
+| Widget renders, 20 zones | 1587 (1512..1598) |
+| of which the zone's data changed | 200 (181..200) |
+| of which audio-only | 1387 (1312..1417), 87 % |
+
+Per zone: the 15 zones that read every key render about 97 times (10 data, 87 audio-only), the audio meter 92, the four
+prefix-scoped or sensorless zones 10. `useZoneLook` returned the same object on every call (0 fresh).
+
+**Clean build CPU, same window** (no instrumentation, 5 runs): `ScriptDuration` 1.286 s (1.221..1.308),
+`TaskDuration` 1.676 s (1.570..1.677), about 98 layouts and 266 style recalcs (0.11 s). The instrumented build is
+about 0.16 s slower (1.450 s), so compare clean to clean.
+
+**Style recalc of a theme change** (CDP `Performance.getMetrics`, a 1 s change window minus a 1 s control window in the
+same page, 5 runs; the control is about 8 ms of recalc, 19 recalcs, 10 layouts and 128 ms of script per second, from the
+100 ms audio stream):
+
+| Variant | RecalcStyleDuration delta | LayoutDuration delta (count) | ScriptDuration delta |
+|---|---|---|---|
+| 19 shadcn tokens and `--radius` on `:root` (what `applyTheme` does) | 14.7 ms (12.8..16.9) | 0.3 ms (2) | 11.4 ms |
+| the same vars on `.kiosk` | 11.0 ms (7.3..11.7) | 0.2 ms (1) | 1.0 ms |
+| `profile.theme` saved, kiosk follows over SSE | 14.7 ms (6.2..16.0) | 0.4 ms (2) | 37.4 ms |
+| `profile.widgetTheme` (skin and accent) saved, all 20 roots get new vars | 19.6 ms (14.9..23.9) | 52.4 ms (51.2..55.2), 5 layouts (3..7) | 46.8 ms |
+
+`RecalcStyleCount` is too noisy to use (the audio stream). The last row is the cost shape of a Look change.
+
+**Blur, filter and glow layers** (computed-style walk of the kiosk page after 4 s, 1 run per page: a static count). The cap
+is `--wp-blur-cap` at 12 px (Limit blur on, the default), removed (off) and a 1 px probe.
+
+| Page | Backdrop layers, blur on / off / 1 px probe | Backdrop radius, on / off | Cap bypass | Filter blur | Glow total (drop + text + outer) |
+|---|---|---|---|---|---|
+| look-mix (20, no image) | 0 / 0 / 0 | | 0 | 0 | 25 (24 text-shadow) |
+| look-glass (20, `surface: glass`, blur 24, image) | 20 / 20 / 20 | 12 px / 24 px | 0 | 0 | 30 (29 text-shadow), 20 inset |
+| look-neon (20, skin synth, glow strong, image) | 0 / 0 / 0 | | 0 | 0 | 136 (113 text-shadow, 23 outer), 20 inset |
+| perf-heavy (7, image) | 0 / 0 / 0 | | 0 | 0 | 27 (26 text-shadow) |
+
+Backdrop blur only draws on an image or video page background (`src/index.css`: a solid page colour switches it off).
+Filter blurs (NowPlaying, GameSpotlight), the canvas card's backdrop and the privacy blur do not honour the cap.
+
+**Bundle** (`npm run build`, `node tools/perf/bundle-report.mjs`, `node tools/perf/check-budgets.mjs` exit 0):
+
+| | Gzip | Budget (limit with slack) |
+|---|---|---|
+| Kiosk entry closure | 276,627 B (9 chunks, 823 KB raw) | 276,492 (276,768): 141 B of margin |
+| Studio entry closure | 616,948 B (41 chunks, 1776 KB raw) | 616,806 (617,422) |
+
+Look-related modules, each file minified alone (esbuild) and gzipped alone, so the sums run a little high: skins (14 files)
+7,250 B / 4,845 B; surfaces (2) 5,017 / 1,799; widget look pipeline (6: `core/theme`, `look`, `tokens`, `widget-style`,
+`modern-chrome`, `standard-settings`) 22,473 / 9,180; theme model and apply (6) 24,684 / 9,657. A phase that adds bytes
+to the kiosk entry must pay for them or raise the budget with approval.
+
 ## The harness
 
 A committed, reproducible harness (Playwright, `playwright.config.ts`). It never touches the real data folder: every
