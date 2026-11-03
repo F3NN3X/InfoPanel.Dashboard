@@ -136,7 +136,7 @@ export function IslandTab({ config, setConfig, current, onOpenZone, onOpenExplor
       aside={
         <>
           <div className="flex flex-col gap-2 rounded-[10px] border border-ui-default p-3.5">
-            <div className="font-ui-mono text-[10px] font-medium uppercase tracking-[.06em] text-ui-4">Widgets sent to the island</div>
+            <div className="font-ui-mono text-nano font-medium uppercase tracking-[.06em] text-ui-4">Widgets sent to the island</div>
             {widgets.length === 0 ? (
               <p className="text-pretty text-caption leading-[1.45] text-ui-4">No widget on this screen sends to the island yet.</p>
             ) : (

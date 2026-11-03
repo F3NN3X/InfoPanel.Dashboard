@@ -45,14 +45,14 @@ export function GroupSummary({
   return (
     <div className="flex h-full w-full flex-col gap-4 overflow-y-auto bg-ui-panel p-4 font-ui text-ui-2">
       <div className="flex flex-col gap-[3px]">
-        <span className="text-[14px] font-semibold text-ui-1">{title}</span>
+        <span className="text-lead font-semibold text-ui-1">{title}</span>
         <span className="text-micro text-ui-4">{sub}</span>
       </div>
 
       {note && noteLook && (
         <div className={cn("flex items-start gap-[9px] rounded-lg px-3 py-2.5", noteLook.bg)}>
           <noteLook.icon className={cn("h-[17px] w-[17px] shrink-0", noteLook.tone)} aria-hidden />
-          <span className="flex-1 text-caption leading-[1.45] text-[#d4d4da]">{note.text}</span>
+          <span className="flex-1 text-caption leading-[1.45] text-ui-strong-text">{note.text}</span>
         </div>
       )}
 

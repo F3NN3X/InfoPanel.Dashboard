@@ -49,7 +49,7 @@ export function AddTileGrid({ sections, highlighted, justAdded, dimmed, status, 
           )}
           {s.groups.map((g, gi) => (
             <div key={`${g.sub ?? ""}:${gi}`}>
-              {g.sub && <div className="flex h-[22px] items-center px-1 text-[10px] text-ui-4">{g.sub}</div>}
+              {g.sub && <div className="flex h-[22px] items-center px-1 text-nano text-ui-4">{g.sub}</div>}
               <div data-add-grid="" className="grid gap-1 pb-1" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(88px, 1fr))" }}>
                 {g.tiles.map((tile) => (
                   <Tile

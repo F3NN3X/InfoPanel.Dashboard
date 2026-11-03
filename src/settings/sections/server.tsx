@@ -123,7 +123,7 @@ function StatusCard() {
         </div>
       </div>
       {card.callout && (
-        <div role="alert" className="flex flex-wrap items-center gap-2.5 rounded-ui-menu border border-s-red/30 bg-s-red/10 px-3 py-2.5 text-caption text-[oklch(0.85_0.08_25)]">
+        <div role="alert" className="flex flex-wrap items-center gap-2.5 rounded-ui-menu border border-s-red/30 bg-s-red/10 px-3 py-2.5 text-caption text-s-red-text">
           <CircleAlert className="h-[17px] w-[17px] shrink-0" />
           <span className="min-w-[140px] flex-1">{card.callout.message}</span>
           {card.callout.actions.map(act)}
@@ -150,7 +150,7 @@ function CalloutButton({ children, onClick, disabled }: { children: string; onCl
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="h-7 cursor-pointer whitespace-nowrap rounded-[7px] border border-s-red/40 bg-transparent px-2.5 text-xs text-[oklch(0.9_0.06_25)] hover:bg-s-red/10 disabled:cursor-default disabled:opacity-50"
+      className="h-7 cursor-pointer whitespace-nowrap rounded-[7px] border border-s-red/40 bg-transparent px-2.5 text-xs text-s-red-text-strong hover:bg-s-red/10 disabled:cursor-default disabled:opacity-50"
     >
       {children}
     </button>
@@ -197,7 +197,7 @@ function ListenRow() {
         })}
       </div>
       {settings.listen === "lan" && (
-        <div className="flex items-start gap-2 text-caption leading-[1.45] text-[oklch(0.86_0.1_80)]">
+        <div className="flex items-start gap-2 text-caption leading-[1.45] text-s-warn-text">
           <Shield className="mt-px h-4 w-4 shrink-0" />
           Anyone on your network can open the kiosk and the studio. Windows may ask to allow it through the firewall.
         </div>

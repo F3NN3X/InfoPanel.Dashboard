@@ -47,7 +47,7 @@ export function ExplorerHeader({ pointCount, sourceCount, apiBase, config }: Exp
   return (
     <div className="flex flex-wrap items-center gap-3 border-b border-ui-subtle bg-ui-chrome px-4 py-3 font-ui">
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <div className="text-[14px] font-semibold leading-[1.2] text-ui-1">Data</div>
+        <div className="text-lead font-semibold leading-[1.2] text-ui-1">Data</div>
         <div className="text-micro leading-[1.2] text-ui-4">
           {pointCount} data points from {sourceCount} sources
         </div>

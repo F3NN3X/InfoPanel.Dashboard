@@ -42,7 +42,7 @@ export function TitleBar({ title }: { title: string }) {
         <button type="button" aria-label={maximized ? "Restore" : "Maximize"} title={maximized ? "Restore" : "Maximize"} className={caption} onClick={() => void win().toggleMaximize()}>
           {maximized ? <Restore /> : <Square className="h-3 w-3" />}
         </button>
-        <button type="button" aria-label="Close" title="Close" className={cn(caption, "hover:bg-[#c42b1c] hover:text-white")} onClick={() => void win().close()}>
+        <button type="button" aria-label="Close" title="Close" className={cn(caption, "hover:bg-s-close hover:text-white")} onClick={() => void win().close()}>
           <X className="h-4 w-4" />
         </button>
       </div>

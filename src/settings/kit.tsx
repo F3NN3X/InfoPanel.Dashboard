@@ -12,8 +12,8 @@ type ButtonKind = "neutral" | "accent" | "green" | "quiet" | "danger";
 
 const BUTTON_KINDS: Record<ButtonKind, string> = {
   neutral: "border border-s-input-line bg-s-input text-s-t1 hover:bg-s-divider",
-  accent: "border-0 bg-s-accent font-semibold text-[#0b0d14] hover:brightness-110",
-  green: "border-0 bg-s-green font-semibold text-[#07130c] hover:brightness-110",
+  accent: "border-0 bg-s-accent font-semibold text-s-on-accent hover:brightness-110",
+  green: "border-0 bg-s-green font-semibold text-s-on-green hover:brightness-110",
   quiet: "border-0 bg-transparent text-s-t2 hover:bg-s-nav-hover",
   danger: "border border-s-input-line bg-s-input text-s-red hover:bg-s-divider",
 };

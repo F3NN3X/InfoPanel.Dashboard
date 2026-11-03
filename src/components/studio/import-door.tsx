@@ -151,7 +151,7 @@ export function ImportDoorDialog({ open, files, choices, onChoices, busy, curren
           className="fixed left-1/2 top-1/2 z-50 flex max-h-[calc(100vh-48px)] w-[min(560px,calc(100vw-24px))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-ui-lg border border-ui-strong bg-ui-panel font-ui text-ui-1 shadow-ui-modal outline-none"
         >
           <div className="flex flex-col gap-1 border-b border-ui-subtle px-5 pb-3.5 pt-4">
-            <Dialog.Title className="text-[16px] font-semibold text-ui-1">Import</Dialog.Title>
+            <Dialog.Title className="text-head font-semibold text-ui-1">Import</Dialog.Title>
             <Dialog.Description className="text-pretty text-body text-ui-3">
               One door for every file. Drop it anywhere in Studio, or choose a file — we work out what it is.
             </Dialog.Description>
@@ -268,7 +268,7 @@ export function DropOverlay() {
     <div aria-hidden className="pointer-events-none fixed inset-0 z-[90] grid place-items-center bg-black/60 p-6 font-ui">
       <div className="flex h-full w-full flex-col items-center justify-center gap-2 rounded-[18px] border-2 border-dashed border-ui-accent bg-ui-accent-soft">
         <Upload className="h-8 w-8 text-ui-accent-text" strokeWidth={1.5} />
-        <span className="text-[18px] font-semibold text-ui-1">Drop to import</span>
+        <span className="text-display font-semibold text-ui-1">Drop to import</span>
         <span className="text-body text-ui-3">We work out what each file is</span>
       </div>
     </div>

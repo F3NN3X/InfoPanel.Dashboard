@@ -195,14 +195,14 @@ export function LibraryCard({ item, index, selected, checked, selectMode, onSele
           <span
             className={cn(
               "absolute right-1.5 top-1.5 rounded-[4px] px-1.5 py-px text-micro font-medium",
-              flag === "Duplicate" ? "bg-ui-warning text-black" : "bg-[#2a1d0a] text-ui-warning",
+              flag === "Duplicate" ? "bg-ui-warning text-black" : "bg-ui-warn-tint text-ui-warning",
             )}
           >
             {flag}
           </span>
         )}
         {isOlderItem(item) && (
-          <span title="Saved by an older version: open it to update" className="absolute bottom-1.5 left-1.5 rounded-[4px] bg-[#2a1d0a] px-1.5 py-px text-micro font-medium text-ui-warning">
+          <span title="Saved by an older version: open it to update" className="absolute bottom-1.5 left-1.5 rounded-[4px] bg-ui-warn-tint px-1.5 py-px text-micro font-medium text-ui-warning">
             Older version
           </span>
         )}

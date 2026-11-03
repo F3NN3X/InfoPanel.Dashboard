@@ -21,7 +21,7 @@ interface ArticleViewProps {
 /** The "Coming soon" chip of an article that is not shipped yet. */
 export function SoonChip({ className }: { className?: string }) {
   return (
-    <span className={cn("shrink-0 whitespace-nowrap rounded-full border border-[oklch(0.72_0.12_300/0.3)] bg-[oklch(0.72_0.12_300/0.1)] px-2 py-px text-micro font-medium text-[oklch(0.84_0.1_300)]", className)}>
+    <span className={cn("shrink-0 whitespace-nowrap rounded-full border border-s-soon/30 bg-s-soon/10 px-2 py-px text-micro font-medium text-s-soon-text", className)}>
       Coming soon
     </span>
   );
@@ -33,7 +33,7 @@ function Neighbour({ article, direction, onOpen }: { article: Article; direction
     <button
       type="button"
       onClick={() => onOpen(article.id)}
-      className={cn("flex cursor-pointer flex-col gap-[3px] rounded-[10px] border border-s-card-line bg-transparent px-3.5 py-2.5 text-s-t1 hover:border-[#33333b]", prev ? "items-start" : "items-end")}
+      className={cn("flex cursor-pointer flex-col gap-[3px] rounded-[10px] border border-s-card-line bg-transparent px-3.5 py-2.5 text-s-t1 hover:border-s-card-hover", prev ? "items-start" : "items-end")}
     >
       <span className="flex items-center gap-1 text-[11.5px] text-s-dim">
         {prev && <ArrowLeft className="h-3.5 w-3.5" />}
@@ -73,7 +73,7 @@ export function ArticleView({ article, content, showToc, active, onOpen, onHome,
           </h1>
         </div>
         {article.lede && (
-          <p className="m-0 mb-2 max-w-[68ch] text-pretty text-[15.5px] leading-[1.6] text-[#b4b4bd]">
+          <p className="m-0 mb-2 max-w-[68ch] text-pretty text-[15.5px] leading-[1.6] text-s-body">
             <InlineText text={article.lede} onOpen={onOpen} />
           </p>
         )}
@@ -99,7 +99,7 @@ export function ArticleView({ article, content, showToc, active, onOpen, onHome,
                     key={r.id}
                     type="button"
                     onClick={() => onOpen(r.id)}
-                    className="flex cursor-pointer items-center gap-2.5 whitespace-normal rounded-[10px] border border-s-card-line bg-s-card px-3.5 py-3 text-left text-body font-medium text-s-t1 hover:border-[#33333b]"
+                    className="flex cursor-pointer items-center gap-2.5 whitespace-normal rounded-[10px] border border-s-card-line bg-s-card px-3.5 py-3 text-left text-body font-medium text-s-t1 hover:border-s-card-hover"
                   >
                     <RelatedIcon className="h-[17px] w-[17px] shrink-0 text-s-dim" />
                     {r.title}

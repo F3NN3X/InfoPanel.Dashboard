@@ -46,7 +46,7 @@ export function DataPicker({ open, onOpenChange, title, points, mode, bound, onT
         <Dialog.Popup className="fixed left-1/2 top-[10vh] z-50 flex max-h-[72vh] w-[min(600px,calc(100vw-32px))] -translate-x-1/2 flex-col overflow-hidden rounded-xl border border-ui-strong bg-ui-tile font-ui text-ui-1 shadow-ui-modal outline-none">
           <div className="flex shrink-0 flex-col gap-2.5 border-b border-ui-subtle px-4 pb-2.5 pt-3.5">
             <div className="flex items-center justify-between">
-              <Dialog.Title className="text-[14px] font-semibold">{title}</Dialog.Title>
+              <Dialog.Title className="text-lead font-semibold">{title}</Dialog.Title>
               <Dialog.Close aria-label="Close" className="text-ui-3 hover:text-ui-1">
                 <X className="h-[18px] w-[18px]" />
               </Dialog.Close>

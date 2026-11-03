@@ -55,7 +55,7 @@ interface ThemeToastRowProps {
 export function ThemeToastRow({ toast, onUndo, onDismiss }: ThemeToastRowProps) {
   return (
     <div role="status" className="flex w-full items-center gap-3 rounded-ui-menu border border-ui-strong bg-ui-panel px-3 py-[9px] text-body">
-      <span className="h-[7px] w-[7px] shrink-0 rounded-full bg-[#4ade80]" aria-hidden />
+      <span className="h-[7px] w-[7px] shrink-0 rounded-full bg-ui-saved" aria-hidden />
       <p className="min-w-0 flex-1">
         <b className="font-semibold text-ui-1">{toast.title}</b> <span className="text-ui-soft">{toast.sub}</span>
       </p>

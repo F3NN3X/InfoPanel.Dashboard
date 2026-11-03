@@ -45,7 +45,7 @@ export function Chip({ children, className }: { children: ReactNode; className?:
   return (
     <span
       className={cn(
-        "inline-flex shrink-0 items-center rounded-lg bg-s-nav-on px-1.5 py-px font-ui text-[10px] text-[#a4a4ad]",
+        "inline-flex shrink-0 items-center rounded-lg bg-s-nav-on px-1.5 py-px font-ui text-nano text-ui-soft",
         className
       )}
     >
@@ -71,7 +71,7 @@ export function ToggleChip({ active, onClick, children }: ToggleChipProps) {
         "inline-flex h-7 items-center gap-[5px] rounded-full border px-2.5 font-ui text-micro transition-colors",
         active
           ? "border-ui-accent/50 bg-ui-accent-soft text-ui-1"
-          : "border-ui-strong text-[#a4a4ad] hover:bg-ui-hover hover:text-ui-1"
+          : "border-ui-strong text-ui-soft hover:bg-ui-hover hover:text-ui-1"
       )}
     >
       {children}

@@ -201,7 +201,7 @@ export function ThemePreview({ config, at, profile, page, onPage, levelName, dif
                   style={{ left: b.left, top: b.top, width: b.width, height: b.height }}
                 >
                   {tags && d && (
-                    <span className="absolute -right-[7px] -top-[7px] whitespace-nowrap rounded-full bg-ui-blue px-[7px] py-0.5 text-[10px] font-semibold text-white shadow-[0_0_0_2px_#09090b]">
+                    <span className="absolute -right-[7px] -top-[7px] whitespace-nowrap rounded-full bg-ui-blue px-[7px] py-0.5 text-nano font-semibold text-white shadow-[0_0_0_2px_#09090b]">
                       ✎ {d.exceptions[0].card.title}
                       {d.exceptions.length > 1 ? ` +${d.exceptions.length - 1}` : ""}
                     </span>
@@ -215,7 +215,7 @@ export function ThemePreview({ config, at, profile, page, onPage, levelName, dif
       {zone ? (
         <div className="flex flex-wrap items-center gap-4 rounded-[10px] border border-ui-strong bg-ui-panel px-4 py-3.5">
           <div className="flex min-w-0 flex-1 flex-col gap-[3px]">
-            <p className="truncate text-[14px] font-semibold text-ui-1">
+            <p className="truncate text-lead font-semibold text-ui-1">
               {zoneName(zone)} <span className="font-normal text-ui-hint">· widget on {page.name}</span>
             </p>
             <p className="text-body text-ui-soft">{differenceSummary(zone, diff, levelName)}</p>

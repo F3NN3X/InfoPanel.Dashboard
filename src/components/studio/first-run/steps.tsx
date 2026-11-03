@@ -17,7 +17,7 @@ import type { ProfileFile, Results } from "./checks";
 import { sensorsLine, tally } from "./checks";
 
 export const Heading = ({ children, headRef, large }: { children: ReactNode; headRef: Ref<HTMLHeadingElement>; large?: boolean }) => (
-  <h1 ref={headRef} tabIndex={-1} className={cn("m-0 font-semibold text-ui-1 outline-none", large ? "text-[18px]" : "text-title")}>
+  <h1 ref={headRef} tabIndex={-1} className={cn("m-0 font-semibold text-ui-1 outline-none", large ? "text-display" : "text-title")}>
     {children}
   </h1>
 );
@@ -215,7 +215,7 @@ export function ScreenStep({ headRef, narrow, size, source, windowSize, custom, 
             {(["w", "h"] as const).map((k, i) => (
               <span key={k} className="flex items-center">
                 {i === 1 && (
-                  <span aria-hidden className="text-[10px] text-ui-4">
+                  <span aria-hidden className="text-nano text-ui-4">
                     ×
                   </span>
                 )}

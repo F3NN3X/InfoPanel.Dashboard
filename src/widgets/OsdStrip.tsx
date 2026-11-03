@@ -25,7 +25,7 @@ const DROP_WARN = "#EDB232";
 const STACK_CELL_H = { 28: 66, 32: 70 } as const;
 
 /** The strip's dark panel colour. */
-const OSD_BG = "bg-[#17171b]";
+const OSD_BG = "bg-w-osd";
 const OSD_TEXT = { color: "#f4f4f5", "--w-fg": "#f4f4f5", "--w-muted": "#d4d4d8", "--w-faint": "#a1a1aa", "--w-track": "rgba(255,255,255,0.1)" } as CSSProperties;
 
 export default function OsdStrip(p: OsdStripProps) {

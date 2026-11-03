@@ -126,7 +126,7 @@ export function AlignGrid({ x, y, onChange, only, spread, stretch, label = "Alig
                   on ? "bg-ui-accent/[.22]" : "hover:bg-ui-hover"
                 )}
               >
-                <span className={cn("h-1.5 w-1.5 rounded-full", on ? "bg-ui-accent" : "bg-[#4a4a52]")} />
+                <span className={cn("h-1.5 w-1.5 rounded-full", on ? "bg-ui-accent" : "bg-ui-glyph-off")} />
               </button>
             );
           })

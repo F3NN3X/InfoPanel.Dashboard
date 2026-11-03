@@ -36,7 +36,7 @@ interface ChipLook {
 /** The chip's looks (SPEC §4.6): changed here is the one that stands out (accent text and a dot), inherited is quiet text, locked keeps its amber pill. */
 const CHANGED = "text-ui-accent-text";
 const INHERITED = "text-ui-3";
-export const LOCKED = "border-[#b45309] bg-[#2a1d05] text-[#fcd34d]";
+export const LOCKED = "border-ui-lock-line bg-ui-warn-tint text-ui-lock-text";
 
 /** Each state has its own icon, wording and border style, so color never carries it alone (SPEC §5). */
 const LOOK: Readonly<Record<ChipState, ChipLook>> = {
@@ -213,7 +213,7 @@ export const keptOverrideText = (holder: "widget" | "page", section: string): st
  */
 export function InheritLockNote({ holder, section }: { holder: "widget" | "page"; section: string }) {
   return (
-    <p className="rounded-md bg-ui-warning/10 px-2 py-1.5 text-micro leading-snug text-[oklch(0.88_0.10_85)]">
+    <p className="rounded-md bg-ui-warning/10 px-2 py-1.5 text-micro leading-snug text-ui-warn-text">
       {keptOverrideText(holder, section)}
     </p>
   );

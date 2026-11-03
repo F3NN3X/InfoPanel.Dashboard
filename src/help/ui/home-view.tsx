@@ -36,7 +36,7 @@ export function HomeView({ content, query, onQuery, onOpen, searching = false, m
         )}
         {/* Typed on Home the field stays (it keeps focus and the caret) and the sidebar's is the one in view; the results are what shows. */}
         <div className={cn(searching && "sr-only focus-within:not-sr-only focus-within:pt-9")}>
-          <div role="search" className="flex h-[46px] max-w-[600px] items-center gap-2.5 rounded-[11px] border border-s-input-line bg-[#141418] px-3.5 focus-within:border-s-accent focus-within:ring-1 focus-within:ring-s-accent forced-colors:focus-within:outline forced-colors:focus-within:outline-2">
+          <div role="search" className="flex h-[46px] max-w-[600px] items-center gap-2.5 rounded-[11px] border border-s-input-line bg-s-tile px-3.5 focus-within:border-s-accent focus-within:ring-1 focus-within:ring-s-accent forced-colors:focus-within:outline forced-colors:focus-within:outline-2">
             <Search className="h-5 w-5 shrink-0 text-s-dim" />
             <input
               value={query}
@@ -60,7 +60,7 @@ export function HomeView({ content, query, onQuery, onOpen, searching = false, m
                   key={a.id}
                   type="button"
                   onClick={() => onOpen(a.id)}
-                  className="flex cursor-pointer flex-col gap-2.5 whitespace-normal rounded-xl border border-s-card-line bg-s-card p-[18px] text-left text-s-t1 hover:border-[#33333b] hover:bg-[#141418]"
+                  className="flex cursor-pointer flex-col gap-2.5 whitespace-normal rounded-xl border border-s-card-line bg-s-card p-[18px] text-left text-s-t1 hover:border-s-card-hover hover:bg-s-tile"
                 >
                   <div className="grid h-(--ui-h-field) w-[34px] place-items-center rounded-ui-menu bg-s-accent/14 text-s-accent-text">
                     <Icon className="h-[19px] w-[19px]" strokeWidth={1.75} />
@@ -87,7 +87,7 @@ export function HomeView({ content, query, onQuery, onOpen, searching = false, m
                   key={t.title}
                   type="button"
                   onClick={() => onOpen(t.article, t.heading)}
-                  className="group flex cursor-pointer items-center gap-3 whitespace-normal rounded-xl border border-s-card-line bg-s-card p-3.5 text-left text-s-t1 hover:border-[#33333b] hover:bg-[#141418]"
+                  className="group flex cursor-pointer items-center gap-3 whitespace-normal rounded-xl border border-s-card-line bg-s-card p-3.5 text-left text-s-t1 hover:border-s-card-hover hover:bg-s-tile"
                 >
                   <span className="grid h-(--ui-h-field) w-[34px] shrink-0 place-items-center rounded-ui-menu bg-s-accent/14 text-s-accent-text">
                     <Icon className="h-[18px] w-[18px]" strokeWidth={1.75} />
@@ -129,7 +129,7 @@ export function HomeView({ content, query, onQuery, onOpen, searching = false, m
                           key={a.id}
                           type="button"
                           onClick={() => onOpen(a.id)}
-                          className="flex cursor-pointer items-center gap-[9px] whitespace-normal rounded-[7px] border-0 bg-transparent px-2.5 py-1.5 text-left text-body text-[#b4b4bd] hover:bg-s-nav-hover hover:text-s-t1"
+                          className="flex cursor-pointer items-center gap-[9px] whitespace-normal rounded-[7px] border-0 bg-transparent px-2.5 py-1.5 text-left text-body text-s-body hover:bg-s-nav-hover hover:text-s-t1"
                         >
                           <Icon className="h-4 w-4 shrink-0 text-s-dim" />
                           <span className="flex-1">{a.title}</span>

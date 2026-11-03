@@ -176,10 +176,10 @@ export function RestartBar() {
     <div role="status" className="sticky top-0 z-[4] flex min-h-11 items-center gap-3 py-1.5 border-b border-s-bar-line bg-s-bar-bg px-7 max-sm:px-4">
       <RotateCcw className="h-[18px] w-[18px] shrink-0 text-s-bar-button" />
       <span className="flex-1 text-body text-s-bar-text">{restartText(pending)}</span>
-      <button type="button" onClick={() => void undoRestart()} className="h-[30px] cursor-pointer rounded-[7px] border border-[oklch(0.45_0.08_75)] bg-transparent px-3 text-caption text-s-bar-text">
+      <button type="button" onClick={() => void undoRestart()} className="h-[30px] cursor-pointer rounded-[7px] border border-s-bar-button-line bg-transparent px-3 text-caption text-s-bar-text">
         Undo
       </button>
-      <button type="button" aria-label="Restart server" onClick={() => void restartServer()} className="h-[30px] cursor-pointer rounded-[7px] border-0 bg-s-bar-button px-3 text-caption font-semibold text-[#1a1405]">
+      <button type="button" aria-label="Restart server" onClick={() => void restartServer()} className="h-[30px] cursor-pointer rounded-[7px] border-0 bg-s-bar-button px-3 text-caption font-semibold text-s-bar-button-text">
         {/* Complementary ranges, so one label shows at any fractional width. */}
         <span className="[@media(width<=800px)]:hidden">Restart server</span>
         <span className="[@media(width>800px)]:hidden">Restart</span>

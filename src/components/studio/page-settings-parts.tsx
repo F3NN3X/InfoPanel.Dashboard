@@ -44,7 +44,7 @@ export function SnapSection({ snapItems, onSnapItems }: { snapItems: boolean; on
         <Toggle checked={snapItems} onChange={onSnapItems} label="Snap items to grid" />
       </div>
       <div className="flex items-center gap-1.5 text-micro text-ui-3">
-        <kbd className="rounded-[4px] border border-b-2 border-ui-strong px-1.5 py-px font-ui-mono text-[10px] text-ui-1">Alt</kbd>
+        <kbd className="rounded-[4px] border border-b-2 border-ui-strong px-1.5 py-px font-ui-mono text-nano text-ui-1">Alt</kbd>
         <span>hold while dragging an item or element to place it freely</span>
       </div>
       <p className="text-pretty text-micro leading-[1.5] text-ui-4">{snapNote(snapItems)}</p>

@@ -110,7 +110,7 @@ interface IslandSectionProps {
 }
 
 function Heading({ children }: { children: ReactNode }) {
-  return <div className="pt-1 font-ui-mono text-[10px] font-medium uppercase tracking-[.06em] text-ui-4">{children}</div>;
+  return <div className="pt-1 font-ui-mono text-nano font-medium uppercase tracking-[.06em] text-ui-4">{children}</div>;
 }
 
 /** A bordered card of the second column. */

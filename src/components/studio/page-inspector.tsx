@@ -220,7 +220,7 @@ export function PageInspector({ profile, page, inherit, onRename, onIcon, onDupl
           <button
             type="button"
             onClick={onShowOnKiosks}
-            className="flex h-8 w-full items-center justify-center gap-1.5 rounded-[7px] border border-[oklch(0.78_0.15_150/0.45)] bg-[oklch(0.78_0.15_150/0.12)] text-body font-medium text-ui-ok-text transition-colors hover:bg-[oklch(0.78_0.15_150/0.2)]"
+            className="flex h-8 w-full items-center justify-center gap-1.5 rounded-[7px] border border-ui-live/45 bg-ui-live/12 text-body font-medium text-ui-ok-text transition-colors hover:bg-ui-live/20"
           >
             <Cast className="h-4 w-4" strokeWidth={1.75} /> Show on kiosks now
           </button>

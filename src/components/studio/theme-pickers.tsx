@@ -9,7 +9,7 @@ import { getKeepBackground, setKeepBackground } from "./theme-keep-background";
 import { ThemeNameInput } from "./theme-name-input";
 import { filteredThemes, rowTag, templatesHeading, type ThemeFilter } from "./theme-view-model";
 
-const HEADING = "px-4 pb-1.5 pt-3 font-ui-mono text-[10px] uppercase tracking-[0.08em] text-ui-hint";
+const HEADING = "px-4 pb-1.5 pt-3 font-ui-mono text-nano uppercase tracking-[0.08em] text-ui-hint";
 const ACTION = "rounded-sm text-caption text-ui-accent hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent";
 
 /** A picker's frame (SPEC §4.3.3): ‹ Back and the title, the help text, the list, and a footer. */
@@ -25,7 +25,7 @@ export function PickerShell({ title, help, onBack, footer, children }: { title: 
           <ChevronLeft className="h-3.5 w-3.5" aria-hidden />
           Back
         </button>
-        <h2 className="truncate text-[14px] font-semibold text-ui-1">{title}</h2>
+        <h2 className="truncate text-lead font-semibold text-ui-1">{title}</h2>
       </div>
       <p className="px-4 py-2 text-caption leading-snug text-ui-soft">{help}</p>
       <div className="flex-1">{children}</div>
@@ -117,7 +117,7 @@ export function SwitchThemePicker(p: SwitchThemeProps) {
               aria-hidden
               className={cn(
                 "flex h-4 w-4 items-center justify-center rounded-[4px] border peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ui-accent",
-                keep ? "border-ui-blue bg-ui-blue text-white" : "border-[#52525b]"
+                keep ? "border-ui-blue bg-ui-blue text-white" : "border-ui-hover-edge"
               )}
             >
               {keep && <Check className="h-3 w-3" strokeWidth={3} />}
@@ -162,7 +162,7 @@ export function SwitchThemePicker(p: SwitchThemeProps) {
             onClick={() => setFilter(f.id)}
             className={cn(
               "h-6 rounded-full border px-2.5 text-caption focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent",
-              filter === f.id ? "border-ui-accent bg-[#0b1530] text-[#bfdbfe]" : "border-ui-strong text-ui-soft hover:text-ui-1"
+              filter === f.id ? "border-ui-accent bg-ui-blue-bg text-ui-blue-text" : "border-ui-strong text-ui-soft hover:text-ui-1"
             )}
           >
             {f.label}
@@ -212,7 +212,7 @@ export function SwitchThemePicker(p: SwitchThemeProps) {
                     <button type="button" className={ACTION} onClick={() => p.onDuplicate(t.id)}>
                       Duplicate
                     </button>
-                    <button type="button" className={cn(ACTION, "text-[#f87171]")} onClick={() => p.onDelete(t.id)}>
+                    <button type="button" className={cn(ACTION, "text-ui-danger-text")} onClick={() => p.onDelete(t.id)}>
                       Delete
                     </button>
                   </div>
@@ -251,7 +251,7 @@ export function SwitchThemePicker(p: SwitchThemeProps) {
                           onClick={() => pick(i)}
                           className={cn(
                             "flex h-5 items-center gap-1 rounded-full border px-1.5 text-micro",
-                            v.id === chosen.id ? "border-ui-accent bg-[#0b1530] text-[#bfdbfe]" : "border-ui-strong text-ui-soft hover:text-ui-1"
+                            v.id === chosen.id ? "border-ui-accent bg-ui-blue-bg text-ui-blue-text" : "border-ui-strong text-ui-soft hover:text-ui-1"
                           )}
                         >
                           <span className="h-1.5 w-1.5 rounded-full" style={{ background: accentOf(v) }} aria-hidden />

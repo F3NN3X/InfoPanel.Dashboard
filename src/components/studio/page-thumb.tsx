@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Component, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
 /** How long the pointer or focus rests on a tab before its thumbnail shows. */
 export const THUMB_DELAY_MS = 350;
@@ -33,4 +33,21 @@ export function usePageThumb() {
   }, []);
   useEffect(() => () => clearTimeout(timer.current), []);
   return { anchor, show, hide };
+}
+
+/** Shows nothing if the thumbnail's chunk fails to load or its render throws: the tab works without it. */
+export class ThumbBoundary extends Component<{ children: ReactNode; onFail?: () => void }, { failed: boolean }> {
+  state = { failed: false };
+
+  componentDidCatch() {
+    this.props.onFail?.();
+  }
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  render() {
+    return this.state.failed ? null : this.props.children;
+  }
 }

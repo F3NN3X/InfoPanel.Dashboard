@@ -109,7 +109,7 @@ export default function MenuBar(p: MenuBarProps) {
                     key={key}
                     type="button"
                     onClick={() => p.dropdown !== false && setOpen(on ? null : key)}
-                    className={`flex min-h-[34px] min-w-0 flex-1 items-center gap-2 rounded-md px-2.5 py-1 text-left transition-colors ${on ? "bg-[var(--accent)] text-[#0E1014]" : "hover:bg-[color:var(--w-track)]"}`}
+                    className={`flex min-h-[34px] min-w-0 flex-1 items-center gap-2 rounded-md px-2.5 py-1 text-left transition-colors ${on ? "bg-[var(--accent)] text-w-ink" : "hover:bg-[color:var(--w-track)]"}`}
                   >
                     <span className={`grid min-w-0 leading-[1.05] ${stacked ? "" : "grid-flow-col items-baseline gap-1.5"}`}>
                       <span className={`truncate text-micro font-semibold uppercase tracking-[0.08em] ${on ? "opacity-80" : "text-[color:var(--w-muted)]"}`}>{m.k}</span>

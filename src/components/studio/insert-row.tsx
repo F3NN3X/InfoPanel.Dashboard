@@ -129,7 +129,7 @@ export function InsertRow({
     >
       <div className="flex items-center justify-between gap-1 text-ui-2">
         <Icon className="h-5 w-5 shrink-0" strokeWidth={1.5} />
-        <span className="flex items-center gap-1.5 font-ui-mono text-[10px] text-ui-hint">
+        <span className="flex items-center gap-1.5 font-ui-mono text-nano text-ui-hint">
           {size.cols}×{size.rows}
           {saved && <SavedPanelMenu onRename={() => setRenaming(true)} onDelete={saved.onDelete} />}
         </span>

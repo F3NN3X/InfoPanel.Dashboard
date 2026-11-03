@@ -57,11 +57,11 @@ function HistoryTab({ active }: { active: ActiveAlert[] }) {
   return (
     <div className="flex max-w-[720px] flex-col gap-5">
       <section className="flex flex-col gap-2">
-        <h2 className="font-ui-mono text-[10px] font-medium uppercase tracking-[.06em] text-ui-4">Active now</h2>
+        <h2 className="font-ui-mono text-nano font-medium uppercase tracking-[.06em] text-ui-4">Active now</h2>
         <ActiveList active={active} now={now} />
       </section>
       <section className="flex flex-col gap-2">
-        <h2 className="font-ui-mono text-[10px] font-medium uppercase tracking-[.06em] text-ui-4">History</h2>
+        <h2 className="font-ui-mono text-nano font-medium uppercase tracking-[.06em] text-ui-4">History</h2>
         <HistoryList history={history} now={now} />
       </section>
     </div>

@@ -152,7 +152,7 @@ export function AssetThumb({ item, size = "md", live = false, className }: { ite
 
   if (broken) {
     return (
-      <div className={cn(box, "bg-[#1a1214]")}>
+      <div className={cn(box, "bg-ui-danger-tint")}>
         <ImageOff className="h-1/3 w-1/3 text-ui-danger/70" strokeWidth={1.5} aria-label="Missing file" />
       </div>
     );

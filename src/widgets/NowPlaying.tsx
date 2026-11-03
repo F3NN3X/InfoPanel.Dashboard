@@ -35,7 +35,7 @@ function Vinyl({ art, playing, className = "" }: { art?: string; playing: boolea
         <div className="absolute inset-[31%] overflow-hidden rounded-full ring-2 ring-black/60">
           <Img src={art} icon="album" className="h-full w-full" />
         </div>
-        <div className="absolute left-1/2 top-1/2 h-[5%] w-[5%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#0c0c0e]" />
+        <div className="absolute left-1/2 top-1/2 h-[5%] w-[5%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-w-hub" />
       </div>
       <div className="absolute -right-[4%] top-[2%] h-[62%] w-[3%] origin-top rounded-full bg-gradient-to-b from-zinc-300 to-zinc-500 transition-transform duration-700" style={{ transform: `rotate(${playing ? 24 : 8}deg)` }} />
     </div>

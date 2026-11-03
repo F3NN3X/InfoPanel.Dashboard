@@ -49,7 +49,7 @@ interface ScreenDetailProps {
   autoProfileId: string;
 }
 
-const LABEL = "font-ui-mono text-[10px] tracking-[0.06em] text-ui-hint";
+const LABEL = "font-ui-mono text-nano tracking-[0.06em] text-ui-hint";
 
 /**
  * A group of the detail panel: a mono caption (and what sits at its end), then its rows. A `collapsible` group opens

@@ -22,7 +22,7 @@ export * from "./kit";
 
 const TONES = {
   green: { text: "text-s-green", tint: "bg-s-green/14", dot: "bg-s-green", halo: "shadow-[0_0_0_3px_oklch(0.78_0.16_150/0.18)]" },
-  grey: { text: "text-s-dim", tint: "bg-[#6f6f79]/18", dot: "bg-s-dim", halo: "shadow-[0_0_0_3px_rgb(111_111_121/0.18)]" },
+  grey: { text: "text-s-dim", tint: "bg-s-grey/18", dot: "bg-s-dim", halo: "shadow-[0_0_0_3px_rgb(111_111_121/0.18)]" },
   red: { text: "text-s-red", tint: "bg-s-red/14", dot: "bg-s-red", halo: "shadow-[0_0_0_3px_oklch(0.7_0.18_25/0.18)]" },
   amber: { text: "text-s-amber", tint: "bg-s-amber/14", dot: "bg-s-amber", halo: "shadow-[0_0_0_3px_oklch(0.82_0.14_75/0.18)]" },
   blue: { text: "text-s-accent", tint: "bg-s-accent/14", dot: "bg-s-accent", halo: "shadow-[0_0_0_3px_oklch(0.72_0.15_255/0.18)]" },

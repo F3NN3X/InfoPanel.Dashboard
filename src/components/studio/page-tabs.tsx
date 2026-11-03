@@ -7,7 +7,7 @@ import type { MonitorProfile, ProfilePage } from "@/lib/layout";
 import { onRovingKeyDown } from "@/lib/roving";
 import { cn } from "@/lib/utils";
 import { pageIcon } from "./page-icons";
-import { usePageThumb } from "./page-thumb";
+import { ThumbBoundary, usePageThumb } from "./page-thumb";
 import { pastDragThreshold, trackPointer } from "./pointer-drag";
 import { RenameInput } from "./rename-input";
 
@@ -87,7 +87,12 @@ export function pageMenuEntries(
 }
 
 // Loaded on the first hover: it draws a Screens schematic, which the studio entry does not otherwise carry.
-const PageThumb = lazy(() => import("./page-thumb-card"));
+// A failed load is cached by lazy, so the boundary swaps in a fresh one and the next hover tries the import again.
+const loadThumb = () => import("./page-thumb-card");
+let PageThumb = lazy(loadThumb);
+const resetThumb = () => {
+  PageThumb = lazy(loadThumb);
+};
 
 const DIALOG_BUTTON =
   "inline-flex h-8 items-center rounded-[7px] border border-ui-strong bg-ui-raised px-3 text-body font-medium text-ui-2 transition-colors hover:bg-ui-hover hover:text-ui-1";
@@ -296,7 +301,7 @@ export function PageTabs({
                       <Icon className="h-[15px] w-[15px] shrink-0" />
                       <span className="truncate">{page.name}</span>
                       {kioskPage === page.id && (
-                        <Cast aria-label="Shown on the kiosk" className="h-3.5 w-3.5 shrink-0 text-[oklch(0.78_0.15_150)]">
+                        <Cast aria-label="Shown on the kiosk" className="h-3.5 w-3.5 shrink-0 text-ui-live">
                           <title>Shown on the kiosk</title>
                         </Cast>
                       )}
@@ -327,9 +332,11 @@ export function PageTabs({
       </IconButton>
       {extra && <div className="ml-auto flex shrink-0 items-center gap-1.5 pl-2">{extra}</div>}
       {thumbProfile && thumbPage && thumb.anchor && (
-        <Suspense fallback={null}>
-          <PageThumb profile={thumbProfile} page={thumbPage} left={thumb.anchor.left} top={thumb.anchor.top} />
-        </Suspense>
+        <ThumbBoundary key={thumb.anchor.id} onFail={resetThumb}>
+          <Suspense fallback={null}>
+            <PageThumb profile={thumbProfile} page={thumbPage} left={thumb.anchor.left} top={thumb.anchor.top} />
+          </Suspense>
+        </ThumbBoundary>
       )}
       {menu && <ContextMenu x={menu.x} y={menu.y} entries={menuEntries(menu.id)} onClose={() => setMenu(null)} />}
       <DeleteDialog

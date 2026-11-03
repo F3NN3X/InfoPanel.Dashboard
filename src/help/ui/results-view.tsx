@@ -13,7 +13,7 @@ interface ResultsViewProps {
 
 /** The first hit is what Enter in the search box opens: marked with an outline and a hint. */
 const FIRST = "outline outline-1 -outline-offset-1 outline-s-accent";
-const CARD = "flex cursor-pointer gap-3 whitespace-normal rounded-[11px] border border-s-card-line bg-s-card px-4 py-3.5 text-left text-s-t1 hover:border-[#33333b] hover:bg-[#141418]";
+const CARD = "flex cursor-pointer gap-3 whitespace-normal rounded-[11px] border border-s-card-line bg-s-card px-4 py-3.5 text-left text-s-t1 hover:border-s-card-hover hover:bg-s-tile";
 
 /** The search results: help sections (with the matching words lit) and, in the desktop app, Settings rows. */
 export function ResultsView({ query, hits, onHit, onHome }: ResultsViewProps) {
@@ -49,7 +49,7 @@ export function ResultsView({ query, hits, onHit, onHome }: ResultsViewProps) {
                   {hit.title}
                   {hit.heading && <span className="font-normal text-s-dim">{`  ›  ${hit.heading}`}</span>}
                 </span>
-                <span className="text-[12.5px] leading-normal text-[#9696a0]">
+                <span className="text-[12.5px] leading-normal text-s-t3">
                   {hit.pre}
                   {hit.hit && <mark className="rounded-[3px] bg-s-accent/25 px-px text-s-t1">{hit.hit}</mark>}
                   {hit.post}

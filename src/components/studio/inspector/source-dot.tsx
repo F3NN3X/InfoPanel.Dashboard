@@ -3,7 +3,7 @@ import { SET_HERE, type SettingState } from "../settings-model";
 
 /** The mark of each source state (README §5.6), told apart by shape first and hue second: `default` is an empty ring, app a diamond, screen theme a square, here a dot, overriding a ringed dot. */
 const DOT: Record<SettingState, string> = {
-  default: "rounded-full border border-[#6e6e78]",
+  default: "rounded-full border border-ui-source",
   app: "rotate-45 rounded-[1px] bg-ui-dot-dashboard",
   profile: "rounded-[2px] bg-ui-dot-profile",
   here: "rounded-full bg-ui-accent",

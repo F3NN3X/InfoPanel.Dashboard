@@ -547,7 +547,7 @@ export default function FirstRunPage({ rerun, dataApiUrl, windowSize, onFinish, 
             initialFocus={keepButton}
             className="fixed left-1/2 top-1/2 z-(--z-dialog) flex w-[420px] max-w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 flex-col gap-3 rounded-ui-lg border border-ui-strong bg-ui-panel p-5 shadow-ui-modal outline-none"
           >
-            <AlertDialog.Title className="m-0 text-[14px] font-semibold text-ui-1">{rerun ? "Close setup?" : "Skip setup?"}</AlertDialog.Title>
+            <AlertDialog.Title className="m-0 text-lead font-semibold text-ui-1">{rerun ? "Close setup?" : "Skip setup?"}</AlertDialog.Title>
             <AlertDialog.Description className="m-0 text-body leading-[1.5] text-ui-2">
               {rerun
                 ? "Nothing has changed. Your data address, screens and options stay as they were."

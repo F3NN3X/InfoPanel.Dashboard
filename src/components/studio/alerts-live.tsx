@@ -68,7 +68,7 @@ export function ActiveList({ active, now }: { active: readonly ActiveAlert[]; no
 }
 
 function Tag({ children }: { children: string }) {
-  return <span className="shrink-0 rounded bg-ui-active px-1 text-[10px] uppercase tracking-wide text-ui-3">{children}</span>;
+  return <span className="shrink-0 rounded bg-ui-active px-1 text-nano uppercase tracking-wide text-ui-3">{children}</span>;
 }
 
 /** The last 50 history entries, with test / quiet / dismissed tags. */

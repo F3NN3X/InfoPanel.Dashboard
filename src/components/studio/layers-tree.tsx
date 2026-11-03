@@ -387,7 +387,7 @@ export function LayersTree({ host }: { host: LayersHost }) {
               <span className="sr-only" data-testid="layers-row-kind">
                 {group ? "group" : KIND_WORD[node.kind ?? "item"]}
               </span>
-              {group && <span className={cn("shrink-0 font-ui-mono text-[10px] text-ui-hint", node.hidden && "opacity-45")}>{node.children?.length ?? 0}</span>}
+              {group && <span className={cn("shrink-0 font-ui-mono text-nano text-ui-hint", node.hidden && "opacity-45")}>{node.children?.length ?? 0}</span>}
               {node.free && !widget && (
                 <span role="img" title="Placed freely (Alt)" aria-label="Placed freely (Alt)" className="inline-flex shrink-0 text-ui-4">
                   <Move className="h-3 w-3" aria-hidden="true" />

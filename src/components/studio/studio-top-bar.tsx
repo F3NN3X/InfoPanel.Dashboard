@@ -111,7 +111,7 @@ const FILE_BUTTON =
   "flex h-7 items-center gap-1.5 whitespace-nowrap rounded-[7px] border border-ui-strong px-2.5 text-body font-medium text-ui-2 transition-colors hover:bg-ui-hover hover:text-ui-1 max-sm:hidden max-[959px]:px-1.5";
 
 /** Undo / redo: #c9c9cf when they can act, #4a4a52 when they cannot. */
-const HISTORY_BUTTON = "text-ui-2 disabled:text-[#4a4a52] disabled:opacity-100";
+const HISTORY_BUTTON = "text-ui-2 disabled:text-ui-glyph-off disabled:opacity-100";
 
 /** The one Import and one Export button (SPEC §3.1): the Import door and the Export & back up sheet. */
 function FileButton({ label, icon, onClick }: { label: string; icon: ReactNode; onClick: () => void }) {
@@ -210,7 +210,7 @@ export function StudioTopBar(props: StudioTopBarProps) {
         className="flex h-7 items-center gap-[7px] whitespace-nowrap rounded-[7px] bg-ui-inverse px-3 text-body font-semibold text-ui-inverse-fg transition-opacity hover:opacity-90"
       >
         {!saved && unsaved && (
-          <span role="img" className="h-1.5 w-1.5 rounded-full bg-[oklch(0.62_0.17_255)]" aria-label="Unsaved changes" />
+          <span role="img" className="h-1.5 w-1.5 rounded-full bg-ui-unsaved" aria-label="Unsaved changes" />
         )}
         {saved ? "Saved" : "Save"}
       </button>

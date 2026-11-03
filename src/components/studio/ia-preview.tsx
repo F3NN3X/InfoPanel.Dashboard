@@ -138,7 +138,7 @@ function Gallery() {
   return (
     <div className="min-h-screen bg-ui-panel p-6 font-ui text-body text-ui-2">
       <div className="mx-auto max-w-[860px]">
-        <h1 className="text-[14px] font-semibold text-ui-1">Settings IA · shared pieces</h1>
+        <h1 className="text-lead font-semibold text-ui-1">Settings IA · shared pieces</h1>
         <p className="text-micro text-ui-4">Inheritance chips, LinkRow and the status bar (IMPLEMENTATION_PLAN phase 1).</p>
 
         <Section title="InheritChip: every state">

@@ -164,7 +164,7 @@ export function ExportSheet({ open, request, config, screen, pageName, pageCanva
         >
           <div className="flex items-start gap-3 border-b border-ui-subtle px-5 pb-3.5 pt-4">
             <div className="flex min-w-0 flex-1 flex-col gap-1">
-              <Dialog.Title className="text-[16px] font-semibold text-ui-1">Export &amp; back up</Dialog.Title>
+              <Dialog.Title className="text-head font-semibold text-ui-1">Export &amp; back up</Dialog.Title>
               <Dialog.Description className="text-body text-ui-3">Pick what to take out. Each one can also be copied as JSON.</Dialog.Description>
             </div>
             <Dialog.Close title="Close" aria-label="Close" className="grid h-8 w-8 place-items-center rounded-md text-ui-4 hover:bg-ui-hover hover:text-ui-1">

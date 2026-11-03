@@ -320,8 +320,8 @@
   "suggest": "map 11.5 -> `text-micro`(11) or `text-caption`; 12.5/13 -> `text-body`; `#b4b4bc` -> `text-ui-soft`; `#27272a` -> `bg-ui-raised`; accent-pill colours -> `ui-accent-soft` bg/border tokens. A lint grep in verify (`text-\\[\\d`) keeps it from regrowing.",
   "options": null,
   "why": "Waza \"one type scale\"; uupm \"token-only styling\".",
-  "note": "Batch 12: 11 more literals and the four text-[15px] moved to tokens (131 to 120 literals, 58 to 54 sizes); what is left has no exact token.",
-  "status": "partial"
+  "note": "Batch 13a: finished by adding tokens (ui-* in index.css, s-* in tokens.css, type steps nano/lead/head/display/hero); literals 120 to 4, studio text-[Npx] 54 to 1. The rest and its reasons are in batch-13-notes.md.",
+  "status": "fixed"
  },
  {
   "id": "A-19",
@@ -967,7 +967,7 @@
   "suggest": "`Stat` becomes the only stat primitive: label `text-micro uppercase tracking-[0.06em] --w-faint` (as in KpiTiles), value 15px/600 tabular `--w-fg`, units 0.7em `--w-muted`; make Cpu/Gpu/FpsMonitor/NetworkThroughput/AudioMeter use `StatGrid`.",
   "options": "A uppercase mono (current in 5 widgets), B sentence 11px muted (current in 4). Recommend A: aligns with headers and reads as a label at a distance.",
   "why": "Waza number-dense rules (labels left-aligned, numbers consistent); design-system consistency.",
-  "note": null,
+  "note": "Stat takes a unit drawn at 0.7em beside the value; CpuMonitor, GpuMonitor, FpsMonitor and NetworkThroughput use it. Widgets that bake the unit into the value string (StorageHealth, PowerDraw, MenuBar, AudioMeter, SystemStatus, FramePacing) are not split yet.",
   "status": "partial"
  },
  {
@@ -1273,7 +1273,7 @@
   "suggest": "in `Widget.tsx`, when `roomy(w,h)` set `--w-scale: 1.25` on the root (else 1) and let `text-caption`/`text-body`/`text-title` in the widget scope resolve to `calc(var(--w-type) * var(--w-scale))`. Row heights and `rowsFor(h,count,min,max)` max values scale by the same factor. TextFile uses `clamp(12px, w/26, 22px)` via `fit-font.ts`. Keep the 11px floor at small spans unchanged.",
   "options": null,
   "why": "Waza data-viz \"number density: crowding without alignment is the problem\", not size; ui-ux-pro-max readability (large-display legibility); the brief's 4x4-only roomy rule means smaller spans are untouched.",
-  "note": null,
+  "note": "Rows keep the count they fitted before and share spare height up to a cap on roomy spans (ProcessList, Notifications, DriveSpace rows, SteamFriends, Timer buttons). MetricGraphs, SteamLibrary and CodingAgents Summary were left as they were because a scaled row pitch cost rows.",
   "status": "partial"
  },
  {

@@ -23,7 +23,7 @@ Prototypes (W1–W8 and some A-/B- IDs) were built on throwaway `proto/<id>` bra
 | A-15 | 5 |  | med | M | Command palette: group, recent and key hints | fixed |
 | A-16 | 5 |  | low | S | Layer rows: kind tag and drag handle noise | fixed |
 | A-17 | 5 |  | low | S | Gauge cards: names clip and previews differ in scale | fixed |
-| A-18 | 5 |  | low | M | Replace hard-coded greys with tokens | partial |
+| A-18 | 5 |  | low | M | Replace hard-coded greys with tokens | fixed |
 | A-19 | 5 |  | med | M | Home: a screen detail that is quieter, and a hover on the card | fixed |
 | A-20 | 5 |  | med | L | Direction: live canvas mini-map and page strip on Screens | fixed |
 | B-01 | 0 |  | high | M | Status bar readouts truncate at 1920x1080, 1280x800 and 1024x600 (Confirmed bug: with the island gap on, need() compared all items against the whole bar instead of the wider half (prototype proto/B-01).) | fixed |

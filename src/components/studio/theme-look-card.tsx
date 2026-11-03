@@ -12,9 +12,9 @@ import { BackgroundSwatch, TokenSwatches } from "./theme-swatches";
 import { radiusPx, pxRadius, remText, type CardKind } from "./theme-view-model";
 
 /** The theme card's ⋯ menu (SPEC §4.3.1): 260 px, #131316 on #3f3f46. */
-const MENU = "w-[260px] rounded-[10px] border border-[#3f3f46] bg-ui-panel p-1 font-ui text-body text-ui-2 shadow-[0_12px_32px_rgba(0,0,0,.6)] outline-none";
+const MENU = "w-[260px] rounded-[10px] border border-ui-popup bg-ui-panel p-1 font-ui text-body text-ui-2 shadow-[0_12px_32px_rgba(0,0,0,.6)] outline-none";
 const LINK = "rounded-sm text-caption text-ui-accent-text hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent";
-const PRIMARY = "h-7 rounded-md bg-ui-blue px-2.5 text-caption font-medium text-white hover:bg-[#2563eb] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent";
+const PRIMARY = "h-7 rounded-md bg-ui-blue px-2.5 text-caption font-medium text-white hover:bg-ui-blue-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent";
 
 interface ThemeLookCardProps {
   /** The level's look as a theme, for the thumbnail. */
@@ -86,7 +86,7 @@ export function ThemeUpdateBar(p: ThemeUpdateBarProps) {
     <div
       className={cn(
         "flex min-w-0 items-center gap-3 rounded-lg px-2.5 py-1 text-caption",
-        p.update ? "border border-[#1e3a8a] bg-[#0b1530] text-[#bfdbfe]" : ""
+        p.update ? "border border-ui-blue-line bg-ui-blue-bg text-ui-blue-text" : ""
       )}
     >
       {p.update && (
@@ -140,7 +140,7 @@ export function ThemeLookCard(p: ThemeLookCardProps) {
       <div className="flex items-center gap-3">
         <AppearancePreview preset={p.preview} className="h-[60px] w-24 shrink-0 rounded-md" />
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-          {renaming ? nameField(p.name, "Theme name", (name) => p.onRename?.(name)) : <h2 className="truncate text-[16px] font-semibold text-ui-1">{p.name}</h2>}
+          {renaming ? nameField(p.name, "Theme name", (name) => p.onRename?.(name)) : <h2 className="truncate text-head font-semibold text-ui-1">{p.name}</h2>}
           <p className="truncate text-caption text-ui-soft">{p.kindLine}</p>
         </div>
         <Menu.Root>
@@ -166,7 +166,7 @@ export function ThemeLookCard(p: ThemeLookCardProps) {
                   Duplicate
                 </Menu.Item>
                 {p.onDelete && (
-                  <Menu.Item className={cn(ITEM, "text-[#f87171]")} onClick={p.onDelete}>
+                  <Menu.Item className={cn(ITEM, "text-ui-danger-text")} onClick={p.onDelete}>
                     Delete
                   </Menu.Item>
                 )}
@@ -176,7 +176,7 @@ export function ThemeLookCard(p: ThemeLookCardProps) {
         </Menu.Root>
       </div>
       <div className="overflow-hidden rounded-ui-menu border border-ui-strong">
-        <h3 className="border-b border-ui-raised px-3 py-1.5 font-ui-mono text-[10px] uppercase tracking-[0.08em] text-ui-hint">Made of</h3>
+        <h3 className="border-b border-ui-raised px-3 py-1.5 font-ui-mono text-nano uppercase tracking-[0.08em] text-ui-hint">Made of</h3>
         <PartRow label="Palette" onOpen={p.partsNote ? undefined : p.onPalette}>
           <TokenSwatches tokens={p.tokens} />
           <span className="truncate">{p.paletteName}</span>

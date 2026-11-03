@@ -70,10 +70,10 @@ export function PointInspector({
     <div className="flex h-full w-full flex-col gap-4 overflow-y-auto bg-ui-panel p-4 font-ui text-ui-2">
       <div className="flex items-start gap-2.5">
         <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-s-divider">
-          <TypeIcon type={point.type} className="h-[18px] w-[18px] text-[oklch(0.78_0.12_255)]" />
+          <TypeIcon type={point.type} className="h-[18px] w-[18px] text-ui-accent-icon" />
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="break-words text-[14px] font-semibold leading-[1.3] text-ui-1">{point.name}</span>
+          <span className="break-words text-lead font-semibold leading-[1.3] text-ui-1">{point.name}</span>
           <span className="text-micro text-ui-4">{crumb}</span>
         </div>
         <button
@@ -100,7 +100,7 @@ export function PointInspector({
         </div>
         <span
           className={cn(
-            "break-words text-[24px] font-semibold leading-[1.15] tracking-[-0.01em]",
+            "break-words text-hero font-semibold leading-[1.15] tracking-[-0.01em]",
             point.type === "empty" ? "text-ui-4" : "text-ui-1"
           )}
         >

@@ -280,7 +280,7 @@ export function InsertFilters({
               "h-6 rounded-xl border px-[9px] text-micro transition-colors",
               c === category
                 ? "border-ui-edge bg-ui-active text-ui-1"
-                : "border-ui-default text-[#a4a4ad]"
+                : "border-ui-default text-ui-soft"
             )}
           >
             {c}

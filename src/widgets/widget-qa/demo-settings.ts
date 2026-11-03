@@ -3,7 +3,7 @@ import type { ModuleSettings } from "@/modules/types";
 /**
  * Settings a widget needs before it draws anything but its empty state, for the fixture data: the Stream Deck picks the
  * demo deck (`demo-streams.ts`), the countdown a date six weeks out, the sensor value a sensor and the web page a small
- * same-origin page (`public/assets/qa/webpage.html`). Merged under the page's own settings, so the toolbar and
+ * same-origin page (`src/dev/qa/webpage.html`, served in dev and the fixtures and stats builds only). Merged under the page's own settings, so the toolbar and
  * `settings=` still win; `data=live` leaves them out.
  */
 export function demoSettings(now = new Date()): Readonly<Record<string, ModuleSettings>> {

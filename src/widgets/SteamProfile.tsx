@@ -27,7 +27,7 @@ export default function SteamProfile(p: SteamProfileProps) {
           <div className="flex min-w-0 items-center gap-3">
             <div className="relative shrink-0">
               <Img src={avatar} icon="person" className={`${size === "xs" ? "h-10 w-10" : size === "lg" ? "h-16 w-16" : "h-14 w-14"} shrink-0 rounded-xl`} />
-              <span className="absolute -bottom-0.5 -right-0.5 rounded-full bg-[#141418] p-[3px]">
+              <span className="absolute -bottom-0.5 -right-0.5 rounded-full bg-w-badge p-[3px]">
                 <Dot ok={online} className="!h-2 !w-2" />
               </span>
             </div>

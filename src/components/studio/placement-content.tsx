@@ -22,7 +22,7 @@ const CanvasZone = lazy(() => import("@/components/infopanel/CanvasZone"));
 /** A widget module this build doesn't know (Edit v3 SPEC §15): a grey box; the zone stays stored as it is. */
 export function UnavailableWidget() {
   return (
-    <div className="grid h-full w-full place-items-center rounded-lg border border-dashed border-ui-disabled bg-[#2a2a30]/70 p-2 text-center text-micro text-ui-soft">
+    <div className="grid h-full w-full place-items-center rounded-lg border border-dashed border-ui-disabled bg-ui-active/70 p-2 text-center text-micro text-ui-soft">
       Widget not available in this version
     </div>
   );

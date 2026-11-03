@@ -101,11 +101,40 @@
   /* Secondary text and edges the studio used as hex literals (FND-030): one step each, not near-duplicates. */
   --ui-text-soft: #a1a1aa;
   --ui-border-edge: #3a3a44;
+  /* Greys the studio used as hex literals: strong text, a disabled glyph, a dot's edge and the hover and pop-up edges. */
+  --ui-text-strong: #d4d4da;
+  --ui-glyph-off: #4a4a52;
+  --ui-border-popup: #3f3f46;
+  --ui-border-hover: #52525b;
+  --ui-border-source: #6e6e78;
+  --ui-border-card: #27272a;
   --ui-accent-blue: #3b82f6;
+  --ui-blue-hover: #2563eb;
+  /* The blue chip on a selected filter or an update: fill, edge and text. */
+  --ui-blue-bg: #0b1530;
+  --ui-blue-line: #1e3a8a;
+  --ui-blue-text: #bfdbfe;
+  /* Tints for a failed thumbnail, an older-version flag and a failing check row. */
+  --ui-bg-danger-tint: #1a1214;
+  --ui-bg-warn-tint: #2a1d0a;
+  --ui-fail-row: oklch(0.6 0.15 25 / 0.05);
+  --ui-border-error: #b54848;
+  --ui-text-danger: #f87171;
+  --ui-text-warn: oklch(0.88 0.1 85);
+  /* A locked (inherited) value's chip. */
+  --ui-lock-line: #b45309;
+  --ui-lock-text: #fcd34d;
+  /* Kiosk-live green (the Live pill and the Shown-on-kiosk icon), saved and tuned dots. */
+  --ui-live: oklch(0.78 0.15 150);
+  --ui-dot-saved: #4ade80;
+  --ui-dot-tune: #2dd4bf;
+  --ui-dot-unsaved: oklch(0.62 0.17 255);
   --ui-text-ok: oklch(0.88 0.1 150);
   --ui-accent: oklch(0.72 0.15 255);
   --ui-accent-soft: oklch(0.72 0.15 255 / 0.14);
   --ui-accent-text: oklch(0.82 0.12 255);
+  --ui-accent-icon: oklch(0.78 0.12 255);
+  --ui-accent-tag-text: oklch(0.85 0.1 255);
   --ui-dot-profile: oklch(0.74 0.13 300);
   --ui-dot-dashboard: oklch(0.76 0.11 190);
   --ui-inverse-bg: #ededf0;
@@ -138,6 +167,30 @@
   --color-ui-soft: var(--ui-text-soft);
   --color-ui-edge: var(--ui-border-edge);
   --color-ui-blue: var(--ui-accent-blue);
+  --color-ui-blue-hover: var(--ui-blue-hover);
+  --color-ui-blue-bg: var(--ui-blue-bg);
+  --color-ui-blue-line: var(--ui-blue-line);
+  --color-ui-blue-text: var(--ui-blue-text);
+  --color-ui-strong-text: var(--ui-text-strong);
+  --color-ui-glyph-off: var(--ui-glyph-off);
+  --color-ui-popup: var(--ui-border-popup);
+  --color-ui-hover-edge: var(--ui-border-hover);
+  --color-ui-source: var(--ui-border-source);
+  --color-ui-card-edge: var(--ui-border-card);
+  --color-ui-danger-tint: var(--ui-bg-danger-tint);
+  --color-ui-warn-tint: var(--ui-bg-warn-tint);
+  --color-ui-fail-row: var(--ui-fail-row);
+  --color-ui-error-edge: var(--ui-border-error);
+  --color-ui-danger-text: var(--ui-text-danger);
+  --color-ui-warn-text: var(--ui-text-warn);
+  --color-ui-lock-line: var(--ui-lock-line);
+  --color-ui-lock-text: var(--ui-lock-text);
+  --color-ui-live: var(--ui-live);
+  --color-ui-saved: var(--ui-dot-saved);
+  --color-ui-tune: var(--ui-dot-tune);
+  --color-ui-unsaved: var(--ui-dot-unsaved);
+  --color-ui-accent-icon: var(--ui-accent-icon);
+  --color-ui-accent-tag-text: var(--ui-accent-tag-text);
   --color-ui-ok-text: var(--ui-text-ok);
   --color-ui-control: var(--ui-border-control);
   --color-ui-accent: var(--ui-accent);
@@ -382,6 +435,13 @@
 /* The look's Number glow (lib/effects/glow.ts): the widget shell and panels set data-wp-numglow to off, soft or strong
    (and --w-num-c for a colour). Every numeral under the scope takes it: HTML as a text-shadow, SVG text as a filter
    (which SVG text needs). The variables sit on the scope, so the nearest scope wins when they nest. */
+/* Widget surfaces and ink that skins do not paint themselves. Their own tokens, so theming the studio chrome (--ui-*) never recolours a widget. */
+@theme {
+  --color-w-ink: #0c0c0e;
+  --color-w-hub: #0c0c0e;
+  --color-w-osd: #17171b;
+  --color-w-badge: #141418;
+}
 [data-wp-numglow="soft"] {
   --w-num-glow: 0 0 3px var(--w-num-c, var(--accent)), 0 0 12px var(--w-num-c, var(--accent));
   --w-num-drop: drop-shadow(0 0 3px var(--w-num-c, var(--accent)));
@@ -414,7 +474,6 @@
 *:has(> [data-page-background="color"]) [data-wp-tier] {
   backdrop-filter: none !important;
 }
-/* An activity whose work is running: its dot breathes with a ring (PulseDot, on the shared ticker). */
 /* A notice's level bar (a volume) glides between readings: a full-width pill slid left behind the track's clip (round end at every value, no layout work). */
 .island-motion .island-level { transition: transform 160ms ease-out; }
 

@@ -42,7 +42,7 @@ const DOT: Readonly<Record<Tone, string>> = {
 
 const TEXT: Readonly<Record<Tone, string>> = {
   ok: "text-ui-3",
-  warn: "text-[oklch(0.88_0.10_85)]",
+  warn: "text-ui-warn-text",
   bad: "text-ui-danger",
   idle: "text-ui-3",
 };

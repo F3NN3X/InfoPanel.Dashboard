@@ -10,7 +10,7 @@ import { Button, Card, Group, Row, Segmented, SwitchRow, useFlag } from "../ui";
 /** Samples arrive every 30 s. */
 const REFRESH_MS = 30_000;
 
-const DELTA_CLASS: Record<DeltaTone, string> = { flagged: "text-s-amber", fell: "text-[#7fd1a4]", plain: "text-s-muted" };
+const DELTA_CLASS: Record<DeltaTone, string> = { flagged: "text-s-amber", fell: "text-s-good-text", plain: "text-s-muted" };
 const GRID = "grid grid-cols-[minmax(0,2.2fr)_80px_minmax(0,1fr)_minmax(0,1fr)] gap-3";
 
 function DeltaCell({ series, growth }: { series: Series; growth: Growth | null }) {
@@ -35,7 +35,7 @@ function SeriesTable({ diag, filter }: { diag: Diagnostics; filter: "notable" | 
           <div key={g.name} role="rowgroup">
             <div role="row" className="px-4 pb-1 pt-2.5 text-micro uppercase tracking-[0.06em] text-s-dim"><span role="rowheader">{g.name}</span></div>
             {g.rows.map(({ series, name }) => (
-              <div key={series.name} role="row" className={cn(GRID, "items-center px-4 py-[7px] text-caption hover:bg-ui-tile")}>
+              <div key={series.name} role="row" className={cn(GRID, "items-center px-4 py-[7px] text-caption hover:bg-s-tile")}>
                 <span role="cell" className="flex min-w-0 items-center gap-2">
                   <span aria-hidden="true" className={cn("h-1.5 w-1.5 shrink-0 rounded-full", series.growing ? "bg-s-amber" : "bg-s-faint")} />
                   {series.growing && <span className="sr-only">Rising: </span>}

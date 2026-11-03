@@ -32,7 +32,7 @@ function MiniTile({ preset, value, fill }: { preset: AppearancePreset; value: st
       className="flex min-w-0 flex-1 flex-col justify-between p-1"
       style={{ ...chromeVars(chrome), ...box, borderRadius: radius }}
     >
-      <div className="text-[10px] font-semibold leading-none tabular-nums">{value}</div>
+      <div className="text-nano font-semibold leading-none tabular-nums">{value}</div>
       <div className="h-[2px] w-full rounded-full" style={{ background: "rgb(128 128 128 / 0.25)" }}>
         <div className="h-full rounded-full" style={{ width: `${fill}%`, background: accent }} />
       </div>

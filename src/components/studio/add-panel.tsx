@@ -496,7 +496,7 @@ export function AddPanel({
               )}
             >
               {k.label}
-              <span className="font-ui-mono text-[10px] font-normal text-ui-hint">
+              <span className="font-ui-mono text-nano font-normal text-ui-hint">
                 {onAddPart && k.kind === "widget" ? `${counts.widget} · ${ITEM_TILES.length} items` : counts[k.kind]}
               </span>
             </button>
@@ -601,7 +601,7 @@ export function AddPanel({
         ) : (
           groups.map((g, gi) => (
             <section key={`${gi}:${g.title}`} aria-label={g.title}>
-              <div className="sticky top-0 z-10 flex items-baseline gap-1.5 bg-ui-panel px-1.5 pb-1.5 pt-2.5 font-ui-mono text-[10px] uppercase tracking-[0.06em]">
+              <div className="sticky top-0 z-10 flex items-baseline gap-1.5 bg-ui-panel px-1.5 pb-1.5 pt-2.5 font-ui-mono text-nano uppercase tracking-[0.06em]">
                 <span className="text-ui-hint">{g.title}</span>
                 <span className="text-ui-disabled">{g.items.length}</span>
               </div>

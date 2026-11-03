@@ -57,7 +57,7 @@ export default function Calendar(p: CalendarProps) {
                 <div key={x.getTime()} className="flex min-w-0 flex-col items-center gap-0.5">
                   {h >= 40 && <span className="text-micro font-medium leading-3 text-[color:var(--w-faint)]">{W[x.getDay()][0]}</span>}
                   <span
-                    className={`flex h-6 w-full max-w-8 items-center justify-center rounded-md text-micro tabular-nums ${x.getDate() === day ? "font-semibold text-[#0c0c0e]" : "text-[color:var(--w-fg)]"}`}
+                    className={`flex h-6 w-full max-w-8 items-center justify-center rounded-md text-micro tabular-nums ${x.getDate() === day ? "font-semibold text-w-ink" : "text-[color:var(--w-fg)]"}`}
                     style={x.getDate() === day ? TODAY : undefined}
                   >
                     {x.getDate()}
@@ -118,7 +118,7 @@ export default function Calendar(p: CalendarProps) {
               {cells.map((c, i) => (
                 <span
                   key={i}
-                  className={`flex items-center justify-center rounded-md tabular-nums ${c === day ? "font-semibold text-[#0c0c0e]" : c ? "text-[color:var(--w-fg)]" : ""}`}
+                  className={`flex items-center justify-center rounded-md tabular-nums ${c === day ? "font-semibold text-w-ink" : c ? "text-[color:var(--w-fg)]" : ""}`}
                   style={c === day ? (room ? { ...TODAY, height: `min(${rowH - 4}px, calc(100cqw / 7 - 2px))`, aspectRatio: "1", alignSelf: "center", justifySelf: "center" } : TODAY) : undefined}
                 >
                   {c ?? ""}

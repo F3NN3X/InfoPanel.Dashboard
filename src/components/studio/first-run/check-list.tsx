@@ -114,7 +114,7 @@ export function CheckRow({ id, result, address, fixed, elapsed, narrow, first, o
   const line = status === "checking" ? checkingLine(id, address, elapsed * 1000) : status === "waiting" ? "Waiting" : result.result;
   const again: CheckAction = { kind: "default", label: "Check again" };
   return (
-    <li className={cn("list-none", !first && "border-t border-s-divider", status === "fail" && "bg-[oklch(0.6_0.15_25/0.05)]")}>
+    <li className={cn("list-none", !first && "border-t border-s-divider", status === "fail" && "bg-ui-fail-row")}>
       <div
         className={cn("flex items-start gap-2.5 px-3 py-2.5", more && "cursor-pointer")}
         onClick={(e) => {
@@ -128,7 +128,7 @@ export function CheckRow({ id, result, address, fixed, elapsed, narrow, first, o
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
           <div className="flex items-center gap-1.5">
             <span className={cn("text-body font-medium", status === "skip" || status === "waiting" ? "text-ui-3" : "text-ui-1")}>{title}</span>
-            {fixed && status === "ok" && <span className="rounded-[4px] bg-ui-success/15 px-[5px] py-px text-[10px] text-ui-success">Fixed</span>}
+            {fixed && status === "ok" && <span className="rounded-[4px] bg-ui-success/15 px-[5px] py-px text-nano text-ui-success">Fixed</span>}
             {status === "checking" && elapsed >= 1 && <span className="font-ui-mono text-micro text-ui-4">{elapsed} s</span>}
           </div>
           <span
@@ -301,7 +301,7 @@ export function AddressBar({ mode, address, invalid, onMode, onAddress, onDefaul
         <label htmlFor="first-run-address" className="w-[118px] shrink-0 text-caption text-ui-2">
           Data API address
         </label>
-        <div className={cn("flex h-[30px] min-w-0 max-w-[380px] flex-1 items-center gap-2 rounded-[7px] border bg-ui-app px-2.5", invalid ? "border-[#b54848]" : "border-ui-default focus-within:border-ui-accent")}>
+        <div className={cn("flex h-[30px] min-w-0 max-w-[380px] flex-1 items-center gap-2 rounded-[7px] border bg-ui-app px-2.5", invalid ? "border-ui-error-edge" : "border-ui-default focus-within:border-ui-accent")}>
           <Network className="h-3.5 w-3.5 shrink-0 text-ui-4" />
           <input
             id="first-run-address"
