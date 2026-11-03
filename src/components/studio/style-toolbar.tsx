@@ -86,7 +86,7 @@ export function StyleToolbar({ saved, hasStyle, canMakeTheme, onApply, onSave, m
       <div className="flex items-center gap-1 px-4 pb-1 pt-3">
         <input
           autoFocus
-          aria-label="Style name"
+          aria-label="Look name"
           value={name}
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => {
@@ -95,10 +95,10 @@ export function StyleToolbar({ saved, hasStyle, canMakeTheme, onApply, onSave, m
             if (e.key === "Enter") save();
             if (e.key === "Escape") setName(null);
           }}
-          placeholder="Style name"
+          placeholder="Look name"
           className="h-7 min-w-0 flex-1 rounded-md border border-ui-default bg-ui-app px-2 text-caption text-ui-1 outline-none placeholder:text-ui-4 focus:border-ui-accent"
         />
-        <button type="button" className={ICON_BUTTON} disabled={!name.trim()} onClick={save} title="Save to Library › Styles">
+        <button type="button" className={ICON_BUTTON} disabled={!name.trim()} onClick={save} title="Save to Library › Widget looks">
           <Check className="h-3 w-3" />
         </button>
         <button type="button" className={ICON_BUTTON} onClick={() => setName(null)} title="Cancel">
@@ -111,7 +111,7 @@ export function StyleToolbar({ saved, hasStyle, canMakeTheme, onApply, onSave, m
     <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 px-4 pb-1 pt-3">
       <Popover.Root open={gallery} onOpenChange={setGallery}>
         <Popover.Trigger className={BUTTON}>
-          Start from a Style <ChevronDown className="h-3 w-3 shrink-0" />
+          Start from a saved look <ChevronDown className="h-3 w-3 shrink-0" />
         </Popover.Trigger>
         <Popover.Portal>
           <Popover.Positioner side="bottom" align="start" sideOffset={6} className="z-[80]">
@@ -127,7 +127,7 @@ export function StyleToolbar({ saved, hasStyle, canMakeTheme, onApply, onSave, m
               <div>
                 <p className="px-0.5 pb-1 text-micro text-ui-4">Saved</p>
                 {saved.length === 0 ? (
-                  <p className="px-0.5 pb-0.5 text-micro text-ui-4">Styles you save appear here and in Library.</p>
+                  <p className="px-0.5 pb-0.5 text-micro text-ui-4">Looks you save appear here and in Library.</p>
                 ) : (
                   <div className="grid grid-cols-2 gap-1.5">
                     {saved.map((s) => (
@@ -145,9 +145,9 @@ export function StyleToolbar({ saved, hasStyle, canMakeTheme, onApply, onSave, m
         className={BUTTON}
         disabled={!hasStyle}
         onClick={() => setName("")}
-        title={hasStyle ? "Keep this widget's own look in Library › Styles" : "This widget follows the theme: nothing of its own to save"}
+        title={hasStyle ? "Keep this widget's own look in Library › Widget looks" : "This widget follows the theme: nothing of its own to save"}
       >
-        Save as Style
+        Save look
       </button>
       {matched && (
         <button type="button" className={cn(BUTTON, "max-w-[180px]")} onClick={() => onUpdate(matched.id)} title={`Save this look back into ${matched.name}`}>
@@ -158,9 +158,9 @@ export function StyleToolbar({ saved, hasStyle, canMakeTheme, onApply, onSave, m
         <Menu.Trigger
           className={BUTTON}
           disabled={!canMakeTheme}
-          title={canMakeTheme ? "Make this the theme for…" : "This widget follows the theme: nothing of its own to move"}
+          title={canMakeTheme ? "Make this the Look for…" : "This widget follows the theme: nothing of its own to move"}
         >
-          Make this the theme for… <ChevronDown className="h-3 w-3 shrink-0" />
+          Make this the Look for… <ChevronDown className="h-3 w-3 shrink-0" />
         </Menu.Trigger>
         <Menu.Portal>
           <Menu.Positioner className="z-[80]" sideOffset={4} align="end">

@@ -53,8 +53,8 @@ test("a v15 dashboard look is each screen's own after the studio's first save, a
   await expect(page.locator("[data-theme-scope]").first()).toHaveCSS("--card", CARD);
 
   // Theme: the screen and its page, no All screens level.
-  await page.getByRole("button", { name: "Theme", exact: true }).click();
-  const levels = page.getByRole("group", { name: "Theme level" });
+  await page.getByRole("button", { name: "Look", exact: true }).click();
+  const levels = page.getByRole("group", { name: "Look level" });
   await expect(levels.getByRole("button", { name: /Perf light/ })).toBeVisible();
   await expect(levels.getByRole("button", { name: /All screens/ })).toHaveCount(0);
 

@@ -515,7 +515,8 @@
         "tests/lib/effects/**",
         "tests/lib/fonts.test.ts",
         "tests/modules/**",
-        "tests/e2e/theme-switch.spec.ts"
+        "tests/e2e/theme-switch.spec.ts",
+        "tests/e2e/look-gallery.spec.ts"
       ],
       "checks": ["typecheck", "unit", "e2e"]
     },
@@ -601,7 +602,8 @@
         "tests/e2e/browser-studio.spec.ts",
         "tests/e2e/studio-basics.spec.ts",
         "tests/e2e/frozen-preview.spec.ts",
-        "tests/e2e/theme-switch.spec.ts"
+        "tests/e2e/theme-switch.spec.ts",
+        "tests/e2e/look-gallery.spec.ts"
       ],
       "checks": ["typecheck", "unit", "build", "budgets", "e2e"]
     },
