@@ -78,7 +78,7 @@ The owner approved all phases (investigation §11) and every proposed change abo
 
 1. Audio re-render fix is in P2: `readsAll` zones skip messages whose changed keys are all under `plugins.audio-level-meter.` unless the zone's bound sensors include that prefix; a test pins it. P2 effort is M.
 2. D10, D11, D25 and D26 are accepted as written in the investigation (§9.3, §9.4, §8a) and are no longer open.
-3. Kiosk budget policy is hybrid: each phase pays for its kiosk bytes where it can and reports the measured delta; at P8 the owner expects to approve one measured rise of about 1 KB gzip (G7). Packs always lazy-load and never count against the kiosk entry.
+3. Kiosk budget policy is hybrid: each phase pays for its kiosk bytes where it can and reports the measured delta; at P8 the owner expects to approve one measured rise of about 1 KB gzip (G7). Packs always lazy-load and never count against the kiosk entry. **Changed 2026-11-03 after P1:** every phase that goes over the kiosk limit stops and asks for a rise of its measured size.
 4. `brutal` is redesigned in P3b to paint the hard offset shadow inside the card edge (inset bar on two sides); the card keeps its full box. A visible, intended change for every brutal widget; afterwards it follows G2.
 5. Reds fold in P7: alerts take the widget crit red (`#F2665E` on dark, per mode on light; alerts follow the Look per D7). Studio danger `oklch(0.72 0.17 25)` stays its own role in the D1 `studio.*` set.
 6. Defaults that move on purpose are confirmed: Classic is pinned to today's values and new defaults apply to new Looks only, except two intended fixes on Classic (the ramp start colour in P3a, `ok` on light materials in P6). Axis-label stays `faint` on Classic and is `muted` for new Looks.
