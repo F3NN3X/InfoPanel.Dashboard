@@ -17,8 +17,8 @@
     "stance": "Light only: the cream card is the pack. A dark page sits behind it."
   },
   "fonts": {
-    "body": "Oswald",
-    "display": "Barlow Condensed"
+    "body": "pack-field-kit",
+    "display": "pack-field-kit"
   },
   "radius": "0.375rem",
   "t1": {
@@ -87,7 +87,8 @@
     "ring-style": "segmented",
     "meter-style": "segments",
     "ring-cap": "butt",
-    "label-case": "upper"
+    "label-case": "upper",
+    "header-style": "tab-label"
   },
   "ext": {}
 }

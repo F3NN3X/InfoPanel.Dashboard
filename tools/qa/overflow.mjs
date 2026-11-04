@@ -10,6 +10,8 @@
 //   --module a,b   only those widgets (ids, legacy ones too)      --spans 1x1,2x2   other spans
 //   --same-boxes a,b   also run with each surface (`surface=a`) and fail where a card or body rect differs from the default
 //                      run: a theme's card paints but never moves or resizes anything (G2); the sample themes' `look-*` cards
+//   --markup-baseline <file>   with --looks: also fail where a frame's markup under a pack differs from the file (the pack's parity: a
+//                      pack's own markup changes are listed, not hidden by Classic's); --save-markup <file> writes it
 //   --looks a,b        also run with each built-in pack applied (`settings` of tools/qa/pack-styles.mjs): fail on an issue the same style
 //                      run without the pack does not have, or a card or body rect that differs (a pack paints, it never moves or resizes: G2); the default is the same widget style without the pack, so only the pack is measured
 // Known limit: the probe walks elements, so it cannot see pseudo-elements (::before, ::after); a widget that draws
@@ -21,12 +23,12 @@ import { startScratch } from "../perf/scratch.mjs";
 import { diffRuns } from "./overflow-diff.mjs";
 import { PACK_STYLES } from "./pack-styles.mjs";
 
-const VALUED = new Set(["--save", "--baseline", "--module", "--spans", "--same-boxes", "--looks"]);
+const VALUED = new Set(["--save", "--baseline", "--module", "--spans", "--same-boxes", "--looks", "--markup-baseline", "--save-markup"]);
 const args = {};
 const argv = process.argv.slice(2);
 for (let i = 0; i < argv.length; i++) {
   if (!VALUED.has(argv[i]) || !argv[i + 1]) {
-    console.error(`overflow: unknown or incomplete argument: ${argv[i]}\nusage: node tools/qa/overflow.mjs [--save file] [--baseline file] [--module a,b] [--spans 1x1,2x2,4x2,4x4] [--same-boxes surface,surface] [--looks pack,pack]`);
+    console.error(`overflow: unknown or incomplete argument: ${argv[i]}\nusage: node tools/qa/overflow.mjs [--save file] [--baseline file] [--module a,b] [--spans 1x1,2x2,4x2,4x4] [--same-boxes surface,surface] [--looks pack,pack] [--markup-baseline file] [--save-markup file]`);
     process.exit(2);
   }
   args[argv[i].slice(2)] = argv[++i];
@@ -35,6 +37,14 @@ const spans = args.spans ?? "1x1,2x2,4x2,4x4";
 
 /** Runs in the page: one record per widget frame, keyed `<module>@<span>`. */
 function collect() {
+  /** A frame's markup as `<fnv1a hash>:<length>`, with the generated React ids (`:r1:`, `_r_1_`) written alike. */
+  const markupOf = (html) => {
+    // the Ken Burns drift is driven by the clock of the page, so its transform is written alike, a style React cleared reads as none, and a pulsing dot's shadow is written alike
+    const text = html.replace(/:r[0-9a-z]+:|_r_[0-9a-z]+_|«r[0-9a-z]+»/g, ":r:").replace(/transform: scale\([^"]*"/g, 'transform: scale(~)"').replace(/ style=""/g, "").replace(/box-shadow: color-mix\([^;]*;/g, "box-shadow: ~;");
+    let h = 0x811c9dc5;
+    for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 0x01000193) >>> 0;
+    return `${h.toString(16)}:${text.length}`;
+  };
   const report = window.__qaOverflow();
   const figs = [...document.querySelectorAll("figure[data-qa-module]")];
   const round = (v) => Math.round(v * 100) / 100;
@@ -56,6 +66,7 @@ function collect() {
       n: box.querySelectorAll("*").length,
       text: box.textContent.replace(/\s+/g, " ").trim(),
       view: card?.getAttribute("data-wp-view") ?? null,
+      markup: markupOf(box.innerHTML),
     };
   });
   return frames;
@@ -71,8 +82,8 @@ try {
   const page = await browser.newPage({ viewport: { width: 1800, height: 1000 }, timezoneId: "UTC", locale: "en-US" });
   await page.clock.setFixedTime(new Date("2026-01-15T12:00:00Z"));
   const module = args.module ? `&module=${args.module}` : "";
-  const run = async (surface, look, bare) => {
-    const style = look && (bare ? { ...PACK_STYLES[look], lookId: undefined } : PACK_STYLES[look]);
+  const run = async (surface, look) => {
+    const style = look && PACK_STYLES[look];
     const settings = look ? `&settings=${encodeURIComponent(JSON.stringify(style))}` : "";
     await page.goto(`${scratch.base}/?widget-qa${module}&spans=${spans}&eager=1${surface ? `&surface=${surface}` : ""}${settings}`);
     await page.waitForFunction(() => window.__qaMountAll && window.__qaOverflow, null, { timeout: 30_000 });
@@ -81,14 +92,17 @@ try {
     // A name the page does not know falls back to the default card, which would pass for the right one.
     if (surface && !(await page.evaluate((name) => !!document.querySelector(`[data-wp-tier][data-mat="${name}"]`), surface))) throw new Error(`overflow: no card drew the surface ${surface}`);
     // The pack must be on the cards: its chunk loaded and its `data-look` written (a pack that failed to load draws Classic and would pass).
-    if (look && !bare && !(await page.evaluate((id) => !!document.querySelector(`[data-wp-tier][data-look="${id}"]`), look))) throw new Error(`overflow: no card wore the pack ${look}`);
-    return page.evaluate(collect);
+    if (look && !(await page.evaluate((id) => !!document.querySelector(`[data-wp-tier][data-look="${id}"]`), look))) throw new Error(`overflow: no card wore the pack ${look}`);
+    const found = await page.evaluate(collect);
+    // only a pack's markup is kept for the parity file; Classic's is the v8 parity suite's
+    if (!look) for (const f of Object.values(found)) delete f.markup;
+    return found;
   };
   frames = await run();
   for (const surface of (args["same-boxes"] ?? "").split(",").filter(Boolean)) withSurface[surface] = await run(surface);
   for (const look of (args.looks ?? "").split(",").filter(Boolean)) {
     if (!Object.hasOwn(PACK_STYLES, look)) throw new Error(`overflow: no styles for the pack ${look} (tools/qa/pack-styles.mjs)`);
-    withLook[look] = { pack: await run(undefined, look), sample: await run(undefined, look, true) };
+    withLook[look] = await run(undefined, look);
   }
 } finally {
   await browser.close();
@@ -135,13 +149,39 @@ if (args["same-boxes"]) {
 if (args.looks) {
   const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
   let bad = 0;
-  for (const [look, { pack: run, sample: frames }] of Object.entries(withLook)) {
+  for (const [look, run] of Object.entries(withLook)) {
     const moved = Object.entries(frames).filter(([key, f]) => !same(f.card, run[key]?.card) || !same(f.body, run[key]?.body));
     const issues = Object.entries(run).flatMap(([key, f]) => f.issues.filter((i) => !frames[key]?.issues.includes(i)).map((i) => `${key} ${i}`));
     bad += moved.length + issues.length;
-    console.log(`overflow: pack ${look}: ${Object.keys(run).length} frames, ${moved.length} with a card or body rect that differs from the sample theme without the pack, ${issues.length} new issues`);
+    console.log(`overflow: pack ${look}: ${Object.keys(run).length} frames, ${moved.length} with a card or body rect that differs from Classic, ${issues.length} issues Classic does not have`);
     for (const [key, f] of moved.slice(0, 20)) console.error(`  ${key}: card ${JSON.stringify(f.card)} -> ${JSON.stringify(run[key]?.card)}, body ${JSON.stringify(f.body)} -> ${JSON.stringify(run[key]?.body)}`);
     for (const i of issues.slice(0, 40)) console.error(`  new issue ${i.slice(0, 240)}`);
+  }
+  if (args["save-markup"]) {
+    const packs = Object.fromEntries(Object.entries(withLook).map(([look, run]) => [look, Object.fromEntries(Object.entries(run).map(([key, f]) => [key, f.markup]))]));
+    fs.mkdirSync(path.dirname(path.resolve(args["save-markup"])), { recursive: true });
+    fs.writeFileSync(args["save-markup"], `${JSON.stringify({ version: 1, spans, packs }, null, 1)}
+`);
+    console.log(`overflow: saved ${args["save-markup"]}`);
+  }
+  if (args["markup-baseline"]) {
+    const base = JSON.parse(fs.readFileSync(args["markup-baseline"], "utf8"));
+    for (const [look, run] of Object.entries(withLook)) {
+      const was = base.packs?.[look];
+      if (!was) {
+        console.error(`overflow: no markup baseline for the pack ${look} in ${args["markup-baseline"]}`);
+        bad++;
+        continue;
+      }
+      // a partial run (--module) compares only the frames it made
+      const keys = Object.keys(run);
+      const differ = keys.filter((k) => was[k] !== run[k].markup);
+      const missing = args.module ? [] : Object.keys(was).filter((k) => !(k in run));
+      bad += differ.length + missing.length;
+      console.log(`overflow: pack ${look} markup: ${keys.length} frames, ${differ.length} differ from ${args["markup-baseline"]}, ${missing.length} missing`);
+      for (const k of differ.slice(0, 20)) console.error(`  ${k}: ${was[k]} -> ${run[k].markup}`);
+    }
+    if (bad) console.error("overflow: a pack's markup changed; if that is intended, refresh it with --save-markup");
   }
   if (bad) process.exit(1);
 }

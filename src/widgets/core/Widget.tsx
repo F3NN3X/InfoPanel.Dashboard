@@ -21,6 +21,8 @@ export interface LayoutBox extends Box {
   outerH: number;
   /** The content's zoom (the shell's and Size %): a size meant in screen px is this much smaller in the content's px. */
   zoom: number;
+  /** The card wears a pack: a layout that sets a row in a face wider than Classic's lets it wrap (Classic's markup stays as it was). */
+  packed: boolean;
 }
 
 export interface WidgetProps {
@@ -132,7 +134,7 @@ export function Widget({ title, icon, iconOverride, accent, surface, radius, siz
   const useCompact = !!cObj;
   const tui = !!sk.boxed;
   // A Look's ornament or tab band keeps inside the padding, so the shell hands it the padding as `--wp-pad`.
-  const decor = !!(ctx.ornament || ctx.tabBand);
+  const decor = !!(ctx.ornament || ctx.tabBand || sk.header === "box-legend");
   const pad = shellPad({ box, studio: isStudio, compact: useCompact, bleed, tui, decor, padding: chrome?.padding !== undefined ? Math.round((chrome.padding / zoom) * 100) / 100 : undefined });
   const header = !isStudio && showHeader && titled && heading && (tui || (!useCompact && box.size !== "xs"));
   const css = chrome?.customCss ? scopedCss(scope, chrome.customCss) : "";
@@ -184,7 +186,7 @@ export function Widget({ title, icon, iconOverride, accent, surface, radius, siz
             ) : useCompact ? (
               <CompactView c={cObj!} shape={form ?? box.shape} w={box.w} h={box.h} icon={headIcon} />
             ) : typeof children === "function" ? (
-              children({ ...box, w: inner.w || box.w, h: inner.h || box.h, outerW: box.w, outerH: box.h, zoom })
+              children({ ...box, w: inner.w || box.w, h: inner.h || box.h, outerW: box.w, outerH: box.h, zoom, packed: !!packId })
             ) : (
               children
             )}

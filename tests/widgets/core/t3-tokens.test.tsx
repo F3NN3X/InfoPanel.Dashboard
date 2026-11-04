@@ -28,6 +28,12 @@ describe("t3Tokens", () => {
     expect(t3Tokens({ "meter-style": "segments" }).meter).toBe("segments");
     expect(t3Tokens({ "meter-style": "bar; x" }).meter).toBeUndefined();
   });
+  it("tab-label is a header, box-legend a header on its own frame (never tui's boxed padding), both off by default", () => {
+    expect(t3Tokens({ "header-style": "tab-label" })).toEqual({ header: "tab-label" });
+    expect(t3Tokens({ "header-style": "box-legend" })).toEqual({ header: "box-legend", frame: "legend" });
+    expect(t3Tokens({ "header-style": "inline" })).toEqual({});
+    expect(t3Tokens({ "header-style": "tab-label; x" })).toEqual({});
+  });
 });
 
 describe("free-text T3 values", () => {

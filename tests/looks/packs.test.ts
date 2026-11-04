@@ -8,6 +8,8 @@ import { resolveT1 } from "@/looks/look";
 import { PACK_IDS } from "@/looks/pack";
 import { loadPack, packIssues } from "@/looks/pack-load";
 import { Widget } from "@/widgets/core/Widget";
+import { t3Tokens } from "@/widgets/core/t3-tokens";
+import fs from "node:fs";
 
 const IDS = ["field-kit", "tape-86", "term"];
 
@@ -39,12 +41,36 @@ describe.each(IDS)("pack %s", (id) => {
     }
   });
 
+  it("draws its header variant on the shell, with the card's normal padding and no tui box", async () => {
+    const pack = (await loadPack(id))!;
+    // biome-ignore lint/correctness/noChildrenProp: the Widget takes a render function as children.
+    const html = renderToString(h(Widget, { size: "lg", title: "Title", icon: "memory", children: () => h("i"), t3: pack.look.t3, slots: pack.slots, packId: id }));
+    expect(html).toContain(`data-part="${id === "term" ? "legend" : "tab"}"`);
+    expect(html).not.toContain("pt-[16px]");
+    expect(html).toContain(id === "term" ? "inset-[6px]" : "data-wp-body");
+  });
+
+  it("ships the OFL text with its fonts and every copyright line it declares", async () => {
+    const meta = (await import(`@/looks/packs/${id}/pack.json`)).default;
+    const text = fs.readFileSync(`src/looks/packs/${id}/OFL.txt`, "utf8");
+    const shipped = fs.readFileSync("public/licences/pack-fonts-OFL.txt", "utf8");
+    expect(text).toContain("SIL OPEN FONT LICENSE Version 1.1");
+    for (const font of meta.fonts) {
+      expect(text).toContain(font.copyright.replace(/^Copyright \d+,? /, "").replace(/\s*\(.*$/, ""));
+      expect(shipped).toContain(font.copyright);
+    }
+    // a subset is a Modified Version: it may not carry a Reserved Font Name (Plex)
+    for (const font of meta.fonts) expect(`${font.family} ${font.file}`).not.toMatch(/plex/i);
+  });
+
   it("keeps its ornament within 10 px and every mark inside the card's padding", async () => {
     const pack = (await loadPack(id))!;
     // biome-ignore lint/correctness/noChildrenProp: the Widget takes a render function as children.
     const html = renderToString(h(Widget, { size: "lg", title: "T", icon: "memory", children: () => h("i"), t3: pack.look.t3, slots: pack.slots, packId: id }));
     const pad = Number(/--wp-pad:(\d+(?:\.\d+)?)px/.exec(html)?.[1]);
-    if (!html.includes("data-wp-layer")) return; // no ornament or tab band, so no padding to keep
+    // Term has no ornament or tab band (its legend only reads the padding); the other two do, and their marks are checked below
+    expect(html.includes("data-wp-layer")).toBe(id !== "term");
+    if (id === "term") return;
     expect(pad).toBeGreaterThanOrEqual(10);
     for (const part of ["ornament", "tab-band"]) {
       if (!html.includes(`data-wp-layer="${part}"`)) continue;
@@ -60,10 +86,11 @@ describe.each(IDS)("pack %s", (id) => {
 });
 
 describe("what each pack teaches the contract", () => {
-  it("Term keeps the normal card padding and header height: its frame is the card's hairline, and no header kind that is taller (prompt) or boxed (tui) is used", async () => {
+  it("Term's header is the box-legend variant, not tui's boxed one: the card keeps its normal padding and header height (the overflow runner compares the body rects with Classic)", async () => {
     const pack = (await loadPack("term"))!;
-    expect(pack.look.t3).toMatchObject({ "meter-style": "blocks", "cell-radius": "0px" });
-    expect(pack.look.t3?.["header-style"]).toBeUndefined();
+    expect(pack.look.t3).toMatchObject({ "meter-style": "blocks", "cell-radius": "0px", "header-style": "box-legend" });
+    expect(t3Tokens(pack.look.t3)).toMatchObject({ header: "box-legend", frame: "legend" });
+    expect(t3Tokens(pack.look.t3).boxed).toBeUndefined();
     expect(pack.look.t3?.["border-fill"]).toBeUndefined();
   });
 

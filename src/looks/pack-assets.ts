@@ -20,7 +20,7 @@ export function packFiles(urls: Record<string, string>): PackFiles {
   let base = "/";
   for (const [source, url] of Object.entries(urls)) {
     // a built file is a full URL (Vite resolves it against the chunk); the dev server and tests give a root path
-    const path = /^[a-z][a-zd+.-]*:/i.test(url) ? new URL(url).pathname : url;
+    const path = /^[a-z][a-z\d+.-]*:/i.test(url) ? new URL(url).pathname : url;
     base = path.slice(0, path.lastIndexOf("/") + 1);
     names[source.slice(source.lastIndexOf("/") + 1)] = path.slice(base.length);
   }

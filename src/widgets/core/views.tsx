@@ -429,6 +429,27 @@ export function SkinHeader({ kind, title, icon, right, bleed, bg = "#0b0b0d", w 
         {r}
       </header>
     );
+  // The title on an ink tab (a Look's `tab-label`). The tab's padding is taken back with a negative margin, so the header keeps its height and the body does not move.
+  if (kind === "tab-label")
+    return (
+      <header data-part="header" className={`${base} mb-2 gap-1.5 text-[11px] font-semibold uppercase tracking-[0.08em]`} style={st("uppercase")}>
+        <span data-part="tab" className="-my-0.5 flex min-w-0 items-center gap-1.5 rounded-[2px] px-2 py-0.5" style={{ background: sk.headerFill ?? "var(--w-fg)", color: bg }}>
+          {icon && <Icon name={icon} className="text-[13px]" />}
+          <span className="truncate">{title}</span>
+        </span>
+        {r}
+      </header>
+    );
+  // The title in the card's top border, like a fieldset legend (a Look's `box-legend`; the tui header's padding and patches are not used). The header stays in flow at its normal height and the legend is lifted by the card's padding (`--wp-pad`) onto the frame's line 6 px in, so the body does not move.
+  if (kind === "box-legend")
+    return (
+      <header data-part="header" className={`${base} mb-2 gap-1.5 text-[11px] font-medium uppercase tracking-[0.08em]`} style={st("uppercase")}>
+        {/* the header keeps the line it has without a legend: an unseen copy of the title holds its height */}
+        <span aria-hidden className="invisible truncate">{title}</span>
+        <span data-part="legend" className="absolute left-2 max-w-[70%] -translate-y-1/2 truncate px-1.5 leading-none text-[color:var(--w-accent)]" style={{ top: "calc(6px - var(--wp-pad, 12px))", background: bg }}>{title}</span>
+        {r}
+      </header>
+    );
   if (kind === "icon-badge")
     return (
       <header data-part="header" className={`${base} mb-2 gap-2 text-[13px] font-medium text-[color:var(--w-fg)]`} style={st("none")}>

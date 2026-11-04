@@ -17,9 +17,9 @@
     "stance": "Dark only: phosphor on black is the pack."
   },
   "fonts": {
-    "body": "IBM Plex Mono",
-    "mono": "IBM Plex Mono",
-    "display": "VT323"
+    "body": "pack-term-mono",
+    "mono": "pack-term-mono",
+    "display": "pack-term-display"
   },
   "radius": "0.125rem",
   "t1": {
@@ -91,7 +91,8 @@
     "ring-style": "segmented",
     "ring-cap": "butt",
     "label-glow": "soft",
-    "meter-hold-style": "block"
+    "meter-hold-style": "block",
+    "header-style": "box-legend"
   },
   "ext": {}
 }

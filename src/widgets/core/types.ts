@@ -125,7 +125,7 @@ export interface SkinTokens {
   headerInk: string;
   ring: number;
   /** A frame the shell draws over the card (`CardFrame`): tui's inset border, hud's corner brackets. */
-  frame: "inset" | "corners" | "gradient";
+  frame: "inset" | "corners" | "gradient" | "legend";
   /** Gradient number fill (`num-fill: gradient`), a CSS gradient; it replaces the glow, which would draw over transparent text. */
   numFill: string;
   /** The gradient border drawn by `frame: "gradient"` (`border-fill`), a CSS gradient. */

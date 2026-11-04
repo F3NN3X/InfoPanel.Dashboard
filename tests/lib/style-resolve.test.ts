@@ -186,7 +186,7 @@ describe("the Look layer (L40)", () => {
     expect(resolveStyle({ levels: { profile: term } }).settings.surface).toBeUndefined();
     (await import("@/looks/sample-materials")).registerSampleCards();
     const r = resolveStyle({ levels: { profile: term } });
-    expect(r.settings).toMatchObject({ lookId: "term", surface: "look-term", accent: "#8BE37A", font: "ibm-plex-mono" });
+    expect(r.settings).toMatchObject({ lookId: "term", surface: "look-term", accent: "#8BE37A", font: "mono" });
     expect(r.source.accent).toBe("look");
   });
 

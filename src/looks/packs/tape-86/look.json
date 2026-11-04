@@ -17,9 +17,9 @@
     "stance": "Light only: the paper card is the pack. A warm cream page sits behind it."
   },
   "fonts": {
-    "body": "Archivo",
-    "mono": "Space Mono",
-    "display": "Archivo Black"
+    "body": "pack-tape-86-mono",
+    "mono": "pack-tape-86-mono",
+    "display": "pack-tape-86-display"
   },
   "radius": "0.25rem",
   "t1": {
@@ -88,7 +88,8 @@
     "meter-hold-style": "block",
     "spike-shape": "bar",
     "fader-knob-shape": "square",
-    "ring-cap": "butt"
+    "ring-cap": "butt",
+    "header-style": "tab-label"
   },
   "ext": {}
 }

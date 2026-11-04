@@ -24,7 +24,7 @@
     {
       "family": "pack-term-mono",
       "source": "IBM Plex Mono",
-      "file": "ibm-plex-mono-400.woff2",
+      "file": "pack-term-mono-400.woff2",
       "weight": "400",
       "licence": "OFL-1.1",
       "copyright": "Copyright 2017 IBM Corp. All rights reserved."
