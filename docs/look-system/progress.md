@@ -753,6 +753,7 @@ The review (4 HIGH, 9 MED, 6 LOW; verdict BLOCK as a user-pack gate) found that 
 | L-f spec table | fixed: Paper reads `needs-dim` |
 
 Things to know:
+- Verify (fix round 1): `node tools/verify.mjs --full --keep-going` on 3067bec1 exit 0, 19/19 passed, 574 s; v8 parity, look-visual and overflow baselines unchanged; kiosk and studio entries unchanged (no importer).
 - One expectation of the round-0 tests changed with the rule: Field Kit with `burnIn: static-safe` no longer passes (its hazard strip is bright art and the brightest stop counts, not the mean of the colours); the case now uses a dark fill for the pass and asserts the refusal for Field Kit.
 - The size-cap test uses two real PNG-signature files instead of one file with no bytes (a file without bytes is its own error now).
 
