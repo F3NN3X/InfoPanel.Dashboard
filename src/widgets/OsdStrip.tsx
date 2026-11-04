@@ -101,7 +101,7 @@ export default function OsdStrip(p: OsdStripProps) {
                       <span className="truncate text-micro font-semibold uppercase tracking-[0.08em] text-[color:var(--w-muted)]">{l}</span>
                       <span
                         className="truncate font-medium leading-none tabular-nums text-[color:var(--w-fg)]"
-                        style={{ fontSize: big, fontFamily: sk.skin === "retro" || sk.skin === "tui" ? sk.num : "'IBM Plex Mono','JetBrains Mono',ui-monospace,monospace", color: c ?? (k === "fps" && !idle ? "var(--w-accent)" : undefined) }}
+                        style={{ fontSize: big, fontFamily: sk.numReadout ? sk.num : "'IBM Plex Mono','JetBrains Mono',ui-monospace,monospace", color: c ?? (k === "fps" && !idle ? "var(--w-accent)" : undefined) }}
                       >
                         {c && <ToneCue t={c === DROP_CRIT ? "crit" : "warn"} size="0.75em" />}
                         {shownAs(k, v)}
@@ -130,7 +130,7 @@ export default function OsdStrip(p: OsdStripProps) {
                     <span className={`${inline ? "shrink-0 " : ""}truncate text-micro font-semibold uppercase tracking-[0.08em] text-[color:var(--w-muted)]`}>{l}</span>
                     <span
                       className={`truncate ${inline && h < 30 ? "text-body" : "text-title"} font-medium tabular-nums text-[color:var(--w-fg)]`}
-                      style={{ fontFamily: sk.skin === "retro" || sk.skin === "tui" ? sk.num : "'IBM Plex Mono','JetBrains Mono',ui-monospace,monospace", color: c ?? (k === "fps" && !idle ? "var(--w-accent)" : undefined) }}
+                      style={{ fontFamily: sk.numReadout ? sk.num : "'IBM Plex Mono','JetBrains Mono',ui-monospace,monospace", color: c ?? (k === "fps" && !idle ? "var(--w-accent)" : undefined) }}
                     >
                       {c && <ToneCue t={c === DROP_CRIT ? "crit" : "warn"} size="0.75em" />}
                       {shownAs(k, v)}

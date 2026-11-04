@@ -1,3 +1,4 @@
+import { SKINS } from "./core/theme";
 import { readCpuFlat, readSystemFlat } from "@/lib/system-metrics";
 import { inUnit } from "@/modules/setting-readers";
 import type { ModuleSettings } from "@/modules/types";
@@ -63,7 +64,7 @@ export default function CpuMonitor(p: CpuMonitorProps) {
   const maxMhz = Math.max(1, ...cores.map((c) => c.mhz).filter(Number.isFinite));
   const cv = (c: Core) => (metric === "clock" ? (Number.isFinite(c.mhz) ? (c.mhz / maxMhz) * 100 : 0) : c.load);
   const cols = cores.length > 8 ? 8 : cores.length;
-  const sq = ["tui", "hud", "retro"].includes(p.skin ?? "") ? "rounded-none" : "rounded-[5px]";
+  const sq = SKINS[p.skin ?? "default"]?.cellSquare ? "rounded-none" : "rounded-[5px]";
   const warn = p.warn ?? 75,
     crit = p.crit ?? 90;
   const name = p.title ?? pretty(id).replace(/^AMD Ryzen (\d) /, "Ryzen $1 ");

@@ -17,7 +17,7 @@ export const T3_TOKENS = [
   "fader-track", "fader-fill", "fader-knob", "fader-knob-shape", "fader-knob-glow", "toggle-on", "mute-active", "solo-active", "live-indicator",
   "icon-color", "icon-muted", "icon-stroke",
   "ramp-heat", "ramp-cool",
-  "ring-width", "ring-track", "ring-cap", "ring-gap",
+  "ring-width", "ring-track", "ring-cap", "ring-gap", "ring-style", "border-fill",
   "cell-radius", "track",
   "motion-fast", "motion-base", "motion-data", "ease-standard",
 ] as const;
@@ -41,7 +41,7 @@ export const CLASSIC_T3: Record<T3Token, T3Value> = {
   "fader-track": "{track}", "fader-fill": "{accent}", "fader-knob": "{fg}", "fader-knob-shape": "pill", "fader-knob-glow": "none", "toggle-on": "{accent}", "mute-active": "{crit}", "solo-active": "{warn}", "live-indicator": "{crit}",
   "icon-color": "{fg}", "icon-muted": "{muted}", "icon-stroke": 2,
   "ramp-heat": `{mat.fill} > {accent}`, "ramp-cool": "{mat.fill} > {accent}",
-  "ring-width": RING_T, "ring-track": RING_TRACK, "ring-cap": "round", "ring-gap": RING_GAP,
+  "ring-width": RING_T, "ring-track": RING_TRACK, "ring-cap": "round", "ring-gap": RING_GAP, "ring-style": "arc", "border-fill": "none",
   "cell-radius": "{radius}", track: "rgba(255,255,255,.07)",
   "motion-fast": "150ms", "motion-base": "300ms", "motion-data": `${GLIDE_MS}ms`, "ease-standard": "cubic-bezier(.2,0,0,1)",
 };

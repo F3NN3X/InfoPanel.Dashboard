@@ -7,5 +7,5 @@ export const hudSkin: SkinPack = {
   description: "Sci-fi HUD: accent grid, corner brackets, tracked caps, stepped graphs, segment meters.",
   fonts: ["geist-mono"],
   // tokens read by <Widget>, primitives and views via useSkin()
-  skin: { surface: "hud", radius: 2, font: "'Geist Mono',ui-monospace,monospace", num: "'Geist Mono',monospace", numWeight: 400, graph: "step", meter: "segments", header: "hud", frame: "corners", ring: 0.45 },
+  skin: { surface: "hud", radius: 2, font: "'Geist Mono',ui-monospace,monospace", num: "'Geist Mono',monospace", numWeight: 400, graph: "step", meter: "segments", header: "hud", frame: "corners", ring: 0.45, cap: "butt", cellSquare: true },
 };

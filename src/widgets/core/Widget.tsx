@@ -116,11 +116,11 @@ export function Widget({ title, icon, iconOverride, accent, surface, radius, siz
   const form = isStudio ? null : summaryShape(compactView, box.shape, box.w, box.h);
   const cRaw = form ? (typeof compact === "function" ? compact({ ...box, shape: form }) : compact) : undefined;
   // tui frames the title on the border even over a summary view, so the summary's own copy of it would repeat it; the other skins draw no header over a summary.
-  const framed = skin === "tui" && showHeader && titled && !!heading;
+  const framed = !!sk.boxed && showHeader && titled && !!heading;
   const cTitled = cRaw && untitled(withUserLook(cRaw, user), titled);
   const cObj = cTitled && framed && cTitled.label === heading ? { ...cTitled, label: "" } : cTitled;
   const useCompact = !!cObj;
-  const tui = skin === "tui";
+  const tui = !!sk.boxed;
   // A Look's ornament or tab band keeps inside the padding, so the shell hands it the padding as `--wp-pad`.
   const decor = !!(ctx.ornament || ctx.tabBand);
   const pad = shellPad({ box, studio: isStudio, compact: useCompact, bleed, tui, decor, padding: chrome?.padding !== undefined ? Math.round((chrome.padding / zoom) * 100) / 100 : undefined });
@@ -141,6 +141,7 @@ export function Widget({ title, icon, iconOverride, accent, surface, radius, siz
     // Only the default accent darkens on a light card: an accent the user or the Look set is theirs (G1).
     ...accentVars(resolveAccent(chrome?.accent || accent, sk, surf.tone), chrome?.accent || accent ? undefined : surf.tone),
     color: "var(--w-fg)",
+    ...(ctx.labelGlow ? { textShadow: "0 0 6px color-mix(in oklab, var(--w-accent) 55%, transparent)" } : null),
     // A roomy box (4x4) grows the body type: the theme's type tokens, so every text-micro / caption / body / title follows; and sets the hero size `Metric` reads.
     ...(big ? { ...(fixedType ? null : typeVars(ROOMY_SCALE)), "--w-hero": `${heroPx(box.w, box.h)}px` } : null),
     ...style,
@@ -158,7 +159,7 @@ export function Widget({ title, icon, iconOverride, accent, surface, radius, siz
           </>
         )}
         {backdrop}
-        {ctx.frame && <CardFrame kind={ctx.frame} />}
+        {ctx.frame && <CardFrame kind={ctx.frame} fill={ctx.borderFill} />}
         {decor && (
           <>
             {ctx.ornament && <CardLayer part="ornament" Slot={ctx.ornament} />}

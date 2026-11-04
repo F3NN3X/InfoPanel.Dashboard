@@ -119,7 +119,39 @@ export interface SkinTokens {
   headerInk: string;
   ring: number;
   /** A frame the shell draws over the card (`CardFrame`): tui's inset border, hud's corner brackets. */
-  frame: "inset" | "corners";
+  frame: "inset" | "corners" | "gradient";
+  /** Gradient number fill (`num-fill: gradient`), a CSS gradient; it replaces the glow, which would draw over transparent text. */
+  numFill: string;
+  /** The gradient border drawn by `frame: "gradient"` (`border-fill`), a CSS gradient. */
+  borderFill: string;
+  /** The title sits on the frame's border and the card keeps the boxed padding (tui). */
+  boxed: boolean;
+  /** Readouts (OSD values) use the skin's numeral face, not the mono default (retro, tui). */
+  numReadout: boolean;
+  /** SystemOverview keeps its sections in one colour instead of one per section (ink). */
+  plainSections: boolean;
+  /** `num-effect: chromatic`: two offset colour fringes on the numerals. */
+  numChroma: boolean;
+  /** `label-glow`: a soft accent glow on all of the card's text. */
+  labelGlow: boolean;
+  /** `cell-radius: 0`: square grid cells (tui, hud, retro); unset keeps the rounded cells. */
+  cellSquare: boolean;
+  /** `ring-cap`: the ends of a ring's arc (round is the default). */
+  cap: "butt";
+  /** `series-stroke`: a graph's stroke width when the skin fixes it, whatever the widget asks (ink: a hairline). */
+  strokeFixed: number;
+  /** Degrees of every ring's arc (`ring-style: arc270` is 270); a `sweep` a widget passes wins. */
+  ringArc: number;
+  /** A ring cut into 12 segments or 36 ticks (`ring-style`). */
+  ringMark: "segmented" | "ticks";
+  /** `meter-zone-style: blend`: a ladder's colours run into each other instead of stepping. */
+  zones: "blend";
+  /** `meter-hold-style`: the peak-hold mark (the line is the default). */
+  hold: "dot" | "block";
+  /** `spike-shape`: the last-sample mark of a graph (the dot is the default). */
+  spike: "tick" | "bar";
+  /** `fader-knob-shape`: the mixer fader's knob (the pill is the default). */
+  knob: "bar" | "square" | "notch";
 }
 
 /** One icon of a Look's icon set: a single path in a viewBox, painted in `currentColor`. */

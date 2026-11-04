@@ -319,6 +319,8 @@
     "ring-track": "color-mix(in oklab, var(--w-fg) 12%, transparent)",
     "ring-cap": "round",
     "ring-gap": 2,
+    "ring-style": "arc",
+    "border-fill": "none",
     "cell-radius": "{radius}",
     "track": "rgba(255,255,255,.07)",
     "motion-fast": "150ms",

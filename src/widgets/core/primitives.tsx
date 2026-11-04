@@ -7,7 +7,7 @@ import { has, clamp, fmt } from "./data";
 import { mix } from "./tokens";
 import { useSkin, STATE, TONES, tone, numGlowStyle } from "./theme";
 import { iconFor } from "./icons";
-import type { Tone } from "./types";
+import type { SkinTokens, Tone } from "./types";
 import { cn } from "@/lib/utils";
 import { labelStyle, ws } from "@/components/widget-style";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
@@ -95,7 +95,7 @@ export function Metric({ label, value, unit, d = 0, scale = "md", sub, t = "ok",
   return (
     <div className={`flex min-w-0 flex-col ${align === "center" ? "items-center text-center" : ""} ${className}`} style={align === "center" ? { alignItems: "var(--wp-x-cross, center)", textAlign: "var(--wp-text-align, center)" as CSSProperties["textAlign"] } : { alignItems: "var(--wp-x-cross, stretch)" }}>
       {label && <span data-part="label" className="max-w-full truncate text-micro font-medium text-[color:var(--w-muted)]" style={labelStyle("none")}>{label}</span>}
-      <span data-part="num" data-ip-key={ipKey} data-ip-kind={ipKey ? "value" : undefined} data-ip-unit={ipKey && typeof unit === "string" ? unit : undefined} data-ip-decimals={ipKey ? d : undefined} className={`${px ? "" : big} ${px || !hero || sc === "sm" || sc === "md" ? "" : "[[data-wp-roomy]_&]:!text-[length:var(--w-hero)]"} font-semibold leading-none tracking-tight tabular-nums`} style={{ ...(px ? { fontSize: px } : null), fontFamily: sk.num, fontWeight: sk.numWeight, fontStretch: sk.numStretch, ...(sk.numGlow ? { ...NUM_TINT, ...numGlowStyle(sk, NUM_HALO) } : null), ...(t !== "ok" ? { color: TONES[t] } : null) }}>
+      <span data-part="num" data-ip-key={ipKey} data-ip-kind={ipKey ? "value" : undefined} data-ip-unit={ipKey && typeof unit === "string" ? unit : undefined} data-ip-decimals={ipKey ? d : undefined} className={`${px ? "" : big} ${px || !hero || sc === "sm" || sc === "md" ? "" : "[[data-wp-roomy]_&]:!text-[length:var(--w-hero)]"} font-semibold leading-none tracking-tight tabular-nums`} style={{ ...(px ? { fontSize: px } : null), fontFamily: sk.num, fontWeight: sk.numWeight, fontStretch: sk.numStretch, ...(sk.numGlow || sk.numFill || sk.numChroma ? { ...NUM_TINT, ...numGlowStyle(sk, NUM_HALO) } : null), ...(t !== "ok" ? { color: TONES[t] } : null) }}>
         <ToneCue t={t} glyph={cue} />
         {shown}
         {unit && !word && <Unit className="inline-block align-top leading-none" style={sk.numStroke ? SMALL_GLOW : undefined}>{unit}</Unit>}
@@ -301,24 +301,28 @@ export interface RingProps {
   children?: ReactNode;
   className?: string;
 }
-export function Ring({ value, max = 100, thickness: th0, t = "ok", color, track, sweep = 360, children, className = "", ipKey: key }: RingProps) {
+const RING_MARKS = { segmented: "repeating-conic-gradient(#000 0 26deg, #0000 26deg 30deg)", ticks: "repeating-conic-gradient(#000 0 2deg, #0000 2deg 10deg)" };
+/** The mask that cuts a ring into segments or ticks (`ring-style`); nothing for an arc. */
+const ringMark = (sk: { ringMark?: keyof typeof RING_MARKS }): CSSProperties | undefined => (sk.ringMark ? { mask: RING_MARKS[sk.ringMark], WebkitMask: RING_MARKS[sk.ringMark] } : undefined);
+export function Ring({ value, max = 100, thickness: th0, t = "ok", color, track, sweep: own, children, className = "", ipKey: key }: RingProps) {
   const [box, side] = useSide();
   const ipKey = useContext(IpTagCtx) ? key : undefined;
+  const sk = useSkin();
+  const sweep = own ?? sk.ringArc ?? 360;
   // On the value arc itself, so the track stays in the picture the conversion takes of the rest.
   const tag = ipKey ? { "data-ip-key": ipKey, "data-ip-kind": "ring", "data-ip-max": max, "data-ip-start": sweep < 360 ? -sweep / 2 : 0, "data-ip-sweep": Math.min(360, sweep) } : undefined;
-  const sk = useSkin();
   const thickness = Math.max(1.5, (th0 ?? ringStroke(side)) * (sk.ring ?? 1));
   const r = 50 - thickness / 2,
     c = 2 * Math.PI * r,
     pct = clamp(value / max, 0, 1);
-  const cap = sk.skin === "hud" || sk.skin === "tui" ? "butt" : "round";
+  const cap = sk.cap ?? "round";
   const glide = sk.smooth ? { transition: `stroke-dashoffset ${RING_GLIDE_MS}ms linear` } : undefined;
   if (sweep < 360) {
     // an open arc centred on the top: it starts `sweep / 2` before 12 o'clock (the svg is already turned to start there)
     const arc = (c * clamp(sweep, 1, 360)) / 360;
     return (
       <div ref={box} data-part="ring" className={`relative aspect-square ${className}`}>
-        <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
+        <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90" style={ringMark(sk)}>
           <g transform={`rotate(${-sweep / 2} 50 50)`}>
             <circle cx="50" cy="50" r={r} fill="none" stroke={track ?? RING_TRACK} strokeWidth={thickness} strokeLinecap={cap} strokeDasharray={`${arc} ${c}`} />
             <circle cx="50" cy="50" r={r} fill="none" stroke={color ?? TONES[t]} strokeWidth={thickness} strokeLinecap={cap}
@@ -331,7 +335,7 @@ export function Ring({ value, max = 100, thickness: th0, t = "ok", color, track,
   }
   return (
     <div ref={box} data-part="ring" className={`relative aspect-square ${className}`}>
-      <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
+      <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90" style={ringMark(sk)}>
         <circle cx="50" cy="50" r={r} fill="none" stroke={track ?? RING_TRACK} strokeWidth={thickness} />
         <circle cx="50" cy="50" r={r} fill="none" stroke={color ?? TONES[t]} strokeWidth={thickness} strokeLinecap={cap}
           strokeDasharray={c} strokeDashoffset={ringDashOffset(c, pct, thickness, cap === "round")} style={glide} data-wp-ring="" {...tag} />
@@ -363,7 +367,7 @@ export function RingStack({ rings, thickness: th0, gap = RING_GAP, children, cla
   const sk = useSkin();
   const tagging = useContext(IpTagCtx);
   const thickness = Math.max(1.5, (th0 ?? ringStroke(side)) * (sk.ring ?? 1));
-  const cap = sk.skin === "hud" || sk.skin === "tui" ? "butt" : "round";
+  const cap = sk.cap ?? "round";
   return (
     <div ref={box} data-part="ring" className={`relative ${className}`} style={style}>
       {/* rotate the drawing, not the svg: a rotated non-square svg's box pokes out of its zone */}
@@ -670,13 +674,13 @@ function SparkBase(p: SparkProps) {
   return (
     <div className={/\b(?:absolute|relative)\b/.test(p.className ?? "") ? p.className : `relative ${p.className ?? "h-10"}`}>
       <SparkGraph {...p} className="h-full" />
-      <SparkMarks values={values} min={p.min} max={p.max} flat={flat} axis={!!p.axis} last={p.marks === "last"} bars={mode === "bars" || mode === "dots"} color={p.color || "var(--w-accent)"} format={p.format} glow={!!sk.numGlow} />
+      <SparkMarks values={values} min={p.min} max={p.max} flat={flat} axis={!!p.axis} last={p.marks === "last"} bars={mode === "bars" || mode === "dots"} color={p.color || "var(--w-accent)"} format={p.format} glow={!!sk.numGlow} shape={sk.spike} />
     </div>
   );
 }
 
 /** The last-sample dot, the lowest and highest values (or, over a fixed range, its scale), over a graph's box. Decoration: the reading is in the widget's text. */
-function SparkMarks({ values, min, max, flat, axis, last: lastOnly, bars, color, format, glow }: { values: number[]; min?: number; max?: number; flat: boolean; axis: boolean; last: boolean; bars: boolean; color: string; format?: (v: number) => string; glow: boolean }) {
+function SparkMarks({ values, min, max, flat, axis, last: lastOnly, bars, color, format, glow, shape }: { values: number[]; min?: number; max?: number; flat: boolean; axis: boolean; last: boolean; bars: boolean; color: string; format?: (v: number) => string; glow: boolean; shape?: SkinTokens["spike"] }) {
   const [lo, hi] = sparkRange(values, min, max, flat);
   const m = sparkMarks(values, lo, hi);
   const text = format ?? ((v: number) => fmt(v, Math.abs(v) >= 100 ? 0 : 1));
@@ -689,7 +693,7 @@ function SparkMarks({ values, min, max, flat, axis, last: lastOnly, bars, color,
   return (
     <>
       {m.last && (
-        <span aria-hidden className="absolute h-1.5 w-1.5 rounded-full" style={{ left: `${bars ? 100 - 50 / values.length : m.last.x}%`, top: `${m.last.y}%`, transform: "translate(-50%,-50%)", background: color, boxShadow: `0 0 0 2px rgba(0,0,0,.35)${glow ? ", 0 0 6px var(--w-accent)" : ""}` }} />
+        <span aria-hidden className={`absolute ${shape ? "w-[2px]" : "h-1.5 w-1.5 rounded-full"}`} data-spike={shape} style={{ left: `${bars ? 100 - 50 / values.length : m.last.x}%`, top: `${m.last.y}%`, transform: shape === "bar" ? "translate(-50%,0)" : "translate(-50%,-50%)", ...(shape === "bar" ? { height: `${100 - m.last.y}%` } : shape ? { height: 10 } : null), background: color, boxShadow: `0 0 0 2px rgba(0,0,0,.35)${glow ? ", 0 0 6px var(--w-accent)" : ""}` }} />
       )}
       {!lastOnly && fixed && (
         <>
@@ -720,7 +724,7 @@ function SparkGraph({ values = [], min, max, className = "h-10", fill = true, co
   if (mode === "braille") return <Braille values={values} lo={lo} hi={hi} className={className} />;
   const glow = !!sk.glow;
   const step = mode === "step";
-  const strokeWidth = (sk.skin === "ink" ? 1 : width) * sk.stroke;
+  const strokeWidth = (sk.strokeFixed ?? width) * sk.stroke;
   const showFill = fill && (mode === "area" || step);
   if (scrollsSmooth(sk.smooth, reduced, mode, values.length))
     return <SmoothGraph values={values} min={min} max={max} step={step} fill={showFill} fillId={id} color={color} strokeWidth={strokeWidth} glow={glow} curve={curve} flat={roomyBox} grid={gridOn && roomyBox} className={className} />;
@@ -955,13 +959,15 @@ export function Logo({ src, name, className = "", size = "text-3xl", ip }: { src
  */
 export function HoldMark({ at, vertical }: { at: number; vertical?: boolean }) {
   const pct = holdPct(at);
+  const shape = useSkin().hold;
+  const dot = shape === "dot" ? (vertical ? { left: 0, right: 0, margin: "0 auto", width: HOLD_PX, bottom: 0, height: HOLD_PX } : { top: 0, bottom: 0, margin: "auto 0", height: HOLD_PX, left: 0, width: HOLD_PX }) : null;
   return (
     <span aria-hidden data-qa-bleed className="pointer-events-none absolute inset-0 overflow-hidden">
       <span
         className="absolute transition-transform duration-150"
         style={vertical ? { inset: `${HOLD_PX}px 0 0 0`, transform: `translateY(${-pct}%)` } : { inset: `0 ${HOLD_PX}px 0 0`, transform: `translateX(${pct}%)` }}
       >
-        <span className="absolute rounded-full bg-[color:var(--w-fg)]" style={vertical ? { bottom: 0, left: 0, right: 0, height: HOLD_PX } : { left: 0, top: 0, bottom: 0, width: HOLD_PX }} />
+        <span className={`absolute ${shape === "block" ? "" : "rounded-full"} bg-[color:var(--w-fg)]`} style={dot ?? (vertical ? { bottom: 0, left: 0, right: 0, height: HOLD_PX } : { left: 0, top: 0, bottom: 0, width: HOLD_PX })} />
       </span>
     </span>
   );
@@ -987,9 +993,13 @@ export interface LedLadderProps {
 }
 // Segmented level ladder, accent → amber → red; a segment is lit when its centre is at or below the value.
 const UNLIT = 12;
+/** `a` over `b` by `t` (0..1), for a blended ladder. */
+const mixOf = (a: string, b: string, t: number): string => `color-mix(in oklab, ${a} ${Math.round(t * 100)}%, ${b})`;
 export function LedLadder({ value, n = 24, vertical, reverse, zones = [72, 90], hold, color = "var(--w-accent)", hotColor, ipKey }: LedLadderProps) {
   const v = clamp(value);
-  const status = useSkin().shellStatus ? TONES : STATE;
+  const sk = useSkin();
+  const status = sk.shellStatus ? TONES : STATE;
+  const blend = sk.zones === "blend";
   const tagging = useContext(IpTagCtx) && ipKey;
   // The zone colours as CSS (the conversion resolves them on the page), the unlit one last.
   const tag = tagging
@@ -999,7 +1009,8 @@ export function LedLadder({ value, n = 24, vertical, reverse, zones = [72, 90], 
     <div {...tag} data-part="meter" className={`relative flex flex-1 gap-[2px] ${vertical ? "w-full flex-col-reverse" : `h-full ${reverse ? "flex-row-reverse" : "flex-row"}`}`}>
       {Array.from({ length: n }, (_, i) => {
         const at = ((i + 0.5) / n) * 100;
-        const c = at > zones[1] ? hotColor ?? status.crit : at > zones[0] ? status.warn : color;
+        const hot = hotColor ?? status.crit;
+        const c = blend ? (at > zones[1] ? mixOf(hot, status.warn, (at - zones[1]) / (100 - zones[1])) : at > zones[0] ? mixOf(status.warn, color, (at - zones[0]) / (zones[1] - zones[0])) : color) : at > zones[1] ? hot : at > zones[0] ? status.warn : color;
         // unlit segments are the surface's track tinted by their zone, so they read on light surfaces as well as dark
         return <span key={i} className="min-h-0 min-w-0 flex-1 rounded-[2px]" style={at <= v ? { background: c, opacity: 1 } : { background: `color-mix(in oklab, ${c} ${UNLIT}%, var(--w-track))` }} />;
       })}

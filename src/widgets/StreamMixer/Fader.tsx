@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { clamp } from "../kit";
+import { useSkin } from "../core/theme";
 
 export type FaderMode = "leds" | "bar";
 
@@ -30,6 +31,7 @@ export function MixFader({ value, color, segs, mode, vertical = false, label, on
   const release = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => () => clearTimeout(release.current), []);
   const live = !!onChange;
+  const knob = useSkin().knob;
   const shown = drag ?? value;
   /** What assistive tech and the keys see: a whole percent in range, whatever the server sent. */
   const now = Math.round(clamp(shown));
@@ -109,8 +111,8 @@ export function MixFader({ value, color, segs, mode, vertical = false, label, on
       )}
       {live && (
       <div
-        className={`pointer-events-none absolute rounded-full bg-white shadow-[0_0_0_2px_rgba(0,0,0,.5)] ${vertical ? "-left-1 -right-1 h-[3px] -translate-y-1/2" : "-bottom-1 -top-1 w-[3px] -translate-x-1/2"}`}
-        style={vertical ? { bottom: `${shown}%`, transform: "translateY(50%)" } : { left: `${shown}%` }}
+        className={`pointer-events-none absolute ${knob === "bar" ? "" : knob === "square" ? "rounded-[2px]" : "rounded-full"} bg-white shadow-[0_0_0_2px_rgba(0,0,0,.5)] ${knob === "square" ? "h-3 w-3" : vertical ? `${knob === "notch" ? "left-0 right-0" : "-left-1 -right-1"} h-[3px] -translate-y-1/2` : `${knob === "notch" ? "bottom-0 top-0" : "-bottom-1 -top-1"} w-[3px] -translate-x-1/2`}`}
+        style={knob === "square" ? (vertical ? { bottom: `${shown}%`, left: "50%", transform: "translate(-50%,50%)" } : { left: `${shown}%`, top: "50%", transform: "translate(-50%,-50%)" }) : vertical ? { bottom: `${shown}%`, transform: "translateY(50%)" } : { left: `${shown}%` }}
       />
       )}
     </div>

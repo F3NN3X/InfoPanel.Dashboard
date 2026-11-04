@@ -1,5 +1,6 @@
 import { readSystemFlat } from "@/lib/system-metrics";
 import type { ModuleSettings } from "@/modules/types";
+import { SKINS } from "./core/theme";
 import { fitFontPx } from "./fit-font";
 import { Unit, bodyGap, fitRows, Widget, shell, get, num, fmt, fmtRate, rateParts, toMBps, detect, Spark, useHistory, useSkin, tone, TONES, hw, type ShellProps } from "./kit";
 import { meta } from "./meta/Vitals";
@@ -93,7 +94,7 @@ export default function Vitals(p: VitalsProps) {
         return (
           <div className="grid h-full gap-2" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))`, gridAutoRows: "minmax(0,1fr)" }}>
             {shown.map((k) => (
-              <VitalCard key={k} m={all[k]} hist={H[k]} w={cardW} h={cardH} tui={p.skin === "tui"} />
+              <VitalCard key={k} m={all[k]} hist={H[k]} w={cardW} h={cardH} tui={!!SKINS[p.skin ?? "default"]?.boxed} />
             ))}
           </div>
         );

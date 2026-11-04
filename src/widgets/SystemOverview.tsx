@@ -3,6 +3,7 @@ import { DEFAULT_ACCENT } from "@/looks/palette";
 import type { ModuleSettings } from "@/modules/types";
 import { diskMetric, filterDisks, formatTemp, netMetric, pickAdapter, pickDisk, rateTop, readAdaptersFlat, readSystemFlat, systemKeysFlat, type DiskReading, type DiskValue, type NetDirection } from "@/lib/system-metrics";
 import { MetricGauges, MetricGraphs, type MetricRow } from "./SystemOverviewViews";
+import { SKINS } from "./core/theme";
 import { accentVars, useFitRows, Widget, shell, get, num, fmt, fmtRate, pretty, Ring, RingStack, Spark, Bar, Empty, heat, useHistory, tone, TONES, hw, Num, scaleY, useSkin, useIpTag, ToneCue, type ShellProps, type Tone } from "./kit";
 import { meta } from "./meta/SystemOverview";
 
@@ -269,7 +270,7 @@ export default function SystemOverview(p: SystemOverviewProps) {
   const keys = (p.sections ?? (["cpu", "gpu", "ram"] as Section[])).filter((k) => ALL[k]?.present);
   const label = (k: Section) => p.labels?.[k] || LABEL[k];
   const skinned = p.skin && p.skin !== "default";
-  const col = (k: Section): string | undefined => (p.unifiedColor ? undefined : p.colors?.[k] || (skinned ? (p.skin === "ink" ? undefined : sectionColor(k)) : DEF[k]));
+  const col = (k: Section): string | undefined => (p.unifiedColor ? undefined : p.colors?.[k] || (skinned ? (SKINS[p.skin!]?.plainSections ? undefined : sectionColor(k)) : DEF[k]));
   const vars = (k: Section) => {
     const c = col(k);
     return c ? (accentVars(c) as CSSProperties) : undefined;

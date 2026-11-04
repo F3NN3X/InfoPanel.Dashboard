@@ -34,7 +34,7 @@ export function CompactView({ c, shape, w, h, icon }: { c: Compact; shape: Shape
   const textLen = String(val ?? "–").length + (inlineUnit ? String(inlineUnit).length * 0.4 : 0);
   const fit = (base: number, avail: number) => ({ fontSize: Math.round(Math.max(13, Math.min(base, avail / (Math.max(2.5, textLen) * 0.62 * (sk.numWide ?? 1))))) });
   const value = (cls: string, base?: number, avail = 0) => (
-    <span data-part="num" {...c.ip} className={`${cls} ${c.blur ? "blur-[4px] hover:blur-0" : ""} block max-w-full overflow-x-clip whitespace-nowrap font-semibold leading-none tracking-tight tabular-nums`} style={{ ...(base ? fit(base, avail) : null), fontFamily: sk.num, fontWeight: sk.numWeight, ...(sk.numGlow ? { ...NUM_TINT, ...numGlowStyle(sk) } : null), ...(c.t && c.t !== "ok" ? { color: TONES[c.t] } : null), ...(none ? NO_VALUE : null) }}>
+    <span data-part="num" {...c.ip} className={`${cls} ${c.blur ? "blur-[4px] hover:blur-0" : ""} block max-w-full overflow-x-clip whitespace-nowrap font-semibold leading-none tracking-tight tabular-nums`} style={{ ...(base ? fit(base, avail) : null), fontFamily: sk.num, fontWeight: sk.numWeight, ...(sk.numGlow || sk.numFill || sk.numChroma ? { ...NUM_TINT, ...numGlowStyle(sk) } : null), ...(c.t && c.t !== "ok" ? { color: TONES[c.t] } : null), ...(none ? NO_VALUE : null) }}>
       {val ?? "–"}
       {inlineUnit && !none && <Unit>{inlineUnit}</Unit>}
     </span>
@@ -415,6 +415,26 @@ export function SkinHeader({ kind, title, icon, right, bleed, bg = "#0b0b0d", w 
         {icon && (
           <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full" style={{ background: mix(28, "#1b1b1f") }}>
             <Icon name={icon} fill className="text-[16px]" />
+          </span>
+        )}
+        <span className="truncate">{title}</span>
+        {r}
+      </header>
+    );
+  if (kind === "prompt")
+    return (
+      <header data-part="header" className={`${base} mb-2 gap-1.5 font-mono text-micro text-[color:var(--w-accent)]`} style={st("none")}>
+        <span aria-hidden>&gt;</span>
+        <span className="truncate">{title}</span>
+        {r}
+      </header>
+    );
+  if (kind === "icon-badge")
+    return (
+      <header data-part="header" className={`${base} mb-2 gap-2 text-[13px] font-medium text-[color:var(--w-fg)]`} style={st("none")}>
+        {icon && (
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md" style={{ background: mix(22), color: "var(--w-accent)" }}>
+            <Icon name={icon} className="text-[14px]" />
           </span>
         )}
         <span className="truncate">{title}</span>
