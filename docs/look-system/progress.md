@@ -346,3 +346,4 @@ Open items carried between phases. Each phase adds what it finds or defers, and 
 | L47 | P5b | J5 is 6 clicks against F5's 5: Apply to other screens is still in Saved and template looks, not beside Save look | P7 | open |
 | L48 | P5b | Two corner controls: the Corners knob (widget `radius`) and the look card's Base corners (screen `radius`, rem); 9.5 maps both to Corners | P6 or P7 | open |
 | L49 | P5b fix 1 | The widget inspector stores a widget's own Look's card as its value (only the Look view leaves it to the Look, `withoutOwnCard`); a widget with its own Look and only that card gets no layer | P7 | open |
+| L50 | P5b | Flaky `overflow` frame: `StreamControl@4x2` descendant count differed once in a controller `verify:full` (passed 3/3 alone and on the rerun). A gating check must be deterministic: find what StreamControl renders by time or order | P6 | open |
