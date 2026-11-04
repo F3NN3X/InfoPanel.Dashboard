@@ -25,7 +25,7 @@ export interface UserPackInfo {
 /** The route's own id pattern (`is_pack_id`, packs.rs). */
 export const USER_PACK_ID = /^[a-z0-9][a-z0-9-]{0,47}$/;
 const ROUTE = "/api/packs";
-const LICENCES = ["OFL.txt", "LICENSE.txt", "LICENCE.txt"];
+const LICENCES = ["OFL.txt"];
 
 /** The packs the server lists (empty when the folder is off or the request fails). */
 export async function listUserPacks(): Promise<UserPackInfo[]> {
@@ -56,7 +56,7 @@ const parsed = (bytes: Uint8Array | undefined): unknown => {
   }
 };
 
-/** The files of a pack as the route holds them: pack.json, look.json, icons.json, a licence and each asset pack.json lists (the route has no folder listing). */
+/** The files of a pack as the route holds them: pack.json, look.json, icons.json, the licence and each asset pack.json lists (the route has no folder listing). */
 export async function readUserPack(id: string): Promise<PackSource> {
   const [pack, look, icons] = await Promise.all(["pack.json", "look.json", "icons.json"].map((f) => bytesOf(id, f)));
   const listed = ((parsed(pack) as { assets?: { file?: unknown }[] } | undefined)?.assets ?? []).flatMap((a) => (typeof a?.file === "string" ? [`assets/${a.file}`] : [])).slice(0, FILE_COUNT_MAX);

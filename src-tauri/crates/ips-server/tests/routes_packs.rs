@@ -400,7 +400,7 @@ async fn an_import_over_the_caps_is_413() {
     list.push(("OFL.txt", &big));
     assert_eq!(send(s.port, "POST", "/api/packs", &WRITE, &import_body("mine", &list)).await.status, 413);
     let mut list = pairs(&ok);
-    list.extend([("OFL.txt", half.as_str()), ("LICENSE.txt", half.as_str()), ("LICENCE.txt", half.as_str())]);
+    list.extend([("OFL.txt", half.as_str()), ("thumb.png", half.as_str()), ("thumb.jpg", half.as_str())]);
     assert_eq!(send(s.port, "POST", "/api/packs", &WRITE, &import_body("mine", &list)).await.status, 413, "over 512,000 in all");
     let names: Vec<String> = (0..65).map(|k| format!("assets/f{k}.png")).collect();
     let mut list = pairs(&ok);

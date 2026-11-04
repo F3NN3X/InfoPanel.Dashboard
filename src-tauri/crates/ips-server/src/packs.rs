@@ -36,7 +36,7 @@ const IMPORT_BODY_MAX: usize = (PACK_CEILING_BYTES as usize) * 4 / 3 + 64 * 1024
 
 const TEMP_PREFIX: &str = ".import-";
 /// The files at the top of a pack folder, by name.
-const ROOT_FILES: [&str; 9] = ["pack.json", "look.json", "icons.json", "OFL.txt", "LICENSE.txt", "LICENCE.txt", "thumb.png", "thumb.jpg", "thumb.webp"];
+const ROOT_FILES: [&str; 7] = ["pack.json", "look.json", "icons.json", "OFL.txt", "thumb.png", "thumb.jpg", "thumb.webp"];
 /// The extensions an asset may have (`assets/<name>.<ext>`) and their types.
 const ASSET_EXTS: [&str; 5] = ["woff2", "png", "jpg", "webp", "svg"];
 const NO_PACK_CSS: &str = "a user pack carries no pack.css";

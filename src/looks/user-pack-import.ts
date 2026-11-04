@@ -21,7 +21,7 @@ export interface ImportReport {
 }
 
 /** The files the server stores (`is_pack_file`, packs.rs): the fixed names and `assets/<name>.<ext>`. Everything else is left out. */
-const STORED = /^(pack\.json|look\.json|icons\.json|OFL\.txt|LICENSE\.txt|LICENCE\.txt|thumb\.(png|jpg|webp)|assets\/[a-z0-9][a-z0-9-]{0,63}\.(woff2|png|jpg|webp|svg))$/;
+const STORED = /^(pack\.json|look\.json|icons\.json|OFL\.txt|thumb\.(png|jpg|webp)|assets\/[a-z0-9][a-z0-9-]{0,63}\.(woff2|png|jpg|webp|svg))$/;
 
 /** What each rule means to someone who has not read the spec; a rule not here gives its own message. */
 const PLAIN: Record<string, string> = {
