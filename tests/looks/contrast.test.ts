@@ -12,7 +12,11 @@ import { RAMP_START } from "@/looks/data-viz";
 import { TEXT_VARS } from "@/widgets/core/theme";
 
 /** Failures a Look knows and a ledger row owns: `<look>/<mode>/<card>/<pair>`. */
-const KNOWN_GAPS: Record<string, string> = {};
+const KNOWN_GAPS: Record<string, string> = {
+  // The accent as `ok` text on the cream cards: 4.21 and 4.43 (3:1 for numerals holds). Their accents were darkened once already for the mockup's look (L36).
+  "field-kit/light/look-field-kit/ok": "L51",
+  "tape-86/light/look-tape-86/ok": "L51",
+};
 
 const MIN = 4.5;
 type Pair = "fg" | "muted" | "ok" | "warn" | "crit" | "axis-label";
@@ -37,7 +41,8 @@ function colours(look: Look, mode: LookMode, fill: string): Record<Pair, string>
   return {
     fg: String(style.textColor ?? vars["--w-fg"]),
     muted: String(style.mutedColor ?? vars["--w-muted"]),
-    ok: mode === "light" ? accentInk(accent, fill) : accent,
+    // Only Classic's default accent darkens on a light card (`accentInk`); an accent a Look sets is its own.
+    ok: look.id === "classic" && mode === "light" ? accentInk(accent, fill) : accent,
     warn: String(style.warn ?? vars["--w-warn"] ?? status.warn),
     crit: String(style.crit ?? vars["--w-crit"] ?? status.crit),
     "axis-label": vars["--w-faint"],
@@ -67,8 +72,13 @@ describe("Look contrast (D13)", () => {
     expect(failures).toEqual([]);
   });
 
-  it("lists no gap that now passes", async () => {
-    for (const key of Object.keys(KNOWN_GAPS)) expect(key.split("/")).toHaveLength(4);
+  it("lists only gaps that still fail", async () => {
+    const [kit, tape] = await Promise.all([loadLook("field-kit"), loadLook("tape-86")]);
+    for (const [look, id, card] of [[kit, "field-kit", "look-field-kit"], [tape, "tape-86", "look-tape-86"]] as const) {
+      const fill = cards(look!, "light")[card];
+      expect(contrastOf(colours(look!, "light", fill).ok, fill)).toBeLessThan(MIN);
+      expect(KNOWN_GAPS[`${id}/light/${card}/ok`]).toBe("L51");
+    }
   });
 
   it("darkens an accent that fails on a light card, and keeps one that holds", () => {

@@ -96,7 +96,7 @@ describe("Widget look", () => {
     expect(light).toContain("--w-ok:#15803d");
     expect(light).toContain("--w-accent:#27795d");
     expect(light).toContain("--accent:#34d399");
-    expect(render({ surface: "matte-light", accent: "#5B3FD4" })).toContain("--w-accent:#5B3FD4");
+    expect(render({ surface: "matte-light", accent: "#ac8ff8" })).toContain("--w-accent:#ac8ff8");
     const dark = render({ surface: "glass" });
     expect(dark).not.toContain("data-mode");
     expect(dark).toContain("--w-accent:#34d399");

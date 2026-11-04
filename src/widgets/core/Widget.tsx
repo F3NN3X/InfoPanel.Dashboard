@@ -136,7 +136,8 @@ export function Widget({ title, icon, iconOverride, accent, surface, radius, siz
     ...materialVars(mat),
     ...textVars(surf.tone, chrome),
     ...chromeVars(chrome),
-    ...accentVars(resolveAccent(chrome?.accent || accent, sk, surf.tone), surf.tone),
+    // Only the default accent darkens on a light card: an accent the user or the Look set is theirs (G1).
+    ...accentVars(resolveAccent(chrome?.accent || accent, sk, surf.tone), chrome?.accent || accent ? undefined : surf.tone),
     color: "var(--w-fg)",
     // A roomy box (4x4) grows the body type: the theme's type tokens, so every text-micro / caption / body / title follows; and sets the hero size `Metric` reads.
     ...(big ? { ...(fixedType ? null : typeVars(ROOMY_SCALE)), "--w-hero": `${heroPx(box.w, box.h)}px` } : null),
