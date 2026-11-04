@@ -1,7 +1,9 @@
 // The pack loader (P9): the one place a pack enters the app, and where G4 is enforced for it. A pack is code in a chunk of
 // its own; before the app uses it, every CSS string and file path it names goes through `pack-urls`, its stage is held to
 // 3 layers and its gradient numerals to 3:1 (G6). A pack that fails any check is refused whole, never trimmed.
-import type { ScreenTemplate } from "@/lib/screen-templates/kit";
+import { instantiate } from "@/lib/screen-templates/instantiate";
+import type { ScreenTemplate, ShapeClass, ShapeLayout } from "@/lib/screen-templates/kit";
+import { modules } from "@/modules";
 import { safeFill, safeGradient } from "@/widgets/core/t3-tokens";
 import { effectIssues, SIZE_CLASSES } from "./effects";
 import { iconSetIssues } from "./icon-set";
@@ -63,17 +65,48 @@ function baseIssue(base: string): boolean {
   return !(base.endsWith("/") && !/["'()\s]/.test(base) && (rest === "" || isPackRelativeUrl(rest)));
 }
 
-/** The problems with a pack's page templates: each is made for this pack's Look, and its id starts with the pack's so two packs never clash. */
+const SHAPE_CLASSES: readonly string[] = ["strip", "wide", "standard", "tall"];
+const isCount = (n: unknown): n is number => Number.isInteger(n) && (n as number) >= 1 && (n as number) <= 64;
+const isPx = (n: unknown): n is number => Number.isInteger(n) && (n as number) >= 1 && (n as number) <= 16384;
+const MODULE_IDS = new Set(modules.map((m) => m.id));
+
+/** What a layout needs to make a screen: a grid, a zone on every page, each zone a known widget inside the grid. */
+function layoutIssues(at: string, layout: ShapeLayout | undefined): string[] {
+  if (!layout || !isCount(layout.cols) || !isCount(layout.rows)) return [`${at} grid`];
+  if (!Array.isArray(layout.pages) || layout.pages.length === 0) return [`${at} has no page`];
+  const issues: string[] = [];
+  layout.pages.forEach((zones, p) => {
+    if (!Array.isArray(zones) || zones.length === 0) return void issues.push(`${at} page ${p} has no zone`);
+    for (const z of zones) {
+      if (!MODULE_IDS.has(z?.module)) issues.push(`${at} page ${p} widget ${String(z?.module)}`);
+      const box = z?.at;
+      if (!Array.isArray(box) || box.length !== 4 || !box.every(isCount) || box[0] + box[2] - 1 > layout.cols || box[1] + box[3] - 1 > layout.rows) issues.push(`${at} page ${p} zone ${String(z?.module)} is off the grid`);
+    }
+  });
+  return issues;
+}
+
+/** The problems with a pack's page templates: each is made for this pack's Look, its id starts with the pack's so two packs never clash, and it makes a screen at its own size. */
 function templateIssues(pack: Pack): string[] {
   const list = pack.templates ?? [];
   if (!Array.isArray(list)) return ["templates is not a list"];
   const issues = list.length > MAX_TEMPLATES ? [`${list.length} templates, at most ${MAX_TEMPLATES}`] : [];
   const seen = new Set<string>();
   for (const t of list) {
+    const before = issues.length;
     if (typeof t?.id !== "string" || !t.id.startsWith(`${pack.id}-`) || seen.has(t.id)) issues.push(`template id ${String(t?.id)}`);
     else seen.add(t.id);
     if (t?.look?.style?.lookId !== pack.id) issues.push(`template ${t?.id} does not wear the pack's Look`);
     if (!t?.layouts || Object.keys(t.layouts).length === 0) issues.push(`template ${t?.id} has no layout`);
+    if (typeof t?.name !== "string" || !isPx(t.size?.width) || !isPx(t.size?.height)) issues.push(`template ${t?.id} name or size`);
+    if (!Array.isArray(t?.fits) || t.fits.length === 0 || t.fits.some((c: ShapeClass) => !t.layouts?.[c])) issues.push(`template ${t?.id} fits a class with no layout`);
+    for (const [cls, layout] of Object.entries(t?.layouts ?? {})) issues.push(...layoutIssues(`template ${t.id} ${cls}`, SHAPE_CLASSES.includes(cls) ? layout : undefined));
+    if (issues.length > before) continue;
+    try {
+      instantiate(t, { name: t.name, width: t.size.width, height: t.size.height });
+    } catch {
+      issues.push(`template ${t.id} cannot make a screen at ${t.size.width}x${t.size.height}`);
+    }
   }
   return issues;
 }
@@ -135,11 +168,22 @@ export function sharedPack(id: string): Promise<Pack | undefined> {
   return pack;
 }
 
+let worn = 0;
 const mounted = new Map<string, { el: HTMLStyleElement; users: number }>();
 
 /** Puts a pack's CSS in the page, scoped and in `@layer look` (one `<style data-pack>` per pack, however many users); returns the function that lets go of it. */
 export function mountPackCss(pack: Pack): () => void {
-  if (!pack.css) return () => {};
+  // Whatever the pack brings, wearing it is a root flag (lite mode then drops widget blur, index.css `data-pack-worn`).
+  worn++;
+  document.documentElement.setAttribute("data-pack-worn", "");
+  let held = true;
+  const letGo = () => {
+    if (!held) return false;
+    held = false;
+    if (--worn === 0) document.documentElement.removeAttribute("data-pack-worn");
+    return true;
+  };
+  if (!pack.css) return () => void letGo();
   let entry = mounted.get(pack.id);
   if (!entry) {
     const el = document.createElement("style");
@@ -151,10 +195,8 @@ export function mountPackCss(pack: Pack): () => void {
   }
   entry.users++;
   const mine = entry;
-  let held = true;
   return () => {
-    if (!held) return;
-    held = false;
+    if (!letGo()) return;
     if (--mine.users === 0) {
       mine.el.remove();
       if (mounted.get(pack.id) === mine) mounted.delete(pack.id);

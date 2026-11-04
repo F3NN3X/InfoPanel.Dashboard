@@ -736,9 +736,8 @@ export default function App({ fixture }: AppProps = {}) {
           // "Reserve space": the zones start under the island instead of beneath it. Always set, so
           // React never removes it from under the `padding` shorthand.
           paddingTop: profilePadding(profile, kiosk) + (bottomIsland ? 0 : reserve),
-          // The dots' strip: they sit in the bottom padding, so no zone is under them.
-          ...(pageNav && { paddingBottom: Math.max(profilePadding(profile, kiosk), pageDotsStripPx()) }),
-          ...(bottomIsland && reserve > 0 && { paddingBottom: Math.max(profilePadding(profile, kiosk), pageNav ? pageDotsStripPx() : 0) + reserve }),
+          // The dots' strip: they sit in the bottom padding, so no zone is under them. Always set, like paddingTop.
+          paddingBottom: Math.max(profilePadding(profile, kiosk), pageNav ? pageDotsStripPx() : 0) + (bottomIsland ? reserve : 0),
           // Vertical scrolling stays with the browser; horizontal moves reach the swipe.
           ...(pageNav && { touchAction: "pan-y" }),
           fontFamily: fontStack(resolveFont(profile)),

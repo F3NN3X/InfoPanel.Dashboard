@@ -641,25 +641,17 @@
   }
 }
 
-/* Pack effects and burn-in protection (src/looks/pack-stage.tsx): app-owned motion on the pack's own layers, never a widget.
-   Lite mode stops all of it (the rule above); the planner (src/looks/effects.ts) has already dropped what lite mode cuts. */
-@keyframes wp-shift {
-  0%, 100% { transform: translate(0, 0) scale(1.01); }
-  25% { transform: translate(1px, 0) scale(1.01); }
-  50% { transform: translate(1px, 1px) scale(1.01); }
-  75% { transform: translate(0, 1px) scale(1.01); }
-}
-/* A step every 150 s: a 1 px move nobody watches happen. */
-[data-pack-deco~="shift"] { animation: wp-shift 600s steps(1) infinite; }
+/* Pack effects and burn-in protection (src/looks/pack-stage.tsx): app-owned paint on the pack's own layers, never a widget.
+   Lite mode stops the effects' animation and the dim's fade (the rule above); the planner (src/looks/effects.ts) has already dropped what lite mode cuts.
+   The pixel shift and the idle dim are inline styles, not animations, so they keep working in lite mode. */
 [data-pack-deco~="dim"] { transition: opacity 3s ease; }
-[data-pack-deco~="dim"][data-idle] { opacity: 0.35 !important; }
 @keyframes wp-fx-roll { to { background-position: 0 3px; } }
 @keyframes wp-fx-grain { 0% { background-position: 0 0; } 25% { background-position: -40px 20px; } 50% { background-position: 30px -50px; } 75% { background-position: -20px -30px; } 100% { background-position: 0 0; } }
 [data-pack-effect="scanlines"][data-pack-animate] { animation: wp-fx-roll 6s linear infinite; }
 [data-pack-effect="grain"][data-pack-animate] { animation: wp-fx-grain 1s steps(4) infinite; }
-/* Lite mode with a pack worn: widget blur is off (cap 0, section 9.3), and a blurred card fills to its fallback alpha instead, over any page. */
-:root[data-pack-lite] { --wp-blur-cap: 0px !important; }
-:root[data-pack-lite] [data-wp-tier][data-mat-blur] {
+/* Lite mode with a pack worn (any pack, stage or not): widget blur is off (cap 0, section 9.3), and a blurred card fills to its fallback alpha instead, over any page. */
+:root[data-lite-motion][data-pack-worn] { --wp-blur-cap: 0px !important; }
+:root[data-lite-motion][data-pack-worn] [data-wp-tier][data-mat-blur] {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   background: var(--w-mat-fallback);

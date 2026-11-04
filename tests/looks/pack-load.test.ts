@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { effectIssues } from "@/looks/effects";
 import { PACK_IDS, type Pack } from "@/looks/pack";
 import { BUILTIN, loadPack, packIssues, registerPack, unregisterPack } from "@/looks/pack-load";
 import { badPack, TEST_PACK } from "./__fixtures__/test-pack";
@@ -91,7 +92,7 @@ describe("the pack loader (G4)", () => {
 });
 
 describe("the pack loader (P9b parts)", () => {
-  const template = { id: "test-pack-hero", name: "Hero", blurb: "", fits: ["standard"], size: { width: 1920, height: 1080 }, look: { style: { lookId: "test-pack" } }, layouts: { standard: { cols: 1, rows: 1, pages: [[]] } } };
+  const template = { id: "test-pack-hero", name: "Hero", blurb: "", fits: ["standard"], size: { width: 1920, height: 1080 }, look: { style: { lookId: "test-pack" } }, layouts: { standard: { cols: 1, rows: 1, pages: [[{ module: "Clock", at: [1, 1, 1, 1] }]] } } };
 
   it("accepts effects, burn-in, a status bar edge, connectors, an icon set and templates", () => {
     const pack = badPack({
@@ -127,5 +128,35 @@ describe("the pack loader (P9b parts)", () => {
     } finally {
       unregisterPack("test-pack");
     }
+  });
+});
+
+describe("the pack loader (review round 1)", () => {
+  const zone = { module: "Clock", at: [1, 1, 1, 1] };
+  const template = { id: "test-pack-hero", name: "Hero", blurb: "", fits: ["standard"], size: { width: 1920, height: 1080 }, look: { style: { lookId: "test-pack" } }, layouts: { standard: { cols: 2, rows: 2, pages: [[zone]] } } };
+  const withTemplate = (patch: object) => badPack({ templates: [{ ...template, ...patch }] as never });
+
+  it("accepts a template that makes a screen", () => {
+    expect(packIssues(withTemplate({}))).toEqual([]);
+  });
+
+  it.each([
+    ["a page with no zone", { layouts: { standard: { cols: 2, rows: 2, pages: [[]] } } }],
+    ["a layout without pages", { layouts: { standard: { cols: 2, rows: 2, pages: [] } } }],
+    ["a zone off the grid", { layouts: { standard: { cols: 2, rows: 2, pages: [[{ module: "Clock", at: [2, 1, 2, 1] }]] } } }],
+    ["a zone box that is not four whole numbers", { layouts: { standard: { cols: 2, rows: 2, pages: [[{ module: "Clock", at: [1, 1, 0, 1] }]] } } }],
+    ["a widget that does not exist", { layouts: { standard: { cols: 2, rows: 2, pages: [[{ module: "no-such-widget", at: [1, 1, 1, 1] }]] } } }],
+    ["a grid with no columns", { layouts: { standard: { cols: 0, rows: 2, pages: [[zone]] } } }],
+    ["a class it fits with no layout", { fits: ["standard", "tall"] }],
+    ["a layout under an unknown class", { layouts: { standard: { cols: 2, rows: 2, pages: [[zone]] }, huge: { cols: 1, rows: 1, pages: [[zone]] } } }],
+    ["a size that is not a size", { size: { width: 0, height: 1080 } }],
+    ["no name", { name: undefined }],
+  ])("refuses a template with %s", (_, patch) => {
+    expect(packIssues(withTemplate(patch))).not.toEqual([]);
+  });
+
+  it("refuses a pack whose effects list holds a null, without throwing", () => {
+    expect(effectIssues([null as never])).toEqual(["effect 0 is not an effect"]);
+    expect(packIssues(badPack({ stage: { layers: [], effects: [null as never] } }))).not.toEqual([]);
   });
 });

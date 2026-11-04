@@ -2,7 +2,7 @@
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { PackStage, usePack } from "@/looks/pack";
-import { registerPack, unregisterPack } from "@/looks/pack-load";
+import { mountPackCss, registerPack, unregisterPack } from "@/looks/pack-load";
 import type { Pack } from "@/looks/pack";
 import { badPack, TEST_PACK } from "./__fixtures__/test-pack";
 
@@ -89,5 +89,17 @@ describe("usePack and PackStage", () => {
     expect(seen.length).toBeGreaterThan(0);
     expect(seen.every(([, css]) => css)).toBe(true);
     expect(document.head.querySelectorAll("style[data-pack]")).toHaveLength(1);
+  });
+
+  it("flags the root while any pack is worn, with or without CSS, and clears it with the last", () => {
+    const root = document.documentElement;
+    const plain = mountPackCss(badPack({ id: "no-css", css: undefined }));
+    const styled = mountPackCss(badPack({ id: "with-css", css: "[data-x]{color:red}" }));
+    expect(root.hasAttribute("data-pack-worn")).toBe(true);
+    plain();
+    plain();
+    expect(root.hasAttribute("data-pack-worn")).toBe(true);
+    styled();
+    expect(root.hasAttribute("data-pack-worn")).toBe(false);
   });
 });

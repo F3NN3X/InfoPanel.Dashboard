@@ -633,7 +633,7 @@ export function StudioCanvas({
                   padding,
                   // Always set: React warns when a longhand is removed from under the shorthand.
                   paddingTop: padding + (bottomIsland ? 0 : reserve),
-                  ...(bottomIsland && { paddingBottom: padding + reserve }),
+                  paddingBottom: padding + (bottomIsland ? reserve : 0),
                   fontFamily: font,
                   // The board's dashed outline, 6px off the page.
                   outline: "1px dashed #2a2a31",

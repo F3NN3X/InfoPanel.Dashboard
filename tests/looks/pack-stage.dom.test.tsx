@@ -56,11 +56,64 @@ describe("the pack stage: effects, burn-in and size classes", () => {
     expect(document.querySelectorAll("[data-pack-layer]")).toHaveLength(2);
   });
 
-  it("sets data-pack-lite on the root in lite mode and removes it again", () => {
-    const { unmount } = view({ maxFps: 30 });
-    expect(document.documentElement.hasAttribute("data-pack-lite")).toBe(true);
+  it("drops the animated effects in lite mode", () => {
+    view({ maxFps: 30 });
     expect(document.querySelector("[data-pack-effect='grain']")).toBeNull();
-    unmount();
-    expect(document.documentElement.hasAttribute("data-pack-lite")).toBe(false);
+  });
+
+  it("keeps data-pack-layer as the pack's own index when the size class hides an earlier layer", () => {
+    const hidden: StageViewProps["stage"] = { layers: [{ fill: "#111", minSizeClass: "md" }, { fill: "#222" }] };
+    render(
+      <GeneralProvider value={GENERAL_DEFAULTS}>
+        <PackStageLayers stage={hidden} packId="p" page={{ width: 800, height: 480 }} />
+      </GeneralProvider>,
+    );
+    expect([...document.querySelectorAll("[data-pack-layer]")].map((el) => el.getAttribute("data-pack-layer"))).toEqual(["1"]);
+  });
+
+  describe("burn-in protection", () => {
+    const faint: StageViewProps["stage"] = { layers: [{ fill: "#222", opacity: 0.1 }], effects: [{ kind: "vignette", cost: "static", opacity: 0.5 }] };
+    const faintView = (general: Partial<ResolvedGeneral>, props: Partial<StageViewProps> = {}) =>
+      render(
+        <GeneralProvider value={{ ...GENERAL_DEFAULTS, ...general }}>
+          <PackStageLayers stage={faint} packId="p" {...props} />
+        </GeneralProvider>,
+      );
+
+    it("idle dim scales a layer's own opacity, so a faint layer gets dimmer and never brighter", () => {
+      vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
+      faintView({ idleDim: 5 }, { burnIn: "needs-dim" });
+      const layer = () => document.querySelector<HTMLElement>("[data-pack-layer='0']")!;
+      expect(Number(layer().style.opacity)).toBeCloseTo(0.1);
+      const fx = () => document.querySelector<HTMLElement>("[data-pack-effect='vignette']")!;
+      const awake = Number(fx().style.opacity);
+      act(() => vi.advanceTimersByTime(5 * 60_000 + 10));
+      expect(Number(layer().style.opacity)).toBeCloseTo(0.035);
+      expect(Number(fx().style.opacity)).toBeCloseTo(awake * 0.35);
+      act(() => window.dispatchEvent(new Event("pointerdown")));
+      expect(Number(layer().style.opacity)).toBeCloseTo(0.1);
+    });
+
+    it("dims the overlay and the connectors with the layers", () => {
+      vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
+      const Overlay = () => <i />;
+      faintView({ idleDim: 5 }, { burnIn: "needs-dim", stage: { ...faint, overlay: Overlay }, connectors: { style: "line" }, links: [["a", "b"]] });
+      act(() => vi.advanceTimersByTime(5 * 60_000 + 10));
+      expect(document.querySelector<HTMLElement>("[data-pack-layer='overlay']")!.style.opacity).toBe("0.35");
+      expect(document.querySelector<HTMLElement>("[data-pack-connectors]")!.style.opacity).toBe("0.35");
+    });
+
+    it.each([
+      ["Max FPS under 60", { maxFps: 30 }],
+      ["reduced motion", { motion: "reduce" as const }],
+    ])("pixel shift still steps its offset with %s, layers, effects and connectors together", (_, perf) => {
+      vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] });
+      faintView({ pixelShift: true, ...perf }, { burnIn: "needs-shift", connectors: { style: "line" }, links: [["a", "b"]] });
+      const at = (sel: string) => document.querySelector<HTMLElement>(sel)!.style.transform;
+      expect(at("[data-pack-layer='0']")).toContain("translate(0px, 0px)");
+      act(() => vi.advanceTimersByTime(150_000));
+      expect(at("[data-pack-layer='0']")).toContain("translate(1px, 0px)");
+      expect(at("[data-pack-connectors]")).toContain("translate(1px, 0px)");
+    });
   });
 });

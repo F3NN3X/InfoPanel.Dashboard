@@ -30,3 +30,29 @@ describe("IslandSection, connections note", () => {
     expect(mocks.openSettings).toHaveBeenCalledWith("connections");
   });
 });
+
+describe("IslandSection, edge", () => {
+  const render_ = (edge: "top" | "bottom" | undefined, onChange = vi.fn()) => {
+    render(
+      <IslandSection
+        island={{ ...ISLAND_DEFAULTS, enabled: true, ...(edge ? { edge } : {}) }}
+        previewBus={{ notify: vi.fn() } as never}
+        onChange={onChange}
+        onLook={vi.fn()}
+        onOpenExplorer={vi.fn()}
+        links={{ font: null, clock: null }}
+        lead={null}
+        aside={null}
+      />
+    );
+    return onChange;
+  };
+
+  it("sets the edge, and Auto clears it", () => {
+    const onChange = render_("bottom");
+    fireEvent.click(screen.getByRole("radio", { name: "Top" }));
+    expect(onChange).toHaveBeenLastCalledWith({ edge: "top" });
+    fireEvent.click(screen.getByRole("radio", { name: "Auto" }));
+    expect(onChange).toHaveBeenLastCalledWith({ edge: undefined });
+  });
+});

@@ -245,7 +245,7 @@ export function ScreenDetail({
         />
         <ToggleRow
           label="Pixel shift"
-          hint="Burn-in protection for an always-on panel: a theme pack that needs it moves its page art about 1 px every few minutes. Widgets never move."
+          hint="Burn-in protection for an always-on panel: a theme pack that needs it moves its page art about 1 px every few minutes, also with Max FPS under 60 or reduced motion. Widgets never move."
           value={perf.pixelShift}
           onChange={(on) => onPerformance({ pixelShift: on ? true : undefined })}
         />

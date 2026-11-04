@@ -74,6 +74,7 @@ export function effectIssues(effects: readonly PackEffect[]): string[] {
   const count: Partial<Record<EffectCost, number>> = {};
   effects.forEach((e, i) => {
     const at = `effect ${i}`;
+    if (!e || typeof e !== "object") return void issues.push(`${at} is not an effect`);
     if (!(e.kind in KIND_FLOOR)) return void issues.push(`${at} kind ${String(e.kind)}`);
     if (!EFFECT_COSTS.includes(e.cost)) return void issues.push(`${at} cost ${String(e.cost)}`);
     if (e.cost !== "animated" && COST_RANK[e.cost] < COST_RANK[KIND_FLOOR[e.kind]]) issues.push(`${at}: ${e.kind} costs at least ${KIND_FLOOR[e.kind]}`);

@@ -1,7 +1,7 @@
 // Connectors (D20): lines the app draws between two widgets of a page, styled by the pack (`line` or `elbow`, an optional end
 // dot). The pack never says where they go: the page gives pairs of zone ids (a template with roles, P11) and the layer measures
 // the zones, so a connector follows the grid and never moves a widget. Decoration: click-through, `aria-hidden`.
-import { useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import type { PackConnectors } from "./pack";
 
 export interface Rect {
@@ -26,7 +26,8 @@ export function connectorPath(a: Rect, b: Rect, style: PackConnectors["style"]):
   return { d, from, to };
 }
 
-export default function ConnectorLayer({ links, connectors, className = "" }: { links: readonly (readonly [string, string])[]; connectors: PackConnectors; className?: string }) {
+/** `deco` and `style` carry the stage's burn-in protection (drift, dim), so the lines move and fade with the page layers. */
+export default function ConnectorLayer({ links, connectors, className = "", deco = "", style }: { links: readonly (readonly [string, string])[]; connectors: PackConnectors; className?: string; deco?: string; style?: CSSProperties }) {
   const ref = useRef<SVGSVGElement>(null);
   const [rects, setRects] = useState<Map<string, Rect>>(new Map());
   useLayoutEffect(() => {
@@ -48,7 +49,7 @@ export default function ConnectorLayer({ links, connectors, className = "" }: { 
     return () => watch.disconnect();
   }, [links]);
   return (
-    <svg ref={ref} aria-hidden data-pack-deco="" data-pack-connectors="" className={`pointer-events-none ${className}`} fill="none" stroke="var(--w-accent, currentColor)" strokeWidth={1.5} strokeOpacity={0.6}>
+    <svg ref={ref} aria-hidden data-pack-deco={deco} data-pack-connectors="" className={`pointer-events-none ${className}`} style={style} fill="none" stroke="var(--w-accent, currentColor)" strokeWidth={1.5} strokeOpacity={0.6}>
       {links.map(([from, to]) => {
         const a = rects.get(from);
         const b = rects.get(to);

@@ -14,6 +14,7 @@ import {
   ISLAND_SCALE_MIN,
   ISLAND_STATS_MAX,
   type IslandConfig,
+  type IslandEdge,
   type IslandNotices,
   type IslandStat,
 } from "@/lib/island/config";
@@ -35,6 +36,11 @@ const IDLE_OPTIONS: Options = [
 const SHAPE_OPTIONS: Options = [
   { value: "pill", label: "Pill", title: "Floats below the top edge" },
   { value: "notch", label: "Notch", title: "Sits on the top edge with curved corners, like a laptop notch" },
+];
+const EDGE_OPTIONS: Options = [
+  { value: "auto", label: "Auto", title: "The Look's edge, else the top" },
+  { value: "top", label: "Top" },
+  { value: "bottom", label: "Bottom" },
 ];
 const SIZE_OPTIONS: Options = [
   { value: "s", label: "S" },
@@ -222,6 +228,7 @@ export function IslandSection({ island, previewBus, onChange, onLook, onOpenExpl
       body: (
         <>
           <SegmentedRow label="Style" options={SHAPE_OPTIONS} value={v.shape} onChange={(shape) => onChange({ shape: shape as IslandConfig["shape"] })} />
+          <SegmentedRow label="Edge" options={EDGE_OPTIONS} value={v.edge ?? "auto"} onChange={(edge) => onChange({ edge: edge === "auto" ? undefined : (edge as IslandEdge) })} />
           <SegmentedRow label="Size" options={SIZE_OPTIONS} value={v.size} onChange={(size) => onChange({ size: size as IslandConfig["size"] })} />
           <SliderRow
             label="Scale"

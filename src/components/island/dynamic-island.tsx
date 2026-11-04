@@ -276,7 +276,8 @@ function skinStyle(skin: IslandSkin, notch: boolean, bottom: boolean): CSSProper
     border: skin.border,
     ...worn?.style,
     ...(worn ? { ...accentVars(worn.accent), "--island-skin-accent": worn.accent } : null),
-    [bottom ? "borderBottom" : "borderTop"]: notch && (skin.border || worn) ? "none" : undefined,
+    // Always the edge's own value (the shorthand's when it keeps its edge), so React never removes the longhand from under `border`.
+    [bottom ? "borderBottom" : "borderTop"]: notch && (skin.border || worn) ? "none" : (worn?.style.border ?? skin.border),
     boxShadow: surfaceShadow && skin.boxShadow !== "none" ? `${surfaceShadow}, ${skin.boxShadow}` : surfaceShadow ?? skin.boxShadow,
     backdropFilter: skin.backdropFilter,
     WebkitBackdropFilter: skin.backdropFilter,
