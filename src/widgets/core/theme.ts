@@ -2,7 +2,7 @@
 import { createContext, useContext, type CSSProperties } from "react";
 import { RAMP_BASE, RAMP_START, RAMPS } from "@/looks/data-viz";
 import { DARK_TEXT, DEFAULT_ACCENT } from "@/looks/palette";
-import { STATUS, STATUS_LIGHT } from "@/looks/status";
+import { LIGHT_FILL, STATUS, STATUS_LIGHT } from "@/looks/status";
 import { DEFAULT_MATERIAL, MATERIALS, type Material, type SurfaceTone } from "@/looks/materials";
 import { sampleCards } from "@/looks/sample-cards";
 import { clamp } from "./data";
@@ -49,11 +49,11 @@ export function resolveSurface(surface: string | undefined, skin: string | undef
 /* ───────── text colours (decision 5) ─────────
    The shell sets these on its root from the surface's tone; views and primitives read them, so
    text stays legible on light materials and follows the theme on the theme surface. */
-export type TextVars = Record<"--w-fg" | "--w-muted" | "--w-faint" | "--w-track", string> & Partial<Record<"--w-warn" | "--w-crit" | "--w-fill", string>>;
+export type TextVars = Record<"--w-fg" | "--w-muted" | "--w-faint" | "--w-track", string> & Partial<Record<"--w-ok" | "--w-warn" | "--w-crit" | "--w-fill", string>>;
 export const TEXT_VARS: Record<SurfaceTone, TextVars> = {
   dark: { "--w-fg": DARK_TEXT.fg, "--w-muted": DARK_TEXT.muted, "--w-faint": "#8a8a94", "--w-track": "rgba(255,255,255,.07)" },
   // light and theme surfaces darken the warn / crit text so it keeps contrast (dark surfaces use STATE as is)
-  light: { "--w-fg": "#18181b", "--w-muted": "#52525b", "--w-faint": "#636366", "--w-track": "rgba(24,24,27,.1)", "--w-fill": "#f4f4f5", "--w-warn": STATUS_LIGHT.warn, "--w-crit": STATUS_LIGHT.crit },
+  light: { "--w-fg": "#18181b", "--w-muted": "#52525b", "--w-faint": "#636366", "--w-track": "rgba(24,24,27,.1)", "--w-fill": LIGHT_FILL, "--w-ok": STATUS_LIGHT.ok, "--w-warn": STATUS_LIGHT.warn, "--w-crit": STATUS_LIGHT.crit },
   theme: {
     "--w-fg": "hsl(var(--card-foreground))",
     "--w-muted": "hsl(var(--muted-foreground))",
@@ -64,11 +64,12 @@ export const TEXT_VARS: Record<SurfaceTone, TextVars> = {
     "--w-crit": `color-mix(in oklab, ${STATUS.crit} 60%, hsl(var(--card-foreground)))`,
   },
 };
-/** The text variables for a tone; the look's text / secondary text colours override fg / muted. */
-export function textVars(tone: SurfaceTone, colors?: { textColor?: string; mutedColor?: string }): CSSProperties {
+/** The text variables for a tone; the look's text / secondary text colours override fg / muted, its status colours ok / warn / crit (L33). */
+export function textVars(tone: SurfaceTone, colors?: { textColor?: string; mutedColor?: string; ok?: string; warn?: string; crit?: string }): CSSProperties {
   const v: Record<string, string> = { ...TEXT_VARS[tone] };
   if (colors?.textColor) v["--w-fg"] = colors.textColor;
   if (colors?.mutedColor) v["--w-muted"] = colors.mutedColor;
+  for (const k of ["ok", "warn", "crit"] as const) if (colors?.[k]) v[`--w-${k}`] = colors[k]!;
   return v as CSSProperties;
 }
 

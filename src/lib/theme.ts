@@ -269,9 +269,13 @@ export function themeVars(tokens: ThemeTokens, radius = 0.5): Record<string, str
   };
 }
 
-/** Write a theme (+ corner radius) to the document root as CSS variables. */
+/** The mode a theme draws in (`data-mode`, D3): light when its card is light. */
+export const themeMode = (tokens: ThemeTokens): "dark" | "light" => (Number.parseFloat(tokens.card.split(/\s+/)[2]) > 50 ? "light" : "dark");
+
+/** Write a theme (+ corner radius) to the document root as CSS variables, and its mode as `data-mode`. */
 export function applyTheme(tokens: ThemeTokens, radius = 0.5): void {
   const root = document.documentElement;
+  root.dataset.mode = themeMode(tokens);
   for (const [key, value] of Object.entries(themeVars(tokens, radius))) {
     root.style.setProperty(key, value);
   }

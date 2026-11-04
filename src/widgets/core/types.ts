@@ -132,6 +132,8 @@ export interface SkinContext extends Partial<SkinTokens> {
   meter: string;
   /** Graph stroke-width multiplier from the `stroke` look key (1 = as designed). */
   stroke: number;
+  /** The card is light or the theme's: status colours go through the shell's `--w-ok/-warn/-crit` (set only there), not the dark literals. */
+  shellStatus?: boolean;
   /** Layout gap override in px from the `gap` look key. */
   gap?: number;
   /** The `smoothing` look key is Smooth: graphs, bars and rings glide between samples. */

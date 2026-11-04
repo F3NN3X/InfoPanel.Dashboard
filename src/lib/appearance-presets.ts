@@ -1,7 +1,7 @@
 import { THEME_SETTINGS } from "@/modules/standard-settings";
 import { ALIGN_CODES } from "@/modules/setting-readers";
 import { migrateStyleV7 } from "./settings-migrate";
-import { THEMED_KEYS, themedOf } from "./theme-model";
+import { PALETTE_ROLES, THEMED_KEYS, themedOf } from "./theme-model";
 import { settingKeys, type ModuleSetting, type ModuleSettings } from "@/modules/types";
 import { color, normalizeBackground, type PageBackground } from "./appearance";
 import { DEFAULT_THEME, THEME_PRESETS, type ThemePresetName, type ThemeTokens } from "./theme";
@@ -87,6 +87,8 @@ const isSampleCard = (key: string, value: unknown): boolean => key === "surface"
 /** Whether a value is one the look setting `key` offers. */
 export function isValidStyleValue(key: string, value: unknown): boolean {
   const def = STYLE_DEFS.get(key);
+  // The palette roles (series and status colours) are theme rows of their own, not look settings (L33).
+  if (!def && PALETTE_ROLES.includes(key)) return value === "" || color(value) !== undefined;
   if (!def || !THEMED_KEYS.has(key)) return false;
   if (isSampleCard(key, value)) return true;
   switch (def.type) {

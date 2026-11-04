@@ -106,6 +106,7 @@ export function Widget({ title, icon, iconOverride, accent, surface, radius, siz
   const ctx = useMemo(() => skinContext(skin, { graph, meter, chrome }), [skin, graph, meter, chrome]);
   const isStudio = variant === "studio";
   const surf = resolveSurface(look?.surface ? String(look.surface) : surface, skin, isStudio);
+  const skinCtx = useMemo(() => (surf.tone === "dark" ? ctx : { ...ctx, shellStatus: true }), [ctx, surf.tone]);
   const heading = chrome?.label || title;
   const headIcon = iconOverride || chrome?.icon || icon;
   // Show title off hides the header and the title line of the summary views (`untitled`).
@@ -135,17 +136,17 @@ export function Widget({ title, icon, iconOverride, accent, surface, radius, siz
     ...materialVars(mat),
     ...textVars(surf.tone, chrome),
     ...chromeVars(chrome),
-    ...accentVars(resolveAccent(chrome?.accent || accent, sk, surf.tone)),
+    ...accentVars(resolveAccent(chrome?.accent || accent, sk, surf.tone), surf.tone),
     color: "var(--w-fg)",
     // A roomy box (4x4) grows the body type: the theme's type tokens, so every text-micro / caption / body / title follows; and sets the hero size `Metric` reads.
     ...(big ? { ...(fixedType ? null : typeVars(ROOMY_SCALE)), "--w-hero": `${heroPx(box.w, box.h)}px` } : null),
     ...style,
   } as CSSProperties;
   return (
-    <SkinCtx.Provider value={ctx}>
+    <SkinCtx.Provider value={skinCtx}>
       <RoomyCtx.Provider value={big}>
       <PaneCtx.Provider value={{ className: mat.className, style: surfBox }}>
-      <div ref={ref} style={rootStyle} data-mat={mat.id} data-tone={mat.tone} data-mat-blur={mat.fallback ? "" : undefined} data-wp-scope={css ? scope : undefined} {...numGlowAttr(chrome)} data-wp-tier={box.size} data-wp-roomy={big ? "" : undefined} data-wp-shape={box.shape} data-wp-view={isStudio ? "studio" : useCompact ? "compact" : "body"} className={`relative flex h-full w-full min-w-0 flex-col overflow-hidden antialiased ${mat.className} ${className}`}>
+      <div ref={ref} style={rootStyle} data-mat={mat.id} data-tone={mat.tone} data-mode={mat.tone === "light" ? "light" : undefined} data-mat-blur={mat.fallback ? "" : undefined} data-wp-scope={css ? scope : undefined} {...numGlowAttr(chrome)} data-wp-tier={box.size} data-wp-roomy={big ? "" : undefined} data-wp-shape={box.shape} data-wp-view={isStudio ? "studio" : useCompact ? "compact" : "body"} className={`relative flex h-full w-full min-w-0 flex-col overflow-hidden antialiased ${mat.className} ${className}`}>
         {css && <style>{css}</style>}
         {background && (
           <>

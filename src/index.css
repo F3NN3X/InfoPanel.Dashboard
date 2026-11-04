@@ -9,6 +9,10 @@
   --breakpoint-sm: 600px;
 }
 
+/* D3: `dark:` follows the mode of the theme scope (the page: lib/theme.ts), never the OS. A light card (`data-mode=light`,
+   written only on light cards, so dark markup stays as it was) opts its subtree out. */
+@custom-variant dark (&:where([data-mode=dark], [data-mode=dark] *):not(:where([data-mode=light], [data-mode=light] *)));
+
 /* shadcn theme tokens.
    The raw token variables are HSL triplets ("240 10% 3.9%") written to the
    document root at runtime by lib/theme.ts (applyTheme). @theme inline maps
