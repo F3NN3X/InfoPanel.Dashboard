@@ -6,6 +6,7 @@ import { GLIDE_MS, RING_GAP, RING_T, RING_TRACK } from "@/looks/data-viz";
 import { has, clamp, fmt } from "./data";
 import { mix } from "./tokens";
 import { useSkin, STATE, TONES, tone, numGlowStyle } from "./theme";
+import { gradientStops } from "./t3-tokens";
 import { iconFor } from "./icons";
 import type { SkinTokens, Tone } from "./types";
 import { cn } from "@/lib/utils";
@@ -304,10 +305,26 @@ export interface RingProps {
 const RING_MARKS = { segmented: "repeating-conic-gradient(#000 0 26deg, #0000 26deg 30deg)", ticks: "repeating-conic-gradient(#000 0 2deg, #0000 2deg 10deg)" };
 /** The mask that cuts a ring into segments or ticks (`ring-style`); nothing for an arc. */
 const ringMark = (sk: { ringMark?: keyof typeof RING_MARKS }): CSSProperties | undefined => (sk.ringMark ? { mask: RING_MARKS[sk.ringMark], WebkitMask: RING_MARKS[sk.ringMark] } : undefined);
+/** An SVG gradient across the 100 x 100 drawing from a Look's `ring-fill` / `spark-fill` (a CSS gradient has no SVG form); nothing when the Look sets none. */
+function InkGradient({ id, css, horizontal }: { id: string; css?: string; horizontal?: boolean }) {
+  const stops = gradientStops(css);
+  if (!stops) return null;
+  return (
+    <defs>
+      <linearGradient id={id} gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="100" y2={horizontal ? 0 : 100}>
+        {stops.map((s, i) => (
+          <stop key={i} offset={`${s.offset ?? (i / (stops.length - 1)) * 100}%`} style={{ stopColor: s.colour }} />
+        ))}
+      </linearGradient>
+    </defs>
+  );
+}
 export function Ring({ value, max = 100, thickness: th0, t = "ok", color, track, sweep: own, children, className = "", ipKey: key }: RingProps) {
   const [box, side] = useSide();
   const ipKey = useContext(IpTagCtx) ? key : undefined;
   const sk = useSkin();
+  const inkId = `rg${useId().replace(/:/g, "")}`;
+  const ink = gradientStops(sk.ringFill) ? `url(#${inkId})` : undefined;
   const sweep = own ?? sk.ringArc ?? 360;
   // On the value arc itself, so the track stays in the picture the conversion takes of the rest.
   const tag = ipKey ? { "data-ip-key": ipKey, "data-ip-kind": "ring", "data-ip-max": max, "data-ip-start": sweep < 360 ? -sweep / 2 : 0, "data-ip-sweep": Math.min(360, sweep) } : undefined;
@@ -323,9 +340,10 @@ export function Ring({ value, max = 100, thickness: th0, t = "ok", color, track,
     return (
       <div ref={box} data-part="ring" className={`relative aspect-square ${className}`}>
         <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90" style={ringMark(sk)}>
+          <InkGradient id={inkId} css={sk.ringFill} />
           <g transform={`rotate(${-sweep / 2} 50 50)`}>
             <circle cx="50" cy="50" r={r} fill="none" stroke={track ?? RING_TRACK} strokeWidth={thickness} strokeLinecap={cap} strokeDasharray={`${arc} ${c}`} />
-            <circle cx="50" cy="50" r={r} fill="none" stroke={color ?? TONES[t]} strokeWidth={thickness} strokeLinecap={cap}
+            <circle cx="50" cy="50" r={r} fill="none" stroke={ink ?? color ?? TONES[t]} strokeWidth={thickness} strokeLinecap={cap}
               strokeDasharray={`${arc * pct} ${c}`} style={sk.smooth ? { transition: `stroke-dasharray ${RING_GLIDE_MS}ms linear` } : undefined} data-wp-ring="" {...tag} />
           </g>
         </svg>
@@ -336,8 +354,9 @@ export function Ring({ value, max = 100, thickness: th0, t = "ok", color, track,
   return (
     <div ref={box} data-part="ring" className={`relative aspect-square ${className}`}>
       <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90" style={ringMark(sk)}>
+        <InkGradient id={inkId} css={sk.ringFill} />
         <circle cx="50" cy="50" r={r} fill="none" stroke={track ?? RING_TRACK} strokeWidth={thickness} />
-        <circle cx="50" cy="50" r={r} fill="none" stroke={color ?? TONES[t]} strokeWidth={thickness} strokeLinecap={cap}
+        <circle cx="50" cy="50" r={r} fill="none" stroke={ink ?? color ?? TONES[t]} strokeWidth={thickness} strokeLinecap={cap}
           strokeDasharray={c} strokeDashoffset={ringDashOffset(c, pct, thickness, cap === "round")} style={glide} data-wp-ring="" {...tag} />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ containerType: "inline-size" }}>{children}</div>
@@ -550,8 +569,12 @@ interface GraphPathsProps {
 
 /** The fill gradient, fill and line of a line / area / step graph. */
 function GraphPaths({ line, area, step, fill, fillId, color, strokeWidth, glow, refs }: { line: string; area: string; step: boolean; fill: boolean; fillId: string; color: string; strokeWidth: number; glow?: boolean; refs?: { line: RefObject<SVGPathElement | null>; area: RefObject<SVGPathElement | null>; glow?: RefObject<SVGPathElement | null> } }) {
+  const sk = useSkin();
+  const inkId = `${fillId}k`;
+  const ink = gradientStops(sk.sparkFill) ? `url(#${inkId})` : undefined;
   return (
     <>
+      <InkGradient id={inkId} css={sk.sparkFill} horizontal />
       <defs>
         <linearGradient id={fillId} x1="0" x2="0" y1="0" y2="1">
           <stop offset="0" stopColor={color} stopOpacity=".32" />
@@ -561,7 +584,7 @@ function GraphPaths({ line, area, step, fill, fillId, color, strokeWidth, glow, 
       </defs>
       {fill && <path ref={refs?.area} d={area} fill={step ? color : `url(#${fillId})`} opacity={step ? 0.08 : undefined} />}
       {glow && <path ref={refs?.glow} data-wp-glow-line="" d={line} fill="none" stroke={color} strokeWidth={strokeWidth * 3} opacity={0.3} vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />}
-      <path ref={refs?.line} d={line} fill="none" stroke={color} strokeWidth={strokeWidth} vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />
+      <path ref={refs?.line} d={line} fill="none" stroke={ink ?? color} strokeWidth={strokeWidth} vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />
     </>
   );
 }

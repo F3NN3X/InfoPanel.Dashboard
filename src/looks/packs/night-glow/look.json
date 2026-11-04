@@ -85,7 +85,9 @@
   "t3": {
     "border-fill": "linear-gradient(135deg, #3EE6FF, #9B5CFF 60%, #FF4FD8)",
     "num-fill": "linear-gradient(90deg, #3EE6FF, #9B5CFF 55%, #FF4FD8)",
-    "ring-style": "segmented"
+    "ring-fill": "linear-gradient(135deg, #3EE6FF, #9B5CFF 55%, #FF4FD8)",
+    "ring-style": "segmented",
+    "spark-fill": "linear-gradient(90deg, #3EE6FF, #9B5CFF 55%, #FF4FD8)"
   },
   "ext": {}
 }

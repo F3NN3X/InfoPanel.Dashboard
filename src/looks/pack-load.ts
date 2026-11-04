@@ -51,25 +51,29 @@ const NUMERAL_MIN = 3;
 const COLOUR_FN = /\b(rgba?|hsla?|hwb|lab|lch|oklab|oklch|color|color-mix)\(/i;
 const STOP = /#[0-9a-f]{3,8}\b|var\(--w-[\w-]+\)/gi;
 
-/** The problems with a gradient numeral fill: a stop that cannot be read as a colour, or one under 3:1 on the Look's surface in a mode it supports. */
-function numeralIssues(look: Look): string[] {
-  const fill = look.t3?.["num-fill"];
-  if (fill === undefined || fill === "solid") return [];
+/** The T3 names that paint ink with a gradient: the numerals, a ring's value arc and a graph's line. */
+const INK_FILLS = ["num-fill", "ring-fill", "spark-fill"] as const;
+
+/** The problems with a gradient ink fill: a stop that cannot be read as a colour, or one under 3:1 on the Look's surface in a mode it supports. */
+function inkFillIssues(look: Look, name: (typeof INK_FILLS)[number]): string[] {
+  const fill = look.t3?.[name];
+  if (fill === undefined || fill === "solid" || fill === "none") return [];
   const gradient = safeGradient(fill);
-  if (!gradient) return ["num-fill is not a gradient of colours"];
-  if (COLOUR_FN.test(gradient)) return ["num-fill stops must be hex colours or var(--w-*): other colour functions cannot be checked"];
+  if (!gradient) return [`${name} is not a gradient of colours`];
+  if (COLOUR_FN.test(gradient)) return [`${name} stops must be hex colours or var(--w-*): other colour functions cannot be checked`];
   const issues: string[] = [];
   for (const mode of look.modes.supported) {
     const t1 = resolveT1(look, mode) as Record<string, string>;
     for (const stop of gradient.match(STOP) ?? []) {
       const colour = stop.startsWith("var(") ? t1[stop.slice(8, -1)] : stop;
       const ratio = colour ? contrastOf(colour, t1.surface) : undefined;
-      if (ratio === undefined) issues.push(`num-fill stop ${stop} cannot be checked (${mode})`);
-      else if (ratio < NUMERAL_MIN) issues.push(`num-fill stop ${stop} is ${ratio.toFixed(2)}:1 on the surface in ${mode}, under ${NUMERAL_MIN}:1`);
+      if (ratio === undefined) issues.push(`${name} stop ${stop} cannot be checked (${mode})`);
+      else if (ratio < NUMERAL_MIN) issues.push(`${name} stop ${stop} is ${ratio.toFixed(2)}:1 on the surface in ${mode}, under ${NUMERAL_MIN}:1`);
     }
   }
   return issues;
 }
+const numeralIssues = (look: Look): string[] => INK_FILLS.flatMap((name) => inkFillIssues(look, name));
 
 /** A folder URL the pack's files are served from: relative or a root path of this origin, ending in `/`, never a scheme or `//host`. */
 function baseIssue(base: string): boolean {

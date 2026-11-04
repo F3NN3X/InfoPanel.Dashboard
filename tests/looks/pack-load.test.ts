@@ -79,6 +79,15 @@ describe("the pack loader (G4)", () => {
     expect(packIssues(withFill("url(https://evil.example/x.png)")).join()).toMatch(/not a gradient/);
   });
 
+  it("holds a gradient ring and spark to the same 3:1 on the surface as the numerals", () => {
+    const withInk = (name: string, fill: string): Pack => ({ ...TEST_PACK, look: { ...TEST_PACK.look, t3: { ...TEST_PACK.look.t3, [name]: fill } } });
+    for (const name of ["ring-fill", "spark-fill"]) {
+      expect(packIssues(withInk(name, "linear-gradient(#ffffff, #f4f4f5)")), name).toEqual([]);
+      expect(packIssues(withInk(name, "linear-gradient(#ffffff, #202024)")).join(), name).toMatch(new RegExp(`${name} stop #202024 .* under 3:1`));
+      expect(packIssues(withInk(name, "url(https://evil.example/x.png)")).join(), name).toMatch(/not a gradient/);
+    }
+  });
+
   it("registers a source and its id, and the shipped id list matches the built-in sources", async () => {
     expect(Object.keys(BUILTIN).filter((id) => id !== "test-pack").sort()).toEqual([...PACK_IDS].filter((id) => id !== "test-pack").sort());
     try {

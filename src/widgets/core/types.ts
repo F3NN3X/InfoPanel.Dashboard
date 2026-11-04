@@ -128,6 +128,10 @@ export interface SkinTokens {
   frame: "inset" | "corners" | "gradient" | "legend";
   /** Gradient number fill (`num-fill: gradient`), a CSS gradient; it replaces the glow, which would draw over transparent text. */
   numFill: string;
+  /** The gradient a ring's value arc is stroked with (`ring-fill`), a CSS gradient; an SVG gradient made from its stops. */
+  ringFill: string;
+  /** The gradient a graph's line is stroked with (`spark-fill`), a CSS gradient. */
+  sparkFill: string;
   /** The gradient border drawn by `frame: "gradient"` (`border-fill`), a CSS gradient. */
   borderFill: string;
   /** The title sits on the frame's border and the card keeps the boxed padding (tui). */

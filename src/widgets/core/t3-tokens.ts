@@ -41,6 +41,29 @@ export function safeFill(value: unknown): string | undefined {
   return LONE_COLOUR.test(css) || (COLOUR_CALL.test(css) && plain(css)) ? css : safeGradient(css);
 }
 
+/** The colour stops of a gradient `safeGradient` passed, for an SVG `linearGradient` (which cannot take a CSS one); undefined under two stops. */
+export function gradientStops(css: string | undefined): { colour: string; offset?: number }[] | undefined {
+  const inner = css && /^[a-z-]*gradient\((.*)\)$/.exec(css.trim())?.[1];
+  if (!inner) return undefined;
+  const parts: string[] = [];
+  let depth = 0;
+  let cur = "";
+  for (const ch of inner) {
+    depth += ch === "(" ? 1 : ch === ")" ? -1 : 0;
+    if (ch === "," && depth === 0) {
+      parts.push(cur.trim());
+      cur = "";
+    } else cur += ch;
+  }
+  parts.push(cur.trim());
+  if (/^(to |[\d.-]+(deg|rad|turn|grad)\b|from |at |circle|ellipse|closest|farthest|in )/i.test(parts[0])) parts.shift();
+  const stops = parts.map((p) => {
+    const at = /\s+(-?[\d.]+)%$/.exec(p);
+    return at ? { colour: p.slice(0, at.index), offset: Number(at[1]) } : { colour: p };
+  });
+  return stops.length >= 2 ? stops : undefined;
+}
+
 const STRETCH_WORDS = ["ultra-condensed", "extra-condensed", "condensed", "semi-condensed", "semi-expanded", "expanded", "extra-expanded", "ultra-expanded"] as const;
 const GRAPH_STYLES = ["line", "step", "bars", "dots", "braille"] as const;
 
@@ -79,6 +102,10 @@ export function t3Tokens(t3: Readonly<Record<string, string | number>> | undefin
   if (ring === "arc270") out.ringArc = 270;
   const mark = oneOf(ring, ["segmented", "ticks"]);
   if (mark) out.ringMark = mark;
+  const ringFill = safeGradient(t3["ring-fill"]);
+  if (ringFill) out.ringFill = ringFill;
+  const sparkFill = safeGradient(t3["spark-fill"]);
+  if (sparkFill) out.sparkFill = sparkFill;
   const border = safeFill(t3["border-fill"]);
   if (border) Object.assign(out, { frame: "gradient", borderFill: border });
   const meter = oneOf(t3["meter-style"], ["segments", "blocks"]);

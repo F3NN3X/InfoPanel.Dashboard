@@ -3,8 +3,8 @@ import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import classic from "@/looks/classic/look.json";
 import { CardFrame } from "@/widgets/core/card-frame";
-import { Metric, Ring, RingStack } from "@/widgets/core/primitives";
-import { safeFill, safeGradient, t3Tokens } from "@/widgets/core/t3-tokens";
+import { Metric, Ring, RingStack, Spark } from "@/widgets/core/primitives";
+import { gradientStops, safeFill, safeGradient, t3Tokens } from "@/widgets/core/t3-tokens";
 import { skinContext } from "@/widgets/core/look";
 import { Widget } from "@/widgets/core/Widget";
 
@@ -41,6 +41,34 @@ describe("t3Tokens", () => {
   it("chromatic is a static number effect, 270 degrees a ring style (P11: Overdrive, Holo)", () => {
     expect(t3Tokens({ "num-effect": "chromatic" })).toEqual({ numChroma: true });
     expect(t3Tokens({ "ring-style": "arc270" })).toEqual({ ringArc: 270 });
+  });
+});
+
+describe("ring-fill and spark-fill (L90: Black and Gold's gold ring, Night Glow's gradient ring and spark)", () => {
+  const FILL = "linear-gradient(135deg, #3EE6FF, #9B5CFF 55%, #FF4FD8)";
+  it("read a gradient into a token and nothing else; Classic's \"none\" maps to no token", () => {
+    expect(t3Tokens({ "ring-fill": FILL, "spark-fill": FILL })).toEqual({ ringFill: FILL, sparkFill: FILL });
+    expect(t3Tokens({ "ring-fill": "none", "spark-fill": "#fff" })).toEqual({});
+    expect(t3Tokens({ "ring-fill": "url(https://evil.example/x)" })).toEqual({});
+  });
+  it("gradientStops: the stops of a gradient with their offsets, the direction dropped, colour functions kept whole", () => {
+    expect(gradientStops(FILL)).toEqual([{ colour: "#3EE6FF" }, { colour: "#9B5CFF", offset: 55 }, { colour: "#FF4FD8" }]);
+    expect(gradientStops("linear-gradient(rgba(1,2,3,.5) 10%, var(--w-accent))")).toEqual([{ colour: "rgba(1,2,3,.5)", offset: 10 }, { colour: "var(--w-accent)" }]);
+    expect(gradientStops("linear-gradient(#fff)")).toBeUndefined();
+    expect(gradientStops(undefined)).toBeUndefined();
+  });
+  it("a ring's value arc takes the gradient, its track and the Classic ring do not", () => {
+    const ring = draw({ "ring-fill": FILL }, () => createElement(Ring, { value: 50 }));
+    expect(ring).toMatch(/<linearGradient id="(rg\w+)"/);
+    const id = /<linearGradient id="(rg\w+)"/.exec(ring)![1];
+    expect(ring.split(`stroke="url(#${id})"`)).toHaveLength(2);
+    expect(draw({}, () => createElement(Ring, { value: 50 }))).not.toContain("linearGradient");
+  });
+  it("a graph's line takes the gradient, across the whole width", () => {
+    const spark = draw({ "spark-fill": FILL }, () => createElement(Spark, { values: [1, 3, 2, 5, 4], fill: false }));
+    expect(spark).toMatch(/gradientUnits="userSpaceOnUse"[^>]*x2="100"[^>]*y2="0"/);
+    expect(spark).toMatch(/stroke="url\(#sp\w+k\)"/);
+    expect(draw({}, () => createElement(Spark, { values: [1, 3, 2, 5, 4] }))).not.toContain('k)"');
   });
 });
 

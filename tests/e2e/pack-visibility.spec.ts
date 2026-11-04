@@ -101,6 +101,17 @@ for (const id of Object.keys(PACK_STYLES)) {
                 marks.ring = (marks.ring ?? 0) + 1;
                 const cs = getComputedStyle(arc);
                 const track = arc.previousElementSibling ? getComputedStyle(arc.previousElementSibling) : null;
+                // a gradient stroke (`ring-fill`): every stop of the gradient it names is drawn, and each shows against the card
+                const gradient = /^url\(["']?#([^"')]+)/.exec(cs.stroke);
+                if (gradient) {
+                  const stops = [...(arc.closest("svg")?.querySelectorAll(`#${CSS.escape(gradient[1])} stop`) ?? [])].map((stop) => getComputedStyle(stop));
+                  marks.gradient = (marks.gradient ?? 0) + 1;
+                  if (stops.length < 2) problems.push("a ring's gradient has fewer than two stops");
+                  for (const stop of stops) if (rgba(stop.stopColor)[3] === 0 || Number(stop.stopOpacity) < minOpacity) problems.push("a ring's gradient has a stop that is not drawn");
+                  else if (ratio(rgba(stop.stopColor), cardBg(card)) < 1.3) problems.push(`a ring's gradient stop ${stop.stopColor} has no contrast with the card`);
+                  if (!(parseFloat(cs.strokeWidth) > 0) || effective(arc, card) * Number(cs.strokeOpacity) < minOpacity) problems.push("a ring's gradient arc is not drawn");
+                  continue;
+                }
                 const [r, g, b, a] = rgba(cs.stroke);
                 if (cs.stroke === "none" || a === 0) problems.push("a ring's value arc has no stroke");
                 else if (!(parseFloat(cs.strokeWidth) > 0)) problems.push("a ring's value arc has no stroke width");
@@ -126,11 +137,13 @@ for (const id of Object.keys(PACK_STYLES)) {
         }
         // a value of 0 lights nothing, so a bar may be empty, but across the screen every gauge kind that is drawn has a value mark
         for (const part of ["ring", "bar", "meter"]) if (cards.some((c) => c.querySelector(`[data-part="${part}"]`)) && !marks[part]) problems.push(`no ${part} on the screen has a lit value mark`);
-        return { problems, cards: cards.length };
+        return { problems, cards: cards.length, gradients: marks.gradient ?? 0 };
       },
       { alphaMax: OVERLAY_ALPHA_MAX, minOpacity: MIN_OPACITY },
     );
     expect(report.cards).toBeGreaterThan(0);
+    // the packs whose rings carry a gradient (`ring-fill`) draw it, and the check above read its stops
+    if (id === "night-glow" || id === "black-and-gold") expect(report.gradients).toBeGreaterThan(0);
     expect(report.problems).toEqual([]);
     // D23: a worn pack asks no font host for its type (it is bundled); the page's own Geist (the app default, worn with Classic too) is not the pack's
     expect(requests.filter((u) => /fonts\.(googleapis|gstatic)\.com/.test(u) && !/family=Geist|\/geist/i.test(u))).toEqual([]);

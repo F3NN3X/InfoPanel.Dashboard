@@ -84,7 +84,9 @@
   },
   "t3": {
     "border-fill": "linear-gradient(135deg, #8A6D1D, #F5D77A 40%, #D4AF37 65%, #8A6D1D)",
-    "num-fill": "linear-gradient(180deg, #F5D77A, #D4AF37)"
+    "num-fill": "linear-gradient(180deg, #F5D77A, #D4AF37)",
+    "ring-fill": "linear-gradient(135deg, #C9A02E, #F5D77A 50%, #D4AF37)",
+    "spark-fill": "linear-gradient(90deg, #C9A02E, #F5D77A 50%, #D4AF37)"
   },
   "ext": {}
 }
