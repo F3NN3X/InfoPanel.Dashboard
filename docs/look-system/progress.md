@@ -612,6 +612,21 @@ Review: 0 HIGH, 6 MED, 7 LOW (`p11a-review.md`). Each was fixed with a test that
 | L2, L3, L4, L5, L6, L7 | Ledgered L84 to L88 (L7 is L81) |
 | e2e time: 291 s against 85 s on P10 | Measured: 259 s of the e2e run were `pack-selectors.spec.ts`, 8 gauge-ink tests at about 25 s. The kiosk was not slower: `gaugeInk` appended a probe to each of 186 cards and read a style after each, which restyled a 26k-element page 186 times, 8 s of every 10 s read. The probes are now appended first and read together: 25 s to 3.6 s per test, the whole spec 259 s to about 80 s. `test.slow()` hid it and is gone from the four specs. The kiosk specs for the packs take 17 s (pack-visibility) and 5 s (pack-faces) for seven packs. Coverage is unchanged |
 
+### Re-review round 2 (2026-11-04)
+
+Scoped re-review (`p11a-review-r2.md`, fa0b826e..e5b13102): FIXED 6 (M1, M2, M4, M5, M6, Overdrive cyan numerals), SETTLED 6 (L83–L86, L88, L81), PARTIAL 2 (M3, L5), NOT FIXED 0. New: no HIGH, 1 MED, 4 LOW.
+
+| Finding | Result |
+|---|---|
+| N1 (MED, M3's other half): the studio canvas gave `PackStage` raw `profile.placements`, so Holo in Studio could take a canvas or the items layer as hub and differ from the kiosk | fixed by the controller: `studio-canvas.tsx` passes `connectorZones(profile.placements, profile)` (memoised), the kiosk's filter. A browser check of the studio connector path stays with L82 |
+| L5 partial: `test.slow()` removed, the settle's blind spot on lazy widget content ledgered | settled (L84) |
+| N2 (LOW): the connector re-measure MutationObserver watches `document.body` | L89, P11b |
+| N3 (LOW): an explicit per-widget Font is ignored under a pack | by design (D23, the pack owns its faces); the user-facing note is L78, P11b |
+| N4 (LOW): `test.slow()` dropped from the zoomed box-legend test without a measured time | L89, P11b |
+| N5 (LOW): the island pill covers a header in two shots | L89, P11b (shots only; the zones stay clear with reserve on, P10 M3) |
+
+Verify (controller, on e5b13102, before the N1 line): `npm run verify:full` exit 0, 19/19 passed, 472 s (e2e 111 s against 291 s before the round). The implementer's earlier one-off `look-visual` diff on the Paper sample sheet did not recur (with L66).
+
 ## Ledger: known issues and deferred work
 
 Open items carried between phases. Each phase adds what it finds or defers, and closes what it fixes (status `closed in P<N>`).
@@ -706,3 +721,4 @@ Open items carried between phases. Each phase adds what it finds or defers, and 
 | L86 | P11a round 1 | `packs.test.ts` pins Swiss Mono's card colour to the constant `#141414`; the contract is an opaque `--w-mat-export` | P11b | open |
 | L87 | P11a round 1 | `settled` counts zone and island rects only: a lazy widget that swaps its skeleton without moving the card is not waited for (the ring and num counts should hold for the same 8 frames) | P11b | open |
 | L88 | P11a round 1 | The gauge-ink twin switches off only the pack's style element (T3 and material effects are the same on both sides) and counts any gradient on a bar as ink | P12 | open: accepted, documented |
+| L89 | P11a round 2 | Connector re-measure MutationObserver on `document.body` (narrow to the grid); `test.slow()` dropped from the zoomed box-legend test without a measured time; the island pill covers a header in the neon-stripe and overdrive shots | P11b | open |
