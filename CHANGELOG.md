@@ -33,6 +33,7 @@ version as its notes, so move **Unreleased** under a new `## [X.Y.Z] - YYYY-MM-D
 
 ### Fixed
 
+- **Stream Control graphs start on the first reading.** The viewer and mic graphs no longer open with a flat zero from before OBS answered, so the same screen no longer draws two different graphs depending on how fast the stream arrived.
 - **Heat maps and visualisers start from the card colour.** The coldest colour of an accent ramp (Core Heatmap, CPU Monitor, System Overview, Follow in the visualisers) was always near-black; it now starts from the card's own fill on every surface (light, theme, and the dark and tinted ones).
 - **InfoPanel export: warn and crit ring colours on the Theme surface.** They exported as the default blue; they now keep their colour.
 - **InfoPanel export: gradient and glass cards export their card.** A widget exported through its converter on Glass, Tinted, Holo, Carbon, Studio, Vibrancy, Material, Synth, Cyber or Nixie lost its card; it now exports as the material's flat colour (Outline and Flat stay see-through).

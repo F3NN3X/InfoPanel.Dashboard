@@ -11,6 +11,10 @@ vi.mock("@/widgets/time-hooks", async (original) => ({
   ...(await original<typeof import("@/widgets/time-hooks")>()),
   useExtras: () => mocks.extras,
 }));
+vi.mock("@/widgets/kit", async (original) => ({
+  ...(await original<typeof import("@/widgets/kit")>()),
+  Spark: ({ values }: { values?: number[] }) => <i data-testid="spark" data-values={JSON.stringify(values)} />,
+}));
 vi.mock("@/lib/obs-control", async (original) => ({ ...(await original<typeof import("@/lib/obs-control")>()), obsAct: mocks.act }));
 
 import ObsButton from "@/widgets/ObsButton";
@@ -45,6 +49,15 @@ afterEach(() => {
 });
 
 describe("StreamControl", () => {
+  it("starts its graphs on the first reading, not on the zero of the page before OBS answered", () => {
+    mocks.extras = EMPTY_EXTRAS;
+    const { rerender } = render(<StreamControl data={{}} />);
+    mocks.extras = connected({ streaming: true });
+    rerender(<StreamControl data={{}} />);
+    const histories = screen.getAllByTestId("spark").map((el) => JSON.parse(el.dataset.values ?? "[]") as number[]);
+    expect(histories).toEqual([[0, 0], [40, 40]]);
+  });
+
   it("says OBS is not connected when there is nothing to show", () => {
     mocks.extras = EMPTY_EXTRAS;
     render(<StreamControl data={{}} />);

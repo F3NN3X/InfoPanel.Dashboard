@@ -79,8 +79,10 @@ export default function StreamControl(p: StreamControlProps) {
   const tw = extras.twitch?.signedIn ? extras.twitch.viewers : undefined;
   const yt = extras.youtube?.signedIn ? extras.youtube.viewers : undefined;
   const total = (tw ?? 0) + (yt ?? 0);
-  const vHist = useHistory(live ? total : 0, 48, 1);
-  const mHist = useHistory(muted || !mic ? 0 : mic.level, 24, 0.6);
+  // Until OBS answers there is nothing to graph: a NaN adds no sample, so the graphs start on the first reading and a
+  // page that mounted before the stream arrived draws what one that mounted after it does.
+  const vHist = useHistory(!up ? Number.NaN : live ? total : 0, 48, 1);
+  const mHist = useHistory(!up ? Number.NaN : muted || !mic ? 0 : mic.level, 24, 0.6);
   const scenes = obs.scenes.map((s, i) => ({ ...s, i, icon: s.icon || "movie", color: hue(SCENE_HUES[i % SCENE_HUES.length]) }));
   const showMic = p.showMic !== false && mic !== null;
   const showReplay = p.showReplay !== false && obs.replay !== null;
