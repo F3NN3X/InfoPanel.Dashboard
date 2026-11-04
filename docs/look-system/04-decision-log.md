@@ -31,7 +31,7 @@ Changing these needs the owner's explicit approval in chat, with the reason.
 |---|---|---|
 | D1 | Studio chrome is a built-in, non-editable "Studio" Look: T1 plus a fixed `studio.*` extension block that only the built-in Studio Look may carry (65 `--ui-*` values; panel Looks never fill it). `ui-*` is generated from it. | changed (2026-11-03) |
 | D2 | `s-*` becomes aliases of `ui-*`. Near twins follow a per-token table in P7: 13 same-role pairs take the `ui-*` value; 8 different-role pairs (`s-on-accent`, `s-well`, `s-on-green`, `s-card-hover`, `s-bar-bg`, `s-connector`, `s-heads`, `s-prose`) keep their own. | changed (2026-11-03) |
-| D3 | Studio, Settings and Help are dark-only (stated). Panel Looks may declare dark and light via `data-mode` and `@custom-variant dark`. Fix the audiocn `dark:` use. | decided |
+| D3 | Studio, Settings and Help are dark-only (stated). Panel Looks may declare dark and light via `data-mode` and `@custom-variant dark`. Fix the audiocn `dark:` use. | decided; done in P6 (`data-mode` on light cards and the page, the `dark` variant, the Mode knob) |
 | D4 | `--w-*` for panel content, `--ui-*` for chrome; colour accent renamed `--w-accent`. `--wp-accent`, `--wp-fg`, `--wp-muted` and `--wp-radius` stay aliased as long as saved custom CSS can use them (saved data, G1); the alignment `--wp-*` set stays; `pad`/`gap`/`weight`/`label-case` move to `--w-*` only if nothing visible changes. | changed (2026-11-03) |
 | D5 | Looks and packs are JSON with a schema; built-ins generated at build time; user packs loaded at runtime. | decided |
 | D6 | Cascade stores `lookId` plus overrides; config v17 with migration. | decided |
