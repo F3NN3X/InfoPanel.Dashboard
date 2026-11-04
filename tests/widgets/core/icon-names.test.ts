@@ -3,19 +3,6 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { FALLBACK_ICON, iconFor } from "../../../src/widgets/core/icons.ts";
 
-/** The icon names no map knows yet: `iconFor` returns the dashed circle for them. P8 maps each one and takes it off this list. */
-const KNOWN_GAPS: Record<string, string> = {
-  event: "Countdown",
-  chevron_left: "StreamDeck",
-  chevron_right: "StreamDeck",
-  cloud_off: "StreamDeck",
-  error: "StreamDeck",
-  link: "StreamDeck",
-  power_settings_new: "StreamDeck",
-  sync: "StreamDeck",
-  speaker: "WaveLink",
-};
-
 const root = new URL("../../../src/widgets/", import.meta.url);
 
 /** Every `.ts` / `.tsx` file under src/widgets (the widget `meta/` files included). */
@@ -47,18 +34,8 @@ describe("the icon names widgets use", () => {
     expect(used.has("memory")).toBe(true);
   });
 
-  it("all resolve in iconFor's maps, except the known gaps", () => {
-    const missing = [...used].filter(([name]) => unmapped(name) && !(name in KNOWN_GAPS)).map(([name, file]) => `${name} (${file})`);
+  it("all resolve in iconFor's maps", () => {
+    const missing = [...used].filter(([name]) => unmapped(name)).map(([name, file]) => `${name} (${file})`);
     expect(missing).toEqual([]);
-  });
-
-  it("still lack a mapping for each known gap, so P8 removes the ones it fixes", () => {
-    const fixed = Object.keys(KNOWN_GAPS).filter((name) => !unmapped(name));
-    expect(fixed).toEqual([]);
-  });
-
-  it("are still used by the widget the known gap names", () => {
-    const stale = Object.keys(KNOWN_GAPS).filter((name) => !used.has(name));
-    expect(stale).toEqual([]);
   });
 });
