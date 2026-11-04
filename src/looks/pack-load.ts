@@ -1,7 +1,6 @@
 // The pack loader (P9): the one place a pack enters the app, and where G4 is enforced for it. A pack is code in a chunk of
 // its own; before the app uses it, every CSS string and file path it names goes through `pack-urls`, its stage is held to
 // 3 layers and its gradient numerals to 3:1 (G6). A pack that fails any check is refused whole, never trimmed.
-import { instantiate } from "@/lib/screen-templates/instantiate";
 import type { ScreenTemplate, ShapeClass, ShapeLayout } from "@/lib/screen-templates/kit";
 import { modules } from "@/modules";
 import { safeFill, safeGradient } from "@/widgets/core/t3-tokens";
@@ -86,14 +85,13 @@ function layoutIssues(at: string, layout: ShapeLayout | undefined): string[] {
   return issues;
 }
 
-/** The problems with a pack's page templates: each is made for this pack's Look, its id starts with the pack's so two packs never clash, and it makes a screen at its own size. */
+/** The problems with a pack's page templates: each is made for this pack's Look, its id starts with the pack's so two packs never clash. */
 function templateIssues(pack: Pack): string[] {
   const list = pack.templates ?? [];
   if (!Array.isArray(list)) return ["templates is not a list"];
   const issues = list.length > MAX_TEMPLATES ? [`${list.length} templates, at most ${MAX_TEMPLATES}`] : [];
   const seen = new Set<string>();
   for (const t of list) {
-    const before = issues.length;
     if (typeof t?.id !== "string" || !t.id.startsWith(`${pack.id}-`) || seen.has(t.id)) issues.push(`template id ${String(t?.id)}`);
     else seen.add(t.id);
     if (t?.look?.style?.lookId !== pack.id) issues.push(`template ${t?.id} does not wear the pack's Look`);
@@ -101,12 +99,6 @@ function templateIssues(pack: Pack): string[] {
     if (typeof t?.name !== "string" || !isPx(t.size?.width) || !isPx(t.size?.height)) issues.push(`template ${t?.id} name or size`);
     if (!Array.isArray(t?.fits) || t.fits.length === 0 || t.fits.some((c: ShapeClass) => !t.layouts?.[c])) issues.push(`template ${t?.id} fits a class with no layout`);
     for (const [cls, layout] of Object.entries(t?.layouts ?? {})) issues.push(...layoutIssues(`template ${t.id} ${cls}`, SHAPE_CLASSES.includes(cls) ? layout : undefined));
-    if (issues.length > before) continue;
-    try {
-      instantiate(t, { name: t.name, width: t.size.width, height: t.size.height });
-    } catch {
-      issues.push(`template ${t.id} cannot make a screen at ${t.size.width}x${t.size.height}`);
-    }
   }
   return issues;
 }
