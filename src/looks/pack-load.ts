@@ -134,7 +134,9 @@ export async function loadPack(id: string, sources: Record<string, () => Promise
   const load = Object.hasOwn(sources, id) ? sources[id] : undefined;
   if (!load) return undefined;
   const pack = (await load()).default;
-  return pack?.id === id && pack.look && packIssues(pack).length === 0 ? { ...pack, Stage: PackStageLayers, chrome: chromeOf(pack.look) } : undefined;
+  if (pack?.id !== id || !pack.look || packIssues(pack).length) return undefined;
+  const chrome = chromeOf(pack.look);
+  return { ...pack, Stage: PackStageLayers, chrome, ...(pack.stage ? { stage: { ...pack.stage, accent: chrome.accent } } : null) };
 }
 
 /** The page templates of every built-in pack, for the New screen flow (a pack that fails to load or is refused adds none). */

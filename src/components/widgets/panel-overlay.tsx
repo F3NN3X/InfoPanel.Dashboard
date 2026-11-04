@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import type { OverlayBand, PanelDef, Widget, WidgetKind } from "@/lib/layout";
 import type { SensorMap } from "@/modules/types";
 import { cn } from "@/lib/utils";
@@ -23,6 +24,8 @@ interface PanelOverlayProps {
   selection?: PanelSelection;
   /** Studio canvas (see `WidgetCell`). */
   studio?: boolean;
+  /** The worn pack's surface and text for the title badge (L25); unset, the badge is the black tint. */
+  badge?: CSSProperties;
 }
 
 /**
@@ -30,7 +33,7 @@ interface PanelOverlayProps {
  * as a background; the other widgets layer on top in top / middle / bottom
  * bands (a dark scrim keeps them readable over any banner).
  */
-export function PanelOverlay({ panel, sensors, title, icon, edge, selection, studio }: PanelOverlayProps) {
+export function PanelOverlay({ panel, sensors, title, icon, edge, selection, studio, badge }: PanelOverlayProps) {
   const visible = panel.widgets.filter((w) => w.visible);
   const bg =
     visible.find((w) => w.kind === "image" && w.asBackground) ??
@@ -88,6 +91,7 @@ export function PanelOverlay({ panel, sensors, title, icon, edge, selection, stu
         <PanelTitle
           title={title}
           icon={icon}
+          style={badge}
           className="absolute right-3 top-3 z-20 rounded-full bg-black/50 px-2.5 py-1 text-foreground/90 backdrop-blur-[min(8px,var(--wp-blur-cap,8px))]"
         />
       )}

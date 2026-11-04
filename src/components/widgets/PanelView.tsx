@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import { withHwinfoAliases } from "@/lib/hwinfo-aliases";
+import { usePack } from "@/looks/pack";
 import type { PanelDef } from "@/lib/layout";
 import type { SectionFlags } from "@/lib/theme-model";
 import type { ModuleSettings, SensorMap } from "@/modules/types";
@@ -73,19 +74,24 @@ export function PanelView({ panel: own, settings, sensors: raw, studio, selectio
   const surface = panelSurfaceOf(cfg.surface ?? own.background);
   const chrome = chromeOf({ accent: own.accent ?? "", ...cfg });
   const items = resolvedPanel(own, cfg, locks);
-  const panel = tonedPanel(enforced ? enforcedPanel(items, chrome.accent || undefined) : items, cfg, sensors, locks);
-  const overlay = panel.layout === "overlay";
+  const toned = tonedPanel(enforced ? enforcedPanel(items, chrome.accent || undefined) : items, cfg, sensors, locks);
+  const overlay = toned.layout === "overlay";
+  // A pack Look's T3 values, slots and colours (none for Classic, the skins and the sample Looks).
+  const pack = usePack(typeof cfg.lookId === "string" ? cfg.lookId : undefined);
+  const skin = panelSkinOf(cfg, pack);
+  // A stack or grid panel wears the pack's card colours (`PackPanel`); a colour of an item's own that vanishes on it gives way to the pack's text.
+  const card = pack?.chrome?.panel;
+  const stacked = overlay ? undefined : card;
+  const panel = stacked?.legible(toned) ?? toned;
   const hug = panel.fit === "hug";
   const layout = overlay ? "overlay" : panel.layout === "grid" ? "grid" : "stack";
-
-  const skin = panelSkinOf(cfg);
 
   const look: CSSProperties = overlay
     ? { borderRadius: ws.radius("var(--radius)") }
     : panelCardStyle(surface, chrome);
 
   return (
-    <PanelSkin skin={skin} graph={String(cfg.graph ?? "auto")} meter={String(cfg.meter ?? "auto")} chrome={chrome}>
+    <PanelSkin skin={skin} graph={String(cfg.graph ?? "auto")} meter={String(cfg.meter ?? "auto")} chrome={chrome} pack={pack}>
       <ModernChrome
         // The panel draws its own title; its CSS joins the panel's own (presets).
         chrome={{ ...chrome, label: "", icon: "", customCss: joinCss(chrome.customCss, panel.css) }}
@@ -101,10 +107,11 @@ export function PanelView({ panel: own, settings, sensors: raw, studio, selectio
               hug ? "max-h-full max-w-full" : "h-full w-full",
               !overlay && "flex flex-col gap-3"
             )}
+            data-look={pack?.id}
             data-panel-layout={layout}
             data-panel-id={panel.id}
             // The theme tokens are re-scoped on the ModernChrome root (`tokenScope`).
-            style={{ "--wp-accent": panelAccent(chrome.accent, skin), ...panelVars(panel), ...(skin ? PANEL_SKIN_VARS : null), ...look } as CSSProperties}
+            style={{ "--wp-accent": panelAccent(chrome.accent || pack?.chrome?.accent, skin), ...panelVars(panel), ...(skin ? PANEL_SKIN_VARS : null), ...stacked?.vars, ...look } as CSSProperties}
           >
             {overlay ? (
               <PanelOverlay
@@ -115,6 +122,7 @@ export function PanelView({ panel: own, settings, sensors: raw, studio, selectio
                 edge={String(surfaceBox(panelSurfaceColors(surface, chrome), chrome).boxShadow)}
                 selection={selection}
                 studio={studio}
+                badge={card?.badge}
               />
             ) : (
               <PanelStack

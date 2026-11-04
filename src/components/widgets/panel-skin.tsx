@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, type CSSProperties, type ReactNode } from "react";
+import type { Pack } from "@/looks/pack";
 import type { ModernChrome } from "@/components/modern-chrome";
 import { ws } from "@/components/widget-style";
 import type { ModuleSettings } from "@/modules/types";
@@ -11,8 +12,8 @@ import type { SkinContext } from "@/widgets/core/types";
 const PanelSkinCtx = createContext<SkinContext | null>(null);
 export const usePanelSkin = (): SkinContext | null => useContext(PanelSkinCtx);
 
-/** The skin the panel look's Look draws in; Classic (and unset) mean none. */
-export const panelSkinOf = (cfg: ModuleSettings): string | undefined => skinOfLook(cfg.lookId);
+/** The skin the panel look's Look draws in; a pack draws in the default skin with its own values (`PanelSkin`); Classic (and unset) mean none. */
+export const panelSkinOf = (cfg: ModuleSettings, pack?: Pack): string | undefined => skinOfLook(cfg.lookId) ?? (pack ? "default" : undefined);
 
 /**
  * The colour a panel's widgets draw in when they have none of their own: `--wp-accent`, which the panel sets to its
@@ -44,12 +45,17 @@ interface PanelSkinProps {
   graph?: string;
   meter?: string;
   chrome: ModernChrome;
+  /** The worn pack: its T3 values and slots reach the panel's widgets as they reach a template widget's. */
+  pack?: Pack;
   children: ReactNode;
 }
 
 /** Provides the core skin context to a panel's widgets; with no skin it renders its children untouched. */
-export function PanelSkin({ skin, graph, meter, chrome, children }: PanelSkinProps) {
-  const ctx = useMemo(() => (skin ? skinContext(skin, { graph, meter, chrome }) : null), [skin, graph, meter, chrome]);
+export function PanelSkin({ skin, graph, meter, chrome, pack, children }: PanelSkinProps) {
+  const ctx = useMemo(
+    () => (skin ? skinContext(skin, { graph, meter, chrome, t3: pack?.look.t3, slots: pack?.slots, packed: !!pack }) : null),
+    [skin, graph, meter, chrome, pack]
+  );
   useEffect(() => {
     if (skin) ensureSkinFonts(skin);
   }, [skin]);

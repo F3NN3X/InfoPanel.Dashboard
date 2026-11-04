@@ -7,7 +7,7 @@ import PackStageLayers from "@/looks/pack-stage";
 import type { StageViewProps } from "@/looks/pack";
 
 const stage: StageViewProps["stage"] = {
-  layers: [{ fill: "linear-gradient(#000, #111)" }, { fill: "#222", minSizeClass: "md" }],
+  layers: [{ fill: "linear-gradient(#000, #111)" }, { image: "art.svg", minSizeClass: "md" }],
   effects: [{ kind: "grain", cost: "animated" }, { kind: "glow", cost: "filter", px: 10 }],
 };
 
@@ -50,10 +50,21 @@ describe("the pack stage: effects, burn-in and size classes", () => {
     view({}, { page: { width: 800, height: 480 } });
     expect(document.querySelectorAll("[data-pack-layer]")).toHaveLength(1);
     expect(document.querySelector("[data-pack-effect='grain']")?.hasAttribute("data-pack-animate")).toBe(true);
-    expect(document.querySelector(".wp-pack-fx")?.getAttribute("style")).toContain("--wp-fx-glow: 10px");
+    // a plain fill takes no glow: its shadow would fall off the screen (L81)
+    expect(document.querySelector(".wp-pack-fx")).toBeNull();
     cleanup();
     view({}, { page: { width: 1920, height: 1080 } });
     expect(document.querySelectorAll("[data-pack-layer]")).toHaveLength(2);
+  });
+
+  it("puts the glow on the layer with art, in the Look's accent, and on no plain fill", () => {
+    view({}, { stage: { ...stage, accent: "#2BD46F" } });
+    const fx = document.querySelectorAll<HTMLElement>(".wp-pack-fx");
+    expect(fx).toHaveLength(1);
+    expect(fx[0].getAttribute("data-pack-layer")).toBe("1");
+    expect(fx[0].style.getPropertyValue("--wp-fx-glow")).toBe("10px");
+    expect(fx[0].style.getPropertyValue("--w-accent")).toBe("#2BD46F");
+    expect(document.querySelector("[data-pack-layer='0']")?.getAttribute("style")).not.toContain("--wp-fx");
   });
 
   it("drops the animated effects in lite mode", () => {
