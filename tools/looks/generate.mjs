@@ -127,6 +127,14 @@ export async function generate() {
   const skins = packs.split(",").map((s) => s.trim().replace(/Skin$/, "")).filter((id) => id !== "default");
   const samples = SAMPLE_THEMES.map((t) => t.id);
   const list = (ids) => ids.map((id) => `"${id}"`).join(", ");
+  // the font families of the built-in packs (their pack.json files): the validator refuses a user pack that claims one
+  const packFamilies = [
+    ...new Set(
+      readdirSync(join(root, "src/looks/packs"), { withFileTypes: true })
+        .filter((d) => d.isDirectory() && existsSync(join(root, "src/looks/packs", d.name, "pack.json")))
+        .flatMap((d) => JSON.parse(read(`src/looks/packs/${d.name}/pack.json`)).fonts.map((f) => f.family)),
+    ),
+  ].sort();
   out.set(
     "src/looks/ids.ts",
     [
@@ -148,8 +156,15 @@ export async function generate() {
       "/** Every panel Look's id (the Studio Look is not one: only the studio chrome wears it). */",
       `export const LOOK_IDS: readonly string[] = [${list(dirs)}, DEFAULT_SKIN_LOOK, ...SKIN_LOOK_IDS, ...SAMPLE_LOOK_IDS];`,
       "",
-      "/** Whether a value names a Look of the registry. */",
-      "export const isLookId = (v: unknown): v is string => typeof v === \"string\" && LOOK_IDS.includes(v);",
+      "/** The font families of the built-in packs (`pack.json`), which a user pack may not claim. */",
+      `export const PACK_FONT_FAMILIES: readonly string[] = [${list(packFamilies)}];`,
+      "",
+      "/** The user packs the app data folder holds (P12b): ids the server listed, set by `registerUserLooks` before a config is read. Never a built-in's. */",
+      "const USER_LOOK_IDS = new Set<string>();",
+      "export const registerUserLooks = (ids: readonly string[]): void => void ids.forEach((id) => USER_LOOK_IDS.add(id));",
+      "",
+      "/** Whether a value names a Look of the registry or a user pack of the app data folder. */",
+      "export const isLookId = (v: unknown): v is string => typeof v === \"string\" && (LOOK_IDS.includes(v) || USER_LOOK_IDS.has(v));",
       "",
     ].join("\n"),
   );

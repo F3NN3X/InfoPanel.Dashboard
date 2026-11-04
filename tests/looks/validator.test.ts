@@ -284,7 +284,7 @@ describe("bypass tries from the P8a and P9a rounds", () => {
 /** The pack as a user would hand it over: its own id and font families (a built-in's are refused), no pack.css, every asset listed. */
 function userPack(change: Parameters<typeof bad>[0] = {}): PackSource {
   const fonts = (BASE.pack as Json).fonts.map((f: Json) => ({ ...f, family: f.family.replace("pack-", "pack-mine-") }));
-  const src = bad({ ...change, pack: { id: "mine", fonts, ...change.pack }, look: (l) => { l.id = "mine"; change.look?.(l); } });
+  const src = bad({ ...change, pack: { id: "mine", fonts, ...change.pack }, look: (l) => { l.id = "mine"; for (const k of Object.keys(l.fonts)) l.fonts[k] = l.fonts[k].replace("pack-", "pack-mine-"); change.look?.(l); } });
   const files = src.files.filter((f) => f.path !== "pack.css");
   const assets = files.filter((f) => f.path.startsWith("assets/")).map((f) => ({ file: f.path.slice(7), bytes: f.size }));
   return { ...src, css: undefined, files, pack: { ...(src.pack as object), assets } };
@@ -701,8 +701,10 @@ describe("N-M2: a font's family, weight and style are plain", () => {
   });
 
   it("a number, a range, a word and italic pass", () => {
-    for (const weight of ["400", "100 900", "normal", "bold"]) expect(mine(undefined, font({ weight })), weight).toEqual([]);
-    expect(mine(undefined, font({ style: "italic" }))).toEqual([]);
+    // the Look names the one family this pack brings
+    const own = (l: Json) => { for (const k of Object.keys(l.fonts)) l.fonts[k] = "pack-mine"; };
+    for (const weight of ["400", "100 900", "normal", "bold"]) expect(mine(own, font({ weight })), weight).toEqual([]);
+    expect(mine(own, font({ style: "italic" }))).toEqual([]);
   });
 });
 
@@ -773,5 +775,144 @@ describe("the PNG signature is all eight bytes", () => {
     const fake = { path: "assets/p.png", size: 20, bytes: enc("\u0089PNG<svg onload=1></svg>") };
     expect(userRules(userPack({ files: [{ ...fake, size: fake.bytes.length }] }))).toContain("image-type");
     expect(userRules(userPack({ files: [pngFile("assets/p.png", 8)] }))).not.toContain("image-type");
+  });
+});
+
+// ---- P12b: the gate gaps of review round 3 (L97, L98), failing first ---------------------------------------------------------
+
+describe("H-1: a card with a blur is held at its fallback alpha too (the blur may be off)", () => {
+  const glass = (fallback: number | undefined, fillAlpha = 0.95, page = "#22252B") => (l: Json) => {
+    // the page under the card is the dark scene unless a case lays it cream: the fallback is what shows where the blur is off
+    l.t1.light.bg.value = page;
+    l.t2.materials["look-field-kit"] = { kind: "glass", tone: "light", export: CARD, fill: CARD, "fill-alpha": fillAlpha, blur: "20px", ...(fallback === undefined ? null : { "blur-fallback-alpha": fallback }) };
+  };
+
+  it("a near-transparent fallback over a dark page is refused, by the contrast and by the floor", () => {
+    expect(mine(glass(0.01))).toEqual(expect.arrayContaining(["contrast", "blur-fallback"]));
+    expect(mine(glass(0.5))).toContain("blur-fallback");
+  });
+
+  it("an opaque fallback passes; 0.9 is the floor (and a 0.9 card over a dark stage is read at 0.9)", () => {
+    expect(mine(glass(1, 1))).toEqual([]);
+    expect(mine(glass(0.9, 1))).not.toContain("blur-fallback");
+    expect(mine(glass(0.9, 1))).toContain("contrast");
+  });
+
+  it("a glass fill with no blur named is read as one with a blur", () => {
+    expect(mine((l) => { glass(0.01, 1, CARD)(l); delete l.t2.materials["look-field-kit"].blur; })).toContain("blur-fallback");
+  });
+});
+
+describe("M-1: a material's tone is the side of its card (the shell's faint text and track follow it)", () => {
+  const tone = (t: string | undefined) => (l: Json) => {
+    const material = l.t2.materials["look-field-kit"];
+    if (t === undefined) delete material.tone;
+    else material.tone = t;
+  };
+
+  it.each(["dark", undefined, "theme", "auto"])("a light card with tone %s", (t) => {
+    expect(mine(tone(t))).toContain("tone");
+  });
+
+  it("a dark card with tone light is refused, the right tone passes", () => {
+    const darkCard = (t: string) => (l: Json) => { l.t2.materials["look-field-kit"] = { kind: "solid", tone: t, export: "#050505", fill: "#050505" }; l.t1.light.surface.value = "#050505"; l.t1.light.fg.value = "#F5F5F4"; l.t1.light["fg-2"].value = "#F5F5F4"; l.t1.light.muted.value = "#A3A3A3"; };
+    expect(mine((l) => { darkCard("light")(l); })).toContain("tone");
+  });
+
+  it("the shell's tone colours are the ones theme.ts sets", async () => {
+    const { TEXT_VARS } = await import("@/widgets/core/theme");
+    const { SHELL_TONES } = await import("@/looks/pack-validate");
+    expect(TEXT_VARS.dark["--w-faint"]).toBe(SHELL_TONES.dark.faint);
+    expect(TEXT_VARS.light["--w-faint"]).toBe(SHELL_TONES.light.faint);
+    expect(TEXT_VARS.dark["--w-track"]).toBe(`rgba(255,255,255,.07)`);
+    expect(TEXT_VARS.light["--w-track"]).toBe(`rgba(24,24,27,.1)`);
+    expect(SHELL_TONES.dark.trackAlpha).toBe(0.07);
+    expect(SHELL_TONES.light.trackAlpha).toBe(0.1);
+  });
+});
+
+describe("M-2: info and accent-on are read against the card and the accent", () => {
+  it("info that is the card's colour", () => {
+    expect(mine((l) => (l.t1.light.info.value = CARD))).toContain("contrast");
+    expect(mine((l) => (l.t1.light.info.value = "#1A1C21"))).toEqual([]);
+  });
+
+  it("accent-on that is the accent's colour, or too close to it", () => {
+    expect(mine((l) => (l.t1.light["accent-on"].value = l.t1.light.accent.value))).toContain("contrast");
+    expect(mine((l) => (l.t1.light["accent-on"].value = "#22252B"))).toContain("contrast");
+    expect(mine((l) => (l.t1.light["accent-on"].value = "#FFFFFF"))).toEqual([]);
+  });
+});
+
+describe("M-3: a width, a stroke, a count or a weight is never nothing", () => {
+  it.each([
+    ["ring-width", 0], ["ring-width", "0px"], ["series-stroke", 0], ["series-stroke", 9], ["icon-stroke", 0], ["threshold-width", 0.1], ["range-height", 0],
+    ["meter-segments", 0], ["meter-segments", 1], ["meter-segments", 1000], ["meter-segments", 2.5],
+    ["num-weight", 0], ["num-weight", -1], ["num-weight", "9999"], ["hero-weight", 50], ["num-weight", "heavy"],
+    ["num-tracking", "-9999999"], ["num-tracking", "5em"], ["num-tracking", "-1em"],
+    ["series-fill-alpha", "1 > 1 > 1 > 1"], ["series-fill-alpha", "1 > 1"], ["series-fill-alpha", "2 > 1 > 0"],
+  ])("%s %j", (name, value) => {
+    expect(mine((l) => (l.t3[name as string] = value))).toContain("t3");
+  });
+
+  it.each([
+    ["ring-width", 0.5], ["ring-width", "6px"], ["series-stroke", 4], ["icon-stroke", 2], ["ring-gap", 0], ["meter-gap", 0], ["meter-segments", 24],
+    ["num-weight", 200], ["hero-weight", "bold"], ["num-weight", "700"], ["num-tracking", "normal"], ["num-tracking", "-0.04em"], ["series-fill-alpha", "0.32 > 0.06 > 0"],
+  ])("%s %j passes", (name, value) => {
+    expect(mine((l) => (l.t3[name as string] = value))).toEqual([]);
+  });
+});
+
+describe("L98: the built-in font families come from the pack.json files (generated into ids.ts)", () => {
+  it("the generated list is every family of every built-in pack, nothing else", async () => {
+    const { PACK_FONT_FAMILIES } = await import("@/looks/ids");
+    const families = [...new Set([...PACK_IDS].flatMap((id) => (builtin(id).pack as Json).fonts.map((f: Json) => f.family as string)))].sort();
+    expect([...PACK_FONT_FAMILIES]).toEqual(families);
+  });
+});
+
+describe("a copy of each built-in pack passes as a user pack", () => {
+  it.each([...PACK_IDS])("%s", (id) => {
+    const src = builtin(id);
+    const pack = src.pack as Json;
+    const look = structuredClone(src.look) as Json;
+    look.id = `my-${id}`;
+    for (const k of ["body", "mono", "display"]) if (look.fonts[k]) look.fonts[k] = look.fonts[k].replace("pack-", "pack-my-");
+    const files = src.files.filter((f) => f.path !== "pack.css");
+    const assets = files.filter((f) => f.path.startsWith("assets/")).map((f) => ({ file: f.path.slice(7), bytes: f.size }));
+    const mineSrc: PackSource = { pack: { ...pack, id: `my-${id}`, fonts: pack.fonts.map((f: Json) => ({ ...f, family: f.family.replace("pack-", "pack-my-") })), assets }, look, icons: src.icons, files };
+    expect(validatePack(mineSrc).filter((i) => i.severity === "error")).toEqual([]);
+  });
+});
+
+describe("L98: the cheap LOWs of review round 3", () => {
+  it("L-1: a {faint} alias is refused with the reason, not a bare error", () => {
+    const m = validatePack(userPack({ look: (l) => (l.t3["label-color"] = "{faint}") })).map((i) => i.message).join(" ");
+    expect(m).toContain("follow the material's tone");
+  });
+
+  it("L-2: a tag is not scanned as code: paint (oil) is a tag", () => {
+    expect(mine(undefined, { tags: ["paint (oil)", "image (photo)"] })).toEqual([]);
+    expect(mine((l) => (l.t3["graph-style"] = "paint (oil)"))).toContain("injection");
+  });
+
+  it("L-4: a band header's fill is held to 4.5:1, a title fill to 3:1", () => {
+    // 3.6:1 ink on the cream card: enough for a title, not for the small text of a band
+    const fill = (style: string) => (l: Json) => { l.t3["header-style"] = style; l.t3["header-fill"] = "#76726A"; };
+    expect(mine(fill("label-bar"))).toContain("contrast");
+    expect(mine(fill("tab-label"))).toContain("contrast");
+    expect(mine(fill("bracket-line"))).toEqual([]);
+  });
+
+  it("L-5: a font weight range written backwards", () => {
+    const font = (weight: string) => ({ fonts: [{ ...(BASE.pack as Json).fonts[0], family: "pack-mine-a", weight }] });
+    expect(mine(undefined, font("900 100"))).toContain("font-weight");
+    expect(mine(undefined, font("100 900"))).not.toContain("font-weight");
+  });
+
+  it("L-6: a Look names only a pack- family its own pack brings", () => {
+    expect(mine((l) => (l.fonts.body = "pack-classy"))).toContain("font-family");
+    expect(mine((l) => (l.fonts.body = "pack-nonexistent"))).toContain("font-family");
+    expect(mine((l) => (l.fonts.body = "sans"))).not.toContain("font-family");
   });
 });

@@ -12,7 +12,7 @@ import { safeFill } from "@/widgets/core/t3-tokens";
 import { parseCss, type Rule, type Token, tokenize, writeTokens } from "./css-syntax";
 import { OVERLAY_MAX } from "./effects";
 import { iconSetIssues } from "./icon-set";
-import { LOOK_IDS } from "./ids";
+import { LOOK_IDS, PACK_FONT_FAMILIES } from "./ids";
 import { resolveT1, type Look, type T1Name, T1_NAMES } from "./look";
 import lookSchema from "./look.schema.json";
 import { MAX_LAYERS, NUMERAL_MIN, numeralIssues, stageIssues } from "./pack-checks";
@@ -60,8 +60,8 @@ export interface PackIssue {
   message: string;
 }
 
-/** The font families of the built-in packs (a test pins this list to their pack.json files): a user pack may not claim one. */
-export const BUILTIN_FONT_FAMILIES: ReadonlySet<string> = new Set(["pack-classy", "pack-classy-num", "pack-field-kit", "pack-gold", "pack-holo", "pack-holo-display", "pack-liquid", "pack-neon-display", "pack-neon-mono", "pack-night-glow", "pack-overdrive", "pack-overdrive-mono", "pack-paper", "pack-swiss", "pack-swiss-display", "pack-tape-86-display", "pack-tape-86-mono", "pack-term-display", "pack-term-mono"]);
+/** The font families of the built-in packs (generated into ids.ts from their pack.json files): a user pack may not claim one. */
+export const BUILTIN_FONT_FAMILIES: ReadonlySet<string> = new Set(PACK_FONT_FAMILIES);
 
 /** The size cap of a pack folder: `packCeilingBytes` of the `packs` block in tools/perf/budgets.json (a test pins them equal). */
 export const PACK_CEILING_BYTES = 512_000;
@@ -84,7 +84,7 @@ const LICENCE_FILE = /^(OFL\.txt|LICENSE\.txt|LICENCE\.txt|LICENSE|OFL)$/;
 const ROOT_FILES = /^(pack\.json|look\.json|pack\.css|icons\.json|LOOK\.md|README(\.md)?|thumb\.(avif|png|webp|jpe?g)|OFL\.txt|LICENSE\.txt|LICENCE\.txt|LICENSE|OFL)$/;
 /** A path no file system or server should be asked for: a hidden file, a Windows device name, a trailing dot or space. */
 const ODD_PATH = /(^|\/)\.|(^|\/)(con|prn|aux|nul|com\d|lpt\d)(\.|\/|$)|[. ]$/i;
-const TEXT_PAIRS = ["fg", "fg-2", "muted", "ok", "warn", "crit", "accent"] as const;
+const TEXT_PAIRS = ["fg", "fg-2", "muted", "ok", "warn", "crit", "accent", "info"] as const;
 
 const issue = (rule: string, file: string, message: string, severity: PackIssue["severity"] = "error"): PackIssue => ({ rule, severity, file, message });
 const text = (b: Uint8Array) => new TextDecoder().decode(b);
@@ -335,8 +335,39 @@ const MOTION_MAX_MS = 2000;
 const MOTION_MIN_MS = 50;
 /** A card under this opaque over a stage layer whose colours cannot be known (a raster) is refused: the text on it could be on anything. */
 export const RASTER_ALPHA_MIN = 0.85;
-const LENGTH_T3 = new Set(["ring-width", "ring-gap", "icon-stroke", "threshold-width", "range-height", "meter-gap", "series-stroke"]);
-const LENGTH_T3_MAX = 64;
+/** Lengths a mark is drawn with, in px (a number, or a number and `px`): [least, most]. A width or stroke is never nothing (M-3); a gap may be 0. */
+const LENGTH_T3: Record<string, readonly [number, number]> = {
+  "ring-width": [0.5, 64], "icon-stroke": [0.5, 64], "threshold-width": [0.5, 64], "range-height": [0.5, 64], "series-stroke": [0.5, 8], "ring-gap": [0, 64], "meter-gap": [0, 64],
+};
+const COUNT_T3: Record<string, readonly [number, number]> = { "meter-segments": [2, 64], "num-weight": [100, 900], "hero-weight": [100, 900] };
+const WEIGHT_WORDS = new Set(["normal", "bold"]);
+/** `num-tracking` is `normal`, 0 or a number of em within this either way (a wider gap pushes a numeral out of its card). */
+const TRACKING_MAX_EM = 0.5;
+const PLAIN_NUMBER = /^(-?\d+(?:\.\d+)?)$/;
+
+/** What is wrong with the value of a length, count, weight or tracking token, or undefined (also for a token not in these tables). */
+function rangeIssue(name: string, v: string | number): string | undefined {
+  const length = LENGTH_T3[name];
+  const count = COUNT_T3[name];
+  if (length || count) {
+    const [least, most] = (length ?? count)!;
+    const s = String(v).trim();
+    if (typeof v === "string" && WEIGHT_WORDS.has(s) && name.endsWith("weight")) return undefined;
+    const m = (length ? /^(-?\d+(?:\.\d+)?)(px)?$/ : PLAIN_NUMBER).exec(s);
+    const n = m ? Number(m[1]) : Number.NaN;
+    if (!(n >= least && n <= most) || (name === "meter-segments" && !Number.isInteger(n))) return `t3 ${name} ${s.slice(0, 20)}: ${count ? "a number" : "a length in px"} from ${least} to ${most}`;
+    return undefined;
+  }
+  if (name === "num-tracking") {
+    const m = /^(-?\d+(?:\.\d+)?)em$/.exec(String(v).trim());
+    return v === "normal" || v === 0 || (m && Math.abs(Number(m[1])) <= TRACKING_MAX_EM) ? undefined : `t3 num-tracking ${String(v).slice(0, 20)}: normal, or a number of em within ${TRACKING_MAX_EM}`;
+  }
+  if (name === "series-fill-alpha") {
+    const parts = String(v).split(">").map((p) => p.trim());
+    return parts.length === 3 && parts.every((p) => PLAIN_NUMBER.test(p) && Number(p) >= 0 && Number(p) <= 1) ? undefined : `t3 series-fill-alpha ${String(v).slice(0, 20)}: three numbers from 0 to 1 joined by >`;
+  }
+  return undefined;
+}
 /** T3 names that colour text: held to 4.5:1 on the surface when they resolve to a T1 colour. */
 const TEXT_T3 = new Set(["status-ok", "status-warn", "status-crit", "info", "unit-color", "label-color", "header-color", "axis-label"]);
 /** T3 names that colour a mark (a series, a meter zone, an icon): held to 3:1. */
@@ -346,6 +377,8 @@ const OTHER_COLOUR_T3 = new Set(["meter-track", "meter-hold", "range-track", "ra
 const FILL_T3 = new Set(["border-fill", "header-fill", "num-fill", "ring-fill", "spark-fill"]);
 
 const T3_NAMES = new Set<string>(T3_TOKENS);
+/** Header styles that paint the fill as a band under small text rather than as the title's own colour: the text is held to 4.5:1 on it. */
+const BAND_HEADERS = new Set(["tab-label", "label-bar"]);
 
 type Resolved = { value: string } | { error: string };
 
@@ -356,7 +389,7 @@ function resolveAlias(value: string, t3: Record<string, string | number>, t1: Re
   if ((T1_NAMES as readonly string[]).includes(alias)) return { value: t1[alias] };
   if (trail.includes(alias)) return { error: `the aliases ${[...trail, alias].map((n) => `{${n}}`).join(" > ")} loop` };
   const next = Object.hasOwn(t3, alias) ? t3[alias] : undefined;
-  if (typeof next !== "string" || next === "") return { error: `{${alias}} is not a T1 name or a T3 colour this Look sets` };
+  if (typeof next !== "string" || next === "") return { error: `{${alias}} is not a T1 name or a T3 colour this Look sets${alias === "faint" || alias === "track" ? " (the shell's faint and track follow the material's tone: write a colour)" : ""}` };
   return resolveAlias(next, t3, t1, [...trail, alias]);
 }
 
@@ -382,8 +415,13 @@ function t3Issues(look: Look, t1: Record<T1Name, string>, mode: string, cards: s
       bad("t3", `t3 ${name} is not a T3 name`);
       continue;
     }
+    const range = rangeIssue(name, v);
+    if (range) {
+      bad("t3", range);
+      continue;
+    }
     if (typeof v === "number") {
-      if (!Number.isFinite(v) || Math.abs(v) > 1000 || (LENGTH_T3.has(name) && (v < 0 || v > LENGTH_T3_MAX)) || MOTION.has(name)) bad("t3", `t3 ${name} ${v} is out of range${LENGTH_T3.has(name) ? ` (0 to ${LENGTH_T3_MAX})` : ""}${MOTION.has(name) ? " (a time is written with ms or s)" : ""}`);
+      if (!Number.isFinite(v) || Math.abs(v) > 1000 || MOTION.has(name)) bad("t3", `t3 ${name} ${v} is out of range${MOTION.has(name) ? " (a time is written with ms or s)" : ""}`);
       continue;
     }
     if (FILL_T3.has(name)) {
@@ -398,7 +436,7 @@ function t3Issues(look: Look, t1: Record<T1Name, string>, mode: string, cards: s
           // the title is painted in this fill (bg-clip: text): each stop over each card is text on it
           const worst = stops.map((c) => worstContrast(c, cards)).sort((x, y) => (x?.ratio ?? 0) - (y?.ratio ?? 0))[0];
           if (!worst) bad("contrast", `${mode} t3 header-fill cannot be checked`);
-          else if (worst.ratio < NUMERAL_MIN) bad("contrast", `${mode} t3 header-fill is ${worst.ratio.toFixed(2)}:1 on the card ${worst.card}, under ${NUMERAL_MIN}:1`);
+          else if (worst.ratio < (BAND_HEADERS.has(String(t3["header-style"])) ? TEXT_MIN : NUMERAL_MIN)) bad("contrast", `${mode} t3 header-fill is ${worst.ratio.toFixed(2)}:1 on the card ${worst.card}, under ${BAND_HEADERS.has(String(t3["header-style"])) ? TEXT_MIN : NUMERAL_MIN}:1`);
         }
       }
       continue;
@@ -451,27 +489,64 @@ function backdropsOf(page: string | undefined, layers: LayerPaint[]): Backdrops 
   return { colours: [...colours], unknown };
 }
 
-/** What each Look in the pack is drawn on: the surface and every material's flat colours (its export, its fill and fill-2 laid over each backdrop by their alpha), per mode; a colour the check cannot read is an issue. */
-function cardsOf(look: Look, mode: string, surface: string, back: Backdrops, issues: PackIssue[]): string[] {
+/** A glass card's fill alpha where its backdrop blur is off when the material names none (`BLUR_FALLBACK_ALPHA`, materials.ts: a pack never paints less). */
+const FALLBACK_ALPHA = 0.9;
+/**
+ * The shell's text variables per tone that no pack sets (`TEXT_VARS`, src/widgets/core/theme.ts; a test pins these to it): `--w-faint`
+ * (the axis labels, units and sub-lines) and `--w-track` (its colour and alpha), held to a contrast on every card of the material.
+ * `theme` and `auto` take the app theme's colours, which no pack file can know: a user pack names `dark` or `light`.
+ */
+export const SHELL_TONES: Record<"dark" | "light", { faint: string; track: string; trackAlpha: number }> = {
+  dark: { faint: "#8a8a94", track: "#ffffff", trackAlpha: 0.07 },
+  light: { faint: "#636366", track: "#18181b", trackAlpha: 0.1 },
+};
+/** The track must show against the card at least this much, or a gauge's empty part is not drawn. */
+export const TRACK_MIN = 1.1;
+
+/** What each Look in the pack is drawn on: the surface and every material's flat colours (its export, its fill and fill-2 laid over each backdrop by their alpha, and again by the blur fallback's), per mode; a colour the check cannot read is an issue. */
+function cardsOf(look: Look, mode: string, surface: string, back: Backdrops, issues: PackIssue[], user: boolean): string[] {
   const cards = [surface];
   for (const [name, m] of Object.entries(look.t2?.materials ?? {})) {
+    const own: string[] = [];
+    const blurs = m.blur !== undefined || m.kind === "glass";
+    const fallback = m["blur-fallback-alpha"] ?? FALLBACK_ALPHA;
+    if (user && blurs && fallback < FALLBACK_ALPHA) issues.push(issue("blur-fallback", "look.json", `material ${name} blur-fallback-alpha ${fallback}: at least ${FALLBACK_ALPHA} (it is the fill where the blur is off)`));
     for (const field of ["export", "fill", "fill-2"] as const) {
       const v = m[field];
       if (typeof v !== "string") continue;
       const c = parseColour(v);
-      const alpha = (c?.alpha ?? 1) * (field === "export" ? 1 : (m["fill-alpha"] ?? 1));
-      if (c?.hex && alpha >= 0.999) cards.push(c.hex);
-      else if (c?.hex && back.colours.length) {
-        if (back.unknown && alpha < RASTER_ALPHA_MIN) issues.push(issue("contrast", "look.json", `${mode} material ${name} ${field} is ${alpha.toFixed(2)} opaque over a stage layer whose colours cannot be known (a raster or an unreadable paint): at least ${RASTER_ALPHA_MIN}`));
-        else for (const b of back.colours) cards.push(over(c.hex, alpha, b));
-      } else issues.push(issue("contrast", "look.json", `${mode} material ${name} ${field} ${v} cannot be read: use #rgb, #rrggbb, rgb() or hsl() (over an opaque bg)`));
+      const fillAlpha = (c?.alpha ?? 1) * (m["fill-alpha"] ?? 1);
+      // a card with a blur is drawn at the lower of its fill alpha and its fallback's (H-1: the blur may be off)
+      const alphas = field === "export" ? [c?.alpha ?? 1] : [...new Set([fillAlpha, ...(blurs ? [Math.min(fillAlpha, (c?.alpha ?? 1) * fallback)] : [])])];
+      for (const alpha of alphas) {
+        if (c?.hex && alpha >= 0.999) own.push(c.hex);
+        else if (c?.hex && back.colours.length) {
+          if (back.unknown && alpha < RASTER_ALPHA_MIN) issues.push(issue("contrast", "look.json", `${mode} material ${name} ${field} is ${alpha.toFixed(2)} opaque over a stage layer whose colours cannot be known (a raster or an unreadable paint): at least ${RASTER_ALPHA_MIN}`));
+          else for (const b of back.colours) own.push(over(c.hex, alpha, b));
+        } else issues.push(issue("contrast", "look.json", `${mode} material ${name} ${field} ${v} cannot be read: use #rgb, #rrggbb, rgb() or hsl() (over an opaque bg)`));
+      }
     }
     if (m.blur !== undefined && !(BLUR.test(m.blur) && parseFloat(m.blur) <= BLUR_MAX)) issues.push(issue("blur", "look.json", `material ${name} blur ${m.blur}: a length in px up to ${BLUR_MAX}`));
+    if (user) toneIssues(name, m.tone, mode, own, issues);
+    cards.push(...own);
   }
   return [...new Set(cards)];
 }
 
-function lookIssues(look: Look, layers: LayerPaint[]): { issues: PackIssue[]; cards: string[]; texts: string[] } {
+/** M-1: the shell sets `--w-faint` and `--w-track` from a material's tone, so the tone must be the side of the card's luminance the pack's own cards are. */
+function toneIssues(name: string, tone: string | undefined, mode: string, cards: string[], issues: PackIssue[]): void {
+  const shell = SHELL_TONES[tone === "light" ? "light" : "dark"];
+  if (tone !== undefined && tone !== "dark" && tone !== "light") return void issues.push(issue("tone", "look.json", `material ${name} tone ${tone}: a user pack names dark or light (theme and auto take colours no pack file can know)`));
+  for (const card of cards) {
+    const faint = contrastOf(shell.faint, card);
+    const track = contrastOf(over(shell.track, shell.trackAlpha, card), card);
+    if (faint === undefined || track === undefined) continue;
+    if (faint < TEXT_MIN) issues.push(issue("tone", "look.json", `${mode} material ${name} tone ${tone ?? "dark"}: the shell's faint text ${shell.faint} is ${faint.toFixed(2)}:1 on the card ${card}, under ${TEXT_MIN}:1 (the tone is the wrong side of the card)`));
+    if (track < TRACK_MIN) issues.push(issue("tone", "look.json", `${mode} material ${name} tone ${tone ?? "dark"}: the shell's gauge track is ${track.toFixed(2)}:1 on the card ${card}, under ${TRACK_MIN}:1`));
+  }
+}
+
+function lookIssues(look: Look, layers: LayerPaint[], user: boolean): { issues: PackIssue[]; cards: string[]; texts: string[] } {
   const issues: PackIssue[] = [];
   const cards: string[] = [];
   const texts: string[] = [];
@@ -489,7 +564,7 @@ function lookIssues(look: Look, layers: LayerPaint[]): { issues: PackIssue[]; ca
     // L93: the chrome (the island's pill, the alert cards) takes the surface verbatim, so it is a literal and opaque
     const surface = parseColour(t1.surface);
     if (!surface?.hex || surface.alpha < 1 || !/^#([\da-f]{3}|[\da-f]{6})$/i.test(t1.surface)) issues.push(issue("chrome-surface", "look.json", `${mode} surface ${t1.surface} must be an opaque #rgb or #rrggbb: the chrome and the contrast check read it as written`));
-    const modeCards = cardsOf(look, mode, t1.surface, backdropsOf(opaqueHex(t1.bg), layers), issues);
+    const modeCards = cardsOf(look, mode, t1.surface, backdropsOf(opaqueHex(t1.bg), layers), issues, user);
     for (const card of modeCards) {
       cards.push(card);
       for (const name of TEXT_PAIRS) {
@@ -498,6 +573,10 @@ function lookIssues(look: Look, layers: LayerPaint[]): { issues: PackIssue[]; ca
         else if (ratio < TEXT_MIN) issues.push(issue("contrast", "look.json", `${mode} ${name} ${t1[name]} is ${ratio.toFixed(2)}:1 on the card ${card}, under ${TEXT_MIN}:1`));
       }
     }
+    // the text on an accent fill (a button, a label bar) is read on the accent itself
+    const onAccent = contrastOf(opaqueHex(t1["accent-on"]) ?? t1["accent-on"], opaqueHex(t1.accent) ?? t1.accent);
+    if (onAccent === undefined) issues.push(issue("contrast", "look.json", `${mode} accent-on ${t1["accent-on"]} on the accent ${t1.accent} cannot be checked: use #rgb or #rrggbb`));
+    else if (onAccent < TEXT_MIN) issues.push(issue("contrast", "look.json", `${mode} accent-on ${t1["accent-on"]} is ${onAccent.toFixed(2)}:1 on the accent ${t1.accent}, under ${TEXT_MIN}:1`));
     for (const name of ["fg", "fg-2", "muted"] as const) {
       const hex = opaqueHex(t1[name]);
       if (hex) texts.push(hex);
@@ -513,7 +592,7 @@ function lookIssues(look: Look, layers: LayerPaint[]): { issues: PackIssue[]; ca
 type Pack = {
   id: string;
   modes: string[];
-  fonts: { family: string; file: string; licence: string }[];
+  fonts: { family: string; file: string; weight: string; licence: string }[];
   stage: Parameters<typeof stageIssues>[0] & object;
   burnIn: string;
   assets?: { file: string; bytes: number }[];
@@ -586,6 +665,12 @@ function validate(src: PackSource, source: "builtin" | "user"): PackIssue[] {
   // a user pack never takes a built-in's id or font family (P12b sets `source` from where the pack was loaded, never from the pack)
   if (user && LOOK_IDS.includes(pack.id)) add("provenance", "pack.json", `the id ${pack.id} is a built-in Look's: a user pack takes its own`);
   if (user) for (const f of pack.fonts) if (BUILTIN_FONT_FAMILIES.has(f.family)) add("provenance", "pack.json", `the font family ${f.family} is a built-in pack's: a user pack names its own`);
+  // a descending weight range is no `@font-face` descriptor (the face would not load); a Look names only faces its own pack brings
+  for (const f of pack.fonts) {
+    const [low, high] = f.weight.split(" ").map(Number);
+    if (high !== undefined && low > high) add("font-weight", "pack.json", `${f.family} weight ${f.weight}: the lower weight comes first`);
+  }
+  if (user) for (const [role, family] of Object.entries(look.fonts)) if (family.startsWith("pack-") && !pack.fonts.some((f) => f.family === family)) add("font-family", "look.json", `fonts.${role} ${family} is not a family this pack brings`);
   for (const key of T1_NAMES) for (const mode of look.modes.supported) if (!look.t1[mode]?.[key]) add("schema", "look.json", `${mode} ${key} is missing`);
 
   // referenced files: stage images, fonts, icons, CSS urls; each is a pack path and a file of the folder
@@ -660,7 +745,7 @@ function validate(src: PackSource, source: "builtin" | "user"): PackIssue[] {
 
   // the Look: contrast per card, opaque chrome surface, gradient numerals, T3 values, readable colours
   const layers = pack.stage.layers.flatMap((l) => layerPaint(l, files, resolve) ?? []);
-  const { issues: lookRules, cards, texts } = lookIssues(look, layers);
+  const { issues: lookRules, cards, texts } = lookIssues(look, layers, user);
   out.push(...lookRules);
 
   // burn-in: a static-safe claim on bright static art (layers stack: each adds to what is behind it; unreadable art is not static-safe)

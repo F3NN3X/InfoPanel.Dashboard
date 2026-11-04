@@ -25,7 +25,7 @@ export function sampleLook(t: SampleTheme): Look {
     border: v(t.colours.line),
     "border-soft": v("{border}"),
     accent: v(t.accent),
-    "accent-on": v("{bg}"),
+    "accent-on": v(t.accentOn ?? "{bg}"),
     "accent-hover": v("{accent}"),
     "focus-ring": v("{accent}"),
     ok: v(status.ok),

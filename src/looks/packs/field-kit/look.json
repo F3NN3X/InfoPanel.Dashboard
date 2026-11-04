@@ -51,7 +51,7 @@
         "value": "#8A5C00"
       },
       "accent-on": {
-        "value": "{bg}"
+        "value": "#EFE8D8"
       },
       "accent-hover": {
         "value": "{accent}"

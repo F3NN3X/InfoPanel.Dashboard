@@ -38,7 +38,7 @@ export function jsonStrings(value: unknown, skip: RegExp, at = "$", out: [string
 }
 
 /** The fields that are prose, by exact path: no style or page reads them as code. A nested key of the same name elsewhere is scanned. */
-export const PROSE_PATHS = /^\$\.(name|description|modes\.stance|t1\.(dark|light)\.[a-z0-9-]+\.usage|fonts\[\d+\]\.(copyright|source))$/;
+export const PROSE_PATHS = /^\$\.(name|description|modes\.stance|tags\[\d+\]|t1\.(dark|light)\.[a-z0-9-]+\.usage|fonts\[\d+\]\.(copyright|source))$/;
 /** A material, tone or token key. */
 export const TOKEN_KEY = /^[a-z][a-z0-9-]*$/;
 
