@@ -60,7 +60,7 @@ A pack is a folder of data and assets, built on the Look file from the brief. No
 looks/field-kit/
   look.json      tokens: T1 colours, T2 materials, T3 data-viz (per the brief)
   pack.json      slots, assets, fonts, icons, effects, knobs, variants, fallbacks, export, templates
-  pack.css       optional, level 3 only: scoped, paint-only
+  pack.css       optional, level 3 only: scoped, paint-only; built-in packs only (a user pack carries none in v1: rule `user-css`)
   assets/        page.avif, contours.svg, hazard.svg, grain.webp
   fonts/         display.woff2 (subset)
   icons/         icon set: SVG sprite, or a glyph map for text-based sets
@@ -156,7 +156,7 @@ Seven example packs and two Looks, each filling the slots differently. Names are
 | Term (retro TUI) | 2 | Black | `box-legend` frame, titles in the border | Pixel display numbers, `blocks` bars, per-core rows, process list | Scanlines, vignette, phosphor glow | needs-dim |
 | Holo (futuristic HUD) | 2 | Deep blue glow, faint range rings | `corner-brackets` frame | Concentric glowing rings, thin bars, `elbow` connectors | Glow | needs-shift |
 | Night Glow | 1 | Deep navy gradient | Glass, `gradient-border` in cyan-to-purple | Segmented ring, gradient hero number | Glow capped at 12 px | static-safe |
-| Paper | 1 | Light; faint hex pattern | Matte light, hairline frame | Purple accent, gradient hero number | None | static-safe |
+| Paper | 1 | Light; faint hex pattern | Matte light, hairline frame | Purple accent, gradient hero number | None | needs-dim |
 
 All of these will be built, plus the Classic, Classy Black, Liquid Glass and Black and Gold Looks. Field Kit, Tape '86 and Term go first because together they cover the most slots.
 

@@ -23,10 +23,10 @@ export function schemaErrors(value: unknown, s: Schema, root: Schema, at = "$"):
   if (typeOf(value) === "object") {
     const obj = value as Record<string, unknown>;
     const props = (s.properties ?? {}) as Record<string, Schema>;
-    for (const key of (s.required as string[] | undefined) ?? []) if (!(key in obj)) out.push(`${at}: ${key} is required`);
+    for (const key of (s.required as string[] | undefined) ?? []) if (!Object.hasOwn(obj, key)) out.push(`${at}: ${key} is required`);
     if (typeof s.minProperties === "number" && Object.keys(obj).length < s.minProperties) out.push(`${at}: too few properties`);
     for (const [key, v] of Object.entries(obj)) {
-      if (props[key]) out.push(...schemaErrors(v, props[key], root, `${at}.${key}`));
+      if (Object.hasOwn(props, key)) out.push(...schemaErrors(v, props[key], root, `${at}.${key}`));
       else if (s.additionalProperties === false) out.push(`${at}: ${key} is not allowed`);
       else if (typeof s.additionalProperties === "object") out.push(...schemaErrors(v, s.additionalProperties as Schema, root, `${at}.${key}`));
     }

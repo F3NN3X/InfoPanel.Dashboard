@@ -1,8 +1,9 @@
 // The pack validator (P12a, src/looks/pack-validate.ts): the twelve built-in packs pass with no error, and each rule fails a
 // pack built to break it, by its rule id. Bad packs are Field Kit (cream card, fonts, SVG assets, CSS) with one thing changed.
 import { describe, expect, it } from "vitest";
-import { PACK_IDS } from "@/looks/pack";
-import { PACK_CEILING_BYTES, type PackFile, type PackSource, validatePack } from "@/looks/pack-validate";
+import { PACK_IDS, type Pack } from "@/looks/pack";
+import { packIssues } from "@/looks/pack-load";
+import { FILE_COUNT_MAX, FILE_MAX_BYTES, PACK_CEILING_BYTES, type PackFile, type PackSource, validatePack } from "@/looks/pack-validate";
 import budgets from "../../tools/perf/budgets.json";
 import { readPackDir } from "../../tools/validate-pack.mjs";
 
@@ -13,6 +14,8 @@ const builtin = (id: string): PackSource => readPackDir(dir(id), /\.tsx?$/);
 const BASE = builtin("field-kit");
 const enc = (s: string) => new TextEncoder().encode(s);
 const file = (path: string, content: string): PackFile => ({ path, size: content.length, bytes: enc(content) });
+/** A file of `n` bytes that starts like a PNG. */
+const pngFile = (path: string, n: number): PackFile => ({ path, size: n, bytes: Uint8Array.from({ length: n }, (_, k) => [0x89, 0x50, 0x4e, 0x47][k] ?? 0) });
 
 /** Field Kit with changes: `pack` and `look` are merged over the JSON, `files` are added or replace by path. */
 function bad(change: { pack?: Record<string, unknown>; look?: (look: Json) => void; css?: string; icons?: unknown; files?: PackFile[]; drop?: string[] }): PackSource {
@@ -27,12 +30,14 @@ function bad(change: { pack?: Record<string, unknown>; look?: (look: Json) => vo
     files: [...BASE.files.filter((f) => !added.has(f.path) && !change.drop?.includes(f.path)), ...(change.files ?? [])],
   };
 }
-const rules = (src: PackSource) => validatePack(src).filter((i) => i.severity === "error").map((i) => i.rule);
+/** The error rules of a pack read as one of ours (its CSS is read too); `userRules` reads it as a user pack. */
+const rules = (src: PackSource) => validatePack(src, { source: "builtin" }).filter((i) => i.severity === "error").map((i) => i.rule);
+const userRules = (src: PackSource) => validatePack(src).filter((i) => i.severity === "error").map((i) => i.rule);
 const stage = (layers: unknown[], rest: object = {}) => ({ stage: { ...(BASE.pack as Json).stage, layers, ...rest } });
 
 describe("the built-in packs", () => {
   it.each([...PACK_IDS])("%s passes with no error and no warning", (id) => {
-    expect(validatePack(builtin(id))).toEqual([]);
+    expect(validatePack(builtin(id), { source: "builtin" })).toEqual([]);
   });
 
   it("the size cap is the packs block's ceiling in budgets.json", () => {
@@ -81,7 +86,7 @@ describe("bad packs, one per rule", () => {
   it("a file that is not part of a pack, an unreferenced asset (a warning)", () => {
     expect(rules(bad({ files: [file("run.exe", "MZ")] }))).toContain("asset-extra");
     expect(rules(bad({ files: [file("assets/run.exe", "MZ")] }))).toContain("asset-type");
-    const unused = validatePack(bad({ files: [file("assets/spare.png", "x")] }));
+    const unused = validatePack(bad({ files: [file("assets/spare.png", "x")] }), { source: "builtin" });
     expect(unused.filter((i) => i.severity === "warn").map((i) => i.rule)).toEqual(["asset-unused"]);
   });
 
@@ -109,7 +114,9 @@ describe("bad packs, one per rule", () => {
   });
 
   it("static-safe on bright static art (L74), and not on dark or non-static-safe packs", () => {
-    expect(rules(bad({ pack: { burnIn: "static-safe" } }))).toEqual([]);
+    expect(rules(bad({ pack: { burnIn: "static-safe", ...stage([{ fill: "#101010" }]) } }))).toEqual([]);
+    // Field Kit's hazard strip is bright static art: the brightest stop counts, never the mean of the colours
+    expect(rules(bad({ pack: { burnIn: "static-safe" } }))).toContain("burn-in");
     expect(rules(bad({ pack: { burnIn: "static-safe", ...stage([{ fill: "#F4F1EC" }]) } }))).toContain("burn-in");
     expect(rules(bad({ pack: { burnIn: "static-safe", ...stage([{ fill: "linear-gradient(#FFFFFF, #EEEEEE)", opacity: 0.9 }]) } }))).toContain("burn-in");
     expect(rules(bad({ pack: { burnIn: "needs-dim", ...stage([{ fill: "#F4F1EC" }]) } }))).toEqual([]);
@@ -146,7 +153,7 @@ describe("bad packs, one per rule", () => {
   });
 
   it("a pack over the size cap", () => {
-    expect(rules(bad({ files: [{ path: "assets/big.png", size: PACK_CEILING_BYTES, bytes: undefined }], pack: stage([{ image: "big.png" }]) }))).toContain("size");
+    expect(rules(bad({ files: [pngFile("assets/big.png", PACK_CEILING_BYTES / 2), pngFile("assets/big2.png", PACK_CEILING_BYTES / 2)], pack: stage([{ image: "big.png" }]) }))).toContain("size");
   });
 
   it("the layer budget and effects", () => {
@@ -248,13 +255,13 @@ describe("bypass tries from the P8a and P9a rounds", () => {
 
   it("a comment hides nothing and is not read as code", () => {
     expect(rules(bad({ css: '/* @import url(https://x.test/a.css) */ [data-part="chip"] { color: #EFE8D8; background-color: #1A1C21; }' }))).toEqual([]);
-    expect(rules(bad({ css: '[data-part="card"] { background: url(/**/https://x.test/a.png); }' }))).not.toEqual([]);
-    expect(rules(bad({ css: '[data-part="card"] { background: url(https://x.test/a.png /* ) */ ); }' }))).not.toEqual([]);
+    expect(rules(bad({ css: '[data-part="card"] { background: url(/**/https://x.test/a.png); }' }))).toContain("path");
+    expect(rules(bad({ css: '[data-part="card"] { background: url(https://x.test/a.png /* ) */ ); }' }))).toContain("css-syntax");
   });
 
   it("image-set(), src() and a var() inside a URL function are read as URLs", () => {
     expect(rules(bad({ css: '[data-part="card"] { background-image: image-set("https://x.test/a.png" 1x); }' }))).toContain("remote-url");
-    expect(rules(bad({ css: '[data-part="card"] { background-image: url(var(--x)); }' }))).not.toEqual([]);
+    expect(rules(bad({ css: '[data-part="card"] { background-image: url(var(--x)); }' }))).toContain("css-syntax");
   });
 
   it("@font-face with a remote src or a unicode-range does not get past the URL and name rules", () => {
@@ -268,5 +275,302 @@ describe("bypass tries from the P8a and P9a rounds", () => {
     expect(rules(bad({ css: '[data-part="card"] { DISPLAY: none; }' }))).toContain("paint-only");
     expect(rules(bad({ css: '[data-part="card"] { --pack-x: 1; width: 1px; }' }))).toContain("paint-only");
     expect(rules(bad({ css: String.raw`[data-part="card"] { dis\70lay: none; }` }))).toContain("css-syntax");
+  });
+});
+
+// ---- review and fix round 1 (P12a): the probe inputs of the review, one case per finding ----------------------------------
+
+/** The pack as a user would hand it over: no pack.css, every asset listed. */
+function userPack(change: Parameters<typeof bad>[0] = {}): PackSource {
+  const src = bad(change);
+  const files = src.files.filter((f) => f.path !== "pack.css");
+  const assets = files.filter((f) => f.path.startsWith("assets/")).map((f) => ({ file: f.path.slice(7), bytes: f.size }));
+  return { ...src, css: undefined, files, pack: { ...(src.pack as object), assets } };
+}
+const WHITE_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><rect width="10" height="10" fill="#FFFFFF"/></svg>';
+/** JSON text with one extra first key, parsed back (so the key is an own property, as a hostile file gives it). */
+const withKey = (o: unknown, key: string) => JSON.parse(JSON.stringify(o).replace(/^\{/, `{${JSON.stringify(key)}:{"x":1},`));
+
+describe("a user pack carries no pack.css (the controller decision)", () => {
+  it("pack.css is refused as user-css, as text or as a file; the built-in reading keeps it", () => {
+    expect(userRules(bad({}))).toContain("user-css");
+    expect(userRules({ ...userPack(), css: "" })).toContain("user-css");
+    expect(userRules({ ...userPack(), files: [...userPack().files, file("pack.css", "")] })).toContain("user-css");
+    expect(rules(bad({}))).toEqual([]);
+  });
+
+  it("Field Kit's own files (SVGs, fonts, licence, icons) pass as a user pack once the CSS is left out", () => {
+    expect(validatePack(userPack())).toEqual([]);
+  });
+});
+
+describe("H1: hidden text, whatever the spelling", () => {
+  const num = (decl: string) => `[data-part="num"] { ${decl}; }`;
+  it.each(["color: white", "-webkit-text-fill-color: white", "color: hsl(0 0% 100%)", "color: var(--w-surface)", "color: color-mix(in srgb, #fff 100%, #fff)", "color: oklch(1 0 0)", "color: transparent"])("%s", (decl) => {
+    expect(rules(bad({ css: num(decl) }))).toContain("hidden-text");
+  });
+
+  it("an animation that ends on transparent or unreadable text, fill or paint", () => {
+    expect(rules(bad({ css: `@keyframes pack-h { to { color: transparent; } } ${num("animation: pack-h 2s forwards")}` }))).toContain("hidden-text");
+    expect(rules(bad({ css: `@keyframes pack-h { to { fill: none; } } ${num("animation: pack-h 2s forwards")}` }))).toContain("hidden-gauge");
+    expect(rules(bad({ css: `@keyframes pack-h { to { background: #1A1C21; } } ${num("animation: pack-h 2s forwards")}` }))).toContain("hidden-text");
+  });
+
+  it("a readable colour in any spelling still passes", () => {
+    expect(rules(bad({ css: num("color: hsl(220 15% 12%)") }))).toEqual([]);
+  });
+});
+
+describe("H2: a selector that matches everything", () => {
+  it.each(["div", "span, p, svg, [class]", ":not(.zzz)", ":scope", "[class]", "[data-part]", ":is(div, span)", ":where(div)"])("%s may not repaint", (selector) => {
+    expect(rules(bad({ css: `${selector} { background: #1A1C21; }` }))).toContain("universal");
+    expect(rules(bad({ css: `${selector} { background: #FFFFFF; }` }))).toContain("universal");
+  });
+
+  it("a named part painted the colour of the text is hidden text; one that keeps its own text colour is not", () => {
+    expect(rules(bad({ css: '[data-part="card"] { background: #1A1C21; }' }))).toContain("hidden-text");
+    expect(rules(bad({ css: '[data-part="chip"] { background: #1A1C21; color: #EFE8D8; }' }))).toEqual([]);
+  });
+});
+
+describe("H3: gauges and text painted away on any selector", () => {
+  it.each([".gauge { fill: none }", "text { fill: none }", ".a text { fill: none }", ".x { fill: none }", ".x { stroke: none }", ".x { fill: transparent }", "text { fill: rgba(0, 0, 0, 0.01) }", ".ring { fill: #EFE8D8 }", ".ring { stroke: #EFE8D8 }"])("%s", (css) => {
+    expect(rules(bad({ css }))).toContain("hidden-gauge");
+  });
+
+  it("a hairline stroke", () => {
+    expect(rules(bad({ css: ".x { stroke-width: 0.0001 }" }))).toContain("hides-content");
+    expect(rules(bad({ css: ".x { stroke-width: 0.5 }" }))).toEqual([]);
+  });
+});
+
+describe("H4: sizes come from the bytes", () => {
+  const big = Uint8Array.from({ length: 900_000 }, (_, k) => [0x89, 0x50, 0x4e, 0x47][k] ?? 0);
+  it("a claimed size under the bytes, a negative size, NaN", () => {
+    expect(userRules(userPack({ files: [{ path: "assets/big.png", size: 1, bytes: big }] }))).toEqual(expect.arrayContaining(["size"]));
+    expect(userRules(userPack({ files: [{ path: "assets/n.png", size: -999_999_999, bytes: Uint8Array.of(0x89, 0x50, 0x4e, 0x47) }] }))).toContain("size");
+    expect(userRules(userPack({ files: [{ path: "assets/n.png", size: Number.NaN, bytes: Uint8Array.of(0x89, 0x50, 0x4e, 0x47) }] }))).toContain("size");
+  });
+
+  it("a file with no bytes is an error, not a skipped check", () => {
+    const woff = BASE.files.find((f) => f.path.endsWith(".woff2"))!;
+    expect(userRules(userPack({ files: [{ path: woff.path, size: woff.size }] }))).toContain("content-unread");
+    expect(userRules(userPack({ files: [{ path: "OFL.txt", size: 10 }] }))).toContain("content-unread");
+  });
+
+  it("a file over the per-file cap, too many files, and the exact total cap", () => {
+    expect(rules(bad({ files: [pngFile("assets/a.png", FILE_MAX_BYTES + 1)] }))).toContain("size");
+    expect(rules(bad({ files: Array.from({ length: FILE_COUNT_MAX + 1 }, (_, k) => file(`extra${k}.md`, "")) }))).toContain("size");
+    const used = BASE.files.reduce((n, f) => n + f.size, 0);
+    const fits = (n: number) => rules(bad({ files: [pngFile("assets/a.png", Math.floor(n / 2)), pngFile("assets/b.png", n - Math.floor(n / 2))] })).includes("size");
+    expect(fits(PACK_CEILING_BYTES - used)).toBe(false);
+    expect(fits(PACK_CEILING_BYTES - used + 1)).toBe(true);
+  });
+});
+
+describe("M1: SVG allow-list", () => {
+  const svg = (markup: string) => userRules(userPack({ files: [file("assets/hazard.svg", markup)] }));
+  it.each([
+    "<svg/onload=alert(1)>",
+    "<svg><rect/onclick=1 /></svg>",
+    '<svg xmlns:x="http://www.w3.org/2000/svg"><x:script>alert(1)</x:script></svg>',
+    "<svg><image href=https://e.test/x.png /></svg>",
+    '<svg><rect style="fill:\\75 rl(https://e.test/x)"/></svg>',
+    '<!DOCTYPE svg [<!ENTITY x SYSTEM "https://e.test/x">]><svg><rect/></svg>',
+    '<svg><set attributeName="href" to="https://e.test"/></svg>',
+    '<svg><meta http-equiv="refresh" content="0;url=https://e.test"/></svg>',
+    "<svg><SCRIPT>alert(1)</SCRIPT></svg>",
+    '<svg><a href="javascript:alert(1)"/></svg>',
+    '<svg><rect fill="&#117;rl(https://e.test)"/></svg>',
+    '<svg xmlns="http://www.w3.org/1999/xhtml"/>',
+  ])("%s", (markup) => {
+    expect(svg(markup)).toContain("svg-unsafe");
+  });
+
+  it("an uppercase extension is scanned too, and a raster that is really an SVG is refused", () => {
+    const bad1 = userPack({ files: [file("assets/x.SVG", "<svg><script>1</script></svg>")] });
+    expect(userRules(bad1)).toContain("svg-unsafe");
+    expect(userRules(userPack({ files: [file("assets/hex.png", WHITE_SVG)] }))).toContain("image-type");
+  });
+
+  it("an SVG of allowed elements, with ids inside the file, passes", () => {
+    expect(svg(WHITE_SVG)).toEqual([]);
+    expect(svg('<svg xmlns="http://www.w3.org/2000/svg"><linearGradient id="g"><stop offset="0" stop-color="#000"/></linearGradient><rect fill="url(#g)"/></svg>')).toEqual([]);
+  });
+});
+
+describe("M2: the licence file", () => {
+  it("only the named licence files count, and the text must be the OFL with a copyright line", () => {
+    for (const name of ["OFL.html", "LICENSE.exe", "Licence.js"]) expect(userRules(userPack({ files: [file(name, "SIL OPEN FONT LICENSE Version 1.1 Copyright")] })), name).toContain("asset-extra");
+    expect(userRules(userPack({ files: [file("OFL.txt", "MIT. not the SIL OPEN FONT LICENSE")] }))).toContain("font-licence");
+    expect(userRules(userPack({ files: [file("OFL.txt", "SIL OPEN FONT LICENSE Version 1.1, without a holder")] }))).toContain("font-licence");
+  });
+});
+
+describe("M3: burn-in reads colours it can read, and stacks", () => {
+  const safe = (layers: unknown[], files: PackFile[] = []) => userRules(userPack({ pack: { burnIn: "static-safe", ...stage(layers) }, files }));
+  it.each(["white", "hsl(0 0% 100%)", "oklch(1 0 0)", "linear-gradient(#fff, #000, #000, #000)", "var(--w-fg)"])("a bright or unreadable fill %s is not static-safe", (fill) => {
+    expect(safe([{ fill }])).toContain("burn-in");
+  });
+
+  it("three layers under the per-layer limit add up", () => {
+    expect(safe([{ fill: "#FFFFFF", opacity: 0.35 }, { fill: "#FFFFFF", opacity: 0.35 }, { fill: "#FFFFFF", opacity: 0.35 }])).toContain("burn-in");
+    expect(safe([{ fill: "#FFFFFF", opacity: 0.35 }])).toEqual([]);
+  });
+
+  it("a white SVG layer by any spelling of its path, an SVG with a colour name, a raster", () => {
+    for (const image of ["hex.svg", "./hex.svg", "assets/hex.svg", "hex.svg?x"]) expect(safe([{ image }], [file("assets/hex.svg", WHITE_SVG)]), image).toContain("burn-in");
+    expect(safe([{ image: "hex.svg" }], [file("assets/hex.svg", WHITE_SVG.replace("#FFFFFF", "white"))])).toContain("burn-in");
+    expect(safe([{ image: "hex.png" }], [pngFile("assets/hex.png", 8)])).toContain("burn-in");
+    expect(safe([{ image: "hex.svg" }], [file("assets/hex.svg", WHITE_SVG.replace("#FFFFFF", "#101010"))])).toEqual([]);
+  });
+
+  it("Paper cannot claim static-safe", () => {
+    const paper = builtin("paper");
+    expect(validatePack({ ...paper, pack: { ...(paper.pack as object), burnIn: "static-safe" } }, { source: "builtin" }).map((i) => i.rule)).toContain("burn-in");
+  });
+});
+
+describe("M4: keys that name the prototype chain, and JSON that is too deep or too long", () => {
+  it.each(["__proto__", "constructor", "prototype"])("%s in pack.json, look.json and look.json's t1", (key) => {
+    expect(rules({ ...BASE, pack: withKey(BASE.pack, key) })).toContain("json-shape");
+    expect(rules({ ...BASE, look: withKey(BASE.look, key) })).toContain("json-shape");
+    const look = structuredClone(BASE.look) as Json;
+    look.t1.light = withKey(look.t1.light, key);
+    expect(rules({ ...BASE, look })).toContain("json-shape");
+  });
+
+  it("an inherited name is not a property the schema allows", () => {
+    expect(rules(bad({ pack: { toString: 5 } }))).toContain("schema");
+  });
+
+  it("depth, and a long string", () => {
+    let deep: unknown = 1;
+    for (let k = 0; k < 40; k++) deep = { a: deep };
+    expect(rules(bad({ look: (l) => (l.ext = deep) }))).toContain("json-shape");
+    expect(rules(bad({ look: (l) => (l.ext = { a: "x".repeat(9000) }) }))).toContain("json-shape");
+  });
+});
+
+describe("M5: every string of a Look is read", () => {
+  it.each([
+    ["t1 info", (l: Json) => (l.t1.light.info.value = "url(https://evil.test/p.png)")],
+    ["t1 border", (l: Json) => (l.t1.light.border.value = "red; } html { display: none")],
+    ["radius", (l: Json) => (l.radius = "red; } html { display: none")],
+    ["a material border", (l: Json) => (l.t2.materials["look-field-kit"].border = "1px solid url(https://evil.test/p.png)")],
+    ["a tone", (l: Json) => (l.t2.tones = { evil: { x: "expression(alert(1))" } })],
+    ["ext", (l: Json) => (l.ext = { x: "javascript:alert(1)" })],
+    ["t0", (l: Json) => (l.t0 = { x: "red; }" })],
+  ])("%s", (_, change) => {
+    expect(rules(bad({ look: change }))).toEqual(expect.arrayContaining([expect.stringMatching(/^(injection|colour)$/)]));
+  });
+
+  it("a colour name or var() as a T1 value, and a radius over 64 px", () => {
+    expect(rules(bad({ look: (l) => (l.t1.light.accent.value = "red") }))).toEqual(expect.arrayContaining(["contrast"]));
+    expect(rules(bad({ look: (l) => (l.t1.light["focus-ring"].value = "var(--x)") }))).toContain("colour");
+    expect(rules(bad({ look: (l) => (l.radius = "9rem") }))).toContain("colour");
+  });
+});
+
+describe("M6: a material colour the check cannot read, and the token path (T3)", () => {
+  it("a dark card read through hsl(), a var(), a see-through glass", () => {
+    expect(rules(bad({ look: (l) => (l.t2.materials.night = { kind: "solid", fill: "hsl(250 40% 15%)" }) }))).toContain("contrast");
+    expect(rules(bad({ look: (l) => (l.t2.materials.night = { kind: "solid", fill: "var(--w-fg)" }) }))).toContain("contrast");
+    expect(rules(bad({ look: (l) => (l.t2.materials.night = { kind: "glass", fill: "rgba(255, 255, 255, 0.1)" }) }))).toContain("contrast");
+    expect(rules(bad({ look: (l) => (l.t2.materials.night = { kind: "gradient", fill: "#EFE8D8", "fill-2": "#101010" }) }))).toContain("contrast");
+  });
+
+  it("a T3 colour that is not a colour, a name that does not exist, a value that is not plain", () => {
+    expect(rules(bad({ look: (l) => (l.t3["series-1"] = "red") }))).toContain("t3");
+    expect(rules(bad({ look: (l) => (l.t3["series-1"] = "#EFE8D8") }))).toContain("contrast");
+    expect(rules(bad({ look: (l) => (l.t3["status-ok"] = "#EFE8D8") }))).toContain("contrast");
+    expect(rules(bad({ look: (l) => (l.t3.evil = "x") }))).toContain("t3");
+    expect(rules(bad({ look: (l) => (l.t3["graph-style"] = "area; x") }))).toEqual(expect.arrayContaining(["injection"]));
+    expect(rules(bad({ look: (l) => (l.t3["border-fill"] = "url(https://e.test/x)") }))).toContain("injection");
+  });
+
+  it("glow, blur, line widths and motion are clamped", () => {
+    expect(rules(bad({ look: (l) => (l.t2.materials["look-field-kit"].blur = "9999px") }))).toContain("blur");
+    expect(rules(bad({ look: (l) => (l.t3["ring-width"] = 9999) }))).toContain("t3");
+    expect(rules(bad({ look: (l) => (l.t3["motion-fast"] = "99999ms") }))).toContain("t3");
+    expect(rules(bad({ look: (l) => (l.t3["ring-width"] = 12) }))).toEqual([]);
+  });
+});
+
+describe("M7: the validator refuses what the loader refuses", () => {
+  /** Field Kit's pack.json and Look as the loader's own `Pack` (the loader reads built packs, so the code-only fields are left out). */
+  const asPack = (src: PackSource) => ({ ...(src.pack as object), assets: undefined, look: src.look, css: src.css }) as unknown as Pack;
+  const cases: [string, PackSource][] = [
+    ["an empty layer image", bad({ pack: stage([{ image: "" }]) })],
+    ["a parent path", bad({ pack: stage([{ image: "../x.png" }]) })],
+    ["a remote layer image", bad({ pack: stage([{ image: "https://x.test/a.png" }]) })],
+    ["four layers", bad({ pack: stage([{ fill: "#101010" }, { fill: "#101010" }, { fill: "#101010" }, { fill: "#101010" }]) })],
+    ["a layer opacity over 1", bad({ pack: stage([{ fill: "#101010", opacity: 2 }]) })],
+    ["a bad fill", bad({ pack: stage([{ fill: "url(https://x.test/a.png)" }]) })],
+    ["a glow below its cost class", bad({ pack: stage([{ fill: "#101010" }], { effects: [{ kind: "glow", cost: "static", px: 4 }] }) })],
+    ["a remote CSS url", bad({ css: '[data-part="card"] { background-image: url(https://x.test/a.png); }' })],
+    ["@import", bad({ css: '@import url("a.css");' })],
+    ["display: none", bad({ css: '[data-part="card"] { display: none; }' })],
+    ["a transparent numeral fill", bad({ look: (l) => (l.t3["num-fill"] = "linear-gradient(90deg, #EFE8D0, #EFE8D8)") })],
+  ];
+  it("the base pack passes both", () => {
+    expect(packIssues(asPack(bad({})))).toEqual([]);
+    expect(rules(bad({}))).toEqual([]);
+  });
+
+  it.each(cases)("%s", (_, src) => {
+    expect(packIssues(asPack(src)).length).toBeGreaterThan(0);
+    expect(rules(src).length).toBeGreaterThan(0);
+  });
+});
+
+describe("M8: caps on paint", () => {
+  it.each([
+    ["box-shadow: 0 0 0 4000px #000000", "paint-cap"],
+    ["box-shadow: inset 0 0 0 4000px #FFFFFF", "paint-cap"],
+    ["filter: drop-shadow(0 0 9999px #000000)", "hides-content"],
+    ["background-size: 99999px", "paint-cap"],
+    ["mix-blend-mode: difference", "paint-cap"],
+    ["animation: pack-a 0.001s infinite", "paint-cap"],
+  ])("%s", (decl, rule) => {
+    expect(rules(bad({ css: `@keyframes pack-a { to { color: #111111; } } [data-part="num"] { ${decl}; }` }))).toContain(rule);
+  });
+
+  it("backdrop blur on every div, and a budget on filters", () => {
+    expect(rules(bad({ css: "div { backdrop-filter: blur(30px); }" }))).toContain("universal");
+    const five = Array.from({ length: 5 }, (_, k) => `[data-part="p${k}"] { backdrop-filter: blur(4px); }`).join(" ");
+    expect(rules(bad({ css: five }))).toContain("paint-cap");
+  });
+
+  it("a shadow and a slow loop within the caps pass", () => {
+    expect(rules(bad({ css: '[data-part="num"] { box-shadow: 0 0 12px 2px rgba(0, 0, 0, 0.3); text-shadow: 0 0 6px rgba(139, 227, 122, 0.35); }' }))).toEqual([]);
+  });
+});
+
+describe("M9: deep nesting is an issue, never a crash", () => {
+  it("20,000 open at-rules and 5,000 closed ones", () => {
+    const open = "@media screen{".repeat(20_000);
+    const closed = `${"@supports (a:b){".repeat(5000)}${"}".repeat(5000)}`;
+    for (const css of [open, closed]) {
+      expect(() => validatePack(bad({ css }), { source: "builtin" })).not.toThrow();
+      expect(rules(bad({ css }))).toContain("css-syntax");
+    }
+  });
+});
+
+describe("the LOWs the round fixed", () => {
+  it("L-a: an edge cut over the cap on any kind", () => {
+    expect(rules(bad({ pack: { edge: { kind: "distressed", cut: 99 } } }))).toContain("chamfer");
+  });
+
+  it("L-b: a user pack with assets must list them", () => {
+    const { assets: _listed, ...unlisted } = userPack().pack as Json;
+    expect(userRules({ ...userPack(), pack: unlisted })).toContain("asset-listed");
+  });
+
+  it("L-c: duplicate and case-colliding paths, long paths, device names, hidden files, folders in assets/", () => {
+    const hex = file("assets/hex.svg", WHITE_SVG);
+    expect(userRules(userPack({ files: [hex, file("assets/HEX.svg", WHITE_SVG)] }))).toContain("path");
+    for (const path of [`assets/${"a".repeat(200)}.png`, "assets/CON.png", "assets/.hidden.png", "assets/sub/dir/x.png"]) expect(userRules(userPack({ files: [pngFile(path, 8)] })), path).toContain("path");
   });
 });

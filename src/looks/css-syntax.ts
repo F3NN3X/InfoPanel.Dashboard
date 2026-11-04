@@ -331,6 +331,8 @@ export interface Rule {
 
 const GROUPS = new Set(["media", "supports", "keyframes"]);
 const DECLARATION_BLOCKS = new Set(["font-face"]);
+/** `@media` and `@supports` inside each other go this deep and no deeper (a deeper stylesheet is refused, never recursed into). */
+const MAX_NESTING = 8;
 const CLOSE: Partial<Record<TokenKind, TokenKind>> = { "(": ")", function: ")", "[": "]" };
 
 const trim = (tokens: Token[]) => {
@@ -404,8 +406,12 @@ export function parseCss(css: string, issues: string[]): Rule[] {
     fail("unbalanced {");
     return out;
   };
-  const rules = (nested: boolean): Rule[] => {
+  const rules = (nested: boolean, depth = 0): Rule[] => {
     const out: Rule[] = [];
+    if (depth > MAX_NESTING) {
+      fail("at-rules nested too deep");
+      return out;
+    }
     while (i < toks.length && !failed) {
       const tok = toks[i];
       if (tok.t === "ws") {
@@ -431,7 +437,7 @@ export function parseCss(css: string, issues: string[]): Rule[] {
       }
       i++;
       if (at === undefined || DECLARATION_BLOCKS.has(at)) out.push({ at, prelude, declarations: declarations() });
-      else if (GROUPS.has(at)) out.push({ at, prelude, rules: rules(true) });
+      else if (GROUPS.has(at)) out.push({ at, prelude, rules: rules(true, depth + 1) });
       else fail(`at-rule @${at}`);
     }
     if (nested) fail("unbalanced {");

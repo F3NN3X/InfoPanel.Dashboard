@@ -28,9 +28,55 @@ const ANIMATION_WORDS = new Set(
   )
 );
 const TIMING_FUNCTIONS = new Set(["cubic-bezier", "steps", "linear"]);
+/** A stroke thinner than this draws nothing a person can see (G2). */
+const STROKE_MIN = 0.5;
+/** The most a shadow's offset or blur reaches, and a shadow's spread (a larger spread paints a box over its card). */
+const SHADOW_MAX = 64;
+const SPREAD_MAX = 16;
+/** The largest `background-size` or position a pack may give in px. */
+const BG_PX_MAX = 4096;
+/** An animation that repeats forever runs at least this long (ms): a faster one flashes. */
+const LOOP_MIN_MS = 1000;
+/** Blend modes that invert or recolour what is under them. */
+const BAD_BLEND = /^(difference|exclusion|hue|saturation|color|luminosity|color-dodge|color-burn)$/i;
 
 /** A number or percentage alone, as a fraction (`60%` is 0.6); undefined for anything else (`var()`, `calc()`, two tokens). */
 const amount = (value: Token[]) => (value.length !== 1 ? undefined : value[0].t === "number" ? value[0].n : value[0].t === "percentage" ? (value[0].n as number) / 100 : undefined);
+
+const PX_PER: Record<string, number> = { px: 1, em: 16, rem: 16 };
+/** The px of a length (`em` and `rem` as 16 px; a bare 0 is 0), or undefined when it is not one a pack may size with. */
+function px(tok: Token): number | undefined {
+  if (tok.t === "number") return tok.n === 0 ? 0 : undefined;
+  const per = tok.t === "dimension" ? PX_PER[tok.unit?.toLowerCase() ?? ""] : undefined;
+  return per === undefined ? undefined : (tok.n as number) * per;
+}
+
+/** The comma-separated parts of a value, commas inside a function left alone. */
+export function commaParts(value: Token[]): Token[][] {
+  const parts: Token[][] = [[]];
+  let depth = 0;
+  for (const tok of value) {
+    if (tok.t === "function" || tok.t === "(") depth++;
+    else if (tok.t === ")") depth--;
+    if (tok.t === "," && depth === 0) parts.push([]);
+    else parts[parts.length - 1].push(tok);
+  }
+  return parts;
+}
+
+/** Whether every shadow of a `box-shadow` or `text-shadow` stays within the caps: offsets and blur `SHADOW_MAX`, spread `SPREAD_MAX`, all in px, em or rem. */
+function shadowWithinCaps(value: Token[]): boolean {
+  return commaParts(value).every((part) => {
+    let depth = 0;
+    const lengths = part.filter((t) => {
+      if (t.t === "function" || t.t === "(") depth++;
+      else if (t.t === ")") depth--;
+      return depth === 0 && (t.t === "dimension" || t.t === "number");
+    });
+    const px4 = lengths.map(px);
+    return px4.every((n) => n !== undefined) && (px4 as number[]).every((n, k) => Math.abs(n) <= (k === 3 ? SPREAD_MAX : SHADOW_MAX));
+  });
+}
 
 /** The functions of a filter value with their arguments; undefined when it holds anything but functions and white space. */
 function filterFunctions(value: Token[]): [string, Token[]][] | undefined {
@@ -59,7 +105,7 @@ function readableFilter(value: Token[], backdrop: boolean): boolean {
     fns.length > 0 &&
     fns.every(([name, args]) => {
       const a = amount(args);
-      if (name === "drop-shadow") return true;
+      if (name === "drop-shadow") return args.filter((t) => t.t === "dimension" || t.t === "number").every((t) => Math.abs(px(t) ?? Infinity) <= SHADOW_MAX);
       if (name === "hue-rotate") return args.length === 1 && (args[0].t === "dimension" || (args[0].t === "number" && args[0].n === 0));
       if (name === "saturate" || name === "sepia" || name === "grayscale") return a !== undefined && a >= 0;
       if (name === "brightness" || name === "contrast") return a !== undefined && a >= OPACITY_FLOOR && a <= 2;
@@ -79,7 +125,10 @@ function valueIssue(name: string, value: Token[], keyframes: Set<string>): strin
     if (a === undefined || a < OPACITY_FLOOR) return `${name} ${text} is under ${OPACITY_FLOOR} or not a plain number`;
   }
   if (/filter$/.test(name) && !readableFilter(value, name !== "filter")) return `${name} ${text} hides or blurs content`;
-  if (name === "stroke-width" && !(value.length === 1 && (value[0].n as number) > 0)) return `stroke-width ${text} is not a plain positive width`;
+  if (name === "stroke-width" && !(value.length === 1 && (value[0].n as number) >= STROKE_MIN)) return `stroke-width ${text} is not a plain width of at least ${STROKE_MIN}`;
+  if ((name === "box-shadow" || name === "text-shadow") && !shadowWithinCaps(value)) return `${name} ${text.slice(0, 40)} reaches over ${SHADOW_MAX} px (spread over ${SPREAD_MAX})`;
+  if (name === "mix-blend-mode" && value.some((t) => t.t === "ident" && BAD_BLEND.test(t.v))) return `mix-blend-mode ${text} recolours what is under it`;
+  if (/^background(-size|-position(-x|-y)?)?$/.test(name) && value.some((t) => t.t === "dimension" && Math.abs(px(t) ?? 0) > BG_PX_MAX)) return `${name} ${text.slice(0, 40)} is over ${BG_PX_MAX} px`;
   if (name === "animation" || name === "animation-name") {
     for (let k = 0; k < value.length; k++) {
       const tok = value[k];
@@ -103,6 +152,12 @@ function escapes(selector: Token[]): boolean {
   });
 }
 
+/** The milliseconds of the first time in a value (`2s`, `300ms`), or undefined. */
+function firstTimeMs(value: Token[]): number | undefined {
+  const t = value.find((tok) => tok.t === "dimension" && /^m?s$/i.test(tok.unit ?? ""));
+  return t ? (t.n as number) * (t.unit?.toLowerCase() === "s" ? 1000 : 1) : undefined;
+}
+
 function lintDeclarations(where: string, rule: Rule, allowed: (name: string) => boolean, keyframes: Set<string>, issues: string[]): void {
   for (const { name, value } of rule.declarations ?? []) {
     if (!allowed(name)) issues.push(`${where}: property ${name} is not a paint property`);
@@ -111,6 +166,11 @@ function lintDeclarations(where: string, rule: Rule, allowed: (name: string) => 
       if (issue) issues.push(`${where}: ${issue}`);
     }
   }
+  // a loop faster than `LOOP_MIN_MS` flashes, spelled as the shorthand or as the longhands
+  const decls = rule.declarations ?? [];
+  const looping = decls.some((d) => (d.name === "animation" || d.name === "animation-iteration-count") && d.value.some((t) => t.t === "ident" && t.v.toLowerCase() === "infinite"));
+  const duration = firstTimeMs(decls.find((d) => d.name === "animation-duration")?.value ?? decls.find((d) => d.name === "animation")?.value ?? []);
+  if (looping && (duration === undefined || duration < LOOP_MIN_MS)) issues.push(`${where}: an animation that repeats runs at least ${LOOP_MIN_MS / 1000} s per cycle`);
 }
 
 function lintRules(rules: Rule[], top: boolean, keyframes: Set<string>, issues: string[]): void {
