@@ -66,3 +66,41 @@ test("pick a Look, change its accent, reset it to the Look, and give one widget 
   await expect(page.locator('[data-mat="look-term"]').first()).toBeVisible();
   expect(errors).toEqual([]);
 });
+
+test("a Look pick keeps the screen's own accent and Undo puts the last Look back; Reset keeps focus; corners from the Look's", async ({ page, scratch }) => {
+  const { errors } = watchErrors(page);
+  await page.goto(`${scratch.base}/?studio=1&profile=${light}`);
+  await page.getByRole("button", { name: "Look", exact: true }).click();
+  await page.getByRole("group", { name: "Look level" }).getByRole("button", { name: /Perf light/ }).click();
+  const card = previewCard(page, first);
+  await page.locator('[data-look-card="term"]').click();
+  await expect.poll(async () => (await storedScreen(scratch.base))?.widgetTheme?.values).toEqual({ lookId: "term" });
+  const knobs = page.getByRole("region", { name: "Look knobs" });
+  const accent = knobs.getByRole("group", { name: "Accent" });
+  await accent.getByRole("button", { name: "Violet" }).click();
+  await expect.poll(() => accentOf(card)).toBe(VIOLET);
+
+  // Another Look keeps the accent the screen set; one Undo puts Term back.
+  await page.locator('[data-look-card="paper"]').click();
+  await expect(card).toHaveAttribute("data-mat", "look-paper");
+  await expect.poll(() => accentOf(card)).toBe(VIOLET);
+  await expect(accent.getByText("Custom")).toBeVisible();
+  const toast = page.getByRole("region", { name: "Preview" }).getByRole("status");
+  await expect(toast).toContainText("Look changed to Paper.");
+  await toast.getByRole("button", { name: "Undo" }).click();
+  await expect(card).toHaveAttribute("data-mat", "look-term");
+  await expect.poll(async () => (await storedScreen(scratch.base))?.widgetTheme?.values).toEqual({ lookId: "term", accent: VIOLET });
+
+  // Reset from the keyboard: focus stays in the Accent knob, not on the page.
+  const reset = accent.getByRole("button", { name: "Reset Accent to the Look" });
+  await reset.focus();
+  await page.keyboard.press("Enter");
+  await expect(accent.getByText("Custom")).toHaveCount(0);
+  await expect.poll(() => accent.evaluate((el) => el.contains(document.activeElement))).toBe(true);
+
+  // The Corners slider starts on the Look's corners, so 8 px can be picked first.
+  const corners = knobs.getByRole("slider", { name: "Corners" });
+  await corners.fill("2");
+  await expect.poll(async () => (await storedScreen(scratch.base))?.widgetTheme?.values?.radius).toBe("8");
+  expect(errors).toEqual([]);
+});

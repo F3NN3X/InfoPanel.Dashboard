@@ -13,6 +13,7 @@ import {
   withPageFont,
   withToken,
   withTokens,
+  withKnobReset,
   withValuesAt,
   type ThemeAt,
 } from "@/components/studio/theme-cards";
@@ -134,6 +135,16 @@ describe("the Look's own card picked in Advanced", () => {
     const card = (surface: string) => desk(withValuesAt(termed, SCREEN, (v) => ({ ...v, surface }))).widgetTheme?.values;
     expect(card("look-term")).toEqual({ lookId: "term" });
     expect(card("look-paper")).toEqual({ lookId: "term", surface: "look-paper" });
+  });
+});
+
+describe("a knob's Reset on a page (L46)", () => {
+  it("follows the screen again once the page holds nothing of its own in the section", () => {
+    const own = (values: Record<string, string>) =>
+      withScopeValues(withPageFollow(setup(), "desk", "gaming", "colors", false), "desk", { kind: "page", pageId: "gaming" }, () => values);
+    const reset = (c: DashboardConfig) => desk(withKnobReset(c, GAMING, ["accent"])).pages[1].widgetTheme;
+    expect(reset(own({ accent: "#ff0000" }))).toBeUndefined();
+    expect(reset(own({ accent: "#ff0000", textColor: "#000000" }))).toEqual({ values: { textColor: "#000000" }, follow: { colors: false } });
   });
 });
 

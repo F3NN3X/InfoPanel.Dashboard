@@ -13,7 +13,7 @@ import type { TemplatePresetGroup } from "@/lib/screen-templates/template-preset
 import { templateThemeRows } from "@/lib/screen-templates/template-rows";
 import { hexToHsl, hslToHex, resolveTheme } from "@/lib/theme";
 import { applyThemeToLevel, themeState, themeUses } from "@/lib/theme-apply";
-import { allLocked, isLocked, themedOf } from "@/lib/theme-model";
+import { allLocked, themedOf } from "@/lib/theme-model";
 import { lookIdOf } from "@/lib/theme-model";
 import type { ModuleSettings } from "@/modules/types";
 import { ColorPill } from "./inspector/color-pill";
@@ -34,6 +34,7 @@ import {
   THEME_CARDS,
   withBackgroundAt,
   withCardLock,
+  withKnobReset,
   withLookAt,
   withPageFont,
   withThemeRadius,
@@ -52,6 +53,7 @@ import { changedHere, fineTuneChip, fineTuneHeading, fineTuneSummary, resetFineT
 import { LookGallery } from "./look-gallery";
 import { lookName as lookNameOf } from "./look-gallery-model";
 import { LookKnobs } from "./look-knobs";
+import { lockedKnobs } from "./look-knobs-model";
 import { ThemeLookCard, ThemeUpdateBar } from "./theme-look-card";
 import { appliedToast, appliedToScreensToast, lookToast, paletteToast, paletteUsedBy, resetToast, savedToast } from "./theme-messages";
 import { PalettePicker } from "./theme-palette-picker";
@@ -517,9 +519,9 @@ export function ThemeEditor({ config, scope: requested, profileId, pageId, onPic
               title={`Knobs on ${lookName}`}
               values={values}
               from="the Look"
-              disabled={at.level === "page" && isLocked(appearance, "colors") && isLocked(appearance, "surface") && isLocked(appearance, "spacing")}
+              locked={at.level === "page" ? lockedKnobs(appearance, profile.name) : undefined}
               onSet={(patch) => setConfig((c) => withLookAt(c, at, patch), key(`knob:${Object.keys(patch).join()}`))}
-              onClear={(keys) => setConfig((c) => withValuesAt(c, at, (v) => dropKeys(v, new Set(keys)) ?? {}), key(`knob-reset:${keys.join()}`))}
+              onClear={(keys) => setConfig((c) => withKnobReset(c, at, keys), key(`knob-reset:${keys.join()}`))}
             />
             <LookGallery
               currentLookId={lookId}

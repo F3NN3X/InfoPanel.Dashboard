@@ -1,3 +1,4 @@
+import { isLocked, type SectionId, type ThemeLevels } from "@/lib/theme-model";
 import { SURFACE_OPTIONS } from "@/modules/standard-settings";
 import type { ModuleSettings, ModuleSettingValue } from "@/modules/types";
 import type { LookValues } from "./inspector-model";
@@ -63,6 +64,20 @@ export const SURFACES: readonly { value: string; label: string; name: string }[]
   { value: "", label: "Look", name: "The Look's own" },
   ...SURFACE_OPTIONS.slice(0, 4).map((o) => ({ value: o.value, label: SHORT[o.value] ?? o.label, name: o.label })),
 ];
+
+/** The chip the Surface knob shows checked: the level's own card, "" (the Look's) when it stores none or the Look's own (`look-<id>`, L44). */
+export function surfaceChip(values: LookValues): string {
+  const own = ownValue(values, "surface");
+  return typeof own === "string" && own !== `look-${knobValue(values, "lookId")}` ? own : "";
+}
+
+/** The section each knob writes: a page or widget can't change a knob whose section its screen locks. */
+const KNOB_SECTION: Readonly<Record<KnobId, SectionId>> = { accent: "colors", surface: "surface", corners: "spacing", density: "spacing" };
+
+/** The knobs a screen's locks hold, with the reason their tooltip gives. */
+export function lockedKnobs(levels: ThemeLevels, screen: string): Partial<Record<KnobId, string>> {
+  return Object.fromEntries(KNOBS.filter((k) => isLocked(levels, KNOB_SECTION[k.id])).map((k) => [k.id, `Locked by ${screen}`]));
+}
 
 /** The corner steps of the slider (px; "auto" is the Look's). */
 export const CORNER_STEPS: readonly number[] = [0, 4, 8, 12, 16, 20, 28];

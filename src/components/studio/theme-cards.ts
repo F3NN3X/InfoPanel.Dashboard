@@ -3,9 +3,10 @@ import type { GeneralFont } from "@/lib/general";
 import type { InheritLevel, InheritState } from "@/lib/inheritance";
 import type { DashboardConfig, MonitorProfile, ProfilePage } from "@/lib/layout";
 import { resolveTheme, type ThemeTokens } from "@/lib/theme";
-import { SECTION_KEYS, sectionsWithValues, withoutOwnCard, withThemeValues, type SectionId } from "@/lib/theme-model";
+import { SECTION_KEYS, sectionOfKey, sectionsWithValues, withoutOwnCard, withThemeValues, type SectionId } from "@/lib/theme-model";
 import type { ModuleSettings } from "@/modules/types";
 import { resetInheritance } from "./inheritance-actions";
+import { dropKeys } from "./settings-model";
 import { withLock, withPageFollow, withScopeValues, type ThemeScope } from "./theme-editor-model";
 
 /**
@@ -162,6 +163,9 @@ export function customiseCard(config: DashboardConfig, at: ThemeAt, card: ThemeC
 export const withCardLock = (config: DashboardConfig, profileId: string, card: ThemeCard, on: boolean): DashboardConfig =>
   card.sections.reduce((c, sec) => withLock(c, profileId, sec, on), config);
 
+/** The sections some keys are in, once each. */
+const sectionsOf = (keys: readonly string[]): SectionId[] => [...new Set(keys.flatMap((key) => sectionOfKey(key) ?? []))];
+
 /** Edit a level's widget-style values. */
 export const withValuesAt = (config: DashboardConfig, at: ThemeAt, fn: (values: ModuleSettings) => ModuleSettings): DashboardConfig =>
   withScopeValues(config, at.profileId, scopeOfAt(at), (values) => {
@@ -169,6 +173,19 @@ export const withValuesAt = (config: DashboardConfig, at: ThemeAt, fn: (values: 
     // The level's own Look's card is the Look's (L44): picking it stores none.
     return next.surface !== values.surface ? withoutOwnCard(next) : next;
   });
+
+/**
+ * A knob's Reset at a level: its keys cleared; on a page, each section they are in follows the screen again once the
+ * page holds no value of its own there (L46), so later changes on the screen reach it.
+ */
+export function withKnobReset(config: DashboardConfig, at: ThemeAt, keys: readonly string[]): DashboardConfig {
+  const cleared = withValuesAt(config, at, (values) => dropKeys(values, new Set(keys)) ?? {});
+  if (at.level !== "page") return cleared;
+  const values = profileOf(cleared, at.profileId)?.pages.find((pg) => pg.id === at.pageId)?.widgetTheme?.values;
+  return sectionsOf(keys)
+    .filter((sec) => SECTION_KEYS[sec].every((key) => values?.[key] === undefined))
+    .reduce((c, sec) => withPageFollow(c, at.profileId, at.pageId, sec, true), cleared);
+}
 
 /**
  * Style values written at a level (a skin and its surface): merged into its values. A page uses its own values only

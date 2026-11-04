@@ -17,7 +17,7 @@ import { InspectorNote, InspectorView, type SectionParts } from "./inspector/ins
 import { ItemInspector } from "./item-inspector";
 import { cardsBySection, panelState } from "./inspector/panel-cards";
 import { useZoneData } from "./inspector/use-zone-data";
-import { customised, shownValue, shownValues, withoutSettings, withSettings, zoneDefs, zoneLookValues } from "./inspector/zone-fields";
+import { customised, shownValue, shownValues, withKnobReset, withoutSettings, withSettings, zoneDefs, zoneLookValues } from "./inspector/zone-fields";
 import { zoneMeta, zoneName } from "./inspector/zone-meta";
 import {
   chipSections,
@@ -408,7 +408,12 @@ export function ZoneInspector({
   const knobs = (context.kind === "widget" || context.kind === "panel") && (
     <Suspense key="look-knobs" fallback={null}>
       <div className="pt-3">
-        <WidgetLookKnobs values={values} onSet={fields.onPatch} onClear={(keys) => fields.onClear([...keys])} />
+        <WidgetLookKnobs
+          values={values}
+          appearance={appearance}
+          onSet={fields.onPatch}
+          onClear={(keys) => update((p) => withKnobReset(p, appearance, defs, keys))}
+        />
       </div>
     </Suspense>
   );
