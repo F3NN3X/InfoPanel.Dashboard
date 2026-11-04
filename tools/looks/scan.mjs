@@ -18,12 +18,20 @@ const under = (prefixes) => (f) => prefixes.some((p) => f.startsWith(p));
 const GENERATED = /\/\* @generated:begin ([\w-]+)[\s\S]*?@generated:end \1 \*\//g;
 const handWritten = (text) => text.replace(GENERATED, (block) => block.replace(/[^\n]/g, ""));
 
+// vendored art, screen-template data, dev pages, the QA page, frozen migration data
+const COLOUR_SKIP = (f) => /\.cases\.ts$/.test(f) || under(["src/looks/", "src/assets/", "src/lib/screen-templates/", "src/lib/infopanel/templates/", "src/dev/", "src/widgets/widget-qa/", "src/widgets/__fixtures__/"])(f);
+
 export const RULES = [
   {
     name: "hex outside src/looks/",
-    pattern: /#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6})\b/g,
-    // vendored art, screen-template data, dev pages, the QA page, frozen migration data
-    skip: (f) => /\.cases\.ts$/.test(f) || under(["src/looks/", "src/assets/", "src/lib/screen-templates/", "src/lib/infopanel/templates/", "src/dev/", "src/widgets/widget-qa/", "src/widgets/__fixtures__/"])(f),
+    pattern: /#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})\b/g,
+    skip: COLOUR_SKIP,
+  },
+  {
+    // `hsl(var(--token))` reads a theme token; only a written-out colour counts
+    name: "rgb/hsl/oklch outside src/looks/",
+    pattern: /(?<![\w-])(?:rgba?|oklch)\(|(?<![\w-])hsla?\((?!\s*var\()/g,
+    skip: COLOUR_SKIP,
   },
   {
     name: "blur outside the cap",
