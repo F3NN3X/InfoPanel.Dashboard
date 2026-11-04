@@ -89,15 +89,20 @@ export function checkImport(picked: readonly PickedFile[]): ImportReport & { src
   return { id: idOk ? id : undefined, name: typeof name === "string" ? name : undefined, issues: [...issues.filter((i) => i.severity === "error"), ...issues.filter((i) => i.severity === "warn")], ok: !issues.some((i) => i.severity === "error"), src };
 }
 
+/** Whether a path of a pick is a file the server stores, its top folder taken off (a stray `pack.css` is kept, for the validator to refuse). */
+function keeps(paths: readonly string[]): (name: string) => boolean {
+  const root = rootOf(paths.map(normal));
+  return (name) => {
+    const path = normal(name).startsWith(root) ? normal(name).slice(root.length) : "";
+    return STORED.test(path) || path === "pack.css";
+  };
+}
+
 /** The files of a `.zip` (stored or deflated), under the pack's caps. A file the server does not store is listed but never read, so its size cannot fail the import; a file it stores is counted as it is unpacked, whatever its header says. */
 export async function filesOfZip(buf: Uint8Array): Promise<PickedFile[]> {
   const entries = listEntries(buf).filter((e) => !e.name.endsWith("/"));
   if (entries.length > FILE_COUNT_MAX * 2) throw new Error(`the archive holds ${entries.length} files`);
-  const root = rootOf(entries.map((e) => normal(e.name)));
-  const kept = (name: string) => {
-    const path = normal(name).startsWith(root) ? normal(name).slice(root.length) : "";
-    return STORED.test(path) || path === "pack.css";
-  };
+  const kept = keeps(entries.map((e) => e.name));
   return Promise.all(
     entries.map(async (e) => {
       if (!kept(e.name)) return { path: e.name, bytes: new Uint8Array() };
@@ -110,12 +115,14 @@ export async function filesOfZip(buf: Uint8Array): Promise<PickedFile[]> {
   );
 }
 
-/** The files of a picked folder (`webkitdirectory`) or of several files at once. */
+/** The files of a picked folder (`webkitdirectory`) or of several files at once. As in a zip, a file the server does not store is listed but never read, so its size cannot fail the import. */
 export async function filesOfInput(list: FileList): Promise<PickedFile[]> {
   const files = [...list];
   if (files.length === 1 && /\.zip$/i.test(files[0].name)) return filesOfZip(new Uint8Array(await files[0].arrayBuffer()));
-  if (files.reduce((n, f) => n + f.size, 0) > PACK_CEILING_BYTES * 4) throw new Error("that is far more than a pack holds");
-  return Promise.all(files.map(async (f) => ({ path: (f as File & { webkitRelativePath?: string }).webkitRelativePath || f.name, bytes: new Uint8Array(await f.arrayBuffer()) })));
+  const pathOf = (f: File) => (f as File & { webkitRelativePath?: string }).webkitRelativePath || f.name;
+  const kept = keeps(files.map(pathOf));
+  if (files.filter((f) => kept(pathOf(f))).reduce((n, f) => n + f.size, 0) > PACK_CEILING_BYTES * 4) throw new Error("that is far more than a pack holds");
+  return Promise.all(files.map(async (f) => ({ path: pathOf(f), bytes: kept(pathOf(f)) ? new Uint8Array(await f.arrayBuffer()) : new Uint8Array() })));
 }
 
 const WRITE = { "Content-Type": "application/json", "X-Dashboard-Pack": "1" };

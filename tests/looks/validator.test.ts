@@ -166,6 +166,9 @@ describe("bad packs, one per rule", () => {
 
   it("an overlay stronger than the cap", () => {
     expect(rules(bad({ pack: stage([{ fill: "#101010" }], { effects: [{ kind: "vignette", cost: "static", opacity: 0.9 }] }) }))).toContain("overlay-alpha");
+    const blur = (px: number) => validatePack(bad({ pack: stage([{ fill: "#101010" }], { effects: [{ kind: "blur", cost: "filter", px }] }) }), { source: "builtin" }).filter((i) => i.rule === "effects");
+    expect(blur(40)).toEqual([expect.objectContaining({ severity: "warn", message: "blur px 40 is drawn at 24, the stage's cap" })]);
+    expect(blur(24)).toEqual([]);
     expect(rules(bad({ pack: stage([{ fill: "#101010" }], { effects: [{ kind: "vignette", cost: "static", opacity: 0.4 }] }) }))).toEqual([]);
   });
 
@@ -630,6 +633,13 @@ describe("N-H2: the header's fill is the title's colour, the border's fill is th
     expect(mine((l) => (l.t3["header-fill"] = "#1A1C21"))).toEqual([]);
     expect(mine((l) => (l.t3["header-fill"] = "linear-gradient(90deg, #1A1C21, var(--w-fg))"))).toEqual([]);
     expect(mine((l) => (l.t3["header-fill"] = "rgba(26, 28, 33, 0.3)"))).toContain("contrast");
+  });
+
+  it("a border-fill the colour of a card is a note, not a refusal: it is decoration", () => {
+    const notes = (fill: string) => validatePack(bad({ look: (l) => (l.t3["border-fill"] = fill) })).filter((i) => i.rule === "t3" && i.severity === "warn");
+    expect(notes("#EFE8D8").map((i) => i.message).join()).toContain("the border is not seen");
+    expect(notes("linear-gradient(90deg, #EFE8D8, #000000)")).toEqual([]);
+    expect(mine((l) => (l.t3["border-fill"] = "#EFE8D8"))).toEqual([]);
   });
 
   it.each(["transparent", "#00000000", "linear-gradient(transparent, transparent)", "rgba(0, 0, 0, 0)", "currentColor"])("border-fill %s", (fill) => {

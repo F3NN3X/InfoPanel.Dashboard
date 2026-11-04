@@ -314,6 +314,38 @@ async fn a_symlink_out_of_a_pack_is_not_followed() {
     s.stop().await;
 }
 
+/// A junction needs no symlink right, so unlike the symlink case this one always runs on Windows.
+#[cfg(windows)]
+fn junction(link: &Path, target: &Path) {
+    let done = std::process::Command::new("cmd").args(["/C", "mklink", "/J"]).arg(link).arg(target).output().unwrap();
+    assert!(done.status.success(), "{}", String::from_utf8_lossy(&done.stderr));
+}
+
+#[cfg(windows)]
+#[tokio::test]
+async fn a_junction_out_of_a_pack_is_not_followed() {
+    let s = start().await;
+    let root = write_pack(&s, "mine");
+    let outside = s.dir.path().join("outside");
+    std::fs::create_dir_all(outside.join("assets")).unwrap();
+    std::fs::write(outside.join("pack.json"), r#"{"id":"linked","name":"SECRET"}"#).unwrap();
+    std::fs::write(outside.join("assets/a.png"), "SECRET").unwrap();
+    junction(&s.packs().join("linked"), &outside);
+    let list = get(s.port, "/api/packs").await;
+    assert!(!list.text().contains("linked"), "{}", list.text());
+    let reply = get(s.port, "/api/packs/linked/pack.json").await;
+    assert_ne!(reply.status, 200);
+    assert!(!reply.text().contains("SECRET"));
+    assert_eq!(send(s.port, "DELETE", "/api/packs/linked", &WRITE, "").await.status, 404, "a junction is no pack to remove");
+    assert!(outside.join("pack.json").exists());
+    std::fs::remove_dir_all(root.join("assets")).unwrap();
+    junction(&root.join("assets"), &outside.join("assets"));
+    let reply = get(s.port, "/api/packs/mine/assets/a.png").await;
+    assert_ne!(reply.status, 200);
+    assert!(!reply.text().contains("SECRET"));
+    s.stop().await;
+}
+
 #[tokio::test]
 async fn a_pack_over_a_cap_is_not_served_or_listed() {
     let s = start().await;

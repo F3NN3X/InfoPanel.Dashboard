@@ -5,7 +5,7 @@
 // must stay inside its pack folder (a symlink is never followed), a pack over the caps is not served, and an import is
 // refused unless every file is one a pack has (`pack.css` among the ones it names: a user pack carries none).
 //
-// GET /api/packs                list: id, name and size of each pack that is within the caps
+// GET /api/packs                list: id, name and size of each pack that is within the caps (`X-User-Packs: off` when switched off)
 // POST /api/packs               import: `{ "id", "files": [{ "path", "data" (base64) }] }`, replaces a pack of that id
 // GET/HEAD /api/packs/<id>/<file>   one file, typed by its extension, `nosniff`, a CSP that allows nothing
 // DELETE /api/packs/<id>        remove a pack
@@ -18,7 +18,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
 use axum::body::Body;
-use axum::http::{Method, Response};
+use axum::http::{HeaderValue, Method, Response};
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
 use serde_json::{json, Value};
@@ -112,8 +112,8 @@ impl Packs {
     }
 
     /// Recovers from a crash in an import. A pack set aside whose own folder is gone is put back (the replace died between
-    /// its two renames); one whose folder is there is the old copy of a finished replace and goes. The half-written
-    /// folders go last, so the only copy of a pack is never deleted.
+    /// its two renames), the newest first when there are several for an id; one whose folder is there is the old copy of a
+    /// finished replace and goes. The half-written folders go last, so the only copy of a pack is never deleted.
     fn sweep(&self) {
         if !self.enabled {
             return;
@@ -128,13 +128,14 @@ impl Packs {
                 continue;
             }
             match name.strip_prefix(ASIDE_PREFIX) {
-                Some(rest) => asides.push((entry.path(), rest.len().checked_sub(UUID_LEN + 1).and_then(|n| rest.get(..n)).map(str::to_string))),
+                Some(rest) => asides.push((aside_id(&entry.path(), rest), entry.path())),
                 None => temps.push(entry.path()),
             }
         }
+        asides.sort_by_key(|(_, path)| std::cmp::Reverse((std::fs::metadata(path.join("pack.json")).and_then(|m| m.modified()).ok(), path.clone())));
         let mut kept = false;
-        for (path, id) in asides {
-            let dest = id.filter(|id| is_pack_id(id)).map(|id| self.dir.join(id));
+        for (id, path) in asides {
+            let dest = id.map(|id| self.dir.join(id));
             match dest {
                 Some(dest) if std::fs::symlink_metadata(&dest).is_err() => kept |= std::fs::rename(&path, &dest).is_err(),
                 _ => {
@@ -216,6 +217,16 @@ impl Packs {
         (real.starts_with(&root) && real.is_file()).then_some(real)
     }
 
+    /// Removes a pack under the write lock, so that of two removes at once the second finds it gone. `false`: no such pack.
+    fn remove(&self, id: &str) -> std::io::Result<bool> {
+        let _held = self.write.lock().unwrap_or_else(|e| e.into_inner());
+        let Some(root) = is_pack_id(id).then(|| self.pack_dir(id)).flatten() else {
+            return Ok(false);
+        };
+        std::fs::remove_dir_all(root)?;
+        Ok(true)
+    }
+
     /// The canonical folder of pack `id` under the canonical packs folder, when it is a real folder (not a link).
     fn pack_dir(&self, id: &str) -> Option<PathBuf> {
         let base = std::fs::canonicalize(&self.dir).ok()?;
@@ -237,6 +248,21 @@ impl Packs {
         }
         (!self.allow_remote && !req.is_loopback()).then_some("packs are accepted from this computer only")
     }
+}
+
+/// The pack a set-aside folder holds, from what follows `.import-old-` in its name: the `<id>-<uuid>` an import writes, else
+/// (an old-format `<uuid>`, or a name no import wrote) the id in the folder's own `pack.json`.
+fn aside_id(path: &Path, rest: &str) -> Option<String> {
+    let named = rest.len().checked_sub(UUID_LEN + 1).and_then(|n| {
+        let uuid = rest.get(n..)?.strip_prefix('-')?;
+        uuid::Uuid::try_parse(uuid).ok()?;
+        rest.get(..n)
+    });
+    let own = || {
+        let text = std::fs::read_to_string(path.join("pack.json")).ok()?;
+        serde_json::from_str::<Value>(&text).ok()?.get("id")?.as_str().map(str::to_string)
+    };
+    named.map(str::to_string).or_else(own).filter(|id| is_pack_id(id))
 }
 
 /// The file count and total bytes of a pack folder: every file at its top and in `assets/`. A folder with anything else in it
@@ -307,7 +333,11 @@ fn handle_list(app: &App) -> Response<Body> {
             json!({ "id": id, "name": name, "size": size })
         })
         .collect();
-    http::json(200, &Value::Array(items))
+    let mut reply = http::json(200, &Value::Array(items));
+    if !packs.enabled {
+        reply.headers_mut().insert("X-User-Packs", HeaderValue::from_static("off"));
+    }
+    reply
 }
 
 /// The decoded files of an import: path and bytes.
@@ -401,12 +431,7 @@ fn handle_delete(app: &App, req: &Req, id: &str) -> std::io::Result<Response<Bod
     if let Some(refusal) = packs.write_refusal(req) {
         return Ok(http::text(403, refusal));
     }
-    let Some(root) = is_pack_id(id).then(|| packs.pack_dir(id)).flatten() else {
-        return Ok(http::empty(404));
-    };
-    let _held = packs.write.lock().unwrap_or_else(|e| e.into_inner());
-    std::fs::remove_dir_all(root)?;
-    Ok(http::empty(204))
+    Ok(http::empty(if packs.remove(id)? { 204 } else { 404 }))
 }
 
 /// One file of a pack: refused whole (413) when the pack is over the caps, typed by its extension.
@@ -530,6 +555,71 @@ mod tests {
         Packs::with(dir.path().to_path_buf(), true).sweep();
         assert_eq!(names(dir.path()), ["mine"]);
         assert_eq!(std::fs::read_to_string(dir.path().join("mine/pack.json")).unwrap(), "kept");
+    }
+
+    #[test]
+    fn an_old_format_leftover_is_put_back_under_the_id_in_its_pack_json() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::create_dir_all(dir.path().join(format!(".import-old-{UUID}"))).unwrap();
+        std::fs::write(dir.path().join(format!(".import-old-{UUID}/pack.json")), r#"{"id":"my-pack"}"#).unwrap();
+        Packs::with(dir.path().to_path_buf(), true).sweep();
+        assert_eq!(names(dir.path()), ["my-pack"]);
+    }
+
+    #[test]
+    fn a_set_aside_name_without_its_separator_or_uuid_is_not_read_as_an_id() {
+        for name in [format!(".import-old-wrongX{UUID}"), format!(".import-old-wrong-{}", "z".repeat(UUID_LEN))] {
+            let dir = tempfile::tempdir().unwrap();
+            std::fs::create_dir_all(dir.path().join(&name)).unwrap();
+            std::fs::write(dir.path().join(&name).join("pack.json"), r#"{"id":"right"}"#).unwrap();
+            Packs::with(dir.path().to_path_buf(), true).sweep();
+            assert_eq!(names(dir.path()), ["right"], "{name}");
+        }
+    }
+
+    #[test]
+    fn of_several_asides_for_one_id_the_newest_is_put_back() {
+        const LATER: &str = "99999999-2222-3333-4444-555555555555";
+        let aged = |root: &Path| {
+            let long_ago = std::time::SystemTime::now() - std::time::Duration::from_secs(3600);
+            std::fs::File::options().write(true).open(root.join("pack.json")).unwrap().set_modified(long_ago).unwrap();
+        };
+        let dir = tempfile::tempdir().unwrap();
+        // whichever way the folder is read, one of these two pairs has its older copy first
+        let (older, newer) = (pack(dir.path(), &format!(".import-old-first-{UUID}")), pack(dir.path(), &format!(".import-old-first-{LATER}")));
+        marked(&older, "old");
+        marked(&newer, "new");
+        aged(&older);
+        let (newer, older) = (pack(dir.path(), &format!(".import-old-second-{UUID}")), pack(dir.path(), &format!(".import-old-second-{LATER}")));
+        marked(&older, "old");
+        marked(&newer, "new");
+        aged(&older);
+        Packs::with(dir.path().to_path_buf(), true).sweep();
+        assert_eq!(names(dir.path()), ["first", "second"]);
+        assert_eq!(std::fs::read_to_string(dir.path().join("first/pack.json")).unwrap(), "new");
+        assert_eq!(std::fs::read_to_string(dir.path().join("second/pack.json")).unwrap(), "new");
+    }
+
+    #[test]
+    fn of_two_removes_at_once_one_removes_and_one_finds_nothing() {
+        for round in 0..50 {
+            let dir = tempfile::tempdir().unwrap();
+            let packs = Packs::with(dir.path().to_path_buf(), true);
+            pack(dir.path(), "mine");
+            let gate = std::sync::Barrier::new(2);
+            let removed = std::thread::scope(|scope| {
+                let go = || {
+                    let (packs, gate) = (&packs, &gate);
+                    scope.spawn(move || {
+                        gate.wait();
+                        packs.remove("mine").unwrap()
+                    })
+                };
+                let (a, b) = (go(), go());
+                [a.join().unwrap(), b.join().unwrap()]
+            });
+            assert_eq!(removed.iter().filter(|gone| **gone).count(), 1, "round {round}: {removed:?}");
+        }
     }
 
     #[test]

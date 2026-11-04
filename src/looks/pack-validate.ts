@@ -10,7 +10,7 @@
 // path-safety check on `GET /api/packs/<id>/<file>` (`isPackRelativeUrl`'s rules) and the size caps (a file, a pack: `PACK_CEILING_BYTES`).
 import { safeFill } from "@/widgets/core/t3-tokens";
 import { parseCss, type Rule, type Token, tokenize, writeTokens } from "./css-syntax";
-import { OVERLAY_MAX } from "./effects";
+import { BLUR_MAX as STAGE_BLUR_MAX, OVERLAY_MAX } from "./effects";
 import { iconSetIssues } from "./icon-set";
 import { LOOK_IDS } from "./ids";
 import { PACK_FONT_FAMILIES } from "./pack-fonts";
@@ -432,6 +432,10 @@ function t3Issues(look: Look, t1: Record<T1Name, string>, mode: string, cards: s
         if (!stops) bad(name === "header-fill" ? "contrast" : "t3", `${mode} t3 ${name} cannot be checked: use hex colours, rgb(), hsl() or var(--w-*) of a T1 colour`);
         else if (name === "border-fill") {
           if (stops.some((c) => c.alpha < OPACITY_FLOOR)) bad("t3", `${mode} t3 border-fill has a stop under ${OPACITY_FLOOR} opaque: the border would not be drawn`);
+          else {
+            const lost = cards.find((card) => stops.every((c) => (contrastOf(flatOn(c, card), card) ?? SAME_AS_CARD) < SAME_AS_CARD));
+            if (lost) out.push(issue("t3", "look.json", `${mode} t3 border-fill is the colour of the card ${lost}: the border is not seen there`, "warn"));
+          }
         }
         else {
           // the title is painted in this fill (bg-clip: text): each stop over each card is text on it
@@ -733,6 +737,7 @@ function validate(src: PackSource, source: "builtin" | "user"): PackIssue[] {
     add(/^effect|^more than/.test(m) ? "effects" : "stage", "pack.json", m);
   }
   for (const e of pack.stage.effects ?? []) if (e.opacity !== undefined && e.opacity > OVERLAY_MAX) add("overlay-alpha", "pack.json", `${e.kind} opacity ${e.opacity} is over ${OVERLAY_MAX}: an overlay never hides what is under it`);
+  for (const e of pack.stage.effects ?? []) if (e.kind === "blur" && e.px !== undefined && e.px > STAGE_BLUR_MAX) add("effects", "pack.json", `blur px ${e.px} is drawn at ${STAGE_BLUR_MAX}, the stage's cap`, "warn");
 
   // ornament, edge
   if (pack.ornament && pack.ornament.size > ORNAMENT_MAX && !pack.ornament.bleed) add("ornament", "pack.json", `ornament is ${pack.ornament.size} px, at most ${ORNAMENT_MAX}`);

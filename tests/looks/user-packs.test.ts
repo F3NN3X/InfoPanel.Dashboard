@@ -6,7 +6,7 @@ import { resolveMaterial } from "@/looks/materials";
 import { loadPack, sharedPack, unregisterUserPack } from "@/looks/pack-load";
 import { PACK_IDS } from "@/looks/pack";
 import { lookLayers, sampleCards, userLookIds } from "@/looks/sample-cards";
-import { checkImport, describeIssue, filesOfZip, sourceOf, withoutRoot, type PickedFile } from "@/looks/user-pack-import";
+import { checkImport, describeIssue, filesOfInput, filesOfZip, sourceOf, withoutRoot, type PickedFile } from "@/looks/user-pack-import";
 import { readFileSync } from "node:fs";
 import { lookUses, USER_PACKS_MAX, withoutLookId } from "@/looks/user-pack-config";
 import { cardOf, fontCss, forgetUserPack, listUserPacks, registerUserPacks, USER_PACK_ID } from "@/looks/user-packs";
@@ -244,6 +244,38 @@ describe("the importer", () => {
     const read = await filesOfZip(zip);
     expect(read.map((f) => f.path).sort()).toEqual(files.map((f) => f.path).sort());
     expect(dec(read.find((f) => f.path === "pack.json")!.bytes)).toContain('"id":"mine"');
+  });
+});
+
+describe("a picked folder with files that are not part of a pack", () => {
+  const picked = (path: string, bytes: number | Uint8Array) => {
+    const file = new File([(typeof bytes === "number" ? new Uint8Array(bytes) : bytes) as BlobPart], path.split("/").pop()!);
+    Object.defineProperty(file, "webkitRelativePath", { value: path });
+    return file;
+  };
+  it("a big file the server would not store is left out unread, not a failure", async () => {
+    const good = folder("mine").map((f) => picked(`mine/${f.path}`, f.bytes));
+    const read = await filesOfInput([...good, picked("mine/preview.mp4", 3_000_000)] as unknown as FileList);
+    expect(read.find((f) => f.path === "mine/preview.mp4")!.bytes.length).toBe(0);
+    expect(checkImport(read).ok).toBe(true);
+  });
+
+  it("files the server stores that are far over a pack are still refused in words", async () => {
+    const list = [picked("mine/pack.json", 10), ...Array.from({ length: 5 }, (_, k) => picked(`mine/assets/a${k}.png`, 500_000))];
+    await expect(filesOfInput(list as unknown as FileList)).rejects.toThrow("far more than a pack holds");
+  });
+});
+
+describe("a pack a later build's built-in shadows", () => {
+  it("forgetting it leaves the built-in's card, layer and Look alone", () => {
+    sampleCards["look-paper"] = { kind: "flat" } as never;
+    lookLayers.paper = { accent: "#123456" };
+    forgetUserPack("paper");
+    expect(sampleCards["look-paper"]).toBeDefined();
+    expect(lookLayers.paper).toBeDefined();
+    expect(isLookId("paper")).toBe(true);
+    delete sampleCards["look-paper"];
+    delete lookLayers.paper;
   });
 });
 

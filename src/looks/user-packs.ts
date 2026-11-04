@@ -39,6 +39,15 @@ export async function listUserPacks(): Promise<UserPackInfo[]> {
   }
 }
 
+/** Whether the server has its user packs switched off (`USER_PACKS=off`): the list is empty then and every write refused. */
+export async function userPacksOff(): Promise<boolean> {
+  try {
+    return (await fetch(ROUTE, { cache: "no-store" })).headers.get("X-User-Packs") === "off";
+  } catch {
+    return false;
+  }
+}
+
 const bytesOf = async (id: string, file: string): Promise<Uint8Array | undefined> => {
   try {
     const res = await fetch(`${ROUTE}/${id}/${file}`, { cache: "no-cache" });
@@ -180,6 +189,8 @@ export async function registerUserPacks(only?: readonly string[]): Promise<strin
 
 /** Lets go of a pack (it was removed, or replaced and is read again). */
 export function forgetUserPack(id: string): void {
+  // a pack a later build's built-in shadows was never registered: the card and layer under that id are the built-in's
+  if (LOOK_IDS.includes(id)) return;
   registered.delete(id);
   if (typeof document !== "undefined") for (const face of faces.get(id) ?? []) document.fonts.delete(face);
   faces.delete(id);
