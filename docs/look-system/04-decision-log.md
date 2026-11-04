@@ -121,3 +121,10 @@ The owner gave explicit authority to finish every phase (P5a to P12) as the plan
 - Lite mode with a pack worn now draws `backdrop-filter: none` on a blurred card (the P9b rule wrote both the prefixed and the unprefixed declaration and the minifier kept only the prefixed one, which did not override the card's own: the computed value was `blur(0px)`, which keeps a backdrop layer). An engine without `backdrop-filter` fills such a card to the fallback alpha (`@supports not`).
 - Black and Gold's gradient on the gauge arcs is not built: it needs a ring fill token and an SVG gradient in the ring primitive, a new T3 name. The sheen is on the frame and the numerals (L90).
 - Manrope's vertical metrics are set to 1.0 em ascent and 0.26 em descent (as Space Mono's were): at 1.37 em its label and value boxes overlapped in MenuBar and StreamChat.
+
+## P11b fix round 1 (2026-11-04)
+
+- The per-page backdrop limit (section 9.3: 8) is counted over every layer, not zones: the island and an alert layer reserve one each, so a card blurs in the first 6 zones of the page grid (the kiosk's, and the studio canvas's zones), and the blurs inside a card are off while a pack is worn. It stays a rule for every worn pack, because the selector only matches a blurred card: a pack that does not blur (Term) has nothing to limit, and a test pins that. It is not scoped to Liquid Glass alone because Night Glow blurs too, and a pack added later should not have to say so.
+- A pack's chrome (L25) is colours: its surface, text and edge, taken by the island's black tint (the legacy default) and the alert cards. A tint someone chose, and Classic, are unchanged. It carries no blur: the 8 layers reserve one each for the island and an alert.
+- `ring-fill` and `spark-fill` are T3 names (Classic `none`), read through `safeGradient` and drawn as an SVG gradient; the loader holds their stops to 3:1 on the surface like `num-fill`.
+- Visual items no phase owned (Paper's mono labels and focus outline, `label-case`, Tape '86's stripe bars, the studio-only rows) belong to a "post-P12 polish" owner, not to P12 (the validator and user packs).
