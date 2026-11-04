@@ -1,12 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
-import { Check, ChevronRight, Search } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Check, ChevronRight, RotateCcw, Search } from "lucide-react";
 import type { AppearancePreset } from "@/lib/appearance-presets";
 import { onRovingKeyDown } from "@/lib/roving";
 import { SAMPLE_PRESET_GROUPS } from "@/lib/screen-templates/sample-presets";
 import { cn } from "@/lib/utils";
 import { loadLook } from "@/looks";
 import type { Look } from "@/looks/look";
-import { filterLooks, GALLERY_FILTERS, GALLERY_IDS, galleryLooks, type GalleryLook } from "./look-gallery-model";
+import { filterLooks, GALLERY_FILTERS, GALLERY_IDS, galleryLooks, lookName, type GalleryLook } from "./look-gallery-model";
 import { LookThumb } from "./look-thumb";
 import { getKeepBackground, setKeepBackground } from "./theme-keep-background";
 
@@ -58,22 +58,53 @@ function Card({ look, selected, onPick }: { look: Pick<GalleryLook, "id" | "name
   );
 }
 
+/** A Look whose chunk failed to load (offline, a stale deploy): its name and a Retry. */
+function ErrorCard({ name, onRetry }: { name: string; onRetry: () => void }) {
+  return (
+    <div className="flex min-h-11 flex-col justify-between gap-2 rounded-lg border border-ui-strong bg-ui-panel px-2.5 py-2">
+      <span className="flex flex-col gap-0.5">
+        <span className="truncate text-caption font-semibold text-ui-1">{name}</span>
+        <span className="text-micro text-ui-hint">Couldn't load this Look.</span>
+      </span>
+      <button
+        type="button"
+        onClick={onRetry}
+        aria-label={`Retry ${name}`}
+        className={cn("flex min-h-11 items-center justify-center gap-1.5 rounded-md border border-ui-strong text-caption text-ui-1 hover:bg-ui-hover", FOCUS)}
+      >
+        <RotateCcw className="h-3.5 w-3.5" aria-hidden />
+        Retry
+      </button>
+    </div>
+  );
+}
+
 /**
  * The Look gallery (D14, investigation 7 F5; mockup `docs/look-system/mockups/Gallery.html`): filter chips and a
  * search, the Looks as cards drawn by the real renderer, then the saved looks; one click applies. Keep my background
  * and the template looks (with the saved looks' actions) sit under the cards.
  */
 export function LookGallery({ currentLookId, currentPresetId, saved, onPick, onMore, moreCount }: LookGalleryProps) {
-  const [looks, setLooks] = useState<readonly Look[]>();
+  // Each Look loads on its own: one whose chunk fails is an error card with Retry, the rest still list.
+  const [loaded, setLoaded] = useState<Readonly<Record<string, Look | "error">>>({});
   const [filter, setFilter] = useState("all");
   const [query, setQuery] = useState("");
   const [keep, setKeep] = useState(getKeepBackground);
+  const live = useRef(true);
+  const load = (id: string) =>
+    void loadLook(id).then(
+      (look) => live.current && look && setLoaded((m) => ({ ...m, [id]: look })),
+      () => live.current && setLoaded((m) => ({ ...m, [id]: "error" }))
+    );
   useEffect(() => {
-    let live = true;
-    void Promise.all(GALLERY_IDS.map(loadLook)).then((all) => live && setLooks(all.filter((l): l is Look => l !== undefined)));
-    return () => void (live = false);
+    live.current = true;
+    for (const id of GALLERY_IDS) load(id);
+    return () => void (live.current = false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  const list = useMemo(() => (looks ? galleryLooks(looks, SAMPLES) : []), [looks]);
+  const looks = useMemo(() => GALLERY_IDS.flatMap((id) => (loaded[id] && loaded[id] !== "error" ? [loaded[id] as Look] : [])), [loaded]);
+  const failed = GALLERY_IDS.filter((id) => loaded[id] === "error" && filter === "all" && lookName(id).toLowerCase().includes(query.trim().toLowerCase()));
+  const list = useMemo(() => galleryLooks(looks, SAMPLES), [looks]);
   const shown = filterLooks(list, filter, query);
   const savedShown = filter === "all" ? saved.filter((p) => query.trim() === "" || p.name.toLowerCase().includes(query.trim().toLowerCase())) : [];
   const savedApplied = saved.some((p) => p.id === currentPresetId);
@@ -82,7 +113,7 @@ export function LookGallery({ currentLookId, currentPresetId, saved, onPick, onM
     <section aria-label="Look gallery" data-nav-section="gallery" className="flex flex-col gap-3 border-t border-ui-subtle px-4 pb-4 pt-3.5">
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-body font-semibold text-ui-1">Choose a Look</h2>
-        <span className="text-micro text-ui-hint">{looks ? `${list.length} Looks` : "Loading…"}</span>
+        <span className="text-micro text-ui-hint">{Object.keys(loaded).length > 0 ? `${list.length} Looks` : "Loading…"}</span>
       </div>
       <label className="flex min-h-11 items-center gap-2 rounded-lg border border-ui-strong bg-ui-app px-3 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ui-accent">
         <Search className="h-4 w-4 shrink-0 text-ui-hint" aria-hidden />
@@ -118,8 +149,11 @@ export function LookGallery({ currentLookId, currentPresetId, saved, onPick, onM
         {shown.map((l) => (
           <Card key={l.id} look={l} selected={!savedApplied && l.id === currentLookId} onPick={() => pick(l.preset, true)} />
         ))}
+        {failed.map((id) => (
+          <ErrorCard key={id} name={lookName(id)} onRetry={() => load(id)} />
+        ))}
       </div>
-      {looks && shown.length === 0 && <p className="text-caption text-ui-hint">No Look matches.</p>}
+      {looks.length > 0 && shown.length === 0 && failed.length === 0 && <p className="text-caption text-ui-hint">No Look matches.</p>}
       {savedShown.length > 0 && (
         <>
           <h3 className={cn(HEADING, "pt-1")}>Saved looks · {savedShown.length}</h3>
