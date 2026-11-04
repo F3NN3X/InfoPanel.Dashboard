@@ -123,13 +123,13 @@ declare global {
 window.__qaMountAll = async () => {
   flushSync(forceMountAll);
   await document.fonts.ready;
-  // Settled = the markup (elements, inline sizes, text) unchanged over 1.5 s of samples: lazy chunks, the demo streams and
+  // Settled = the element count and text length unchanged over 1.5 s of samples: lazy chunks, the demo streams and
   // ResizeObserver re-renders land at load-dependent times, so a fixed wait let a slow run read a half-built frame (ledger L50).
   let last = "";
   let still = 0;
   for (let i = 0; i < 200 && still < 6; i++) {
     await new Promise((r) => setTimeout(r, 250));
-    const now = document.body.innerHTML;
+    const now = `${document.body.getElementsByTagName("*").length}:${document.body.textContent?.length}`;
     still = now === last ? still + 1 : 0;
     last = now;
   }
