@@ -35,10 +35,10 @@ describe.each(IDS)("pack %s", (id) => {
   });
 
   it("carries real CSS, and it passes the lint and the scoper (vite.config.ts hands `?raw` the file, not an empty string)", async () => {
-    const pack = (await loadPack(id))!;
-    expect(pack.css.trim().length).toBeGreaterThan(0);
-    expect(lintPackCss(pack.css)).toEqual([]);
-    expect(scopePackCss(id, pack.css)).toContain(`@scope ([data-look="${id}"])`);
+    const css = (await loadPack(id))!.css ?? "";
+    expect(css.trim().length).toBeGreaterThan(0);
+    expect(lintPackCss(css)).toEqual([]);
+    expect(scopePackCss(id, css)).toContain(`@scope ([data-look="${id}"])`);
   });
 
   it("wears the colours of its sample theme, in the one mode it supports", async () => {
@@ -240,18 +240,18 @@ describe("what the five Looks teach the contract (P11b)", () => {
     expect(pack.assets?.some((a: string) => a.startsWith("geist-200.woff2"))).toBe(true);
   });
 
-  it("Liquid Glass blurs 24 px by default, falls back to 0.90 where the blur is off, and a page keeps at most 8 backdrop layers", async () => {
+  it("Liquid Glass blurs 24 px by default, falls back to 0.90 where the blur is off, and a page keeps at most 8 backdrop layers (6 card zones, the island and an alert)", async () => {
     registerSampleCards();
     const card = SAMPLE_MATERIALS["look-liquid-glass"];
     expect(card.kind).toBe("glass");
     expect(String(card.s.backdropFilter)).toMatch(/^blur\(min\(24px,/);
     const vars = materialVars(resolveMaterial(card));
     expect(String((vars as Record<string, unknown>)["--w-mat-fallback"])).toMatch(/rgba\([^)]*, 0?\.9\)/);
-    // lite mode, a solid page and an engine without backdrop-filter all take the fallback; the page limit is 8 zones (index.css)
+    // lite mode, a solid page and an engine without backdrop-filter all take the fallback; the page limit is 6 card zones (index.css, the browser specs count the layers)
     const css = fs.readFileSync("src/index.css", "utf8");
     expect(css).toMatch(/data-lite-motion\]\[data-pack-worn\] \[data-wp-tier\]\[data-mat-blur\] \{\s+backdrop-filter: none !important;\s+background: var\(--w-mat-fallback\)/);
     expect(css).toMatch(/@supports not \(\(backdrop-filter: blur\(1px\)\) or \(-webkit-backdrop-filter: blur\(1px\)\)\) \{\s+\[data-wp-tier\]\[data-mat-blur\] \{ background: var\(--w-mat-fallback\)/);
-    expect(css).toMatch(/\[data-page-grid\] > :nth-child\(n \+ 9\) \[data-wp-tier\]\[data-mat-blur\] \{\s+backdrop-filter: none !important;/);
+    expect(css).toMatch(/\[data-page-grid\] > :nth-child\(n \+ 7\) \[data-wp-tier\]\[data-mat-blur\],\s+:root\[data-pack-worn\] \[data-studio-page\] \[data-zone-id\]:nth-child\(n \+ 7 of \[data-zone-id\]\) \[data-wp-tier\]\[data-mat-blur\] \{\s+backdrop-filter: none !important;/);
   });
 
   it("no sample Look names a catalog font: each sets the app's own stack and a pack brings its bundled face (no font host is asked for)", async () => {

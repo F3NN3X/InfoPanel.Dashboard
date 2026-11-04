@@ -216,33 +216,84 @@ test("the overdrive chamfer stays inside the padding of every card at Compact de
   for (const cut of cuts) expect(cut).toBeLessThanOrEqual(2 * 4);
 });
 
-// P11b (Liquid Glass, the first Look with a real blur on by default): at most 8 blurred cards a page (section 9.3). A card in the ninth
-// zone or later of the page grid fills to its fallback alpha (0.90) instead of redrawing a backdrop; the first eight keep the 24 px blur.
-test("a page of sixteen Liquid Glass zones blurs only the cards of the first eight", async ({ page, scratch }) => {
+// P11b (Liquid Glass, the first Look with a real blur on by default): at most 8 backdrop layers a page (section 9.3), counted over every
+// element that draws one. The island and the alert layer take one each, so a card blurs in the first 6 zones; a card in the seventh zone or
+// later fills to its fallback alpha (0.90); the blurs inside a card (GlassPill, the info plates) are off. The studio canvas follows the kiosk.
+const BACKDROP_LIMIT = 8;
+const CARD_ZONES = 6;
+async function sixteenZones(scratch: { dataDir: string }, style: Record<string, unknown>) {
   const file = path.join(scratch.dataDir, "config.json");
   const stored = JSON.parse(fs.readFileSync(file, "utf8"));
   const more = (p: { pages: { placements: { id: string; module: string }[] }[] }) =>
     Array.from({ length: 8 }, (_, i) => ({ ...p.pages[0].placements.find((z) => z.module === "CoreHeatmap"), id: `more-${i}`, colStart: 1 + i, rowStart: 1, colSpan: 1, rowSpan: 1 }));
   stored.profiles = stored.profiles.map((p: { pages: { placements: object[] }[] }) => ({
     ...p,
-    widgetTheme: { values: PACK_STYLES["liquid-glass"] },
+    widgetTheme: { values: style },
     pages: p.pages.map((pg, n) => (n === 0 ? { ...pg, placements: [...pg.placements, ...more(p as never)] } : pg)),
   }));
   fs.writeFileSync(file, JSON.stringify(stored));
+}
+/** Every element on the page with a backdrop filter, and each card with its zone's place. */
+const readBackdrops = (page: import("@playwright/test").Page, zones: string) =>
+  page.evaluate((zoneSel) => {
+    const layers = [...document.querySelectorAll<HTMLElement>("*")].filter((e) => {
+      const cs = getComputedStyle(e);
+      return (cs.backdropFilter && cs.backdropFilter !== "none") || (cs.getPropertyValue("-webkit-backdrop-filter") && cs.getPropertyValue("-webkit-backdrop-filter") !== "none");
+    }).length;
+    const cards = [...document.querySelectorAll(zoneSel)].flatMap((zone, i) =>
+      [...zone.querySelectorAll<HTMLElement>("[data-wp-tier][data-mat-blur]")].map((c) => {
+        const cs = getComputedStyle(c);
+        return { zone: i + 1, blurred: cs.backdropFilter !== "none", alphas: [...cs.backgroundImage.matchAll(/rgba\([^)]*?([\d.]+)\)/g)].map((m) => Number(m[1])) };
+      }),
+    );
+    return { layers, cards };
+  }, zones);
+
+for (const id of ["liquid-glass", "night-glow"]) {
+  test(`a page of sixteen ${id} zones draws at most ${BACKDROP_LIMIT} backdrop layers: cards blur in the first ${CARD_ZONES} zones only`, async ({ page, scratch }) => {
+    await sixteenZones(scratch, PACK_STYLES[id]);
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto(`${scratch.base}/?kiosk=1&profile=${heavy}`);
+    await expect(page.locator(manifest.kioskZoneSelector)).toHaveCount(manifest.zones.heavy.length + 8);
+    await expect(page.locator(`[data-wp-tier][data-look="${id}"]`).first()).toBeAttached({ timeout: 10_000 });
+    await settled(page, manifest.kioskZoneSelector);
+    const { layers, cards } = await readBackdrops(page, "[data-page-grid] > *");
+    expect(layers).toBeLessThanOrEqual(BACKDROP_LIMIT);
+    const blurred = cards.filter((c) => c.blurred);
+    expect(blurred.length).toBeGreaterThan(0);
+    expect(blurred.map((c) => c.zone).every((z) => z <= CARD_ZONES)).toBe(true);
+    expect(blurred.length).toBe(cards.filter((c) => c.zone <= CARD_ZONES).length);
+    const rest = cards.filter((c) => c.zone > CARD_ZONES);
+    expect(rest.length).toBeGreaterThan(0);
+    expect(rest.filter((c) => c.blurred)).toEqual([]);
+    for (const c of rest) expect(Math.min(...c.alphas)).toBeGreaterThanOrEqual(0.9);
+  });
+}
+
+// A pack whose cards do not blur is untouched by the limit: it has no blurred card to limit, and the rule draws nothing on it.
+test("a page of sixteen Term zones has no backdrop layer, so the limit changes nothing", async ({ page, scratch }) => {
+  await sixteenZones(scratch, PACK_STYLES.term);
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto(`${scratch.base}/?kiosk=1&profile=${heavy}`);
-  await expect(page.locator(manifest.kioskZoneSelector)).toHaveCount(manifest.zones.heavy.length + 8);
-  await expect(page.locator('[data-wp-tier][data-look="liquid-glass"]').first()).toBeAttached({ timeout: 10_000 });
+  await expect(page.locator('[data-wp-tier][data-look="term"]').first()).toBeAttached({ timeout: 10_000 });
   await settled(page, manifest.kioskZoneSelector);
-  const cards = await page.evaluate(() => {
-    const grid = document.querySelector("[data-page-grid]") as HTMLElement;
-    return [...grid.children].flatMap((zone, i) => [...zone.querySelectorAll<HTMLElement>("[data-wp-tier][data-mat-blur]")].map((c) => ({ zone: i + 1, blurred: getComputedStyle(c).backdropFilter !== "none", fallback: getComputedStyle(c).backgroundColor })));
-  });
+  const { layers, cards } = await readBackdrops(page, "[data-page-grid] > *");
+  expect(cards).toEqual([]);
+  expect(layers).toBeLessThanOrEqual(1);
+});
+
+test("the studio canvas holds a page of sixteen Liquid Glass zones to the same limit", async ({ page, scratch }) => {
+  await sixteenZones(scratch, PACK_STYLES["liquid-glass"]);
+  await page.setViewportSize({ width: 1600, height: 900 });
+  await page.goto(`${scratch.base}/?studio=1&profile=${heavy}`);
+  await page.getByRole("button", { name: "Edit", exact: true }).click();
+  await expect(page.locator("[data-studio-page] [data-wp-tier][data-look=\"liquid-glass\"]").first()).toBeAttached({ timeout: 15_000 });
+  await expect.poll(() => page.locator("[data-studio-page] [data-zone-id]").count()).toBeGreaterThan(CARD_ZONES + 2);
+  const { cards } = await readBackdrops(page, "[data-studio-page] [data-zone-id]");
   const blurred = cards.filter((c) => c.blurred);
   expect(blurred.length).toBeGreaterThan(0);
-  expect(blurred.length).toBeLessThanOrEqual(8);
-  expect(cards.filter((c) => c.zone > 8).length).toBeGreaterThan(0);
-  expect(cards.filter((c) => c.zone > 8 && c.blurred)).toEqual([]);
+  expect(blurred.length).toBeLessThanOrEqual(CARD_ZONES);
+  expect(cards.filter((c) => c.zone > CARD_ZONES && c.blurred)).toEqual([]);
 });
 
 // The same page in lite mode, and with a card whose blur is off: a worn pack's blurred card has no backdrop filter at all (the cap is 0 and the

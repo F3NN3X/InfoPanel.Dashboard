@@ -655,10 +655,17 @@
   backdrop-filter: none !important;
   background: var(--w-mat-fallback);
 }
-/* At most 8 blurred cards a page (section 9.3): with a pack worn, a blurred card in the ninth zone or later of the page grid fills to its fallback alpha instead of redrawing a backdrop. Classic keeps its own blur. */
-:root[data-pack-worn] [data-page-grid] > :nth-child(n + 9) [data-wp-tier][data-mat-blur] {
+/* At most 8 backdrop layers a page (section 9.3), counted over everything that draws one: the island and the alert layer take one each (always reserved), so a card blurs in the first 6 zones of the page grid (the kiosk's grid, the studio canvas's zones) and the ninth-and-later rule is
+   the same fill without the blur: a card's own fallback alpha. A card is one layer, so the blurs inside a card (GlassPill, GameSpotlight and SteamGame's info plates, a panel's badge) are off while a pack is worn; their dark plates read without it. Classic keeps its own blur. */
+:root[data-pack-worn] [data-page-grid] > :nth-child(n + 7) [data-wp-tier][data-mat-blur],
+:root[data-pack-worn] [data-studio-page] [data-zone-id]:nth-child(n + 7 of [data-zone-id]) [data-wp-tier][data-mat-blur] {
   backdrop-filter: none !important;
   background: var(--w-mat-fallback);
+}
+:root[data-pack-worn] [data-page-grid] [class*="backdrop-blur"],
+:root[data-pack-worn] [data-studio-page] [class*="backdrop-blur"] {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
 }
 /* An engine without backdrop-filter draws no blur at all: the card fills to its fallback alpha so its text keeps the contrast the blur was to give. */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
