@@ -102,15 +102,22 @@ export function gaugeInk(): { key: string; lit: boolean }[] {
     ctx.fillRect(0, 0, 1, 1);
     return ctx.getImageData(0, 0, 1, 1).data[3] / 255;
   };
-  const probe = document.createElement("i");
-  probe.style.background = "var(--w-track)";
-  const out: { key: string; lit: boolean }[] = [];
-  document.querySelectorAll("figure[data-qa-module]").forEach((fig, i) => {
+  // The card's track colour, read from a probe in each card: all appended first and read after, so the page restyles once, not once per card.
+  const figs = [...document.querySelectorAll("figure[data-qa-module]")];
+  const probes = figs.map((fig) => {
     const card = fig.querySelector("[data-wp-tier]");
-    if (!card) return;
+    if (!card) return null;
+    const probe = document.createElement("i");
+    probe.style.background = "var(--w-track)";
     card.appendChild(probe);
-    const track = getComputedStyle(probe).backgroundColor;
-    probe.remove();
+    return probe;
+  });
+  const tracks = probes.map((probe) => (probe ? getComputedStyle(probe).backgroundColor : ""));
+  for (const probe of probes) probe?.remove();
+  const out: { key: string; lit: boolean }[] = [];
+  figs.forEach((fig, i) => {
+    if (!probes[i]) return;
+    const track = tracks[i];
     fig.querySelectorAll('[data-part="ring"], [data-part="bar"], [data-part="meter"]').forEach((gauge, n) => {
       const ring = gauge.getAttribute("data-part") === "ring";
       const marks = [...gauge.querySelectorAll(ring ? "circle[data-wp-ring]" : "*")].filter((el) => {

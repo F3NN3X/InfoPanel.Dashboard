@@ -124,8 +124,6 @@ const hidden = (ref: { key: string; lit: boolean }[], now: { key: string; lit: b
 
 for (const id of Object.keys(PACK_STYLES)) {
   test(`every gauge lit without the ${id} pack's css is lit with it`, async ({ page }) => {
-    // three spans of every widget, twice: slow under the suite's parallel workers
-    test.slow();
     await wornPage(page, PACK_STYLES[id as keyof typeof PACK_STYLES], id);
     const worn = await page.evaluate(gaugeInk);
     await page.evaluate(() => document.querySelectorAll("style[data-pack]").forEach((el) => ((el as HTMLStyleElement).disabled = true)));
@@ -137,7 +135,6 @@ for (const id of Object.keys(PACK_STYLES)) {
 }
 
 test("the gauge-ink check catches a pack that hides some of its gauges and not all", async ({ page }) => {
-  test.slow();
   await wornPage(page, PACK_STYLES.term, "term");
   const ref = await page.evaluate(gaugeInk);
   // what a bad pack could do: no ink on every other bar, meter and ring
@@ -150,7 +147,6 @@ test("the gauge-ink check catches a pack that hides some of its gauges and not a
 // L79: the box-legend title sits on the frame's line (6 px in) whatever the card's zoom: the shell zooms the padded content of a card
 // that is larger than the design size, and the legend is lifted inside that zoom.
 test("the term pack's box legend sits on the frame line on a zoomed card", async ({ page }) => {
-  test.slow();
   // Size % 150 zooms the padded content of every card (and the auto zoom of a larger box does the same)
   await wornPage(page, { ...PACK_STYLES.term, scale: 150 }, "term");
   await expect(page.locator('[data-wp-tier][data-look="term"] [data-part="legend"]').first()).toBeAttached({ timeout: 10_000 });
