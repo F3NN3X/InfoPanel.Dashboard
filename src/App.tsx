@@ -895,7 +895,7 @@ function DimOverlay({ level }: { level: number }) {
 function PageGrid({ className, style, children }: { className: string; style: React.CSSProperties; children: React.ReactNode }) {
   const reduced = useReducedMotion();
   return (
-    <div className={cn(className, !reduced && "page-fade-in")} style={style}>
+    <div className={cn(className, !reduced && "page-fade-in")} style={style} data-page-grid="">
       {children}
     </div>
   );

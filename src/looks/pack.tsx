@@ -91,7 +91,7 @@ export interface Pack {
   Stage?: StageView;
 }
 
-const ids = new Set<string>(["field-kit", "tape-86", "term", "neon-stripe", "overdrive", "swiss-mono", "holo"]);
+const ids = new Set<string>(["field-kit", "tape-86", "term", "neon-stripe", "overdrive", "swiss-mono", "holo", "night-glow", "paper", "classy-black", "liquid-glass", "black-and-gold"]);
 /** The Looks that are packs. Keep in step with `BUILTIN` in pack-load.ts (a test pins it). */
 export const PACK_IDS: ReadonlySet<string> = ids;
 /** Adds or removes a pack id (`registerPack` and `unregisterPack`, pack-load.ts). */

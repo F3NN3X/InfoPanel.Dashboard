@@ -71,7 +71,8 @@ export default function ConnectorLayer({ links, connectors, className = "", deco
     const mutations = new MutationObserver(later);
     measure();
     resize.observe(svg);
-    mutations.observe(document.body, { childList: true, subtree: true });
+    // The kiosk's page grid holds the zones; the studio canvas has no such mark, so it watches the whole page.
+    mutations.observe(document.querySelector("[data-page-grid]") ?? document.body, { childList: true, subtree: true });
     document.addEventListener("scroll", later, { capture: true, passive: true });
     window.addEventListener("resize", later);
     return () => {

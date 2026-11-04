@@ -21,7 +21,9 @@ for (const id of Object.keys(PACK_STYLES)) {
     page.on("request", (req) => requests.push(req.url()));
     const file = path.join(scratch.dataDir, "config.json");
     const stored = JSON.parse(fs.readFileSync(file, "utf8"));
-    stored.profiles = stored.profiles.map((p: object) => ({ ...p, widgetTheme: { values: PACK_STYLES[id as keyof typeof PACK_STYLES] } }));
+    // a shot keeps the zones clear of the island pill ("Reserve space"), so no header sits under it (L89)
+    const reserve = !!process.env.PACK_SHOTS;
+    stored.profiles = stored.profiles.map((p: { island?: object }) => ({ ...p, ...(reserve && p.island ? { island: { ...p.island, reserve: true } } : null), widgetTheme: { values: PACK_STYLES[id as keyof typeof PACK_STYLES] } }));
     fs.writeFileSync(file, JSON.stringify(stored));
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto(`${scratch.base}/?kiosk=1&profile=${heavy}`);
@@ -212,4 +214,61 @@ test("the overdrive chamfer stays inside the padding of every card at Compact de
   );
   expect(cuts.length).toBeGreaterThan(0);
   for (const cut of cuts) expect(cut).toBeLessThanOrEqual(2 * 4);
+});
+
+// P11b (Liquid Glass, the first Look with a real blur on by default): at most 8 blurred cards a page (section 9.3). A card in the ninth
+// zone or later of the page grid fills to its fallback alpha (0.90) instead of redrawing a backdrop; the first eight keep the 24 px blur.
+test("a page of sixteen Liquid Glass zones blurs only the cards of the first eight", async ({ page, scratch }) => {
+  const file = path.join(scratch.dataDir, "config.json");
+  const stored = JSON.parse(fs.readFileSync(file, "utf8"));
+  const more = (p: { pages: { placements: { id: string; module: string }[] }[] }) =>
+    Array.from({ length: 8 }, (_, i) => ({ ...p.pages[0].placements.find((z) => z.module === "CoreHeatmap"), id: `more-${i}`, colStart: 1 + i, rowStart: 1, colSpan: 1, rowSpan: 1 }));
+  stored.profiles = stored.profiles.map((p: { pages: { placements: object[] }[] }) => ({
+    ...p,
+    widgetTheme: { values: PACK_STYLES["liquid-glass"] },
+    pages: p.pages.map((pg, n) => (n === 0 ? { ...pg, placements: [...pg.placements, ...more(p as never)] } : pg)),
+  }));
+  fs.writeFileSync(file, JSON.stringify(stored));
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto(`${scratch.base}/?kiosk=1&profile=${heavy}`);
+  await expect(page.locator(manifest.kioskZoneSelector)).toHaveCount(manifest.zones.heavy.length + 8);
+  await expect(page.locator('[data-wp-tier][data-look="liquid-glass"]').first()).toBeAttached({ timeout: 10_000 });
+  await settled(page, manifest.kioskZoneSelector);
+  const cards = await page.evaluate(() => {
+    const grid = document.querySelector("[data-page-grid]") as HTMLElement;
+    return [...grid.children].flatMap((zone, i) => [...zone.querySelectorAll<HTMLElement>("[data-wp-tier][data-mat-blur]")].map((c) => ({ zone: i + 1, blurred: getComputedStyle(c).backdropFilter !== "none", fallback: getComputedStyle(c).backgroundColor })));
+  });
+  const blurred = cards.filter((c) => c.blurred);
+  expect(blurred.length).toBeGreaterThan(0);
+  expect(blurred.length).toBeLessThanOrEqual(8);
+  expect(cards.filter((c) => c.zone > 8).length).toBeGreaterThan(0);
+  expect(cards.filter((c) => c.zone > 8 && c.blurred)).toEqual([]);
+});
+
+// The same page in lite mode, and with a card whose blur is off: a worn pack's blurred card has no backdrop filter at all (the cap is 0 and the
+// filter is `none`, not `blur(0)`, which keeps a backdrop layer) and fills to the fallback alpha (0.90), so its text keeps the contrast the blur was to give.
+test("Liquid Glass in lite mode draws no backdrop filter and fills its card to the fallback alpha", async ({ page, scratch }) => {
+  const file = path.join(scratch.dataDir, "config.json");
+  const stored = JSON.parse(fs.readFileSync(file, "utf8"));
+  stored.profiles = stored.profiles.map((p: object) => ({ ...p, widgetTheme: { values: PACK_STYLES["liquid-glass"] } }));
+  fs.writeFileSync(file, JSON.stringify(stored));
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto(`${scratch.base}/?kiosk=1&profile=${heavy}`);
+  await expect(page.locator('[data-wp-tier][data-look="liquid-glass"]').first()).toBeAttached({ timeout: 10_000 });
+  await settled(page, manifest.kioskZoneSelector);
+  const read = () =>
+    page.evaluate(() =>
+      [...document.querySelectorAll<HTMLElement>("[data-wp-tier][data-mat-blur]")].map((c) => {
+        const cs = getComputedStyle(c);
+        return { filter: cs.backdropFilter, alphas: [...cs.backgroundImage.matchAll(/rgba\([^)]*?([\d.]+)\)/g)].map((m) => Number(m[1])) };
+      }),
+    );
+  const live = await read();
+  expect(live.length).toBeGreaterThan(0);
+  expect(live.every((c) => c.filter !== "none")).toBe(true);
+  await page.evaluate(() => document.documentElement.setAttribute("data-lite-motion", ""));
+  const lite = await read();
+  expect(lite.length).toBe(live.length);
+  expect(lite.filter((c) => c.filter !== "none")).toEqual([]);
+  for (const c of lite) expect(Math.min(...c.alphas)).toBeGreaterThanOrEqual(0.9);
 });

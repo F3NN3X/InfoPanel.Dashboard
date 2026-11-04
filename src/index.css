@@ -653,10 +653,18 @@
 :root[data-lite-motion][data-pack-worn] { --wp-blur-cap: 0px !important; }
 :root[data-lite-motion][data-pack-worn] [data-wp-tier][data-mat-blur] {
   backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
   background: var(--w-mat-fallback);
 }
+/* At most 8 blurred cards a page (section 9.3): with a pack worn, a blurred card in the ninth zone or later of the page grid fills to its fallback alpha instead of redrawing a backdrop. Classic keeps its own blur. */
+:root[data-pack-worn] [data-page-grid] > :nth-child(n + 9) [data-wp-tier][data-mat-blur] {
+  backdrop-filter: none !important;
+  background: var(--w-mat-fallback);
+}
+/* An engine without backdrop-filter draws no blur at all: the card fills to its fallback alpha so its text keeps the contrast the blur was to give. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  [data-wp-tier][data-mat-blur] { background: var(--w-mat-fallback); }
+}
 .wp-pack-fx { filter: drop-shadow(0 0 var(--wp-fx-glow, 0px) var(--w-accent, currentColor)) blur(var(--wp-fx-blur, 0px)); }
-/* A Look's `index` header: the page's headers numbered in order (01, 02, ...). Only a page with such a header resets the counter. */
-body:has([data-hdr="index"]) { counter-reset: wp-idx; }
+/* A Look's `index` header: the page's headers numbered in order (01, 02, ...). The counter resets on the root while a pack is worn (a rule on `body:has(...)` was evaluated on every page). */
+:root[data-pack-worn] { counter-reset: wp-idx; }
 [data-hdr="index"]::before { counter-increment: wp-idx; content: counter(wp-idx, decimal-leading-zero); color: var(--w-fg); font-weight: 600; }

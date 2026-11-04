@@ -9,4 +9,9 @@ export const PACK_STYLES = {
   overdrive: { lookId: "overdrive", surface: "look-overdrive", accent: "#F3E600", textColor: "#2DE2E6", mutedColor: "#C9C27A", font: "auto" },
   "swiss-mono": { lookId: "swiss-mono", surface: "look-swiss-mono", accent: "#FF4D2E", textColor: "#F2F0EB", mutedColor: "#9A968D", font: "auto" },
   holo: { lookId: "holo", surface: "look-holo", accent: "#4FD8FF", textColor: "#EAF9FF", mutedColor: "#7FA6B8", font: "auto" },
+  "night-glow": { lookId: "night-glow", surface: "look-night-glow", accent: "#3EE6FF", textColor: "#F2F4FF", mutedColor: "#9AA3D6", font: "auto" },
+  paper: { lookId: "paper", surface: "look-paper", accent: "#5B3FD4", textColor: "#1F1B2E", mutedColor: "#6B6578", warn: "#A14A00", font: "auto" },
+  "classy-black": { lookId: "classy-black", surface: "look-classy-black", accent: "#D4D4D8", textColor: "#F5F5F4", mutedColor: "#A3A3A3", font: "auto" },
+  "liquid-glass": { lookId: "liquid-glass", surface: "look-liquid-glass", accent: "#F5A3C7", textColor: "#F8F4FF", mutedColor: "#BDB4D4", font: "auto" },
+  "black-and-gold": { lookId: "black-and-gold", surface: "look-black-and-gold", accent: "#D4AF37", textColor: "#F4EBD0", mutedColor: "#B7A97C", font: "auto" },
 };

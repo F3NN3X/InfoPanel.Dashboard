@@ -14,6 +14,11 @@ const FACES: Record<keyof typeof PACK_STYLES, { num: string; label: string }> = 
   overdrive: { num: "pack-overdrive-mono", label: "pack-overdrive" },
   "swiss-mono": { num: "pack-swiss-display", label: "pack-swiss" },
   holo: { num: "pack-holo", label: "pack-holo" },
+  "night-glow": { num: "pack-night-glow", label: "pack-night-glow" },
+  paper: { num: "pack-paper", label: "pack-paper" },
+  "classy-black": { num: "pack-classy-num", label: "pack-classy" },
+  "liquid-glass": { num: "pack-liquid", label: "pack-liquid" },
+  "black-and-gold": { num: "pack-gold", label: "pack-gold" },
 };
 const heavy = manifest.profiles.heavy;
 

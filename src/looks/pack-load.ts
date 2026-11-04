@@ -22,6 +22,11 @@ export const BUILTIN: Record<string, () => Promise<{ default: Pack }>> = {
   overdrive: () => import("./packs/overdrive"),
   "swiss-mono": () => import("./packs/swiss-mono"),
   holo: () => import("./packs/holo"),
+  "night-glow": () => import("./packs/night-glow"),
+  "paper": () => import("./packs/paper"),
+  "classy-black": () => import("./packs/classy-black"),
+  "liquid-glass": () => import("./packs/liquid-glass"),
+  "black-and-gold": () => import("./packs/black-and-gold"),
 };
 
 /** Registers a pack source: how tests and the dev fixtures bring a pack that does not ship. Never called by the app. */

@@ -1,0 +1,89 @@
+{
+  "schema": 1,
+  "id": "paper",
+  "name": "Paper",
+  "description": "White cards with a warm hairline on an off-white page with a faint hexagon pattern: a purple accent and a purple-to-blue hero number.",
+  "tags": [
+    "pack",
+    "light",
+    "minimal",
+    "paper"
+  ],
+  "modes": {
+    "supported": [
+      "light"
+    ],
+    "stance": "Light only: white cards on warm paper are the pack."
+  },
+  "fonts": {
+    "body": "pack-paper",
+    "mono": "pack-paper"
+  },
+  "radius": "0.875rem",
+  "t1": {
+    "light": {
+      "bg": {
+        "value": "#F4F1EC"
+      },
+      "surface": {
+        "value": "#FFFFFF"
+      },
+      "surface-2": {
+        "value": "#ECE7F7"
+      },
+      "fg": {
+        "value": "#1F1B2E"
+      },
+      "fg-2": {
+        "value": "{fg}"
+      },
+      "muted": {
+        "value": "#6B6578"
+      },
+      "border": {
+        "value": "#ECE7F7"
+      },
+      "border-soft": {
+        "value": "{border}"
+      },
+      "accent": {
+        "value": "#5B3FD4"
+      },
+      "accent-on": {
+        "value": "{bg}"
+      },
+      "accent-hover": {
+        "value": "{accent}"
+      },
+      "focus-ring": {
+        "value": "{accent}"
+      },
+      "ok": {
+        "value": "#15803d"
+      },
+      "warn": {
+        "value": "#A14A00"
+      },
+      "crit": {
+        "value": "#c4261d"
+      },
+      "info": {
+        "value": "#2F6FE0"
+      }
+    }
+  },
+  "t2": {
+    "default": "look-paper",
+    "materials": {
+      "look-paper": {
+        "kind": "solid",
+        "tone": "light",
+        "export": "#FFFFFF"
+      }
+    }
+  },
+  "t3": {
+    "num-fill": "linear-gradient(90deg, #5B3FD4, #2F6FE0)"
+  },
+  "ext": {}
+}

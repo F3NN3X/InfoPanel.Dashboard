@@ -1,0 +1,87 @@
+{
+  "schema": 1,
+  "id": "liquid-glass",
+  "name": "Liquid Glass",
+  "description": "Frosted rose-violet glass at the full 24 px blur over a soft ambient page of tinted light.",
+  "tags": [
+    "pack",
+    "dark",
+    "glass",
+    "blur"
+  ],
+  "modes": {
+    "supported": [
+      "dark"
+    ],
+    "stance": "Dark only: frosted glass over tinted light is the pack."
+  },
+  "fonts": {
+    "body": "pack-liquid",
+    "mono": "pack-liquid"
+  },
+  "radius": "1rem",
+  "t1": {
+    "dark": {
+      "bg": {
+        "value": "#3B2350"
+      },
+      "surface": {
+        "value": "#1F1C2A"
+      },
+      "surface-2": {
+        "value": "#3A3350"
+      },
+      "fg": {
+        "value": "#F8F4FF"
+      },
+      "fg-2": {
+        "value": "{fg}"
+      },
+      "muted": {
+        "value": "#BDB4D4"
+      },
+      "border": {
+        "value": "#3A3350"
+      },
+      "border-soft": {
+        "value": "{border}"
+      },
+      "accent": {
+        "value": "#F5A3C7"
+      },
+      "accent-on": {
+        "value": "{bg}"
+      },
+      "accent-hover": {
+        "value": "{accent}"
+      },
+      "focus-ring": {
+        "value": "{accent}"
+      },
+      "ok": {
+        "value": "#3CC97F"
+      },
+      "warn": {
+        "value": "#EDB232"
+      },
+      "crit": {
+        "value": "#F2665E"
+      },
+      "info": {
+        "value": "{accent}"
+      }
+    }
+  },
+  "t2": {
+    "default": "look-liquid-glass",
+    "materials": {
+      "look-liquid-glass": {
+        "kind": "glass",
+        "tone": "dark",
+        "export": "#0F0B1A"
+      }
+    }
+  },
+  "t3": {},
+  "ext": {}
+}

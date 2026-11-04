@@ -1,0 +1,35 @@
+{
+  "id": "black-and-gold",
+  "name": "Black and Gold",
+  "version": "1.0.0",
+  "tags": [
+    "dark",
+    "gold",
+    "luxe"
+  ],
+  "description": "Warm black cards edged in a gold sheen, gold gradient numbers and a gold accent.",
+  "modes": [
+    "dark"
+  ],
+  "fonts": [
+    {
+      "family": "pack-gold",
+      "source": "Manrope",
+      "file": "manrope-600.woff2",
+      "weight": "100 900",
+      "licence": "OFL-1.1",
+      "copyright": "Copyright 2019 The Manrope Project Authors (https://github.com/sharanda/manrope)"
+    }
+  ],
+  "stage": {
+    "layers": [
+      {
+        "fill": "#060503"
+      }
+    ]
+  },
+  "burnIn": "static-safe",
+  "statusBar": {
+    "edge": "top"
+  }
+}

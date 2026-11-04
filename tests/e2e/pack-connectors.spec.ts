@@ -58,12 +58,12 @@ test("Holo's connectors follow a zone that moves without resizing, on scroll and
   // a node mounting (a late zone, a lazy widget) measures again too
   await page.evaluate(() => {
     for (const el of document.querySelectorAll<HTMLElement>("[data-zone-id]")) el.style.transform = "translate(60px, 80px)";
-    document.body.appendChild(document.createElement("i"));
+    document.querySelector("[data-page-grid]")!.appendChild(document.createElement("i"));
   });
   await expect.poll(ends).not.toEqual(scrolled);
 });
 
-for (const id of ["term", "swiss-mono", "overdrive", "neon-stripe"]) {
+for (const id of ["term", "swiss-mono", "overdrive", "neon-stripe", "night-glow", "paper", "classy-black", "liquid-glass", "black-and-gold"]) {
   test(`a page that wears ${id} keeps the kiosk markup it had: no zone ids, no connector layer`, async ({ page, scratch }) => {
     await openKiosk(page, scratch, id);
     await expect(page.locator("[data-zone-id]")).toHaveCount(0);

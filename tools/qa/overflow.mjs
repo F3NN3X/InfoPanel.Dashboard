@@ -39,12 +39,12 @@ const spans = args.spans ?? "1x1,2x2,4x2,4x4";
 function collect() {
   /**
    * A frame's markup as `<fnv1a hash>:<length>`, with the generated React ids (`:r1:`, `_r_1_`) written alike. Two things move on the clock of
-   * the page and are written alike on their own element only: the Ken Burns drift (its `transform: scale(...)`) and a pulsing dot's ring
+   * the page and are written alike on their own element only: the Ken Burns drift (its `transform`) and a pulsing dot's ring
    * (its `box-shadow`), so a pack's real change to any other transform or shadow still shows. A style React cleared reads as none.
    */
   const markupOf = (box) => {
     const copy = box.cloneNode(true);
-    for (const el of copy.querySelectorAll("[data-qa-bleed] > div[style*='scale(']")) el.setAttribute("style", "transform: scale(~)");
+    for (const el of copy.querySelectorAll("[data-qa-bleed] > div[style*='scale(']")) el.setAttribute("style", el.getAttribute("style").replace(/transform: [^;]*/, "transform: ~"));
     for (const el of copy.querySelectorAll("span[style*='box-shadow: color-mix(']")) el.setAttribute("style", el.getAttribute("style").replace(/box-shadow: color-mix\([^;]*;/, "box-shadow: ~;"));
     for (const el of copy.querySelectorAll("[style='']")) el.removeAttribute("style");
     const text = copy.innerHTML.replace(/:r[0-9a-z]+:|_r_[0-9a-z]+_|«r[0-9a-z]+»/g, ":r:");

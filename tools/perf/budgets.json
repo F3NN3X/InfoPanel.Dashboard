@@ -14,6 +14,11 @@
     "neon-stripe": { "codeGzipBytes": 6100, "assetBytes": 12600, "layersPerPage": 13 },
     "overdrive": { "codeGzipBytes": 5500, "assetBytes": 13950, "layersPerPage": 12 },
     "swiss-mono": { "codeGzipBytes": 5900, "assetBytes": 30650, "layersPerPage": 13 },
-    "holo": { "codeGzipBytes": 6800, "assetBytes": 19600, "layersPerPage": 14 }
+    "holo": { "codeGzipBytes": 6800, "assetBytes": 19600, "layersPerPage": 14 },
+    "night-glow": { "codeGzipBytes": 1940, "assetBytes": 10400, "layersPerPage": 19 },
+    "paper": { "codeGzipBytes": 1870, "assetBytes": 17660, "layersPerPage": 13 },
+    "classy-black": { "codeGzipBytes": 1840, "assetBytes": 20020, "layersPerPage": 12 },
+    "liquid-glass": { "codeGzipBytes": 1930, "assetBytes": 11180, "layersPerPage": 20 },
+    "black-and-gold": { "codeGzipBytes": 1810, "assetBytes": 11120, "layersPerPage": 12 }
   }
 }

@@ -7,15 +7,21 @@ import { loadLook } from "@/looks";
 import { resolveT1 } from "@/looks/look";
 import { PACK_IDS } from "@/looks/pack";
 import { effectIssues, GLOW_MAX, planEffects } from "@/looks/effects";
+import { materialVars, resolveMaterial } from "@/looks/materials";
 import { registerSampleCards, SAMPLE_MATERIALS } from "@/looks/sample-materials";
 import { loadPack, packIssues } from "@/looks/pack-load";
 import { Widget } from "@/widgets/core/Widget";
 import { t3Tokens } from "@/widgets/core/t3-tokens";
 import fs from "node:fs";
+import { CONFIG_VERSION, readConfig, type StoredConfig } from "@/lib/layout";
+import { SAMPLE_LOOK_IDS } from "@/looks/ids";
+import { SAMPLE_THEMES } from "@/looks/sample-themes";
+import { resolveSurface } from "@/widgets/core/theme";
+import { contrastOf } from "@/looks/status";
 
-const IDS = ["field-kit", "tape-86", "term", "neon-stripe", "overdrive", "swiss-mono", "holo"];
+const IDS = ["field-kit", "tape-86", "term", "neon-stripe", "overdrive", "swiss-mono", "holo", "night-glow", "paper", "classy-black", "liquid-glass", "black-and-gold"];
 /** What each pack's header draws, as the shell writes it. */
-const HEADER: Record<string, string> = { "field-kit": 'data-part="tab"', "tape-86": 'data-part="tab"', term: 'data-part="legend"', "swiss-mono": 'data-hdr="index"', "neon-stripe": '<span aria-hidden="true">[</span>', overdrive: 'data-part="tab"', holo: 'data-part="header"' };
+const HEADER: Record<string, string> = { "field-kit": 'data-part="tab"', "tape-86": 'data-part="tab"', term: 'data-part="legend"', "swiss-mono": 'data-hdr="index"', "neon-stripe": '<span aria-hidden="true">[</span>', overdrive: 'data-part="tab"', holo: 'data-part="header"', "night-glow": 'data-part="header"', paper: 'data-part="header"', "classy-black": 'data-part="header"', "liquid-glass": 'data-part="header"', "black-and-gold": 'data-part="header"' };
 /** The packs that carry a component slot (an ornament or a tab band); the others paint with their material, CSS and stage. */
 const SLOTTED = ["field-kit", "tape-86"];
 
@@ -166,7 +172,10 @@ describe("what the second-wave packs teach the contract (P11)", () => {
     for (const f of meta.fonts) expect(f.weight).toBe("100 900");
     expect(pack.stage!.layers[1].fill).toMatch(/radial-gradient\(circle \d+px at/);
     registerSampleCards();
-    expect(SAMPLE_MATERIALS["look-swiss-mono"].s.background).toBe("#141414");
+    // the contract is an opaque card and an opaque export colour (L86), not one particular grey
+    const card = SAMPLE_MATERIALS["look-swiss-mono"];
+    expect(String(card.s.background)).toMatch(/^#[0-9a-f]{6}$/i);
+    expect(String((materialVars(resolveMaterial(card)) as Record<string, unknown>)["--w-mat-export"])).toMatch(/^#[0-9a-f]{6}$/i);
   });
 
   it("every second-wave pack keeps to the stage's 3 layers and its own files", async () => {
@@ -175,5 +184,92 @@ describe("what the second-wave packs teach the contract (P11)", () => {
       expect(pack.stage!.layers.length).toBeLessThanOrEqual(3);
       expect(pack.slots?.icons && Object.keys(pack.slots.icons).length).toBe(24);
     }
+  });
+});
+
+describe("what the five Looks teach the contract (P11b)", () => {
+  const stops = (css: string) => css.match(/#[0-9a-f]{6}/gi) ?? [];
+
+  it("Night Glow's edge is the gradient frame, its glow one inset layer inside the 12 px cap, and its blur one backdrop layer", async () => {
+    const pack = (await loadPack("night-glow"))!;
+    expect(t3Tokens(pack.look.t3)).toMatchObject({ frame: "gradient", ringMark: "segmented" });
+    expect(t3Tokens(pack.look.t3).numFill).toMatch(/^linear-gradient\(/);
+    // section 9.3 caps for a card: at most 1 outer and 1 inset shadow, 24 px (12 px for this Look), one backdrop layer
+    const shadow = String(SAMPLE_MATERIALS["look-night-glow"].s.boxShadow);
+    const layers = shadow.split(/,(?![^(]*\))/).map((l) => l.trim());
+    expect(layers.length).toBeLessThanOrEqual(2);
+    for (const l of layers) {
+      expect(l.startsWith("inset")).toBe(true);
+      expect(Number(/inset 0 0 (\d+(?:\.\d+)?)px/.exec(l)?.[1] ?? 0)).toBeLessThanOrEqual(12);
+    }
+    expect(Number(/blur\(min\((\d+)px/.exec(String(SAMPLE_MATERIALS["look-night-glow"].s.backdropFilter))?.[1])).toBe(12);
+    expect(pack.stage!.effects ?? []).toEqual([]);
+    expect(pack.look.radius).toBe("1.125rem");
+  });
+
+  it("Black and Gold's gold gradient is on the frame and the numerals, and every stop holds 3:1 on the card", async () => {
+    const pack = (await loadPack("black-and-gold"))!;
+    expect(t3Tokens(pack.look.t3)).toMatchObject({ frame: "gradient" });
+    for (const stop of stops(String(pack.look.t3!["num-fill"]))) expect(contrastOf(stop, "#12100A")).toBeGreaterThanOrEqual(3);
+  });
+
+  it("Paper is light, draws a faint hexagon page layer under a gradient hero number, and no effect", async () => {
+    const pack = (await loadPack("paper"))!;
+    expect(pack.look.modes.supported).toEqual(["light"]);
+    expect(pack.stage!.layers[1]).toMatchObject({ minSizeClass: "sm" });
+    expect(pack.assets).toContain(pack.stage!.layers[1].image);
+    expect(pack.stage!.layers[1].opacity!).toBeLessThanOrEqual(0.9);
+    expect(pack.stage!.effects ?? []).toEqual([]);
+    for (const stop of stops(String(pack.look.t3!["num-fill"]))) expect(contrastOf(stop, "#FFFFFF")).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("Classy Black's thin numerals are a light face, not a weight the browser would synthesise", async () => {
+    const pack = (await loadPack("classy-black"))!;
+    const meta = (await import("@/looks/packs/classy-black/pack.json")).default;
+    expect(meta.fonts.map((f: { file: string }) => f.file)).toEqual(["geist-400.woff2", "geist-200.woff2"]);
+    for (const f of meta.fonts) expect(f.weight).toBe("100 900");
+    // vitest reads a `?raw` stylesheet as empty, so the CSS is read from the file
+    expect(fs.readFileSync("src/looks/packs/classy-black/pack.css", "utf8")).toMatch(/\[data-part="num"\] \{ font-family: pack-classy-num/);
+    expect(pack.assets?.some((a: string) => a.startsWith("geist-200.woff2"))).toBe(true);
+  });
+
+  it("Liquid Glass blurs 24 px by default, falls back to 0.90 where the blur is off, and a page keeps at most 8 backdrop layers", async () => {
+    registerSampleCards();
+    const card = SAMPLE_MATERIALS["look-liquid-glass"];
+    expect(card.kind).toBe("glass");
+    expect(String(card.s.backdropFilter)).toMatch(/^blur\(min\(24px,/);
+    const vars = materialVars(resolveMaterial(card));
+    expect(String((vars as Record<string, unknown>)["--w-mat-fallback"])).toMatch(/rgba\([^)]*, 0?\.9\)/);
+    // lite mode, a solid page and an engine without backdrop-filter all take the fallback; the page limit is 8 zones (index.css)
+    const css = fs.readFileSync("src/index.css", "utf8");
+    expect(css).toMatch(/data-lite-motion\]\[data-pack-worn\] \[data-wp-tier\]\[data-mat-blur\] \{\s+backdrop-filter: none !important;\s+background: var\(--w-mat-fallback\)/);
+    expect(css).toMatch(/@supports not \(\(backdrop-filter: blur\(1px\)\) or \(-webkit-backdrop-filter: blur\(1px\)\)\) \{\s+\[data-wp-tier\]\[data-mat-blur\] \{ background: var\(--w-mat-fallback\)/);
+    expect(css).toMatch(/\[data-page-grid\] > :nth-child\(n \+ 9\) \[data-wp-tier\]\[data-mat-blur\] \{\s+backdrop-filter: none !important;/);
+  });
+
+  it("no sample Look names a catalog font: each sets the app's own stack and a pack brings its bundled face (no font host is asked for)", async () => {
+    for (const t of SAMPLE_THEMES) expect(["auto", "sans", "mono"], t.id).toContain(t.font);
+    for (const id of ["night-glow", "paper", "classy-black", "liquid-glass", "black-and-gold"]) {
+      const css = fs.readFileSync(`src/looks/packs/${id}/pack.css`, "utf8");
+      expect(css, id).toMatch(/font-family: pack-/);
+      expect(css, id).not.toMatch(/url\(|@import|@font-face/);
+    }
+  });
+
+  it("a config that saved a sample Look's id keeps it and its card, and the Look still loads (L78)", async () => {
+    registerSampleCards();
+    for (const id of SAMPLE_LOOK_IDS) {
+      const stored = { version: CONFIG_VERSION, activeProfile: "p", profiles: [{ id: "p", name: "P", width: 800, height: 480, widgetTheme: { values: { lookId: id, surface: `look-${id}`, accent: "#123456" } }, pages: [{ id: "a", name: "A", placements: [] }] }] } as unknown as StoredConfig;
+      const read = await readConfig(stored);
+      expect(read.profiles[0].widgetTheme?.values?.lookId, id).toBe(id);
+      expect(read.profiles[0].widgetTheme?.values?.surface, id).toBe(`look-${id}`);
+      expect(resolveSurface(`look-${id}`, undefined), id).toBe(SAMPLE_MATERIALS[`look-${id}`]);
+      expect((await loadLook(id))?.id, id).toBe(id);
+    }
+  });
+
+  it("every sample card starts a data-viz ramp from an opaque colour, translucent glass included (L31)", () => {
+    registerSampleCards();
+    for (const [name, card] of Object.entries(SAMPLE_MATERIALS)) expect(resolveMaterial(card).fill, name).toMatch(/^#[0-9a-f]{6}$/i);
   });
 });
