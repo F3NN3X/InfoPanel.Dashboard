@@ -26,7 +26,8 @@ for (const material of MATERIALS) {
     // The sticky toolbar and the captions would be in the shots; the frames are what is compared.
     await page.addStyleTag({ content: "main > header, figcaption { display: none !important; }" });
     await page.waitForFunction(() => window.__qaMountAll);
-    await page.evaluate(() => window.__qaMountAll?.());
+    // An unsettled page would be compared half-built (ledger L50).
+    expect(await page.evaluate(() => window.__qaMountAll?.())).toBe(true);
     const ids = await page.$$eval("section[id]", (all) => all.map((s) => s.id));
     expect(ids.length).toBeGreaterThan(60);
     for (const id of ids) {

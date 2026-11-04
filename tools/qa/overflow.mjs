@@ -70,7 +70,8 @@ try {
   const run = async (surface) => {
     await page.goto(`${scratch.base}/?widget-qa${module}&spans=${spans}&eager=1${surface ? `&surface=${surface}` : ""}`);
     await page.waitForFunction(() => window.__qaMountAll && window.__qaOverflow, null, { timeout: 30_000 });
-    await page.evaluate(() => window.__qaMountAll());
+    // A page that never settled would be read half-built (ledger L50): fail rather than diff it.
+    if (!(await page.evaluate(() => window.__qaMountAll()))) throw new Error(`overflow: the Widget QA page did not settle${surface ? ` (surface ${surface})` : ""}`);
     // A name the page does not know falls back to the default card, which would pass for the right one.
     if (surface && !(await page.evaluate((name) => !!document.querySelector(`[data-wp-tier][data-mat="${name}"]`), surface))) throw new Error(`overflow: no card drew the surface ${surface}`);
     return page.evaluate(collect);

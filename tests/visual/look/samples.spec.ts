@@ -26,7 +26,8 @@ for (const { presets } of SAMPLE_PRESET_GROUPS) {
     await page.goto(`${qa.base}/?widget-qa&module=${MODULES}&spans=${SPANS}&${CELL}&eager=1&settings=${settings}`);
     const bg = preset.background?.type === "gradient" ? `linear-gradient(${preset.background.gradient!.angle}deg, ${preset.background.gradient!.from}, ${preset.background.gradient!.to})` : (preset.background?.color ?? "#0b0b0f");
     await page.waitForFunction(() => window.__qaMountAll);
-    await page.evaluate(() => window.__qaMountAll?.());
+    // An unsettled page would be compared half-built (ledger L50).
+    expect(await page.evaluate(() => window.__qaMountAll?.())).toBe(true);
     // One sheet: each widget's 2x2 and 4x2 frames, two widgets a row, over the theme's page colour.
     await page.evaluate(
       ([modules, page]) => {
