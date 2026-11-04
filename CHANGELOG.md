@@ -33,6 +33,9 @@ version as its notes, so move **Unreleased** under a new `## [X.Y.Z] - YYYY-MM-D
 
 ### Fixed
 
+- **Visualisers show the sound in reduced motion.** With Reduce motion on, the still frame of a visualiser could stay at its idle bars while audio played; it now repaints once the first reading is in.
+- **Now Playing tinted by cover art keeps its fallback fill.** Over a solid page colour a tinted card whose Look blurs now fills to the blur fallback like every other card, instead of keeping its own see-through tint.
+- **InfoPanel export: level ladders on light cards.** A level ladder (audio meters) exported its amber and red from the dark card on a light card; it now exports the card's own warning and critical colours.
 - **Stream Control graphs start on the first reading.** The viewer and mic graphs no longer open with a flat zero from before OBS answered, so the same screen no longer draws two different graphs depending on how fast the stream arrived.
 - **Heat maps and visualisers start from the card colour.** The coldest colour of an accent ramp (Core Heatmap, CPU Monitor, System Overview, Follow in the visualisers) was always near-black; it now starts from the card's own fill on every surface (light, theme, and the dark and tinted ones).
 - **InfoPanel export: warn and crit ring colours on the Theme surface.** They exported as the default blue; they now keep their colour.
