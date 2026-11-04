@@ -381,12 +381,41 @@ async fn an_import_refuses_pack_css_a_bad_path_a_bad_id_and_the_wrong_caller() {
     for id in ["Mine", "../mine", "a b", ""] {
         assert_eq!(send(s.port, "POST", "/api/packs", &WRITE, &import_body(id, &pairs(&ok))).await.status, 400, "{id}");
     }
+    for id in ["nul", "con", "com1", "lpt9"] {
+        let named = [("pack.json", pack_json(id)), ("look.json", json!({ "id": id }).to_string())];
+        assert_eq!(send(s.port, "POST", "/api/packs", &WRITE, &import_body(id, &pairs(&named))).await.status, 400, "device name {id}");
+    }
     assert_eq!(send(s.port, "POST", "/api/packs", &[("Content-Type", "application/json")], &import_body("mine", &pairs(&ok))).await.status, 403, "no header");
     let foreign = [("Content-Type", "application/json"), ("X-Dashboard-Pack", "1"), ("Origin", "http://evil.example")];
     assert_eq!(send(s.port, "POST", "/api/packs", &foreign, &import_body("mine", &pairs(&ok))).await.status, 403, "cross-site");
     assert_eq!(send(s.port, "POST", "/api/packs", &WRITE, "not json").await.status, 400);
     assert_eq!(send(s.port, "POST", "/api/packs", &WRITE, &import_body("mine", &[("pack.json", "{}")])).await.status, 400, "no look.json");
     assert_eq!(get(s.port, "/api/packs").await.text(), "[]", "nothing was stored");
+    s.stop().await;
+}
+
+#[tokio::test]
+async fn a_replace_leaves_no_temp_or_set_aside_folder_behind() {
+    let s = start().await;
+    let files = [("pack.json", pack_json("mine")), ("look.json", json!({ "id": "mine" }).to_string())];
+    assert_eq!(send(s.port, "POST", "/api/packs", &WRITE, &import_body("mine", &pairs(&files))).await.status, 200);
+    assert_eq!(send(s.port, "POST", "/api/packs", &WRITE, &import_body("mine", &pairs(&files))).await.status, 200, "replaced");
+    let names: Vec<String> = s.packs().read_dir().unwrap().map(|e| e.unwrap().file_name().to_string_lossy().into_owned()).collect();
+    assert_eq!(names, ["mine"]);
+    s.stop().await;
+}
+
+#[tokio::test]
+async fn more_packs_than_the_count_cap_are_413_but_a_replace_is_not() {
+    let s = start().await;
+    for k in 0..32 {
+        write_pack(&s, &format!("p{k}"));
+    }
+    let files = [("pack.json", pack_json("extra")), ("look.json", json!({ "id": "extra" }).to_string())];
+    let reply = send(s.port, "POST", "/api/packs", &WRITE, &import_body("extra", &pairs(&files))).await;
+    assert_eq!(reply.status, 413, "{}", reply.text());
+    let again = [("pack.json", pack_json("p3")), ("look.json", json!({ "id": "p3" }).to_string())];
+    assert_eq!(send(s.port, "POST", "/api/packs", &WRITE, &import_body("p3", &pairs(&again))).await.status, 200, "a replace");
     s.stop().await;
 }
 

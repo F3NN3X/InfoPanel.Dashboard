@@ -34,6 +34,11 @@ pub const FILE_COUNT_MAX: usize = 64;
 /// An import body: the pack as base64 in JSON, with room for the paths.
 const IMPORT_BODY_MAX: usize = (PACK_CEILING_BYTES as usize) * 4 / 3 + 64 * 1024;
 
+/// At most this many packs, and this many bytes of them in all (the packs a user brings are a few hundred kB each).
+pub const PACKS_MAX: usize = 32;
+pub const PACKS_TOTAL_BYTES: u64 = 16_000_000;
+
+/// The start of a folder an import writes into, or sets a replaced pack aside as; a leftover of either is swept at start.
 const TEMP_PREFIX: &str = ".import-";
 /// The files at the top of a pack folder, by name.
 const ROOT_FILES: [&str; 7] = ["pack.json", "look.json", "icons.json", "OFL.txt", "thumb.png", "thumb.jpg", "thumb.webp"];
@@ -41,14 +46,20 @@ const ROOT_FILES: [&str; 7] = ["pack.json", "look.json", "icons.json", "OFL.txt"
 const ASSET_EXTS: [&str; 5] = ["woff2", "png", "jpg", "webp", "svg"];
 const NO_PACK_CSS: &str = "a user pack carries no pack.css";
 
-/// A pack id: lowercase letters, digits and hyphens, 1 to 48 characters, not starting with a hyphen.
+/// A name Windows keeps for a device (`con`, `nul`, `com1`, ... with or without an extension): never a pack id or a file's stem.
+fn is_device_name(s: &str) -> bool {
+    let stem = s.split('.').next().unwrap_or("");
+    matches!(stem, "con" | "prn" | "aux" | "nul") || (stem.len() == 4 && (stem.starts_with("com") || stem.starts_with("lpt")) && matches!(stem.as_bytes()[3], b'1'..=b'9'))
+}
+
+/// A pack id: lowercase letters, digits and hyphens, 1 to 48 characters, not starting with a hyphen, not a Windows device name.
 pub fn is_pack_id(s: &str) -> bool {
-    (1..=48).contains(&s.len()) && !s.starts_with('-') && s.bytes().all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'-')
+    (1..=48).contains(&s.len()) && !is_device_name(s) && !s.starts_with('-') && s.bytes().all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'-')
 }
 
 /// An asset's own name (before the extension): the same characters as an id, up to 64.
 fn is_asset_name(s: &str) -> bool {
-    (1..=64).contains(&s.len()) && !s.starts_with('-') && s.bytes().all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'-')
+    (1..=64).contains(&s.len()) && !is_device_name(s) && !s.starts_with('-') && s.bytes().all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'-')
 }
 
 /// A file of a pack by its path from the pack folder: one of the fixed names, or `assets/<name>.<ext>`. Nothing else is a
@@ -88,7 +99,25 @@ impl Packs {
     /// The store in `dir`. `USER_PACKS=off` (or `0`) is the rollback switch.
     pub fn new(dir: PathBuf, allow_remote: bool) -> Self {
         let enabled = !matches!(std::env::var("USER_PACKS").ok().as_deref(), Some("off" | "0"));
-        Self { dir, enabled, allow_remote }
+        let packs = Self { dir, enabled, allow_remote };
+        packs.sweep();
+        packs
+    }
+
+    /// Removes what a crash left of an import: a half-written folder, or a replaced pack set aside.
+    fn sweep(&self) {
+        if !self.enabled {
+            return;
+        }
+        let Ok(entries) = std::fs::read_dir(&self.dir) else {
+            return;
+        };
+        for entry in entries.filter_map(Result::ok) {
+            let is_dir = entry.file_type().is_ok_and(|t| t.is_dir());
+            if is_dir && entry.file_name().to_string_lossy().starts_with(TEMP_PREFIX) {
+                let _ = std::fs::remove_dir_all(entry.path());
+            }
+        }
     }
 
     #[cfg(test)]
@@ -284,6 +313,13 @@ async fn handle_import(app: &App, mut req: Req) -> std::io::Result<Response<Body
         Ok(done) => done,
         Err(Refused(status, message)) => return Ok(http::text(status, message)),
     };
+    let others: Vec<u64> = listed(packs).into_iter().filter(|(other, _)| *other != id).map(|(_, bytes)| bytes).collect();
+    if others.len() + 1 > PACKS_MAX {
+        return Ok(http::text(413, format!("{PACKS_MAX} packs are stored; remove one first")));
+    }
+    if others.iter().sum::<u64>() + files.iter().map(|(_, b)| b.len() as u64).sum::<u64>() > PACKS_TOTAL_BYTES {
+        return Ok(http::text(413, format!("the packs would take over {PACKS_TOTAL_BYTES} bytes in all; remove one first")));
+    }
     // written beside the pack under a name no id has, then moved into place: a half-written pack is never a pack
     std::fs::create_dir_all(&packs.dir)?;
     let temp = packs.dir.join(format!("{TEMP_PREFIX}{}", uuid::Uuid::new_v4()));
@@ -295,11 +331,23 @@ async fn handle_import(app: &App, mut req: Req) -> std::io::Result<Response<Body
             }
             std::fs::write(target, bytes)?;
         }
+        // a replaced pack is set aside, not deleted, until the new one is in place: a failed rename puts it back
         let dest = packs.dir.join(&id);
-        if std::fs::symlink_metadata(&dest).is_ok() {
-            std::fs::remove_dir_all(&dest)?;
+        let aside = packs.dir.join(format!("{TEMP_PREFIX}old-{}", uuid::Uuid::new_v4()));
+        let had = std::fs::symlink_metadata(&dest).is_ok();
+        if had {
+            std::fs::rename(&dest, &aside)?;
         }
-        std::fs::rename(&temp, &dest)
+        if let Err(e) = std::fs::rename(&temp, &dest) {
+            if had {
+                let _ = std::fs::rename(&aside, &dest);
+            }
+            return Err(e);
+        }
+        if had {
+            let _ = std::fs::remove_dir_all(&aside);
+        }
+        Ok(())
     })();
     if let Err(e) = written {
         let _ = std::fs::remove_dir_all(&temp);
@@ -375,9 +423,33 @@ mod tests {
         for ok in ["a", "my-pack", "0x", &"a".repeat(48)] {
             assert!(is_pack_id(ok), "{ok}");
         }
-        for bad in ["", "-a", "A", "a_b", "a.b", "a/b", "a\\b", "..", ".", "a%2eb", "a b", "é", "a\0", "C:", &"a".repeat(49)] {
+        for bad in ["nul", "con", "aux", "prn", "com1", "lpt9", "com1.x", "", "-a", "A", "a_b", "a.b", "a/b", "a\\b", "..", ".", "a%2eb", "a b", "é", "a\0", "C:", &"a".repeat(49)] {
             assert!(!is_pack_id(bad), "{bad:?}");
         }
+    }
+
+    #[test]
+    fn windows_device_names_are_not_ids_or_asset_names() {
+        for bad in ["nul", "con", "prn", "aux", "com1", "com9", "lpt1", "lpt9"] {
+            assert!(!is_pack_id(bad), "{bad}");
+            for ext in ["png", "woff2", "svg"] {
+                assert!(!is_pack_file(&format!("assets/{bad}.{ext}")), "{bad}.{ext}");
+            }
+        }
+        for ok in ["com0", "com10", "console", "nully", "lpt", "com-1"] {
+            assert!(is_pack_id(ok), "{ok}");
+        }
+    }
+
+    #[test]
+    fn a_crash_leftover_is_swept_and_a_pack_is_not() {
+        let dir = tempfile::tempdir().unwrap();
+        pack(dir.path(), "mine");
+        std::fs::create_dir_all(dir.path().join(".import-1/assets")).unwrap();
+        std::fs::create_dir_all(dir.path().join(".import-old-2")).unwrap();
+        Packs::with(dir.path().to_path_buf(), true).sweep();
+        let left: Vec<String> = std::fs::read_dir(dir.path()).unwrap().map(|e| e.unwrap().file_name().to_string_lossy().into_owned()).collect();
+        assert_eq!(left, ["mine"]);
     }
 
     #[test]
