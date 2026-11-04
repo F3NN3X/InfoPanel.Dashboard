@@ -15,20 +15,70 @@ export function isPackRelativeUrl(url: string): boolean {
   return !decoded.split(/[/?#]/).includes("..");
 }
 
-const CSS_COMMENT = /\/\*[\s\S]*?\*\//g;
-const CSS_URL = /url\(\s*(?:"([^"]*)"|'([^']*)'|([^)\s]*))\s*\)/gi;
-const CSS_STRING_FUNC = /(?:image-set|src)\(([^)]*)\)/gi;
-const CSS_STRING = /"([^"]*)"|'([^']*)'/g;
+/** Functions whose string arguments name files. */
+const URL_FUNCS = new Set(["image-set", "src", "image"]);
+const IDENT = /[a-z0-9_-]/i;
 
-/** What is wrong with a pack's CSS, one line each (empty = fine): `@import`, an escaped at-rule name, and any URL that is not pack-relative. */
+/**
+ * What is wrong with a pack's CSS, one line each (empty = fine). A small scanner reads strings, comments, identifiers and
+ * parentheses, so nothing hides in a string or a comment; it fails closed: a backslash outside a string (an escape could
+ * spell `url(` or `@import`) and any `url(`, `image-set(` or `src(` that never closes are issues, as are `@import` and any
+ * URL that is not pack-relative.
+ */
 export function packCssIssues(css: string): string[] {
-  const text = css.replace(CSS_COMMENT, "");
   const issues: string[] = [];
-  if (/@import\b/i.test(text)) issues.push("@import");
-  if (/@\\/.test(text)) issues.push("escaped at-rule");
-  const urls = [...text.matchAll(CSS_URL)].map((m) => m[1] ?? m[2] ?? m[3] ?? "");
-  // image-set("a.png" 1x) and src("a.woff2") name a file without url()
-  for (const f of text.matchAll(CSS_STRING_FUNC)) for (const s of f[1].matchAll(CSS_STRING)) urls.push(s[1] ?? s[2] ?? "");
-  for (const u of urls) if (!isPackRelativeUrl(u)) issues.push(`url ${u}`);
+  // the open functions, innermost last: a string inside an image-set() or src() is a URL
+  const stack: string[] = [];
+  const n = css.length;
+  let i = 0;
+  const string = (): string => {
+    const q = css[i++];
+    const from = i;
+    while (i < n && css[i] !== q) i += css[i] === "\\" ? 2 : 1;
+    const value = css.slice(from, i);
+    i++;
+    return value;
+  };
+  const check = (url: string) => {
+    if (!isPackRelativeUrl(url)) issues.push(`url ${url}`);
+  };
+  while (i < n) {
+    const c = css[i];
+    if (c === "/" && css[i + 1] === "*") {
+      const end = css.indexOf("*/", i + 2);
+      i = end < 0 ? n : end + 2;
+    } else if (c === '"' || c === "'") {
+      const value = string();
+      if (stack.some((f) => URL_FUNCS.has(f))) check(value);
+    } else if (c === "\\") {
+      issues.push("css escape");
+      i += 2;
+    } else if (c === "@" || IDENT.test(c)) {
+      const at = c === "@";
+      const from = at ? ++i : i;
+      while (i < n && IDENT.test(css[i])) i++;
+      const name = css.slice(from, i).toLowerCase().replace(/^-(?:webkit|moz|o|ms)-/, "");
+      if (at && name === "import") issues.push("@import");
+      if (!at && css[i] === "(") {
+        i++;
+        if (name === "url") {
+          while (i < n && /\s/.test(css[i])) i++;
+          if (css[i] === '"' || css[i] === "'") check(string());
+          else {
+            const from = i;
+            while (i < n && css[i] !== ")") i++;
+            if (i < n) check(css.slice(from, i).trim());
+          }
+          while (i < n && /\s/.test(css[i])) i++;
+          if (css[i] === ")") i++;
+          else issues.push("unterminated url(");
+        } else stack.push(name);
+      }
+    } else if (c === ")") {
+      stack.pop();
+      i++;
+    } else i++;
+  }
+  for (const f of stack) if (URL_FUNCS.has(f)) issues.push(`unterminated ${f}(`);
   return issues;
 }

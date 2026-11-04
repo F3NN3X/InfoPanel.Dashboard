@@ -28,10 +28,10 @@ describe("packCssIssues", () => {
     expect(packCssIssues(".a { color: red }")).toEqual([]);
   });
 
-  it("refuses @import in any case and an escaped at-rule name", () => {
+  it("refuses @import in any case and an escaped at-rule name (any backslash outside a string)", () => {
     expect(packCssIssues(`@import url("a.css");`)).toContain("@import");
     expect(packCssIssues(`@IMPORT "a.css";`)).toContain("@import");
-    expect(packCssIssues(String.raw`@\69mport "a.css";`)).toContain("escaped at-rule");
+    expect(packCssIssues(String.raw`@\69mport "a.css";`)).toContain("css escape");
   });
 
   it("refuses a url that leaves the folder, quoted or bare", () => {
@@ -47,5 +47,28 @@ describe("packCssIssues", () => {
 
   it("does not read a comment as CSS", () => {
     expect(packCssIssues(`/* @import url(https://x.test/a.css) */ a { color: red }`)).toEqual([]);
+  });
+
+  it("refuses a CSS escape that spells url( or @import", () => {
+    expect(packCssIssues(String.raw`a { background: u\72l(https://x.test/a.png) }`)).toContain("css escape");
+    expect(packCssIssues(String.raw`\@import "a.css";`)).toContain("css escape");
+    expect(packCssIssues(String.raw`a { background: ur\l(https://x.test/a.png) }`)).toContain("css escape");
+  });
+
+  it("does not let a string open or close a comment", () => {
+    const css = `a { content: "/*"; background: url(https://x.test/a.png); } b { content: "*/" }`;
+    expect(packCssIssues(css)).toEqual(["url https://x.test/a.png"]);
+  });
+
+  it("reads every string of an image-set() with nested functions", () => {
+    const css = `a { background: image-set(url("a.png") type("image/png"), "https://x.test/b.png" 2x) }`;
+    expect(packCssIssues(css)).toEqual(["url https://x.test/b.png"]);
+  });
+
+  it("fails closed on a url(), image-set() or src() that never closes", () => {
+    expect(packCssIssues("a { background: url(https://x.test/a.png")).toContain("unterminated url(");
+    expect(packCssIssues(`a { background: url("a.png"`)).toContain("unterminated url(");
+    expect(packCssIssues(`a { background: image-set("a.png" 1x`)).toContain("unterminated image-set(");
+    expect(packCssIssues(`@font-face { src: src("f.woff2"`)).toContain("unterminated src(");
   });
 });
