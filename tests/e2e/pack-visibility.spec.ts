@@ -191,3 +191,25 @@ for (const id of Object.keys(PACK_STYLES)) {
     expect(layers).toBeLessThanOrEqual(budgets[id].layersPerPage);
   });
 }
+
+// Overdrive's chamfer clips two corners of every card. At Compact density (padding 4) the cut, as the browser resolves it, must stay
+// out of the content box: a point `pad` in from both edges of a corner is clipped when the cut is over twice the padding (P11a review M5).
+test("the overdrive chamfer stays inside the padding of every card at Compact density", async ({ page, scratch }) => {
+  const file = path.join(scratch.dataDir, "config.json");
+  const stored = JSON.parse(fs.readFileSync(file, "utf8"));
+  stored.profiles = stored.profiles.map((p: object) => ({ ...p, widgetTheme: { values: { ...PACK_STYLES.overdrive, padding: "4", gap: "4" } } }));
+  fs.writeFileSync(file, JSON.stringify(stored));
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto(`${scratch.base}/?kiosk=1&profile=${heavy}`);
+  await expect(page.locator(manifest.kioskZoneSelector)).toHaveCount(manifest.zones.heavy.length);
+  await expect(page.locator('[data-wp-tier][data-look="overdrive"]').first()).toBeAttached({ timeout: 10_000 });
+  await settled(page, manifest.kioskZoneSelector);
+  const cuts = await page.evaluate(() =>
+    [...document.querySelectorAll<HTMLElement>("[data-look]")]
+      .map((el) => getComputedStyle(el).clipPath)
+      .filter((c) => c !== "none")
+      .map((c) => Number(/100% (\d+(?:\.\d+)?)px/.exec(c)?.[1] ?? Number.NaN)),
+  );
+  expect(cuts.length).toBeGreaterThan(0);
+  for (const cut of cuts) expect(cut).toBeLessThanOrEqual(2 * 4);
+});

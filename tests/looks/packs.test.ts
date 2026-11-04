@@ -112,12 +112,15 @@ describe("what each pack teaches the contract", () => {
 });
 
 describe("what the second-wave packs teach the contract (P11)", () => {
-  it("Overdrive's chamfer is a clip on the card, 12 px, inside the 20 px cap (twice the smallest padding), cut on two corners", () => {
+  it("Overdrive's chamfer is a clip on the card, at most 12 px (inside the 20 px cap) and at most 1.5 times the padding, cut on two corners", () => {
     const clip = String(SAMPLE_MATERIALS["look-overdrive"].s.clipPath);
-    const cuts = [...clip.matchAll(/(\d+(?:\.\d+)?)px/g)].map((m) => Number(m[1]));
+    const cuts = [...clip.matchAll(/min\((\d+)px, calc\(var\(--wp-pad, (\d+)px\) \* 1\.5\)\)/g)];
     expect(cuts.length).toBe(4);
-    for (const px of cuts) expect(px).toBeLessThanOrEqual(20);
-    expect(Math.max(...cuts)).toBe(12);
+    for (const [, max, fallback] of cuts) {
+      expect(Number(max)).toBeLessThanOrEqual(20);
+      expect(Number(max)).toBe(12);
+      expect(Number(fallback)).toBe(12);
+    }
   });
 
   it("Overdrive's chromatic fringe is a static text shadow on the numerals: nothing moves, so lite mode and reduced motion change nothing", async () => {

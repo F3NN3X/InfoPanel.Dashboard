@@ -12,10 +12,11 @@ const blur = (px: number) => ({ backdropFilter: `blur(${cappedBlur(px)})`, Webki
 const BRACKETS = ["top left", "top right", "bottom left", "bottom right"].flatMap((at) => [`linear-gradient(#4FD8FF,#4FD8FF) ${at}/16px 1.5px no-repeat`, `linear-gradient(#4FD8FF,#4FD8FF) ${at}/1.5px 16px no-repeat`]).join(",");
 
 // Overdrive's chamfer (P11): two corners cut 12 px (the plan's cap is 20 px, twice the smallest padding) by a clip on the card, and the
-// yellow edge drawn along each cut by a diagonal line in a 12 px corner box (the inset ring stops at the clip).
-const CUT = 12;
-const CHAMFER = `polygon(0 0, calc(100% - ${CUT}px) 0, 100% ${CUT}px, 100% 100%, ${CUT}px 100%, 0 calc(100% - ${CUT}px))`;
-const cutEdge = (at: string, to: string) => `linear-gradient(${to}, transparent calc(50% - 1.2px), rgba(243,230,0,.85) calc(50% - 1.2px) 50%, transparent 50%) ${at}/${CUT}px ${CUT}px no-repeat`;
+// yellow edge drawn along each cut by a diagonal line in a corner box (the inset ring stops at the clip). The cut follows the padding
+// (`--wp-pad`, set by a look's Padding such as Compact's 4 px) to at most 1.5 times it, so a header value or a label in a corner is never clipped.
+const CUT = "min(12px, calc(var(--wp-pad, 12px) * 1.5))";
+const CHAMFER = `polygon(0 0, calc(100% - ${CUT}) 0, 100% ${CUT}, 100% 100%, ${CUT} 100%, 0 calc(100% - ${CUT}))`;
+const cutEdge = (at: string, to: string) => `linear-gradient(${to}, transparent calc(50% - 1.2px), rgba(243,230,0,.85) calc(50% - 1.2px) 50%, transparent 50%) ${at}/${CUT} ${CUT} no-repeat`;
 const CHAMFER_EDGES = [cutEdge("top right", "to top right"), cutEdge("bottom left", "to bottom left")].join(",");
 
 const sample = (id: string, kind: MaterialKind, tone: SurfaceTone, exp: string, s: Material["s"]): [string, Material] => [`look-${id}`, { id: `look-${id}`, origin: "sample", tone, ...m(kind, "", s, exp) }];
