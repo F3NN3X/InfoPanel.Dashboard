@@ -71,4 +71,26 @@ describe("packCssIssues", () => {
     expect(packCssIssues(`a { background: image-set("a.png" 1x`)).toContain("unterminated image-set(");
     expect(packCssIssues(`@font-face { src: src("f.woff2"`)).toContain("unterminated src(");
   });
+
+  it("ends a string at a raw newline, so the next declaration is still read", () => {
+    const css = 'a { content: "x\n; background: image-set("https://x.test/a.png" 1x) }';
+    const issues = packCssIssues(css);
+    expect(issues).toContain("unterminated string");
+    expect(issues).toContain("url https://x.test/a.png");
+    // an escaped newline continues the string
+    expect(packCssIssues('a { content: "x\\\ny" }')).toEqual([]);
+  });
+
+  it("keeps a bare parenthesis from closing the function around it", () => {
+    const css = `a { background: image-set(calc((1) * 1x) "https://x.test/a.png" 1x) }`;
+    expect(packCssIssues(css)).toEqual(["url https://x.test/a.png"]);
+  });
+
+  it("refuses var(), env() and attr() inside a URL function, and a url token that is not plain", () => {
+    expect(packCssIssues(`:scope { --u: "https://x.test/a.png"; background: image-set(var(--u) 1x) }`)).toContain("var() in a url function");
+    expect(packCssIssues(`a { background: image-set(env(x) 1x) }`)).toContain("env() in a url function");
+    expect(packCssIssues(`a { background: url(var(--u)) }`)).toContain("bad url var(--u");
+    expect(packCssIssues(`a { background: url(a b.png) }`)).toContain("bad url a b.png");
+    expect(packCssIssues(`a { color: var(--c); font-family: "Geist Mono" }`)).toEqual([]);
+  });
 });
