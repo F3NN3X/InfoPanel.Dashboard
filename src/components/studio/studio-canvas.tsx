@@ -19,7 +19,7 @@ import { PageBackground } from "@/components/page-background";
 import { PackStage, packBackground, usePack } from "@/looks/pack";
 import { DynamicIsland } from "@/components/island/dynamic-island";
 import { pageSkinOf } from "@/components/island/island-look";
-import { islandReserve } from "@/components/island/island-model";
+import { islandReserve, withPackEdge } from "@/components/island/island-model";
 import type { ActiveAlert } from "@/lib/alerts";
 import type { PageBackground as Background } from "@/lib/appearance";
 import type { Appearance } from "@/lib/style-resolve";
@@ -523,6 +523,8 @@ export function StudioCanvas({
   const pageIsland = useMemo(() => ({ island: profile.island?.enabled ? profile.island : undefined, page: { width: profile.width, height: profile.height } }), [profile.island, profile.width, profile.height]);
   /** "Reserve space": the zones start under the island, as on the kiosk. */
   const reserve = islandReserve(profile.island, islandPage);
+  const packEdge = pack?.statusBar?.edge;
+  const bottomIsland = (profile.island?.edge ?? packEdge) === "bottom";
   const fill = profile.fit === "fill" && profile.height > 0;
   /** Gap in display px. */
   const g = gap * zoom;
@@ -630,7 +632,8 @@ export function StudioCanvas({
                   ...themeScope,
                   padding,
                   // Always set: React warns when a longhand is removed from under the shorthand.
-                  paddingTop: padding + reserve,
+                  paddingTop: padding + (bottomIsland ? 0 : reserve),
+                  ...(bottomIsland && { paddingBottom: padding + reserve }),
                   fontFamily: font,
                   // The board's dashed outline, 6px off the page.
                   outline: "1px dashed #2a2a31",
@@ -645,11 +648,11 @@ export function StudioCanvas({
             >
               {showRulers && <RulerLabels width={canvas.w} height={canvas.h} scale={zoom} />}
               {profile.island?.enabled && (
-                <DynamicIsland config={profile.island} alerts={islandAlerts} placement="absolute" page={islandPage} skin={pageSkinOf(appearance)} />
+                <DynamicIsland config={withPackEdge(profile.island, packEdge)} alerts={islandAlerts} placement="absolute" page={islandPage} skin={pageSkinOf(appearance)} />
               )}
                 {/* Page background (as in the kiosk) behind the tiles */}
                 {background && <PageBackground background={background} className="absolute inset-0 -z-20" />}
-                <PackStage pack={pack} className="absolute inset-0 -z-20" overlayClassName="absolute inset-0 z-10" />
+                <PackStage pack={pack} page={islandPage} className="absolute inset-0 -z-20" overlayClassName="absolute inset-0 z-10" />
                 {/* A scroll page longer than its screen: the design size stays the frame. */}
                 {!fill && profile.height > 0 && (pageSize(profile).naturalHeight ?? 0) > profile.height && (
                   <ScreenFold height={profile.height} zoom={zoom} />

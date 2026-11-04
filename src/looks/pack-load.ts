@@ -1,7 +1,10 @@
 // The pack loader (P9): the one place a pack enters the app, and where G4 is enforced for it. A pack is code in a chunk of
 // its own; before the app uses it, every CSS string and file path it names goes through `pack-urls`, its stage is held to
 // 3 layers and its gradient numerals to 3:1 (G6). A pack that fails any check is refused whole, never trimmed.
+import type { ScreenTemplate } from "@/lib/screen-templates/kit";
 import { safeFill, safeGradient } from "@/widgets/core/t3-tokens";
+import { effectIssues, SIZE_CLASSES } from "./effects";
+import { iconSetIssues } from "./icon-set";
 import { resolveT1, type Look } from "./look";
 import { setPackId, type Pack } from "./pack";
 import { lintPackCss, scopePackCss } from "./pack-css";
@@ -26,6 +29,8 @@ export function unregisterPack(id: string): void {
 }
 
 const MAX_LAYERS = 3;
+const MAX_TEMPLATES = 8;
+const BURN_INS: readonly string[] = ["static-safe", "needs-shift", "needs-dim"];
 const ID = /^[a-z0-9][a-z0-9-]*$/;
 /** Large numerals hold 3:1 (G6). */
 const NUMERAL_MIN = 3;
@@ -58,6 +63,21 @@ function baseIssue(base: string): boolean {
   return !(base.endsWith("/") && !/["'()\s]/.test(base) && (rest === "" || isPackRelativeUrl(rest)));
 }
 
+/** The problems with a pack's page templates: each is made for this pack's Look, and its id starts with the pack's so two packs never clash. */
+function templateIssues(pack: Pack): string[] {
+  const list = pack.templates ?? [];
+  if (!Array.isArray(list)) return ["templates is not a list"];
+  const issues = list.length > MAX_TEMPLATES ? [`${list.length} templates, at most ${MAX_TEMPLATES}`] : [];
+  const seen = new Set<string>();
+  for (const t of list) {
+    if (typeof t?.id !== "string" || !t.id.startsWith(`${pack.id}-`) || seen.has(t.id)) issues.push(`template id ${String(t?.id)}`);
+    else seen.add(t.id);
+    if (t?.look?.style?.lookId !== pack.id) issues.push(`template ${t?.id} does not wear the pack's Look`);
+    if (!t?.layouts || Object.keys(t.layouts).length === 0) issues.push(`template ${t?.id} has no layout`);
+  }
+  return issues;
+}
+
 /** What is wrong with a pack, one line each (empty = it may load). */
 export function packIssues(pack: Pack): string[] {
   const issues: string[] = [];
@@ -73,7 +93,16 @@ export function packIssues(pack: Pack): string[] {
     if (l.fill !== undefined && !safeFill(l.fill)) issues.push(`stage layer ${i} fill`);
     if (l.image !== undefined && !(isPackRelativeUrl(l.image) && !/["']/.test(l.image))) issues.push(`stage layer ${i} image ${l.image}`);
     if (l.opacity !== undefined && !(l.opacity >= 0 && l.opacity <= 1)) issues.push(`stage layer ${i} opacity`);
+    if (l.minSizeClass !== undefined && !SIZE_CLASSES.includes(l.minSizeClass)) issues.push(`stage layer ${i} minSizeClass`);
   });
+  const stage = pack.stage;
+  if (stage?.overlayMinSizeClass !== undefined && !SIZE_CLASSES.includes(stage.overlayMinSizeClass)) issues.push("stage overlayMinSizeClass");
+  if (stage?.effects) issues.push(...(Array.isArray(stage.effects) ? effectIssues(stage.effects) : ["stage effects is not a list"]));
+  if (pack.burnIn !== undefined && !BURN_INS.includes(pack.burnIn)) issues.push(`burnIn ${String(pack.burnIn)}`);
+  if (pack.statusBar?.edge !== undefined && pack.statusBar.edge !== "top" && pack.statusBar.edge !== "bottom") issues.push("statusBar.edge");
+  if (pack.connectors && pack.connectors.style !== "line" && pack.connectors.style !== "elbow") issues.push("connectors.style");
+  if (pack.slots?.icons) issues.push(...iconSetIssues(pack.slots.icons));
+  issues.push(...templateIssues(pack));
   issues.push(...numeralIssues(pack.look));
   return issues;
 }
@@ -84,6 +113,12 @@ export async function loadPack(id: string, sources: Record<string, () => Promise
   if (!load) return undefined;
   const pack = (await load()).default;
   return pack?.id === id && pack.look && packIssues(pack).length === 0 ? { ...pack, Stage: PackStageLayers } : undefined;
+}
+
+/** The page templates of every built-in pack, for the New screen flow (a pack that fails to load or is refused adds none). */
+export async function loadPackTemplates(): Promise<ScreenTemplate[]> {
+  const packs = await Promise.all(Object.keys(BUILTIN).map((id) => sharedPack(id).catch(() => undefined)));
+  return packs.flatMap((p) => p?.templates ?? []);
 }
 
 const shared = new Map<string, { load: () => Promise<{ default: Pack }>; pack: Promise<Pack | undefined> }>();

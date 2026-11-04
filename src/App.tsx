@@ -13,7 +13,7 @@ import { KioskWaitingForData } from "@/components/ui/kiosk-waiting";
 import { AlertLayer, useShownAlerts, ZoneHighlights } from "@/components/alerts/alert-layer";
 import { DynamicIsland } from "@/components/island/dynamic-island";
 import { pageSkinOf } from "@/components/island/island-look";
-import { islandReserve } from "@/components/island/island-model";
+import { islandReserve, withPackEdge } from "@/components/island/island-model";
 import { splitIslandAlerts } from "@/lib/island/from-alerts";
 import { ISLAND_DEFAULTS } from "@/lib/island/config";
 import { islandFeeds } from "@/lib/island/sources";
@@ -242,6 +242,10 @@ export default function App({ fixture }: AppProps = {}) {
   const pageSkin = useMemo(() => pageSkinOf(appearanceOf(config, profile)), [config, profile]);
   // A pack Look's page layers (its stage) count as a page background.
   const pack = usePack(pageSkin.lookId);
+  // The island's edge: the screen's own, else the pack's default, else the top (D21).
+  const packEdge = pack?.statusBar?.edge;
+  const shownIsland = useMemo(() => island && withPackEdge(island, packEdge), [island, packEdge]);
+  const bottomIsland = (islandConfig?.edge ?? packEdge) === "bottom";
   // The app settings under the shown screen's page font and performance.
   const general = useMemo(() => resolveGeneral(config, stored), [config, stored]);
   // Max FPS and motion: the ?fps= / ?animations= / ?motion= overrides (kiosk pages) over the shown profile's.
@@ -731,9 +735,10 @@ export default function App({ fixture }: AppProps = {}) {
           padding: profilePadding(profile, kiosk),
           // "Reserve space": the zones start under the island instead of beneath it. Always set, so
           // React never removes it from under the `padding` shorthand.
-          paddingTop: profilePadding(profile, kiosk) + reserve,
+          paddingTop: profilePadding(profile, kiosk) + (bottomIsland ? 0 : reserve),
           // The dots' strip: they sit in the bottom padding, so no zone is under them.
           ...(pageNav && { paddingBottom: Math.max(profilePadding(profile, kiosk), pageDotsStripPx()) }),
+          ...(bottomIsland && reserve > 0 && { paddingBottom: Math.max(profilePadding(profile, kiosk), pageNav ? pageDotsStripPx() : 0) + reserve }),
           // Vertical scrolling stays with the browser; horizontal moves reach the swipe.
           ...(pageNav && { touchAction: "pan-y" }),
           fontFamily: fontStack(resolveFont(profile)),
@@ -743,7 +748,7 @@ export default function App({ fixture }: AppProps = {}) {
         onPointerCancel={() => (gesture.current = null)}
       >
         {background && <PageBackground background={background} className="fixed inset-0 -z-10" />}
-        <PackStage pack={pack} className="fixed inset-0 -z-10" overlayClassName="fixed inset-0 z-10" />
+        <PackStage pack={pack} page={islandPage} className="fixed inset-0 -z-10" overlayClassName="fixed inset-0 z-10" />
 
         {/* Header (hidden in kiosk mode) */}
         {!kiosk && (
@@ -811,9 +816,9 @@ export default function App({ fixture }: AppProps = {}) {
         {kiosk && <AlertLayer alerts={splitAlerts.layer} onAck={ackAlert} />}
 
         {/* Alerts reach the island on the kiosk only; the plain page shows its idle pill. */}
-        {island && (
+        {shownIsland && (
           <DynamicIsland
-            config={island}
+            config={shownIsland}
             alerts={kiosk ? splitAlerts.island : NO_ALERTS}
             onAck={kiosk ? ackAlert : undefined}
             placement="fixed"

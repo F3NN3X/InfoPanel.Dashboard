@@ -159,6 +159,7 @@ function IslandPill({ mode, snap, config, size, placement, onAck, bus, pageSkin 
   const worn = useWornSurface(config.placement === "skin" ? pageSkin : undefined);
   const skin = islandSkin(config, worn);
   const notch = config.shape === "notch";
+  const bottom = config.edge === "bottom";
   const animate = config.motion !== "off" && !reduced;
   const spring = shapeSpring(usePreviousMode(mode), mode, config.motion, reduced, SLOW);
   const shape = springTransition(spring, ["width", "height", "border-radius"]);
@@ -193,13 +194,13 @@ function IslandPill({ mode, snap, config, size, placement, onAck, bus, pageSkin 
 
   const radius = mode === "expanded" ? Math.round(box.height * 0.42) : box.height / 2;
   const notchRadius = mode === "expanded" ? Math.round(30 * k) : Math.round((mode === "line" ? 2.5 : 10) * k);
-  const shapeRadius = notch ? `0 0 ${notchRadius}px ${notchRadius}px` : radius;
+  const shapeRadius = notch ? (bottom ? `${notchRadius}px ${notchRadius}px 0 0` : `0 0 ${notchRadius}px ${notchRadius}px`) : radius;
   const ear = Math.round((mode === "expanded" ? EAR.open : EAR.closed) * k);
 
   return (
     <div
       className={cn(placement, "pointer-events-none inset-x-0 z-[55] flex justify-center px-2")}
-      style={{ top: islandTop(config) }}
+      style={bottom ? { bottom: islandTop(config) } : { top: islandTop(config) }}
       data-island={mode}
     >
       <div
@@ -233,7 +234,7 @@ function IslandPill({ mode, snap, config, size, placement, onAck, bus, pageSkin 
               borderRadius: shapeRadius,
               fontSize: islandFontPx(size, config.scale),
               transition: shape && `${shape}, ${shadowTransition(SLOW)}`,
-              ...skinStyle(skin, notch),
+              ...skinStyle(skin, notch, bottom),
               // an island part of the skin waits for the skin before it draws, so it never flashes the plain pill
               ...(config.placement === "skin" && pageSkin && !worn ? { visibility: "hidden" } : null),
               ...(animate ? motionVars(SLOW) : {}),
@@ -259,14 +260,14 @@ function IslandPill({ mode, snap, config, size, placement, onAck, bus, pageSkin 
           )}
         </div>
         {/* After the pill, so its shadow does not darken them. */}
-        {notch && mode !== "line" && <Ears size={ear} color={skin.surface?.ear ?? skin.background} transition={springTransition(spring, ["width", "height", "left", "right"])} />}
+        {notch && mode !== "line" && <Ears bottom={bottom} size={ear} color={skin.surface?.ear ?? skin.background} transition={springTransition(spring, ["width", "height", "left", "right"])} />}
       </div>
     </div>
   );
 }
 
 /** The fill, text, border, shadow and type; the notch has no top border (it sits on the edge). Worn on the screen's skin, its surface sets the fill, text and edge. */
-function skinStyle(skin: IslandSkin, notch: boolean): CSSProperties {
+function skinStyle(skin: IslandSkin, notch: boolean, bottom: boolean): CSSProperties {
   const worn = skin.surface;
   const surfaceShadow = worn?.style.boxShadow;
   return {
@@ -275,7 +276,7 @@ function skinStyle(skin: IslandSkin, notch: boolean): CSSProperties {
     border: skin.border,
     ...worn?.style,
     ...(worn ? { ...accentVars(worn.accent), "--island-skin-accent": worn.accent } : null),
-    borderTop: notch && (skin.border || worn) ? "none" : undefined,
+    [bottom ? "borderBottom" : "borderTop"]: notch && (skin.border || worn) ? "none" : undefined,
     boxShadow: surfaceShadow && skin.boxShadow !== "none" ? `${surfaceShadow}, ${skin.boxShadow}` : surfaceShadow ?? skin.boxShadow,
     backdropFilter: skin.backdropFilter,
     WebkitBackdropFilter: skin.backdropFilter,
@@ -284,15 +285,15 @@ function skinStyle(skin: IslandSkin, notch: boolean): CSSProperties {
   } as CSSProperties;
 }
 
-/** The notch's concave top corners: the fill curving into the page edge on each side. */
-function Ears({ size, color, transition }: { size: number; color: string; transition?: string }) {
+/** The notch's concave corners at the page edge it sits on (top, or bottom): the fill curving into the edge on each side. */
+function Ears({ size, color, transition, bottom }: { size: number; color: string; transition?: string; bottom: boolean }) {
   const ear = (side: "left" | "right"): CSSProperties => ({
     position: "absolute",
-    top: 0,
+    [bottom ? "bottom" : "top"]: 0,
     [side]: -size,
     width: size,
     height: size,
-    background: `radial-gradient(circle farthest-side at ${side === "left" ? "0%" : "100%"} 100%, transparent calc(100% - 0.75px), ${color} 100%)`,
+    background: `radial-gradient(circle farthest-side at ${side === "left" ? "0%" : "100%"} ${bottom ? "0%" : "100%"}, transparent calc(100% - 0.75px), ${color} 100%)`,
     transition,
   });
   return (

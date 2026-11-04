@@ -332,6 +332,16 @@ export const STANDARD_SETTINGS: ModuleSetting[] = [
     options: [{ value: "auto", label: "Auto (skin's card)" }, ...SURFACE_OPTIONS],
     section: "surface",
   },
+  {
+    // L7 (D19): a widget can opt out of a theme pack's decorations (ornament, tab band) and nothing else; unset = on.
+    key: "decoration",
+    label: "Pack decorations",
+    type: "boolean",
+    default: true,
+    hint: "Off: this widget draws without its theme pack's corner ornament and tab band. The pack's colours and shapes still apply.",
+    more: true,
+    section: "surface",
+  },
   { key: "showTitle", label: "Show title", type: "boolean", default: true, section: "header" },
   { key: "label", label: "Custom title", type: "text", default: "", section: "header", visibleIf: (values) => values.showTitle !== false },
   { key: "icon", label: "Icon", type: "icon", default: "", section: "header", more: true },

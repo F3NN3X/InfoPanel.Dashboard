@@ -89,3 +89,43 @@ describe("the pack loader (G4)", () => {
     }
   });
 });
+
+describe("the pack loader (P9b parts)", () => {
+  const template = { id: "test-pack-hero", name: "Hero", blurb: "", fits: ["standard"], size: { width: 1920, height: 1080 }, look: { style: { lookId: "test-pack" } }, layouts: { standard: { cols: 1, rows: 1, pages: [[]] } } };
+
+  it("accepts effects, burn-in, a status bar edge, connectors, an icon set and templates", () => {
+    const pack = badPack({
+      stage: { layers: [{ fill: "#000", minSizeClass: "md" }], overlayMinSizeClass: "sm", effects: [{ kind: "grain", cost: "static" }] },
+      burnIn: "needs-shift",
+      statusBar: { edge: "bottom" },
+      connectors: { style: "elbow", dot: true },
+      templates: [template] as never,
+    });
+    expect(packIssues(pack)).toEqual([]);
+  });
+
+  it.each([
+    ["a glow that claims to be static", { stage: { layers: [], effects: [{ kind: "glow", cost: "static" }] } }],
+    ["an unknown burn-in", { burnIn: "never" }],
+    ["an unknown edge", { statusBar: { edge: "left" } }],
+    ["an unknown connector style", { connectors: { style: "curve" } }],
+    ["a bad layer size class", { stage: { layers: [{ minSizeClass: "huge" }] } }],
+    ["an icon off the list", { slots: { icons: { "not-an-icon": { viewBox: "0 0 24 24", d: "M0 0" } } } }],
+    ["markup in an icon path", { slots: { icons: { memory: { viewBox: "0 0 24 24", d: "<svg/>" } } } }],
+    ["a template of another pack's Look", { templates: [{ ...template, look: { style: { lookId: "classic" } } }] }],
+    ["a template id without the pack's prefix", { templates: [{ ...template, id: "hero" }] }],
+    ["a template without a layout", { templates: [{ ...template, layouts: {} }] }],
+  ])("refuses %s", (_, patch) => {
+    expect(packIssues(badPack(patch as Partial<Pack>))).not.toEqual([]);
+  });
+
+  it("collects the page templates of the registered packs", async () => {
+    const { loadPackTemplates } = await import("@/looks/pack-load");
+    registerPack("test-pack", async () => ({ default: badPack({ templates: [template] as never }) }));
+    try {
+      expect((await loadPackTemplates()).map((t) => t.id)).toEqual(["test-pack-hero"]);
+    } finally {
+      unregisterPack("test-pack");
+    }
+  });
+});

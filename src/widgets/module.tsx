@@ -136,7 +136,7 @@ export function templateModule<P extends object>({ meta, Component, settings, to
     const look = useZoneLook(all, saved, surfaceDefault);
     // A pack Look's T3 values and slots (none for Classic, the skins and the sample Looks).
     const pack = usePack(typeof look.lookId === "string" ? look.lookId : undefined);
-    return <Component data={data} names={names} {...shellProps(look)} {...toProps(look, saved)} t3={pack?.look.t3} slots={pack?.slots} packId={pack?.id} look={look} />;
+    return <Component data={data} names={names} {...shellProps(look)} {...toProps(look, saved)} t3={pack?.look.t3} slots={saved?.decoration === false && pack?.slots ? { icons: pack.slots.icons } : pack?.slots} packId={pack?.id} look={look} />;
   }
   return mod;
 }

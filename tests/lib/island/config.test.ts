@@ -111,6 +111,22 @@ describe("new island settings", () => {
   });
 });
 
+describe("island edge (D21)", () => {
+  it("is stored only when set, and a stored island without it loads without it", () => {
+    expect(normalizeIsland({})).not.toHaveProperty("edge");
+    expect(normalizeIsland({ edge: "bottom" })?.edge).toBe("bottom");
+    expect(normalizeIsland({ edge: "top" })?.edge).toBe("top");
+    expect(normalizeIsland({ edge: "left" })).not.toHaveProperty("edge");
+  });
+
+  it("round-trips unchanged with and without it", () => {
+    const base = normalizeIsland({ shape: "notch", offsetY: 12 })!;
+    expect(normalizeIsland(base)).toEqual(base);
+    const bottom = { ...base, edge: "bottom" as const };
+    expect(normalizeIsland(bottom)).toEqual(bottom);
+  });
+});
+
 describe("statLevel", () => {
   it("turns orange then red past the thresholds, the higher winning", () => {
     const stat = { key: "k", label: "", warn: 70, crit: 90 };

@@ -28,6 +28,9 @@ export const ISLAND_PLACEMENTS: readonly IslandPlacement[] = ["overlay", "skin"]
 /** "pill": floating below the top edge; "notch": glued to the top edge with concave corners. */
 export type IslandShape = "pill" | "notch";
 export const ISLAND_SHAPES: readonly IslandShape[] = ["pill", "notch"];
+/** Which page edge the island sits on. Optional in `IslandConfig`: stored only when the user sets it, else the pack's default edge, else the top. */
+export type IslandEdge = "top" | "bottom";
+export const ISLAND_EDGES: readonly IslandEdge[] = ["top", "bottom"];
 /** "lively": springs with a little overshoot; "smooth": none; "off": changes at once. */
 export type IslandMotion = "lively" | "smooth" | "off";
 export const ISLAND_MOTIONS: readonly IslandMotion[] = ["lively", "smooth", "off"];
@@ -78,7 +81,9 @@ export interface IslandConfig {
   /** Fine size on top of `size`, percent. */
   scale: number;
   shape: IslandShape;
-  /** Distance from the top of the page, px (the pill only; the notch sits on the edge). */
+  /** The page edge it sits on; unset = the pack's default edge (`PackStatusBar`), else the top. Stored only when set. */
+  edge?: IslandEdge;
+  /** Distance from the edge it sits on, px (the pill only; the notch sits on the edge). */
   offsetY: number;
   /**
    * Seconds an alert that stays until acknowledged keeps the island open, for screens without
@@ -183,6 +188,7 @@ export function normalizeIsland(raw: unknown): IslandConfig | undefined {
   if (typeof raw !== "object" || raw === null || Array.isArray(raw)) return undefined;
   const r = raw as Record<string, unknown>;
   const d = ISLAND_DEFAULTS;
+  const edge = oneOf(ISLAND_EDGES, r.edge);
   return {
     enabled: r.enabled !== false,
     idle: oneOf(ISLAND_IDLES, r.idle) ?? d.idle,
@@ -191,6 +197,7 @@ export function normalizeIsland(raw: unknown): IslandConfig | undefined {
     size: oneOf(ISLAND_SIZES, r.size) ?? d.size,
     scale: clamp(r.scale, ISLAND_SCALE_MIN, ISLAND_SCALE_MAX, d.scale),
     shape: oneOf(ISLAND_SHAPES, r.shape) ?? d.shape,
+    ...(edge ? { edge } : {}),
     offsetY: clamp(r.offsetY, 0, ISLAND_OFFSET_MAX, d.offsetY),
     collapseAfter: clamp(r.collapseAfter, 0, ISLAND_COLLAPSE_MAX, d.collapseAfter),
     reserve: r.reserve === true,

@@ -97,6 +97,7 @@ exports[`AudioMeter > files its rows as drawn 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -209,6 +210,7 @@ exports[`CpuMonitor > files its rows as drawn 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -362,6 +364,7 @@ exports[`NowPlaying > files its rows as drawn 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -483,6 +486,7 @@ exports[`SensorGroup > files its rows as drawn 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -577,6 +581,7 @@ exports[`SteamProfile > files its rows as drawn 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -753,6 +758,7 @@ exports[`SystemOverview > files its rows as drawn 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -843,6 +849,7 @@ exports[`Uptime > files its rows as drawn 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -978,6 +985,7 @@ exports[`Weather > files its rows as drawn 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",

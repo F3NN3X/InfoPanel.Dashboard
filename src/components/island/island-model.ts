@@ -1,4 +1,4 @@
-import type { IslandConfig, IslandSize } from "@/lib/island/config";
+import type { IslandConfig, IslandEdge, IslandSize } from "@/lib/island/config";
 import type { IslandSnapshot } from "@/lib/island/types";
 
 /**
@@ -90,10 +90,13 @@ export function fitIslandSize(size: IslandSize, page: { width: number; height: n
   return SIZES_DOWN.slice(from).find(fits) ?? "s";
 }
 
+/** The island with its edge resolved against the pack's default (D21: the screen's own `edge`, else the pack's, else the top); the same object when nothing changes. */
+export const withPackEdge = <T extends Pick<IslandConfig, "edge">>(island: T, packEdge?: IslandEdge): T => (island.edge || !packEdge || packEdge === "top" ? island : { ...island, edge: packEdge });
+
 /** Where the pill's top sits: the notch on the page edge, the pill at its offset. */
 export const islandTop = (island: Pick<IslandConfig, "shape" | "offsetY">): number => (island.shape === "notch" ? 0 : island.offsetY);
 
-/** The top space "Reserve space" keeps free for the pill: its top, its idle height and a gap, px. */
+/** The space "Reserve space" keeps free at the island's edge (top, or bottom for `edge: "bottom"`): its offset, its idle height and a gap, px. */
 export function islandReserve(island: IslandConfig | undefined, page: { width: number; height: number }): number {
   if (!island?.enabled || !island.reserve) return 0;
   const size = fitIslandSize(island.size, page, island.scale);

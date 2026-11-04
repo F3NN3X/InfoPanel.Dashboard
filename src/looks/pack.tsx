@@ -3,6 +3,8 @@
 // skins and the sample Looks are not packs and load nothing. This file holds the types, the id list and the two thin readers.
 import { useEffect, useState, type ComponentType } from "react";
 import type { IconGlyph } from "@/widgets/core/types";
+import type { ScreenTemplate } from "@/lib/screen-templates/kit";
+import type { PackEffect, SizeClass } from "./effects";
 import type { Look } from "./look";
 
 /** One page layer under the grid: a fill (a colour or gradient) and/or an image from the pack's own folder (`base` + `image`). */
@@ -10,12 +12,31 @@ export interface StageLayer {
   fill?: string;
   image?: string;
   opacity?: number;
+  /** Hidden on a screen under this size class (`sizeClassOf`). */
+  minSizeClass?: SizeClass;
 }
 
-/** What a pack draws behind (up to 3 layers) and over (one overlay) the page. */
+/** What a pack draws behind (up to 3 layers) and over (one overlay and its effects) the page. */
 export interface PackStageSpec {
   layers: StageLayer[];
   overlay?: ComponentType;
+  overlayMinSizeClass?: SizeClass;
+  /** Grain, scanlines, vignette, glow and blur, each with a cost class (effects.ts). */
+  effects?: PackEffect[];
+}
+
+/** How much a pack's static art risks an always-on panel: `needs-shift` gets the pixel-shift drift, `needs-dim` the idle dim (Settings, per screen). Unset = `static-safe`. */
+export type BurnIn = "static-safe" | "needs-shift" | "needs-dim";
+
+/** Where a pack puts the island by default (the screen's own `IslandConfig.edge` wins) and what it looks like. */
+export interface PackStatusBar {
+  edge?: "top" | "bottom";
+}
+
+/** The connector between widgets the app draws, styled by the pack (`ConnectorLayer`). */
+export interface PackConnectors {
+  style: "line" | "elbow";
+  dot?: boolean;
 }
 
 /** The parts of a Look a pack carries beyond look.json values: component slots on the widget card and an icon set. */
@@ -26,7 +47,20 @@ export interface PackSlots {
 }
 
 /** The component that draws a stage (`PackStageLayers`, pack-stage.tsx); the loader puts it on the pack, so the entry holds no lazy boundary for it. */
-export type StageView = ComponentType<{ stage: PackStageSpec; packId?: string; base?: string; className?: string; overlayClassName?: string }>;
+export interface StageViewProps {
+  stage: PackStageSpec;
+  packId?: string;
+  base?: string;
+  className?: string;
+  overlayClassName?: string;
+  burnIn?: BurnIn;
+  /** The screen's size (the profile's), for `minSizeClass`; unset = everything shows. */
+  page?: { width: number; height: number };
+  connectors?: PackConnectors;
+  /** Pairs of zone ids the page connects (`ConnectorLayer`). */
+  links?: readonly (readonly [string, string])[];
+}
+export type StageView = ComponentType<StageViewProps>;
 
 /** A loaded pack. Its Look's T3 values reach the widgets (`<Widget t3>`), its slots the card, its stage the page. */
 export interface Pack {
@@ -40,6 +74,11 @@ export interface Pack {
   assets?: string[];
   slots?: PackSlots;
   stage?: PackStageSpec;
+  burnIn?: BurnIn;
+  statusBar?: PackStatusBar;
+  connectors?: PackConnectors;
+  /** Page templates the New screen flow offers (opt-in; applying a pack never moves a widget). Each wears this pack's Look (`look.style.lookId`). */
+  templates?: ScreenTemplate[];
   /** Set by the loader. */
   Stage?: StageView;
 }
@@ -83,7 +122,7 @@ export function usePack(lookId: string | undefined): Pack | undefined {
 export const packBackground = (pack: Pack | undefined): boolean => !!pack?.stage?.layers.length;
 
 /** The pack's page layers (`className` places them, as `PageBackground`'s; `overlayClassName` the overlay); nothing without a pack stage. */
-export function PackStage({ pack, className, overlayClassName }: { pack: Pack | undefined; className?: string; overlayClassName?: string }) {
+export function PackStage({ pack, className, overlayClassName, page, links }: { pack: Pack | undefined; className?: string; overlayClassName?: string; page?: { width: number; height: number }; links?: StageViewProps["links"] }) {
   const View = pack?.Stage;
-  return pack?.stage && View ? <View stage={pack.stage} packId={pack.id} base={pack.base} className={className} overlayClassName={overlayClassName} /> : null;
+  return pack?.stage && View ? <View stage={pack.stage} packId={pack.id} base={pack.base} className={className} overlayClassName={overlayClassName} burnIn={pack.burnIn} page={page} connectors={pack.connectors} links={links} /> : null;
 }

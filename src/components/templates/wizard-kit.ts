@@ -90,7 +90,7 @@ export interface ProfileKit extends KitBase {
 export type Kit = ScreenKit | ProfileKit;
 
 const LOADERS: Record<WizardKind, () => Promise<Kit>> = {
-  screen: () => import("./screen-kit").then((m) => m.SCREEN_KIT),
+  screen: () => import("./screen-kit").then(async (m) => (await m.addPackTemplates(), m.SCREEN_KIT)),
   ip: () => import("../infopanel/profile-kit").then((m) => m.PROFILE_KIT),
 };
 

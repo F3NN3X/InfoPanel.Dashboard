@@ -23,6 +23,10 @@ export interface ScreenPerformance extends PerformanceOverride {
   innerBlur?: boolean;
   /** A graph's glow is a filter redrawn with the line (default off: a static glow under it). */
   liveGlow?: boolean;
+  /** A pack's page art drifts 1 to 2 px, slowly, on a pack that needs it (burn-in; default off). */
+  pixelShift?: boolean;
+  /** Minutes without input before a pack's page art dims (one of `IDLE_DIM_MINUTES`; default off). */
+  idleDim?: number;
 }
 
 export interface ResolvedPerformance {
@@ -35,7 +39,13 @@ export const DEFAULT_MAX_FPS: MaxFps = 60;
 const MOTIONS: readonly MotionChoice[] = ["system", "reduce", "full"];
 
 /** A screen's rendering switches. */
-export const RENDERING_KEYS = ["ringGlide", "blurLimit", "innerBlur", "liveGlow"] as const;
+export const RENDERING_KEYS = ["ringGlide", "blurLimit", "innerBlur", "liveGlow", "pixelShift"] as const;
+
+/** The idle times the Idle dim setting offers, in minutes. */
+export const IDLE_DIM_MINUTES: readonly number[] = [5, 15, 30, 60];
+
+/** Lite mode: reduced motion, or a frame-rate cap under 60 (the widgets drop their transitions, a pack its motion and blur). */
+export const liteOf = ({ maxFps, reduceMotion }: { maxFps: number; reduceMotion: boolean }): boolean => reduceMotion || (maxFps > 0 && maxFps < 60);
 
 export const isMaxFps = (v: unknown): v is MaxFps => FPS_CHOICES.includes(v as MaxFps);
 export const isMotionChoice = (v: unknown): v is MotionChoice => MOTIONS.includes(v as MotionChoice);
@@ -48,6 +58,7 @@ export function normalizePerformance(input: unknown): ScreenPerformance | undefi
   if (isMaxFps(v.maxFps)) out.maxFps = v.maxFps;
   if (isMotionChoice(v.motion)) out.motion = v.motion;
   for (const key of RENDERING_KEYS) if (typeof v[key] === "boolean") out[key] = v[key];
+  if (IDLE_DIM_MINUTES.includes(v.idleDim as number)) out.idleDim = v.idleDim as number;
   return Object.keys(out).length > 0 ? out : undefined;
 }
 

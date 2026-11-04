@@ -38,3 +38,15 @@ describe("the island's room at rest follows the window", () => {
     expect(islandReserve(reserving, page(800, 480))).toBeLessThan(islandReserve(reserving, page(1920)));
   });
 });
+
+describe("withPackEdge (D21)", () => {
+  it("takes the pack's edge only when the screen has none, and keeps the same object when nothing changes", async () => {
+    const { withPackEdge } = await import("@/components/island/island-model");
+    const own = { edge: "top" as const };
+    expect(withPackEdge({}, "bottom")).toEqual({ edge: "bottom" });
+    expect(withPackEdge(own, "bottom")).toBe(own);
+    const none = {};
+    expect(withPackEdge(none, undefined)).toBe(none);
+    expect(withPackEdge(none, "top")).toBe(none);
+  });
+});
