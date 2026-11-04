@@ -98,6 +98,11 @@ describe("isValidStyleValue", () => {
     expect(isValidStyleValue("align", "between")).toBe(false);
     expect(isValidStyleValue("alignSpread", true)).toBe(true);
     expect(isValidStyleValue("alignSpread", "yes")).toBe(false);
+    // A Look sets its status colours as palette roles; a saved copy keeps them (L33).
+    expect(isValidStyleValue("warn", "#8A5A00")).toBe(true);
+    expect(isValidStyleValue("ok", "")).toBe(true);
+    expect(isValidStyleValue("crit", "url(x)")).toBe(false);
+    expect(invalidStyleKeys({ ok: "#15803d", warn: "#8A5A00", crit: "#A8340F", s1: "#fff" })).toEqual([]);
     expect(isValidStyleValue("alignX", "between")).toBe(false);
     expect(isValidStyleValue("autoScale", "yes")).toBe(false);
     expect(isValidStyleValue("label", "x")).toBe(false);

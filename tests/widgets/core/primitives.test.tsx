@@ -1,6 +1,8 @@
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { Bar, Ring, Spark, UNIT_CLASS, isWordUnit, ringDashOffset, ringStroke, sparkMarks, sparkRange, sparkY } from "@/widgets/core/primitives";
+import { SkinCtx } from "@/widgets/core/theme";
+import { skinContext } from "@/widgets/core/look";
+import { Bar, LedLadder, Ring, Spark, UNIT_CLASS, isWordUnit, ringDashOffset, ringStroke, sparkMarks, sparkRange, sparkY } from "@/widgets/core/primitives";
 
 describe("Ring sweep", () => {
   const dash = (html: string) => [...html.matchAll(/stroke-dasharray="([^"]+)"/g)].map((m) => m[1]);
@@ -118,5 +120,17 @@ describe("units", () => {
   });
   it("is one style: small, medium, muted", () => {
     expect(UNIT_CLASS).toContain("text-[0.4em]");
+  });
+});
+
+describe("LedLadder per mode", () => {
+  const bg = (html: string) => [...html.matchAll(/background:([^;"]+)/g)].map((m) => m[1]);
+  it("paints its zones with the dark literals, and with the shell's status variables on a light card", () => {
+    const dark = renderToString(<LedLadder value={100} n={10} />);
+    expect(bg(dark)).toContain("#EDB232");
+    expect(bg(dark)).toContain("#F2665E");
+    const light = renderToString(<SkinCtx.Provider value={{ ...skinContext("default"), shellStatus: true }}><LedLadder value={100} n={10} /></SkinCtx.Provider>);
+    expect(bg(light)).toContain("var(--w-warn, #EDB232)");
+    expect(bg(light)).toContain("var(--w-crit, #F2665E)");
   });
 });

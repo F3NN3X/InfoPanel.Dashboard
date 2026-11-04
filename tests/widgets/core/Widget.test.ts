@@ -89,6 +89,25 @@ describe("Widget look", () => {
     expect(html).toContain("--w-fg:#18181b");
     expect(html).toContain("rgb(244, 244, 245)");
   });
+
+  it("marks a light card with data-mode and its status variables, darkens a failing accent, and leaves a dark card as it was (D3, D27)", () => {
+    const light = render({ surface: "matte-light" });
+    expect(light).toContain('data-mode="light"');
+    expect(light).toContain("--w-ok:#15803d");
+    expect(light).toContain("--w-accent:#27795d");
+    expect(light).toContain("--accent:#34d399");
+    expect(render({ surface: "matte-light", accent: "#5B3FD4" })).toContain("--w-accent:#5B3FD4");
+    const dark = render({ surface: "glass" });
+    expect(dark).not.toContain("data-mode");
+    expect(dark).toContain("--w-accent:#34d399");
+    expect(dark).not.toContain("--w-ok");
+  });
+
+  it("takes a Look's status colours over the mode's own (L33)", () => {
+    const html = render({ surface: "matte-light", warn: "#8A5A00", crit: "#A8340F" });
+    expect(html).toContain("--w-warn:#8A5A00");
+    expect(html).toContain("--w-crit:#A8340F");
+  });
 });
 
 describe("views", () => {

@@ -11,9 +11,10 @@
   ],
   "modes": {
     "supported": [
-      "dark"
+      "dark",
+      "light"
     ],
-    "stance": "Dark only. Light belongs to light Looks (Paper, P6); Classic never changes mode."
+    "stance": "Dark by default. Light is the matte-light card and its mode (D3, P6): status colours and the accent darken to hold 4.5:1."
   },
   "fonts": {
     "body": "Geist",
@@ -32,7 +33,15 @@
     "green": "#3CC97F",
     "amber": "#EDB232",
     "red": "#F2665E",
-    "red-fill": "#7f1d1d"
+    "red-fill": "#7f1d1d",
+    "zinc-100": "#f4f4f5",
+    "zinc-200": "#e4e4e7",
+    "zinc-600": "#52525b",
+    "white": "#ffffff",
+    "emerald-ink": "#27795d",
+    "green-ink": "#15803d",
+    "amber-ink": "#a15c07",
+    "red-ink": "#c4261d"
   },
   "t1": {
     "dark": {
@@ -100,6 +109,72 @@
         "value": "{accent}",
         "usage": "Semantic info"
       }
+    },
+    "light": {
+      "bg": {
+        "value": "{zinc-100}",
+        "usage": "Page background"
+      },
+      "surface": {
+        "value": "{white}",
+        "usage": "Card and popover of the page theme"
+      },
+      "surface-2": {
+        "value": "{zinc-200}",
+        "usage": "Secondary fill, chips, inputs"
+      },
+      "fg": {
+        "value": "{zinc-900}",
+        "usage": "Text on bg and surface"
+      },
+      "fg-2": {
+        "value": "{fg}",
+        "usage": "Secondary text"
+      },
+      "muted": {
+        "value": "{zinc-600}",
+        "usage": "Muted text"
+      },
+      "border": {
+        "value": "{surface-2}",
+        "usage": "Edges"
+      },
+      "border-soft": {
+        "value": "{border}",
+        "usage": "Hairlines"
+      },
+      "accent": {
+        "value": "{emerald-ink}",
+        "usage": "The accent as text or a thin line on a light card (D27 accent-ink)"
+      },
+      "accent-on": {
+        "value": "{white}",
+        "usage": "Text on an accent fill"
+      },
+      "accent-hover": {
+        "value": "{accent}",
+        "usage": "Accent hover"
+      },
+      "focus-ring": {
+        "value": "{accent}",
+        "usage": "Focus ring"
+      },
+      "ok": {
+        "value": "{green-ink}",
+        "usage": "Semantic OK on a light card (STATUS_LIGHT.ok)"
+      },
+      "warn": {
+        "value": "{amber-ink}",
+        "usage": "Semantic warning on a light card"
+      },
+      "crit": {
+        "value": "{red-ink}",
+        "usage": "Semantic critical on a light card"
+      },
+      "info": {
+        "value": "{accent}",
+        "usage": "Information"
+      }
     }
   },
   "t2": {
@@ -117,8 +192,9 @@
         "faint": "#636366",
         "track": "rgba(24,24,27,.1)",
         "fill": "#f4f4f5",
-        "warn": "#a15c07",
-        "crit": "#c4261d"
+        "crit": "#c4261d",
+        "ok": "#15803d",
+        "warn": "#a15c07"
       }
     },
     "materials": {

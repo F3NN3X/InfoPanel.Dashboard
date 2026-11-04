@@ -1,6 +1,7 @@
-import { useRef, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Pipette, RotateCcw } from "lucide-react";
 import { onRovingKeyDown } from "@/lib/roving";
+import { loadLook } from "@/looks";
 import type { Appearance } from "@/lib/style-resolve";
 import { cn } from "@/lib/utils";
 import type { ModuleSettings } from "@/modules/types";
@@ -16,6 +17,11 @@ import {
   knobCustom,
   knobValue,
   lockedKnobs,
+  modeCustom,
+  modeOf,
+  modePatch,
+  MODES,
+  type KnobMode,
   surfaceChip,
   SURFACES,
   type KnobId,
@@ -85,9 +91,22 @@ function Knob({ label, custom, from, onReset, locked, children }: { label: strin
   );
 }
 
+/** The modes a Look supports (its `modes.supported`; none while it loads). */
+function useLookModes(lookId: unknown): readonly KnobMode[] {
+  const [modes, setModes] = useState<readonly KnobMode[]>([]);
+  useEffect(() => {
+    let live = true;
+    void loadLook(typeof lookId === "string" ? lookId : "classic").then((look) => live && setModes(look?.modes.supported ?? []));
+    return () => {
+      live = false;
+    };
+  }, [lookId]);
+  return modes;
+}
+
 /**
- * The knob row (D15): Accent, Surface, Corners and Density over the Look, each marked Custom while it differs from what
- * it follows, with a Reset back to it. Mode (light and dark) shows from P6, Variant with theme packs.
+ * The knob row (D15): Accent, Mode, Surface, Corners and Density over the Look, each marked Custom while it differs from
+ * what it follows, with a Reset back to it. Mode (dark and light) shows for a Look that supports light (D3), Variant with theme packs.
  */
 export function LookKnobs({ values, from, onSet, onClear, title, locked = {} }: LookKnobsProps) {
   const custom = (id: KnobId) => knobCustom(values, id);
@@ -96,6 +115,9 @@ export function LookKnobs({ values, from, onSet, onClear, title, locked = {} }: 
   const surface = surfaceChip(values);
   const corner = cornerStep(knobValue(values, "radius"));
   const density = densityOf(values);
+  const modes = useLookModes(knobValue(values, "lookId"));
+  const native = modes[0];
+  const mode = native && modeOf(values, native);
   const customAccent = typeof accent === "string" && accent !== "" && !ACCENTS.some((a) => same(accent, a.value));
   return (
     <section aria-label="Look knobs" data-nav-section="knobs" className="flex flex-col gap-3.5 px-4 pb-4">
@@ -137,6 +159,31 @@ export function LookKnobs({ values, from, onSet, onClear, title, locked = {} }: 
           </label>
         </div>
       </Knob>
+      {native && modes.includes("light") && (
+        <Knob label="Mode" custom={modeCustom(values, native)} from={from} onReset={reset("mode")} locked={locked.mode}>
+          <div role="radiogroup" aria-label="Mode" onKeyDown={(e) => onRovingKeyDown(e, "[role=radio]:not(:disabled)")} className="flex gap-1 rounded-lg border border-ui-default bg-ui-app p-1">
+            {MODES.map((m) => {
+              const supported = modes.includes(m.id);
+              return (
+                <button
+                  key={m.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={mode === m.id}
+                  tabIndex={mode === m.id || (mode === undefined && m.id === native) ? 0 : -1}
+                  disabled={!supported || locked.mode !== undefined}
+                  title={supported ? undefined : "Not in this Look"}
+                  // The Look's own mode is no value of the level's: picking it clears the knob.
+                  onClick={() => (m.id === native ? onClear(KNOB_KEYS.mode) : onSet(modePatch(m.id, native)))}
+                  className={cn(SEGMENT, mode === m.id && SEGMENT_ON)}
+                >
+                  {m.label}
+                </button>
+              );
+            })}
+          </div>
+        </Knob>
+      )}
       <Knob label="Surface" custom={custom("surface")} from={from} onReset={reset("surface")} locked={locked.surface}>
         <div role="radiogroup" aria-label="Surface" onKeyDown={(e) => onRovingKeyDown(e, "[role=radio]")} className="flex gap-1 rounded-lg border border-ui-default bg-ui-app p-1">
           {SURFACES.map((s) => {

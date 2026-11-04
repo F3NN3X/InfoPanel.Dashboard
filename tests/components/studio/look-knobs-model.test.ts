@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cornerStep, densityOf, knobCustom, knobValue, lockedKnobs, surfaceChip } from "@/components/studio/look-knobs-model";
+import { cornerStep, densityOf, knobCustom, knobValue, lockedKnobs, modeCustom, modeOf, modePatch, surfaceChip } from "@/components/studio/look-knobs-model";
 import { scopeLookValues } from "@/components/studio/theme-editor-model";
 import { lookLayers } from "@/looks/sample-cards";
 import { registerSampleCards } from "@/looks/sample-materials";
@@ -51,5 +51,22 @@ describe("the Look knobs", () => {
     expect(densityOf({ own: { padding: "4", gap: "4" } })).toBe("compact");
     expect(densityOf({ own: { padding: "16" }, inherited: { gap: "16" } })).toBe("roomy");
     expect(densityOf({ own: { padding: "8" } })).toBe("custom");
+  });
+});
+
+describe("the Mode knob (D3)", () => {
+  it("shows the tone of the stored card, the Look's own mode while it stores none, none on the theme card", () => {
+    expect(modeOf({ own: {} }, "dark")).toBe("dark");
+    expect(modeOf({ own: { surface: "matte-light" } }, "dark")).toBe("light");
+    expect(modeOf({ own: {}, inherited: { surface: "matte-dark" } }, "light")).toBe("dark");
+    expect(modeOf({ own: { surface: "look-paper" } }, "light")).toBe("light");
+    expect(modeOf({ own: { surface: "theme" } }, "dark")).toBeUndefined();
+  });
+
+  it("is Custom only for a stored card of another mode, and writes the matte card of the other mode", () => {
+    expect(modeCustom({ own: {} }, "dark")).toBe(false);
+    expect(modeCustom({ own: { surface: "matte-light" } }, "dark")).toBe(true);
+    expect(modeCustom({ own: { surface: "matte-light" } }, "light")).toBe(false);
+    expect([modePatch("light", "dark"), modePatch("dark", "dark"), modePatch("dark", "light")]).toEqual([{ surface: "matte-light" }, {}, { surface: "matte-dark" }]);
   });
 });

@@ -4,16 +4,16 @@ import type { PageBackground } from "@/lib/appearance";
 import type { Look, LookMode, T1Entry, T1Name } from "./look";
 import { SAMPLE_MATERIALS } from "./sample-materials";
 import { SAMPLE_THEMES, type SampleTheme } from "./sample-themes";
-import { STATUS, STATUS_LIGHT } from "./status";
+import { STATUS_MODE } from "./status";
 
 const pageColour = (page: PageBackground): string =>
   page.type === "color" && page.color ? page.color : page.type === "gradient" && page.gradient ? page.gradient.from : "#000000";
 
-/** A sample theme as a Look: its card's tone is its one mode; the status colours are the tone's own (L33). */
+/** A sample theme as a Look: its card's tone is its one mode; its status colours are the mockup's, else the mode's own (L33). */
 export function sampleLook(t: SampleTheme): Look {
   const card = SAMPLE_MATERIALS[`look-${t.id}`];
   const mode: LookMode = card.tone === "light" ? "light" : "dark";
-  const status = mode === "light" ? STATUS_LIGHT : STATUS;
+  const status = { ...STATUS_MODE[mode], ...t.status };
   const v = (value: string): T1Entry => ({ value });
   const t1: Record<T1Name, T1Entry> = {
     bg: v(pageColour(t.page)),
@@ -28,10 +28,10 @@ export function sampleLook(t: SampleTheme): Look {
     "accent-on": v("{bg}"),
     "accent-hover": v("{accent}"),
     "focus-ring": v("{accent}"),
-    ok: v(STATUS.ok),
+    ok: v(status.ok),
     warn: v(status.warn),
     crit: v(status.crit),
-    info: v("{accent}"),
+    info: v(t.status?.info ?? "{accent}"),
   };
   return {
     schema: 1,

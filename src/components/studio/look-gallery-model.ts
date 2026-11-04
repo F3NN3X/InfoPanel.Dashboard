@@ -96,7 +96,7 @@ export function galleryLooks(looks: readonly Look[], samples: readonly Appearanc
       // As the UI writes it ("macOS", "TUI"), not as the registry capitalises the skin's name.
       name: lookName(l.id),
       description: l.description,
-      tags: [...(LOOK_TAGS[l.id] ?? []), ...(l.modes.supported.includes("light") ? ["light"] : [])],
+      tags: [...(LOOK_TAGS[l.id] ?? []), ...(l.modes.supported[0] === "light" ? ["light"] : [])],
       preset: lookPreset(l, samples.find((p) => p.id === lookPresetId(l.id))),
     }));
 }

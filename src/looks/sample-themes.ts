@@ -12,7 +12,9 @@ export interface SampleTheme {
   /** The card's palette: its face, text, secondary text, tracks and hairlines (`bg` is the card's face too, the page is `page`). */
   colours: Colours;
   accent: string;
-  /** Text colours on the card, when they are not `colours`' own. The status colours are the tone's own (a theme sets none yet: L5, P6). */
+  /** Status colours the mockup sets; the rest are the mode's own (`STATUS_MODE`, L33). A Look carries them as the palette roles `ok`, `warn`, `crit`. */
+  status?: { ok?: string; warn?: string; crit?: string; info?: string };
+  /** Text colours on the card, when they are not `colours`' own. */
   text?: string;
   muted?: string;
   /** An id of the font catalog (`lib/fonts.ts`). */
@@ -34,6 +36,7 @@ export const SAMPLE_THEMES: readonly SampleTheme[] = [
     id: "field-kit", name: "Field Kit", blurb: "Cream paper cards on a dark scene, ink text, amber accent",
     colours: { bg: "#EFE8D8", fg: "#1A1C21", card: "#EFE8D8", sub: "#5E5A52", line: "#D3C9B3" },
     accent: "#946400", font: "oswald", radius: 0.375,
+    status: { warn: "#8A5A00", crit: "#A8340F" },
     page: gradient("#22252B", "#0B0C0E", 160),
     mockup: "FieldKit.html", missing: "dark tab-label header, segmented rings and bars, corner rarity tint, contour and hazard-strip page layers, vignette, condensed caps type",
   },
@@ -41,6 +44,7 @@ export const SAMPLE_THEMES: readonly SampleTheme[] = [
     id: "tape-86", name: "Tape '86", blurb: "Warm paper with a dotted grain, a hard ink edge, stripe-band orange",
     colours: { bg: "#F3EDDD", fg: "#2A2523", card: "#F3EDDD", sub: "#5C5248", line: "#DDD3BC" },
     accent: "#C2410C", font: "archivo", radius: 0.25,
+    status: { warn: "#8A5A00" },
     page: color("#E4DCC6"),
     mockup: "Tape86.html", missing: "stamped frame with the hard offset shadow, top-band ornament, label-bar header, rainbow stripe page layers, grain overlay, chunky display numbers",
   },
@@ -93,6 +97,7 @@ export const SAMPLE_THEMES: readonly SampleTheme[] = [
     id: "paper", name: "Paper", blurb: "White cards with a warm hairline on an off-white page, purple accent",
     colours: { bg: "#FFFFFF", fg: "#1F1B2E", card: "#FFFFFF", sub: "#6B6578", line: "#ECE7F7" },
     accent: "#5B3FD4", font: "inter", radius: 0.875,
+    status: { warn: "#A14A00", info: "#2F6FE0" },
     page: color("#F4F1EC"),
     mockup: "Paper.html", missing: "the hex pattern page layer, gradient hero number, mono labels, the accent outline on the focused card",
   },
@@ -125,6 +130,9 @@ export const sampleStyle = (t: SampleTheme): Record<string, string | number | bo
   accent: t.accent,
   textColor: t.text ?? t.colours.fg,
   mutedColor: t.muted ?? t.colours.sub,
+  ...(t.status?.ok ? { ok: t.status.ok } : null),
+  ...(t.status?.warn ? { warn: t.status.warn } : null),
+  ...(t.status?.crit ? { crit: t.status.crit } : null),
   font: t.font,
   ...t.extra,
 });
