@@ -15,7 +15,8 @@ const BASE = builtin("field-kit");
 const enc = (s: string) => new TextEncoder().encode(s);
 const file = (path: string, content: string): PackFile => ({ path, size: content.length, bytes: enc(content) });
 /** A file of `n` bytes that starts like a PNG. */
-const pngFile = (path: string, n: number): PackFile => ({ path, size: n, bytes: Uint8Array.from({ length: n }, (_, k) => [0x89, 0x50, 0x4e, 0x47][k] ?? 0) });
+const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+const pngFile = (path: string, n: number): PackFile => ({ path, size: n, bytes: Uint8Array.from({ length: n }, (_, k) => PNG_SIGNATURE[k] ?? 0) });
 
 /** Field Kit with changes: `pack` and `look` are merged over the JSON, `files` are added or replace by path. */
 function bad(change: { pack?: Record<string, unknown>; look?: (look: Json) => void; css?: string; icons?: unknown; files?: PackFile[]; drop?: string[] }): PackSource {
@@ -280,9 +281,10 @@ describe("bypass tries from the P8a and P9a rounds", () => {
 
 // ---- review and fix round 1 (P12a): the probe inputs of the review, one case per finding ----------------------------------
 
-/** The pack as a user would hand it over: no pack.css, every asset listed. */
+/** The pack as a user would hand it over: its own id and font families (a built-in's are refused), no pack.css, every asset listed. */
 function userPack(change: Parameters<typeof bad>[0] = {}): PackSource {
-  const src = bad(change);
+  const fonts = (BASE.pack as Json).fonts.map((f: Json) => ({ ...f, family: f.family.replace("pack-", "pack-mine-") }));
+  const src = bad({ ...change, pack: { id: "mine", fonts, ...change.pack }, look: (l) => { l.id = "mine"; change.look?.(l); } });
   const files = src.files.filter((f) => f.path !== "pack.css");
   const assets = files.filter((f) => f.path.startsWith("assets/")).map((f) => ({ file: f.path.slice(7), bytes: f.size }));
   return { ...src, css: undefined, files, pack: { ...(src.pack as object), assets } };
@@ -345,7 +347,7 @@ describe("H3: gauges and text painted away on any selector", () => {
 });
 
 describe("H4: sizes come from the bytes", () => {
-  const big = Uint8Array.from({ length: 900_000 }, (_, k) => [0x89, 0x50, 0x4e, 0x47][k] ?? 0);
+  const big = Uint8Array.from({ length: 900_000 }, (_, k) => PNG_SIGNATURE[k] ?? 0);
   it("a claimed size under the bytes, a negative size, NaN", () => {
     expect(userRules(userPack({ files: [{ path: "assets/big.png", size: 1, bytes: big }] }))).toEqual(expect.arrayContaining(["size"]));
     expect(userRules(userPack({ files: [{ path: "assets/n.png", size: -999_999_999, bytes: Uint8Array.of(0x89, 0x50, 0x4e, 0x47) }] }))).toContain("size");
@@ -580,5 +582,196 @@ describe("the LOWs the round fixed", () => {
     const hex = file("assets/hex.svg", WHITE_SVG);
     expect(userRules(userPack({ files: [hex, file("assets/HEX.svg", WHITE_SVG)] }))).toContain("path");
     for (const path of [`assets/${"a".repeat(200)}.png`, "assets/CON.png", "assets/.hidden.png", "assets/sub/dir/x.png"]) expect(userRules(userPack({ files: [pngFile(path, 8)] })), path).toContain("path");
+  });
+});
+
+// ---- review and fix round 2 (P12a): the probe inputs of the review, one case per finding ---------------------------------------
+// The principle: in user mode the contrast and visibility checks run on the resolved paint the kiosk draws, and fail closed.
+
+/** A user pack (Field Kit's files, its own id) with its Look and pack.json changed. */
+const mine = (look: (l: Json) => void = () => {}, pack: Record<string, unknown> = {}, rest: { icons?: unknown; files?: PackFile[] } = {}) => userRules(userPack({ look, pack, ...rest }));
+const CARD = "#EFE8D8";
+/** Field Kit's page is dark; a card that lets the page through is only checked against a light one, so these Looks lay the page cream. */
+const creamPage = (l: Json) => (l.t1.light.bg.value = CARD);
+const translucent = (alpha: number) => (l: Json) => {
+  creamPage(l);
+  l.t2.materials["look-field-kit"] = { kind: "solid", tone: "light", export: CARD, fill: CARD, "fill-alpha": alpha };
+};
+
+describe("N-H1: an alias is read down to the colour it ends at", () => {
+  it("a text token aliased to a T3 colour that hides it", () => {
+    expect(mine((l) => { l.t3["accent-ink"] = CARD; l.t3["label-color"] = "{accent-ink}"; })).toContain("contrast");
+    expect(mine((l) => { l.t3.idle = CARD; l.t3["status-ok"] = "{idle}"; })).toContain("contrast");
+    expect(mine((l) => { l.t3.idle = "{mute}"; l.t3.mute = CARD; l.t3["series-1"] = "{idle}"; })).toContain("contrast");
+  });
+
+  it("a loop, an unset token, a shell name, a token set to nothing are errors", () => {
+    for (const set of [
+      (l: Json) => { l.t3["series-1"] = "{series-2}"; l.t3["series-2"] = "{series-1}"; },
+      (l: Json) => (l.t3["status-ok"] = "{nope}"),
+      (l: Json) => (l.t3["status-ok"] = "{faint}"),
+      (l: Json) => (l.t3["status-ok"] = "{mat.fill}"),
+      (l: Json) => (l.t3["status-ok"] = "{track}"),
+      (l: Json) => { l.t3["series-3"] = ""; l.t3["status-ok"] = "{series-3}"; },
+    ]) expect(mine(set), set.toString()).toContain("contrast");
+  });
+
+  it("an alias that ends in a readable colour passes", () => {
+    expect(mine((l) => { l.t3.idle = "#146C34"; l.t3["status-ok"] = "{idle}"; l.t3["series-1"] = "{status-ok}"; l.t3["label-color"] = "{accent}"; })).toEqual([]);
+  });
+});
+
+describe("N-H2: the header's fill is the title's colour, the border's fill is the card's edge", () => {
+  it.each(["transparent", "#00000000", "#EFE8D800", "rgba(0, 0, 0, 0)", "linear-gradient(transparent, transparent)", "currentColor", "black", "#EFE8D8", "linear-gradient(90deg, #1A1C21, #EFE8D8)", "var(--w-surface)"])("header-fill %s", (fill) => {
+    expect(mine((l) => (l.t3["header-fill"] = fill))).toContain("contrast");
+  });
+
+  it("a readable header fill passes, over the card by its alpha", () => {
+    expect(mine((l) => (l.t3["header-fill"] = "#1A1C21"))).toEqual([]);
+    expect(mine((l) => (l.t3["header-fill"] = "linear-gradient(90deg, #1A1C21, var(--w-fg))"))).toEqual([]);
+    expect(mine((l) => (l.t3["header-fill"] = "rgba(26, 28, 33, 0.3)"))).toContain("contrast");
+  });
+
+  it.each(["transparent", "#00000000", "linear-gradient(transparent, transparent)", "rgba(0, 0, 0, 0)", "currentColor"])("border-fill %s", (fill) => {
+    expect(mine((l) => (l.t3["border-fill"] = fill))).toContain("t3");
+  });
+
+  it("a gradient border passes", () => {
+    expect(mine((l) => (l.t3["border-fill"] = "linear-gradient(135deg, #8A6D1D, #F5D77A)"))).toEqual([]);
+  });
+});
+
+describe("N-H3: the card is read over the stage layers and the page", () => {
+  it("a translucent card over a dark layer hides dark text; without the layer it passes", () => {
+    const dark = stage([{ fill: "#000000" }]);
+    expect(mine(translucent(0.01), dark)).toContain("contrast");
+    expect(mine(translucent(0.5), dark)).toContain("contrast");
+    expect(mine(translucent(0.01), stage([{ fill: "#FFFFFF" }]))).toEqual([]);
+    expect(mine(translucent(0.01), stage([]))).toEqual([]);
+  });
+
+  it("the darkest stop of a gradient and the darkest paint of an SVG count", () => {
+    expect(mine(translucent(0.2), stage([{ fill: "linear-gradient(#FFFFFF, #000000)" }]))).toContain("contrast");
+    expect(mine(translucent(0.2), stage([{ image: "hex.svg" }]), { files: [file("assets/hex.svg", WHITE_SVG)] })).toContain("contrast");
+  });
+
+  it("a layer with a see-through stop lets what is under it count", () => {
+    expect(mine(translucent(0.2), stage([{ fill: "linear-gradient(transparent, #000000)" }]))).toContain("contrast");
+  });
+
+  it("a raster under a card under 0.85 opaque is refused, a nearly opaque card passes", () => {
+    const raster = [pngFile("assets/r.png", 8)];
+    expect(mine(translucent(0.5), stage([{ image: "r.png" }]), { files: raster })).toContain("contrast");
+    expect(mine(translucent(0.99), stage([{ image: "r.png" }]), { files: raster })).toEqual([]);
+  });
+});
+
+describe("N-M1: motion times are one number with ms or s, 50 to 2000 ms", () => {
+  it.each(["1e9ms", "1e3s", "9e9s", "+9999s", "-5s", "0.0001s", "0.001s", "1ms", "0ms", "0s", "300ms 1e9ms", "2001ms", "2.1s", "calc(1s)", "infinite"])("motion-base %s", (v) => {
+    expect(mine((l) => (l.t3["motion-base"] = v))).toContain("t3");
+  });
+
+  it("a number alone, and the other two names", () => {
+    expect(mine((l) => (l.t3["motion-base"] = 300))).toContain("t3");
+    expect(mine((l) => (l.t3["motion-data"] = "1e9ms"))).toContain("t3");
+    expect(mine((l) => (l.t3["motion-fast"] = "-1s"))).toContain("t3");
+  });
+
+  it("the bounds themselves pass", () => {
+    for (const v of ["50ms", "2000ms", "2s", "0.3s", "150ms"]) expect(mine((l) => (l.t3["motion-base"] = v)), v).toEqual([]);
+  });
+});
+
+describe("N-M2: a font's family, weight and style are plain", () => {
+  const font = (change: Json) => ({ fonts: [{ ...(BASE.pack as Json).fonts[0], family: "pack-mine", ...change }] });
+  it.each([
+    [{ family: "pack-x;}body{display:none" }],
+    [{ family: "pack-Upper" }],
+    [{ family: "pack-" }],
+    [{ family: "pack-a b" }],
+    [{ weight: "400;}body{display:none" }],
+    [{ weight: "950" }],
+    [{ weight: "450" }],
+    [{ weight: "1000" }],
+    [{ weight: "100 900 400" }],
+    [{ style: "oblique" }],
+    [{ onload: "x" }],
+  ])("%j", (change) => {
+    expect(mine(undefined, font(change))).toContain("schema");
+  });
+
+  it("a number, a range, a word and italic pass", () => {
+    for (const weight of ["400", "100 900", "normal", "bold"]) expect(mine(undefined, font({ weight })), weight).toEqual([]);
+    expect(mine(undefined, font({ style: "italic" }))).toEqual([]);
+  });
+});
+
+describe("N-M3: an icon is a viewBox and a path, and nothing else", () => {
+  const icon = (glyph: Json) => mine(undefined, {}, { icons: { bolt: { viewBox: "0 0 24 24", d: "M0 0h3v3z", ...glyph } } });
+  it.each([
+    [{ onload: "alert(1)" }],
+    [{ href: "https://x.test" }],
+    [{ viewBox: "0 0 0 0" }],
+    [{ viewBox: "0 0 999 999" }],
+    [{ viewBox: "0 0 -5 10" }],
+    [{ viewBox: "0 0 24" }],
+    [{ viewBox: "0 0 1e3 24" }],
+    [{ d: "M1e999 0L1 1" }],
+    [{ d: "M0 0L99999 1" }],
+  ])("%j", (glyph) => {
+    expect(icon(glyph)).toContain("icons");
+  });
+
+  it("a glyph of any sane box passes", () => {
+    expect(icon({})).toEqual([]);
+    expect(icon({ viewBox: "0 0 512 512", d: "M0 0L512 512" })).toEqual([]);
+    expect(icon({ viewBox: "-12 -12 24 24", d: "M-5.5 0L1e1 2" })).toEqual([]);
+  });
+});
+
+describe("N-M4: a user pack does not take a built-in's name", () => {
+  it.each(["classic", "paper", "field-kit", "black-and-gold", "default", "tui"])("the id %s", (id) => {
+    expect(mine((l) => (l.id = id), { id })).toContain("provenance");
+  });
+
+  it("every font family of a built-in pack", () => {
+    const families = [...PACK_IDS].flatMap((id) => (builtin(id).pack as Json).fonts.map((f: Json) => f.family as string));
+    expect(families.length).toBeGreaterThan(15);
+    for (const family of families) expect(mine(undefined, { fonts: [{ ...(BASE.pack as Json).fonts[0], family }] }), family).toContain("provenance");
+  });
+
+  it("a built-in is read as one of ours: its own id and families are not an issue", () => {
+    expect(validatePack(builtin("paper"), { source: "builtin" }).map((i) => i.rule)).not.toContain("provenance");
+  });
+});
+
+describe("the resource-loading functions, in a Look and in an SVG", () => {
+  const FUNCTIONS = ["url(https://x.test/a)", "image-set(\"a.png\" 1x)", "-webkit-image-set(a.png 1x)", "IMAGE(a.png)", "cross-fade(a, b, 50%)", "src(a.woff2)", "element(#a)", "paint(x)", "env(safe-area-inset-top)", "attr(x)", "URL (x)"];
+  it.each(FUNCTIONS)("a Look's T3 value %s", (fn) => {
+    expect(mine((l) => (l.t3["graph-style"] = fn))).toContain("injection");
+    expect(rules(bad({ look: (l) => (l.t1.light.info.value = fn) }))).toContain("injection");
+  });
+
+  it.each(FUNCTIONS)("an SVG attribute %s", (fn) => {
+    expect(userRules(userPack({ files: [file("assets/hazard.svg", `<svg><rect fill='${fn}'/></svg>`)] }))).toContain("svg-unsafe");
+  });
+
+  it("an id inside the file is the one URL an SVG may name", () => {
+    expect(userRules(userPack({ files: [file("assets/hazard.svg", '<svg><linearGradient id="g"/><rect fill="url(#g)" style="stroke:url( #g );fill-opacity:.5"/></svg>')] }))).toEqual([]);
+    expect(userRules(userPack({ files: [file("assets/hazard.svg", '<svg><rect fill="url(#g) url(x.png)"/></svg>')] }))).toContain("svg-unsafe");
+  });
+
+  it("the style attribute is an allow-list of properties, with colour, number and id values", () => {
+    const style = (value: string) => userRules(userPack({ files: [file("assets/hazard.svg", `<svg><rect style="${value}"/></svg>`)] }));
+    for (const ok of ["fill:#fff", "fill:#102030;stroke:rgb(1, 2, 3);stroke-width:2", "opacity:.4;fill:none", "stop-color:hsl(10 20% 30%)"]) expect(style(ok), ok).toEqual([]);
+    for (const bad1 of ["background:#fff", "fill:red", "fill:'x'", "fill:#fff;behavior:x", "mask-image:url(#a)", "fill:var(--x)", "fill:calc(1)", "filter:blur(9px)", "font-family:x"]) expect(style(bad1), bad1).toContain("svg-unsafe");
+  });
+});
+
+describe("the PNG signature is all eight bytes", () => {
+  it("a png that starts like one and holds markup is refused", () => {
+    const fake = { path: "assets/p.png", size: 20, bytes: enc("\u0089PNG<svg onload=1></svg>") };
+    expect(userRules(userPack({ files: [{ ...fake, size: fake.bytes.length }] }))).toContain("image-type");
+    expect(userRules(userPack({ files: [pngFile("assets/p.png", 8)] }))).not.toContain("image-type");
   });
 });

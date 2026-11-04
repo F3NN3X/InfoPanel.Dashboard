@@ -21,10 +21,11 @@
         "required": ["family", "file", "weight", "licence", "copyright"],
         "additionalProperties": false,
         "properties": {
-          "family": { "type": "string", "pattern": "^pack-" },
+          "family": { "type": "string", "pattern": "^pack-[a-z0-9-]+$" },
           "source": { "type": "string" },
           "file": { "type": "string", "minLength": 1 },
-          "weight": { "type": "string" },
+          "weight": { "type": "string", "pattern": "^(normal|bold|[1-9]00( [1-9]00)?)$" },
+          "style": { "enum": ["normal", "italic"] },
           "licence": { "type": "string" },
           "copyright": { "type": "string", "minLength": 1 }
         }

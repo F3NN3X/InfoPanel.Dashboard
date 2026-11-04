@@ -42,8 +42,8 @@ export const PROSE_PATHS = /^\$\.(name|description|modes\.stance|t1\.(dark|light
 /** A material, tone or token key. */
 export const TOKEN_KEY = /^[a-z][a-z0-9-]*$/;
 
-/** A string that could carry CSS or markup into a style or a page: a URL function, script, an import, a tag. */
-export const INJECTION = /url\s*\(|expression\s*\(|javascript:|vbscript:|<|@import|\/\*/i;
+/** A string that could carry CSS or markup into a style or a page: a resource-loading function (`url`, `image-set`, `env`, `attr`, ...), script, an import, a tag. */
+export const INJECTION = /(?<!\w)(?:-webkit-)?(?:url|image-set|image|cross-fade|src|element|paint|env|attr)\s*\(|expression\s*\(|javascript:|vbscript:|<|@import|\/\*/i;
 /** Characters that end a CSS declaration or a rule: a Look's values go into styles, so none of them may hold these. */
 export const STYLE_BREAKERS = /[;{}\\]/;
 /** A `{alias}` is the one place a Look's value holds braces. */
@@ -63,8 +63,27 @@ const SVG_NS = "http://www.w3.org/2000/svg";
 const XLINK_NS = "http://www.w3.org/1999/xlink";
 const TAG = /<(\/?)([A-Za-z][\w:.-]*)((?:\s+[A-Za-z_:][\w:.-]*\s*=\s*(?:"[^"<]*"|'[^'<]*'))*)\s*(\/?)>/y;
 const ATTRIBUTE = /\s+([A-Za-z_:][\w:.-]*)\s*=\s*(?:"([^"]*)"|'([^']*)')/g;
-/** Every `url(` in a value must point at an id inside the file. */
-const EXTERNAL_URL = /url\(\s*["']?\s*(?!#)/i;
+/** Every function of CSS that loads a resource (an image, a font, the page's own values), with or without the `-webkit-` prefix. */
+const RESOURCE_FUNCTION = /(?<!\w)(?:-webkit-)?(?:url|image-set|image|cross-fade|src|element|paint|env|attr)\s*\(/i;
+/** The one resource a value may name: an id inside the file. */
+const INTERNAL_URL = /(?<!\w)url\(\s*["']?#[\w.-]+["']?\s*\)/gi;
+/** Whether a value loads anything but an id inside the file. */
+const reachesOut = (value: string) => RESOURCE_FUNCTION.test(value.replace(INTERNAL_URL, ""));
+/** What the `style` attribute of an SVG element may set, each to a colour literal, a number, `none` or `url(#id)`. */
+const STYLE_PROPERTIES = new Set("fill stroke stop-color stop-opacity fill-opacity stroke-opacity opacity stroke-width".split(" "));
+const STYLE_VALUE = /^(#[\da-f]{3,8}|(?:rgba?|hsla?)\([\d\s.,%/+-]+\)|[+-]?(?:\d+\.?\d*|\.\d+)(?:px|%)?|none|transparent|currentcolor|url\(\s*#[\w.-]+\s*\))$/i;
+
+/** The first thing in an SVG `style` attribute outside the allow-list (undefined: it is fine). */
+function styleIssue(value: string): string | undefined {
+  for (const declaration of value.split(";")) {
+    if (!declaration.trim()) continue;
+    const [property, ...rest] = declaration.split(":");
+    const v = rest.join(":").trim();
+    if (!STYLE_PROPERTIES.has(property.trim().toLowerCase())) return `the style property ${property.trim().slice(0, 30)} is not one a pack SVG may set`;
+    if (/["']/.test(v) || !STYLE_VALUE.test(v)) return `the style value ${v.slice(0, 30)} is not a colour, a number or an id inside the file`;
+  }
+  return undefined;
+}
 
 /** The first reason an SVG is not safe (`undefined`: it is). A small reader, not a parser: markup it cannot read is refused, and a name that is not on the lists is refused whatever its case or prefix. */
 export function svgIssue(source: string): string | undefined {
@@ -97,7 +116,11 @@ export function svgIssue(source: string): string | undefined {
       const key = attribute[1].toLowerCase();
       const value = attribute[2] ?? attribute[3] ?? "";
       if (!SVG_ATTRIBUTES.has(key)) return `the attribute ${attribute[1]} is not one a pack SVG may use`;
-      if (/[&\\]|javascript:|vbscript:|expression\(|@import/i.test(value) || EXTERNAL_URL.test(value)) return `the ${key} value ${value.slice(0, 30)} reaches outside the file or hides what it is`;
+      if (/[&\\]|javascript:|vbscript:|expression\(|@import/i.test(value) || reachesOut(value)) return `the ${key} value ${value.slice(0, 30)} reaches outside the file or hides what it is`;
+      if (key === "style") {
+        const m = styleIssue(value);
+        if (m) return m;
+      }
       if (key === "xmlns" && value !== SVG_NS) return "xmlns is not the SVG namespace";
       if (key === "xmlns:xlink" && value !== XLINK_NS) return "xmlns:xlink is not the XLink namespace";
       if ((key === "href" || key === "xlink:href") && !value.startsWith("#")) return `${key} ${value.slice(0, 30)} is not an id inside the file`;
@@ -124,7 +147,7 @@ const ascii = (b: Uint8Array, from: number, to: number) => String.fromCharCode(.
 export function rasterMatches(extension: string, b: Uint8Array): boolean {
   switch (extension) {
     case "png":
-      return b[0] === 0x89 && ascii(b, 1, 4) === "PNG";
+      return [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a].every((v, k) => b[k] === v);
     case "jpg":
     case "jpeg":
       return b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff;

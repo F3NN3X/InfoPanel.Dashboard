@@ -12,6 +12,7 @@ import { safeFill } from "@/widgets/core/t3-tokens";
 import { parseCss, type Rule, type Token, tokenize, writeTokens } from "./css-syntax";
 import { OVERLAY_MAX } from "./effects";
 import { iconSetIssues } from "./icon-set";
+import { LOOK_IDS } from "./ids";
 import { resolveT1, type Look, type T1Name, T1_NAMES } from "./look";
 import lookSchema from "./look.schema.json";
 import { MAX_LAYERS, NUMERAL_MIN, numeralIssues, stageIssues } from "./pack-checks";
@@ -58,6 +59,9 @@ export interface PackIssue {
   file: string;
   message: string;
 }
+
+/** The font families of the built-in packs (a test pins this list to their pack.json files): a user pack may not claim one. */
+export const BUILTIN_FONT_FAMILIES: ReadonlySet<string> = new Set(["pack-classy", "pack-classy-num", "pack-field-kit", "pack-gold", "pack-holo", "pack-holo-display", "pack-liquid", "pack-neon-display", "pack-neon-mono", "pack-night-glow", "pack-overdrive", "pack-overdrive-mono", "pack-paper", "pack-swiss", "pack-swiss-display", "pack-tape-86-display", "pack-tape-86-mono", "pack-term-display", "pack-term-mono"]);
 
 /** The size cap of a pack folder: `packCeilingBytes` of the `packs` block in tools/perf/budgets.json (a test pins them equal). */
 export const PACK_CEILING_BYTES = 512_000;
@@ -158,17 +162,27 @@ function paintLuminance(value: string): number | undefined {
 const COLOUR_LITERAL = /#[\da-f]{8}\b|#[\da-f]{6}\b|#[\da-f]{3,4}\b|(?:rgba?|hsla?)\([^)]*\)|\btransparent\b/gi;
 const GRADIENT_WORDS = /\b(to|top|bottom|left|right|center|at|circle|ellipse|closest-side|farthest-side|closest-corner|farthest-corner|in|from)\b/gi;
 
-/** The brightest stop of a CSS fill (a colour or gradients, layers comma-separated), each times its alpha; undefined when anything in it is not a colour literal or a gradient keyword (a name, `var()`, `oklch()`). */
-function fillBrightness(css: string): number | undefined {
-  const found = css.match(COLOUR_LITERAL) ?? [];
-  const rest = css
+/** The colours of a CSS fill (a colour or gradients, layers comma-separated) as written, `var(--w-name)` read through `vars`; undefined when it holds none, or anything that is not a colour literal, a var of `vars` or a gradient keyword (a name, `oklch()`, `color-mix()`). */
+function fillStops(css: string, vars: Record<string, string> = {}): Colour[] | undefined {
+  const text = css.replace(/var\(--w-([\w-]+)\)/gi, (m, n: string) => (Object.hasOwn(vars, n) ? vars[n] : m));
+  const found = text.match(COLOUR_LITERAL) ?? [];
+  const rest = text
     .replace(COLOUR_LITERAL, " ")
     .replace(/(repeating-)?(linear|radial|conic)-gradient\(/gi, " ")
     .replace(/-?\d*\.?\d+(deg|grad|rad|turn|px|%)?/gi, " ")
     .replace(GRADIENT_WORDS, " ");
-  if (/[a-z]/i.test(rest)) return undefined;
-  const lums = found.map(paintLuminance);
-  return lums.some((l) => l === undefined) ? undefined : Math.max(0, ...(lums as number[]));
+  if (!found.length || /[a-z]/i.test(rest)) return undefined;
+  const stops = found.map(parseColour);
+  return stops.some((c) => c === undefined) ? undefined : (stops as Colour[]);
+}
+
+/** A colour laid over `under` at its alpha times `opacity`, as `#rrggbb`; transparent leaves `under`. */
+const flatOn = (c: Colour, under: string, opacity = 1): string => (c.hex ? over(c.hex, c.alpha * opacity, under) : under);
+
+/** The brightest stop of a CSS fill, each times its alpha; undefined when `fillStops` cannot read it. */
+function fillBrightness(css: string): number | undefined {
+  const stops = fillStops(css);
+  return stops && Math.max(0, ...stops.map((c) => (c.hex ? luminance(c.hex) * c.alpha : 0)));
 }
 
 /** The brightest paint of an SVG (the default fill, black, counts as 0); undefined when a paint is not a colour literal. */
@@ -316,7 +330,11 @@ const BLUR_MAX = 64;
 const SIMPLE = /^[\w\s.%/>{}+,-]*$/;
 const CUBIC = /^cubic-bezier\(\s*[\d.\s,-]+\)$/;
 const MOTION = new Set(["motion-fast", "motion-base", "motion-data"]);
+/** A glide lasts 2 s at most and 50 ms at least: a shorter time is a flicker (WCAG 2.3.1: no more than 3 flashes a second; no T3 token repeats, so a bounded time is the whole rule). */
 const MOTION_MAX_MS = 2000;
+const MOTION_MIN_MS = 50;
+/** A card under this opaque over a stage layer whose colours cannot be known (a raster) is refused: the text on it could be on anything. */
+export const RASTER_ALPHA_MIN = 0.85;
 const LENGTH_T3 = new Set(["ring-width", "ring-gap", "icon-stroke", "threshold-width", "range-height", "meter-gap", "series-stroke"]);
 const LENGTH_T3_MAX = 64;
 /** T3 names that colour text: held to 4.5:1 on the surface when they resolve to a T1 colour. */
@@ -329,63 +347,131 @@ const FILL_T3 = new Set(["border-fill", "header-fill", "num-fill", "ring-fill", 
 
 const T3_NAMES = new Set<string>(T3_TOKENS);
 
-/** The T3 values: every name known, every value a plain word, a number, an alias, a colour literal or a gradient `safeFill` reads, lengths and times capped, colour tokens that hold text held to contrast on the resolved colour. */
-function t3Issues(look: Look, t1: Record<T1Name, string>, mode: string): PackIssue[] {
+type Resolved = { value: string } | { error: string };
+
+/** A T3 colour value read through its aliases down to a literal: a T1 name gives its value in the mode, another T3 token its own value. A loop, a token the Look does not set (or sets to `""`, a number or a shell name such as `faint` or `mat.fill`) is an error: nothing there can be read, so nothing is assumed. */
+function resolveAlias(value: string, t3: Record<string, string | number>, t1: Record<string, string>, trail: string[]): Resolved {
+  const alias = ALIAS.exec(value)?.[1];
+  if (alias === undefined) return { value };
+  if ((T1_NAMES as readonly string[]).includes(alias)) return { value: t1[alias] };
+  if (trail.includes(alias)) return { error: `the aliases ${[...trail, alias].map((n) => `{${n}}`).join(" > ")} loop` };
+  const next = Object.hasOwn(t3, alias) ? t3[alias] : undefined;
+  if (typeof next !== "string" || next === "") return { error: `{${alias}} is not a T1 name or a T3 colour this Look sets` };
+  return resolveAlias(next, t3, t1, [...trail, alias]);
+}
+
+/** The lowest contrast of a colour (alpha laid over each card) against the cards, or undefined when it cannot be read. */
+function worstContrast(c: Colour | undefined, cards: string[]): { ratio: number; card: string } | undefined {
+  if (!c || (!c.hex && c.alpha > 0)) return undefined;
+  let worst: { ratio: number; card: string } | undefined;
+  for (const card of cards) {
+    const ratio = contrastOf(flatOn(c, card), card);
+    if (ratio === undefined) return undefined;
+    if (!worst || ratio < worst.ratio) worst = { ratio, card };
+  }
+  return worst;
+}
+
+/** The T3 values: every name known, every value a plain word, a number, an alias, a colour literal or a gradient `safeFill` reads, lengths and times capped, aliases resolved, colour tokens that hold text and the header's fill held to contrast on every card the Look is drawn on. */
+function t3Issues(look: Look, t1: Record<T1Name, string>, mode: string, cards: string[]): PackIssue[] {
   const out: PackIssue[] = [];
   const bad = (rule: string, message: string) => out.push(issue(rule, "look.json", message));
-  for (const [name, v] of Object.entries(look.t3 ?? {})) {
+  const t3 = look.t3 ?? {};
+  for (const [name, v] of Object.entries(t3)) {
     if (!T3_NAMES.has(name)) {
       bad("t3", `t3 ${name} is not a T3 name`);
       continue;
     }
     if (typeof v === "number") {
-      if (!Number.isFinite(v) || Math.abs(v) > 1000 || (LENGTH_T3.has(name) && (v < 0 || v > LENGTH_T3_MAX))) bad("t3", `t3 ${name} ${v} is out of range${LENGTH_T3.has(name) ? ` (0 to ${LENGTH_T3_MAX})` : ""}`);
+      if (!Number.isFinite(v) || Math.abs(v) > 1000 || (LENGTH_T3.has(name) && (v < 0 || v > LENGTH_T3_MAX)) || MOTION.has(name)) bad("t3", `t3 ${name} ${v} is out of range${LENGTH_T3.has(name) ? ` (0 to ${LENGTH_T3_MAX})` : ""}${MOTION.has(name) ? " (a time is written with ms or s)" : ""}`);
       continue;
     }
     if (FILL_T3.has(name)) {
       if (v !== "solid" && v !== "none" && safeFill(v) === undefined) bad("t3", `t3 ${name} is not a colour or a gradient of colours`);
+      else if (v !== "solid" && v !== "none" && (name === "header-fill" || name === "border-fill")) {
+        const stops = fillStops(v, t1);
+        if (!stops) bad(name === "header-fill" ? "contrast" : "t3", `${mode} t3 ${name} cannot be checked: use hex colours, rgb(), hsl() or var(--w-*) of a T1 colour`);
+        else if (name === "border-fill") {
+          if (stops.some((c) => c.alpha < OPACITY_FLOOR)) bad("t3", `${mode} t3 border-fill has a stop under ${OPACITY_FLOOR} opaque: the border would not be drawn`);
+        }
+        else {
+          // the title is painted in this fill (bg-clip: text): each stop over each card is text on it
+          const worst = stops.map((c) => worstContrast(c, cards)).sort((x, y) => (x?.ratio ?? 0) - (y?.ratio ?? 0))[0];
+          if (!worst) bad("contrast", `${mode} t3 header-fill cannot be checked`);
+          else if (worst.ratio < NUMERAL_MIN) bad("contrast", `${mode} t3 header-fill is ${worst.ratio.toFixed(2)}:1 on the card ${worst.card}, under ${NUMERAL_MIN}:1`);
+        }
+      }
       continue;
     }
     const colour = TEXT_T3.has(name) || MARK_T3.has(name) || OTHER_COLOUR_T3.has(name);
     if (colour && v !== "" && !ALIAS.test(v) && !parseColour(v) && !/^var\(--w-[\w-]+\)$/.test(v)) bad("t3", `t3 ${name} ${v} cannot be read as a colour: use #rgb, #rrggbb, rgb(), hsl() or an alias`);
     else if (!colour && !SIMPLE.test(v) && !CUBIC.test(v)) bad("t3", `t3 ${name} ${v.slice(0, 40)} is not a plain value`);
     if (MOTION.has(name)) {
-      const ms = /^(\d+(?:\.\d+)?)(ms|s)$/.exec(v);
-      if (ms && Number(ms[1]) * (ms[2] === "s" ? 1000 : 1) > MOTION_MAX_MS) bad("t3", `t3 ${name} ${v} is over ${MOTION_MAX_MS} ms`);
+      const m = /^(\d+(?:\.\d+)?)(ms|s)$/.exec(v);
+      const ms = m ? Number(m[1]) * (m[2] === "s" ? 1000 : 1) : Number.NaN;
+      if (!(ms >= MOTION_MIN_MS && ms <= MOTION_MAX_MS)) bad("t3", `t3 ${name} ${v.slice(0, 20)}: one time, ${MOTION_MIN_MS} to ${MOTION_MAX_MS} ms (a number and ms or s)`);
     }
-    if ((TEXT_T3.has(name) || MARK_T3.has(name)) && v !== "") {
-      const alias = ALIAS.exec(v)?.[1];
-      const resolved = alias === undefined ? v : (T1_NAMES as readonly string[]).includes(alias) ? t1[alias as T1Name] : undefined;
-      if (resolved === undefined) continue;
+    if (colour && v !== "") {
+      const r = resolveAlias(v, t3, t1, [name]);
+      if ("error" in r) {
+        bad("contrast", `${mode} t3 ${name} ${v}: ${r.error}`);
+        continue;
+      }
+      if (!TEXT_T3.has(name) && !MARK_T3.has(name)) continue;
       const min = TEXT_T3.has(name) ? TEXT_MIN : NUMERAL_MIN;
-      const ratio = contrastOf(opaqueHex(resolved) ?? resolved, t1.surface);
-      if (ratio === undefined) bad("contrast", `${mode} t3 ${name} ${v} cannot be checked: use #rgb or #rrggbb`);
-      else if (ratio < min) bad("contrast", `${mode} t3 ${name} ${v} is ${ratio.toFixed(2)}:1 on the surface, under ${min}:1`);
+      const worst = worstContrast(parseColour(r.value), cards);
+      if (!worst) bad("contrast", `${mode} t3 ${name} ${v} cannot be checked: use #rgb or #rrggbb`);
+      else if (worst.ratio < min) bad("contrast", `${mode} t3 ${name} ${v} is ${worst.ratio.toFixed(2)}:1 on the card ${worst.card}, under ${min}:1`);
     }
   }
   return out;
 }
 
-/** What each Look in the pack is drawn on: the surface and every material's flat colours (its export, its fill and fill-2 laid over the page by their alpha), per mode; a colour the check cannot read is an issue. */
-function cardsOf(look: Look, t1: Record<string, string>, mode: string, issues: PackIssue[]): string[] {
-  const cards = [t1.surface];
-  const page = opaqueHex(t1.bg);
+/** One stage layer's paint for the cards' backdrop: the colours it may show (undefined: they cannot be known, a raster or an unreadable paint) and its opacity. */
+interface LayerPaint {
+  stops: Colour[] | undefined;
+  opacity: number;
+}
+
+/** What a card may sit on in one mode: the page colour (`bg`), and the stage layers over it at their lightest, their darkest and each alone. `unknown`: a layer's colours cannot be read, so black and white are possible too. */
+interface Backdrops {
+  colours: string[];
+  unknown: boolean;
+}
+
+function backdropsOf(page: string | undefined, layers: LayerPaint[]): Backdrops {
+  if (!page) return { colours: [], unknown: false };
+  const known = layers.filter((l): l is LayerPaint & { stops: Colour[] } => l.stops !== undefined);
+  const unknown = known.length < layers.length;
+  const stack = (sign: 1 | -1) =>
+    known.reduce((under, l) => l.stops.map((c) => flatOn(c, under, l.opacity)).reduce((best, o) => ((luminance(o) - luminance(best)) * sign > 0 ? o : best)), page);
+  const colours = new Set([page, stack(1), stack(-1)]);
+  for (const l of known) for (const c of l.stops) colours.add(flatOn(c, page, l.opacity));
+  if (unknown) colours.add("#000000").add("#ffffff");
+  return { colours: [...colours], unknown };
+}
+
+/** What each Look in the pack is drawn on: the surface and every material's flat colours (its export, its fill and fill-2 laid over each backdrop by their alpha), per mode; a colour the check cannot read is an issue. */
+function cardsOf(look: Look, mode: string, surface: string, back: Backdrops, issues: PackIssue[]): string[] {
+  const cards = [surface];
   for (const [name, m] of Object.entries(look.t2?.materials ?? {})) {
     for (const field of ["export", "fill", "fill-2"] as const) {
       const v = m[field];
       if (typeof v !== "string") continue;
       const c = parseColour(v);
       const alpha = (c?.alpha ?? 1) * (field === "export" ? 1 : (m["fill-alpha"] ?? 1));
-      const flat = c?.hex ? (alpha >= 0.999 ? c.hex : page ? over(c.hex, alpha, page) : undefined) : undefined;
-      if (flat) cards.push(flat);
-      else issues.push(issue("contrast", "look.json", `${mode} material ${name} ${field} ${v} cannot be read: use #rgb, #rrggbb, rgb() or hsl() (over an opaque bg)`));
+      if (c?.hex && alpha >= 0.999) cards.push(c.hex);
+      else if (c?.hex && back.colours.length) {
+        if (back.unknown && alpha < RASTER_ALPHA_MIN) issues.push(issue("contrast", "look.json", `${mode} material ${name} ${field} is ${alpha.toFixed(2)} opaque over a stage layer whose colours cannot be known (a raster or an unreadable paint): at least ${RASTER_ALPHA_MIN}`));
+        else for (const b of back.colours) cards.push(over(c.hex, alpha, b));
+      } else issues.push(issue("contrast", "look.json", `${mode} material ${name} ${field} ${v} cannot be read: use #rgb, #rrggbb, rgb() or hsl() (over an opaque bg)`));
     }
     if (m.blur !== undefined && !(BLUR.test(m.blur) && parseFloat(m.blur) <= BLUR_MAX)) issues.push(issue("blur", "look.json", `material ${name} blur ${m.blur}: a length in px up to ${BLUR_MAX}`));
   }
   return [...new Set(cards)];
 }
 
-function lookIssues(look: Look): { issues: PackIssue[]; cards: string[]; texts: string[] } {
+function lookIssues(look: Look, layers: LayerPaint[]): { issues: PackIssue[]; cards: string[]; texts: string[] } {
   const issues: PackIssue[] = [];
   const cards: string[] = [];
   const texts: string[] = [];
@@ -403,7 +489,8 @@ function lookIssues(look: Look): { issues: PackIssue[]; cards: string[]; texts: 
     // L93: the chrome (the island's pill, the alert cards) takes the surface verbatim, so it is a literal and opaque
     const surface = parseColour(t1.surface);
     if (!surface?.hex || surface.alpha < 1 || !/^#([\da-f]{3}|[\da-f]{6})$/i.test(t1.surface)) issues.push(issue("chrome-surface", "look.json", `${mode} surface ${t1.surface} must be an opaque #rgb or #rrggbb: the chrome and the contrast check read it as written`));
-    for (const card of cardsOf(look, t1, mode, issues)) {
+    const modeCards = cardsOf(look, mode, t1.surface, backdropsOf(opaqueHex(t1.bg), layers), issues);
+    for (const card of modeCards) {
       cards.push(card);
       for (const name of TEXT_PAIRS) {
         const ratio = contrastOf(opaqueHex(t1[name]) ?? t1[name], card);
@@ -415,7 +502,7 @@ function lookIssues(look: Look): { issues: PackIssue[]; cards: string[]; texts: 
       const hex = opaqueHex(t1[name]);
       if (hex) texts.push(hex);
     }
-    issues.push(...t3Issues(look, t1 as Record<T1Name, string>, mode));
+    issues.push(...t3Issues(look, t1 as Record<T1Name, string>, mode, modeCards));
   }
   for (const m of numeralIssues(look)) issues.push(issue("contrast", "look.json", m));
   return { issues, cards: [...new Set(cards)], texts: [...new Set(texts)] };
@@ -426,7 +513,7 @@ function lookIssues(look: Look): { issues: PackIssue[]; cards: string[]; texts: 
 type Pack = {
   id: string;
   modes: string[];
-  fonts: { file: string; licence: string }[];
+  fonts: { family: string; file: string; licence: string }[];
   stage: Parameters<typeof stageIssues>[0] & object;
   burnIn: string;
   assets?: { file: string; bytes: number }[];
@@ -496,6 +583,9 @@ function validate(src: PackSource, source: "builtin" | "user"): PackIssue[] {
   const look = src.look as Look;
   if (look.id !== pack.id) add("id", "look.json", `look.id ${look.id} is not the pack id ${pack.id}`);
   if (pack.modes.join() !== look.modes.supported.join()) add("modes", "pack.json", "modes differ from look.json modes.supported");
+  // a user pack never takes a built-in's id or font family (P12b sets `source` from where the pack was loaded, never from the pack)
+  if (user && LOOK_IDS.includes(pack.id)) add("provenance", "pack.json", `the id ${pack.id} is a built-in Look's: a user pack takes its own`);
+  if (user) for (const f of pack.fonts) if (BUILTIN_FONT_FAMILIES.has(f.family)) add("provenance", "pack.json", `the font family ${f.family} is a built-in pack's: a user pack names its own`);
   for (const key of T1_NAMES) for (const mode of look.modes.supported) if (!look.t1[mode]?.[key]) add("schema", "look.json", `${mode} ${key} is missing`);
 
   // referenced files: stage images, fonts, icons, CSS urls; each is a pack path and a file of the folder
@@ -569,7 +659,8 @@ function validate(src: PackSource, source: "builtin" | "user"): PackIssue[] {
   }
 
   // the Look: contrast per card, opaque chrome surface, gradient numerals, T3 values, readable colours
-  const { issues: lookRules, cards, texts } = lookIssues(look);
+  const layers = pack.stage.layers.flatMap((l) => layerPaint(l, files, resolve) ?? []);
+  const { issues: lookRules, cards, texts } = lookIssues(look, layers);
   out.push(...lookRules);
 
   // burn-in: a static-safe claim on bright static art (layers stack: each adds to what is behind it; unreadable art is not static-safe)
@@ -593,6 +684,18 @@ function validate(src: PackSource, source: "builtin" | "user"): PackIssue[] {
     if (!tokenize(src.css).some((t) => t.t === "error")) out.push(...hiddenPaintIssues(src.css, cards, texts));
   }
   return finish(out);
+}
+
+/** A stage layer's paint for the cards' backdrop (`backdropsOf`): its fill's stops, or an SVG's paints with the default black and nothing (it covers part of the page); undefined stops when they cannot be read; no paint for a layer with neither. */
+function layerPaint(l: { fill?: string; image?: string; opacity?: number }, files: Map<string, PackFile>, resolve: (name: string, base: string) => string | undefined): LayerPaint | undefined {
+  const opacity = l.opacity ?? 1;
+  if (l.fill !== undefined) return { stops: fillStops(l.fill), opacity };
+  if (l.image === undefined) return undefined;
+  const path = isPackRelativeUrl(l.image) ? resolve(l.image, "assets/") : undefined;
+  const f = path ? files.get(path) : undefined;
+  if (!f?.bytes || !/\.svg$/i.test(f.path)) return { stops: undefined, opacity };
+  const paints = svgPaints(text(f.bytes)).map(parseColour);
+  return { stops: paints.some((c) => c === undefined) ? undefined : [{ hex: "#000000", alpha: 1 }, { alpha: 0 }, ...(paints as Colour[])], opacity };
 }
 
 /** How bright a stage layer is (0-1, before its opacity): its fill, or its SVG's paints; undefined when that cannot be read (a raster, a missing file, a colour name). */
