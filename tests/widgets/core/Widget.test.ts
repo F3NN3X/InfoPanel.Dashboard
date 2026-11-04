@@ -2,7 +2,7 @@ import { createElement as h } from "react";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { STANDARD_DEFAULTS } from "@/modules/standard-settings";
-import { SKIN_NAMES, SkinCtx } from "@/widgets/core/theme";
+import { SKINS, SKIN_NAMES, SkinCtx } from "@/widgets/core/theme";
 import { skinContext } from "@/widgets/core/look";
 import { CompactView, StudioView } from "@/widgets/core/views";
 import { LedLadder, Num, Ring, Spark } from "@/widgets/core/primitives";
@@ -213,5 +213,47 @@ describe("shell layers", () => {
     expect(html).toContain('data-wp-layer="ornament"');
     expect(html).toContain("pointer-events-none");
     expect(html).toContain('aria-hidden="true"');
+  });
+});
+
+describe("Widget slot layout", () => {
+  const Orn = () => h("i", { "data-t": "orn" });
+  const Band = () => h("i", { "data-t": "band" });
+  const values = [1, 5, 2, 8, 3, 9];
+  // biome-ignore lint/correctness/noChildrenProp: the Widget takes a render function as children.
+  const render = (skin: string, extra: Record<string, unknown> = {}) => renderToString(h(Widget, { skin, size: "lg", title: "T", icon: "memory", children: () => h(Spark, { values, graph: "area" }), ...extra }));
+  const slotted = (tokens: object) => {
+    SKINS.qa = { ...SKINS.default, ...tokens };
+    try {
+      return render("qa");
+    } finally {
+      delete SKINS.qa;
+    }
+  };
+
+  it("hands the padding to the layers as --wp-pad and draws frame, ornament, tab band, then the padded body in that order", () => {
+    const html = slotted({ frame: "inset", ornament: Orn, tabBand: Band });
+    expect(html).toContain("--wp-pad:20px");
+    const at = (s: string) => html.indexOf(s);
+    expect(at('inset-[5px]')).toBeGreaterThan(-1);
+    expect(at('inset-[5px]')).toBeLessThan(at('data-wp-layer="ornament"'));
+    expect(at('data-wp-layer="ornament"')).toBeLessThan(at('data-wp-layer="tab-band"'));
+    expect(at('data-wp-layer="tab-band"')).toBeLessThan(at("data-wp-body"));
+  });
+
+  it("follows the Look's padding and draws nothing without a slot", () => {
+    const html = slotted({ ornament: Orn });
+    expect(html).toContain('data-t="orn"');
+    expect(html).not.toContain('data-wp-layer="tab-band"');
+    const none = render("default");
+    expect(none).not.toContain("--wp-pad");
+    expect(none).not.toContain('data-wp-layer="ornament"');
+  });
+
+  it("keeps a child's useId (a graph's gradient id) the same with and without the slots", () => {
+    const idOf = (html: string) => html.match(/sp_?[A-Za-z0-9_]*R[A-Za-z0-9_]*/)?.[0];
+    const plain = idOf(render("default"));
+    expect(plain).toBeTruthy();
+    expect(idOf(slotted({ frame: "inset", ornament: Orn, tabBand: Band }))).toBe(plain);
   });
 });

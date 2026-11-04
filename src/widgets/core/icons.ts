@@ -210,5 +210,7 @@ export const FALLBACK_ICON: LucideIcon = CircleDashed;
 /** The lucide component for a Material Symbols or legacy widget-icon name. */
 export function iconFor(name: string | undefined): LucideIcon {
   if (!name) return FALLBACK_ICON;
-  return MATERIAL_ICONS[name] ?? WIDGET_ICONS[name] ?? FALLBACK_ICON;
+  // own keys only: "constructor" or "toString" is not an icon
+  const own = (m: Record<string, LucideIcon>) => (Object.hasOwn(m, name) ? m[name] : undefined);
+  return own(MATERIAL_ICONS) ?? own(WIDGET_ICONS) ?? FALLBACK_ICON;
 }

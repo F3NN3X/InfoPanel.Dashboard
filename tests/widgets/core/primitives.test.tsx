@@ -149,6 +149,16 @@ describe("Icon sets", () => {
     expect(html.match(/data-part="icon"/g)).toHaveLength(2);
     expect(html).toContain("lucide-gauge");
   });
+  it("reads a name as the set's own key only, so an inherited name falls back to Classic", () => {
+    const ctx = { ...skinContext("default", {}), icons: set };
+    const html = renderToString(
+      <SkinCtx.Provider value={ctx}>
+        <Icon name="constructor" />
+        <Icon name="toString" />
+      </SkinCtx.Provider>,
+    );
+    expect(html.match(/lucide-circle-dashed/g)).toHaveLength(2);
+  });
   it("draws Classic with no set", () => {
     expect(renderToString(<Icon name="memory" />)).toContain("lucide-cpu");
   });

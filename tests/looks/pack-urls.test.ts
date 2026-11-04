@@ -19,6 +19,11 @@ describe("isPackRelativeUrl", () => {
     "",
     "  ",
     "a\n.png",
+    "a%5c..%5c..%5cx.png",
+    "%2fetc%2fpasswd",
+    "C%3a%5cWindows%5cx.png",
+    "a%00.png",
+    "%252e%252e/x",
   ])("refuses %j", (u) => expect(isPackRelativeUrl(u)).toBe(false));
 });
 
@@ -79,6 +84,12 @@ describe("packCssIssues", () => {
     expect(issues).toContain("url https://x.test/a.png");
     // an escaped newline continues the string
     expect(packCssIssues('a { content: "x\\\ny" }')).toEqual([]);
+    expect(packCssIssues('a { content: "x\\\r\ny" }')).toEqual([]);
+  });
+
+  it("refuses attr() with type(), which reads a URL from an attribute", () => {
+    expect(packCssIssues("a { background: attr(data-u type(<url>)) }")).toContain("type() in attr()");
+    expect(packCssIssues("a { content: attr(data-x) }")).toEqual([]);
   });
 
   it("reads vendor-prefixed URL functions like the plain ones", () => {

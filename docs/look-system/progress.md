@@ -369,6 +369,16 @@ Filled in during stage 2 (see `02-implementation-runbook.md`, section 4). Every 
   - L29 not settled: making the `[data-mat]` rule lower in specificity (`:where`) would let any utility class on a card beat the material, which is a pixel risk for P8b to measure. L60 not settled: P8a adds no lazy part; P9 does.
   - `RangeBar` names its flag `horizontal`; Forecast's old `range(f, vertical)` used `vertical` for the horizontal bar. The markup is equal.
 
+- Review and fix round 1 (controller review of 886eb7c4..HEAD: 0 HIGH, 3 MED, 5 LOW):
+  - MED1 (`isPackRelativeUrl` checked scheme, root, backslash on the raw string only): fixed. Every check (control characters, backslash, scheme or drive letter, leading `/`, `..` step) now runs on the raw and on the percent-decoded string, decoded until stable (`%252e`); an invalid escape or more than 4 rounds fails closed. Failing-first cases: `a%5c..%5c..%5cx.png`, `%2fetc%2fpasswd`, `C%3a%5cWindows%5cx.png`, `a%00.png`, `%252e%252e/x`.
+  - MED2 (`pack-urls.ts` imported by nothing): ledger row L62. Not wired in P8a on purpose; the pack loader is P9.
+  - MED3 (no `Widget`-level test of the slots): added `Widget slot layout` in `tests/widgets/core/Widget.test.ts`. It registers a throwaway skin carrying `frame`, `ornament` and `tabBand`, pins `--wp-pad:20px` at the `lg` tier, the layer order (frame, ornament, tab band, then the body), that nothing is drawn or set without a slot, and that a graph's `useId` gradient id is the same with and without the slots (a third conditional child would shift it). `--wp-pad` times `zoom` is not pinned: `renderToString` runs no `ResizeObserver`, so `zoom` is always 1 there (the e2e and look-visual runs do not use a Look with a slot yet).
+  - LOW Icon lookup: fixed. `Icon` reads the set by own key (`Object.hasOwn`), and `iconFor` in `icons.ts` did the same inherited-key lookup on its two plain maps, so `constructor` rendered an object as a React child; it now falls back too. Test: `Icon sets` in `tests/widgets/core/primitives.test.tsx`.
+  - LOW `attr()`: `type()` inside an `attr()` is now an issue (`attr(x type(<url>))`); `attr()` inside a URL function was already refused.
+  - LOW `\` + CRLF in a string: the string scanner skips the pair as one escaped newline, so a CRLF stylesheet with a wrapped string is no longer refused.
+  - LOW pack glyphs and `fill`: not changed. Classic's `fill` tints an outline icon at 0.25 opacity; a pack glyph is a solid path, so the same tint would dim the whole glyph. A Look that wants a tinted header icon draws it in the glyph. Said here, not a ledger row.
+  - LOW budgets: nothing to fix. The `perf:` commit (`1bf5f59c`) body states the reason (the local gzip delta against 886eb7c4: slot children, the Icon set resolver, Unit, ThresholdLine, RangeBar and the 17 hooks; owner pre-approved the P8 rise). History not rewritten.
+
 ## Ledger: known issues and deferred work
 
 Open items carried between phases. Each phase adds what it finds or defers, and closes what it fixes (status `closed in P<N>`).
@@ -436,3 +446,4 @@ Open items carried between phases. Each phase adds what it finds or defers, and 
 | L59 | P6 fix 1 | `contrast.test.ts` mirrors the shell's colour logic (`colours()`) instead of reading the rendered `--w-*`, and its axis-label check uses the light fill, not the cream cards' faint colour | P8 | open |
 | L60 | P6 re-review | `__qaMountAll` settles once the element count holds 0.75 s, so a lazy chunk slower than that could be read early (overflow and look-visual fail on a capped settle, not on an early one); `look-knobs.tsx` `setModes([])` hides the Mode row for a frame on each Look switch | P8 (when slots add lazy parts) | open: P8a adds no lazy part; moves to P9, which adds the first |
 | L61 | P7 review | The D9 hex gate (`tools/looks/scan.mjs`, `scan-baseline.json`) counts only 6- and 8-digit hex: 3/4-digit hex and `rgb()`/`hsl()`/`oklch()` colour literals in widgets pass unseen | P12 (with the validator's colour rules) | open |
+| L62 | P8a review | `packCssIssues` and `isPackRelativeUrl` (`src/looks/pack-urls.ts`) are imported by no loader: G4 for pack CSS and asset URLs is enforced only once the P9 pack loader calls them | P9 | open: owner P9; P9 adds a test that a pack with a remote URL (in CSS and in an asset path) is refused by the loader |

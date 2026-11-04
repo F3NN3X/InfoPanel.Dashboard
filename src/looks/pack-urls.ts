@@ -1,18 +1,31 @@
 // Where G4 is enforced for theme packs: a pack's assets live in its own folder, so the loader refuses any URL that leaves
 // it and any `@import`. The server's CSP allows remote images and fonts, so it does not do this job.
 
-/** A scheme (`https:`, `data:`, `javascript:`), a protocol-relative `//`, a root path, a backslash, or a `..` step. */
-export function isPackRelativeUrl(url: string): boolean {
-  const u = url.trim();
+/** One spelling of a URL: no control character or backslash, no scheme (a drive letter is one) or root path, no `..` step. */
+function plainRelative(u: string): boolean {
   if (!u || /[\u0000-\u001f\\]/.test(u)) return false;
   if (/^[a-z][a-z0-9+.-]*:/i.test(u) || u.startsWith("/")) return false;
-  let decoded = u;
-  try {
-    decoded = decodeURIComponent(u);
-  } catch {
-    return false;
+  return !u.split(/[/?#]/).includes("..");
+}
+
+/**
+ * Pack-relative as written and after percent-decoding: a server may decode before it joins the path, and `%5c`, `%2f` and
+ * `%3a` then become separators. Decoded until stable (`%252e`); an invalid escape fails closed.
+ */
+export function isPackRelativeUrl(url: string): boolean {
+  let u = url.trim();
+  for (let round = 0; round < 5; round++) {
+    if (!plainRelative(u)) return false;
+    let next: string;
+    try {
+      next = decodeURIComponent(u);
+    } catch {
+      return false;
+    }
+    if (next === u) return true;
+    u = next;
   }
-  return !decoded.split(/[/?#]/).includes("..");
+  return false;
 }
 
 /** Functions whose string arguments name files. */
@@ -40,7 +53,8 @@ export function packCssIssues(css: string): string[] {
   const string = (): string => {
     const q = css[i++];
     const from = i;
-    while (i < n && css[i] !== q && !NEWLINE.test(css[i])) i += css[i] === "\\" ? 2 : 1;
+    // `\` + newline continues the string; `\` + CRLF is one newline
+    while (i < n && css[i] !== q && !NEWLINE.test(css[i])) i += css[i] !== "\\" ? 1 : css[i + 1] === "\r" && css[i + 2] === "\n" ? 3 : 2;
     const value = css.slice(from, Math.min(i, n));
     if (css[i] === q) i++;
     else issues.push("unterminated string");
@@ -84,6 +98,8 @@ export function packCssIssues(css: string): string[] {
           else issues.push("unterminated url(");
         } else {
           if (DYNAMIC_FUNCS.has(name) && inUrlFunc()) issues.push(`${name}() in a url function`);
+          // `attr(x type(<url>))` reads a URL from an element attribute
+          if (name === "type" && stack.includes("attr")) issues.push("type() in attr()");
           stack.push(name);
         }
       }

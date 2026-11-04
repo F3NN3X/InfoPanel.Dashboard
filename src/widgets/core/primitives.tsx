@@ -24,7 +24,8 @@ import { HOLD_PX, holdPct } from "./hold";
 // Material Symbols names rendered as lucide icons (see icons.ts); sized by the font size like the glyphs were.
 // A Look's icon set (`SkinContext.icons`) answers per name; a name it lacks falls back to the lucide Classic set.
 export function Icon({ name, className = "", fill }: { name?: string; className?: string; fill?: boolean }) {
-  const glyph = useSkin().icons?.[name ?? ""];
+  const icons = useSkin().icons;
+  const glyph = icons && Object.hasOwn(icons, name ?? "") ? icons[name ?? ""] : undefined;
   const cls = `inline-block shrink-0 select-none ${className}`;
   if (glyph)
     return (
