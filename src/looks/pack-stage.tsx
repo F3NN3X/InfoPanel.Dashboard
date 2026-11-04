@@ -3,7 +3,7 @@
 import { safeFill } from "@/widgets/core/t3-tokens";
 import type { PackStageSpec } from "./pack";
 
-export default function PackStageLayers({ stage, base = "", className = "", overlayClassName = "" }: { stage: PackStageSpec; base?: string; className?: string; overlayClassName?: string }) {
+export default function PackStageLayers({ stage, packId, base = "", className = "", overlayClassName = "" }: { stage: PackStageSpec; packId?: string; base?: string; className?: string; overlayClassName?: string }) {
   const Overlay = stage.overlay;
   return (
     <>
@@ -11,6 +11,7 @@ export default function PackStageLayers({ stage, base = "", className = "", over
         <div
           key={i}
           aria-hidden
+          data-look={packId}
           data-pack-deco=""
           data-pack-layer={i}
           className={`pointer-events-none ${className}`}
@@ -18,7 +19,7 @@ export default function PackStageLayers({ stage, base = "", className = "", over
         />
       ))}
       {Overlay && (
-        <div aria-hidden data-pack-deco="" data-pack-layer="overlay" className={`pointer-events-none ${overlayClassName}`}>
+        <div aria-hidden data-look={packId} data-pack-deco="" data-pack-layer="overlay" className={`pointer-events-none ${overlayClassName}`}>
           <Overlay />
         </div>
       )}

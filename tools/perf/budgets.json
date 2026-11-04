@@ -6,7 +6,7 @@
   "kioskLoadRequests": 34,
   "kioskServerRendererAllowed": false,
   "packs": {
-    "$comment": "Per built-in pack (src/looks/packs/<id>.ts, its Look id): codeGzipBytes = its lazy JS and CSS chunks, gzip; assetBytes = the files in src/looks/packs/<id>/assets, bytes on disk; layersPerPage = max compositing layers per page with the pack on, over Classic (measured by the pack's own spec, not by check-budgets). Set to the measured size plus 25 %, never above packCeilingBytes (code gzip plus assets), lowered whenever a pack shrinks. A pack with no entry here fails the check (node tools/perf/check-budgets.mjs --packs). No pack ships yet.",
+    "$comment": "Per built-in pack (src/looks/packs/<id>.ts, its Look id): codeGzipBytes = its lazy JS and CSS chunks (found through the Vite manifest), gzip; assetBytes = the files in src/looks/packs/<id>/assets, bytes on disk; layersPerPage = max compositing layers per page with the pack on, over Classic (measured by the pack's own spec, not by check-budgets). Set to the measured size plus 25 %, never above packCeilingBytes (code gzip plus assets), lowered whenever a pack shrinks. A pack with no entry here fails the check (node tools/perf/check-budgets.mjs --packs). No pack ships yet.",
     "packCeilingBytes": 512000
   }
 }

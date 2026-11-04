@@ -26,7 +26,7 @@ export interface PackSlots {
 }
 
 /** The component that draws a stage (`PackStageLayers`, pack-stage.tsx); the loader puts it on the pack, so the entry holds no lazy boundary for it. */
-export type StageView = ComponentType<{ stage: PackStageSpec; base?: string; className?: string; overlayClassName?: string }>;
+export type StageView = ComponentType<{ stage: PackStageSpec; packId?: string; base?: string; className?: string; overlayClassName?: string }>;
 
 /** A loaded pack. Its Look's T3 values reach the widgets (`<Widget t3>`), its slots the card, its stage the page. */
 export interface Pack {
@@ -44,8 +44,14 @@ export interface Pack {
   Stage?: StageView;
 }
 
+const ids = new Set<string>();
 /** The Looks that are packs. Keep in step with `BUILTIN` in pack-load.ts (a test pins it); none ships yet. */
-export const PACK_IDS = new Set<string>();
+export const PACK_IDS: ReadonlySet<string> = ids;
+/** Adds or removes a pack id (`registerPack` and `unregisterPack`, pack-load.ts). */
+export function setPackId(id: string, on: boolean): void {
+  if (on) ids.add(id);
+  else ids.delete(id);
+}
 
 /** The pack a Look is (undefined for Classic, a skin, a sample Look, or while it loads or when the loader refused it). */
 export function usePack(lookId: string | undefined): Pack | undefined {
@@ -54,16 +60,20 @@ export function usePack(lookId: string | undefined): Pack | undefined {
     if (!lookId || !PACK_IDS.has(lookId)) return;
     let live = true;
     let off = () => {};
+    // A result lands only while this is still the Look asked for, and with its CSS in the page (one shared load per pack).
     import("./pack-load")
       .then(async (m) => {
-        const pack = await m.loadPack(lookId);
-        if (live && pack) off = m.mountPackCss(pack);
-        if (live) setLoaded({ id: lookId, pack });
+        const pack = await m.sharedPack(lookId);
+        if (!live) return;
+        if (pack) off = m.mountPackCss(pack);
+        setLoaded({ id: lookId, pack });
       })
       .catch(() => live && setLoaded({ id: lookId }));
     return () => {
       live = false;
       off();
+      // its CSS is out: a later switch back to this Look must not return the old result before the CSS is mounted again
+      setLoaded((now) => (now?.id === lookId ? undefined : now));
     };
   }, [lookId]);
   return loaded?.id === lookId ? loaded?.pack : undefined;
@@ -75,5 +85,5 @@ export const packBackground = (pack: Pack | undefined): boolean => !!pack?.stage
 /** The pack's page layers (`className` places them, as `PageBackground`'s; `overlayClassName` the overlay); nothing without a pack stage. */
 export function PackStage({ pack, className, overlayClassName }: { pack: Pack | undefined; className?: string; overlayClassName?: string }) {
   const View = pack?.Stage;
-  return pack?.stage && View ? <View stage={pack.stage} base={pack.base} className={className} overlayClassName={overlayClassName} /> : null;
+  return pack?.stage && View ? <View stage={pack.stage} packId={pack.id} base={pack.base} className={className} overlayClassName={overlayClassName} /> : null;
 }

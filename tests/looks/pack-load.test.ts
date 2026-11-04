@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { PACK_IDS, type Pack } from "@/looks/pack";
-import { BUILTIN, loadPack, packIssues, registerPack } from "@/looks/pack-load";
+import { BUILTIN, loadPack, packIssues, registerPack, unregisterPack } from "@/looks/pack-load";
 import { badPack, TEST_PACK } from "./__fixtures__/test-pack";
 
 const from = (pack: Pack) => ({ [pack.id]: async () => ({ default: pack }) });
@@ -22,10 +22,41 @@ describe("the pack loader (G4)", () => {
     ["a stage image with a quote", { stage: { layers: [{ image: 'a".png' }] } }],
     ["a stage fill that is an image", { stage: { layers: [{ fill: "url(https://evil.example/x.png)" }] } }],
     ["four stage layers", { stage: { layers: [{}, {}, {}, {}] } }],
+    ["a rule that hides the page", { css: "body { display: none }" }],
+    ["a rule that moves a card", { css: ".card { position: absolute }" }],
+    ["a rule that scales everything", { css: "* { transform: scale(2) }" }],
+    ["a size", { css: "[data-part=card] { width: 10px }" }],
+    ["font-size", { css: "[data-part=card] { font-size: 40px }" }],
+    ["!important", { css: "[data-part=card] { color: red !important }" }],
+    ["a selector on :root", { css: ":root { color: red }" }],
+    ["a selector on html", { css: "html .a { color: red }" }],
+    ["a selector on :host", { css: ":host { color: red }" }],
+    ["content outside a pseudo-element", { css: ".a { content: 'x' }" }],
+    ["a rule that closes the scope", { css: ".a { color: red } } body { display: none } .b { color: red" }],
+    ["an @layer or @scope of its own", { css: "@layer other { .a { color: red } }" }],
+    ["a nested rule", { css: ".a { color: red; .b { display: none } }" }],
+    ["a remote base", { base: "https://evil.example/" }],
+    ["a protocol-relative base", { base: "//evil.example/" }],
+    ["a base that climbs out", { base: "../../x/" }],
+    ["a base without a closing slash", { base: "/packs/x" }],
+    ["an id that is not a slug", { id: 'a"]{}' }],
+    ["a Look id that is not the pack id", { look: { ...TEST_PACK.look, id: "other" } }],
+    ["no supported modes", { look: { ...TEST_PACK.look, modes: {} as never } }],
   ] as [string, Partial<Pack>][])("refuses a pack with %s", async (_, patch) => {
     const pack = badPack(patch);
     expect(packIssues(pack).length).toBeGreaterThan(0);
     expect(await loadPack("test-pack", from(pack))).toBeUndefined();
+  });
+
+  it("takes paint properties, custom properties, pseudo-element content, keyframes and @media, scoped to the pack", () => {
+    const css = [
+      "[data-part=card] { background: linear-gradient(#000, #111); border-color: red; box-shadow: 0 0 4px red; --w-accent: #f0f; font-family: Foo; filter: blur(2px) }",
+      ".a::before { content: ''; background: red }",
+      "@keyframes pulse { from { opacity: 0 } 50% { opacity: 1 } to { opacity: 0 } }",
+      "@font-face { font-family: Foo; src: url(fonts/body.woff2) }",
+      "@media (min-width: 600px) { .b { mask-image: linear-gradient(#000, transparent); animation: pulse 2s infinite } }",
+    ].join(" ");
+    expect(packIssues(badPack({ css }))).toEqual([]);
   });
 
   it("refuses an unknown id, an inherited key and a module that is another pack", async () => {
@@ -49,10 +80,12 @@ describe("the pack loader (G4)", () => {
 
   it("registers a source and its id, and the shipped id list matches the built-in sources", async () => {
     expect(Object.keys(BUILTIN).filter((id) => id !== "test-pack").sort()).toEqual([...PACK_IDS].filter((id) => id !== "test-pack").sort());
-    registerPack("test-pack", async () => ({ default: TEST_PACK }));
-    expect(PACK_IDS.has("test-pack")).toBe(true);
-    expect((await loadPack("test-pack"))?.id).toBe("test-pack");
-    delete BUILTIN["test-pack"];
-    PACK_IDS.delete("test-pack");
+    try {
+      registerPack("test-pack", async () => ({ default: TEST_PACK }));
+      expect(PACK_IDS.has("test-pack")).toBe(true);
+      expect((await loadPack("test-pack"))?.id).toBe("test-pack");
+    } finally {
+      unregisterPack("test-pack");
+    }
   });
 });

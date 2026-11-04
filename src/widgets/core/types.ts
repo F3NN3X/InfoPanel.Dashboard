@@ -21,6 +21,8 @@ export interface ShellProps {
   /** A pack Look's T3 values and component slots (`usePack`); unset for every other Look. */
   t3?: Record<string, string | number>;
   slots?: PackSlots;
+  /** The pack the T3 values and slots come from: the card wears `data-look` so the pack CSS reaches it. */
+  packId?: string;
   variant?: "default" | "studio";
   size?: Tier | "auto";
   compactView?: "auto" | "off" | "on";

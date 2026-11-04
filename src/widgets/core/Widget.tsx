@@ -49,6 +49,8 @@ export interface WidgetProps {
   t3?: Record<string, string | number>;
   /** A pack Look's ornament, tab band and icon set. */
   slots?: PackSlots;
+  /** The pack Look the card wears (`data-look`: where the pack CSS is scoped). */
+  packId?: string;
   /** The zone's resolved settings (`src/modules/standard-settings.ts`); absent = template behaviour. */
   look?: ModuleSettings;
   /** A full-bleed layer under the content (e.g. blurred cover art). */
@@ -83,6 +85,7 @@ export const shell = (p: ShellInput): Partial<WidgetProps> => ({
   meter: p.meter,
   t3: p.t3,
   slots: p.slots,
+  packId: p.packId,
   variant: p.variant,
   look: p.look,
   iconOverride: p.iconOverride,
@@ -92,7 +95,7 @@ export const shell = (p: ShellInput): Partial<WidgetProps> => ({
 const typeVars = (scale: number): CSSProperties =>
   ({ "--text-micro": `calc(0.6875rem * ${scale})`, "--text-caption": `calc(0.75rem * ${scale})`, "--text-body": `calc(0.8125rem * ${scale})`, "--text-title": `calc(0.9375rem * ${scale})` }) as CSSProperties;
 
-export function Widget({ title, icon, iconOverride, accent, surface, radius, size, showHeader = true, right, className = "", style, children, bleed, compact, compactView, skin = "default", graph, meter, variant, studio, look, t3, slots, backdrop, design = DESIGN_SIZE, fixedType }: WidgetProps) {
+export function Widget({ title, icon, iconOverride, accent, surface, radius, size, showHeader = true, right, className = "", style, children, bleed, compact, compactView, skin = "default", graph, meter, variant, studio, look, t3, slots, packId, backdrop, design = DESIGN_SIZE, fixedType }: WidgetProps) {
   const chrome = useMemo(() => (look ? chromeOf(look) : undefined), [look]);
   // A zone past the design size zooms the content with it, and Size % on top; the tier and shape are taken from the zoomed size.
   const [ref, box, zoom] = useBox(forcedTier(look, size), (w, h) => zoomFor({ w, h }, design ?? undefined, chrome));
@@ -157,7 +160,7 @@ export function Widget({ title, icon, iconOverride, accent, surface, radius, siz
     <SkinCtx.Provider value={skinCtx}>
       <RoomyCtx.Provider value={big}>
       <PaneCtx.Provider value={{ className: mat.className, style: surfBox }}>
-      <div ref={ref} style={rootStyle} data-part="card" data-mat={mat.id} data-tone={mat.tone} data-mode={mat.tone === "light" ? "light" : undefined} data-mat-blur={mat.fallback ? "" : undefined} data-wp-scope={css ? scope : undefined} {...numGlowAttr(chrome)} data-wp-tier={box.size} data-wp-roomy={big ? "" : undefined} data-wp-shape={box.shape} data-wp-view={isStudio ? "studio" : useCompact ? "compact" : "body"} className={`relative flex h-full w-full min-w-0 flex-col overflow-hidden antialiased ${mat.className} ${className}`}>
+      <div ref={ref} style={rootStyle} data-part="card" data-look={packId} data-mat={mat.id} data-tone={mat.tone} data-mode={mat.tone === "light" ? "light" : undefined} data-mat-blur={mat.fallback ? "" : undefined} data-wp-scope={css ? scope : undefined} {...numGlowAttr(chrome)} data-wp-tier={box.size} data-wp-roomy={big ? "" : undefined} data-wp-shape={box.shape} data-wp-view={isStudio ? "studio" : useCompact ? "compact" : "body"} className={`relative flex h-full w-full min-w-0 flex-col overflow-hidden antialiased ${mat.className} ${className}`}>
         {css && <style>{css}</style>}
         {background && (
           <>

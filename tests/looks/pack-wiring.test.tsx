@@ -8,7 +8,7 @@ import { TEST_PACK } from "./__fixtures__/test-pack";
 
 // biome-ignore lint/correctness/noChildrenProp: the Widget takes a render function as children.
 const card = (props: Record<string, unknown> = {}) => renderToString(h(Widget, { size: "lg", title: "T", icon: "memory", children: () => h("i"), ...props }));
-const withPack = () => card({ t3: TEST_PACK.look.t3, slots: TEST_PACK.slots });
+const withPack = () => card({ t3: TEST_PACK.look.t3, slots: TEST_PACK.slots, packId: "test-pack" });
 
 describe("a pack Look through Widget", () => {
   it("draws the frame, ornament, tab band, icon set and gradient numerals its Look carries", () => {
@@ -18,11 +18,13 @@ describe("a pack Look through Widget", () => {
     expect(html).toContain("mask-composite");
     expect(html).toContain("--wp-pad:20px");
     expect(html).toContain("M2 2h20v20H2z");
+    expect(html).toContain('data-look="test-pack"');
   });
   it("draws nothing extra for Classic or a Look that is not a pack", () => {
     const plain = card();
     for (const mark of ["data-wp-layer", "--wp-pad", "mask-composite", "M2 2h20v20H2z"]) expect(plain).not.toContain(mark);
-    expect(card({ t3: undefined, slots: undefined })).toBe(plain);
+    expect(card({ t3: undefined, slots: undefined, packId: undefined })).toBe(plain);
+    expect(plain).not.toContain("data-look");
   });
   it("keeps every ornament and tab band mark inside the card's padding, and the ornament within 10 px (plan risk line, H4.5)", () => {
     const html = withPack();
@@ -50,12 +52,13 @@ describe("a pack Look through Widget", () => {
 
 describe("the pack stage", () => {
   it("draws up to 3 decorative layers with their fill or image, and the overlay", () => {
-    const html = renderToString(h(PackStageLayers, { stage: { ...TEST_PACK.stage!, layers: [...TEST_PACK.stage!.layers, { fill: "red" }] }, base: TEST_PACK.base, className: "fixed inset-0 -z-10", overlayClassName: "fixed inset-0 z-10" }));
+    const html = renderToString(h(PackStageLayers, { stage: { ...TEST_PACK.stage!, layers: [...TEST_PACK.stage!.layers, { fill: "red" }] }, packId: "test-pack", base: TEST_PACK.base, className: "fixed inset-0 -z-10", overlayClassName: "fixed inset-0 z-10" }));
     expect(html.match(/data-pack-layer="\d"/g)).toHaveLength(3);
     expect(html).toContain('data-pack-deco=""');
     expect(html).toContain('aria-hidden="true"');
     expect(html).toContain("url(&quot;/packs/test-pack/bg.png&quot;)");
     expect(html).toContain('data-t="overlay"');
+    expect(html.match(/data-look="test-pack"/g)).toHaveLength(4);
   });
   it("paints no fill that is not a colour or a gradient", () => {
     const html = renderToString(h(PackStageLayers, { stage: { layers: [{ fill: "url(https://evil.example/x.png)" }] } }));
