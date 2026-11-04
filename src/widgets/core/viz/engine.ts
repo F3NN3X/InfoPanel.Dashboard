@@ -52,6 +52,7 @@ export function createVizEngine(canvas: HTMLCanvasElement): VizEngine {
   let onScreen = true;
   let unsubscribe: (() => void) | null = null;
   let stilled = false;
+  let settle: (() => void) | null = null;
   let lastMs = 0;
   let bars = new Float32Array(0);
   let peaks = new Float32Array(0);
@@ -101,11 +102,35 @@ export function createVizEngine(canvas: HTMLCanvasElement): VizEngine {
       unsubscribe();
       unsubscribe = null;
     }
-    // The still frame shows the input as first read (silent until the input has stepped), not live audio.
+    // The still frame shows the input as the frame after the first read has it (the first read can come before
+    // the input has stepped, so that frame is repainted once), not live audio.
     if (!run && !stilled && onScreen && spec?.reduced && getter) {
       lastMs = 0;
       stilled = paint(performance.now());
+      if (stilled) settleStill();
     }
+  };
+
+  const cancelSettle = () => {
+    settle?.();
+    settle = null;
+  };
+
+  /** One more still paint on the next frame, after the input's update has stepped; then the loop sleeps again. */
+  const settleStill = () => {
+    cancelSettle();
+    settle = subscribeFrame(
+      (nowMs) => {
+        cancelSettle();
+        if (spec?.reduced && getter && onScreen) {
+          lastMs = 0;
+          paint(nowMs);
+        }
+      },
+      "paint",
+      "viz:still",
+      AMBIENT_FPS
+    );
   };
 
   const resize = () => {
@@ -148,6 +173,7 @@ export function createVizEngine(canvas: HTMLCanvasElement): VizEngine {
       sync();
     },
     dispose: () => {
+      cancelSettle();
       unsubscribe?.();
       unsubscribe = null;
       ro?.disconnect();
