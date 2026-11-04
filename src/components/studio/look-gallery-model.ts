@@ -9,7 +9,8 @@ import type { Look } from "@/looks/look";
  * The Look gallery as data (investigation 7 F5, D14): Classic, the 13 skin Looks and the 12 sample Looks as tagged
  * cards, and what picking one writes. Picking a Look writes its `lookId` and its screen colours, corners and page
  * (a sample's), and no widget-style values: those come from the Look layer (L40), so the knobs above a level show only
- * what the level changes. The hidden `default` Look is never listed. Pure.
+ * what the level changes. The pick keeps what the level holds of its own (`applyLookToLevel`). The hidden `default`
+ * Look is never listed. Pure.
  */
 
 /** The Looks the gallery lists, in registry order: every one but the hidden `default` (which loads as Classic). */

@@ -10,7 +10,10 @@ import type { ScreenTemplate } from "@/lib/screen-templates/kit";
 import { instantiate } from "@/lib/screen-templates/instantiate";
 import { templatePreset, variantOf } from "@/lib/screen-templates/looks";
 import { DEFAULT_THEME, THEME_PRESETS } from "@/lib/theme";
+import { lookPreset } from "@/components/studio/look-gallery-model";
+import { presetTokens } from "@/lib/appearance-presets";
 import {
+  applyLookToLevel,
   applyThemeToLevel,
   applyThemeToScreens,
   resetToTheme,
@@ -125,6 +128,33 @@ describe("a pick adds to the look (a screen)", () => {
     expect(p1(kept).background).toEqual(p1(c).background);
     expect(p1(kept).appliedTheme?.background).toBeUndefined();
     expect(p1(applyThemeToLevel(c, night, P1)).background).toEqual(p1(c).background);
+  });
+});
+
+describe("picking a Look (the gallery): its id, the level's own kept", () => {
+  const hud = lookPreset({ id: "hud", name: "HUD", description: "" });
+  const tagged = lookPreset({ id: "term", name: "Term", description: "" }, night);
+
+  it("keeps a screen's own colors, corners, values and widgets, with no snapshot as with one", () => {
+    const own = editScreen(withP(config(), "p1", (p) => ({ ...p, theme: { ...OCEAN }, radius: 1, pages: [mainPage([zone("p1-z", { accent: "#00ff00" })])] })), { lookId: "term", accent: "#ff0000", radius: "12" });
+    for (const start of [own, applyLookToLevel(own, tagged, P1)]) {
+      const p = p1(applyLookToLevel(start, hud, P1));
+      expect(p.widgetTheme?.values).toEqual({ lookId: "hud", accent: "#ff0000", radius: "12" });
+      expect([p.theme, p.radius]).toEqual([OCEAN, 1]);
+      expect(p.pages).toEqual(p1(own).pages);
+    }
+  });
+
+  it("replaces what the last look wrote: its colors, corners and values", () => {
+    const picked = applyLookToLevel(applyThemeToLevel(config(), desk, P1), hud, P1);
+    expect(p1(picked).widgetTheme?.values).toEqual({ lookId: "hud" });
+    expect([p1(picked).theme, p1(picked).radius]).toEqual([presetTokens(hud), hud.radius]);
+    expect(themeState(picked, P1).changed).toEqual([]);
+  });
+
+  it("keeps a page's own values with no snapshot", () => {
+    const c = withP(config(), "p1", (p) => ({ ...p, pages: [{ ...p.pages[0], widgetTheme: { values: { accent: "#ff0000" }, follow: { colors: false } } }] }));
+    expect(page(applyLookToLevel(c, hud, PAGE)).widgetTheme).toEqual({ values: { accent: "#ff0000", lookId: "hud" }, follow: { colors: false, skin: false } });
   });
 });
 

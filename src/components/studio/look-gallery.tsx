@@ -22,7 +22,8 @@ export interface LookGalleryProps {
   currentPresetId?: string;
   /** The saved looks, as cards after the Looks. */
   saved: readonly AppearancePreset[];
-  onPick: (preset: AppearancePreset, keepBackground: boolean) => void;
+  /** Apply a card: a Look (`look`, it keeps the level's own values) or a saved look. */
+  onPick: (preset: AppearancePreset, keepBackground: boolean, look: boolean) => void;
   /** Saved looks and template looks, with their actions; its count line. */
   onMore: () => void;
   moreCount: string;
@@ -76,7 +77,7 @@ export function LookGallery({ currentLookId, currentPresetId, saved, onPick, onM
   const shown = filterLooks(list, filter, query);
   const savedShown = filter === "all" ? saved.filter((p) => query.trim() === "" || p.name.toLowerCase().includes(query.trim().toLowerCase())) : [];
   const savedApplied = saved.some((p) => p.id === currentPresetId);
-  const pick = (preset: AppearancePreset) => onPick(preset, keep);
+  const pick = (preset: AppearancePreset, look = false) => onPick(preset, keep, look);
   return (
     <section aria-label="Look gallery" data-nav-section="gallery" className="flex flex-col gap-3 border-t border-ui-subtle px-4 pb-4 pt-3.5">
       <div className="flex items-center justify-between gap-2">
@@ -115,7 +116,7 @@ export function LookGallery({ currentLookId, currentPresetId, saved, onPick, onM
       </div>
       <div className="grid grid-cols-2 gap-2.5">
         {shown.map((l) => (
-          <Card key={l.id} look={l} selected={!savedApplied && l.id === currentLookId} onPick={() => pick(l.preset)} />
+          <Card key={l.id} look={l} selected={!savedApplied && l.id === currentLookId} onPick={() => pick(l.preset, true)} />
         ))}
       </div>
       {looks && shown.length === 0 && <p className="text-caption text-ui-hint">No Look matches.</p>}

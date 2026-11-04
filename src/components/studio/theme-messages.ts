@@ -49,10 +49,13 @@ export const appliedToScreensToast = (name: string, screens: number, keepBackgro
 
 export const paletteToast = (name: string): ToastText => ({ title: `Palette changed to ${name}.`, sub: "Skin, corners, background and the rest of the fine-tune kept." });
 
-/** A page's skin: its palette, corners and background are its screen's (owner decision 1). */
-export const skinToast = (name: string, level: ThemeLevel, screen: string): ToastText => ({
-  title: `Skin changed to ${name}.`,
-  sub: level === "page" ? `Fine-tune kept. ${pageParts(screen)}` : "Colors, corners, background and fine-tune kept.",
+/** A Look picked in the gallery: the level keeps its own values (a page's palette, corners and background are its screen's). */
+export const lookToast = (name: string, level: ThemeLevel, background: boolean, screen: string): ToastText => ({
+  title: `Look changed to ${name}.`,
+  sub:
+    level === "page"
+      ? `Your fine-tune changes kept. ${pageParts(screen)}`
+      : `Your colors, corners and fine-tune changes kept.${background ? " Background changed." : ""}`,
 });
 
 export const resetToast = (name: string, level: ThemeLevel, levelName: string, screen: string): ToastText => ({

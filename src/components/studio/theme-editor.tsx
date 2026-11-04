@@ -53,7 +53,7 @@ import { LookGallery } from "./look-gallery";
 import { lookName as lookNameOf } from "./look-gallery-model";
 import { LookKnobs } from "./look-knobs";
 import { ThemeLookCard, ThemeUpdateBar } from "./theme-look-card";
-import { appliedToast, appliedToScreensToast, paletteToast, paletteUsedBy, resetToast, savedToast } from "./theme-messages";
+import { appliedToast, appliedToScreensToast, lookToast, paletteToast, paletteUsedBy, resetToast, savedToast } from "./theme-messages";
 import { PalettePicker } from "./theme-palette-picker";
 import { BackgroundPicker } from "./theme-part-pickers";
 import { SwitchThemePicker } from "./theme-pickers";
@@ -274,6 +274,12 @@ export function ThemeEditor({ config, scope: requested, profileId, pageId, onPic
       ...(kept > 0 ? { reset: { label: `Reset to ${p.name}`, run: () => resetTo(p, p.name) } } : {}),
       ...(widgets > 0 ? { follow: { label: "Make them follow", run: () => setConfig((c) => followAll(c, widgetsKeeping(c, at, p))) } } : {}),
     });
+  };
+  /** A gallery Look: its id, the level's own colors, corners and fine-tune kept (one undo step). */
+  const pickLook = (p: AppearancePreset, keepBackground: boolean) => {
+    presets.applyLook(p, at, keepBackground);
+    const background = at.level !== "page" && !keepBackground && p.background !== undefined;
+    show({ ...lookToast(p.name, at.level, background, profile.name), reset: { label: `Reset to ${p.name}`, run: () => resetTo(p, p.name) } });
   };
   /** The screen's theme on it and the ticked screens: one change, one undo step. */
   const applyToScreens = (profileIds: readonly string[], keepBackground: boolean) => {
@@ -519,7 +525,7 @@ export function ThemeEditor({ config, scope: requested, profileId, pageId, onPic
               currentLookId={lookId}
               currentPresetId={state.applied?.id}
               saved={presets.presets}
-              onPick={applyPreset}
+              onPick={(p, keepBackground, look) => (look ? pickLook(p, keepBackground) : applyPreset(p, keepBackground))}
               onMore={() => setDrill("themes")}
               moreCount={themeCounts(presets.presets.length, rows ?? [])}
             />
