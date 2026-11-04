@@ -1,11 +1,10 @@
 import type { CSSProperties } from "react";
-import { MATERIALS, makeSurfacePalette, resolveMaterial, type ModernStyle } from "@/looks/materials";
-import { chromeOf } from "@/modules/standard-settings";
+import { makeSurfacePalette, type ModernStyle } from "@/looks/materials";
 import type { ModuleSettings } from "@/modules/types";
 import { Widget, shell, has, Img, Chip, MediaProgress, roomy, scaleX, type MediaProgressMode, type ShellProps } from "./kit";
 import type { VizLook, VizStyle } from "./core/viz/types";
 import { widgetImage } from "./data-adapter";
-import { useArtTint } from "./NowPlaying/art-tint";
+import { tintedCardVars, useArtTint } from "./NowPlaying/art-tint";
 import { AUDIO, levelDevice, useLevelDevice } from "./audio-device";
 import { audioIdsIn, pickedIds, type FlowFilter } from "./audio-data";
 import { useFastSensors } from "@/hooks/useSensors";
@@ -107,7 +106,7 @@ export default function NowPlaying(p: NowPlayingProps) {
   const surfaceName = String(p.look?.surface ?? p.surface ?? "glass");
   const palette = artTint && TINTABLE.includes(surfaceName) ? makeSurfacePalette(surfaceName as ModernStyle, artTint) : null;
   const sh = shell(p);
-  const style: CSSProperties | undefined = palette ? { ...sh.style, background: resolveMaterial(MATERIALS[surfaceName], p.look ? chromeOf(p.look) : undefined, palette).box.background } : sh.style;
+  const style: CSSProperties | undefined = palette ? { ...sh.style, ...tintedCardVars(surfaceName, p.look, palette) } : sh.style;
   const backdrop =
     p.artBackground && cover ? (
       <div

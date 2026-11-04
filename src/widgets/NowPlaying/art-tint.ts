@@ -1,6 +1,8 @@
 // Cover-art tint: a Vibrant-style palette sampled from the art (moved from the legacy now-playing widget).
-import { useEffect, useState } from "react";
-import { darken, lighten, type ArtTint, type RGB } from "@/looks/materials";
+import { useEffect, useState, type CSSProperties } from "react";
+import { darken, lighten, MATERIALS, resolveMaterial, type ArtTint, type RGB, type Surface } from "@/looks/materials";
+import { chromeOf } from "@/modules/standard-settings";
+import type { ModuleSettings } from "@/modules/types";
 import { IMAGE_PROXY_URL } from "@/lib/dashboard-server";
 
 const rgbToHsl = (
@@ -182,4 +184,13 @@ export function useArtTint(url: string | undefined, enabled: boolean): ArtTint |
     };
   }, [url, enabled]);
   return tint;
+}
+
+/**
+ * The card's material rebuilt from the art's palette, as the `--w-mat-*` variables the shell's `[data-mat]` rule paints
+ * (not an inline `background`, which would beat the blur fallback over a solid page, ledger L30).
+ */
+export function tintedCardVars(surface: string, look: ModuleSettings | undefined, palette: Surface): CSSProperties {
+  const r = resolveMaterial(MATERIALS[surface], look ? chromeOf(look) : undefined, palette);
+  return { "--w-mat-bg": r.box.background ?? "transparent", ...(r.fallback ? { "--w-mat-fallback": r.fallback } : null) } as CSSProperties;
 }
