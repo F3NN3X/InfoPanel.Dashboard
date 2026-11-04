@@ -1105,6 +1105,24 @@ Rules the server enforces:
 - **Read errors.** A file that vanishes while being streamed (a concurrent
   delete) destroys that response; it never crashes the server.
 
+### User packs (`src-tauri/crates/ips-server/src/packs.rs`, `src/looks/user-packs.ts`, `user-pack-import.ts`)
+
+A user pack is a theme pack the user brought: files in `<data dir>\packs\<id>\` (`pack.json`, `look.json`, optional
+`icons.json`, `OFL.txt`, and `assets/<name>.<ext>` for woff2, png, jpg, webp and svg), never a `pack.css`. The server
+(`/api/packs`) stores and serves them and does the path and size work: `GET /api/packs` lists id, name and size;
+`GET /api/packs/<id>/<file>` serves one file by a strict id pattern (`^[a-z0-9][a-z0-9-]{0,47}$`) and a fixed file set,
+canonicalised under `packs/<id>/` with links never followed, typed by extension with `nosniff` and a CSP of
+`default-src 'none'` (SVG: `sandbox` too), and refuses a pack over 512,000 bytes, a file over 256,000 or more than 64 files
+(413); `POST /api/packs` takes `{ id, files: [{ path, data }] }` (base64) with `X-Dashboard-Pack: 1`, this computer only,
+refuses `pack.css` and any path outside the set, and moves the finished folder into place; `DELETE /api/packs/<id>`
+removes one. The validator (`pack-validate.ts`) runs in the studio at import and again in the loader, in `user` mode set by
+the loader (where the bytes came from), never by what the pack says; a config that names a Look id this build does not
+have (`userLookIds`) makes `readConfig` look for a pack of that id, and a pack with an error is not a Look (Classic is
+drawn). The pack is built from its declarative files (`userPackOf`): the Look's default material is its card, the
+loader writes the only CSS (font-family rules from the families the validator passed). Removing a pack takes its `lookId`
+off every level that wears it. **Rollback:** `USER_PACKS=off` makes the list empty, every file 404 and the writes 403;
+the built-in packs are unaffected.
+
 ### For the InfoPanel import (`src-tauri/crates/ips-server/src/library.rs`, `infopanel_local.rs`, `font_proxy.rs`)
 
 | Route | Answer |
