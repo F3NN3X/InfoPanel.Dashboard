@@ -113,6 +113,10 @@ export interface SkinTokens {
   graph: string;
   meter: string;
   header: string;
+  /** The header title's fill, a CSS gradient or colour (the Look contract's `header-fill`): Synth's neon gradient. */
+  headerFill: string;
+  /** The header title's ink (`header-color`): Nixie's brass. */
+  headerInk: string;
   ring: number;
 }
 

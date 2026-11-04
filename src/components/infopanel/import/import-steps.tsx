@@ -189,8 +189,8 @@ export function reviewModel(r: ImportReport, extra: { unresolved: number; failed
   return { tiles, rows };
 }
 
-const TONE_DOT = { warn: "bg-ui-warning", bad: "bg-ui-danger" };
-const TONE_TEXT = { warn: "text-ui-warning", bad: "text-ui-danger" };
+const TONE_DOT = { warn: "bg-ui-warn", bad: "bg-ui-danger" };
+const TONE_TEXT = { warn: "text-ui-warn", bad: "text-ui-danger" };
 
 export function ReviewStep({ state }: { state: ImportState }) {
   const { tiles, rows } = reviewModel(state.report, { unresolved: state.unresolved, failed: state.upload.failed, online: state.online });

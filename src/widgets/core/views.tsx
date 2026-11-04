@@ -424,7 +424,7 @@ export function SkinHeader({ kind, title, icon, right, bleed, bg = "#0b0b0d", w 
   if (kind === "synth")
     return (
       <header className={`${base} mb-2 gap-2 text-[11px] font-bold uppercase italic tracking-[0.18em]`} style={st("uppercase")}>
-        <span className="truncate bg-gradient-to-r from-[#ff4fd8] to-[#38e8ff] bg-clip-text text-transparent">{title}</span>
+        <span className="truncate bg-clip-text text-transparent" style={{ backgroundImage: sk.headerFill }}>{title}</span>
         {r}
       </header>
     );
@@ -446,7 +446,7 @@ export function SkinHeader({ kind, title, icon, right, bleed, bg = "#0b0b0d", w 
     );
   if (kind === "nixie")
     return (
-      <header className={`${base} mb-2 gap-2 text-micro uppercase tracking-[0.3em] text-[#a8805e]`} style={st("uppercase")}>
+      <header className={`${base} mb-2 gap-2 text-micro uppercase tracking-[0.3em]`} style={{ color: sk.headerInk, ...st("uppercase") }}>
         <span className="truncate">{title}</span>
         {r}
       </header>

@@ -255,7 +255,7 @@ describe("updateAppearancePreset", () => {
   it("overwrites the look in place, keeping the id, name, description and the other Themes", () => {
     const updated = updateAppearancePreset(withTwo, "a", P1);
     const [a, b] = updated.appearancePresets!;
-    expect(a).toMatchObject({ id: "a", name: "Alpha", description: "Saved theme", radius: 1 });
+    expect(a).toMatchObject({ id: "a", name: "Alpha", description: "Saved look", radius: 1 });
     expect(a.theme).toEqual({ ...DEFAULT_THEME, primary: "1 2% 3%" });
     expect(b).toEqual(withTwo.appearancePresets![1]);
     expect(updated.appearancePresets).toHaveLength(2);

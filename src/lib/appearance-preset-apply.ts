@@ -98,7 +98,7 @@ export function presetFromCurrent(
   return {
     id,
     name,
-    description: "Saved theme",
+    description: "Saved look",
     theme: { ...theme.tokens },
     radius: theme.radius,
     style,
@@ -130,7 +130,7 @@ export function themeFromScope(
   const { background, ...rest } = preset;
   return {
     ...rest,
-    description: "Saved theme",
+    description: "Saved look",
     style: themedOf({ ...preset.style, ...Object.fromEntries(pageValues) }),
     ...(includeBackground && background ? { background } : {}),
   };

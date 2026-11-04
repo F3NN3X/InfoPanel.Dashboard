@@ -26,7 +26,7 @@ const themeWrote = (card: ThemeCard, state: ThemeState): boolean => {
 
 /**
  * A section's chip: Changed here where the level holds values of its own (`themeState().own`, or the page font),
- * From theme where it shows what the applied theme wrote, else where it inherits from (a screen: Built-in).
+ * From look where it shows what the applied theme wrote, else where it inherits from (a screen: Built-in).
  * A page under its screen's lock is Locked.
  */
 export function fineTuneChip(config: DashboardConfig, at: ThemeAt, card: ThemeCard, state: ThemeState): FineTuneChip {
@@ -49,7 +49,7 @@ export const changedHere = (chip: FineTuneChip): boolean => chip.state === "cust
 
 /**
  * Reset to inherited: the card back to what the level inherits (see `resetCard`). At a screen with a theme applied,
- * its values go back to the theme's, so the section reads From theme again.
+ * its values go back to the theme's, so the section reads From look again.
  */
 export function resetFineTune(config: DashboardConfig, at: ThemeAt, card: ThemeCard, state: ThemeState): DashboardConfig {
   const reset = resetCard(config, at, card);

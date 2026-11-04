@@ -68,7 +68,7 @@ export default function VizGallery() {
                 <span className="w-40 shrink-0 font-mono text-micro opacity-70">{row.name}</span>
                 {VIZ_STYLES.map((style) => (
                   <figure key={style} data-viz-tile={`${row.name}|${style}|${cell}`} className="m-0 flex flex-col gap-1">
-                    <div className="relative rounded-lg bg-[#161a20] p-2" style={{ width: cell * 2 + 8, height: cell }}>
+                    <div className="relative rounded-lg bg-ui-tile p-2" style={{ width: cell * 2 + 8, height: cell }}>
                       <AudioViz style={style} look={row.look} input={input} className="h-full" aria-label={`${style} test signal`} />
                     </div>
                     <figcaption className="font-mono text-micro opacity-60">{style}</figcaption>

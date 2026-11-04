@@ -99,7 +99,7 @@ export function WelcomeStep({ headRef, rerun, narrow, results, onSeeChecks }: We
         {strip.state === "running" ? (
           <Spinner />
         ) : (
-          <StripIcon className={cn("h-[18px] w-[18px] shrink-0", strip.state === "ok" ? "text-ui-success" : strip.state === "warn" ? "text-ui-warning" : "text-ui-danger")} strokeWidth={1.75} />
+          <StripIcon className={cn("h-[18px] w-[18px] shrink-0", strip.state === "ok" ? "text-ui-ok" : strip.state === "warn" ? "text-ui-warn" : "text-ui-danger")} strokeWidth={1.75} />
         )}
         <span className="flex min-w-0 flex-1 flex-col">
           <span className="text-body font-medium text-ui-1">{strip.title}</span>
@@ -405,7 +405,7 @@ export function StartStep({ headRef, rerun, size, start, onStart, pick, onPick, 
                   <span className="truncate px-2 pt-1.5 text-caption font-medium text-ui-1">{t.name}</span>
                   <span className="truncate px-2 text-micro text-ui-4">{t.blurb}</span>
                   {cover ? (
-                    <span className={cn("flex items-center gap-1 px-2 pb-2 pt-1 text-micro", cover.tone === "warn" ? "text-ui-warning" : cover.tone === "ok" ? "text-ui-3" : "text-ui-4")}>
+                    <span className={cn("flex items-center gap-1 px-2 pb-2 pt-1 text-micro", cover.tone === "warn" ? "text-ui-warn" : cover.tone === "ok" ? "text-ui-3" : "text-ui-4")}>
                       <Radar className="h-3 w-3 shrink-0" />
                       {cover.text}
                     </span>
@@ -519,11 +519,11 @@ export function FinishStep({ headRef, rerun, rows, onChange, options }: FinishSt
       <ul className="m-0 overflow-hidden rounded-ui-menu border border-ui-subtle bg-ui-panel p-0">
         {rows.map((r, i) => (
           <li key={r.label} className={cn("flex items-start gap-3 px-3 py-2.5", i > 0 && "border-t border-s-divider")}>
-            <r.icon className={cn("mt-px h-4 w-4 shrink-0", r.tone === "ok" ? "text-ui-success" : r.tone === "warn" ? "text-ui-warning" : r.tone === "fail" ? "text-ui-danger" : "text-ui-3")} />
+            <r.icon className={cn("mt-px h-4 w-4 shrink-0", r.tone === "ok" ? "text-ui-ok" : r.tone === "warn" ? "text-ui-warn" : r.tone === "fail" ? "text-ui-danger" : "text-ui-3")} />
             <span className="w-24 shrink-0 text-caption text-ui-2">{r.label}</span>
             <span className="flex min-w-0 flex-1 flex-col">
               <span className="break-words text-body text-ui-1">{r.value}</span>
-              <span className={cn("text-micro", r.tone === "warn" ? "text-ui-warning" : r.tone === "fail" ? "text-ui-danger" : "text-ui-3")}>
+              <span className={cn("text-micro", r.tone === "warn" ? "text-ui-warn" : r.tone === "fail" ? "text-ui-danger" : "text-ui-3")}>
                 <Rich text={r.sub} />
               </span>
             </span>

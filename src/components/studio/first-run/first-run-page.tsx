@@ -332,7 +332,7 @@ export default function FirstRunPage({ rerun, dataApiUrl, windowSize, onFinish, 
             Studio checks each link between InfoPanel and your screens, in order. Nothing here blocks you: you can carry on without live data.
           </p>
         </div>
-        <span aria-live="polite" className={cn("self-center text-micro", t.running ? "text-ui-3" : t.fails > 0 ? "text-ui-danger" : t.warns > 0 ? "text-ui-warning" : "text-ui-success")}>
+        <span aria-live="polite" className={cn("self-center text-micro", t.running ? "text-ui-3" : t.fails > 0 ? "text-ui-danger" : t.warns > 0 ? "text-ui-warn" : "text-ui-ok")}>
           {progressLabel(results)}
         </span>
         <button type="button" title="Check again (F5)" onClick={() => checks.run("installed")} className={OUTLINE_BUTTON}>
@@ -431,7 +431,7 @@ export default function FirstRunPage({ rerun, dataApiUrl, windowSize, onFinish, 
     />,
   ];
 
-  const apiDot = t.api ? "bg-ui-success" : results.reachable && results.reachable.status !== "checking" ? "bg-ui-danger" : "bg-ui-4";
+  const apiDot = t.api ? "bg-ui-ok" : results.reachable && results.reachable.status !== "checking" ? "bg-ui-danger" : "bg-ui-4";
   const strip = welcomeStrip(results);
   return (
     <div data-help-article="quickstart" className="fixed inset-0 z-50 flex flex-col bg-ui-app font-ui text-ui-1">
@@ -465,7 +465,7 @@ export default function FirstRunPage({ rerun, dataApiUrl, windowSize, onFinish, 
               <StepNumber n={i} current={i === step} done={visited.has(i) && i !== step} />
               {label}
               {i === DATA && !t.running && (t.fails > 0 || t.warns > 0) && <>
-                <span aria-hidden="true" className={cn("h-1.5 w-1.5 rounded-full", t.fails > 0 ? "bg-ui-danger" : "bg-ui-warning")} />
+                <span aria-hidden="true" className={cn("h-1.5 w-1.5 rounded-full", t.fails > 0 ? "bg-ui-danger" : "bg-ui-warn")} />
                 <span className="sr-only">Has issues</span>
               </>}
             </button>
@@ -490,7 +490,7 @@ export default function FirstRunPage({ rerun, dataApiUrl, windowSize, onFinish, 
                       <span
                         className={cn(
                           "truncate text-micro",
-                          i === DATA ? (t.running ? "text-ui-3" : !t.api || t.fails > 0 ? "text-ui-danger" : t.warns > 0 ? "text-ui-warning" : "text-ui-success") : "text-ui-4",
+                          i === DATA ? (t.running ? "text-ui-3" : !t.api || t.fails > 0 ? "text-ui-danger" : t.warns > 0 ? "text-ui-warn" : "text-ui-ok") : "text-ui-4",
                         )}
                       >
                         {railSub[i]}
@@ -536,7 +536,7 @@ export default function FirstRunPage({ rerun, dataApiUrl, windowSize, onFinish, 
           {t.api ? `Data API · ${where}` : results.reachable && results.reachable.status !== "checking" ? "Data API · not connected" : "Data API · checking…"}
         </span>
         <span className="flex items-center gap-1.5">
-          <span className={cn("h-1.5 w-1.5 rounded-full", server?.state === "running" ? "bg-ui-success" : "bg-ui-4")} />
+          <span className={cn("h-1.5 w-1.5 rounded-full", server?.state === "running" ? "bg-ui-ok" : "bg-ui-4")} />
           {server?.state === "running" ? `Server · :${server.port}` : "Server · starting"}
         </span>
       </div>

@@ -30,7 +30,7 @@ export function RoleSensors({ roles, onOverride }: RoleSensorsProps) {
             current={sensor?.key}
             fallbackName={sensor?.name}
             placeholder="Not found · left unbound"
-            className={cn("h-6 min-w-0", !sensor && "border-ui-warning/40 text-ui-warning")}
+            className={cn("h-6 min-w-0", !sensor && "border-ui-warn/40 text-ui-warn")}
             onPick={(s) => onOverride(role, s)}
             onClear={() => onOverride(role, null)}
           />

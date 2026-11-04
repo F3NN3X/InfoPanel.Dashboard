@@ -17,7 +17,7 @@ Every widget and panel has the same four tabs, filed by the question they answer
 
 Widget-specific sections come first in each tab, shared ones after. With nothing selected, the inspector shows the **Page** you are on: its name and icon, the sections it customizes, **Show on kiosks now**, and links to the screen's layout, Theme and behavior. Theme lists the same sections in one ordered column.
 
-Every Style section has a chip that says where its value comes from: **From ‹screen›**, **From theme**, **Changed here**, **Built-in** or **Locked** (see [Themes](themes#fine-tune)). Editing a row changes the section here. Click the chip, or the links under the rows, to **Reset to inherited**, **Change here** or open the level it comes from. With a section focused, Backspace resets it.
+Every Style section has a chip that says where its value comes from: **From ‹screen›**, **From look**, **Changed here**, **Built-in** or **Locked** (see [Themes](themes#fine-tune)). Editing a row changes the section here. Click the chip, or the links under the rows, to **Reset to inherited**, **Change here** or open the level it comes from. With a section focused, Backspace resets it.
 
 ## Finding a setting
 

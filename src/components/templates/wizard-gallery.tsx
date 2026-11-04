@@ -209,7 +209,7 @@ function Card({ card, p, selected, tabbable }: { card: GalleryCard; p: WizardGal
             ))}
           </div>
           {tag && (
-            <span className={cn("shrink-0 whitespace-nowrap rounded-[4px] px-[5px] py-px text-[10px]", card.library ? "bg-ui-accent/15 text-ui-accent-text" : "bg-ui-warning/15 text-ui-warning")}>{tag}</span>
+            <span className={cn("shrink-0 whitespace-nowrap rounded-[4px] px-[5px] py-px text-[10px]", card.library ? "bg-ui-accent/15 text-ui-accent-text" : "bg-ui-warn/15 text-ui-warn")}>{tag}</span>
           )}
           {p.badge(card)}
         </div>

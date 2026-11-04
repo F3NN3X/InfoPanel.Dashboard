@@ -130,8 +130,8 @@ export function LibraryDetail(p: DetailProps) {
         )}
       </div>
       {group && (
-        <div className="rounded-[10px] border border-ui-warning/40 bg-ui-warning/10 p-3 text-caption leading-snug text-ui-2">
-          <div className="mb-2 flex items-center gap-2 font-medium text-ui-warning">
+        <div className="rounded-[10px] border border-ui-warn/40 bg-ui-warn/10 p-3 text-caption leading-snug text-ui-2">
+          <div className="mb-2 flex items-center gap-2 font-medium text-ui-warn">
             <Copy className="h-3.5 w-3.5" /> Duplicate
           </div>
           {group.filter((g) => g.id !== item.id).map((g) => g.name).join(", ")} {group.length === 2 ? "has" : "have"} the same{" "}
@@ -142,8 +142,8 @@ export function LibraryDetail(p: DetailProps) {
         </div>
       )}
       {p.onUpdateFormat && (
-        <div className="rounded-[10px] border border-ui-warning/40 bg-ui-warning/10 p-3 text-caption leading-snug text-ui-2">
-          <div className="mb-2 flex items-center gap-2 font-medium text-ui-warning">
+        <div className="rounded-[10px] border border-ui-warn/40 bg-ui-warn/10 p-3 text-caption leading-snug text-ui-2">
+          <div className="mb-2 flex items-center gap-2 font-medium text-ui-warn">
             <RefreshCw className="h-3.5 w-3.5" /> Older version
           </div>
           Saved by an older version of InfoPanel Studio. It still works as it is; Update saves it in today&rsquo;s format and keeps a copy of it as it was first.

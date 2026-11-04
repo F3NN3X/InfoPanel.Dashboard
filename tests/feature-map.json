@@ -621,8 +621,7 @@
       "paths": ["src/looks/**", "tools/looks/**"],
       "tests": ["tests/looks/**", "tests/widgets/core/state-copies.test.ts", "tests/lib/theme-css-sync.test.ts", "tests/settings/theme-tokens.test.ts", "tests/components/color-literals.test.ts", "tests/e2e/material-export.spec.ts"],
       "checks": ["typecheck", "unit", "build", "budgets", "settings-build", "import-check", "e2e"],
-      "report": ["npm run looks:scan"],
-      "note": "Generated files: src/looks/generated/*, the @generated blocks in src/index.css, src/settings/tokens.css and src/widgets/core/mixer-views.css. Edit the source, run `npm run looks:gen`; tests/looks/generated.test.ts fails when one is stale. looks:scan is the D9 report (hex outside src/looks, blur outside the cap, ui-* in widgets); it never gates until P7. import-check because the gauge THEME is written into exports."
+      "note": "Generated files: src/looks/generated/*, the @generated blocks in src/index.css, src/settings/tokens.css and src/widgets/core/mixer-views.css. Edit the source, run `npm run looks:gen`; tests/looks/generated.test.ts fails when one is stale. tests/looks/scan.test.ts gates the D9 scans (hex outside src/looks, blur outside the cap, ui-* in widgets) against tests/looks/scan-baseline.json, a ratchet; `npm run looks:scan` prints them and `-- --save` lowers the baseline. import-check because the gauge THEME is written into exports."
     },
     {
       "id": "gauges",

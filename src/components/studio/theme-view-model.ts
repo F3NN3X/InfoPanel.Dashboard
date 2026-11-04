@@ -80,7 +80,7 @@ export function kindLine(state: ThemeState, others: readonly ThemeUse[], levelNa
     case "template":
       return `From a screen template · applied to ${levelName}`;
     case "saved":
-      return others.length === 0 ? "Saved theme · only here" : `Saved theme · also on ${placesText(others)}`;
+      return others.length === 0 ? "Saved look · only here" : `Saved look · also on ${placesText(others)}`;
   }
 }
 

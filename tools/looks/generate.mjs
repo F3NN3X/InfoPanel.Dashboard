@@ -27,7 +27,7 @@ const read = (rel) => lf(readFileSync(join(root, rel), "utf8"));
 
 /** Every generated file: path (from the repo root) → its content with LF line ends. */
 export async function generate() {
-  const { STATUS } = await load("src/looks/status.ts");
+  const { STATUS, STATUS_LIGHT } = await load("src/looks/status.ts");
   const { DEFAULT_ACCENT, DARK_TEXT } = await load("src/looks/palette.ts");
   const { CLASSIC_T3, cssOf } = await load("src/looks/t3.ts");
   const { resolveT1, studioValue } = await load("src/looks/look.ts");
@@ -45,6 +45,18 @@ export async function generate() {
     replaceBlock(read(css), "root-fallbacks", "DEFAULT_THEME (src/lib/theme.ts)", [
       ":root {",
       ...Object.entries(DEFAULT_THEME).map(([k, v]) => `  --${k}: ${v};`),
+      "}",
+    ]),
+  );
+  // Critical alert lines, rings and icons take the widgets' crit red (D7, owner call 5): the page's data-mode picks the light one.
+  out.set(
+    css,
+    replaceBlock(out.get(css), "alert-critical", "STATUS and STATUS_LIGHT (src/looks/status.ts)", [
+      ":root {",
+      `  --alert-critical: ${STATUS.crit};`,
+      "}",
+      ":root[data-mode=light] {",
+      `  --alert-critical: ${STATUS_LIGHT.crit};`,
       "}",
     ]),
   );

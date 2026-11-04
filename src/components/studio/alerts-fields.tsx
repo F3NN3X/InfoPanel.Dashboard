@@ -8,7 +8,7 @@ import { FIELD } from "./setting-rows";
 
 const DOT: Record<Severity, string> = {
   info: "bg-ui-accent",
-  warning: "bg-ui-warning",
+  warning: "bg-ui-warn",
   critical: "bg-ui-danger",
 };
 

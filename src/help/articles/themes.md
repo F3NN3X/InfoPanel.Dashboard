@@ -1,6 +1,6 @@
 ---
 id: themes
-title: Themes
+title: Looks
 icon: palette
 related: [widget-settings, background, presets]
 verified: 1.3.0-beta.36
@@ -43,7 +43,7 @@ A widget's **Style** tab in Edit starts with the same knobs under **Look: ‹nam
 
 The card shows the applied look's name and a line saying what it is:
 
-- **Saved theme · also on ‹places›**, or **Saved theme · only here**: one of your saved looks.
+- **Saved look · also on ‹places›**, or **Saved look · only here**: one of your saved looks.
 - **From a screen template**: a template's look, named "Template · Variant", for example "Terminal · Amber".
 - **Custom look · not saved**, with **Save look**. A saved look you deleted still in use reads "‹name› (deleted)".
 
@@ -51,7 +51,7 @@ Under **Made of**: **Colors** (the 19 color tokens and the accent) opens the Col
 
 Once you change a part after applying a saved look, a bar in the preview's header, beside the zoom, says "Changed here. Updating ‹name› also changes ‹places›." **Update ‹name›** saves it and refreshes every level that uses it (each keeps what it changed since); **Save as new** saves a new one. For a template's look the bar offers **Save look**, which saves "‹Template · Variant› copy".
 
-To give other screens the same look, open **Saved and template looks** at a screen and choose **Apply to other screens…**: tick the screens (or **Select all**) and press **Apply**. Each screen follows the usual rules, **Keep my background** included, and one Undo takes it all back. The command palette's **Apply theme to all screens: ‹name›** does the same for every screen.
+To give other screens the same look, open **Saved and template looks** at a screen and choose **Apply to other screens…**: tick the screens (or **Select all**) and press **Apply**. Each screen follows the usual rules, **Keep my background** included, and one Undo takes it all back. The command palette's **Apply look to all screens: ‹name›** does the same for every screen.
 
 ## Colors and Background
 
@@ -65,7 +65,7 @@ Under the gallery, **Advanced · Fine-tune** lists the sections that sit on top 
 | Chip | Means |
 |---|---|
 | **Changed here** | This level holds the value |
-| **From theme** | The value the applied theme wrote |
+| **From look** | The value the applied theme wrote |
 | **From ‹screen›** | Inherited from the screen |
 | **Built-in** | Nothing set; the app's default |
 | **Locked** | The screen forces this section on its pages and widgets |
@@ -82,7 +82,7 @@ After a change, a row under the preview header says what happened, for example "
 
 ## From the command palette
 
-Each saved theme has two commands: **Apply theme: ‹name›**, which brings its background, and **Apply theme, keep background: ‹name›**. They apply at the level the Look view is set to, or the screen in Design before you have opened it.
+Each saved theme has two commands: **Apply look: ‹name›**, which brings its background, and **Apply look, keep background: ‹name›**. They apply at the level the Look view is set to, or the screen in Design before you have opened it.
 
 ## Follow theme, section by section
 

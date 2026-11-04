@@ -405,15 +405,15 @@ export function buildCommands(s: CommandState): Command[] {
     ...generalCommands(s),
     ...pageCommands(s),
     ...s.appearancePresets.flatMap((p): Command[] => [
-      { id: `appearance:${p.id}`, label: `Apply theme: ${p.name}`, group: "Themes", hint: s.themeLevel ?? "This screen", action: { type: "apply-appearance", id: p.id, keepBackground: false } },
+      { id: `appearance:${p.id}`, label: `Apply look: ${p.name}`, group: "Looks", hint: s.themeLevel ?? "This screen", action: { type: "apply-appearance", id: p.id, keepBackground: false } },
       {
         id: `appearance-keep-bg:${p.id}`,
-        label: `Apply theme, keep background: ${p.name}`,
-        group: "Themes",
+        label: `Apply look, keep background: ${p.name}`,
+        group: "Looks",
         hint: s.themeLevel ?? "This screen",
         action: { type: "apply-appearance", id: p.id, keepBackground: true },
       },
-      { id: `appearance-all:${p.id}`, label: `Apply theme to all screens: ${p.name}`, group: "Themes", action: { type: "apply-appearance-all", id: p.id } },
+      { id: `appearance-all:${p.id}`, label: `Apply look to all screens: ${p.name}`, group: "Looks", action: { type: "apply-appearance-all", id: p.id } },
     ]),
     ...s.insertables.map(
       (item): Command => ({

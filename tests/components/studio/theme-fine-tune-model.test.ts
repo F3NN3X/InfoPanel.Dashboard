@@ -20,7 +20,7 @@ const MAIN: ThemeAt = { level: "page", profileId: "desk", pageId: "main" };
 const chip = (c: DashboardConfig, at: ThemeAt, id: Parameters<typeof themeCard>[0]) => fineTuneChip(c, at, themeCard(id), themeState(c, themeTarget(at)));
 
 describe("a fine-tune section's chip", () => {
-  it("a screen: Built-in with nothing set, From theme for what a theme wrote, Changed here once changed", () => {
+  it("a screen: Built-in with nothing set, From look for what a theme wrote, Changed here once changed", () => {
     expect(chip(setup(), SCREEN, "colors").state).toBe("builtin");
     const applied = applyThemeToLevel(setup(), DESK, { kind: "profile", profileId: "desk" });
     expect(chip(applied, SCREEN, "colors").state).toBe("theme");

@@ -61,7 +61,5 @@
   "ok": "oklch(0.78 0.14 155)",
   "warn": "oklch(0.82 0.13 80)",
   "danger": "oklch(0.72 0.17 25)",
-  "info": "oklch(0.78 0.09 205)",
-  "success": "var(--ui-ok)",
-  "warning": "var(--ui-warn)"
+  "info": "oklch(0.78 0.09 205)"
 }

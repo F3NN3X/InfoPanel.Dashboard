@@ -59,7 +59,7 @@ function Preview({ file, url }: { file: AssetFile | null; url: string | undefine
 
 function Chip({ finding }: { finding: Finding }) {
   return (
-    <span className={cn("rounded-[5px] border px-1.5 py-px text-micro", finding === "missing" ? "border-ui-danger/50 text-ui-danger" : "border-ui-warning/50 text-ui-warning")}>{FINDING_LABEL[finding]}</span>
+    <span className={cn("rounded-[5px] border px-1.5 py-px text-micro", finding === "missing" ? "border-ui-danger/50 text-ui-danger" : "border-ui-warn/50 text-ui-warn")}>{FINDING_LABEL[finding]}</span>
   );
 }
 
@@ -99,7 +99,7 @@ export function FilesTable(p: FilesTableProps) {
 
   const uses = (refs: readonly AssetRef[], danger?: boolean) =>
     refs.length === 0 ? (
-      <span className="inline-flex h-[22px] min-w-[22px] items-center justify-center rounded-[5px] bg-ui-raised px-1.5 font-ui-mono text-[11.5px] text-ui-warning">0</span>
+      <span className="inline-flex h-[22px] min-w-[22px] items-center justify-center rounded-[5px] bg-ui-raised px-1.5 font-ui-mono text-[11.5px] text-ui-warn">0</span>
     ) : (
       <button
         type="button"

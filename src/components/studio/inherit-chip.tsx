@@ -48,7 +48,7 @@ const LOOK: Readonly<Record<ChipState, ChipLook>> = {
   },
   theme: {
     icon: Palette,
-    text: () => "From theme",
+    text: () => "From look",
     tip: () => "The value comes from the theme applied at this level.",
     className: INHERITED,
   },
@@ -213,7 +213,7 @@ export const keptOverrideText = (holder: "widget" | "page", section: string): st
  */
 export function InheritLockNote({ holder, section }: { holder: "widget" | "page"; section: string }) {
   return (
-    <p className="rounded-md bg-ui-warning/10 px-2 py-1.5 text-micro leading-snug text-ui-warn-text">
+    <p className="rounded-md bg-ui-warn/10 px-2 py-1.5 text-micro leading-snug text-ui-warn-text">
       {keptOverrideText(holder, section)}
     </p>
   );

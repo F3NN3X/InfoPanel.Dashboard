@@ -34,8 +34,8 @@ export interface StatusBarProps extends StatusBarData {
 type Tone = "ok" | "warn" | "bad" | "idle";
 
 const DOT: Readonly<Record<Tone, string>> = {
-  ok: "rounded-full bg-ui-success",
-  warn: "rotate-45 rounded-[1px] bg-ui-warning",
+  ok: "rounded-full bg-ui-ok",
+  warn: "rotate-45 rounded-[1px] bg-ui-warn",
   bad: "rounded-[2px] bg-ui-danger",
   idle: "rounded-full border border-ui-hint",
 };

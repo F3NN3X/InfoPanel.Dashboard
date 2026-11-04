@@ -64,8 +64,7 @@ export function keyLook(o: { style: KeyStyle; frame: KeyFrame; overlay: IconOver
   const def = style === "widget" ? null : style === "auto" ? resolveSurface("auto", o.skin.skin) : MATERIALS[style];
   if (style === "plain" || (style !== "widget" && !def)) return { ...PLAIN, tone: "dark", inset: 0, overlay: overlayOf(o.overlay === "skin" ? "none" : o.overlay, o.strength, size, null, undefined) };
   const className = def ? def.c : o.pane.className;
-  // A surface's own size (none sets one since brutal's redesign, L28) would shrink the key in its grid cell.
-  const { width: _w, height: _h, ...base } = def ? def.s : o.pane.style;
+  const base = def ? def.s : o.pane.style;
   const k = Math.min(1, size / DESIGN_SIDE);
   const clipPath = typeof base.clipPath === "string" ? scalePx(base.clipPath, k) : undefined;
   // The widget's root already sets the text colours for its own surface.

@@ -74,7 +74,7 @@ function FileRow({ file, onRemove }: { file: DoorFile; onRemove: () => void }) {
     <li className="flex items-center gap-2.5 py-2">
       <Icon className={cn("h-[18px] w-[18px] shrink-0", bad ? "text-ui-danger" : "text-ui-3")} strokeWidth={1.75} />
       <span className="min-w-0 flex-1 truncate font-ui-mono text-body text-ui-1">{file.file.name}</span>
-      <span className={cn("shrink-0 text-caption", !s ? "text-ui-4" : bad ? "text-ui-danger" : "text-ui-success")} role={bad ? "alert" : undefined}>
+      <span className={cn("shrink-0 text-caption", !s ? "text-ui-4" : bad ? "text-ui-danger" : "text-ui-ok")} role={bad ? "alert" : undefined}>
         {!s ? "Reading…" : bad ? s.label : `Detected: ${s.label}`}
       </span>
       <button type="button" aria-label={`Remove ${file.file.name}`} onClick={onRemove} className="grid h-5 w-5 shrink-0 place-items-center rounded text-ui-4 hover:bg-ui-hover hover:text-ui-1">

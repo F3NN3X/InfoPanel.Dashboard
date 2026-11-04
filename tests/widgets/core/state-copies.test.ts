@@ -1,5 +1,6 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { STATUS, STATUS_LIGHT } from "../../../src/looks/status.ts";
 import { STATE } from "../../../src/widgets/core/theme.ts";
@@ -22,11 +23,14 @@ const copies: [file: string, role: "ok" | "warn" | "crit", pattern: RegExp][] = 
 
 const read = (file: string): string => readFileSync(new URL(`../../../${file}`, import.meta.url), "utf8");
 
+const root = fileURLToPath(new URL("../../../", import.meta.url));
 const files = (dir: string): string[] =>
-  readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
-    const path = join(dir, e.name);
-    return e.isDirectory() ? files(path) : /\.(tsx?|css)$/.test(e.name) ? [path.replaceAll("\\", "/")] : [];
+  readdirSync(join(root, dir), { withFileTypes: true }).flatMap((e) => {
+    const path = `${dir}/${e.name}`;
+    return e.isDirectory() ? files(path) : /\.(tsx?|css)$/.test(e.name) ? [path] : [];
   });
+// The generated blocks are the one place outside src/looks/ a copy may live (tools/looks/generate.mjs writes them from STATUS).
+const GENERATED = /\/\* @generated:begin ([\w-]+)[\s\S]*?@generated:end \1 \*\//g;
 
 describe("the hand copies of STATE", () => {
   it.each(copies)("%s's %s equals STATE", (file, role, pattern) => {
@@ -42,8 +46,7 @@ describe("the hand copies of STATE", () => {
   it("is typed as a literal nowhere else in src", () => {
     // A new hex copy of a status colour fails here: import STATE (widgets) or STATUS (everything else) instead.
     const status = new RegExp(`#(${[STATUS.ok, STATUS.warn, STATUS.crit, STATUS_LIGHT.warn, STATUS_LIGHT.crit].map((c) => c.slice(1)).join("|")})\\b`, "i");
-    const allowed = ["src/looks/", "src/widgets/core/mixer-views.css"];
-    const copies = files("src").filter((f) => !allowed.some((a) => f.startsWith(a)) && status.test(readFileSync(f, "utf8")));
+    const copies = files("src").filter((f) => !f.startsWith("src/looks/") && status.test(read(f).replace(GENERATED, "")));
     expect(copies).toEqual([]);
   });
 });

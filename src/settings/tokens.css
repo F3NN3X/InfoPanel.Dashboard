@@ -35,25 +35,15 @@
 }
 
 @theme {
-  --color-s-side: #0e0e11;
-  --color-s-divider: #1c1c21;
-  --color-s-input: #16161a;
-  --color-s-seg-on: #24242b;
-  --color-s-nav-on: #1c1c22;
-  --color-s-nav-hover: #18181d;
   --color-s-well: #09090b;
   --color-s-card-hover: #33333b;
-  --color-s-code-line: #26262c;
   --color-s-connector: #44444c;
-  --color-s-grey: #6f6f79;
   --color-s-close: #c42b1c;
 
   --color-s-prose: #c2c2ca;
   --color-s-body: #b4b4bd;
-  --color-s-soft: #a8a8b2;
   /* s-faint (generated below) is for icons and decoration only; text is s-dim or brighter. */
 
-  --color-s-accent-text: oklch(0.84 0.12 255);
   --color-s-green: var(--ui-ok);
   --color-s-amber: var(--ui-warn);
   --color-s-red: var(--ui-danger);
@@ -68,18 +58,15 @@
   --color-s-on-accent: #0b0d14;
   --color-s-on-green: #07130c;
   /* Help's callouts (tip, heads up, coming soon): the base hue sets the border and tint, the -text one the label. */
-  --color-s-tip: oklch(0.78 0.16 150);
   --color-s-tip-text: var(--color-s-ok-text);
   --color-s-heads: oklch(0.82 0.14 75);
   --color-s-heads-text: oklch(0.86 0.13 80);
-  --color-s-soon: oklch(0.72 0.12 300);
   --color-s-soon-text: oklch(0.84 0.1 300);
   /* Status text on a dark card: a light green for good, light reds and amber for errors and warnings. */
   --color-s-ok-text: oklch(0.84 0.14 150);
   --color-s-good-text: #7fd1a4;
   --color-s-red-text: oklch(0.85 0.08 25);
   --color-s-red-text-strong: oklch(0.9 0.06 25);
-  --color-s-warn-text: oklch(0.86 0.1 80);
 }
 
 /* @generated:begin studio-twins
@@ -100,6 +87,16 @@
   --ui-text-disabled: #55555e;
   --ui-text-strong: #d4d4da;
   --ui-accent: oklch(0.72 0.15 255);
+  --ui-border-default: #24242a;
+  --ui-border-source: #6e6e78;
+  --ui-bg-raised: #17171b;
+  --ui-bg-chrome: #0f0f12;
+  --ui-border-card: #27272a;
+  --ui-live: oklch(0.78 0.15 150);
+  --ui-accent-text: oklch(0.82 0.12 255);
+  --ui-text-warn: oklch(0.88 0.1 85);
+  --ui-dot-profile: oklch(0.74 0.13 300);
+  --ui-text-soft: #a1a1aa;
 }
 @theme {
   --color-s-win: var(--ui-bg-app);
@@ -107,6 +104,8 @@
   --color-s-tile: var(--ui-bg-tile);
   --color-s-hover: var(--ui-bg-hover);
   --color-s-side-line: var(--ui-bg-hover);
+  --color-s-divider: var(--ui-bg-hover);
+  --color-s-nav-on: var(--ui-bg-hover);
   --color-s-card-line: var(--ui-border-subtle);
   --color-s-menu: var(--ui-border-menu);
   --color-s-input-line: var(--ui-border-control);
@@ -120,6 +119,17 @@
   --color-s-faint: var(--ui-text-disabled);
   --color-s-strong: var(--ui-text-strong);
   --color-s-accent: var(--ui-accent);
+  --color-s-seg-on: var(--ui-border-default);
+  --color-s-grey: var(--ui-border-source);
+  --color-s-input: var(--ui-bg-raised);
+  --color-s-nav-hover: var(--ui-bg-raised);
+  --color-s-side: var(--ui-bg-chrome);
+  --color-s-code-line: var(--ui-border-card);
+  --color-s-tip: var(--ui-live);
+  --color-s-accent-text: var(--ui-accent-text);
+  --color-s-warn-text: var(--ui-text-warn);
+  --color-s-soon: var(--ui-dot-profile);
+  --color-s-soft: var(--ui-text-soft);
 }
 /* @generated:end studio-twins */
 
@@ -132,7 +142,5 @@
   --ui-warn: oklch(0.82 0.13 80);
   --ui-danger: oklch(0.72 0.17 25);
   --ui-info: oklch(0.78 0.09 205);
-  --ui-success: var(--ui-ok);
-  --ui-warning: var(--ui-warn);
 }
 /* @generated:end studio-status */

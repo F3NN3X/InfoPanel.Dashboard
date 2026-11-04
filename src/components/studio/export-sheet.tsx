@@ -49,7 +49,7 @@ function ExportRow({ icon: Icon, title, detail, picked, blocked, children, actio
         </div>
         <div className="flex shrink-0 items-center gap-2">{actions}</div>
       </div>
-      {blocked ? <p className="pl-[30px] text-micro text-ui-warning">{blocked}</p> : children}
+      {blocked ? <p className="pl-[30px] text-micro text-ui-warn">{blocked}</p> : children}
       <div className="pl-[30px]">
         <button
           type="button"

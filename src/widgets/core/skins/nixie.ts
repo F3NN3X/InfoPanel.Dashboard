@@ -7,5 +7,5 @@ export const nixieSkin: SkinPack = {
   description: "Nixie tube: smoked glass, glowing orange Nixie One numerals.",
   fonts: ["nixie-one", "geist"],
   // tokens read by <Widget>, primitives and views via useSkin()
-  skin: { surface: "nixie", radius: 12, accent: "#ff8a3d", font: "'Geist',system-ui,sans-serif", num: "'Nixie One',system-ui,sans-serif", numWeight: 400, numGlow: true, numStroke: "0.04em", glow: true, graph: "line", meter: "segments", header: "nixie", ring: 0.5 },
+  skin: { surface: "nixie", radius: 12, accent: "#ff8a3d", font: "'Geist',system-ui,sans-serif", num: "'Nixie One',system-ui,sans-serif", numWeight: 400, numGlow: true, numStroke: "0.04em", glow: true, graph: "line", meter: "segments", header: "nixie", headerInk: "#a8805e", ring: 0.5 },
 };

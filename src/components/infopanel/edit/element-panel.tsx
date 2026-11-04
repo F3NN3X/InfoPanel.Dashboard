@@ -345,7 +345,7 @@ export function ElementPanel({ editor, path, item, spec, sensors }: ElementPanel
             )}
           />
           {found.length === 0 ? (
-            <p className="text-[11.5px] leading-snug text-ui-warning">This machine’s drives weren’t found: the Data API reports no LibreHardwareMonitor or HWiNFO drive sensors. The tiles are placeholders and export unbound.</p>
+            <p className="text-[11.5px] leading-snug text-ui-warn">This machine’s drives weren’t found: the Data API reports no LibreHardwareMonitor or HWiNFO drive sensors. The tiles are placeholders and export unbound.</p>
           ) : (
             <p className="text-[11.5px] leading-snug text-ui-4">{found.length} drives found in the Data API.</p>
           )}
@@ -517,7 +517,7 @@ export function ElementPanel({ editor, path, item, spec, sensors }: ElementPanel
           {ink("Track", "track", spec.track)}
           {ink("Fill", "fill", spec.fill)}
           {found.length === 0 ? (
-            <p className="text-[11.5px] leading-snug text-ui-warning">
+            <p className="text-[11.5px] leading-snug text-ui-warn">
               This machine’s cores weren’t found: the Data API reports no per-core CPU load (LibreHardwareMonitor’s Core loads). The bars are placeholders and export unbound.
             </p>
           ) : (

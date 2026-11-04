@@ -33,9 +33,9 @@ const TEMPLATE = state({ applied: applied("builtin:tpl-terminal-amber", "Termina
 describe("the theme card", () => {
   it("names the saved theme with its other uses, a template with its level, a custom or deleted look as not saved", () => {
     const others = [use("Gaming", "page"), use("Work", "page")];
-    expect(kindLine(DESK, others, "MyDefault")).toBe("Saved theme · also on the Gaming and Work pages");
-    expect(kindLine(DESK, [], "MyDefault")).toBe("Saved theme · only here");
-    expect(kindLine(DESK, [use("Wall", "profile"), use("Gaming", "page")], "MyDefault")).toBe("Saved theme · also on Wall and the Gaming page");
+    expect(kindLine(DESK, others, "MyDefault")).toBe("Saved look · also on the Gaming and Work pages");
+    expect(kindLine(DESK, [], "MyDefault")).toBe("Saved look · only here");
+    expect(kindLine(DESK, [use("Wall", "profile"), use("Gaming", "page")], "MyDefault")).toBe("Saved look · also on Wall and the Gaming page");
     expect(kindLine(TEMPLATE, [], "MyDefault")).toBe("From a screen template · applied to MyDefault");
     expect([cardName(state({})), kindLine(state({}), [], "x")]).toEqual(["Custom look", "not saved"]);
     expect(cardName(state({ applied: applied("look-x", "Night"), deleted: true }))).toBe("Night (deleted)");

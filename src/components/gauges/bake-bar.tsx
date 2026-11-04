@@ -46,7 +46,7 @@ function Bar({ bridge, source, entry, gauge, stored }: BakeBarProps & { stored: 
     );
   return (
     <footer aria-label="Bake bar" className="flex min-h-12 shrink-0 flex-wrap items-center gap-3 border-t border-ui-subtle bg-ui-chrome px-4 py-2 font-ui">
-      <span aria-hidden className={cn("h-2 w-2 shrink-0 rounded-full", stale ? "bg-ui-warning" : "bg-ui-success")} />
+      <span aria-hidden className={cn("h-2 w-2 shrink-0 rounded-full", stale ? "bg-ui-warn" : "bg-ui-ok")} />
       <span className="text-[12.5px] text-ui-1">
         InfoPanel export · {stale ? (have ? "Frames out of date" : "No frames baked yet") : "Frames baked"}
       </span>

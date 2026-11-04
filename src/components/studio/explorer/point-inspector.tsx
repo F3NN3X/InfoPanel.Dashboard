@@ -92,8 +92,8 @@ export function PointInspector({
           <Chip className="px-[7px] py-0.5 text-micro text-ui-2 rounded-ui-menu">{TYPE_LABEL[point.type]}</Chip>
           {point.kind && <Chip className="px-[7px] py-0.5 text-micro text-ui-2 rounded-ui-menu">{point.kind}</Chip>}
           {live && (
-            <span className="ml-auto flex items-center gap-1 text-micro text-ui-success">
-              <span className="h-[5px] w-[5px] rounded-full bg-ui-success" />
+            <span className="ml-auto flex items-center gap-1 text-micro text-ui-ok">
+              <span className="h-[5px] w-[5px] rounded-full bg-ui-ok" />
               Live
             </span>
           )}

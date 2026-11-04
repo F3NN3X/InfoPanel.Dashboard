@@ -153,7 +153,7 @@ export function GetFont({ initialFamily, needed, onAdd, onClose }: GetFontProps)
           className="min-w-0 flex-1 bg-transparent text-[12.5px] text-ui-1 outline-none placeholder:text-ui-hint"
         />
       </label>
-      {catalogs && catalogs.unavailable.length > 0 && <p className="text-[11.5px] leading-snug text-ui-warning">Some sources are unavailable: {catalogs.unavailable.join("; ")}</p>}
+      {catalogs && catalogs.unavailable.length > 0 && <p className="text-[11.5px] leading-snug text-ui-warn">Some sources are unavailable: {catalogs.unavailable.join("; ")}</p>}
       {!catalogs && <p className="text-caption text-ui-4">Reading the font catalogues…</p>}
       {catalogs && !candidate && (
         <p className="text-caption leading-snug text-ui-4">
@@ -225,7 +225,7 @@ export function GetFont({ initialFamily, needed, onAdd, onClose }: GetFontProps)
         </>
       )}
       {message && (
-        <p role="status" className={cn("text-caption leading-snug", message.tone === "ok" ? "text-ui-success" : "text-ui-danger")}>
+        <p role="status" className={cn("text-caption leading-snug", message.tone === "ok" ? "text-ui-ok" : "text-ui-danger")}>
           {message.text}
         </p>
       )}

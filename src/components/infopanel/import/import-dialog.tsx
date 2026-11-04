@@ -195,7 +195,7 @@ function SourceStep({
                 className="h-1.5 overflow-hidden rounded-[3px] bg-ui-hover"
               >
                 <div
-                  className={cn("h-full rounded-[3px] transition-[width]", upload?.finished ? "bg-ui-success" : "bg-ui-accent")}
+                  className={cn("h-full rounded-[3px] transition-[width]", upload?.finished ? "bg-ui-ok" : "bg-ui-accent")}
                   style={{ width: `${(state ? pct : 0.05) * 100}%` }}
                 />
               </div>
@@ -210,7 +210,7 @@ function SourceStep({
                 {state && <span className="font-ui-mono">{Math.round(pct * 100)}%</span>}
               </div>
               {state?.source.restore && state.source.restore.missing.length > 0 && (
-                <span className="text-caption text-ui-warning">Missing from the saved canvas: {state.source.restore.missing.join(", ")}</span>
+                <span className="text-caption text-ui-warn">Missing from the saved canvas: {state.source.restore.missing.join(", ")}</span>
               )}
             </>
           )}

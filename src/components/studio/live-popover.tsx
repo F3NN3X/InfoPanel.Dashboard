@@ -135,7 +135,7 @@ export function LiveControl({ open, onOpenChange, profiles, screen, control, kio
               </ul>
             )}
             <div className="mt-2">
-              {offline && <p className="border-t border-ui-subtle pt-2.5 text-micro text-ui-warning">Not connected to the server: nothing here can reach a kiosk.</p>}
+              {offline && <p className="border-t border-ui-subtle pt-2.5 text-micro text-ui-warn">Not connected to the server: nothing here can reach a kiosk.</p>}
               <div className="flex flex-col gap-1.5 border-t border-ui-subtle py-2.5">
                 <span className="text-body text-ui-1">Show on {screen.name} kiosks</span>
                 <Segmented

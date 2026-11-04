@@ -115,7 +115,7 @@ export function BoundData({
                   <span
                     className={cn(
                       "max-w-24 shrink-0 truncate font-ui-mono text-micro leading-[15px]",
-                      value === null ? "text-ui-warning" : "text-ui-2"
+                      value === null ? "text-ui-warn" : "text-ui-2"
                     )}
                   >
                     {value ?? "No data"}

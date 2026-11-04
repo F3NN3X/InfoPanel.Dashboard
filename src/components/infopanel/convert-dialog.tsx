@@ -52,7 +52,7 @@ function Report({ rows }: { rows: readonly ReportRow[] }) {
         <div key={`${r.name}:${i}`} role="listitem" className="flex flex-col gap-0.5 border-b border-ui-subtle px-3.5 py-2.5 last:border-b-0">
           <div className="flex items-baseline gap-3 text-[12.5px]">
             <span className="w-[150px] truncate font-medium text-ui-1">{r.name}</span>
-            <span className={cn("w-[110px] text-[11.5px]", r.choice === "not-compatible" ? "text-ui-warning" : "text-ui-3")}>{r.choice === "not-compatible" ? "Not compatible" : CHOICE_LABEL[r.choice]}</span>
+            <span className={cn("w-[110px] text-[11.5px]", r.choice === "not-compatible" ? "text-ui-warn" : "text-ui-3")}>{r.choice === "not-compatible" ? "Not compatible" : CHOICE_LABEL[r.choice]}</span>
             <span className="flex-1 text-caption text-ui-3">{r.outcome}</span>
           </div>
           {r.notes.map((n) => (

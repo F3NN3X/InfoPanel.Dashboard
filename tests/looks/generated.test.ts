@@ -12,3 +12,15 @@ describe("the generated files", () => {
     expect(current).toBe(generated.get(file));
   });
 });
+
+describe("the hand-written CSS beside a generated block", () => {
+  // A name a block writes must not be declared again by hand in the same file: the later one would win unseen.
+  const BLOCK = /\/\* @generated:begin ([\w-]+)[\s\S]*?@generated:end \1 \*\//g;
+  const DECLARED = /(--[\w-]+)\s*:/g;
+  it.each([...generated.keys()].filter((f) => f.endsWith(".css")))("%s declares no generated name by hand", (file) => {
+    const text = generated.get(file)!;
+    const written = new Set([...text.matchAll(BLOCK)].flatMap((b) => [...b[0].matchAll(DECLARED)].map((m) => m[1])));
+    const byHand = [...text.replace(BLOCK, "").matchAll(DECLARED)].map((m) => m[1]).filter((name) => written.has(name));
+    expect(byHand).toEqual([]);
+  });
+});
