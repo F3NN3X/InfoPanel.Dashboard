@@ -43,8 +43,8 @@ describe("packBreaches", () => {
     expect(packBreaches({ tiny: { codeGzip: 100, assetBytes: 200 } }, { packs: big })).toEqual(["pack tiny is 300 B, over the 250 B ceiling"]);
   });
 
-  it("reads the real packs block: no pack ships yet, so nothing is measured", () => {
-    expect(measurePacks()).toEqual({});
+  it("measures only the built-in packs (an unbuilt tree measures none)", () => {
+    expect(Object.keys(measurePacks()).filter((id) => !["field-kit", "tape-86", "term"].includes(id))).toEqual([]);
   });
 
   it("fails a pack with no chunk of its own, no layersPerPage, or too many layers", () => {

@@ -13,8 +13,12 @@ import PackStageLayers from "./pack-stage";
 import { isPackRelativeUrl, packCssIssues } from "./pack-urls";
 import { contrastOf } from "./status";
 
-/** Built-in packs by Look id: one import() each, so a pack is a chunk the entries never carry. None ships yet (P10). */
-export const BUILTIN: Record<string, () => Promise<{ default: Pack }>> = {};
+/** Built-in packs by Look id: one import() each, so a pack is a chunk the entries never carry. */
+export const BUILTIN: Record<string, () => Promise<{ default: Pack }>> = {
+  "field-kit": () => import("./packs/field-kit"),
+  "tape-86": () => import("./packs/tape-86"),
+  term: () => import("./packs/term"),
+};
 
 /** Registers a pack source: how tests and the dev fixtures bring a pack that does not ship. Never called by the app. */
 export function registerPack(id: string, load: () => Promise<{ default: Pack }>): void {

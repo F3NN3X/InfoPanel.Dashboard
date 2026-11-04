@@ -1,0 +1,94 @@
+{
+  "schema": 1,
+  "id": "tape-86",
+  "name": "Tape '86",
+  "description": "Warm paper with a hard ink edge and offset shadow, a stripe-band top edge, chunky Archivo Black numbers and mono labels.",
+  "tags": [
+    "pack",
+    "light",
+    "retro",
+    "paper",
+    "vhs"
+  ],
+  "modes": {
+    "supported": [
+      "light"
+    ],
+    "stance": "Light only: the paper card is the pack. A warm cream page sits behind it."
+  },
+  "fonts": {
+    "body": "Archivo",
+    "mono": "Space Mono",
+    "display": "Archivo Black"
+  },
+  "radius": "0.25rem",
+  "t1": {
+    "light": {
+      "bg": {
+        "value": "#E4DCC6"
+      },
+      "surface": {
+        "value": "#F3EDDD"
+      },
+      "surface-2": {
+        "value": "#DDD3BC"
+      },
+      "fg": {
+        "value": "#2A2523"
+      },
+      "fg-2": {
+        "value": "{fg}"
+      },
+      "muted": {
+        "value": "#5C5248"
+      },
+      "border": {
+        "value": "#DDD3BC"
+      },
+      "border-soft": {
+        "value": "{border}"
+      },
+      "accent": {
+        "value": "#B83A08"
+      },
+      "accent-on": {
+        "value": "{bg}"
+      },
+      "accent-hover": {
+        "value": "{accent}"
+      },
+      "focus-ring": {
+        "value": "{accent}"
+      },
+      "ok": {
+        "value": "#146C34"
+      },
+      "warn": {
+        "value": "#8A5A00"
+      },
+      "crit": {
+        "value": "#c4261d"
+      },
+      "info": {
+        "value": "{accent}"
+      }
+    }
+  },
+  "t2": {
+    "default": "look-tape-86",
+    "materials": {
+      "look-tape-86": {
+        "kind": "solid",
+        "tone": "light",
+        "export": "#F3EDDD"
+      }
+    }
+  },
+  "t3": {
+    "meter-hold-style": "block",
+    "spike-shape": "bar",
+    "fader-knob-shape": "square",
+    "ring-cap": "butt"
+  },
+  "ext": {}
+}

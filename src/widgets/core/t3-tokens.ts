@@ -80,6 +80,8 @@ export function t3Tokens(t3: Readonly<Record<string, string | number>> | undefin
   if (mark) out.ringMark = mark;
   const border = safeFill(t3["border-fill"]);
   if (border) Object.assign(out, { frame: "gradient", borderFill: border });
+  const meter = oneOf(t3["meter-style"], ["segments", "blocks"]);
+  if (meter) out.meter = meter;
   if (t3["meter-zone-style"] === "blend") out.zones = "blend";
   const hold = oneOf(t3["meter-hold-style"], ["dot", "block"]);
   if (hold) out.hold = hold;

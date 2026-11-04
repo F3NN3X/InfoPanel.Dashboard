@@ -1,0 +1,97 @@
+{
+  "schema": 1,
+  "id": "term",
+  "name": "Term",
+  "description": "Phosphor green on black: a green hairline, block-character bars and pixel numerals under scanlines and a vignette.",
+  "tags": [
+    "pack",
+    "dark",
+    "terminal",
+    "mono",
+    "retro"
+  ],
+  "modes": {
+    "supported": [
+      "dark"
+    ],
+    "stance": "Dark only: phosphor on black is the pack."
+  },
+  "fonts": {
+    "body": "IBM Plex Mono",
+    "mono": "IBM Plex Mono",
+    "display": "VT323"
+  },
+  "radius": "0.125rem",
+  "t1": {
+    "dark": {
+      "bg": {
+        "value": "#0A0D0A"
+      },
+      "surface": {
+        "value": "#0A0D0A"
+      },
+      "surface-2": {
+        "value": "#1C3A17"
+      },
+      "fg": {
+        "value": "#8BE37A"
+      },
+      "fg-2": {
+        "value": "{fg}"
+      },
+      "muted": {
+        "value": "#6FA463"
+      },
+      "border": {
+        "value": "#1C3A17"
+      },
+      "border-soft": {
+        "value": "{border}"
+      },
+      "accent": {
+        "value": "#8BE37A"
+      },
+      "accent-on": {
+        "value": "{bg}"
+      },
+      "accent-hover": {
+        "value": "{accent}"
+      },
+      "focus-ring": {
+        "value": "{accent}"
+      },
+      "ok": {
+        "value": "#3CC97F"
+      },
+      "warn": {
+        "value": "#EDB232"
+      },
+      "crit": {
+        "value": "#F2665E"
+      },
+      "info": {
+        "value": "{accent}"
+      }
+    }
+  },
+  "t2": {
+    "default": "look-term",
+    "materials": {
+      "look-term": {
+        "kind": "lcd",
+        "tone": "dark",
+        "export": "#0A0D0A"
+      }
+    }
+  },
+  "t3": {
+    "meter-style": "blocks",
+    "cell-radius": "0px",
+    "graph-style": "bars",
+    "ring-style": "segmented",
+    "ring-cap": "butt",
+    "label-glow": "soft",
+    "meter-hold-style": "block"
+  },
+  "ext": {}
+}

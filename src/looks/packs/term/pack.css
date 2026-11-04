@@ -1,0 +1,3 @@
+:scope, [data-part="label"], [data-part="unit"], [data-part="header"], [data-part="chip"], [data-part="button"] { font-family: pack-term-mono, ui-monospace, monospace; }
+[data-part="num"] { font-family: pack-term-display, ui-monospace, monospace; text-shadow: 0 0 6px rgba(139, 227, 122, 0.35); }
+[data-part="header"] { color: #8BE37A; text-shadow: 0 0 6px rgba(139, 227, 122, 0.35); }

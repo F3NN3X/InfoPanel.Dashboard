@@ -10,6 +10,8 @@
 //   --module a,b   only those widgets (ids, legacy ones too)      --spans 1x1,2x2   other spans
 //   --same-boxes a,b   also run with each surface (`surface=a`) and fail where a card or body rect differs from the default
 //                      run: a theme's card paints but never moves or resizes anything (G2); the sample themes' `look-*` cards
+//   --looks a,b        also run with each built-in pack applied (`settings` of tools/qa/pack-styles.mjs): fail on an issue the same style
+//                      run without the pack does not have, or a card or body rect that differs (a pack paints, it never moves or resizes: G2); the default is the same widget style without the pack, so only the pack is measured
 // Known limit: the probe walks elements, so it cannot see pseudo-elements (::before, ::after); a widget that draws
 // part of its content there is only checked through its element box.
 import fs from "node:fs";
@@ -17,13 +19,14 @@ import path from "node:path";
 import { chromium } from "@playwright/test";
 import { startScratch } from "../perf/scratch.mjs";
 import { diffRuns } from "./overflow-diff.mjs";
+import { PACK_STYLES } from "./pack-styles.mjs";
 
-const VALUED = new Set(["--save", "--baseline", "--module", "--spans", "--same-boxes"]);
+const VALUED = new Set(["--save", "--baseline", "--module", "--spans", "--same-boxes", "--looks"]);
 const args = {};
 const argv = process.argv.slice(2);
 for (let i = 0; i < argv.length; i++) {
   if (!VALUED.has(argv[i]) || !argv[i + 1]) {
-    console.error(`overflow: unknown or incomplete argument: ${argv[i]}\nusage: node tools/qa/overflow.mjs [--save file] [--baseline file] [--module a,b] [--spans 1x1,2x2,4x2,4x4] [--same-boxes surface,surface]`);
+    console.error(`overflow: unknown or incomplete argument: ${argv[i]}\nusage: node tools/qa/overflow.mjs [--save file] [--baseline file] [--module a,b] [--spans 1x1,2x2,4x2,4x4] [--same-boxes surface,surface] [--looks pack,pack]`);
     process.exit(2);
   }
   args[argv[i].slice(2)] = argv[++i];
@@ -62,22 +65,31 @@ const scratch = await startScratch({ env: { DASHBOARD_DEBUG: "1" } });
 const browser = await chromium.launch({ headless: true });
 let frames;
 const withSurface = {};
+const withLook = {};
 try {
   // A fixed clock and zone: reset times and clocks on the fixtures are "now plus", so the text would differ per run.
   const page = await browser.newPage({ viewport: { width: 1800, height: 1000 }, timezoneId: "UTC", locale: "en-US" });
   await page.clock.setFixedTime(new Date("2026-01-15T12:00:00Z"));
   const module = args.module ? `&module=${args.module}` : "";
-  const run = async (surface) => {
-    await page.goto(`${scratch.base}/?widget-qa${module}&spans=${spans}&eager=1${surface ? `&surface=${surface}` : ""}`);
+  const run = async (surface, look, bare) => {
+    const style = look && (bare ? { ...PACK_STYLES[look], lookId: undefined } : PACK_STYLES[look]);
+    const settings = look ? `&settings=${encodeURIComponent(JSON.stringify(style))}` : "";
+    await page.goto(`${scratch.base}/?widget-qa${module}&spans=${spans}&eager=1${surface ? `&surface=${surface}` : ""}${settings}`);
     await page.waitForFunction(() => window.__qaMountAll && window.__qaOverflow, null, { timeout: 30_000 });
     // A page that never settled would be read half-built (ledger L50): fail rather than diff it.
     if (!(await page.evaluate(() => window.__qaMountAll()))) throw new Error(`overflow: the Widget QA page did not settle${surface ? ` (surface ${surface})` : ""}`);
     // A name the page does not know falls back to the default card, which would pass for the right one.
     if (surface && !(await page.evaluate((name) => !!document.querySelector(`[data-wp-tier][data-mat="${name}"]`), surface))) throw new Error(`overflow: no card drew the surface ${surface}`);
+    // The pack must be on the cards: its chunk loaded and its `data-look` written (a pack that failed to load draws Classic and would pass).
+    if (look && !bare && !(await page.evaluate((id) => !!document.querySelector(`[data-wp-tier][data-look="${id}"]`), look))) throw new Error(`overflow: no card wore the pack ${look}`);
     return page.evaluate(collect);
   };
   frames = await run();
   for (const surface of (args["same-boxes"] ?? "").split(",").filter(Boolean)) withSurface[surface] = await run(surface);
+  for (const look of (args.looks ?? "").split(",").filter(Boolean)) {
+    if (!Object.hasOwn(PACK_STYLES, look)) throw new Error(`overflow: no styles for the pack ${look} (tools/qa/pack-styles.mjs)`);
+    withLook[look] = { pack: await run(undefined, look), sample: await run(undefined, look, true) };
+  }
 } finally {
   await browser.close();
   scratch.stop();
@@ -118,4 +130,18 @@ if (args["same-boxes"]) {
     for (const [key, f] of bad.slice(0, 20)) console.error(`  ${key}: card ${JSON.stringify(f.card)} -> ${JSON.stringify(run[key]?.card)}, body ${JSON.stringify(f.body)} -> ${JSON.stringify(run[key]?.body)}`);
   }
   if (moved) process.exit(1);
+}
+
+if (args.looks) {
+  const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  let bad = 0;
+  for (const [look, { pack: run, sample: frames }] of Object.entries(withLook)) {
+    const moved = Object.entries(frames).filter(([key, f]) => !same(f.card, run[key]?.card) || !same(f.body, run[key]?.body));
+    const issues = Object.entries(run).flatMap(([key, f]) => f.issues.filter((i) => !frames[key]?.issues.includes(i)).map((i) => `${key} ${i}`));
+    bad += moved.length + issues.length;
+    console.log(`overflow: pack ${look}: ${Object.keys(run).length} frames, ${moved.length} with a card or body rect that differs from the sample theme without the pack, ${issues.length} new issues`);
+    for (const [key, f] of moved.slice(0, 20)) console.error(`  ${key}: card ${JSON.stringify(f.card)} -> ${JSON.stringify(run[key]?.card)}, body ${JSON.stringify(f.body)} -> ${JSON.stringify(run[key]?.body)}`);
+    for (const i of issues.slice(0, 40)) console.error(`  new issue ${i.slice(0, 240)}`);
+  }
+  if (bad) process.exit(1);
 }

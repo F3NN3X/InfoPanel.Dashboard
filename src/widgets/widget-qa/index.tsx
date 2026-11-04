@@ -127,6 +127,8 @@ window.__qaMountAll = async () => {
   // samples: lazy chunks and ResizeObserver re-renders land at load-dependent times, so a fixed wait let a slow run read a
   // half-built frame (ledger L50, L60). Text is left out: the demo streams keep changing it and would never settle.
   // Bounded at 6 s; a cap that is reached is logged and returned as false.
+  // The default buffer holds 250 entries; past that the count would stop growing and a late chunk would not keep the page unsettled (L70).
+  performance.setResourceTimingBufferSize(5000);
   let last = -1;
   let still = 0;
   for (let i = 0; i < 24 && still < 3; i++) {

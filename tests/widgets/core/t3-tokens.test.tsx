@@ -24,6 +24,9 @@ describe("t3Tokens", () => {
       t3Tokens({ "ring-style": "arc270", "border-fill": GRAD, "num-fill": GRAD, "num-effect": "chromatic", "label-glow": "accent", "series-glow": "soft", "graph-style": "line", "cell-radius": "0", "header-style": "prompt", "header-fill": GRAD, "meter-zone-style": "blend", "meter-hold-style": "dot", "spike-shape": "tick", "fader-knob-shape": "notch", "ring-cap": "butt" }),
     ).toEqual({ ringArc: 270, frame: "gradient", borderFill: GRAD, numFill: GRAD, numChroma: true, labelGlow: true, glow: true, graph: "line", cellSquare: true, header: "prompt", headerFill: GRAD, zones: "blend", hold: "dot", spike: "tick", knob: "notch", cap: "butt" });
     expect(t3Tokens({ "ring-style": "ticks" }).ringMark).toBe("ticks");
+    expect(t3Tokens({ "meter-style": "blocks" }).meter).toBe("blocks");
+    expect(t3Tokens({ "meter-style": "segments" }).meter).toBe("segments");
+    expect(t3Tokens({ "meter-style": "bar; x" }).meter).toBeUndefined();
   });
 });
 
