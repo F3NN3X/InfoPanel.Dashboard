@@ -15,6 +15,7 @@
 // 403), so the built-in packs are unaffected.
 
 use std::path::{Path, PathBuf};
+use std::sync::Mutex;
 
 use axum::body::Body;
 use axum::http::{Method, Response};
@@ -38,8 +39,12 @@ const IMPORT_BODY_MAX: usize = (PACK_CEILING_BYTES as usize) * 4 / 3 + 64 * 1024
 pub const PACKS_MAX: usize = 32;
 pub const PACKS_TOTAL_BYTES: u64 = 16_000_000;
 
-/// The start of a folder an import writes into, or sets a replaced pack aside as; a leftover of either is swept at start.
+/// The start of a folder an import writes into; a leftover is swept at start.
 const TEMP_PREFIX: &str = ".import-";
+/// The start of a replaced pack set aside as `.import-old-<id>-<uuid>`; the sweep puts it back when the pack's own folder is gone.
+const ASIDE_PREFIX: &str = ".import-old-";
+/// The length of the uuid that ends a set-aside name.
+const UUID_LEN: usize = 36;
 /// The files at the top of a pack folder, by name.
 const ROOT_FILES: [&str; 7] = ["pack.json", "look.json", "icons.json", "OFL.txt", "thumb.png", "thumb.jpg", "thumb.webp"];
 /// The extensions an asset may have (`assets/<name>.<ext>`) and their types.
@@ -93,18 +98,22 @@ pub struct Packs {
     dir: PathBuf,
     enabled: bool,
     allow_remote: bool,
+    /// Held across an import's cap checks and write, and a remove, so two at once cannot both pass the caps.
+    write: Mutex<()>,
 }
 
 impl Packs {
     /// The store in `dir`. `USER_PACKS=off` (or `0`) is the rollback switch.
     pub fn new(dir: PathBuf, allow_remote: bool) -> Self {
         let enabled = !matches!(std::env::var("USER_PACKS").ok().as_deref(), Some("off" | "0"));
-        let packs = Self { dir, enabled, allow_remote };
+        let packs = Self { dir, enabled, allow_remote, write: Mutex::new(()) };
         packs.sweep();
         packs
     }
 
-    /// Removes what a crash left of an import: a half-written folder, or a replaced pack set aside.
+    /// Recovers from a crash in an import. A pack set aside whose own folder is gone is put back (the replace died between
+    /// its two renames); one whose folder is there is the old copy of a finished replace and goes. The half-written
+    /// folders go last, so the only copy of a pack is never deleted.
     fn sweep(&self) {
         if !self.enabled {
             return;
@@ -112,17 +121,83 @@ impl Packs {
         let Ok(entries) = std::fs::read_dir(&self.dir) else {
             return;
         };
+        let (mut asides, mut temps) = (Vec::new(), Vec::new());
         for entry in entries.filter_map(Result::ok) {
-            let is_dir = entry.file_type().is_ok_and(|t| t.is_dir());
-            if is_dir && entry.file_name().to_string_lossy().starts_with(TEMP_PREFIX) {
-                let _ = std::fs::remove_dir_all(entry.path());
+            let name = entry.file_name().to_string_lossy().into_owned();
+            if !entry.file_type().is_ok_and(|t| t.is_dir()) || !name.starts_with(TEMP_PREFIX) {
+                continue;
+            }
+            match name.strip_prefix(ASIDE_PREFIX) {
+                Some(rest) => asides.push((entry.path(), rest.len().checked_sub(UUID_LEN + 1).and_then(|n| rest.get(..n)).map(str::to_string))),
+                None => temps.push(entry.path()),
+            }
+        }
+        let mut kept = false;
+        for (path, id) in asides {
+            let dest = id.filter(|id| is_pack_id(id)).map(|id| self.dir.join(id));
+            match dest {
+                Some(dest) if std::fs::symlink_metadata(&dest).is_err() => kept |= std::fs::rename(&path, &dest).is_err(),
+                _ => {
+                    let _ = std::fs::remove_dir_all(&path);
+                }
+            }
+        }
+        if !kept {
+            for path in temps {
+                let _ = std::fs::remove_dir_all(path);
             }
         }
     }
 
+    /// Stores a checked import: the caps are checked and the pack written under the write lock. The pack is written beside
+    /// its place under a name no id has, then moved in, so a half-written pack is never a pack; a replaced pack is set aside
+    /// (`.import-old-<id>-<uuid>`, which the sweep puts back after a crash) until the new one is in place.
+    fn store(&self, id: &str, files: &Files) -> std::io::Result<Result<(), Refused>> {
+        let _held = self.write.lock().unwrap_or_else(|e| e.into_inner());
+        let others: Vec<u64> = listed(self).into_iter().filter(|(other, _)| other != id).map(|(_, bytes)| bytes).collect();
+        if others.len() + 1 > PACKS_MAX {
+            return Ok(Err(refuse(413, format!("{PACKS_MAX} packs are stored; remove one first"))));
+        }
+        if others.iter().sum::<u64>() + files.iter().map(|(_, b)| b.len() as u64).sum::<u64>() > PACKS_TOTAL_BYTES {
+            return Ok(Err(refuse(413, format!("the packs would take over {PACKS_TOTAL_BYTES} bytes in all; remove one first"))));
+        }
+        std::fs::create_dir_all(&self.dir)?;
+        let temp = self.dir.join(format!("{TEMP_PREFIX}{}", uuid::Uuid::new_v4()));
+        let written = (|| -> std::io::Result<()> {
+            for (path, bytes) in files {
+                let target = temp.join(path);
+                if let Some(parent) = target.parent() {
+                    std::fs::create_dir_all(parent)?;
+                }
+                std::fs::write(target, bytes)?;
+            }
+            let dest = self.dir.join(id);
+            let aside = self.dir.join(format!("{ASIDE_PREFIX}{id}-{}", uuid::Uuid::new_v4()));
+            let had = std::fs::symlink_metadata(&dest).is_ok();
+            if had {
+                std::fs::rename(&dest, &aside)?;
+            }
+            if let Err(e) = std::fs::rename(&temp, &dest) {
+                if had {
+                    let _ = std::fs::rename(&aside, &dest);
+                }
+                return Err(e);
+            }
+            if had {
+                let _ = std::fs::remove_dir_all(&aside);
+            }
+            Ok(())
+        })();
+        if let Err(e) = written {
+            let _ = std::fs::remove_dir_all(&temp);
+            return Err(e);
+        }
+        Ok(Ok(()))
+    }
+
     #[cfg(test)]
     fn with(dir: PathBuf, enabled: bool) -> Self {
-        Self { dir, enabled, allow_remote: false }
+        Self { dir, enabled, allow_remote: false, write: Mutex::new(()) }
     }
 
     /// The file of `file` in pack `id`, or `None` for anything not a pack file inside its pack folder: the names are
@@ -313,45 +388,8 @@ async fn handle_import(app: &App, mut req: Req) -> std::io::Result<Response<Body
         Ok(done) => done,
         Err(Refused(status, message)) => return Ok(http::text(status, message)),
     };
-    let others: Vec<u64> = listed(packs).into_iter().filter(|(other, _)| *other != id).map(|(_, bytes)| bytes).collect();
-    if others.len() + 1 > PACKS_MAX {
-        return Ok(http::text(413, format!("{PACKS_MAX} packs are stored; remove one first")));
-    }
-    if others.iter().sum::<u64>() + files.iter().map(|(_, b)| b.len() as u64).sum::<u64>() > PACKS_TOTAL_BYTES {
-        return Ok(http::text(413, format!("the packs would take over {PACKS_TOTAL_BYTES} bytes in all; remove one first")));
-    }
-    // written beside the pack under a name no id has, then moved into place: a half-written pack is never a pack
-    std::fs::create_dir_all(&packs.dir)?;
-    let temp = packs.dir.join(format!("{TEMP_PREFIX}{}", uuid::Uuid::new_v4()));
-    let written = (|| -> std::io::Result<()> {
-        for (path, bytes) in &files {
-            let target = temp.join(path);
-            if let Some(parent) = target.parent() {
-                std::fs::create_dir_all(parent)?;
-            }
-            std::fs::write(target, bytes)?;
-        }
-        // a replaced pack is set aside, not deleted, until the new one is in place: a failed rename puts it back
-        let dest = packs.dir.join(&id);
-        let aside = packs.dir.join(format!("{TEMP_PREFIX}old-{}", uuid::Uuid::new_v4()));
-        let had = std::fs::symlink_metadata(&dest).is_ok();
-        if had {
-            std::fs::rename(&dest, &aside)?;
-        }
-        if let Err(e) = std::fs::rename(&temp, &dest) {
-            if had {
-                let _ = std::fs::rename(&aside, &dest);
-            }
-            return Err(e);
-        }
-        if had {
-            let _ = std::fs::remove_dir_all(&aside);
-        }
-        Ok(())
-    })();
-    if let Err(e) = written {
-        let _ = std::fs::remove_dir_all(&temp);
-        return Err(e);
+    if let Err(Refused(status, message)) = packs.store(&id, &files)? {
+        return Ok(http::text(status, message));
     }
     let size: u64 = files.iter().map(|(_, b)| b.len() as u64).sum();
     let name = packs.pack_dir(&id).map_or_else(|| id.clone(), |root| name_of(&root, &id));
@@ -366,6 +404,7 @@ fn handle_delete(app: &App, req: &Req, id: &str) -> std::io::Result<Response<Bod
     let Some(root) = is_pack_id(id).then(|| packs.pack_dir(id)).flatten() else {
         return Ok(http::empty(404));
     };
+    let _held = packs.write.lock().unwrap_or_else(|e| e.into_inner());
     std::fs::remove_dir_all(root)?;
     Ok(http::empty(204))
 }
@@ -441,15 +480,82 @@ mod tests {
         }
     }
 
+    fn names(dir: &Path) -> Vec<String> {
+        let mut left: Vec<String> = std::fs::read_dir(dir).unwrap().map(|e| e.unwrap().file_name().to_string_lossy().into_owned()).collect();
+        left.sort();
+        left
+    }
+
+    fn marked(root: &Path, text: &str) {
+        std::fs::write(root.join("pack.json"), text).unwrap();
+    }
+
     #[test]
-    fn a_crash_leftover_is_swept_and_a_pack_is_not() {
+    fn a_crash_leftover_with_no_pack_behind_it_is_swept_and_a_pack_is_not() {
         let dir = tempfile::tempdir().unwrap();
         pack(dir.path(), "mine");
         std::fs::create_dir_all(dir.path().join(".import-1/assets")).unwrap();
-        std::fs::create_dir_all(dir.path().join(".import-old-2")).unwrap();
         Packs::with(dir.path().to_path_buf(), true).sweep();
-        let left: Vec<String> = std::fs::read_dir(dir.path()).unwrap().map(|e| e.unwrap().file_name().to_string_lossy().into_owned()).collect();
-        assert_eq!(left, ["mine"]);
+        assert_eq!(names(dir.path()), ["mine"]);
+    }
+
+    const UUID: &str = "11111111-2222-3333-4444-555555555555";
+
+    #[test]
+    fn a_crash_after_the_first_rename_puts_the_old_pack_back() {
+        // dest is gone: the old pack sits aside and the new one is still in its temp folder
+        let dir = tempfile::tempdir().unwrap();
+        marked(&pack(dir.path(), &format!(".import-old-my-pack-{UUID}")), "old");
+        marked(&pack(dir.path(), ".import-9"), "new");
+        Packs::with(dir.path().to_path_buf(), true).sweep();
+        assert_eq!(names(dir.path()), ["my-pack"]);
+        assert_eq!(std::fs::read_to_string(dir.path().join("my-pack/pack.json")).unwrap(), "old");
+    }
+
+    #[test]
+    fn a_crash_after_the_second_rename_keeps_the_new_pack() {
+        let dir = tempfile::tempdir().unwrap();
+        marked(&pack(dir.path(), "my-pack"), "new");
+        marked(&pack(dir.path(), &format!(".import-old-my-pack-{UUID}")), "old");
+        Packs::with(dir.path().to_path_buf(), true).sweep();
+        assert_eq!(names(dir.path()), ["my-pack"]);
+        assert_eq!(std::fs::read_to_string(dir.path().join("my-pack/pack.json")).unwrap(), "new");
+    }
+
+    #[test]
+    fn a_crash_before_the_cleanup_or_during_the_write_loses_nothing() {
+        let dir = tempfile::tempdir().unwrap();
+        marked(&pack(dir.path(), "mine"), "kept");
+        pack(dir.path(), ".import-3");
+        Packs::with(dir.path().to_path_buf(), true).sweep();
+        assert_eq!(names(dir.path()), ["mine"]);
+        assert_eq!(std::fs::read_to_string(dir.path().join("mine/pack.json")).unwrap(), "kept");
+    }
+
+    #[test]
+    fn two_imports_at_once_cannot_pass_the_pack_cap_together() {
+        let files: Files = vec![("pack.json".into(), b"{\"id\":\"x\"}".to_vec())];
+        for round in 0..20 {
+            let dir = tempfile::tempdir().unwrap();
+            let packs = Packs::with(dir.path().to_path_buf(), true);
+            for k in 0..PACKS_MAX - 1 {
+                pack(dir.path(), &format!("p{k}"));
+            }
+            let gate = std::sync::Barrier::new(2);
+            let stored = std::thread::scope(|scope| {
+                let go = |id: &'static str| {
+                    let (packs, files, gate) = (&packs, &files, &gate);
+                    scope.spawn(move || {
+                        gate.wait();
+                        packs.store(id, files).unwrap().is_ok()
+                    })
+                };
+                let (a, b) = (go("a"), go("b"));
+                [a.join().unwrap(), b.join().unwrap()]
+            });
+            assert_eq!(stored.iter().filter(|ok| **ok).count(), 1, "round {round}: {stored:?}");
+            assert_eq!(listed(&packs).len(), PACKS_MAX);
+        }
     }
 
     #[test]

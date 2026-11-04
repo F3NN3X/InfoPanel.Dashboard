@@ -1,5 +1,8 @@
 // A stored config and a user pack that goes away (P12b): kept apart from the importer so the studio entry does not pull the validator for it.
 
+/** The most user packs stored: the server's `PACKS_MAX` (packs.rs; a test keeps the two equal). */
+export const USER_PACKS_MAX = 32;
+
 /** How many places in a stored config name this Look (a screen, a page, a widget, a saved look). */
 export function lookUses(config: unknown, id: string): number {
   if (Array.isArray(config)) return config.reduce((n: number, v) => n + lookUses(v, id), 0);

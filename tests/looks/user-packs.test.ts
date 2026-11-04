@@ -7,7 +7,8 @@ import { loadPack, sharedPack, unregisterUserPack } from "@/looks/pack-load";
 import { PACK_IDS } from "@/looks/pack";
 import { lookLayers, sampleCards, userLookIds } from "@/looks/sample-cards";
 import { checkImport, describeIssue, filesOfZip, sourceOf, withoutRoot, type PickedFile } from "@/looks/user-pack-import";
-import { lookUses, withoutLookId } from "@/looks/user-pack-config";
+import { readFileSync } from "node:fs";
+import { lookUses, USER_PACKS_MAX, withoutLookId } from "@/looks/user-pack-config";
 import { cardOf, fontCss, forgetUserPack, listUserPacks, registerUserPacks, USER_PACK_ID } from "@/looks/user-packs";
 import { readPackDir } from "../../tools/validate-pack.mjs";
 
@@ -179,6 +180,13 @@ describe("a config that names a pack this build does not have", () => {
   it("userLookIds finds the ids to look for and leaves the Looks of the registry", () => {
     const config = { profiles: [{ widgetTheme: { values: { lookId: "mine" } }, pages: [{ zones: [{ style: { lookId: "classic" } }, { style: { lookId: "paper" } }, { style: { lookId: "mine" } }, { style: { lookId: "Bad Id" } }] }] }] };
     expect(userLookIds(config)).toEqual(["mine"]);
+  });
+
+  it("userLookIds keeps as many ids as the server stores packs, and the two numbers agree", () => {
+    const rust = readFileSync("src-tauri/crates/ips-server/src/packs.rs", "utf8");
+    expect(Number(/pub const PACKS_MAX: usize = (\d+);/.exec(rust)?.[1])).toBe(USER_PACKS_MAX);
+    const config = { list: Array.from({ length: USER_PACKS_MAX + 3 }, (_, k) => ({ lookId: `mine-${k}` })) };
+    expect(userLookIds(config)).toHaveLength(USER_PACKS_MAX);
   });
 
   it("lookUses counts the places and withoutLookId takes them out (Classic is drawn there)", () => {

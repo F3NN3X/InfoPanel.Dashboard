@@ -130,6 +130,17 @@ describe("removing a pack", () => {
     expect(screen.getByRole("status").textContent).toBe("Couldn't remove Mine. It is still stored, and nothing that wears it was changed.");
   });
 
+  it("a pack the server no longer has (404) is taken off the studio and out of the config like any removal", async () => {
+    vi.stubGlobal("fetch", async (_url: string, init?: RequestInit) => (init?.method === "DELETE" ? new Response("", { status: 404 }) : new Response(JSON.stringify([{ id: "mine", name: "Mine", size: 10 }]))));
+    const onRemove = vi.fn(() => 1);
+    render(<UserPacks currentLookId="mine" onPick={() => {}} onRemove={onRemove} />);
+    await act(async () => {});
+    await act(async () => void fireEvent.click(await screen.findByRole("button", { name: "Remove Mine" })));
+    await act(async () => {});
+    expect(onRemove).toHaveBeenCalledWith("mine");
+    expect(screen.getByRole("status").textContent).toBe("Removed Mine. A place that wore it now draws Classic.");
+  });
+
   it("one nothing wears is removed without that line", async () => {
     server([{ id: "mine", name: "Mine", size: 10 }]);
     render(<UserPacks currentLookId="classic" onPick={() => {}} onRemove={() => 0} />);

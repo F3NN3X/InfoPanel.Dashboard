@@ -143,8 +143,10 @@ export async function storePack(report: ImportReport & { src: PackSource }): Pro
 export async function removePack(id: string): Promise<boolean> {
   try {
     const res = await fetch(`/api/packs/${encodeURIComponent(id)}`, { method: "DELETE", headers: WRITE });
-    if (res.ok) forgetUserPack(id);
-    return res.ok;
+    // a 404 is a pack already gone (removed elsewhere): the card and the config's references still go
+    const gone = res.ok || res.status === 404;
+    if (gone) forgetUserPack(id);
+    return gone;
   } catch {
     return false;
   }
