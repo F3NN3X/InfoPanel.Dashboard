@@ -2427,6 +2427,7 @@ Budget keys today (`tools/perf/budgets.json`): `kioskEntryGzipBytes` 276492, `st
 ### P12. Validator and user packs (built last)
 
 - **Scope and files.** Validator (schema, asset list, relative paths only, no `@import`/`url()` outside the pack, paint-only pack CSS if any, contrast, burn-in luminance, ornament at most 10 px, chamfer at most 20 px, no `!important` on fills, no card rotation, icon keys within the fixed list, the layer budget); user packs from the app data directory, served through the existing asset store (`ips-server/src/assets.rs`, hash ids, `'self'`) or one new route `GET /api/packs/<id>/<file>` with a path-safety check (route table in `ips-server/src/lib.rs`); pack CSS (level 3) only if P10 and P11 showed a need. Sharing stays off until the IP policy exists.
+- **P12b provenance (P12a review round 2).** The validator's mode comes from where a pack was loaded: the built-in registry means `builtin`, the app data folder means `user`. It never comes from the pack's own content, a manifest field or a request parameter, and no flag selects `builtin`. P12b runs `validatePack` in `user` mode on the bytes it stores and again on read before mounting.
 - **Pixels.** None.
 - **Risk.** High (security surface): path traversal, remote URLs. Mitigation: server path-safety test like the asset id check; validator test set of bad packs (remote URL, JavaScript, layout CSS, missing asset, low contrast, oversized ornament).
 - **Effort.** L.

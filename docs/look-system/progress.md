@@ -757,6 +757,31 @@ Things to know:
 - One expectation of the round-0 tests changed with the rule: Field Kit with `burnIn: static-safe` no longer passes (its hazard strip is bright art and the brightest stop counts, not the mean of the colours); the case now uses a dark fill for the pass and asserts the refusal for Field Kit.
 - The size-cap test uses two real PNG-signature files instead of one file with no bytes (a file without bytes is its own error now).
 
+### Review and fix round 2 (P12a)
+
+The second review (3 HIGH, 4 MED, 6 LOW; still BLOCK) found the user-mode contrast gate failing open in three more places, each with a one-line token or stage edit. **Principle of the round:** in user mode the contrast and visibility checks run on the resolved paint the kiosk will draw and fail closed: every alias is resolved, and anything unresolved, unreadable or not modelled is an error; no further special case per probe.
+
+| Finding | Result |
+|---|---|
+| N-H1 alias to a T3 token hides text | fixed: a colour token's `{alias}` is followed through T3 tokens to a T1 name or a literal (`resolveAlias`); a loop, an unset token, `""`, a number and a shell name (`faint`, `mat.fill`, `radius`) are `contrast` errors; the contrast of the resolved colour is held on every card the Look is drawn on |
+| N-H2 header-fill and border-fill unchecked | fixed: `header-fill` (the title is painted in it) is read stop by stop, `var(--w-*)` through the T1 value, each stop laid over each card by its alpha and held to 3:1 (`transparent`, alpha 0, `currentColor`, a name are `contrast`); `border-fill` refuses an unreadable stop and any stop under 0.5 opaque (`t3`) |
+| N-H3 card not read over the stage | fixed: a material colour is laid over every backdrop of the mode: the page (`bg`), the stage layers at their lightest, their darkest and each alone (gradient stops, an SVG's paints plus its default black and nothing); text contrast is the worst case across them. A layer whose colours cannot be known (a raster, an unreadable paint) adds black and white, and a card under 0.85 opaque (`RASTER_ALPHA_MIN`) over one is `contrast`. Effects (grain, vignette) are capped by `OVERLAY_MAX` and not composited (L96) |
+| N-M1 motion | fixed: `motion-*` is one number with `ms` or `s`, 50 to 2000 ms; a bare number, an exponent, a sign or a list is `t3`. No T3 token repeats, so a bounded time is the whole of the 3-flashes-a-second rule (WCAG 2.3.1); pack CSS animation stays capped by the built-in rules |
+| N-M2 fonts | fixed (`pack.schema.json`): `family` `^pack-[a-z0-9-]+$`, `weight` `normal`, `bold`, a hundred from 100 to 900 or a range of two (the built-ins' `100 900`), `style` `normal` or `italic`, no other keys |
+| N-M3 icons | fixed (`icon-set.ts`, shared with the loader): only `viewBox` and `d`; `viewBox` is four finite numbers, width and height 1 to 512, origin within 512; every number of the path is finite and within 2048 |
+| N-M4 provenance | fixed in the validator: in user mode a pack id equal to any built-in Look's id, or a font family equal to a built-in pack's (`provenance`), is an error. **P12b requirement:** `source` comes from where the pack was loaded: the built-in registry means `builtin`, the app data folder means `user`. It never comes from the pack's own content, a manifest field or a request parameter; no flag selects `builtin` |
+| Security scan: resource functions | fixed (`pack-safety.ts`): `INJECTION` and the SVG attribute check refuse `url`, `image-set`, `image`, `cross-fade`, `src`, `element`, `paint`, `env` and `attr`, any case, with or without `-webkit-`; only `url(#id)` is exempt in an SVG. The SVG `style` attribute is an allow-list: `fill`, `stroke`, `stop-color`, `stop-opacity`, `fill-opacity`, `stroke-opacity`, `opacity`, `stroke-width`, each a colour literal, a number, `none` or `url(#id)`; a quote is refused |
+| N-L1 `{nope}` alias | fixed with N-H1 |
+| N-L3 PNG signature | fixed: all eight bytes |
+| N-L5 built-in id | fixed with N-M4 |
+| N-L2, N-L4, N-L6 | ledgered (L96) |
+
+Things to know:
+- Verify (fix round 2): `node tools/verify.mjs --full --keep-going` on the round-2 tree exit 0, 19/19 passed, 568 s; v8 parity, look-visual and overflow baselines unchanged; kiosk and studio entries unchanged (no importer).
+- The new tests were run once against the round-1 source first: 80 of the 276 failed there (every refusal case and the pass cases of the new rules); all pass now.
+- A test fixture changed with a rule, not an expectation: the user-pack helper gives Field Kit its own id and font families (the provenance rule would refuse its own), and the PNG fixtures carry the full signature.
+- The built-in font family list in `pack-validate.ts` (`BUILTIN_FONT_FAMILIES`) is pinned by a test that reads every built-in pack.json; a new built-in pack needs its families added there.
+
 ## Ledger: known issues and deferred work
 
 Open items carried between phases. Each phase adds what it finds or defers, and closes what it fixes (status `closed in P<N>`).
@@ -858,3 +883,4 @@ Open items carried between phases. Each phase adds what it finds or defers, and 
 | L93 | P11b fix 2 | A user pack's chrome (L25) takes its surface, text and edge verbatim; an rgba surface would give translucent alert cards | P12 | closed in P12a: `chrome-surface` requires every mode's `surface` to be an opaque #rgb or #rrggbb; the twelve built-ins pass |
 | L94 | P12a fix 1 | User packs carry no `pack.css` (rule `user-css`); user CSS needs a fail-closed grammar (selectors from the slot allow-list only; colours only as hex or rgb literals or `var(--pack-*)` resolvable in the same file; no `@keyframes`) plus a render-based check at import (the pack worn on the Widget QA page offscreen, with the `pack-visibility` measures) | Post-plan polish backlog | open: until both exist, user CSS stays refused (decision log, P12a fix round 1) |
 | L95 | P12a fix 1 | Deferred LOWs of the P12a review: duplicate JSON keys (the parser is `JSON.parse`, last wins; a raw-text check belongs in P12b's import reader); `@font-face` `local()` fingerprints fonts and `color: expression()` passes (built-in CSS only: user CSS is refused); `ornament.bleed: true` lifts the 10 px cap by design (spec 03, a user pack self-declares it); P12b must serve pack files with `Content-Type` from the extension, `nosniff` and `Content-Security-Policy: sandbox` (an SVG is served at its own URL, same origin) and list in its export capability table that a user light pack exports the dark-literal LedLadder colours (L52) | P12b | open |
+| L96 | P12a fix 2 | Deferred LOWs of the second review: the licence check is a phrase match (an OFL header at the start of the file would be stricter, but the OFL.txt files of the built-ins begin with their copyright line); README, LOOK.md and OFL.txt carry any text (P12b serves them `text/plain` and never reads them as CSS or HTML); an SVG comment holding a script passes the reader (inert: an XML parser refuses the file, and it is served as `image/svg+xml` with `nosniff` and CSP sandbox, L95); Paper (no assets list) is refused in user mode, as designed (use `--builtin`); overlay effects (grain, vignette, glow) are not composited into the card's backdrop (their opacity is capped by `OVERLAY_MAX`) | P12b | open |
