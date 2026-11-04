@@ -206,6 +206,9 @@ fn handle_list(app: &App) -> Response<Body> {
     http::json(200, &Value::Array(items))
 }
 
+/// The decoded files of an import: path and bytes.
+type Files = Vec<(String, Vec<u8>)>;
+
 /// A refused import: its status and message.
 struct Refused(u16, String);
 
@@ -215,7 +218,7 @@ fn refuse(status: u16, message: impl Into<String>) -> Refused {
 
 /// An import's files checked against the pack's shape: every path one a pack has, no repeat, the caps, `pack.json` and
 /// `look.json` there as JSON objects naming the folder's id. Returns the decoded files.
-fn checked_import(body: &Value) -> Result<(String, Vec<(String, Vec<u8>)>), Refused> {
+fn checked_import(body: &Value) -> Result<(String, Files), Refused> {
     let id = body.get("id").and_then(Value::as_str).unwrap_or("");
     if !is_pack_id(id) {
         return Err(refuse(400, "the pack id is not lowercase letters, digits and hyphens (48 at most)"));
@@ -224,7 +227,7 @@ fn checked_import(body: &Value) -> Result<(String, Vec<(String, Vec<u8>)>), Refu
     if list.len() > FILE_COUNT_MAX {
         return Err(refuse(413, format!("{} files, at most {FILE_COUNT_MAX}", list.len())));
     }
-    let mut files: Vec<(String, Vec<u8>)> = Vec::new();
+    let mut files: Files = Vec::new();
     let mut total = 0u64;
     for f in list {
         let path = f.get("path").and_then(Value::as_str).unwrap_or("");
