@@ -154,10 +154,10 @@ export function PageInspector({ profile, page, inherit, onRename, onIcon, onDupl
             <NumberInput label="Gap" value={profile.gap ?? profileGap(profile)} min={0} max={64} onCommit={onGap} />
             <span className="text-ui-4">px</span>
           </PageRow>
-          <PageRow label="Theme" swatch={theme.swatch}>
+          <PageRow label="Look" swatch={theme.swatch}>
             <button
               type="button"
-              title="Edit in Theme"
+              title="Edit in Look"
               onClick={() => inherit.navigateTo({ view: "theme", themeScope: { kind: "profile" }, profileId: profile.id })}
               className="truncate rounded-sm hover:underline"
             >

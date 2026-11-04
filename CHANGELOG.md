@@ -6,6 +6,38 @@ version as its notes, so move **Unreleased** under a new `## [X.Y.Z] - YYYY-MM-D
 
 ## [Unreleased]
 
+### Added
+
+- **The Look view and its gallery.** **Theme** on the rail is now **Look**. Its column opens on the Look you use with four knobs, **Accent**, **Surface**, **Corners** and **Density**, each marked **Custom** with a reset once you change it, and **Choose a Look**: Classic, the 13 skins and the 12 sample Looks as cards drawn by the real widgets, with tag filters (minimal, technical, retro, neon, gaming, glass, light) and a search. One click applies a Look; the screen stores which Look and only what you change on top. A widget's Style tab starts with the same knobs. The old fine-tune cards are under **Advanced · Fine-tune**.
+- **A Mode knob for looks that support light.** Classic, Paper, Field Kit and Tape '86 show **Mode** (Dark, Light) in the knob row; a light look offers no Dark. Light cards also carry their own status colours: Paper, Field Kit and Tape '86 set the warning and critical text of their mockups.
+- **Four more Looks that wear their own art: Neon Stripe, Overdrive, Swiss Mono and Holo.** Neon Stripe has four glowing stripes behind near-black cards with red bracket headers and tick rings. Overdrive has chamfered yellow cards, an angled label bar, cyan numerals with a colour fringe and a red grid. Swiss Mono has numbered headers, light numerals and one orange circle. Holo has corner brackets, 270-degree glowing rings and, on the new Holo cockpit screen, elbow connectors from the core gauge to the panels around it. Each brings its own subset fonts (SIL Open Font License; the licence text ships in `licences/pack-fonts-OFL.txt`) and asks no font host for anything.
+- **Five more Looks with their own type: Night Glow, Paper, Classy Black, Liquid Glass and Black and Gold.** Night Glow is blurred navy glass with a cyan-to-violet-to-pink edge, a gradient hero number and segmented rings. Paper is white cards on warm paper with a faint hexagon pattern and a purple-to-blue hero number. Classy Black is solid black with thin light numerals. Liquid Glass is frosted rose-violet glass over soft tinted light (at most 8 cards blur on a page, and a card fills to 0.90 where blur is off). Black and Gold is warm black with a gold sheen on the edge and numerals. A worn Look's type replaces the Font option while it is worn, and no Look asks a font host for anything.
+- **Twelve sample themes in the Theme view.** Field Kit, Tape '86, Neon Stripe, Overdrive, Swiss Mono, Term, Holo, Night Glow, Paper, Classy Black, Liquid Glass and Black and Gold: each sets a card, an accent, text colours, a font and a page colour, following the look-system mockups as far as cards and colours go (frames, headers, art and effects come later). Classic stays the default.
+
+### Changed
+
+- **Text and bars in the accent colour darken on light cards.** On the Matte light surface (and light looks) an accent that fails 4.5:1 on the card, like the default green at 1.75:1, is darkened for text, rings and bars; ok, warning and critical readings and the level meters follow the card's own status colours. StreamControl, StreamMixer and MenuBar no longer paint dark chips on a light card. Dark surfaces are unchanged.
+- **New names for the look.** "Look" replaces "Theme" on the rail, in the view and the command palette, and "Skin" in the Style tab; the Default skin is **Classic**. **Switch theme** is **Saved and template looks**, **Save as theme** is **Save look**, the **Palette** picker is **Colors**, the card's **Corners** are **Base corners**, and a widget's Styles are **Widget looks** (**Start from a saved look**, **Save look**, **Make this the Look for…**, **Library › Widget looks**). The Skin picker is gone: the skins are in the gallery.
+- **Screens are saved in format 17.** The skins are now looks: each screen, page and widget records which look it
+  uses in place of its skin (Default is the Classic look), and a screen or page that applied one of the sample themes
+  records that theme. Nothing looks different, except a panel whose screen was saved with the old "default" skin
+  spelling: it now shows its own panel look, as with Default. The first save after the update
+  keeps the old file as `config.backup-before-v17.json` beside `config.json`; an older version can't save over a
+  format 17 config, so to go back, restore that backup.
+- **The widget accent colour is now `--w-accent`.** Custom CSS can read or set `--w-accent` inside a widget; `--accent` is still set to the same colour inside widgets for this release, and `--wp-accent`, `--wp-fg`, `--wp-muted` and `--wp-radius` keep working. Nothing looks different.
+- **Lower CPU with an audio meter open.** Widgets that read every sensor no longer redraw on each of the audio meter's ten updates a second unless they show an audio value.
+- **Now Playing draws its cover backdrop unblurred in lite mode** (Max FPS below 60, or reduced motion), where the 28 px filter blur was redrawn for nothing. Limit blur still does not cap it.
+- **The Brutal skin's accent offset sits inside the card.** Brutal widgets fill their whole frame again: the hard accent offset is drawn as a bar along the right and bottom inside the white rule, where it was a shadow outside a card shrunk by 6 px.
+- **Glass cards with a blur stay readable over a solid page background.** Where the blur is switched off (a solid colour page has nothing to blur), a blurred glass card (Vibrancy, or Glass with a Blur set) fills to 90 % instead of staying see-through, so its text keeps its contrast on a light page. The default Glass has no blur and is unchanged.
+- **Limit blur now caps InfoPanel canvas cards too.** A card with a backdrop blur above 12 px draws at 12 px while Limit blur is on (the default); the export keeps the full radius.
+
+### Fixed
+
+- **Heat maps and visualisers start from the card colour.** The coldest colour of an accent ramp (Core Heatmap, CPU Monitor, System Overview, Follow in the visualisers) was always near-black; it now starts from the card's own fill on every surface (light, theme, and the dark and tinted ones).
+- **InfoPanel export: warn and crit ring colours on the Theme surface.** They exported as the default blue; they now keep their colour.
+- **InfoPanel export: gradient and glass cards export their card.** A widget exported through its converter on Glass, Tinted, Holo, Carbon, Studio, Vibrancy, Material, Synth, Cyber or Nixie lost its card; it now exports as the material's flat colour (Outline and Flat stay see-through).
+- **Theme thumbnails draw skin and accent-tinted surfaces.** The mini widgets on a theme card lost their background and edge glow on surfaces mixed from the accent (the Cyber, HUD, Neon and Media themes read as plain cards); they now draw them, in the skin's accent where the theme sets none.
+
 ## [1.3.1-beta.8] - 2026-11-03
 
 ### Added

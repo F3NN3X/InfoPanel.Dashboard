@@ -57,7 +57,7 @@ export function UploadTray({ rows, onClear, onShow }: { rows: UploadRow[]; onCle
           <li key={r.id} className="px-3.5 py-1.5">
             <div className="flex items-center gap-2 text-caption">
               {r.state === "done" ? (
-                <Check className="h-3.5 w-3.5 shrink-0 text-ui-success" />
+                <Check className="h-3.5 w-3.5 shrink-0 text-ui-ok" />
               ) : r.state === "duplicate" ? (
                 <Copy className="h-3.5 w-3.5 shrink-0 text-ui-4" />
               ) : r.state === "error" ? (

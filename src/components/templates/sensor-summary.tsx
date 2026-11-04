@@ -36,7 +36,7 @@ export function SensorSummary({ kind, fit, noData, children }: SensorSummaryProp
   const [open, setOpen] = useState(false);
   const { title, note } = summaryText(kind, fit, noData);
   const canOpen = kind === "ip" && !noData && !!children;
-  const dot = noData ? "bg-ui-4" : fit.found < fit.need ? "bg-ui-warning" : "bg-ui-success";
+  const dot = noData ? "bg-ui-4" : fit.found < fit.need ? "bg-ui-warn" : "bg-ui-ok";
   const line = (
     <>
       <span aria-hidden className={cn("h-[7px] w-[7px] shrink-0 rounded-full", dot)} />

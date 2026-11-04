@@ -20,9 +20,9 @@ export interface ZoneRequests {
   entries: RequestEntry[];
 }
 
-export const VERDICT_TONE: Record<Verdict, string> = { share: "text-ui-success", check: "text-ui-warning", keep: "text-ui-danger" };
+export const VERDICT_TONE: Record<Verdict, string> = { share: "text-ui-ok", check: "text-ui-warn", keep: "text-ui-danger" };
 
-const DOT = { ok: "bg-ui-success", missing: "bg-ui-danger", switched: "bg-ui-warning", unknown: "bg-ui-hint" } as const;
+const DOT = { ok: "bg-ui-ok", missing: "bg-ui-danger", switched: "bg-ui-warn", unknown: "bg-ui-hint" } as const;
 const COLUMNS = "grid grid-cols-[minmax(0,1.5fr)_minmax(0,1.3fr)_minmax(0,1.4fr)_52px_minmax(0,1fr)_minmax(0,1.1fr)] items-center gap-x-3";
 
 /**

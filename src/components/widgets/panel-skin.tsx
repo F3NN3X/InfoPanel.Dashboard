@@ -4,18 +4,15 @@ import { ws } from "@/components/widget-style";
 import type { ModuleSettings } from "@/modules/types";
 import { ensureSkinFonts } from "@/widgets/core/fonts";
 import { resolveAccent, skinContext } from "@/widgets/core/look";
-import { SKINS, SkinCtx, numFont } from "@/widgets/core/theme";
+import { SKINS, SkinCtx, numFont, skinOfLook } from "@/widgets/core/theme";
 import type { SkinContext } from "@/widgets/core/types";
 
 /** The panel's resolved skin (null = `auto`: the widgets render as they always did). */
 const PanelSkinCtx = createContext<SkinContext | null>(null);
 export const usePanelSkin = (): SkinContext | null => useContext(PanelSkinCtx);
 
-/** The panel look's skin name; unset and `auto` both mean none. */
-export const panelSkinOf = (cfg: ModuleSettings): string | undefined => {
-  const skin = String(cfg.skin ?? "auto");
-  return skin === "auto" ? undefined : skin;
-};
+/** The skin the panel look's Look draws in; Classic (and unset) mean none. */
+export const panelSkinOf = (cfg: ModuleSettings): string | undefined => skinOfLook(cfg.lookId);
 
 /**
  * The colour a panel's widgets draw in when they have none of their own: `--wp-accent`, which the panel sets to its

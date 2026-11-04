@@ -178,6 +178,8 @@ pub async fn handle_config(app: &App, mut req: Req) -> std::io::Result<Response<
         return Ok(http::text(422, format!("canvas files missing from the store: {}", first.join(", "))));
     }
     // A save that raises the version keeps the file it replaces, once: an older build can't save over it any more.
+    // First wins: an existing backup is never overwritten, so after a restore of the older file and a second raise
+    // the backup is still the file of the first raise (it may differ from the restored one).
     let backup = backup.map(|name| config.file.with_file_name(name));
     if let Some(path) = &backup {
         // Copied beside it, then renamed: a copy cut short never stands in for the backup.

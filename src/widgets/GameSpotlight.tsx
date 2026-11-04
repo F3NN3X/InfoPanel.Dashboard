@@ -106,7 +106,7 @@ export default function GameSpotlight(p: GameSpotlightProps) {
       studio={{ label: statusText, live: true, value: game, sub: `${S("current-session-time")} session · ${hoursText(S("current-game-playtime"))}`, img: poster || banner, kind: "text", progress: { a: "Achievements", pct: ach, b: `${fmt(ach)}%` } }}
       compact={(box) => (box.shape === "tile" && p.layout !== "composite" ? { label: statusText, value: game, kind: "text", sub: `${S("current-session-time")} session`, img: box.w < 132 ? banner || poster : poster || banner, pct: ach, icon: "stadia_controller" } : undefined)}
     >
-      {({ w, h, shape }) => {
+      {({ w, h, shape, packed }) => {
         if (p.layout === "composite") {
           const N = (container: string, id: string) => get(d, `plugins.InfoPanel.SteamAPI.SteamAPI-${container}.${id}`);
           return (
@@ -244,7 +244,7 @@ export default function GameSpotlight(p: GameSpotlightProps) {
             <KenBurns src={banner} on={motion} ip={tag(banner ? steam("SteamAPI-Profile.current_game_banner_url") : undefined, { kind: "image" })} />
             <div className="absolute inset-0" style={{ background: `linear-gradient(0deg, rgba(8,8,10,${Math.min(1, scrim + 0.35)}) 0%, rgba(8,8,10,${scrim * 0.5}) 45%, rgba(8,8,10,${scrim * 0.15}) 100%), linear-gradient(90deg, rgba(8,8,10,${scrim * 0.7}), transparent 60%)` }} />
             <div className="relative flex h-full flex-col p-4">
-              <div className="flex items-center gap-2">
+              <div className={`flex items-center gap-2${packed ? " flex-wrap gap-y-1" : ""}`}>
                 <GlassPill>
                   <Dot ok />
                   {statusText}

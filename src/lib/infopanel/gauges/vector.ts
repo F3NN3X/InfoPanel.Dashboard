@@ -14,6 +14,7 @@
  * ok / warn / crit tone, and the scale uses their min, max, unit and decimals.
  * Every part added after L7 is optional, so older specs read and bake as before.
  */
+import { THEME } from "../../../looks/generated/gauge-theme.ts";
 import { normalizeFace, type FaceSpec } from "../../effects/face.ts";
 import { arcPath, circlePath, clamp, fmt, polar, type ContainerShape } from "./geom.ts";
 export type { ContainerShape } from "./geom.ts";
@@ -31,15 +32,8 @@ export interface ColorStop {
 
 export type FillMode = "solid" | "gradient" | "zones" | "thresholds";
 
-/** The app's widget colours (src/widgets/core/theme.ts), with the dark-surface value used when baking. */
-export const THEME = {
-  accent: { label: "Accent", css: "var(--accent, #34D399)", hex: "#34D399" },
-  warn: { label: "Warning", css: "var(--w-warn, #EDB232)", hex: "#EDB232" },
-  crit: { label: "Critical", css: "var(--w-crit, #F2665E)", hex: "#F2665E" },
-  fg: { label: "Text", css: "var(--w-fg, #F4F4F5)", hex: "#F4F4F5" },
-  muted: { label: "Muted text", css: "var(--w-muted, #A1A1AA)", hex: "#A1A1AA" },
-  track: { label: "Track", css: "color-mix(in oklab, var(--w-fg, #fff) 12%, transparent)", hex: "rgba(255,255,255,.12)" },
-} as const;
+// The app's widget colours with the dark-surface value used when baking: generated (src/looks/generated/gauge-theme.ts).
+export { THEME };
 export type ThemeColor = keyof typeof THEME;
 
 /** A colour: #RRGGBB, or a theme colour name that follows the dashboard theme. */

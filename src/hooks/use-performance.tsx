@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useSyncExternalStore, type ReactNode } from "react";
 import { useGeneral } from "@/hooks/use-general";
-import { resolvePerformance, type PerformanceOverride, type ResolvedPerformance } from "@/lib/performance";
+import { liteOf, resolvePerformance, type PerformanceOverride, type ResolvedPerformance } from "@/lib/performance";
 import { setTickerMaxFps } from "@/lib/ticker";
 
 /** The most a widget's blur may be when Limit blur is on. */
@@ -41,7 +41,7 @@ export function PerformanceProvider({ value, children }: { value: PerformanceOve
   }, [maxFps]);
   // CSS transitions and animations run at the display rate whatever the cap, so below 60 fps (or with
   // reduced motion) the widgets drop them (see `data-lite-motion` in index.css).
-  const lite = reduceMotion || (maxFps > 0 && maxFps < 60);
+  const lite = liteOf({ maxFps, reduceMotion });
   useEffect(() => {
     document.documentElement.toggleAttribute("data-lite-motion", lite);
     return () => document.documentElement.removeAttribute("data-lite-motion");

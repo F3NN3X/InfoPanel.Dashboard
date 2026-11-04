@@ -1,0 +1,90 @@
+{
+  "schema": 1,
+  "id": "classy-black",
+  "name": "Classy Black",
+  "description": "Solid black cards with a hairline edge: thin light numerals over regular type, nothing else.",
+  "tags": [
+    "pack",
+    "dark",
+    "minimal",
+    "thin"
+  ],
+  "modes": {
+    "supported": [
+      "dark"
+    ],
+    "stance": "Dark only: light type on solid black is the pack."
+  },
+  "fonts": {
+    "body": "pack-classy",
+    "mono": "pack-classy",
+    "display": "pack-classy-num"
+  },
+  "radius": "0.25rem",
+  "t1": {
+    "dark": {
+      "bg": {
+        "value": "#000000"
+      },
+      "surface": {
+        "value": "#050505"
+      },
+      "surface-2": {
+        "value": "#1F1F1F"
+      },
+      "fg": {
+        "value": "#F5F5F4"
+      },
+      "fg-2": {
+        "value": "{fg}"
+      },
+      "muted": {
+        "value": "#A3A3A3"
+      },
+      "border": {
+        "value": "#1F1F1F"
+      },
+      "border-soft": {
+        "value": "{border}"
+      },
+      "accent": {
+        "value": "#D4D4D8"
+      },
+      "accent-on": {
+        "value": "{bg}"
+      },
+      "accent-hover": {
+        "value": "{accent}"
+      },
+      "focus-ring": {
+        "value": "{accent}"
+      },
+      "ok": {
+        "value": "#3CC97F"
+      },
+      "warn": {
+        "value": "#EDB232"
+      },
+      "crit": {
+        "value": "#F2665E"
+      },
+      "info": {
+        "value": "{accent}"
+      }
+    }
+  },
+  "t2": {
+    "default": "look-classy-black",
+    "materials": {
+      "look-classy-black": {
+        "kind": "solid",
+        "tone": "dark",
+        "export": "#050505"
+      }
+    }
+  },
+  "t3": {
+    "ring-cap": "butt"
+  },
+  "ext": {}
+}

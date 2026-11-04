@@ -170,7 +170,7 @@ function ItemFields({ editor, path, item, live, onRemap, onBindSensor, sensors, 
               {badge && (
                 <p className="px-4 pb-2 text-[11.5px] leading-snug text-ui-4">
                   {badge.reason}
-                  {badge.lost.length > 0 && <span className="text-ui-warning"> Lost: {badge.lost.join(", ")}.</span>}
+                  {badge.lost.length > 0 && <span className="text-ui-warn"> Lost: {badge.lost.join(", ")}.</span>}
                 </p>
               )}
               <ElementPanel editor={editor} path={path} item={item} spec={element} sensors={sensors ?? {}} />
@@ -359,7 +359,7 @@ function DrawAs({ editor, path }: { editor: CanvasEditor; path: Path }) {
           {c.native.lost.length > 0 && (
             <div>
               <div className="mb-1 text-micro font-medium uppercase tracking-wide text-ui-4">Lost while native</div>
-              <ul className="space-y-0.5 text-caption text-ui-warning">
+              <ul className="space-y-0.5 text-caption text-ui-warn">
                 {c.native.lost.map((l) => (
                   <li key={l}>· {l}</li>
                 ))}
@@ -518,7 +518,7 @@ function SensorCard({
   const key = editKeyOf(item);
   const via = importOf(item)?.via;
   const value = key ? live[key] : undefined;
-  const dot = !key ? "bg-ui-hint" : via === "name" || via === "suggested" ? "bg-ui-warning" : "bg-ui-success";
+  const dot = !key ? "bg-ui-hint" : via === "name" || via === "suggested" ? "bg-ui-warn" : "bg-ui-ok";
   const status = !key ? (via === "unbound" ? "Left unbound" : "Not mapped") : via === "name" || via === "suggested" ? "Check the match" : "Mapped";
   const id = groupId(item);
   const min = Number(valueOf(item, "MinValue") ?? 0);
@@ -553,7 +553,7 @@ function SensorCard({
       <p className="truncate text-micro text-ui-4" title={native ?? undefined}>
         InfoPanel reads <span className="font-ui-mono text-ui-3">{native ?? "no sensor"}</span>
       </p>
-      {previewOnly && <p className="text-[11.5px] leading-snug text-ui-warning">{NOT_EXPORTABLE}.</p>}
+      {previewOnly && <p className="text-[11.5px] leading-snug text-ui-warn">{NOT_EXPORTABLE}.</p>}
       {item.kind === "TableSensor" && key && <p className="text-micro leading-snug text-ui-4">{tableFormatNote(entry)}</p>}
       {editor.sensorMode === "mock" && (
         <label className="block">

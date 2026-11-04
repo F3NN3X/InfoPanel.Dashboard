@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { PlacementFrame } from "@/components/studio/placement-frame";
 import { LivePlacement } from "@/components/studio/placement-content";
 import { PageBackground } from "@/components/page-background";
+import { PackStage, packBackground, usePack } from "@/looks/pack";
+import { connectorZones } from "@/looks/connector-zones";
 import { startKioskPull } from "@/lib/kiosk-config-pull";
 import { KioskConnecting } from "@/components/ui/kiosk-connecting";
 import { KioskOfflinePill } from "@/components/ui/kiosk-offline";
@@ -12,7 +14,7 @@ import { KioskWaitingForData } from "@/components/ui/kiosk-waiting";
 import { AlertLayer, useShownAlerts, ZoneHighlights } from "@/components/alerts/alert-layer";
 import { DynamicIsland } from "@/components/island/dynamic-island";
 import { pageSkinOf } from "@/components/island/island-look";
-import { islandReserve } from "@/components/island/island-model";
+import { islandReserve, withPackEdge } from "@/components/island/island-model";
 import { splitIslandAlerts } from "@/lib/island/from-alerts";
 import { ISLAND_DEFAULTS } from "@/lib/island/config";
 import { islandFeeds } from "@/lib/island/sources";
@@ -239,6 +241,15 @@ export default function App({ fixture }: AppProps = {}) {
   const appearance = appearanceOf(config, profile);
   // The skin the widgets of this screen wear, for an island that is part of it.
   const pageSkin = useMemo(() => pageSkinOf(appearanceOf(config, profile)), [config, profile]);
+  // A pack Look's page layers (its stage) count as a page background.
+  const pack = usePack(pageSkin.lookId);
+  // The island's edge: the screen's own, else the pack's default, else the top (D21).
+  const packEdge = pack?.statusBar?.edge;
+  const shownIsland = useMemo(() => island && withPackEdge(island, packEdge), [island, packEdge]);
+  const bottomIsland = (islandConfig?.edge ?? packEdge) === "bottom";
+  // A pack that draws connectors reads the page's zones (and the kiosk then writes their ids); any other page's markup is as it was.
+  const linked = !!pack?.connectors;
+  const zones = useMemo(() => (linked ? connectorZones(drawn, profile) : undefined), [linked, drawn, profile]);
   // The app settings under the shown screen's page font and performance.
   const general = useMemo(() => resolveGeneral(config, stored), [config, stored]);
   // Max FPS and motion: the ?fps= / ?animations= / ?motion= overrides (kiosk pages) over the shown profile's.
@@ -714,7 +725,7 @@ export default function App({ fixture }: AppProps = {}) {
           // A page background replaces the theme's page color (it sits
           // behind the grid, under this element's own paint).
           "flex flex-col text-foreground",
-          !background && "bg-background",
+          !background && !packBackground(pack) && "bg-background",
           kiosk && "kiosk",
           kiosk && !fill && "kiosk-scroll",
           kiosk && general.hideCursor && "kiosk-hide-cursor",
@@ -728,9 +739,9 @@ export default function App({ fixture }: AppProps = {}) {
           padding: profilePadding(profile, kiosk),
           // "Reserve space": the zones start under the island instead of beneath it. Always set, so
           // React never removes it from under the `padding` shorthand.
-          paddingTop: profilePadding(profile, kiosk) + reserve,
-          // The dots' strip: they sit in the bottom padding, so no zone is under them.
-          ...(pageNav && { paddingBottom: Math.max(profilePadding(profile, kiosk), pageDotsStripPx()) }),
+          paddingTop: profilePadding(profile, kiosk) + (bottomIsland ? 0 : reserve),
+          // The dots' strip: they sit in the bottom padding, so no zone is under them. Always set, like paddingTop.
+          paddingBottom: Math.max(profilePadding(profile, kiosk), pageNav ? pageDotsStripPx() : 0) + (bottomIsland ? reserve : 0),
           // Vertical scrolling stays with the browser; horizontal moves reach the swipe.
           ...(pageNav && { touchAction: "pan-y" }),
           fontFamily: fontStack(resolveFont(profile)),
@@ -740,6 +751,7 @@ export default function App({ fixture }: AppProps = {}) {
         onPointerCancel={() => (gesture.current = null)}
       >
         {background && <PageBackground background={background} className="fixed inset-0 -z-10" />}
+        <PackStage pack={pack} page={islandPage} className="fixed inset-0 -z-10" overlayClassName="fixed inset-0 z-10" zones={zones} />
 
         {/* Header (hidden in kiosk mode) */}
         {!kiosk && (
@@ -786,6 +798,7 @@ export default function App({ fixture }: AppProps = {}) {
                     placement={p}
                     profile={profile}
                     studio={false}
+                    zoneId={linked}
                     hasData={hasData}
                     title={title}
                     scope={scope}
@@ -804,12 +817,12 @@ export default function App({ fixture }: AppProps = {}) {
 
         {kiosk && <DimOverlay level={control?.profiles[stored.id]?.dim ?? 0} />}
 
-        {kiosk && <AlertLayer alerts={splitAlerts.layer} onAck={ackAlert} />}
+        {kiosk && <AlertLayer alerts={splitAlerts.layer} onAck={ackAlert} lookId={pageSkin.lookId} />}
 
         {/* Alerts reach the island on the kiosk only; the plain page shows its idle pill. */}
-        {island && (
+        {shownIsland && (
           <DynamicIsland
-            config={island}
+            config={shownIsland}
             alerts={kiosk ? splitAlerts.island : NO_ALERTS}
             onAck={kiosk ? ackAlert : undefined}
             placement="fixed"
@@ -828,6 +841,7 @@ export default function App({ fixture }: AppProps = {}) {
           paused={stored.rotate?.enabled === true && control?.profiles[stored.id]?.rotating === false}
           onSelect={goToPage}
           onToggleRotate={() => void postControl("rotate", { profile: stored.id, state: "toggle" })}
+          lift={shownIsland && bottomIsland ? reserve : 0}
         />
 
         {kiosk && touchPanel && (
@@ -881,7 +895,7 @@ function DimOverlay({ level }: { level: number }) {
 function PageGrid({ className, style, children }: { className: string; style: React.CSSProperties; children: React.ReactNode }) {
   const reduced = useReducedMotion();
   return (
-    <div className={cn(className, !reduced && "page-fade-in")} style={style}>
+    <div className={cn(className, !reduced && "page-fade-in")} style={style} data-page-grid="">
       {children}
     </div>
   );

@@ -134,7 +134,7 @@ function MixColumn({ channel, state, o, thickness }: { channel: WlChannel; state
             ))}
           </div>
         )}
-        <MeterPair levels={levels} vertical variant={o.variant} color={o.color ?? "var(--accent)"} hot={STATE.crit} thickness={thickness} />
+        <MeterPair levels={levels} vertical variant={o.variant} color={o.color ?? "var(--w-accent)"} hot={STATE.crit} thickness={thickness} />
       </div>
       {o.readout && (
         <div className="flex items-center justify-between gap-2 font-mono text-micro tabular-nums">
@@ -163,7 +163,7 @@ const hasTrailing = (o: Opts, wide: boolean, narrow: boolean): boolean => (wide 
 function WaveRow({ channel, state, o, wide, w }: { channel: WlChannel; state: WlState; o: Opts; wide: boolean; w: number }) {
   const levels = useWlLevels(meterKey.channel(channel.id), o.preset);
   const narrow = isNarrow(w);
-  const color = o.color ?? "var(--accent)";
+  const color = o.color ?? "var(--w-accent)";
   const faderText = fader(channel.level, channel.levelDb);
   const mono = "shrink-0 font-mono text-micro tabular-nums text-[color:var(--w-muted)]";
   const trailing = hasTrailing(o, wide, narrow) && (
@@ -216,7 +216,7 @@ function DenseRow({ channel, o, w }: { channel: WlChannel; o: Opts; w: number })
         {channel.isMuted && <MuteMark />}
       </span>
       {o.fader && !narrow && <span className="w-[54px] shrink-0 whitespace-nowrap text-right text-micro tabular-nums text-[color:var(--w-muted)]">{fader(channel.level, channel.levelDb)}</span>}
-      <MeterPair levels={levels} variant={o.variant} color={o.color ?? "var(--accent)"} hot={STATE.crit} thickness={6} className="min-w-0 flex-1" />
+      <MeterPair levels={levels} variant={o.variant} color={o.color ?? "var(--w-accent)"} hot={STATE.crit} thickness={6} className="min-w-0 flex-1" />
       {o.readout && w >= 280 && (
         <span className="w-[60px] shrink-0 text-right font-mono text-micro tabular-nums text-[color:var(--w-muted)]">
           {fmtDb(levels.l.v)} {fmtDb(levels.r.v)}
@@ -238,7 +238,7 @@ function DeviceRow({ device, o }: { device: WlDevice; o: Opts }) {
         {device.name}
       </span>
       {device.inputs.some((i) => i.isMuted) && <MuteMark />}
-      <MeterPair levels={levels} variant={o.variant} color={o.color ?? "var(--accent)"} hot={STATE.crit} thickness={4} className="min-w-0 flex-1" />
+      <MeterPair levels={levels} variant={o.variant} color={o.color ?? "var(--w-accent)"} hot={STATE.crit} thickness={4} className="min-w-0 flex-1" />
       {o.fader && input?.gain && <span className="shrink-0 text-micro tabular-nums text-[color:var(--w-muted)]">{gainLabel(input.gain)}</span>}
     </div>
   );
@@ -257,7 +257,7 @@ const readoutOf = (x: Level, db: boolean): string => (db ? formatDb(x.levelDb ??
 
 /** The channels, the input devices (their own group, with the gain the rows show) and (with Mixes) the mixes as strips: read-only, as the rows (the widget writes nothing). */
 function stripsOf(channels: WlChannel[], devices: WlDevice[], mixes: WlMix[], state: WlState, o: Opts, db: boolean): StripChannel[] {
-  const color = o.color ?? "var(--accent)";
+  const color = o.color ?? "var(--w-accent)";
   const name = (id: string) => state.mixes.find((m) => m.id === id)?.name ?? id;
   const text = (x: Level, muted: boolean) => (o.fader ? readoutOf(x, db) : muted ? "Mute" : "Live");
   // the channels first: a zone too small for every strip keeps them and counts the mixes

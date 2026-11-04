@@ -75,7 +75,7 @@ export function SensorField({ label, hint, lead, value, onChange, onOpenExplorer
         )}
       </div>
       {missing && (
-        <div className="text-micro text-ui-warning">not in the live sensor list — it will show “—”</div>
+        <div className="text-micro text-ui-warn">not in the live sensor list — it will show “—”</div>
       )}
       <DataPicker
         open={open}

@@ -7,7 +7,7 @@ import { levelApplied } from "./theme-state";
 import type { DashboardConfig, MonitorProfile, Placement, ProfilePage } from "./layout";
 import { swapColors } from "./screen-templates/looks";
 import { SECTION_IDS, SECTION_KEYS, themedOf, withSectionFlag, withThemeValues, type WidgetTheme } from "./theme-model";
-import { sameSkin } from "./theme-skins";
+import { sameLook } from "./theme-skins";
 
 export { levelApplied, themeState, type ThemePart, type ThemeState } from "./theme-state";
 
@@ -33,11 +33,15 @@ export interface ApplyThemeOptions {
   keepBackground?: boolean;
 }
 
-/** A pick writes its parts; a refresh (Update) only where the level still shows what the theme wrote. */
-type Mode = "pick" | "refresh";
+/**
+ * A pick writes its parts; a refresh (Update) only where the level still shows what the theme wrote; a Look (the
+ * gallery) its Look, and its other parts only where the level still shows the last theme's: what the level holds of
+ * its own stays, a level with no snapshot keeping all of it, and the widgets are left alone.
+ */
+type Mode = "pick" | "refresh" | "look";
 
-/** Keys a pick always writes, whatever the level holds: the skin is a part of the theme. */
-const PART_KEYS: ReadonlySet<string> = new Set(["skin"]);
+/** Keys a pick always writes, whatever the level holds: the Look (the skin) is a part of the theme; a theme without one sets none. */
+const PART_KEYS: ReadonlySet<string> = new Set(["lookId"]);
 const NONE: ReadonlySet<string> = new Set();
 
 const orNone = (values: ModuleSettings): ModuleSettings | undefined => (Object.keys(values).length > 0 ? values : undefined);
@@ -49,12 +53,12 @@ const omit = (values: ModuleSettings | undefined, keys: readonly string[]): Modu
   Object.fromEntries(Object.entries(values ?? {}).filter(([key]) => !keys.includes(key)));
 
 
-/** Whether a level's value is still the one the last theme wrote (the Default skin's two spellings are one). */
+/** Whether a level's value is still the one the last theme wrote (an unknown Look is Classic). */
 const theirs = (key: string, value: unknown, written: unknown): boolean =>
-  key === "skin" && value !== undefined && written !== undefined ? sameSkin(value, written) : value === written;
+  key === "lookId" && value !== undefined && written !== undefined ? sameLook(value, written) : value === written;
 
-/** What the last theme wrote at a level; with no snapshot, everything it holds (the first pick replaces it). */
-const writtenAt = (last: AppliedTheme | undefined, values: ModuleSettings): ModuleSettings => last?.values ?? values;
+/** What the last theme wrote at a level; with no snapshot, everything it holds (the first pick replaces it), none for a Look. */
+const writtenAt = (last: AppliedTheme | undefined, values: ModuleSettings, mode: Mode): ModuleSettings => last?.values ?? (mode === "look" ? {} : values);
 
 /** A level's values with a theme's merged in: what still equals the last theme's (`written`) becomes `next`'s, the rest stays. */
 function merged(values: ModuleSettings, written: ModuleSettings, next: ModuleSettings, force: ReadonlySet<string>): ModuleSettings {
@@ -140,7 +144,7 @@ const without = <T extends object>(holder: T, key: keyof T): T => Object.fromEnt
 
 /** The background a level gets: a pick's theme's unless kept, a refresh's where the level still shows the theme's old one. */
 function nextBackground(current: PageBackground | undefined, preset: AppearancePreset, last: AppliedTheme | undefined, mode: Mode, keep: boolean) {
-  if (mode === "pick") return !keep && preset.background ? { value: { ...preset.background }, written: true } : { value: current, written: false };
+  if (mode !== "refresh") return !keep && preset.background ? { value: { ...preset.background }, written: true } : { value: current, written: false };
   const theirs = last?.background !== undefined && sameBackground(current, last.background);
   return theirs && preset.background ? { value: { ...preset.background }, written: true } : { value: current, written: theirs };
 }
@@ -151,11 +155,11 @@ function atScreen(config: DashboardConfig, profileId: string, preset: Appearance
     const last = p.appliedTheme;
     const next = themeValues(preset);
     const tokens = presetTokens(preset);
-    const keepTokens = mode === "refresh" && !sameValues(p.theme, last?.tokens);
-    const keepRadius = mode === "refresh" && p.radius !== last?.radius;
+    const keepTokens = mode !== "pick" && !sameValues(p.theme, last?.tokens);
+    const keepRadius = mode !== "pick" && p.radius !== last?.radius;
     const bg = nextBackground(p.background, preset, last, mode, keep);
     const own = p.widgetTheme?.values ?? {};
-    const values = merged(own, writtenAt(last, own), next, mode === "pick" ? PART_KEYS : NONE);
+    const values = merged(own, writtenAt(last, own, mode), next, mode === "refresh" ? NONE : PART_KEYS);
     const { pages, zones } = mode === "pick" ? rezonedPages(p.pages, preset.zoneLook, last?.zones) : { pages: p.pages, zones: last?.zones };
     const out: MonitorProfile = {
       ...p,
@@ -192,7 +196,7 @@ function mergedPage(theme: WidgetTheme | undefined, locks: WidgetTheme["locks"],
     Object.assign(written, next);
     if (!custom && Object.keys(next).length === 0) continue;
     const own = custom ? pick(out?.values, keys) : {};
-    const values = merged(own, last ? pick(last.values, keys) : own, next, mode === "pick" ? PART_KEYS : NONE);
+    const values = merged(own, last ? pick(last.values, keys) : writtenAt(last, own, mode), next, mode === "refresh" ? NONE : PART_KEYS);
     out = withThemeValues(out, orNone({ ...omit(out?.values, keys), ...values }));
     out = withSectionFlag(out, "follow", sec, Object.keys(values).length === 0);
   }
@@ -223,15 +227,19 @@ function applyAt(config: DashboardConfig, preset: AppearancePreset, target: Them
 }
 
 /** Apply a theme at a level, adding to its look (see the module comment). */
-export const applyTheme = (config: DashboardConfig, preset: AppearancePreset, target: ThemeTarget, options: ApplyThemeOptions = {}): DashboardConfig =>
+export const applyThemeToLevel = (config: DashboardConfig, preset: AppearancePreset, target: ThemeTarget, options: ApplyThemeOptions = {}): DashboardConfig =>
   applyAt(config, preset, target, "pick", options.keepBackground === true);
+
+/** Pick a Look at a level (the gallery): its id, keeping what the level holds of its own (see `Mode`). One undo step. */
+export const applyLookToLevel = (config: DashboardConfig, preset: AppearancePreset, target: ThemeTarget, options: ApplyThemeOptions = {}): DashboardConfig =>
+  applyAt(config, preset, target, "look", options.keepBackground === true);
 
 /** Apply a theme to several screens at once (one config, so one undo step); ids that name no screen are ignored. */
 export function applyThemeToScreens(config: DashboardConfig, preset: AppearancePreset, profileIds: readonly string[], options: ApplyThemeOptions = {}): DashboardConfig {
   const known = new Set(config.profiles.map((p) => p.id));
   return [...new Set(profileIds)]
     .filter((profileId) => known.has(profileId))
-    .reduce((c, profileId) => applyTheme(c, preset, { kind: "profile", profileId }, options), config);
+    .reduce((c, profileId) => applyThemeToLevel(c, preset, { kind: "profile", profileId }, options), config);
 }
 
 /** A snapshot reduced to its writes into the widgets (Reset clears the rest of the level). */
@@ -249,7 +257,7 @@ export function resetToTheme(config: DashboardConfig, preset: AppearancePreset, 
       const { background: _bg, ...rest } = p;
       return { ...rest, widgetTheme: withThemeValues(p.widgetTheme, undefined), ...writesOnly(p.appliedTheme) };
     });
-    return applyTheme(cleared, preset, target);
+    return applyThemeToLevel(cleared, preset, target);
   }
   const cleared = withProfile(config, target.profileId, (p) => {
     const locks = p.widgetTheme?.locks;
@@ -265,7 +273,7 @@ export function resetToTheme(config: DashboardConfig, preset: AppearancePreset, 
       }),
     };
   });
-  return applyTheme(cleared, preset, target);
+  return applyThemeToLevel(cleared, preset, target);
 }
 
 /* ---------------- where a theme is used, and what changed ---------------- */

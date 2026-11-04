@@ -12,9 +12,9 @@ import { deletePalette, duplicatePalette, paletteName, paletteUsers, renamePalet
 import type { TemplatePresetGroup } from "@/lib/screen-templates/template-presets";
 import { templateThemeRows } from "@/lib/screen-templates/template-rows";
 import { hexToHsl, hslToHex, resolveTheme } from "@/lib/theme";
-import { applyTheme, themeState, themeUses } from "@/lib/theme-apply";
+import { applyThemeToLevel, themeState, themeUses } from "@/lib/theme-apply";
 import { allLocked, themedOf } from "@/lib/theme-model";
-import { skinLabel, skinOf } from "@/lib/theme-skins";
+import { lookIdOf } from "@/lib/theme-model";
 import type { ModuleSettings } from "@/modules/types";
 import { ColorPill } from "./inspector/color-pill";
 import { MoreRows, moreKey } from "./inspector/more-rows";
@@ -26,7 +26,7 @@ import { InlineRow, SelectRow } from "./setting-rows";
 import { dropKeys } from "./settings-model";
 import { SettingField, type FieldsApi } from "./settings-panel";
 import { SmoothOffNote } from "./smooth-off-note";
-import type { NavRequest, NavTarget } from "./studio-nav";
+import { focusNavTarget, type NavRequest, type NavTarget } from "./studio-nav";
 import {
   atOfScope,
   cardLocked,
@@ -34,6 +34,7 @@ import {
   THEME_CARDS,
   withBackgroundAt,
   withCardLock,
+  withKnobReset,
   withLookAt,
   withPageFont,
   withThemeRadius,
@@ -49,10 +50,16 @@ import { differencesOf, followAll, widgetsKeeping, widgetsKeepingAfter } from ".
 import { exceptionsOf, widgetOverrides } from "./theme-exceptions";
 import { FineTuneHeader, FineTuneRow, RowsLabel } from "./theme-fine-tune";
 import { changedHere, fineTuneChip, fineTuneHeading, fineTuneSummary, resetFineTune } from "./theme-fine-tune-model";
+import { LookGallery } from "./look-gallery";
+import { lookUses, withoutLookId } from "@/looks/user-pack-config";
+import { lookName as lookNameOf } from "./look-gallery-model";
+import { LookKnobs } from "./look-knobs";
+import { useStablePreset } from "./look-thumb";
+import { lockedKnobs } from "./look-knobs-model";
 import { ThemeLookCard, ThemeUpdateBar } from "./theme-look-card";
-import { appliedToast, appliedToScreensToast, paletteToast, paletteUsedBy, resetToast, savedToast, skinToast } from "./theme-messages";
+import { appliedToast, appliedToScreensToast, lookToast, paletteToast, paletteUsedBy, resetToast, savedToast } from "./theme-messages";
 import { PalettePicker } from "./theme-palette-picker";
-import { BackgroundPicker, SkinPicker } from "./theme-part-pickers";
+import { BackgroundPicker } from "./theme-part-pickers";
 import { SwitchThemePicker } from "./theme-pickers";
 import { ThemePreview } from "./theme-preview";
 import { ALL_TOKENS, type TokenRow } from "./theme-rows";
@@ -114,12 +121,12 @@ let handledJump: ThemeEditorProps["jumpTo"];
 const HELP: Partial<Record<ThemeCard["id"], string>> = {
   colors: "These come from the theme's palette. Change one and the theme counts as edited.",
   type: "Page font is used for titles and labels. It isn't part of a theme, so switching themes keeps it.",
-  spacing: "Corners are part of the theme, in the card above.",
-  surface: "The skin is part of the theme, in the card above.",
+  spacing: "Corners and density are knobs of the Look, above.",
+  surface: "The Look and its surface are chosen above.",
 };
 
-/** The skin row is the theme card's Skin; Surface & border shows the skin section's other rows. */
-const PART_KEYS = new Set(["skin"]);
+/** The Look row (Skin) is the theme card's Skin; Surface & border shows the skin section's other rows. */
+const PART_KEYS = new Set(["lookId"]);
 
 /** A row of the two-level data, inset like a setting row. */
 const DataRow = ({ children }: { children: ReactNode }) => <div className="py-[3px] pl-4 pr-2.5">{children}</div>;
@@ -160,9 +167,10 @@ export function ThemeEditor({ config, scope: requested, profileId, pageId, onPic
   // The template looks come in their own chunk (they pull in the whole template catalog).
   const [templates, setTemplates] = useState<readonly TemplatePresetGroup[]>();
   useEffect(() => {
-    void import("@/lib/screen-templates/template-presets").then((m) => setTemplates(m.TEMPLATE_PRESET_GROUPS));
+    void import("@/lib/screen-templates/template-presets").then((m) => setTemplates(m.THEME_LIST_GROUPS));
   }, []);
-  const rows = useMemo(() => (templates ? templateThemeRows(templates) : undefined), [templates]);
+  // The sample themes are Looks of the gallery: the template looks list only the templates' own.
+  const rows = useMemo(() => (templates ? templateThemeRows(templates.filter((g) => !g.id.startsWith("look-"))) : undefined), [templates]);
   const templatePresets = useMemo(() => templates?.flatMap((g) => g.presets) ?? [], [templates]);
   const templatePalettes = useMemo(() => themePalettes(templatePresets), [templatePresets]);
 
@@ -176,6 +184,8 @@ export function ThemeEditor({ config, scope: requested, profileId, pageId, onPic
   const follow = (link: ThemeLink | undefined) => {
     if (link?.drill) setDrill(link.drill);
     else if (link?.section) openSection(link.section);
+    const anchor = link?.anchor;
+    if (anchor) requestAnimationFrame(() => requestAnimationFrame(() => focusNavTarget(document, { view: "theme", section: anchor })));
   };
 
   // A link ("Edit Screen ↗", a LinkRow, Change a section…) opens its place; useNavFocus focuses it.
@@ -243,6 +253,9 @@ export function ThemeEditor({ config, scope: requested, profileId, pageId, onPic
   const fontLabel = FONTS.find((f) => f.value === font)?.label ?? font;
   const levelName = at.level === "screen" ? profile.name : page.name;
   const shownStyle: ModuleSettings = { ...values.inherited, ...values.own };
+  // The Look the level shows (unknown ids draw Classic), and its name for the knobs.
+  const lookId = lookIdOf(appearance);
+  const lookName = lookNameOf(lookId);
 
   // The theme applied here, where else it is used, and what changed since (the card, the Update bar, the chips).
   const state = themeState(config, target, templatePresets);
@@ -254,11 +267,13 @@ export function ThemeEditor({ config, scope: requested, profileId, pageId, onPic
   const palette = paletteName(theme.tokens, config.palettes, templatePalettes, effective.accent);
   const saved = state.theme && kind === "saved" ? state.theme : undefined;
 
+  // One object while the look is unchanged, so the look card's thumbnail draws once (not on each slider step).
+  const preview = useStablePreset({ id: "current", name, description: "", theme: theme.tokens, radius: theme.radius, style: themedOf(shownStyle), ...(background ? { background } : {}) });
   const applyPreset = (p: AppearancePreset, keepBackground: boolean) => {
     // A level with no snapshot has nothing of its own: the pick replaces its look.
     const replaced = !state.applied;
     const kept = replaced ? 0 : state.own.length;
-    const widgets = widgetsKeepingAfter(applyTheme(config, p, target, { keepBackground }), at, p);
+    const widgets = widgetsKeepingAfter(applyThemeToLevel(config, p, target, { keepBackground }), at, p);
     presets.apply(p, at, keepBackground);
     setDrill("main");
     const background = at.level !== "page" && !keepBackground && p.background !== undefined;
@@ -267,6 +282,12 @@ export function ThemeEditor({ config, scope: requested, profileId, pageId, onPic
       ...(kept > 0 ? { reset: { label: `Reset to ${p.name}`, run: () => resetTo(p, p.name) } } : {}),
       ...(widgets > 0 ? { follow: { label: "Make them follow", run: () => setConfig((c) => followAll(c, widgetsKeeping(c, at, p))) } } : {}),
     });
+  };
+  /** A gallery Look: its id, the level's own colors, corners and fine-tune kept (one undo step). */
+  const pickLook = (p: AppearancePreset, keepBackground: boolean) => {
+    presets.applyLook(p, at, keepBackground);
+    const background = at.level !== "page" && !keepBackground && p.background !== undefined;
+    show({ ...lookToast(p.name, at.level, background, profile.name), reset: { label: `Reset to ${p.name}`, run: () => resetTo(p, p.name) } });
   };
   /** The screen's theme on it and the ticked screens: one change, one undo step. */
   const applyToScreens = (profileIds: readonly string[], keepBackground: boolean) => {
@@ -457,18 +478,6 @@ export function ThemeEditor({ config, scope: requested, profileId, pageId, onPic
             }}
           />
         );
-      case "skin":
-        return (
-          <SkinPicker
-            current={skinOf(effective.skin)}
-            onBack={toMain}
-            onPick={(skin) => {
-              setConfig((c) => withLookAt(c, at, { skin, surface: "auto" }));
-              toMain();
-              show(skinToast(skinLabel(skin), at.level, profile.name));
-            }}
-          />
-        );
       case "background":
         return (
           <BackgroundPicker
@@ -487,7 +496,7 @@ export function ThemeEditor({ config, scope: requested, profileId, pageId, onPic
           <>
             <ThemeLookCard
               key={scopeId(scope)}
-              preview={{ id: "current", name, description: "", theme: theme.tokens, radius: theme.radius, style: themedOf(shownStyle), ...(background ? { background } : {}) }}
+              preview={preview}
               name={name}
               kind={kind}
               kindLine={kindLine(state, others, levelName)}
@@ -504,19 +513,36 @@ export function ThemeEditor({ config, scope: requested, profileId, pageId, onPic
               onDelete={saved ? () => presets.remove(saved.id) : undefined}
               tokens={theme.tokens}
               paletteName={palette}
-              skinName={skinLabel(effective.skin)}
               radius={theme.radius}
               background={background}
               backgroundLabel={backgroundLabel(background)}
               partsNote={at.level === "page" ? pageParts(profile.name) : undefined}
               onPalette={() => setDrill("palette")}
-              onSkin={() => setDrill("skin")}
               onRadius={(r) => twoLevel && setConfig((c) => withThemeRadius(c, twoLevel, r), key("radius"))}
               onBackground={() => setDrill("background")}
-              counts={themeCounts(presets.presets.length, rows ?? [])}
-              onSwitch={() => setDrill("themes")}
             />
-            <FineTuneHeader heading={fineTuneHeading(changed)} />
+            <LookKnobs
+              title={`Knobs on ${lookName}`}
+              values={values}
+              from="the Look"
+              locked={at.level === "page" ? lockedKnobs(appearance, profile.name) : undefined}
+              onSet={(patch) => setConfig((c) => withLookAt(c, at, patch), key(`knob:${Object.keys(patch).join()}`))}
+              onClear={(keys) => setConfig((c) => withKnobReset(c, at, keys), key(`knob-reset:${keys.join()}`))}
+            />
+            <LookGallery
+              currentLookId={lookId}
+              currentPresetId={state.applied?.id}
+              saved={presets.presets}
+              onPick={(p, keepBackground, look) => (look ? pickLook(p, keepBackground) : applyPreset(p, keepBackground))}
+              onMore={() => setDrill("themes")}
+              moreCount={themeCounts(presets.presets.length, rows ?? [])}
+              onRemovePack={(id) => {
+                const worn = lookUses(config, id);
+                if (worn > 0) setConfig((c) => withoutLookId(c, id), key("remove-pack"));
+                return worn;
+              }}
+            />
+            <FineTuneHeader heading={`Advanced · ${fineTuneHeading(changed)}`} />
             {THEME_CARDS.map(renderSection)}
           </>
         );
@@ -526,7 +552,7 @@ export function ThemeEditor({ config, scope: requested, profileId, pageId, onPic
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-ui-app font-ui">
       <div className="flex min-h-14 shrink-0 flex-wrap items-center gap-3.5 border-b border-ui-subtle px-4 py-2">
-        <h1 className="text-head font-semibold text-ui-1">Theme</h1>
+        <h1 className="text-head font-semibold text-ui-1">Look</h1>
         <span className="flex items-center gap-1.5 text-caption font-medium text-ui-saved">
           <span className="h-[7px] w-[7px] rounded-full bg-ui-saved shadow-[0_0_0_3px_rgba(74,222,128,.18)]" aria-hidden />
           Live look of
@@ -550,7 +576,7 @@ export function ThemeEditor({ config, scope: requested, profileId, pageId, onPic
       <div className="flex min-h-0 flex-1 max-sm:flex-col max-sm:overflow-y-auto">
         <aside
           ref={columnRef}
-          aria-label="Theme"
+          aria-label="Look"
           className="w-[360px] shrink-0 overflow-y-auto border-r border-ui-subtle bg-ui-chrome text-ui-2 max-sm:w-full max-sm:overflow-visible max-sm:border-b max-sm:border-r-0"
         >
           <InspectorChromeProvider value={{ mode: "docked" }}>{column()}</InspectorChromeProvider>
@@ -571,7 +597,7 @@ export function ThemeEditor({ config, scope: requested, profileId, pageId, onPic
                 kind={kind}
                 update={updateText ? { text: updateText, onUpdate: saved ? () => presets.update(saved.id, at) : undefined } : undefined}
                 onSave={saveTheme}
-                saveName={kind === "template" ? `${name} copy` : ""}
+                saveName={kind === "template" ? `${name} copy` : `My ${lookName} look`}
               />
             }
             onFollow={(list) => setConfig((c) => followAll(c, list))}

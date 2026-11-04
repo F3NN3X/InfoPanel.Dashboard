@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pack.schema.json",
+  "title": "Pack",
+  "description": "A theme pack's pack.json as built (docs/look-system/03-theme-packs-spec.md, Pack format): the data the gallery, the loader and the validator read. Files are named relative to the pack's assets folder. `ornament`, `edge` and `assets` are optional declarations the validator checks (an ornament at most 10 px, a chamfer at most 20 px, the asset list against the files).",
+  "type": "object",
+  "required": ["id", "name", "version", "tags", "description", "modes", "fonts", "stage", "burnIn"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+    "name": { "type": "string", "minLength": 1 },
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "tags": { "type": "array", "items": { "type": "string" } },
+    "description": { "type": "string" },
+    "modes": { "type": "array", "minItems": 1, "items": { "enum": ["dark", "light"] } },
+    "fonts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["family", "file", "weight", "licence", "copyright"],
+        "additionalProperties": false,
+        "properties": {
+          "family": { "type": "string", "pattern": "^pack-[a-z0-9-]+$" },
+          "source": { "type": "string" },
+          "file": { "type": "string", "minLength": 1 },
+          "weight": { "type": "string", "pattern": "^(normal|bold|[1-9]00( [1-9]00)?)$" },
+          "style": { "enum": ["normal", "italic"] },
+          "licence": { "type": "string" },
+          "copyright": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "stage": {
+      "type": "object",
+      "required": ["layers"],
+      "additionalProperties": false,
+      "properties": {
+        "layers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "fill": { "type": "string" },
+              "image": { "type": "string" },
+              "opacity": { "type": "number" },
+              "minSizeClass": { "enum": ["xs", "sm", "md", "lg"] }
+            }
+          }
+        },
+        "effects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["kind", "cost"],
+            "additionalProperties": false,
+            "properties": {
+              "kind": { "enum": ["grain", "scanlines", "vignette", "glow", "blur"] },
+              "cost": { "enum": ["static", "composited", "filter", "mask", "animated"] },
+              "opacity": { "type": "number" },
+              "px": { "type": "number" },
+              "fallback": { "enum": ["off", "static"] },
+              "minSizeClass": { "enum": ["xs", "sm", "md", "lg"] }
+            }
+          }
+        },
+        "overlayMinSizeClass": { "enum": ["xs", "sm", "md", "lg"] }
+      }
+    },
+    "burnIn": { "enum": ["static-safe", "needs-shift", "needs-dim"] },
+    "statusBar": { "type": "object", "additionalProperties": false, "properties": { "edge": { "enum": ["top", "bottom"] } } },
+    "connectors": {
+      "type": "object",
+      "required": ["style"],
+      "additionalProperties": false,
+      "properties": { "style": { "enum": ["line", "elbow"] }, "dot": { "type": "boolean" } }
+    },
+    "assets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["file", "bytes"],
+        "additionalProperties": false,
+        "properties": { "file": { "type": "string", "minLength": 1 }, "bytes": { "type": "number", "minimum": 0 } }
+      }
+    },
+    "ornament": {
+      "type": "object",
+      "required": ["size"],
+      "additionalProperties": false,
+      "properties": { "size": { "type": "number", "minimum": 0 }, "bleed": { "type": "boolean" } }
+    },
+    "edge": {
+      "type": "object",
+      "required": ["kind"],
+      "additionalProperties": false,
+      "properties": { "kind": { "enum": ["none", "chamfer", "distressed"] }, "cut": { "type": "number", "minimum": 0 } }
+    }
+  }
+}

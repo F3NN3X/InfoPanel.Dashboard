@@ -22,7 +22,7 @@ export function WeatherGlance({ cond, temp, desc, place, w, h, icons }: { cond: 
   const icon = Math.max(24, Math.min(h * 0.4, w * 0.3));
   return (
     <div className="flex h-full min-w-0 items-center justify-center gap-4">
-      <WeatherGlyph {...cond} {...icons} className="text-[color:var(--accent)]" size={icon} />
+      <WeatherGlyph {...cond} {...icons} className="text-[color:var(--w-accent)]" size={icon} />
       <div className="flex min-w-0 flex-col">
         <Num className="leading-none tracking-tight" weight={800} style={{ fontSize: Math.max(28, Math.min(h * 0.45, w * 0.3)) }}>
           {temp}

@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1280">
+<title>Night Glow stream page</title>
+<!-- Static export of canvas board NightGlowStream.dc.html (1280x720). Reference only: production packs bundle fonts locally. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'JetBrains Mono',ui-monospace,monospace}
+a{color:#7DEBFF}a:hover{color:#fff}
+.ng-card{position:relative;border:1.5px solid transparent;border-radius:18px;background:linear-gradient(rgba(14,18,48,.72),rgba(14,18,48,.72)) padding-box,linear-gradient(135deg,#3EE6FF,#9B5CFF 60%,#FF4FD8) border-box;box-shadow:0 0 22px rgba(62,230,255,.18),0 0 40px rgba(155,92,255,.14);display:flex;flex-direction:column;padding:14px 18px;min-height:0}
+.ng-head{display:flex;justify-content:space-between;font-size:12px;letter-spacing:.08em;color:#9AA3D6}
+.ng-head b{color:#E6E9FF;font-weight:600}
+.ng-num{font-family:'Outfit',sans-serif;font-weight:500;color:#F2F4FF;line-height:1;font-variant-numeric:tabular-nums}
+.ng-unit{font-family:'JetBrains Mono',monospace;font-size:.4em;color:#9AA3D6;margin-left:4px}
+.ng-label{font-size:12px;letter-spacing:.06em;color:#9AA3D6}
+.ng-strip{display:flex;flex-direction:column;align-items:center;gap:10px;background:rgba(255,255,255,.035);border:1px solid rgba(155,163,214,.18);border-radius:14px;padding:12px 8px}
+.ng-meter{position:relative;width:9px;height:100%;border-radius:5px;background:#1A2052;overflow:hidden}
+.ng-meter i{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(to top,#3EE6FF 0,#9B5CFF 220px,#FF4FD8 270px)}
+.ng-hold{position:absolute;left:-2px;right:-2px;height:2px;background:#F2F4FF}
+.ng-track{position:relative;width:6px;height:100%;border-radius:3px;background:#1A2052}
+.ng-knob{position:absolute;left:50%;width:34px;height:14px;margin:0 0 -7px -17px;border-radius:7px;background:#F2F4FF;box-shadow:0 0 12px rgba(62,230,255,.8)}
+.ng-btn{min-width:44px;min-height:32px;border-radius:8px;border:1px solid rgba(155,163,214,.35);background:rgba(14,18,48,.6);color:#C9CEF5;font:600 12px 'JetBrains Mono',monospace;cursor:pointer}
+</style>
+<style>html,body{margin:0;background:#1e1e1e}</style>
+</head>
+<body>
+<div style="width:1280px;height:720px;position:relative;overflow:hidden;background:radial-gradient(60% 70% at 15% 10%,#1B2A7A 0%,transparent 60%),radial-gradient(50% 60% at 90% 90%,#4B1C7A 0%,transparent 60%),#070920;box-sizing:border-box">
+  <div style="position:absolute;inset:0;padding:20px 24px 24px;box-sizing:border-box;display:flex;flex-direction:column;gap:16px">
+    <div style="display:flex;align-items:center;gap:20px;align-self:center;border:1.5px solid transparent;border-radius:999px;background:linear-gradient(rgba(14,18,48,.8),rgba(14,18,48,.8)) padding-box,linear-gradient(90deg,#3EE6FF,#9B5CFF,#FF4FD8) border-box;padding:6px 18px;font-size:13px;color:#C9CEF5">
+      <span style="color:#FF4FD8">● LIVE 01:42:10</span><span>312 viewers</span><b style="color:#fff">22:28</b><span>144 fps</span><span>6000 kbps</span>
+    </div>
+    <div style="flex:1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:1fr 1fr 1fr;gap:16px;min-height:0">
+      <div class="ng-card" style="grid-column:span 3;grid-row:span 3">
+        <div class="ng-head"><b>Audio mixer</b><span>stream mix · monitor: headset</span></div>
+        <div style="flex:1;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin-top:12px;min-height:0">
+          <div class="ng-strip">
+            <div style="font-size:13px;color:#E6E9FF;font-weight:600">Game</div>
+            <div class="ng-label">−12 dB</div>
+            <div style="flex:1;display:flex;gap:14px;align-items:stretch;min-height:0">
+              <div style="display:flex;gap:3px" role="meter" aria-label="Game level" aria-valuemin="-60" aria-valuemax="0" aria-valuenow="-12"><div class="ng-meter"><i style="height:80%"></i><span class="ng-hold" style="bottom:86%"></span></div><div class="ng-meter"><i style="height:76%"></i><span class="ng-hold" style="bottom:84%"></span></div></div>
+              <div class="ng-track" role="slider" aria-label="Game volume" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100" aria-valuenow="78" tabindex="0"><span class="ng-knob" style="bottom:78%"></span></div>
+            </div>
+            <div class="ng-num" style="font-size:22px">78</div>
+            <div style="display:flex;gap:6px"><button type="button" class="ng-btn" aria-pressed="false" aria-label="Mute Game">M</button><button type="button" class="ng-btn" aria-pressed="false" aria-label="Solo Game">S</button></div>
+          </div>
+          <div class="ng-strip">
+            <div style="font-size:13px;color:#E6E9FF;font-weight:600">Chat</div>
+            <div class="ng-label">−18 dB</div>
+            <div style="flex:1;display:flex;gap:14px;align-items:stretch;min-height:0">
+              <div style="display:flex;gap:3px" role="meter" aria-label="Chat level" aria-valuemin="-60" aria-valuemax="0" aria-valuenow="-18"><div class="ng-meter"><i style="height:70%"></i><span class="ng-hold" style="bottom:74%"></span></div><div class="ng-meter"><i style="height:68%"></i><span class="ng-hold" style="bottom:72%"></span></div></div>
+              <div class="ng-track" role="slider" aria-label="Chat volume" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100" aria-valuenow="62" tabindex="0"><span class="ng-knob" style="bottom:62%"></span></div>
+            </div>
+            <div class="ng-num" style="font-size:22px">62</div>
+            <div style="display:flex;gap:6px"><button type="button" class="ng-btn" aria-pressed="false" aria-label="Mute Chat">M</button><button type="button" class="ng-btn" aria-pressed="false" aria-label="Solo Chat">S</button></div>
+          </div>
+          <div class="ng-strip">
+            <div style="font-size:13px;color:#E6E9FF;font-weight:600">Music</div>
+            <div class="ng-label">−24 dB</div>
+            <div style="flex:1;display:flex;gap:14px;align-items:stretch;min-height:0">
+              <div style="display:flex;gap:3px" role="meter" aria-label="Music level" aria-valuemin="-60" aria-valuemax="0" aria-valuenow="-24"><div class="ng-meter"><i style="height:60%"></i><span class="ng-hold" style="bottom:66%"></span></div><div class="ng-meter"><i style="height:62%"></i><span class="ng-hold" style="bottom:66%"></span></div></div>
+              <div class="ng-track" role="slider" aria-label="Music volume" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100" aria-valuenow="35" tabindex="0"><span class="ng-knob" style="bottom:35%"></span></div>
+            </div>
+            <div class="ng-num" style="font-size:22px">35</div>
+            <div style="display:flex;gap:6px"><button type="button" class="ng-btn" aria-pressed="false" aria-label="Mute Music">M</button><button type="button" class="ng-btn" aria-pressed="false" aria-label="Solo Music">S</button></div>
+          </div>
+          <div class="ng-strip" style="border-color:rgba(255,79,216,.55);box-shadow:inset 0 0 18px rgba(255,79,216,.15)">
+            <div style="font-size:13px;color:#FF8FE6;font-weight:600">● Mic</div>
+            <div class="ng-label" style="color:#FFB86B">−9 dB</div>
+            <div style="flex:1;display:flex;gap:14px;align-items:stretch;min-height:0">
+              <div style="display:flex;gap:3px" role="meter" aria-label="Mic level" aria-valuemin="-60" aria-valuemax="0" aria-valuenow="-9"><div class="ng-meter"><i style="height:86%"></i><span class="ng-hold" style="bottom:92%"></span></div><div class="ng-meter"><i style="height:86%"></i><span class="ng-hold" style="bottom:92%"></span></div></div>
+              <div class="ng-track" role="slider" aria-label="Mic volume" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100" aria-valuenow="70" tabindex="0"><span class="ng-knob" style="bottom:70%;box-shadow:0 0 12px rgba(255,79,216,.9)"></span></div>
+            </div>
+            <div class="ng-num" style="font-size:22px">70</div>
+            <div style="display:flex;gap:6px"><button type="button" class="ng-btn" aria-pressed="false" aria-label="Mute Mic">M</button><button type="button" class="ng-btn" aria-pressed="false" aria-label="Solo Mic">S</button></div>
+          </div>
+          <div class="ng-strip">
+            <div style="font-size:13px;color:#E6E9FF;font-weight:600">Alerts</div>
+            <div class="ng-label">−30 dB</div>
+            <div style="flex:1;display:flex;gap:14px;align-items:stretch;min-height:0">
+              <div style="display:flex;gap:3px" role="meter" aria-label="Alerts level" aria-valuemin="-60" aria-valuemax="0" aria-valuenow="-30"><div class="ng-meter"><i style="height:45%"></i><span class="ng-hold" style="bottom:52%"></span></div><div class="ng-meter"><i style="height:45%"></i><span class="ng-hold" style="bottom:52%"></span></div></div>
+              <div class="ng-track" role="slider" aria-label="Alerts volume" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100" aria-valuenow="55" tabindex="0"><span class="ng-knob" style="bottom:55%"></span></div>
+            </div>
+            <div class="ng-num" style="font-size:22px">55</div>
+            <div style="display:flex;gap:6px"><button type="button" class="ng-btn" aria-pressed="false" aria-label="Mute Alerts">M</button><button type="button" class="ng-btn" aria-pressed="false" aria-label="Solo Alerts">S</button></div>
+          </div>
+          <div class="ng-strip" style="opacity:.6">
+            <div style="font-size:13px;color:#E6E9FF;font-weight:600">Browser</div>
+            <div class="ng-label">muted</div>
+            <div style="flex:1;display:flex;gap:14px;align-items:stretch;min-height:0">
+              <div style="display:flex;gap:3px" role="meter" aria-label="Browser level" aria-valuemin="-60" aria-valuemax="0" aria-valuenow="-60"><div class="ng-meter"></div><div class="ng-meter"></div></div>
+              <div class="ng-track" role="slider" aria-label="Browser volume" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100" aria-valuenow="40" tabindex="0"><span class="ng-knob" style="bottom:40%;box-shadow:none;background:#9AA3D6"></span></div>
+            </div>
+            <div class="ng-num" style="font-size:22px">40</div>
+            <div style="display:flex;gap:6px"><button type="button" class="ng-btn" aria-pressed="true" aria-label="Unmute Browser" style="background:#FF4FD8;color:#170A2A;border-color:#FF4FD8">M</button><button type="button" class="ng-btn" aria-pressed="false" aria-label="Solo Browser">S</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="ng-card">
+        <div class="ng-head"><b>Stream</b><span>Twitch · 1080p60</span></div>
+        <div style="flex:1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px;align-content:center">
+          <div><div class="ng-label">viewers</div><div class="ng-num" style="font-size:30px">312</div></div>
+          <div><div class="ng-label">uptime</div><div class="ng-num" style="font-size:30px">1:42</div></div>
+          <div><div class="ng-label">bitrate</div><div class="ng-num" style="font-size:20px">6000<span class="ng-unit">kbps</span></div></div>
+          <div><div class="ng-label">dropped</div><div class="ng-num" style="font-size:20px;color:#7CFFC4">0.0<span class="ng-unit">%</span></div></div>
+        </div>
+      </div>
+      <div class="ng-card">
+        <div class="ng-head"><b>Now playing</b><span>stream-safe</span></div>
+        <div style="flex:1;display:flex;align-items:center;gap:12px;min-height:0">
+          <div aria-hidden="true" style="width:72px;height:72px;flex:none;border-radius:12px;background:conic-gradient(from 210deg,#3EE6FF,#9B5CFF,#FF4FD8,#3EE6FF);box-shadow:0 0 18px rgba(155,92,255,.5)"></div>
+          <div style="min-width:0;display:flex;flex-direction:column;gap:6px;flex:1">
+            <div class="ng-num" style="font-size:18px">Midnight Drive</div>
+            <div class="ng-label">The Static Hours</div>
+            <div style="height:4px;border-radius:2px;background:#232A5C"><div style="height:100%;width:55%;border-radius:2px;background:linear-gradient(90deg,#3EE6FF,#FF4FD8)"></div></div>
+            <div style="display:flex;justify-content:space-between" class="ng-label"><span>2:14</span><span>4:05</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="ng-card">
+        <div class="ng-head"><b>Game</b><span>frame time 7.1 ms</span></div>
+        <div style="flex:1;display:flex;align-items:center;gap:14px">
+          <div class="ng-num" style="font-size:52px;font-weight:700;background:linear-gradient(90deg,#3EE6FF,#FF4FD8);-webkit-background-clip:text;background-clip:text;color:transparent">144</div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:6px;min-width:0">
+            <div class="ng-label">fps · 1% low 112</div>
+            <svg viewBox="0 0 560 120" preserveAspectRatio="none" width="100%" height="44" role="img" aria-label="Frame time, two spikes"><line x1="0" y1="85.2" x2="560" y2="85.2" stroke="#FFB86B" stroke-dasharray="6 5" vector-effect="non-scaling-stroke"></line><polyline points="0.0,84.0 14.4,85.2 28.7,82.8 43.1,86.4 57.4,81.6 71.8,84.0 86.2,85.2 100.5,79.2 114.9,82.8 129.2,86.4 143.6,84.0 157.9,50.4 172.3,80.4 186.7,85.2 201.0,84.0 215.4,82.8 229.7,86.4 244.1,84.0 258.5,81.6 272.8,85.2 287.2,84.0 301.5,82.8 315.9,28.8 330.3,79.2 344.6,84.0 359.0,85.2 373.3,82.8 387.7,84.0 402.1,86.4 416.4,81.6 430.8,84.0 445.1,82.8 459.5,85.2 473.8,84.0 488.2,67.2 502.6,81.6 516.9,84.0 531.3,85.2 545.6,82.8 560.0,84.0" fill="none" stroke="#3EE6FF" stroke-width="2" vector-effect="non-scaling-stroke"></polyline></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

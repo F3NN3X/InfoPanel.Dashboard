@@ -17,6 +17,7 @@
  * right from where the widget's text starts; a graph without a fixed top scales to its readings, as the widget's does.
  */
 import { argb, bound, fontSizeOf, make, type ConvertContext, type Rect } from "./items.ts";
+import { rgbToArgb } from "./surface-of.ts";
 import type { DisplayItem } from "../schema.ts";
 import { DEFAULT_GAUGE, normalizeGauge } from "../gauges/vector.ts";
 
@@ -108,6 +109,12 @@ function alignOf(el: HTMLElement, style: CSSStyleDeclaration): Tagged["align"] {
   return parent && parent.width > 0 && r.left - parent.left > 2 && Math.abs(parent.right - r.right) <= 2 ? "right" : "left";
 }
 
+/** The ink of a text: a gradient number is transparent text over a background clipped to it, so its ink is the gradient's first colour. */
+function inkOf(style: CSSStyleDeclaration): string {
+  const first = /^[a-z-]*gradient\(.*?(rgba?\([^)]*\)|#[0-9a-f]{3,8})/i.exec(style.backgroundImage)?.[1];
+  return first && (style.color === "transparent" || cssToArgb(style.color).startsWith("#00")) ? first : style.color;
+}
+
 /** The first child (or the node) with a background colour that isn't transparent. */
 function fillOf(el: Element): string | undefined {
   for (const n of [el, ...el.querySelectorAll("*")]) {
@@ -131,6 +138,15 @@ function resolveColor(css: string, inside: Element): string | undefined {
   g.fillRect(0, 0, 1, 1);
   const [r, gr, b, a] = g.getImageData(0, 0, 1, 1).data;
   return `rgba(${r}, ${gr}, ${b}, ${Math.round((a / 255) * 100) / 100})`;
+}
+
+/** A `url(#id)` stroke (a Look's ring-fill or spark-fill) as the gradient's first stop colour, resolved where `inside` is drawn; undefined for any other stroke. */
+function gradientInk(stroke: string, inside: Element): string | undefined {
+  const id = /^url\(["']?#([^"')]+)/.exec(stroke)?.[1];
+  // Matched by value, not interpolated into a selector: the id is page text.
+  const stop = id ? [...(inside.closest("svg")?.querySelectorAll("[id]") ?? [])].find((el) => el.id === id)?.querySelector("stop") : null;
+  const css = stop && ((stop as SVGElement).style?.getPropertyValue("stop-color") || stop.getAttribute("stop-color"));
+  return css ? resolveColor(css, inside) ?? css : undefined;
 }
 
 /** Where an image is drawn: a contained `<img>` at its picture's own box inside the element, anything else at its box. */
@@ -192,7 +208,7 @@ function readOne(el: HTMLElement, origin: DOMRect, zoom: number): Tagged | null 
     kind: kind as TaggedKind,
     box: rectOf(own, origin, zoom),
     fontSize: parseFloat(style.fontSize) || 20,
-    color: style.color,
+    color: inkOf(style),
     bold: Number(style.fontWeight) >= 600,
     unit: el.dataset.ipUnit,
     decimals: num(el.dataset.ipDecimals),
@@ -238,7 +254,9 @@ function readOne(el: HTMLElement, origin: DOMRect, zoom: number): Tagged | null 
     }
     case "graph": {
       // The line, not the area under it (a fill path has no stroke).
-      const stroke = [...el.querySelectorAll("path, polyline, line")].map((n) => getComputedStyle(n).stroke).find((c) => c && c !== "none" && !c.startsWith("url("));
+      const stroke = [...el.querySelectorAll("path, polyline, line")]
+        .map((n) => ((c) => (c.startsWith("url(") ? gradientInk(c, n) : c))(getComputedStyle(n).stroke))
+        .find((c) => c && c !== "none");
       return { ...base, color: stroke ?? base.color };
     }
     case "image":
@@ -257,7 +275,9 @@ function readOne(el: HTMLElement, origin: DOMRect, zoom: number): Tagged | null 
       return {
         ...base,
         box: { x: box.x - grow, y: box.y - grow, w: box.w + thickness, h: box.h + thickness },
-        color: getComputedStyle(el).stroke || base.color,
+        // A color-mix() stroke is an oklab() in Chromium, which cssToArgb can't read: the canvas turns it into rgb.
+        // A ring-fill stroke is url(#gradient): its first stop's colour, else the ring's own ink.
+        color: ((css) => resolveColor(css, el) ?? css)(gradientInk(getComputedStyle(el).stroke, el) ?? (getComputedStyle(el).stroke || base.color)),
         thickness,
         start: num(el.dataset.ipStart) ?? 0,
         sweep: num(el.dataset.ipSweep) ?? 360,
@@ -282,14 +302,8 @@ export function hideTagged(cloned: Node): void {
   else if (el.dataset?.ipCol !== undefined) el.style.visibility = "visible";
 }
 
-/** "rgb(r, g, b)" / "rgba(r, g, b, a)" as `#AARRGGBB`. */
-export function cssToArgb(css: string): string {
-  const m = /^rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)(?:[,\s/]+([\d.]+%?))?\s*\)$/.exec(css.trim());
-  if (!m) return argb(css);
-  const a = m[4] === undefined ? 1 : m[4].endsWith("%") ? parseFloat(m[4]) / 100 : Number(m[4]);
-  const hex = (n: number) => Math.round(Math.max(0, Math.min(255, n))).toString(16).padStart(2, "0");
-  return `#${hex(a * 255)}${hex(Number(m[1]))}${hex(Number(m[2]))}${hex(Number(m[3]))}`.toUpperCase();
-}
+/** A computed colour (`rgbToArgb`) or a hex colour (`argb`) as `#AARRGGBB`; anything else as is. */
+export const cssToArgb = (css: string): string => rgbToArgb(css) || argb(css);
 
 /** A CSS colour as InfoPanel's `#AARRGGBB`, or `fallback` when it isn't one (a "none" stroke, a gradient). */
 const ink = (css: string, fallback: string): string => {

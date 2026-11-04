@@ -95,7 +95,7 @@ export default function MeterBridge(p: MeterBridgeProps) {
       r = side(c.id, "r", pr);
     return { ...c, l: l.db, r: r.db, lh: l.held ?? holdOf(c.id + "l", l.db), rh: r.held ?? holdOf(c.id + "r", r.db) };
   });
-  const lc = p.levelColor || "var(--accent)",
+  const lc = p.levelColor || "var(--w-accent)",
     hc = p.hotColor || STATE.crit;
   const showName = p.showName !== false,
     showDetails = p.showDetails !== false,

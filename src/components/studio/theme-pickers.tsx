@@ -3,7 +3,7 @@ import { Check, ChevronLeft, MoreHorizontal } from "lucide-react";
 import { presetTokens, type AppearancePreset } from "@/lib/appearance-presets";
 import { variantName, type TemplateThemeRow } from "@/lib/screen-templates/template-rows";
 import { cn } from "@/lib/utils";
-import { AppearancePreview } from "./appearance-preview";
+import { LookThumb } from "./look-thumb";
 import ScreensList from "./theme-screens-list";
 import { getKeepBackground, setKeepBackground } from "./theme-keep-background";
 import { ThemeNameInput } from "./theme-name-input";
@@ -46,7 +46,7 @@ function Thumb({ preset, selected, onPick }: { preset: AppearancePreset; selecte
       aria-label={`Apply ${preset.name}`}
       className={cn("shrink-0 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ui-accent", selected && "ring-2 ring-ui-accent")}
     >
-      <AppearancePreview preset={preset} className="h-[46px] w-[72px] rounded-md" />
+      <LookThumb preset={preset} width={72} className="rounded-md" />
     </button>
   );
 }
@@ -64,7 +64,7 @@ interface SwitchThemeProps {
   onRename: (id: string, name: string) => void;
   onDuplicate: (id: string) => void;
   onDelete: (id: string) => void;
-  /** + Save current look as a theme. */
+  /** + Save current look. */
   onSaveCurrent: (name: string) => void;
   onBack: () => void;
   /** The other screens the current theme can be applied to; none (a page, or no theme here) hides the action. */
@@ -81,7 +81,7 @@ const FILTERS: { id: ThemeFilter; label: string }[] = [
 ];
 
 /**
- * Switch theme (handoff SPEC §4.3.3): the filters, the saved themes (each with ⋯: who uses it, Rename, Duplicate,
+ * Saved and template looks (was Switch theme, handoff SPEC §4.3.3): the filters, the saved themes (each with ⋯: who uses it, Rename, Duplicate,
  * Delete), one row per template with its variant chips, and the footer's Keep my background, counts and Save.
  * Picking applies at once; the editor goes back to Main and toasts.
  */
@@ -98,8 +98,8 @@ export function SwitchThemePicker(p: SwitchThemeProps) {
   const apply = (preset: AppearancePreset) => p.onApply(preset, keep);
   return (
     <PickerShell
-      title="Switch theme"
-      help="A theme sets the palette, skin, corners and background. The first theme on a screen or page replaces its look; after that, picking one keeps your fine-tune changes."
+      title="Saved and template looks"
+      help="A look sets the colors, the Look, corners and background. The first one on a screen or page replaces its look; after that, picking one keeps your fine-tune changes."
       onBack={p.onBack}
       footer={
         <>
@@ -138,7 +138,7 @@ export function SwitchThemePicker(p: SwitchThemeProps) {
             {saving ? (
               <ThemeNameInput
                 initial=""
-                label="Theme name"
+                label="Look name"
                 onDone={(name) => {
                   setSaving(false);
                   if (name) p.onSaveCurrent(name);
@@ -146,14 +146,14 @@ export function SwitchThemePicker(p: SwitchThemeProps) {
               />
             ) : (
               <button type="button" onClick={() => setSaving(true)} className={cn(ACTION, "shrink-0")}>
-                + Save current look as a theme
+                + Save current look
               </button>
             )}
           </div>
         </>
       }
     >
-      <div role="group" aria-label="Filter themes" className="flex gap-1.5 px-4 pb-1">
+      <div role="group" aria-label="Filter looks" className="flex gap-1.5 px-4 pb-1">
         {FILTERS.map((f) => (
           <button
             key={f.id}
@@ -171,8 +171,8 @@ export function SwitchThemePicker(p: SwitchThemeProps) {
       </div>
       {shown.saved && (
         <>
-          <h3 className={HEADING}>Saved themes · {shown.saved.length}</h3>
-          {shown.saved.length === 0 && <p className="px-4 pb-2 text-caption text-ui-hint">Themes you save appear here.</p>}
+          <h3 className={HEADING}>Saved looks · {shown.saved.length}</h3>
+          {shown.saved.length === 0 && <p className="px-4 pb-2 text-caption text-ui-hint">Looks you save appear here.</p>}
           {shown.saved.map((t) => (
             <div key={t.id}>
               <div className="flex items-center gap-3 px-4 py-2 hover:bg-ui-hover">
@@ -180,7 +180,7 @@ export function SwitchThemePicker(p: SwitchThemeProps) {
                 {renaming === t.id ? (
                   <ThemeNameInput
                     initial={t.name}
-                    label="Theme name"
+                    label="Look name"
                     onDone={(name) => {
                       setRenaming(undefined);
                       if (name) p.onRename(t.id, name);

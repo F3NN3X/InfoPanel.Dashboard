@@ -41,8 +41,8 @@ exports[`Achievements > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -76,6 +76,7 @@ exports[`Achievements > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -138,8 +139,8 @@ exports[`Bluetooth > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -175,6 +176,7 @@ exports[`Bluetooth > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -229,8 +231,8 @@ exports[`Calendar > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -264,6 +266,7 @@ exports[`Calendar > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -333,8 +336,8 @@ exports[`Clock > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -368,6 +371,7 @@ exports[`Clock > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -447,8 +451,8 @@ exports[`CodingAgents > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -482,6 +486,7 @@ exports[`CodingAgents > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -558,8 +563,8 @@ exports[`CoreHeatmap > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -594,6 +599,7 @@ exports[`CoreHeatmap > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -652,8 +658,8 @@ exports[`CustomGauge > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -687,6 +693,7 @@ exports[`CustomGauge > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -746,8 +753,8 @@ exports[`Departures > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -781,6 +788,7 @@ exports[`Departures > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -845,8 +853,8 @@ exports[`DiskIO > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -882,6 +890,7 @@ exports[`DiskIO > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -962,8 +971,8 @@ exports[`DriveSpace > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -998,6 +1007,7 @@ exports[`DriveSpace > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -1062,8 +1072,8 @@ exports[`Fans > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -1097,6 +1107,7 @@ exports[`Fans > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -1166,8 +1177,8 @@ exports[`Forecast > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -1201,6 +1212,7 @@ exports[`Forecast > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -1274,8 +1286,8 @@ exports[`FpsMonitor > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -1311,6 +1323,7 @@ exports[`FpsMonitor > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -1375,8 +1388,8 @@ exports[`FramePacing > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -1410,6 +1423,7 @@ exports[`FramePacing > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -1483,8 +1497,8 @@ exports[`GameSpotlight > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -1518,6 +1532,7 @@ exports[`GameSpotlight > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -1582,8 +1597,8 @@ exports[`GpuMonitor > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -1617,6 +1632,7 @@ exports[`GpuMonitor > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -1682,8 +1698,8 @@ exports[`GpuRings > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -1719,6 +1735,7 @@ exports[`GpuRings > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -1778,8 +1795,8 @@ exports[`KpiTiles > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -1813,6 +1830,7 @@ exports[`KpiTiles > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -1872,8 +1890,8 @@ exports[`MemoryUsage > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -1907,6 +1925,7 @@ exports[`MemoryUsage > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -1978,8 +1997,8 @@ exports[`MenuBar > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -2013,6 +2032,7 @@ exports[`MenuBar > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -2106,8 +2126,8 @@ exports[`MeterBridge > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -2143,6 +2163,7 @@ exports[`MeterBridge > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -2214,8 +2235,8 @@ exports[`NetworkAdapters > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -2249,6 +2270,7 @@ exports[`NetworkAdapters > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -2326,8 +2348,8 @@ exports[`NetworkThroughput > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -2363,6 +2385,7 @@ exports[`NetworkThroughput > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -2434,8 +2457,8 @@ exports[`Notifications > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -2469,6 +2492,7 @@ exports[`Notifications > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -2528,8 +2552,8 @@ exports[`OsdStrip > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -2563,6 +2587,7 @@ exports[`OsdStrip > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -2617,8 +2642,8 @@ exports[`PlaytimeShare > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -2658,6 +2683,7 @@ exports[`PlaytimeShare > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -2717,8 +2743,8 @@ exports[`PowerDraw > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -2752,6 +2778,7 @@ exports[`PowerDraw > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -2816,8 +2843,8 @@ exports[`ProcessList > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -2851,6 +2878,7 @@ exports[`ProcessList > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -2935,8 +2963,8 @@ exports[`SensorValue > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -2970,6 +2998,7 @@ exports[`SensorValue > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -3029,8 +3058,8 @@ exports[`ServiceHealth > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -3064,6 +3093,7 @@ exports[`ServiceHealth > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -3154,8 +3184,8 @@ exports[`StatusTracker > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -3189,6 +3219,7 @@ exports[`StatusTracker > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -3261,8 +3292,8 @@ exports[`SteamFriends > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -3301,6 +3332,7 @@ exports[`SteamFriends > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -3356,8 +3388,8 @@ exports[`SteamGame > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -3391,6 +3423,7 @@ exports[`SteamGame > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -3450,8 +3483,8 @@ exports[`SteamLibrary > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -3485,6 +3518,7 @@ exports[`SteamLibrary > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -3549,8 +3583,8 @@ exports[`SteamNews > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -3584,6 +3618,7 @@ exports[`SteamNews > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -3643,8 +3678,8 @@ exports[`StorageHealth > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -3678,6 +3713,7 @@ exports[`StorageHealth > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -3765,8 +3801,8 @@ exports[`StreamDeck > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -3800,6 +3836,7 @@ exports[`StreamDeck > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -3859,8 +3896,8 @@ exports[`SystemStatus > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -3894,6 +3931,7 @@ exports[`SystemStatus > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -3953,8 +3991,8 @@ exports[`TextFile > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -3988,6 +4026,7 @@ exports[`TextFile > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -4070,8 +4109,8 @@ exports[`Thermals > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -4106,6 +4145,7 @@ exports[`Thermals > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -4176,8 +4216,8 @@ exports[`Timer > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -4211,6 +4251,7 @@ exports[`Timer > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -4293,8 +4334,8 @@ exports[`Visualizer > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -4334,6 +4375,7 @@ exports[`Visualizer > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -4388,8 +4430,8 @@ exports[`Vitals > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -4423,6 +4465,7 @@ exports[`Vitals > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -4548,8 +4591,8 @@ exports[`VolumeMixer > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -4584,6 +4627,7 @@ exports[`VolumeMixer > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",
@@ -4711,8 +4755,8 @@ exports[`WaveLink > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Skin": [
-        "skin",
+      "Look": [
+        "lookId",
         "graph · more",
         "meter · more",
         "stroke",
@@ -4749,6 +4793,7 @@ exports[`WaveLink > files its rows by the rules 1`] = `
     {
       "Surface & effects": [
         "surface",
+        "decoration · more",
         "background · more",
         "backgroundOn · more",
         "surfaceOpacity",

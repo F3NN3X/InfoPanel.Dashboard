@@ -8,8 +8,8 @@ import { cn } from "@/lib/utils";
 import { VERDICT_LABEL } from "@/lib/infopanel/font-licence";
 import { swapOptions, type FontChoice, type FontLicenceRow, type SwapTarget } from "@/lib/infopanel/export/studio-export";
 
-const LICENCE_TONE = { share: "text-ui-success", check: "text-ui-warning", keep: "text-ui-danger" };
-const LICENCE_DOT = { share: "bg-ui-success", check: "bg-ui-warning", keep: "bg-ui-danger" };
+const LICENCE_TONE = { share: "text-ui-ok", check: "text-ui-warn", keep: "text-ui-danger" };
+const LICENCE_DOT = { share: "bg-ui-ok", check: "bg-ui-warn", keep: "bg-ui-danger" };
 
 export interface FontLicenceReviewProps {
   rows: readonly FontLicenceRow[];

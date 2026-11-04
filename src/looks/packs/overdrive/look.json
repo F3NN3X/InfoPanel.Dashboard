@@ -1,0 +1,96 @@
+{
+  "schema": 1,
+  "id": "overdrive",
+  "name": "Overdrive",
+  "description": "Black cards with a chamfered yellow edge and an angled label bar, cyan numerals with a chromatic fringe, a red grid and a skewed yellow block.",
+  "tags": [
+    "pack",
+    "dark",
+    "neon",
+    "angular",
+    "cyberpunk"
+  ],
+  "modes": {
+    "supported": [
+      "dark"
+    ],
+    "stance": "Dark only: yellow and cyan on black is the pack."
+  },
+  "fonts": {
+    "body": "pack-overdrive",
+    "mono": "pack-overdrive-mono",
+    "display": "pack-overdrive-mono"
+  },
+  "radius": "0",
+  "t1": {
+    "dark": {
+      "bg": {
+        "value": "#0A0A0C"
+      },
+      "surface": {
+        "value": "#110F14"
+      },
+      "surface-2": {
+        "value": "#24222A"
+      },
+      "fg": {
+        "value": "#2DE2E6"
+      },
+      "fg-2": {
+        "value": "{fg}"
+      },
+      "muted": {
+        "value": "#C9C27A"
+      },
+      "border": {
+        "value": "#24222A"
+      },
+      "border-soft": {
+        "value": "{border}"
+      },
+      "accent": {
+        "value": "#F3E600"
+      },
+      "accent-on": {
+        "value": "{bg}"
+      },
+      "accent-hover": {
+        "value": "{accent}"
+      },
+      "focus-ring": {
+        "value": "{accent}"
+      },
+      "ok": {
+        "value": "#3CC97F"
+      },
+      "warn": {
+        "value": "#EDB232"
+      },
+      "crit": {
+        "value": "#F2665E"
+      },
+      "info": {
+        "value": "{accent}"
+      }
+    }
+  },
+  "t2": {
+    "default": "look-overdrive",
+    "materials": {
+      "look-overdrive": {
+        "kind": "gradient",
+        "tone": "dark",
+        "export": "#110F14"
+      }
+    }
+  },
+  "t3": {
+    "header-style": "label-bar",
+    "num-effect": "chromatic",
+    "ring-style": "segmented",
+    "meter-style": "segments",
+    "cell-radius": "0px",
+    "ring-cap": "butt"
+  },
+  "ext": {}
+}

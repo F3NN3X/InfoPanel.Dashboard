@@ -7,8 +7,10 @@
  * width (`settings-migrate.ts`; the panels' own normalisation runs it), v9→v10 drops the widget `preset` key, v11→v12
  * turns the audio widgets' single `device` into a pick, v12→v13 only stamps the version, the old Stream Deck widget's mirror keys go (`migrateProfileStreamDeck`, no version of its own), v13→v14 marks Free pages and
  * the screens made for InfoPanel, v14→v15 makes every page one kind (`migrateProfileV15`, a line in `log` per change
- * it makes), v15→v16 gives each screen the look it inherited (`migrateScreensV16`). A config at this build's version
- * comes out as `mergeConfig` makes it.
+ * it makes), v15→v16 gives each screen the look it inherited (`migrateScreensV16`), v16→v17 folds the skins into
+ * Looks: every stored skin becomes a `lookId` before the other steps (`renameSkinsV17`), and the levels that applied a
+ * sample theme name its Look after them (`migrateLooksV17`). A config at this build's version comes out as
+ * `mergeConfig` makes it.
  */
 import type { ModuleSettings } from "@/modules/types";
 import { normalizeAlerts } from "./alerts";
@@ -17,6 +19,7 @@ import { normalizeApiBase } from "./data-api";
 import { normalizeGeneral } from "./general";
 import { CONFIG_VERSION, defaultConfig, normalizePalettes, normalizeProfile, type DashboardConfig, type MonitorProfile, type StoredConfig } from "./layout";
 import { migrateLegacyZones } from "./legacy-zones";
+import { migrateLooksV17, renameSkinsV17 } from "./look-migrate";
 import { migrateProfileV15 } from "./page-model/migrate";
 import { normalizePanelPresets } from "./panel-model";
 import { clockOfStyle, dashboardLook, migrateScreensV16 } from "./screen-look-migrate";
@@ -85,7 +88,9 @@ function migrateProfileZones<P extends MonitorProfile & LegacyProfileFields>(p: 
 
 /** `input`, of any version, as this build's config. */
 export function upgradeConfig(input: StoredConfig, log?: string[]): DashboardConfig {
-  const parsed = migrateAssetUrls(input);
+  // v17 (a version that isn't a number below 17 counts as older: the step changes nothing a v17 config holds).
+  const before17 = !(Number(input.version ?? 0) >= 17);
+  const parsed = before17 ? renameSkinsV17(migrateAssetUrls(input)) : migrateAssetUrls(input);
   const defaults = defaultConfig();
   const profiles = (
     parsed.profiles && parsed.profiles.length > 0
@@ -134,6 +139,8 @@ export function upgradeConfig(input: StoredConfig, log?: string[]): DashboardCon
     alerts: normalizeAlerts(parsed.alerts),
   };
   // v16: each screen gets the look it inherited from the dashboard, whose fields go.
-  return legacy ? migrateScreensV16(config, dashboardLook({ ...parsed, general: v7.general }, v7.style)) : config;
+  const v16 = legacy ? migrateScreensV16(config, dashboardLook({ ...parsed, general: v7.general }, v7.style)) : config;
+  // v17: the levels a sample theme was applied to name its Look.
+  return before17 ? migrateLooksV17(v16) : v16;
 }
 

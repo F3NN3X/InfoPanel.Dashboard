@@ -8,6 +8,4 @@ export const defaultSkin: SkinPack = {
   fonts: ["geist", "geist-mono"],
   // tokens read by <Widget>, primitives and views via useSkin()
   skin: {},
-  // skin-native surfaces (registered into SURFACES)
-  surfaces: {},
 };

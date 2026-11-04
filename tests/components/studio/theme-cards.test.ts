@@ -13,11 +13,14 @@ import {
   withPageFont,
   withToken,
   withTokens,
+  withKnobReset,
+  withValuesAt,
   type ThemeAt,
 } from "@/components/studio/theme-cards";
 import { withPageFollow, withScopeValues } from "@/components/studio/theme-editor-model";
 import { TEMPLATE_PRESETS } from "@/lib/screen-templates/template-presets";
-import { applyTheme, themeState } from "@/lib/theme-apply";
+import { applyThemeToLevel, themeState } from "@/lib/theme-apply";
+import { registerSampleCards } from "@/looks/sample-materials";
 
 const zone = (id: string, extra: Partial<Placement> = {}): Placement => ({
   id,
@@ -125,6 +128,26 @@ describe("the screen's stores", () => {
   });
 });
 
+describe("the Look's own card picked in Advanced", () => {
+  it("stores no card, so the Look's accent, text and font stay on; another card is the level's own", () => {
+    registerSampleCards();
+    const termed = withScopeValues(setup(), "desk", { kind: "profile" }, () => ({ lookId: "term" }));
+    const card = (surface: string) => desk(withValuesAt(termed, SCREEN, (v) => ({ ...v, surface }))).widgetTheme?.values;
+    expect(card("look-term")).toEqual({ lookId: "term" });
+    expect(card("look-paper")).toEqual({ lookId: "term", surface: "look-paper" });
+  });
+});
+
+describe("a knob's Reset on a page (L46)", () => {
+  it("follows the screen again once the page holds nothing of its own in the section", () => {
+    const own = (values: Record<string, string>) =>
+      withScopeValues(withPageFollow(setup(), "desk", "gaming", "colors", false), "desk", { kind: "page", pageId: "gaming" }, () => values);
+    const reset = (c: DashboardConfig) => desk(withKnobReset(c, GAMING, ["accent"])).pages[1].widgetTheme;
+    expect(reset(own({ accent: "#ff0000" }))).toBeUndefined();
+    expect(reset(own({ accent: "#ff0000", textColor: "#000000" }))).toEqual({ values: { textColor: "#000000" }, follow: { colors: false } });
+  });
+});
+
 describe("withTokens (a palette picked)", () => {
   const themed = () => withScopeValues(setup(), "desk", { kind: "profile" }, () => ({ accent: "#22d3ee", glowColor: "#22D3EE", borderColor: "#ffffff" }));
   const blue = { ...DEFAULT_THEME, primary: "200 80% 50%" };
@@ -144,9 +167,9 @@ describe("withTokens (a palette picked)", () => {
   it("the palette's accent is the theme's, not a change of the screen's own: the next theme replaces it", () => {
     const preset = (name: string) => TEMPLATE_PRESETS.find((t) => t.name === name)!;
     const target = { kind: "profile" as const, profileId: "desk" };
-    const amber = withTokens(applyTheme(setup(), preset("Graphite · Teal"), target), SCREEN, blue, "#ffb000");
+    const amber = withTokens(applyThemeToLevel(setup(), preset("Graphite · Teal"), target), SCREEN, blue, "#ffb000");
     expect(themeState(amber, target, TEMPLATE_PRESETS).own).not.toContain("colors");
-    const gaming = applyTheme(amber, preset("Gaming"), target);
+    const gaming = applyThemeToLevel(amber, preset("Gaming"), target);
     expect(desk(gaming).widgetTheme?.values?.accent).toBe("#22d3ee");
   });
 

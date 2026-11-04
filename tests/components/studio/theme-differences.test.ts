@@ -3,7 +3,7 @@ import type { AppearancePreset } from "@/lib/appearance-presets";
 import { defaultConfig, type DashboardConfig, type MonitorProfile, type Placement } from "@/lib/layout";
 import type { ThemeAt } from "@/components/studio/theme-cards";
 import { differenceSummary, differencesOf, differencesPill, followAll, pageDifferences, widgetCount, widgetsKeeping, widgetsKeepingAfter } from "@/components/studio/theme-differences";
-import { applyTheme } from "@/lib/theme-apply";
+import { applyThemeToLevel } from "@/lib/theme-apply";
 import { exceptionsOf } from "@/components/studio/theme-exceptions";
 
 const zone = (id: string, extra: Partial<Placement> = {}): Placement => ({
@@ -125,6 +125,6 @@ describe("after a theme pick", () => {
     const c = setup();
     const variant: AppearancePreset = { ...preset({ accent: "#ff8800" }), zoneLook: { swap: { "#ff0000": "#ff8800" } } };
     expect(widgetCount(widgetsKeeping(c, SCREEN, variant))).toBe(1);
-    expect(widgetsKeepingAfter(applyTheme(c, variant, { kind: "profile", profileId: "desk" }), SCREEN, variant)).toBe(0);
+    expect(widgetsKeepingAfter(applyThemeToLevel(c, variant, { kind: "profile", profileId: "desk" }), SCREEN, variant)).toBe(0);
   });
 });

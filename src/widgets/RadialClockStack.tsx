@@ -47,7 +47,7 @@ export default function RadialClockStack(p: RadialClockStackProps) {
 
   const rows: RingRow[] = [
     ...(secs ? [{ key: "s", label: "Second", value: String(new Date(now).getSeconds()), v: secondFraction(now) * 100, color: hue(-60) }] : []),
-    { key: "d", label: "Day", value: pct(dayFraction(now)), v: dayFraction(now) * 100, color: "var(--accent)" },
+    { key: "d", label: "Day", value: pct(dayFraction(now)), v: dayFraction(now) * 100, color: "var(--w-accent)" },
     span === "week"
       ? { key: "w", label: "Week", value: pct(weekFraction(now, p.weekStart ?? 1)), v: weekFraction(now, p.weekStart ?? 1) * 100, color: hue(55) }
       : { key: "y", label: "Year", value: pct(yearFraction(now)), v: yearFraction(now) * 100, color: hue(55) },

@@ -39,7 +39,7 @@ export const READOUT: ScreenTemplate = {
   look: {
     theme: theme(COLOURS),
     radius: 0.25,
-    style: { skin: "instrument", surface: "solid", accent: "#4da3ff", font: "roboto-flex", labelCase: "uppercase", numGlow: "off" },
+    style: { lookId: "instrument", surface: "solid", accent: "#4da3ff", font: "roboto-flex", labelCase: "uppercase", numGlow: "off" },
     background: { type: "color", color: "#08090c" },
     gap: 6,
     padding: 8,

@@ -1,6 +1,8 @@
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { Bar, Ring, Spark, UNIT_CLASS, isWordUnit, ringDashOffset, ringStroke, sparkMarks, sparkRange, sparkY } from "@/widgets/core/primitives";
+import { SkinCtx } from "@/widgets/core/theme";
+import { skinContext } from "@/widgets/core/look";
+import { Bar, Icon, LedLadder, RangeBar, Ring, Spark, ThresholdLine, UNIT_CLASS, Unit, isWordUnit, ringDashOffset, ringStroke, sparkMarks, sparkRange, sparkY } from "@/widgets/core/primitives";
 
 describe("Ring sweep", () => {
   const dash = (html: string) => [...html.matchAll(/stroke-dasharray="([^"]+)"/g)].map((m) => m[1]);
@@ -118,5 +120,58 @@ describe("units", () => {
   });
   it("is one style: small, medium, muted", () => {
     expect(UNIT_CLASS).toContain("text-[0.4em]");
+  });
+});
+
+describe("LedLadder per mode", () => {
+  const bg = (html: string) => [...html.matchAll(/background:([^;"]+)/g)].map((m) => m[1]);
+  it("paints its zones with the dark literals, and with the shell's status variables on a light card", () => {
+    const dark = renderToString(<LedLadder value={100} n={10} />);
+    expect(bg(dark)).toContain("#EDB232");
+    expect(bg(dark)).toContain("#F2665E");
+    const light = renderToString(<SkinCtx.Provider value={{ ...skinContext("default"), shellStatus: true }}><LedLadder value={100} n={10} /></SkinCtx.Provider>);
+    expect(bg(light)).toContain("var(--w-warn, #EDB232)");
+    expect(bg(light)).toContain("var(--w-crit, #F2665E)");
+  });
+});
+
+describe("Icon sets", () => {
+  const set = { memory: { viewBox: "0 0 8 8", d: "M0 0h8v8z" } };
+  it("draws a Look's glyph for a name it has and the Classic icon for one it lacks", () => {
+    const ctx = { ...skinContext("default", {}), icons: set };
+    const html = renderToString(
+      <SkinCtx.Provider value={ctx}>
+        <Icon name="memory" />
+        <Icon name="speed" />
+      </SkinCtx.Provider>,
+    );
+    expect(html).toContain('d="M0 0h8v8z"');
+    expect(html.match(/data-part="icon"/g)).toHaveLength(2);
+    expect(html).toContain("lucide-gauge");
+  });
+  it("reads a name as the set's own key only, so an inherited name falls back to Classic", () => {
+    const ctx = { ...skinContext("default", {}), icons: set };
+    const html = renderToString(
+      <SkinCtx.Provider value={ctx}>
+        <Icon name="constructor" />
+        <Icon name="toString" />
+      </SkinCtx.Provider>,
+    );
+    expect(html.match(/lucide-circle-dashed/g)).toHaveLength(2);
+  });
+  it("draws Classic with no set", () => {
+    expect(renderToString(<Icon name="memory" />)).toContain("lucide-cpu");
+  });
+});
+
+describe("part hooks", () => {
+  it("Unit, ThresholdLine and RangeBar carry theirs and the numbers they were given", () => {
+    expect(renderToString(<Unit small>W</Unit>)).toContain('data-part="unit"');
+    expect(renderToString(<ThresholdLine at={25} />)).toContain("top:25%");
+    const up = renderToString(<RangeBar from={20} to={60} />);
+    expect(up).toContain('data-part="range"');
+    expect(up).toContain("bottom:20%");
+    expect(up).toContain("top:40%");
+    expect(renderToString(<RangeBar from={20} to={60} horizontal />)).toContain("right:40%");
   });
 });

@@ -15,7 +15,7 @@ import {
   type AppearancePreset,
 } from "@/lib/appearance-presets";
 import { normalizeBackground, type PageBackground } from "@/lib/appearance";
-import { applyTheme } from "@/lib/theme-apply";
+import { applyThemeToLevel } from "@/lib/theme-apply";
 import type { DashboardConfig, MonitorProfile, Placement } from "@/lib/layout";
 import { mainPage } from "@/lib/pages";
 import { DEFAULT_THEME, THEME_PRESETS } from "@/lib/theme";
@@ -49,7 +49,7 @@ const profile = (id: string, extra: Partial<MonitorProfile> = {}): MonitorProfil
 });
 
 const config = (extra: Partial<DashboardConfig> = {}): DashboardConfig => ({
-  version: 16,
+  version: 17,
   activeProfile: "auto",
   profiles: [profile("p1"), profile("p2")],
   ...extra,
@@ -98,9 +98,19 @@ describe("isValidStyleValue", () => {
     expect(isValidStyleValue("align", "between")).toBe(false);
     expect(isValidStyleValue("alignSpread", true)).toBe(true);
     expect(isValidStyleValue("alignSpread", "yes")).toBe(false);
+    // A Look sets its status colours as palette roles; a saved copy keeps them (L33).
+    expect(isValidStyleValue("warn", "#8A5A00")).toBe(true);
+    expect(isValidStyleValue("ok", "")).toBe(true);
+    expect(isValidStyleValue("crit", "url(x)")).toBe(false);
+    expect(invalidStyleKeys({ ok: "#15803d", warn: "#8A5A00", crit: "#A8340F", s1: "#fff" })).toEqual([]);
     expect(isValidStyleValue("alignX", "between")).toBe(false);
     expect(isValidStyleValue("autoScale", "yes")).toBe(false);
     expect(isValidStyleValue("label", "x")).toBe(false);
+  });
+
+  it("keeps any Look id that is text, a newer build's too (it draws Classic), and refuses what is not text", () => {
+    for (const id of ["classic", "hud", "field-kit", "tape-86", "default", "a-newer-look"]) expect(isValidStyleValue("lookId", id), id).toBe(true);
+    for (const id of ["", 3, undefined]) expect(isValidStyleValue("lookId", id), String(id)).toBe(false);
   });
 });
 
@@ -181,7 +191,7 @@ describe("Theme's scopes (Apply a theme here…, Save as Theme)", () => {
       ],
     });
     const seeded = { ...c, profiles: [{ ...c.profiles[0], pages: [{ ...pageOf(c), widgetTheme: { values: { surfaceOpacity: 40, font: "mono" } } }] }, c.profiles[1]] };
-    const out = applyTheme(seeded, glass, PAGE);
+    const out = applyThemeToLevel(seeded, glass, PAGE);
     const theme = pageOf(out).widgetTheme!;
     // Surface (all three keys replaced) is customised; the locked Border & glow is not written.
     expect(theme.values).toEqual({ font: "mono", surface: "glass", surfaceOpacity: 60, blur: "16" });
@@ -194,9 +204,9 @@ describe("Theme's scopes (Apply a theme here…, Save as Theme)", () => {
   it("never writes the background with Keep my background on, and always with it off", () => {
     const bg = { type: "color" as const, color: "#101010" };
     const c = config({ profiles: [profile("p1"), profile("p2", { background: bg })] });
-    expect(applyTheme(c, glass, P2, { keepBackground: true }).profiles[1].background).toEqual(bg);
-    expect(applyTheme(c, glass, P2, { keepBackground: false }).profiles[1].background).toEqual(glass.background);
-    expect(applyTheme(config(), glass, P1, { keepBackground: true }).profiles[0].background).toBeUndefined();
+    expect(applyThemeToLevel(c, glass, P2, { keepBackground: true }).profiles[1].background).toEqual(bg);
+    expect(applyThemeToLevel(c, glass, P2, { keepBackground: false }).profiles[1].background).toEqual(glass.background);
+    expect(applyThemeToLevel(config(), glass, P1, { keepBackground: true }).profiles[0].background).toBeUndefined();
   });
 
   it("saves a page's resolved look: its customised sections over its screen's, the screen's tokens", () => {
@@ -228,7 +238,7 @@ describe("Theme's scopes (Apply a theme here…, Save as Theme)", () => {
     const preset = saved.appearancePresets![0];
     expect(preset).toMatchObject({ id: "u1", name: "Desk", radius: 1, style: { surface: "glass", accent: "#0000ff" } });
     expect(preset.background).toBeUndefined();
-    const other = applyTheme(saved, preset, P2).profiles[1];
+    const other = applyThemeToLevel(saved, preset, P2).profiles[1];
     expect(other.theme).toEqual({ ...DEFAULT_THEME, primary: "1 2% 3%" });
     expect(other.radius).toBe(1);
     expect(other.widgetTheme?.values).toEqual({ surface: "glass", accent: "#0000ff" });
@@ -245,7 +255,7 @@ describe("updateAppearancePreset", () => {
   it("overwrites the look in place, keeping the id, name, description and the other Themes", () => {
     const updated = updateAppearancePreset(withTwo, "a", P1);
     const [a, b] = updated.appearancePresets!;
-    expect(a).toMatchObject({ id: "a", name: "Alpha", description: "Saved theme", radius: 1 });
+    expect(a).toMatchObject({ id: "a", name: "Alpha", description: "Saved look", radius: 1 });
     expect(a.theme).toEqual({ ...DEFAULT_THEME, primary: "1 2% 3%" });
     expect(b).toEqual(withTwo.appearancePresets![1]);
     expect(updated.appearancePresets).toHaveLength(2);

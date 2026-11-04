@@ -84,7 +84,7 @@ export default function AudioMeter(p: AudioMeterProps) {
   const rH = useHistory(one.r, 72, 0.6);
   const step = useMeterBallistics(p.ballistics ?? "peak");
   const st = p.meterStyle ?? "led";
-  const lc = p.levelColor || "var(--accent)";
+  const lc = p.levelColor || "var(--w-accent)";
   const hc = p.hotColor || STATE.crit;
   const warnAt = pctOf(p.warnDb ?? AUDIO_WARN_DB),
     hotAt = pctOf(p.hotDb ?? AUDIO_HOT_DB);

@@ -1,6 +1,7 @@
+import { readdirSync, readFileSync } from "node:fs";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { placementContent, placementPrefixes } from "@/components/studio/placement-content";
+import { placementContent, placementPrefixes, quietPrefix } from "@/components/studio/placement-content";
 import { BLANK_MODULE, CANVAS_ID, CARDS_ID, NOT_LOADED, type Placement } from "@/lib/layout";
 import { YR_FORECAST_KEY } from "@/lib/sensors";
 import { SENSORLESS } from "@/widgets/module";
@@ -172,5 +173,16 @@ describe("Other sensors zone", () => {
 
   it("has no data when nothing is unclaimed", () => {
     expect(placementContent(place({ module: CARDS_ID }), {}, []).hasData).toBe(false);
+  });
+});
+
+describe("quietPrefix", () => {
+  it("never silences a widget that reads the fast audio stream", () => {
+    const dir = "src/widgets";
+    const ids = readdirSync(dir)
+      .filter((f) => f.endsWith(".tsx") && readFileSync(`${dir}/${f}`, "utf8").includes("useFastSensors("))
+      .map((f) => f.replace(/\.tsx$/, ""));
+    expect(ids).toEqual(expect.arrayContaining(["Visualizer", "MeterBridge", "AudioMeter"]));
+    for (const id of ids) expect([id, quietPrefix(place({ module: id }))]).toEqual([id, undefined]);
   });
 });

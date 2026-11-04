@@ -8,7 +8,7 @@ const DOT: Record<SettingState, string> = {
   profile: "rounded-[2px] bg-ui-dot-profile",
   here: "rounded-full bg-ui-accent",
   overriding: "rounded-full bg-ui-accent shadow-[0_0_0_2px_var(--ui-bg-panel),0_0_0_3px_var(--ui-accent)]",
-  ignored: "rounded-full shadow-[inset_0_0_0_1.5px_var(--ui-warning)]",
+  ignored: "rounded-full shadow-[inset_0_0_0_1.5px_var(--ui-warn)]",
 };
 
 /** What each dot means (its tooltip, and the footer's legend). */

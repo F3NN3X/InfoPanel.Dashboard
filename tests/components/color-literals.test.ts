@@ -8,24 +8,16 @@ import { describe, expect, it } from "vitest";
  */
 const LITERAL = /\[(?:#[0-9a-fA-F]{3,8}|(?:rgba?|hsla?|oklch|oklab|lab|lch)\(|[a-z-]+:#[0-9a-fA-F]{3,8})/g;
 
-// The count across src after the A-18 sweep: the Synth and Nixie headers' colours in widgets/core/views.tsx (3) and the dev gallery's card backdrop (1). Lower it when you remove a literal; never raise it: use a token instead.
-const MAX_LITERALS = 4;
+// The count across src: none. Use a token or a skin value (SkinTokens.headerFill) instead of a literal; never raise it.
+const MAX_LITERALS = 0;
 
 // Arbitrary text sizes (`text-[13px]`) left in src/components/studio after the A-18 sweep: the tile size caption's 8.5 px.
 const MAX_ARBITRARY_TEXT = 1;
 
-// Files that hold literal palettes on purpose.
-const EXCLUDED = new Set([
-  // the widget theme: its values are mirrored as hex in the InfoPanel gauge export
-  "src/widgets/core/theme.ts",
-  // the mirror of that theme baked into exported gauge frames
-  "src/lib/infopanel/gauges/vector.ts",
-]);
-
 const files = (dir: string): string[] =>
   readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
     const path = `${dir}/${e.name}`;
-    return e.isDirectory() ? files(path) : /\.(tsx?|css)$/.test(e.name) && !EXCLUDED.has(path) ? [join(path)] : [];
+    return e.isDirectory() ? files(path) : /\.(tsx?|css)$/.test(e.name) ? [join(path)] : [];
   });
 
 describe("colour literals in the UI", () => {

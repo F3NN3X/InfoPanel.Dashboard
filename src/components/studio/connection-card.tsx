@@ -28,8 +28,8 @@ export function connectionPill(dataApi: ConnectionCardProps["dataApi"]): { text:
 }
 
 const PILL = {
-  ok: { icon: CircleCheck, tone: "text-ui-success" },
-  warn: { icon: TriangleAlert, tone: "text-ui-warning" },
+  ok: { icon: CircleCheck, tone: "text-ui-ok" },
+  warn: { icon: TriangleAlert, tone: "text-ui-warn" },
   bad: { icon: CircleAlert, tone: "text-ui-danger" },
 } as const;
 
@@ -95,7 +95,7 @@ export function ConnectionCard({ value, onChange, dataApi }: ConnectionCardProps
         <span className="min-w-0 flex-1 truncate">Test connection</span>
         <span role="status" className="flex items-center gap-2">
           {probe === "testing" && <span>testing…</span>}
-          {probe === "ok" && <span className="text-ui-success">connected</span>}
+          {probe === "ok" && <span className="text-ui-ok">connected</span>}
           {probe === "fail" && <span className="text-ui-danger">not reachable</span>}
         </span>
         <button

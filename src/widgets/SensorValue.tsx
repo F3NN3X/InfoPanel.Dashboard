@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import type { ModuleSettings } from "@/modules/types";
 import { isImageUrl } from "@/lib/image";
 import { widgetImage } from "./data-adapter";
-import { UNIT_CLASS, IpTagCtx, Widget, Empty, shell, get, num, fmt, has, Metric, Ring, Spark, Bar, Num, useHistory, useIpTag, tone, TONES, type ShellProps } from "./kit";
+import { Unit, IpTagCtx, Widget, Empty, shell, get, num, fmt, has, Metric, Ring, Spark, Bar, Num, useHistory, useIpTag, tone, TONES, type ShellProps } from "./kit";
 import { fitFont, ringFont, textEm, valueFont } from "./core/fit";
 import { meta } from "./meta/SensorValue";
 
@@ -92,7 +92,7 @@ function Line({ label, value, text, unit, ranged, min, max, tone: t, place = "me
   }
   return (
     <div className="flex h-full min-w-0 items-center gap-[1.1em] whitespace-nowrap leading-none" style={{ fontSize: px, paddingInline: "0.9em" }}>
-      {place !== "only" && <span className="min-w-0 truncate leading-tight text-[color:var(--accent)]" style={{ minWidth: metered ? "4.2em" : undefined, textTransform: "var(--wp-label-case, none)" as CSSProperties["textTransform"] }}>{label}</span>}
+      {place !== "only" && <span className="min-w-0 truncate leading-tight text-[color:var(--w-accent)]" style={{ minWidth: metered ? "4.2em" : undefined, textTransform: "var(--wp-label-case, none)" as CSSProperties["textTransform"] }}>{label}</span>}
       {metered && <Bar value={value - min} max={max - min} t={t} className="h-[0.8em] min-w-0 flex-1" style="segments" segments={Math.max(8, Math.round(w / px / 1.1))} />}
       {shown !== undefined && (
         <Num
@@ -194,7 +194,7 @@ export default function SensorValue(p: SensorValueProps) {
                   {Math.min(w, h) >= RING_LABEL_MIN && <span className="text-[0.4em] text-[color:var(--w-muted)]" style={{ textTransform: "var(--wp-label-case, none)" as CSSProperties["textTransform"] }}>{label}</span>}
                   <Num ip={ipValue} className="mt-[0.15em] font-semibold">
                     {fmt(sv, p.decimals ?? (up ? 1 : 0))}
-                    <span className={UNIT_CLASS}>{su}</span>
+                    <Unit>{su}</Unit>
                   </Num>
                 </div>
               ) : (

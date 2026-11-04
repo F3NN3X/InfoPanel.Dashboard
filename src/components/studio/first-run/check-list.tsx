@@ -56,8 +56,8 @@ export const Spinner = ({ className }: { className?: string }) => (
 );
 
 const STATUS_ICON: Record<"ok" | "warn" | "fail" | "skip" | "waiting", { icon: LucideIcon; className: string; label: string }> = {
-  ok: { icon: CircleCheck, className: "text-ui-success", label: "Passed" },
-  warn: { icon: TriangleAlert, className: "text-ui-warning", label: "Warning" },
+  ok: { icon: CircleCheck, className: "text-ui-ok", label: "Passed" },
+  warn: { icon: TriangleAlert, className: "text-ui-warn", label: "Warning" },
   fail: { icon: CircleX, className: "text-ui-danger", label: "Failed" },
   skip: { icon: CircleMinus, className: "text-ui-disabled", label: "Skipped" },
   waiting: { icon: Circle, className: "text-ui-edge", label: "Waiting" },
@@ -128,13 +128,13 @@ export function CheckRow({ id, result, address, fixed, elapsed, narrow, first, o
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
           <div className="flex items-center gap-1.5">
             <span className={cn("text-body font-medium", status === "skip" || status === "waiting" ? "text-ui-3" : "text-ui-1")}>{title}</span>
-            {fixed && status === "ok" && <span className="rounded-[4px] bg-ui-success/15 px-[5px] py-px text-nano text-ui-success">Fixed</span>}
+            {fixed && status === "ok" && <span className="rounded-[4px] bg-ui-ok/15 px-[5px] py-px text-nano text-ui-ok">Fixed</span>}
             {status === "checking" && elapsed >= 1 && <span className="font-ui-mono text-micro text-ui-4">{elapsed} s</span>}
           </div>
           <span
             className={cn(
               "text-micro",
-              status === "fail" ? "text-ui-danger" : status === "warn" ? "text-ui-warning" : status === "ok" ? "text-ui-2" : status === "checking" ? "text-ui-3" : "text-ui-4",
+              status === "fail" ? "text-ui-danger" : status === "warn" ? "text-ui-warn" : status === "ok" ? "text-ui-2" : status === "checking" ? "text-ui-3" : "text-ui-4",
             )}
           >
             {line}
@@ -147,11 +147,11 @@ export function CheckRow({ id, result, address, fixed, elapsed, narrow, first, o
                 return (
                   <span
                     key={c.name}
-                    className={cn("inline-flex h-[22px] items-center gap-1.5 rounded-ui-sm border bg-ui-panel px-2 text-micro", zero ? "border-ui-warning/40 text-ui-warning" : "border-ui-strong text-ui-2")}
+                    className={cn("inline-flex h-[22px] items-center gap-1.5 rounded-ui-sm border bg-ui-panel px-2 text-micro", zero ? "border-ui-warn/40 text-ui-warn" : "border-ui-strong text-ui-2")}
                   >
-                    <Icon className={cn("h-3 w-3", zero ? "text-ui-warning" : "text-ui-3")} />
+                    <Icon className={cn("h-3 w-3", zero ? "text-ui-warn" : "text-ui-3")} />
                     {c.name}
-                    <span className={cn("font-ui-mono text-micro", zero ? "text-ui-warning" : "text-ui-3")}>{c.count}</span>
+                    <span className={cn("font-ui-mono text-micro", zero ? "text-ui-warn" : "text-ui-3")}>{c.count}</span>
                   </span>
                 );
               })}

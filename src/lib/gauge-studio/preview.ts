@@ -1,5 +1,6 @@
 /** How Gauges draws a gauge on the dashboard theme (spec §6: "Theme colours follow '<theme>'"). */
 import { THEME_PRESETS, type ThemeTokens } from "@/lib/theme";
+import { accentVars } from "@/widgets/core/tokens";
 
 /** The theme's preset name, or null for a custom palette. */
 export function themeNameOf(tokens: Pick<ThemeTokens, "accent" | "foreground">): string | null {
@@ -7,4 +8,4 @@ export function themeNameOf(tokens: Pick<ThemeTokens, "accent" | "foreground">):
 }
 
 /** The widget variable a gauge's theme colours read, from the dashboard theme (the rest are the dark-surface values). */
-export const previewScope = (tokens: Pick<ThemeTokens, "accent">): Record<string, string> => ({ "--accent": `hsl(${tokens.accent})` });
+export const previewScope = (tokens: Pick<ThemeTokens, "accent">): Record<string, string> => accentVars(`hsl(${tokens.accent})`);

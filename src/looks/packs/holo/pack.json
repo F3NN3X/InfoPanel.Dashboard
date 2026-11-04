@@ -1,0 +1,60 @@
+{
+  "id": "holo",
+  "name": "Holo",
+  "version": "1.0.0",
+  "tags": [
+    "dark",
+    "hud",
+    "glow",
+    "futuristic"
+  ],
+  "description": "Deep blue HUD panels with corner brackets over faint range rings: 270-degree glowing rings, thin lines and elbow connectors from the core.",
+  "modes": [
+    "dark"
+  ],
+  "fonts": [
+    {
+      "family": "pack-holo",
+      "source": "Exo 2",
+      "file": "exo-2-500.woff2",
+      "weight": "100 900",
+      "licence": "OFL-1.1",
+      "copyright": "Copyright 2013 The Exo 2 Project Authors (https://github.com/googlefonts/Exo-2.0)"
+    },
+    {
+      "family": "pack-holo-display",
+      "source": "Orbitron",
+      "file": "pack-holo-display-500.woff2",
+      "weight": "100 900",
+      "licence": "OFL-1.1",
+      "copyright": "Copyright 2018 The Orbitron Project Authors (https://github.com/theleagueof/orbitron), with Reserved Font Name: \"Orbitron\"."
+    }
+  ],
+  "stage": {
+    "layers": [
+      {
+        "fill": "linear-gradient(180deg, #0B2A3E, #020810)"
+      },
+      {
+        "image": "rings.svg",
+        "opacity": 0.5,
+        "minSizeClass": "sm"
+      }
+    ],
+    "effects": [
+      {
+        "kind": "glow",
+        "cost": "filter",
+        "px": 10
+      }
+    ]
+  },
+  "burnIn": "needs-shift",
+  "statusBar": {
+    "edge": "top"
+  },
+  "connectors": {
+    "style": "elbow",
+    "dot": true
+  }
+}

@@ -5,7 +5,7 @@ import type { PageBackground } from "@/lib/appearance";
 import type { AppearancePreset } from "@/lib/appearance-presets";
 import type { ThemeTokens } from "@/lib/theme";
 import { cn } from "@/lib/utils";
-import { AppearancePreview } from "./appearance-preview";
+import { LookThumb } from "./look-thumb";
 import { ITEM, SEPARATOR } from "./menu-styles";
 import { ThemeNameInput } from "./theme-name-input";
 import { BackgroundSwatch, TokenSwatches } from "./theme-swatches";
@@ -30,19 +30,14 @@ interface ThemeLookCardProps {
   onDelete?: () => void;
   tokens: ThemeTokens;
   paletteName: string;
-  skinName: string;
   radius: number;
   background: PageBackground | undefined;
   backgroundLabel: string;
   /** A page: the palette, corners and background are its screen's (read-only, with this note). */
   partsNote?: string;
   onPalette: () => void;
-  onSkin: () => void;
   onRadius: (rem: number) => void;
   onBackground: () => void;
-  /** Switch theme's counts ("2 saved · 55 from templates"). */
-  counts: string;
-  onSwitch: () => void;
 }
 
 /** One MADE OF row: the 78 px label, then its value; a button with › when it opens a picker. */
@@ -76,12 +71,14 @@ export interface ThemeUpdateBarProps {
 
 /**
  * The Update bar, in the preview's header beside the zoom: once a part of a theme changed, what Update changes, with
- * Update ‹name› (a saved theme) and Save as new; a custom or deleted look offers Save as theme. Nothing otherwise.
+ * Update ‹name› (a saved theme) and Save as new; any other look (custom, deleted, a Look or a template's) offers Save
+ * look. Nothing otherwise.
  */
 export function ThemeUpdateBar(p: ThemeUpdateBarProps) {
   const [saving, setSaving] = useState(false);
   const saved = p.kind === "saved";
-  if (!(saving || p.update !== undefined || p.kind === "custom" || p.kind === "deleted")) return null;
+  // A built-in Look or template look can always be kept as a saved look, with what was changed on top of it.
+  if (!(saving || p.update !== undefined || p.kind !== "saved")) return null;
   return (
     <div
       className={cn(
@@ -97,7 +94,7 @@ export function ThemeUpdateBar(p: ThemeUpdateBarProps) {
       {saving ? (
         <ThemeNameInput
           initial={p.saveName}
-          label="Theme name"
+          label="Look name"
           onDone={(name) => {
             setSaving(false);
             if (name) p.onSave(name);
@@ -111,7 +108,7 @@ export function ThemeUpdateBar(p: ThemeUpdateBarProps) {
             </button>
           )}
           <button type="button" onClick={() => setSaving(true)} className={saved ? LINK : PRIMARY}>
-            {saved ? "Save as new" : "Save as theme"}
+            {saved ? "Save as new" : "Save look"}
           </button>
         </div>
       )}
@@ -138,15 +135,15 @@ export function ThemeLookCard(p: ThemeLookCardProps) {
   return (
     <section data-nav-section="theme" className="flex flex-col gap-3.5 p-4">
       <div className="flex items-center gap-3">
-        <AppearancePreview preset={p.preview} className="h-[60px] w-24 shrink-0 rounded-md" />
+        <LookThumb preset={p.preview} width={96} className="rounded-md" />
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
           {renaming ? nameField(p.name, "Theme name", (name) => p.onRename?.(name)) : <h2 className="truncate text-head font-semibold text-ui-1">{p.name}</h2>}
           <p className="truncate text-caption text-ui-soft">{p.kindLine}</p>
         </div>
         <Menu.Root>
           <Menu.Trigger
-            aria-label="Theme actions"
-            title="Theme actions"
+            aria-label="Look actions"
+            title="Look actions"
             className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-ui-strong text-ui-3 hover:bg-ui-hover hover:text-ui-1 data-popup-open:bg-ui-hover"
           >
             <MoreHorizontal className="h-4 w-4" />
@@ -155,8 +152,8 @@ export function ThemeLookCard(p: ThemeLookCardProps) {
             <Menu.Positioner className="z-[80]" sideOffset={4} align="end">
               <Menu.Popup className={MENU}>
                 <Menu.Item className={cn(ITEM, "h-auto flex-col items-start gap-0.5 py-1.5")} disabled={!p.reset} onClick={p.reset?.onReset}>
-                  <span>Reset to {p.reset ? p.name : "a theme"}</span>
-                  <span className="text-micro leading-snug text-ui-hint">{p.reset?.text ?? "This look wasn't applied from a theme. Save it as one first."}</span>
+                  <span>Reset to {p.reset ? p.name : "a Look"}</span>
+                  <span className="text-micro leading-snug text-ui-hint">{p.reset?.text ?? "This look wasn't applied from a Look. Save it first."}</span>
                 </Menu.Item>
                 <Menu.Separator className={SEPARATOR} />
                 <Menu.Item className={ITEM} disabled={!p.onRename} onClick={() => setRenaming(true)}>
@@ -177,15 +174,11 @@ export function ThemeLookCard(p: ThemeLookCardProps) {
       </div>
       <div className="overflow-hidden rounded-ui-menu border border-ui-strong">
         <h3 className="border-b border-ui-raised px-3 py-1.5 font-ui-mono text-nano uppercase tracking-[0.08em] text-ui-hint">Made of</h3>
-        <PartRow label="Palette" onOpen={p.partsNote ? undefined : p.onPalette}>
+        <PartRow label="Colors" onOpen={p.partsNote ? undefined : p.onPalette}>
           <TokenSwatches tokens={p.tokens} />
           <span className="truncate">{p.paletteName}</span>
         </PartRow>
-        <PartRow label="Skin" onOpen={p.onSkin}>
-          <span className="block h-4 w-7 shrink-0 rounded-[3px] border" style={{ background: `hsl(${p.tokens.card})`, borderColor: `hsl(${p.tokens.border})` }} aria-hidden />
-          <span className="truncate">{p.skinName}</span>
-        </PartRow>
-        <PartRow label="Corners">
+        <PartRow label="Base corners">
           <input
             type="range"
             min={0}
@@ -194,7 +187,7 @@ export function ThemeLookCard(p: ThemeLookCardProps) {
             value={radiusPx(p.radius)}
             disabled={p.partsNote !== undefined}
             onChange={(e) => p.onRadius(pxRadius(Number(e.target.value)))}
-            aria-label="Corners (px)"
+            aria-label="Base corners"
             className="min-w-0 flex-1 accent-ui-blue disabled:opacity-50"
           />
           <span className="w-16 shrink-0 whitespace-nowrap text-right font-ui-mono text-micro text-ui-soft">{remText(p.radius)}</span>
@@ -205,14 +198,6 @@ export function ThemeLookCard(p: ThemeLookCardProps) {
         </PartRow>
         {p.partsNote && <p className="border-t border-ui-raised px-3 py-2 text-micro leading-snug text-ui-hint">{p.partsNote}</p>}
       </div>
-      <button
-        type="button"
-        onClick={p.onSwitch}
-        data-nav-section="start"
-        className="flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-ui-strong text-body font-medium text-ui-1 hover:bg-ui-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent"
-      >
-        Switch theme <span className="font-normal text-ui-hint">{p.counts}</span>
-      </button>
     </section>
   );
 }

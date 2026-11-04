@@ -5,11 +5,14 @@ import { fontStack } from "@/lib/general";
 import { cappedBlur } from "@/components/widget-style";
 import type { FontId } from "@/lib/fonts";
 import { resolveStyle, type Appearance } from "@/lib/style-resolve";
+import { CLASSIC_LOOK_ID } from "@/lib/theme-model";
+import type { PackChrome } from "@/looks/chrome";
 import { springCss, springFor, SPRINGS, type SpringKind } from "@/lib/island/spring";
 
 /** The screen's widget skin, as its widgets resolve it: what an island "part of the skin" is drawn with. */
 export interface PageSkin {
-  skin?: string;
+  /** The screen's Look (unset: Classic); `wornSurface` draws the skin it names. */
+  lookId?: string;
   surface?: string;
   accent?: string;
 }
@@ -19,11 +22,11 @@ const WEIGHTS: Record<IslandWeight, number> = { regular: 400, medium: 500, semib
 const SKIN_FILL = "color-mix(in srgb, hsl(var(--card)) 92%, hsl(var(--background)))";
 const SHADOW = "0 6px 24px -6px rgb(0 0 0 / 0.55)";
 
-/** The skin a screen's widgets wear under `appearance` (a value left unset or "auto" stays unset). */
+/** The skin a screen's widgets wear under `appearance` (a value left unset or "auto", and the Classic Look, stay unset). */
 export function pageSkinOf(appearance: Appearance | undefined): PageSkin {
-  const { skin, surface, accent } = resolveStyle({ levels: appearance }).settings;
+  const { lookId, surface, accent } = resolveStyle({ levels: appearance }).settings;
   const named = (v: unknown) => (typeof v === "string" && v !== "" && v !== "auto" ? v : undefined);
-  return { skin: named(skin), surface: named(surface), accent: named(accent) };
+  return { lookId: lookId === CLASSIC_LOOK_ID ? undefined : named(lookId), surface: named(surface), accent: named(accent) };
 }
 
 /** The pill's colours, border, shadow and type from the island's settings. */
@@ -48,9 +51,11 @@ export interface WornSurface {
   ear: string;
 }
 
-export function islandSkin(c: Pick<IslandConfig, "placement" | "tint" | "bgColor" | "fgColor" | "opacity" | "border" | "shadow" | "font" | "weight">, worn?: WornSurface): IslandSkin {
-  const base = c.tint === "custom" ? c.bgColor : c.tint === "theme" ? "hsl(var(--card))" : c.tint === "skin" ? SKIN_FILL : "#000000";
-  const color = c.tint === "custom" ? c.fgColor : c.tint === "theme" || c.tint === "skin" ? "hsl(var(--card-foreground))" : "#ffffff";
+/** `chrome`: the worn pack's colours, which the black tint (the one no one chose a colour for) takes instead of black (L25). */
+export function islandSkin(c: Pick<IslandConfig, "placement" | "tint" | "bgColor" | "fgColor" | "opacity" | "border" | "shadow" | "font" | "weight">, worn?: WornSurface, chrome?: PackChrome): IslandSkin {
+  const packed = c.tint === "black" ? chrome : undefined;
+  const base = c.tint === "custom" ? c.bgColor : c.tint === "theme" ? "hsl(var(--card))" : c.tint === "skin" ? SKIN_FILL : (packed?.fill ?? "#000000");
+  const color = c.tint === "custom" ? c.fgColor : c.tint === "theme" || c.tint === "skin" ? "hsl(var(--card-foreground))" : (packed?.ink ?? "#ffffff");
   const see = c.opacity < 100;
   // The theme and skin tints always have the card's border; "none" keeps it so saved islands look the same.
   // Worn on the screen's skin, the surface draws the edge unless one is asked for.
@@ -61,7 +66,9 @@ export function islandSkin(c: Pick<IslandConfig, "placement" | "tint" | "bgColor
         ? `1px solid color-mix(in srgb, ${color} 16%, transparent)`
         : !(c.placement === "skin" && worn) && (c.tint === "theme" || c.tint === "skin")
           ? "1px solid hsl(var(--border))"
-          : undefined;
+          : packed
+            ? `1px solid ${packed.edge}`
+            : undefined;
   return {
     surface: c.placement === "skin" ? worn : undefined,
     background: see ? `color-mix(in srgb, ${base} ${c.opacity}%, transparent)` : base,

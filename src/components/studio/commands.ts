@@ -171,9 +171,9 @@ function generalCommands(s: CommandState): Command[] {
     ...DESTINATIONS.map(({ id, label, target, hint }) => general(`go:${id}`, label, { type: "navigate", target }, hint)),
     general("help", "Help", { type: "help" }, "F1"),
     general("alert-new", "New alert rule", { type: "alert-new" }),
-    general("theme", "Theme", { type: "open-theme" }, "colors, skins, saved themes, locks"),
-    general("background", "Theme › Background", { type: "open-theme", section: "background" }),
-    general("font", "Theme › Text", { type: "open-theme", section: "type" }, "page font, type, typography"),
+    general("theme", "Look", { type: "open-theme" }, "Look gallery, colors, saved looks, theme, skins, locks"),
+    general("background", "Look › Background", { type: "open-theme", section: "background" }),
+    general("font", "Look › Text", { type: "open-theme", section: "type" }, "page font, type, typography"),
     general(
       "settings",
       "Settings › Dashboard",
@@ -342,8 +342,8 @@ function themeSettingCommands(): Command[] {
       (def): Command => ({
         id: `theme-setting:${s.id}:${def.key}`,
         label: def.label,
-        group: "Theme",
-        hint: `Theme › ${s.title}`,
+        group: "Look",
+        hint: `Look › ${s.title}`,
         action: { type: "goto-theme-setting", section: s.id, key: def.key },
       })
     )
@@ -405,15 +405,15 @@ export function buildCommands(s: CommandState): Command[] {
     ...generalCommands(s),
     ...pageCommands(s),
     ...s.appearancePresets.flatMap((p): Command[] => [
-      { id: `appearance:${p.id}`, label: `Apply theme: ${p.name}`, group: "Themes", hint: s.themeLevel ?? "This screen", action: { type: "apply-appearance", id: p.id, keepBackground: false } },
+      { id: `appearance:${p.id}`, label: `Apply look: ${p.name}`, group: "Looks", hint: s.themeLevel ?? "This screen", action: { type: "apply-appearance", id: p.id, keepBackground: false } },
       {
         id: `appearance-keep-bg:${p.id}`,
-        label: `Apply theme, keep background: ${p.name}`,
-        group: "Themes",
+        label: `Apply look, keep background: ${p.name}`,
+        group: "Looks",
         hint: s.themeLevel ?? "This screen",
         action: { type: "apply-appearance", id: p.id, keepBackground: true },
       },
-      { id: `appearance-all:${p.id}`, label: `Apply theme to all screens: ${p.name}`, group: "Themes", action: { type: "apply-appearance-all", id: p.id } },
+      { id: `appearance-all:${p.id}`, label: `Apply look to all screens: ${p.name}`, group: "Looks", action: { type: "apply-appearance-all", id: p.id } },
     ]),
     ...s.insertables.map(
       (item): Command => ({

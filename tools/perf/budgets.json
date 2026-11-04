@@ -1,8 +1,24 @@
 {
   "$comment": "Deterministic budgets, enforced in CI (tools/perf/check-budgets.mjs; requests by tests/e2e/kiosk-budget.spec.ts). CPU, memory and frame counts are report-only. The entry budgets are CI's (Linux) measured bytes; entryGzipSlack (0.1 %) is added on top because the same build gzips a few bytes apart per platform and runner image. Lower a budget when a change shrinks the number; raise one only with a reason in the commit.",
-  "kioskEntryGzipBytes": 276492,
-  "studioEntryGzipBytes": 616806,
+  "kioskEntryGzipBytes": 284612,
+  "studioEntryGzipBytes": 625264,
   "entryGzipSlack": 0.001,
   "kioskLoadRequests": 34,
-  "kioskServerRendererAllowed": false
+  "kioskServerRendererAllowed": false,
+  "packs": {
+    "$comment": "Per built-in pack (src/looks/packs/<id>.ts, its Look id): codeGzipBytes = its lazy JS and CSS chunks (found through the Vite manifest), gzip; assetBytes = the files in src/looks/packs/<id>/assets, bytes on disk; layersPerPage = the layer reasons counted on the heavy kiosk screen with the pack on (tests/e2e/pack-visibility.spec.ts counts them; check-budgets does not). Set to the measured size plus 25 %, never above packCeilingBytes (code gzip plus assets), lowered whenever a pack shrinks. A pack with no entry here fails the check (node tools/perf/check-budgets.mjs --packs). Measured at P10 round 1: field-kit 11, tape-86 11, term 10 (Classic 9); at P11a: neon-stripe 10, overdrive 9, swiss-mono 10, holo 11: the budget is that plus 25 %. The count is the CSS reasons for a layer, not the compositor's own.",
+    "packCeilingBytes": 512000,
+    "field-kit": { "codeGzipBytes": 3300, "assetBytes": 21100, "layersPerPage": 14 },
+    "tape-86": { "codeGzipBytes": 3600, "assetBytes": 18800, "layersPerPage": 14 },
+    "term": { "codeGzipBytes": 3200, "assetBytes": 10500, "layersPerPage": 13 },
+    "neon-stripe": { "codeGzipBytes": 6100, "assetBytes": 12600, "layersPerPage": 13 },
+    "overdrive": { "codeGzipBytes": 5500, "assetBytes": 13950, "layersPerPage": 12 },
+    "swiss-mono": { "codeGzipBytes": 5900, "assetBytes": 30650, "layersPerPage": 13 },
+    "holo": { "codeGzipBytes": 6800, "assetBytes": 19600, "layersPerPage": 14 },
+    "night-glow": { "codeGzipBytes": 1940, "assetBytes": 10400, "layersPerPage": 19 },
+    "paper": { "codeGzipBytes": 1870, "assetBytes": 17660, "layersPerPage": 13 },
+    "classy-black": { "codeGzipBytes": 1840, "assetBytes": 20020, "layersPerPage": 12 },
+    "liquid-glass": { "codeGzipBytes": 1930, "assetBytes": 11180, "layersPerPage": 20 },
+    "black-and-gold": { "codeGzipBytes": 1810, "assetBytes": 11120, "layersPerPage": 12 }
+  }
 }

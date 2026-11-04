@@ -1,0 +1,4 @@
+* { font-family: pack-tape-86-mono, ui-monospace, monospace; }
+[data-part="num"] { font-family: pack-tape-86-display, Impact, sans-serif; }
+[data-part="chip"] { background-color: #2A2523; color: #F4A21C; }
+[data-part="chip"] * { color: #F4A21C; }

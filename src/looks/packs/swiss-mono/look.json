@@ -1,0 +1,94 @@
+{
+  "schema": 1,
+  "id": "swiss-mono",
+  "name": "Swiss Mono",
+  "description": "Charcoal with one hairline per card, numbered headers, huge light numerals and one orange circle off the corner.",
+  "tags": [
+    "pack",
+    "dark",
+    "minimal",
+    "swiss",
+    "sans"
+  ],
+  "modes": {
+    "supported": [
+      "dark"
+    ],
+    "stance": "Dark only: light type on charcoal is the pack."
+  },
+  "fonts": {
+    "body": "pack-swiss",
+    "mono": "pack-swiss",
+    "display": "pack-swiss-display"
+  },
+  "radius": "0",
+  "t1": {
+    "dark": {
+      "bg": {
+        "value": "#141414"
+      },
+      "surface": {
+        "value": "#141414"
+      },
+      "surface-2": {
+        "value": "#2E2D2A"
+      },
+      "fg": {
+        "value": "#F2F0EB"
+      },
+      "fg-2": {
+        "value": "{fg}"
+      },
+      "muted": {
+        "value": "#9A968D"
+      },
+      "border": {
+        "value": "#2E2D2A"
+      },
+      "border-soft": {
+        "value": "{border}"
+      },
+      "accent": {
+        "value": "#FF4D2E"
+      },
+      "accent-on": {
+        "value": "{bg}"
+      },
+      "accent-hover": {
+        "value": "{accent}"
+      },
+      "focus-ring": {
+        "value": "{accent}"
+      },
+      "ok": {
+        "value": "#3CC97F"
+      },
+      "warn": {
+        "value": "#EDB232"
+      },
+      "crit": {
+        "value": "#F2665E"
+      },
+      "info": {
+        "value": "{accent}"
+      }
+    }
+  },
+  "t2": {
+    "default": "look-swiss-mono",
+    "materials": {
+      "look-swiss-mono": {
+        "kind": "solid",
+        "tone": "dark",
+        "export": "#141414"
+      }
+    }
+  },
+  "t3": {
+    "header-style": "index",
+    "graph-style": "line",
+    "cell-radius": "0px",
+    "ring-cap": "butt"
+  },
+  "ext": {}
+}

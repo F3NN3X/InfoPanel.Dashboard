@@ -17,7 +17,7 @@ Every widget and panel has the same four tabs, filed by the question they answer
 
 Widget-specific sections come first in each tab, shared ones after. With nothing selected, the inspector shows the **Page** you are on: its name and icon, the sections it customizes, **Show on kiosks now**, and links to the screen's layout, Theme and behavior. Theme lists the same sections in one ordered column.
 
-Every Style section has a chip that says where its value comes from: **From ‹screen›**, **From theme**, **Changed here**, **Built-in** or **Locked** (see [Themes](themes#fine-tune)). Editing a row changes the section here. Click the chip, or the links under the rows, to **Reset to inherited**, **Change here** or open the level it comes from. With a section focused, Backspace resets it.
+Every Style section has a chip that says where its value comes from: **From ‹screen›**, **From look**, **Changed here**, **Built-in** or **Locked** (see [Themes](themes#fine-tune)). Editing a row changes the section here. Click the chip, or the links under the rows, to **Reset to inherited**, **Change here** or open the level it comes from. With a section focused, Backspace resets it.
 
 ## Finding a setting
 
@@ -43,8 +43,8 @@ A dot beside a row shows where its value comes from. No dot means the default. O
 
 The **Style** tab starts with a toolbar:
 
-- **Start from a Style** opens the built-in Styles (Follow theme, Matte dark, Matte light, Frosted, Monochrome) and the ones you saved. Follow theme clears the widget's own look. Applying one writes its sections to this widget.
-- **Save as Style** keeps this widget's own look in the Library.
+- **Start from a saved look** opens the built-in widget looks (Follow theme, Matte dark, Matte light, Frosted, Monochrome) and the ones you saved. Follow theme clears the widget's own look. Applying one writes its sections to this widget.
+- **Save look** keeps this widget's own look in the Library (**Widget looks**).
 - **Make this the theme for…** moves the widget's custom sections to **This screen** or **This page**, after a confirm that lists them. The widget then follows the theme again.
 
 Right-click a widget for **Copy style** and **Paste style**.

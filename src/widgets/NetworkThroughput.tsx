@@ -52,7 +52,7 @@ export default function NetworkThroughput(p: NetworkThroughputProps) {
         <Empty />
       </Widget>
     );
-  const dlColor = p.downloadColor || "var(--accent)";
+  const dlColor = p.downloadColor || "var(--w-accent)";
   const ulColor = p.uploadColor || hue(70);
   const showTotals = p.showTotals !== false;
   const showChart = p.sparkline === true;

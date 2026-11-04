@@ -30,8 +30,8 @@ describe("the status bar's kiosk chip", () => {
       unmount();
       return cls;
     };
-    expect(dot(true)).toContain("bg-ui-warning");
-    expect(dot(false)).toContain("bg-ui-success");
+    expect(dot(true)).toContain("bg-ui-warn");
+    expect(dot(false)).toContain("bg-ui-ok");
   });
 
   it("is absent outside Edit", () => {

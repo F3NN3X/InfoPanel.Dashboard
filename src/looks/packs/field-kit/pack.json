@@ -1,0 +1,60 @@
+{
+  "id": "field-kit",
+  "name": "Field Kit",
+  "version": "1.0.0",
+  "tags": [
+    "light",
+    "field",
+    "condensed",
+    "paper"
+  ],
+  "description": "Cream paper cards under a dark ink tab on a dark scene with contour lines and a hazard strip; condensed caps type, segmented gauges.",
+  "modes": [
+    "light"
+  ],
+  "fonts": [
+    {
+      "family": "pack-field-kit",
+      "source": "Barlow Condensed",
+      "file": "barlow-condensed-600.woff2",
+      "weight": "600",
+      "licence": "OFL-1.1",
+      "copyright": "Copyright 2017 The Barlow Project Authors (https://github.com/jpt/barlow)"
+    },
+    {
+      "family": "pack-field-kit",
+      "source": "Barlow Condensed",
+      "file": "barlow-condensed-700.woff2",
+      "weight": "700",
+      "licence": "OFL-1.1",
+      "copyright": "Copyright 2017 The Barlow Project Authors (https://github.com/jpt/barlow)"
+    }
+  ],
+  "stage": {
+    "layers": [
+      {
+        "fill": "radial-gradient(120% 90% at 70% 40%, #22252B 0%, #121418 60%, #0B0C0E 100%)"
+      },
+      {
+        "image": "contours.svg",
+        "opacity": 0.16,
+        "minSizeClass": "sm"
+      },
+      {
+        "image": "hazard.svg",
+        "minSizeClass": "sm"
+      }
+    ],
+    "effects": [
+      {
+        "kind": "vignette",
+        "cost": "static",
+        "opacity": 0.3
+      }
+    ]
+  },
+  "burnIn": "needs-shift",
+  "statusBar": {
+    "edge": "top"
+  }
+}

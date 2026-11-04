@@ -1,3 +1,4 @@
+import { SKINS } from "./core/theme";
 import { readCpuFlat, readSystemFlat } from "@/lib/system-metrics";
 import { inUnit } from "@/modules/setting-readers";
 import type { ModuleSettings } from "@/modules/types";
@@ -63,7 +64,7 @@ export default function CpuMonitor(p: CpuMonitorProps) {
   const maxMhz = Math.max(1, ...cores.map((c) => c.mhz).filter(Number.isFinite));
   const cv = (c: Core) => (metric === "clock" ? (Number.isFinite(c.mhz) ? (c.mhz / maxMhz) * 100 : 0) : c.load);
   const cols = cores.length > 8 ? 8 : cores.length;
-  const sq = ["tui", "hud", "retro"].includes(p.skin ?? "") ? "rounded-none" : "rounded-[5px]";
+  const sq = SKINS[p.skin ?? "default"]?.cellSquare ? "rounded-none" : "rounded-[5px]";
   const warn = p.warn ?? 75,
     crit = p.crit ?? 90;
   const name = p.title ?? pretty(id).replace(/^AMD Ryzen (\d) /, "Ryzen $1 ");
@@ -138,7 +139,7 @@ export default function CpuMonitor(p: CpuMonitorProps) {
                   const v = cv(c);
                   return (
                     <div key={c.i} title={`Core ${c.i} · ${fmt(c.load, 0)}% · ${fmt(c.mhz, 0)} MHz · ${fmt(c.vid, 2)} V`} className={`relative flex h-full flex-col justify-end overflow-hidden ${sq} bg-[color:var(--w-track)]`}>
-                      <div className={`h-full w-full ${sq} transition-transform duration-700 ease-out`} style={{ ...scaleY(Math.max(4, v)), background: "var(--accent)", opacity: 0.4 + v / 170 }} />
+                      <div className={`h-full w-full ${sq} transition-transform duration-700 ease-out`} style={{ ...scaleY(Math.max(4, v)), background: "var(--w-accent)", opacity: 0.4 + v / 170 }} />
                       {size === "lg" && <span className="absolute inset-x-0 bottom-0.5 text-center text-micro tabular-nums text-[color:var(--w-fg)]/80">{c.i}</span>}
                     </div>
                   );

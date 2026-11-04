@@ -111,6 +111,22 @@ describe("new island settings", () => {
   });
 });
 
+describe("island edge (D21)", () => {
+  it("is stored only when set, and a stored island without it loads without it", () => {
+    expect(normalizeIsland({})).not.toHaveProperty("edge");
+    expect(normalizeIsland({ edge: "bottom" })?.edge).toBe("bottom");
+    expect(normalizeIsland({ edge: "top" })?.edge).toBe("top");
+    expect(normalizeIsland({ edge: "left" })).not.toHaveProperty("edge");
+  });
+
+  it("round-trips unchanged with and without it", () => {
+    const base = normalizeIsland({ shape: "notch", offsetY: 12 })!;
+    expect(normalizeIsland(base)).toEqual(base);
+    const bottom = { ...base, edge: "bottom" as const };
+    expect(normalizeIsland(bottom)).toEqual(bottom);
+  });
+});
+
 describe("statLevel", () => {
   it("turns orange then red past the thresholds, the higher winning", () => {
     const stat = { key: "k", label: "", warn: 70, crit: 90 };
@@ -132,5 +148,12 @@ describe("withIsland", () => {
   it("patches an existing island", () => {
     const p = { island: { ...ISLAND_DEFAULTS, offsetY: 20 } };
     expect(withIsland(p, { idle: "hidden" }).island).toEqual({ ...ISLAND_DEFAULTS, offsetY: 20, idle: "hidden" });
+  });
+
+  it("drops the edge key when the edge goes back to Auto, so a saved island has none", () => {
+    const p = { island: { ...ISLAND_DEFAULTS, edge: "bottom" as const } };
+    const island = withIsland(p, { edge: undefined }).island;
+    expect("edge" in island).toBe(false);
+    expect(withIsland(p, { edge: "top" }).island.edge).toBe("top");
   });
 });

@@ -1,0 +1,64 @@
+{
+  "id": "tape-86",
+  "name": "Tape '86",
+  "version": "1.0.0",
+  "tags": [
+    "light",
+    "retro",
+    "paper",
+    "vhs"
+  ],
+  "description": "Warm paper with a hard ink edge and offset shadow, a stripe-band top edge, chunky Archivo Black numbers and mono labels.",
+  "modes": [
+    "light"
+  ],
+  "fonts": [
+    {
+      "family": "pack-tape-86-display",
+      "source": "Archivo Black",
+      "file": "archivo-black-400.woff2",
+      "weight": "400",
+      "licence": "OFL-1.1",
+      "copyright": "Copyright 2017 The Archivo Black Project Authors (https://github.com/Omnibus-Type/ArchivoBlack)"
+    },
+    {
+      "family": "pack-tape-86-mono",
+      "source": "Space Mono",
+      "file": "space-mono-400.woff2",
+      "weight": "400",
+      "licence": "OFL-1.1",
+      "copyright": "Copyright 2016 The Space Mono Project Authors (https://github.com/googlefonts/spacemono)"
+    },
+    {
+      "family": "pack-tape-86-mono",
+      "source": "Space Mono",
+      "file": "space-mono-700.woff2",
+      "weight": "700",
+      "licence": "OFL-1.1",
+      "copyright": "Copyright 2016 The Space Mono Project Authors (https://github.com/googlefonts/spacemono)"
+    }
+  ],
+  "stage": {
+    "layers": [
+      {
+        "fill": "#E4DCC6"
+      },
+      {
+        "image": "stripes.svg",
+        "minSizeClass": "sm"
+      }
+    ],
+    "effects": [
+      {
+        "kind": "grain",
+        "cost": "static",
+        "opacity": 0.12,
+        "fallback": "off"
+      }
+    ]
+  },
+  "burnIn": "needs-dim",
+  "statusBar": {
+    "edge": "top"
+  }
+}

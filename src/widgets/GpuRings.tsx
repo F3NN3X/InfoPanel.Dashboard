@@ -33,7 +33,7 @@ export default function GpuRings(p: GpuRingsProps) {
   };
   const outer = M[p.outer ?? "vram"],
     inner = M[p.inner ?? "load"];
-  const cO = p.colors?.outer ?? "var(--accent)",
+  const cO = p.colors?.outer ?? "var(--w-accent)",
     cI = p.colors?.inner ?? hue(70);
   const legend: [string | null, string, string, string?][] = [
     [cO, outer.l, outer.txt, outer === M.vram ? undefined : outer.k],

@@ -39,7 +39,7 @@ export default function SteamNews(p: SteamNewsProps) {
           <ul className={`flex ${big && items.length ? "min-h-0 flex-1" : "h-full"} flex-col gap-3 overflow-hidden`}>
             {items.slice(0, useFitRows(h, 18 + 22 * lines, 12)).map((n, i) => (
               <li key={i} className="flex min-w-0 gap-3">
-                <span className="mt-1 h-auto w-0.5 shrink-0 rounded-full" style={{ background: i === 0 ? "var(--accent)" : "var(--w-track)" }} />
+                <span className="mt-1 h-auto w-0.5 shrink-0 rounded-full" style={{ background: i === 0 ? "var(--w-accent)" : "var(--w-track)" }} />
                 <div className="flex min-w-0 flex-col gap-0.5">
                   <span className="text-micro font-medium uppercase tracking-[0.06em] text-[color:var(--w-faint)]">
                     {n.game}

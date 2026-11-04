@@ -2,6 +2,7 @@ import type { ModuleSetting, ModuleSettings } from "@/modules/types";
 import type { GeneralSettings } from "./general";
 import {
   following,
+  lookLayerOf,
   pageCustom,
   sectionOfKey,
   THEMED_KEYS,
@@ -16,9 +17,13 @@ import {
  * Where a widget's look comes from, on the theme model (`theme-model.ts`).
  * Only the themed keys are layered, lowest first:
  *
- *   module default → the app's clock (`general.clock`) → profile theme →
+ *   module default → the app's clock (`general.clock`) → the Look's values
+ *   (`lookLayerOf`, the Look the strongest layer names) → profile theme →
  *   page theme (only for a section the page made its own and the profile
  *   does not lock) → the widget's own
+ *
+ * A Look the page names of its own sits over the profile theme instead, so
+ * the page draws the Look it picked; its own values still beat it.
  *
  * A clock a level sets, "auto" (the locale's) included, beats the app's,
  * as the dashboard's clock was beaten before v16.
@@ -32,7 +37,7 @@ import {
  */
 
 /** The layer a resolved look value comes from ("app": the app settings' clock). */
-export type StyleSource = "default" | "app" | "profile" | "page" | "own";
+export type StyleSource = "default" | "app" | "look" | "profile" | "page" | "own";
 
 /** The app settings' layer under every screen: its 12 / 24 h clock, else none. */
 export const appLayer = (general: GeneralSettings | undefined): ModuleSettings | undefined =>
@@ -102,18 +107,28 @@ export function resolveStyle(input: StyleInput): ResolvedStyle {
   const source: Record<string, StyleSource> = {};
   const perWidget = new Set((input.defs ?? []).filter((d) => d.perWidget).map((d) => d.key));
   /** The strongest layer of a themed key, the widget's own value only where `ownApplies`. */
+  let look: ModuleSettings | undefined;
+  /** Whether the Look is the page's own: it then draws over the screen's values, as the screen's Look under them. */
+  let pageLook = false;
   const layerOf = (key: string, ownValue: unknown, ownApplies: boolean): [StyleSource, unknown] | undefined => {
     const sec = sectionOfKey(key)!;
     const pageOwn = pageCustom(levels, sec);
     const layers: [StyleSource, unknown][] = [
       ["own", ownApplies ? ownValue : undefined],
       ["page", pageOwn ? levels.page?.values?.[key] : undefined],
+      ["look", pageLook ? look?.[key] : undefined],
       ["profile", levels.profile?.values?.[key]],
+      ["look", pageLook ? undefined : look?.[key]],
       ["app", levels.base?.[key]],
       ["default", input.moduleDefaults?.[key]],
     ];
     return layers.find(([, value]) => value !== undefined);
   };
+  // The Look the widget shows (its own where its Look section is custom) sets the values under the levels' own.
+  const lookHit = layerOf("lookId", input.own?.lookId, perWidget.has("lookId") || !following(levels, input.follow, "skin"));
+  const holders: Partial<Record<StyleSource, ModuleSettings | undefined>> = { own: input.own, page: levels.page?.values, profile: levels.profile?.values };
+  look = lookHit && lookLayerOf(lookHit[1], holders[lookHit[0]]);
+  pageLook = lookHit?.[0] === "page";
   for (const [key, value] of Object.entries(input.own ?? {})) {
     if (!THEMED_KEYS.has(key)) settings[key] = value;
   }
@@ -122,6 +137,7 @@ export function resolveStyle(input: StyleInput): ResolvedStyle {
     ...Object.keys(levels.base ?? {}),
     ...Object.keys(levels.profile?.values ?? {}),
     ...Object.keys(levels.page?.values ?? {}),
+    ...Object.keys(look ?? {}),
     ...Object.keys(input.own ?? {}),
   ]);
   for (const key of keys) {

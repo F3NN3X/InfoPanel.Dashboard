@@ -1,7 +1,9 @@
 import type { ModernChrome } from "@/components/modern-chrome";
+import { color } from "@/lib/appearance";
 import { GLOW_LEVELS } from "@/lib/effects/glow";
 import { FONT_CATALOG } from "@/lib/fonts";
-import { BASE_SURFACES } from "@/widgets/core/surfaces";
+import { CLASSIC_LOOK } from "@/looks/ids";
+import { MATERIALS } from "@/looks/materials";
 import { SKIN_PACKS } from "@/widgets/core/theme";
 import { THEMED_KEYS } from "@/lib/theme-model";
 import { alignOf } from "./setting-readers";
@@ -55,7 +57,7 @@ const autoOptions = (values: readonly string[]) => [
 ];
 
 /** The skins whose names aren't just capitalized (`skinLabel`, `lib/theme-skins.ts`, reads them from the Skin row). */
-const SKIN_LABELS: Readonly<Record<string, string>> = { auto: "Default", tui: "TUI", hud: "HUD" };
+const SKIN_LABELS: Readonly<Record<string, string>> = { auto: "Classic", tui: "TUI", hud: "HUD", macos: "macOS", ios: "iOS" };
 
 /** The app's four materials: every surfaced widget kind (templates, panels, plain cards) draws them. */
 const APP_SURFACE_OPTIONS = [
@@ -66,19 +68,19 @@ const APP_SURFACE_OPTIONS = [
 ];
 
 /** Every surface a widget can pick by name: the app's materials, then the generic ones. */
-export const SURFACE_OPTIONS = [...APP_SURFACE_OPTIONS, ...Object.keys(BASE_SURFACES).map((v) => ({ value: v, label: v[0].toUpperCase() + v.slice(1) }))];
+export const SURFACE_OPTIONS = [...APP_SURFACE_OPTIONS, ...Object.keys(MATERIALS).filter((v) => MATERIALS[v].origin === "base").map((v) => ({ value: v, label: v[0].toUpperCase() + v.slice(1) }))];
 
 /** Size, alignment, spacing, colors and type — every widget gets these. */
 export const STYLE_SETTINGS: ModuleSetting[] = [
   {
-    // "auto" is the Default skin (`DEFAULT_SKIN`); a stored "default" is valid and reads as it (the select shows Default).
-    // A template widget's shell reads these (see `widgets/module.tsx`).
+    // The level's Look (config v17, D6): the skins are Looks, a skin's Look is named as the skin and the Default skin is
+    // Classic. A template widget's shell draws the skin the Look names (`skinOfLook`, see `widgets/module.tsx`).
     // Picking a skin sets the surface to Auto, so the skin shows with its own card.
-    key: "skin",
-    label: "Skin",
+    key: "lookId",
+    label: "Look",
     type: "select",
-    default: "auto",
-    options: autoOptions(SKIN_PACKS.filter((p) => p.name !== "default").map((p) => p.name)).map((o) => ({ ...o, label: SKIN_LABELS[o.value] ?? o.label, applies: { surface: "auto" } })),
+    default: CLASSIC_LOOK,
+    options: autoOptions(SKIN_PACKS.filter((p) => p.name !== "default").map((p) => p.name)).map((o) => ({ value: o.value === "auto" ? CLASSIC_LOOK : o.value, label: SKIN_LABELS[o.value] ?? o.label, applies: { surface: "auto" } })),
     keywords: ["theme", "style", "look", ...SKIN_PACKS.map((p) => p.name)],
     section: "skin",
   },
@@ -330,6 +332,16 @@ export const STANDARD_SETTINGS: ModuleSetting[] = [
     options: [{ value: "auto", label: "Auto (skin's card)" }, ...SURFACE_OPTIONS],
     section: "surface",
   },
+  {
+    // L7 (D19): a widget can opt out of a theme pack's decorations (ornament, tab band) and nothing else; unset = on.
+    key: "decoration",
+    label: "Pack decorations",
+    type: "boolean",
+    default: true,
+    hint: "Off: this widget draws without its theme pack's corner ornament and tab band. The pack's colours and shapes still apply.",
+    more: true,
+    section: "surface",
+  },
   { key: "showTitle", label: "Show title", type: "boolean", default: true, section: "header" },
   { key: "label", label: "Custom title", type: "text", default: "", section: "header", visibleIf: (values) => values.showTitle !== false },
   { key: "icon", label: "Icon", type: "icon", default: "", section: "header", more: true },
@@ -476,6 +488,12 @@ const fraction = (value: unknown): number => {
   return Number.isFinite(n) ? Math.min(1, Math.max(0, n / 100)) : 1;
 };
 
+/** A palette-role colour; a legacy numeric `warn` / `crit` threshold sharing the key is not one. */
+const statusColor = (v: unknown): string => {
+  const c = color(v);
+  return c && /^[#a-z]/i.test(c) ? c : "";
+};
+
 /**
  * Build a component's `chrome` prop from a module's resolved settings
  * (the output of `effectiveSettings`). Every widget passes this to its
@@ -497,6 +515,9 @@ export function chromeOf(cfg: ModuleSettings): ModernChrome {
     radius: px(cfg.radius),
     textColor: String(cfg.textColor ?? ""),
     mutedColor: String(cfg.mutedColor ?? ""),
+    ok: statusColor(cfg.ok),
+    warn: statusColor(cfg.warn),
+    crit: statusColor(cfg.crit),
     font: pick(cfg.font, FONT_CATALOG.map((f) => (f.id === "system" ? "auto" : f.id)), "auto"),
     fontWeight: pick(cfg.fontWeight, ["auto", "400", "500", "600", "700", "800"] as const, "auto"),
     labelCase: pick(cfg.labelCase, ["auto", "uppercase", "none", "capitalize"] as const, "auto"),

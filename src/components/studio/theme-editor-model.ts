@@ -2,6 +2,8 @@ import type { DashboardConfig, MonitorProfile } from "@/lib/layout";
 import { pageOf } from "@/lib/pages";
 import { appLayer, resolveStyle, type Appearance, type StyleSource } from "@/lib/style-resolve";
 import {
+  levelLook,
+  lookLayerOf,
   pageCustom,
   sectionOfKey,
   withAllLocked,
@@ -59,13 +61,21 @@ const sourcesOf = (keys: Iterable<string>, source: StyleSource): Record<string, 
  * (and the profile does not lock it); the rest shows the profile's.
  */
 export function scopeLookValues(levels: ThemeLevels, scope: ThemeScopeKind): LookValues {
-  if (scope === "profile")
-    return { own: levels.profile?.values, inherited: levels.base, inheritedFrom: sourcesOf(Object.keys(levels.base ?? {}), "app") };
+  if (scope === "profile") {
+    // The screen's Look sets the values under its own (L40).
+    const look = lookLayerOf(levels.profile?.values?.lookId, levels.profile?.values);
+    const inheritedFrom = sourcesOf(Object.keys(levels.base ?? {}), "app");
+    if (!look) return { own: levels.profile?.values, inherited: levels.base, inheritedFrom };
+    return { own: levels.profile?.values, inherited: { ...levels.base, ...look }, inheritedFrom: { ...inheritedFrom, ...sourcesOf(Object.keys(look), "look") } };
+  }
   const { settings, source } = resolveStyle({ levels: { base: levels.base, profile: levels.profile } });
+  // The page's own Look draws over what its screen sets (L40).
+  const { layer, onPage } = levelLook(levels);
+  const look = (onPage && layer) || {};
   return {
     own: levels.page?.values,
-    inherited: settings,
-    inheritedFrom: source,
+    inherited: { ...settings, ...look },
+    inheritedFrom: { ...source, ...sourcesOf(Object.keys(look), "look") },
     applies: (key) => {
       const sec = sectionOfKey(key);
       return sec !== undefined && pageCustom(levels, sec);

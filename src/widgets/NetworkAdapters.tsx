@@ -46,7 +46,7 @@ export default function NetworkAdapters(p: NetworkAdaptersProps) {
       {({ size, h, outerW, outerH }) => {
         const pub = (
           <div className="flex min-w-0 items-center gap-2">
-            <Icon name="public" className="text-lg text-[color:var(--accent)]" />
+            <Icon name="public" className="text-lg text-[color:var(--w-accent)]" />
             <div className="flex min-w-0 flex-col">
               <span className="text-micro text-[color:var(--w-faint)]">Public IP</span>
               <span className={`${size === "xs" ? "text-sm" : "text-base"} truncate font-semibold`}>{ip(pub4)}</span>

@@ -49,6 +49,9 @@ export interface ResolvedGeneral {
   blurLimit: boolean;
   innerBlur: boolean;
   liveGlow: boolean;
+  pixelShift: boolean;
+  /** Minutes without input before a pack's art dims; 0 = off. */
+  idleDim: number;
 }
 
 export const GENERAL_DEFAULTS: ResolvedGeneral = {
@@ -65,6 +68,8 @@ export const GENERAL_DEFAULTS: ResolvedGeneral = {
   blurLimit: true,
   innerBlur: false,
   liveGlow: false,
+  pixelShift: false,
+  idleDim: 0,
 };
 
 /** CSS font stacks for the font choices (also the widget style's Font option). */

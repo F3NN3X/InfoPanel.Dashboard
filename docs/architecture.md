@@ -256,8 +256,8 @@ Placement.settings
 - `effectiveSettings` is in `src/modules/types.ts`,
   `chromeOf` in `src/modules/standard-settings.ts`, `surfaceBox`, `tokenScope`
   and the `--wp-*` helpers in `src/components/widget-style.ts`, and the
-  shared materials (`makeSurface`, the theme surface, `surfaceColors` /
-  `surfaceTokens`) in `src/components/surfaces.ts`. The keys and their effects
+  shared materials (`makeSurface`, the theme surface) in
+  `src/components/surfaces.ts`. The keys and their effects
   are in [widget-settings.md](widget-settings.md).
 - Every zone type that is a module goes this way: the library templates and the
   "Other sensors" catch-all (`src/modules/other-sensors.tsx`, one `SensorValue`
@@ -826,7 +826,7 @@ least one widget is visible.
 
 ### Types (`src/lib/layout.ts`)
 
-- `DashboardConfig` - `version: 16` (`CONFIG_VERSION`; the steps are listed above it in `layout.ts`), `activeProfile` (a profile id or `"auto"`),
+- `DashboardConfig` - `version: 17` (`CONFIG_VERSION`; the steps are listed above it in `layout.ts`), `activeProfile` (a profile id or `"auto"`),
   `profiles`, `dataApiUrl?`, `stylePresets?`,
   `panelPresets?`, `sourcePrefs?`, `styleEnforce?`
   (force the global style on every widget), `appearancePresets?` (the
@@ -935,7 +935,7 @@ least one widget is visible.
 
 ### Applying themes (`src/lib/theme-apply.ts`)
 
-`applyTheme(config, preset, target, { keepBackground })` is pure config → config, and the studio sets its result in
+`applyThemeToLevel(config, preset, target, { keepBackground })` is pure config → config, and the studio sets its result in
 one `setConfig` call, so one undo step reverts a whole pick. At a screen it writes the theme's tokens, radius, skin and
 (unless kept) background, merges the theme's style values over the level's, replacing only those that still equal
 what the last theme wrote (the level's snapshot, `appliedTheme`), and stores the new snapshot. A level with no
@@ -1104,6 +1104,26 @@ Rules the server enforces:
   read.
 - **Read errors.** A file that vanishes while being streamed (a concurrent
   delete) destroys that response; it never crashes the server.
+
+### User packs (`src-tauri/crates/ips-server/src/packs.rs`, `src/looks/user-packs.ts`, `user-pack-import.ts`)
+
+A user pack is a theme pack the user brought: files in `<data dir>\packs\<id>\` (`pack.json`, `look.json`, optional
+`icons.json`, `OFL.txt`, and `assets/<name>.<ext>` for woff2, png, jpg, webp and svg), never a `pack.css`. The server
+(`/api/packs`) stores and serves them and does the path and size work: `GET /api/packs` lists id, name and size;
+`GET /api/packs/<id>/<file>` serves one file by a strict id pattern (`^[a-z0-9][a-z0-9-]{0,47}$`) and a fixed file set,
+canonicalised under `packs/<id>/` with links never followed, typed by extension with `nosniff` and a CSP of
+`default-src 'none'` (SVG: `sandbox` too), and refuses a pack over 512,000 bytes, a file over 256,000 or more than 64 files
+(413); `POST /api/packs` takes `{ id, files: [{ path, data }] }` (base64) with `X-Dashboard-Pack: 1`, this computer only,
+refuses `pack.css`, any path outside the set and a Windows device name (`nul`, `con`, `com1`...) as an id or file stem, holds
+at most 32 packs and 16,000,000 bytes of them (413), and moves the finished folder into place (a replaced pack is set aside
+until the new one is in, and `.import-*` leftovers are swept at start); `DELETE /api/packs/<id>`
+removes one. The validator (`pack-validate.ts`) runs in the studio at import and again in the loader, in `user` mode set by
+the loader (where the bytes came from), never by what the pack says; a config that names a Look id this build does not
+have (`userLookIds`) makes `readConfig` look for a pack of that id, and a pack with an error is not a Look (Classic is
+drawn). The pack is built from its declarative files (`userPackOf`): the Look's default material is its card, the
+loader writes the only CSS (font-family rules from the families the validator passed). Removing a pack takes its `lookId`
+off every level that wears it. **Rollback:** `USER_PACKS=off` makes the list empty, every file 404 and the writes 403;
+the built-in packs are unaffected.
 
 ### For the InfoPanel import (`src-tauri/crates/ips-server/src/library.rs`, `infopanel_local.rs`, `font_proxy.rs`)
 

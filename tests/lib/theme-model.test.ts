@@ -5,6 +5,7 @@ import {
   allLocked,
   following,
   isLocked,
+  lookIdOf,
   normalizeWidgetTheme,
   ownApplies,
   SECTION_IDS,
@@ -27,6 +28,7 @@ describe("themed keys and sections", () => {
     const roles = ["s1", "s2", "s3", "s4", "s5", "s6", "ok", "warn", "crit"];
     // alignX / alignY stay readable until PR 8 (align + alignSpread replace them).
     const legacy = ["alignX", "alignY"];
+    // A level's Look (config v17, D6) is among the profile style keys: it is the Skin row's key.
     expect([...THEMED_KEYS].sort()).toEqual(
       [...PROFILE_STYLE_KEYS, ...legacy, "tempUnit", "rateUnit", "decimals", "clock", ...thresholds, ...roles, "meterBallistics"].sort()
     );
@@ -49,6 +51,25 @@ describe("themed keys and sections", () => {
     for (const [key, value] of Object.entries(THEME_DEFAULTS)) if (key in STANDARD_DEFAULTS) expect(STANDARD_DEFAULTS[key], key).toBe(value);
     expect(THEME_DEFAULTS).toMatchObject({ "warn.load": 80, "crit.load": 92, "warn.temp": 80, "crit.temp": 90, "warn.full": 85, "crit.full": 95, "warn.db": -9, "crit.db": -2, "warn.value": 70, "crit.value": 90 });
     expect(THEME_DEFAULTS).toMatchObject({ tempUnit: "c", rateUnit: "auto", decimals: "auto", clock: "auto", meterBallistics: "peak", s1: "", ok: "", crit: "" });
+  });
+
+  it("show Classic where no level sets a Look (lookId unset = Classic), the strongest level's Look else", () => {
+    expect(THEME_DEFAULTS.lookId).toBe("classic");
+    expect(sectionOfKey("lookId")).toBe("skin");
+    expect(lookIdOf({})).toBe("classic");
+    expect(lookIdOf({ profile: { values: { lookId: "" } } })).toBe("classic");
+    const levels: ThemeLevels = { profile: { values: { lookId: "paper" } }, page: { values: { lookId: "hud" } } };
+    expect(lookIdOf(levels)).toBe("paper");
+    expect(lookIdOf({ ...levels, page: { ...levels.page, follow: { skin: false } } })).toBe("hud");
+  });
+
+  it("show Classic for a Look id this build doesn't know, a misspelt one or one that isn't text; text is kept in storage", () => {
+    for (const id of ["nope", "Term", 5, true]) {
+      expect(lookIdOf({ profile: { values: { lookId: id } } }), String(id)).toBe("classic");
+      expect(normalizeWidgetTheme({ values: { lookId: id, accent: "#fff" } })?.values, String(id)).toEqual({ lookId: typeof id === "string" ? id : "classic", accent: "#fff" });
+    }
+    expect(lookIdOf({ profile: { values: { lookId: "default" } } })).toBe("default");
+    expect(normalizeWidgetTheme({ values: { lookId: "term" } })?.values).toEqual({ lookId: "term" });
   });
 
 });

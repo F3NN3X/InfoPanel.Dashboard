@@ -1,5 +1,6 @@
-import { patchBackground, resolveAccent } from "@/widgets/core/look";
-import { resolveSurface, SKINS, textVars } from "@/widgets/core/theme";
+import { resolveMaterial } from "@/looks/materials";
+import { resolveAccent } from "@/widgets/core/look";
+import { resolveSurface, SKINS, skinOfLook, textVars } from "@/widgets/core/theme";
 import type { PageSkin, WornSurface } from "./island-look";
 
 /**
@@ -8,12 +9,14 @@ import type { PageSkin, WornSurface } from "./island-look";
  */
 export function wornSurface(page: PageSkin): WornSurface {
   // A surface left unset is the skin's own, else glass (`withSkinSurface`).
-  const surf = resolveSurface(page.surface ?? SKINS[page.skin ?? ""]?.surface, page.skin);
-  const sk = SKINS[page.skin ?? "default"] ?? SKINS.default;
+  const skin = skinOfLook(page.lookId);
+  const surf = resolveSurface(page.surface ?? SKINS[skin ?? ""]?.surface, skin);
+  const mat = resolveMaterial(surf);
+  const sk = SKINS[skin ?? "default"] ?? SKINS.default;
   return {
-    className: surf.c,
-    style: { ...surf.s, ...textVars(surf.tone), color: "var(--w-fg)" },
-    accent: resolveAccent(page.accent, sk, surf.tone),
-    ear: patchBackground(surf.s.background, surf.tone),
+    className: mat.className,
+    style: { ...mat.box, ...textVars(mat.tone), color: "var(--w-fg)" },
+    accent: resolveAccent(page.accent, sk, mat.tone),
+    ear: mat.patch,
   };
 }

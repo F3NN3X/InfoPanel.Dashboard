@@ -17,7 +17,7 @@ function RateGraph({ rH, wH, rd, wr, capped }: { rH: number[]; wH: number[]; rd:
   const marks = capped ? "last" : undefined;
   const legend = (
     <>
-      <LegendRow color="var(--accent)" label="read" value={fmtRate(rd)} className="text-micro" />
+      <LegendRow color="var(--w-accent)" label="read" value={fmtRate(rd)} className="text-micro" />
       <LegendRow color={hue(70)} label="write" value={fmtRate(wr)} className="text-micro" />
     </>
   );

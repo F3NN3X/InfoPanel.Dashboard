@@ -5,7 +5,8 @@ import { expect, manifest, test, watchErrors } from "./fixtures";
 // Config v16 (screens own their look): a v15 config whose screens inherit the dashboard's look ("All screens") shows
 // the same page background and card color in the kiosk before and after the studio migrates it, Theme has no All
 // screens level, and the studio saves nothing until its update message's Update now, the server keeping the v15 file
-// as config.backup-before-v16.json first and the message naming it.
+// as config.backup-before-v16.json first and the message naming it. Since config v17 the same save lands on v17, so
+// the backup of the v15 file is config.backup-before-v17.json.
 
 const CARD = "200 50% 40%";
 const BG = "#123456";
@@ -14,7 +15,7 @@ const BG_RGB = "rgb(18, 52, 86)";
 test("a v15 dashboard look is each screen's own after the studio's first save, and the v15 file is kept", async ({ page, scratch }) => {
   const { errors } = watchErrors(page);
   const file = path.join(scratch.dataDir, "config.json");
-  const backup = path.join(scratch.dataDir, "config.backup-before-v16.json");
+  const backup = path.join(scratch.dataDir, "config.backup-before-v17.json");
   const stored = JSON.parse(fs.readFileSync(file, "utf8"));
   // The fixture as v15 saved it, the look on the dashboard: the screens have nothing of their own.
   const screens = stored.profiles.map(({ theme: _theme, radius: _radius, ...p }: Record<string, unknown>) => p);
@@ -32,14 +33,14 @@ test("a v15 dashboard look is each screen's own after the studio's first save, a
   // The studio migrates it in memory and asks; nothing is saved until Update now, the server keeping the v15 file first.
   await page.goto(`${scratch.base}/?studio=1&profile=${light}`);
   const ask = page.getByRole("alertdialog", { name: "Your screens need an update" });
-  await expect(ask).toContainText("format 15) will be updated to format 16");
+  await expect(ask).toContainText("format 15) will be updated to format 17");
   await page.keyboard.press("Control+s");
   await page.waitForTimeout(800);
   expect(JSON.parse(fs.readFileSync(file, "utf8")).version).toBe(15);
   await ask.getByRole("button", { name: "Update now" }).click();
   const done = page.getByRole("alertdialog", { name: "Your screens are updated" });
-  await expect(done).toContainText("config.backup-before-v16.json");
-  expect(JSON.parse(fs.readFileSync(file, "utf8")).version).toBe(16);
+  await expect(done).toContainText("config.backup-before-v17.json");
+  expect(JSON.parse(fs.readFileSync(file, "utf8")).version).toBe(17);
   expect(fs.readFileSync(backup, "utf8")).toBe(JSON.stringify(v15));
   await done.getByRole("button", { name: "Continue" }).click();
   await expect(done).toHaveCount(0);
@@ -52,8 +53,8 @@ test("a v15 dashboard look is each screen's own after the studio's first save, a
   await expect(page.locator("[data-theme-scope]").first()).toHaveCSS("--card", CARD);
 
   // Theme: the screen and its page, no All screens level.
-  await page.getByRole("button", { name: "Theme", exact: true }).click();
-  const levels = page.getByRole("group", { name: "Theme level" });
+  await page.getByRole("button", { name: "Look", exact: true }).click();
+  const levels = page.getByRole("group", { name: "Look level" });
   await expect(levels.getByRole("button", { name: /Perf light/ })).toBeVisible();
   await expect(levels.getByRole("button", { name: /All screens/ })).toHaveCount(0);
 

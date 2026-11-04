@@ -31,7 +31,7 @@ export function NativeExportStep({ rows, choices, onChoose, onSetAll }: NativeEx
         Native widgets are rebuilt from InfoPanel items, so they may look slightly different in InfoPanel.
       </p>
       {left.length > 0 && (
-        <ul className="flex flex-col gap-0.5 rounded-[10px] border border-ui-default px-3.5 py-2.5 text-caption text-ui-warning">
+        <ul className="flex flex-col gap-0.5 rounded-[10px] border border-ui-default px-3.5 py-2.5 text-caption text-ui-warn">
           {left.map((n) => (
             <li key={n} className="flex gap-1.5">
               <TriangleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" /> {n}

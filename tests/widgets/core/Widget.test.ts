@@ -1,13 +1,14 @@
 import { createElement as h } from "react";
 import { renderToString } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { STANDARD_DEFAULTS } from "@/modules/standard-settings";
-import { SKIN_NAMES, SkinCtx } from "@/widgets/core/theme";
+import { SKINS, SKIN_NAMES, SkinCtx } from "@/widgets/core/theme";
 import { skinContext } from "@/widgets/core/look";
 import { CompactView, StudioView } from "@/widgets/core/views";
-import { Num, Ring, Spark } from "@/widgets/core/primitives";
+import { LedLadder, Num, Ring, Spark } from "@/widgets/core/primitives";
 import { chromeOf } from "@/modules/standard-settings";
 import { Widget, type LayoutBox } from "@/widgets/core/Widget";
+import { CardLayer } from "@/widgets/core/card-frame";
 import type { Compact, Shape, Studio, Tier } from "@/widgets/core/types";
 
 const compact: Compact = { label: "CPU", value: 62.5, d: 1, unit: "%", pct: 62.5, hist: [10, 40, 30, 62], icon: "memory", sub: "8 cores" };
@@ -24,7 +25,7 @@ describe("Widget smoke render", () => {
       for (const size of ["xs", "lg"] as Tier[]) {
         // biome-ignore lint/correctness/noChildrenProp: the Widget takes a render function as children.
         const html = renderToString(h(Widget, { skin, variant, size, title: "System", icon: "dashboard", compact, studio, surface: "auto", children: body }));
-        expect(html).toContain("--accent");
+        expect(html).toContain("--w-accent");
         if (variant === "default" && size !== "xs") expect(html).toContain("System");
       }
   });
@@ -44,14 +45,15 @@ describe("Widget look", () => {
     const html = render({ surface: "matte-light", textColor: "#ff0000", mutedColor: "#00ff00" });
     expect(html).toContain("--w-fg:#ff0000");
     expect(html).toContain("--w-muted:#00ff00");
-    expect(html).toContain("--wp-fg:#ff0000");
-    expect(html).toContain("--wp-muted:#00ff00");
+    expect(html).toContain("--wp-fg:var(--w-fg)");
+    expect(html).toContain("--wp-muted:var(--w-muted)");
     expect(html).toContain("color:var(--w-fg)");
   });
 
   it("fades the card and blurs behind it from the look's opacity and blur", () => {
     const html = render({ surface: "glass", surfaceOpacity: 40, blur: "16" });
-    expect(html).toContain("backdrop-filter:blur(min(16px, var(--wp-blur-cap, 16px)))");
+    // The shell writes its material as --w-mat-* variables; the [data-mat] rule in index.css paints them.
+    expect(html).toContain("--w-mat-blur:blur(min(16px, var(--wp-blur-cap, 16px)))");
     expect(render({ surface: "solid", surfaceOpacity: 40, blur: "8" })).toContain("blur(min(8px, var(--wp-blur-cap, 8px)))");
   });
 
@@ -65,7 +67,7 @@ describe("Widget look", () => {
     const html = render({ label: "My CPU", accent: "#ff0000", textColor: "#123456", scale: 150, padding: "8", customCss: ":scope { outline: 1px solid red }" }, { skin: "synth" });
     expect(html).toContain("My CPU");
     expect(html).not.toContain("Template title");
-    expect(html).toContain("--accent:#ff0000");
+    expect(html).toContain("--w-accent:#ff0000");
     expect(html).toContain("--w-fg:#123456");
     expect(html).toContain("zoom:1.5");
     expect(html).toContain("padding:5.33px");
@@ -76,7 +78,7 @@ describe("Widget look", () => {
   it("shows the background image and keeps the skin accent without an explicit one", () => {
     const html = render({ background: "/bg.png", backgroundOn: true }, { skin: "synth" });
     expect(html).toContain('src="/bg.png"');
-    expect(html).toContain("--accent:#ff4fd8");
+    expect(html).toContain("--w-accent:#ff4fd8");
   });
 
   it("treats an empty surface as unset", () => {
@@ -87,6 +89,36 @@ describe("Widget look", () => {
     const html = render({ surface: "matte-light" });
     expect(html).toContain("--w-fg:#18181b");
     expect(html).toContain("rgb(244, 244, 245)");
+  });
+
+  it("marks a light card with data-mode and its status variables, darkens a failing accent, and leaves a dark card as it was (D3, D27)", () => {
+    const light = render({ surface: "matte-light" });
+    expect(light).toContain('data-mode="light"');
+    expect(light).toContain("--w-ok:#15803d");
+    expect(light).toContain("--w-accent:#27795d");
+    expect(light).toContain("--accent:#34d399");
+    expect(render({ surface: "matte-light", accent: "#ac8ff8" })).toContain("--w-accent:#ac8ff8");
+    const dark = render({ surface: "glass" });
+    expect(dark).not.toContain("data-mode");
+    expect(dark).toContain("--w-accent:#34d399");
+    expect(dark).not.toContain("--w-ok");
+  });
+
+  it("hands the shell's status variables to a LedLadder on a light card only: a theme card on a dark page keeps the literals (G1)", () => {
+    const ladder = (surface: string) =>
+      // biome-ignore lint/correctness/noChildrenProp: the Widget takes a render function as children.
+      renderToString(h(Widget, { title: "T", icon: "memory", size: "lg", look: { ...STANDARD_DEFAULTS, surface }, children: () => h(LedLadder, { value: 100, n: 10 }) }));
+    expect(ladder("matte-light")).toContain("var(--w-warn, #EDB232)");
+    for (const dark of ["theme", "glass"]) {
+      expect(ladder(dark)).not.toContain("var(--w-warn, #EDB232)");
+      expect(ladder(dark)).toContain("background:#EDB232");
+    }
+  });
+
+  it("takes a Look's status colours over the mode's own (L33)", () => {
+    const html = render({ surface: "matte-light", warn: "#8A5A00", crit: "#A8340F" });
+    expect(html).toContain("--w-warn:#8A5A00");
+    expect(html).toContain("--w-crit:#A8340F");
   });
 });
 
@@ -154,5 +186,73 @@ describe("Number glow reaches a ring's centre", () => {
   it("leaves a widget on Auto unflagged", () => {
     const html = render({});
     expect(html).not.toContain("data-wp-numglow");
+  });
+});
+
+describe("Widget slots", () => {
+  // biome-ignore lint/correctness/noChildrenProp: the Widget takes a render function as children.
+  const render = (skin: string) => renderToString(h(Widget, { skin, size: "md", title: "System", compact, children: body }));
+
+  it("draws the frame its skin names, and nothing extra for a skin with none", () => {
+    expect(render("tui")).toContain("inset-[5px]");
+    expect((render("hud").match(/border-[lr] border-[tb]/g) ?? []).length).toBe(4);
+    const plain = render("default");
+    expect(plain).not.toContain("inset-[5px]");
+    expect(plain).not.toContain("data-wp-layer");
+    expect(plain).not.toContain("--wp-pad");
+  });
+
+  it("marks the card root for a pack to style", () => {
+    expect(render("default")).toContain('data-part="card"');
+  });
+});
+
+describe("shell layers", () => {
+  it("renders an ornament in a click-through, hidden layer", () => {
+    const html = renderToString(h(CardLayer, { part: "ornament", Slot: () => h("i") }));
+    expect(html).toContain('data-wp-layer="ornament"');
+    expect(html).toContain("pointer-events-none");
+    expect(html).toContain('aria-hidden="true"');
+  });
+});
+
+describe("Widget slot layout", () => {
+  const Orn = () => h("i", { "data-t": "orn" });
+  const Band = () => h("i", { "data-t": "band" });
+  const values = [1, 5, 2, 8, 3, 9];
+  // biome-ignore lint/correctness/noChildrenProp: the Widget takes a render function as children.
+  const render = (skin: string, extra: Record<string, unknown> = {}) => renderToString(h(Widget, { skin, size: "lg", title: "T", icon: "memory", children: () => h(Spark, { values, graph: "area" }), ...extra }));
+  const slotted = (tokens: object) => {
+    SKINS.qa = { ...SKINS.default, ...tokens };
+    return render("qa");
+  };
+  afterEach(() => {
+    delete SKINS.qa;
+  });
+
+  it("hands the padding to the layers as --wp-pad and draws frame, ornament, tab band, then the padded body in that order", () => {
+    const html = slotted({ frame: "inset", ornament: Orn, tabBand: Band });
+    expect(html).toContain("--wp-pad:20px");
+    const at = (s: string) => html.indexOf(s);
+    expect(at('inset-[5px]')).toBeGreaterThan(-1);
+    expect(at('inset-[5px]')).toBeLessThan(at('data-wp-layer="ornament"'));
+    expect(at('data-wp-layer="ornament"')).toBeLessThan(at('data-wp-layer="tab-band"'));
+    expect(at('data-wp-layer="tab-band"')).toBeLessThan(at("data-wp-body"));
+  });
+
+  it("follows the Look's padding and draws nothing without a slot", () => {
+    const html = slotted({ ornament: Orn });
+    expect(html).toContain('data-t="orn"');
+    expect(html).not.toContain('data-wp-layer="tab-band"');
+    const none = render("default");
+    expect(none).not.toContain("--wp-pad");
+    expect(none).not.toContain('data-wp-layer="ornament"');
+  });
+
+  it("keeps a child's useId (a graph's gradient id) the same with and without the slots", () => {
+    const idOf = (html: string) => html.match(/sp_?[A-Za-z0-9_]*R[A-Za-z0-9_]*/)?.[0];
+    const plain = idOf(render("default"));
+    expect(plain).toBeTruthy();
+    expect(idOf(slotted({ frame: "inset", ornament: Orn, tabBand: Band }))).toBe(plain);
   });
 });

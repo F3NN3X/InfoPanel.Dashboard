@@ -31,7 +31,7 @@ export default function Achievements(p: AchievementsProps) {
             </div>
             <div className="grid min-h-0 gap-[3px]" style={{ gridTemplateColumns: `repeat(${Math.min(tot || 1, Math.max(10, Math.floor(w / 14)))}, minmax(0,1fr))` }}>
               {Array.from({ length: tot || 0 }, (_, i) => (
-                <span key={i} className="aspect-square rounded-[3px] transition-colors duration-500" style={{ background: i < un ? "var(--accent)" : "var(--w-track)" }} />
+                <span key={i} className="aspect-square rounded-[3px] transition-colors duration-500" style={{ background: i < un ? "var(--w-accent)" : "var(--w-track)" }} />
               ))}
             </div>
             {h > 150 && has(A("latest-achievement")) && (

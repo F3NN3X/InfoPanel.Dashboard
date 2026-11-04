@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_THEME, normalizeThemePatch, resolveTheme, themeVars } from "@/lib/theme";
+import { DEFAULT_THEME, normalizeThemePatch, resolveTheme, THEME_PRESETS, themeMode, themeVars } from "@/lib/theme";
 
 describe("resolveTheme", () => {
   it("is the built-in theme without a screen theme", () => {
@@ -29,5 +29,12 @@ describe("themeVars", () => {
     expect(vars["--background"]).toBe(DEFAULT_THEME.background);
     expect(vars["--card-foreground"]).toBe(DEFAULT_THEME["card-foreground"]);
     expect(vars["--radius"]).toBe("0.75rem");
+  });
+});
+
+describe("themeMode (D3)", () => {
+  it("is light when the theme's card is light", () => {
+    expect(themeMode(THEME_PRESETS.find((p) => p.name === "paper")!.tokens)).toBe("light");
+    expect(themeMode(DEFAULT_THEME)).toBe("dark");
   });
 });

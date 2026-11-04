@@ -33,7 +33,7 @@ export const CLOCK: ScreenTemplate = {
   look: {
     theme: theme(COLOURS),
     radius: 0.5,
-    style: { skin: "auto", surface: "flat", accent: "#7dd3fc", font: "sans", numGlow: "off" },
+    style: { lookId: "classic", surface: "flat", accent: "#7dd3fc", font: "sans", numGlow: "off" },
     background: { type: "color", color: "#07090f" },
     gap: 10,
     padding: 14,

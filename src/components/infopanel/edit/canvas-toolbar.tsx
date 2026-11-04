@@ -117,7 +117,7 @@ function ModesLegend({ editor }: { editor: CanvasEditor }) {
   return (
     <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11.5px] text-ui-2">
       {row("bg-ui-accent/60", "Native widget", t.native)}
-      {row("bg-ui-warning/60", "InfoPanel", t.infopanel)}
+      {row("bg-ui-warn/60", "InfoPanel", t.infopanel)}
       {row("bg-ui-danger/60", "Can’t convert yet", t.stuck)}
     </div>
   );

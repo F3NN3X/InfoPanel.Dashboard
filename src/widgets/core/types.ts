@@ -1,5 +1,6 @@
 // Shared widget-library types.
-import type { CSSProperties, ReactNode } from "react";
+import type { ComponentType, CSSProperties, ReactNode } from "react";
+import type { PackSlots } from "@/looks/pack";
 import type { ModuleSettings } from "@/modules/types";
 
 export type Data = Record<string, string | { value: string }>;
@@ -17,6 +18,11 @@ export interface ShellProps {
   skin?: string;
   graph?: string;
   meter?: string;
+  /** A pack Look's T3 values and component slots (`usePack`); unset for every other Look. */
+  t3?: Record<string, string | number>;
+  slots?: PackSlots;
+  /** The pack the T3 values and slots come from: the card wears `data-look` so the pack CSS reaches it. */
+  packId?: string;
   variant?: "default" | "studio";
   size?: Tier | "auto";
   compactView?: "auto" | "off" | "on";
@@ -113,13 +119,55 @@ export interface SkinTokens {
   graph: string;
   meter: string;
   header: string;
+  /** The header title's fill, a CSS gradient or colour (the Look contract's `header-fill`): Synth's neon gradient. */
+  headerFill: string;
+  /** The header title's ink (`header-color`): Nixie's brass. */
+  headerInk: string;
   ring: number;
+  /** A frame the shell draws over the card (`CardFrame`): tui's inset border, hud's corner brackets. */
+  frame: "inset" | "corners" | "gradient" | "legend";
+  /** Gradient number fill (`num-fill: gradient`), a CSS gradient; it replaces the glow, which would draw over transparent text. */
+  numFill: string;
+  /** The gradient a ring's value arc is stroked with (`ring-fill`), a CSS gradient; an SVG gradient made from its stops. */
+  ringFill: string;
+  /** The gradient a graph's line is stroked with (`spark-fill`), a CSS gradient. */
+  sparkFill: string;
+  /** The gradient border drawn by `frame: "gradient"` (`border-fill`), a CSS gradient. */
+  borderFill: string;
+  /** The title sits on the frame's border and the card keeps the boxed padding (tui). */
+  boxed: boolean;
+  /** Readouts (OSD values) use the skin's numeral face, not the mono default (retro, tui). */
+  numReadout: boolean;
+  /** SystemOverview keeps its sections in one colour instead of one per section (ink). */
+  plainSections: boolean;
+  /** `num-effect: chromatic`: two offset colour fringes on the numerals. */
+  numChroma: boolean;
+  /** `label-glow`: a soft accent glow on all of the card's text. */
+  labelGlow: boolean;
+  /** `cell-radius: 0`: square grid cells (tui, hud, retro); unset keeps the rounded cells. */
+  cellSquare: boolean;
+  /** `ring-cap`: the ends of a ring's arc (round is the default). */
+  cap: "butt";
+  /** `series-stroke`: a graph's stroke width when the skin fixes it, whatever the widget asks (ink: a hairline). */
+  strokeFixed: number;
+  /** Degrees of every ring's arc (`ring-style: arc270` is 270); a `sweep` a widget passes wins. */
+  ringArc: number;
+  /** A ring cut into 12 segments or 36 ticks (`ring-style`). */
+  ringMark: "segmented" | "ticks";
+  /** `meter-zone-style: blend`: a ladder's colours run into each other instead of stepping. */
+  zones: "blend";
+  /** `meter-hold-style`: the peak-hold mark (the line is the default). `block` is the line with square ends instead of round. */
+  hold: "dot" | "block";
+  /** `spike-shape`: the last-sample mark of a graph (the dot is the default). */
+  spike: "tick" | "bar";
+  /** `fader-knob-shape`: the mixer fader's knob (the pill is the default). */
+  knob: "bar" | "square" | "notch";
 }
 
-/** A surface as a skin pack declares it: Tailwind classes + inline style. */
-export interface SurfaceSpec {
-  c: string;
-  s: CSSProperties;
+/** One icon of a Look's icon set: a single path in a viewBox, painted in `currentColor`. */
+export interface IconGlyph {
+  viewBox: string;
+  d: string;
 }
 
 export interface SkinPack {
@@ -127,8 +175,8 @@ export interface SkinPack {
   description: string;
   /** Font catalog ids (`lib/fonts.ts`), loaded by `ensureSkinFonts`. */
   fonts: string[];
+  /** The skin's own card is `skin.surface`, a material in `src/looks/materials.ts`. */
   skin: Partial<SkinTokens>;
-  surfaces: Record<string, SurfaceSpec>;
 }
 
 /** What `useSkin()` returns: the skin's tokens plus the resolved graph / meter and the look's factors. */
@@ -138,8 +186,16 @@ export interface SkinContext extends Partial<SkinTokens> {
   meter: string;
   /** Graph stroke-width multiplier from the `stroke` look key (1 = as designed). */
   stroke: number;
+  /** The card is light or the theme's: status colours go through the shell's `--w-ok/-warn/-crit` (set only there), not the dark literals. */
+  shellStatus?: boolean;
   /** Layout gap override in px from the `gap` look key. */
   gap?: number;
   /** The `smoothing` look key is Smooth: graphs, bars and rings glide between samples. */
   smooth?: boolean;
+  /** The Look's icon set by Material Symbols name; a name it lacks draws the Classic (lucide) icon. */
+  icons?: Record<string, IconGlyph>;
+  /** Drawn in an absolute child of the card when set (at most 10 px, inside the padding: `--wp-pad`). */
+  ornament?: ComponentType;
+  /** Drawn in an absolute child along the card's top edge when set. */
+  tabBand?: ComponentType;
 }

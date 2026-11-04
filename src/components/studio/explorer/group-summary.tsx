@@ -24,7 +24,7 @@ interface GroupSummaryProps {
 
 const NOTE_ICON: Record<Health, { icon: LucideIcon; tone: string; bg: string }> = {
   ok: { icon: Info, tone: "text-ui-accent-text", bg: "bg-ui-raised" },
-  warn: { icon: TriangleAlert, tone: "text-ui-warning", bg: "bg-ui-warning/10" },
+  warn: { icon: TriangleAlert, tone: "text-ui-warn", bg: "bg-ui-warn/10" },
   off: { icon: Unplug, tone: "text-ui-3", bg: "bg-ui-raised" },
 };
 

@@ -14,7 +14,7 @@ export const TICKER: ScreenTemplate = {
   look: {
     theme: theme(COLOURS),
     radius: 1,
-    style: { skin: "auto", surface: "theme", accent: "#0a84ff", font: "sans" },
+    style: { lookId: "classic", surface: "theme", accent: "#0a84ff", font: "sans" },
     background: { type: "color", color: "#2a3a66" },
     gap: 0,
     padding: 8,

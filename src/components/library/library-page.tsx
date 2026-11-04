@@ -613,7 +613,7 @@ export default function LibraryPage(p: LibraryPageProps) {
                     </div>
                   )}
                   {older.length > 0 && (
-                    <div role="status" className="mx-4 mt-4 flex items-center gap-3 rounded-lg border border-ui-warning/40 bg-ui-warning/10 px-3 py-2 text-[12.5px] text-ui-2">
+                    <div role="status" className="mx-4 mt-4 flex items-center gap-3 rounded-lg border border-ui-warn/40 bg-ui-warn/10 px-3 py-2 text-[12.5px] text-ui-2">
                       <span className="min-w-0 flex-1">
                         {older.length === 1 ? "1 item was" : `${older.length} items were`} saved by an older version. {older.length === 1 ? "It works" : "They work"} as{" "}
                         {older.length === 1 ? "it is" : "they are"}; Update saves {older.length === 1 ? "it" : "them"} in today&rsquo;s format and keeps a copy of {older.length === 1 ? "it" : "each"} as it was.

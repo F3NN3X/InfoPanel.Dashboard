@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=800">
+<title>Gaming page at 800 by 480</title>
+<!-- Static export of canvas board DispSM.dc.html (800x480). Reference only: production packs bundle fonts locally. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Barlow Condensed',system-ui,sans-serif}
+a{color:#1A1C21}a:hover{color:#000}
+.fk-card{position:relative;background:#EFE8D8;border-radius:5px;overflow:hidden;display:flex;flex-direction:column;min-height:0;min-width:0}
+.fk-tab{display:flex;justify-content:space-between;align-items:center;background:#1A1C21;color:#EFE8D8;padding:5px 10px;font-weight:600;font-size:13px;letter-spacing:.1em;text-transform:uppercase}
+.fk-tab span{color:#A8A296;font-weight:500}
+.fk-num{font-weight:700;color:#1A1C21;font-variant-numeric:tabular-nums;line-height:1}
+.fk-unit{font-size:.5em;font-weight:600;color:#5E5A52;margin-left:2px}
+.fk-label{font-weight:600;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#5E5A52}
+.fk-track{position:relative;height:9px;background:#D3C9B3;flex:1}
+.fk-track i{position:absolute;left:0;top:0;bottom:0;background:#1A1C21}
+.fk-seg{position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 8px,#EFE8D8 8px 10px)}
+</style>
+<style>html,body{margin:0;background:#1e1e1e}</style>
+</head>
+<body>
+<div style="width:800px;height:480px;position:relative;box-sizing:border-box;background:#121418;overflow:hidden">
+  <div aria-hidden="true" style="position:absolute;left:0;top:0;bottom:0;width:8px;background:repeating-linear-gradient(-45deg,#F2C230 0 8px,#1A1C21 8px 16px)"></div>
+  <div style="position:absolute;inset:0;padding:8px 10px 10px 18px;box-sizing:border-box;display:flex;flex-direction:column;gap:8px">
+    <div style="display:flex;gap:16px;align-items:center;height:20px;font-weight:600;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#EFE8D8">
+      <span style="display:flex;align-items:center;gap:6px"><span style="width:9px;height:9px;background:#F2C230;display:inline-block"></span>Gaming</span><span style="color:#A8A296">22:28</span><span>Ping 18 ms</span><span style="color:#A8A296">Loss 0.0%</span>
+    </div>
+    <div style="flex:1;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));grid-template-rows:repeat(4,minmax(0,1fr));gap:8px;min-height:0">
+      <div class="fk-card" style="grid-column:span 2;grid-row:span 2">
+        <div class="fk-tab">FPS <span>cap 144</span></div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:6px;padding:6px 12px">
+          <div class="fk-num" style="font-size:84px;font-weight:800">144</div>
+          <div class="fk-label" style="color:#1A1C21">avg 141 · 1% 112 · <span style="color:#A8340F">0.1% 96</span></div>
+        </div>
+      </div>
+      <div class="fk-card" style="grid-column:span 4;grid-row:span 2">
+        <div class="fk-tab">Frame time <span>budget 6.9 ms</span></div>
+        <div style="flex:1;display:flex;gap:12px;padding:8px 12px;min-height:0">
+          <div style="display:flex;flex-direction:column;justify-content:center;gap:6px;flex:none"><div class="fk-num" style="font-size:36px">7.1<span class="fk-unit">ms</span></div><div class="fk-label" style="color:#A8340F">2 spikes</div></div>
+          <svg viewBox="0 0 560 120" preserveAspectRatio="none" width="100%" height="100%" role="img" aria-label="Frame time with two spikes above budget" style="flex:1;min-width:0">
+            <line x1="0" y1="85.2" x2="560" y2="85.2" stroke="#A8340F" stroke-width="1.5" stroke-dasharray="6 4" vector-effect="non-scaling-stroke"></line>
+            <polyline points="0.0,84.0 14.4,85.2 28.7,82.8 43.1,86.4 57.4,81.6 71.8,84.0 86.2,85.2 100.5,79.2 114.9,82.8 129.2,86.4 143.6,84.0 157.9,50.4 172.3,80.4 186.7,85.2 201.0,84.0 215.4,82.8 229.7,86.4 244.1,84.0 258.5,81.6 272.8,85.2 287.2,84.0 301.5,82.8 315.9,28.8 330.3,79.2 344.6,84.0 359.0,85.2 373.3,82.8 387.7,84.0 402.1,86.4 416.4,81.6 430.8,84.0 445.1,82.8 459.5,85.2 473.8,84.0 488.2,67.2 502.6,81.6 516.9,84.0 531.3,85.2 545.6,82.8 560.0,84.0" fill="none" stroke="#1A1C21" stroke-width="2" vector-effect="non-scaling-stroke"></polyline>
+            <circle cx="157.9" cy="50.4" r="5" fill="#A8340F"></circle><circle cx="315.9" cy="28.8" r="5" fill="#A8340F"></circle>
+          </svg>
+        </div>
+      </div>
+      <div class="fk-card" style="grid-column:span 2;grid-row:span 2">
+        <div class="fk-tab">Thermals</div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:8px;padding:8px 12px">
+          <div style="display:flex;align-items:center;gap:8px"><span class="fk-label" style="width:30px;color:#1A1C21">GPU</span><div class="fk-track"><i style="width:72%;background:#A8340F"></i><div class="fk-seg"></div></div><span class="fk-num" style="font-size:18px;color:#A8340F;width:44px;text-align:right">72°C</span></div>
+          <div style="display:flex;align-items:center;gap:8px"><span class="fk-label" style="width:30px;color:#1A1C21">CPU</span><div class="fk-track"><i style="width:61%"></i><div class="fk-seg"></div></div><span class="fk-num" style="font-size:18px;width:44px;text-align:right">61°C</span></div>
+          <div style="display:flex;justify-content:space-between"><span class="fk-label">Power</span><span class="fk-num" style="font-size:18px">286<span class="fk-unit">W</span></span></div>
+        </div>
+      </div>
+      <div class="fk-card" style="grid-column:span 4;grid-row:span 2">
+        <div class="fk-tab">Mixer <span style="background:#F2C230;color:#1A1C21;padding:0 6px;border-radius:2px">+2 hidden</span></div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:10px;padding:8px 12px">
+          <div style="display:flex;align-items:center;gap:10px"><span class="fk-label" style="width:44px;color:#1A1C21">Game</span><div class="fk-track" role="slider" aria-label="Game volume" aria-valuemin="0" aria-valuemax="100" aria-valuenow="78" tabindex="0"><i style="width:78%"></i></div><span class="fk-num" style="font-size:18px;width:28px;text-align:right">78</span></div>
+          <div style="display:flex;align-items:center;gap:10px"><span class="fk-label" style="width:44px;color:#1A1C21">Chat</span><div class="fk-track" role="slider" aria-label="Chat volume" aria-valuemin="0" aria-valuemax="100" aria-valuenow="62" tabindex="0"><i style="width:62%"></i></div><span class="fk-num" style="font-size:18px;width:28px;text-align:right">62</span></div>
+          <div style="display:flex;align-items:center;gap:10px"><span class="fk-label" style="width:44px;color:#A8340F">● Mic</span><div class="fk-track" role="slider" aria-label="Mic volume" aria-valuemin="0" aria-valuemax="100" aria-valuenow="70" tabindex="0"><i style="width:70%;background:#A8340F"></i></div><span class="fk-num" style="font-size:18px;width:28px;text-align:right">70</span></div>
+          <div class="fk-label" style="font-size:11px">Music and System dropped by priority</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,3 @@
+* { font-family: pack-swiss, "Inter Tight", system-ui, sans-serif; }
+[data-part="num"] { font-family: pack-swiss-display, "Inter Tight", system-ui, sans-serif; }
+[data-part="header"] { color: #9A968D; }

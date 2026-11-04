@@ -9,7 +9,8 @@ import { allPlacements } from "@/lib/pages";
 import { panelPresets } from "@/lib/panelPresets";
 import type { PanelDef } from "@/lib/panel-model";
 import type { ModuleSettings } from "@/modules/types";
-import { SKIN_NAMES, SKINS } from "@/widgets/core/theme";
+import { SKIN_LOOK_IDS } from "@/looks/ids";
+import { SKINS } from "@/widgets/core/theme";
 import { DEFAULT_ACCENT } from "@/widgets/core/look";
 import { PanelView } from "@/components/widgets/PanelView";
 
@@ -35,12 +36,12 @@ describe("panel widgets with skin auto", () => {
     for (const [name, panel, settings] of shipped) {
       const out = html(panel, settings);
       expect(out, name).toContain("wp-panel");
-      if (!settings?.skin || settings.skin === "auto") expect(out, name).not.toContain("--w-track");
+      if (!settings?.lookId || settings.lookId === "classic") expect(out, name).not.toContain("--w-track");
     }
   });
-  it("treats an explicit auto like an unset skin", () => {
+  it("treats an explicit Classic like an unset Look", () => {
     const [, panel, settings] = shipped[1];
-    expect(html(panel, { ...settings, skin: "auto", graph: "auto", meter: "auto" })).toBe(html(panel, settings));
+    expect(html(panel, { ...settings, lookId: "classic", graph: "auto", meter: "auto" })).toBe(html(panel, settings));
   });
 });
 
@@ -49,42 +50,50 @@ const kinds = (...list: WidgetKind[]): PanelDef => ({ ...newPanel("Skin"), widge
 const draw = (kind: WidgetKind, settings: ModuleSettings) => html(kinds(kind), settings);
 
 describe("panel widgets with a skin set", () => {
-  it.each(SKIN_NAMES)("renders every widget kind in the %s skin with the skin's variables", (skin) => {
+  it.each(SKIN_LOOK_IDS)("renders every widget kind in the %s skin with the skin's variables", (lookId) => {
     const panel = kinds("bar", "gauge", "sparkline", "stat", "value", "clock");
-    const out = html(panel, { skin });
+    const out = html(panel, { lookId });
     expect(out).toContain("--w-track");
     expect(out).toContain("wp-panel");
   });
   it("draws a bar with the core meter in the chosen style", () => {
-    expect(draw("bar", { skin: "default" })).toContain("rounded-full");
-    expect(draw("bar", { skin: "default", meter: "blocks" })).toContain("rounded-[1px]");
-    expect(draw("bar", { skin: "tui" })).not.toBe(draw("bar", {}));
+    expect(draw("bar", { lookId: "fluent" })).toContain("rounded-full");
+    expect(draw("bar", { lookId: "default" })).toContain("rounded-full");
+    expect(draw("bar", { lookId: "fluent", meter: "blocks" })).toContain("rounded-[1px]");
+    expect(draw("bar", { lookId: "default", meter: "blocks" })).toContain("rounded-[1px]");
+    expect(draw("bar", { lookId: "tui" })).not.toBe(draw("bar", {}));
   });
   it("draws a gauge with the core ring", () => {
     expect(draw("gauge", {})).not.toContain("viewBox=\"0 0 100 100\"");
-    expect(draw("gauge", { skin: "default" })).toContain("viewBox=\"0 0 100 100\"");
+    expect(draw("gauge", { lookId: "fluent" })).toContain("viewBox=\"0 0 100 100\"");
+    expect(draw("gauge", { lookId: "default" })).toContain("viewBox=\"0 0 100 100\"");
   });
   it("draws a sparkline with the core graph", () => {
     expect(draw("sparkline", {})).toContain("wp-spark");
-    expect(draw("sparkline", { skin: "default" })).toContain("wp-spark h-12");
+    expect(draw("sparkline", { lookId: "fluent" })).toContain("wp-spark h-12");
+    expect(draw("sparkline", { lookId: "default" })).toContain("wp-spark h-12");
   });
   it("sets the skin's numerals on stat, value and clock", () => {
-    for (const kind of ["stat", "value", "clock"] as const) expect(draw(kind, { skin: "tui" })).not.toBe(draw(kind, {}));
+    for (const kind of ["stat", "value", "clock"] as const) expect(draw(kind, { lookId: "tui" })).not.toBe(draw(kind, {}));
   });
   it("maps the core text and track variables onto the panel", () => {
-    expect(draw("stat", { skin: "default" })).toContain("--w-track");
+    expect(draw("stat", { lookId: "fluent" })).toContain("--w-track");
+    // A panel stored under the v16 `default` skin keeps drawing the core Default skin (G1): the hidden `default` Look.
+    expect(draw("stat", { lookId: "default" })).toContain("--w-track");
     expect(draw("stat", {})).not.toContain("--w-track");
+    // Classic is the panel's own look, as the v16 skin `auto` was (the v16 `default` spelling folds into it).
+    expect(draw("stat", { lookId: "classic" })).not.toContain("--w-track");
   });
 });
 
 describe("panel colors", () => {
   const all = kinds("bar", "gauge", "sparkline", "stat", "value", "shape");
   it("never draws with the theme's --accent, a dark hover surface rather than a color", () => {
-    for (const skin of [undefined, ...SKIN_NAMES]) expect(html(all, skin ? { skin } : {})).not.toContain("hsl(var(--accent))");
+    for (const lookId of [undefined, ...SKIN_LOOK_IDS]) expect(html(all, lookId ? { lookId } : {})).not.toContain("hsl(var(--accent))");
   });
   it("gives its widgets the accent a core widget would take: the look's, else the skin's, else the default", () => {
     expect(html(all, { accent: "#ff0000" })).toContain("--wp-accent:#ff0000");
-    expect(html(all, { skin: "synth" })).toContain(`--wp-accent:${SKINS.synth.accent}`);
+    expect(html(all, { lookId: "synth" })).toContain(`--wp-accent:${SKINS.synth.accent}`);
     expect(html(all, {})).toContain(`--wp-accent:${DEFAULT_ACCENT}`);
   });
 });

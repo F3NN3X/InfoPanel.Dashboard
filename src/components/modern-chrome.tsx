@@ -67,6 +67,10 @@ export interface ModernChrome {
   /** "" = the surface's own colors. */
   textColor?: string;
   mutedColor?: string;
+  /** The Look's status colours (palette roles ok, warn, crit); "" = the mode's own (`STATUS_MODE`). */
+  ok?: string;
+  warn?: string;
+  crit?: string;
   font?: FontChoice;
   /** Weight of the big values. */
   fontWeight?: FontWeightChoice;

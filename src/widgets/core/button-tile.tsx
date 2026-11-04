@@ -31,6 +31,7 @@ export function ButtonTile({ w, h, icon, name, status, tint, active, outline, di
   return (
     <button
       type="button"
+      data-part="button"
       disabled={disabled}
       onClick={onPress}
       aria-pressed={active}

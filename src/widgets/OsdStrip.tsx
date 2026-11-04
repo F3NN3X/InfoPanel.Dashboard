@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
-import { Widget, shell, get, num, fmt, has, stacksIn, useSkin, useIpTag, ToneCue, hw, type IpTagExtra, type ShellProps } from "./kit";
+import { Widget, shell, get, num, fmt, has, stacksIn, useSkin, useIpTag, ToneCue, hw, STATE, type IpTagExtra, type ShellProps } from "./kit";
 import { fpsSubLine } from "./fps-line";
 import { meta } from "./meta/OsdStrip";
 
@@ -18,8 +18,8 @@ export interface OsdStripProps extends ShellProps {
 /** The content height (px) under which a cell's label and value go on one line. */
 const INLINE_H = 52;
 /** The colours a dropped frame rate takes: below half and below three quarters of the target. */
-const DROP_CRIT = "#F2665E";
-const DROP_WARN = "#EDB232";
+const DROP_CRIT = STATE.crit;
+const DROP_WARN = STATE.warn;
 
 /** A stacked cell's height (px) at its value size, for how many rows fit. */
 const STACK_CELL_H = { 28: 66, 32: 70 } as const;
@@ -101,7 +101,7 @@ export default function OsdStrip(p: OsdStripProps) {
                       <span className="truncate text-micro font-semibold uppercase tracking-[0.08em] text-[color:var(--w-muted)]">{l}</span>
                       <span
                         className="truncate font-medium leading-none tabular-nums text-[color:var(--w-fg)]"
-                        style={{ fontSize: big, fontFamily: sk.skin === "retro" || sk.skin === "tui" ? sk.num : "'IBM Plex Mono','JetBrains Mono',ui-monospace,monospace", color: c ?? (k === "fps" && !idle ? "var(--accent)" : undefined) }}
+                        style={{ fontSize: big, fontFamily: sk.numReadout ? sk.num : "'IBM Plex Mono','JetBrains Mono',ui-monospace,monospace", color: c ?? (k === "fps" && !idle ? "var(--w-accent)" : undefined) }}
                       >
                         {c && <ToneCue t={c === DROP_CRIT ? "crit" : "warn"} size="0.75em" />}
                         {shownAs(k, v)}
@@ -130,7 +130,7 @@ export default function OsdStrip(p: OsdStripProps) {
                     <span className={`${inline ? "shrink-0 " : ""}truncate text-micro font-semibold uppercase tracking-[0.08em] text-[color:var(--w-muted)]`}>{l}</span>
                     <span
                       className={`truncate ${inline && h < 30 ? "text-body" : "text-title"} font-medium tabular-nums text-[color:var(--w-fg)]`}
-                      style={{ fontFamily: sk.skin === "retro" || sk.skin === "tui" ? sk.num : "'IBM Plex Mono','JetBrains Mono',ui-monospace,monospace", color: c ?? (k === "fps" && !idle ? "var(--accent)" : undefined) }}
+                      style={{ fontFamily: sk.numReadout ? sk.num : "'IBM Plex Mono','JetBrains Mono',ui-monospace,monospace", color: c ?? (k === "fps" && !idle ? "var(--w-accent)" : undefined) }}
                     >
                       {c && <ToneCue t={c === DROP_CRIT ? "crit" : "warn"} size="0.75em" />}
                       {shownAs(k, v)}

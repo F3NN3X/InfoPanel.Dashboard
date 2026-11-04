@@ -99,4 +99,10 @@ describe("touches", () => {
     expect(touches([], null)).toBe(false);
     expect(touches(["a.x"], [])).toBe(false);
   });
+
+  it("skips a message whose changed keys are all under the quiet prefix", () => {
+    expect(touches(["q.a", "q.b"], null, "q.")).toBe(false);
+    expect(touches(["q.a", "a.x"], null, "q.")).toBe(true);
+    expect(touches(["q.a"], ["q."], undefined)).toBe(true);
+  });
 });

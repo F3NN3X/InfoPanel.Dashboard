@@ -45,10 +45,10 @@ export function valueText(v: DataApiValue | undefined): string {
 }
 
 const STATE: Record<RemapState, { label: string; dot: string; text: string }> = {
-  matched: { label: "Matched", dot: "bg-ui-success", text: "text-ui-success" },
-  confirmed: { label: "Confirmed", dot: "bg-ui-success", text: "text-ui-success" },
+  matched: { label: "Matched", dot: "bg-ui-ok", text: "text-ui-ok" },
+  confirmed: { label: "Confirmed", dot: "bg-ui-ok", text: "text-ui-ok" },
   chosen: { label: "Your choice", dot: "bg-ui-accent", text: "text-ui-accent-text" },
-  check: { label: "Check", dot: "bg-ui-warning", text: "text-ui-warning" },
+  check: { label: "Check", dot: "bg-ui-warn", text: "text-ui-warn" },
   unresolved: { label: "Unresolved", dot: "bg-ui-danger", text: "text-ui-danger" },
   unbound: { label: "Left unbound", dot: "bg-ui-hint", text: "text-ui-4" },
 };
@@ -219,7 +219,7 @@ export function RemapPanel({ groups, resolved, index, overrides, onOverrides, on
         <span className="flex-1" />
         {counts.check > 0 && (
           <button type="button" className={GHOST} onClick={() => onOverrides(confirmAll(rows, overrides))}>
-            <CheckCheck className="h-4 w-4 text-ui-warning" /> Confirm all {counts.check} suggestions
+            <CheckCheck className="h-4 w-4 text-ui-warn" /> Confirm all {counts.check} suggestions
           </button>
         )}
         {counts.unresolved > 0 && (
@@ -290,7 +290,7 @@ export function RemapPanel({ groups, resolved, index, overrides, onOverrides, on
                       e.stopPropagation();
                       onOverrides(withChoice(overrides, r.group.id, r.match!.key));
                     }}
-                    className="grid h-[26px] w-[26px] shrink-0 place-items-center rounded-md border border-ui-strong bg-ui-raised text-ui-warning hover:bg-ui-hover"
+                    className="grid h-[26px] w-[26px] shrink-0 place-items-center rounded-md border border-ui-strong bg-ui-raised text-ui-warn hover:bg-ui-hover"
                   >
                     <Check className="h-4 w-4" />
                   </button>

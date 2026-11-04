@@ -1,0 +1,40 @@
+{
+  "id": "paper",
+  "name": "Paper",
+  "version": "1.0.0",
+  "tags": [
+    "light",
+    "minimal",
+    "paper"
+  ],
+  "description": "White cards with a warm hairline on an off-white page with a faint hexagon pattern: a purple accent and a purple-to-blue hero number.",
+  "modes": [
+    "light"
+  ],
+  "fonts": [
+    {
+      "family": "pack-paper",
+      "source": "Inter",
+      "file": "inter-500.woff2",
+      "weight": "100 900",
+      "licence": "OFL-1.1",
+      "copyright": "Copyright 2016 The Inter Project Authors (https://github.com/rsms/inter)"
+    }
+  ],
+  "stage": {
+    "layers": [
+      {
+        "fill": "#F4F1EC"
+      },
+      {
+        "image": "hex.svg",
+        "opacity": 0.7,
+        "minSizeClass": "sm"
+      }
+    ]
+  },
+  "burnIn": "needs-dim",
+  "statusBar": {
+    "edge": "top"
+  }
+}

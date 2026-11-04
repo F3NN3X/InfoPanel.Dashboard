@@ -115,7 +115,7 @@ function Current(p: WeatherProps) {
         icon,
         kind: "value",
         // a square-ish 2x2 has the room for the condition beside the temperature
-        ...(box.shape === "tile" && squareHero(box.w, box.h) ? { lead: <WeatherGlyph {...cond} {...icons} fill size={40} className="shrink-0 text-[40px] text-[color:var(--accent)]" /> } : null),
+        ...(box.shape === "tile" && squareHero(box.w, box.h) ? { lead: <WeatherGlyph {...cond} {...icons} fill size={40} className="shrink-0 text-[40px] text-[color:var(--w-accent)]" /> } : null),
       })}
       right={has(k("last_refreshed")) && <span className="font-mono text-micro text-[color:var(--w-muted)]">{String(k("last_refreshed")).slice(11)}</span>}
     >
@@ -130,7 +130,7 @@ function Current(p: WeatherProps) {
         const big = roomy(w, h) && size !== "xs" && size !== "sm";
         const now = (
           <div className={`flex min-w-0 items-center ${big ? "gap-5" : "gap-3"}`}>
-            <WeatherGlyph {...cond} {...icons} fill size={big ? 96 : undefined} className={`${big ? "text-[96px]" : { xs: "text-3xl", sm: "text-5xl", md: "text-6xl", lg: "text-7xl" }[size]} shrink-0 text-[color:var(--accent)]`} />
+            <WeatherGlyph {...cond} {...icons} fill size={big ? 96 : undefined} className={`${big ? "text-[96px]" : { xs: "text-3xl", sm: "text-5xl", md: "text-6xl", lg: "text-7xl" }[size]} shrink-0 text-[color:var(--w-accent)]`} />
             <div className="flex min-w-0 flex-col">
               <Num ip={at("temp", { unit: "°", decimals: 0 })} className={`${big ? "text-[88px]" : { xs: "text-2xl", sm: "text-4xl", md: "text-5xl", lg: "text-6xl" }[size]} font-semibold leading-none tracking-tight`}>{fmt(T(temp), 0)}°</Num>
               {size !== "xs" && (
@@ -192,7 +192,7 @@ function Current(p: WeatherProps) {
                     <span className="text-xs font-semibold tabular-nums">{fmt(T(f.hi), 0)}°</span>
                     {bar && (
                       <div className="relative h-10 w-1 rounded-full bg-[color:var(--w-track)]">
-                        <div className="absolute inset-x-0 rounded-full" style={{ background: "var(--accent)", bottom: `${((f.lo - lo) / (hi - lo || 1)) * 100}%`, top: `${100 - ((f.hi - lo) / (hi - lo || 1)) * 100}%` }} />
+                        <div className="absolute inset-x-0 rounded-full" style={{ background: "var(--w-accent)", bottom: `${((f.lo - lo) / (hi - lo || 1)) * 100}%`, top: `${100 - ((f.hi - lo) / (hi - lo || 1)) * 100}%` }} />
                       </div>
                     )}
                     {showLo && <span className="text-micro tabular-nums text-[color:var(--w-muted)]">{fmt(T(f.lo), 0)}°</span>}

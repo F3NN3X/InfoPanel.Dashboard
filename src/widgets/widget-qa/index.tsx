@@ -3,6 +3,7 @@ import { flushSync } from "react-dom";
 import { modules } from "@/modules";
 import { INSERT_CATEGORIES } from "@/components/studio/insert-panel";
 import { THEME_PRESETS, themeVars } from "@/lib/theme";
+import { registerSampleCards } from "@/looks/sample-materials";
 import { SKIN_NAMES } from "@/widgets/core/theme";
 import { TEMPLATE_MODULES } from "@/widgets/registry";
 import { Gallery, galleriesFor } from "./Gallery";
@@ -28,6 +29,8 @@ import { installDemoStreams } from "./demo-streams";
 // `data=live` reads the server's own streams.
 const DATA_PARAM = new URLSearchParams(window.location.search).get("data");
 if (DATA_PARAM !== "live") installDemoStreams(DATA_PARAM === "stress");
+// The sample themes' cards (`surface=look-…`): a config would load them on read, this page has none.
+registerSampleCards();
 
 const CATEGORY_ORDER = INSERT_CATEGORIES.filter((c) => !["All", "Layouts", "My panels"].includes(c));
 
@@ -109,7 +112,9 @@ export default function WidgetQa() {
 declare global {
   interface Window {
     __qaOverflow?: () => { module: string; span: string; issues: Issue[] }[];
-    __qaMountAll?: () => Promise<void>;
+    __qaMountAll?: () => Promise<boolean>;
+    /** The InfoPanel export's card colour for a frame (`surfaceOf`), for the material export check (tests/e2e/material-export.spec.ts). */
+    __qaSurfaceOf?: (frame: HTMLElement) => Promise<{ color: string; radius: number } | null>;
   }
 }
 
@@ -118,8 +123,24 @@ declare global {
 window.__qaMountAll = async () => {
   flushSync(forceMountAll);
   await document.fonts.ready;
-  await new Promise((r) => setTimeout(r, 1500));
+  // Settled = the element count and the number of fetched files (a lazy chunk, a pack's parts) unchanged over 0.75 s of
+  // samples: lazy chunks and ResizeObserver re-renders land at load-dependent times, so a fixed wait let a slow run read a
+  // half-built frame (ledger L50, L60). Text is left out: the demo streams keep changing it and would never settle.
+  // Bounded at 6 s; a cap that is reached is logged and returned as false.
+  // The default buffer holds 250 entries; past that the count would stop growing and a late chunk would not keep the page unsettled (L70).
+  performance.setResourceTimingBufferSize(5000);
+  let last = -1;
+  let still = 0;
+  for (let i = 0; i < 24 && still < 3; i++) {
+    await new Promise((r) => setTimeout(r, 250));
+    const now = document.body.getElementsByTagName("*").length + performance.getEntriesByType("resource").length / 1e4;
+    still = now === last ? still + 1 : 0;
+    last = now;
+  }
+  if (still < 3) console.warn("__qaMountAll: the page did not settle within 6 s");
+  return still >= 3;
 };
+window.__qaSurfaceOf = async (frame) => (await import("@/lib/infopanel/native/surface-of")).surfaceOf(frame);
 window.__qaOverflow = () => {
   flushSync(forceMountAll);
   return overflowReport();

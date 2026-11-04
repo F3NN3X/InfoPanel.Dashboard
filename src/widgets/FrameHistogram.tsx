@@ -48,7 +48,7 @@ export default function FrameHistogram(p: FrameHistogramProps) {
   const chart = (
     <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 h-full w-full overflow-visible" aria-hidden>
       {hist.bins.map((b, i) =>
-        b.count ? <rect key={i} x={x(b.from) + 0.25} width={Math.max(0.1, x(b.to) - x(b.from) - 0.5)} y={100 - (b.count / hist.peak) * 100} height={(b.count / hist.peak) * 100} fill={b.from >= GUIDES[0].ms ? TONES.warn : "var(--accent)"} opacity={0.85} /> : null
+        b.count ? <rect key={i} x={x(b.from) + 0.25} width={Math.max(0.1, x(b.to) - x(b.from) - 0.5)} y={100 - (b.count / hist.peak) * 100} height={(b.count / hist.peak) * 100} fill={b.from >= GUIDES[0].ms ? TONES.warn : "var(--w-accent)"} opacity={0.85} /> : null
       )}
       {GUIDES.filter((g) => g.ms < hist.top).map((g) => (
         <line key={g.label} x1={x(g.ms)} x2={x(g.ms)} y1="0" y2="100" stroke="var(--w-faint)" strokeDasharray="3 3" vectorEffect="non-scaling-stroke" />

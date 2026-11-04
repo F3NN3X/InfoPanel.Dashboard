@@ -1,0 +1,1439 @@
+{
+  "names": [
+    "solid",
+    "outline",
+    "flat",
+    "tinted",
+    "aurora",
+    "neon",
+    "holo",
+    "mesh",
+    "carbon",
+    "inset",
+    "studio",
+    "terminal",
+    "tui",
+    "vibrancy",
+    "mica",
+    "hud",
+    "ios",
+    "material",
+    "synth",
+    "brutal",
+    "cyber",
+    "nixie",
+    "instrument",
+    "glass",
+    "matte-light",
+    "matte-dark",
+    "theme"
+  ],
+  "surfaces": {
+    "solid": {
+      "c": "border border-white/[0.06]",
+      "s": {
+        "background": "#141418"
+      },
+      "tone": "dark",
+      "colors": null,
+      "boxes": {
+        "none": {
+          "background": "#141418"
+        },
+        "defaults": {
+          "background": "#141418"
+        },
+        "edge": {
+          "background": "rgba(20, 20, 24, 0.5)",
+          "boxShadow": "inset 0 0 0 2px rgba(255, 255, 255, 0.1), inset 0 0 14px rgba(255, 255, 255, 0.45)",
+          "borderWidth": 0,
+          "backdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))",
+          "WebkitBackdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))"
+        },
+        "ring": {
+          "background": "#141418",
+          "boxShadow": "inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)"
+        },
+        "blur0": {
+          "background": "#141418",
+          "backdropFilter": "none",
+          "WebkitBackdropFilter": "none"
+        }
+      },
+      "patch": "#141418",
+      "rawPatch": "#141418",
+      "scrim": "rgba(0, 0, 0, 0.45)",
+      "text": {
+        "--w-fg": "#f4f4f5",
+        "--w-muted": "#a1a1aa",
+        "--w-faint": "#8a8a94",
+        "--w-track": "rgba(255,255,255,.07)"
+      }
+    },
+    "outline": {
+      "c": "border border-white/15",
+      "s": {
+        "background": "transparent"
+      },
+      "tone": "dark",
+      "colors": null,
+      "boxes": {
+        "none": {
+          "background": "transparent"
+        },
+        "defaults": {
+          "background": "transparent"
+        },
+        "edge": {
+          "background": "transparent",
+          "boxShadow": "inset 0 0 0 2px rgba(255, 255, 255, 0.1), inset 0 0 14px rgba(255, 255, 255, 0.45)",
+          "borderWidth": 0,
+          "backdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))",
+          "WebkitBackdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))"
+        },
+        "ring": {
+          "background": "transparent",
+          "boxShadow": "inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)"
+        },
+        "blur0": {
+          "background": "transparent",
+          "backdropFilter": "none",
+          "WebkitBackdropFilter": "none"
+        }
+      },
+      "patch": "transparent",
+      "rawPatch": "transparent",
+      "scrim": "rgba(0, 0, 0, 0.45)",
+      "text": {
+        "--w-fg": "#f4f4f5",
+        "--w-muted": "#a1a1aa",
+        "--w-faint": "#8a8a94",
+        "--w-track": "rgba(255,255,255,.07)"
+      }
+    },
+    "flat": {
+      "c": "",
+      "s": {
+        "background": "transparent"
+      },
+      "tone": "dark",
+      "colors": null,
+      "boxes": {
+        "none": {
+          "background": "transparent"
+        },
+        "defaults": {
+          "background": "transparent"
+        },
+        "edge": {
+          "background": "transparent",
+          "boxShadow": "inset 0 0 0 2px rgba(255, 255, 255, 0.1), inset 0 0 14px rgba(255, 255, 255, 0.45)",
+          "borderWidth": 0,
+          "backdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))",
+          "WebkitBackdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))"
+        },
+        "ring": {
+          "background": "transparent",
+          "boxShadow": "inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)"
+        },
+        "blur0": {
+          "background": "transparent",
+          "backdropFilter": "none",
+          "WebkitBackdropFilter": "none"
+        }
+      },
+      "patch": "transparent",
+      "rawPatch": "transparent",
+      "scrim": "rgba(0, 0, 0, 0.45)",
+      "text": {
+        "--w-fg": "#f4f4f5",
+        "--w-muted": "#a1a1aa",
+        "--w-faint": "#8a8a94",
+        "--w-track": "rgba(255,255,255,.07)"
+      }
+    },
+    "tinted": {
+      "c": "border",
+      "s": {
+        "background": "linear-gradient(155deg, color-mix(in oklab, var(--w-accent) 22%, #141418), #121215 65%)",
+        "borderColor": "color-mix(in oklab, var(--w-accent) 28%, transparent)"
+      },
+      "tone": "dark",
+      "colors": null,
+      "boxes": {
+        "none": {
+          "background": "linear-gradient(155deg, color-mix(in oklab, var(--w-accent) 22%, #141418), #121215 65%)",
+          "borderColor": "color-mix(in oklab, var(--w-accent) 28%, transparent)"
+        },
+        "defaults": {
+          "background": "linear-gradient(155deg, color-mix(in oklab, var(--w-accent) 22%, #141418), #121215 65%)",
+          "borderColor": "color-mix(in oklab, var(--w-accent) 28%, transparent)"
+        },
+        "edge": {
+          "background": "linear-gradient(155deg, color-mix(in oklab, color-mix(in oklab, var(--w-accent) 22%, #141418) 50%, transparent), rgba(18, 18, 21, 0.5) 65%)",
+          "borderColor": "color-mix(in oklab, var(--w-accent) 28%, transparent)",
+          "boxShadow": "inset 0 0 0 2px color-mix(in oklab, var(--w-accent) 28%, transparent), inset 0 0 14px rgba(255, 255, 255, 0.45)",
+          "borderWidth": 0,
+          "backdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))",
+          "WebkitBackdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))"
+        },
+        "ring": {
+          "background": "linear-gradient(155deg, color-mix(in oklab, var(--w-accent) 22%, #141418), #121215 65%)",
+          "borderColor": "color-mix(in oklab, var(--w-accent) 28%, transparent)",
+          "boxShadow": "inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)"
+        },
+        "blur0": {
+          "background": "linear-gradient(155deg, color-mix(in oklab, var(--w-accent) 22%, #141418), #121215 65%)",
+          "borderColor": "color-mix(in oklab, var(--w-accent) 28%, transparent)",
+          "backdropFilter": "none",
+          "WebkitBackdropFilter": "none"
+        }
+      },
+      "patch": "#0b0b0d",
+      "rawPatch": "#0b0b0d",
+      "scrim": "rgba(0, 0, 0, 0.45)",
+      "text": {
+        "--w-fg": "#f4f4f5",
+        "--w-muted": "#a1a1aa",
+        "--w-faint": "#8a8a94",
+        "--w-track": "rgba(255,255,255,.07)"
+      }
+    },
+    "aurora": {
+      "c": "border border-white/[0.07]",
+      "s": {
+        "background": "radial-gradient(120% 90% at 0% 0%, color-mix(in oklab, var(--w-accent) 38%, transparent), transparent 55%), radial-gradient(90% 80% at 100% 100%, color-mix(in oklab, #a78bfa 26%, transparent), transparent 60%), #0f0f13"
+      },
+      "tone": "dark",
+      "colors": null,
+      "boxes": {
+        "none": {
+          "background": "radial-gradient(120% 90% at 0% 0%, color-mix(in oklab, var(--w-accent) 38%, transparent), transparent 55%), radial-gradient(90% 80% at 100% 100%, color-mix(in oklab, #a78bfa 26%, transparent), transparent 60%), #0f0f13"
+        },
+        "defaults": {
+          "background": "radial-gradient(120% 90% at 0% 0%, color-mix(in oklab, var(--w-accent) 38%, transparent), transparent 55%), radial-gradient(90% 80% at 100% 100%, color-mix(in oklab, #a78bfa 26%, transparent), transparent 60%), #0f0f13"
+        },
+        "edge": {
+          "background": "radial-gradient(120% 90% at 0% 0%, color-mix(in oklab, color-mix(in oklab, var(--w-accent) 38%, transparent) 50%, transparent), transparent 55%), radial-gradient(90% 80% at 100% 100%, color-mix(in oklab, color-mix(in oklab, #a78bfa 26%, transparent) 50%, transparent), transparent 60%), rgba(15, 15, 19, 0.5)",
+          "boxShadow": "inset 0 0 0 2px rgba(255, 255, 255, 0.1), inset 0 0 14px rgba(255, 255, 255, 0.45)",
+          "borderWidth": 0,
+          "backdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))",
+          "WebkitBackdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))"
+        },
+        "ring": {
+          "background": "radial-gradient(120% 90% at 0% 0%, color-mix(in oklab, var(--w-accent) 38%, transparent), transparent 55%), radial-gradient(90% 80% at 100% 100%, color-mix(in oklab, #a78bfa 26%, transparent), transparent 60%), #0f0f13",
+          "boxShadow": "inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)"
+        },
+        "blur0": {
+          "background": "radial-gradient(120% 90% at 0% 0%, color-mix(in oklab, var(--w-accent) 38%, transparent), transparent 55%), radial-gradient(90% 80% at 100% 100%, color-mix(in oklab, #a78bfa 26%, transparent), transparent 60%), #0f0f13",
+          "backdropFilter": "none",
+          "WebkitBackdropFilter": "none"
+        }
+      },
+      "patch": "#0b0b0d",
+      "rawPatch": "#0b0b0d",
+      "scrim": "rgba(0, 0, 0, 0.45)",
+      "text": {
+        "--w-fg": "#f4f4f5",
+        "--w-muted": "#a1a1aa",
+        "--w-faint": "#8a8a94",
+        "--w-track": "rgba(255,255,255,.07)"
+      }
+    },
+    "neon": {
+      "c": "border",
+      "s": {
+        "background": "#0a0a0d",
+        "borderColor": "color-mix(in oklab, var(--w-accent) 80%, transparent)",
+        "boxShadow": "0 0 22px -6px color-mix(in oklab, var(--w-accent) 70%, transparent), inset 0 0 22px -12px color-mix(in oklab, var(--w-accent) 80%, transparent)"
+      },
+      "tone": "dark",
+      "colors": null,
+      "boxes": {
+        "none": {
+          "background": "#0a0a0d",
+          "borderColor": "color-mix(in oklab, var(--w-accent) 80%, transparent)",
+          "boxShadow": "0 0 22px -6px color-mix(in oklab, var(--w-accent) 70%, transparent), inset 0 0 22px -12px color-mix(in oklab, var(--w-accent) 80%, transparent)"
+        },
+        "defaults": {
+          "background": "#0a0a0d",
+          "borderColor": "color-mix(in oklab, var(--w-accent) 80%, transparent)",
+          "boxShadow": "0 0 22px -6px color-mix(in oklab, var(--w-accent) 70%, transparent), inset 0 0 22px -12px color-mix(in oklab, var(--w-accent) 80%, transparent)"
+        },
+        "edge": {
+          "background": "rgba(10, 10, 13, 0.5)",
+          "borderColor": "color-mix(in oklab, var(--w-accent) 80%, transparent)",
+          "boxShadow": "0 0 22px -6px color-mix(in oklab, var(--w-accent) 70%, transparent), inset 0 0 22px -12px color-mix(in oklab, var(--w-accent) 80%, transparent), inset 0 0 0 2px color-mix(in oklab, var(--w-accent) 80%, transparent), inset 0 0 14px rgba(255, 255, 255, 0.45)",
+          "borderWidth": 0,
+          "backdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))",
+          "WebkitBackdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))"
+        },
+        "ring": {
+          "background": "#0a0a0d",
+          "borderColor": "color-mix(in oklab, var(--w-accent) 80%, transparent)",
+          "boxShadow": "0 0 22px -6px color-mix(in oklab, var(--w-accent) 70%, transparent), inset 0 0 22px -12px color-mix(in oklab, var(--w-accent) 80%, transparent), inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)"
+        },
+        "blur0": {
+          "background": "#0a0a0d",
+          "borderColor": "color-mix(in oklab, var(--w-accent) 80%, transparent)",
+          "boxShadow": "0 0 22px -6px color-mix(in oklab, var(--w-accent) 70%, transparent), inset 0 0 22px -12px color-mix(in oklab, var(--w-accent) 80%, transparent)",
+          "backdropFilter": "none",
+          "WebkitBackdropFilter": "none"
+        }
+      },
+      "patch": "#0a0a0d",
+      "rawPatch": "#0a0a0d",
+      "scrim": "rgba(0, 0, 0, 0.45)",
+      "text": {
+        "--w-fg": "#f4f4f5",
+        "--w-muted": "#a1a1aa",
+        "--w-faint": "#8a8a94",
+        "--w-track": "rgba(255,255,255,.07)"
+      }
+    },
+    "holo": {
+      "c": "border border-transparent",
+      "s": {
+        "background": "linear-gradient(#121215,#121215) padding-box, conic-gradient(from 210deg, var(--w-accent), #a78bfa, #f472b6, #fbbf24, var(--w-accent)) border-box"
+      },
+      "tone": "dark",
+      "colors": null,
+      "boxes": {
+        "none": {
+          "background": "linear-gradient(#121215,#121215) padding-box, conic-gradient(from 210deg, var(--w-accent), #a78bfa, #f472b6, #fbbf24, var(--w-accent)) border-box"
+        },
+        "defaults": {
+          "background": "linear-gradient(#121215,#121215) padding-box, conic-gradient(from 210deg, var(--w-accent), #a78bfa, #f472b6, #fbbf24, var(--w-accent)) border-box"
+        },
+        "edge": {
+          "background": "linear-gradient(rgba(18, 18, 21, 0.5),rgba(18, 18, 21, 0.5)) padding-box, conic-gradient(from 210deg, var(--w-accent), rgba(167, 139, 250, 0.5), rgba(244, 114, 182, 0.5), rgba(251, 191, 36, 0.5), var(--w-accent)) border-box",
+          "boxShadow": "inset 0 0 0 2px rgba(255, 255, 255, 0.1), inset 0 0 14px rgba(255, 255, 255, 0.45)",
+          "backdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))",
+          "WebkitBackdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))"
+        },
+        "ring": {
+          "background": "linear-gradient(#121215,#121215) padding-box, conic-gradient(from 210deg, var(--w-accent), #a78bfa, #f472b6, #fbbf24, var(--w-accent)) border-box",
+          "boxShadow": "inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)"
+        },
+        "blur0": {
+          "background": "linear-gradient(#121215,#121215) padding-box, conic-gradient(from 210deg, var(--w-accent), #a78bfa, #f472b6, #fbbf24, var(--w-accent)) border-box",
+          "backdropFilter": "none",
+          "WebkitBackdropFilter": "none"
+        }
+      },
+      "patch": "#0b0b0d",
+      "rawPatch": "#0b0b0d",
+      "scrim": "rgba(0, 0, 0, 0.45)",
+      "text": {
+        "--w-fg": "#f4f4f5",
+        "--w-muted": "#a1a1aa",
+        "--w-faint": "#8a8a94",
+        "--w-track": "rgba(255,255,255,.07)"
+      }
+    },
+    "mesh": {
+      "c": "border border-white/[0.06]",
+      "s": {
+        "background": "radial-gradient(rgba(255,255,255,.075) 1px, transparent 1.2px) 0 0/12px 12px, #121215"
+      },
+      "tone": "dark",
+      "colors": null,
+      "boxes": {
+        "none": {
+          "background": "radial-gradient(rgba(255,255,255,.075) 1px, transparent 1.2px) 0 0/12px 12px, #121215"
+        },
+        "defaults": {
+          "background": "radial-gradient(rgba(255,255,255,.075) 1px, transparent 1.2px) 0 0/12px 12px, #121215"
+        },
+        "edge": {
+          "background": "radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1.2px) 0 0/12px 12px, rgba(18, 18, 21, 0.5)",
+          "boxShadow": "inset 0 0 0 2px rgba(255, 255, 255, 0.1), inset 0 0 14px rgba(255, 255, 255, 0.45)",
+          "borderWidth": 0,
+          "backdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))",
+          "WebkitBackdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))"
+        },
+        "ring": {
+          "background": "radial-gradient(rgba(255,255,255,.075) 1px, transparent 1.2px) 0 0/12px 12px, #121215",
+          "boxShadow": "inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)"
+        },
+        "blur0": {
+          "background": "radial-gradient(rgba(255,255,255,.075) 1px, transparent 1.2px) 0 0/12px 12px, #121215",
+          "backdropFilter": "none",
+          "WebkitBackdropFilter": "none"
+        }
+      },
+      "patch": "#0b0b0d",
+      "rawPatch": "#0b0b0d",
+      "scrim": "rgba(0, 0, 0, 0.45)",
+      "text": {
+        "--w-fg": "#f4f4f5",
+        "--w-muted": "#a1a1aa",
+        "--w-faint": "#8a8a94",
+        "--w-track": "rgba(255,255,255,.07)"
+      }
+    },
+    "carbon": {
+      "c": "border border-white/[0.06]",
+      "s": {
+        "background": "repeating-linear-gradient(45deg, #17171b 0 5px, #121215 5px 10px)"
+      },
+      "tone": "dark",
+      "colors": null,
+      "boxes": {
+        "none": {
+          "background": "repeating-linear-gradient(45deg, #17171b 0 5px, #121215 5px 10px)"
+        },
+        "defaults": {
+          "background": "repeating-linear-gradient(45deg, #17171b 0 5px, #121215 5px 10px)"
+        },
+        "edge": {
+          "background": "repeating-linear-gradient(45deg, rgba(23, 23, 27, 0.5) 0 5px, rgba(18, 18, 21, 0.5) 5px 10px)",
+          "boxShadow": "inset 0 0 0 2px rgba(255, 255, 255, 0.1), inset 0 0 14px rgba(255, 255, 255, 0.45)",
+          "borderWidth": 0,
+          "backdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))",
+          "WebkitBackdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))"
+        },
+        "ring": {
+          "background": "repeating-linear-gradient(45deg, #17171b 0 5px, #121215 5px 10px)",
+          "boxShadow": "inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)"
+        },
+        "blur0": {
+          "background": "repeating-linear-gradient(45deg, #17171b 0 5px, #121215 5px 10px)",
+          "backdropFilter": "none",
+          "WebkitBackdropFilter": "none"
+        }
+      },
+      "patch": "#0b0b0d",
+      "rawPatch": "#0b0b0d",
+      "scrim": "rgba(0, 0, 0, 0.45)",
+      "text": {
+        "--w-fg": "#f4f4f5",
+        "--w-muted": "#a1a1aa",
+        "--w-faint": "#8a8a94",
+        "--w-track": "rgba(255,255,255,.07)"
+      }
+    },
+    "inset": {
+      "c": "",
+      "s": {
+        "background": "#0e0e11",
+        "boxShadow": "inset 0 2px 8px rgba(0,0,0,.7), inset 0 -1px 0 rgba(255,255,255,.05), 0 1px 0 rgba(255,255,255,.04)"
+      },
+      "tone": "dark",
+      "colors": null,
+      "boxes": {
+        "none": {
+          "background": "#0e0e11",
+          "boxShadow": "inset 0 2px 8px rgba(0,0,0,.7), inset 0 -1px 0 rgba(255,255,255,.05), 0 1px 0 rgba(255,255,255,.04)"
+        },
+        "defaults": {
+          "background": "#0e0e11",
+          "boxShadow": "inset 0 2px 8px rgba(0,0,0,.7), inset 0 -1px 0 rgba(255,255,255,.05), 0 1px 0 rgba(255,255,255,.04)"
+        },
+        "edge": {
+          "background": "rgba(14, 14, 17, 0.5)",
+          "boxShadow": "inset 0 2px 8px rgba(0,0,0,.7), inset 0 -1px 0 rgba(255,255,255,.05), 0 1px 0 rgba(255,255,255,.04), inset 0 0 0 2px rgba(255, 255, 255, 0.1), inset 0 0 14px rgba(255, 255, 255, 0.45)",
+          "borderWidth": 0,
+          "backdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))",
+          "WebkitBackdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))"
+        },
+        "ring": {
+          "background": "#0e0e11",
+          "boxShadow": "inset 0 2px 8px rgba(0,0,0,.7), inset 0 -1px 0 rgba(255,255,255,.05), 0 1px 0 rgba(255,255,255,.04), inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)"
+        },
+        "blur0": {
+          "background": "#0e0e11",
+          "boxShadow": "inset 0 2px 8px rgba(0,0,0,.7), inset 0 -1px 0 rgba(255,255,255,.05), 0 1px 0 rgba(255,255,255,.04)",
+          "backdropFilter": "none",
+          "WebkitBackdropFilter": "none"
+        }
+      },
+      "patch": "#0e0e11",
+      "rawPatch": "#0e0e11",
+      "scrim": "rgba(0, 0, 0, 0.45)",
+      "text": {
+        "--w-fg": "#f4f4f5",
+        "--w-muted": "#a1a1aa",
+        "--w-faint": "#8a8a94",
+        "--w-track": "rgba(255,255,255,.07)"
+      }
+    },
+    "studio": {
+      "c": "border",
+      "s": {
+        "background": "linear-gradient(160deg, rgba(255,255,255,.075), rgba(255,255,255,.022))",
+        "borderColor": "rgba(255,255,255,.08)"
+      },
+      "tone": "dark",
+      "colors": null,
+      "boxes": {
+        "none": {
+          "background": "linear-gradient(160deg, rgba(255,255,255,.075), rgba(255,255,255,.022))",
+          "borderColor": "rgba(255,255,255,.08)"
+        },
+        "defaults": {
+          "background": "linear-gradient(160deg, rgba(255,255,255,.075), rgba(255,255,255,.022))",
+          "borderColor": "rgba(255,255,255,.08)"
+        },
+        "edge": {
+          "background": "linear-gradient(160deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01))",
+          "borderColor": "rgba(255,255,255,.08)",
+          "boxShadow": "inset 0 0 0 2px rgba(255,255,255,.08), inset 0 0 14px rgba(255, 255, 255, 0.45)",
+          "borderWidth": 0,
+          "backdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))",
+          "WebkitBackdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))"
+        },
+        "ring": {
+          "background": "linear-gradient(160deg, rgba(255,255,255,.075), rgba(255,255,255,.022))",
+          "borderColor": "rgba(255,255,255,.08)",
+          "boxShadow": "inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)"
+        },
+        "blur0": {
+          "background": "linear-gradient(160deg, rgba(255,255,255,.075), rgba(255,255,255,.022))",
+          "borderColor": "rgba(255,255,255,.08)",
+          "backdropFilter": "none",
+          "WebkitBackdropFilter": "none"
+        }
+      },
+      "patch": "#0b0b0d",
+      "rawPatch": "#0b0b0d",
+      "scrim": "rgba(0, 0, 0, 0.45)",
+      "text": {
+        "--w-fg": "#f4f4f5",
+        "--w-muted": "#a1a1aa",
+        "--w-faint": "#8a8a94",
+        "--w-track": "rgba(255,255,255,.07)"
+      }
+    },
+    "terminal": {
+      "c": "border font-mono",
+      "s": {
+        "background": "repeating-linear-gradient(0deg, rgba(255,255,255,.03) 0 1px, transparent 1px 3px), #060807",
+        "borderColor": "color-mix(in oklab, var(--w-accent) 30%, transparent)",
+        "textShadow": "0 0 8px color-mix(in oklab, var(--w-accent) 45%, transparent)",
+        "fontSizeAdjust": 0.4
+      },
+      "tone": "dark",
+      "colors": null,
+      "boxes": {
+        "none": {
+          "background": "repeating-linear-gradient(0deg, rgba(255,255,255,.03) 0 1px, transparent 1px 3px), #060807",
+          "borderColor": "color-mix(in oklab, var(--w-accent) 30%, transparent)",
+          "textShadow": "0 0 8px color-mix(in oklab, var(--w-accent) 45%, transparent)",
+          "fontSizeAdjust": 0.4
+        },
+        "defaults": {
+          "background": "repeating-linear-gradient(0deg, rgba(255,255,255,.03) 0 1px, transparent 1px 3px), #060807",
+          "borderColor": "color-mix(in oklab, var(--w-accent) 30%, transparent)",
+          "textShadow": "0 0 8px color-mix(in oklab, var(--w-accent) 45%, transparent)",
+          "fontSizeAdjust": 0.4
+        },
+        "edge": {
+          "background": "repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.02) 0 1px, transparent 1px 3px), rgba(6, 8, 7, 0.5)",
+          "borderColor": "color-mix(in oklab, var(--w-accent) 30%, transparent)",
+          "textShadow": "0 0 8px color-mix(in oklab, var(--w-accent) 45%, transparent)",
+          "fontSizeAdjust": 0.4,
+          "boxShadow": "inset 0 0 0 2px color-mix(in oklab, var(--w-accent) 30%, transparent), inset 0 0 14px rgba(255, 255, 255, 0.45)",
+          "borderWidth": 0,
+          "backdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))",
+          "WebkitBackdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))"
+        },
+        "ring": {
+          "background": "repeating-linear-gradient(0deg, rgba(255,255,255,.03) 0 1px, transparent 1px 3px), #060807",
+          "borderColor": "color-mix(in oklab, var(--w-accent) 30%, transparent)",
+          "textShadow": "0 0 8px color-mix(in oklab, var(--w-accent) 45%, transparent)",
+          "fontSizeAdjust": 0.4,
+          "boxShadow": "inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)"
+        },
+        "blur0": {
+          "background": "repeating-linear-gradient(0deg, rgba(255,255,255,.03) 0 1px, transparent 1px 3px), #060807",
+          "borderColor": "color-mix(in oklab, var(--w-accent) 30%, transparent)",
+          "textShadow": "0 0 8px color-mix(in oklab, var(--w-accent) 45%, transparent)",
+          "fontSizeAdjust": 0.4,
+          "backdropFilter": "none",
+          "WebkitBackdropFilter": "none"
+        }
+      },
+      "patch": "#0b0b0d",
+      "rawPatch": "#0b0b0d",
+      "scrim": "rgba(0, 0, 0, 0.45)",
+      "text": {
+        "--w-fg": "#f4f4f5",
+        "--w-muted": "#a1a1aa",
+        "--w-faint": "#8a8a94",
+        "--w-track": "rgba(255,255,255,.07)"
+      }
+    },
+    "tui": {
+      "c": "",
+      "s": {
+        "background": "#0b0b0d"
+      },
+      "tone": "dark",
+      "colors": null,
+      "boxes": {
+        "none": {
+          "background": "#0b0b0d"
+        },
+        "defaults": {
+          "background": "#0b0b0d"
+        },
+        "edge": {
+          "background": "rgba(11, 11, 13, 0.5)",
+          "boxShadow": "inset 0 0 0 2px rgba(255, 255, 255, 0.1), inset 0 0 14px rgba(255, 255, 255, 0.45)",
+          "borderWidth": 0,
+          "backdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))",
+          "WebkitBackdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))"
+        },
+        "ring": {
+          "background": "#0b0b0d",
+          "boxShadow": "inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)"
+        },
+        "blur0": {
+          "background": "#0b0b0d",
+          "backdropFilter": "none",
+          "WebkitBackdropFilter": "none"
+        }
+      },
+      "patch": "#0b0b0d",
+      "rawPatch": "#0b0b0d",
+      "scrim": "rgba(0, 0, 0, 0.45)",
+      "text": {
+        "--w-fg": "#f4f4f5",
+        "--w-muted": "#a1a1aa",
+        "--w-faint": "#8a8a94",
+        "--w-track": "rgba(255,255,255,.07)"
+      }
+    },
+    "vibrancy": {
+      "c": "backdrop-blur-[min(40px,var(--wp-blur-cap,40px))] border border-white/[0.08]",
+      "s": {
+        "background": "linear-gradient(180deg, rgba(62,62,68,.66), rgba(38,38,42,.66))",
+        "boxShadow": "0 12px 30px -12px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.1)"
+      },
+      "tone": "dark",
+      "colors": null,
+      "boxes": {
+        "none": {
+          "background": "linear-gradient(180deg, rgba(62,62,68,.66), rgba(38,38,42,.66))",
+          "boxShadow": "0 12px 30px -12px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.1)"
+        },
+        "defaults": {
+          "background": "linear-gradient(180deg, rgba(62,62,68,.66), rgba(38,38,42,.66))",
+          "boxShadow": "0 12px 30px -12px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.1)"
+        },
+        "edge": {
+          "background": "linear-gradient(180deg, rgba(62, 62, 68, 0.33), rgba(38, 38, 42, 0.33))",
+          "boxShadow": "0 12px 30px -12px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.1), inset 0 0 0 2px rgba(255, 255, 255, 0.1), inset 0 0 14px rgba(255, 255, 255, 0.45)",
+          "borderWidth": 0,
+          "backdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))",
+          "WebkitBackdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))"
+        },
+        "ring": {
+          "background": "linear-gradient(180deg, rgba(62,62,68,.66), rgba(38,38,42,.66))",
+          "boxShadow": "0 12px 30px -12px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.1), inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)"
+        },
+        "blur0": {
+          "background": "linear-gradient(180deg, rgba(62,62,68,.66), rgba(38,38,42,.66))",
+          "boxShadow": "0 12px 30px -12px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.1)",
+          "backdropFilter": "none",
+          "WebkitBackdropFilter": "none"
+        }
+      },
+      "patch": "#0b0b0d",
+      "rawPatch": "#0b0b0d",
+      "scrim": "rgba(0, 0, 0, 0.45)",
+      "text": {
+        "--w-fg": "#f4f4f5",
+        "--w-muted": "#a1a1aa",
+        "--w-faint": "#8a8a94",
+        "--w-track": "rgba(255,255,255,.07)"
+      }
+    },
+    "mica": {
+      "c": "border border-white/[0.07]",
+      "s": {
+        "background": "radial-gradient(140% 120% at 0% 0%, color-mix(in oklab, var(--w-accent) 11%, transparent), transparent 60%), #202023",
+        "boxShadow": "inset 0 1px 0 rgba(255,255,255,.05)"
+      },
+      "tone": "dark",
+      "colors": null,
+      "boxes": {
+        "none": {
+          "background": "radial-gradient(140% 120% at 0% 0%, color-mix(in oklab, var(--w-accent) 11%, transparent), transparent 60%), #202023",
+          "boxShadow": "inset 0 1px 0 rgba(255,255,255,.05)"
+        },
+        "defaults": {
+          "background": "radial-gradient(140% 120% at 0% 0%, color-mix(in oklab, var(--w-accent) 11%, transparent), transparent 60%), #202023",
+          "boxShadow": "inset 0 1px 0 rgba(255,255,255,.05)"
+        },
+        "edge": {
+          "background": "radial-gradient(140% 120% at 0% 0%, color-mix(in oklab, color-mix(in oklab, var(--w-accent) 11%, transparent) 50%, transparent), transparent 60%), rgba(32, 32, 35, 0.5)",
+          "boxShadow": "inset 0 1px 0 rgba(255,255,255,.05), inset 0 0 0 2px rgba(255, 255, 255, 0.1), inset 0 0 14px rgba(255, 255, 255, 0.45)",
+          "borderWidth": 0,
+          "backdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))",
+          "WebkitBackdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))"
+        },
+        "ring": {
+          "background": "radial-gradient(140% 120% at 0% 0%, color-mix(in oklab, var(--w-accent) 11%, transparent), transparent 60%), #202023",
+          "boxShadow": "inset 0 1px 0 rgba(255,255,255,.05), inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)"
+        },
+        "blur0": {
+          "background": "radial-gradient(140% 120% at 0% 0%, color-mix(in oklab, var(--w-accent) 11%, transparent), transparent 60%), #202023",
+          "boxShadow": "inset 0 1px 0 rgba(255,255,255,.05)",
+          "backdropFilter": "none",
+          "WebkitBackdropFilter": "none"
+        }
+      },
+      "patch": "#0b0b0d",
+      "rawPatch": "#0b0b0d",
+      "scrim": "rgba(0, 0, 0, 0.45)",
+      "text": {
+        "--w-fg": "#f4f4f5",
+        "--w-muted": "#a1a1aa",
+        "--w-faint": "#8a8a94",
+        "--w-track": "rgba(255,255,255,.07)"
+      }
+    },
+    "hud": {
+      "c": "",
+      "s": {
+        "background": "repeating-linear-gradient(90deg, color-mix(in oklab, var(--w-accent) 8%, transparent) 0 1px, transparent 1px 22px), repeating-linear-gradient(0deg, color-mix(in oklab, var(--w-accent) 8%, transparent) 0 1px, transparent 1px 22px), radial-gradient(120% 100% at 50% 0%, color-mix(in oklab, var(--w-accent) 10%, transparent), transparent 70%), #07090b",
+        "boxShadow": "inset 0 0 0 1px color-mix(in oklab, var(--w-accent) 20%, transparent)"
+      },
+      "tone": "dark",
+      "colors": null,
+      "boxes": {
+        "none": {
+          "background": "repeating-linear-gradient(90deg, color-mix(in oklab, var(--w-accent) 8%, transparent) 0 1px, transparent 1px 22px), repeating-linear-gradient(0deg, color-mix(in oklab, var(--w-accent) 8%, transparent) 0 1px, transparent 1px 22px), radial-gradient(120% 100% at 50% 0%, color-mix(in oklab, var(--w-accent) 10%, transparent), transparent 70%), #07090b",
+          "boxShadow": "inset 0 0 0 1px color-mix(in oklab, var(--w-accent) 20%, transparent)"
+        },
+        "defaults": {
+          "background": "repeating-linear-gradient(90deg, color-mix(in oklab, var(--w-accent) 8%, transparent) 0 1px, transparent 1px 22px), repeating-linear-gradient(0deg, color-mix(in oklab, var(--w-accent) 8%, transparent) 0 1px, transparent 1px 22px), radial-gradient(120% 100% at 50% 0%, color-mix(in oklab, var(--w-accent) 10%, transparent), transparent 70%), #07090b",
+          "boxShadow": "inset 0 0 0 1px color-mix(in oklab, var(--w-accent) 20%, transparent)"
+        },
+        "edge": {
+          "background": "repeating-linear-gradient(90deg, color-mix(in oklab, color-mix(in oklab, var(--w-accent) 8%, transparent) 50%, transparent) 0 1px, transparent 1px 22px), repeating-linear-gradient(0deg, color-mix(in oklab, color-mix(in oklab, var(--w-accent) 8%, transparent) 50%, transparent) 0 1px, transparent 1px 22px), radial-gradient(120% 100% at 50% 0%, color-mix(in oklab, color-mix(in oklab, var(--w-accent) 10%, transparent) 50%, transparent), transparent 70%), rgba(7, 9, 11, 0.5)",
+          "boxShadow": "inset 0 0 0 1px color-mix(in oklab, var(--w-accent) 20%, transparent), inset 0 0 0 2px rgba(255, 255, 255, 0.1), inset 0 0 14px rgba(255, 255, 255, 0.45)",
+          "borderWidth": 0,
+          "backdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))",
+          "WebkitBackdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))"
+        },
+        "ring": {
+          "background": "repeating-linear-gradient(90deg, color-mix(in oklab, var(--w-accent) 8%, transparent) 0 1px, transparent 1px 22px), repeating-linear-gradient(0deg, color-mix(in oklab, var(--w-accent) 8%, transparent) 0 1px, transparent 1px 22px), radial-gradient(120% 100% at 50% 0%, color-mix(in oklab, var(--w-accent) 10%, transparent), transparent 70%), #07090b",
+          "boxShadow": "inset 0 0 0 1px color-mix(in oklab, var(--w-accent) 20%, transparent), inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)"
+        },
+        "blur0": {
+          "background": "repeating-linear-gradient(90deg, color-mix(in oklab, var(--w-accent) 8%, transparent) 0 1px, transparent 1px 22px), repeating-linear-gradient(0deg, color-mix(in oklab, var(--w-accent) 8%, transparent) 0 1px, transparent 1px 22px), radial-gradient(120% 100% at 50% 0%, color-mix(in oklab, var(--w-accent) 10%, transparent), transparent 70%), #07090b",
+          "boxShadow": "inset 0 0 0 1px color-mix(in oklab, var(--w-accent) 20%, transparent)",
+          "backdropFilter": "none",
+          "WebkitBackdropFilter": "none"
+        }
+      },
+      "patch": "#0b0b0d",
+      "rawPatch": "#0b0b0d",
+      "scrim": "rgba(0, 0, 0, 0.45)",
+      "text": {
+        "--w-fg": "#f4f4f5",
+        "--w-muted": "#a1a1aa",
+        "--w-faint": "#8a8a94",
+        "--w-track": "rgba(255,255,255,.07)"
+      }
+    },
+    "ios": {
+      "c": "",
+      "s": {
+        "background": "#1c1c1e",
+        "boxShadow": "0 1px 0 rgba(255,255,255,.04) inset, 0 18px 40px -18px rgba(0,0,0,.8)"
+      },
+      "tone": "dark",
+      "colors": null,
+      "boxes": {
+        "none": {
+          "background": "#1c1c1e",
+          "boxShadow": "0 1px 0 rgba(255,255,255,.04) inset, 0 18px 40px -18px rgba(0,0,0,.8)"
+        },
+        "defaults": {
+          "background": "#1c1c1e",
+          "boxShadow": "0 1px 0 rgba(255,255,255,.04) inset, 0 18px 40px -18px rgba(0,0,0,.8)"
+        },
+        "edge": {
+          "background": "rgba(28, 28, 30, 0.5)",
+          "boxShadow": "0 1px 0 rgba(255,255,255,.04) inset, 0 18px 40px -18px rgba(0,0,0,.8), inset 0 0 0 2px rgba(255, 255, 255, 0.1), inset 0 0 14px rgba(255, 255, 255, 0.45)",
+          "borderWidth": 0,
+          "backdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))",
+          "WebkitBackdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))"
+        },
+        "ring": {
+          "background": "#1c1c1e",
+          "boxShadow": "0 1px 0 rgba(255,255,255,.04) inset, 0 18px 40px -18px rgba(0,0,0,.8), inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)"
+        },
+        "blur0": {
+          "background": "#1c1c1e",
+          "boxShadow": "0 1px 0 rgba(255,255,255,.04) inset, 0 18px 40px -18px rgba(0,0,0,.8)",
+          "backdropFilter": "none",
+          "WebkitBackdropFilter": "none"
+        }
+      },
+      "patch": "#1c1c1e",
+      "rawPatch": "#1c1c1e",
+      "scrim": "rgba(0, 0, 0, 0.45)",
+      "text": {
+        "--w-fg": "#f4f4f5",
+        "--w-muted": "#a1a1aa",
+        "--w-faint": "#8a8a94",
+        "--w-track": "rgba(255,255,255,.07)"
+      }
+    },
+    "material": {
+      "c": "",
+      "s": {
+        "background": "linear-gradient(color-mix(in oklab, var(--w-accent) 15%, #1b1b1f), color-mix(in oklab, var(--w-accent) 15%, #1b1b1f))"
+      },
+      "tone": "dark",
+      "colors": null,
+      "boxes": {
+        "none": {
+          "background": "linear-gradient(color-mix(in oklab, var(--w-accent) 15%, #1b1b1f), color-mix(in oklab, var(--w-accent) 15%, #1b1b1f))"
+        },
+        "defaults": {
+          "background": "linear-gradient(color-mix(in oklab, var(--w-accent) 15%, #1b1b1f), color-mix(in oklab, var(--w-accent) 15%, #1b1b1f))"
+        },
+        "edge": {
+          "background": "linear-gradient(color-mix(in oklab, color-mix(in oklab, var(--w-accent) 15%, #1b1b1f) 50%, transparent), color-mix(in oklab, color-mix(in oklab, var(--w-accent) 15%, #1b1b1f) 50%, transparent))",
+          "boxShadow": "inset 0 0 0 2px rgba(255, 255, 255, 0.1), inset 0 0 14px rgba(255, 255, 255, 0.45)",
+          "borderWidth": 0,
+          "backdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))",
+          "WebkitBackdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))"
+        },
+        "ring": {
+          "background": "linear-gradient(color-mix(in oklab, var(--w-accent) 15%, #1b1b1f), color-mix(in oklab, var(--w-accent) 15%, #1b1b1f))",
+          "boxShadow": "inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)"
+        },
+        "blur0": {
+          "background": "linear-gradient(color-mix(in oklab, var(--w-accent) 15%, #1b1b1f), color-mix(in oklab, var(--w-accent) 15%, #1b1b1f))",
+          "backdropFilter": "none",
+          "WebkitBackdropFilter": "none"
+        }
+      },
+      "patch": "#0b0b0d",
+      "rawPatch": "#0b0b0d",
+      "scrim": "rgba(0, 0, 0, 0.45)",
+      "text": {
+        "--w-fg": "#f4f4f5",
+        "--w-muted": "#a1a1aa",
+        "--w-faint": "#8a8a94",
+        "--w-track": "rgba(255,255,255,.07)"
+      }
+    },
+    "synth": {
+      "c": "border",
+      "s": {
+        "background": "linear-gradient(to top, rgba(255,79,216,.22) 0 1px, transparent 1px) 0 100%/100% 14px repeat-y, linear-gradient(90deg, rgba(56,232,255,.10) 0 1px, transparent 1px) 0 0/22px 100%, linear-gradient(180deg, #12062a 0%, #2a0b3d 62%, #45104a 100%)",
+        "borderColor": "rgba(255,79,216,.35)",
+        "boxShadow": "0 0 24px -8px rgba(255,79,216,.55)"
+      },
+      "tone": "dark",
+      "colors": null,
+      "boxes": {
+        "none": {
+          "background": "linear-gradient(to top, rgba(255,79,216,.22) 0 1px, transparent 1px) 0 100%/100% 14px repeat-y, linear-gradient(90deg, rgba(56,232,255,.10) 0 1px, transparent 1px) 0 0/22px 100%, linear-gradient(180deg, #12062a 0%, #2a0b3d 62%, #45104a 100%)",
+          "borderColor": "rgba(255,79,216,.35)",
+          "boxShadow": "0 0 24px -8px rgba(255,79,216,.55)"
+        },
+        "defaults": {
+          "background": "linear-gradient(to top, rgba(255,79,216,.22) 0 1px, transparent 1px) 0 100%/100% 14px repeat-y, linear-gradient(90deg, rgba(56,232,255,.10) 0 1px, transparent 1px) 0 0/22px 100%, linear-gradient(180deg, #12062a 0%, #2a0b3d 62%, #45104a 100%)",
+          "borderColor": "rgba(255,79,216,.35)",
+          "boxShadow": "0 0 24px -8px rgba(255,79,216,.55)"
+        },
+        "edge": {
+          "background": "linear-gradient(to top, rgba(255, 79, 216, 0.11) 0 1px, transparent 1px) 0 100%/100% 14px repeat-y, linear-gradient(90deg, rgba(56, 232, 255, 0.05) 0 1px, transparent 1px) 0 0/22px 100%, linear-gradient(180deg, rgba(18, 6, 42, 0.5) 0%, rgba(42, 11, 61, 0.5) 62%, rgba(69, 16, 74, 0.5) 100%)",
+          "borderColor": "rgba(255,79,216,.35)",
+          "boxShadow": "0 0 24px -8px rgba(255,79,216,.55), inset 0 0 0 2px rgba(255,79,216,.35), inset 0 0 14px rgba(255, 255, 255, 0.45)",
+          "borderWidth": 0,
+          "backdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))",
+          "WebkitBackdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))"
+        },
+        "ring": {
+          "background": "linear-gradient(to top, rgba(255,79,216,.22) 0 1px, transparent 1px) 0 100%/100% 14px repeat-y, linear-gradient(90deg, rgba(56,232,255,.10) 0 1px, transparent 1px) 0 0/22px 100%, linear-gradient(180deg, #12062a 0%, #2a0b3d 62%, #45104a 100%)",
+          "borderColor": "rgba(255,79,216,.35)",
+          "boxShadow": "0 0 24px -8px rgba(255,79,216,.55), inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)"
+        },
+        "blur0": {
+          "background": "linear-gradient(to top, rgba(255,79,216,.22) 0 1px, transparent 1px) 0 100%/100% 14px repeat-y, linear-gradient(90deg, rgba(56,232,255,.10) 0 1px, transparent 1px) 0 0/22px 100%, linear-gradient(180deg, #12062a 0%, #2a0b3d 62%, #45104a 100%)",
+          "borderColor": "rgba(255,79,216,.35)",
+          "boxShadow": "0 0 24px -8px rgba(255,79,216,.55)",
+          "backdropFilter": "none",
+          "WebkitBackdropFilter": "none"
+        }
+      },
+      "patch": "#0b0b0d",
+      "rawPatch": "#0b0b0d",
+      "scrim": "rgba(0, 0, 0, 0.45)",
+      "text": {
+        "--w-fg": "#f4f4f5",
+        "--w-muted": "#a1a1aa",
+        "--w-faint": "#8a8a94",
+        "--w-track": "rgba(255,255,255,.07)"
+      }
+    },
+    "brutal": {
+      "c": "border-2",
+      "s": {
+        "background": "#121212",
+        "borderColor": "#f4f4f5",
+        "boxShadow": "5px 5px 0 0 var(--w-accent)",
+        "width": "calc(100% - 6px)",
+        "height": "calc(100% - 6px)"
+      },
+      "tone": "dark",
+      "colors": null,
+      "boxes": {
+        "none": {
+          "background": "#121212",
+          "borderColor": "#f4f4f5",
+          "boxShadow": "5px 5px 0 0 var(--w-accent)",
+          "width": "calc(100% - 6px)",
+          "height": "calc(100% - 6px)"
+        },
+        "defaults": {
+          "background": "#121212",
+          "borderColor": "#f4f4f5",
+          "boxShadow": "5px 5px 0 0 var(--w-accent)",
+          "width": "calc(100% - 6px)",
+          "height": "calc(100% - 6px)"
+        },
+        "edge": {
+          "background": "rgba(18, 18, 18, 0.5)",
+          "borderColor": "#f4f4f5",
+          "boxShadow": "5px 5px 0 0 var(--w-accent), inset 0 0 0 2px #f4f4f5, inset 0 0 14px rgba(255, 255, 255, 0.45)",
+          "width": "calc(100% - 6px)",
+          "height": "calc(100% - 6px)",
+          "borderWidth": 0,
+          "backdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))",
+          "WebkitBackdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))"
+        },
+        "ring": {
+          "background": "#121212",
+          "borderColor": "#f4f4f5",
+          "boxShadow": "5px 5px 0 0 var(--w-accent), inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)",
+          "width": "calc(100% - 6px)",
+          "height": "calc(100% - 6px)"
+        },
+        "blur0": {
+          "background": "#121212",
+          "borderColor": "#f4f4f5",
+          "boxShadow": "5px 5px 0 0 var(--w-accent)",
+          "width": "calc(100% - 6px)",
+          "height": "calc(100% - 6px)",
+          "backdropFilter": "none",
+          "WebkitBackdropFilter": "none"
+        }
+      },
+      "patch": "#121212",
+      "rawPatch": "#121212",
+      "scrim": "rgba(0, 0, 0, 0.45)",
+      "text": {
+        "--w-fg": "#f4f4f5",
+        "--w-muted": "#a1a1aa",
+        "--w-faint": "#8a8a94",
+        "--w-track": "rgba(255,255,255,.07)"
+      }
+    },
+    "cyber": {
+      "c": "",
+      "s": {
+        "background": "linear-gradient(135deg, color-mix(in oklab, var(--w-accent) 18%, transparent) 0 10%, transparent 10%), linear-gradient(#0e0e0b, #0e0e0b)",
+        "clipPath": "polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px))",
+        "boxShadow": "inset 0 0 0 1px color-mix(in oklab, var(--w-accent) 55%, transparent)"
+      },
+      "tone": "dark",
+      "colors": null,
+      "boxes": {
+        "none": {
+          "background": "linear-gradient(135deg, color-mix(in oklab, var(--w-accent) 18%, transparent) 0 10%, transparent 10%), linear-gradient(#0e0e0b, #0e0e0b)",
+          "clipPath": "polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px))",
+          "boxShadow": "inset 0 0 0 1px color-mix(in oklab, var(--w-accent) 55%, transparent)"
+        },
+        "defaults": {
+          "background": "linear-gradient(135deg, color-mix(in oklab, var(--w-accent) 18%, transparent) 0 10%, transparent 10%), linear-gradient(#0e0e0b, #0e0e0b)",
+          "clipPath": "polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px))",
+          "boxShadow": "inset 0 0 0 1px color-mix(in oklab, var(--w-accent) 55%, transparent)"
+        },
+        "edge": {
+          "background": "linear-gradient(135deg, color-mix(in oklab, color-mix(in oklab, var(--w-accent) 18%, transparent) 50%, transparent) 0 10%, transparent 10%), linear-gradient(rgba(14, 14, 11, 0.5), rgba(14, 14, 11, 0.5))",
+          "clipPath": "polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px))",
+          "boxShadow": "inset 0 0 0 1px color-mix(in oklab, var(--w-accent) 55%, transparent), inset 0 0 0 2px rgba(255, 255, 255, 0.1), inset 0 0 14px rgba(255, 255, 255, 0.45)",
+          "borderWidth": 0,
+          "backdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))",
+          "WebkitBackdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))"
+        },
+        "ring": {
+          "background": "linear-gradient(135deg, color-mix(in oklab, var(--w-accent) 18%, transparent) 0 10%, transparent 10%), linear-gradient(#0e0e0b, #0e0e0b)",
+          "clipPath": "polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px))",
+          "boxShadow": "inset 0 0 0 1px color-mix(in oklab, var(--w-accent) 55%, transparent), inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)"
+        },
+        "blur0": {
+          "background": "linear-gradient(135deg, color-mix(in oklab, var(--w-accent) 18%, transparent) 0 10%, transparent 10%), linear-gradient(#0e0e0b, #0e0e0b)",
+          "clipPath": "polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px))",
+          "boxShadow": "inset 0 0 0 1px color-mix(in oklab, var(--w-accent) 55%, transparent)",
+          "backdropFilter": "none",
+          "WebkitBackdropFilter": "none"
+        }
+      },
+      "patch": "#0b0b0d",
+      "rawPatch": "#0b0b0d",
+      "scrim": "rgba(0, 0, 0, 0.45)",
+      "text": {
+        "--w-fg": "#f4f4f5",
+        "--w-muted": "#a1a1aa",
+        "--w-faint": "#8a8a94",
+        "--w-track": "rgba(255,255,255,.07)"
+      }
+    },
+    "nixie": {
+      "c": "border border-black",
+      "s": {
+        "background": "radial-gradient(120% 90% at 50% 0%, rgba(255,138,61,.10), transparent 60%), linear-gradient(180deg, #1a1210, #0c0907)",
+        "boxShadow": "inset 0 1px 0 rgba(255,255,255,.06), inset 0 -20px 40px -20px rgba(0,0,0,.9)"
+      },
+      "tone": "dark",
+      "colors": null,
+      "boxes": {
+        "none": {
+          "background": "radial-gradient(120% 90% at 50% 0%, rgba(255,138,61,.10), transparent 60%), linear-gradient(180deg, #1a1210, #0c0907)",
+          "boxShadow": "inset 0 1px 0 rgba(255,255,255,.06), inset 0 -20px 40px -20px rgba(0,0,0,.9)"
+        },
+        "defaults": {
+          "background": "radial-gradient(120% 90% at 50% 0%, rgba(255,138,61,.10), transparent 60%), linear-gradient(180deg, #1a1210, #0c0907)",
+          "boxShadow": "inset 0 1px 0 rgba(255,255,255,.06), inset 0 -20px 40px -20px rgba(0,0,0,.9)"
+        },
+        "edge": {
+          "background": "radial-gradient(120% 90% at 50% 0%, rgba(255, 138, 61, 0.05), transparent 60%), linear-gradient(180deg, rgba(26, 18, 16, 0.5), rgba(12, 9, 7, 0.5))",
+          "boxShadow": "inset 0 1px 0 rgba(255,255,255,.06), inset 0 -20px 40px -20px rgba(0,0,0,.9), inset 0 0 0 2px rgba(255, 255, 255, 0.1), inset 0 0 14px rgba(255, 255, 255, 0.45)",
+          "borderWidth": 0,
+          "backdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))",
+          "WebkitBackdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))"
+        },
+        "ring": {
+          "background": "radial-gradient(120% 90% at 50% 0%, rgba(255,138,61,.10), transparent 60%), linear-gradient(180deg, #1a1210, #0c0907)",
+          "boxShadow": "inset 0 1px 0 rgba(255,255,255,.06), inset 0 -20px 40px -20px rgba(0,0,0,.9), inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)"
+        },
+        "blur0": {
+          "background": "radial-gradient(120% 90% at 50% 0%, rgba(255,138,61,.10), transparent 60%), linear-gradient(180deg, #1a1210, #0c0907)",
+          "boxShadow": "inset 0 1px 0 rgba(255,255,255,.06), inset 0 -20px 40px -20px rgba(0,0,0,.9)",
+          "backdropFilter": "none",
+          "WebkitBackdropFilter": "none"
+        }
+      },
+      "patch": "#0b0b0d",
+      "rawPatch": "#0b0b0d",
+      "scrim": "rgba(0, 0, 0, 0.45)",
+      "text": {
+        "--w-fg": "#f4f4f5",
+        "--w-muted": "#a1a1aa",
+        "--w-faint": "#8a8a94",
+        "--w-track": "rgba(255,255,255,.07)"
+      }
+    },
+    "instrument": {
+      "c": "border",
+      "s": {
+        "background": "#161A20",
+        "borderColor": "#29303A"
+      },
+      "tone": "dark",
+      "colors": null,
+      "boxes": {
+        "none": {
+          "background": "#161A20",
+          "borderColor": "#29303A"
+        },
+        "defaults": {
+          "background": "#161A20",
+          "borderColor": "#29303A"
+        },
+        "edge": {
+          "background": "rgba(22, 26, 32, 0.5)",
+          "borderColor": "#29303A",
+          "boxShadow": "inset 0 0 0 2px #29303A, inset 0 0 14px rgba(255, 255, 255, 0.45)",
+          "borderWidth": 0,
+          "backdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))",
+          "WebkitBackdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))"
+        },
+        "ring": {
+          "background": "#161A20",
+          "borderColor": "#29303A",
+          "boxShadow": "inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)"
+        },
+        "blur0": {
+          "background": "#161A20",
+          "borderColor": "#29303A",
+          "backdropFilter": "none",
+          "WebkitBackdropFilter": "none"
+        }
+      },
+      "patch": "#161A20",
+      "rawPatch": "#161A20",
+      "scrim": "rgba(0, 0, 0, 0.45)",
+      "text": {
+        "--w-fg": "#f4f4f5",
+        "--w-muted": "#a1a1aa",
+        "--w-faint": "#8a8a94",
+        "--w-track": "rgba(255,255,255,.07)"
+      }
+    },
+    "glass": {
+      "c": "",
+      "s": {
+        "background": "linear-gradient(155deg, rgba(24, 24, 27, 0.85) 0%, rgba(24, 24, 27, 0.55) 100%)",
+        "color": "var(--wp-fg, rgb(250, 250, 250))",
+        "boxShadow": "inset 0 0 0 1px rgba(255, 255, 255, 0.1)"
+      },
+      "tone": "dark",
+      "colors": {
+        "background": "linear-gradient(155deg, rgba(24, 24, 27, 0.85) 0%, rgba(24, 24, 27, 0.55) 100%)",
+        "fg": "var(--wp-fg, rgb(250, 250, 250))",
+        "muted": "var(--wp-muted, rgba(250, 250, 250, 0.6))",
+        "track": "rgba(255, 255, 255, 0.14)",
+        "fill": "rgb(52, 211, 153)",
+        "ring": "rgba(255, 255, 255, 0.1)"
+      },
+      "boxes": {
+        "none": {
+          "background": "linear-gradient(155deg, rgba(24, 24, 27, 0.85) 0%, rgba(24, 24, 27, 0.55) 100%)",
+          "boxShadow": "inset 0 0 0 1px rgba(255, 255, 255, 0.1)"
+        },
+        "defaults": {
+          "background": "linear-gradient(155deg, rgba(24, 24, 27, 0.85) 0%, rgba(24, 24, 27, 0.55) 100%)",
+          "boxShadow": "inset 0 0 0 1px rgba(255, 255, 255, 0.1)"
+        },
+        "edge": {
+          "background": "linear-gradient(155deg, rgba(24, 24, 27, 0.43) 0%, rgba(24, 24, 27, 0.28) 100%)",
+          "boxShadow": "inset 0 0 0 2px rgba(255, 255, 255, 0.1), inset 0 0 14px rgba(255, 255, 255, 0.45)",
+          "backdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))",
+          "WebkitBackdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))"
+        },
+        "ring": {
+          "background": "linear-gradient(155deg, rgba(24, 24, 27, 0.85) 0%, rgba(24, 24, 27, 0.55) 100%)",
+          "boxShadow": "inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)"
+        },
+        "blur0": {
+          "background": "linear-gradient(155deg, rgba(24, 24, 27, 0.85) 0%, rgba(24, 24, 27, 0.55) 100%)",
+          "boxShadow": "inset 0 0 0 1px rgba(255, 255, 255, 0.1)",
+          "backdropFilter": "none",
+          "WebkitBackdropFilter": "none"
+        }
+      },
+      "patch": "#0b0b0d",
+      "rawPatch": "#0b0b0d",
+      "scrim": "rgba(0, 0, 0, 0.45)",
+      "text": {
+        "--w-fg": "#f4f4f5",
+        "--w-muted": "#a1a1aa",
+        "--w-faint": "#8a8a94",
+        "--w-track": "rgba(255,255,255,.07)"
+      }
+    },
+    "matte-light": {
+      "c": "",
+      "s": {
+        "background": "rgb(244, 244, 245)",
+        "color": "var(--wp-fg, rgb(24, 24, 27))",
+        "boxShadow": "inset 0 0 0 1px rgba(255, 255, 255, 0.4)"
+      },
+      "tone": "light",
+      "colors": {
+        "background": "rgb(244, 244, 245)",
+        "fg": "var(--wp-fg, rgb(24, 24, 27))",
+        "muted": "var(--wp-muted, rgba(24, 24, 27, 0.72))",
+        "track": "rgba(24, 24, 27, 0.16)",
+        "fill": "rgb(113, 113, 122)",
+        "ring": "rgba(255, 255, 255, 0.4)"
+      },
+      "boxes": {
+        "none": {
+          "background": "rgb(244, 244, 245)",
+          "boxShadow": "inset 0 0 0 1px rgba(255, 255, 255, 0.4)"
+        },
+        "defaults": {
+          "background": "rgb(244, 244, 245)",
+          "boxShadow": "inset 0 0 0 1px rgba(255, 255, 255, 0.4)"
+        },
+        "edge": {
+          "background": "rgba(244, 244, 245, 0.5)",
+          "boxShadow": "inset 0 0 0 2px rgba(255, 255, 255, 0.4), inset 0 0 14px rgba(255, 255, 255, 0.45)",
+          "backdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))",
+          "WebkitBackdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))"
+        },
+        "ring": {
+          "background": "rgb(244, 244, 245)",
+          "boxShadow": "inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)"
+        },
+        "blur0": {
+          "background": "rgb(244, 244, 245)",
+          "boxShadow": "inset 0 0 0 1px rgba(255, 255, 255, 0.4)",
+          "backdropFilter": "none",
+          "WebkitBackdropFilter": "none"
+        }
+      },
+      "patch": "rgb(244, 244, 245)",
+      "rawPatch": "rgb(244, 244, 245)",
+      "scrim": "rgba(255, 255, 255, 0.45)",
+      "text": {
+        "--w-fg": "#18181b",
+        "--w-muted": "#52525b",
+        "--w-faint": "#636366",
+        "--w-track": "rgba(24,24,27,.1)",
+        "--w-fill": "#f4f4f5",
+        "--w-warn": "#a15c07",
+        "--w-crit": "#c4261d"
+      }
+    },
+    "matte-dark": {
+      "c": "",
+      "s": {
+        "background": "rgb(24, 24, 27)",
+        "color": "var(--wp-fg, rgb(250, 250, 250))",
+        "boxShadow": "inset 0 0 0 1px rgba(255, 255, 255, 0.1)"
+      },
+      "tone": "dark",
+      "colors": {
+        "background": "rgb(24, 24, 27)",
+        "fg": "var(--wp-fg, rgb(250, 250, 250))",
+        "muted": "var(--wp-muted, rgba(250, 250, 250, 0.6))",
+        "track": "rgba(255, 255, 255, 0.14)",
+        "fill": "rgb(161, 161, 170)",
+        "ring": "rgba(255, 255, 255, 0.1)"
+      },
+      "boxes": {
+        "none": {
+          "background": "rgb(24, 24, 27)",
+          "boxShadow": "inset 0 0 0 1px rgba(255, 255, 255, 0.1)"
+        },
+        "defaults": {
+          "background": "rgb(24, 24, 27)",
+          "boxShadow": "inset 0 0 0 1px rgba(255, 255, 255, 0.1)"
+        },
+        "edge": {
+          "background": "rgba(24, 24, 27, 0.5)",
+          "boxShadow": "inset 0 0 0 2px rgba(255, 255, 255, 0.1), inset 0 0 14px rgba(255, 255, 255, 0.45)",
+          "backdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))",
+          "WebkitBackdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))"
+        },
+        "ring": {
+          "background": "rgb(24, 24, 27)",
+          "boxShadow": "inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)"
+        },
+        "blur0": {
+          "background": "rgb(24, 24, 27)",
+          "boxShadow": "inset 0 0 0 1px rgba(255, 255, 255, 0.1)",
+          "backdropFilter": "none",
+          "WebkitBackdropFilter": "none"
+        }
+      },
+      "patch": "rgb(24, 24, 27)",
+      "rawPatch": "rgb(24, 24, 27)",
+      "scrim": "rgba(0, 0, 0, 0.45)",
+      "text": {
+        "--w-fg": "#f4f4f5",
+        "--w-muted": "#a1a1aa",
+        "--w-faint": "#8a8a94",
+        "--w-track": "rgba(255,255,255,.07)"
+      }
+    },
+    "theme": {
+      "c": "",
+      "s": {
+        "background": "hsl(var(--card) / 0.85)",
+        "color": "var(--wp-fg, hsl(var(--card-foreground)))",
+        "boxShadow": "inset 0 0 0 1px hsl(var(--border))"
+      },
+      "tone": "theme",
+      "colors": {
+        "background": "hsl(var(--card) / 0.85)",
+        "fg": "var(--wp-fg, hsl(var(--card-foreground)))",
+        "muted": "var(--wp-muted, hsl(var(--muted-foreground)))",
+        "track": "hsl(var(--muted))",
+        "fill": "hsl(var(--primary))",
+        "ring": "hsl(var(--border))"
+      },
+      "boxes": {
+        "none": {
+          "background": "hsl(var(--card) / 0.85)",
+          "boxShadow": "inset 0 0 0 1px hsl(var(--border))"
+        },
+        "defaults": {
+          "background": "hsl(var(--card) / 0.85)",
+          "boxShadow": "inset 0 0 0 1px hsl(var(--border))"
+        },
+        "edge": {
+          "background": "hsl(var(--card) / 0.43)",
+          "boxShadow": "inset 0 0 0 2px hsl(var(--border)), inset 0 0 14px rgba(255, 255, 255, 0.45)",
+          "backdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))",
+          "WebkitBackdropFilter": "blur(min(8px, var(--wp-blur-cap, 8px)))"
+        },
+        "ring": {
+          "background": "hsl(var(--card) / 0.85)",
+          "boxShadow": "inset 0 0 0 1px #ff0000, inset 0 0 32px rgba(255, 255, 255, 0.45)"
+        },
+        "blur0": {
+          "background": "hsl(var(--card) / 0.85)",
+          "boxShadow": "inset 0 0 0 1px hsl(var(--border))",
+          "backdropFilter": "none",
+          "WebkitBackdropFilter": "none"
+        }
+      },
+      "patch": "hsl(var(--card) / 0.85)",
+      "rawPatch": "hsl(var(--card) / 0.85)",
+      "scrim": "hsl(var(--background) / 0.45)",
+      "text": {
+        "--w-fg": "hsl(var(--card-foreground))",
+        "--w-muted": "hsl(var(--muted-foreground))",
+        "--w-faint": "hsl(var(--muted-foreground))",
+        "--w-track": "color-mix(in oklab, hsl(var(--card-foreground)) 9%, transparent)",
+        "--w-fill": "hsl(var(--card))",
+        "--w-warn": "color-mix(in oklab, #EDB232 60%, hsl(var(--card-foreground)))",
+        "--w-crit": "color-mix(in oklab, #F2665E 60%, hsl(var(--card-foreground)))"
+      }
+    }
+  },
+  "tinted": {
+    "glass": {
+      "plain": {
+        "background": "linear-gradient(155deg, rgba(24, 24, 27, 0.85) 0%, rgba(24, 24, 27, 0.55) 100%)",
+        "fg": "var(--wp-fg, rgb(250, 250, 250))",
+        "muted": "var(--wp-muted, rgba(250, 250, 250, 0.6))",
+        "track": "rgba(255, 255, 255, 0.14)",
+        "fill": "rgb(52, 211, 153)",
+        "ring": "rgba(255, 255, 255, 0.1)"
+      },
+      "tint": {
+        "background": "linear-gradient(155deg, rgba(208, 89, 115, 0.45) 0%, rgba(80, 24, 36, 0.8) 100%)",
+        "fg": "var(--wp-fg, rgb(250, 250, 250))",
+        "muted": "var(--wp-muted, rgba(250, 250, 250, 0.65))",
+        "track": "rgba(255, 255, 255, 0.16)",
+        "fill": "rgb(217, 119, 140)",
+        "ring": "rgba(255, 255, 255, 0.12)"
+      },
+      "palette": {
+        "background": "linear-gradient(155deg, rgba(225, 72, 106, 0.45) 0%, rgba(40, 10, 20, 0.8) 100%)",
+        "fg": "var(--wp-fg, rgb(250, 250, 250))",
+        "muted": "var(--wp-muted, rgba(250, 250, 250, 0.65))",
+        "track": "rgba(255, 255, 255, 0.16)",
+        "fill": "rgb(231, 105, 133)",
+        "ring": "rgba(255, 255, 255, 0.12)"
+      }
+    },
+    "matte-light": {
+      "plain": {
+        "background": "rgb(244, 244, 245)",
+        "fg": "var(--wp-fg, rgb(24, 24, 27))",
+        "muted": "var(--wp-muted, rgba(24, 24, 27, 0.72))",
+        "track": "rgba(24, 24, 27, 0.16)",
+        "fill": "rgb(113, 113, 122)",
+        "ring": "rgba(255, 255, 255, 0.4)"
+      },
+      "tint": {
+        "background": "rgb(241, 204, 212)",
+        "fg": "var(--wp-fg, rgb(24, 24, 27))",
+        "muted": "var(--wp-muted, rgba(24, 24, 27, 0.72))",
+        "track": "rgba(24, 24, 27, 0.16)",
+        "fill": "rgb(176, 53, 79)",
+        "ring": "rgba(255, 255, 255, 0.4)"
+      },
+      "palette": {
+        "background": "rgb(250, 220, 230)",
+        "fg": "var(--wp-fg, rgb(24, 24, 27))",
+        "muted": "var(--wp-muted, rgba(24, 24, 27, 0.72))",
+        "track": "rgba(24, 24, 27, 0.16)",
+        "fill": "rgb(194, 35, 70)",
+        "ring": "rgba(255, 255, 255, 0.4)"
+      }
+    },
+    "matte-dark": {
+      "plain": {
+        "background": "rgb(24, 24, 27)",
+        "fg": "var(--wp-fg, rgb(250, 250, 250))",
+        "muted": "var(--wp-muted, rgba(250, 250, 250, 0.6))",
+        "track": "rgba(255, 255, 255, 0.14)",
+        "fill": "rgb(161, 161, 170)",
+        "ring": "rgba(255, 255, 255, 0.1)"
+      },
+      "tint": {
+        "background": "rgb(56, 17, 25)",
+        "fg": "var(--wp-fg, rgb(250, 250, 250))",
+        "muted": "var(--wp-muted, rgba(250, 250, 250, 0.6))",
+        "track": "rgba(255, 255, 255, 0.14)",
+        "fill": "rgb(222, 138, 156)",
+        "ring": "rgba(255, 255, 255, 0.1)"
+      },
+      "palette": {
+        "background": "rgb(40, 10, 20)",
+        "fg": "var(--wp-fg, rgb(250, 250, 250))",
+        "muted": "var(--wp-muted, rgba(250, 250, 250, 0.6))",
+        "track": "rgba(255, 255, 255, 0.14)",
+        "fill": "rgb(234, 126, 150)",
+        "ring": "rgba(255, 255, 255, 0.1)"
+      }
+    },
+    "theme": {
+      "plain": {
+        "background": "hsl(var(--card) / 0.85)",
+        "fg": "var(--wp-fg, hsl(var(--card-foreground)))",
+        "muted": "var(--wp-muted, hsl(var(--muted-foreground)))",
+        "track": "hsl(var(--muted))",
+        "fill": "hsl(var(--primary))",
+        "ring": "hsl(var(--border))"
+      },
+      "tint": {
+        "background": "hsl(var(--card) / 0.85)",
+        "fg": "var(--wp-fg, hsl(var(--card-foreground)))",
+        "muted": "var(--wp-muted, hsl(var(--muted-foreground)))",
+        "track": "hsl(var(--muted))",
+        "fill": "hsl(var(--primary))",
+        "ring": "hsl(var(--border))"
+      },
+      "palette": {
+        "background": "hsl(var(--card) / 0.85)",
+        "fg": "var(--wp-fg, hsl(var(--card-foreground)))",
+        "muted": "var(--wp-muted, hsl(var(--muted-foreground)))",
+        "track": "hsl(var(--muted))",
+        "fill": "hsl(var(--primary))",
+        "ring": "hsl(var(--border))"
+      }
+    }
+  },
+  "auto": {
+    "default": "solid",
+    "default/studio": "studio",
+    "tui": "tui",
+    "tui/studio": "tui",
+    "macos": "vibrancy",
+    "macos/studio": "vibrancy",
+    "fluent": "mica",
+    "fluent/studio": "mica",
+    "hud": "hud",
+    "hud/studio": "hud",
+    "ink": "outline",
+    "ink/studio": "outline",
+    "retro": "terminal",
+    "retro/studio": "terminal",
+    "ios": "ios",
+    "ios/studio": "ios",
+    "android": "material",
+    "android/studio": "material",
+    "synth": "synth",
+    "synth/studio": "synth",
+    "brutal": "brutal",
+    "brutal/studio": "brutal",
+    "cyber": "cyber",
+    "cyber/studio": "cyber",
+    "nixie": "nixie",
+    "nixie/studio": "nixie",
+    "instrument": "instrument",
+    "instrument/studio": "instrument",
+    "nope": "solid",
+    "nope/studio": "studio"
+  }
+}

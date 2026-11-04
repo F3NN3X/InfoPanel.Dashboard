@@ -156,7 +156,7 @@ export function PointTable({
       <div className={cn("grid gap-3 whitespace-nowrap border-b border-ui-subtle px-4 py-[7px]", CAPTION, cols)}>
         <span>Sensor</span>
         <span className="flex items-center justify-end gap-1.5">
-          {live && <PulseDot color="var(--ui-success)" pulse label="Live" className="h-1.5 w-1.5 shrink-0 rounded-full" />}
+          {live && <PulseDot color="var(--ui-ok)" pulse label="Live" className="h-1.5 w-1.5 shrink-0 rounded-full" />}
           Now
         </span>
         <span>Display name</span>

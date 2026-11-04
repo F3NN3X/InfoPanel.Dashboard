@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import type { ModernChrome } from "@/components/modern-chrome";
-import { makeSurface } from "@/components/surfaces";
+import { makeSurface } from "@/looks/materials";
 import { CROSS, MAIN, safe, surfaceBox, ws, type SurfaceColors } from "@/components/widget-style";
 import { defaultBoxW, type BoxAlign, type BoxSize, type PanelDef, type PanelJustify, type Widget } from "@/lib/panel-model";
 

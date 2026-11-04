@@ -6,7 +6,7 @@ related: [assets, gauges, import, themes]
 verified: 1.3.0-beta.36
 ---
 
-Everything you can reuse is here, yours and the built-in ones: Styles, Panels, gauges, images, videos, fonts, components, InfoPanel profiles, screen templates and InfoPanel templates. Gauges are built and edited in their own view, **Gauges** on the rail. Themes, palettes and skins are in **Theme** (see [Themes](themes)), and island looks in the island settings (see [Dynamic Island and alerts](island-alerts)); the sidebar ends with a row, **Themes, palettes and skins are in Theme →**, that opens Theme.
+Everything you can reuse is here, yours and the built-in ones: Widget looks, Panels, gauges, images, videos, fonts, components, InfoPanel profiles, screen templates and InfoPanel templates. Gauges are built and edited in their own view, **Gauges** on the rail. Looks, saved looks and colors are in **Look** (see [Themes](themes)), and island looks in the island settings (see [Dynamic Island and alerts](island-alerts)); the sidebar ends with a row, **Looks, saved looks and colors are in Look →**, that opens Look.
 
 Open **Library** on the rail. The sidebar lists the **Smart** collections and the collections by type; the header has search, Grid and Shelves, a **Used by** filter for one screen, **Canvas files** for the files the current screen uses (see [Assets and fonts](assets)) and **Add files…**, which opens the Import door (see [Importing and exporting](import)).
 

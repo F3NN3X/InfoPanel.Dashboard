@@ -37,7 +37,7 @@ export default function VolumeMixer(p: VolumeMixerProps) {
   const def = ch.find((c) => c.id === "default") ?? ch[0];
   const flow = p.flow ?? "all";
   const list = ch.filter((c) => (p.devices ? volumePicked(c.id, p.devices) : c.id !== "default") && inFlow(c.id === "default" ? "output" : volumeFlowOf(d, c.id), flow));
-  const fill = p.levelColor || "var(--accent)";
+  const fill = p.levelColor || "var(--w-accent)";
   const wl = get(d, "plugins.wavelink-plugin.wavelink.status") === "up";
   // The audiocn views: read-only (the plugin has no write path), a knobless fader beside the device's level meter. A device the
   // level-meter plugin doesn't report draws its meter at silence.

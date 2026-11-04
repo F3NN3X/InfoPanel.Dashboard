@@ -1,0 +1,39 @@
+{
+  "id": "liquid-glass",
+  "name": "Liquid Glass",
+  "version": "1.0.0",
+  "tags": [
+    "dark",
+    "glass",
+    "blur"
+  ],
+  "description": "Frosted rose-violet glass at the full 24 px blur over a soft ambient page of tinted light.",
+  "modes": [
+    "dark"
+  ],
+  "fonts": [
+    {
+      "family": "pack-liquid",
+      "source": "Manrope",
+      "file": "manrope-500.woff2",
+      "weight": "100 900",
+      "licence": "OFL-1.1",
+      "copyright": "Copyright 2019 The Manrope Project Authors (https://github.com/sharanda/manrope)"
+    }
+  ],
+  "stage": {
+    "layers": [
+      {
+        "fill": "linear-gradient(150deg, #3B2350, #0F1B2D)"
+      },
+      {
+        "fill": "radial-gradient(38% 46% at 18% 24%, rgba(245,163,199,.55), transparent 70%), radial-gradient(34% 42% at 82% 30%, rgba(139,108,255,.5), transparent 70%), radial-gradient(40% 46% at 62% 88%, rgba(62,200,200,.36), transparent 70%)",
+        "minSizeClass": "sm"
+      }
+    ]
+  },
+  "burnIn": "needs-shift",
+  "statusBar": {
+    "edge": "top"
+  }
+}

@@ -89,7 +89,7 @@ export function CompositeView(p: CompositeProps) {
   const games = Number.isFinite(totalGames) ? `${Math.round(totalGames)} games` : "";
   const friends = Number.isFinite(friendsOnline) ? (Number.isFinite(totalFriends) ? `${Math.round(friendsOnline)}/${Math.round(totalFriends)} online` : `${Math.round(friendsOnline)} online`) : "";
   const ach = Number.isFinite(achPct) ? `${Math.round(achPct)}%` : "—";
-  const bigColor = p.accent ? "var(--accent)" : undefined;
+  const bigColor = p.accent ? "var(--w-accent)" : undefined;
   const dim = overlay(v, p.scrim);
 
   const profile = (size: number) => (

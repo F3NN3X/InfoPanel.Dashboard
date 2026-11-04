@@ -22,6 +22,7 @@
     },
     "build": { "cmd": "npm run build", "when": "entry points, Vite config, public assets, dependencies" },
     "budgets": { "cmd": "npm run perf:budgets", "needs": ["build"], "when": "the gzip and request budgets (tools/perf/budgets.json); gating" },
+    "pack-budgets": { "cmd": "node tools/perf/check-budgets.mjs --packs", "needs": ["build"], "when": "the built-in packs' lazy code and assets against the `packs` block of tools/perf/budgets.json; gating" },
     "settings-build": { "cmd": "npm run desktop:settings", "when": "the Settings window's own entry" },
     "server-bin": { "cmd": "cargo build -p ips-server", "cwd": "src-tauri", "when": "the debug ips-server the e2e specs start" },
     "server-suite": {
@@ -54,6 +55,17 @@
       "needs": ["server-bin"],
       "when": "the Edit v3 reference states (?fixture=one-editor/<name>, a fixtures build the project makes itself); their checklists run as the phases enable them"
     },
+    "overflow": {
+      "cmd": "node tools/qa/overflow.mjs --baseline tests/qa/overflow-baseline.json --looks field-kit,tape-86,term,neon-stripe,overdrive,swiss-mono,holo,night-glow,paper,classy-black,liquid-glass,black-and-gold --markup-baseline tests/qa/pack-markup-baseline.json --same-boxes look-field-kit,look-tape-86,look-neon-stripe,look-overdrive,look-swiss-mono,look-term,look-holo,look-night-glow,look-paper,look-classy-black,look-liquid-glass,look-black-and-gold",
+      "needs": ["build", "server-bin"],
+      "when": "the Widget QA overflow probe at 1x1, 2x2, 4x2 and 4x4 on fixture data, diffed against tests/qa/overflow-baseline.json (each pack's markup too, tests/qa/pack-markup-baseline.json, refreshed with --save-markup): a new issue or any change at a non-roomy span fails (refresh with --save when intended); and once per sample theme card (looks/sample-materials.ts) the same frames must keep the default card and body rects (G2); and once per built-in pack (tools/qa/pack-styles.mjs) the frames must show no issue, and no card or body rect, that the same style without the pack does not (G2)"
+    },
+    "look-visual": {
+      "cmd": "npx playwright test --project=look-visual",
+      "platform": "win32",
+      "needs": ["build", "server-bin"],
+      "when": "verify:full only (on no feature), Windows only, never in CI: the Classic look per widget kind, span and material against the images in tests/visual/look/baselines (this platform's text rendering), and one sheet per sample theme (samples.spec.ts: the six mockup widgets)"
+    },
     "cargo-server": {
       "cmd": "cargo test -p ips-server -p ips-agent && cargo clippy -p ips-server -p ips-agent --all-targets -- -D warnings",
       "cwd": "src-tauri",
@@ -76,7 +88,7 @@
       "summary": "Config load, save, migrations (every version), settings patches, undo history.",
       "paths": [
         "src/lib/settings-migrate*.ts",
-        "src/lib/screen-look-migrate.ts","src/lib/config-update*.ts","src/lib/config-upgrade.ts",
+        "src/lib/screen-look-migrate.ts","src/lib/look-migrate.ts","src/lib/config-update*.ts","src/lib/config-upgrade.ts",
         "src/lib/legacy-zones*.ts",
         "src/lib/settings-patch.ts",
         "src/lib/general.ts",
@@ -416,7 +428,9 @@
         "src/assets/**",
         "src/lib/widget-icons.ts",
         "docs/redesign/widgets/docs/widgets/*.md",
-        "docs/redesign/widgets/docs/.facts.json"
+        "docs/redesign/widgets/docs/.facts.json",
+        "tools/qa/**",
+        "tests/qa/**"
       ],
       "exclude": ["src/widgets/CodingAgents/**", "src/widgets/CodingAgents.tsx"],
       "tests": [
@@ -432,6 +446,8 @@
         "tests/widgets/StreamControl/**",
         "tests/widgets/StreamDeck/**",
         "tests/widgets/widget-qa/**",
+        "tests/tools/qa/**",
+        "tests/visual/look/**",
         "tests/widgets/StreamChat/**",
         "tests/widgets/StatusBar/**",
         "tests/widgets/weather-fx/**",
@@ -440,7 +456,7 @@
         "tests/e2e/widget-qa-parity.spec.ts",
         "tests/e2e/visualiser-round-trip.spec.ts"
       ],
-      "checks": ["typecheck", "unit", "build", "budgets", "e2e"],
+      "checks": ["typecheck", "unit", "build", "budgets", "e2e", "overflow"],
       "report": ["npm run audit:views", "npm run qa:shots"],
       "note": "The registry schema tests and key-audit read docs/redesign/widgets/docs/widgets/*.md and .facts.json: a change there is a test change."
     },
@@ -452,9 +468,8 @@
         "src/components/widgets/**",
         "src/components/island/**",
         "src/components/Gauge.tsx",
-        "src/components/widget-style.ts",
+        "src/components/{widget-style,surfaces}.ts",
         "src/components/zone-error-boundary.tsx",
-        "src/components/surfaces.ts",
         "src/lib/island/**",
         "src/lib/panel-*.ts",
         "src/lib/panelPresets.ts",
@@ -501,7 +516,8 @@
         "tests/lib/effects/**",
         "tests/lib/fonts.test.ts",
         "tests/modules/**",
-        "tests/e2e/theme-switch.spec.ts"
+        "tests/e2e/theme-switch.spec.ts",
+        "tests/e2e/look-gallery.spec.ts"
       ],
       "checks": ["typecheck", "unit", "e2e"]
     },
@@ -587,7 +603,8 @@
         "tests/e2e/browser-studio.spec.ts",
         "tests/e2e/studio-basics.spec.ts",
         "tests/e2e/frozen-preview.spec.ts",
-        "tests/e2e/theme-switch.spec.ts"
+        "tests/e2e/theme-switch.spec.ts",
+        "tests/e2e/look-gallery.spec.ts"
       ],
       "checks": ["typecheck", "unit", "build", "budgets", "e2e"]
     },
@@ -598,6 +615,14 @@
       "paths": ["src/components/library/**", "src/lib/my-library/**"],
       "tests": ["tests/components/library/**", "tests/lib/my-library/**"],
       "checks": ["typecheck", "unit"]
+    },
+    {
+      "id": "looks",
+      "summary": "The Look system's single sources (status colours, default accent, Studio twins, the material registry) and the generator that writes the copies the CSS and the gauge export need.",
+      "paths": ["src/looks/**", "tools/looks/**", "tools/validate-pack.*"],
+      "tests": ["tests/looks/**", "tests/widgets/core/state-copies.test.ts", "tests/lib/theme-css-sync.test.ts", "tests/settings/theme-tokens.test.ts", "tests/components/color-literals.test.ts", "tests/e2e/material-export.spec.ts", "tests/e2e/pack-visibility.spec.ts", "tests/e2e/pack-faces.spec.ts", "tests/e2e/pack-selectors.spec.ts", "tests/e2e/pack-connectors.spec.ts", "tests/e2e/user-packs.spec.ts", "tests/tools/qa/pack-styles.test.ts"],
+      "checks": ["typecheck", "unit", "build", "budgets", "pack-budgets", "settings-build", "import-check", "e2e"],
+      "note": "Generated files: src/looks/generated/*, the @generated blocks in src/index.css, src/settings/tokens.css and src/widgets/core/mixer-views.css. Edit the source, run `npm run looks:gen`; tests/looks/generated.test.ts fails when one is stale. tests/looks/scan.test.ts gates the D9 scans (hex outside src/looks, blur outside the cap, ui-* in widgets) against tests/looks/scan-baseline.json, a ratchet; `npm run looks:scan` prints them and `-- --save` lowers the baseline. import-check because the gauge THEME is written into exports."
     },
     {
       "id": "gauges",
@@ -617,8 +642,8 @@
       "summary": "InfoPanel profile parsing, conversion, canvas editing, fonts, archives, export, with the corpus round-trips.",
       "paths": ["src/lib/infopanel/**", "src/components/infopanel/**", "tools/ip-import.cjs", "tools/gen-element-icons.mjs", "tools/gen-element-icons.d.mts"],
       "exclude": ["src/lib/infopanel/gauges/**"],
-      "tests": ["tests/lib/infopanel/**", "tests/components/infopanel/**"],
-      "checks": ["typecheck", "unit", "lab", "import-check"],
+      "tests": ["tests/lib/infopanel/**", "tests/components/infopanel/**", "tests/e2e/material-export.spec.ts"],
+      "checks": ["typecheck", "unit", "lab", "import-check", "e2e"],
       "note": "The corpus round-trips live in the lab (lab/infopanel/src/corpus.test.ts, order.test.ts, idempotent.test.ts), outside npm test, and so does the profile templates' every-size export sweep (lab/infopanel/src/templates.test.ts). import-check needs Windows, .NET and an InfoPanel source folder (docs/TESTING.md)."
     },
     {
@@ -701,7 +726,7 @@
       "summary": "The gating bundle budgets and the report that feeds them.",
       "paths": ["tools/perf/budgets.json", "tools/perf/check-budgets.mjs", "tools/perf/bundle-report.mjs"],
       "tests": ["tests/tools/perf/check-budgets.test.mjs"],
-      "checks": ["build", "unit", "budgets"]
+      "checks": ["build", "unit", "budgets", "pack-budgets"]
     },
     {
       "id": "perf",

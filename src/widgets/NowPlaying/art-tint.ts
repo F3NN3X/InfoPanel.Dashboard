@@ -1,6 +1,6 @@
 // Cover-art tint: a Vibrant-style palette sampled from the art (moved from the legacy now-playing widget).
 import { useEffect, useState } from "react";
-import { darken, lighten, type ArtTint, type RGB } from "@/components/surfaces";
+import { darken, lighten, type ArtTint, type RGB } from "@/looks/materials";
 import { IMAGE_PROXY_URL } from "@/lib/dashboard-server";
 
 const rgbToHsl = (

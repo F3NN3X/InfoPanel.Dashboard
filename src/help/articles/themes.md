@@ -1,6 +1,6 @@
 ---
 id: themes
-title: Themes
+title: Looks
 icon: palette
 related: [widget-settings, background, presets]
 verified: 1.3.0-beta.36
@@ -19,44 +19,55 @@ Widget — Only sections you change
 
 Each layer overrides the one before it. Content settings (sensors, what to show) are never themed; they always belong to the widget.
 
-## The Theme view
+## The Look view
 
-**Theme** on the rail is the one place for the look, and you always edit what is live: a change shows on the screen at once. The header reads **Live look of** and the level: a screen (with its size) or a page. The screen and page each have a menu to pick another one. Each screen owns its look; nothing above it is shared. A line under it says what the level is: "The look of ‹screen›", or for a page "What ‹page› changes from ‹screen›. Palette, corners and background come from ‹screen›." At a screen, **Lock all** and **Unlock all** sit beside it.
+**Look** on the rail is the one place for the look, and you always edit what is live: a change shows on the screen at once. The header reads **Live look of** and the level: a screen (with its size) or a page. The screen and page each have a menu to pick another one. Each screen owns its look; nothing above it is shared. A line under it says what the level is: "The look of ‹screen›", or for a page "What ‹page› changes from ‹screen›. Palette, corners and background come from ‹screen›." At a screen, **Lock all** and **Unlock all** sit beside it.
 
-## The theme card
+The column holds, from the top: the card of the applied look, the **knobs** of its Look, the **Look gallery**, and **Advanced · Fine-tune**.
 
-A theme is four parts: the **Palette** (the 19 color tokens and the accent), the **Skin**, the **Corners** and the **Background**. The card shows them under **Made of**, with the theme's name and a line saying what it is:
+## Looks and the gallery
 
-- **Saved theme · also on ‹places›**, or **Saved theme · only here**: one of your saved themes.
+A **Look** is how widgets are drawn: their card, colors, type, rings, meters and graphs. **Classic** is the default; the skins (TUI, macOS, HUD, Synth and the others) and the sample Looks (Field Kit, Term, Paper and the others) are Looks too. **Choose a Look** shows each one as a card drawn by the real widgets, tagged (minimal, technical, retro, neon, gaming, glass, light). The chips filter by tag and the search box by name. One click applies a Look: the level stores which Look it is and only what you change on top, so the Look's own card, accent, text colors and font come with it. Picking a Look keeps what you changed at this level: your colors, corners, knob changes and fine-tune stay, and the knobs show **Custom** where they differ from the Look, with a reset to it. A sample Look brings its screen colors and corners where the level still has the last look's, and its page background; tick **Keep my background** to keep yours. **Undo** puts the previous Look back. Your **Saved looks** follow the Looks as cards.
+
+**Your packs** sit under the Looks. **Import a folder** or **Import a zip** brings in a Look pack: it is checked first, and a pack with a problem is refused with the reason shown (a pack never brings its own style sheet, and it may not reuse the name of a built-in Look). A pack you import is stored in the app data folder, listed as **your pack**, and picked like any Look. **Remove** takes it out; any screen or page that wore it draws Classic instead, and a note says how many. Sharing packs is off.
+
+**Saved and template looks** opens every saved look and every screen template's look, filtered by **All**, **Saved**, **Templates** or **Light**. Your saved looks come first; each **⋯** says which levels use it (or "Not in use") and has **Rename**, **Duplicate** and **Delete**. Then one row for each screen template with a chip for each variant. Meters, Orbit and Ticker look the same, so they are one row, tagged "also Orbit, Ticker".
+
+Picking a look writes its colors, Look, corners and background. The first one picked on a level that has none yet replaces its look, fine-tune included. After that, picking one adds to the look: it keeps the fine-tune changes you made at this level since. A variant also brings the card opacity and color swaps a new screen from it has. **Keep my background** is off by default and stays as you set it until the studio closes. On a page a look brings its Look and fine-tune values only. Widgets with their own colors or card look keep them; the toast counts them and **Make them follow** puts them back. **+ Save current look** at the bottom saves the level's look.
+
+## The knobs
+
+Above the gallery, the knobs change the few things you most often change on top of a Look: **Accent** (six colors and a custom one), **Surface** (the Look's own card, Glass, Light, Dark or Theme), **Corners** and **Density** (Compact, Normal or Roomy: the inner padding and the gap between items). A knob reads **From the Look** until you change it; then it reads **Custom**, and its reset button puts the Look's value back. Light and dark mode and a theme pack's variants will be knobs too, once a Look offers them. Align and size are layout, not knobs.
+
+A widget's **Style** tab in Edit starts with the same knobs under **Look: ‹name›**. A change there is that widget's own (the section it is in stops following the page), and the reset button makes it follow again.
+
+## The look card
+
+The card shows the applied look's name and a line saying what it is:
+
+- **Saved look · also on ‹places›**, or **Saved look · only here**: one of your saved looks.
 - **From a screen template**: a template's look, named "Template · Variant", for example "Terminal · Amber".
-- **Custom look · not saved**, with **Save as theme**. A saved theme you deleted still in use reads "‹name› (deleted)".
+- **Custom look · not saved**, with **Save look**. A saved look you deleted still in use reads "‹name› (deleted)".
 
-Click a part to change it: **Palette** and **Skin** open their pickers, **Corners** is a slider (0 to 24 px), and **Background** opens the Background picker. On a page the palette, corners and background are the screen's and can't be changed there. The card's **⋯** has **Reset to ‹name›**, **Rename**, **Duplicate** and **Delete**. Reset puts every part back to the theme, background included, and clears this level's fine-tune changes in one undo step; pages keep their own.
+Under **Made of**: **Colors** (the 19 color tokens and the accent) opens the Colors picker, **Base corners** is a slider (0 to 24 px) and **Background** opens the Background picker. On a page these are the screen's and can't be changed there. The card's **⋯** has **Reset to ‹name›**, **Rename**, **Duplicate** and **Delete**. Reset puts every part back to the look, background included, and clears this level's fine-tune changes in one undo step; pages keep their own.
 
-Once you change a part after applying a saved theme, a bar in the preview's header, beside the zoom, says "Changed here. Updating ‹name› also changes ‹places›." **Update ‹name›** saves the theme and refreshes every level that uses it (each keeps what it changed since); **Save as new** saves a new theme. For a template's look the bar offers **Save as theme**, which saves "‹Template · Variant› copy".
+Once you change a part after applying a saved look, a bar in the preview's header, beside the zoom, says "Changed here. Updating ‹name› also changes ‹places›." **Update ‹name›** saves it and refreshes every level that uses it (each keeps what it changed since); **Save as new** saves a new one. For a template's look the bar offers **Save look**, which saves "‹Template · Variant› copy".
 
-To give other screens the same theme, open **Switch theme** at a screen and choose **Apply to other screens…**: tick the screens (or **Select all**) and press **Apply**. Each screen follows the usual rules, **Keep my background** included, and one Undo takes it all back. The command palette's **Apply theme to all screens: ‹name›** does the same for every screen.
+To give other screens the same look, open **Saved and template looks** at a screen and choose **Apply to other screens…**: tick the screens (or **Select all**) and press **Apply**. Each screen follows the usual rules, **Keep my background** included, and one Undo takes it all back. The command palette's **Apply look to all screens: ‹name›** does the same for every screen.
 
-## Switch theme
+## Colors and Background
 
-**Switch theme** opens every theme you can apply, filtered by **All**, **Saved**, **Templates** or **Light**. Your saved themes come first; each **⋯** says which levels use it (or "Not in use") and has **Rename**, **Duplicate** and **Delete**. Then one row for each screen template with a chip for each variant. Meters, Orbit and Ticker look the same, so they are one row, tagged "also Orbit, Ticker".
-
-Picking a theme writes the palette, skin, corners and the theme's background. The first theme picked on a level that has none yet replaces its look, fine-tune included. After that, picking a theme adds to the look: it keeps the fine-tune changes you made at this level since. A variant also brings the card opacity and color swaps a new screen from it has. Tick **Keep my background** at the bottom to keep the level's background. It is off by default and stays as you set it until the studio closes. On a page a theme brings its skin and fine-tune values only. Widgets with their own colors or card look keep them; the toast counts them and **Make them follow** puts them back on the theme. **+ Save current look as a theme** at the bottom saves the level's look.
-
-## Palette, Skin and Background
-
-- **Palette** lists the six built-in palettes (Zinc is the built-in default), then the palettes you saved, tagged **Yours**. Each of yours has a **⋯** with what uses it, **Rename**, **Duplicate** and **Delete**. **+ Save current colors as a palette** saves the level's 19 tokens and its accent. A palette brings its accent: a theme's palette the theme's accent, one of yours the accent it was saved with, Ocean and Forest their own color; Zinc and the other grays keep the screen's. The glow, number glow and border colors that were the old accent change with it. Changing the palette keeps the skin, corners, background and the rest of the fine-tune.
-- **Skin** lists all 14 skins, drawn live. **Default** is the studio's own. Changing the skin keeps the colors, corners, background and fine-tune.
+- **Colors** lists the six built-in palettes (Zinc is the built-in default), then the palettes you saved, tagged **Yours**. Each of yours has a **⋯** with what uses it, **Rename**, **Duplicate** and **Delete**. **+ Save current colors as a palette** saves the level's 19 tokens and its accent. A palette brings its accent: a look's palette the look's accent, one of yours the accent it was saved with, Ocean and Forest their own color; Zinc and the other grays keep the screen's. The glow, number glow and border colors that were the old accent change with it. Changing the colors keeps the Look, corners, background and the rest of the fine-tune.
 - **Background** offers **This theme's**, **Solid**, **Gradient** and **Image**, then the background editor for the kind you picked (see [Backgrounds](background)).
 
 ## Fine-tune
 
-Under the card, **Fine-tune** lists the sections that sit on top of the theme: **Colors**, **Text**, **Shape & spacing**, **Surface & border**, **Units & format**, **Thresholds**, **Motion** and **Custom CSS**. One opens at a time. Each shows a one-line summary and a chip saying where its values come from:
+Under the gallery, **Advanced · Fine-tune** lists the sections that sit on top of the theme: **Colors**, **Text**, **Shape & spacing**, **Surface & border**, **Units & format**, **Thresholds**, **Motion** and **Custom CSS**. One opens at a time. Each shows a one-line summary and a chip saying where its values come from:
 
 | Chip | Means |
 |---|---|
 | **Changed here** | This level holds the value |
-| **From theme** | The value the applied theme wrote |
+| **From look** | The value the applied theme wrote |
 | **From ‹screen›** | Inherited from the screen |
 | **Built-in** | Nothing set; the app's default |
 | **Locked** | The screen forces this section on its pages and widgets |
@@ -73,7 +84,7 @@ After a change, a row under the preview header says what happened, for example "
 
 ## From the command palette
 
-Each saved theme has two commands: **Apply theme: ‹name›**, which brings its background, and **Apply theme, keep background: ‹name›**. They apply at the level Theme is set to, or the screen in Design before you have opened Theme.
+Each saved theme has two commands: **Apply look: ‹name›**, which brings its background, and **Apply look, keep background: ‹name›**. They apply at the level the Look view is set to, or the screen in Design before you have opened it.
 
 ## Follow theme, section by section
 

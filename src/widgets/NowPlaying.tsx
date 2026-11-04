@@ -1,6 +1,5 @@
 import type { CSSProperties } from "react";
-import { makeSurfacePalette, type ModernStyle } from "@/components/surfaces";
-import { surfaceBox } from "@/components/widget-style";
+import { MATERIALS, makeSurfacePalette, resolveMaterial, type ModernStyle } from "@/looks/materials";
 import { chromeOf } from "@/modules/standard-settings";
 import type { ModuleSettings } from "@/modules/types";
 import { Widget, shell, has, Img, Chip, MediaProgress, roomy, scaleX, type MediaProgressMode, type ShellProps } from "./kit";
@@ -21,7 +20,7 @@ function Eq({ on }: { on: boolean }) {
   return (
     <span className="flex h-3 items-end gap-[2px]">
       {[0, 1, 2, 3].map((i) => (
-        <span key={i} className={`w-[3px] rounded-full bg-[var(--accent)] ${on ? "animate-pulse" : ""}`} style={{ height: on ? `${[60, 100, 45, 80][i]}%` : "25%", animationDelay: `${i * 0.18}s`, animationDuration: `${0.6 + i * 0.15}s` }} />
+        <span key={i} className={`w-[3px] rounded-full bg-[var(--w-accent)] ${on ? "animate-pulse" : ""}`} style={{ height: on ? `${[60, 100, 45, 80][i]}%` : "25%", animationDelay: `${i * 0.18}s`, animationDuration: `${0.6 + i * 0.15}s` }} />
       ))}
     </span>
   );
@@ -108,13 +107,13 @@ export default function NowPlaying(p: NowPlayingProps) {
   const surfaceName = String(p.look?.surface ?? p.surface ?? "glass");
   const palette = artTint && TINTABLE.includes(surfaceName) ? makeSurfacePalette(surfaceName as ModernStyle, artTint) : null;
   const sh = shell(p);
-  const style: CSSProperties | undefined = palette ? { ...sh.style, background: surfaceBox(palette, p.look ? chromeOf(p.look) : undefined).background } : sh.style;
+  const style: CSSProperties | undefined = palette ? { ...sh.style, background: resolveMaterial(MATERIALS[surfaceName], p.look ? chromeOf(p.look) : undefined, palette).box.background } : sh.style;
   const backdrop =
     p.artBackground && cover ? (
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
-        style={{ backgroundImage: `url(${cover})`, backgroundSize: "cover", backgroundPosition: "center", filter: "blur(28px) brightness(0.4) saturate(1.25)", transform: "scale(1.15)" }}
+        style={{ backgroundImage: `url(${cover})`, backgroundSize: "cover", backgroundPosition: "center", filter: "blur(var(--wp-art-blur, 28px)) brightness(0.4) saturate(1.25)", transform: "scale(1.15)" }}
       />
     ) : undefined;
   const showTimes = p.showTimes !== false;
@@ -190,8 +189,8 @@ export default function NowPlaying(p: NowPlayingProps) {
         if (lay === "backdrop" && size !== "xs")
           return (
             <div className="absolute -inset-5 overflow-hidden">
-              <Img src={cover} icon="album" className="absolute inset-0 h-full w-full scale-125 opacity-70 blur-2xl" />
-              <div className="absolute inset-0" style={{ background: "linear-gradient(160deg, color-mix(in oklab, var(--accent) 35%, transparent), rgba(0,0,0,.55) 55%, rgba(0,0,0,.8))" }} />
+              <Img src={cover} icon="album" className="absolute inset-0 h-full w-full scale-125 opacity-70 blur-2xl [[data-lite-motion]_&]:blur-none" />
+              <div className="absolute inset-0" style={{ background: "linear-gradient(160deg, color-mix(in oklab, var(--w-accent) 35%, transparent), rgba(0,0,0,.55) 55%, rgba(0,0,0,.8))" }} />
               <div className="relative flex h-full items-end gap-4 p-5">
                 <Img src={cover} icon="album" className={`aspect-square shrink-0 rounded-xl shadow-2xl ${size === "lg" ? "h-[62%]" : "h-[58%]"}`} />
                 <div className="flex min-w-0 flex-1 flex-col gap-2.5 pb-1">

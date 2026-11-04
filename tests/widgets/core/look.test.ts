@@ -1,8 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { chromeOf, STANDARD_DEFAULTS } from "@/modules/standard-settings";
-import { surfaceBox } from "@/components/widget-style";
-import { SKINS, SURFACES } from "@/widgets/core/theme";
-import { DEFAULT_ACCENT, fadeBackground, forcedTier, lookBox, resolveAccent, shellPad, skinContext } from "@/widgets/core/look";
+import { SKINS } from "@/widgets/core/theme";
+import { DEFAULT_ACCENT, forcedTier, resolveAccent, shellPad, skinContext } from "@/widgets/core/look";
 import type { Box } from "@/widgets/core/layout";
 
 const look = (over: Record<string, string | number | boolean>) => chromeOf({ ...STANDARD_DEFAULTS, ...over });
@@ -18,15 +17,6 @@ describe("resolveAccent on light surfaces", () => {
     expect(resolveAccent(undefined, SKINS.ink, "light")).toBe(DEFAULT_ACCENT);
     expect(resolveAccent(undefined, SKINS.ink, "dark")).toBe("#f4f4f5");
     expect(resolveAccent("#ff0000", SKINS.ink, "light")).toBe("#ff0000");
-  });
-});
-
-describe("fadeBackground", () => {
-  it("scales literal colours and mixes color-mix() with transparent", () => {
-    expect(fadeBackground("rgba(20, 20, 24, 1)", 0.5)).toBe("rgba(20, 20, 24, 0.5)");
-    const f = fadeBackground("radial-gradient(color-mix(in oklab, var(--accent) 38%, transparent), transparent 55%), #0f0f13", 0.5);
-    expect(f).toContain("color-mix(in oklab, color-mix(in oklab, var(--accent) 38%, transparent) 50%, transparent)");
-    expect(f).toContain("rgba(15, 15, 19, 0.5)");
   });
 });
 
@@ -62,21 +52,13 @@ describe("skinContext", () => {
   });
 });
 
-describe("lookBox", () => {
-  it("draws the app's materials through surfaceBox", () => {
-    const chrome = look({ borderWidth: "2", glow: "soft", surfaceOpacity: 50, blur: "8" });
-    const { color: _c, ...want } = surfaceBox(SURFACES.glass.colors!, chrome);
-    expect(lookBox(SURFACES.glass, chrome)).toEqual(want);
-    expect(lookBox(SURFACES.theme, undefined).boxShadow).toBe("inset 0 0 0 1px hsl(var(--border))");
-  });
-  it("adds border, glow, opacity and blur over a template surface", () => {
-    const s = lookBox(SURFACES.solid, look({ borderWidth: "3", borderColor: "#ff0000", glow: "strong", surfaceOpacity: 50, blur: "4" }));
-    expect(s.background).toBe("rgba(20, 20, 24, 0.5)");
-    expect(s.boxShadow).toContain("inset 0 0 0 3px #ff0000");
-    expect(s.boxShadow).toContain("inset 0 0 32px");
-    expect(s.borderWidth).toBe(0);
-    expect(s.backdropFilter).toBe("blur(min(4px, var(--wp-blur-cap, 4px)))");
-    const neon = lookBox(SURFACES.neon, look({ glow: "soft" }));
-    expect(String(neon.boxShadow).startsWith(String(SURFACES.neon.s.boxShadow))).toBe(true);
+describe("shellPad decor", () => {
+  it("reports the smallest side in px only when asked, and leaves the output alone otherwise", () => {
+    const o = { studio: false, compact: false, tui: false };
+    expect(shellPad({ ...o, box: box(600, 400, "lg"), decor: true })).toEqual({ className: "p-5", pad: 20 });
+    expect(shellPad({ ...o, box: box(200, 100, "xs"), decor: true }).pad).toBe(10);
+    expect(shellPad({ ...o, box: box(200, 100, "xs"), padding: 7, decor: true })).toEqual({ className: "", style: { padding: 7 }, pad: 7 });
+    expect(shellPad({ ...o, box: box(200, 100, "xs"), bleed: true, decor: true }).pad).toBe(0);
+    expect(shellPad({ ...o, box: box(600, 400, "lg") })).not.toHaveProperty("pad");
   });
 });

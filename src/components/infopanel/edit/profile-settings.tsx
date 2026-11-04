@@ -238,7 +238,7 @@ export function ProfileSettings({ editor, page, onRemap, remapCount = 0, drawing
           >
             <Cable className="h-3.5 w-3.5" />
             Remap sensors
-            {remapCount > 0 && <span className="rounded-full bg-ui-warning/20 px-1.5 font-ui-mono text-[10px] text-ui-warning">{remapCount}</span>}
+            {remapCount > 0 && <span className="rounded-full bg-ui-warn/20 px-1.5 font-ui-mono text-[10px] text-ui-warn">{remapCount}</span>}
           </button>
         )}
         <p className="text-micro leading-snug text-ui-4">Resizing keeps every item where it is.</p>

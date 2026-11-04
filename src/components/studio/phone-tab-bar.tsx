@@ -6,7 +6,7 @@ import type { RailItem } from "./left-rail";
 /** The bar's own tabs; everything else is under More (SPEC §3.5). */
 const TABS: { id: RailItem; label: string; icon: LucideIcon }[] = [
   { id: "design", label: "Edit", icon: LayoutDashboard },
-  { id: "theme", label: "Theme", icon: Palette },
+  { id: "theme", label: "Look", icon: Palette },
   { id: "library", label: "Library", icon: Images },
 ];
 

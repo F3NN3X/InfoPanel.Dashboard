@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { defaultPalette } from "../../../../src/lib/infopanel/elements/palette.ts";
 import { cssToArgb, decompose, hideTagged, readTagged, shownAs } from "../../../../src/lib/infopanel/native/decompose.ts";
 import { fontSizeOf, type ConvertContext } from "../../../../src/lib/infopanel/native/items.ts";
@@ -122,6 +122,51 @@ describe("a value's item and the picture under it", () => {
   });
 });
 
+describe("a ring's colour", () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  /** Chromium serialises a `color-mix()` stroke (the Theme surface's warn and crit rings) as oklab(); only a canvas turns it into rgb. */
+  it("is resolved through the canvas when the stroke is an oklab() the export can't read", () => {
+    const oklab = "oklab(0.62 0.21 0.13)";
+    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockImplementation((() => ({
+      clearRect: () => {},
+      fillRect: () => {},
+      fillStyle: "",
+      getImageData: () => ({ data: [220, 38, 38, 255] }),
+    })) as never);
+    const root = document.createElement("div");
+    root.innerHTML = `<svg viewBox="0 0 100 100"><circle data-ip-key="libre.cpu_total" data-ip-kind="ring" r="45" stroke-width="10" style="stroke:${oklab}"></circle></svg>`;
+    document.body.append(root);
+    root.querySelector<SVGElement>("[data-ip-kind=ring]")!.getBoundingClientRect = () => ({ left: 0, top: 0, width: 90, height: 90 }) as DOMRect;
+    const [gauge] = decompose(root, { x: 0, y: 0, w: 100, h: 100 }, ctx()) as unknown as { vector: { fill: { color: string } } }[];
+    expect(gauge.vector.fill.color.toUpperCase()).toBe("#DC2626");
+  });
+
+  /** Night Glow and Black and Gold draw the arc with `stroke:url(#id)` (ring-fill): the export takes the gradient's first stop, never transparent. */
+  it("is the first stop of a ring-fill gradient, not a transparent url() stroke", () => {
+    const root = document.createElement("div");
+    root.innerHTML = `<svg viewBox="0 0 100 100"><defs><linearGradient id="rgx"><stop offset="0%" style="stop-color:rgb(201, 160, 46)"></stop><stop offset="100%" style="stop-color:rgb(245, 215, 122)"></stop></linearGradient></defs><circle data-ip-key="libre.cpu_total" data-ip-kind="ring" r="45" stroke-width="10" style="stroke:url(#rgx)"></circle></svg>`;
+    document.body.append(root);
+    root.querySelector<SVGElement>("[data-ip-kind=ring]")!.getBoundingClientRect = () => ({ left: 0, top: 0, width: 90, height: 90 }) as DOMRect;
+    const [gauge] = decompose(root, { x: 0, y: 0, w: 100, h: 100 }, ctx()) as unknown as { vector: { fill: { color: string } } }[];
+    expect(gauge.vector.fill.color.toUpperCase()).toBe("#C9A02E");
+  });
+
+  it("reads a quoted url() id with selector characters, and falls back to the ring's own ink when the id is missing", () => {
+    const ring = (stroke: string) => {
+      const root = document.createElement("div");
+      root.innerHTML = `<svg viewBox="0 0 100 100"><defs><linearGradient id="r:g.1"><stop offset="0%" style="stop-color:rgb(201, 160, 46)"></stop></linearGradient></defs><circle data-ip-key="libre.cpu_total" data-ip-kind="ring" r="45" stroke-width="10" style="stroke:${stroke}"></circle></svg>`;
+      document.body.append(root);
+      root.querySelector<SVGElement>("[data-ip-kind=ring]")!.getBoundingClientRect = () => ({ left: 0, top: 0, width: 90, height: 90 }) as DOMRect;
+      const [gauge] = decompose(root, { x: 0, y: 0, w: 100, h: 100 }, ctx()) as unknown as { vector: { fill: { color: string } } }[];
+      return gauge.vector.fill.color.toUpperCase();
+    };
+    expect(ring("url('#r:g.1')")).toBe("#C9A02E");
+    expect(ring("url('#nope')")).not.toBe("#C9A02E");
+    expect(ring("url('#nope')")).not.toMatch(/^#?0{6,8}$|TRANSPARENT|RGBA\(0, 0, 0, 0\)/);
+  });
+});
+
 describe("a graph's colour", () => {
   it("is its line's stroke, not the area's 'none', and always a colour InfoPanel reads", () => {
     const at = (svg: string) => {
@@ -152,6 +197,10 @@ describe("cssToArgb", () => {
   it("reads rgb and rgba", () => {
     expect(cssToArgb("rgb(255, 0, 0)")).toBe("#FFFF0000");
     expect(cssToArgb("rgba(0, 0, 255, 0.5)")).toBe("#800000FF");
+  });
+  it("reads the color(srgb …) a color-mix() in srgb computes to", () => {
+    expect(cssToArgb("color(srgb 1 0 0)")).toBe("#FFFF0000");
+    expect(cssToArgb("color(srgb 0 0 1 / 0.5)")).toBe("#800000FF");
   });
 });
 
@@ -296,5 +345,23 @@ describe("a Metric at a warn or crit tone", () => {
     };
     expect(read("crit").text).toBe(read("ok").text);
     expect(read("crit").text).toBe("88");
+  });
+});
+
+describe("readTagged on a gradient number", () => {
+  const read = (style: string) => {
+    const root = document.createElement("div");
+    root.innerHTML = `<span data-ip-key="libre.cpu_total" data-ip-kind="value" style="${style}">7</span>`;
+    document.body.append(root);
+    root.querySelector("span")!.getBoundingClientRect = () => ({ left: 0, top: 0, width: 50, height: 40 }) as DOMRect;
+    root.getBoundingClientRect = () => ({ left: 0, top: 0, width: 300, height: 100 }) as DOMRect;
+    return decompose(root, { x: 0, y: 0, w: 300, h: 100 }, ctx())[0] as unknown as { Color: string };
+  };
+  it("exports the gradient's first colour, not the transparent text colour", () => {
+    expect(read("color:transparent;background-image:linear-gradient(to right, rgb(255, 79, 216), rgb(56, 232, 255));background-clip:text").Color).toBe("#FFFF4FD8");
+  });
+  it("leaves a solid colour, and transparent text without a gradient, as they were", () => {
+    expect(read("color:rgb(255, 0, 0)").Color).toBe("#FFFF0000");
+    expect(read("color:rgb(255, 0, 0);background-image:linear-gradient(red, blue)").Color).toBe("#FFFF0000");
   });
 });

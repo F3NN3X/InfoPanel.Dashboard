@@ -148,6 +148,8 @@ export const GROUP_C: DashboardModule[] = [
   templateModule({
     meta: meterBridge,
     Component: MeterBridge,
+    // the level meters and the volume plugin's volume and mute, read from `data` (not owned)
+    prefixes: ["plugins.audio-level-meter.", "plugins.volume-plugin."],
     settings: [
       enumSetting("orientation", "Orientation", "vertical", [{ value: "vertical", label: "Columns" }, { value: "horizontal", label: "Rows" }], { group: "Meter" }),
       enumSetting("ladder", "Ladder", "led", [{ value: "led", label: "LED" }, { value: "smooth", label: "Smooth" }], { group: "Meter" }),
@@ -184,6 +186,8 @@ export const GROUP_C: DashboardModule[] = [
   templateModule({
     meta: visualizer,
     Component: Visualizer,
+    // the level meters' spectrum, read from `data` (not owned)
+    prefixes: ["plugins.audio-level-meter."],
     settings: [
       enumSetting("mode", "Style", "bars", opts(VIZ_MODES), { group: SPECTRUM }),
       numberSetting("bands", "Bands (0 = auto)", 0, { min: 0, max: 64, step: 1, group: SPECTRUM }),

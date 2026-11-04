@@ -37,7 +37,7 @@ export const GENERATORS: Record<string, () => Block[]> = {
     table(["Preset", "Size", "Builds"], panelPresets.map((p) => [`**${p.title}**`, size(p.colSpan, p.rowSpan), p.description ?? ""])),
   ],
   /** The skins the studio ships, as the Skin picker names them. */
-  "presets.appearance": () => [table(["Skin", "Look"], SKIN_PACKS.map((p) => [`**${skinLabel(p.name)}**`, p.description]))],
+  "presets.appearance": () => [table(["Look", "What it draws"], SKIN_PACKS.map((p) => [`**${skinLabel(p.name)}**`, p.description]))],
   /** The profiles a fresh install starts with. */
   "profiles.table": () => [
     table(

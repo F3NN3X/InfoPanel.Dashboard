@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { useToast } from "@/components/ui/toast";
 import { VectorGaugeSvg } from "@/components/infopanel/VectorGaugeSvg";
 import { useSensorCatalog } from "@/lib/catalog";
@@ -17,7 +17,7 @@ import { InspectorNote, InspectorView, type SectionParts } from "./inspector/ins
 import { ItemInspector } from "./item-inspector";
 import { cardsBySection, panelState } from "./inspector/panel-cards";
 import { useZoneData } from "./inspector/use-zone-data";
-import { customised, shownValue, shownValues, withoutSettings, withSettings, zoneDefs, zoneLookValues } from "./inspector/zone-fields";
+import { customised, shownValue, shownValues, withKnobReset, withoutSettings, withSettings, zoneDefs, zoneLookValues } from "./inspector/zone-fields";
 import { zoneMeta, zoneName } from "./inspector/zone-meta";
 import {
   chipSections,
@@ -111,6 +111,9 @@ interface ZoneInspectorProps {
   /** The LAYER section (Edit v3 SPEC §10.2): z-order and the group it sits in. */
   layer?: ReactNode;
 }
+
+// The Look knobs are the Theme view's chunk's, loaded with the Style tab.
+const WidgetLookKnobs = lazy(() => import("./look-knobs"));
 
 /** A Custom gauge zone's spec drawn small (at p = 0.6), with the way into its editor. */
 function GaugeNote({ zone, onEdit }: { zone: Placement; onEdit: () => void }) {
@@ -402,7 +405,20 @@ export function ZoneInspector({
       onMakeTheme={(target) => askMakeTheme(customSections, target)}
     />
   );
+  const knobs = (context.kind === "widget" || context.kind === "panel") && (
+    <Suspense key="look-knobs" fallback={null}>
+      <div className="pt-3">
+        <WidgetLookKnobs
+          values={values}
+          appearance={appearance}
+          onSet={fields.onPatch}
+          onClear={(keys) => update((p) => withKnobReset(p, appearance, defs, keys))}
+        />
+      </div>
+    </Suspense>
+  );
   const notes = (tab: Parameters<typeof inspectorNotes>[1]) => [
+    tab === "style" ? knobs : null,
     tab === "style" ? styleToolbar : null,
     tab === "show" || tab === undefined ? gaugeNote : null,
     ...inspectorNotes(context, tab).map((n) => <InspectorNote key={n.kind}>{n.text}</InspectorNote>),

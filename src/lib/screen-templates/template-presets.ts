@@ -6,6 +6,7 @@
 import type { AppearancePreset } from "../appearance-presets";
 import { SCREEN_TEMPLATES } from "./catalog";
 import { templatePreset } from "./looks";
+import { SAMPLE_PRESET_GROUPS } from "./sample-presets";
 
 export interface TemplatePresetGroup {
   /** The template's id and name. */
@@ -21,3 +22,6 @@ export const TEMPLATE_PRESET_GROUPS: readonly TemplatePresetGroup[] = SCREEN_TEM
 }));
 
 export const TEMPLATE_PRESETS: readonly AppearancePreset[] = TEMPLATE_PRESET_GROUPS.flatMap((g) => g.presets);
+
+/** What the Theme view lists: the templates' looks, then the sample themes. */
+export const THEME_LIST_GROUPS: readonly TemplatePresetGroup[] = [...TEMPLATE_PRESET_GROUPS, ...SAMPLE_PRESET_GROUPS];

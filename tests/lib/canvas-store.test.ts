@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { inlineCanvases, liftCanvases, loadCanvas, refOf, resetWriteRefusal, REUSE_MS, saveCanvas, storageCopy, unresolvedCanvases } from "@/lib/canvas-store";
 import { ConfigRejectedError, fetchConfig, isUnreachable, pushConfig } from "@/lib/dashboard-server";
 import type { StoredCanvas } from "@/lib/infopanel/import/stored";
-import { defaultConfig, loadConfig, saveConfig, type DashboardConfig, type Placement } from "@/lib/layout";
+import { CONFIG_VERSION, defaultConfig, loadConfig, saveConfig, type DashboardConfig, type Placement } from "@/lib/layout";
 
 /** A stand-in for the server: the canvas store (ids by content) and the config, with failures to order. */
 function fakeServer() {
@@ -264,7 +264,7 @@ describe("migration through pushConfig", () => {
     const urls = server.fetchMock.mock.calls.map(([u]) => u);
     expect(urls.lastIndexOf("/api/canvases")).toBeLessThan(urls.indexOf("/api/config"));
     const saved = JSON.parse(server.state.config!) as DashboardConfig;
-    expect(saved.version).toBe(16);
+    expect(saved.version).toBe(CONFIG_VERSION);
     expect(zonesOf(saved).map((z) => [z.canvas, server.canvases.has(z.canvasRef!)])).toEqual([
       [undefined, true],
       [undefined, true],

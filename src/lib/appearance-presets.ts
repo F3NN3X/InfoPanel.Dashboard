@@ -1,7 +1,7 @@
 import { THEME_SETTINGS } from "@/modules/standard-settings";
 import { ALIGN_CODES } from "@/modules/setting-readers";
 import { migrateStyleV7 } from "./settings-migrate";
-import { DEFAULT_SKIN, THEMED_KEYS, themedOf } from "./theme-model";
+import { PALETTE_ROLES, THEMED_KEYS, themedOf } from "./theme-model";
 import { settingKeys, type ModuleSetting, type ModuleSettings } from "@/modules/types";
 import { color, normalizeBackground, type PageBackground } from "./appearance";
 import { DEFAULT_THEME, THEME_PRESETS, type ThemePresetName, type ThemeTokens } from "./theme";
@@ -81,14 +81,20 @@ const STYLE_DEFS = new Map<string, ModuleSetting>(
 );
 const ALIGN: readonly string[] = ["auto", ...ALIGN_CODES];
 
+/** A sample theme's card (`look-<theme>`, looks/sample-materials.ts): a theme may name it though the widget's Surface row does not list it. */
+const isSampleCard = (key: string, value: unknown): boolean => key === "surface" && typeof value === "string" && /^look-[a-z\d-]+$/.test(value);
+
 /** Whether a value is one the look setting `key` offers. */
 export function isValidStyleValue(key: string, value: unknown): boolean {
   const def = STYLE_DEFS.get(key);
+  // The palette roles (series and status colours) are theme rows of their own, not look settings (L33).
+  if (!def && PALETTE_ROLES.includes(key)) return value === "" || color(value) !== undefined;
   if (!def || !THEMED_KEYS.has(key)) return false;
+  if (isSampleCard(key, value)) return true;
   switch (def.type) {
     case "select":
-      // The Default skin's other spelling (`default`) is valid too: it reads as `auto`.
-      return typeof value === "string" && (def.options ?? []).some((o) => o.value === (key === "skin" && value === "default" ? DEFAULT_SKIN : value));
+      // A Look (`lookId`) is any text: an id this build doesn't know is kept and draws Classic.
+      return typeof value === "string" && (key === "lookId" ? value !== "" : (def.options ?? []).some((o) => o.value === value));
     case "number":
       return (
         typeof value === "number" &&
@@ -136,7 +142,8 @@ function preset(v: unknown): AppearancePreset | undefined {
   if (typeof v.name !== "string" || !v.name.trim()) return undefined;
   const t = theme(v.theme);
   if (!t) return undefined;
-  // A preset saved before config v7 still names the alignment's two axes.
+  // A preset saved before config v7 still names the alignment's two axes. A Look this build doesn't know goes: the
+  // theme names none, so applying it sets Classic.
   const style = isObject(v.style)
     ? Object.fromEntries(Object.entries(migrateStyleV7(v.style as ModuleSettings)).filter(([key, value]) => isValidStyleValue(key, value)))
     : {};

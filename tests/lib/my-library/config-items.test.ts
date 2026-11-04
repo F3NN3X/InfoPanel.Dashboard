@@ -100,7 +100,7 @@ describe("type collections", () => {
   });
 
   it("gives each type collection its hint, and a Media sub-kind Media's", () => {
-    expect(hintOf("styles")).toBe("A Style is one widget’s look. Apply from a widget’s Style tab.");
+    expect(hintOf("styles")).toBe("A widget look is one widget’s saved look. Apply from a widget’s Style tab.");
     expect(hintOf("videos")).toBe(hintOf("media"));
     expect(hintOf("recent")).toBeUndefined();
   });

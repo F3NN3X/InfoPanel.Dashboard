@@ -1,0 +1,43 @@
+{
+  "id": "classy-black",
+  "name": "Classy Black",
+  "version": "1.0.0",
+  "tags": [
+    "dark",
+    "minimal",
+    "thin"
+  ],
+  "description": "Solid black cards with a hairline edge: thin light numerals over regular type, nothing else.",
+  "modes": [
+    "dark"
+  ],
+  "fonts": [
+    {
+      "family": "pack-classy",
+      "source": "Geist",
+      "file": "geist-400.woff2",
+      "weight": "100 900",
+      "licence": "OFL-1.1",
+      "copyright": "Copyright 2024 The Geist Project Authors (https://github.com/vercel/geist-font)"
+    },
+    {
+      "family": "pack-classy-num",
+      "source": "Geist",
+      "file": "geist-200.woff2",
+      "weight": "100 900",
+      "licence": "OFL-1.1",
+      "copyright": "Copyright 2024 The Geist Project Authors (https://github.com/vercel/geist-font)"
+    }
+  ],
+  "stage": {
+    "layers": [
+      {
+        "fill": "#000000"
+      }
+    ]
+  },
+  "burnIn": "static-safe",
+  "statusBar": {
+    "edge": "top"
+  }
+}

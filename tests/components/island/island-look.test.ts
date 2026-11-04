@@ -19,7 +19,7 @@ describe("islandSkin", () => {
   });
 
   it("wears the screen's surface as part of the skin, only with that placement", () => {
-    const worn = wornSurface({ skin: "default", accent: "#ff8800" });
+    const worn = wornSurface({ lookId: "classic", accent: "#ff8800" });
     expect(worn.accent).toBe("#ff8800");
     expect(islandSkin({ ...ISLAND_DEFAULTS, placement: "skin" }, worn).surface).toBe(worn);
     expect(islandSkin({ ...ISLAND_DEFAULTS, placement: "overlay" }, worn).surface).toBeUndefined();
@@ -29,8 +29,8 @@ describe("islandSkin", () => {
   });
 
   it("takes the skin's own surface and accent when none is set, and an explicit one over it", () => {
-    const own = wornSurface({ skin: "synth" });
-    const explicit = wornSurface({ skin: "synth", surface: "outline", accent: "#112233" });
+    const own = wornSurface({ lookId: "synth" });
+    const explicit = wornSurface({ lookId: "synth", surface: "outline", accent: "#112233" });
     expect(own.accent).not.toBe("#112233");
     expect(explicit.accent).toBe("#112233");
     expect(explicit.className).toContain("border-white/15");
@@ -38,8 +38,9 @@ describe("islandSkin", () => {
 });
 
 describe("pageSkinOf", () => {
-  it("reads the skin, surface and accent a screen's widgets resolve, leaving auto unset", () => {
-    expect(pageSkinOf({ profile: { values: { skin: "tui", surface: "auto", accent: "#abcdef" } } })).toEqual({ skin: "tui", surface: undefined, accent: "#abcdef" });
-    expect(pageSkinOf(undefined)).toEqual({ skin: undefined, surface: undefined, accent: undefined });
+  it("reads the Look, surface and accent a screen's widgets resolve, leaving auto and Classic unset", () => {
+    expect(pageSkinOf({ profile: { values: { lookId: "tui", surface: "auto", accent: "#abcdef" } } })).toEqual({ lookId: "tui", surface: undefined, accent: "#abcdef" });
+    expect(pageSkinOf({ profile: { values: { lookId: "classic" } } }).lookId).toBeUndefined();
+    expect(pageSkinOf(undefined)).toEqual({ lookId: undefined, surface: undefined, accent: undefined });
   });
 });

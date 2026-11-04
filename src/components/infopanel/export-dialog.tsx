@@ -311,7 +311,7 @@ function ExportBody({ zone, canvas, onClose, onBaked, onDone, appearance }: { zo
           })}
         </div>
         {missing.length > 0 && (
-          <p className="flex gap-1.5 text-caption text-ui-warning">
+          <p className="flex gap-1.5 text-caption text-ui-warn">
             <TriangleAlert className="h-4 w-4 shrink-0" /> Not in the asset store, so not exported: {missing.join(", ")}
           </p>
         )}
@@ -320,7 +320,7 @@ function ExportBody({ zone, canvas, onClose, onBaked, onDone, appearance }: { zo
             <div className="flex items-center gap-3 border-b border-ui-subtle px-3.5 py-3">
               <div className="flex flex-1 flex-col gap-0.5">
                 <span className="text-[12.5px] font-medium text-ui-1">Bake stale gauges and elements first</span>
-                <span className={cn("text-[11.5px]", bakes ? "text-ui-warning" : "text-ui-4")}>
+                <span className={cn("text-[11.5px]", bakes ? "text-ui-warn" : "text-ui-4")}>
                   {bakes
                     ? [stale.length && `${stale.length} gauges, rings or LED bars need new frames`, staleStatic.length && `${staleStatic.length} cards, glows, dividers or icons need a new image`].filter(Boolean).join(" · ")
                     : "Every gauge’s frames and element’s image are up to date"}

@@ -35,7 +35,7 @@ function LiveLine({ condition }: { condition: SensorCondition }) {
       <span
         className={cn(
           "ml-auto",
-          state === "fires" ? "text-ui-warning" : state === "ok" ? "text-ui-success" : "text-ui-4"
+          state === "fires" ? "text-ui-warn" : state === "ok" ? "text-ui-ok" : "text-ui-4"
         )}
       >
         {note}
@@ -84,7 +84,7 @@ export function AlertCondition({ condition, position, onEdit, onOpenSources }: A
         onChange={(key) => onEdit("key", (c) => ({ ...c, key: key ?? "" }))}
         onOpenExplorer={onOpenSources}
       />
-      {condition.key === "" && <div className="text-micro text-ui-warning">Pick a sensor to watch.</div>}
+      {condition.key === "" && <div className="text-micro text-ui-warn">Pick a sensor to watch.</div>}
       <SelectRow
         label="Condition"
         value={condition.op}

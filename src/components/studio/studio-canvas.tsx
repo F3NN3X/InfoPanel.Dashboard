@@ -16,12 +16,15 @@ import {
 } from "react";
 import { SquareDashedMousePointer } from "lucide-react";
 import { PageBackground } from "@/components/page-background";
+import { PackStage, packBackground, usePack } from "@/looks/pack";
+import { connectorZones } from "@/looks/connector-zones";
 import { DynamicIsland } from "@/components/island/dynamic-island";
 import { pageSkinOf } from "@/components/island/island-look";
-import { islandReserve } from "@/components/island/island-model";
+import { islandReserve, withPackEdge } from "@/components/island/island-model";
 import type { ActiveAlert } from "@/lib/alerts";
 import type { PageBackground as Background } from "@/lib/appearance";
 import type { Appearance } from "@/lib/style-resolve";
+import { cardMode } from "@/lib/theme";
 import { BLANK_MODULE, SCROLL_ROW_H, type MonitorProfile, type ProfilePage, type ProfileView, type Placement } from "@/lib/layout";
 import { withItemLayers } from "@/lib/page-model/items-layer";
 import type { PageOp } from "@/lib/page-model/model";
@@ -247,8 +250,11 @@ export function StudioCanvas({
   infoPanelView,
   items,
 }: StudioCanvasProps) {
+  /** The mode of the scoped screen theme: `lite:` styling on its theme cards follows it, as the kiosk page's `data-mode` does. */
+  const scopeMode = themeScope ? cardMode(String((themeScope as Record<string, unknown>)["--card"] ?? "")) : undefined;
   /** An item gesture in flight (Alt, free): the hint and the faded cell lines. */
   const [gesture, setGesture] = useState<ItemGesture | null>(null);
+  const pack = usePack(pageSkinOf(appearance).lookId);
   /** A press on a widget in a page group: the item layer selects the group and drags it. */
   const pressGrouped = useRef<PressGrouped | null>(null);
   const [zoneDrag, setZoneDrag] = useState<{
@@ -515,9 +521,13 @@ export function StudioCanvas({
   const padding = profilePadding(profile, true);
   const islandPage = { width: profile.width, height: profile.height };
   const itemLayers = useMemo(() => withItemLayers(profile, page, []), [profile, page]);
+  // The zones connectors may join: the same filter as the kiosk (no items layer, canvas or page-sized hub).
+  const linkZones = useMemo(() => (pack?.connectors ? connectorZones(profile.placements, profile) : undefined), [pack, profile]);
   const pageIsland = useMemo(() => ({ island: profile.island?.enabled ? profile.island : undefined, page: { width: profile.width, height: profile.height } }), [profile.island, profile.width, profile.height]);
   /** "Reserve space": the zones start under the island, as on the kiosk. */
   const reserve = islandReserve(profile.island, islandPage);
+  const packEdge = pack?.statusBar?.edge;
+  const bottomIsland = (profile.island?.edge ?? packEdge) === "bottom";
   const fill = profile.fit === "fill" && profile.height > 0;
   /** Gap in display px. */
   const g = gap * zoom;
@@ -607,11 +617,12 @@ export function StudioCanvas({
               // A move / resize / draw in flight: the page is not captured meanwhile (profile screenshots).
               data-dragging={zoneDrag || drawing ? "" : undefined}
               data-theme-scope={themeScope ? "" : undefined}
+              data-mode={scopeMode}
               className={cn(
                 "relative isolate",
                 // Centered while smaller than the view (both axes).
                 profile.width > 0 ? "m-auto shrink-0" : "flex-1",
-                themeScope && !background && "bg-background",
+                themeScope && !background && !packBackground(pack) && "bg-background",
                 themeScope && "text-foreground"
               )}
               style={
@@ -624,7 +635,8 @@ export function StudioCanvas({
                   ...themeScope,
                   padding,
                   // Always set: React warns when a longhand is removed from under the shorthand.
-                  paddingTop: padding + reserve,
+                  paddingTop: padding + (bottomIsland ? 0 : reserve),
+                  paddingBottom: padding + (bottomIsland ? reserve : 0),
                   fontFamily: font,
                   // The board's dashed outline, 6px off the page.
                   outline: "1px dashed #2a2a31",
@@ -639,10 +651,11 @@ export function StudioCanvas({
             >
               {showRulers && <RulerLabels width={canvas.w} height={canvas.h} scale={zoom} />}
               {profile.island?.enabled && (
-                <DynamicIsland config={profile.island} alerts={islandAlerts} placement="absolute" page={islandPage} skin={pageSkinOf(appearance)} />
+                <DynamicIsland config={withPackEdge(profile.island, packEdge)} alerts={islandAlerts} placement="absolute" page={islandPage} skin={pageSkinOf(appearance)} />
               )}
                 {/* Page background (as in the kiosk) behind the tiles */}
                 {background && <PageBackground background={background} className="absolute inset-0 -z-20" />}
+                <PackStage pack={pack} page={islandPage} className="absolute inset-0 -z-20" overlayClassName="absolute inset-0 z-10" zones={linkZones} />
                 {/* A scroll page longer than its screen: the design size stays the frame. */}
                 {!fill && profile.height > 0 && (pageSize(profile).naturalHeight ?? 0) > profile.height && (
                   <ScreenFold height={profile.height} zoom={zoom} />

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Placement } from "@/lib/layout";
 import type { ModuleSetting } from "@/modules/types";
-import { customised, shownValue, withFollow, zoneLookValues } from "@/components/studio/inspector/zone-fields";
+import { customised, shownValue, withFollow, withKnobReset, zoneLookValues } from "@/components/studio/inspector/zone-fields";
 
 const zone = (patch: Partial<Placement>): Placement => ({
   id: "z",
@@ -48,5 +48,23 @@ describe("customised", () => {
   it("leaves a section the screen locks alone", () => {
     const plain = zone({});
     expect(customised(plain, { profile: { locks: { colors: true } } }, defs, ["accent"])).toBe(plain);
+  });
+});
+
+describe("withKnobReset (a knob's Reset on a widget, L46)", () => {
+  const text: ModuleSetting = { key: "textColor", label: "Text", type: "color", default: "" };
+  const defs = [accent, text];
+  const levels = { profile: { values: { accent: "#00ff00", textColor: "#ffffff" } } };
+
+  it("clears the knob's keys and follows the page again when nothing else of its own differs there", () => {
+    const own = zone({ settings: { accent: "#ff0000", textColor: "#ffffff" }, follow: { colors: false } });
+    const out = withKnobReset(own, levels, defs, ["accent"]);
+    expect(out.settings).toEqual({ textColor: "#ffffff" });
+    expect(out.follow).toBeUndefined();
+  });
+
+  it("keeps the section custom while another own value differs from the page's", () => {
+    const own = zone({ settings: { accent: "#ff0000", textColor: "#000000" }, follow: { colors: false } });
+    expect(withKnobReset(own, levels, defs, ["accent"]).follow).toEqual({ colors: false });
   });
 });

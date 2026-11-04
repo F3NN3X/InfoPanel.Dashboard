@@ -8,6 +8,7 @@ import { useMemo } from "react";
 import type { DataApiValue } from "@/lib/infopanel/sensors";
 import { ROLE_INFO, resolveRole, type Role } from "@/lib/infopanel/templates/roles";
 import { defaultConfig } from "@/lib/layout";
+import { PACK_IDS } from "@/looks/pack";
 import { SCREEN_TEMPLATES } from "@/lib/screen-templates/catalog";
 import { instantiate, layoutClassOf } from "@/lib/screen-templates/instantiate";
 import type { ScreenTemplate } from "@/lib/screen-templates/kit";
@@ -23,14 +24,28 @@ const byId = new Map<string, ScreenTemplate>(SCREEN_TEMPLATES.map((t) => [t.id, 
 const templateOf = (e: WizardEntry): ScreenTemplate => byId.get(e.id)!;
 const asApi = (s: SensorMap) => s as unknown as Record<string, DataApiValue>;
 
-const entries: WizardEntry[] = SCREEN_TEMPLATES.map((t) => ({
+const entryOf = (t: ScreenTemplate): WizardEntry => ({
   id: t.id,
   name: t.name,
   blurb: t.blurb,
   fits: t.fits,
   size: t.size,
   palettes: (t.variants ?? []).map((v) => ({ id: v.id, name: v.name, swatch: v.swatch })),
-}));
+});
+const entries: WizardEntry[] = SCREEN_TEMPLATES.map(entryOf);
+
+/** Adds the page templates of the built-in packs after the catalog's (once; none while no pack ships). A pack's template wears its Look (`look.style.lookId`), so a screen made from it wears the pack. */
+let packsAdded: Promise<void> | undefined;
+export function addPackTemplates(): Promise<void> {
+  if (PACK_IDS.size === 0) return Promise.resolve();
+  packsAdded ??= import("@/looks/pack-load")
+    .then((m) => m.loadPackTemplates())
+    .then((list) => {
+      for (const t of list) if (!byId.has(t.id)) (byId.set(t.id, t), entries.push(entryOf(t)));
+    })
+    .catch(() => void (packsAdded = undefined));
+  return packsAdded;
+}
 
 /** The roles a template reads at its own size. */
 function rolesOf(t: ScreenTemplate): Role[] {

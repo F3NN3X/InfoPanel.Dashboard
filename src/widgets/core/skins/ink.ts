@@ -7,7 +7,5 @@ export const inkSkin: SkinPack = {
   description: "Monochrome editorial: near-white accent, hairline meters, serif numerals, no fills.",
   fonts: ["instrument-serif"],
   // tokens read by <Widget>, primitives and views via useSkin()
-  skin: { surface: "outline", radius: 14, accent: "#f4f4f5", num: "'Instrument Serif',Georgia,serif", numWeight: 400, graph: "line", meter: "hair", header: "ink", ring: 0.35 },
-  // skin-native surfaces (registered into SURFACES)
-  surfaces: {},
+  skin: { surface: "outline", radius: 14, accent: "#f4f4f5", num: "'Instrument Serif',Georgia,serif", numWeight: 400, graph: "line", meter: "hair", header: "ink", ring: 0.35, strokeFixed: 1, plainSections: true },
 };

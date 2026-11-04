@@ -79,6 +79,26 @@ export function customised(zone: Placement, levels: ThemeLevels, defs: readonly 
   }, zone);
 }
 
+/**
+ * A zone after a knob's Reset: the knob's keys cleared, and each section they are in follows the theme again when no
+ * own value of the zone's left there differs from what the theme sets (L46), so later page changes reach it.
+ */
+export function withKnobReset(zone: Placement, levels: ThemeLevels, defs: readonly ModuleSetting[], keys: readonly string[]): Placement {
+  const cleared = withoutSettings(zone, keys);
+  const theme = zoneLookValues(cleared, levels).inherited;
+  const sections = new Set(keys.flatMap((key) => sectionOfKey(key) ?? []));
+  const differs = (sec: SectionId) =>
+    defs.some(
+      (def) =>
+        !def.perWidget &&
+        settingKeys(def).some((key) => {
+          const own = cleared.settings?.[key];
+          return sectionOfKey(themeKeyOf(def, key)) === sec && own !== undefined && own !== theme?.[themeKeyOf(def, key)];
+        })
+    );
+  return [...sections].reduce((z, sec) => (z.follow?.[sec] === false && !differs(sec) ? withFollow(z, sec, true) : z), cleared);
+}
+
 /** The read-only rows of a zone's sections: a row whose section follows the theme or is locked (`zone` is the one whose state shows). */
 export function readOnlyFields(zone: Placement, appearance: Appearance): Pick<FieldsApi, "readOnly"> {
   return {

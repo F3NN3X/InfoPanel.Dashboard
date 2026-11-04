@@ -130,7 +130,7 @@ All are themed (§1.5) and show a Follow bar per section. Defaults are `THEME_DE
 
 | Key | Label | Control | Options | Default | Level | Target |
 |---|---|---|---|---|---|---|
-| `skin` | Skin | select | Auto + the 14 skins: default, tui, macos, fluent, hud, ink, retro, ios, android, synth, brutal, cyber, nixie, instrument (`SKIN_PACKS`, `src/widgets/core/theme.ts:23`); picking one writes `surface = auto` | `auto` | Zone, themed | Style › Skin |
+| `lookId` | Skin | select | The level's Look (config v17: the skins are Looks): `classic` (Default) + the 13 other skins' Looks, named as the skins: tui, macos, fluent, hud, ink, retro, ios, android, synth, brutal, cyber, nixie, instrument (`SKIN_PACKS`, `src/widgets/core/theme.ts`); a sample Look is valid too, and an unknown id is Classic; picking one writes `surface = auto` | `classic` | Zone, themed | Style › Skin |
 | `stroke` | Ring / bar thickness (%) | slider 50 to 250 step 10 | | `100` | same | Style › Skin |
 | `graph` | Graph style | select | auto, area, line, step, bars, dots, braille | `auto` | same | Style › Skin (More) |
 | `meter` | Meter style | select | auto, bar, pill, segments, blocks, hair, wave, square | `auto` | same | Style › Skin (More) |
@@ -182,13 +182,13 @@ declared per widget (`fmt`, `thr` in `InspectorMeta`); the defaults are `THEME_D
 ### 1.5 The look-key sets
 
 - **`PROFILE_STYLE_KEYS`** (`standard-settings.ts`): `surface`, `accent`, every key of §1.2 and §1.3
-  (`skin`, `graph`, `meter`, `smoothing`, `scale`, `align`, `alignSpread`, `padding`, `gap`, `radius`,
+  (`lookId`, `graph`, `meter`, `smoothing`, `scale`, `align`, `alignSpread`, `padding`, `gap`, `radius`,
   `textColor`, `mutedColor`, `font`, `fontWeight`, `labelCase`, `stroke`, `customCss`, `borderWidth`,
   `borderColor`, `glow`, `glowColor`, `surfaceOpacity`, `blur`; 25 keys). Copy style, Paste style and
   saved style presets carry exactly these (`styleOf`, `replaceStyle`). `compact`, `sizeTier`,
   `showTitle`, `label`, `icon`, `background`, `backgroundOn` and all content keys are per zone only.
 - **`THEMED_KEYS`** (`theme-model.ts:127`, `SECTION_KEYS`): the keys a theme can set, by section.
-  `skin`: `skin`, `stroke`, `graph`, `meter`. `colors`: `accent`, `textColor`, `mutedColor`. `palette`:
+  `skin`: `lookId`, `stroke`, `graph`, `meter`. `colors`: `accent`, `textColor`, `mutedColor`. `palette`:
   `s1` to `s6`, `ok`, `warn`, `crit`. `surface`: `surface`, `surfaceOpacity`, `blur`. `type`: `font`,
   `fontWeight`, `labelCase`. `spacing`: `scale`, `align`, `alignSpread`, `padding`, `gap`, `radius`
   (and the legacy `alignX`, `alignY`). `border`: `borderWidth`, `borderColor`, `glow`, `glowColor`.
@@ -650,7 +650,7 @@ background? }`. All are the user's; the `builtin:` id prefix is reserved (`isBui
 
 An apply is one undo step (`useAppearancePresets`, `src/components/studio/use-appearance-presets.ts`). A pick
 writes the level's palette, skin, corners and (unless kept) background, merges the theme's style values over what the
-last theme wrote, and stores what it wrote as the level's snapshot (`appliedTheme`); see `applyTheme`,
+last theme wrote, and stores what it wrote as the level's snapshot (`appliedTheme`); see `applyThemeToLevel`,
 `src/lib/theme-apply.ts`.
 
 ### 6.2 Style presets (Styles; `stylePresets`: `{ id, name, settings }`)
@@ -845,7 +845,7 @@ shows; Theme's scope is the scope bar (All screens, a screen, a page).
 | Theme › a widget-style row at a page; Customise here / Reset on a card | `ProfilePage.widgetTheme.values` and `follow` | `withScopeValues`, `withPageFollow` (`theme-editor-model.ts:125`), `customiseCard`, `resetCard` (`theme-cards.ts:232,226`) |
 | Theme › a card's lock (screen scope), Lock all / Unlock all | `MonitorProfile.widgetTheme.locks` | `withCardLock` (`theme-cards.ts:243`), `withLock`, `withLockAll` (`theme-editor-model.ts:117,121`) |
 | Theme › Exceptions › Follow, Follow all | `Placement.follow` (the zones follow again) | `makeFollow`, `makeAllFollow` (`theme-exceptions.ts:79,87`) |
-| Theme › Switch theme, Save as theme, Update ‹name› | applies palette, skin, corners and background to the level and stores its snapshot; saves `DashboardConfig.appearancePresets` | `useAppearancePresets` (`use-appearance-presets.ts`), `applyTheme` / `saveAsTheme` / `updateThemeEverywhere` (`theme-apply.ts`) |
+| Theme › Switch theme, Save as theme, Update ‹name› | applies palette, skin, corners and background to the level and stores its snapshot; saves `DashboardConfig.appearancePresets` | `useAppearancePresets` (`use-appearance-presets.ts`), `applyThemeToLevel` / `saveAsTheme` / `updateThemeEverywhere` (`theme-apply.ts`) |
 | Screens › When the app opens; card ⋯ › Always open this one | `DashboardConfig.activeProfile` | `withLaunch` (`screens-model.ts:19`) |
 | Screens › card click | Browser `studio.pinnedProfile` | `pinned-profile.ts:30` |
 | Screens › card ⋯ › Rename | `MonitorProfile.name` | `rename` (`screens-view.tsx`) |

@@ -50,7 +50,7 @@ Not sure where to start? Open the **Layouts** tab, add a layout starter such as 
 
 ## 4. Choose a look
 
-Open **Theme** on the rail and press **Switch theme** to pick a saved theme or the look of a screen template, or change one part on the theme card: the **Palette**, **Skin**, **Corners** or **Background**. The level at the top decides where it applies: a screen or a page. See [Themes](themes).
+Open **Look** on the rail and pick a Look in the gallery, turn a knob (**Accent**, **Surface**, **Corners**, **Density**), or open **Saved and template looks** for a saved look or the look of a screen template. The level at the top decides where it applies: a screen or a page. See [Themes](themes).
 
 ## 5. Put it on the display
 

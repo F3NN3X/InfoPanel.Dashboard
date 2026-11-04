@@ -56,7 +56,7 @@ export default function Bluetooth(p: BluetoothProps) {
   // the header chip carries the count only when the header is drawn (not with the title off)
   const headerShown = p.showHeader !== false && (p.look ? chromeOf(p.look).showTitle !== false : true);
   const countLabel = `${count} device${count === 1 ? "" : "s"}`;
-  const color = (pct: number) => (pct > 50 ? "var(--accent)" : pct > 20 ? p.batteryMidColor || STATE.warn : p.batteryLowColor || STATE.crit);
+  const color = (pct: number) => (pct > 50 ? "var(--w-accent)" : pct > 20 ? p.batteryMidColor || STATE.warn : p.batteryLowColor || STATE.crit);
   const row = (d: Device, small?: boolean, big?: boolean) => (
     <div key={d.key} className="min-w-0">
       <div className="flex min-w-0 items-baseline gap-2">

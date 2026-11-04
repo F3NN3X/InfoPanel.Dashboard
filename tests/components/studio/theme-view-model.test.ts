@@ -33,9 +33,9 @@ const TEMPLATE = state({ applied: applied("builtin:tpl-terminal-amber", "Termina
 describe("the theme card", () => {
   it("names the saved theme with its other uses, a template with its level, a custom or deleted look as not saved", () => {
     const others = [use("Gaming", "page"), use("Work", "page")];
-    expect(kindLine(DESK, others, "MyDefault")).toBe("Saved theme · also on the Gaming and Work pages");
-    expect(kindLine(DESK, [], "MyDefault")).toBe("Saved theme · only here");
-    expect(kindLine(DESK, [use("Wall", "profile"), use("Gaming", "page")], "MyDefault")).toBe("Saved theme · also on Wall and the Gaming page");
+    expect(kindLine(DESK, others, "MyDefault")).toBe("Saved look · also on the Gaming and Work pages");
+    expect(kindLine(DESK, [], "MyDefault")).toBe("Saved look · only here");
+    expect(kindLine(DESK, [use("Wall", "profile"), use("Gaming", "page")], "MyDefault")).toBe("Saved look · also on Wall and the Gaming page");
     expect(kindLine(TEMPLATE, [], "MyDefault")).toBe("From a screen template · applied to MyDefault");
     expect([cardName(state({})), kindLine(state({}), [], "x")]).toEqual(["Custom look", "not saved"]);
     expect(cardName(state({ applied: applied("look-x", "Night"), deleted: true }))).toBe("Night (deleted)");
@@ -98,7 +98,7 @@ describe("the parts", () => {
   });
 
   it("name skins and palettes as the UI writes them", () => {
-    expect([skinLabel(undefined), skinLabel("auto"), skinLabel("default"), skinLabel("tui"), skinLabel("nixie")]).toEqual(["Default", "Default", "Default", "TUI", "Nixie"]);
+    expect([skinLabel(undefined), skinLabel("auto"), skinLabel("default"), skinLabel("tui"), skinLabel("nixie")]).toEqual(["Classic", "Classic", "Classic", "TUI", "Nixie"]);
     expect(paletteName(THEME_PRESETS[3].tokens)).toBe(THEME_PRESETS[3].label);
     expect(paletteName({ ...DEFAULT_THEME, primary: "1 2% 3%" })).toBe("Custom");
   });
@@ -113,6 +113,8 @@ describe("links into Theme", () => {
   it("open the new places for the old ids", () => {
     expect(themeLinkOf("start")).toEqual({ drill: "themes" });
     expect(themeLinkOf("background")).toEqual({ drill: "background" });
+    // The Look (formerly the Skin picker): Main, at the knobs over the gallery.
+    expect(themeLinkOf("skin")).toEqual({ drill: "main", anchor: "knobs" });
     expect(themeLinkOf("border")).toEqual({ section: "surface" });
     expect(themeLinkOf("type")).toEqual({ section: "type" });
     expect(themeLinkOf("palette")).toEqual({ section: "colors" });

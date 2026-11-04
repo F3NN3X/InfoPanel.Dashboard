@@ -1,0 +1,345 @@
+{
+  "$schema": "../look.schema.json",
+  "schema": 1,
+  "id": "classic",
+  "name": "Classic",
+  "description": "Today's default: Geist type, translucent glass cards on the zinc page, emerald accent.",
+  "tags": [
+    "default",
+    "minimal",
+    "dark"
+  ],
+  "modes": {
+    "supported": [
+      "dark",
+      "light"
+    ],
+    "stance": "Dark by default. Light is the matte-light card and its mode (D3, P6): status colours and the accent darken to hold 4.5:1."
+  },
+  "fonts": {
+    "body": "Geist",
+    "mono": "Geist Mono",
+    "display": "{body}"
+  },
+  "radius": "0.5rem",
+  "t0": {
+    "zinc-950": "#09090b",
+    "zinc-900": "#18181b",
+    "zinc-800": "#27272a",
+    "zinc-300": "#d4d4d8",
+    "zinc-400": "#a1a1aa",
+    "zinc-50": "#fafafa",
+    "emerald": "#34d399",
+    "green": "#3CC97F",
+    "amber": "#EDB232",
+    "red": "#F2665E",
+    "red-fill": "#7f1d1d",
+    "zinc-100": "#f4f4f5",
+    "zinc-200": "#e4e4e7",
+    "zinc-600": "#52525b",
+    "white": "#ffffff",
+    "emerald-ink": "#27795d",
+    "green-ink": "#15803d",
+    "amber-ink": "#a15c07",
+    "red-ink": "#c4261d"
+  },
+  "t1": {
+    "dark": {
+      "bg": {
+        "value": "{zinc-950}",
+        "usage": "Page background"
+      },
+      "surface": {
+        "value": "{bg}",
+        "usage": "Card and popover of the page theme"
+      },
+      "surface-2": {
+        "value": "{zinc-800}",
+        "usage": "Secondary fill, chips, inputs"
+      },
+      "fg": {
+        "value": "{zinc-50}",
+        "usage": "Text on bg and surface"
+      },
+      "fg-2": {
+        "value": "{fg}",
+        "usage": "Secondary text"
+      },
+      "muted": {
+        "value": "{zinc-400}",
+        "usage": "Muted text"
+      },
+      "border": {
+        "value": "{surface-2}",
+        "usage": "Edges"
+      },
+      "border-soft": {
+        "value": "{border}",
+        "usage": "Hairlines"
+      },
+      "accent": {
+        "value": "{emerald}",
+        "usage": "The accent colour (--w-accent)"
+      },
+      "accent-on": {
+        "value": "{bg}",
+        "usage": "Text on an accent fill"
+      },
+      "accent-hover": {
+        "value": "{accent}",
+        "usage": "Hover on an accent fill"
+      },
+      "focus-ring": {
+        "value": "{zinc-300}",
+        "usage": "Focus outline"
+      },
+      "ok": {
+        "value": "{green}",
+        "usage": "Semantic OK (STATE.ok)"
+      },
+      "warn": {
+        "value": "{amber}",
+        "usage": "Semantic warning"
+      },
+      "crit": {
+        "value": "{red}",
+        "usage": "Semantic critical"
+      },
+      "info": {
+        "value": "{accent}",
+        "usage": "Semantic info"
+      }
+    },
+    "light": {
+      "bg": {
+        "value": "{zinc-100}",
+        "usage": "Page background"
+      },
+      "surface": {
+        "value": "{white}",
+        "usage": "Card and popover of the page theme"
+      },
+      "surface-2": {
+        "value": "{zinc-200}",
+        "usage": "Secondary fill, chips, inputs"
+      },
+      "fg": {
+        "value": "{zinc-900}",
+        "usage": "Text on bg and surface"
+      },
+      "fg-2": {
+        "value": "{fg}",
+        "usage": "Secondary text"
+      },
+      "muted": {
+        "value": "{zinc-600}",
+        "usage": "Muted text"
+      },
+      "border": {
+        "value": "{surface-2}",
+        "usage": "Edges"
+      },
+      "border-soft": {
+        "value": "{border}",
+        "usage": "Hairlines"
+      },
+      "accent": {
+        "value": "{emerald-ink}",
+        "usage": "The accent as text or a thin line on a light card (D27 accent-ink)"
+      },
+      "accent-on": {
+        "value": "{white}",
+        "usage": "Text on an accent fill"
+      },
+      "accent-hover": {
+        "value": "{accent}",
+        "usage": "Accent hover"
+      },
+      "focus-ring": {
+        "value": "{accent}",
+        "usage": "Focus ring"
+      },
+      "ok": {
+        "value": "{green-ink}",
+        "usage": "Semantic OK on a light card (STATUS_LIGHT.ok)"
+      },
+      "warn": {
+        "value": "{amber-ink}",
+        "usage": "Semantic warning on a light card"
+      },
+      "crit": {
+        "value": "{red-ink}",
+        "usage": "Semantic critical on a light card"
+      },
+      "info": {
+        "value": "{accent}",
+        "usage": "Information"
+      }
+    }
+  },
+  "t2": {
+    "default": "glass",
+    "tones": {
+      "dark": {
+        "fg": "#f4f4f5",
+        "muted": "#a1a1aa",
+        "faint": "#8a8a94",
+        "track": "rgba(255,255,255,.07)"
+      },
+      "light": {
+        "fg": "#18181b",
+        "muted": "#52525b",
+        "faint": "#636366",
+        "track": "rgba(24,24,27,.1)",
+        "fill": "#f4f4f5",
+        "crit": "#c4261d",
+        "ok": "#15803d",
+        "warn": "#a15c07"
+      }
+    },
+    "materials": {
+      "glass": {
+        "kind": "glass",
+        "tone": "dark",
+        "fill": "#18181c",
+        "fill-alpha": 0.85,
+        "fill-2": "rgb(24 24 27 / .55)",
+        "fill-angle": "155deg",
+        "blur": "0px",
+        "blur-fallback-alpha": 0.9,
+        "border": "rgba(255,255,255,.1)",
+        "export": "rgba(24, 24, 27, 0.9)"
+      },
+      "solid": {
+        "kind": "solid",
+        "tone": "dark",
+        "fill": "#141418",
+        "border": "rgba(255,255,255,.06)"
+      },
+      "matte-dark": {
+        "kind": "solid",
+        "tone": "dark",
+        "fill": "{zinc-900}",
+        "border": "rgba(255,255,255,.1)"
+      },
+      "matte-light": {
+        "kind": "solid",
+        "tone": "light",
+        "fill": "#f4f4f5"
+      },
+      "theme": {
+        "kind": "solid",
+        "tone": "theme",
+        "fill": "{surface}"
+      },
+      "flat": {
+        "kind": "solid",
+        "tone": "dark",
+        "fill-alpha": 0,
+        "border": "none"
+      },
+      "outline": {
+        "kind": "solid",
+        "tone": "dark",
+        "fill-alpha": 0,
+        "border": "rgba(255,255,255,.15)"
+      }
+    }
+  },
+  "t3": {
+    "num-family": "{font.body}",
+    "num-weight": 700,
+    "hero-weight": 700,
+    "num-tracking": "normal",
+    "num-stretch": "normal",
+    "num-effect": "none",
+    "num-glow-color": "{accent}",
+    "num-fill": "solid",
+    "unit-color": "{muted}",
+    "label-case": "upper",
+    "label-color": "{faint}",
+    "label-glow": "none",
+    "header-style": "inline",
+    "header-color": "{muted}",
+    "header-fill": "none",
+    "series-1": "",
+    "series-2": "",
+    "series-3": "",
+    "series-4": "",
+    "series-5": "",
+    "series-6": "",
+    "series-fill-alpha": "0.32 > 0.06 > 0",
+    "series-stroke": 1,
+    "series-glow": "none",
+    "graph-style": "area",
+    "grid-line": "{faint} / 22%",
+    "axis-label": "{faint}",
+    "status-ok": "#3CC97F",
+    "status-warn": "{warn}",
+    "status-crit": "{crit}",
+    "info": "{info}",
+    "idle": "{faint}",
+    "mute": "{crit}",
+    "accent-ink": "{accent}",
+    "meter-ok": "{accent}",
+    "meter-warn": "{warn}",
+    "meter-clip": "{crit}",
+    "meter-track": "{track}",
+    "meter-style": "bar",
+    "meter-zone-style": "hard",
+    "meter-hold": "{fg}",
+    "meter-hold-style": "line",
+    "meter-segments": 24,
+    "meter-gap": 2,
+    "threshold-line": "{warn}",
+    "threshold-style": "dashed",
+    "threshold-width": 1,
+    "spike-marker": "{crit}",
+    "spike-shape": "dot",
+    "range-track": "{track}",
+    "range-fill": "{fg}",
+    "range-highlight": "{accent}",
+    "range-cap": "round",
+    "range-height": 6,
+    "fader-track": "{track}",
+    "fader-fill": "{accent}",
+    "fader-knob": "{fg}",
+    "fader-knob-shape": "pill",
+    "fader-knob-glow": "none",
+    "toggle-on": "{accent}",
+    "mute-active": "{crit}",
+    "solo-active": "{warn}",
+    "live-indicator": "{crit}",
+    "icon-color": "{fg}",
+    "icon-muted": "{muted}",
+    "icon-stroke": 2,
+    "ramp-heat": "{mat.fill} > {accent}",
+    "ramp-cool": "{mat.fill} > {accent}",
+    "ring-width": 7.5,
+    "ring-track": "color-mix(in oklab, var(--w-fg) 12%, transparent)",
+    "ring-cap": "round",
+    "ring-gap": 2,
+    "ring-style": "arc",
+    "border-fill": "none",
+    "ring-fill": "none",
+    "spark-fill": "none",
+    "cell-radius": "{radius}",
+    "track": "rgba(255,255,255,.07)",
+    "motion-fast": "150ms",
+    "motion-base": "300ms",
+    "motion-data": "1000ms",
+    "ease-standard": "cubic-bezier(.2,0,0,1)"
+  },
+  "export": {
+    "notExported": [
+      "backdrop blur",
+      "outer shadow",
+      "outer glow",
+      "number tracking and stretch",
+      "grid lines",
+      "axis labels",
+      "ring caps"
+    ]
+  },
+  "ext": {}
+}

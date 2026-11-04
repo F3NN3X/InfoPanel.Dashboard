@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { appliedToast, paletteUsedBy, resetToast, skinToast, type AppliedOutcome } from "@/components/studio/theme-messages";
+import { appliedToast, paletteUsedBy, lookToast, resetToast, type AppliedOutcome } from "@/components/studio/theme-messages";
 
 describe("the toast row", () => {
   const outcome = (o: Partial<AppliedOutcome>): AppliedOutcome => ({ replaced: false, background: false, kept: 0, widgets: 0, ...o });
@@ -26,9 +26,10 @@ describe("the toast row", () => {
     );
   });
 
-  it("a page's skin and reset name where its palette, corners and background come from", () => {
-    expect(skinToast("TUI", "screen", "MyDefault").sub).toBe("Colors, corners, background and fine-tune kept.");
-    expect(skinToast("TUI", "page", "MyDefault").sub).toBe("Fine-tune kept. Palette, corners and background come from MyDefault.");
+  it("a picked Look and reset name where a page's palette, corners and background come from", () => {
+    expect(lookToast("TUI", "screen", false, "MyDefault")).toEqual({ title: "Look changed to TUI.", sub: "Your colors, corners and fine-tune changes kept." });
+    expect(lookToast("TUI", "screen", true, "MyDefault").sub).toBe("Your colors, corners and fine-tune changes kept. Background changed.");
+    expect(lookToast("TUI", "page", false, "MyDefault").sub).toBe("Your fine-tune changes kept. Palette, corners and background come from MyDefault.");
     expect(resetToast("Desk", "screen", "MyDefault", "MyDefault")).toEqual({
       title: "Reset to Desk.",
       sub: "Everything on MyDefault now matches the theme, including its background.",

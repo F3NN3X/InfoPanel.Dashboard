@@ -1,0 +1,56 @@
+{
+  "id": "neon-stripe",
+  "name": "Neon Stripe",
+  "version": "1.0.0",
+  "tags": [
+    "dark",
+    "neon",
+    "mono",
+    "stripes"
+  ],
+  "description": "Near-black translucent cards over four glowing neon stripes: mono type, yellow numbers, red bracket headers, tick rings.",
+  "modes": [
+    "dark"
+  ],
+  "fonts": [
+    {
+      "family": "pack-neon-mono",
+      "source": "Share Tech Mono",
+      "file": "pack-neon-mono-400.woff2",
+      "weight": "100 900",
+      "licence": "OFL-1.1",
+      "copyright": "Copyright (c) 2012, Carrois Type Design, Ralph du Carrois (post@carrois.com www.carrois.com), with Reserved Font Name 'Share'"
+    },
+    {
+      "family": "pack-neon-display",
+      "source": "Chakra Petch",
+      "file": "chakra-petch-500.woff2",
+      "weight": "100 900",
+      "licence": "OFL-1.1",
+      "copyright": "Copyright 2018 The Chakra Petch Project Authors (https://github.com/m4rc1e/Chakra-Petch.git)"
+    }
+  ],
+  "stage": {
+    "layers": [
+      {
+        "fill": "#0D0B14"
+      },
+      {
+        "image": "stripes.svg",
+        "opacity": 0.9,
+        "minSizeClass": "sm"
+      }
+    ],
+    "effects": [
+      {
+        "kind": "glow",
+        "cost": "filter",
+        "px": 10
+      }
+    ]
+  },
+  "burnIn": "needs-shift",
+  "statusBar": {
+    "edge": "top"
+  }
+}

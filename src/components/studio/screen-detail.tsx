@@ -7,7 +7,7 @@ import { resolveGeneral } from "@/lib/general";
 import { valueText } from "@/lib/inheritance";
 import type { DashboardConfig, MonitorProfile, PageRotate, ProfileView } from "@/lib/layout";
 import { isFreePage } from "@/lib/free-pages";
-import type { ScreenPerformance } from "@/lib/performance";
+import { IDLE_DIM_MINUTES, type ScreenPerformance } from "@/lib/performance";
 import { cn } from "@/lib/utils";
 import { FPS_OPTIONS, MOTION_OPTIONS, ROTATE_DEFAULT_SECONDS, ROTATE_MAX_SECONDS, ROTATE_MIN_SECONDS, clampSeconds } from "./inspector/behaviour-model";
 import { InheritChip } from "./inherit-chip";
@@ -21,6 +21,8 @@ import { FIELD, InlineRow, SegmentedRow, ToggleRow } from "./setting-rows";
 import type { NavTarget } from "./studio-nav";
 import { ownCount } from "./theme-cards";
 import { inheritanceApi } from "./use-inheritance";
+
+const IDLE_DIM_OPTIONS = [{ value: "0", label: "Off" }, ...IDLE_DIM_MINUTES.map((m) => ({ value: String(m), label: `${m} min` }))];
 
 interface ScreenDetailProps {
   config: DashboardConfig;
@@ -240,6 +242,19 @@ export function ScreenDetail({
           hint="A graph's glow is a filter redrawn with the line. Off: a static glow drawn under the line."
           value={perf.liveGlow}
           onChange={(on) => onPerformance({ liveGlow: on ? true : undefined })}
+        />
+        <ToggleRow
+          label="Pixel shift"
+          hint="Burn-in protection for an always-on panel: a theme pack that needs it moves its page art about 1 px every few minutes, also with Max FPS under 60 or reduced motion. Widgets never move."
+          value={perf.pixelShift}
+          onChange={(on) => onPerformance({ pixelShift: on ? true : undefined })}
+        />
+        <SegmentedRow
+          label="Idle dim"
+          hint="Dims a theme pack's page art after this many minutes without a touch, key or mouse move; widgets stay. A display with no input device dims that long after it loads."
+          options={IDLE_DIM_OPTIONS}
+          value={String(perf.idleDim)}
+          onChange={(v) => onPerformance({ idleDim: v === "0" ? undefined : Number(v) })}
         />
       </Group>
 

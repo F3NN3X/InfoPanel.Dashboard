@@ -3,8 +3,12 @@
 // widget's style hang off it, so a fresh look each tick re-renders every skin consumer on the page.
 import { act, render } from "@testing-library/react";
 import { memo, type ReactNode } from "react";
-import { describe, expect, it } from "vitest";
-import type { ModuleSettings } from "@/modules/types";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { quietPrefix } from "@/components/studio/placement-content";
+import { useSensors } from "@/hooks/useSensors";
+import { sensorStore } from "@/lib/sensor-store";
+import { modules } from "@/modules";
+import type { ModuleSettings, SensorMap } from "@/modules/types";
 import { Widget } from "@/widgets/core/Widget";
 import { useSkin } from "@/widgets/core/theme";
 import type { ShellProps, WidgetMeta } from "@/widgets/core/types";
@@ -55,5 +59,59 @@ describe("template zone look", () => {
     const view = render(page(1, () => ({ skin: "tui" })));
     act(() => view.rerender(page(2, () => ({ skin: "tui", accent: "#112233" }))));
     expect(skins.size).toBe(ZONES * 2);
+  });
+});
+
+describe("audio-only sensor messages", () => {
+  const AUDIO = "plugins.audio-level-meter.";
+  let listeners: ((changed: readonly string[]) => void)[] = [];
+  let values: SensorMap = {};
+  const emit = (changed: string[]) => {
+    values = { ...values, ...Object.fromEntries(changed.map((k) => [k, { value: Math.random(), unit: "" }])) };
+    act(() => listeners.forEach((l) => l(changed)));
+  };
+  const rendersOf = (quiet: string | undefined) => {
+    let renders = 0;
+    const Probe = () => {
+      useSensors(null, quiet);
+      renders++;
+      return null;
+    };
+    render(<Probe />);
+    return () => renders;
+  };
+  beforeEach(() => {
+    listeners = [];
+    values = {};
+    vi.spyOn(sensorStore, "getValues").mockImplementation(() => values);
+    vi.spyOn(sensorStore, "retain").mockReturnValue(() => {});
+    vi.spyOn(sensorStore, "subscribe").mockImplementation((l) => {
+      listeners.push(l);
+      return () => {};
+    });
+  });
+  afterEach(() => vi.restoreAllMocks());
+
+  it("a zone that reads every key does not re-render on audio-only messages, but does on data", () => {
+    const renders = rendersOf(AUDIO);
+    const first = renders();
+    for (let i = 0; i < 10; i++) emit([`${AUDIO}d.left-channel`, `${AUDIO}d.right-channel`]);
+    expect(renders()).toBe(first);
+    emit(["libre.cpu", `${AUDIO}d.left-channel`]);
+    expect(renders()).toBe(first + 1);
+  });
+
+  it("a zone bound to an audio key still updates on every audio message", () => {
+    const readsAll = modules.find((m) => m.readsAll && m.settings?.some((d) => d.type === "sensor"))!;
+    const key = readsAll.settings!.find((d) => d.type === "sensor")!.key;
+    const placement = (sensor: string) => ({ id: "p", module: readsAll.id, colStart: 1, rowStart: 1, colSpan: 4, rowSpan: 3, visible: true, settings: { [key]: sensor } });
+    expect(quietPrefix(placement(""))).toBe(AUDIO);
+    expect(quietPrefix(placement("libre.cpu"))).toBe(AUDIO);
+    const bound = quietPrefix(placement(`${AUDIO}d.audio-level`));
+    expect(bound).toBeUndefined();
+    const renders = rendersOf(bound);
+    const first = renders();
+    for (let i = 0; i < 5; i++) emit([`${AUDIO}d.audio-level`]);
+    expect(renders()).toBe(first + 5);
   });
 });

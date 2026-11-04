@@ -1,0 +1,57 @@
+{
+  "id": "term",
+  "name": "Term",
+  "version": "1.0.0",
+  "tags": [
+    "dark",
+    "terminal",
+    "mono",
+    "retro"
+  ],
+  "description": "Phosphor green on black: a green hairline, block-character bars and pixel numerals under scanlines and a vignette.",
+  "modes": [
+    "dark"
+  ],
+  "fonts": [
+    {
+      "family": "pack-term-display",
+      "source": "VT323",
+      "file": "vt323-400.woff2",
+      "weight": "400",
+      "licence": "OFL-1.1",
+      "copyright": "Copyright 2011, The VT323 Project Authors (peter.hull@oikoi.com)"
+    },
+    {
+      "family": "pack-term-mono",
+      "source": "IBM Plex Mono",
+      "file": "pack-term-mono-400.woff2",
+      "weight": "400",
+      "licence": "OFL-1.1",
+      "copyright": "Copyright 2017 IBM Corp. All rights reserved."
+    }
+  ],
+  "stage": {
+    "layers": [
+      {
+        "fill": "#0A0D0A"
+      }
+    ],
+    "effects": [
+      {
+        "kind": "scanlines",
+        "cost": "static",
+        "opacity": 0.22,
+        "fallback": "off"
+      },
+      {
+        "kind": "vignette",
+        "cost": "static",
+        "opacity": 0.3
+      }
+    ]
+  },
+  "burnIn": "needs-dim",
+  "statusBar": {
+    "edge": "bottom"
+  }
+}

@@ -8,9 +8,9 @@ import { BADGE_LABEL, type Badge } from "@/lib/infopanel/elements/apply";
 export { ELEMENT_ICONS } from "./element-icons";
 
 const BADGE_TONE: Record<Badge["kind"], string> = {
-  native: "border-ui-success/40 text-ui-success",
+  native: "border-ui-ok/40 text-ui-ok",
   baked: "border-ui-accent/50 text-ui-accent",
-  approximated: "border-ui-warning/50 text-ui-warning",
+  approximated: "border-ui-warn/50 text-ui-warn",
 };
 
 /** How the item exports to InfoPanel: Native, Baked or Approximated, its reason and what it loses on hover. */

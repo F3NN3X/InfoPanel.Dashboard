@@ -1,0 +1,92 @@
+{
+  "schema": 1,
+  "id": "black-and-gold",
+  "name": "Black and Gold",
+  "description": "Warm black cards edged in a gold sheen, gold gradient numbers and a gold accent.",
+  "tags": [
+    "pack",
+    "dark",
+    "gold",
+    "luxe"
+  ],
+  "modes": {
+    "supported": [
+      "dark"
+    ],
+    "stance": "Dark only: gold on warm black is the pack."
+  },
+  "fonts": {
+    "body": "pack-gold",
+    "mono": "pack-gold"
+  },
+  "radius": "0.5rem",
+  "t1": {
+    "dark": {
+      "bg": {
+        "value": "#060503"
+      },
+      "surface": {
+        "value": "#12100A"
+      },
+      "surface-2": {
+        "value": "#2B2410"
+      },
+      "fg": {
+        "value": "#F4EBD0"
+      },
+      "fg-2": {
+        "value": "{fg}"
+      },
+      "muted": {
+        "value": "#B7A97C"
+      },
+      "border": {
+        "value": "#2B2410"
+      },
+      "border-soft": {
+        "value": "{border}"
+      },
+      "accent": {
+        "value": "#D4AF37"
+      },
+      "accent-on": {
+        "value": "{bg}"
+      },
+      "accent-hover": {
+        "value": "{accent}"
+      },
+      "focus-ring": {
+        "value": "{accent}"
+      },
+      "ok": {
+        "value": "#3CC97F"
+      },
+      "warn": {
+        "value": "#EDB232"
+      },
+      "crit": {
+        "value": "#F2665E"
+      },
+      "info": {
+        "value": "{accent}"
+      }
+    }
+  },
+  "t2": {
+    "default": "look-black-and-gold",
+    "materials": {
+      "look-black-and-gold": {
+        "kind": "gradient",
+        "tone": "dark",
+        "export": "#12100A"
+      }
+    }
+  },
+  "t3": {
+    "border-fill": "linear-gradient(135deg, #8A6D1D, #F5D77A 40%, #D4AF37 65%, #8A6D1D)",
+    "num-fill": "linear-gradient(180deg, #F5D77A, #D4AF37)",
+    "ring-fill": "linear-gradient(135deg, #C9A02E, #F5D77A 50%, #D4AF37)",
+    "spark-fill": "linear-gradient(90deg, #C9A02E, #F5D77A 50%, #D4AF37)"
+  },
+  "ext": {}
+}

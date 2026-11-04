@@ -1,9 +1,11 @@
+import { CLASSIC_LOOK, isLookId } from "@/looks/ids";
+import { lookLayers } from "@/looks/sample-cards";
 import type { ModuleSetting, ModuleSettingValue, ModuleSettings, ThresholdQuantity } from "@/modules/types";
 
 /**
  * The widget theme (widget settings v2, SPEC §3): which look keys a theme
  * sets, the section each belongs to, and how a widget's value resolves.
- * Pure, no registry imports (layout.ts and the migration read it).
+ * Pure, no registry imports but the Look ids (layout.ts and the migration read it).
  *
  * Levels, lowest first (owner decision Q1):
  *
@@ -122,10 +124,12 @@ export const ROLE_LABELS: Readonly<Record<string, string>> = {
  * `PROFILE_STYLE_KEYS` minus `autoScale`, `variant` and `compactView`;
  * `alignX` / `alignY` stay readable until PR 8, `align` + `alignSpread`
  * replace them), Units & format, the thresholds of every quantity, the
- * palette roles and the meters' response.
+ * palette roles and the meters' response. The skin section's first key is the level's Look (`lookId`, config v17, D6;
+ * the skins are Looks, so it is what was the `skin` key): it decides the skin the widgets are drawn in, and every other
+ * key is an override on top of it. The section keeps its id, so its follow and lock flags govern the Look.
  */
 export const SECTION_KEYS: Readonly<Record<SectionId, readonly string[]>> = {
-  skin: ["skin", "stroke", "graph", "meter"],
+  skin: ["lookId", "stroke", "graph", "meter"],
   colors: ["accent", "textColor", "mutedColor"],
   palette: PALETTE_ROLES,
   surface: ["surface", "surfaceOpacity", "blur"],
@@ -148,6 +152,9 @@ export const THEMED_KEYS: ReadonlySet<string> = new Set(SECTION_OF.keys());
 /** The section a themed key belongs to (undefined: not themed). */
 export const sectionOfKey = (key: string): SectionId | undefined => SECTION_OF.get(key);
 
+/** The Look a level that sets none shows, and the one an unknown id falls back to (`src/looks/ids.ts`, no Look data). */
+export const CLASSIC_LOOK_ID = CLASSIC_LOOK;
+
 /**
  * The value of each themed key when no level sets it: today's defaults
  * (owner decision Q2), so nothing repaints on upgrade; the thresholds take
@@ -157,7 +164,7 @@ export const sectionOfKey = (key: string): SectionId | undefined => SECTION_OF.g
  * 24 h) keeps it: `valueOf` falls back to the row's default first.
  */
 export const THEME_DEFAULTS: Readonly<ModuleSettings> = {
-  skin: "auto",
+  lookId: CLASSIC_LOOK_ID,
   stroke: 100,
   graph: "auto",
   meter: "auto",
@@ -195,13 +202,6 @@ export const THEME_DEFAULTS: Readonly<ModuleSettings> = {
   meterBallistics: "peak",
 };
 
-/**
- * The Default skin as every picker writes it: `auto`, the stored default, so untouched dashboards stay as they are.
- * `default` (the skin's own name, which screen templates and older pickers wrote) reads as the same skin
- * (`lib/theme-skins.ts`).
- */
-export const DEFAULT_SKIN = "auto";
-
 /** The theme key a row reads: its palette role (`accent`: the Colors accent), else its own key. */
 export function themeKeyOf(def: Pick<ModuleSetting, "key" | "role">, key = def.key): string {
   return def.role && key === def.key && (def.role === "accent" || PALETTE_ROLES.includes(def.role)) ? def.role : key;
@@ -219,12 +219,61 @@ export function themeSet(levels: ThemeLevels, key: string): ModuleSettingValue |
   const sec = sectionOfKey(key);
   if (!sec) return undefined;
   const page = pageCustom(levels, sec) ? levels.page?.values?.[key] : undefined;
-  return page ?? levels.profile?.values?.[key] ?? levels.base?.[key];
+  const { layer, onPage } = levelLook(levels);
+  const look = key === "lookId" ? undefined : layer?.[key];
+  // A page's own Look draws over its screen's values; a screen's sits under them.
+  return page ?? (onPage ? look : undefined) ?? levels.profile?.values?.[key] ?? (onPage ? undefined : look) ?? levels.base?.[key];
+}
+
+/** The surface section's keys: a card comes with its opacity and blur. */
+const CARD_KEYS: ReadonlySet<string> = new Set(["surface", "surfaceOpacity", "blur"]);
+
+/**
+ * Whether a level stores its Look's own card and none of the Look's other values (L44): a page saved before the
+ * Look layer that applied a sample Look's card alone (the v16 shape v17 keeps). It drew that card over its screen's
+ * colours and font, and still does. A level that applied a sample Look before the layer stores every value the Look
+ * sets, so the layer under them changes nothing, and a value it clears returns to the Look's. The Look view never
+ * stores the Look's card as a level's own (`withoutOwnCard`), so no level saved since takes this shape.
+ */
+const cardOnly = (layer: ModuleSettings, holder: ModuleSettings | undefined): boolean =>
+  holder?.surface === layer.surface && Object.keys(layer).every((key) => CARD_KEYS.has(key) || holder[key] === undefined);
+
+/**
+ * The Look layer (L40): the values a Look sets under the level that names it (`holder`, its stored values), so a level
+ * stores its `lookId` and only what it changes. A sample Look's, once its chunk is loaded (`registerSampleCards`);
+ * Classic and the skins set none (a skin's pack draws by its id). A level saved with only the Look's card gets none
+ * (`cardOnly`, L44).
+ */
+export function lookLayerOf(lookId: unknown, holder?: ModuleSettings): ModuleSettings | undefined {
+  const layer = typeof lookId === "string" ? lookLayers[lookId] : undefined;
+  return layer && !cardOnly(layer, holder) ? layer : undefined;
+}
+
+/** A level's values with its Look's own card left to the Look (picking it stores none, so the Look's other values stay on). */
+export function withoutOwnCard(values: ModuleSettings): ModuleSettings {
+  const layer = typeof values.lookId === "string" ? lookLayers[values.lookId] : undefined;
+  if (!layer || values.surface !== layer.surface) return values;
+  const { surface: _card, ...rest } = values;
+  return rest;
+}
+
+/** The Look layer of the levels: the page's Look where its Look section is its own (`onPage`), else the screen's. */
+export function levelLook(levels: ThemeLevels): { layer: ModuleSettings | undefined; onPage: boolean } {
+  const page = pageCustom(levels, "skin") ? levels.page?.values : undefined;
+  const onPage = page?.lookId !== undefined;
+  const holder = onPage ? page : levels.profile?.values;
+  return { layer: lookLayerOf(holder?.lookId, holder), onPage };
 }
 
 /** The theme value of a key (§3.2 `themeVal`): what the levels set, else `THEME_DEFAULTS`. */
 export const themeVal = (levels: ThemeLevels, key: string): ModuleSettingValue | undefined =>
   themeSet(levels, key) ?? THEME_DEFAULTS[key];
+
+/** The Look the levels show: unset, and an id this build doesn't know, are Classic. */
+export function lookIdOf(levels: ThemeLevels): string {
+  const id = themeSet(levels, "lookId");
+  return isLookId(id) ? id : CLASSIC_LOOK_ID;
+}
 
 /** Whether the profile locks a section. */
 export const isLocked = (levels: ThemeLevels, sec: SectionId): boolean => levels.profile?.locks?.[sec] === true;
@@ -328,7 +377,13 @@ const flagsOf = (v: unknown): SectionFlags | undefined => {
   return kept.length > 0 ? Object.fromEntries(kept) : undefined;
 };
 
-/** A stored widget theme, guarded: themed values only, boolean flags per known section. */
+/** A stored widget theme with a Look id that is not text as Classic, the rest as stored: an id this build doesn't know is kept (a newer build's) and draws Classic (every load, `layout.ts`). */
+export function withKnownLook<T extends WidgetTheme | undefined>(theme: T): T {
+  const id = theme?.values?.lookId;
+  return id === undefined || typeof id === "string" ? theme : { ...theme, values: { ...theme?.values, lookId: CLASSIC_LOOK_ID } };
+}
+
+/** A stored widget theme, guarded: themed values only (an unknown Look is Classic), boolean flags per known section. */
 export function normalizeWidgetTheme(v: unknown): WidgetTheme | undefined {
   if (!isObject(v)) return undefined;
   const values = isObject(v.values)
@@ -344,7 +399,7 @@ export function normalizeWidgetTheme(v: unknown): WidgetTheme | undefined {
     ...(flagsOf(v.follow) ? { follow: flagsOf(v.follow) } : {}),
     ...(flagsOf(v.locks) ? { locks: flagsOf(v.locks) } : {}),
   };
-  return Object.keys(theme).length > 0 ? theme : undefined;
+  return Object.keys(theme).length > 0 ? withKnownLook(theme) : undefined;
 }
 
 /** Stored follow flags, guarded (undefined when none). */

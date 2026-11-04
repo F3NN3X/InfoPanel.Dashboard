@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=480">
+<title>Gaming page on a round 480 panel</title>
+<!-- Static export of canvas board DispRound.dc.html (480x480). Reference only: production packs bundle fonts locally. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Barlow Condensed',system-ui,sans-serif}
+a{color:#1A1C21}a:hover{color:#000}
+.fk-num{font-weight:700;color:#1A1C21;font-variant-numeric:tabular-nums;line-height:1}
+.fk-label{font-weight:600;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#5E5A52}
+.fk-chip{position:absolute;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;background:#EFE8D8;border-radius:4px;overflow:hidden;box-shadow:0 0 0 1px #2A2D33}
+.fk-chip b{background:#1A1C21;color:#EFE8D8;font-weight:600;font-size:12px;letter-spacing:.1em;padding:5px 8px}
+.fk-chip span{font-weight:700;font-size:20px;color:#1A1C21;padding-right:10px;font-variant-numeric:tabular-nums}
+</style>
+<style>html,body{margin:0;background:#1e1e1e}</style>
+</head>
+<body>
+<div style="width:480px;height:480px;position:relative;background:#000">
+  <div style="position:absolute;inset:0;border-radius:50%;overflow:hidden;background:radial-gradient(circle at 50% 45%,#262A31 0%,#121418 65%,#0B0C0E 100%)">
+    <svg viewBox="0 0 480 480" width="480" height="480" style="position:absolute;inset:0" role="img" aria-label="GPU load 67 percent, average 141 of 144 frames per second">
+      <defs><mask id="drG"><circle cx="240" cy="240" r="150" fill="none" stroke="#fff" stroke-width="26" pathLength="100" stroke-dasharray="67 100" transform="rotate(-90 240 240)"></circle></mask></defs>
+      <circle cx="240" cy="240" r="150" fill="none" stroke="#3A3D44" stroke-width="20" pathLength="100" stroke-dasharray="1.8 1"></circle>
+      <circle cx="240" cy="240" r="150" fill="none" stroke="#F2C230" stroke-width="20" pathLength="100" stroke-dasharray="1.8 1" transform="rotate(-90 240 240)" mask="url(#drG)"></circle>
+      <circle cx="240" cy="240" r="176" fill="none" stroke="#3A3D44" stroke-width="3" pathLength="100" stroke-dasharray="73.4 100" transform="rotate(-90 240 240)"></circle>
+      <circle cx="240" cy="240" r="176" fill="none" stroke="#EFE8D8" stroke-width="3" pathLength="100" stroke-dasharray="73.4 100" transform="rotate(-90 240 240)"></circle>
+    </svg>
+    <div style="position:absolute;left:50%;top:50%;width:226px;height:226px;margin:-113px 0 0 -113px;border-radius:50%;background:#EFE8D8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;box-shadow:0 0 0 3px #1A1C21">
+      <div class="fk-label">FPS · cap 144</div>
+      <div class="fk-num" style="font-size:96px;font-weight:800">144</div>
+      <div class="fk-label" style="color:#1A1C21">1% 112 · <span style="color:#A8340F">0.1% 96</span></div>
+      <div class="fk-label">7.1 ms · 2 spikes</div>
+    </div>
+    <div class="fk-chip" style="top:44px"><b>GPU</b><span style="color:#A8340F">72°C · 67%</span></div>
+    <div class="fk-chip" style="bottom:44px"><b>PING</b><span>18 ms</span></div>
+  </div>
+</div>
+</body>
+</html>

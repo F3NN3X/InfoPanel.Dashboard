@@ -113,7 +113,7 @@ function EmptyRules({ onAdd, points }: { onAdd: (rule: AlertRule) => void; point
 
 const SEVERITY_ICON: Record<Severity, { icon: LucideIcon; tone: string }> = {
   info: { icon: Info, tone: "text-ui-accent-text" },
-  warning: { icon: TriangleAlert, tone: "text-ui-warning" },
+  warning: { icon: TriangleAlert, tone: "text-ui-warn" },
   critical: { icon: OctagonAlert, tone: "text-ui-danger" },
 };
 

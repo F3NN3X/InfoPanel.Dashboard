@@ -1,6 +1,6 @@
 import { upgradeConfig } from "@/lib/config-upgrade";
 import { describe, expect, it } from "vitest";
-import { newProfile, type Placement, type StoredProfile } from "@/lib/layout";
+import { CONFIG_VERSION, newProfile, type Placement, type StoredProfile } from "@/lib/layout";
 import { mainPage, pageOf } from "@/lib/pages";
 
 const zone = (id: string, extra: Partial<Placement> = {}): Placement => ({
@@ -101,7 +101,7 @@ describe("upgradeConfig pages migration", () => {
 
   it("stamps the current version and is stable when merged again", () => {
     const once = upgradeConfig({ version: 2, profiles: [{ ...base, placements: [zone("a")] }] });
-    expect(once.version).toBe(16);
+    expect(once.version).toBe(CONFIG_VERSION);
     expect(upgradeConfig(JSON.parse(JSON.stringify(once)))).toEqual(JSON.parse(JSON.stringify(once)));
   });
 

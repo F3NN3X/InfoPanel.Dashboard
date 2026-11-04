@@ -90,7 +90,7 @@ const DEFS = new Map<string, ModuleSetting>(THEME_EDITOR_SETTINGS.map((d) => [d.
 /** "Decimals 1", "Accent #FF0000": a value as its row names it. */
 function valueText(key: string, value: unknown): string {
   const def = DEFS.get(key);
-  const option = key === "skin" ? skinLabel(value) : def?.options?.find((o) => o.value === String(value))?.label;
+  const option = key === "lookId" ? skinLabel(value) : def?.options?.find((o) => o.value === String(value))?.label;
   const shown = option ?? (typeof value === "string" && value.startsWith("#") ? value.toUpperCase() : String(value));
   return `${(def?.label ?? key).toLowerCase()} ${shown}`;
 }

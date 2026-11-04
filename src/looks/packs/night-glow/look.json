@@ -1,0 +1,93 @@
+{
+  "schema": 1,
+  "id": "night-glow",
+  "name": "Night Glow",
+  "description": "Blurred navy glass with a cyan-to-violet-to-pink edge, a segmented ring and a gradient hero number over a deep navy gradient.",
+  "tags": [
+    "pack",
+    "dark",
+    "glass",
+    "neon"
+  ],
+  "modes": {
+    "supported": [
+      "dark"
+    ],
+    "stance": "Dark only: a glowing edge on navy glass is the pack."
+  },
+  "fonts": {
+    "body": "pack-night-glow",
+    "mono": "pack-night-glow"
+  },
+  "radius": "1.125rem",
+  "t1": {
+    "dark": {
+      "bg": {
+        "value": "#1B2A7A"
+      },
+      "surface": {
+        "value": "#0E1230"
+      },
+      "surface-2": {
+        "value": "#232A5C"
+      },
+      "fg": {
+        "value": "#F2F4FF"
+      },
+      "fg-2": {
+        "value": "{fg}"
+      },
+      "muted": {
+        "value": "#9AA3D6"
+      },
+      "border": {
+        "value": "#232A5C"
+      },
+      "border-soft": {
+        "value": "{border}"
+      },
+      "accent": {
+        "value": "#3EE6FF"
+      },
+      "accent-on": {
+        "value": "{bg}"
+      },
+      "accent-hover": {
+        "value": "{accent}"
+      },
+      "focus-ring": {
+        "value": "{accent}"
+      },
+      "ok": {
+        "value": "#3CC97F"
+      },
+      "warn": {
+        "value": "#EDB232"
+      },
+      "crit": {
+        "value": "#F2665E"
+      },
+      "info": {
+        "value": "{accent}"
+      }
+    }
+  },
+  "t2": {
+    "default": "look-night-glow",
+    "materials": {
+      "look-night-glow": {
+        "kind": "glass",
+        "tone": "dark",
+        "export": "#080A28"
+      }
+    }
+  },
+  "t3": {
+    "border-fill": "linear-gradient(135deg, #3EE6FF, #9B5CFF 60%, #FF4FD8)",
+    "num-fill": "linear-gradient(90deg, #3EE6FF, #9B5CFF 55%, #FF4FD8)",
+    "ring-fill": "linear-gradient(135deg, #3EE6FF, #9B5CFF 55%, #FF4FD8)",
+    "ring-style": "segmented",
+    "spark-fill": "linear-gradient(90deg, #3EE6FF, #9B5CFF 55%, #FF4FD8)"
+  },
+  "ext": {}
+}

@@ -2,7 +2,8 @@
 // shape, `glow` → glow); Custom takes colours 1–3 as a solid, a gradient or a per-band ramp. The spec
 // is CSS strings (pure, tested); the engine resolves them through a probe every 500 ms at most, so
 // a theme or skin change repaints live.
-import { RAMPS } from "../theme";
+import { RAMP_BASE, RAMPS } from "@/looks/data-viz";
+import { DEFAULT_ACCENT, DEFAULT_ACCENT_RGB } from "@/looks/palette";
 import type { BarShape, VizColorMode, VizGradient, VizLook, VizShape, VizSkin } from "./types";
 
 /** r, g, b 0..255, a 0..1 */
@@ -25,9 +26,7 @@ export interface Palette extends Omit<PaletteSpec, "stops" | "track" | "peak"> {
   peak: Rgba;
 }
 
-const ACCENT = "var(--accent)";
-/** The dark end the Follow ramp dims toward (the old inline visualiser's floor). */
-const DIM_BASE = "#18181c";
+const ACCENT = "var(--w-accent)";
 
 /** The skin's `meter` token as a bar shape: segments / blocks → segments, pill, square, else round. */
 export function shapeOf(shape: VizShape, meter: string | undefined): BarShape {
@@ -38,7 +37,7 @@ export function shapeOf(shape: VizShape, meter: string | undefined): BarShape {
   return "round";
 }
 
-const dim = (color: string) => `color-mix(in oklab, ${color} 40%, ${DIM_BASE})`;
+const dim = (color: string) => `color-mix(in oklab, ${color} 40%, ${RAMP_BASE})`;
 /** A ramp name's stops (`RAMPS`), or null for a colour or the accent ramp. */
 const rampStops = (name: string): string[] | null => RAMPS[name] ?? null;
 
@@ -108,9 +107,9 @@ export function createCssResolver(host: Element): { resolve: (css: string) => Rg
     probe.style.color = "";
     probe.style.color = value;
     const computed = getComputedStyle(probe).color;
-    if (!ctx) return [52, 211, 153, 1];
+    if (!ctx) return [...DEFAULT_ACCENT_RGB, 1];
     ctx.clearRect(0, 0, 1, 1);
-    ctx.fillStyle = "#34d399";
+    ctx.fillStyle = DEFAULT_ACCENT;
     ctx.fillStyle = computed;
     ctx.fillRect(0, 0, 1, 1);
     const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;

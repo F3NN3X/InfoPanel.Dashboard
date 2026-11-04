@@ -168,7 +168,7 @@ function ZoneAssets({ zoneId, stored, picker, setConfig, onSelectUses, onSaveToL
               >
                 <Icon className="h-3.5 w-3.5" strokeWidth={1.75} />
                 {FINDING_LABEL[id]}
-                <span className="font-ui-mono text-micro text-ui-warning">{found.counts[id]}</span>
+                <span className="font-ui-mono text-micro text-ui-warn">{found.counts[id]}</span>
               </button>
             ))}
             {tiledSrc && (
@@ -185,7 +185,7 @@ function ZoneAssets({ zoneId, stored, picker, setConfig, onSelectUses, onSaveToL
               >
                 <Grid2x2 className="h-3.5 w-3.5" strokeWidth={1.75} />
                 Tiled
-                <span className="font-ui-mono text-micro text-ui-warning">{tiled}</span>
+                <span className="font-ui-mono text-micro text-ui-warn">{tiled}</span>
               </button>
             )}
           </div>

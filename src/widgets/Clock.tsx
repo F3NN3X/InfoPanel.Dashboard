@@ -23,8 +23,8 @@ function Analog({ h, m, s, seconds }: { h: number; m: number; s: number; seconds
       ))}
       {hand(((h % 12) + m / 60) * 30, 24, 3.5, "var(--w-fg)")}
       {hand((m + s / 60) * 6, 34, 2.5, "var(--w-muted)")}
-      {seconds && hand(s * 6, 38, 1.2, "var(--accent)")}
-      <circle cx="50" cy="50" r="2.5" fill="var(--accent)" />
+      {seconds && hand(s * 6, 38, 1.2, "var(--w-accent)")}
+      <circle cx="50" cy="50" r="2.5" fill="var(--w-accent)" />
     </svg>
   );
 }
@@ -126,7 +126,7 @@ export default function Clock(p: ClockProps) {
                 <div className="flex items-baseline gap-[0.06em] leading-none" style={{ fontSize: px }}>
                   <Num ip={tag("time", { kind: "clock", format: h12 ? "hh:mm" : "HH:mm" })} className="font-semibold tracking-tight">
                     {pad(hh)}
-                    <span className="inline-block text-[color:var(--accent)]" style={{ opacity: !reduced && S % 2 === 1 ? 0.3 : 1 }}>:</span>
+                    <span className="inline-block text-[color:var(--w-accent)]" style={{ opacity: !reduced && S % 2 === 1 ? 0.3 : 1 }}>:</span>
                     {pad(M)}
                   </Num>
                   {secs && size !== "xs" && <span {...tag("time", { kind: "clock", format: "ss" })} className={`font-mono tabular-nums ${big ? "text-[color:var(--w-muted)]" : "text-[color:var(--w-faint)]"}`} style={{ fontSize: `max(18px, ${big ? ROOMY_SECS_EM : SECS_EM}em)` }}>{pad(S)}</span>}

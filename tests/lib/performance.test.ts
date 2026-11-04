@@ -59,11 +59,16 @@ describe("profile performance", () => {
   });
 
   it("keeps the rendering switches as booleans only (each screen's since config v16)", () => {
-    for (const key of ["ringGlide", "blurLimit", "innerBlur", "liveGlow"] as const) {
+    for (const key of ["ringGlide", "blurLimit", "innerBlur", "liveGlow", "pixelShift"] as const) {
       expect(normalizePerformance({ [key]: true })).toEqual({ [key]: true });
       expect(normalizePerformance({ [key]: false })).toEqual({ [key]: false });
       for (const bad of ["yes", 1, null]) expect(normalizePerformance({ [key]: bad })).toBeUndefined();
     }
+  });
+
+  it("keeps Idle dim only as one of the offered minutes", () => {
+    expect(normalizePerformance({ idleDim: 15 })).toEqual({ idleDim: 15 });
+    for (const bad of [0, 7, "15", null]) expect(normalizePerformance({ idleDim: bad })).toBeUndefined();
   });
 
   it("survives loading a config", () => {

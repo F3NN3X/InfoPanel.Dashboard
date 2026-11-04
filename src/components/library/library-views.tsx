@@ -103,7 +103,7 @@ export function LibrarySidebar({ active, counts, onPick, onOpenTheme }: { active
         className="flex min-h-[30px] w-full items-center gap-2.5 rounded-[7px] px-2 py-1 text-left text-[12.5px] text-ui-3 hover:bg-ui-hover hover:text-ui-1 max-sm:h-9 max-sm:w-auto max-sm:shrink-0 max-sm:whitespace-nowrap"
       >
         <Palette className="h-4 w-4 shrink-0 text-ui-4" strokeWidth={1.75} />
-        <span className="min-w-0 flex-1">Themes, palettes and skins are in Theme →</span>
+        <span className="min-w-0 flex-1">Looks, saved looks and colors are in Look →</span>
       </button>
     </nav>
   );
@@ -195,14 +195,14 @@ export function LibraryCard({ item, index, selected, checked, selectMode, onSele
           <span
             className={cn(
               "absolute right-1.5 top-1.5 rounded-[4px] px-1.5 py-px text-micro font-medium",
-              flag === "Duplicate" ? "bg-ui-warning text-black" : "bg-ui-warn-tint text-ui-warning",
+              flag === "Duplicate" ? "bg-ui-warn text-black" : "bg-ui-warn-tint text-ui-warn",
             )}
           >
             {flag}
           </span>
         )}
         {isOlderItem(item) && (
-          <span title="Saved by an older version: open it to update" className="absolute bottom-1.5 left-1.5 rounded-[4px] bg-ui-warn-tint px-1.5 py-px text-micro font-medium text-ui-warning">
+          <span title="Saved by an older version: open it to update" className="absolute bottom-1.5 left-1.5 rounded-[4px] bg-ui-warn-tint px-1.5 py-px text-micro font-medium text-ui-warn">
             Older version
           </span>
         )}
@@ -384,7 +384,7 @@ export function GridView(p: GridViewProps) {
         {p.hint && <p className="mb-3 text-[11.5px] text-ui-4">{p.hint}</p>}
         {cleanup && (
           <div className="mb-4 flex flex-wrap items-center gap-3 rounded-[10px] border border-ui-subtle bg-ui-panel px-4 py-2.5 text-[12.5px] text-ui-2">
-            <SprayCan className="h-4 w-4 text-ui-warning" />
+            <SprayCan className="h-4 w-4 text-ui-warn" />
             <span className="flex-1">
               {[
                 c.duplicates && `${c.duplicates} duplicate${c.duplicates === 1 ? "" : "s"}`,
@@ -455,7 +455,7 @@ export function ShelvesView(p: ShelvesViewProps) {
         <div className="mb-6 grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-3">
           {p.attention.map((a) => (
             <div key={a.id} className="flex items-center gap-3 rounded-ui-lg border border-ui-subtle bg-ui-panel p-3">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-ui-menu bg-ui-warning/15 text-ui-warning">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-ui-menu bg-ui-warn/15 text-ui-warn">
                 {a.id === "duplicates" ? <Copy className="h-4 w-4" /> : a.id === "unused" ? <Ban className="h-4 w-4" /> : <HardDrive className="h-4 w-4" />}
               </span>
               <div className="min-w-0 flex-1">

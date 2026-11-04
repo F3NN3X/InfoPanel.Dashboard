@@ -926,6 +926,7 @@ export const LevelMeter = ({
         data-orientation={orientation}
         data-size={settings.size}
         data-slot="level-meter"
+        data-part="meter"
         data-variant={variant}
         ref={setRootRef}
         role="meter"

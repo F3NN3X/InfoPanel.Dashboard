@@ -144,7 +144,7 @@ export default function Timer(p: TimerProps) {
                 {t.pomodoro && (
                   <span className="flex gap-1" aria-hidden>
                     {Array.from({ length: Math.max(4, t.pomodoro.round + 1) }, (_, i) => (
-                      <i key={i} className="h-2 w-2 rounded-full" style={{ background: i < t.pomodoro!.round ? "var(--accent)" : "var(--w-track)", outline: i === t.pomodoro!.round && t.phase === "focus" ? "1px solid var(--accent)" : undefined }} />
+                      <i key={i} className="h-2 w-2 rounded-full" style={{ background: i < t.pomodoro!.round ? "var(--w-accent)" : "var(--w-track)", outline: i === t.pomodoro!.round && t.phase === "focus" ? "1px solid var(--w-accent)" : undefined }} />
                     ))}
                   </span>
                 )}

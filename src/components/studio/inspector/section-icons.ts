@@ -40,7 +40,7 @@ import type { InspectorSection } from "../inspector-model";
 const BY_ID: Record<string, { icon: LucideIcon; short: string }> = {
   header: { icon: Heading, short: "Header" },
   fit: { icon: Maximize2, short: "Fit" },
-  skin: { icon: Brush, short: "Skin" },
+  skin: { icon: Brush, short: "Look" },
   colors: { icon: Palette, short: "Colors" },
   palette: { icon: SwatchBook, short: "Widget" },
   surface: { icon: Layers, short: "Surface" },

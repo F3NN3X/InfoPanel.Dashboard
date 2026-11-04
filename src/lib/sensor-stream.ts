@@ -90,9 +90,13 @@ export function planStreams(wanted: Iterable<string>, max: number): string[] {
   return folded.length <= max ? folded.sort() : [""];
 }
 
-/** True when any changed key falls under one of the prefixes (null = any). */
-export function touches(changed: readonly string[], prefixes: readonly string[] | null): boolean {
+/** The audio-level meter's keys: a 10 Hz stream while an audio widget is open, which most widgets never show. */
+export const AUDIO_PREFIX = "plugins.audio-level-meter.";
+
+/** True when any changed key falls under one of the prefixes (null = any), unless every changed key is under `quiet`. */
+export function touches(changed: readonly string[], prefixes: readonly string[] | null, quiet?: string): boolean {
   if (changed.length === 0) return false;
+  if (quiet && changed.every((key) => key.startsWith(quiet))) return false;
   if (prefixes === null) return true;
   return changed.some((key) => prefixes.some((p) => key.startsWith(p)));
 }

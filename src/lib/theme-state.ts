@@ -4,7 +4,7 @@ import { isBuiltinPreset, type AppearancePreset } from "./appearance-presets";
 import { sameBackground, sameValues, type AppliedTheme } from "./applied-theme";
 import type { DashboardConfig } from "./layout";
 import { SECTION_IDS, SECTION_KEYS, type SectionId } from "./theme-model";
-import { sameSkin } from "./theme-skins";
+import { sameLook } from "./theme-skins";
 
 /**
  * Which theme a level last applied and what changed since, read from the snapshot the level stores (the theme card,
@@ -27,7 +27,7 @@ export interface ThemeState {
   theme?: AppearancePreset;
   /** A saved theme deleted since it was applied (the card shows "‹name› (deleted)"). */
   deleted: boolean;
-  /** The parts changed since it was applied (the Update bar); a page has only its skin. */
+  /** The parts changed since it was applied (the Update bar); a page has only its skin. The skin part is the level's Look. */
   changed: ThemePart[];
   /** The sections holding values of the level's own ("Changed here"; what a switch keeps). */
   own: SectionId[];
@@ -45,9 +45,9 @@ export function themeState(config: DashboardConfig, target: ThemeTarget, templat
     const pg = p?.pages.find((x) => x.id === target.pageId);
     const custom = (sec: SectionId) => pg?.widgetTheme?.follow?.[sec] === false && p?.widgetTheme?.locks?.[sec] !== true;
     const own = SECTION_IDS.filter((sec) => sec !== "skin" && custom(sec) && differs(pg?.widgetTheme?.values, sec));
-    // A page that follows its screen's skin holds none: changed from any skin the theme wrote.
-    const skin = custom("skin") ? pg?.widgetTheme?.values?.skin : undefined;
-    const skinChanged = skin === undefined ? written.skin !== undefined : !sameSkin(skin, written.skin);
+    // A page that follows its screen's skin holds no Look: changed from any Look the theme wrote.
+    const look = custom("skin") ? pg?.widgetTheme?.values?.lookId : undefined;
+    const skinChanged = look === undefined ? written.lookId !== undefined : !sameLook(look, written.lookId);
     return { applied, theme, deleted, changed: applied && skinChanged ? ["skin"] : [], own };
   }
   const p = config.profiles.find((x) => x.id === target.profileId);
@@ -59,7 +59,7 @@ export function themeState(config: DashboardConfig, target: ThemeTarget, templat
   if (!applied) return { applied, theme, deleted, changed: [], own };
   const changed: ThemePart[] = [];
   if (!sameValues(tokens, applied.tokens)) changed.push("palette");
-  if (!sameSkin(values?.skin, written.skin)) changed.push("skin");
+  if (!sameLook(values?.lookId, written.lookId)) changed.push("skin");
   if (radius !== applied.radius) changed.push("corners");
   if (applied.background && !sameBackground(background, applied.background)) changed.push("background");
   return { applied, theme, deleted, changed, own };

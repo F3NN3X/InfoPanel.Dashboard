@@ -25,7 +25,7 @@ export const GRAPHITE: ScreenTemplate = {
   look: {
     theme: theme(COLOURS),
     radius: 0.625,
-    style: { skin: "auto", surface: "theme", scale: 130, accent: "#ff8a3d", font: "sans", numGlow: "off", meter: "bar" },
+    style: { lookId: "classic", surface: "theme", scale: 130, accent: "#ff8a3d", font: "sans", numGlow: "off", meter: "bar" },
     background: { type: "color", color: "#0d0e10" },
     gap: 10,
     padding: 10,

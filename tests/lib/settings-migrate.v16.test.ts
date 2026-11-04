@@ -49,9 +49,9 @@ const DASHBOARD = {
 
 describe("v16: the version", () => {
   it("is stamped, and a v16 config loads again identical", () => {
-    expect(CONFIG_VERSION).toBe(16);
+    expect(CONFIG_VERSION).toBeGreaterThanOrEqual(16);
     const out = load(v15(DASHBOARD, [screen("s1"), screen("s2", { theme: { primary: "9 9% 9%" } })]));
-    expect(out.version).toBe(16);
+    expect(out.version).toBe(CONFIG_VERSION);
     const again = load(JSON.parse(JSON.stringify(out)) as StoredConfig);
     expect(again).toEqual(out);
     // Loading a v16 config again changes nothing: no dashboard look to copy, the screens keep theirs.
@@ -148,7 +148,8 @@ describe("v16: the theme snapshot", () => {
 
   it("a dashboard saved before snapshots that shows a saved theme exactly: its guess goes to the screens that inherited", () => {
     const out = load(v15({ theme: OCEAN, radius: 1, style: desk.style, appearancePresets: [desk] }, [screen("plain"), screen("own", { background: { type: "none" } })]));
-    expect(byId(out, "plain").appliedTheme).toMatchObject({ id: "desk", values: desk.style });
+    // Config v17 stores the skin as the Look (`lookId`).
+    expect(byId(out, "plain").appliedTheme).toMatchObject({ id: "desk", values: { lookId: "tui", accent: "#38bdf8" } });
     expect(byId(out, "own").appliedTheme).toBeUndefined();
   });
 });

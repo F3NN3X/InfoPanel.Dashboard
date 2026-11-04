@@ -3,9 +3,9 @@
 // surface shows as a frame round the icon, and an overlay (the surface's edge, a sheen or a glow) is drawn over it;
 // the surface's background never is, or it would hide the icon.
 import type { CSSProperties } from "react";
+import { MATERIALS, type SurfaceTone } from "@/looks/materials";
 import { mix } from "../core/tokens";
-import { BASE_SURFACES, LEGACY_SURFACES, type SurfaceTone } from "../core/surfaces";
-import { SURFACES, resolveSurface, textVars } from "../core/theme";
+import { resolveSurface, textVars } from "../core/theme";
 import type { SkinContext } from "../core/types";
 
 /** `auto` the skin's own card, `widget` the widget's surface, `plain` the flat key, else a surface's name. */
@@ -41,7 +41,7 @@ const FRAME: Record<KeyFrame, number> = { none: 0, thin: 0.05, thick: 0.1 };
  * so the frame keeps the default; a surface picked by name stays.
  */
 export const frameSurface = (surface: string | undefined): string | undefined =>
-  surface && (surface in BASE_SURFACES || surface in LEGACY_SURFACES) ? surface : undefined;
+  surface && surface in MATERIALS && MATERIALS[surface].origin !== "skin" ? surface : undefined;
 
 /** The over-icon layer for `kind` at `strength` (0–100 %). Skin = the surface's border and shadow, or a faint accent ring when it has none. */
 function overlayOf(kind: IconOverlay, strength: number, size: number, edge: { className: string; style: CSSProperties } | null, clipPath: string | undefined): KeyLook["overlay"] {
@@ -61,11 +61,10 @@ function overlayOf(kind: IconOverlay, strength: number, size: number, edge: { cl
 /** The key's look for `style` (an unknown surface name draws the plain key), its frame and overlay, and its side, px. */
 export function keyLook(o: { style: KeyStyle; frame: KeyFrame; overlay: IconOverlay; strength: number; size: number; skin: SkinContext; pane: { className: string; style: CSSProperties } }): KeyLook {
   const { style, size } = o;
-  const def = style === "widget" ? null : style === "auto" ? resolveSurface("auto", o.skin.skin) : SURFACES[style];
+  const def = style === "widget" ? null : style === "auto" ? resolveSurface("auto", o.skin.skin) : MATERIALS[style];
   if (style === "plain" || (style !== "widget" && !def)) return { ...PLAIN, tone: "dark", inset: 0, overlay: overlayOf(o.overlay === "skin" ? "none" : o.overlay, o.strength, size, null, undefined) };
   const className = def ? def.c : o.pane.className;
-  // A surface's own size (brutal leaves room for its offset shadow) would shrink the key in its grid cell.
-  const { width: _w, height: _h, ...base } = def ? def.s : o.pane.style;
+  const base = def ? def.s : o.pane.style;
   const k = Math.min(1, size / DESIGN_SIDE);
   const clipPath = typeof base.clipPath === "string" ? scalePx(base.clipPath, k) : undefined;
   // The widget's root already sets the text colours for its own surface.

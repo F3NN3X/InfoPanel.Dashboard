@@ -71,11 +71,11 @@ describe("buildCommands", () => {
   });
 
   it("offers each saved theme with its background, keeping the level's, and on all screens, at the level Theme is set to", () => {
-    const themes = buildCommands({ ...base, appearancePresets: [{ id: "t1", name: "Desk" }], themeLevel: "Gaming" }).filter((c) => c.group === "Themes");
+    const themes = buildCommands({ ...base, appearancePresets: [{ id: "t1", name: "Desk" }], themeLevel: "Gaming" }).filter((c) => c.group === "Looks");
     expect(themes.map((c) => [c.label, c.hint, c.action])).toEqual([
-      ["Apply theme: Desk", "Gaming", { type: "apply-appearance", id: "t1", keepBackground: false }],
-      ["Apply theme, keep background: Desk", "Gaming", { type: "apply-appearance", id: "t1", keepBackground: true }],
-      ["Apply theme to all screens: Desk", undefined, { type: "apply-appearance-all", id: "t1" }],
+      ["Apply look: Desk", "Gaming", { type: "apply-appearance", id: "t1", keepBackground: false }],
+      ["Apply look, keep background: Desk", "Gaming", { type: "apply-appearance", id: "t1", keepBackground: true }],
+      ["Apply look to all screens: Desk", undefined, { type: "apply-appearance-all", id: "t1" }],
     ]);
     expect(buildCommands({ ...base, appearancePresets: [{ id: "t1", name: "Desk" }] }).find((c) => c.id === "appearance:t1")?.hint).toBe("This screen");
   });

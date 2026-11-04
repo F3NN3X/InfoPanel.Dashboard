@@ -12,7 +12,16 @@ import {
   Volume2,
   VolumeX,
   ArrowDown,
+  CalendarClock,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  CircleAlert,
+  CloudOff,
+  Link,
+  Power,
+  RefreshCw,
+  Speaker,
   Film,
   MessageSquare,
   Send,
@@ -175,6 +184,15 @@ export const MATERIAL_ICONS: Record<string, LucideIcon> = {
   view_list: List,
   view_week: Columns3,
   vital_signs: Activity,
+  chevron_left: ChevronLeft,
+  chevron_right: ChevronRight,
+  cloud_off: CloudOff,
+  error: CircleAlert,
+  event: CalendarClock,
+  link: Link,
+  power_settings_new: Power,
+  speaker: Speaker,
+  sync: RefreshCw,
   // weatherIcon() outputs
   thunderstorm: CloudLightning,
   weather_snowy: CloudSnow,
@@ -192,5 +210,7 @@ export const FALLBACK_ICON: LucideIcon = CircleDashed;
 /** The lucide component for a Material Symbols or legacy widget-icon name. */
 export function iconFor(name: string | undefined): LucideIcon {
   if (!name) return FALLBACK_ICON;
-  return MATERIAL_ICONS[name] ?? WIDGET_ICONS[name] ?? FALLBACK_ICON;
+  // own keys only: "constructor" or "toString" is not an icon
+  const own = (m: Record<string, LucideIcon>) => (Object.hasOwn(m, name) ? m[name] : undefined);
+  return own(MATERIAL_ICONS) ?? own(WIDGET_ICONS) ?? FALLBACK_ICON;
 }

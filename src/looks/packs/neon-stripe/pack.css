@@ -1,0 +1,3 @@
+* { font-family: pack-neon-mono, ui-monospace, monospace; }
+[data-part="num"] { font-family: pack-neon-display, pack-neon-mono, sans-serif; }
+[data-part="header"] { color: #FF6B5E; }

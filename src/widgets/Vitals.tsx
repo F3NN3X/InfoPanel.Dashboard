@@ -1,7 +1,8 @@
 import { readSystemFlat } from "@/lib/system-metrics";
 import type { ModuleSettings } from "@/modules/types";
+import { SKINS } from "./core/theme";
 import { fitFontPx } from "./fit-font";
-import { UNIT_CLASS, bodyGap, fitRows, Widget, shell, get, num, fmt, fmtRate, rateParts, toMBps, detect, Spark, useHistory, useSkin, tone, TONES, hw, type ShellProps } from "./kit";
+import { Unit, bodyGap, fitRows, Widget, shell, get, num, fmt, fmtRate, rateParts, toMBps, detect, Spark, useHistory, useSkin, tone, TONES, hw, type ShellProps } from "./kit";
 import { meta } from "./meta/Vitals";
 
 export { meta };
@@ -51,7 +52,7 @@ function VitalCard({ m, hist, w, h, tui }: { m: Vital; hist: number[]; w: number
       {graphRows && <Spark values={hist} min={0} max={m.max} grid={false} className="mt-1 min-h-0 flex-1 opacity-80" />}
       <span className="relative mt-auto block max-w-full overflow-hidden text-ellipsis whitespace-nowrap pb-1 font-semibold leading-none tabular-nums" style={{ fontSize: fs, ...plate, ...(t !== "ok" ? { color: TONES[t] } : null) }}>
         {text}
-        <span className={UNIT_CLASS}>{m.unit}</span>
+        <Unit>{m.unit}</Unit>
       </span>
     </div>
   );
@@ -93,7 +94,7 @@ export default function Vitals(p: VitalsProps) {
         return (
           <div className="grid h-full gap-2" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))`, gridAutoRows: "minmax(0,1fr)" }}>
             {shown.map((k) => (
-              <VitalCard key={k} m={all[k]} hist={H[k]} w={cardW} h={cardH} tui={p.skin === "tui"} />
+              <VitalCard key={k} m={all[k]} hist={H[k]} w={cardW} h={cardH} tui={!!SKINS[p.skin ?? "default"]?.boxed} />
             ))}
           </div>
         );

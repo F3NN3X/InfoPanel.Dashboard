@@ -48,7 +48,7 @@ describe("shared sections", () => {
     expect(SHARED_SECTIONS.map((c) => [c.tab, c.title])).toEqual([
       ["show", "Header"],
       ["show", "Fit"],
-      ["style", "Skin"],
+      ["style", "Look"],
       ["style", "Colors"],
       ["style", "Widget colors"],
       ["style", "Typography"],
@@ -81,9 +81,9 @@ describe("shared sections", () => {
     const keysOf = (id: string) => STANDARD_SETTINGS.filter((d) => d.section === id).map((d) => d.key);
     expect(keysOf("header")).toEqual(["showTitle", "label", "icon"]);
     expect(keysOf("fit")).toEqual(["compact", "sizeTier"]);
-    expect(keysOf("skin").sort()).toEqual(["graph", "meter", "skin", "stroke"]);
+    expect(keysOf("skin").sort()).toEqual(["graph", "lookId", "meter", "stroke"]);
     expect(keysOf("colors").sort()).toEqual(["accent", "mutedColor", "textColor"]);
-    expect(keysOf("surface").sort()).toEqual(["background", "backgroundOn", "blur", "surface", "surfaceOpacity"]);
+    expect(keysOf("surface").sort()).toEqual(["background", "backgroundOn", "blur", "decoration", "surface", "surfaceOpacity"]);
     expect(keysOf("type")).toEqual(["font", "fontWeight", "labelCase", "numGlow", "numGlowColor"]);
     expect(keysOf("border")).toEqual(["borderWidth", "borderColor", "glow", "glowColor"]);
     expect(keysOf("css")).toEqual(["customCss"]);
@@ -92,7 +92,7 @@ describe("shared sections", () => {
 
   it("puts the spec's More rows behind More", () => {
     const more = STANDARD_SETTINGS.filter((d) => d.more).map((d) => d.key).sort();
-    expect(more).toEqual(["background", "backgroundOn", "customCss", "graph", "icon", "meter", "numGlowColor", "sizeTier"]);
+    expect(more).toEqual(["background", "backgroundOn", "customCss", "decoration", "graph", "icon", "meter", "numGlowColor", "sizeTier"]);
     expect(STANDARD_SETTINGS.some((d) => d.advanced)).toBe(false);
   });
 
@@ -239,7 +239,7 @@ describe("tabs", () => {
     expect(tabs).toEqual({
       Header: "show",
       Fit: "show",
-      Skin: "style",
+      Look: "style",
       Colors: "style",
       "Surface & effects": "style",
       Typography: "style",

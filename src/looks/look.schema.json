@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "look.schema.json",
+  "title": "Look",
+  "description": "A Look: T0 to T3 values with modes, tags, fonts and corners (docs/investigations/look-system.md 9.6). Only the built-in Studio Look carries the studio block (D1).",
+  "type": "object",
+  "required": ["schema", "id", "name", "description", "tags", "modes", "fonts", "radius", "t1"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "schema": { "const": 1 },
+    "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+    "name": { "type": "string", "minLength": 1 },
+    "description": { "type": "string" },
+    "tags": { "type": "array", "items": { "type": "string" } },
+    "modes": {
+      "type": "object",
+      "required": ["supported"],
+      "additionalProperties": false,
+      "properties": {
+        "supported": { "type": "array", "minItems": 1, "items": { "enum": ["dark", "light"] } },
+        "stance": { "type": "string" }
+      }
+    },
+    "fonts": {
+      "type": "object",
+      "required": ["body"],
+      "additionalProperties": false,
+      "properties": { "body": { "type": "string" }, "mono": { "type": "string" }, "display": { "type": "string" } }
+    },
+    "radius": { "type": "string" },
+    "t0": { "type": "object", "additionalProperties": { "type": "string" } },
+    "t1": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": false,
+      "properties": { "dark": { "$ref": "#/$defs/t1" }, "light": { "$ref": "#/$defs/t1" } }
+    },
+    "t2": {
+      "type": "object",
+      "required": ["default"],
+      "additionalProperties": false,
+      "properties": {
+        "default": { "type": "string" },
+        "tones": { "type": "object", "additionalProperties": { "type": "object", "additionalProperties": { "type": "string" } } },
+        "materials": { "type": "object", "additionalProperties": { "$ref": "#/$defs/material" } }
+      }
+    },
+    "t3": { "type": "object", "additionalProperties": { "type": ["string", "number"] } },
+    "export": {
+      "type": "object",
+      "required": ["notExported"],
+      "additionalProperties": false,
+      "properties": { "notExported": { "type": "array", "items": { "type": "string" } } }
+    },
+    "ext": { "type": "object" },
+    "studio": { "type": "object", "additionalProperties": { "type": "object", "additionalProperties": { "$ref": "#/$defs/studioEntry" } } }
+  },
+  "if": { "properties": { "id": { "const": "studio" } } },
+  "then": { "required": ["studio"] },
+  "else": { "not": { "required": ["studio"] } },
+  "$defs": {
+    "entry": {
+      "type": "object",
+      "required": ["value"],
+      "additionalProperties": false,
+      "properties": { "value": { "type": "string" }, "usage": { "type": "string" } }
+    },
+    "t1": {
+      "type": "object",
+      "required": ["bg", "surface", "surface-2", "fg", "fg-2", "muted", "border", "border-soft", "accent", "accent-on", "accent-hover", "focus-ring", "ok", "warn", "crit", "info"],
+      "additionalProperties": false,
+      "properties": {
+        "bg": { "$ref": "#/$defs/entry" },
+        "surface": { "$ref": "#/$defs/entry" },
+        "surface-2": { "$ref": "#/$defs/entry" },
+        "fg": { "$ref": "#/$defs/entry" },
+        "fg-2": { "$ref": "#/$defs/entry" },
+        "muted": { "$ref": "#/$defs/entry" },
+        "border": { "$ref": "#/$defs/entry" },
+        "border-soft": { "$ref": "#/$defs/entry" },
+        "accent": { "$ref": "#/$defs/entry" },
+        "accent-on": { "$ref": "#/$defs/entry" },
+        "accent-hover": { "$ref": "#/$defs/entry" },
+        "focus-ring": { "$ref": "#/$defs/entry" },
+        "ok": { "$ref": "#/$defs/entry" },
+        "warn": { "$ref": "#/$defs/entry" },
+        "crit": { "$ref": "#/$defs/entry" },
+        "info": { "$ref": "#/$defs/entry" }
+      }
+    },
+    "material": {
+      "type": "object",
+      "required": ["kind"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "enum": ["solid", "gradient", "glass", "lcd"] },
+        "tone": { "enum": ["dark", "light", "theme", "auto"] },
+        "fill": { "type": "string" },
+        "fill-alpha": { "type": "number", "minimum": 0, "maximum": 1 },
+        "fill-2": { "type": "string" },
+        "fill-angle": { "type": "string" },
+        "blur": { "type": "string" },
+        "blur-fallback-alpha": { "type": "number", "minimum": 0, "maximum": 1 },
+        "border": { "type": "string" },
+        "export": { "type": ["string", "null"] }
+      }
+    },
+    "studioEntry": {
+      "type": "object",
+      "required": ["value"],
+      "additionalProperties": false,
+      "properties": {
+        "value": { "type": "string" },
+        "s": { "type": "array", "items": { "type": "string" } },
+        "usage": { "type": "string" }
+      }
+    }
+  }
+}

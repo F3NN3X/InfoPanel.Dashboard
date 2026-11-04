@@ -1,0 +1,48 @@
+{
+  "id": "overdrive",
+  "name": "Overdrive",
+  "version": "1.0.0",
+  "tags": [
+    "dark",
+    "neon",
+    "angular",
+    "cyberpunk"
+  ],
+  "description": "Black cards with a chamfered yellow edge and an angled label bar, cyan numerals with a chromatic fringe, a red grid and a skewed yellow block.",
+  "modes": [
+    "dark"
+  ],
+  "fonts": [
+    {
+      "family": "pack-overdrive",
+      "source": "Rajdhani",
+      "file": "rajdhani-600.woff2",
+      "weight": "100 900",
+      "licence": "OFL-1.1",
+      "copyright": "Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com)"
+    },
+    {
+      "family": "pack-overdrive-mono",
+      "source": "Share Tech Mono",
+      "file": "pack-overdrive-mono-400.woff2",
+      "weight": "100 900",
+      "licence": "OFL-1.1",
+      "copyright": "Copyright (c) 2012, Carrois Type Design, Ralph du Carrois (post@carrois.com www.carrois.com), with Reserved Font Name 'Share'"
+    }
+  ],
+  "stage": {
+    "layers": [
+      {
+        "fill": "#0A0A0C"
+      },
+      {
+        "image": "scene.svg",
+        "minSizeClass": "sm"
+      }
+    ]
+  },
+  "burnIn": "needs-shift",
+  "statusBar": {
+    "edge": "top"
+  }
+}

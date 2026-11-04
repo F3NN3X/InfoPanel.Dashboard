@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { appearanceOf, lockedIn, resolveStyle, resolveWith, zoneResolver } from "@/lib/style-resolve";
 import type { ThemeLevels } from "@/lib/theme-model";
+import type { ModuleSettings } from "@/modules/types";
 
 const base = { accent: "#ff0000", surface: "theme", radius: "8" };
 const profile = { values: { accent: "#00ff00", textColor: "#ffffff" } };
@@ -172,5 +173,84 @@ describe("resolveStyle: the schema's perWidget rows and palette roles", () => {
     const theme: ThemeLevels = { profile: { values: { "warn.load": 85 } } };
     expect(resolveWith(theme, own, undefined)?.["warn.load"]).toBe(85);
     expect(resolveWith(theme, own, { thresholds: false })?.["warn.load"]).toBe(70);
+  });
+});
+
+describe("the Look layer (L40)", () => {
+  // A level stores its Look and only what it changes; the Look's values sit under it once its chunk is loaded.
+  const term = { values: { lookId: "term" } };
+
+  it("draws a sample Look's values under a level that names it, and nothing before its chunk is loaded", async () => {
+    const { lookLayers } = await import("@/looks/sample-cards");
+    for (const id of Object.keys(lookLayers)) delete lookLayers[id];
+    expect(resolveStyle({ levels: { profile: term } }).settings.surface).toBeUndefined();
+    (await import("@/looks/sample-materials")).registerSampleCards();
+    const r = resolveStyle({ levels: { profile: term } });
+    expect(r.settings).toMatchObject({ lookId: "term", surface: "look-term", accent: "#8BE37A", font: "mono" });
+    expect(r.source.accent).toBe("look");
+  });
+
+  it("keeps a level's own value over its Look, and the app's under it", async () => {
+    (await import("@/looks/sample-materials")).registerSampleCards();
+    const r = resolveStyle({ levels: { base: { clock: "24h" }, profile: { values: { lookId: "term", accent: "#123456" } } } });
+    expect(r.settings.accent).toBe("#123456");
+    expect(r.source.accent).toBe("profile");
+    expect(r.settings.clock).toBe("24h");
+  });
+
+  it("sets nothing for Classic, a skin or an unknown Look", async () => {
+    (await import("@/looks/sample-materials")).registerSampleCards();
+    for (const lookId of ["classic", "hud", "nope"]) expect(resolveStyle({ levels: { profile: { values: { lookId } } } }).settings, lookId).toEqual({ lookId });
+  });
+
+  it("follows the Look a widget shows: its own where its Look section is custom", async () => {
+    (await import("@/looks/sample-materials")).registerSampleCards();
+    const r = resolveStyle({ levels: { profile: term }, own: { lookId: "paper" }, follow: { skin: false } });
+    expect(r.settings.surface).toBe("look-paper");
+    expect(resolveStyle({ levels: { profile: term }, own: { lookId: "paper" } }).settings.surface).toBe("look-term");
+  });
+});
+
+describe("a page's own Look", () => {
+  it("draws over the values its screen stores; the page's own values still beat it", async () => {
+    (await import("@/looks/sample-materials")).registerSampleCards();
+    const { lookLayers } = await import("@/looks/sample-cards");
+    const { themeVal } = await import("@/lib/theme-model");
+    const { scopeLookValues } = await import("@/components/studio/theme-editor-model");
+    const paper = lookLayers.paper;
+    const screen = { values: { lookId: "term", accent: "#123456", surface: "theme", font: "inter" } };
+    const page: ThemeLevels = { profile: screen, page: { values: { lookId: "paper" }, follow: { skin: false } } };
+    expect(resolveStyle({ levels: page }).settings).toMatchObject({ lookId: "paper", accent: paper.accent, surface: "look-paper", font: paper.font });
+    expect(themeVal(page, "accent")).toBe(paper.accent);
+    expect(scopeLookValues(page, "page").inherited).toMatchObject({ accent: paper.accent, surface: "look-paper" });
+    const own: ThemeLevels = { profile: screen, page: { values: { lookId: "paper", accent: "#abcdef" }, follow: { skin: false, colors: false } } };
+    expect(resolveStyle({ levels: own }).settings.accent).toBe("#abcdef");
+    // A page that follows its screen's Look keeps the screen's values over that Look.
+    expect(resolveStyle({ levels: { profile: screen, page: { values: {} } } }).settings.accent).toBe("#123456");
+  });
+});
+
+describe("the Look layer and levels saved before it", () => {
+  it("gives nothing to a level that stores its Look's own card (applied before the layer: it holds every value it draws)", async () => {
+    (await import("@/looks/sample-materials")).registerSampleCards();
+    expect(resolveStyle({ levels: { profile: { values: { lookId: "paper", surface: "look-paper" } } } }).settings).toEqual({ lookId: "paper", surface: "look-paper" });
+  });
+
+  it("gives a level that applied its Look before the layer (every value stored) the Look's value back for one it clears", async () => {
+    (await import("@/looks/sample-materials")).registerSampleCards();
+    const { lookLayers } = await import("@/looks/sample-cards");
+    const term = lookLayers.term;
+    const copy: ModuleSettings = { lookId: "term", ...term };
+    for (const key of ["accent", "textColor", "mutedColor", "font"]) {
+      const { [key]: _cleared, ...rest } = copy;
+      expect(resolveStyle({ levels: { base: { accent: "#ff0000" }, profile: { values: rest } } }).settings[key], key).toBe(term[key]);
+    }
+  });
+
+  it("gives the layer to a level that stores the Look's card with values of its own", async () => {
+    (await import("@/looks/sample-materials")).registerSampleCards();
+    const { lookLayers } = await import("@/looks/sample-cards");
+    const r = resolveStyle({ levels: { profile: { values: { lookId: "term", surface: "look-term", accent: "#123456" } } } });
+    expect(r.settings).toMatchObject({ accent: "#123456", textColor: lookLayers.term.textColor, font: lookLayers.term.font });
   });
 });

@@ -27,8 +27,10 @@ describe("keyLook", () => {
 
   it("never blurs the icon: only the surface's border classes go over it", () => {
     const l = look("auto", "macos");
-    expect(l.className).toContain("backdrop-blur");
+    // vibrancy's blur is the material's (an inline backdrop filter since P3b, a class before): on the key, not over the icon.
+    expect(String(l.style.backdropFilter)).toContain("blur(");
     expect(l.overlay?.className).toBe("border border-white/[0.08]");
+    expect(l.overlay?.style.backdropFilter).toBeUndefined();
   });
 
   it("keeps a surface's own size off the key, so it fills its grid cell", () => {

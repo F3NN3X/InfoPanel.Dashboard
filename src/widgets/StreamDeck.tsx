@@ -3,7 +3,7 @@ import { deckAct, deckPress, iconUrl, streamDeckRefusal, useStreamDeck, useStrea
 import { READ_ONLY_HINT } from "@/lib/write-refusal";
 import type { ModuleSettings } from "@/modules/types";
 import { chromeOf } from "@/modules/standard-settings";
-import { Widget, shell, Icon, Empty, usePane, type ShellProps } from "./kit";
+import { Widget, shell, Icon, Empty, usePane, accentVars, type ShellProps } from "./kit";
 import { ReadOnly } from "./ReadOnly";
 import { resolveAccent, skinContext } from "./core/look";
 import type { SkinContext } from "./core/types";
@@ -95,13 +95,13 @@ function Key({ index, title, icon, on, size, titles, wrap, look, skin, accent, o
       className={`relative flex items-center justify-center overflow-hidden transition-transform duration-75 ${face.className}`}
       style={{
         ...face.style,
-        "--accent": resolveAccent(accent, skin, face.tone),
+        ...accentVars(resolveAccent(accent, skin, face.tone)),
         fontFamily: skin.font,
         borderRadius: radius,
         opacity: icon !== null || title !== "" ? 1 : 0.35,
         transform: on && effect === "dip" ? "scale(0.93)" : undefined,
         filter: on && effect === "dip" ? "brightness(0.75)" : undefined,
-        ...(on && effect === "glow" ? { boxShadow: "0 0 0 2px var(--accent, #fff), 0 0 14px var(--accent, #fff)" } : null),
+        ...(on && effect === "glow" ? { boxShadow: "0 0 0 2px var(--w-accent, #fff), 0 0 14px var(--w-accent, #fff)" } : null),
       } as CSSProperties}
     >
       {shown && (

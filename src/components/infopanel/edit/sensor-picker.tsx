@@ -71,7 +71,7 @@ export function SensorPicker({ open, onOpenChange, title, pluginOnly, current, o
                 className="min-w-0 flex-1 bg-transparent text-body text-ui-1 outline-none placeholder:text-ui-4"
               />
             </div>
-            {noRefs && <p className="text-[11.5px] leading-snug text-ui-warning">{NOT_EXPORTABLE}. A choice binds the preview only.</p>}
+            {noRefs && <p className="text-[11.5px] leading-snug text-ui-warn">{NOT_EXPORTABLE}. A choice binds the preview only.</p>}
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto p-1">
             {catalog.status === "error" && <p className="px-3 py-6 text-center text-caption text-ui-4">The Data API isn’t reachable, so there are no sensors to choose.</p>}

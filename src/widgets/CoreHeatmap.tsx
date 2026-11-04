@@ -1,7 +1,8 @@
 import { useEffect, useRef } from "react";
+import { RAMP_START } from "@/looks/data-viz";
 import { readCpuFlat } from "@/lib/system-metrics";
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, fmt, heat, rampColor, accentOf, hw, Num, useIpTag, type ShellProps } from "./kit";
+import { Widget, shell, get, num, fmt, heat, rampColor, accentOf, hw, Num, useIpTag, STATE, type ShellProps } from "./kit";
 import { meta } from "./meta/CoreHeatmap";
 
 export { meta };
@@ -92,6 +93,9 @@ export default function CoreHeatmap(p: CoreHeatmapProps) {
     if (!ctx) return;
     ctx.scale(dpr, dpr);
     ctx.clearRect(0, 0, w, h);
+    // the material's fill as a hex: the canvas serialises any opaque colour it accepts that way
+    ctx.fillStyle = getComputedStyle(cv).getPropertyValue("--w-fill").trim() || RAMP_START;
+    const base = String(ctx.fillStyle);
     const acc = accentOf(cv),
       cols = p.history ?? 60,
       rows = cores.length || 1,
@@ -99,7 +103,7 @@ export default function CoreHeatmap(p: CoreHeatmapProps) {
       rh = h / rows;
     hist.current.forEach((col, x) =>
       col.forEach((v, y) => {
-        ctx.fillStyle = ramp === "accent" ? rampColor(v / 100, "accent", acc) : rampColor(v / 100, ramp);
+        ctx.fillStyle = ramp === "accent" ? rampColor(v / 100, "accent", acc, base) : rampColor(v / 100, ramp);
         ctx.fillRect((cols - hist.current.length + x) * cw, y * rh, Math.ceil(cw) + 0.5, Math.max(1, rh - 1));
       })
     );
@@ -205,7 +209,7 @@ export default function CoreHeatmap(p: CoreHeatmapProps) {
                   key={c.i}
                   title={`Core ${c.i} · ${fmt(c.load, 0)}% · ${fmt(c.mhz, 0)} MHz · ${fmt(c.vid, 2)} V`}
                   className="flex min-h-0 items-center justify-center rounded-md text-micro font-semibold tabular-nums"
-                  style={{ background: `color-mix(in srgb, ${heat(v, ramp)} ${Math.round(18 + v * 0.82)}%, var(--w-track))`, color: text(v), gridColumn: `${lastRow > 0 && idx === n - lastRow ? `${cols - lastRow + 1} / ` : ""}span 2`, textShadow: v > 72 ? undefined : "0 0 2px rgb(0 0 0 / .45)", outline: v > hotLine ? "2px solid #F2665E" : "none", outlineOffset: -2 }}
+                  style={{ background: `color-mix(in srgb, ${heat(v, ramp)} ${Math.round(18 + v * 0.82)}%, var(--w-track))`, color: text(v), gridColumn: `${lastRow > 0 && idx === n - lastRow ? `${cols - lastRow + 1} / ` : ""}span 2`, textShadow: v > 72 ? undefined : "0 0 2px rgb(0 0 0 / .45)", outline: v > hotLine ? `2px solid ${STATE.crit}` : "none", outlineOffset: -2 }}
                 >
                   {/* the load is tagged for the InfoPanel conversion; the other metrics are scaled, so they stay in its picture */}
                   {(p.showValues ?? size !== "xs") && (ip ? <span {...tag(c.key)}>{label(c)}</span> : label(c))}

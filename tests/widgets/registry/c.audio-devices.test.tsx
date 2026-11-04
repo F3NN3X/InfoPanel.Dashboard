@@ -54,6 +54,13 @@ describe("audio widgets: inputs and outputs", () => {
     expect(html("Visualizer", { devices: "default-input,default-audio" })).toContain("System visualizer");
   });
 
+  it("Visualizer and Meter Bridge draw once audio levels arrive: a canvas, and lit ladder segments", () => {
+    expect(html("Visualizer", { flow: "input" })).toContain("<canvas");
+    const bridge = html("MeterBridge", { flow: "input" });
+    expect(bridge).toContain('data-part="meter"');
+    expect(bridge).toContain("opacity:1");
+  });
+
   it("Wave Link: Inputs lists the channels, Outputs the mixes", () => {
     expect(html("WaveLink", { flow: "input" })).toContain("Music");
     expect(html("WaveLink", { flow: "output" })).toContain("Stream Mix");

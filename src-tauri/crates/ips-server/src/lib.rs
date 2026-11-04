@@ -10,6 +10,7 @@ pub mod alerts_engine;
 pub mod alerts_rules;
 pub mod asset_types;
 pub mod assets;
+pub mod packs;
 pub mod audio;
 pub mod calendar;
 pub mod canvases;
@@ -71,6 +72,7 @@ use crate::agent_usage::AgentUsage;
 use crate::agents::{Agents, Sources};
 use crate::alerts::{Alerts, Options as AlertsOptions};
 use crate::assets::Assets;
+use crate::packs::Packs;
 use crate::audio::Audio;
 use crate::canvases::{CanvasStore, Sweeper};
 use crate::config::ConfigStore;
@@ -87,7 +89,7 @@ use crate::studio_prefs::StudioPrefs;
 pub const APP_ID: &str = "infopanel-dashboard";
 /// The config version this build's studio writes (`CONFIG_VERSION` in src/lib/layout.ts, kept equal by
 /// tests/lib/layout.test.ts): a saved config below it is updated, after a backup, the next time the studio opens.
-pub const CONFIG_VERSION: u32 = 16;
+pub const CONFIG_VERSION: u32 = 17;
 const MAX_STUDIO_PREFS_BYTES: usize = 4 * 1024;
 
 /// Whether `path` is a route family's root or anything under it.
@@ -173,6 +175,7 @@ pub struct App {
     pub streamdeck: Arc<StreamDeck>,
     pub agents: Agents,
     pub assets: Assets,
+    pub packs: Packs,
     pub canvases: Arc<CanvasStore>,
     pub library: LibraryStore,
     prefs: StudioPrefs,
@@ -310,12 +313,13 @@ async fn bind_inner(cfg: ServerConfig, home: PathBuf, live_audio: bool) -> Resul
     });
     sweeper.trigger();
     let assets = Assets::new(cfg.data_dir.join("assets"), cfg.allow_remote_upload);
+    let packs = Packs::new(cfg.data_dir.join("packs"), cfg.allow_remote_upload);
     let library = LibraryStore::new(cfg.data_dir.join("library"));
     println!("InfoPanel Studio on http://{}:{port} (config: {})", cfg.host, cfg.config_file().display());
     if cfg.debug {
         println!("[debug] DASHBOARD_DEBUG=1: logging requests and SSE clients; stats at /api/debug/stats");
     }
-    let app = App { cfg, guard, started: Instant::now(), debug, config, control, alerts, extras, port, audio, streamdeck, agents, assets, canvases, library, prefs, shutdown };
+    let app = App { cfg, guard, started: Instant::now(), debug, config, control, alerts, extras, port, audio, streamdeck, agents, assets, packs, canvases, library, prefs, shutdown };
     Ok(Bound { listener, app: Arc::new(app), stop })
 }
 
@@ -431,6 +435,7 @@ async fn route(app: &App, mut req: Req) -> Result<Response<Body>, String> {
         "/api/frame-check" => frame_check::handle(req).await,
         p if p == "/api/control" || p.starts_with("/api/control/") => Ok(control_store::handle(app, req).await),
         p if is_family(p, "/api/assets") => assets::handle(app, req).await.map_err(io),
+        p if is_family(p, "/api/packs") => packs::handle(app, req).await.map_err(io),
         p if is_family(p, "/api/library") => library::handle(app, req).await.map_err(io),
         p if is_family(p, "/api/canvases") => canvases::handle(app, req).await.map_err(io),
         p if is_family(p, "/api/infopanel/installed") => infopanel_local::handle(app, &req).map_err(io),
