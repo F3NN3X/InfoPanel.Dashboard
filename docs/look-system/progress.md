@@ -535,6 +535,7 @@ Findings of `p10-review.md` (look/p10-first-wave 87465c02..51d5dfa9) and what be
 | LOW L7 | fixed below |
 | Pre-existing | series colours at about 2:1 on the cream cards and Term's weather text over the photo: unchanged, not in the verdict |
 
+Verify (round 1): `node tools/verify.mjs --full --keep-going` exit 0, all 19 checks passed, 418 s. An earlier run failed `unit` (v8 parity: the first GameSpotlight fix changed Classic's markup, now the wrap class is added only under a pack) and `overflow` (a markup baseline taken before that fix).
 Intended image diffs: the three `samples-*.png` sheets (the packs' faces and headers are drawn now), refreshed with the commit that changed them. Classic images, v8 parity and the overflow baseline are unchanged. Note on L7: round 1 also changes `samples-term.png` (its sheet now draws the pack, as in `b617b227`), and the three sheets include pack paint as well as the accent and `ok` fixes.
 
 ## Ledger: known issues and deferred work
