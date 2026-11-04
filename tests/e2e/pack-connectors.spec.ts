@@ -90,3 +90,25 @@ test("Holo's connectors are drawn in the studio canvas too, and follow a zone th
   });
   await expect.poll(ends).not.toEqual(before);
 });
+
+// L82 (review L3): a page switch swaps the zones under the connector layer; it measures the new page, then the first one again on the way back.
+test("Holo's connectors follow a control page switch and back", async ({ page, scratch }) => {
+  const light = manifest.profiles.light;
+  const file = path.join(scratch.dataDir, "config.json");
+  const stored = JSON.parse(fs.readFileSync(file, "utf8"));
+  stored.profiles = stored.profiles.map((p: object) => ({ ...p, widgetTheme: { values: PACK_STYLES.holo } }));
+  fs.writeFileSync(file, JSON.stringify(stored));
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto(`${scratch.base}/?kiosk=1&profile=${light}`);
+  const circles = page.locator("[data-pack-connectors] circle");
+  await expect.poll(() => circles.count()).toBeGreaterThan(0);
+  await expect.poll(async () => ((await (await fetch(`${scratch.base}/api/control`)).json()) as { kiosks: unknown[] }).kiosks.length).toBe(1);
+  const switchTo = (id: string) =>
+    fetch(`${scratch.base}/api/control/page`, { method: "POST", headers: { "Content-Type": "application/json", "x-dashboard-control": "1" }, body: JSON.stringify({ profile: light, page: id }) });
+  // the second page is one zone: nothing to join
+  expect((await switchTo("second")).status).toBe(200);
+  await expect(page.getByText("Second page")).toBeVisible({ timeout: 1500 });
+  await expect.poll(() => circles.count()).toBe(0);
+  expect((await switchTo("main")).status).toBe(200);
+  await expect.poll(() => circles.count()).toBeGreaterThan(0);
+});
