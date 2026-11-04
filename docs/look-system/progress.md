@@ -724,6 +724,7 @@ Verify (controller): `npm run verify:full` on 4c5bf309 exit 0, 19/19 passed, 577
   - Not covered by the validator: what a widget draws outside its card, the privacy blur, layer counts per page. The browser specs (`pack-visibility`, `pack-selectors`, `pack-faces`) still run on built-in packs only; P12b should run them on a user pack before it is offered. The font copyright year is not checkable offline (P11b L6).
   - Rows P12 owned: L68, L71, L74 and L93 closed here. L30, L52, L56, L57 and L61 are re-owned to the post-plan polish backlog, each row says why.
 - Budgets: kiosk and studio entries unchanged (the validator has no importer).
+- Verify: `node tools/verify.mjs --full --keep-going` on 560f3355 exit 0, 19/19 passed (lint, actionlint, typecheck, unit, build, budgets, pack-budgets, settings-build, server-bin, server-suite, lab, import-check, e2e, one-editor, overflow, look-visual, cargo-server, stub-desktop, cargo-app), 573 s. v8 parity, look-visual and overflow baselines unchanged.
 
 ## Ledger: known issues and deferred work
 
