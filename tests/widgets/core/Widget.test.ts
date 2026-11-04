@@ -105,6 +105,7 @@ describe("Widget look", () => {
 
   it("hands the shell's status variables to a LedLadder on a light card only: a theme card on a dark page keeps the literals (G1)", () => {
     const ladder = (surface: string) =>
+      // biome-ignore lint/correctness/noChildrenProp: the Widget takes a render function as children.
       renderToString(h(Widget, { title: "T", icon: "memory", size: "lg", look: { ...STANDARD_DEFAULTS, surface }, children: () => h(LedLadder, { value: 100, n: 10 }) }));
     expect(ladder("matte-light")).toContain("var(--w-warn, #EDB232)");
     for (const dark of ["theme", "glass"]) {
