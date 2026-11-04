@@ -136,6 +136,17 @@ export async function generate() {
     ),
   ].sort();
   out.set(
+    "src/looks/pack-fonts.ts",
+    [
+      `// ${header("src/looks/packs/*/pack.json")}`,
+      "// Apart from ids.ts so the kiosk entry does not carry it: only the validator (a lazy chunk) reads it.",
+      "",
+      "/** The font families of the built-in packs (`pack.json`), which a user pack may not claim. */",
+      `export const PACK_FONT_FAMILIES: readonly string[] = [${list(packFamilies)}];`,
+      "",
+    ].join("\n"),
+  );
+  out.set(
     "src/looks/ids.ts",
     [
       `// ${header("src/looks/*/look.json, SKIN_PACKS (src/widgets/core/theme.ts) and SAMPLE_THEMES (src/looks/sample-themes.ts)")}`,
@@ -155,9 +166,6 @@ export async function generate() {
       "",
       "/** Every panel Look's id (the Studio Look is not one: only the studio chrome wears it). */",
       `export const LOOK_IDS: readonly string[] = [${list(dirs)}, DEFAULT_SKIN_LOOK, ...SKIN_LOOK_IDS, ...SAMPLE_LOOK_IDS];`,
-      "",
-      "/** The font families of the built-in packs (`pack.json`), which a user pack may not claim. */",
-      `export const PACK_FONT_FAMILIES: readonly string[] = [${list(packFamilies)}];`,
       "",
       "/** The user packs the app data folder holds (P12b): ids the server listed, set by `registerUserLooks` before a config is read. Never a built-in's. */",
       "const USER_LOOK_IDS = new Set<string>();",

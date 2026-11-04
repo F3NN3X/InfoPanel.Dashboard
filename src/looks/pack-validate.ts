@@ -12,7 +12,8 @@ import { safeFill } from "@/widgets/core/t3-tokens";
 import { parseCss, type Rule, type Token, tokenize, writeTokens } from "./css-syntax";
 import { OVERLAY_MAX } from "./effects";
 import { iconSetIssues } from "./icon-set";
-import { LOOK_IDS, PACK_FONT_FAMILIES } from "./ids";
+import { LOOK_IDS } from "./ids";
+import { PACK_FONT_FAMILIES } from "./pack-fonts";
 import { resolveT1, type Look, type T1Name, T1_NAMES } from "./look";
 import lookSchema from "./look.schema.json";
 import { MAX_LAYERS, NUMERAL_MIN, numeralIssues, stageIssues } from "./pack-checks";
@@ -60,7 +61,7 @@ export interface PackIssue {
   message: string;
 }
 
-/** The font families of the built-in packs (generated into ids.ts from their pack.json files): a user pack may not claim one. */
+/** The font families of the built-in packs (generated into pack-fonts.ts from their pack.json files): a user pack may not claim one. */
 export const BUILTIN_FONT_FAMILIES: ReadonlySet<string> = new Set(PACK_FONT_FAMILIES);
 
 /** The size cap of a pack folder: `packCeilingBytes` of the `packs` block in tools/perf/budgets.json (a test pins them equal). */

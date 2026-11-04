@@ -16,9 +16,6 @@ export const SAMPLE_LOOK_IDS: readonly string[] = ["field-kit", "tape-86", "neon
 /** Every panel Look's id (the Studio Look is not one: only the studio chrome wears it). */
 export const LOOK_IDS: readonly string[] = ["classic", DEFAULT_SKIN_LOOK, ...SKIN_LOOK_IDS, ...SAMPLE_LOOK_IDS];
 
-/** The font families of the built-in packs (`pack.json`), which a user pack may not claim. */
-export const PACK_FONT_FAMILIES: readonly string[] = ["pack-classy", "pack-classy-num", "pack-field-kit", "pack-gold", "pack-holo", "pack-holo-display", "pack-liquid", "pack-neon-display", "pack-neon-mono", "pack-night-glow", "pack-overdrive", "pack-overdrive-mono", "pack-paper", "pack-swiss", "pack-swiss-display", "pack-tape-86-display", "pack-tape-86-mono", "pack-term-display", "pack-term-mono"];
-
 /** The user packs the app data folder holds (P12b): ids the server listed, set by `registerUserLooks` before a config is read. Never a built-in's. */
 const USER_LOOK_IDS = new Set<string>();
 export const registerUserLooks = (ids: readonly string[], on = true): void => void ids.forEach((id) => (on ? USER_LOOK_IDS.add(id) : USER_LOOK_IDS.delete(id)));

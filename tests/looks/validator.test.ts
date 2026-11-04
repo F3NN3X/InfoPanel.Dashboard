@@ -863,9 +863,9 @@ describe("M-3: a width, a stroke, a count or a weight is never nothing", () => {
   });
 });
 
-describe("L98: the built-in font families come from the pack.json files (generated into ids.ts)", () => {
+describe("L98: the built-in font families come from the pack.json files (generated into pack-fonts.ts)", () => {
   it("the generated list is every family of every built-in pack, nothing else", async () => {
-    const { PACK_FONT_FAMILIES } = await import("@/looks/ids");
+    const { PACK_FONT_FAMILIES } = await import("@/looks/pack-fonts");
     const families = [...new Set([...PACK_IDS].flatMap((id) => (builtin(id).pack as Json).fonts.map((f: Json) => f.family as string)))].sort();
     expect([...PACK_FONT_FAMILIES]).toEqual(families);
   });
