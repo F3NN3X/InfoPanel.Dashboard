@@ -65,7 +65,7 @@ export function packCssIssues(css: string): string[] {
       const at = c === "@";
       const from = at ? ++i : i;
       while (i < n && IDENT.test(css[i])) i++;
-      const name = css.slice(from, i).toLowerCase().replace(/^-(?:webkit|moz|o|ms)-/, "");
+      const name = css.slice(from, i).toLowerCase().replace(/^-[a-z]+-/, "");
       if (at && name === "import") issues.push("@import");
       if (!at && css[i] === "(") {
         i++;

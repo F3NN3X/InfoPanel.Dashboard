@@ -81,6 +81,13 @@ describe("packCssIssues", () => {
     expect(packCssIssues('a { content: "x\\\ny" }')).toEqual([]);
   });
 
+  it("reads vendor-prefixed URL functions like the plain ones", () => {
+    expect(packCssIssues(`a { background: -webkit-image-set("https://x.test/a.png" 1x) }`)).toEqual(["url https://x.test/a.png"]);
+    expect(packCssIssues(`a { background: -webkit-cross-fade("https://x.test/a.png", "b.png", 50%) }`)).toEqual(["url https://x.test/a.png"]);
+    expect(packCssIssues(`a { background: -webkit-image-set(var(--u) 1x) }`)).toContain("var() in a url function");
+    expect(packCssIssues(`a { background: -webkit-image-set("a.png" 1x) }`)).toEqual([]);
+  });
+
   it("keeps a bare parenthesis from closing the function around it", () => {
     const css = `a { background: image-set(calc((1) * 1x) "https://x.test/a.png" 1x) }`;
     expect(packCssIssues(css)).toEqual(["url https://x.test/a.png"]);
