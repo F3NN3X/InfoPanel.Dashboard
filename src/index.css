@@ -657,3 +657,6 @@
   background: var(--w-mat-fallback);
 }
 .wp-pack-fx { filter: drop-shadow(0 0 var(--wp-fx-glow, 0px) var(--w-accent, currentColor)) blur(var(--wp-fx-blur, 0px)); }
+/* A Look's `index` header: the page's headers numbered in order (01, 02, ...). Only a page with such a header resets the counter. */
+body:has([data-hdr="index"]) { counter-reset: wp-idx; }
+[data-hdr="index"]::before { counter-increment: wp-idx; content: counter(wp-idx, decimal-leading-zero); color: var(--w-fg); font-weight: 600; }

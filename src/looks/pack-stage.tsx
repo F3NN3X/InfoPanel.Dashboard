@@ -2,12 +2,12 @@
 // decoration: click-through, hidden from assistive tech, and `data-pack-deco` so lite mode stops its motion (index.css). The
 // effects are drawn here, by code the app owns, planned from the screen's settings (effects.ts); burn-in protection (pixel
 // shift, idle dim) marks only these layers, never a widget.
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { useGeneral } from "@/hooks/use-general";
 import { usePerformance } from "@/hooks/use-performance";
 import { liteOf } from "@/lib/performance";
 import { safeFill } from "@/widgets/core/t3-tokens";
-import ConnectorLayer from "./connector-layer";
+import ConnectorLayer, { hubLinks } from "./connector-layer";
 import { planEffects, showsAt, sizeClassOf, type PlannedEffect } from "./effects";
 import type { StageViewProps } from "./pack";
 import { useIdle } from "./use-idle";
@@ -39,7 +39,7 @@ function useShiftStep(on: boolean): number {
   return step;
 }
 
-export default function PackStageLayers({ stage, packId, base = "", className = "", overlayClassName = "", burnIn, page, connectors, links }: StageViewProps) {
+export default function PackStageLayers({ stage, packId, base = "", className = "", overlayClassName = "", burnIn, page, connectors, links, zones }: StageViewProps) {
   const general = useGeneral();
   const perf = usePerformance();
   const lite = liteOf(perf);
@@ -58,6 +58,7 @@ export default function PackStageLayers({ stage, packId, base = "", className = 
   const glow = effects.find((e) => e.kind === "glow")?.px ?? 0;
   const blur = effects.find((e) => e.kind === "blur")?.px ?? 0;
   const fx = glow > 0 || blur > 0;
+  const pairs = useMemo(() => links ?? (connectors && zones ? hubLinks(zones) : undefined), [links, connectors, zones]);
   return (
     <>
       {layers.map(({ layer, index: i }) => (
@@ -82,7 +83,7 @@ export default function PackStageLayers({ stage, packId, base = "", className = 
           <Overlay />
         </div>
       )}
-      {connectors && links && links.length > 0 && showsAt(stage.overlayMinSizeClass, sizeClass) && <ConnectorLayer links={links} connectors={connectors} className={className} deco={deco} style={{ ...place, ...(deco === "dim" ? { opacity: dim } : null) }} />}
+      {connectors && pairs && pairs.length > 0 && showsAt(stage.overlayMinSizeClass, sizeClass) && <ConnectorLayer links={pairs} connectors={connectors} className={className} deco={deco} style={{ ...place, ...(deco === "dim" ? { opacity: dim } : null) }} />}
       {effects.map((e, i) =>
         overlayStyle(e) ? <div key={`fx${i}`} aria-hidden data-look={packId} data-pack-deco={deco} data-pack-effect={e.kind} data-pack-animate={e.animate ? "" : undefined} className={`pointer-events-none ${overlayClassName}`} style={{ ...overlayStyle(e), ...place, opacity: (e.opacity ?? 1) * dim }} /> : null
       )}

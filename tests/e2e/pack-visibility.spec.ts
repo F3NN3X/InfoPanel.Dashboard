@@ -1,13 +1,13 @@
 import fs from "node:fs";
 import path from "node:path";
 import { PACK_STYLES } from "../../tools/qa/pack-styles.mjs";
-import { expect, manifest, test, watchErrors } from "./fixtures";
+import { expect, manifest, settled, test, watchErrors } from "./fixtures";
 
 // A built-in pack paints with CSS, layers and effects that could hide what a widget shows (ledger L71, spec Readability): this
 // opens the kiosk with each pack worn and reads what the browser drew. The overlay stays under its alpha cap, nothing the
 // pack draws is click-blocking, the text and the marks of every card are effectively visible (opacity down the tree at least
 // 0.5, a colour that is not transparent) and every gauge's value mark is painted, unlike its track and with contrast against the card (a ring's arc, a bar's lit cells). Wearing a pack makes no request to a font host (D23). A user pack gets the same check in P12's validator.
-// Set P10_SHOTS=<folder> to also save one kiosk screenshot per pack there (docs/investigations/look-system/shots/p10-<id>.png).
+// Set PACK_SHOTS=<folder> (and PACK_SHOTS_PREFIX, default p10) to also save one kiosk screenshot per pack there (docs/investigations/look-system/shots/<prefix>-<id>.png).
 
 const OVERLAY_ALPHA_MAX = 0.4;
 const MIN_OPACITY = 0.5;
@@ -29,7 +29,7 @@ for (const id of Object.keys(PACK_STYLES)) {
     // the pack loaded: its Look's mark is on the cards and its stage layers are drawn
     await expect(page.locator(`[data-wp-tier][data-look="${id}"]`).first()).toBeAttached({ timeout: 10_000 });
     await expect(page.locator(`[data-pack-layer][data-look="${id}"]`).first()).toBeAttached();
-    await page.waitForTimeout(1500);
+    await settled(page, manifest.kioskZoneSelector);
 
     const report = await page.evaluate(
       ({ alphaMax, minOpacity }) => {
@@ -132,9 +132,9 @@ for (const id of Object.keys(PACK_STYLES)) {
     expect(report.problems).toEqual([]);
     // D23: a worn pack asks no font host for its type (it is bundled); the page's own Geist (the app default, worn with Classic too) is not the pack's
     expect(requests.filter((u) => /fonts\.(googleapis|gstatic)\.com/.test(u) && !/family=Geist|\/geist/i.test(u))).toEqual([]);
-    if (process.env.P10_SHOTS) {
-      await page.waitForTimeout(1000);
-      await page.screenshot({ path: path.join(process.env.P10_SHOTS, `p10-${id}.png`) });
+    if (process.env.PACK_SHOTS) {
+      await settled(page, manifest.kioskZoneSelector);
+      await page.screenshot({ path: path.join(process.env.PACK_SHOTS, `${process.env.PACK_SHOTS_PREFIX ?? "p10"}-${id}.png`) });
     }
     expect(errors).toEqual([]);
   });
@@ -153,7 +153,7 @@ for (const id of Object.keys(PACK_STYLES)) {
     await expect(page.locator(`[data-wp-tier][data-look="${id}"]`).first()).toBeAttached({ timeout: 10_000 });
     const island = page.locator("[data-island]").first();
     await expect(island).toBeVisible();
-    await page.waitForTimeout(800);
+    await settled(page, manifest.kioskZoneSelector);
     const ib = (await island.boundingBox()) as { y: number; height: number };
     const zones = await page.locator(manifest.kioskZoneSelector).evaluateAll((els) => els.map((e) => e.getBoundingClientRect()).filter((r) => r.width > 0 && r.height > 0).map((r) => ({ top: r.top, bottom: r.bottom })));
     const bottom = id === "term";
@@ -176,7 +176,7 @@ for (const id of Object.keys(PACK_STYLES)) {
     await page.goto(`${scratch.base}/?kiosk=1&profile=${heavy}`);
     await expect(page.locator(manifest.kioskZoneSelector)).toHaveCount(manifest.zones.heavy.length);
     await expect(page.locator(`[data-pack-layer][data-look="${id}"]`).first()).toBeAttached({ timeout: 10_000 });
-    await page.waitForTimeout(2500);
+    await settled(page, manifest.kioskZoneSelector);
     const layers = await page.evaluate(() => {
       const animating = new Set(document.getAnimations().flatMap((a) => (a.effect instanceof KeyframeEffect && a.effect.target ? [a.effect.target] : [])));
       let n = 0;

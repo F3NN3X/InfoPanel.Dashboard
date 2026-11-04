@@ -147,7 +147,7 @@ export function Widget({ title, icon, iconOverride, accent, surface, radius, siz
     borderRadius: chrome?.radius ?? radius ?? "var(--radius, 1rem)",
     fontFamily: ctx.font,
     ...materialVars(mat),
-    ...(pad.pad !== undefined ? { "--wp-pad": `${pad.pad * zoom}px` } : null),
+    ...(pad.pad !== undefined ? { "--wp-pad": `${pad.pad * zoom}px`, ...(zoom !== 1 ? { "--wp-zoom": zoom } : null) } : null),
     ...textVars(surf.tone, chrome),
     ...chromeVars(chrome),
     // Only the default accent darkens on a light card: an accent the user or the Look set is theirs (G1).

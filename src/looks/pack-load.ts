@@ -18,6 +18,10 @@ export const BUILTIN: Record<string, () => Promise<{ default: Pack }>> = {
   "field-kit": () => import("./packs/field-kit"),
   "tape-86": () => import("./packs/tape-86"),
   term: () => import("./packs/term"),
+  "neon-stripe": () => import("./packs/neon-stripe"),
+  overdrive: () => import("./packs/overdrive"),
+  "swiss-mono": () => import("./packs/swiss-mono"),
+  holo: () => import("./packs/holo"),
 };
 
 /** Registers a pack source: how tests and the dev fixtures bring a pack that does not ship. Never called by the app. */

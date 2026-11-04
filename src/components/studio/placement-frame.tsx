@@ -49,6 +49,8 @@ interface PlacementFrameProps {
   placement: Placement;
   profile: ProfileView;
   studio: boolean;
+  /** The kiosk writes the zone's id (`data-zone-id`) for a page whose pack draws connectors between zones; the studio always does. */
+  zoneId?: boolean;
   /** Whether the module currently has live data (kiosk hides empties). */
   hasData: boolean;
   title: string;
@@ -127,6 +129,7 @@ export function PlacementFrame({
   placement,
   profile,
   studio,
+  zoneId,
   hasData,
   title,
   scope,
@@ -323,7 +326,7 @@ export function PlacementFrame({
           ? ({ "--accent": hexToHsl(design.accent) } as CSSProperties)
           : {}),
       }}
-      data-zone-id={studio ? placement.id : undefined}
+      data-zone-id={studio || zoneId ? placement.id : undefined}
       data-testid={studio ? "canvas-part" : undefined}
       data-kind={studio && placement.module !== CANVAS_ID ? "widget" : undefined}
       // Clicks the press doesn't handle (a control in the zone, a handle).

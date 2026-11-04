@@ -430,24 +430,45 @@ export function SkinHeader({ kind, title, icon, right, bleed, bg = "#0b0b0d", w 
       </header>
     );
   // The title on an ink tab (a Look's `tab-label`). The tab's padding is taken back with a negative margin, so the header keeps its height and the body does not move.
-  if (kind === "tab-label")
+  // `label-bar` is the same bar in the accent with its right end cut at an angle (P11: Overdrive).
+  if (kind === "tab-label" || kind === "label-bar")
     return (
       <header data-part="header" className={`${base} mb-2 gap-1.5 text-[11px] font-semibold uppercase tracking-[0.08em]`} style={st("uppercase")}>
-        <span data-part="tab" className="-my-0.5 flex min-w-0 items-center gap-1.5 rounded-[2px] px-2 py-0.5" style={{ background: sk.headerFill ?? "var(--w-fg)", color: bg }}>
+        <span data-part="tab" className={`-my-0.5 flex min-w-0 items-center gap-1.5 rounded-[2px] px-2 py-0.5${kind === "label-bar" ? " pr-3" : ""}`} style={{ background: sk.headerFill ?? (kind === "label-bar" ? "var(--w-accent)" : "var(--w-fg)"), color: bg, ...(kind === "label-bar" ? { clipPath: "polygon(0 0, 100% 0, calc(100% - 8px) 100%, 0 100%)" } : null) }}>
           {icon && <Icon name={icon} className="text-[13px]" />}
           <span className="truncate">{title}</span>
         </span>
         {r}
       </header>
     );
-  // The title in the card's top border, like a fieldset legend (a Look's `box-legend`; the tui header's padding and patches are not used). The header stays in flow at its normal height and the legend is lifted by the card's padding (`--wp-pad`) onto the frame's line 6 px in, so the body does not move.
+  // The title in the card's top border, like a fieldset legend (a Look's `box-legend`; the tui header's padding and patches are not used). The header stays in flow at its normal height and the legend is lifted by the card's padding (`--wp-pad`, screen px) onto the frame's line 6 px in, so the body does not move; the header sits in the zoomed content, so the lift is divided by the zoom (`--wp-zoom`).
   if (kind === "box-legend")
     return (
       <header data-part="header" className={`${base} mb-2 gap-1.5 text-[11px] font-medium uppercase tracking-[0.08em]`} style={st("uppercase")}>
         {/* the header keeps the line it has without a legend: an unseen copy of the title holds its height */}
         <span aria-hidden className="invisible truncate">{title}</span>
-        <span data-part="legend" className="absolute left-2 max-w-[70%] -translate-y-1/2 truncate px-1.5 leading-none text-[color:var(--w-accent)]" style={{ top: "calc(6px - var(--wp-pad, 12px))", background: bg }}>{title}</span>
+        <span data-part="legend" className="absolute left-2 max-w-[70%] -translate-y-1/2 truncate px-1.5 leading-none text-[color:var(--w-accent)]" style={{ top: "calc((6px - var(--wp-pad, 12px)) / var(--wp-zoom, 1))", background: bg }}>{title}</span>
         {r}
+      </header>
+    );
+  // The title between square brackets and a line to the right edge (a Look's `bracket-line`); the line is the header's own height, so the body does not move.
+  if (kind === "bracket-line")
+    return (
+      <header data-part="header" className={`${base} mb-2 gap-1.5 text-[11px] font-medium uppercase tracking-[0.08em] text-[color:var(--w-muted)]`} style={st("uppercase")}>
+        <span aria-hidden>[</span>
+        <span className="truncate">{title}</span>
+        <span aria-hidden>]</span>
+        <span aria-hidden className="h-px min-w-[8px] flex-1" style={{ background: mix(35) }} />
+        {right && <span className="shrink-0 normal-case tracking-normal">{right}</span>}
+      </header>
+    );
+  // An index number (a CSS counter over the page's headers, index.css) before the title and a hairline under the row (a Look's `index`).
+  if (kind === "index")
+    return (
+      <header data-part="header" data-hdr="index" className={`${base} mb-2 gap-2 text-[11px] font-medium tracking-[0.02em] text-[color:var(--w-muted)]`} style={st("none")}>
+        <span className="truncate">{title}</span>
+        {r}
+        <i aria-hidden className="pointer-events-none absolute inset-x-0 -bottom-1 h-px" style={{ background: mix(25) }} />
       </header>
     );
   if (kind === "icon-badge")

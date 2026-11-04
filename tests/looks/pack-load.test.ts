@@ -120,11 +120,11 @@ describe("the pack loader (P9b parts)", () => {
     expect(packIssues(badPack(patch as Partial<Pack>))).not.toEqual([]);
   });
 
-  it("collects the page templates of the registered packs", async () => {
+  it("collects the page templates of the built-in packs (Holo's cockpit) and the registered ones", async () => {
     const { loadPackTemplates } = await import("@/looks/pack-load");
     registerPack("test-pack", async () => ({ default: badPack({ templates: [template] as never }) }));
     try {
-      expect((await loadPackTemplates()).map((t) => t.id)).toEqual(["test-pack-hero"]);
+      expect((await loadPackTemplates()).map((t) => t.id)).toEqual(["holo-cockpit", "test-pack-hero"]);
     } finally {
       unregisterPack("test-pack");
     }

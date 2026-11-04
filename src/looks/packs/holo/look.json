@@ -1,0 +1,93 @@
+{
+  "schema": 1,
+  "id": "holo",
+  "name": "Holo",
+  "description": "Deep blue HUD panels with corner brackets over faint range rings: 270-degree glowing rings, thin lines and elbow connectors from the core.",
+  "tags": [
+    "pack",
+    "dark",
+    "hud",
+    "glow",
+    "futuristic"
+  ],
+  "modes": {
+    "supported": [
+      "dark"
+    ],
+    "stance": "Dark only: ice blue on deep navy is the pack."
+  },
+  "fonts": {
+    "body": "pack-holo",
+    "mono": "pack-holo",
+    "display": "pack-holo-display"
+  },
+  "radius": "0.125rem",
+  "t1": {
+    "dark": {
+      "bg": {
+        "value": "#0B2A3E"
+      },
+      "surface": {
+        "value": "#061621"
+      },
+      "surface-2": {
+        "value": "#0B2A3E"
+      },
+      "fg": {
+        "value": "#EAF9FF"
+      },
+      "fg-2": {
+        "value": "{fg}"
+      },
+      "muted": {
+        "value": "#7FA6B8"
+      },
+      "border": {
+        "value": "#0B2A3E"
+      },
+      "border-soft": {
+        "value": "{border}"
+      },
+      "accent": {
+        "value": "#4FD8FF"
+      },
+      "accent-on": {
+        "value": "{bg}"
+      },
+      "accent-hover": {
+        "value": "{accent}"
+      },
+      "focus-ring": {
+        "value": "{accent}"
+      },
+      "ok": {
+        "value": "#3CC97F"
+      },
+      "warn": {
+        "value": "#EDB232"
+      },
+      "crit": {
+        "value": "#F2665E"
+      },
+      "info": {
+        "value": "{accent}"
+      }
+    }
+  },
+  "t2": {
+    "default": "look-holo",
+    "materials": {
+      "look-holo": {
+        "kind": "glass",
+        "tone": "dark",
+        "export": "#050F18"
+      }
+    }
+  },
+  "t3": {
+    "ring-style": "arc270",
+    "series-glow": "soft",
+    "cell-radius": "0px"
+  },
+  "ext": {}
+}

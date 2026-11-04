@@ -1,0 +1,94 @@
+{
+  "schema": 1,
+  "id": "neon-stripe",
+  "name": "Neon Stripe",
+  "description": "Near-black translucent cards over four glowing neon stripes: mono type, yellow numbers, red bracket headers, tick rings.",
+  "tags": [
+    "pack",
+    "dark",
+    "neon",
+    "mono",
+    "stripes"
+  ],
+  "modes": {
+    "supported": [
+      "dark"
+    ],
+    "stance": "Dark only: neon on near-black is the pack."
+  },
+  "fonts": {
+    "body": "pack-neon-mono",
+    "mono": "pack-neon-mono",
+    "display": "pack-neon-display"
+  },
+  "radius": "0",
+  "t1": {
+    "dark": {
+      "bg": {
+        "value": "#0D0B14"
+      },
+      "surface": {
+        "value": "#0D0B14"
+      },
+      "surface-2": {
+        "value": "#1C1928"
+      },
+      "fg": {
+        "value": "#F7C51E"
+      },
+      "fg-2": {
+        "value": "{fg}"
+      },
+      "muted": {
+        "value": "#7FD9D4"
+      },
+      "border": {
+        "value": "#1C1928"
+      },
+      "border-soft": {
+        "value": "{border}"
+      },
+      "accent": {
+        "value": "#2BD46F"
+      },
+      "accent-on": {
+        "value": "{bg}"
+      },
+      "accent-hover": {
+        "value": "{accent}"
+      },
+      "focus-ring": {
+        "value": "{accent}"
+      },
+      "ok": {
+        "value": "#3CC97F"
+      },
+      "warn": {
+        "value": "#EDB232"
+      },
+      "crit": {
+        "value": "#F2665E"
+      },
+      "info": {
+        "value": "{accent}"
+      }
+    }
+  },
+  "t2": {
+    "default": "look-neon-stripe",
+    "materials": {
+      "look-neon-stripe": {
+        "kind": "glass",
+        "tone": "dark",
+        "export": "#0D0B14"
+      }
+    }
+  },
+  "t3": {
+    "header-style": "bracket-line",
+    "ring-style": "ticks",
+    "cell-radius": "0px",
+    "graph-style": "area"
+  },
+  "ext": {}
+}

@@ -69,7 +69,7 @@ export function t3Tokens(t3: Readonly<Record<string, string | number>> | undefin
   const graph = oneOf(t3["graph-style"], GRAPH_STYLES);
   if (graph) out.graph = graph;
   if (/^0(px|rem|em)?$/.test(String(t3["cell-radius"]))) out.cellSquare = true;
-  const header = oneOf(t3["header-style"], ["prompt", "icon-badge", "tab-label", "box-legend"]);
+  const header = oneOf(t3["header-style"], ["prompt", "icon-badge", "tab-label", "box-legend", "label-bar", "bracket-line", "index"]);
   if (header) out.header = header;
   if (header === "box-legend") out.frame = "legend";
   const headerFill = safeFill(t3["header-fill"]);

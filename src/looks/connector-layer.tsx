@@ -2,7 +2,7 @@
 // dot). The pack never says where they go: the page gives pairs of zone ids (a template with roles, P11) and the layer measures
 // the zones, so a connector follows the grid and never moves a widget. Decoration: click-through, `aria-hidden`.
 import { useLayoutEffect, useRef, useState, type CSSProperties } from "react";
-import type { PackConnectors } from "./pack";
+import type { PackConnectors, ZoneSize } from "./pack";
 
 export interface Rect {
   x: number;
@@ -26,6 +26,13 @@ export function connectorPath(a: Rect, b: Rect, style: PackConnectors["style"]):
   return { d, from, to };
 }
 
+/** The hub rule: the zone that spans the most cells (the first of equals) connects to each other zone, so a radial cluster draws its spokes. */
+export function hubLinks(zones: readonly ZoneSize[]): [string, string][] {
+  let hub: ZoneSize | undefined;
+  for (const z of zones) if (!hub || z.colSpan * z.rowSpan > hub.colSpan * hub.rowSpan) hub = z;
+  return hub ? zones.filter((z) => z !== hub).map((z) => [hub.id, z.id]) : [];
+}
+
 /** `deco` and `style` carry the stage's burn-in protection (drift, dim), so the lines move and fade with the page layers. */
 export default function ConnectorLayer({ links, connectors, className = "", deco = "", style }: { links: readonly (readonly [string, string])[]; connectors: PackConnectors; className?: string; deco?: string; style?: CSSProperties }) {
   const ref = useRef<SVGSVGElement>(null);
@@ -40,16 +47,17 @@ export default function ConnectorLayer({ links, connectors, className = "", deco
         const el = document.querySelector(`[data-zone-id="${CSS.escape(id)}"]`);
         const r = el?.getBoundingClientRect();
         if (r) next.set(id, { x: r.left - origin.left, y: r.top - origin.top, width: r.width, height: r.height });
+        if (el) watch.observe(el);
       }
       setRects(next);
     };
-    measure();
     const watch = new ResizeObserver(measure);
+    measure();
     watch.observe(svg);
     return () => watch.disconnect();
   }, [links]);
   return (
-    <svg ref={ref} aria-hidden data-pack-deco={deco} data-pack-connectors="" className={`pointer-events-none ${className}`} style={style} fill="none" stroke="var(--w-accent, currentColor)" strokeWidth={1.5} strokeOpacity={0.6}>
+    <svg ref={ref} aria-hidden data-pack-deco={deco} data-pack-connectors="" className={`pointer-events-none h-full w-full ${className}`} style={style} fill="none" stroke="var(--w-accent, currentColor)" strokeWidth={1.5} strokeOpacity={0.6}>
       {links.map(([from, to]) => {
         const a = rects.get(from);
         const b = rects.get(to);

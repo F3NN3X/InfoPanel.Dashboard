@@ -1,0 +1,48 @@
+{
+  "id": "swiss-mono",
+  "name": "Swiss Mono",
+  "version": "1.0.0",
+  "tags": [
+    "dark",
+    "minimal",
+    "swiss",
+    "sans"
+  ],
+  "description": "Charcoal with one hairline per card, numbered headers, huge light numerals and one orange circle off the corner.",
+  "modes": [
+    "dark"
+  ],
+  "fonts": [
+    {
+      "family": "pack-swiss",
+      "source": "Inter Tight",
+      "file": "inter-tight-500.woff2",
+      "weight": "100 900",
+      "licence": "OFL-1.1",
+      "copyright": "Copyright 2022 The Inter Project Authors (https://github.com/rsms/inter-tight)"
+    },
+    {
+      "family": "pack-swiss-display",
+      "source": "Inter Tight",
+      "file": "inter-tight-300.woff2",
+      "weight": "100 900",
+      "licence": "OFL-1.1",
+      "copyright": "Copyright 2022 The Inter Project Authors (https://github.com/rsms/inter-tight)"
+    }
+  ],
+  "stage": {
+    "layers": [
+      {
+        "fill": "#141414"
+      },
+      {
+        "fill": "radial-gradient(circle 165px at 94% 8%, #FF4D2E 99%, transparent 100%)",
+        "minSizeClass": "sm"
+      }
+    ]
+  },
+  "burnIn": "needs-shift",
+  "statusBar": {
+    "edge": "top"
+  }
+}

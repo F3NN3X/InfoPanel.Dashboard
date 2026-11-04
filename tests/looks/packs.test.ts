@@ -1,4 +1,4 @@
-// The first-wave packs (P10): each passes the loader whole, wears the Look its sample theme defines, keeps its marks inside the
+// The built-in packs (P10, P11): each passes the loader whole, wears the Look its sample theme defines, keeps its marks inside the
 // card's padding, carries only icon names and fonts it may, and says where its fonts come from.
 import { createElement as h } from "react";
 import { renderToString } from "react-dom/server";
@@ -6,12 +6,18 @@ import { describe, expect, it } from "vitest";
 import { loadLook } from "@/looks";
 import { resolveT1 } from "@/looks/look";
 import { PACK_IDS } from "@/looks/pack";
+import { effectIssues, GLOW_MAX, planEffects } from "@/looks/effects";
+import { registerSampleCards, SAMPLE_MATERIALS } from "@/looks/sample-materials";
 import { loadPack, packIssues } from "@/looks/pack-load";
 import { Widget } from "@/widgets/core/Widget";
 import { t3Tokens } from "@/widgets/core/t3-tokens";
 import fs from "node:fs";
 
-const IDS = ["field-kit", "tape-86", "term"];
+const IDS = ["field-kit", "tape-86", "term", "neon-stripe", "overdrive", "swiss-mono", "holo"];
+/** What each pack's header draws, as the shell writes it. */
+const HEADER: Record<string, string> = { "field-kit": 'data-part="tab"', "tape-86": 'data-part="tab"', term: 'data-part="legend"', "swiss-mono": 'data-hdr="index"', "neon-stripe": '<span aria-hidden="true">[</span>', overdrive: 'data-part="tab"', holo: 'data-part="header"' };
+/** The packs that carry a component slot (an ornament or a tab band); the others paint with their material, CSS and stage. */
+const SLOTTED = ["field-kit", "tape-86"];
 
 describe.each(IDS)("pack %s", (id) => {
   it("loads without a refusal", async () => {
@@ -45,7 +51,7 @@ describe.each(IDS)("pack %s", (id) => {
     const pack = (await loadPack(id))!;
     // biome-ignore lint/correctness/noChildrenProp: the Widget takes a render function as children.
     const html = renderToString(h(Widget, { size: "lg", title: "Title", icon: "memory", children: () => h("i"), t3: pack.look.t3, slots: pack.slots, packId: id }));
-    expect(html).toContain(`data-part="${id === "term" ? "legend" : "tab"}"`);
+    expect(html).toContain(HEADER[id]);
     expect(html).not.toContain("pt-[16px]");
     expect(html).toContain(id === "term" ? "inset-[6px]" : "data-wp-body");
   });
@@ -59,8 +65,8 @@ describe.each(IDS)("pack %s", (id) => {
       expect(text).toContain(font.copyright.replace(/^Copyright \d+,? /, "").replace(/\s*\(.*$/, ""));
       expect(shipped).toContain(font.copyright);
     }
-    // a subset is a Modified Version: it may not carry a Reserved Font Name (Plex)
-    for (const font of meta.fonts) expect(`${font.family} ${font.file}`).not.toMatch(/plex/i);
+    // a subset is a Modified Version: it may not carry a Reserved Font Name (Plex, Share, Orbitron)
+    for (const font of meta.fonts) expect(`${font.family} ${font.file}`).not.toMatch(/plex|share|orbitron/i);
   });
 
   it("keeps its ornament within 10 px and every mark inside the card's padding", async () => {
@@ -68,9 +74,9 @@ describe.each(IDS)("pack %s", (id) => {
     // biome-ignore lint/correctness/noChildrenProp: the Widget takes a render function as children.
     const html = renderToString(h(Widget, { size: "lg", title: "T", icon: "memory", children: () => h("i"), t3: pack.look.t3, slots: pack.slots, packId: id }));
     const pad = Number(/--wp-pad:(\d+(?:\.\d+)?)px/.exec(html)?.[1]);
-    // Term has no ornament or tab band (its legend only reads the padding); the other two do, and their marks are checked below
-    expect(html.includes("data-wp-layer")).toBe(id !== "term");
-    if (id === "term") return;
+    // Only Field Kit and Tape '86 have an ornament or tab band (the others only read the padding); their marks are checked below
+    expect(html.includes("data-wp-layer")).toBe(SLOTTED.includes(id));
+    if (!SLOTTED.includes(id)) return;
     expect(pad).toBeGreaterThanOrEqual(10);
     for (const part of ["ornament", "tab-band"]) {
       if (!html.includes(`data-wp-layer="${part}"`)) continue;
@@ -102,5 +108,69 @@ describe("what each pack teaches the contract", () => {
   it("Field Kit's yellow is on its strips and corner only, never in its CSS text colours", async () => {
     const pack = (await loadPack("field-kit"))!;
     expect(pack.css).not.toMatch(/(^|[;{\s])color:\s*#F2C230/i);
+  });
+});
+
+describe("what the second-wave packs teach the contract (P11)", () => {
+  it("Overdrive's chamfer is a clip on the card, 12 px, inside the 20 px cap (twice the smallest padding), cut on two corners", () => {
+    const clip = String(SAMPLE_MATERIALS["look-overdrive"].s.clipPath);
+    const cuts = [...clip.matchAll(/(\d+(?:\.\d+)?)px/g)].map((m) => Number(m[1]));
+    expect(cuts.length).toBe(4);
+    for (const px of cuts) expect(px).toBeLessThanOrEqual(20);
+    expect(Math.max(...cuts)).toBe(12);
+  });
+
+  it("Overdrive's chromatic fringe is a static text shadow on the numerals: nothing moves, so lite mode and reduced motion change nothing", async () => {
+    const pack = (await loadPack("overdrive"))!;
+    expect(t3Tokens(pack.look.t3)).toMatchObject({ numChroma: true, header: "label-bar", ringMark: "segmented", meter: "segments" });
+    expect(pack.stage?.effects ?? []).toEqual([]);
+    expect(pack.css).not.toMatch(/animation/);
+  });
+
+  it("Neon Stripe's glow is an app effect inside the caps: a filter class, at most the cap, halved in lite mode, none animated", async () => {
+    const pack = (await loadPack("neon-stripe"))!;
+    const glow = pack.stage!.effects!.filter((e) => e.kind === "glow");
+    expect(glow).toHaveLength(1);
+    expect(effectIssues(pack.stage!.effects!)).toEqual([]);
+    expect(glow[0].px).toBeLessThanOrEqual(GLOW_MAX);
+    const env = { lite: false, reduceMotion: false, limitBlur: false, solidPage: false };
+    expect(planEffects(glow, env)[0].px).toBe(10);
+    expect(planEffects(glow, { ...env, lite: true })[0].px).toBe(5);
+    expect(planEffects(glow, env)[0].animate).toBe(false);
+    expect(t3Tokens(pack.look.t3)).toMatchObject({ header: "bracket-line", ringMark: "ticks" });
+  });
+
+  it("Holo draws 270-degree rings, glows its range rings and carries the radial cluster the connectors need", async () => {
+    const pack = (await loadPack("holo"))!;
+    expect(t3Tokens(pack.look.t3)).toMatchObject({ ringArc: 270, glow: true });
+    expect(pack.connectors).toEqual({ style: "elbow", dot: true });
+    expect(pack.stage!.effects!.some((e) => e.kind === "glow")).toBe(true);
+    const [template] = pack.templates!;
+    expect(template.id).toBe("holo-cockpit");
+    // the core is the one largest zone, so the hub rule gives every other zone a spoke
+    const zones = template.layouts.standard!.pages[0];
+    const area = (z: { at: readonly number[] }) => z.at[2] * z.at[3];
+    const [core, ...rest] = [...zones].sort((a, b) => area(b) - area(a));
+    expect(area(core)).toBeGreaterThan(area(rest[0]));
+    expect(core.module).toBe("FpsMonitor");
+  });
+
+  it("Swiss Mono has an index header, one light face for the numerals that cannot be faux-bolded, and a card that covers its circle", async () => {
+    const pack = (await loadPack("swiss-mono"))!;
+    expect(t3Tokens(pack.look.t3)).toMatchObject({ header: "index" });
+    const meta = (await import("@/looks/packs/swiss-mono/pack.json")).default;
+    // a single static face registered over the whole weight range is drawn as it is whatever weight a widget asks for
+    for (const f of meta.fonts) expect(f.weight).toBe("100 900");
+    expect(pack.stage!.layers[1].fill).toMatch(/radial-gradient\(circle \d+px at/);
+    registerSampleCards();
+    expect(String(SAMPLE_MATERIALS["look-swiss-mono"].s.background)).toMatch(/rgba\(20,20,20,\.9/);
+  });
+
+  it("every second-wave pack keeps to the stage's 3 layers and its own files", async () => {
+    for (const id of ["neon-stripe", "overdrive", "swiss-mono", "holo"]) {
+      const pack = (await loadPack(id))!;
+      expect(pack.stage!.layers.length).toBeLessThanOrEqual(3);
+      expect(pack.slots?.icons && Object.keys(pack.slots.icons).length).toBe(24);
+    }
   });
 });

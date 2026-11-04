@@ -37,10 +37,17 @@ const spans = args.spans ?? "1x1,2x2,4x2,4x4";
 
 /** Runs in the page: one record per widget frame, keyed `<module>@<span>`. */
 function collect() {
-  /** A frame's markup as `<fnv1a hash>:<length>`, with the generated React ids (`:r1:`, `_r_1_`) written alike. */
-  const markupOf = (html) => {
-    // the Ken Burns drift is driven by the clock of the page, so its transform is written alike, a style React cleared reads as none, and a pulsing dot's shadow is written alike
-    const text = html.replace(/:r[0-9a-z]+:|_r_[0-9a-z]+_|«r[0-9a-z]+»/g, ":r:").replace(/transform: scale\([^"]*"/g, 'transform: scale(~)"').replace(/ style=""/g, "").replace(/box-shadow: color-mix\([^;]*;/g, "box-shadow: ~;");
+  /**
+   * A frame's markup as `<fnv1a hash>:<length>`, with the generated React ids (`:r1:`, `_r_1_`) written alike. Two things move on the clock of
+   * the page and are written alike on their own element only: the Ken Burns drift (its `transform: scale(...)`) and a pulsing dot's ring
+   * (its `box-shadow`), so a pack's real change to any other transform or shadow still shows. A style React cleared reads as none.
+   */
+  const markupOf = (box) => {
+    const copy = box.cloneNode(true);
+    for (const el of copy.querySelectorAll("[data-qa-bleed] > div[style*='scale(']")) el.setAttribute("style", "transform: scale(~)");
+    for (const el of copy.querySelectorAll("span[style*='box-shadow: color-mix(']")) el.setAttribute("style", el.getAttribute("style").replace(/box-shadow: color-mix\([^;]*;/, "box-shadow: ~;"));
+    for (const el of copy.querySelectorAll("[style='']")) el.removeAttribute("style");
+    const text = copy.innerHTML.replace(/:r[0-9a-z]+:|_r_[0-9a-z]+_|«r[0-9a-z]+»/g, ":r:");
     let h = 0x811c9dc5;
     for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 0x01000193) >>> 0;
     return `${h.toString(16)}:${text.length}`;
@@ -66,7 +73,7 @@ function collect() {
       n: box.querySelectorAll("*").length,
       text: box.textContent.replace(/\s+/g, " ").trim(),
       view: card?.getAttribute("data-wp-view") ?? null,
-      markup: markupOf(box.innerHTML),
+      markup: markupOf(box),
     };
   });
   return frames;

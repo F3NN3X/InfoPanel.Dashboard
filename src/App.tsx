@@ -246,6 +246,9 @@ export default function App({ fixture }: AppProps = {}) {
   const packEdge = pack?.statusBar?.edge;
   const shownIsland = useMemo(() => island && withPackEdge(island, packEdge), [island, packEdge]);
   const bottomIsland = (islandConfig?.edge ?? packEdge) === "bottom";
+  // A pack that draws connectors reads the page's zones (and the kiosk then writes their ids); any other page's markup is as it was.
+  const linked = !!pack?.connectors;
+  const zones = useMemo(() => (linked ? drawn.filter((p) => p.visible) : undefined), [linked, drawn]);
   // The app settings under the shown screen's page font and performance.
   const general = useMemo(() => resolveGeneral(config, stored), [config, stored]);
   // Max FPS and motion: the ?fps= / ?animations= / ?motion= overrides (kiosk pages) over the shown profile's.
@@ -747,7 +750,7 @@ export default function App({ fixture }: AppProps = {}) {
         onPointerCancel={() => (gesture.current = null)}
       >
         {background && <PageBackground background={background} className="fixed inset-0 -z-10" />}
-        <PackStage pack={pack} page={islandPage} className="fixed inset-0 -z-10" overlayClassName="fixed inset-0 z-10" />
+        <PackStage pack={pack} page={islandPage} className="fixed inset-0 -z-10" overlayClassName="fixed inset-0 z-10" zones={zones} />
 
         {/* Header (hidden in kiosk mode) */}
         {!kiosk && (
@@ -794,6 +797,7 @@ export default function App({ fixture }: AppProps = {}) {
                     placement={p}
                     profile={profile}
                     studio={false}
+                    zoneId={linked}
                     hasData={hasData}
                     title={title}
                     scope={scope}

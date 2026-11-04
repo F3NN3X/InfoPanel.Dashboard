@@ -64,10 +64,10 @@ describe("the pack stage", () => {
     const html = renderToString(h(PackStageLayers, { stage: { layers: [{ fill: "url(https://evil.example/x.png)" }] } }));
     expect(html).not.toContain("evil.example");
   });
-  it("counts as a page background only with layers, and only the three built-in Looks are packs (P10)", () => {
+  it("counts as a page background only with layers, and only the built-in Looks are packs (P10, P11)", () => {
     expect(packBackground(TEST_PACK)).toBe(true);
     expect(packBackground({ ...TEST_PACK, stage: { layers: [] } })).toBe(false);
     expect(packBackground(undefined)).toBe(false);
-    expect([...PACK_IDS].sort()).toEqual(["field-kit", "tape-86", "term"]);
+    expect([...PACK_IDS].sort()).toEqual(["field-kit", "holo", "neon-stripe", "overdrive", "swiss-mono", "tape-86", "term"]);
   });
 });

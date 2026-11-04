@@ -3,9 +3,10 @@
 // that folder (`base` + file name), which the loader checks like any pack path (G4). Fonts load here, with app code, from
 // the pack's own subset woff2 files: no stylesheet to lint and no request to a font host (D23).
 
+import type { ScreenTemplate } from "@/lib/screen-templates/kit";
 import type { PackEffect, SizeClass } from "./effects";
 import type { Look } from "./look";
-import type { BurnIn, Pack, PackSlots, PackStatusBar, StageLayer } from "./pack";
+import type { BurnIn, Pack, PackConnectors, PackSlots, PackStatusBar, StageLayer } from "./pack";
 
 /** A pack's served folder (a root path of this origin, ending in `/`) and its files by source name. */
 export interface PackFiles {
@@ -55,10 +56,11 @@ export interface PackMeta {
   stage: { layers: StageLayer[]; effects?: PackEffect[]; overlayMinSizeClass?: SizeClass };
   burnIn: BurnIn;
   statusBar?: PackStatusBar;
+  connectors?: PackConnectors;
 }
 
 /** A built-in pack from its files: `look.json` and `pack.json` as data, the bundler's urls for its assets, and the parts that are code. */
-export function builtPack(meta: PackMeta, look: Look, files: PackFiles, parts: { css: string; slots: PackSlots }): Pack {
+export function builtPack(meta: PackMeta, look: Look, files: PackFiles, parts: { css: string; slots: PackSlots; templates?: ScreenTemplate[] }): Pack {
   addPackFonts(files, meta.fonts);
   const served = (name: string) => files.names[name] ?? name;
   return {
@@ -71,5 +73,7 @@ export function builtPack(meta: PackMeta, look: Look, files: PackFiles, parts: {
     stage: { layers: meta.stage.layers.map((l) => (l.image ? { ...l, image: served(l.image) } : l)), effects: meta.stage.effects, overlayMinSizeClass: meta.stage.overlayMinSizeClass },
     burnIn: meta.burnIn,
     statusBar: meta.statusBar,
+    connectors: meta.connectors,
+    templates: parts.templates,
   };
 }

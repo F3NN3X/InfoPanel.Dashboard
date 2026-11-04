@@ -3,7 +3,7 @@ import path from "node:path";
 import { startScratch, type Scratch } from "../../tools/perf/scratch.mjs";
 import { PACK_STYLES } from "../../tools/qa/pack-styles.mjs";
 import { parseCss, writeTokens, type Rule } from "../../src/looks/css-syntax";
-import { expect, test } from "./fixtures";
+import { expect, gaugeInk, test } from "./fixtures";
 
 // A pack.css rule that matches nothing paints nothing (the P10 review's M4: the dark header and chip bars were written and never drawn).
 // Every selector of every pack rule must match an element on the Widget QA page wearing the pack, so a dead selector fails here.
@@ -85,9 +85,86 @@ for (const id of Object.keys(PACK_STYLES)) {
           if (r < (icon ? 3 : 4.5)) bad.push(`${el.outerHTML.slice(0, 200)} ${icon ? "icon" : "text"} ${cs.color} on ${getComputedStyle(bar).backgroundColor} is ${r.toFixed(2)}:1 (${bar.getAttribute("data-part")})`);
         }
       }
+      // A pack that paints no bar (Neon Stripe, Swiss Mono, Holo) reads its headers on the card's own flat colour.
+      if (bars === 0) {
+        for (const header of document.querySelectorAll(`[data-wp-tier][data-look="${look}"][data-mat="look-${look}"] [data-part="header"]`)) {
+          const card = header.closest("[data-wp-tier]") as HTMLElement;
+          const face = rgba(getComputedStyle(card).getPropertyValue("--w-mat-export").trim());
+          if (face[3] < 0.9) continue;
+          bars++;
+          const r = ratio(rgba(getComputedStyle(header).color), face);
+          if (r < 4.5) bad.push(`header ${header.textContent?.slice(0, 20)} ${getComputedStyle(header).color} on ${getComputedStyle(card).getPropertyValue("--w-mat-export")} is ${r.toFixed(2)}:1`);
+        }
+      }
       return { bars, bad: [...new Set(bad)] };
     }, id);
     expect(report.bars).toBeGreaterThan(0);
     expect(report.bad).toEqual([]);
   });
 }
+
+// L79: every gauge that is lit without the pack's CSS is lit with it. The kiosk spec asks only that some ring, bar and meter on the screen has
+// a value mark, which a pack that hides half of them would pass: here each gauge is compared with its own twin on the same page, the pack's
+// `<style data-pack>` switched off (so the meter style and the cell rounding are the same on both sides).
+const quiet = (style: object, extra = "") => `?widget-qa&eager=1&spans=1x1,2x2,4x4${extra}&settings=${encodeURIComponent(JSON.stringify(style))}`;
+
+async function wornPage(page: import("@playwright/test").Page, style: object, id: string, extra = "") {
+  await page.goto(`${qa.base}/${quiet(style, extra)}`);
+  await page.waitForFunction(() => window.__qaMountAll);
+  await page.evaluate(() => window.__qaMountAll?.());
+  await expect(page.locator(`[data-wp-tier][data-look="${id}"]`).first()).toBeAttached({ timeout: 10_000 });
+  await expect(page.locator(`style[data-pack="${id}"]`)).toHaveCount(1);
+}
+
+/** The gauges `ref` lights and `now` does not. */
+const hidden = (ref: { key: string; lit: boolean }[], now: { key: string; lit: boolean }[]) => {
+  const at = new Map(now.map((g) => [g.key, g.lit]));
+  return ref.filter((g) => g.lit && at.get(g.key) !== true).map((g) => g.key);
+};
+
+for (const id of Object.keys(PACK_STYLES)) {
+  test(`every gauge lit without the ${id} pack's css is lit with it`, async ({ page }) => {
+    await wornPage(page, PACK_STYLES[id as keyof typeof PACK_STYLES], id);
+    const worn = await page.evaluate(gaugeInk);
+    await page.evaluate(() => document.querySelectorAll("style[data-pack]").forEach((el) => ((el as HTMLStyleElement).disabled = true)));
+    const twin = await page.evaluate(gaugeInk);
+    expect(twin.filter((g) => g.lit).length).toBeGreaterThan(10);
+    expect(worn.map((g) => g.key)).toEqual(twin.map((g) => g.key));
+    expect(hidden(twin, worn)).toEqual([]);
+  });
+}
+
+test("the gauge-ink check catches a pack that hides some of its gauges and not all", async ({ page }) => {
+  await wornPage(page, PACK_STYLES.term, "term");
+  const ref = await page.evaluate(gaugeInk);
+  // what a bad pack could do: no ink on every other bar, meter and ring
+  await page.addStyleTag({ content: '[data-part="bar"]:nth-of-type(odd) *, [data-part="meter"]:nth-of-type(odd) *, [data-part="ring"]:nth-of-type(odd) circle { background: none !important; stroke: none !important; }' });
+  const now = await page.evaluate(gaugeInk);
+  expect(now.some((g) => g.lit)).toBe(true);
+  expect(hidden(ref, now).length).toBeGreaterThan(0);
+});
+
+// L79: the box-legend title sits on the frame's line (6 px in) whatever the card's zoom: the shell zooms the padded content of a card
+// that is larger than the design size, and the legend is lifted inside that zoom.
+test("the term pack's box legend sits on the frame line on a zoomed card", async ({ page }) => {
+  // Size % 150 zooms the padded content of every card (and the auto zoom of a larger box does the same)
+  await wornPage(page, { ...PACK_STYLES.term, scale: 150 }, "term");
+  await expect(page.locator('[data-wp-tier][data-look="term"] [data-part="legend"]').first()).toBeAttached({ timeout: 10_000 });
+  const report = await page.evaluate(() => {
+    const rows: { zoom: number; off: number }[] = [];
+    for (const card of document.querySelectorAll('[data-wp-tier][data-look="term"]')) {
+      const legend = card.querySelector('[data-part="legend"]');
+      const frame = [...card.children].find((c) => c.className.includes("absolute") && getComputedStyle(c).borderTopWidth !== "0px");
+      const padded = legend?.closest("header")?.parentElement;
+      if (!legend || !frame || !padded) continue;
+      const l = legend.getBoundingClientRect();
+      const f = frame.getBoundingClientRect();
+      // the frame's line is its top border, centred on its top edge plus half the border
+      rows.push({ zoom: Number(getComputedStyle(padded).zoom), off: Math.abs(l.top + l.height / 2 - (f.top + parseFloat(getComputedStyle(frame).borderTopWidth) / 2)) });
+    }
+    return rows;
+  });
+  expect(report.length).toBeGreaterThan(5);
+  expect(report.some((r) => r.zoom !== 1)).toBe(true);
+  expect(report.filter((r) => r.off > 1.5)).toEqual([]);
+});

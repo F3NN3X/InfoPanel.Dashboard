@@ -34,6 +34,14 @@ describe("t3Tokens", () => {
     expect(t3Tokens({ "header-style": "inline" })).toEqual({});
     expect(t3Tokens({ "header-style": "tab-label; x" })).toEqual({});
   });
+  it("label-bar, bracket-line and index are headers too, none with a frame of its own (P11)", () => {
+    for (const kind of ["label-bar", "bracket-line", "index"]) expect(t3Tokens({ "header-style": kind })).toEqual({ header: kind });
+    expect(t3Tokens({ "header-style": "index; x" })).toEqual({});
+  });
+  it("chromatic is a static number effect, 270 degrees a ring style (P11: Overdrive, Holo)", () => {
+    expect(t3Tokens({ "num-effect": "chromatic" })).toEqual({ numChroma: true });
+    expect(t3Tokens({ "ring-style": "arc270" })).toEqual({ ringArc: 270 });
+  });
 });
 
 describe("free-text T3 values", () => {
