@@ -3,16 +3,13 @@
 // 3 layers and its gradient numerals to 3:1 (G6). A pack that fails any check is refused whole, never trimmed.
 import type { ScreenTemplate, ShapeClass, ShapeLayout } from "@/lib/screen-templates/kit";
 import { modules } from "@/modules";
-import { safeFill, safeGradient } from "@/widgets/core/t3-tokens";
 import { chromeOf } from "./chrome";
-import { effectIssues, SIZE_CLASSES } from "./effects";
 import { iconSetIssues } from "./icon-set";
-import { resolveT1, type Look } from "./look";
 import { setPackId, type Pack } from "./pack";
 import { lintPackCss, scopePackCss } from "./pack-css";
+import { MAX_LAYERS, numeralIssues, stageIssues } from "./pack-checks";
 import PackStageLayers from "./pack-stage";
 import { isPackRelativeUrl, packCssIssues } from "./pack-urls";
-import { contrastOf } from "./status";
 
 /** Built-in packs by Look id: one import() each, so a pack is a chunk the entries never carry. */
 export const BUILTIN: Record<string, () => Promise<{ default: Pack }>> = {
@@ -43,39 +40,9 @@ export function unregisterPack(id: string): void {
   shared.delete(id);
 }
 
-const MAX_LAYERS = 3;
 const MAX_TEMPLATES = 8;
 const BURN_INS: readonly string[] = ["static-safe", "needs-shift", "needs-dim"];
 const ID = /^[a-z0-9][a-z0-9-]*$/;
-/** Large numerals hold 3:1 (G6). */
-const NUMERAL_MIN = 3;
-const COLOUR_FN = /\b(rgba?|hsla?|hwb|lab|lch|oklab|oklch|color|color-mix)\(/i;
-const STOP = /#[0-9a-f]{3,8}\b|var\(--w-[\w-]+\)/gi;
-
-/** The T3 names that paint ink with a gradient: the numerals, a ring's value arc and a graph's line. */
-const INK_FILLS = ["num-fill", "ring-fill", "spark-fill"] as const;
-
-/** The problems with a gradient ink fill: a stop that cannot be read as a colour, or one under 3:1 on the Look's surface in a mode it supports. */
-function inkFillIssues(look: Look, name: (typeof INK_FILLS)[number]): string[] {
-  const fill = look.t3?.[name];
-  if (fill === undefined || fill === "solid" || fill === "none") return [];
-  const gradient = safeGradient(fill);
-  if (!gradient) return [`${name} is not a gradient of colours`];
-  if (COLOUR_FN.test(gradient)) return [`${name} stops must be hex colours or var(--w-*): other colour functions cannot be checked`];
-  const issues: string[] = [];
-  for (const mode of look.modes.supported) {
-    const t1 = resolveT1(look, mode) as Record<string, string>;
-    for (const stop of gradient.match(STOP) ?? []) {
-      const colour = stop.startsWith("var(") ? t1[stop.slice(8, -1)] : stop;
-      const ratio = colour ? contrastOf(colour, t1.surface) : undefined;
-      if (ratio === undefined) issues.push(`${name} stop ${stop} cannot be checked (${mode})`);
-      else if (ratio < NUMERAL_MIN) issues.push(`${name} stop ${stop} is ${ratio.toFixed(2)}:1 on the surface in ${mode}, under ${NUMERAL_MIN}:1`);
-    }
-  }
-  return issues;
-}
-const numeralIssues = (look: Look): string[] => INK_FILLS.flatMap((name) => inkFillIssues(look, name));
-
 /** A folder URL the pack's files are served from: relative or a root path of this origin, ending in `/`, never a scheme or `//host`. */
 function baseIssue(base: string): boolean {
   const rest = base.replace(/^\/(?!\/)/, "");
@@ -132,15 +99,7 @@ export function packIssues(pack: Pack): string[] {
   for (const a of pack.assets ?? []) if (!isPackRelativeUrl(a)) issues.push(`asset ${a}`);
   const layers = pack.stage?.layers ?? [];
   if (layers.length > MAX_LAYERS) issues.push(`stage has ${layers.length} layers, at most ${MAX_LAYERS}`);
-  layers.forEach((l, i) => {
-    if (l.fill !== undefined && !safeFill(l.fill)) issues.push(`stage layer ${i} fill`);
-    if (l.image !== undefined && !(isPackRelativeUrl(l.image) && !/["']/.test(l.image))) issues.push(`stage layer ${i} image ${l.image}`);
-    if (l.opacity !== undefined && !(l.opacity >= 0 && l.opacity <= 1)) issues.push(`stage layer ${i} opacity`);
-    if (l.minSizeClass !== undefined && !SIZE_CLASSES.includes(l.minSizeClass)) issues.push(`stage layer ${i} minSizeClass`);
-  });
-  const stage = pack.stage;
-  if (stage?.overlayMinSizeClass !== undefined && !SIZE_CLASSES.includes(stage.overlayMinSizeClass)) issues.push("stage overlayMinSizeClass");
-  if (stage?.effects) issues.push(...(Array.isArray(stage.effects) ? effectIssues(stage.effects) : ["stage effects is not a list"]));
+  issues.push(...stageIssues(pack.stage));
   if (pack.burnIn !== undefined && !BURN_INS.includes(pack.burnIn)) issues.push(`burnIn ${String(pack.burnIn)}`);
   if (pack.statusBar?.edge !== undefined && pack.statusBar.edge !== "top" && pack.statusBar.edge !== "bottom") issues.push("statusBar.edge");
   if (pack.connectors && pack.connectors.style !== "line" && pack.connectors.style !== "elbow") issues.push("connectors.style");

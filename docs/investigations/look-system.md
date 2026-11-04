@@ -2451,6 +2451,9 @@ Visual and studio-UI items that came out of P3 to P11b, left open on purpose. Th
 | L83 | The three header kinds (about 350 B gzip) out of the kiosk entry | needs a pack slot and a Suspense fallback; user packs cannot ship code | S |
 | L90 remainder | Paper's mono labels and focus outline, `label-case` (a T3 name no Look reads), Tape '86's stripe-coloured bars | each a visual item; mono labels widen every label (the overflow runner judges) | M |
 | L92 | The panel item's inline `backdropFilter` is outside the page limit of 8 | a rule for inline styles; no page of panel items with blur is drawn today | S |
+| L30 | NowPlaying's inline art tint bypasses the `[data-mat-blur]` fallback rule | a widget rule, not a pack file rule | S |
+| L52, L56, L57 | LedLadder export colours on a light card; StreamMixer's `MASTER_COLOR` markup | the export colour table per pack: a widget and export change, with `import-check` | M |
+| L61 | The D9 hex gate counts only 6- and 8-digit hex (207 more lines with 3/4-digit hex and `rgb()`/`hsl()`/`oklch()`) | raises the ratchet; needs a clean-up first | S |
 
 ### 11.1 Per-pack size budgets (proposed `budgets.json` shape and values)
 

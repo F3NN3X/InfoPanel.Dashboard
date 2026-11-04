@@ -33,7 +33,7 @@
       }
     ]
   },
-  "burnIn": "static-safe",
+  "burnIn": "needs-dim",
   "statusBar": {
     "edge": "top"
   }

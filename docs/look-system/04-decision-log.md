@@ -129,3 +129,11 @@ The owner gave explicit authority to finish every phase (P5a to P12) as the plan
 - `ring-fill` and `spark-fill` are T3 names (Classic `none`), read through `safeGradient` and drawn as an SVG gradient; the loader holds their stops to 3:1 on the surface like `num-fill`.
 - Visual items no phase owned (Paper's mono labels and focus outline, `label-case`, Tape '86's stripe bars, the studio-only rows) belong to the post-plan polish backlog (investigation section 11, after P12: owner-scheduled, not a phase and not part of the P0 to P12 goal), not to P12 (the validator and user packs).
 - Known gap (P11b fix 2): the page limit of 8 backdrop layers counts blurred cards by class; the InfoPanel panel item's inline `backdropFilter` (`ProfileView.tsx`) is outside it. The pages the specs draw have no panel blur, and a rule that beats inline styles would reach every panel item on every Look. Recorded as L92 in the backlog. The island plus alert reservation is arithmetic: the specs run with no live alert, and alert cards add no blur (`bg-card`).
+
+## P12a (2026-11-04, under the owner authorisation above)
+
+- P12 is split like P5, P8, P9 and P11: **P12a** is the validator (`src/looks/pack-validate.ts`, a CLI, tests), **P12b** the user packs from the app data directory (server route, loading, studio UI, the validator wired in).
+- The validator is TypeScript only and runs in the studio and the CLI. The server does path safety and size caps (`PACK_CEILING_BYTES`, the `isPackRelativeUrl` rules, file types), which P12b builds in Rust; the plan's "validator runs in the studio lazy chunk and the server" is read as that split, not as two copies of the lint.
+- The loader and the validator share one reader per rule (`pack-checks.ts`, `pack-css.ts`, `pack-urls.ts`, `icon-set.ts`); the validator adds rules, never a second lint. `data:` URLs are refused outright (stricter than "allowed image types").
+- Paper's `burnIn` moves from `static-safe` to `needs-dim`: a full-page light fill is bright static art, and the rule (a layer's mean luminance times opacity of 0.4 or more cannot be `static-safe`) is the plan's.
+- L30, L52, L56, L57 and L61 are not validator work (widget inline styles, export colours, a repo scan) and move to the post-plan polish backlog.

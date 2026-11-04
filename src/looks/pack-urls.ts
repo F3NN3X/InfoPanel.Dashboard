@@ -41,10 +41,21 @@ const DYNAMIC_FUNCS = new Set(["var", "env", "attr"]);
  * closes, a `var()`, `env()` or `attr()` inside a URL function, `@import`, and any URL that is not pack-relative are issues.
  */
 export function packCssIssues(css: string): string[] {
+  return scanCss(css).issues;
+}
+
+/** Every URL a pack's CSS names (url tokens and strings in URL functions), for the validator's asset check. */
+export function cssUrls(css: string): string[] {
+  return scanCss(css).urls;
+}
+
+function scanCss(css: string): { issues: string[]; urls: string[] } {
   const issues: string[] = [];
+  const urls: string[] = [];
   // the open blocks, innermost last: "(" "[" "{" or a function's lowercase name; a string inside a URL function is a URL
   const stack: string[] = [];
   const check = (url: string) => {
+    urls.push(url);
     if (!isPackRelativeUrl(url)) issues.push(`url ${url}`);
   };
   const inUrlFunc = () => stack.some((f) => URL_FUNCS.has(f));
@@ -67,5 +78,5 @@ export function packCssIssues(css: string): string[] {
     }
   }
   for (const f of stack) if (URL_FUNCS.has(f)) issues.push(`unterminated ${f}(`);
-  return issues;
+  return { issues, urls };
 }

@@ -13,43 +13,14 @@ import { DEFAULT_RADIUS } from "@/lib/theme";
 import { CLASSIC_LOOK_ID } from "@/lib/theme-model";
 import studio from "@/looks/studio/look.json";
 import schema from "@/looks/look.schema.json";
+import { schemaErrors } from "@/looks/schema-check";
 import UI_TOKENS_P4 from "./__fixtures__/ui-tokens-p4.json";
 
-// The Look files (D5), the registry and the Studio Look (D1). The schema is checked by a small validator that knows
-// the keywords look.schema.json uses, so the repo needs no JSON Schema dependency.
+// The Look files (D5), the registry and the Studio Look (D1). The schema is checked by the small validator in
+// src/looks/schema-check.ts, which knows the keywords look.schema.json uses, so the repo needs no JSON Schema dependency.
 
 type Schema = Record<string, unknown>;
-
-function errors(value: unknown, s: Schema, at = "$"): string[] {
-  if (typeof s.$ref === "string") return errors(value, (schema as Schema).$defs![s.$ref.replace("#/$defs/", "") as never] as Schema, at);
-  const out: string[] = [];
-  const types = s.type === undefined ? [] : ([] as unknown[]).concat(s.type);
-  const typeOf = (v: unknown) => (v === null ? "null" : Array.isArray(v) ? "array" : typeof v);
-  if (types.length && !types.includes(typeOf(value))) return [`${at}: ${typeOf(value)} is not ${types.join("/")}`];
-  if ("const" in s && value !== s.const) out.push(`${at}: not ${JSON.stringify(s.const)}`);
-  if (Array.isArray(s.enum) && !s.enum.includes(value)) out.push(`${at}: ${JSON.stringify(value)} not in ${s.enum.join(", ")}`);
-  if (typeof s.pattern === "string" && typeof value === "string" && !new RegExp(s.pattern).test(value)) out.push(`${at}: does not match ${s.pattern}`);
-  if (typeof s.minLength === "number" && typeof value === "string" && value.length < s.minLength) out.push(`${at}: too short`);
-  if (typeof value === "number" && ((typeof s.minimum === "number" && value < s.minimum) || (typeof s.maximum === "number" && value > s.maximum))) out.push(`${at}: out of range`);
-  if (Array.isArray(value)) {
-    if (typeof s.minItems === "number" && value.length < s.minItems) out.push(`${at}: too few items`);
-    if (s.items) value.forEach((v, i) => out.push(...errors(v, s.items as Schema, `${at}[${i}]`)));
-  }
-  if (typeOf(value) === "object") {
-    const obj = value as Record<string, unknown>;
-    const props = (s.properties ?? {}) as Record<string, Schema>;
-    for (const key of (s.required as string[] | undefined) ?? []) if (!(key in obj)) out.push(`${at}: ${key} is required`);
-    if (typeof s.minProperties === "number" && Object.keys(obj).length < s.minProperties) out.push(`${at}: too few properties`);
-    for (const [key, v] of Object.entries(obj)) {
-      if (props[key]) out.push(...errors(v, props[key], `${at}.${key}`));
-      else if (s.additionalProperties === false) out.push(`${at}: ${key} is not allowed`);
-      else if (typeof s.additionalProperties === "object") out.push(...errors(v, s.additionalProperties as Schema, `${at}.${key}`));
-    }
-  }
-  if (s.if) out.push(...errors(value, (errors(value, s.if as Schema, at).length === 0 ? s.then : s.else) as Schema ?? {}, at));
-  if (s.not && errors(value, s.not as Schema, at).length === 0) out.push(`${at}: matches a schema it must not`);
-  return out;
-}
+const errors = (value: unknown, s: Schema): string[] => schemaErrors(value, s, schema as Schema);
 
 const read = (rel: string): Look => JSON.parse(readFileSync(new URL(`../../src/looks/${rel}`, import.meta.url), "utf8")) as Look;
 
