@@ -782,6 +782,20 @@ Things to know:
 - A test fixture changed with a rule, not an expectation: the user-pack helper gives Field Kit its own id and font families (the provenance rule would refuse its own), and the PNG fixtures carry the full signature.
 - The built-in font family list in `pack-validate.ts` (`BUILTIN_FONT_FAMILIES`) is pinned by a test that reads every built-in pack.json; a new built-in pack needs its families added there.
 
+### Re-review round 3 (P12a)
+
+Last adversarial re-review (`p12a-review-r3.md`, e8d63bac..c5dc864d): N-H1 to N-H3, N-M1 to N-M4 and the resource-function scan FIXED (N-M4 also settled for the caller: `source` is a caller option, P12b derives it from provenance). Verdict WARNING, not BLOCK. All 12 built-ins give 0 errors with `--builtin`; a folder copy of a built-in with a new id, `pack-my-*` families and no `pack.css` gives 0 errors in user mode, so the gate does not over-block. Bounds (`RASTER_ALPHA_MIN` 0.85, motion 50 to 2000 ms) judged sound; no token combination flashes over 3 Hz. Round cap reached; the new findings are settled:
+
+| Finding | Settled |
+|---|---|
+| H-1 `blur-fallback-alpha` is never read, so a glass card can fall back to near-transparent over a bright layer | L97, owner P12b, **a blocker for loading any user pack**: check the composite at `min(fill-alpha, blur-fallback-alpha)` in the validator, or clamp it where P12b first paints it |
+| M-1 material `tone` unchecked (`--w-faint`, `--w-track` unreadable) | L97, P12b blocker |
+| M-2 T1 `info` and `accent-on` never contrasted | L97, P12b blocker |
+| M-3 `ring-width`, `series-stroke` 0 and `num-weight` 0 or negative pass (a mark set to nothing) | L97, P12b blocker |
+| 8 LOWs, and `BUILTIN_FONT_FAMILIES` hand-kept (derive it from the pack.json files via the generated `ids.ts`) | L98, P12b |
+
+Verify (controller, on c5dc864d): `npm run verify:full` exit 0, 19/19 passed. P12a closed as the validator; user packs stay unloadable until P12b closes L97.
+
 ## Ledger: known issues and deferred work
 
 Open items carried between phases. Each phase adds what it finds or defers, and closes what it fixes (status `closed in P<N>`).
@@ -884,3 +898,5 @@ Open items carried between phases. Each phase adds what it finds or defers, and 
 | L94 | P12a fix 1 | User packs carry no `pack.css` (rule `user-css`); user CSS needs a fail-closed grammar (selectors from the slot allow-list only; colours only as hex or rgb literals or `var(--pack-*)` resolvable in the same file; no `@keyframes`) plus a render-based check at import (the pack worn on the Widget QA page offscreen, with the `pack-visibility` measures) | Post-plan polish backlog | open: until both exist, user CSS stays refused (decision log, P12a fix round 1) |
 | L95 | P12a fix 1 | Deferred LOWs of the P12a review: duplicate JSON keys (the parser is `JSON.parse`, last wins; a raw-text check belongs in P12b's import reader); `@font-face` `local()` fingerprints fonts and `color: expression()` passes (built-in CSS only: user CSS is refused); `ornament.bleed: true` lifts the 10 px cap by design (spec 03, a user pack self-declares it); P12b must serve pack files with `Content-Type` from the extension, `nosniff` and `Content-Security-Policy: sandbox` (an SVG is served at its own URL, same origin) and list in its export capability table that a user light pack exports the dark-literal LedLadder colours (L52) | P12b | open |
 | L96 | P12a fix 2 | Deferred LOWs of the second review: the licence check is a phrase match (an OFL header at the start of the file would be stricter, but the OFL.txt files of the built-ins begin with their copyright line); README, LOOK.md and OFL.txt carry any text (P12b serves them `text/plain` and never reads them as CSS or HTML); an SVG comment holding a script passes the reader (inert: an XML parser refuses the file, and it is served as `image/svg+xml` with `nosniff` and CSP sandbox, L95); Paper (no assets list) is refused in user mode, as designed (use `--builtin`); overlay effects (grain, vignette, glow) are not composited into the card's backdrop (their opacity is capped by `OVERLAY_MAX`) | P12b | open |
+| L97 | P12a round 3 | User-pack gate gaps left at the round cap: `blur-fallback-alpha` not composited (H-1), material `tone` unchecked (M-1), T1 `info` and `accent-on` not contrasted (M-2), zero or negative widths and weights pass (M-3); probes in `p12a-review-r3.md` | P12b | open: **blocker**, close before any user pack loads |
+| L98 | P12a round 3 | Eight LOWs from `p12a-review-r3.md`; `BUILTIN_FONT_FAMILIES` is hand-kept (derive it from the pack.json files through the generated `ids.ts`) | P12b | open |
