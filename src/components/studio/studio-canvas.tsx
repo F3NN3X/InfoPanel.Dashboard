@@ -17,6 +17,7 @@ import {
 import { SquareDashedMousePointer } from "lucide-react";
 import { PageBackground } from "@/components/page-background";
 import { PackStage, packBackground, usePack } from "@/looks/pack";
+import { connectorZones } from "@/looks/connector-zones";
 import { DynamicIsland } from "@/components/island/dynamic-island";
 import { pageSkinOf } from "@/components/island/island-look";
 import { islandReserve, withPackEdge } from "@/components/island/island-model";
@@ -520,6 +521,8 @@ export function StudioCanvas({
   const padding = profilePadding(profile, true);
   const islandPage = { width: profile.width, height: profile.height };
   const itemLayers = useMemo(() => withItemLayers(profile, page, []), [profile, page]);
+  // The zones connectors may join: the same filter as the kiosk (no items layer, canvas or page-sized hub).
+  const linkZones = useMemo(() => (pack?.connectors ? connectorZones(profile.placements, profile) : undefined), [pack, profile]);
   const pageIsland = useMemo(() => ({ island: profile.island?.enabled ? profile.island : undefined, page: { width: profile.width, height: profile.height } }), [profile.island, profile.width, profile.height]);
   /** "Reserve space": the zones start under the island, as on the kiosk. */
   const reserve = islandReserve(profile.island, islandPage);
@@ -652,7 +655,7 @@ export function StudioCanvas({
               )}
                 {/* Page background (as in the kiosk) behind the tiles */}
                 {background && <PageBackground background={background} className="absolute inset-0 -z-20" />}
-                <PackStage pack={pack} page={islandPage} className="absolute inset-0 -z-20" overlayClassName="absolute inset-0 z-10" zones={pack?.connectors ? profile.placements : undefined} />
+                <PackStage pack={pack} page={islandPage} className="absolute inset-0 -z-20" overlayClassName="absolute inset-0 z-10" zones={linkZones} />
                 {/* A scroll page longer than its screen: the design size stays the frame. */}
                 {!fill && profile.height > 0 && (pageSize(profile).naturalHeight ?? 0) > profile.height && (
                   <ScreenFold height={profile.height} zoom={zoom} />
