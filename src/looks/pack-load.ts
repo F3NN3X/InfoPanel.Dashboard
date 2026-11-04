@@ -3,7 +3,7 @@
 // 3 layers and its gradient numerals to 3:1 (G6). A pack that fails any check is refused whole, never trimmed.
 import type { ScreenTemplate, ShapeClass, ShapeLayout } from "@/lib/screen-templates/kit";
 import { modules } from "@/modules";
-import { chromeOf } from "./chrome";
+import { chromeOf, overlayCss } from "./chrome";
 import { LOOK_IDS } from "./ids";
 import { iconSetIssues } from "./icon-set";
 import { setPackId, type Pack } from "./pack";
@@ -175,12 +175,13 @@ export function mountPackCss(pack: Pack): () => void {
     if (--worn === 0) document.documentElement.removeAttribute("data-pack-worn");
     return true;
   };
-  if (!pack.css) return () => void letGo();
+  const plates = pack.chrome?.panel.overlay ? overlayCss(pack.id) : "";
+  if (!pack.css && !plates) return () => void letGo();
   let entry = mounted.get(pack.id);
   if (!entry) {
     const el = document.createElement("style");
     el.dataset.pack = pack.id;
-    el.textContent = scopePackCss(pack.id, pack.css);
+    el.textContent = scopePackCss(pack.id, pack.css ?? "") + plates;
     document.head.append(el);
     entry = { el, users: 0 };
     mounted.set(pack.id, entry);

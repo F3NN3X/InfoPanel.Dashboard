@@ -79,10 +79,10 @@ export function PanelView({ panel: own, settings, sensors: raw, studio, selectio
   // A pack Look's T3 values, slots and colours (none for Classic, the skins and the sample Looks).
   const pack = usePack(typeof cfg.lookId === "string" ? cfg.lookId : undefined);
   const skin = panelSkinOf(cfg, pack);
-  // A stack or grid panel wears the pack's card colours (`PackPanel`); a colour of an item's own that vanishes on it gives way to the pack's text.
+  // A stack or grid panel, and a light pack's overlay, wear the pack's card colours (`PackPanel`); a colour of an item's own that vanishes on them gives way to the pack's text.
   const card = pack?.chrome?.panel;
-  const stacked = overlay ? undefined : card;
-  const panel = stacked?.legible(toned) ?? toned;
+  const worn = overlay ? card?.overlay : card;
+  const panel = worn?.legible(toned) ?? toned;
   const hug = panel.fit === "hug";
   const layout = overlay ? "overlay" : panel.layout === "grid" ? "grid" : "stack";
 
@@ -111,7 +111,7 @@ export function PanelView({ panel: own, settings, sensors: raw, studio, selectio
             data-panel-layout={layout}
             data-panel-id={panel.id}
             // The theme tokens are re-scoped on the ModernChrome root (`tokenScope`).
-            style={{ "--wp-accent": panelAccent(chrome.accent || pack?.chrome?.accent, skin), ...panelVars(panel), ...(skin ? PANEL_SKIN_VARS : null), ...stacked?.vars, ...look } as CSSProperties}
+            style={{ "--wp-accent": panelAccent(chrome.accent || pack?.chrome?.accent, skin), ...panelVars(panel), ...(skin ? PANEL_SKIN_VARS : null), ...worn?.vars, ...look } as CSSProperties}
           >
             {overlay ? (
               <PanelOverlay

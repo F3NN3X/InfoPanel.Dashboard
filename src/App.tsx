@@ -755,7 +755,7 @@ export default function App({ fixture }: AppProps = {}) {
 
         {/* Header (hidden in kiosk mode) */}
         {!kiosk && (
-          <div className={cn("flex items-center justify-between", fill && "shrink-0")}>
+          <div className={cn("flex items-center justify-between", fill && "shrink-0")} style={pack?.chrome?.page}>
             <div className="flex items-baseline gap-3">
               <h1
                 className={cn(

@@ -1,8 +1,11 @@
 // The colours a worn pack gives the island's pill and the alerts' cards (L25): readable on every built-in pack, and the black tint only.
+import type { CSSProperties } from "react";
 import { describe, expect, it } from "vitest";
+import { resolveT1 } from "@/looks/look";
 import { PACK_IDS } from "@/looks/pack";
 import { loadPack } from "@/looks/pack-load";
 import { contrastOf } from "@/looks/status";
+import { overlayCss } from "@/looks/chrome";
 import { ISLAND_DEFAULTS } from "@/lib/island/config";
 import { islandSkin } from "@/components/island/island-look";
 
@@ -34,6 +37,26 @@ describe("a pack's chrome", () => {
     expect(skin.background).not.toBe("#000000");
     expect(skin.border).toBe(`1px solid ${chrome.edge}`);
     expect(contrastOf(skin.color, skin.background)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("the page header wears the pack's text where that holds on the pack's page, and the theme's where it does not (a light card on a dark page)", async () => {
+    const paper = (await loadPack("paper"))!;
+    const page = paper.chrome!.page as Record<string, string>;
+    expect(page.color).toBe(paper.chrome!.ink);
+    expect(page["--muted-foreground"]).toBe(paper.chrome!.panel.vars["--muted-foreground" as keyof CSSProperties]);
+    const bg = resolveT1(paper.look, "light").bg;
+    expect(contrastOf(paper.chrome!.ink, bg)).toBeGreaterThanOrEqual(4.5);
+    expect(contrastOf(paper.chrome!.muted, bg)).toBeGreaterThanOrEqual(4.5);
+    expect((await loadPack("field-kit"))!.chrome!.page).toBeUndefined();
+  });
+
+  it("a light pack's overlay plates its bands in the card's colour, on which its text holds; a dark pack's has none", async () => {
+    const paper = (await loadPack("paper"))!.chrome!;
+    expect(paper.panel.overlay?.vars).toBe(paper.panel.vars);
+    expect(overlayCss("paper")).toContain('.wp-panel[data-look="paper"][data-panel-layout="overlay"] .wp-band{background:hsl(var(--card))');
+    expect(overlayCss("paper")).toContain(".wp-panel-scrim{background:hsl(var(--card)/.5)}");
+    for (const text of [paper.ink, paper.muted, paper.accent]) expect(contrastOf(text, paper.fill)).toBeGreaterThanOrEqual(4.5);
+    expect((await loadPack("swiss-mono"))!.chrome!.panel.overlay).toBeUndefined();
   });
 
   it("only the black tint takes it: a tint someone chose, and Classic's black, stay as they were", async () => {
