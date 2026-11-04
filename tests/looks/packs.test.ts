@@ -155,7 +155,7 @@ describe("what the second-wave packs teach the contract (P11)", () => {
     expect(core.module).toBe("FpsMonitor");
   });
 
-  it("Swiss Mono has an index header, one light face for the numerals that cannot be faux-bolded, and a card that covers its circle", async () => {
+  it("Swiss Mono has an index header, one light face for the numerals that cannot be faux-bolded, and an opaque card, so its circle never sits under card text (and its export colour stays solid)", async () => {
     const pack = (await loadPack("swiss-mono"))!;
     expect(t3Tokens(pack.look.t3)).toMatchObject({ header: "index" });
     const meta = (await import("@/looks/packs/swiss-mono/pack.json")).default;
@@ -163,7 +163,7 @@ describe("what the second-wave packs teach the contract (P11)", () => {
     for (const f of meta.fonts) expect(f.weight).toBe("100 900");
     expect(pack.stage!.layers[1].fill).toMatch(/radial-gradient\(circle \d+px at/);
     registerSampleCards();
-    expect(String(SAMPLE_MATERIALS["look-swiss-mono"].s.background)).toMatch(/rgba\(20,20,20,\.9/);
+    expect(SAMPLE_MATERIALS["look-swiss-mono"].s.background).toBe("#141414");
   });
 
   it("every second-wave pack keeps to the stage's 3 layers and its own files", async () => {

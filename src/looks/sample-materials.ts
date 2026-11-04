@@ -26,7 +26,7 @@ export const SAMPLE_MATERIALS: Record<string, Material> = Object.fromEntries([
   sample("tape-86", "solid", "light", "#F3EDDD", { background: "radial-gradient(rgba(42,37,35,.06) 1px, transparent 1.2px) 0 0/10px 10px, #F3EDDD", boxShadow: `${ring("#2A2523", 2)}, inset -4px -4px 0 0 rgba(42,37,35,.16)` }),
   sample("neon-stripe", "glass", "dark", "#0D0B14", { background: "rgba(13,11,20,.84)", boxShadow: ring("rgba(127,217,212,.16)") }),
   sample("overdrive", "gradient", "dark", "#110F14", { background: `${CHAMFER_EDGES}, linear-gradient(160deg,#151318,#0C0B0E)`, boxShadow: `${ring("rgba(243,230,0,.7)")}, inset 0 0 12px -8px rgba(243,230,0,.5)`, clipPath: CHAMFER }),
-  sample("swiss-mono", "solid", "dark", "#141414", { background: "rgba(20,20,20,.92)", boxShadow: "inset 0 -1px 0 #2E2D2A" }),
+  sample("swiss-mono", "solid", "dark", "#141414", { background: "#141414", boxShadow: "inset 0 -1px 0 #2E2D2A" }),
   sample("term", "lcd", "dark", "#0A0D0A", { background: "repeating-linear-gradient(0deg, rgba(0,0,0,.22) 0 1px, transparent 1px 3px), #0A0D0A", boxShadow: ring("#3F6B37"), textShadow: "0 0 6px rgba(139,227,122,.35)" }),
   sample("holo", "glass", "dark", "#050F18", { background: `${BRACKETS}, rgba(2,10,18,.82)`, boxShadow: ring("rgba(79,216,255,.16)") }),
   sample("night-glow", "glass", "dark", "#080A28", { background: "linear-gradient(135deg, rgba(4,6,24,.72), rgba(14,5,36,.72))", boxShadow: `${ring("rgba(62,230,255,.55)", 1.5)}, inset 0 0 12px rgba(155,92,255,.22)`, ...blur(12) }),
