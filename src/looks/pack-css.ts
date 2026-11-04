@@ -2,142 +2,165 @@
 // of paint properties (`lintPackCss`) and mounts it as `@layer look { @scope ([data-look="id"]) { ... } }` (`scopePackCss`).
 // The pack's own elements carry `data-look="<id>"` (the widget card, each stage layer and the overlay); a rule reaches those
 // elements' descendants, and the element itself through `:scope`. Layout, visibility, position, size and the page (`:root`,
-// `html`, `body`) are not the pack's to touch. Anything the lint cannot read is refused.
+// `html`, `body`) are not the pack's to touch, and a paint value that hides a widget (G2) or blurs its text (G6) is refused.
+// Both read the rules `css-syntax` parsed, and the mounted CSS is written from them, never the pack's own text. Anything
+// the lint cannot read is refused.
+import { parseCss, type Rule, type Token, writeRules, writeString, writeTokens } from "./css-syntax";
 
-/** Paint properties (and custom properties); a property that is not here is refused. `content` is allowed on `::before` and `::after` only. */
+/**
+ * Paint properties, and custom properties named `--pack-*` (an app one such as `--wp-pad` would move the card); a property
+ * that is not here is refused. Left out on purpose: `content` (a pseudo-element box can shift the layout), border styles (a
+ * style on a `medium` border adds width), `mask*` (it can hide the card) and stroke dashes (they draw a gauge's value).
+ */
 const PAINT =
-  /^(--[\w-]+|color|opacity|filter|backdrop-filter|-webkit-backdrop-filter|box-shadow|text-shadow|fill(-opacity)?|stroke(-opacity|-width|-dasharray|-dashoffset|-linecap|-linejoin)?|mix-blend-mode|accent-color|caret-color|font-family|font-feature-settings|-webkit-text-fill-color|-webkit-text-stroke-color|-webkit-background-clip|background(-color|-image|-position(-x|-y)?|-size|-repeat|-attachment|-clip|-origin|-blend-mode)?|border(-(top|right|bottom|left|block|inline)(-(start|end))?)?-(color|style)|border-image-(source|slice|repeat)|outline-(color|style)|text-decoration(-color|-style)?|(-webkit-)?mask(-(image|mode|position|size|repeat|origin|clip|composite))?|animation(-(name|duration|delay|iteration-count|direction|fill-mode|play-state|timing-function))?)$/;
+  /^(--pack-[\w-]+|color|(fill-|stroke-)?opacity|filter|backdrop-filter|-webkit-backdrop-filter|box-shadow|text-shadow|fill|stroke(-width|-linecap|-linejoin)?|mix-blend-mode|accent-color|caret-color|font-family|font-feature-settings|-webkit-text-fill-color|-webkit-text-stroke-color|-webkit-background-clip|background(-color|-image|-position(-x|-y)?|-size|-repeat|-attachment|-clip|-origin|-blend-mode)?|border(-(top|right|bottom|left|block|inline)(-(start|end))?)?-color|border-image-(source|slice|repeat)|outline-(color|style)|text-decoration(-color|-style)?|animation(-(name|duration|delay|iteration-count|direction|fill-mode|play-state|timing-function))?)$/;
 const FONT_FACE = /^(font-family|src|font-weight|font-style|font-stretch|font-display|unicode-range)$/;
-/** The names a selector may not mention: the page, and the shadow host. */
-const ESCAPE = /(^|[\s,>+~(])(html|body|head)(?![\w-])|:(root|host|host-context)\b/i;
-const KEYFRAME_SELECTOR = /^(from|to|\d+(\.\d+)?%)(\s*,\s*(from|to|\d+(\.\d+)?%))*$/i;
+const KEYFRAME_SELECTOR = /^(from|to|\d+(\.\d+)?%)(,(from|to|\d+(\.\d+)?%))*$/i;
+/** Names a pack defines (keyframes, font faces) start with this, so they never replace one the app uses. */
+const OWN = /^pack-/i;
+/** The least opacity a pack may give anything: under it a widget is hidden (G2). */
+export const OPACITY_FLOOR = 0.5;
+/** The most `backdrop-filter: blur()` (the material's glass); `filter: blur()` would blur the widget's own text (G6). */
+const BACKDROP_BLUR_MAX = 64;
+const ANIMATION_WORDS = new Set(
+  "none infinite normal reverse alternate alternate-reverse forwards backwards both running paused auto linear ease ease-in ease-out ease-in-out step-start step-end initial inherit unset revert revert-layer".split(
+    " "
+  )
+);
+const TIMING_FUNCTIONS = new Set(["cubic-bezier", "steps", "linear"]);
 
-interface Rule {
-  prelude: string;
-  /** The text between the braces; undefined for a statement ending in `;`. */
-  block?: string;
-}
+/** A number or percentage alone, as a fraction (`60%` is 0.6); undefined for anything else (`var()`, `calc()`, two tokens). */
+const amount = (value: Token[]) => (value.length !== 1 ? undefined : value[0].t === "number" ? value[0].n : value[0].t === "percentage" ? (value[0].n as number) / 100 : undefined);
 
-/** Splits `src` at its top level into rules; strings and comments are skipped and an unbalanced brace is an issue. */
-function rulesOf(src: string, issues: string[]): Rule[] {
-  const out: Rule[] = [];
-  const n = src.length;
-  let i = 0;
-  let start = 0;
-  const skip = () => {
-    if (src[i] === "/" && src[i + 1] === "*") {
-      const end = src.indexOf("*/", i + 2);
-      i = end < 0 ? n : end + 2;
-    } else if (src[i] === '"' || src[i] === "'") {
-      const q = src[i++];
-      while (i < n && src[i] !== q && src[i] !== "\n") i++;
-      i++;
-    } else return false;
-    return true;
-  };
-  while (i < n) {
-    if (skip()) continue;
-    if (src[i] === "}") {
-      issues.push("unbalanced }");
-      return out;
+/** The functions of a filter value with their arguments; undefined when it holds anything but functions and white space. */
+function filterFunctions(value: Token[]): [string, Token[]][] | undefined {
+  const out: [string, Token[]][] = [];
+  for (let k = 0; k < value.length; k++) {
+    const tok = value[k];
+    if (tok.t === "ws") continue;
+    if (tok.t !== "function") return undefined;
+    let depth = 1;
+    const from = k + 1;
+    while (depth > 0 && ++k < value.length) {
+      if (value[k].t === "function" || value[k].t === "(") depth++;
+      else if (value[k].t === ")") depth--;
     }
-    if (src[i] === ";") {
-      out.push({ prelude: src.slice(start, i).trim() });
-      start = ++i;
-    } else if (src[i] === "{") {
-      const from = ++i;
-      let depth = 1;
-      while (i < n && depth > 0) {
-        if (skip()) continue;
-        if (src[i] === "{") depth++;
-        else if (src[i] === "}") depth--;
-        i++;
-      }
-      if (depth > 0) {
-        issues.push("unbalanced {");
-        return out;
-      }
-      out.push({ prelude: src.slice(start, from - 1).trim(), block: src.slice(from, i - 1) });
-      start = i;
-    } else i++;
+    out.push([tok.v.toLowerCase(), value.slice(from, k).filter((t) => t.t !== "ws")]);
   }
-  if (src.slice(start).replace(/\/\*[\s\S]*?\*\//g, "").trim()) issues.push("css after the last rule");
   return out;
 }
 
-/** The declarations of a block as [name, value] pairs, split at `;` outside strings and brackets. */
-function declarationsOf(block: string): [string, string][] {
-  const parts: string[] = [];
-  let depth = 0;
-  let quote = "";
-  let from = 0;
-  const text = block.replace(/\/\*[\s\S]*?\*\//g, "");
-  for (let i = 0; i < text.length; i++) {
-    const c = text[i];
-    if (quote) {
-      if (c === quote) quote = "";
-    } else if (c === '"' || c === "'") quote = c;
-    else if (c === "(" || c === "[") depth++;
-    else if (c === ")" || c === "]") depth--;
-    else if (c === ";" && depth <= 0) {
-      parts.push(text.slice(from, i));
-      from = i + 1;
-    }
-  }
-  parts.push(text.slice(from));
-  return parts
-    .map((p) => p.trim())
-    .filter(Boolean)
-    .map((p) => {
-      const at = p.indexOf(":");
-      return at < 0 ? [p, ""] : [p.slice(0, at).trim().toLowerCase(), p.slice(at + 1).trim()];
-    });
+/** Whether a filter keeps content readable: functions from an allow-list, with the values that dim or blur capped. */
+function readableFilter(value: Token[], backdrop: boolean): boolean {
+  if (value.length === 1 && value[0].t === "ident" && value[0].v.toLowerCase() === "none") return true;
+  const fns = filterFunctions(value);
+  return (
+    fns !== undefined &&
+    fns.length > 0 &&
+    fns.every(([name, args]) => {
+      const a = amount(args);
+      if (name === "drop-shadow") return true;
+      if (name === "hue-rotate") return args.length === 1 && (args[0].t === "dimension" || (args[0].t === "number" && args[0].n === 0));
+      if (name === "saturate" || name === "sepia" || name === "grayscale") return a !== undefined && a >= 0;
+      if (name === "brightness" || name === "contrast") return a !== undefined && a >= OPACITY_FLOOR && a <= 2;
+      if (name === "opacity") return a !== undefined && a >= OPACITY_FLOOR;
+      if (name === "blur") return backdrop && args.length === 1 && ((args[0].t === "dimension" && args[0].unit?.toLowerCase() === "px" && (args[0].n as number) <= BACKDROP_BLUR_MAX) || (args[0].t === "number" && args[0].n === 0));
+      return false;
+    })
+  );
 }
 
-const pseudoOnly = (selector: string) => selector.split(",").every((s) => /::?(before|after)\s*$/i.test(s.trim()));
+/** What is wrong with one declaration's value (the property is allowed). */
+function valueIssue(name: string, value: Token[], keyframes: Set<string>): string | undefined {
+  const text = writeTokens(value);
+  if (value.some((t) => t.t === "delim" && t.v === "!")) return "!important";
+  if (/^(fill-|stroke-)?opacity$/.test(name)) {
+    const a = amount(value);
+    if (a === undefined || a < OPACITY_FLOOR) return `${name} ${text} is under ${OPACITY_FLOOR} or not a plain number`;
+  }
+  if (/filter$/.test(name) && !readableFilter(value, name !== "filter")) return `${name} ${text} hides or blurs content`;
+  if (name === "stroke-width" && !(value.length === 1 && (value[0].n as number) > 0)) return `stroke-width ${text} is not a plain positive width`;
+  if (name === "animation" || name === "animation-name") {
+    for (let k = 0; k < value.length; k++) {
+      const tok = value[k];
+      if (tok.t === "function") {
+        if (!TIMING_FUNCTIONS.has(tok.v.toLowerCase())) return `animation ${tok.v}() is not a keyframes of this pack`;
+        while (k < value.length && value[k].t !== ")") k++;
+      } else if ((tok.t === "ident" || tok.t === "string") && !ANIMATION_WORDS.has(tok.v.toLowerCase()) && !keyframes.has(tok.v)) {
+        return `animation ${tok.v} is not a keyframes of this pack`;
+      }
+    }
+  }
+  return undefined;
+}
 
-function lintDeclarations(where: string, block: string, allowed: (name: string) => boolean, issues: string[]): void {
-  if (block.includes("{")) issues.push(`${where}: nested rule`);
-  for (const [name, value] of declarationsOf(block)) {
+/** The type selectors and pseudo-classes that reach the page or the shadow host. */
+function escapes(selector: Token[]): boolean {
+  return selector.some((tok, k) => {
+    const prev = selector[k - 1];
+    if (tok.t === "ident" && /^(html|body|head)$/i.test(tok.v)) return !(prev?.t === "delim" && prev.v === ".");
+    return (tok.t === "ident" || tok.t === "function") && prev?.t === ":" && /^(root|host|host-context)$/i.test(tok.v);
+  });
+}
+
+function lintDeclarations(where: string, rule: Rule, allowed: (name: string) => boolean, keyframes: Set<string>, issues: string[]): void {
+  for (const { name, value } of rule.declarations ?? []) {
     if (!allowed(name)) issues.push(`${where}: property ${name} is not a paint property`);
-    if (/!\s*important/i.test(value)) issues.push(`${where}: !important`);
-  }
-}
-
-function lintRules(rules: Rule[], top: boolean, issues: string[]): void {
-  for (const { prelude, block } of rules) {
-    if (block === undefined) {
-      issues.push(`statement ${prelude.slice(0, 24)}`);
-    } else if (prelude.startsWith("@")) {
-      const name = prelude.slice(1).split(/[\s({]/)[0].toLowerCase().replace(/^-[a-z]+-/, "");
-      if (name === "media" || name === "supports") lintRules(rulesOf(block, issues), false, issues);
-      else if (top && name === "keyframes") {
-        for (const frame of rulesOf(block, issues)) {
-          if (frame.block === undefined || !KEYFRAME_SELECTOR.test(frame.prelude)) issues.push(`keyframe ${frame.prelude.slice(0, 24)}`);
-          else lintDeclarations("keyframe", frame.block, (p) => PAINT.test(p) && !p.startsWith("animation"), issues);
-        }
-      } else if (top && name === "font-face") lintDeclarations("@font-face", block, (p) => FONT_FACE.test(p), issues);
-      else issues.push(`at-rule @${name}`);
-    } else {
-      const selector = prelude.replace(/"[^"]*"|'[^']*'/g, '""');
-      if (!selector || ESCAPE.test(selector)) issues.push(`selector ${prelude.slice(0, 40)} reaches outside the pack`);
-      const pseudo = pseudoOnly(selector);
-      lintDeclarations(`rule ${prelude.slice(0, 24)}`, block, (p) => PAINT.test(p) || (p === "content" && pseudo), issues);
+    else {
+      const issue = valueIssue(name, value, keyframes);
+      if (issue) issues.push(`${where}: ${issue}`);
     }
   }
 }
 
-/** What is wrong with a pack's CSS beyond its URLs (`packCssIssues`): a property that is not paint, a selector outside the pack, an at-rule or `!important`. Empty = paint only. */
+function lintRules(rules: Rule[], top: boolean, keyframes: Set<string>, issues: string[]): void {
+  for (const rule of rules) {
+    const prelude = writeTokens(rule.prelude);
+    if (rule.at === "media" || rule.at === "supports") lintRules(rule.rules ?? [], false, keyframes, issues);
+    else if (top && rule.at === "keyframes") {
+      if (!(rule.prelude.length === 1 && rule.prelude[0].t === "ident" && OWN.test(rule.prelude[0].v))) issues.push(`@keyframes ${prelude}: name must start with pack-`);
+      for (const frame of rule.rules ?? []) {
+        const selector = writeTokens(frame.prelude.filter((t) => t.t !== "ws"));
+        if (frame.at !== undefined || !KEYFRAME_SELECTOR.test(selector)) issues.push(`keyframe ${selector.slice(0, 24)}`);
+        else lintDeclarations(`keyframe ${selector}`, frame, (p) => PAINT.test(p) && !p.startsWith("animation"), keyframes, issues);
+      }
+    } else if (top && rule.at === "font-face") {
+      lintDeclarations("@font-face", rule, (p) => FONT_FACE.test(p), keyframes, issues);
+      for (const d of rule.declarations ?? []) {
+        const family = d.value.map((t) => (t.t === "ws" ? " " : t.v)).join("");
+        if (d.name === "font-family" && !(d.value.every((t) => t.t === "string" || t.t === "ident" || t.t === "ws") && OWN.test(family))) {
+          issues.push(`@font-face: font-family ${writeTokens(d.value)} must start with pack-`);
+        }
+      }
+    } else if (rule.at !== undefined) issues.push(`at-rule @${rule.at}`);
+    else {
+      if (rule.prelude.length === 0 || escapes(rule.prelude)) issues.push(`selector ${prelude.slice(0, 40)} reaches outside the pack`);
+      lintDeclarations(`rule ${prelude.slice(0, 24)}`, rule, (p) => PAINT.test(p), keyframes, issues);
+    }
+  }
+}
+
+/** What is wrong with a pack's CSS beyond its URLs (`packCssIssues`): CSS the parser refuses, a property that is not paint, a value that hides, a selector outside the pack, an at-rule or `!important`. Empty = paint only. */
 export function lintPackCss(css: string): string[] {
   const issues: string[] = [];
-  lintRules(rulesOf(css, issues), true, issues);
+  const rules = parseCss(css, issues);
+  if (issues.length) return issues;
+  const keyframes = new Set(rules.filter((r) => r.at === "keyframes" && r.prelude.length === 1).map((r) => r.prelude[0].v));
+  lintRules(rules, true, keyframes, issues);
+  // what the page gets must parse to the same rules, or the browser and the lint could read it differently
+  const text = writeRules(rules);
+  if (writeRules(parseCss(text, issues)) !== text) issues.push("css does not read back as written");
   return issues;
 }
 
-/** The stylesheet that goes in the page: the pack's rules scoped to `[data-look="id"]` inside `@layer look`. `@keyframes` and `@font-face` cannot nest in a scope, so they sit beside it in the layer. Call on CSS that passed `lintPackCss`. */
+/**
+ * The stylesheet that goes in the page, written from the parsed rules: scoped to `[data-look="id"]` inside `@layer look`.
+ * `@keyframes` and `@font-face` cannot nest in a scope, so they sit beside it in the layer. CSS that fails `lintPackCss`
+ * gives "" (nothing is mounted).
+ */
 export function scopePackCss(id: string, css: string): string {
-  const rules = rulesOf(css, []);
-  const global = (r: Rule) => /^@(-[a-z]+-)?(keyframes|font-face)\b/i.test(r.prelude);
-  const text = (r: Rule) => `${r.prelude}{${r.block}}`;
-  return `@layer look{${rules.filter(global).map(text).join("")}@scope ([data-look="${id}"]){${rules.filter((r) => !global(r)).map(text).join("")}}}`;
+  if (lintPackCss(css).length) return "";
+  const rules = parseCss(css, []);
+  const global = (r: Rule) => r.at === "keyframes" || r.at === "font-face";
+  return `@layer look{${writeRules(rules.filter(global))}@scope ([data-look=${writeString(id)}]){${writeRules(rules.filter((r) => !global(r)))}}}`;
 }

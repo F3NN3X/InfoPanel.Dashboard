@@ -48,13 +48,13 @@ describe("the pack loader (G4)", () => {
     expect(await loadPack("test-pack", from(pack))).toBeUndefined();
   });
 
-  it("takes paint properties, custom properties, pseudo-element content, keyframes and @media, scoped to the pack", () => {
+  it("takes paint properties, --pack-* custom properties, its own keyframes and font faces, and @media, scoped to the pack", () => {
     const css = [
-      "[data-part=card] { background: linear-gradient(#000, #111); border-color: red; box-shadow: 0 0 4px red; --w-accent: #f0f; font-family: Foo; filter: blur(2px) }",
-      ".a::before { content: ''; background: red }",
-      "@keyframes pulse { from { opacity: 0 } 50% { opacity: 1 } to { opacity: 0 } }",
-      "@font-face { font-family: Foo; src: url(fonts/body.woff2) }",
-      "@media (min-width: 600px) { .b { mask-image: linear-gradient(#000, transparent); animation: pulse 2s infinite } }",
+      "[data-part=card] { background: linear-gradient(#000, #111); border-color: red; box-shadow: 0 0 4px red; --pack-glow: #f0f; font-family: pack-body; filter: saturate(1.2) }",
+      ".a::before { background: red }",
+      "@keyframes pack-pulse { from { opacity: 0.6 } 50% { opacity: 1 } to { opacity: 0.6 } }",
+      "@font-face { font-family: pack-body; src: url(fonts/body.woff2) }",
+      "@media (min-width: 600px) { .b { backdrop-filter: blur(12px); animation: pack-pulse 2s infinite } }",
     ].join(" ");
     expect(packIssues(badPack({ css }))).toEqual([]);
   });
