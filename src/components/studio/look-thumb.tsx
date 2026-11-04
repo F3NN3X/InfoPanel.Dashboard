@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
+import { memo, useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { MotionOverride } from "@/hooks/use-performance";
 import { FrozenSensorsContext } from "@/hooks/use-preview-data";
 import { presetTokens, type AppearancePreset } from "@/lib/appearance-presets";
@@ -102,8 +102,16 @@ export interface LookThumbProps {
   className?: string;
 }
 
+/** The same preset object while its content is equal, so a thumbnail built afresh on each render draws once (`LookThumb` is memoised). */
+export function useStablePreset(preset: AppearancePreset): AppearancePreset {
+  const last = useRef<{ key: string; preset: AppearancePreset }>(undefined);
+  const key = JSON.stringify(preset);
+  if (last.current?.key !== key) last.current = { key, preset };
+  return last.current.preset;
+}
+
 /** A preset drawn small by the real renderer, once in view. */
-export function LookThumb({ preset, width, className }: LookThumbProps) {
+export const LookThumb = memo(function LookThumb({ preset, width, className }: LookThumbProps) {
   const ref = useRef<HTMLDivElement>(null);
   const shown = useShown(ref);
   const profile = useMemo(() => thumbProfile(preset), [preset]);
@@ -131,4 +139,4 @@ export function LookThumb({ preset, width, className }: LookThumbProps) {
       )}
     </div>
   );
-}
+});

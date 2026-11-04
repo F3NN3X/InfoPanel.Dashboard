@@ -53,6 +53,7 @@ import { changedHere, fineTuneChip, fineTuneHeading, fineTuneSummary, resetFineT
 import { LookGallery } from "./look-gallery";
 import { lookName as lookNameOf } from "./look-gallery-model";
 import { LookKnobs } from "./look-knobs";
+import { useStablePreset } from "./look-thumb";
 import { lockedKnobs } from "./look-knobs-model";
 import { ThemeLookCard, ThemeUpdateBar } from "./theme-look-card";
 import { appliedToast, appliedToScreensToast, lookToast, paletteToast, paletteUsedBy, resetToast, savedToast } from "./theme-messages";
@@ -263,6 +264,8 @@ export function ThemeEditor({ config, scope: requested, profileId, pageId, onPic
   const palette = paletteName(theme.tokens, config.palettes, templatePalettes, effective.accent);
   const saved = state.theme && kind === "saved" ? state.theme : undefined;
 
+  // One object while the look is unchanged, so the look card's thumbnail draws once (not on each slider step).
+  const preview = useStablePreset({ id: "current", name, description: "", theme: theme.tokens, radius: theme.radius, style: themedOf(shownStyle), ...(background ? { background } : {}) });
   const applyPreset = (p: AppearancePreset, keepBackground: boolean) => {
     // A level with no snapshot has nothing of its own: the pick replaces its look.
     const replaced = !state.applied;
@@ -490,7 +493,7 @@ export function ThemeEditor({ config, scope: requested, profileId, pageId, onPic
           <>
             <ThemeLookCard
               key={scopeId(scope)}
-              preview={{ id: "current", name, description: "", theme: theme.tokens, radius: theme.radius, style: themedOf(shownStyle), ...(background ? { background } : {}) }}
+              preview={preview}
               name={name}
               kind={kind}
               kindLine={kindLine(state, others, levelName)}
