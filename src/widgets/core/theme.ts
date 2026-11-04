@@ -106,8 +106,9 @@ const OVER_18PX = "calc((1em - 17.5px) * 1000)";
  * outlines them and glows harder, but only from 18px up: the outline would clog the counters of a smaller numeral.
  */
 export const numGlowStyle = (sk: Partial<SkinTokens>, extra?: string): CSSProperties | null => {
-  // a gradient fill replaces the glow: a text-shadow would draw over the transparent text
-  if (sk.numFill) return { backgroundImage: sk.numFill, WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" };
+  // a gradient fill replaces the glow, and turns the card's inherited text shadow off: a shadow would draw through the transparent text.
+  // A tone colour set after it (warn, crit) wins over the gradient, so a status stays visible.
+  if (sk.numFill) return { backgroundImage: sk.numFill, WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent", textShadow: "none" };
   if (sk.numChroma) return { textShadow: "-1px 0 rgba(255,40,90,.7), 1px 0 rgba(0,220,255,.7)" };
   if (!sk.numGlow) return null;
   const outer = extra ? `, ${extra}` : "";

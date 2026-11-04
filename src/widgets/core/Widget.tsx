@@ -7,7 +7,7 @@ import { chromeOf } from "@/modules/standard-settings";
 import type { ModuleSettings } from "@/modules/types";
 import { DESIGN_SIZE, ROOMY_SCALE, RoomyCtx, heroPx, roomy, summaryShape, useBox, type Box } from "./layout";
 import { accentVars } from "./tokens";
-import { SKINS, SkinCtx, resolveSurface, textVars } from "./theme";
+import { SkinCtx, resolveSurface, textVars } from "./theme";
 import { bodyFlags, forcedTier, resolveAccent, shellPad, skinContext, untitled, withUserLook } from "./look";
 import { ensureSkinFonts } from "./fonts";
 import { CardFrame, CardLayer } from "./card-frame";
@@ -44,6 +44,8 @@ export interface WidgetProps {
   meter?: string;
   variant?: "default" | "studio";
   studio?: Studio | ((box: Box) => Studio | undefined);
+  /** The Look's T3 values (`src/looks/t3.ts`): the data-viz names it sets that differ from Classic's draw through `t3Tokens`. */
+  t3?: Record<string, string | number>;
   /** The zone's resolved settings (`src/modules/standard-settings.ts`); absent = template behaviour. */
   look?: ModuleSettings;
   /** A full-bleed layer under the content (e.g. blurred cover art). */
@@ -85,7 +87,7 @@ export const shell = (p: ShellInput): Partial<WidgetProps> => ({
 const typeVars = (scale: number): CSSProperties =>
   ({ "--text-micro": `calc(0.6875rem * ${scale})`, "--text-caption": `calc(0.75rem * ${scale})`, "--text-body": `calc(0.8125rem * ${scale})`, "--text-title": `calc(0.9375rem * ${scale})` }) as CSSProperties;
 
-export function Widget({ title, icon, iconOverride, accent, surface, radius, size, showHeader = true, right, className = "", style, children, bleed, compact, compactView, skin = "default", graph, meter, variant, studio, look, backdrop, design = DESIGN_SIZE, fixedType }: WidgetProps) {
+export function Widget({ title, icon, iconOverride, accent, surface, radius, size, showHeader = true, right, className = "", style, children, bleed, compact, compactView, skin = "default", graph, meter, variant, studio, look, t3, backdrop, design = DESIGN_SIZE, fixedType }: WidgetProps) {
   const chrome = useMemo(() => (look ? chromeOf(look) : undefined), [look]);
   // A zone past the design size zooms the content with it, and Size % on top; the tier and shape are taken from the zoomed size.
   const [ref, box, zoom] = useBox(forcedTier(look, size), (w, h) => zoomFor({ w, h }, design ?? undefined, chrome));
@@ -101,8 +103,8 @@ export function Widget({ title, icon, iconOverride, accent, surface, radius, siz
   }, []);
   useEffect(() => ensureSkinFonts(skin), [skin]);
   const scope = useId();
-  const sk = SKINS[skin] ?? SKINS.default;
-  const ctx = useMemo(() => skinContext(skin, { graph, meter, chrome }), [skin, graph, meter, chrome]);
+  const ctx = useMemo(() => skinContext(skin, { graph, meter, chrome, t3 }), [skin, graph, meter, chrome, t3]);
+  const sk = ctx;
   const isStudio = variant === "studio";
   const surf = resolveSurface(look?.surface ? String(look.surface) : surface, skin, isStudio);
   const skinCtx = useMemo(() => (surf.tone === "light" ? { ...ctx, shellStatus: true } : ctx), [ctx, surf.tone]);

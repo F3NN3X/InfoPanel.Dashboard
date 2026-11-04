@@ -368,20 +368,24 @@ export function RingStack({ rings, thickness: th0, gap = RING_GAP, children, cla
   const tagging = useContext(IpTagCtx);
   const thickness = Math.max(1.5, (th0 ?? ringStroke(side)) * (sk.ring ?? 1));
   const cap = sk.cap ?? "round";
+  const sweep = sk.ringArc ?? 360;
+  const open = sweep < 360;
   return (
     <div ref={box} data-part="ring" className={`relative ${className}`} style={style}>
       {/* rotate the drawing, not the svg: a rotated non-square svg's box pokes out of its zone */}
-      <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" className="h-full w-full">
+      <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" className="h-full w-full" style={ringMark(sk)}>
         <g transform="rotate(-90 50 50)">
           {rings.map(({ v, color, track, ipKey }, i) => {
             const r = Math.max(thickness / 2 + 1, 50 - thickness / 2 - i * (thickness + gap)),
-              c = 2 * Math.PI * r;
+              c = 2 * Math.PI * r,
+              arc = (c * sweep) / 360,
+              pct = clamp(v || 0) / 100;
             return (
-              <g key={i}>
-                <circle cx="50" cy="50" r={r} fill="none" stroke={track ?? RING_TRACK} strokeWidth={thickness} />
+              <g key={i} transform={open ? `rotate(${-sweep / 2} 50 50)` : undefined}>
+                <circle cx="50" cy="50" r={r} fill="none" stroke={track ?? RING_TRACK} strokeWidth={thickness} strokeLinecap={open ? cap : undefined} strokeDasharray={open ? `${arc} ${c}` : undefined} />
                 <circle cx="50" cy="50" r={r} fill="none" stroke={color} strokeWidth={thickness} strokeLinecap={cap}
-                  strokeDasharray={c} strokeDashoffset={ringDashOffset(c, clamp(v || 0) / 100, thickness, cap === "round")} style={sk.smooth ? { transition: `stroke-dashoffset ${RING_GLIDE_MS}ms linear` } : undefined} data-wp-ring=""
-                  {...(tagging && ipKey ? { "data-ip-key": ipKey, "data-ip-kind": "ring", "data-ip-max": 100 } : null)} />
+                  strokeDasharray={open ? `${arc * pct} ${c}` : c} strokeDashoffset={open ? undefined : ringDashOffset(c, pct, thickness, cap === "round")} style={sk.smooth ? { transition: `stroke-dash${open ? "array" : "offset"} ${RING_GLIDE_MS}ms linear` } : undefined} data-wp-ring=""
+                  {...(tagging && ipKey ? { "data-ip-key": ipKey, "data-ip-kind": "ring", "data-ip-max": 100, ...(open ? { "data-ip-start": -sweep / 2, "data-ip-sweep": sweep } : null) } : null)} />
               </g>
             );
           })}

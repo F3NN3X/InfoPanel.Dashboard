@@ -1,6 +1,6 @@
 import { createElement, type ReactNode } from "react";
 import { renderToString } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { MixFader } from "@/widgets/StreamMixer/Fader";
 import { CardFrame } from "@/widgets/core/card-frame";
 import { skinContext } from "@/widgets/core/look";
@@ -17,7 +17,8 @@ describe("number fill", () => {
     const html = under({ numFill: "linear-gradient(red, blue)", numGlow: true }, <Num>42</Num>);
     expect(html).toContain("background-clip:text");
     expect(html).toContain("linear-gradient(red, blue)");
-    expect(html).not.toContain("text-shadow");
+    expect(html).toContain("text-shadow:none");
+    expect(html).not.toContain("var(--w-accent), 0 0 14px");
   });
   it("leaves a solid number as it was", () => {
     expect(under({}, <Num>42</Num>)).not.toContain("background-clip");
@@ -96,13 +97,12 @@ describe("gradient border", () => {
 describe("tokens that replaced skin-id branches and D11 names", () => {
   const html = (tokens: Partial<SkinTokens>, extra: Record<string, unknown> = {}) => {
     SKINS.qa = { ...SKINS.default, ...tokens };
-    try {
-      // biome-ignore lint/correctness/noChildrenProp: the Widget takes a render function as children.
-      return renderToString(createElement(Widget, { skin: "qa", size: "lg", title: "T", icon: "memory", children: () => createElement(Spark, { values: [1, 5, 2, 8, 3, 9] }), ...extra }));
-    } finally {
-      delete SKINS.qa;
-    }
+    // biome-ignore lint/correctness/noChildrenProp: the Widget takes a render function as children.
+    return renderToString(createElement(Widget, { skin: "qa", size: "lg", title: "T", icon: "memory", children: () => createElement(Spark, { values: [1, 5, 2, 8, 3, 9] }), ...extra }));
   };
+  afterEach(() => {
+    delete SKINS.qa;
+  });
 
   it("boxed: the tui padding and the title on the border come from the token, not the skin id", () => {
     expect(html({ boxed: true })).toContain("px-[14px]");

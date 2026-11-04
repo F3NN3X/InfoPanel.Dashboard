@@ -1,6 +1,6 @@
 import { createElement as h } from "react";
 import { renderToString } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { STANDARD_DEFAULTS } from "@/modules/standard-settings";
 import { SKINS, SKIN_NAMES, SkinCtx } from "@/widgets/core/theme";
 import { skinContext } from "@/widgets/core/look";
@@ -224,12 +224,11 @@ describe("Widget slot layout", () => {
   const render = (skin: string, extra: Record<string, unknown> = {}) => renderToString(h(Widget, { skin, size: "lg", title: "T", icon: "memory", children: () => h(Spark, { values, graph: "area" }), ...extra }));
   const slotted = (tokens: object) => {
     SKINS.qa = { ...SKINS.default, ...tokens };
-    try {
-      return render("qa");
-    } finally {
-      delete SKINS.qa;
-    }
+    return render("qa");
   };
+  afterEach(() => {
+    delete SKINS.qa;
+  });
 
   it("hands the padding to the layers as --wp-pad and draws frame, ornament, tab band, then the padded body in that order", () => {
     const html = slotted({ frame: "inset", ornament: Orn, tabBand: Band });

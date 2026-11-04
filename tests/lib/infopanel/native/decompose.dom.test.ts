@@ -323,3 +323,21 @@ describe("a Metric at a warn or crit tone", () => {
     expect(read("crit").text).toBe("88");
   });
 });
+
+describe("readTagged on a gradient number", () => {
+  const read = (style: string) => {
+    const root = document.createElement("div");
+    root.innerHTML = `<span data-ip-key="libre.cpu_total" data-ip-kind="value" style="${style}">7</span>`;
+    document.body.append(root);
+    root.querySelector("span")!.getBoundingClientRect = () => ({ left: 0, top: 0, width: 50, height: 40 }) as DOMRect;
+    root.getBoundingClientRect = () => ({ left: 0, top: 0, width: 300, height: 100 }) as DOMRect;
+    return decompose(root, { x: 0, y: 0, w: 300, h: 100 }, ctx())[0] as unknown as { Color: string };
+  };
+  it("exports the gradient's first colour, not the transparent text colour", () => {
+    expect(read("color:transparent;background-image:linear-gradient(to right, rgb(255, 79, 216), rgb(56, 232, 255));background-clip:text").Color).toBe("#FFFF4FD8");
+  });
+  it("leaves a solid colour, and transparent text without a gradient, as they were", () => {
+    expect(read("color:rgb(255, 0, 0)").Color).toBe("#FFFF0000");
+    expect(read("color:rgb(255, 0, 0);background-image:linear-gradient(red, blue)").Color).toBe("#FFFF0000");
+  });
+});

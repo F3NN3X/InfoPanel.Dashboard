@@ -1,6 +1,7 @@
 // What the shell draws over a card only when a skin or Look asks: a frame, an ornament, a tab band. Each is an absolute,
 // click-through child, so none of them changes the card's padding or the rows a widget fits.
 import type { ComponentType } from "react";
+import { safeFill } from "./t3-tokens";
 import { mix } from "./tokens";
 import type { SkinTokens } from "./types";
 
@@ -8,10 +9,10 @@ const HUD_CORNERS = ["left-1.5 top-1.5 border-l border-t", "right-1.5 top-1.5 bo
 
 const GRADIENT_MASK = "linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0)";
 
-/** `inset`: a thin border set in from the edge (tui). `corners`: four brackets (hud). `gradient`: a border painted with `fill`. */
+/** `inset`: a thin border set in from the edge (tui). `corners`: four brackets (hud). `gradient`: a border painted with `fill` (a gradient or colour; anything else, `none` included, draws the accent). */
 export function CardFrame({ kind, fill }: { kind: NonNullable<SkinTokens["frame"]>; fill?: string }) {
   if (kind === "gradient")
-    return <div className="pointer-events-none absolute inset-0 rounded-[inherit]" style={{ border: "1.5px solid transparent", background: `${fill ?? "var(--w-accent)"} border-box`, mask: GRADIENT_MASK, WebkitMask: GRADIENT_MASK, maskComposite: "exclude", WebkitMaskComposite: "xor" }} />;
+    return <div className="pointer-events-none absolute inset-0 rounded-[inherit]" style={{ border: "1.5px solid transparent", background: `${safeFill(fill) ?? "var(--w-accent)"} border-box`, mask: GRADIENT_MASK, WebkitMask: GRADIENT_MASK, maskComposite: "exclude", WebkitMaskComposite: "xor" }} />;
   if (kind === "inset") return <div className="pointer-events-none absolute inset-[5px] rounded-[4px] border" style={{ borderColor: mix(45, "#3f3f46") }} />;
   return HUD_CORNERS.map((c) => <span key={c} className={`pointer-events-none absolute h-2.5 w-2.5 ${c}`} style={{ borderColor: "var(--w-accent)" }} />);
 }

@@ -11,6 +11,7 @@ import type { ModuleSettings } from "@/modules/types";
 import type { Box } from "./layout";
 import { pickBy } from "./layout";
 import { SKINS } from "./theme";
+import { t3Tokens } from "./t3-tokens";
 import type { Compact, SkinContext, SkinTokens, Studio, Tier } from "./types";
 
 export { DEFAULT_ACCENT };
@@ -42,9 +43,10 @@ export function forcedTier(look: ModuleSettings | undefined, size: Tier | "auto"
  * The skin context for a widget: the skin's tokens with graph / meter resolved (`auto` = the
  * skin's), and the look applied — `stroke` scales the ring factor and graph strokes, `font`
  * replaces the skin's UI and numeral fonts, `fontWeight` the numeral weight, `gap` is exposed.
+ * A Look's T3 values (`t3`) set the tokens they differ from Classic in, over the skin's.
  */
-export function skinContext(skin: string, opts: { graph?: string; meter?: string; chrome?: ModernChrome } = {}): SkinContext {
-  const sk = SKINS[skin] ?? SKINS.default;
+export function skinContext(skin: string, opts: { graph?: string; meter?: string; chrome?: ModernChrome; t3?: Record<string, string | number> } = {}): SkinContext {
+  const sk = { ...(SKINS[skin] ?? SKINS.default), ...t3Tokens(opts.t3) };
   const { graph, meter, chrome } = opts;
   const stroke = chrome?.stroke && chrome.stroke > 0 ? chrome.stroke : 1;
   const font = chrome?.font && chrome.font !== "auto" ? FONT_STACKS[chrome.font] : undefined;

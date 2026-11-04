@@ -109,6 +109,12 @@ function alignOf(el: HTMLElement, style: CSSStyleDeclaration): Tagged["align"] {
   return parent && parent.width > 0 && r.left - parent.left > 2 && Math.abs(parent.right - r.right) <= 2 ? "right" : "left";
 }
 
+/** The ink of a text: a gradient number is transparent text over a background clipped to it, so its ink is the gradient's first colour. */
+function inkOf(style: CSSStyleDeclaration): string {
+  const first = /^[a-z-]*gradient\(.*?(rgba?\([^)]*\)|#[0-9a-f]{3,8})/i.exec(style.backgroundImage)?.[1];
+  return first && (style.color === "transparent" || cssToArgb(style.color).startsWith("#00")) ? first : style.color;
+}
+
 /** The first child (or the node) with a background colour that isn't transparent. */
 function fillOf(el: Element): string | undefined {
   for (const n of [el, ...el.querySelectorAll("*")]) {
@@ -193,7 +199,7 @@ function readOne(el: HTMLElement, origin: DOMRect, zoom: number): Tagged | null 
     kind: kind as TaggedKind,
     box: rectOf(own, origin, zoom),
     fontSize: parseFloat(style.fontSize) || 20,
-    color: style.color,
+    color: inkOf(style),
     bold: Number(style.fontWeight) >= 600,
     unit: el.dataset.ipUnit,
     decimals: num(el.dataset.ipDecimals),

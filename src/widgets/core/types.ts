@@ -146,7 +146,7 @@ export interface SkinTokens {
   ringMark: "segmented" | "ticks";
   /** `meter-zone-style: blend`: a ladder's colours run into each other instead of stepping. */
   zones: "blend";
-  /** `meter-hold-style`: the peak-hold mark (the line is the default). */
+  /** `meter-hold-style`: the peak-hold mark (the line is the default). `block` is the line with square ends instead of round. */
   hold: "dot" | "block";
   /** `spike-shape`: the last-sample mark of a graph (the dot is the default). */
   spike: "tick" | "bar";
