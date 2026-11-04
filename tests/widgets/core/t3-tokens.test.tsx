@@ -146,3 +146,11 @@ describe("skinContext with a Look's T3", () => {
     expect(skinContext("synth", { t3: CLASSIC_T3 }).graph).toBe("line");
   });
 });
+
+describe("the numeral accent tint", () => {
+  const num = (t3: Record<string, string | number>) => draw(t3, () => createElement(Metric, { label: "L", value: 5 }));
+  it("is not applied for a chromatic fringe alone, which keeps the text colour (Overdrive's cyan numerals)", () => {
+    expect(num({ "num-effect": "chromatic" })).not.toContain("color-mix(in oklab, var(--w-accent) 55%");
+    expect(num({ "num-effect": "chromatic" })).toContain("rgba(255,40,90,.7)");
+  });
+});
