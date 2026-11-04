@@ -61,7 +61,8 @@ export function stepInput(st: InputState, raw: RawInput, dyn: Dynamics, dtMs: nu
     st.target = new Float32Array(n);
     st.input.bands = new Float32Array(n);
   }
-  const shape = { floorDb: dyn.floorDb, ceilDb: dyn.ceilDb, tiltDb: dyn.tiltDb, autoGain: dyn.autoGain, state: st.gain, dtMs, gain: dyn.gain };
+  // Reduced motion jumps the auto-gain too: the still frame must not depend on how many frames ran before it.
+  const shape = { floorDb: dyn.floorDb, ceilDb: dyn.ceilDb, tiltDb: dyn.tiltDb, autoGain: dyn.autoGain, state: st.gain, dtMs: reduced ? Number.POSITIVE_INFINITY : dtMs, gain: dyn.gain };
   if (src) shapeBands(src, st.target, shape);
   else if (source === "level") shapeBands(LEVEL_SCRATCH.fill(raw.level!), st.target, { ...shape, tilt: false });
   else st.target.fill(0);
