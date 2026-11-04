@@ -22,6 +22,8 @@ import { useSensors } from "@/hooks/useSensors";
 import { useNow } from "@/components/widgets/hooks";
 import { severityColor } from "@/components/alerts/alert-model";
 import { cn } from "@/lib/utils";
+import { packChrome } from "@/looks/chrome";
+import { usePack } from "@/looks/pack";
 import { accentVars } from "@/widgets/core/tokens";
 import { islandClock, islandSkin, motionVars, shadowTransition, shapeSpring, springTransition, type IslandSkin, type PageSkin, type WornSurface } from "./island-look";
 import { fitIslandSize, idleViews, islandBox, islandFontPx, islandMode, islandTop, type IdleView, type IslandMode } from "./island-model";
@@ -157,7 +159,7 @@ function IslandPill({ mode, snap, config, size, placement, onAck, bus, pageSkin 
   const interactive = onAck !== undefined;
   const tappable = interactive && mode !== "idle" && mode !== "line";
   const worn = useWornSurface(config.placement === "skin" ? pageSkin : undefined);
-  const skin = islandSkin(config, worn);
+  const skin = islandSkin(config, worn, packChrome(usePack(pageSkin?.lookId)));
   const notch = config.shape === "notch";
   const bottom = config.edge === "bottom";
   const animate = config.motion !== "off" && !reduced;

@@ -6,6 +6,7 @@ import { cappedBlur } from "@/components/widget-style";
 import type { FontId } from "@/lib/fonts";
 import { resolveStyle, type Appearance } from "@/lib/style-resolve";
 import { CLASSIC_LOOK_ID } from "@/lib/theme-model";
+import type { PackChrome } from "@/looks/chrome";
 import { springCss, springFor, SPRINGS, type SpringKind } from "@/lib/island/spring";
 
 /** The screen's widget skin, as its widgets resolve it: what an island "part of the skin" is drawn with. */
@@ -50,9 +51,11 @@ export interface WornSurface {
   ear: string;
 }
 
-export function islandSkin(c: Pick<IslandConfig, "placement" | "tint" | "bgColor" | "fgColor" | "opacity" | "border" | "shadow" | "font" | "weight">, worn?: WornSurface): IslandSkin {
-  const base = c.tint === "custom" ? c.bgColor : c.tint === "theme" ? "hsl(var(--card))" : c.tint === "skin" ? SKIN_FILL : "#000000";
-  const color = c.tint === "custom" ? c.fgColor : c.tint === "theme" || c.tint === "skin" ? "hsl(var(--card-foreground))" : "#ffffff";
+/** `chrome`: the worn pack's colours, which the black tint (the one no one chose a colour for) takes instead of black (L25). */
+export function islandSkin(c: Pick<IslandConfig, "placement" | "tint" | "bgColor" | "fgColor" | "opacity" | "border" | "shadow" | "font" | "weight">, worn?: WornSurface, chrome?: PackChrome): IslandSkin {
+  const packed = c.tint === "black" ? chrome : undefined;
+  const base = c.tint === "custom" ? c.bgColor : c.tint === "theme" ? "hsl(var(--card))" : c.tint === "skin" ? SKIN_FILL : (packed?.fill ?? "#000000");
+  const color = c.tint === "custom" ? c.fgColor : c.tint === "theme" || c.tint === "skin" ? "hsl(var(--card-foreground))" : (packed?.ink ?? "#ffffff");
   const see = c.opacity < 100;
   // The theme and skin tints always have the card's border; "none" keeps it so saved islands look the same.
   // Worn on the screen's skin, the surface draws the edge unless one is asked for.
@@ -63,7 +66,9 @@ export function islandSkin(c: Pick<IslandConfig, "placement" | "tint" | "bgColor
         ? `1px solid color-mix(in srgb, ${color} 16%, transparent)`
         : !(c.placement === "skin" && worn) && (c.tint === "theme" || c.tint === "skin")
           ? "1px solid hsl(var(--border))"
-          : undefined;
+          : packed
+            ? `1px solid ${packed.edge}`
+            : undefined;
   return {
     surface: c.placement === "skin" ? worn : undefined,
     background: see ? `color-mix(in srgb, ${base} ${c.opacity}%, transparent)` : base,

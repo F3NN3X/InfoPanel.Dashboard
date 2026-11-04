@@ -336,3 +336,39 @@ test("Liquid Glass in lite mode draws no backdrop filter and fills its card to t
   expect(lite.filter((c) => c.filter !== "none")).toEqual([]);
   for (const c of lite) expect(Math.min(...c.alphas)).toBeGreaterThanOrEqual(0.9);
 });
+
+// L25: the island's pill and the alert cards wear the worn pack's colours, not black and the app's dark card: Paper's pill is its light surface
+// with dark text. The alert layer is built in the page (the cards need a live alert), so this checks the stylesheet's rule against the real cascade.
+for (const [id, surface] of [["paper", "rgb(255, 255, 255)"], ["night-glow", "rgb(14, 18, 48)"]] as const) {
+  test(`the ${id} pack dresses the island pill and the alert cards in its own colours`, async ({ page, scratch }) => {
+    const file = path.join(scratch.dataDir, "config.json");
+    const stored = JSON.parse(fs.readFileSync(file, "utf8"));
+    stored.profiles = stored.profiles.map((p: { island?: object }) => ({ ...p, island: p.island && { ...p.island, tint: "black", opacity: 100, placement: "overlay" }, widgetTheme: { values: PACK_STYLES[id] } }));
+    fs.writeFileSync(file, JSON.stringify(stored));
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto(`${scratch.base}/?kiosk=1&profile=${heavy}`);
+    await expect(page.locator(`[data-wp-tier][data-look="${id}"]`).first()).toBeAttached({ timeout: 10_000 });
+    await settled(page, manifest.kioskZoneSelector);
+    const read = await page.evaluate(async () => {
+      const pill = document.querySelector<HTMLElement>("[data-island]");
+      const styled = [pill, ...(pill?.querySelectorAll<HTMLElement>("*") ?? [])].find((e) => e && getComputedStyle(e).backgroundColor !== "rgba(0, 0, 0, 0)");
+      const cs = styled && getComputedStyle(styled);
+      const layer = document.createElement("div");
+      layer.setAttribute("data-alert-layer", "");
+      layer.setAttribute("data-pack-chrome", "");
+      layer.style.cssText = "--pack-chrome-fill:#112233;--pack-chrome-ink:#ddeeff;--pack-chrome-edge:#445566";
+      layer.innerHTML = '<div data-part="alert" class="bg-card text-card-foreground"><div class="text-muted-foreground">x</div></div>';
+      document.body.append(layer);
+      const card = getComputedStyle(layer.querySelector('[data-part="alert"]')!);
+      const muted = getComputedStyle(layer.querySelector(".text-muted-foreground")!);
+      const out = { pill: cs && { background: cs.backgroundColor, color: cs.color }, alert: { background: card.backgroundColor, color: card.color, muted: muted.color } };
+      layer.remove();
+      return out;
+    });
+    expect(read.pill?.background).toBe(surface);
+    expect(read.pill?.color).not.toBe(read.pill?.background);
+    expect(read.alert.background).toBe("rgb(17, 34, 51)");
+    expect(read.alert.color).toBe("rgb(221, 238, 255)");
+    expect(read.alert.muted).not.toBe(read.alert.color);
+  });
+}

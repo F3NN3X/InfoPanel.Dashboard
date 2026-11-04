@@ -7,6 +7,8 @@ import type { ProfileView } from "@/lib/layout";
 import { modules } from "@/modules";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { cn } from "@/lib/utils";
+import { packChrome } from "@/looks/chrome";
+import { usePack } from "@/looks/pack";
 import {
   ageLabel,
   backdropOf,
@@ -86,11 +88,14 @@ function useNow(active: boolean): number {
 interface AlertLayerProps {
   alerts: readonly ActiveAlert[];
   onAck: (id: string) => void;
+  /** The screen's Look: a pack's colours dress the cards (index.css `data-pack-chrome`, L25). */
+  lookId?: string;
 }
 
 /** The kiosk's alert display: toasts, banners and overlays over the grid, with an optional backdrop. */
-export function AlertLayer({ alerts, onAck }: AlertLayerProps) {
+export function AlertLayer({ alerts, onAck, lookId }: AlertLayerProps) {
   const reduced = useReducedMotion();
+  const chrome = packChrome(usePack(lookId));
   const { items, leavingIds } = useWithExiting(alerts, !reduced);
   const now = useNow(items.length > 0);
   const slots = useMemo(() => groupBySlot(items), [items]);
@@ -98,7 +103,12 @@ export function AlertLayer({ alerts, onAck }: AlertLayerProps) {
   if (items.length === 0) return null;
 
   return (
-    <div className="pointer-events-none fixed inset-0 z-(--z-dialog)" data-alert-layer>
+    <div
+      className="pointer-events-none fixed inset-0 z-(--z-dialog)"
+      data-alert-layer
+      data-pack-chrome={chrome ? "" : undefined}
+      style={chrome ? ({ "--pack-chrome-fill": chrome.fill, "--pack-chrome-ink": chrome.ink, "--pack-chrome-edge": chrome.edge } as CSSProperties) : undefined}
+    >
       {backdrop !== "none" && (
         // Swallows touches so the dashboard under it is not interactive.
         <div

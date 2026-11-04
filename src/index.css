@@ -667,6 +667,14 @@
   -webkit-backdrop-filter: none !important;
   backdrop-filter: none !important;
 }
+/* A worn pack's colours on the alert cards (L25; the island's pill takes them in island-look.ts): the pack's surface, text and edge, the muted text mixed from them. */
+[data-alert-layer][data-pack-chrome] [data-part="alert"] {
+  background: var(--pack-chrome-fill);
+  color: var(--pack-chrome-ink);
+}
+[data-alert-layer][data-pack-chrome] [data-part="alert"] .text-muted-foreground {
+  color: color-mix(in srgb, var(--pack-chrome-ink) 78%, var(--pack-chrome-fill));
+}
 /* An engine without backdrop-filter draws no blur at all: the card fills to its fallback alpha so its text keeps the contrast the blur was to give. */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   [data-wp-tier][data-mat-blur] { background: var(--w-mat-fallback); }

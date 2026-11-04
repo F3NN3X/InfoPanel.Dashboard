@@ -817,7 +817,7 @@ export default function App({ fixture }: AppProps = {}) {
 
         {kiosk && <DimOverlay level={control?.profiles[stored.id]?.dim ?? 0} />}
 
-        {kiosk && <AlertLayer alerts={splitAlerts.layer} onAck={ackAlert} />}
+        {kiosk && <AlertLayer alerts={splitAlerts.layer} onAck={ackAlert} lookId={pageSkin.lookId} />}
 
         {/* Alerts reach the island on the kiosk only; the plain page shows its idle pill. */}
         {shownIsland && (
