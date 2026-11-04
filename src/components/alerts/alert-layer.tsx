@@ -199,6 +199,7 @@ function AlertCard({ alert, now, from, leaving, reduced, onAck }: AlertCardProps
   return (
     <div
       data-alert-id={alert.id}
+      data-part="alert"
       onClick={() => onAck(alert.id)}
       className={cn(
         "pointer-events-auto relative cursor-pointer select-none overflow-hidden border bg-card text-card-foreground shadow-xl",

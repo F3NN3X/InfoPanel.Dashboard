@@ -1,6 +1,6 @@
 import { readSystemFlat } from "@/lib/system-metrics";
 import type { ModuleSettings } from "@/modules/types";
-import { UNIT_CLASS, roomy, useFitRows, Widget, shell, get, num, fmt, rateParts, toMBps, pretty, Spark, useHistory, useSkin, numFont, hw, adapterOf, STATE, type ShellProps } from "./kit";
+import { Unit, roomy, useFitRows, Widget, shell, get, num, fmt, rateParts, toMBps, pretty, Spark, useHistory, useSkin, numFont, hw, adapterOf, STATE, type ShellProps } from "./kit";
 import { meta } from "./meta/KpiTiles";
 
 export { meta };
@@ -90,7 +90,7 @@ export default function KpiTiles(p: KpiTilesProps) {
                   </div>
                   <span className="whitespace-nowrap font-bold leading-none tracking-[-0.01em] tabular-nums" style={{ fontSize: big, ...numFont(sk) }}>
                     {shown}
-                    <span className={UNIT_CLASS}>{m.u}</span>
+                    <Unit>{m.u}</Unit>
                   </span>
                   {tileH > 126 && m.sub && <span className="truncate text-xs text-[color:var(--w-faint)]">{m.sub}</span>}
                   {tileH > 100 ? (

@@ -1,5 +1,5 @@
 import type { ModuleSettings } from "@/modules/types";
-import { UNIT_CLASS, roomy, Widget, shell, get, num, fmt, Metric, BarRow, Ring, RING_TEXT, Spark, Dot, useHistory, tone, TONES, Num, type ShellProps } from "./kit";
+import { Unit, roomy, Widget, shell, get, num, fmt, Metric, BarRow, Ring, RING_TEXT, Spark, Dot, useHistory, tone, TONES, Num, type ShellProps } from "./kit";
 import { meta } from "./meta/SystemStatus";
 
 export { meta };
@@ -49,7 +49,7 @@ export default function SystemStatus(p: SystemStatusProps) {
                   <span className="text-micro font-medium text-[color:var(--w-muted)]">{l}</span>
                   <Num className="text-xl font-semibold" style={tone(v, warn, crit) !== "ok" ? { color: TONES[tone(v, warn, crit)] } : undefined}>
                     {fmt(v, 0)}
-                    <span className={UNIT_CLASS}>%</span>
+                    <Unit>%</Unit>
                   </Num>
                 </span>
               ))}

@@ -889,6 +889,7 @@ export const Fader = ({
         data-silent={value === SILENCE_DB ? "" : undefined}
         data-size={size}
         data-slot="fader"
+        data-part="fader"
         data-variant={variant}
         disabled={disabled}
         max={1}

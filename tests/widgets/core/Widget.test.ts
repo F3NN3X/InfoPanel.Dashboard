@@ -8,6 +8,7 @@ import { CompactView, StudioView } from "@/widgets/core/views";
 import { LedLadder, Num, Ring, Spark } from "@/widgets/core/primitives";
 import { chromeOf } from "@/modules/standard-settings";
 import { Widget, type LayoutBox } from "@/widgets/core/Widget";
+import { CardLayer } from "@/widgets/core/card-frame";
 import type { Compact, Shape, Studio, Tier } from "@/widgets/core/types";
 
 const compact: Compact = { label: "CPU", value: 62.5, d: 1, unit: "%", pct: 62.5, hist: [10, 40, 30, 62], icon: "memory", sub: "8 cores" };
@@ -185,5 +186,32 @@ describe("Number glow reaches a ring's centre", () => {
   it("leaves a widget on Auto unflagged", () => {
     const html = render({});
     expect(html).not.toContain("data-wp-numglow");
+  });
+});
+
+describe("Widget slots", () => {
+  // biome-ignore lint/correctness/noChildrenProp: the Widget takes a render function as children.
+  const render = (skin: string) => renderToString(h(Widget, { skin, size: "md", title: "System", compact, children: body }));
+
+  it("draws the frame its skin names, and nothing extra for a skin with none", () => {
+    expect(render("tui")).toContain("inset-[5px]");
+    expect((render("hud").match(/border-[lr] border-[tb]/g) ?? []).length).toBe(4);
+    const plain = render("default");
+    expect(plain).not.toContain("inset-[5px]");
+    expect(plain).not.toContain("data-wp-layer");
+    expect(plain).not.toContain("--wp-pad");
+  });
+
+  it("marks the card root for a pack to style", () => {
+    expect(render("default")).toContain('data-part="card"');
+  });
+});
+
+describe("shell layers", () => {
+  it("renders an ornament in a click-through, hidden layer", () => {
+    const html = renderToString(h(CardLayer, { part: "ornament", Slot: () => h("i") }));
+    expect(html).toContain('data-wp-layer="ornament"');
+    expect(html).toContain("pointer-events-none");
+    expect(html).toContain('aria-hidden="true"');
   });
 });

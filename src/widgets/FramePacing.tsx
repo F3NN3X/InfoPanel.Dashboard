@@ -1,4 +1,4 @@
-import { Widget, shell, get, num, fmt, useHistory, frameSample, frameBudgets, frameTimeTop, sparkY, Spark, ChartAxis, ChartYAxis, Num, type ShellProps } from "./kit";
+import { Widget, shell, get, num, fmt, useHistory, frameSample, frameBudgets, frameTimeTop, sparkY, Spark, ThresholdLine, ChartAxis, ChartYAxis, Num, type ShellProps } from "./kit";
 import { meta } from "./meta/FramePacing";
 
 export { meta };
@@ -42,7 +42,7 @@ export default function FramePacing(p: FramePacingProps) {
   );
   // The dashed budget lines on the graph's own scale (`sparkY`): a frame above one missed that rate.
   const lines = () =>
-    budgets.map((b) => <div key={b.hz} className="absolute inset-x-0 border-t border-dashed border-[color:var(--w-faint)]" style={{ top: `${sparkY(b.ms, 0, top)}%` }} />);
+    budgets.map((b) => <ThresholdLine key={b.hz} at={sparkY(b.ms, 0, top)} />);
   // Their labels on the y axis beside the graph, level with each line, so the line never runs through them.
   const yTicks = budgets.map((b) => ({
     at: sparkY(b.ms, 0, top),

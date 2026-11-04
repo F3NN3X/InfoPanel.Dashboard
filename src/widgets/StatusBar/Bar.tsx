@@ -107,7 +107,7 @@ export function Bar(p: BarProps) {
   const zoned = view === "meters" && !p.gap;
   const zone = (items: ItemKey[]): CSSProperties | undefined => (zoned && items.length > 0 ? { borderLeft: "1px solid var(--w-track)", paddingInline: padX * 0.5, height: "84%", alignSelf: "center" } : undefined);
   return (
-    <div ref={p.barRef} className="h-full w-full min-w-0 overflow-hidden" style={{ fontSize: fs }}>
+    <div ref={p.barRef} data-part="status" className="h-full w-full min-w-0 overflow-hidden" style={{ fontSize: fs }}>
       <div className="grid h-full items-center" style={{ gridTemplateColumns: cols, paddingInline: padX, paddingBlock: islands ? Math.max(2, fs * 0.3) : 0, columnGap: 0 }}>
         {p.gap ? (
           <>
