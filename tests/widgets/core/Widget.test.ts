@@ -5,7 +5,7 @@ import { STANDARD_DEFAULTS } from "@/modules/standard-settings";
 import { SKIN_NAMES, SkinCtx } from "@/widgets/core/theme";
 import { skinContext } from "@/widgets/core/look";
 import { CompactView, StudioView } from "@/widgets/core/views";
-import { Num, Ring, Spark } from "@/widgets/core/primitives";
+import { LedLadder, Num, Ring, Spark } from "@/widgets/core/primitives";
 import { chromeOf } from "@/modules/standard-settings";
 import { Widget, type LayoutBox } from "@/widgets/core/Widget";
 import type { Compact, Shape, Studio, Tier } from "@/widgets/core/types";
@@ -101,6 +101,16 @@ describe("Widget look", () => {
     expect(dark).not.toContain("data-mode");
     expect(dark).toContain("--w-accent:#34d399");
     expect(dark).not.toContain("--w-ok");
+  });
+
+  it("hands the shell's status variables to a LedLadder on a light card only: a theme card on a dark page keeps the literals (G1)", () => {
+    const ladder = (surface: string) =>
+      renderToString(h(Widget, { title: "T", icon: "memory", size: "lg", look: { ...STANDARD_DEFAULTS, surface }, children: () => h(LedLadder, { value: 100, n: 10 }) }));
+    expect(ladder("matte-light")).toContain("var(--w-warn, #EDB232)");
+    for (const dark of ["theme", "glass"]) {
+      expect(ladder(dark)).not.toContain("var(--w-warn, #EDB232)");
+      expect(ladder(dark)).toContain("background:#EDB232");
+    }
   });
 
   it("takes a Look's status colours over the mode's own (L33)", () => {

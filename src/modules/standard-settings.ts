@@ -1,4 +1,5 @@
 import type { ModernChrome } from "@/components/modern-chrome";
+import { color } from "@/lib/appearance";
 import { GLOW_LEVELS } from "@/lib/effects/glow";
 import { FONT_CATALOG } from "@/lib/fonts";
 import { CLASSIC_LOOK } from "@/looks/ids";
@@ -477,6 +478,12 @@ const fraction = (value: unknown): number => {
   return Number.isFinite(n) ? Math.min(1, Math.max(0, n / 100)) : 1;
 };
 
+/** A palette-role colour; a legacy numeric `warn` / `crit` threshold sharing the key is not one. */
+const statusColor = (v: unknown): string => {
+  const c = color(v);
+  return c && /^[#a-z]/i.test(c) ? c : "";
+};
+
 /**
  * Build a component's `chrome` prop from a module's resolved settings
  * (the output of `effectiveSettings`). Every widget passes this to its
@@ -498,9 +505,9 @@ export function chromeOf(cfg: ModuleSettings): ModernChrome {
     radius: px(cfg.radius),
     textColor: String(cfg.textColor ?? ""),
     mutedColor: String(cfg.mutedColor ?? ""),
-    ok: String(cfg.ok ?? ""),
-    warn: String(cfg.warn ?? ""),
-    crit: String(cfg.crit ?? ""),
+    ok: statusColor(cfg.ok),
+    warn: statusColor(cfg.warn),
+    crit: statusColor(cfg.crit),
     font: pick(cfg.font, FONT_CATALOG.map((f) => (f.id === "system" ? "auto" : f.id)), "auto"),
     fontWeight: pick(cfg.fontWeight, ["auto", "400", "500", "600", "700", "800"] as const, "auto"),
     labelCase: pick(cfg.labelCase, ["auto", "uppercase", "none", "capitalize"] as const, "auto"),

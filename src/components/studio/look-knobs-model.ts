@@ -1,3 +1,5 @@
+import { MATERIALS } from "@/looks/materials";
+import { sampleCards } from "@/looks/sample-cards";
 import { isLocked, type SectionId, type ThemeLevels } from "@/lib/theme-model";
 import { SURFACE_OPTIONS } from "@/modules/standard-settings";
 import type { ModuleSettings, ModuleSettingValue } from "@/modules/types";
@@ -70,14 +72,14 @@ export const MODES: readonly { id: KnobMode; label: string }[] = [
 const MODE_SURFACE: Readonly<Record<KnobMode, string>> = { dark: "matte-dark", light: "matte-light" };
 
 /**
- * The mode the level shows (D3): the tone of the card it stores, `native` (the Look's own mode) while it stores none or the
+ * The mode the level shows (D3): the tone of the card it stores (any material), `native` (the Look's own mode) while it stores none or the
  * Look's card; undefined on the theme card, which follows the page.
  */
 export function modeOf(values: LookValues, native: KnobMode): KnobMode | undefined {
   const surface = knobValue(values, "surface");
-  if (surface === "matte-light") return "light";
-  if (surface === "matte-dark") return "dark";
-  return surface === "theme" ? undefined : native;
+  if (surface === "theme") return undefined;
+  const tone = typeof surface === "string" ? (MATERIALS[surface] ?? sampleCards[surface])?.tone : undefined;
+  return tone === "light" || tone === "dark" ? tone : native;
 }
 
 /** Whether Mode is Custom: it shows a mode other than the Look's own. */

@@ -22,6 +22,7 @@ import { islandReserve } from "@/components/island/island-model";
 import type { ActiveAlert } from "@/lib/alerts";
 import type { PageBackground as Background } from "@/lib/appearance";
 import type { Appearance } from "@/lib/style-resolve";
+import { cardMode } from "@/lib/theme";
 import { BLANK_MODULE, SCROLL_ROW_H, type MonitorProfile, type ProfilePage, type ProfileView, type Placement } from "@/lib/layout";
 import { withItemLayers } from "@/lib/page-model/items-layer";
 import type { PageOp } from "@/lib/page-model/model";
@@ -247,6 +248,8 @@ export function StudioCanvas({
   infoPanelView,
   items,
 }: StudioCanvasProps) {
+  /** The mode of the scoped screen theme: `lite:` styling on its theme cards follows it, as the kiosk page's `data-mode` does. */
+  const scopeMode = themeScope ? cardMode(String((themeScope as Record<string, unknown>)["--card"] ?? "")) : undefined;
   /** An item gesture in flight (Alt, free): the hint and the faded cell lines. */
   const [gesture, setGesture] = useState<ItemGesture | null>(null);
   /** A press on a widget in a page group: the item layer selects the group and drags it. */
@@ -607,6 +610,7 @@ export function StudioCanvas({
               // A move / resize / draw in flight: the page is not captured meanwhile (profile screenshots).
               data-dragging={zoneDrag || drawing ? "" : undefined}
               data-theme-scope={themeScope ? "" : undefined}
+              data-mode={scopeMode}
               className={cn(
                 "relative isolate",
                 // Centered while smaller than the view (both axes).

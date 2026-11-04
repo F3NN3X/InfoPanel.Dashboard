@@ -96,7 +96,9 @@ function useLookModes(lookId: unknown): readonly KnobMode[] {
   const [modes, setModes] = useState<readonly KnobMode[]>([]);
   useEffect(() => {
     let live = true;
-    void loadLook(typeof lookId === "string" ? lookId : "classic").then((look) => live && setModes(look?.modes.supported ?? []));
+    // The previous Look's modes don't stand while this one loads (a click would write against the wrong native mode).
+    setModes([]);
+    loadLook(typeof lookId === "string" ? lookId : "classic").then((look) => live && setModes(look?.modes.supported ?? []), () => live && setModes([]));
     return () => {
       live = false;
     };

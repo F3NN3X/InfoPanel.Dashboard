@@ -6,7 +6,7 @@ import { SCROLL_ROW_H, type DashboardConfig, type MonitorProfile, type Placement
 import { profileWithPage } from "@/lib/pages";
 import { profileGap, profilePadding } from "@/lib/profile-grid";
 import { appearanceOf } from "@/lib/style-resolve";
-import { resolveTheme, themeVars } from "@/lib/theme";
+import { resolveTheme, themeMode, themeVars } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { LivePlacement } from "./placement-content";
 import { PlacementFrame } from "./placement-frame";
@@ -37,6 +37,7 @@ export function ProfilePage({ profile, dashboard, pageId, badge }: ProfilePagePr
   return (
     <div
       data-theme-scope=""
+      data-mode={themeMode(theme.tokens)}
       className={cn("relative isolate overflow-hidden text-foreground", !background && "bg-background")}
       style={
         {

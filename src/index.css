@@ -9,11 +9,11 @@
   --breakpoint-sm: 600px;
 }
 
-/* `lite:` styles what sits on a light card (`data-mode=light`) or on the theme card of a light page (`:root[data-mode=light]`). */
-@custom-variant lite (&:where([data-mode=light] *, :root[data-mode=light] [data-tone=theme] *));
+/* `lite:` styles what sits on a light card (`data-mode=light`) or on the theme card of a light page (`:root` or a studio page scope with `data-mode=light`). */
+@custom-variant lite (&:where([data-tone][data-mode=light] *, :is(:root, [data-theme-scope])[data-mode=light] [data-tone=theme] *));
 
 /* MenuBar's detail panel is a black wash on a dark card; light cards get the card's ink instead (dark markup is untouched). */
-:is([data-mode=light], :root[data-mode=light] [data-tone=theme]) .bg-black\/25 {
+:is([data-tone][data-mode=light], :is(:root, [data-theme-scope])[data-mode=light] [data-tone=theme]) .bg-black\/25 {
   background-color: color-mix(in oklab, var(--w-fg) 5%, transparent);
   box-shadow: 0 8px 24px -12px color-mix(in oklab, var(--w-fg) 22%, transparent);
 }

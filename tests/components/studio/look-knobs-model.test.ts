@@ -61,6 +61,9 @@ describe("the Mode knob (D3)", () => {
     expect(modeOf({ own: {}, inherited: { surface: "matte-dark" } }, "light")).toBe("dark");
     expect(modeOf({ own: { surface: "look-paper" } }, "light")).toBe("light");
     expect(modeOf({ own: { surface: "theme" } }, "dark")).toBeUndefined();
+    // any material shows its own tone, not the Look's: Surface can store glass on a light-only Look and Paper on a dark one
+    expect(modeOf({ own: { surface: "glass" } }, "light")).toBe("dark");
+    expect(modeOf({ own: { surface: "matte-light" } }, "light")).toBe("light");
   });
 
   it("is Custom only for a stored card of another mode, and writes the matte card of the other mode", () => {

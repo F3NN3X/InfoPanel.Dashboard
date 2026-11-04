@@ -186,6 +186,9 @@ describe("chromeOf", () => {
   });
 
   it("reads the alignment's cell code and spread as the two axes", () => {
+    // a widget's numeric warn / crit threshold (SystemStatus, MemoryUsage...) is not the palette role of the same key
+    expect(chromeOf({ warn: 80, crit: "90", ok: "#15803d" })).toMatchObject({ warn: "", crit: "", ok: "#15803d" });
+    expect(chromeOf({ warn: "#8A5A00", crit: "rgb(168, 52, 15)" })).toMatchObject({ warn: "#8A5A00", crit: "rgb(168, 52, 15)" });
     expect(chromeOf({ align: "bl" })).toMatchObject({ alignX: "start", alignY: "end" });
     expect(chromeOf({ align: "tc", alignSpread: true })).toMatchObject({ alignX: "between", alignY: "start" });
     expect(chromeOf({ align: "auto", alignSpread: true })).toMatchObject({ alignX: "between", alignY: "auto" });

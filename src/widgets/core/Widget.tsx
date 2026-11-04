@@ -106,7 +106,7 @@ export function Widget({ title, icon, iconOverride, accent, surface, radius, siz
   const ctx = useMemo(() => skinContext(skin, { graph, meter, chrome }), [skin, graph, meter, chrome]);
   const isStudio = variant === "studio";
   const surf = resolveSurface(look?.surface ? String(look.surface) : surface, skin, isStudio);
-  const skinCtx = useMemo(() => (surf.tone === "dark" ? ctx : { ...ctx, shellStatus: true }), [ctx, surf.tone]);
+  const skinCtx = useMemo(() => (surf.tone === "light" ? { ...ctx, shellStatus: true } : ctx), [ctx, surf.tone]);
   const heading = chrome?.label || title;
   const headIcon = iconOverride || chrome?.icon || icon;
   // Show title off hides the header and the title line of the summary views (`untitled`).
