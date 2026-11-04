@@ -2,7 +2,7 @@ import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { SkinCtx } from "@/widgets/core/theme";
 import { skinContext } from "@/widgets/core/look";
-import { Bar, Icon, LedLadder, RangeBar, Ring, Spark, ThresholdLine, UNIT_CLASS, Unit, isWordUnit, ringDashOffset, ringStroke, sparkMarks, sparkRange, sparkY } from "@/widgets/core/primitives";
+import { Bar, Icon, LedLadder, RangeBar, IpTagCtx, Ring, Spark, ThresholdLine, UNIT_CLASS, Unit, isWordUnit, ringDashOffset, ringStroke, sparkMarks, sparkRange, sparkY } from "@/widgets/core/primitives";
 
 describe("Ring sweep", () => {
   const dash = (html: string) => [...html.matchAll(/stroke-dasharray="([^"]+)"/g)].map((m) => m[1]);
@@ -132,6 +132,20 @@ describe("LedLadder per mode", () => {
     const light = renderToString(<SkinCtx.Provider value={{ ...skinContext("default"), shellStatus: true }}><LedLadder value={100} n={10} /></SkinCtx.Provider>);
     expect(bg(light)).toContain("var(--w-warn, #EDB232)");
     expect(bg(light)).toContain("var(--w-crit, #F2665E)");
+  });
+});
+
+describe("LedLadder export colours", () => {
+  const colors = (html: string): string[] => JSON.parse(/data-ip-colors="([^"]+)"/.exec(html)![1].replaceAll("&quot;", '"').replaceAll("&amp;", "&"));
+  const ladder = (shellStatus: boolean) =>
+    renderToString(
+      <IpTagCtx.Provider value>
+        <SkinCtx.Provider value={{ ...skinContext("default"), shellStatus }}><LedLadder value={50} n={10} ipKey="k" /></SkinCtx.Provider>
+      </IpTagCtx.Provider>,
+    );
+  it("are the dark literals on a dark card and the shell's status variables on a light card", () => {
+    expect(colors(ladder(false)).slice(1, 3)).toEqual(["#EDB232", "#F2665E"]);
+    expect(colors(ladder(true)).slice(1, 3)).toEqual(["var(--w-warn, #EDB232)", "var(--w-crit, #F2665E)"]);
   });
 });
 

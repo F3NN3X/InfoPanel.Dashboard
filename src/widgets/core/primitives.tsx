@@ -1030,7 +1030,7 @@ export function LedLadder({ value, n = 24, vertical, reverse, zones = [72, 90], 
   const tagging = useContext(IpTagCtx) && ipKey;
   // The zone colours as CSS (the conversion resolves them on the page), the unlit one last.
   const tag = tagging
-    ? { "data-ip-key": ipKey, "data-ip-kind": "meter", "data-ip-segments": n, "data-ip-zones": `${zones[0]},${zones[1]}`, "data-ip-colors": JSON.stringify([color, STATE.warn, hotColor ?? STATE.crit, `color-mix(in oklab, ${color} ${UNLIT}%, var(--w-track))`]), ...(vertical ? { "data-ip-vertical": "" } : {}), ...(reverse ? { "data-ip-reverse": "" } : {}) }
+    ? { "data-ip-key": ipKey, "data-ip-kind": "meter", "data-ip-segments": n, "data-ip-zones": `${zones[0]},${zones[1]}`, "data-ip-colors": JSON.stringify([color, status.warn, hotColor ?? status.crit, `color-mix(in oklab, ${color} ${UNLIT}%, var(--w-track))`]), ...(vertical ? { "data-ip-vertical": "" } : {}), ...(reverse ? { "data-ip-reverse": "" } : {}) }
     : undefined;
   return (
     <div {...tag} data-part="meter" className={`relative flex flex-1 gap-[2px] ${vertical ? "w-full flex-col-reverse" : `h-full ${reverse ? "flex-row-reverse" : "flex-row"}`}`}>
