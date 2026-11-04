@@ -146,19 +146,21 @@ export const remText = (rem: number): string => `${Number(rem.toFixed(2))} rem`;
 export interface ThemeLink {
   drill?: ThemeDrill;
   section?: ThemeCardId;
+  /** A place on the drill to scroll to and focus (its `data-nav-section`). */
+  anchor?: string;
 }
 
 /**
  * The old link ids onto the new places: "start" opens Switch theme, "background" the Background picker, "skin" the
- * Skin picker, "border" Surface & border, "tokens" Colors; a section card's or a widget-style section's id its
+ * Look's knobs over the gallery, "border" Surface & border, "tokens" Colors; a section card's or a widget-style section's id its
  * fine-tune section.
  */
 export function themeLinkOf(id: string | undefined): ThemeLink | undefined {
   if (!id) return undefined;
   if (id === "start") return { drill: "themes" };
   if (id === "background") return { drill: "background" };
-  // The Look (formerly the Skin picker) is chosen in the gallery on Main.
-  if (id === "skin") return { drill: "main" };
+  // The Look (formerly the Skin picker): its knobs, with the gallery under them, on Main.
+  if (id === "skin") return { drill: "main", anchor: "knobs" };
   if (id === "tokens") return { section: "colors" };
   // The page inspector's "Change a section…": the first section, each with its Change here.
   if (id === "customise") return { section: "colors" };

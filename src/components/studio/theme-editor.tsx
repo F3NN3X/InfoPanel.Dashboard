@@ -26,7 +26,7 @@ import { InlineRow, SelectRow } from "./setting-rows";
 import { dropKeys } from "./settings-model";
 import { SettingField, type FieldsApi } from "./settings-panel";
 import { SmoothOffNote } from "./smooth-off-note";
-import type { NavRequest, NavTarget } from "./studio-nav";
+import { focusNavTarget, type NavRequest, type NavTarget } from "./studio-nav";
 import {
   atOfScope,
   cardLocked,
@@ -183,6 +183,8 @@ export function ThemeEditor({ config, scope: requested, profileId, pageId, onPic
   const follow = (link: ThemeLink | undefined) => {
     if (link?.drill) setDrill(link.drill);
     else if (link?.section) openSection(link.section);
+    const anchor = link?.anchor;
+    if (anchor) requestAnimationFrame(() => requestAnimationFrame(() => focusNavTarget(document, { view: "theme", section: anchor })));
   };
 
   // A link ("Edit Screen ↗", a LinkRow, Change a section…) opens its place; useNavFocus focuses it.

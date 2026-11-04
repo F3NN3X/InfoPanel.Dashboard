@@ -113,6 +113,8 @@ describe("links into Theme", () => {
   it("open the new places for the old ids", () => {
     expect(themeLinkOf("start")).toEqual({ drill: "themes" });
     expect(themeLinkOf("background")).toEqual({ drill: "background" });
+    // The Look (formerly the Skin picker): Main, at the knobs over the gallery.
+    expect(themeLinkOf("skin")).toEqual({ drill: "main", anchor: "knobs" });
     expect(themeLinkOf("border")).toEqual({ section: "surface" });
     expect(themeLinkOf("type")).toEqual({ section: "type" });
     expect(themeLinkOf("palette")).toEqual({ section: "colors" });
