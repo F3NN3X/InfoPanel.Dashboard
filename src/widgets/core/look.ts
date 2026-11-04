@@ -65,7 +65,8 @@ export function skinContext(skin: string, opts: { graph?: string; meter?: string
 
 /**
  * The shell's padding: the template's per-view classes, or the look's `padding` in px when set
- * (it overrides the tier padding; bleed widgets keep none).
+ * (it overrides the tier padding; bleed widgets keep none). With `decor`, `pad` is the smallest side in px: what the
+ * shell exposes as `--wp-pad` so a frame or ornament reaches the card edge only through it.
  */
 export function shellPad(o: {
   box: Box;
@@ -74,15 +75,18 @@ export function shellPad(o: {
   bleed?: boolean;
   tui: boolean;
   padding?: number;
-}): { className: string; style?: CSSProperties } {
-  const { box, studio, compact, bleed, tui, padding } = o;
-  if (bleed && !compact && !studio) return { className: "" };
-  if (padding !== undefined) return { className: "", style: { padding } };
-  if (studio) return { className: box.h < 100 || (box.w / box.h >= 2.6 && box.h < 130) ? "px-3 py-0" : "px-3 py-2.5" };
-  if (tui) return { className: compact ? "px-[14px] pb-3 pt-[16px]" : "px-[14px] pb-[12px] pt-[16px]" };
+  decor?: boolean;
+}): { className: string; style?: CSSProperties; pad?: number } {
+  const { box, studio, compact, bleed, tui, padding, decor } = o;
+  const out = (className: string, px: number, style?: CSSProperties) => ({ className, ...(style ? { style } : null), ...(decor ? { pad: px } : null) });
+  if (bleed && !compact && !studio) return out("", 0);
+  if (padding !== undefined) return out("", padding, { padding });
+  if (studio) return box.h < 100 || (box.w / box.h >= 2.6 && box.h < 130) ? out("px-3 py-0", 0) : out("px-3 py-2.5", 10);
+  if (tui) return out(compact ? "px-[14px] pb-3 pt-[16px]" : "px-[14px] pb-[12px] pt-[16px]", 12);
   if (compact)
-    return { className: box.shape === "strip" && box.h < 130 ? "px-4 py-2.5" : box.w < 132 || box.h < 132 ? "p-2.5" : "p-3" };
-  return { className: pickBy(box.size, { xs: "p-2.5", sm: "p-3", md: "p-4", lg: "p-5" }) };
+    return box.shape === "strip" && box.h < 130 ? out("px-4 py-2.5", 10) : box.w < 132 || box.h < 132 ? out("p-2.5", 10) : out("p-3", 12);
+  const px = pickBy(box.size, { xs: 10, sm: 12, md: 16, lg: 20 });
+  return out(pickBy(box.size, { xs: "p-2.5", sm: "p-3", md: "p-4", lg: "p-5" }), px);
 }
 
 /**

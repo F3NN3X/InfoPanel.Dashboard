@@ -1,5 +1,5 @@
 // Shared widget-library types.
-import type { CSSProperties, ReactNode } from "react";
+import type { ComponentType, CSSProperties, ReactNode } from "react";
 import type { ModuleSettings } from "@/modules/types";
 
 export type Data = Record<string, string | { value: string }>;
@@ -118,6 +118,14 @@ export interface SkinTokens {
   /** The header title's ink (`header-color`): Nixie's brass. */
   headerInk: string;
   ring: number;
+  /** A frame the shell draws over the card (`CardFrame`): tui's inset border, hud's corner brackets. */
+  frame: "inset" | "corners";
+}
+
+/** One icon of a Look's icon set: a single path in a viewBox, painted in `currentColor`. */
+export interface IconGlyph {
+  viewBox: string;
+  d: string;
 }
 
 export interface SkinPack {
@@ -142,4 +150,10 @@ export interface SkinContext extends Partial<SkinTokens> {
   gap?: number;
   /** The `smoothing` look key is Smooth: graphs, bars and rings glide between samples. */
   smooth?: boolean;
+  /** The Look's icon set by Material Symbols name; a name it lacks draws the Classic (lucide) icon. */
+  icons?: Record<string, IconGlyph>;
+  /** Drawn in an absolute child of the card when set (at most 10 px, inside the padding: `--wp-pad`). */
+  ornament?: ComponentType;
+  /** Drawn in an absolute child along the card's top edge when set. */
+  tabBand?: ComponentType;
 }

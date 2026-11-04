@@ -6,10 +6,11 @@ import { materialVars, resolveMaterial } from "@/looks/materials";
 import { chromeOf } from "@/modules/standard-settings";
 import type { ModuleSettings } from "@/modules/types";
 import { DESIGN_SIZE, ROOMY_SCALE, RoomyCtx, heroPx, roomy, summaryShape, useBox, type Box } from "./layout";
-import { accentVars, mix } from "./tokens";
+import { accentVars } from "./tokens";
 import { SKINS, SkinCtx, resolveSurface, textVars } from "./theme";
 import { bodyFlags, forcedTier, resolveAccent, shellPad, skinContext, untitled, withUserLook } from "./look";
 import { ensureSkinFonts } from "./fonts";
+import { CardFrame, CardLayer } from "./card-frame";
 import { CompactView, StudioView, SkinHeader } from "./views";
 import type { Compact, ShellProps, Studio, Tier } from "./types";
 
@@ -84,8 +85,6 @@ export const shell = (p: ShellInput): Partial<WidgetProps> => ({
 const typeVars = (scale: number): CSSProperties =>
   ({ "--text-micro": `calc(0.6875rem * ${scale})`, "--text-caption": `calc(0.75rem * ${scale})`, "--text-body": `calc(0.8125rem * ${scale})`, "--text-title": `calc(0.9375rem * ${scale})` }) as CSSProperties;
 
-const HUD_CORNERS = ["left-1.5 top-1.5 border-l border-t", "right-1.5 top-1.5 border-r border-t", "left-1.5 bottom-1.5 border-l border-b", "right-1.5 bottom-1.5 border-r border-b"];
-
 export function Widget({ title, icon, iconOverride, accent, surface, radius, size, showHeader = true, right, className = "", style, children, bleed, compact, compactView, skin = "default", graph, meter, variant, studio, look, backdrop, design = DESIGN_SIZE, fixedType }: WidgetProps) {
   const chrome = useMemo(() => (look ? chromeOf(look) : undefined), [look]);
   // A zone past the design size zooms the content with it, and Size % on top; the tier and shape are taken from the zoomed size.
@@ -122,7 +121,9 @@ export function Widget({ title, icon, iconOverride, accent, surface, radius, siz
   const cObj = cTitled && framed && cTitled.label === heading ? { ...cTitled, label: "" } : cTitled;
   const useCompact = !!cObj;
   const tui = skin === "tui";
-  const pad = shellPad({ box, studio: isStudio, compact: useCompact, bleed, tui, padding: chrome?.padding !== undefined ? Math.round((chrome.padding / zoom) * 100) / 100 : undefined });
+  // A Look's ornament or tab band keeps inside the padding, so the shell hands it the padding as `--wp-pad`.
+  const decor = !!(ctx.ornament || ctx.tabBand);
+  const pad = shellPad({ box, studio: isStudio, compact: useCompact, bleed, tui, decor, padding: chrome?.padding !== undefined ? Math.round((chrome.padding / zoom) * 100) / 100 : undefined });
   const header = !isStudio && showHeader && titled && heading && (tui || (!useCompact && box.size !== "xs"));
   const css = chrome?.customCss ? scopedCss(scope, chrome.customCss) : "";
   const background = chrome?.backgroundOn && chrome.background ? chrome.background : "";
@@ -134,6 +135,7 @@ export function Widget({ title, icon, iconOverride, accent, surface, radius, siz
     borderRadius: chrome?.radius ?? radius ?? "var(--radius, 1rem)",
     fontFamily: ctx.font,
     ...materialVars(mat),
+    ...(pad.pad !== undefined ? { "--wp-pad": `${pad.pad * zoom}px` } : null),
     ...textVars(surf.tone, chrome),
     ...chromeVars(chrome),
     // Only the default accent darkens on a light card: an accent the user or the Look set is theirs (G1).
@@ -147,7 +149,7 @@ export function Widget({ title, icon, iconOverride, accent, surface, radius, siz
     <SkinCtx.Provider value={skinCtx}>
       <RoomyCtx.Provider value={big}>
       <PaneCtx.Provider value={{ className: mat.className, style: surfBox }}>
-      <div ref={ref} style={rootStyle} data-mat={mat.id} data-tone={mat.tone} data-mode={mat.tone === "light" ? "light" : undefined} data-mat-blur={mat.fallback ? "" : undefined} data-wp-scope={css ? scope : undefined} {...numGlowAttr(chrome)} data-wp-tier={box.size} data-wp-roomy={big ? "" : undefined} data-wp-shape={box.shape} data-wp-view={isStudio ? "studio" : useCompact ? "compact" : "body"} className={`relative flex h-full w-full min-w-0 flex-col overflow-hidden antialiased ${mat.className} ${className}`}>
+      <div ref={ref} style={rootStyle} data-part="card" data-mat={mat.id} data-tone={mat.tone} data-mode={mat.tone === "light" ? "light" : undefined} data-mat-blur={mat.fallback ? "" : undefined} data-wp-scope={css ? scope : undefined} {...numGlowAttr(chrome)} data-wp-tier={box.size} data-wp-roomy={big ? "" : undefined} data-wp-shape={box.shape} data-wp-view={isStudio ? "studio" : useCompact ? "compact" : "body"} className={`relative flex h-full w-full min-w-0 flex-col overflow-hidden antialiased ${mat.className} ${className}`}>
         {css && <style>{css}</style>}
         {background && (
           <>
@@ -156,8 +158,13 @@ export function Widget({ title, icon, iconOverride, accent, surface, radius, siz
           </>
         )}
         {backdrop}
-        {tui && <div className="pointer-events-none absolute inset-[5px] rounded-[4px] border" style={{ borderColor: mix(45, "#3f3f46") }} />}
-        {skin === "hud" && HUD_CORNERS.map((c) => <span key={c} className={`pointer-events-none absolute h-2.5 w-2.5 ${c}`} style={{ borderColor: "var(--w-accent)" }} />)}
+        {ctx.frame && <CardFrame kind={ctx.frame} />}
+        {decor && (
+          <>
+            {ctx.ornament && <CardLayer part="ornament" Slot={ctx.ornament} />}
+            {ctx.tabBand && <CardLayer part="tab-band" Slot={ctx.tabBand} />}
+          </>
+        )}
         <div className={`relative flex min-h-0 min-w-0 flex-1 flex-col ${pad.className}`} style={{ ...pad.style, ...(zoom !== 1 ? { zoom } : null) }}>
           {header && <SkinHeader kind={sk.header} title={heading} icon={headIcon} right={useCompact ? undefined : right} bleed={bleed} bg={mat.patch} w={box.w} />}
           <div ref={cref} data-wp-body="" {...bodyFlags(chrome)} className="relative min-h-0 flex-1">

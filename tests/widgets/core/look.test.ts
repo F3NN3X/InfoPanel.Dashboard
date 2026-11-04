@@ -51,3 +51,14 @@ describe("skinContext", () => {
     expect(ctx.ring).toBeCloseTo(1.7 * 1.5);
   });
 });
+
+describe("shellPad decor", () => {
+  it("reports the smallest side in px only when asked, and leaves the output alone otherwise", () => {
+    const o = { studio: false, compact: false, tui: false };
+    expect(shellPad({ ...o, box: box(600, 400, "lg"), decor: true })).toEqual({ className: "p-5", pad: 20 });
+    expect(shellPad({ ...o, box: box(200, 100, "xs"), decor: true }).pad).toBe(10);
+    expect(shellPad({ ...o, box: box(200, 100, "xs"), padding: 7, decor: true })).toEqual({ className: "", style: { padding: 7 }, pad: 7 });
+    expect(shellPad({ ...o, box: box(200, 100, "xs"), bleed: true, decor: true }).pad).toBe(0);
+    expect(shellPad({ ...o, box: box(600, 400, "lg") })).not.toHaveProperty("pad");
+  });
+});
