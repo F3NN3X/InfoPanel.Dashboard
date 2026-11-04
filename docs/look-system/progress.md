@@ -341,6 +341,11 @@ Filled in during stage 2 (see `02-implementation-runbook.md`, section 4). Every 
   - The scan test reads all of `src`, so `vitest related` does not pick it for a change in another feature; `verify:full` and CI run it.
   - Copy: "Saved look" replaced "Saved theme" in a preset's stored description for new saves only.
 - Verify: `node tools/verify.mjs --full --keep-going` exit 0, all 18 checks passed, 386 s (a first run exited 2 on the unmapped `surfaces.ts`, fixed by keeping the glob).
+- Review (2026-11-04, `p7-review.md`): 0 HIGH, 2 MED, 4 LOW; approved. No fix round needed.
+  - MED1 (real, ledgered L61): the hex rule now also counts 8-digit hex and the baseline was frozen in the same change, so those hits are absorbed (a ratchet freezes today's state by design); the gate still cannot see 3/4-digit hex or `rgb()`/`hsl()`/`oklch()` literals.
+  - MED2 (not a defect): `viz-gallery.tsx` is a dev gallery that already read `bg-ui-app`; it is studio chrome, so its `ui-*` exemption is right and `bg-ui-tile` belongs there.
+  - LOW: `headerFill`/`headerInk` need no fallback (required `Skin` fields, so typecheck holds every skin to them); `zone-error-boundary.tsx` also takes the alert red, which is the same alert role (intended); "Saved look" sits beside older stored "Saved theme" descriptions (noted above, copy only); the StreamDeck width/height strip went with L28 because no material sets them since P3b.
+- Controller check: `npm run verify:full` exit 0, all 18 checks passed (381 s); `node tools/verify.mjs --check-fresh` fresh-pass.
 
 ## Ledger: known issues and deferred work
 
@@ -408,3 +413,4 @@ Open items carried between phases. Each phase adds what it finds or defers, and 
 | L58 | P6 fix 1 | Paper's `info` and a Look's `ok` are accepted palette roles but no widget reads `--w-ok` beyond the shell's variable, nor `info` at all: L33 closed the data path, not a visible effect | P8 | open |
 | L59 | P6 fix 1 | `contrast.test.ts` mirrors the shell's colour logic (`colours()`) instead of reading the rendered `--w-*`, and its axis-label check uses the light fill, not the cream cards' faint colour | P8 | open |
 | L60 | P6 re-review | `__qaMountAll` settles once the element count holds 0.75 s, so a lazy chunk slower than that could be read early (overflow and look-visual fail on a capped settle, not on an early one); `look-knobs.tsx` `setModes([])` hides the Mode row for a frame on each Look switch | P8 (when slots add lazy parts) | open |
+| L61 | P7 review | The D9 hex gate (`tools/looks/scan.mjs`, `scan-baseline.json`) counts only 6- and 8-digit hex: 3/4-digit hex and `rgb()`/`hsl()`/`oklch()` colour literals in widgets pass unseen | P12 (with the validator's colour rules) | open |
