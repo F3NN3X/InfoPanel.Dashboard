@@ -57,12 +57,12 @@ export function UserPacks({ currentLookId, onPick, onRemove }: UserPacksProps) {
   };
 
   const remove = async (p: UserPackInfo) => {
+    // the folder goes first: a places-that-wore-it edit is made only once the pack is really gone
+    if (!(await removePack(p.id))) return setNotice(`Couldn't remove ${p.name}. It is still stored, and nothing that wears it was changed.`);
     const worn = onRemove(p.id);
-    if (await removePack(p.id)) {
-      setNotice(worn > 0 ? `Removed ${p.name}. ${worn === 1 ? "A place that wore it now draws" : `${worn} places that wore it now draw`} Classic.` : `Removed ${p.name}.`);
-      setReport(undefined);
-      setPacks(await listUserPacks());
-    } else setNotice(`Couldn't remove ${p.name}.`);
+    setNotice(worn > 0 ? `Removed ${p.name}. ${worn === 1 ? "A place that wore it now draws" : `${worn} places that wore it now draw`} Classic.` : `Removed ${p.name}.`);
+    setReport(undefined);
+    setPacks(await listUserPacks());
   };
 
   const errors = report?.issues.filter((i) => i.severity === "error") ?? [];

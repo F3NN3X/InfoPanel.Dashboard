@@ -1,7 +1,7 @@
 // Importing and removing a user pack (P12b), in the studio's lazy chunk. A folder or a zip becomes the files a pack has; the
 // validator runs on them in `user` mode, and only a pack with no error is sent to `POST /api/packs`, where the server checks
 // its structure and size again (it does not take the client's word). Removing a pack takes it off every level that wears it
-// (Classic is drawn there instead) before the folder goes.
+// (Classic is drawn there instead) once the folder has gone: a failed removal changes no config.
 import { listEntries, readEntry } from "@/lib/infopanel/zip";
 import { forgetUserPack, registerUserPacks, USER_PACK_ID, userPackIssues } from "./user-packs";
 import { FILE_COUNT_MAX, FILE_MAX_BYTES, PACK_CEILING_BYTES, type PackFile, type PackIssue, type PackSource } from "./pack-validate";
@@ -22,6 +22,9 @@ export interface ImportReport {
 
 /** The files the server stores (`is_pack_file`, packs.rs): the fixed names and `assets/<name>.<ext>`. Everything else is left out. */
 const STORED = /^(pack\.json|look\.json|icons\.json|OFL\.txt|thumb\.(png|jpg|webp)|assets\/[a-z0-9][a-z0-9-]{0,63}\.(woff2|png|jpg|webp|svg))$/;
+
+/** A licence file under another name than the one the server keeps (the validator accepts these names, the server stores `OFL.txt`). */
+const LICENCE_NAME = /^(LICEN[CS]E(\.txt)?|OFL)$/;
 
 /** What each rule means to someone who has not read the spec; a rule not here gives its own message. */
 const PLAIN: Record<string, string> = {
@@ -46,10 +49,13 @@ const PLAIN: Record<string, string> = {
 /** One issue as a line of plain words: where, then what. */
 export const describeIssue = (i: PackIssue): string => `${i.file ? `${i.file}: ` : ""}${PLAIN[i.rule] ? `${PLAIN[i.rule]} (${i.message})` : i.message}`;
 
+const normal = (path: string): string => path.replace(/\\/g, "/").replace(/^\.\//, "");
+const rootOf = (paths: readonly string[]): string => paths.find((p) => /(^|\/)pack\.json$/.test(p))?.replace(/pack\.json$/, "") ?? "";
+
 /** A picked folder or archive with its one top folder taken off (`my-pack/pack.json` is `pack.json`). */
 export function withoutRoot(files: readonly PickedFile[]): PickedFile[] {
-  const norm = files.map((f) => ({ ...f, path: f.path.replace(/\\/g, "/").replace(/^\.\//, "") }));
-  const root = norm.find((f) => /(^|\/)pack\.json$/.test(f.path))?.path.replace(/pack\.json$/, "") ?? "";
+  const norm = files.map((f) => ({ ...f, path: normal(f.path) }));
+  const root = rootOf(norm.map((f) => f.path));
   return norm.filter((f) => f.path.startsWith(root)).map((f) => ({ ...f, path: f.path.slice(root.length) }));
 }
 
@@ -76,18 +82,32 @@ export function checkImport(picked: readonly PickedFile[]): ImportReport & { src
   const name = (src.pack as { name?: unknown } | undefined)?.name;
   const issues = [
     ...userPackIssues(src),
-    ...skipped.map((p): PackIssue => ({ rule: "not-stored", severity: "warn", file: p, message: "not a file a pack has" })),
+    ...skipped.map((p): PackIssue => ({ rule: "not-stored", severity: "warn", file: p, message: LICENCE_NAME.test(p) ? "a licence is kept only as OFL.txt: rename it to OFL.txt" : "not a file a pack has" })),
   ];
   const idOk = typeof id === "string" && USER_PACK_ID.test(id);
   if (!idOk) issues.unshift({ rule: "id", severity: "error", file: "pack.json", message: "the pack's id is lowercase letters, digits and hyphens, 48 at most" });
   return { id: idOk ? id : undefined, name: typeof name === "string" ? name : undefined, issues: [...issues.filter((i) => i.severity === "error"), ...issues.filter((i) => i.severity === "warn")], ok: !issues.some((i) => i.severity === "error"), src };
 }
 
-/** The files of a `.zip` (stored or deflated), under the pack's caps. */
+/** The files of a `.zip` (stored or deflated), under the pack's caps. A file the server does not store is listed but never read, so its size cannot fail the import; a file it stores is counted as it is unpacked, whatever its header says. */
 export async function filesOfZip(buf: Uint8Array): Promise<PickedFile[]> {
   const entries = listEntries(buf).filter((e) => !e.name.endsWith("/"));
   if (entries.length > FILE_COUNT_MAX * 2) throw new Error(`the archive holds ${entries.length} files`);
-  return Promise.all(entries.map(async (e) => ({ path: e.name, bytes: await readEntry(buf, e, FILE_MAX_BYTES + 1) })));
+  const root = rootOf(entries.map((e) => normal(e.name)));
+  const kept = (name: string) => {
+    const path = normal(name).startsWith(root) ? normal(name).slice(root.length) : "";
+    return STORED.test(path) || path === "pack.css";
+  };
+  return Promise.all(
+    entries.map(async (e) => {
+      if (!kept(e.name)) return { path: e.name, bytes: new Uint8Array() };
+      try {
+        return { path: e.name, bytes: await readEntry(buf, e, FILE_MAX_BYTES + 1) };
+      } catch {
+        throw new Error(`${e.name} is too big for a pack (a file is ${FILE_MAX_BYTES} bytes at most), or the archive is damaged`);
+      }
+    }),
+  );
 }
 
 /** The files of a picked folder (`webkitdirectory`) or of several files at once. */
@@ -114,12 +134,18 @@ export async function storePack(report: ImportReport & { src: PackSource }): Pro
   if (!res.ok) return (await res.text()) || `the server refused the pack (${res.status})`;
   forgetUserPack(report.id);
   const [registered] = await registerUserPacks([report.id]);
-  return registered === report.id ? undefined : "the pack was stored but did not pass the check when it was read back";
+  if (registered === report.id) return undefined;
+  await removePack(report.id);
+  return "the pack was stored but did not pass the check when it was read back, so it was taken off again";
 }
 
 /** Takes a pack off the server and out of the app. */
 export async function removePack(id: string): Promise<boolean> {
-  const res = await fetch(`/api/packs/${encodeURIComponent(id)}`, { method: "DELETE", headers: WRITE });
-  if (res.ok) forgetUserPack(id);
-  return res.ok;
+  try {
+    const res = await fetch(`/api/packs/${encodeURIComponent(id)}`, { method: "DELETE", headers: WRITE });
+    if (res.ok) forgetUserPack(id);
+    return res.ok;
+  } catch {
+    return false;
+  }
 }

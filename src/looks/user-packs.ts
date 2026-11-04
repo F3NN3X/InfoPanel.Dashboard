@@ -130,12 +130,15 @@ function layerOf(id: string, look: Look): Record<string, string> {
   return { surface: `look-${id}`, accent: v("accent"), textColor: v("fg"), mutedColor: v("muted"), ok: v("ok"), warn: v("warn"), crit: v("crit") };
 }
 
+/** The font faces each user pack added to the document, taken out again when the pack is forgotten. */
+const faces = new Map<string, FontFace[]>();
+
 /** A validated pack's files as a `Pack`: the stage and slots its pack.json and icons.json declare, served from the route; fonts added to the document. */
 export function userPackOf(src: PackSource): Pack {
   const meta = src.pack as PackJson;
   const look = src.look as Look;
   const base = `${ROUTE}/${meta.id}/assets/`;
-  addPackFonts({ base, names: Object.fromEntries(meta.fonts.map((f) => [f.file, f.file])) }, meta.fonts);
+  faces.set(meta.id, addPackFonts({ base, names: Object.fromEntries(meta.fonts.map((f) => [f.file, f.file])) }, meta.fonts));
   return {
     id: meta.id,
     look,
@@ -178,6 +181,8 @@ export async function registerUserPacks(only?: readonly string[]): Promise<strin
 /** Lets go of a pack (it was removed, or replaced and is read again). */
 export function forgetUserPack(id: string): void {
   registered.delete(id);
+  if (typeof document !== "undefined") for (const face of faces.get(id) ?? []) document.fonts.delete(face);
+  faces.delete(id);
   unregisterUserPack(id);
   registerUserLooks([id], false);
   delete sampleCards[`look-${id}`];

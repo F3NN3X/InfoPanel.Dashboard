@@ -88,6 +88,17 @@ describe("importing a pack", () => {
   });
 });
 
+describe("a pack that was stored but cannot be read back", () => {
+  it("is taken off the server again, and the report says so", async () => {
+    const log = server([]);
+    render(<UserPacks currentLookId="classic" onPick={() => {}} onRemove={() => 0} />);
+    await act(async () => {});
+    await pick("Pack folder", files());
+    expect(log).toContain("DELETE /api/packs/mine");
+    expect(screen.getByRole("alert").textContent).toContain("taken off again");
+  });
+});
+
 describe("removing a pack", () => {
   it("one that a level wears is taken off it, with a notice that Classic is drawn there", async () => {
     const list = [{ id: "mine", name: "Mine", size: 10 }];
@@ -100,6 +111,23 @@ describe("removing a pack", () => {
     expect(onRemove).toHaveBeenCalledWith("mine");
     expect(log).toContain("DELETE /api/packs/mine");
     expect(screen.getByRole("status").textContent).toBe("Removed Mine. 2 places that wore it now draw Classic.");
+  });
+
+  it("a removal the server refuses leaves the config as it was and says so", async () => {
+    const log: string[] = [];
+    vi.stubGlobal("fetch", async (url: string, init?: RequestInit) => {
+      log.push(`${init?.method ?? "GET"} ${url}`);
+      if (init?.method === "DELETE") return new Response("user packs are off", { status: 403 });
+      return new Response(JSON.stringify([{ id: "mine", name: "Mine", size: 10 }]));
+    });
+    const onRemove = vi.fn(() => 2);
+    render(<UserPacks currentLookId="mine" onPick={() => {}} onRemove={onRemove} />);
+    await act(async () => {});
+    await act(async () => void fireEvent.click(await screen.findByRole("button", { name: "Remove Mine" })));
+    await act(async () => {});
+    expect(log).toContain("DELETE /api/packs/mine");
+    expect(onRemove).not.toHaveBeenCalled();
+    expect(screen.getByRole("status").textContent).toBe("Couldn't remove Mine. It is still stored, and nothing that wears it was changed.");
   });
 
   it("one nothing wears is removed without that line", async () => {

@@ -121,6 +121,28 @@ describe("reading a user pack from the route", () => {
   });
 });
 
+describe("a pack that goes away", () => {
+  it("takes its font faces out of the document", async () => {
+    const faces = { added: [] as unknown[], removed: [] as unknown[] };
+    vi.stubGlobal("FontFace", class {});
+    vi.stubGlobal("document", { fonts: { add: (f: unknown) => faces.added.push(f), delete: (f: unknown) => faces.removed.push(f) } });
+    serve({ mine: folder("mine") });
+    await registerUserPacks(["mine"]);
+    expect(faces.added.length).toBeGreaterThan(0);
+    forgetUserPack("mine");
+    expect(faces.removed).toEqual(faces.added);
+  });
+
+  it("a dangling lookId is Classic: a bounded number of requests, no pack, no crash", async () => {
+    const fetchMock = serve({});
+    const config = { profiles: [{ widgetTheme: { values: { lookId: "gone" } }, pages: [{ zones: [{ style: { lookId: "gone" } }] }] }] };
+    expect(await registerUserPacks(userLookIds(config))).toEqual([]);
+    expect(isLookId("gone")).toBe(false);
+    expect(await sharedPack("gone")).toBeUndefined();
+    expect(fetchMock.mock.calls.length).toBeLessThanOrEqual(4);
+  });
+});
+
 describe("the card a pack's look.json describes", () => {
   const look = (material: Json) => ({ t2: { default: "m", materials: { m: material } } }) as Json;
 
@@ -196,6 +218,12 @@ describe("the importer", () => {
     expect(sourceOf(folder("mine")).skipped).toEqual([]);
   });
 
+  it("a licence under another name is left out with the way to keep it", () => {
+    const files = folder("mine").filter((f) => f.path !== "OFL.txt");
+    const report = checkImport([...files, { path: "LICENSE.txt", bytes: enc("SIL OPEN FONT LICENSE Version 1.1") }]);
+    expect(report.issues.find((i) => i.rule === "not-stored")?.message).toContain("rename it to OFL.txt");
+  });
+
   it("a built-in's id is refused at import, and a missing pack.json gives errors, not a crash", () => {
     expect(checkImport(folder("paper")).ok).toBe(false);
     expect(checkImport([{ path: "x.txt", bytes: enc("x") }]).ok).toBe(false);
@@ -208,6 +236,23 @@ describe("the importer", () => {
     const read = await filesOfZip(zip);
     expect(read.map((f) => f.path).sort()).toEqual(files.map((f) => f.path).sort());
     expect(dec(read.find((f) => f.path === "pack.json")!.bytes)).toContain('"id":"mine"');
+  });
+});
+
+describe("a zip with files that are not part of a pack", () => {
+  const big = (n: number) => new Uint8Array(n).fill(65);
+  it("a big file the server would not store is left out, not a failure", async () => {
+    const files = [...folder("mine").filter((f) => f.path === "pack.json" || f.path === "look.json"), { path: "preview.png", bytes: big(300_000) }, { path: "README.md", bytes: big(300_000) }];
+    const read = await filesOfZip(stored(files));
+    expect(read.map((f) => f.path).sort()).toEqual(["README.md", "look.json", "pack.json", "preview.png"]);
+    expect(read.find((f) => f.path === "preview.png")!.bytes.length).toBe(0);
+    const report = checkImport(read);
+    expect(report.issues.filter((i) => i.rule === "not-stored").map((i) => i.file).sort()).toEqual(["README.md", "preview.png"]);
+  });
+
+  it("a file it would store that is over the cap is refused in words, not with a raw error", async () => {
+    const files = [...folder("mine").filter((f) => f.path === "pack.json"), { path: "assets/hazard.svg", bytes: big(300_000) }];
+    await expect(filesOfZip(stored(files))).rejects.toThrow(/assets\/hazard\.svg is too big for a pack/);
   });
 });
 

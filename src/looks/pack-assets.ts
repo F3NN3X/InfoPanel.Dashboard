@@ -35,13 +35,18 @@ export interface PackFont {
   weight: string;
 }
 
-/** Adds the pack's fonts to the document (a no-op where there is no `FontFace`); the browser fetches a file when text first uses it. */
-export function addPackFonts(files: PackFiles, fonts: readonly PackFont[]): void {
-  if (typeof FontFace === "undefined" || typeof document === "undefined") return;
+/** Adds the pack's fonts to the document (a no-op where there is no `FontFace`); the browser fetches a file when text first uses it. Returns the faces added, for a pack that goes away. */
+export function addPackFonts(files: PackFiles, fonts: readonly PackFont[]): FontFace[] {
+  if (typeof FontFace === "undefined" || typeof document === "undefined") return [];
+  const added: FontFace[] = [];
   for (const f of fonts) {
     const name = files.names[f.file];
-    if (name) document.fonts.add(new FontFace(f.family, `url("${files.base}${name}")`, { weight: f.weight, display: "swap" }));
+    if (!name) continue;
+    const face = new FontFace(f.family, `url("${files.base}${name}")`, { weight: f.weight, display: "swap" });
+    document.fonts.add(face);
+    added.push(face);
   }
+  return added;
 }
 
 /** The `pack.json` of a built-in pack: what the gallery, the loader and the budget check read (spec 03, Pack format). */
