@@ -76,6 +76,8 @@ export default defineConfig(({ mode }) => ({
     setupFiles: ["tests/setup/dom-setup.ts"],
     // Worker threads start faster than forked processes: about 7.5 s against 10 s for the suite.
     pool: "threads",
+    // Vitest hands a stylesheet import back as an empty string; the built-in packs' `pack.css?raw` must be the real text, so the lint tests see it.
+    css: { include: [/\/pack\.css/] },
   },
   server: {
     port: 5173,

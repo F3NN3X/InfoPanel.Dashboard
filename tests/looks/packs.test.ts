@@ -10,6 +10,7 @@ import { effectIssues, GLOW_MAX, planEffects } from "@/looks/effects";
 import { materialVars, resolveMaterial } from "@/looks/materials";
 import { registerSampleCards, SAMPLE_MATERIALS } from "@/looks/sample-materials";
 import { loadPack, packIssues } from "@/looks/pack-load";
+import { lintPackCss, scopePackCss } from "@/looks/pack-css";
 import { Widget } from "@/widgets/core/Widget";
 import { t3Tokens } from "@/widgets/core/t3-tokens";
 import fs from "node:fs";
@@ -31,6 +32,13 @@ describe.each(IDS)("pack %s", (id) => {
     expect(pack?.id).toBe(id);
     expect(packIssues(pack!)).toEqual([]);
     expect(PACK_IDS.has(id)).toBe(true);
+  });
+
+  it("carries real CSS, and it passes the lint and the scoper (vite.config.ts hands `?raw` the file, not an empty string)", async () => {
+    const pack = (await loadPack(id))!;
+    expect(pack.css.trim().length).toBeGreaterThan(0);
+    expect(lintPackCss(pack.css)).toEqual([]);
+    expect(scopePackCss(id, pack.css)).toContain(`@scope ([data-look="${id}"])`);
   });
 
   it("wears the colours of its sample theme, in the one mode it supports", async () => {
@@ -228,8 +236,7 @@ describe("what the five Looks teach the contract (P11b)", () => {
     const meta = (await import("@/looks/packs/classy-black/pack.json")).default;
     expect(meta.fonts.map((f: { file: string }) => f.file)).toEqual(["geist-400.woff2", "geist-200.woff2"]);
     for (const f of meta.fonts) expect(f.weight).toBe("100 900");
-    // vitest reads a `?raw` stylesheet as empty, so the CSS is read from the file
-    expect(fs.readFileSync("src/looks/packs/classy-black/pack.css", "utf8")).toMatch(/\[data-part="num"\] \{ font-family: pack-classy-num/);
+    expect(pack.css).toMatch(/\[data-part="num"\] \{ font-family: pack-classy-num/);
     expect(pack.assets?.some((a: string) => a.startsWith("geist-200.woff2"))).toBe(true);
   });
 
@@ -250,7 +257,7 @@ describe("what the five Looks teach the contract (P11b)", () => {
   it("no sample Look names a catalog font: each sets the app's own stack and a pack brings its bundled face (no font host is asked for)", async () => {
     for (const t of SAMPLE_THEMES) expect(["auto", "sans", "mono"], t.id).toContain(t.font);
     for (const id of ["night-glow", "paper", "classy-black", "liquid-glass", "black-and-gold"]) {
-      const css = fs.readFileSync(`src/looks/packs/${id}/pack.css`, "utf8");
+      const css = (await loadPack(id))!.css;
       expect(css, id).toMatch(/font-family: pack-/);
       expect(css, id).not.toMatch(/url\(|@import|@font-face/);
     }
