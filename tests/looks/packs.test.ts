@@ -263,15 +263,23 @@ describe("what the five Looks teach the contract (P11b)", () => {
     }
   });
 
-  it("a config that saved a sample Look's id keeps it and its card, and the Look still loads (L78)", async () => {
+  it("a config that picked a sample Look keeps it through the upgrade from the last version, a save and a reload, and the Look is the pack (L78)", async () => {
     registerSampleCards();
+    const config = (version: number, id: string) =>
+      ({ version, activeProfile: "p", profiles: [{ id: "p", name: "P", width: 800, height: 480, widgetTheme: { values: { lookId: id, surface: `look-${id}`, accent: "#123456" } }, pages: [{ id: "a", name: "A", placements: [] }] }] }) as unknown as StoredConfig;
     for (const id of SAMPLE_LOOK_IDS) {
-      const stored = { version: CONFIG_VERSION, activeProfile: "p", profiles: [{ id: "p", name: "P", width: 800, height: 480, widgetTheme: { values: { lookId: id, surface: `look-${id}`, accent: "#123456" } }, pages: [{ id: "a", name: "A", placements: [] }] }] } as unknown as StoredConfig;
-      const read = await readConfig(stored);
-      expect(read.profiles[0].widgetTheme?.values?.lookId, id).toBe(id);
-      expect(read.profiles[0].widgetTheme?.values?.surface, id).toBe(`look-${id}`);
-      expect(resolveSurface(`look-${id}`, undefined), id).toBe(SAMPLE_MATERIALS[`look-${id}`]);
-      expect((await loadLook(id))?.id, id).toBe(id);
+      const upgraded = await readConfig(config(CONFIG_VERSION - 1, id));
+      // what the studio saves, read back as the next start reads it
+      const reloaded = await readConfig(JSON.parse(JSON.stringify(upgraded)) as StoredConfig);
+      for (const read of [upgraded, reloaded]) {
+        expect(read.profiles[0].widgetTheme?.values, id).toMatchObject({ lookId: id, surface: `look-${id}`, accent: "#123456" });
+        expect(resolveSurface(`look-${id}`, undefined), id).toBe(SAMPLE_MATERIALS[`look-${id}`]);
+      }
+      const lookId = reloaded.profiles[0].widgetTheme?.values?.lookId as string;
+      const look = await loadLook(lookId);
+      expect(look?.id, id).toBe(id);
+      // a Look that is a pack loads as that pack (the others are plain sample Looks)
+      if (IDS.includes(id)) expect((await loadPack(lookId))?.look.id, id).toBe(id);
     }
   });
 

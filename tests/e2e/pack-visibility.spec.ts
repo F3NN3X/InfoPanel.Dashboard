@@ -18,7 +18,8 @@ for (const id of Object.keys(PACK_STYLES)) {
   test(`the ${id} pack hides nothing and loads no font host: overlay alpha, effective opacity, text, value marks`, async ({ page, scratch }) => {
     const { errors } = watchErrors(page);
     const requests: string[] = [];
-    page.on("request", (req) => requests.push(req.url()));
+    // a font or a stylesheet from another origin is a font host, whichever it is; the bundled faces are the app's own origin
+    page.on("request", (req) => (["font", "stylesheet"].includes(req.resourceType()) || /fonts\.(googleapis|gstatic)\.com/.test(req.url())) && new URL(req.url()).origin !== new URL(page.url()).origin && requests.push(req.url()));
     const file = path.join(scratch.dataDir, "config.json");
     const stored = JSON.parse(fs.readFileSync(file, "utf8"));
     // a shot keeps the zones clear of the island pill ("Reserve space"), so no header sits under it (L89)
@@ -145,8 +146,10 @@ for (const id of Object.keys(PACK_STYLES)) {
     // the packs whose rings carry a gradient (`ring-fill`) draw it, and the check above read its stops
     if (id === "night-glow" || id === "black-and-gold") expect(report.gradients).toBeGreaterThan(0);
     expect(report.problems).toEqual([]);
-    // D23: a worn pack asks no font host for its type (it is bundled); the page's own Geist (the app default, worn with Classic too) is not the pack's
-    expect(requests.filter((u) => /fonts\.(googleapis|gstatic)\.com/.test(u) && !/family=Geist|\/geist/i.test(u))).toEqual([]);
+    // D23: a worn pack asks no font host for its type (it is bundled). The app's own Geist stack (Google Fonts, worn with Classic too) is the one family a
+    // font host may be asked for; a request for any other family, or from any other host, fails.
+    const families = (u: string) => new URL(u).searchParams.getAll("family").map((f) => f.split(":")[0].replace(/\+/g, " "));
+    expect(requests.filter((u) => !(new URL(u).hostname === "fonts.gstatic.com" || (new URL(u).hostname === "fonts.googleapis.com" && families(u).every((f) => f === "Geist" || f === "Geist Mono"))))).toEqual([]);
     if (process.env.PACK_SHOTS) {
       await settled(page, manifest.kioskZoneSelector);
       await page.screenshot({ path: path.join(process.env.PACK_SHOTS, `${process.env.PACK_SHOTS_PREFIX ?? "p10"}-${id}.png`) });

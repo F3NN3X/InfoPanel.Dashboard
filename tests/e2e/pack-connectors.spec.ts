@@ -70,3 +70,23 @@ for (const id of ["term", "swiss-mono", "overdrive", "neon-stripe", "night-glow"
     await expect(page.locator("[data-pack-connectors]")).toHaveCount(0);
   });
 }
+
+// L82: the studio canvas has no `[data-page-grid]`, so its connector layer watches the whole page; the studio path was never driven in a browser.
+test("Holo's connectors are drawn in the studio canvas too, and follow a zone that moves", async ({ page, scratch }) => {
+  const file = path.join(scratch.dataDir, "config.json");
+  const stored = JSON.parse(fs.readFileSync(file, "utf8"));
+  stored.profiles = stored.profiles.map((p: object) => ({ ...p, widgetTheme: { values: PACK_STYLES.holo } }));
+  fs.writeFileSync(file, JSON.stringify(stored));
+  await page.setViewportSize({ width: 1600, height: 900 });
+  await page.goto(`${scratch.base}/?studio=1&profile=${heavy}`);
+  await page.getByRole("button", { name: "Edit", exact: true }).click();
+  const circles = page.locator("[data-studio-page] [data-pack-connectors] circle");
+  await expect.poll(() => circles.count()).toBeGreaterThan(0);
+  const ends = () => page.evaluate(() => [...document.querySelectorAll("[data-studio-page] [data-pack-connectors] circle")].map((c) => `${c.getAttribute("cx")},${c.getAttribute("cy")}`));
+  const before = await ends();
+  await page.evaluate(() => {
+    for (const el of document.querySelectorAll<HTMLElement>("[data-studio-page] [data-zone-id]")) el.style.transform = "translate(30px, 40px)";
+    document.querySelector("[data-studio-page]")!.appendChild(document.createElement("i"));
+  });
+  await expect.poll(ends).not.toEqual(before);
+});
