@@ -18,7 +18,7 @@ describe("LookGallery", () => {
       if (id === "hud" && fail) return Promise.reject(new Error("chunk failed"));
       return id === "hud" ? Promise.resolve({ ...CLASSIC, id: "hud", name: "Hud" }) : Promise.resolve(undefined);
     });
-    render(<LookGallery currentLookId="classic" saved={[]} onPick={() => {}} onMore={() => {}} moreCount="" />);
+    render(<LookGallery currentLookId="classic" saved={[]} onPick={() => {}} onMore={() => {}} moreCount="" onRemovePack={() => 0} />);
     await act(async () => {});
     expect(screen.getByRole("button", { name: /^Classic/ })).toBeTruthy();
     const retry = screen.getByRole("button", { name: "Retry HUD" });

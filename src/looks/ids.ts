@@ -21,7 +21,7 @@ export const PACK_FONT_FAMILIES: readonly string[] = ["pack-classy", "pack-class
 
 /** The user packs the app data folder holds (P12b): ids the server listed, set by `registerUserLooks` before a config is read. Never a built-in's. */
 const USER_LOOK_IDS = new Set<string>();
-export const registerUserLooks = (ids: readonly string[]): void => void ids.forEach((id) => USER_LOOK_IDS.add(id));
+export const registerUserLooks = (ids: readonly string[], on = true): void => void ids.forEach((id) => (on ? USER_LOOK_IDS.add(id) : USER_LOOK_IDS.delete(id)));
 
 /** Whether a value names a Look of the registry or a user pack of the app data folder. */
 export const isLookId = (v: unknown): v is string => typeof v === "string" && (LOOK_IDS.includes(v) || USER_LOOK_IDS.has(v));

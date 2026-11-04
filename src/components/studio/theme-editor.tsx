@@ -51,6 +51,7 @@ import { exceptionsOf, widgetOverrides } from "./theme-exceptions";
 import { FineTuneHeader, FineTuneRow, RowsLabel } from "./theme-fine-tune";
 import { changedHere, fineTuneChip, fineTuneHeading, fineTuneSummary, resetFineTune } from "./theme-fine-tune-model";
 import { LookGallery } from "./look-gallery";
+import { lookUses, withoutLookId } from "@/looks/user-pack-config";
 import { lookName as lookNameOf } from "./look-gallery-model";
 import { LookKnobs } from "./look-knobs";
 import { useStablePreset } from "./look-thumb";
@@ -535,6 +536,11 @@ export function ThemeEditor({ config, scope: requested, profileId, pageId, onPic
               onPick={(p, keepBackground, look) => (look ? pickLook(p, keepBackground) : applyPreset(p, keepBackground))}
               onMore={() => setDrill("themes")}
               moreCount={themeCounts(presets.presets.length, rows ?? [])}
+              onRemovePack={(id) => {
+                const worn = lookUses(config, id);
+                if (worn > 0) setConfig((c) => withoutLookId(c, id), key("remove-pack"));
+                return worn;
+              }}
             />
             <FineTuneHeader heading={`Advanced · ${fineTuneHeading(changed)}`} />
             {THEME_CARDS.map(renderSection)}

@@ -4,6 +4,7 @@
 import type { ScreenTemplate, ShapeClass, ShapeLayout } from "@/lib/screen-templates/kit";
 import { modules } from "@/modules";
 import { chromeOf } from "./chrome";
+import { LOOK_IDS } from "./ids";
 import { iconSetIssues } from "./icon-set";
 import { setPackId, type Pack } from "./pack";
 import { lintPackCss, scopePackCss } from "./pack-css";
@@ -36,6 +37,25 @@ export function registerPack(id: string, load: () => Promise<{ default: Pack }>)
 /** Takes a registered pack source out again (tests). */
 export function unregisterPack(id: string): void {
   delete BUILTIN[id];
+  setPackId(id, false);
+  shared.delete(id);
+}
+
+/** User packs by id (P12b): sources the app data folder gave, kept apart from `BUILTIN` so no user pack can take a built-in's place. */
+const USER: Record<string, () => Promise<{ default: Pack }>> = Object.create(null);
+
+/** Registers a user pack read from the app data folder (`user-packs.ts`); false for an id a built-in Look or pack has. */
+export function registerUserPack(id: string, load: () => Promise<{ default: Pack }>): boolean {
+  if (LOOK_IDS.includes(id) || Object.hasOwn(BUILTIN, id)) return false;
+  USER[id] = load;
+  setPackId(id, true);
+  shared.delete(id);
+  return true;
+}
+
+/** Takes a user pack out again (removed or replaced). */
+export function unregisterUserPack(id: string): void {
+  delete USER[id];
   setPackId(id, false);
   shared.delete(id);
 }
@@ -127,11 +147,12 @@ const shared = new Map<string, { load: () => Promise<{ default: Pack }>; pack: P
 
 /** `loadPack` once per pack id: every zone, the page and the studio canvas share one import and one validation. A failed import is tried again. */
 export function sharedPack(id: string): Promise<Pack | undefined> {
-  const load = Object.hasOwn(BUILTIN, id) ? BUILTIN[id] : undefined;
+  const sources = Object.hasOwn(BUILTIN, id) ? BUILTIN : USER;
+  const load = Object.hasOwn(sources, id) ? sources[id] : undefined;
   if (!load) return Promise.resolve(undefined);
   const known = shared.get(id);
   if (known?.load === load) return known.pack;
-  const pack = loadPack(id);
+  const pack = loadPack(id, sources);
   shared.set(id, { load, pack });
   pack.catch(() => shared.get(id)?.pack === pack && shared.delete(id));
   return pack;

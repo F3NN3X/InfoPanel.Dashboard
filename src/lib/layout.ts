@@ -12,7 +12,7 @@ import { mainPage, normalizeRotate } from "./pages";
 import { normalizeAlerts, type AlertsConfig } from "./alerts";
 import { storageCopy } from "./canvas-store";
 import { normalizeIsland, type IslandConfig } from "./island/config";
-import { usesSampleCards } from "@/looks/sample-cards";
+import { usesSampleCards, userLookIds } from "@/looks/sample-cards";
 import { normalizePerformance, type ScreenPerformance } from "./performance";
 import type { LegacyDashboardFields } from "./screen-look-migrate";
 import {
@@ -644,9 +644,11 @@ export async function readConfig(input: StoredConfig, log?: string[]): Promise<D
   return upgradeConfig(input, log);
 }
 
-/** Loads the sample themes' cards (a chunk of their own) before a config that picks one is drawn. */
+/** Loads the sample themes' cards (a chunk of their own) before a config that picks one is drawn, and the user packs it names (a chunk of their own, read from the app data folder). */
 async function withSampleCards(input: unknown): Promise<void> {
   if (usesSampleCards(input)) (await import("@/looks/sample-materials")).registerSampleCards();
+  const packs = userLookIds(input);
+  if (packs.length) await (await import("@/looks/user-packs")).registerUserPacks(packs);
 }
 
 /**
