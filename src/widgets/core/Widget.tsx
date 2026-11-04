@@ -113,7 +113,7 @@ export function Widget({ title, icon, iconOverride, accent, surface, radius, siz
   }, []);
   useEffect(() => ensureSkinFonts(skin), [skin]);
   const scope = useId();
-  const ctx = useMemo(() => skinContext(skin, { graph, meter, chrome, t3, slots }), [skin, graph, meter, chrome, t3, slots]);
+  const ctx = useMemo(() => skinContext(skin, { graph, meter, chrome, t3, slots, packed: !!packId }), [skin, graph, meter, chrome, t3, slots, packId]);
   const sk = ctx;
   const isStudio = variant === "studio";
   const surf = resolveSurface(look?.surface ? String(look.surface) : surface, skin, isStudio);

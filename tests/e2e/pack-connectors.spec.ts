@@ -4,7 +4,7 @@ import { PACK_STYLES } from "../../tools/qa/pack-styles.mjs";
 import { expect, manifest, test } from "./fixtures";
 
 // L72 (P11, Holo): the kiosk writes a zone's id (`data-zone-id`) only for a page whose pack draws connectors, and then the stage draws an
-// elbow from the page's largest zone to each other zone. Every other page keeps the markup it had (no `data-zone-id`, no connector layer).
+// elbow from the largest widget zone to each other zone. Every other page keeps the markup it had (no `data-zone-id`, no connector layer).
 
 const heavy = manifest.profiles.heavy;
 
@@ -22,10 +22,11 @@ async function openKiosk(page: import("@playwright/test").Page, scratch: { dataD
 test("Holo's kiosk page writes the zone ids and draws a connector from the largest zone to every other", async ({ page, scratch }) => {
   await openKiosk(page, scratch, "holo");
   const zones = manifest.zones.heavy.length;
+  const spokes = zones - 2;
   await expect(page.locator("[data-zone-id]")).toHaveCount(zones);
-  // the elbows and their end dots: one path and one dot per spoke
-  await expect(page.locator("[data-pack-connectors] path")).toHaveCount(zones - 1);
-  await expect(page.locator("[data-pack-connectors] circle")).toHaveCount(zones - 1);
+  // the elbows and their end dots: one path and one dot per spoke; the page's InfoPanel items layer is a surface, not a zone to join
+  await expect(page.locator("[data-pack-connectors] path")).toHaveCount(spokes);
+  await expect(page.locator("[data-pack-connectors] circle")).toHaveCount(spokes);
   const report = await page.evaluate(() => {
     const svg = document.querySelector("[data-pack-connectors]") as SVGSVGElement;
     const origin = svg.getBoundingClientRect();
@@ -40,6 +41,26 @@ test("Holo's kiosk page writes the zone ids and draws a connector from the large
   expect(report.size).toEqual([1280, 720]);
   expect(report.pointerEvents).toBe("none");
   expect(report.hidden).toBe("true");
+});
+
+test("Holo's connectors follow a zone that moves without resizing, on scroll and when an element mounts", async ({ page, scratch }) => {
+  await openKiosk(page, scratch, "holo");
+  await expect(page.locator("[data-pack-connectors] circle")).toHaveCount(manifest.zones.heavy.length - 2);
+  const ends = () => page.evaluate(() => [...document.querySelectorAll("[data-pack-connectors] circle")].map((c) => `${c.getAttribute("cx")},${c.getAttribute("cy")}`));
+  const before = await ends();
+  // every zone shifts 40 px down (no resize), and the page scrolls: the lines are measured again
+  await page.evaluate(() => {
+    for (const el of document.querySelectorAll<HTMLElement>("[data-zone-id]")) el.style.transform = "translate(30px, 40px)";
+    document.dispatchEvent(new Event("scroll"));
+  });
+  await expect.poll(ends).not.toEqual(before);
+  const scrolled = await ends();
+  // a node mounting (a late zone, a lazy widget) measures again too
+  await page.evaluate(() => {
+    for (const el of document.querySelectorAll<HTMLElement>("[data-zone-id]")) el.style.transform = "translate(60px, 80px)";
+    document.body.appendChild(document.createElement("i"));
+  });
+  await expect.poll(ends).not.toEqual(scrolled);
 });
 
 for (const id of ["term", "swiss-mono", "overdrive", "neon-stripe"]) {

@@ -33,6 +33,12 @@ export function hubLinks(zones: readonly ZoneSize[]): [string, string][] {
   return hub ? zones.filter((z) => z !== hub).map((z) => [hub.id, z.id]) : [];
 }
 
+const sameRects = (a: ReadonlyMap<string, Rect>, b: ReadonlyMap<string, Rect>): boolean =>
+  a.size === b.size && [...b].every(([id, r]) => {
+    const o = a.get(id);
+    return !!o && o.x === r.x && o.y === r.y && o.width === r.width && o.height === r.height;
+  });
+
 /** `deco` and `style` carry the stage's burn-in protection (drift, dim), so the lines move and fade with the page layers. */
 export default function ConnectorLayer({ links, connectors, className = "", deco = "", style }: { links: readonly (readonly [string, string])[]; connectors: PackConnectors; className?: string; deco?: string; style?: CSSProperties }) {
   const ref = useRef<SVGSVGElement>(null);
@@ -40,6 +46,7 @@ export default function ConnectorLayer({ links, connectors, className = "", deco
   useLayoutEffect(() => {
     const svg = ref.current;
     if (!svg) return;
+    const watched = new Set<Element>();
     const measure = () => {
       const origin = svg.getBoundingClientRect();
       const next = new Map<string, Rect>();
@@ -47,14 +54,33 @@ export default function ConnectorLayer({ links, connectors, className = "", deco
         const el = document.querySelector(`[data-zone-id="${CSS.escape(id)}"]`);
         const r = el?.getBoundingClientRect();
         if (r) next.set(id, { x: r.left - origin.left, y: r.top - origin.top, width: r.width, height: r.height });
-        if (el) watch.observe(el);
+        if (el && !watched.has(el)) {
+          watched.add(el);
+          resize.observe(el);
+        }
       }
-      setRects(next);
+      setRects((prev) => (sameRects(prev, next) ? prev : next));
     };
-    const watch = new ResizeObserver(measure);
+    // A zone moves without resizing (a scroll, a late mount, a page slide), so it also re-measures on scroll of any container,
+    // on the window's resize and when elements come or go: at most once a frame.
+    let frame = 0;
+    const later = () => {
+      if (!frame) frame = requestAnimationFrame(() => ((frame = 0), measure()));
+    };
+    const resize = new ResizeObserver(later);
+    const mutations = new MutationObserver(later);
     measure();
-    watch.observe(svg);
-    return () => watch.disconnect();
+    resize.observe(svg);
+    mutations.observe(document.body, { childList: true, subtree: true });
+    document.addEventListener("scroll", later, { capture: true, passive: true });
+    window.addEventListener("resize", later);
+    return () => {
+      cancelAnimationFrame(frame);
+      resize.disconnect();
+      mutations.disconnect();
+      document.removeEventListener("scroll", later, { capture: true });
+      window.removeEventListener("resize", later);
+    };
   }, [links]);
   return (
     <svg ref={ref} aria-hidden data-pack-deco={deco} data-pack-connectors="" className={`pointer-events-none h-full w-full ${className}`} style={style} fill="none" stroke="var(--w-accent, currentColor)" strokeWidth={1.5} strokeOpacity={0.6}>

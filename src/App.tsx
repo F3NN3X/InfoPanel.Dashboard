@@ -6,6 +6,7 @@ import { PlacementFrame } from "@/components/studio/placement-frame";
 import { LivePlacement } from "@/components/studio/placement-content";
 import { PageBackground } from "@/components/page-background";
 import { PackStage, packBackground, usePack } from "@/looks/pack";
+import { connectorZones } from "@/looks/connector-zones";
 import { startKioskPull } from "@/lib/kiosk-config-pull";
 import { KioskConnecting } from "@/components/ui/kiosk-connecting";
 import { KioskOfflinePill } from "@/components/ui/kiosk-offline";
@@ -248,7 +249,7 @@ export default function App({ fixture }: AppProps = {}) {
   const bottomIsland = (islandConfig?.edge ?? packEdge) === "bottom";
   // A pack that draws connectors reads the page's zones (and the kiosk then writes their ids); any other page's markup is as it was.
   const linked = !!pack?.connectors;
-  const zones = useMemo(() => (linked ? drawn.filter((p) => p.visible) : undefined), [linked, drawn]);
+  const zones = useMemo(() => (linked ? connectorZones(drawn, profile) : undefined), [linked, drawn, profile]);
   // The app settings under the shown screen's page font and performance.
   const general = useMemo(() => resolveGeneral(config, stored), [config, stored]);
   // Max FPS and motion: the ?fps= / ?animations= / ?motion= overrides (kiosk pages) over the shown profile's.

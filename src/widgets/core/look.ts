@@ -46,11 +46,12 @@ export function forcedTier(look: ModuleSettings | undefined, size: Tier | "auto"
  * replaces the skin's UI and numeral fonts, `fontWeight` the numeral weight, `gap` is exposed.
  * A Look's T3 values (`t3`) set the tokens they differ from Classic in, over the skin's.
  */
-export function skinContext(skin: string, opts: { graph?: string; meter?: string; chrome?: ModernChrome; t3?: Record<string, string | number>; slots?: PackSlots } = {}): SkinContext {
+export function skinContext(skin: string, opts: { graph?: string; meter?: string; chrome?: ModernChrome; t3?: Record<string, string | number>; slots?: PackSlots; packed?: boolean } = {}): SkinContext {
   const sk = { ...(SKINS[skin] ?? SKINS.default), ...t3Tokens(opts.t3) };
   const { graph, meter, chrome } = opts;
   const stroke = chrome?.stroke && chrome.stroke > 0 ? chrome.stroke : 1;
-  const font = chrome?.font && chrome.font !== "auto" ? FONT_STACKS[chrome.font] : undefined;
+  // A worn pack draws its own faces (pack.css), so the look's Font does not reach it: inline styles would beat the pack's rules (L80).
+  const font = !opts.packed && chrome?.font && chrome.font !== "auto" ? FONT_STACKS[chrome.font] : undefined;
   const weight = chrome?.fontWeight && chrome.fontWeight !== "auto" ? Number(chrome.fontWeight) : undefined;
   return {
     skin,

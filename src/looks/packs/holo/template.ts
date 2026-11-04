@@ -27,7 +27,7 @@ export const HOLO_COCKPIT: ScreenTemplate = {
   look: {
     theme: "zinc",
     radius: 0.125,
-    style: { lookId: "holo", surface: "look-holo", accent: "#4FD8FF", textColor: "#EAF9FF", mutedColor: "#7FA6B8", font: "sans" },
+    style: { lookId: "holo", surface: "look-holo", accent: "#4FD8FF", textColor: "#EAF9FF", mutedColor: "#7FA6B8", font: "auto" },
     background: { type: "gradient", gradient: { from: "#0B2A3E", to: "#020810", angle: 180 } },
     gap: 24,
     padding: 24,
