@@ -320,6 +320,7 @@ Filled in during stage 2 (see `02-implementation-runbook.md`, section 4). Every 
   - M4 (confirmed, fixed): `chromeOf` reads `ok`/`warn`/`crit` through `statusColor` (`color()` and a non-numeric start), so a widget's numeric `warn`/`crit` threshold is no longer written as `--w-warn: 80`. Case in `widget-style.test.ts`.
   - L1 (real, ledgered L57): StreamMixer's master colour is a `var(--w-master, #e4e4e7)` string; pixels are equal, the inline markup is not, and v8 parity passes. L2 (real, fixed): the Look's modes reset while the next Look loads and a failed load is caught. L3: fixed with the regression above. L4 (real, ledgered L58). L5 (real, ledgered L59).
   - Pixels: dark markup and images unchanged (v8 parity, glass look-visual); no baseline refreshed.
+  - Verify: `node tools/verify.mjs --full --keep-going` exit 0, all 18 checks passed, 383 s (the first run failed only `lint`: a missing biome-ignore in my new test). Budgets not moved: kiosk 279,065 B gzip (-106 on 279,171), studio 620,297 B (-89 on 620,386).
 
 ## Ledger: known issues and deferred work
 
