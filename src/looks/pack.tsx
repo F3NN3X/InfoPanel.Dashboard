@@ -5,6 +5,7 @@ import { useEffect, useState, type ComponentType } from "react";
 import type { IconGlyph } from "@/widgets/core/types";
 import type { ScreenTemplate } from "@/lib/screen-templates/kit";
 import type { PackEffect, SizeClass } from "./effects";
+import type { PackChrome } from "./chrome";
 import type { Look } from "./look";
 
 /** One page layer under the grid: a fill (a colour or gradient) and/or an image from the pack's own folder (`base` + `image`). */
@@ -89,6 +90,8 @@ export interface Pack {
   templates?: ScreenTemplate[];
   /** Set by the loader. */
   Stage?: StageView;
+  /** Set by the loader: the pack's surface, text and edge for the island's pill and the alert cards (`chromeOf`, L25). */
+  chrome?: PackChrome;
 }
 
 const ids = new Set<string>(["field-kit", "tape-86", "term", "neon-stripe", "overdrive", "swiss-mono", "holo", "night-glow", "paper", "classy-black", "liquid-glass", "black-and-gold"]);

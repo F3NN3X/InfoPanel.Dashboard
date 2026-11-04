@@ -9,7 +9,7 @@ const from = (pack: Pack) => ({ [pack.id]: async () => ({ default: pack }) });
 describe("the pack loader (G4)", () => {
   it("loads a pack that passes every check", async () => {
     expect(packIssues(TEST_PACK)).toEqual([]);
-    expect(await loadPack("test-pack", from(TEST_PACK))).toEqual({ ...TEST_PACK, Stage: expect.any(Function) });
+    expect(await loadPack("test-pack", from(TEST_PACK))).toEqual({ ...TEST_PACK, Stage: expect.any(Function), chrome: { fill: expect.any(String), ink: expect.any(String), edge: expect.any(String) } });
   });
 
   it.each([

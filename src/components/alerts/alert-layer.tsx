@@ -7,7 +7,6 @@ import type { ProfileView } from "@/lib/layout";
 import { modules } from "@/modules";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { cn } from "@/lib/utils";
-import { packChrome } from "@/looks/chrome";
 import { usePack } from "@/looks/pack";
 import {
   ageLabel,
@@ -95,7 +94,7 @@ interface AlertLayerProps {
 /** The kiosk's alert display: toasts, banners and overlays over the grid, with an optional backdrop. */
 export function AlertLayer({ alerts, onAck, lookId }: AlertLayerProps) {
   const reduced = useReducedMotion();
-  const chrome = packChrome(usePack(lookId));
+  const chrome = usePack(lookId)?.chrome;
   const { items, leavingIds } = useWithExiting(alerts, !reduced);
   const now = useNow(items.length > 0);
   const slots = useMemo(() => groupBySlot(items), [items]);

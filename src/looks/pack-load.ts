@@ -4,6 +4,7 @@
 import type { ScreenTemplate, ShapeClass, ShapeLayout } from "@/lib/screen-templates/kit";
 import { modules } from "@/modules";
 import { safeFill, safeGradient } from "@/widgets/core/t3-tokens";
+import { chromeOf } from "./chrome";
 import { effectIssues, SIZE_CLASSES } from "./effects";
 import { iconSetIssues } from "./icon-set";
 import { resolveT1, type Look } from "./look";
@@ -154,7 +155,7 @@ export async function loadPack(id: string, sources: Record<string, () => Promise
   const load = Object.hasOwn(sources, id) ? sources[id] : undefined;
   if (!load) return undefined;
   const pack = (await load()).default;
-  return pack?.id === id && pack.look && packIssues(pack).length === 0 ? { ...pack, Stage: PackStageLayers } : undefined;
+  return pack?.id === id && pack.look && packIssues(pack).length === 0 ? { ...pack, Stage: PackStageLayers, chrome: chromeOf(pack.look) } : undefined;
 }
 
 /** The page templates of every built-in pack, for the New screen flow (a pack that fails to load or is refused adds none). */
