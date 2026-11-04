@@ -41,6 +41,17 @@ export function safeFill(value: unknown): string | undefined {
   return LONE_COLOUR.test(css) || (COLOUR_CALL.test(css) && plain(css)) ? css : safeGradient(css);
 }
 
+const STRETCH_WORDS = ["ultra-condensed", "extra-condensed", "condensed", "semi-condensed", "semi-expanded", "expanded", "extra-expanded", "ultra-expanded"] as const;
+const GRAPH_STYLES = ["line", "step", "bars", "dots", "braille"] as const;
+
+/** A `font-stretch` keyword or a percentage from 50 % to 200 %, else undefined; `normal` is the default and maps to nothing. */
+function safeStretch(value: unknown): string | undefined {
+  const css = typeof value === "string" ? value.trim().toLowerCase() : "";
+  if ((STRETCH_WORDS as readonly string[]).includes(css)) return css;
+  const pct = /^(\d{2,3}(?:\.\d{1,2})?)%$/.exec(css);
+  return pct && Number(pct[1]) >= 50 && Number(pct[1]) <= 200 ? css : undefined;
+}
+
 const oneOf = <T extends string>(value: unknown, names: readonly T[]): T | undefined => names.find((n) => n === value);
 const off = (value: unknown) => value === undefined || value === "none";
 
@@ -51,11 +62,12 @@ export function t3Tokens(t3: Readonly<Record<string, string | number>> | undefin
   const numFill = t3["num-fill"] === "solid" ? undefined : safeGradient(t3["num-fill"]);
   if (numFill) out.numFill = numFill;
   if (t3["num-effect"] === "chromatic") out.numChroma = true;
-  if (t3["num-stretch"] !== undefined && t3["num-stretch"] !== "normal") out.numStretch = String(t3["num-stretch"]);
+  const stretch = safeStretch(t3["num-stretch"]);
+  if (stretch) out.numStretch = stretch;
   if (!off(t3["label-glow"])) out.labelGlow = true;
   if (!off(t3["series-glow"])) out.glow = true;
-  const graph = t3["graph-style"];
-  if (graph !== undefined && graph !== "area" && typeof graph === "string") out.graph = graph;
+  const graph = oneOf(t3["graph-style"], GRAPH_STYLES);
+  if (graph) out.graph = graph;
   if (/^0(px|rem|em)?$/.test(String(t3["cell-radius"]))) out.cellSquare = true;
   const header = oneOf(t3["header-style"], ["prompt", "icon-badge"]);
   if (header) out.header = header;

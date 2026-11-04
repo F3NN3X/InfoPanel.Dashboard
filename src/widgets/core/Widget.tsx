@@ -2,6 +2,7 @@
 // look, picks the view.
 import { createContext, useContext, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { chromeVars, numGlowAttr, scopedCss, zoomFor, type DesignSizeSpec } from "@/components/widget-style";
+import type { PackSlots } from "@/looks/pack";
 import { materialVars, resolveMaterial } from "@/looks/materials";
 import { chromeOf } from "@/modules/standard-settings";
 import type { ModuleSettings } from "@/modules/types";
@@ -46,6 +47,8 @@ export interface WidgetProps {
   studio?: Studio | ((box: Box) => Studio | undefined);
   /** The Look's T3 values (`src/looks/t3.ts`): the data-viz names it sets that differ from Classic's draw through `t3Tokens`. */
   t3?: Record<string, string | number>;
+  /** A pack Look's ornament, tab band and icon set. */
+  slots?: PackSlots;
   /** The zone's resolved settings (`src/modules/standard-settings.ts`); absent = template behaviour. */
   look?: ModuleSettings;
   /** A full-bleed layer under the content (e.g. blurred cover art). */
@@ -78,6 +81,8 @@ export const shell = (p: ShellInput): Partial<WidgetProps> => ({
   skin: p.skin,
   graph: p.graph,
   meter: p.meter,
+  t3: p.t3,
+  slots: p.slots,
   variant: p.variant,
   look: p.look,
   iconOverride: p.iconOverride,
@@ -87,7 +92,7 @@ export const shell = (p: ShellInput): Partial<WidgetProps> => ({
 const typeVars = (scale: number): CSSProperties =>
   ({ "--text-micro": `calc(0.6875rem * ${scale})`, "--text-caption": `calc(0.75rem * ${scale})`, "--text-body": `calc(0.8125rem * ${scale})`, "--text-title": `calc(0.9375rem * ${scale})` }) as CSSProperties;
 
-export function Widget({ title, icon, iconOverride, accent, surface, radius, size, showHeader = true, right, className = "", style, children, bleed, compact, compactView, skin = "default", graph, meter, variant, studio, look, t3, backdrop, design = DESIGN_SIZE, fixedType }: WidgetProps) {
+export function Widget({ title, icon, iconOverride, accent, surface, radius, size, showHeader = true, right, className = "", style, children, bleed, compact, compactView, skin = "default", graph, meter, variant, studio, look, t3, slots, backdrop, design = DESIGN_SIZE, fixedType }: WidgetProps) {
   const chrome = useMemo(() => (look ? chromeOf(look) : undefined), [look]);
   // A zone past the design size zooms the content with it, and Size % on top; the tier and shape are taken from the zoomed size.
   const [ref, box, zoom] = useBox(forcedTier(look, size), (w, h) => zoomFor({ w, h }, design ?? undefined, chrome));
@@ -103,7 +108,7 @@ export function Widget({ title, icon, iconOverride, accent, surface, radius, siz
   }, []);
   useEffect(() => ensureSkinFonts(skin), [skin]);
   const scope = useId();
-  const ctx = useMemo(() => skinContext(skin, { graph, meter, chrome, t3 }), [skin, graph, meter, chrome, t3]);
+  const ctx = useMemo(() => skinContext(skin, { graph, meter, chrome, t3, slots }), [skin, graph, meter, chrome, t3, slots]);
   const sk = ctx;
   const isStudio = variant === "studio";
   const surf = resolveSurface(look?.surface ? String(look.surface) : surface, skin, isStudio);

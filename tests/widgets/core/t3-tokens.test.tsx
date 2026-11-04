@@ -27,6 +27,18 @@ describe("t3Tokens", () => {
   });
 });
 
+describe("free-text T3 values", () => {
+  it("keeps a font-stretch keyword or an in-range percentage, nothing that could end the declaration", () => {
+    expect(t3Tokens({ "num-stretch": "82%" }).numStretch).toBe("82%");
+    expect(t3Tokens({ "num-stretch": "Condensed" }).numStretch).toBe("condensed");
+    for (const bad of ["100%;pointer-events:auto", "normal", "10%", "900%", "url(x)", "82%}", 82]) expect(t3Tokens({ "num-stretch": bad }).numStretch, String(bad)).toBeUndefined();
+  });
+  it("keeps a graph style the drawing code knows and drops the rest", () => {
+    for (const ok of ["line", "step", "bars", "dots", "braille"]) expect(t3Tokens({ "graph-style": ok }).graph).toBe(ok);
+    for (const bad of ["area", "line;x:y", "evil", 3]) expect(t3Tokens({ "graph-style": bad }).graph, String(bad)).toBeUndefined();
+  });
+});
+
 describe("safeGradient and safeFill", () => {
   it("accept gradients with colour stops, colours and var(--w-*)", () => {
     expect(safeGradient(GRAD)).toBe(GRAD);

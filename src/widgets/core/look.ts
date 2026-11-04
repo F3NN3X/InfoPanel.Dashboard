@@ -4,6 +4,7 @@ import type { CSSProperties } from "react";
 import type { ModernChrome } from "@/components/modern-chrome";
 import { FONT_STACKS } from "@/lib/general";
 import type { SurfaceTone } from "@/looks/materials";
+import type { PackSlots } from "@/looks/pack";
 import { DEFAULT_ACCENT } from "@/looks/palette";
 import { sizeTierOf } from "@/modules/setting-readers";
 import { chromeOf } from "@/modules/standard-settings";
@@ -45,7 +46,7 @@ export function forcedTier(look: ModuleSettings | undefined, size: Tier | "auto"
  * replaces the skin's UI and numeral fonts, `fontWeight` the numeral weight, `gap` is exposed.
  * A Look's T3 values (`t3`) set the tokens they differ from Classic in, over the skin's.
  */
-export function skinContext(skin: string, opts: { graph?: string; meter?: string; chrome?: ModernChrome; t3?: Record<string, string | number> } = {}): SkinContext {
+export function skinContext(skin: string, opts: { graph?: string; meter?: string; chrome?: ModernChrome; t3?: Record<string, string | number>; slots?: PackSlots } = {}): SkinContext {
   const sk = { ...(SKINS[skin] ?? SKINS.default), ...t3Tokens(opts.t3) };
   const { graph, meter, chrome } = opts;
   const stroke = chrome?.stroke && chrome.stroke > 0 ? chrome.stroke : 1;
@@ -54,6 +55,7 @@ export function skinContext(skin: string, opts: { graph?: string; meter?: string
   return {
     skin,
     ...sk,
+    ...opts.slots,
     graph: graph && graph !== "auto" ? graph : sk.graph ?? "area",
     meter: meter && meter !== "auto" ? meter : sk.meter ?? "bar",
     ring: (sk.ring ?? 1) * stroke,

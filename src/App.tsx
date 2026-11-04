@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { PlacementFrame } from "@/components/studio/placement-frame";
 import { LivePlacement } from "@/components/studio/placement-content";
 import { PageBackground } from "@/components/page-background";
+import { PackStage, packBackground, usePack } from "@/looks/pack";
 import { startKioskPull } from "@/lib/kiosk-config-pull";
 import { KioskConnecting } from "@/components/ui/kiosk-connecting";
 import { KioskOfflinePill } from "@/components/ui/kiosk-offline";
@@ -239,6 +240,8 @@ export default function App({ fixture }: AppProps = {}) {
   const appearance = appearanceOf(config, profile);
   // The skin the widgets of this screen wear, for an island that is part of it.
   const pageSkin = useMemo(() => pageSkinOf(appearanceOf(config, profile)), [config, profile]);
+  // A pack Look's page layers (its stage) count as a page background.
+  const pack = usePack(pageSkin.lookId);
   // The app settings under the shown screen's page font and performance.
   const general = useMemo(() => resolveGeneral(config, stored), [config, stored]);
   // Max FPS and motion: the ?fps= / ?animations= / ?motion= overrides (kiosk pages) over the shown profile's.
@@ -714,7 +717,7 @@ export default function App({ fixture }: AppProps = {}) {
           // A page background replaces the theme's page color (it sits
           // behind the grid, under this element's own paint).
           "flex flex-col text-foreground",
-          !background && "bg-background",
+          !background && !packBackground(pack) && "bg-background",
           kiosk && "kiosk",
           kiosk && !fill && "kiosk-scroll",
           kiosk && general.hideCursor && "kiosk-hide-cursor",
@@ -740,6 +743,7 @@ export default function App({ fixture }: AppProps = {}) {
         onPointerCancel={() => (gesture.current = null)}
       >
         {background && <PageBackground background={background} className="fixed inset-0 -z-10" />}
+        <PackStage pack={pack} className="fixed inset-0 -z-10" overlayClassName="fixed inset-0 z-10" />
 
         {/* Header (hidden in kiosk mode) */}
         {!kiosk && (

@@ -123,14 +123,15 @@ declare global {
 window.__qaMountAll = async () => {
   flushSync(forceMountAll);
   await document.fonts.ready;
-  // Settled = the element count unchanged over 0.75 s of samples: lazy chunks and ResizeObserver re-renders land at
-  // load-dependent times, so a fixed wait let a slow run read a half-built frame (ledger L50). Text is left out: the demo
-  // streams keep changing it and would never settle. Bounded at 6 s; a cap that is reached is logged and returned as false.
+  // Settled = the element count and the number of fetched files (a lazy chunk, a pack's parts) unchanged over 0.75 s of
+  // samples: lazy chunks and ResizeObserver re-renders land at load-dependent times, so a fixed wait let a slow run read a
+  // half-built frame (ledger L50, L60). Text is left out: the demo streams keep changing it and would never settle.
+  // Bounded at 6 s; a cap that is reached is logged and returned as false.
   let last = -1;
   let still = 0;
   for (let i = 0; i < 24 && still < 3; i++) {
     await new Promise((r) => setTimeout(r, 250));
-    const now = document.body.getElementsByTagName("*").length;
+    const now = document.body.getElementsByTagName("*").length + performance.getEntriesByType("resource").length / 1e4;
     still = now === last ? still + 1 : 0;
     last = now;
   }

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, type ComponentType } from "react";
 import { compactOf } from "@/modules/setting-readers";
 import { STANDARD_SETTINGS } from "@/modules/standard-settings";
 import { withHwinfoAliases } from "@/lib/hwinfo-aliases";
+import { usePack } from "@/looks/pack";
 import { islandSettings, type IslandSourceDef } from "@/lib/island/sources";
 import { effectiveSettings, type DashboardModule, type ModuleSetting, type ModuleSettings, type SensorMap } from "@/modules/types";
 import { ensureSkinFonts } from "./core/fonts";
@@ -133,7 +134,9 @@ export function templateModule<P extends object>({ meta, Component, settings, to
     const data = useMemo(() => toFlat(aliased), [aliased]);
     const names = useMemo(() => toNames(aliased), [aliased]);
     const look = useZoneLook(all, saved, surfaceDefault);
-    return <Component data={data} names={names} {...shellProps(look)} {...toProps(look, saved)} look={look} />;
+    // A pack Look's T3 values and slots (none for Classic, the skins and the sample Looks).
+    const pack = usePack(typeof look.lookId === "string" ? look.lookId : undefined);
+    return <Component data={data} names={names} {...shellProps(look)} {...toProps(look, saved)} t3={pack?.look.t3} slots={pack?.slots} look={look} />;
   }
   return mod;
 }

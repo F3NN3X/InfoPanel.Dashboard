@@ -1,5 +1,6 @@
 // Shared widget-library types.
 import type { ComponentType, CSSProperties, ReactNode } from "react";
+import type { PackSlots } from "@/looks/pack";
 import type { ModuleSettings } from "@/modules/types";
 
 export type Data = Record<string, string | { value: string }>;
@@ -17,6 +18,9 @@ export interface ShellProps {
   skin?: string;
   graph?: string;
   meter?: string;
+  /** A pack Look's T3 values and component slots (`usePack`); unset for every other Look. */
+  t3?: Record<string, string | number>;
+  slots?: PackSlots;
   variant?: "default" | "studio";
   size?: Tier | "auto";
   compactView?: "auto" | "off" | "on";
