@@ -149,4 +149,11 @@ describe("withIsland", () => {
     const p = { island: { ...ISLAND_DEFAULTS, offsetY: 20 } };
     expect(withIsland(p, { idle: "hidden" }).island).toEqual({ ...ISLAND_DEFAULTS, offsetY: 20, idle: "hidden" });
   });
+
+  it("drops the edge key when the edge goes back to Auto, so a saved island has none", () => {
+    const p = { island: { ...ISLAND_DEFAULTS, edge: "bottom" as const } };
+    const island = withIsland(p, { edge: undefined }).island;
+    expect("edge" in island).toBe(false);
+    expect(withIsland(p, { edge: "top" }).island.edge).toBe("top");
+  });
 });

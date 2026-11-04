@@ -836,6 +836,7 @@ export default function App({ fixture }: AppProps = {}) {
           paused={stored.rotate?.enabled === true && control?.profiles[stored.id]?.rotating === false}
           onSelect={goToPage}
           onToggleRotate={() => void postControl("rotate", { profile: stored.id, state: "toggle" })}
+          lift={shownIsland && bottomIsland ? reserve : 0}
         />
 
         {kiosk && touchPanel && (

@@ -222,7 +222,10 @@ export function normalizeIsland(raw: unknown): IslandConfig | undefined {
 
 /** The island with `patch` applied; a profile without one starts from the defaults (switched off). */
 export function withIsland<P extends { island?: IslandConfig }>(profile: P, patch: Partial<IslandConfig>): P {
-  return { ...profile, island: { ...ISLAND_DEFAULTS, enabled: false, ...profile.island, ...patch } };
+  const island: IslandConfig = { ...ISLAND_DEFAULTS, enabled: false, ...profile.island, ...patch };
+  // Auto is the key's absence: a saved island never carries `edge: undefined`.
+  if (island.edge === undefined) delete island.edge;
+  return { ...profile, island };
 }
 
 /** "warn" / "crit" when a value passes its stat's thresholds (the higher wins), else null. */

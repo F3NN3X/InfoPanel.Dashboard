@@ -28,6 +28,8 @@ interface PageDotsProps {
   onSelect: (id: string) => void;
   /** Long-press: pause or resume auto-rotate. */
   onToggleRotate: () => void;
+  /** Px the strip sits above the bottom edge: an island on the bottom edge keeps the edge, the dots go above it. */
+  lift?: number;
 }
 
 /**
@@ -35,7 +37,7 @@ interface PageDotsProps {
  * (or the Pause button, when auto-rotate is on) to pause or resume auto-rotate. Drawn in the dashboard theme; the grid
  * reserves `PAGE_DOTS_STRIP_PX` so the dots never cover a zone.
  */
-export function PageDots({ enabled, scroll, pages, current, rotateOn, paused, onSelect, onToggleRotate }: PageDotsProps) {
+export function PageDots({ enabled, scroll, pages, current, rotateOn, paused, onSelect, onToggleRotate, lift }: PageDotsProps) {
   const timer = useRef<number | undefined>(undefined);
   const fired = useRef(false);
   const reduced = useReducedMotion();
@@ -64,7 +66,7 @@ export function PageDots({ enabled, scroll, pages, current, rotateOn, paused, on
   const cancel = () => window.clearTimeout(timer.current);
   return (
     <div
-      style={{ height: pageDotsStripPx() }}
+      style={lift ? { height: pageDotsStripPx(), bottom: lift } : { height: pageDotsStripPx() }}
       className={cn("pointer-events-none fixed inset-x-0 bottom-0 z-40 flex items-center justify-center gap-2", scroll && "bg-gradient-to-t from-background to-transparent")}
     >
       <div role="group" aria-label="Pages" className="pointer-events-auto relative flex items-center">
