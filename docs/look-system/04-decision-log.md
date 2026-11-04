@@ -94,3 +94,11 @@ The owner approved all phases (investigation §11) and every proposed change abo
 ## Owner authorisation (2026-11-03, during P5a)
 
 The owner gave explicit authority to finish every phase (P5a to P12) as the plan recommends, without asking at each gate. Budget rises are approved at their measured size, each recorded with its reason in its own commit and in the phase record. Decisions taken under this authority follow the plan's recommendations and are written into this log and `progress.md` as they are made.
+
+## P10 (2026-11-04, under the owner authorisation above)
+
+- The first-wave packs are the sample Looks of the same id: `PACK_IDS`/`BUILTIN` name `field-kit`, `tape-86`, `term`, so a saved config that picked the sample wears the pack and keeps its values. The pack's `look.json` T1 equals the sample Look's (a test pins it).
+- Packs bring fonts with the `FontFace` API from bundled subset woff2 (OFL-1.1, recorded in `pack-fonts.md` and `pack.json`), not `@font-face` in pack CSS: a pack-relative `url()` in a mounted stylesheet resolves against the page, not the pack folder. Stage art is SVG whose viewBox is the screen.
+- Light packs fix contrast by choosing darker accent and `ok` values (the plan's "or a darker accent" for L51), not an accent-ink variable.
+- Term takes the inline header: `prompt` changes the body height (G2 and the overflow check win over the look). `box-legend`, `tab-label` and chrome material stay unbuilt (L76, L25).
+- The overflow check compares a pack with the same widget style without it, so only what the pack does is measured.
