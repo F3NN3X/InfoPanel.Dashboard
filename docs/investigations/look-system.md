@@ -2436,6 +2436,22 @@ Budget keys today (`tools/perf/budgets.json`): `kioskEntryGzipBytes` 276492, `st
 - **Rollback.** Disable the user-pack folder read; built-ins unaffected.
 - **Checks.** 11.0, plus `npm run test:server` and `cargo-server`.
 
+### Post-plan polish backlog (not a phase of this plan)
+
+Visual and studio-UI items that came out of P3 to P11b, left open on purpose. They are not part of the P0 to P12 goal and not validator or user-pack work. The owner schedules them after P12; until then each stays a row in `docs/look-system/progress.md` (ledger) under the owner "Post-plan polish backlog". Sizes are rough (S under a day, M a few days).
+
+| Ledger row | Item | Why it waits | Size |
+|---|---|---|---|
+| L23 | Classic T3 values without a consumer (`motion-fast`, `motion-base`, `ease-standard`, `series-fill-alpha`, `series-stroke`) | wait for the first Look that animates a widget | S |
+| L46 | Knob row for panel items and several selected zones; the Variant knob | studio UI; no Look has variants yet | M |
+| L49 | A widget Look's own card stored by the inspector (the clear-key form) | no pack sets a card, so no first user | S |
+| L54 | `data-mode` on dark cards on a light page | CSS and markup work for a Look that needs it; Paper reaches its parts by `data-part` | S |
+| L67 (with L25's panel badge and review L7) | `PanelSkin` takes a pack | a shell change; panel items on a pack Look draw untouched | M |
+| L81 | Stage `glow` gets `--w-accent` (Neon Stripe's and Holo's halo) | a pixel change with its own look-visual refresh | S |
+| L83 | The three header kinds (about 350 B gzip) out of the kiosk entry | needs a pack slot and a Suspense fallback; user packs cannot ship code | S |
+| L90 remainder | Paper's mono labels and focus outline, `label-case` (a T3 name no Look reads), Tape '86's stripe-coloured bars | each a visual item; mono labels widen every label (the overflow runner judges) | M |
+| L92 | The panel item's inline `backdropFilter` is outside the page limit of 8 | a rule for inline styles; no page of panel items with blur is drawn today | S |
+
 ### 11.1 Per-pack size budgets (proposed `budgets.json` shape and values)
 
 `budgets.json` holds flat keys today. Proposed, added in P9 with the test pack and filled per pack in P10 and P11:
