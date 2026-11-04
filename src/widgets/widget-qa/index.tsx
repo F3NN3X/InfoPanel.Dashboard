@@ -112,7 +112,7 @@ export default function WidgetQa() {
 declare global {
   interface Window {
     __qaOverflow?: () => { module: string; span: string; issues: Issue[] }[];
-    __qaMountAll?: () => Promise<void>;
+    __qaMountAll?: () => Promise<boolean>;
     /** The InfoPanel export's card colour for a frame (`surfaceOf`), for the material export check (tests/e2e/material-export.spec.ts). */
     __qaSurfaceOf?: (frame: HTMLElement) => Promise<{ color: string; radius: number } | null>;
   }
@@ -123,16 +123,19 @@ declare global {
 window.__qaMountAll = async () => {
   flushSync(forceMountAll);
   await document.fonts.ready;
-  // Settled = the element count and text length unchanged over 1.5 s of samples: lazy chunks, the demo streams and
-  // ResizeObserver re-renders land at load-dependent times, so a fixed wait let a slow run read a half-built frame (ledger L50).
-  let last = "";
+  // Settled = the element count unchanged over 0.75 s of samples: lazy chunks and ResizeObserver re-renders land at
+  // load-dependent times, so a fixed wait let a slow run read a half-built frame (ledger L50). Text is left out: the demo
+  // streams keep changing it and would never settle. Bounded at 6 s; a cap that is reached is logged and returned as false.
+  let last = -1;
   let still = 0;
-  for (let i = 0; i < 200 && still < 6; i++) {
+  for (let i = 0; i < 24 && still < 3; i++) {
     await new Promise((r) => setTimeout(r, 250));
-    const now = `${document.body.getElementsByTagName("*").length}:${document.body.textContent?.length}`;
+    const now = document.body.getElementsByTagName("*").length;
     still = now === last ? still + 1 : 0;
     last = now;
   }
+  if (still < 3) console.warn("__qaMountAll: the page did not settle within 6 s");
+  return still >= 3;
 };
 window.__qaSurfaceOf = async (frame) => (await import("@/lib/infopanel/native/surface-of")).surfaceOf(frame);
 window.__qaOverflow = () => {
