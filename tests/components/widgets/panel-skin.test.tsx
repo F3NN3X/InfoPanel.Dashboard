@@ -133,7 +133,7 @@ describe("a panel on a pack Look (L67)", () => {
     const panel = kinds("stat", "bar", "value");
     const coloured = { ...panel, widgets: [{ ...panel.widgets[0], color: "#ffffff" }, { ...panel.widgets[1], color: "#5B3FD4" }, { ...panel.widgets[2], color: "#FFFFFFFF" }] };
     const { legible } = pack.chrome!.panel;
-    expect(legible(coloured).widgets.map((w) => w.color)).toEqual([undefined, "#5B3FD4", "#FFFFFFFF"]);
+    expect(legible(coloured).widgets.map((w) => w.color)).toEqual([undefined, "#5B3FD4", undefined]);
     expect(legible(panel)).toBe(panel);
   });
 });

@@ -32,6 +32,7 @@ export interface PackChrome {
 }
 
 const HEX6 = /^#[0-9a-f]{6}$/i;
+const HEX8 = /^(#[0-9a-f]{6})[0-9a-f]{2}$/i;
 /** The smallest contrast an item's own colour keeps against the pack's card before the pack's text replaces it. */
 const OWN_COLOR_MIN = 3;
 /** Text the page header draws holds this on the pack's page. */
@@ -40,7 +41,8 @@ const TEXT_MIN = 4.5;
 /** The panel's tokens are HSL triplets, so only the colours that are `#rrggbb` are taken; on a dark pack the overlay layout keeps the theme's (its text sits on a black scrim). */
 function panelOf(fill: string, ink: string, edge: string, muted: string): PackPanel {
   const tokens: [string, string][] = [["--card", fill], ["--foreground", ink], ["--card-foreground", ink], ["--muted-foreground", muted], ["--border", edge]];
-  const lost = (color: string | undefined) => !!color && (contrastOf(color, fill) ?? OWN_COLOR_MIN) < OWN_COLOR_MIN;
+  // An alpha is read as opaque, the case that vanishes; rgb(), hsl() and names are not read, and keep their colour.
+  const lost = (color: string | undefined) => !!color && (contrastOf(color.replace(HEX8, "$1"), fill) ?? OWN_COLOR_MIN) < OWN_COLOR_MIN;
   const vars = Object.fromEntries(tokens.filter(([, hex]) => HEX6.test(hex)).map(([name, hex]) => [name, hexToHsl(hex)])) as CSSProperties;
   const legible: PackPanel["legible"] = (panel) => (panel.widgets.some((w) => lost(w.color)) ? { ...panel, widgets: panel.widgets.map((w) => (lost(w.color) ? { ...w, color: undefined } : w)) } : panel);
   const light = HEX6.test(fill) && (contrastOf(fill, "#000000") ?? 0) > (contrastOf(ink, "#000000") ?? 0);
