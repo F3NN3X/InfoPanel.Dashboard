@@ -151,6 +151,20 @@ describe("a ring's colour", () => {
     const [gauge] = decompose(root, { x: 0, y: 0, w: 100, h: 100 }, ctx()) as unknown as { vector: { fill: { color: string } } }[];
     expect(gauge.vector.fill.color.toUpperCase()).toBe("#C9A02E");
   });
+
+  it("reads a quoted url() id with selector characters, and falls back to the ring's own ink when the id is missing", () => {
+    const ring = (stroke: string) => {
+      const root = document.createElement("div");
+      root.innerHTML = `<svg viewBox="0 0 100 100"><defs><linearGradient id="r:g.1"><stop offset="0%" style="stop-color:rgb(201, 160, 46)"></stop></linearGradient></defs><circle data-ip-key="libre.cpu_total" data-ip-kind="ring" r="45" stroke-width="10" style="stroke:${stroke}"></circle></svg>`;
+      document.body.append(root);
+      root.querySelector<SVGElement>("[data-ip-kind=ring]")!.getBoundingClientRect = () => ({ left: 0, top: 0, width: 90, height: 90 }) as DOMRect;
+      const [gauge] = decompose(root, { x: 0, y: 0, w: 100, h: 100 }, ctx()) as unknown as { vector: { fill: { color: string } } }[];
+      return gauge.vector.fill.color.toUpperCase();
+    };
+    expect(ring("url('#r:g.1')")).toBe("#C9A02E");
+    expect(ring("url('#nope')")).not.toBe("#C9A02E");
+    expect(ring("url('#nope')")).not.toMatch(/^#?0{6,8}$|TRANSPARENT|RGBA\(0, 0, 0, 0\)/);
+  });
 });
 
 describe("a graph's colour", () => {

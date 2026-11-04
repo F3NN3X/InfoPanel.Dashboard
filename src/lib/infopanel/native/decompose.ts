@@ -143,7 +143,8 @@ function resolveColor(css: string, inside: Element): string | undefined {
 /** A `url(#id)` stroke (a Look's ring-fill or spark-fill) as the gradient's first stop colour, resolved where `inside` is drawn; undefined for any other stroke. */
 function gradientInk(stroke: string, inside: Element): string | undefined {
   const id = /^url\(["']?#([^"')]+)/.exec(stroke)?.[1];
-  const stop = id ? inside.closest("svg")?.querySelector(`[id="${id}"] stop`) : null;
+  // Matched by value, not interpolated into a selector: the id is page text.
+  const stop = id ? [...(inside.closest("svg")?.querySelectorAll("[id]") ?? [])].find((el) => el.id === id)?.querySelector("stop") : null;
   const css = stop && ((stop as SVGElement).style?.getPropertyValue("stop-color") || stop.getAttribute("stop-color"));
   return css ? resolveColor(css, inside) ?? css : undefined;
 }
