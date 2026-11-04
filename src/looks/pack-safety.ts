@@ -28,16 +28,19 @@ export function jsonShapeIssues(value: unknown): string[] {
   return issues;
 }
 
-/** Every string in parsed JSON (values only), for the scans below; the values under a key in `skip` (prose: a description) are left out. */
-export function jsonStrings(value: unknown, skip: ReadonlySet<string> = new Set(), out: string[] = []): string[] {
-  if (typeof value === "string") out.push(value);
-  else if (Array.isArray(value)) for (const item of value) jsonStrings(item, skip, out);
-  else if (value !== null && typeof value === "object") for (const [key, item] of Object.entries(value)) if (!skip.has(key)) jsonStrings(item, skip, out);
+/** The strings of parsed JSON (values only) with their paths (`$.fonts[0].copyright`), for the scans below; a path matching `skip` (prose) is left out. */
+export function jsonStrings(value: unknown, skip: RegExp, at = "$", out: [string, string][] = []): [string, string][] {
+  if (typeof value === "string") {
+    if (!skip.test(at)) out.push([at, value]);
+  } else if (Array.isArray(value)) value.forEach((item, k) => jsonStrings(item, skip, `${at}[${k}]`, out));
+  else if (value !== null && typeof value === "object") for (const [key, item] of Object.entries(value)) jsonStrings(item, skip, `${at}.${key}`, out);
   return out;
 }
 
-/** The keys whose values are prose, which no style or page reads as code. */
-export const PROSE_KEYS: ReadonlySet<string> = new Set(["name", "description", "usage", "stance", "copyright", "source"]);
+/** The fields that are prose, by exact path: no style or page reads them as code. A nested key of the same name elsewhere is scanned. */
+export const PROSE_PATHS = /^\$\.(name|description|modes\.stance|t1\.(dark|light)\.[a-z0-9-]+\.usage|fonts\[\d+\]\.(copyright|source))$/;
+/** A material, tone or token key. */
+export const TOKEN_KEY = /^[a-z][a-z0-9-]*$/;
 
 /** A string that could carry CSS or markup into a style or a page: a URL function, script, an import, a tag. */
 export const INJECTION = /url\s*\(|expression\s*\(|javascript:|vbscript:|<|@import|\/\*/i;

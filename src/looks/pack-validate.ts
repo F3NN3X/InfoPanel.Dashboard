@@ -16,7 +16,7 @@ import { resolveT1, type Look, type T1Name, T1_NAMES } from "./look";
 import lookSchema from "./look.schema.json";
 import { MAX_LAYERS, NUMERAL_MIN, numeralIssues, stageIssues } from "./pack-checks";
 import { commaParts, lintPackCss, OPACITY_FLOOR } from "./pack-css";
-import { INJECTION, jsonShapeIssues, jsonStrings, PROSE_KEYS, rasterMatches, STYLE_BREAKERS, svgIssue, svgPaints, withoutAliases } from "./pack-safety";
+import { INJECTION, jsonShapeIssues, jsonStrings, PROSE_PATHS, rasterMatches, STYLE_BREAKERS, svgIssue, svgPaints, TOKEN_KEY, withoutAliases } from "./pack-safety";
 import packSchema from "./pack.schema.json";
 import { cssUrls, isPackRelativeUrl, packCssIssues } from "./pack-urls";
 import { schemaErrors } from "./schema-check";
@@ -459,7 +459,13 @@ function validate(src: PackSource, source: "builtin" | "user"): PackIssue[] {
   for (const m of lookErrors) add("schema", "look.json", m);
   // every string a Look or pack carries ends up in a style or a page: no URL function, script, import or tag, and in a Look no character that ends a declaration
   for (const [file, value] of [["pack.json", src.pack], ["look.json", src.look], ["icons.json", src.icons]] as const) {
-    for (const str of jsonStrings(value, PROSE_KEYS)) if (INJECTION.test(str) || (file === "look.json" && STYLE_BREAKERS.test(withoutAliases(str)))) add("injection", file, `the value ${str.slice(0, 40)} holds markup, a URL function or a character that ends a style rule`);
+    for (const [, str] of jsonStrings(value, PROSE_PATHS)) if (INJECTION.test(str) || (file === "look.json" && STYLE_BREAKERS.test(withoutAliases(str)))) add("injection", file, `the value ${str.slice(0, 40)} holds markup, a URL function or a character that ends a style rule`);
+  }
+
+  // material, tone and token keys are plain names
+  const look0 = src.look as Look | undefined;
+  for (const [group, obj] of [["materials", look0?.t2?.materials], ["tones", look0?.t2?.tones], ["t3", look0?.t3], ...Object.values(look0?.t2?.tones ?? {}).map((t) => ["tone", t] as const)] as [string, unknown][]) {
+    if (obj && typeof obj === "object") for (const key of Object.keys(obj)) if (!TOKEN_KEY.test(key)) add("schema", "look.json", `${group} key ${key.slice(0, 30)} is not a plain name (a-z, 0-9, -)`);
   }
 
   // the folder: every file's size from its bytes, its own path, the caps, nothing outside the pack's shape

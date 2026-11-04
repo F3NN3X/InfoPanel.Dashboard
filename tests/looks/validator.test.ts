@@ -461,8 +461,16 @@ describe("M5: every string of a Look is read", () => {
     ["a tone", (l: Json) => (l.t2.tones = { evil: { x: "expression(alert(1))" } })],
     ["ext", (l: Json) => (l.ext = { x: "javascript:alert(1)" })],
     ["t0", (l: Json) => (l.t0 = { x: "red; }" })],
+    ["a nested key named name, in a material", (l: Json) => (l.t2.materials["look-field-kit"].name = "url(https://x)")],
+    ["a nested key named source, in a tone", (l: Json) => (l.t2.tones = { evil: { source: "javascript:alert(1)" } })],
+    ["a nested usage, in ext", (l: Json) => (l.ext = { usage: "@import x", description: "url(https://x)" })],
   ])("%s", (_, change) => {
     expect(rules(bad({ look: change }))).toEqual(expect.arrayContaining([expect.stringMatching(/^(injection|colour)$/)]));
+  });
+
+  it("material, tone and token keys are plain names", () => {
+    expect(rules(bad({ look: (l) => (l.t2.materials["Bad Name; x"] = { kind: "solid", export: "#EFE8D8" }) }))).toContain("schema");
+    expect(rules(bad({ look: (l) => (l.t2.tones = { "x y": { "a;b": "#fff" } }) }))).toContain("schema");
   });
 
   it("a colour name or var() as a T1 value, and a radius over 64 px", () => {
