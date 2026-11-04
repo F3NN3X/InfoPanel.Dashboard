@@ -141,6 +141,16 @@ describe("a ring's colour", () => {
     const [gauge] = decompose(root, { x: 0, y: 0, w: 100, h: 100 }, ctx()) as unknown as { vector: { fill: { color: string } } }[];
     expect(gauge.vector.fill.color.toUpperCase()).toBe("#DC2626");
   });
+
+  /** Night Glow and Black and Gold draw the arc with `stroke:url(#id)` (ring-fill): the export takes the gradient's first stop, never transparent. */
+  it("is the first stop of a ring-fill gradient, not a transparent url() stroke", () => {
+    const root = document.createElement("div");
+    root.innerHTML = `<svg viewBox="0 0 100 100"><defs><linearGradient id="rgx"><stop offset="0%" style="stop-color:rgb(201, 160, 46)"></stop><stop offset="100%" style="stop-color:rgb(245, 215, 122)"></stop></linearGradient></defs><circle data-ip-key="libre.cpu_total" data-ip-kind="ring" r="45" stroke-width="10" style="stroke:url(#rgx)"></circle></svg>`;
+    document.body.append(root);
+    root.querySelector<SVGElement>("[data-ip-kind=ring]")!.getBoundingClientRect = () => ({ left: 0, top: 0, width: 90, height: 90 }) as DOMRect;
+    const [gauge] = decompose(root, { x: 0, y: 0, w: 100, h: 100 }, ctx()) as unknown as { vector: { fill: { color: string } } }[];
+    expect(gauge.vector.fill.color.toUpperCase()).toBe("#C9A02E");
+  });
 });
 
 describe("a graph's colour", () => {

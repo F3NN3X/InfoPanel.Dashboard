@@ -140,6 +140,14 @@ function resolveColor(css: string, inside: Element): string | undefined {
   return `rgba(${r}, ${gr}, ${b}, ${Math.round((a / 255) * 100) / 100})`;
 }
 
+/** A `url(#id)` stroke (a Look's ring-fill or spark-fill) as the gradient's first stop colour, resolved where `inside` is drawn; undefined for any other stroke. */
+function gradientInk(stroke: string, inside: Element): string | undefined {
+  const id = /^url\(["']?#([^"')]+)/.exec(stroke)?.[1];
+  const stop = id ? inside.closest("svg")?.querySelector(`[id="${id}"] stop`) : null;
+  const css = stop && ((stop as SVGElement).style?.getPropertyValue("stop-color") || stop.getAttribute("stop-color"));
+  return css ? resolveColor(css, inside) ?? css : undefined;
+}
+
 /** Where an image is drawn: a contained `<img>` at its picture's own box inside the element, anything else at its box. */
 function imageRect(el: HTMLElement): DOMRect | { left: number; top: number; width: number; height: number } {
   const own = el.getBoundingClientRect();
@@ -245,7 +253,9 @@ function readOne(el: HTMLElement, origin: DOMRect, zoom: number): Tagged | null 
     }
     case "graph": {
       // The line, not the area under it (a fill path has no stroke).
-      const stroke = [...el.querySelectorAll("path, polyline, line")].map((n) => getComputedStyle(n).stroke).find((c) => c && c !== "none" && !c.startsWith("url("));
+      const stroke = [...el.querySelectorAll("path, polyline, line")]
+        .map((n) => ((c) => (c.startsWith("url(") ? gradientInk(c, n) : c))(getComputedStyle(n).stroke))
+        .find((c) => c && c !== "none");
       return { ...base, color: stroke ?? base.color };
     }
     case "image":
@@ -265,7 +275,8 @@ function readOne(el: HTMLElement, origin: DOMRect, zoom: number): Tagged | null 
         ...base,
         box: { x: box.x - grow, y: box.y - grow, w: box.w + thickness, h: box.h + thickness },
         // A color-mix() stroke is an oklab() in Chromium, which cssToArgb can't read: the canvas turns it into rgb.
-        color: ((css) => resolveColor(css, el) ?? css)(getComputedStyle(el).stroke || base.color),
+        // A ring-fill stroke is url(#gradient): its first stop's colour, else the ring's own ink.
+        color: ((css) => resolveColor(css, el) ?? css)(gradientInk(getComputedStyle(el).stroke, el) ?? (getComputedStyle(el).stroke || base.color)),
         thickness,
         start: num(el.dataset.ipStart) ?? 0,
         sweep: num(el.dataset.ipSweep) ?? 360,
