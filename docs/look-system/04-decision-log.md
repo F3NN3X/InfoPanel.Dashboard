@@ -102,3 +102,13 @@ The owner gave explicit authority to finish every phase (P5a to P12) as the plan
 - Light packs fix contrast by choosing darker accent and `ok` values (the plan's "or a darker accent" for L51), not an accent-ink variable.
 - Term takes the inline header: `prompt` changes the body height (G2 and the overflow check win over the look). `box-legend`, `tab-label` and chrome material stay unbuilt (L76, L25).
 - The overflow check compares a pack with the same widget style without it, so only what the pack does is measured.
+
+## P11 (2026-11-04, under the owner authorisation above)
+
+- P11 is split like P5, P8 and P9: **P11a** is the four packs (Neon Stripe, Overdrive, Swiss Mono, Holo) on `look/p11-second-wave`, **P11b** the five Looks (Night Glow, Paper, Classy Black, Liquid Glass, Black and Gold) and the P11 ledger rows the packs did not need. The packs are the sample Looks of the same ids, as in P10.
+- Connectors need no stored pairs: a pack that has `connectors` makes the page's largest zone the hub and connects every other zone to it (`hubLinks`, run in the stage chunk). The kiosk writes `data-zone-id` only for a page whose pack has connectors (a prop on `PlacementFrame`), so every other page keeps its markup; a spec pins both. Holo ships one page template, the cockpit, whose core zone is the unique largest. Closes L72.
+- The chamfer is the card material's clip (`clipPath`, 12 px on two corners, under the 20 px cap) with the yellow edge drawn along each cut by a diagonal gradient in the material; no new frame code. `corner-brackets` stays the card material's too (Holo's eight gradient layers).
+- `index`, `bracket-line` and `label-bar` are header kinds built once in the shell. The `index` number is a CSS counter over the page's headers (`index.css`), so the shell needs no zone order.
+- Swiss Mono is dark only (the spec's charcoal; the brief's "light material" has no card in the spec) and declares `needs-shift`, not the spec's `static-safe`: a 330 px saturated orange disc is static art on an always-on panel. Its card is the opaque page colour `#141414` (not transparent) so the disc never sits under card text, and its exported colour stays solid.
+- The four sample themes set `font: "auto"`: a named stack is written inline on every numeral and the pack's `font-family` cannot win over an inline style.
+- Packs register each single-weight face over `100 900` so the widgets' semibold numerals are not faux-bolded.
