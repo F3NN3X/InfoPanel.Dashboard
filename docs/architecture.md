@@ -1114,7 +1114,9 @@ A user pack is a theme pack the user brought: files in `<data dir>\packs\<id>\` 
 canonicalised under `packs/<id>/` with links never followed, typed by extension with `nosniff` and a CSP of
 `default-src 'none'` (SVG: `sandbox` too), and refuses a pack over 512,000 bytes, a file over 256,000 or more than 64 files
 (413); `POST /api/packs` takes `{ id, files: [{ path, data }] }` (base64) with `X-Dashboard-Pack: 1`, this computer only,
-refuses `pack.css` and any path outside the set, and moves the finished folder into place; `DELETE /api/packs/<id>`
+refuses `pack.css`, any path outside the set and a Windows device name (`nul`, `con`, `com1`...) as an id or file stem, holds
+at most 32 packs and 16,000,000 bytes of them (413), and moves the finished folder into place (a replaced pack is set aside
+until the new one is in, and `.import-*` leftovers are swept at start); `DELETE /api/packs/<id>`
 removes one. The validator (`pack-validate.ts`) runs in the studio at import and again in the loader, in `user` mode set by
 the loader (where the bytes came from), never by what the pack says; a config that names a Look id this build does not
 have (`userLookIds`) makes `readConfig` look for a pack of that id, and a pack with an error is not a Look (Classic is
