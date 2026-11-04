@@ -538,6 +538,22 @@ Findings of `p10-review.md` (look/p10-first-wave 87465c02..51d5dfa9) and what be
 Verify (round 1): `node tools/verify.mjs --full --keep-going` exit 0, all 19 checks passed, 418 s. An earlier run failed `unit` (v8 parity: the first GameSpotlight fix changed Classic's markup, now the wrap class is added only under a pack) and `overflow` (a markup baseline taken before that fix).
 Intended image diffs: the three `samples-*.png` sheets (the packs' faces and headers are drawn now), refreshed with the commit that changed them. Classic images, v8 parity and the overflow baseline are unchanged. Note on L7: round 1 also changes `samples-term.png` (its sheet now draws the pack, as in `b617b227`), and the three sheets include pack paint as well as the accent and `ok` fixes.
 
+### Re-review round 2 (2026-11-04)
+
+Scoped re-review of the fix round (`p10-review-r2.md`, diff 51d5dfa9..b4283a3e): FIXED 13 (H1, Plex rename, OFL shipped, M1, M2, M4, M5, M6 layers, M7, the GameSpotlight `packed` flag, L1, L7, the Term `header-style` assertion, judged a stronger spec check and not a loosened one), PARTIAL 1 (L3), SETTLED 6 (M3, M6 thumbnails, L2, L4, L5, L6), NOT FIXED 0. No new HIGH or MED, so no round 3; the five new LOWs are settled in the ledger:
+
+| New LOW | Settled |
+|---|---|
+| Layers test: fixed 2.5 s wait on live data, 3 layers of headroom | L77, P11 |
+| Markup-baseline normalisation also hides real `box-shadow: color-mix` and `transform: scale` changes | L77, P11 |
+| `pack.css` `* { font-family }` overrides a user's per-widget Font option while a pack is worn | by design (the pack owns its face, D23); the gallery and changelog say so: L78, P11 |
+| `box-legend` lift assumes `--wp-pad` and the header share one zoom scale; position not checked in a browser | L79, P11 |
+| Fixed `waitForTimeout` in `pack-selectors.spec.ts` and `pack-visibility.spec.ts` | L77, P11 |
+
+Caveats the reviewer kept on FIXED items: M1's check passes when a pack hides some bars but not all, with no committed negative case (L79); the layer count is a CSS proxy (L69); the thumbnails decision follows the plan (2109) under the owner's standing go-ahead.
+
+Verify (controller, on b4283a3e): `npm run verify:full` exit 0, all 19 checks passed, 421 s. P10 closed.
+
 ## Ledger: known issues and deferred work
 
 Open items carried between phases. Each phase adds what it finds or defers, and closes what it fixes (status `closed in P<N>`).
@@ -620,3 +636,6 @@ Open items carried between phases. Each phase adds what it finds or defers, and 
 | L74 | P9b | No pack lint for `burnIn: static-safe` on a high-luminance static layer (spec Burn-in row), (the page-template check now covers widget ids and zone bounds, not an `instantiate` run) | P12 | open: owner P12 (validator) |
 | L75 | P10 | The sample themes' catalog fonts (Oswald for Field Kit, Archivo for Tape '86) make MenuBar and StreamChat labels overlap their values at 4x2 and 4x4 on the Widget QA page, with or without the pack; the sample sheets are not in the overflow baseline | P11 | closed in P10 round 1: `--looks` now compares each pack with Classic (not with the same style minus the pack), and the old fonts showed 8 new issues for Field Kit; the packs' own faces (Barlow Condensed, Space Mono with its line metrics set to 1.22 em) give 0 for all three after one widget fix (GameSpotlight's pill row wraps when a face is wider). The overflow baseline and look-visual Classic images are unchanged |
 | L76 | P10 | Header kinds change the body's height (`prompt` is 4 px taller than `inline`: 35 frames moved, GameSpotlight clipped at 4x4), and the spec's `box-legend`, `tab-label`, island and alert materials are not buildable with paint-only CSS and today's slots | P11 | closed in P10 round 1: `tab-label` (Field Kit, Tape '86) and `box-legend` (Term; its own `legend` frame, not tui's boxed padding) are shell header variants (`header-style`, off by default); neither moves a body rect against Classic (`--looks`: 0 of 255 frames in each pack). The island and alert materials stay with L25 (P11). Tape '86 uses `tab-label` for its label bar: a full-width `label-bar` kind is not built |
+| L77 | P10 round 2 | Pack spec timing and parity breadth: the layers test waits a fixed 2.5 s on live data with 3 layers of headroom, the specs use fixed `waitForTimeout`s (island 800 ms, shot 1000 ms), and the markup baseline's normalisation of `transform: scale` and `box-shadow: color-mix` also hides real pack changes to those | P11 | open: wait on stable geometry, narrow the normalisation to the Ken Burns and pulse elements |
+| L78 | P10 round 1/2 | Deferred LOWs: `measurePacks()` filter in `check-budgets.test.mjs`; unmapped `label-case`; faux bold on single-weight faces; Tape '86 stripe-coloured bars; no round-trip test for a saved sample `lookId`; the gallery and changelog should say a worn pack's face overrides the per-widget Font option | P11 | open |
+| L79 | P10 round 2 | `box-legend` lift (`calc(6px - var(--wp-pad))`) unchecked under card zoom; the gauge-ink check passes when only some bars are hidden and has no committed negative case | P11 | open: a zoomed-card position check and a partial-hide negative case |
