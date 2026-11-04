@@ -9,6 +9,15 @@
   --breakpoint-sm: 600px;
 }
 
+/* `lite:` styles what sits on a light card (`data-mode=light`) or on the theme card of a light page (`:root[data-mode=light]`). */
+@custom-variant lite (&:where([data-mode=light] *, :root[data-mode=light] [data-tone=theme] *));
+
+/* MenuBar's detail panel is a black wash on a dark card; light cards get the card's ink instead (dark markup is untouched). */
+:is([data-mode=light], :root[data-mode=light] [data-tone=theme]) .bg-black\/25 {
+  background-color: color-mix(in oklab, var(--w-fg) 5%, transparent);
+  box-shadow: 0 8px 24px -12px color-mix(in oklab, var(--w-fg) 22%, transparent);
+}
+
 /* D3: `dark:` follows the mode of the theme scope (the page: lib/theme.ts), never the OS. A light card (`data-mode=light`,
    written only on light cards, so dark markup stays as it was) opts its subtree out. */
 @custom-variant dark (&:where([data-mode=dark], [data-mode=dark] *):not(:where([data-mode=light], [data-mode=light] *)));

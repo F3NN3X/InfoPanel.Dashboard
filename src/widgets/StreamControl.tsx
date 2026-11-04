@@ -58,8 +58,8 @@ function Tile({ onClick, active, radius, span = 1, label, children }: TileProps)
       type={onClick ? "button" : undefined}
       onClick={onClick}
       aria-label={label}
-      className={`relative flex min-h-0 min-w-0 flex-col overflow-hidden bg-white/[0.04] p-2.5 text-left ${onClick ? "transition hover:bg-white/[0.07] active:scale-[0.97]" : ""}`}
-      style={{ gridColumn: `span ${span}`, borderRadius: radius, boxShadow: active ? "inset 0 0 0 2px rgba(255,255,255,.92)" : "inset 0 0 0 1px rgba(255,255,255,.05)" }}
+      className={`relative flex min-h-0 min-w-0 flex-col overflow-hidden bg-white/[0.04] p-2.5 text-left lite:bg-[color:var(--w-track)] lite:[--tile-ring:var(--w-fg)] lite:[--tile-edge:var(--w-track)] ${onClick ? "transition hover:bg-white/[0.07] lite:hover:bg-[color:var(--w-track)] active:scale-[0.97]" : ""}`}
+      style={{ gridColumn: `span ${span}`, borderRadius: radius, boxShadow: active ? "inset 0 0 0 2px var(--tile-ring, rgba(255,255,255,.92))" : "inset 0 0 0 1px var(--tile-edge, rgba(255,255,255,.05))" }}
     >
       {children}
     </Tag>
@@ -87,11 +87,11 @@ export default function StreamControl(p: StreamControlProps) {
   const viewers =
     tw !== undefined && yt !== undefined ? (
       <>
-        <span className="text-zinc-500">TW</span> {fmt(tw)} <span className="text-zinc-500">· YT</span> {fmt(yt)}
+        <span className="text-zinc-500 lite:text-[color:var(--w-faint)]">TW</span> {fmt(tw)} <span className="text-zinc-500 lite:text-[color:var(--w-faint)]">· YT</span> {fmt(yt)}
       </>
     ) : total > 0 ? (
       <>
-        {fmt(total)} <span className="text-zinc-500">watching</span>
+        {fmt(total)} <span className="text-zinc-500 lite:text-[color:var(--w-faint)]">watching</span>
       </>
     ) : null;
   // The tile's corner follows the shell's.
@@ -143,20 +143,20 @@ export default function StreamControl(p: StreamControlProps) {
               if (cell.kind === "live")
                 return (
                   <Tile key="live" span={cell.span} radius={radius}>
-                    <div className="flex min-w-0 items-center gap-1.5 whitespace-nowrap text-micro font-semibold uppercase tracking-[0.14em] text-zinc-400">
+                    <div className="flex min-w-0 items-center gap-1.5 whitespace-nowrap text-micro font-semibold uppercase tracking-[0.14em] text-zinc-400 lite:text-[color:var(--w-muted)]">
                       <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: live ? STATE.crit : "#52525b", boxShadow: live ? `0 0 6px ${STATE.crit}` : "none" }} />
                       {live ? "Live" : up ? "Offline" : "Not connected"}
-                      {obs.recording && <span className="text-zinc-500">· Rec</span>}
-                      {viewers && colW * cell.span > 200 && <span className="ml-auto truncate text-micro normal-case tracking-normal tabular-nums text-zinc-200">{viewers}</span>}
+                      {obs.recording && <span className="text-zinc-500 lite:text-[color:var(--w-faint)]">· Rec</span>}
+                      {viewers && colW * cell.span > 200 && <span className="ml-auto truncate text-micro normal-case tracking-normal tabular-nums text-zinc-200 lite:text-[color:var(--w-fg)]">{viewers}</span>}
                     </div>
                     <Num className="mt-1.5 block leading-none tracking-tight" style={{ fontSize: fs }}>
                       {live ? clock(uptime) : "0:00:00"}
                     </Num>
                     {tileH > 100 && (
                       <div className="mt-2 flex min-h-0 flex-1 flex-col gap-1">
-                        <div className="flex justify-between text-micro text-zinc-400">
+                        <div className="flex justify-between text-micro text-zinc-400 lite:text-[color:var(--w-muted)]">
                           <span>Viewers</span>
-                          <span className="tabular-nums text-zinc-200">{fmt(total)}</span>
+                          <span className="tabular-nums text-zinc-200 lite:text-[color:var(--w-fg)]">{fmt(total)}</span>
                         </div>
                         <Spark values={vHist} min={0} className="min-h-0 flex-1" />
                       </div>
@@ -190,7 +190,7 @@ export default function StreamControl(p: StreamControlProps) {
                     <Badge icon="replay" color={hue(0)} />
                     <div className="mt-auto min-w-0 pt-2">
                       <div className="truncate text-[14px] font-semibold leading-tight">Replay</div>
-                      {tileH > 96 && <div className="mt-0.5 truncate text-micro text-zinc-500">{obs.replay?.active ? "Save clip" : "Buffer off"}</div>}
+                      {tileH > 96 && <div className="mt-0.5 truncate text-micro text-zinc-500 lite:text-[color:var(--w-faint)]">{obs.replay?.active ? "Save clip" : "Buffer off"}</div>}
                     </div>
                   </Tile>
                 );
@@ -200,11 +200,11 @@ export default function StreamControl(p: StreamControlProps) {
                 <Tile key={s.id} radius={radius} active={on} onClick={act && (() => void act({ op: "scene", id: s.id }))} label={s.name}>
                   <div className="flex items-start justify-between gap-2">
                     <Badge icon={s.icon} color={s.color} />
-                    {on && live && <span className="whitespace-nowrap rounded bg-white px-1.5 py-[2px] text-micro font-bold uppercase tracking-[0.1em] text-zinc-950">On air</span>}
+                    {on && live && <span className="whitespace-nowrap rounded bg-white px-1.5 py-[2px] text-micro font-bold uppercase tracking-[0.1em] text-zinc-950 lite:bg-zinc-900 lite:text-white">On air</span>}
                   </div>
                   <div className="mt-auto min-w-0 pt-2">
                     <div className="line-clamp-2 text-[14px] font-semibold leading-tight">{s.name}</div>
-                    {s.sub && tileH > 96 && <div className="mt-0.5 truncate text-micro text-zinc-500">{s.sub}</div>}
+                    {s.sub && tileH > 96 && <div className="mt-0.5 truncate text-micro text-zinc-500 lite:text-[color:var(--w-faint)]">{s.sub}</div>}
                   </div>
                 </Tile>
               );

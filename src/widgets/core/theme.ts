@@ -49,17 +49,18 @@ export function resolveSurface(surface: string | undefined, skin: string | undef
 /* ───────── text colours (decision 5) ─────────
    The shell sets these on its root from the surface's tone; views and primitives read them, so
    text stays legible on light materials and follows the theme on the theme surface. */
-export type TextVars = Record<"--w-fg" | "--w-muted" | "--w-faint" | "--w-track", string> & Partial<Record<"--w-ok" | "--w-warn" | "--w-crit" | "--w-fill", string>>;
+export type TextVars = Record<"--w-fg" | "--w-muted" | "--w-faint" | "--w-track", string> & Partial<Record<"--w-ok" | "--w-master" | "--w-warn" | "--w-crit" | "--w-fill", string>>;
 export const TEXT_VARS: Record<SurfaceTone, TextVars> = {
   dark: { "--w-fg": DARK_TEXT.fg, "--w-muted": DARK_TEXT.muted, "--w-faint": "#8a8a94", "--w-track": "rgba(255,255,255,.07)" },
   // light and theme surfaces darken the warn / crit text so it keeps contrast (dark surfaces use STATE as is)
-  light: { "--w-fg": "#18181b", "--w-muted": "#52525b", "--w-faint": "#636366", "--w-track": "rgba(24,24,27,.1)", "--w-fill": LIGHT_FILL, "--w-ok": STATUS_LIGHT.ok, "--w-warn": STATUS_LIGHT.warn, "--w-crit": STATUS_LIGHT.crit },
+  light: { "--w-fg": "#18181b", "--w-muted": "#52525b", "--w-faint": "#636366", "--w-track": "rgba(24,24,27,.1)", "--w-fill": LIGHT_FILL, "--w-ok": STATUS_LIGHT.ok, "--w-master": "#3f3f46", "--w-warn": STATUS_LIGHT.warn, "--w-crit": STATUS_LIGHT.crit },
   theme: {
     "--w-fg": "hsl(var(--card-foreground))",
     "--w-muted": "hsl(var(--muted-foreground))",
     "--w-faint": "hsl(var(--muted-foreground))",
     "--w-track": "color-mix(in oklab, hsl(var(--card-foreground)) 9%, transparent)",
     "--w-fill": "hsl(var(--card))",
+    "--w-master": "hsl(var(--card-foreground))",
     "--w-warn": `color-mix(in oklab, ${STATUS.warn} 60%, hsl(var(--card-foreground)))`,
     "--w-crit": `color-mix(in oklab, ${STATUS.crit} 60%, hsl(var(--card-foreground)))`,
   },

@@ -35,10 +35,11 @@ export interface StreamMixerProps extends ShellProps {
 
 /** The other channels' colours: the accent turned by these degrees, in order. */
 const MIX_HUES = [95, -115, -75, 40, 140, -150];
-const MASTER_COLOR = "#e4e4e7";
+/** The master channel's colour: near white on a dark card, `--w-master` (light and theme cards) otherwise. */
+const MASTER_COLOR = "var(--w-master, #e4e4e7)";
 const MUTED_COLOR = "#52525b";
 
-const btn = "flex h-7 w-7 items-center justify-center rounded-md text-zinc-400 hover:bg-white/[0.07] hover:text-zinc-100";
+const btn = "flex h-7 w-7 items-center justify-center rounded-md text-zinc-400 hover:bg-white/[0.07] hover:text-zinc-100 lite:text-[color:var(--w-muted)] lite:hover:bg-[color:var(--w-track)] lite:hover:text-[color:var(--w-fg)]";
 
 /** What a source says when it has nothing to show. */
 function emptyLabel(source: AudioSource, audio: AudioState): string {
@@ -143,7 +144,7 @@ export default function StreamMixer(p: StreamMixerProps) {
                     onClick={() => toggleMute(c)}
                     disabled={readOnly}
                     aria-label={c.mute ? `Unmute ${c.name}` : `Mute ${c.name}`}
-                    className="flex items-center justify-center bg-white/[0.05] transition hover:bg-white/[0.09] active:scale-95"
+                    className="flex items-center justify-center bg-white/[0.05] transition hover:bg-white/[0.09] lite:bg-[color:var(--w-track)] lite:hover:bg-[color:var(--w-track)] active:scale-95"
                     style={{ width: tile, height: tile, color, borderRadius: corner }}
                   >
                     <Icon name={icon} className={tile >= 40 ? "text-[22px]" : "text-[17px]"} />
