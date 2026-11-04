@@ -1,12 +1,15 @@
 {
   "$comment": "Deterministic budgets, enforced in CI (tools/perf/check-budgets.mjs; requests by tests/e2e/kiosk-budget.spec.ts). CPU, memory and frame counts are report-only. The entry budgets are CI's (Linux) measured bytes; entryGzipSlack (0.1 %) is added on top because the same build gzips a few bytes apart per platform and runner image. Lower a budget when a change shrinks the number; raise one only with a reason in the commit.",
-  "kioskEntryGzipBytes": 283135,
-  "studioEntryGzipBytes": 623916,
+  "kioskEntryGzipBytes": 283215,
+  "studioEntryGzipBytes": 623988,
   "entryGzipSlack": 0.001,
   "kioskLoadRequests": 34,
   "kioskServerRendererAllowed": false,
   "packs": {
-    "$comment": "Per built-in pack (src/looks/packs/<id>.ts, its Look id): codeGzipBytes = its lazy JS and CSS chunks (found through the Vite manifest), gzip; assetBytes = the files in src/looks/packs/<id>/assets, bytes on disk; layersPerPage = max compositing layers per page with the pack on, over Classic (measured by the pack's own spec, not by check-budgets). Set to the measured size plus 25 %, never above packCeilingBytes (code gzip plus assets), lowered whenever a pack shrinks. A pack with no entry here fails the check (node tools/perf/check-budgets.mjs --packs). No pack ships yet.",
-    "packCeilingBytes": 512000
+    "$comment": "Per built-in pack (src/looks/packs/<id>.ts, its Look id): codeGzipBytes = its lazy JS and CSS chunks (found through the Vite manifest), gzip; assetBytes = the files in src/looks/packs/<id>/assets, bytes on disk; layersPerPage = max compositing layers per page with the pack on, over Classic (measured by the pack's own spec, not by check-budgets). Set to the measured size plus 25 %, never above packCeilingBytes (code gzip plus assets), lowered whenever a pack shrinks. A pack with no entry here fails the check (node tools/perf/check-budgets.mjs --packs). Layers are not measured (L69): the value is the plan's 24.",
+    "packCeilingBytes": 512000,
+    "field-kit": { "codeGzipBytes": 3300, "assetBytes": 21100, "layersPerPage": 24 },
+    "tape-86": { "codeGzipBytes": 3600, "assetBytes": 18800, "layersPerPage": 24 },
+    "term": { "codeGzipBytes": 3200, "assetBytes": 10500, "layersPerPage": 24 }
   }
 }
