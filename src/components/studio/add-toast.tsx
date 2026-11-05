@@ -11,7 +11,7 @@ export interface AddToastState {
 
 const LINK = "shrink-0 cursor-pointer font-semibold text-ui-1 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent";
 
-/** The Add panel's toast (Edit v3 SPEC §9.6): top centre of the canvas, with Undo after an add and Change on an InfoPanel screen. */
+/** The Add panel's toast: bottom centre of the canvas (rules §4), with Undo after an add and Change on an InfoPanel screen. */
 export function AddToast({ toast, onUndo, onChange }: { toast: AddToastState; onUndo: () => void; onChange?: () => void }) {
   return (
     <div

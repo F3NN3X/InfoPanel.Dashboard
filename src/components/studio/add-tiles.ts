@@ -106,8 +106,11 @@ export const ELEMENT_TILES: readonly AddTile[] = ELEMENTS.map((e) => ({
   data: `element:${e.type}`,
 }));
 
-/** A widget's size label on its tile (`2×2`); none for items and elements. */
+/** A widget's size label (`2×2`); none for items and elements. */
 export const tileSize = (tile: AddTile): string | undefined => (tile.widget ? sizeText(tile.widget.w, tile.widget.h) : undefined);
+
+/** How many presets a widget holds (D-5), its own default among them; none when it has no choice. */
+export const tileStyles = (tile: AddTile): number | undefined => (tile.widget?.styles ? tile.widget.styles.length + 1 : undefined);
 
 /** The chips over the list for a segment (SPEC §9.1): widget categories, or the item groups and Elements. */
 export function chipsFor(segment: AddFilter, widgets: readonly AddItem[]): string[] {
@@ -188,11 +191,13 @@ export function addSections(o: SectionOptions): TileSection[] {
   const out: TileSection[] = [];
   if (o.chip === "All") {
     const byKey = new Map(all.map((t) => [t.key, t]));
-    const recent = o.recent.map((k) => byKey.get(k)).filter((t): t is AddTile => t !== undefined).slice(0, RECENT_SHOWN);
-    if (recent.length) out.push({ id: "recent", title: "RECENTLY USED", groups: [{ sub: null, tiles: recent }] });
+    // A view's tile from before D-5 (`Weather:now`) reads as its widget's.
+    const used = o.recent.map((k) => byKey.get(k) ?? byKey.get(k.split(":")[0])).filter((t): t is AddTile => t !== undefined);
+    const recent = [...new Set(used)].slice(0, RECENT_SHOWN);
+    if (recent.length) out.push({ id: "recent", title: "Recently used", groups: [{ sub: null, tiles: recent }] });
   }
   const order: TileKind[] = o.infoPanel ? ["item", "element", "widget"] : ["widget", "item", "element"];
-  const TITLES: Record<TileKind, string> = { widget: "STUDIO WIDGETS", item: "INFOPANEL ITEMS", element: "ELEMENTS" };
+  const TITLES: Record<TileKind, string> = { widget: "Studio widgets", item: "InfoPanel items", element: "Elements" };
   for (const kind of order) {
     if (!kindShown(o.segment, kind)) continue;
     const pool = pools[kind];

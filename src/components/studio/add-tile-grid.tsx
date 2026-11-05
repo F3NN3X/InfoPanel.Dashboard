@@ -1,13 +1,13 @@
 import type { DragEvent } from "react";
 import { cn } from "@/lib/utils";
 import type { AddStatusKit } from "./add-tile-card";
-import { PALETTE_DRAG_MIME, tileSize, type AddTile, type TileSection } from "./add-tiles";
+import { PALETTE_DRAG_MIME, tileStyles, type AddTile, type TileSection } from "./add-tiles";
 import { DND_MIME, DND_MIME_PANEL, DND_MIME_SETTINGS } from "./studio-modules";
 
 /**
- * The Add list as a tile grid (Edit v3 SPEC §9.2, §9.4): section headers with counts, category sub-headers, and three
- * tiles a row at 300 px (icon over name, a widget's size top-left, its export status top-right). The panel owns the
- * highlight, the keys and the details card; this draws the tiles and reports the pointer.
+ * The Add list (02b, Edit v3 SPEC §9.2, §9.4): section headers, category sub-headers, and a row per tile (icon, name,
+ * one line of what it is, how many styles it holds, its export status). The panel owns the highlight, the keys and the
+ * details card; this draws the rows and reports the pointer.
  */
 
 /** The DOM id of a tile (the search box's active descendant). */
@@ -43,14 +43,14 @@ export function AddTileGrid({ sections, highlighted, justAdded, dimmed, status, 
       {sections.map((s) => (
         <section key={s.id} aria-label={s.title ?? "Matches"}>
           {s.title && (
-            <div className="flex h-7 items-end px-1 pb-[5px] font-ui-mono text-micro tracking-[0.06em] text-ui-3">
+            <div className="flex h-7 items-end px-1 pb-[5px] text-caption font-medium text-ui-3">
               {s.title}
             </div>
           )}
           {s.groups.map((g, gi) => (
             <div key={`${g.sub ?? ""}:${gi}`}>
-              {g.sub && <div className="flex h-[22px] items-center px-1 text-nano text-ui-4">{g.sub}</div>}
-              <div data-add-grid="" className="grid gap-1 pb-1" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(88px, 1fr))" }}>
+              {g.sub && <div className="flex h-[22px] items-center px-1 text-micro text-ui-hint">{g.sub}</div>}
+              <div data-add-grid="" className="grid gap-0.5 pb-1" style={{ gridTemplateColumns: "minmax(0, 1fr)" }}>
                 {g.tiles.map((tile) => (
                   <Tile
                     key={tile.key}
@@ -89,7 +89,7 @@ interface TileProps {
 
 function Tile({ tile, highlighted, added, dim, status, onAdd, onHover, onDragStart }: TileProps) {
   const Icon = tile.icon;
-  const size = tileSize(tile);
+  const styles = tileStyles(tile);
   const s = status?.of(tile);
   return (
     <div
@@ -105,17 +105,22 @@ function Tile({ tile, highlighted, added, dim, status, onAdd, onHover, onDragSta
       onClick={onAdd}
       onMouseEnter={(e) => onHover(e.currentTarget)}
       className={cn(
-        "relative flex h-[76px] cursor-pointer select-none flex-col items-center justify-center gap-[5px] rounded-ui-md border px-1",
-        added ? "border-ui-accent/60 bg-ui-accent/14" : highlighted ? "border-ui-edge bg-s-nav-on" : "border-s-seg-on bg-ui-tile hover:border-ui-edge hover:bg-s-nav-on",
+        "flex h-12 cursor-pointer select-none items-center gap-2.5 rounded-ui-md border px-1.5",
+        added ? "border-ui-accent/60 bg-ui-accent/14" : highlighted ? "border-ui-edge bg-s-nav-on" : "border-transparent hover:bg-ui-hover",
         dim && "opacity-40",
       )}
     >
-      <Icon className={cn("h-5 w-5 shrink-0", tile.kind === "widget" ? "text-ui-accent" : "text-ui-3")} strokeWidth={1.75} aria-hidden />
-      <span className="line-clamp-2 max-w-full break-words text-center text-micro leading-[1.2] text-ui-2">{tile.name}</span>
-      {size && <span className="absolute left-[5px] top-1 font-ui-mono text-[8.5px] leading-none text-ui-hint">{size}</span>}
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-ui-sm bg-ui-tile">
+        <Icon className={cn("h-4 w-4", tile.kind === "widget" ? "text-ui-accent" : "text-ui-3")} strokeWidth={1.75} aria-hidden />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-body text-ui-1">{tile.name}</span>
+        <span className="block truncate text-caption text-ui-3">{tile.widget?.blurb ?? tile.description}</span>
+      </span>
+      {styles && <span className="shrink-0 rounded-ui-sm border border-ui-strong px-1.5 py-px text-micro text-ui-3">{styles} styles</span>}
       {status && s && (
-        <span className="absolute right-1 top-1 leading-none">
-          <status.Icon status={s} className="h-[11px] w-[11px]" />
+        <span className="shrink-0 leading-none">
+          <status.Icon status={s} className="h-3 w-3" />
         </span>
       )}
     </div>

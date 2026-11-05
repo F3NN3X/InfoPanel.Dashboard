@@ -1,6 +1,6 @@
 // Adding Studio widgets to a Free page (one-editor SPEC §5.3) and editing them as zones (§5.5).
 import { describe, expect, it } from "vitest";
-import { addCatalog } from "@/components/studio/add-catalog";
+import { addCatalog, widgetRows } from "@/components/studio/add-catalog";
 import { freeSize } from "@/components/studio/add-place";
 import { parseAddFilter } from "@/components/studio/add-prefs";
 import { mergePrefixes, placementPrefixes, widgetPlacement } from "@/components/studio/placement-content";
@@ -15,7 +15,7 @@ const row = (id: string) => catalog.widget.find((w) => w.id === id)!;
 describe("an Add row as a widget record", () => {
   it("is the widget, with the settings its view adds", () => {
     expect(widgetRecordFor(row("Weather"))).toEqual({ module: "Weather" });
-    const view = catalog.widget.find((w) => w.id.includes(":") && w.drop.settings)!;
+    const view = widgetRows(catalog.widget).find((w) => w.id.includes(":") && w.drop.settings)!;
     expect(widgetRecordFor(view)).toEqual({ module: view.drop.id, settings: view.drop.settings });
   });
 

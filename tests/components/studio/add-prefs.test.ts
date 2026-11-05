@@ -11,15 +11,15 @@ describe("Left panel width migration", () => {
     expect(widthFromPx("440")).toBe("wide");
   });
 
-  it("is Default with nothing (or junk) stored", () => {
-    expect(widthFromPx(null)).toBe("default");
-    expect(widthFromPx("wide-ish")).toBe("default");
+  it("is Narrow (272 px, B6) with nothing (or junk) stored", () => {
+    expect(widthFromPx(null)).toBe("narrow");
+    expect(widthFromPx("wide-ish")).toBe("narrow");
   });
 
   it("prefers a stored option over the old pixel width", () => {
     expect(parseLeftPanelWidth("wide", "240")).toBe("wide");
     expect(parseLeftPanelWidth("huge", "240")).toBe("narrow");
-    expect(parseLeftPanelWidth(null, null)).toBe("default");
+    expect(parseLeftPanelWidth(null, null)).toBe("narrow");
   });
 });
 

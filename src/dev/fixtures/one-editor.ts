@@ -179,7 +179,7 @@ const RECENT = ["Weather", "CustomGauge"];
 const BUILD: Record<FixtureName, () => Fixture> = {
   screen: () => deskFixture("studio", ["weather"], "layers"),
   profile: () => neonFixture(profileItems, "CPU temp", "layers"),
-  addw: () => neonFixture((p) => [...profileItems(p), p.weather], "Weather", "add", { addSegment: "all", toast: "addw", added: "Weather", recent: RECENT }),
+  addw: () => neonFixture((p) => [...profileItems(p), p.weather], "Weather", "add", { addSegment: "widgets", toast: "addw", added: "Weather", recent: RECENT }),
   alt: () => deskFixture("studio", ["title"], "layers", { altDrag: { part: "Title text" } }, "title"),
   export: () => deskFixture("infopanel", [], "layers"),
   layersF: () =>

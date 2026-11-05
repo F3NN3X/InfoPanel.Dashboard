@@ -15,8 +15,8 @@ const tile = (key: string) => [...widgets, ...ITEM_TILES, ...ELEMENT_TILES].find
 
 describe("Add sections", () => {
   it("lists Studio widgets first on a screen for Studio panels, InfoPanel items first when made for InfoPanel", () => {
-    expect(titles({})).toEqual(["STUDIO WIDGETS", "INFOPANEL ITEMS", "ELEMENTS"]);
-    expect(titles({ infoPanel: true })).toEqual(["INFOPANEL ITEMS", "ELEMENTS", "STUDIO WIDGETS"]);
+    expect(titles({})).toEqual(["Studio widgets", "InfoPanel items", "Elements"]);
+    expect(titles({ infoPanel: true })).toEqual(["InfoPanel items", "Elements", "Studio widgets"]);
   });
 
   it("counts every tile of a kind and groups items by Text, Data, Media and Layout", () => {
@@ -53,18 +53,23 @@ describe("Add sections", () => {
   it("puts up to four Recently used tiles of any kind first, hidden when none, while searching or on a chip", () => {
     const recent = [widgets[0].key, partKey("Text"), partKey("element:ring"), widgets[1].key, widgets[2].key];
     const [r] = addSections({ ...base, recent });
-    expect(r.title).toBe("RECENTLY USED");
+    expect(r.title).toBe("Recently used");
     expect(r.groups[0].tiles.map((t) => t.key)).toEqual(recent.slice(0, 4));
-    expect(titles({ recent: [] })[0]).toBe("STUDIO WIDGETS");
+    expect(titles({ recent: [] })[0]).toBe("Studio widgets");
     expect(titles({ recent, query: "clock" })).toEqual([null]);
-    expect(titles({ recent, chip: widgets[0].category })[0]).toBe("STUDIO WIDGETS");
+    expect(titles({ recent, chip: widgets[0].category })[0]).toBe("Studio widgets");
     // The Widgets segment keeps only the widgets of it.
     expect(addSections({ ...base, recent, segment: "widgets" })[0].groups[0].tiles.map((t) => t.kind)).toEqual(["widget", "widget", "widget"]);
   });
 
+  it("reads a view's Recently used key from before D-5 as its widget, once", () => {
+    const [r] = addSections({ ...base, recent: ["Weather:now", "Weather:week", "Weather"] });
+    expect(r.groups[0].tiles.map((t) => t.key)).toEqual(["Weather"]);
+  });
+
   it("shows only Studio widgets on the Widgets segment, items and elements on the InfoPanel items one", () => {
-    expect(titles({ segment: "widgets" })).toEqual(["STUDIO WIDGETS"]);
-    expect(titles({ segment: "items" })).toEqual(["INFOPANEL ITEMS", "ELEMENTS"]);
+    expect(titles({ segment: "widgets" })).toEqual(["Studio widgets"]);
+    expect(titles({ segment: "items" })).toEqual(["InfoPanel items", "Elements"]);
   });
 
   it("offers widget categories as chips, or the item groups and Elements on the InfoPanel items segment", () => {
@@ -72,11 +77,11 @@ describe("Add sections", () => {
     expect(chipsFor("all", catalog.widget)[0]).toBe("All");
     expect(chipsFor("all", catalog.widget)).toContain("System");
     expect(addSections({ ...base, segment: "items", chip: "Media" }).flatMap((s) => s.groups.flatMap((g) => g.tiles.map((t) => t.name)))).toEqual(["Image", "Web image", "Sensor image"]);
-    expect(titles({ segment: "items", chip: "Elements" })).toEqual(["ELEMENTS"]);
+    expect(titles({ segment: "items", chip: "Elements" })).toEqual(["Elements"]);
   });
 
   it("leaves out InfoPanel items where the page takes none", () => {
-    expect(titles({ items: [], elements: [] })).toEqual(["STUDIO WIDGETS"]);
+    expect(titles({ items: [], elements: [] })).toEqual(["Studio widgets"]);
   });
 });
 
