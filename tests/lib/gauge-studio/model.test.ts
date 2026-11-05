@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import { describe, expect, it } from "vitest";
 import type { DashboardConfig, Placement } from "@/lib/layout";
 import type { LibraryItem } from "@/lib/library";
@@ -57,6 +58,30 @@ describe("gauge sources", () => {
     expect(found[3].on).toMatchObject({ profileId: "q", pageId: "pg3" });
     // The canvas is opened once for the same stored form.
     expect(configGauges(many)[0]).toBe(found[0]);
+  });
+
+  describe("a Gauge item placed on a page", () => {
+    const fixture = JSON.parse(fs.readFileSync("tests/fixtures/perf/data/config.json", "utf8")) as DashboardConfig;
+    const source = { kind: "item", zoneId: "perf-gauge-cpu" } as const;
+
+    it("is listed with its screen, page and sensor, and the item that is not a gauge is not", () => {
+      const found = configGauges(fixture);
+      expect(found.map((g) => g.key)).toEqual(["item:perf-gauge-cpu"]);
+      expect(found[0]).toMatchObject({ name: "CPU gauge", kind: "vector", reads: "CPU Total", where: "Main", on: { screen: "Perf heavy", page: "Main", pageId: "main" } });
+    });
+
+    it("writes its spec and name back into the item, leaving its box and binding as they were", () => {
+      const spec = { ...configGauges(fixture)[0].gauge!, sweep: 90 };
+      const next = withGauge(fixture, source, spec)!;
+      const named = withGaugeName(next, source, "Renamed")!;
+      const [entry] = configGauges(named);
+      expect(entry).toMatchObject({ name: "Renamed", gauge: { sweep: 90 } });
+      const zone = named.profiles[0].pages[0].placements.find((z) => z.id === "perf-gauge-cpu")!;
+      const before = fixture.profiles[0].pages[0].placements.find((z) => z.id === "perf-gauge-cpu")!;
+      expect(zone.item).toMatchObject({ kind: "Gauge", X: before.item!.X, Y: before.item!.Y, SensorName: "CPU Total", $: { key: "libre.amd_ryzen_9_9950x3d_cpu_total" } });
+      expect(zone.px).toEqual(before.px);
+      expect(named.profiles[0].pages[0].placements.find((z) => z.id === "perf-gauge-gpu")).toBe(fixture.profiles[0].pages[0].placements.find((z) => z.id === "perf-gauge-gpu"));
+    });
   });
 
   it("lists a Custom gauge widget with no spec of its own as the default spec it draws", () => {

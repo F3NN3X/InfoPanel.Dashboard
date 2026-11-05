@@ -11,7 +11,7 @@ export type GaugeLink = Pick<LibraryCopy, "profileId" | "pageId"> & { zoneId: st
 
 /** The link of a profile gauge (null for a preset or library source). */
 export function linkOf(profile: { profileId: string; pageId?: string }, source: GaugeSource): GaugeLink | null {
-  if (source.kind !== "canvas" && source.kind !== "widget") return null;
+  if (source.kind !== "canvas" && source.kind !== "widget" && source.kind !== "item") return null;
   return {
     profileId: profile.profileId,
     ...(profile.pageId ? { pageId: profile.pageId } : {}),

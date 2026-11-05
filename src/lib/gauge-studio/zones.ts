@@ -60,3 +60,18 @@ export function bandsOf(t: Thresholds, unit: string): { state: ZoneState; text: 
   const states: ZoneState[] = t.close === null ? ["normal", "alert"] : ["normal", "close", "alert"];
   return states.map((state) => ({ state, text: bandText(t, state, unit) }));
 }
+
+/** Where the stage's zones come from: the rule that watches the sensor, the gauge's own Fill thresholds, or neither. */
+export interface ZoneRead {
+  thresholds: Thresholds | null;
+  from: "rule" | "gauge" | "none";
+  rule?: AlertRule;
+}
+
+/** `follow` asks for the rule's zones; with no sensor or no rule watching it the gauge's own thresholds stand in. */
+export function zoneRead(rules: readonly AlertRule[], sensor: string | null, follow: boolean, g: VectorGauge): ZoneRead {
+  const hit = follow && sensor ? ruleWatching(rules, sensor) : null;
+  if (hit) return { thresholds: thresholdsOfCondition(hit.condition), from: "rule", rule: hit.rule };
+  const own = thresholdsOfFill(g);
+  return own ? { thresholds: own, from: "gauge" } : { thresholds: null, from: "none" };
+}

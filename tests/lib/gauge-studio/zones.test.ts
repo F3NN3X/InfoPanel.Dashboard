@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { AlertRule } from "@/lib/alerts";
 import type { DashboardConfig, Placement } from "@/lib/layout";
+import { readout } from "@/lib/gauge-studio/readout";
 import { configRings, ringsOf } from "@/lib/gauge-studio/rings";
-import { bandsOf, ruleWatching, stateAt, thresholdsOfCondition, thresholdsOfFill } from "@/lib/gauge-studio/zones";
+import { bandsOf, ruleWatching, stateAt, thresholdsOfCondition, thresholdsOfFill, zoneRead } from "@/lib/gauge-studio/zones";
 import { DEFAULT_GAUGE } from "@/lib/infopanel/gauges/vector";
 
 const rule = (id: string, key: string, op: ">" | "<" | "changes", value: number, extra: Partial<AlertRule> = {}): AlertRule => ({
@@ -40,6 +41,11 @@ describe("colour zones", () => {
     expect(thresholdsOfFill(DEFAULT_GAUGE)).toBeNull();
     const own = { ...DEFAULT_GAUGE, fill: { ...DEFAULT_GAUGE.fill, mode: "thresholds" as const, warn: 70, crit: 90 } };
     expect(thresholdsOfFill(own)).toEqual({ dir: "up", close: 70, alert: 90 });
+    const rules = [rule("on", "cpu", ">", 65)];
+    expect(zoneRead(rules, "cpu", true, own)).toMatchObject({ from: "rule", rule: { id: "on" }, thresholds: { alert: 65 } });
+    expect(zoneRead(rules, "cpu", false, own)).toMatchObject({ from: "gauge", thresholds: { alert: 90 } });
+    expect(zoneRead(rules, "gpu", true, own).from).toBe("gauge");
+    expect(zoneRead(rules, null, true, DEFAULT_GAUGE).from).toBe("none");
   });
 });
 
@@ -62,5 +68,19 @@ describe("widget rings", () => {
   it("reads every screen and page of the config", () => {
     const config = { profiles: [{ id: "p", name: "A", pages: [{ id: "a", name: "One", placements: [zone("GpuRings")] }, { id: "b", name: "Two", placements: [zone("Clock")] }] }] } as unknown as DashboardConfig;
     expect(configRings(config).map((r) => [r.on.screen, r.on.page])).toEqual([["A", "One"]]);
+  });
+});
+
+describe("stage readout", () => {
+  const g = (scale: { min: number; max: number; unit: string; decimals: number | null }) => ({ ...DEFAULT_GAUGE, scale });
+
+  it("writes the value and both ends in the gauge's unit, auto decimals showing one only where there is one", () => {
+    expect(readout(g({ min: 0, max: 100, unit: "°C", decimals: null }), 0.675)).toMatchObject({ text: "67.5 °C", low: "0 °C", high: "100 °C" });
+    expect(readout(g({ min: 0, max: 100, unit: "", decimals: null }), 0.7).text).toBe("70");
+    expect(readout(g({ min: 20, max: 40, unit: "%", decimals: 0 }), 0.5).text).toBe("30 %");
+  });
+
+  it("holds a value outside the scale to its ends", () => {
+    expect(readout(g({ min: 0, max: 100, unit: "", decimals: 1 }), 2).text).toBe("100.0");
   });
 });

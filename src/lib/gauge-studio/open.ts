@@ -3,7 +3,7 @@ import { normalizeGauge, DEFAULT_GAUGE, type VectorGauge } from "@/lib/infopanel
 import type { GaugeEntry, GaugeSource, LibraryFrame } from "./model";
 import type { WorkingCopy } from "./working-copy";
 
-export type ProfileSource = Extract<GaugeSource, { kind: "canvas" | "widget" }>;
+export type ProfileSource = Extract<GaugeSource, { kind: "canvas" | "widget" | "item" }>;
 
 export type EditorOpen =
   /** A gauge in the profile: edits write through to the config. */
