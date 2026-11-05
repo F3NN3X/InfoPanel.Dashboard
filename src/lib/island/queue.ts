@@ -1,4 +1,4 @@
-import type { Severity } from "@/lib/alerts";
+import { SEVERITY_RANK as RANK, type Severity } from "@/lib/alerts";
 import type { IslandItem, IslandNotice, IslandSnapshot } from "./types";
 
 /**
@@ -13,8 +13,6 @@ export const DEFAULT_TTL: Record<Severity, number> = { info: 4000, warning: 8000
 export const MAX_ITEMS = 20;
 /** Cooldown records are kept this long, ms. */
 const ENDED_KEEP_MS = 3_600_000;
-
-const RANK: Record<Severity, number> = { info: 0, warning: 1, critical: 2 };
 
 export interface QueueState {
   items: readonly IslandItem[];

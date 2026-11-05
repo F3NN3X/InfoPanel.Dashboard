@@ -135,7 +135,7 @@ const DESTINATIONS: { id: string; label: string; target: NavTarget; hint?: strin
   { id: "infopanel", label: "InfoPanel profiles", target: { view: "infopanel" }, hint: "Screens, filtered to InfoPanel" },
   { id: "data", label: "Data", target: { view: "data" }, hint: "sources, points, display names" },
   { id: "alerts", label: "Alerts & Island", target: { view: "alerts" } },
-  { id: "alerts:rules", label: "Alerts & Island › Rules", target: { view: "alerts", tab: "rules" } },
+  { id: "alerts:rules", label: "Alerts & Island › Alerts", target: { view: "alerts", tab: "rules" } },
   { id: "alerts:island", label: "Alerts & Island › Island", target: { view: "alerts", tab: "island" }, hint: "Dynamic Island" },
   { id: "alerts:defaults", label: "Alerts & Island › Defaults", target: { view: "alerts", tab: "defaults" } },
   { id: "alerts:history", label: "Alerts & Island › History", target: { view: "alerts", tab: "history" } },

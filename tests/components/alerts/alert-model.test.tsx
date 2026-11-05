@@ -42,12 +42,32 @@ describe("visibleAlerts", () => {
 });
 
 describe("slots", () => {
-  it("stacks newest first, shows three and counts the rest", () => {
-    const list = [1, 2, 3, 4, 5].map((n) => alert(`a${n}`, { startedAt: n }));
-    const [slot] = groupBySlot(list);
+  it("shows one alert per slot, the strongest then the newest, and counts the rest", () => {
+    const list = [1, 2, 3].map((n) => alert(`a${n}`, { startedAt: n }));
+    const [slot] = groupBySlot([...list, alert("hot", { startedAt: 0, severity: "critical" })]);
     expect(slot.key).toBe("top-right");
+    expect(slot.shown.map((a) => a.id)).toEqual(["hot"]);
+    expect(slot.rest.map((a) => a.id)).toEqual(["a3", "a2", "a1"]);
+    expect(slot.more).toBe(3);
+  });
+
+  it("keeps overlays stacked, three and the rest counted", () => {
+    const list = [1, 2, 3, 4, 5].map((n) => alert(`a${n}`, { startedAt: n }, { style: "overlay" }));
+    const [slot] = groupBySlot(list);
     expect(slot.shown.map((a) => a.id)).toEqual(["a5", "a4", "a3"]);
     expect(slot.more).toBe(2);
+  });
+
+  it("keeps an overlay and a toast at one anchor apart, so both show", () => {
+    const slots = groupBySlot([alert("toast", { severity: "critical" }), alert("over", {}, { style: "overlay" })]);
+    expect(slots.map((s) => s.shown.map((a) => a.id))).toEqual([["toast"], ["over"]]);
+    expect(slots.map((s) => s.more)).toEqual([0, 0]);
+    expect(new Set(slots.map((s) => s.id)).size).toBe(2);
+  });
+
+  it("counts a queued alert's time from when it can show", () => {
+    expect(countdownFraction(alert("a", { startedAt: 0, queuedMs: 8000 }, { seconds: 8 }), 8000)).toBe(1);
+    expect(countdownFraction(alert("a", { startedAt: 0, queuedMs: 8000 }, { seconds: 8 }), 12_000)).toBe(0.5);
   });
 
   it("maps banners to the top or bottom edge, other styles keep their position", () => {
@@ -87,7 +107,7 @@ describe("look", () => {
 
   it("renders roles, title and body", () => {
     const html = renderToString(
-      <AlertLayer alerts={[alert("a"), alert("b", { severity: "info" })]} onAck={() => {}} />
+      <AlertLayer alerts={[alert("a"), alert("b", { severity: "info" }, { position: "bottom-left" })]} onAck={() => {}} />
     );
     expect(html).toContain('role="alert"');
     expect(html).toContain('role="status"');

@@ -38,6 +38,14 @@ describe("normalizeAlerts", () => {
     expect(normalizeAlerts({ rules: [r] })?.rules).toEqual([r]);
   });
 
+  it("keeps the Auto style on a rule and in the defaults, and an unset default stays toast (P-2)", () => {
+    const auto = rule({ outputs: { display: { style: "auto" } } });
+    const read = normalizeAlerts({ rules: [auto], defaults: { style: "auto" } });
+    expect(read?.rules).toEqual([auto]);
+    expect(read?.defaults.style).toBe("auto");
+    expect(normalizeAlerts({ rules: [rule()] })?.defaults.style).toBe("toast");
+  });
+
   it("keeps several conditions in order and drops unreadable ones", () => {
     const conditions = [
       { key: "cpu.temp", op: ">", value: 95, clearBelow: 90 },

@@ -8,7 +8,7 @@ import { Toggle } from "@/components/ui/toggle";
 import { islandEffective, type ControlKiosk, type ControlState } from "@/lib/control";
 import { isTauri } from "@/lib/desktop";
 import type { MonitorProfile } from "@/lib/layout";
-import { DIM_MAX, DIM_STEP, isMuted, liveActions, rotationNote } from "./live-model";
+import { DIM_MAX, DIM_STEP, liveActions, rotationNote } from "./live-model";
 
 interface LiveControlProps {
   open: boolean;
@@ -104,7 +104,6 @@ export function LiveControl({ open, onOpenChange, profiles, screen, control, kio
   const rotating = (entry?.rotating ?? savedRotation) && canRotate;
   const shownPage = entry?.page ?? screen.pages[0]?.id;
   const savedIsland = screen.island?.enabled === true;
-  const muted = isMuted(control, Date.now());
   const name = `Live control, ${kiosks.length} ${kiosks.length === 1 ? "kiosk" : "kiosks"}`;
   const trigger = (
     <Popover.Trigger title={tip ? undefined : "Live control"} aria-label={name} className={cn("flex items-center transition-colors", place !== "bar" && FOCUS_RING, TRIGGER[place])}>
@@ -168,9 +167,6 @@ export function LiveControl({ open, onOpenChange, profiles, screen, control, kio
                 <Toggle label="Rotation" checked={rotating} disabled={offline || !canRotate} onChange={(next) => void liveActions.setRotation(screen.id, next, savedRotation)} />
               </Control>
               <DimSlider level={entry?.dim ?? 0} disabled={offline} onSet={(level) => void liveActions.setDim(screen.id, level)} />
-              <Control label="Mute alerts for 1 h" note={muted && control?.mutedUntil ? `Muted until ${new Date(control.mutedUntil).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}.` : undefined}>
-                <Toggle label="Mute alerts for 1 h" checked={muted} disabled={offline} onChange={(next) => void liveActions.mute(next)} />
-              </Control>
               <Control label="Dynamic Island">
                 <Toggle
                   label="Dynamic Island"

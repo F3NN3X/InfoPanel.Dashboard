@@ -846,6 +846,7 @@ function StudioViewBody({
       config={config}
       setConfig={setAlertsConfig}
       active={control?.alerts ?? []}
+      control={control}
       points={dataPoints}
       screen={storedProfile}
       page={profile.pageId ?? storedProfile.pages[0].id}

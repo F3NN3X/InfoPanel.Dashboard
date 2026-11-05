@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
 import { Info, OctagonAlert, TriangleAlert, type LucideIcon } from "lucide-react";
 import type { ActiveAlert, Severity } from "@/lib/alerts";
+import { alertTitle } from "@/lib/island/from-alerts";
 import type { ControlState } from "@/lib/control";
 import { postControl } from "@/lib/control";
 import type { ProfileView } from "@/lib/layout";
@@ -22,7 +23,7 @@ import {
   type Slot,
 } from "./alert-model";
 
-const ICONS: Record<Severity, LucideIcon> = { info: Info, warning: TriangleAlert, critical: OctagonAlert };
+export const ICONS: Record<Severity, LucideIcon> = { info: Info, warning: TriangleAlert, critical: OctagonAlert };
 
 /** How long a leaving alert stays mounted for its exit animation. */
 const EXIT_MS = 220;
@@ -125,13 +126,13 @@ export function AlertLayer({ alerts, onAck, lookId }: AlertLayerProps) {
         {slots
           .filter((s) => s.key !== "banner-top" && s.key !== "banner-bottom")
           .map((slot) => (
-            <SlotStack key={slot.key} slot={slot} now={now} leavingIds={leavingIds} reduced={reduced} onAck={onAck} />
+            <SlotStack key={slot.id} slot={slot} now={now} leavingIds={leavingIds} reduced={reduced} onAck={onAck} />
           ))}
       </div>
       {slots
         .filter((s) => s.key === "banner-top" || s.key === "banner-bottom")
         .map((slot) => (
-          <SlotStack key={slot.key} slot={slot} now={now} leavingIds={leavingIds} reduced={reduced} onAck={onAck} />
+          <SlotStack key={slot.id} slot={slot} now={now} leavingIds={leavingIds} reduced={reduced} onAck={onAck} />
         ))}
     </div>
   );
@@ -151,6 +152,7 @@ function SlotStack({ slot, now, leavingIds, reduced, onAck }: SlotStackProps) {
   const col = cell?.col ?? 2;
   const style: CSSProperties = cell ? { gridColumn: cell.col, gridRow: cell.row } : {};
   const from = enterFrom(slot.key);
+  const waiting = slot.more - [...slot.shown, ...slot.rest].filter((a) => leavingIds.has(a.id)).length;
   return (
     <div
       className={cn(
@@ -178,15 +180,8 @@ function SlotStack({ slot, now, leavingIds, reduced, onAck }: SlotStackProps) {
           onAck={onAck}
         />
       ))}
-      {slot.more > 0 && (
-        <button
-          type="button"
-          onClick={() => slot.rest.forEach((a) => onAck(a.id))}
-          className="pointer-events-auto rounded-full bg-card/90 px-3 py-1 text-xs font-medium text-muted-foreground shadow outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          Dismiss {slot.more} more
-        </button>
-      )}
+      {/* Only a count: tapping the card shown moves the queue on, and an alert nobody saw is never acknowledged. */}
+      {waiting > 0 && <span className="rounded-full bg-card/90 px-3 py-1 text-xs font-medium text-muted-foreground shadow">{waiting} waiting</span>}
     </div>
   );
 }
@@ -222,7 +217,7 @@ function AlertCard({ alert, now, from, leaving, reduced, onAck }: AlertCardProps
         {/* The live region holds the title and text; the age label ticks every minute and stays out of it. */}
         <div role={alert.severity === "info" ? "status" : "alert"} className="min-w-0 flex-1">
           <div className="flex items-baseline justify-between gap-3">
-            <div className="line-clamp-2 break-words font-semibold">{alert.title ?? alert.name}</div>
+            <div className="line-clamp-2 break-words font-semibold">{alertTitle(alert)}</div>
             <div aria-hidden className="shrink-0 text-[0.75em] text-muted-foreground">{ageLabel(alert, now)}</div>
           </div>
           {alert.text && <div className="mt-0.5 whitespace-pre-line text-[0.9em] text-muted-foreground">{alert.text}</div>}
@@ -231,7 +226,7 @@ function AlertCard({ alert, now, from, leaving, reduced, onAck }: AlertCardProps
       {/* Keyboard path for the whole-card tap: shown on focus only. The click reaches the card's handler. */}
       <button
         type="button"
-        aria-label={`Dismiss ${alert.title ?? alert.name}`}
+        aria-label={`Dismiss ${alertTitle(alert)}`}
         className="alert-dismiss kiosk-focus sr-only"
       >
         Dismiss

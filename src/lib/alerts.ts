@@ -7,10 +7,14 @@
 
 export type Severity = "info" | "warning" | "critical";
 export const SEVERITIES: readonly Severity[] = ["info", "warning", "critical"];
+export const SEVERITY_RANK: Record<Severity, number> = { info: 0, warning: 1, critical: 2 };
 
-/** "island": the profile's Dynamic Island (`src/lib/island`); a profile without one shows a top toast. */
-export type AlertStyle = "toast" | "banner" | "overlay" | "island";
-export const ALERT_STYLES: readonly AlertStyle[] = ["toast", "banner", "overlay", "island"];
+/**
+ * "island": the profile's Dynamic Island (`src/lib/island`); a profile without one shows a top toast.
+ * "auto": picks by severity and screen: the island where there is one, a toast elsewhere.
+ */
+export type AlertStyle = "auto" | "toast" | "banner" | "overlay" | "island";
+export const ALERT_STYLES: readonly AlertStyle[] = ["auto", "island", "toast", "banner", "overlay"];
 export type AlertPosition =
   | "top-left" | "top" | "top-right"
   | "left" | "center" | "right"
@@ -127,6 +131,8 @@ export interface ActiveAlert {
   highlight?: { zones?: string[]; key?: string };
   profiles?: string[];
   test?: boolean;
+  /** How long it waits behind the alerts ahead of it, ms: its time on screen starts after that. */
+  queuedMs?: number;
   /** Inside quiet hours and below their severity: in history, not shown. */
   quiet?: boolean;
 }
@@ -143,6 +149,13 @@ export interface AlertHistoryEntry {
   dismissed?: boolean;
   test?: boolean;
   quiet?: boolean;
+  /** The alert that took this one's place. */
+  replacedBy?: string;
+  /** Rows the server wrote before these fields have none of them. */
+  value?: number | string;
+  unit?: string;
+  shownAs?: AlertStyle;
+  profiles?: string[];
 }
 
 /** The body of `POST /api/control/alert`. */

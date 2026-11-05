@@ -1,29 +1,47 @@
+import { useEffect, useRef, useState } from "react";
 import { DynamicIsland } from "@/components/island/dynamic-island";
 import type { PageSkin } from "@/components/island/island-look";
 import type { IslandBus } from "@/lib/island/bus";
 import { ISLAND_DEFAULTS, type IslandConfig } from "@/lib/island/config";
+import type { MonitorProfile } from "@/lib/layout";
+import { ScreenThumb } from "./screens/screen-thumb";
 
 interface IslandPreviewProps {
-  island: IslandConfig | undefined;
-  /** The screen's design size: a short strip or a small screen gets a smaller island. */
-  page: { width: number; height: number };
+  profile: MonitorProfile;
   /** The screen's widget skin, worn by an island whose placement is "skin". */
   skin?: PageSkin;
-  /** The bus "Preview an alert" notifies; only this preview listens. */
+  /** The bus the Idle, Alert and Notice switch plays on; only this preview listens. */
   bus: IslandBus;
 }
 
-/** The real island on a dark stage, fed the screen's island settings, so every row shows as it is set. */
-export function IslandPreview({ island, page, skin, bus }: IslandPreviewProps) {
-  const config = island ?? { ...ISLAND_DEFAULTS, enabled: false };
+/** The real island, fed the screen's island settings, over a picture of the screen at the size the box leaves. */
+export function IslandPreview({ profile, skin, bus }: IslandPreviewProps) {
+  const config: IslandConfig = profile.island ?? { ...ISLAND_DEFAULTS, enabled: false };
+  const box = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(0);
+  useEffect(() => {
+    if (!box.current) return;
+    const observer = new ResizeObserver(([entry]) => setWidth(entry.contentRect.width));
+    observer.observe(box.current);
+    return () => observer.disconnect();
+  }, []);
   return (
     <div className="flex flex-col gap-1.5">
-      <div role="group" aria-label="Island preview" className="relative h-[120px] overflow-hidden rounded-[10px] border border-ui-subtle bg-s-well">
-        <DynamicIsland config={config} alerts={[]} placement="absolute" page={page} skin={skin} bus={bus} />
+      <div
+        ref={box}
+        role="group"
+        aria-label="Island preview"
+        className="relative overflow-hidden rounded-[12px] border border-ui-default bg-ui-chrome"
+        style={{ aspectRatio: profile.width / profile.height }}
+      >
+        <ScreenThumb profile={profile} />
+        {width > 0 && (
+          <div className="absolute left-0 top-0 origin-top-left" style={{ width: profile.width, height: profile.height, transform: `scale(${width / profile.width})` }}>
+            <DynamicIsland config={config} alerts={[]} placement="absolute" page={{ width: profile.width, height: profile.height }} skin={skin} bus={bus} />
+          </div>
+        )}
       </div>
-      {!config.enabled && (
-        <p className="text-micro text-ui-hint">The island is off on this screen. This is how it will look when you turn it on.</p>
-      )}
+      {!config.enabled && <p className="text-caption text-ui-3">The island is off on this screen. This is how it will look when you turn it on</p>}
     </div>
   );
 }

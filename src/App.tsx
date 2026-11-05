@@ -207,7 +207,7 @@ export default function App({ fixture }: AppProps = {}) {
     if (studio && profile.pageId !== studioPage) setStudioPage(profile.pageId);
   }, [studio, profile.pageId, studioPage]);
   const { shown: shownAlerts, ack: ackAlert } = useShownAlerts(control, stored.id);
-  // Island-style alerts go to the profile's island; without one they show as a top toast.
+  // Alerts go to the profile's island or the alert layer, one at a time (`splitIslandAlerts`).
   // The control channel can show or hide it (Stream Deck); the layout space it reserves stays either way.
   const savedIsland = profile.island?.enabled === true;
   const islandShown = kiosk ? islandEffective(control, profile) : savedIsland;

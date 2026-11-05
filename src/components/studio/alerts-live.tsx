@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
-import { Check, X } from "lucide-react";
-import type { ActiveAlert, AlertHistoryEntry } from "@/lib/alerts";
+import { Info, OctagonAlert, TriangleAlert, type LucideIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { StatusChip } from "@/components/ui/status-chip";
+import type { ActiveAlert, AlertHistoryEntry, Severity } from "@/lib/alerts";
 import { postControl } from "@/lib/control";
-import { ageText } from "./alerts-model";
-import { SeverityDot } from "./alerts-fields";
+import { cn } from "@/lib/utils";
+import { spanText } from "./alerts-history-model";
 
 export const HISTORY_URL = "/api/alerts/history";
-const HISTORY_SHOWN = 50;
 
 /**
  * The server's alert history (newest first), fetched on mount and again whenever the active list
@@ -28,66 +29,46 @@ export function useAlertHistory(active: readonly ActiveAlert[]): AlertHistoryEnt
   return history;
 }
 
-const BUTTON =
-  "flex h-6 items-center gap-1 rounded-md border border-ui-strong px-1.5 text-micro text-ui-2 hover:bg-ui-hover hover:text-ui-1";
+const LOOK: Record<Severity, { icon: LucideIcon; tone: string; card: string }> = {
+  info: { icon: Info, tone: "text-ui-accent-text", card: "border-ui-default" },
+  warning: { icon: TriangleAlert, tone: "text-ui-warn", card: "border-ui-warn/40 bg-ui-warn/6" },
+  critical: { icon: OctagonAlert, tone: "text-ui-danger", card: "border-ui-danger/40 bg-ui-danger/6" },
+};
 
-/** "Active now": the alerts the server holds, each with Acknowledge and Dismiss. */
-export function ActiveList({ active, now }: { active: readonly ActiveAlert[]; now: number }) {
-  if (active.length === 0) return <p className="text-micro text-ui-4">Nothing active.</p>;
+/** "Active now": the alerts the server holds, each with its value, how long, on how many screens, Acknowledge and Dismiss. */
+export function ActiveNow({ active, now, screens }: { active: readonly ActiveAlert[]; now: number; screens: number }) {
   return (
-    <ul className="space-y-1.5">
-      {active.map((a) => (
-        <li key={a.id} className="rounded-lg border border-ui-default bg-ui-app p-2">
-          <div className="flex items-center gap-1.5">
-            <SeverityDot severity={a.severity} />
-            <span className="min-w-0 flex-1 truncate text-body text-ui-1">{a.name}</span>
-            {a.test && <Tag>test</Tag>}
-            {a.quiet && <Tag>quiet</Tag>}
-            <span className="shrink-0 font-ui-mono text-micro text-ui-4">{ageText(a.startedAt, now)}</span>
-          </div>
-          <div className="mt-0.5 truncate text-micro text-ui-3" title={a.text}>
-            {a.text}
-          </div>
-          <div className="mt-1.5 flex gap-1.5">
-            <button
-              type="button"
-              disabled={a.acknowledged}
-              onClick={() => void postControl("alert", { id: a.id, action: "ack" })}
-              className={`${BUTTON} disabled:opacity-40`}
-            >
-              <Check className="h-3 w-3" /> {a.acknowledged ? "Acknowledged" : "Acknowledge"}
-            </button>
-            <button type="button" onClick={() => void postControl("alert", { id: a.id, action: "dismiss" })} className={BUTTON}>
-              <X className="h-3 w-3" /> Dismiss
-            </button>
-          </div>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-function Tag({ children }: { children: string }) {
-  return <span className="shrink-0 rounded bg-ui-active px-1 text-nano uppercase tracking-wide text-ui-3">{children}</span>;
-}
-
-/** The last 50 history entries, with test / quiet / dismissed tags. */
-export function HistoryList({ history, now }: { history: readonly AlertHistoryEntry[]; now: number }) {
-  if (history.length === 0) return <p className="text-micro text-ui-4">No alerts yet.</p>;
-  return (
-    <ul className="space-y-1.5">
-      {history.slice(0, HISTORY_SHOWN).map((h) => (
-        <li key={h.id} className="flex items-center gap-1.5 text-micro">
-          <SeverityDot severity={h.severity} />
-          <span className="min-w-0 flex-1 truncate text-ui-2" title={h.text}>
-            {h.name}
-          </span>
-          {h.test && <Tag>test</Tag>}
-          {h.quiet && <Tag>quiet</Tag>}
-          {h.dismissed && <Tag>dismissed</Tag>}
-          <span className="shrink-0 font-ui-mono text-micro text-ui-4">{ageText(h.startedAt, now)}</span>
-        </li>
-      ))}
-    </ul>
+    <section className="flex flex-col gap-2" aria-label="Active now">
+      <h2 className="text-caption font-medium text-ui-3">Active now · {active.length}</h2>
+      {active.length === 0 && <p className="text-caption text-ui-3">Nothing active</p>}
+      {active.map((a) => {
+        const { icon: Icon, tone, card } = LOOK[a.severity];
+        const count = a.profiles?.length || screens;
+        return (
+          <article key={a.id} className={cn("flex gap-2.5 rounded-[12px] border p-3.5", card)}>
+            <Icon className={cn("mt-0.5 h-4 w-4 shrink-0", tone)} aria-label={a.severity} />
+            <div className="flex min-w-0 flex-1 flex-col gap-1">
+              <div className="flex items-center gap-1.5">
+                <span className="min-w-0 flex-1 truncate text-body font-medium text-ui-1">{a.name}</span>
+                {a.test && <StatusChip tone="neutral" dot={false} className="h-5 px-2 text-micro">Test</StatusChip>}
+                {a.quiet && <StatusChip tone="neutral" dot={false} className="h-5 px-2 text-micro">Quiet</StatusChip>}
+              </div>
+              <p className="truncate text-caption text-ui-3" title={a.text}>
+                {a.text && <span className="font-ui-mono text-ui-2">{a.text} · </span>}
+                for {spanText(now - a.startedAt)} · {count} {count === 1 ? "screen" : "screens"}
+              </p>
+              <div className="mt-1.5 flex gap-1.5">
+                <Button small disabled={a.acknowledged} onClick={() => void postControl("alert", { id: a.id, action: "ack" })}>
+                  {a.acknowledged ? "Acknowledged" : "Acknowledge"}
+                </Button>
+                <Button small variant="ghost" onClick={() => void postControl("alert", { id: a.id, action: "dismiss" })}>
+                  Dismiss
+                </Button>
+              </div>
+            </div>
+          </article>
+        );
+      })}
+    </section>
   );
 }

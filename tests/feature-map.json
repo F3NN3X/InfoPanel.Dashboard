@@ -223,7 +223,9 @@
         "tests/components/alerts/**",
         "tests/fixtures/parity/alerts*.json",
         "tests/fixtures/parity/control.json",
-        "tests/e2e/control-page-switch.spec.ts"
+        "tests/e2e/control-page-switch.spec.ts",
+        "tests/e2e/alerts-test-replaces.spec.ts",
+        "tests/lib/island/from-alerts.test.ts"
       ],
       "checks": ["typecheck", "unit", "server-suite", "e2e", "cargo-server"]
     },
