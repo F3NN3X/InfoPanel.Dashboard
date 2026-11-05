@@ -9,11 +9,12 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 /**
  * @param {Record<string, {span: string, issues: string[], card: number[]|null, body: number[]|null, n: number, text: string, view: string|null}>} base
  * @param {typeof base} next
- * @returns {{newIssues: string[], goneIssues: string[], changes: string[], failing: string[], missing: string[], added: string[]}}
+ * @returns {{newIssues: string[], goneIssues: string[], changes: string[], details: string[], failing: string[], missing: string[], added: string[]}}
  *   `failing` is what fails a run: a new issue anywhere, any other change (or a lost frame) at a span that is not roomy.
+ *   `details` holds each changed field's old and new value: a run on another machine can only be read from its log.
  */
 export function diffRuns(base, next) {
-  const out = { newIssues: [], goneIssues: [], changes: [], failing: [], missing: [], added: [] };
+  const out = { newIssues: [], goneIssues: [], changes: [], details: [], failing: [], missing: [], added: [] };
   for (const [key, a] of Object.entries(base)) {
     const b = next[key];
     if (!b) {
@@ -28,6 +29,7 @@ export function diffRuns(base, next) {
     if (changed.length === 0) continue;
     const line = `${key} ${changed.join(", ")}`;
     out.changes.push(line);
+    for (const f of changed) if (f !== "issues") out.details.push(`${key} ${f}: ${JSON.stringify(a[f])} -> ${JSON.stringify(b[f])}`);
     if (!ROOMY_SPANS.includes(a.span)) out.failing.push(line);
   }
   for (const key of Object.keys(next)) if (!base[key]) out.added.push(key);

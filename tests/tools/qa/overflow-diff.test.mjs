@@ -16,6 +16,11 @@ describe("diffRuns", () => {
     expect(d.failing).toEqual(["Cpu@2x2 body, n"]);
   });
 
+  it("gives each changed field's old and new value", () => {
+    const d = diffRuns(run({ text: "a" }), run({ text: "b" }));
+    expect(d.details).toEqual(['Cpu@2x2 text: "a" -> "b"']);
+  });
+
   it("reports a change at a roomy span without failing", () => {
     const d = diffRuns(run(), run({}, { text: "CPU 43%" }));
     expect(d.changes).toEqual(["Cpu@4x4 text"]);
