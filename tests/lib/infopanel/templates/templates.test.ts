@@ -1,13 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { entriesFromZip, loadExport } from "@/lib/infopanel/archive.ts";
-import { assetFile, type Doc } from "@/lib/infopanel/assets/assets.ts";
-import { itemAt } from "@/lib/infopanel/editor/ops.ts";
-import { elementSignature, setElementFile, staleElements, staticOf } from "@/lib/infopanel/elements/bake.ts";
-import { infopanelFile, staleGauges } from "@/lib/infopanel/export/studio-export.ts";
-import { bakeSignature, setFrameFiles, vectorOf } from "@/lib/infopanel/gauges/frames.ts";
 import { readStored } from "@/lib/infopanel/import/stored.ts";
 import { walkItems } from "@/lib/infopanel/parse.ts";
-import type { DisplayItem, GaugeItem, ImageItem } from "@/lib/infopanel/schema.ts";
+import type { DisplayItem, GaugeItem } from "@/lib/infopanel/schema.ts";
 import { elementOf } from "@/lib/infopanel/elements/spec.ts";
 import { isBound } from "@/lib/infopanel/sensors.ts";
 import { TEMPLATES } from "@/lib/infopanel/templates/catalog.ts";
@@ -15,24 +9,6 @@ import { CORES_LABEL, DRIVES_LABEL, instantiate } from "@/lib/infopanel/template
 import { MOCK_SENSORS } from "@/lib/infopanel/templates/mock.ts";
 
 const now = new Date("2026-10-25T00:00:00Z");
-const png = (n: number) => Uint8Array.from([137, 80, 78, 71, 13, 10, 26, 10, n % 256, (n >> 8) % 256]);
-
-/** Stand-in bakes (no canvas under Node): one file per static element, two frames per gauge. */
-async function baked(items: DisplayItem[]): Promise<Doc> {
-  let doc: Doc = { items, assets: new Map() };
-  let n = 0;
-  for (const path of staleElements(doc.items)) {
-    const el = staticOf(itemAt(doc.items, path))!;
-    doc = setElementFile(doc, path, await assetFile(`el_${path}.png`, png(n++), "added"), elementSignature(el.spec, el.width, el.height));
-  }
-  for (const path of staleGauges(doc.items)) {
-    const spec = vectorOf(itemAt(doc.items, path))!;
-    const files = [await assetFile(`g${path}_0.png`, png(n++), "added"), await assetFile(`g${path}_1.png`, png(n++), "added")];
-    doc = setFrameFiles(doc, path, files, bakeSignature(spec, 2));
-  }
-  return doc;
-}
-
 const ids = (item: DisplayItem) => (isBound(item) ? (item as unknown as Record<string, unknown>) : {});
 
 describe("the Create dialog's sensor choices", () => {
@@ -129,7 +105,7 @@ describe("profile templates", () => {
 
   describe.each(TEMPLATES.map((t) => [t.id, t] as const))("%s", (_, t) => {
     // 480 × 320, and the size a template is made for.
-    it.each([{ width: 480, height: 320 }, ...(t.size ? [t.size] : [])])("instantiates bound to the machine at $width × $height, reads back, and exports with its baked files", async ({ width, height }) => {
+    it.each([{ width: 480, height: 320 }, ...(t.size ? [t.size] : [])])("instantiates bound to the machine at $width × $height and reads back", ({ width, height }) => {
       const { stored, unbound } = instantiate(t, { name: t.name, width, height, variant: t.variants[1].id, sensors: MOCK_SENSORS, now });
       expect(unbound).toEqual([]);
       const read = readStored(JSON.parse(JSON.stringify(stored)));
@@ -140,14 +116,6 @@ describe("profile templates", () => {
       const bound = [...walkItems(read.items)].filter(({ item }) => isBound(item));
       expect(bound.length).toBeGreaterThan(0);
       for (const { item } of bound) expect(String(ids(item).LibreSensorId || ids(item).PluginSensorId), item.Name).not.toBe("");
-
-      const doc = await baked(read.items);
-      const back = await loadExport(entriesFromZip(infopanelFile(read.profile, doc).bytes));
-      expect(back.issues.filter((i) => i.code !== "unknown-field")).toEqual([]);
-      expect(back.items.map((i) => i.kind)).toEqual(read.items.map((i) => i.kind));
-      const names = new Set(back.assets.keys());
-      const files = [...walkItems(back.items)].flatMap(({ item }) => (item.kind === "Image" ? [item as ImageItem] : item.kind === "Gauge" ? (item as GaugeItem).Images : []));
-      for (const f of files) expect(f.RelativePath && names.has(f.FilePath!.toLowerCase()), f.FilePath ?? "").toBe(true);
     });
   });
 

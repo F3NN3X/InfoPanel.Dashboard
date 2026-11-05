@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { entriesFromZip, loadExport } from "@/lib/infopanel/archive.ts";
 import { storeItems } from "@/lib/infopanel/canvas-edit.ts";
-import { applyElement, badgeOf, elementOf, ringVector } from "@/lib/infopanel/elements/apply.ts";
-import { staleElements } from "@/lib/infopanel/elements/bake.ts";
+import { applyElement, elementOf, ringVector } from "@/lib/infopanel/elements/apply.ts";
 import { rowLayout, drivesLayout } from "@/lib/infopanel/elements/compose.ts";
 import { elementSize, gradientBar, newComposite, newElement, type CompositeType } from "@/lib/infopanel/elements/create.ts";
 import { detectDrives, shortDriveName } from "@/lib/infopanel/elements/drives.ts";
@@ -12,9 +10,6 @@ import { newItem } from "@/lib/infopanel/editor/create.ts";
 import { newStored, readStored } from "@/lib/infopanel/import/stored.ts";
 import type { DisplayItem, GroupItem } from "@/lib/infopanel/schema.ts";
 import type { DataApiValue } from "@/lib/infopanel/sensors.ts";
-import { COMPOSITES, elementExport } from "../export/element-cases.ts";
-import { walkItems } from "@/lib/infopanel/parse.ts";
-import type { GaugeItem, ImageItem } from "@/lib/infopanel/schema.ts";
 import { palette, profile } from "./fixture.ts";
 import capture from "../__fixtures__/hwinfo-capture.json";
 
@@ -52,18 +47,17 @@ describe("a value glow", () => {
 
 describe("each composite as InfoPanel items", () => {
   it.each([
-    ["row", ["Text", "Sensor", "Bar"], "native"],
-    ["rows", ["Group", "Group", "Group", "Group"], "native"],
-    ["stack", ["Text", "Graph", "Text", "Graph", "Text", "Graph"], "native"],
-    ["dual", ["Graph", "Graph"], "native"],
-    ["doublering", ["Gauge", "Gauge", "Sensor"], "baked"],
-    ["drives", ["Group", "Group"], "native"],
-    ["shadowtext", ["Sensor", "Sensor"], "approximated"],
-  ] as const)("%s is a Group of %j, badge %s", (type, kinds, badge) => {
+    ["row", ["Text", "Sensor", "Bar"]],
+    ["rows", ["Group", "Group", "Group", "Group"]],
+    ["stack", ["Text", "Graph", "Text", "Graph", "Text", "Graph"]],
+    ["dual", ["Graph", "Graph"]],
+    ["doublering", ["Gauge", "Gauge", "Sensor"]],
+    ["drives", ["Group", "Group"]],
+    ["shadowtext", ["Sensor", "Sensor"]],
+  ] as const)("%s is a Group of %j", (type, kinds) => {
     const g = make(type);
     expect(g.kind).toBe("Group");
     expect(kidsOf(g).map((k) => k.kind)).toEqual(kinds);
-    expect(badgeOf(g)!.kind).toBe(badge);
     expect(elementSize(elementOf(g)!).width).toBeGreaterThan(0);
   });
 
@@ -100,7 +94,6 @@ describe("Row", () => {
     expect(wide.DisplayItems[1]).toMatchObject({ X: 20 + 400 - L.valueW });
     expect(wide.DisplayItems[0]).toMatchObject({ X: 20 + L.indent });
     expect(wide.DisplayItems[2]).toMatchObject({ Width: L.iconS, Height: L.iconS, X: 20 });
-    expect(staleElements([wide])).toEqual(["0.2"]);
   });
 
   it("keeps the label's text and the value's sensor through a relayout, and the bar follows the value's sensor", () => {
@@ -217,9 +210,8 @@ describe("thresholds on a ring", () => {
     expect([0, 69.9, 70, 89.9, 90, 100].map(at)).toEqual(["#00FF00", "#00FF00", "#FFAA00", "#FFAA00", "#FF0000", "#FF0000"]);
   });
 
-  it("is still baked, with no end dot to disagree with the colour", () => {
+  it("has no end dot to disagree with the colour", () => {
     expect(g.dot).toBeUndefined();
-    expect(badgeOf(applyElement({ ...newElement("ring", profile, palette), element: ring } as unknown as DisplayItem))!.kind).toBe("baked");
   });
 });
 
@@ -231,7 +223,6 @@ describe("Sparkline styles", () => {
     const bars = spark({ style: "bars", dot: false, gradient: false, fillAlpha: 0.5 });
     expect(bars).toMatchObject({ Type: "HISTOGRAM", Fill: true });
     expect((bars as unknown as { FillColor: string }).FillColor.slice(1, 3)).toBe("80");
-    expect(badgeOf(bars)!.kind).toBe("native");
     expect(spark({ style: "line", dot: false, gradient: false })).toMatchObject({ Type: "LINE", Fill: false });
   });
 });
@@ -243,21 +234,6 @@ describe("Shadow text", () => {
     const [shadow, text] = (applyElement(bound) as GroupItem).DisplayItems as unknown as Record<string, unknown>[];
     expect(shadow).toMatchObject({ X: 101, Y: 102, Color: "#99000000", LibreSensorId: "/amdcpu/0/load/0", GlowEnabled: false });
     expect(text).toMatchObject({ X: 100, Y: 100 });
-  });
-});
-
-describe("the new elements exported, then parsed", () => {
-  it("reads back as InfoPanel items only, every baked file present and referenced relatively", async () => {
-    const out = await elementExport(profile);
-    const back = await loadExport(entriesFromZip(out.bytes));
-    expect(back.issues.filter((i) => i.code !== "unknown-field")).toEqual([]);
-    expect(back.items.map((i) => i.kind)).toEqual([...COMPOSITES.map(() => "Group"), "Gauge", "Gauge", "Graph", "Gauge", "Image"]);
-    expect(back.items.at(-3)).toMatchObject({ Type: "HISTOGRAM" });
-    const names = new Set(back.assets.keys());
-    const files = [...walkItems(back.items)].flatMap(({ item }) => (item.kind === "Image" ? [item as ImageItem] : item.kind === "Gauge" ? (item as GaugeItem).Images : []));
-    expect(files.length).toBeGreaterThan(6);
-    for (const f of files) expect(f.RelativePath && names.has(f.FilePath!.toLowerCase()), f.FilePath ?? "").toBe(true);
-    expect(new TextDecoder().decode(out.bytes)).not.toMatch(/doublering|shadowtext|innerThresholds|fillAlpha|<face|<blur/i);
   });
 });
 

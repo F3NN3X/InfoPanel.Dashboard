@@ -9,14 +9,10 @@ import { storedCanvasWidgets } from "@/lib/infopanel/canvas-keys";
 import {
   isWidgetItem,
   newWidgetItem,
-  replaceWidgets,
   widgetBox,
-  widgetChoices,
   widgetOf,
   widgetPaths,
-  widgetRule,
   withWidget,
-  withoutWidgets,
 } from "@/lib/infopanel/native/widget-item";
 
 const base = newStored({ name: "Arc", width: 800, height: 480, now: new Date("2026-10-26T00:00:00Z") });
@@ -53,31 +49,9 @@ describe("widget items", () => {
     expect(withWidget(text, { module: "Weather" })).toBe(text);
   });
 
-  it("defaults to the first rule its tier offers (decision D2), and keeps an offered choice", () => {
-    expect(widgetRule({ module: "Weather" })).toBe("recreate");
-    expect(widgetRule({ module: "Weather", onInfoPanel: "leave" })).toBe("leave");
-    expect(widgetRule({ module: "Timer" })).toBe("leave");
-    // A choice the tier doesn't offer falls back to the default.
-    expect(widgetRule({ module: "Timer", onInfoPanel: "recreate" })).toBe("leave");
-    expect(widgetChoices("Timer")).toEqual(["leave", "snapshot"]);
-    expect(widgetRule({ module: "panel" })).toBe("recreate");
-    expect(widgetRule({ module: "panel", onInfoPanel: "snapshot" })).toBe("snapshot");
-    expect(widgetChoices("panel")).toEqual(["recreate", "snapshot", "leave"]);
-  });
-
-  it("finds widget items in groups, and replaces each in its place", () => {
+  it("finds widget items in groups", () => {
     const items = [text, group(text, weather), weather];
     expect(widgetPaths(items)).toEqual(["1.1", "2"]);
-    const out = replaceWidgets(items, (_, path) => (path === "2" ? [text, text] : []));
-    expect(out).toHaveLength(4);
-    expect((out[1] as Extract<DisplayItem, { kind: "Group" }>).DisplayItems).toEqual([text]);
-    expect(withoutWidgets(items).flatMap((i) => (i.kind === "Group" ? i.DisplayItems : [i])).some(isWidgetItem)).toBe(false);
-  });
-
-  it("returns the same items when there are no widgets, so an unedited profile writes the same bytes", () => {
-    const items = [text, group(text)];
-    expect(replaceWidgets(items, () => [])).toBe(items);
-    expect(withoutWidgets(items)).toBe(items);
   });
 });
 

@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { entriesFromZip, loadExport } from "@/lib/infopanel/archive.ts";
 import { storeItems, withElementFile, type DroppedFile } from "@/lib/infopanel/canvas-edit.ts";
-import { applyElement, badgeOf, elementOf, syncElements } from "@/lib/infopanel/elements/apply.ts";
-import { staleElements } from "@/lib/infopanel/elements/bake.ts";
+import { applyElement, elementOf, syncElements } from "@/lib/infopanel/elements/apply.ts";
 import { driveTile, newComposite, newElement } from "@/lib/infopanel/elements/create.ts";
 import { detectDrives } from "@/lib/infopanel/elements/drives.ts";
 import { normalizeElement, type DrivesSpec, type IconSpec } from "@/lib/infopanel/elements/spec.ts";
@@ -10,7 +8,6 @@ import { elementSvg } from "@/lib/infopanel/elements/svg.ts";
 import { newStored, readStored } from "@/lib/infopanel/import/stored.ts";
 import type { DisplayItem, GroupItem, ImageItem } from "@/lib/infopanel/schema.ts";
 import type { DataApiValue } from "@/lib/infopanel/sensors.ts";
-import { elementExport } from "../export/element-cases.ts";
 import { palette, profile } from "./fixture.ts";
 
 const hash = "c".repeat(64);
@@ -36,15 +33,6 @@ describe("an Icon element showing your file", () => {
 
   it("is a plain Image of the canvas file, native in the export and never baked", () => {
     expect(mine).toMatchObject({ kind: "Image", Type: "FILE", FilePath: "disk.png", RelativePath: true });
-    expect(badgeOf(mine)?.kind).toBe("native");
-    expect(staleElements([mine])).toEqual([]);
-  });
-
-  it("goes back to a baked lucide icon when the file is cleared, without a stale baked record", () => {
-    const baked = { ...mine, elementBaked: "old" } as unknown as DisplayItem;
-    const cleared = applyElement({ ...baked, element: { ...elementOf(mine)!, source: undefined } } as unknown as DisplayItem);
-    expect(badgeOf(cleared)?.kind).toBe("baked");
-    expect(staleElements([cleared])).toEqual(["0"]);
   });
 
   it("draws a chosen lucide source instead of its own name, and the spec drops what is invalid", () => {
@@ -118,15 +106,5 @@ describe("a file chosen for an element", () => {
 
   it("changes nothing when the spec is declined", () => {
     expect(withElementFile(stored, profile, [drives], "0", file, () => null)).toBeNull();
-  });
-});
-
-describe("the export", () => {
-  it("carries the icon file, and the Image reads it relatively", async () => {
-    const out = await elementExport(profile);
-    const back = await loadExport(entriesFromZip(out.bytes));
-    expect([...back.assets.keys()]).toContain("drive-icon.png");
-    const tile = (back.items[5] as GroupItem).DisplayItems[0] as GroupItem;
-    expect(tile.DisplayItems[1]).toMatchObject({ kind: "Image", FilePath: "drive-icon.png", RelativePath: true });
   });
 });
