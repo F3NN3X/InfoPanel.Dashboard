@@ -1,4 +1,4 @@
-import { FolderOpen, Plus, Search, Upload, X } from "lucide-react";
+import { Download, FolderOpen, Plus, Search, Upload, X } from "lucide-react";
 import { SEGMENT_OFF, SEGMENT_ON } from "@/components/ui/segmented";
 import { SORTS, type ListFilter, type ListSort } from "@/lib/screens/list";
 import { cn } from "@/lib/utils";
@@ -15,6 +15,8 @@ export interface ScreensToolbarProps<F extends string = ListFilter> {
   onImport: () => void;
   /** Import .infopanel: the import flow for an InfoPanel profile, which opens in Edit. */
   onImportInfoPanel?: () => void;
+  /** "Export & back up": the whole dashboard, reachable from a workspace page (no top bar there). */
+  onExportAll?: () => void;
   /** The New page: Blank, the templates and every other way to start. */
   onNew: () => void;
   /** What the list holds, in the search's and the sort's names ("screens"). */
@@ -26,7 +28,7 @@ export interface ScreensToolbarProps<F extends string = ListFilter> {
 const BUTTON =
   "inline-flex h-8 items-center gap-1.5 rounded-[7px] border border-ui-strong bg-transparent px-2.5 text-caption text-ui-1 transition-colors hover:bg-ui-hover";
 
-/** Search, the Show filter, the sort, Import, Import .infopanel and New: the strip above the cards on Screens. */
+/** Search, the Show filter, the sort, Import, Import .infopanel, Export & back up and New: the strip above the cards on Screens. */
 export function ScreensToolbar<F extends string = ListFilter>({
   query,
   onQuery,
@@ -37,6 +39,7 @@ export function ScreensToolbar<F extends string = ListFilter>({
   onSort,
   onImport,
   onImportInfoPanel,
+  onExportAll,
   onNew,
   noun = "screens",
   placeholder = "Search by name, kind or size",
@@ -104,6 +107,12 @@ export function ScreensToolbar<F extends string = ListFilter>({
         <button type="button" title="Import an InfoPanel profile (.infopanel); it opens in Edit" onClick={onImportInfoPanel} className={BUTTON}>
           <FolderOpen className="h-3.5 w-3.5" />
           <span className="max-sm:sr-only">Import .infopanel</span>
+        </button>
+      )}
+      {onExportAll && (
+        <button type="button" title="Export or back up the whole dashboard" onClick={onExportAll} className={BUTTON}>
+          <Download className="h-3.5 w-3.5" />
+          <span className="max-sm:sr-only">Export &amp; back up…</span>
         </button>
       )}
       <button

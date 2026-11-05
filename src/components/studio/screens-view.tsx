@@ -156,6 +156,7 @@ export function ScreensView({
           onSort={setSort}
           onImport={() => openImportDoor()}
           onImportInfoPanel={() => openImportDoor({ prefer: "canvas-zone" })}
+          onExportAll={() => openExportSheet()}
           onNew={onNew}
         />
 

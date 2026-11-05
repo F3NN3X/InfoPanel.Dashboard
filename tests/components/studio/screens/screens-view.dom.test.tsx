@@ -81,6 +81,12 @@ describe("Screens with InfoPanel profiles", () => {
     expect(doors.openImportDoor).toHaveBeenCalledWith({ prefer: "canvas-zone" });
   });
 
+  it("reaches the whole-dashboard export from the toolbar", () => {
+    view();
+    fireEvent.click(screen.getByRole("button", { name: "Export & back up…" }));
+    expect(doors.openExportSheet).toHaveBeenCalledWith();
+  });
+
   it("opens on the filter a link names", () => {
     view({ filterRequest: { filter: "infopanel", seq: 1 } });
     expect(names()).toEqual(["Desk"]);
