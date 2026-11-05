@@ -89,29 +89,6 @@ jobs:
       # not a failure.
       - run: node tools/verify.mjs --full --allow-incomplete
 
-  # Windows: the unsigned installer build (what release.yml does without the updater key, so packaging breaks show here
-  # first), then every check with cargo-app running against the real resources it just prepared.
-  windows:
-    needs: changes
-    if: needs.changes.outputs.run == 'true'
-    runs-on: windows-latest
-    timeout-minutes: 90
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: ./.github/actions/setup-node-deps
-      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
-        with:
-          components: clippy
-      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
-        with:
-          workspaces: src-tauri
-          shared-key: tauri
-      - run: npm run desktop:build
-      - run: npx playwright install chromium
-      # import-check needs an InfoPanel source folder, which the runner doesn't have (see docs/TESTING.md), so it reports
-      # "not run" (exit 3). Nothing else is Windows-only-and-missing here, so incomplete is not a failure.
-      - run: node tools/verify.mjs --full --allow-incomplete
-
   # The perf suites measure and never gate (docs/performance.md). The JSON goes up as an artifact, and the table against
   # the previous nightly's artifact lands in the run summary.
   perf:

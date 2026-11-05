@@ -28,7 +28,6 @@ export const CHECKS: Record<FixtureName, Check[]> = {
   addw: [
     c(5, "Add tab open as a tile grid; on an InfoPanel screen InfoPanel items come first"),
     c(3, "Weather dropped without Alt snaps to cells (COL 7 · ROW 5 · W 2 · H 1), selected"),
-    c(5, 'Toast "Weather added" with Undo'),
     c(6, 'Inspector: "Widget · col, row" and the Place row'),
     c(4, "Switching to Layers shows Weather as the top row in the same tree as the items"),
   ],

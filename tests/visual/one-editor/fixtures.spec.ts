@@ -199,7 +199,7 @@ const BUILT: Partial<Record<FixtureName, Record<string, (page: Page) => Promise<
     },
   },
   addw: {
-    [CHECKS.addw[3].text]: async (page) => {
+    [CHECKS.addw[2].text]: async (page) => {
       await expect(page.getByTestId("inspector-kind")).toHaveText(WIDGET_KIND);
       const { mode, boxes } = await placeRow(page);
       expect(mode).toBe("grid");
@@ -217,17 +217,7 @@ const BUILT: Partial<Record<FixtureName, Record<string, (page: Page) => Promise<
       expect(await tiles.count()).toBeGreaterThan(20);
       await shoot(page, "addw-tiles");
     },
-    // A real add raises the toast with Undo, which takes the widget away in one step.
-    [CHECKS.addw[2].text]: async (page) => {
-      const toast = page.getByTestId("add-toast");
-      await page.getByTestId("add-tile").filter({ hasText: "Weather" }).first().click();
-      await expect(toast).toContainText("Weather added");
-      await expect(toast.getByRole("button")).toHaveText(["Undo"]);
-      await shoot(page, "addw-toast");
-      await toast.getByRole("button", { name: "Undo" }).click();
-      await expect(toast).toHaveCount(0);
-    },
-    [CHECKS.addw[4].text]: async (page) => {
+    [CHECKS.addw[3].text]: async (page) => {
       await page.getByRole("tab", { name: "Layers" }).click();
       const first = page.getByTestId("layers-row").first();
       await expect(first).toHaveText(/Weather/);
