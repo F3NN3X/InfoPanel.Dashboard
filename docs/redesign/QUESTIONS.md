@@ -148,3 +148,32 @@ Answered after Gate 1 (2026-11-05). Each is a decision.
 3. The Readouts list stays out of the redesign: each widget would have to report what it reads, which is new work for afterwards.
 4. Pixel size for imported items in Layers waits for the InfoPanel export phase, which touches that code.
 5. Phases 4, 5 and 6 run in parallel from this point.
+
+## Gates 4, 5 and 6
+
+Data sources
+1. The palette's "Data › Connection" opens the Data API popover.
+2. Create alert preselects the sensor in the new rule.
+3. Display names stay per source.
+4. History starts when Data sources is first opened.
+5. Image points are found by their link, with no Data API change.
+6. "In use" means used by any screen or an alert rule.
+7. Row buttons stay out of the Tab order; the detail pane has the same actions.
+
+Alerts and Island
+8. A test with Show for 0 ends after 30 s, and the waiting count acknowledges nothing.
+9. The new engine behaviour stays on the started server, and the frozen fixtures stay as they are.
+10. Auto's Info is an ordinary island notice.
+11. The Alert preview shows one severity.
+12. The Island preview keeps its screenshot.
+13. Auto with Info forces the small size.
+14. The toggle knob fix applies to every toggle, including the gauge parts list.
+15. The kiosk stays over budget at 285671 B for now and is measured again after InfoPanel export is removed.
+
+Gauges
+16. Add to canvas stays as it is.
+17. Opened library items keep the Unsaved dialog.
+18. "Show end labels" stays an editor setting.
+19. Colour zones get no copy action.
+20. Widget rings are GPU Rings and System overview.
+21. The focus ring in the SVG preset thumbnail waits for Phase 8.
