@@ -51,7 +51,7 @@ test("a valid pack is imported, worn and drawn from the route with no request pa
     await section.locator("[data-pack-folder]").setInputFiles(makePack(tmp, "mine"));
     await expect(report).toContainText("Imported Mine");
     expect((await packsOf(scratch.base)).map((p) => p.id)).toEqual(["mine"]);
-    const card = page.locator('[data-look-card="mine"]');
+    const card = page.getByRole("region", { name: "Yours" }).locator('[data-look-card="mine"]');
     await expect(card).toContainText("Pack");
     await card.click();
     await page.getByRole("complementary", { name: "Theme detail" }).getByRole("button", { name: /^Apply to/ }).click();

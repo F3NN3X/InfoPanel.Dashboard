@@ -12,6 +12,32 @@ vi.mock("@/looks", async (actual) => ({ ...(await actual<object>()), loadLook: (
 // The thumbnails draw real widgets; the loading is what is tested here.
 vi.mock("@/components/studio/look-thumb", () => ({ LookThumb: () => null }));
 
+/** Browse with the props a test does not care about filled in. */
+function mount(over: Partial<React.ComponentProps<typeof ThemeBrowse>> = {}) {
+  return render(
+    <ThemeBrowse
+      levelName="Desk"
+      currentLookId="classic"
+      saved={[]}
+      packs={[]}
+      packsOff={false}
+      importer={createRef<PackImporterHandle>()}
+      onPacksChange={() => {}}
+      keepBackground={false}
+      onApply={() => {}}
+      onPreview={() => {}}
+      onCustomise={() => {}}
+      onDuplicate={() => {}}
+      onRename={() => {}}
+      onDelete={() => {}}
+      onRemovePack={() => 0}
+      onTemplates={() => {}}
+      templatesText=""
+      {...over}
+    />
+  );
+}
+
 describe("ThemeBrowse", () => {
   it("names a theme whose chunk fails with Retry, and lists the others", async () => {
     let fail = true;
@@ -20,27 +46,7 @@ describe("ThemeBrowse", () => {
       if (id === "hud" && fail) return Promise.reject(new Error("chunk failed"));
       return id === "hud" ? Promise.resolve({ ...CLASSIC, id: "hud", name: "Hud" }) : Promise.resolve(undefined);
     });
-    render(
-      <ThemeBrowse
-        levelName="Desk"
-        currentLookId="classic"
-        saved={[]}
-        packs={[]}
-        packsOff={false}
-        importer={createRef<PackImporterHandle>()}
-        onPacksChange={() => {}}
-        keepBackground={false}
-        onApply={() => {}}
-        onPreview={() => {}}
-        onCustomise={() => {}}
-        onDuplicate={() => {}}
-        onRename={() => {}}
-        onDelete={() => {}}
-        onRemovePack={() => 0}
-        onTemplates={() => {}}
-        templatesText=""
-      />
-    );
+    mount();
     await act(async () => {});
     expect(screen.getByRole("button", { name: /^Classic/ })).toBeTruthy();
     const retry = screen.getByRole("button", { name: "Retry HUD" });
@@ -49,5 +55,22 @@ describe("ThemeBrowse", () => {
     await act(async () => {});
     expect(screen.queryByRole("button", { name: "Retry HUD" })).toBeNull();
     expect(screen.getByRole("button", { name: /^HUD/ })).toBeTruthy();
+  });
+
+  it("a pack a built-in now shadows has no card, says so, and offers Remove", async () => {
+    loadLook.mockImplementation((id: string) => Promise.resolve(id === "classic" ? CLASSIC : undefined));
+    mount({ packs: [{ id: "paper", name: "My Paper", size: 10, warnings: [] }] });
+    await act(async () => {});
+    expect(document.querySelector("[data-pack-shadowed]")?.textContent).toContain("a built-in theme now has this id");
+    expect(screen.queryByRole("button", { name: /^My Paper/ })).toBeNull();
+    expect(screen.getByRole("button", { name: "Remove My Paper" })).toBeTruthy();
+  });
+
+  it("with packs off on the server shows no import, and says so", async () => {
+    loadLook.mockImplementation((id: string) => Promise.resolve(id === "classic" ? CLASSIC : undefined));
+    mount({ packsOff: true });
+    await act(async () => {});
+    expect(document.querySelector("[data-pack-folder]")).toBeNull();
+    expect(document.querySelector("[data-packs-off]")).not.toBeNull();
   });
 });
