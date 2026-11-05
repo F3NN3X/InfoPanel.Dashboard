@@ -28,3 +28,27 @@ describe("the theme card's status colours follow the page's mode", () => {
     expect(html()).toContain("var(--w-warn, #EDB232)");
   });
 });
+
+describe("a mode that arrives after the card mounted", () => {
+  const ladder = () => createElement(Widget, { size: "lg", surface: "theme", title: "T", icon: "memory" }, createElement(LedLadder, { value: 100, n: 10 }));
+  const LIGHT = "var(--w-warn, #EDB232)";
+
+  const mounted = (pageMode?: string) => {
+    const { container } = render(createElement("div", { id: "page", "data-mode": pageMode }, createElement("div", { id: "scope" }, ladder())));
+    return { container, page: container.querySelector("#page")!, scope: container.querySelector("#scope")! };
+  };
+
+  it("follows a page that sets data-mode after the card mounted", async () => {
+    const { container, page } = mounted();
+    expect(container.innerHTML).not.toContain(LIGHT);
+    await act(async () => page.setAttribute("data-mode", "light"));
+    expect(container.innerHTML).toContain(LIGHT);
+  });
+
+  it("follows an element nearer than the one the card first found", async () => {
+    const { container, scope } = mounted("dark");
+    expect(container.innerHTML).not.toContain(LIGHT);
+    await act(async () => scope.setAttribute("data-mode", "light"));
+    expect(container.innerHTML).toContain(LIGHT);
+  });
+});
