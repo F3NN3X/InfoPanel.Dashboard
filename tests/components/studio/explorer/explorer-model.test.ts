@@ -3,6 +3,8 @@ import { buildDataModel, type DataPoint } from "@/lib/data-points";
 import type { ApiSources } from "@/lib/catalog";
 import type { SensorMap } from "@/modules/types";
 import type { AlertsConfig } from "@/lib/alerts";
+import { getApiBase } from "@/lib/data-api";
+import { resolveImageUrl } from "@/lib/image";
 import {
   POINT_ROW_H,
   alertsByKey,
@@ -89,6 +91,9 @@ describe("filterPoints", () => {
     expect(isImagePoint(url("http://localhost:52312/cover?v=80"))).toBe(true);
     expect(isImagePoint(url("https://example.com/profile"))).toBe(false);
     expect(isImagePoint({ ...model.points[0], type: "text", raw: "/assets/qa/cover.svg" })).toBe(true);
+    // A plugin's image is served by the Data API, so its thumbnail resolves against that, not the studio's own server.
+    expect(isImagePoint({ ...model.points[0], type: "text", raw: "/api/images/spotify/cover" })).toBe(true);
+    expect(resolveImageUrl("/api/images/spotify/cover")).toBe(`${getApiBase()}/api/images/spotify/cover`);
     expect(isImagePoint({ ...model.points[0], type: "text", raw: "Midnight City" })).toBe(false);
     expect(matchesType(url("https://cdn.example/a.jpg"), "image")).toBe(true);
     expect(matchesType(url("https://cdn.example/a.jpg"), "url")).toBe(false);

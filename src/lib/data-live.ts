@@ -15,7 +15,7 @@ import type { SensorMap } from "@/modules/types";
 /** Hidden for longer than this, the samples have a hole in them: start over on return. */
 const STALE_AFTER_MS = 5000;
 
-/** One recorder for the page's lifetime: leaving the Data view and coming back keeps the watched keys' minute. */
+/** One recorder, shared by the views that watch keys; leaving the Data view releases every key it watched. */
 const recorder = new HistoryRecorder();
 
 export interface LiveData {
@@ -38,6 +38,8 @@ export function useLiveData(watched: readonly string[]): LiveData {
     recorder.watch(list === "" ? [] : list.split("\n"), sensorStore.getValues(), Date.now());
     bump();
   }, [list]);
+
+  useEffect(() => () => recorder.watch([], {}, 0), []);
 
   useEffect(() => {
     let off: (() => void) | null = null;

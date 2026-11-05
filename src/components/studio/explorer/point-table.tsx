@@ -4,6 +4,7 @@ import { PulseDot } from "@/components/pulse-dot";
 import { FOCUS_RING } from "@/components/ui/button";
 import { Sparkline, sparkSummary } from "@/components/ui/sensor-row";
 import type { HistoryRecorder } from "@/lib/data-history";
+import { resolveImageUrl } from "@/lib/image";
 import type { DataPoint } from "@/lib/data-points";
 import type { SensorMap } from "@/modules/types";
 import { cn } from "@/lib/utils";
@@ -211,15 +212,19 @@ function GroupHeader({ row, onToggle, pinned }: { row: GroupRow; onToggle: (id: 
   );
 }
 
-/** A picture's thumbnail; when the link does not load, the picture icon in its place. */
+/** A picture's thumbnail; when the link does not load, the picture icon in its place. A new link tries again. */
 export function Thumb({ src, className }: { src: string; className?: string }) {
+  return <ThumbImage key={src} src={src} className={className} />;
+}
+
+function ThumbImage({ src, className }: { src: string; className?: string }) {
   const [failed, setFailed] = useState(false);
   return failed ? (
     <span className={cn("grid place-items-center rounded-ui-sm bg-ui-raised text-ui-hint", className)}>
       <ImageOff className="h-4 w-4" aria-hidden />
     </span>
   ) : (
-    <img src={src} alt="" loading="lazy" onError={() => setFailed(true)} className={cn("rounded-ui-sm object-cover", className)} />
+    <img src={resolveImageUrl(src)} alt="" loading="lazy" onError={() => setFailed(true)} className={cn("rounded-ui-sm object-cover", className)} />
   );
 }
 

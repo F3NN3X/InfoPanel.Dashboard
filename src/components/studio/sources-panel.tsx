@@ -249,6 +249,7 @@ export function SourcesPanel({ config, setConfig, profile, selectedZoneId, onOpe
         pointCount={model.points.length}
         sourceCount={model.sources.length}
         inUseCount={inUseCount}
+        shownCount={query.trim() !== "" || type !== "all" || hideEmpty || inUse || scope.kind !== "all" ? filtered.length : null}
         query={query}
         onQuery={setQuery}
         apiBase={apiBase}

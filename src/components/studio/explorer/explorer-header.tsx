@@ -16,6 +16,8 @@ interface ExplorerHeaderProps {
   sourceCount: number;
   /** Points a screen or an alert rule uses. */
   inUseCount: number;
+  /** Points the search, a tag, a switch or the source list leaves; null while none narrows the table. */
+  shownCount: number | null;
   query: string;
   onQuery: (query: string) => void;
   apiBase: string;
@@ -37,7 +39,7 @@ const MENU_ITEM = cn(
 );
 
 /** The Data sources page header: the title and count line, search, Endpoints, Report and Add source (the one primary). */
-export function ExplorerHeader({ pointCount, sourceCount, inUseCount, query, onQuery, apiBase, config }: ExplorerHeaderProps) {
+export function ExplorerHeader({ pointCount, sourceCount, inUseCount, shownCount, query, onQuery, apiBase, config }: ExplorerHeaderProps) {
   const copy = useCopy();
   const toast = useToast();
   const endpoints = useEndpoints();
@@ -66,7 +68,7 @@ export function ExplorerHeader({ pointCount, sourceCount, inUseCount, query, onQ
       <div className="flex min-w-0 items-baseline gap-3">
         <h1 className="m-0 text-title font-medium text-ui-1">Data sources</h1>
         <span className="whitespace-nowrap text-caption text-ui-3">
-          {pointCount} points · {sourceCount} {sourceCount === 1 ? "source" : "sources"} · {inUseCount} in use
+          {shownCount === null ? pointCount : `${shownCount} of ${pointCount}`} points · {sourceCount} {sourceCount === 1 ? "source" : "sources"} · {inUseCount} in use
         </span>
       </div>
 
