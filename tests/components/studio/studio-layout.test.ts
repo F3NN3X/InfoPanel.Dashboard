@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { LEFT_PANEL_PX, LEFT_STRIP_PX } from "@/components/studio/add-prefs";
 import {
   CANVAS_PAD_X,
   CANVAS_PAD_Y,
@@ -66,13 +67,13 @@ describe("fitZoomFor", () => {
     expect(1920 * z + CANVAS_PAD_X).toBeLessThanOrEqual(1000);
   });
 
-  // B6: a 1920×1080 page at 1600×900, with the rail, the docked inspector and the left panel open or at its strip.
-  it("fits at least 55% with the left panel, 68% with its strip", () => {
-    const page = { width: 1920, height: 1080 };
-    const canvas = (left: number) => ({ width: 1600 - 60 - left - 320, height: 900 - 56 - 28 });
-    expect(fitZoomFor(canvas(272), page)).toBeGreaterThanOrEqual(0.45);
-    expect(fitZoomFor(canvas(272), { width: 1600, height: 900 })).toBeGreaterThanOrEqual(0.55);
-    expect(fitZoomFor(canvas(52), { width: 1600, height: 900 })).toBeGreaterThanOrEqual(0.68);
+  // B6: a 1920×1080 page at 1600×900, with the sidebar, the docked inspector and the left panel open (its narrowest) or at its strip.
+  it("fits a 1080p page at 45% and a 1600×900 one at 55% with the left panel, and at 68% with its strip", () => {
+    const [sidebar, topBar, statusBar] = [60, 56, 28];
+    const canvas = (left: number) => ({ width: 1600 - sidebar - left - SIDE, height: 900 - topBar - statusBar });
+    expect(fitZoomFor(canvas(LEFT_PANEL_PX.narrow), { width: 1920, height: 1080 })).toBeGreaterThanOrEqual(0.45);
+    expect(fitZoomFor(canvas(LEFT_PANEL_PX.narrow), { width: 1600, height: 900 })).toBeGreaterThanOrEqual(0.55);
+    expect(fitZoomFor(canvas(LEFT_STRIP_PX), { width: 1600, height: 900 })).toBeGreaterThanOrEqual(0.68);
   });
 
   it("clamps to the zoom range", () => {

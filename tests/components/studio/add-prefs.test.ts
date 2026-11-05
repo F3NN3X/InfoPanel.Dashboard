@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseAddFilter, parseChip, parseDensity, parseLeftPanelWidth, widthFromPx } from "@/components/studio/add-prefs";
+import { parseAddFilter, parseChip, startTab, parseDensity, parseLeftPanelWidth, widthFromPx } from "@/components/studio/add-prefs";
 
 describe("Left panel width migration", () => {
   it("moves an old pixel width to the nearest option", () => {
@@ -35,5 +35,19 @@ describe("Add's segment and chip", () => {
   it("keeps a stored segment and chip, else All", () => {
     expect([parseAddFilter("items"), parseAddFilter("junk"), parseAddFilter(null)]).toEqual(["items", "all", "all"]);
     expect([parseChip("Media"), parseChip(""), parseChip(null)]).toEqual(["Media", "All", "All"]);
+  });
+});
+
+describe("The tab Add opens on", () => {
+  const facts = { takesItems: true, infoPanel: false, storedChip: "All" };
+  it("is Items on a screen made for InfoPanel, and on a start or an old chip that ask for it", () => {
+    expect(startTab({ ...facts, infoPanel: true })).toBe("items");
+    expect(startTab({ ...facts, segment: "items" })).toBe("items");
+    expect(startTab({ ...facts, storedChip: "InfoPanel" })).toBe("items");
+    expect(startTab(facts)).toBe("widget");
+  });
+  it("is Widgets where the page takes no items, and when a start asks for Widgets", () => {
+    expect(startTab({ ...facts, infoPanel: true, takesItems: false })).toBe("widget");
+    expect(startTab({ ...facts, infoPanel: true, segment: "widgets" })).toBe("widget");
   });
 });

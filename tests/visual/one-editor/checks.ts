@@ -65,7 +65,7 @@ export const CHECKS: Record<FixtureName, Check[]> = {
   ],
   hover: [
     c(5, "Add shows one row per tile: icon, name, one line of what it is, how many styles a widget holds, status icon when made for InfoPanel"),
-    c(5, "Section headers and category sub-headers stay; no descriptions on tiles"),
+    c(5, "Section headers and category sub-headers stay"),
     c(5, "Hovering a tile (or arrow-key focus) opens the details card beside the panel after 250 ms, aligned to the tile row"),
     c(5, 'Card: live render, name + category, description, size chip or "any size · InfoPanel item", "On InfoPanel: {status}"'),
     c(5, 'Card footer "Click to add · drag to place"; the card never blocks the pointer'),

@@ -1,6 +1,6 @@
 import { onRovingKeyDown } from "@/lib/roving";
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
-import { useAddChip, type AddFilter } from "./add-prefs";
+import { INFOPANEL_CHIP, startTab, useAddChip, type AddFilter } from "./add-prefs";
 import { FilePlus2, FileUp, Search, SquareDashedMousePointer, X, type LucideIcon } from "lucide-react";
 import type { Appearance } from "@/lib/style-resolve";
 import { cn } from "@/lib/utils";
@@ -26,9 +26,6 @@ const KINDS: { kind: AddKind; label: string; one: string }[] = [
   { kind: "panel", label: "Panels", one: "panel" },
   { kind: "layout", label: "Layouts", one: "layout" },
 ];
-
-/** The stored chip of before the Items tab: read once, as that tab. */
-const INFOPANEL_CHIP = "InfoPanel";
 
 type AddTab = AddKind | "items";
 
@@ -190,7 +187,7 @@ export function AddPanel({
   start,
 }: AddPanelProps) {
   const [storedChip, setChip] = useAddChip();
-  const [tab, setTab] = useState<AddTab>(() => (onAddPart && start?.segment !== "widgets" && (infoPanel || start?.segment === "items" || storedChip === INFOPANEL_CHIP) ? "items" : "widget"));
+  const [tab, setTab] = useState<AddTab>(() => startTab({ takesItems: !!onAddPart, infoPanel, segment: start?.segment, storedChip }));
   const kind: AddKind = tab === "items" ? "widget" : tab;
   // The chip of before the Items tab was read as that tab above; it is spent, so Widgets doesn't send the next mount back to Items.
   useEffect(() => {

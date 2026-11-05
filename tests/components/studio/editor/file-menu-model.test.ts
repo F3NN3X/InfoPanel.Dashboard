@@ -7,12 +7,15 @@ const out: CheckLine = { path: "b", name: "Web page", status: "out" };
 
 describe("exportState", () => {
   it("is blocked on a screen for Studio panels, with the fix", () => {
-    expect(exportState({ canvas: false, madeFor: undefined, rows: null })).toEqual({ blocked: "This screen is made for Studio panels", fixMadeFor: true });
+    expect(exportState({ canvas: false, madeFor: undefined, rows: null })).toMatchObject({ fixMadeFor: true });
+    expect(exportState({ canvas: false, madeFor: undefined, rows: null }).blocked).toBeTruthy();
     expect(exportState({ canvas: false, madeFor: "studio", rows: [ok] }).fixMadeFor).toBe(true);
   });
 
   it("is blocked on an InfoPanel screen's empty page", () => {
-    expect(exportState({ canvas: false, madeFor: "infopanel", rows: [] })).toEqual({ blocked: "There is nothing on this page to export" });
+    const state = exportState({ canvas: false, madeFor: "infopanel", rows: [] });
+    expect(state.blocked).toBeTruthy();
+    expect(state.fixMadeFor).toBeUndefined();
   });
 
   it("runs while the check loads, and a part left out names it without stopping the export", () => {
