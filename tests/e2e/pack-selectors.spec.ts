@@ -108,9 +108,16 @@ test("the render measures catch an opaque box laid over other text", async ({ pa
   await page.addStyleTag({ content: '[data-part="label"] { position: absolute !important; inset: 0 !important; background: #123456 !important; opacity: 1 !important; }' });
   const { worn } = await page.evaluate(measurePack, measures("term"));
   expect(byLabel(worn.problems).length).toBeGreaterThan(0);
-  // each carries its widget and span, so the same words covered at another span of the twin do not cancel it
-  expect(byLabel(worn.problems).every((p) => /\[(\w+@\d+x\d+|card \d+)\]$/.test(p))).toBe(true);
-  expect(new Set(byLabel(worn.problems).map((p) => p.match(/@(\d+x\d+)\]$/)?.[1])).size).toBeGreaterThan(1);
+  // each carries its widget, span and text, so the same words covered elsewhere in the twin do not cancel it
+  const keyed = /\[(\w+@\d+x\d+|card \d+) #\d+\]$/;
+  expect(byLabel(worn.problems).every((p) => keyed.test(p))).toBe(true);
+  expect(new Set(byLabel(worn.problems).map((p) => p.match(/@(\d+x\d+) #/)?.[1])).size).toBeGreaterThan(1);
+  // a faded text is keyed the same way
+  await page.addStyleTag({ content: '[data-part="label"] { opacity: 0.2 !important; }' });
+  const { worn: faded } = await page.evaluate(measurePack, measures("term"));
+  const fadedText = faded.problems.filter((p) => p.includes("is at opacity"));
+  expect(fadedText.length).toBeGreaterThan(0);
+  expect(fadedText.every((p) => keyed.test(p))).toBe(true);
 });
 
 // A text pushed where the page cannot scroll to (left of the page) is outside the viewport whatever scrolls: it is a problem, not a pass.

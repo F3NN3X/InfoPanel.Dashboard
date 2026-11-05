@@ -139,7 +139,7 @@ export function measurePack({ look, alphaMax, minOpacity }: MeasureOptions): Twi
     else if (!cards.some((c) => c.textContent?.trim())) problems.push("no card has text");
     cards.forEach((card, c) => {
       const track = rgba(tracks.get(card) as string);
-      // the frame the card is in (a widget and its span), so a problem at one span is not cancelled by the same words at another in the twin
+      // the frame the card is in (a widget and its span) and, below, the text in it: a problem cancels only against the same text in the twin, not the same words elsewhere
       const fig = card.closest("figure[data-qa-module]");
       const place = fig ? `${fig.getAttribute("data-qa-module")}@${fig.getAttribute("data-qa-span")}` : `card ${c}`;
       faded.clear();
@@ -151,10 +151,11 @@ export function measurePack({ look, alphaMax, minOpacity }: MeasureOptions): Twi
         const cs = getComputedStyle(el);
         if (cs.visibility === "hidden" || cs.display === "none") continue;
         const words = t.textContent.trim().slice(0, 20);
+        const where = `[${place} #${k}]`;
         const gradientText = cs.webkitTextFillColor === "rgba(0, 0, 0, 0)" && cs.backgroundClip === "text" && cs.backgroundImage !== "none";
-        if (alphaOf(cs.webkitTextFillColor || cs.color) === 0 && !gradientText) problems.push(`text "${words}" has a transparent fill`);
+        if (alphaOf(cs.webkitTextFillColor || cs.color) === 0 && !gradientText) problems.push(`text "${words}" has a transparent fill ${where}`);
         const o = effective(el, card);
-        if (o < minOpacity) problems.push(`text "${words}" is at opacity ${o.toFixed(2)}`);
+        if (o < minOpacity) problems.push(`text "${words}" is at opacity ${o.toFixed(2)} ${where}`);
         const ink = rgba(cs.webkitTextFillColor || cs.color);
         const under = gradientText ? undefined : behind(el);
         texts.push({ key: `${c}:${k++}`, ratio: under ? Math.min(...under.map((b) => ratio(over(ink, b, ink[3] * o), b))) : null, text: words });
@@ -177,13 +178,13 @@ export function measurePack({ look, alphaMax, minOpacity }: MeasureOptions): Twi
           // elementsFromPoint answers nothing outside the viewport: the point is the middle of the part that is inside it
           const [left, right, top, bottom] = box ? [Math.max(box[0], 0), Math.min(box[1], innerWidth), Math.max(box[2], 0), Math.min(box[3], innerHeight)] : [0, 0, 0, 0];
           const at = right > left && bottom > top ? [(left + right) / 2, (top + bottom) / 2] : null;
-          if (box && !at) problems.push(`text "${words}" is outside the page and could not be checked [${place}]`);
+          if (box && !at) problems.push(`text "${words}" is outside the page and could not be checked ${where}`);
           // down the stack from the top to the element or one related to it: the first that paints a background, at a strength that hides, is what covers it (a transparent wrapper does not)
           for (const n of at ? document.elementsFromPoint(at[0], at[1]) : []) {
             if (n === el || n.contains(el) || el.contains(n)) break;
             const ns = getComputedStyle(n);
             if (Number(ns.opacity) >= minOpacity && (rgba(ns.backgroundColor)[3] >= 0.5 || ns.backgroundImage !== "none")) {
-              problems.push(`text "${words}" is covered by a ${n.tagName.toLowerCase()}${n.getAttribute("data-part") ? ` (${n.getAttribute("data-part")})` : ""} [${place}]`);
+              problems.push(`text "${words}" is covered by a ${n.tagName.toLowerCase()}${n.getAttribute("data-part") ? ` (${n.getAttribute("data-part")})` : ""} ${where}`);
               break;
             }
           }
