@@ -11,6 +11,12 @@ interface Peek {
   latest: { current: DashboardConfig };
 }
 
+/** What undoing to `undo` and redoing to `redo` would change from the config `now`. */
+const namesOf = (kit: Kit | null, undo: DashboardConfig | undefined, redo: DashboardConfig | undefined, now: DashboardConfig) => ({
+  undo: kit && undo ? kit.describeChange(undo, now) : null,
+  redo: kit && redo ? kit.describeChange(now, redo) : null,
+});
+
 /**
  * What Undo and Redo would change, in words (E3), read from the snapshots the history already keeps: no label is
  * stored and nothing enters the config. The describer loads with the first step, out of the studio's first download.
@@ -26,15 +32,11 @@ export function useStepNames(history: Peek, on: boolean) {
   const redo = stack.future.at(-1);
   const now = history.latest.current;
   // Named again only when a snapshot or the config is a new one, not on every render of a drag.
-  const names = useMemo(() => ({ undo: on && kit && undo ? kit.describeChange(undo, now) : null, redo: on && kit && redo ? kit.describeChange(now, redo) : null }), [on, kit, undo, redo, now]);
+  const names = useMemo(() => namesOf(on ? kit : null, undo, redo, now), [on, kit, undo, redo, now]);
   return {
     kit,
     ...names,
     /** The names now, for a toast's button that outlives the render it was made in. */
-    peek: () => {
-      const { past, future } = history.stack.current;
-      const [u, r, c] = [past.at(-1), future.at(-1), history.latest.current];
-      return { undo: on && kit && u ? kit.describeChange(u, c) : null, redo: on && kit && r ? kit.describeChange(c, r) : null };
-    },
+    peek: () => namesOf(on ? kit : null, history.stack.current.past.at(-1), history.stack.current.future.at(-1), history.latest.current),
   };
 }
