@@ -53,7 +53,7 @@ function MuteToggle({ control }: { control: ControlState | null }) {
   const muted = isMuted(control, Date.now());
   const until = muted && control?.mutedUntil ? new Date(control.mutedUntil).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : null;
   return (
-    <label className="flex items-center gap-2 text-body text-ui-2 max-lg:hidden">
+    <label className="flex items-center gap-2 whitespace-nowrap text-body text-ui-2">
       {until ? `Muted until ${until}` : "Mute for 1 h"}
       <Toggle checked={muted} disabled={control === null} label="Mute alerts for 1 h" onChange={(next) => void liveActions.mute(next)} />
     </label>
@@ -95,13 +95,13 @@ export function AlertsView({ tab, onTab, config, setConfig, active, control, poi
   const exportCsv = () => void saveFilePayload({ name: "alert-history.csv", text: historyCsv(filterHistory(history, filter), config.profiles) });
   return (
     <section aria-label="Alerts & Island" className="flex min-h-0 min-w-0 flex-1 flex-col bg-ui-app font-ui">
-      <div className="flex min-h-[60px] shrink-0 items-center gap-7 border-b border-ui-subtle px-7 max-sm:flex-wrap max-sm:gap-x-3 max-sm:px-3">
+      <div className="flex min-h-[60px] shrink-0 flex-wrap items-center gap-x-7 border-b border-ui-subtle px-7 max-sm:gap-x-3 max-sm:px-3">
         <h1 className="whitespace-nowrap text-head font-medium text-ui-1">Alerts &amp; Island</h1>
         <Tabs label="Alerts & Island" tabs={tabs} value={tab === "defaults" ? "rules" : tab} onChange={onTab} className="gap-6 self-stretch border-b-0 max-sm:order-last max-sm:w-full [&>button]:h-auto" />
         <span className="flex-1" />
+        <MuteToggle control={control} />
         {tab === "rules" && (
-          <div className="flex items-center gap-4">
-            <MuteToggle control={control} />
+          <div className="flex flex-wrap items-center gap-4">
             <label className="flex items-center gap-2 whitespace-nowrap text-body text-ui-2">
               Alerts on
               <Toggle checked={alerts.enabled} label="Alerts on" onChange={(on) => setConfig((c) => setAlertsEnabled(c, on), alertsKey("enabled"))} />

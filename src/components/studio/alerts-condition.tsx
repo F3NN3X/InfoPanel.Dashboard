@@ -78,7 +78,7 @@ export function AlertCondition({ condition, position, onEdit, onOpenSources }: A
           name={sensorName(condition.key)}
           unit={unit}
           value={typeof reading?.value === "number" ? reading.value : undefined}
-          limit={numeric ? Number(condition.value) : undefined}
+          limit={numeric && Number.isFinite(Number(condition.value)) ? Number(condition.value) : undefined}
           clear={numeric ? condition.clearBelow : undefined}
           above={condition.op === ">" || condition.op === ">="}
         />

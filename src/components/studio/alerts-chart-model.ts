@@ -7,9 +7,13 @@ export interface Sample {
   value: number;
 }
 
+/** A longer pause in the samples starts the trail again: no line is drawn across a time nothing was read. */
+const GAP_MS = 3000;
+
 /** The trail with a new reading on the end, without what is older than five minutes. A missing reading adds nothing. */
 export function addSample(trail: readonly Sample[], value: number | undefined, now: number): Sample[] {
-  const kept = trail.filter((s) => now - s.at <= TRAIL_MS);
+  const last = trail.at(-1);
+  const kept = last && now - last.at > GAP_MS ? [] : trail.filter((s) => now - s.at <= TRAIL_MS);
   return value === undefined ? kept : [...kept, { at: now, value }];
 }
 
