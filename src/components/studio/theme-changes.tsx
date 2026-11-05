@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { ArrowRight } from "lucide-react";
 import { FOCUS_RING } from "@/components/ui/button";
 import type { AppearancePreset } from "@/lib/appearance-presets";
@@ -29,21 +30,29 @@ interface ThemeChangesProps {
 
 /** Under the preview: what changed from the theme, with Reset, and a quick switch to other themes (a click applies it, with Undo in the toast). */
 export function ThemeChanges({ line, what, changed, reset, quick, onQuick, allCount, onAll }: ThemeChangesProps) {
+  const lineRef = useRef<HTMLParagraphElement>(null);
+  const quickRef = useRef<HTMLDivElement>(null);
+  // Reset goes away with the change, and the theme applied by a click leaves the quick list: focus goes to the line, or the list's first button.
+  const after = (el: () => HTMLElement | null | undefined) => requestAnimationFrame(() => el()?.focus());
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-3 pt-1 text-body">
-      <p data-testid="theme-changes" className="flex min-w-0 items-center gap-2 text-ui-2">
+      <p ref={lineRef} tabIndex={-1} data-testid="theme-changes" className="flex min-w-0 items-center gap-2 text-ui-2 outline-none">
         <span aria-hidden className={cn("h-[7px] w-[7px] shrink-0 rounded-full", changed ? "bg-ui-accent" : "border border-ui-hint")} />
         <span className="text-ui-1">{line}</span>
         {what && <span className="truncate text-ui-3">{what}</span>}
       </p>
       {reset && changed && (
-        <button type="button" onClick={reset.onReset} className={cn("rounded-ui-sm text-ui-2 hover:text-ui-1 hover:underline", FOCUS_RING)}>
+        <button type="button" onClick={() => {
+            reset.onReset();
+            after(() => lineRef.current);
+          }}
+          className={cn("rounded-ui-sm text-ui-2 hover:text-ui-1 hover:underline", FOCUS_RING)}>
           Reset to {reset.name}
         </button>
       )}
       <span className="ml-auto" />
       {quick.length > 0 && (
-        <div role="group" aria-label="Try another theme" className="flex items-center gap-2">
+        <div ref={quickRef} role="group" aria-label="Try another theme" className="flex items-center gap-2">
           <span className="text-caption text-ui-3">Try another</span>
           {quick.map((t) => (
             <button
@@ -51,7 +60,10 @@ export function ThemeChanges({ line, what, changed, reset, quick, onQuick, allCo
               type="button"
               title={t.name}
               aria-label={`Apply ${t.name}`}
-              onClick={() => onQuick(t)}
+              onClick={() => {
+                onQuick(t);
+                after(() => quickRef.current?.querySelector("button"));
+              }}
               className={cn("overflow-hidden rounded-ui-sm border border-ui-subtle hover:border-ui-hover-edge", FOCUS_RING)}
             >
               <LookThumb preset={t.preset} width={56} />

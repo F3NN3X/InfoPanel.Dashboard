@@ -9,7 +9,6 @@ import { cn } from "@/lib/utils";
 import { loadLook } from "@/looks";
 import { LOOK_IDS } from "@/looks/ids";
 import type { Look } from "@/looks/look";
-import { usePack } from "@/looks/pack";
 import { CARD_W, FOCUS, ThemeCard } from "./look-card";
 import { GALLERY_IDS, galleryLooks, lookName, lookPreset } from "./look-gallery-model";
 import { LookThumb } from "./look-thumb";
@@ -18,6 +17,7 @@ import { ThemeNameInput } from "./theme-name-input";
 import { bringsRows, kindText } from "./theme-pack-model";
 import type { PackImporterHandle } from "./user-packs";
 import type { ImportedPack } from "./use-imported-packs";
+import { usePackWithFonts } from "./use-pack-fonts";
 
 const UserPacks = lazy(() => import("./user-packs"));
 
@@ -81,7 +81,7 @@ interface DetailProps {
 
 /** The detail pane: the theme's preview, kind line, actions and what it brings. */
 function Detail({ item, look, applied, warnings, p }: DetailProps) {
-  const pack = usePack(item.kind === "pack" || item.kind === "yours" ? item.lookId : undefined);
+  const pack = usePackWithFonts(item.kind === "pack" || item.kind === "yours" ? item.lookId : undefined);
   const shownLook = look ?? pack?.look;
   const [renaming, setRenaming] = useState(false);
   const saved = item.kind === "saved";
@@ -255,9 +255,11 @@ export function ThemeBrowse(p: ThemeBrowseProps) {
             ))}
           </div>
         </div>
-        <Suspense fallback={null}>
-          <UserPacks ref={p.importer} onChange={p.onPacksChange} onRemove={p.onRemovePack} />
-        </Suspense>
+        {!p.packsOff && (
+          <Suspense fallback={null}>
+            <UserPacks ref={p.importer} onChange={p.onPacksChange} onRemove={p.onRemovePack} />
+          </Suspense>
+        )}
         {p.packsOff && (
           <p data-packs-off className="text-caption text-ui-3">
             Packs are turned off on this server.

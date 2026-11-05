@@ -10,7 +10,7 @@ import { appearanceOf } from "@/lib/style-resolve";
 import { resolveTheme, themeMode, themeVars } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { connectorZones } from "@/looks/connector-zones";
-import { PackStage, packBackground, usePack } from "@/looks/pack";
+import { PackStage, packBackground, usePack, type Pack } from "@/looks/pack";
 import { LivePlacement } from "./placement-content";
 import { PlacementFrame } from "./placement-frame";
 
@@ -23,14 +23,19 @@ interface ProfilePageProps {
   badge?: (placement: Placement) => ReactNode;
   /** Draw the worn theme pack's scenery and effects behind the widgets, as the kiosk does (Theme's preview and thumbnails). */
   stage?: boolean;
+  /** A thumbnail: the scenery and overlay only, with no burn-in care (idle dim, pixel shift) and no glow or blur filters. */
+  still?: boolean;
 }
+
+/** The pack as a thumbnail draws it: the stage without what moves or filters, and with nothing that dims or shifts it. */
+const stillPack = (pack: Pack): Pack => (pack.stage ? { ...pack, burnIn: "static-safe", stage: { ...pack.stage, effects: (pack.stage.effects ?? []).filter((e) => e.kind !== "glow" && e.kind !== "blur") } } : pack);
 
 /**
  * A profile's page as the kiosk draws it (background, theme, style and the real widgets, canvas
  * zones included), at its design size. A video background shows its poster. Mounted offscreen to take
  * the profile's screenshot, and scaled down as Theme's live preview.
  */
-export function ProfilePage({ profile, dashboard, pageId, badge, stage = false }: ProfilePageProps) {
+export function ProfilePage({ profile, dashboard, pageId, badge, stage = false, still = false }: ProfilePageProps) {
   const view = useMemo(() => profileWithPage(profile, pageId), [profile, pageId]);
   const theme = resolveTheme(profile);
   const bg = resolveBackground(profile);
@@ -40,7 +45,8 @@ export function ProfilePage({ profile, dashboard, pageId, badge, stage = false }
   const padding = profilePadding(view, true);
   const appearance = useMemo(() => appearanceOf(dashboard, view), [dashboard, view]);
   // Only a page that asks for the stage loads the pack (`usePack` of nothing loads nothing).
-  const pack = usePack(stage ? pageSkinOf(appearance).lookId : undefined);
+  const worn = usePack(stage ? pageSkinOf(appearance).lookId : undefined);
+  const pack = useMemo(() => (worn && still ? stillPack(worn) : worn), [worn, still]);
   const linkZones = useMemo(() => (pack?.connectors ? connectorZones(view.placements, view) : undefined), [pack, view]);
   return (
     <div

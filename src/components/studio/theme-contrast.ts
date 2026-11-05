@@ -32,6 +32,9 @@ export function isLightCard(card: string): boolean {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.179;
 }
 
+/** A ratio to one decimal, rounded down: 4.46 reads "4.4", so a number under the minimum never reads as the minimum. */
+const oneDecimal = (ratio: number): string => (Math.floor(ratio * 10 + 1e-9) / 10).toFixed(1);
+
 export interface AccentReadout {
   ratio: number;
   /** Under the text minimum on the card. */
@@ -44,24 +47,24 @@ export interface AccentReadout {
 export function accentReadout(accent: string | undefined, card: string, themeName: string): AccentReadout | undefined {
   const ratio = accent ? contrastOf(accent, card) : undefined;
   if (accent === undefined || ratio === undefined) return undefined;
-  const head = `${ratio.toFixed(1)}:1 on ${themeName}'s cards`;
+  const head = `${oneDecimal(ratio)}:1 on ${themeName}'s cards`;
   if (ratio >= TEXT_MIN) return { ratio, low: false, text: `${head}, fine for text` };
   if (!isLightCard(card)) return { ratio, low: true, text: `${head}, too low for text. Pick a lighter colour` };
   const ink = accentInk(accent, card, TEXT_MIN);
   const inkRatio = contrastOf(ink, card);
-  return { ratio, low: true, text: `${head}, too low for text. Text in this colour uses a darker shade${inkRatio === undefined ? "" : `, ${inkRatio.toFixed(1)}:1`}` };
+  return { ratio, low: true, text: `${head}, too low for text. Text in this colour uses a darker shade${inkRatio === undefined ? "" : `, ${oneDecimal(inkRatio)}:1`}` };
 }
 
 /** A colour's ratio on the card, one decimal ("4.6:1"); "" when it has none. */
 export function ratioText(colour: string | undefined, card: string): string {
   const r = colour ? contrastOf(colour, card) : undefined;
-  return r === undefined ? "" : `${r.toFixed(1)}:1`;
+  return r === undefined ? "" : `${oneDecimal(r)}:1`;
 }
 
 /** The lowest ratio of several colours on the card, as text ("3.5:1"). */
 export function lowestRatioText(colours: readonly (string | undefined)[], card: string): string {
   const ratios = colours.flatMap((c) => (c ? (contrastOf(c, card) ?? []) : []));
-  return ratios.length === 0 ? "" : `${Math.min(...ratios).toFixed(1)}:1`;
+  return ratios.length === 0 ? "" : `${oneDecimal(Math.min(...ratios))}:1`;
 }
 
 export interface RoleRow {

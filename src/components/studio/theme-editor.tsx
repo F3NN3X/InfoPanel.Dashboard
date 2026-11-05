@@ -27,7 +27,7 @@ import { InspectorChromeProvider } from "./inspector-layout";
 import { allSections, isVisible, rowSection, splitMore, visibleSections, type InspectorSection } from "./inspector-model";
 import { loadLook } from "@/looks";
 import type { Look } from "@/looks/look";
-import { PACK_IDS, usePack } from "@/looks/pack";
+import { PACK_IDS } from "@/looks/pack";
 import { smoothOffScreens } from "./screens-model";
 import { InlineRow, SelectRow } from "./setting-rows";
 import { dropKeys } from "./settings-model";
@@ -77,6 +77,7 @@ import { burnInOf, packParts, protectionMissing, protectionText } from "./theme-
 import { ThemeParts } from "./theme-parts";
 import { ColourRoles } from "./theme-roles";
 import { useImportedPacks } from "./use-imported-packs";
+import { usePackWithFonts } from "./use-pack-fonts";
 import type { PackImporterHandle } from "./user-packs";
 import { appliedToast, appliedToScreensToast, lookToast, paletteToast, paletteUsedBy, resetToast, savedToast } from "./theme-messages";
 import { PalettePicker } from "./theme-palette-picker";
@@ -296,7 +297,7 @@ export function ThemeEditor({ config, scope: requested, profileId, pageId, onPic
   // The theme the level shows (unknown ids draw Classic), and its name.
   const lookId = lookIdOf(appearance);
   const lookName = lookNameOf(lookId);
-  const pack = usePack(lookId);
+  const pack = usePackWithFonts(lookId);
   const [look, setLook] = useState<Look>();
   useEffect(() => {
     let live = true;
@@ -325,7 +326,9 @@ export function ThemeEditor({ config, scope: requested, profileId, pageId, onPic
   // The theme's cards and the colours the level shows on them: the readout and the roles.
   const nativeMode = look?.modes.supported[0];
   const knobMode = nativeMode ? modeOf(values, nativeMode) : undefined;
-  const cardHex = cardColour(look, knobMode ?? nativeMode, hslToHex(theme.tokens.card));
+  // Cards: Theme draws the card from the level's tokens, whatever the look's own surface is.
+  const themeCard = hslToHex(theme.tokens.card);
+  const cardHex = knobValue(values, "surface") === "theme" ? themeCard : cardColour(look, knobMode ?? nativeMode, themeCard);
   const roleRows = colourRoles(look, knobMode ?? nativeMode, (k) => knobValue(values, k), cardHex);
   const accentRow = roleRows[0];
   const readout = accentRow.swatches[0] ? accentReadout(accentRow.swatches[0], cardHex, name) : undefined;
@@ -385,7 +388,7 @@ export function ThemeEditor({ config, scope: requested, profileId, pageId, onPic
       live = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [previewing, config, keep, at.level, profile.id]);
+  }, [previewing, config, keep, at.level, profile.id, at.level === "page" ? at.pageId : ""]);
   const shownConfig = previewConfig ?? config;
   const shownProfile = shownConfig.profiles.find((p) => p.id === profile.id) ?? profile;
   const shownPage = shownProfile.pages.find((pg) => pg.id === previewPage.id) ?? previewPage;
@@ -433,6 +436,14 @@ export function ThemeEditor({ config, scope: requested, profileId, pageId, onPic
       const status = new Set(["ok", "warn", "crit"]);
       return (
         <>
+          {twoLevel && (
+            <InlineRow label="Palette">
+              <span className="min-w-0 truncate text-caption text-ui-3">{palette}</span>
+              <Button small onClick={() => setDrill("palette")}>
+                Change
+              </Button>
+            </InlineRow>
+          )}
           <ColourRoles
             rows={roleRows}
             from={fromName}
@@ -553,7 +564,8 @@ export function ThemeEditor({ config, scope: requested, profileId, pageId, onPic
             onDelete={presets.remove}
             onSaveCurrent={saveTheme}
             onBack={toMain}
-            profileId={profile.id}
+            keep={keep}
+            onKeep={setKeep}
           />
         );
       case "palette":
@@ -599,7 +611,9 @@ export function ThemeEditor({ config, scope: requested, profileId, pageId, onPic
           ? {
               px: radiusPx(theme.radius),
               custom: Math.abs(theme.radius - (state.theme?.radius ?? DEFAULT_RADIUS)) > 1e-6 || knobCustom(values, "corners"),
-              set: (px: number) => setConfig((c) => withCorners(c, twoLevel, px), key("corners")),
+              // At the theme's own corners both stores are cleared, so nothing is left holding a value that changes nothing.
+              set: (px: number) =>
+                setConfig((c) => (px === radiusPx(state.theme?.radius ?? DEFAULT_RADIUS) ? resetCorners(c, twoLevel, state.theme?.radius) : withCorners(c, twoLevel, px)), key("corners")),
               reset: () => setConfig((c) => resetCorners(c, twoLevel, state.theme?.radius), key("corners-reset")),
             }
           : (() => {
@@ -674,6 +688,11 @@ export function ThemeEditor({ config, scope: requested, profileId, pageId, onPic
     }
   };
 
+  // The importer is a lazy chunk inside Browse: a click before it has loaded waits for it (a few seconds at most) rather than doing nothing.
+  const pickPack = (what: "folder" | "zip", tries = 120) => {
+    if (importer.current) importer.current.pick(what);
+    else if (tries > 0) requestAnimationFrame(() => pickPack(what, tries - 1));
+  };
   const importMenu = (
     <Menu.Root>
       <Menu.Trigger render={<Button icon={<Download aria-hidden />} />} disabled={imported.off}>
@@ -682,13 +701,13 @@ export function ThemeEditor({ config, scope: requested, profileId, pageId, onPic
       <Menu.Portal>
         <Menu.Positioner className="z-[80]" sideOffset={4} align="end">
           <Menu.Popup className={cn(POPUP, "w-52")}>
-            <Menu.Item className={cn(ITEM, HIGHLIGHT)} onClick={() => importer.current?.pick("folder")}>
+            <Menu.Item className={cn(ITEM, HIGHLIGHT)} onClick={() => pickPack("folder")}>
               <span className="flex items-center gap-2">
                 <FolderOpen className="h-4 w-4 text-ui-hint" aria-hidden />
                 Import a folder
               </span>
             </Menu.Item>
-            <Menu.Item className={cn(ITEM, HIGHLIGHT)} onClick={() => importer.current?.pick("zip")}>
+            <Menu.Item className={cn(ITEM, HIGHLIGHT)} onClick={() => pickPack("zip")}>
               <span className="flex items-center gap-2">
                 <FileArchive className="h-4 w-4 text-ui-hint" aria-hidden />
                 Import a zip

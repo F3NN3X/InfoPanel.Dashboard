@@ -15,6 +15,6 @@ export function setKeepBackground(profileId: string, keep: boolean): void {
   try {
     localStorage.setItem(key(profileId), keep ? "1" : "0");
   } catch {
-    // storage is off: the choice holds until the page closes, as it did before
+    // storage is off: the choice is not remembered
   }
 }
