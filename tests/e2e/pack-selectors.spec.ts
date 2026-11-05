@@ -98,6 +98,18 @@ test("the gauge-ink check catches a pack that hides some of its gauges and not a
   expect(unlit(ref.gauges, now.gauges).length).toBeGreaterThan(0);
 });
 
+// A box over a neighbour's text hides it whatever the colours say: the check reads what the eye meets at each text (elementsFromPoint).
+test("the render measures catch an opaque box laid over other text", async ({ page }) => {
+  await wornPage(page, PACK_STYLES.term, "term");
+  const { worn: clean } = await page.evaluate(measurePack, measures("term"));
+  // (the Term card's own header already overlaps the body at the smallest tier: that is the page, and a pack is judged against its twin)
+  const byLabel = (problems: string[]) => problems.filter((p) => p.includes("is covered by") && p.endsWith("(label)"));
+  expect(byLabel(clean.problems)).toEqual([]);
+  await page.addStyleTag({ content: '[data-part="label"] { position: absolute !important; inset: 0 !important; background: #123456 !important; opacity: 1 !important; }' });
+  const { worn } = await page.evaluate(measurePack, measures("term"));
+  expect(byLabel(worn.problems).length).toBeGreaterThan(0);
+});
+
 // L79: the box-legend title sits on the frame's line (6 px in) whatever the card's zoom: the shell zooms the padded content of a card
 // that is larger than the design size, and the legend is lifted inside that zoom.
 test("the term pack's box legend sits on the frame line on a zoomed card", async ({ page }) => {

@@ -155,6 +155,30 @@ export function measurePack({ look, alphaMax, minOpacity }: MeasureOptions): Twi
         const ink = rgba(cs.webkitTextFillColor || cs.color);
         const under = gradientText ? undefined : behind(el);
         texts.push({ key: `${c}:${k++}`, ratio: under ? Math.min(...under.map((b) => ratio(over(ink, b, ink[3] * o), b))) : null, text: words });
+        // what the eye meets at the text: the element, one around it or one inside it. Anything else paints over the text, whatever the colours say.
+        if (cs.pointerEvents !== "none") {
+          const range = document.createRange();
+          range.selectNodeContents(t);
+          const spot = () => {
+            const [x, y] = [range.getBoundingClientRect(), el.getBoundingClientRect()];
+            const [left, right, top, bottom] = [Math.max(x.left, y.left), Math.min(x.right, y.right), Math.max(x.top, y.top), Math.min(x.bottom, y.bottom)];
+            return right > left && bottom > top ? [(left + right) / 2, (top + bottom) / 2] : null;
+          };
+          let at = spot();
+          if (at && (at[0] < 0 || at[1] < 0 || at[0] >= innerWidth || at[1] >= innerHeight)) {
+            el.scrollIntoView({ block: "center", inline: "center", behavior: "instant" });
+            at = spot();
+          }
+          // down the stack from the top to the element or one related to it: the first that paints a background, at a strength that hides, is what covers it (a transparent wrapper does not)
+          for (const n of at ? document.elementsFromPoint(at[0], at[1]) : []) {
+            if (n === el || n.contains(el) || el.contains(n)) break;
+            const ns = getComputedStyle(n);
+            if (Number(ns.opacity) >= minOpacity && (rgba(ns.backgroundColor)[3] >= 0.5 || ns.backgroundImage !== "none")) {
+              problems.push(`text "${words}" is covered by a ${n.tagName.toLowerCase()}${n.getAttribute("data-part") ? ` (${n.getAttribute("data-part")})` : ""}`);
+              break;
+            }
+          }
+        }
       }
       // the marks with no value of their own to test: anything they paint, read against what is behind it
       card.querySelectorAll('[data-part="spark"], [data-part="icon"], [data-part="threshold"], [data-part="range"], [data-part="fader"]').forEach((mark, m) => {

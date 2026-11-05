@@ -8,7 +8,8 @@ import { WidgetSection, type View } from "./Section";
 
 /** The caps the specs hold the built-in packs to. */
 const MEASURE = { alphaMax: 0.4, minOpacity: 0.5 };
-const SPANS: [number, number][] = [[2, 2], [4, 2]];
+// 1x1 and 4x4 draw slots the middle tiers do not (compact and roomy layouts), and the QA page measures the same four
+const SPANS: [number, number][] = [[1, 1], [2, 2], [4, 2], [4, 4]];
 const refuse = (refusals: string[]) => window.parent.postMessage({ kind: "pack-check-done", refusals }, window.location.origin);
 
 /**
