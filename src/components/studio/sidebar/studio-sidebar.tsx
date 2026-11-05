@@ -14,6 +14,7 @@ import type { NavTarget, RailItem } from "../studio-nav";
 import { useStoredFlag } from "../use-stored-flag";
 import type { StudioStatus } from "../use-status-bar";
 import { KEYS } from "../use-studio-shortcuts";
+import { useDownMs } from "../use-data-api-grace";
 import { attentionItems, cardLine, LINK_CHIP } from "./data-api-model";
 
 /** The Data API popover's content comes with the first open. */
@@ -159,7 +160,7 @@ function AttentionRows({ status, rail, onNavigate }: { status: StudioStatus; rai
 function DataApiCard({ rail, status, config, onAddress, onNavigate }: Pick<StudioSidebarProps, "status" | "config" | "onAddress" | "onNavigate"> & { rail: boolean }) {
   const [open, setOpen] = useState(false);
   const { apiHealth, dataApi } = status;
-  const line = cardLine(apiHealth.link, dataApi.latencyMs, apiHealth.downMs);
+  const line = cardLine(apiHealth.link, dataApi.latencyMs, useDownMs(apiHealth));
   return (
     <Popover.Root open={open} onOpenChange={setOpen}>
       <RailTip label={`Data API: ${line}`} rail={rail}>

@@ -2,7 +2,7 @@
 // B4: a drop reads Reconnecting for 10 s before Offline; a blip reads nothing and leaves no record.
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { BLIP_MS, GRACE_MS, linkOf, stepDrop, useDataApiGrace } from "@/components/studio/use-data-api-grace";
+import { BLIP_MS, GRACE_MS, linkOf, OFFLINE_TICK_MS, stepDrop, useDataApiGrace, useDownMs } from "@/components/studio/use-data-api-grace";
 import type { DataApiState } from "@/lib/data-api";
 
 describe("linkOf", () => {
@@ -52,11 +52,27 @@ describe("useDataApiGrace", () => {
     const { result, rerender } = run();
     rerender({ state: "unreachable" });
     expect(result.current.link).toBe("connected");
-    act(() => void vi.advanceTimersByTime(3000));
-    expect(result.current).toMatchObject({ link: "reconnecting", downMs: 3000 });
+    act(() => void vi.advanceTimersByTime(BLIP_MS));
+    expect(result.current).toMatchObject({ link: "reconnecting", downMs: BLIP_MS });
     expect(result.current.lastDrop?.backAfterMs).toBeNull();
-    act(() => void vi.advanceTimersByTime(GRACE_MS - 3000));
+    act(() => void vi.advanceTimersByTime(GRACE_MS - BLIP_MS));
     expect(result.current.link).toBe("offline");
+  });
+
+  it("renders its caller at the two link changes only, not once a second (M4)", () => {
+    let renders = 0;
+    const { rerender } = renderHook(
+      ({ state }) => {
+        renders++;
+        return useDataApiGrace(state);
+      },
+      { initialProps: { state: "connected" as DataApiState } },
+    );
+    rerender({ state: "unreachable" });
+    const before = renders;
+    act(() => void vi.advanceTimersByTime(5 * 60_000));
+    expect(renders - before).toBeLessThanOrEqual(3);
+    expect(vi.getTimerCount()).toBe(0);
   });
 
   it("comes back inside the grace with no red, and lists the drop", () => {
@@ -73,6 +89,43 @@ describe("useDataApiGrace", () => {
     const { rerender } = run();
     rerender({ state: "unreachable" });
     rerender({ state: "connected" });
+    expect(vi.getTimerCount()).toBe(0);
+  });
+});
+
+describe("useDownMs", () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  const health = (link: "reconnecting" | "offline", since: number) => ({ link, downMs: 0, downSince: since, lastDrop: null });
+  const clock = () => Date.now();
+
+  it("counts each second in the grace and every 30 s once offline", () => {
+    const since = Date.now();
+    const { result, rerender } = renderHook(({ h }) => useDownMs(h, clock), { initialProps: { h: health("reconnecting", since) } });
+    act(() => void vi.advanceTimersByTime(3000));
+    expect(result.current).toBe(3000);
+    rerender({ h: health("offline", since) });
+    const at = result.current;
+    act(() => void vi.advanceTimersByTime(OFFLINE_TICK_MS - 1));
+    expect(result.current).toBe(at);
+    act(() => void vi.advanceTimersByTime(1));
+    expect(result.current).toBe(at + OFFLINE_TICK_MS);
+  });
+
+  it("does not tick while the page is hidden", () => {
+    vi.spyOn(document, "visibilityState", "get").mockReturnValue("hidden");
+    const { result } = renderHook(() => useDownMs(health("reconnecting", Date.now()), clock));
+    act(() => void vi.advanceTimersByTime(5000));
+    expect(result.current).toBe(0);
+  });
+
+  it("is the plain snapshot while up", () => {
+    const { result } = renderHook(() => useDownMs({ link: "connected", downMs: 0, downSince: null, lastDrop: null }, clock));
+    expect(result.current).toBe(0);
     expect(vi.getTimerCount()).toBe(0);
   });
 });

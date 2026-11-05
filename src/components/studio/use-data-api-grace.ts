@@ -22,8 +22,10 @@ export interface DropState {
 
 export interface ApiHealth {
   link: ApiLink;
-  /** How long the connection has been down (0 while it is up). */
+  /** How long the connection had been down when the link last changed (0 while it is up); `useDownMs` keeps it current. */
   downMs: number;
+  /** When the current drop began (null while up): the card and popover count from it. */
+  downSince: number | null;
   lastDrop: ApiDrop | null;
 }
 
@@ -44,7 +46,8 @@ export function linkOf(state: DataApiState, downMs: number): ApiLink {
 
 /**
  * The grace on the Data API's raw state (B4): studio only, so the kiosk entry and the shared
- * `lib/data-api.ts` and `lib/sensor-store.ts` stay as they are. Ticks once a second while the connection is down.
+ * `lib/data-api.ts` and `lib/sensor-store.ts` stay as they are. It renders its caller only when the link changes
+ * (the blip and the grace elapse); the elapsed time for display is `useDownMs`, in the components that show it.
  */
 export function useDataApiGrace(state: DataApiState, clock: () => number = Date.now): ApiHealth {
   const up = state !== "unreachable";
@@ -55,10 +58,38 @@ export function useDataApiGrace(state: DataApiState, clock: () => number = Date.
     setNow(at);
     setDrop((s) => stepDrop(s, up, at));
     if (up) return;
-    const timer = setInterval(() => setNow(clock()), 1000);
-    return () => clearInterval(timer);
+    const timers = [BLIP_MS, GRACE_MS].map((ms) => setTimeout(() => setNow(clock()), ms));
+    return () => timers.forEach(clearTimeout);
   }, [up, clock]);
   const downMs = !up && drop.downSince !== null ? now - drop.downSince : 0;
   const open = drop.downSince !== null && downMs >= BLIP_MS ? { at: drop.downSince, backAfterMs: null } : null;
-  return { link: linkOf(state, downMs), downMs, lastDrop: open ?? drop.lastDrop };
+  return { link: linkOf(state, downMs), downMs, downSince: up ? null : drop.downSince, lastDrop: open ?? drop.lastDrop };
+}
+
+/** How often the elapsed time refreshes once the link is Offline (the card reads minutes). */
+export const OFFLINE_TICK_MS = 30_000;
+
+/**
+ * How long the connection has been down, for display: ticks once a second in the grace and every 30 s once
+ * Offline, and not while the page is hidden. Used by the card and the popover only, so a drop re-renders those two
+ * and not the studio.
+ */
+export function useDownMs(health: ApiHealth, clock: () => number = Date.now): number {
+  const { link, downMs, downSince } = health;
+  const ticking = downSince !== null && (link === "reconnecting" || link === "offline");
+  const [now, setNow] = useState(clock);
+  useEffect(() => {
+    if (!ticking) return;
+    const refresh = () => {
+      if (document.visibilityState === "visible") setNow(clock());
+    };
+    refresh();
+    const timer = setInterval(refresh, link === "offline" ? OFFLINE_TICK_MS : 1000);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, [ticking, link, clock]);
+  return ticking ? Math.max(downMs, now - downSince) : downMs;
 }

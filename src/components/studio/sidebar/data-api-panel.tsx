@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { buildReport } from "../explorer/report";
 import { sourceIcon } from "../explorer/source-icons";
 import type { StudioStatus } from "../use-status-bar";
+import { useDownMs } from "../use-data-api-grace";
 import { useApiAddress } from "../use-api-address";
 import { chipNote, dropText, LINK_CHIP, serverLine, sourceTone } from "./data-api-model";
 
@@ -51,6 +52,7 @@ export default function DataApiPanel({ status, config, onAddress, onOpenData }: 
   const toast = useToast();
   const { dataApi, apiHealth, server, retryApi } = status;
   const { link } = apiHealth;
+  const downMs = useDownMs(apiHealth);
   const { draft, edit, probe, base, valid, commit, test } = useApiAddress(config.dataApiUrl, onAddress);
   const catalog = useSensorCatalog();
   const model = useMemo(() => buildDataModel(catalog.sources, catalog.sensors), [catalog.sources, catalog.sensors]);
@@ -84,7 +86,7 @@ export default function DataApiPanel({ status, config, onAddress, onOpenData }: 
       </div>
       <div className="mt-2 flex items-center gap-2">
         <StatusChip tone={chip.tone}>{chip.word}</StatusChip>
-        <span className="text-caption text-ui-3">{chipNote(apiHealth, model.sources, now)}</span>
+        <span className="text-caption text-ui-3">{chipNote({ ...apiHealth, downMs }, model.sources, now)}</span>
       </div>
       {(link === "reconnecting" || link === "offline") && <p className="mt-2.5 text-caption leading-snug text-ui-2">{NOTE[link]}</p>}
       <div className="mt-2.5">
