@@ -403,7 +403,7 @@ const BUILT: Partial<Record<FixtureName, Record<string, (page: Page) => Promise<
         /^Rename/, /^Duplicate/, /^Delete/, /^Save to Library/,
       ]);
       await menu.getByRole("menuitem", { name: /^Move to group/ }).click();
-      await expect(menu.locator("[data-sub] [role=menuitem]")).toHaveText(["Header", "Right column", "Temps", "New group"]);
+      await expect(menu.locator("[data-sub] [role=menuitem]")).toHaveText(["Header", "Right column", "Temps", "New group", /^Move out of group/]);
       await shoot(page, "layersF-menu");
     },
     // A 2 px line between rows; an outline on a group's middle; the drop lands inside, on top.
