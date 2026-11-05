@@ -21,6 +21,15 @@ export function currentView(mod: DashboardModule, settings: ModuleSettings | und
 }
 
 /**
+ * Whether the widget's toggles still hold what the view bundles (the old select read "Custom" when they did not). A key
+ * the zone never set counts as its setting's default.
+ */
+export function viewHolds(mod: DashboardModule, id: string | undefined, settings: ModuleSettings | undefined): boolean {
+  const applies = viewsOf(mod).find((v) => v.id === id)?.applies ?? {};
+  return Object.entries(applies).every(([key, value]) => (settings?.[key] ?? mod.settings?.find((d) => d.key === key)?.default) === value);
+}
+
+/**
  * Picking a view: the same settings Add gives it (`{ [viewKey]: id, ...applies }`), and the keys only another view's
  * bundle set, while they still hold that view's value, go back to their default.
  */

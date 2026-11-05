@@ -1,7 +1,7 @@
 // A widget's views as presets (D-5): read without touching what is saved (G1), and picked as Add would add them.
 import { describe, expect, it } from "vitest";
 import { addCatalog, widgetRows } from "@/components/studio/add-catalog";
-import { currentView, viewChange, viewKeyOf, viewsOf } from "@/components/studio/editor/view-presets";
+import { currentView, viewChange, viewHolds, viewKeyOf, viewsOf } from "@/components/studio/editor/view-presets";
 import { modules } from "@/modules";
 import type { DashboardModule } from "@/modules/types";
 
@@ -29,6 +29,14 @@ describe("view presets", () => {
     expect(viewChange(two, "bare", {})).toEqual({ patch: { view: "bare", a: false, b: 2 }, clear: [] });
     expect(viewChange(two, "full", { view: "bare", a: false, b: 2 })).toEqual({ patch: { view: "full" }, clear: ["a", "b"] });
     expect(viewChange(two, "full", { view: "bare", a: true, b: 2 }).clear).toEqual(["b"]);
+  });
+
+  it("holds a view only while its toggles keep the bundle, a toggle never set reading as its default", () => {
+    expect(viewHolds(two, "bare", { view: "bare", a: false, b: 2 })).toBe(true);
+    expect(viewHolds(two, "bare", { view: "bare", a: true, b: 2 })).toBe(false);
+    expect(viewHolds(two, "full", {})).toBe(true);
+    const withDefaults = mod(two.views, { settings: [{ key: "a", default: false }, { key: "b", default: 2 }] as DashboardModule["settings"] });
+    expect(viewHolds(withDefaults, "bare", { view: "bare" })).toBe(true);
   });
 
   it("writes what Add wrote for every view of every widget", () => {

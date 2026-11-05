@@ -1137,7 +1137,7 @@ function StudioViewBody({
       {!tabsInBar && pageTabs}
       {banner && (
         <div className="relative z-30 h-0 shrink-0">
-          <div className="absolute left-3.5 top-3.5 max-w-[calc(100%-28px)]">{banner}</div>
+          <div className="absolute left-3.5 top-1 max-w-[calc(100%-28px)]">{banner}</div>
         </div>
       )}
     </>

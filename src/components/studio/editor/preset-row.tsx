@@ -3,7 +3,7 @@ import { onRovingKeyDown } from "@/lib/roving";
 import { cn } from "@/lib/utils";
 import type { DashboardModule, ModuleSettings } from "@/modules/types";
 import { iconFor } from "@/widgets/core/icons";
-import { currentView, viewChange, viewsOf } from "./view-presets";
+import { currentView, viewChange, viewHolds, viewsOf } from "./view-presets";
 
 interface PresetRowProps {
   mod: DashboardModule;
@@ -21,6 +21,8 @@ interface PresetRowProps {
 export default function PresetRow({ mod, settings, onPick, onSaveStyle }: PresetRowProps) {
   const views = viewsOf(mod);
   const current = currentView(mod, settings);
+  // A toggle changed after the pick: no tile is the view any more (the old select said Custom).
+  const custom = !viewHolds(mod, current, settings);
   const Icon = iconFor(mod.icon);
   return (
     <section data-testid="inspector-presets" className="flex flex-col gap-2 border-b border-ui-subtle px-4 py-3">
@@ -34,14 +36,14 @@ export default function PresetRow({ mod, settings, onPick, onSaveStyle }: Preset
       </div>
       <div role="radiogroup" aria-label="Preset" onKeyDown={(e) => onRovingKeyDown(e, '[role="radio"]')} className="grid grid-cols-3 gap-2">
         {views.map((v) => {
-          const on = v.id === current;
+          const on = !custom && v.id === current;
           return (
             <button
               key={v.id}
               type="button"
               role="radio"
               aria-checked={on}
-              tabIndex={on ? 0 : -1}
+              tabIndex={on || (custom && v.id === current) ? 0 : -1}
               title={v.blurb}
               onClick={() => {
                 if (on) return;

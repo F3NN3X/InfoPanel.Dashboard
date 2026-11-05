@@ -65,7 +65,10 @@ export function useStudioUi(
   /** Every view but Design: a full page in place of the canvas, left panel and inspector. */
   const fullPage = mode !== "design";
   /** Design's left panel: remembered, open from 1280 px until the user chooses (Q28), and its tab. */
-  const [leftOpen, setLeftOpen] = useStoredFlag(LEFT_OPEN_KEY, windowWidth >= 1280);
+  const [storedOpen, setStoredOpen] = useStoredFlag(LEFT_OPEN_KEY, windowWidth >= 1280);
+  // "/", Add widget, the palette and the strip's tabs open the panel for now; only its toggle changes what later sessions open with.
+  const [openNow, setOpenNow] = useState(false);
+  const leftOpen = storedOpen || openNow;
   const [leftTab, setLeftTab] = useState<LeftTab>("add");
   const [leftPanelWidth] = useLeftPanelWidth();
   const leftWidth = LEFT_PANEL_PX[leftPanelWidth];
@@ -170,15 +173,18 @@ export function useStudioUi(
   const openDrawer = (target: Drawer) => {
     setMode("design");
     setLeftTab(target);
-    setLeftOpen(true);
+    setOpenNow(true);
   };
 
   /** The left panel's toggle (its own header, the page tabs' row on a narrow window). */
-  const toggleLeft = () => setLeftOpen((open) => !open);
+  const toggleLeft = () => {
+    setOpenNow(false);
+    setStoredOpen(!leftOpen);
+  };
   /** The closed panel's strip: open it on a tab. */
   const openLeft = (tab: LeftTab) => {
     setLeftTab(tab);
-    setLeftOpen(true);
+    setOpenNow(true);
   };
 
   const revealEditor = () => revealWidgetEditor(inspectorRef.current);

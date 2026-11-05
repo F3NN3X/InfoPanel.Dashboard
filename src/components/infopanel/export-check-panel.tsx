@@ -61,11 +61,13 @@ export function ApproxMark() {
 /**
  * The problems banner over the canvas (02a, Q21): limited to the Export check on a screen made for InfoPanel. A part left
  * out says so, with Show going to it; otherwise it reads as the quiet counts. Either way it opens the check in the inspector.
+ * It shows only while something needs attention (a part is approximated, becomes a picture or is left out), or while the check is open.
  */
 export function ExportCheckPill({ check, open, onClick, onShow }: { check: ExportCheck; open: boolean; onClick: () => void; onShow?: (path: string) => void }) {
   const shown = STATUS_ORDER.slice().reverse().filter((s) => check.counts[s] > 0);
   const problems = check.rows.filter((r) => r.status === "out");
   const first = problems[0];
+  if (!open && check.rows.every((r) => r.status === "ok")) return null;
   return (
     <div className={cn("flex h-8 items-center gap-2 rounded-ui-md border px-2.5 font-ui text-caption shadow-ui-float", first ? "border-ui-warn/45 bg-ui-warn-tint text-ui-warn" : "bg-ui-raised text-ui-3", open ? "border-ui-accent" : !first && "border-ui-strong")}>
       <button

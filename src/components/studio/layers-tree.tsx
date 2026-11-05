@@ -416,7 +416,7 @@ export function LayersTree({ host }: { host: LayersHost }) {
                   }}
                   className={cn(
                     "relative grid h-[18px] w-[16px] shrink-0 place-items-center after:absolute after:-inset-1 after:content-['']",
-                    node.locked ? "text-ui-2" : "text-ui-hint opacity-0 group-hover/row:opacity-100",
+                    node.locked ? "text-ui-2" : cn("text-ui-hint opacity-0 group-hover/row:opacity-100", isSelected && "opacity-100"),
                   )}
                 >
                   <Lock className="h-[13px] w-[13px]" />
@@ -434,7 +434,7 @@ export function LayersTree({ host }: { host: LayersHost }) {
                   }}
                   className={cn(
                     "relative grid h-[18px] w-[16px] shrink-0 place-items-center after:absolute after:-inset-1 after:content-['']",
-                    node.hidden ? "text-ui-2" : "text-ui-hint opacity-0 group-hover/row:opacity-100"
+                    node.hidden ? "text-ui-2" : cn("text-ui-hint opacity-0 group-hover/row:opacity-100", isSelected && "opacity-100")
                   )}
                 >
                   {node.hidden ? <EyeOff className="h-[13px] w-[13px]" /> : <Eye className="h-[13px] w-[13px]" />}
