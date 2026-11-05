@@ -153,4 +153,5 @@ Each is recorded with the ledger row that implements it (`progress.md`, "Ledger"
 - **L90: Paper's focus outline is an app-owned rule** from a T3 token (`focus-outline`) that any Look can set; Classic does not set it and the pack-CSS validator is not loosened. Tape '86's stripe bars are a `bar-fill` T3 name with a reader in `Bar`, as `ring-fill` was done. `label-case` is closed and dropped.
 - **L98 L-8: T1 text with an alpha is composited over the card** and accepted in user packs; contrast is read from the flattened colour in the validator, `chromeOf` and `panelOf`. A T1 `fg` written as `rgb()` passed the validator but `panelOf` took hex only, so a light user pack got white panel text: fixed with L-8 (ledger L101).
 - **L1: the starved-worker test is hardened**, with its assertions kept. The cause is likely, not proven.
-- **L13, L83, L44, L94** are other work and stay with their owners. **L38, L73** stay gated; **L10, L55** need no work.
+- **L83: tried, not kept.** Lazy `label-bar`, `bracket-line` and `index` headers with a held row save 0 B on the kiosk entry (24 B with no fallback at all) and cost 33 B on the studio entry, so the change was reverted and the row stays open (`progress.md`).
+- **L13, L44, L94** are other work and stay with their owners. **L38, L73** stay gated; **L10, L55** need no work.
