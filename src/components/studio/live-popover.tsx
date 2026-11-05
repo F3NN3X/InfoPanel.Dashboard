@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Popover } from "@base-ui/react/popover";
 import { Cast, Maximize, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { FOCUS_RING } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { Toggle } from "@/components/ui/toggle";
 import { islandEffective, type ControlKiosk, type ControlState } from "@/lib/control";
@@ -107,13 +108,13 @@ export function LiveControl({ open, onOpenChange, profiles, screen, control, kio
       <Popover.Trigger
         title="Live control"
         aria-label={`Live control, ${kiosks.length} ${kiosks.length === 1 ? "kiosk" : "kiosks"}`}
-        className={cn("flex items-center transition-colors", TRIGGER[place])}
+        className={cn("flex items-center transition-colors", place !== "bar" && FOCUS_RING, TRIGGER[place])}
       >
         <span aria-hidden className={cn("h-1.5 w-1.5 rounded-full", place === "bar" || kiosks.length > 0 ? "bg-ui-live" : "border border-ui-hint")} />
         {place !== "rail" && <span className="max-sm:sr-only">Live · {kiosks.length}</span>}
       </Popover.Trigger>
       <Popover.Portal>
-        <Popover.Positioner side={place === "bar" ? "bottom" : "right"} align="end" sideOffset={place === "bar" ? 6 : 12} className="z-[80]">
+        <Popover.Positioner side={place === "bar" ? "bottom" : "right"} align="end" sideOffset={place === "bar" ? 6 : 25} className="z-[80]">
           <Popover.Popup data-help-article="kiosk" className="w-[340px] rounded-ui-menu border border-ui-menu bg-ui-raised p-3 font-ui text-body text-ui-2 shadow-ui-menu outline-none">
             <div className="flex items-start gap-2">
               <div className="min-w-0 flex-1">

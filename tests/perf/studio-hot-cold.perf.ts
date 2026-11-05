@@ -93,7 +93,8 @@ for (const [name, profile] of Object.entries(PROFILES)) {
         hot.push({ ...(await measureIdle(page, cdp)), ...(vizZone ? { vizMoves: await canvasMoves(page, vizZone) } : {}) });
         const hotProbe = await probe(page);
 
-        const [help] = await Promise.all([page.waitForEvent("popup"), page.locator('[aria-label="Help"]').click()]);
+        await page.locator('[aria-label="Help and shortcuts"]').click();
+        const [help] = await Promise.all([page.waitForEvent("popup"), page.getByRole("menuitem", { name: /^Help/ }).click()]);
         const hiddenBy = await hideStudio(page, cdp);
         await help.waitForLoadState();
         await help.waitForTimeout(2000);

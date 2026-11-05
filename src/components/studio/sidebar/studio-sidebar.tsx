@@ -125,7 +125,7 @@ function HelpMenu({ rail, onHelp, onShortcuts, onPalette, onSettings }: { rail: 
         </Menu.Trigger>
       </RailTip>
       <Menu.Portal>
-        <Menu.Positioner className="z-[80]" side="right" align="end" sideOffset={12}>
+        <Menu.Positioner className="z-[80]" side="right" align="end" sideOffset={25}>
           <Menu.Popup className={cn(POPUP, "w-64")}>
             {rows.map(({ label, hint, icon: Icon, run }) => (
               <Menu.Item key={label} className={cn(ITEM, HIGHLIGHT)} onClick={run}>
@@ -186,7 +186,7 @@ function DataApiCard({ rail, status, config, onAddress, onNavigate }: Pick<Studi
         </Popover.Trigger>
       </RailTip>
       <Popover.Portal>
-        <Popover.Positioner side="right" align="end" sideOffset={12} collisionPadding={12} className="z-[80]">
+        <Popover.Positioner side="right" align="end" sideOffset={25} collisionPadding={12} className="z-[80]">
           <Popover.Popup data-help-article="sensors" className="w-[368px] rounded-ui-lg border border-ui-menu bg-ui-panel p-4 font-ui text-body text-ui-2 shadow-ui-menu outline-none transition-opacity duration-(--ui-dur-menu) ease-ui data-ending-style:opacity-0 data-starting-style:opacity-0">
             <Suspense fallback={<div className="h-[420px]" />}>
               <DataApiPanel
@@ -227,7 +227,7 @@ export default function StudioSidebar(props: StudioSidebarProps) {
   return (
     <Tooltip.Provider delay={300}>
       <aside aria-label="Studio sidebar" className={cn("flex shrink-0 flex-col gap-1 border-r border-ui-subtle bg-ui-chrome p-3 font-ui", rail ? "w-[60px]" : "w-[232px]")}>
-        <div className={cn("mb-3 flex h-8 shrink-0 items-center gap-2", rail && "justify-center")}>
+        <div className={cn("mb-3 flex h-8 shrink-0 items-center gap-2", rail ? "justify-center" : "pl-1")}>
           {narrow || !rail ? <StudioLogo className="pointer-events-none h-7 w-7 shrink-0" /> : null}
           {!rail && <span className="min-w-0 flex-1 truncate text-body font-medium text-ui-1">InfoPanel Studio</span>}
           {collapseButton}

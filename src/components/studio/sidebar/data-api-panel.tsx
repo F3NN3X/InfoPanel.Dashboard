@@ -99,7 +99,7 @@ export default function DataApiPanel({ status, config, onAddress, onOpenData }: 
             onChange={(e) => edit(e.target.value)}
             onBlur={commit}
             onKeyDown={(e) => e.key === "Enter" && commit()}
-            className={cn(FIELD_BOX, "h-7 w-full border-transparent bg-transparent px-1.5 text-right font-ui-mono hover:border-ui-control")}
+            className={cn(FIELD_BOX, "-mr-1.5 h-7 w-full border-transparent bg-transparent px-1.5 text-right font-ui-mono hover:border-ui-control")}
           />
         </Row>
         {!valid && (

@@ -62,7 +62,7 @@ export function HomeView({ content, query, onQuery, onOpen, searching = false, m
                   onClick={() => onOpen(a.id)}
                   className="flex cursor-pointer flex-col gap-2.5 whitespace-normal rounded-xl border border-s-card-line bg-s-card p-[18px] text-left text-s-t1 hover:border-s-card-hover hover:bg-s-tile"
                 >
-                  <div className="grid h-(--ui-h-field) w-[34px] place-items-center rounded-ui-menu bg-s-accent/14 text-s-accent-text">
+                  <div className="grid h-8 w-8 place-items-center rounded-ui-menu bg-s-accent/14 text-s-accent-text">
                     <Icon className="h-[19px] w-[19px]" strokeWidth={1.75} />
                   </div>
                   <span className="text-sm font-medium">{a.title}</span>
@@ -89,7 +89,7 @@ export function HomeView({ content, query, onQuery, onOpen, searching = false, m
                   onClick={() => onOpen(t.article, t.heading)}
                   className="group flex cursor-pointer items-center gap-3 whitespace-normal rounded-xl border border-s-card-line bg-s-card p-3.5 text-left text-s-t1 hover:border-s-card-hover hover:bg-s-tile"
                 >
-                  <span className="grid h-(--ui-h-field) w-[34px] shrink-0 place-items-center rounded-ui-menu bg-s-accent/14 text-s-accent-text">
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-ui-menu bg-s-accent/14 text-s-accent-text">
                     <Icon className="h-[18px] w-[18px]" strokeWidth={1.75} />
                   </span>
                   <span className="flex min-w-0 flex-1 flex-col gap-0.5">

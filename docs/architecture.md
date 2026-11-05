@@ -1357,9 +1357,9 @@ survives a reload of the source). With `muted: false` the element tries to
 play with sound and falls back to muted when the browser refuses
 (`NotAllowedError`).
 
-**Studio shell** (`src/components/studio/studio-view.tsx`). The studio is a
-top bar over the studio body, which `studio-shell.tsx` assembles: the labelled
-rail (`left-rail.tsx`), in Design the left panel (`design-left-panel.tsx`: Layers
+**Studio shell** (`src/components/studio/studio-view.tsx`). The studio is the
+sidebar (`sidebar/studio-sidebar.tsx`, a lazy chunk) beside, in Edit, a top bar over
+the studio body, which `studio-shell.tsx` assembles: in Design the left panel (`design-left-panel.tsx`: Layers
 | Add), the canvas (`studio-canvas.tsx`) with the floating zoom bar over it
 (`zoom-toolbar.tsx`) and the inspector, docked, floating or in a bottom
 sheet by the studio width, see Studio layout below. The other views (Screens,
@@ -1600,9 +1600,11 @@ and value box (left panels keep the stacked slider).
 `inspector-scroll.ts` finds the scrolling element for scroll-to-top and the
 widget-editor reveal.
 
-**Studio left rail and views** (`left-rail.tsx`). A labelled rail (72 px, 48 px under 960 px) opens one full
-view at a time: **Screens**, **Design**, **Theme**, **Library**, **Gauges**, **Alerts & Island** and **Data**,
-with Help and Settings at the foot (each opens its own page or window). Design's left panel
+**Studio sidebar and views** (`sidebar/studio-sidebar.tsx`). A 232 px sidebar, a 60 px rail when collapsed (stored per
+area in local flags, always a rail under 960 px, a bottom bar on a phone), opens one full view at a time: **Screens**,
+**Continue editing** (Design), **Theme**, **Library**, **Gauges**, **Alerts & Island** and **Data sources**, with Settings,
+Help and shortcuts, the attention rows and the Data API card at the foot. The card reads `use-status-bar.ts`, whose
+10 s grace (`use-data-api-grace.ts`) is studio-only; `window-strip.tsx` is the desktop title bar on a page with no top bar. Design's left panel
 (`design-left-panel.tsx`) is **Layers** (`layers-tree.tsx`, the page's parts and groups top first, see the page
 model above) | **Add** (`add-panel.tsx` over `use-add-panel.ts` and `add-catalog.ts`: search, category chips
 and, on the Widgets tab, a tile grid of widgets, InfoPanel items and elements (`add-tiles.ts`: sections, Recently used,
