@@ -66,7 +66,7 @@ function ToastSlot({ live, toast, arm, dismiss }: { live: "polite" | "assertive"
       {toast && (
         <div
           key={toast.id}
-          className="flex items-center gap-3 rounded-ui-menu border border-ui-control bg-ui-raised px-4 py-2.5 font-ui text-body text-ui-1 shadow-ui-float"
+          className="flex items-center gap-3 rounded-ui-menu border border-ui-menu bg-ui-raised px-4 py-2.5 font-ui text-body text-ui-1 shadow-ui-float"
         >
           {toast.message}
           {toast.action && (

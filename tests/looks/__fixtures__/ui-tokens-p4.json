@@ -49,7 +49,7 @@
   "bg-hover": "#1d1d22",
   "border-subtle": "#1f1f24",
   "border-menu": "#2a2a31",
-  "border-control": "#2a2a31",
+  "border-control": "#66666f",
   "border-edge": "#3a3a44",
   "text-1": "#ededf0",
   "text-2": "#a1a1aa",

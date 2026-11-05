@@ -130,12 +130,12 @@
         ]
       },
       "border-control": {
-        "value": "#2a2a31",
+        "value": "#66666f",
         "s": [
           "input-line",
           "track-line"
         ],
-        "usage": "Boundaries of controls (fields, checkboxes, segmented, switch tracks, drag handles). Dividers keep the subtle ones."
+        "usage": "Boundaries of controls that carry meaning (fields, checkboxes, segmented, switch tracks, drag handles): 3:1 on every panel. Button and card hairlines use border-menu or border-strong."
       },
       "border-edge": {
         "value": "#3a3a44",
