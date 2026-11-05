@@ -769,7 +769,7 @@ async fn the_render_checks_page_opens_for_a_frame_of_this_origin_and_nothing_els
     for path in ["/index.html?widget-qa", "/x?widget-qa", "/index.html?widget-qa&pack-check=1", "/x?%77idget-qa&pack-check=1"] {
         let by_hand = [("Sec-Fetch-Dest", "document"), ("Sec-Fetch-Site", "none")];
         assert!(refused(&send(s.port, "GET", path, &by_hand, "").await), "{path} by hand");
-        assert!(refused(&send(s.port, "GET", path, &FRAME, "").await) == !path.contains("pack-check"), "{path} as a frame");
+        assert!(refused(&send(s.port, "GET", path, &FRAME, "").await) != path.contains("pack-check"), "{path} as a frame");
     }
     s.stop().await;
 }
