@@ -12,10 +12,11 @@ interface PanelTitleProps {
   /** A key from `lib/widget-icons.ts` (replaces the accent dot). */
   icon?: string;
   className?: string;
+  style?: CSSProperties;
 }
 
 /** The panel's small uppercase title (`.wp-panel-title`) with an accent dot or icon. */
-export function PanelTitle({ title, icon, className }: PanelTitleProps) {
+export function PanelTitle({ title, icon, className, style }: PanelTitleProps) {
   const Icon = widgetIcon(icon);
   return (
     <div
@@ -23,6 +24,7 @@ export function PanelTitle({ title, icon, className }: PanelTitleProps) {
         "wp-panel-title flex items-center gap-1.5 text-micro font-semibold uppercase tracking-widest",
         className
       )}
+      style={style}
     >
       {Icon ? (
         <Icon className="h-3 w-3" style={{ color: PANEL_ACCENT }} />

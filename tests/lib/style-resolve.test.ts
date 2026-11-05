@@ -231,9 +231,10 @@ describe("a page's own Look", () => {
 });
 
 describe("the Look layer and levels saved before it", () => {
-  it("gives nothing to a level that stores its Look's own card (applied before the layer: it holds every value it draws)", async () => {
+  it("gives the layer to a level that names its Look and stores no card (what v18 leaves of a level that stored the Look's own card alone)", async () => {
     (await import("@/looks/sample-materials")).registerSampleCards();
-    expect(resolveStyle({ levels: { profile: { values: { lookId: "paper", surface: "look-paper" } } } }).settings).toEqual({ lookId: "paper", surface: "look-paper" });
+    const { lookLayers } = await import("@/looks/sample-cards");
+    expect(resolveStyle({ levels: { profile: { values: { lookId: "paper" } } } }).settings).toEqual({ lookId: "paper", ...lookLayers.paper });
   });
 
   it("gives a level that applied its Look before the layer (every value stored) the Look's value back for one it clears", async () => {

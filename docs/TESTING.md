@@ -87,6 +87,14 @@ zone and reduced motion, so a frame is the same on each run (checked over repeat
   (`npx playwright test --project=look-visual --update-snapshots`), and the change description says why the new pixels are right.
   The report, with expected, actual and diff images, is in `.cache/playwright/`.
 
+## User pack CSS
+
+`measurePack` (`src/looks/pack-render-measures.ts`) is the one reader of what a worn pack hides: `pack-visibility` and `pack-selectors`
+hand it to `page.evaluate` for the built-ins, and the studio's render check runs it in its hidden frame (`tests/e2e/user-pack-css.spec.ts`
+on a release build, debug off). It names nothing outside its own body, because it is sent to the browser as source text. `renderRefusals`,
+the verdict, is pure and is tested in `tests/looks/pack-render-check.dom.test.ts`, the grammar in `tests/looks/user-css.test.ts`, the
+signature in `pack_sign.rs` and `crates/ips-server/tests/routes_packs.rs`.
+
 ## The feature map and `verify`
 
 `tests/feature-map.json` maps every tracked file to a feature, and each feature to the tests and checks that cover it.

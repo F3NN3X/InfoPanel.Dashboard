@@ -4,9 +4,10 @@
 //   node tools/looks/generate.mjs           write the generated blocks and files
 //   node tools/looks/generate.mjs --check   exit 1 and name the files that are out of date
 // Each generated block opens with a do-not-edit header; tests/looks/generated.test.ts fails when one is stale.
-import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { neededOf, scanUsage } from "./ui-usage.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const lf = (text) => text.replace(/\r\n/g, "\n");
@@ -24,6 +25,13 @@ function replaceBlock(text, name, from, body, indent = "") {
 
 const load = (rel) => import(pathToFileURL(join(root, rel)).href);
 const read = (rel) => lf(readFileSync(join(root, rel), "utf8"));
+
+/** The tokens of the generated status and shared sets each page's built files read now, by page (from the build; see ui-usage.mjs). */
+export async function usageNow() {
+  const studio = JSON.parse(read("src/looks/studio/look.json"));
+  const names = [...Object.keys(studio.studio.shared), ...Object.keys(studio.studio.status)];
+  return Object.fromEntries(Object.entries(scanUsage()).map(([page, reads]) => [page, neededOf(reads, names)]));
+}
 
 /** Every generated file: path (from the repo root) → its content with LF line ends. */
 export async function generate() {
@@ -64,15 +72,33 @@ export async function generate() {
   out.set(css, replaceBlock(out.get(css), "studio-chrome", STUDIO, [":root {", ...ui("chrome").map((t) => `  --ui-${t.name}: ${t.value};`), "}"]));
 
   const tokens = "src/settings/tokens.css";
-  const shared = replaceBlock(read(tokens), "studio-twins", STUDIO, [
-    ":root {",
-    ...ui("shared").map((t) => `  --ui-${t.name}: ${t.value};`),
-    "}",
-    "@theme {",
-    ...ui("shared").flatMap((t) => (t.entry.s ?? []).map((s) => `  --color-s-${s}: var(--ui-${t.name});`)),
-    "}",
-  ]);
-  out.set(tokens, replaceBlock(shared, "studio-status", STUDIO, [":root {", ...ui("status").map((t) => `  --ui-${t.name}: ${t.value};`), "}"]));
+  out.set(
+    tokens,
+    replaceBlock(read(tokens), "studio-twins", STUDIO, [
+      "@theme {",
+      ...ui("shared").flatMap((t) => (t.entry.s ?? []).map((s) => `  --color-s-${s}: var(--ui-${t.name});`)),
+      "}",
+    ]),
+  );
+  // The tokens the twins and the status set name are declared in a stylesheet per page: the studio takes all of them, the
+  // settings, help and touch pages only those their built files read (ui-usage.json, from tools/looks/ui-usage.mjs; L13).
+  const usage = JSON.parse(read("tools/looks/ui-usage.json"));
+  const tokenSet = [...ui("shared"), ...ui("status")];
+  // One block over the whole file, so the D9 scans (tools/looks/scan.mjs) read it as generated.
+  const pageCss = (page, tokensOf) =>
+    [
+      "/* @generated:begin ui-tokens",
+      `   ${header(`${STUDIO}${page === "studio" ? "" : " and tools/looks/ui-usage.json"}`)} */`,
+      "/* The one status set (Studio and Settings): ok, warn, danger, info. The Export check's statuses (Edit v3 SPEC §11.2):",
+      "   exports as is, approximated, becomes a picture; left out is danger. Info sits away from the accent hue (255). */",
+      ":root {",
+      ...tokensOf.map((t) => `  --ui-${t.name}: ${t.value};`),
+      "}",
+      "/* @generated:end ui-tokens */",
+      "",
+    ].join("\n");
+  out.set("src/settings/ui/studio.css", pageCss("studio", tokenSet));
+  for (const page of Object.keys(usage)) out.set(`src/settings/ui/${page}.css`, pageCss(page, tokenSet.filter((t) => usage[page].includes(t.name))));
 
   const mixer = "src/widgets/core/mixer-views.css";
   const t3 = (name) => cssOf(CLASSIC_T3[name]).toLowerCase();
@@ -205,6 +231,20 @@ export async function generate() {
 
 if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
   const check = process.argv.includes("--check");
+  const usagePath = join(root, "tools/looks/ui-usage.json");
+  // After `npm run build` and `npm run desktop:settings`: --from-build writes the tokens each page reads, --check-usage fails when the file differs.
+  if (process.argv.includes("--from-build")) writeFileSync(usagePath, `${JSON.stringify(await usageNow(), null, 2)}
+`);
+  if (process.argv.includes("--check-usage")) {
+    const now = await usageNow();
+    const kept = JSON.parse(read("tools/looks/ui-usage.json"));
+    const off = Object.keys(now).filter((page) => JSON.stringify(now[page]) !== JSON.stringify(kept[page]));
+    if (off.length) {
+      console.error(`tools/looks/ui-usage.json is out of date for ${off.join(", ")}: run \`npm run looks:gen -- --from-build\` after a build`);
+      process.exit(1);
+    }
+    process.exit(0);
+  }
   const stale = [];
   for (const [rel, content] of await generate()) {
     const path = join(root, rel);
@@ -212,6 +252,7 @@ if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) 
     if (lf(current) === content) continue;
     stale.push(rel);
     // Keep the file's own line ends (a Windows checkout has CRLF).
+    if (!check) mkdirSync(dirname(path), { recursive: true });
     if (!check) writeFileSync(path, current.includes("\r\n") ? content.replace(/\n/g, "\r\n") : content);
   }
   if (check && stale.length) {

@@ -83,7 +83,8 @@
     }
   },
   "t3": {
-    "num-fill": "linear-gradient(90deg, #5B3FD4, #2F6FE0)"
+    "num-fill": "linear-gradient(90deg, #5B3FD4, #2F6FE0)",
+    "focus-outline": "#5B3FD4"
   },
   "ext": {}
 }

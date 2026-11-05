@@ -434,19 +434,22 @@ export function ElementPanel({ editor, path, item, spec, sensors }: ElementPanel
               <InkField label="Shadow color" ink={spec.shadow.color} palette={palette} onChange={(color) => set({ shadow: { ...spec.shadow, color } }, "shadow-color")} />
             </>
           )}
-          <SwitchRow
-            label="Background blur"
-            studioOnly
-            on={!!spec.blur}
-            onChange={(on) => {
-              if (on) return set({ blur: 16 });
-              const rest = withoutKey(spec, "blur");
-              const next = normalizeElement(rest);
-              if (next) editor.setElement(path, next, key("blur"));
-            }}
-          />
-          {!!spec.blur && num("Blur radius", "blur", spec.blur)}
-          {!!spec.blur && <p className="text-[11.5px] leading-snug text-ui-4">Blurs what is behind the card, with a translucent fill. InfoPanel can’t, so the export bakes the background, images and shapes under it into the card’s image. Text and gauges behind it aren’t blurred there.</p>}
+          {/* The editor and the kiosk no longer draw a card's blur (L92); a blur a saved card holds stays loadable, is baked into its export as before, and can be switched off here. */}
+          {!!spec.blur && (
+            <>
+              <SwitchRow
+                label="Background blur"
+                studioOnly
+                on
+                onChange={() => {
+                  const next = normalizeElement(withoutKey(spec, "blur"));
+                  if (next) editor.setElement(path, next, key("blur"));
+                }}
+              />
+              {num("Blur radius", "blur", spec.blur)}
+              <p className="text-[11.5px] leading-snug text-ui-4">This card holds a blur from an earlier version. It is not drawn here any more, but the export still bakes the background, images and shapes under it into the card’s image. Switch it off to drop it.</p>
+            </>
+          )}
           <SwitchRow label="Outer glow" on={spec.glow !== null} onChange={(on) => set({ glow: on ? { blur: 16, color: slotInk(palette, "accent1") } : null })} />
           {spec.glow && (
             <>

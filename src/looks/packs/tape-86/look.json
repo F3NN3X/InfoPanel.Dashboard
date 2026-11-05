@@ -89,7 +89,8 @@
     "spike-shape": "bar",
     "fader-knob-shape": "square",
     "ring-cap": "butt",
-    "header-style": "tab-label"
+    "header-style": "tab-label",
+    "bar-fill": "linear-gradient(90deg, #B83A08 0 25%, #C8273A 25% 50%, #8E2A4C 50% 75%, #4E1F3B 75% 100%)"
   },
   "ext": {}
 }

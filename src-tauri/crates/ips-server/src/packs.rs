@@ -3,11 +3,16 @@
 // loader before a pack is worn, and it is the only reader of a pack's meaning. What the server does itself is path safety
 // and size: an id and a file are matched against strict patterns before any path is built, the file is canonicalised and
 // must stay inside its pack folder (a symlink is never followed), a pack over the caps is not served, and an import is
-// refused unless every file is one a pack has (`pack.css` among the ones it names: a user pack carries none).
+// refused unless every file is one a pack has (`pack.css` is not: it arrives only through the signing route).
 //
-// GET /api/packs                list: id, name and size of each pack that is within the caps
+// A pack's CSS (L94) is served only under a valid signature of every file in the folder (`pack_sign.rs`): the studio's render
+// check runs first, then POST .../sign stores the CSS and its signature together. A `pack.css` with no valid signature, however
+// it got there, makes the folder not a pack: not listed, not served. A pack with no CSS needs no signature.
+//
+// GET /api/packs                list: id, name and size of each pack that is within the caps (`X-User-Packs: off` when switched off)
 // POST /api/packs               import: `{ "id", "files": [{ "path", "data" (base64) }] }`, replaces a pack of that id
-// GET/HEAD /api/packs/<id>/<file>   one file, typed by its extension, `nosniff`, a CSP that allows nothing
+// POST /api/packs/<id>/sign     `{ "css" (base64), "hash" }`: stores the CSS and signs the pack when `hash` is the pack's with that CSS
+// GET/HEAD /api/packs/<id>/<file>   one file, typed by its extension, `nosniff`, a CSP that allows nothing (`pack.css` adds `X-Pack-Signature: valid`, and `pack.json` `X-Pack-Css: 1` when it has one)
 // DELETE /api/packs/<id>        remove a pack
 //
 // Writes need `X-Dashboard-Pack: 1` and come from this computer unless ALLOW_REMOTE_UPLOAD=1 (the asset store's rule).
@@ -18,14 +23,15 @@ use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
 use axum::body::Body;
-use axum::http::{Method, Response};
+use axum::http::{HeaderValue, Method, Response};
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
 use serde_json::{json, Value};
 
 use crate::asset_types::SVG_CSP;
 use crate::http::{self, Req};
-use crate::{js, App};
+use crate::pack_sign::{self, KEY_FILE};
+use crate::{js, store, App};
 
 /// A pack folder is at most this many bytes, a file at most `FILE_MAX_BYTES`, a pack at most `FILE_COUNT_MAX` files
 /// (the validator's `PACK_CEILING_BYTES`, `FILE_MAX_BYTES` and `FILE_COUNT_MAX`).
@@ -34,6 +40,8 @@ pub const FILE_MAX_BYTES: u64 = 256_000;
 pub const FILE_COUNT_MAX: usize = 64;
 /// An import body: the pack as base64 in JSON, with room for the paths.
 const IMPORT_BODY_MAX: usize = (PACK_CEILING_BYTES as usize) * 4 / 3 + 64 * 1024;
+/// A signing body: one file as base64, and the hash.
+const SIGN_BODY_MAX: usize = (FILE_MAX_BYTES as usize) * 4 / 3 + 1024;
 
 /// At most this many packs, and this many bytes of them in all (the packs a user brings are a few hundred kB each).
 pub const PACKS_MAX: usize = 32;
@@ -49,7 +57,10 @@ const UUID_LEN: usize = 36;
 const ROOT_FILES: [&str; 7] = ["pack.json", "look.json", "icons.json", "OFL.txt", "thumb.png", "thumb.jpg", "thumb.webp"];
 /// The extensions an asset may have (`assets/<name>.<ext>`) and their types.
 const ASSET_EXTS: [&str; 5] = ["woff2", "png", "jpg", "webp", "svg"];
-const NO_PACK_CSS: &str = "a user pack carries no pack.css";
+const NO_PACK_CSS: &str = "an import carries no pack.css: a pack's CSS comes with its signature";
+/// A pack's CSS and its signature: in a pack folder, and outside the file set an import or a plain read may name.
+const CSS_FILE: &str = "pack.css";
+const SIG_FILE: &str = "pack.sig";
 
 /// A name Windows keeps for a device (`con`, `nul`, `com1`, ... with or without an extension): never a pack id or a file's stem.
 fn is_device_name(s: &str) -> bool {
@@ -112,8 +123,8 @@ impl Packs {
     }
 
     /// Recovers from a crash in an import. A pack set aside whose own folder is gone is put back (the replace died between
-    /// its two renames); one whose folder is there is the old copy of a finished replace and goes. The half-written
-    /// folders go last, so the only copy of a pack is never deleted.
+    /// its two renames), the newest first when there are several for an id; one whose folder is there is the old copy of a
+    /// finished replace and goes. The half-written folders go last, so the only copy of a pack is never deleted.
     fn sweep(&self) {
         if !self.enabled {
             return;
@@ -128,13 +139,14 @@ impl Packs {
                 continue;
             }
             match name.strip_prefix(ASIDE_PREFIX) {
-                Some(rest) => asides.push((entry.path(), rest.len().checked_sub(UUID_LEN + 1).and_then(|n| rest.get(..n)).map(str::to_string))),
+                Some(rest) => asides.push((aside_id(&entry.path(), rest), entry.path())),
                 None => temps.push(entry.path()),
             }
         }
+        asides.sort_by_key(|(_, path)| std::cmp::Reverse((std::fs::metadata(path.join("pack.json")).and_then(|m| m.modified()).ok(), path.clone())));
         let mut kept = false;
-        for (path, id) in asides {
-            let dest = id.filter(|id| is_pack_id(id)).map(|id| self.dir.join(id));
+        for (id, path) in asides {
+            let dest = id.map(|id| self.dir.join(id));
             match dest {
                 Some(dest) if std::fs::symlink_metadata(&dest).is_err() => kept |= std::fs::rename(&path, &dest).is_err(),
                 _ => {
@@ -216,6 +228,16 @@ impl Packs {
         (real.starts_with(&root) && real.is_file()).then_some(real)
     }
 
+    /// Removes a pack under the write lock, so that of two removes at once the second finds it gone. `false`: no such pack.
+    fn remove(&self, id: &str) -> std::io::Result<bool> {
+        let _held = self.write.lock().unwrap_or_else(|e| e.into_inner());
+        let Some(root) = is_pack_id(id).then(|| self.pack_dir(id)).flatten() else {
+            return Ok(false);
+        };
+        std::fs::remove_dir_all(root)?;
+        Ok(true)
+    }
+
     /// The canonical folder of pack `id` under the canonical packs folder, when it is a real folder (not a link).
     fn pack_dir(&self, id: &str) -> Option<PathBuf> {
         let base = std::fs::canonicalize(&self.dir).ok()?;
@@ -225,6 +247,80 @@ impl Packs {
         }
         let real = std::fs::canonicalize(&dir).ok()?;
         (real.parent() == Some(base.as_path()) && real.is_dir()).then_some(real)
+    }
+
+    /// The folder's file count and bytes when it is a pack that may be served: within the caps and with nothing stray, and
+    /// with any `pack.css` under a valid signature (the hash is taken from the files as they are now, on every read).
+    fn measured(&self, id: &str, root: &Path) -> Option<(usize, u64)> {
+        if std::fs::symlink_metadata(root.join(CSS_FILE)).is_err() {
+            return measure(root);
+        }
+        let done = measure_files(root, true)?;
+        self.signed(id, root).then_some(done)
+    }
+
+    fn key_file(&self) -> PathBuf {
+        self.dir.with_file_name(KEY_FILE)
+    }
+
+    fn signed(&self, id: &str, root: &Path) -> bool {
+        let (Some(key), Some(files), Ok(signature)) = (pack_sign::load_key(&self.key_file()), stored_files(root), std::fs::read(root.join(SIG_FILE))) else {
+            return false;
+        };
+        pack_sign::verify(&key, id, &pack_sign::content_hash(&files), &signature)
+    }
+
+    /// The bytes of a pack's `pack.css`, when the pack may be served and has one.
+    fn signed_css(&self, id: &str) -> Option<Vec<u8>> {
+        if !self.enabled || !is_pack_id(id) {
+            return None;
+        }
+        let root = self.pack_dir(id)?;
+        self.measured(id, &root)?;
+        std::fs::read(root.join(CSS_FILE)).ok()
+    }
+
+    /// Stores `css` beside a stored pack and signs the whole, under the write lock, when `claimed` is the hash of what would
+    /// then be there: the studio hashed the bytes it checked, so a file that changed since is refused. The signature goes first:
+    /// a signature with no `pack.css` beside it means nothing, while a `pack.css` with none would refuse the pack.
+    fn sign(&self, id: &str, css: &[u8], claimed: &str) -> std::io::Result<Result<(), Refused>> {
+        let _held = self.write.lock().unwrap_or_else(|e| e.into_inner());
+        let Some(root) = is_pack_id(id).then(|| self.pack_dir(id)).flatten() else {
+            return Ok(Err(refuse(404, "no such pack")));
+        };
+        if css.is_empty() || css.len() as u64 > FILE_MAX_BYTES {
+            return Ok(Err(refuse(413, format!("{CSS_FILE} is empty or over {FILE_MAX_BYTES} bytes"))));
+        }
+        if let Some(why) = css_deny(css) {
+            return Ok(Err(refuse(400, format!("{CSS_FILE} {why}"))));
+        }
+        // under the lock no writer of ours is mid-way, so a temp file here is a crash's leftover: it counts toward no cap and nothing reads it
+        for tmp in [SIG_FILE, CSS_FILE] {
+            let _ = std::fs::remove_file(root.join(format!("{tmp}.tmp")));
+        }
+        let Some(mut files) = stored_files(&root) else {
+            return Ok(Err(refuse(409, "the folder is not a pack this server wrote")));
+        };
+        files.retain(|(path, _)| path != CSS_FILE);
+        files.push((CSS_FILE.to_string(), css.to_vec()));
+        let size: u64 = files.iter().map(|(_, b)| b.len() as u64).sum();
+        let others: u64 = listed(self).into_iter().filter(|(other, _)| other != id).map(|(_, bytes)| bytes).sum();
+        if size > PACK_CEILING_BYTES || others + size > PACKS_TOTAL_BYTES {
+            return Ok(Err(refuse(413, format!("the pack is over {PACK_CEILING_BYTES} bytes, or the packs over {PACKS_TOTAL_BYTES} in all"))));
+        }
+        let hash = pack_sign::content_hash(&files);
+        if hash != claimed {
+            return Ok(Err(refuse(409, "the stored pack is not the pack that was checked")));
+        }
+        let key = pack_sign::signing_key(&self.key_file())?;
+        store::write_atomic(&root.join(SIG_FILE), &pack_sign::sign(&key, id, &hash))?;
+        store::write_atomic(&root.join(CSS_FILE), css)?;
+        Ok(Ok(()))
+    }
+
+    /// Whether the store is read at all (`USER_PACKS=off`): the render check's page goes with it.
+    pub fn enabled(&self) -> bool {
+        self.enabled
     }
 
     /// The reason a write is refused, or `None`.
@@ -239,9 +335,75 @@ impl Packs {
     }
 }
 
+/// Why the server will not sign `css`, or `None`: a deny-list behind the loader's allow-list (`user-css.ts`), so a signing request that
+/// skipped the studio still cannot carry an escape, an at-rule, markup or a url-like function. Comments are dropped first, as the
+/// grammar drops them, so a note that mentions one of these is no reason to refuse.
+fn css_deny(css: &[u8]) -> Option<&'static str> {
+    let Ok(text) = std::str::from_utf8(css) else {
+        return Some("is not UTF-8");
+    };
+    let plain = strip_comments(text).to_ascii_lowercase();
+    if plain.contains('\\') ||plain.contains('@') || plain.contains('<') {
+        return Some("holds a backslash, an at-rule or markup");
+    }
+    ["url(", "image-set(", "src("].iter().any(|f| plain.contains(f)).then_some("holds a url-like function")
+}
+
+/// `text` without its comments, read as the CSS tokenizer reads it: a quote opens a string that runs to its closing quote (or the line's
+/// end), and a `/*` inside one is text, not a comment, so `"/*" url(//x) "*/"` keeps its `url(`. An unterminated comment is kept as it is.
+fn strip_comments(text: &str) -> String {
+    let mut plain = String::with_capacity(text.len());
+    let mut rest = text;
+    while let Some(at) = rest.find(['/', '"', '\'']) {
+        let (kept, here) = rest.split_at(at);
+        plain.push_str(kept);
+        if let Some(body) = here.strip_prefix("/*") {
+            match body.find("*/") {
+                Some(close) => rest = &body[close + 2..],
+                None => {
+                    rest = here;
+                    break;
+                }
+            }
+            continue;
+        }
+        let quote = here.as_bytes()[0];
+        if quote == b'/' {
+            plain.push('/');
+            rest = &here[1..];
+            continue;
+        }
+        let end = here[1..].find(|c: char| c == char::from(quote) || c == '\n').map_or(here.len(), |n| n + 2);
+        plain.push_str(&here[..end]);
+        rest = &here[end..];
+    }
+    plain.push_str(rest);
+    plain
+}
+
+/// The pack a set-aside folder holds, from what follows `.import-old-` in its name: the `<id>-<uuid>` an import writes, else
+/// (an old-format `<uuid>`, or a name no import wrote) the id in the folder's own `pack.json`.
+fn aside_id(path: &Path, rest: &str) -> Option<String> {
+    let named = rest.len().checked_sub(UUID_LEN + 1).and_then(|n| {
+        let uuid = rest.get(n..)?.strip_prefix('-')?;
+        uuid::Uuid::try_parse(uuid).ok()?;
+        rest.get(..n)
+    });
+    let own = || {
+        let text = std::fs::read_to_string(path.join("pack.json")).ok()?;
+        serde_json::from_str::<Value>(&text).ok()?.get("id")?.as_str().map(str::to_string)
+    };
+    named.map(str::to_string).or_else(own).filter(|id| is_pack_id(id))
+}
+
 /// The file count and total bytes of a pack folder: every file at its top and in `assets/`. A folder with anything else in it
-/// (a sub-folder, a link, a stray name), a file over its cap or a pack over its caps is `None`: not a pack this server wrote.
+/// (a sub-folder, a link, a stray name, a `pack.css`), a file over its cap or a pack over its caps is `None`: not a pack this server wrote.
 fn measure(root: &Path) -> Option<(usize, u64)> {
+    measure_files(root, false)
+}
+
+/// `measure`, `css` saying whether a `pack.css` belongs. A signature with no CSS beside it is a leftover of no meaning.
+fn measure_files(root: &Path, css: bool) -> Option<(usize, u64)> {
     let mut count = 0;
     let mut total = 0;
     for (dir, prefix) in [(root.to_path_buf(), ""), (root.join("assets"), "assets/")] {
@@ -257,7 +419,11 @@ fn measure(root: &Path) -> Option<(usize, u64)> {
             if meta.is_dir() && prefix.is_empty() && name == "assets" {
                 continue;
             }
-            if !meta.is_file() || !is_pack_file(&format!("{prefix}{name}")) {
+            if prefix.is_empty() && is_writer_tmp(&name) && meta.is_file() {
+                continue;
+            }
+            let top = prefix.is_empty() && (name == SIG_FILE || (css && name == CSS_FILE));
+            if !meta.is_file() || !(top || is_pack_file(&format!("{prefix}{name}"))) {
                 return None;
             }
             count += 1;
@@ -268,6 +434,30 @@ fn measure(root: &Path) -> Option<(usize, u64)> {
         }
     }
     (count <= FILE_COUNT_MAX && total <= PACK_CEILING_BYTES).then_some((count, total))
+}
+
+/// A temp file the signing writer leaves while it works or after a crash (`store::write_atomic`): it belongs to no pack and is no reason
+/// to refuse the folder, so a read in that moment still sees the pack.
+fn is_writer_tmp(name: &str) -> bool {
+    name == format!("{SIG_FILE}.tmp") || name == format!("{CSS_FILE}.tmp")
+}
+
+/// Every file of a pack folder but its signature, as the hash reads them: `None` for a folder `measure_files` refuses.
+fn stored_files(root: &Path) -> Option<Files> {
+    measure_files(root, true)?;
+    let mut files = Vec::new();
+    for (dir, prefix) in [(root.to_path_buf(), ""), (root.join("assets"), "assets/")] {
+        let Ok(entries) = std::fs::read_dir(&dir) else {
+            continue;
+        };
+        for entry in entries.filter_map(Result::ok) {
+            let name = entry.file_name().to_string_lossy().into_owned();
+            if entry.file_type().ok()?.is_file() && !(prefix.is_empty() && (name == SIG_FILE || is_writer_tmp(&name))) {
+                files.push((format!("{prefix}{name}"), std::fs::read(entry.path()).ok()?));
+            }
+        }
+    }
+    Some(files)
 }
 
 /// The pack ids that are folders in the packs folder and within the caps, sorted.
@@ -284,7 +474,7 @@ fn listed(packs: &Packs) -> Vec<(String, u64)> {
         let Some(root) = packs.pack_dir(&id).filter(|_| is_pack_id(&id)) else {
             continue;
         };
-        if let Some((_, bytes)) = measure(&root).filter(|_| root.join("pack.json").is_file()) {
+        if let Some((_, bytes)) = packs.measured(&id, &root).filter(|_| root.join("pack.json").is_file()) {
             found.push((id, bytes));
         }
     }
@@ -307,7 +497,11 @@ fn handle_list(app: &App) -> Response<Body> {
             json!({ "id": id, "name": name, "size": size })
         })
         .collect();
-    http::json(200, &Value::Array(items))
+    let mut reply = http::json(200, &Value::Array(items));
+    if !packs.enabled {
+        reply.headers_mut().insert("X-User-Packs", HeaderValue::from_static("off"));
+    }
+    reply
 }
 
 /// The decoded files of an import: path and bytes.
@@ -396,17 +590,39 @@ async fn handle_import(app: &App, mut req: Req) -> std::io::Result<Response<Body
     Ok(http::json(200, &json!({ "id": id, "name": name, "size": size })))
 }
 
+async fn handle_sign(app: &App, mut req: Req, id: &str) -> std::io::Result<Response<Body>> {
+    let packs = &app.packs;
+    if let Some(refusal) = packs.write_refusal(&req) {
+        return Ok(http::text(403, refusal));
+    }
+    let length = req.header("content-length").map_or(f64::NAN, |v| js::string_to_number(&v));
+    if length > SIGN_BODY_MAX as f64 {
+        return Ok(http::closing(http::empty(413)));
+    }
+    let Ok(text) = req.read_body(SIGN_BODY_MAX).await else {
+        return Ok(http::closing(http::text(413, "the stylesheet is too large")));
+    };
+    let Ok(body) = serde_json::from_str::<Value>(&text) else {
+        return Ok(http::text(400, "the body is not JSON"));
+    };
+    let Some(hash) = body.get("hash").and_then(Value::as_str) else {
+        return Ok(http::text(400, "no hash"));
+    };
+    let Ok(css) = STANDARD.decode(body.get("css").and_then(Value::as_str).unwrap_or("")) else {
+        return Ok(http::text(400, "css is not base64"));
+    };
+    if let Err(Refused(status, message)) = packs.sign(id, &css, hash)? {
+        return Ok(http::text(status, message));
+    }
+    Ok(http::json(200, &json!({ "id": id, "signed": true })))
+}
+
 fn handle_delete(app: &App, req: &Req, id: &str) -> std::io::Result<Response<Body>> {
     let packs = &app.packs;
     if let Some(refusal) = packs.write_refusal(req) {
         return Ok(http::text(403, refusal));
     }
-    let Some(root) = is_pack_id(id).then(|| packs.pack_dir(id)).flatten() else {
-        return Ok(http::empty(404));
-    };
-    let _held = packs.write.lock().unwrap_or_else(|e| e.into_inner());
-    std::fs::remove_dir_all(root)?;
-    Ok(http::empty(204))
+    Ok(http::empty(if packs.remove(id)? { 204 } else { 404 }))
 }
 
 /// One file of a pack: refused whole (413) when the pack is over the caps, typed by its extension.
@@ -415,13 +631,22 @@ fn serve_file(app: &App, req: &Req, id: &str, file: &str) -> Response<Body> {
     let Some(path) = packs.path_of(id, file) else {
         return http::empty(404);
     };
-    if packs.pack_dir(id).and_then(|root| measure(&root)).is_none() {
+    if packs.pack_dir(id).and_then(|root| packs.measured(id, &root)).is_none() {
         return http::empty(413);
     }
     let (Some(mime), Ok(bytes)) = (mime_of(file), std::fs::read(&path)) else {
         return http::empty(404);
     };
     let csp = if file.ends_with(".svg") { SVG_CSP } else { "default-src 'none'; sandbox" };
+    let mut reply = file_response(req, mime, csp, bytes);
+    // the loader asks for `pack.css` on this word, so a pack with none makes no request that fails
+    if file == "pack.json" && path.with_file_name(CSS_FILE).is_file() {
+        reply.headers_mut().insert("X-Pack-Css", HeaderValue::from_static("1"));
+    }
+    reply
+}
+
+fn file_response(req: &Req, mime: &str, csp: &str, bytes: Vec<u8>) -> Response<Body> {
     let length = bytes.len();
     Response::builder()
         .status(200)
@@ -432,6 +657,16 @@ fn serve_file(app: &App, req: &Req, id: &str, file: &str) -> Response<Body> {
         .header("Content-Security-Policy", csp)
         .body(if req.method == Method::HEAD { Body::empty() } else { Body::from(bytes) })
         .unwrap_or_default()
+}
+
+/// A pack's `pack.css`, under its signature: anything else is 404, as for a pack with none. The header is what the loader reads.
+fn serve_css(app: &App, req: &Req, id: &str) -> Response<Body> {
+    let Some(bytes) = app.packs.signed_css(id) else {
+        return http::empty(404);
+    };
+    let mut reply = file_response(req, "text/css; charset=utf-8", "default-src 'none'; sandbox", bytes);
+    reply.headers_mut().insert("X-Pack-Signature", HeaderValue::from_static("valid"));
+    reply
 }
 
 /// /api/packs and /api/packs/<id>/<file>.
@@ -447,6 +682,11 @@ pub async fn handle(app: &App, req: Req) -> std::io::Result<Response<Body>> {
     let (id, file) = rest.split_once('/').map_or((rest, None), |(id, file)| (id, Some(file)));
     match (&req.method, file) {
         (&Method::DELETE, None) => handle_delete(app, &req, id),
+        (&Method::POST, Some("sign")) => {
+            let id = id.to_string();
+            handle_sign(app, req, &id).await
+        }
+        (&Method::GET | &Method::HEAD, Some(CSS_FILE)) => Ok(serve_css(app, &req, id)),
         (&Method::GET | &Method::HEAD, Some(file)) => Ok(serve_file(app, &req, id, file)),
         (&Method::GET | &Method::HEAD | &Method::DELETE, _) => Ok(http::empty(404)),
         _ => Ok(http::empty(405)),
@@ -530,6 +770,71 @@ mod tests {
         Packs::with(dir.path().to_path_buf(), true).sweep();
         assert_eq!(names(dir.path()), ["mine"]);
         assert_eq!(std::fs::read_to_string(dir.path().join("mine/pack.json")).unwrap(), "kept");
+    }
+
+    #[test]
+    fn an_old_format_leftover_is_put_back_under_the_id_in_its_pack_json() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::create_dir_all(dir.path().join(format!(".import-old-{UUID}"))).unwrap();
+        std::fs::write(dir.path().join(format!(".import-old-{UUID}/pack.json")), r#"{"id":"my-pack"}"#).unwrap();
+        Packs::with(dir.path().to_path_buf(), true).sweep();
+        assert_eq!(names(dir.path()), ["my-pack"]);
+    }
+
+    #[test]
+    fn a_set_aside_name_without_its_separator_or_uuid_is_not_read_as_an_id() {
+        for name in [format!(".import-old-wrongX{UUID}"), format!(".import-old-wrong-{}", "z".repeat(UUID_LEN))] {
+            let dir = tempfile::tempdir().unwrap();
+            std::fs::create_dir_all(dir.path().join(&name)).unwrap();
+            std::fs::write(dir.path().join(&name).join("pack.json"), r#"{"id":"right"}"#).unwrap();
+            Packs::with(dir.path().to_path_buf(), true).sweep();
+            assert_eq!(names(dir.path()), ["right"], "{name}");
+        }
+    }
+
+    #[test]
+    fn of_several_asides_for_one_id_the_newest_is_put_back() {
+        const LATER: &str = "99999999-2222-3333-4444-555555555555";
+        let aged = |root: &Path| {
+            let long_ago = std::time::SystemTime::now() - std::time::Duration::from_secs(3600);
+            std::fs::File::options().write(true).open(root.join("pack.json")).unwrap().set_modified(long_ago).unwrap();
+        };
+        let dir = tempfile::tempdir().unwrap();
+        // whichever way the folder is read, one of these two pairs has its older copy first
+        let (older, newer) = (pack(dir.path(), &format!(".import-old-first-{UUID}")), pack(dir.path(), &format!(".import-old-first-{LATER}")));
+        marked(&older, "old");
+        marked(&newer, "new");
+        aged(&older);
+        let (newer, older) = (pack(dir.path(), &format!(".import-old-second-{UUID}")), pack(dir.path(), &format!(".import-old-second-{LATER}")));
+        marked(&older, "old");
+        marked(&newer, "new");
+        aged(&older);
+        Packs::with(dir.path().to_path_buf(), true).sweep();
+        assert_eq!(names(dir.path()), ["first", "second"]);
+        assert_eq!(std::fs::read_to_string(dir.path().join("first/pack.json")).unwrap(), "new");
+        assert_eq!(std::fs::read_to_string(dir.path().join("second/pack.json")).unwrap(), "new");
+    }
+
+    #[test]
+    fn of_two_removes_at_once_one_removes_and_one_finds_nothing() {
+        for round in 0..50 {
+            let dir = tempfile::tempdir().unwrap();
+            let packs = Packs::with(dir.path().to_path_buf(), true);
+            pack(dir.path(), "mine");
+            let gate = std::sync::Barrier::new(2);
+            let removed = std::thread::scope(|scope| {
+                let go = || {
+                    let (packs, gate) = (&packs, &gate);
+                    scope.spawn(move || {
+                        gate.wait();
+                        packs.remove("mine").unwrap()
+                    })
+                };
+                let (a, b) = (go(), go());
+                [a.join().unwrap(), b.join().unwrap()]
+            });
+            assert_eq!(removed.iter().filter(|gone| **gone).count(), 1, "round {round}: {removed:?}");
+        }
     }
 
     #[test]

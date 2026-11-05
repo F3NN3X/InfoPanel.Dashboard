@@ -7,7 +7,7 @@ import { fitRows, tileHero } from "./layout";
 import { mix } from "./tokens";
 import { useSkin, TONES, numGlowStyle } from "./theme";
 import { Icon, Bar, Ring, Spark, Img, Unit, RING_TEXT, isWordUnit } from "./primitives";
-import { scaleX, scaleY, slideY } from "./motion";
+import { motionOf, scaleX, scaleY, slideY } from "./motion";
 import type { Compact, Shape, Studio } from "./types";
 
 const NUM_TINT: CSSProperties = { color: "color-mix(in oklab, var(--w-accent) 55%, var(--w-fg))" };
@@ -231,7 +231,7 @@ export function StudioView({ c, w, h, icon }: { c: Studio; w: number; h: number;
           {c.meters.slice(0, n).map((m, i) => (
             <div key={i} className="flex min-w-0 flex-1 flex-col gap-1">
               <div className="relative min-h-0 flex-1 overflow-hidden rounded-[3px] bg-[color:var(--w-track)]">
-                <div className="absolute inset-0 transition-transform duration-300" style={{ ...scaleY(clamp(m.v)), background: "var(--w-accent)" }} />
+                <div className="absolute inset-0 transition-transform duration-300" style={{ ...scaleY(clamp(m.v)), background: "var(--w-accent)", ...motionOf(sk, "base") }} />
               </div>
               <span className="truncate text-center text-micro text-[color:var(--w-muted)]">{m.n}</span>
             </div>

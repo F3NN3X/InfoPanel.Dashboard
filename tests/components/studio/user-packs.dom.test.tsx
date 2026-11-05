@@ -88,6 +88,32 @@ describe("importing a pack", () => {
   });
 });
 
+describe("user packs switched off on the server", () => {
+  it("shows no import buttons, and says so", async () => {
+    vi.stubGlobal("fetch", async () => new Response("[]", { headers: { "X-User-Packs": "off" } }));
+    render(<UserPacks currentLookId="classic" onPick={() => {}} onRemove={() => 0} />);
+    await act(async () => {});
+    expect(screen.queryByRole("button", { name: "Import a folder" })).toBeNull();
+    expect(screen.queryByLabelText("Pack folder")).toBeNull();
+    expect(document.querySelector("[data-packs-off]")).not.toBeNull();
+  });
+});
+
+describe("a pack a later build's built-in shadows", () => {
+  it("offers no card to wear, and removing it leaves the levels that wear the built-in alone", async () => {
+    const log = server([{ id: "paper", name: "My Paper", size: 10 }]);
+    const onRemove = vi.fn(() => 2);
+    render(<UserPacks currentLookId="paper" onPick={() => {}} onRemove={onRemove} />);
+    await act(async () => {});
+    expect(document.querySelector("[data-pack-shadowed]")?.textContent).toContain("built-in Look now has this id");
+    await act(async () => void fireEvent.click(await screen.findByRole("button", { name: "Remove My Paper" })));
+    await act(async () => {});
+    expect(log).toContain("DELETE /api/packs/paper");
+    expect(onRemove).not.toHaveBeenCalled();
+    expect(screen.getByRole("status").textContent).toBe("Removed My Paper.");
+  });
+});
+
 describe("a pack that was stored but cannot be read back", () => {
   it("is taken off the server again, and the report says so", async () => {
     const log = server([]);

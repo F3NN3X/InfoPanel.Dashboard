@@ -10,6 +10,7 @@ pub mod alerts_engine;
 pub mod alerts_rules;
 pub mod asset_types;
 pub mod assets;
+pub mod pack_sign;
 pub mod packs;
 pub mod audio;
 pub mod calendar;
@@ -89,7 +90,7 @@ use crate::studio_prefs::StudioPrefs;
 pub const APP_ID: &str = "infopanel-dashboard";
 /// The config version this build's studio writes (`CONFIG_VERSION` in src/lib/layout.ts, kept equal by
 /// tests/lib/layout.test.ts): a saved config below it is updated, after a backup, the next time the studio opens.
-pub const CONFIG_VERSION: u32 = 17;
+pub const CONFIG_VERSION: u32 = 18;
 const MAX_STUDIO_PREFS_BYTES: usize = 4 * 1024;
 
 /// Whether `path` is a route family's root or anything under it.
@@ -392,9 +393,19 @@ fn debug_tools_off() -> Response<Body> {
     http::text(404, "Turn on debug mode in Settings > Diagnostics, restart the server, and reload to use this page.")
 }
 
-/// Whether the request is for the Widget QA page: `/widget-qa`, or `/?widget-qa`.
+/// Whether the request is for the Widget QA page: `/widget-qa`, or `?widget-qa` on any path (`/`, `/index.html`, a fallback path),
+/// because the client mounts the page from the query wherever the server's index.html answers.
 fn is_widget_qa(path: &str, search: &str) -> bool {
     path == "/widget-qa" || url::form_urlencoded::parse(search.trim_start_matches('?').as_bytes()).any(|(key, _)| key == "widget-qa")
+}
+
+/// Whether the request is the one way a build without debug mode opens Widget QA: the studio's hidden iframe for a user pack's
+/// render check (`?widget-qa&pack-check`), asked for by a page of this origin. A page opened any other way, a kiosk's among
+/// them, gets the same refusal as before. A browser sends these headers only to localhost or https, and the check fails closed elsewhere.
+fn is_pack_check_frame(req: &Req) -> bool {
+    url::form_urlencoded::parse(req.search.trim_start_matches('?').as_bytes()).any(|(key, _)| key == "pack-check")
+        && req.header("sec-fetch-dest").as_deref() == Some("iframe")
+        && req.header("sec-fetch-site").as_deref() == Some("same-origin")
 }
 
 async fn route(app: &App, mut req: Req) -> Result<Response<Body>, String> {
@@ -441,7 +452,7 @@ async fn route(app: &App, mut req: Req) -> Result<Response<Body>, String> {
         p if is_family(p, "/api/infopanel/installed") => infopanel_local::handle(app, &req).map_err(io),
         p if p.starts_with("/api/") => Ok(http::empty(404)),
         // The debug tools, served in debug mode only: the InfoPanel lab (dist/lab/, a separate build) and Widget QA
-        // (a page of the app, at /widget-qa or the older /?widget-qa).
+        // (a page of the app, at /widget-qa or with ?widget-qa on any path: the client mounts it from the query alone).
         p if p == "/lab" || p.starts_with("/lab/") => {
             if !app.cfg.debug {
                 return Ok(debug_tools_off());
@@ -454,7 +465,7 @@ async fn route(app: &App, mut req: Req) -> Result<Response<Body>, String> {
             }
             static_files::serve(&app.cfg.dist, &req)
         }
-        p if (p == "/widget-qa" || p == "/") && is_widget_qa(p, &req.search) && !app.cfg.debug => Ok(debug_tools_off()),
+        p if is_widget_qa(p, &req.search) && !app.cfg.debug && !(app.packs.enabled() && is_pack_check_frame(&req)) => Ok(debug_tools_off()),
         _ => static_files::serve(&app.cfg.dist, &req),
     }
 }

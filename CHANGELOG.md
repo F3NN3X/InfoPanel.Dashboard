@@ -14,16 +14,28 @@ version as its notes, so move **Unreleased** under a new `## [X.Y.Z] - YYYY-MM-D
 - **Five more Looks with their own type: Night Glow, Paper, Classy Black, Liquid Glass and Black and Gold.** Night Glow is blurred navy glass with a cyan-to-violet-to-pink edge, a gradient hero number and segmented rings. Paper is white cards on warm paper with a faint hexagon pattern and a purple-to-blue hero number. Classy Black is solid black with thin light numerals. Liquid Glass is frosted rose-violet glass over soft tinted light (at most 8 cards blur on a page, and a card fills to 0.90 where blur is off). Black and Gold is warm black with a gold sheen on the edge and numerals. A worn Look's type replaces the Font option while it is worn, and no Look asks a font host for anything.
 - **Twelve sample themes in the Theme view.** Field Kit, Tape '86, Neon Stripe, Overdrive, Swiss Mono, Term, Holo, Night Glow, Paper, Classy Black, Liquid Glass and Black and Gold: each sets a card, an accent, text colours, a font and a page colour, following the look-system mockups as far as cards and colours go (frames, headers, art and effects come later). Classic stays the default.
 
+- **An imported pack can bring a style sheet.** A `pack.css` may now paint the documented widget parts with plain colours. Before the pack is stored the studio tries it on every widget, out of sight, and refuses it if any text, gauge or content is hidden, covered by another box, off the page or can't be read. Changing a file of such a pack afterwards, or copying a style sheet into the packs folder by hand, stops the pack from loading until you import it again. Packs without a style sheet work as before.
+
 ### Changed
 
+- **Paper shows keyboard focus, and Tape '86's bars are striped.** A control inside a Paper card now draws a violet outline while it has keyboard focus. Tape '86's "ok" bars are filled in its four stripe colours; warning and critical bars keep theirs.
+- **Looks can tune graph fills, strokes and motion.** A Look can set a graph's fill fade and line width, the time and curve of the peak-hold mark and the summary meters. Classic is unchanged.
+- **A Look's own "ok" colour reaches bars and rings.** On a Look that brings its own ok colour, bars and rings in the ok state draw it instead of the accent. Classic and the sample themes keep the accent.
+- **Light status colours on the theme card of a light page.** The level ladder on a theme-coloured card now uses the darker status colours when the page is light; dark pages are unchanged.
+- **Imported Looks: text may be translucent or written as rgb().** A user pack whose text colour has an alpha is checked as it looks on the card, and a text colour written as rgb() or hsl() now colours the panels and page title as it does in hex, also on a `#rgb` card or an `rgb()` page colour.
+- **InfoPanel cards no longer blur what is behind them on screen.** A card saved with a background blur loads as before and its export still bakes the blur; it is just not drawn in the editor or kiosk. Its Background blur switch shows only on a card that already has one, to switch it off.
+- **Panels wear a pack Look.** A stack or grid panel on Paper, Neon Stripe or any other pack Look now draws with the pack's numbers, type and colours: its card is the pack's surface, its text the pack's text, and a colour of an item's own that would vanish on the card (white on Paper) gives way to it. The overlay panel's title badge takes the pack's colours too. Paper's labels are set in a monospace face. Neon Stripe's and Holo's page glow is now the Look's own accent instead of the page's text colour.
+- **Your packs are easier to bring in and keep.** A picked pack folder with big unrelated files in it now imports, leaving them out, as a zip does. With user packs turned off on the server the import buttons are gone. A pack whose id a built-in Look has since taken says so, and removing it no longer touches what wears the built-in.
+- **Overlay panels and the page title read on light Looks.** On Paper, Field Kit and Tape '86 an overlay panel's widgets sit on plates of the card's colour instead of a dark scrim, and the page title takes the Look's text colour where it holds on the Look's page.
 - **Text and bars in the accent colour darken on light cards.** On the Matte light surface (and light looks) an accent that fails 4.5:1 on the card, like the default green at 1.75:1, is darkened for text, rings and bars; ok, warning and critical readings and the level meters follow the card's own status colours. StreamControl, StreamMixer and MenuBar no longer paint dark chips on a light card. Dark surfaces are unchanged.
 - **New names for the look.** "Look" replaces "Theme" on the rail, in the view and the command palette, and "Skin" in the Style tab; the Default skin is **Classic**. **Switch theme** is **Saved and template looks**, **Save as theme** is **Save look**, the **Palette** picker is **Colors**, the card's **Corners** are **Base corners**, and a widget's Styles are **Widget looks** (**Start from a saved look**, **Save look**, **Make this the Look for…**, **Library › Widget looks**). The Skin picker is gone: the skins are in the gallery.
-- **Screens are saved in format 17.** The skins are now looks: each screen, page and widget records which look it
+- **Screens are saved in format 18.** The skins are now looks: each screen, page and widget records which look it
   uses in place of its skin (Default is the Classic look), and a screen or page that applied one of the sample themes
-  records that theme. Nothing looks different, except a panel whose screen was saved with the old "default" skin
-  spelling: it now shows its own panel look, as with Default. The first save after the update
-  keeps the old file as `config.backup-before-v17.json` beside `config.json`; an older version can't save over a
-  format 17 config, so to go back, restore that backup.
+  records that theme and no longer stores that theme's card. Nothing looks different, except a panel whose screen was
+  saved with the old "default" skin spelling, which now shows its own panel look, as with Default, and a page that had
+  only a sample theme's card set, which now takes that theme's colours and font as well. The first save after the
+  update keeps the old file as `config.backup-before-v18.json` beside `config.json`; an older version can't save over a
+  format 18 config, so to go back, restore that backup.
 - **The widget accent colour is now `--w-accent`.** Custom CSS can read or set `--w-accent` inside a widget; `--accent` is still set to the same colour inside widgets for this release, and `--wp-accent`, `--wp-fg`, `--wp-muted` and `--wp-radius` keep working. Nothing looks different.
 - **Lower CPU with an audio meter open.** Widgets that read every sensor no longer redraw on each of the audio meter's ten updates a second unless they show an audio value.
 - **Now Playing draws its cover backdrop unblurred in lite mode** (Max FPS below 60, or reduced motion), where the 28 px filter blur was redrawn for nothing. Limit blur still does not cap it.
@@ -33,6 +45,10 @@ version as its notes, so move **Unreleased** under a new `## [X.Y.Z] - YYYY-MM-D
 
 ### Fixed
 
+- **Visualisers show the sound in reduced motion.** With Reduce motion on, the still frame of a visualiser could stay at its idle bars while audio played; it now repaints once the first reading is in.
+- **Now Playing tinted by cover art keeps its fallback fill.** Over a solid page colour a tinted card whose Look blurs now fills to the blur fallback like every other card, instead of keeping its own see-through tint.
+- **InfoPanel export: level ladders on light cards.** A level ladder (audio meters) exported its amber and red from the dark card on a light card; it now exports the card's own warning and critical colours.
+- **Stream Control graphs start on the first reading.** The viewer and mic graphs no longer open with a flat zero from before OBS answered, so the same screen no longer draws two different graphs depending on how fast the stream arrived.
 - **Heat maps and visualisers start from the card colour.** The coldest colour of an accent ramp (Core Heatmap, CPU Monitor, System Overview, Follow in the visualisers) was always near-black; it now starts from the card's own fill on every surface (light, theme, and the dark and tinted ones).
 - **InfoPanel export: warn and crit ring colours on the Theme surface.** They exported as the default blue; they now keep their colour.
 - **InfoPanel export: gradient and glass cards export their card.** A widget exported through its converter on Glass, Tinted, Holo, Carbon, Studio, Vibrancy, Material, Synth, Cyber or Nixie lost its card; it now exports as the material's flat colour (Outline and Flat stay see-through).

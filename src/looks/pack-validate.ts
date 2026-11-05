@@ -3,14 +3,14 @@
 // list with sizes and bytes) before anything is built, and says which rule each problem breaks. An `error` refuses the pack;
 // a `warn` is advice. It reuses the loader's readers (`packCssIssues`, `lintPackCss`, `stageIssues`, `iconSetIssues`) and adds
 // the rules they cannot see from a built pack: the asset list against the files, fonts and licence, contrast per card,
-// burn-in luminance, ornament and chamfer sizes, and CSS paint that hides content (L71).
+// burn-in luminance, ornament and chamfer sizes, CSS paint that hides content (L71) and a user pack's CSS grammar (L94).
 //
 // Where it runs: the studio (lazy chunk, when a pack is imported) and `tools/validate-pack.mjs` (pack authors, `npm run verify`
 // reads the built-in packs through the tests). The server (Rust) does not run it; the server half, for P12b to build, is the
 // path-safety check on `GET /api/packs/<id>/<file>` (`isPackRelativeUrl`'s rules) and the size caps (a file, a pack: `PACK_CEILING_BYTES`).
 import { safeFill } from "@/widgets/core/t3-tokens";
 import { parseCss, type Rule, type Token, tokenize, writeTokens } from "./css-syntax";
-import { OVERLAY_MAX } from "./effects";
+import { BLUR_MAX as STAGE_BLUR_MAX, OVERLAY_MAX } from "./effects";
 import { iconSetIssues } from "./icon-set";
 import { LOOK_IDS } from "./ids";
 import { PACK_FONT_FAMILIES } from "./pack-fonts";
@@ -22,7 +22,11 @@ import { INJECTION, jsonShapeIssues, jsonStrings, PROSE_PATHS, rasterMatches, ST
 import packSchema from "./pack.schema.json";
 import { cssUrls, isPackRelativeUrl, packCssIssues } from "./pack-urls";
 import { schemaErrors } from "./schema-check";
+import { userCssIssues } from "./user-css";
+import { type Colour, flatOver, over, parseColour } from "./colour";
 import { contrastOf } from "./status";
+
+export { parseColour };
 import { T3_TOKENS } from "./t3";
 
 export interface PackFile {
@@ -46,9 +50,10 @@ export interface PackSource {
 
 export interface PackOptions {
   /**
-   * `user` (the default) is a pack someone brought: level 1 and 2 of the spec, tokens, values, assets, an icon map and fonts, and no
-   * `pack.css` (rule `user-css`). `builtin` is one of ours, whose CSS is read by the CSS rules and then checked in the browser
-   * (`pack-visibility`, `pack-selectors`, `pack-faces`).
+   * `user` (the default) is a pack someone brought: level 1 and 2 of the spec, tokens, values, assets, an icon map and fonts, and a
+   * `pack.css` only inside the grammar of `user-css.ts` (rule `user-css`); the render check and the signature that let one be worn
+   * are the importer's and the server's. `builtin` is one of ours, whose CSS is read by the CSS rules and then checked in the
+   * browser (`pack-visibility`, `pack-selectors`, `pack-faces`).
    */
   source?: "builtin" | "user";
 }
@@ -102,54 +107,12 @@ function urlRule(url: string): string {
 
 // ---- colours ----------------------------------------------------------------------------------------------------------
 
-interface Colour {
-  /** `#rrggbb` when the colour is a literal (hex, `rgb()` or `hsl()`). */
-  hex?: string;
-  alpha: number;
-}
-
-const byte = (n: number) => Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, "0");
-
-/** `hsl()` as 0-255 channels. */
-function hslToRgb(h: number, s: number, l: number): [number, number, number] {
-  const k = (n: number) => (n + (((h % 360) + 360) % 360) / 30) % 12;
-  const a = (Math.min(Math.max(s, 0), 100) / 100) * Math.min(l / 100, 1 - l / 100);
-  const f = (n: number) => (l / 100 - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)))) * 255;
-  return [f(0), f(8), f(4)];
-}
-
-/** A CSS colour as written: hex (3, 4, 6, 8 digits), `rgb()`/`rgba()`, `hsl()`/`hsla()`, `transparent`; undefined for anything else (a name, `var()`, `oklch()`, `color-mix()`): the caller refuses what it cannot read. */
-export function parseColour(value: string): Colour | undefined {
-  const v = value.trim().toLowerCase();
-  if (v === "transparent") return { alpha: 0 };
-  const hex = /^#([\da-f]{3,4}|[\da-f]{6}|[\da-f]{8})$/.exec(v)?.[1];
-  if (hex) {
-    const full = hex.length <= 4 ? [...hex].map((c) => c + c).join("") : hex;
-    return { hex: `#${full.slice(0, 6)}`, alpha: full.length === 8 ? parseInt(full.slice(6), 16) / 255 : 1 };
-  }
-  const fn = /^(rgba?|hsla?)\(([^)]*)\)$/.exec(v);
-  if (!fn) return undefined;
-  const parts = fn[2].split(/[\s,/]+/).filter(Boolean);
-  const a = parts[3];
-  const alpha = a === undefined ? 1 : a.endsWith("%") ? parseFloat(a) / 100 : parseFloat(a);
-  if (!Number.isFinite(alpha) || parts.length < 3 || parts.length > 4) return undefined;
-  const channels = parts.slice(0, 3).map((p) => parseFloat(p));
-  if (!channels.every(Number.isFinite)) return undefined;
-  const [r, g, b] = fn[1].startsWith("hsl") ? hslToRgb(channels[0], channels[1], channels[2]) : parts.slice(0, 3).map((p, k) => (p.endsWith("%") ? (channels[k] * 255) / 100 : channels[k]));
-  return { hex: `#${byte(r)}${byte(g)}${byte(b)}`, alpha: Math.max(0, Math.min(1, alpha)) };
-}
-
 /** A colour that is opaque and readable: its `#rrggbb`, else undefined. */
 const opaqueHex = (value: string): string | undefined => {
   const c = parseColour(value);
   return c?.hex && c.alpha >= 1 ? c.hex : undefined;
 };
 
-/** A colour laid over `under` at `alpha` (0-1), as `#rrggbb`. */
-function over(hex: string, alpha: number, under: string): string {
-  const [a, b] = [hex, under].map((h) => [1, 3, 5].map((k) => parseInt(h.slice(k, k + 2), 16)));
-  return `#${a.map((c, k) => byte(c * alpha + b[k] * (1 - alpha))).join("")}`;
-}
 
 /** Relative luminance of a `#rrggbb` (contrast against black, inverted: reuses the one colour maths of status.ts). */
 const luminance = (hex: string): number => ((contrastOf(hex, "#000000") ?? 1) - 1) * 0.05;
@@ -192,7 +155,7 @@ function svgBrightness(source: string): number | undefined {
   return lums.some((l) => l === undefined) ? undefined : Math.max(0, ...(lums as number[]));
 }
 
-// ---- pack.css (built-in packs; a user pack has none) -----------------------------------------------------------------------
+// ---- pack.css (built-in packs; a user pack's is user-css.ts) --------------------------------------------------------------------
 
 /** Declarations that move, turn or resize a box; the card is never rotated (spec 03, Layout). */
 const ROTATION = /^(transform(-origin|-box|-style)?|rotate|scale|translate|perspective(-origin)?|offset-rotate|zoom|writing-mode)$/;
@@ -372,10 +335,10 @@ function rangeIssue(name: string, v: string | number): string | undefined {
 /** T3 names that colour text: held to 4.5:1 on the surface when they resolve to a T1 colour. */
 const TEXT_T3 = new Set(["status-ok", "status-warn", "status-crit", "info", "unit-color", "label-color", "header-color", "axis-label"]);
 /** T3 names that colour a mark (a series, a meter zone, an icon): held to 3:1. */
-const MARK_T3 = new Set(["series-1", "series-2", "series-3", "series-4", "series-5", "series-6", "meter-ok", "meter-warn", "meter-clip", "threshold-line", "spike-marker", "icon-color", "toggle-on", "live-indicator", "fader-fill", "range-fill", "mute-active", "solo-active"]);
+const MARK_T3 = new Set(["series-1", "series-2", "series-3", "series-4", "series-5", "series-6", "meter-ok", "meter-warn", "meter-clip", "threshold-line", "spike-marker", "icon-color", "toggle-on", "live-indicator", "fader-fill", "range-fill", "mute-active", "solo-active", "focus-outline"]);
 const OTHER_COLOUR_T3 = new Set(["meter-track", "meter-hold", "range-track", "range-highlight", "fader-track", "fader-knob", "icon-muted", "ring-track", "track", "num-glow-color", "accent-ink", "idle", "mute"]);
 /** T3 names that take a gradient or colour fill (`safeFill`); the numeral, ring and spark fills' stops are also read by `numeralIssues`. */
-const FILL_T3 = new Set(["border-fill", "header-fill", "num-fill", "ring-fill", "spark-fill"]);
+const FILL_T3 = new Set(["border-fill", "header-fill", "num-fill", "ring-fill", "spark-fill", "bar-fill"]);
 
 const T3_NAMES = new Set<string>(T3_TOKENS);
 /** Header styles that paint the fill as a band under small text rather than as the title's own colour: the text is held to 4.5:1 on it. */
@@ -432,6 +395,10 @@ function t3Issues(look: Look, t1: Record<T1Name, string>, mode: string, cards: s
         if (!stops) bad(name === "header-fill" ? "contrast" : "t3", `${mode} t3 ${name} cannot be checked: use hex colours, rgb(), hsl() or var(--w-*) of a T1 colour`);
         else if (name === "border-fill") {
           if (stops.some((c) => c.alpha < OPACITY_FLOOR)) bad("t3", `${mode} t3 border-fill has a stop under ${OPACITY_FLOOR} opaque: the border would not be drawn`);
+          else {
+            const lost = cards.find((card) => stops.every((c) => (contrastOf(flatOn(c, card), card) ?? SAME_AS_CARD) < SAME_AS_CARD));
+            if (lost) out.push(issue("t3", "look.json", `${mode} t3 border-fill is the colour of the card ${lost}: the border is not seen there`, "warn"));
+          }
         }
         else {
           // the title is painted in this fill (bg-clip: text): each stop over each card is text on it
@@ -442,7 +409,8 @@ function t3Issues(look: Look, t1: Record<T1Name, string>, mode: string, cards: s
       }
       continue;
     }
-    const colour = TEXT_T3.has(name) || MARK_T3.has(name) || OTHER_COLOUR_T3.has(name);
+    // `none` is Classic's focus-outline: no ring beyond the browser's own, and no colour to read
+    const colour = (TEXT_T3.has(name) || MARK_T3.has(name) || OTHER_COLOUR_T3.has(name)) && !(name === "focus-outline" && v === "none");
     if (colour && v !== "" && !ALIAS.test(v) && !parseColour(v) && !/^var\(--w-[\w-]+\)$/.test(v)) bad("t3", `t3 ${name} ${v} cannot be read as a colour: use #rgb, #rrggbb, rgb(), hsl() or an alias`);
     else if (!colour && !SIMPLE.test(v) && !CUBIC.test(v)) bad("t3", `t3 ${name} ${v.slice(0, 40)} is not a plain value`);
     if (MOTION.has(name)) {
@@ -569,19 +537,18 @@ function lookIssues(look: Look, layers: LayerPaint[], user: boolean): { issues: 
     for (const card of modeCards) {
       cards.push(card);
       for (const name of TEXT_PAIRS) {
-        const ratio = contrastOf(opaqueHex(t1[name]) ?? t1[name], card);
+        // L-8: a text with an alpha is read as drawn, laid over the card
+        const ratio = contrastOf(flatOver(t1[name], card), card);
         if (ratio === undefined) issues.push(issue("contrast", "look.json", `${mode} ${name} ${t1[name]} on ${card} cannot be checked: use #rgb or #rrggbb`));
         else if (ratio < TEXT_MIN) issues.push(issue("contrast", "look.json", `${mode} ${name} ${t1[name]} is ${ratio.toFixed(2)}:1 on the card ${card}, under ${TEXT_MIN}:1`));
       }
     }
     // the text on an accent fill (a button, a label bar) is read on the accent itself
-    const onAccent = contrastOf(opaqueHex(t1["accent-on"]) ?? t1["accent-on"], opaqueHex(t1.accent) ?? t1.accent);
+    const accentHex = opaqueHex(t1.accent) ?? t1.accent;
+    const onAccent = contrastOf(flatOver(t1["accent-on"], accentHex), accentHex);
     if (onAccent === undefined) issues.push(issue("contrast", "look.json", `${mode} accent-on ${t1["accent-on"]} on the accent ${t1.accent} cannot be checked: use #rgb or #rrggbb`));
     else if (onAccent < TEXT_MIN) issues.push(issue("contrast", "look.json", `${mode} accent-on ${t1["accent-on"]} is ${onAccent.toFixed(2)}:1 on the accent ${t1.accent}, under ${TEXT_MIN}:1`));
-    for (const name of ["fg", "fg-2", "muted"] as const) {
-      const hex = opaqueHex(t1[name]);
-      if (hex) texts.push(hex);
-    }
+    for (const name of ["fg", "fg-2", "muted"] as const) for (const card of modeCards) if (parseColour(t1[name])?.hex) texts.push(flatOver(t1[name], card));
     issues.push(...t3Issues(look, t1 as Record<T1Name, string>, mode, modeCards));
   }
   for (const m of numeralIssues(look)) issues.push(issue("contrast", "look.json", m));
@@ -733,6 +700,7 @@ function validate(src: PackSource, source: "builtin" | "user"): PackIssue[] {
     add(/^effect|^more than/.test(m) ? "effects" : "stage", "pack.json", m);
   }
   for (const e of pack.stage.effects ?? []) if (e.opacity !== undefined && e.opacity > OVERLAY_MAX) add("overlay-alpha", "pack.json", `${e.kind} opacity ${e.opacity} is over ${OVERLAY_MAX}: an overlay never hides what is under it`);
+  for (const e of pack.stage.effects ?? []) if (e.kind === "blur" && e.px !== undefined && e.px > STAGE_BLUR_MAX) add("effects", "pack.json", `blur px ${e.px} is drawn at ${STAGE_BLUR_MAX}, the stage's cap`, "warn");
 
   // ornament, edge
   if (pack.ornament && pack.ornament.size > ORNAMENT_MAX && !pack.ornament.bleed) add("ornament", "pack.json", `ornament is ${pack.ornament.size} px, at most ${ORNAMENT_MAX}`);
@@ -762,8 +730,9 @@ function validate(src: PackSource, source: "builtin" | "user"): PackIssue[] {
     if (1 - behind >= BRIGHT_LAYER) add("burn-in", "pack.json", `the stage layers together are bright static art (luminance ${(1 - behind).toFixed(2)}): declare needs-shift or needs-dim, not static-safe`);
   }
 
-  // pack.css: a user pack has none; a built-in pack's is read for URLs, paint only and hiding paint
-  if (user && (src.css !== undefined || files.has("pack.css"))) add("user-css", "pack.css", "a user pack carries no pack.css: its paint is the tokens and T3 values of look.json (user CSS needs a grammar of its own and a render check at import)");
+  // pack.css: a user pack's is read by its own grammar (a file that could not be read as text is refused); a built-in pack's for URLs, paint only and hiding paint
+  if (user && src.css !== undefined) for (const m of userCssIssues(src.css)) add("user-css", "pack.css", m);
+  else if (user && files.has("pack.css")) add("user-css", "pack.css", "the file was not read as UTF-8 text, or the server would not vouch for it");
   if (!user && src.css !== undefined) {
     for (const m of packCssIssues(src.css)) add(cssRule(m), "pack.css", m);
     for (const m of lintPackCss(src.css)) add(cssRule(m), "pack.css", m);

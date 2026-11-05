@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
+import { flushSync } from "react-dom";
 import { LivePlacement, placementContent } from "@/components/studio/placement-content";
 import type { Placement } from "@/lib/layout";
 import { fixtureSensors } from "../__fixtures__";
@@ -17,6 +18,29 @@ const subscribe = (fn: () => void) => (listeners.add(fn), () => void listeners.d
 export function forceMountAll() {
   forced = true;
   listeners.forEach((fn) => fn());
+}
+
+/**
+ * Mounts every frame and waits for the page to settle: the element count and the number of fetched files (a lazy chunk, a pack's
+ * parts) unchanged over 0.75 s of samples. Lazy chunks and ResizeObserver re-renders land at load-dependent times, so a fixed
+ * wait let a slow run read a half-built frame (ledger L50, L60). Text is left out: the demo streams keep changing it and would
+ * never settle. Bounded at 6 s; a cap that is reached is logged and returned as false.
+ */
+export async function mountAllSettled(): Promise<boolean> {
+  flushSync(forceMountAll);
+  await document.fonts.ready;
+  // The default buffer holds 250 entries; past that the count would stop growing and a late chunk would not keep the page unsettled (L70).
+  performance.setResourceTimingBufferSize(5000);
+  let last = -1;
+  let still = 0;
+  for (let i = 0; i < 24 && still < 3; i++) {
+    await new Promise((r) => setTimeout(r, 250));
+    const now = document.body.getElementsByTagName("*").length + performance.getEntriesByType("resource").length / 1e4;
+    still = now === last ? still + 1 : 0;
+    last = now;
+  }
+  if (still < 3) console.warn("__qaMountAll: the page did not settle within 6 s");
+  return still >= 3;
 }
 
 interface FrameProps {

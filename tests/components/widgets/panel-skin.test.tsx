@@ -13,6 +13,12 @@ import { SKIN_LOOK_IDS } from "@/looks/ids";
 import { SKINS } from "@/widgets/core/theme";
 import { DEFAULT_ACCENT } from "@/widgets/core/look";
 import { PanelView } from "@/components/widgets/PanelView";
+import { loadPack } from "@/looks/pack-load";
+import type { Look } from "@/looks/look";
+import { PanelSkin, panelSkinOf, usePanelSkin } from "@/components/widgets/panel-skin";
+import { chromeOf as packChromeOf } from "@/looks/chrome";
+import { chromeOf } from "@/modules/standard-settings";
+import type { Pack } from "@/looks/pack";
 
 const sensors = fixtureSensors();
 
@@ -95,5 +101,41 @@ describe("panel colors", () => {
     expect(html(all, { accent: "#ff0000" })).toContain("--wp-accent:#ff0000");
     expect(html(all, { lookId: "synth" })).toContain(`--wp-accent:${SKINS.synth.accent}`);
     expect(html(all, {})).toContain(`--wp-accent:${DEFAULT_ACCENT}`);
+  });
+});
+
+describe("a panel on a pack Look (L67)", () => {
+  let pack: Pack;
+  beforeAll(async () => {
+    pack = (await loadPack("paper"))!;
+  });
+  const chrome = chromeOf({});
+
+  it("draws in the default skin with the pack's values; Classic and a skin are as they were", () => {
+    expect(panelSkinOf({ lookId: "paper" }, pack)).toBe("default");
+    expect(panelSkinOf({ lookId: "paper" })).toBeUndefined();
+    expect(panelSkinOf({ lookId: "synth" }, undefined)).toBe("synth");
+    expect(panelSkinOf({ lookId: "classic" })).toBeUndefined();
+  });
+  it("gives its widgets the pack's T3 values", () => {
+    const Probe = () => <i data-fill={usePanelSkin()?.numFill} />;
+    const out = (p?: Pack) => renderToString(<PanelSkin skin={p ? "default" : undefined} chrome={chrome} pack={p}><Probe /></PanelSkin>);
+    expect(out(pack)).toContain("linear-gradient(90deg");
+    expect(out(undefined)).not.toContain("data-fill");
+  });
+  it("re-scopes the card's tokens to the pack's colours: hex, rgb() and hsl() as drawn (L98 L-8), not a colour it cannot read", () => {
+    const v = pack.chrome!.panel.vars as Record<string, string>;
+    expect(Object.keys(v).sort()).toEqual(["--border", "--card", "--card-foreground", "--foreground", "--muted-foreground"]);
+    expect(v["--card"]).toBe("0 0% 100%");
+    const withMuted = (value: string) => packChromeOf({ ...pack.look, t1: { ...pack.look.t1, light: { ...pack.look.t1.light, muted: { value } } } } as Look).panel.vars;
+    expect(withMuted("rgb(1 2 3)")).toHaveProperty("--muted-foreground", "210 50% 1%");
+    expect(withMuted("oklch(50% 0 0)")).not.toHaveProperty("--muted-foreground");
+  });
+  it("drops an item's own colour that vanishes on the pack's card (a white item on Paper), and nothing else", () => {
+    const panel = kinds("stat", "bar", "value");
+    const coloured = { ...panel, widgets: [{ ...panel.widgets[0], color: "#ffffff" }, { ...panel.widgets[1], color: "#5B3FD4" }, { ...panel.widgets[2], color: "#FFFFFFFF" }] };
+    const { legible } = pack.chrome!.panel;
+    expect(legible(coloured).widgets.map((w) => w.color)).toEqual([undefined, "#5B3FD4", undefined]);
+    expect(legible(panel)).toBe(panel);
   });
 });

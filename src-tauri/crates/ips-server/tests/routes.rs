@@ -260,6 +260,29 @@ async fn keeps_the_v16_config_before_the_first_v17_save() {
     s.stop().await;
 }
 
+// v18 (a level stores no card of its own Look's): the first v18 save keeps the v17 file, as the v17 one kept the v16 file.
+#[tokio::test]
+async fn keeps_the_v17_config_before_the_first_v18_save() {
+    let s = start().await;
+    let backup = s.data().join("config.backup-before-v18.json");
+    let v17 = r#"{"version":17,"profiles":[{"id":"s","widgetTheme":{"values":{"lookId":"term","surface":"look-term"}},"appliedTheme":{"id":"builtin:look-term","name":"Term","values":{"surface":"look-term"}}}]}"#;
+    assert_eq!(post_config(s.port, v17, &[]).await.status, 200);
+    let raised = post_config(s.port, r#"{"version":18,"profiles":[]}"#, &[]).await;
+    assert_eq!(raised.status, 200);
+    assert_eq!(json(&raised)["backup"], backup.display().to_string());
+    assert_eq!(std::fs::read_to_string(&backup).unwrap(), v17);
+    assert_eq!(post_config(s.port, v17, &[]).await.status, 409);
+    // A backup that exists already stays byte for byte on a second raise (first wins), and the answer still names it.
+    let restored = r#"{"version":17,"profiles":[],"restored":true}"#;
+    std::fs::write(s.data().join("config.json"), restored).unwrap();
+    let again = post_config(s.port, r#"{"version":18,"n":2}"#, &[]).await;
+    assert_eq!(again.status, 200);
+    assert_eq!(json(&again)["backup"], backup.display().to_string());
+    assert_eq!(std::fs::read_to_string(&backup).unwrap(), v17);
+    assert_eq!(std::fs::read_to_string(s.data().join("config.json")).unwrap(), r#"{"version":18,"n":2}"#);
+    s.stop().await;
+}
+
 #[tokio::test]
 async fn settings_patch_sets_the_startup_screen() {
     let s = start().await;
@@ -737,12 +760,12 @@ async fn serves_the_debug_tools_only_in_debug_mode() {
             assert_eq!((lab.status, lab.body.as_slice()), (200, b"<p>lab</p>".as_slice()));
             let bare = get(s.port, "/lab").await;
             assert_eq!((bare.status, bare.header("location")), (302, Some("/lab/")));
-            for path in ["/widget-qa", "/?widget-qa", "/?widget-qa&settings=1"] {
+            for path in ["/widget-qa", "/?widget-qa", "/?widget-qa&settings=1", "/index.html?widget-qa"] {
                 let qa = get(s.port, path).await;
                 assert_eq!((qa.status, qa.body.as_slice()), (200, b"<p>index</p>".as_slice()), "{path}");
             }
         } else {
-            for path in ["/lab", "/lab/", "/lab/index.html", "/widget-qa", "/?widget-qa", "/?widget-qa&settings=1"] {
+            for path in ["/lab", "/lab/", "/lab/index.html", "/widget-qa", "/?widget-qa", "/?widget-qa&settings=1", "/index.html?widget-qa", "/x?widget-qa", "/a/b?x=1&widget-qa", "/?%77idget-qa", "/index.html?%77idget-qa=1"] {
                 assert_eq!(get(s.port, path).await.status, 404, "{path}");
             }
             // The kiosk and studio are unaffected.

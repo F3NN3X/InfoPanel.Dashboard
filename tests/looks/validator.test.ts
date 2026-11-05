@@ -109,9 +109,22 @@ describe("bad packs, one per rule", () => {
     expect(rules(bad({ look: (l) => (l.t3["num-fill"] = "linear-gradient(90deg, white, #1A1C21)") }))).toContain("contrast");
   });
 
+  it("a pack may write Classic's focus-outline none, and still not an unreadable ring colour", () => {
+    expect(mine((l) => (l.t3["focus-outline"] = "none"))).toEqual([]);
+    expect(mine((l) => (l.t3["focus-outline"] = "#EFE8D8"))).toContain("contrast");
+  });
+
   it("a chrome surface that is not an opaque literal (L93)", () => {
     expect(rules(bad({ look: (l) => (l.t1.light.surface.value = "rgba(239, 232, 216, 0.5)") }))).toContain("chrome-surface");
     expect(rules(bad({ look: (l) => (l.t1.light.surface.value = "#EFE8D8CC") }))).toContain("chrome-surface");
+  });
+
+  it("an opaque #rgb surface with a translucent text colour is judged on the colour it lays over, not refused (M1)", () => {
+    const withShortSurface = (l: Json) => {
+      l.t1.light.surface.value = "#FFF";
+      l.t1.light.fg.value = "rgba(0, 0, 0, 0.9)";
+    };
+    expect(rules(bad({ look: withShortSurface }))).not.toContain("contrast");
   });
 
   it("static-safe on bright static art (L74), and not on dark or non-static-safe packs", () => {
@@ -166,6 +179,9 @@ describe("bad packs, one per rule", () => {
 
   it("an overlay stronger than the cap", () => {
     expect(rules(bad({ pack: stage([{ fill: "#101010" }], { effects: [{ kind: "vignette", cost: "static", opacity: 0.9 }] }) }))).toContain("overlay-alpha");
+    const blur = (px: number) => validatePack(bad({ pack: stage([{ fill: "#101010" }], { effects: [{ kind: "blur", cost: "filter", px }] }) }), { source: "builtin" }).filter((i) => i.rule === "effects");
+    expect(blur(40)).toEqual([expect.objectContaining({ severity: "warn", message: "blur px 40 is drawn at 24, the stage's cap" })]);
+    expect(blur(24)).toEqual([]);
     expect(rules(bad({ pack: stage([{ fill: "#101010" }], { effects: [{ kind: "vignette", cost: "static", opacity: 0.4 }] }) }))).toEqual([]);
   });
 
@@ -632,6 +648,13 @@ describe("N-H2: the header's fill is the title's colour, the border's fill is th
     expect(mine((l) => (l.t3["header-fill"] = "rgba(26, 28, 33, 0.3)"))).toContain("contrast");
   });
 
+  it("a border-fill the colour of a card is a note, not a refusal: it is decoration", () => {
+    const notes = (fill: string) => validatePack(bad({ look: (l) => (l.t3["border-fill"] = fill) })).filter((i) => i.rule === "t3" && i.severity === "warn");
+    expect(notes("#EFE8D8").map((i) => i.message).join()).toContain("the border is not seen");
+    expect(notes("linear-gradient(90deg, #EFE8D8, #000000)")).toEqual([]);
+    expect(mine((l) => (l.t3["border-fill"] = "#EFE8D8"))).toEqual([]);
+  });
+
   it.each(["transparent", "#00000000", "linear-gradient(transparent, transparent)", "rgba(0, 0, 0, 0)", "currentColor"])("border-fill %s", (fill) => {
     expect(mine((l) => (l.t3["border-fill"] = fill))).toContain("t3");
   });
@@ -914,5 +937,21 @@ describe("L98: the cheap LOWs of review round 3", () => {
     expect(mine((l) => (l.fonts.body = "pack-classy"))).toContain("font-family");
     expect(mine((l) => (l.fonts.body = "pack-nonexistent"))).toContain("font-family");
     expect(mine((l) => (l.fonts.body = "sans"))).not.toContain("font-family");
+  });
+});
+
+describe("L98 L-8: T1 text is read as drawn, rgb() and an alpha over the card", () => {
+  const fg = (value: string) => (l: Json) => (l.t1.light.fg.value = value);
+  it("accepts a text with an alpha that still holds 4.5:1 once laid over the card, and an rgb() text", () => {
+    expect(mine(fg("#1A1C21F2"))).toEqual([]);
+    expect(mine(fg("rgb(26, 28, 33)"))).toEqual([]);
+    expect(mine(fg("rgba(26, 28, 33, 0.95)"))).toEqual([]);
+  });
+  it("refuses an alpha that lets the text fade into the card, by the flattened colour", () => {
+    expect(mine(fg("#1A1C2166"))).toContain("contrast");
+    expect(mine(fg("rgba(26, 28, 33, 0.3)"))).toContain("contrast");
+  });
+  it("still refuses a colour it cannot read", () => {
+    expect(mine(fg("oklch(20% 0 0)"))).toContain("contrast");
   });
 });

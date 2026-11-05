@@ -9,7 +9,7 @@ import { liteOf } from "@/lib/performance";
 import { safeFill } from "@/widgets/core/t3-tokens";
 import ConnectorLayer, { hubLinks } from "./connector-layer";
 import { planEffects, showsAt, sizeClassOf, type PlannedEffect } from "./effects";
-import type { StageViewProps } from "./pack";
+import type { StageLayer, StageViewProps } from "./pack";
 import { useIdle } from "./use-idle";
 
 const GRAIN =
@@ -57,11 +57,14 @@ export default function PackStageLayers({ stage, packId, base = "", className = 
   // Glow and blur are one filter on each layer (index.css `wp-pack-fx`), their radii already capped by the plan.
   const glow = effects.find((e) => e.kind === "glow")?.px ?? 0;
   const blur = effects.find((e) => e.kind === "blur")?.px ?? 0;
-  const fx = glow > 0 || blur > 0;
+  // A glow is the halo of a layer's art: a plain fill or gradient covers the screen, its shadow would fall off it, so only a layer with an image takes it (L81).
+  const fxOf = (layer: StageLayer) => (layer.image ? glow : 0) > 0 || blur > 0;
   const pairs = useMemo(() => links ?? (connectors && zones ? hubLinks(zones) : undefined), [links, connectors, zones]);
   return (
     <>
-      {layers.map(({ layer, index: i }) => (
+      {layers.map(({ layer, index: i }) => {
+        const fx = fxOf(layer);
+        return (
         <div
           key={i}
           aria-hidden
@@ -71,13 +74,14 @@ export default function PackStageLayers({ stage, packId, base = "", className = 
           data-idle={deco === "dim" && idle ? "" : undefined}
           className={`pointer-events-none ${fx ? "wp-pack-fx " : ""}${className}`}
           style={{
-            ...(fx ? ({ "--wp-fx-glow": `${glow}px`, "--wp-fx-blur": `${blur}px` } as CSSProperties) : null),
+            ...(fx ? ({ "--wp-fx-glow": `${layer.image ? glow : 0}px`, "--wp-fx-blur": `${blur}px`, ...(stage.accent ? { "--w-accent": stage.accent } : null) } as CSSProperties) : null),
             ...(layer.image ? { backgroundImage: `url("${base}${encodeURI(layer.image)}")`, backgroundSize: "cover" } : { background: safeFill(layer.fill) }),
             ...place,
             opacity: deco === "dim" ? (layer.opacity ?? 1) * dim : layer.opacity,
           }}
         />
-      ))}
+        );
+      })}
       {Overlay && (
         <div aria-hidden data-look={packId} data-pack-deco={deco} data-pack-layer="overlay" data-idle={deco === "dim" && idle ? "" : undefined} className={`pointer-events-none ${overlayClassName}`} style={{ ...place, ...(deco === "dim" ? { opacity: dim } : null) }}>
           <Overlay />

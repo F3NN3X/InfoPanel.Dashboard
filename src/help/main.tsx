@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import "@fontsource-variable/geist";
 import "@fontsource-variable/geist-mono";
 import "./help.css";
+import "../settings/ui/help.css";
 import { isTauri } from "@/lib/desktop";
 import { suppressNativeMenu } from "@/lib/native-menu";
 import { HelpApp } from "./app";

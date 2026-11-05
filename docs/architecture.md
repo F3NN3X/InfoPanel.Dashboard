@@ -826,7 +826,7 @@ least one widget is visible.
 
 ### Types (`src/lib/layout.ts`)
 
-- `DashboardConfig` - `version: 17` (`CONFIG_VERSION`; the steps are listed above it in `layout.ts`), `activeProfile` (a profile id or `"auto"`),
+- `DashboardConfig` - `version: 18` (`CONFIG_VERSION`; the steps are listed above it in `layout.ts`), `activeProfile` (a profile id or `"auto"`),
   `profiles`, `dataApiUrl?`, `stylePresets?`,
   `panelPresets?`, `sourcePrefs?`, `styleEnforce?`
   (force the global style on every widget), `appearancePresets?` (the
@@ -1108,7 +1108,8 @@ Rules the server enforces:
 ### User packs (`src-tauri/crates/ips-server/src/packs.rs`, `src/looks/user-packs.ts`, `user-pack-import.ts`)
 
 A user pack is a theme pack the user brought: files in `<data dir>\packs\<id>\` (`pack.json`, `look.json`, optional
-`icons.json`, `OFL.txt`, and `assets/<name>.<ext>` for woff2, png, jpg, webp and svg), never a `pack.css`. The server
+`icons.json`, `OFL.txt`, and `assets/<name>.<ext>` for woff2, png, jpg, webp and svg), and a `pack.css` only with its
+`pack.sig` (below). The server
 (`/api/packs`) stores and serves them and does the path and size work: `GET /api/packs` lists id, name and size;
 `GET /api/packs/<id>/<file>` serves one file by a strict id pattern (`^[a-z0-9][a-z0-9-]{0,47}$`) and a fixed file set,
 canonicalised under `packs/<id>/` with links never followed, typed by extension with `nosniff` and a CSP of
@@ -1117,12 +1118,21 @@ canonicalised under `packs/<id>/` with links never followed, typed by extension 
 refuses `pack.css`, any path outside the set and a Windows device name (`nul`, `con`, `com1`...) as an id or file stem, holds
 at most 32 packs and 16,000,000 bytes of them (413), and moves the finished folder into place (a replaced pack is set aside
 until the new one is in, and `.import-*` leftovers are swept at start); `DELETE /api/packs/<id>`
-removes one. The validator (`pack-validate.ts`) runs in the studio at import and again in the loader, in `user` mode set by
+removes one. A pack's CSS has its own road (L94, the threat model is in `docs/look-system/04-decision-log.md`):
+`user-css.ts` is a fail-closed grammar the validator runs; `pack-render-check.ts` (a lazy chunk) then wears the candidate in a
+hidden same-origin iframe on the Widget QA page (`?widget-qa&pack-check`, which `is_pack_check_frame` opens for a request with
+`Sec-Fetch-Dest: iframe` and `Sec-Fetch-Site: same-origin` alone, and `USER_PACKS=off` shuts) and reads `pack-render-measures.ts`,
+the measures the pack specs use, with the stylesheet on and off; only then are the files stored and `POST /api/packs/<id>/sign`
+sends the CSS with the hash of everything that was checked. The server (`pack_sign.rs`) signs when that is the hash of what it
+holds, with a key made on first use in `<data dir>\pack-signing.key`, outside the packs folder and read by no route. Every read
+hashes the folder again: a `pack.css` with no valid `pack.sig` makes it not a pack (not listed, its files 413, `pack.css` 404),
+and `GET .../pack.css` gives `X-Pack-Signature: valid`, without which the loader refuses the pack (`pack.json` says `X-Pack-Css: 1`, so a pack with none asks for nothing). A pack with no CSS is as
+before. The validator (`pack-validate.ts`) runs in the studio at import and again in the loader, in `user` mode set by
 the loader (where the bytes came from), never by what the pack says; a config that names a Look id this build does not
 have (`userLookIds`) makes `readConfig` look for a pack of that id, and a pack with an error is not a Look (Classic is
 drawn). The pack is built from its declarative files (`userPackOf`): the Look's default material is its card, the
-loader writes the only CSS (font-family rules from the families the validator passed). Removing a pack takes its `lookId`
-off every level that wears it. **Rollback:** `USER_PACKS=off` makes the list empty, every file 404 and the writes 403;
+loader writes the font-family rules from the families the validator passed, and a signed `pack.css` follows them. Removing a pack takes its `lookId`
+off every level that wears it. **Rollback:** `USER_PACKS=off` makes the list empty, every file 404 and the writes (signing too) 403;
 the built-in packs are unaffected.
 
 ### For the InfoPanel import (`src-tauri/crates/ips-server/src/library.rs`, `infopanel_local.rs`, `font_proxy.rs`)

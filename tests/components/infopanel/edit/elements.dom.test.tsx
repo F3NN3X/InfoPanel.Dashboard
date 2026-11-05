@@ -9,7 +9,10 @@ import { newStored, readStored, type StoredCanvas } from "@/lib/infopanel/import
 import { storeItems } from "@/lib/infopanel/canvas-edit";
 import { ZEROS } from "@/lib/infopanel/render/scene";
 import { CANVAS_ID, type DashboardConfig, type Placement } from "@/lib/layout";
-import { oneOfEach, profile } from "@tests/lib/infopanel/elements/fixture";
+import { applyElement, elementOf } from "@/lib/infopanel/elements/apply";
+import { newElement } from "@/lib/infopanel/elements/create";
+import type { DisplayItem } from "@/lib/infopanel/schema";
+import { oneOfEach, palette, profile } from "@tests/lib/infopanel/elements/fixture";
 
 beforeEach(() => {
   vi.stubGlobal("fetch", vi.fn(() => Promise.reject(new Error("offline"))));
@@ -38,6 +41,14 @@ describe("studio elements", () => {
     // The glow and the icon are images with no file yet: drawn as markup, never InfoPanel's placeholder.
     expect(container.querySelector('[data-path="3"] radialGradient')).not.toBeNull();
     expect(container.querySelector('[data-path="5"] svg g')).not.toBeNull();
+  });
+
+  it("a card that holds a blur from an earlier version loads and draws, with no backdrop filter (L92)", () => {
+    const card = applyElement({ ...newElement("card", profile, palette), element: { ...elementOf(newElement("card", profile, palette))!, blur: 16 } } as unknown as DisplayItem);
+    expect(elementOf(card)).toMatchObject({ type: "card", blur: 16 });
+    const { container } = render(<ProfileView profile={profile} items={[card]} sensor={() => ({ reading: null, history: ZEROS })} now={new Date(0)} font={font} assets={new Map()} />);
+    expect(container.querySelector('[data-path="0"]')).not.toBeNull();
+    expect(container.innerHTML).not.toMatch(/backdrop-filter/i);
   });
 
   it.each(["Ring", "LED bar", "Card", "Glow", "Divider", "Icon", "Cores", "Sparkline"])("shows %s's settings and badge in the inspector", (name) => {

@@ -18,10 +18,10 @@ const CSP: [&str; 11] = [
     "frame-src 'self' blob: http: https:",
 ];
 
-/// Whether `search` (a URL's `?...`) names the Studio or Settings page (`?studio`, `?settings`).
+/// Whether `search` (a URL's `?...`) names the Studio or Settings page (`?studio`, `?settings`), or the page the studio frames for a pack's render check.
 pub fn is_editor_page(search: &str) -> bool {
     let query = search.strip_prefix('?').unwrap_or(search);
-    url::form_urlencoded::parse(query.as_bytes()).any(|(key, _)| key == "studio" || key == "settings")
+    url::form_urlencoded::parse(query.as_bytes()).any(|(key, _)| key == "studio" || key == "settings" || key == "pack-check")
 }
 
 /// The security headers of a static response, in Node's order.

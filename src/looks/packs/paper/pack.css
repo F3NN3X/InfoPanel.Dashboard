@@ -1,1 +1,2 @@
 * { font-family: pack-paper, Inter, system-ui, sans-serif; }
+[data-part="label"] { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }

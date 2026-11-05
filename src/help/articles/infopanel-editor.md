@@ -55,7 +55,7 @@ A template is a finished profile made from the editor's own items and elements, 
 | Ticker | One long pill of text: CPU, GPU, FPS and the time |
 | Readout | Three instrument panels (GPU, CPU, System), each with one very large number and two meters that change color as they fill. Variants: Mono, Glow (Mono with glowing numbers), Tint |
 | Console | A strip of six readouts, CPU and GPU rings on a hex face, RAM and VRAM bars, and a tile for each drive. Variants: Ice, Ice glow (Ice with glowing numbers), Amber, Steel |
-| Frost Bar | Frosted glass cards that blur the wash behind them: load rings, memory, clock, uptime, network and three temperature rings. Variants: Aurora, Smoke |
+| Frost Bar | Frosted glass cards over the wash (the blur shows in the export, not in this editor): load rings, memory, clock, uptime, network and three temperature rings. Variants: Aurora, Smoke |
 | Quota | A large clock and a list of CPU, RAM, GPU and Disk load, one thin bar each. Variants: Slate, Sand |
 
 Deck, Meters, Orbit, Tower and Ticker come in Dark, White and Smoke, and in Float, which has no cards and puts a dark shadow behind every line of text (Deck also has Tint). They are made for their own sizes, which the Size row offers and picks for you: Deck 1920 × 1080 (it also lays out for 1920 × 480 and for upright screens), Meters 1600 × 300, Orbit 1080 × 240, Ticker 1280 × 160 and Tower 480 × 1920. At other sizes they stack their parts and still fit.

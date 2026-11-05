@@ -24,6 +24,8 @@ export interface PackStageSpec {
   overlayMinSizeClass?: SizeClass;
   /** Grain, scanlines, vignette, glow and blur, each with a cost class (effects.ts). */
   effects?: PackEffect[];
+  /** Set by the loader: the Look's accent, the colour of the glow on the layers that carry art (`--w-accent`, L81). */
+  accent?: string;
 }
 
 /** How much a pack's static art risks an always-on panel: `needs-shift` gets the pixel-shift drift, `needs-dim` the idle dim (Settings, per screen). Unset = `static-safe`. */

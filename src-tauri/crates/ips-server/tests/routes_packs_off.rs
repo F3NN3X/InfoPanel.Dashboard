@@ -7,6 +7,15 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
 use tokio::sync::oneshot;
 
+/// Whether the answer to `GET /api/packs` says the store is off.
+async fn says_off(port: u16) -> bool {
+    let mut stream = TcpStream::connect(("127.0.0.1", port)).await.unwrap();
+    stream.write_all(format!("GET /api/packs HTTP/1.1\r\nConnection: close\r\nHost: 127.0.0.1:{port}\r\n\r\n").as_bytes()).await.unwrap();
+    let mut raw = Vec::new();
+    tokio::time::timeout(Duration::from_secs(5), stream.read_to_end(&mut raw)).await.unwrap().unwrap();
+    String::from_utf8_lossy(&raw).to_ascii_lowercase().contains("x-user-packs: off")
+}
+
 async fn status_and_body(port: u16, method: &str, path: &str, headers: &str, body: &str) -> (u16, String) {
     let mut stream = TcpStream::connect(("127.0.0.1", port)).await.unwrap();
     let request = format!("{method} {path} HTTP/1.1\r\nConnection: close\r\nHost: 127.0.0.1:{port}\r\n{headers}Content-Length: {}\r\n\r\n{body}", body.len());
@@ -49,10 +58,18 @@ async fn off_the_folder_is_not_read_and_nothing_is_written() {
         let _ = stopped.await;
     }));
     assert_eq!(status_and_body(port, "GET", "/api/packs", "", "").await, (200, "[]".to_string()));
+    assert!(says_off(port).await, "the studio reads this to hide its import buttons");
     assert_eq!(status_and_body(port, "GET", "/api/packs/mine/pack.json", "", "").await.0, 404);
     let write = "Content-Type: application/json\r\nX-Dashboard-Pack: 1\r\n";
     assert_eq!(status_and_body(port, "POST", "/api/packs", write, r#"{"id":"mine","files":[]}"#).await.0, 403);
     assert_eq!(status_and_body(port, "DELETE", "/api/packs/mine", write, "").await.0, 403);
+    // the signing route and the render check's page go with it, and a stored CSS is not read
+    std::fs::write(packs.join("pack.css"), "a{}").unwrap();
+    assert_eq!(status_and_body(port, "POST", "/api/packs/mine/sign", write, r#"{"css":"YQ==","hash":"x"}"#).await.0, 403);
+    assert_eq!(status_and_body(port, "GET", "/api/packs/mine/pack.css", "", "").await.0, 404);
+    assert_eq!(status_and_body(port, "GET", "/?widget-qa&pack-check=1", "Sec-Fetch-Dest: iframe\r\nSec-Fetch-Site: same-origin\r\n", "").await.0, 404);
+    assert_eq!(status_and_body(port, "GET", "/index.html?widget-qa&pack-check=1", "Sec-Fetch-Dest: iframe\r\nSec-Fetch-Site: same-origin\r\n", "").await.0, 404);
+    assert!(!dir.path().join("data").join(ips_server::pack_sign::KEY_FILE).exists(), "and no key is made");
     assert!(packs.join("pack.json").exists(), "nothing was deleted");
     let _ = stop.send(());
     tokio::time::timeout(Duration::from_secs(5), done).await.unwrap().unwrap();

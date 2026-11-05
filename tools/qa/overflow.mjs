@@ -132,6 +132,7 @@ if (args.baseline) {
   show("new issues", d.newIssues);
   show("issues gone", d.goneIssues);
   show("changed", d.changes);
+  for (const x of d.details.slice(0, 40)) console.log(`  ${x}`);
   show("missing frames", d.missing);
   show("added frames", d.added);
   if (d.failing.length) {
