@@ -1,7 +1,7 @@
 import type { Page } from "@playwright/test";
 import { expect, manifest, test, watchErrors } from "./fixtures";
 
-// The Look view (P5b): pick a Look in the gallery, change its accent with a knob, reset it to the Look, and make one
+// The Theme view (P5b, P7): pick a theme in Browse themes, change its accent with a knob, reset it to the Look, and make one
 // widget's accent differ from its page in the Edit inspector. A pick stores the Look's id and no widget values (the Look
 // layer, L40): the kiosk loads the sample Look's values and draws its card.
 
@@ -16,6 +16,13 @@ const [first, second] = manifest.zones.light;
 const previewCard = (page: Page, zone: string) =>
   page.getByRole("region", { name: "Preview" }).locator(`[data-preview-zone="${zone}"]`).locator("xpath=..").locator("[data-wp-tier]");
 const accentOf = (card: ReturnType<typeof previewCard>) => card.evaluate((el) => getComputedStyle(el).getPropertyValue("--w-accent").trim().toLowerCase());
+/** Browse themes: select a theme's card, Apply to the screen, then back to Customise where the preview and the quick changes are. */
+const pick = async (page: Page, id: string) => {
+  await page.getByRole("tab", { name: /Browse themes/ }).click();
+  await page.locator(`[data-look-card="${id}"]`).click();
+  await page.getByRole("complementary", { name: "Theme detail" }).getByRole("button", { name: /^Apply to/ }).click();
+  await page.getByRole("tab", { name: "Customise" }).click();
+};
 const storedScreen = async (base: string) => {
   const config = await (await fetch(`${base}/api/config`)).json();
   return config.profiles.find((p: { id: string }) => p.id === light);
@@ -25,40 +32,40 @@ test("pick a Look, change its accent, reset it to the Look, and give one widget 
   const { errors } = watchErrors(page);
   await page.goto(`${scratch.base}/?studio=1&profile=${light}`);
   await page.getByRole("button", { name: "Theme", exact: true }).click();
-  await page.getByRole("group", { name: "Look level" }).getByRole("button", { name: /Perf light/ }).click();
   const card = previewCard(page, first);
 
   // Pick: one click on the gallery card.
-  await page.locator('[data-look-card="term"]').click();
+  await pick(page, "term");
   await expect(card).toHaveAttribute("data-mat", "look-term");
   await expect.poll(() => accentOf(card)).toBe(TERM_ACCENT.toLowerCase());
   await expect.poll(async () => (await storedScreen(scratch.base))?.widgetTheme?.values).toEqual({ lookId: "term" });
 
   // Accent knob: a swatch, and the knob says Custom.
-  const knobs = page.getByRole("region", { name: "Look knobs" });
+  const knobs = page.getByRole("region", { name: "Quick changes" });
   const accent = knobs.getByRole("group", { name: "Accent" });
   await accent.getByRole("button", { name: "Violet" }).click();
   await expect.poll(() => accentOf(card)).toBe(VIOLET);
-  await expect(accent.getByText("Custom")).toBeVisible();
+  await expect(accent.getByRole("button", { name: /^Set here, reset to/ })).toBeVisible();
 
   // Reset to the Look: its accent again, and the level stores only the Look.
-  await accent.getByRole("button", { name: "Reset Accent to the Look" }).click();
+  await accent.getByRole("button", { name: /^Set here, reset to/ }).click();
+  await page.getByRole("button", { name: "Reset", exact: true }).click();
   await expect.poll(() => accentOf(card)).toBe(TERM_ACCENT.toLowerCase());
-  await expect(accent.getByText("Custom")).toHaveCount(0);
+  await expect(accent.getByRole("button", { name: /^Set here, reset to/ })).toHaveCount(0);
   await expect.poll(async () => (await storedScreen(scratch.base))?.widgetTheme?.values).toEqual({ lookId: "term" });
 
   // One widget differs: its Style tab's Accent knob changes it alone.
   await page.getByRole("button", { name: /^Continue editing/ }).click();
   await page.locator(`[data-zone-id="${first}"]`).click();
   await page.getByRole("tab", { name: /Style/ }).click();
-  const widgetKnobs = page.getByRole("region", { name: "Look knobs" });
+  const widgetKnobs = page.getByRole("region", { name: "Quick changes" });
   await expect(widgetKnobs.getByRole("heading", { name: /^Theme: Term/ })).toBeVisible();
   await widgetKnobs.getByRole("group", { name: "Accent" }).getByRole("button", { name: "Rose" }).click();
   const canvasAccent = (zone: string) =>
     page.locator(`[data-zone-id="${zone}"] [data-wp-tier]`).first().evaluate((el) => getComputedStyle(el).getPropertyValue("--w-accent").trim().toLowerCase());
   await expect.poll(() => canvasAccent(first)).toBe(ROSE);
   expect(await canvasAccent(second)).toBe(TERM_ACCENT.toLowerCase());
-  await expect(widgetKnobs.getByRole("group", { name: "Accent" }).getByRole("button", { name: "Reset Accent to the page" })).toBeVisible();
+  await expect(widgetKnobs.getByRole("group", { name: "Accent" }).getByRole("button", { name: /^Set here, reset to/ })).toBeVisible();
 
   // The kiosk loads the sample Look the screen names and draws its card.
   await expect.poll(async () => (await storedScreen(scratch.base))?.pages[0].placements.find((z: { id: string }) => z.id === first)?.settings?.accent).toBe(ROSE);
@@ -71,36 +78,37 @@ test("a Look pick keeps the screen's own accent and Undo puts the last Look back
   const { errors } = watchErrors(page);
   await page.goto(`${scratch.base}/?studio=1&profile=${light}`);
   await page.getByRole("button", { name: "Theme", exact: true }).click();
-  await page.getByRole("group", { name: "Look level" }).getByRole("button", { name: /Perf light/ }).click();
   const card = previewCard(page, first);
-  await page.locator('[data-look-card="term"]').click();
+  await pick(page, "term");
   await expect.poll(async () => (await storedScreen(scratch.base))?.widgetTheme?.values).toEqual({ lookId: "term" });
-  const knobs = page.getByRole("region", { name: "Look knobs" });
+  const knobs = page.getByRole("region", { name: "Quick changes" });
   const accent = knobs.getByRole("group", { name: "Accent" });
   await accent.getByRole("button", { name: "Violet" }).click();
   await expect.poll(() => accentOf(card)).toBe(VIOLET);
 
   // Another Look keeps the accent the screen set; one Undo puts Term back.
-  await page.locator('[data-look-card="paper"]').click();
+  await pick(page, "paper");
   await expect(card).toHaveAttribute("data-mat", "look-paper");
   await expect.poll(() => accentOf(card)).toBe(VIOLET);
-  await expect(accent.getByText("Custom")).toBeVisible();
-  const toast = page.getByRole("region", { name: "Preview" }).getByRole("status");
-  await expect(toast).toContainText("Look changed to Paper.");
+  await expect(accent.getByRole("button", { name: /^Set here, reset to/ })).toBeVisible();
+  const toast = page.getByRole("status").filter({ has: page.getByRole("button", { name: "Undo" }) });
+  await expect(toast).toContainText("Theme changed to Paper.");
   await toast.getByRole("button", { name: "Undo" }).click();
   await expect(card).toHaveAttribute("data-mat", "look-term");
   await expect.poll(async () => (await storedScreen(scratch.base))?.widgetTheme?.values).toEqual({ lookId: "term", accent: VIOLET });
 
   // Reset from the keyboard: focus stays in the Accent knob, not on the page.
-  const reset = accent.getByRole("button", { name: "Reset Accent to the Look" });
+  const reset = accent.getByRole("button", { name: /^Set here, reset to/ });
   await reset.focus();
   await page.keyboard.press("Enter");
-  await expect(accent.getByText("Custom")).toHaveCount(0);
+  await page.getByRole("button", { name: "Reset", exact: true }).press("Enter");
+  await expect(accent.getByRole("button", { name: /^Set here, reset to/ })).toHaveCount(0);
   await expect.poll(() => accent.evaluate((el) => el.contains(document.activeElement))).toBe(true);
 
-  // The Corners slider starts on the Look's corners, so 8 px can be picked first.
+  // One Corners control: px on the slider, the same px in the widget knob (and the screen's own radius, in rem).
   const corners = knobs.getByRole("slider", { name: "Corners" });
-  await corners.fill("2");
-  await expect.poll(async () => (await storedScreen(scratch.base))?.widgetTheme?.values?.radius).toBe("8");
+  await corners.fill("12");
+  await expect.poll(async () => (await storedScreen(scratch.base))?.widgetTheme?.values?.radius).toBe("12");
+  await expect.poll(async () => (await storedScreen(scratch.base))?.radius).toBe(0.75);
   expect(errors).toEqual([]);
 });

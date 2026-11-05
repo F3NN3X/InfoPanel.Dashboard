@@ -54,9 +54,11 @@ test("a v15 dashboard look is each screen's own after the studio's first save, a
 
   // Theme: the screen and its page, no All screens level.
   await page.getByRole("button", { name: "Theme", exact: true }).click();
-  const levels = page.getByRole("group", { name: "Look level" });
-  await expect(levels.getByRole("button", { name: /Perf light/ })).toBeVisible();
-  await expect(levels.getByRole("button", { name: /All screens/ })).toHaveCount(0);
+  const level = page.getByRole("button", { name: "Theme level" });
+  await expect(level).toContainText("Perf light");
+  await level.click();
+  await expect(page.getByRole("menuitem", { name: "Whole screen" }).first()).toBeVisible();
+  await expect(page.getByText("All screens")).toHaveCount(0);
 
   // The kiosk on the v16 copy looks as before.
   await page.goto(`${scratch.base}/?kiosk=1&profile=${light}`);

@@ -2,11 +2,17 @@ import fs from "node:fs";
 import path from "node:path";
 import { expect, manifest, saveConfig, test } from "./fixtures";
 
-// A template look (Saved and template looks, formerly Switch theme) on a screen saved before themes kept a snapshot, with a black background and see-through cards: the
+// A template look (Saved and template themes, formerly Switch theme) on a screen saved before themes kept a snapshot, with a black background and see-through cards: the
 // first pick replaces its look, so Paper · Ink makes it look like Paper. Undo in the toast puts it back.
 
 const PAPER_BG = "rgb(216, 210, 196)";
 const BLACK = "rgb(0, 0, 0)";
+
+/** Browse themes ends with Saved and template themes. */
+const openSaved = async (page: import("@playwright/test").Page) => {
+  await page.getByRole("tab", { name: /Browse themes/ }).click();
+  await page.getByRole("button", { name: /Saved and template themes/ }).click();
+};
 
 /** A CSS color's red, green, blue and alpha. */
 const rgba = (color: string): number[] => {
@@ -26,9 +32,8 @@ test("Template looks › Paper · Ink makes a screen with no snapshot look like 
   await page.goto(`${scratch.base}/?studio=1&profile=${light}`);
 
   await page.getByRole("button", { name: "Theme", exact: true }).click();
-  await page.getByRole("group", { name: "Look level" }).getByRole("button", { name: /Perf light/ }).click();
   const preview = page.getByRole("region", { name: "Preview" });
-  const background = preview.locator("[data-page-background]");
+  const background = preview.locator("[data-page-background]").first();
   // A widget's card: the frame its preview badge sits in holds it.
   const card = preview.locator(`[data-preview-zone="${manifest.zones.light[1]}"]`).locator("xpath=..").locator("[data-wp-tier]");
   const fill = async () => rgba(await card.evaluate((el) => getComputedStyle(el).backgroundColor));
@@ -36,10 +41,11 @@ test("Template looks › Paper · Ink makes a screen with no snapshot look like 
   const before = await fill();
   expect(before[3]).toBe(0);
 
-  await page.getByRole("button", { name: /Saved and template looks/ }).click();
+  await openSaved(page);
   await page.getByRole("button", { name: "Apply Paper · Ink" }).click();
-  const toast = preview.getByRole("status");
-  await expect(toast).toContainText("Replaced this screen's look, background included.");
+  await page.getByRole("tab", { name: "Customise" }).click();
+  const toast = page.getByRole("status").filter({ has: page.getByRole("button", { name: "Undo" }) });
+  await expect(toast).toContainText("Replaced this screen's theme, background included.");
   await expect(background).toHaveCSS("background-color", PAPER_BG);
   // Paper's white cards: light and nearly opaque.
   await expect.poll(fill).toEqual([255, 255, 255, expect.any(Number)]);
@@ -59,28 +65,28 @@ test("Template looks › Apply to other screens gives the ticked screen the them
   await page.goto(`${scratch.base}/?studio=1&profile=${light}`);
 
   await page.getByRole("button", { name: "Theme", exact: true }).click();
-  await page.getByRole("group", { name: "Look level" }).getByRole("button", { name: /Perf light/ }).click();
   const preview = page.getByRole("region", { name: "Preview" });
-  const background = preview.locator("[data-page-background]");
-  await page.getByRole("button", { name: /Saved and template looks/ }).click();
+  const background = preview.locator("[data-page-background]").first();
+  await openSaved(page);
   await page.getByRole("button", { name: "Apply Paper · Ink" }).click();
+  await page.getByRole("tab", { name: "Customise" }).click();
   await expect(background).toHaveCSS("background-color", PAPER_BG);
 
-  await page.getByRole("button", { name: /Saved and template looks/ }).click();
+  await openSaved(page);
   await page.getByRole("button", { name: "Apply to other screens…" }).click();
   const others = page.getByRole("group", { name: "Other screens" });
   await others.getByRole("checkbox", { name: new RegExp(config.profiles.find((p: { id: string }) => p.id === heavy).name) }).check();
   await others.getByRole("button", { name: "Apply" }).click();
-  await expect(preview.getByRole("status")).toContainText("Paper · Ink applied to 2 screens.");
+  await expect(page.getByRole("status").filter({ has: page.getByRole("button", { name: "Undo" }) })).toContainText("Paper · Ink applied to 2 screens.");
 
   // The other screen shows the theme's background; Undo (one step) takes it back.
   const heavyName = config.profiles.find((p: { id: string }) => p.id === heavy).name as string;
   const showHeavy = async () => {
-    await page.getByRole("button", { name: "Another screen" }).click();
-    await page.getByRole("menuitem", { name: new RegExp(heavyName) }).click();
+    await page.getByRole("button", { name: "Theme level" }).click();
+    await page.getByRole("group", { name: new RegExp(heavyName) }).getByRole("menuitem", { name: "Whole screen" }).click();
   };
   await showHeavy();
   await expect(background).toHaveCSS("background-color", PAPER_BG);
-  await preview.getByRole("status").getByRole("button", { name: "Undo" }).click();
+  await page.getByRole("status").filter({ has: page.getByRole("button", { name: "Undo" }) }).getByRole("button", { name: "Undo" }).click();
   await expect(background).toHaveCSS("background-color", BLACK);
 });
