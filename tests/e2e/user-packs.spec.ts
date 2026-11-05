@@ -1,33 +1,13 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { expect, manifest, settled, test, watchErrors } from "./fixtures";
+import { expect, FIELD_KIT, makePack, manifest, settled, test, watchErrors } from "./fixtures";
 
 // User packs (P12b): a pack folder is imported in the Look gallery into the scratch data folder, worn on a screen and drawn by the kiosk
 // from /api/packs; the page asks for nothing but its own origin (no font host). A hostile pack is refused with the issue shown and
 // nothing is stored.
 
 const { light } = manifest.profiles;
-const FIELD_KIT = path.join("src", "looks", "packs", "field-kit");
-
-/** Field Kit's files as a pack of this user under `dest/<id>`: its own id and font families, no pack.css, every asset listed. */
-function makePack(dest: string, id: string, edit: (dir: string) => void = () => {}): string {
-  const dir = path.join(dest, id);
-  fs.cpSync(FIELD_KIT, dir, { recursive: true, filter: (src) => !/\.tsx?$|pack\.css$/.test(src) });
-  edit(dir);
-  const read = (name: string) => JSON.parse(fs.readFileSync(path.join(dir, name), "utf8"));
-  const pack = read("pack.json");
-  const look = read("look.json");
-  pack.id = look.id = id;
-  pack.name = look.name = "Mine";
-  pack.fonts = pack.fonts.map((f: { family: string }) => ({ ...f, family: f.family.replace("pack-", `pack-${id}-`) }));
-  for (const k of Object.keys(look.fonts)) look.fonts[k] = look.fonts[k].replace("pack-", `pack-${id}-`);
-  pack.assets = fs.readdirSync(path.join(dir, "assets")).map((file) => ({ file, bytes: fs.statSync(path.join(dir, "assets", file)).size }));
-  fs.writeFileSync(path.join(dir, "pack.json"), JSON.stringify(pack));
-  fs.writeFileSync(path.join(dir, "look.json"), JSON.stringify(look));
-  return dir;
-}
-
 const packsOf = async (base: string) => (await (await fetch(`${base}/api/packs`)).json()) as { id: string }[];
 
 test("a valid pack is imported, worn and drawn from the route with no request past this origin; a hostile one is refused", async ({ page, scratch }) => {

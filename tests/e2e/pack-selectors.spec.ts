@@ -3,10 +3,13 @@ import path from "node:path";
 import { startScratch, type Scratch } from "../../tools/perf/scratch.mjs";
 import { PACK_STYLES } from "../../tools/qa/pack-styles.mjs";
 import { parseCss, writeTokens, type Rule } from "../../src/looks/css-syntax";
-import { expect, gaugeInk, test } from "./fixtures";
+import { measurePack, renderRefusals, unlit } from "../../src/looks/pack-render-measures";
+import { expect, test } from "./fixtures";
 
 // A pack.css rule that matches nothing paints nothing (the P10 review's M4: the dark header and chip bars were written and never drawn).
 // Every selector of every pack rule must match an element on the Widget QA page wearing the pack, so a dead selector fails here.
+
+const measures = (look: string) => ({ look, alphaMax: 0.4, minOpacity: 0.5 });
 
 let qa: Scratch;
 test.beforeAll(async () => {
@@ -54,52 +57,9 @@ for (const id of Object.keys(PACK_STYLES)) {
     await page.waitForFunction(() => window.__qaMountAll);
     await page.evaluate(() => window.__qaMountAll?.());
     await expect(page.locator(`[data-wp-tier][data-look="${id}"]`).first()).toBeAttached({ timeout: 10_000 });
-    const report = await page.evaluate((look) => {
-      const ctx = document.createElement("canvas").getContext("2d", { willReadFrequently: true }) as CanvasRenderingContext2D;
-      const rgba = (c: string) => {
-        ctx.clearRect(0, 0, 1, 1);
-        ctx.fillStyle = "#000";
-        ctx.fillStyle = c;
-        ctx.fillRect(0, 0, 1, 1);
-        const d = ctx.getImageData(0, 0, 1, 1).data;
-        return [d[0], d[1], d[2], d[3] / 255];
-      };
-      const f = (v: number) => (v / 255 <= 0.03928 ? v / 3294.6 : ((v / 255 + 0.055) / 1.055) ** 2.4);
-      const lum = (c: number[]) => 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2]);
-      const ratio = (a: number[], b: number[]) => (Math.max(lum(a), lum(b)) + 0.05) / (Math.min(lum(a), lum(b)) + 0.05);
-      const bad: string[] = [];
-      let bars = 0;
-      for (const bar of document.querySelectorAll(`[data-look="${look}"] [data-part="chip"], [data-look="${look}"] [data-part="tab"], [data-look="${look}"] [data-part="legend"]`)) {
-        // a widget that sets its own surface (the Stream Deck's) is not wearing the pack's card, and its text colours do not follow it
-        if (bar.closest("[data-wp-tier]")?.getAttribute("data-mat") !== `look-${look}`) continue;
-        const bg = rgba(getComputedStyle(bar).backgroundColor);
-        if (bg[3] < 0.9) continue;
-        bars++;
-        for (const el of [bar, ...bar.querySelectorAll("*")]) {
-          const cs = getComputedStyle(el);
-          if (cs.display === "none" || cs.visibility === "hidden" || Number(cs.opacity) < 0.5) continue;
-          const own = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent?.trim());
-          const icon = el instanceof SVGElement && el.tagName.toLowerCase() === "svg";
-          if (!own && !icon) continue;
-          const r = ratio(rgba(cs.color), bg);
-          if (r < (icon ? 3 : 4.5)) bad.push(`${el.outerHTML.slice(0, 200)} ${icon ? "icon" : "text"} ${cs.color} on ${getComputedStyle(bar).backgroundColor} is ${r.toFixed(2)}:1 (${bar.getAttribute("data-part")})`);
-        }
-      }
-      // A pack that paints no bar (Neon Stripe, Swiss Mono, Holo) reads its headers on the card's own flat colour.
-      if (bars === 0) {
-        for (const header of document.querySelectorAll(`[data-wp-tier][data-look="${look}"][data-mat="look-${look}"] [data-part="header"]`)) {
-          const card = header.closest("[data-wp-tier]") as HTMLElement;
-          const face = rgba(getComputedStyle(card).getPropertyValue("--w-mat-export").trim());
-          if (face[3] < 0.9) continue;
-          bars++;
-          const r = ratio(rgba(getComputedStyle(header).color), face);
-          if (r < 4.5) bad.push(`header ${header.textContent?.slice(0, 20)} ${getComputedStyle(header).color} on ${getComputedStyle(card).getPropertyValue("--w-mat-export")} is ${r.toFixed(2)}:1`);
-        }
-      }
-      return { bars, bad: [...new Set(bad)] };
-    }, id);
+    const { worn: report } = await page.evaluate(measurePack, measures(id));
     expect(report.bars).toBeGreaterThan(0);
-    expect(report.bad).toEqual([]);
+    expect(report.barIssues).toEqual([]);
   });
 }
 
@@ -116,32 +76,26 @@ async function wornPage(page: import("@playwright/test").Page, style: object, id
   await expect(page.locator(`style[data-pack="${id}"]`)).toHaveCount(1);
 }
 
-/** The gauges `ref` lights and `now` does not. */
-const hidden = (ref: { key: string; lit: boolean }[], now: { key: string; lit: boolean }[]) => {
-  const at = new Map(now.map((g) => [g.key, g.lit]));
-  return ref.filter((g) => g.lit && at.get(g.key) !== true).map((g) => g.key);
-};
-
 for (const id of Object.keys(PACK_STYLES)) {
   test(`every gauge lit without the ${id} pack's css is lit with it`, async ({ page }) => {
     await wornPage(page, PACK_STYLES[id as keyof typeof PACK_STYLES], id);
-    const worn = await page.evaluate(gaugeInk);
-    await page.evaluate(() => document.querySelectorAll("style[data-pack]").forEach((el) => ((el as HTMLStyleElement).disabled = true)));
-    const twin = await page.evaluate(gaugeInk);
-    expect(twin.filter((g) => g.lit).length).toBeGreaterThan(10);
-    expect(worn.map((g) => g.key)).toEqual(twin.map((g) => g.key));
-    expect(hidden(twin, worn)).toEqual([]);
+    const twin = await page.evaluate(measurePack, measures(id));
+    expect(twin.bare.gauges.filter((g) => g.lit).length).toBeGreaterThan(10);
+    expect(twin.worn.gauges.map((g) => g.key)).toEqual(twin.bare.gauges.map((g) => g.key));
+    expect(unlit(twin.bare.gauges, twin.worn.gauges)).toEqual([]);
+    // the verdict a user pack's CSS gets at import (L94) holds for every built-in's
+    expect(renderRefusals(twin)).toEqual([]);
   });
 }
 
 test("the gauge-ink check catches a pack that hides some of its gauges and not all", async ({ page }) => {
   await wornPage(page, PACK_STYLES.term, "term");
-  const ref = await page.evaluate(gaugeInk);
+  const { worn: ref } = await page.evaluate(measurePack, measures("term"));
   // what a bad pack could do: no ink on every other bar, meter and ring
   await page.addStyleTag({ content: '[data-part="bar"]:nth-of-type(odd) *, [data-part="meter"]:nth-of-type(odd) *, [data-part="ring"]:nth-of-type(odd) circle { background: none !important; stroke: none !important; }' });
-  const now = await page.evaluate(gaugeInk);
-  expect(now.some((g) => g.lit)).toBe(true);
-  expect(hidden(ref, now).length).toBeGreaterThan(0);
+  const { worn: now } = await page.evaluate(measurePack, measures("term"));
+  expect(now.gauges.some((g) => g.lit)).toBe(true);
+  expect(unlit(ref.gauges, now.gauges).length).toBeGreaterThan(0);
 });
 
 // L79: the box-legend title sits on the frame's line (6 px in) whatever the card's zoom: the shell zooms the padded content of a card

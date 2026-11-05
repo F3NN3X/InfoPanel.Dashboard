@@ -1,12 +1,13 @@
 import fs from "node:fs";
 import path from "node:path";
 import { PACK_STYLES } from "../../tools/qa/pack-styles.mjs";
+import { measurePack } from "../../src/looks/pack-render-measures";
 import { expect, manifest, settled, test, watchErrors } from "./fixtures";
 
 // A built-in pack paints with CSS, layers and effects that could hide what a widget shows (ledger L71, spec Readability): this
 // opens the kiosk with each pack worn and reads what the browser drew. The overlay stays under its alpha cap, nothing the
 // pack draws is click-blocking, the text and the marks of every card are effectively visible (opacity down the tree at least
-// 0.5, a colour that is not transparent) and every gauge's value mark is painted, unlike its track and with contrast against the card (a ring's arc, a bar's lit cells). Wearing a pack makes no request to a font host (D23). A user pack gets the same check in P12's validator.
+// 0.5, a colour that is not transparent) and every gauge's value mark is painted, unlike its track and with contrast against the card (a ring's arc, a bar's lit cells). Wearing a pack makes no request to a font host (D23). A user pack's CSS gets the same measures at import, in the studio's render check (`measurePack` is the one reader, L94).
 // Set PACK_SHOTS=<folder> (and PACK_SHOTS_PREFIX, default p10) to also save one kiosk screenshot per pack there (docs/investigations/look-system/shots/<prefix>-<id>.png).
 
 const OVERLAY_ALPHA_MAX = 0.4;
@@ -34,114 +35,7 @@ for (const id of Object.keys(PACK_STYLES)) {
     await expect(page.locator(`[data-pack-layer][data-look="${id}"]`).first()).toBeAttached();
     await settled(page, manifest.kioskZoneSelector);
 
-    const report = await page.evaluate(
-      ({ alphaMax, minOpacity }) => {
-        const problems: string[] = [];
-        const effective = (el: Element, stopAt: Element | null) => {
-          let o = 1;
-          for (let n: Element | null = el; n && n !== stopAt?.parentElement; n = n.parentElement) o *= Number(getComputedStyle(n).opacity);
-          return o;
-        };
-        const alphaOf = (c: string) => (c.startsWith("rgba") ? Number(c.split(",")[3].replace(")", "")) : c === "transparent" ? 0 : 1);
-        // the stage: layers and effects never take a click and the overlays stay under the cap
-        for (const el of document.querySelectorAll("[data-pack-layer], [data-pack-effect]")) {
-          const cs = getComputedStyle(el);
-          if (cs.pointerEvents !== "none") problems.push(`${el.getAttribute("data-pack-effect") ?? "layer"} takes pointer events`);
-          if (el.hasAttribute("data-pack-effect") && Number(cs.opacity) > alphaMax) problems.push(`effect ${el.getAttribute("data-pack-effect")} opacity ${cs.opacity} is over ${alphaMax}`);
-          if (el.getAttribute("data-pack-layer") === "overlay" && alphaOf(cs.backgroundColor) > alphaMax) problems.push(`overlay background alpha ${cs.backgroundColor}`);
-        }
-        // a colour string of any syntax as [r, g, b, a]: the canvas parses color-mix and the rest
-        const ctx = document.createElement("canvas").getContext("2d", { willReadFrequently: true }) as CanvasRenderingContext2D;
-        const rgba = (c: string): number[] => {
-          ctx.clearRect(0, 0, 1, 1);
-          ctx.fillStyle = "#000";
-          ctx.fillStyle = c;
-          ctx.fillRect(0, 0, 1, 1);
-          const d = ctx.getImageData(0, 0, 1, 1).data;
-          return [d[0], d[1], d[2], d[3] / 255];
-        };
-        const lum = ([r, g, b]: number[]) => {
-          const f = (v: number) => (v / 255 <= 0.03928 ? v / 3294.6 : ((v / 255 + 0.055) / 1.055) ** 2.4);
-          return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
-        };
-        const ratio = (x: number[], y: number[]) => (Math.max(lum(x), lum(y)) + 0.05) / (Math.min(lum(x), lum(y)) + 0.05);
-        // the card's face: the nearest opaque background up the tree
-        const cardBg = (card: Element) => {
-          for (let n: Element | null = card; n; n = n.parentElement) {
-            const c = rgba(getComputedStyle(n).backgroundColor);
-            if (c[3] > 0.9) return c;
-          }
-          return [0, 0, 0, 1];
-        };
-        const probe = document.createElement("i");
-        probe.style.background = "var(--w-track)";
-        const marks: Record<string, number> = {};
-        const cards = [...document.querySelectorAll("[data-wp-tier]")];
-        if (!cards.length) problems.push("no cards");
-        else if (!cards.some((c) => c.textContent?.trim())) problems.push("no card has text");
-        for (const card of cards) {
-          card.appendChild(probe);
-          const track = rgba(getComputedStyle(probe).backgroundColor);
-          probe.remove();
-          const walker = document.createTreeWalker(card, NodeFilter.SHOW_TEXT);
-          for (let t = walker.nextNode(); t; t = walker.nextNode()) {
-            if (!t.textContent?.trim() || !t.parentElement) continue;
-            const el = t.parentElement;
-            const cs = getComputedStyle(el);
-            if (cs.visibility === "hidden" || cs.display === "none") continue;
-            const gradientText = cs.webkitTextFillColor === "rgba(0, 0, 0, 0)" && cs.backgroundClip === "text" && cs.backgroundImage !== "none";
-            if (alphaOf(cs.webkitTextFillColor || cs.color) === 0 && !gradientText) problems.push(`text "${t.textContent.trim().slice(0, 20)}" has a transparent fill`);
-            const o = effective(el, card);
-            if (o < minOpacity) problems.push(`text "${t.textContent.trim().slice(0, 20)}" is at opacity ${o.toFixed(2)}`);
-          }
-          // every gauge has a value mark you can see: a ring's value arc, a bar's or meter's lit cells
-          for (const gauge of card.querySelectorAll('[data-part="ring"], [data-part="bar"], [data-part="meter"]')) {
-            const part = gauge.getAttribute("data-part");
-            if (part === "ring") {
-              for (const arc of gauge.querySelectorAll("circle[data-wp-ring]")) {
-                marks.ring = (marks.ring ?? 0) + 1;
-                const cs = getComputedStyle(arc);
-                const track = arc.previousElementSibling ? getComputedStyle(arc.previousElementSibling) : null;
-                // a gradient stroke (`ring-fill`): every stop of the gradient it names is drawn, and each shows against the card
-                const gradient = /^url\(["']?#([^"')]+)/.exec(cs.stroke);
-                if (gradient) {
-                  const stops = [...(arc.closest("svg")?.querySelectorAll(`#${CSS.escape(gradient[1])} stop`) ?? [])].map((stop) => getComputedStyle(stop));
-                  marks.gradient = (marks.gradient ?? 0) + 1;
-                  if (stops.length < 2) problems.push("a ring's gradient has fewer than two stops");
-                  for (const stop of stops) if (rgba(stop.stopColor)[3] === 0 || Number(stop.stopOpacity) < minOpacity) problems.push("a ring's gradient has a stop that is not drawn");
-                  else if (ratio(rgba(stop.stopColor), cardBg(card)) < 1.3) problems.push(`a ring's gradient stop ${stop.stopColor} has no contrast with the card`);
-                  if (!(parseFloat(cs.strokeWidth) > 0) || effective(arc, card) * Number(cs.strokeOpacity) < minOpacity) problems.push("a ring's gradient arc is not drawn");
-                  continue;
-                }
-                const [r, g, b, a] = rgba(cs.stroke);
-                if (cs.stroke === "none" || a === 0) problems.push("a ring's value arc has no stroke");
-                else if (!(parseFloat(cs.strokeWidth) > 0)) problems.push("a ring's value arc has no stroke width");
-                else if (effective(arc, card) * Number(cs.strokeOpacity) < minOpacity) problems.push("a ring's value arc is faint");
-                else if (track && cs.stroke === track.stroke) problems.push("a ring's value arc is drawn in its track colour");
-                else if (ratio([r, g, b], cardBg(card)) < 1.3) problems.push(`a ring's value arc ${cs.stroke} has no contrast with the card`);
-              }
-              continue;
-            }
-            // the lit cells and the fill: painted descendants that are not the track colour
-            const lit = [...gauge.querySelectorAll("*")].filter((n) => {
-              const cs = getComputedStyle(n);
-              return (rgba(cs.backgroundColor)[3] > 0 && rgba(cs.backgroundColor).join() !== track.join()) || cs.backgroundImage !== "none";
-            });
-            const bg = cardBg(card);
-            for (const n of lit) {
-              const cs = getComputedStyle(n);
-              if (effective(n, card) < minOpacity || cs.visibility === "hidden") problems.push(`a ${part}'s value mark is hidden`);
-              else if (cs.backgroundImage === "none" && ratio(rgba(cs.backgroundColor), bg) < 1.3) problems.push(`a ${part}'s value mark ${cs.backgroundColor} has no contrast with the card`);
-            }
-            marks[part as string] = (marks[part as string] ?? 0) + lit.length;
-          }
-        }
-        // a value of 0 lights nothing, so a bar may be empty, but across the screen every gauge kind that is drawn has a value mark
-        for (const part of ["ring", "bar", "meter"]) if (cards.some((c) => c.querySelector(`[data-part="${part}"]`)) && !marks[part]) problems.push(`no ${part} on the screen has a lit value mark`);
-        return { problems, cards: cards.length, gradients: marks.gradient ?? 0 };
-      },
-      { alphaMax: OVERLAY_ALPHA_MAX, minOpacity: MIN_OPACITY },
-    );
+    const { worn: report } = await page.evaluate(measurePack, { look: id, alphaMax: OVERLAY_ALPHA_MAX, minOpacity: MIN_OPACITY });
     expect(report.cards).toBeGreaterThan(0);
     // the packs whose rings carry a gradient (`ring-fill`) draw it, and the check above read its stops
     if (id === "night-glow" || id === "black-and-gold") expect(report.gradients).toBeGreaterThan(0);

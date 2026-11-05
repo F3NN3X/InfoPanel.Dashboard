@@ -90,46 +90,22 @@ export async function settled(page: Page, selector: string): Promise<void> {
   );
 }
 
-/**
- * Runs in the page (Widget QA): for every ring, bar and meter of every frame, in document order, whether it draws a value mark (a ring's
- * arc with a stroke, a bar's or meter's painted cell that is not the track). A worn pack must light each gauge the same widget lights
- * without it: a screen-wide "some are lit" would pass a pack that hides half of them (L79).
- */
-export function gaugeInk(): { key: string; lit: boolean }[] {
-  const ctx = document.createElement("canvas").getContext("2d", { willReadFrequently: true }) as CanvasRenderingContext2D;
-  const alpha = (c: string) => {
-    ctx.clearRect(0, 0, 1, 1);
-    ctx.fillStyle = "#000";
-    ctx.fillStyle = c;
-    ctx.fillRect(0, 0, 1, 1);
-    return ctx.getImageData(0, 0, 1, 1).data[3] / 255;
-  };
-  // The card's track colour, read from a probe in each card: all appended first and read after, so the page restyles once, not once per card.
-  const figs = [...document.querySelectorAll("figure[data-qa-module]")];
-  const probes = figs.map((fig) => {
-    const card = fig.querySelector("[data-wp-tier]");
-    if (!card) return null;
-    const probe = document.createElement("i");
-    probe.style.background = "var(--w-track)";
-    card.appendChild(probe);
-    return probe;
-  });
-  const tracks = probes.map((probe) => (probe ? getComputedStyle(probe).backgroundColor : ""));
-  for (const probe of probes) probe?.remove();
-  const out: { key: string; lit: boolean }[] = [];
-  figs.forEach((fig, i) => {
-    if (!probes[i]) return;
-    const track = tracks[i];
-    fig.querySelectorAll('[data-part="ring"], [data-part="bar"], [data-part="meter"]').forEach((gauge, n) => {
-      const ring = gauge.getAttribute("data-part") === "ring";
-      const marks = [...gauge.querySelectorAll(ring ? "circle[data-wp-ring]" : "*")].filter((el) => {
-        const cs = getComputedStyle(el);
-        if (cs.visibility === "hidden" || Number(cs.opacity) < 0.1) return false;
-        if (ring) return cs.stroke !== "none" && alpha(cs.stroke) > 0 && Number(cs.strokeOpacity) > 0.1;
-        return (alpha(cs.backgroundColor) > 0 && cs.backgroundColor !== track) || cs.backgroundImage !== "none";
-      });
-      out.push({ key: `${i}:${fig.getAttribute("data-qa-module")}#${n}`, lit: marks.length > 0 });
-    });
-  });
-  return out;
+export const FIELD_KIT = path.join("src", "looks", "packs", "field-kit");
+
+/** Field Kit's files as a pack of this user under `dest/<id>`: its own id and font families, no pack.css, every asset listed. */
+export function makePack(dest: string, id: string, edit: (dir: string) => void = () => {}): string {
+  const dir = path.join(dest, id);
+  fs.cpSync(FIELD_KIT, dir, { recursive: true, filter: (src) => !/\.tsx?$|pack\.css$/.test(src) });
+  edit(dir);
+  const read = (name: string) => JSON.parse(fs.readFileSync(path.join(dir, name), "utf8"));
+  const pack = read("pack.json");
+  const look = read("look.json");
+  pack.id = look.id = id;
+  pack.name = look.name = "Mine";
+  pack.fonts = pack.fonts.map((f: { family: string }) => ({ ...f, family: f.family.replace("pack-", `pack-${id}-`) }));
+  for (const k of Object.keys(look.fonts)) look.fonts[k] = look.fonts[k].replace("pack-", `pack-${id}-`);
+  pack.assets = fs.readdirSync(path.join(dir, "assets")).map((file) => ({ file, bytes: fs.statSync(path.join(dir, "assets", file)).size }));
+  fs.writeFileSync(path.join(dir, "pack.json"), JSON.stringify(pack));
+  fs.writeFileSync(path.join(dir, "look.json"), JSON.stringify(look));
+  return dir;
 }
