@@ -1,21 +1,17 @@
 /**
  * The import flow end to end (L8): the default mode, the import report, and
- * the stored form the app will save (saved and reopened here as a zip), plus
- * an export back to `.infopanel`, where vector gauges can be baked into frames.
+ * the stored form the app will save (saved and reopened here as a zip).
  */
 import { useEffect, useState } from "react";
-import { analyse, assetFile, type Doc } from "@/lib/infopanel/assets/assets.ts";
+import { assetFile, type Doc } from "@/lib/infopanel/assets/assets.ts";
 import { itemAt, setField, type Path } from "@/lib/infopanel/editor/ops.ts";
 import type { Editor } from "../editor/useEditor.ts";
-import { infopanelExport } from "@/lib/infopanel/export/write.ts";
 import { reviewFont, VERDICT_LABEL } from "@/lib/infopanel/font-licence.ts";
-import { bakeSignature, gaugePaths, isStale, safeStem, setFrameFiles, vectorOf } from "@/lib/infopanel/gauges/frames.ts";
-import { bake } from "@/lib/infopanel/gauges/raster.ts";
 import type { ConvertContext } from "@/lib/infopanel/native/convert.ts";
 import { convertible, isNative } from "@/lib/infopanel/native/modes.ts";
 import type { Issue } from "@/lib/infopanel/parse.ts";
 import type { Group, Overrides } from "@/lib/infopanel/remap/remap.ts";
-import type { GaugeItem, Profile } from "@/lib/infopanel/schema.ts";
+import type { Profile } from "@/lib/infopanel/schema.ts";
 import { DATA_API } from "@/lib/infopanel/sensors.ts";
 import type { Match } from "@/lib/infopanel/sensors.ts";
 import type { FontPlan } from "../useFontPlan.ts";
@@ -98,8 +94,6 @@ export function ImportPanel(props: ImportPanelProps) {
   const { editor, convertCtx } = props;
   const [api, setApi] = useState<DataApiInfo | null>(null);
   const [note, setNote] = useState<string | null>(null);
-  const [bakeOnExport, setBakeOnExport] = useState(true);
-  const [dropUnused, setDropUnused] = useState(true);
 
   useEffect(() => {
     fetch(`${DATA_API}/api/sensors`)
@@ -148,28 +142,6 @@ export function ImportPanel(props: ImportPanelProps) {
       ];
       const fontsNote = flagged.length ? `; it holds fonts to review before sharing it: ${flagged.join(", ")}` : "";
       return (props.live ? "Saved" : "Saved without sensor keys: the Data API was not used (Check sensors first)") + fontsNote;
-    });
-
-  const stale = gaugePaths(editor.present).filter((p) => isStale(itemAt(editor.present, p)));
-  const exportInfoPanel = () =>
-    run("Exporting", async () => {
-      let next = doc;
-      if (bakeOnExport) {
-        for (const path of stale) {
-          const g = itemAt(next.items, path) as GaugeItem;
-          const spec = vectorOf(g)!;
-          const count = g.Images.length > 1 ? g.Images.length : 101;
-          setNote(`Baking ${g.Name || path}…`);
-          next = setFrameFiles(next, path, await bake(spec, count, safeStem(g.Name)), bakeSignature(spec, count));
-        }
-        // The baked frames stay in the profile: one undo step.
-        if (next !== doc) editor.applyDoc(next);
-      }
-      const unused = new Set(dropUnused ? analyse(next).unused.map((n) => n.toLowerCase()) : []);
-      const files = [...next.assets.values()].filter((f) => !unused.has(f.name.toLowerCase()));
-      download(`${fileStem(props.profile.Name)}.infopanel`, infopanelExport(props.profile, next.items, files.map((f) => ({ name: f.name, bytes: f.bytes }))));
-      const left = bakeOnExport ? 0 : stale.length;
-      return `Exported ${files.length} assets${left ? `; ${left} vector gauge(s) without up-to-date frames show their old frames (or nothing) in InfoPanel` : ""}`;
     });
 
   const statuses = Object.entries(report.sensors.byStatus).map(([k, n]) => `${n} ${k}`).join(", ");
@@ -248,13 +220,6 @@ export function ImportPanel(props: ImportPanelProps) {
         <button onClick={save} title="The form the app's canvas zone saves, with its files: canvas.json, assets/ and fonts/ by SHA-256">
           Save stored form
         </button>{" "}
-        · <button onClick={exportInfoPanel}>Export .infopanel</button>{" "}
-        <label title="Vector gauges are drawn live in the studio; InfoPanel needs PNG frames">
-          <input type="checkbox" checked={bakeOnExport} onChange={() => setBakeOnExport(!bakeOnExport)} /> bake {stale.length} vector gauge(s) for InfoPanel
-        </label>{" "}
-        <label>
-          <input type="checkbox" checked={dropUnused} onChange={() => setDropUnused(!dropUnused)} /> leave unused assets out
-        </label>{" "}
         {note && <em>{note}</em>}
       </p>
     </section>

@@ -34,12 +34,6 @@
       "when": "the HTTP suite in tests/server, run against the built ips-server"
     },
     "lab": { "cmd": "npm run lab:typecheck && npm run lab:test", "when": "the import lab or the InfoPanel parsers it shares" },
-    "import-check": {
-      "cmd": "node lab/infopanel/scripts/import-check.mts",
-      "platform": "win32",
-      "notRunExit": 3,
-      "when": "the .infopanel writer: our exports read by InfoPanel's own XmlSerializer (.NET, an InfoPanel source folder), compared field by field. Exit 3 where .NET or the source is missing"
-    },
     "e2e": {
       "cmd": "npx playwright test --project=e2e {tests}",
       "fullCmd": "npm run test:e2e",
@@ -100,7 +94,7 @@
         "tests/lib/legacy-zones*.test.*",
         "tests/lib/__snapshots__/legacy-zones*",
         "tests/lib/__fixtures__/**",
-        "tests/lib/settings-patch.test.ts","tests/lib/config-update.test.ts","tests/lib/config-upgrade.test.ts",
+        "tests/lib/settings-patch.test.ts","tests/lib/config-update.test.ts","tests/lib/config-upgrade.test.ts","tests/lib/config-export-fields.test.ts",
         "tests/lib/general.test.ts",
         "tests/hooks/**",
         "tests/e2e/config-live-update.spec.ts",
@@ -576,7 +570,7 @@
       "critical": true,
       "summary": "The Edit v3 page model: both adapters (screen placements, imported canvases), its ops, the v15 migration and how item placements draw.",
       "paths": ["src/lib/page-model/**"],
-      "tests": ["tests/lib/page-model/**", "tests/lib/settings-migrate.v15.test.ts", "tests/lib/infopanel/export/unedited-export.test.ts"],
+      "tests": ["tests/lib/page-model/**", "tests/lib/settings-migrate.v15.test.ts"],
       "checks": ["typecheck", "unit", "build", "budgets", "e2e", "one-editor"],
       "note": "The migration runs in mergeConfig, so it is in the kiosk's first bundle: keep it off the renderer (budgets)."
     },
@@ -629,9 +623,9 @@
       "id": "looks",
       "summary": "The Look system's single sources (status colours, default accent, Studio twins, the material registry) and the generator that writes the copies the CSS and the gauge export need.",
       "paths": ["src/looks/**", "tools/looks/**", "tools/validate-pack.*"],
-      "tests": ["tests/looks/**", "tests/widgets/core/state-copies.test.ts", "tests/lib/theme-css-sync.test.ts", "tests/settings/theme-tokens.test.ts", "tests/components/color-literals.test.ts", "tests/e2e/material-export.spec.ts", "tests/e2e/pack-visibility.spec.ts", "tests/e2e/pack-faces.spec.ts", "tests/e2e/pack-selectors.spec.ts", "tests/e2e/pack-connectors.spec.ts", "tests/e2e/user-packs.spec.ts", "tests/e2e/user-pack-css.spec.ts", "tests/tools/qa/pack-styles.test.ts"],
-      "checks": ["typecheck", "unit", "build", "budgets", "pack-budgets", "settings-build", "ui-usage", "import-check", "e2e"],
-      "note": "Generated files: src/looks/generated/*, the @generated blocks in src/index.css, src/settings/tokens.css and src/widgets/core/mixer-views.css, and src/settings/ui/*.css (the status and shared `--ui-*` tokens per page: the studio all, settings, help and touch the ones their built files read, tools/looks/ui-usage.json; after a change to what a page reads run `npm run build`, `npm run desktop:settings` and `npm run looks:gen -- --from-build`, and `ui-usage` fails when it is out of date). Edit the source, run `npm run looks:gen`; tests/looks/generated.test.ts fails when one is stale. tests/looks/scan.test.ts gates the D9 scans (hex outside src/looks, blur outside the cap, ui-* in widgets) against tests/looks/scan-baseline.json, a ratchet; `npm run looks:scan` prints them and `-- --save` lowers the baseline. import-check because the gauge THEME is written into exports."
+      "tests": ["tests/looks/**", "tests/widgets/core/state-copies.test.ts", "tests/lib/theme-css-sync.test.ts", "tests/settings/theme-tokens.test.ts", "tests/components/color-literals.test.ts", "tests/e2e/pack-visibility.spec.ts", "tests/e2e/pack-faces.spec.ts", "tests/e2e/pack-selectors.spec.ts", "tests/e2e/pack-connectors.spec.ts", "tests/e2e/user-packs.spec.ts", "tests/e2e/user-pack-css.spec.ts", "tests/tools/qa/pack-styles.test.ts"],
+      "checks": ["typecheck", "unit", "build", "budgets", "pack-budgets", "settings-build", "ui-usage", "e2e"],
+      "note": "Generated files: src/looks/generated/*, the @generated blocks in src/index.css, src/settings/tokens.css and src/widgets/core/mixer-views.css, and src/settings/ui/*.css (the status and shared `--ui-*` tokens per page: the studio all, settings, help and touch the ones their built files read, tools/looks/ui-usage.json; after a change to what a page reads run `npm run build`, `npm run desktop:settings` and `npm run looks:gen -- --from-build`, and `ui-usage` fails when it is out of date). Edit the source, run `npm run looks:gen`; tests/looks/generated.test.ts fails when one is stale. tests/looks/scan.test.ts gates the D9 scans (hex outside src/looks, blur outside the cap, ui-* in widgets) against tests/looks/scan-baseline.json, a ratchet; `npm run looks:scan` prints them and `-- --save` lowers the baseline."
     },
     {
       "id": "gauges",
@@ -648,12 +642,12 @@
     {
       "id": "infopanel-import-export",
       "critical": true,
-      "summary": "InfoPanel profile parsing, conversion, canvas editing, fonts, archives, export, with the corpus round-trips.",
+      "summary": "InfoPanel profile parsing, conversion, canvas editing, fonts, archives, with the corpus round-trips.",
       "paths": ["src/lib/infopanel/**", "src/components/infopanel/**", "tools/ip-import.cjs", "tools/gen-element-icons.mjs", "tools/gen-element-icons.d.mts"],
       "exclude": ["src/lib/infopanel/gauges/**"],
-      "tests": ["tests/lib/infopanel/**", "tests/components/infopanel/**", "tests/e2e/material-export.spec.ts"],
-      "checks": ["typecheck", "unit", "lab", "ui-usage", "import-check", "e2e"],
-      "note": "The corpus round-trips live in the lab (lab/infopanel/src/corpus.test.ts, order.test.ts, idempotent.test.ts), outside npm test, and so does the profile templates' every-size export sweep (lab/infopanel/src/templates.test.ts). import-check needs Windows, .NET and an InfoPanel source folder (docs/TESTING.md)."
+      "tests": ["tests/lib/infopanel/**", "tests/components/infopanel/**"],
+      "checks": ["typecheck", "unit", "lab", "ui-usage", "e2e"],
+      "note": "The corpus round-trips live in the lab (lab/infopanel/src/corpus.test.ts, idempotent.test.ts), outside npm test, and so do the stored-form round trips of the profile templates (lab/infopanel/src/templates.test.ts)."
     },
     {
       "id": "help",
@@ -707,7 +701,7 @@
       "summary": "The InfoPanel import lab (its own Vite and Vitest config).",
       "paths": ["lab/**"],
       "tests": [],
-      "checks": ["lab", "import-check"]
+      "checks": ["lab"]
     },
     {
       "id": "e2e-harness",

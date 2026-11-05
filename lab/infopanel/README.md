@@ -320,21 +320,6 @@ The **Import** panel (`src/import/`) runs the import end to end, as the app's ca
   what it drops. **Save stored form** downloads it with its files as `<name>.canvas.zip` (`bundle.ts`:
   `canvas.json`, `assets/<sha256>`, `fonts/<sha256>`, each checked against its hash on open); open it again under
   "or a saved canvas" and the mode, remap choices, fonts and assets come back.
-- **Export .infopanel** (`src/export/write.ts`): writes `Profile.xml` and `DisplayItems.xml` in InfoPanel's field
-  order (doubles and floats as .NET prints them, unknown fields kept, lab fields left out) and the assets. Stale
-  vector gauges can be baked first (one undo step); unused assets can be left out. Every corpus profile round-trips
-  through the writer in the tests.
 - **Lab asset store** (`asset-store-plugin.ts`, `src/assets/store.ts`, on `hash-store.ts` shared with the gauge
   library): stands in for the app's asset store, so native images have a URL; files go to `asset-store/`
   (gitignored), raster images only, stored by hash and served with nosniff and a sandbox CSP.
-- **import-check** (`tools/import-check/`): reads exports with InfoPanel's own `XmlSerializer` types and writes
-  what InfoPanel then holds:
-
-  ```
-  dotnet run --project lab/infopanel/tools/import-check -p:Platform=x64 -- <out-folder> <a.infopanel> [...]
-  ```
-
-  It builds against the InfoPanel checkout at `E:\GitHub\PublicRepos\infopanel-pr173` (override with
-  `-p:InfoPanelProject=...`). For ARCv2_WIDE, Dashboard,
-  Umbrella_V.2 and [Import]_TheForeverWinter, the lab's export of the untouched profile reads back identical to
-  the original.
