@@ -192,6 +192,11 @@ export function AddPanel({
   const [storedChip, setChip] = useAddChip();
   const [tab, setTab] = useState<AddTab>(() => (onAddPart && start?.segment !== "widgets" && (infoPanel || start?.segment === "items" || storedChip === INFOPANEL_CHIP) ? "items" : "widget"));
   const kind: AddKind = tab === "items" ? "widget" : tab;
+  // The chip of before the Items tab was read as that tab above; it is spent, so Widgets doesn't send the next mount back to Items.
+  useEffect(() => {
+    if (storedChip === INFOPANEL_CHIP) setChip("All");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [query, setQuery] = useState("");
   /** The Items tab's chip: one palette group or Elements (none: all of them). */
   const [group, setGroup] = useState<string | null>(null);
