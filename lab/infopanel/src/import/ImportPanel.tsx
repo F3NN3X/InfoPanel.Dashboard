@@ -209,8 +209,7 @@ export function ImportPanel(props: ImportPanelProps) {
         </li>
         <li>
           Gauges: {report.gauges.total}
-          {report.gauges.vector > 0 && `, ${report.gauges.vector} vector (live in the studio)`}
-          {report.gauges.withoutFrames > 0 && `, ${report.gauges.withoutFrames} without up-to-date InfoPanel frames`}.
+          {report.gauges.vector > 0 && `, ${report.gauges.vector} vector (live in the studio)`}.
         </li>
         <li>
           Parse issues: {Object.keys(report.issues).length ? Object.entries(report.issues).map(([k, n]) => `${n} ${k}`).join(", ") : "none"}.

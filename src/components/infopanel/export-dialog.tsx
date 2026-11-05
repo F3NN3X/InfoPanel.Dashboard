@@ -29,7 +29,7 @@ export interface ExportDialogProps {
 export async function download(name: string, data: Uint8Array, type: string): Promise<void> {
   if (isTauri()) {
     try {
-      await saveBinaryFile(name, name.endsWith(".zip") ? "zip" : "infopanel", data);
+      await saveBinaryFile(name, "zip", data);
       return;
     } catch (e) {
       console.error("Native save failed, downloading instead", e);

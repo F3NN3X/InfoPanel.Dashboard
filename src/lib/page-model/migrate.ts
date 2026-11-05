@@ -24,10 +24,7 @@ import { freeCanvasOf } from "../screens/list.ts";
 import type { StoredCanvas, StoredItem, WidgetItem } from "../infopanel/import/stored.ts";
 import { cellsOverlap, nearestCells, type CellBox, type PageGrid } from "./model.ts";
 import { readPlacements, screenGrid, writePlacements } from "./placements-adapter.ts";
-import { fitScale, joinAssets, joinFonts, moved, num, obj, renameFiles, roughBox, withoutItems } from "./stored-items.ts";
-
-/** The export rule's settings key (`export/native-choices.ts`, which this light module doesn't load). */
-const ON_INFOPANEL_KEY = "$onInfoPanel";
+import { ON_INFOPANEL_KEY, fitScale, joinAssets, joinFonts, moved, num, obj, renameFiles, roughBox, withoutItems } from "./stored-items.ts";
 
 type Store = Omit<StoredCanvas, "items">;
 

@@ -31,7 +31,7 @@ const INPUT = "h-7 w-full min-w-0 rounded-ui-sm border border-ui-default bg-ui-r
 function Row({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="flex min-h-7 items-center justify-between gap-3 text-caption text-ui-2">
-      <span className="flex shrink-0 items-center gap-1.5">{label}</span>
+      <span className="shrink-0">{label}</span>
       <div className="flex min-w-0 justify-end">{children}</div>
     </div>
   );

@@ -39,8 +39,7 @@ describe("gauge sources", () => {
       ["canvas:c1:1.0", "vector", "Inner"],
       ["widget:w1", "vector", "CPU"],
     ]);
-    expect(found[0]).toMatchObject({ min: 10, max: 90, animationSpeed: 4, frames: [], stale: false });
-    expect(found[1].stale).toBe(true);
+    expect(found[0]).toMatchObject({ min: 10, max: 90, animationSpeed: 4, frames: [] });
   });
 
   it("lists the gauges of every screen and page, not only the one on the canvas (B3)", () => {

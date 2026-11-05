@@ -5,6 +5,9 @@
  */
 import type { StoredAsset, StoredCanvas, StoredFont, StoredItem } from "../infopanel/import/stored.ts";
 
+/** A grid widget's saved rule for InfoPanel (no longer set in the UI): it travels to the widget record and back, unchanged. */
+export const ON_INFOPANEL_KEY = "$onInfoPanel";
+
 export type Rect = { x: number; y: number; w: number; h: number };
 
 export const num = (v: unknown): number => (typeof v === "number" && Number.isFinite(v) ? v : 0);

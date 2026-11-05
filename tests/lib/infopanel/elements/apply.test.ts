@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { applyElement, elementOf, recolour, syncElements } from "@/lib/infopanel/elements/apply.ts";
 import { newComposite, newElement } from "@/lib/infopanel/elements/create.ts";
 import type { CardSpec, DividerSpec, ElementSpec } from "@/lib/infopanel/elements/spec.ts";
-import { bakeSignature, isStale } from "@/lib/infopanel/gauges/frames.ts";
 import { newItem } from "@/lib/infopanel/editor/create.ts";
 import { moveBy } from "@/lib/infopanel/editor/ops.ts";
 import type { DisplayItem, GroupItem } from "@/lib/infopanel/schema.ts";
@@ -107,13 +106,9 @@ describe("Sparkline", () => {
 describe("recolour (a palette slot changed)", () => {
   const next = { ...palette, accent1: "#FFFF0000", card: "#FF222222" };
 
-  it("recolours every element and styled field following the slot, and marks the baked ones stale", () => {
+  it("recolours every element and styled field following the slot, ", () => {
     const items = oneOfEach();
-    // The ring as the export left it: frames recorded as of the old palette.
-    const ring = { ...items[0], vectorBaked: bakeSignature(lab(items[0]).vector as never, 0) } as unknown as DisplayItem;
-    expect(isStale(ring)).toBe(false);
-    const [r, , card, glow, , , cores] = recolour([ring, ...items.slice(1)], next);
-    expect(isStale(r)).toBe(true);
+    const [, , card, glow, , , cores] = recolour(items, next);
     expect(card).toMatchObject({ FillColor: "#FF222222" });
     expect(elementOf(glow)).toMatchObject({ color: { color: "#FFFF0000", slot: "accent1" } });
     expect((cores as GroupItem).DisplayItems[0]).toMatchObject({ Color: "#FFFF0000" });
@@ -135,12 +130,11 @@ describe("recolour (a palette slot changed)", () => {
 describe("a ring's face", () => {
   const face = { pattern: "hex", color: "#FFFFFF", opacity: 0.08, size: 14, fill: "#06090D" } as const;
 
-  it("goes into the vector spec the export bakes, and a changed face makes the frames stale", () => {
+  it("goes into the vector spec", () => {
     const plain = newElement("ring", profile, palette);
     const faced = withSpec(plain, { face } as Partial<ElementSpec>);
     expect(lab(faced).vector).toMatchObject({ face });
     expect(lab(plain).vector).not.toHaveProperty("face");
-    expect(bakeSignature(lab(faced).vector as never, 101)).not.toBe(bakeSignature(lab(plain).vector as never, 101));
   });
 
   it("is on a Double ring's inner ring only", () => {

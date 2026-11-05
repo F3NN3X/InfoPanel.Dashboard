@@ -20,16 +20,13 @@ import { assetKey } from "./infopanel/assets/assets";
 import { decodeWidget, encodeItem, newStored, type AreaRecord, type StoredCanvas, type StoredItem, type WidgetItem } from "./infopanel/import/stored";
 import { newWidgetItem } from "./infopanel/native/widget-item";
 import { defaultItem, type DisplayItem } from "./infopanel/schema";
-import { joinAssets, joinFonts, moved, num, obj, renameFiles, roughBox, union, withoutItems } from "./page-model/stored-items";
+import { ON_INFOPANEL_KEY, joinAssets, joinFonts, moved, num, obj, renameFiles, roughBox, union, withoutItems } from "./page-model/stored-items";
 
 /**
  * On the free area a switch to Grid made of loose parts: where its canvas sat on the page's canvas, so the switch
  * back puts the parts where they were (a JSON string `{ x, y, s, at }`).
  */
 export const FROM_FREE_KEY = "$fromFree";
-
-/** A grid widget's saved rule for InfoPanel (no longer set in the UI): it travels to the widget record and back, unchanged. */
-const ON_INFOPANEL_KEY = "$onInfoPanel";
 
 export interface LayoutSwitch {
   /** The page, switched. */

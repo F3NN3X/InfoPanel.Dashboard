@@ -4,7 +4,7 @@ import { itemAt } from "@/lib/infopanel/editor/ops.ts";
 import { parseDisplayItemsXml } from "@/lib/infopanel/parse.ts";
 import type { GaugeItem } from "@/lib/infopanel/schema.ts";
 import {
-  bakeSignature, duplicateOrder, frameNames, gaugePaths, insertFramesGauge, insertVectorGauge, isStale, moveOrder, removeOrder,
+  duplicateOrder, frameNames, gaugePaths, insertFramesGauge, insertVectorGauge, moveOrder, removeOrder,
   reorderFrames, resampleOrder, reverseOrder, safeStem, setFrameFile, setFrameFiles, setVector, vectorOf,
 } from "@/lib/infopanel/gauges/frames.ts";
 import { DEFAULT_GAUGE } from "@/lib/infopanel/gauges/vector.ts";
@@ -61,16 +61,11 @@ describe("frame files", () => {
 });
 
 describe("vector gauges", () => {
-  it("keeps the spec on the item and knows when its frames are stale", () => {
+  it("keeps the spec on the item", () => {
     const { items: withNew, path } = insertVectorGauge(items, DEFAULT_GAUGE, "Ring");
     expect(vectorOf(itemAt(withNew, path))).toEqual(DEFAULT_GAUGE);
-    expect(isStale(itemAt(withNew, path))).toBe(true);
-    const baked = { ...gauge(withNew, path), Images: [], vectorBaked: bakeSignature(DEFAULT_GAUGE, 0) };
-    expect(isStale(baked)).toBe(false);
-    expect(isStale({ ...baked, vector: { ...DEFAULT_GAUGE, sweep: 180 } } as GaugeItem)).toBe(true);
     const dropped = setVector(withNew, path, null);
     expect(vectorOf(itemAt(dropped, path))).toBeNull();
-    expect(isStale(itemAt(items, "0.0"))).toBe(false);
   });
 
   it("makes file-name stems from gauge names", () => {

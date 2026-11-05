@@ -11,7 +11,7 @@ import type { LibraryItem } from "@/lib/library";
 import { openCanvas, type OpenCanvas } from "@/lib/infopanel/canvas";
 import { editItems, storeItems } from "@/lib/infopanel/canvas-edit";
 import { itemAt, setField, type Path } from "@/lib/infopanel/editor/ops";
-import { frameNames, gaugePaths, isGauge, isStale, setVector, vectorOf } from "@/lib/infopanel/gauges/frames";
+import { frameNames, gaugePaths, isGauge, setVector, vectorOf } from "@/lib/infopanel/gauges/frames";
 import { libraryFramesOf } from "./canvas-gauge";
 import { STARTERS } from "@/lib/infopanel/gauges/presets";
 import { normalizeGauge, type VectorGauge } from "@/lib/infopanel/gauges/vector";
@@ -48,8 +48,6 @@ export interface GaugeEntry {
   max: number;
   /** InfoPanel's AnimationSpeed, frames a second (0: jump to the frame). */
   animationSpeed: number;
-  /** A canvas gauge whose frames are older than its spec (the bake bar). */
-  stale?: boolean;
   /** Where it was found ("ARCv2 WIDE", "My library", "Preset"). */
   where: string;
   /** The screen and page it is on (a gauge in the config; none for a preset or a library item). */
@@ -211,7 +209,7 @@ function canvasGauges(zone: Placement, open: OpenCanvas, on?: GaugeOn): GaugeEnt
     return [{
       key: sourceKey(source), source, name: item.Name || `Gauge ${path}`, kind: kindOf(gauge), gauge,
       frames, ...(files ? { files } : {}), min: item.MinValue, max: item.MaxValue, animationSpeed: item.AnimationSpeed,
-      stale: isStale(item), where: open.stored.source.name, ...(on ? { on } : {}), ...(sensorName(item) ? { reads: sensorName(item) } : {}),
+      where: open.stored.source.name, ...(on ? { on } : {}), ...(sensorName(item) ? { reads: sensorName(item) } : {}),
     }];
   });
 }

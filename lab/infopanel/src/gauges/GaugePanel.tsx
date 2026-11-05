@@ -12,7 +12,7 @@ import type { Editor } from "../editor/useEditor.ts";
 import { gaugeFrame, smoothIndex } from "@/lib/infopanel/render/geometry.ts";
 import type { GaugeItem } from "@/lib/infopanel/schema.ts";
 import {
-  duplicateOrder, frameNames, gaugePaths, insertFramesGauge, insertVectorGauge, isGauge, isStale, moveOrder,
+  duplicateOrder, frameNames, gaugePaths, insertFramesGauge, insertVectorGauge, isGauge, moveOrder,
   removeOrder, reorderFrames, resampleOrder, reverseOrder, safeStem, setFrameFile, setFrameFiles, setVector, vectorOf,
 } from "@/lib/infopanel/gauges/frames.ts";
 import { deleteEntry, entrySignature, fetchFrame, fetchLibrary, newId, saveEntry, type LibraryEntry } from "./library.ts";
@@ -348,7 +348,6 @@ export function GaugePanel({ editor, profileName }: { editor: Editor; profileNam
                   <td>{gauge.Name}</td>
                   <td>
                     {vectorOf(gauge) ? "vector, live" : "frames"}
-                    {isStale(gauge) && <span style={{ color: "#999" }}> ({gauge.Images.length ? "InfoPanel frames out of date" : "no InfoPanel frames"})</span>}
                   </td>
                   <td>
                     {gauge.Images.length}

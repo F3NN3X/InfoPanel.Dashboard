@@ -48,7 +48,7 @@ describe("buildReport", () => {
     // The gauge reads a sensor too (unresolved here).
     expect(r.sensors).toEqual({ groups: 3, items: 3, byStatus: { exact: 1, unresolved: 2 }, attention: 2 });
     expect(r.assets).toMatchObject({ files: 1, bytes: 1, unused: 1, missing: ["gone.png"], absolute: ["C:\\x.png"] });
-    expect(r.gauges).toEqual({ total: 1, vector: 1, withoutFrames: 1 });
+    expect(r.gauges).toEqual({ total: 1, vector: 1 });
     expect(r.issues).toEqual({ "unknown-field": 1 });
   });
 
