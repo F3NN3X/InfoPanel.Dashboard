@@ -4,7 +4,8 @@ import { usePack, type Pack } from "@/looks/pack";
 type Fonts = NonNullable<Pack["fonts"]>;
 
 /** The built-in packs' manifests, each its own lazy chunk: only the Theme page reads a font's source and licence from them. */
-const manifests = import.meta.glob<{ fonts?: { source?: string; licence?: string }[] }>("../../looks/packs/*/pack.json", { import: "default" });
+// As text, so they stay modules of their own and the pack chunks keep importing their manifest as they did.
+const manifests = import.meta.glob<string>("../../looks/packs/*/pack.json", { query: "?raw", import: "default" });
 
 /** The pack a theme is, with the source and licence of its fonts (a built-in's are read from its manifest here, so the kiosk's pack code carries none). */
 export function usePackWithFonts(lookId: string | undefined): Pack | undefined {
@@ -15,7 +16,7 @@ export function usePackWithFonts(lookId: string | undefined): Pack | undefined {
     if (!load || !lookId) return;
     let live = true;
     void load().then(
-      (m) => live && setRead({ id: lookId, fonts: (m.fonts ?? []).map((f) => ({ source: f.source, licence: f.licence })) }),
+      (text) => live && setRead({ id: lookId, fonts: ((JSON.parse(text) as { fonts?: { source?: string; licence?: string }[] }).fonts ?? []).map((f) => ({ source: f.source, licence: f.licence })) }),
       () => {}
     );
     return () => {
