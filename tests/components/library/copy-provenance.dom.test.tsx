@@ -48,10 +48,9 @@ describe("copy provenance", () => {
     const { items } = parseDisplayItemsXml('<ArrayOfDisplayItem xmlns:xsi="x"><DisplayItem xsi:type="TextDisplayItem"><Name>one</Name></DisplayItem></ArrayOfDisplayItem>');
     const canvas: StoredCanvas = toStored({ name: "P", origin: "file", dataApi: null, defaultMode: "infopanel", profile, items, assets: new Map(), keyOf: () => null, fonts: [] });
     const zone = { id: "z", module: "canvas", colStart: 1, rowStart: 1, colSpan: 2, rowSpan: 1, visible: true, canvas } as Placement & { canvas: StoredCanvas };
-    const history = { canUndo: false, canRedo: false, undo: vi.fn(), redo: vi.fn() };
     const { container } = render(
       <ToastProvider>
-        <HostedEditor zone={zone} setConfig={vi.fn()} history={history} profileId="p1" />
+        <HostedEditor zone={zone} setConfig={vi.fn()} profileId="p1" />
       </ToastProvider>,
     );
     fireEvent.drop(container.querySelector(".overflow-hidden.min-h-0.flex-1")!, drop());

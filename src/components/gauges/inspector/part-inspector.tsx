@@ -48,7 +48,7 @@ const BLURB: Partial<Record<PartId, string>> = {
   text: "The value as text, in the middle.",
   title: "A caption.",
   background: "Behind the gauge.",
-  face: "A textured disc inside the ring: hex, dots, grid or carbon. Baked into the frames on export.",
+  face: "A textured disc inside the ring: hex, dots, grid or carbon.",
   rings: "Faint rings outside the arc.",
   pattern: "Stripes, dots or chevrons over the bar fill.",
   icons: "A row of icons in place of the bar.",

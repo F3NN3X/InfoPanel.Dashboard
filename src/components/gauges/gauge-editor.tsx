@@ -1,10 +1,10 @@
 /**
  * The gauge editor (spec §5). A vector gauge: header, parts list, preview stage (Change preset, the range
- * labelled, play) and the selected part's inspector with Value range and Colour zones (a canvas gauge adds the bake bar). An image sequence: the preview with its
+ * labelled, play) and the selected part's inspector with Value range and Colour zones. An image sequence: the preview with its
  * frame filmstrip and the frame tools. A profile gauge writes through to the config; anything else is a
  * working copy with its own undo, and leaving it with changes asks first.
  */
-import { useImperativeHandle, useState, type ReactNode, type Ref } from "react";
+import { useImperativeHandle, useState, type Ref } from "react";
 import type { StudioBridge } from "@/components/library/library-actions";
 import { normalizeGauge, type VectorGauge } from "@/lib/infopanel/gauges/vector";
 import { NO_RECOLOUR, recolourFilter } from "@/lib/infopanel/gauges/raster";
@@ -17,7 +17,6 @@ import { previewScope, themeNameOf } from "@/lib/gauge-studio/preview";
 import type { StoredCanvas } from "@/lib/infopanel/import/stored";
 import type { LibraryItem } from "@/lib/library";
 import type { ThemeTokens } from "@/lib/theme";
-import { BakeBar } from "./bake-bar";
 import { EditorHeader, type EditorHistory } from "./editor-header";
 import { useEditorShell, type EditorHandle, type WriteOptions } from "./editor-shell";
 import { EditorStage } from "./editor-stage";
@@ -87,8 +86,7 @@ function GaugeInPlaceEditor(props: GaugeEditorProps & { open: Extract<EditorOpen
     saveGauge({ name: edit.name, gauge: g, itemId: edit.origin?.itemId, from: entry ?? undefined, link: edit.link ?? undefined, ...o });
 
   if (edit.gauge) {
-    const bakeBar = canvas && entry ? <BakeBar bridge={bridge} source={canvas} entry={entry} gauge={edit.gauge} /> : null;
-    return <VectorEditor {...props} edit={edit} gauge={edit.gauge} write={write(edit.gauge)} below={bakeBar} />;
+    return <VectorEditor {...props} edit={edit} gauge={edit.gauge} write={write(edit.gauge)} />;
   }
   const stored = canvas ? zoneOf(bridge.config, canvas.zoneId)?.canvas : undefined;
   if (!canvas || !entry || !stored) return <Gone ref={ref} onBack={onBack} />;
@@ -153,11 +151,9 @@ interface VectorEditorProps extends GaugeEditorProps {
   edit: GaugeEdit;
   gauge: VectorGauge;
   write: (o?: WriteOptions) => Promise<LibraryItem>;
-  /** Under the editor: the bake bar of a canvas gauge. */
-  below?: ReactNode;
 }
 
-function VectorEditor({ ref, bridge, editorId, edit, gauge: g, write, below, theme, onBack, onSaved, onOpenRule, onOpenSources }: VectorEditorProps) {
+function VectorEditor({ ref, bridge, editorId, edit, gauge: g, write, theme, onBack, onSaved, onOpenRule, onOpenSources }: VectorEditorProps) {
   const sweep = usePlayback();
   const [view, setView] = useGaugeView();
   const [part, setPart] = useState<PartId>("shape");
@@ -198,7 +194,6 @@ function VectorEditor({ ref, bridge, editorId, edit, gauge: g, write, below, the
         <EditorStage gauge={g} playback={playback} scope={scope} themeName={themeNameOf(theme)} view={view} sensor={{ name: sensor.name, reading: sensor.p !== null, unit: sensor.unit }} zones={zones} onPickPreset={pick} onLive={(live) => setView({ live })} />
         <PartInspector part={selectable(g, part)} g={g} set={set} view={view} onView={setView} onOpenSources={onOpenSources} zones={zones} onOpenRule={onOpenRule} />
       </div>
-      {below}
       {shell.dialog}
     </div>
   );

@@ -1,44 +1,10 @@
 /**
- * Browser-only image work for gauges (L7): baking a vector gauge into PNG
- * frames and recolouring frames, both through a canvas.
+ * Browser-only image work for gauges: recolouring frames through a canvas.
  */
 import { assetFile, MIME, type AssetFile } from "../assets/assets.ts";
-import type { VectorGauge } from "./vector.ts";
-import { gaugeSvg } from "./vector-svg.ts";
 
 async function pngOf(canvas: OffscreenCanvas): Promise<Uint8Array> {
   return new Uint8Array(await (await canvas.convertToBlob({ type: "image/png" })).arrayBuffer());
-}
-
-/** SVG markup → PNG bytes at its own size (an <img> decodes SVG; createImageBitmap does not everywhere). */
-export async function rasterSvg(svg: string, width: number, height: number): Promise<Uint8Array> {
-  const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
-  try {
-    const img = new Image();
-    img.src = url;
-    await img.decode();
-    const canvas = new OffscreenCanvas(width, height);
-    canvas.getContext("2d")!.drawImage(img, 0, 0, width, height);
-    return await pngOf(canvas);
-  } finally {
-    URL.revokeObjectURL(url);
-  }
-}
-
-const pad = (i: number, count: number) => String(i).padStart(Math.max(3, String(count - 1).length), "0");
-
-/**
- * The gauge as `count` frames, frame i at i / (count − 1) of the range: the
- * frame InfoPanel picks for a value is the one drawn at that value.
- */
-export async function bake(g: VectorGauge, count: number, stem: string, onProgress?: (done: number) => void): Promise<AssetFile[]> {
-  const files: AssetFile[] = [];
-  for (let i = 0; i < count; i++) {
-    const p = count === 1 ? 1 : i / (count - 1);
-    files.push(await assetFile(`${stem}_${pad(i, count)}.png`, await rasterSvg(gaugeSvg(g, p), g.width, g.height), "added"));
-    onProgress?.(i + 1);
-  }
-  return files;
 }
 
 export interface Recolour {

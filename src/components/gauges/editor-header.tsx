@@ -110,7 +110,7 @@ export function EditorHeader({ edit, gauge, saving, history, onBack, onImport, o
           <span aria-hidden className="h-5 w-px bg-ui-subtle" />
         </>
       )}
-      <span title={onExport ? undefined : "An image sequence has no spec to export: its frames go out with the .infopanel export"}>
+      <span title={onExport ? undefined : "An image sequence has no spec to export"}>
         <Button onClick={onExport} disabled={!onExport} icon={<Upload strokeWidth={1.5} />}>
           Export
         </Button>

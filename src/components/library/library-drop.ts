@@ -151,20 +151,10 @@ async function dropGaugeIntoCanvas(b: StudioBridge, item: LibraryItem, zoneId: s
   const data = await gaugeOf(b, item);
   if (!data) return;
   const { openCanvas } = await import("@/lib/infopanel/canvas");
-  let frames = data.frames?.map(frameFile);
-  let baked: string | undefined;
-  // A spec with no frames draws nothing in InfoPanel: bake it now, and drop nothing if that fails.
-  if (data.vector && !frames?.length) {
-    b.toast(`Baking ${item.name}…`);
-    try {
-      ({ frames, baked } = await (await import("@/components/gauges/bake-on-drop")).bakeForDrop(data.vector, item.name));
-    } catch (e) {
-      return b.toast(`Couldn’t bake ${item.name}: ${e instanceof Error ? e.message : String(e)}`);
-    }
-  }
-  const gauge = { name: item.name, vector: data.vector, frames, baked, min: data.min, max: data.max, animationSpeed: data.animationSpeed };
-  // The canvas as it is now, not as it was at the drop: edits made while baking stay, and a zone removed meanwhile
-  // takes nothing. The history setter runs the updater at once, so `placed` is set when it returns.
+  const frames = data.frames?.map(frameFile);
+  const gauge = { name: item.name, vector: data.vector, frames, min: data.min, max: data.max, animationSpeed: data.animationSpeed };
+  // The canvas as it is now, and a zone removed meanwhile takes nothing. The history setter runs the updater at once,
+  // so `placed` is set when it returns.
   let placed: { path: ReturnType<typeof withDroppedGauge>["path"]; name: string } | undefined;
   b.setConfig((c) => {
     const current = canvasIn(c, zoneId);

@@ -315,7 +315,7 @@ export default function LibraryPage(p: LibraryPageProps) {
             (raw) => {
               const spec = gaugeDataOf(raw)?.vector;
               if (spec) downloadSpec(item.name, spec);
-              else toast("An image sequence has no spec to export: its frames go out with the .infopanel export");
+              else toast("An image sequence has no spec to export");
             },
             (e: Error) => toast(`Not exported: ${e.message}`),
           ),
