@@ -1,57 +1,55 @@
+/// <reference types="vite/client" />
 import { describe, expect, it } from "vitest";
-import { entriesFromZip, loadExport } from "@/lib/infopanel/archive.ts";
 import { checkValue } from "@/lib/infopanel/editor/registry.ts";
-import { FRESH, infopanelExport } from "@/lib/infopanel/export/write.ts";
 import { parseDisplayItemsXml, parseProfileXml } from "@/lib/infopanel/parse.ts";
 import { defaultItem, PROFILE, SCHEMAS, type FieldSpec, type ItemKind } from "@/lib/infopanel/schema.ts";
-import { assetNames, FIXED_FIELDS, fixtures, fullItem, fullProfile, KINDS, PNG, withChildren } from "./kind-cases.ts";
+import { FIXED_FIELDS, fixtures, fullItem, fullProfile, KINDS, withChildren } from "./kind-cases.ts";
 
 const specs = (schema: unknown) => Object.entries(schema as Record<string, FieldSpec<unknown>>);
 
+/** Files InfoPanel's XmlSerializer wrote from `kind-cases.ts` (every field set), read as they are: the parse input is fixed. */
+const files = import.meta.glob<string>("../__fixtures__/kinds/*.xml", { query: "?raw", import: "default", eager: true });
+const fixture = (name: string): string => files[`../__fixtures__/kinds/${name}.xml`];
+/** What the export carried of the profile: the window state a fresh profile has. */
+const FRESH = { IsSelected: false, Drag: true, Active: true, Topmost: false, WindowX: 0, WindowY: 0, Resize: true, StrictWindowMatching: false, TriggerProcessNames: null };
+
 describe("every field of every kind", () => {
-  it.each(KINDS)("%s: all fields set, written, read back equal", async (kind) => {
+  it.each(KINDS)("%s: all fields set, read from its file equal", (kind) => {
     const item = withChildren(kind);
     // The case really sets everything: only the fields with no second value keep their default.
     const kept = specs(SCHEMAS[kind]).filter(([name, spec]) => (item as unknown as Record<string, unknown>)[name] === spec.default);
     expect(kept.map(([name]) => `${kind}.${name}`)).toEqual(FIXED_FIELDS.filter((f) => f.startsWith(`${kind}.`)));
 
-    const assets = assetNames([item]).map((name) => ({ name, bytes: PNG }));
-    const back = await loadExport(entriesFromZip(infopanelExport(fullProfile(), [item], assets)));
+    const back = parseDisplayItemsXml(fixture(kind));
     expect(back.items).toEqual([item]);
+    expect(back.issues.filter((i) => i.code !== "unknown-field")).toEqual([]);
+  });
+
+  it("reads the profile with every field set", () => {
+    const back = parseProfileXml(fixture("Profile"));
     expect(back.profile).toEqual({ ...fullProfile(), ...FRESH });
     expect(back.issues.filter((i) => i.code !== "unknown-field")).toEqual([]);
-    expect([...back.assets.keys()].sort()).toEqual(assets.map((a) => a.name.toLowerCase()).sort());
   });
 
-  it("keeps unknown fields on items, frames and the profile", async () => {
-    const gauge = withChildren("Gauge");
-    const back = await loadExport(entriesFromZip(infopanelExport(fullProfile(), [gauge], [])));
-    expect(back.profile.unknown).toEqual({ FutureProfile: "7 & Profile" });
-    expect(back.items[0].unknown).toEqual({ FutureGauge: "7 & Gauge" });
-    expect((back.items[0] as typeof gauge & { Images: { unknown: unknown }[] }).Images[1].unknown).toEqual({ FutureFrame1: "7 & Frame1" });
+  it("keeps unknown fields on items, frames and the profile", () => {
+    const gauge = parseDisplayItemsXml(fixture("Gauge")).items[0] as ReturnType<typeof withChildren> & { Images: { unknown: unknown }[] };
+    expect(parseProfileXml(fixture("Profile")).profile.unknown).toEqual({ FutureProfile: "7 & Profile" });
+    expect(gauge.unknown).toEqual({ FutureGauge: "7 & Gauge" });
+    expect(gauge.Images[1].unknown).toEqual({ FutureFrame1: "7 & Frame1" });
   });
 
-  it("keeps a mixed profile in order, children and frames included", async () => {
+  it("keeps a mixed profile in order, children and frames included", () => {
     const mixed = fixtures().find((f) => f.name === "Kinds-mixed")!;
-    const back = await loadExport(entriesFromZip(infopanelExport(mixed.profile, mixed.items, mixed.assets)));
-    expect(back.items.map((i) => i.kind)).toEqual(KINDS);
-    expect(back.items).toEqual(mixed.items);
+    const back = parseDisplayItemsXml(fixture("Kinds-mixed")).items;
+    expect(back.map((i) => i.kind)).toEqual(KINDS);
+    expect(back).toEqual(mixed.items);
   });
 
-  it("writes numbers at their limits", async () => {
-    const item = {
-      ...defaultItem("Sensor"),
-      X: 2147483647,
-      Y: -2147483648,
-      Id: 4294967295,
-      MultiplicationModifier: 1e-7,
-      AdditionModifier: 1e21,
-      Threshold1: 123456789.125,
-      Threshold2: -2.5,
-    };
-    const back = await loadExport(entriesFromZip(infopanelExport({ ...fullProfile(), FontScale: Math.fround(0.1) }, [item], [])));
-    expect(back.items).toEqual([item]);
-    expect(back.profile.FontScale).toBe(Math.fround(0.1));
+  it("reads numbers at their limits", () => {
+    const xml = `<ArrayOfDisplayItem xmlns:xsi="x"><DisplayItem xsi:type="SensorDisplayItem"><X>2147483647</X><Y>-2147483648</Y><Id>4294967295</Id><MultiplicationModifier>1E-07</MultiplicationModifier><AdditionModifier>1E+21</AdditionModifier><Threshold1>123456789.125</Threshold1><Threshold2>-2.5</Threshold2></DisplayItem></ArrayOfDisplayItem>`;
+    const [item] = parseDisplayItemsXml(xml).items;
+    expect(item).toMatchObject({ ...defaultItem("Sensor"), X: 2147483647, Y: -2147483648, Id: 4294967295, MultiplicationModifier: 1e-7, AdditionModifier: 1e21, Threshold1: 123456789.125, Threshold2: -2.5 });
+    expect(parseProfileXml("<Profile><FontScale>0.1</FontScale></Profile>").profile.FontScale).toBe(Math.fround(0.1));
   });
 });
 

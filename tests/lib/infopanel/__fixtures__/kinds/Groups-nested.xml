@@ -1,0 +1,180 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ArrayOfDisplayItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <DisplayItem xsi:type="GroupDisplayItem">
+    <Name>Outer</Name>
+    <Hidden>false</Hidden>
+    <X>0</X>
+    <Y>5</Y>
+    <IsLocked>false</IsLocked>
+    <Rotation>0</Rotation>
+    <IsExpanded>true</IsExpanded>
+    <DisplayItems>
+      <DisplayItem xsi:type="TextDisplayItem">
+        <Name>a</Name>
+        <Hidden>true</Hidden>
+        <X>0</X>
+        <Y>5</Y>
+        <IsLocked>true</IsLocked>
+        <Rotation>7</Rotation>
+        <Font>Fira Sans</Font>
+        <FontSize>27</FontSize>
+        <Bold>true</Bold>
+        <Italic>true</Italic>
+        <Underline>true</Underline>
+        <Strikeout>true</Strikeout>
+        <Color>#FF2468AC</Color>
+        <Uppercase>true</Uppercase>
+        <GlowRadius>15</GlowRadius>
+        <FontStyle>Bold Italic</FontStyle>
+        <RightAlign>true</RightAlign>
+        <CenterAlign>true</CenterAlign>
+        <Wrap>false</Wrap>
+        <Ellipsis>false</Ellipsis>
+        <Width>7</Width>
+        <Height>7</Height>
+        <Marquee>true</Marquee>
+        <MarqueeSpeed>57</MarqueeSpeed>
+        <MarqueeSpacing>47</MarqueeSpacing>
+        <GlowEnabled>true</GlowEnabled>
+        <GlowColor>#FF2468AC</GlowColor>
+        <GlowBlendMode>Screen</GlowBlendMode>
+        <FutureText>7 &amp; Text</FutureText>
+      </DisplayItem>
+      <DisplayItem xsi:type="GroupDisplayItem">
+        <Name>Inner</Name>
+        <Hidden>false</Hidden>
+        <X>10</X>
+        <Y>15</Y>
+        <IsLocked>false</IsLocked>
+        <Rotation>0</Rotation>
+        <IsExpanded>true</IsExpanded>
+        <DisplayItems>
+          <DisplayItem xsi:type="TextDisplayItem">
+            <Name>d</Name>
+            <Hidden>true</Hidden>
+            <X>30</X>
+            <Y>35</Y>
+            <IsLocked>true</IsLocked>
+            <Rotation>7</Rotation>
+            <Font>Fira Sans</Font>
+            <FontSize>27</FontSize>
+            <Bold>true</Bold>
+            <Italic>true</Italic>
+            <Underline>true</Underline>
+            <Strikeout>true</Strikeout>
+            <Color>#FF2468AC</Color>
+            <Uppercase>true</Uppercase>
+            <GlowRadius>15</GlowRadius>
+            <FontStyle>Bold Italic</FontStyle>
+            <RightAlign>true</RightAlign>
+            <CenterAlign>true</CenterAlign>
+            <Wrap>false</Wrap>
+            <Ellipsis>false</Ellipsis>
+            <Width>7</Width>
+            <Height>7</Height>
+            <Marquee>true</Marquee>
+            <MarqueeSpeed>57</MarqueeSpeed>
+            <MarqueeSpacing>47</MarqueeSpacing>
+            <GlowEnabled>true</GlowEnabled>
+            <GlowColor>#FF2468AC</GlowColor>
+            <GlowBlendMode>Screen</GlowBlendMode>
+            <FutureText>7 &amp; Text</FutureText>
+          </DisplayItem>
+          <DisplayItem xsi:type="TextDisplayItem">
+            <Name>b</Name>
+            <Hidden>true</Hidden>
+            <X>10</X>
+            <Y>15</Y>
+            <IsLocked>true</IsLocked>
+            <Rotation>7</Rotation>
+            <Font>Fira Sans</Font>
+            <FontSize>27</FontSize>
+            <Bold>true</Bold>
+            <Italic>true</Italic>
+            <Underline>true</Underline>
+            <Strikeout>true</Strikeout>
+            <Color>#FF2468AC</Color>
+            <Uppercase>true</Uppercase>
+            <GlowRadius>15</GlowRadius>
+            <FontStyle>Bold Italic</FontStyle>
+            <RightAlign>true</RightAlign>
+            <CenterAlign>true</CenterAlign>
+            <Wrap>false</Wrap>
+            <Ellipsis>false</Ellipsis>
+            <Width>7</Width>
+            <Height>7</Height>
+            <Marquee>true</Marquee>
+            <MarqueeSpeed>57</MarqueeSpeed>
+            <MarqueeSpacing>47</MarqueeSpacing>
+            <GlowEnabled>true</GlowEnabled>
+            <GlowColor>#FF2468AC</GlowColor>
+            <GlowBlendMode>Screen</GlowBlendMode>
+            <FutureText>7 &amp; Text</FutureText>
+          </DisplayItem>
+          <DisplayItem xsi:type="TextDisplayItem">
+            <Name>c</Name>
+            <Hidden>true</Hidden>
+            <X>20</X>
+            <Y>25</Y>
+            <IsLocked>true</IsLocked>
+            <Rotation>7</Rotation>
+            <Font>Fira Sans</Font>
+            <FontSize>27</FontSize>
+            <Bold>true</Bold>
+            <Italic>true</Italic>
+            <Underline>true</Underline>
+            <Strikeout>true</Strikeout>
+            <Color>#FF2468AC</Color>
+            <Uppercase>true</Uppercase>
+            <GlowRadius>15</GlowRadius>
+            <FontStyle>Bold Italic</FontStyle>
+            <RightAlign>true</RightAlign>
+            <CenterAlign>true</CenterAlign>
+            <Wrap>false</Wrap>
+            <Ellipsis>false</Ellipsis>
+            <Width>7</Width>
+            <Height>7</Height>
+            <Marquee>true</Marquee>
+            <MarqueeSpeed>57</MarqueeSpeed>
+            <MarqueeSpacing>47</MarqueeSpacing>
+            <GlowEnabled>true</GlowEnabled>
+            <GlowColor>#FF2468AC</GlowColor>
+            <GlowBlendMode>Screen</GlowBlendMode>
+            <FutureText>7 &amp; Text</FutureText>
+          </DisplayItem>
+        </DisplayItems>
+      </DisplayItem>
+    </DisplayItems>
+  </DisplayItem>
+  <DisplayItem xsi:type="TextDisplayItem">
+    <Name>e</Name>
+    <Hidden>true</Hidden>
+    <X>40</X>
+    <Y>45</Y>
+    <IsLocked>true</IsLocked>
+    <Rotation>7</Rotation>
+    <Font>Fira Sans</Font>
+    <FontSize>27</FontSize>
+    <Bold>true</Bold>
+    <Italic>true</Italic>
+    <Underline>true</Underline>
+    <Strikeout>true</Strikeout>
+    <Color>#FF2468AC</Color>
+    <Uppercase>true</Uppercase>
+    <GlowRadius>15</GlowRadius>
+    <FontStyle>Bold Italic</FontStyle>
+    <RightAlign>true</RightAlign>
+    <CenterAlign>true</CenterAlign>
+    <Wrap>false</Wrap>
+    <Ellipsis>false</Ellipsis>
+    <Width>7</Width>
+    <Height>7</Height>
+    <Marquee>true</Marquee>
+    <MarqueeSpeed>57</MarqueeSpeed>
+    <MarqueeSpacing>47</MarqueeSpacing>
+    <GlowEnabled>true</GlowEnabled>
+    <GlowColor>#FF2468AC</GlowColor>
+    <GlowBlendMode>Screen</GlowBlendMode>
+    <FutureText>7 &amp; Text</FutureText>
+  </DisplayItem>
+</ArrayOfDisplayItem>

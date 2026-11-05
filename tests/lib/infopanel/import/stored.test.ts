@@ -8,7 +8,6 @@ import type { BoundItem } from "@/lib/infopanel/sensors.ts";
 import { STARTERS } from "@/lib/infopanel/gauges/presets.ts";
 import { DEFAULT_GAUGE } from "@/lib/infopanel/gauges/vector.ts";
 import { assetsFrom, newStored, overridesFrom, readStored, remapKeys, toStored, type StoreInput } from "@/lib/infopanel/import/stored.ts";
-import { profileXml } from "@/lib/infopanel/export/write.ts";
 import { checkValue } from "@/lib/infopanel/editor/registry.ts";
 import { defaultItem, PROFILE } from "@/lib/infopanel/schema.ts";
 import { newItem } from "@/lib/infopanel/editor/create.ts";
@@ -160,7 +159,7 @@ describe("a profile from scratch", () => {
 });
 
 describe("profile settings", () => {
-  it("every field InfoPanel exports round-trips through the stored form and Profile.xml", () => {
+  it("every field InfoPanel exports round-trips through the stored form", () => {
     const edits: Record<string, unknown> = {
       Name: "Side & panel", Width: 1280, Height: 480, BackgroundColor: "#FF112233", Font: "Orbitron", FontSize: 18, Color: "#CCFFEEDD",
       FontScale: 1.5, ShowFps: true, OpenGL: true, WebViewEnabled: true, WebViewUrl: "http://127.0.0.1/x?a=1&b=2", WebViewInteractive: true,
@@ -175,7 +174,6 @@ describe("profile settings", () => {
     const stored = toStored(input([], { profile }));
     const back = readStored(JSON.parse(JSON.stringify(stored))).profile;
     expect(back).toEqual(profile);
-    expect(parseProfileXml(profileXml(back)).profile).toEqual(profile);
   });
 
   it("refuses what InfoPanel's setters refuse, and clamps what they clamp", () => {

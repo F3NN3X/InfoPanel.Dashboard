@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ArrayOfDisplayItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <DisplayItem xsi:type="SensorImageDisplayItem">
+    <Name>SensorImage.Name &amp; &lt;é&gt;</Name>
+    <Hidden>true</Hidden>
+    <X>107</X>
+    <Y>107</Y>
+    <IsLocked>true</IsLocked>
+    <Rotation>7</Rotation>
+    <Type>URL</Type>
+    <FilePath>pic &amp; more.png</FilePath>
+    <RelativePath>true</RelativePath>
+    <RtspUrl>rtsp://cam.local/stream</RtspUrl>
+    <HttpUrl>https://example.com/a.png</HttpUrl>
+    <Cache>false</Cache>
+    <Scale>107</Scale>
+    <Layer>true</Layer>
+    <LayerColor>#FF2468AC</LayerColor>
+    <ShowPanel>true</ShowPanel>
+    <Volume>7</Volume>
+    <Width>7</Width>
+    <Height>7</Height>
+    <_valueType>MIN</_valueType>
+    <SensorName>SensorImage.SensorName &amp; &lt;é&gt;</SensorName>
+    <SensorType>Libre</SensorType>
+    <HwInfoRemoteIndex>6</HwInfoRemoteIndex>
+    <Id>4026535920</Id>
+    <Instance>4026535920</Instance>
+    <EntryId>4026535920</EntryId>
+    <LibreSensorId>/intelcpu/0/load/0</LibreSensorId>
+    <PluginSensorId>/InfoPanel.Extras/procs/table</PluginSensorId>
+    <ValueType>MIN</ValueType>
+    <Threshold1>2.5</Threshold1>
+    <Threshold2>102.5</Threshold2>
+    <FutureSensorImage>7 &amp; SensorImage</FutureSensorImage>
+  </DisplayItem>
+</ArrayOfDisplayItem>

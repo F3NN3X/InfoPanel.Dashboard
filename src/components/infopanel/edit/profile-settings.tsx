@@ -12,7 +12,7 @@ import { PROFILE, type Profile } from "@/lib/infopanel/schema";
 import { Toggle } from "@/components/ui/toggle";
 import { fromCss, toCss } from "@/components/studio/inspector/infopanel-defs";
 import type { CanvasEditor } from "./use-canvas-editor";
-import { dotnetFloat } from "@/lib/infopanel/export/write";
+import { dotnetFloat } from "@/lib/infopanel/dotnet-format";
 import { argbOf, SLOT_LABEL, SLOTS, type Slot } from "@/lib/infopanel/elements/palette";
 import { ColsRows, PageHeader, PageRow, SnapSection } from "@/components/studio/page-settings-parts";
 import { Cable } from "lucide-react";

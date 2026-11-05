@@ -1,10 +1,9 @@
 // Studio widgets on a Free page (one-editor SPEC §3.3): the widget item helpers, its `$.widget` record through the
-// stored form, and the writer leaving any unconverted one out of an .infopanel.
+// stored form.
 import { describe, expect, it } from "vitest";
 import { newItem } from "@/lib/infopanel/editor/create";
 import { defaultItem, type DisplayItem } from "@/lib/infopanel/schema";
 import { decodeWidget, newStored, readStored, toStored, type StoreInput } from "@/lib/infopanel/import/stored";
-import { displayItemsXml, infopanelExport } from "@/lib/infopanel/export/write";
 import { storeItems } from "@/lib/infopanel/canvas-edit";
 import { storedCanvasWidgets } from "@/lib/infopanel/canvas-keys";
 import {
@@ -146,13 +145,5 @@ describe("$.widget in the stored form", () => {
   it("is listed by the zone's subscription straight from the JSON", () => {
     expect(storedCanvasWidgets(toStored(input([text, group(weather)])))).toEqual([{ module: "Weather", settings: { units: "metric" } }]);
     expect(storedCanvasWidgets(null)).toEqual([]);
-  });
-});
-
-describe("the .infopanel writer", () => {
-  it("leaves out a widget item nothing converted: InfoPanel would show an empty Image", () => {
-    const out = infopanelExport(profile, [text, weather, group(weather)], []);
-    expect(out).toEqual(infopanelExport(profile, [text, group()], []));
-    expect(displayItemsXml([text, group()])).not.toContain("ImageDisplayItem");
   });
 });

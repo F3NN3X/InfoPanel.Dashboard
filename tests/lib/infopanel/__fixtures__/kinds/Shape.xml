@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ArrayOfDisplayItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <DisplayItem xsi:type="ShapeDisplayItem">
+    <Name>Shape.Name &amp; &lt;é&gt;</Name>
+    <Hidden>true</Hidden>
+    <X>107</X>
+    <Y>107</Y>
+    <IsLocked>true</IsLocked>
+    <Rotation>7</Rotation>
+    <Type>Capsule</Type>
+    <Width>107</Width>
+    <Height>107</Height>
+    <CornerRadius>32</CornerRadius>
+    <ShowFrame>false</ShowFrame>
+    <FrameThickness>12</FrameThickness>
+    <FrameColor>#FF2468AC</FrameColor>
+    <ShowFill>false</ShowFill>
+    <FillColor>#FF2468AC</FillColor>
+    <ShowGradient>false</ShowGradient>
+    <GradientColor>#FF2468AC</GradientColor>
+    <GradientColor2>#FF2468AC</GradientColor2>
+    <GradientType>Sweep</GradientType>
+    <GradientAngle>7</GradientAngle>
+    <GradientAnimationSpeed>307</GradientAnimationSpeed>
+    <FutureShape>7 &amp; Shape</FutureShape>
+  </DisplayItem>
+</ArrayOfDisplayItem>
