@@ -135,7 +135,7 @@ function HelpMenu({ rail, onHelp, onShortcuts, onPalette, onSettings }: { rail: 
                   <Icon className="h-4 w-4 shrink-0 text-ui-hint" strokeWidth={1.5} aria-hidden />
                   {label}
                 </span>
-                <span className="font-ui-mono text-micro text-ui-hint">{hint}</span>
+                <span className="font-ui-mono text-micro text-ui-hint group-data-highlighted:text-ui-2">{hint}</span>
               </Menu.Item>
             ))}
           </Menu.Popup>
