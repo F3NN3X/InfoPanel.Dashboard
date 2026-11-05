@@ -7,6 +7,7 @@ import { CONTROL_MOTION, FOCUS_RING } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
 import { StatusDot } from "@/components/ui/status-chip";
 import type { DashboardConfig } from "@/lib/layout";
+import { isTauri } from "@/lib/desktop";
 import { cn } from "@/lib/utils";
 import { HIGHLIGHT, ITEM, POPUP } from "../menu-styles";
 import { StudioLogo } from "../studio-logo";
@@ -219,6 +220,7 @@ export default function StudioSidebar(props: StudioSidebarProps) {
   const narrow = windowWidth < RAIL_MAX;
   const collapsed = editing ? editor : workspace;
   const rail = narrow || collapsed;
+  const drag = editing && isTauri();
   const toggle = () => (editing ? setEditor : setWorkspace)(!collapsed);
   const collapseButton = !narrow && (
     <IconButton label={rail ? "Expand sidebar" : "Collapse sidebar"} size={30} aria-expanded={!rail} onClick={toggle} className={rail ? "self-center" : undefined}>
@@ -227,10 +229,11 @@ export default function StudioSidebar(props: StudioSidebarProps) {
   );
   return (
     <Tooltip.Provider delay={300}>
-      <aside aria-label="Studio sidebar" className={cn("flex shrink-0 flex-col gap-1 border-r border-ui-subtle bg-ui-chrome p-3 font-ui", rail ? "w-[60px]" : "w-[232px]")}>
-        <div className={cn("mb-3 flex h-8 shrink-0 items-center gap-2", rail ? "justify-center" : "pl-1")}>
+      <aside aria-label="Studio sidebar" className={cn("flex min-h-0 shrink-0 flex-col gap-1 overflow-y-auto border-r border-ui-subtle bg-ui-chrome p-3 font-ui", rail ? "w-[60px]" : "w-[232px]")}>
+        {/* In Edit there is no window strip, and the top bar starts after the sidebar: its header row drags the window. */}
+        <div data-tauri-drag-region={drag ? "" : undefined} className={cn("mb-3 flex h-8 shrink-0 items-center gap-2", rail ? "justify-center" : "pl-1")}>
           {narrow || !rail ? <StudioLogo className="pointer-events-none h-7 w-7 shrink-0" /> : null}
-          {!rail && <span className="min-w-0 flex-1 truncate text-body font-medium text-ui-1">InfoPanel Studio</span>}
+          {!rail && <span className={cn("min-w-0 flex-1 truncate text-body font-medium text-ui-1", drag && "pointer-events-none")}>InfoPanel Studio</span>}
           {collapseButton}
         </div>
         <nav aria-label="Studio views" className="flex min-h-0 flex-col gap-0.5">

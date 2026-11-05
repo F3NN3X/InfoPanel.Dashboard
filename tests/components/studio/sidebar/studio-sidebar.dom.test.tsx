@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LiveControl } from "@/components/studio/live-popover";
 import StudioSidebar, { SIDEBAR_EDITOR_KEY, SIDEBAR_WORKSPACE_KEY } from "@/components/studio/sidebar/studio-sidebar";
 import { ToastProvider } from "@/components/ui/toast";
+import * as desktop from "@/lib/desktop";
 import type { DashboardConfig } from "@/lib/layout";
 import { sidebarStatus } from "./status";
 
@@ -75,6 +76,24 @@ describe("collapse", () => {
     expect(width()).toContain("w-[60px]");
     expect(screen.queryByRole("button", { name: /sidebar/ })).toBeNull();
     expect(localStorage.getItem(SIDEBAR_WORKSPACE_KEY)).toBe("0");
+  });
+});
+
+describe("the frame", () => {
+  it("scrolls rather than clips, so a short window still reaches the Data API card (M5)", () => {
+    renderSidebar();
+    expect(screen.getByRole("complementary", { name: "Studio sidebar" }).className).toContain("overflow-y-auto");
+  });
+
+  it("drags the window by its header in Edit under Tauri, and nowhere else", () => {
+    const tauri = vi.spyOn(desktop, "isTauri").mockReturnValue(true);
+    const header = () => document.querySelector("[data-tauri-drag-region]");
+    const { unmount } = renderSidebar({ editing: true });
+    expect(header()).not.toBeNull();
+    unmount();
+    renderSidebar({ editing: false });
+    expect(header()).toBeNull();
+    tauri.mockReturnValue(false);
   });
 });
 
