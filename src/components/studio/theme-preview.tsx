@@ -1,7 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { Minus, Plus } from "lucide-react";
 import { IconButton } from "@/components/ui/icon-button";
-import { SEGMENT_OFF, SEGMENT_ON } from "@/components/ui/segmented";
+import { Segmented, SEGMENT_OFF, SEGMENT_ON } from "@/components/ui/segmented";
+import { MotionOverride } from "@/hooks/use-performance";
 import { useElementSize } from "@/hooks/use-element-size";
 import type { DashboardConfig, MonitorProfile, ProfilePage as Page } from "@/lib/layout";
 import { cn } from "@/lib/utils";
@@ -42,10 +43,13 @@ interface ThemePreviewProps {
   levelName: string;
   /** What below the level doesn't follow it, the theme's own writes left out (`differencesOf`). */
   differences: readonly ThemeException[];
-  /** The Update bar (`ThemeUpdateBar`), in the header before the differences pill and the zoom. */
-  bar?: ReactNode;
+  /** Lite mode: the preview draws as a screen that saves work (no motion, its pack's effects cut back). */
+  lite: boolean;
+  onLite: (lite: boolean) => void;
   /** The toast row, under the header. */
   toast?: ReactNode;
+  /** Under the preview: the changes line and the quick switch. */
+  footer?: ReactNode;
   /** Make these follow the level again, in one change. */
   onFollow: (differences: readonly ThemeException[]) => void;
   onOpenInEdit: (pageId: string, zoneId: string) => void;
@@ -58,7 +62,7 @@ interface ThemePreviewProps {
  * "✎ ‹section›". A widget clicked is selected, and the bar under the canvas says what it uses of its own, with Use
  * theme's value and Open in Edit; with none selected, Make all follow.
  */
-export function ThemePreview({ config, at, profile, page, onPage, levelName, differences, bar, toast, onFollow, onOpenInEdit }: ThemePreviewProps) {
+export function ThemePreview({ config, at, profile, page, onPage, levelName, differences, lite, onLite, toast, footer, onFollow, onOpenInEdit }: ThemePreviewProps) {
   const { ref, w } = useElementSize();
   // Fit, or a zoom picked with − / + / 100% (the frame then scrolls).
   const [zoom, setZoom] = useState<number | "fit">("fit");
@@ -105,7 +109,7 @@ export function ThemePreview({ config, at, profile, page, onPage, levelName, dif
   return (
     <section aria-label="Preview" className="flex w-full min-w-0 flex-col gap-3.5">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-        <h2 className="text-body font-normal text-ui-soft">Preview</h2>
+        <h2 className="sr-only">Preview</h2>
         <div role="group" aria-label="Page to preview" className="flex gap-0.5 rounded-[7px] border border-ui-strong bg-ui-panel p-0.5">
           {profile.pages.map((pg) => (
             <button
@@ -125,7 +129,8 @@ export function ThemePreview({ config, at, profile, page, onPage, levelName, dif
             </button>
           ))}
         </div>
-        <div className="ml-auto flex shrink-0 justify-end">{bar}</div>
+        <p className="min-w-0 truncate text-caption text-ui-3 max-sm:hidden">As the kiosk draws it, scenery and effects included</p>
+        <span className="ml-auto" />
         {(foreign || diffs.size > 0 || !tags) && (
           <button
             type="button"
@@ -137,6 +142,16 @@ export function ThemePreview({ config, at, profile, page, onPage, levelName, dif
             {foreign ? "Differences show on the page you edit" : differencesPill(diffs.size, tags)}
           </button>
         )}
+        <span className="text-caption text-ui-3">Show as</span>
+        <Segmented
+          label="Show as"
+          options={[
+            { value: "full", label: "Full" },
+            { value: "lite", label: "Lite mode", title: "A screen that saves work: no motion, and the pack's effects cut back" },
+          ]}
+          value={lite ? "lite" : "full"}
+          onChange={(v) => onLite(v === "lite")}
+        />
         <div role="group" aria-label="Preview zoom" className="flex items-center gap-0.5">
           <IconButton label="Zoom out" className={ZOOM_BUTTON} onClick={() => setZoom(stepZoom(scale, -1))}>
             <Minus className="h-4 w-4" />
@@ -174,12 +189,15 @@ export function ThemePreview({ config, at, profile, page, onPage, levelName, dif
             style={{ width: profile.width * scale, height: profile.height * scale }}
           >
             <div className="pointer-events-none absolute left-0 top-0 origin-top-left" style={{ scale: String(scale) }} inert>
-              <ProfilePage
-                profile={previewProfile(profile, at)}
-                dashboard={config}
-                pageId={page.id}
-                badge={(p) => <span data-preview-zone={p.id} className="pointer-events-none absolute inset-0" />}
-              />
+              <MotionOverride reduce={lite}>
+                <ProfilePage
+                  profile={previewProfile(profile, at)}
+                  dashboard={config}
+                  pageId={page.id}
+                  stage
+                  badge={(p) => <span data-preview-zone={p.id} className="pointer-events-none absolute inset-0" />}
+                />
+              </MotionOverride>
             </div>
             {boxes.map((b) => {
               const d = diffs.get(b.id);
@@ -239,6 +257,7 @@ export function ThemePreview({ config, at, profile, page, onPage, levelName, dif
           )}
         </div>
       )}
+      {footer}
     </section>
   );
 }

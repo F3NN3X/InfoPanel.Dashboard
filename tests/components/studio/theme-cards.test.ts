@@ -9,7 +9,9 @@ import {
   resetCard,
   THEME_CARDS,
   themeCard,
+  resetCorners,
   withCardLock,
+  withCorners,
   withPageFont,
   withToken,
   withTokens,
@@ -175,5 +177,18 @@ describe("withTokens (a palette picked)", () => {
 
   it("a screen with no accent of its own takes the palette's", () => {
     expect(desk(withTokens(setup(), SCREEN, blue, "#ffb000")).widgetTheme?.values).toEqual({ accent: "#ffb000" });
+  });
+});
+
+describe("the one Corners control (L48)", () => {
+  it("writes the same px to the widget knob and the screen's rem, and Reset gives the theme's corners back", () => {
+    const set = withCorners(setup(), SCREEN, 12);
+    expect(desk(set).radius).toBe(0.75);
+    expect(desk(set).widgetTheme?.values?.radius).toBe("12");
+    const reset = resetCorners(set, SCREEN, 0.5);
+    expect(desk(reset).radius).toBe(0.5);
+    expect(desk(reset).widgetTheme?.values?.radius).toBeUndefined();
+    // No theme names corners: the built-in ones, so the screen stores none.
+    expect("radius" in desk(resetCorners(set, SCREEN, undefined))).toBe(false);
   });
 });

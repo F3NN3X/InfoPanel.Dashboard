@@ -67,6 +67,8 @@ interface SwitchThemeProps {
   /** + Save current look. */
   onSaveCurrent: (name: string) => void;
   onBack: () => void;
+  /** The screen whose "Keep my background" choice the footer holds. */
+  profileId: string;
   /** The other screens the current theme can be applied to; none (a page, or no theme here) hides the action. */
   otherScreens?: readonly { id: string; name: string; size: string }[];
   /** Apply the current theme to the ticked screens (and this one). */
@@ -87,7 +89,7 @@ const FILTERS: { id: ThemeFilter; label: string }[] = [
  */
 export function SwitchThemePicker(p: SwitchThemeProps) {
   const [filter, setFilter] = useState<ThemeFilter>("all");
-  const [keep, setKeep] = useState(getKeepBackground);
+  const [keep, setKeep] = useState(() => getKeepBackground(p.profileId));
   const [toScreens, setToScreens] = useState(false);
   const [menuFor, setMenuFor] = useState<string>();
   const [renaming, setRenaming] = useState<string>();
@@ -108,7 +110,7 @@ export function SwitchThemePicker(p: SwitchThemeProps) {
               type="checkbox"
               checked={keep}
               onChange={(e) => {
-                setKeepBackground(e.target.checked);
+                setKeepBackground(p.profileId, e.target.checked);
                 setKeep(e.target.checked);
               }}
               className="peer sr-only"

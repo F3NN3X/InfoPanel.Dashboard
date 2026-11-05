@@ -1,99 +1,63 @@
 import { Menu } from "@base-ui/react/menu";
-import { ChevronDown } from "lucide-react";
-import { SEGMENT_OFF, SEGMENT_ON } from "@/components/ui/segmented";
+import { Check, ChevronDown, Monitor } from "lucide-react";
+import { FOCUS_RING } from "@/components/ui/button";
 import type { DashboardConfig, MonitorProfile, ProfilePage } from "@/lib/layout";
 import { cn } from "@/lib/utils";
-import { ITEM, POPUP } from "./menu-styles";
+import { HIGHLIGHT, ITEM, POPUP } from "./menu-styles";
 import type { ThemeAt } from "./theme-cards";
 
 interface ThemeScopeBarProps {
   config: DashboardConfig;
   at: ThemeAt;
-  /** The screen and page the Screen and Page segments name (the Design selection until another is picked). */
+  /** The screen and page the level names (the Design selection until another is picked). */
   profile: MonitorProfile;
   page: ProfilePage;
   /** Pick a level; `profileId` / `pageId` move the control to another screen or page. */
   onPick: (level: ThemeAt["level"], profileId: string, pageId: string) => void;
 }
 
-/** One segment: a bold label and its mono sub-label; active on #27272a. */
-function Segment({ label, sub, active, onClick }: { label: string; sub: string; active: boolean; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      aria-pressed={active}
-      onClick={onClick}
-      className={cn(
-        "flex h-7 min-w-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 text-body font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent",
-        active ? SEGMENT_ON : SEGMENT_OFF
-      )}
-    >
-      <span className="truncate">{label}</span>
-      <span className="font-ui-mono text-micro font-normal text-ui-hint max-sm:hidden">{sub}</span>
-    </button>
-  );
-}
-
-/** A segment's menu: pick another screen or page. */
-function Pick<T extends { id: string; name: string }>({
-  label,
-  items,
-  current,
-  meta,
-  onPick,
-}: {
-  label: string;
-  items: readonly T[];
-  current: string;
-  meta?: (item: T) => string;
-  onPick: (item: T) => void;
-}) {
+/**
+ * Theme's level picker: ‹screen› · whole screen, or ‹screen› › ‹page› page, one control with a menu of every screen and its
+ * pages. Each screen owns its theme; a page changes sections of it.
+ */
+export function ThemeScopeBar({ config, at, profile, page, onPick }: ThemeScopeBarProps) {
   return (
     <Menu.Root>
       <Menu.Trigger
-        aria-label={label}
-        title={label}
-        className="-ml-0.5 flex h-7 w-4 shrink-0 items-center justify-center rounded-md text-ui-hint hover:bg-ui-hover hover:text-ui-1 data-popup-open:bg-ui-hover data-popup-open:text-ui-1"
+        aria-label="Theme level"
+        className={cn(
+          "inline-flex h-8 min-w-0 items-center gap-2 rounded-ui-md border border-ui-strong bg-ui-raised px-3 text-body text-ui-1 hover:border-ui-hover-edge data-popup-open:border-ui-hover-edge",
+          FOCUS_RING
+        )}
       >
-        <ChevronDown className="h-3 w-3" />
+        <Monitor className="h-4 w-4 shrink-0 text-ui-3" strokeWidth={1.5} aria-hidden />
+        <span className="truncate">{profile.name}</span>
+        <span className="truncate text-ui-3 max-sm:hidden">{at.level === "screen" ? "· whole screen" : `› ${page.name} page`}</span>
+        <ChevronDown className="h-3.5 w-3.5 shrink-0 text-ui-hint" aria-hidden />
       </Menu.Trigger>
       <Menu.Portal>
         <Menu.Positioner className="z-[80]" sideOffset={4} align="start">
-          <Menu.Popup className={cn(POPUP, "min-w-52")}>
-            {items.map((item) => (
-              <Menu.Item key={item.id} className={cn(ITEM, item.id === current && "text-ui-1")} onClick={() => onPick(item)}>
-                <span className="truncate">{item.name}</span>
-                {meta && <span className="font-ui-mono text-micro text-ui-4">{meta(item)}</span>}
-              </Menu.Item>
+          <Menu.Popup className={cn(POPUP, "max-h-[60vh] min-w-64 overflow-y-auto")}>
+            {config.profiles.map((p) => (
+              <Menu.Group key={p.id}>
+                <Menu.GroupLabel className="px-2 pb-1 pt-2 text-caption text-ui-3">
+                  {p.name} <span className="font-ui-mono">{p.width}×{p.height}</span>
+                </Menu.GroupLabel>
+                <Menu.Item className={cn(ITEM, HIGHLIGHT)} onClick={() => onPick("screen", p.id, p.id === profile.id ? page.id : p.pages[0].id)}>
+                  <span>Whole screen</span>
+                  {at.level === "screen" && p.id === profile.id && <Check className="h-4 w-4" aria-hidden />}
+                </Menu.Item>
+                {p.pages.map((pg) => (
+                  <Menu.Item key={pg.id} className={cn(ITEM, HIGHLIGHT)} onClick={() => onPick("page", p.id, pg.id)}>
+                    <span className="truncate">{pg.name} page</span>
+                    {at.level === "page" && p.id === profile.id && pg.id === page.id && <Check className="h-4 w-4" aria-hidden />}
+                  </Menu.Item>
+                ))}
+              </Menu.Group>
             ))}
           </Menu.Popup>
         </Menu.Positioner>
       </Menu.Portal>
     </Menu.Root>
-  );
-}
-
-/**
- * Theme's level control (handoff SPEC §4.2): ‹screen› · ‹page›, each with its mono sub-label (the screen's size,
- * "page"); each screen owns its look. The screen and page segments have a menu for another screen or page;
- * picking one keeps the level.
- */
-export function ThemeScopeBar({ config, at, profile, page, onPick }: ThemeScopeBarProps) {
-  const screens = config.profiles.length;
-  return (
-    <div role="group" aria-label="Look level" className="flex min-w-0 items-center gap-0.5 rounded-lg border border-ui-default bg-ui-tile p-0.5 max-sm:w-full max-sm:overflow-x-auto max-sm:[scrollbar-width:none]">
-      <Segment label={profile.name} sub={`${profile.width}×${profile.height}`} active={at.level === "screen"} onClick={() => onPick("screen", profile.id, page.id)} />
-      {screens > 1 && (
-        <Pick
-          label="Another screen"
-          items={config.profiles}
-          current={profile.id}
-          meta={(p) => `${p.width}×${p.height}`}
-          onPick={(p) => onPick(at.level, p.id, p.id === profile.id ? page.id : p.pages[0].id)}
-        />
-      )}
-      <Segment label={page.name} sub="page" active={at.level === "page"} onClick={() => onPick("page", profile.id, page.id)} />
-      {profile.pages.length > 1 && <Pick label="Another page" items={profile.pages} current={page.id} onPick={(pg) => onPick("page", profile.id, pg.id)} />}
-    </div>
   );
 }

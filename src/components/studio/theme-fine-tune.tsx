@@ -14,7 +14,7 @@ const typing = (e: KeyboardEvent<HTMLElement>): boolean =>
 
 /** A small mono overline inside a section ("WIDGET COLORS", "STATUS"). */
 export function RowsLabel({ children }: { children: ReactNode }) {
-  return <h4 className="px-4 pb-0.5 pt-2 font-ui-mono text-nano uppercase tracking-[0.08em] text-ui-hint first:pt-0">{children}</h4>;
+  return <h4 className="px-5 pb-0.5 pt-2 text-caption font-medium text-ui-3 first:pt-0">{children}</h4>;
 }
 
 /** A section's lock at Screen level (SPEC §4.6): "Lock" off, the Locked colors on. */
@@ -55,6 +55,8 @@ interface FineTuneRowProps {
   keptOverride: boolean;
   /** Widgets below with their own values for it ("1 widget differs"). */
   overrides: number;
+  /** How many values the level holds of its own in it ("1 changed"). */
+  changedCount?: number;
   /** The help text under the rows. */
   help?: string;
   /** Change here (a page stops following); none where it can't (a screen, the top level). */
@@ -72,7 +74,7 @@ interface FineTuneRowProps {
  * the caret; open, its rows, the help text, then Reset to inherited or Change here and how many widgets differ.
  * ⌫ resets it while it holds focus (not in a field).
  */
-export function FineTuneRow({ card, chip, summary, parentText, open, onToggle, lock, keptOverride, overrides, help, onChange, onReset, onJump, flash = false, children }: FineTuneRowProps) {
+export function FineTuneRow({ card, chip, summary, parentText, open, onToggle, lock, keptOverride, overrides, changedCount, help, onChange, onReset, onJump, flash = false, children }: FineTuneRowProps) {
   const changed = changedHere(chip);
   return (
     <section
@@ -86,18 +88,21 @@ export function FineTuneRow({ card, chip, summary, parentText, open, onToggle, l
       }}
       className={cn("border-t border-ui-raised transition-shadow duration-500", flash && "shadow-[inset_0_0_0_1.5px_var(--ui-accent)]")}
     >
-      <header className="group/row flex items-center gap-2 px-4 py-2.5">
+      <header className="group/row flex items-center gap-2 px-5 py-2.5">
+        <InheritChip dot state={chip.state} from={chip.from} fromName={chip.fromName} parentText={parentText} onReset={onReset} onCustomise={onChange} onJump={onJump} />
         <button
           type="button"
           aria-expanded={open}
           onClick={onToggle}
           className="flex min-w-0 flex-1 flex-col items-start rounded-sm text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent"
         >
-          <span className="truncate text-lead font-medium text-ui-1">{card.title}</span>
-          <span className="w-full truncate text-caption text-ui-hint">{summary}</span>
+          <span className="flex items-baseline gap-2 text-body font-medium text-ui-1">
+            {card.title}
+            {changed && <span className="text-caption font-normal text-ui-accent-text">{Math.max(1, changedCount ?? 0)} changed</span>}
+          </span>
+          <span className="w-full truncate text-caption text-ui-3">{summary}</span>
         </button>
         {lock && <LockToggle on={lock.on} screen={lock.screen} onToggle={lock.onToggle} />}
-        <InheritChip state={chip.state} from={chip.from} fromName={chip.fromName} parentText={parentText} onReset={onReset} onCustomise={onChange} onJump={onJump} />
         <button
           type="button"
           tabIndex={-1}
@@ -111,13 +116,13 @@ export function FineTuneRow({ card, chip, summary, parentText, open, onToggle, l
       {open && (
         <div className="flex flex-col gap-1 pb-3">
           {keptOverride && (
-            <div className="px-4">
+            <div className="px-5">
               <InheritLockNote holder="page" section={card.title} />
             </div>
           )}
           {children}
-          {help && <p className="mt-1 px-4 text-caption leading-snug text-ui-soft">{help}</p>}
-          <p className="mt-1 flex flex-wrap gap-x-3.5 gap-y-1.5 whitespace-nowrap px-4 text-caption leading-snug">
+          {help && <p className="mt-1 px-5 text-caption leading-snug text-ui-3">{help}</p>}
+          <p className="mt-1 flex flex-wrap gap-x-3.5 gap-y-1.5 whitespace-nowrap px-5 text-caption leading-snug">
             {changed && (
               <button type="button" onClick={onReset} className={LINK}>
                 Reset to inherited
@@ -141,18 +146,18 @@ export function FineTuneRow({ card, chip, summary, parentText, open, onToggle, l
   );
 }
 
-/** The fine-tune header (SPEC §4.3.2): the count, and the legend's two dots. */
-export function FineTuneHeader({ heading }: { heading: string }) {
+/** The fine-tune header: its name and the legend's two dots (what the level above gives, and what is set here). */
+export function FineTuneHeader({ heading, from }: { heading: string; from: string }) {
   return (
-    <div className="flex items-center gap-3 border-t border-ui-subtle px-4 pb-1.5 pt-4">
-      <h3 className="flex-1 font-ui-mono text-nano uppercase tracking-[0.08em] text-ui-hint">{heading}</h3>
-      <span className="flex items-center gap-1 text-micro text-ui-hint">
-        <span className="h-1.5 w-1.5 rounded-full bg-ui-blue" aria-hidden />
-        changed here
+    <div className="flex items-center gap-3 border-t border-ui-subtle px-5 pb-1.5 pt-4">
+      <h3 className="flex-1 text-caption font-medium text-ui-3">{heading}</h3>
+      <span className="flex items-center gap-1.5 text-caption text-ui-3">
+        <span className="h-[7px] w-[7px] rounded-full border border-ui-hint" aria-hidden />
+        From {from}
       </span>
-      <span className="flex items-center gap-1 text-micro text-ui-hint">
-        <span className="h-1.5 w-1.5 rounded-full bg-ui-tune" aria-hidden />
-        inherited
+      <span className="flex items-center gap-1.5 text-caption text-ui-3">
+        <span className="h-[7px] w-[7px] rounded-full bg-ui-accent" aria-hidden />
+        Set here
       </span>
     </div>
   );

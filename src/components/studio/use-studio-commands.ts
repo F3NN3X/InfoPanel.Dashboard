@@ -259,7 +259,7 @@ export function useStudioCommands({
       }
       case "apply-appearance-all": {
         const preset = appearancePresets.presets.find((p) => p.id === action.id);
-        return preset && appearancePresets.applyToScreens(preset, config.profiles.map((p) => p.id), getKeepBackground());
+        return preset && appearancePresets.applyToScreens(preset, config.profiles.map((p) => p.id), getKeepBackground(themeAt.profileId));
       }
     }
     if (!selected) return;

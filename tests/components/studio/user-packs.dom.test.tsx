@@ -1,13 +1,13 @@
 // @vitest-environment happy-dom
-// The user packs section of the Look gallery: an import shows the validator's issues in plain words and stores only a pack with no
+// The pack importer behind Browse themes: an import shows the validator's issues in plain words and stores only a pack with no
 // error; removing a pack that a level wears takes it off that level (Classic is drawn there) and says so.
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, renderHook, screen } from "@testing-library/react";
+import { createRef } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { UserPacks } from "@/components/studio/user-packs";
+import { useImportedPacks } from "@/components/studio/use-imported-packs";
+import { UserPacks, type PackImporterHandle } from "@/components/studio/user-packs";
 import { forgetUserPack } from "@/looks/user-packs";
 import { readPackDir } from "../../../tools/validate-pack.mjs";
-
-vi.mock("@/components/studio/look-thumb", () => ({ LookThumb: () => null }));
 
 // biome-ignore lint/suspicious/noExplicitAny: fixtures edit parsed JSON of any shape.
 type Json = any;
@@ -55,6 +55,13 @@ afterEach(() => {
   forgetUserPack("mine");
 });
 
+/** The importer with a ref, as Browse holds it (its Remove button is the detail pane's). */
+function mount(onRemove: () => number = () => 0) {
+  const ref = createRef<PackImporterHandle>();
+  render(<UserPacks ref={ref} onChange={() => {}} onRemove={onRemove} />);
+  return ref;
+}
+
 const pick = async (label: string, list: File[]) => {
   const input = screen.getByLabelText(label) as HTMLInputElement;
   Object.defineProperty(input, "files", { value: list, configurable: true });
@@ -65,7 +72,7 @@ const pick = async (label: string, list: File[]) => {
 describe("importing a pack", () => {
   it("a hostile pack is refused with the issue in words, and nothing is sent", async () => {
     const log = server([]);
-    render(<UserPacks currentLookId="classic" onPick={() => {}} onRemove={() => 0} />);
+    mount();
     await act(async () => {});
     await pick("Pack folder", files((all) => all.set("assets/hazard.svg", enc("<svg><script>alert(1)</script></svg>"))));
     const report = screen.getByRole("alert");
@@ -76,7 +83,7 @@ describe("importing a pack", () => {
 
   it("a pack with its own style sheet is refused, a good one is posted", async () => {
     const log = server([]);
-    render(<UserPacks currentLookId="classic" onPick={() => {}} onRemove={() => 0} />);
+    mount();
     await act(async () => {});
     const css = new File(["a{}"], "pack.css");
     Object.defineProperty(css, "webkitRelativePath", { value: "mine/pack.css" });
@@ -89,24 +96,22 @@ describe("importing a pack", () => {
 });
 
 describe("user packs switched off on the server", () => {
-  it("shows no import buttons, and says so", async () => {
+  it("is reported as off, so Browse shows no import and says so", async () => {
     vi.stubGlobal("fetch", async () => new Response("[]", { headers: { "X-User-Packs": "off" } }));
-    render(<UserPacks currentLookId="classic" onPick={() => {}} onRemove={() => 0} />);
+    const { result } = renderHook(() => useImportedPacks());
     await act(async () => {});
-    expect(screen.queryByRole("button", { name: "Import a folder" })).toBeNull();
-    expect(screen.queryByLabelText("Pack folder")).toBeNull();
-    expect(document.querySelector("[data-packs-off]")).not.toBeNull();
+    expect(result.current.off).toBe(true);
+    expect(result.current.packs).toEqual([]);
   });
 });
 
 describe("a pack a later build's built-in shadows", () => {
-  it("offers no card to wear, and removing it leaves the levels that wear the built-in alone", async () => {
+  it("removing it leaves the levels that wear the built-in alone", async () => {
     const log = server([{ id: "paper", name: "My Paper", size: 10 }]);
     const onRemove = vi.fn(() => 2);
-    render(<UserPacks currentLookId="paper" onPick={() => {}} onRemove={onRemove} />);
+    const ref = mount(onRemove);
     await act(async () => {});
-    expect(document.querySelector("[data-pack-shadowed]")?.textContent).toContain("built-in Look now has this id");
-    await act(async () => void fireEvent.click(await screen.findByRole("button", { name: "Remove My Paper" })));
+    await act(async () => void (await ref.current!.remove({ id: "paper", name: "My Paper" })));
     await act(async () => {});
     expect(log).toContain("DELETE /api/packs/paper");
     expect(onRemove).not.toHaveBeenCalled();
@@ -117,7 +122,7 @@ describe("a pack a later build's built-in shadows", () => {
 describe("a pack that was stored but cannot be read back", () => {
   it("is taken off the server again, and the report says so", async () => {
     const log = server([]);
-    render(<UserPacks currentLookId="classic" onPick={() => {}} onRemove={() => 0} />);
+    mount();
     await act(async () => {});
     await pick("Pack folder", files());
     expect(log).toContain("DELETE /api/packs/mine");
@@ -130,9 +135,9 @@ describe("removing a pack", () => {
     const list = [{ id: "mine", name: "Mine", size: 10 }];
     const log = server(list);
     const onRemove = vi.fn(() => 2);
-    render(<UserPacks currentLookId="mine" onPick={() => {}} onRemove={onRemove} />);
+    const ref = mount(onRemove);
     await act(async () => {});
-    await act(async () => void fireEvent.click(await screen.findByRole("button", { name: "Remove Mine" })));
+    await act(async () => void (await ref.current!.remove({ id: "mine", name: "Mine" })));
     await act(async () => {});
     expect(onRemove).toHaveBeenCalledWith("mine");
     expect(log).toContain("DELETE /api/packs/mine");
@@ -147,9 +152,9 @@ describe("removing a pack", () => {
       return new Response(JSON.stringify([{ id: "mine", name: "Mine", size: 10 }]));
     });
     const onRemove = vi.fn(() => 2);
-    render(<UserPacks currentLookId="mine" onPick={() => {}} onRemove={onRemove} />);
+    const ref = mount(onRemove);
     await act(async () => {});
-    await act(async () => void fireEvent.click(await screen.findByRole("button", { name: "Remove Mine" })));
+    await act(async () => void (await ref.current!.remove({ id: "mine", name: "Mine" })));
     await act(async () => {});
     expect(log).toContain("DELETE /api/packs/mine");
     expect(onRemove).not.toHaveBeenCalled();
@@ -159,9 +164,9 @@ describe("removing a pack", () => {
   it("a pack the server no longer has (404) is taken off the studio and out of the config like any removal", async () => {
     vi.stubGlobal("fetch", async (_url: string, init?: RequestInit) => (init?.method === "DELETE" ? new Response("", { status: 404 }) : new Response(JSON.stringify([{ id: "mine", name: "Mine", size: 10 }]))));
     const onRemove = vi.fn(() => 1);
-    render(<UserPacks currentLookId="mine" onPick={() => {}} onRemove={onRemove} />);
+    const ref = mount(onRemove);
     await act(async () => {});
-    await act(async () => void fireEvent.click(await screen.findByRole("button", { name: "Remove Mine" })));
+    await act(async () => void (await ref.current!.remove({ id: "mine", name: "Mine" })));
     await act(async () => {});
     expect(onRemove).toHaveBeenCalledWith("mine");
     expect(screen.getByRole("status").textContent).toBe("Removed Mine. A place that wore it now draws Classic.");
@@ -169,9 +174,9 @@ describe("removing a pack", () => {
 
   it("one nothing wears is removed without that line", async () => {
     server([{ id: "mine", name: "Mine", size: 10 }]);
-    render(<UserPacks currentLookId="classic" onPick={() => {}} onRemove={() => 0} />);
+    const ref = mount();
     await act(async () => {});
-    await act(async () => void fireEvent.click(await screen.findByRole("button", { name: "Remove Mine" })));
+    await act(async () => void (await ref.current!.remove({ id: "mine", name: "Mine" })));
     await act(async () => {});
     expect(screen.getByRole("status").textContent).toBe("Removed Mine.");
   });
