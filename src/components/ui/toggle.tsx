@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { FOCUS_RING } from "./button";
 
 interface ToggleProps {
   checked: boolean;
@@ -9,7 +10,7 @@ interface ToggleProps {
   className?: string;
 }
 
-/** Studio switch: a 30×18 track with a 14 px knob (accent when on). */
+/** Studio switch: a 30×18 track with a 14 px knob (off-white when on, not blue: accent is for selection). */
 export function Toggle({ checked, onChange, label, disabled, className }: ToggleProps) {
   return (
     <button
@@ -20,18 +21,19 @@ export function Toggle({ checked, onChange, label, disabled, className }: Toggle
       disabled={disabled}
       onClick={() => onChange(!checked)}
       className={cn(
-        "relative h-[18px] w-[30px] shrink-0 rounded-full transition-colors duration-150 after:absolute after:-inset-1 after:content-['']",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ui-accent/60 disabled:opacity-40",
+        "relative h-[18px] w-[30px] shrink-0 rounded-full transition-colors duration-(--ui-dur-fast) ease-ui after:absolute after:-inset-1 after:content-['']",
+        FOCUS_RING,
+        "disabled:opacity-40",
         "forced-colors:forced-color-adjust-none forced-colors:border forced-colors:border-[color:ButtonText] forced-colors:bg-[color:Canvas] disabled:forced-colors:border-[color:GrayText]",
-        checked ? "bg-ui-accent forced-colors:border-[color:Highlight] forced-colors:bg-[color:Highlight]" : "bg-ui-control",
+        checked ? "bg-ui-strong-text forced-colors:border-[color:Highlight] forced-colors:bg-[color:Highlight]" : "bg-ui-control",
         className
       )}
     >
       <span
         className={cn(
-          "absolute left-0.5 top-0.5 h-3.5 w-3.5 rounded-full bg-white transition-transform duration-150",
+          "absolute left-0.5 top-0.5 h-3.5 w-3.5 rounded-full transition-[transform,background-color] duration-(--ui-dur-fast) ease-ui",
           "forced-colors:bg-[color:ButtonText]",
-          checked && "translate-x-3 forced-colors:bg-[color:HighlightText]"
+          checked ? "translate-x-3 bg-ui-inverse-fg forced-colors:bg-[color:HighlightText]" : "bg-ui-soft"
         )}
       />
     </button>

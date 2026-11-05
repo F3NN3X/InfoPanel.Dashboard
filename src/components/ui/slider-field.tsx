@@ -32,7 +32,7 @@ export function SliderField({ value, onChange, min = 0, max = 100, step = 1, lab
         step={step}
         value={value}
         onChange={(e) => commit(e.currentTarget.valueAsNumber)}
-        className="h-4 min-w-0 flex-1 cursor-pointer accent-[var(--ui-accent)]"
+        className="h-4 min-w-0 flex-1 cursor-pointer accent-ui-strong-text"
       />
       <input
         type="number"

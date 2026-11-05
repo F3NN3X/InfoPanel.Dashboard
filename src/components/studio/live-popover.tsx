@@ -74,7 +74,7 @@ function DimSlider({ level, disabled, onSet }: { level: number; disabled: boolea
           if (timer.current) clearTimeout(timer.current);
           timer.current = setTimeout(() => onSet(next), 150);
         }}
-        className="h-4 w-[150px] cursor-pointer accent-[var(--ui-accent)] disabled:opacity-40"
+        className="h-4 w-[150px] cursor-pointer accent-ui-strong-text disabled:opacity-40"
       />
     </Control>
   );

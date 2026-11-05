@@ -66,7 +66,7 @@ function ToastSlot({ live, toast, arm, dismiss }: { live: "polite" | "assertive"
       {toast && (
         <div
           key={toast.id}
-          className="flex items-center gap-3 rounded-lg bg-ui-inverse px-3 py-[7px] font-ui text-xs font-medium text-ui-inverse-fg shadow-ui-float"
+          className="flex items-center gap-3 rounded-ui-menu border border-ui-control bg-ui-raised px-4 py-2.5 font-ui text-body text-ui-1 shadow-ui-float"
         >
           {toast.message}
           {toast.action && (
@@ -76,7 +76,7 @@ function ToastSlot({ live, toast, arm, dismiss }: { live: "polite" | "assertive"
                 toast.action?.onClick();
                 dismiss();
               }}
-              className="rounded-sm font-semibold underline underline-offset-2 outline-none hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ui-accent"
+              className="rounded-ui-sm font-medium text-ui-2 outline-none hover:text-ui-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent"
             >
               {toast.action.label}
             </button>
@@ -86,7 +86,7 @@ function ToastSlot({ live, toast, arm, dismiss }: { live: "polite" | "assertive"
               type="button"
               aria-label="Dismiss"
               onClick={dismiss}
-              className="-mr-1 grid h-5 w-5 place-items-center rounded-sm outline-none hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ui-accent"
+              className="-mr-1 grid h-5 w-5 place-items-center rounded-ui-sm text-ui-hint outline-none hover:text-ui-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent"
             >
               <X className="h-3 w-3" aria-hidden="true" />
             </button>
@@ -99,7 +99,7 @@ function ToastSlot({ live, toast, arm, dismiss }: { live: "polite" | "assertive"
 
 /**
  * Hosts the toast: in Edit at the top centre of the canvas, elsewhere bottom-centre just above the status bar (never
- * over the title bar or a screen's header and tabs); inverse colours. A plain confirmation goes after ~1.8 s; a
+ * over the title bar or a screen's header and tabs); a raised card. A plain confirmation goes after ~1.8 s; a
  * failure after 8 s; one with an action (Undo) stays until dismissed. Hovering or focusing it pauses the timer. The
  * text is announced through two live regions kept mounted (polite, and an alert for failures) so it is reliably read.
  */
