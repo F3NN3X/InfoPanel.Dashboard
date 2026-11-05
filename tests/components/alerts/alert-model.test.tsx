@@ -58,6 +58,18 @@ describe("slots", () => {
     expect(slot.more).toBe(2);
   });
 
+  it("keeps an overlay and a toast at one anchor apart, so both show", () => {
+    const slots = groupBySlot([alert("toast", { severity: "critical" }), alert("over", {}, { style: "overlay" })]);
+    expect(slots.map((s) => s.shown.map((a) => a.id))).toEqual([["toast"], ["over"]]);
+    expect(slots.map((s) => s.more)).toEqual([0, 0]);
+    expect(new Set(slots.map((s) => s.id)).size).toBe(2);
+  });
+
+  it("counts a queued alert's time from when it can show", () => {
+    expect(countdownFraction(alert("a", { startedAt: 0, queuedMs: 8000 }), 8000)).toBe(1);
+    expect(countdownFraction(alert("a", { startedAt: 0, queuedMs: 8000 }), 12_000)).toBe(0.5);
+  });
+
   it("maps banners to the top or bottom edge, other styles keep their position", () => {
     expect(slotOf(alert("a", {}, { style: "banner", position: "bottom-left" }))).toBe("banner-bottom");
     expect(slotOf(alert("a", {}, { style: "banner", position: "center" }))).toBe("banner-top");

@@ -18,7 +18,7 @@ const inLayer = (d: AlertDisplayFull): AlertDisplayFull => (d.style === "island"
 /**
  * Split the alerts a kiosk shows between the island and the alert layer, one at a time per screen (overlays stay as they
  * are). With an island a lone toast or banner keeps its place and two or more queue there. Without one the strongest shows
- * and the rest wait in its slot behind "Dismiss N more"; an island alert shows as a top toast, an Auto one as a toast.
+ * and the rest wait in its slot, counted; an island alert shows as a top toast, an Auto one as a toast.
  */
 export function splitIslandAlerts(
   alerts: readonly ActiveAlert[],

@@ -126,13 +126,13 @@ export function AlertLayer({ alerts, onAck, lookId }: AlertLayerProps) {
         {slots
           .filter((s) => s.key !== "banner-top" && s.key !== "banner-bottom")
           .map((slot) => (
-            <SlotStack key={slot.key} slot={slot} now={now} leavingIds={leavingIds} reduced={reduced} onAck={onAck} />
+            <SlotStack key={slot.id} slot={slot} now={now} leavingIds={leavingIds} reduced={reduced} onAck={onAck} />
           ))}
       </div>
       {slots
         .filter((s) => s.key === "banner-top" || s.key === "banner-bottom")
         .map((slot) => (
-          <SlotStack key={slot.key} slot={slot} now={now} leavingIds={leavingIds} reduced={reduced} onAck={onAck} />
+          <SlotStack key={slot.id} slot={slot} now={now} leavingIds={leavingIds} reduced={reduced} onAck={onAck} />
         ))}
     </div>
   );
@@ -152,6 +152,7 @@ function SlotStack({ slot, now, leavingIds, reduced, onAck }: SlotStackProps) {
   const col = cell?.col ?? 2;
   const style: CSSProperties = cell ? { gridColumn: cell.col, gridRow: cell.row } : {};
   const from = enterFrom(slot.key);
+  const waiting = slot.more - [...slot.shown, ...slot.rest].filter((a) => leavingIds.has(a.id)).length;
   return (
     <div
       className={cn(
@@ -179,15 +180,8 @@ function SlotStack({ slot, now, leavingIds, reduced, onAck }: SlotStackProps) {
           onAck={onAck}
         />
       ))}
-      {slot.more > 0 && (
-        <button
-          type="button"
-          onClick={() => slot.rest.forEach((a) => onAck(a.id))}
-          className="pointer-events-auto rounded-full bg-card/90 px-3 py-1 text-xs font-medium text-muted-foreground shadow outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          Dismiss {slot.more} more
-        </button>
-      )}
+      {/* Only a count: tapping the card shown moves the queue on, and an alert nobody saw is never acknowledged. */}
+      {waiting > 0 && <span className="rounded-full bg-card/90 px-3 py-1 text-xs font-medium text-muted-foreground shadow">{waiting} waiting</span>}
     </div>
   );
 }

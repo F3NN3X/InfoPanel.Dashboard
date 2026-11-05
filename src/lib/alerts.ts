@@ -131,6 +131,8 @@ export interface ActiveAlert {
   highlight?: { zones?: string[]; key?: string };
   profiles?: string[];
   test?: boolean;
+  /** How long it waits behind the alerts ahead of it, ms: its time on screen starts after that. */
+  queuedMs?: number;
   /** Inside quiet hours and below their severity: in history, not shown. */
   quiet?: boolean;
 }

@@ -3,7 +3,7 @@ import { computeUsage, type ModuleInfo } from "@/lib/data-usage";
 import { strongestFirst } from "@/lib/island/from-alerts";
 import type { ProfileView } from "@/lib/layout";
 
-/** Most overlays a slot shows at once; anything else shows one at a time. The rest collapse into "+N more". */
+/** Most overlays a slot shows at once; anything else shows one at a time. The rest are counted as waiting. */
 export const MAX_PER_SLOT = 3;
 
 /** Alerts a kiosk showing `profileId` displays: not acknowledged, not quiet, for this profile. */
@@ -27,24 +27,26 @@ export function slotOf(alert: ActiveAlert): SlotKey {
 }
 
 export interface Slot {
+  /** Unique: overlays have their own slot beside anything else at the same anchor. */
+  id: string;
   key: SlotKey;
   /** Strongest first, then newest; one, or up to MAX_PER_SLOT overlays. */
   shown: ActiveAlert[];
   more: number;
-  /** The alerts behind "+N more". */
+  /** The alerts waiting behind the shown ones. */
   rest: ActiveAlert[];
 }
 
 /** Group alerts by anchor slot: strongest first, the visible ones (see `Slot.shown`), the rest counted. */
 export function groupBySlot(alerts: readonly ActiveAlert[]): Slot[] {
-  const groups = new Map<SlotKey, ActiveAlert[]>();
+  const groups = new Map<string, ActiveAlert[]>();
   for (const a of [...alerts].sort(strongestFirst)) {
-    const key = slotOf(a);
-    groups.set(key, [...(groups.get(key) ?? []), a]);
+    const id = `${a.display.style === "overlay" ? "overlay " : ""}${slotOf(a)}`;
+    groups.set(id, [...(groups.get(id) ?? []), a]);
   }
-  return [...groups].map(([key, list]) => {
+  return [...groups].map(([id, list]) => {
     const max = list[0].display.style === "overlay" ? MAX_PER_SLOT : 1;
-    return { key, shown: list.slice(0, max), more: Math.max(0, list.length - max), rest: list.slice(max) };
+    return { id, key: slotOf(list[0]), shown: list.slice(0, max), more: Math.max(0, list.length - max), rest: list.slice(max) };
   });
 }
 
@@ -89,7 +91,7 @@ export function enterFrom(key: SlotKey): "top" | "bottom" | "left" | "right" | "
 export function countdownFraction(alert: ActiveAlert, now: number): number | null {
   const seconds = alert.display.seconds;
   if (!(seconds > 0)) return null;
-  return Math.max(0, Math.min(1, 1 - (now - alert.startedAt) / (seconds * 1000)));
+  return Math.max(0, Math.min(1, 1 - (now - alert.startedAt - (alert.queuedMs ?? 0)) / (seconds * 1000)));
 }
 
 /** "now", "2 min", "3 h". */
