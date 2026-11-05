@@ -38,13 +38,13 @@ describe("dropText", () => {
 describe("chipNote", () => {
   it("says how many sources are healthy, whatever the mix", () => {
     const sources = [{ status: "ok" as const }, { status: "ok" as const }, { status: "off" as const }];
-    expect(chipNote({ link: "connected", downMs: 0, lastDrop: null }, sources.slice(0, 2), 0)).toBe("2 sources healthy");
-    expect(chipNote({ link: "connected", downMs: 0, lastDrop: null }, sources, 0)).toBe("2 of 3 sources healthy");
+    expect(chipNote({ link: "connected", downMs: 0, downSince: null, lastDrop: null }, sources.slice(0, 2), 0)).toBe("2 sources healthy");
+    expect(chipNote({ link: "connected", downMs: 0, downSince: null, lastDrop: null }, sources, 0)).toBe("2 of 3 sources healthy");
   });
 
   it("says how long a drop lasts", () => {
-    expect(chipNote({ link: "reconnecting", downMs: 3000, lastDrop: null }, [], 0)).toBe("3 s");
-    expect(chipNote({ link: "offline", downMs: 60_000, lastDrop: null }, [], new Date(2026, 0, 15, 12, 5).getTime())).toBe("since 12:04");
+    expect(chipNote({ link: "reconnecting", downMs: 3000, downSince: null, lastDrop: null }, [], 0)).toBe("3 s");
+    expect(chipNote({ link: "offline", downMs: 60_000, downSince: null, lastDrop: null }, [], new Date(2026, 0, 15, 12, 5).getTime())).toBe("since 12:04");
   });
 });
 
