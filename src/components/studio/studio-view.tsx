@@ -96,6 +96,7 @@ import type { GaugeSource } from "@/lib/gauge-studio/model";
 import { dropLibraryItem, librarySizeOf } from "@/components/library/library-drop";
 import { recordCopy } from "@/lib/my-library/copies";
 import { useToast } from "@/components/ui/toast";
+import { useUndoToast } from "./use-undo-toast";
 import { createLibraryItem, type LibraryCopy, type LibraryItem } from "@/lib/library";
 import { canvasItem } from "@/lib/my-library/canvas-link";
 import { findCanvasUse } from "@/lib/my-library/canvas-use";
@@ -240,6 +241,9 @@ function StudioViewBody({
     [control?.alerts, profile.id]
   );
   const setConfig = history.set;
+  // The workspace pages that have no toast row of their own say what changed, with Undo.
+  const setAlertsConfig = useUndoToast(history.set, history.undo, "Alert settings changed");
+  const setSourcesConfig = useUndoToast(history.set, history.undo, "Data settings changed");
   // The stored profile behind the page on the canvas (profile list, summary, JSON copy).
   const storedProfile = config.profiles.find((p) => p.id === profile.id) ?? config.profiles[0];
   const ui = useStudioUi(config, profile, onSave, windowWidth);
@@ -812,7 +816,7 @@ function StudioViewBody({
       tab={ui.alertsTab}
       onTab={ui.setAlertsTab}
       config={config}
-      setConfig={setConfig}
+      setConfig={setAlertsConfig}
       active={control?.alerts ?? []}
       points={dataPoints}
       screen={storedProfile}
@@ -907,7 +911,7 @@ function StudioViewBody({
       <Suspense fallback={null}>
       <SourcesPanel
         config={config}
-        setConfig={setConfig}
+        setConfig={setSourcesConfig}
         profile={profile}
         focusPointKey={focusPointKey}
         selectedZoneId={sel.primaryId}
