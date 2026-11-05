@@ -24,6 +24,7 @@
     "budgets": { "cmd": "npm run perf:budgets", "needs": ["build"], "when": "the gzip and request budgets (tools/perf/budgets.json); gating" },
     "pack-budgets": { "cmd": "node tools/perf/check-budgets.mjs --packs", "needs": ["build"], "when": "the built-in packs' lazy code and assets against the `packs` block of tools/perf/budgets.json; gating" },
     "settings-build": { "cmd": "npm run desktop:settings", "when": "the Settings window's own entry" },
+    "ui-usage": { "cmd": "node tools/looks/generate.mjs --check-usage", "needs": ["build", "settings-build"], "when": "the `--ui-*` tokens the settings, help and touch pages declare (tools/looks/ui-usage.json) against what their built files read" },
     "server-bin": { "cmd": "cargo build -p ips-server", "cwd": "src-tauri", "when": "the debug ips-server the e2e specs start" },
     "server-suite": {
       "cmd": "npm run test:server -- {tests}",
@@ -621,8 +622,8 @@
       "summary": "The Look system's single sources (status colours, default accent, Studio twins, the material registry) and the generator that writes the copies the CSS and the gauge export need.",
       "paths": ["src/looks/**", "tools/looks/**", "tools/validate-pack.*"],
       "tests": ["tests/looks/**", "tests/widgets/core/state-copies.test.ts", "tests/lib/theme-css-sync.test.ts", "tests/settings/theme-tokens.test.ts", "tests/components/color-literals.test.ts", "tests/e2e/material-export.spec.ts", "tests/e2e/pack-visibility.spec.ts", "tests/e2e/pack-faces.spec.ts", "tests/e2e/pack-selectors.spec.ts", "tests/e2e/pack-connectors.spec.ts", "tests/e2e/user-packs.spec.ts", "tests/tools/qa/pack-styles.test.ts"],
-      "checks": ["typecheck", "unit", "build", "budgets", "pack-budgets", "settings-build", "import-check", "e2e"],
-      "note": "Generated files: src/looks/generated/*, the @generated blocks in src/index.css, src/settings/tokens.css and src/widgets/core/mixer-views.css. Edit the source, run `npm run looks:gen`; tests/looks/generated.test.ts fails when one is stale. tests/looks/scan.test.ts gates the D9 scans (hex outside src/looks, blur outside the cap, ui-* in widgets) against tests/looks/scan-baseline.json, a ratchet; `npm run looks:scan` prints them and `-- --save` lowers the baseline. import-check because the gauge THEME is written into exports."
+      "checks": ["typecheck", "unit", "build", "budgets", "pack-budgets", "settings-build", "ui-usage", "import-check", "e2e"],
+      "note": "Generated files: src/looks/generated/*, the @generated blocks in src/index.css, src/settings/tokens.css and src/widgets/core/mixer-views.css, and src/settings/ui/*.css (the status and shared `--ui-*` tokens per page: the studio all, settings, help and touch the ones their built files read, tools/looks/ui-usage.json; after a change to what a page reads run `npm run build`, `npm run desktop:settings` and `npm run looks:gen -- --from-build`, and `ui-usage` fails when it is out of date). Edit the source, run `npm run looks:gen`; tests/looks/generated.test.ts fails when one is stale. tests/looks/scan.test.ts gates the D9 scans (hex outside src/looks, blur outside the cap, ui-* in widgets) against tests/looks/scan-baseline.json, a ratchet; `npm run looks:scan` prints them and `-- --save` lowers the baseline. import-check because the gauge THEME is written into exports."
     },
     {
       "id": "gauges",
@@ -659,7 +660,7 @@
       "summary": "The Settings window: app and dashboard settings, updates, logs, restart, changelog.",
       "paths": ["src/settings/**", "settings.html", "vite.settings.config.ts", "CHANGELOG.md"],
       "tests": ["tests/settings/**"],
-      "checks": ["typecheck", "unit", "settings-build"],
+      "checks": ["typecheck", "unit", "settings-build", "ui-usage"],
       "note": "tests/settings/model/changelog.test.ts parses CHANGELOG.md."
     },
     {
