@@ -6,18 +6,18 @@ Answered at Gate 0 (2026-11-05): every recommendation below is accepted, for the
 
 | ID | Proposal | Related questions | Decision |
 |---|---|---|---|
-| P-1 | Autosave with no Save button in the editor | 3, 20 |
-| P-2 | Auto as the default alert style | 32 |
-| P-3 | Gauge draft saved to the library at once | 37 |
-| P-4 | Alerts Defaults as a dialog, Active now on top | 35 |
-| P-5 | Theme vocabulary; template looks move to New screen | 43 |
-| P-6 | Units, Thresholds, Motion and CSS leave the Theme page | 10 |
-| P-7 | Page theme edited only on the Theme page | 29, 43 |
-| P-8 | Widget Theme select lists all themes | none |
-| P-9 | Theme pack part toggles per level | none |
-| P-10 | Keep my background persisted per level | 45 |
-| P-11 | Remove the floating quick-settings bar and selection chip | 19 |
-| P-12 | Remove the Made for / export check header | 21 |
+| P-1 | Autosave with no Save button in the editor | 3, 20 | Yes. Keep Ctrl+S and the flushes; the chip also shows offline and refused |
+| P-2 | Auto as the default alert style | 32 | Yes, for new rules only; existing rules keep their style |
+| P-3 | Gauge draft saved to the library at once | 37 | Yes, created on the first edit, with Discard draft |
+| P-4 | Alerts Defaults as a dialog, Active now on top | 35 | Yes |
+| P-5 | Theme vocabulary; template looks move to New screen | 43 | Yes |
+| P-6 | Units, Thresholds, Motion and CSS leave the Theme page | 10 | Not now: the groups stay on the Theme page |
+| P-7 | Page theme edited only on the Theme page | 29, 43 | Yes, keeping the Reset chips |
+| P-8 | Widget Theme select lists all themes | none | Yes |
+| P-9 | Theme pack part toggles per level | none | Not now |
+| P-10 | Keep my background persisted per level | 45 | Yes, as a local preference, not exported |
+| P-11 | Remove the floating quick-settings bar and selection chip | 19 | Partly: keep a restyled selection label, drop the floating bar |
+| P-12 | Remove the Made for / export check header | 21 | Yes: Made for moves to the File menu |
 
 ## Shell, Screens, Data, Library
 
