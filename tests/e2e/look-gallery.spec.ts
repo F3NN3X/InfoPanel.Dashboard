@@ -52,13 +52,13 @@ test("pick a Look, change its accent, reset it to the Look, and give one widget 
   await page.locator(`[data-zone-id="${first}"]`).click();
   await page.getByRole("tab", { name: /Style/ }).click();
   const widgetKnobs = page.getByRole("region", { name: "Look knobs" });
-  await expect(widgetKnobs.getByRole("heading", { name: "Look: Term" })).toBeVisible();
+  await expect(widgetKnobs.getByRole("heading", { name: /^Theme: Term/ })).toBeVisible();
   await widgetKnobs.getByRole("group", { name: "Accent" }).getByRole("button", { name: "Rose" }).click();
   const canvasAccent = (zone: string) =>
     page.locator(`[data-zone-id="${zone}"] [data-wp-tier]`).first().evaluate((el) => getComputedStyle(el).getPropertyValue("--w-accent").trim().toLowerCase());
   await expect.poll(() => canvasAccent(first)).toBe(ROSE);
   expect(await canvasAccent(second)).toBe(TERM_ACCENT.toLowerCase());
-  await expect(widgetKnobs.getByRole("group", { name: "Accent" }).getByText("Custom")).toBeVisible();
+  await expect(widgetKnobs.getByRole("group", { name: "Accent" }).getByRole("button", { name: "Reset Accent to the page" })).toBeVisible();
 
   // The kiosk loads the sample Look the screen names and draws its card.
   await expect.poll(async () => (await storedScreen(scratch.base))?.pages[0].placements.find((z: { id: string }) => z.id === first)?.settings?.accent).toBe(ROSE);

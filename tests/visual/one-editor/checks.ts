@@ -12,10 +12,10 @@ const c = (phase: Check["phase"], text: string): Check => ({ phase, text });
 export const CHECKS: Record<FixtureName, Check[]> = {
   screen: [
     c(6, 'No Grid / Free control anywhere: no Layout switch in page settings, no layout icons on page tabs, no "free area" kind'),
-    c(3, 'Faint cell lines on the canvas; widgets always on cells, never overlapping; zoom bar reads "Snap: cells · Alt frees items"'),
+    c(3, 'Faint cell lines on the canvas; widgets always on cells, never overlapping; status bar reads "Snap to cells · hold Alt to place freely"'),
     c(4, 'Left panel is one Layers | Add tab control; Layers header reads "Layers · top first"'),
     c(4, "Every Layers row: chevron slot, 20 px icon tile (widget icon in accent), name, kind (screen-reader text and tooltip), lock, eye"),
-    c(6, 'Weather selected: "Studio widget", PLACE ON GRID with an "On grid" chip and COL / ROW / W / H'),
+    c(6, 'Weather selected: "Widget · col, row", the C / R / W / H boxes'),
     c(6, "Nothing selected → page settings show GRID: Snap items to grid (on) and the Alt hint"),
   ],
   profile: [
@@ -30,7 +30,7 @@ export const CHECKS: Record<FixtureName, Check[]> = {
     c(5, "Add tab open as a tile grid; on an InfoPanel screen InfoPanel items come first; every tile has a status icon"),
     c(3, "Weather dropped without Alt snaps to cells (COL 7 · ROW 5 · W 2 · H 1), selected, with the picture badge"),
     c(5, 'Toast "Weather added. On InfoPanel export it becomes a picture…" with Undo and Change'),
-    c(6, 'Inspector: "Studio widget", PLACE ON GRID, On InfoPanel segmented Recreate · Snapshot · Leave out'),
+    c(6, 'Inspector: "Widget · col, row", the Place row, On InfoPanel segmented Recreate · Snapshot · Leave out'),
     c(4, "Switching to Layers shows Weather as the top row in the same tree as the items"),
   ],
   alt: [
@@ -42,7 +42,7 @@ export const CHECKS: Record<FixtureName, Check[]> = {
     c(3, "Arrows move one cell; Alt+Arrows nudge items 1 px; Alt+Shift+Arrows 10 px"),
   ],
   export: [
-    c(1, "Made for InfoPanel too; pill lists all four statuses with dots"),
+    c(1, "Made for InfoPanel too; the banner names the first part left out"),
     c(1, "Inspector is the Export check: Live label, 6 px stacked bar, groups Left out → Becomes a picture → Approximated → Exports as is"),
     c(1, 'Note "This page will be converted when you export. Review conversion…"'),
     c(1, "Clicking a row selects that part; Esc or selecting anything closes the panel"),
@@ -64,7 +64,7 @@ export const CHECKS: Record<FixtureName, Check[]> = {
     c(3, "Widgets never overlap each other; items and elements may sit over widgets"),
   ],
   hover: [
-    c(5, "Add shows 3 tiles per row (76 px tall, names up to two lines): icon, name, size top-left for widgets, status icon top-right when made for InfoPanel"),
+    c(5, "Add shows one row per tile: icon, name, one line of what it is, how many styles a widget holds, status icon when made for InfoPanel"),
     c(5, "Section headers and category sub-headers stay; no descriptions on tiles"),
     c(5, "Hovering a tile (or arrow-key focus) opens the details card beside the panel after 250 ms, aligned to the tile row"),
     c(5, 'Card: live render, name + category, description, size chip or "any size · InfoPanel item", "On InfoPanel: {status}"'),
