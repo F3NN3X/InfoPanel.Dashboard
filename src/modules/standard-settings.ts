@@ -77,7 +77,7 @@ export const STYLE_SETTINGS: ModuleSetting[] = [
     // Classic. A template widget's shell draws the skin the Look names (`skinOfLook`, see `widgets/module.tsx`).
     // Picking a skin sets the surface to Auto, so the skin shows with its own card.
     key: "lookId",
-    label: "Look",
+    label: "Theme",
     type: "select",
     default: CLASSIC_LOOK,
     options: autoOptions(SKIN_PACKS.filter((p) => p.name !== "default").map((p) => p.name)).map((o) => ({ value: o.value === "auto" ? CLASSIC_LOOK : o.value, label: SKIN_LABELS[o.value] ?? o.label, applies: { surface: "auto" } })),

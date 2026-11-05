@@ -2,7 +2,7 @@
 
 exports[`Achievements > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Motion": [
         "smoothing",
@@ -14,12 +14,7 @@ exports[`Achievements > files its rows by the rules 1`] = `
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -37,6 +32,11 @@ exports[`Achievements > files its rows by the rules 1`] = `
         "compact",
         "sizeTier · more",
       ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
     },
   ],
   "Style": [
@@ -102,19 +102,14 @@ exports[`Achievements > files its rows by the rules 1`] = `
 
 exports[`Bluetooth > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Motion": [
         "smoothing",
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -135,6 +130,11 @@ exports[`Bluetooth > files its rows by the rules 1`] = `
         "compact",
         "sizeTier · more",
       ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
     },
   ],
   "Style": [
@@ -202,19 +202,14 @@ exports[`Bluetooth > files its rows by the rules 1`] = `
 
 exports[`Calendar > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Motion": [
         "smoothing",
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Week": [
         "weekStart",
@@ -227,6 +222,11 @@ exports[`Calendar > files its rows by the rules 1`] = `
         "label",
         "icon · more",
       ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
     },
   ],
   "Style": [
@@ -292,24 +292,14 @@ exports[`Calendar > files its rows by the rules 1`] = `
 
 exports[`Clock > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Motion": [
         "smoothing",
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-    {
-      "Units & format": [
-        "clock",
-      ],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "label",
@@ -331,6 +321,16 @@ exports[`Clock > files its rows by the rules 1`] = `
       "Fit": [
         "compact",
         "sizeTier · more",
+      ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
+    },
+    {
+      "Units & format": [
+        "clock",
       ],
     },
   ],
@@ -397,19 +397,14 @@ exports[`Clock > files its rows by the rules 1`] = `
 
 exports[`CodingAgents > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Motion": [
         "smoothing",
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -447,6 +442,11 @@ exports[`CodingAgents > files its rows by the rules 1`] = `
         "compact",
         "sizeTier · more",
       ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
     },
   ],
   "Style": [
@@ -512,7 +512,7 @@ exports[`CodingAgents > files its rows by the rules 1`] = `
 
 exports[`CoreHeatmap > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Thresholds": [
         "hotOutline",
@@ -529,17 +529,7 @@ exports[`CoreHeatmap > files its rows by the rules 1`] = `
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-    {
-      "Processor": [
-        "device",
-      ],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -558,6 +548,16 @@ exports[`CoreHeatmap > files its rows by the rules 1`] = `
       "Fit": [
         "compact",
         "sizeTier · more",
+      ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
+    },
+    {
+      "Processor": [
+        "device",
       ],
     },
   ],
@@ -625,24 +625,14 @@ exports[`CoreHeatmap > files its rows by the rules 1`] = `
 
 exports[`CustomGauge > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Motion": [
         "smoothing",
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-    {
-      "Sensor": [
-        "sensor",
-      ],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -653,6 +643,16 @@ exports[`CustomGauge > files its rows by the rules 1`] = `
     {
       "Fit": [
         "sizeTier",
+      ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
+    },
+    {
+      "Sensor": [
+        "sensor",
       ],
     },
   ],
@@ -719,19 +719,14 @@ exports[`CustomGauge > files its rows by the rules 1`] = `
 
 exports[`Departures > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Motion": [
         "smoothing",
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -749,6 +744,11 @@ exports[`Departures > files its rows by the rules 1`] = `
         "compact",
         "sizeTier · more",
       ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
     },
   ],
   "Style": [
@@ -814,24 +814,14 @@ exports[`Departures > files its rows by the rules 1`] = `
 
 exports[`DiskIO > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Motion": [
         "smoothing",
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-    {
-      "Disk": [
-        "device",
-      ],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -848,6 +838,16 @@ exports[`DiskIO > files its rows by the rules 1`] = `
       "Fit": [
         "compact",
         "sizeTier · more",
+      ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
+    },
+    {
+      "Disk": [
+        "device",
       ],
     },
   ],
@@ -916,7 +916,7 @@ exports[`DiskIO > files its rows by the rules 1`] = `
 
 exports[`DriveSpace > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Thresholds": [
         "warn.full",
@@ -938,17 +938,7 @@ exports[`DriveSpace > files its rows by the rules 1`] = `
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-    {
-      "Drive": [
-        "device",
-      ],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -966,6 +956,16 @@ exports[`DriveSpace > files its rows by the rules 1`] = `
       "Fit": [
         "compact",
         "sizeTier · more",
+      ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
+    },
+    {
+      "Drive": [
+        "device",
       ],
     },
   ],
@@ -1033,7 +1033,7 @@ exports[`DriveSpace > files its rows by the rules 1`] = `
 
 exports[`Fans > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Dynamics": [
         "spin",
@@ -1045,17 +1045,7 @@ exports[`Fans > files its rows by the rules 1`] = `
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-    {
-      "Bar scale": [
-        "maxRpm",
-      ],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -1067,6 +1057,16 @@ exports[`Fans > files its rows by the rules 1`] = `
       "Fit": [
         "compact",
         "sizeTier · more",
+      ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
+    },
+    {
+      "Bar scale": [
+        "maxRpm",
       ],
     },
   ],
@@ -1133,29 +1133,14 @@ exports[`Fans > files its rows by the rules 1`] = `
 
 exports[`Forecast > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Motion": [
         "smoothing",
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-    {
-      "Location": [
-        "location",
-      ],
-    },
-    {
-      "Units & format": [
-        "tempUnit",
-      ],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -1172,6 +1157,21 @@ exports[`Forecast > files its rows by the rules 1`] = `
       "Fit": [
         "compact",
         "sizeTier · more",
+      ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
+    },
+    {
+      "Location": [
+        "location",
+      ],
+    },
+    {
+      "Units & format": [
+        "tempUnit",
       ],
     },
   ],
@@ -1238,7 +1238,7 @@ exports[`Forecast > files its rows by the rules 1`] = `
 
 exports[`FpsMonitor > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Motion": [
         "smoothing",
@@ -1252,17 +1252,7 @@ exports[`FpsMonitor > files its rows by the rules 1`] = `
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-    {
-      "Target": [
-        "target",
-      ],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -1281,6 +1271,16 @@ exports[`FpsMonitor > files its rows by the rules 1`] = `
       "Fit": [
         "compact",
         "sizeTier · more",
+      ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
+    },
+    {
+      "Target": [
+        "target",
       ],
     },
   ],
@@ -1349,7 +1349,7 @@ exports[`FpsMonitor > files its rows by the rules 1`] = `
 
 exports[`FramePacing > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "History": [
         "window",
@@ -1361,12 +1361,7 @@ exports[`FramePacing > files its rows by the rules 1`] = `
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -1384,6 +1379,11 @@ exports[`FramePacing > files its rows by the rules 1`] = `
         "compact",
         "sizeTier · more",
       ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
     },
   ],
   "Style": [
@@ -1449,7 +1449,7 @@ exports[`FramePacing > files its rows by the rules 1`] = `
 
 exports[`GameSpotlight > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Dynamics": [
         "motion",
@@ -1461,12 +1461,7 @@ exports[`GameSpotlight > files its rows by the rules 1`] = `
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Layout": [
         "spotlightLayout",
@@ -1493,6 +1488,11 @@ exports[`GameSpotlight > files its rows by the rules 1`] = `
         "label",
         "icon · more",
       ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
     },
   ],
   "Style": [
@@ -1558,7 +1558,7 @@ exports[`GameSpotlight > files its rows by the rules 1`] = `
 
 exports[`GpuMonitor > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Thresholds": [
         "warn.temp",
@@ -1570,17 +1570,7 @@ exports[`GpuMonitor > files its rows by the rules 1`] = `
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-    {
-      "Graphics card": [
-        "device",
-      ],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -1592,6 +1582,16 @@ exports[`GpuMonitor > files its rows by the rules 1`] = `
       "Fit": [
         "compact",
         "sizeTier · more",
+      ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
+    },
+    {
+      "Graphics card": [
+        "device",
       ],
     },
   ],
@@ -1658,24 +1658,14 @@ exports[`GpuMonitor > files its rows by the rules 1`] = `
 
 exports[`GpuRings > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Motion": [
         "smoothing",
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-    {
-      "Graphics card": [
-        "device",
-      ],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -1693,6 +1683,16 @@ exports[`GpuRings > files its rows by the rules 1`] = `
       "Fit": [
         "compact",
         "sizeTier · more",
+      ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
+    },
+    {
+      "Graphics card": [
+        "device",
       ],
     },
   ],
@@ -1761,7 +1761,7 @@ exports[`GpuRings > files its rows by the rules 1`] = `
 
 exports[`KpiTiles > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "History": [
         "lookback",
@@ -1773,12 +1773,7 @@ exports[`KpiTiles > files its rows by the rules 1`] = `
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Tiles": [
         "metrics",
@@ -1791,6 +1786,11 @@ exports[`KpiTiles > files its rows by the rules 1`] = `
         "label",
         "icon · more",
       ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
     },
   ],
   "Style": [
@@ -1856,7 +1856,7 @@ exports[`KpiTiles > files its rows by the rules 1`] = `
 
 exports[`MemoryUsage > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Thresholds": [
         "warn.load",
@@ -1868,12 +1868,7 @@ exports[`MemoryUsage > files its rows by the rules 1`] = `
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -1886,6 +1881,11 @@ exports[`MemoryUsage > files its rows by the rules 1`] = `
         "compact",
         "sizeTier · more",
       ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
     },
   ],
   "Style": [
@@ -1951,7 +1951,7 @@ exports[`MemoryUsage > files its rows by the rules 1`] = `
 
 exports[`MenuBar > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Interaction": [
         "dropdown",
@@ -1960,6 +1960,23 @@ exports[`MenuBar > files its rows by the rules 1`] = `
     {
       "Motion": [
         "smoothing",
+      ],
+    },
+  ],
+  "Content": [
+    {
+      "Items": [
+        "items",
+        "active",
+        "stacked",
+      ],
+    },
+    {
+      "Fit": [
+        "compact",
+        "sizeTier · more",
+        "label",
+        "icon · more",
       ],
     },
   ],
@@ -1975,23 +1992,6 @@ exports[`MenuBar > files its rows by the rules 1`] = `
     {
       "Units & format": [
         "rateUnit",
-      ],
-    },
-  ],
-  "Show": [
-    {
-      "Items": [
-        "items",
-        "active",
-        "stacked",
-      ],
-    },
-    {
-      "Fit": [
-        "compact",
-        "sizeTier · more",
-        "label",
-        "icon · more",
       ],
     },
   ],
@@ -2058,7 +2058,7 @@ exports[`MenuBar > files its rows by the rules 1`] = `
 
 exports[`MeterBridge > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Thresholds": [
         "warn.db",
@@ -2076,24 +2076,7 @@ exports[`MeterBridge > files its rows by the rules 1`] = `
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-    {
-      "Channels": [
-        "devices",
-        "flow",
-        "includeDefault",
-      ],
-    },
-    {
-      "Bar scale": [
-        "floor",
-      ],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -2121,6 +2104,23 @@ exports[`MeterBridge > files its rows by the rules 1`] = `
       "Fit": [
         "compact",
         "sizeTier · more",
+      ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
+    },
+    {
+      "Channels": [
+        "devices",
+        "flow",
+        "includeDefault",
+      ],
+    },
+    {
+      "Bar scale": [
+        "floor",
       ],
     },
   ],
@@ -2189,7 +2189,7 @@ exports[`MeterBridge > files its rows by the rules 1`] = `
 
 exports[`NetworkAdapters > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Motion": [
         "smoothing",
@@ -2202,12 +2202,7 @@ exports[`NetworkAdapters > files its rows by the rules 1`] = `
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -2231,6 +2226,11 @@ exports[`NetworkAdapters > files its rows by the rules 1`] = `
         "compact",
         "sizeTier · more",
       ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
     },
   ],
   "Style": [
@@ -2296,7 +2296,7 @@ exports[`NetworkAdapters > files its rows by the rules 1`] = `
 
 exports[`NetworkThroughput > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Motion": [
         "smoothing",
@@ -2309,22 +2309,7 @@ exports[`NetworkThroughput > files its rows by the rules 1`] = `
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-    {
-      "Adapter": [
-        "device",
-      ],
-    },
-    {
-      "Units & format": [
-        "rateUnit",
-      ],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -2343,6 +2328,21 @@ exports[`NetworkThroughput > files its rows by the rules 1`] = `
       "Fit": [
         "compact",
         "sizeTier · more",
+      ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
+    },
+    {
+      "Adapter": [
+        "device",
+      ],
+    },
+    {
+      "Units & format": [
+        "rateUnit",
       ],
     },
   ],
@@ -2411,7 +2411,7 @@ exports[`NetworkThroughput > files its rows by the rules 1`] = `
 
 exports[`Notifications > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "History": [
         "maxLines",
@@ -2430,12 +2430,7 @@ exports[`Notifications > files its rows by the rules 1`] = `
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -2453,6 +2448,11 @@ exports[`Notifications > files its rows by the rules 1`] = `
         "compact",
         "sizeTier · more",
       ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
     },
   ],
   "Style": [
@@ -2518,24 +2518,14 @@ exports[`Notifications > files its rows by the rules 1`] = `
 
 exports[`OsdStrip > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Motion": [
         "smoothing",
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-    {
-      "Target": [
-        "target",
-      ],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Cells": [
         "cells",
@@ -2547,6 +2537,16 @@ exports[`OsdStrip > files its rows by the rules 1`] = `
         "sizeTier · more",
         "label",
         "icon · more",
+      ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
+    },
+    {
+      "Target": [
+        "target",
       ],
     },
   ],
@@ -2613,19 +2613,14 @@ exports[`OsdStrip > files its rows by the rules 1`] = `
 
 exports[`PlaytimeShare > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Motion": [
         "smoothing",
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -2638,6 +2633,11 @@ exports[`PlaytimeShare > files its rows by the rules 1`] = `
         "compact",
         "sizeTier · more",
       ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
     },
   ],
   "Style": [
@@ -2709,19 +2709,14 @@ exports[`PlaytimeShare > files its rows by the rules 1`] = `
 
 exports[`PowerDraw > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Motion": [
         "smoothing",
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -2739,6 +2734,11 @@ exports[`PowerDraw > files its rows by the rules 1`] = `
         "compact",
         "sizeTier · more",
       ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
     },
   ],
   "Style": [
@@ -2804,7 +2804,7 @@ exports[`PowerDraw > files its rows by the rules 1`] = `
 
 exports[`ProcessList > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Sorting": [
         "sort",
@@ -2816,12 +2816,7 @@ exports[`ProcessList > files its rows by the rules 1`] = `
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -2839,6 +2834,11 @@ exports[`ProcessList > files its rows by the rules 1`] = `
         "compact",
         "sizeTier · more",
       ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
     },
   ],
   "Style": [
@@ -2904,7 +2904,7 @@ exports[`ProcessList > files its rows by the rules 1`] = `
 
 exports[`SensorValue > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Thresholds": [
         "warn.value",
@@ -2913,6 +2913,30 @@ exports[`SensorValue > files its rows by the rules 1`] = `
     {
       "Motion": [
         "smoothing",
+      ],
+    },
+  ],
+  "Content": [
+    {
+      "Header": [
+        "showTitle",
+        "label",
+        "icon · more",
+      ],
+    },
+    {
+      "Display": [
+        "display",
+        "lineValue",
+        "labelInside",
+        "smallUnit",
+        "unit",
+      ],
+    },
+    {
+      "Fit": [
+        "compact",
+        "sizeTier · more",
       ],
     },
   ],
@@ -2934,30 +2958,6 @@ exports[`SensorValue > files its rows by the rules 1`] = `
     {
       "Units & format": [
         "decimals",
-      ],
-    },
-  ],
-  "Show": [
-    {
-      "Header": [
-        "showTitle",
-        "label",
-        "icon · more",
-      ],
-    },
-    {
-      "Display": [
-        "display",
-        "lineValue",
-        "labelInside",
-        "smallUnit",
-        "unit",
-      ],
-    },
-    {
-      "Fit": [
-        "compact",
-        "sizeTier · more",
       ],
     },
   ],
@@ -3024,19 +3024,14 @@ exports[`SensorValue > files its rows by the rules 1`] = `
 
 exports[`ServiceHealth > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Motion": [
         "smoothing",
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -3054,6 +3049,11 @@ exports[`ServiceHealth > files its rows by the rules 1`] = `
         "compact",
         "sizeTier · more",
       ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
     },
   ],
   "Style": [
@@ -3119,7 +3119,7 @@ exports[`ServiceHealth > files its rows by the rules 1`] = `
 
 exports[`StatusTracker > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Thresholds": [
         "warn.load",
@@ -3142,21 +3142,7 @@ exports[`StatusTracker > files its rows by the rules 1`] = `
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-    {
-      "Sensors": [
-        "track1Key",
-        "track2Key",
-        "track3Key",
-        "track4Key",
-        "track5Key",
-      ],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -3179,6 +3165,20 @@ exports[`StatusTracker > files its rows by the rules 1`] = `
       "Fit": [
         "compact",
         "sizeTier · more",
+      ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
+    },
+    {
+      "Sensors": [
+        "track1Key",
+        "track2Key",
+        "track3Key",
+        "track4Key",
+        "track5Key",
       ],
     },
   ],
@@ -3245,7 +3245,7 @@ exports[`StatusTracker > files its rows by the rules 1`] = `
 
 exports[`SteamFriends > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Sorting": [
         "sort",
@@ -3262,12 +3262,7 @@ exports[`SteamFriends > files its rows by the rules 1`] = `
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -3288,6 +3283,11 @@ exports[`SteamFriends > files its rows by the rules 1`] = `
         "compact",
         "sizeTier · more",
       ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
     },
   ],
   "Style": [
@@ -3358,19 +3358,14 @@ exports[`SteamFriends > files its rows by the rules 1`] = `
 
 exports[`SteamGame > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Motion": [
         "smoothing",
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Artwork": [
         "art",
@@ -3384,6 +3379,11 @@ exports[`SteamGame > files its rows by the rules 1`] = `
         "label",
         "icon · more",
       ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
     },
   ],
   "Style": [
@@ -3449,19 +3449,14 @@ exports[`SteamGame > files its rows by the rules 1`] = `
 
 exports[`SteamLibrary > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Motion": [
         "smoothing",
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -3479,6 +3474,11 @@ exports[`SteamLibrary > files its rows by the rules 1`] = `
         "compact",
         "sizeTier · more",
       ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
     },
   ],
   "Style": [
@@ -3544,7 +3544,7 @@ exports[`SteamLibrary > files its rows by the rules 1`] = `
 
 exports[`SteamNews > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Motion": [
         "smoothing",
@@ -3556,12 +3556,7 @@ exports[`SteamNews > files its rows by the rules 1`] = `
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -3579,6 +3574,11 @@ exports[`SteamNews > files its rows by the rules 1`] = `
         "compact",
         "sizeTier · more",
       ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
     },
   ],
   "Style": [
@@ -3644,24 +3644,14 @@ exports[`SteamNews > files its rows by the rules 1`] = `
 
 exports[`StorageHealth > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Motion": [
         "smoothing",
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-    {
-      "Disk": [
-        "device",
-      ],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -3673,6 +3663,16 @@ exports[`StorageHealth > files its rows by the rules 1`] = `
       "Fit": [
         "compact",
         "sizeTier · more",
+      ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
+    },
+    {
+      "Disk": [
+        "device",
       ],
     },
   ],
@@ -3739,7 +3739,7 @@ exports[`StorageHealth > files its rows by the rules 1`] = `
 
 exports[`StreamDeck > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Pages": [
         "swipe",
@@ -3751,17 +3751,7 @@ exports[`StreamDeck > files its rows by the rules 1`] = `
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-    {
-      "Device": [
-        "device",
-      ],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -3796,6 +3786,16 @@ exports[`StreamDeck > files its rows by the rules 1`] = `
       "Fit": [
         "compact",
         "sizeTier · more",
+      ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
+    },
+    {
+      "Device": [
+        "device",
       ],
     },
   ],
@@ -3862,7 +3862,7 @@ exports[`StreamDeck > files its rows by the rules 1`] = `
 
 exports[`SystemStatus > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Thresholds": [
         "warn.load",
@@ -3874,12 +3874,7 @@ exports[`SystemStatus > files its rows by the rules 1`] = `
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -3892,6 +3887,11 @@ exports[`SystemStatus > files its rows by the rules 1`] = `
         "compact",
         "sizeTier · more",
       ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
     },
   ],
   "Style": [
@@ -3957,19 +3957,14 @@ exports[`SystemStatus > files its rows by the rules 1`] = `
 
 exports[`TextFile > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Motion": [
         "smoothing",
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -3987,6 +3982,11 @@ exports[`TextFile > files its rows by the rules 1`] = `
         "compact",
         "sizeTier · more",
       ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
     },
   ],
   "Style": [
@@ -4052,7 +4052,7 @@ exports[`TextFile > files its rows by the rules 1`] = `
 
 exports[`Thermals > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Thresholds": [
         "sensorLimits",
@@ -4070,22 +4070,7 @@ exports[`Thermals > files its rows by the rules 1`] = `
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-    {
-      "Bar scale": [
-        "max",
-      ],
-    },
-    {
-      "Units & format": [
-        "tempUnit",
-      ],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -4104,6 +4089,21 @@ exports[`Thermals > files its rows by the rules 1`] = `
       "Fit": [
         "compact",
         "sizeTier · more",
+      ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
+    },
+    {
+      "Bar scale": [
+        "max",
+      ],
+    },
+    {
+      "Units & format": [
+        "tempUnit",
       ],
     },
   ],
@@ -4171,7 +4171,7 @@ exports[`Thermals > files its rows by the rules 1`] = `
 
 exports[`Timer > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Motion": [
         "smoothing",
@@ -4183,12 +4183,7 @@ exports[`Timer > files its rows by the rules 1`] = `
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -4212,6 +4207,11 @@ exports[`Timer > files its rows by the rules 1`] = `
       "Fit": [
         "sizeTier",
       ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
     },
   ],
   "Style": [
@@ -4277,7 +4277,7 @@ exports[`Timer > files its rows by the rules 1`] = `
 
 exports[`Visualizer > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Visualizer dynamics": [
         "sensitivity",
@@ -4295,18 +4295,7 @@ exports[`Visualizer > files its rows by the rules 1`] = `
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-    {
-      "Audio device": [
-        "devices",
-        "flow",
-      ],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -4329,6 +4318,17 @@ exports[`Visualizer > files its rows by the rules 1`] = `
       "Fit": [
         "compact",
         "sizeTier · more",
+      ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
+    },
+    {
+      "Audio device": [
+        "devices",
+        "flow",
       ],
     },
   ],
@@ -4401,19 +4401,14 @@ exports[`Visualizer > files its rows by the rules 1`] = `
 
 exports[`Vitals > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Motion": [
         "smoothing",
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Metrics": [
         "metrics",
@@ -4426,6 +4421,11 @@ exports[`Vitals > files its rows by the rules 1`] = `
         "label",
         "icon · more",
       ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
     },
   ],
   "Style": [
@@ -4491,7 +4491,7 @@ exports[`Vitals > files its rows by the rules 1`] = `
 
 exports[`VolumeMixer > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Motion": [
         "smoothing",
@@ -4505,18 +4505,7 @@ exports[`VolumeMixer > files its rows by the rules 1`] = `
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-    {
-      "Device": [
-        "devices",
-        "flow",
-      ],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -4589,6 +4578,17 @@ exports[`VolumeMixer > files its rows by the rules 1`] = `
       ],
     },
   ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
+    },
+    {
+      "Device": [
+        "devices",
+        "flow",
+      ],
+    },
+  ],
   "Style": [
     {
       "Look": [
@@ -4653,7 +4653,7 @@ exports[`VolumeMixer > files its rows by the rules 1`] = `
 
 exports[`WaveLink > files its rows by the rules 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Motion": [
         "smoothing",
@@ -4667,18 +4667,7 @@ exports[`WaveLink > files its rows by the rules 1`] = `
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-    {
-      "Meters": [
-        "source",
-        "flow",
-      ],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -4750,6 +4739,17 @@ exports[`WaveLink > files its rows by the rules 1`] = `
       "Fit": [
         "compact",
         "sizeTier · more",
+      ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
+    },
+    {
+      "Meters": [
+        "source",
+        "flow",
       ],
     },
   ],
