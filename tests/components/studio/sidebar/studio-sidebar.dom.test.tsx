@@ -57,6 +57,17 @@ describe("collapse", () => {
     expect(localStorage.getItem(SIDEBAR_WORKSPACE_KEY)).toBe("1");
   });
 
+  it("keeps keyboard focus when the sidebar flips between expanded and the rail", () => {
+    const { rerender, ...props } = renderSidebar();
+    const row = screen.getByRole("button", { name: "Screens" });
+    row.focus();
+    expect(document.activeElement).toBe(row);
+    rerender(<ToastProvider><StudioSidebar {...props} windowWidth={900} /></ToastProvider>);
+    expect(width()).toContain("w-[60px]");
+    expect(screen.getByRole("button", { name: "Screens" })).toBe(row);
+    expect(document.activeElement).toBe(row);
+  });
+
   it("stays a rail below 960 px, with no toggle and without touching the flag", () => {
     localStorage.setItem(SIDEBAR_WORKSPACE_KEY, "0");
     renderSidebar({ windowWidth: 900 });

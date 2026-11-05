@@ -69,10 +69,10 @@ const rowClass = (rail: boolean, active?: boolean) =>
 
 /** On the rail an item's name is a tooltip; the expanded sidebar has it in the row. */
 function RailTip({ label, rail, children }: { label: string; rail: boolean; children: ReactElement<Record<string, unknown>> }) {
-  if (!rail) return children;
   return (
+    // Always this tree, disabled off the rail: another element type would remount the trigger and drop its focus when `rail` flips.
     // Not hoverable: the popup sits over the view, and hovering it must not keep it open once the pointer leaves the rail.
-    <Tooltip.Root disableHoverablePopup>
+    <Tooltip.Root disableHoverablePopup disabled={!rail}>
       <Tooltip.Trigger render={children} />
       <Tooltip.Portal>
         <Tooltip.Positioner side="right" sideOffset={8} className="z-50">
