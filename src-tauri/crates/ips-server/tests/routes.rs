@@ -760,12 +760,12 @@ async fn serves_the_debug_tools_only_in_debug_mode() {
             assert_eq!((lab.status, lab.body.as_slice()), (200, b"<p>lab</p>".as_slice()));
             let bare = get(s.port, "/lab").await;
             assert_eq!((bare.status, bare.header("location")), (302, Some("/lab/")));
-            for path in ["/widget-qa", "/?widget-qa", "/?widget-qa&settings=1"] {
+            for path in ["/widget-qa", "/?widget-qa", "/?widget-qa&settings=1", "/index.html?widget-qa"] {
                 let qa = get(s.port, path).await;
                 assert_eq!((qa.status, qa.body.as_slice()), (200, b"<p>index</p>".as_slice()), "{path}");
             }
         } else {
-            for path in ["/lab", "/lab/", "/lab/index.html", "/widget-qa", "/?widget-qa", "/?widget-qa&settings=1"] {
+            for path in ["/lab", "/lab/", "/lab/index.html", "/widget-qa", "/?widget-qa", "/?widget-qa&settings=1", "/index.html?widget-qa", "/x?widget-qa", "/a/b?x=1&widget-qa", "/?%77idget-qa", "/index.html?%77idget-qa=1"] {
                 assert_eq!(get(s.port, path).await.status, 404, "{path}");
             }
             // The kiosk and studio are unaffected.

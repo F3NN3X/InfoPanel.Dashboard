@@ -68,6 +68,7 @@ async fn off_the_folder_is_not_read_and_nothing_is_written() {
     assert_eq!(status_and_body(port, "POST", "/api/packs/mine/sign", write, r#"{"css":"YQ==","hash":"x"}"#).await.0, 403);
     assert_eq!(status_and_body(port, "GET", "/api/packs/mine/pack.css", "", "").await.0, 404);
     assert_eq!(status_and_body(port, "GET", "/?widget-qa&pack-check=1", "Sec-Fetch-Dest: iframe\r\nSec-Fetch-Site: same-origin\r\n", "").await.0, 404);
+    assert_eq!(status_and_body(port, "GET", "/index.html?widget-qa&pack-check=1", "Sec-Fetch-Dest: iframe\r\nSec-Fetch-Site: same-origin\r\n", "").await.0, 404);
     assert!(!dir.path().join("data").join(ips_server::pack_sign::KEY_FILE).exists(), "and no key is made");
     assert!(packs.join("pack.json").exists(), "nothing was deleted");
     let _ = stop.send(());
