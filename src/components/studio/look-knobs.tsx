@@ -40,6 +40,8 @@ export interface LookKnobsProps {
   title?: string;
   /** The knobs a screen's lock holds read-only, with the reason (`lockedKnobs`). */
   locked?: Partial<Record<KnobId, string>>;
+  /** The inheritance dot on each knob in place of the Custom chip (the editor's Style tab). */
+  dots?: boolean;
 }
 
 const FOCUS = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent";
@@ -52,8 +54,8 @@ const same = (a: unknown, b: string) => typeof a === "string" && a.trim().toLowe
 /** The control Reset hands focus to: the checked option, else the first control. */
 const RESET_FOCUS = ["[aria-pressed=true]", "[role=radio][tabindex='0']", "button", "input"];
 
-/** One knob: its name, the Custom chip with Reset, and its control. */
-function Knob({ label, custom, from, onReset, locked, children }: { label: string; custom: boolean; from: string; onReset: () => void; locked?: string; children: ReactNode }) {
+/** One knob: its name, the Custom chip with Reset (`dots`: the inheritance dot, which is Reset when filled), and its control. */
+function Knob({ label, custom, from, onReset, locked, dots, children }: { label: string; custom: boolean; from: string; onReset: () => void; locked?: string; dots?: boolean; children: ReactNode }) {
   const controls = useRef<HTMLDivElement>(null);
   // Reset goes away with Custom: focus moves to the knob's control, not the page.
   const reset = () => {
@@ -66,8 +68,20 @@ function Knob({ label, custom, from, onReset, locked, children }: { label: strin
   return (
     <div role="group" aria-label={label} title={locked} className="flex flex-col gap-1.5">
       <div className="flex min-h-6 items-center justify-between gap-2">
-        <span className="font-ui-mono text-nano uppercase tracking-[0.08em] text-ui-hint">{label}</span>
-        {locked ? (
+        <span className="flex min-w-0 items-center gap-2 text-body text-ui-2">
+          {dots && !locked && !custom && <span role="img" aria-label={`From ${from}`} title={`From ${from}`} className="h-[7px] w-[7px] shrink-0 rounded-full border border-ui-source" />}
+          {dots && !locked && custom && (
+            <button
+              type="button"
+              onClick={reset}
+              aria-label={`Reset ${label} to ${from}`}
+              title={`Set here, reset to ${from}`}
+              className={cn("relative h-[7px] w-[7px] shrink-0 rounded-full bg-ui-accent after:absolute after:-inset-[18px] after:content-['']", FOCUS)}
+            />
+          )}
+          {label}
+        </span>
+        {dots && !locked ? null : locked ? (
           <span className="text-micro text-ui-hint">{locked}</span>
         ) : custom ? (
           <span className="flex items-center gap-1.5">
@@ -110,7 +124,7 @@ function useLookModes(lookId: unknown): readonly KnobMode[] {
  * The knob row (D15): Accent, Mode, Surface, Corners and Density over the Look, each marked Custom while it differs from
  * what it follows, with a Reset back to it. Mode (dark and light) shows for a Look that supports light (D3), Variant with theme packs.
  */
-export function LookKnobs({ values, from, onSet, onClear, title, locked = {} }: LookKnobsProps) {
+export function LookKnobs({ values, from, onSet, onClear, title, locked = {}, dots }: LookKnobsProps) {
   const custom = (id: KnobId) => knobCustom(values, id);
   const reset = (id: KnobId) => () => onClear(KNOB_KEYS[id]);
   const accent = knobValue(values, "accent");
@@ -124,7 +138,7 @@ export function LookKnobs({ values, from, onSet, onClear, title, locked = {} }: 
   return (
     <section aria-label="Look knobs" data-nav-section="knobs" className="flex flex-col gap-3.5 px-4 pb-4">
       {title && <h2 className="text-body font-semibold text-ui-1">{title}</h2>}
-      <Knob label="Accent" custom={custom("accent")} from={from} onReset={reset("accent")} locked={locked.accent}>
+      <Knob dots={dots} label="Accent" custom={custom("accent")} from={from} onReset={reset("accent")} locked={locked.accent}>
         <div className="flex flex-wrap items-center">
           {ACCENTS.map((a) => (
             <button
@@ -162,7 +176,7 @@ export function LookKnobs({ values, from, onSet, onClear, title, locked = {} }: 
         </div>
       </Knob>
       {native && modes.includes("light") && (
-        <Knob label="Mode" custom={modeCustom(values, native)} from={from} onReset={reset("mode")} locked={locked.mode}>
+        <Knob dots={dots} label="Mode" custom={modeCustom(values, native)} from={from} onReset={reset("mode")} locked={locked.mode}>
           <div role="radiogroup" aria-label="Mode" onKeyDown={(e) => onRovingKeyDown(e, "[role=radio]:not(:disabled)")} className="flex gap-1 rounded-lg border border-ui-default bg-ui-app p-1">
             {MODES.map((m) => {
               const supported = modes.includes(m.id);
@@ -186,7 +200,7 @@ export function LookKnobs({ values, from, onSet, onClear, title, locked = {} }: 
           </div>
         </Knob>
       )}
-      <Knob label="Surface" custom={custom("surface")} from={from} onReset={reset("surface")} locked={locked.surface}>
+      <Knob dots={dots} label="Surface" custom={custom("surface")} from={from} onReset={reset("surface")} locked={locked.surface}>
         <div role="radiogroup" aria-label="Surface" onKeyDown={(e) => onRovingKeyDown(e, "[role=radio]")} className="flex gap-1 rounded-lg border border-ui-default bg-ui-app p-1">
           {SURFACES.map((s) => {
             const on = surface === s.value;
@@ -210,7 +224,7 @@ export function LookKnobs({ values, from, onSet, onClear, title, locked = {} }: 
           })}
         </div>
       </Knob>
-      <Knob label="Corners" custom={custom("corners")} from={from} onReset={reset("corners")} locked={locked.corners}>
+      <Knob dots={dots} label="Corners" custom={custom("corners")} from={from} onReset={reset("corners")} locked={locked.corners}>
         <div className="flex min-h-11 items-center gap-3">
           <input
             type="range"
@@ -232,7 +246,7 @@ export function LookKnobs({ values, from, onSet, onClear, title, locked = {} }: 
           <span className="w-14 shrink-0 text-right font-ui-mono text-micro text-ui-soft">{corner === undefined ? "Look" : `${CORNER_STEPS[corner]} px`}</span>
         </div>
       </Knob>
-      <Knob label="Density" custom={custom("density")} from={from} onReset={reset("density")} locked={locked.density}>
+      <Knob dots={dots} label="Density" custom={custom("density")} from={from} onReset={reset("density")} locked={locked.density}>
         <div role="radiogroup" aria-label="Density" onKeyDown={(e) => onRovingKeyDown(e, "[role=radio]")} className="flex gap-1 rounded-lg border border-ui-default bg-ui-app p-1">
           {DENSITIES.map((d) => (
             <button
@@ -261,5 +275,6 @@ export function LookKnobs({ values, from, onSet, onClear, title, locked = {} }: 
 export default function WidgetLookKnobs({ values, appearance, onSet, onClear }: Pick<LookKnobsProps, "values" | "onSet" | "onClear"> & { appearance: Appearance }) {
   const lookId = knobValue(values, "lookId");
   const locked = lockedKnobs(appearance, appearance.profileName ?? "the screen");
-  return <LookKnobs title={`Look: ${lookName(lookId)}`} values={values} from="the page" onSet={onSet} onClear={onClear} locked={locked} />;
+  const name = appearance.profileName ?? "the page";
+  return <LookKnobs dots title={`Theme: ${lookName(lookId)} · Follows ${name}`} values={values} from="the page" onSet={onSet} onClear={onClear} locked={locked} />;
 }

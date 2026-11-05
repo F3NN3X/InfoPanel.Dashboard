@@ -2,11 +2,11 @@
  * One InfoPanel item or element on a screen's page, selected (Edit v3 SPEC §10.2): the item inspector an imported
  * profile's items have (Item · Sensor · Look, the kind's fields, its sensor, an element's own panel), over the item
  * placement's stored item (`Placement.item`) with the page's store (`ProfilePage.freeCanvas`: files, fonts, palette)
- * around it. Its Place row moves it through the page model (on cells, or in px), and its LAYER section and On
- * InfoPanel line come after the fields. Every edit is one step of the screen's history. A new Image or Sensor image
+ * around it. Its Place row moves it through the page model (on cells, or in px), and its On InfoPanel line comes
+ * after the fields. Every edit is one step of the screen's history. A new Image or Sensor image
  * asks for its file here (DECISIONS after phase 5). Lazy-loaded with the item model.
  */
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { HistorySetter } from "@/hooks/use-config-history";
 import { useSensors } from "@/hooks/useSensors";
 import { useSensorCatalog } from "@/lib/catalog";
@@ -57,7 +57,6 @@ interface PageItemInspectorProps {
   setConfig: HistorySetter;
   onOps: (ops: readonly PageOp[]) => void;
   /** The LAYER section. */
-  layer: ReactNode;
   /** The screen is made for InfoPanel: the On InfoPanel line shows. */
   checkOn: boolean;
   onDuplicate: () => void;
@@ -67,7 +66,7 @@ interface PageItemInspectorProps {
   onFileDone?: (picked: boolean) => void;
 }
 
-export default function PageItemInspector({ profile, page, placement, place, setConfig, onOps, layer, checkOn, onDuplicate, onDelete, askFile = false, onFileDone }: PageItemInspectorProps) {
+export default function PageItemInspector({ profile, page, placement, place, setConfig, onOps, checkOn, onDuplicate, onDelete, askFile = false, onFileDone }: PageItemInspectorProps) {
   const zone = useMemo(
     () => ({ ...placement, canvas: oneItemCanvas(page, placement.item, { width: profile.width, height: profile.height }) }),
     [placement, page.freeCanvas, page.name, profile.width, profile.height],
@@ -126,7 +125,6 @@ export default function PageItemInspector({ profile, page, placement, place, set
         onRemap={() => {}}
         onBindSensor={"SensorType" in item ? (sensor) => editor.bind(PATH, sensor) : undefined}
         place={placeRow}
-        after={layer}
         actions={{
           onToggleHidden: () => onOps([{ type: "setHidden", id: placement.id, hidden: placement.visible }]),
           onDuplicate,

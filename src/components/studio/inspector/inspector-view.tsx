@@ -1,13 +1,12 @@
 import { onRovingKeyDown } from "@/lib/roving";
 import { scrollBehavior } from "@/lib/scroll-behavior";
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
-import { CircleHelp } from "lucide-react";
+import { ChevronDown, CircleHelp } from "lucide-react";
 import { Popover } from "@/components/ui/popover";
 import { useSensorCatalog } from "@/lib/catalog";
 import { cn } from "@/lib/utils";
 import type { ModuleSetting } from "@/modules/types";
 import { FollowsTheme } from "./follows-theme";
-import { Toggle } from "@/components/ui/toggle";
 import { INSPECTOR_SCROLL, useInspectorChrome } from "../inspector-layout";
 import {
   allSections,
@@ -95,16 +94,16 @@ interface InspectorViewProps {
   inherit?: (section: InspectorSection) => SectionInherit | undefined;
   query: string;
   onQuery: (query: string) => void;
-  /** Open, reveal and outline a section whenever `seq` changes. */
-  jumpTo?: { id: string; key?: string; seq: number };
+  /** Open, reveal and outline a section whenever `seq` changes; `quiet` lights the row and leaves the focus (an undo). */
+  jumpTo?: { id: string; key?: string; seq: number; quiet?: boolean };
   /** The phone sheet's compact header (below full height). */
   identity: SheetIdentity;
   /** The sheet's Quick tool: the pinned settings, in order. */
   quickKeys?: readonly string[];
   /** Show the settings search (default); the profile inspector turns it off. */
   searchable?: boolean;
-  /** The footer in place of the dot legend; `null` for none. */
-  footer?: ReactNode;
+  /** The search's placeholder, naming what it searches. */
+  searchLabel?: string;
   /** An icon for each tab and a line under the tabs saying what the active one holds. */
   tabInfo?: Partial<Record<TabId, { icon: ReactNode; description: string }>>;
   /** A part's Place row, edge to edge under the header (Edit v3 SPEC §10.2). */
@@ -119,6 +118,8 @@ interface InspectorViewProps {
 
 /** How long a jumped-to section stays outlined. */
 const FLASH_MS = 1200;
+/** How long an undo's restored row stays lit (02f). */
+const ROW_FLASH_MS = 1600;
 
 const always = () => true;
 
@@ -214,21 +215,35 @@ function Tabs({
   );
 }
 
-/** The footer: the dot legend. */
-function Footer() {
+/** The dot legend, behind an icon beside the search. */
+function DotsHelp() {
   return (
-    <footer className="flex h-10 shrink-0 items-center gap-2 border-t border-ui-subtle px-4">
-      <Popover
-        trigger={<CircleHelp className="h-4 w-4" />}
-        triggerLabel="What the dots mean"
-        triggerClassName="flex h-6 w-6 items-center justify-center rounded-md text-ui-4 hover:bg-ui-hover hover:text-ui-1"
-        side="top"
-        className="w-64"
-      >
-        <DotLegend />
-      </Popover>
-      <span className="flex-1 text-caption text-ui-3">What the dots mean</span>
-    </footer>
+    <Popover
+      trigger={<CircleHelp className="h-4 w-4" />}
+      triggerLabel="What the dots mean"
+      triggerClassName="flex h-8 w-7 shrink-0 items-center justify-center rounded-ui-md text-ui-3 hover:bg-ui-hover hover:text-ui-1"
+      side="bottom"
+      className="w-64"
+    >
+      <DotLegend />
+    </Popover>
+  );
+}
+
+/** Advanced as the tab's last row (Q26): it opens the global switch, the same one Settings and the palette flip. */
+function AdvancedRow({ open, onToggle }: { open: boolean; onToggle: () => void }) {
+  return (
+    <button
+      type="button"
+      aria-expanded={open}
+      title="Show every setting, including ones the theme controls"
+      onClick={onToggle}
+      className="flex h-11 w-full items-center gap-2 px-4 text-left text-body font-medium text-ui-1 hover:bg-ui-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ui-accent"
+    >
+      Advanced
+      <span className="ml-auto text-caption font-normal text-ui-3">Border, glow, CSS</span>
+      <ChevronDown className={cn("h-4 w-4 shrink-0 text-ui-3 transition-transform duration-(--ui-dur-fast) ease-ui", open && "rotate-180")} aria-hidden />
+    </button>
   );
 }
 
@@ -261,7 +276,7 @@ export function InspectorView({
   identity,
   quickKeys = [],
   searchable = true,
-  footer,
+  searchLabel,
   tabInfo,
   place,
   after,
@@ -350,13 +365,21 @@ export function InspectorView({
       requestAnimationFrame(() => {
         const card = root.current?.querySelector(`[${SETTING_CARD}="${CSS.escape(target.id)}"]`);
         card?.scrollIntoView({ block: "nearest", behavior: scrollBehavior() });
+        if (jumpTo.quiet) {
+          // An undo: the restored row lights up where it is, and the focus stays on what the user was doing.
+          const row = jumpTo.key ? card?.querySelector<HTMLElement>(`[data-setting-key="${CSS.escape(jumpTo.key)}"]`) : null;
+          row?.scrollIntoView({ block: "nearest", behavior: scrollBehavior() });
+          row?.setAttribute("data-undo-flash", "");
+          setTimeout(() => row?.removeAttribute("data-undo-flash"), ROW_FLASH_MS);
+        }
         // "Go to setting" also puts the cursor in the field.
-        if (jumpTo.key)
+        else if (jumpTo.key)
           card
             ?.querySelector<HTMLElement>(`[data-setting-key="${CSS.escape(jumpTo.key)}"] :is(input, select, textarea, button)`)
             ?.focus({ preventScroll: true });
       })
     );
+    if (jumpTo.quiet) return;
     setFlash(target.id);
     clearTimeout(timer.current);
     timer.current = setTimeout(() => setFlash(null), FLASH_MS);
@@ -449,20 +472,17 @@ export function InspectorView({
       </div>
       {place}
       {searchable && (
-        <div className="flex shrink-0 gap-1.5 pb-2.5 pl-4 pr-3">
-          <div className="min-w-0 flex-1">
-            <SettingsSearch query={query} onQuery={onQuery} />
+        <>
+          {!filtering && tabs.length > 0 && <Tabs tabs={tabs} active={tab} counts={counts} onTab={setTab} info={tabInfo} underline={underline} />}
+          <div className="flex shrink-0 gap-1 pb-2.5 pl-4 pr-3 pt-3">
+            <div className="min-w-0 flex-1">
+              <SettingsSearch query={query} onQuery={onQuery} placeholder={searchLabel} />
+            </div>
+            <DotsHelp />
           </div>
-          <label
-            title="Show every setting, including ones the theme controls"
-            className="flex shrink-0 cursor-pointer items-center gap-1.5 text-caption text-ui-2"
-          >
-            Advanced
-            <Toggle checked={advanced} onChange={setAdvanced} label="Advanced" />
-          </label>
-        </div>
+        </>
       )}
-      {!filtering && tabs.length > 0 && <Tabs tabs={tabs} active={tab} counts={counts} onTab={setTab} info={tabInfo} underline={underline} />}
+      {!searchable && tabs.length > 0 && <Tabs tabs={tabs} active={tab} counts={counts} onTab={setTab} info={tabInfo} underline={underline} />}
       {filtering && (
         <div className="flex shrink-0 items-center gap-2 pb-2 pl-4 pr-3 text-micro text-ui-hint">
           <span className="flex-1">{`${shownCount} matching setting${shownCount === 1 ? "" : "s"}`}</span>
@@ -474,8 +494,8 @@ export function InspectorView({
         {empty && <p className="px-4 py-6 text-body text-ui-hint">{empty}</p>}
         {sections.map(renderSection)}
         {after}
+        {searchable && !filtering && <AdvancedRow open={advanced} onToggle={() => setAdvanced(!advanced)} />}
       </div>
-      {footer === undefined ? <Footer /> : footer}
     </div>
   );
 }

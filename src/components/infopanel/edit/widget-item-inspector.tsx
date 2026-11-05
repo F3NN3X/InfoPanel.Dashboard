@@ -45,11 +45,9 @@ interface WidgetItemInspectorProps {
   host: WidgetHost;
   /** The Place row on the page's cells (SPEC §10.2: a widget only ever shows COL / ROW / W / H). */
   place?: ReactNode;
-  /** The LAYER section, after the settings. */
-  after?: ReactNode;
 }
 
-export function WidgetItemInspector({ editor, path, item, host, place, after }: WidgetItemInspectorProps) {
+export function WidgetItemInspector({ editor, path, item, host, place }: WidgetItemInspectorProps) {
   const toast = useToast();
   const widget = widgetOf(item)!;
   // Visible is the item's Hidden, the eye in Layers: one state (sign-off round 1), so saved data keeps its shape.
@@ -127,7 +125,6 @@ export function WidgetItemInspector({ editor, path, item, host, place, after }: 
       onOpenPoint={explorer}
       onOpenExplorer={explorer}
       place={place}
-      layer={after}
       onInfoPanel={onInfoPanel}
     />
   );

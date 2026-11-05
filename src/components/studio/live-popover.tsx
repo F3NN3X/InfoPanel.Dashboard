@@ -22,7 +22,7 @@ interface LiveControlProps {
   kiosks: readonly ControlKiosk[];
   /** Show the kiosk in this window (PLAN decision 6; it replaces the top bar's Kiosk view button). */
   onOpenKioskView: () => void;
-  /** Where the trigger sits: the editor's top bar, or a row of the sidebar's footer (a workspace page, no top bar). */
+  /** Where the trigger sits: a phone's top bar, or a row of the sidebar's footer. */
   place?: "bar" | "sidebar" | "rail";
   /** Wraps the trigger (the sidebar's rail tooltip), given the trigger and its name. */
   tip?: (trigger: ReactElement<Record<string, unknown>>, label: string) => ReactElement;
@@ -122,7 +122,7 @@ export function LiveControl({ open, onOpenChange, profiles, screen, control, kio
               <div className="min-w-0 flex-1">
                 <Popover.Title className="text-body font-semibold text-ui-1">Live control</Popover.Title>
                 <p className="mt-0.5 text-micro leading-snug text-ui-3">
-                  Acts on the kiosks right now. None of it is part of your design, so Save doesn't change it.
+                  Acts on the kiosks right now. None of it is part of your design, so saving doesn't change it.
                 </p>
               </div>
               <button

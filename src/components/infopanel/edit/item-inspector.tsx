@@ -284,8 +284,8 @@ function ItemFields({ editor, path, item, live, onRemap, onBindSensor, sensors, 
   );
 }
 
-/** An item's tabs (Edit v3 SPEC §10.2): Item, Sensor, Look. */
-const IP_TABS = { show: "Item", data: "Sensor", style: "Look" } as const;
+/** An item's tabs (Edit v3 SPEC §10.2): Item, Sensor, Theme. */
+const IP_TABS = { show: "Item", data: "Sensor", style: "Theme" } as const;
 
 /** On InfoPanel (one-editor SPEC §5.5): the part's Export check status, and per studio-only look what InfoPanel shows instead. */
 function OnInfoPanel({ row, item }: { row: CheckRow; item: DisplayItem }) {

@@ -38,7 +38,7 @@ describe("the canvas editor in Edit", () => {
     expect(items[0]).toMatchObject({ kind: "Text", Name: "Custom Text", Font: "Segoe UI", Color: "#FFFFFFFF" });
 
     // Layers is the other tab of the same panel.
-    fireEvent.click(within(screen.getByRole("radiogroup", { name: "Left panel" })).getByRole("radio", { name: "Layers" }));
+    fireEvent.click(within(screen.getByRole("tablist", { name: "Left panel" })).getByRole("tab", { name: "Layers" }));
     expect(screen.getByRole("region", { name: "Layers" })).toBeTruthy();
     expect(screen.queryByRole("region", { name: "Add" })).toBeNull();
   });

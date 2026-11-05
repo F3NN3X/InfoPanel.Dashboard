@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Popover } from "@base-ui/react/popover";
-import { ChevronDown, Monitor } from "lucide-react";
+import { Monitor } from "lucide-react";
 import type { MonitorProfile } from "@/lib/layout";
+import { importedFromInfoPanel } from "@/lib/screens/list";
 import { cn } from "@/lib/utils";
 
 interface ScreenSwitcherProps {
@@ -16,15 +17,18 @@ interface ScreenSwitcherProps {
   onManage: () => void;
   /** "Screen settings…": Screens with this screen selected. */
   onScreenSettings: () => void;
+  /** No page tabs beside it (a narrow window): it names the page too. */
+  compact?: boolean;
 }
 
 const ROW = "flex w-full items-center gap-2 rounded-md px-2 text-left outline-none hover:bg-ui-hover focus-visible:bg-ui-hover";
 
 /**
- * The title bar's breadcrumb (Edit v3 SPEC §6.1), which switches screen and page: every screen with its size, the current screen's
- * pages beneath it, and Manage screens…. Choosing a page switches screen and page.
+ * The top bar's breadcrumb (Edit v3 SPEC §6.1), which switches screen and page: the name over its size and grid in mono;
+ * opened, every screen with its size, the current screen's pages beneath it, and Manage screens…. Choosing a page
+ * switches screen and page.
  */
-export function ScreenSwitcher({ profiles, profile, pageId, onSelect, onManage, onScreenSettings }: ScreenSwitcherProps) {
+export function ScreenSwitcher({ profiles, profile, pageId, onSelect, onManage, onScreenSettings, compact = false }: ScreenSwitcherProps) {
   const [open, setOpen] = useState(false);
   const page = profile.pages.find((p) => p.id === pageId) ?? profile.pages[0];
   const choose = (profileId: string, toPage: string) => {
@@ -35,18 +39,16 @@ export function ScreenSwitcher({ profiles, profile, pageId, onSelect, onManage, 
     <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Trigger
         title="Switch screen or page"
-        className="flex h-7 min-w-0 shrink items-center gap-1.5 whitespace-nowrap rounded-[7px] border border-ui-default bg-ui-raised px-2 text-body text-ui-1 transition-colors hover:bg-ui-hover"
+        aria-description={importedFromInfoPanel(profile) ? "Imported from InfoPanel" : "Screen"}
+        className="flex min-w-0 shrink flex-col whitespace-nowrap rounded-ui-sm px-1 text-left leading-tight transition-colors hover:bg-ui-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent"
       >
-        <Monitor className="h-[15px] w-[15px] shrink-0 text-ui-3" strokeWidth={1.75} />
-        <span className="truncate font-semibold">{profile.name}</span>
+        <span className="max-w-44 truncate text-body font-medium text-ui-1">
+          {profile.name}
+          {compact && <span className="font-normal text-ui-3"> / {page.name}</span>}
+        </span>
         <span className="font-ui-mono text-micro text-ui-hint max-[959px]:hidden">
-          {profile.width}×{profile.height}
+          {profile.width} × {profile.height} · {profile.cols} × {profile.rows} grid
         </span>
-        <span aria-hidden className="text-ui-hint">
-          /
-        </span>
-        <span className="truncate text-ui-1">{page.name}</span>
-        <ChevronDown aria-hidden className="h-3.5 w-3.5 shrink-0 text-ui-4" strokeWidth={1.75} />
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Positioner side="bottom" align="start" sideOffset={6} className="z-[80]">

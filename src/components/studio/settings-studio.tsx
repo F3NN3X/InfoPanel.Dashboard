@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { usePreviewDataSetting } from "@/hooks/use-preview-data-setting";
 import { PREVIEW_DATA_HINT, PREVIEW_DATA_OPTIONS, parsePreviewData } from "@/lib/preview-data-pref";
-import { useAccordionPref, useAdvancedPref, useQuickBarPref } from "./inspector/inspector-prefs";
+import { useAccordionPref, useAdvancedPref } from "./inspector/inspector-prefs";
 import { useAddListDensity, useAddPreviewOnHover, useLeftPanelWidth } from "./add-prefs";
 import { Card, Group, Row, Segmented, SelectRow, SwitchRow } from "@/settings/kit";
 import { ZOOM_STEPS } from "./studio-layout";
@@ -14,9 +14,9 @@ const ACCORDION_MODES = [
 ];
 
 const LEFT_WIDTHS = [
-  { value: "narrow" as const, label: "Narrow" },
-  { value: "default" as const, label: "Default" },
-  { value: "wide" as const, label: "Wide" },
+  { value: "narrow" as const, label: "272 px" },
+  { value: "default" as const, label: "300 px" },
+  { value: "wide" as const, label: "340 px" },
 ];
 
 const DENSITIES = [
@@ -43,12 +43,11 @@ function useZoomPref(): [ZoomPref, (pref: ZoomPref) => void] {
  * config. The canvas's settings, then the panels'.
  */
 export function SettingsStudio() {
-  const [quickBar, setQuickBar] = useQuickBarPref();
   const [accordion, setAccordion] = useAccordionPref();
   const [advanced, setAdvanced] = useAdvancedPref();
   const [{ fitting, manual: zoom }, setZoomPref] = useZoomPref();
   const [showGrid, setShowGrid] = useStoredFlag(GRID_KEY, true);
-  const [showRulers, setShowRulers] = useStoredFlag(RULERS_KEY, true);
+  const [showRulers, setShowRulers] = useStoredFlag(RULERS_KEY, false);
   const [leftWidth, setLeftWidth] = useLeftPanelWidth();
   const [density, setDensity] = useAddListDensity();
   const [previewOnHover, setPreviewOnHover] = useAddPreviewOnHover();
@@ -75,7 +74,6 @@ export function SettingsStudio() {
 
       <Group navSection="panels" title="Panels">
         <Card>
-          <SwitchRow label="Quick bar" hint="The pinned settings of the selected widget, over the canvas." checked={quickBar} onChange={setQuickBar} />
           <Row label="Inspector sections" hint="One open: opening a section closes the others in its tab.">
             <Segmented label="Inspector sections" options={ACCORDION_MODES} value={accordion} onChange={setAccordion} />
           </Row>

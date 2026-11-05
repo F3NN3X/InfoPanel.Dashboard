@@ -33,8 +33,6 @@ interface StudioInspectorProps {
   pageSettings: Pick<Parameters<typeof PageInspector>[0], "onSnapItems" | "onSize" | "onGrid" | "onGap">;
   /** A zone's On InfoPanel section, on a screen made for InfoPanel (SPEC §5.5). */
   onInfoPanelOf?: (zone: Placement) => ReactNode;
-  /** A zone's LAYER section (Edit v3 SPEC §10.2). */
-  layerOf?: (zone: Placement) => ReactNode;
 }
 
 /**
@@ -55,7 +53,6 @@ export function StudioInspector({
   onEditGauge,
   pageSettings,
   onInfoPanelOf,
-  layerOf,
 }: StudioInspectorProps) {
   const { selected, selectedWidgetId, selection } = sel;
   const { mode, sheet, setFloatOpen } = ui.studioLayout;
@@ -130,7 +127,6 @@ export function StudioInspector({
         onOpenExplorer={openExplorer}
         onEditGauge={onEditGauge && (() => onEditGauge(selected.id))}
         onInfoPanel={onInfoPanelOf?.(selected)}
-        layer={layerOf?.(selected)}
       />
     ) : (
       <PageInspector

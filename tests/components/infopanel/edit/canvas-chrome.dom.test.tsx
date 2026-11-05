@@ -36,7 +36,7 @@ describe("the InfoPanel editor canvas", () => {
     expect(kind.textContent).toBe("InfoPanel item");
     expect(kind.getAttribute("title")).toMatch(/^(Native|InfoPanel) · Text$/);
 
-    fireEvent.click(screen.getByRole("button", { name: "Toggle rulers" }));
+    fireEvent.click(screen.getByRole("button", { name: "View options" }));
     fireEvent.click(screen.getByTitle("Profile size, background and fonts"));
     expect(screen.getByLabelText("Name")).toHaveProperty("value", "Desk");
   });

@@ -57,7 +57,7 @@ export function DataPicker({ open, onOpenChange, title, points, mode, bound, onT
                 autoFocus
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search 650+ data points — e.g. gpu temp, steam level"
+                placeholder={`Search ${points.length} data points, e.g. gpu temp, steam level`}
                 aria-label="Search data points"
                 className="min-w-0 flex-1 bg-transparent text-body text-ui-1 outline-none placeholder:text-ui-4"
               />

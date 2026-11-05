@@ -38,7 +38,7 @@ const SHAPE_OPTIONS: Options = [
   { value: "notch", label: "Notch", title: "Sits on the top edge with curved corners, like a laptop notch" },
 ];
 const EDGE_OPTIONS: Options = [
-  { value: "auto", label: "Auto", title: "The Look's edge, else the top" },
+  { value: "auto", label: "Auto", title: "The theme's edge, else the top" },
   { value: "top", label: "Top" },
   { value: "bottom", label: "Bottom" },
 ];
@@ -292,10 +292,10 @@ export function IslandSection({ island, previewBus, onChange, onLook, onOpenExpl
     },
     {
       id: "island-look",
-      title: "Look",
+      title: "Theme",
       body: (
         <>
-          <div role="group" aria-label="Start from a look" className="grid grid-cols-2 gap-1.5">
+          <div role="group" aria-label="Start from a theme" className="grid grid-cols-2 gap-1.5">
             {ISLAND_LOOKS.map((l) => (
               <button
                 key={l.id}

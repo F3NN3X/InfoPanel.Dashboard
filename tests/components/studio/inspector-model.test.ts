@@ -82,13 +82,13 @@ describe("every setting is in exactly one section of exactly one tab", () => {
 });
 
 describe("inspectorTabs", () => {
-  it("has Show, Style, Data and Behavior for widgets and panels", () => {
+  it("has Content, Style, Data and Behaviour for widgets and panels", () => {
     for (const context of [spotify, panel]) {
       expect(inspectorTabs(context)).toEqual([
-        { id: "show", label: "Show" },
+        { id: "show", label: "Content" },
         { id: "style", label: "Style" },
         { id: "data", label: "Data" },
-        { id: "behaviour", label: "Behavior" },
+        { id: "behaviour", label: "Behaviour" },
       ]);
     }
   });
@@ -524,11 +524,11 @@ describe("searchAll", () => {
   it("searches every tab and labels each result with its tab", () => {
     const { groups, total } = searchAll(spotify, "mirror");
     // The visualiser's Style matches by its Mirror option; "peak" by the labels in Show and Style.
-    expect(groups.map((g) => [g.tabLabel, g.section.title])).toEqual([["Show", "Visualizer"]]);
+    expect(groups.map((g) => [g.tabLabel, g.section.title])).toEqual([["Content", "Visualizer"]]);
     expect(total).toBe(groups.reduce((n, g) => n + g.section.settings.length, 0));
     expect(keysOf(groups.map((g) => g.section))).toEqual(["vizStyle"]);
     expect(searchAll(spotify, "peak").groups.map((g) => [g.tabLabel, g.section.title])).toEqual([
-      ["Show", "Visualizer"],
+      ["Content", "Visualizer"],
       ["Style", "Colors"],
     ]);
   });

@@ -3,7 +3,7 @@
  * the live panel in the inspector, and the grouped list the export dialog shows too. All read one `exportCheck`.
  */
 import { createContext, useContext, type ReactNode } from "react";
-import { Ban, Check, Image, Triangle, type LucideIcon } from "lucide-react";
+import { Ban, Check, Image, Triangle, TriangleAlert, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { STATUS_LABEL, STATUS_ORDER, STATUS_SHORT, type CheckRow, type CheckStatus, type ExportCheck } from "@/lib/infopanel/export-check";
 
@@ -58,30 +58,51 @@ export function ApproxMark() {
   );
 }
 
-/** The header's pill: the counts that aren't zero, or that there is nothing to export. */
-export function ExportCheckPill({ check, open, onClick }: { check: ExportCheck; open: boolean; onClick: () => void }) {
+/**
+ * The problems banner over the canvas (02a, Q21): limited to the Export check on a screen made for InfoPanel. A part left
+ * out says so, with Show going to it; otherwise it reads as the quiet counts. Either way it opens the check in the inspector.
+ */
+export function ExportCheckPill({ check, open, onClick, onShow }: { check: ExportCheck; open: boolean; onClick: () => void; onShow?: (path: string) => void }) {
   const shown = STATUS_ORDER.slice().reverse().filter((s) => check.counts[s] > 0);
+  const problems = check.rows.filter((r) => r.status === "out");
+  const first = problems[0];
   return (
-    <button
-      type="button"
-      aria-pressed={open}
-      data-testid="export-pill"
-      onClick={onClick}
-      title="What happens to each part when you export to InfoPanel"
-      className={cn(
-        "flex h-[26px] shrink-0 items-center gap-2 rounded-[7px] border bg-ui-raised px-2.5 text-[11.5px] text-ui-3 hover:text-ui-1",
-        open ? "border-ui-accent" : "border-ui-default",
+    <div className={cn("flex h-8 items-center gap-2 rounded-ui-md border px-2.5 font-ui text-caption shadow-ui-float", first ? "border-ui-warn/45 bg-ui-warn-tint text-ui-warn" : "bg-ui-raised text-ui-3", open ? "border-ui-accent" : !first && "border-ui-strong")}>
+      <button
+        type="button"
+        aria-pressed={open}
+        data-testid="export-pill"
+        onClick={onClick}
+        title="What happens to each part when you export to InfoPanel"
+        className="flex min-w-0 items-center gap-2 rounded-ui-sm hover:text-ui-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent"
+      >
+        {first ? (
+          <>
+            <TriangleAlert className="h-4 w-4 shrink-0" aria-hidden />
+            <span className="sr-only">Export check: </span>
+            <span className="truncate">
+              {problems.length} needs attention · {first.name} is left out on InfoPanel
+            </span>
+          </>
+        ) : (
+          <>
+            <span>Export check</span>
+            {shown.length === 0 && <span className="text-ui-4">· nothing to export</span>}
+            {shown.map((s) => (
+              <span key={s} className="flex items-center gap-1 text-ui-2">
+                <span className={cn("h-[7px] w-[7px] rounded-full", STATUS_UI[s].bg)} />
+                {check.counts[s]} {STATUS_SHORT[s]}
+              </span>
+            ))}
+          </>
+        )}
+      </button>
+      {first && onShow && (
+        <button type="button" onClick={() => onShow(first.path)} className="shrink-0 rounded-ui-sm underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent">
+          Show
+        </button>
       )}
-    >
-      <span>Export check</span>
-      {shown.length === 0 && <span className="text-ui-4">· nothing to export</span>}
-      {shown.map((s) => (
-        <span key={s} className="flex items-center gap-1 text-ui-2">
-          <span className={cn("h-[7px] w-[7px] rounded-full", STATUS_UI[s].bg)} />
-          {check.counts[s]} {STATUS_SHORT[s]}
-        </span>
-      ))}
-    </button>
+    </div>
   );
 }
 

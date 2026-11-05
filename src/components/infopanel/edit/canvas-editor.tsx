@@ -45,7 +45,7 @@ import { ExportCheckContext, ExportCheckPanel, ExportCheckPill, type ExportCheck
 import { RemapDialog, useRemapIndex } from "../remap-dialog";
 import { AddPalette, idOf, paletteEntryOf, type AddEntry } from "./add-palette";
 import { AddPanel } from "@/components/studio/add-panel";
-import { addCatalog, sameDrop, type AddItem } from "@/components/studio/add-catalog";
+import { addCatalog, sameDrop, widgetRows, type AddItem } from "@/components/studio/add-catalog";
 import { freeSize } from "@/components/studio/add-place";
 import { useAddListDensity, useAddPreviewOnHover, type AddFilter } from "@/components/studio/add-prefs";
 import { useRecentAdds } from "@/components/studio/add-recent";
@@ -75,7 +75,6 @@ import { ImagePicker } from "./image-picker";
 import { ItemInspector } from "./item-inspector";
 import { LayersTree } from "@/components/studio/layers-tree";
 import { useCanvasLayers } from "./canvas-layers";
-import { LayerSection } from "@/components/studio/layer-section";
 import { contentsLine, GroupInspectorView } from "@/components/studio/group-inspector";
 import { SaveComponentDialog } from "./save-component-dialog";
 import { ProfileSettings } from "./profile-settings";
@@ -87,6 +86,9 @@ import { useLibraryLink } from "./use-library-link";
 export interface EditorShell {
   layout: ReturnType<typeof useStudioLayout>;
   leftOpen: boolean;
+  /** The closed left panel's strip, from 960 px. */
+  leftStrip?: ReactNode;
+  onToggleLeft?: () => void;
   leftTab: LeftTab;
   onLeftTab: (tab: LeftTab) => void;
   leftWidth: number;
@@ -271,7 +273,7 @@ export default function CanvasEditorView({ zone, setConfig, history, shell, hidd
     if (addKit && row.kind !== "layout") addToast.show(addKit.added(widgetTile(row)), true, true);
   };
   const placeWidget = (drop: WidgetDrop, at: { x: number; y: number }) => {
-    const row = [...catalog.widget, ...catalog.panel].find((i) => sameDrop(i.drop, drop));
+    const row = [...widgetRows(catalog.widget), ...catalog.panel].find((i) => sameDrop(i.drop, drop));
     if (row) addWidget(row, at);
   };
   // A fixture's toast: the one adding the selected widget raised (the reference's state 3).
@@ -448,16 +450,6 @@ export default function CanvasEditorView({ zone, setConfig, history, shell, hidd
   const name = editor.open.profile.Name || editor.open.stored.source.name;
   if (hidden) return null;
   const floating = layout.mode === "floating";
-  // The LAYER section under one selected part or group (Edit v3 SPEC §10.2): z-order and the group it sits in.
-  const layerPath = !(checkOpen && checkOn) && editor.selection.length === 1 ? editor.selection[0] : null;
-  const layerSection = layerPath !== null && (
-    <LayerSection
-      onAction={layers.menu.run}
-      groups={layers.menu.groups.filter((g) => g.id !== layerPath && !g.id.startsWith(`${layerPath}.`))}
-      inGroup={layerPath.includes(".") ? layerPath.split(".").slice(0, -1).join(".") : null}
-      onInGroup={(g) => (g === "new" ? editor.group() : g === null ? editor.move("", editor.committed.length) : layers.menu.moveToGroup(g))}
-    />
-  );
   /** The Place row of the one selected part (SPEC §10.2): a widget on its cells, an item on its `$.cell` or in px. */
   const placeOf = (path: Path): ReactNode => {
     const item = itemAt(editor.committed, path);
@@ -531,10 +523,9 @@ export default function CanvasEditorView({ zone, setConfig, history, shell, hidd
         onSelectContents={single.DisplayItems.length > 0 ? () => editor.select(single.DisplayItems.map((_, i) => `${editor.selection[0]}.${i}`)) : undefined}
         onUngroup={editor.ungroup}
         onSaveToLibrary={openSave}
-        layer={layerSection}
       />
     ) : single && widgetHost && isWidgetItem(single) ? (
-      <WidgetItemInspector key={editor.selection[0]} editor={editor} path={editor.selection[0]} item={single} host={widgetHost} place={placeOf(editor.selection[0])} after={layerSection} />
+      <WidgetItemInspector key={editor.selection[0]} editor={editor} path={editor.selection[0]} item={single} host={widgetHost} place={placeOf(editor.selection[0])} />
     ) : hasSelection ? (
       <ItemInspector
         editor={editor}
@@ -544,7 +535,6 @@ export default function CanvasEditorView({ zone, setConfig, history, shell, hidd
         onBindSensor={single && "SensorType" in single ? (sensor) => editor.bind(editor.selection[0], sensor) : undefined}
         onEditGauge={onEditGauge}
         place={single ? placeOf(editor.selection[0]) : undefined}
-        after={layerSection}
         actions={{
           onToggleHidden: () => single && editor.setField(editor.selection[0], "Hidden", !single.Hidden),
           onDuplicate: editor.duplicate,
@@ -580,8 +570,8 @@ export default function CanvasEditorView({ zone, setConfig, history, shell, hidd
       {inspectorBody}
     </aside>
   );
-  const drawer = shell.leftOpen && (
-    <LeftPanelFrame tab={shell.leftTab} onTab={shell.onLeftTab} width={shell.leftWidth}>
+  const drawer = !shell.leftOpen ? shell.leftStrip : (
+    <LeftPanelFrame tab={shell.leftTab} onTab={shell.onLeftTab} width={shell.leftWidth} onCollapse={shell.onToggleLeft}>
       {shell.leftTab === "layers" ? (
         <LayersTree host={{ ...layers, menu: { ...layers.menu, saveToLibrary: editor.selection.length ? openSave : undefined } }} />
       ) : freePage && widgetHost ? (
@@ -608,7 +598,19 @@ export default function CanvasEditorView({ zone, setConfig, history, shell, hidd
   );
   const main = (
     <>
-      {shell.pageTabs?.(checkOn ? <ExportCheckPill check={check} open={checkOpen} onClick={toggleCheck} /> : null)}
+      {shell.pageTabs?.(
+        checkOn ? (
+          <ExportCheckPill
+            check={check}
+            open={checkOpen}
+            onClick={toggleCheck}
+            onShow={(path) => {
+              setCheckOpen(false);
+              editor.select([path]);
+            }}
+          />
+        ) : null,
+      )}
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         {unbound && unbound.length > 0 && (
           <div role="status" className="flex shrink-0 items-center gap-3 border-b border-ui-subtle bg-ui-panel px-4 py-1.5 font-ui text-caption text-ui-2">
@@ -623,7 +625,7 @@ export default function CanvasEditorView({ zone, setConfig, history, shell, hidd
             </button>
           </div>
         )}
-        {/* The app's toasts sit at its top centre (data-toast-anchor). */}
+        {/* The app's toasts sit at its bottom centre (data-toast-anchor). */}
         <div data-toast-anchor="" className="relative flex min-h-0 flex-1 flex-col">
           <EditCanvas
             editor={editor}
@@ -643,9 +645,9 @@ export default function CanvasEditorView({ zone, setConfig, history, shell, hidd
             snapItems={snapItems}
             exportView={checkOn && exportView ? { ...exportView, out: leftOut } : undefined}
           />
-          {/* Top centre of the canvas (Edit v3 SPEC §9.6). */}
+          {/* Bottom centre of the canvas, over its toolbar (rules §4). */}
           {addToast.toast && (
-            <div className="pointer-events-none absolute inset-x-0 top-3.5 z-40 flex justify-center">
+            <div className="pointer-events-none absolute inset-x-0 bottom-14 z-40 flex justify-center">
               <AddToast
                 toast={addToast.toast}
                 onUndo={() => {

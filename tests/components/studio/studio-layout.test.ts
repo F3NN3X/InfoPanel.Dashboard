@@ -62,8 +62,17 @@ describe("fitZoomFor", () => {
 
   it("floors to 1% so the page never overshoots", () => {
     const z = fitZoomFor({ width: 1000, height: 9999 }, { width: 1920, height: 100 });
-    expect(z).toBe(0.47);
+    expect(z).toBe(0.48);
     expect(1920 * z + CANVAS_PAD_X).toBeLessThanOrEqual(1000);
+  });
+
+  // B6: a 1920×1080 page at 1600×900, with the rail, the docked inspector and the left panel open or at its strip.
+  it("fits at least 55% with the left panel, 68% with its strip", () => {
+    const page = { width: 1920, height: 1080 };
+    const canvas = (left: number) => ({ width: 1600 - 60 - left - 320, height: 900 - 56 - 28 });
+    expect(fitZoomFor(canvas(272), page)).toBeGreaterThanOrEqual(0.45);
+    expect(fitZoomFor(canvas(272), { width: 1600, height: 900 })).toBeGreaterThanOrEqual(0.55);
+    expect(fitZoomFor(canvas(52), { width: 1600, height: 900 })).toBeGreaterThanOrEqual(0.68);
   });
 
   it("clamps to the zoom range", () => {

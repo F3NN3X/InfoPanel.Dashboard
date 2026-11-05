@@ -1,4 +1,3 @@
-import { Pin } from "lucide-react";
 import type { ApiSources } from "@/lib/catalog";
 import { cn } from "@/lib/utils";
 import { ROLE_LABELS } from "@/lib/theme-model";
@@ -31,8 +30,6 @@ export interface FieldsApi {
   onClear: (keys: string[]) => void;
   /** Sensor settings: the data picker's "Open data explorer". */
   onOpenExplorer?: () => void;
-  /** The quick bar's pins of this widget type (none where the context has no quick bar). */
-  pins?: { has: (key: string) => boolean; toggle: (key: string) => void };
   /** A zone: whether a row shows its theme value read-only (its section follows the theme). */
   readOnly?: (def: ModuleSetting) => boolean;
   /** Several zones: whether the selected zones show different values for this row (it reads "Mixed"). */
@@ -71,32 +68,11 @@ function bundleOf(def: ModuleSetting, fields: FieldsApi): ModuleSettings {
 const DEVICE_ROW: ModuleSetting = { key: "device", label: "Device", type: "select", default: "" };
 const FLOW_ROW: ModuleSetting = { key: "flow", label: "Show", type: "select", default: "all" };
 
-/** The quick-bar pin at a row's end: grey outline, or filled accent when pinned. */
-function PinButton({ pinned, label, onToggle }: { pinned: boolean; label: string; onToggle: () => void }) {
-  const title = pinned ? `Unpin ${label} from the quick bar` : `Pin ${label} to the quick bar`;
-  return (
-    <button
-      type="button"
-      onClick={onToggle}
-      title={title}
-      aria-label={title}
-      aria-pressed={pinned}
-      className={cn(
-        "flex h-6 w-6 shrink-0 items-center justify-center rounded-md hover:bg-s-nav-on",
-        pinned ? "text-ui-accent-text" : "text-ui-4 hover:text-ui-2"
-      )}
-    >
-      <Pin className="h-[15px] w-[15px]" fill={pinned ? "currentColor" : "none"} strokeWidth={1.75} />
-    </button>
-  );
-}
-
 /**
  * One setting as a field row (padding 3px 10px 3px 16px): the source dot
  * (clicking one set here resets the setting), the label (brighter when set
- * here), the hint, the control chosen by its schema type, and the quick-bar
- * pin where the context has a quick bar. A row whose section follows the
- * theme shows the theme's value, dimmed and disabled (`fields.readOnly`);
+ * here), the hint and the control chosen by its schema type. A row whose
+ * section follows the theme shows the theme's value, dimmed and disabled (`fields.readOnly`);
  * a colour row with a palette role names the role ("Series 1").
  */
 export function SettingField({
@@ -109,14 +85,13 @@ export function SettingField({
   sources: ApiSources | null;
 }) {
   const state = sourceState(def, fields.values);
-  const pins = fields.pins;
   const readOnly = fields.readOnly?.(def) ?? false;
   const mixed = fields.mixed?.(def) ?? false;
   return (
     <fieldset
       data-setting-key={def.key}
       disabled={readOnly}
-      className={cn("m-0 min-w-0 border-0 py-[3px] px-4", readOnly && "opacity-50")}
+      className={cn("m-0 min-w-0 border-0 px-4 py-[3px] transition-colors duration-(--ui-dur-fast) ease-ui data-[undo-flash]:bg-ui-accent/12", readOnly && "opacity-50")}
     >
       <SettingRow
         def={def}
@@ -141,18 +116,14 @@ export function SettingField({
         changed={SET_HERE.has(state)}
         lead={<SourceDot state={state} onReset={() => fields.onClear(settingKeys(def))} />}
         trail={
-          mixed || pins ? (
-          <>
-            {mixed && (
-              <span
-                title="The selected widgets differ here: the value shown is the primary widget's, and a change sets it on all of them"
-                className="shrink-0 rounded-[5px] bg-s-nav-on px-1.5 py-px text-nano font-medium text-ui-3"
-              >
-                Mixed
-              </span>
-            )}
-            {pins && <PinButton pinned={pins.has(def.key)} label={def.label} onToggle={() => pins.toggle(def.key)} />}
-          </>) : undefined
+          mixed ? (
+            <span
+              title="The selected widgets differ here: the value shown is the primary widget's, and a change sets it on all of them"
+              className="shrink-0 rounded-[5px] bg-s-nav-on px-1.5 py-px text-nano font-medium text-ui-3"
+            >
+              Mixed
+            </span>
+          ) : undefined
         }
       />
       {readOnly && <p className="m-0 pb-1 text-micro leading-snug text-ui-4">Set by the theme: customize the section (or edit its lock) to change it.</p>}

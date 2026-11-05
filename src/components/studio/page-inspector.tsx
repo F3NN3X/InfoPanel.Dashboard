@@ -37,7 +37,7 @@ interface PageInspectorProps {
   onGap: (gap: number) => void;
 }
 
-const SECTION_LABEL = "text-micro font-semibold uppercase tracking-[0.06em] text-ui-4";
+const SECTION_LABEL = "text-caption font-medium text-ui-3";
 const SELECT = "h-7 max-w-[150px] rounded-md border border-ui-default bg-ui-app px-1.5 font-ui-mono text-caption text-ui-1 outline-none focus:border-ui-accent";
 const ACTION =
   "flex h-8 items-center justify-center gap-1.5 rounded-[7px] border border-ui-strong bg-ui-raised px-3 text-body font-medium text-ui-2 transition-colors hover:bg-ui-hover hover:text-ui-1 disabled:pointer-events-none disabled:opacity-40";
@@ -154,10 +154,10 @@ export function PageInspector({ profile, page, inherit, onRename, onIcon, onDupl
             <NumberInput label="Gap" value={profile.gap ?? profileGap(profile)} min={0} max={64} onCommit={onGap} />
             <span className="text-ui-4">px</span>
           </PageRow>
-          <PageRow label="Look" swatch={theme.swatch}>
+          <PageRow label="Theme" swatch={theme.swatch}>
             <button
               type="button"
-              title="Edit in Look"
+              title="Edit in Theme"
               onClick={() => inherit.navigateTo({ view: "theme", themeScope: { kind: "profile" }, profileId: profile.id })}
               className="truncate rounded-sm hover:underline"
             >
@@ -187,7 +187,7 @@ export function PageInspector({ profile, page, inherit, onRename, onIcon, onDupl
           </div>
         </section>
 
-        <Block label="This page's look">
+        <Block label="This page's theme">
           {custom.length > 0 && (
             <ul className="space-y-1.5">
               {custom.map((sec) => (
@@ -206,13 +206,6 @@ export function PageInspector({ profile, page, inherit, onRename, onIcon, onDupl
             >
               Edit in Theme ↗
             </button>
-            <button
-              type="button"
-              onClick={() => inherit.navigateTo({ view: "theme", themeScope: pageScope, profileId: profile.id, section: "customise" })}
-              className="rounded-sm text-ui-accent-text hover:underline"
-            >
-              Change a section…
-            </button>
           </p>
         </Block>
 
@@ -225,7 +218,7 @@ export function PageInspector({ profile, page, inherit, onRename, onIcon, onDupl
             <Cast className="h-4 w-4" strokeWidth={1.75} /> Show on kiosks now
           </button>
           <p className="mt-1.5 text-pretty text-micro leading-[1.4] text-ui-4">
-            Switches the kiosks to this page right away. Not part of your design, so Save doesn't change it.
+            Switches the kiosks to this page right away. Not part of your design, so saving doesn't change it.
           </p>
         </Block>
 

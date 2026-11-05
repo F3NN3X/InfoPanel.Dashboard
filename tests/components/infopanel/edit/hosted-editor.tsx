@@ -10,6 +10,6 @@ const PAGE = { width: 800, height: 480 };
 
 export function HostedEditor({ tab = "add", ...props }: Omit<CanvasEditorProps, "shell"> & { tab?: LeftTab }) {
   const [leftTab, setLeftTab] = useState<LeftTab>(tab);
-  const layout = useStudioLayout({ page: PAGE, windowWidth: 1600, drawer: 280, quickBar: false });
+  const layout = useStudioLayout({ page: PAGE, windowWidth: 1600, drawer: 280 });
   return <CanvasEditorView {...props} shell={{ layout, leftOpen: true, leftTab, onLeftTab: setLeftTab, leftWidth: 280, pageTabs: (pill) => pill }} />;
 }

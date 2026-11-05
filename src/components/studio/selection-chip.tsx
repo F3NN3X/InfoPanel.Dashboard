@@ -31,12 +31,12 @@ interface SelectionChipProps {
 }
 
 const CHIP_BUTTON =
-  "flex h-6 shrink-0 items-center justify-center rounded-md px-1 transition-colors hover:bg-black/15";
+  "flex h-5 shrink-0 items-center justify-center rounded-ui-sm px-1 transition-colors hover:bg-black/15 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ui-inverse-fg";
 
 /**
- * The selected zone's chip: its name (opens Change widget), size, Hide and
- * More. The size steps, duplicate, delete, Style and deselect that the old
- * toolbar had are in More (the zone context menu).
+ * The selection's label (02a, P-11): the name (opens Change widget), size, Hide and
+ * More. The size steps, duplicate, delete, Style and deselect are in More (the zone
+ * context menu); the inspector is the one place to edit.
  */
 export function SelectionChip({
   placement: p,
@@ -50,7 +50,7 @@ export function SelectionChip({
 }: SelectionChipProps) {
   const multi = count > 1;
   return (
-    <div className="flex h-7 items-center gap-0.5 whitespace-nowrap rounded-ui-sm bg-ui-accent px-1 font-ui text-body font-bold text-ui-inverse-fg">
+    <div data-testid="selection-label" className="flex h-6 items-center gap-0.5 whitespace-nowrap rounded-ui-sm bg-ui-accent px-1 font-ui text-caption font-medium text-ui-inverse-fg">
       {multi ? (
         <span className="px-1.5">{count} selected</span>
       ) : (
@@ -62,7 +62,7 @@ export function SelectionChip({
             className={cn(CHIP_BUTTON, "max-w-44 px-1.5")}
           >
             <span className="truncate">{placementTitle(p)}</span>
-                      </button>
+          </button>
           {widgetLabel !== undefined && (
             <span
               className="flex max-w-36 items-center gap-0.5"
@@ -74,15 +74,15 @@ export function SelectionChip({
           )}
         </>
       )}
-      <span className="px-1 font-ui-mono font-medium tabular-nums opacity-70" title="Widget size (grid cells)">
-        {p.colSpan}×{p.rowSpan}
+      <span className="px-1 font-ui-mono font-normal tabular-nums" title="Widget size (grid cells)">
+        {p.colSpan} × {p.rowSpan}
       </span>
       <button
         type="button"
         onClick={onToggleVisible}
         title={`${anyVisible ? "Hide" : "Show"} ${multi ? "widgets" : "widget"} (${KEYS.hide})`}
         aria-label={`${anyVisible ? "Hide" : "Show"} ${multi ? "widgets" : "widget"}`}
-        className={cn(CHIP_BUTTON, "w-6")}
+        className={cn(CHIP_BUTTON, "w-5")}
       >
         {anyVisible ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
       </button>
@@ -96,7 +96,7 @@ export function SelectionChip({
         aria-label="More"
         aria-haspopup="menu"
         aria-expanded={moreOpen}
-        className={cn(CHIP_BUTTON, "w-6")}
+        className={cn(CHIP_BUTTON, "w-5")}
       >
         <MoreHorizontal className="h-3.5 w-3.5" />
       </button>

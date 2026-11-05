@@ -66,9 +66,9 @@ const InfoPanelViewLayer = lazy(() => import("./infopanel-view-layer"));
 /** The canvas' dot grid, at a fixed pitch on the scroll area (not scaled by the zoom). */
 const DOTS = "radial-gradient(#1f1f25 1px, transparent 1px)";
 const DOT_PITCH = "18px 18px";
-/** The scroll area's padding around the page (see `CANVAS_PAD_X/Y`): room for the chip, ruler labels and zoom bar, plus `inset`. */
+/** The scroll area's padding around the page (see `CANVAS_PAD_X/Y`): room for the label, ruler labels and bottom toolbar, plus `inset`. */
 const scrollPad = (inset: CanvasInset) =>
-  `${64 + (inset.top ?? 0)}px ${40 + (inset.right ?? 0)}px ${96 + (inset.bottom ?? 0)}px 40px`;
+  `${64 + (inset.top ?? 0)}px ${34 + (inset.right ?? 0)}px ${96 + (inset.bottom ?? 0)}px 34px`;
 /** The optional grid: a line at the left / top edge of every cell, drawn over the tiles. */
 const GRID_LINES =
   "linear-gradient(to right, rgba(255,255,255,0.07) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.07) 1px, transparent 1px)";
@@ -570,7 +570,7 @@ export function StudioCanvas({
 
   return (
     <PageIslandProvider value={pageIsland}>
-    {/* The app's toasts sit at its top centre (data-toast-anchor). */}
+    {/* The app's toasts sit at its bottom centre, over the bottom toolbar (data-toast-anchor). */}
     <div data-toast-anchor="" className="relative flex min-h-0 flex-1 flex-col bg-ui-app">
       <p role="status" className="sr-only">
         {selected ? `Chosen part: ${selected.module}, ${sizeText(selected.colSpan, selected.rowSpan)}. Layers lists every part.` : "No part chosen"}
@@ -649,7 +649,19 @@ export function StudioCanvas({
                 if (e.target === e.currentTarget) onSelect(null);
               }}
             >
-              {showRulers && <RulerLabels width={canvas.w} height={canvas.h} scale={zoom} />}
+              {showRulers ? (
+                <RulerLabels width={canvas.w} height={canvas.h} scale={zoom} />
+              ) : (
+                // The page's name and size over its top edge; the rulers take that room when they are on.
+                page && (
+                  <div data-shot-skip aria-hidden className="pointer-events-none absolute inset-x-0 flex justify-between font-ui text-ui-3" style={{ bottom: "100%", marginBottom: 12 / zoom, fontSize: 12 / zoom }}>
+                    <span>{page.name}</span>
+                    <span className="font-ui-mono">
+                      {profile.width} × {profile.height}
+                    </span>
+                  </div>
+                )
+              )}
               {profile.island?.enabled && (
                 <DynamicIsland config={withPackEdge(profile.island, packEdge)} alerts={islandAlerts} placement="absolute" page={islandPage} skin={pageSkinOf(appearance)} />
               )}
@@ -878,8 +890,8 @@ export function StudioCanvas({
         <AltHint widget={zoneDrag !== null} className="absolute left-1/2 top-3 z-40 -translate-x-1/2" />
       )}
 
-      {/* Top centre of the canvas (Edit v3 SPEC §9.6). */}
-      {toast && <div className="pointer-events-none absolute inset-x-0 top-3.5 z-40 flex justify-center">{toast}</div>}
+      {/* Bottom centre, over the bottom toolbar (rules §4). */}
+      {toast && <div className="pointer-events-none absolute inset-x-0 bottom-[76px] z-40 flex justify-center">{toast}</div>}
 
       {/* Zone-drag ghost: follows the pointer (outside the zoomed canvas)
           so the zone being moved/resized is always visibly tracked. */}

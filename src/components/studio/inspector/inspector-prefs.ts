@@ -117,19 +117,13 @@ export function dropRetiredPrefs(storage?: Pick<Storage, "removeItem">): void {
 }
 dropRetiredPrefs();
 
-const QUICK_BAR_KEY = "studio.quickBar";
 const ACCORDION_KEY = "studio.accordion";
 const PINS_KEY = "studio.quickPins";
 const ADVANCED_KEY = "studio.inspector.advanced";
 
-/** How many settings the quick bar holds. */
-export const MAX_PINS = 6;
-
 /** Sections of a tab: one open at a time (opening one closes the others), or each on its own. */
 export type AccordionMode = "one" | "many";
 
-/** The quick bar is on unless it was turned off. */
-export const parseQuickBar = (raw: string | null): boolean => raw !== "false";
 /** The Advanced switch is off unless it was turned on. */
 export const parseAdvanced = (raw: string | null): boolean => raw === "true";
 export const parseAccordion = (raw: string | null): AccordionMode => (raw === "many" ? "many" : "one");
@@ -155,7 +149,7 @@ export function parsePins(raw: string | null): Record<string, string[]> {
         .filter((entry): entry is [string, unknown[]] => Array.isArray(entry[1]))
         .map(([type, keys]) => {
           const named = keys.filter((k): k is string => typeof k === "string").map((k) => RENAMED_PINS[k] ?? k);
-          return [type, [...new Set(named)].slice(-MAX_PINS)];
+          return [type, [...new Set(named)]];
         })
     );
   } catch {
@@ -163,12 +157,6 @@ export function parsePins(raw: string | null): Record<string, string[]> {
   }
 }
 
-/** Pin or unpin `key`: pins keep their order, a new one goes last, and only the last six stay. */
-export function togglePin(pins: readonly string[], key: string): string[] {
-  return pins.includes(key) ? pins.filter((k) => k !== key) : [...pins, key].slice(-MAX_PINS);
-}
-
-const quickBarStore = storedValue(QUICK_BAR_KEY, parseQuickBar, String);
 const accordionStore = storedValue(ACCORDION_KEY, parseAccordion, String);
 const pinsStore = storedValue(PINS_KEY, parsePins, JSON.stringify);
 const advancedStore = storedValue(ADVANCED_KEY, parseAdvanced, String);
@@ -184,11 +172,6 @@ export const showAdvanced = () => advancedStore.write(true);
 /** Flip Advanced (the command palette). */
 export const toggleAdvanced = () => advancedStore.write(!advancedStore.read());
 
-/** The quick bar over the canvas (on by default). */
-export function useQuickBarPref(): [boolean, (on: boolean) => void] {
-  return [useSyncExternalStore(quickBarStore.subscribe, quickBarStore.read, quickBarStore.read), quickBarStore.write];
-}
-
 /** One section open per tab, or many (one by default). */
 export function useAccordionPref(): [AccordionMode, (mode: AccordionMode) => void] {
   return [useSyncExternalStore(accordionStore.subscribe, accordionStore.read, accordionStore.read), accordionStore.write];
@@ -202,9 +185,3 @@ export function useQuickPins(): Record<string, string[]> {
 /** A widget type's pinned keys: its own pins, or its default quick set. */
 export const pinsOf = (all: Record<string, string[]>, type: string, defaults: readonly string[]): string[] =>
   all[type] ?? [...defaults];
-
-/** Pin or unpin a setting for a widget type (starting from its default set the first time). */
-export function setPin(type: string, defaults: readonly string[], key: string) {
-  const all = pinsStore.read();
-  pinsStore.write({ ...all, [type]: togglePin(pinsOf(all, type, defaults), key) });
-}

@@ -6,16 +6,16 @@ import type { InspectorTab, ModuleSettings } from "@/modules/types";
 import { useToast } from "@/components/ui/toast";
 import type { Drawer } from "./commands";
 import type { LeftTab } from "./design-left-panel";
-import { LEFT_PANEL_PX, useLeftPanelWidth } from "./add-prefs";
+import { LEFT_OPEN_KEY, LEFT_PANEL_PX, LEFT_STRIP_PX, useLeftPanelWidth } from "./add-prefs";
 import { COLLECTIONS, type CollectionId } from "@/lib/my-library/model";
 import type { AlertsTab } from "./alerts-view";
 import { revealWidgetEditor, scrollInspectorToTop } from "./inspector-scroll";
 import { useCanvasZoom } from "./use-canvas-zoom";
-import { useQuickBarPref } from "./inspector/inspector-prefs";
 import { GRID_KEY, RULERS_KEY, useStoredFlag } from "./use-stored-flag";
 import type { StudioMode } from "./studio-top-bar";
 import { settingsPageOf, useNavFocus, type NavRequest, type NavTarget, type RailItem } from "./studio-nav";
 import type { ThemeScope } from "./theme-editor-model";
+import { DOCKED_MIN_WIDTH } from "./studio-layout";
 import { pageSize, useStudioLayout } from "./use-studio-layout";
 
 const ALERTS_TABS: readonly AlertsTab[] = ["rules", "island", "defaults", "history"];
@@ -64,8 +64,8 @@ export function useStudioUi(
     openTheme(themeScope.kind === "page" ? (profile.pageId ? { kind: "page", pageId: profile.pageId } : { kind: "profile" }) : themeScope);
   /** Every view but Design: a full page in place of the canvas, left panel and inspector. */
   const fullPage = mode !== "design";
-  /** Design's left panel: open from 1280 px (SPEC §3.5), and its tab. */
-  const [leftOpen, setLeftOpen] = useState(() => windowWidth >= 1280);
+  /** Design's left panel: remembered, open from 1280 px until the user chooses (Q28), and its tab. */
+  const [leftOpen, setLeftOpen] = useStoredFlag(LEFT_OPEN_KEY, windowWidth >= 1280);
   const [leftTab, setLeftTab] = useState<LeftTab>("add");
   const [leftPanelWidth] = useLeftPanelWidth();
   const leftWidth = LEFT_PANEL_PX[leftPanelWidth];
@@ -83,18 +83,18 @@ export function useStudioUi(
   const [screensFilter, setScreensFilter] = useState<{ filter: "infopanel"; seq: number }>();
   /** A link that opens a screen in Edit (the old InfoPanel view naming a profile): the studio opens it as Screens' Open does. */
   const [editRequest, setEditRequest] = useState<{ id: string; seq: number }>();
-  /** The Live popover (the title bar's button and the status bar's Kiosks item). */
+  /** The Live popover (the sidebar's row, a phone's top bar, the status bar's Kiosks item). */
   const [liveOpen, setLiveOpen] = useState(false);
   const [showGrid, setShowGrid] = useStoredFlag(GRID_KEY, true);
-  const [showRulers, setShowRulers] = useStoredFlag(RULERS_KEY, true);
-  /** A request to scroll the zone inspector to a card (`seq` makes repeats count). */
-  const [inspectorJump, setInspectorJump] = useState<{ id: string; key?: string; seq: number }>();
-  const jumpInspector = (id: string, key?: string) => {
+  const [showRulers, setShowRulers] = useStoredFlag(RULERS_KEY, false);
+  /** A request to scroll the zone inspector to a card (`seq` makes repeats count); `quiet` lights the row instead of focusing it (an undo's). */
+  const [inspectorJump, setInspectorJump] = useState<{ id: string; key?: string; seq: number; quiet?: boolean }>();
+  const jumpInspector = (id: string, key?: string, quiet = false) => {
     expandDock();
-    jumpTheme(id, key);
+    jumpTheme(id, key, quiet);
   };
   /** The same jump for Studio › Theme, which has its own inspector: the Design dock is left as it is. */
-  const jumpTheme = (id: string, key?: string) => setInspectorJump((j) => ({ id, key, seq: (j?.seq ?? 0) + 1 }));
+  const jumpTheme = (id: string, key?: string, quiet = false) => setInspectorJump((j) => ({ id, key, quiet, seq: (j?.seq ?? 0) + 1 }));
   /**
    * A request to show a zone inspector tab. `picker` also opens the Data tab's bind picker;
    * `seq` makes repeats count.
@@ -136,33 +136,25 @@ export function useStudioUi(
   const [widgetClipboard, setWidgetClipboard] = useState<Widget | null>(null);
 
   const page = pageSize(profile);
-  const [quickBar] = useQuickBarPref();
+  const leftStrip = windowWidth >= DOCKED_MIN_WIDTH ? LEFT_STRIP_PX : 0;
   const studioLayout = useStudioLayout({
     page,
     windowWidth,
-    drawer: !fullPage && leftOpen ? leftWidth : 0,
-    quickBar: quickBar && !fullPage,
+    drawer: fullPage ? 0 : leftOpen ? leftWidth : leftStrip,
   });
   const zoom = useCanvasZoom(page, studioLayout.layout.inset);
 
-  const [saved, setSaved] = useState(false);
-  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mounted = useRef(true);
   useEffect(
     () => () => {
       mounted.current = false;
-      if (saveTimer.current) clearTimeout(saveTimer.current);
     },
     []
   );
-  /** Flush to the server; "Saved" shows only when it took the config, else the dot stays and a toast says so. */
+  /** Flush to the server now (Ctrl+S, the saved state's chip); a toast says when it did not take the config. */
   const handleSave = () => {
     void onSave(config).then((ok) => {
-      if (!mounted.current) return;
-      if (!ok) return toast("Couldn't save to the server — try again");
-      setSaved(true);
-      if (saveTimer.current) clearTimeout(saveTimer.current);
-      saveTimer.current = setTimeout(() => setSaved(false), 1500);
+      if (mounted.current && !ok) toast("Couldn't save to the server — try again");
     });
   };
 
@@ -181,8 +173,13 @@ export function useStudioUi(
     setLeftOpen(true);
   };
 
-  /** The page-tab row's left-panel toggle. */
+  /** The left panel's toggle (its own header, the page tabs' row on a narrow window). */
   const toggleLeft = () => setLeftOpen((open) => !open);
+  /** The closed panel's strip: open it on a tab. */
+  const openLeft = (tab: LeftTab) => {
+    setLeftTab(tab);
+    setLeftOpen(true);
+  };
 
   const revealEditor = () => revealWidgetEditor(inspectorRef.current);
 
@@ -258,6 +255,8 @@ export function useStudioUi(
     openTheme,
     fullPage,
     leftOpen,
+    openLeft,
+    leftStrip,
     leftTab,
     setLeftTab,
     leftWidth,
@@ -311,8 +310,6 @@ export function useStudioUi(
     setWidgetClipboard,
     ...zoom,
     studioLayout,
-    quickBar,
-    saved,
     handleSave,
   };
 }

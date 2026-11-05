@@ -48,10 +48,10 @@ import { STATUS_COLORS_TITLE, THEME_EDITOR_SETTINGS } from "./theme-editor-setti
 export type TabId = InspectorTab;
 
 export const TAB_LABELS: Record<TabId, string> = {
-  show: "Show",
+  show: "Content",
   style: "Style",
   data: "Data",
-  behaviour: "Behavior",
+  behaviour: "Behaviour",
 };
 
 const ZONE_TABS: readonly TabId[] = ["show", "style", "data", "behaviour"];

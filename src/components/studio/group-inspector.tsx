@@ -9,7 +9,6 @@ import { BookmarkPlus, Eye, EyeOff, Folder, FolderMinus, SquareDashedMousePointe
 import { IconButton } from "@/components/ui/icon-button";
 import { nearestCells, partsOf, type GroupNode, type PageModel } from "@/lib/page-model/model";
 import { unionBox, type LayerAction } from "@/lib/page-model/layer-actions";
-import { LayerSection } from "./layer-section";
 import { PlaceRow } from "./place-row";
 
 const ACTION =
@@ -37,16 +36,13 @@ interface GroupInspectorProps {
   model: PageModel;
   group: GroupNode;
   /** The group it sits in (null: the top), and the groups it can go into. */
-  inGroup: string | null;
-  groups: readonly { id: string; name: string }[];
   onAction: (action: LayerAction) => void;
-  onInGroup: (groupId: string | null | "new") => void;
   onSelectContents: () => void;
   onSaveToLibrary: () => void;
 }
 
 /** A page group on a screen's page. */
-export function GroupInspector({ model, group, inGroup, groups, onAction, onInGroup, onSelectContents, onSaveToLibrary }: GroupInspectorProps) {
+export function GroupInspector({ model, group, onAction, onSelectContents, onSaveToLibrary }: GroupInspectorProps) {
   const parts = partsOf(group.children);
   const box = unionBox(model, group);
   const onGrid = parts.length > 0 && parts.every((p) => "cell" in p.place);
@@ -63,7 +59,6 @@ export function GroupInspector({ model, group, inGroup, groups, onAction, onInGr
       onSelectContents={group.children.length > 0 ? onSelectContents : undefined}
       onUngroup={() => onAction("ungroup")}
       onSaveToLibrary={onSaveToLibrary}
-      layer={<LayerSection onAction={onAction} groups={groups} inGroup={inGroup} onInGroup={onInGroup} />}
     />
   );
 }
@@ -84,11 +79,10 @@ interface GroupInspectorViewProps {
   /** Save the group to the Library as a component. */
   onSaveToLibrary: () => void;
   /** The LAYER section. */
-  layer: ReactNode;
 }
 
 /** The group inspector's layout, on a screen's page and on an imported profile's alike. */
-export function GroupInspectorView({ name, contents, hidden, locked, place, onToggleHidden, onDelete, onSelectContents, onUngroup, onSaveToLibrary, layer }: GroupInspectorViewProps) {
+export function GroupInspectorView({ name, contents, hidden, locked, place, onToggleHidden, onDelete, onSelectContents, onUngroup, onSaveToLibrary }: GroupInspectorViewProps) {
   return (
     <div className="flex flex-col font-ui">
       <div className="flex items-center gap-2.5 border-b border-ui-subtle px-3.5 py-3">
@@ -129,7 +123,6 @@ export function GroupInspectorView({ name, contents, hidden, locked, place, onTo
           Save to Library
         </button>
       </div>
-      {layer}
     </div>
   );
 }

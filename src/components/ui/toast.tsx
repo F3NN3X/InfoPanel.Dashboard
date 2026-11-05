@@ -35,15 +35,18 @@ export function useToast(): ShowToast {
   return useContext(ToastContext);
 }
 
-/** `const dismiss = useDismissToast(); dismiss(id)` � takes down that toast if it is still the one up (a no-op outside a provider). */
+/** `const dismiss = useDismissToast(); dismiss(id)` — takes down that toast if it is still the one up (a no-op outside a provider). */
 export function useDismissToast(): (id: number) => void {
   return useContext(DismissContext);
 }
 
-/** Where a toast sits: top centre of Edit's canvas (`data-toast-anchor`), 14px under the page tabs (SPEC §9.6). */
-function anchored(): { top: number; left: number } | null {
+/** The room a toast leaves under it on Edit's canvas: the bottom toolbar (16 + 42 px) and a gap. */
+const OVER_TOOLBAR = 76;
+
+/** Where a toast sits: bottom centre of Edit's canvas (`data-toast-anchor`), over the bottom toolbar (rules §4). */
+function anchored(): { bottom: number; left: number } | null {
   const r = document.querySelector("[data-toast-anchor]")?.getBoundingClientRect();
-  return r && r.width > 0 ? { top: r.top + 14, left: r.left + r.width / 2 } : null;
+  return r && r.width > 0 ? { bottom: window.innerHeight - r.bottom + OVER_TOOLBAR, left: r.left + r.width / 2 } : null;
 }
 
 interface ToastState {
@@ -52,7 +55,7 @@ interface ToastState {
   action?: ToastOptions["action"];
   error: boolean;
   ms: number | null;
-  at: { top: number; left: number } | null;
+  at: { bottom: number; left: number } | null;
 }
 
 /** One live region (always mounted, positioned where the toast shows) and the card inside it while there is one. */
@@ -63,7 +66,7 @@ function ToastSlot({ live, toast, arm, dismiss }: { live: "polite" | "assertive"
     <div
       role="status"
       aria-live={live}
-      style={toast?.at ? { top: toast.at.top, left: toast.at.left, bottom: "auto" } : undefined}
+      style={toast?.at ? { bottom: toast.at.bottom, left: toast.at.left } : undefined}
       onPointerEnter={() => arm(null)}
       onPointerLeave={() => toast && arm(toast.ms)}
       onFocus={() => arm(null)}
@@ -105,8 +108,8 @@ function ToastSlot({ live, toast, arm, dismiss }: { live: "polite" | "assertive"
 }
 
 /**
- * Hosts the toast: in Edit at the top centre of the canvas, elsewhere bottom-centre just above the status bar (never
- * over the title bar or a screen's header and tabs); a raised card. A plain confirmation goes after ~1.8 s; a
+ * Hosts the toast: bottom centre, in Edit over the canvas's toolbar, elsewhere just above the window's edge (never
+ * over a screen's header and tabs); a raised card. A plain confirmation goes after ~1.8 s; a
  * failure after 8 s; one with an action (Undo) stays until dismissed. Hovering or focusing it pauses the timer. The
  * text is announced through two live regions kept mounted (polite, and an alert for failures) so it is reliably read.
  */

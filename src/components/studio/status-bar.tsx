@@ -29,6 +29,10 @@ export interface StatusBarProps extends StatusBarData {
   paused?: boolean;
   /** The sidebar carries the Data API, the server, the update and the restart: only the kiosks and the save state stay here. */
   sidebar?: boolean;
+  /** The editor's hints, from 960 px: how parts snap at the start, the canvas's gestures at the end. */
+  hints?: { snap?: string; canvas: string };
+  /** The top bar shows the saved state (from 960 px). */
+  saveInBar?: boolean;
   onNavigate: (target: NavTarget) => void;
   onOpenLive: () => void;
 }
@@ -99,12 +103,12 @@ const SAVE_TEXT: Readonly<Record<SaveState, string>> = {
 };
 
 /**
- * The 26 px status bar (SPEC §3.4): Data API, server, kiosks, an update
+ * The 28 px status bar (SPEC §3.4): Data API, server, kiosks, an update
  * and a pending restart, each a button to its home; the save state at the
  * end. Narrow windows show the dots only. Beside the sidebar it keeps the
- * kiosks and the save state. Pure: `useStatusBar` feeds it.
+ * kiosks and the save state, and the editor's snap and gesture hints. Pure: `useStatusBar` feeds it.
  */
-export function StatusBar({ dataApi, server, kiosks, update, restartNeeded, save, kioskChip, paused, sidebar, onNavigate, onOpenLive }: StatusBarProps) {
+export function StatusBar({ dataApi, server, kiosks, update, restartNeeded, save, kioskChip, paused, sidebar, hints, saveInBar, onNavigate, onOpenLive }: StatusBarProps) {
   const latency = typeof dataApi.latencyMs === "number" ? ` · ${dataApi.latencyMs} ms` : "";
   const items: Item[] = sidebar ? [] : [
     {
@@ -119,7 +123,12 @@ export function StatusBar({ dataApi, server, kiosks, update, restartNeeded, save
     ...(restartNeeded ? [restartItem(onNavigate)] : []),
   ];
   return (
-    <footer className="flex h-[26px] shrink-0 items-center gap-0.5 border-t border-ui-subtle bg-ui-chrome px-2 font-ui text-micro text-ui-3">
+    <footer className="flex h-7 shrink-0 items-center gap-0.5 border-t border-ui-subtle bg-ui-chrome px-2 font-ui text-micro text-ui-3">
+      {hints?.snap && (
+        <span data-testid="snap-label" className="whitespace-nowrap px-2">
+          {hints.snap}
+        </span>
+      )}
       {items.map((item) => (
         <button
           key={item.id}
@@ -152,9 +161,12 @@ export function StatusBar({ dataApi, server, kiosks, update, restartNeeded, save
         </button>
       )}
       <div className="flex-1" />
-      <span role="status" className="whitespace-nowrap px-2">
-        {SAVE_TEXT[save]}
-      </span>
+      {hints && <span className="truncate px-2">{hints.canvas}</span>}
+      {!saveInBar && (
+        <span role="status" className="whitespace-nowrap px-2">
+          {SAVE_TEXT[save]}
+        </span>
+      )}
     </footer>
   );
 }

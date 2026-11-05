@@ -134,5 +134,5 @@ export function useConfigHistory(
   /** The revision now (read between a set and its re-render), and as state to react to. */
   const currentRevision = useCallback(() => revision.current, []);
 
-  return { set, adopt, revision: revisionNow, currentRevision, begin, commit, cancel, undo, redo, dragging, canUndo: counts.undo > 0, canRedo: counts.redo > 0 };
+  return { set, adopt, revision: revisionNow, currentRevision, stack: history, latest, begin, commit, cancel, undo, redo, dragging, canUndo: counts.undo > 0, canRedo: counts.redo > 0 };
 }

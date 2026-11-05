@@ -49,10 +49,8 @@ interface StudioLayoutOptions {
   page: PageSize;
   /** The window's width: it picks the inspector's mode. */
   windowWidth: number;
-  /** Width of the open left panel. */
+  /** Width the left panel takes: open, or its strip. */
   drawer: number;
-  /** The quick bar preference is on. */
-  quickBar: boolean;
 }
 
 /**
@@ -61,7 +59,7 @@ interface StudioLayoutOptions {
  * floating or a sheet). The docked inspector can be collapsed (remembered
  * per viewer); the floating one opens on demand and starts closed.
  */
-export function useStudioLayout({ page, windowWidth, drawer, quickBar }: StudioLayoutOptions) {
+export function useStudioLayout({ page, windowWidth, drawer }: StudioLayoutOptions) {
   const [collapsed, setCollapsedState] = useState(loadCollapsed);
   const [floatOpen, setFloatOpen] = useState(false);
   /** The bottom sheet: its snap, its height while the handle is dragged, the tool its strip shows. */
@@ -113,10 +111,9 @@ export function useStudioLayout({ page, windowWidth, drawer, quickBar }: StudioL
         inspector: INSPECTOR_WIDTH,
         collapsed,
         floatOpen,
-        quickBar,
         sheet,
       }),
-    [body, pageW, pageH, naturalHeight, windowWidth, drawer, leftOverlay, collapsed, floatOpen, quickBar, sheet]
+    [body, pageW, pageH, naturalHeight, windowWidth, drawer, leftOverlay, collapsed, floatOpen, sheet]
   );
 
   /** The inspector is out of sight: a collapsed docked column, a closed floating card, a sheet at its peek. */

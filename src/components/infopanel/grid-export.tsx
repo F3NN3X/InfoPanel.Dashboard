@@ -30,8 +30,8 @@ export function GridItemBadge({ placement }: { placement: Placement }) {
   return status ? <CheckBadge status={status} /> : null;
 }
 
-export function GridCheckPill({ profile, page, nameOf, open, onClick }: { profile: ProfileView; page?: ProfilePage; nameOf: NameOf; open: boolean; onClick: () => void }) {
-  return <ExportCheckPill check={useCheck(profile, nameOf, page)} open={open} onClick={onClick} />;
+export function GridCheckPill({ profile, page, nameOf, open, onClick, onShow }: { profile: ProfileView; page?: ProfilePage; nameOf: NameOf; open: boolean; onClick: () => void; onShow: (path: string) => void }) {
+  return <ExportCheckPill check={useCheck(profile, nameOf, page)} open={open} onClick={onClick} onShow={onShow} />;
 }
 
 interface GridCheckPanelProps {
