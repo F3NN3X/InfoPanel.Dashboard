@@ -66,8 +66,8 @@ describe("slots", () => {
   });
 
   it("counts a queued alert's time from when it can show", () => {
-    expect(countdownFraction(alert("a", { startedAt: 0, queuedMs: 8000 }), 8000)).toBe(1);
-    expect(countdownFraction(alert("a", { startedAt: 0, queuedMs: 8000 }), 12_000)).toBe(0.5);
+    expect(countdownFraction(alert("a", { startedAt: 0, queuedMs: 8000 }, { seconds: 8 }), 8000)).toBe(1);
+    expect(countdownFraction(alert("a", { startedAt: 0, queuedMs: 8000 }, { seconds: 8 }), 12_000)).toBe(0.5);
   });
 
   it("maps banners to the top or bottom edge, other styles keep their position", () => {
