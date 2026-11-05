@@ -77,6 +77,7 @@ export function builtPack(meta: PackMeta, look: Look, files: PackFiles, parts: {
     slots: parts.slots,
     stage: { layers: meta.stage.layers.map((l) => (l.image ? { ...l, image: served(l.image) } : l)), effects: meta.stage.effects, overlayMinSizeClass: meta.stage.overlayMinSizeClass },
     burnIn: meta.burnIn,
+    fonts: meta.fonts.map((f) => ({ source: f.source, licence: f.licence })),
     statusBar: meta.statusBar,
     connectors: meta.connectors,
     templates: parts.templates,

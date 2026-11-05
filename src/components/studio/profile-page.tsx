@@ -1,4 +1,5 @@
 import { useMemo, type CSSProperties, type ReactNode } from "react";
+import { pageSkinOf } from "@/components/island/island-look";
 import { PageBackground } from "@/components/page-background";
 import { posterBackground, resolveBackground } from "@/lib/appearance";
 import { fontStack, resolveFont } from "@/lib/general";
@@ -8,6 +9,8 @@ import { profileGap, profilePadding } from "@/lib/profile-grid";
 import { appearanceOf } from "@/lib/style-resolve";
 import { resolveTheme, themeMode, themeVars } from "@/lib/theme";
 import { cn } from "@/lib/utils";
+import { connectorZones } from "@/looks/connector-zones";
+import { PackStage, packBackground, usePack } from "@/looks/pack";
 import { LivePlacement } from "./placement-content";
 import { PlacementFrame } from "./placement-frame";
 
@@ -18,6 +21,8 @@ interface ProfilePageProps {
   pageId?: string;
   /** Drawn over a zone, inside its frame (Theme's preview: the edit badge on a widget that doesn't follow). */
   badge?: (placement: Placement) => ReactNode;
+  /** Draw the worn theme pack's scenery and effects behind the widgets, as the kiosk does (Theme's preview and thumbnails). */
+  stage?: boolean;
 }
 
 /**
@@ -25,7 +30,7 @@ interface ProfilePageProps {
  * zones included), at its design size. A video background shows its poster. Mounted offscreen to take
  * the profile's screenshot, and scaled down as Theme's live preview.
  */
-export function ProfilePage({ profile, dashboard, pageId, badge }: ProfilePageProps) {
+export function ProfilePage({ profile, dashboard, pageId, badge, stage = false }: ProfilePageProps) {
   const view = useMemo(() => profileWithPage(profile, pageId), [profile, pageId]);
   const theme = resolveTheme(profile);
   const bg = resolveBackground(profile);
@@ -34,11 +39,14 @@ export function ProfilePage({ profile, dashboard, pageId, badge }: ProfilePagePr
   const fill = view.fit === "fill" && view.height > 0;
   const padding = profilePadding(view, true);
   const appearance = useMemo(() => appearanceOf(dashboard, view), [dashboard, view]);
+  // Only a page that asks for the stage loads the pack (`usePack` of nothing loads nothing).
+  const pack = usePack(stage ? pageSkinOf(appearance).lookId : undefined);
+  const linkZones = useMemo(() => (pack?.connectors ? connectorZones(view.placements, view) : undefined), [pack, view]);
   return (
     <div
       data-theme-scope=""
       data-mode={themeMode(theme.tokens)}
-      className={cn("relative isolate overflow-hidden text-foreground", !background && "bg-background")}
+      className={cn("relative isolate overflow-hidden text-foreground", !background && !packBackground(pack) && "bg-background")}
       style={
         {
           ...themeVars(theme.tokens, theme.radius),
@@ -53,6 +61,7 @@ export function ProfilePage({ profile, dashboard, pageId, badge }: ProfilePagePr
       }
     >
       {background && <PageBackground background={background} className="absolute inset-0 -z-10" />}
+      <PackStage pack={pack} page={{ width: view.width, height: view.height }} className="absolute inset-0 -z-10" overlayClassName="absolute inset-0 z-10" zones={linkZones} />
       <div
         className={cn("grid", fill && "h-full")}
         style={{

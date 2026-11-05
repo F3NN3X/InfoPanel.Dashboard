@@ -115,7 +115,7 @@ interface StageSpec {
 }
 interface PackJson {
   id: string;
-  fonts: { family: string; file: string; weight: string }[];
+  fonts: { family: string; file: string; weight: string; source?: string; licence?: string }[];
   stage: StageSpec;
   burnIn: BurnIn;
   statusBar?: PackStatusBar;
@@ -186,6 +186,7 @@ export function userPackOf(src: PackSource, candidate = false): Pack {
     slots: { icons: src.icons as NonNullable<Pack["slots"]>["icons"] },
     stage: { layers: meta.stage.layers, effects: meta.stage.effects, overlayMinSizeClass: meta.stage.overlayMinSizeClass },
     burnIn: meta.burnIn,
+    fonts: meta.fonts.map((f) => ({ source: f.source, licence: f.licence })),
     statusBar: meta.statusBar,
     connectors: meta.connectors,
   };

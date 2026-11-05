@@ -132,7 +132,7 @@ export const LookThumb = memo(function LookThumb({ preset, width, className }: L
         <div className="pointer-events-none absolute left-0 top-0 origin-top-left" style={{ scale: String(scale) }} inert>
           <FrozenSensorsContext.Provider value={previewSnapshot}>
             <MotionOverride reduce>
-              <ProfilePage profile={profile} dashboard={dashboard} />
+              <ProfilePage profile={profile} dashboard={dashboard} stage />
             </MotionOverride>
           </FrozenSensorsContext.Provider>
         </div>
