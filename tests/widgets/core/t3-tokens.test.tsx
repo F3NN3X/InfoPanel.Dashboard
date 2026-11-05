@@ -196,6 +196,10 @@ describe("L23: the five contract tokens have a reader, and Classic's values chan
   it("refuses a stroke out of range, an alpha above 1, a time or a curve that is not one", () => {
     expect(t3Tokens({ "motion-fast": "fast", "motion-base": "1;x", "series-stroke": 20, "series-fill-alpha": "2 > 1 > 0", "ease-standard": "url(x)" })).toEqual({});
   });
+  it("reads a blank segment of the fill alpha as no alpha, not as 0", () => {
+    expect(t3Tokens({ "series-fill-alpha": "0.5 > > 0.1" })).toEqual({});
+    expect(t3Tokens({ "series-fill-alpha": "0.5 > 0.2 >" })).toEqual({});
+  });
   it("a graph's fill gradient and its stroke follow the Look; Classic's markup is unchanged", () => {
     const classic = draw({}, () => createElement(Spark, { values: [1, 3, 2, 5, 4] }));
     expect(classic).toContain('stop-opacity=".32"');

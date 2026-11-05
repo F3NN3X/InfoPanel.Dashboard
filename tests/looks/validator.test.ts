@@ -109,9 +109,22 @@ describe("bad packs, one per rule", () => {
     expect(rules(bad({ look: (l) => (l.t3["num-fill"] = "linear-gradient(90deg, white, #1A1C21)") }))).toContain("contrast");
   });
 
+  it("a pack may write Classic's focus-outline none, and still not an unreadable ring colour", () => {
+    expect(mine((l) => (l.t3["focus-outline"] = "none"))).toEqual([]);
+    expect(mine((l) => (l.t3["focus-outline"] = "#EFE8D8"))).toContain("contrast");
+  });
+
   it("a chrome surface that is not an opaque literal (L93)", () => {
     expect(rules(bad({ look: (l) => (l.t1.light.surface.value = "rgba(239, 232, 216, 0.5)") }))).toContain("chrome-surface");
     expect(rules(bad({ look: (l) => (l.t1.light.surface.value = "#EFE8D8CC") }))).toContain("chrome-surface");
+  });
+
+  it("an opaque #rgb surface with a translucent text colour is judged on the colour it lays over, not refused (M1)", () => {
+    const withShortSurface = (l: Json) => {
+      l.t1.light.surface.value = "#FFF";
+      l.t1.light.fg.value = "rgba(0, 0, 0, 0.9)";
+    };
+    expect(rules(bad({ look: withShortSurface }))).not.toContain("contrast");
   });
 
   it("static-safe on bright static art (L74), and not on dark or non-static-safe packs", () => {

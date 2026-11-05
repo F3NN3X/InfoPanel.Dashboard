@@ -128,7 +128,7 @@ export function t3Tokens(t3: Readonly<Record<string, string | number>> | undefin
   const stroke = Number.parseFloat(String(t3["series-stroke"]));
   if (stroke >= 0.5 && stroke <= 8 && stroke !== 1) out.strokeFixed = stroke;
   const fill = String(t3["series-fill-alpha"]);
-  const alpha = fill.split(">").map(Number);
+  const alpha = fill.split(">").map((p) => (p.trim() === "" ? Number.NaN : Number(p)));
   if (alpha.length === 3 && alpha.every((a) => a >= 0 && a <= 1) && fill !== "0.32 > 0.06 > 0") out.fillAlpha = alpha as [number, number, number];
   for (const [key, token, classic, shape] of MOTION) {
     const v = String(t3[key] ?? "").trim();

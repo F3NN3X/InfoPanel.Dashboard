@@ -409,7 +409,8 @@ function t3Issues(look: Look, t1: Record<T1Name, string>, mode: string, cards: s
       }
       continue;
     }
-    const colour = TEXT_T3.has(name) || MARK_T3.has(name) || OTHER_COLOUR_T3.has(name);
+    // `none` is Classic's focus-outline: no ring beyond the browser's own, and no colour to read
+    const colour = (TEXT_T3.has(name) || MARK_T3.has(name) || OTHER_COLOUR_T3.has(name)) && !(name === "focus-outline" && v === "none");
     if (colour && v !== "" && !ALIAS.test(v) && !parseColour(v) && !/^var\(--w-[\w-]+\)$/.test(v)) bad("t3", `t3 ${name} ${v} cannot be read as a colour: use #rgb, #rrggbb, rgb(), hsl() or an alias`);
     else if (!colour && !SIMPLE.test(v) && !CUBIC.test(v)) bad("t3", `t3 ${name} ${v.slice(0, 40)} is not a plain value`);
     if (MOTION.has(name)) {
