@@ -2,7 +2,7 @@
 // The sidebar's behaviour: collapse per area in local flags (Q18), the rail under 960 px (Q6), Help and shortcuts (Q5),
 // the attention rows (Q3), and the Data API card: its three states, and the address written through the one setter (G1).
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import type { ComponentProps } from "react";
+import { useState, type ComponentProps } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LiveControl } from "@/components/studio/live-popover";
 import StudioSidebar, { SIDEBAR_EDITOR_KEY, SIDEBAR_WORKSPACE_KEY } from "@/components/studio/sidebar/studio-sidebar";
@@ -12,6 +12,11 @@ import type { DashboardConfig } from "@/lib/layout";
 import { sidebarStatus } from "./status";
 
 const config = { dataApiUrl: "http://127.0.0.1:3921", profiles: [] } as unknown as DashboardConfig;
+
+function Held(props: Omit<ComponentProps<typeof StudioSidebar>, "dataApiOpen" | "onDataApiOpenChange">) {
+  const [open, setOpen] = useState(false);
+  return <StudioSidebar {...props} dataApiOpen={open} onDataApiOpenChange={setOpen} />;
+}
 
 function renderSidebar(props: Partial<ComponentProps<typeof StudioSidebar>> = {}) {
   const all = {
@@ -25,14 +30,14 @@ function renderSidebar(props: Partial<ComponentProps<typeof StudioSidebar>> = {}
     config,
     onAddress: vi.fn(),
     onNavigate: vi.fn(),
-    dataApiOpen: false,
-    onDataApiOpenChange: vi.fn(),
     onHelp: vi.fn(),
     onShortcuts: vi.fn(),
     onPalette: vi.fn(),
     ...props,
   };
-  return { ...all, ...render(<ToastProvider><StudioSidebar {...all} /></ToastProvider>) };
+  // The studio holds the popover's open state (the palette opens it too).
+  const held = (over: Partial<ComponentProps<typeof StudioSidebar>> = {}) => <ToastProvider><Held {...all} {...over} /></ToastProvider>;
+  return { ...all, held, ...render(held()) };
 }
 
 const width = () => screen.getByRole("complementary", { name: "Studio sidebar" }).className;
@@ -62,11 +67,11 @@ describe("collapse", () => {
   });
 
   it("keeps keyboard focus when the sidebar flips between expanded and the rail", () => {
-    const { rerender, ...props } = renderSidebar();
+    const { rerender, held } = renderSidebar();
     const row = screen.getByRole("button", { name: "Screens" });
     row.focus();
     expect(document.activeElement).toBe(row);
-    rerender(<ToastProvider><StudioSidebar {...props} windowWidth={900} /></ToastProvider>);
+    rerender(held({ windowWidth: 900 }));
     expect(width()).toContain("w-[60px]");
     expect(screen.getByRole("button", { name: "Screens" })).toBe(row);
     expect(document.activeElement).toBe(row);
