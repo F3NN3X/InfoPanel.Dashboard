@@ -1,11 +1,11 @@
-# Questions for Gate 0
+# Questions for Gate 0 Yes. Keep Ctrl+S and the flushes; the chip also shows offline and refused | Yes, for new rules only; existing rules keep their style | Yes, created on the first edit, with Discard draft | Yes | Yes | Not now: the groups stay on the Theme page | Yes, keeping the Reset chips | Yes | Not now | Yes, as a local preference, not exported | Partly: keep a restyled selection label, drop the floating bar | Yes: Made for moves to the File menu |
 
-The 12 pending proposals need a yes or no first; the numbered questions follow. Each number gives a recommended answer.
+Answered at Gate 0 (2026-11-05): every recommendation below is accepted, for the proposals and for all 48 numbered questions. Each question's recommended answer is the decision.
 
 ## Pending proposals
 
-| ID | Proposal | Related questions |
-|---|---|---|
+| ID | Proposal | Related questions | Decision |
+|---|---|---|---|
 | P-1 | Autosave with no Save button in the editor | 3, 20 |
 | P-2 | Auto as the default alert style | 32 |
 | P-3 | Gauge draft saved to the library at once | 37 |
