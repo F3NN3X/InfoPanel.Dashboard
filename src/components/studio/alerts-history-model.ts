@@ -74,27 +74,25 @@ export function screensText(h: AlertHistoryEntry, profiles: readonly MonitorProf
 
 /** Text a spreadsheet can read as a formula: it opens with a tab or CR, or with one of these after any white space. */
 const FORMULA = /^(?:[\t\r]|\s*[=+\-@])/;
-/** A plain negative reading, "-5" or "-5.5 °C": no formula, so it stays as it reads. */
-const READING = /^-\d+(\.\d+)?( [^\s\d=+\-*/@(),"]+)?$/;
 
-/** One CSV cell: rule names and readings are outside text, so a formula is defused with a leading quote. */
-function cell(text: string): string {
-  const safe = FORMULA.test(text) && !READING.test(text) ? `'${text}` : text;
-  return /[",\r\n]/.test(safe) ? `"${safe.replaceAll('"', '""')}"` : safe;
+/** One CSV cell: rule names and text values are outside text, so a formula is defused with a leading quote; `numeric` comes from a number, not from what the text looks like. */
+function cell(text: string, numeric = false): string {
+  const safe = !numeric && FORMULA.test(text) ? `'${text}` : text;
+  return /[",;\t\r\n]/.test(safe) ? `"${safe.replaceAll('"', '""')}"` : safe;
 }
 
 /** The rows as CSV, the table's columns plus the severity and whether a test. */
 export function historyCsv(history: readonly AlertHistoryEntry[], profiles: readonly MonitorProfile[]): string {
   const head = ["Started", "Alert", "Severity", "Test", "Value", "Shown as", "Screens", "Ended"];
   const rows = history.map((h) => [
-    new Date(h.startedAt).toISOString(),
-    h.name,
-    h.severity,
-    h.test ? "yes" : "no",
-    valueText(h),
-    landedText(h.shownAs, targetsOf(h.profiles, profiles)),
-    screensText(h, profiles),
-    endedOf(h).label,
+    cell(new Date(h.startedAt).toISOString()),
+    cell(h.name),
+    cell(h.severity),
+    cell(h.test ? "yes" : "no"),
+    cell(valueText(h), typeof h.value === "number"),
+    cell(landedText(h.shownAs, targetsOf(h.profiles, profiles))),
+    cell(screensText(h, profiles)),
+    cell(endedOf(h).label),
   ]);
-  return [head, ...rows].map((row) => row.map(cell).join(",")).join("\r\n");
+  return [head.map((title) => cell(title)), ...rows].map((row) => row.join(",")).join("\r\n");
 }

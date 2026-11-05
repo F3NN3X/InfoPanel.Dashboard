@@ -17,13 +17,16 @@ const cell = (over: Partial<AlertHistoryEntry>, column: number) => historyCsv([r
 
 describe("historyCsv", () => {
   it("defuses text a spreadsheet would run as a formula, and leaves plain readings alone", () => {
-    for (const name of ["=SUM(A1)", "+1", "-1+1", "@cmd", "\tcmd", "\rcmd", " =1"]) expect(cell({ name }, 1).replace(/^"/, "")).toMatch(/^'/);
+    for (const name of ["=SUM(A1)", "+1", "-1+1", "@cmd", "\tcmd", "\rcmd", " =1", "-1 &cmd|'calc'!A"]) expect(cell({ name }, 1).replace(/^"/, "")).toMatch(/^'/);
     expect(cell({ value: "-1+cmd" }, 4)).toBe("'-1+cmd");
     expect(cell({ value: -5, unit: "°C" }, 4)).toBe("-5 °C");
-    expect(cell({ value: "-5.5 °C" }, 4)).toBe("-5.5 °C");
+    // Only a number is exempt: text that reads like one still gets the prefix.
+    expect(cell({ value: "-5.5 °C" }, 4)).toBe("'-5.5 °C");
   });
 
-  it("quotes commas, quotes and both line ends", () => {
+  it("quotes commas, quotes, semicolons, tabs and both line ends", () => {
+    expect(cell({ name: "x;=1+1" }, 1)).toBe('"x;=1+1"');
+    expect(cell({ name: "a\tb" }, 1)).toBe('"a\tb"');
     expect(cell({ name: 'a"b' }, 1)).toBe('"a""b"');
     expect(historyCsv([row({ name: "a,b" })], [])).toContain('"a,b"');
     expect(historyCsv([row({ name: "a\rb" })], [])).toContain('"a\rb"');
