@@ -4,6 +4,7 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ComponentProps } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { LiveControl } from "@/components/studio/live-popover";
 import StudioSidebar, { SIDEBAR_EDITOR_KEY, SIDEBAR_WORKSPACE_KEY } from "@/components/studio/sidebar/studio-sidebar";
 import { ToastProvider } from "@/components/ui/toast";
 import type { DashboardConfig } from "@/lib/layout";
@@ -104,6 +105,17 @@ describe("the views", () => {
     expect(onShortcuts).toHaveBeenCalledTimes(1);
     expect(onPalette).toHaveBeenCalledTimes(1);
     expect(onSelect).toHaveBeenCalledWith("settings");
+  });
+});
+
+describe("the Live control", () => {
+  it("has a tooltip on the rail, like every other collapsed item", async () => {
+    renderSidebar({
+      windowWidth: 900,
+      live: (rail, tip) => <LiveControl open={false} onOpenChange={() => {}} profiles={[]} screen={{ id: "p", name: "Desk", pages: [] } as never} control={null} kiosks={[]} onOpenKioskView={() => {}} place={rail ? "rail" : "sidebar"} tip={tip} />,
+    });
+    fireEvent.focus(screen.getByRole("button", { name: "Live control, 0 kiosks" }));
+    expect(await screen.findByText("Live control, 0 kiosks")).toBeTruthy();
   });
 });
 

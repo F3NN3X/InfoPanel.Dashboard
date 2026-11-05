@@ -1396,7 +1396,7 @@ function StudioViewBody({
             onPalette={() => ui.setPaletteOpen(true)}
             live={
               fullPage
-                ? (rail) => (
+                ? (rail, tip) => (
                     <LiveControl
                       open={ui.liveOpen}
                       onOpenChange={ui.setLiveOpen}
@@ -1406,6 +1406,7 @@ function StudioViewBody({
                       control={control}
                       onOpenKioskView={onExitStudio}
                       place={rail ? "rail" : "sidebar"}
+                      tip={tip}
                     />
                   )
                 : undefined

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactElement, type ReactNode } from "react";
 import { Popover } from "@base-ui/react/popover";
 import { Cast, Maximize, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -24,6 +24,8 @@ interface LiveControlProps {
   onOpenKioskView: () => void;
   /** Where the trigger sits: the editor's top bar, or a row of the sidebar's footer (a workspace page, no top bar). */
   place?: "bar" | "sidebar" | "rail";
+  /** Wraps the trigger (the sidebar's rail tooltip), given the trigger and its name. */
+  tip?: (trigger: ReactElement<Record<string, unknown>>, label: string) => ReactElement;
 }
 
 const TRIGGER = {
@@ -94,7 +96,7 @@ function DimSlider({ level, disabled, onSet }: { level: number; disabled: boolea
  * The title bar's "Live · N" button and its popover (SPEC §3.3): the kiosks connected, and the runtime controls
  * for the edited screen's kiosks over the control API. Not modal, and nothing in it is saved to the dashboard.
  */
-export function LiveControl({ open, onOpenChange, profiles, screen, control, kiosks, onOpenKioskView, place = "bar" }: LiveControlProps) {
+export function LiveControl({ open, onOpenChange, profiles, screen, control, kiosks, onOpenKioskView, place = "bar", tip }: LiveControlProps) {
   const entry = control?.profiles[screen.id];
   const offline = control === null;
   const canRotate = screen.pages.length >= 2;
@@ -103,16 +105,16 @@ export function LiveControl({ open, onOpenChange, profiles, screen, control, kio
   const shownPage = entry?.page ?? screen.pages[0]?.id;
   const savedIsland = screen.island?.enabled === true;
   const muted = isMuted(control, Date.now());
+  const name = `Live control, ${kiosks.length} ${kiosks.length === 1 ? "kiosk" : "kiosks"}`;
+  const trigger = (
+    <Popover.Trigger title={tip ? undefined : "Live control"} aria-label={name} className={cn("flex items-center transition-colors", place !== "bar" && FOCUS_RING, TRIGGER[place])}>
+      <span aria-hidden className={cn("h-1.5 w-1.5 rounded-full", place === "bar" || kiosks.length > 0 ? "bg-ui-live" : "border border-ui-hint")} />
+      {place !== "rail" && <span className="max-sm:sr-only">Live · {kiosks.length}</span>}
+    </Popover.Trigger>
+  );
   return (
     <Popover.Root open={open} onOpenChange={onOpenChange}>
-      <Popover.Trigger
-        title="Live control"
-        aria-label={`Live control, ${kiosks.length} ${kiosks.length === 1 ? "kiosk" : "kiosks"}`}
-        className={cn("flex items-center transition-colors", place !== "bar" && FOCUS_RING, TRIGGER[place])}
-      >
-        <span aria-hidden className={cn("h-1.5 w-1.5 rounded-full", place === "bar" || kiosks.length > 0 ? "bg-ui-live" : "border border-ui-hint")} />
-        {place !== "rail" && <span className="max-sm:sr-only">Live · {kiosks.length}</span>}
-      </Popover.Trigger>
+      {tip ? tip(trigger, name) : trigger}
       <Popover.Portal>
         <Popover.Positioner side={place === "bar" ? "bottom" : "right"} align="end" sideOffset={place === "bar" ? 6 : 25} className="z-[80]">
           <Popover.Popup data-help-article="kiosk" className="w-[340px] rounded-ui-menu border border-ui-menu bg-ui-raised p-3 font-ui text-body text-ui-2 shadow-ui-menu outline-none">

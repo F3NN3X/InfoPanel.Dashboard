@@ -54,7 +54,7 @@ interface StudioSidebarProps {
   onShortcuts: () => void;
   onPalette: () => void;
   /** The Live control's trigger, on a workspace page (no top bar there); a function of the rail state. */
-  live?: (rail: boolean) => ReactNode;
+  live?: (rail: boolean, tip: (trigger: ReactElement<Record<string, unknown>>, label: string) => ReactElement) => ReactNode;
 }
 
 /** A nav row: 36 px, an 18 px icon; a square of the same height on the rail. */
@@ -243,7 +243,11 @@ export default function StudioSidebar(props: StudioSidebarProps) {
         <div className="mt-auto flex flex-col gap-0.5">
           <NavRow label="Settings" icon={Settings} rail={rail} title={status.server.kind === "browser" ? "App settings live in the desktop app" : undefined} onClick={() => onSelect("settings")} />
           <HelpMenu rail={rail} onHelp={onHelp} onShortcuts={onShortcuts} onPalette={onPalette} onSettings={() => onSelect("settings")} />
-          {live?.(rail)}
+          {live?.(rail, (trigger, label) => (
+            <RailTip label={label} rail={rail}>
+              {trigger}
+            </RailTip>
+          ))}
           <AttentionRows status={status} rail={rail} onNavigate={onNavigate} />
           <div className="mt-2 flex flex-col">
             <DataApiCard rail={rail} status={status} config={props.config} onAddress={props.onAddress} onNavigate={onNavigate} />
