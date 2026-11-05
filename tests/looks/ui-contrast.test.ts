@@ -10,6 +10,8 @@ for (const file of ["../../src/index.css", "../../src/settings/tokens.css", "../
   for (const m of readFileSync(new URL(file, import.meta.url), "utf8").matchAll(/^\s*--ui-([\w-]+):\s*([^;]+);/gm)) ui[m[1]] = m[2].trim();
 }
 const SURFACES = ["bg-app", "bg-panel", "bg-tile", "bg-raised"] as const;
+// The fills a hovered or selected row, and a select drawn on bg-hover (quick-bar, setting-rows), put under the same text and borders.
+const HIGHLIGHTS = ["bg-hover", "bg-active"] as const;
 const ratio = (fg: string, bg: string) => contrastOf(ui[fg], ui[bg]) ?? 0;
 
 describe("the chrome tokens' contrast", () => {
@@ -21,7 +23,11 @@ describe("the chrome tokens' contrast", () => {
     for (const bg of SURFACES) expect(ratio(fg, bg), `${fg} on ${bg}`).toBeGreaterThanOrEqual(4.5);
   });
 
-  it("secondary text, which a highlighted row's hints use, is 4.5:1 on the active step", () => {
-    expect(ratio("text-2", "bg-active")).toBeGreaterThanOrEqual(4.5);
+  it("the control border is 3:1 on the hover and active fills a control is drawn on", () => {
+    for (const bg of HIGHLIGHTS) expect(ratio("border-control", bg), `border-control on ${bg}`).toBeGreaterThanOrEqual(3);
+  });
+
+  it("every text step is 4.5:1 on the hover and active fills a highlighted row has", () => {
+    for (const fg of ["text-1", "text-2", "text-hint"]) for (const bg of HIGHLIGHTS) expect(ratio(fg, bg), `${fg} on ${bg}`).toBeGreaterThanOrEqual(4.5);
   });
 });

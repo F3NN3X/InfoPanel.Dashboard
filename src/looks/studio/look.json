@@ -43,7 +43,7 @@
         "usage": "Secondary text"
       },
       "muted": {
-        "value": "#80808b",
+        "value": "#8a8a95",
         "usage": "Muted: hints, labels, meta and icons (4.5:1 on panels and cards)"
       },
       "border": {
@@ -130,7 +130,7 @@
         ]
       },
       "border-control": {
-        "value": "#66666f",
+        "value": "#6c6c76",
         "s": [
           "input-line",
           "track-line"
@@ -156,7 +156,7 @@
         ]
       },
       "text-3": {
-        "value": "#80808b",
+        "value": "#8a8a95",
         "s": [
           "t3"
         ]
@@ -287,7 +287,7 @@
         "value": "#2a2a31"
       },
       "text-4": {
-        "value": "#80808b"
+        "value": "#8a8a95"
       },
       "glyph-off": {
         "value": "#4a4a52",
