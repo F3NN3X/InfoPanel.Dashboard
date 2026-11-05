@@ -263,7 +263,7 @@ function PointRow({ point, cols, values, recorder, usedBy, selected, onSelect, s
       role="button"
       tabIndex={0}
       aria-current={selected}
-      aria-label={`${point.name}, ${cell.text}${unit ? ` ${unit}` : ""}`}
+      aria-label={`${point.name}, ${cell.text}`}
       onClick={() => onSelect(point.key)}
       onKeyDown={(e) => {
         if (e.target !== e.currentTarget) return;
