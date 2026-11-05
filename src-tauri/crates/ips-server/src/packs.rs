@@ -291,6 +291,9 @@ impl Packs {
         if css.is_empty() || css.len() as u64 > FILE_MAX_BYTES {
             return Ok(Err(refuse(413, format!("{CSS_FILE} is empty or over {FILE_MAX_BYTES} bytes"))));
         }
+        if let Some(why) = css_deny(css) {
+            return Ok(Err(refuse(400, format!("{CSS_FILE} {why}"))));
+        }
         let Some(mut files) = stored_files(&root) else {
             return Ok(Err(refuse(409, "the folder is not a pack this server wrote")));
         };
@@ -326,6 +329,33 @@ impl Packs {
         }
         (!self.allow_remote && !req.is_loopback()).then_some("packs are accepted from this computer only")
     }
+}
+
+/// Why the server will not sign `css`, or `None`: a deny-list behind the loader's allow-list (`user-css.ts`), so a signing request that
+/// skipped the studio still cannot carry an escape, an at-rule, markup or a url-like function. Comments are dropped first, as the
+/// grammar drops them, so a note that mentions one of these is no reason to refuse.
+fn css_deny(css: &[u8]) -> Option<&'static str> {
+    let Ok(text) = std::str::from_utf8(css) else {
+        return Some("is not UTF-8");
+    };
+    let mut plain = String::with_capacity(text.len());
+    let mut rest = text;
+    while let Some(open) = rest.find("/*") {
+        plain.push_str(&rest[..open]);
+        match rest[open + 2..].find("*/") {
+            Some(close) => rest = &rest[open + 2 + close + 2..],
+            None => {
+                rest = &rest[open..];
+                break;
+            }
+        }
+    }
+    plain.push_str(rest);
+    let plain = plain.to_ascii_lowercase();
+    if plain.contains('\\') ||plain.contains('@') || plain.contains('<') {
+        return Some("holds a backslash, an at-rule or markup");
+    }
+    ["url(", "image-set(", "src("].iter().any(|f| plain.contains(f)).then_some("holds a url-like function")
 }
 
 /// The pack a set-aside folder holds, from what follows `.import-old-` in its name: the `<id>-<uuid>` an import writes, else
@@ -366,6 +396,9 @@ fn measure_files(root: &Path, css: bool) -> Option<(usize, u64)> {
             if meta.is_dir() && prefix.is_empty() && name == "assets" {
                 continue;
             }
+            if prefix.is_empty() && is_writer_tmp(&name) && meta.is_file() {
+                continue;
+            }
             let top = prefix.is_empty() && (name == SIG_FILE || (css && name == CSS_FILE));
             if !meta.is_file() || !(top || is_pack_file(&format!("{prefix}{name}"))) {
                 return None;
@@ -380,6 +413,12 @@ fn measure_files(root: &Path, css: bool) -> Option<(usize, u64)> {
     (count <= FILE_COUNT_MAX && total <= PACK_CEILING_BYTES).then_some((count, total))
 }
 
+/// A temp file the signing writer leaves while it works or after a crash (`store::write_atomic`): it belongs to no pack and is no reason
+/// to refuse the folder, so a read in that moment still sees the pack.
+fn is_writer_tmp(name: &str) -> bool {
+    name == format!("{SIG_FILE}.tmp") || name == format!("{CSS_FILE}.tmp")
+}
+
 /// Every file of a pack folder but its signature, as the hash reads them: `None` for a folder `measure_files` refuses.
 fn stored_files(root: &Path) -> Option<Files> {
     measure_files(root, true)?;
@@ -390,7 +429,7 @@ fn stored_files(root: &Path) -> Option<Files> {
         };
         for entry in entries.filter_map(Result::ok) {
             let name = entry.file_name().to_string_lossy().into_owned();
-            if entry.file_type().ok()?.is_file() && !(prefix.is_empty() && name == SIG_FILE) {
+            if entry.file_type().ok()?.is_file() && !(prefix.is_empty() && (name == SIG_FILE || is_writer_tmp(&name))) {
                 files.push((format!("{prefix}{name}"), std::fs::read(entry.path()).ok()?));
             }
         }

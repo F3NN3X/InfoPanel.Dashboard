@@ -773,3 +773,47 @@ async fn the_render_checks_page_opens_for_a_frame_of_this_origin_and_nothing_els
     }
     s.stop().await;
 }
+
+#[tokio::test]
+async fn the_server_signs_no_css_that_holds_what_the_grammar_never_lets_through() {
+    let s = start().await;
+    let root = write_pack(&s, "mine");
+    for (what, css) in [
+        ("an escape", "[data-part=\"num\"] { color: #fff; } /* */ [data-part=\"n\\75m\"] { color: #fff; }"),
+        ("an at-rule", "@import 'x'; [data-part=\"num\"] { color: #fff; }"),
+        ("markup", "[data-part=\"num\"] { color: #fff; } </style>"),
+        ("url()", "[data-part=\"num\"] { background: URL(x.png); }"),
+        ("image-set()", "[data-part=\"num\"] { background: image-set(x 1x); }"),
+        ("src()", "[data-part=\"num\"] { color: SRC(x); }"),
+    ] {
+        let reply = send(s.port, "POST", "/api/packs/mine/sign", &WRITE, &sign_body(css, &hash_with(&root, css))).await;
+        assert_eq!(reply.status, 400, "{what}: {}", reply.text());
+    }
+    let latin1 = json!({ "css": STANDARD.encode([b'a', 0xe9, b'{', b'}']), "hash": "x" }).to_string();
+    assert_eq!(send(s.port, "POST", "/api/packs/mine/sign", &WRITE, &latin1).await.status, 400, "not UTF-8");
+    assert!(!root.join("pack.css").exists() && !root.join("pack.sig").exists(), "nothing was stored");
+    assert!(!key_file(&s).exists(), "and no key made");
+    // plain CSS passes, and a comment may mention what the rest may not hold
+    let noted = "/* url(x) @media \\ <b> */ [data-part=\"num\"] { color: #fff; }";
+    let reply = send(s.port, "POST", "/api/packs/mine/sign", &WRITE, &sign_body(noted, &hash_with(&root, noted))).await;
+    assert_eq!(reply.status, 200, "{}", reply.text());
+    s.stop().await;
+}
+
+#[tokio::test]
+async fn the_writers_own_temp_files_do_not_strand_a_pack() {
+    let s = start().await;
+    let root = signed_pack(&s, "mine").await;
+    for tmp in ["pack.sig.tmp", "pack.css.tmp"] {
+        std::fs::write(root.join(tmp), "half a file").unwrap();
+    }
+    assert_eq!(get(s.port, "/api/packs/mine/pack.css").await.status, 200, "a signed pack");
+    assert_eq!(get(s.port, "/api/packs/mine/pack.json").await.status, 200);
+    assert_eq!(get(s.port, "/api/packs/mine/pack.sig.tmp").await.status, 404, "and a temp file is never served");
+    let list: Value = serde_json::from_slice(&get(s.port, "/api/packs").await.body).unwrap();
+    assert!(list.as_array().unwrap().iter().any(|p| p["id"] == "mine"));
+    // any other stray name still refuses the folder
+    std::fs::write(root.join("pack.sig.tmp2"), "x").unwrap();
+    assert_refused(&s, "mine", "a stray name").await;
+    s.stop().await;
+}
