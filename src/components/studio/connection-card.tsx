@@ -1,20 +1,18 @@
-import { useState } from "react";
 import { CircleAlert, CircleCheck, TriangleAlert } from "lucide-react";
-import { DEFAULT_API_BASE, normalizeApiBase, testApiBase, type DataApiState } from "@/lib/data-api";
 import { cn } from "@/lib/utils";
 import { FIELD, StackRow } from "./setting-rows";
+import { useApiAddress } from "./use-api-address";
+import type { ApiLink } from "./use-data-api-grace";
 
 interface ConnectionCardProps {
   /** The saved base URL (undefined = default). */
   value?: string;
   onChange: (url: string) => void;
   /** The live state and the last ping (the status bar's, SPEC §3.4). */
-  dataApi: { state: DataApiState; latencyMs?: number | null };
+  dataApi: { state: ApiLink; latencyMs?: number | null };
 }
 
-type Probe = "idle" | "testing" | "ok" | "fail";
-
-/** The status pill's wording: "Connected · 18 ms", "Slow · 640 ms", or the error. */
+/** The status pill's wording: "Connected · 18 ms", "Slow · 640 ms", Reconnecting during the grace, or the error. */
 export function connectionPill(dataApi: ConnectionCardProps["dataApi"]): { text: string; tone: "ok" | "warn" | "bad" } {
   const ms = typeof dataApi.latencyMs === "number" ? ` · ${dataApi.latencyMs} ms` : "";
   switch (dataApi.state) {
@@ -22,6 +20,8 @@ export function connectionPill(dataApi: ConnectionCardProps["dataApi"]): { text:
       return { text: `Connected${ms}`, tone: "ok" };
     case "slow":
       return { text: `Slow${ms}`, tone: "warn" };
+    case "reconnecting":
+      return { text: "Reconnecting", tone: "warn" };
     default:
       return { text: "Can't reach the Data API", tone: "bad" };
   }
@@ -38,26 +38,9 @@ const PILL = {
  * API index. It was Behaviour › Connection in the old profile inspector.
  */
 export function ConnectionCard({ value, onChange, dataApi }: ConnectionCardProps) {
-  const saved = value ?? DEFAULT_API_BASE;
-  const [draft, setDraft] = useState(saved);
-  const [probe, setProbe] = useState<Probe>("idle");
-  const valid = normalizeApiBase(draft) !== null;
+  const { draft, edit, probe, base, valid, commit, test } = useApiAddress(value, onChange);
   const pill = connectionPill(dataApi);
   const Icon = PILL[pill.tone].icon;
-
-  const commit = () => {
-    const base = normalizeApiBase(draft);
-    if (base === null) return;
-    setDraft(base);
-    if (base !== saved) onChange(base);
-  };
-
-  const test = async () => {
-    const base = normalizeApiBase(draft);
-    if (base === null) return;
-    setProbe("testing");
-    setProbe((await testApiBase(base)) ? "ok" : "fail");
-  };
 
   return (
     <section data-nav-section="connection" aria-label="Connection" className="flex shrink-0 flex-col gap-2 border-b border-ui-subtle p-3.5 font-ui">
@@ -76,10 +59,7 @@ export function ConnectionCard({ value, onChange, dataApi }: ConnectionCardProps
           aria-invalid={!valid}
           aria-describedby={valid ? undefined : "data-api-url-error"}
           data-nav-control="url"
-          onChange={(e) => {
-            setDraft(e.target.value);
-            setProbe("idle");
-          }}
+          onChange={(e) => edit(e.target.value)}
           onBlur={commit}
           onKeyDown={(e) => e.key === "Enter" && commit()}
           spellCheck={false}
@@ -111,7 +91,7 @@ export function ConnectionCard({ value, onChange, dataApi }: ConnectionCardProps
         <span className="min-w-0 flex-1 truncate">API index</span>
         {valid ? (
           <a
-            href={`${normalizeApiBase(draft)}/`}
+            href={`${base}/`}
             target="_blank"
             rel="noreferrer"
             title="Every data point the Data API serves, grouped by source"

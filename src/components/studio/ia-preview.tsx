@@ -119,7 +119,7 @@ const STATIC_BARS: { title: string; data: StatusBarData }[] = [
   {
     title: "Browser: unreachable, no kiosks, offline",
     data: {
-      dataApi: { state: "unreachable", latencyMs: null, base: "http://192.168.1.12:3921" },
+      dataApi: { state: "offline", latencyMs: null, base: "http://192.168.1.12:3921" },
       server: { kind: "browser", host: "192.168.1.12" },
       kiosks: 0,
       restartNeeded: false,

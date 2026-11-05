@@ -1,7 +1,7 @@
-import type { DataApiState } from "@/lib/data-api";
 import { cn } from "@/lib/utils";
 import type { Phase } from "@/settings/types";
 import type { NavTarget } from "./studio-nav";
+import type { ApiLink } from "./use-data-api-grace";
 
 /** The server as the status bar knows it: the desktop shell's (port, LAN, phase) or the page's own host. */
 export type StatusServer =
@@ -11,7 +11,7 @@ export type StatusServer =
 export type SaveState = "unsaved" | "saved" | "offline";
 
 export interface StatusBarData {
-  dataApi: { state: DataApiState; latencyMs?: number | null; base: string };
+  dataApi: { state: ApiLink; latencyMs?: number | null; base: string };
   server: StatusServer;
   /** Kiosks connected now. */
   kiosks: number;
@@ -27,11 +27,13 @@ export interface StatusBarProps extends StatusBarData {
   kioskChip?: string;
   /** The kiosks' rotation is paused: the chip's dot is amber. */
   paused?: boolean;
+  /** The sidebar carries the Data API, the server, the update and the restart: only the kiosks and the save state stay here. */
+  sidebar?: boolean;
   onNavigate: (target: NavTarget) => void;
   onOpenLive: () => void;
 }
 
-type Tone = "ok" | "warn" | "bad" | "idle";
+export type Tone = "ok" | "warn" | "bad" | "idle";
 
 const DOT: Readonly<Record<Tone, string>> = {
   ok: "rounded-full bg-ui-ok",
@@ -47,7 +49,7 @@ const TEXT: Readonly<Record<Tone, string>> = {
   idle: "text-ui-3",
 };
 
-interface Item {
+export interface Item {
   id: string;
   label: string;
   tone: Tone;
@@ -55,9 +57,9 @@ interface Item {
   onClick: () => void;
 }
 
-const API_TONE: Readonly<Record<DataApiState, Tone>> = { connected: "ok", slow: "warn", unreachable: "bad" };
+const API_TONE: Readonly<Record<ApiLink, Tone>> = { connected: "ok", slow: "warn", reconnecting: "warn", offline: "bad" };
 
-function serverItem(server: StatusServer, go: (t: NavTarget) => void): Item {
+export function serverItem(server: StatusServer, go: (t: NavTarget) => void): Item {
   if (server.kind === "browser") {
     return {
       id: "server",
@@ -74,6 +76,22 @@ function serverItem(server: StatusServer, go: (t: NavTarget) => void): Item {
   return { id: "server", label, tone, tip: "Server settings", onClick: () => go({ view: "settings", tab: "app", section: "server" }) };
 }
 
+export const updateItem = (version: string, go: (t: NavTarget) => void): Item => ({
+  id: "update",
+  label: `Update ${version} available`,
+  tone: "warn",
+  tip: "Open updates",
+  onClick: () => go({ view: "settings", tab: "app", section: "updates" }),
+});
+
+export const restartItem = (go: (t: NavTarget) => void): Item => ({
+  id: "restart",
+  label: "Restart server to apply",
+  tone: "warn",
+  tip: "Server settings changed: restart the server to apply them",
+  onClick: () => go({ view: "settings", tab: "app", section: "server" }),
+});
+
 const SAVE_TEXT: Readonly<Record<SaveState, string>> = {
   unsaved: "Unsaved changes",
   saved: "All changes saved",
@@ -83,11 +101,12 @@ const SAVE_TEXT: Readonly<Record<SaveState, string>> = {
 /**
  * The 26 px status bar (SPEC §3.4): Data API, server, kiosks, an update
  * and a pending restart, each a button to its home; the save state at the
- * end. Narrow windows show the dots only. Pure: `useStatusBar` feeds it.
+ * end. Narrow windows show the dots only. Beside the sidebar it keeps the
+ * kiosks and the save state. Pure: `useStatusBar` feeds it.
  */
-export function StatusBar({ dataApi, server, kiosks, update, restartNeeded, save, kioskChip, paused, onNavigate, onOpenLive }: StatusBarProps) {
+export function StatusBar({ dataApi, server, kiosks, update, restartNeeded, save, kioskChip, paused, sidebar, onNavigate, onOpenLive }: StatusBarProps) {
   const latency = typeof dataApi.latencyMs === "number" ? ` · ${dataApi.latencyMs} ms` : "";
-  const items: Item[] = [
+  const items: Item[] = sidebar ? [] : [
     {
       id: "data-api",
       label: `Data API · ${dataApi.state}`,
@@ -96,28 +115,8 @@ export function StatusBar({ dataApi, server, kiosks, update, restartNeeded, save
       onClick: () => onNavigate({ view: "data", section: "connection", control: "url" }),
     },
     serverItem(server, onNavigate),
-    ...(update && server.kind === "desktop"
-      ? [
-          {
-            id: "update",
-            label: `Update ${update} available`,
-            tone: "warn" as const,
-            tip: "Open updates",
-            onClick: () => onNavigate({ view: "settings", tab: "app", section: "updates" }),
-          },
-        ]
-      : []),
-    ...(restartNeeded
-      ? [
-          {
-            id: "restart",
-            label: "Restart server to apply",
-            tone: "warn" as const,
-            tip: "Server settings changed: restart the server to apply them",
-            onClick: () => onNavigate({ view: "settings", tab: "app", section: "server" }),
-          },
-        ]
-      : []),
+    ...(update && server.kind === "desktop" ? [updateItem(update, onNavigate)] : []),
+    ...(restartNeeded ? [restartItem(onNavigate)] : []),
   ];
   return (
     <footer className="flex h-[26px] shrink-0 items-center gap-0.5 border-t border-ui-subtle bg-ui-chrome px-2 font-ui text-micro text-ui-3">
