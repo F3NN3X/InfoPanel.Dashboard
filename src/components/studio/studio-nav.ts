@@ -28,6 +28,8 @@ export interface NavTarget {
   control?: string;
   /** Theme: the scope to open at. */
   themeScope?: ThemeScope;
+  /** Alerts: a sensor key a new rule starts on (a draft; nothing is saved until the rule is edited). */
+  sensorKey?: string;
   /** Theme or Screens: the screen (profile) to open with. */
   profileId?: string;
 }

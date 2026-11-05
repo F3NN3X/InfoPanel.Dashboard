@@ -49,8 +49,8 @@ interface PointInspectorProps {
   onNewWidget: () => void;
   /** Open a widget that uses the point in Design mode, on its Data tab. */
   onOpenUsage: (usage: Usage) => void;
-  /** Open Alerts (Create alert, or a rule that watches the point). */
-  onOpenAlerts: () => void;
+  /** Open Alerts (Create alert starts a rule on the point's key; a rule that watches it opens plain). */
+  onOpenAlerts: (sensorKey?: string) => void;
   onClose: () => void;
 }
 
@@ -213,7 +213,7 @@ export function PointInspector({
       <div className="flex flex-col gap-2">
         <span className={FIELD_LABEL}>Used by</span>
         {alertRules.map((r) => (
-          <button key={r.id} type="button" onClick={onOpenAlerts} className={USED_ROW}>
+          <button key={r.id} type="button" onClick={() => onOpenAlerts()} className={USED_ROW}>
             <Bell className="h-4 w-4 shrink-0 text-ui-hint" strokeWidth={1.5} aria-hidden />
             <span className="min-w-0 flex-1 truncate" title={r.name}>
               {r.name}
@@ -281,7 +281,7 @@ export function PointInspector({
             New widget from this value
           </Button>
         </Popover>
-        <Button variant="ghost" icon={<Bell strokeWidth={1.5} />} onClick={onOpenAlerts}>
+        <Button variant="ghost" icon={<Bell strokeWidth={1.5} />} onClick={() => onOpenAlerts(point.key)}>
           Create alert
         </Button>
       </div>

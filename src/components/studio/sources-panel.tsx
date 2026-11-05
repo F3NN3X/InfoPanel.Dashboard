@@ -61,7 +61,7 @@ interface SourcesPanelProps {
   /** Leave Sources mode and select a zone (and one of its panel widgets, on the Data tab) on the canvas. */
   onOpenZone: (zoneId: string, opts?: { widgetId?: string; dataTab?: boolean }) => void;
   /** Open Alerts (a link: nothing is written from here). */
-  onOpenAlerts: () => void;
+  onOpenAlerts: (sensorKey?: string) => void;
   /** Select this data point (the inspector's Bound data rows open it); selects again whenever it changes. */
   focusPointKey?: string;
   /** The Data API's live state, for the Connection card's pill on a phone. */

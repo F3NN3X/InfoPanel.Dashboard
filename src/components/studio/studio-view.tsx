@@ -856,6 +856,7 @@ function StudioViewBody({
       pushPending={pushPending}
       editingId={ui.alertRule}
       onEdit={ui.setAlertRule}
+      navRequest={ui.navRequest}
       onOpenSources={() => ui.setMode("sources")}
       onOpenZone={openZone}
       navigateTo={ui.navigateTo}
@@ -951,7 +952,7 @@ function StudioViewBody({
         focusPointKey={focusPointKey}
         selectedZoneId={sel.primaryId}
         dataApi={statusBar.dataApi}
-        onOpenAlerts={() => ui.navigateTo({ view: "alerts", tab: "rules" })}
+        onOpenAlerts={(sensorKey) => ui.navigateTo({ view: "alerts", tab: "rules", ...(sensorKey ? { sensorKey } : {}) })}
         onOpenZone={(id, opts) => {
           ui.setMode("design");
           focusZone(id);

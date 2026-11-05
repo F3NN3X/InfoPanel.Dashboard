@@ -17,7 +17,8 @@ import { AlertRules, NewRuleMenu } from "./alerts-rules";
 import { saveFilePayload } from "./config-file";
 import { IslandTab } from "./island-tab";
 import { isMuted, liveActions } from "./live-model";
-import type { NavTarget } from "./studio-nav";
+import type { NavRequest, NavTarget } from "./studio-nav";
+import { blankSensorRule } from "@/lib/alert-presets";
 
 /** The tabs of Alerts & Island. "defaults" is no tab any more: a link to it opens the Defaults dialog. */
 export type AlertsTab = "rules" | "island" | "defaults" | "history";
@@ -41,12 +42,17 @@ interface AlertsViewProps {
   /** The rule open in the editor (view state); null = the first one. */
   editingId: string | null;
   onEdit: (id: string | null) => void;
+  /** The last link: Create alert on a Data point names the sensor a new rule starts on. */
+  navRequest?: NavRequest;
   /** The sensor pickers' "Open data explorer". */
   onOpenSources: () => void;
   /** Show a widget on the canvas (its screen and page) and open its Behaviour tab. */
   onOpenZone: (profileId: string, pageId: string, zoneId: string) => void;
   navigateTo: (target: NavTarget) => void;
 }
+
+/** The last link Alerts acted on (it outlives a remount, so a stale one is not replayed). */
+let handledNav = 0;
 
 /** The mute (moved here from the sidebar's Live popover): an hour of no alerts on the kiosks, the time it ends in its place. */
 function MuteToggle({ control }: { control: ControlState | null }) {
@@ -64,11 +70,31 @@ function MuteToggle({ control }: { control: ControlState | null }) {
  * Alerts & Island: the rules with what is active now, the island's settings and the history. Rules are config, so each
  * edit is an undo step; the live list is server state.
  */
-export function AlertsView({ tab, onTab, config, setConfig, active, control, points, screen, page, pushPending, editingId, onEdit, onOpenSources, onOpenZone, navigateTo }: AlertsViewProps) {
+export function AlertsView({ tab, onTab, config, setConfig, active, control, points, screen, page, pushPending, editingId, onEdit, navRequest, onOpenSources, onOpenZone, navigateTo }: AlertsViewProps) {
   const alerts = alertsOf(config);
   const history = useAlertHistory(active);
   const [defaultsOpen, setDefaultsOpen] = useState(false);
   const [filter, setFilter] = useState<HistoryFilter>({ severity: "all", tests: true });
+  // Create alert on a Data point: a rule on that sensor opens in the editor, held here until its first edit puts it in the config.
+  const [draft, setDraft] = useState<AlertRule>();
+  useEffect(() => {
+    const key = navRequest?.target.view === "alerts" ? navRequest.target.sensorKey : undefined;
+    if (!navRequest || navRequest.seq <= handledNav || !key) return;
+    handledNav = navRequest.seq;
+    const rule = blankSensorRule();
+    const name = points.find((p) => p.key === key)?.name;
+    setDraft({
+      ...rule,
+      ...(name ? { name: `${name} alert` } : {}),
+      source: { kind: "sensor", conditions: [{ key, op: ">", value: 80 }], forSeconds: 0 },
+    });
+    onEdit(rule.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navRequest?.seq]);
+  // The first edit saved it: the config's rule is the one shown from then on.
+  useEffect(() => {
+    if (draft && alerts.rules.some((r) => r.id === draft.id)) setDraft(undefined);
+  }, [draft, alerts.rules]);
   // Old links and the palette still say Defaults.
   useEffect(() => {
     if (tab !== "defaults") return;
@@ -126,6 +152,7 @@ export function AlertsView({ tab, onTab, config, setConfig, active, control, poi
           pushPending={pushPending}
           editingId={editingId}
           onEdit={onEdit}
+          draft={draft}
           onOpenSources={onOpenSources}
         />
       )}

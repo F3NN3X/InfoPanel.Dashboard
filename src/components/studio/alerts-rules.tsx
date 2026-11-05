@@ -32,6 +32,8 @@ export interface AlertRulesProps {
   /** The rule open in the editor (view state); null = the first one, or the list when narrow. */
   editingId: string | null;
   onEdit: (id: string | null) => void;
+  /** A rule not in the config yet (Create alert on a Data point): shown when it is the open one, saved by its first edit. */
+  draft?: AlertRule;
   /** The sensor picker's "Open data explorer". */
   onOpenSources: () => void;
 }
@@ -163,7 +165,7 @@ function RuleRow({ rule, summary, style, fired, now, selected, confirming, ...on
  * Alerts & Island › Alerts: what is active, the rules (add from blanks or presets, duplicate, delete) and the open rule
  * beside them. Rules are config, so each edit is an undo step.
  */
-export function AlertRules({ config, setConfig, active, history, points, current, pushPending, editingId, onEdit, onOpenSources }: AlertRulesProps) {
+export function AlertRules({ config, setConfig, active, history, points, current, pushPending, editingId, onEdit, draft, onOpenSources }: AlertRulesProps) {
   const alerts = alertsOf(config);
   const narrow = useViewportBelow(COLUMNS_MIN);
   const [now, setNow] = useState(() => Date.now());
@@ -176,7 +178,8 @@ export function AlertRules({ config, setConfig, active, history, points, current
     setConfig((c) => addRule(c, rule), alertsKey(`add:${rule.id}`));
     onEdit(rule.id);
   };
-  const editing = alerts.rules.find((r) => r.id === editingId) ?? (narrow ? undefined : alerts.rules[0]);
+  const unsaved = draft !== undefined && draft.id === editingId && !alerts.rules.some((r) => r.id === draft.id);
+  const editing = alerts.rules.find((r) => r.id === editingId) ?? (unsaved ? draft : narrow ? undefined : alerts.rules[0]);
 
   const labelOf = (rule: AlertRule) => {
     const keys = rule.source.kind === "sensor" ? rule.source.conditions.map((c) => c.key) : [];
@@ -190,11 +193,11 @@ export function AlertRules({ config, setConfig, active, history, points, current
     <AlertRuleEditor
       rule={editing}
       config={config}
-      setConfig={setConfig}
+      setConfig={unsaved ? (action, key) => setConfig((c) => { const next = typeof action === "function" ? action : () => action; return next(alertsOf(c).rules.some((r) => r.id === draft.id) ? c : addRule(c, draft)); }, key) : setConfig}
       active={active}
       points={points}
       current={current}
-      pushPending={pushPending}
+      pushPending={pushPending || unsaved}
       onBack={narrow ? () => onEdit(null) : undefined}
       onOpenSources={onOpenSources}
     />
