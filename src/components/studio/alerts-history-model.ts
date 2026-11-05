@@ -75,7 +75,7 @@ export function screensText(h: AlertHistoryEntry, profiles: readonly MonitorProf
 /** Text a spreadsheet can read as a formula: it opens with a tab or CR, or with one of these after any white space. */
 const FORMULA = /^(?:[\t\r]|\s*[=+\-@])/;
 
-/** One CSV cell: rule names and text values are outside text, so a formula is defused with a leading quote; `numeric` comes from a number, not from what the text looks like. */
+/** One CSV cell: rule names and text values are outside text, so a formula is defused with a leading quote; `numeric` is a bare number, never judged from what the text looks like (a unit is free text). */
 function cell(text: string, numeric = false): string {
   const safe = !numeric && FORMULA.test(text) ? `'${text}` : text;
   return /[",;\t\r\n]/.test(safe) ? `"${safe.replaceAll('"', '""')}"` : safe;
@@ -89,7 +89,7 @@ export function historyCsv(history: readonly AlertHistoryEntry[], profiles: read
     cell(h.name),
     cell(h.severity),
     cell(h.test ? "yes" : "no"),
-    cell(valueText(h), typeof h.value === "number"),
+    cell(valueText(h), typeof h.value === "number" && !h.unit),
     cell(landedText(h.shownAs, targetsOf(h.profiles, profiles))),
     cell(screensText(h, profiles)),
     cell(endedOf(h).label),

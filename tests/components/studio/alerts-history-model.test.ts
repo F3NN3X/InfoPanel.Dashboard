@@ -19,9 +19,11 @@ describe("historyCsv", () => {
   it("defuses text a spreadsheet would run as a formula, and leaves plain readings alone", () => {
     for (const name of ["=SUM(A1)", "+1", "-1+1", "@cmd", "\tcmd", "\rcmd", " =1", "-1 &cmd|'calc'!A"]) expect(cell({ name }, 1).replace(/^"/, "")).toMatch(/^'/);
     expect(cell({ value: "-1+cmd" }, 4)).toBe("'-1+cmd");
-    expect(cell({ value: -5, unit: "°C" }, 4)).toBe("-5 °C");
-    // Only a number is exempt: text that reads like one still gets the prefix.
+    expect(cell({ value: -5 }, 4)).toBe("-5");
+    // Only a bare number is exempt: text that reads like one, or any unit, still gets the prefix.
     expect(cell({ value: "-5.5 °C" }, 4)).toBe("'-5.5 °C");
+    expect(cell({ value: -5, unit: "°C" }, 4)).toBe("'-5 °C");
+    expect(cell({ value: -1, unit: "&cmd|'calc'!A" }, 4)).toMatch(/^'-1/);
   });
 
   it("quotes commas, quotes, semicolons, tabs and both line ends", () => {
