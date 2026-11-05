@@ -106,7 +106,7 @@
         "tests/e2e/config-live-update.spec.ts",
         "tests/e2e/screens-own-look.spec.ts"
       ],
-      "checks": ["typecheck", "unit", "e2e"]
+      "checks": ["typecheck", "unit", "ui-usage", "e2e"]
     },
     {
       "id": "server-core",
@@ -330,7 +330,7 @@
         "tests/fixtures/parity/agent*.json",
         "tests/fixtures/parity/claude-sessions.json"
       ],
-      "checks": ["typecheck", "unit", "server-suite", "cargo-server", "cargo-app"]
+      "checks": ["typecheck", "unit", "server-suite", "cargo-server", "cargo-app", "ui-usage"]
     },
     {
       "id": "infopanel-installed",
@@ -457,7 +457,7 @@
         "tests/e2e/widget-qa-parity.spec.ts",
         "tests/e2e/visualiser-round-trip.spec.ts"
       ],
-      "checks": ["typecheck", "unit", "build", "budgets", "e2e", "overflow"],
+      "checks": ["typecheck", "unit", "build", "budgets", "ui-usage", "e2e", "overflow"],
       "report": ["npm run audit:views", "npm run qa:shots"],
       "note": "The registry schema tests and key-audit read docs/redesign/widgets/docs/widgets/*.md and .facts.json: a change there is a test change."
     },
@@ -488,7 +488,7 @@
         "tests/lib/roving-keys.dom.test.tsx",
         "tests/lib/shipped-panels.test.ts"
       ],
-      "checks": ["typecheck", "unit", "build", "budgets"]
+      "checks": ["typecheck", "unit", "build", "budgets", "ui-usage"]
     },
     {
       "id": "styles-themes",
@@ -520,7 +520,7 @@
         "tests/e2e/theme-switch.spec.ts",
         "tests/e2e/look-gallery.spec.ts"
       ],
-      "checks": ["typecheck", "unit", "e2e"]
+      "checks": ["typecheck", "unit", "ui-usage", "e2e"]
     },
     {
       "id": "layout-kiosk",
@@ -562,7 +562,7 @@
         "tests/e2e/config-live-update.spec.ts",
         "tests/e2e/control-page-switch.spec.ts"
       ],
-      "checks": ["typecheck", "unit", "build", "budgets", "e2e"]
+      "checks": ["typecheck", "unit", "build", "budgets", "ui-usage", "e2e"]
     },
     {
       "id": "page-model",
@@ -644,7 +644,7 @@
       "paths": ["src/lib/infopanel/**", "src/components/infopanel/**", "tools/ip-import.cjs", "tools/gen-element-icons.mjs", "tools/gen-element-icons.d.mts"],
       "exclude": ["src/lib/infopanel/gauges/**"],
       "tests": ["tests/lib/infopanel/**", "tests/components/infopanel/**", "tests/e2e/material-export.spec.ts"],
-      "checks": ["typecheck", "unit", "lab", "import-check", "e2e"],
+      "checks": ["typecheck", "unit", "lab", "ui-usage", "import-check", "e2e"],
       "note": "The corpus round-trips live in the lab (lab/infopanel/src/corpus.test.ts, order.test.ts, idempotent.test.ts), outside npm test, and so does the profile templates' every-size export sweep (lab/infopanel/src/templates.test.ts). import-check needs Windows, .NET and an InfoPanel source folder (docs/TESTING.md)."
     },
     {
