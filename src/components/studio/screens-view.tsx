@@ -232,7 +232,7 @@ export function ScreensView({
       badges: (
         <>
           {kind === "infopanel" ? (
-            <Badge title="An InfoPanel profile: it opens in Edit and exports to .infopanel">
+            <Badge title="An InfoPanel profile: it opens in Edit">
               <PanelsTopLeft className="mr-1 h-3 w-3" />
               InfoPanel
             </Badge>

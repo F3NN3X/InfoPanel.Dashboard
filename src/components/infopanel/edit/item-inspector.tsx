@@ -169,7 +169,7 @@ function ItemFields({ editor, path, item, live, onRemap, onBindSensor, sensors, 
               <SensorCard editor={editor} item={item} live={live} onRemap={onRemap} onBindSensor={onBindSensor} sensors={sensors} />
               {item.kind === "Gauge" && onEditGauge && !element && (
                 <>
-                  {item.Images.length === 0 && !("vector" in item) && <p className="px-4 pb-1.5 text-[11.5px] leading-snug text-ui-4">No frames yet: InfoPanel draws a gauge from its images. Edit gauge to build them.</p>}
+                  {item.Images.length === 0 && !("vector" in item) && <p className="px-4 pb-1.5 text-[11.5px] leading-snug text-ui-4">No frames and no vector spec, so this gauge draws nothing. Edit gauge adds frames.</p>}
                   <EditGaugeButton onClick={() => onEditGauge(path)} />
                 </>
               )}

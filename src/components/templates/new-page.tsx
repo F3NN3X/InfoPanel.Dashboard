@@ -304,7 +304,7 @@ function KindPage({ kind, onKind, screen, initial, carry, onCreateScreen, onCrea
     : [
         blankWay("Blank grid", "An empty grid, add widgets after"),
         { id: "sample", icon: LayoutTemplate, title: "The sample layout", note: "A bit of everything, made at once", does: "leave", onSelect: onSample },
-        { id: "infopanel", icon: PenTool, title: "An InfoPanel profile", note: "Free canvas, exports to .infopanel", does: "switch", onSelect: () => switchKind("ip") },
+        { id: "infopanel", icon: PenTool, title: "An InfoPanel profile", note: "A free canvas of InfoPanel items", does: "switch", onSelect: () => switchKind("ip") },
         { id: "import", icon: FileUp, title: "Import a file", note: "A screen or an .infopanel profile", does: "leave", onSelect: () => onImport("screen") },
       ];
 

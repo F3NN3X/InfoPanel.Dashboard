@@ -74,7 +74,7 @@ A template's colors come from the profile's colors (see Profile colors, below), 
 
 ## The page
 
-- **Layers** and **Add**, two tabs on the left, as on a grid screen. **Add** opens on **Items**: InfoPanel's 14 item kinds in four groups, Text, Data, Media and Layout, then the studio's **Elements**. The Studio widgets are on **Widgets** (see [Add](studio#add)). **Layers** is the item tree, the top item first, with a lock, and an eye on each row (see [Layers](studio#layers)). See Groups, and Studio widgets on a profile.
+- **Layers** and **Add**, two tabs on the left, as on a grid screen. **Add** opens on **Widgets** (see [Add](studio#add)); **Items** has InfoPanel's 14 item kinds in four groups, Text, Data, Media and Layout, then the studio's **Elements**. **Layers** is the item tree, the top item first, with a lock, and an eye on each row (see [Layers](studio#layers)). See Groups, and Studio widgets on a profile.
 - The canvas, in the middle, with the page tabs and a strip of view controls above it and a line of key hints below it. See [Editing a canvas](canvas) for the strip.
 - The inspector, on the right. A selected item shows **InfoPanel item** or **Element** under its name, then where it sits: **POSITION AND SIZE (PX)** with **Placed freely** for an item at its imported pixels, or **PLACE ON GRID** with **On grid** once it sits on the cells. **Snap to grid** puts it on the nearest cells and keeps it there; typing a new X or Y, or dragging it off the cells, places it freely again. Its fields follow on the **Item**, **Sensor** and **Theme** tabs. With nothing selected it shows the page's settings (see Profile settings).
 
@@ -82,7 +82,7 @@ A template's colors come from the profile's colors (see Profile colors, below), 
 
 Click a kind in **Add** to put it in the middle of the canvas, or drag it onto the canvas to put it where you drop it. A dropped item snaps like a moved one.
 
-New items are made to suit the profile. Text, Value, Clock, Calendar and Table take the profile's font, size and color. Bar, Graph and Donut sit on the profile colors' Track with an Accent 1 fill and no frame. A Gauge is a ring in Accent 1. A Shape is a rounded card in the palette's Card color. These are all InfoPanel's own settings, so the exported file looks the same in InfoPanel.
+New items are made to suit the profile. Text, Value, Clock, Calendar and Table take the profile's font, size and color. Bar, Graph and Donut sit on the profile colors' Track with an Accent 1 fill and no frame. A Gauge is a ring in Accent 1. A Shape is a rounded card in the palette's Card color. These are all InfoPanel's own settings.
 
 The item goes where InfoPanel puts it: into the selected group, or the group of the selected item, unless that group is locked; otherwise on top of everything. It's then selected.
 
