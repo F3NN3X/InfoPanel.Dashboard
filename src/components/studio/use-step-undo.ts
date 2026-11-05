@@ -33,7 +33,12 @@ export function useStepUndo({ history, steps, design, toast, jump }: StepUndoArg
     show("Redid", step, undo);
   };
   const show = (verb: "Undid" | "Redid", step: ReturnType<typeof steps.peek>["undo"], back: () => void) => {
-    toast(steps.kit ? steps.kit.stepSentence(verb, step) : `${verb} the last change`, { action: { label: verb === "Undid" ? "Redo" : "Undo", onClick: back }, ms: 6000 });
+    // The button goes with its step: once history has moved on it does nothing, as the Add toast's Undo.
+    const revision = history.currentRevision();
+    const onClick = () => {
+      if (history.currentRevision() === revision) back();
+    };
+    toast(steps.kit ? steps.kit.stepSentence(verb, step) : `${verb} the last change`, { action: { label: verb === "Undid" ? "Redo" : "Undo", onClick }, ms: 6000 });
     const at = step?.target;
     if (!at) return;
     const page = history.latest.current.profiles.find((p) => p.id === at.profileId)?.pages.find((p) => p.id === at.pageId);

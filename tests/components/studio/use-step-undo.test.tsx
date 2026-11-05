@@ -35,4 +35,14 @@ describe("Undo and Redo with a toast", () => {
     expect(toast).toHaveBeenCalledTimes(1);
     expect(nOf(hook.result.current.config)).toBe(0);
   });
+  it("the toast's button does nothing once history has moved on", () => {
+    const { hook, toast } = harness();
+    act(() => hook.result.current.history.set(bump));
+    act(() => hook.result.current.step.undo());
+    const onClick = (toast.mock.calls[0] as unknown as [string, { action: { onClick: () => void } }])[1].action.onClick;
+    act(() => hook.result.current.history.set(bump));
+    act(() => onClick());
+    expect(nOf(hook.result.current.config)).toBe(1);
+    expect(toast).toHaveBeenCalledTimes(1);
+  });
 });
