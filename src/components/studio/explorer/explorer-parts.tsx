@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { Ban, Copy, Hash, Link2, List, ToggleRight, Type, type LucideIcon } from "lucide-react";
+import { Ban, Copy, Hash, Image, Link2, List, ToggleRight, Type, type LucideIcon } from "lucide-react";
+import { FOCUS_RING } from "@/components/ui/button";
 import type { Health, PointType } from "@/lib/data-points";
 import { cn } from "@/lib/utils";
 
@@ -12,8 +13,9 @@ const TYPE_ICON: Record<PointType, LucideIcon> = {
   empty: Ban,
 };
 
-export function TypeIcon({ type, className }: { type: PointType; className?: string }) {
-  const Icon = TYPE_ICON[type];
+/** A point's type icon; a link that points at an image takes the picture icon. */
+export function TypeIcon({ type, image, className }: { type: PointType; image?: boolean; className?: string }) {
+  const Icon = image ? Image : TYPE_ICON[type];
   return <Icon className={cn("h-[13px] w-[13px] shrink-0 text-ui-4", className)} aria-hidden />;
 }
 
@@ -54,36 +56,11 @@ export function Chip({ children, className }: { children: ReactNode; className?:
   );
 }
 
-interface ToggleChipProps {
-  active: boolean;
-  onClick: () => void;
-  children: ReactNode;
-}
+/** A group's label in the filters column and the detail pane: 12 px, medium, muted, sentence case. */
+export const GROUP_LABEL = "font-ui text-caption font-medium text-ui-3";
 
-/** A filter chip: pressed = on. */
-export function ToggleChip({ active, onClick, children }: ToggleChipProps) {
-  return (
-    <button
-      type="button"
-      aria-pressed={active}
-      onClick={onClick}
-      className={cn(
-        "inline-flex h-7 items-center gap-[5px] rounded-full border px-2.5 font-ui text-micro transition-colors",
-        active
-          ? "border-ui-accent/50 bg-ui-accent-soft text-ui-1"
-          : "border-ui-strong text-ui-soft hover:bg-ui-hover hover:text-ui-1"
-      )}
-    >
-      {children}
-    </button>
-  );
-}
-
-/** Uppercase section caption: tree categories and table column heads. */
-export const CAPTION = "font-ui text-micro font-medium uppercase tracking-[0.05em] text-ui-hint";
-
-/** The small label above an inspector field. */
-export const FIELD_LABEL = "font-ui text-micro leading-[1.25] text-ui-4";
+/** The small label above a detail field. */
+export const FIELD_LABEL = "font-ui text-caption text-ui-3";
 
 interface CopyFieldProps {
   label: string;
@@ -106,13 +83,13 @@ export function CopyField({ label, value, display, get, onCopy }: CopyFieldProps
         title="Copy"
         aria-label={`Copy ${label.toLowerCase()}`}
         onClick={() => onCopy(value)}
-        className="flex items-center gap-2 rounded-[7px] border border-ui-default bg-ui-app px-2.5 py-2 text-left text-ui-1 transition-colors hover:border-ui-edge"
+        className={cn("flex items-center gap-2 rounded-ui-md border border-ui-control bg-ui-chrome px-3 py-2 text-left text-ui-1 transition-colors duration-(--ui-dur-fast) ease-ui hover:border-ui-hover-edge", FOCUS_RING)}
       >
-        <span className="min-w-0 flex-1 break-all font-ui-mono text-micro leading-[1.3]">
-          {get && <span className="text-ui-ok">GET </span>}
+        <span className="min-w-0 flex-1 break-all font-ui-mono text-caption leading-[1.35]">
+          {get && <span className="text-ui-3">GET </span>}
           {display ?? value}
         </span>
-        <Copy className="h-[15px] w-[15px] shrink-0 text-ui-4" />
+        <Copy className="h-4 w-4 shrink-0 text-ui-hint" aria-hidden />
       </button>
     </div>
   );

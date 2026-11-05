@@ -947,6 +947,7 @@ function StudioViewBody({
         focusPointKey={focusPointKey}
         selectedZoneId={sel.primaryId}
         dataApi={statusBar.dataApi}
+        onOpenAlerts={() => ui.navigateTo({ view: "alerts", tab: "rules" })}
         onOpenZone={(id, opts) => {
           ui.setMode("design");
           focusZone(id);

@@ -1,13 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { buildDataModel, type DataPoint } from "@/lib/data-points";
-import type { UsageIndex } from "@/lib/data-usage";
 import type { ApiSources } from "@/lib/catalog";
 import type { SensorMap } from "@/modules/types";
+import type { AlertsConfig } from "@/lib/alerts";
 import {
   POINT_ROW_H,
+  alertsByKey,
+  changedText,
   displayValue,
   filterPoints,
   filterSources,
+  flattenRows,
+  isImagePoint,
   matchesType,
   rowOffsets,
   windowRange,
@@ -41,14 +45,13 @@ const sensors: SensorMap = {
   "system.empty": { text: "", unit: "" },
 };
 const model = buildDataModel(sources, sensors);
-const noUsage: UsageIndex = { byKey: new Map(), byZone: new Map() };
 const base: PointFilter = {
   scope: { kind: "all" },
   query: "",
   type: "all",
   hideEmpty: false,
   inUse: false,
-  usage: noUsage,
+  used: new Set(),
 };
 const keys = (points: DataPoint[]) => points.map((p) => p.key);
 
@@ -76,11 +79,20 @@ describe("filterPoints", () => {
   });
 
   it("keeps only points in use", () => {
-    const usage: UsageIndex = {
-      byKey: new Map([["plugins.meter.main.level", [{ zoneId: "z", label: "Meter" }]]]),
-      byZone: new Map(),
-    };
-    expect(keys(filterPoints(model.points, { ...base, inUse: true, usage }))).toEqual(["plugins.meter.main.level"]);
+    const used = new Set(["plugins.meter.main.level"]);
+    expect(keys(filterPoints(model.points, { ...base, inUse: true, used }))).toEqual(["plugins.meter.main.level"]);
+  });
+
+  it("tells a link to a picture from any other link", () => {
+    const url = (raw: string): DataPoint => ({ ...model.points[0], type: "url", raw });
+    expect(isImagePoint(url("https://cdn.example/grid/ac80.png?x=1"))).toBe(true);
+    expect(isImagePoint(url("http://localhost:52312/cover?v=80"))).toBe(true);
+    expect(isImagePoint(url("https://example.com/profile"))).toBe(false);
+    expect(isImagePoint({ ...model.points[0], type: "text", raw: "/assets/qa/cover.svg" })).toBe(true);
+    expect(isImagePoint({ ...model.points[0], type: "text", raw: "Midnight City" })).toBe(false);
+    expect(matchesType(url("https://cdn.example/a.jpg"), "image")).toBe(true);
+    expect(matchesType(url("https://cdn.example/a.jpg"), "url")).toBe(false);
+    expect(matchesType(url("https://example.com/profile"), "url")).toBe(true);
   });
 
 });
@@ -91,6 +103,38 @@ describe("filterSources", () => {
     expect(warn.every((s) => s.status === "warn")).toBe(true);
   });
 
+});
+
+describe("flattenRows", () => {
+  const firstContainer = model.points.find((p) => p.key === "plugins.meter.main.level")!.containerId;
+
+  it("heads each container with its source and count, and a folded one keeps only its header", () => {
+    const open = flattenRows(model.points, model.sources, new Set());
+    const folded = flattenRows(model.points, model.sources, new Set([firstContainer]));
+    expect(open.filter((r) => r.kind === "group")).toHaveLength(folded.filter((r) => r.kind === "group").length);
+    const header = folded.find((r) => r.kind === "group" && r.id === firstContainer);
+    expect(header).toMatchObject({ title: "Audio Meter", sub: "Main", count: 2, collapsed: true });
+    expect(folded.some((r) => r.kind === "point" && r.point.containerId === firstContainer)).toBe(false);
+    expect(open.length - folded.length).toBe(2);
+  });
+});
+
+describe("what uses a point", () => {
+  it("lists the sensor rules that watch each key, once per rule", () => {
+    const alerts = {
+      rules: [
+        { id: "r1", name: "CPU hot", source: { kind: "sensor", conditions: [{ key: "a", op: ">", value: 1 }, { key: "a", op: "<", value: 0 }] } },
+        { id: "r2", name: "Any app", source: { kind: "notification" } },
+      ],
+    } as unknown as AlertsConfig;
+    expect(alertsByKey(alerts)).toEqual(new Map([["a", [{ id: "r1", name: "CPU hot" }]]]));
+    expect(alertsByKey(undefined).size).toBe(0);
+  });
+
+  it("says when a text value last changed, only once this page has seen it change", () => {
+    expect(changedText([{ at: 0, text: "a" }], 60_000)).toBe("unchanged");
+    expect(changedText([{ at: 0, text: "a" }, { at: 30_000, text: "b" }], 90_000)).toBe("changed 1 min ago");
+  });
 });
 
 describe("virtual window", () => {

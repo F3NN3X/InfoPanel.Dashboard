@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { ChevronDown, Database, Eye, EyeOff, MoreHorizontal, Pencil, Search, type LucideIcon } from "lucide-react";
+import { FOCUS_RING } from "@/components/ui/button";
+import { FIELD_BOX } from "@/components/ui/field";
 import { ContextMenu, type ContextMenuEntry } from "@/components/ui/context-menu";
-import { CATEGORIES, type DataSource, type Health } from "@/lib/data-points";
+import type { DataSource, Health } from "@/lib/data-points";
 import type { SourcePref } from "@/lib/layout";
 import { cn } from "@/lib/utils";
 import { prefKeyOf, type Scope } from "./explorer-model";
-import { CAPTION, HEALTH_LABEL, StatusDot } from "./explorer-parts";
+import { GROUP_LABEL, HEALTH_LABEL, StatusDot } from "./explorer-parts";
 import { sourceIcon } from "./source-icons";
 
 const HEALTHS: Health[] = ["ok", "warn", "off"];
@@ -31,7 +33,7 @@ interface PrefMenu {
   key: string;
 }
 
-/** The Data view's source tree (under the Connection card): filter, health chips, "All data points" and the categorised sources. */
+/** The Sources list in the Data page's left column: All points and each source with its count and health dot, then the filter field and health chips. */
 export function SourceTree({
   sources,
   counts,
@@ -56,8 +58,7 @@ export function SourceTree({
     return {
       label: pref?.displayName?.trim() || name,
       muted: pref?.enabled === false,
-      onMenu:
-        key === null ? undefined : (rect: DOMRect) => setMenu({ x: rect.left, y: rect.bottom + 4, key }),
+      onMenu: key === null ? undefined : (rect: DOMRect) => setMenu({ x: rect.left, y: rect.bottom + 4, key }),
       rename:
         key !== null && renaming === key
           ? {
@@ -87,19 +88,60 @@ export function SourceTree({
   };
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col font-ui max-sm:min-h-[260px] max-sm:flex-none">
-      <div className="flex flex-col gap-2 px-3 pb-2 pt-3">
+    <section aria-label="Sources" className="flex flex-col gap-3 px-3 pt-4 font-ui">
+      <h2 className={cn(GROUP_LABEL, "m-0 px-2")}>Sources</h2>
+      <div className="flex flex-col gap-0.5">
+        <Row kind="all" selected={scope.kind === "all"} onClick={() => onScope({ kind: "all" })} icon={Database} label="All points" count={totalPoints} />
+        {sources.length === 0 && <div className="px-2 py-3 text-caption text-ui-3">No sources match</div>}
+        {sources.map((s) => {
+          const expandable = s.containers.length > 1;
+          const expanded = expandable && (searching || open[s.id] === true);
+          return (
+            <div key={s.id} className="flex flex-col gap-0.5">
+              <Row
+                kind="source"
+                selected={scope.kind === "source" && scope.id === s.id}
+                onClick={() => {
+                  onScope({ kind: "source", id: s.id });
+                  if (expandable) setOpen((o) => ({ ...o, [s.id]: true }));
+                }}
+                icon={sourceIcon(s)}
+                {...prefProps(prefKeyOf(s), s.name)}
+                count={s.count}
+                status={s.status}
+                chevron={expandable ? (expanded ? "open" : "closed") : "none"}
+                chevronDisabled={searching}
+                onChevron={() => setOpen((o) => ({ ...o, [s.id]: !o[s.id] }))}
+              />
+              {expanded &&
+                s.containers.map((c) => (
+                  <Row
+                    key={c.id}
+                    kind="container"
+                    selected={scope.kind === "container" && scope.id === c.id}
+                    onClick={() => onScope({ kind: "container", id: c.id, sourceId: s.id })}
+                    {...prefProps(prefKeyOf(s, c), c.title)}
+                    count={c.points.length}
+                    dimmed={c.status === "warn"}
+                  />
+                ))}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="flex flex-col gap-2 pt-1">
         <div className="relative">
-          <Search className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-ui-4" />
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ui-hint" strokeWidth={1.5} aria-hidden />
           <input
             value={query}
             onChange={(e) => onQuery(e.target.value)}
             placeholder="Filter sources"
             aria-label="Filter sources"
-            className="h-[30px] w-full rounded-[7px] border border-ui-default bg-ui-app pl-8 pr-2 text-body text-ui-1 placeholder:text-ui-4 focus:border-ui-accent/60 focus:outline-none"
+            className={cn(FIELD_BOX, "h-7 w-full pl-8 pr-2 text-caption")}
           />
         </div>
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-1.5">
           {HEALTHS.map((h) => (
             <button
               key={h}
@@ -107,8 +149,9 @@ export function SourceTree({
               aria-pressed={health === h}
               onClick={() => onHealth(health === h ? null : h)}
               className={cn(
-                "inline-flex h-6 items-center gap-[5px] whitespace-nowrap rounded-full border px-2 text-micro text-ui-2 transition-colors",
-                health === h ? "border-ui-edge bg-ui-default" : "border-ui-default hover:bg-ui-hover"
+                "inline-flex h-6 items-center gap-1.5 whitespace-nowrap rounded-ui-sm border px-2 text-caption transition-colors duration-(--ui-dur-fast) ease-ui",
+                FOCUS_RING,
+                health === h ? "border-ui-accent text-ui-1" : "border-ui-strong text-ui-3 hover:text-ui-1"
               )}
             >
               <StatusDot health={h} />
@@ -117,69 +160,13 @@ export function SourceTree({
           ))}
         </div>
       </div>
-
-      <div className="flex min-h-0 flex-1 flex-col gap-px overflow-y-auto px-2 pb-3">
-        <Row
-          kind="all"
-          selected={scope.kind === "all"}
-          onClick={() => onScope({ kind: "all" })}
-          icon={Database}
-          label="All data points"
-          count={totalPoints}
-        />
-        {sources.length === 0 && <div className="px-2 py-3 text-xs text-ui-4">No sources match.</div>}
-        {CATEGORIES.map((category) => {
-          const inCategory = sources.filter((s) => s.category === category);
-          if (inCategory.length === 0) return null;
-          return (
-            <div key={category} className="mt-2.5 flex flex-col gap-px">
-              <span className={cn(CAPTION, "px-2 pb-1")}>{category}</span>
-              {inCategory.map((s) => {
-                const expandable = s.containers.length > 1;
-                const expanded = expandable && (searching || open[s.id] === true);
-                return (
-                  <div key={s.id} className="flex flex-col gap-px">
-                    <Row
-                      kind="source"
-                      selected={scope.kind === "source" && scope.id === s.id}
-                      onClick={() => {
-                        onScope({ kind: "source", id: s.id });
-                        if (expandable) setOpen((o) => ({ ...o, [s.id]: true }));
-                      }}
-                      icon={sourceIcon(s)}
-                      {...prefProps(prefKeyOf(s), s.name)}
-                      count={s.count}
-                      status={s.status}
-                      chevron={expandable ? (expanded ? "open" : "closed") : "none"}
-                      chevronDisabled={searching}
-                      onChevron={() => setOpen((o) => ({ ...o, [s.id]: !o[s.id] }))}
-                    />
-                    {expanded &&
-                      s.containers.map((c) => (
-                        <Row
-                          key={c.id}
-                          kind="container"
-                          selected={scope.kind === "container" && scope.id === c.id}
-                          onClick={() => onScope({ kind: "container", id: c.id, sourceId: s.id })}
-                          {...prefProps(prefKeyOf(s, c), c.title)}
-                          count={c.points.length}
-                          dimmed={c.status === "warn"}
-                        />
-                      ))}
-                  </div>
-                );
-              })}
-            </div>
-          );
-        })}
-      </div>
       {menu && <ContextMenu x={menu.x} y={menu.y} entries={menuEntries(menu)} onClose={() => setMenu(null)} />}
-    </div>
+    </section>
   );
 }
 
 interface RowProps {
-  /** The "All data points" row, a source row (chevron, icon, health dot) or a container row. */
+  /** The "All points" row, a source row (chevron, icon, health dot) or a container row. */
   kind: "all" | "source" | "container";
   selected: boolean;
   onClick: () => void;
@@ -202,37 +189,7 @@ interface RowProps {
   rename?: { value: string; placeholder: string; onCommit: (value: string) => void; onCancel: () => void };
 }
 
-const ROW_BOX: Record<RowProps["kind"], string> = {
-  all: "gap-[9px] rounded-[7px] px-2 py-[7px]",
-  source: "gap-1.5 rounded-[7px] py-1.5 pl-0.5 pr-2",
-  container: "gap-2 rounded-md py-[5px] pl-[46px] pr-2",
-};
-
-function Row({
-  kind,
-  selected,
-  onClick,
-  label,
-  count,
-  icon: Icon,
-  status,
-  dimmed,
-  muted,
-  chevron = "none",
-  chevronDisabled,
-  onChevron,
-  onMenu,
-  rename,
-}: RowProps) {
-  const labelTone = selected
-    ? "text-white"
-    : kind === "container"
-      ? dimmed
-        ? "text-ui-4"
-        : "text-ui-soft"
-      : kind === "all"
-        ? "text-ui-1"
-        : "text-ui-2";
+function Row({ kind, selected, onClick, label, count, icon: Icon, status, dimmed, muted, chevron = "none", chevronDisabled, onChevron, onMenu, rename }: RowProps) {
   return (
     <div
       role="button"
@@ -247,9 +204,10 @@ function Row({
         }
       }}
       className={cn(
-        "group relative flex cursor-pointer items-center transition-colors",
-        ROW_BOX[kind],
-        selected ? "bg-ui-accent-soft" : "hover:bg-ui-hover"
+        "group relative flex h-8 cursor-pointer items-center gap-2 rounded-ui-md pr-2 transition-colors duration-(--ui-dur-fast) ease-ui",
+        FOCUS_RING,
+        kind === "container" ? "pl-9" : kind === "source" ? "pl-0.5" : "pl-2",
+        selected ? "bg-ui-raised" : "hover:bg-ui-hover"
       )}
     >
       {kind === "source" && (
@@ -265,14 +223,15 @@ function Row({
             onChevron?.();
           }}
           className={cn(
-            "grid h-[18px] w-[18px] shrink-0 place-items-center text-ui-hint hover:text-ui-1 disabled:hover:text-ui-hint",
+            "grid h-[18px] w-[18px] shrink-0 place-items-center rounded-ui-sm text-ui-hint hover:text-ui-1 disabled:hover:text-ui-hint",
+            FOCUS_RING,
             chevron === "none" ? "opacity-0" : chevronDisabled && "opacity-40"
           )}
         >
-          <ChevronDown className={cn("h-4 w-4 transition-transform", chevron !== "open" && "-rotate-90")} />
+          <ChevronDown className={cn("h-4 w-4 transition-transform", chevron !== "open" && "-rotate-90")} aria-hidden />
         </button>
       )}
-      {Icon && <Icon className={cn("shrink-0 text-ui-4", kind === "all" ? "h-[17px] w-[17px]" : "h-4 w-4")} />}
+      {Icon && <Icon className="h-4 w-4 shrink-0 text-ui-hint" strokeWidth={1.5} aria-hidden />}
       {rename ? (
         <input
           autoFocus
@@ -289,22 +248,20 @@ function Row({
               rename.onCancel();
             }
           }}
-          className="h-6 min-w-0 flex-1 rounded border border-ui-default bg-ui-app px-1.5 text-caption text-ui-1 placeholder:text-ui-4 focus:border-ui-accent/60 focus:outline-none"
+          className={cn(FIELD_BOX, "h-6 min-w-0 flex-1 px-1.5 text-caption")}
         />
       ) : (
         <span
           className={cn(
-            "min-w-0 flex-1 truncate",
-            kind === "container" ? "text-caption" : "text-body",
-            kind === "all" && "font-medium",
-            labelTone,
+            "min-w-0 flex-1 truncate text-body",
+            selected ? "text-ui-1" : kind === "container" && dimmed ? "text-ui-hint" : "text-ui-2",
             muted && "line-through opacity-60"
           )}
         >
           {label}
         </span>
       )}
-      <span className={cn("font-ui-mono text-micro tabular-nums", kind === "all" ? "text-ui-4" : "text-ui-hint")}>{count}</span>
+      <span className="font-ui-mono text-caption tabular-nums text-ui-hint">{count}</span>
       {onMenu && (
         <button
           type="button"
@@ -315,14 +272,15 @@ function Row({
             onMenu(e.currentTarget.getBoundingClientRect());
           }}
           className={cn(
-            "absolute top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded bg-ui-hover text-ui-3 opacity-0 hover:bg-ui-active hover:text-ui-1 focus-visible:opacity-100 group-hover:opacity-100",
-            status ? "right-5" : "right-2"
+            "absolute top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-ui-sm bg-ui-hover text-ui-3 opacity-0 hover:bg-ui-active hover:text-ui-1 focus-visible:opacity-100 group-hover:opacity-100",
+            FOCUS_RING,
+            status ? "right-7" : "right-2"
           )}
         >
-          <MoreHorizontal className="h-3.5 w-3.5" />
+          <MoreHorizontal className="h-3.5 w-3.5" aria-hidden />
         </button>
       )}
-      {status && <StatusDot health={status} />}
+      {status ? <StatusDot health={status} /> : kind !== "all" && <span className="w-1.5 shrink-0" aria-hidden />}
     </div>
   );
 }

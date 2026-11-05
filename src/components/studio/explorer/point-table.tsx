@@ -1,188 +1,100 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { ChevronRight, Copy, EyeOff, Link2, Search } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { Check, ChevronDown, Copy, ImageOff, Link2, Plus } from "lucide-react";
 import { PulseDot } from "@/components/pulse-dot";
-import { Segmented } from "@/components/ui/segmented";
-import type { DataPoint, DataSource } from "@/lib/data-points";
-import type { SourcePref } from "@/lib/layout";
-import type { UsageIndex } from "@/lib/data-usage";
+import { FOCUS_RING } from "@/components/ui/button";
+import { Sparkline, sparkSummary } from "@/components/ui/sensor-row";
+import type { HistoryRecorder } from "@/lib/data-history";
+import type { DataPoint } from "@/lib/data-points";
 import type { SensorMap } from "@/modules/types";
 import { cn } from "@/lib/utils";
 import {
   GROUP_ROW_H,
   POINT_ROW_H,
+  changedText,
   isBoundTo,
-  pointDisplayName,
+  isImagePoint,
   rowAt,
   rowOffsets,
+  splitNumber,
   stickyIndex,
-  usedInCell,
+  streamPath,
+  usedInChips,
   valueCell,
   windowRange,
   type BindOption,
-  type Crumb,
-  type Scope,
+  type GroupRow,
   type TableRow,
-  type TypeFilter,
 } from "./explorer-model";
-import { CAPTION, Chip, TypeIcon, ToggleChip } from "./explorer-parts";
+import type { Usage, UsageIndex } from "@/lib/data-usage";
+import { TypeIcon } from "./explorer-parts";
 import { useCopy } from "./use-copy";
 
-const TYPE_OPTIONS: { value: TypeFilter; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "number", label: "Numbers" },
-  { value: "text", label: "Text" },
-  { value: "list", label: "Lists" },
-  { value: "url", label: "Links" },
-];
-
-type GroupRow = Extract<TableRow, { kind: "group" }>;
+/** The table's columns: Sensor, Now, Unit, Last 60 s, Used in (wide windows only) and the row actions. */
+const COLS = {
+  wide: "grid-cols-[minmax(0,1.6fr)_88px_52px_136px_minmax(0,1fr)_92px]",
+  narrow: "grid-cols-[minmax(0,1.6fr)_88px_52px_136px_92px]",
+};
 
 interface PointTableProps {
-  crumbs: Crumb[];
-  onScope: (scope: Scope) => void;
-  /** A group header was clicked: scope to that container. */
-  onGroup: (row: GroupRow) => void;
-  /** Where a row's quick-bind button binds; null when nothing can be bound. */
-  target: BindOption | null;
-  onToggleBind: (point: DataPoint, bound: boolean) => void;
-  shown: number;
-  total: number;
   rows: TableRow[];
   values: SensorMap;
+  recorder: HistoryRecorder;
   usage: UsageIndex;
   selectedKey: string | null;
   onSelect: (key: string) => void;
-  query: string;
-  onQuery: (query: string) => void;
-  type: TypeFilter;
-  onType: (type: TypeFilter) => void;
-  hideEmpty: boolean;
-  onHideEmpty: (on: boolean) => void;
-  inUse: boolean;
-  onInUse: (on: boolean) => void;
-  /** The screens that use each key (the "Used in" column). */
+  /** A group header's chevron: fold or unfold that container. */
+  onToggleGroup: (id: string) => void;
+  /** The point keys of the rows now drawn (the window over the list), so only those are recorded. */
+  onVisible: (keys: string[]) => void;
+  /** Where a row's quick-bind button binds; null when nothing can be bound. */
+  target: BindOption | null;
+  onToggleBind: (point: DataPoint, bound: boolean) => void;
+  /** The screens that use each key, and the alert rules that watch it (the "Used in" column). */
   screens: Map<string, string[]>;
-  /** The sources, and their display names: a row edits its source's (SPEC §10.2). */
-  sources: readonly DataSource[];
-  sourcePrefs: Record<string, SourcePref> | undefined;
-  onDisplayName: (key: string, displayName: string | undefined) => void;
+  alerts: Map<string, { id: string; name: string }[]>;
+  apiBase: string;
   /** Show the "Used in" column (hidden on narrow windows). */
   showUsedIn: boolean;
   /** The Data API is connected: the NOW header shows a pulsing dot (none otherwise). */
   live: boolean;
 }
 
-/** The Data view's point table: breadcrumb, search, filters and the virtualised list (Sensor · Now · Display name · Used in). */
-export function PointTable({
-  crumbs,
-  onScope,
-  onGroup,
-  target,
-  onToggleBind,
-  shown,
-  total,
-  rows,
-  values,
-  usage,
-  selectedKey,
-  onSelect,
-  query,
-  onQuery,
-  type,
-  onType,
-  hideEmpty,
-  onHideEmpty,
-  inUse,
-  onInUse,
-  screens,
-  sources,
-  sourcePrefs,
-  onDisplayName,
-  showUsedIn,
-  live,
-}: PointTableProps) {
-  const cols = showUsedIn ? "grid-cols-[1.5fr_90px_1.2fr_1fr_56px]" : "grid-cols-[1.4fr_90px_1.2fr_56px]";
+/** The Data page's point table: its header and the virtualised list of grouped sensor rows. */
+export function PointTable({ rows, values, recorder, usage, selectedKey, onSelect, onToggleGroup, onVisible, target, onToggleBind, screens, alerts, apiBase, showUsedIn, live }: PointTableProps) {
+  const cols = showUsedIn ? COLS.wide : COLS.narrow;
   return (
     <div className="flex min-w-0 flex-1 flex-col bg-ui-app font-ui">
-      <div className="space-y-2.5 border-b border-ui-subtle px-4 pb-2.5 pt-3">
-        <div className="flex flex-wrap items-center gap-1 text-body leading-[1.25]">
-          {crumbs.map((c, i) => {
-            const tone = i === crumbs.length - 1 ? "font-semibold text-ui-1" : "text-ui-4";
-            return (
-              <span key={`${i}:${c.label}`} className="inline-flex items-center gap-1">
-                {i > 0 && <ChevronRight className="h-4 w-4 text-ui-hint" aria-hidden />}
-                {c.scope ? (
-                  <button
-                    type="button"
-                    onClick={() => c.scope && onScope(c.scope)}
-                    className={cn("rounded px-1 py-0.5 hover:bg-ui-hover", tone)}
-                  >
-                    {c.label}
-                  </button>
-                ) : (
-                  <span className={cn("px-1 py-0.5", tone)}>{c.label}</span>
-                )}
-              </span>
-            );
-          })}
-          <span className="ml-1.5 whitespace-nowrap font-ui-mono text-micro text-ui-4">
-            {shown} of {total}
-          </span>
-          <span className="ml-auto text-micro font-normal text-ui-4">Display names apply to every screen.</span>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="relative min-w-[180px] max-w-[380px] flex-[1_1_220px]">
-            <Search className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-ui-4" />
-            <input
-              value={query}
-              onChange={(e) => onQuery(e.target.value)}
-              placeholder="Search key, name or value"
-              aria-label="Search key, name or value"
-              className="h-[30px] w-full rounded-[7px] border border-ui-default bg-ui-app pl-8 pr-2 text-body text-ui-1 placeholder:text-ui-4 focus:border-ui-accent/60 focus:outline-none"
-            />
-          </div>
-          <Segmented label="Type" options={TYPE_OPTIONS} value={type} onChange={onType} />
-          <ToggleChip active={hideEmpty} onClick={() => onHideEmpty(!hideEmpty)}>
-            <EyeOff className="h-[15px] w-[15px]" />
-            Hide empty
-          </ToggleChip>
-          <ToggleChip active={inUse} onClick={() => onInUse(!inUse)}>
-            <Link2 className="h-[15px] w-[15px]" />
-            In use
-          </ToggleChip>
-        </div>
-      </div>
-
-      <div className={cn("grid gap-3 whitespace-nowrap border-b border-ui-subtle px-4 py-[7px]", CAPTION, cols)}>
+      <div className={cn("grid gap-3 whitespace-nowrap border-b border-ui-subtle px-4 py-2 text-caption font-medium text-ui-3", cols)}>
         <span>Sensor</span>
         <span className="flex items-center justify-end gap-1.5">
           {live && <PulseDot color="var(--ui-ok)" pulse label="Live" className="h-1.5 w-1.5 shrink-0 rounded-full" />}
           Now
         </span>
-        <span>Display name</span>
+        <span>Unit</span>
+        <span>Last 60 s</span>
         {showUsedIn && <span>Used in</span>}
         <span />
       </div>
 
       {rows.length === 0 ? (
-        <div className="p-8 text-center text-body text-ui-4">No data points match these filters.</div>
+        <div className="p-8 text-center text-body text-ui-3">No data points match these filters</div>
       ) : (
         <VirtualRows
-          key={`${crumbs.map((c) => c.label).join(">")}|${query}|${type}|${hideEmpty}|${inUse}|${shown}`}
           rows={rows}
-          onGroup={onGroup}
+          onToggleGroup={onToggleGroup}
+          onVisible={onVisible}
           renderPoint={(p) => (
             <PointRow
               point={p}
               cols={cols}
               values={values}
-              usage={usage}
+              recorder={recorder}
+              usedBy={usage.byKey.get(p.key) ?? []}
               selected={p.key === selectedKey}
               onSelect={onSelect}
-              screens={screens}
-              sources={sources}
-              sourcePrefs={sourcePrefs}
-              onDisplayName={onDisplayName}
+              screens={screens.get(p.key)}
+              alerts={alerts.get(p.key)}
+              apiBase={apiBase}
               showUsedIn={showUsedIn}
               target={target}
               onToggleBind={onToggleBind}
@@ -196,15 +108,29 @@ export function PointTable({
 
 interface VirtualRowsProps {
   rows: TableRow[];
-  onGroup: (row: GroupRow) => void;
+  onToggleGroup: (id: string) => void;
+  onVisible: (keys: string[]) => void;
   renderPoint: (point: DataPoint) => ReactNode;
 }
 
+/** Up and Down move between the drawn rows and group headers. */
+function onListKeyDown(e: KeyboardEvent<HTMLDivElement>) {
+  if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+  const here = e.target instanceof Element ? e.target.closest<HTMLElement>("[data-row]") : null;
+  if (!here || e.target !== here) return;
+  const next = e.key === "ArrowDown" ? here.parentElement?.nextElementSibling : here.parentElement?.previousElementSibling;
+  const row = next?.querySelector<HTMLElement>("[data-row]");
+  if (!row) return;
+  e.preventDefault();
+  row.focus();
+}
+
 /**
- * A fixed-row-height window over the flat list; the current group header stays pinned on top.
- * The caller keys it on the filters, so a new result list starts scrolled to the top.
+ * A fixed-row-height window over the flat list; the current group header stays pinned on top. It reports the point keys
+ * it draws, so the history records those rows and no others. The caller keys it on the filters, so a new result list
+ * starts scrolled to the top.
  */
-function VirtualRows({ rows, onGroup, renderPoint }: VirtualRowsProps) {
+function VirtualRows({ rows, onToggleGroup, onVisible, renderPoint }: VirtualRowsProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [view, setView] = useState({ top: 0, height: 600 });
   const offsets = useMemo(() => rowOffsets(rows), [rows]);
@@ -221,26 +147,32 @@ function VirtualRows({ rows, onGroup, renderPoint }: VirtualRowsProps) {
 
   const { start, end } = windowRange(offsets, view.top, view.height);
   const pinned = rows[stickyIndex(rows, rowAt(offsets, view.top))];
+  const drawn = rows.slice(start, end);
+  const keys = drawn.flatMap((r) => (r.kind === "point" ? [r.point.key] : [])).join("\n");
+
+  useEffect(() => onVisible(keys === "" ? [] : keys.split("\n")), [keys, onVisible]);
+  useEffect(() => () => onVisible([]), [onVisible]);
 
   return (
     <div
       ref={ref}
       onScroll={(e) => setView({ top: e.currentTarget.scrollTop, height: e.currentTarget.clientHeight })}
+      onKeyDown={onListKeyDown}
       className="relative min-h-0 flex-1 overflow-y-auto"
     >
       {pinned?.kind === "group" && (
         <div className="sticky top-0 z-10 h-0">
-          <GroupHeader row={pinned} onGroup={onGroup} />
+          <GroupHeader row={pinned} onToggle={onToggleGroup} pinned />
         </div>
       )}
       <div className="relative" style={{ height: offsets[offsets.length - 1] }}>
-        {rows.slice(start, end).map((row, i) => (
+        {drawn.map((row, i) => (
           <div
             key={row.kind === "group" ? `g:${row.id}` : row.point.key}
             className="absolute inset-x-0"
             style={{ top: offsets[start + i], height: row.kind === "group" ? GROUP_ROW_H : POINT_ROW_H }}
           >
-            {row.kind === "group" ? <GroupHeader row={row} onGroup={onGroup} /> : renderPoint(row.point)}
+            {row.kind === "group" ? <GroupHeader row={row} onToggle={onToggleGroup} /> : renderPoint(row.point)}
           </div>
         ))}
       </div>
@@ -248,25 +180,46 @@ function VirtualRows({ rows, onGroup, renderPoint }: VirtualRowsProps) {
   );
 }
 
-function GroupHeader({ row, onGroup }: { row: GroupRow; onGroup: (row: GroupRow) => void }) {
+/** `pinned` is the copy that sticks to the top: for the pointer only, the real header stays in the list for the keyboard and screen readers. */
+function GroupHeader({ row, onToggle, pinned }: { row: GroupRow; onToggle: (id: string) => void; pinned?: boolean }) {
   return (
     <div
+      data-row={pinned ? undefined : ""}
       role="button"
-      tabIndex={0}
-      onClick={() => onGroup(row)}
+      tabIndex={pinned ? -1 : 0}
+      aria-hidden={pinned || undefined}
+      aria-expanded={!row.collapsed}
+      aria-label={`${row.title}${row.sub ? ` ${row.sub}` : ""}, ${row.count} ${row.count === 1 ? "point" : "points"}`}
+      onClick={() => onToggle(row.id)}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          onGroup(row);
+          onToggle(row.id);
         }
       }}
       style={{ height: GROUP_ROW_H }}
-      className="flex cursor-pointer items-center gap-2 border-b border-ui-subtle bg-ui-chrome px-4"
+      className={cn("flex cursor-pointer items-center gap-2 border-b border-ui-subtle bg-ui-app px-4 focus-visible:-outline-offset-2", FOCUS_RING)}
     >
-      <span className="truncate text-caption font-semibold text-ui-1">{row.title}</span>
-      {row.sourceName !== row.title && <span className="truncate text-micro text-ui-4">{row.sourceName}</span>}
-      <span className="ml-auto font-ui-mono text-micro text-ui-hint">{row.count}</span>
+      <ChevronDown className={cn("h-4 w-4 shrink-0 text-ui-hint transition-transform", row.collapsed && "-rotate-90")} aria-hidden />
+      <span className="truncate text-body font-medium text-ui-1">{row.title}</span>
+      {row.sub && <span className="truncate text-caption text-ui-3">· {row.sub}</span>}
+      {row.pushed && <span className="rounded-ui-sm border border-ui-strong px-1.5 text-caption text-ui-3">Pushed</span>}
+      <span className="ml-auto whitespace-nowrap text-caption text-ui-3">
+        {row.count} {row.count === 1 ? "point" : "points"}
+      </span>
     </div>
+  );
+}
+
+/** A picture's thumbnail; when the link does not load, the picture icon in its place. */
+export function Thumb({ src, className }: { src: string; className?: string }) {
+  const [failed, setFailed] = useState(false);
+  return failed ? (
+    <span className={cn("grid place-items-center rounded-ui-sm bg-ui-raised text-ui-hint", className)}>
+      <ImageOff className="h-4 w-4" aria-hidden />
+    </span>
+  ) : (
+    <img src={src} alt="" loading="lazy" onError={() => setFailed(true)} className={cn("rounded-ui-sm object-cover", className)} />
   );
 }
 
@@ -274,45 +227,43 @@ interface PointRowProps {
   point: DataPoint;
   cols: string;
   values: SensorMap;
-  usage: UsageIndex;
+  recorder: HistoryRecorder;
+  usedBy: Usage[];
   selected: boolean;
   onSelect: (key: string) => void;
-  screens: Map<string, string[]>;
-  sources: readonly DataSource[];
-  sourcePrefs: Record<string, SourcePref> | undefined;
-  onDisplayName: (key: string, displayName: string | undefined) => void;
+  screens: string[] | undefined;
+  alerts: { id: string; name: string }[] | undefined;
+  apiBase: string;
   showUsedIn: boolean;
   target: BindOption | null;
   onToggleBind: (point: DataPoint, bound: boolean) => void;
 }
 
-/** A number and its unit: the digits at full strength, the unit quiet at 11 px. */
-function NumberValue({ text }: { text: string }) {
-  const m = /^(-?[\d.,]+)\s+(\S.*)$/.exec(text);
-  return m ? (
-    <>
-      {m[1]} <span className="text-micro text-ui-3">{m[2]}</span>
-    </>
-  ) : (
-    text
-  );
-}
+/** The row's actions are pointer shortcuts (tab index -1): the keyboard has them in the detail pane, and Up and Down walk the rows. */
+const ROW_ACTION = cn(
+  "flex h-6 w-6 items-center justify-center rounded-ui-sm text-ui-hint hover:bg-ui-hover hover:text-ui-1 [&_svg]:h-3.5 [&_svg]:w-3.5",
+  FOCUS_RING
+);
+/** A hover action shows on hover and when focus is inside the row. */
+const ON_HOVER = "opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100";
 
-const ROW_ACTION = "flex h-6 w-6 items-center justify-center rounded-[5px] hover:bg-ui-default";
-
-function PointRow({ point, cols, values, usage, selected, onSelect, screens, sources, sourcePrefs, onDisplayName, showUsedIn, target, onToggleBind }: PointRowProps) {
+function PointRow({ point, cols, values, recorder, usedBy, selected, onSelect, screens, alerts, apiBase, showUsedIn, target, onToggleBind }: PointRowProps) {
   const copy = useCopy();
-  const usedBy = usage.byKey.get(point.key) ?? [];
   const cell = valueCell(point, values);
-  const used = usedInCell(screens.get(point.key));
-  const display = pointDisplayName(sources, point, sourcePrefs);
+  const split = point.type === "number" ? splitNumber(cell.text) : null;
+  const image = isImagePoint(point);
   const bound = isBoundTo(usedBy, target);
   const bindTitle = target ? `${bound ? "Unbind from" : "Bind to"} ${target.label}` : "Bind";
+  const samples = point.type === "number" ? recorder.history.get(point.key) : [];
+  const used = usedInChips(screens, alerts);
+  const unit = point.type === "number" ? (split?.unit ?? values[point.key]?.unit ?? point.unit) : "";
   return (
     <div
+      data-row
       role="button"
       tabIndex={0}
       aria-current={selected}
+      aria-label={`${point.name}, ${cell.text}${unit ? ` ${unit}` : ""}`}
       onClick={() => onSelect(point.key)}
       onKeyDown={(e) => {
         if (e.target !== e.currentTarget) return;
@@ -323,64 +274,54 @@ function PointRow({ point, cols, values, usage, selected, onSelect, screens, sou
       }}
       style={{ height: POINT_ROW_H }}
       className={cn(
-        "grid cursor-pointer items-center gap-3 border-b border-ui-raised px-4 transition-colors",
+        "group relative grid cursor-pointer items-center gap-3 border-b border-ui-row px-4 transition-colors duration-(--ui-dur-fast) ease-ui focus-visible:-outline-offset-2",
+        FOCUS_RING,
         cols,
-        selected ? "bg-ui-accent/12" : "hover:bg-ui-tile"
+        selected ? "bg-ui-raised after:absolute after:inset-y-0 after:left-0 after:w-0.5 after:bg-ui-accent" : "hover:bg-ui-hover"
       )}
     >
-      <div className="flex min-w-0 items-center gap-2.5">
-        <TypeIcon type={point.type} />
-        <div className="flex min-w-0 flex-col gap-0.5">
-          <div className="flex min-w-0 items-center gap-1.5">
-            <span className="truncate text-body text-ui-1">{point.name}</span>
-            {point.kind && <Chip>{point.kind}</Chip>}
-          </div>
-          <div className="truncate font-ui-mono text-micro text-ui-hint">{point.key}</div>
+      <div className="flex min-w-0 items-center gap-3">
+        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-ui-md bg-ui-raised">
+          <TypeIcon type={point.type} image={image} className="h-4 w-4 text-ui-hint" />
+        </span>
+        <div className="flex min-w-0 flex-col">
+          <span className="truncate text-body text-ui-1">{point.name}</span>
+          <span className="truncate font-ui-mono text-caption text-ui-hint">{point.key}</span>
         </div>
       </div>
       <span
         title={cell.text}
         className={cn(
-          "truncate text-right text-caption tabular-nums",
-          cell.tone === "number" && "font-ui-mono text-ui-1",
+          "truncate text-right font-ui-mono text-body tabular-nums",
+          cell.tone === "number" && "text-ui-1",
           cell.tone === "text" && "text-ui-2",
           cell.tone === "empty" && "text-ui-disabled"
         )}
       >
-        {cell.tone === "number" ? <NumberValue text={cell.text} /> : cell.text}
+        {split ? split.num : cell.text}
       </span>
-      {display ? (
-        <input
-          key={display.value}
-          defaultValue={display.value}
-          placeholder={display.name}
-          aria-label={`Display name for ${point.name}`}
-          title="Renames this point's source on every screen"
-          onClick={(e) => e.stopPropagation()}
-          onBlur={(e) => {
-            const value = e.currentTarget.value.trim();
-            if (value !== display.value) onDisplayName(display.key, value || undefined);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") e.currentTarget.blur();
-            if (e.key === "Escape") {
-              e.stopPropagation();
-              e.currentTarget.value = display.value; // the blur that follows must not save the edit
-              e.currentTarget.blur();
-            }
-          }}
-          // The default name is quiet text; the box shows on hover and focus, and stays once the name is overridden.
-          className={cn(
-            "h-6 min-w-0 rounded border px-1.5 text-caption focus:border-ui-accent/60 focus:bg-ui-app focus:outline-none",
-            display.value ? "border-ui-default bg-ui-app text-ui-1" : "border-transparent bg-transparent text-ui-3 placeholder:text-ui-3 hover:border-ui-default"
-          )}
-        />
-      ) : (
-        <span className="truncate text-caption text-ui-hint">—</span>
-      )}
+      <span className="truncate font-ui-mono text-caption text-ui-hint">{unit}</span>
+      <div className="min-w-0 text-caption text-ui-3">
+        {point.type === "number" ? (
+          <Sparkline samples={samples} label={sparkSummary(point.name, samples, unit)} selected={selected} className="w-[120px]" />
+        ) : image ? (
+          <Thumb src={values[point.key]?.text?.trim() || point.raw} className="h-7 w-7" />
+        ) : point.type === "empty" ? null : (
+          <span className="block truncate">{changedText(recorder.changesOf(point.key), Date.now())}</span>
+        )}
+      </div>
       {showUsedIn && (
-        <span title={used.used ? (screens.get(point.key) ?? []).join(", ") : undefined} className={cn("truncate text-micro", used.used ? "text-ui-accent-text" : "text-ui-disabled")}>
-          {used.text}
+        <span title={used.title || undefined} className="flex min-w-0 items-center gap-1 overflow-hidden">
+          {used.chips.length === 0 ? (
+            <span className="text-caption text-ui-disabled">—</span>
+          ) : (
+            used.chips.map((c) => (
+              <span key={c} className="truncate rounded-ui-sm border border-ui-strong px-1.5 text-caption text-ui-2">
+                {c}
+              </span>
+            ))
+          )}
+          {used.more > 0 && <span className="shrink-0 text-caption text-ui-3">+{used.more}</span>}
         </span>
       )}
       <div className="flex justify-end gap-0.5">
@@ -388,27 +329,42 @@ function PointRow({ point, cols, values, usage, selected, onSelect, screens, sou
           type="button"
           aria-label={`Copy key of ${point.name}`}
           title="Copy key"
+          tabIndex={-1}
           onClick={(e) => {
             e.stopPropagation();
             copy(point.key);
           }}
-          className={cn(ROW_ACTION, "text-ui-4 hover:text-ui-1")}
+          className={cn(ROW_ACTION, ON_HOVER)}
         >
-          <Copy className="h-[11px] w-[11px]" />
+          <Copy aria-hidden />
+        </button>
+        <button
+          type="button"
+          aria-label={`Copy link of ${point.name}`}
+          title="Copy link"
+          tabIndex={-1}
+          onClick={(e) => {
+            e.stopPropagation();
+            copy(`${apiBase}${streamPath(point.key)}`);
+          }}
+          className={cn(ROW_ACTION, ON_HOVER)}
+        >
+          <Link2 aria-hidden />
         </button>
         <button
           type="button"
           aria-label={`${bindTitle}: ${point.name}`}
           aria-pressed={bound}
           title={bindTitle}
+          tabIndex={-1}
           disabled={!target}
           onClick={(e) => {
             e.stopPropagation();
             onToggleBind(point, bound);
           }}
-          className={cn(ROW_ACTION, "disabled:opacity-40", bound ? "text-ui-accent" : "text-ui-4")}
+          className={cn(ROW_ACTION, "disabled:opacity-40", bound && "text-ui-accent")}
         >
-          <Link2 className="h-[11px] w-[11px]" />
+          {bound ? <Check aria-hidden /> : <Plus aria-hidden />}
         </button>
       </div>
     </div>

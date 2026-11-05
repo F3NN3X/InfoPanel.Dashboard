@@ -45,7 +45,7 @@ export function GroupSummary({
   return (
     <div className="flex h-full w-full flex-col gap-4 overflow-y-auto bg-ui-panel p-4 font-ui text-ui-2">
       <div className="flex flex-col gap-[3px]">
-        <span className="text-lead font-semibold text-ui-1">{title}</span>
+        <span className="text-lead font-medium text-ui-1">{title}</span>
         <span className="text-micro text-ui-4">{sub}</span>
       </div>
 
@@ -72,7 +72,7 @@ export function GroupSummary({
 
       {prefPlugin && (
         <div className="flex flex-col gap-2">
-          <span className="text-body font-semibold text-ui-1">Show in dashboard</span>
+          <span className="text-body font-medium text-ui-1">Show in dashboard</span>
           {containers.map((c) => {
             const key = sourcePrefKey(prefPlugin, c.id.slice(prefPlugin.length + 1));
             const pref = sourcePrefs?.[key];
