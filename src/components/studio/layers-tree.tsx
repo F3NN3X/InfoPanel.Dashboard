@@ -391,7 +391,7 @@ export function LayersTree({ host }: { host: LayersHost }) {
               </span>
               {group && <span className={cn("shrink-0 font-ui-mono text-nano text-ui-hint", node.hidden && "opacity-45")}>{node.children?.length ?? 0}</span>}
               {group && node.children?.some((c) => c.free) && <span className="shrink-0 rounded-[4px] border border-ui-strong px-1 text-nano leading-[14px] text-ui-3">free</span>}
-              {node.size && <span className={cn("shrink-0 font-ui-mono text-micro text-ui-hint group-hover/row:invisible", (node.locked || node.hidden) && "invisible")}>{node.size}</span>}
+              {node.size && <span className={cn("shrink-0 font-ui-mono text-micro text-ui-hint group-hover/row:invisible", (node.locked || node.hidden || isSelected) && "invisible")}>{node.size}</span>}
               {node.free && !widget && !node.size && (
                 <span role="img" title="Placed freely (Alt)" aria-label="Placed freely (Alt)" className="inline-flex shrink-0 text-ui-4">
                   <Move className="h-3 w-3" aria-hidden="true" />
