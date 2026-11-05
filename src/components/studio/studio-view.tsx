@@ -242,11 +242,11 @@ function StudioViewBody({
   );
   const setConfig = history.set;
   // The workspace pages that have no toast row of their own say what changed, with Undo.
-  const setAlertsConfig = useUndoToast(history.set, history.undo, "Alert settings changed");
-  const setSourcesConfig = useUndoToast(history.set, history.undo, "Data settings changed");
   // The stored profile behind the page on the canvas (profile list, summary, JSON copy).
   const storedProfile = config.profiles.find((p) => p.id === profile.id) ?? config.profiles[0];
   const ui = useStudioUi(config, profile, onSave, windowWidth);
+  const setAlertsConfig = useUndoToast(history.set, history.undo, "Alert settings changed", history, ui.mode);
+  const setSourcesConfig = useUndoToast(history.set, history.undo, "Data settings changed", history, ui.mode);
   /**
    * Edit a profile: the canvas, page tabs and inspector follow it, and the zoom returns to fit.
    * What displays open on is not touched; only "When the app opens" sets that.

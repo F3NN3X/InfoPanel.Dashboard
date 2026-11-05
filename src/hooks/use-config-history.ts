@@ -50,15 +50,23 @@ export function useConfigHistory(
   const latest = useRef(config);
   const history = useRef<History<DashboardConfig>>(emptyHistory());
   const [counts, setCounts] = useState({ undo: 0, redo: 0 });
+  // Counts every step recorded, undone or redone and every reset, so a toast can tell that its step is no longer the last.
+  const revision = useRef(0);
+  const [revisionNow, setRevisionNow] = useState(0);
+  const bump = useCallback(() => {
+    revision.current += 1;
+    setRevisionNow(revision.current);
+  }, []);
 
   const apply = useCallback(
     (next: DashboardConfig, nextHistory: History<DashboardConfig>) => {
       latest.current = next;
       history.current = nextHistory;
       setCounts({ undo: nextHistory.past.length, redo: nextHistory.future.length });
+      bump();
       setConfig(next);
     },
-    [setConfig]
+    [setConfig, bump]
   );
 
   useLayoutEffect(() => {
@@ -66,7 +74,8 @@ export function useConfigHistory(
     latest.current = config;
     history.current = resetHistory(history.current, config);
     setCounts({ undo: 0, redo: 0 });
-  }, [config]);
+    bump();
+  }, [config, bump]);
 
   const set: HistorySetter = useCallback(
     (action, key) => {
@@ -122,5 +131,8 @@ export function useConfigHistory(
     if (step) apply(step.value, step.history);
   }, [apply]);
 
-  return { set, adopt, begin, commit, cancel, undo, redo, dragging, canUndo: counts.undo > 0, canRedo: counts.redo > 0 };
+  /** The revision now (read between a set and its re-render), and as state to react to. */
+  const currentRevision = useCallback(() => revision.current, []);
+
+  return { set, adopt, revision: revisionNow, currentRevision, begin, commit, cancel, undo, redo, dragging, canUndo: counts.undo > 0, canRedo: counts.redo > 0 };
 }

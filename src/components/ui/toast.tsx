@@ -15,9 +15,11 @@ export interface ToastOptions {
   error?: boolean;
 }
 
-type ShowToast = (message: string, options?: ToastOptions) => void;
+/** Shows a toast and returns its id, which `useDismissToast` takes down without touching a newer toast. */
+type ShowToast = (message: string, options?: ToastOptions) => number;
 
-const ToastContext = createContext<ShowToast>(() => {});
+const ToastContext = createContext<ShowToast>(() => -1);
+const DismissContext = createContext<(id: number) => void>(() => {});
 
 const FAILURE = /^(not\s|couldn[’']t|could not|can[’']t|failed)|couldn[’']t/i;
 
@@ -31,6 +33,11 @@ export function toastDuration(message: string, options?: ToastOptions): number |
 /** `const toast = useToast(); toast("Copied")` — a no-op outside a provider. */
 export function useToast(): ShowToast {
   return useContext(ToastContext);
+}
+
+/** `const dismiss = useDismissToast(); dismiss(id)` � takes down that toast if it is still the one up (a no-op outside a provider). */
+export function useDismissToast(): (id: number) => void {
+  return useContext(DismissContext);
 }
 
 /** Where a toast sits: top centre of Edit's canvas (`data-toast-anchor`), 14px under the page tabs (SPEC §9.6). */
@@ -107,6 +114,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const [toast, setToast] = useState<ToastState | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const nextId = useRef(0);
+  const shown = useRef<number | null>(null);
 
   const arm = useCallback((ms: number | null) => {
     clearTimeout(timer.current);
@@ -117,17 +125,27 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     (message, options) => {
       const ms = toastDuration(message, options);
       const error = options?.error ?? FAILURE.test(message);
-      setToast({ id: nextId.current++, message, action: options?.action, error, ms, at: anchored() });
+      const id = nextId.current++;
+      shown.current = id;
+      setToast({ id, message, action: options?.action, error, ms, at: anchored() });
       arm(ms);
+      return id;
     },
     [arm]
   );
+
+  const dismiss = useCallback((id: number) => {
+    if (shown.current !== id) return;
+    shown.current = null;
+    clearTimeout(timer.current);
+    setToast(null);
+  }, []);
 
   useEffect(() => () => clearTimeout(timer.current), []);
 
   return (
     <ToastContext.Provider value={show}>
-      {children}
+      <DismissContext.Provider value={dismiss}>{children}</DismissContext.Provider>
       {/* Both live regions stay mounted (a region added together with its text is often not announced). */}
       <ToastSlot live="polite" toast={toast && !toast.error ? toast : null} arm={arm} dismiss={() => setToast(null)} />
       <ToastSlot live="assertive" toast={toast?.error ? toast : null} arm={arm} dismiss={() => setToast(null)} />
