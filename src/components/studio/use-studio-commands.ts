@@ -25,6 +25,7 @@ import type { StudioMutations } from "./use-studio-mutations";
 import type { StudioSelection } from "./use-studio-selection";
 import { useStudioShortcuts, type ShortcutAction } from "./use-studio-shortcuts";
 import type { StudioUi } from "./use-studio-ui";
+import { isPhone } from "./use-studio-layout";
 import { validScope } from "./theme-editor-model";
 import { getKeepBackground } from "./theme-keep-background";
 import { commandThemeAt } from "./theme-view-model";
@@ -159,6 +160,9 @@ export function useStudioCommands({
         return !ui.showSources && ui.studioLayout.toggleInspector();
       case "live":
         return ui.setLiveOpen(true);
+      case "data-api":
+        // The sidebar's card owns the popover; a phone has no sidebar, so Data's own connection card takes the address.
+        return isPhone(ui.windowWidth) ? ui.navigateTo({ view: "data", section: "connection", control: "url" }) : ui.setDataApiOpen(true);
       case "toggle-preview":
         return togglePreviewFrozen();
       case "refresh-preview":

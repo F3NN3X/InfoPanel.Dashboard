@@ -25,6 +25,8 @@ function renderSidebar(props: Partial<ComponentProps<typeof StudioSidebar>> = {}
     config,
     onAddress: vi.fn(),
     onNavigate: vi.fn(),
+    dataApiOpen: false,
+    onDataApiOpenChange: vi.fn(),
     onHelp: vi.fn(),
     onShortcuts: vi.fn(),
     onPalette: vi.fn(),

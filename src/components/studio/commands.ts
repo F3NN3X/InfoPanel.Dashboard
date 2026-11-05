@@ -17,6 +17,7 @@ export type CommandAction =
   | { type: "drawer"; drawer: Drawer }
   | { type: "alert-new" }
   | { type: "live" }
+  | { type: "data-api" }
   | { type: "help" }
   | { type: "toggle-grid" }
   | { type: "toggle-dock" }
@@ -186,7 +187,7 @@ function generalCommands(s: CommandState): Command[] {
       { type: "navigate", target: { view: "settings", tab: "dashboard" } },
       "performance, clock, locale, cursor, page dots"
     ),
-    general("connection", "Data › Connection", { type: "navigate", target: { view: "data", section: "connection", control: "url" } }, "Data API URL"),
+    general("connection", "Data › Connection", { type: "data-api" }, "Data API URL"),
     general("follow-all", "Make all widgets follow the theme", { type: "follow-all" }, "this screen"),
     general(
       "toggle-enforce",

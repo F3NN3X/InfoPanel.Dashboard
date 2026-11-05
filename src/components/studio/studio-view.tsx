@@ -1429,6 +1429,8 @@ function StudioViewBody({
             config={config}
             onAddress={(dataApiUrl) => setConfig((c) => ({ ...c, dataApiUrl }), "data-api-url")}
             onNavigate={ui.navigateTo}
+            dataApiOpen={ui.dataApiOpen}
+            onDataApiOpenChange={ui.setDataApiOpen}
             onHelp={openHelpWindow}
             onShortcuts={() => ui.setShortcutsOpen(true)}
             onPalette={() => ui.setPaletteOpen(true)}

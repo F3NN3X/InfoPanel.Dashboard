@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState, type ReactElement, type ReactNode } from "react";
+import { lazy, Suspense, type ReactElement, type ReactNode } from "react";
 import { Menu } from "@base-ui/react/menu";
 import { Popover } from "@base-ui/react/popover";
 import { Tooltip } from "@base-ui/react/tooltip";
@@ -51,6 +51,9 @@ interface StudioSidebarProps {
   /** Write the Data API address (`config.dataApiUrl`, one undo step). */
   onAddress: (url: string) => void;
   onNavigate: (target: NavTarget) => void;
+  /** The Data API popover's open state (the palette opens it). */
+  dataApiOpen: boolean;
+  onDataApiOpenChange: (open: boolean) => void;
   onHelp: () => void;
   onShortcuts: () => void;
   onPalette: () => void;
@@ -158,8 +161,7 @@ function AttentionRows({ status, rail, onNavigate }: { status: StudioStatus; rai
 }
 
 /** The Data API card and its popover: a dot and two lines, the dot alone on the rail. */
-function DataApiCard({ rail, status, config, onAddress, onNavigate }: Pick<StudioSidebarProps, "status" | "config" | "onAddress" | "onNavigate"> & { rail: boolean }) {
-  const [open, setOpen] = useState(false);
+function DataApiCard({ rail, status, config, onAddress, onNavigate, open, setOpen }: Pick<StudioSidebarProps, "status" | "config" | "onAddress" | "onNavigate"> & { rail: boolean; open: boolean; setOpen: (open: boolean) => void }) {
   const { apiHealth, dataApi } = status;
   const line = cardLine(apiHealth.link, dataApi.latencyMs, useDownMs(apiHealth));
   return (
@@ -253,7 +255,7 @@ export default function StudioSidebar(props: StudioSidebarProps) {
           ))}
           <AttentionRows status={status} rail={rail} onNavigate={onNavigate} />
           <div className="mt-2 flex flex-col">
-            <DataApiCard rail={rail} status={status} config={props.config} onAddress={props.onAddress} onNavigate={onNavigate} />
+            <DataApiCard rail={rail} status={status} config={props.config} onAddress={props.onAddress} onNavigate={onNavigate} open={props.dataApiOpen} setOpen={props.onDataApiOpenChange} />
           </div>
         </div>
       </aside>

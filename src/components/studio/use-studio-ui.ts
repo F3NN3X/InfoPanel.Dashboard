@@ -88,6 +88,8 @@ export function useStudioUi(
   const [editRequest, setEditRequest] = useState<{ id: string; seq: number }>();
   /** The Live popover (the sidebar's row, a phone's top bar, the status bar's Kiosks item). */
   const [liveOpen, setLiveOpen] = useState(false);
+  /** The sidebar's Data API popover (the palette's Data › Connection opens it). */
+  const [dataApiOpen, setDataApiOpen] = useState(false);
   const [showGrid, setShowGrid] = useStoredFlag(GRID_KEY, true);
   const [showRulers, setShowRulers] = useStoredFlag(RULERS_KEY, false);
   /** A request to scroll the zone inspector to a card (`seq` makes repeats count); `quiet` lights the row instead of focusing it (an undo's). */
@@ -276,6 +278,9 @@ export function useStudioUi(
     editRequest,
     liveOpen,
     setLiveOpen,
+    dataApiOpen,
+    setDataApiOpen,
+    windowWidth,
     onRail,
     openDrawer,
     toggleLeft,
