@@ -81,6 +81,9 @@ pub struct AlertsState {
     pub seq: u64,
     /// Bumped whenever the history changes, so the writer knows what is unsaved.
     pub history_rev: u64,
+    /// The running server (`Alerts::start`): a test replaces what its rule shows, an alert follows its rule's display, and a
+    /// history row carries the value, the style and the screens. Off in the frozen parity runs, which pin the Node server's shape.
+    pub live: bool,
 }
 
 impl AlertsState {
@@ -158,6 +161,10 @@ fn display_of(rule: &Value, alerts: Option<&Value>) -> Value {
     if let Some(seconds) = seconds {
         display["seconds"] = seconds.clone();
     }
+    // Auto picks by severity; the screen's island decides on the kiosk (from-alerts.ts). Info is the quiet one.
+    if display["style"] == "auto" && get(rule, "severity").and_then(Value::as_str) == Some("info") {
+        display["size"] = json!("s");
+    }
     display
 }
 
@@ -184,10 +191,15 @@ fn string_of(v: Option<&Value>) -> String {
     }
 }
 
-fn highlight_of(rule: &Value, hits: &[Hit]) -> Option<Value> {
-    let highlight = get_in(get(rule, "outputs"), "highlight").filter(|h| is_object(h))?;
+fn highlight_of(rule: &Value, hits: &[Hit], display: &Value) -> Option<Value> {
+    let highlight = get_in(get(rule, "outputs"), "highlight").filter(|h| is_object(h));
+    // Auto rings the widgets of a critical alert without being asked.
+    let auto = display["style"] == "auto" && get(rule, "severity").and_then(Value::as_str) == Some("critical");
+    if highlight.is_none() && !auto {
+        return None;
+    }
     let mut out = Map::new();
-    if let Some(zones) = get(highlight, "zones").filter(|z| z.as_array().is_some_and(|a| !a.is_empty())) {
+    if let Some(zones) = highlight.and_then(|h| get(h, "zones")).filter(|z| z.as_array().is_some_and(|a| !a.is_empty())) {
         out.insert("zones".into(), zones.clone());
     }
     if let (true, Some(hit)) = (is_sensor_rule(rule), hits.first()) {
@@ -223,6 +235,19 @@ fn start(s: &mut AlertsState, events: &mut Vec<Event>, p: Start) -> String {
 
     s.seq += 1;
     let id = format!("{}-{}", base36(now as u64), s.seq);
+    if s.live {
+        // A test takes the place of whatever its rule shows; a real alert takes the place of a test.
+        let rule_id = rule["id"].as_str().unwrap_or_default();
+        let replaced: Vec<String> = s.active.iter().filter(|e| e.rule_id() == rule_id && (test || e.is_test())).map(|e| e.id().to_string()).collect();
+        for old in &replaced {
+            end(s, events, old, now, false, "replaced");
+        }
+        s.touch_history(|history| {
+            for h in history.iter_mut().filter(|h| h["id"].as_str().is_some_and(|i| replaced.iter().any(|old| old == i))) {
+                h["replacedBy"] = json!(id);
+            }
+        });
+    }
     let severity =
         ["info", "warning", "critical"].into_iter().find(|s| get(rule, "severity").and_then(Value::as_str) == Some(s)).unwrap_or("warning");
     let text = match template_of(rule, hits) {
@@ -252,7 +277,7 @@ fn start(s: &mut AlertsState, events: &mut Vec<Event>, p: Start) -> String {
     if let Some(page) = get_in(get(rule, "outputs"), "page").filter(|p| is_object(p) && get(p, "page").is_some_and(Value::is_string)) {
         alert.insert("page".into(), page.clone());
     }
-    if let Some(highlight) = highlight_of(rule, hits) {
+    if let Some(highlight) = highlight_of(rule, hits, &display) {
         alert.insert("highlight".into(), highlight);
     }
     if let Some(profiles) = get(rule, "profiles").filter(|p| p.as_array().is_some_and(|a| !a.is_empty())) {
@@ -282,6 +307,14 @@ fn start(s: &mut AlertsState, events: &mut Vec<Event>, p: Start) -> String {
     for (flag, on) in [("test", test), ("quiet", quiet)] {
         if on {
             entry.insert(flag.into(), json!(true));
+        }
+    }
+    if s.live {
+        entry.insert("shownAs".into(), display["style"].clone());
+        for key in ["value", "unit", "profiles"] {
+            if let Some(v) = alert.get(key) {
+                entry.insert(key.into(), v.clone());
+            }
         }
     }
     s.touch_history(|h| {
@@ -321,7 +354,10 @@ fn end(s: &mut AlertsState, events: &mut Vec<Event>, id: &str, now: f64, dismiss
     if !entry.is_test() {
         let owns = s.rules.get(entry.rule_id()).and_then(|rs| rs.active.as_deref()) == Some(id);
         s.patch(entry.rule_id(), |rs| {
-            rs.cleared_at = Some(now);
+            // A replaced alert did not clear: the wait before firing again has not started.
+            if reason != "replaced" {
+                rs.cleared_at = Some(now);
+            }
             if owns {
                 rs.active = None;
                 rs.dismissed |= dismissed;
@@ -504,7 +540,9 @@ fn sensor_pass(s: &mut AlertsState, events: &mut Vec<Event>, alerts: Option<&Val
 
     let active_id = rs.active.as_deref().filter(|a| s.active.iter().any(|e| e.id() == *a)).map(str::to_string);
     if let Some(active) = active_id {
-        if has_level && !any_on {
+        // A test holding the rule's place runs out on its own: its rule may not be firing at all.
+        let testing = s.active.iter().any(|e| e.id() == active && e.is_test());
+        if has_level && !any_on && !testing {
             end(s, events, &active, env.now, false, "cleared");
         }
     } else if !holding {
@@ -539,7 +577,7 @@ fn test_notification() -> Value {
 
 /// Apply a client action: `{ id, action: "ack" | "dismiss" }` or `{ ruleId, action: "test" }`. Acknowledge hides the
 /// alert on kiosks until it clears (a one-shot that stays until acknowledged ends); dismiss removes it now; test fires a
-/// one-shot of the rule's output. The events, or the error text.
+/// one-shot of the rule's output, and on the live server it holds the rule's place while it shows. The events, or the error text.
 pub fn act(s: &mut AlertsState, action: &Value, alerts: Option<&Value>, readings: &Readings, env: Env) -> Result<Vec<Event>, &'static str> {
     let mut events = vec![];
     let kind = get(action, "action").and_then(Value::as_str);
@@ -549,7 +587,10 @@ pub fn act(s: &mut AlertsState, action: &Value, alerts: Option<&Value>, readings
         let sensor = is_sensor_rule(rule);
         let hits = if sensor { test_hits(rule, readings) } else { vec![] };
         let notification = (!sensor).then(test_notification);
-        start(s, &mut events, Start { rule, alerts, env, hits: &hits, notification: notification.as_ref(), one_shot: true, test: true });
+        let started = start(s, &mut events, Start { rule, alerts, env, hits: &hits, notification: notification.as_ref(), one_shot: true, test: true });
+        if s.live {
+            s.patch(rule["id"].as_str().unwrap_or_default(), |r| r.active = Some(started));
+        }
         return Ok(events);
     }
     if kind != Some("ack") && kind != Some("dismiss") {
@@ -580,6 +621,31 @@ pub fn act(s: &mut AlertsState, action: &Value, alerts: Option<&Value>, readings
     Ok(events)
 }
 
+/// The rules were saved: an alert already showing takes its rule's display now (B1), keeping its expiry. A rule that was
+/// switched from a toast to the island moves there instead of showing beside the next alert.
+pub fn reroute(s: &mut AlertsState, alerts: Option<&Value>) {
+    let rules = rules_of(alerts);
+    let mut moved: Vec<(String, Value)> = vec![];
+    for e in &mut s.active {
+        let Some(rule) = rules.iter().rev().find(|r| r["id"].as_str() == Some(e.rule_id())) else { continue };
+        let display = display_of(rule, alerts);
+        if e.alert["display"] != display {
+            moved.push((e.id().to_string(), display["style"].clone()));
+            e.alert["display"] = display;
+        }
+    }
+    if moved.is_empty() {
+        return;
+    }
+    s.touch_history(|history| {
+        for (id, style) in &moved {
+            for h in history.iter_mut().filter(|h| h["id"].as_str() == Some(id.as_str())) {
+                h["shownAs"] = style.clone();
+            }
+        }
+    });
+}
+
 /// Mark every active alert (tests excepted) quiet, in the history too.
 pub fn quieten(s: &mut AlertsState) {
     let ids: Vec<String> = s.active.iter().filter(|e| !e.is_test() && e.alert.get("quiet").is_none()).map(|e| e.id().to_string()).collect();
@@ -608,5 +674,127 @@ impl AlertsState {
         };
         let active: Vec<Value> = self.active.iter().map(entry).collect();
         json!({ "active": active, "history": self.history })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const AT: f64 = 1_000_000.0;
+
+    fn env(now: f64) -> Env {
+        Env { now, muted: false, zone: LocalZone::System }
+    }
+
+    fn sensor_rule(style: &str, severity: &str, seconds: u32) -> Value {
+        json!({
+            "id": "r", "name": "GPU temp", "enabled": true, "severity": severity, "cooldownSeconds": 60,
+            "source": { "kind": "sensor", "conditions": [{ "key": "gpu.temp", "op": ">", "value": 80 }], "forSeconds": 0 },
+            "outputs": { "display": { "style": style, "seconds": seconds } },
+        })
+    }
+
+    fn rules(rule: Value) -> Value {
+        json!({ "enabled": true, "rules": [rule] })
+    }
+
+    fn reading(value: i32) -> Readings {
+        json!({ "gpu.temp": { "value": value, "unit": "°C" } }).as_object().unwrap().clone()
+    }
+
+    fn live() -> AlertsState {
+        AlertsState { live: true, ..AlertsState::default() }
+    }
+
+    fn test_action() -> Value {
+        json!({ "action": "test", "ruleId": "r" })
+    }
+
+    #[test]
+    fn a_test_replaces_the_rules_live_alert_and_the_rule_refires_when_the_test_ends() {
+        let alerts = rules(sensor_rule("toast", "critical", 8));
+        let hot = reading(90);
+        let mut s = live();
+        evaluate(&mut s, Some(&alerts), &hot, env(AT));
+        let real = s.active[0].id().to_string();
+
+        let events = act(&mut s, &test_action(), Some(&alerts), &hot, env(AT + 1000.0)).unwrap();
+        assert_eq!(s.active.len(), 1);
+        assert!(s.active[0].is_test());
+        assert!(matches!(&events[0], Event::Clear { reason: "replaced", .. }));
+        let row = s.history.iter().find(|h| h["id"] == real.as_str()).unwrap();
+        assert_eq!((&row["replacedBy"], &row["shownAs"]), (&s.active[0].alert["id"], &json!("toast")));
+        assert_eq!(row["value"].as_f64(), Some(90.0));
+
+        // While the test shows the condition still holds: nothing fires beside it.
+        assert!(evaluate(&mut s, Some(&alerts), &hot, env(AT + 2000.0)).is_empty());
+        // It runs out and the alert is back, with no cooldown charged for the replacement.
+        evaluate(&mut s, Some(&alerts), &hot, env(AT + 9000.0));
+        assert_eq!(s.active.len(), 1);
+        assert!(!s.active[0].is_test());
+    }
+
+    #[test]
+    fn a_test_of_a_rule_that_is_not_firing_stays_for_its_seconds() {
+        let alerts = rules(sensor_rule("toast", "warning", 8));
+        let cold = reading(40);
+        let mut s = live();
+        evaluate(&mut s, Some(&alerts), &cold, env(AT));
+        act(&mut s, &test_action(), Some(&alerts), &cold, env(AT)).unwrap();
+        evaluate(&mut s, Some(&alerts), &cold, env(AT + 1000.0));
+        assert_eq!(s.active.len(), 1);
+        evaluate(&mut s, Some(&alerts), &cold, env(AT + 8000.0));
+        assert!(s.active.is_empty());
+    }
+
+    #[test]
+    fn a_second_test_replaces_the_first_and_a_real_notification_replaces_a_test() {
+        let rule = json!({ "id": "r", "enabled": true, "severity": "info", "cooldownSeconds": 0, "source": { "kind": "notification" }, "outputs": {} });
+        let alerts = rules(rule);
+        let mut s = live();
+        let none = Readings::new();
+        act(&mut s, &test_action(), Some(&alerts), &none, env(AT)).unwrap();
+        act(&mut s, &test_action(), Some(&alerts), &none, env(AT + 1000.0)).unwrap();
+        assert_eq!(s.active.len(), 1);
+        let note = |id: u32| {
+            let mut readings = Readings::new();
+            readings.insert(NOTIFICATION_KEY.into(), json!({ "text": json!({ "id": id, "app": "Mail", "title": "t" }).to_string() }));
+            readings
+        };
+        evaluate(&mut s, Some(&alerts), &note(1), env(AT + 2000.0));
+        evaluate(&mut s, Some(&alerts), &note(2), env(AT + 3000.0));
+        assert_eq!(s.active.len(), 1);
+        assert!(!s.active[0].is_test());
+        assert_eq!(s.history.iter().filter(|h| h["replacedBy"].is_string()).count(), 2);
+    }
+
+    #[test]
+    fn a_saved_display_moves_an_alert_already_showing_and_keeps_its_expiry() {
+        let hot = reading(90);
+        let mut s = live();
+        evaluate(&mut s, Some(&rules(sensor_rule("toast", "critical", 8))), &hot, env(AT));
+        let island = rules(sensor_rule("island", "critical", 8));
+        reroute(&mut s, Some(&island));
+        assert_eq!(s.active[0].alert["display"]["style"], "island");
+        assert_eq!(s.history[0]["shownAs"], "island");
+        let rev = s.history_rev;
+        reroute(&mut s, Some(&island));
+        assert_eq!(s.history_rev, rev);
+    }
+
+    #[test]
+    fn auto_is_small_for_info_and_rings_the_widgets_for_critical() {
+        let hot = reading(90);
+        let alert = |severity: &str| {
+            let mut s = AlertsState::default();
+            evaluate(&mut s, Some(&rules(sensor_rule("auto", severity, 8))), &hot, env(AT));
+            s.active[0].alert.clone()
+        };
+        let (info, warning, critical) = (alert("info"), alert("warning"), alert("critical"));
+        assert_eq!((&info["display"]["style"], &info["display"]["size"]), (&json!("auto"), &json!("s")));
+        assert_eq!(warning["display"]["size"], "m");
+        assert!(warning.get("highlight").is_none());
+        assert_eq!(critical["highlight"], json!({ "key": "gpu.temp" }));
     }
 }

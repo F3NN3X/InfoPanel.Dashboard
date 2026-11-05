@@ -345,6 +345,37 @@ async fn a_test_alert_fires_without_a_reading_and_dismiss_removes_it() {
     server.stop().await;
 }
 
+/// Gate 5's acceptance on the server side: a rule fires as a toast, is switched to the island and tested. The active list
+/// holds one alert, in the island style, marked test, and the history keeps the real one as replaced.
+#[tokio::test]
+async fn a_rule_switched_to_the_island_and_tested_leaves_one_alert_and_a_replaced_row() {
+    let api = FakeApi::start(0).await;
+    let rule = |style: &str| json!({
+        "id": "r1", "name": "GPU temp", "enabled": true, "severity": "critical", "cooldownSeconds": 0,
+        "source": { "kind": "sensor", "key": "gpu.temp", "op": ">", "value": 80, "forSeconds": 0 },
+        "outputs": { "display": { "style": style } },
+    });
+    let server = start(Some(&saved_config(&api.url, json!([rule("toast")])))).await;
+    let p = server.port;
+    until("the stream", || async { api.open.load(Ordering::SeqCst) == 1 }).await;
+    api.send(&json!({ "sensors": { "gpu.temp": { "value": 90, "unit": "°C" } }, "removed": [] }));
+    until("the alert", || async { control_state(p).await["alerts"].as_array().unwrap().len() == 1 }).await;
+    let real = control_state(p).await["alerts"][0]["id"].clone();
+    assert_eq!(control_state(p).await["alerts"][0]["display"]["style"], "toast");
+
+    let saved = saved_config(&api.url, json!([rule("island")]));
+    assert_eq!(send(p, "POST", "/api/config", &CONFIG, &saved.to_string()).await.status, 200);
+    until("the re-route", || async { control_state(p).await["alerts"][0]["display"]["style"] == "island" }).await;
+
+    let alerts = post_alert(p, r#"{"action":"test","ruleId":"r1"}"#).await.json()["alerts"].clone();
+    assert_eq!(alerts.as_array().unwrap().len(), 1);
+    assert_eq!((&alerts[0]["test"], &alerts[0]["display"]["style"]), (&json!(true), &json!("island")));
+    let history = send(p, "GET", "/api/alerts/history", &[], "").await.json();
+    assert_eq!((&history[1]["id"], &history[1]["replacedBy"], &history[1]["shownAs"]), (&real, &alerts[0]["id"], &json!("island")));
+    assert_eq!((&history[0]["test"], &history[1]["value"], &history[1]["unit"]), (&json!(true), &json!(90), &json!("°C")));
+    server.stop().await;
+}
+
 #[tokio::test]
 async fn saving_the_config_changes_the_streams_and_closes_the_old_ones() {
     let api = FakeApi::start(0).await;
