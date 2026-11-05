@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { HISTORY_SIZE, barHeights, SampleHistory, recordSnapshot, recordThrottled } from "@/lib/sample-history";
+import { HISTORY_SIZE, SampleHistory, recordSnapshot, recordThrottled } from "@/lib/sample-history";
 
 describe("SampleHistory", () => {
   it("keeps samples oldest first and reports min / avg / max", () => {
@@ -16,14 +16,23 @@ describe("SampleHistory", () => {
     expect(h.stats("a")).toEqual({ min: 3, avg: 4, max: 5 });
   });
 
-  it("holds 24 samples by default, per key", () => {
+  it("holds the last minute (60 samples) by default, per key", () => {
     const h = new SampleHistory();
-    for (let i = 0; i < 40; i++) h.push("a", i);
+    for (let i = 0; i < 80; i++) h.push("a", i);
     h.push("b", 9);
-    expect(HISTORY_SIZE).toBe(24);
-    expect(h.get("a")).toHaveLength(24);
-    expect(h.get("a")[0]).toBe(16);
+    expect(HISTORY_SIZE).toBe(60);
+    expect(h.get("a")).toHaveLength(60);
+    expect(h.get("a")[0]).toBe(20);
     expect(h.get("b")).toEqual([9]);
+  });
+
+  it("forgets one key and keeps the others", () => {
+    const h = new SampleHistory();
+    h.push("a", 1);
+    h.push("b", 2);
+    h.forget("a");
+    expect(h.get("a")).toEqual([]);
+    expect(h.get("b")).toEqual([2]);
   });
 
   it("has no stats before a sample, and forgets on clear", () => {
@@ -68,16 +77,5 @@ describe("recordThrottled", () => {
     h.clear();
     expect(h.get("cpu")).toEqual([]);
     expect(recordThrottled(h, snap, 1100)).toBe(true);
-  });
-});
-
-describe("barHeights", () => {
-  it("scales samples between 20% and 100%", () => {
-    expect(barHeights([10, 20, 30])).toEqual([20, 60, 100]);
-  });
-
-  it("draws a flat series at 20% and nothing for no samples", () => {
-    expect(barHeights([5, 5])).toEqual([20, 20]);
-    expect(barHeights([])).toEqual([]);
   });
 });

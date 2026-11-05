@@ -18,7 +18,7 @@ The editor window: a rail of views on the left, the work area in the middle, and
 | **Library** | Your Styles, Panels, gauges, media, fonts and canvases. See [Library](library). |
 | **Gauges** | Browse, edit and build gauges. See [Gauges](gauges). |
 | **Alerts & Island** | Alert rules, defaults and history, and the Dynamic Island. See [Dynamic Island and alerts](island-alerts). |
-| **Data** | Every data point the Data API publishes, the connection and display names. See [Sensors and the Data API](sensors). |
+| **Data sources** | Every data point the Data API publishes, with a chart of the last minute, what uses it, and display names. See [Sensors and the Data API](sensors). |
 | **Help** | Opens this help at the article for where you are (`F1` does the same). |
 | **Settings** | Opens the Settings window (`Ctrl+,`, or Settings in the tray): **App** (General, Server, Coding agents and Updates, in the desktop app), **Dashboard** (every screen and kiosk, including the startup screen, saved the moment you change it), **Studio** (editor preferences, saved with the Studio on this device), then Diagnostics, Logs, About and Changelog. In a browser it opens as a tab with Dashboard and Studio. See [Startup and tray](startup). |
 

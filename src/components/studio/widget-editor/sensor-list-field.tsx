@@ -1,8 +1,7 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Plus, SlidersHorizontal, X } from "lucide-react";
 import { useSensors } from "@/hooks/useSensors";
-import { useSensorCatalog } from "@/lib/catalog";
-import { buildDataModel } from "@/lib/data-points";
+import { useDataModel } from "@/lib/use-data-model";
 import { cn } from "@/lib/utils";
 import { itemsOf, joinKeys, splitKeys, toggleKey } from "@/widgets/registry/settings-kit";
 import { DataPicker } from "../inspector/data-picker";
@@ -32,8 +31,7 @@ export function SensorListField({
 }) {
   const [open, setOpen] = useState(false);
   const [tuning, setTuning] = useState<string | null>(null);
-  const catalog = useSensorCatalog();
-  const model = useMemo(() => buildDataModel(catalog.sources, catalog.sensors), [catalog.sources, catalog.sensors]);
+  const model = useDataModel();
   const keys = splitKeys(value);
   const live = useSensors(keys);
   const overrides = items ? itemsOf(items.value) : {};

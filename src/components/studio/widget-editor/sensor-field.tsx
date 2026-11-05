@@ -1,8 +1,8 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Pencil, X } from "lucide-react";
 import { useSensors } from "@/hooks/useSensors";
 import { refreshCatalog, useSensorCatalog } from "@/lib/catalog";
-import { buildDataModel } from "@/lib/data-points";
+import { useDataModel } from "@/lib/use-data-model";
 import { sensorAt } from "@/lib/sensors";
 import { DataPicker } from "../inspector/data-picker";
 import { liveText } from "../inspector/bound-data-model";
@@ -31,7 +31,7 @@ interface SensorFieldProps {
 export function SensorField({ label, hint, lead, value, onChange, onOpenExplorer }: SensorFieldProps) {
   const [open, setOpen] = useState(false);
   const catalog = useSensorCatalog();
-  const model = useMemo(() => buildDataModel(catalog.sources, catalog.sensors), [catalog.sources, catalog.sensors]);
+  const model = useDataModel();
   const live = useSensors(value ? [value] : []);
   const point = value ? model.byKey.get(value) : undefined;
   const missing = value !== undefined && catalog.status === "ready" && sensorAt(catalog.sensors, value) === undefined;

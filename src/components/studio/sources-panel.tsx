@@ -3,15 +3,11 @@ import { useToast } from "@/components/ui/toast";
 import type { HistorySetter } from "@/hooks/use-config-history";
 import { useSensorCatalog } from "@/lib/catalog";
 import { getApiBase, subscribeApiBase } from "@/lib/data-api";
-import {
-  buildDataModel,
-  healthCounts,
-  type DataPoint,
-  type Health,
-} from "@/lib/data-points";
+import { healthCounts, type DataPoint, type Health } from "@/lib/data-points";
 import { useLiveData } from "@/lib/data-live";
 import { bindPoint, computeUsage, screensUsing, unbindPoint, type Usage } from "@/lib/data-usage";
 import { PANEL_ID, uid, type DashboardConfig, type ProfileView, type SourcePref } from "@/lib/layout";
+import { useDataModel } from "@/lib/use-data-model";
 import type { StatusBarData } from "./status-bar";
 import { modules } from "@/modules";
 import { cn } from "@/lib/utils";
@@ -20,36 +16,39 @@ import { ExplorerHeader } from "./explorer/explorer-header";
 import { ConnectionCard } from "./connection-card";
 import {
   ALL_SCOPE,
+  alertsByKey,
   bindOptions,
-  containerScope,
-  crumbs,
   filterPoints,
   filterSources,
   flattenRows,
+  pointDisplayName,
   resolveBindTarget,
   scopeContainers,
   scopeNote,
   scopeStats,
   streamPrefix,
   summaryHeading,
+  usedKeys,
   type BindOption,
   type BindZone,
   type Scope,
-  type TableRow,
   type TypeFilter,
 } from "./explorer/explorer-model";
 import { GroupSummary } from "./explorer/group-summary";
 import { PointInspector } from "./explorer/point-inspector";
 import { PointTable } from "./explorer/point-table";
 import { SourceTree } from "./explorer/source-tree";
+import { TypeFilters } from "./explorer/type-filters";
 import { useViewportWidth } from "./explorer/use-viewport-width";
 import { showsLive } from "./sidebar/data-api-model";
 import { placementTitle } from "./studio-modules";
 
 /** Below this window width the point inspector becomes an overlay drawer. */
-const DRAWER_BELOW = 1240;
+const DRAWER_BELOW = 1400;
 /** Below this window width the table drops its "Used in" column. */
-const HIDE_USED_IN_BELOW = 1000;
+const HIDE_USED_IN_BELOW = 1560;
+/** Below this window width there is no sidebar, so the Connection card (the Data API's address) stays on this page. */
+const PHONE_BELOW = 600;
 
 interface SourcesPanelProps {
   config: DashboardConfig;
@@ -61,21 +60,22 @@ interface SourcesPanelProps {
   selectedZoneId: string | null;
   /** Leave Sources mode and select a zone (and one of its panel widgets, on the Data tab) on the canvas. */
   onOpenZone: (zoneId: string, opts?: { widgetId?: string; dataTab?: boolean }) => void;
+  /** Open Alerts (a link: nothing is written from here). */
+  onOpenAlerts: () => void;
   /** Select this data point (the inspector's Bound data rows open it); selects again whenever it changes. */
   focusPointKey?: string;
-  /** The Data API's live state, for the Connection card's pill. */
+  /** The Data API's live state, for the Connection card's pill on a phone. */
   dataApi: StatusBarData["dataApi"];
 }
 
-/** The Data view: the Connection card over the source tree, the point table and the point inspector. Toasts come from the studio's provider. */
-export function SourcesPanel({ config, setConfig, profile, selectedZoneId, onOpenZone, focusPointKey, dataApi }: SourcesPanelProps) {
+/** The Data sources page: the header, the sources and filters, the point table and the point detail. Toasts come from the studio's provider. */
+export function SourcesPanel({ config, setConfig, profile, selectedZoneId, onOpenZone, onOpenAlerts, focusPointKey, dataApi }: SourcesPanelProps) {
   const toast = useToast();
   const catalog = useSensorCatalog();
-  const { values, history, tick } = useLiveData(true);
   const apiBase = useSyncExternalStore(subscribeApiBase, getApiBase);
   const width = useViewportWidth();
 
-  const model = useMemo(() => buildDataModel(catalog.sources, catalog.sensors), [catalog.sources, catalog.sensors]);
+  const model = useDataModel();
   const usage = useMemo(
     () => computeUsage(profile, model.points.map((p) => p.key), modules),
     [profile, model.points]
@@ -85,6 +85,9 @@ export function SourcesPanel({ config, setConfig, profile, selectedZoneId, onOpe
     () => screensUsing(config.profiles, model.points.map((p) => p.key), modules),
     [config.profiles, model.points]
   );
+  const alerts = useMemo(() => alertsByKey(config.alerts), [config.alerts]);
+  const used = useMemo(() => usedKeys(screens, alerts), [screens, alerts]);
+  const inUseCount = useMemo(() => model.points.filter((p) => used.has(p.key)).length, [model.points, used]);
 
   const [scope, setScope] = useState<Scope>(ALL_SCOPE);
   const [treeQuery, setTreeQuery] = useState("");
@@ -95,6 +98,12 @@ export function SourcesPanel({ config, setConfig, profile, selectedZoneId, onOpe
   const [inUse, setInUse] = useState(false);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [bindChoice, setBindChoice] = useState<BindOption | null>(null);
+  const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(new Set());
+  const [visible, setVisible] = useState<string[]>([]);
+
+  // The rows in view and the selected point are the only keys the history records.
+  const watched = useMemo(() => (selectedKey ? [...visible, selectedKey] : visible), [visible, selectedKey]);
+  const { values, recorder } = useLiveData(watched);
 
   useEffect(() => {
     if (focusPointKey) setSelectedKey(focusPointKey);
@@ -119,15 +128,22 @@ export function SourcesPanel({ config, setConfig, profile, selectedZoneId, onOpe
 
   // The health chips and the tree filter only narrow the tree, never the table.
   const filtered = useMemo(
-    () => filterPoints(model.points, { scope, query, type, hideEmpty, inUse, usage }),
-    [model.points, scope, query, type, hideEmpty, inUse, usage]
+    () => filterPoints(model.points, { scope, query, type, hideEmpty, inUse, used }),
+    [model.points, scope, query, type, hideEmpty, inUse, used]
   );
-  const rows = useMemo(() => flattenRows(filtered), [filtered]);
+  const rows = useMemo(() => flattenRows(filtered, model.sources, collapsed), [filtered, model.sources, collapsed]);
+  const toggleGroup = (id: string) =>
+    setCollapsed((c) => {
+      const next = new Set(c);
+      if (!next.delete(id)) next.add(id);
+      return next;
+    });
 
   const scopePoints = useMemo(
     () => (scope.kind === "all" ? model.points : model.points.filter((p) => (scope.kind === "source" ? p.sourceId === scope.id : p.containerId === scope.id))),
     [model.points, scope]
   );
+  const emptyCount = useMemo(() => scopePoints.filter((p) => p.type === "empty").length, [scopePoints]);
   const point = selectedKey ? (model.byKey.get(selectedKey) ?? null) : null;
 
   const zones = useMemo<BindZone[]>(
@@ -189,8 +205,6 @@ export function SourcesPanel({ config, setConfig, profile, selectedZoneId, onOpe
     setScope(next);
     setSelectedKey(null);
   };
-  const onGroup = (row: Extract<TableRow, { kind: "group" }>) =>
-    changeScope(containerScope(model.sources, row.sourceId, row.id));
 
   const loading = model.points.length === 0 && (catalog.status === "loading" || catalog.status === "idle");
   const drawer = width < DRAWER_BELOW;
@@ -198,10 +212,13 @@ export function SourcesPanel({ config, setConfig, profile, selectedZoneId, onOpe
     <PointInspector
       point={point}
       values={values}
-      history={history}
-      tick={tick}
+      recorder={recorder}
       apiBase={apiBase}
+      screenName={profile.name}
       usedBy={usage.byKey.get(point.key) ?? []}
+      alertRules={alerts.get(point.key) ?? []}
+      displayName={pointDisplayName(model.sources, point, config.sourcePrefs)}
+      onDisplayName={(key, displayName) => onPrefsChange(key, { displayName })}
       options={options}
       target={target}
       onTarget={setBindChoice}
@@ -209,6 +226,7 @@ export function SourcesPanel({ config, setConfig, profile, selectedZoneId, onOpe
       onUnbind={(zoneId, widgetId) => unbind(point.key, zoneId, widgetId)}
       onNewWidget={() => newWidget(point)}
       onOpenUsage={openUsage}
+      onOpenAlerts={onOpenAlerts}
       onClose={() => setSelectedKey(null)}
     />
   ) : (
@@ -230,20 +248,26 @@ export function SourcesPanel({ config, setConfig, profile, selectedZoneId, onOpe
       <ExplorerHeader
         pointCount={model.points.length}
         sourceCount={model.sources.length}
+        inUseCount={inUseCount}
+        shownCount={query.trim() !== "" || type !== "all" || hideEmpty || inUse || scope.kind !== "all" ? filtered.length : null}
+        query={query}
+        onQuery={setQuery}
         apiBase={apiBase}
         config={config}
       />
       {loading ? (
-        <div className="grid flex-1 place-items-center text-body text-ui-4">Loading data points…</div>
+        <div className="grid flex-1 place-items-center text-body text-ui-3">Loading data points…</div>
       ) : (
       <div className="relative flex min-h-0 flex-1 max-sm:flex-col">
-        {/* On a phone the connection and source tree sit above the table. */}
-        <div className="flex min-h-0 w-[300px] shrink-0 flex-col border-r border-ui-subtle bg-ui-panel max-sm:max-h-[48%] max-sm:w-full max-sm:overflow-y-auto max-sm:border-b max-sm:border-r-0">
-          <ConnectionCard
-            value={config.dataApiUrl}
-            onChange={(dataApiUrl) => setConfig((c) => ({ ...c, dataApiUrl }), "data-api-url")}
-            dataApi={dataApi}
-          />
+        {/* On a phone the sources sit above the table. */}
+        <div className="flex min-h-0 w-[232px] shrink-0 flex-col overflow-y-auto border-r border-ui-subtle bg-ui-panel max-sm:max-h-[48%] max-sm:w-full max-sm:border-b max-sm:border-r-0">
+          {width < PHONE_BELOW && (
+            <ConnectionCard
+              value={config.dataApiUrl}
+              onChange={(dataApiUrl) => setConfig((c) => ({ ...c, dataApiUrl }), "data-api-url")}
+              dataApi={dataApi}
+            />
+          )}
           <SourceTree
             sources={treeSources}
             counts={counts}
@@ -257,39 +281,38 @@ export function SourcesPanel({ config, setConfig, profile, selectedZoneId, onOpe
             sourcePrefs={config.sourcePrefs}
             onPrefsChange={onPrefsChange}
           />
+          <TypeFilters
+            type={type}
+            onType={setType}
+            emptyCount={emptyCount}
+            hideEmpty={hideEmpty}
+            onHideEmpty={setHideEmpty}
+            inUse={inUse}
+            onInUse={setInUse}
+          />
         </div>
         <PointTable
-          crumbs={crumbs(scope, model.sources)}
-          onScope={changeScope}
-          onGroup={onGroup}
-          target={target}
-          onToggleBind={toggleBind}
-          shown={filtered.length}
-          total={scopePoints.length}
+          key={`${scope.kind}:${scope.kind === "all" ? "" : scope.id}|${query}|${type}|${hideEmpty}|${inUse}`}
           rows={rows}
           values={values}
+          recorder={recorder}
           usage={usage}
           selectedKey={selectedKey}
           onSelect={setSelectedKey}
-          query={query}
-          onQuery={setQuery}
-          type={type}
-          onType={setType}
-          hideEmpty={hideEmpty}
-          onHideEmpty={setHideEmpty}
-          inUse={inUse}
-          onInUse={setInUse}
+          onToggleGroup={toggleGroup}
+          onVisible={setVisible}
+          target={target}
+          onToggleBind={toggleBind}
           screens={screens}
-          sources={model.sources}
-          sourcePrefs={config.sourcePrefs}
-          onDisplayName={(key, displayName) => onPrefsChange(key, { displayName })}
+          alerts={alerts}
+          apiBase={apiBase}
           showUsedIn={width >= HIDE_USED_IN_BELOW}
           live={showsLive(dataApi.state)}
         />
         {(!drawer || point) && (
           <div
             className={cn(
-              "w-[320px] shrink-0 border-l border-ui-subtle max-sm:w-full",
+              "w-[360px] shrink-0 border-l border-ui-subtle max-sm:w-full",
               drawer && "absolute inset-y-0 right-0 z-20 shadow-ui-drawer"
             )}
           >

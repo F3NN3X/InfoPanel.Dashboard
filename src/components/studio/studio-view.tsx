@@ -16,7 +16,7 @@ import {
 import { isFreePage } from "@/lib/free-pages";
 import { resolveBackground } from "@/lib/appearance";
 import { useSensorCatalog } from "@/lib/catalog";
-import { buildDataModel } from "@/lib/data-points";
+import { useDataModel } from "@/lib/use-data-model";
 import { appearanceOf } from "@/lib/style-resolve";
 import { resolveTheme, themeVars } from "@/lib/theme";
 import { CommandPalette } from "./command-palette";
@@ -322,7 +322,7 @@ function StudioViewBody({
   });
   /** Sensor names for widget names (toolbar crumb, palette). */
   const catalog = useSensorCatalog();
-  const dataPoints = useMemo(() => buildDataModel(catalog.sources, catalog.sensors).points, [catalog.sources, catalog.sensors]);
+  const dataPoints = useDataModel().points;
   const { studioLayout, showSources, showLibrary, showGauges, showTheme, showAlerts, showScreens, fullPage } = ui;
   // A phone's sheet lifts the bottom toolbar, and the toasts over it, by its height.
   const barBottom = studioLayout.mode === "sheet" ? Math.min(studioLayout.sheet.height, sheetHeight("half", studioLayout.sheet.area, true)) + 8 : undefined;
@@ -947,6 +947,7 @@ function StudioViewBody({
         focusPointKey={focusPointKey}
         selectedZoneId={sel.primaryId}
         dataApi={statusBar.dataApi}
+        onOpenAlerts={() => ui.navigateTo({ view: "alerts", tab: "rules" })}
         onOpenZone={(id, opts) => {
           ui.setMode("design");
           focusZone(id);
