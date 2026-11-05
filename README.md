@@ -14,7 +14,7 @@ You lay out widgets in a studio, and a local server serves the result as a full 
 - More than 60 widgets for system load, temperatures, fans, drives, network, frame rate, clocks, weather, calendars, media and more, and a library of your own panels, styles, gauges, images, videos and fonts.
 - 24 screen templates to start from, each made for a standard, wide, strip or tall panel.
 - Themes: one place to set colours, type, shape and spacing for every screen, one screen or one page, with ready-made skins and palettes you can save as your own.
-- InfoPanel import and export. Open an `.infopanel` profile as a screen, edit it in a canvas editor, and write it back out as an `.infopanel` file that InfoPanel itself reads.
+- InfoPanel import. Open an `.infopanel` profile as a screen and edit it in a canvas editor. Studio does not write `.infopanel` files.
 - A kiosk page for your panels: open it in InfoPanel's Web Page mode, in a browser, or on any device that can reach the server.
 - A Dynamic Island and alerts: a pill at the top of the kiosk that shows the time or a live value and opens for alerts such as a Data API disconnect.
 - Coding agents: show what Claude Code and Codex are doing, live, on widgets. It is off until you turn it on in Settings.
@@ -61,8 +61,6 @@ InfoPanel Studio is in beta. Expect rough edges, and expect screens you make tod
 - A screen from a template was drawn against one PC's sensors. Some widgets may need a sensor picked again on your PC.
 - The installer is unsigned, so SmartScreen warns when you first run it.
 - The server listens on this PC only until you change Settings > Server to Local network. Other devices can then view the kiosk, but they can edit only if you also turn on Allow editing from other devices.
-- An `.infopanel` export cannot carry everything the studio can do. InfoPanel has no letter spacing, text gradients, blurred text shadows or gradient fills under a graph, and it cannot blur what is behind an item. The export approximates some of these and lists them. Fonts are not in the file, so the other PC needs them installed. InfoPanel matches HWiNFO sensors by name and Libre and plugin sensors by id, so those sensors have to exist on the other PC.
-- The studio's own widgets have no InfoPanel equivalent. Converting a screen to an InfoPanel profile is experimental, and Coding Agents, Countdown, Timer, Web Page, Wave Link, Day Planner, Radial Clock Stack and On-Air Beacon are left out of it.
 - Turning on coding agents edits hook entries in `~/.claude/settings.json` and `~/.codex/hooks.json`. Codex asks you to approve the hooks once with `/hooks`.
 - Installing an update restarts the app and the server, so the display is blank for about 10 seconds.
 
