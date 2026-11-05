@@ -282,7 +282,7 @@ export function ScreensView({
         onDelete: () => setDeletingId(p.id),
       }),
     };
-    return list ? <ScreenRow key={p.id} {...common} /> : <ProfileCard key={p.id} {...common} strip={<PageStrip profile={p} onOpen={openPage} />} actionsLabel="Screen actions" />;
+    return list ? <ScreenRow key={p.id} {...common} pages={<PageStrip profile={p} onOpen={openPage} inline />} /> : <ProfileCard key={p.id} {...common} strip={<PageStrip profile={p} onOpen={openPage} />} actionsLabel="Screen actions" />;
   };
 
   return (
@@ -341,9 +341,12 @@ export function ScreensView({
             </ul>
           )}
           {list && (
-            <Button className="self-start" onClick={onNew}>
-              New screen
-            </Button>
+            <div className="flex items-center gap-2 self-start">
+              <Button onClick={onNew}>New screen</Button>
+              <Button variant="ghost" title="Import an InfoPanel profile (.infopanel); it opens in Edit" onClick={() => openImportDoor({ prefer: "canvas-zone" })}>
+                Import .infopanel
+              </Button>
+            </div>
           )}
 
           {saved.length > 0 && (

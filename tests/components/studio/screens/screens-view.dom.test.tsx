@@ -15,6 +15,7 @@ vi.mock("@/components/studio/screens/screen-thumb", () => ({ ScreenThumb: () => 
 import { ScreensView } from "@/components/studio/screens-view";
 
 beforeEach(() => {
+  localStorage.clear();
   vi.clearAllMocks();
   vi.stubGlobal("fetch", vi.fn(() => Promise.resolve(new Response("[]", { status: 200 }))));
 });
@@ -50,6 +51,7 @@ function view(over: Record<string, unknown> = {}) {
     onOpenLive: vi.fn(),
     navigateTo: vi.fn(),
     onOpenScreen: vi.fn(),
+    onOpenScreenPage: vi.fn(),
     ...over,
   } as unknown as Parameters<typeof ScreensView>[0];
   render(
@@ -82,6 +84,21 @@ describe("Screens with InfoPanel profiles", () => {
     view();
     fireEvent.click(screen.getByRole("button", { name: "Import .infopanel" }));
     expect(doors.openImportDoor).toHaveBeenCalledWith({ prefer: "canvas-zone" });
+  });
+
+  it("keeps the .infopanel import in the list layout, with the canvas choice selected", () => {
+    localStorage.setItem("screens.list", "1");
+    view();
+    fireEvent.click(screen.getByRole("button", { name: "Import .infopanel" }));
+    expect(doors.openImportDoor).toHaveBeenCalledWith({ prefer: "canvas-zone" });
+  });
+
+  it("opens one page of a screen from its row in the list layout", () => {
+    localStorage.setItem("screens.list", "1");
+    const two = { ...main, pages: [{ id: "pg2", name: "Page 1", placements: [] }, { id: "pg3", name: "Page 2", placements: [] }] };
+    const props = view({ config: { profiles: [desk, two] } as unknown as DashboardConfig });
+    fireEvent.click(screen.getByRole("button", { name: "Open Main, Page 2" }));
+    expect(props.onOpenScreenPage).toHaveBeenCalledWith("p2", "pg3");
   });
 
   it("reaches the whole-dashboard export from the toolbar", () => {
