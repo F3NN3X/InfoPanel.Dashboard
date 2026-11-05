@@ -211,6 +211,21 @@ describe("a crafted file cannot make the reader slow", () => {
     expect(performance.now() - start).toBeLessThan(1000);
   });
 
+  it("refuses a long chain ending in an undefined var, fast", () => {
+    const css = `${PART} { ${Array.from({ length: 1900 }, (_, i) => `--pack-a${i}: var(--pack-a${i + 1});`).join(" ")} color: var(--pack-a0); }`;
+    const start = performance.now();
+    expect(userCssIssues(css).join()).toContain("is not defined in this file");
+    expect(performance.now() - start).toBeLessThan(1000);
+  });
+
+  it("refuses doubled definitions ending in an undefined var, fast", () => {
+    const both = (i: number) => `--pack-a${i}: var(--pack-a${i + 1}); --pack-a${i}: var(--pack-a${i + 1});`;
+    const css = `${PART} { ${Array.from({ length: 40 }, (_, i) => both(i)).join(" ")} color: var(--pack-a0); }`;
+    const start = performance.now();
+    expect(userCssIssues(css).join()).toContain("is not defined in this file");
+    expect(performance.now() - start).toBeLessThan(1000);
+  });
+
   it("refuses more definitions of one property than the cap", () => {
     const many = Array.from({ length: 9 }, () => "--pack-a: #fff;").join(" ");
     expect(userCssIssues(`${PART} { ${many} color: var(--pack-a); }`).join()).toContain("defined 9 times");

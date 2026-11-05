@@ -71,25 +71,29 @@ function literal(value: Token[]): Read | undefined {
 const MAX_DEFINITIONS = 8;
 const MAX_DECLARATIONS = 2000;
 
-/** The custom properties the file defines, each with every value it was given, and the lowest alpha of those already resolved. */
-type Defined = { names: Map<string, Read[]>; done: Map<string, number> };
+/** The custom properties the file defines, each with every value it was given, and what each resolved to (an alpha, or the reason it did not). */
+type Defined = { names: Map<string, Read[]>; done: Map<string, number | string> };
 
 /** The lowest alpha a colour can resolve to, or a reason it does not resolve in this file: every definition is followed, and a loop is no colour.
- * A name resolved once is not walked again (only a success is kept, so a refusal still names the property it was reached from). */
-function resolve(read: Read, defined: Defined, trail: ReadonlySet<string> = new Set()): number | string {
+ * A name is walked once, refusals included (a name that reaches a refusal is refused whichever way it got there), so a walk costs one step per definition. */
+function resolve(read: Read, defined: Defined, trail: Set<string> = new Set()): number | string {
   if ("alpha" in read) return read.alpha;
   const known = defined.done.get(read.ref);
   if (known !== undefined) return known;
   if (trail.has(read.ref)) return `var(${read.ref}) loops`;
   const values = defined.names.get(read.ref);
   if (!values) return `var(${read.ref}) is not defined in this file`;
-  const inner = new Set(trail).add(read.ref);
-  let least = 1;
+  trail.add(read.ref);
+  let least: number | string = 1;
   for (const value of values) {
-    const alpha = resolve(value, defined, inner);
-    if (typeof alpha === "string") return alpha;
+    const alpha = resolve(value, defined, trail);
+    if (typeof alpha === "string") {
+      least = alpha;
+      break;
+    }
     least = Math.min(least, alpha);
   }
+  trail.delete(read.ref);
   defined.done.set(read.ref, least);
   return least;
 }
