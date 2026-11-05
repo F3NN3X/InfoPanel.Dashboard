@@ -21,9 +21,12 @@ export const ruleKey = (ruleId: string, field: string): string => `alert:${ruleI
 /** The history key of a field of the alerts section itself. */
 export const alertsKey = (field: string): string => `alerts:${field}`;
 
-/** The stored alerts, or the normalised empty section. */
-export const alertsOf = (config: DashboardConfig): AlertsConfig =>
-  config.alerts ?? (normalizeAlerts({}) as AlertsConfig);
+/** The stored alerts, or the empty section a new config starts from: its default style is Auto. Stored defaults stay as saved. */
+export function alertsOf(config: DashboardConfig): AlertsConfig {
+  if (config.alerts) return config.alerts;
+  const empty = normalizeAlerts({}) as AlertsConfig;
+  return { ...empty, defaults: { ...empty.defaults, style: "auto" } };
+}
 
 const withAlerts = (config: DashboardConfig, edit: (alerts: AlertsConfig) => AlertsConfig): DashboardConfig => {
   const before = alertsOf(config);
@@ -121,6 +124,13 @@ export function lastFired(history: readonly AlertHistoryEntry[], ruleId: string)
   );
 }
 
+/** A rule's last firing, in words. */
+export function firedText(at: number | undefined, now: number): string {
+  if (at === undefined) return "Never fired";
+  const age = ageText(at, now);
+  return age === "now" ? "Last fired just now" : `Last fired ${age} ago`;
+}
+
 /** "now", "42 s", "5 m", "3 h", "2 d" ago. */
 export function ageText(since: number, now: number): string {
   const s = Math.max(0, Math.round((now - since) / 1000));
@@ -171,6 +181,16 @@ export interface SensorPreview {
   /** The reading as text, null without one. */
   value: string | null;
   state: "fires" | "ok" | "nodata" | "event";
+}
+
+/** What a condition's state says beside the reading. */
+export const previewText = (state: SensorPreview["state"]): string =>
+  state === "fires" ? "Would fire now" : state === "ok" ? "Not firing" : state === "event" ? "Fires on each change" : "No reading";
+
+/** A display text template with what the editor can know of it now; the server fills the real one. */
+export function fillAlertText(template: string, vars: { name: string; value: string; unit: string; sensor: string }): string {
+  const known: Record<string, string> = { ...vars, app: "", title: "", body: "" };
+  return template.replace(/\{(\w+)\}/g, (token, name: string) => known[name] ?? token).trim();
 }
 
 /** The editor's live line: the current value and whether the condition would fire on it now. */

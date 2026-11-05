@@ -1,37 +1,45 @@
-import { Activity, ArrowLeft, Bell, FlaskConical, Plus } from "lucide-react";
+import { ArrowLeft, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
-import { useToast } from "@/components/ui/toast";
+import { StatusChip, type StatusTone } from "@/components/ui/status-chip";
+import { Toggle } from "@/components/ui/toggle";
 import type { HistorySetter } from "@/hooks/use-config-history";
+import { useSensors } from "@/hooks/useSensors";
 import {
   COOLDOWN_SECONDS_MAX,
   FOR_SECONDS_MAX,
   SEVERITIES,
+  type ActiveAlert,
   type AlertRule,
   type AlertSource,
   type SensorCondition,
 } from "@/lib/alerts";
-import { postControl } from "@/lib/control";
 import type { DataPoint } from "@/lib/data-points";
-import { parseNameList } from "@/lib/name-list";
 import type { DashboardConfig } from "@/lib/layout";
-import { alertsOf, patchRule, ruleKey } from "./alerts-model";
+import { parseNameList } from "@/lib/name-list";
+import { sensorAt } from "@/lib/sensors";
 import { AlertCondition } from "./alerts-condition";
 import { ChipsField, NumField, SeverityDot, TextField } from "./alerts-fields";
+import { AlertHow } from "./alerts-how";
+import { alertsOf, patchRule, previewSensor, previewText, ruleKey, type SensorPreview } from "./alerts-model";
 import { AlertOutputs } from "./alerts-outputs";
-import { PanelSection } from "./panel-section";
-import { InlineRow, SEGMENTED_CLASS, StackRow, ToggleRow } from "./setting-rows";
+import { InlineRow, StackRow } from "./setting-rows";
+import { sensorName } from "./widget-kinds";
 
 interface AlertRuleEditorProps {
   rule: AlertRule;
   config: DashboardConfig;
   setConfig: HistorySetter;
+  /** The alerts the server holds now: is this rule firing. */
+  active: readonly ActiveAlert[];
   /** The live catalogue, for the notification apps suggestions. */
   points: readonly DataPoint[];
   /** The profile and page on the canvas (defaults of the output pickers). */
   current: { profile: string; page: string };
   /** Edits the server does not have yet: a test would run the old rule. */
   pushPending: boolean;
-  onBack: () => void;
+  /** Back to the rules list (narrow widths); unset beside the list. */
+  onBack?: () => void;
   onOpenSources: () => void;
 }
 
@@ -46,26 +54,37 @@ export function notificationApps(points: readonly DataPoint[]): string[] {
   return p ? parseNameList(p.raw) : [];
 }
 
-/** The rule editor sub-view of the Alerts drawer. */
-export function AlertRuleEditor({
-  rule,
-  config,
-  setConfig,
-  points,
-  current,
-  pushPending,
-  onBack,
-  onOpenSources,
-}: AlertRuleEditorProps) {
-  const toast = useToast();
-  const edit = (field: string, fn: (r: AlertRule) => AlertRule) =>
-    setConfig((c) => patchRule(c, rule.id, fn), ruleKey(rule.id, field));
-  const editSource = <S extends AlertSource>(field: string, fn: (s: S) => S) =>
-    edit(field, (r) => ({ ...r, source: fn(r.source as S) }));
+const TONE: Record<SensorPreview["state"], StatusTone> = { fires: "warn", ok: "neutral", event: "neutral", nodata: "neutral" };
+
+/** The When card's chip: firing now, else what the first sensor would do on its reading. */
+function WhenChip({ firing, conditions }: { firing: boolean; conditions: readonly SensorCondition[] }) {
+  const keys = conditions.map((c) => c.key).filter(Boolean);
+  const live = useSensors(keys);
+  const states = conditions.map((c) => previewSensor(c, c.key ? sensorAt(live, c.key) : undefined).state);
+  const state = states.find((s) => s === "fires") ?? states[0] ?? "nodata";
+  return (
+    <span aria-live="polite">
+      {firing ? <StatusChip tone="danger">Firing now</StatusChip> : <StatusChip tone={TONE[state]}>{previewText(state)}</StatusChip>}
+    </span>
+  );
+}
+
+/** A rule: its name, severity and condition in the centre column, how it shows in the right one. */
+export function AlertRuleEditor({ rule, config, setConfig, active, points, current, pushPending, onBack, onOpenSources }: AlertRuleEditorProps) {
+  const edit = (field: string, fn: (r: AlertRule) => AlertRule) => setConfig((c) => patchRule(c, rule.id, fn), ruleKey(rule.id, field));
+  const editSource = <S extends AlertSource>(field: string, fn: (s: S) => S) => edit(field, (r) => ({ ...r, source: fn(r.source as S) }));
   const source = rule.source;
   const alerts = alertsOf(config);
   const sensorEmpty = source.kind === "sensor" && source.conditions.every((c) => c.key === "");
-  const testBlocked = pushPending || sensorEmpty;
+  const firing = active.some((a) => a.ruleId === rule.id && !a.test);
+  const firstKey = source.kind === "sensor" ? source.conditions.find((c) => c.key !== "")?.key : undefined;
+  const live = useSensors(firstKey ? [firstKey] : []);
+  const reading = firstKey ? sensorAt(live, firstKey) : undefined;
+  const sample = {
+    value: reading?.value !== undefined ? String(reading.value) : (reading?.text ?? "—"),
+    unit: reading?.unit ?? "",
+    sensor: firstKey ? sensorName(firstKey) : "",
+  };
 
   const editCondition = (index: number, field: string, fn: (c: SensorCondition) => SensorCondition) =>
     editSource<SensorSource>(`c${index}:${field}`, (s) => ({
@@ -86,50 +105,51 @@ export function AlertRuleEditor({
   const removeCondition = (index: number) =>
     editSource<SensorSource>("conditions", (s) => ({ ...s, conditions: s.conditions.filter((_, i) => i !== index) }));
 
-  const test = () =>
-    void postControl("alert", { ruleId: rule.id, action: "test" }).then((res) =>
-      toast(res ? "Test alert sent" : "Couldn't reach the server")
-    );
-
   return (
     <>
-      <div className="flex shrink-0 items-center gap-1.5 px-2.5 pb-2 pt-3">
-        <button
-          type="button"
-          onClick={onBack}
-          aria-label="Back to the rules"
-          className="flex h-7 items-center gap-1 rounded-md px-1.5 text-caption text-ui-3 hover:bg-ui-hover hover:text-ui-1"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" /> Back
-        </button>
-        <span className="ml-auto text-body font-semibold text-ui-1">Alert rule</span>
-      </div>
-      <div className="min-h-0 flex-1 overflow-y-auto pb-3">
-        <PanelSection id="alert-rule" title="Rule" icon={Bell}>
-          <StackRow label="Name">
-            <TextField value={rule.name} label="Rule name" onChange={(name) => edit("name", (r) => ({ ...r, name }))} />
-          </StackRow>
-          <ToggleRow label="Enabled" value={rule.enabled} onChange={(enabled) => edit("enabled", (r) => ({ ...r, enabled }))} />
-          <StackRow label="Severity">
-            <Segmented
-              label="Severity"
-              className={SEGMENTED_CLASS}
-              value={rule.severity}
-              onChange={(severity) => edit("severity", (r) => ({ ...r, severity }))}
-              options={SEVERITIES.map((s) => ({
-                value: s,
-                label: (
-                  <span className="flex items-center gap-1.5 capitalize">
-                    <SeverityDot severity={s} />
-                    {s}
-                  </span>
-                ),
-              }))}
-            />
-          </StackRow>
-        </PanelSection>
+      <div className="flex min-w-0 flex-col gap-4 overflow-y-auto px-6 py-5 max-sm:px-3" data-testid="alert-rule">
+        {onBack && (
+          <Button small variant="ghost" className="self-start" icon={<ArrowLeft aria-hidden />} onClick={onBack} aria-label="Back to the rules">
+            Back
+          </Button>
+        )}
+        <div className="flex items-center gap-3">
+          <input
+            type="text"
+            value={rule.name}
+            aria-label="Rule name"
+            spellCheck={false}
+            onChange={(e) => edit("name", (r) => ({ ...r, name: e.target.value }))}
+            className="-ml-2 h-8 min-w-0 flex-1 rounded-ui-sm bg-transparent px-2 text-head font-medium text-ui-1 hover:bg-ui-raised focus:bg-ui-raised focus-visible:outline-2 focus-visible:outline-ui-accent"
+          />
+          <label className="flex items-center gap-2 text-body text-ui-2">
+            Enabled
+            <Toggle checked={rule.enabled} label="Enabled" onChange={(enabled) => edit("enabled", (r) => ({ ...r, enabled }))} />
+          </label>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="flex-1 text-body text-ui-2">Severity</span>
+          <Segmented
+            label="Severity"
+            value={rule.severity}
+            onChange={(severity) => edit("severity", (r) => ({ ...r, severity }))}
+            options={SEVERITIES.map((s) => ({
+              value: s,
+              label: (
+                <span className="flex items-center gap-1.5 capitalize">
+                  <SeverityDot severity={s} className="h-1.5 w-1.5" />
+                  {s}
+                </span>
+              ),
+            }))}
+          />
+        </div>
 
-        <PanelSection id="alert-source" title={source.kind === "sensor" ? "When a sensor" : "When a notification arrives"} icon={Activity}>
+        <section className="flex flex-col gap-3 rounded-[14px] border border-ui-default bg-ui-panel px-4 py-3" aria-label="When">
+          <div className="flex min-h-6 items-center justify-between gap-2">
+            <h3 className="text-body font-medium text-ui-1">{source.kind === "sensor" ? "When" : "When a notification arrives"}</h3>
+            {source.kind === "sensor" && <WhenChip firing={firing} conditions={source.conditions} />}
+          </div>
           {source.kind === "sensor" ? (
             <>
               {source.conditions.map((c, i) => (
@@ -141,35 +161,13 @@ export function AlertRuleEditor({
                   onOpenSources={onOpenSources}
                 />
               ))}
-              <button
-                type="button"
-                onClick={addCondition}
-                className="flex h-7 items-center gap-1 self-start rounded-md px-1.5 text-caption text-ui-accent-text hover:bg-ui-hover"
-              >
-                <Plus className="h-3.5 w-3.5" /> Add sensor
-              </button>
-              {source.conditions.some((c) => c.op !== "changes") && (
-                <InlineRow
-                  label="For (s)"
-                  hint={
-                    source.conditions.some((c) => c.op === "missing")
-                      ? "A sensor must hold its condition this long (a missing one: be gone, after it has reported once) before the alert fires."
-                      : "A sensor must hold its condition this long before the alert fires."
-                  }
-                >
-                  <NumField
-                    label="For seconds"
-                    min={0}
-                    max={FOR_SECONDS_MAX}
-                    value={source.forSeconds}
-                    onChange={(n) => editSource<SensorSource>("for", (s) => ({ ...s, forSeconds: n ?? 0 }))}
-                  />
-                </InlineRow>
-              )}
+              <Button small variant="ghost" className="self-start" icon={<Plus aria-hidden />} onClick={addCondition}>
+                Add sensor
+              </Button>
             </>
           ) : (
             <>
-              <StackRow label="Apps" hint="Empty = every app. Enter adds one.">
+              <StackRow label="Apps" hint="Empty = every app. Enter adds one">
                 <ChipsField
                   label="Apps"
                   values={source.apps ?? []}
@@ -187,7 +185,7 @@ export function AlertRuleEditor({
                   onChange={(list) => editSource<NotificationSource>("exclude", (s) => withList(s, "exclude", list))}
                 />
               </StackRow>
-              <StackRow label="Text contains" hint="The title or body must include this.">
+              <StackRow label="Text contains" hint="The title or body must include this">
                 <TextField
                   label="Text contains"
                   value={source.match ?? ""}
@@ -201,75 +199,36 @@ export function AlertRuleEditor({
               </StackRow>
             </>
           )}
-          <InlineRow label="Cooldown (s)" hint="No refire within this long after the alert clears.">
-            <NumField
-              label="Cooldown seconds"
-              min={0}
-              max={COOLDOWN_SECONDS_MAX}
-              value={rule.cooldownSeconds}
-              onChange={(n) => edit("cooldown", (r) => ({ ...r, cooldownSeconds: n ?? 0 }))}
-            />
-          </InlineRow>
-          <StackRow label="Screens">
-            <div className="space-y-1">
-              <label className="flex items-center gap-2 text-body text-ui-2">
-                <input
-                  type="checkbox"
-                  checked={rule.profiles === undefined}
-                  onChange={(e) =>
-                    edit("profiles", (r) => {
-                      const { profiles: _was, ...rest } = r;
-                      return e.target.checked ? rest : { ...rest, profiles: config.profiles.map((p) => p.id) };
-                    })
-                  }
-                />
-                All screens
-              </label>
-              {rule.profiles !== undefined &&
-                config.profiles.map((p) => (
-                  <label key={p.id} className="flex items-center gap-2 pl-4 text-body text-ui-2">
-                    <input
-                      type="checkbox"
-                      checked={rule.profiles?.includes(p.id) ?? false}
-                      onChange={(e) =>
-                        edit("profiles", (r) => {
-                          const list = r.profiles ?? [];
-                          const next = e.target.checked ? [...list, p.id] : list.filter((id) => id !== p.id);
-                          // Unticking the last one would mean "all": keep at least this one.
-                          return next.length === 0 ? r : { ...r, profiles: next };
-                        })
-                      }
-                    />
-                    {p.name}
-                  </label>
-                ))}
-            </div>
-          </StackRow>
-        </PanelSection>
+          <div className="flex flex-col divide-y divide-ui-row border-t border-ui-row [&>*]:min-h-10 [&>*]:py-1">
+            {source.kind === "sensor" && source.conditions.some((c) => c.op !== "changes") && (
+              <InlineRow
+                label="Only after it lasts"
+                hint={
+                  source.conditions.some((c) => c.op === "missing")
+                    ? "A sensor must hold its condition this long (a missing one: be gone, after it has reported once) before the alert fires"
+                    : "A sensor must hold its condition this long before the alert fires"
+                }
+              >
+                <NumField label="For seconds" unit="s" min={0} max={FOR_SECONDS_MAX} value={source.forSeconds} onChange={(n) => editSource<SensorSource>("for", (s) => ({ ...s, forSeconds: n ?? 0 }))} />
+              </InlineRow>
+            )}
+            <InlineRow label="Wait before firing again" hint="No refire within this long after the alert clears">
+              <NumField label="Cooldown seconds" unit="s" min={0} max={COOLDOWN_SECONDS_MAX} value={rule.cooldownSeconds} onChange={(n) => edit("cooldown", (r) => ({ ...r, cooldownSeconds: n ?? 0 }))} />
+            </InlineRow>
+          </div>
+        </section>
 
-        <AlertOutputs
+        <AlertOutputs rule={rule} config={config} defaults={alerts.defaults} current={current} edit={edit} />
+      </div>
+      <div className="min-w-0 overflow-y-auto border-l border-ui-subtle px-6 py-5 max-[1179px]:border-l-0 max-sm:px-3">
+        <AlertHow
           rule={rule}
           config={config}
           defaults={alerts.defaults}
-          current={current}
+          sample={sample}
+          testBlocked={sensorEmpty ? "Pick a sensor first" : pushPending ? "Edits are not on the server yet. Save, then test" : undefined}
           edit={edit}
         />
-
-        <div className="space-y-1.5 pl-4 pr-2.5 pt-3">
-          <button
-            type="button"
-            onClick={test}
-            disabled={testBlocked}
-            className="flex h-8 w-full items-center justify-center gap-1.5 rounded-md border border-ui-strong text-body text-ui-1 hover:bg-ui-hover disabled:pointer-events-none disabled:opacity-40"
-          >
-            <FlaskConical className="h-3.5 w-3.5" /> Test
-          </button>
-          {testBlocked && (
-            <div className="text-pretty text-micro leading-[1.4] text-ui-4">
-              {sensorEmpty ? "Pick a sensor first." : "Edits are not on the server yet. Save, then test."}
-            </div>
-          )}
-        </div>
       </div>
     </>
   );

@@ -37,31 +37,36 @@ interface NumFieldProps {
   min?: number;
   max?: number;
   placeholder?: string;
+  /** Muted inside the field, after the value. */
+  unit?: string;
 }
 
 /** A number input that keeps what is typed until it parses (so "-" or "1." can be typed). */
-export function NumField({ value, onChange, label, min, max, placeholder }: NumFieldProps) {
+export function NumField({ value, onChange, label, min, max, placeholder, unit }: NumFieldProps) {
   const [text, setText] = useState(value === undefined ? "" : String(value));
   // Undo / redo or another edit changed the value behind the text.
   useEffect(() => {
     setText((t) => (parse(t) === value ? t : value === undefined ? "" : String(value)));
   }, [value]);
   return (
-    <input
-      type="number"
-      inputMode="decimal"
-      value={text}
-      aria-label={label}
-      min={min}
-      max={max}
-      placeholder={placeholder}
-      onChange={(e) => {
-        setText(e.target.value);
-        const n = parse(e.target.value);
-        if (n !== undefined || e.target.value.trim() === "") onChange(n);
-      }}
-      className={cn(FIELD, "h-[26px] w-[64px] shrink-0 px-1.5 text-right font-ui-mono text-micro")}
-    />
+    <span className="relative shrink-0">
+      <input
+        type="number"
+        inputMode="decimal"
+        value={text}
+        aria-label={label}
+        min={min}
+        max={max}
+        placeholder={placeholder}
+        onChange={(e) => {
+          setText(e.target.value);
+          const n = parse(e.target.value);
+          if (n !== undefined || e.target.value.trim() === "") onChange(n);
+        }}
+        className={cn(FIELD, "h-7 w-[84px] pl-2 pr-7 font-ui-mono text-caption [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none")}
+      />
+      {unit && <span aria-hidden className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 font-ui-mono text-caption text-ui-3">{unit}</span>}
+    </span>
   );
 }
 

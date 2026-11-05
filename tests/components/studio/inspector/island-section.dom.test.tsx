@@ -16,7 +16,6 @@ describe("IslandSection, connections note", () => {
     render(
       <IslandSection
         island={island}
-        previewBus={{ notify: vi.fn() } as never}
         onChange={vi.fn()}
         onLook={vi.fn()}
         onOpenExplorer={vi.fn()}
@@ -36,7 +35,6 @@ describe("IslandSection, edge", () => {
     render(
       <IslandSection
         island={{ ...ISLAND_DEFAULTS, enabled: true, ...(edge ? { edge } : {}) }}
-        previewBus={{ notify: vi.fn() } as never}
         onChange={onChange}
         onLook={vi.fn()}
         onOpenExplorer={vi.fn()}

@@ -3,10 +3,12 @@ import { useSensors } from "@/hooks/useSensors";
 import { SENSOR_OPS, type SensorCondition, type SensorOp } from "@/lib/alerts";
 import { sensorAt } from "@/lib/sensors";
 import { cn } from "@/lib/utils";
-import { clearLabel, previewSensor } from "./alerts-model";
+import { AlertChart } from "./alerts-chart";
+import { clearLabel, previewSensor, previewText } from "./alerts-model";
 import { NumField, TextField } from "./alerts-fields";
-import { InlineRow, SelectRow, StackRow } from "./setting-rows";
+import { InlineRow, SELECT, StackRow } from "./setting-rows";
 import { SensorField } from "./widget-editor/sensor-field";
+import { sensorName } from "./widget-kinds";
 
 const OP_LABEL: Record<SensorOp, string> = {
   ">": "is above",
@@ -22,28 +24,6 @@ const OP_LABEL: Record<SensorOp, string> = {
 
 const NUMERIC_OPS: readonly SensorOp[] = [">", ">=", "<", "<="];
 
-/** The live line under a sensor: the current value and whether the condition would fire on it now. */
-function LiveLine({ condition }: { condition: SensorCondition }) {
-  const live = useSensors(condition.key ? [condition.key] : []);
-  const { value, state } = previewSensor(condition, condition.key ? sensorAt(live, condition.key) : undefined);
-  const note =
-    state === "fires" ? "would fire now" : state === "ok" ? "not firing" : state === "event" ? "fires on each change" : "no reading";
-  return (
-    <div className="flex items-center gap-2 rounded-md bg-ui-app px-2 py-1.5 text-micro" aria-live="polite">
-      <span className="text-ui-4">Now</span>
-      <span className="font-ui-mono text-ui-1">{value ?? "—"}</span>
-      <span
-        className={cn(
-          "ml-auto",
-          state === "fires" ? "text-ui-warn" : state === "ok" ? "text-ui-ok" : "text-ui-4"
-        )}
-      >
-        {note}
-      </span>
-    </div>
-  );
-}
-
 interface AlertConditionProps {
   condition: SensorCondition;
   /** Set for a rule with several sensors: the row is numbered and can be removed. */
@@ -53,8 +33,12 @@ interface AlertConditionProps {
   onOpenSources: () => void;
 }
 
-/** One sensor condition of a sensor alert: sensor, operator, value, hysteresis and its live line. */
+/** One sensor condition of a sensor alert: sensor, the five-minute chart, operator, value and hysteresis. */
 export function AlertCondition({ condition, position, onEdit, onOpenSources }: AlertConditionProps) {
+  const live = useSensors(condition.key ? [condition.key] : []);
+  const reading = condition.key ? sensorAt(live, condition.key) : undefined;
+  const { state } = previewSensor(condition, reading);
+  const numeric = NUMERIC_OPS.includes(condition.op);
   const setOp = (op: SensorOp) =>
     onEdit("op", (c) => {
       const { clearBelow, ...rest } = c;
@@ -62,17 +46,20 @@ export function AlertCondition({ condition, position, onEdit, onOpenSources }: A
       const value = NUMERIC_OPS.includes(op) && !Number.isFinite(Number(c.value)) ? 0 : c.value;
       return { ...rest, op, value, ...(keepClear && clearBelow !== undefined ? { clearBelow } : {}) };
     });
+  const unit = reading?.unit;
 
   return (
-    <div className={cn("space-y-2", position && "rounded-md border border-ui-default p-2.5")}>
+    <div className={cn("flex flex-col gap-2", position && "rounded-[10px] border border-ui-default p-3")}>
       {position && (
         <div className="flex items-center justify-between">
-          <span className="text-micro font-medium text-ui-3">Sensor {position.index + 1}</span>
+          <span className="text-caption font-medium text-ui-3">
+            Sensor {position.index + 1} <span className={state === "fires" ? "text-ui-warn" : "text-ui-3"}>· {previewText(state)}</span>
+          </span>
           <button
             type="button"
             onClick={position.onRemove}
             aria-label={`Remove sensor ${position.index + 1}`}
-            className="grid h-6 w-6 place-items-center rounded-md text-ui-4 hover:bg-ui-hover hover:text-ui-1"
+            className="grid h-6 w-6 place-items-center rounded-md text-ui-3 hover:bg-ui-hover hover:text-ui-1"
           >
             <X className="h-3.5 w-3.5" />
           </button>
@@ -84,52 +71,73 @@ export function AlertCondition({ condition, position, onEdit, onOpenSources }: A
         onChange={(key) => onEdit("key", (c) => ({ ...c, key: key ?? "" }))}
         onOpenExplorer={onOpenSources}
       />
-      {condition.key === "" && <div className="text-micro text-ui-warn">Pick a sensor to watch.</div>}
-      <SelectRow
-        label="Condition"
-        value={condition.op}
-        onChange={(op) => setOp(op as SensorOp)}
-        options={SENSOR_OPS.map((op) => ({ value: op, label: OP_LABEL[op] }))}
-      />
-      {condition.op !== "changes" &&
-        condition.op !== "missing" &&
-        (NUMERIC_OPS.includes(condition.op) ? (
-          <InlineRow label="Threshold">
-            <NumField
-              label="Threshold"
-              value={Number(condition.value)}
-              onChange={(n) => onEdit("value", (c) => ({ ...c, value: n ?? 0 }))}
-            />
-          </InlineRow>
+      {condition.key === "" && <div className="text-caption text-ui-warn">Pick a sensor to watch</div>}
+      {condition.key !== "" && (
+        <AlertChart
+          sensorKey={condition.key}
+          name={sensorName(condition.key)}
+          unit={unit}
+          value={typeof reading?.value === "number" ? reading.value : undefined}
+          limit={numeric ? Number(condition.value) : undefined}
+          clear={numeric ? condition.clearBelow : undefined}
+          above={condition.op === ">" || condition.op === ">="}
+        />
+      )}
+      <div className="flex flex-col divide-y divide-ui-row [&>*]:min-h-10 [&>*]:py-1">
+        {condition.op === "contains" || condition.op === "=" || condition.op === "!=" ? (
+          <>
+            <InlineRow label="Condition">
+              <OpSelect op={condition.op} onChange={setOp} />
+            </InlineRow>
+            <StackRow label="Value">
+              <TextField
+                label="Value"
+                value={String(condition.value)}
+                onChange={(text) =>
+                  onEdit("value", (c) => ({
+                    ...c,
+                    value: c.op !== "contains" && text.trim() !== "" && Number.isFinite(Number(text)) ? Number(text) : text,
+                  }))
+                }
+              />
+            </StackRow>
+          </>
         ) : (
-          <StackRow label="Value">
-            <TextField
-              label="Value"
-              value={String(condition.value)}
-              onChange={(text) =>
-                onEdit("value", (c) => ({
-                  ...c,
-                  value: c.op !== "contains" && text.trim() !== "" && Number.isFinite(Number(text)) ? Number(text) : text,
-                }))
+          <InlineRow label="Condition">
+            <OpSelect op={condition.op} onChange={setOp} />
+            {numeric && (
+              <NumField label="Threshold" unit={unit} value={Number(condition.value)} onChange={(n) => onEdit("value", (c) => ({ ...c, value: n ?? 0 }))} />
+            )}
+          </InlineRow>
+        )}
+        {clearLabel(condition.op) && (
+          <InlineRow label={clearLabel(condition.op) ?? ""} hint="Hysteresis. Empty = clears as soon as the condition stops holding">
+            <NumField
+              label={clearLabel(condition.op) ?? "Clears at"}
+              unit={unit}
+              value={condition.clearBelow}
+              onChange={(n) =>
+                onEdit("clear", (c) => {
+                  const { clearBelow: _was, ...rest } = c;
+                  return n === undefined ? rest : { ...rest, clearBelow: n };
+                })
               }
             />
-          </StackRow>
-        ))}
-      {clearLabel(condition.op) && (
-        <InlineRow label={`${clearLabel(condition.op)} (hysteresis)`} hint="Empty = clears as soon as the condition stops holding.">
-          <NumField
-            label={clearLabel(condition.op) ?? "Clears at"}
-            value={condition.clearBelow}
-            onChange={(n) =>
-              onEdit("clear", (c) => {
-                const { clearBelow: _was, ...rest } = c;
-                return n === undefined ? rest : { ...rest, clearBelow: n };
-              })
-            }
-          />
-        </InlineRow>
-      )}
-      <LiveLine condition={condition} />
+          </InlineRow>
+        )}
+      </div>
     </div>
+  );
+}
+
+function OpSelect({ op, onChange }: { op: SensorOp; onChange: (op: SensorOp) => void }) {
+  return (
+    <select aria-label="Condition" value={op} onChange={(e) => onChange(e.target.value as SensorOp)} className={SELECT}>
+      {SENSOR_OPS.map((o) => (
+        <option key={o} value={o}>
+          {OP_LABEL[o]}
+        </option>
+      ))}
+    </select>
   );
 }

@@ -10,20 +10,20 @@ A small pill at the top of the kiosk that shows the time, and expands to show al
 
 ## Dynamic Island
 
-Open **Alerts & Island** on the rail, choose the **Island** tab and turn on **Show Dynamic Island**. Pick the screen the island is for at the top. The tab has these sections:
+Open **Alerts & Island** on the rail, choose the **Island** tab and turn on **Show the island on this screen**. Pick the screen the island is for at the top. The tab has these sections:
 
 | Section | Holds |
 |---|---|
-| Shape | Style (Pill or Notch), Size (S, M or L), Scale, Offset from top, Reserve space |
-| Idle | **When idle**: Time, Time and date, Time and values, Line or Hidden; Rotate every |
+| Shape | Style (Pill or Notch), Size (S, M or L), Scale, Offset from edge, Reserve space |
+| When nothing is happening | **Show**: Time, Time and date, Time and values, Line or Hidden; Rotate every |
 | Look | The island looks (Frosted pill, Light pill, Match theme and more: one press sets the shape, color, opacity, border, shadow and weight for this screen), then Placement (Overlay, or Part of the skin, which wears the screen's widget surface, edge and accent), Color (Match skin, Black, Match theme or Custom), Opacity (both for overlays), Border, Shadow, Weight; the font is a link to **Theme › Text** |
 | Clock | A link to **Settings › Dashboard › Clock & date** |
 | Motion | Animation: Lively, Smooth or Off |
-| Alerts | Collapse alerts after, Group notices |
 | Dashboard notices | Page name, Layout updated, Plugin back, On air (OBS), Calendar countdown, Coding agents |
+| Alerts | Collapse alerts after, Group notices |
 
-Press **Preview an alert** to see how an alert looks. **Widgets sent to the island** lists the widgets that raise their own alerts, each with **Open widget ↗**. Turn it on per widget under **Behavior › Send to island**.
+The preview beside them switches between **Idle**, **Alert** and **Notice**. **Alerts that show here** lists the rules that reach this island. **Widgets sent to the island** lists the widgets that raise their own alerts, each with **Open widget ↗**. Turn it on per widget under **Behavior › Send to island**.
 
 ## Alerts
 
-Open **Alerts & Island** on the rail. **Alerts on** turns the rules on or off. The tabs are **Rules**, **Island**, **Defaults** and **History**. **Rules** lists each rule with its condition, severity and style, an on/off toggle, **Duplicate** and **Delete**, and when it **Last fired**; **New rule** adds a **Blank sensor rule**, a **Blank notification rule** or a rule from **Presets**. **Defaults** holds the default style, position, size, **Show for**, **Dim the page behind** and quiet hours. **History** has **Active now** (what is firing, with acknowledge and dismiss) above the list of past alerts.
+Open **Alerts & Island** on the rail. **Alerts on** turns the rules on or off. The tabs are **Alerts**, **Island** and **History**. **Alerts** shows **Active now** (what is firing, with acknowledge and dismiss), each rule with its condition and style, an on/off toggle, **Duplicate** and **Delete**, and when it **Last fired**, and **Start from a preset**; **New rule** adds a **Blank sensor rule**, a **Blank notification rule** or a rule from **Presets**. The open rule shows the sensor over the last five minutes, which fills in while the rule is open, and **How it shows**: **Auto** picks by severity and by screen (the island where there is one, a toast elsewhere, and a widget highlight when critical). **Send a test to displays** replaces what the rule is showing and is marked as a test on the screen and in History. A screen shows one alert at a time and the others wait in the island. **Mute for 1 h** and **Alerts on** sit in the header, and **Defaults** opens the default style, position, size, **Show for**, **Dim the page behind** and quiet hours. **History** lists the last 200 alerts with their value, how they showed and how they ended, by severity, with or without tests, and **Export CSV** saves them.
