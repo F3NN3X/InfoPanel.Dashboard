@@ -177,3 +177,13 @@ Gauges
 19. Colour zones get no copy action.
 20. Widget rings are GPU Rings and System overview.
 21. The focus ring in the SVG preset thumbnail waits for Phase 8.
+
+## Gate 7
+
+1. The kiosk (285699 B) and studio (626735 B) entries stay over budget for now. Budgets don't change; the bytes are recovered when InfoPanel export is removed.
+2. The Scenery, Effects, Card details and Icons rows stay view-only until a per-part toggle has a saved field.
+3. "Give <page> its own theme" writes the page's theme and fine-tune values; colours, corners and background stay with the screen.
+4. Keep my background stays on this PC, not in saved files.
+5. The per-theme export compatibility line (T21) is dropped.
+6. The Help wording for Browse Apply is fixed in Phase 8.
+7. The feature ledger's code column is refreshed in Phase 8.
