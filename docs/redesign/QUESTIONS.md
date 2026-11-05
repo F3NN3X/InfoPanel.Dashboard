@@ -140,3 +140,11 @@ Answered after Gate 1 (2026-11-05). Each is a decision.
 4. Rotation on a display card stays the screen's toggle, labelled so.
 5. The sidebar Live popover and the display cards overlap until Phase 5 moves Mute.
 6. "Connected N h" stays as it is.
+
+## Gate 3
+
+1. The kiosk entry's 56 B growth over Phase 3 (285569 against 285513) is accepted for now and looked at again when Phases 4 to 6 merge.
+2. The remaining "Look" wording goes in Phase 7, all at once.
+3. The Readouts list stays out of the redesign: each widget would have to report what it reads, which is new work for afterwards.
+4. Pixel size for imported items in Layers waits for the InfoPanel export phase, which touches that code.
+5. Phases 4, 5 and 6 run in parallel from this point.
