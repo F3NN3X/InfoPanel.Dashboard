@@ -164,6 +164,8 @@ export function useCanvasLayers(editor: CanvasEditor, grid: PageGrid | undefined
         if (groupId === null) return editor.group();
         editor.move(groupId, listOf(items, groupId).length);
       },
+      // To the top list, at the front, as a drop on the top does.
+      moveOut: { enabled: selection.some((p) => parentOf(p) !== ""), run: () => (selection.some((p) => parentOf(p) !== "") ? editor.move("", items.length) : undefined) },
     },
     iconOf: (node) => {
       const item = itemAt(items, node.id);

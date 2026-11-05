@@ -33,6 +33,7 @@ describe("canvas keys", () => {
     expect(canvasKeyAction(key("l", { ctrlKey: true }), AREA)).toEqual({ type: "layer", action: "lock" });
     expect(canvasKeyAction(key("h", { ctrlKey: true }), AREA)).toEqual({ type: "layer", action: "hide" });
     expect(canvasKeyAction(key("F2"), GRID)).toEqual({ type: "rename" });
+    expect(canvasKeyAction(key("O", { ctrlKey: true, shiftKey: true }), GRID)).toEqual({ type: "move-out" });
     expect(canvasKeyAction(key("F2"), { ...GRID, typing: true })).toBeNull();
   });
 });

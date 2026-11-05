@@ -94,4 +94,25 @@ describe("Layers", () => {
     expect(within(screen.getByRole("region", { name: "Layers" })).getByRole("status").textContent).toContain("can’t go into itself");
     expect(group.getAttribute("data-drop")).toBeNull();
   });
+  it("moves a grouped item out of its group from the layer menu, as one step", async () => {
+    const inner: DisplayItem[] = [{ ...defaultItem("Group"), Name: "Panel", IsExpanded: true, DisplayItems: [{ ...defaultItem("Text"), Name: "Inner", X: 5, Y: 5 }] }];
+    const grouped = storeItems(base, openCanvas(base).profile, inner);
+    const gzone = { ...zone, canvas: grouped } as Placement & { canvas: StoredCanvas };
+    const setConfig = vi.fn();
+    render(
+      <ToastProvider>
+        <HostedEditor tab="layers" zone={gzone} setConfig={setConfig} history={history} profileId="p1" />
+      </ToastProvider>,
+    );
+    fireEvent.click(row("Inner"));
+    fireEvent.contextMenu(row("Inner"), { clientX: 10, clientY: 10 });
+    const menu = await screen.findByTestId("layer-menu");
+    fireEvent.click(within(menu).getByRole("menuitem", { name: /Move to group/ }));
+    fireEvent.click(await screen.findByRole("menuitem", { name: /Move out of group/ }));
+
+    expect(setConfig).toHaveBeenCalledTimes(1);
+    const next = setConfig.mock.calls[0][0](withCanvas(config, "z", grouped)) as DashboardConfig;
+    const saved = readStored(next.profiles[0].pages[0].placements[0].canvas).items;
+    expect(saved.map((i) => i.Name)).toEqual(["Panel", "Inner"]);
+  });
 });

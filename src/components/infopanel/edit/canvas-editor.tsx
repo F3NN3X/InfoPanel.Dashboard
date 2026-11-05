@@ -412,6 +412,8 @@ export default function CanvasEditorView({ zone, setConfig, history, shell, hidd
           return ed.group();
         case "ungroup":
           return ed.ungroup();
+        case "move-out":
+          return latest.current.layers.menu.moveOut?.run();
         case "remove":
           return ed.remove();
         case "nudge":

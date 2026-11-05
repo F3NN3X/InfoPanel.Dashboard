@@ -1,5 +1,5 @@
 /**
- * The canvas zone editor's keys (spec §7): Ctrl+D duplicate, Ctrl+G group, Ctrl+Shift+G ungroup, Ctrl+] / Ctrl+[
+ * The canvas zone editor's keys (spec §7): Ctrl+D duplicate, Ctrl+G group, Ctrl+Shift+G ungroup, Ctrl+Shift+O move out of its group, Ctrl+] / Ctrl+[
  * forward / backward (with Shift to the front / back), Ctrl+L lock, Ctrl+H hide, F2 rename (Edit v3 SPEC §14, the layer
  * menu's keys), Ctrl+Shift+S save as component, Del delete, arrows nudge 1 px (Shift: 10 px; by cells on a page
  * with a grid), Esc closes the Export check, clears the selection, then leaves a free area. While the editor is open the studio's zone shortcuts are held back ("block"), apart
@@ -10,7 +10,7 @@ import { shortcutAction, type KeyInput } from "@/components/studio/use-studio-sh
 import type { LayerAction } from "@/lib/page-model/layer-actions";
 
 export type CanvasKeyAction =
-  | { type: "duplicate" | "group" | "ungroup" | "component" | "remove" | "escape" | "block" | "forward" | "backward" | "rename" }
+  | { type: "duplicate" | "group" | "ungroup" | "component" | "remove" | "escape" | "block" | "forward" | "backward" | "rename" | "move-out" }
   /** A layer menu action with its own key (front, back, lock, hide). */
   | { type: "layer"; action: LayerAction }
   | { type: "nudge"; dx: number; dy: number }
@@ -31,6 +31,7 @@ export function canvasKeyAction(e: KeyInput, ctx: { typing: boolean; overlay: bo
   const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
   if (mod && !e.altKey && e.shiftKey && key === "s") return { type: "component" };
   if (mod && !e.altKey && key === "d" && !e.shiftKey) return { type: "duplicate" };
+  if (mod && !e.altKey && e.shiftKey && key === "o") return { type: "move-out" };
   if (mod && !e.altKey && key === "g") return { type: e.shiftKey ? "ungroup" : "group" };
   if (mod && !e.altKey && e.shiftKey && (e.code === "BracketRight" || key === "}")) return { type: "layer", action: "front" };
   if (mod && !e.altKey && e.shiftKey && (e.code === "BracketLeft" || key === "{")) return { type: "layer", action: "back" };
