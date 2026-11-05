@@ -89,6 +89,7 @@ import { PreviewDataProvider, usePreviewData } from "@/hooks/use-preview-data";
 import { DOCKED_MIN_WIDTH, sheetHeight } from "./studio-layout";
 import { saveChip } from "./editor/save-chip";
 import { useStepNames } from "./use-step-names";
+import { useStepUndo } from "./use-step-undo";
 import { allSections, widgetContext } from "./inspector-model";
 import { zoneName } from "./inspector/zone-meta";
 import { dataOf, setAsBackground, type StudioBridge } from "@/components/library/library-actions";
@@ -291,28 +292,17 @@ function StudioViewBody({
   const menus = useContextMenu(sel);
   // Undo and Redo name the step, in Edit: a toast says what happened and offers the way back, and the restored setting lights up.
   const steps = useStepNames(history, ui.mode === "design");
-  const undoStep = () => {
-    if (ui.mode !== "design") return history.undo();
-    const step = steps.undo;
-    history.undo();
-    showStep("Undid", step, redoStep);
-  };
-  const redoStep = () => {
-    if (ui.mode !== "design") return history.redo();
-    const step = steps.redo;
-    history.redo();
-    showStep("Redid", step, undoStep);
-  };
-  const showStep = (verb: "Undid" | "Redid", step: typeof steps.undo, back: () => void) => {
-    toast(steps.kit ? steps.kit.stepSentence(verb, step) : `${verb} the last change`, { action: { label: verb === "Undid" ? "Redo" : "Undo", onClick: back }, ms: 6000 });
-    const at = step?.target;
-    if (!at) return;
-    const page = history.latest.current.profiles.find((p) => p.id === at.profileId)?.pages.find((p) => p.id === at.pageId);
-    if (!page?.placements.some((p) => p.id === at.zoneId)) return;
-    pendingSetting.current = at.key ?? null;
-    openZone(at.profileId, at.pageId, at.zoneId);
-  };
-  const stepHistory = { ...history, undo: undoStep, redo: redoStep };
+  const stepUndo = useStepUndo({
+    history,
+    steps,
+    design: ui.mode === "design",
+    toast,
+    jump: (at) => {
+      pendingSetting.current = at.key ?? null;
+      openZone(at.profileId, at.pageId, at.zoneId);
+    },
+  });
+  const stepHistory = { ...history, undo: stepUndo.undo, redo: stepUndo.redo };
   const { runCommand, commands, focusZone } = useStudioCommands({
     config,
     profile,
@@ -1488,8 +1478,8 @@ function StudioViewBody({
         canRedo={history.canRedo}
         undoName={steps.undo?.text}
         redoName={steps.redo?.text}
-        onUndo={undoStep}
-        onRedo={redoStep}
+        onUndo={stepUndo.undo}
+        onRedo={stepUndo.redo}
         onPalette={() => ui.setPaletteOpen(true)}
       />}
       {/* The canvas editor brings its own shell (same slots and widths): in Edit on a Free page or a free area. */}

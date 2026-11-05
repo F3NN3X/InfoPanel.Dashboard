@@ -16,7 +16,14 @@ export interface StepName {
 /** Keys that change with an edit but are not one. */
 const SKIPPED = new Set(["updatedAt"]);
 
-const same = (a: unknown, b: unknown) => a === b || JSON.stringify(a) === JSON.stringify(b);
+/** Equal by value, shared parts first: snapshots keep what did not change, so most of a page is met by identity and never walked. */
+function same(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  if (typeof a !== "object" || typeof b !== "object" || !a || !b || Array.isArray(a) !== Array.isArray(b)) return false;
+  const [x, y] = [a as Record<string, unknown>, b as Record<string, unknown>];
+  const keys = Object.keys(x).filter((k) => x[k] !== undefined);
+  return keys.length === Object.keys(y).filter((k) => y[k] !== undefined).length && keys.every((k) => same(x[k], y[k]));
+}
 
 /** The keys of two records that differ. */
 function changedKeys(a: object | undefined, b: object | undefined): string[] {
