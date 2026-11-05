@@ -1,13 +1,14 @@
 import { Menu } from "@base-ui/react/menu";
 import { useState, type ReactNode } from "react";
-import { ChevronRight, FileInput, FileOutput, MoreHorizontal, Pencil, Play, Radio, Redo2, Save, Search, Undo2 } from "lucide-react";
+import { Check, ChevronRight, FileInput, FileOutput, MoreHorizontal, Pencil, Play, Radio, Redo2, Save, Search, Undo2 } from "lucide-react";
 import { FOCUS_RING } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
 import { StatusDot } from "@/components/ui/status-chip";
 import { isTauri } from "@/lib/desktop";
 import type { ControlKiosk, ControlState } from "@/lib/control";
-import type { MonitorProfile } from "@/lib/layout";
+import type { MadeFor, MonitorProfile } from "@/lib/layout";
 import { cn } from "@/lib/utils";
+import { MADE_FOR } from "./editor/file-menu-model";
 import type { SaveChip } from "./editor/save-chip";
 import { LiveControl } from "./live-popover";
 import { RenameInput } from "./rename-input";
@@ -52,6 +53,9 @@ interface StudioTopBarProps {
   onExport: () => void;
   /** The Import door (a phone's menu). */
   onImport: () => void;
+  /** The screen's Made for, and its setter (a phone's menu; the File menu holds it elsewhere). */
+  madeFor: MadeFor;
+  onMadeFor: (value: MadeFor) => void;
   /** The File menu. */
   fileMenu?: ReactNode;
   canUndo: boolean;
@@ -80,7 +84,9 @@ function MoreMenu({
   onRedo,
   onLiveOpenChange,
   onSave,
-}: Pick<StudioTopBarProps, "onExport" | "onImport" | "canUndo" | "canRedo" | "onUndo" | "onRedo" | "onLiveOpenChange" | "onSave">) {
+  madeFor,
+  onMadeFor,
+}: Pick<StudioTopBarProps, "onExport" | "onImport" | "canUndo" | "canRedo" | "onUndo" | "onRedo" | "onLiveOpenChange" | "onSave" | "madeFor" | "onMadeFor">) {
   return (
     <Menu.Root>
       <Menu.Trigger
@@ -102,6 +108,16 @@ function MoreMenu({
             <Menu.Item className={ITEM} onClick={onSave}>
               <Save className="h-3.5 w-3.5" /> Save now
             </Menu.Item>
+            <Menu.Separator className={SEPARATOR} />
+            <Menu.Group>
+              <Menu.GroupLabel className="px-2 pb-1 pt-1.5 text-micro text-ui-hint">Made for</Menu.GroupLabel>
+              {MADE_FOR.map((m) => (
+                <Menu.Item key={m.value} role="menuitemradio" aria-checked={m.value === madeFor} className={ITEM} onClick={() => m.value !== madeFor && onMadeFor(m.value)}>
+                  <span className="grid h-3.5 w-3.5 shrink-0 place-items-center">{m.value === madeFor && <Check className="h-3.5 w-3.5 text-ui-accent-text" />}</span>
+                  {m.label}
+                </Menu.Item>
+              ))}
+            </Menu.Group>
             <Menu.Separator className={SEPARATOR} />
             <Menu.Item className={ITEM} onClick={() => onLiveOpenChange(true)}>
               <Radio className="h-3.5 w-3.5" /> Live control…
@@ -224,13 +240,13 @@ export function StudioTopBar(props: StudioTopBarProps) {
             title={saved.tip}
             aria-label={saved.text}
             className={cn(
-              "flex h-7 min-w-0 shrink items-center gap-2 whitespace-nowrap rounded-ui-md px-1.5 text-caption transition-colors hover:bg-ui-hover max-[959px]:hidden",
+              "flex h-7 min-w-0 shrink items-center gap-2 whitespace-nowrap rounded-ui-md px-1.5 text-caption transition-colors hover:bg-ui-hover",
               FOCUS_RING,
               saved.tone === "danger" ? "text-ui-danger" : saved.tone === "warn" ? "text-ui-warn" : "text-ui-2"
             )}
           >
             <StatusDot tone={saved.tone} />
-            <span role="status" className="min-w-0 truncate">
+            <span role="status" className="min-w-0 truncate max-[959px]:sr-only">
               {saved.text}
             </span>
           </button>

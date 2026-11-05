@@ -6,7 +6,7 @@ import { BLANK_MODULE } from "@/lib/layout";
 import { blankSensorRule } from "@/lib/alert-presets";
 import { useToast } from "@/components/ui/toast";
 import { allLocked } from "@/lib/theme-model";
-import type { DashboardConfig, ProfileView } from "@/lib/layout";
+import type { DashboardConfig, MadeFor, ProfileView } from "@/lib/layout";
 import type { HistorySetter } from "@/hooks/use-config-history";
 import type { Appearance } from "@/lib/style-resolve";
 import { addRule, alertsKey } from "./alerts-model";
@@ -48,6 +48,8 @@ interface CommandDeps {
   onHelp: () => void;
   /** Open the Export check in the inspector (palette: Export check). */
   onExportCheck: () => void;
+  /** Set the screen's Made for (palette). */
+  onMadeFor: (value: MadeFor) => void;
 }
 
 /**
@@ -70,6 +72,7 @@ export function useStudioCommands({
   onSelectProfile,
   onHelp,
   onExportCheck,
+  onMadeFor,
 }: CommandDeps) {
   const { selected, selectedWidget } = sel;
   const toast = useToast();
@@ -181,6 +184,8 @@ export function useStudioCommands({
         return openExportSheet();
       case "export-check":
         return onExportCheck();
+      case "made-for":
+        return onMadeFor(action.value);
       case "import":
         return openImportDoor();
       case "convert":
@@ -351,6 +356,7 @@ export function useStudioCommands({
         appearancePresets: appearancePresets.presets,
         themeLevel,
         exportCheck: madeForInfoPanel(config.profiles.find((p) => p.id === profile.id) ?? config.profiles[0]),
+        madeFor: madeForInfoPanel(config.profiles.find((p) => p.id === profile.id) ?? config.profiles[0]) ? "infopanel" : "studio",
       })
     : [];
 

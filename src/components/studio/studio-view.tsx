@@ -318,6 +318,7 @@ function StudioViewBody({
     onSelectProfile: selectProfile,
     onHelp: () => void openHelp(helpTarget()).catch(() => {}),
     onExportCheck: () => openExportCheck(),
+    onMadeFor: (value) => setMadeFor(value),
   });
   /** Sensor names for widget names (toolbar crumb, palette). */
   const catalog = useSensorCatalog();
@@ -1460,6 +1461,8 @@ function StudioViewBody({
         onSave={ui.handleSave}
         onExport={() => openExportSheet()}
         onImport={() => openImportDoor()}
+        madeFor={checkOn ? "infopanel" : "studio"}
+        onMadeFor={setMadeFor}
         fileMenu={
           <Suspense fallback={<div className="h-8 w-[72px] shrink-0 rounded-ui-md border border-ui-strong bg-ui-raised" />}>
             <FileMenu
