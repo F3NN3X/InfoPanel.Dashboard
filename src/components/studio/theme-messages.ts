@@ -23,7 +23,7 @@ export interface AppliedOutcome {
   widgets: number;
 }
 
-const REPLACED: Record<ThemeLevel, string> = { screen: "Replaced this screen's look", page: "Replaced this page's look" };
+const REPLACED: Record<ThemeLevel, string> = { screen: "Replaced this screen's theme", page: "Replaced this page's theme" };
 
 /** The toast after a theme is applied (SPEC §5.4). */
 export function appliedToast(name: string, level: ThemeLevel, outcome: AppliedOutcome, screen: string): ToastText {
@@ -37,7 +37,7 @@ export function appliedToast(name: string, level: ThemeLevel, outcome: AppliedOu
           ? "Palette, skin, corners and background changed."
           : "Palette, skin and corners changed. Background kept.";
   const keptText = kept > 0 ? ` ${kept} fine-tune ${kept === 1 ? "change" : "changes"} kept.` : "";
-  const widgetText = widgets > 0 ? ` ${widgets} ${widgets === 1 ? "widget keeps its" : "widgets keep their"} own look.` : "";
+  const widgetText = widgets > 0 ? ` ${widgets} ${widgets === 1 ? "widget keeps its" : "widgets keep their"} own style.` : "";
   return { title: `Applied ${name}.`, sub: `${parts}${keptText}${widgetText}` };
 }
 
@@ -51,7 +51,7 @@ export const paletteToast = (name: string): ToastText => ({ title: `Palette chan
 
 /** A Look picked in the gallery: the level keeps its own values (a page's palette, corners and background are its screen's). */
 export const lookToast = (name: string, level: ThemeLevel, background: boolean, screen: string): ToastText => ({
-  title: `Look changed to ${name}.`,
+  title: `Theme changed to ${name}.`,
   sub:
     level === "page"
       ? `Your fine-tune changes kept. ${pageParts(screen)}`

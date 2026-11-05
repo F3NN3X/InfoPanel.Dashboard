@@ -1,3 +1,4 @@
+import { parseColour } from "@/looks/colour";
 import { resolveT1, type Look, type LookMode } from "@/looks/look";
 import { accentInk, contrastOf } from "@/looks/status";
 
@@ -13,15 +14,23 @@ export const TEXT_MIN = 4.5;
 export function cardColour(look: Look | undefined, mode: LookMode | undefined, fallback: string): string {
   if (!look) return fallback;
   try {
-    const surface = resolveT1(look, mode ?? look.modes.supported[0]).surface;
-    return contrastOf(surface, "#000000") === undefined ? fallback : surface;
+    return hexOf(resolveT1(look, mode ?? look.modes.supported[0]).surface) ?? fallback;
   } catch {
     return fallback;
   }
 }
 
-/** Whether a card colour is light (its text goes dark). */
-export const isLightCard = (card: string): boolean => (contrastOf(card, "#ffffff") ?? 21) < (contrastOf(card, "#000000") ?? 21);
+/** An opaque colour as `#rrggbb` (written as hex, rgb or hsl); undefined for any other CSS colour or one with an alpha. */
+const hexOf = (v: unknown): string | undefined => {
+  const c = typeof v === "string" ? parseColour(v) : undefined;
+  return c?.hex !== undefined && c.alpha === 1 ? c.hex : undefined;
+};
+
+/** Whether a card colour is light, so its text goes dark (more contrast against black than against white). */
+export function isLightCard(card: string): boolean {
+  const [r, g, b] = [1, 3, 5].map((k) => parseInt(card.slice(k, k + 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.179;
+}
 
 export interface AccentReadout {
   ratio: number;
@@ -65,8 +74,6 @@ export interface RoleRow {
   /** The setting keys a dot's Reset clears. */
   keys: readonly string[];
 }
-
-const hexOf = (v: unknown): string | undefined => (typeof v === "string" && contrastOf(v, "#000000") !== undefined ? v : undefined);
 
 /**
  * The Colours section's role rows: each colour as the level shows it (its own value, else the theme's) with its ratio on

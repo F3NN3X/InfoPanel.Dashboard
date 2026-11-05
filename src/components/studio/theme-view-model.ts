@@ -19,7 +19,7 @@ export type ThemeDrill = "main" | "themes" | "palette" | "background";
 
 /** The level help beside the level control; a page adds where its parts come from. */
 export function levelHelp(level: ThemeLevel, screen: string, page: string): string {
-  if (level === "screen") return `The look of ${screen}`;
+  if (level === "screen") return `The theme of ${screen}`;
   return `What ${page} changes from ${screen}. ${pageParts(screen)}`;
 }
 
@@ -57,7 +57,7 @@ export function cardKind(state: ThemeState): CardKind {
 
 /** The theme card's name: the theme's, "‹name› (deleted)", or "Custom look". */
 export function cardName(state: ThemeState): string {
-  if (!state.applied) return "Custom look";
+  if (!state.applied) return "Custom theme";
   if (state.deleted) return `${state.applied.name} (deleted)`;
   return state.theme?.name ?? state.applied.name;
 }
@@ -80,7 +80,7 @@ export function kindLine(state: ThemeState, others: readonly ThemeUse[], levelNa
     case "template":
       return `From a screen template · applied to ${levelName}`;
     case "saved":
-      return others.length === 0 ? "Saved look · only here" : `Saved look · also on ${placesText(others)}`;
+      return others.length === 0 ? "Saved theme · only here" : `Saved theme · also on ${placesText(others)}`;
   }
 }
 
@@ -104,7 +104,7 @@ export const themeCounts = (saved: number, rows: readonly TemplateThemeRow[]): s
 
 /** The template group's heading: "FROM SCREEN TEMPLATES · 22 TEMPLATES, 55 LOOKS". */
 export const templatesHeading = (rows: readonly TemplateThemeRow[]): string =>
-  `From screen templates · ${rows.length} templates, ${rows.reduce((n, r) => n + r.presets.length, 0)} looks`;
+  `From screen templates · ${rows.length} templates, ${rows.reduce((n, r) => n + r.presets.length, 0)} themes`;
 
 /** A template row's tag: "Starter", "3 variants", "4 variants · also Orbit, Ticker". */
 export function rowTag(row: TemplateThemeRow): string {

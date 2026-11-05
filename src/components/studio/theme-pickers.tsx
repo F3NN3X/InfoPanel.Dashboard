@@ -100,8 +100,8 @@ export function SwitchThemePicker(p: SwitchThemeProps) {
   const apply = (preset: AppearancePreset) => p.onApply(preset, keep);
   return (
     <PickerShell
-      title="Saved and template looks"
-      help="A look sets the colors, the Look, corners and background. The first one on a screen or page replaces its look; after that, picking one keeps your fine-tune changes."
+      title="Saved and template themes"
+      help="A theme sets the colors, the look of the widgets, corners and background. The first one on a screen or page replaces its theme; after that, picking one keeps your fine-tune changes."
       onBack={p.onBack}
       footer={
         <>
@@ -140,7 +140,7 @@ export function SwitchThemePicker(p: SwitchThemeProps) {
             {saving ? (
               <ThemeNameInput
                 initial=""
-                label="Look name"
+                label="Theme name"
                 onDone={(name) => {
                   setSaving(false);
                   if (name) p.onSaveCurrent(name);
@@ -155,7 +155,7 @@ export function SwitchThemePicker(p: SwitchThemeProps) {
         </>
       }
     >
-      <div role="group" aria-label="Filter looks" className="flex gap-1.5 px-4 pb-1">
+      <div role="group" aria-label="Filter themes" className="flex gap-1.5 px-4 pb-1">
         {FILTERS.map((f) => (
           <button
             key={f.id}
@@ -173,8 +173,8 @@ export function SwitchThemePicker(p: SwitchThemeProps) {
       </div>
       {shown.saved && (
         <>
-          <h3 className={HEADING}>Saved looks · {shown.saved.length}</h3>
-          {shown.saved.length === 0 && <p className="px-4 pb-2 text-caption text-ui-hint">Looks you save appear here.</p>}
+          <h3 className={HEADING}>Saved themes · {shown.saved.length}</h3>
+          {shown.saved.length === 0 && <p className="px-4 pb-2 text-caption text-ui-hint">Themes you save appear here.</p>}
           {shown.saved.map((t) => (
             <div key={t.id}>
               <div className="flex items-center gap-3 px-4 py-2 hover:bg-ui-hover">
@@ -182,7 +182,7 @@ export function SwitchThemePicker(p: SwitchThemeProps) {
                 {renaming === t.id ? (
                   <ThemeNameInput
                     initial={t.name}
-                    label="Look name"
+                    label="Theme name"
                     onDone={(name) => {
                       setRenaming(undefined);
                       if (name) p.onRename(t.id, name);

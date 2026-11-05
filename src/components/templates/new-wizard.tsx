@@ -170,7 +170,7 @@ export function NewWizard(p: NewWizardProps) {
         </button>
         {narrow && (
           <button type="button" onClick={() => p.onStep(step === 0 ? 1 : 0)} className={OUTLINE}>
-            {step === 0 ? "Adjust size and look" : "Back"}
+            {step === 0 ? "Adjust size and theme" : "Back"}
           </button>
         )}
         <button type="submit" disabled={!p.canCreate} className={PRIMARY}>

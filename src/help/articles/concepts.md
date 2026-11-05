@@ -37,4 +37,4 @@ A widget you compose from small **panel widgets** (stat, gauge, bar, clock, imag
 
 ## How looks are decided
 
-Looks flow downward. A widget follows its page, which follows its screen, unless you customize a section on the widget itself. Content (which sensor, what to show) always belongs to the widget. See [Themes](themes).
+Themes flow downward. A widget follows its page, which follows its screen, unless you customize a section on the widget itself. Content (which sensor, what to show) always belongs to the widget. See [Themes](themes).

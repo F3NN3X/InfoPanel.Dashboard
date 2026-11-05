@@ -192,7 +192,7 @@ export function ExportSheet({ open, request, config, screen, pageName, pageCanva
               id="screen"
               icon={Monitor}
               title="Export this screen"
-              detail={`${target.name} with its pages and own look · .json`}
+              detail={`${target.name} with its pages and own theme · .json`}
               picked={request.row === "screen"}
               copy={keep(screenFile)}
               copied={copied === "screen"}

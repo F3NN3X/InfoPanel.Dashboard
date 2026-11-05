@@ -63,7 +63,7 @@ With them are 17 templates that copy the look of the InfoPanel profile templates
 - A template comes at the size its card shows: **Status bar** at 1280 × 160, **Tower** at 480 × 1920, General at 1024 × 600. **Blank grid** starts at 1024 × 600, or at the size of the screen you are editing when that is one of the presets. The size you'd get is marked with a star in **Size**, and the line above it says **Follows** and the template's name.
 - **Size** lists the panel sizes by shape, with the panel each one is in its tooltip. Type any width and height under **Custom**: whole pixels from 1 to 8192. Once you pick or type a size yourself it says **Set by you**, and picking another template keeps your size. **Use** and the template's size goes back to it.
 - A template can be made at any size. At a shape it isn't made for, a note says how its widgets are squeezed, with **Use its own size** to go back, and the cards that don't fit your size are tagged, for example **Tall only**.
-- The template brings its look as the screen's own: colors, background, widget skin and effects. Change them in **Look** with the screen as the level.
+- The template brings its theme as the screen's own: colors, background, widget skin and effects. Change them in **Theme** with the screen as the level.
 - Every template has a size it is made for, and its text and readings are sized for that size. At a smaller or larger size they shrink or grow with it (down to 60 % and up to 160 % of their size), so a template no longer overflows on a small panel or looks tiny on a big one.
 - The grid is split to suit the size. A strip twice as long for its height gets twice the columns, so widgets keep their shape and the ones you add later get sensible boxes.
 - Widgets that read one sensor, such as Minimal's three readings, find this PC's sensor for it. A reading that isn't found is named in the message after **Create**; pick its sensor in the inspector.
@@ -73,7 +73,7 @@ The first-run setup's **Start from a template** offers the same templates at the
 
 ## Screen settings
 
-Select a screen's card in **Screens**. The panel on the right holds the settings of that screen. The look is in **Look** on the rail.
+Select a screen's card in **Screens**. The panel on the right holds the settings of that screen. The theme is in **Theme** on the rail.
 
 | Group | What it does |
 |---|---|
@@ -84,7 +84,7 @@ Select a screen's card in **Screens**. The panel on the right holds the settings
 | **Performance** | The frame-rate cap, **Animations** and the rendering switches (**Ring glides**, **Limit blur**, **Blur inside widgets**, **Live graph glow**) for this screen. The chip says whether they are the built-in values or changed here. |
 | **Pages · order & rotation** | **Add page**, drag a page's handle to reorder it (the page tabs follow), switch it in or out of the rotation, or **Open** it in Edit. |
 
-The Look, colors and background are in **Look**: pick the screen at the top and pick a Look, turn a knob or change a fine-tune section to give this screen its own. See [Themes](themes#the-look-view).
+The theme, colors and background are in **Theme**: pick the screen at the top and pick a theme, turn a quick change or change a fine-tune section to give this screen its own. See [Themes](themes#the-theme-view).
 
 ## Pages
 

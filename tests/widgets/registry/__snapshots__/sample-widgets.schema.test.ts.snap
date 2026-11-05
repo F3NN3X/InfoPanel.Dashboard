@@ -60,7 +60,7 @@ exports[`AudioMeter > files its rows as drawn 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -174,7 +174,7 @@ exports[`CpuMonitor > files its rows as drawn 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -322,7 +322,7 @@ exports[`NowPlaying > files its rows as drawn 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -448,7 +448,7 @@ exports[`SensorGroup > files its rows as drawn 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -546,7 +546,7 @@ exports[`SteamProfile > files its rows as drawn 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -715,7 +715,7 @@ exports[`SystemOverview > files its rows as drawn 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -814,7 +814,7 @@ exports[`Uptime > files its rows as drawn 1`] = `
   "Data (disabled)": [],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -949,7 +949,7 @@ exports[`Weather > files its rows as drawn 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",

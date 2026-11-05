@@ -107,7 +107,7 @@ export function PalettePicker(p: PalettePickerProps) {
       </div>
     )),
     ...p.themes.map((t) => (
-      <Tile key={t.id} name={t.name} tag="Look" selected={same(t)} onPick={() => p.onPick(t.name, t)}>
+      <Tile key={t.id} name={t.name} tag="Theme" selected={same(t)} onPick={() => p.onPick(t.name, t)}>
         <PaletteSwatch tokens={t.tokens} accent={t.accent} />
       </Tile>
     )),
@@ -116,7 +116,7 @@ export function PalettePicker(p: PalettePickerProps) {
   return (
     <PickerShell
       title="Colors"
-      help="The 19 color tokens and the accent. Changing them keeps the Look, corners, background and the rest of the fine-tune."
+      help="The 19 color tokens and the accent. Changing them keeps the theme, corners, background and the rest of the fine-tune."
       onBack={p.onBack}
       footer={
         <div className="flex items-center gap-3 text-caption">

@@ -115,7 +115,7 @@ describe("widget sections", () => {
   it("files the look sections in Style, the widget's colors merged into Colors", () => {
     const style = sectionsFor(system, "style");
     expect(titles(style)).toEqual([
-      "Look",
+      "Theme",
       "Colors",
       "Typography",
       "Shape & spacing",
@@ -263,7 +263,7 @@ describe("panel sections", () => {
 
   it("has the same look sections as a widget, lists its sensors in Data and its graph updates in Behaviour", () => {
     expect(titles(sectionsFor(panel, "style"))).toEqual([
-      "Look",
+      "Theme",
       "Colors",
       "Typography",
       "Shape & spacing",
@@ -288,7 +288,7 @@ describe("blank zone and several zones", () => {
   it("shows only the shared look sections for several zones", () => {
     const sections = sectionsFor({ kind: "multi", defs: spotify.kind === "widget" ? spotify.defs : [] });
     expect(titles(sections)).toEqual([
-      "Look",
+      "Theme",
       "Colors",
       "Typography",
       "Shape & spacing",
@@ -309,7 +309,7 @@ describe("theme editor sections", () => {
   it("files Style with Status & series colors after Colors, Data = Units & format, Behaviour = Thresholds + Motion", () => {
     expect(sectionsFor(theme, "show")).toEqual([]);
     expect(titles(sectionsFor(theme, "style"))).toEqual([
-      "Look",
+      "Theme",
       "Colors",
       "Status & series colors",
       "Typography",

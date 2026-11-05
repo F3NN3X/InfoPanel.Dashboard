@@ -31,7 +31,7 @@ const LICENCE_NAME = /^(LICEN[CS]E(\.txt)?|OFL)$/;
 /** What each rule means to someone who has not read the spec; a rule not here gives its own message. */
 const PLAIN: Record<string, string> = {
   "user-css": "A pack cannot bring its own stylesheet (pack.css) unless every rule in it paints a documented part with plain colours.",
-  provenance: "This pack takes the id or a font name of a built-in Look. Give it its own.",
+  provenance: "This pack takes the id or a font name of a built-in theme. Give it its own.",
   injection: "A value holds markup or a link; look.json and pack.json hold plain values only.",
   "remote-url": "A file is fetched from another address. A pack holds all its files itself.",
   "script-url": "A file is a script address, which a pack may not use.",

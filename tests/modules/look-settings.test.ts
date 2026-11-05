@@ -48,9 +48,9 @@ describe("look settings", () => {
     }
   });
 
-  it("file under Look in Style, with graph and meter behind More, and graph updates in Motion", () => {
+  it("file under Theme in Style, with graph and meter behind More, and graph updates in Motion", () => {
     const categories = categorize(STANDARD_SETTINGS);
-    const skin = categories.find((c) => c.title === "Look")!;
+    const skin = categories.find((c) => c.title === "Theme")!;
     expect(skin.general).toBe(true);
     expect(skin.defs.map((d) => d.key)).toEqual(["lookId", "graph", "meter", "stroke"]);
     expect(categoryTab(skin)).toBe("style");

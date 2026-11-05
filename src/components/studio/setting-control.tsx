@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Ban } from "lucide-react";
 import { IconGrid, type IconGridItem } from "@/components/ui/icon-grid";
 import type { ApiSources } from "@/lib/catalog";
@@ -25,6 +26,9 @@ import { SensorField } from "./widget-editor/sensor-field";
 import { SensorListField } from "./widget-editor/sensor-list-field";
 import { StreamDeckDevicePicker, StreamDeckGridPicker } from "./streamdeck-pickers";
 import { ThresholdsRow } from "./thresholds-control";
+
+/** The theme list: every theme of Browse, its own chunk (the gallery model and the theme packs' names stay out of the studio entry). */
+const WidgetThemeSelect = lazy(() => import("./widget-theme-select"));
 
 /** The icon grid's cells: "none" first, then every widget icon. */
 const ICONS: IconGridItem[] = [
@@ -209,6 +213,15 @@ export function SettingRow({
       // hook, so a dedicated component owns it.
       if (def.optionsFrom === "media") {
         return <MediaDevicePicker def={def} value={String(value)} onChange={onChange} lead={lead} hint={hint} />;
+      }
+      // A widget's theme: every theme, not only the 14 skins the widget knows.
+      if (def.key === "lookId") {
+        const now = String(value);
+        return (
+          <Suspense fallback={<SelectRow {...label} options={[{ value: now, label: now }]} value={now} onChange={() => {}} />}>
+            <WidgetThemeSelect label={label} value={now} onChange={onChange} onApply={onApply} />
+          </Suspense>
+        );
       }
       // Wave Link meters: options come from the plugin's live inventory
       // (channels + output devices), so a dedicated component owns it.

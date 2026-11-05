@@ -353,7 +353,7 @@ function resolveAlias(value: string, t3: Record<string, string | number>, t1: Re
   if ((T1_NAMES as readonly string[]).includes(alias)) return { value: t1[alias] };
   if (trail.includes(alias)) return { error: `the aliases ${[...trail, alias].map((n) => `{${n}}`).join(" > ")} loop` };
   const next = Object.hasOwn(t3, alias) ? t3[alias] : undefined;
-  if (typeof next !== "string" || next === "") return { error: `{${alias}} is not a T1 name or a T3 colour this Look sets${alias === "faint" || alias === "track" ? " (the shell's faint and track follow the material's tone: write a colour)" : ""}` };
+  if (typeof next !== "string" || next === "") return { error: `{${alias}} is not a T1 name or a T3 colour this theme sets${alias === "faint" || alias === "track" ? " (the shell's faint and track follow the material's tone: write a colour)" : ""}` };
   return resolveAlias(next, t3, t1, [...trail, alias]);
 }
 
@@ -631,7 +631,7 @@ function validate(src: PackSource, source: "builtin" | "user"): PackIssue[] {
   if (look.id !== pack.id) add("id", "look.json", `look.id ${look.id} is not the pack id ${pack.id}`);
   if (pack.modes.join() !== look.modes.supported.join()) add("modes", "pack.json", "modes differ from look.json modes.supported");
   // a user pack never takes a built-in's id or font family (P12b sets `source` from where the pack was loaded, never from the pack)
-  if (user && LOOK_IDS.includes(pack.id)) add("provenance", "pack.json", `the id ${pack.id} is a built-in Look's: a user pack takes its own`);
+  if (user && LOOK_IDS.includes(pack.id)) add("provenance", "pack.json", `the id ${pack.id} is a built-in theme's: a user pack takes its own`);
   if (user) for (const f of pack.fonts) if (BUILTIN_FONT_FAMILIES.has(f.family)) add("provenance", "pack.json", `the font family ${f.family} is a built-in pack's: a user pack names its own`);
   // a descending weight range is no `@font-face` descriptor (the face would not load); a Look names only faces its own pack brings
   for (const f of pack.fonts) {

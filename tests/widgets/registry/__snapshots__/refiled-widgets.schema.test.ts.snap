@@ -41,7 +41,7 @@ exports[`Achievements > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -139,7 +139,7 @@ exports[`Bluetooth > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -231,7 +231,7 @@ exports[`Calendar > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -336,7 +336,7 @@ exports[`Clock > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -451,7 +451,7 @@ exports[`CodingAgents > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -563,7 +563,7 @@ exports[`CoreHeatmap > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -658,7 +658,7 @@ exports[`CustomGauge > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -753,7 +753,7 @@ exports[`Departures > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -853,7 +853,7 @@ exports[`DiskIO > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -971,7 +971,7 @@ exports[`DriveSpace > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -1072,7 +1072,7 @@ exports[`Fans > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -1177,7 +1177,7 @@ exports[`Forecast > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -1286,7 +1286,7 @@ exports[`FpsMonitor > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -1388,7 +1388,7 @@ exports[`FramePacing > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -1497,7 +1497,7 @@ exports[`GameSpotlight > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -1597,7 +1597,7 @@ exports[`GpuMonitor > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -1698,7 +1698,7 @@ exports[`GpuRings > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -1795,7 +1795,7 @@ exports[`KpiTiles > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -1890,7 +1890,7 @@ exports[`MemoryUsage > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -1997,7 +1997,7 @@ exports[`MenuBar > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -2126,7 +2126,7 @@ exports[`MeterBridge > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -2235,7 +2235,7 @@ exports[`NetworkAdapters > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -2348,7 +2348,7 @@ exports[`NetworkThroughput > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -2457,7 +2457,7 @@ exports[`Notifications > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -2552,7 +2552,7 @@ exports[`OsdStrip > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -2642,7 +2642,7 @@ exports[`PlaytimeShare > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -2743,7 +2743,7 @@ exports[`PowerDraw > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -2843,7 +2843,7 @@ exports[`ProcessList > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -2963,7 +2963,7 @@ exports[`SensorValue > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -3058,7 +3058,7 @@ exports[`ServiceHealth > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -3184,7 +3184,7 @@ exports[`StatusTracker > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -3292,7 +3292,7 @@ exports[`SteamFriends > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -3388,7 +3388,7 @@ exports[`SteamGame > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -3483,7 +3483,7 @@ exports[`SteamLibrary > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -3583,7 +3583,7 @@ exports[`SteamNews > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -3678,7 +3678,7 @@ exports[`StorageHealth > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -3801,7 +3801,7 @@ exports[`StreamDeck > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -3896,7 +3896,7 @@ exports[`SystemStatus > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -3991,7 +3991,7 @@ exports[`TextFile > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -4109,7 +4109,7 @@ exports[`Thermals > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -4216,7 +4216,7 @@ exports[`Timer > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -4334,7 +4334,7 @@ exports[`Visualizer > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -4430,7 +4430,7 @@ exports[`Vitals > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -4591,7 +4591,7 @@ exports[`VolumeMixer > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -4755,7 +4755,7 @@ exports[`WaveLink > files its rows by the rules 1`] = `
   ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
