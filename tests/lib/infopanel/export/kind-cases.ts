@@ -1,7 +1,6 @@
 /**
- * Items and profiles with every field set to a valid, non-default value: the input of the per-kind export test
- * (kinds.test.ts) and of the import-check script (lab/infopanel/scripts/import-check.mts), which hands the same files
- * to InfoPanel's own reader. Relative imports and no TypeScript-only syntax beyond types, because Node runs it directly.
+ * Items and profiles with every field set to a valid, non-default value: what the per-kind parse test (kinds.test.ts)
+ * expects to read back from `__fixtures__/kinds/*.xml`. A new schema field needs its fixture edited by hand.
  */
 import { groupItems, moveItems } from "../../../../src/lib/infopanel/editor/groups.ts";
 import { checkValue } from "../../../../src/lib/infopanel/editor/registry.ts";
@@ -29,7 +28,7 @@ const STRINGS: Record<string, string> = {
 };
 
 /** A valid value the field's default is not, or undefined when the setter leaves no other. */
-export function otherValue(kind: string, name: string, spec: FieldSpec<unknown>): unknown {
+function otherValue(kind: string, name: string, spec: FieldSpec<unknown>): unknown {
   const d = spec.default;
   const candidates: unknown[] = (() => {
     switch (spec.kind) {
@@ -79,7 +78,7 @@ export function fullItem(kind: ItemKind): DisplayItem {
 }
 
 /** A frame of a gauge: an Image with every field set. */
-export function fullFrame(n: number): ImageItem {
+function fullFrame(n: number): ImageItem {
   return { ...(fullItem("Image") as ImageItem), Name: `frame ${n}`, FilePath: `frame-${String(n).padStart(3, "0")}.png`, unknown: unknown(`Frame${n}`) };
 }
 
@@ -97,7 +96,7 @@ export function fullProfile(): Profile {
 }
 
 /** The asset names a tree's images name, so a fixture can carry files for them. */
-export function assetNames(items: readonly DisplayItem[]): string[] {
+function assetNames(items: readonly DisplayItem[]): string[] {
   const names = new Set<string>();
   const walk = (list: readonly DisplayItem[]) => {
     for (const item of list) {
@@ -111,13 +110,13 @@ export function assetNames(items: readonly DisplayItem[]): string[] {
 }
 
 /** A 1×1 PNG. */
-export const PNG = Uint8Array.from(Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "base64"));
+const PNG = Uint8Array.from(Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "base64"));
 
 /** A group and a gauge with nothing in them: InfoPanel writes both as `<X />`. */
-export const EMPTY_LISTS = "Kinds-empty";
+const EMPTY_LISTS = "Kinds-empty";
 
 /** Groups two levels deep, made by the editor's own operations. */
-export const NESTED = "Groups-nested";
+const NESTED = "Groups-nested";
 
 /** a b c d e → Inner { b c } → Outer { a Inner } → d moved into Inner, first: Outer { a, Inner { d, b, c } }, e. */
 export function nestedGroups(): DisplayItem[] {

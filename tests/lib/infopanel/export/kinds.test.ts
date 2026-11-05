@@ -7,7 +7,11 @@ import { FIXED_FIELDS, fixtures, fullItem, fullProfile, KINDS, withChildren } fr
 
 const specs = (schema: unknown) => Object.entries(schema as Record<string, FieldSpec<unknown>>);
 
-/** Files InfoPanel's XmlSerializer wrote from `kind-cases.ts` (every field set), read as they are: the parse input is fixed. */
+/**
+ * Files the Studio writer produced once from `kind-cases.ts` (every field set), before the writer was removed (commit
+ * d28cfd0b), read as they are: the parse input is fixed. No external reader checked them, and nothing regenerates them,
+ * so a new schema field needs its fixture edited by hand.
+ */
 const files = import.meta.glob<string>("../__fixtures__/kinds/*.xml", { query: "?raw", import: "default", eager: true });
 const fixture = (name: string): string => files[`../__fixtures__/kinds/${name}.xml`];
 /** What the export carried of the profile: the window state a fresh profile has. */

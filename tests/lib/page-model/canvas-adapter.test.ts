@@ -5,7 +5,7 @@ import { upgradeConfig } from "@/lib/config-upgrade";
 import { describe, expect, it } from "vitest";
 import { importAsProfile } from "@/components/studio/import-actions";
 import { openCanvas } from "@/lib/infopanel/canvas";
-import { openStored } from "@/lib/infopanel/import/session.ts";
+import { buildCanvas, openStored } from "@/lib/infopanel/import/session.ts";
 import { encodeItem, newStored, readStored, type StoredCanvas, type StoredItem } from "@/lib/infopanel/import/stored.ts";
 import { newWidgetItem } from "@/lib/infopanel/native/widget-item";
 import { defaultItem, type DisplayItem } from "@/lib/infopanel/schema.ts";
@@ -18,12 +18,13 @@ import { applyPage, cellRect, findNode, readPage, writePage, type PartNode } fro
 import { applyCanvas, readCanvas } from "@/lib/page-model/canvas-adapter";
 
 const now = new Date("2026-10-25T00:00:00Z");
-/** A template's canvas imported as a screen (no remap, no edits), kept in the config as JSON. */
-function imported(id: string): { config: DashboardConfig } {
+/** A template's canvas imported as a screen through the importer (no remap, no edits), kept in the config as JSON. */
+async function imported(id: string): Promise<{ config: DashboardConfig }> {
   const template = TEMPLATES.find((t) => t.id === id)!;
   const { stored } = instantiate(template, { name: "Desk", width: 800, height: 480, sensors: MOCK_SENSORS, now });
   const fixed = { ...stored, profile: { ...stored.profile, Guid: "5f0c2a52-6c2e-4d0b-9a59-6c1a2f0e0b11" } };
-  const canvas = JSON.parse(JSON.stringify(fixed)) as StoredCanvas;
+  const source = await openStored(JSON.parse(JSON.stringify(fixed)), async () => null);
+  const canvas = buildCanvas({ source, name: "Desk", mode: "infopanel", resolved: new Map(), overrides: new Map(), dataApi: null, uploaded: new Map(), now });
   const placed = importAsProfile({ profiles: [newProfile("Main", 1920, 1080)] } as unknown as DashboardConfig, canvas, "Desk", { width: 800, height: 480 }, false);
   return { config: upgradeConfig(JSON.parse(JSON.stringify(placed.config)) as StoredConfig) };
 }
@@ -39,7 +40,7 @@ const importedProfile = (c: DashboardConfig) => c.profiles.find((p) => p.name ==
 
 describe("an unedited imported profile through the page model (acceptance 2, 11)", () => {
   it.each(TEMPLATES.map((t) => t.id))("%s: opened, Snap items toggled and the grid changed, it holds the profile and items it was imported with", async (id) => {
-    const { config } = imported(id);
+    const { config } = await imported(id);
     const before = await opened(config);
     const profile = importedProfile(config);
     const page = profile.pages[0];
