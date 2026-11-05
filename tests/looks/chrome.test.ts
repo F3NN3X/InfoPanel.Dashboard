@@ -50,6 +50,20 @@ describe("a pack's chrome", () => {
     expect((await loadPack("field-kit"))!.chrome!.page).toBeUndefined();
   });
 
+  it("a page colour written as rgb() and a text colour with an alpha still give the page header its text (M1)", async () => {
+    const paper = (await loadPack("paper"))!;
+    const look = structuredClone(paper.look) as unknown as { modes: { supported: string[] }; t1: Record<string, Record<string, { value: string }>> };
+    const t1 = look.t1[look.modes.supported[0]];
+    const [r, g, b] = [1, 3, 5].map((k) => parseInt(t1.bg.value.slice(k, k + 2), 16));
+    t1.bg.value = `rgb(${r}, ${g}, ${b})`;
+    t1.fg.value = "rgba(0, 0, 0, 0.9)";
+    t1.muted.value = "rgba(0, 0, 0, 0.8)";
+    const chrome = chromeOf(look as never);
+    expect(chrome.ink).toMatch(/^#[\da-f]{6}$/);
+    expect(chrome.page).toBeDefined();
+    expect((chrome.page as Record<string, string>).color).toMatch(/^#[\da-f]{6}$/);
+  });
+
   it("a light pack's overlay plates its bands in the card's colour, on which its text holds; a dark pack's has none", async () => {
     const paper = (await loadPack("paper"))!.chrome!;
     expect(paper.panel.overlay?.vars).toBe(paper.panel.vars);

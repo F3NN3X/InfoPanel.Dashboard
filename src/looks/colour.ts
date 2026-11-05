@@ -34,6 +34,8 @@ export function parseColour(value: string): Colour | undefined {
   if (!Number.isFinite(alpha) || parts.length < 3 || parts.length > 4) return undefined;
   const channels = parts.slice(0, 3).map((p) => parseFloat(p));
   if (!channels.every(Number.isFinite)) return undefined;
+  // parseFloat drops a unit: 0.5turn would read as half a degree, so a hue with a unit other than deg is not read
+  if (fn[1].startsWith("hsl") && !/^[-+]?(\d+\.?\d*|\.\d+)(e[-+]?\d+)?(deg)?$/.test(parts[0])) return undefined;
   const [r, g, b] = fn[1].startsWith("hsl") ? hslToRgb(channels[0], channels[1], channels[2]) : parts.slice(0, 3).map((p, k) => (p.endsWith("%") ? (channels[k] * 255) / 100 : channels[k]));
   return { hex: `#${byte(r)}${byte(g)}${byte(b)}`, alpha: Math.max(0, Math.min(1, alpha)) };
 }
@@ -44,9 +46,12 @@ export function over(hex: string, alpha: number, under: string): string {
   return `#${a.map((c, k) => byte(c * alpha + b[k] * (1 - alpha))).join("")}`;
 }
 
-/** A colour as `#rrggbb`: a hex stays as written, `rgb()`/`hsl()` become hex, and an alpha is laid over `under` (the card it is drawn on); anything unreadable is returned as it is. */
+/** A colour as `#rrggbb`: a hex stays as written, `rgb()`/`hsl()` become hex, and an alpha is laid over `under` (the card it is drawn on, any colour `parseColour` reads); anything unreadable, `under` included, is returned as it is. */
 export function flatOver(value: string, under: string): string {
   if (/^#[\da-f]{6}$/i.test(value)) return value;
   const c = parseColour(value);
-  return c?.hex ? (c.alpha >= 1 ? c.hex : over(c.hex, c.alpha, under)) : value;
+  if (!c?.hex) return value;
+  if (c.alpha >= 1) return c.hex;
+  const base = parseColour(under)?.hex;
+  return base ? over(c.hex, c.alpha, base) : value;
 }
