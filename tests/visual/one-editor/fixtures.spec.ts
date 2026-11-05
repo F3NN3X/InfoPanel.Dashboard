@@ -13,10 +13,17 @@ const DESK = new Set<string>(["screen", "alt", "export", "layersG"]);
 const fixtureTab = (name: string) => (["addw", "hover"].includes(name) ? "Add" : "Layers");
 const WIDGET_KIND = /^Widget · col \d+, row \d+$/;
 
-/** Made for sits in the File menu (P-12): the open menu's group. */
+/** Made for sits in the File menu (P-12): the open menu's group. The group lists both options, so a check reads which one is checked. */
 async function openMadeFor(page: Page) {
   await page.getByTestId("file-menu").click();
   return page.getByTestId("made-for");
+}
+
+/** The option the open Made for group has checked. */
+async function expectMadeFor(page: Page, checked: "Studio panels" | "InfoPanel too") {
+  const group = await openMadeFor(page);
+  await expect(group.getByRole("menuitemradio", { name: new RegExp(checked) })).toHaveAttribute("aria-checked", "true");
+  await expect(group.getByRole("menuitemradio", { name: new RegExp(checked === "Studio panels" ? "InfoPanel too" : "Studio panels") })).toHaveAttribute("aria-checked", "false");
 }
 
 /** Open the Export check from its pill. Desk panel's: CPU and GPU gauge and Weather become pictures, Clock exports as is, Coding agents is left out. */
@@ -191,7 +198,7 @@ const BUILT: Partial<Record<FixtureName, Record<string, (page: Page) => Promise<
     [CHECKS.profile[0].text]: async (page) => {
       await expect(page.getByTitle("Switch screen or page")).toHaveAccessibleDescription(/Imported from InfoPanel/);
       await expect(page.getByRole("tablist", { name: "Pages" })).toBeVisible();
-      await expect(await openMadeFor(page)).toContainText("InfoPanel too");
+      await expectMadeFor(page, "InfoPanel too");
     },
     [CHECKS.profile[2].text]: async (page) => {
       await expect(layersRow(page, "Temps")).toHaveAttribute("aria-expanded", "true");
@@ -620,7 +627,7 @@ const BUILT: Partial<Record<FixtureName, Record<string, (page: Page) => Promise<
   },
   export: {
     [CHECKS.export[0].text]: async (page) => {
-      await expect(await openMadeFor(page)).toContainText("InfoPanel too");
+      await expectMadeFor(page, "InfoPanel too");
       await page.keyboard.press("Escape");
       await expect(page.getByTestId("export-pill")).toHaveText("Export check: 1 needs attention · Coding Agents is left out on InfoPanel");
       await expect(page.getByTestId("canvas-badge")).toHaveCount(5);
@@ -658,7 +665,7 @@ test("one-editor/screen: Made for Studio panels shows no Export check", async ({
   await openFixture(page, scratch.base, "screen");
   await expect(page.locator("[data-zone-id]")).toHaveCount(5);
   await expect(page.getByTitle("Switch screen or page")).toHaveAccessibleDescription(/Screen/);
-  await expect(await openMadeFor(page)).toContainText("Studio panels");
+  await expectMadeFor(page, "Studio panels");
   await page.keyboard.press("Escape");
   await page.getByTestId("file-menu").click();
   await expect(page.getByRole("menu")).toContainText("This screen is made for Studio panels");

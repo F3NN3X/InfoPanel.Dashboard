@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, useId } from "react";
 import { Menu } from "@base-ui/react/menu";
 import { Check, ChevronDown, FileInput, FileOutput, ListChecks, Replace, Upload } from "lucide-react";
 import { FOCUS_RING } from "@/components/ui/button";
@@ -31,6 +31,7 @@ interface FileMenuProps {
 export default function FileMenu({ facts, onMadeFor, onImport, onExportSheet, onExportInfoPanel, onExportCheck, onConvert, onShowProblem }: FileMenuProps) {
   const state = exportState(facts);
   const value = facts.madeFor ?? "studio";
+  const why = useId();
   return (
     <Menu.Root>
       <Menu.Trigger
@@ -66,14 +67,21 @@ export default function FileMenu({ facts, onMadeFor, onImport, onExportSheet, on
                 <FileInput className="h-4 w-4 text-ui-3" aria-hidden /> Import…
               </span>
             </Menu.Item>
-            <Menu.Item className={ITEM} disabled={state.blocked !== undefined} onClick={onExportInfoPanel}>
+            {/* Not `disabled`, which arrow keys skip: it stays reachable and says why it does nothing. */}
+            <Menu.Item
+              className={cn(ITEM, state.blocked !== undefined && "text-ui-hint")}
+              aria-disabled={state.blocked !== undefined || undefined}
+              aria-describedby={state.blocked !== undefined ? why : undefined}
+              closeOnClick={state.blocked === undefined}
+              onClick={state.blocked === undefined ? onExportInfoPanel : undefined}
+            >
               <span className="flex items-center gap-2">
                 <Upload className="h-4 w-4 text-ui-3" aria-hidden /> Export .infopanel
               </span>
             </Menu.Item>
             {(state.blocked || state.problem) && (
               <Fragment>
-                <p className="px-2 pb-1 pl-8 text-micro leading-snug text-ui-warn">{state.blocked ?? `${state.problem?.name} is left out of the export`}</p>
+                <p id={why} className="px-2 pb-1 pl-8 text-micro leading-snug text-ui-warn">{state.blocked ?? `${state.problem?.name} is left out of the export`}</p>
                 {state.fixMadeFor ? (
                   <Menu.Item className={cn(ITEM, "pl-8 text-ui-accent-text")} onClick={() => onMadeFor("infopanel")}>
                     Make it InfoPanel too
