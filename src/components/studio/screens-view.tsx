@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Dialog } from "@base-ui/react/dialog";
 import { Maximize, PanelsTopLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatusChip } from "@/components/ui/status-chip";
@@ -30,6 +31,7 @@ import { useCopyKioskLink } from "./screens/shown-on";
 import { useSavedProfiles } from "./screens/use-saved-profiles";
 import { launchTag, withLaunch } from "./screens-model";
 import { useStoredFlag } from "./use-stored-flag";
+import { hasOverlay } from "./use-studio-shortcuts";
 
 type DetailProps = Parameters<typeof ScreenDetail>[0];
 
@@ -138,8 +140,11 @@ export function ScreensView({
   const { setConfig, onConvertScreen, navigateTo } = detail;
   const stored = config.profiles.find((p) => p.id === profile.id) ?? config.profiles[0];
 
-  // The settings drawer: opened by a card's menu or a link, closed by its X, Esc or a click outside; focus goes back.
+  // The settings drawer: a modal dialog opened by a card's menu or a link, closed by its X, Esc or a click outside; the
+  // page behind it is inert while it is open and focus goes back to what opened it.
   const [settingsId, setSettingsId] = useState<string | null>(null);
+  // The view itself: the drawer is drawn inside it, over the view and not the whole window.
+  const [viewEl, setViewEl] = useState<HTMLDivElement | null>(null);
   // The menu button that was last used: the menu has closed by the time the request arrives, and focus goes back to it.
   const lastMenu = useRef<HTMLElement | null>(null);
   useEffect(() => {
@@ -152,23 +157,33 @@ export function ScreensView({
   const opener = useRef<HTMLElement | null>(null);
   useEffect(() => {
     if (!settingsRequest) return;
-    opener.current = lastMenu.current;
+    // The last menu button used, when it is on the card of this screen (a right-click or a link leaves an older one);
+    // else the screen's own card, else nothing and the dialog puts focus back where it was.
+    const name = config.profiles.find((p) => p.id === settingsRequest.id)?.name;
+    const card = [...document.querySelectorAll<HTMLElement>("button")].find((b) => b.getAttribute("aria-label") === `Open ${name}`);
+    const menu = lastMenu.current;
+    opener.current = menu?.isConnected && card && menu.closest("li")?.contains(card) ? menu : (card ?? null);
     setSettingsId(settingsRequest.id);
     onSettingsHandled();
   }, [settingsRequest?.seq]);
-  const closeSettings = () => {
-    setSettingsId(null);
-    const back = opener.current;
-    opener.current = null;
-    if (back?.isConnected) requestAnimationFrame(() => back.focus());
-  };
+  const closeSettings = () => setSettingsId(null);
   // The drawer shows the screen being edited, which the request has selected by the time the view re-renders.
   const settingsOpen = settingsId !== null && settingsId === stored.id;
+  // Another screen becoming the edited one (the palette) takes the drawer away; coming back must not reopen it.
+  const wasOpen = useRef(false);
+  useEffect(() => {
+    if (settingsOpen) wasOpen.current = true;
+    else if (wasOpen.current) {
+      wasOpen.current = false;
+      setSettingsId(null);
+    }
+  }, [settingsOpen]);
   const openSettings = (id: string, section?: string) => navigateTo({ view: "screens", profileId: id, section });
 
-  // `/` and Ctrl+F go to the search (Ctrl+K stays the command palette everywhere).
+  // `/` and Ctrl+F go to the search (Ctrl+K stays the command palette everywhere); not while a dialog or menu is open.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || hasOverlay()) return;
       const find = (e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === "f";
       const slash = e.key === "/" && !e.ctrlKey && !e.metaKey && !e.altKey && !typing(e.target);
       if (!find && !slash) return;
@@ -271,7 +286,7 @@ export function ScreensView({
   };
 
   return (
-    <div className="relative flex min-h-0 flex-1 flex-col bg-ui-app/40 font-ui">
+    <div ref={setViewEl} className="relative flex min-h-0 flex-1 flex-col bg-ui-app/40 font-ui">
       <ScreensHeader
         count={screensCountLine(config.profiles.length, kiosks.length)}
         query={query}
@@ -344,23 +359,18 @@ export function ScreensView({
         </section>
       </div>
 
-      {settingsOpen && (
-        <>
-          <div aria-hidden onClick={closeSettings} className="absolute inset-0 z-20 bg-black/40" />
-          <div
-            role="dialog"
+      <Dialog.Root open={settingsOpen} onOpenChange={(open) => !open && closeSettings()}>
+        <Dialog.Portal container={viewEl}>
+          <Dialog.Backdrop className="absolute inset-0 z-20 bg-black/40" />
+          <Dialog.Popup
             aria-label="Screen settings"
-            onKeyDown={(e) => {
-              if (e.key !== "Escape") return;
-              e.stopPropagation();
-              closeSettings();
-            }}
-            className="absolute inset-y-0 right-0 z-30 flex w-[400px] max-w-full flex-col border-l border-ui-subtle shadow-ui-drawer"
+            finalFocus={() => (opener.current?.isConnected ? opener.current : true)}
+            className="absolute inset-y-0 right-0 z-30 flex w-[400px] max-w-full flex-col border-l border-ui-subtle shadow-ui-drawer outline-none"
           >
             <ScreenDetail config={config} profile={profile} stored={stored} windowSize={windowSize} kiosks={kiosks} displays={displays} autoProfileId={autoProfileId} onClose={closeSettings} {...detail} />
-          </div>
-        </>
-      )}
+          </Dialog.Popup>
+        </Dialog.Portal>
+      </Dialog.Root>
 
       <DeleteDialog name={plan?.name ?? null} lines={plan ? deleteLines(plan) : []} onConfirm={() => deletingId && remove(deletingId, plan?.name ?? "")} onClose={() => setDeletingId(null)} />
     </div>

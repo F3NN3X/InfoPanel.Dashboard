@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ChevronRight, X } from "lucide-react";
 import type { HistorySetter } from "@/hooks/use-config-history";
 import { IconButton } from "@/components/ui/icon-button";
@@ -81,7 +81,7 @@ function Group({ id, label, end, collapsible, open = true, children }: { id: str
 }
 
 /** Seconds between pages: a draft that commits on Enter or blur, clamped to 3–3600. */
-function SecondsInput({ value, onCommit }: { value: number; onCommit: (value: number) => void }) {
+export function SecondsInput({ value, onCommit }: { value: number; onCommit: (value: number) => void }) {
   const [draft, setDraft] = useState(String(value));
   useEffect(() => setDraft(String(value)), [value]);
   const commit = () => {
@@ -90,6 +90,10 @@ function SecondsInput({ value, onCommit }: { value: number; onCommit: (value: nu
     setDraft(String(n));
     if (n !== value) onCommit(n);
   };
+  // Esc or a click outside closes the drawer with the number still being typed: it is kept, as a blur would.
+  const closing = useRef(commit);
+  closing.current = commit;
+  useEffect(() => () => closing.current(), []);
   return (
     <input
       type="number"

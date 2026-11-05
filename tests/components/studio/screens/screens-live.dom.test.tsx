@@ -1,7 +1,8 @@
 // @vitest-environment happy-dom
 // Screens' Live column (Q9) and the page's own controls: a card per kiosk, its switcher and rotation acting on the
 // screen, a named display's screen choice, the settings drawer, the search keys and the grid or list toggle.
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ToastProvider } from "@/components/ui/toast";
 import type { ControlDisplay, ControlKiosk, ControlState } from "@/lib/control";
@@ -9,7 +10,15 @@ import type { DashboardConfig } from "@/lib/layout";
 
 const api = vi.hoisted(() => ({ postControl: vi.fn(async () => null) }));
 vi.mock("@/lib/control", async (importOriginal) => ({ ...(await importOriginal<object>()), postControl: api.postControl }));
-vi.mock("@/components/studio/screen-detail", () => ({ ScreenDetail: ({ onClose }: { onClose: () => void }) => <button onClick={onClose}>detail</button> }));
+vi.mock("@/components/studio/screen-detail", () => ({
+  ScreenDetail: ({ onClose }: { onClose: () => void }) => (
+    <aside>
+      <p>Some words in the drawer</p>
+      <button onClick={onClose}>detail</button>
+      <button>last control</button>
+    </aside>
+  ),
+}));
 vi.mock("@/components/studio/screens/screen-thumb", () => ({ ScreenThumb: () => null }));
 
 import { ScreensView } from "@/components/studio/screens-view";
@@ -27,6 +36,9 @@ const config = { profiles: [main, desk] } as unknown as DashboardConfig;
 
 const kiosk = (over: Partial<ControlKiosk>): ControlKiosk => ({ id: "k1", profile: "p1", page: "a", address: "192.168.1.24", since: Date.now() - 2 * 3_600_000, ...over });
 const display: ControlDisplay = { name: "wall", screen: "p1", firstSeen: 0, lastSeen: Date.now(), online: true, address: null, shows: "p1" };
+
+/** Renders the last `view()` again with other props. */
+let again: (over: Record<string, unknown>) => void;
 
 function view(over: Record<string, unknown> = {}) {
   const props = {
@@ -58,11 +70,13 @@ function view(over: Record<string, unknown> = {}) {
     onConvertScreen: vi.fn(),
     ...over,
   } as unknown as Parameters<typeof ScreensView>[0];
-  render(
+  const ui = (p: typeof props) => (
     <ToastProvider>
-      <ScreensView {...props} />
-    </ToastProvider>,
+      <ScreensView {...p} />
+    </ToastProvider>
   );
+  const { rerender } = render(ui(props));
+  again = (next) => rerender(ui({ ...props, ...next } as typeof props));
   return props;
 }
 
@@ -164,11 +178,66 @@ describe("Your screens", () => {
     expect(screen.queryByText("From a template, a size preset or an .infopanel file")).toBeNull();
   });
 
-  it("opens the settings drawer for a request, once, and Esc closes it", () => {
+  it("opens the settings drawer for a request, once, and Esc closes it", async () => {
     const props = view({ settingsRequest: { id: "p1", seq: 1 } });
     expect(props.onSettingsHandled).toHaveBeenCalledTimes(1);
     const dialog = screen.getByRole("dialog", { name: "Screen settings" });
     fireEvent.keyDown(dialog, { key: "Escape" });
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Screen settings" })).toBeNull());
+  });
+});
+
+describe("the settings drawer is a modal dialog", () => {
+  const open = () => view({ settingsRequest: { id: "p1", seq: 1 } });
+
+  it("closes on Esc with focus on the body of the drawer, not on a control", async () => {
+    open();
+    expect(screen.getByRole("dialog", { name: "Screen settings" })).toBeTruthy();
+    // A click on its text, then focus on the body: no control has it.
+    await userEvent.click(screen.getByText("Some words in the drawer"));
+    (document.activeElement as HTMLElement).blur();
+    expect(document.activeElement).toBe(document.body);
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Screen settings" })).toBeNull());
+  });
+
+  it("keeps Tab inside it from the last control, and Shift+Tab from the first", async () => {
+    open();
+    const dialog = screen.getByRole("dialog", { name: "Screen settings" });
+    screen.getByRole("button", { name: "last control" }).focus();
+    await userEvent.tab();
+    expect(dialog.contains(document.activeElement)).toBe(true);
+    screen.getByRole("button", { name: "detail" }).focus();
+    await userEvent.tab({ shift: true });
+    expect(dialog.contains(document.activeElement)).toBe(true);
+  });
+
+  it("makes the page behind it inert", () => {
+    open();
+    const behind = screen.getByRole("searchbox", { hidden: true, name: "Search screens" });
+    expect(behind.closest("[inert], [aria-hidden='true']")).not.toBeNull();
+  });
+
+  it("leaves / and Ctrl+F alone while it is open", async () => {
+    open();
+    await userEvent.click(screen.getByText("Some words in the drawer"));
+    await userEvent.keyboard("/");
+    expect(document.activeElement).not.toBe(screen.queryByRole("searchbox", { hidden: true }));
+  });
+
+  it("does not come back when the edited screen changes away and back", async () => {
+    open();
+    expect(screen.getByRole("dialog", { name: "Screen settings" })).toBeTruthy();
+    again({ profile: { ...desk, pageId: "c", placements: [] }, settingsRequest: undefined });
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Screen settings" })).toBeNull());
+    again({ profile: { ...main, pageId: "a", placements: [] }, settingsRequest: undefined });
     expect(screen.queryByRole("dialog", { name: "Screen settings" })).toBeNull();
+  });
+
+  it("puts focus back on the screen's card when no menu button opened it", async () => {
+    open();
+    await userEvent.click(screen.getByRole("button", { name: "detail" }));
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Screen settings" })).toBeNull());
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole("button", { name: "Open Main" })));
   });
 });
