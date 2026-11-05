@@ -926,3 +926,19 @@ describe("L98: the cheap LOWs of review round 3", () => {
     expect(mine((l) => (l.fonts.body = "sans"))).not.toContain("font-family");
   });
 });
+
+describe("L98 L-8: T1 text is read as drawn, rgb() and an alpha over the card", () => {
+  const fg = (value: string) => (l: Json) => (l.t1.light.fg.value = value);
+  it("accepts a text with an alpha that still holds 4.5:1 once laid over the card, and an rgb() text", () => {
+    expect(mine(fg("#1A1C21F2"))).toEqual([]);
+    expect(mine(fg("rgb(26, 28, 33)"))).toEqual([]);
+    expect(mine(fg("rgba(26, 28, 33, 0.95)"))).toEqual([]);
+  });
+  it("refuses an alpha that lets the text fade into the card, by the flattened colour", () => {
+    expect(mine(fg("#1A1C2166"))).toContain("contrast");
+    expect(mine(fg("rgba(26, 28, 33, 0.3)"))).toContain("contrast");
+  });
+  it("still refuses a colour it cannot read", () => {
+    expect(mine(fg("oklch(20% 0 0)"))).toContain("contrast");
+  });
+});

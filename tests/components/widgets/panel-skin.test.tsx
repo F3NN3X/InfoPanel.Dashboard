@@ -123,11 +123,13 @@ describe("a panel on a pack Look (L67)", () => {
     expect(out(pack)).toContain("linear-gradient(90deg");
     expect(out(undefined)).not.toContain("data-fill");
   });
-  it("re-scopes the card's tokens to the pack's colours, hex only", () => {
+  it("re-scopes the card's tokens to the pack's colours: hex, rgb() and hsl() as drawn (L98 L-8), not a colour it cannot read", () => {
     const v = pack.chrome!.panel.vars as Record<string, string>;
     expect(Object.keys(v).sort()).toEqual(["--border", "--card", "--card-foreground", "--foreground", "--muted-foreground"]);
     expect(v["--card"]).toBe("0 0% 100%");
-    expect(packChromeOf({ ...pack.look, t1: { ...pack.look.t1, light: { ...pack.look.t1.light, muted: { value: "rgb(1 2 3)" } } } } as Look).panel.vars).not.toHaveProperty("--muted-foreground");
+    const withMuted = (value: string) => packChromeOf({ ...pack.look, t1: { ...pack.look.t1, light: { ...pack.look.t1.light, muted: { value } } } } as Look).panel.vars;
+    expect(withMuted("rgb(1 2 3)")).toHaveProperty("--muted-foreground", "210 50% 1%");
+    expect(withMuted("oklch(50% 0 0)")).not.toHaveProperty("--muted-foreground");
   });
   it("drops an item's own colour that vanishes on the pack's card (a white item on Paper), and nothing else", () => {
     const panel = kinds("stat", "bar", "value");

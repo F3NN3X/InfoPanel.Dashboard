@@ -5,7 +5,7 @@ import { resolveT1 } from "@/looks/look";
 import { PACK_IDS } from "@/looks/pack";
 import { loadPack } from "@/looks/pack-load";
 import { contrastOf } from "@/looks/status";
-import { overlayCss } from "@/looks/chrome";
+import { chromeOf, overlayCss } from "@/looks/chrome";
 import { ISLAND_DEFAULTS } from "@/lib/island/config";
 import { islandSkin } from "@/components/island/island-look";
 
@@ -65,5 +65,28 @@ describe("a pack's chrome", () => {
     for (const tint of ["theme", "skin"] as const) expect(islandSkin({ ...ISLAND_DEFAULTS, tint }, undefined, chrome)).toEqual(islandSkin({ ...ISLAND_DEFAULTS, tint }));
     expect(islandSkin({ ...ISLAND_DEFAULTS, tint: "custom", bgColor: "#123456", fgColor: "#ffffff" }, undefined, chrome).background).toBe("#123456");
     expect(islandSkin({ ...ISLAND_DEFAULTS, tint: "black", border: "accent" }, undefined, chrome).border).toBe("1px solid hsl(var(--primary))");
+  });
+});
+
+describe("a pack's text as drawn (L98 L-8)", () => {
+  const withInk = async (fg: string) => {
+    const paper = (await loadPack("paper"))!;
+    const look = structuredClone(paper.look);
+    look.t1.light!.fg = { value: fg };
+    return chromeOf(look);
+  };
+  it("an rgb() fg reaches the panel's tokens, so a light pack's panel text is not left to the theme's white", async () => {
+    const hex = (await loadPack("paper"))!.chrome!;
+    const rgb = await withInk("rgb(31, 27, 46)");
+    expect(rgb.ink).toBe(hex.ink.toLowerCase());
+    expect(rgb.panel.vars["--card-foreground" as keyof CSSProperties]).toBe(hex.panel.vars["--card-foreground" as keyof CSSProperties]);
+    expect(rgb.page).toBeDefined();
+  });
+  it("an fg with an alpha is laid over the card, and the page header over the page", async () => {
+    const chrome = await withInk("#1F1B2EE6");
+    expect(chrome.ink).toMatch(/^#[0-9a-f]{6}$/);
+    expect(chrome.ink).not.toBe("#1F1B2E");
+    expect(contrastOf(chrome.ink, chrome.fill)).toBeGreaterThanOrEqual(4.5);
+    expect(chrome.panel.vars["--card-foreground" as keyof CSSProperties]).toBeDefined();
   });
 });

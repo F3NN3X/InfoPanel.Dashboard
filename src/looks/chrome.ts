@@ -4,6 +4,7 @@ import type { CSSProperties } from "react";
 import type { PanelDef } from "@/lib/panel-model";
 import { hexToHsl } from "@/lib/theme";
 import { contrastOf } from "@/looks/status";
+import { flatOver } from "./colour";
 import { resolveT1, type Look } from "./look";
 
 /** A stack or grid panel on a pack Look (L67): the card's theme tokens and the check on an item's own colour. Built here so the entry carries none of it. */
@@ -41,7 +42,7 @@ const TEXT_MIN = 4.5;
 /** The panel's tokens are HSL triplets, so only the colours that are `#rrggbb` are taken; on a dark pack the overlay layout keeps the theme's (its text sits on a black scrim). */
 function panelOf(fill: string, ink: string, edge: string, muted: string): PackPanel {
   const tokens: [string, string][] = [["--card", fill], ["--foreground", ink], ["--card-foreground", ink], ["--muted-foreground", muted], ["--border", edge]];
-  // An alpha is read as opaque, the case that vanishes; rgb(), hsl() and names are not read, and keep their colour.
+  // An item's own colour with an alpha is read as opaque, the case that vanishes; rgb(), hsl() and names are not read, and keep their colour.
   const lost = (color: string | undefined) => !!color && (contrastOf(color.replace(HEX8, "$1"), fill) ?? OWN_COLOR_MIN) < OWN_COLOR_MIN;
   const vars = Object.fromEntries(tokens.filter(([, hex]) => HEX6.test(hex)).map(([name, hex]) => [name, hexToHsl(hex)])) as CSSProperties;
   const legible: PackPanel["legible"] = (panel) => (panel.widgets.some((w) => lost(w.color)) ? { ...panel, widgets: panel.widgets.map((w) => (lost(w.color) ? { ...w, color: undefined } : w)) } : panel);
@@ -62,7 +63,11 @@ export const overlayCss = (id: string): string => {
 /** A pack's chrome from its Look's first supported mode. The loader sets it (`Pack.chrome`), so the kiosk entry never loads `resolveT1` for it; without a pack (Classic, a skin or a sample) the app keeps its own. */
 export function chromeOf(look: Look): PackChrome {
   const t1 = resolveT1(look, look.modes.supported[0]);
-  const panel = panelOf(t1.surface, t1.fg, t1.border, t1.muted);
+  // The text and edge as drawn (L-8): an rgb() or hsl() is a hex, an alpha is laid over the card, so the panels and the contrast read the colour on screen.
+  const [ink, muted, edge] = [t1.fg, t1.muted, t1.border].map((c) => flatOver(c, t1.surface));
+  const panel = panelOf(t1.surface, ink, edge, muted);
+  // the page header sits on the page, so its text is laid over the page's colour
+  const [pageInk, pageMuted] = [t1.fg, t1.muted].map((c) => flatOver(c, t1.bg));
   const holds = (color: string) => (contrastOf(color, t1.bg) ?? 0) >= TEXT_MIN;
-  return { fill: t1.surface, ink: t1.fg, edge: t1.border, muted: t1.muted, accent: t1.accent, panel, page: holds(t1.fg) && holds(t1.muted) ? { ...panel.vars, color: t1.fg } : undefined };
+  return { fill: t1.surface, ink, edge, muted, accent: t1.accent, panel, page: holds(pageInk) && holds(pageMuted) ? { ...panel.vars, color: pageInk } : undefined };
 }
