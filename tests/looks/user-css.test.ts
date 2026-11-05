@@ -198,3 +198,26 @@ describe("at-rules, urls and syntax: refused, each spelling", () => {
     ["a NUL", `${PART} { color: #fff\0; }`],
   ])("%s", (_name, css) => refused(css));
 });
+
+describe("a crafted file cannot make the reader slow", () => {
+  const chain = (steps: number) => {
+    const both = (i: number) => `--pack-a${i}: var(--pack-a${i + 1}); --pack-a${i}: var(--pack-a${i + 1});`;
+    return `${PART} { ${Array.from({ length: steps }, (_, i) => both(i)).join(" ")} --pack-a${steps}: #fff; color: var(--pack-a0); }`;
+  };
+
+  it("walks a chain of doubled definitions once", () => {
+    const start = performance.now();
+    passes(chain(40));
+    expect(performance.now() - start).toBeLessThan(1000);
+  });
+
+  it("refuses more definitions of one property than the cap", () => {
+    const many = Array.from({ length: 9 }, () => "--pack-a: #fff;").join(" ");
+    expect(userCssIssues(`${PART} { ${many} color: var(--pack-a); }`).join()).toContain("defined 9 times");
+  });
+
+  it("refuses more declarations than the cap", () => {
+    const many = Array.from({ length: 2001 }, () => "color: #fff;").join(" ");
+    expect(userCssIssues(`${PART} { ${many} }`).join()).toContain("2001 declarations");
+  });
+});

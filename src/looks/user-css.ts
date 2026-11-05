@@ -67,21 +67,30 @@ function literal(value: Token[]): Read | undefined {
   return colour?.hex ? { alpha: colour.alpha } : undefined;
 }
 
-/** The custom properties the file defines, each with every value it was given. */
-type Defined = Map<string, Read[]>;
+/** A file's own limits: a crafted one can chain definitions so a walk without a memo would take 2^n steps. */
+const MAX_DEFINITIONS = 8;
+const MAX_DECLARATIONS = 2000;
 
-/** The lowest alpha a colour can resolve to, or a reason it does not resolve in this file: every definition is followed, and a loop is no colour. */
-function resolve(read: Read, defined: Defined, trail: readonly string[] = []): number | string {
+/** The custom properties the file defines, each with every value it was given, and the lowest alpha of those already resolved. */
+type Defined = { names: Map<string, Read[]>; done: Map<string, number> };
+
+/** The lowest alpha a colour can resolve to, or a reason it does not resolve in this file: every definition is followed, and a loop is no colour.
+ * A name resolved once is not walked again (only a success is kept, so a refusal still names the property it was reached from). */
+function resolve(read: Read, defined: Defined, trail: ReadonlySet<string> = new Set()): number | string {
   if ("alpha" in read) return read.alpha;
-  if (trail.includes(read.ref)) return `var(${read.ref}) loops`;
-  const values = defined.get(read.ref);
+  const known = defined.done.get(read.ref);
+  if (known !== undefined) return known;
+  if (trail.has(read.ref)) return `var(${read.ref}) loops`;
+  const values = defined.names.get(read.ref);
   if (!values) return `var(${read.ref}) is not defined in this file`;
+  const inner = new Set(trail).add(read.ref);
   let least = 1;
   for (const value of values) {
-    const alpha = resolve(value, defined, [...trail, read.ref]);
+    const alpha = resolve(value, defined, inner);
     if (typeof alpha === "string") return alpha;
     least = Math.min(least, alpha);
   }
+  defined.done.set(read.ref, least);
   return least;
 }
 
@@ -196,14 +205,18 @@ export function userCssIssues(css: string): string[] {
   const rules = parseCss(css, syntax);
   if (syntax.length) return syntax;
   if (!rules.some((r) => r.declarations?.length)) return ["the file holds no rule"];
-  const defined: Defined = new Map();
+  const declarations = rules.reduce((n, r) => n + (r.declarations?.length ?? 0), 0);
+  if (declarations > MAX_DECLARATIONS) return [`the file holds ${declarations} declarations, more than the ${MAX_DECLARATIONS} a pack may have`];
+  const defined: Defined = { names: new Map(), done: new Map() };
   for (const rule of rules) {
     for (const d of rule.declarations ?? []) {
       if (!d.name.startsWith("--")) continue;
       const read = readColour(d.value);
-      if (read) defined.set(d.name, [...(defined.get(d.name) ?? []), read]);
+      if (read) defined.names.set(d.name, [...(defined.names.get(d.name) ?? []), read]);
     }
   }
+  const crowded = [...defined.names].find(([, reads]) => reads.length > MAX_DEFINITIONS);
+  if (crowded) return [`${crowded[0]} is defined ${crowded[1].length} times, more than the ${MAX_DEFINITIONS} a pack may give one property`];
   const issues = rules.flatMap((r) => ruleIssues(r, defined));
   // what the loader reads the mounted file with: the grammar sits inside it, and a disagreement refuses the file
   return issues.length ? issues : [...packCssIssues(css), ...lintPackCss(css)];
