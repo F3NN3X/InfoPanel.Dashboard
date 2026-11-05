@@ -43,7 +43,7 @@ export function browseItems(
   pack: (p: { id: string; name: string }) => AppearancePreset,
 ): BrowseItem[] {
   return [
-    ...saved.map((p): BrowseItem => ({ id: p.id, name: p.name, description: p.description, tags: [], preset: p, kind: "saved", lookId: typeof p.style.lookId === "string" ? p.style.lookId : undefined })),
+    ...saved.map((p): BrowseItem => ({ id: p.id, name: p.name, description: p.description === "Saved look" ? "Saved theme" : p.description, tags: [], preset: p, kind: "saved", lookId: typeof p.style.lookId === "string" ? p.style.lookId : undefined })),
     ...imported.map((p): BrowseItem => ({ id: p.id, name: p.name, description: "Imported pack", tags: ["your pack"], preset: pack(p), kind: "yours", lookId: p.id })),
     ...looks.map((l): BrowseItem => ({ id: l.id, name: l.name, description: l.description, tags: l.tags, preset: l.preset, kind: PACK_IDS.has(l.id) ? "pack" : "plain", lookId: l.id })),
   ];
