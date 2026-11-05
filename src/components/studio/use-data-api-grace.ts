@@ -58,7 +58,7 @@ export function useDataApiGrace(state: DataApiState, clock: () => number = Date.
     setNow(at);
     setDrop((s) => stepDrop(s, up, at));
     if (up) return;
-    const timers = [BLIP_MS, GRACE_MS].map((ms) => setTimeout(() => setNow(clock()), ms));
+    const timers = [BLIP_MS, GRACE_MS].map((ms) => setTimeout(() => setNow(Math.max(clock(), at + ms)), ms)); // a timer can fire a hair early by this clock, and nothing else re-reads it
     return () => timers.forEach(clearTimeout);
   }, [up, clock]);
   const downMs = !up && drop.downSince !== null ? now - drop.downSince : 0;

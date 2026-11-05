@@ -48,6 +48,14 @@ describe("useDataApiGrace", () => {
 
   const run = () => renderHook(({ state }) => useDataApiGrace(state), { initialProps: { state: "connected" as DataApiState } });
 
+  it("reaches offline when its timer fires early by the clock, because nothing else re-reads it", () => {
+    const stopped = () => 1_000_000; // the worst case: the clock has not moved at all when the timers fire
+    const { result, rerender } = renderHook(({ state }) => useDataApiGrace(state, stopped), { initialProps: { state: "connected" as DataApiState } });
+    rerender({ state: "unreachable" });
+    act(() => void vi.advanceTimersByTime(GRACE_MS));
+    expect(result.current.link).toBe("offline");
+  });
+
   it("goes amber, then red after the grace, on its own clock", () => {
     const { result, rerender } = run();
     rerender({ state: "unreachable" });

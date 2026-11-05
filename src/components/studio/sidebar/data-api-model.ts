@@ -42,7 +42,7 @@ export function dropText(drop: ApiDrop | null, now: number): string {
 /** The chip's note: how healthy the sources are, how long a drop has lasted, or since when it is offline. */
 export function chipNote(health: ApiHealth, sources: readonly Pick<DataSource, "status">[], now: number): string {
   if (health.link === "reconnecting") return spanText(health.downMs);
-  if (health.link === "offline") return `since ${new Date(now - health.downMs).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false })}`;
+  if (health.link === "offline") return `since ${new Date(health.downSince ?? now - health.downMs).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false })}`;
   const ok = sources.filter((s) => s.status === "ok").length;
   return ok === sources.length ? `${ok} ${ok === 1 ? "source" : "sources"} healthy` : `${ok} of ${sources.length} sources healthy`;
 }

@@ -83,6 +83,8 @@ describe("the frame", () => {
   it("scrolls rather than clips, so a short window still reaches the Data API card (M5)", () => {
     renderSidebar();
     expect(screen.getByRole("complementary", { name: "Studio sidebar" }).className).toContain("overflow-y-auto");
+    // the nav keeps its height, or it would take the shortfall and its rows would paint over the footer with nothing to scroll
+    expect(screen.getByRole("navigation", { name: "Studio views" }).className).toContain("shrink-0");
   });
 
   it("drags the window by its header in Edit under Tauri, and nowhere else", () => {

@@ -36,6 +36,11 @@ describe("dropText", () => {
 });
 
 describe("chipNote", () => {
+  it("names the moment it went offline, whenever the panel happens to render", () => {
+    const health = { link: "offline" as const, downMs: 60_000, downSince: 1_000_000, lastDrop: null };
+    expect(chipNote(health, [], 1_060_000)).toBe(chipNote(health, [], 1_089_000));
+  });
+
   it("says how many sources are healthy, whatever the mix", () => {
     const sources = [{ status: "ok" as const }, { status: "ok" as const }, { status: "off" as const }];
     expect(chipNote({ link: "connected", downMs: 0, downSince: null, lastDrop: null }, sources.slice(0, 2), 0)).toBe("2 sources healthy");
