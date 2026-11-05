@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, X } from "lucide-react";
 import type { HistorySetter } from "@/hooks/use-config-history";
+import { IconButton } from "@/components/ui/icon-button";
 import { Toggle } from "@/components/ui/toggle";
 import type { ControlDisplay, ControlKiosk } from "@/lib/control";
 import { resolveGeneral } from "@/lib/general";
@@ -49,9 +50,11 @@ interface ScreenDetailProps {
   displays: readonly ControlDisplay[];
   /** The screen "Best fit" resolves to for the studio window. */
   autoProfileId: string;
+  /** Close the drawer this opens in (Screens' "Screen settings"). */
+  onClose: () => void;
 }
 
-const LABEL = "font-ui-mono text-nano tracking-[0.06em] text-ui-hint";
+const LABEL = "text-caption font-medium text-ui-2";
 
 /**
  * A group of the detail panel: a mono caption (and what sits at its end), then its rows. A `collapsible` group opens
@@ -125,6 +128,7 @@ export function ScreenDetail({
   kiosks,
   displays,
   autoProfileId,
+  onClose,
 }: ScreenDetailProps) {
   const rotate = stored.rotate;
   // The screen's performance with the defaults filled.
@@ -132,7 +136,13 @@ export function ScreenDetail({
   const inherit = inheritanceApi("performance", { level: "screen", profileId: stored.id }, { config, setConfig, navigateTo });
   const look = ownCount(config, { level: "screen", profileId: stored.id });
   return (
-    <aside aria-label="Screen details" className="flex w-[340px] shrink-0 flex-col overflow-y-auto border-l border-ui-subtle bg-ui-panel max-[899px]:w-full max-[899px]:overflow-visible max-[899px]:border-l-0 max-[899px]:border-t">
+    <aside aria-label="Screen details" className="flex h-full w-full flex-col overflow-y-auto bg-ui-panel">
+      <div className="sticky top-0 z-10 flex items-center gap-2 border-b border-ui-subtle bg-ui-panel px-3.5 py-2.5">
+        <h2 className="m-0 flex-1 text-body font-semibold text-ui-1">Screen settings</h2>
+        <IconButton label="Close screen settings" autoFocus onClick={onClose}>
+          <X className="h-4 w-4" strokeWidth={1.5} />
+        </IconButton>
+      </div>
       <div className="flex flex-col gap-2.5 border-b border-ui-subtle p-3.5">
         <div className="aspect-video w-full overflow-hidden rounded-md border border-ui-default bg-s-well">
           <ScreenThumb profile={stored} />
@@ -143,7 +153,7 @@ export function ScreenDetail({
         </div>
       </div>
 
-      <Group id="shown" label="SHOWN ON" collapsible>
+      <Group id="shown" label="Shown on" collapsible>
         <ShownOn
           screenId={stored.id}
           isDefault={config.activeProfile === stored.id}
@@ -154,7 +164,7 @@ export function ScreenDetail({
         />
       </Group>
 
-      <Group id="size" label="SIZE & FIT" collapsible>
+      <Group id="size" label="Size and fit" collapsible>
         <SizeFitSection
           profile={profile}
           updateProfile={updateProfile}
@@ -170,7 +180,7 @@ export function ScreenDetail({
         />
       </Group>
 
-      <Group id="grid" label="GRID" collapsible open={false}>
+      <Group id="grid" label="Grid" collapsible open={false}>
         <GridSection
           profile={profile}
           updateProfile={updateProfile}
@@ -178,7 +188,7 @@ export function ScreenDetail({
         />
       </Group>
 
-      <Group id="rotation" label="ROTATION">
+      <Group id="rotation" label="Rotation">
         <InlineRow label="Rotate pages">
           <Toggle checked={rotate?.enabled ?? false} onChange={(enabled) => onRotate({ enabled })} label="Rotate pages" className="[&>span]:bg-ui-1" />
         </InlineRow>
@@ -190,7 +200,7 @@ export function ScreenDetail({
 
       <Group
         id="performance"
-        label="PERFORMANCE"
+        label="Performance"
         end={
           <InheritChip
             state={inherit.state}
@@ -258,9 +268,9 @@ export function ScreenDetail({
         />
       </Group>
 
-      <Group id="linked" label="LINKED — EDITED ELSEWHERE">
+      <Group id="linked" label="Edited elsewhere">
         <LinkRow
-          label="Look"
+          label="Theme"
           value={`${look} own ${look === 1 ? "section" : "sections"}`}
           link="Edit in Theme"
           onNavigate={() => navigateTo({ view: "theme", themeScope: { kind: "profile" }, profileId: stored.id })}
@@ -275,7 +285,7 @@ export function ScreenDetail({
 
       <Group
         id="pages"
-        label="PAGES · ORDER & ROTATION"
+        label="Pages: order and rotation"
         end={
           <button type="button" onClick={onAddPage} className="rounded-sm text-micro text-ui-accent-text hover:underline">
             + Add page

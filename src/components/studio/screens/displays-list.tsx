@@ -1,6 +1,8 @@
+import { FOCUS_RING } from "@/components/ui/button";
 import { DISPLAY_FOLLOW, postControl, type ControlDisplay } from "@/lib/control";
 import type { MonitorProfile } from "@/lib/layout";
 import { cn } from "@/lib/utils";
+import { disconnectedDisplays } from "./display-model";
 
 /** "just now", "5 min ago", "3 h ago", "2 d ago". */
 export function seenAgo(at: number, now: number): string {
@@ -14,18 +16,21 @@ export function seenAgo(at: number, now: number): string {
 interface DisplaysListProps {
   displays: readonly ControlDisplay[];
   profiles: readonly Pick<MonitorProfile, "id" | "name">[];
+  /** Only the displays with no kiosk connected: the connected ones have a card of their own in "Live on displays". */
+  offlineOnly?: boolean;
 }
 
 /**
  * The named displays (kiosk links with `?display=<name>`): online or not, when last seen, and the screen each one shows.
  * "Follow" leaves the choice to "When the app opens". A display appears the first time its link is opened.
  */
-export function DisplaysList({ displays, profiles }: DisplaysListProps) {
+export function DisplaysList({ displays: all, profiles, offlineOnly }: DisplaysListProps) {
+  const displays = offlineOnly ? disconnectedDisplays(all) : all;
   if (displays.length === 0) return null;
   const now = Date.now();
   return (
-    <section aria-label="Displays" className="flex flex-col gap-2 rounded-[10px] border border-ui-default bg-ui-panel p-3.5">
-      <span className="text-body font-medium text-ui-1">Displays</span>
+    <section aria-label={offlineOnly ? "Displays not connected" : "Displays"} className="flex flex-col gap-2 rounded-ui-lg border border-ui-default bg-ui-panel p-3.5">
+      <span className="text-body font-medium text-ui-1">{offlineOnly ? "Not connected" : "Displays"}</span>
       <ul className="flex flex-col divide-y divide-ui-default">
         {displays.map((d) => (
           <li key={d.name} className="flex flex-wrap items-center gap-x-3 gap-y-1.5 py-1.5 text-body first:pt-0 last:pb-0">
@@ -45,7 +50,7 @@ export function DisplaysList({ displays, profiles }: DisplaysListProps) {
               aria-label={`Screen for ${d.name}`}
               value={d.screen}
               onChange={(e) => void postControl("display", { action: "assign", display: d.name, screen: e.target.value })}
-              className="ml-auto h-7 max-w-[200px] cursor-pointer rounded-md border border-ui-strong bg-ui-hover px-1.5 text-caption text-ui-1 outline-none focus:border-ui-accent"
+              className={cn("ml-auto h-7 max-w-[200px] cursor-pointer rounded-ui-md border border-ui-control bg-ui-chrome px-1.5 text-caption text-ui-1", FOCUS_RING)}
             >
               <option value={DISPLAY_FOLLOW}>Follow “When the app opens”</option>
               {profiles.map((p) => (
@@ -57,7 +62,7 @@ export function DisplaysList({ displays, profiles }: DisplaysListProps) {
             <button
               type="button"
               onClick={() => void postControl("display", { action: "forget", display: d.name })}
-              className="h-7 rounded-[7px] border border-ui-strong px-2.5 text-caption text-ui-1 hover:bg-ui-hover"
+              className={cn("h-7 rounded-ui-md border border-ui-strong px-2.5 text-caption text-ui-1 hover:bg-ui-hover", FOCUS_RING)}
             >
               Forget
             </button>

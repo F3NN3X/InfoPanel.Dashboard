@@ -32,7 +32,9 @@ function view(over: Record<string, unknown> = {}) {
     autoProfileId: "p2",
     kiosks: [],
     displays: [],
-    onSelectProfile: vi.fn(),
+    control: null,
+    onOpenKioskView: vi.fn(),
+    onSettingsHandled: vi.fn(),
     onDuplicateProfile: vi.fn(),
     onRemoveProfile: vi.fn(),
     onUndo: vi.fn(),
@@ -58,7 +60,8 @@ function view(over: Record<string, unknown> = {}) {
   return props;
 }
 
-const cards = () => within(screen.getByRole("list", { name: "Your screens" })).getAllByRole("listitem");
+// The grid ends with the New screen card, which is no screen.
+const cards = () => within(screen.getByRole("list", { name: "Your screens" })).getAllByRole("listitem").filter((c) => !c.textContent?.startsWith("New screen"));
 const names = () => cards().map((c) => (c.textContent?.includes("Desk") ? "Desk" : "Main"));
 
 describe("Screens with InfoPanel profiles", () => {
@@ -67,11 +70,11 @@ describe("Screens with InfoPanel profiles", () => {
     const deskCard = cards().find((c) => c.textContent?.includes("Desk"))!;
     expect(within(deskCard).getByTitle(/An InfoPanel profile/).textContent).toBe("InfoPanel");
     expect(names()).toHaveLength(2);
-    const show = screen.getByRole("group", { name: "Show" });
-    expect(within(show).getAllByRole("button").map((b) => b.textContent)).toEqual(["All", "Studio", "InfoPanel"]);
-    fireEvent.click(within(show).getByRole("button", { name: "InfoPanel" }));
+    const show = screen.getByRole("radiogroup", { name: "Show" });
+    expect(within(show).getAllByRole("radio").map((b) => b.textContent)).toEqual(["All", "Studio", "InfoPanel"]);
+    fireEvent.click(within(show).getByRole("radio", { name: "InfoPanel" }));
     expect(names()).toEqual(["Desk"]);
-    fireEvent.click(within(show).getByRole("button", { name: "Studio" }));
+    fireEvent.click(within(show).getByRole("radio", { name: "Studio" }));
     expect(names()).toEqual(["Main"]);
   });
 

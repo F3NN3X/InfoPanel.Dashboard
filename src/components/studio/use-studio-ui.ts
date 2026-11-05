@@ -266,6 +266,7 @@ export function useStudioUi(
     libraryRequest,
     openLibrary,
     screenRequest,
+    clearScreenRequest: () => setScreenRequest(undefined),
     screensFilter,
     editRequest,
     liveOpen,

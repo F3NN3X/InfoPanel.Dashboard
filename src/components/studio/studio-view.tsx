@@ -873,7 +873,6 @@ function StudioViewBody({
       profile={profile}
       windowSize={{ width: windowWidth, height: windowHeight }}
       autoProfileId={resolveProfile({ ...config, activeProfile: "auto" }, windowWidth, windowHeight).id}
-      onSelectProfile={selectProfile}
       updateProfile={edit.updateProfile}
       setConfig={setConfig}
       onRotate={edit.setRotate}
@@ -888,6 +887,10 @@ function StudioViewBody({
       navigateTo={ui.navigateTo}
       kiosks={kiosksOf(control)}
       displays={control?.displays ?? NO_DISPLAYS}
+      control={control}
+      onOpenKioskView={onExitStudio}
+      settingsRequest={ui.screenRequest}
+      onSettingsHandled={ui.clearScreenRequest}
       onOpenScreen={openScreen}
       onOpenScreenPage={openScreenPage}
       onConvertScreen={(id) => {

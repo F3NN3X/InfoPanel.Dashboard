@@ -8,7 +8,7 @@ import { DISPLAY_NAME_MAX, isDisplayName } from "@/lib/screens/display-name";
 import { kioskLink } from "@/lib/screens/kiosk-link";
 
 /** The address kiosks reach this dashboard at: this page's own in a browser, the local server from the desktop app. */
-const serverOrigin = () => (isTauri() ? `http://127.0.0.1:${DEFAULT_SERVER_PORT}` : window.location.origin);
+export const serverOrigin = () => (isTauri() ? `http://127.0.0.1:${DEFAULT_SERVER_PORT}` : window.location.origin);
 
 /** Copy the link that pins a kiosk to screen `id` (or names a display); the toast says if the clipboard refused. */
 export function useCopyKioskLink(): (id: string, display?: string) => void {

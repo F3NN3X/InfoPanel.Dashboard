@@ -1,8 +1,10 @@
-import { ArrowDown, ArrowUp, Copy, Link, Pencil, PenLine, Rocket, Share, Shuffle, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Copy, Link, Pencil, PenLine, Rocket, Settings2, Share, Shuffle, Trash2 } from "lucide-react";
 import type { CardAction } from "./card-actions";
 
 interface ScreenActionsProps {
   onOpen: () => void;
+  /** The drawer with size and fit, rotation, performance and the pages. */
+  onSettings: () => void;
   /** Any screen but the last one can be deleted. */
   canDelete: boolean;
   canMoveEarlier: boolean;
@@ -23,6 +25,7 @@ interface ScreenActionsProps {
 export function screenActions(p: ScreenActionsProps): CardAction[] {
   return [
     { id: "open", label: "Open", icon: Pencil, run: p.onOpen },
+    { id: "settings", label: "Screen settings…", icon: Settings2, run: p.onSettings },
     { id: "rename", label: "Rename", icon: PenLine, run: p.onRename, focusesField: true },
     { id: "duplicate", label: "Duplicate", icon: Copy, run: p.onDuplicate },
     { id: "always-open", label: "Always open this one", icon: Rocket, run: p.onAlwaysOpen },

@@ -20,7 +20,7 @@ test("Screens: create from the sample layout, rename, delete, undo", async ({ pa
   await expect(cards).toHaveCount(before);
   const saved = async () => (await fetch(`${scratch.base}/api/config`)).text();
 
-  await page.getByRole("button", { name: "New" }).click();
+  await page.getByRole("button", { name: "New screen", exact: true }).click();
   await page.getByRole("button", { name: /The sample layout/ }).click();
   await expect(cards).toHaveCount(before + 1);
 
