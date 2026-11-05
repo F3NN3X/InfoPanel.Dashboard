@@ -48,4 +48,12 @@ describe("view presets", () => {
       expect(viewChange(m, id, {}).patch).toEqual(row.drop.settings);
     }
   });
+  it("opens a fresh widget on a tile: Add's settings hold their view, and a view-bearing widget's first view holds with none", () => {
+    for (const row of widgetRows(addCatalog().widget)) {
+      const m = modules.find((x) => x.id === row.drop.id) as DashboardModule;
+      if (viewsOf(m).length === 0) continue;
+      const settings = row.drop.settings;
+      expect(viewHolds(m, currentView(m, settings), settings), `${m.id} ${row.drop.settings?.[viewKeyOf(m)] ?? ""}`).toBe(true);
+    }
+  });
 });
