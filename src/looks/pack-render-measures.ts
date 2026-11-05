@@ -139,6 +139,9 @@ export function measurePack({ look, alphaMax, minOpacity }: MeasureOptions): Twi
     else if (!cards.some((c) => c.textContent?.trim())) problems.push("no card has text");
     cards.forEach((card, c) => {
       const track = rgba(tracks.get(card) as string);
+      // the frame the card is in (a widget and its span), so a problem at one span is not cancelled by the same words at another in the twin
+      const fig = card.closest("figure[data-qa-module]");
+      const place = fig ? `${fig.getAttribute("data-qa-module")}@${fig.getAttribute("data-qa-span")}` : `card ${c}`;
       faded.clear();
       const walker = document.createTreeWalker(card, NodeFilter.SHOW_TEXT);
       let k = 0;
@@ -156,25 +159,31 @@ export function measurePack({ look, alphaMax, minOpacity }: MeasureOptions): Twi
         const under = gradientText ? undefined : behind(el);
         texts.push({ key: `${c}:${k++}`, ratio: under ? Math.min(...under.map((b) => ratio(over(ink, b, ink[3] * o), b))) : null, text: words });
         // what the eye meets at the text: the element, one around it or one inside it. Anything else paints over the text, whatever the colours say.
+        // (A pack cannot set pointer-events, so the text skipped for it and a cover that elementsFromPoint skips are the page's own.)
         if (cs.pointerEvents !== "none") {
           const range = document.createRange();
           range.selectNodeContents(t);
-          const spot = () => {
+          // the part of the text's box that is also its element's box
+          const area = () => {
             const [x, y] = [range.getBoundingClientRect(), el.getBoundingClientRect()];
             const [left, right, top, bottom] = [Math.max(x.left, y.left), Math.min(x.right, y.right), Math.max(x.top, y.top), Math.min(x.bottom, y.bottom)];
-            return right > left && bottom > top ? [(left + right) / 2, (top + bottom) / 2] : null;
+            return right > left && bottom > top ? [left, right, top, bottom] : null;
           };
-          let at = spot();
-          if (at && (at[0] < 0 || at[1] < 0 || at[0] >= innerWidth || at[1] >= innerHeight)) {
+          let box = area();
+          if (box && ((box[0] + box[1]) / 2 < 0 || (box[2] + box[3]) / 2 < 0 || (box[0] + box[1]) / 2 >= innerWidth || (box[2] + box[3]) / 2 >= innerHeight)) {
             el.scrollIntoView({ block: "center", inline: "center", behavior: "instant" });
-            at = spot();
+            box = area();
           }
+          // elementsFromPoint answers nothing outside the viewport: the point is the middle of the part that is inside it
+          const [left, right, top, bottom] = box ? [Math.max(box[0], 0), Math.min(box[1], innerWidth), Math.max(box[2], 0), Math.min(box[3], innerHeight)] : [0, 0, 0, 0];
+          const at = right > left && bottom > top ? [(left + right) / 2, (top + bottom) / 2] : null;
+          if (box && !at) problems.push(`text "${words}" is outside the page and could not be checked [${place}]`);
           // down the stack from the top to the element or one related to it: the first that paints a background, at a strength that hides, is what covers it (a transparent wrapper does not)
           for (const n of at ? document.elementsFromPoint(at[0], at[1]) : []) {
             if (n === el || n.contains(el) || el.contains(n)) break;
             const ns = getComputedStyle(n);
             if (Number(ns.opacity) >= minOpacity && (rgba(ns.backgroundColor)[3] >= 0.5 || ns.backgroundImage !== "none")) {
-              problems.push(`text "${words}" is covered by a ${n.tagName.toLowerCase()}${n.getAttribute("data-part") ? ` (${n.getAttribute("data-part")})` : ""}`);
+              problems.push(`text "${words}" is covered by a ${n.tagName.toLowerCase()}${n.getAttribute("data-part") ? ` (${n.getAttribute("data-part")})` : ""} [${place}]`);
               break;
             }
           }

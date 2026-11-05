@@ -103,11 +103,26 @@ test("the render measures catch an opaque box laid over other text", async ({ pa
   await wornPage(page, PACK_STYLES.term, "term");
   const { worn: clean } = await page.evaluate(measurePack, measures("term"));
   // (the Term card's own header already overlaps the body at the smallest tier: that is the page, and a pack is judged against its twin)
-  const byLabel = (problems: string[]) => problems.filter((p) => p.includes("is covered by") && p.endsWith("(label)"));
+  const byLabel = (problems: string[]) => problems.filter((p) => p.includes("is covered by") && p.includes("(label) ["));
   expect(byLabel(clean.problems)).toEqual([]);
   await page.addStyleTag({ content: '[data-part="label"] { position: absolute !important; inset: 0 !important; background: #123456 !important; opacity: 1 !important; }' });
   const { worn } = await page.evaluate(measurePack, measures("term"));
   expect(byLabel(worn.problems).length).toBeGreaterThan(0);
+  // each carries its widget and span, so the same words covered at another span of the twin do not cancel it
+  expect(byLabel(worn.problems).every((p) => /\[(\w+@\d+x\d+|card \d+)\]$/.test(p))).toBe(true);
+  expect(new Set(byLabel(worn.problems).map((p) => p.match(/@(\d+x\d+)\]$/)?.[1])).size).toBeGreaterThan(1);
+});
+
+// A text pushed where the page cannot scroll to (left of the page) is outside the viewport whatever scrolls: it is a problem, not a pass.
+test("the render measures do not pass a text that sits outside the viewport", async ({ page }) => {
+  await wornPage(page, PACK_STYLES.term, "term");
+  const { worn: clean } = await page.evaluate(measurePack, measures("term"));
+  const outside = (problems: string[]) => problems.filter((p) => p.includes("could not be checked"));
+  expect(outside(clean.problems)).toEqual([]);
+  await page.addStyleTag({ content: '[data-part="label"] { transform: translateX(-5000px) !important; }' });
+  const twin = await page.evaluate(measurePack, measures("term"));
+  expect(outside(twin.worn.problems).length).toBeGreaterThan(0);
+  expect(renderRefusals({ worn: twin.worn, bare: clean }).some((r) => r.includes("could not be checked"))).toBe(true);
 });
 
 // L79: the box-legend title sits on the frame's line (6 px in) whatever the card's zoom: the shell zooms the padded content of a card
