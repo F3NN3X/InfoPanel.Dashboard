@@ -135,6 +135,35 @@ describe("Gauges page", () => {
       await waitFor(() => expect(screen.queryByRole("textbox", { name: "Gauge name" })).toBeNull());
     });
 
+    it("leaving the page mid-write and coming back updates the one draft instead of making another", async () => {
+      // The create is still in flight when the page is left and opened again.
+      library.createLibraryItem.mockImplementationOnce(async (body: { name: string }) => {
+        await new Promise((r) => setTimeout(r, 300));
+        return { id: "new1", kind: "gauge", name: body.name, files: [], copies: [] };
+      });
+      const user = userEvent.setup({ delay: null });
+      const view = renderPage();
+      await openNewGauge(user);
+      await user.click(flippable()[0]);
+      view.unmount();
+      renderPage();
+      await screen.findByRole("textbox", { name: "Gauge name" });
+      await waitFor(() => expect(library.updateLibraryItem).toHaveBeenCalledWith("new1", expect.anything()), { timeout: 4000 });
+      expect(library.createLibraryItem).toHaveBeenCalledTimes(1);
+    });
+
+    it("writes nothing more after Discard in the Unsaved dialog", async () => {
+      library.createLibraryItem.mockRejectedValueOnce(new Error("disk full"));
+      const user = await edited();
+      await user.click(screen.getByRole("button", { name: "Back to Gauges" }));
+      await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Discard" }));
+      await waitFor(() => expect(screen.queryByRole("textbox", { name: "Gauge name" })).toBeNull());
+      await act(async () => {
+        await new Promise((r) => setTimeout(r, 200));
+      });
+      expect(library.createLibraryItem).toHaveBeenCalledTimes(1);
+    });
+
     it("asks as before when the draft could not be written", async () => {
       library.createLibraryItem.mockRejectedValueOnce(new Error("disk full"));
       const user = await edited();

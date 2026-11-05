@@ -37,7 +37,7 @@ export interface GaugeEdit {
   /** A new spec; the same `key` within half a second is one undo step. */
   commit: (next: VectorGauge, key?: string) => void;
   rename: (name: string) => void;
-  saved: (origin: NonNullable<WorkingCopy["origin"]>) => void;
+  saved: (origin: NonNullable<WorkingCopy["origin"]>, written?: { name: string; gauge: VectorGauge }) => void;
   /** The autosave wrote `written` as the library item `origin`. */
   drafted: (origin: NonNullable<WorkingCopy["origin"]>, written: { name: string; gauge: VectorGauge }) => void;
 }
@@ -118,7 +118,7 @@ export function useGaugeEdit(bridge: StudioBridge, open: Editable, editorId: num
     },
     commit: (next, key) => setWc((w) => w && editCopy(w, next, key)),
     rename: (name) => setWc((w) => w && renameCopy(w, name)),
-    saved: (origin) => setWc((w) => w && markSaved(w, origin)),
+    saved: (origin, written) => setWc((w) => w && markSaved(w, origin, written)),
     drafted: (origin, written) => setWc((w) => w && markDrafted(w, origin, written)),
   };
 }

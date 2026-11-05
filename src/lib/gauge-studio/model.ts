@@ -5,7 +5,7 @@
  * page draws (a vector spec, or an image sequence's frame URLs) and its range. Writing back is one
  * config change, so the studio records one undo step.
  */
-import { CANVAS_ID, ITEM_ID, type DashboardConfig, type Placement, type ProfilePage, type ProfileView } from "@/lib/layout";
+import { CANVAS_ID, ITEM_ID, type DashboardConfig, type Placement, type ProfilePage } from "@/lib/layout";
 import { pageCanvas } from "@/lib/page-model/items-layer";
 import type { LibraryItem } from "@/lib/library";
 import { openCanvas, type OpenCanvas } from "@/lib/infopanel/canvas";
@@ -219,7 +219,8 @@ function canvasGauges(zone: Placement, open: OpenCanvas, on?: GaugeOn): GaugeEnt
 /** An item placement's one item as a canvas of its own, with the page's files: what reads and writes its gauge. */
 const itemCanvas = (zone: Placement, page?: Pick<ProfilePage, "name" | "freeCanvas">) => pageCanvas({ name: "", ...page } as ProfilePage, [zone.item!], 1, 1);
 
-const itemCache = new WeakMap<object, { sig: string; entries: GaugeEntry[] }>();
+/** By the item, then checked against the page's files (an image sequence reads its frames from them) and where it is. */
+const itemCache = new WeakMap<object, { sig: string; assets: unknown; entries: GaugeEntry[] }>();
 
 /** The gauge of an item placement (nothing for any other item, or a Gauge inside a Group item). */
 function itemGauges(zone: Placement, page: ProfilePage | undefined, on?: GaugeOn): GaugeEntry[] {
@@ -227,8 +228,9 @@ function itemGauges(zone: Placement, page: ProfilePage | undefined, on?: GaugeOn
   if (!item) return [];
   if (item.kind !== "Gauge") return [];
   const sig = `${zone.id}|${page?.id ?? ""}|${page?.freeCanvas ? "files" : ""}|${on ? `${on.profileId}|${on.pageId}|${on.screen}|${on.page}` : ""}`;
+  const assets = page?.freeCanvas?.assets;
   const hit = itemCache.get(item);
-  if (hit?.sig === sig) return hit.entries;
+  if (hit?.sig === sig && hit.assets === assets) return hit.entries;
   let entries: GaugeEntry[] = [];
   try {
     const source: GaugeSource = { kind: "item", zoneId: zone.id };
@@ -238,7 +240,7 @@ function itemGauges(zone: Placement, page: ProfilePage | undefined, on?: GaugeOn
   } catch {
     // An unreadable item has no gauge to list.
   }
-  itemCache.set(item, { sig, entries });
+  itemCache.set(item, { sig, assets, entries });
   return entries;
 }
 
@@ -273,9 +275,6 @@ export function placementGauges(placements: readonly Placement[], where: string,
     return [];
   });
 }
-
-/** The gauges on the profile page. */
-export const profileGauges = (profile: Pick<ProfileView, "placements" | "name">): GaugeEntry[] => placementGauges(profile.placements, profile.name);
 
 /** The gauges on every screen and page of the config (B3: not only the page on the canvas). */
 export const configGauges = (config: Pick<DashboardConfig, "profiles">): GaugeEntry[] =>

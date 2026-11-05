@@ -49,8 +49,8 @@ export function redoCopy(wc: WorkingCopy): WorkingCopy {
 export const canUndo = (wc: WorkingCopy): boolean => wc.history.past.length > 0;
 export const canRedo = (wc: WorkingCopy): boolean => wc.history.future.length > 0;
 
-/** Saved under `origin` (a created item's id): the loaded state is now this one, and a draft is a gauge of the library's own. */
-export const markSaved = (wc: WorkingCopy, origin: WorkingCopy["origin"]): WorkingCopy => ({ ...wc, origin, saved: { name: wc.name, gauge: wc.gauge }, draft: false });
+/** Saved under `origin` (a created item's id) as `written`: that state is now the saved one (an edit made while it wrote is still unsaved), and a draft is a gauge of the library's own. */
+export const markSaved = (wc: WorkingCopy, origin: WorkingCopy["origin"], written: { name: string; gauge: VectorGauge } = wc): WorkingCopy => ({ ...wc, origin, saved: { name: written.name, gauge: written.gauge }, draft: false });
 
 /** The autosave wrote `written` under `origin`: the copy is its draft, and an edit made while it wrote is still unsaved. */
 export const markDrafted = (wc: WorkingCopy, origin: NonNullable<WorkingCopy["origin"]>, written: { name: string; gauge: VectorGauge }): WorkingCopy => ({ ...wc, origin, saved: written, draft: true });

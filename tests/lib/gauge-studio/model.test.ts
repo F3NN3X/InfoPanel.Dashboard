@@ -10,7 +10,7 @@ import { toStored } from "@/lib/infopanel/import/stored";
 import { parseProfileXml } from "@/lib/infopanel/parse";
 import { defaultItem } from "@/lib/infopanel/schema";
 import {
-  CUSTOM_GAUGE_ID, configGauges, gaugeDataOf, gaugeEntryOf, libraryGauges, presetGauges, previewScale, profileGauges, sourceKey, widgetGauge, withGauge, withGaugeName, withGaugeSpeed,
+  CUSTOM_GAUGE_ID, configGauges, gaugeDataOf, gaugeEntryOf, libraryGauges, placementGauges, presetGauges, previewScale, sourceKey, widgetGauge, withGauge, withGaugeName, withGaugeSpeed,
 } from "@/lib/gauge-studio/model";
 
 const profile = parseProfileXml("<Profile><Name>Rig</Name><Width>800</Width><Height>480</Height></Profile>").profile;
@@ -20,6 +20,9 @@ const canvas = toStored({ name: "Rig", origin: "file", dataApi: null, defaultMod
 const widget: Placement = { id: "w1", module: CUSTOM_GAUGE_ID, colStart: 2, rowStart: 1, colSpan: 1, rowSpan: 1, visible: true, settings: { gauge: JSON.stringify({ ...DEFAULT_GAUGE, shape: "bar" }), label: "CPU" } };
 const zone: Placement = { id: "c1", module: "infopanel", colStart: 1, rowStart: 1, colSpan: 1, rowSpan: 1, visible: true, canvas };
 const config = { profiles: [{ id: "p", name: "Rig", pages: [{ id: "pg", placements: [zone, widget] }] }] } as unknown as DashboardConfig;
+
+/** The gauges on one page's placements, as a screen's name gives their place. */
+const profileGauges = (p: { name: string; placements: Placement[] }) => placementGauges(p.placements, p.name);
 
 describe("gauge sources", () => {
   it("lists presets read-only, with their kind", () => {

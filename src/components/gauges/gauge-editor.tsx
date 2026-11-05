@@ -107,7 +107,7 @@ function CanvasFramesEditor(
   const tools = useCanvasFrames(p.bridge, p.entry, p.source, p.stored);
   // Frames the asset store can't name can't go to the library.
   const write = (o?: WriteOptions) => (p.entry.files ? p.write(o) : Promise.reject(new Error("some frames are not files in the asset store")));
-  return <FramesEditor ref={p.ref} bridge={p.bridge} edit={p.edit} tools={tools} write={write} onBack={p.onBack} onSaved={p.onSaved} />;
+  return <FramesEditor ref={p.ref} bridge={p.bridge} editorId={p.editorId} edit={p.edit} tools={tools} write={write} onBack={p.onBack} onSaved={p.onSaved} />;
 }
 
 function LibraryFramesEditor(props: GaugeEditorProps & { open: Extract<EditorOpen, { kind: "frames" }> }) {
@@ -116,13 +116,14 @@ function LibraryFramesEditor(props: GaugeEditorProps & { open: Extract<EditorOpe
   return g ? (
     <VectorEditor {...props} edit={lib.edit} gauge={g} write={lib.save} />
   ) : (
-    <FramesEditor ref={props.ref} bridge={props.bridge} edit={lib.edit} tools={lib.tools} write={lib.save} onBack={props.onBack} onSaved={props.onSaved} />
+    <FramesEditor ref={props.ref} bridge={props.bridge} editorId={props.editorId} edit={lib.edit} tools={lib.tools} write={lib.save} onBack={props.onBack} onSaved={props.onSaved} />
   );
 }
 
 interface FramesEditorProps {
   ref?: Ref<EditorHandle>;
   bridge: StudioBridge;
+  editorId: number;
   edit: GaugeEdit;
   tools: FramesTools;
   write: (o?: WriteOptions) => Promise<LibraryItem>;
@@ -130,10 +131,10 @@ interface FramesEditorProps {
   onSaved: () => void;
 }
 
-function FramesEditor({ ref, bridge, edit, tools, write, onBack, onSaved }: FramesEditorProps) {
+function FramesEditor({ ref, bridge, editorId, edit, tools, write, onBack, onSaved }: FramesEditorProps) {
   const playback = usePlayback();
   const [recolour, setRecolour] = useState(NO_RECOLOUR);
-  const shell = useEditorShell({ ref, edit, write, onBack, onSaved });
+  const shell = useEditorShell({ ref, editorId, edit, write, onBack, onSaved });
   useGaugeKeys({ history: edit.history ?? undefined });
   const filter = recolour === NO_RECOLOUR ? undefined : recolourFilter(recolour);
   return (
@@ -156,7 +157,7 @@ interface VectorEditorProps extends GaugeEditorProps {
   below?: ReactNode;
 }
 
-function VectorEditor({ ref, bridge, edit, gauge: g, write, below, theme, onBack, onSaved, onOpenRule, onOpenSources }: VectorEditorProps) {
+function VectorEditor({ ref, bridge, editorId, edit, gauge: g, write, below, theme, onBack, onSaved, onOpenRule, onOpenSources }: VectorEditorProps) {
   const sweep = usePlayback();
   const [view, setView] = useGaugeView();
   const [part, setPart] = useState<PartId>("shape");
@@ -179,7 +180,7 @@ function VectorEditor({ ref, bridge, edit, gauge: g, write, below, theme, onBack
       }
     : sweep;
   const zones = zoneRead(bridge.config.alerts?.rules ?? [], view.sensor, view.follow, g);
-  const shell = useEditorShell({ ref, edit, write, onBack, onSaved });
+  const shell = useEditorShell({ ref, editorId, edit, write, onBack, onSaved });
   useGaugeKeys({ history: edit.history ?? undefined });
 
   const pick = (preset: GaugeEntry) => {

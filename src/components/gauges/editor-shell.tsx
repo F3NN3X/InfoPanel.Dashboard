@@ -7,6 +7,7 @@ import { useEffect, useImperativeHandle, useRef, useState, type ReactNode, type 
 import { useToast } from "@/components/ui/toast";
 import { deleteLibraryItem } from "@/lib/library";
 import type { LibraryItem } from "@/lib/library";
+import { sessionDraft, sessionOpen } from "@/lib/gauge-studio/session";
 import type { GaugeEdit } from "./use-gauge-edit";
 import { DiscardDraftDialog } from "./discard-draft-dialog";
 import { UnsavedDialog } from "./unsaved-dialog";
@@ -38,6 +39,8 @@ export interface EditorShell {
 
 export function useEditorShell(p: {
   ref?: Ref<EditorHandle>;
+  /** Which opened editor this is: its draft's item and write queue are kept under it, past the page. */
+  editorId: number;
   edit: GaugeEdit;
   /** Writes the gauge to the library item it came from, or a new one. */
   write: (o?: WriteOptions) => Promise<LibraryItem & { updated?: boolean }>;
@@ -51,21 +54,23 @@ export function useEditorShell(p: {
   const [saving, setSaving] = useState(false);
   const [discarding, setDiscarding] = useState(false);
 
-  // The draft's writes run one after another, the second under the item the first made.
+  // Every write (the draft's and Save's) runs in one queue, the second under the item the first made. The queue
+  // and the item live in the session: a rail switch unmounts this while a write is pending or in flight, and the
+  // editor that comes back must update that item, not make another.
   const live = useRef(p);
   live.current = p;
-  const queue = useRef<Promise<boolean>>(Promise.resolve(true));
-  const draftId = useRef<string | null>(null);
-  const discarded = useRef(false);
+  const draft = sessionDraft(p.editorId);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const enqueue = (job: () => Promise<boolean>): Promise<boolean> => (draft.queue = draft.queue.then(job));
   const writeDraft = async (): Promise<boolean> => {
     const { edit: now, write, onSaved } = live.current;
-    if (discarded.current || !now.autosave || !now.dirty || !now.gauge) return true;
+    if (draft.discarded || !now.autosave || !now.dirty || !now.gauge) return true;
     const written = { name: now.name, gauge: now.gauge };
-    const itemId = draftId.current ?? now.origin?.itemId;
+    const itemId = draft.id ?? now.origin?.itemId;
     try {
       const item = await write(itemId ? { itemId } : undefined);
-      draftId.current = item.id;
+      draft.id = item.id;
+      draft.written = written;
       now.drafted({ kind: "library", itemId: item.id }, written);
       onSaved();
       return true;
@@ -77,8 +82,7 @@ export function useEditorShell(p: {
   const flush = (): Promise<boolean> => {
     if (timer.current) clearTimeout(timer.current);
     timer.current = null;
-    queue.current = queue.current.then(writeDraft);
-    return queue.current;
+    return enqueue(writeDraft);
   };
   const flushNow = useRef(flush);
   flushNow.current = flush;
@@ -91,13 +95,18 @@ export function useEditorShell(p: {
       timer.current = null;
     };
   }, [waiting, edit.gauge, edit.name]);
-  // Closing the page with a draft waiting writes it: the edits are the user's.
+  // The page was left (the rail) with the editor still open and a draft waiting: it is written, once. An editor that
+  // was closed or replaced (Back, Discard in the Unsaved dialog, another gauge) writes nothing more.
   useEffect(
     () => () => {
-      if (live.current.edit.autosave && live.current.edit.dirty) void flushNow.current();
+      if (sessionOpen(p.editorId) && live.current.edit.autosave && live.current.edit.dirty) void flushNow.current();
     },
     [],
   );
+  // Back on the page after a rail switch: the copy was kept before its draft write finished, so it knows no item.
+  useEffect(() => {
+    if (draft.id && draft.written && !edit.origin && !edit.writeThrough) edit.drafted({ kind: "library", itemId: draft.id }, draft.written as { name: string; gauge: NonNullable<GaugeEdit["gauge"]> });
+  }, []);
 
   const requestBack = (then?: () => void) => {
     const go = then ?? onBack;
@@ -107,34 +116,41 @@ export function useEditorShell(p: {
   };
   useImperativeHandle(p.ref, () => ({ requestBack }));
 
-  const run = async (o?: Extract<WriteOptions, { asNew: true }>): Promise<boolean> => {
+  const run = (o?: Extract<WriteOptions, { asNew: true }>): Promise<boolean> => {
     setSaving(true);
-    try {
-      // A draft's item is the one a save updates; the first save of a copy never written makes one.
-      const item = await p.write(o ?? (draftId.current ? { itemId: draftId.current } : undefined));
-      if (o) edit.rename(o.name);
-      draftId.current = item.id;
-      edit.saved({ kind: "library", itemId: item.id });
-      p.onSaved();
-      toast((item.updated ?? !!edit.origin) ? `Saved ${edit.name}` : `Saved ${o?.name ?? edit.name} to your library`);
-      return true;
-    } catch (e) {
-      toast(`Not saved: ${(e as Error).message}`);
-      return false;
-    } finally {
-      setSaving(false);
-    }
+    return enqueue(async () => {
+      const { edit: now, write, onSaved } = live.current;
+      try {
+        // A draft's item is the one a save updates; the first save of a copy never written makes one.
+        const written = { name: o?.name ?? now.name, gauge: now.gauge! };
+        const item = await write(o ?? (draft.id ? { itemId: draft.id } : undefined));
+        if (o) now.rename(o.name);
+        draft.id = item.id;
+        draft.written = written;
+        now.saved({ kind: "library", itemId: item.id }, written);
+        onSaved();
+        toast((item.updated ?? !!now.origin) ? `Saved ${written.name}` : `Saved ${written.name} to your library`);
+        return true;
+      } catch (e) {
+        toast(`Not saved: ${(e as Error).message}`);
+        return false;
+      } finally {
+        setSaving(false);
+      }
+    });
   };
 
   const save = () => run();
   const saveAsNew = edit.origin || edit.saveTo ? () => run({ asNew: true, name: `${edit.name} copy` }) : null;
 
   const discard = async () => {
-    const id = draftId.current ?? edit.origin?.itemId;
-    if (!id) return;
-    discarded.current = true;
+    draft.discarded = true;
     setSaving(true);
     try {
+      // A write in flight finishes first, so its item is the one deleted and nothing lands after.
+      await draft.queue;
+      const id = draft.id ?? live.current.edit.origin?.itemId;
+      if (!id) throw new Error("there is no draft to delete");
       // The draft is a library item of its own with no files: deleting it leaves any placed copy as it is.
       await deleteLibraryItem(id);
       setDiscarding(false);
@@ -142,7 +158,7 @@ export function useEditorShell(p: {
       toast(`Discarded the draft ${edit.name}`);
       onBack();
     } catch (e) {
-      discarded.current = false;
+      draft.discarded = false;
       toast(`Not discarded: ${(e as Error).message}`);
     } finally {
       setSaving(false);
@@ -159,6 +175,8 @@ export function useEditorShell(p: {
       onCancel={() => setPending(null)}
       onDiscard={() => {
         setPending(null);
+        // Whatever failed to write stays unwritten: leaving closes the editor, which writes nothing more.
+        draft.discarded = true;
         pending?.go();
       }}
       onSave={() =>
