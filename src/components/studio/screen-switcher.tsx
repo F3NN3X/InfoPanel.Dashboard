@@ -31,6 +31,7 @@ const ROW = "flex w-full items-center gap-2 rounded-md px-2 text-left outline-no
 export function ScreenSwitcher({ profiles, profile, pageId, onSelect, onManage, onScreenSettings, compact = false }: ScreenSwitcherProps) {
   const [open, setOpen] = useState(false);
   const page = profile.pages.find((p) => p.id === pageId) ?? profile.pages[0];
+  const kind = importedFromInfoPanel(profile) ? "Imported from InfoPanel" : "Screen";
   const choose = (profileId: string, toPage: string) => {
     setOpen(false);
     onSelect(profileId, toPage);
@@ -39,7 +40,7 @@ export function ScreenSwitcher({ profiles, profile, pageId, onSelect, onManage, 
     <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Trigger
         title="Switch screen or page"
-        aria-description={importedFromInfoPanel(profile) ? "Imported from InfoPanel" : "Screen"}
+        aria-description={kind}
         className="flex min-w-0 shrink flex-col whitespace-nowrap rounded-ui-sm px-1 text-left leading-tight transition-colors hover:bg-ui-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent"
       >
         <span className="max-w-44 truncate text-body font-medium text-ui-1">
@@ -53,6 +54,9 @@ export function ScreenSwitcher({ profiles, profile, pageId, onSelect, onManage, 
       <Popover.Portal>
         <Popover.Positioner side="bottom" align="start" sideOffset={6} className="z-[80]">
           <Popover.Popup className="w-[300px] rounded-[10px] border border-ui-menu bg-ui-raised p-1 font-ui text-body text-ui-2 shadow-ui-menu outline-none">
+            <p className="px-2 pb-1 pt-1.5 text-micro text-ui-hint">
+              {kind} · {profile.name}
+            </p>
             {profiles.map((p) => (
               <div key={p.id}>
                 <button type="button" className={cn(ROW, "h-8")} onClick={() => choose(p.id, p.id === profile.id ? page.id : p.pages[0].id)}>

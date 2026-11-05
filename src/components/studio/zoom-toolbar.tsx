@@ -95,102 +95,104 @@ export function ZoomToolbar({
     <div
       style={bottom === undefined ? undefined : { bottom }}
       className={cn(
-        // Narrower than the canvas (a phone), it scrolls sideways rather than widening the studio.
-        "absolute bottom-4 left-1/2 z-30 flex h-[42px] max-w-[calc(100%-16px)] -translate-x-1/2 items-center gap-0.5 overflow-x-auto whitespace-nowrap px-1.5 [scrollbar-width:none] [&>*]:shrink-0",
+        "absolute bottom-4 left-1/2 z-30 flex h-[42px] max-w-[calc(100%-16px)] -translate-x-1/2 items-center gap-0.5 px-1.5",
         "rounded-ui-menu border border-ui-strong bg-ui-raised font-ui shadow-ui-float"
       )}
     >
-      {tool && (
-        <>
-          <IconButton label="Select" className={BAR_BUTTON} active={!tool.hand} aria-pressed={!tool.hand} onClick={() => tool.onHand(false)}>
-            <MousePointer2 className="h-4 w-4" />
-          </IconButton>
-          <IconButton label="Pan (hold Space)" className={BAR_BUTTON} active={tool.hand} aria-pressed={tool.hand} onClick={() => tool.onHand(true)}>
-            <Hand className="h-4 w-4" />
-          </IconButton>
-          <Divider />
-        </>
-      )}
-      {onAdd && (
-        <>
-          <button type="button" onClick={onAdd} className="flex h-7 items-center gap-1.5 rounded-ui-md border border-ui-strong px-2.5 text-caption font-medium text-ui-1 transition-colors hover:bg-ui-hover">
-            <Plus className="h-4 w-4" aria-hidden /> Add widget
-          </button>
-          <Divider />
-        </>
-      )}
-      <IconButton label={`Zoom out (${KEYS.zoomOut})`} className={BAR_BUTTON} onClick={() => onZoomStep(-1)}>
-        <Minus className="h-4 w-4" />
-      </IconButton>
-      <span className="min-w-11 text-center font-ui-mono text-caption tabular-nums text-ui-1">{Math.round(zoom * 100)}%</span>
-      <IconButton label={`Zoom in (${KEYS.zoomIn})`} className={BAR_BUTTON} onClick={() => onZoomStep(1)}>
-        <Plus className="h-4 w-4" />
-      </IconButton>
-      <button
-        type="button"
-        onClick={onFit}
-        aria-label="Fit"
-        aria-pressed={fitting}
-        title={`Fit the page to the canvas and keep it fitted (${KEYS.fit})`}
-        className={cn("grid h-7 w-7 place-items-center rounded-ui-md transition-colors", fitting ? "bg-ui-active text-ui-1" : "text-ui-3 hover:bg-ui-hover hover:text-ui-1")}
-      >
-        <Maximize className="h-4 w-4" aria-hidden />
-      </button>
-      <Divider />
-      {onToggleGrid && (
-        <IconButton label="Toggle grid" className={BAR_BUTTON} active={showGrid} aria-pressed={showGrid} onClick={onToggleGrid}>
-          <Grid3x3 className="h-4 w-4" />
+      {/* Narrower than the canvas (a phone), the controls scroll sideways rather than widening the studio; the inspector's opener stays. */}
+      <div className="flex min-w-0 items-center gap-0.5 overflow-x-auto whitespace-nowrap [scrollbar-width:none] [&>*]:shrink-0">
+        {tool && (
+          <>
+            <IconButton label="Select" className={BAR_BUTTON} active={!tool.hand} aria-pressed={!tool.hand} onClick={() => tool.onHand(false)}>
+              <MousePointer2 className="h-4 w-4" />
+            </IconButton>
+            <IconButton label="Pan (hold Space)" className={BAR_BUTTON} active={tool.hand} aria-pressed={tool.hand} onClick={() => tool.onHand(true)}>
+              <Hand className="h-4 w-4" />
+            </IconButton>
+            <Divider />
+          </>
+        )}
+        {onAdd && (
+          <>
+            <button type="button" onClick={onAdd} className="flex h-7 items-center gap-1.5 rounded-ui-md border border-ui-strong px-2.5 text-caption font-medium text-ui-1 transition-colors hover:bg-ui-hover">
+              <Plus className="h-4 w-4" aria-hidden /> Add widget
+            </button>
+            <Divider />
+          </>
+        )}
+        <IconButton label={`Zoom out (${KEYS.zoomOut})`} className={BAR_BUTTON} onClick={() => onZoomStep(-1)}>
+          <Minus className="h-4 w-4" />
         </IconButton>
-      )}
-      <Menu.Root>
-        <Menu.Trigger aria-label="View options" title="View options" className="grid h-7 w-5 place-items-center rounded-ui-md text-ui-3 transition-colors hover:bg-ui-hover hover:text-ui-1 data-popup-open:bg-ui-hover">
-          <ChevronUp className="h-3.5 w-3.5" aria-hidden />
-        </Menu.Trigger>
-        <Menu.Portal>
-          <Menu.Positioner className="z-[80]" side="top" sideOffset={8} align="end">
-            <Menu.Popup className={POPUP}>
-              <Menu.Item className={ITEM} onClick={onToggleRulers}>
-                {showRulers ? "Hide rulers" : "Show rulers"}
-              </Menu.Item>
-              {onActualSize && (
-                <Menu.Item className={ITEM} disabled={actual} onClick={onActualSize}>
-                  Show at 100%
+        <span className="min-w-11 text-center font-ui-mono text-caption tabular-nums text-ui-1">{Math.round(zoom * 100)}%</span>
+        <IconButton label={`Zoom in (${KEYS.zoomIn})`} className={BAR_BUTTON} onClick={() => onZoomStep(1)}>
+          <Plus className="h-4 w-4" />
+        </IconButton>
+        <button
+          type="button"
+          onClick={onFit}
+          aria-label="Fit"
+          aria-pressed={fitting}
+          title={`Fit the page to the canvas and keep it fitted (${KEYS.fit})`}
+          className={cn("grid h-7 w-7 place-items-center rounded-ui-md transition-colors", fitting ? "bg-ui-active text-ui-1" : "text-ui-3 hover:bg-ui-hover hover:text-ui-1")}
+        >
+          <Maximize className="h-4 w-4" aria-hidden />
+        </button>
+        <Divider />
+        {onToggleGrid && (
+          <IconButton label="Toggle grid" className={BAR_BUTTON} active={showGrid} aria-pressed={showGrid} onClick={onToggleGrid}>
+            <Grid3x3 className="h-4 w-4" />
+          </IconButton>
+        )}
+        <Menu.Root>
+          <Menu.Trigger aria-label="View options" title="View options" className="grid h-7 w-5 place-items-center rounded-ui-md text-ui-3 transition-colors hover:bg-ui-hover hover:text-ui-1 data-popup-open:bg-ui-hover">
+            <ChevronUp className="h-3.5 w-3.5" aria-hidden />
+          </Menu.Trigger>
+          <Menu.Portal>
+            <Menu.Positioner className="z-[80]" side="top" sideOffset={8} align="end">
+              <Menu.Popup className={POPUP}>
+                <Menu.Item className={ITEM} onClick={onToggleRulers}>
+                  {showRulers ? "Hide rulers" : "Show rulers"}
                 </Menu.Item>
-              )}
-              {onZoomSelection && (
-                <Menu.Item className={ITEM} disabled={!hasSelection} onClick={onZoomSelection}>
-                  Zoom to selection <span className="text-micro text-ui-hint">{KEYS.zoomSelection}</span>
+                {onActualSize && (
+                  <Menu.Item className={ITEM} disabled={actual} onClick={onActualSize}>
+                    Show at 100%
+                  </Menu.Item>
+                )}
+                {onZoomSelection && (
+                  <Menu.Item className={ITEM} disabled={!hasSelection} onClick={onZoomSelection}>
+                    Zoom to selection <span className="text-micro text-ui-hint">{KEYS.zoomSelection}</span>
+                  </Menu.Item>
+                )}
+                <Menu.Item className={ITEM} onClick={onOpenProfile} title={sizeTitle}>
+                  <span className="font-ui-mono">
+                    {profile.width} × {profile.height}
+                  </span>{" "}
+                  ↗
                 </Menu.Item>
-              )}
-              <Menu.Item className={ITEM} onClick={onOpenProfile} title={sizeTitle}>
-                <span className="font-ui-mono">
-                  {profile.width} × {profile.height}
-                </span>{" "}
-                ↗
-              </Menu.Item>
-            </Menu.Popup>
-          </Menu.Positioner>
-        </Menu.Portal>
-      </Menu.Root>
-      {snapItems !== undefined && (
-        <>
-          <Divider />
-          <span data-testid="snap-label" className="px-2 text-micro text-ui-3">
-            {snapItems ? "Snap to cells · hold Alt to place freely" : "Items: free · widgets: cells"}
-          </span>
-        </>
-      )}
-      {exportView && (
-        <>
-          <Divider />
-          <ExportViewSwitch view={exportView} />
-        </>
-      )}
-      {preview?.frozen && <FrozenChip preview={preview} />}
+              </Menu.Popup>
+            </Menu.Positioner>
+          </Menu.Portal>
+        </Menu.Root>
+        {snapItems !== undefined && (
+          <>
+            <Divider />
+            <span data-testid="snap-label" className="px-2 text-micro text-ui-3">
+              {snapItems ? "Snap to cells · hold Alt to place freely" : "Items: free · widgets: cells"}
+            </span>
+          </>
+        )}
+        {exportView && (
+          <>
+            <Divider />
+            <ExportViewSwitch view={exportView} />
+          </>
+        )}
+        {preview?.frozen && <FrozenChip preview={preview} />}
+      </div>
       {inspector && (
         <>
           <Divider />
-          <IconButton label="All settings" className={BAR_BUTTON} active={inspector.open} aria-pressed={inspector.open} onClick={inspector.onToggle}>
+          <IconButton label="All settings" className={cn(BAR_BUTTON, "shrink-0")} active={inspector.open} aria-pressed={inspector.open} onClick={inspector.onToggle}>
             <PanelRight className="h-4 w-4" />
           </IconButton>
         </>
