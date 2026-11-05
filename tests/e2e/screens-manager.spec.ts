@@ -12,7 +12,8 @@ test("Screens: create from the sample layout, rename, delete, undo", async ({ pa
   await page.goto(`${scratch.base}/?studio=1`);
   await page.locator('[aria-label="Screens"]').click();
 
-  const cards = page.getByRole("list", { name: "Your screens" }).getByRole("listitem");
+  // The grid ends with the New screen card, which is no screen.
+  const cards = page.getByRole("list", { name: "Your screens" }).getByRole("listitem").filter({ hasNotText: /^New screen/ });
   // Wait for the list to show every screen of the config before counting (the view loads lazily; counting at once
   // could read 0 while it rendered).
   const before = (JSON.parse(local) as { profiles: unknown[] }).profiles.length;
