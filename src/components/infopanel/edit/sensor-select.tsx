@@ -9,7 +9,8 @@ import { Popover } from "@base-ui/react/popover";
 import { Check, ChevronsUpDown, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { refreshCatalog, useSensorCatalog } from "@/lib/catalog";
-import { buildDataModel, type DataPoint } from "@/lib/data-points";
+import type { DataPoint } from "@/lib/data-points";
+import { useDataModel } from "@/lib/use-data-model";
 import type { ChosenSensor } from "@/lib/infopanel/editor/bind";
 import { chosenOf, flatPoints, isNative, NOT_EXPORTABLE, pickerSections } from "@/lib/infopanel/editor/sensor-list";
 import type { DataApiValue } from "@/lib/infopanel/sensors";
@@ -43,7 +44,7 @@ export function SensorSelect({ label, current, fallbackName, placeholder = "Choo
   useEffect(() => {
     if (open) void refreshCatalog();
   }, [open]);
-  const model = useMemo(() => buildDataModel(catalog.sources, catalog.sensors), [catalog.sources, catalog.sensors]);
+  const model = useDataModel();
   const sections = useMemo(() => (open ? pickerSections(model.points, sensors, query, pluginOnly) : []), [open, model, sensors, query, pluginOnly]);
   const flat = useMemo(() => flatPoints(sections), [sections]);
   const at = Math.min(cursor, flat.length - 1);

@@ -9,7 +9,8 @@ import { Dialog } from "@base-ui/react/dialog";
 import { Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { refreshCatalog, useSensorCatalog } from "@/lib/catalog";
-import { buildDataModel, type DataPoint } from "@/lib/data-points";
+import type { DataPoint } from "@/lib/data-points";
+import { useDataModel } from "@/lib/use-data-model";
 import type { ChosenSensor } from "@/lib/infopanel/editor/bind";
 import { chosenOf, isNative, NOT_EXPORTABLE, pickerSections } from "@/lib/infopanel/editor/sensor-list";
 import type { DataApiValue } from "@/lib/infopanel/sensors";
@@ -32,7 +33,7 @@ export function SensorPicker({ open, onOpenChange, title, pluginOnly, current, o
   useEffect(() => {
     if (open) void refreshCatalog();
   }, [open]);
-  const model = useMemo(() => buildDataModel(catalog.sources, catalog.sensors), [catalog.sources, catalog.sensors]);
+  const model = useDataModel();
   const sections = useMemo(() => pickerSections(model.points, sensors, query, pluginOnly), [model, sensors, query, pluginOnly]);
   const noRefs = model.points.length > 0 && model.points.every((p) => !sensors[p.key]?.ref);
   const pick = (p: DataPoint) => {

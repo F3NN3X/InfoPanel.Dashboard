@@ -1,4 +1,4 @@
-import { useMemo, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Popover } from "@base-ui/react/popover";
 import { ArrowRight, ClipboardCopy, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,8 +6,7 @@ import { FIELD_BOX } from "@/components/ui/field";
 import { IconButton } from "@/components/ui/icon-button";
 import { StatusChip, StatusDot } from "@/components/ui/status-chip";
 import { useToast } from "@/components/ui/toast";
-import { useSensorCatalog } from "@/lib/catalog";
-import { buildDataModel } from "@/lib/data-points";
+import { useDataModel } from "@/lib/use-data-model";
 import { BUILD_ID } from "@/lib/buildInfo";
 import type { DashboardConfig } from "@/lib/layout";
 import { cn } from "@/lib/utils";
@@ -54,8 +53,7 @@ export default function DataApiPanel({ status, config, onAddress, onOpenData }: 
   const { link } = apiHealth;
   const downMs = useDownMs(apiHealth);
   const { draft, edit, probe, base, valid, commit, test } = useApiAddress(config.dataApiUrl, onAddress);
-  const catalog = useSensorCatalog();
-  const model = useMemo(() => buildDataModel(catalog.sources, catalog.sensors), [catalog.sources, catalog.sensors]);
+  const model = useDataModel();
   const now = Date.now();
   const down = link === "reconnecting" || link === "offline";
   const chip = LINK_CHIP[link];
