@@ -46,7 +46,6 @@ export function PartsList({ g, selected, onSelect, set }: PartsListProps) {
                       set(togglePart(g, p.id));
                       onSelect(p.id);
                     }}
-                    className="[&>span]:bg-ui-1"
                   />
                 )}
               </div>
