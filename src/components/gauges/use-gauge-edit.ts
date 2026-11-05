@@ -7,10 +7,10 @@ import { useEffect, useMemo, useState } from "react";
 import { listLibrary } from "@/lib/library";
 import { linkOf, linkedItem, type GaugeLink } from "@/lib/gauge-studio/gauge-link";
 import type { StudioBridge } from "@/components/library/library-actions";
-import { profileGauges, sourceKey, withGauge, withGaugeName, type GaugeEntry } from "@/lib/gauge-studio/model";
+import { configGauges, sourceKey, withGauge, withGaugeName, type GaugeEntry } from "@/lib/gauge-studio/model";
 import type { EditorOpen } from "@/lib/gauge-studio/open";
 import { keepCopy, sessionCopy } from "@/lib/gauge-studio/session";
-import { canRedo, canUndo, editCopy, isDirty, markSaved, openCopy, redoCopy, renameCopy, undoCopy, type WorkingCopy } from "@/lib/gauge-studio/working-copy";
+import { autosaves, canRedo, canUndo, editCopy, isDirty, markDrafted, markSaved, openCopy, redoCopy, renameCopy, undoCopy, type WorkingCopy } from "@/lib/gauge-studio/working-copy";
 import type { VectorGauge } from "@/lib/infopanel/gauges/vector";
 
 type Editable = Extract<EditorOpen, { kind: "profile" | "copy" }>;
@@ -28,12 +28,18 @@ export interface GaugeEdit {
   /** Where a profile gauge is linked from; null for anything else. */
   link: GaugeLink | null;
   dirty: boolean;
+  /** Its library item is a draft the autosave made (P-3), not saved on purpose yet. */
+  draft: boolean;
+  /** The library is written without being asked: a draft being edited, or a copy with no item on its first edit. */
+  autosave: boolean;
   /** Working copy only: the studio's own undo covers a profile gauge. */
   history: { undo: () => void; redo: () => void; canUndo: boolean; canRedo: boolean } | null;
   /** A new spec; the same `key` within half a second is one undo step. */
   commit: (next: VectorGauge, key?: string) => void;
   rename: (name: string) => void;
   saved: (origin: NonNullable<WorkingCopy["origin"]>) => void;
+  /** The autosave wrote `written` as the library item `origin`. */
+  drafted: (origin: NonNullable<WorkingCopy["origin"]>, written: { name: string; gauge: VectorGauge }) => void;
 }
 
 /** The name of the library item a profile gauge is linked to; reloaded after each Save. */
@@ -64,11 +70,12 @@ export function useGaugeEdit(bridge: StudioBridge, open: Editable, editorId: num
   }, [editorId, wc]);
   const source = open.kind === "profile" ? open.source : null;
   const entry = useMemo(
-    () => (source ? (profileGauges(bridge.profile).find((e) => e.key === sourceKey(source)) ?? null) : null),
-    [bridge.profile, source],
+    () => (source ? (configGauges(bridge.config).find((e) => e.key === sourceKey(source)) ?? null) : null),
+    [bridge.config, source],
   );
 
-  const link = source ? linkOf(bridge, source) : null;
+  // A gauge on another screen or page links from where it is, not from the canvas.
+  const link = source ? linkOf(entry?.on ?? bridge, source) : null;
   const [saves, setSaves] = useState(0);
   const saveTo = useLinkedName(link, saves);
 
@@ -82,10 +89,13 @@ export function useGaugeEdit(bridge: StudioBridge, open: Editable, editorId: num
       saveTo,
       link,
       dirty: false,
+      draft: false,
+      autosave: false,
       history: null,
       commit: (next, key) => bridge.setConfig((c) => withGauge(c, source, next) ?? c, key ? `gauge:${sourceKey(source)}:${key}` : undefined),
       rename: (name) => bridge.setConfig((c) => withGaugeName(c, source, name) ?? c, `gauge:${sourceKey(source)}:name`),
       saved: () => setSaves((n) => n + 1),
+      drafted: () => {},
     };
   }
   const copy = wc!;
@@ -98,6 +108,8 @@ export function useGaugeEdit(bridge: StudioBridge, open: Editable, editorId: num
     saveTo: null,
     link: null,
     dirty: isDirty(copy),
+    draft: copy.draft,
+    autosave: autosaves(copy),
     history: {
       undo: () => setWc((w) => w && undoCopy(w)),
       redo: () => setWc((w) => w && redoCopy(w)),
@@ -107,5 +119,6 @@ export function useGaugeEdit(bridge: StudioBridge, open: Editable, editorId: num
     commit: (next, key) => setWc((w) => w && editCopy(w, next, key)),
     rename: (name) => setWc((w) => w && renameCopy(w, name)),
     saved: (origin) => setWc((w) => w && markSaved(w, origin)),
+    drafted: (origin, written) => setWc((w) => w && markDrafted(w, origin, written)),
   };
 }

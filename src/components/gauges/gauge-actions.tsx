@@ -53,7 +53,7 @@ export function gaugeActions(entry: GaugeEntry, h: GaugeActionHandlers): GaugeAc
             choices: h.canvasZones.map((z) => ({ id: z.id, label: z.name, run: () => h.onAddToZone(z.id) })),
           },
       { label: "Duplicate", icon: Copy, run: h.onDuplicate, disabled: !copyable, title: copyable ? undefined : "Some of its frames are not files in the asset store" },
-      { label: "Export", icon: Upload, run: h.onExport, disabled: !exportable, title: vector ? "Download as .gauge.json" : exportable ? "Download the frames as a .gauge-frames.zip" : "This image sequence has no frames to export" },
+      { label: vector ? "Export .gauge.json" : "Export frames", icon: Upload, run: h.onExport, disabled: !exportable, title: vector ? "Download as .gauge.json" : exportable ? "Download the frames as a .gauge-frames.zip" : "This image sequence has no frames to export" },
     ],
   };
 }
