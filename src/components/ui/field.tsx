@@ -1,9 +1,12 @@
 import type { InputHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
+import { FOCUS_RING } from "./button";
 
-/** A field's box: 32 px on the panel colour, a control border that turns accent with the cursor in it. */
-export const FIELD_BOX =
-  "h-8 rounded-ui-md border border-ui-control bg-ui-chrome px-3 text-body text-ui-1 outline-none transition-colors duration-(--ui-dur-fast) ease-ui placeholder:text-ui-disabled focus:border-ui-accent disabled:opacity-40 aria-invalid:border-ui-danger";
+/** A field's box: 32 px on the panel colour, a control border that turns accent with the cursor in it, and the shared 2 px focus ring. */
+export const FIELD_BOX = cn(
+  "h-8 rounded-ui-md border border-ui-control bg-ui-chrome px-3 text-body text-ui-1 outline-none transition-colors duration-(--ui-dur-fast) ease-ui placeholder:text-ui-disabled focus:border-ui-accent disabled:opacity-40 aria-invalid:border-ui-danger",
+  FOCUS_RING,
+);
 
 interface FieldProps extends InputHTMLAttributes<HTMLInputElement> {
   /** A value (a reading, an address, a size): Geist Mono with tabular figures. */
