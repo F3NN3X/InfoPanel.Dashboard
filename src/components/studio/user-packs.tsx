@@ -22,7 +22,7 @@ export interface UserPacksProps {
 
 /**
  * Your packs: the theme packs in the app data folder, beside the built-in Looks. A pack comes in as a folder or a zip, is
- * checked by the validator (errors refuse it, warnings are shown) and is stored by the server. Sharing a pack is off.
+ * checked by the validator (errors refuse it, warnings are shown), a pack with CSS by the render check too, and is stored by the server. Sharing a pack is off.
  */
 export function UserPacks({ currentLookId, onPick, onRemove }: UserPacksProps) {
   const [packs, setPacks] = useState<UserPackInfo[]>([]);
@@ -92,8 +92,13 @@ export function UserPacks({ currentLookId, onPick, onRemove }: UserPacksProps) {
             <input ref={folder} type="file" multiple hidden data-pack-folder aria-label="Pack folder" {...{ webkitdirectory: "" }} onChange={(e) => void take(e.currentTarget.files)} />
             <input ref={zip} type="file" accept=".zip,application/zip" hidden data-pack-zip aria-label="Pack zip" onChange={(e) => void take(e.currentTarget.files)} />
           </div>
-          <p className="text-micro text-ui-hint">A pack is checked before it is stored. It holds its own fonts and images and no style sheet. Sharing packs is off.</p>
+          <p className="text-micro text-ui-hint">A pack is checked before it is stored. It holds its own fonts and images, and a style sheet only if it keeps every widget readable. Sharing packs is off.</p>
         </>
+      )}
+      {busy && (
+        <p role="status" data-pack-checking className="text-caption text-ui-1">
+          Checking the pack. One with a style sheet is tried on every widget first, which can take a minute.
+        </p>
       )}
       {report && (
         <div role={errors.length > 0 ? "alert" : "status"} data-pack-report className="flex flex-col gap-1 rounded-lg border border-ui-strong bg-ui-panel px-3 py-2 text-caption text-ui-1">

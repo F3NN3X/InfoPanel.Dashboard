@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState, type CSSProperties } from "react";
 import { flushSync } from "react-dom";
 import { modules } from "@/modules";
 import { INSERT_CATEGORIES } from "@/components/studio/insert-panel";
@@ -10,7 +10,7 @@ import { Gallery, galleriesFor } from "./Gallery";
 import { QaHelp } from "./Help";
 import { Toolbar } from "./Toolbar";
 import { WidgetSection } from "./Section";
-import { forceMountAll } from "./Frame";
+import { forceMountAll, mountAllSettled } from "./Frame";
 import { overflowReport, type Issue } from "./probe";
 import { NOTES } from "./notes";
 import { DEFAULT_STATE, frameRef, parseParams, parseSpans, placementSettings, serializeParams, widgetLinks, type QaState } from "./params";
@@ -34,7 +34,13 @@ registerSampleCards();
 
 const CATEGORY_ORDER = INSERT_CATEGORIES.filter((c) => !["All", "Layouts", "My panels"].includes(c));
 
-export default function WidgetQa() {
+// The page the studio's render check frames (`pack-check.tsx`): no toolbar and no `__qa*` tools. A chunk of its own: it brings the
+// pack loader, and in this chunk the loader would land before a widget's first measure and change the overflow runner's markup (the
+// order of a style's properties).
+const PACK_CHECK = new URLSearchParams(window.location.search).has("pack-check");
+const PackCheck = lazy(() => import("./pack-check"));
+
+function WidgetQa() {
   const [state, setState] = useState(() => parseParams(window.location.search));
   const apply = (next: QaState) => {
     // The demo streams are installed before anything mounts, so a change of data source loads the page again.
@@ -120,28 +126,21 @@ declare global {
 
 // Frames mount lazily. `__qaOverflow` mounts the rest itself so it always covers every figure, but
 // widgets measure after mounting: `await __qaMountAll()` first (or load with `module=` / `eager=1`) to let them settle.
-window.__qaMountAll = async () => {
-  flushSync(forceMountAll);
-  await document.fonts.ready;
-  // Settled = the element count and the number of fetched files (a lazy chunk, a pack's parts) unchanged over 0.75 s of
-  // samples: lazy chunks and ResizeObserver re-renders land at load-dependent times, so a fixed wait let a slow run read a
-  // half-built frame (ledger L50, L60). Text is left out: the demo streams keep changing it and would never settle.
-  // Bounded at 6 s; a cap that is reached is logged and returned as false.
-  // The default buffer holds 250 entries; past that the count would stop growing and a late chunk would not keep the page unsettled (L70).
-  performance.setResourceTimingBufferSize(5000);
-  let last = -1;
-  let still = 0;
-  for (let i = 0; i < 24 && still < 3; i++) {
-    await new Promise((r) => setTimeout(r, 250));
-    const now = document.body.getElementsByTagName("*").length + performance.getEntriesByType("resource").length / 1e4;
-    still = now === last ? still + 1 : 0;
-    last = now;
-  }
-  if (still < 3) console.warn("__qaMountAll: the page did not settle within 6 s");
-  return still >= 3;
-};
-window.__qaSurfaceOf = async (frame) => (await import("@/lib/infopanel/native/surface-of")).surfaceOf(frame);
-window.__qaOverflow = () => {
-  flushSync(forceMountAll);
-  return overflowReport();
-};
+if (!PACK_CHECK) {
+  window.__qaMountAll = mountAllSettled;
+  window.__qaSurfaceOf = async (frame) => (await import("@/lib/infopanel/native/surface-of")).surfaceOf(frame);
+  window.__qaOverflow = () => {
+    flushSync(forceMountAll);
+    return overflowReport();
+  };
+}
+
+function PackCheckPage() {
+  return (
+    <Suspense fallback={null}>
+      <PackCheck />
+    </Suspense>
+  );
+}
+
+export default PACK_CHECK ? PackCheckPage : WidgetQa;

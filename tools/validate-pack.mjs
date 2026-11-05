@@ -1,7 +1,8 @@
 // Validates a theme pack folder: `node tools/validate-pack.mjs <dir>` prints each issue as `error|warn rule file: message` and
 // exits 1 on any error (2 on a usage error). The rules are src/looks/pack-validate.ts, bundled here with esbuild (no test runner).
 //   node tools/validate-pack.mjs src/looks/packs/field-kit --builtin   (--builtin leaves out the pack's .ts/.tsx code files and reads it as one of ours, CSS included)
-// Without --builtin the folder is read as a user pack: it has no pack.css (rule `user-css`).
+// Without --builtin the folder is read as a user pack: a pack.css is held to the user grammar (rule `user-css`). That is all this tool can
+// say of it: the render check and the server's signature happen when the studio imports the pack, and a pack.css without them is never served.
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -57,5 +58,6 @@ if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) 
   for (const i of issues) console.log(`${i.severity} ${i.rule} ${i.file || "-"}: ${i.message}`);
   const errors = issues.filter((i) => i.severity === "error").length;
   console.log(`${errors} error(s), ${issues.length - errors} warning(s)`);
+  if (!builtin && !errors && readPackDir(dir).css !== undefined) console.log("pack.css passes the grammar; it still has to pass the render check when the studio imports it");
   process.exit(errors ? 1 : 0);
 }

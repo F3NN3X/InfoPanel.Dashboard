@@ -2,8 +2,9 @@
 // Everything here is a lazy chunk: the kiosk reaches it only when a config names a Look it does not know, the studio when the
 // Look gallery opens. A pack is read from the route, run through `validatePack` in `user` mode (the mode is decided here, by
 // where the bytes came from, never by what they say), then built as a `Pack` from its declarative files: look.json, the stage
-// of pack.json, icons.json and the font faces. It carries no CSS of its own (`user-css`); the one stylesheet it gets is the
-// loader's own font-family rule from the families the validator has passed. The loader's checks (`packIssues`) run on it again.
+// of pack.json, icons.json and the font faces. Its stylesheet is the loader's own font-family rule from the families the validator
+// has passed, then its `pack.css` if it has one: read by the grammar in the validator, and served only with the server's word for
+// its signature (L94). The loader's checks (`packIssues`) run on it again.
 import { cappedBlur } from "@/components/widget-style";
 import { LOOK_IDS, registerUserLooks } from "./ids";
 import type { Look } from "./look";
@@ -48,14 +49,41 @@ export async function userPacksOff(): Promise<boolean> {
   }
 }
 
-const bytesOf = async (id: string, file: string): Promise<Uint8Array | undefined> => {
+/** A file's bytes, and whether the answer said the pack has a stylesheet (`X-Pack-Css`, on `pack.json`). */
+const fileOf = async (id: string, file: string): Promise<{ bytes?: Uint8Array; styled?: boolean }> => {
   try {
     const res = await fetch(`${ROUTE}/${id}/${file}`, { cache: "no-cache" });
-    return res.ok ? new Uint8Array(await res.arrayBuffer()) : undefined;
+    return res.ok ? { bytes: new Uint8Array(await res.arrayBuffer()), styled: res.headers.get("X-Pack-Css") === "1" } : {};
+  } catch {
+    return {};
+  }
+};
+const bytesOf = async (id: string, file: string): Promise<Uint8Array | undefined> => (await fileOf(id, file)).bytes;
+
+/** The header the server puts on a `pack.css` whose signature it has just checked (`serve_css`, packs.rs). The key is the server's alone, so this is the only word the client can have. */
+const SIGNATURE = "X-Pack-Signature";
+
+/** A pack's `pack.css` as a file: anything but a 200 with the server's word for it comes back empty and unread, which the validator refuses. Asked for only when `pack.json` says there is one, so a pack with none makes no request that fails. */
+async function cssFile(id: string): Promise<PackFile> {
+  const unread: PackFile = { path: "pack.css", size: 0, bytes: new Uint8Array() };
+  try {
+    const res = await fetch(`${ROUTE}/${id}/pack.css`, { cache: "no-cache" });
+    if (!res.ok || res.headers.get(SIGNATURE) !== "valid") return unread;
+    const bytes = new Uint8Array(await res.arrayBuffer());
+    return { path: "pack.css", size: bytes.length, bytes };
+  } catch {
+    return unread;
+  }
+}
+
+/** The text of a `pack.css`, or undefined when its bytes are not UTF-8 (a byte-order mark stays in, and the grammar refuses it). */
+export function cssText(bytes: Uint8Array | undefined): string | undefined {
+  try {
+    return bytes?.length ? new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes) : undefined;
   } catch {
     return undefined;
   }
-};
+}
 
 const parsed = (bytes: Uint8Array | undefined): unknown => {
   try {
@@ -67,13 +95,14 @@ const parsed = (bytes: Uint8Array | undefined): unknown => {
 
 /** The files of a pack as the route holds them: pack.json, look.json, icons.json, the licence and each asset pack.json lists (the route has no folder listing). */
 export async function readUserPack(id: string): Promise<PackSource> {
-  const [pack, look, icons] = await Promise.all(["pack.json", "look.json", "icons.json"].map((f) => bytesOf(id, f)));
+  const [{ bytes: pack, styled }, look, icons] = await Promise.all([fileOf(id, "pack.json"), bytesOf(id, "look.json"), bytesOf(id, "icons.json")]);
+  const css = styled ? await cssFile(id) : undefined;
   const listed = ((parsed(pack) as { assets?: { file?: unknown }[] } | undefined)?.assets ?? []).flatMap((a) => (typeof a?.file === "string" ? [`assets/${a.file}`] : [])).slice(0, FILE_COUNT_MAX);
   const names = [...LICENCES, ...listed];
   const rest = await Promise.all(names.map((f) => bytesOf(id, f)));
   const found: [string, Uint8Array | undefined][] = [["pack.json", pack], ["look.json", look], ["icons.json", icons], ...names.map((n, k): [string, Uint8Array | undefined] => [n, rest[k]])];
-  const files: PackFile[] = found.flatMap(([path, bytes]) => (bytes ? [{ path, size: bytes.length, bytes }] : []));
-  return { pack: parsed(pack), look: parsed(look), icons: parsed(icons), files };
+  const files: PackFile[] = [...found.flatMap(([path, bytes]) => (bytes ? [{ path, size: bytes.length, bytes }] : [])), ...(css ? [css] : [])];
+  return { pack: parsed(pack), look: parsed(look), icons: parsed(icons), css: cssText(css?.bytes), files };
 }
 
 /** What is wrong with a pack's files, as a user pack: the validator in `user` mode, always. */
@@ -142,17 +171,17 @@ function layerOf(id: string, look: Look): Record<string, string> {
 /** The font faces each user pack added to the document, taken out again when the pack is forgotten. */
 const faces = new Map<string, FontFace[]>();
 
-/** A validated pack's files as a `Pack`: the stage and slots its pack.json and icons.json declare, served from the route; fonts added to the document. */
-export function userPackOf(src: PackSource): Pack {
+/** A validated pack's files as a `Pack`: the stage and slots its pack.json and icons.json declare, served from the route; fonts added to the document unless it is a candidate, which is not stored yet (the render check reads computed paint, not glyphs or images). */
+export function userPackOf(src: PackSource, candidate = false): Pack {
   const meta = src.pack as PackJson;
   const look = src.look as Look;
   const base = `${ROUTE}/${meta.id}/assets/`;
-  faces.set(meta.id, addPackFonts({ base, names: Object.fromEntries(meta.fonts.map((f) => [f.file, f.file])) }, meta.fonts));
+  if (!candidate) faces.set(meta.id, addPackFonts({ base, names: Object.fromEntries(meta.fonts.map((f) => [f.file, f.file])) }, meta.fonts));
   return {
     id: meta.id,
     look,
     base,
-    css: fontCss(look.fonts),
+    css: fontCss(look.fonts) + (src.css ?? ""),
     assets: (meta.assets ?? []).map((a) => a.file),
     slots: { icons: src.icons as NonNullable<Pack["slots"]>["icons"] },
     stage: { layers: meta.stage.layers, effects: meta.stage.effects, overlayMinSizeClass: meta.stage.overlayMinSizeClass },
@@ -163,6 +192,28 @@ export function userPackOf(src: PackSource): Pack {
 }
 
 const registered = new Set<string>();
+
+/** Registers a checked pack like a built-in one: its id a pack, its card and Look layer where the theme resolution looks. */
+function register(id: string, pack: Pack): boolean {
+  const card = cardOf(id, pack.look);
+  if (!card || !registerUserPack(id, async () => ({ default: pack }))) return false;
+  sampleCards[card.id] = card;
+  lookLayers[id] = layerOf(id, pack.look);
+  return true;
+}
+
+/**
+ * The loader's candidate path, for the render check's frame alone: a pack that is not stored, worn from the files the studio holds.
+ * The frame is a page of its own, so this registers nothing in the studio or a kiosk. Returns the pack's id and the widget style
+ * that wears it, or undefined for a pack the validator or the loader refuses.
+ */
+export function wearCandidate(src: PackSource): { id: string; style: Record<string, string> } | undefined {
+  if (userPackIssues(src).some((i) => i.severity === "error")) return undefined;
+  const pack = userPackOf(src, true);
+  if (!register(pack.id, pack)) return undefined;
+  registerUserLooks([pack.id]);
+  return { id: pack.id, style: { lookId: pack.id, ...lookLayers[pack.id] } };
+}
 
 /**
  * Reads, validates and registers the user packs `only` names (every listed pack without it): its id becomes a Look id, the
@@ -175,10 +226,7 @@ export async function registerUserPacks(only?: readonly string[]): Promise<strin
     const src = await readUserPack(id);
     if (userPackIssues(src).some((i) => i.severity === "error")) return undefined;
     const pack = userPackOf(src);
-    const card = cardOf(id, pack.look);
-    if (!card || !registerUserPack(id, async () => ({ default: pack }))) return undefined;
-    sampleCards[card.id] = card;
-    lookLayers[id] = layerOf(id, pack.look);
+    if (!register(id, pack)) return undefined;
     registered.add(id);
     return id;
   }));

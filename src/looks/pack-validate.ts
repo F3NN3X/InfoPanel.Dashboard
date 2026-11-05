@@ -3,7 +3,7 @@
 // list with sizes and bytes) before anything is built, and says which rule each problem breaks. An `error` refuses the pack;
 // a `warn` is advice. It reuses the loader's readers (`packCssIssues`, `lintPackCss`, `stageIssues`, `iconSetIssues`) and adds
 // the rules they cannot see from a built pack: the asset list against the files, fonts and licence, contrast per card,
-// burn-in luminance, ornament and chamfer sizes, and CSS paint that hides content (L71).
+// burn-in luminance, ornament and chamfer sizes, CSS paint that hides content (L71) and a user pack's CSS grammar (L94).
 //
 // Where it runs: the studio (lazy chunk, when a pack is imported) and `tools/validate-pack.mjs` (pack authors, `npm run verify`
 // reads the built-in packs through the tests). The server (Rust) does not run it; the server half, for P12b to build, is the
@@ -22,6 +22,7 @@ import { INJECTION, jsonShapeIssues, jsonStrings, PROSE_PATHS, rasterMatches, ST
 import packSchema from "./pack.schema.json";
 import { cssUrls, isPackRelativeUrl, packCssIssues } from "./pack-urls";
 import { schemaErrors } from "./schema-check";
+import { userCssIssues } from "./user-css";
 import { type Colour, flatOver, over, parseColour } from "./colour";
 import { contrastOf } from "./status";
 
@@ -49,9 +50,10 @@ export interface PackSource {
 
 export interface PackOptions {
   /**
-   * `user` (the default) is a pack someone brought: level 1 and 2 of the spec, tokens, values, assets, an icon map and fonts, and no
-   * `pack.css` (rule `user-css`). `builtin` is one of ours, whose CSS is read by the CSS rules and then checked in the browser
-   * (`pack-visibility`, `pack-selectors`, `pack-faces`).
+   * `user` (the default) is a pack someone brought: level 1 and 2 of the spec, tokens, values, assets, an icon map and fonts, and a
+   * `pack.css` only inside the grammar of `user-css.ts` (rule `user-css`); the render check and the signature that let one be worn
+   * are the importer's and the server's. `builtin` is one of ours, whose CSS is read by the CSS rules and then checked in the
+   * browser (`pack-visibility`, `pack-selectors`, `pack-faces`).
    */
   source?: "builtin" | "user";
 }
@@ -153,7 +155,7 @@ function svgBrightness(source: string): number | undefined {
   return lums.some((l) => l === undefined) ? undefined : Math.max(0, ...(lums as number[]));
 }
 
-// ---- pack.css (built-in packs; a user pack has none) -----------------------------------------------------------------------
+// ---- pack.css (built-in packs; a user pack's is user-css.ts) --------------------------------------------------------------------
 
 /** Declarations that move, turn or resize a box; the card is never rotated (spec 03, Layout). */
 const ROTATION = /^(transform(-origin|-box|-style)?|rotate|scale|translate|perspective(-origin)?|offset-rotate|zoom|writing-mode)$/;
@@ -727,8 +729,9 @@ function validate(src: PackSource, source: "builtin" | "user"): PackIssue[] {
     if (1 - behind >= BRIGHT_LAYER) add("burn-in", "pack.json", `the stage layers together are bright static art (luminance ${(1 - behind).toFixed(2)}): declare needs-shift or needs-dim, not static-safe`);
   }
 
-  // pack.css: a user pack has none; a built-in pack's is read for URLs, paint only and hiding paint
-  if (user && (src.css !== undefined || files.has("pack.css"))) add("user-css", "pack.css", "a user pack carries no pack.css: its paint is the tokens and T3 values of look.json (user CSS needs a grammar of its own and a render check at import)");
+  // pack.css: a user pack's is read by its own grammar (a file that could not be read as text is refused); a built-in pack's for URLs, paint only and hiding paint
+  if (user && src.css !== undefined) for (const m of userCssIssues(src.css)) add("user-css", "pack.css", m);
+  else if (user && files.has("pack.css")) add("user-css", "pack.css", "the file was not read as UTF-8 text, or the server would not vouch for it");
   if (!user && src.css !== undefined) {
     for (const m of packCssIssues(src.css)) add(cssRule(m), "pack.css", m);
     for (const m of lintPackCss(src.css)) add(cssRule(m), "pack.css", m);

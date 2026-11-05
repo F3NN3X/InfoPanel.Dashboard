@@ -60,7 +60,7 @@ A pack is a folder of data and assets, built on the Look file from the brief. No
 looks/field-kit/
   look.json      tokens: T1 colours, T2 materials, T3 data-viz (per the brief)
   pack.json      slots, assets, fonts, icons, effects, knobs, variants, fallbacks, export, templates
-  pack.css       optional, level 3 only: scoped, paint-only; built-in packs only (a user pack carries none in v1: rule `user-css`)
+  pack.css       optional, level 3 only: scoped, paint-only; a user pack's is held to the grammar of `src/looks/user-css.ts`, the render check at import and the server's signature (L94)
   assets/        page.avif, contours.svg, hazard.svg, grain.webp
   fonts/         display.woff2 (subset)
   icons/         icon set: SVG sprite, or a glyph map for text-based sets
