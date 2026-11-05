@@ -14,7 +14,7 @@ const FILTERS: { value: HistoryFilter["severity"]; label: string }[] = [
   { value: "info", label: "Info" },
 ];
 
-const HEAD = "px-5 py-3 text-left text-caption font-normal text-ui-3";
+const HEAD = "whitespace-nowrap px-5 py-3 text-left text-caption font-normal text-ui-3";
 const CELL = "whitespace-nowrap px-5 py-3 text-body text-ui-2";
 
 function Row({ row, profiles, now }: { row: AlertHistoryEntry; profiles: readonly MonitorProfile[]; now: number }) {

@@ -58,13 +58,13 @@ const hasIsland = (p: MonitorProfile) => p.island?.enabled === true;
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-/** What a style came out as on its screens: Auto and Island are the island where there is one, a toast elsewhere, Auto when screens differ. */
+/** What a style came out as on its screens: Auto and Island are the island where every screen has one, a toast where none has, and their own name when screens differ. */
 export function landedText(style: AlertStyle | undefined, targets: readonly MonitorProfile[]): string {
   if (!style) return "—";
   if (style !== "auto" && style !== "island") return cap(style);
   const withOne = targets.filter(hasIsland).length;
   if (withOne === targets.length) return "Island";
-  return withOne === 0 ? "Toast" : "Auto";
+  return withOne === 0 ? "Toast" : cap(style);
 }
 
 export function screensText(h: AlertHistoryEntry, profiles: readonly MonitorProfile[]): string {
@@ -72,7 +72,16 @@ export function screensText(h: AlertHistoryEntry, profiles: readonly MonitorProf
   return h.profiles && h.profiles.length > 0 ? targetsOf(h.profiles, profiles).map((p) => p.name).join(", ") || "—" : "All screens";
 }
 
-const cell = (text: string) => (/[",\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text);
+/** Text a spreadsheet can read as a formula: it opens with a tab or CR, or with one of these after any white space. */
+const FORMULA = /^(?:[\t\r]|\s*[=+\-@])/;
+/** A plain negative reading, "-5" or "-5.5 °C": no formula, so it stays as it reads. */
+const READING = /^-\d+(\.\d+)?( [^\s\d=+\-*/@(),"]+)?$/;
+
+/** One CSV cell: rule names and readings are outside text, so a formula is defused with a leading quote. */
+function cell(text: string): string {
+  const safe = FORMULA.test(text) && !READING.test(text) ? `'${text}` : text;
+  return /[",\r\n]/.test(safe) ? `"${safe.replaceAll('"', '""')}"` : safe;
+}
 
 /** The rows as CSV, the table's columns plus the severity and whether a test. */
 export function historyCsv(history: readonly AlertHistoryEntry[], profiles: readonly MonitorProfile[]): string {

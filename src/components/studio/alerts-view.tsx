@@ -102,7 +102,7 @@ export function AlertsView({ tab, onTab, config, setConfig, active, control, poi
         {tab === "rules" && (
           <div className="flex items-center gap-4">
             <MuteToggle control={control} />
-            <label className="flex items-center gap-2 text-body text-ui-2">
+            <label className="flex items-center gap-2 whitespace-nowrap text-body text-ui-2">
               Alerts on
               <Toggle checked={alerts.enabled} label="Alerts on" onChange={(on) => setConfig((c) => setAlertsEnabled(c, on), alertsKey("enabled"))} />
             </label>

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { addSample, chartPoints, chartRange, TRAIL_MS, type Sample } from "./alerts-chart-model";
 
@@ -46,6 +46,7 @@ interface AlertChartProps {
  */
 export function AlertChart({ sensorKey, name, unit, value, limit, clear, above }: AlertChartProps) {
   const samples = useTrail(sensorKey, value);
+  const clipId = useId();
   const now = samples.at(-1)?.at ?? 0;
   const lines = [limit, clear].filter((n): n is number => n !== undefined);
   const [low, high] = chartRange(samples, lines);
@@ -57,7 +58,6 @@ export function AlertChart({ sensorKey, name, unit, value, limit, clear, above }
     ? `${name}, last 5 min, no readings yet`
     : `${name}, last 5 min, ${Math.min(...reads).toFixed(1)} to ${Math.max(...reads).toFixed(1)}${suffix}`;
   const firing = limit === undefined ? null : above ? { y: 0, height: Math.max(0, y(limit)) } : { y: y(limit), height: Math.max(0, H - y(limit)) };
-  const clipId = `alert-firing-${sensorKey}`;
   return (
     <div className="flex flex-col gap-1">
       <div className="relative">
