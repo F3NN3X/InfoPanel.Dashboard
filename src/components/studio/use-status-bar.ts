@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useSensorsConnected } from "@/hooks/useSensors";
 import { kiosksOf, type ControlState } from "@/lib/control";
-import { dataApiState, getApiBase, pingApiBase, subscribeApiBase } from "@/lib/data-api";
+import { dataApiState, getApiBase, subscribeApiBase } from "@/lib/data-api";
 import { appSettings, isTauri, onShellEvent, serverStatus, updateState } from "@/lib/desktop";
 import { restartItems } from "@/settings/model/restart";
 import type { Settings, Status, UpdateState } from "@/settings/types";
+import { pingApi } from "./ping-api";
 import type { SaveState, StatusBarData, StatusServer } from "./status-bar";
 import { useDataApiGrace, type ApiHealth } from "./use-data-api-grace";
 
@@ -13,8 +14,11 @@ const PING_MS = 15_000;
 /** How often while the connection is down, so a comeback shows inside the grace. */
 const RETRY_MS = 3_000;
 
-/** The last ping of the current Data API base: ms, null when it failed, undefined before the first; `retry` pings now. */
-function useApiLatency(streamsOpen: boolean): { base: string; latencyMs: number | null | undefined; retry: () => void } {
+/**
+ * The last ping of the current Data API base: ms, null when it failed, undefined before the first; `retry` pings now.
+ * One ping at a time (a tick that finds one in flight skips), each with a timeout.
+ */
+export function useApiLatency(streamsOpen: boolean): { base: string; latencyMs: number | null | undefined; retry: () => void } {
   const [base, setBase] = useState(getApiBase);
   const [latencyMs, setLatency] = useState<number | null>();
   const [tries, setTries] = useState(0);
@@ -22,15 +26,20 @@ function useApiLatency(streamsOpen: boolean): { base: string; latencyMs: number 
   useEffect(() => setLatency(undefined), [base]);
   const down = !streamsOpen || latencyMs === null;
   useEffect(() => {
-    let alive = true;
+    const stop = new AbortController();
+    let inFlight = false;
     const ping = () => {
-      if (document.visibilityState !== "visible") return;
-      void pingApiBase(base).then((ms) => alive && setLatency(ms));
+      if (inFlight || document.visibilityState !== "visible") return;
+      inFlight = true;
+      void pingApi(base, stop.signal).then((ms) => {
+        inFlight = false;
+        if (!stop.signal.aborted) setLatency(ms);
+      });
     };
     ping();
     const timer = setInterval(ping, down ? RETRY_MS : PING_MS);
     return () => {
-      alive = false;
+      stop.abort();
       clearInterval(timer);
     };
   }, [base, down, tries]);
