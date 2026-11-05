@@ -15,7 +15,7 @@ import { RenameInput } from "./rename-input";
 import { ScreenDetail } from "./screen-detail";
 import { AddDisplayCard } from "./screens/add-display-card";
 import { DeleteDialog } from "./screens/delete-dialog";
-import { displaysText, liveDisplays, screensCountLine, screenSummary } from "./screens/display-model";
+import { displaysText, distinctDisplays, liveDisplays, screensCountLine, screenSummary } from "./screens/display-model";
 import { DisplaysList } from "./screens/displays-list";
 import { CARD_GRID, ListEmpty, ListSection } from "./screens/list-frame";
 import { LiveDisplayCard } from "./screens/live-display-card";
@@ -225,7 +225,7 @@ export function ScreensView({
   /** One screen's card (grid) or row (list): the same name, size, chip and actions. */
   const screenItem = (p: (typeof screens)[number]) => {
     const tag = launchTag(config, p.id, autoProfileId);
-    const showing = kiosks.filter((k) => k.profile === p.id).length;
+    const showing = distinctDisplays(kiosks.filter((k) => k.profile === p.id));
     const kind = screenKind(p);
     const index = config.profiles.findIndex((x) => x.id === p.id);
     const common = {
@@ -288,7 +288,7 @@ export function ScreensView({
   return (
     <div ref={setViewEl} className="relative flex min-h-0 flex-1 flex-col bg-ui-app/40 font-ui">
       <ScreensHeader
-        count={screensCountLine(config.profiles.length, kiosks.length)}
+        count={screensCountLine(config.profiles.length, distinctDisplays(kiosks))}
         query={query}
         onQuery={setQuery}
         searchRef={searchRef}

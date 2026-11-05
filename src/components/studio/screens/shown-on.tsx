@@ -38,7 +38,7 @@ interface ShownOnProps {
 
 /**
  * "Shown on": the default (what the app opens on) apart from the active (what kiosks show now), and the link that
- * pins a kiosk to this screen. A named display takes its screen from the Displays list instead.
+ * pins a kiosk to this screen. A named display takes its screen from its card under Live on displays instead.
  */
 export function ShownOn({ screenId, isDefault, isBestFit, kiosks, onChangeDefault, displays }: ShownOnProps) {
   const copy = useCopyKioskLink();
@@ -107,7 +107,7 @@ export function ShownOn({ screenId, isDefault, isBestFit, kiosks, onChangeDefaul
       </button>
       <p className="text-pretty text-micro leading-[1.4] text-ui-4">
         {named
-          ? "Open the link on a kiosk. Choose its screen in the Displays list on this page."
+          ? "Open the link on a kiosk. Choose its screen on its card under Live on displays."
           : "Open the link on a kiosk to pin it to this screen."}{" "}
         From another device, use this PC's address in place of 127.0.0.1.
       </p>

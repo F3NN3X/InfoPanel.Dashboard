@@ -68,6 +68,9 @@ export function rotationButton(
   };
 }
 
+/** How many displays the kiosks are: a named display with two browser tabs open is one. */
+export const distinctDisplays = (kiosks: readonly Pick<ControlKiosk, "id" | "display">[]): number => new Set(kiosks.map((k) => k.display ?? k.id)).size;
+
 /** `1 display` / `3 displays`. */
 export const displaysText = (n: number): string => `${n} ${n === 1 ? "display" : "displays"}`;
 

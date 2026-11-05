@@ -122,7 +122,7 @@ describe("Live on displays", () => {
     fireEvent.click(screen.getByRole("menuitem", { name: "Forget display" }));
     expect(api.postControl).toHaveBeenCalledWith("display", { action: "forget", display: "wall" });
     fireEvent.click(screen.getByRole("button", { name: "Display actions, wall" }));
-    fireEvent.click(screen.getByRole("menuitem", { name: "Rotation settings…" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Main rotation settings…" }));
     expect(props.navigateTo).toHaveBeenCalledWith({ view: "screens", profileId: "p1", section: "rotation" });
   });
 
@@ -130,6 +130,18 @@ describe("Live on displays", () => {
     view({ displays: [{ ...display, online: false }] });
     fireEvent.click(screen.getByRole("button", { name: "Forget" }));
     expect(api.postControl).toHaveBeenCalledWith("display", { action: "forget", display: "wall" });
+  });
+
+  it("counts a named display once however many browser tabs it has open", () => {
+    view({ kiosks: [kiosk({ display: "wall" }), kiosk({ id: "k2", display: "wall" }), kiosk({ id: "k3" })], displays: [display] });
+    expect(screen.getByText("2 screens · 2 displays live")).toBeTruthy();
+    expect(screen.getByText("On 2 displays")).toBeTruthy();
+  });
+
+  it("names the screen in the menu labels that act on the screen, not on one display", () => {
+    view({ kiosks: [kiosk({})] });
+    fireEvent.click(screen.getByRole("button", { name: "Display actions, Kiosk · 192.168.1.24" }));
+    for (const name of ["Dim Main", "Show Dynamic Island on Main", "Reload displays showing Main"]) expect(screen.getByRole("menuitem", { name })).toBeTruthy();
   });
 
   it("counts displays in the header and on the card of the screen they show", () => {

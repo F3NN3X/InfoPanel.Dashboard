@@ -39,14 +39,18 @@ export function LiveDisplayCard({ live, profiles, control, now, onRotationSettin
   const island = entry?.island ?? screen?.island?.enabled === true;
   const page = screen ? (screen.pages.find((p) => p.id === (kiosk.page ?? entry?.page))?.id ?? screen.pages[0]?.id) : undefined;
 
+  const previewPage = screen?.pages.find((p) => p.id === page);
+  // The server shows a link's pin before the screen chosen here: the choice and what it shows then differ.
+  const pinnedTo = display && display.screen !== DISPLAY_FOLLOW && display.shows && display.shows !== display.screen ? profiles.find((p) => p.id === display.shows) : undefined;
+
   const actions: CardAction[] = [
-    ...(screen ? [{ id: "rotation", label: "Rotation settings…", icon: Settings2, run: () => onRotationSettings(screen.id) }] : []),
+    ...(screen ? [{ id: "rotation", label: `${screen.name} rotation settings…`, icon: Settings2, run: () => onRotationSettings(screen.id) }] : []),
     ...(screen
       ? [
-          { id: "dim", label: dimmed ? "Stop dimming" : "Dim screen", icon: dimmed ? Sun : Moon, run: () => void liveActions.setDim(screen.id, dimmed ? 0 : DIM_LEVEL) },
+          { id: "dim", label: dimmed ? `Stop dimming ${screen.name}` : `Dim ${screen.name}`, icon: dimmed ? Sun : Moon, run: () => void liveActions.setDim(screen.id, dimmed ? 0 : DIM_LEVEL) },
           {
             id: "island",
-            label: island ? "Hide Dynamic Island" : "Show Dynamic Island",
+            label: island ? `Hide Dynamic Island on ${screen.name}` : `Show Dynamic Island on ${screen.name}`,
             icon: PanelTop,
             run: () => void liveActions.setIsland(screen.id, !island, screen.island?.enabled === true),
           },
@@ -64,8 +68,8 @@ export function LiveDisplayCard({ live, profiles, control, now, onRotationSettin
           Live
         </StatusChip>
         {screen ? (
-          <div className="overflow-hidden rounded-ui-sm border border-ui-strong bg-s-well" style={previewBox(aspectOf(screen.width, screen.height))}>
-            <ScreenThumb profile={screen} />
+          <div title={`${screen.name}, page ${previewPage?.name ?? ""}`} className="overflow-hidden rounded-ui-sm border border-ui-strong bg-s-well" style={previewBox(aspectOf(screen.width, screen.height))}>
+            <ScreenThumb profile={screen} pageId={page} still />
           </div>
         ) : (
           <Monitor className="h-8 w-8 text-ui-hint" strokeWidth={1.5} aria-hidden />
@@ -86,6 +90,7 @@ export function LiveDisplayCard({ live, profiles, control, now, onRotationSettin
               {display ? (
                 <select
                   aria-label={`Screen for ${title}`}
+                  title={pinnedTo ? `This display's link pins it to ${pinnedTo.name}; the choice applies once the link no longer pins.` : undefined}
                   value={display.screen}
                   onChange={(e) => void postControl("display", { action: "assign", display: display.name, screen: e.target.value })}
                   className={cn(SELECT, "max-w-[55%] flex-1")}
