@@ -131,3 +131,12 @@ Answered after Gate 1 (2026-11-05). Each is a decision.
 4. Edit has no title strip; its top bar stays the title bar.
 5. Stay on lucide icons.
 6. The popover keeps the hand-bumped server version for now.
+
+## Gate 2
+
+1. The moved colours stay: `--ui-border-control` is `#6C6C76` and muted text `#8A8A95`, so the contrast test holds on the hover and active surfaces. Both depart from rule §3 on purpose.
+2. Rename display, per-display page and reload, and kiosk window size go to a separate server issue, outside this redesign.
+3. "Name this display" for unnamed kiosks goes to the same issue.
+4. Rotation on a display card stays the screen's toggle, labelled so.
+5. The sidebar Live popover and the display cards overlap until Phase 5 moves Mute.
+6. "Connected N h" stays as it is.
