@@ -9,7 +9,7 @@ import { toStored } from "@/lib/infopanel/import/stored";
 import { parseProfileXml } from "@/lib/infopanel/parse";
 import { defaultItem } from "@/lib/infopanel/schema";
 import {
-  CUSTOM_GAUGE_ID, gaugeDataOf, gaugeEntryOf, libraryGauges, presetGauges, previewScale, profileGauges, sourceKey, widgetGauge, withGauge, withGaugeName, withGaugeSpeed,
+  CUSTOM_GAUGE_ID, configGauges, gaugeDataOf, gaugeEntryOf, libraryGauges, presetGauges, previewScale, profileGauges, sourceKey, widgetGauge, withGauge, withGaugeName, withGaugeSpeed,
 } from "@/lib/gauge-studio/model";
 
 const profile = parseProfileXml("<Profile><Name>Rig</Name><Width>800</Width><Height>480</Height></Profile>").profile;
@@ -37,6 +37,26 @@ describe("gauge sources", () => {
     ]);
     expect(found[0]).toMatchObject({ min: 10, max: 90, animationSpeed: 4, frames: [], stale: false });
     expect(found[1].stale).toBe(true);
+  });
+
+  it("lists the gauges of every screen and page, not only the one on the canvas (B3)", () => {
+    const second: Placement = { ...widget, id: "w9", settings: { label: "VRAM" } };
+    const many = {
+      profiles: [
+        { id: "p", name: "Rig", pages: [{ id: "pg", name: "Main", placements: [zone, widget] }, { id: "pg2", name: "Extra", placements: [] }] },
+        { id: "q", name: "Desk", pages: [{ id: "pg3", name: "Gaming", placements: [second] }] },
+      ],
+    } as unknown as DashboardConfig;
+    const found = configGauges(many);
+    expect(found.map((g) => [g.key, g.on?.screen, g.on?.page])).toEqual([
+      ["canvas:c1:0", "Rig", "Main"],
+      ["canvas:c1:1.0", "Rig", "Main"],
+      ["widget:w1", "Rig", "Main"],
+      ["widget:w9", "Desk", "Gaming"],
+    ]);
+    expect(found[3].on).toMatchObject({ profileId: "q", pageId: "pg3" });
+    // The canvas is opened once for the same stored form.
+    expect(configGauges(many)[0]).toBe(found[0]);
   });
 
   it("lists a Custom gauge widget with no spec of its own as the default spec it draws", () => {

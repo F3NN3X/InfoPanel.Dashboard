@@ -49,6 +49,16 @@ export interface GaugeEntry {
   stale?: boolean;
   /** Where it was found ("ARCv2 WIDE", "My library", "Preset"). */
   where: string;
+  /** The screen and page it is on (a gauge in the config; none for a preset or a library item). */
+  on?: GaugeOn;
+}
+
+/** The screen and page a gauge in the config sits on. */
+export interface GaugeOn {
+  profileId: string;
+  pageId: string;
+  screen: string;
+  page: string;
 }
 
 export const sourceKey = (s: GaugeSource): string => {
@@ -178,7 +188,7 @@ export function widgetGauge(zone: Placement): VectorGauge {
   }
 }
 
-function canvasGauges(zone: Placement, open: OpenCanvas): GaugeEntry[] {
+function canvasGauges(zone: Placement, open: OpenCanvas, on?: GaugeOn): GaugeEntry[] {
   return gaugePaths(open.items).flatMap((path) => {
     const item = itemAt(open.items, path);
     if (!isGauge(item)) return [];
@@ -189,30 +199,52 @@ function canvasGauges(zone: Placement, open: OpenCanvas): GaugeEntry[] {
     return [{
       key: sourceKey(source), source, name: item.Name || `Gauge ${path}`, kind: kindOf(gauge), gauge,
       frames, ...(files ? { files } : {}), min: item.MinValue, max: item.MaxValue, animationSpeed: item.AnimationSpeed,
-      stale: isStale(item), where: open.stored.source.name,
+      stale: isStale(item), where: open.stored.source.name, ...(on ? { on } : {}),
     }];
   });
 }
 
-/** The gauges on the profile page: Gauge items in its canvas zones, then its Custom gauge widgets. */
-export function profileGauges(profile: Pick<ProfileView, "placements" | "name">): GaugeEntry[] {
-  return profile.placements.flatMap((zone): GaugeEntry[] => {
-    if (zone.module === CANVAS_ID && zone.canvas) {
-      try {
-        return canvasGauges(zone, openCanvas(zone.canvas));
-      } catch {
-        return [];
-      }
-    }
+/** A canvas zone's gauges by its stored canvas: opening one is the costly part, and the Gauges page reads every zone on each edit. */
+const canvasCache = new WeakMap<object, { sig: string; entries: GaugeEntry[] }>();
+
+function cachedCanvasGauges(zone: Placement, stored: StoredCanvas, on?: GaugeOn): GaugeEntry[] {
+  const sig = `${zone.id}|${on ? `${on.profileId}|${on.pageId}|${on.screen}|${on.page}` : ""}`;
+  const hit = canvasCache.get(stored);
+  if (hit?.sig === sig) return hit.entries;
+  let entries: GaugeEntry[] = [];
+  try {
+    entries = canvasGauges(zone, openCanvas(stored), on);
+  } catch {
+    // An unreadable canvas has no gauges to list.
+  }
+  canvasCache.set(stored, { sig, entries });
+  return entries;
+}
+
+/** The gauges in `placements`: Gauge items in their canvas zones, then their Custom gauge widgets. `where` names a widget's place. */
+export function placementGauges(placements: readonly Placement[], where: string, on?: GaugeOn): GaugeEntry[] {
+  return placements.flatMap((zone): GaugeEntry[] => {
+    if (zone.module === CANVAS_ID && zone.canvas) return cachedCanvasGauges(zone, zone.canvas, on);
     if (zone.module === CUSTOM_GAUGE_ID) {
       const gauge = widgetGauge(zone);
       const source: GaugeSource = { kind: "widget", zoneId: zone.id };
       const label = typeof zone.settings?.label === "string" && zone.settings.label ? zone.settings.label : "Custom gauge";
-      return [{ key: sourceKey(source), source, name: label, kind: kindOf(gauge), gauge, min: gauge.scale?.min ?? 0, max: gauge.scale?.max ?? 100, animationSpeed: 0, where: profile.name }];
+      return [{ key: sourceKey(source), source, name: label, kind: kindOf(gauge), gauge, min: gauge.scale?.min ?? 0, max: gauge.scale?.max ?? 100, animationSpeed: 0, where, ...(on ? { on } : {}) }];
     }
     return [];
   });
 }
+
+/** The gauges on the profile page. */
+export const profileGauges = (profile: Pick<ProfileView, "placements" | "name">): GaugeEntry[] => placementGauges(profile.placements, profile.name);
+
+/** The gauges on every screen and page of the config (B3: not only the page on the canvas). */
+export const configGauges = (config: Pick<DashboardConfig, "profiles">): GaugeEntry[] =>
+  config.profiles.flatMap((p) => p.pages.flatMap((pg) => placementGauges(pg.placements, p.name, { profileId: p.id, pageId: pg.id, screen: p.name, page: pg.name })));
+
+/** The canvas zone `zoneId` of any screen and page. */
+export const zoneOf = (config: Pick<DashboardConfig, "profiles">, zoneId: string): Placement | undefined =>
+  config.profiles.flatMap((p) => p.pages.flatMap((pg) => pg.placements)).find((z) => z.id === zoneId);
 
 /* ---- writing back ---- */
 
