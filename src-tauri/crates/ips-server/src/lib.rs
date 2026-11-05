@@ -10,6 +10,7 @@ pub mod alerts_engine;
 pub mod alerts_rules;
 pub mod asset_types;
 pub mod assets;
+pub mod pack_sign;
 pub mod packs;
 pub mod audio;
 pub mod calendar;
@@ -397,6 +398,15 @@ fn is_widget_qa(path: &str, search: &str) -> bool {
     path == "/widget-qa" || url::form_urlencoded::parse(search.trim_start_matches('?').as_bytes()).any(|(key, _)| key == "widget-qa")
 }
 
+/// Whether the request is the one way a build without debug mode opens Widget QA: the studio's hidden iframe for a user pack's
+/// render check (`?widget-qa&pack-check`), asked for by a page of this origin. A page opened any other way, a kiosk's among
+/// them, gets the same refusal as before. A browser sends these headers only to localhost or https, and the check fails closed elsewhere.
+fn is_pack_check_frame(req: &Req) -> bool {
+    url::form_urlencoded::parse(req.search.trim_start_matches('?').as_bytes()).any(|(key, _)| key == "pack-check")
+        && req.header("sec-fetch-dest").as_deref() == Some("iframe")
+        && req.header("sec-fetch-site").as_deref() == Some("same-origin")
+}
+
 async fn route(app: &App, mut req: Req) -> Result<Response<Body>, String> {
     let io = |e: std::io::Error| e.to_string();
     match req.path.as_str() {
@@ -454,7 +464,7 @@ async fn route(app: &App, mut req: Req) -> Result<Response<Body>, String> {
             }
             static_files::serve(&app.cfg.dist, &req)
         }
-        p if (p == "/widget-qa" || p == "/") && is_widget_qa(p, &req.search) && !app.cfg.debug => Ok(debug_tools_off()),
+        p if (p == "/widget-qa" || p == "/") && is_widget_qa(p, &req.search) && !app.cfg.debug && !(app.packs.enabled() && is_pack_check_frame(&req)) => Ok(debug_tools_off()),
         _ => static_files::serve(&app.cfg.dist, &req),
     }
 }

@@ -63,6 +63,12 @@ async fn off_the_folder_is_not_read_and_nothing_is_written() {
     let write = "Content-Type: application/json\r\nX-Dashboard-Pack: 1\r\n";
     assert_eq!(status_and_body(port, "POST", "/api/packs", write, r#"{"id":"mine","files":[]}"#).await.0, 403);
     assert_eq!(status_and_body(port, "DELETE", "/api/packs/mine", write, "").await.0, 403);
+    // the signing route and the render check's page go with it, and a stored CSS is not read
+    std::fs::write(packs.join("pack.css"), "a{}").unwrap();
+    assert_eq!(status_and_body(port, "POST", "/api/packs/mine/sign", write, r#"{"css":"YQ==","hash":"x"}"#).await.0, 403);
+    assert_eq!(status_and_body(port, "GET", "/api/packs/mine/pack.css", "", "").await.0, 404);
+    assert_eq!(status_and_body(port, "GET", "/?widget-qa&pack-check=1", "Sec-Fetch-Dest: iframe\r\nSec-Fetch-Site: same-origin\r\n", "").await.0, 404);
+    assert!(!dir.path().join("data").join(ips_server::pack_sign::KEY_FILE).exists(), "and no key is made");
     assert!(packs.join("pack.json").exists(), "nothing was deleted");
     let _ = stop.send(());
     tokio::time::timeout(Duration::from_secs(5), done).await.unwrap().unwrap();
