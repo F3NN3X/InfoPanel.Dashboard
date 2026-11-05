@@ -46,7 +46,7 @@ Each widget claims sensor keys by prefix: System reads the CPU and RAM sensors, 
 
 ## Picking a sensor
 
-Sensor fields open a picker with live values. Type to search the 650+ data points by key, name or reference; every word has to match. Use the arrow keys and Enter to pick, then **Done**. **Open data explorer** jumps to the Data view.
+Sensor fields open a picker with live values. Type to search the data points by key, name or reference; every word has to match. Use the arrow keys and Enter to pick, then **Done**. **Open data explorer** jumps to the Data view.
 
 ## HWiNFO sensors
 
@@ -54,13 +54,15 @@ When HWiNFO is running, its sensors are grouped by device in every list: "CPU [#
 
 ## The Data view
 
-**Data** on the rail shows every source as a tree, with a table of its data points (**Sensor**, **Now**, **Display name**, **Used in**) and an inspector for the point you select. From there you can bind a point to a widget. A display name applies to every screen.
+**Data sources** on the sidebar lists every source on the left, each with its point count and a dot for its health, with **Type** tags (All, Numbers, Text, Images, Lists, Links) and the **Hide empty** and **Only in use** switches under it. The table groups the points by source and device; a group's arrow folds it. Each row has the sensor and its key, **Now**, **Unit**, a chart of the **Last 60 s** (for text, when it last changed; for an image, the picture) and **Used in**: the screens that use the point, and **Alert** when a rule watches it. The search in the header looks in keys, names and values.
+
+Select a point for its detail: the value, a chart of the last minute with its lowest, average and highest value, its key and the address that streams just that value, and what uses it. **Use in a widget…** binds the point to a widget or adds a new one, and **Create alert** opens Alerts. The charts fill while the page is open and stop while it is hidden; the Data API keeps no history of its own. A display name applies to every screen, and is the name of the source the point comes from.
 
 **Report** at the top makes a troubleshooting report to attach to a bug report: **Copy troubleshooting report** or **Save troubleshooting report…**. It says which app, InfoPanel and Windows versions you have, whether the Data API answers, which sensor each widget reading uses, how many screens and widgets of each kind you have, and lists the hardware readings with their values. It leaves out names, IP addresses, folders, plugin entries (now playing, calendar and the like), text values and network adapter readings.
 
 ## Changing the Data API address
 
-In the studio, open **Data**, and in its **Connection** card set the **Data API URL**. Press **Test connection** to check it. Only change it if InfoPanel runs on another PC or port.
+In the studio, open the **Data API** card at the bottom of the sidebar and set the address there. Press **Test connection** to check it. Only change it if InfoPanel runs on another PC or port.
 
 :::warn
 If every widget shows dashes, the Data API is unreachable. Check InfoPanel is running and **Enable Data API** is on in its **Settings**, or run the setup's data checks again (Settings › General › **Run setup**). See [Common problems](problems).
