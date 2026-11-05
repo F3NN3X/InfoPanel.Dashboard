@@ -493,7 +493,7 @@ fn hash_with(root: &Path, css: &str) -> String {
     for (dir, prefix) in [(root.to_path_buf(), ""), (root.join("assets"), "assets/")] {
         for entry in std::fs::read_dir(dir).unwrap().map(Result::unwrap) {
             let name = entry.file_name().to_string_lossy().into_owned();
-            if entry.path().is_file() && name != "pack.css" && name != "pack.sig" {
+            if entry.path().is_file() && name != "pack.css" && name != "pack.sig" && !name.ends_with(".tmp") {
                 files.push((format!("{prefix}{name}"), std::fs::read(entry.path()).unwrap()));
             }
         }
@@ -785,6 +785,7 @@ async fn the_server_signs_no_css_that_holds_what_the_grammar_never_lets_through(
         ("url()", "[data-part=\"num\"] { background: URL(x.png); }"),
         ("image-set()", "[data-part=\"num\"] { background: image-set(x 1x); }"),
         ("src()", "[data-part=\"num\"] { color: SRC(x); }"),
+        ("a url() between two strings that hold comment marks", "[data-part=\"num\"] { content: \"/*\" url(//x) \"*/\"; }"),
     ] {
         let reply = send(s.port, "POST", "/api/packs/mine/sign", &WRITE, &sign_body(css, &hash_with(&root, css))).await;
         assert_eq!(reply.status, 400, "{what}: {}", reply.text());
@@ -797,6 +798,26 @@ async fn the_server_signs_no_css_that_holds_what_the_grammar_never_lets_through(
     let noted = "/* url(x) @media \\ <b> */ [data-part=\"num\"] { color: #fff; }";
     let reply = send(s.port, "POST", "/api/packs/mine/sign", &WRITE, &sign_body(noted, &hash_with(&root, noted))).await;
     assert_eq!(reply.status, 200, "{}", reply.text());
+    // a quote inside a comment opens no string: the comment ends at its own close
+    let quoted = "/* it's \" */ [data-part=\"num\"] { color: #fff; } /* ' */";
+    let reply = send(s.port, "POST", "/api/packs/mine/sign", &WRITE, &sign_body(quoted, &hash_with(&root, quoted))).await;
+    assert_eq!(reply.status, 200, "{}", reply.text());
+    s.stop().await;
+}
+
+#[tokio::test]
+async fn a_signing_clears_the_temp_files_a_crash_left() {
+    let s = start().await;
+    let root = signed_pack(&s, "mine").await;
+    let css = "[data-part=\"num\"] { color: #eee; }";
+    // even a signing that is refused (its hash is not the stored pack's) clears them: the size they take counts toward no cap
+    for tmp in ["pack.sig.tmp", "pack.css.tmp"] {
+        std::fs::write(root.join(tmp), vec![b'x'; 100_000]).unwrap();
+    }
+    let reply = send(s.port, "POST", "/api/packs/mine/sign", &WRITE, &sign_body(css, "0000")).await;
+    assert_eq!(reply.status, 409, "{}", reply.text());
+    assert!(!root.join("pack.sig.tmp").exists() && !root.join("pack.css.tmp").exists(), "the leftovers went");
+    assert_eq!(get(s.port, "/api/packs/mine/pack.css").await.status, 200, "the signed pack is still served");
     s.stop().await;
 }
 

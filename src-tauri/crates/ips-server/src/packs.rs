@@ -294,6 +294,10 @@ impl Packs {
         if let Some(why) = css_deny(css) {
             return Ok(Err(refuse(400, format!("{CSS_FILE} {why}"))));
         }
+        // under the lock no writer of ours is mid-way, so a temp file here is a crash's leftover: it counts toward no cap and nothing reads it
+        for tmp in [SIG_FILE, CSS_FILE] {
+            let _ = std::fs::remove_file(root.join(format!("{tmp}.tmp")));
+        }
         let Some(mut files) = stored_files(&root) else {
             return Ok(Err(refuse(409, "the folder is not a pack this server wrote")));
         };
@@ -338,24 +342,43 @@ fn css_deny(css: &[u8]) -> Option<&'static str> {
     let Ok(text) = std::str::from_utf8(css) else {
         return Some("is not UTF-8");
     };
-    let mut plain = String::with_capacity(text.len());
-    let mut rest = text;
-    while let Some(open) = rest.find("/*") {
-        plain.push_str(&rest[..open]);
-        match rest[open + 2..].find("*/") {
-            Some(close) => rest = &rest[open + 2 + close + 2..],
-            None => {
-                rest = &rest[open..];
-                break;
-            }
-        }
-    }
-    plain.push_str(rest);
-    let plain = plain.to_ascii_lowercase();
+    let plain = strip_comments(text).to_ascii_lowercase();
     if plain.contains('\\') ||plain.contains('@') || plain.contains('<') {
         return Some("holds a backslash, an at-rule or markup");
     }
     ["url(", "image-set(", "src("].iter().any(|f| plain.contains(f)).then_some("holds a url-like function")
+}
+
+/// `text` without its comments, read as the CSS tokenizer reads it: a quote opens a string that runs to its closing quote (or the line's
+/// end), and a `/*` inside one is text, not a comment, so `"/*" url(//x) "*/"` keeps its `url(`. An unterminated comment is kept as it is.
+fn strip_comments(text: &str) -> String {
+    let mut plain = String::with_capacity(text.len());
+    let mut rest = text;
+    while let Some(at) = rest.find(['/', '"', '\'']) {
+        let (kept, here) = rest.split_at(at);
+        plain.push_str(kept);
+        if let Some(body) = here.strip_prefix("/*") {
+            match body.find("*/") {
+                Some(close) => rest = &body[close + 2..],
+                None => {
+                    rest = here;
+                    break;
+                }
+            }
+            continue;
+        }
+        let quote = here.as_bytes()[0];
+        if quote == b'/' {
+            plain.push('/');
+            rest = &here[1..];
+            continue;
+        }
+        let end = here[1..].find(|c: char| c == char::from(quote) || c == '\n').map_or(here.len(), |n| n + 2);
+        plain.push_str(&here[..end]);
+        rest = &here[end..];
+    }
+    plain.push_str(rest);
+    plain
 }
 
 /// The pack a set-aside folder holds, from what follows `.import-old-` in its name: the `<id>-<uuid>` an import writes, else
