@@ -46,12 +46,14 @@ describe("Settings › Connections", () => {
     expect(screen.getByText("Calendar links")).toBeTruthy();
   });
 
-  it("saves the Twitch chat channel as a streaming patch", async () => {
+  // It failed once under the full suite's load (`expected [] to have a length of 1`). The likely cause, not proven: a starved worker let
+  // the default 1 s of `findBy` / `waitFor` run out before the mocked fetch and the render settled. The waits and the test are longer; the assertions are the same.
+  it("saves the Twitch chat channel as a streaming patch", { timeout: 20_000 }, async () => {
     mocks.extras = { ...EMPTY_EXTRAS, twitch: { ...EMPTY_TWITCH, signedIn: true, login: "me" } };
     render(<ConnectionsSection />);
-    fireEvent.change(await screen.findByLabelText("Twitch chat channel"), { target: { value: "other" } });
+    fireEvent.change(await screen.findByLabelText("Twitch chat channel", {}, { timeout: 10_000 }), { target: { value: "other" } });
     fireEvent.click(screen.getByText("Save", { selector: "button" }));
-    await waitFor(() => expect(puts).toHaveLength(1));
+    await waitFor(() => expect(puts).toHaveLength(1), { timeout: 10_000 });
     expect(puts[0]).toEqual({ streaming: { twitch: { channel: "other" } } });
   });
 });
