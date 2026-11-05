@@ -50,6 +50,13 @@ describe("rotationButton", () => {
     expect(rotationButton(two, undefined)).toMatchObject({ label: "Paused", running: false });
     expect(rotationButton(two, undefined).title).toContain("Main");
   });
+  it("states no interval for a screen with no saved rotation, never 0 s", () => {
+    const unsaved = { ...two, rotate: undefined } as typeof two;
+    const button = rotationButton(unsaved, { rotating: true });
+    expect(button).toMatchObject({ label: "Rotating", running: true });
+    expect(button.title).not.toContain("0 s");
+    expect(button.title).not.toContain("pages every");
+  });
   it("cannot be toggled on a one-page screen", () => {
     expect(rotationButton(screen(), undefined)).toMatchObject({ label: "One page", toggles: false });
   });

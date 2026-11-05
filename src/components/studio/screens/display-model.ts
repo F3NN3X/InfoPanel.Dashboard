@@ -55,12 +55,16 @@ export function rotationButton(
 ): { label: string; running: boolean; toggles: boolean; title: string } {
   if (screen.pages.length < 2) return { label: "One page", running: false, toggles: false, title: `${screen.name} has one page: there is nothing to rotate.` };
   const running = entry?.rotating ?? screen.rotate?.enabled === true;
-  const every = cycleLabel(screen.rotate?.seconds ?? 0);
+  // A screen with no saved rotation has no interval to state: say it rotates, not how often.
+  const seconds = screen.rotate?.seconds;
+  const every = seconds === undefined ? undefined : cycleLabel(seconds);
   return {
-    label: running ? every : "Paused",
+    label: running ? (every ?? "Rotating") : "Paused",
     running,
     toggles: true,
-    title: running ? `${screen.name} rotates its pages every ${every} on every display. Pause it for now.` : `${screen.name} is not rotating its pages on any display. Start it for now.`,
+    title: running
+      ? `${screen.name} rotates its pages${every ? ` every ${every}` : ""} on every display. Pause it for now.`
+      : `${screen.name} is not rotating its pages on any display. Start it for now.`,
   };
 }
 
