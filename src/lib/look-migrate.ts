@@ -4,8 +4,9 @@ import type { AppliedTheme } from "./applied-theme";
 import type { DashboardConfig, StoredConfig } from "./layout";
 import { withThemeValues } from "./theme-model";
 
-// The v17 step (config-upgrade.ts), in its own module so only an older config's load carries it. Config v17 folds the
-// skins into Looks (D6): a level stores one `lookId`, and its other values are the overrides on top of it.
+// The v17 and v18 steps (config-upgrade.ts), in their own module so only an older config's load carries them. Config v17
+// folds the skins into Looks (D6): a level stores one `lookId`, and its other values are the overrides on top of it.
+// Config v18 clears the card a level stores when it is its own sample Look's.
 
 /** The Look a v16 skin value is: a skin's Look is named as the skin; `default` is the hidden Look that still draws the core Default skin (G1); `auto`, "" and an unknown skin are Classic. */
 export const lookOfStoredSkin = (skin: unknown): string => (typeof skin === "string" && (skin === DEFAULT_SKIN_LOOK || SKIN_LOOK_IDS.includes(skin)) ? skin : CLASSIC_LOOK);
@@ -85,4 +86,29 @@ export function migrateLooksV17(config: DashboardConfig): DashboardConfig {
     return pages.every((pg, i) => pg === p.pages[i]) ? p : { ...p, pages };
   });
   return { ...config, profiles, ...(appearancePresets ? { appearancePresets } : {}) };
+}
+
+/** Whether a stored level names a sample Look and stores that Look's own card (`look-<id>`). */
+const storesOwnCard = (value: Record<string, unknown>): boolean =>
+  typeof value.lookId === "string" && SAMPLE_LOOK_IDS.includes(value.lookId) && value.surface === `look-${value.lookId}`;
+
+/** `value` with the own sample Look's card left out of every level that stores it. Every other stored value stays. */
+function withoutOwnCards(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(withoutOwnCards);
+  if (!isRecord(value)) return value;
+  const { surface: _card, ...rest } = value;
+  return Object.fromEntries(Object.entries(storesOwnCard(value) ? rest : value).map(([key, v]) => [key, withoutOwnCards(v)]));
+}
+
+/**
+ * v18 (L44): a level that names a sample Look and stores that Look's own card (`surface: look-<id>`) stores it no more,
+ * wherever a look value is kept (screens, pages, widgets, snapshots, saved styles, panels and themes). The Look's card
+ * is the Look's: the Look layer supplies it, and with it the Look's other values to a level that stored the card alone
+ * (the v16 card-only page), which the layer used to be withheld from. A level that stored every value of the Look sees no
+ * change. A card that is not the level's own Look's, and the card's opacity and blur, stay as the user set them.
+ */
+export function clearOwnCardsV18(config: DashboardConfig): DashboardConfig {
+  const out: Record<string, unknown> = { ...config };
+  for (const key of LOOK_HOLDERS) if (out[key] !== undefined) out[key] = withoutOwnCards(out[key]);
+  return out as unknown as DashboardConfig;
 }

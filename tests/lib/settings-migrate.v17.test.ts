@@ -9,8 +9,9 @@ import { lookOfStoredSkin, migrateLooksV17 } from "@/lib/look-migrate";
 import { samplePreset } from "@/lib/screen-templates/sample-presets";
 import { applyThemeToLevel, themeState } from "@/lib/theme-apply";
 import { appearanceOf, resolveWith } from "@/lib/style-resolve";
-import { lookIdOf } from "@/lib/theme-model";
+import { lookIdOf, withoutOwnCard } from "@/lib/theme-model";
 import { SKIN_LOOK_IDS } from "@/looks/ids";
+import { lookLayers } from "@/looks/sample-cards";
 import { SAMPLE_THEMES } from "@/looks/sample-themes";
 import { MATERIALS } from "@/looks/materials";
 import { SKIN_PACKS, skinOfLook } from "@/widgets/core/theme";
@@ -104,9 +105,9 @@ function sampleScreen(id: string, theme = TERM, extra: Record<string, unknown> =
 
 describe("v17: the version", () => {
   it("is stamped, and a v17 config loads again identical", async () => {
-    expect(CONFIG_VERSION).toBe(17);
+    expect(CONFIG_VERSION).toBeGreaterThanOrEqual(17);
     const out = load(v16(screens()));
-    expect(out.version).toBe(17);
+    expect(out.version).toBe(CONFIG_VERSION);
     const again = JSON.parse(JSON.stringify(out)) as StoredConfig;
     expect(load(again)).toEqual(out);
     expect(await readConfig(again)).toEqual(out);
@@ -115,7 +116,7 @@ describe("v17: the version", () => {
 
   it("a version that is a string below 17, or no number at all, takes the step; a newer one does not", async () => {
     for (const version of ["16", "x"]) expect(byId(load({ ...v16(screens()), version } as unknown as StoredConfig), "skin-5").widgetTheme?.values?.lookId, version).toBe("tui");
-    const newer = { version: 18, activeProfile: "auto", profiles: [{ id: "s", name: "S", width: 800, height: 480, widgetTheme: { values: { lookId: "a-newer-look", skin: "hud" } }, pages: [{ id: "a", name: "A", placements: [] }] }] } as unknown as StoredConfig;
+    const newer = { version: 99, activeProfile: "auto", profiles: [{ id: "s", name: "S", width: 800, height: 480, widgetTheme: { values: { lookId: "a-newer-look", skin: "hud" } }, pages: [{ id: "a", name: "A", placements: [] }] }] } as unknown as StoredConfig;
     // Its Look is one this build doesn't know: kept in storage (a newer build's), drawn as Classic; a `skin` it holds is no Look and nothing reads it.
     expect((await readConfig(newer)).profiles[0].widgetTheme?.values?.lookId).toBe("a-newer-look");
     expect(load(newer).profiles[0].widgetTheme?.values?.lookId).toBe("a-newer-look");
@@ -174,10 +175,12 @@ describe("v17: a sample theme names its Look (L32)", () => {
     const stored = v16([sampleScreen("s")]);
     const p = byId(load(stored), "s");
     expect(p.widgetTheme?.values?.lookId).toBe("term");
-    expect(p.appliedTheme).toMatchObject({ id: "builtin:look-term", values: { lookId: "term", surface: "look-term" } });
+    expect(p.appliedTheme).toMatchObject({ id: "builtin:look-term", values: { lookId: "term" } });
+    // Config v18 leaves the Look's own card to the Look; applying the theme now still stores it.
+    expect(p.appliedTheme?.values).not.toHaveProperty("surface");
     const now = applyThemeToLevel(load(v16([sampleScreen("s")])), samplePreset(TERM), { kind: "profile", profileId: "s" });
-    expect(byId(now, "s").widgetTheme).toEqual(p.widgetTheme);
-    expect(byId(now, "s").appliedTheme).toEqual(p.appliedTheme);
+    expect(withoutOwnCard(byId(now, "s").widgetTheme!.values!)).toEqual(p.widgetTheme?.values);
+    expect(withoutOwnCard(byId(now, "s").appliedTheme!.values!)).toEqual(p.appliedTheme?.values);
     expect(drawn(load(stored))).toEqual(drawnByV16(stored));
     expect(themeState(load(stored), { kind: "profile", profileId: "s" }).changed).toEqual([]);
   });
@@ -199,8 +202,8 @@ describe("v17: a sample theme names its Look (L32)", () => {
       pages: [{ id: "pg", name: "Main", placements: [zone("pg-a")], appliedTheme: { id: "builtin:look-paper", name: "Paper", values: { surface: "look-paper" } }, widgetTheme: pageTheme }],
     });
     const own = v16([screen("auto", { values: { surface: "look-paper" }, follow: { skin: false, surface: false } })]);
-    expect(byId(load(own), "s").pages[0].widgetTheme?.values).toEqual({ surface: "look-paper", lookId: "paper" });
-    expect(byId(load(own), "s").pages[0].appliedTheme?.values).toEqual({ surface: "look-paper", lookId: "paper" });
+    expect(byId(load(own), "s").pages[0].widgetTheme?.values).toEqual({ lookId: "paper" });
+    expect(byId(load(own), "s").pages[0].appliedTheme?.values).toEqual({ lookId: "paper" });
     expect(themeState(load(own), { kind: "page", profileId: "s", pageId: "pg" }).changed).toEqual([]);
     const cases = [
       screen("hud", { values: { skin: "ink", surface: "look-paper" }, follow: { surface: false } }),
@@ -215,14 +218,17 @@ describe("v17: a sample theme names its Look (L32)", () => {
       expect(themeState(load(stored), { kind: "page", profileId: "s", pageId: "pg" }).changed, String(i)).toEqual([]);
       expect(drawn(load(stored)), String(i)).toEqual(drawnByV16(stored));
     }
-    expect(drawn(load(own))).toEqual(drawnByV16(own));
+    // This page stored the Look's card alone: config v18 gives it the Look's other values too (L44), the one thing the v17 step left drawn as before.
+    const kept = drawnByV16(own)["pg-a"];
+    expect(drawn(load(own))["pg-a"]).toEqual({ ...kept, rest: { ...kept.rest, ...lookLayers.paper } });
   });
 
   it("a saved theme copied from one names its Look; one with a skin of its own, or no copy, keeps that", () => {
     const hudCopy = { ...COPY, id: "hud-copy", style: { ...COPY.style, skin: "hud" } };
     const out = load(v16([], { appearancePresets: [SAVED, COPY, hudCopy] }));
     expect(out.appearancePresets?.map((p) => p.style.lookId)).toEqual(["tui", "term", "hud"]);
-    expect(out.appearancePresets?.[1].style).toEqual({ ...COPY.style, lookId: "term" });
+    const { surface: _card, ...copyStyle } = COPY.style;
+    expect(out.appearancePresets?.[1].style).toEqual({ ...copyStyle, lookId: "term" });
   });
 
   it("a level that applied a saved copy of one names its Look in its values and snapshot, as the copy does", () => {
@@ -230,7 +236,8 @@ describe("v17: a sample theme names its Look (L32)", () => {
     const applied = { ...(sampleScreen("c") as MonitorProfile), appliedTheme: { id: COPY.id, name: COPY.name, tokens: (sampleScreen("c") as MonitorProfile).appliedTheme?.tokens, radius: TERM.radius, values: style } };
     const out = load(v16([applied]));
     expect(byId(out, "c").widgetTheme?.values?.lookId).toBe("term");
-    expect(byId(out, "c").appliedTheme?.values).toEqual({ ...style, lookId: "term" });
+    const { surface: _card, ...noCard } = style;
+    expect(byId(out, "c").appliedTheme?.values).toEqual({ ...noCard, lookId: "term" });
     expect(byId(out, "c").appliedTheme?.values).toEqual(out.appearancePresets?.[1].style);
   });
 

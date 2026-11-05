@@ -63,7 +63,7 @@ const sourcesOf = (keys: Iterable<string>, source: StyleSource): Record<string, 
 export function scopeLookValues(levels: ThemeLevels, scope: ThemeScopeKind): LookValues {
   if (scope === "profile") {
     // The screen's Look sets the values under its own (L40).
-    const look = lookLayerOf(levels.profile?.values?.lookId, levels.profile?.values);
+    const look = lookLayerOf(levels.profile?.values?.lookId);
     const inheritedFrom = sourcesOf(Object.keys(levels.base ?? {}), "app");
     if (!look) return { own: levels.profile?.values, inherited: levels.base, inheritedFrom };
     return { own: levels.profile?.values, inherited: { ...levels.base, ...look }, inheritedFrom: { ...inheritedFrom, ...sourcesOf(Object.keys(look), "look") } };

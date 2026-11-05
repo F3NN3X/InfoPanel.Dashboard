@@ -272,7 +272,8 @@ describe("what the five Looks teach the contract (P11b)", () => {
       // what the studio saves, read back as the next start reads it
       const reloaded = await readConfig(JSON.parse(JSON.stringify(upgraded)) as StoredConfig);
       for (const read of [upgraded, reloaded]) {
-        expect(read.profiles[0].widgetTheme?.values, id).toMatchObject({ lookId: id, surface: `look-${id}`, accent: "#123456" });
+        // the Look's own card is the Look's since config v18: the level stores the Look and the user's accent
+        expect(read.profiles[0].widgetTheme?.values, id).toEqual({ lookId: id, accent: "#123456" });
         expect(resolveSurface(`look-${id}`, undefined), id).toBe(SAMPLE_MATERIALS[`look-${id}`]);
       }
       const lookId = reloaded.profiles[0].widgetTheme?.values?.lookId as string;

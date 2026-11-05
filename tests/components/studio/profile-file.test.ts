@@ -70,8 +70,9 @@ describe("profile file", () => {
     const term = { id: "builtin:look-term", name: "Term", values: { surface: "look-term" } };
     const older = { ...profile(), widgetTheme: { values: { surface: "look-term" } }, appliedTheme: term, pages: [{ id: "p1", name: "Main", widgetTheme: { values: { skin: "hud" }, follow: { skin: false } }, placements: [{ id: "z1", module: "SystemOverview", colStart: 1, rowStart: 1, colSpan: 4, rowSpan: 2, visible: true, settings: { skin: "auto" } }] }] };
     const upgraded = await ok(JSON.stringify(older));
-    expect(upgraded.widgetTheme?.values).toEqual({ surface: "look-term", lookId: "term" });
-    expect(upgraded.appliedTheme?.values).toEqual({ surface: "look-term", lookId: "term" });
+    // config v18 leaves the Look's own card to the Look
+    expect(upgraded.widgetTheme?.values).toEqual({ lookId: "term" });
+    expect(upgraded.appliedTheme?.values).toEqual({ lookId: "term" });
     expect(upgraded.pages[0].widgetTheme?.values).toEqual({ lookId: "hud" });
     expect(upgraded.pages[0].placements[0].settings).toEqual({ lookId: "classic" });
     expect(await ok(JSON.stringify(upgraded))).toEqual(upgraded);

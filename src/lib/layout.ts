@@ -321,8 +321,12 @@ export type ProfileView = Omit<MonitorProfile, "pages"> & {
  *     stay. Nothing draws differently. A v16 build would drop every Look on its next save, so the server refuses its
  *     save; before the first v17 save it keeps the v16 file as `config.backup-before-v17.json` (once: an existing
  *     backup is never overwritten).
+ * v18: a level that names a sample Look stores that Look's own card no more (`clearOwnCardsV18`, L44): the Look layer
+ *     supplies it, so a page that stored the card alone (a v16 shape) now takes the Look's other values too. Every other
+ *     stored value stays. A v17 build's save is refused as any older one's is (`config_guard.rs`); before the first v18 save
+ *     the server keeps the v17 file as `config.backup-before-v18.json` (once: an existing backup is never overwritten).
  */
-export const CONFIG_VERSION = 17;
+export const CONFIG_VERSION = 18;
 
 export interface DashboardConfig {
   version: typeof CONFIG_VERSION;

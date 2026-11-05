@@ -73,6 +73,15 @@ mod tests {
         assert!(needs_update(r#"{"version":16,"profiles":[]}"#));
     }
 
+    // v18 (a level stores no card of its own Look's): a v17 build would read the migrated page as before, but its save is refused as any older one's is.
+    #[test]
+    fn refuses_a_v17_save_over_a_v18_config() {
+        assert!(version_refusal(r#"{"version":18}"#, &serde_json::json!({ "version": 17 })).is_some());
+        assert!(version_refusal(r#"{"version":17}"#, &serde_json::json!({ "version": 18 })).is_none());
+        assert!(version_refusal(r#"{"version":18}"#, &serde_json::json!({ "version": 18 })).is_none());
+        assert!(needs_update(r#"{"version":17,"profiles":[]}"#));
+    }
+
     #[test]
     fn a_saved_config_needs_an_update_below_this_builds_version_only() {
         let below = format!(r#"{{"version":{},"profiles":[]}}"#, crate::CONFIG_VERSION - 1);
@@ -97,5 +106,7 @@ mod tests {
         assert_eq!(version_backup_name(r#"{"version":15}"#, &serde_json::json!({ "profiles": [] })), None);
         let v17 = serde_json::json!({ "version": 17 });
         assert_eq!(version_backup_name(r#"{"version":16}"#, &v17).as_deref(), Some("config.backup-before-v17.json"));
+        let v18 = serde_json::json!({ "version": 18 });
+        assert_eq!(version_backup_name(r#"{"version":17}"#, &v18).as_deref(), Some("config.backup-before-v18.json"));
     }
 }

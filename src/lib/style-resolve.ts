@@ -126,8 +126,7 @@ export function resolveStyle(input: StyleInput): ResolvedStyle {
   };
   // The Look the widget shows (its own where its Look section is custom) sets the values under the levels' own.
   const lookHit = layerOf("lookId", input.own?.lookId, perWidget.has("lookId") || !following(levels, input.follow, "skin"));
-  const holders: Partial<Record<StyleSource, ModuleSettings | undefined>> = { own: input.own, page: levels.page?.values, profile: levels.profile?.values };
-  look = lookHit && lookLayerOf(lookHit[1], holders[lookHit[0]]);
+  look = lookHit && lookLayerOf(lookHit[1]);
   pageLook = lookHit?.[0] === "page";
   for (const [key, value] of Object.entries(input.own ?? {})) {
     if (!THEMED_KEYS.has(key)) settings[key] = value;

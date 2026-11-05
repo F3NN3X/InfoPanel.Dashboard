@@ -225,28 +225,14 @@ export function themeSet(levels: ThemeLevels, key: string): ModuleSettingValue |
   return page ?? (onPage ? look : undefined) ?? levels.profile?.values?.[key] ?? (onPage ? undefined : look) ?? levels.base?.[key];
 }
 
-/** The surface section's keys: a card comes with its opacity and blur. */
-const CARD_KEYS: ReadonlySet<string> = new Set(["surface", "surfaceOpacity", "blur"]);
-
 /**
- * Whether a level stores its Look's own card and none of the Look's other values (L44): a page saved before the
- * Look layer that applied a sample Look's card alone (the v16 shape v17 keeps). It drew that card over its screen's
- * colours and font, and still does. A level that applied a sample Look before the layer stores every value the Look
- * sets, so the layer under them changes nothing, and a value it clears returns to the Look's. The Look view never
- * stores the Look's card as a level's own (`withoutOwnCard`), so no level saved since takes this shape.
- */
-const cardOnly = (layer: ModuleSettings, holder: ModuleSettings | undefined): boolean =>
-  holder?.surface === layer.surface && Object.keys(layer).every((key) => CARD_KEYS.has(key) || holder[key] === undefined);
-
-/**
- * The Look layer (L40): the values a Look sets under the level that names it (`holder`, its stored values), so a level
+ * The Look layer (L40): the values a Look sets under the level that names it, so a level
  * stores its `lookId` and only what it changes. A sample Look's, once its chunk is loaded (`registerSampleCards`);
- * Classic and the skins set none (a skin's pack draws by its id). A level saved with only the Look's card gets none
- * (`cardOnly`, L44).
+ * Classic and the skins set none (a skin's pack draws by its id). Every level that names the Look gets it: config v18
+ * cleared the card a level stored as its own Look's, the one shape that was left without it (L44).
  */
-export function lookLayerOf(lookId: unknown, holder?: ModuleSettings): ModuleSettings | undefined {
-  const layer = typeof lookId === "string" ? lookLayers[lookId] : undefined;
-  return layer && !cardOnly(layer, holder) ? layer : undefined;
+export function lookLayerOf(lookId: unknown): ModuleSettings | undefined {
+  return typeof lookId === "string" ? lookLayers[lookId] : undefined;
 }
 
 /** A level's values with its Look's own card left to the Look (picking it stores none, so the Look's other values stay on). */
@@ -262,7 +248,7 @@ export function levelLook(levels: ThemeLevels): { layer: ModuleSettings | undefi
   const page = pageCustom(levels, "skin") ? levels.page?.values : undefined;
   const onPage = page?.lookId !== undefined;
   const holder = onPage ? page : levels.profile?.values;
-  return { layer: lookLayerOf(holder?.lookId, holder), onPage };
+  return { layer: lookLayerOf(holder?.lookId), onPage };
 }
 
 /** The theme value of a key (§3.2 `themeVal`): what the levels set, else `THEME_DEFAULTS`. */
