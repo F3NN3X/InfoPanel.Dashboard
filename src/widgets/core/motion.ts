@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import type { SkinTokens } from "./types";
 
 /**
  * Bar fills move with `transform`, not width/height: a transform transition runs on the
@@ -15,3 +16,9 @@ export const slideX = (pct: number): CSSProperties => ({ transform: `translateX(
 export const slideY = (pct: number): CSSProperties => ({ transform: `translateY(${100 - clampPct(pct)}%)` });
 /** A full-width fill starting `fromPct` along the track and `pct` wide, for stacked segments (the fill is `absolute inset-0`). */
 export const stackX = (fromPct: number, pct: number): CSSProperties => ({ transform: `translateX(${clampPct(fromPct)}%) scaleX(${frac(pct)})`, transformOrigin: "left" });
+
+/** The time and curve of a transition a Look sets (`motion-fast`, `motion-base`, `ease-standard`); nothing for Classic's, whose classes stay in charge. */
+export const motionOf = (sk: Partial<SkinTokens>, speed: "fast" | "base"): CSSProperties | undefined => {
+  const time = speed === "fast" ? sk.motionFast : sk.motionBase;
+  return time || sk.ease ? { transitionDuration: time, transitionTimingFunction: sk.ease } : undefined;
+};

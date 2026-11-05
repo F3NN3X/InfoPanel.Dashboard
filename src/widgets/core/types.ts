@@ -132,6 +132,16 @@ export interface SkinTokens {
   ringFill: string;
   /** The gradient a graph's line is stroked with (`spark-fill`), a CSS gradient. */
   sparkFill: string;
+  /** The gradient a bar's fill is painted with in the `ok` tone (`bar-fill`), a CSS gradient. */
+  barFill: string;
+  /** The colour of the outline a card draws while a control in it has keyboard focus (`focus-outline`). */
+  focusOutline: string;
+  /** `series-fill-alpha`: the alpha of a graph's fill at the top, 70 % down and the end, when it is not Classic's. */
+  fillAlpha: [number, number, number];
+  /** `motion-fast`, `motion-base` and `ease-standard` as CSS: the time and curve of the existing transitions, when the Look's are not Classic's. */
+  motionFast: string;
+  motionBase: string;
+  ease: string;
   /** The gradient border drawn by `frame: "gradient"` (`border-fill`), a CSS gradient. */
   borderFill: string;
   /** The title sits on the frame's border and the card keeps the boxed padding (tui). */
@@ -186,6 +196,8 @@ export interface SkinContext extends Partial<SkinTokens> {
   meter: string;
   /** Graph stroke-width multiplier from the `stroke` look key (1 = as designed). */
   stroke: number;
+  /** A pack Look that sets its own `ok` (a colour on the card as `--w-ok`): the ok tone of bars and rings draws it instead of the accent. */
+  packOk?: boolean;
   /** The card is light or the theme's: status colours go through the shell's `--w-ok/-warn/-crit` (set only there), not the dark literals. */
   shellStatus?: boolean;
   /** Layout gap override in px from the `gap` look key. */

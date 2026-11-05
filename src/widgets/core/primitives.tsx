@@ -8,7 +8,7 @@ import { mix } from "./tokens";
 import { useSkin, STATE, TONES, tone, numGlowStyle } from "./theme";
 import { gradientStops } from "./t3-tokens";
 import { iconFor } from "./icons";
-import type { SkinTokens, Tone } from "./types";
+import type { SkinContext, SkinTokens, Tone } from "./types";
 import { cn } from "@/lib/utils";
 import { labelStyle, ws } from "@/components/widget-style";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
@@ -18,7 +18,7 @@ import { alternate } from "@/lib/curves";
 import { appIconName, weatherKind } from "@/lib/weather-icons";
 import { RangeEaser, SmoothScroll, scrollWaitMs, useAnimationFrame, type ScrollPoint } from "./smoothing";
 import { HISTORY_LEN, RoomyCtx } from "./layout";
-import { scaleX, slideX } from "./motion";
+import { motionOf, scaleX, slideX } from "./motion";
 import { HOLD_PX, holdPct } from "./hold";
 
 /* ───────── primitives ───────── */
@@ -209,19 +209,24 @@ export function Bar(p: BarProps & { ipKey?: string }) {
   );
 }
 
+/** The colour of a bar or ring in a tone: a pack that sets its own `ok` draws it for ok instead of the accent (L58). */
+const toneInk = (sk: Partial<SkinContext>, t: Tone): string => (t === "ok" && sk.packOk ? "var(--w-ok)" : TONES[t]);
+
 function BarBase({ value, max = 100, t = "ok", className = "h-1.5", track = "bg-[color:var(--w-track)]", style: meterStyle, segments }: BarProps) {
   const sk = useSkin();
   const m = meterStyle ?? sk.meter ?? "bar";
   const pct = clamp((value / max) * 100);
   // Smooth graph updates: glide linearly over about one sample interval instead of easing.
   const glide = sk.smooth ? { transition: `transform ${GLIDE_MS}ms linear` } : null;
+  // `bar-fill` paints the ok tone of the line, square and pill bars; warn and crit keep their own colours
+  const ink = t === "ok" && sk.barFill ? sk.barFill : toneInk(sk, t);
   if (m === "segments" || m === "blocks") {
     const n = segments ?? (m === "blocks" ? 14 : 24),
       lit = Math.round((pct / 100) * n);
     return (
       <div data-part="bar" className={cn("flex w-full gap-[2px]", className)}>
         {Array.from({ length: n }, (_, i) => (
-          <span key={i} className="min-w-0 flex-1 rounded-[1px]" style={{ background: i < lit ? (m === "blocks" ? blockColor(i, n) : TONES[t]) : "var(--w-track)" }} />
+          <span key={i} className="min-w-0 flex-1 rounded-[1px]" style={{ background: i < lit ? (m === "blocks" ? blockColor(i, n) : toneInk(sk, t)) : "var(--w-track)" }} />
         ))}
       </div>
     );
@@ -236,7 +241,7 @@ function BarBase({ value, max = 100, t = "ok", className = "h-1.5", track = "bg-
               const x = Math.min(pct, i * 2);
               return `${i ? "L" : "M"}${x.toFixed(2)},${(5 + Math.sin(i * 1.15) * 2.6).toFixed(2)}`;
             }).join("")}
-            fill="none" stroke={TONES[t]} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke"
+            fill="none" stroke={toneInk(sk, t)} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke"
           />
         </svg>
       </div>
@@ -244,19 +249,19 @@ function BarBase({ value, max = 100, t = "ok", className = "h-1.5", track = "bg-
   if (m === "square")
     return (
       <div data-part="bar" className={cn("w-full border border-[color:var(--w-fg)]/70 bg-transparent p-[1px] min-h-[8px]", className)}>
-        <div className="h-full w-full transition-transform duration-500" style={{ ...scaleX(pct), background: TONES[t], ...glide }} />
+        <div className="h-full w-full transition-transform duration-500" style={{ ...scaleX(pct), background: ink, ...glide }} />
       </div>
     );
   if (m === "hair")
     return (
       <div data-part="bar" className={cn("relative w-full", className)}>
         <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-[color:var(--w-track)]" />
-        <div className="absolute left-0 top-1/2 h-[2px] w-full -translate-y-1/2 transition-transform duration-500" style={{ ...scaleX(pct), background: TONES[t], ...glide }} />
+        <div className="absolute left-0 top-1/2 h-[2px] w-full -translate-y-1/2 transition-transform duration-500" style={{ ...scaleX(pct), background: ink, ...glide }} />
       </div>
     );
   return (
     <div data-part="bar" className={cn("w-full overflow-hidden rounded-full", m === "pill" ? "bg-[color:var(--w-track)] min-h-[6px]" : track, className)}>
-      <div className="h-full w-full rounded-full transition-transform duration-500 ease-out" style={{ ...slideX(pct), background: m === "pill" && t === "ok" ? `linear-gradient(90deg, ${mix(70, "#fff")}, var(--w-accent))` : TONES[t], ...glide }} />
+      <div className="h-full w-full rounded-full transition-transform duration-500 ease-out" style={{ ...slideX(pct), background: m === "pill" && t === "ok" && ink === TONES.ok ? `linear-gradient(90deg, ${mix(70, "#fff")}, var(--w-accent))` : ink, ...glide }} />
     </div>
   );
 }
@@ -343,7 +348,7 @@ export function Ring({ value, max = 100, thickness: th0, t = "ok", color, track,
           <InkGradient id={inkId} css={sk.ringFill} />
           <g transform={`rotate(${-sweep / 2} 50 50)`}>
             <circle cx="50" cy="50" r={r} fill="none" stroke={track ?? RING_TRACK} strokeWidth={thickness} strokeLinecap={cap} strokeDasharray={`${arc} ${c}`} />
-            <circle cx="50" cy="50" r={r} fill="none" stroke={ink ?? color ?? TONES[t]} strokeWidth={thickness} strokeLinecap={cap}
+            <circle cx="50" cy="50" r={r} fill="none" stroke={ink ?? color ?? toneInk(sk, t)} strokeWidth={thickness} strokeLinecap={cap}
               strokeDasharray={`${arc * pct} ${c}`} style={sk.smooth ? { transition: `stroke-dasharray ${RING_GLIDE_MS}ms linear` } : undefined} data-wp-ring="" {...tag} />
           </g>
         </svg>
@@ -356,7 +361,7 @@ export function Ring({ value, max = 100, thickness: th0, t = "ok", color, track,
       <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90" style={ringMark(sk)}>
         <InkGradient id={inkId} css={sk.ringFill} />
         <circle cx="50" cy="50" r={r} fill="none" stroke={track ?? RING_TRACK} strokeWidth={thickness} />
-        <circle cx="50" cy="50" r={r} fill="none" stroke={ink ?? color ?? TONES[t]} strokeWidth={thickness} strokeLinecap={cap}
+        <circle cx="50" cy="50" r={r} fill="none" stroke={ink ?? color ?? toneInk(sk, t)} strokeWidth={thickness} strokeLinecap={cap}
           strokeDasharray={c} strokeDashoffset={ringDashOffset(c, pct, thickness, cap === "round")} style={glide} data-wp-ring="" {...tag} />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ containerType: "inline-size" }}>{children}</div>
@@ -577,9 +582,9 @@ function GraphPaths({ line, area, step, fill, fillId, color, strokeWidth, glow, 
       <InkGradient id={inkId} css={sk.sparkFill} horizontal />
       <defs>
         <linearGradient id={fillId} x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0" stopColor={color} stopOpacity=".32" />
-          <stop offset=".7" stopColor={color} stopOpacity=".06" />
-          <stop offset="1" stopColor={color} stopOpacity="0" />
+          <stop offset="0" stopColor={color} stopOpacity={sk.fillAlpha?.[0] ?? ".32"} />
+          <stop offset=".7" stopColor={color} stopOpacity={sk.fillAlpha?.[1] ?? ".06"} />
+          <stop offset="1" stopColor={color} stopOpacity={sk.fillAlpha?.[2] ?? "0"} />
         </linearGradient>
       </defs>
       {fill && <path ref={refs?.area} d={area} fill={step ? color : `url(#${fillId})`} opacity={step ? 0.08 : undefined} />}
@@ -986,13 +991,14 @@ export function Logo({ src, name, className = "", size = "text-3xl", ip }: { src
  */
 export function HoldMark({ at, vertical }: { at: number; vertical?: boolean }) {
   const pct = holdPct(at);
-  const shape = useSkin().hold;
+  const sk = useSkin();
+  const shape = sk.hold;
   const dot = shape === "dot" ? (vertical ? { left: 0, right: 0, margin: "0 auto", width: HOLD_PX, bottom: 0, height: HOLD_PX } : { top: 0, bottom: 0, margin: "auto 0", height: HOLD_PX, left: 0, width: HOLD_PX }) : null;
   return (
     <span aria-hidden data-qa-bleed className="pointer-events-none absolute inset-0 overflow-hidden">
       <span
         className="absolute transition-transform duration-150"
-        style={vertical ? { inset: `${HOLD_PX}px 0 0 0`, transform: `translateY(${-pct}%)` } : { inset: `0 ${HOLD_PX}px 0 0`, transform: `translateX(${pct}%)` }}
+        style={{ ...(vertical ? { inset: `${HOLD_PX}px 0 0 0`, transform: `translateY(${-pct}%)` } : { inset: `0 ${HOLD_PX}px 0 0`, transform: `translateX(${pct}%)` }), ...motionOf(sk, "fast") }}
       >
         <span className={`absolute ${shape === "block" ? "" : "rounded-full"} bg-[color:var(--w-fg)]`} style={dot ?? (vertical ? { bottom: 0, left: 0, right: 0, height: HOLD_PX } : { left: 0, top: 0, bottom: 0, width: HOLD_PX })} />
       </span>

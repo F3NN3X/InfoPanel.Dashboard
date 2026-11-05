@@ -2,8 +2,11 @@ import { createElement, type ReactNode } from "react";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import classic from "@/looks/classic/look.json";
+import paper from "@/looks/packs/paper/look.json";
+import tape from "@/looks/packs/tape-86/look.json";
 import { CardFrame } from "@/widgets/core/card-frame";
-import { Metric, Ring, RingStack, Spark } from "@/widgets/core/primitives";
+import { Bar, HoldMark, Metric, Ring, RingStack, Spark } from "@/widgets/core/primitives";
+import { SkinCtx } from "@/widgets/core/theme";
 import { gradientStops, safeFill, safeGradient, t3Tokens } from "@/widgets/core/t3-tokens";
 import { skinContext } from "@/widgets/core/look";
 import { Widget } from "@/widgets/core/Widget";
@@ -180,5 +183,70 @@ describe("the numeral accent tint", () => {
   it("is not applied for a chromatic fringe alone, which keeps the text colour (Overdrive's cyan numerals)", () => {
     expect(num({ "num-effect": "chromatic" })).not.toContain("color-mix(in oklab, var(--w-accent) 55%");
     expect(num({ "num-effect": "chromatic" })).toContain("rgba(255,40,90,.7)");
+  });
+});
+
+describe("L23: the five contract tokens have a reader, and Classic's values change nothing", () => {
+  it("maps a Look's own value to a token, and Classic's own to nothing", () => {
+    expect(t3Tokens({ "series-stroke": 2.5, "series-fill-alpha": "0.5 > 0.2 > 0.1", "motion-fast": "90ms", "motion-base": "0.6s", "ease-standard": "cubic-bezier(.4, 0, .2, 1)" })).toEqual({
+      strokeFixed: 2.5, fillAlpha: [0.5, 0.2, 0.1], motionFast: "90ms", motionBase: "0.6s", ease: "cubic-bezier(.4, 0, .2, 1)",
+    });
+    expect(t3Tokens({ "series-stroke": 1, "series-fill-alpha": "0.32 > 0.06 > 0", "motion-fast": "150ms", "motion-base": "300ms", "ease-standard": "cubic-bezier(.2,0,0,1)" })).toEqual({});
+  });
+  it("refuses a stroke out of range, an alpha above 1, a time or a curve that is not one", () => {
+    expect(t3Tokens({ "motion-fast": "fast", "motion-base": "1;x", "series-stroke": 20, "series-fill-alpha": "2 > 1 > 0", "ease-standard": "url(x)" })).toEqual({});
+  });
+  it("a graph's fill gradient and its stroke follow the Look; Classic's markup is unchanged", () => {
+    const classic = draw({}, () => createElement(Spark, { values: [1, 3, 2, 5, 4] }));
+    expect(classic).toContain('stop-opacity=".32"');
+    const set = draw({ "series-fill-alpha": "0.6 > 0.3 > 0.1", "series-stroke": 3 }, () => createElement(Spark, { values: [1, 3, 2, 5, 4] }));
+    expect(set).toContain('stop-opacity="0.6"');
+    expect(set).toContain('stop-opacity="0.1"');
+    expect(set).toContain('stroke-width="3"');
+    expect(classic).not.toContain('stroke-width="3"');
+  });
+  it("the hold mark's transition takes motion-fast and ease-standard, and keeps its class for Classic", () => {
+    const hold = (t3: Record<string, string | number>) => draw(t3, () => createElement(HoldMark, { at: 50 }));
+    expect(hold({})).not.toContain("transition-duration");
+    expect(hold({ "motion-fast": "90ms", "ease-standard": "linear" })).toMatch(/transition-duration:90ms;transition-timing-function:linear/);
+  });
+});
+
+describe("L90: bar-fill and focus-outline", () => {
+  const STRIPES = "linear-gradient(90deg, #B83A08 0 25%, #C8273A 25% 50%)";
+  it("bar-fill reads a gradient only; focus-outline a colour only", () => {
+    expect(t3Tokens({ "bar-fill": STRIPES, "focus-outline": "#5B3FD4" })).toEqual({ barFill: STRIPES, focusOutline: "#5B3FD4" });
+    expect(t3Tokens({ "bar-fill": "#fff", "focus-outline": STRIPES })).toEqual({});
+    expect(t3Tokens({ "bar-fill": "none", "focus-outline": "none" })).toEqual({});
+    expect(t3Tokens({ "bar-fill": "url(https://evil.example/x)", "focus-outline": "url(x)" })).toEqual({});
+  });
+  it("Paper sets the outline and Tape '86 the stripes, and the shipped values reach the tokens", () => {
+    expect(t3Tokens(paper.t3)).toMatchObject({ focusOutline: "#5B3FD4" });
+    expect(t3Tokens(tape.t3).barFill).toMatch(/^linear-gradient\(90deg, #B83A08 0 25%/);
+  });
+  it("a bar's ok fill takes the gradient, its warn and crit fills do not, and Classic's bar is unchanged", () => {
+    const bar = (t: "ok" | "warn", t3: Record<string, string | number> = {}) => draw(t3, () => createElement(Bar, { value: 50, t, style: "square" }));
+    expect(bar("ok", { "bar-fill": STRIPES })).toContain(`background:${STRIPES}`);
+    expect(bar("warn", { "bar-fill": STRIPES })).toContain("background:var(--w-warn, #EDB232)");
+    expect(bar("warn", { "bar-fill": STRIPES })).not.toContain(`background:${STRIPES}`);
+    expect(bar("ok")).not.toContain(`background:${STRIPES}`);
+    expect(bar("ok")).toContain("scaleX(0.5);transform-origin:left;background:var(--w-accent)");
+  });
+  it("the card carries the outline colour and its marker for the app's focus rule, and Classic neither", () => {
+    const card = (t3: Record<string, string | number>) => draw(t3, () => createElement("span"));
+    expect(card({ "focus-outline": "#5B3FD4" })).toMatch(/--w-focus-outline:#5B3FD4[^>]*data-focus-outline=""/);
+    expect(card({})).not.toContain("focus-outline");
+  });
+});
+
+describe("L58: a pack that sets its own ok has the ok tone draw it", () => {
+  const bar = (sk: Record<string, unknown>) =>
+    renderToString(createElement(SkinCtx.Provider, { value: { ...skinContext("default"), ...sk } }, createElement(Bar, { value: 50, t: "ok", style: "square" }), createElement(Bar, { value: 50, t: "warn", style: "square" })));
+  it("ok follows the Look's ok on a pack card; warn does not change; the accent stays everywhere else", () => {
+    const pack = bar({ packOk: true });
+    expect(pack).toContain("background:var(--w-ok)");
+    expect(pack.match(/var\(--w-ok\)/g)).toHaveLength(1);
+    expect(bar({})).not.toContain("--w-ok");
+    expect(bar({})).toContain("background:var(--w-accent)");
   });
 });

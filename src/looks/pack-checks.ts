@@ -17,8 +17,8 @@ const STOP = /#[0-9a-f]{3,8}\b|var\(--w-[\w-]+\)/gi;
 const WORD = /(?<![\w#(.-])[a-z][a-z-]*(?![\w(-])/gi;
 const GRADIENT_WORDS = new Set("to top bottom left right center at circle ellipse closest-side farthest-side closest-corner farthest-corner in from".split(" "));
 
-/** The T3 names that paint ink with a gradient: the numerals, a ring's value arc and a graph's line. */
-const INK_FILLS = ["num-fill", "ring-fill", "spark-fill"] as const;
+/** The T3 names that paint ink with a gradient: the numerals, a ring's value arc, a graph's line and a bar's fill. */
+const INK_FILLS = ["num-fill", "ring-fill", "spark-fill", "bar-fill"] as const;
 
 /** The problems with a gradient ink fill: a stop that cannot be read as a colour, or one under 3:1 on the Look's surface in a mode it supports. */
 function inkFillIssues(look: Look, name: (typeof INK_FILLS)[number]): string[] {

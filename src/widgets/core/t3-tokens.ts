@@ -75,6 +75,12 @@ function safeStretch(value: unknown): string | undefined {
   return pct && Number(pct[1]) >= 50 && Number(pct[1]) <= 200 ? css : undefined;
 }
 
+// Classic's own values (src/looks/t3.ts, pinned by tests/widgets/core/t3-tokens.test.tsx): a Look that sets these changes nothing.
+// The validator holds a time to 50 ms to 2 s and a stroke to 0.5 to 8 px; a style value cannot end its declaration, so the reader only checks the shape.
+const TIME = /^\d+(\.\d+)?m?s$/;
+const EASE = /^(linear|ease|ease-in|ease-out|ease-in-out|cubic-bezier\([\d.,\s-]+\))$/;
+const MOTION = [["motion-fast", "motionFast", "150ms", TIME], ["motion-base", "motionBase", "300ms", TIME], ["ease-standard", "ease", "cubic-bezier(.2,0,0,1)", EASE]] as const;
+
 const oneOf = <T extends string>(value: unknown, names: readonly T[]): T | undefined => names.find((n) => n === value);
 const off = (value: unknown) => value === undefined || value === "none";
 
@@ -106,6 +112,10 @@ export function t3Tokens(t3: Readonly<Record<string, string | number>> | undefin
   if (ringFill) out.ringFill = ringFill;
   const sparkFill = safeGradient(t3["spark-fill"]);
   if (sparkFill) out.sparkFill = sparkFill;
+  const barFill = safeGradient(t3["bar-fill"]);
+  if (barFill) out.barFill = barFill;
+  const outline = safeFill(t3["focus-outline"]);
+  if (outline && !safeGradient(outline)) out.focusOutline = outline;
   const border = safeFill(t3["border-fill"]);
   if (border) Object.assign(out, { frame: "gradient", borderFill: border });
   const meter = oneOf(t3["meter-style"], ["segments", "blocks"]);
@@ -115,6 +125,15 @@ export function t3Tokens(t3: Readonly<Record<string, string | number>> | undefin
   if (hold) out.hold = hold;
   const spike = oneOf(t3["spike-shape"], ["tick", "bar"]);
   if (spike) out.spike = spike;
+  const stroke = Number.parseFloat(String(t3["series-stroke"]));
+  if (stroke >= 0.5 && stroke <= 8 && stroke !== 1) out.strokeFixed = stroke;
+  const fill = String(t3["series-fill-alpha"]);
+  const alpha = fill.split(">").map(Number);
+  if (alpha.length === 3 && alpha.every((a) => a >= 0 && a <= 1) && fill !== "0.32 > 0.06 > 0") out.fillAlpha = alpha as [number, number, number];
+  for (const [key, token, classic, shape] of MOTION) {
+    const v = String(t3[key] ?? "").trim();
+    if (shape.test(v) && v !== classic) out[token] = v;
+  }
   const knob = oneOf(t3["fader-knob-shape"], ["bar", "square", "notch"]);
   if (knob) out.knob = knob;
   return out;

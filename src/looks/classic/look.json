@@ -323,6 +323,8 @@
     "border-fill": "none",
     "ring-fill": "none",
     "spark-fill": "none",
+    "bar-fill": "none",
+    "focus-outline": "none",
     "cell-radius": "{radius}",
     "track": "rgba(255,255,255,.07)",
     "motion-fast": "150ms",

@@ -12,6 +12,7 @@ import { SkinCtx, resolveSurface, textVars } from "./theme";
 import { bodyFlags, forcedTier, resolveAccent, shellPad, skinContext, untitled, withUserLook } from "./look";
 import { ensureSkinFonts } from "./fonts";
 import { CardFrame, CardLayer } from "./card-frame";
+import { usePageLight } from "./page-mode";
 import { CompactView, StudioView, SkinHeader } from "./views";
 import type { Compact, ShellProps, Studio, Tier } from "./types";
 
@@ -117,7 +118,14 @@ export function Widget({ title, icon, iconOverride, accent, surface, radius, siz
   const sk = ctx;
   const isStudio = variant === "studio";
   const surf = resolveSurface(look?.surface ? String(look.surface) : surface, skin, isStudio);
-  const skinCtx = useMemo(() => (surf.tone === "light" ? { ...ctx, shellStatus: true } : ctx), [ctx, surf.tone]);
+  // The theme's card on a light page draws the light status colours too (L56); a light card always does.
+  const onLightPage = usePageLight(ref, surf.tone === "theme");
+  // A pack Look that sets its own `ok` has the ok tone draw it (L58); Classic and the sample Looks keep the accent.
+  const packOk = !!packId && !!chrome?.ok;
+  const skinCtx = useMemo(() => {
+    const shellStatus = surf.tone === "light" || onLightPage;
+    return shellStatus || packOk ? { ...ctx, ...(shellStatus ? { shellStatus } : null), ...(packOk ? { packOk } : null) } : ctx;
+  }, [ctx, surf.tone, onLightPage, packOk]);
   const heading = chrome?.label || title;
   const headIcon = iconOverride || chrome?.icon || icon;
   // Show title off hides the header and the title line of the summary views (`untitled`).
@@ -153,6 +161,7 @@ export function Widget({ title, icon, iconOverride, accent, surface, radius, siz
     // Only the default accent darkens on a light card: an accent the user or the Look set is theirs (G1).
     ...accentVars(resolveAccent(chrome?.accent || accent, sk, surf.tone), chrome?.accent || accent ? undefined : surf.tone),
     color: "var(--w-fg)",
+    ...(ctx.focusOutline ? { "--w-focus-outline": ctx.focusOutline } : null),
     ...(ctx.labelGlow ? { textShadow: "0 0 6px color-mix(in oklab, var(--w-accent) 55%, transparent)" } : null),
     // A roomy box (4x4) grows the body type: the theme's type tokens, so every text-micro / caption / body / title follows; and sets the hero size `Metric` reads.
     ...(big ? { ...(fixedType ? null : typeVars(ROOMY_SCALE)), "--w-hero": `${heroPx(box.w, box.h)}px` } : null),
@@ -162,7 +171,7 @@ export function Widget({ title, icon, iconOverride, accent, surface, radius, siz
     <SkinCtx.Provider value={skinCtx}>
       <RoomyCtx.Provider value={big}>
       <PaneCtx.Provider value={{ className: mat.className, style: surfBox }}>
-      <div ref={ref} style={rootStyle} data-part="card" data-look={packId} data-mat={mat.id} data-tone={mat.tone} data-mode={mat.tone === "light" ? "light" : undefined} data-mat-blur={mat.fallback ? "" : undefined} data-wp-scope={css ? scope : undefined} {...numGlowAttr(chrome)} data-wp-tier={box.size} data-wp-roomy={big ? "" : undefined} data-wp-shape={box.shape} data-wp-view={isStudio ? "studio" : useCompact ? "compact" : "body"} className={`relative flex h-full w-full min-w-0 flex-col overflow-hidden antialiased ${mat.className} ${className}`}>
+      <div ref={ref} style={rootStyle} data-part="card" data-look={packId} data-mat={mat.id} data-tone={mat.tone} data-mode={mat.tone === "light" ? "light" : undefined} data-mat-blur={mat.fallback ? "" : undefined} data-focus-outline={ctx.focusOutline ? "" : undefined} data-wp-scope={css ? scope : undefined} {...numGlowAttr(chrome)} data-wp-tier={box.size} data-wp-roomy={big ? "" : undefined} data-wp-shape={box.shape} data-wp-view={isStudio ? "studio" : useCompact ? "compact" : "body"} className={`relative flex h-full w-full min-w-0 flex-col overflow-hidden antialiased ${mat.className} ${className}`}>
         {css && <style>{css}</style>}
         {background && (
           <>
