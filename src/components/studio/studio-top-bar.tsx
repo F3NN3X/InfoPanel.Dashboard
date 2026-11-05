@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { MADE_FOR } from "./editor/file-menu-model";
 import type { SaveChip } from "./editor/save-chip";
 import { LiveControl } from "./live-popover";
+import { focusSoon } from "./focus-soon";
 import { RenameInput } from "./rename-input";
 import { ScreenSwitcher } from "./screen-switcher";
 import { WindowControls } from "./window-controls";
@@ -160,9 +161,10 @@ function Breadcrumb(props: StudioTopBarProps) {
           <RenameInput
             label="Screen name"
             initial={profile.name}
-            onDone={(name) => {
+            onDone={(name, byKey) => {
               setRenaming(false);
               if (name && name !== profile.name) onRename(name);
+              if (byKey) focusSoon('button[aria-label="Rename screen"]');
             }}
           />
         </span>

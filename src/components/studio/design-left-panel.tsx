@@ -3,6 +3,7 @@ import { Layers, PanelLeftClose, PanelLeftOpen, Plus } from "lucide-react";
 import { IconButton } from "@/components/ui/icon-button";
 import { Tabs } from "@/components/ui/tabs";
 import { LEFT_STRIP_PX } from "./add-prefs";
+import { focusSoon, LEFT_STRIP_TOGGLE, LEFT_TAB } from "./focus-soon";
 import type { AddPanel as AddPanelView } from "./add-panel";
 import type { LayersHost } from "./layers-tree";
 import { isTyping } from "./use-studio-shortcuts";
@@ -63,7 +64,14 @@ export function LeftPanelFrame({ tab, onTab, width, onCollapse, children }: Pick
           ]}
         />
         {onCollapse && (
-          <IconButton label="Hide the left panel" className="mb-1.5" onClick={onCollapse}>
+          <IconButton
+            label="Hide the left panel"
+            className="mb-1.5"
+            onClick={() => {
+              onCollapse();
+              focusSoon(LEFT_STRIP_TOGGLE);
+            }}
+          >
             <PanelLeftClose className="h-4 w-4" />
           </IconButton>
         )}
@@ -77,13 +85,34 @@ export function LeftPanelFrame({ tab, onTab, width, onCollapse, children }: Pick
 export function LeftPanelStrip({ onOpen, onToggle }: { onOpen: (tab: LeftTab) => void; onToggle: () => void }) {
   return (
     <aside aria-label="Left panel" className="flex shrink-0 flex-col items-center gap-1 border-r border-ui-subtle bg-ui-panel pt-3 font-ui" style={{ width: LEFT_STRIP_PX }}>
-      <IconButton label="Show the left panel" size={32} onClick={onToggle}>
+      <IconButton
+        label="Show the left panel"
+        size={32}
+        onClick={() => {
+          onToggle();
+          focusSoon(LEFT_TAB);
+        }}
+      >
         <PanelLeftOpen className="h-4 w-4" />
       </IconButton>
-      <IconButton label="Layers" size={32} onClick={() => onOpen("layers")}>
+      <IconButton
+        label="Layers"
+        size={32}
+        onClick={() => {
+          onOpen("layers");
+          focusSoon(LEFT_TAB);
+        }}
+      >
         <Layers className="h-4 w-4" />
       </IconButton>
-      <IconButton label="Add" size={32} onClick={() => onOpen("add")}>
+      <IconButton
+        label="Add"
+        size={32}
+        onClick={() => {
+          onOpen("add");
+          focusSoon(LEFT_TAB);
+        }}
+      >
         <Plus className="h-4 w-4" />
       </IconButton>
     </aside>
