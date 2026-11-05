@@ -32,6 +32,8 @@ export async function openFixture(page: Page, base: string, name: string): Promi
   await page.setViewportSize({ width: 1440, height: 880 });
   await page.goto(`${base}/?fixture=one-editor/${name}`);
   await expect(page.getByRole("button", { name: /^Continue editing/ })).toBeVisible();
+  // The sidebar is its own chunk and can land first; the keys a test presses are for the canvas.
+  await expect(page.locator("[data-toast-anchor]")).toBeVisible();
 }
 
 /** Where a shot goes when ONE_EDITOR_SHOTS names a folder (the gate report's, beside the reference's); otherwise nowhere. */
