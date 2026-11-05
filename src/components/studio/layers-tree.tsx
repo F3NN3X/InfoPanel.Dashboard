@@ -321,7 +321,7 @@ export function LayersTree({ host }: { host: LayersHost }) {
                 setMenu({ x: e.clientX, y: e.clientY });
               }}
               className={cn(
-                "group/row relative flex h-(--ui-h-control) shrink-0 cursor-pointer items-center gap-[5px] rounded-ui-sm pr-1.5 outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ui-accent",
+                "group/row relative flex h-(--ui-h-control) shrink-0 cursor-pointer items-center gap-[5px] rounded-ui-sm pr-1.5 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ui-accent",
                 isSelected ? "bg-ui-accent/18 text-white" : tinted.has(node.id) ? "bg-ui-accent/7" : "hover:bg-ui-hover",
                 mark === "inside" && "outline outline-1 -outline-offset-1 outline-ui-accent",
               )}

@@ -62,7 +62,7 @@ export function MixFader({ value, color, segs, mode, vertical = false, label, on
     <div
       ref={ref}
       data-fader=""
-      className={`relative h-full w-full ${live ? `cursor-pointer outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/70 before:absolute before:content-[''] ${vertical ? "before:-inset-x-3 before:inset-y-0" : "before:-inset-y-3 before:inset-x-0"}` : ""}`}
+      className={`relative h-full w-full ${live ? `cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/70 before:absolute before:content-[''] ${vertical ? "before:-inset-x-3 before:inset-y-0" : "before:-inset-y-3 before:inset-x-0"}` : ""}`}
       style={{ touchAction: "none" }}
       role="slider"
       aria-label={label}

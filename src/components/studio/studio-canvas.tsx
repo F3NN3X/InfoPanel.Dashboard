@@ -590,7 +590,7 @@ export function StudioCanvas({
           aria-label="Canvas"
           // biome-ignore lint/a11y/noNoninteractiveTabindex: a scrolling region takes focus so the keyboard can scroll it
           tabIndex={0}
-          className="h-full w-full overflow-auto outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ui-accent"
+          className="h-full w-full overflow-auto focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ui-accent"
           style={{ backgroundImage: DOTS, backgroundSize: DOT_PITCH }}
           onContextMenu={(e) => {
             e.preventDefault();

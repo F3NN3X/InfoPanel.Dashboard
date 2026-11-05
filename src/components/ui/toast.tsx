@@ -76,7 +76,7 @@ function ToastSlot({ live, toast, arm, dismiss }: { live: "polite" | "assertive"
                 toast.action?.onClick();
                 dismiss();
               }}
-              className="rounded-ui-sm font-medium text-ui-2 outline-none hover:text-ui-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent"
+              className="rounded-ui-sm font-medium text-ui-2 hover:text-ui-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent"
             >
               {toast.action.label}
             </button>
@@ -86,7 +86,7 @@ function ToastSlot({ live, toast, arm, dismiss }: { live: "polite" | "assertive"
               type="button"
               aria-label="Dismiss"
               onClick={dismiss}
-              className="-mr-1 grid h-5 w-5 place-items-center rounded-ui-sm text-ui-hint outline-none hover:text-ui-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent"
+              className="-mr-1 grid h-5 w-5 place-items-center rounded-ui-sm text-ui-hint hover:text-ui-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent"
             >
               <X className="h-3 w-3" aria-hidden="true" />
             </button>
