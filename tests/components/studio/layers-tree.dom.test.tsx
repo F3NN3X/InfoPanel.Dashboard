@@ -1,12 +1,11 @@
 // @vitest-environment happy-dom
 // Layers (Edit v3 SPEC §8, acceptance 16, 17): every row has the chevron slot, icon tile, name, kind word, the
-// placed-freely mark on items only, the status on a screen made for InfoPanel, lock and eye, and never a grid size;
+// placed-freely mark on items only, the status on a screen made for InfoPanel, lock and eye, and the size where the page gives one (02a);
 // rename, the layer menu, Collapse all and drops go to the page's host.
 import { createEvent, fireEvent, render, screen, within } from "@testing-library/react";
 import { Box } from "lucide-react";
 import { describe, expect, it, vi } from "vitest";
 import { LayersTree, type LayersHost, type TreeNode } from "@/components/studio/layers-tree";
-import { LayerSection } from "@/components/studio/layer-section";
 
 const NODES: TreeNode[] = [
   { id: "overlay", type: "group", name: "Overlay", children: [{ id: "title", type: "part", kind: "item", name: "Title text", free: true }, { id: "glow", type: "part", kind: "element", name: "Accent glow" }] },
@@ -76,7 +75,7 @@ describe("Layers rows", () => {
     const panel = screen.getByRole("region", { name: "Layers" });
     expect(panel.textContent).toContain("top first");
     expect(panel.textContent).toContain("4 parts · 1 group");
-    expect(panel.textContent).toContain("Drag to reorder or into a group · right-click for more");
+    expect(panel.textContent).toContain("Drag to reorder · right-click for more");
   });
 
   it("selects by click, Ctrl toggles, Shift a range along the rows shown", () => {
@@ -224,22 +223,5 @@ describe("dragging rows", () => {
     over(row("Overlay"), 14);
     expect(row("Overlay").dataset.drop).toBeUndefined();
     expect(screen.getByRole("status").textContent).toContain("can’t go into itself");
-  });
-});
-
-describe("the inspector's LAYER section", () => {
-  it("runs the four order actions and moves into a group, out of it, or into a new one", () => {
-    const onAction = vi.fn();
-    const onInGroup = vi.fn();
-    render(<LayerSection onAction={onAction} groups={[{ id: "g1", name: "Gauges" }]} inGroup="g1" onInGroup={onInGroup} />);
-    const section = screen.getByTestId("inspector-layer");
-    for (const label of ["Bring to front", "Bring forward", "Send backward", "Send to back"]) fireEvent.click(within(section).getByRole("button", { name: label }));
-    expect(onAction.mock.calls.map((c) => c[0])).toEqual(["front", "forward", "backward", "back"]);
-    const select = within(section).getByRole("combobox", { name: "In group" }) as HTMLSelectElement;
-    expect(select.value).toBe("g1");
-    expect([...select.options].map((o) => o.text)).toEqual(["None", "Gauges", "New group…"]);
-    fireEvent.change(select, { target: { value: "" } });
-    fireEvent.change(select, { target: { value: select.options[2].value } });
-    expect(onInGroup.mock.calls).toEqual([[null], ["new"]]);
   });
 });

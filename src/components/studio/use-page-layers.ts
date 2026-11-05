@@ -8,7 +8,7 @@
  */
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { uid, type MonitorProfile, type Placement, type ProfilePage } from "@/lib/layout";
-import { applyOps, cellsOverlap, findNode, partsOf, type LayerNode, type PageModel, type PageOp } from "@/lib/page-model/model";
+import { applyOps, cellsOverlap, findNode, partsOf, type LayerNode, type PageModel, type PageOp, type PartNode } from "@/lib/page-model/model";
 import { partKeyOps } from "@/lib/page-model/keys";
 import { dropBlocked, dropOps, groupMoveOps, layerActionOps, layerActionsFor, type LayerAction } from "@/lib/page-model/layer-actions";
 import { readPlacements } from "@/lib/page-model/placements-adapter";
@@ -51,11 +51,13 @@ function widgetsOverlap(model: PageModel): boolean {
   return cells.some((a, i) => cells.some((b, j) => i < j && cellsOverlap(a, b)));
 }
 
+const sizeOf = (place: PartNode["place"]): string => ("px" in place ? `${Math.round(place.px.w)} px` : `${place.cell.cols}×${place.cell.rows}`);
+
 const treeOf = (nodes: readonly LayerNode[]): TreeNode[] =>
   nodes.map((n) =>
     n.type === "group"
       ? { id: n.id, type: "group", name: n.name, locked: n.locked, hidden: n.hidden, children: treeOf(n.children) }
-      : { id: n.id, type: "part", kind: n.kind, name: n.name, free: "px" in n.place, locked: n.locked, hidden: n.hidden },
+      : { id: n.id, type: "part", kind: n.kind, name: n.name, free: "px" in n.place, size: sizeOf(n.place), locked: n.locked, hidden: n.hidden },
   );
 
 export function usePageLayers({ profile, page, zones, items, focusZone, applyPageOps, dragging, statusIcon, showLayers, toast }: PageLayersDeps) {
