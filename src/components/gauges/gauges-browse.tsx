@@ -1,4 +1,5 @@
-/** The Gauges view's main area (spec §6): Presets, In <profile> and My library, each a grid of live square thumbnails. */
+/** The Gauges view's main area (spec §5): what is on your screens, then Presets and Saved in your library, each a grid of live square thumbnails. */
+import { useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { previewScale, type GaugeEntry } from "@/lib/gauge-studio/model";
 import { draggableGauge } from "./gauge-drag";
@@ -9,11 +10,15 @@ export interface GaugeSection {
   title: string;
   note?: string;
   entries: GaugeEntry[];
+  /** Show this many at first, with "Show all": the rest are one click away. */
+  limit?: number;
   /** The one quiet line when there is nothing. */
   empty: string;
 }
 
 export interface GaugesBrowseProps {
+  /** Above the grids: "On your screens". */
+  head?: ReactNode;
   sections: GaugeSection[];
   selectedKey: string | null;
   /** The slow value every thumbnail shows. */
@@ -33,27 +38,39 @@ export interface GaugesBrowseProps {
   onRenamed: (entry: GaugeEntry, name: string | null) => void;
 }
 
-export function GaugesBrowse({ sections, selectedKey, p, scope, onSelect, onOpen, onDragStart, onMenu, onRemove, renamingKey, onRenamed }: GaugesBrowseProps) {
+export function GaugesBrowse({ head, sections, selectedKey, p, scope, onSelect, onOpen, onDragStart, onMenu, onRemove, renamingKey, onRenamed }: GaugesBrowseProps) {
+  const [all, setAll] = useState<ReadonlySet<string>>(new Set());
   return (
     <div className="min-w-0 flex-1 overflow-y-auto p-6 font-ui">
-      {sections.map((s) => (
+      {head}
+      {sections.map((s) => {
+        const more = s.limit !== undefined && s.entries.length > s.limit && !all.has(s.id);
+        // A selected card past the limit stays on screen.
+        const shown = more ? s.entries.filter((e, i) => i < s.limit! || e.key === selectedKey) : s.entries;
+        return (
         <section key={s.id} aria-label={s.title} className="mb-8">
-          <h2 className="text-body font-semibold text-ui-1">
-            {s.title}
-            {s.entries.length > 0 && <span className="ml-2 font-ui-mono text-micro font-normal text-ui-4">{s.entries.length}</span>}
-          </h2>
-          {s.note && <p className="mb-3 text-caption text-ui-4">{s.note}</p>}
+          <div className="flex items-baseline gap-2">
+            <h2 className="text-body font-medium text-ui-1">{s.title}</h2>
+            {s.entries.length > 0 && <span className="text-caption text-ui-3">{s.entries.length}</span>}
+            {s.note && <span className="text-caption text-ui-3">· {s.note}</span>}
+            {more && (
+              <button type="button" onClick={() => setAll((cur) => new Set(cur).add(s.id))} className="ml-auto rounded-ui-sm text-caption text-ui-3 hover:text-ui-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent">
+                Show all {s.entries.length}
+              </button>
+            )}
+          </div>
           {s.entries.length === 0 ? (
-            <p className="mt-3 rounded-[10px] border border-dashed border-ui-strong px-4 py-5 text-center text-caption text-ui-4">{s.empty}</p>
+            <p className="mt-3 rounded-ui-lg border border-dashed border-ui-strong px-4 py-5 text-center text-caption text-ui-3">{s.empty}</p>
           ) : (
             <div className="mt-3 grid grid-cols-[repeat(auto-fill,minmax(132px,1fr))] gap-3">
-              {s.entries.map((e) => (
+              {shown.map((e) => (
                 <Thumb key={e.key} entry={e} selected={e.key === selectedKey} p={p} scope={scope} renaming={e.key === renamingKey} onSelect={onSelect} onOpen={onOpen} onDragStart={onDragStart} onMenu={onMenu} onRemove={onRemove} onRenamed={onRenamed} />
               ))}
             </div>
           )}
         </section>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -99,8 +116,8 @@ function Thumb({ entry, selected, p, scope, renaming, onSelect, onOpen, onDragSt
         }
       }}
       className={cn(
-        "group flex flex-col overflow-hidden rounded-[10px] border bg-ui-panel text-left outline-none focus-visible:border-ui-accent",
-        selected ? "border-ui-accent shadow-[0_0_0_1px_var(--ui-accent)]" : "border-ui-subtle hover:border-ui-menu",
+        "group flex flex-col overflow-hidden rounded-ui-lg border bg-ui-panel text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent",
+        selected ? "border-ui-accent" : "border-ui-subtle hover:border-ui-menu",
       )}
     >
       <span className="flex aspect-square w-full items-center justify-center bg-ui-app">
@@ -126,7 +143,7 @@ function Thumb({ entry, selected, p, scope, renaming, onSelect, onOpen, onDragSt
           className="mx-1.5 my-1.5 h-7 min-w-0 rounded-ui-sm border border-ui-accent bg-ui-app px-1.5 text-caption text-ui-1 outline-none"
         />
       ) : (
-        <span className="line-clamp-2 min-h-12 break-words px-2.5 py-2 text-caption text-ui-1">{entry.name}</span>
+        <span className="line-clamp-2 min-h-12 break-words px-2.5 py-2 text-caption text-ui-2 group-aria-pressed:text-ui-1">{entry.name}</span>
       )}
     </div>
   );

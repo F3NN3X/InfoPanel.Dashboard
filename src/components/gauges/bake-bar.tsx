@@ -6,7 +6,7 @@
 import { useState } from "react";
 import type { StudioBridge } from "@/components/library/library-actions";
 import { cn } from "@/lib/utils";
-import type { GaugeEntry, GaugeSource } from "@/lib/gauge-studio/model";
+import { zoneOf, type GaugeEntry, type GaugeSource } from "@/lib/gauge-studio/model";
 import { bakeSignature, safeStem, setFrameFiles } from "@/lib/infopanel/gauges/frames";
 import { bake } from "@/lib/infopanel/gauges/raster";
 import type { VectorGauge } from "@/lib/infopanel/gauges/vector";
@@ -24,7 +24,7 @@ export interface BakeBarProps {
 }
 
 export function BakeBar(props: BakeBarProps) {
-  const stored = props.bridge.profile.placements.find((z) => z.id === props.source.zoneId)?.canvas;
+  const stored = zoneOf(props.bridge.config, props.source.zoneId)?.canvas;
   return stored ? <Bar {...props} stored={stored} /> : null;
 }
 

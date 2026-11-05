@@ -556,6 +556,9 @@ function StudioViewBody({
     select: (id) => sel.select(id),
     toast,
     undo: history.undo,
+    redo: history.redo,
+    canUndo: history.canUndo,
+    canRedo: history.canRedo,
     addCopy: (item, copy) => void recordCopy(item, copy),
   };
 
@@ -1331,11 +1334,16 @@ function StudioViewBody({
     <Suspense fallback={<div className="flex-1 bg-ui-app" />}>
       <GaugesPage
         bridge={libraryBridge}
-        profileName={storedProfile.name}
         theme={resolveTheme(profile).tokens}
         initial={gaugeToOpen}
         onOpened={() => setGaugeToOpen(null)}
         onShowCanvas={() => ui.setMode("design")}
+        onOpenZone={openZone}
+        onOpenRule={(id) => {
+          ui.navigateTo({ view: "alerts", tab: "rules" });
+          ui.setAlertRule(id);
+        }}
+        onOpenSources={() => ui.setMode("sources")}
       />
     </Suspense>
   );

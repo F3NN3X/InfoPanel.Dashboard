@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import { describe, expect, it } from "vitest";
 import type { DashboardConfig, Placement } from "@/lib/layout";
 import type { LibraryItem } from "@/lib/library";
@@ -9,7 +10,7 @@ import { toStored } from "@/lib/infopanel/import/stored";
 import { parseProfileXml } from "@/lib/infopanel/parse";
 import { defaultItem } from "@/lib/infopanel/schema";
 import {
-  CUSTOM_GAUGE_ID, gaugeDataOf, gaugeEntryOf, libraryGauges, presetGauges, previewScale, profileGauges, sourceKey, widgetGauge, withGauge, withGaugeName, withGaugeSpeed,
+  CUSTOM_GAUGE_ID, configGauges, gaugeDataOf, gaugeEntryOf, libraryGauges, placementGauges, presetGauges, previewScale, sourceKey, widgetGauge, withGauge, withGaugeName, withGaugeSpeed,
 } from "@/lib/gauge-studio/model";
 
 const profile = parseProfileXml("<Profile><Name>Rig</Name><Width>800</Width><Height>480</Height></Profile>").profile;
@@ -19,6 +20,9 @@ const canvas = toStored({ name: "Rig", origin: "file", dataApi: null, defaultMod
 const widget: Placement = { id: "w1", module: CUSTOM_GAUGE_ID, colStart: 2, rowStart: 1, colSpan: 1, rowSpan: 1, visible: true, settings: { gauge: JSON.stringify({ ...DEFAULT_GAUGE, shape: "bar" }), label: "CPU" } };
 const zone: Placement = { id: "c1", module: "infopanel", colStart: 1, rowStart: 1, colSpan: 1, rowSpan: 1, visible: true, canvas };
 const config = { profiles: [{ id: "p", name: "Rig", pages: [{ id: "pg", placements: [zone, widget] }] }] } as unknown as DashboardConfig;
+
+/** The gauges on one page's placements, as a screen's name gives their place. */
+const profileGauges = (p: { name: string; placements: Placement[] }) => placementGauges(p.placements, p.name);
 
 describe("gauge sources", () => {
   it("lists presets read-only, with their kind", () => {
@@ -37,6 +41,50 @@ describe("gauge sources", () => {
     ]);
     expect(found[0]).toMatchObject({ min: 10, max: 90, animationSpeed: 4, frames: [], stale: false });
     expect(found[1].stale).toBe(true);
+  });
+
+  it("lists the gauges of every screen and page, not only the one on the canvas (B3)", () => {
+    const second: Placement = { ...widget, id: "w9", settings: { label: "VRAM" } };
+    const many = {
+      profiles: [
+        { id: "p", name: "Rig", pages: [{ id: "pg", name: "Main", placements: [zone, widget] }, { id: "pg2", name: "Extra", placements: [] }] },
+        { id: "q", name: "Desk", pages: [{ id: "pg3", name: "Gaming", placements: [second] }] },
+      ],
+    } as unknown as DashboardConfig;
+    const found = configGauges(many);
+    expect(found.map((g) => [g.key, g.on?.screen, g.on?.page])).toEqual([
+      ["canvas:c1:0", "Rig", "Main"],
+      ["canvas:c1:1.0", "Rig", "Main"],
+      ["widget:w1", "Rig", "Main"],
+      ["widget:w9", "Desk", "Gaming"],
+    ]);
+    expect(found[3].on).toMatchObject({ profileId: "q", pageId: "pg3" });
+    // The canvas is opened once for the same stored form.
+    expect(configGauges(many)[0]).toBe(found[0]);
+  });
+
+  describe("a Gauge item placed on a page", () => {
+    const fixture = JSON.parse(fs.readFileSync("tests/fixtures/perf/data/config.json", "utf8")) as DashboardConfig;
+    const source = { kind: "item", zoneId: "perf-gauge-cpu" } as const;
+
+    it("is listed with its screen, page and sensor, and the item that is not a gauge is not", () => {
+      const found = configGauges(fixture);
+      expect(found.map((g) => g.key)).toEqual(["item:perf-gauge-cpu"]);
+      expect(found[0]).toMatchObject({ name: "CPU gauge", kind: "vector", reads: "CPU Total", where: "Main", on: { screen: "Perf heavy", page: "Main", pageId: "main" } });
+    });
+
+    it("writes its spec and name back into the item, leaving its box and binding as they were", () => {
+      const spec = { ...configGauges(fixture)[0].gauge!, sweep: 90 };
+      const next = withGauge(fixture, source, spec)!;
+      const named = withGaugeName(next, source, "Renamed")!;
+      const [entry] = configGauges(named);
+      expect(entry).toMatchObject({ name: "Renamed", gauge: { sweep: 90 } });
+      const zone = named.profiles[0].pages[0].placements.find((z) => z.id === "perf-gauge-cpu")!;
+      const before = fixture.profiles[0].pages[0].placements.find((z) => z.id === "perf-gauge-cpu")!;
+      expect(zone.item).toMatchObject({ kind: "Gauge", X: before.item!.X, Y: before.item!.Y, SensorName: "CPU Total", $: { key: "libre.amd_ryzen_9_9950x3d_cpu_total" } });
+      expect(zone.px).toEqual(before.px);
+      expect(named.profiles[0].pages[0].placements.find((z) => z.id === "perf-gauge-gpu")).toBe(fixture.profiles[0].pages[0].placements.find((z) => z.id === "perf-gauge-gpu"));
+    });
   });
 
   it("lists a Custom gauge widget with no spec of its own as the default spec it draws", () => {

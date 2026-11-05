@@ -56,6 +56,10 @@ export interface StudioBridge {
   toast: (message: string) => void;
   /** The history's undo, for a delete toast's button. */
   undo?: () => void;
+  /** Redo, and whether either has a step: the gauge editor's header buttons. */
+  redo?: () => void;
+  canUndo?: boolean;
+  canRedo?: boolean;
   addCopy: (item: LibraryItem, copy: LibraryCopy) => void;
 }
 

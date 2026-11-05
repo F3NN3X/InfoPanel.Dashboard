@@ -5,7 +5,8 @@
  * page draws (a vector spec, or an image sequence's frame URLs) and its range. Writing back is one
  * config change, so the studio records one undo step.
  */
-import { CANVAS_ID, type DashboardConfig, type Placement, type ProfileView } from "@/lib/layout";
+import { CANVAS_ID, ITEM_ID, type DashboardConfig, type Placement, type ProfilePage } from "@/lib/layout";
+import { pageCanvas } from "@/lib/page-model/items-layer";
 import type { LibraryItem } from "@/lib/library";
 import { openCanvas, type OpenCanvas } from "@/lib/infopanel/canvas";
 import { editItems, storeItems } from "@/lib/infopanel/canvas-edit";
@@ -25,7 +26,9 @@ export type GaugeSource =
   /** A Gauge item in a canvas zone of the current profile page. */
   | { kind: "canvas"; zoneId: string; path: Path }
   /** A Custom gauge widget zone. */
-  | { kind: "widget"; zoneId: string };
+  | { kind: "widget"; zoneId: string }
+  /** A Gauge item placed on a page (an item placement, `ITEM_ID`). */
+  | { kind: "item"; zoneId: string };
 
 export type GaugeKind = "vector" | "svg" | "frames";
 
@@ -49,6 +52,18 @@ export interface GaugeEntry {
   stale?: boolean;
   /** Where it was found ("ARCv2 WIDE", "My library", "Preset"). */
   where: string;
+  /** The screen and page it is on (a gauge in the config; none for a preset or a library item). */
+  on?: GaugeOn;
+  /** The sensor a gauge item in the config reads, by the name InfoPanel gave it ("CPU Total"). */
+  reads?: string;
+}
+
+/** The screen and page a gauge in the config sits on. */
+export interface GaugeOn {
+  profileId: string;
+  pageId: string;
+  screen: string;
+  page: string;
 }
 
 export const sourceKey = (s: GaugeSource): string => {
@@ -61,6 +76,8 @@ export const sourceKey = (s: GaugeSource): string => {
       return `canvas:${s.zoneId}:${s.path}`;
     case "widget":
       return `widget:${s.zoneId}`;
+    case "item":
+      return `item:${s.zoneId}`;
   }
 };
 
@@ -150,7 +167,7 @@ export function libraryDataOf(entry: GaugeEntry, gauge: VectorGauge | null, fram
     min: entry.min,
     max: entry.max,
     animationSpeed: entry.animationSpeed,
-    ...(entry.source.kind === "canvas" || entry.source.kind === "widget" ? { source: entry.where } : {}),
+    ...(entry.source.kind === "canvas" || entry.source.kind === "widget" || entry.source.kind === "item" ? { source: entry.where } : {}),
   };
 }
 
@@ -178,7 +195,12 @@ export function widgetGauge(zone: Placement): VectorGauge {
   }
 }
 
-function canvasGauges(zone: Placement, open: OpenCanvas): GaugeEntry[] {
+const sensorName = (item: unknown): string | undefined => {
+  const name = (item as { SensorName?: unknown }).SensorName;
+  return typeof name === "string" && name ? name : undefined;
+};
+
+function canvasGauges(zone: Placement, open: OpenCanvas, on?: GaugeOn): GaugeEntry[] {
   return gaugePaths(open.items).flatMap((path) => {
     const item = itemAt(open.items, path);
     if (!isGauge(item)) return [];
@@ -189,30 +211,78 @@ function canvasGauges(zone: Placement, open: OpenCanvas): GaugeEntry[] {
     return [{
       key: sourceKey(source), source, name: item.Name || `Gauge ${path}`, kind: kindOf(gauge), gauge,
       frames, ...(files ? { files } : {}), min: item.MinValue, max: item.MaxValue, animationSpeed: item.AnimationSpeed,
-      stale: isStale(item), where: open.stored.source.name,
+      stale: isStale(item), where: open.stored.source.name, ...(on ? { on } : {}), ...(sensorName(item) ? { reads: sensorName(item) } : {}),
     }];
   });
 }
 
-/** The gauges on the profile page: Gauge items in its canvas zones, then its Custom gauge widgets. */
-export function profileGauges(profile: Pick<ProfileView, "placements" | "name">): GaugeEntry[] {
-  return profile.placements.flatMap((zone): GaugeEntry[] => {
-    if (zone.module === CANVAS_ID && zone.canvas) {
-      try {
-        return canvasGauges(zone, openCanvas(zone.canvas));
-      } catch {
-        return [];
-      }
-    }
+/** An item placement's one item as a canvas of its own, with the page's files: what reads and writes its gauge. */
+const itemCanvas = (zone: Placement, page?: Pick<ProfilePage, "name" | "freeCanvas">) => pageCanvas({ name: "", ...page } as ProfilePage, [zone.item!], 1, 1);
+
+/** By the item, then checked against the page's files (an image sequence reads its frames from them) and where it is. */
+const itemCache = new WeakMap<object, { sig: string; assets: unknown; entries: GaugeEntry[] }>();
+
+/** The gauge of an item placement (nothing for any other item, or a Gauge inside a Group item). */
+function itemGauges(zone: Placement, page: ProfilePage | undefined, on?: GaugeOn): GaugeEntry[] {
+  const item = zone.item;
+  if (!item) return [];
+  if (item.kind !== "Gauge") return [];
+  const sig = `${zone.id}|${page?.id ?? ""}|${page?.freeCanvas ? "files" : ""}|${on ? `${on.profileId}|${on.pageId}|${on.screen}|${on.page}` : ""}`;
+  const assets = page?.freeCanvas?.assets;
+  const hit = itemCache.get(item);
+  if (hit?.sig === sig && hit.assets === assets) return hit.entries;
+  let entries: GaugeEntry[] = [];
+  try {
+    const source: GaugeSource = { kind: "item", zoneId: zone.id };
+    entries = canvasGauges(zone, openCanvas(itemCanvas(zone, page)), on)
+      .filter((e) => e.source.kind === "canvas" && e.source.path === "0")
+      .map((e) => ({ ...e, key: sourceKey(source), source, where: page?.name ?? e.where }));
+  } catch {
+    // An unreadable item has no gauge to list.
+  }
+  itemCache.set(item, { sig, assets, entries });
+  return entries;
+}
+
+/** A canvas zone's gauges by its stored canvas: opening one is the costly part, and the Gauges page reads every zone on each edit. */
+const canvasCache = new WeakMap<object, { sig: string; entries: GaugeEntry[] }>();
+
+function cachedCanvasGauges(zone: Placement, stored: StoredCanvas, on?: GaugeOn): GaugeEntry[] {
+  const sig = `${zone.id}|${on ? `${on.profileId}|${on.pageId}|${on.screen}|${on.page}` : ""}`;
+  const hit = canvasCache.get(stored);
+  if (hit?.sig === sig) return hit.entries;
+  let entries: GaugeEntry[] = [];
+  try {
+    entries = canvasGauges(zone, openCanvas(stored), on);
+  } catch {
+    // An unreadable canvas has no gauges to list.
+  }
+  canvasCache.set(stored, { sig, entries });
+  return entries;
+}
+
+/** The gauges in `placements`: Gauge items in their canvas zones, then their Custom gauge widgets. `where` names a widget's place. */
+export function placementGauges(placements: readonly Placement[], where: string, on?: GaugeOn, page?: ProfilePage): GaugeEntry[] {
+  return placements.flatMap((zone): GaugeEntry[] => {
+    if (zone.module === CANVAS_ID && zone.canvas) return cachedCanvasGauges(zone, zone.canvas, on);
+    if (zone.module === ITEM_ID) return itemGauges(zone, page, on);
     if (zone.module === CUSTOM_GAUGE_ID) {
       const gauge = widgetGauge(zone);
       const source: GaugeSource = { kind: "widget", zoneId: zone.id };
       const label = typeof zone.settings?.label === "string" && zone.settings.label ? zone.settings.label : "Custom gauge";
-      return [{ key: sourceKey(source), source, name: label, kind: kindOf(gauge), gauge, min: gauge.scale?.min ?? 0, max: gauge.scale?.max ?? 100, animationSpeed: 0, where: profile.name }];
+      return [{ key: sourceKey(source), source, name: label, kind: kindOf(gauge), gauge, min: gauge.scale?.min ?? 0, max: gauge.scale?.max ?? 100, animationSpeed: 0, where, ...(on ? { on } : {}) }];
     }
     return [];
   });
 }
+
+/** The gauges on every screen and page of the config (B3: not only the page on the canvas). */
+export const configGauges = (config: Pick<DashboardConfig, "profiles">): GaugeEntry[] =>
+  config.profiles.flatMap((p) => p.pages.flatMap((pg) => placementGauges(pg.placements, p.name, { profileId: p.id, pageId: pg.id, screen: p.name, page: pg.name }, pg)));
+
+/** The canvas zone `zoneId` of any screen and page. */
+export const zoneOf = (config: Pick<DashboardConfig, "profiles">, zoneId: string): Placement | undefined =>
+  config.profiles.flatMap((p) => p.pages.flatMap((pg) => pg.placements)).find((z) => z.id === zoneId);
 
 /* ---- writing back ---- */
 
@@ -228,6 +298,14 @@ export function withZone(config: DashboardConfig, zoneId: string, fn: (z: Placem
     return pages.every((pg, i) => pg === p.pages[i]) ? p : { ...p, pages };
   });
   return hit ? { ...config, profiles } : config;
+}
+
+/** The config with an item placement's item changed through its one-item canvas. */
+function withItem(config: DashboardConfig, zoneId: string, change: (stored: StoredCanvas) => StoredCanvas): DashboardConfig {
+  return withZone(config, zoneId, (z) => {
+    const next = z.item ? change(itemCanvas(z)).items[0] : undefined;
+    return next ? { ...z, item: next } : z;
+  });
 }
 
 /** A canvas zone's stored form with the gauge at `path` drawn by `gauge` (frames kept until baked). */
@@ -247,6 +325,7 @@ export function withGauge(config: DashboardConfig, source: GaugeSource, gauge: V
   if (source.kind === "widget") {
     return withZone(config, source.zoneId, (z) => ({ ...z, settings: { ...z.settings, gauge: JSON.stringify(gauge) } }));
   }
+  if (source.kind === "item") return withItem(config, source.zoneId, (s) => canvasWithVector(s, "0", gauge));
   return null;
 }
 
@@ -270,11 +349,13 @@ export function withGaugeName(config: DashboardConfig, source: GaugeSource, name
   if (source.kind === "widget") {
     return withZone(config, source.zoneId, (z) => ({ ...z, settings: { ...z.settings, label: name } }));
   }
+  if (source.kind === "item") return withItem(config, source.zoneId, (s) => canvasWithName(s, "0", name));
   return null;
 }
 
 /** The config with a canvas Gauge item's AnimationSpeed set (other sources have none to set: unchanged). */
 export function withGaugeSpeed(config: DashboardConfig, source: GaugeSource, speed: number): DashboardConfig {
+  if (source.kind === "item") return withItem(config, source.zoneId, (s) => canvasWithSpeed(s, "0", speed));
   if (source.kind !== "canvas") return config;
   return withZone(config, source.zoneId, (z) => (z.canvas ? { ...z, canvas: canvasWithSpeed(z.canvas, source.path, speed) } : z));
 }
