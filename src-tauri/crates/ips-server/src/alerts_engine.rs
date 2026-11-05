@@ -13,6 +13,8 @@ use crate::ical::LocalZone;
 use crate::js;
 
 pub const HISTORY_MAX: usize = 200;
+/// How long a test with Show for 0 stays, ms: it holds its rule's place, so it can't wait for an acknowledgement forever.
+const TEST_LIFE_MS: f64 = 30_000.0;
 
 /// `{ [key]: reading }`, the latest Data API entries.
 pub type Readings = Map<String, Value>;
@@ -289,9 +291,18 @@ fn start(s: &mut AlertsState, events: &mut Vec<Event>, p: Start) -> String {
     if quiet {
         alert.insert("quiet".into(), json!(true));
     }
-    let alert = Value::Object(alert);
+    let mut alert = Value::Object(alert);
     let seconds = display["seconds"].as_f64().unwrap_or(0.0);
-    let expires_at = (one_shot && seconds > 0.0).then_some(now + seconds * 1000.0);
+    let life = if s.live && test && seconds <= 0.0 { TEST_LIFE_MS } else { seconds * 1000.0 };
+    let mut expires_at = (one_shot && life > 0.0).then_some(now + life);
+    if let (true, Some(_)) = (s.live, expires_at) {
+        // The clock of a queued alert starts when the ones ahead of it are done; the kiosk's countdown starts there too.
+        let from = queue_end(s, &alert, now);
+        if from > now {
+            alert["queuedMs"] = num(from - now);
+            expires_at = Some(from + life);
+        }
+    }
     s.active.push(Entry { alert: alert.clone(), one_shot, expires_at });
     let mut entry = Map::new();
     for (key, value) in [
@@ -323,6 +334,28 @@ fn start(s: &mut AlertsState, events: &mut Vec<Event>, p: Start) -> String {
     });
     events.push(Event::Fire(alert));
     id
+}
+
+/// Whether a kiosk shows this alert in its one-at-a-time queue: overlays stand apart, quiet and acknowledged ones don't show.
+fn queues(alert: &Value) -> bool {
+    alert["display"]["style"] != "overlay" && alert.get("quiet").is_none() && alert["acknowledged"] != json!(true)
+}
+
+/// Whether two alerts can land on one screen (no `profiles` = every screen).
+fn share_screen(a: &Value, b: &Value) -> bool {
+    match (a["profiles"].as_array(), b["profiles"].as_array()) {
+        (Some(a), Some(b)) => a.iter().any(|p| b.contains(p)),
+        _ => true,
+    }
+}
+
+/// When the timed one-shots ahead of `alert` on its screens are done, so its own time starts when it can show.
+fn queue_end(s: &AlertsState, alert: &Value, now: f64) -> f64 {
+    if !queues(alert) {
+        return now;
+    }
+    let ahead = s.active.iter().filter(|e| queues(&e.alert) && share_screen(&e.alert, alert));
+    ahead.filter_map(|e| e.expires_at).fold(now, f64::max)
 }
 
 fn base36(mut n: u64) -> String {
@@ -621,14 +654,26 @@ pub fn act(s: &mut AlertsState, action: &Value, alerts: Option<&Value>, readings
     Ok(events)
 }
 
-/// The rules were saved: an alert already showing takes its rule's display now (B1), keeping its expiry. A rule that was
-/// switched from a toast to the island moves there instead of showing beside the next alert.
+/// The rules were saved: an alert already showing takes its rule's display and highlight now (B1), keeping its expiry. A rule
+/// that was switched from a toast to the island moves there instead of showing beside the next alert.
 pub fn reroute(s: &mut AlertsState, alerts: Option<&Value>) {
     let rules = rules_of(alerts);
     let mut moved: Vec<(String, Value)> = vec![];
     for e in &mut s.active {
         let Some(rule) = rules.iter().rev().find(|r| r["id"].as_str() == Some(e.rule_id())) else { continue };
         let display = display_of(rule, alerts);
+        let conds = if is_sensor_rule(rule) { conditions_of(&rule["source"]) } else { vec![] };
+        let fired = conds.iter().find(|c| e.alert["highlight"]["key"].as_str() == Some(cond_key(c))).or(conds.first());
+        let hits: Vec<Hit> = fired.map(|&cond| Hit { cond, reading: None }).into_iter().collect();
+        let highlight = highlight_of(rule, &hits, &display);
+        if e.alert.get("highlight") != highlight.as_ref() {
+            match highlight {
+                Some(highlight) => e.alert["highlight"] = highlight,
+                None => {
+                    e.alert.as_object_mut().map(|a| a.remove("highlight"));
+                }
+            }
+        }
         if e.alert["display"] != display {
             moved.push((e.id().to_string(), display["style"].clone()));
             e.alert["display"] = display;
@@ -781,6 +826,68 @@ mod tests {
         let rev = s.history_rev;
         reroute(&mut s, Some(&island));
         assert_eq!(s.history_rev, rev);
+    }
+
+    fn notification_rule(id: &str, profiles: &[&str]) -> Value {
+        json!({ "id": id, "enabled": true, "severity": "info", "cooldownSeconds": 0, "source": { "kind": "notification" }, "profiles": profiles, "outputs": { "display": { "seconds": 8 } } })
+    }
+
+    fn note(id: u32) -> Readings {
+        let mut readings = Readings::new();
+        readings.insert(NOTIFICATION_KEY.into(), json!({ "text": json!({ "id": id, "app": "Mail", "title": "t" }).to_string() }));
+        readings
+    }
+
+    #[test]
+    fn two_one_shots_started_together_each_get_their_full_time_on_one_screen() {
+        let alerts = json!({ "enabled": true, "rules": [notification_rule("a", &[]), notification_rule("b", &[])] });
+        let mut s = live();
+        evaluate(&mut s, Some(&alerts), &note(1), env(AT));
+        evaluate(&mut s, Some(&alerts), &note(2), env(AT + 1000.0));
+        assert_eq!(s.active.len(), 2);
+        assert_eq!(s.active[1].alert["queuedMs"].as_f64(), Some(8000.0));
+        evaluate(&mut s, Some(&alerts), &note(2), env(AT + 9000.0));
+        assert_eq!(s.active.len(), 1);
+        evaluate(&mut s, Some(&alerts), &note(2), env(AT + 16_900.0));
+        assert_eq!(s.active.len(), 1);
+        evaluate(&mut s, Some(&alerts), &note(2), env(AT + 17_000.0));
+        assert!(s.active.is_empty());
+    }
+
+    #[test]
+    fn one_shots_on_different_screens_do_not_wait_for_each_other() {
+        let alerts = json!({ "enabled": true, "rules": [notification_rule("a", &["desk"]), notification_rule("b", &["bar"])] });
+        let mut s = live();
+        evaluate(&mut s, Some(&alerts), &note(1), env(AT));
+        evaluate(&mut s, Some(&alerts), &note(2), env(AT + 1000.0));
+        assert_eq!(s.active.iter().map(|e| e.expires_at).collect::<Vec<_>>(), [Some(AT + 9000.0), Some(AT + 9000.0)]);
+        assert!(s.active[1].alert.get("queuedMs").is_none());
+    }
+
+    #[test]
+    fn a_test_that_stays_until_acknowledged_lets_go_of_its_rule_after_thirty_seconds() {
+        let alerts = rules(sensor_rule("toast", "critical", 0));
+        let hot = reading(90);
+        let mut s = live();
+        evaluate(&mut s, Some(&alerts), &hot, env(AT));
+        act(&mut s, &test_action(), Some(&alerts), &hot, env(AT + 1000.0)).unwrap();
+        evaluate(&mut s, Some(&alerts), &hot, env(AT + 30_000.0));
+        assert!(s.active[0].is_test());
+        evaluate(&mut s, Some(&alerts), &hot, env(AT + 31_000.0));
+        assert_eq!(s.active.len(), 1);
+        assert!(!s.active[0].is_test());
+    }
+
+    #[test]
+    fn a_saved_style_recomputes_the_highlight() {
+        let hot = reading(90);
+        let mut s = live();
+        evaluate(&mut s, Some(&rules(sensor_rule("toast", "critical", 8))), &hot, env(AT));
+        assert!(s.active[0].alert.get("highlight").is_none());
+        reroute(&mut s, Some(&rules(sensor_rule("auto", "critical", 8))));
+        assert_eq!(s.active[0].alert["highlight"], json!({ "key": "gpu.temp" }));
+        reroute(&mut s, Some(&rules(sensor_rule("toast", "critical", 8))));
+        assert!(s.active[0].alert.get("highlight").is_none());
     }
 
     #[test]
