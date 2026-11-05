@@ -42,10 +42,18 @@ describe("visibleAlerts", () => {
 });
 
 describe("slots", () => {
-  it("stacks newest first, shows three and counts the rest", () => {
-    const list = [1, 2, 3, 4, 5].map((n) => alert(`a${n}`, { startedAt: n }));
-    const [slot] = groupBySlot(list);
+  it("shows one alert per slot, the strongest then the newest, and counts the rest", () => {
+    const list = [1, 2, 3].map((n) => alert(`a${n}`, { startedAt: n }));
+    const [slot] = groupBySlot([...list, alert("hot", { startedAt: 0, severity: "critical" })]);
     expect(slot.key).toBe("top-right");
+    expect(slot.shown.map((a) => a.id)).toEqual(["hot"]);
+    expect(slot.rest.map((a) => a.id)).toEqual(["a3", "a2", "a1"]);
+    expect(slot.more).toBe(3);
+  });
+
+  it("keeps overlays stacked, three and the rest counted", () => {
+    const list = [1, 2, 3, 4, 5].map((n) => alert(`a${n}`, { startedAt: n }, { style: "overlay" }));
+    const [slot] = groupBySlot(list);
     expect(slot.shown.map((a) => a.id)).toEqual(["a5", "a4", "a3"]);
     expect(slot.more).toBe(2);
   });
@@ -87,7 +95,7 @@ describe("look", () => {
 
   it("renders roles, title and body", () => {
     const html = renderToString(
-      <AlertLayer alerts={[alert("a"), alert("b", { severity: "info" })]} onAck={() => {}} />
+      <AlertLayer alerts={[alert("a"), alert("b", { severity: "info" }, { position: "bottom-left" })]} onAck={() => {}} />
     );
     expect(html).toContain('role="alert"');
     expect(html).toContain('role="status"');

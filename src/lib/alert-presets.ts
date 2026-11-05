@@ -1,4 +1,4 @@
-import { DEFAULT_COOLDOWN_SECONDS, type AlertRule, type SensorCondition } from "./alerts";
+import { DEFAULT_COOLDOWN_SECONDS, type AlertRule, type AlertStyle, type SensorCondition } from "./alerts";
 import type { DataPoint } from "./data-points";
 import { uid } from "./layout";
 
@@ -31,7 +31,7 @@ export interface AlertPreset {
 }
 
 const display = (over: Partial<NonNullable<AlertRule["outputs"]["display"]>> = {}) => ({
-  style: "toast" as const,
+  style: "auto" as AlertStyle,
   position: "top-right" as const,
   backdrop: "none" as const,
   size: "m" as const,
@@ -223,7 +223,7 @@ export function blankSensorRule(): AlertRule {
   };
 }
 
-/** "Blank notification rule": every app, the default toast. */
+/** "Blank notification rule": every app, shown the Auto way. */
 export function blankNotificationRule(): AlertRule {
   return {
     id: uid("alert"),
