@@ -24,7 +24,7 @@ test("the breadcrumb has Screen settings… and no sliders button", async ({ pag
   await expect(entry).toBeVisible();
   await shoot(page, "breadcrumb");
   await entry.click();
-  await expect(page.getByRole("button", { name: "Edit", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Continue editing/ })).toBeVisible();
   await expect(page.getByLabel("Screen details")).toBeVisible();
 });
 

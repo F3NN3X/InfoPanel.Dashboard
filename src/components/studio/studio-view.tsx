@@ -26,7 +26,9 @@ import { useStyleEdits } from "./use-style-edits";
 import { ProfileShots } from "./profile-shots";
 import { StudioCanvas } from "./studio-canvas";
 import { StudioTopBar, type StudioMode } from "./studio-top-bar";
-import { LeftRail, type RailItem } from "./left-rail";
+import { LiveControl } from "./live-popover";
+import type { RailItem } from "./studio-nav";
+import { WindowStrip } from "./window-strip";
 import { PhoneTabBar } from "./phone-tab-bar";
 import { applyFirstRun } from "./first-run-model";
 import type { SetupOutcome } from "./first-run/first-run-page";
@@ -60,7 +62,7 @@ import { canvasZoneOf, importAsProfile } from "./import-actions";
 import { useImportDoor } from "./use-import-door";
 import { helpZoneKind } from "./help-zone";
 import { useStudioCommands } from "./use-studio-commands";
-import { isPhone, railWidth } from "./use-studio-layout";
+import { isPhone } from "./use-studio-layout";
 import { useStudioMutations } from "./use-studio-mutations";
 import { useStudioSelection } from "./use-studio-selection";
 import { useItemSelection } from "./use-item-selection";
@@ -135,6 +137,8 @@ const FirstRunPage = lazy(() => import("./first-run/first-run-page"));
 const SourcesPanel = lazy(() => import("./sources-panel").then((m) => ({ default: m.SourcesPanel })));
 const AlertsView = lazy(() => import("./alerts-view").then((m) => ({ default: m.AlertsView })));
 const NO_DISPLAYS: readonly ControlDisplay[] = [];
+/** The sidebar, in its own chunk with the Data API card; its popover's content in another. */
+const StudioSidebar = lazy(() => import("./sidebar/studio-sidebar"));
 const ScreensView = lazy(() => import("./screens-view").then((m) => ({ default: m.ScreensView })));
 /** The Library page (A6), loaded when the rail first opens it. */
 const LibraryPage = lazy(() => import("@/components/library/library-page"));
@@ -171,9 +175,9 @@ interface StudioViewProps {
 }
 
 /**
- * The studio: a title bar (screen / page switcher, command entry, undo/redo,
- * Import, Export, Live, save, "⋯"), the labelled rail (every item a full view),
- * Design's left panel (Layers | Add widget), a center grid canvas where zones
+ * The studio: the sidebar (every item a full view; a bottom bar on a phone), Edit's
+ * top bar (screen / page switcher, command entry, undo/redo, Import, Export, Live,
+ * save, "⋯"), Design's left panel (Layers | Add widget), a center grid canvas where zones
  * are drawn, selected (Shift / Ctrl-click for several), moved and resized
  * (biome-style, no overlap) with a toolbar on the primary zone, a right panel
  * (zone inspector, or the theme editor) and the status bar. Every edit goes through the undo history; keyboard
@@ -294,7 +298,6 @@ function StudioViewBody({
   const dataPoints = useMemo(() => buildDataModel(catalog.sources, catalog.sensors).points, [catalog.sources, catalog.sensors]);
   const { studioLayout, showSources, showLibrary, showGauges, showTheme, showAlerts, showScreens, fullPage } = ui;
   const phone = isPhone(windowWidth);
-  const narrowRail = !phone && railWidth(windowWidth) < 72;
   const railActive: RailItem = showSources
     ? "data"
     : showLibrary
@@ -1143,8 +1146,6 @@ function StudioViewBody({
         history={history}
         shell={{
           layout: studioLayout,
-          rail: phone ? null : <LeftRail active={railActive} onSelect={onRail} onHelp={openHelpWindow} narrow={narrowRail} />,
-          railWidth: railWidth(windowWidth),
           leftOpen: ui.leftOpen,
           leftTab: ui.leftTab,
           onLeftTab: ui.setLeftTab,
@@ -1375,7 +1376,45 @@ function StudioViewBody({
           pushPending={pushPending}
         />
       </PreviewDataProvider>
-      <StudioTopBar
+      {fullPage && !phone && <WindowStrip />}
+      <div className="flex min-h-0 flex-1">
+      {!phone && (
+        <Suspense fallback={<div className="w-[60px] shrink-0 border-r border-ui-subtle bg-ui-chrome" />}>
+          <StudioSidebar
+            active={railActive}
+            onSelect={onRail}
+            screenName={storedProfile.name}
+            alerts={(control?.alerts ?? []).filter((a) => !a.acknowledged && !a.quiet && !a.test).length}
+            windowWidth={windowWidth}
+            editing={!fullPage}
+            status={statusBar}
+            config={config}
+            onAddress={(dataApiUrl) => setConfig((c) => ({ ...c, dataApiUrl }), "data-api-url")}
+            onNavigate={ui.navigateTo}
+            onHelp={openHelpWindow}
+            onShortcuts={() => ui.setShortcutsOpen(true)}
+            onPalette={() => ui.setPaletteOpen(true)}
+            live={
+              fullPage
+                ? (rail) => (
+                    <LiveControl
+                      open={ui.liveOpen}
+                      onOpenChange={ui.setLiveOpen}
+                      profiles={config.profiles}
+                      kiosks={kiosksOf(control)}
+                      screen={storedProfile}
+                      control={control}
+                      onOpenKioskView={onExitStudio}
+                      place={rail ? "rail" : "sidebar"}
+                    />
+                  )
+                : undefined
+            }
+          />
+        </Suspense>
+      )}
+      <div className="flex min-w-0 flex-1 flex-col">
+      {(!fullPage || phone) && <StudioTopBar
         profiles={config.profiles}
         profile={storedProfile}
         pageId={profile.pageId ?? storedProfile.pages[0].id}
@@ -1400,21 +1439,21 @@ function StudioViewBody({
         onUndo={history.undo}
         onRedo={history.redo}
         onPalette={() => ui.setPaletteOpen(true)}
-      />
+      />}
       {/* The canvas editor brings its own shell (same slots and widths): in Edit on a Free page or a free area. */}
       {canvasEditor}
       {!editorShown && (
         <StudioShell
           layout={studioLayout}
-          rail={phone ? null : <LeftRail active={railActive} onSelect={onRail} onHelp={openHelpWindow} narrow={narrowRail} />}
-          railWidth={railWidth(windowWidth)}
           drawer={!fullPage && ui.leftOpen && leftPanelEl}
           main={newPageEl || alertsEl || screensEl || gaugesEl || themeEl || libraryEl || mainEl}
           bar={bar}
           inspector={fullPage ? null : inspectorAside}
         />
       )}
-      <StatusBar {...statusBar} kioskChip={kioskChip} paused={kioskPageId ? !rotating : false} onNavigate={ui.navigateTo} onOpenLive={() => ui.setLiveOpen(true)} />
+      {(!fullPage || phone) && <StatusBar {...statusBar} sidebar={!phone} kioskChip={kioskChip} paused={kioskPageId ? !rotating : false} onNavigate={ui.navigateTo} onOpenLive={() => ui.setLiveOpen(true)} />}
+      </div>
+      </div>
       {phone && <PhoneTabBar active={railActive} onSelect={onRail} onHelp={openHelpWindow} />}
 
       <WidgetPickerDialog

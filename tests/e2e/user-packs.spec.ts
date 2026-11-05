@@ -28,7 +28,7 @@ test("a valid pack is imported, worn and drawn from the route with no request pa
     await settled(classic, manifest.kioskZoneSelector);
     await classic.close();
     await page.goto(`${scratch.base}/?studio=1&profile=${light}`);
-    await page.getByRole("button", { name: "Look", exact: true }).click();
+    await page.getByRole("button", { name: "Theme", exact: true }).click();
     await page.getByRole("group", { name: "Look level" }).getByRole("button", { name: /Perf light/ }).click();
     const section = page.getByRole("region", { name: "Your packs" });
     await expect(section).toBeVisible();

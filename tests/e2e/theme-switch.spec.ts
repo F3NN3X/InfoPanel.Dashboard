@@ -25,7 +25,7 @@ test("Template looks › Paper · Ink makes a screen with no snapshot look like 
   await page.addInitScript((value) => localStorage.setItem("infopanel-dashboard:config:v1", value), JSON.stringify(config));
   await page.goto(`${scratch.base}/?studio=1&profile=${light}`);
 
-  await page.getByRole("button", { name: "Look", exact: true }).click();
+  await page.getByRole("button", { name: "Theme", exact: true }).click();
   await page.getByRole("group", { name: "Look level" }).getByRole("button", { name: /Perf light/ }).click();
   const preview = page.getByRole("region", { name: "Preview" });
   const background = preview.locator("[data-page-background]");
@@ -58,7 +58,7 @@ test("Template looks › Apply to other screens gives the ticked screen the them
   await page.addInitScript((value) => localStorage.setItem("infopanel-dashboard:config:v1", value), JSON.stringify(config));
   await page.goto(`${scratch.base}/?studio=1&profile=${light}`);
 
-  await page.getByRole("button", { name: "Look", exact: true }).click();
+  await page.getByRole("button", { name: "Theme", exact: true }).click();
   await page.getByRole("group", { name: "Look level" }).getByRole("button", { name: /Perf light/ }).click();
   const preview = page.getByRole("region", { name: "Preview" });
   const background = preview.locator("[data-page-background]");

@@ -1,26 +1,43 @@
 // @vitest-environment happy-dom
-// The rail after the one editor (SPEC §4.1, acceptance 3): Screens and Edit, then the other views; the old InfoPanel
-// view is a route alias that lands on Screens' InfoPanel filter, or opens a named profile in Edit.
-import { act, render, renderHook, screen } from "@testing-library/react";
+// The sidebar after the redesign's Phase 1: Screens and Continue editing (Q1), then the other views under their new
+// names; the old InfoPanel view is a route alias that lands on Screens' InfoPanel filter, or opens a named profile in Edit.
+import { act, render, renderHook, screen, within } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { ToastProvider } from "@/components/ui/toast";
-import { LeftRail } from "@/components/studio/left-rail";
+import StudioSidebar from "@/components/studio/sidebar/studio-sidebar";
 import { PhoneTabBar } from "@/components/studio/phone-tab-bar";
 import { useStudioUi } from "@/components/studio/use-studio-ui";
 import { studioHelpTarget } from "@/help/context";
 import type { DashboardConfig, ProfileView } from "@/lib/layout";
+import { sidebarStatus } from "./sidebar/status";
 
 const profile = { id: "p1", name: "Desk", width: 800, height: 480, cols: 2, rows: 1, fit: "fill", pages: [{ id: "pg", name: "Page 1", placements: [] }], pageId: "pg", placements: [] } as unknown as ProfileView;
 const config = { profiles: [profile] } as unknown as DashboardConfig;
 const wrapper = ({ children }: { children: ReactNode }) => <ToastProvider>{children}</ToastProvider>;
 const useUi = () => useStudioUi(config, profile, async () => true, 1600);
 
-describe("the rail", () => {
-  it("lists Screens and Edit, then the other views, with no InfoPanel item", () => {
-    render(<LeftRail active="design" onSelect={vi.fn()} onHelp={vi.fn()} narrow={false} />);
-    const labels = screen.getAllByRole("button").map((b) => b.getAttribute("aria-label"));
-    expect(labels).toEqual(["Screens", "Edit", "Look", "Library", "Gauges", "Alerts & Island", "Data", "Help", "Settings"]);
+describe("the sidebar", () => {
+  it("lists Screens and Continue editing, then the other views, with no InfoPanel item", () => {
+    render(
+      <StudioSidebar
+        active="design"
+        onSelect={vi.fn()}
+        screenName="Desk"
+        alerts={0}
+        windowWidth={1600}
+        editing={false}
+        status={sidebarStatus()}
+        config={config}
+        onAddress={vi.fn()}
+        onNavigate={vi.fn()}
+        onHelp={vi.fn()}
+        onShortcuts={vi.fn()}
+        onPalette={vi.fn()}
+      />,
+    );
+    const nav = within(screen.getByRole("navigation", { name: "Studio views" }));
+    expect(nav.getAllByRole("button").map((b) => b.getAttribute("aria-label"))).toEqual(["Screens", "Continue editing Desk", "Theme", "Library", "Gauges", "Alerts & Island", "Data sources"]);
   });
 
   it("has Edit on the phone's bar too", () => {

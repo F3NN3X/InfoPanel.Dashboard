@@ -9,15 +9,14 @@ import type { LeftTab } from "./design-left-panel";
 import { LEFT_PANEL_PX, useLeftPanelWidth } from "./add-prefs";
 import { COLLECTIONS, type CollectionId } from "@/lib/my-library/model";
 import type { AlertsTab } from "./alerts-view";
-import type { RailItem } from "./left-rail";
 import { revealWidgetEditor, scrollInspectorToTop } from "./inspector-scroll";
 import { useCanvasZoom } from "./use-canvas-zoom";
 import { useQuickBarPref } from "./inspector/inspector-prefs";
 import { GRID_KEY, RULERS_KEY, useStoredFlag } from "./use-stored-flag";
 import type { StudioMode } from "./studio-top-bar";
-import { settingsPageOf, useNavFocus, type NavRequest, type NavTarget } from "./studio-nav";
+import { settingsPageOf, useNavFocus, type NavRequest, type NavTarget, type RailItem } from "./studio-nav";
 import type { ThemeScope } from "./theme-editor-model";
-import { pageSize, railWidth, useStudioLayout } from "./use-studio-layout";
+import { pageSize, useStudioLayout } from "./use-studio-layout";
 
 const ALERTS_TABS: readonly AlertsTab[] = ["rules", "island", "defaults", "history"];
 
@@ -140,7 +139,6 @@ export function useStudioUi(
   const [quickBar] = useQuickBarPref();
   const studioLayout = useStudioLayout({
     page,
-    rail: railWidth(windowWidth),
     windowWidth,
     drawer: !fullPage && leftOpen ? leftWidth : 0,
     quickBar: quickBar && !fullPage,

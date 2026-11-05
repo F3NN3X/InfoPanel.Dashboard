@@ -97,7 +97,7 @@ export interface LayoutInput {
   /** The studio body (below the top bar). */
   body: Size;
   page: PageSize;
-  /** Width of the rail. */
+  /** Width of a rail inside the body (the sidebar sits outside it: 0). */
   rail: number;
   /** Width of the open left panel (beside the canvas). */
   drawer?: number;

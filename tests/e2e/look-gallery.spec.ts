@@ -24,7 +24,7 @@ const storedScreen = async (base: string) => {
 test("pick a Look, change its accent, reset it to the Look, and give one widget its own accent", async ({ page, scratch }) => {
   const { errors } = watchErrors(page);
   await page.goto(`${scratch.base}/?studio=1&profile=${light}`);
-  await page.getByRole("button", { name: "Look", exact: true }).click();
+  await page.getByRole("button", { name: "Theme", exact: true }).click();
   await page.getByRole("group", { name: "Look level" }).getByRole("button", { name: /Perf light/ }).click();
   const card = previewCard(page, first);
 
@@ -48,7 +48,7 @@ test("pick a Look, change its accent, reset it to the Look, and give one widget 
   await expect.poll(async () => (await storedScreen(scratch.base))?.widgetTheme?.values).toEqual({ lookId: "term" });
 
   // One widget differs: its Style tab's Accent knob changes it alone.
-  await page.getByRole("button", { name: "Edit", exact: true }).click();
+  await page.getByRole("button", { name: /^Continue editing/ }).click();
   await page.locator(`[data-zone-id="${first}"]`).click();
   await page.getByRole("tab", { name: /Style/ }).click();
   const widgetKnobs = page.getByRole("region", { name: "Look knobs" });
@@ -70,7 +70,7 @@ test("pick a Look, change its accent, reset it to the Look, and give one widget 
 test("a Look pick keeps the screen's own accent and Undo puts the last Look back; Reset keeps focus; corners from the Look's", async ({ page, scratch }) => {
   const { errors } = watchErrors(page);
   await page.goto(`${scratch.base}/?studio=1&profile=${light}`);
-  await page.getByRole("button", { name: "Look", exact: true }).click();
+  await page.getByRole("button", { name: "Theme", exact: true }).click();
   await page.getByRole("group", { name: "Look level" }).getByRole("button", { name: /Perf light/ }).click();
   const card = previewCard(page, first);
   await page.locator('[data-look-card="term"]').click();

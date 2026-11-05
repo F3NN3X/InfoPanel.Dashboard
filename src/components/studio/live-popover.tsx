@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Popover } from "@base-ui/react/popover";
 import { Cast, Maximize, RefreshCw } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Segmented } from "@/components/ui/segmented";
 import { Toggle } from "@/components/ui/toggle";
 import { islandEffective, type ControlKiosk, type ControlState } from "@/lib/control";
@@ -20,7 +21,15 @@ interface LiveControlProps {
   kiosks: readonly ControlKiosk[];
   /** Show the kiosk in this window (PLAN decision 6; it replaces the top bar's Kiosk view button). */
   onOpenKioskView: () => void;
+  /** Where the trigger sits: the editor's top bar, or a row of the sidebar's footer (a workspace page, no top bar). */
+  place?: "bar" | "sidebar" | "rail";
 }
+
+const TRIGGER = {
+  bar: "h-7 gap-1.5 whitespace-nowrap rounded-[7px] max-sm:w-7 max-sm:justify-center max-sm:px-0 border border-ui-live/45 bg-ui-live/12 px-2.5 text-body font-medium text-ui-ok-text hover:bg-ui-live/20",
+  sidebar: "h-9 w-full gap-2.5 rounded-ui-md px-3 text-body text-ui-3 hover:bg-ui-raised hover:text-ui-1",
+  rail: "h-9 w-9 justify-center rounded-ui-md text-ui-3 hover:bg-ui-raised hover:text-ui-1",
+} as const;
 
 /** One kiosk: its screen · page, and the address it connects from. */
 function KioskRow({ kiosk, profiles }: { kiosk: ControlKiosk; profiles: MonitorProfile[] }) {
@@ -84,7 +93,7 @@ function DimSlider({ level, disabled, onSet }: { level: number; disabled: boolea
  * The title bar's "Live · N" button and its popover (SPEC §3.3): the kiosks connected, and the runtime controls
  * for the edited screen's kiosks over the control API. Not modal, and nothing in it is saved to the dashboard.
  */
-export function LiveControl({ open, onOpenChange, profiles, screen, control, kiosks, onOpenKioskView }: LiveControlProps) {
+export function LiveControl({ open, onOpenChange, profiles, screen, control, kiosks, onOpenKioskView, place = "bar" }: LiveControlProps) {
   const entry = control?.profiles[screen.id];
   const offline = control === null;
   const canRotate = screen.pages.length >= 2;
@@ -98,14 +107,14 @@ export function LiveControl({ open, onOpenChange, profiles, screen, control, kio
       <Popover.Trigger
         title="Live control"
         aria-label={`Live control, ${kiosks.length} ${kiosks.length === 1 ? "kiosk" : "kiosks"}`}
-        className="flex h-7 items-center gap-1.5 whitespace-nowrap rounded-[7px] max-sm:w-7 max-sm:justify-center max-sm:px-0 border border-ui-live/45 bg-ui-live/12 px-2.5 text-body font-medium text-ui-ok-text transition-colors hover:bg-ui-live/20"
+        className={cn("flex items-center transition-colors", TRIGGER[place])}
       >
-        <span aria-hidden className="h-[7px] w-[7px] rounded-full bg-ui-live" />
-        <span className="max-sm:sr-only">Live · {kiosks.length}</span>
+        <span aria-hidden className={cn("h-1.5 w-1.5 rounded-full", place === "bar" || kiosks.length > 0 ? "bg-ui-live" : "border border-ui-hint")} />
+        {place !== "rail" && <span className="max-sm:sr-only">Live · {kiosks.length}</span>}
       </Popover.Trigger>
       <Popover.Portal>
-        <Popover.Positioner side="bottom" align="end" sideOffset={6} className="z-[80]">
-          <Popover.Popup data-help-article="kiosk" className="w-[340px] rounded-[10px] border border-ui-live/45 bg-ui-raised p-3 font-ui text-body text-ui-2 shadow-ui-menu outline-none">
+        <Popover.Positioner side={place === "bar" ? "bottom" : "right"} align="end" sideOffset={place === "bar" ? 6 : 12} className="z-[80]">
+          <Popover.Popup data-help-article="kiosk" className="w-[340px] rounded-ui-menu border border-ui-menu bg-ui-raised p-3 font-ui text-body text-ui-2 shadow-ui-menu outline-none">
             <div className="flex items-start gap-2">
               <div className="min-w-0 flex-1">
                 <Popover.Title className="text-body font-semibold text-ui-1">Live control</Popover.Title>

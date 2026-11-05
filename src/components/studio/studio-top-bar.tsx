@@ -9,7 +9,6 @@ import { importedFromInfoPanel } from "@/lib/screens/list";
 import { cn } from "@/lib/utils";
 import { LiveControl } from "./live-popover";
 import { ScreenSwitcher } from "./screen-switcher";
-import { StudioLogo } from "./studio-logo";
 import { WindowControls } from "./window-controls";
 import { KEYS } from "./use-studio-shortcuts";
 
@@ -136,7 +135,7 @@ function KindTag({ profile }: { profile: MonitorProfile }) {
 }
 
 /**
- * The studio's title bar (40 px; the window's title bar on desktop): mark, screen / page breadcrumb and kind tag, the command
+ * The editor's top bar (40 px; the window's title bar on desktop, and on a phone on every page): screen / page breadcrumb and kind tag, the command
  * entry, undo / redo, Import, Export, Live, Save, the phone's "⋯" menu and the window controls.
  */
 export function StudioTopBar(props: StudioTopBarProps) {
@@ -151,7 +150,6 @@ export function StudioTopBar(props: StudioTopBarProps) {
         isTauri() && "pr-0"
       )}
     >
-      <StudioLogo className="pointer-events-none h-5 w-5 shrink-0 max-sm:hidden" />
       <ScreenSwitcher
         profiles={profiles}
         profile={profile}

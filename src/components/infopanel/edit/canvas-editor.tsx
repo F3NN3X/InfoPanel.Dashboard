@@ -86,8 +86,6 @@ import { useLibraryLink } from "./use-library-link";
 /** The studio's shell around the editor: its layout, the rail, the left panel's state and the page tabs. */
 export interface EditorShell {
   layout: ReturnType<typeof useStudioLayout>;
-  rail: ReactNode;
-  railWidth: number;
   leftOpen: boolean;
   leftTab: LeftTab;
   onLeftTab: (tab: LeftTab) => void;
@@ -670,7 +668,7 @@ export default function CanvasEditorView({ zone, setConfig, history, shell, hidd
   );
   return (
     <ExportCheckContext.Provider value={checkState}>
-      <StudioShell layout={layout} rail={shell.rail} railWidth={shell.railWidth} drawer={drawer} main={main} bar={null} inspector={inspector} />
+      <StudioShell layout={layout} drawer={drawer} main={main} bar={null} inspector={inspector} />
       <RemapDialog
         open={remapOpen}
         onOpenChange={setRemapOpen}

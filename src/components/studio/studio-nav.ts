@@ -8,6 +8,13 @@ import type { ThemeScope } from "./theme-editor-model";
  * `useNavFocus` scrolls to and focuses them once the view has rendered.
  */
 
+/**
+ * The sidebar's and the phone bar's full views (SPEC §3.2, PLAN decision 24), and Settings, which opens its own window. `design` is
+ * Edit, for grid screens and InfoPanel profiles alike (one-editor SPEC §4.1, D1). `infopanel` has no button any more: it
+ * stays as a route alias for old links and commands, and lands on Screens' InfoPanel filter.
+ */
+export type RailItem = "design" | "theme" | "screens" | "library" | "gauges" | "infopanel" | "data" | "alerts" | "settings";
+
 /** The studio's full views (SPEC §3.2), plus Screens (reached from the switcher and links), and the Settings window. */
 export type StudioView = "design" | "theme" | "library" | "gauges" | "infopanel" | "data" | "alerts" | "screens" | "settings";
 

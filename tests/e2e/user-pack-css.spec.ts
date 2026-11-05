@@ -16,7 +16,7 @@ const packsOf = async (base: string) => (await (await fetch(`${base}/api/packs`)
 
 async function openPacks(page: import("@playwright/test").Page, base: string) {
   await page.goto(`${base}/?studio=1&profile=${light}`);
-  await page.getByRole("button", { name: "Look", exact: true }).click();
+  await page.getByRole("button", { name: "Theme", exact: true }).click();
   await page.getByRole("group", { name: "Look level" }).getByRole("button", { name: /Perf light/ }).click();
   const section = page.getByRole("region", { name: "Your packs" });
   await expect(section).toBeVisible();

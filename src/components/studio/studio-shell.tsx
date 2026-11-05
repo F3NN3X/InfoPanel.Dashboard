@@ -7,10 +7,6 @@ import type { useStudioLayout } from "./use-studio-layout";
 
 interface StudioShellProps {
   layout: ReturnType<typeof useStudioLayout>;
-  /** The labelled rail. */
-  rail: ReactNode;
-  /** The rail's width (px): an overlaid left panel starts after it. */
-  railWidth: number;
   /** Design's left panel when it is open (null = none). */
   drawer: ReactNode;
   /** The canvas (or the Sources view). */
@@ -22,22 +18,21 @@ interface StudioShellProps {
 }
 
 /**
- * The studio body below the title bar: rail, left panel, then the canvas (the
+ * The studio body beside the sidebar and below the title bar: left panel, then the canvas (the
  * zoom bar floats over it) and the inspector. Docked (a wide studio) the
  * inspector is a column beside the canvas that Ctrl+\ collapses to a slim
  * strip; on a narrow window it is a card floating over the canvas's right
  * side (draggable by its header), closed until asked for; on a phone it is a bottom sheet. It stays
  * mounted while hidden, so its tab, scroll and search survive.
  */
-export function StudioShell({ layout, rail, railWidth, drawer, main, bar, inspector }: StudioShellProps) {
+export function StudioShell({ layout, drawer, main, bar, inspector }: StudioShellProps) {
   const { mode, collapsed, floatOpen } = layout;
   const docked = mode === "docked";
   return (
     <div ref={layout.bodyRef} className="relative flex min-h-0 flex-1 overflow-x-auto">
-      {rail}
       {drawer && layout.leftOverlay ? (
         // Too narrow to sit beside the canvas: the left panel floats over it as a drawer.
-        <div className="absolute inset-y-0 z-40 flex shadow-ui-drawer" style={{ left: railWidth }}>
+        <div className="absolute inset-y-0 left-0 z-40 flex shadow-ui-drawer">
           {drawer}
         </div>
       ) : (
