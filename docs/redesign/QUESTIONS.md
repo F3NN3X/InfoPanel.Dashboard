@@ -120,3 +120,14 @@ Answered at Gate 0 (2026-11-05): every recommendation below is accepted, for the
 47. (A21) "Edit rule" is a sub-view with Back today; the mockup is master-detail with the first rule selected. Recommend: keep `alertRule` as the selected id, default to the first rule, and keep "Back" only on narrow widths.
 
 48. (B5, noted outside my area) "Last fired now ago" comes from `ageText` returning "now" (`alerts-model.ts:127`) used in `alerts-rules.tsx:175`. Recommend: render "Last fired just now" when `s < 5`; owned by the cross-cutting B5 task.
+
+## Gate 1
+
+Answered after Gate 1 (2026-11-05). Each is a decision.
+
+1. Control border. The design rules' `#2A2A31` is 1.37:1 on the panels. Fields, checkboxes, switches and the other control boundaries that carry meaning keep `#66666F` (3.44:1) through `--ui-border-control`. Button and card hairlines use `#2A2A31` through the existing `--ui-border-menu` and `--ui-border-strong` (the toast moved to `border-ui-menu`). This departs from rule §3 on purpose. `tests/looks/ui-contrast.test.ts` holds the control border at 3:1 and primary, secondary and muted text at 4.5:1 on the surfaces they sit on; the pinned fixture cannot catch a token that moves.
+2. Undo on workspace pages. No permanent undo, redo or save buttons. A workspace edit (alert rule, theme change and the like) says what changed in its result toast, with an Undo action that runs the same undo step as Ctrl+Z. Theme keeps its own toast row; Alerts and Data use `use-undo-toast.ts`. What the history saves is unchanged.
+3. Muted text on the active row. Highlighted rows use secondary text for hints (L5 in the P1 review).
+4. Edit has no title strip; its top bar stays the title bar.
+5. Stay on lucide icons.
+6. The popover keeps the hand-bumped server version for now.
