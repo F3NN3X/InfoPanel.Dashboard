@@ -194,7 +194,7 @@ function VectorEditor({ ref, bridge, edit, gauge: g, write, below, theme, onBack
       <EditorHeader edit={edit} gauge={g} saving={shell.saving} history={historyOf(edit, bridge)} onBack={() => shell.requestBack()} onImport={openImportDoor} onExport={() => openExportSheet({ row: "gauge", gauge: { name: edit.name, gauge: g } })} onSave={() => void shell.save()} onSaveAsNew={shell.saveAsNew && (() => void shell.saveAsNew?.())} onDiscardDraft={shell.discardDraft} />
       <div className="flex min-h-0 flex-1 max-[899px]:flex-col max-[899px]:overflow-y-auto">
         <PartsList g={g} selected={selectable(g, part)} onSelect={setPart} set={set} />
-        <EditorStage gauge={g} playback={playback} scope={scope} themeName={themeNameOf(theme)} view={view} sensor={{ name: sensor.name, reading: sensor.p !== null }} zones={zones} onPickPreset={pick} onLive={(live) => setView({ live })} />
+        <EditorStage gauge={g} playback={playback} scope={scope} themeName={themeNameOf(theme)} view={view} sensor={{ name: sensor.name, reading: sensor.p !== null, unit: sensor.unit }} zones={zones} onPickPreset={pick} onLive={(live) => setView({ live })} />
         <PartInspector part={selectable(g, part)} g={g} set={set} view={view} onView={setView} onOpenSources={onOpenSources} zones={zones} onOpenRule={onOpenRule} />
       </div>
       {below}

@@ -224,7 +224,8 @@ const itemCache = new WeakMap<object, { sig: string; entries: GaugeEntry[] }>();
 /** The gauge of an item placement (nothing for any other item, or a Gauge inside a Group item). */
 function itemGauges(zone: Placement, page: ProfilePage | undefined, on?: GaugeOn): GaugeEntry[] {
   const item = zone.item;
-  if (!item || item.kind !== "Gauge") return [];
+  if (!item) return [];
+  if (item.kind !== "Gauge") return [];
   const sig = `${zone.id}|${page?.id ?? ""}|${page?.freeCanvas ? "files" : ""}|${on ? `${on.profileId}|${on.pageId}|${on.screen}|${on.page}` : ""}`;
   const hit = itemCache.get(item);
   if (hit?.sig === sig) return hit.entries;

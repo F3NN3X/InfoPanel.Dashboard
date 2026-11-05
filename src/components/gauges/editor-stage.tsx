@@ -23,7 +23,7 @@ export interface EditorStageProps {
   themeName: string | null;
   view: GaugeViewPrefs;
   /** The preview sensor: its name, and whether it has a reading the stage can follow. */
-  sensor: { name: string | null; reading: boolean };
+  sensor: { name: string | null; reading: boolean; unit: string };
   zones: ZoneRead;
   onPickPreset: (preset: GaugeEntry) => void;
   onLive: (live: boolean) => void;
@@ -32,7 +32,8 @@ export interface EditorStageProps {
 const STATE_TEXT: Record<ZoneState, string> = { normal: "text-ui-2", close: "text-ui-warn", alert: "text-ui-danger" };
 
 export function EditorStage({ gauge, playback, scope, themeName, view, sensor, zones, onPickPreset, onLive }: EditorStageProps) {
-  const r = readout(gauge, playback.p);
+  // A gauge with no unit of its own shows the followed sensor's while it follows it.
+  const r = readout(gauge, playback.p, view.live && sensor.reading ? sensor.unit : "");
   const state = zones.thresholds ? stateAt(zones.thresholds, r.value) : null;
   const stateText = zones.thresholds && state ? `${ZONE_LABEL[state]} · ${bandText(zones.thresholds, state, r.unit)}` : null;
   const live: ReactNode = sensor.name && (

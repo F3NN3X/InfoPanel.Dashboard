@@ -84,3 +84,11 @@ describe("stage readout", () => {
     expect(readout(g({ min: 0, max: 100, unit: "", decimals: 1 }), 2).text).toBe("100.0");
   });
 });
+
+describe("stage readout unit", () => {
+  it("takes the followed sensor's unit only while the gauge has none", () => {
+    const bare = { ...DEFAULT_GAUGE, scale: { min: 0, max: 100, unit: "", decimals: null } };
+    expect(readout(bare, 0.5, "%").text).toBe("50 %");
+    expect(readout({ ...bare, scale: { ...bare.scale, unit: "°C" } }, 0.5, "%").text).toBe("50 °C");
+  });
+});

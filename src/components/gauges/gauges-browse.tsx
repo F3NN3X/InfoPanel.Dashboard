@@ -116,7 +116,7 @@ function Thumb({ entry, selected, p, scope, renaming, onSelect, onOpen, onDragSt
         }
       }}
       className={cn(
-        "group flex flex-col overflow-hidden rounded-ui-lg border bg-ui-panel text-left outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent",
+        "group flex flex-col overflow-hidden rounded-ui-lg border bg-ui-panel text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent",
         selected ? "border-ui-accent" : "border-ui-subtle hover:border-ui-menu",
       )}
     >

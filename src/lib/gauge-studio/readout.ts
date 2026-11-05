@@ -15,8 +15,11 @@ export interface Readout {
   high: string;
 }
 
-export function readout(g: VectorGauge, p: number): Readout {
-  const { min, max, unit, decimals } = g.scale ?? DEFAULT_SCALE;
+/** `fallbackUnit` stands in while the gauge has none: the unit of the sensor the preview follows. */
+export function readout(g: VectorGauge, p: number, fallbackUnit = ""): Readout {
+  const scale = g.scale ?? DEFAULT_SCALE;
+  const { min, max, decimals } = scale;
+  const unit = scale.unit || fallbackUnit;
   const value = min + Math.min(1, Math.max(0, p)) * (max - min);
   // Auto keeps one decimal where there is one to show ("67.5", "70").
   const show = (v: number) => {

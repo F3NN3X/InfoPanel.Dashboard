@@ -52,10 +52,10 @@ export function useGaugeView(): [GaugeViewPrefs, (patch: Partial<GaugeViewPrefs>
 }
 
 /** What a gauge reads from the preview sensor: where it sits in `min`..`max` (0..1, null while there is no reading) and the sensor's name. */
-export function useLiveReading(prefs: GaugeViewPrefs, min: number, max: number): { p: number | null; value: number | null; name: string | null } {
+export function useLiveReading(prefs: GaugeViewPrefs, min: number, max: number): { p: number | null; value: number | null; name: string | null; unit: string } {
   const readings = useSensors(prefs.sensor ? [prefs.sensor] : []);
   const sensor = prefs.sensor ? sensorAt(readings, prefs.sensor) : undefined;
   const value = typeof sensor?.value === "number" && Number.isFinite(sensor.value) ? sensor.value : null;
   const name = sensor?.name ?? (prefs.sensor ? (prefs.sensor.split(/[.:/]/).at(-1) ?? prefs.sensor) : null);
-  return { p: value === null || max <= min ? null : Math.min(1, Math.max(0, (value - min) / (max - min))), value, name };
+  return { p: value === null || max <= min ? null : Math.min(1, Math.max(0, (value - min) / (max - min))), value, name, unit: sensor?.unit ?? "" };
 }
