@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { ToastProvider } from "@/components/ui/toast";
+import { ToastProvider } from "@/components/ui/toast-provider";
 import { useConfigHistory } from "@/hooks/use-config-history";
 import { defaultConfig, type DashboardConfig, type Placement } from "@/lib/layout";
 import { profileWithPage } from "@/lib/pages";

@@ -10,6 +10,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { X } from "lucide-react";
 import type { HistorySetter } from "@/hooks/use-config-history";
 import { useToast } from "@/components/ui/toast";
+import { overToolbar } from "@/components/ui/toast-provider";
 import { createLibraryItem, type LibraryItem } from "@/lib/library";
 import { saveComponent, componentPaths, withComponent } from "@/lib/infopanel/component";
 import { recordCopy } from "@/lib/my-library/copies";
@@ -647,7 +648,7 @@ export default function CanvasEditorView({ zone, setConfig, history, shell, hidd
           />
           {/* Bottom centre of the canvas, over its toolbar (rules §4). */}
           {addToast.toast && (
-            <div className="pointer-events-none absolute inset-x-0 bottom-14 z-40 flex justify-center">
+            <div style={{ bottom: overToolbar() }} className="pointer-events-none absolute inset-x-0 z-40 flex justify-center">
               <AddToast
                 toast={addToast.toast}
                 onUndo={() => {

@@ -4,7 +4,7 @@
 import { act, render, renderHook, screen, within } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
-import { ToastProvider } from "@/components/ui/toast";
+import { ToastProvider } from "@/components/ui/toast-provider";
 import StudioSidebar from "@/components/studio/sidebar/studio-sidebar";
 import { PhoneTabBar } from "@/components/studio/phone-tab-bar";
 import { useStudioUi } from "@/components/studio/use-studio-ui";

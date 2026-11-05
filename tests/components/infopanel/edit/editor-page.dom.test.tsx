@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ToastProvider } from "@/components/ui/toast";
+import { ToastProvider } from "@/components/ui/toast-provider";
 import { HostedEditor } from "@tests/components/infopanel/edit/hosted-editor";
 import { PALETTE_DRAG, paletteEntryOf } from "@/components/infopanel/edit/add-palette";
 import { withCanvas } from "@/components/studio/import-actions";

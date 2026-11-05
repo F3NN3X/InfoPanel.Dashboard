@@ -6,7 +6,7 @@ import type { ComponentProps } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LiveControl } from "@/components/studio/live-popover";
 import StudioSidebar, { SIDEBAR_EDITOR_KEY, SIDEBAR_WORKSPACE_KEY } from "@/components/studio/sidebar/studio-sidebar";
-import { ToastProvider } from "@/components/ui/toast";
+import { ToastProvider } from "@/components/ui/toast-provider";
 import * as desktop from "@/lib/desktop";
 import type { DashboardConfig } from "@/lib/layout";
 import { sidebarStatus } from "./status";

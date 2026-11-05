@@ -1,7 +1,8 @@
 // @vitest-environment happy-dom
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { TOAST_ERROR_MS, TOAST_MS, ToastProvider, toastDuration, useToast } from "@/components/ui/toast";
+import { TOAST_ERROR_MS, TOAST_MS, toastDuration, useToast } from "@/components/ui/toast";
+import { ToastProvider } from "@/components/ui/toast-provider";
 
 type Options = Parameters<ReturnType<typeof useToast>>[1];
 

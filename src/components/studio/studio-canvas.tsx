@@ -1,3 +1,4 @@
+import { overToolbar } from "@/components/ui/toast-provider";
 import { NO_PAN, type PanOffset } from "./use-hand-pan";
 import {
   lazy,
@@ -165,6 +166,8 @@ interface StudioCanvasProps {
   flash?: { zoneId: string; seq: number } | null;
   /** Top centre of the canvas (the Add panel's toast). */
   toast?: ReactNode;
+  /** The bottom toolbar's lift above the canvas bottom (a phone's sheet), which the toasts follow. */
+  barBottom?: number;
   /** Right-click (viewport px) on a zone, or on empty canvas (null). */
   onContextMenu: (id: string | null, x: number, y: number) => void;
   /** Open the Add drawer (the empty canvas card). */
@@ -238,6 +241,7 @@ export function StudioCanvas({
   onClearTarget,
   flash,
   toast,
+  barBottom,
   onContextMenu,
   onOpenAdd,
   onImport,
@@ -571,7 +575,7 @@ export function StudioCanvas({
   return (
     <PageIslandProvider value={pageIsland}>
     {/* The app's toasts sit at its bottom centre, over the bottom toolbar (data-toast-anchor). */}
-    <div data-toast-anchor="" className="relative flex min-h-0 flex-1 flex-col bg-ui-app">
+    <div data-toast-anchor="" data-toast-bar={barBottom} className="relative flex min-h-0 flex-1 flex-col bg-ui-app">
       <p role="status" className="sr-only">
         {selected ? `Chosen part: ${selected.module}, ${sizeText(selected.colSpan, selected.rowSpan)}. Layers lists every part.` : "No part chosen"}
       </p>
@@ -891,7 +895,11 @@ export function StudioCanvas({
       )}
 
       {/* Bottom centre, over the bottom toolbar (rules §4). */}
-      {toast && <div className="pointer-events-none absolute inset-x-0 bottom-[76px] z-40 flex justify-center">{toast}</div>}
+      {toast && (
+        <div style={{ bottom: overToolbar(barBottom) }} className="pointer-events-none absolute inset-x-0 z-40 flex justify-center">
+          {toast}
+        </div>
+      )}
 
       {/* Zone-drag ghost: follows the pointer (outside the zoomed canvas)
           so the zone being moved/resized is always visibly tracked. */}

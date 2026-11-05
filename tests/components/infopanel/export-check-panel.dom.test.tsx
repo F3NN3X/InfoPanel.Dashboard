@@ -4,7 +4,7 @@
 // header pill, listed with its value in the check and marked in Layers. Made for Studio panels shows none of it.
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ToastProvider } from "@/components/ui/toast";
+import { ToastProvider } from "@/components/ui/toast-provider";
 import { HostedEditor } from "@tests/components/infopanel/edit/hosted-editor";
 import { applyElement, elementOf } from "@/lib/infopanel/elements/apply";
 import { newElement } from "@/lib/infopanel/elements/create";

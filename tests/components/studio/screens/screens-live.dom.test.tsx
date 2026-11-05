@@ -4,7 +4,7 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { ToastProvider } from "@/components/ui/toast";
+import { ToastProvider } from "@/components/ui/toast-provider";
 import type { ControlDisplay, ControlKiosk, ControlState } from "@/lib/control";
 import type { DashboardConfig } from "@/lib/layout";
 

@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState, type CSSProperties, type Dispatch, type MutableRefObject, type ReactNode, type SetStateAction } from "react";
 import { useConfigHistory, type AdoptChange } from "@/hooks/use-config-history";
-import { ToastProvider } from "@/components/ui/toast";
+import { ToastProvider } from "@/components/ui/toast-provider";
 import {
   BLANK_MODULE,
   CANVAS_ID,
@@ -333,6 +333,8 @@ function StudioViewBody({
   const catalog = useSensorCatalog();
   const dataPoints = useMemo(() => buildDataModel(catalog.sources, catalog.sensors).points, [catalog.sources, catalog.sensors]);
   const { studioLayout, showSources, showLibrary, showGauges, showTheme, showAlerts, showScreens, fullPage } = ui;
+  // A phone's sheet lifts the bottom toolbar, and the toasts over it, by its height.
+  const barBottom = studioLayout.mode === "sheet" ? Math.min(studioLayout.sheet.height, sheetHeight("half", studioLayout.sheet.area, true)) + 8 : undefined;
   const phone = isPhone(windowWidth);
   const railActive: RailItem = showSources
     ? "data"
@@ -1018,6 +1020,7 @@ function StudioViewBody({
       targetZoneId={blankZoneId}
       onClearTarget={() => sel.select(null)}
       flash={addPanel.flash}
+      barBottom={barBottom}
       toast={
         addPanel.toast && (
           <AddToast
@@ -1392,11 +1395,7 @@ function StudioViewBody({
       tool={showSources ? undefined : { hand: ui.handTool, onHand: ui.setHandTool }}
       onAdd={showSources ? undefined : () => ui.openDrawer("add")}
       inspector={!showSources && inspectorMode === "floating" ? { open: floatOpen, onToggle: () => studioLayout.setFloatOpen(!floatOpen) } : undefined}
-      bottom={
-        inspectorMode === "sheet"
-          ? Math.min(studioLayout.sheet.height, sheetHeight("half", studioLayout.sheet.area, true)) + 8
-          : undefined
-      }
+      bottom={barBottom}
     />
   );
 

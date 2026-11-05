@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from "react";
-import { ToastProvider, useToast } from "@/components/ui/toast";
+import { useToast } from "@/components/ui/toast";
+import { ToastProvider } from "@/components/ui/toast-provider";
 import { useControl } from "@/lib/control";
 import { valueText, type InheritPath, type InheritScope } from "@/lib/inheritance";
 import { defaultConfig, type DashboardConfig } from "@/lib/layout";

@@ -3,7 +3,7 @@
 // All · Studio · InfoPanel filter, Import .infopanel, a link's filter, and Rename carrying the name into the canvas.
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ToastProvider } from "@/components/ui/toast";
+import { ToastProvider } from "@/components/ui/toast-provider";
 import { newStored } from "@/lib/infopanel/import/stored";
 import { CANVAS_ID, type DashboardConfig, type Placement } from "@/lib/layout";
 
