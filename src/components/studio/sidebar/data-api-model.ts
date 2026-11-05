@@ -13,6 +13,9 @@ export const LINK_CHIP: Readonly<Record<ApiLink, { word: string; tone: StatusTon
   offline: { word: "Offline", tone: "danger" },
 };
 
+/** Whether the values on screen are current or held: Reconnecting keeps the last reading, so a table still reads live. */
+export const showsLive = (link: ApiLink): boolean => link === "connected" || link === "reconnecting";
+
 /** A span in the fewest words: "12 s", "2 min", "1 h". */
 export function spanText(ms: number): string {
   const s = Math.max(0, Math.round(ms / 1000));

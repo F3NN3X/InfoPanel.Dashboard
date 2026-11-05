@@ -1,6 +1,12 @@
 // The wording of the Data API card and popover (rules section 5, B4).
 import { describe, expect, it } from "vitest";
-import { attentionItems, cardLine, chipNote, dropText, serverLine, sourceTone, spanText } from "@/components/studio/sidebar/data-api-model";
+import { attentionItems, cardLine, chipNote, dropText, serverLine, showsLive, sourceTone, spanText } from "@/components/studio/sidebar/data-api-model";
+
+describe("showsLive", () => {
+  it("keeps the table live in the grace, while the last values are held, and not once offline (L3)", () => {
+    expect([showsLive("connected"), showsLive("reconnecting"), showsLive("offline")]).toEqual([true, true, false]);
+  });
+});
 
 describe("spanText", () => {
   it.each([[0, "0 s"], [3400, "3 s"], [59_000, "59 s"], [120_000, "2 min"], [3_600_000, "1 h"]])("%d ms reads %s", (ms, text) => {

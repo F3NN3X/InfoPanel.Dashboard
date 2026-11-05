@@ -43,6 +43,7 @@ import { PointInspector } from "./explorer/point-inspector";
 import { PointTable } from "./explorer/point-table";
 import { SourceTree } from "./explorer/source-tree";
 import { useViewportWidth } from "./explorer/use-viewport-width";
+import { showsLive } from "./sidebar/data-api-model";
 import { placementTitle } from "./studio-modules";
 
 /** Below this window width the point inspector becomes an overlay drawer. */
@@ -283,7 +284,7 @@ export function SourcesPanel({ config, setConfig, profile, selectedZoneId, onOpe
           sourcePrefs={config.sourcePrefs}
           onDisplayName={(key, displayName) => onPrefsChange(key, { displayName })}
           showUsedIn={width >= HIDE_USED_IN_BELOW}
-          live={dataApi.state === "connected"}
+          live={showsLive(dataApi.state)}
         />
         {(!drawer || point) && (
           <div
