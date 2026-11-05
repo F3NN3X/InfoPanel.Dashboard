@@ -74,7 +74,7 @@ A template's colors come from the profile's colors (see Profile colors, below), 
 
 ## The page
 
-- **Layers** and **Add**, two tabs on the left, as on a grid screen. **Add** lists InfoPanel's 14 item kinds first, in four groups, Text, Data, Media and Layout, then the studio's **Elements** and the Studio widgets (see [Add](studio#add)). **Layers** is the item tree, the top item first, with a lock, an eye and the Export check's mark on each row (see [Layers](studio#layers)). See Groups, and Studio widgets on a profile.
+- **Layers** and **Add**, two tabs on the left, as on a grid screen. **Add** opens on **Items**: InfoPanel's 14 item kinds in four groups, Text, Data, Media and Layout, then the studio's **Elements**. The Studio widgets are on **Widgets** (see [Add](studio#add)). **Layers** is the item tree, the top item first, with a lock, an eye and the Export check's mark on each row (see [Layers](studio#layers)). See Groups, and Studio widgets on a profile.
 - The canvas, in the middle, with the page tabs and a strip of view controls above it and a line of key hints below it. See [Editing a canvas](canvas) for the strip.
 - The inspector, on the right. A selected item shows **InfoPanel item** or **Element** under its name, then where it sits: **POSITION AND SIZE (PX)** with **Placed freely** for an item at its imported pixels, or **PLACE ON GRID** with **On grid** once it sits on the cells. **Snap to grid** puts it on the nearest cells and keeps it there; typing a new X or Y, or dragging it off the cells, places it freely again. Its fields follow on the **Item**, **Sensor** and **Look** tabs, then **LAYER** and its **On InfoPanel** line. With nothing selected it shows the page's settings (see Profile settings). The **Export check** pill at the right of the page tabs shows the check there instead (see The Export check).
 
@@ -161,7 +161,7 @@ The export draws each widget itself, out of sight and in the screen's theme, so 
 
 ## The Export check
 
-On a screen made for InfoPanel (**Made for** › **InfoPanel too**, see [Made for](studio#made-for)), the page tabs end with an **Export check** pill, after **Made for**. It counts the parts of the profile by what they become in the .infopanel file, and it updates as you edit:
+On a screen made for InfoPanel (**Made for** › **InfoPanel too**, see [Made for](studio#made-for)), an **Export check** banner shows over the canvas. It counts the parts of the profile by what they become in the .infopanel file, and it updates as you edit:
 
 - **Exports as is**: InfoPanel reads it as it is. Elements baked into images or gauge frames count here too.
 - **Approximated**: InfoPanel gets the closest item it has, without a look the studio adds.

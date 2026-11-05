@@ -35,7 +35,7 @@ If the message says another InfoPanel Studio server is already running on that p
 
 ## Edits don't show on the display
 
-- Look for a dot on the studio's **Save** button and press it.
+- Read the saved state in the top bar. **Unsaved changes** or **Offline** means edits haven't reached the server yet: press it, or `Ctrl+S`.
 - Check the kiosk shows the screen you are editing. With **Best fit for the window** it opens the closest size, and the card tagged **Default · best fit** in Screens shows which one. With **Always ‹screen name›** it opens the card tagged **Default**.
 
 ## The display's GPU stays busy

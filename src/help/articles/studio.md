@@ -29,8 +29,8 @@ On a phone, Screens and the views after Library are under **More**. Under 960 px
 - The screen name, its size and the page you're on open a list of your screens, each with its size, and the pages of the current one. Pick one to edit it. **Manage screens…** opens **Screens**, and **Screen settings…** opens **Screens** on the screen you are editing. Which screen your displays open is set in **Settings › Dashboard › Startup screen**. See [Screens and the grid](profiles#which-screen-opens).
 - A tag beside the screen name says what the screen is: **Imported from InfoPanel** for a profile brought in from an .infopanel file or the InfoPanel app, otherwise **Screen**.
 - The search box in the middle opens the command palette (`Ctrl+K`). Besides actions it lists every setting and one entry for each view. **Export check** is in it too, on a screen made for InfoPanel.
-- **Undo** and **Redo**, **Import**, **Export & back up** and **Save**. See [Importing and exporting](import).
-- **Live** shows how many kiosks are connected and opens the controls for them: show a page now, pause rotation, dim, mute alerts for an hour, switch the Dynamic Island and reload every kiosk. None of it is part of your design, so Save doesn't change it. **Open kiosk view** shows the kiosk in the Studio; in the desktop app it resizes the window to the screen's exact size, and moving the pointer to the top edge brings a strip with **Back to studio**, **Minimize** and **Close**.
+- **Undo** and **Redo**, which say what they change, and the saved state, **Preview** (the kiosk view) and **File**: **Import**, **Export & back up**, **Export .infopanel** and **Made for**. See [Importing and exporting](import).
+- **Live** shows how many kiosks are connected and opens the controls for them: show a page now, pause rotation, dim, mute alerts for an hour, switch the Dynamic Island and reload every kiosk. None of it is part of your design, so saving doesn't change it. **Open kiosk view** shows the kiosk in the Studio; in the desktop app it resizes the window to the screen's exact size, and moving the pointer to the top edge brings a strip with **Back to studio**, **Minimize** and **Close**.
 - Under 640 px a **⋯** menu holds Undo, Redo, Import and Export.
 
 The status bar under the work area shows the Data API (connected, slow or unreachable), the server, how many kiosks are connected, updates, and whether your edits are saved. When the server can't be reached it reads **Offline · edits kept locally**.
@@ -81,7 +81,7 @@ The rest of the screen's settings (fit, padding, performance, the island and whi
 
 ## Made for
 
-The **Made for** button at the right of the page strip says who the screen is for. **Studio panels** is for screens shown by Studio. **InfoPanel too** also checks what would export to the InfoPanel app: the **Export check** pill appears after it, every part on the canvas gets a mark with its status, and the inspector shows each one's **On InfoPanel** line. On a screen's page the check lists every widget and says the page is converted when you export; **Review conversion…** and **Export .infopanel** open the conversion with each widget's choice already set. A change is one undo step. Imported InfoPanel profiles start as **InfoPanel too**, other screens as **Studio panels**.
+**Made for** in the **File** menu says who the screen is for. **Studio panels** is for screens shown by Studio. **InfoPanel too** also checks what would export to the InfoPanel app: the **Export check** banner shows over the canvas, every part on the canvas gets a mark with its status, and the inspector shows each one's **On InfoPanel** line. On a screen's page the check lists every widget and says the page is converted when you export; **Review conversion…** and **Export .infopanel** open the conversion with each widget's choice already set. A change is one undo step. Imported InfoPanel profiles start as **InfoPanel too**, other screens as **Studio panels**.
 
 ## InfoPanel items on a page
 
@@ -95,7 +95,7 @@ A page can hold InfoPanel items and elements on top of its widgets. Add puts the
 
 The zoom bar says how parts snap. A drag is one undo step.
 
-With one item selected, the inspector shows its name, **InfoPanel item** or **Element**, and Hide, Duplicate and Delete. Under them is where it sits. **PLACE ON GRID** with **On grid** gives its column, row, width and height in cells. **POSITION AND SIZE (PX)** with **Placed freely** gives X, Y, W and H in pixels, and **Snap to grid** moves it to the nearest cells. Type into a box and press Enter. Then come the tabs **Item**, **Sensor** and **Look**, the **LAYER** buttons with **In group**, and on a screen made for InfoPanel its **On InfoPanel** line. A new Image or Sensor image asks for its picture first, and a Sensor image then asks for its sensor.
+With one item selected, the inspector shows its name, **InfoPanel item** or **Element**, and Hide, Duplicate and Delete. Under them is where it sits. Its **C**, **R**, **W** and **H** boxes give its column, row, width and height in cells. **POSITION AND SIZE (PX)** with **Placed freely** gives X, Y, W and H in pixels, and **Snap to grid** moves it to the nearest cells. Type into a box and press Enter. Then come the tabs **Item**, **Sensor** and **Look**, the **LAYER** buttons with **In group**, and on a screen made for InfoPanel its **On InfoPanel** line. A new Image or Sensor image asks for its picture first, and a Sensor image then asks for its sensor.
 
 :::keys
 Arrows — Move one cell (an item placed freely moves a cell's width)
@@ -163,11 +163,11 @@ The settings for whatever is selected. Where it sits depends on the width of the
 | 600 to 959 px | A floating card. Open it with **All settings**, by double-clicking a widget, or with `Ctrl+\`. |
 | Under 600 px | A bottom sheet that you can pull to peek, half or full height. |
 
-A selected widget's inspector starts with **Studio widget** under its name and **PLACE ON GRID**: its column, row, width and height in cells. Type a value and press Enter; a box turns red when the widget can't go there because another widget is in the way. The tabs **Show**, **Style**, **Data** and **Behavior** follow, then **LAYER** and, on a screen made for InfoPanel, **On InfoPanel**.
+A selected widget's inspector starts with **Widget** and where it sits under its name, then its column (**C**), row (**R**), width and height in cells. Type a value and press Enter; a box turns red when the widget can't go there because another widget is in the way. The tabs **Show**, **Style**, **Data** and **Behavior** follow, then **LAYER** and, on a screen made for InfoPanel, **On InfoPanel**.
 
 ## Saving
 
-The studio pushes every change to the local server automatically. A dot on **Save** means some edits haven't reached the server yet; press it (or `Ctrl+S`) to push them now.
+The studio pushes every change to the local server automatically. The saved state in the top bar says **Unsaved changes** while some edits haven't reached the server yet; press it (or `Ctrl+S`) to push them now.
 
 ## Undo
 
