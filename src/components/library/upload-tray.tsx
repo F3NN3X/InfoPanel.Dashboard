@@ -32,7 +32,7 @@ export function UploadTray({ rows, onClear, onShow }: { rows: UploadRow[]; onCle
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="absolute bottom-4 right-4 z-20 flex h-9 items-center gap-2 rounded-full border border-ui-strong bg-ui-raised px-3.5 text-[12.5px] text-ui-1 shadow-ui-modal"
+        className="absolute bottom-4 right-4 z-20 flex h-9 items-center gap-2 rounded-full border border-ui-strong bg-ui-raised px-3.5 text-body text-ui-1 shadow-ui-modal"
       >
         {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
         {summary}
@@ -42,7 +42,7 @@ export function UploadTray({ rows, onClear, onShow }: { rows: UploadRow[]; onCle
   return (
     <div role="status" aria-label="Uploads" className="absolute bottom-4 right-4 z-20 flex w-[360px] flex-col overflow-hidden rounded-ui-lg border border-ui-strong bg-ui-raised font-ui shadow-ui-modal">
       <div className="flex items-center gap-2 border-b border-ui-subtle px-3.5 py-2.5">
-        <span className="flex-1 text-[12.5px] font-medium text-ui-1">{summary}</span>
+        <span className="flex-1 text-body font-medium text-ui-1">{summary}</span>
         <button type="button" aria-label="Collapse" onClick={() => setOpen(false)} className="grid h-6 w-6 place-items-center rounded text-ui-4 hover:text-ui-1">
           <ChevronDown className="h-4 w-4" />
         </button>

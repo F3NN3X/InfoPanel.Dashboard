@@ -4,7 +4,7 @@ import type { LibraryItem } from "@/lib/library";
 import type { DeletePlan } from "./multi-delete";
 
 const BUTTON =
-  "inline-flex h-8 items-center gap-1.5 rounded-[7px] border border-ui-strong bg-ui-raised px-3 text-[12.5px] font-medium text-ui-2 transition-colors hover:bg-ui-hover hover:text-ui-1";
+  "inline-flex h-8 items-center gap-1.5 rounded-ui-md border border-ui-strong bg-ui-raised px-3 text-body font-medium text-ui-2 transition-colors hover:bg-ui-hover hover:text-ui-1";
 
 interface RemoveItemDialogProps {
   /** The item to confirm, or null when closed. */
@@ -27,7 +27,7 @@ export function RemoveItemDialog({ item, onClose, onRemove, verb = "Remove" }: R
       <AlertDialog.Portal>
         <AlertDialog.Backdrop className="fixed inset-0 z-50 bg-black/50" />
         <AlertDialog.Popup className="fixed left-1/2 top-1/2 z-50 max-h-[calc(100vh-2rem)] w-[min(26rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 space-y-3 overflow-y-auto rounded-xl border border-ui-strong bg-ui-raised p-4 font-ui text-ui-1 shadow-ui-modal outline-none">
-          <AlertDialog.Title className="text-sm font-semibold text-ui-1">{verb} “{shown?.name}”?</AlertDialog.Title>
+          <AlertDialog.Title className="text-sm font-medium text-ui-1">{verb} “{shown?.name}”?</AlertDialog.Title>
           <AlertDialog.Description className="text-xs leading-relaxed text-ui-3">
             It leaves My library{copies > 0 ? `; the ${copies === 1 ? "copy" : `${copies} copies`} already placed stay where they are` : ""}. Its file is deleted too,
             unless a screen, a canvas or another item still uses it.
@@ -36,7 +36,7 @@ export function RemoveItemDialog({ item, onClose, onRemove, verb = "Remove" }: R
             <AlertDialog.Close render={<button type="button" className={BUTTON} />}>Cancel</AlertDialog.Close>
             <button
               type="button"
-              className="inline-flex h-8 items-center rounded-[7px] bg-ui-danger px-3 text-[12.5px] font-semibold text-ui-inverse-fg transition-opacity hover:opacity-90"
+              className="inline-flex h-8 items-center rounded-ui-md bg-ui-danger px-3 text-body font-medium text-ui-inverse-fg transition-opacity hover:opacity-90"
               onClick={() => {
                 if (item) onRemove(item);
                 onClose();
@@ -68,7 +68,7 @@ export function RemoveManyDialog({ items, onClose, onRemove }: RemoveManyDialogP
       <AlertDialog.Portal>
         <AlertDialog.Backdrop className="fixed inset-0 z-50 bg-black/50" />
         <AlertDialog.Popup className="fixed left-1/2 top-1/2 z-50 max-h-[calc(100vh-2rem)] w-[min(26rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 space-y-3 overflow-y-auto rounded-xl border border-ui-strong bg-ui-raised p-4 font-ui text-ui-1 shadow-ui-modal outline-none">
-          <AlertDialog.Title className="text-sm font-semibold text-ui-1">
+          <AlertDialog.Title className="text-sm font-medium text-ui-1">
             Remove {n} file{n === 1 ? "" : "s"}?
           </AlertDialog.Title>
           <AlertDialog.Description className="text-xs leading-relaxed text-ui-3">
@@ -79,7 +79,7 @@ export function RemoveManyDialog({ items, onClose, onRemove }: RemoveManyDialogP
             <AlertDialog.Close render={<button type="button" className={BUTTON} />}>Cancel</AlertDialog.Close>
             <button
               type="button"
-              className="inline-flex h-8 items-center rounded-[7px] bg-ui-danger px-3 text-[12.5px] font-semibold text-ui-inverse-fg transition-opacity hover:opacity-90"
+              className="inline-flex h-8 items-center rounded-ui-md bg-ui-danger px-3 text-body font-medium text-ui-inverse-fg transition-opacity hover:opacity-90"
               onClick={() => {
                 if (items) onRemove(items);
                 onClose();
@@ -120,7 +120,7 @@ export function DeleteSelectedDialog({ plan, onClose, onDelete }: DeleteSelected
       <AlertDialog.Portal>
         <AlertDialog.Backdrop className="fixed inset-0 z-50 bg-black/50" />
         <AlertDialog.Popup className="fixed left-1/2 top-1/2 z-50 max-h-[calc(100vh-2rem)] w-[min(28rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 space-y-3 overflow-y-auto rounded-xl border border-ui-strong bg-ui-raised p-4 font-ui text-ui-1 shadow-ui-modal outline-none">
-          <AlertDialog.Title className="text-sm font-semibold text-ui-1">{n > 0 ? `Delete ${n} item${n === 1 ? "" : "s"}?` : "Nothing to delete"}</AlertDialog.Title>
+          <AlertDialog.Title className="text-sm font-medium text-ui-1">{n > 0 ? `Delete ${n} item${n === 1 ? "" : "s"}?` : "Nothing to delete"}</AlertDialog.Title>
           <AlertDialog.Description render={<div />} className="space-y-2 text-xs leading-relaxed text-ui-3">
             {n > 0 && (
               <p>
@@ -144,7 +144,7 @@ export function DeleteSelectedDialog({ plan, onClose, onDelete }: DeleteSelected
             {n > 0 && (
               <button
                 type="button"
-                className="inline-flex h-8 items-center rounded-[7px] bg-ui-danger px-3 text-[12.5px] font-semibold text-ui-inverse-fg transition-opacity hover:opacity-90"
+                className="inline-flex h-8 items-center rounded-ui-md bg-ui-danger px-3 text-body font-medium text-ui-inverse-fg transition-opacity hover:opacity-90"
                 onClick={() => {
                   onDelete(remove);
                   onClose();

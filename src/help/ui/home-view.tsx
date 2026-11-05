@@ -30,7 +30,7 @@ export function HomeView({ content, query, onQuery, onOpen, searching = false, m
         {!searching && (
           <>
             {missing && <p role="status" className="m-0 text-sm text-s-muted">That article isn’t here. Browse the topics.</p>}
-            <h1 className="m-0 text-[30px] font-semibold tracking-[-0.02em]">How can we help?</h1>
+            <h1 className="m-0 text-[30px] font-medium tracking-[-0.02em]">How can we help?</h1>
             <p className="m-0 max-w-[600px] text-pretty text-sm leading-[1.55] text-s-muted">Every feature of InfoPanel Studio, explained. Search, or start with the basics below.</p>
           </>
         )}
@@ -65,7 +65,7 @@ export function HomeView({ content, query, onQuery, onOpen, searching = false, m
                   <div className="grid h-(--ui-h-field) w-[34px] place-items-center rounded-ui-menu bg-s-accent/14 text-s-accent-text">
                     <Icon className="h-[19px] w-[19px]" strokeWidth={1.75} />
                   </div>
-                  <span className="text-sm font-semibold">{a.title}</span>
+                  <span className="text-sm font-medium">{a.title}</span>
                   <span className="text-pretty text-[12.5px] leading-normal text-s-muted">{stripInline(a.lede)}</span>
                 </button>
               );
@@ -93,7 +93,7 @@ export function HomeView({ content, query, onQuery, onOpen, searching = false, m
                     <Icon className="h-[18px] w-[18px]" strokeWidth={1.75} />
                   </span>
                   <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                    <span className="text-sm font-semibold">{t.title}</span>
+                    <span className="text-sm font-medium">{t.title}</span>
                     <span className="text-pretty text-caption text-s-muted">{article.title}</span>
                   </span>
                   <ArrowRight className="h-4 w-4 shrink-0 text-s-faint group-hover:text-s-t2" />
@@ -121,7 +121,7 @@ export function HomeView({ content, query, onQuery, onOpen, searching = false, m
                 .filter((g) => g.label !== START_GROUP && g.articles.length > 0)
                 .map((g) => (
                   <div key={g.label} className="flex flex-col gap-0.5 rounded-xl border border-s-card-line bg-s-card px-2 pb-2.5 pt-4">
-                    <h3 className="m-0 px-2.5 pb-1.5 text-body font-semibold">{g.label}</h3>
+                    <h3 className="m-0 px-2.5 pb-1.5 text-body font-medium">{g.label}</h3>
                     {g.articles.map((a) => {
                       const Icon = iconFor(a.icon);
                       return (

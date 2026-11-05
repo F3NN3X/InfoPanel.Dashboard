@@ -65,7 +65,7 @@ function ActionButton({ action, primary }: { action: DetailAction; primary?: boo
       disabled={action.disabled}
       title={action.title}
       className={cn(
-        "flex h-(--ui-h-field) items-center justify-center gap-2 rounded-ui-md px-3 text-[12.5px] disabled:pointer-events-none disabled:opacity-40",
+        "flex h-(--ui-h-field) items-center justify-center gap-2 rounded-ui-md px-3 text-body disabled:pointer-events-none disabled:opacity-40",
         primary ? "w-full bg-ui-inverse font-medium text-ui-inverse-fg hover:opacity-90" : "border border-ui-default text-ui-1 hover:bg-ui-hover",
       )}
     >
@@ -114,7 +114,7 @@ export function LibraryDetail(p: DetailProps) {
           onChange={(e) => setName(e.target.value)}
           onBlur={() => name.trim() && name !== item.name && p.onRename(name.trim())}
           onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
-          className="w-full rounded-ui-sm border border-transparent bg-transparent px-1 py-0.5 -mx-1 text-[14px] font-semibold text-ui-1 outline-none hover:border-ui-default focus:border-ui-accent disabled:hover:border-transparent"
+          className="w-full rounded-ui-sm border border-transparent bg-transparent px-1 py-0.5 -mx-1 text-lead font-medium text-ui-1 outline-none hover:border-ui-default focus:border-ui-accent disabled:hover:border-transparent"
         />
         <div className="font-ui-mono text-micro text-ui-4">{metaLine(item) || KIND_LABEL[item.kind]}</div>
         {m.blurb && <p className="mt-1.5 text-caption leading-snug text-ui-3">{m.blurb}</p>}
@@ -136,7 +136,7 @@ export function LibraryDetail(p: DetailProps) {
           </div>
           {group.filter((g) => g.id !== item.id).map((g) => g.name).join(", ")} {group.length === 2 ? "has" : "have"} the same{" "}
           {hash && group.every((g) => hashOf(g) === hash) ? "bytes" : "picture"}. Merging keeps {group[0].name} and moves every copy count to it.
-          <button type="button" onClick={() => p.onMerge(group)} className="mt-2 block h-(--ui-h-control) rounded-[7px] border border-ui-default px-2.5 text-caption text-ui-1 hover:bg-ui-hover">
+          <button type="button" onClick={() => p.onMerge(group)} className="mt-2 block h-(--ui-h-control) rounded-ui-md border border-ui-default px-2.5 text-caption text-ui-1 hover:bg-ui-hover">
             Merge
           </button>
         </div>
@@ -147,7 +147,7 @@ export function LibraryDetail(p: DetailProps) {
             <RefreshCw className="h-3.5 w-3.5" /> Older version
           </div>
           Saved by an older version of InfoPanel Studio. It still works as it is; Update saves it in today&rsquo;s format and keeps a copy of it as it was first.
-          <button type="button" onClick={p.onUpdateFormat} className="mt-2 block h-(--ui-h-control) rounded-[7px] border border-ui-default px-2.5 text-caption text-ui-1 hover:bg-ui-hover">
+          <button type="button" onClick={p.onUpdateFormat} className="mt-2 block h-(--ui-h-control) rounded-ui-md border border-ui-default px-2.5 text-caption text-ui-1 hover:bg-ui-hover">
             Update
           </button>
         </div>
@@ -160,16 +160,16 @@ export function LibraryDetail(p: DetailProps) {
       )}
       {item.kind === "video" && (
         <div className="space-y-2 border-t border-ui-subtle pt-3">
-          <div className="text-micro font-medium uppercase tracking-[.06em] text-ui-4">Playback</div>
-          <label className="flex items-center justify-between text-[12.5px] text-ui-2">
+          <div className="text-caption font-medium text-ui-4">Playback</div>
+          <label className="flex items-center justify-between text-body text-ui-2">
             Loop
             <input type="checkbox" checked={m.loop ?? m.audio === false} onChange={(e) => p.onVideo({ loop: e.target.checked })} className="h-3.5 w-3.5 accent-[var(--ui-accent)]" />
           </label>
-          <label className="flex items-center justify-between text-[12.5px] text-ui-2">
+          <label className="flex items-center justify-between text-body text-ui-2">
             Muted
             <input type="checkbox" checked={m.muted ?? true} onChange={(e) => p.onVideo({ muted: e.target.checked })} className="h-3.5 w-3.5 accent-[var(--ui-accent)]" />
           </label>
-          <label className="block text-[12.5px] text-ui-2">
+          <label className="block text-body text-ui-2">
             <span className="flex justify-between">
               Poster frame <span className="font-ui-mono text-ui-4">{(m.poster ?? 1).toFixed(1)} s</span>
             </span>
@@ -188,7 +188,7 @@ export function LibraryDetail(p: DetailProps) {
       )}
       {item.kind === "svg" && (
         <div className="border-t border-ui-subtle pt-3 text-caption text-ui-2">
-          <div className="mb-1.5 text-micro font-medium uppercase tracking-[.06em] text-ui-4">Driven by</div>
+          <div className="mb-1.5 text-caption font-medium text-ui-4">Driven by</div>
           {m.vars?.length ? (
             <div className="flex flex-wrap gap-1">
               {m.vars.map((v) => (
@@ -240,7 +240,7 @@ export function LibraryDetail(p: DetailProps) {
                 // Copies recorded before profiles were tracked ("*") have nowhere to jump to.
                 disabled={c.profileId === "*"}
                 title={c.profileId === "*" ? "Recorded without a profile" : undefined}
-                className="flex h-[30px] items-center gap-2 rounded-[7px] border border-ui-subtle px-2.5 text-left text-caption text-ui-2 hover:bg-ui-hover disabled:pointer-events-none disabled:opacity-60"
+                className="flex h-[30px] items-center gap-2 rounded-ui-md border border-ui-subtle px-2.5 text-left text-caption text-ui-2 hover:bg-ui-hover disabled:pointer-events-none disabled:opacity-60"
               >
                 <span className="min-w-0 flex-1 truncate">{p.copyLabel(c)}</span>
                 <ArrowUpRight className="h-3.5 w-3.5 text-ui-4" />

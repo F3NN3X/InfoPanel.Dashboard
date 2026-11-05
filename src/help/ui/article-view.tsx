@@ -67,7 +67,7 @@ export function ArticleView({ article, content, showToc, active, onOpen, onHome,
           <div className="grid h-[42px] w-[42px] shrink-0 place-items-center rounded-[11px] bg-s-accent/14 text-s-accent-text">
             <Icon className="h-[23px] w-[23px]" strokeWidth={1.75} />
           </div>
-          <h1 className="m-0 mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[26px] font-semibold leading-[1.2] tracking-[-0.02em]">
+          <h1 className="m-0 mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[26px] font-medium leading-[1.2] tracking-[-0.02em]">
             {article.title}
             {article.status === "coming-soon" && <SoonChip />}
           </h1>
@@ -80,7 +80,7 @@ export function ArticleView({ article, content, showToc, active, onOpen, onHome,
 
         {article.blocks.map((block, n) =>
           block.type === "h" ? (
-            <h2 key={n} data-hid={block.id} className="m-0 mt-[18px] scroll-mt-5 text-lg font-semibold tracking-[-0.01em]">
+            <h2 key={n} data-hid={block.id} className="m-0 mt-[18px] scroll-mt-5 text-lg font-medium tracking-[-0.01em]">
               <InlineText text={block.text} onOpen={onOpen} />
             </h2>
           ) : (
@@ -119,7 +119,7 @@ export function ArticleView({ article, content, showToc, active, onOpen, onHome,
 
       {showToc && (
         <nav aria-label="On this page" className="sticky top-8 flex w-[190px] shrink-0 flex-col gap-0.5">
-          <div className="pb-2 pl-3 text-micro font-medium uppercase tracking-[0.07em] text-s-dim">On this page</div>
+          <div className="pb-2 pl-3 text-caption font-medium text-s-dim">On this page</div>
           {headings.map((h) => {
             const on = h.id === active;
             return (

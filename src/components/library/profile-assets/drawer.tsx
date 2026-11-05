@@ -16,7 +16,7 @@ export function Drawer({ title, onClose, footer, children }: { title: string; on
       className="absolute inset-y-0 right-0 z-20 flex w-[440px] outline-none max-w-full flex-col border-l border-ui-default bg-ui-panel font-ui shadow-[-12px_0_32px_rgba(0,0,0,.35)]"
     >
       <header className="flex h-[48px] shrink-0 items-center justify-between border-b border-ui-subtle px-4">
-        <h2 className="text-[14px] font-semibold text-ui-1">{title}</h2>
+        <h2 className="text-lead font-medium text-ui-1">{title}</h2>
         <button type="button" aria-label="Close" onClick={onClose} className="grid h-8 w-8 place-items-center rounded-md text-ui-4 hover:text-ui-1">
           <X className="h-4 w-4" />
         </button>
@@ -27,5 +27,5 @@ export function Drawer({ title, onClose, footer, children }: { title: string; on
   );
 }
 
-export const BUTTON = "flex h-(--ui-h-field) items-center gap-1.5 rounded-ui-md border border-ui-default px-3 text-[12.5px] text-ui-1 hover:bg-ui-hover disabled:pointer-events-none disabled:opacity-40";
-export const PRIMARY = "flex h-(--ui-h-field) items-center gap-1.5 rounded-ui-md bg-ui-inverse px-3 text-[12.5px] font-medium text-ui-inverse-fg hover:opacity-90 disabled:pointer-events-none disabled:opacity-40";
+export const BUTTON = "flex h-(--ui-h-field) items-center gap-1.5 rounded-ui-md border border-ui-default px-3 text-body text-ui-1 hover:bg-ui-hover disabled:pointer-events-none disabled:opacity-40";
+export const PRIMARY = "flex h-(--ui-h-field) items-center gap-1.5 rounded-ui-md bg-ui-inverse px-3 text-body font-medium text-ui-inverse-fg hover:opacity-90 disabled:pointer-events-none disabled:opacity-40";

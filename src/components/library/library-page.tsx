@@ -513,9 +513,9 @@ export default function LibraryPage(p: LibraryPageProps) {
       }}
     >
       <header className="flex h-14 shrink-0 items-center gap-3 border-b border-ui-subtle bg-ui-chrome px-4 max-sm:h-auto max-sm:flex-wrap max-sm:gap-2 max-sm:px-3 max-sm:py-2">
-        <h1 className="text-[15px] font-semibold text-ui-1">Library</h1>
+        <h1 className="text-head font-medium text-ui-1">Library</h1>
         <span className="hidden min-w-0 truncate text-caption text-ui-4 xl:block">Everything you’ve saved, beside the built-ins.</span>
-        <label className="flex h-(--ui-h-field) min-w-[200px] max-w-[520px] flex-1 items-center gap-2 rounded-ui-menu border border-ui-default bg-ui-panel px-3 focus-within:border-ui-accent">
+        <label className="flex h-(--ui-h-field) min-w-[200px] max-w-[520px] flex-1 items-center gap-2 rounded-ui-md border border-ui-default bg-ui-panel px-3 focus-within:border-ui-accent">
           <Search className="h-4 w-4 shrink-0 text-ui-4" />
           <input
             type="search"
@@ -527,7 +527,7 @@ export default function LibraryPage(p: LibraryPageProps) {
               setShowFiles(false);
             }}
             placeholder="Search the library"
-            className="min-w-0 flex-1 bg-transparent text-[12.5px] text-ui-1 outline-none placeholder:text-ui-4"
+            className="min-w-0 flex-1 bg-transparent text-body text-ui-1 outline-none placeholder:text-ui-4"
           />
           {query && (
             <button type="button" aria-label="Clear search" onClick={() => setQuery("")} className="text-ui-4 hover:text-ui-1">
@@ -536,7 +536,7 @@ export default function LibraryPage(p: LibraryPageProps) {
           )}
         </label>
         {!empty && !showFiles && (
-          <div role="radiogroup" aria-label="View" onKeyDown={(e) => onRovingKeyDown(e, '[role="radio"]')} className="flex h-(--ui-h-field) items-center gap-0.5 rounded-ui-menu border border-ui-default p-0.5">
+          <div role="radiogroup" aria-label="View" onKeyDown={(e) => onRovingKeyDown(e, '[role="radio"]')} className="flex h-(--ui-h-field) items-center gap-0.5 rounded-ui-md border border-ui-default p-0.5">
             {(
               [
                 ["grid", "Grid", LayoutGrid],
@@ -553,7 +553,7 @@ export default function LibraryPage(p: LibraryPageProps) {
                   setView(id);
                   if (id === "shelves") setCollection("all");
                 }}
-                className={cn("flex h-full items-center gap-1.5 rounded-[7px] px-2.5 text-[12.5px] text-ui-3 hover:text-ui-1", view === id && "bg-ui-active text-ui-1")}
+                className={cn("flex h-full items-center gap-1.5 rounded-ui-md px-2.5 text-body text-ui-3 hover:text-ui-1", view === id && "bg-ui-active text-ui-1")}
               >
                 <Icon className="h-3.5 w-3.5" />
                 {label}
@@ -568,7 +568,7 @@ export default function LibraryPage(p: LibraryPageProps) {
             setUsedBy(e.target.value);
             setShowFiles(false);
           }}
-          className="h-(--ui-h-field) min-w-0 max-w-[200px] shrink rounded-ui-menu border border-ui-default bg-ui-panel px-2.5 text-[12.5px] text-ui-2"
+          className="h-(--ui-h-field) min-w-0 max-w-[200px] shrink rounded-ui-md border border-ui-default bg-ui-panel px-2.5 text-body text-ui-2"
         >
           <option value="">Used by any screen</option>
           {p.bridge.config.profiles.map((s) => (
@@ -582,7 +582,7 @@ export default function LibraryPage(p: LibraryPageProps) {
           aria-pressed={showFiles}
           onClick={() => setShowFiles((on) => !on)}
           title="The files its canvases use: replace and optimize them"
-          className={cn("flex h-(--ui-h-field) min-w-[88px] max-w-[220px] shrink items-center gap-1.5 rounded-ui-md border border-ui-default px-3 text-[12.5px] text-ui-1 hover:bg-ui-hover", showFiles && "bg-ui-active")}
+          className={cn("flex h-(--ui-h-field) min-w-[88px] max-w-[220px] shrink items-center gap-1.5 rounded-ui-md border border-ui-default px-3 text-body text-ui-1 hover:bg-ui-hover", showFiles && "bg-ui-active")}
         >
           <FolderInput className="h-4 w-4 shrink-0" />
           <span className="truncate">Canvas files · {p.profileName}</span>
@@ -608,17 +608,17 @@ export default function LibraryPage(p: LibraryPageProps) {
               <>
                 <div className="flex min-w-0 flex-1 flex-col">
                   {lib.error && (
-                    <div role="alert" className="m-4 rounded-lg border border-ui-danger/40 bg-ui-danger/10 px-3 py-2 text-[12.5px] text-ui-2">
+                    <div role="alert" className="m-4 rounded-lg border border-ui-danger/40 bg-ui-danger/10 px-3 py-2 text-body text-ui-2">
                       {lib.error}
                     </div>
                   )}
                   {older.length > 0 && (
-                    <div role="status" className="mx-4 mt-4 flex items-center gap-3 rounded-lg border border-ui-warn/40 bg-ui-warn/10 px-3 py-2 text-[12.5px] text-ui-2">
+                    <div role="status" className="mx-4 mt-4 flex items-center gap-3 rounded-lg border border-ui-warn/40 bg-ui-warn/10 px-3 py-2 text-body text-ui-2">
                       <span className="min-w-0 flex-1">
                         {older.length === 1 ? "1 item was" : `${older.length} items were`} saved by an older version. {older.length === 1 ? "It works" : "They work"} as{" "}
                         {older.length === 1 ? "it is" : "they are"}; Update saves {older.length === 1 ? "it" : "them"} in today&rsquo;s format and keeps a copy of {older.length === 1 ? "it" : "each"} as it was.
                       </span>
-                      <button type="button" onClick={() => updateFormat(older)} className="h-(--ui-h-control) shrink-0 rounded-[7px] border border-ui-default px-2.5 text-caption text-ui-1 hover:bg-ui-hover">
+                      <button type="button" onClick={() => updateFormat(older)} className="h-(--ui-h-control) shrink-0 rounded-ui-md border border-ui-default px-2.5 text-caption text-ui-1 hover:bg-ui-hover">
                         {older.length === 1 ? "Update" : "Update all"}
                       </button>
                     </div>
@@ -671,7 +671,7 @@ export default function LibraryPage(p: LibraryPageProps) {
                   )}
                 </div>
                 {picked.length > 1 ? (
-                  <aside aria-label="Selection" className="flex w-[320px] shrink-0 flex-col items-center justify-center gap-3 border-l border-ui-subtle bg-ui-panel p-6 text-center text-[12.5px] text-ui-3 max-sm:w-full">
+                  <aside aria-label="Selection" className="flex w-[320px] shrink-0 flex-col items-center justify-center gap-3 border-l border-ui-subtle bg-ui-panel p-6 text-center text-body text-ui-3 max-sm:w-full">
                     <ListChecks className="h-5 w-5" />
                     {picked.length} items selected
                     <button
@@ -696,7 +696,7 @@ export default function LibraryPage(p: LibraryPageProps) {
                   )
                 ) : (
                   !narrow && (
-                    <aside className="flex w-[320px] shrink-0 flex-col items-center justify-center gap-2 border-l border-ui-subtle bg-ui-panel p-6 text-center text-[12.5px] text-ui-4">
+                    <aside className="flex w-[320px] shrink-0 flex-col items-center justify-center gap-2 border-l border-ui-subtle bg-ui-panel p-6 text-center text-body text-ui-4">
                       <Eye className="h-5 w-5" />
                       Select an item to see it here. Drag a card onto the canvas to place a copy.
                     </aside>

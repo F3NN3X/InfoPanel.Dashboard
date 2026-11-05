@@ -51,7 +51,7 @@ export function Sidebar({ content, inputRef, current, query, version, onQuery, o
         </button>
         {content.groups.map((group) => (
           <div key={group.label} className="contents">
-            <div className="px-2.5 pb-[5px] pt-3.5 rail:hidden text-micro font-medium uppercase tracking-[0.07em] text-s-dim">{group.label}</div>
+            <div className="px-2.5 pb-[5px] pt-3.5 rail:hidden text-caption font-medium text-s-dim">{group.label}</div>
             {group.articles.map((a) => {
               const on = current === a.id && !searching;
               const Icon = iconFor(a.icon);

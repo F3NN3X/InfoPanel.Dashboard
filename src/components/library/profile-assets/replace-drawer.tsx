@@ -13,7 +13,7 @@ import { BUTTON, Drawer, PRIMARY } from "./drawer";
 function Group({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="mb-4">
-      <h3 className="mb-1.5 text-micro font-medium uppercase tracking-[.06em] text-ui-4">{title}</h3>
+      <h3 className="mb-1.5 text-caption font-medium text-ui-4">{title}</h3>
       <ul className="space-y-1 text-caption text-ui-2">{children}</ul>
     </section>
   );

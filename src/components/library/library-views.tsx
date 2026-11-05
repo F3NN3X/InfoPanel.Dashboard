@@ -74,7 +74,7 @@ export function LibrarySidebar({ active, counts, onPick, onOpenTheme }: { active
     <nav aria-label="Collections" className="flex w-[216px] shrink-0 flex-col gap-4 overflow-y-auto border-r border-ui-subtle bg-ui-panel px-2 py-3.5 font-ui max-sm:w-full max-sm:flex-row max-sm:gap-1.5 max-sm:overflow-x-auto max-sm:overflow-y-hidden max-sm:border-b max-sm:border-r-0 max-sm:py-2 max-sm:[scrollbar-width:none]">
       {sections.map(([s, title]) => (
         <div key={s} className="max-sm:flex max-sm:gap-1.5">
-          <div className="px-2 pb-1.5 text-micro font-medium uppercase tracking-[.08em] text-ui-4 max-sm:hidden">{title}</div>
+          <div className="px-2 pb-1.5 text-caption font-medium text-ui-4 max-sm:hidden">{title}</div>
           {COLLECTIONS.filter((c) => c.section === s).map((c) => {
             const Icon = COLLECTION_ICON[c.id];
             return (
@@ -84,7 +84,7 @@ export function LibrarySidebar({ active, counts, onPick, onOpenTheme }: { active
                 aria-current={active === c.id ? "page" : undefined}
                 onClick={() => onPick(c.id)}
                 className={cn(
-                  "flex h-[30px] w-full items-center gap-2.5 rounded-[7px] px-2 text-left text-[12.5px] text-ui-2 hover:bg-ui-hover max-sm:h-9 max-sm:w-auto max-sm:shrink-0 max-sm:whitespace-nowrap",
+                  "flex h-[30px] w-full items-center gap-2.5 rounded-ui-md px-2 text-left text-body text-ui-2 hover:bg-ui-hover max-sm:h-9 max-sm:w-auto max-sm:shrink-0 max-sm:whitespace-nowrap",
                   c.parent && "pl-7 max-sm:pl-2",
                   active === c.id && "bg-ui-active text-ui-1 hover:bg-ui-active",
                 )}
@@ -100,7 +100,7 @@ export function LibrarySidebar({ active, counts, onPick, onOpenTheme }: { active
       <button
         type="button"
         onClick={onOpenTheme}
-        className="flex min-h-[30px] w-full items-center gap-2.5 rounded-[7px] px-2 py-1 text-left text-[12.5px] text-ui-3 hover:bg-ui-hover hover:text-ui-1 max-sm:h-9 max-sm:w-auto max-sm:shrink-0 max-sm:whitespace-nowrap"
+        className="flex min-h-[30px] w-full items-center gap-2.5 rounded-ui-md px-2 py-1 text-left text-body text-ui-3 hover:bg-ui-hover hover:text-ui-1 max-sm:h-9 max-sm:w-auto max-sm:shrink-0 max-sm:whitespace-nowrap"
       >
         <Palette className="h-4 w-4 shrink-0 text-ui-4" strokeWidth={1.75} />
         <span className="min-w-0 flex-1">Looks, saved looks and colors are in Look →</span>
@@ -209,7 +209,7 @@ export function LibraryCard({ item, index, selected, checked, selectMode, onSele
       </div>
       <div className="min-w-0 px-1">
         <div className="flex items-center gap-1.5">
-          <span className="min-w-0 flex-1 truncate text-[12.5px] font-medium text-ui-1">{item.name}</span>
+          <span className="min-w-0 flex-1 truncate text-body font-medium text-ui-1">{item.name}</span>
           <span
             className={cn(
               "shrink-0 rounded-[4px] border border-ui-default px-1.5 py-px text-[10px]",
@@ -243,7 +243,7 @@ export function UploadTile({ onFiles, wide }: { onFiles: (files: File[]) => void
       )}
     >
       <ImagePlus className="h-6 w-6" strokeWidth={1.5} />
-      <span className="text-[12.5px]">{wide ? "Drop images, videos, fonts or an .infopanel here" : "Drop files or click"}</span>
+      <span className="text-body">{wide ? "Drop images, videos, fonts or an .infopanel here" : "Drop files or click"}</span>
       <span className="text-micro text-ui-4">Images, video, SVG, fonts, .infopanel</span>
       <input
         ref={input}
@@ -307,7 +307,7 @@ export function GridView(p: GridViewProps) {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="sticky top-0 z-10 flex min-h-[52px] shrink-0 flex-wrap items-center gap-2 border-b border-ui-subtle bg-ui-app/95 px-5 py-2 backdrop-blur">
-        <h2 className="text-[15px] font-semibold text-ui-1">{p.title}</h2>
+        <h2 className="text-head font-medium text-ui-1">{p.title}</h2>
         <span className="mr-2 font-ui-mono text-micro text-ui-4">{p.items.length} items</span>
         {p.tags.map((t) => (
           <button
@@ -327,16 +327,16 @@ export function GridView(p: GridViewProps) {
         {p.picked.length > 0 && (
           <>
             <span className="font-ui-mono text-[11.5px] text-ui-2">{p.picked.length} selected</span>
-            <button type="button" onClick={p.onPickAll} className="h-(--ui-h-control) rounded-[7px] px-2 text-caption text-ui-3 hover:text-ui-1">
+            <button type="button" onClick={p.onPickAll} className="h-(--ui-h-control) rounded-ui-md px-2 text-caption text-ui-3 hover:text-ui-1">
               Select all
             </button>
-            <button type="button" onClick={p.onClearPicked} className="h-(--ui-h-control) rounded-[7px] px-2 text-caption text-ui-3 hover:text-ui-1">
+            <button type="button" onClick={p.onClearPicked} className="h-(--ui-h-control) rounded-ui-md px-2 text-caption text-ui-3 hover:text-ui-1">
               Clear
             </button>
             <button
               type="button"
               onClick={p.onDeletePicked}
-              className="flex h-(--ui-h-control) items-center gap-1.5 rounded-[7px] border border-ui-danger/50 px-2.5 text-caption text-ui-danger hover:bg-ui-danger/10"
+              className="flex h-(--ui-h-control) items-center gap-1.5 rounded-ui-md border border-ui-danger/50 px-2.5 text-caption text-ui-danger hover:bg-ui-danger/10"
             >
               <Trash2 className="h-3.5 w-3.5" />
               Delete…
@@ -348,7 +348,7 @@ export function GridView(p: GridViewProps) {
           aria-pressed={p.selectMode}
           onClick={() => p.onSelectMode(!p.selectMode)}
           title="Tick cards to select several, then delete them together. Ctrl or Shift and click does the same."
-          className={cn("flex h-(--ui-h-control) items-center gap-1.5 rounded-[7px] border border-ui-default px-2.5 text-caption text-ui-1 hover:bg-ui-hover", p.selectMode && "bg-ui-active")}
+          className={cn("flex h-(--ui-h-control) items-center gap-1.5 rounded-ui-md border border-ui-default px-2.5 text-caption text-ui-1 hover:bg-ui-hover", p.selectMode && "bg-ui-active")}
         >
           <ListChecks className="h-3.5 w-3.5" />
           Select
@@ -359,7 +359,7 @@ export function GridView(p: GridViewProps) {
             onClick={p.action.onRun}
             disabled={p.action.disabled}
             title={p.action.title}
-            className="flex h-(--ui-h-control) items-center gap-1.5 rounded-[7px] border border-ui-default px-2.5 text-caption text-ui-1 hover:bg-ui-hover hover:text-ui-danger disabled:pointer-events-none disabled:opacity-40"
+            className="flex h-(--ui-h-control) items-center gap-1.5 rounded-ui-md border border-ui-default px-2.5 text-caption text-ui-1 hover:bg-ui-hover hover:text-ui-danger disabled:pointer-events-none disabled:opacity-40"
           >
             <Trash2 className="h-3.5 w-3.5" />
             {p.action.label}
@@ -370,7 +370,7 @@ export function GridView(p: GridViewProps) {
           <select
             value={p.sort}
             onChange={(e) => p.onSort(e.target.value as SortId)}
-            className="h-(--ui-h-control) rounded-[7px] border border-ui-default bg-ui-panel px-2 text-caption text-ui-2"
+            className="h-(--ui-h-control) rounded-ui-md border border-ui-default bg-ui-panel px-2 text-caption text-ui-2"
           >
             {SORTS.map((s) => (
               <option key={s.id} value={s.id}>
@@ -383,7 +383,7 @@ export function GridView(p: GridViewProps) {
       <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
         {p.hint && <p className="mb-3 text-[11.5px] text-ui-4">{p.hint}</p>}
         {cleanup && (
-          <div className="mb-4 flex flex-wrap items-center gap-3 rounded-[10px] border border-ui-subtle bg-ui-panel px-4 py-2.5 text-[12.5px] text-ui-2">
+          <div className="mb-4 flex flex-wrap items-center gap-3 rounded-[10px] border border-ui-subtle bg-ui-panel px-4 py-2.5 text-body text-ui-2">
             <SprayCan className="h-4 w-4 text-ui-warn" />
             <span className="flex-1">
               {[
@@ -426,7 +426,7 @@ export function GridView(p: GridViewProps) {
 }
 
 const BannerButton = ({ onClick, children }: { onClick: () => void; children: ReactNode }) => (
-  <button type="button" onClick={onClick} className="h-(--ui-h-control) rounded-[7px] border border-ui-default px-2.5 text-caption text-ui-1 hover:bg-ui-hover">
+  <button type="button" onClick={onClick} className="h-(--ui-h-control) rounded-ui-md border border-ui-default px-2.5 text-caption text-ui-1 hover:bg-ui-hover">
     {children}
   </button>
 );
@@ -459,7 +459,7 @@ export function ShelvesView(p: ShelvesViewProps) {
                 {a.id === "duplicates" ? <Copy className="h-4 w-4" /> : a.id === "unused" ? <Ban className="h-4 w-4" /> : <HardDrive className="h-4 w-4" />}
               </span>
               <div className="min-w-0 flex-1">
-                <div className="text-[12.5px] font-semibold text-ui-1">{a.title}</div>
+                <div className="text-body font-medium text-ui-1">{a.title}</div>
                 <div className="text-[11.5px] leading-snug text-ui-4">{a.text}</div>
               </div>
               <BannerButton onClick={a.onAction}>{a.action}</BannerButton>
@@ -472,7 +472,7 @@ export function ShelvesView(p: ShelvesViewProps) {
         .map((s) => (
           <section key={s.id} aria-label={s.title} className="mb-6">
             <div className="mb-2.5 flex items-baseline gap-2">
-              <h3 className="text-[14px] font-semibold text-ui-1">{s.title}</h3>
+              <h3 className="text-lead font-medium text-ui-1">{s.title}</h3>
               <span className="text-caption text-ui-4">{s.note}</span>
               <span className="flex-1" />
               <button type="button" onClick={() => p.onSeeAll(s.id)} className="flex items-center gap-0.5 text-caption text-ui-3 hover:text-ui-1">

@@ -259,12 +259,12 @@ export function FilesTable(p: FilesTableProps) {
             <span role="cell" />
           </div>
         ))}
-        {files.length + missing.length === 0 && <div className="border-t border-ui-subtle px-2 py-8 text-center text-[12.5px] text-ui-4">{p.filter || p.tiledOnly ? "No file matches." : "This canvas has no files."}</div>}
+        {files.length + missing.length === 0 && <div className="border-t border-ui-subtle px-2 py-8 text-center text-body text-ui-4">{p.filter || p.tiledOnly ? "No file matches." : "This canvas has no files."}</div>}
       </div>
 
       {outside.length > 0 && (
         <section className="mt-6" aria-label="Outside the screen">
-          <h3 className="mb-2 text-caption font-semibold text-ui-1">Outside the screen</h3>
+          <h3 className="mb-2 text-caption font-medium text-ui-1">Outside the screen</h3>
           {outside.map((o) => (
             <div key={`${o.kind}:${o.value}`} className="flex items-center gap-3 border-t border-ui-subtle py-2 text-caption">
               <span className="w-[96px] shrink-0 rounded-[5px] bg-ui-raised px-2 py-0.5 text-center text-micro text-ui-3">{o.kind === "url" ? "URL" : "Absolute path"}</span>

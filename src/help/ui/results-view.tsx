@@ -20,7 +20,7 @@ export function ResultsView({ query, hits, onHit, onHome }: ResultsViewProps) {
   return (
     <div className="mx-auto box-border flex max-w-[760px] flex-col gap-[18px] px-8 pb-20 pt-9">
       <div role="status" className="flex flex-wrap items-baseline gap-x-2">
-        <h1 className="m-0 text-title font-semibold">{hits.length ? `${hits.length} result${hits.length > 1 ? "s" : ""}` : "No results"}</h1>
+        <h1 className="m-0 text-title font-medium">{hits.length ? `${hits.length} result${hits.length > 1 ? "s" : ""}` : "No results"}</h1>
         <span className="text-title text-s-muted">{`for “${query.trim()}”`}</span>
       </div>
       <div className="flex flex-col gap-2">

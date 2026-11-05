@@ -29,7 +29,7 @@ function FontCard({ item, selected, onSelect }: { item: LibraryItem; selected: b
         {SAMPLE}
       </span>
       <span className="flex min-w-0 items-baseline justify-between gap-2">
-        <span className="truncate text-[12.5px] font-medium text-ui-1">{m.family ?? item.name}</span>
+        <span className="truncate text-body font-medium text-ui-1">{m.family ?? item.name}</span>
         {m.licence && <span className={cn("shrink-0 text-[11.5px]", VERDICT_TONE[m.licence])}>{LICENCE_LABEL[m.licence]}</span>}
       </span>
       <span className="truncate font-ui-mono text-micro text-ui-4">{metaLine(item)}</span>
@@ -38,7 +38,7 @@ function FontCard({ item, selected, onSelect }: { item: LibraryItem; selected: b
 }
 
 export function MyFonts({ fonts, selectedId, onSelect }: { fonts: LibraryItem[]; selectedId: string | null; onSelect: (item: LibraryItem) => void }) {
-  if (fonts.length === 0) return <div className="text-[12.5px] text-ui-4">No fonts yet. Add font files or get one for a missing font.</div>;
+  if (fonts.length === 0) return <div className="text-body text-ui-4">No fonts yet. Add font files or get one for a missing font.</div>;
   return (
     <div className="grid grid-cols-[repeat(auto-fill,minmax(210px,1fr))] gap-3">
       {fonts.map((f) => (

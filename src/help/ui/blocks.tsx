@@ -33,7 +33,7 @@ function Callout({ kind, text, onOpen }: { kind: CalloutKind; text: string; onOp
     <div className={cn("flex max-w-[68ch] gap-3 rounded-[11px] border px-4 py-[13px]", box)}>
       <Icon className={cn("mt-px h-[19px] w-[19px] shrink-0", fg)} />
       <div className="flex flex-1 flex-col gap-[3px]">
-        <span className={cn("text-xs font-semibold", fg)}>{label}</span>
+        <span className={cn("text-xs font-medium", fg)}>{label}</span>
         <span className="text-pretty text-[13.5px] leading-[1.6] text-s-strong">
           <InlineText text={text} onOpen={onOpen} />
         </span>
@@ -48,7 +48,7 @@ function List({ items, ordered, onOpen }: { items: string[]; ordered: boolean; o
       {items.map((item, i) => (
         <li key={i} className="flex items-start gap-3">
           {ordered ? (
-            <span className="mt-px grid h-[22px] w-[22px] shrink-0 place-items-center rounded-full border border-s-input-line bg-s-nav-on text-[11.5px] font-semibold text-s-t2">{i + 1}</span>
+            <span className="mt-px grid h-[22px] w-[22px] shrink-0 place-items-center rounded-full border border-s-input-line bg-s-nav-on text-[11.5px] font-medium text-s-t2">{i + 1}</span>
           ) : (
             <span className="ml-1 mr-1.5 mt-2.5 h-[5px] w-[5px] shrink-0 rounded-full bg-s-faint" />
           )}
@@ -129,7 +129,7 @@ function Flow({ steps }: { steps: [string, string][] }) {
         <div key={i} className="flex flex-[1_1_140px] items-center gap-1.5">
           <div className="flex flex-1 flex-col gap-1 self-stretch rounded-[10px] border border-s-card-line bg-s-card px-3.5 py-3">
             <span className="font-mono text-micro text-s-dim">{String(i + 1).padStart(2, "0")}</span>
-            <span className="text-[13.5px] font-semibold">{title}</span>
+            <span className="text-[13.5px] font-medium">{title}</span>
             <span className="text-xs leading-[1.45] text-s-muted">{description}</span>
           </div>
           {i < steps.length - 1 && <ArrowRight className="h-4 w-4 shrink-0 text-s-connector" />}

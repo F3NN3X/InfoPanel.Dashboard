@@ -125,7 +125,7 @@ export function GetFont({ initialFamily, needed, onAdd, onClose }: GetFontProps)
   return (
     <aside aria-label="Get a font" className="flex w-[320px] shrink-0 flex-col gap-3.5 overflow-y-auto border-l border-ui-subtle bg-ui-panel p-4 font-ui">
       <div className="flex items-center justify-between">
-        <div className="text-[14px] font-semibold text-ui-1">Get a font</div>
+        <div className="text-lead font-medium text-ui-1">Get a font</div>
         <button type="button" onClick={onClose} className="text-caption text-ui-4 hover:text-ui-1">
           Close
         </button>
@@ -137,7 +137,7 @@ export function GetFont({ initialFamily, needed, onAdd, onClose }: GetFontProps)
             type="button"
             aria-pressed={source === s.id}
             onClick={() => setSource(s.id)}
-            className={cn("flex-1 rounded-ui-sm text-[12.5px] text-ui-3 hover:text-ui-1", source === s.id && "bg-ui-active text-ui-1")}
+            className={cn("flex-1 rounded-ui-sm text-body text-ui-3 hover:text-ui-1", source === s.id && "bg-ui-active text-ui-1")}
           >
             {s.label}
           </button>
@@ -150,7 +150,7 @@ export function GetFont({ initialFamily, needed, onAdd, onClose }: GetFontProps)
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Family name"
-          className="min-w-0 flex-1 bg-transparent text-[12.5px] text-ui-1 outline-none placeholder:text-ui-hint"
+          className="min-w-0 flex-1 bg-transparent text-body text-ui-1 outline-none placeholder:text-ui-hint"
         />
       </label>
       {catalogs && catalogs.unavailable.length > 0 && <p className="text-[11.5px] leading-snug text-ui-warn">Some sources are unavailable: {catalogs.unavailable.join("; ")}</p>}
@@ -190,13 +190,13 @@ export function GetFont({ initialFamily, needed, onAdd, onClose }: GetFontProps)
             <div className="text-ui-3">{candidate.license}</div>
           </div>
           <div>
-            <div className="mb-1.5 text-micro font-medium uppercase tracking-[.06em] text-ui-4">Faces</div>
+            <div className="mb-1.5 text-caption font-medium text-ui-4">Faces</div>
             {loaded.state === "loading" && <p className="text-caption text-ui-4">Reading the faces…</p>}
             {loaded.state === "error" && <p className="text-caption leading-snug text-ui-danger">{loaded.message}</p>}
             {loaded.state === "ready" && (
               <div className="flex flex-col gap-0.5">
                 {loaded.faces.map((f) => (
-                  <label key={f.id} className="flex items-center gap-2 rounded-ui-sm px-1.5 py-1 text-[12.5px] text-ui-2 hover:bg-ui-hover">
+                  <label key={f.id} className="flex items-center gap-2 rounded-ui-sm px-1.5 py-1 text-body text-ui-2 hover:bg-ui-hover">
                     <input
                       type="checkbox"
                       checked={checked.has(f.id)}
@@ -218,7 +218,7 @@ export function GetFont({ initialFamily, needed, onAdd, onClose }: GetFontProps)
             type="button"
             disabled={adding || chosen.length === 0}
             onClick={() => void add()}
-            className="h-(--ui-h-field) w-full rounded-ui-md bg-ui-inverse text-[12.5px] font-medium text-ui-inverse-fg hover:opacity-90 disabled:pointer-events-none disabled:opacity-40"
+            className="h-(--ui-h-field) w-full rounded-ui-md bg-ui-inverse text-body font-medium text-ui-inverse-fg hover:opacity-90 disabled:pointer-events-none disabled:opacity-40"
           >
             {adding ? "Adding…" : `Add ${candidate.family} · ${chosen.length} face${chosen.length === 1 ? "" : "s"}`}
           </button>
