@@ -117,7 +117,7 @@ interface ExportSheetProps {
   pageName: string;
   /** The page's canvas zone (the selected one, else the first); undefined when the page has none. */
   pageCanvas: Placement | undefined;
-  /** Open the InfoPanel export dialog (its options live there). */
+  /** Open the page export dialog (its font choices live there). */
   onExportPage: () => void;
   onClose: () => void;
   toast: (message: string) => void;
@@ -206,8 +206,8 @@ export function ExportSheet({ open, request, config, screen, pageName, pageCanva
               {...common}
               id="page"
               icon={FileOutput}
-              title="Export a page for InfoPanel"
-              detail={`${pageName} as an .infopanel canvas`}
+              title="Export a page"
+              detail={`${pageName} as a stored .canvas.zip`}
               picked={request.row === "page"}
               blocked={pageCanvas ? undefined : "This page has no InfoPanel profile on it. Import an InfoPanel profile first, or open a page that has one."}
               copy={pageCanvas?.canvas ? { name: `${pageName}.canvas.json`, text: JSON.stringify(pageCanvas.canvas, null, 2) } : undefined}
@@ -226,7 +226,7 @@ export function ExportSheet({ open, request, config, screen, pageName, pageCanva
                 </button>
               }
             >
-              <p className="pl-[30px] text-micro text-ui-4">Bake gauges and elements first · Leave unused assets out · Stored form or .infopanel: you choose them in the next step.</p>
+              <p className="pl-[30px] text-micro text-ui-4">Fonts that may not be shared stay out unless you include them: you choose in the next step.</p>
             </ExportRow>
             <ExportRow
               {...common}

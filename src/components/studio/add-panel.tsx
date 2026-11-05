@@ -10,15 +10,14 @@ import { addGroups, fitsIn, searchItems, sizeText, type AddCatalog, type AddItem
 import type { AddListDensity } from "./add-prefs";
 import { AddPreview, previewTop } from "./add-preview";
 import { AddRow, type RowTag } from "./add-row";
-import { TileCard, cardTop, type AddStatusKit } from "./add-tile-card";
+import { TileCard, cardTop } from "./add-tile-card";
 import { AddTileGrid, tileId } from "./add-tile-grid";
 import { takeSearchRequest } from "./design-left-panel";
 import { addSections, chipsFor, ELEMENT_TILES, ITEM_TILES, moveInGrid, tileRows, widgetTile, type AddTile } from "./add-tiles";
 
 /**
  * The Add tab (02b, Edit v3 SPEC §9): Widgets, Items (InfoPanel items and studio elements), Panels and Layouts, with a
- * details card on hover. A widget is one row; its views are presets in the inspector (D-5). A screen made for InfoPanel
- * opens on Items. A click or Enter adds (a widget fills the selected blank zone), a drag places on the canvas.
+ * details card on hover. A widget is one row; its views are presets in the inspector (D-5). A click or Enter adds (a widget fills the selected blank zone), a drag places on the canvas.
  */
 
 const KINDS: { kind: AddKind; label: string; one: string }[] = [
@@ -63,9 +62,6 @@ export interface AddPanelProps {
   /** What the preview renders the widget under: the page's style and theme. */
   appearance?: Appearance;
   pageStyle?: CSSProperties;
-  /** The screen is made for InfoPanel: items come first, and tiles sort by and show their status (the kit, once loaded). */
-  infoPanel?: boolean;
-  status?: AddStatusKit | null;
   /** Layouts can't apply on this page: the tab is disabled with this tooltip. */
   layoutsOff?: string;
   /** A fixture's state: the segment, the tile whose card is open, and the tile just added (its highlight). */
@@ -181,13 +177,11 @@ export function AddPanel({
   previewOnHover,
   appearance,
   pageStyle,
-  infoPanel = false,
-  status,
   layoutsOff,
   start,
 }: AddPanelProps) {
   const [storedChip, setChip] = useAddChip();
-  const [tab, setTab] = useState<AddTab>(() => startTab({ takesItems: !!onAddPart, infoPanel, segment: start?.segment, storedChip }));
+  const [tab, setTab] = useState<AddTab>(() => startTab({ takesItems: !!onAddPart, segment: start?.segment, storedChip }));
   const kind: AddKind = tab === "items" ? "widget" : tab;
   // The chip of before the Items tab was read as that tab above; it is spent, so Widgets doesn't send the next mount back to Items.
   useEffect(() => {
@@ -237,11 +231,9 @@ export function AddPanel({
             chip: inItems ? (group ?? "All") : chip,
             query,
             recent,
-            infoPanel,
-            status: status?.of,
           })
         : [],
-    [tiles, widgetTiles, onAddPart, seg, chip, inItems, group, query, recent, infoPanel, status],
+    [tiles, widgetTiles, onAddPart, seg, chip, inItems, group, query, recent],
   );
   /** The tiles in list order, and the rows the arrow keys move through (the grid's columns, measured). */
   const [cols, setCols] = useState(3);
@@ -590,7 +582,6 @@ export function AddPanel({
             highlighted={hl?.key}
             justAdded={justAdded}
             dimmed={target ? (t) => !t.widget || !fitsIn(t.widget, target.cols, target.rows) : undefined}
-            status={infoPanel ? status : null}
             onAdd={addTile}
             onHover={(tile, el) => hover(tile.key, el)}
             onDragStart={reset}
@@ -647,7 +638,7 @@ export function AddPanel({
         )}
       </div>
 
-      {currentTile && card && <TileCard tile={currentTile} left={card.left} top={card.top} status={infoPanel ? status ?? undefined : undefined} appearance={appearance} pageStyle={pageStyle} />}
+      {currentTile && card && <TileCard tile={currentTile} left={card.left} top={card.top} appearance={appearance} pageStyle={pageStyle} />}
       {currentRow && card && hl && (
         <AddPreview item={currentRow} left={card.left} top={card.top} via={hl.via} target={target} appearance={appearance} pageStyle={pageStyle} />
       )}

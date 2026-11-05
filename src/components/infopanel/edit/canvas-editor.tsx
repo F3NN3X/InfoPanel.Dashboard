@@ -2,7 +2,7 @@
  * The canvas editor (A5, spec §7), Edit's body on an imported profile's page (one canvas filling the screen, Edit v3
  * SPEC §3.4). It sits in the studio's own shell, with Design's slots and widths: the left panel's Layers | Add tabs
  * hold the item tree and the Add tiles, the page tabs, the canvas's view strip and the canvas fill the middle, and
- * the inspector column shows the part, the page's settings with nothing selected, or the Export check. It edits the
+ * the inspector column shows the part or the page's settings with nothing selected. It edits the
  * canvas zone's stored form, and every edit goes through the studio's one history, so undo, redo and auto-save work
  * as anywhere in the studio. Lazy-loaded: the InfoPanel model stays out of the studio's first bundle.
  */
@@ -10,7 +10,6 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { X } from "lucide-react";
 import type { HistorySetter } from "@/hooks/use-config-history";
 import { useToast } from "@/components/ui/toast";
-import { overToolbar } from "@/components/ui/toast-provider";
 import { createLibraryItem, type LibraryItem } from "@/lib/library";
 import { saveComponent, componentPaths, withComponent } from "@/lib/infopanel/component";
 import { recordCopy } from "@/lib/my-library/copies";
@@ -35,14 +34,11 @@ import type { Path } from "@/lib/infopanel/editor/ops";
 import type { StoredCanvas } from "@/lib/infopanel/import/stored";
 import type { DataApiValue } from "@/lib/infopanel/sensors";
 import { cn } from "@/lib/utils";
-import { checkItems, isImported } from "@/lib/infopanel/export-check";
 import { LeftPanelFrame, type LeftTab } from "@/components/studio/design-left-panel";
 import { StudioShell } from "@/components/studio/studio-shell";
 import type { useStudioLayout } from "@/components/studio/use-studio-layout";
-import type { ExportView } from "@/components/studio/zoom-toolbar";
 import { withCanvas } from "@/components/studio/import-actions";
 import { withFreeCanvas } from "@/lib/free-pages";
-import { ExportCheckContext, ExportCheckPanel, ExportCheckPill, type ExportCheckState } from "../export-check-panel";
 import { RemapDialog, useRemapIndex } from "../remap-dialog";
 import { AddPalette, idOf, paletteEntryOf, type AddEntry } from "./add-palette";
 import { AddPanel } from "@/components/studio/add-panel";
@@ -50,10 +46,7 @@ import { addCatalog, sameDrop, widgetRows, type AddItem } from "@/components/stu
 import { freeSize } from "@/components/studio/add-place";
 import { useAddListDensity, useAddPreviewOnHover, type AddFilter } from "@/components/studio/add-prefs";
 import { useRecentAdds } from "@/components/studio/add-recent";
-import { ELEMENT_TILES, ITEM_TILES, partKey, widgetTile } from "@/components/studio/add-tiles";
-import { AddToast, focusOnInfoPanel } from "@/components/studio/add-toast";
-import { useAddToast } from "@/components/studio/use-add-panel";
-import { addStatusKit } from "./add-status";
+import { ELEMENT_TILES, ITEM_TILES, partKey } from "@/components/studio/add-tiles";
 import { deletePanelPreset, renamePanelPreset } from "@/components/studio/panel-preset-actions";
 import { mergePrefixes, placementPrefixes, widgetPlacement } from "@/components/studio/placement-content";
 import { isWidgetItem, newWidgetItem, widgetOf, widgetPaths } from "@/lib/infopanel/native/widget-item";
@@ -93,23 +86,16 @@ export interface EditorShell {
   leftTab: LeftTab;
   onLeftTab: (tab: LeftTab) => void;
   leftWidth: number;
-  /** The studio's page tabs, over the toolbar, with the editor's Export check pill in them (none when the check is off). */
-  pageTabs?: (pill: ReactNode) => ReactNode;
+  /** The studio's page tabs, over the toolbar. */
+  pageTabs?: () => ReactNode;
 }
 
 export interface CanvasEditorProps {
   zone: Placement & { canvas: StoredCanvas };
   setConfig: HistorySetter;
-  history: { canUndo: boolean; canRedo: boolean; undo: () => void; redo: () => void };
   shell: EditorShell;
   /** Another view (the Library) covers the editor: it stays mounted, draws nothing, and its keys do nothing. */
   hidden?: boolean;
-  /** The screen is made for InfoPanel: the Export check pill, the badges and the On InfoPanel lines show. */
-  checkOn?: boolean;
-  /** The command palette's Export check: each new value opens the check in the inspector. */
-  checkRequest?: number;
-  /** Export .infopanel: the export dialog for this zone. */
-  onExport?: () => void;
   /** The active profile (a dropped Library image is recorded as a copy there). */
   profileId: string;
   /** Items selected on open (the Library's "uses", a font's text items). */
@@ -121,10 +107,8 @@ export interface CanvasEditorProps {
   onDismissUnbound?: () => void;
   /** Studio widgets on the page (Edit v3 SPEC §3.6): Add offers them beside InfoPanel items. */
   widgetHost?: WidgetHost;
-  /** `Studio | InfoPanel` in the zoom bar (decision Q10), shown with the check on. */
-  exportView?: ExportView;
   /** A fixture's Add state: the segment, the tile whose card is open, Recently used, the add toast for the selected widget and the tile it highlights. */
-  addStart?: { segment?: AddFilter; hoverTile?: string; recent?: string[]; toast?: "addw"; added?: string };
+  addStart?: { segment?: AddFilter; hoverTile?: string; recent?: string[]; added?: string };
 }
 
 const isTyping = (el: Element | null) =>
@@ -179,7 +163,7 @@ function resizeByCell(ed: CanvasEditor, grid: PageGrid, dx: number, dy: number) 
   if (b) ed.commit(setBox(ed.committed, path, { ...b, width: Math.max(1, b.width + dx * (t.w + grid.gap)), height: Math.max(1, b.height + dy * (t.h + grid.gap)) }), key);
 }
 
-export default function CanvasEditorView({ zone, setConfig, history, shell, hidden = false, checkOn = false, checkRequest = 0, onExport, profileId, initialSelection, onEditGauge, unbound, onDismissUnbound, widgetHost, addStart, exportView }: CanvasEditorProps) {
+export default function CanvasEditorView({ zone, setConfig, shell, hidden = false, profileId, initialSelection, onEditGauge, unbound, onDismissUnbound, widgetHost, addStart }: CanvasEditorProps) {
   const toast = useToast();
   /** The page (a canvas filling the screen) takes Studio widgets too, and its size is the screen's. */
   const freePage = widgetHost !== undefined;
@@ -239,17 +223,13 @@ export default function CanvasEditorView({ zone, setConfig, history, shell, hidd
   const [recent, pushRecent] = useRecentAdds();
   const [addDensity] = useAddListDensity();
   const [addPreview] = useAddPreviewOnHover();
-  /** Add's statuses and toast wording on a screen made for InfoPanel. */
-  const addKit = useMemo(() => (checkOn ? addStatusKit(catalog.widget, widgetHost?.config.panelPresets) : null), [checkOn, catalog, widgetHost?.config.panelPresets]);
-  const addToast = useAddToast(editor.committed);
-  /** An InfoPanel item or element from Add (a click or Enter): the palette's add, then the toast on an InfoPanel screen. */
+  /** An InfoPanel item or element from Add (a click or Enter): the palette's add. */
   const addPart = (data: string, place?: DropPlace) => {
     const entry = paletteEntryOf(data);
     const tile = [...ITEM_TILES, ...ELEMENT_TILES].find((t) => t.data === data);
     if (!entry || !tile) return;
     onAdd(entry, place);
     pushRecent(partKey(data));
-    if (addKit) addToast.show(addKit.added(tile), true);
   };
   /** A Studio widget from Add (a click, Enter or a drop at `at`): a widget item at its default size, selected, one step. */
   const addWidget = (row: AddItem, at?: { x: number; y: number }) => {
@@ -271,22 +251,11 @@ export default function CanvasEditorView({ zone, setConfig, history, shell, hidd
       editor.add(newWidgetItem(widget, { x: 0, y: 0, ...size }, row.name), at ? { at } : undefined);
     }
     if (row.kind === "widget") pushRecent(row.id);
-    if (addKit && row.kind !== "layout") addToast.show(addKit.added(widgetTile(row)), true, true);
   };
   const placeWidget = (drop: WidgetDrop, at: { x: number; y: number }) => {
     const row = [...widgetRows(catalog.widget), ...catalog.panel].find((i) => sameDrop(i.drop, drop));
     if (row) addWidget(row, at);
   };
-  // A fixture's toast: the one adding the selected widget raised (the reference's state 3).
-  const startToast = useRef(addStart?.toast);
-  useEffect(() => {
-    if (!startToast.current || !addKit) return;
-    startToast.current = undefined;
-    const widget = editor.selection.length === 1 ? widgetOf(itemAt(editor.committed, editor.selection[0])) : null;
-    const row = widget && catalog.widget.find((w) => w.id === widget.module);
-    if (row) addToast.show(addKit.added(widgetTile(row)), true, true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [addKit]);
   // Live values for the Studio widgets' own keys, one subscription for the page (no stream per widget).
   const widgetKeys = useMemo(
     () => mergePrefixes(widgetPaths(editor.committed).map((p) => placementPrefixes(widgetPlacement(widgetOf(itemAt(editor.committed, p))!)))),
@@ -299,42 +268,19 @@ export default function CanvasEditorView({ zone, setConfig, history, shell, hidd
   const { layout } = shell;
   const selectionKey = editor.selection.join("\n");
   const hasSelection = editor.selection.length > 0;
-  /** The Export check in the inspector: the header pill opens it; selecting anything or Esc closes it. */
-  const [checkOpen, setCheckOpen] = useState(false);
   // The inspector follows the selection as Design's does: a selection shows it, clearing puts a floating one away.
   useEffect(() => {
     if (hidden) return;
     layout.setHasSelection(hasSelection);
     if (hasSelection) {
-      setCheckOpen(false);
       layout.showInspector();
     } else layout.dismissInspector();
   }, [selectionKey, hidden]);
   // The zoom bar's size button shows the profile's settings with nothing selected.
   const openSettings = () => {
     editor.select([]);
-    setCheckOpen(false);
     layout.showInspector();
   };
-  const toggleCheck = () => {
-    if (checkOpen) return setCheckOpen(false);
-    editor.select([]);
-    setCheckOpen(true);
-    layout.showInspector();
-  };
-  const seenRequest = useRef(checkRequest);
-  useEffect(() => {
-    if (checkRequest === seenRequest.current) return;
-    seenRequest.current = checkRequest;
-    if (hidden || !checkOn) return;
-    editor.select([]);
-    setCheckOpen(true);
-    layout.showInspector();
-  }, [checkRequest]);
-  // The Export check, live: the pill, the badges, the inspector's lines and the panel all read it.
-  const check = useMemo(() => checkItems(editor.committed, isImported(editor.open.stored)), [editor.committed, editor.open.stored]);
-  const checkState: ExportCheckState = useMemo(() => ({ on: checkOn, byPath: new Map(check.rows.map((r) => [r.path, r])) }), [checkOn, check]);
-  const leftOut = useMemo(() => new Set(check.rows.filter((r) => r.status === "out").map((r) => r.path)), [check]);
 
   // Live needs the Data API: when it is not reachable the Sensors control disables it and the editor leaves it. No
   // toast: the status bar says `Data API · unreachable`, and nothing may cover the header.
@@ -390,9 +336,9 @@ export default function CanvasEditorView({ zone, setConfig, history, shell, hidd
   };
   /** F2: each new value renames the selected part in Layers. */
   const [renameRequest, setRenameRequest] = useState(0);
-  const layers = useCanvasLayers(editor, grid, renameRequest, checkState);
-  const latest = useRef({ editor, hidden, openSave, checkOpen, grid, layers });
-  latest.current = { editor, hidden, openSave, checkOpen, grid, layers };
+  const layers = useCanvasLayers(editor, grid, renameRequest);
+  const latest = useRef({ editor, hidden, openSave, grid, layers });
+  latest.current = { editor, hidden, openSave, grid, layers };
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.defaultPrevented || e.isComposing || latest.current.hidden || treeKey(e, document.activeElement)) return;
@@ -435,7 +381,6 @@ export default function CanvasEditorView({ zone, setConfig, history, shell, hidd
         case "backward":
           return ed.reorder(-1);
         case "escape":
-          if (latest.current.checkOpen) return setCheckOpen(false);
           return ed.selection.length ? ed.select([]) : undefined;
         case "block":
           return;
@@ -504,16 +449,7 @@ export default function CanvasEditorView({ zone, setConfig, history, shell, hidd
   const selectedBox = single?.kind === "Group" ? editor.boxes[editor.selection[0]] : undefined;
   const groupBox = selectedBox && { x: Math.round(selectedBox.x), y: Math.round(selectedBox.y), w: Math.round(selectedBox.width), h: Math.round(selectedBox.height) };
   const inspectorBody =
-    checkOpen && checkOn ? (
-      <ExportCheckPanel
-        check={check}
-        onSelect={(path) => {
-          setCheckOpen(false);
-          editor.select([path]);
-        }}
-        onExport={() => onExport?.()}
-      />
-    ) : single && single.kind === "Group" && !elementOf(single) ? (
+    single && single.kind === "Group" && !elementOf(single) ? (
       // A group (SPEC §10.3, sign-off round 1): no tabs, as on a screen's page; its box as the selection draws it.
       <GroupInspectorView
         name={single.Name || "Group"}
@@ -567,7 +503,7 @@ export default function CanvasEditorView({ zone, setConfig, history, shell, hidd
     );
   const inspector = (
     <aside
-      aria-label={checkOpen && checkOn ? "Export check" : "Item"}
+      aria-label="Item"
       className={cn("flex flex-col overflow-y-auto bg-ui-panel font-ui", floating ? "h-full w-full" : "w-[320px] shrink-0 border-l border-ui-subtle")}
     >
       {inspectorBody}
@@ -589,8 +525,6 @@ export default function CanvasEditorView({ zone, setConfig, history, shell, hidd
           previewOnHover={addPreview}
           appearance={widgetHost.appearance}
           onAddPart={(data) => addPart(data)}
-          infoPanel={checkOn}
-          status={addKit}
           layoutsOff="Layouts add Studio panel areas. Imported profiles keep InfoPanel's layout."
           start={addStart && { segment: addStart.segment, hoverTile: addStart.hoverTile, added: addStart.added }}
         />
@@ -601,19 +535,7 @@ export default function CanvasEditorView({ zone, setConfig, history, shell, hidd
   );
   const main = (
     <>
-      {shell.pageTabs?.(
-        checkOn ? (
-          <ExportCheckPill
-            check={check}
-            open={checkOpen}
-            onClick={toggleCheck}
-            onShow={(path) => {
-              setCheckOpen(false);
-              editor.select([path]);
-            }}
-          />
-        ) : null,
-      )}
+      {shell.pageTabs?.()}
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         {unbound && unbound.length > 0 && (
           <div role="status" className="flex shrink-0 items-center gap-3 border-b border-ui-subtle bg-ui-panel px-4 py-1.5 font-ui text-caption text-ui-2">
@@ -646,24 +568,7 @@ export default function CanvasEditorView({ zone, setConfig, history, shell, hidd
             onPlaceWidget={freePage ? placeWidget : undefined}
             grid={grid}
             snapItems={snapItems}
-            exportView={checkOn && exportView ? { ...exportView, out: leftOut } : undefined}
           />
-          {/* Bottom centre of the canvas, over its toolbar (rules §4). */}
-          {addToast.toast && (
-            <div style={{ bottom: overToolbar() }} className="pointer-events-none absolute inset-x-0 z-40 flex justify-center">
-              <AddToast
-                toast={addToast.toast}
-                onUndo={() => {
-                  addToast.clear();
-                  history.undo();
-                }}
-                onChange={() => {
-                  layout.showInspector();
-                  focusOnInfoPanel();
-                }}
-              />
-            </div>
-          )}
         </div>
         <p className="shrink-0 truncate border-t border-ui-subtle bg-ui-panel px-4 py-1.5 font-ui text-[11.5px] text-ui-4">
           {grid ? "Arrows move a cell · Alt+Arrows nudge items 1 px · Ctrl+G group · Ctrl+] forward" : "Drag to move. Arrows nudge 1 px, Shift+arrows 10 px. Hold Alt to stop snapping, Shift to keep one axis or the shape."}
@@ -672,7 +577,7 @@ export default function CanvasEditorView({ zone, setConfig, history, shell, hidd
     </>
   );
   return (
-    <ExportCheckContext.Provider value={checkState}>
+    <>
       <StudioShell layout={layout} drawer={drawer} main={main} bar={null} inspector={inspector} />
       <RemapDialog
         open={remapOpen}
@@ -712,6 +617,6 @@ export default function CanvasEditorView({ zone, setConfig, history, shell, hidd
           askSensor(fileFor.entry, path);
         }}
       />
-    </ExportCheckContext.Provider>
+    </>
   );
 }

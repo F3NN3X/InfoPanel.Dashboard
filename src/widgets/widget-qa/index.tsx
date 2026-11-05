@@ -119,8 +119,6 @@ declare global {
   interface Window {
     __qaOverflow?: () => { module: string; span: string; issues: Issue[] }[];
     __qaMountAll?: () => Promise<boolean>;
-    /** The InfoPanel export's card colour for a frame (`surfaceOf`), for the material export check (tests/e2e/material-export.spec.ts). */
-    __qaSurfaceOf?: (frame: HTMLElement) => Promise<{ color: string; radius: number } | null>;
   }
 }
 
@@ -128,7 +126,6 @@ declare global {
 // widgets measure after mounting: `await __qaMountAll()` first (or load with `module=` / `eager=1`) to let them settle.
 if (!PACK_CHECK) {
   window.__qaMountAll = mountAllSettled;
-  window.__qaSurfaceOf = async (frame) => (await import("@/lib/infopanel/native/surface-of")).surfaceOf(frame);
   window.__qaOverflow = () => {
     flushSync(forceMountAll);
     return overflowReport();

@@ -1,8 +1,6 @@
 import { overToolbar } from "@/components/ui/toast-provider";
 import { NO_PAN, type PanOffset } from "./use-hand-pan";
 import {
-  lazy,
-  Suspense,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -26,7 +24,7 @@ import type { ActiveAlert } from "@/lib/alerts";
 import type { PageBackground as Background } from "@/lib/appearance";
 import type { Appearance } from "@/lib/style-resolve";
 import { cardMode } from "@/lib/theme";
-import { BLANK_MODULE, SCROLL_ROW_H, type MonitorProfile, type ProfilePage, type ProfileView, type Placement } from "@/lib/layout";
+import { BLANK_MODULE, SCROLL_ROW_H, type ProfilePage, type ProfileView, type Placement } from "@/lib/layout";
 import { withItemLayers } from "@/lib/page-model/items-layer";
 import type { PageOp } from "@/lib/page-model/model";
 import { AltHint } from "./alt-hint";
@@ -60,9 +58,6 @@ import type { CanvasInset } from "./studio-layout";
 import { pageSize } from "./use-studio-layout";
 import { zonesInRect } from "./zone-arrange";
 import { enforceMinSize, fitZoneRect, moveZoneSet, type ZoneRect } from "./zone-geometry";
-
-// The InfoPanel view's converter and renderer load only when the view is on.
-const InfoPanelViewLayer = lazy(() => import("./infopanel-view-layer"));
 
 /** The canvas' dot grid, at a fixed pitch on the scroll area (not scaled by the zoom). */
 const DOTS = "radial-gradient(#1f1f25 1px, transparent 1px)";
@@ -182,19 +177,12 @@ interface StudioCanvasProps {
   selectionChip?: ReactNode;
   /** Alerts the profile's island shows (test alerts: the canvas is not a kiosk). */
   islandAlerts?: readonly ActiveAlert[];
-  /** A zone's Export check badge, on a screen made for InfoPanel (Edit v3 SPEC §7.1). */
-  badgeOf?: (zone: Placement) => ReactNode;
-  /** The InfoPanel view (decision Q10): the zones the export leaves out aren't drawn; they keep their cells. */
-  leftOut?: ReadonlySet<string>;
-  /** The InfoPanel view's drawing (sign-off round 2): the page as the export makes it, over the zones (lazy). */
-  infoPanelView?: { screen: MonitorProfile; page: ProfilePage };
   /** The page's InfoPanel items and elements (item placements): their selection, and their edits as page model ops. */
   items?: {
     selectedIds: readonly string[];
     onSelect: (id: string, toggle: boolean) => void;
     onOps: (ops: PageOp[], key: string) => void;
     onContextMenu?: (id: string, x: number, y: number) => void;
-    badgeOf?: (p: Placement) => ReactNode;
     /** The selected page groups: their boxes, and their moves. */
     groups?: GroupMoves;
   };
@@ -249,9 +237,6 @@ export function StudioCanvas({
   onUseSample,
   selectionChip,
   islandAlerts = NO_ALERTS,
-  badgeOf,
-  leftOut,
-  infoPanelView,
   items,
 }: StudioCanvasProps) {
   /** The mode of the scoped screen theme: `lite:` styling on its theme cards follows it, as the kiosk page's `data-mode` does. */
@@ -770,7 +755,7 @@ export function StudioCanvas({
                     );
                   })}
 
-                  {profile.placements.filter((p) => !leftOut?.has(p.id)).map((p) => (
+                  {profile.placements.map((p) => (
                     <LivePlacement
                       key={p.id}
                       placement={p}
@@ -804,7 +789,6 @@ export function StudioCanvas({
                           onPressGrouped={p.groupId && !selectedIds.includes(p.id) ? (e) => pressGrouped.current?.(e, p.id) ?? false : undefined}
                           onPickWidget={() => onPickWidget(p.id)}
                           onContextMenu={(x, y) => onContextMenu(p.id, x, y)}
-                          badge={badgeOf?.(p)}
                         >
                           {content}
                         </PlacementFrame>
@@ -822,18 +806,6 @@ export function StudioCanvas({
                     </LivePlacement>
                   ))}
 
-                  {infoPanelView && pageEl && gridEl && (
-                    <Suspense fallback={null}>
-                      <InfoPanelViewLayer
-                        page={pageEl}
-                        grid={gridEl}
-                        zoom={zoom}
-                        screen={infoPanelView.screen}
-                        storedPage={infoPanelView.page}
-                        placements={profile.placements.filter((p) => !leftOut?.has(p.id))}
-                      />
-                    </Suspense>
-                  )}
                 </div>
                 {page && items && (
                   <ItemParts
@@ -848,7 +820,6 @@ export function StudioCanvas({
                     onDragCancel={onDragCancel}
                     onGesture={setGesture}
                     onContextMenu={items.onContextMenu}
-                    badgeOf={items.badgeOf}
                     groups={items.groups}
                     pressRef={pressGrouped}
                   />

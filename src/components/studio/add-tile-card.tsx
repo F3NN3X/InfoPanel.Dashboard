@@ -1,24 +1,11 @@
-import { lazy, Suspense, type CSSProperties, type ReactNode } from "react";
+import { lazy, Suspense, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import type { Appearance } from "@/lib/style-resolve";
-import { cn } from "@/lib/utils";
 import { sizeText } from "./add-catalog";
 import { WidgetStage } from "./add-preview";
-import type { AddTile, TileStatus } from "./add-tiles";
+import type { AddTile } from "./add-tiles";
 
-/** The Add details card (Edit v3 SPEC §9.5): a tile's live render, name and category, description, size and export status. */
-
-/** The Export check's faces for the tiles and the card, loaded on a screen made for InfoPanel (`infopanel/edit/add-status.tsx`). */
-export interface AddStatusKit {
-  of: (tile: AddTile) => TileStatus | undefined;
-  Icon: (props: { status: TileStatus; className?: string }) => ReactNode;
-  /** The pill's words: as is, approximated, becomes a picture, left out. */
-  word: Record<TileStatus, string>;
-  /** Each status's text colour class. */
-  text: Record<TileStatus, string>;
-  /** The toast after adding the tile's part (SPEC §9.6): `{Name} added. On InfoPanel export it …`. */
-  added: (tile: AddTile) => string;
-}
+/** The Add details card (Edit v3 SPEC §9.5): a tile's live render, name and category, description and size. */
 
 /** An item's or element's render: the canvas renderer, loaded with the first card that shows one. */
 const AddItemStage = lazy(() => import("@/components/infopanel/edit/add-item-stage"));
@@ -59,13 +46,11 @@ interface TileCardProps {
   /** Viewport px: 8 px right of the left panel, and the clamped top. */
   left: number;
   top: number;
-  status?: AddStatusKit;
   appearance?: Appearance;
   pageStyle?: CSSProperties;
 }
 
-export function TileCard({ tile, left, top, status, appearance, pageStyle }: TileCardProps) {
-  const s = status?.of(tile);
+export function TileCard({ tile, left, top, appearance, pageStyle }: TileCardProps) {
   const size = cardSize(tile);
   return createPortal(
     <div
@@ -98,12 +83,6 @@ export function TileCard({ tile, left, top, status, appearance, pageStyle }: Til
           <span className="rounded-[4px] bg-ui-subtle px-1.5 py-px font-ui-mono text-ui-1">{size.chip}</span>
           {size.note}
         </span>
-        {status && s && (
-          <span className={cn("flex items-center gap-1.5 text-micro", status.text[s])}>
-            <status.Icon status={s} className="h-3.5 w-3.5" />
-            On InfoPanel: {status.word[s]}
-          </span>
-        )}
         <span className="border-t border-ui-default pt-2 text-micro text-ui-hint">Click to add · drag to place</span>
       </div>
     </div>,

@@ -1,13 +1,12 @@
 /**
  * Layers (Edit v3 SPEC §8): one tree for every page, a screen's or an imported profile's, top first. Each row has a
- * chevron slot, an icon tile, the name (double-click renames), the kind word, the placed-freely mark, the Export
- * check's status (made for InfoPanel), the lock and the eye. Click selects, Shift a range, Ctrl toggles; a row drags
+ * chevron slot, an icon tile, the name (double-click renames), the kind word, the placed-freely mark, the lock and the eye. Click selects, Shift a range, Ctrl toggles; a row drags
  * between rows (a 2 px line where it lands) or onto a group's middle (an outline: into it), carrying the selection.
  * Right-click opens the layer menu. The chevron, lock and eye are pointer controls kept out of the accessibility tree (APG tree: no
  * interactive descendants of a treeitem); the keyboard has Left and Right, Ctrl+L and Ctrl+H, and the row's state is its aria-description. The page's host (`use-page-layers.ts` on a screen's page, `canvas-layers.ts` on an imported profile's) reads the
  * page into rows and runs every change.
  */
-import { lazy, Suspense, useEffect, useMemo, useRef, useState, type DragEvent, type KeyboardEvent, type MouseEvent, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type DragEvent, type KeyboardEvent, type MouseEvent } from "react";
 import { ChevronDown, ChevronRight, ChevronsDownUp, Eye, EyeOff, Folder, FolderOpen, FolderPlus, Lock, Move, type LucideIcon } from "lucide-react";
 import { IconButton } from "@/components/ui/icon-button";
 import type { PartKind } from "@/lib/page-model/model";
@@ -51,8 +50,6 @@ export interface LayersHost {
   drop: (ids: readonly string[], parentId: string | null, index: number) => void;
   menu: Omit<LayerMenuHost, "rename">;
   iconOf: (node: TreeNode) => LucideIcon;
-  /** A part's Export check status icon (made for InfoPanel), with its label as the tooltip; none otherwise. */
-  statusIcon?: (id: string) => ReactNode;
   /** Each new value starts renaming the primary node (F2). */
   renameRequest?: number;
 }
@@ -277,7 +274,6 @@ export function LayersTree({ host }: { host: LayersHost }) {
           const Icon = group ? (open ? FolderOpen : Folder) : host.iconOf(node);
           const widget = node.kind === "widget";
           const isSelected = selected.includes(node.id);
-          const status = !group ? host.statusIcon?.(node.id) : undefined;
           const mark = drop?.id === node.id ? drop.where : null;
           const label = node.name || (group ? "Group" : "Part");
           return (
@@ -395,11 +391,6 @@ export function LayersTree({ host }: { host: LayersHost }) {
               {node.free && !widget && !node.size && (
                 <span role="img" title="Placed freely (Alt)" aria-label="Placed freely (Alt)" className="inline-flex shrink-0 text-ui-4">
                   <Move className="h-3 w-3" aria-hidden="true" />
-                </span>
-              )}
-              {status && (
-                <span data-testid="layers-row-status" className="inline-flex shrink-0">
-                  {status}
                 </span>
               )}
               <span className="absolute inset-y-0 right-1.5 flex items-center gap-0.5">

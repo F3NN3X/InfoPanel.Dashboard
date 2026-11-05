@@ -106,12 +106,12 @@ const FILTERS: readonly AddFilter[] = ["all", "widgets", "items"];
 export const INFOPANEL_CHIP = "InfoPanel";
 
 /**
- * The tab Add opens on: Items for a screen made for InfoPanel, for a start that asks for it, or for the old InfoPanel chip,
- * when the page takes items at all; else Widgets. A start that asks for Widgets wins.
+ * The tab Add opens on: Items for a start that asks for it, or for the old InfoPanel chip, when the page takes items
+ * at all; else Widgets. A start that asks for Widgets wins.
  */
-export function startTab(facts: { takesItems: boolean; infoPanel: boolean; segment?: AddFilter; storedChip: string }): "items" | "widget" {
-  const { takesItems, infoPanel, segment, storedChip } = facts;
-  return takesItems && segment !== "widgets" && (infoPanel || segment === "items" || storedChip === INFOPANEL_CHIP) ? "items" : "widget";
+export function startTab(facts: { takesItems: boolean; segment?: AddFilter; storedChip: string }): "items" | "widget" {
+  const { takesItems, segment, storedChip } = facts;
+  return takesItems && segment !== "widgets" && (segment === "items" || storedChip === INFOPANEL_CHIP) ? "items" : "widget";
 }
 
 export function parseAddFilter(raw: string | null): AddFilter {

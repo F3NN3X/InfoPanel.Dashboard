@@ -35,11 +35,10 @@ const items: DisplayItem[] = [
 const canvas = storeItems(base, openCanvas(base).profile, items);
 const zone = { id: "z", module: CANVAS_ID, colStart: 1, rowStart: 1, colSpan: 2, rowSpan: 1, visible: true, canvas } as Placement & { canvas: StoredCanvas };
 const config = { profiles: [{ id: "p1", name: "Main", pages: [{ id: "pg", name: "Page 1", placements: [zone] }] }] } as unknown as DashboardConfig;
-const history = { canUndo: false, canRedo: false, undo: vi.fn(), redo: vi.fn() };
 const mount = (setConfig = vi.fn()) =>
   render(
     <ToastProvider>
-      <HostedEditor tab="layers" zone={zone} setConfig={setConfig} history={history} profileId="p1" />
+      <HostedEditor tab="layers" zone={zone} setConfig={setConfig} profileId="p1" />
     </ToastProvider>,
   );
 const row = (name: string) => screen.getAllByRole("treeitem").find((r) => r.textContent?.includes(name))!;

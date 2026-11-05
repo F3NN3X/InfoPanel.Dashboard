@@ -1,6 +1,5 @@
 import type { DragEvent } from "react";
 import { cn } from "@/lib/utils";
-import type { AddStatusKit } from "./add-tile-card";
 import { PALETTE_DRAG_MIME, tileStyles, type AddTile, type TileSection } from "./add-tiles";
 import { DND_MIME, DND_MIME_PANEL, DND_MIME_SETTINGS } from "./studio-modules";
 
@@ -31,13 +30,12 @@ interface AddTileGridProps {
   justAdded?: string;
   /** Tiles that can't fill the selected blank zone (dimmed). */
   dimmed?: (tile: AddTile) => boolean;
-  status?: AddStatusKit | null;
   onAdd: (tile: AddTile) => void;
   onHover: (tile: AddTile, el: HTMLElement) => void;
   onDragStart: () => void;
 }
 
-export function AddTileGrid({ sections, highlighted, justAdded, dimmed, status, onAdd, onHover, onDragStart }: AddTileGridProps) {
+export function AddTileGrid({ sections, highlighted, justAdded, dimmed, onAdd, onHover, onDragStart }: AddTileGridProps) {
   return (
     <>
       {sections.map((s) => (
@@ -58,7 +56,6 @@ export function AddTileGrid({ sections, highlighted, justAdded, dimmed, status, 
                     highlighted={highlighted === tile.key}
                     added={justAdded === tile.key}
                     dim={dimmed?.(tile) ?? false}
-                    status={status}
                     onAdd={() => onAdd(tile)}
                     onHover={(el) => onHover(tile, el)}
                     onDragStart={(e) => {
@@ -81,16 +78,14 @@ interface TileProps {
   highlighted: boolean;
   added: boolean;
   dim: boolean;
-  status?: AddStatusKit | null;
   onAdd: () => void;
   onHover: (el: HTMLElement) => void;
   onDragStart: (e: DragEvent) => void;
 }
 
-function Tile({ tile, highlighted, added, dim, status, onAdd, onHover, onDragStart }: TileProps) {
+function Tile({ tile, highlighted, added, dim, onAdd, onHover, onDragStart }: TileProps) {
   const Icon = tile.icon;
   const styles = tileStyles(tile);
-  const s = status?.of(tile);
   return (
     <div
       id={tileId(tile)}
@@ -99,7 +94,6 @@ function Tile({ tile, highlighted, added, dim, status, onAdd, onHover, onDragSta
       aria-label={tile.name}
       data-testid="add-tile"
       data-kind={tile.kind}
-      data-status={s}
       draggable
       onDragStart={onDragStart}
       onClick={onAdd}
@@ -118,11 +112,6 @@ function Tile({ tile, highlighted, added, dim, status, onAdd, onHover, onDragSta
         <span className="block truncate text-caption text-ui-3">{tile.widget?.blurb ?? tile.description}</span>
       </span>
       {styles && <span className="shrink-0 rounded-ui-sm border border-ui-strong px-1.5 py-px text-micro text-ui-3">{styles} styles</span>}
-      {status && s && (
-        <span className="shrink-0 leading-none">
-          <status.Icon status={s} className="h-3 w-3" />
-        </span>
-      )}
     </div>
   );
 }

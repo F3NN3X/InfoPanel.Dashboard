@@ -36,23 +36,12 @@ interface ZoomToolbarProps {
   preview?: PreviewDataState;
   /** The bar says how parts snap (the InfoPanel editor's; on a grid page the status bar does). */
   snapItems?: boolean;
-  /**
-   * `Studio | InfoPanel` (decision Q10): on a screen made for InfoPanel too, the canvas drawn as it is or as the page
-   * exports; unset otherwise.
-   */
-  exportView?: ExportView;
   /** Select and Pan: Pan keeps the hand tool on (Space and the middle button still hold it); unset outside the studio canvas. */
   tool?: { hand: boolean; onHand: (hand: boolean) => void };
   /** Add widget: the left panel's Add tab. */
   onAdd?: () => void;
   /** A floating inspector's opener (a narrow window: it starts closed). */
   inspector?: { open: boolean; onToggle: () => void };
-}
-
-/** The canvas's view on a screen made for InfoPanel too: true draws the page as it exports. */
-export interface ExportView {
-  infoPanel: boolean;
-  onChange: (infoPanel: boolean) => void;
 }
 
 const BAR_BUTTON = "h-7 w-7 rounded-ui-md hover:bg-ui-hover";
@@ -64,8 +53,8 @@ function Divider() {
 
 /**
  * The bottom toolbar over the canvas (16 px from the bottom, centred): Select and Pan, Add widget, zoom, Fit and the
- * grid with its menu (rulers, 100%, Zoom to selection and the size link). `Studio | InfoPanel` and the Frozen chip
- * follow while they apply.
+ * grid with its menu (rulers, 100%, Zoom to selection and the size link). The Frozen chip
+ * follows while it applies.
  */
 export function ZoomToolbar({
   zoom,
@@ -85,7 +74,6 @@ export function ZoomToolbar({
   bottom,
   preview,
   snapItems,
-  exportView,
   tool,
   onAdd,
   inspector,
@@ -181,12 +169,6 @@ export function ZoomToolbar({
             </span>
           </>
         )}
-        {exportView && (
-          <>
-            <Divider />
-            <ExportViewSwitch view={exportView} />
-          </>
-        )}
         {preview?.frozen && <FrozenChip preview={preview} />}
       </div>
       {inspector && (
@@ -197,28 +179,6 @@ export function ZoomToolbar({
           </IconButton>
         </>
       )}
-    </div>
-  );
-}
-
-/** `Studio | InfoPanel`: the page as Studio draws it, or as InfoPanel will after export. */
-function ExportViewSwitch({ view }: { view: ExportView }) {
-  const option = (infoPanel: boolean, label: string, title: string) => (
-    <button
-      type="button"
-      role="radio"
-      aria-checked={view.infoPanel === infoPanel}
-      title={title}
-      onClick={() => view.onChange(infoPanel)}
-      className={cn("h-[22px] rounded-[5px] px-2 text-micro transition-colors", view.infoPanel === infoPanel ? "bg-ui-active text-ui-1" : "text-ui-4 hover:text-ui-1")}
-    >
-      {label}
-    </button>
-  );
-  return (
-    <div role="radiogroup" aria-label="View as" data-testid="export-view" className="flex h-[26px] items-center gap-0.5 rounded-md bg-ui-app p-0.5">
-      {option(false, "Studio", "The page as Studio panels show it")}
-      {option(true, "InfoPanel", "The page as it exports to InfoPanel: items drawn by InfoPanel, the parts left out hidden")}
     </div>
   );
 }

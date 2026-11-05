@@ -62,14 +62,6 @@ describe("buildCommands", () => {
     expect(list.filter((id) => id.startsWith("drawer:"))).toEqual(["drawer:add", "drawer:layers"]);
   });
 
-  it("offers Export check only on a screen made for InfoPanel", () => {
-    expect(ids(base)).not.toContain("export-check");
-    expect(buildCommands({ ...base, exportCheck: true }).find((c) => c.id === "export-check")).toMatchObject({
-      label: "Export check",
-      action: { type: "export-check" },
-    });
-  });
-
   it("offers each saved theme with its background, keeping the level's, and on all screens, at the level Theme is set to", () => {
     const themes = buildCommands({ ...base, appearancePresets: [{ id: "t1", name: "Desk" }], themeLevel: "Gaming" }).filter((c) => c.group === "Themes");
     expect(themes.map((c) => [c.label, c.hint, c.action])).toEqual([

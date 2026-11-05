@@ -19,14 +19,11 @@ import type { InspectorContext, InspectorSection } from "@/components/studio/ins
 import { InspectorView, type SectionParts } from "@/components/studio/inspector/inspector-view";
 import { BINDING_IDS, ipDefault, ipGroups, ipOwn, ipShown, ipValue } from "@/components/studio/inspector/infopanel-defs";
 import type { FieldsApi } from "@/components/studio/settings-panel";
-import { badgeOf, elementOf } from "@/lib/infopanel/elements/apply";
-import { itemLooksOf, studioOnlyOf, type CheckRow } from "@/lib/infopanel/export-check";
+import { elementOf } from "@/lib/infopanel/elements/apply";
 import { MAX_LETTER_SPACING, TEXT_KINDS } from "@/lib/infopanel/import/stored";
-import { OnInfoPanelSection } from "@/components/studio/inspector/on-infopanel-section";
-import { useExportCheck } from "../export-check-panel";
 import { ELEMENTS, gradientBar } from "@/lib/infopanel/elements/create";
 import { describeNative } from "@/lib/infopanel/native/describe";
-import { BadgeChip, ELEMENT_ICONS } from "./element-ui";
+import { ELEMENT_ICONS } from "./element-ui";
 import { ElementPanel, NumberField } from "./element-panel";
 import { valueText } from "../remap-panel";
 import { Segmented } from "./canvas-toolbar";
@@ -48,8 +45,6 @@ interface ItemInspectorProps {
   onEditGauge?: (path: Path) => void;
   /** The Place row (Edit v3 SPEC §10.2): where the part is, on cells or in px; the position grid keeps rotation and flip. */
   place?: ReactNode;
-  /** After the sections: the part's LAYER section (its On InfoPanel line comes last, under it). */
-  after?: ReactNode;
   /** The header's Hide, Duplicate and Delete. */
   actions?: { onToggleHidden: () => void; onDuplicate: () => void; onDelete: () => void };
 }
@@ -67,7 +62,7 @@ function Placeholder({ title, children }: { title: string; children: ReactNode }
   );
 }
 
-export function ItemInspector({ editor, live, onRemap, onBindSensor, sensors, onEditGauge, place, after, actions }: ItemInspectorProps) {
+export function ItemInspector({ editor, live, onRemap, onBindSensor, sensors, onEditGauge, place, actions }: ItemInspectorProps) {
   const { selection } = editor;
   if (selection.length === 0) {
     return (
@@ -81,19 +76,16 @@ export function ItemInspector({ editor, live, onRemap, onBindSensor, sensors, on
   const item = itemAt(editor.committed, path);
   // Keyed by path: a draft or an error never carries over to another item.
   return item ? (
-    <ItemFields key={path} editor={editor} path={path} item={item} live={live} onRemap={onRemap} onBindSensor={onBindSensor} sensors={sensors} onEditGauge={onEditGauge} place={place} after={after} actions={actions} />
+    <ItemFields key={path} editor={editor} path={path} item={item} live={live} onRemap={onRemap} onBindSensor={onBindSensor} sensors={sensors} onEditGauge={onEditGauge} place={place} actions={actions} />
   ) : null;
 }
 
-function ItemFields({ editor, path, item, live, onRemap, onBindSensor, sensors, onEditGauge, place, after, actions }: ItemInspectorProps & { path: Path; item: DisplayItem }) {
+function ItemFields({ editor, path, item, live, onRemap, onBindSensor, sensors, onEditGauge, place, actions }: ItemInspectorProps & { path: Path; item: DisplayItem }) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [query, setQuery] = useState("");
   const kind = item.kind as ItemKind;
   const groups = ipGroups(kind, place !== undefined);
   const element = elementOf(item);
-  const badge = badgeOf(item);
-  const check = useExportCheck();
-  const row = check.on ? check.byPath.get(path) : undefined;
   const context: InspectorContext = {
     kind: "infopanel",
     groups,
@@ -151,7 +143,6 @@ function ItemFields({ editor, path, item, live, onRemap, onBindSensor, sensors, 
               <NumberField
                 label="Letter spacing"
                 value={spacing}
-                approx={check.on && spacing !== 0}
                 onCommit={(n) => {
                   const v = Math.max(-MAX_LETTER_SPACING, Math.min(MAX_LETTER_SPACING, n));
                   if (v !== spacing) editor.setField(path, "letterSpacing", v === 0 ? undefined : v, editKey("letterSpacing"));
@@ -165,17 +156,7 @@ function ItemFields({ editor, path, item, live, onRemap, onBindSensor, sensors, 
     switch (s.special) {
       case "ipElement":
         return {
-          body: element ? (
-            <>
-              {badge && (
-                <p className="px-4 pb-2 text-[11.5px] leading-snug text-ui-4">
-                  {badge.reason}
-                  {badge.lost.length > 0 && <span className="text-ui-warn"> Lost: {badge.lost.join(", ")}.</span>}
-                </p>
-              )}
-              <ElementPanel editor={editor} path={path} item={item} spec={element} sensors={sensors ?? {}} />
-            </>
-          ) : null,
+          body: element ? <ElementPanel editor={editor} path={path} item={item} spec={element} sensors={sensors ?? {}} /> : null,
         };
       case "ipMode":
         return { body: <DrawAs editor={editor} path={path} /> };
@@ -244,7 +225,6 @@ function ItemFields({ editor, path, item, live, onRemap, onBindSensor, sensors, 
             </div>
           </div>
           {item.IsLocked && <Lock className="h-3.5 w-3.5 shrink-0 text-ui-4" aria-label="Locked" />}
-          {badge && <BadgeChip badge={badge} />}
           {actions && (
             <>
               <button type="button" aria-label={item.Hidden ? "Show" : "Hide"} title={item.Hidden ? "Show (Ctrl+H)" : "Hide (Ctrl+H)"} className={ACTION} onClick={actions.onToggleHidden}>
@@ -261,18 +241,6 @@ function ItemFields({ editor, path, item, live, onRemap, onBindSensor, sensors, 
         </div>
       }
       place={place}
-      after={
-        (after || row) && (
-          <>
-            {after}
-            {row && (
-              <div className="border-t border-ui-subtle px-3.5 py-3">
-                <OnInfoPanel row={row} item={item} />
-              </div>
-            )}
-          </>
-        )
-      }
       underline
       tabLabels={IP_TABS}
       fields={fields}
@@ -286,32 +254,6 @@ function ItemFields({ editor, path, item, live, onRemap, onBindSensor, sensors, 
 
 /** An item's tabs (Edit v3 SPEC §10.2): Item, Sensor, Theme. */
 const IP_TABS = { show: "Item", data: "Sensor", style: "Theme" } as const;
-
-/** On InfoPanel (one-editor SPEC §5.5): the part's Export check status, and per studio-only look what InfoPanel shows instead. */
-function OnInfoPanel({ row, item }: { row: CheckRow; item: DisplayItem }) {
-  const looks = studioOnlyOf(item);
-  const own = itemLooksOf(item);
-  return (
-    <OnInfoPanelSection row={row}>
-      <ul className="space-y-0.5">
-        {looks.length + own.length > 0 ? (
-          <>
-            {looks.map(({ field }) => (
-              <li key={field.key}>
-                {field.label} shows on Studio panels; on InfoPanel it {field.fate ?? "is dropped"}.
-              </li>
-            ))}
-            {own.map(({ field }) => (
-              <li key={field.key}>{field.label} stays on Studio panels; InfoPanel shows the text without it.</li>
-            ))}
-          </>
-        ) : (
-          <li>{row.why.replace(/\.?$/, ".")}</li>
-        )}
-      </ul>
-    </OnInfoPanelSection>
-  );
-}
 
 /** What InfoPanel reads, as stored: the ids the Sensor dropdown wrote, for reference and never typed. */
 function BindingReadout({ item }: { item: DisplayItem }) {

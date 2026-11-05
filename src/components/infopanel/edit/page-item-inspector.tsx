@@ -2,8 +2,7 @@
  * One InfoPanel item or element on a screen's page, selected (Edit v3 SPEC §10.2): the item inspector an imported
  * profile's items have (Item · Sensor · Look, the kind's fields, its sensor, an element's own panel), over the item
  * placement's stored item (`Placement.item`) with the page's store (`ProfilePage.freeCanvas`: files, fonts, palette)
- * around it. Its Place row moves it through the page model (on cells, or in px), and its On InfoPanel line comes
- * after the fields. Every edit is one step of the screen's history. A new Image or Sensor image
+ * around it. Its Place row moves it through the page model (on cells, or in px). Every edit is one step of the screen's history. A new Image or Sensor image
  * asks for its file here (DECISIONS after phase 5). Lazy-loaded with the item model.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -11,7 +10,6 @@ import type { HistorySetter } from "@/hooks/use-config-history";
 import { useSensors } from "@/hooks/useSensors";
 import { useSensorCatalog } from "@/lib/catalog";
 import { editKeys, storeItems, withAsset, type DroppedFile } from "@/lib/infopanel/canvas-edit";
-import { checkItems } from "@/lib/infopanel/export-check";
 import { updateAt } from "@/lib/infopanel/editor/ops";
 import { newStored, type StoredCanvas, type StoredItem } from "@/lib/infopanel/import/stored";
 import type { DisplayItem } from "@/lib/infopanel/schema";
@@ -20,7 +18,6 @@ import type { DashboardConfig, MonitorProfile, Placement, ProfilePage } from "@/
 import type { PageOp, PartPlace } from "@/lib/page-model/model";
 import { withoutItems } from "@/lib/page-model/stored-items";
 import { PlaceRow } from "@/components/studio/place-row";
-import { ExportCheckContext, type ExportCheckState } from "../export-check-panel";
 import { ImagePicker } from "./image-picker";
 import { ItemInspector } from "./item-inspector";
 import { useCanvasEditor, type ReplaceCanvas } from "./use-canvas-editor";
@@ -57,8 +54,6 @@ interface PageItemInspectorProps {
   setConfig: HistorySetter;
   onOps: (ops: readonly PageOp[]) => void;
   /** The LAYER section. */
-  /** The screen is made for InfoPanel: the On InfoPanel line shows. */
-  checkOn: boolean;
   onDuplicate: () => void;
   onDelete: () => void;
   /** A new Image or Sensor image: ask for its file, then `onFilePicked` (a Sensor image asks for its sensor next). */
@@ -66,7 +61,7 @@ interface PageItemInspectorProps {
   onFileDone?: (picked: boolean) => void;
 }
 
-export default function PageItemInspector({ profile, page, placement, place, setConfig, onOps, checkOn, onDuplicate, onDelete, askFile = false, onFileDone }: PageItemInspectorProps) {
+export default function PageItemInspector({ profile, page, placement, place, setConfig, onOps, onDuplicate, onDelete, askFile = false, onFileDone }: PageItemInspectorProps) {
   const zone = useMemo(
     () => ({ ...placement, canvas: oneItemCanvas(page, placement.item, { width: profile.width, height: profile.height }) }),
     [placement, page.freeCanvas, page.name, profile.width, profile.height],
@@ -76,7 +71,6 @@ export default function PageItemInspector({ profile, page, placement, place, set
   const sensors = useSensorCatalog().sensors as unknown as Record<string, DataApiValue>;
   const keys = useMemo(() => editKeys(editor.committed), [editor.committed]);
   const live = useSensors(keys) as unknown as Record<string, DataApiValue>;
-  const check: ExportCheckState = useMemo(() => ({ on: checkOn, byPath: new Map(checkItems(editor.committed, false).rows.map((r) => [r.path, r])) }), [checkOn, editor.committed]);
   const [fileOpen, setFileOpen] = useState(askFile);
   const picked = useRef(false);
   useEffect(() => setFileOpen(askFile), [askFile, placement.id]);
@@ -117,7 +111,7 @@ export default function PageItemInspector({ profile, page, placement, place, set
 
   if (!item) return null;
   return (
-    <ExportCheckContext.Provider value={check}>
+    <>
       <ItemInspector
         editor={editor}
         live={live}
@@ -145,6 +139,6 @@ export default function PageItemInspector({ profile, page, placement, place, set
           picked.current = true;
         }}
       />
-    </ExportCheckContext.Provider>
+    </>
   );
 }

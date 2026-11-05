@@ -13,8 +13,6 @@ import { categoriesOf, sizeText, type AddItem } from "./add-catalog";
 import type { AddFilter } from "./add-prefs";
 
 export type TileKind = "widget" | "item" | "element";
-/** What an export makes of a tile's part (the Export check's statuses). */
-export type TileStatus = "ok" | "approx" | "pic" | "out";
 
 export interface AddTile {
   /** Unique across kinds: a widget row's id, `item:{Kind}` or `element:{type}` (Recently used stores it). */
@@ -140,12 +138,8 @@ export interface SectionOptions {
   query: string;
   /** Recently used tile keys, newest first. */
   recent: readonly string[];
-  /** The screen is made for InfoPanel: items first, and tiles sort by status. */
-  infoPanel: boolean;
-  status?: (tile: AddTile) => TileStatus | undefined;
 }
 
-const RANK: Record<TileStatus, number> = { ok: 0, approx: 1, pic: 2, out: 3 };
 export const RECENT_SHOWN = 4;
 
 const kindShown = (segment: AddFilter, kind: TileKind) => segment === "all" || (segment === "widgets" ? kind === "widget" : kind !== "widget");
@@ -174,9 +168,8 @@ export function searchTiles(tiles: readonly AddTile[], query: string): AddTile[]
 
 /**
  * The list's sections (SPEC §9.2–§9.3): Recently used (up to four, any kind the segment shows; none while searching
- * or on a chip), then Studio widgets, InfoPanel items and Elements, items first on a screen made for InfoPanel, each
- * by category in curated order, sorted by status (as is → approximated → becomes a picture → left out) when made for
- * InfoPanel. A query makes one flat ranked list instead. Empty sections are left out.
+ * or on a chip), then Studio widgets, InfoPanel items and Elements, each by category in curated order. A query makes
+ * one flat ranked list instead. Empty sections are left out.
  */
 export function addSections(o: SectionOptions): TileSection[] {
   const pools: Record<TileKind, readonly AddTile[]> = { widget: o.widgets, item: o.items ?? [], element: o.elements ?? [] };
@@ -185,8 +178,6 @@ export function addSections(o: SectionOptions): TileSection[] {
     const hits = searchTiles(all, o.query);
     return hits.length ? [{ id: "search", title: null, groups: [{ sub: null, tiles: hits }] }] : [];
   }
-  const sorted = (tiles: AddTile[]) =>
-    o.infoPanel && o.status ? tiles.map((t, i) => ({ t, i, r: RANK[o.status!(t) ?? "ok"] })).sort((a, b) => a.r - b.r || a.i - b.i).map((x) => x.t) : tiles;
   const onChip = (t: AddTile) => o.chip === "All" || t.category === o.chip;
   const out: TileSection[] = [];
   if (o.chip === "All") {
@@ -196,14 +187,14 @@ export function addSections(o: SectionOptions): TileSection[] {
     const recent = [...new Set(used)].slice(0, RECENT_SHOWN);
     if (recent.length) out.push({ id: "recent", title: "Recently used", groups: [{ sub: null, tiles: recent }] });
   }
-  const order: TileKind[] = o.infoPanel ? ["item", "element", "widget"] : ["widget", "item", "element"];
+  const order: TileKind[] = ["widget", "item", "element"];
   const TITLES: Record<TileKind, string> = { widget: "Studio widgets", item: "InfoPanel items", element: "Elements" };
   for (const kind of order) {
     if (!kindShown(o.segment, kind)) continue;
     const pool = pools[kind];
     const cats = kind === "widget" ? categoriesOf(pool.map((t) => t.widget!)) : kind === "item" ? [...PALETTE_GROUPS] : [ELEMENTS_CATEGORY];
     const groups = cats
-      .map((c) => ({ sub: kind === "element" ? null : c, tiles: sorted(pool.filter((t) => t.category === c && onChip(t))) }))
+      .map((c) => ({ sub: kind === "element" ? null : c, tiles: pool.filter((t) => t.category === c && onChip(t)) }))
       .filter((g) => g.tiles.length > 0);
     if (groups.length) out.push({ id: kind, title: TITLES[kind], count: pool.length, groups });
   }

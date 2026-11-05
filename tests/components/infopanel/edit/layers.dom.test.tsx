@@ -22,7 +22,6 @@ const items: DisplayItem[] = [
 const canvas = storeItems(base, openCanvas(base).profile, items);
 const zone = { id: "z", module: CANVAS_ID, colStart: 1, rowStart: 1, colSpan: 2, rowSpan: 1, visible: true, canvas } as Placement & { canvas: StoredCanvas };
 const config = { profiles: [{ id: "p1", name: "Main", pages: [{ id: "pg", name: "Page 1", placements: [zone] }] }] } as unknown as DashboardConfig;
-const history = { canUndo: false, canRedo: false, undo: vi.fn(), redo: vi.fn() };
 
 /** A dragover at a height in the row (happy-dom drops clientY from the init). */
 const over = (el: Element, clientY: number) => {
@@ -37,7 +36,7 @@ describe("Layers", () => {
     const setConfig = vi.fn();
     render(
       <ToastProvider>
-        <HostedEditor tab="layers" zone={zone} setConfig={setConfig} history={history} profileId="p1" />
+        <HostedEditor tab="layers" zone={zone} setConfig={setConfig} profileId="p1" />
       </ToastProvider>,
     );
     const group = row("Panel");
@@ -60,7 +59,7 @@ describe("Layers", () => {
   it("marks where a drop lands: a line above or below a row, a box inside a group", () => {
     render(
       <ToastProvider>
-        <HostedEditor tab="layers" zone={zone} setConfig={vi.fn()} history={history} profileId="p1" />
+        <HostedEditor tab="layers" zone={zone} setConfig={vi.fn()} profileId="p1" />
       </ToastProvider>,
     );
     const rect = { top: 0, bottom: 30, height: 30, left: 0, right: 100, width: 100, x: 0, y: 0, toJSON: () => ({}) };
@@ -84,7 +83,7 @@ describe("Layers", () => {
   it("shows why a drop can't land: a group into itself", () => {
     render(
       <ToastProvider>
-        <HostedEditor tab="layers" zone={zone} setConfig={vi.fn()} history={history} profileId="p1" />
+        <HostedEditor tab="layers" zone={zone} setConfig={vi.fn()} profileId="p1" />
       </ToastProvider>,
     );
     const group = row("Panel");
@@ -101,7 +100,7 @@ describe("Layers", () => {
     const setConfig = vi.fn();
     render(
       <ToastProvider>
-        <HostedEditor tab="layers" zone={gzone} setConfig={setConfig} history={history} profileId="p1" />
+        <HostedEditor tab="layers" zone={gzone} setConfig={setConfig} profileId="p1" />
       </ToastProvider>,
     );
     fireEvent.click(row("Inner"));

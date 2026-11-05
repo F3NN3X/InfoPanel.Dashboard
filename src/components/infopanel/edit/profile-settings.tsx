@@ -259,7 +259,7 @@ export function ProfileSettings({ editor, page, onRemap, remapCount = 0, drawing
           ))}
         </div>
         <p className="mt-2 text-[11.5px] leading-snug text-ui-4">
-          Studio only, never exported. New items and elements take these colors; changing one recolors everything that uses it, and baked elements bake again on export.
+          New items and elements take these colors; changing one recolors everything that uses it.
         </p>
       </section>
       <p className="px-4 py-3 text-[11.5px] leading-snug text-ui-4">Select an item on the canvas or in Layers to edit it.</p>

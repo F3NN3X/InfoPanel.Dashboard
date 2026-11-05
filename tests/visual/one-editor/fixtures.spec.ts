@@ -1,6 +1,5 @@
 import type { Locator, Page } from "@playwright/test";
 import { FIXTURE_NAMES, type FixtureName } from "@/dev/fixtures/types";
-import { DEFAULT_DATA_API as DATA_API } from "../../e2e/fixtures";
 import { CHECKS } from "./checks";
 import { expect, openFixture, shoot, test } from "./harness";
 
@@ -8,31 +7,10 @@ import { expect, openFixture, shoot, test } from "./harness";
 // the phase that enables it, until that phase builds the UI. A phase turns its lines on in the same change.
 
 /** The fixtures on Desk panel (src/dev/fixtures/one-editor.ts); the others are on Neon Rig. */
-const DESK = new Set<string>(["screen", "alt", "export", "layersG"]);
+const DESK = new Set<string>(["screen", "alt", "layersG"]);
 
 const fixtureTab = (name: string) => (["addw", "hover"].includes(name) ? "Add" : "Layers");
 const WIDGET_KIND = /^Widget · col \d+, row \d+$/;
-
-/** Made for sits in the File menu (P-12): the open menu's group. The group lists both options, so a check reads which one is checked. */
-async function openMadeFor(page: Page) {
-  await page.getByTestId("file-menu").click();
-  return page.getByTestId("made-for");
-}
-
-/** The option the open Made for group has checked. */
-async function expectMadeFor(page: Page, checked: "Studio panels" | "InfoPanel too") {
-  const group = await openMadeFor(page);
-  await expect(group.getByRole("menuitemradio", { name: new RegExp(checked) })).toHaveAttribute("aria-checked", "true");
-  await expect(group.getByRole("menuitemradio", { name: new RegExp(checked === "Studio panels" ? "InfoPanel too" : "Studio panels") })).toHaveAttribute("aria-checked", "false");
-}
-
-/** Open the Export check from its pill. Desk panel's: CPU and GPU gauge and Weather become pictures, Clock exports as is, Coding agents is left out. */
-async function openExportCheck(page: Page) {
-  await page.getByTestId("export-pill").click();
-  const panel = page.getByTestId("export-check");
-  await expect(panel).toBeVisible();
-  return panel;
-}
 
 /** A box on Neon Rig's canvas in its own px (800 wide), from the canvas editor's layer. */
 async function profileBox(page: Page, part: Locator) {
@@ -170,8 +148,8 @@ const BUILT: Partial<Record<FixtureName, Record<string, (page: Page) => Promise<
     },
   },
   profile: {
-    // CPU temp as the import placed it: X 32, Y 96, W 224, H 96, its stored box (what exports), not the drawn line height.
-    [CHECKS.profile[4].text]: async (page) => {
+    // CPU temp as the import placed it: X 32, Y 96, W 224, H 96, its stored box, not the drawn line height.
+    [CHECKS.profile[3].text]: async (page) => {
       await expect(page.getByTestId("inspector-kind")).toHaveText("InfoPanel item");
       const { row, mode, boxes } = await placeRow(page);
       expect(mode).toBe("free");
@@ -179,7 +157,6 @@ const BUILT: Partial<Record<FixtureName, Record<string, (page: Page) => Promise<
       await expect(row).toContainText("Placed freely");
       expect([boxes.X, boxes.Y, boxes.W, boxes.H]).toEqual(["32", "96", "224", "96"]);
       await expect(page.getByTestId("snap-to-grid")).toHaveText("Snap to grid");
-      await expect(page.getByTestId("on-infopanel")).toContainText("On InfoPanel:");
       await shoot(page, "profile-place");
       // Snap to grid puts it on the nearest cells (100 × 96 px on 800 × 480): column 1, row 2, two wide (224 px).
       await page.getByTestId("snap-to-grid").click();
@@ -187,7 +164,7 @@ const BUILT: Partial<Record<FixtureName, Record<string, (page: Page) => Promise<
       expect(snapped.mode).toBe("grid");
       expect([snapped.boxes.COL, snapped.boxes.ROW, snapped.boxes.W]).toEqual(["1", "2", "2"]);
     },
-    [CHECKS.profile[5].text]: async (page) => {
+    [CHECKS.profile[4].text]: async (page) => {
       await expect(page.locator("body")).not.toContainText(/InfoPanel editor|Edit items/);
       await expect(page.getByRole("button", { name: /^Done$/ })).toHaveCount(0);
       await page.keyboard.press("Escape");
@@ -198,7 +175,6 @@ const BUILT: Partial<Record<FixtureName, Record<string, (page: Page) => Promise<
     [CHECKS.profile[0].text]: async (page) => {
       await expect(page.getByTitle("Switch screen or page")).toHaveAccessibleDescription(/Imported from InfoPanel/);
       await expect(page.getByRole("tablist", { name: "Pages" })).toBeVisible();
-      await expectMadeFor(page, "InfoPanel too");
     },
     [CHECKS.profile[2].text]: async (page) => {
       await expect(layersRow(page, "Temps")).toHaveAttribute("aria-expanded", "true");
@@ -207,14 +183,6 @@ const BUILT: Partial<Record<FixtureName, Record<string, (page: Page) => Promise<
       await expect(cpu.getByTestId("layers-row-kind")).toHaveText("item");
       await expect(cpu.getByTestId("layers-row-kind")).toHaveClass(/sr-only/);
       await expect(cpu.getByLabel("Placed freely (Alt)")).toBeVisible();
-      await expect(cpu.getByTestId("layers-row-status")).toBeVisible();
-    },
-    // NEON RIG has letter spacing (studio-only, v15 `$.letterSpacing`): approximated, every other part as is.
-    [CHECKS.profile[3].text]: async (page) => {
-      await expect(page.getByTestId("export-pill")).toHaveText("Export check7 as is1 approximated");
-      await expect(page.getByTestId("canvas-badge")).toHaveCount(8);
-      await expect(page.locator('[data-testid="canvas-badge"][data-status="ok"]')).toHaveCount(7);
-      await expect(page.locator('[data-testid="canvas-badge"][data-status="approx"]')).toHaveCount(1);
     },
     // The canvas editor draws the page's 8 × 5 cells; CPU temp is where the import put it, placed freely. A Sensor is
     // a text item: its drawn height is its line's (the platform's font metrics), not the stored Height, so the
@@ -236,7 +204,6 @@ const BUILT: Partial<Record<FixtureName, Record<string, (page: Page) => Promise<
       const { mode, boxes } = await placeRow(page);
       expect(mode).toBe("grid");
       expect(boxes).toEqual({ COL: "7", ROW: "5", W: "2", H: "1" });
-      await expect(page.getByTestId("on-infopanel").getByRole("radio")).toHaveText(["Recreate", "Snapshot", "Leave out"]);
     },
     // Neon Rig is made for InfoPanel: after Recently used, InfoPanel items and Elements come before the widgets.
     [CHECKS.addw[0].text]: async (page) => {
@@ -247,28 +214,18 @@ const BUILT: Partial<Record<FixtureName, Record<string, (page: Page) => Promise<
       await page.getByRole("tab", { name: "Items" }).click();
       await expect.poll(sections).toEqual(["InfoPanel items", "Elements"]);
       await page.getByRole("tab", { name: "Widgets" }).click();
-      // Every tile shows its status once the check has loaded.
-      await expect(page.locator('[data-testid="add-tile"]:not([data-status])')).toHaveCount(0);
       expect(await tiles.count()).toBeGreaterThan(20);
-      await expect(page.locator('[data-testid="add-tile"]:not(:has(span[aria-label]))')).toHaveCount(0);
       await shoot(page, "addw-tiles");
     },
-    // The fixture opens with the add's toast; a real add raises it too. Change goes to the On InfoPanel choice, and
-    // Undo takes the widget away in one step.
+    // A real add raises the toast with Undo, which takes the widget away in one step.
     [CHECKS.addw[2].text]: async (page) => {
       const toast = page.getByTestId("add-toast");
-      await expect(toast).toContainText("Weather added. On InfoPanel export it becomes a picture with its live values on top.");
-      await expect(toast.getByRole("button")).toHaveText(["Undo", "Change"]);
-      await shoot(page, "addw-toast");
-      const pics = page.locator('[data-testid="canvas-badge"][data-status="pic"]');
-      await expect(pics).toHaveCount(1);
       await page.getByTestId("add-tile").filter({ hasText: "Weather" }).first().click();
-      await expect(pics).toHaveCount(2);
-      await expect(toast).toContainText("Weather added. On InfoPanel export it becomes a picture");
-      await toast.getByRole("button", { name: "Change" }).click();
-      await expect.poll(() => page.evaluate(() => Boolean(document.activeElement?.closest('[data-testid="on-infopanel"]')))).toBe(true);
+      await expect(toast).toContainText("Weather added");
+      await expect(toast.getByRole("button")).toHaveText(["Undo"]);
+      await shoot(page, "addw-toast");
       await toast.getByRole("button", { name: "Undo" }).click();
-      await expect(pics).toHaveCount(1);
+      await expect(toast).toHaveCount(0);
     },
     [CHECKS.addw[4].text]: async (page) => {
       await page.getByRole("tab", { name: "Layers" }).click();
@@ -278,7 +235,7 @@ const BUILT: Partial<Record<FixtureName, Record<string, (page: Page) => Promise<
       await expect(page.locator('[data-testid="layers-row"][data-kind="item"]')).not.toHaveCount(0);
     },
     // A Weather dropped from Add on the Weather already at COL 7 ROW 5 refuses the overlap (Q3) and takes the nearest
-    // free cells: on the cell lines, selected, with the picture badge.
+    // free cells: on the cell lines, selected.
     [CHECKS.addw[1].text]: async (page) => {
       const layer = page.locator("[data-canvas-edit-layer]");
       const k = 800 / (await layer.boundingBox())!.width;
@@ -286,7 +243,6 @@ const BUILT: Partial<Record<FixtureName, Record<string, (page: Page) => Promise<
       const b = (await profileBox(page, page.locator("[data-selected-path]")))!;
       expect([b.x % 100, b.y % 96]).toEqual([0, 0]);
       expect(b.x + b.w <= 600 || b.y + b.h <= 384).toBe(true);
-      await expect(page.locator('[data-testid="canvas-badge"][data-status="pic"]')).toHaveCount(2);
     },
   },
   alt: {
@@ -529,7 +485,7 @@ const BUILT: Partial<Record<FixtureName, Record<string, (page: Page) => Promise<
     },
   },
   hover: {
-    // The fixture shows the All chip: one 48 px row per tile, with how many styles a widget holds and its status.
+    // The fixture shows the All chip: one 48 px row per tile, with how many styles a widget holds.
     [CHECKS.hover[0].text]: async (page) => {
       const grid = page.locator("[data-add-grid]").nth(1);
       const boxes = await grid.getByTestId("add-tile").evaluateAll((els) => els.map((e) => e.getBoundingClientRect()).map((r) => ({ top: Math.round(r.top), h: r.height })));
@@ -537,8 +493,6 @@ const BUILT: Partial<Record<FixtureName, Record<string, (page: Page) => Promise<
       expect(boxes.filter((b) => b.top === boxes[0].top)).toHaveLength(1);
       const weather = page.getByTestId("add-tile").filter({ hasText: "Weather" }).first();
       await expect(weather).toContainText("6 styles");
-      await expect(weather).toHaveAttribute("data-status", "pic");
-      await expect(weather.locator('span[aria-label="Becomes a picture"]')).toBeVisible();
     },
     [CHECKS.hover[1].text]: async (page) => {
       const list = page.getByRole("listbox");
@@ -589,7 +543,6 @@ const BUILT: Partial<Record<FixtureName, Record<string, (page: Page) => Promise<
       await expect(card).toContainText("WeatherInfo · Studio widget");
       await expect(card).toContainText("Always sits on the grid; uses your theme, colors and fonts.");
       await expect(card).toContainText("Adapts down to 1×1");
-      await expect(card).toContainText("On InfoPanel: becomes a picture");
       await shoot(page, "hover-card");
       // An InfoPanel item and an element, on the Items tab.
       await page.getByRole("tab", { name: "Items" }).click();
@@ -602,7 +555,6 @@ const BUILT: Partial<Record<FixtureName, Record<string, (page: Page) => Promise<
         await expect(card).toContainText(`${name}${category}`);
         await expect(card).toContainText("Snaps to cells; hold Alt to place it freely, even on top of widgets.");
         await expect(card).toContainText(`any size${note}`);
-        await expect(card).toContainText("On InfoPanel:");
         await expect(card.locator("[data-ip-canvas]")).toBeVisible();
         // The new part is drawn inside the stage, not off it.
         const stage = await card.locator("[data-ip-canvas]").boundingBox();
@@ -625,55 +577,7 @@ const BUILT: Partial<Record<FixtureName, Record<string, (page: Page) => Promise<
       await expect(page.getByText("Styles are presets inside each widget")).toBeVisible();
     },
   },
-  export: {
-    [CHECKS.export[0].text]: async (page) => {
-      await expectMadeFor(page, "InfoPanel too");
-      await page.keyboard.press("Escape");
-      await expect(page.getByTestId("export-pill")).toHaveText("Export check: 1 needs attention · Coding Agents is left out on InfoPanel");
-      await expect(page.getByTestId("canvas-badge")).toHaveCount(5);
-    },
-    [CHECKS.export[1].text]: async (page) => {
-      const panel = await openExportCheck(page);
-      await expect(panel.getByText("Live", { exact: true })).toBeVisible();
-      await expect(panel.getByRole("region")).toHaveText([/^Left out · 1/, /^Becomes a picture · 3/, /^Exports as is · 1/]);
-      await shoot(page, "export-open");
-    },
-    [CHECKS.export[2].text]: async (page) => {
-      const panel = await openExportCheck(page);
-      await expect(panel.getByText("This page will be converted when you export.")).toBeVisible();
-      await expect(panel.getByRole("button", { name: "Review conversion…" })).toBeVisible();
-    },
-    [CHECKS.export[3].text]: async (page) => {
-      let panel = await openExportCheck(page);
-      await panel.getByRole("button", { name: /^Coding Agents/ }).click();
-      await expect(panel).toBeHidden();
-      await expect(page.locator('[data-zone-id="agents"] > .border-ui-accent')).toHaveCount(1);
-      panel = await openExportCheck(page);
-      await page.keyboard.press("Escape");
-      await expect(panel).toBeHidden();
-    },
-    [CHECKS.export[4].text]: async (page) => {
-      const panel = await openExportCheck(page);
-      await expect(panel.getByRole("button", { name: "Export .infopanel" })).toBeVisible();
-      await expect(panel.getByText("Export writes a copy. Your screen isn’t changed.")).toBeVisible();
-    },
-  },
 };
-
-// SPEC §19 test 21: Made for Studio panels hides the pill, every badge and the On InfoPanel lines (Weather is selected).
-test("one-editor/screen: Made for Studio panels shows no Export check", async ({ page, scratch }) => {
-  await openFixture(page, scratch.base, "screen");
-  await expect(page.locator("[data-zone-id]")).toHaveCount(5);
-  await expect(page.getByTitle("Switch screen or page")).toHaveAccessibleDescription(/Screen/);
-  await expectMadeFor(page, "Studio panels");
-  await page.keyboard.press("Escape");
-  await page.getByTestId("file-menu").click();
-  await expect(page.getByRole("menu")).toContainText("This screen is made for Studio panels");
-  await page.keyboard.press("Escape");
-  await expect(page.getByTestId("export-pill")).toHaveCount(0);
-  await expect(page.getByTestId("canvas-badge")).toHaveCount(0);
-  await expect(page.getByTestId("on-infopanel")).toHaveCount(0);
-});
 
 // SPEC §7.4, §9.3, acceptance 19 (DECISIONS after phase 3): on a screen for Studio panels Add lists the widgets first,
 // and an InfoPanel item from Add, clicked or dropped, becomes an item placement on the page (no free area), selected.
@@ -736,9 +640,9 @@ async function tabTo(page: Page, target: Locator, max = 120) {
   throw new Error("Tab never reached the target");
 }
 
-// SPEC §19 test 28: keyboard only on Neon Rig (made for InfoPanel): add a widget, add an item, place it freely, group
-// both, open the Export check, export.
-test("one-editor/profile: keyboard only, from Add to Export", async ({ page, scratch }) => {
+// SPEC §19 test 28: keyboard only on Neon Rig: add a widget, add an item, place it freely, group
+// both.
+test("one-editor/profile: keyboard only, from Add to Group", async ({ page, scratch }) => {
   await openFixture(page, scratch.base, "profile");
   await page.keyboard.press("Escape");
   // "/" opens Add from Layers with its search focused.
@@ -776,71 +680,14 @@ test("one-editor/profile: keyboard only, from Add to Export", async ({ page, scr
   const group = page.locator('[data-testid="layers-row"][data-kind="group"]').first();
   await expect(group.getByTestId("layers-row-kind")).toHaveText("group");
   await expect(group.locator("span.font-ui-mono")).toHaveText("2");
-  // The Export check from the command palette, then Export .infopanel from its footer.
-  await page.keyboard.press("Control+k");
-  await page.keyboard.type("Export check");
-  await page.keyboard.press("Enter");
-  const check = page.getByTestId("export-check");
-  await expect(check).toBeVisible();
-  const exportButton = check.getByRole("button", { name: "Export .infopanel" });
-  await tabTo(page, exportButton);
-  await page.keyboard.press("Enter");
-  await expect(page.getByRole("dialog")).toBeVisible();
-});
-
-// Decision Q10 (after phase 6): `Studio | InfoPanel` in the zoom bar on a screen made for InfoPanel too. The InfoPanel
-// view draws the page as it exports: Coding agents (left out) isn't drawn and keeps its cells; the data is unchanged.
-test("one-editor/export: the zoom bar's InfoPanel view hides what the export leaves out", async ({ page, scratch }) => {
-  await openFixture(page, scratch.base, "export");
-  const view = page.getByTestId("export-view");
-  await expect(view.getByRole("radio", { name: "Studio" })).toHaveAttribute("aria-checked", "true");
-  await expect(page.locator('[data-zone-id="agents"]')).toHaveCount(1);
-  await view.getByRole("radio", { name: "InfoPanel" }).click();
-  await expect(page.locator('[data-zone-id="agents"]')).toHaveCount(0);
-  await expect(page.locator("[data-zone-id]")).toHaveCount(4);
-  await shoot(page, "export-infopanel-view");
-  await view.getByRole("radio", { name: "Studio" }).click();
-  await expect(page.locator("[data-zone-id]")).toHaveCount(5);
-});
-
-// Sign-off round 2: the InfoPanel view draws the export's own conversion over the page. With readings for the gauges
-// (a Data API that answers this test only), the CPU gauge (Recreate) is a picture with an InfoPanel Gauge and Sensor
-// on top, the GPU gauge set to Snapshot is a picture alone, Clock is InfoPanel's clock items, Weather (no reading
-// here) a picture, and Coding agents is nothing. `data-view-parts` names what the layer draws, top level, bottom first.
-test("one-editor/export: the InfoPanel view draws the page as the export converts it", async ({ page, scratch }) => {
-  const reading = (name: string, value: number, ref: string) => ({ name, unit: "°C", value, ref });
-  const sensors = {
-    "hwinfo.cpu_package": reading("CPU Package", 61, "hwinfo:-1/4144394256/0/16777223"),
-    "hwinfo.gpu_temperature": reading("GPU Temperature", 35, "hwinfo:-1/3758104576/0/16777216"),
-  };
-  await page.route(DATA_API, (route) => {
-    const url = new URL(route.request().url());
-    const body = { timestamp: Date.now(), sensors };
-    if (url.pathname === "/events") return route.fulfill({ contentType: "text/event-stream", body: `data: ${JSON.stringify(body)}\n\n` });
-    if (url.pathname === "/api/sensors") return route.fulfill({ json: body });
-    if (url.pathname === "/api/sources") return route.fulfill({ json: { plugins: [] } });
-    return route.fulfill({ json: {} });
-  });
-  await openFixture(page, scratch.base, "export");
-  await page.getByTestId("layers-row").filter({ hasText: "GPU gauge" }).click();
-  await page.getByTestId("on-infopanel").getByRole("radio", { name: "Snapshot" }).click();
-  await page.getByTestId("export-view").getByRole("radio", { name: "InfoPanel" }).click();
-  const layer = page.locator("[data-infopanel-view]");
-  await expect(layer).toHaveAttribute("data-view-parts", /Clock/);
-  const parts = ((await layer.getAttribute("data-view-parts")) ?? "").split("|").map((p) => p.slice(p.indexOf(":") + 1));
-  expect(parts).toEqual(["Image", "Group[Image,Gauge,Sensor]", "Image", "Group[Image,Clock,Clock,Calendar]", "Image"]);
-  await expect(layer.locator("[data-path]").first()).toBeAttached();
-  await expect(page.getByTestId("canvas-badge")).toHaveCount(4);
-  await shoot(page, "export-infopanel-view-drawn");
 });
 
 // Decision Q10 (after phase 6): the slim strip over an imported canvas is gone; Show modes, Sensors and Compare sit in
-// the page settings' Preview section, and the view toggle in the zoom bar, so both page kinds share one chrome. Sign-off
-// round 1: Draw all as is gone (the zoom bar's Studio | InfoPanel does it), and the item inspector has no Position.
+// the page settings' Preview section, so both page kinds share one chrome. Sign-off round 1: Draw all as is gone, and the
+// item inspector has no Position.
 test("one-editor/profile: no strip over the canvas; its tools are in the page settings", async ({ page, scratch }) => {
   await openFixture(page, scratch.base, "profile");
   await expect(page.getByRole("toolbar", { name: "Canvas items" })).toHaveCount(0);
-  await expect(page.getByTestId("export-view")).toBeVisible();
   await expect(page.getByTestId("inspector-place")).toBeVisible();
   await expect(page.getByRole("radiogroup", { name: "Draw as" })).toBeVisible();
   await expect(page.getByRole("button", { name: /^Position/ })).toHaveCount(0);

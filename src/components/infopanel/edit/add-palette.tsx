@@ -4,7 +4,6 @@
  * the canvas adds it where it is dropped; a sensor kind then asks for its sensor, an image kind
  * for its file first.
  */
-import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import { PALETTE, PALETTE_GROUPS, type PaletteEntry } from "@/lib/infopanel/editor/create";
 import { ELEMENTS, type ElementEntry } from "@/lib/infopanel/elements/create";
@@ -35,7 +34,7 @@ interface AddPaletteProps {
 const BUTTON =
   "flex h-8 min-w-0 items-center gap-2 rounded-[7px] px-2 text-left text-caption text-ui-2 hover:bg-ui-hover hover:text-ui-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ui-accent/60";
 
-function AddButton({ add, icon: Icon, label, title, onAdd, status }: { add: AddEntry; icon: LucideIcon; label: string; title: string; onAdd: (entry: AddEntry) => void; status?: ReactNode }) {
+function AddButton({ add, icon: Icon, label, title, onAdd }: { add: AddEntry; icon: LucideIcon; label: string; title: string; onAdd: (entry: AddEntry) => void }) {
   return (
     <button
       type="button"
@@ -50,7 +49,6 @@ function AddButton({ add, icon: Icon, label, title, onAdd, status }: { add: AddE
     >
       <Icon className="h-4 w-4 shrink-0 text-ui-4" strokeWidth={1.75} />
       <span className="min-w-0 flex-1 truncate">{label}</span>
-      {status}
     </button>
   );
 }
@@ -79,10 +77,9 @@ const matches = (query: string, ...texts: (string | undefined)[]) => {
 };
 
 /**
- * The palette's groups (Text, Data, Media, Layout, then Elements), filtered by `query`; `status` adds an entry's
- * Export check icon. The InfoPanel editor's own Add tab, and the InfoPanel items in the merged Add panel on a Free page.
+ * The palette's groups (Text, Data, Media, Layout, then Elements), filtered by `query`. The InfoPanel editor's own Add tab, and the InfoPanel items in the merged Add panel on a Free page.
  */
-export function PaletteGroups({ onAdd, query = "", status }: AddPaletteProps & { query?: string; status?: (entry: AddEntry) => ReactNode }) {
+export function PaletteGroups({ onAdd, query = "" }: AddPaletteProps & { query?: string }) {
   const items = PALETTE.filter((p) => matches(query, p.label, NATIVE_NAME[p.kind], p.group, "infopanel item"));
   const elements = ELEMENTS.filter((e) => matches(query, e.label, e.hint, "element"));
   return (
@@ -101,7 +98,6 @@ export function PaletteGroups({ onAdd, query = "", status }: AddPaletteProps & {
                   label={p.label}
                   title={`Add ${p.label} (or drag it onto the canvas)${native && native !== p.label ? ` (InfoPanel’s ${native})` : ""}${p.sensor ? ", then choose its sensor" : ""}`}
                   onAdd={onAdd}
-                  status={status?.({ kind: "item", entry: p })}
                 />
               );
             })}
@@ -120,7 +116,6 @@ export function PaletteGroups({ onAdd, query = "", status }: AddPaletteProps & {
                 label={e.label}
                 title={`Add ${e.label}: ${e.hint}${e.sensor ? ". Then choose its sensor" : ""}`}
                 onAdd={onAdd}
-                status={status?.({ kind: "element", entry: e })}
               />
             ))}
           </div>

@@ -45,7 +45,7 @@ const over = (el: Element, clientY: number) => {
 
 describe("Layers rows", () => {
   it("shows the row anatomy, top first, with the header and footer", () => {
-    render(<LayersTree host={host({ selectedIds: ["overlay"], statusIcon: (id) => (id === "title" ? <span aria-label="Approximated" /> : null) })} />);
+    render(<LayersTree host={host({ selectedIds: ["overlay"] })} />);
     const rows = screen.getAllByTestId("layers-row");
     expect(rows.map((r) => [r.dataset.kind, r.dataset.depth])).toEqual([["group", "0"], ["item", "1"], ["element", "1"], ["widget", "0"], ["widget", "0"]]);
     // The kind is screen-reader text (and the icon's tooltip), not a visible word; a group keeps its child count.
@@ -54,10 +54,9 @@ describe("Layers rows", () => {
     expect(within(row("Weather")).getByTestId("layers-row-kind").className).toContain("sr-only");
     expect(within(row("Weather")).getByTestId("layers-row-kind").textContent).toBe("widget");
     expect(within(row("Title text")).getByTestId("layers-row-kind").textContent).toBe("item");
-    // The placed-freely mark on the free item only; the status where the check has one.
+    // The placed-freely mark on the free item only.
     expect(within(row("Title text")).getByLabelText("Placed freely (Alt)")).toBeTruthy();
     expect(within(row("Accent glow")).queryByLabelText("Placed freely (Alt)")).toBeNull();
-    expect(within(row("Title text")).getByTestId("layers-row-status")).toBeTruthy();
     expect(within(row("Weather")).queryByTestId("layers-row-status")).toBeNull();
     // Locked shows its lock, hidden dims, the selected group's children tint.
     expect(row("Weather").dataset.locked).toBe("");

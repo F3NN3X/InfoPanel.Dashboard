@@ -108,8 +108,6 @@ interface InspectorViewProps {
   tabInfo?: Partial<Record<TabId, { icon: ReactNode; description: string }>>;
   /** A part's Place row, edge to edge under the header (Edit v3 SPEC §10.2). */
   place?: ReactNode;
-  /** After every section: a part's LAYER and On InfoPanel (SPEC §10.2 items 5 and 6). */
-  after?: ReactNode;
   /** The tabs as a row of words with the active one underlined (SPEC §10.2), not a segmented pill. */
   underline?: boolean;
   /** The tabs' words, where the context names them its own way (an item's Item · Sensor · Look). */
@@ -279,7 +277,6 @@ export function InspectorView({
   searchLabel,
   tabInfo,
   place,
-  after,
   underline = false,
   tabLabels,
 }: InspectorViewProps) {
@@ -493,7 +490,6 @@ export function InspectorView({
         {!filtering && notes?.(tab)}
         {empty && <p className="px-4 py-6 text-body text-ui-hint">{empty}</p>}
         {sections.map(renderSection)}
-        {after}
         {searchable && !filtering && <AdvancedRow open={advanced} onToggle={() => setAdvanced(!advanced)} />}
       </div>
     </div>

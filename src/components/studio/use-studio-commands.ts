@@ -6,14 +6,13 @@ import { BLANK_MODULE } from "@/lib/layout";
 import { blankSensorRule } from "@/lib/alert-presets";
 import { useToast } from "@/components/ui/toast";
 import { allLocked } from "@/lib/theme-model";
-import type { DashboardConfig, MadeFor, ProfileView } from "@/lib/layout";
+import type { DashboardConfig, ProfileView } from "@/lib/layout";
 import type { HistorySetter } from "@/hooks/use-config-history";
 import type { Appearance } from "@/lib/style-resolve";
 import { addRule, alertsKey } from "./alerts-model";
 import { followAll, toggleEnforce } from "./appearance-actions";
-import { madeForInfoPanel } from "@/lib/screens/list";
 import { buildCommands, type CommandAction } from "./commands";
-import { openConvertDialog, openExportSheet, openImportDoor, openNewInfoPanel } from "./file-doors";
+import { openExportSheet, openImportDoor, openNewInfoPanel } from "./file-doors";
 import { insertables } from "./insert-panel";
 import { widgetContext, type InspectorContext } from "./inspector-model";
 import { toggleAdvanced } from "./inspector/inspector-prefs";
@@ -47,10 +46,6 @@ interface CommandDeps {
   onSelectProfile: (id: string) => void;
   /** Open Help at the article for where the user is. */
   onHelp: () => void;
-  /** Open the Export check in the inspector (palette: Export check). */
-  onExportCheck: () => void;
-  /** Set the screen's Made for (palette). */
-  onMadeFor: (value: MadeFor) => void;
 }
 
 /**
@@ -72,8 +67,6 @@ export function useStudioCommands({
   onPageChange,
   onSelectProfile,
   onHelp,
-  onExportCheck,
-  onMadeFor,
 }: CommandDeps) {
   const { selected, selectedWidget } = sel;
   const toast = useToast();
@@ -186,14 +179,8 @@ export function useStudioCommands({
         return ui.handleSave();
       case "export":
         return openExportSheet();
-      case "export-check":
-        return onExportCheck();
-      case "made-for":
-        return onMadeFor(action.value);
       case "import":
         return openImportDoor();
-      case "convert":
-        return openConvertDialog(action.scope);
       case "new-infopanel":
         return openNewInfoPanel();
       case "undo":
@@ -359,8 +346,6 @@ export function useStudioCommands({
         enforced: allLocked(appearance.profile),
         appearancePresets: appearancePresets.presets,
         themeLevel,
-        exportCheck: madeForInfoPanel(config.profiles.find((p) => p.id === profile.id) ?? config.profiles[0]),
-        madeFor: madeForInfoPanel(config.profiles.find((p) => p.id === profile.id) ?? config.profiles[0]) ? "infopanel" : "studio",
       })
     : [];
 

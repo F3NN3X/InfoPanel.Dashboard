@@ -1,6 +1,5 @@
 /**
- * A static studio element (card, glow, divider, icon) drawn live from its spec at its box's size:
- * the same markup the export bakes into its PNG.
+ * A static studio element (card, glow, divider, icon) drawn live from its spec at its box's size.
  */
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { iconsLoaded, loadIcons } from "@/lib/infopanel/elements/icons.ts";

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState, type CSSProperties, type Dispatch, type MutableRefObject, type ReactNode, type SetStateAction } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type CSSProperties, type Dispatch, type MutableRefObject, type SetStateAction } from "react";
 import { useConfigHistory, type AdoptChange } from "@/hooks/use-config-history";
 import { ToastProvider } from "@/components/ui/toast-provider";
 import {
@@ -8,7 +8,6 @@ import {
   resolveProfile,
   uid,
   type DashboardConfig,
-  type MadeFor,
   type MonitorProfile,
   type Placement,
   type ProfileView,
@@ -38,8 +37,7 @@ import { AddToast } from "./add-toast";
 import { useAddListDensity, useAddPreviewOnHover } from "./add-prefs";
 import { useAddPanel } from "./use-add-panel";
 import { fontStack, resolveFont } from "@/lib/general";
-import { importedFromInfoPanel, madeForInfoPanel, screenKind } from "@/lib/screens/list";
-import { focusOnInfoPanel } from "./add-toast";
+import { importedFromInfoPanel, screenKind } from "@/lib/screens/list";
 import { ELEMENT_TILES, ITEM_TILES, partKey } from "./add-tiles";
 import { placeForAdd, placesFreely } from "@/lib/page-model/gesture";
 import type { StoredItem } from "@/lib/infopanel/import/stored";
@@ -51,7 +49,7 @@ import { StudioShell } from "./studio-shell";
 import { ShortcutsDialog } from "./shortcuts-dialog";
 import { useInfoPanelIo } from "./infopanel-io";
 import { ExportSheet } from "./export-sheet";
-import { onFileDoor, openConvertDialog, openExportSheet, openImportDoor, openNewInfoPanel, type ExportRequest } from "./file-doors";
+import { onFileDoor, openExportSheet, openImportDoor, openNewInfoPanel, type ExportRequest } from "./file-doors";
 import { canvasPlaces } from "@/components/infopanel/edit/canvas-places";
 import type { NewChoice, NewProfile, NewScreen } from "@/components/templates/new-page";
 import type { WizardKind } from "@/components/templates/recent-templates";
@@ -107,29 +105,14 @@ import type { FixtureStart } from "@/dev/fixtures/types";
 /** The Export sheet's request while it is closed (a stable object, so its rows keep their state). */
 const NO_REQUEST: ExportRequest = {};
 
-/** A grid page's Export check and On InfoPanel lines: the export model loads only for a screen made for InfoPanel. */
-const GridCheckPill = lazy(() => import("@/components/infopanel/grid-export").then((m) => ({ default: m.GridCheckPill })));
-const GridCheckPanel = lazy(() => import("@/components/infopanel/grid-export").then((m) => ({ default: m.GridCheckPanel })));
-const GridOnInfoPanel = lazy(() => import("@/components/infopanel/grid-export").then((m) => ({ default: m.GridOnInfoPanel })));
-const GridBadge = lazy(() => import("@/components/infopanel/grid-export").then((m) => ({ default: m.GridBadge })));
-const GridItemBadge = lazy(() => import("@/components/infopanel/grid-export").then((m) => ({ default: m.GridItemBadge })));
 const GroupInspector = lazy(() => import("./group-inspector").then((m) => ({ default: m.GroupInspector })));
 /** One InfoPanel item or element selected on a screen's page: its inspector (Edit v3 SPEC §10.2), with the item model. */
 const PageItemInspector = lazy(() => import("@/components/infopanel/edit/page-item-inspector"));
 const LayerMenu = lazy(() => import("./layer-menu").then((m) => ({ default: m.LayerMenu })));
-/** The top bar's File menu, with Made for (02e). */
+/** The top bar's File menu (02e). */
 const FileMenu = lazy(() => import("./editor/file-menu"));
-/** The Export check and its status icon, loaded on a screen made for InfoPanel (Layers' row statuses). */
-interface CheckKit {
-  exportCheck: typeof import("@/lib/infopanel/export-check").exportCheck;
-  StatusIcon: typeof import("@/components/infopanel/export-check-panel").StatusIcon;
-}
-const loadCheckKit = (): Promise<CheckKit> =>
-  Promise.all([import("@/lib/infopanel/export-check"), import("@/components/infopanel/export-check-panel")]).then(([c, p]) => ({ exportCheck: c.exportCheck, StatusIcon: p.StatusIcon }));
 /** A new part's sensor picker on a screen page, loaded with the first item that asks for one. */
 const SensorPicker = lazy(() => import("@/components/infopanel/edit/sensor-picker").then((m) => ({ default: m.SensorPicker })));
-/** Add's Export check statuses, loaded on a screen made for InfoPanel. */
-type AddStatusModule = typeof import("@/components/infopanel/edit/add-status");
 
 /** The canvas editor (A5): Edit on an imported profile's page (one canvas filling the screen), loaded when one is first opened. */
 const CanvasEditorView = lazy(() => import("@/components/infopanel/edit/canvas-editor"));
@@ -317,8 +300,6 @@ function StudioViewBody({
     onPageChange,
     onSelectProfile: selectProfile,
     onHelp: () => void openHelp(helpTarget()).catch(() => {}),
-    onExportCheck: () => openExportCheck(),
-    onMadeFor: (value) => setMadeFor(value),
   });
   /** Sensor names for widget names (toolbar crumb, palette). */
   const catalog = useSensorCatalog();
@@ -422,24 +403,6 @@ function StudioViewBody({
   const storedPage = storedProfile.pages.find((p) => p.id === profile.pageId) ?? storedProfile.pages[0];
   /** The page's InfoPanel items and elements selected on the canvas (selecting one clears the zones, and back). */
   const items = useItemSelection({ profileId: storedProfile.id, page: storedPage, zoneId: sel.primaryId, clearZones: () => sel.select(null) });
-  // The Export check's statuses for Layers' rows, loaded with the check on a screen made for InfoPanel.
-  const [checkKit, setCheckKit] = useState<CheckKit | null>(null);
-  const checkOnScreen = madeForInfoPanel(storedProfile);
-  useEffect(() => {
-    if (checkOnScreen && !checkKit) void loadCheckKit().then(setCheckKit);
-  }, [checkOnScreen, checkKit]);
-  const checkRows = useMemo(
-    () => (checkOnScreen && checkKit ? checkKit.exportCheck(storedProfile, storedPage, zoneName).rows : null),
-    [checkOnScreen, checkKit, storedProfile, storedPage],
-  );
-  const rowStatus = useMemo(() => (checkRows ? new Map(checkRows.map((r) => [r.path, r.status])) : null), [checkRows]);
-  /** `Studio | InfoPanel` in the zoom bar (decision Q10): the page drawn as it exports, on a screen made for InfoPanel too. */
-  const [infoPanelView, setInfoPanelView] = useState(false);
-  const exportView = checkOnScreen ? { infoPanel: infoPanelView, onChange: setInfoPanelView } : undefined;
-  const leftOut = useMemo(
-    () => (checkOnScreen && infoPanelView && rowStatus ? new Set([...rowStatus].flatMap(([id, status]) => (status === "out" ? [id] : []))) : undefined),
-    [checkOnScreen, infoPanelView, rowStatus],
-  );
   /** Layers on a screen's page: one selection of widgets, items and groups, and every layer action. */
   const layers = usePageLayers({
     profile: storedProfile,
@@ -449,13 +412,6 @@ function StudioViewBody({
     focusZone,
     applyPageOps: edit.applyPageOps,
     dragging: history.dragging,
-    statusIcon:
-      rowStatus && checkKit
-        ? (id) => {
-            const status = rowStatus.get(id);
-            return status ? <checkKit.StatusIcon status={status} /> : null;
-          }
-        : undefined,
     showLayers: () => ui.setLeftTab("layers"),
     toast,
   });
@@ -593,26 +549,12 @@ function StudioViewBody({
   const canvasTheme = resolveTheme(profile);
   const themeScope = themeVars(canvasTheme.tokens, canvasTheme.radius) as CSSProperties;
 
-  /** Add's statuses on a screen made for InfoPanel (the module loads with the first such screen). */
-  const [addStatus, setAddStatus] = useState<AddStatusModule | null>(null);
-  useEffect(() => {
-    if (checkOnScreen && !addStatus) void import("@/components/infopanel/edit/add-status").then(setAddStatus);
-  }, [checkOnScreen, addStatus]);
-  const kitFor = useMemo(
-    () => (checkOnScreen && addStatus ? (widgets: Parameters<AddStatusModule["addStatusKit"]>[0]) => addStatus.addStatusKit(widgets, config.panelPresets) : undefined),
-    [checkOnScreen, addStatus, config.panelPresets],
-  );
   /** The Add panel (Edit v3 SPEC §9): its catalog, Recently used, toast and flash; a click fills the selected blank zone. */
-  const addPanel = useAddPanel({ config, addFromPanel: edit.addFromPanel, targetZoneId: blankZoneId, undo: history.undo, kitFor });
+  const addPanel = useAddPanel({ config, addFromPanel: edit.addFromPanel, targetZoneId: blankZoneId, undo: history.undo });
   const [addDensity] = useAddListDensity();
   const [addPreviewOnHover] = useAddPreviewOnHover();
   const pageFont = fontStack(resolveFont(profile));
   const addTarget = blankZoneId && selected ? { id: blankZoneId, cols: selected.colSpan, rows: selected.rowSpan } : undefined;
-
-  /** The screen is made for InfoPanel (SPEC §5.1): the Export check, the badges and the On InfoPanel lines show. */
-  const checkOn = madeForInfoPanel(storedProfile);
-  const setMadeFor = (madeFor: MadeFor) =>
-    setConfig((c) => ({ ...c, profiles: c.profiles.map((p) => (p.id === storedProfile.id ? { ...p, madeFor } : p)) }));
 
   /** The page inspector's GRID and screen rows (Edit v3 SPEC §10.1): each one undo step; a grid widgets don't fit in is refused (Q5). */
   const pageSettings = {
@@ -644,36 +586,6 @@ function StudioViewBody({
       edit.updateStored((p) => ({ ...p, pages: [...p.pages, page] }));
       onPageChange(page.id);
     });
-  };
-
-  /** The grid page's Export check in the inspector: the banner opens it; selecting anything or Esc closes it. */
-  const [gridCheckOpen, setGridCheckOpen] = useState(false);
-  const gridCheckShown = gridCheckOpen && checkOn && !freeZone;
-  useEffect(() => {
-    if (sel.primaryId) setGridCheckOpen(false);
-  }, [sel.primaryId]);
-  const toggleGridCheck = () => {
-    sel.select(null);
-    setGridCheckOpen((o) => !o);
-    studioLayout.showInspector();
-  };
-  /** A row of the check, or a problem it names: the part, selected on the canvas. */
-  const showCheckRow = (path: string) => {
-    const id = path.split(":")[0];
-    setGridCheckOpen(false);
-    // An item's row selects the item on the canvas.
-    if (storedPage.placements.some((p) => p.id === id && p.module === ITEM_ID)) items.select(id, false);
-    else focusZone(id);
-  };
-  /** The palette's Export check: opens the canvas editor's check when it is showing, else the grid page's. */
-  const [checkRequest, setCheckRequest] = useState(0);
-  const openExportCheck = () => {
-    if (!checkOn) return;
-    if (editorShown) return setCheckRequest((n) => n + 1);
-    ui.setMode("design");
-    sel.select(null);
-    setGridCheckOpen(true);
-    studioLayout.showInspector();
   };
 
   /** The middle of the part of the board in view, in page px (where a clicked item goes). */
@@ -718,22 +630,11 @@ function StudioViewBody({
       layers.clearGroups();
       items.select(id, false);
       addPanel.pushRecent(partKey(data));
-      if (addPanel.status) addPanel.show(addPanel.status.added(tile), true);
       const sensor = entry.sensor ? { id, label: entry.label, pluginOnly: entry.pluginOnly, item: made.item } : null;
       if (entry.file) setAskFile({ id, sensorNext: sensor });
       else if (sensor) setPickSensor(sensor);
     });
   };
-
-  /** A grid widget's On InfoPanel section, on a screen made for InfoPanel. */
-  const onInfoPanelOf = checkOn
-    ? (zone: Placement) =>
-        zone.module === CANVAS_ID || zone.module === BLANK_MODULE ? null : (
-          <Suspense fallback={null}>
-            <GridOnInfoPanel zone={zone} name={zoneName(zone)} onSettings={(settings) => edit.updatePlacement(zone.id, (p) => ({ ...p, settings }))} />
-          </Suspense>
-        )
-    : undefined;
 
   /** The one page group selected alone: the Group inspector (SPEC §10.3). */
   const groupNode = layers.selection.length === 1 && layers.groups.length === 1 ? (findNode(layers.model.root, layers.groups[0])?.node as GroupNode | undefined) : undefined;
@@ -741,20 +642,7 @@ function StudioViewBody({
   const itemId = layers.selection.length === 1 && items.ids.length === 1 ? items.ids[0] : null;
   const itemPlacement = itemId ? storedPage.placements.find((p): p is Placement & { item: StoredItem } => p.id === itemId && p.module === ITEM_ID && p.item !== undefined) : undefined;
   const itemNode = itemPlacement ? findNode(layers.model.root, itemPlacement.id)?.node : undefined;
-  const inspectorAside = gridCheckShown ? (
-    <aside aria-label="Export check" className={studioLayout.mode !== "docked" ? "flex h-full w-full flex-col overflow-y-auto bg-ui-panel font-ui" : "flex w-[320px] shrink-0 flex-col overflow-y-auto border-l border-ui-subtle bg-ui-panel font-ui"}>
-      <Suspense fallback={null}>
-        <GridCheckPanel
-          profile={profile}
-          page={storedPage}
-          nameOf={zoneName}
-          onSelect={showCheckRow}
-          onConvert={() => openConvertDialog("screen")}
-          onClose={() => setGridCheckOpen(false)}
-        />
-      </Suspense>
-    </aside>
-  ) : groupNode ? (
+  const inspectorAside = groupNode ? (
     <aside aria-label="Inspector" className={studioLayout.mode !== "docked" ? "flex h-full w-full flex-col overflow-y-auto bg-ui-panel font-ui" : "flex w-[320px] shrink-0 flex-col overflow-y-auto border-l border-ui-subtle bg-ui-panel font-ui"}>
       <Suspense fallback={null}>
         <GroupInspector
@@ -777,7 +665,6 @@ function StudioViewBody({
           place={itemNode.place}
           setConfig={setConfig}
           onOps={edit.applyPageOps}
-          checkOn={checkOn}
           onDuplicate={() => layers.run("duplicate")}
           onDelete={() => layers.run("delete")}
           askFile={askFile?.id === itemPlacement.id}
@@ -806,7 +693,6 @@ function StudioViewBody({
       }}
       onEditGauge={(zoneId) => openGauge({ kind: "widget", zoneId })}
       pageSettings={pageSettings}
-      onInfoPanelOf={onInfoPanelOf}
     />
   );
 
@@ -832,8 +718,6 @@ function StudioViewBody({
         previewOnHover: addPreviewOnHover,
         appearance,
         pageStyle: { ...themeScope, fontFamily: pageFont },
-        infoPanel: checkOn,
-        status: addPanel.status,
         start: fixture && { segment: fixture.addSegment, hoverTile: fixture.hoverTile, added: fixture.added },
       }}
       layers={layers.host}
@@ -884,15 +768,6 @@ function StudioViewBody({
     onPageChange(pageId);
     ui.setMode("design");
   };
-  // Convert from a Screens card: the dialog reads the zones where they are drawn, so it opens once that screen is shown.
-  const [convertAfter, setConvertAfter] = useState<string | null>(null);
-  useEffect(() => {
-    if (convertAfter === null || showScreens) return;
-    // The screen did not open (it was removed, say): drop the request rather than convert some later screen.
-    if (profile.id !== convertAfter) return setConvertAfter(null);
-    setConvertAfter(null);
-    openConvertDialog("screen");
-  }, [convertAfter, showScreens, profile.id]);
   // A link to the old InfoPanel view that names a profile opens it in Edit, as Screens' Open does.
   useEffect(() => {
     if (ui.editRequest && config.profiles.some((p) => p.id === ui.editRequest?.id)) openScreen(ui.editRequest.id);
@@ -926,10 +801,6 @@ function StudioViewBody({
       onSettingsHandled={ui.clearScreenRequest}
       onOpenScreen={openScreen}
       onOpenScreenPage={openScreenPage}
-      onConvertScreen={(id) => {
-        openScreen(id);
-        setConvertAfter(id);
-      }}
       onDuplicateProfile={edit.duplicateProfile}
       onRemoveProfile={edit.removeProfile}
       onUndo={history.undo}
@@ -1020,38 +891,18 @@ function StudioViewBody({
       barBottom={barBottom}
       toast={
         addPanel.toast && (
-          <AddToast
-            toast={addPanel.toast}
-            onUndo={addPanel.undoAdd}
-            onChange={() => {
-              studioLayout.showInspector();
-              focusOnInfoPanel();
-            }}
-          />
+          <AddToast toast={addPanel.toast} onUndo={addPanel.undoAdd} />
         )
       }
       onContextMenu={(id, x, y) => (id === null ? menus.open(null, x, y) : openPartMenu(id, x, y))}
       onOpenAdd={() => ui.openDrawer("add")}
-      leftOut={leftOut}
-      infoPanelView={checkOnScreen && infoPanelView ? { screen: storedProfile, page: storedPage } : undefined}
       onImport={() => openImportDoor({ prefer: "canvas-zone" })}
       onNoRoom={() => toast("No free cells here.")}
       onUseSample={() => runCommand({ type: "sample-layout" })}
       islandAlerts={islandTestAlerts}
-      badgeOf={
-        checkOn
-          ? (zone) =>
-              zone.module === CANVAS_ID || zone.module === BLANK_MODULE || !zone.visible ? null : (
-                <Suspense fallback={null}>
-                  <GridBadge zone={zone} name={zoneName(zone)} />
-                </Suspense>
-              )
-          : undefined
-      }
       items={{
         selectedIds: items.ids,
         onSelect: (id, toggle) => {
-          setGridCheckOpen(false);
           if (!toggle) layers.clearGroups();
           items.select(id, toggle);
         },
@@ -1062,19 +913,11 @@ function StudioViewBody({
           onRefused: layers.refuseGroupMove,
           onPick: (id) => layers.host.select(id, "only", []),
           onSelectGroup: (id, toggle) => {
-            setGridCheckOpen(false);
             layers.host.select(id, toggle ? "toggle" : "only", []);
           },
           onContextMenu: (x, y) => setLayerMenu({ x, y }),
         },
         onOps: edit.applyPageOps,
-        badgeOf: checkOn
-          ? (p) => (
-              <Suspense fallback={null}>
-                <GridItemBadge placement={p} />
-              </Suspense>
-            )
-          : undefined,
       }}
       selectionChip={
         selected && (
@@ -1100,8 +943,7 @@ function StudioViewBody({
   const rotateEntry = control?.profiles[storedProfile.id];
   const rotating = (rotateEntry?.rotating ?? storedProfile.rotate?.enabled === true) && storedProfile.pages.length >= 2;
 
-  // The page tabs sit above the canvas in Edit, a grid page's or a Free page's. The pill is the Export check of what
-  // the canvas shows: the grid page's, or the canvas editor's (a Free page, an opened free area).
+  // The page tabs sit above the canvas in Edit, a grid page's or a Free page's.
   const kioskPageId = control?.profiles[storedProfile.id]?.page;
   const kioskChip = kioskPageId
     ? `Kiosks show ${storedProfile.pages.find((p) => p.id === kioskPageId)?.name ?? "a page"} · rotation ${rotating ? `every ${cycleLabel(storedProfile.rotate?.seconds ?? 0)}` : "paused"}`
@@ -1137,23 +979,8 @@ function StudioViewBody({
         thumbProfile={screenKind(storedProfile) === "infopanel" ? undefined : storedProfile}
       />
   );
-  // What sits over the canvas's top: the tabs' row on a narrow window, and the problems banner floating at its corner.
-  const pageTabsFor = (banner: ReactNode) => (
-    <>
-      {!tabsInBar && pageTabs}
-      {banner && (
-        <div className="relative z-30 h-0 shrink-0">
-          <div className="absolute left-3.5 top-1 max-w-[calc(100%-28px)]">{banner}</div>
-        </div>
-      )}
-    </>
-  );
-  const gridPill = checkOn && !freeZone && (
-    <Suspense fallback={null}>
-      <GridCheckPill profile={profile} page={storedPage} nameOf={zoneName} open={gridCheckShown} onClick={toggleGridCheck} onShow={showCheckRow} />
-    </Suspense>
-  );
-  const pageTabsEl = pageTabsFor(gridPill);
+  // What sits over the canvas's top: the tabs' row on a narrow window.
+  const pageTabsEl = !tabsInBar && pageTabs;
   const mainEl = showSources ? (
     canvasEl
   ) : (
@@ -1177,7 +1004,6 @@ function StudioViewBody({
         profileId={storedProfile.id}
         zone={activeCanvas}
         setConfig={setConfig}
-        history={stepHistory}
         shell={{
           layout: studioLayout,
           leftOpen: ui.leftOpen,
@@ -1186,13 +1012,9 @@ function StudioViewBody({
           leftTab: ui.leftTab,
           onLeftTab: ui.setLeftTab,
           leftWidth: ui.leftWidth,
-          pageTabs: pageTabsFor,
+          pageTabs: () => pageTabsEl,
         }}
-        checkOn={checkOn}
-        exportView={exportView}
-        checkRequest={checkRequest}
-        addStart={fixture && { segment: fixture.addSegment, hoverTile: fixture.hoverTile, recent: fixture.recent, toast: fixture.toast, added: fixture.added }}
-        onExport={() => io.openExport(activeCanvas)}
+        addStart={fixture && { segment: fixture.addSegment, hoverTile: fixture.hoverTile, recent: fixture.recent, added: fixture.added }}
         initialSelection={canvasSelection}
         unbound={unboundNote?.zoneId === activeCanvas.id ? unboundNote.labels : undefined}
         onDismissUnbound={() => setUnboundNote(null)}
@@ -1393,7 +1215,6 @@ function StudioViewBody({
       profile={profile}
       onOpenProfile={() => ui.navigateTo({ view: "screens", profileId: storedProfile.id })}
       preview={showSources ? undefined : preview}
-      exportView={showSources ? undefined : exportView}
       tool={showSources ? undefined : { hand: ui.handTool, onHand: ui.setHandTool }}
       onAdd={showSources ? undefined : () => ui.openDrawer("add")}
       inspector={!showSources && inspectorMode === "floating" ? { open: floatOpen, onToggle: () => studioLayout.setFloatOpen(!floatOpen) } : undefined}
@@ -1474,19 +1295,11 @@ function StudioViewBody({
         onSave={ui.handleSave}
         onExport={() => openExportSheet()}
         onImport={() => openImportDoor()}
-        madeFor={checkOn ? "infopanel" : "studio"}
-        onMadeFor={setMadeFor}
         fileMenu={
           <Suspense fallback={<div className="h-8 w-[72px] shrink-0 rounded-ui-md border border-ui-strong bg-ui-raised" />}>
             <FileMenu
-              facts={{ canvas: canvasZoneOf(profile, sel.primaryId ?? undefined) !== undefined, madeFor: checkOn ? "infopanel" : "studio", rows: checkRows }}
-              onMadeFor={setMadeFor}
               onImport={() => openImportDoor()}
               onExportSheet={() => openExportSheet()}
-              onExportInfoPanel={() => (canvasZoneOf(profile, sel.primaryId ?? undefined) ? io.openExport() : openConvertDialog("screen"))}
-              onExportCheck={openExportCheck}
-              onConvert={() => openConvertDialog("screen")}
-              onShowProblem={showCheckRow}
             />
           </Suspense>
         }

@@ -1,5 +1,4 @@
-import type { ReactNode } from "react";
-import type { DashboardConfig, Placement, ProfileView } from "@/lib/layout";
+import type { DashboardConfig, ProfileView } from "@/lib/layout";
 import type { Appearance } from "@/lib/style-resolve";
 import { cn } from "@/lib/utils";
 import { PageInspector } from "./page-inspector";
@@ -31,8 +30,6 @@ interface StudioInspectorProps {
   onEditGauge?: (zoneId: string) => void;
   /** The Page inspector's GRID and screen rows (Edit v3 SPEC §10.1). */
   pageSettings: Pick<Parameters<typeof PageInspector>[0], "onSnapItems" | "onSize" | "onGrid" | "onGap">;
-  /** A zone's On InfoPanel section, on a screen made for InfoPanel (SPEC §5.5). */
-  onInfoPanelOf?: (zone: Placement) => ReactNode;
 }
 
 /**
@@ -52,7 +49,6 @@ export function StudioInspector({
   onOpenPoint,
   onEditGauge,
   pageSettings,
-  onInfoPanelOf,
 }: StudioInspectorProps) {
   const { selected, selectedWidgetId, selection } = sel;
   const { mode, sheet, setFloatOpen } = ui.studioLayout;
@@ -126,7 +122,6 @@ export function StudioInspector({
         onOpenPoint={onOpenPoint ?? openExplorer}
         onOpenExplorer={openExplorer}
         onEditGauge={onEditGauge && (() => onEditGauge(selected.id))}
-        onInfoPanel={onInfoPanelOf?.(selected)}
       />
     ) : (
       <PageInspector

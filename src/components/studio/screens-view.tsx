@@ -54,8 +54,6 @@ interface ScreensViewProps
     | "displays"
     | "autoProfileId"
   > {
-  /** Open a screen, then its Convert to InfoPanel dialog once the screen is the edited one. */
-  onConvertScreen: (id: string) => void;
   /** Open the screen in Design, or in the InfoPanel editor when it is one InfoPanel profile. */
   onOpenScreen: (id: string) => void;
   /** Open a screen in Edit on one of its pages (a page strip's mini-map). */
@@ -137,7 +135,7 @@ export function ScreensView({
   const [sort, setSort] = useState<ListSort>("edited");
   const [list, setList] = useStoredFlag("screens.list", false);
   const searchRef = useRef<HTMLInputElement>(null);
-  const { setConfig, onConvertScreen, navigateTo } = detail;
+  const { setConfig, navigateTo } = detail;
   const stored = config.profiles.find((p) => p.id === profile.id) ?? config.profiles[0];
 
   // The settings drawer: a modal dialog opened by a card's menu or a link, closed by its X, Esc or a click outside; the
@@ -277,8 +275,6 @@ export function ScreensView({
         onMove: (by) => setConfig((c) => moveProfile(c, p.id, by)),
         onCopyLink: () => copyLink(p.id),
         onExport: () => openExportSheet({ row: "screen", screenId: p.id }),
-        // The conversion reads the zones where they are drawn, so the screen opens on the canvas first.
-        onConvert: () => onConvertScreen(p.id),
         onDelete: () => setDeletingId(p.id),
       }),
     };

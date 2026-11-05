@@ -22,7 +22,6 @@ describe("a screen card's menus", () => {
       onMove: vi.fn(),
       onCopyLink: vi.fn(),
       onExport: vi.fn(),
-      onConvert: vi.fn(),
       onDelete: vi.fn(),
     });
     render(

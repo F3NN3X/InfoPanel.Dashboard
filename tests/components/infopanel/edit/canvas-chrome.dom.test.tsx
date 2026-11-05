@@ -19,13 +19,12 @@ beforeEach(() => {
 const base = newStored({ name: "Desk", width: 800, height: 480 });
 const canvas = storeItems(base, openCanvas(base).profile, [{ ...defaultItem("Text"), Name: "Title", X: 120, Y: 80, Width: 120, Height: 30 }]);
 const zone = { id: "z", module: CANVAS_ID, colStart: 1, rowStart: 1, colSpan: 2, rowSpan: 1, visible: true, canvas } as Placement & { canvas: StoredCanvas };
-const history = { canUndo: false, canRedo: false, undo: vi.fn(), redo: vi.fn() };
 
 describe("the InfoPanel editor canvas", () => {
   it("keeps the mode and kind off the canvas: the inspector names them; the zoom bar opens the profile settings", () => {
     render(
       <ToastProvider>
-        <HostedEditor tab="layers" zone={zone} setConfig={vi.fn()} history={history} profileId="p1" />
+        <HostedEditor tab="layers" zone={zone} setConfig={vi.fn()} profileId="p1" />
       </ToastProvider>,
     );
     fireEvent.click(screen.getAllByRole("treeitem").find((r) => r.textContent?.includes("Title"))!);

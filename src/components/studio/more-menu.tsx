@@ -1,6 +1,5 @@
 import { Menu } from "@base-ui/react/menu";
-import { Check, FileInput, FileOutput, MoreHorizontal, Radio, Redo2, Save, Undo2 } from "lucide-react";
-import { MADE_FOR } from "./editor/file-menu-model";
+import { FileInput, FileOutput, MoreHorizontal, Radio, Redo2, Save, Undo2 } from "lucide-react";
 import type { StudioTopBarProps } from "./studio-top-bar";
 
 const POPUP =
@@ -19,9 +18,7 @@ export default function MoreMenu({
   onRedo,
   onLiveOpenChange,
   onSave,
-  madeFor,
-  onMadeFor,
-}: Pick<StudioTopBarProps, "onExport" | "onImport" | "canUndo" | "canRedo" | "onUndo" | "onRedo" | "onLiveOpenChange" | "onSave" | "madeFor" | "onMadeFor">) {
+}: Pick<StudioTopBarProps, "onExport" | "onImport" | "canUndo" | "canRedo" | "onUndo" | "onRedo" | "onLiveOpenChange" | "onSave">) {
   return (
     <Menu.Root>
       <Menu.Trigger
@@ -43,16 +40,6 @@ export default function MoreMenu({
             <Menu.Item className={ITEM} onClick={onSave}>
               <Save className="h-3.5 w-3.5" /> Save now
             </Menu.Item>
-            <Menu.Separator className={SEPARATOR} />
-            <Menu.Group>
-              <Menu.GroupLabel className="px-2 pb-1 pt-1.5 text-micro text-ui-hint">Made for</Menu.GroupLabel>
-              {MADE_FOR.map((m) => (
-                <Menu.Item key={m.value} role="menuitemradio" aria-checked={m.value === madeFor} className={ITEM} onClick={() => m.value !== madeFor && onMadeFor(m.value)}>
-                  <span className="grid h-3.5 w-3.5 shrink-0 place-items-center">{m.value === madeFor && <Check className="h-3.5 w-3.5 text-ui-accent-text" />}</span>
-                  {m.label}
-                </Menu.Item>
-              ))}
-            </Menu.Group>
             <Menu.Separator className={SEPARATOR} />
             <Menu.Item className={ITEM} onClick={() => onLiveOpenChange(true)}>
               <Radio className="h-3.5 w-3.5" /> Live control…

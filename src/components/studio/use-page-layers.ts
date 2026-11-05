@@ -6,7 +6,7 @@
  * widgets, the keys the zone shortcuts don't have (Ctrl+] / [, Ctrl+G, Ctrl+L, Ctrl+H, F2). Ctrl+Shift+O moves the
  * selection out of its group; Ctrl+Shift+S saves it to the Library, whatever it holds.
  */
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { uid, type MonitorProfile, type Placement, type ProfilePage } from "@/lib/layout";
 import { applyOps, cellsOverlap, findNode, partsOf, type LayerNode, type PageModel, type PageOp, type PartNode } from "@/lib/page-model/model";
 import { partKeyOps } from "@/lib/page-model/keys";
@@ -35,8 +35,6 @@ interface PageLayersDeps {
   applyPageOps: (ops: readonly PageOp[], key?: string) => void;
   /** A drag is in flight: the keys stand down. */
   dragging: () => boolean;
-  /** A part's Export check status icon by its id, on a screen made for InfoPanel. */
-  statusIcon?: (id: string) => ReactNode;
   /** Bring Layers into view (F2 renames there). */
   showLayers: () => void;
   /** Say something short (a refused group move). */
@@ -60,7 +58,7 @@ const treeOf = (nodes: readonly LayerNode[]): TreeNode[] =>
       : { id: n.id, type: "part", kind: n.kind, name: n.name, free: "px" in n.place, size: sizeOf(n.place), locked: n.locked, hidden: n.hidden },
   );
 
-export function usePageLayers({ profile, page, zones, items, focusZone, applyPageOps, dragging, statusIcon, showLayers, toast }: PageLayersDeps) {
+export function usePageLayers({ profile, page, zones, items, focusZone, applyPageOps, dragging, showLayers, toast }: PageLayersDeps) {
   const model = useMemo(() => readPlacements(profile, page, zoneName), [profile, page]);
   const nodes = useMemo(() => treeOf(model.root), [model]);
   const byId = useMemo(() => new Map(page.placements.map((p) => [p.id, p])), [page]);
@@ -188,7 +186,6 @@ export function usePageLayers({ profile, page, zones, items, focusZone, applyPag
     },
     menu: { available: layerActionsFor(model, selection), groups: groupList, run, moveToGroup: (id) => moveInto(id ?? "new"), moveOut: { enabled: grouped.length > 0, run: moveOut }, saveToLibrary: save.open },
     iconOf,
-    statusIcon,
     renameRequest,
   };
 

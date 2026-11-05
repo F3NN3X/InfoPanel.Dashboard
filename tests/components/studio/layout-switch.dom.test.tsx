@@ -9,7 +9,6 @@ import { useConfigHistory } from "@/hooks/use-config-history";
 import { CANVAS_ID, type DashboardConfig, type MonitorProfile } from "@/lib/layout";
 import { switchLayout } from "@/lib/page-layout";
 import { isFreePage } from "@/lib/free-pages";
-import FileMenu from "@/components/studio/editor/file-menu";
 import { pageMenuEntries } from "@/components/studio/page-tabs";
 import { PageInspector } from "@/components/studio/page-inspector";
 import { THEME_PRESETS } from "@/lib/theme";
@@ -96,18 +95,6 @@ describe("no Grid / Free anywhere (acceptance 5)", () => {
     fireEvent.change(cols, { target: { value: "6" } });
     fireEvent.blur(cols);
     expect(onGrid).toHaveBeenCalledWith(6, 3);
-  });
-});
-
-describe("Made for", () => {
-  it("reads unset as Studio panels and picks InfoPanel too", async () => {
-    const onChange = vi.fn();
-    render(<FileMenu facts={{ canvas: false, madeFor: undefined, rows: null }} onMadeFor={onChange} onImport={vi.fn()} onExportSheet={vi.fn()} onExportInfoPanel={vi.fn()} onExportCheck={vi.fn()} onConvert={vi.fn()} onShowProblem={vi.fn()} />);
-    const trigger = screen.getByTestId("file-menu");
-    fireEvent.click(trigger);
-    expect((await screen.findByRole("menuitemradio", { name: /Studio panels/ })).getAttribute("aria-checked")).toBe("true");
-    fireEvent.click(screen.getByRole("menuitemradio", { name: /InfoPanel too/ }));
-    expect(onChange).toHaveBeenCalledWith("infopanel");
   });
 });
 

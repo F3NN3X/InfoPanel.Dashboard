@@ -67,7 +67,6 @@ function view(over: Record<string, unknown> = {}) {
     navigateTo: vi.fn(),
     onOpenScreen: vi.fn(),
     onOpenScreenPage: vi.fn(),
-    onConvertScreen: vi.fn(),
     ...over,
   } as unknown as Parameters<typeof ScreensView>[0];
   const ui = (p: typeof props) => (

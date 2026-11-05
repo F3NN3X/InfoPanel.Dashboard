@@ -1,4 +1,4 @@
-import type { MadeFor, MonitorProfile, Placement, Widget } from "@/lib/layout";
+import type { MonitorProfile, Placement, Widget } from "@/lib/layout";
 import { allSections, type InspectorContext } from "./inspector-model";
 import type { NavTarget } from "./studio-nav";
 import { placementTitle } from "./studio-modules";
@@ -28,11 +28,8 @@ export type CommandAction =
   | { type: "zoom-out" }
   | { type: "save" }
   | { type: "export" }
-  | { type: "export-check" }
-  | { type: "made-for"; value: MadeFor }
   | { type: "import" }
   | { type: "new-infopanel" }
-  | { type: "convert"; scope: "zone" | "screen" }
   | { type: "undo" }
   | { type: "redo" }
   | { type: "shortcuts" }
@@ -119,10 +116,6 @@ export interface CommandState {
   appearancePresets: { id: string; name: string }[];
   /** That level's name, the themes' hint (This screen when unset). */
   themeLevel?: string;
-  /** The screen is made for InfoPanel: the palette offers its Export check. */
-  exportCheck?: boolean;
-  /** The screen's Made for: the palette offers the other answer. */
-  madeFor?: MadeFor;
 }
 
 /** The Design left panel's two tabs. */
@@ -161,11 +154,6 @@ function generalCommands(s: CommandState): Command[] {
     ...(s.canUndo ? [general("undo", "Undo", { type: "undo" }, KEYS.undo)] : []),
     ...(s.canRedo ? [general("redo", "Redo", { type: "redo" }, KEYS.redo)] : []),
     general("export", "Export & back up…", { type: "export" }),
-    ...(s.exportCheck ? [general("export-check", "Export check", { type: "export-check" }, "what exports to InfoPanel")] : []),
-    ...(s.madeFor
-      ? [general("made-for", s.madeFor === "infopanel" ? "Made for Studio panels only" : "Made for InfoPanel too", { type: "made-for", value: s.madeFor === "infopanel" ? "studio" : "infopanel" }, "this screen")]
-      : []),
-    general("convert-screen", "Convert screen to InfoPanel profile (experimental)…", { type: "convert", scope: "screen" }),
     general("import", "Import…", { type: "import" }),
     general("new-infopanel", "New InfoPanel profile…", { type: "new-infopanel" }, "blank or from a template"),
     general("shortcuts", "Keyboard shortcuts", { type: "shortcuts" }, KEYS.cheatsheet),

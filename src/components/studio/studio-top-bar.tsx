@@ -5,7 +5,7 @@ import { IconButton } from "@/components/ui/icon-button";
 import { StatusDot } from "@/components/ui/status-chip";
 import { isTauri } from "@/lib/desktop";
 import type { ControlKiosk, ControlState } from "@/lib/control";
-import type { MadeFor, MonitorProfile } from "@/lib/layout";
+import type { MonitorProfile } from "@/lib/layout";
 import { cn } from "@/lib/utils";
 import type { SaveChip } from "./editor/save-chip";
 import { LiveControl } from "./live-popover";
@@ -52,9 +52,6 @@ export interface StudioTopBarProps {
   onExport: () => void;
   /** The Import door (a phone's menu). */
   onImport: () => void;
-  /** The screen's Made for, and its setter (a phone's menu; the File menu holds it elsewhere). */
-  madeFor: MadeFor;
-  onMadeFor: (value: MadeFor) => void;
   /** The File menu. */
   fileMenu?: ReactNode;
   canUndo: boolean;

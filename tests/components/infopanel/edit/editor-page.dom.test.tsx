@@ -14,14 +14,13 @@ beforeEach(() => {
 
 const zone = { id: "z", module: CANVAS_ID, colStart: 1, rowStart: 1, colSpan: 2, rowSpan: 1, visible: true, canvas: newStored({ name: "Desk", width: 800, height: 480 }) } as Placement & { canvas: StoredCanvas };
 const config = { profiles: [{ id: "p1", name: "Main", pages: [{ id: "pg", name: "Page 1", placements: [zone] }] }] } as unknown as DashboardConfig;
-const history = { canUndo: false, canRedo: false, undo: vi.fn(), redo: vi.fn() };
 
 describe("the canvas editor in Edit", () => {
   it("renders the palette and layers as the left panel's tabs, the profile's settings, and a palette click adds the item", () => {
     const setConfig = vi.fn();
     render(
       <ToastProvider>
-        <HostedEditor zone={zone} setConfig={setConfig} history={history} profileId="p1" />
+        <HostedEditor zone={zone} setConfig={setConfig} profileId="p1" />
       </ToastProvider>,
     );
     const palette = screen.getByRole("region", { name: "Add" });
@@ -46,7 +45,7 @@ describe("the canvas editor in Edit", () => {
   it("a palette entry drags its kind, and shows the hint line under the canvas", () => {
     render(
       <ToastProvider>
-        <HostedEditor zone={zone} setConfig={vi.fn()} history={history} profileId="p1" />
+        <HostedEditor zone={zone} setConfig={vi.fn()} profileId="p1" />
       </ToastProvider>,
     );
     const setData = vi.fn();
@@ -64,7 +63,7 @@ describe("the canvas editor in Edit", () => {
     const onDismiss = vi.fn();
     render(
       <ToastProvider>
-        <HostedEditor zone={zone} setConfig={vi.fn()} history={history} profileId="p1" unbound={["GPU power", "Uptime"]} onDismissUnbound={onDismiss} />
+        <HostedEditor zone={zone} setConfig={vi.fn()} profileId="p1" unbound={["GPU power", "Uptime"]} onDismissUnbound={onDismiss} />
       </ToastProvider>,
     );
     const note = screen.getByText("Not found on this PC, so left unbound: GPU power, Uptime.").closest<HTMLElement>('[role="status"]')!;
@@ -77,7 +76,7 @@ describe("the canvas editor in Edit", () => {
   it("has no Done: a page is never a free area opened from the grid (Edit v3 SPEC §1)", () => {
     render(
       <ToastProvider>
-        <HostedEditor zone={zone} setConfig={vi.fn()} history={history} profileId="p1" />
+        <HostedEditor zone={zone} setConfig={vi.fn()} profileId="p1" />
       </ToastProvider>,
     );
     expect(screen.queryByRole("button", { name: "Done" })).toBeNull();

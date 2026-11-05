@@ -21,16 +21,15 @@ export const CHECKS: Record<FixtureName, Check[]> = {
   profile: [
     c(1, 'Titlebar tag "Imported from InfoPanel"; same page tabs, canvas and panels as a screen'),
     c(3, "Canvas shows the profile’s 8 × 5 cell lines; items keep their imported pixel positions"),
-    c(4, 'Layers: group Temps expanded; items show their icon, "item" (screen-reader text), the placed-freely mark and a status icon'),
-    c(1, 'Pill "Export check · 7 as is · 1 approximated"; a badge on every canvas part'),
-    c(6, 'CPU temp selected: "InfoPanel item", "Placed freely" chip, X / Y / W / H in px, a "Snap to grid" action, On InfoPanel line'),
+    c(4, 'Layers: group Temps expanded; items show their icon, "item" (screen-reader text) and the placed-freely mark'),
+    c(6, 'CPU temp selected: "InfoPanel item", "Placed freely" chip, X / Y / W / H in px and a "Snap to grid" action'),
     c(6, "No link or copy that points to a separate InfoPanel editor"),
   ],
   addw: [
-    c(5, "Add tab open as a tile grid; on an InfoPanel screen InfoPanel items come first; every tile has a status icon"),
-    c(3, "Weather dropped without Alt snaps to cells (COL 7 · ROW 5 · W 2 · H 1), selected, with the picture badge"),
-    c(5, 'Toast "Weather added. On InfoPanel export it becomes a picture…" with Undo and Change'),
-    c(6, 'Inspector: "Widget · col, row", the Place row, On InfoPanel segmented Recreate · Snapshot · Leave out'),
+    c(5, "Add tab open as a tile grid; on an InfoPanel screen InfoPanel items come first"),
+    c(3, "Weather dropped without Alt snaps to cells (COL 7 · ROW 5 · W 2 · H 1), selected"),
+    c(5, 'Toast "Weather added" with Undo'),
+    c(6, 'Inspector: "Widget · col, row" and the Place row'),
     c(4, "Switching to Layers shows Weather as the top row in the same tree as the items"),
   ],
   alt: [
@@ -40,13 +39,6 @@ export const CHECKS: Record<FixtureName, Check[]> = {
     c(3, "Alt does nothing for widgets: they always snap to cells and can never overlap another widget"),
     c(6, 'Inspector: "Placed freely" chip, X / Y / W / H, and "Snap to grid" to put the item back on cells'),
     c(3, "Arrows move one cell; Alt+Arrows nudge items 1 px; Alt+Shift+Arrows 10 px"),
-  ],
-  export: [
-    c(1, "Made for InfoPanel too; the banner names the first part left out"),
-    c(1, "Inspector is the Export check: Live label, 6 px stacked bar, groups Left out → Becomes a picture → Approximated → Exports as is"),
-    c(1, 'Note "This page will be converted when you export. Review conversion…"'),
-    c(1, "Clicking a row selects that part; Esc or selecting anything closes the panel"),
-    c(1, 'Primary "Export .infopanel" with "Export writes a copy. Your screen isn’t changed."'),
   ],
   layersF: [
     c(4, "Weather (widget) nested in group \"Right column\" with Fan gauge (item): widgets and items share groups"),
@@ -64,10 +56,10 @@ export const CHECKS: Record<FixtureName, Check[]> = {
     c(3, "Widgets never overlap each other; items and elements may sit over widgets"),
   ],
   hover: [
-    c(5, "Add shows one row per tile: icon, name, one line of what it is, how many styles a widget holds, status icon when made for InfoPanel"),
+    c(5, "Add shows one row per tile: icon, name, one line of what it is, how many styles a widget holds"),
     c(5, "Section headers and category sub-headers stay"),
     c(5, "Hovering a tile (or arrow-key focus) opens the details card beside the panel after 250 ms, aligned to the tile row"),
-    c(5, 'Card: live render, name + category, description, size chip or "any size · InfoPanel item", "On InfoPanel: {status}"'),
+    c(5, 'Card: live render, name + category, description, size chip or "any size · InfoPanel item"'),
     c(5, 'Card footer "Click to add · drag to place"; the card never blocks the pointer'),
   ],
 };

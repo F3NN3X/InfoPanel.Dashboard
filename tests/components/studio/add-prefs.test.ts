@@ -39,15 +39,14 @@ describe("Add's segment and chip", () => {
 });
 
 describe("The tab Add opens on", () => {
-  const facts = { takesItems: true, infoPanel: false, storedChip: "All" };
-  it("is Items on a screen made for InfoPanel, and on a start or an old chip that ask for it", () => {
-    expect(startTab({ ...facts, infoPanel: true })).toBe("items");
+  const facts = { takesItems: true, storedChip: "All" };
+  it("is Items on a start or an old chip that ask for it", () => {
     expect(startTab({ ...facts, segment: "items" })).toBe("items");
     expect(startTab({ ...facts, storedChip: "InfoPanel" })).toBe("items");
     expect(startTab(facts)).toBe("widget");
   });
   it("is Widgets where the page takes no items, and when a start asks for Widgets", () => {
-    expect(startTab({ ...facts, infoPanel: true, takesItems: false })).toBe("widget");
-    expect(startTab({ ...facts, infoPanel: true, segment: "widgets" })).toBe("widget");
+    expect(startTab({ ...facts, takesItems: false })).toBe("widget");
+    expect(startTab({ ...facts, segment: "widgets" })).toBe("widget");
   });
 });

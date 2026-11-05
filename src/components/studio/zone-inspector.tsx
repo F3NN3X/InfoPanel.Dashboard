@@ -108,8 +108,6 @@ interface ZoneInspectorProps {
    * no inheritance chips.
    */
   place?: ReactNode;
-  /** The On InfoPanel section, last (a screen made for InfoPanel). */
-  onInfoPanel?: ReactNode;
 }
 
 // The Look knobs are the Theme view's chunk's, loaded with the Style tab.
@@ -198,7 +196,6 @@ export function ZoneInspector({
   request,
   onEditGauge,
   place,
-  onInfoPanel,
 }: ZoneInspectorProps) {
   const toast = useToast();
   const [picker, setPicker] = useState(false);
@@ -460,7 +457,6 @@ export function ZoneInspector({
   const placeRow = place ?? (
     <PlaceRow cell={{ col: zone.colStart, row: zone.rowStart, cols: zone.colSpan, rows: zone.rowSpan }} onCells={(patch) => onZoneBox(patch)} />
   );
-  const after = onInfoPanel;
   // The widget's views: tiles in place of the view select, which stays for the phone sheet's tools.
   const presetMod = !item && viewsOf(mod).length > 0 ? mod : undefined;
   const viewKey = presetMod && viewKeyOf(presetMod);
@@ -490,7 +486,6 @@ export function ZoneInspector({
         appearance={appearance}
         header={header}
         place={placeRow}
-        after={after}
         bound={bound}
         update={update}
         onChangeKind={(kind) => update((p) => ({ ...p, panel: { ...p.panel!, widgets: p.panel!.widgets.map((w) => (w.id === item.id ? convertKind(w, kind) : w)) } }))}
@@ -538,7 +533,6 @@ export function ZoneInspector({
           {presets}
         </>
       }
-      after={after}
       underline
       searchLabel="Search this widget's settings"
     />

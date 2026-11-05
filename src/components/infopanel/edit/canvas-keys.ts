@@ -2,7 +2,7 @@
  * The canvas zone editor's keys (spec §7): Ctrl+D duplicate, Ctrl+G group, Ctrl+Shift+G ungroup, Ctrl+Shift+O move out of its group, Ctrl+] / Ctrl+[
  * forward / backward (with Shift to the front / back), Ctrl+L lock, Ctrl+H hide, F2 rename (Edit v3 SPEC §14, the layer
  * menu's keys), Ctrl+Shift+S save as component, Del delete, arrows nudge 1 px (Shift: 10 px; by cells on a page
- * with a grid), Esc closes the Export check, clears the selection, then leaves a free area. While the editor is open the studio's zone shortcuts are held back ("block"), apart
+ * with a grid), Esc clears the selection, then leaves a free area. While the editor is open the studio's zone shortcuts are held back ("block"), apart
  * from the ones that still make sense in Edit's shell: undo, redo, save, the palette, the cheat sheet, the inspector
  * toggle and the page keys.
  */
